@@ -2140,7 +2140,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	GPUOffScreen *ofs;
 
 	/* bind */
-	ofs= GPU_offscreen_create(sizex, sizey);
+	ofs= GPU_offscreen_create(&sizex, &sizey);
 	if(ofs == NULL)
 		return NULL;
 

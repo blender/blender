@@ -847,7 +847,7 @@ struct GPUOffScreen {
 	GPUTexture *depth;
 };
 
-GPUOffScreen *GPU_offscreen_create(int width, int height)
+GPUOffScreen *GPU_offscreen_create(int *width, int *height)
 {
 	GPUOffScreen *ofs;
 
@@ -859,18 +859,24 @@ GPUOffScreen *GPU_offscreen_create(int width, int height)
 		return NULL;
 	}
 
-	ofs->depth = GPU_texture_create_depth(width, height);
+	ofs->depth = GPU_texture_create_depth(*width, *height);
 	if(!ofs->depth) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
 
+	if(*width!=ofs->depth->w || *height!=ofs->depth->h) {
+		*width= ofs->depth->w;
+		*height= ofs->depth->h;
+		printf("Offscreen size differs from given size!\n");
+	}
+	
 	if(!GPU_framebuffer_texture_attach(ofs->fb, ofs->depth)) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
 
-	ofs->color = GPU_texture_create_2D(width, height, NULL);
+	ofs->color = GPU_texture_create_2D(*width, *height, NULL);
 	if(!ofs->color) {
 		GPU_offscreen_free(ofs);
 		return NULL;

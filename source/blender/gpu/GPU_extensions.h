@@ -144,9 +144,10 @@ void GPU_framebuffer_free(GPUFrameBuffer *fb);
 void GPU_framebuffer_restore();
 
 /* GPU OffScreen
-   - wrapper around framebuffer and texture for simple offscreen drawing */
+   - wrapper around framebuffer and texture for simple offscreen drawing 
+   - changes size if graphics card can't support it */
 
-GPUOffScreen *GPU_offscreen_create(int width, int height);
+GPUOffScreen *GPU_offscreen_create(int *width, int *height);
 void GPU_offscreen_free(GPUOffScreen *ofs);
 void GPU_offscreen_bind(GPUOffScreen *ofs);
 void GPU_offscreen_unbind(GPUOffScreen *ofs);
