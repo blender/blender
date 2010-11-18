@@ -1278,6 +1278,11 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_items(prop, unit_systems);
 	RNA_def_property_ui_text(prop, "Unit System", "The unit system to use for button display");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	
+	prop= RNA_def_property(srna, "system_rotation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, rotation_units);
+	RNA_def_property_ui_text(prop, "Rotation Units", "Unit to use for displaying/editing rotation values");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "scale_length", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(prop, "Unit Scale", "Scale to use when converting between blender units and dimensions");
@@ -1288,12 +1293,6 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "use_separate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_UNIT_OPT_SPLIT);
 	RNA_def_property_ui_text(prop, "Separate Units", "Display units in pairs");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
-	
-	prop= RNA_def_property(srna, "rotation_units", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, rotation_units);
-	RNA_def_property_ui_text(prop, "Rotation Units", "Unit to use for displaying/editing rotation values");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 

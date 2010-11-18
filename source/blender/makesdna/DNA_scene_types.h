@@ -743,8 +743,10 @@ typedef struct bStats {
 typedef struct UnitSettings {
 	/* Display/Editing unit options for each scene */
 	float scale_length; /* maybe have other unit conversions? */
-	short system;
-	short flag; /* imperial, metric etc */
+	char system; /* imperial, metric etc */
+	char system_rotation; /* not implimented as a propper unit system yet */
+	short flag;
+	
 } UnitSettings;
 
 typedef struct PhysicsSettings {
