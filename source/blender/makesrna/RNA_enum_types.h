@@ -36,6 +36,7 @@ extern EnumPropertyItem DummyRNA_NULL_items[];
 extern EnumPropertyItem DummyRNA_DEFAULT_items[];
 
 extern EnumPropertyItem object_mode_items[];
+extern EnumPropertyItem metaelem_type_items[];
 
 extern EnumPropertyItem proportional_falloff_items[];
 extern EnumPropertyItem proportional_editing_items[];

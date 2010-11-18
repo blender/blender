@@ -40,6 +40,7 @@
 #include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_meta_types.h"
 
 #include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
 #include "ED_mesh.h"
@@ -78,6 +79,14 @@ static EnumPropertyItem collision_bounds_items[] = {
 	{OB_BOUND_POLYH, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
 	{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", ""},
 	//{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem metaelem_type_items[] = {
+	{MB_BALL, "BALL", ICON_META_BALL, "Ball", ""},
+	{MB_TUBE, "CAPSULE", ICON_META_CAPSULE, "Capsule", ""},
+	{MB_PLANE, "PLANE", ICON_META_PLANE, "Plane", ""},
+	{MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""}, // NOTE: typo at original definition!
+	{MB_CUBE, "CUBE", ICON_META_CUBE, "Cube", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 /* used for 2 enums */

@@ -486,16 +486,6 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 
 
 /* ***************** add primitives *************** */
-
-static EnumPropertyItem prop_metaball_types[]= {
-	{MB_BALL, "MBALL_BALL", ICON_META_BALL, "Meta Ball", ""},
-	{MB_TUBE, "MBALL_CAPSULE", ICON_META_CAPSULE, "Meta Capsule", ""},
-	{MB_PLANE, "MBALL_PLANE", ICON_META_PLANE, "Meta Plane", ""},
-	{MB_CUBE, "MBALL_CUBE", ICON_META_CUBE, "Meta Cube", ""},
-	{MB_ELIPSOID, "MBALL_ELLIPSOID", ICON_META_ELLIPSOID, "Meta Ellipsoid", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 static int object_metaball_add_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -565,7 +555,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_metaball_types, 0, "Primitive", "");
+	RNA_def_enum(ot->srna, "type", metaelem_type_items, 0, "Primitive", "");
 	ED_object_add_generic_props(ot, TRUE);
 }
 

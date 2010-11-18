@@ -309,6 +309,19 @@ float *make_orco_mball(Object *ob, ListBase *dispbase)
 
 	return orcodata;
 }
+
+/* Note on mball basis stuff 2.5x (this is a can of worms)
+ * This really needs a rewrite/refactorm its totally broken in anything other then basic cases
+ * Multiple Scenes + Set Scenes & mixing mball basis SHOULD work but fails to update the depsgraph on rename
+ * and linking into scenes or removal of basis mball. so take care when changing this code.
+ * 
+ * Main idiot thing here is that the system returns find_basis_mball() objects which fail a is_basis_mball() test.
+ *
+ * Not only that but the depsgraph and ther areas depend on this behavior!, so making small fixes here isnt worth it.
+ * - campbell
+ */
+
+
 /** \brief Test, if Object *ob is basic MetaBall.
  *
  * It test last character of Object ID name. If last character
@@ -385,6 +398,8 @@ void copy_mball_properties(Scene *scene, Object *active_object)
  * its name. All MetaBalls with same base of name can be
  * blended. MetaBalls with different basic name can't be
  * blended.
+ *
+ * warning!, is_basis_mball() can fail on returned object, see long note above.
  */
 Object *find_basis_mball(Scene *scene, Object *basis)
 {
