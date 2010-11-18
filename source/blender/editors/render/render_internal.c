@@ -347,6 +347,8 @@ static ScrArea *find_area_showing_r_result(bContext *C)
 					break;
 			}
 		}
+		if(sa)
+			break;
 	}
 
 	return sa;
