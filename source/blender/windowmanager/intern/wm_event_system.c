@@ -438,7 +438,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
  */
 static int wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
 {
-	return (wm->op_undo_depth == 0) && (ot->flag & OPTYPE_REGISTER);
+	return wm && (wm->op_undo_depth == 0) && (ot->flag & OPTYPE_REGISTER);
 }
 
 static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
@@ -831,7 +831,6 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 */
 int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA *properties, ReportList *reports)
 {
-	wmWindowManager *wm=	CTX_wm_manager(C);
 	int retval= OPERATOR_CANCELLED;
 
 #if 0
@@ -855,7 +854,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 	
 	/* keep the reports around if needed later */
 	if (	(retval & OPERATOR_RUNNING_MODAL) ||
-			((retval & OPERATOR_FINISHED) && wm_operator_register_check(wm, ot))
+			((retval & OPERATOR_FINISHED) && wm_operator_register_check(CTX_wm_manager(C), ot))
 	) {
 		reports->flag |= RPT_FREE; /* let blender manage freeing */
 	}
@@ -1722,7 +1721,11 @@ void wm_event_do_handlers(bContext *C)
 									}
 									
 									action |= wm_handlers_do(C, event, &ar->handlers);
-									
+
+									/* fileread case (python), [#29489] */
+									if(CTX_wm_window(C)==NULL)
+										return;
+
 									doit |= (BLI_in_rcti(&ar->winrct, event->x, event->y));
 									
 									if(action & WM_HANDLER_BREAK)

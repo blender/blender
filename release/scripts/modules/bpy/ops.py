@@ -153,21 +153,24 @@ class bpy_ops_submodule_op(object):
         return self.module + "." + self.func
 
     def __call__(self, *args, **kw):
+        import bpy
+        context = bpy.context
 
         # Get the operator from blender
+        wm = context.window_manager
+
         if args:
             C_dict, C_exec = __class__._parse_args(args)
             ret = op_call(self.idname_py(), C_dict, kw, C_exec)
         else:
             ret = op_call(self.idname_py(), None, kw)
 
-        if 'FINISHED' in ret:
-            import bpy
-            scene = bpy.context.scene
-            if scene:  # None in backgroud mode
+        if 'FINISHED' in ret and context.window_manager == wm:
+            scene = context.scene
+            if scene: # None in backgroud mode
                 scene.update()
             else:
-                for scene in bpy.data.scenes:
+                for scene in data.scenes:
                     scene.update()
 
         return ret
