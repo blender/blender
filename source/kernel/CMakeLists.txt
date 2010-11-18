@@ -35,7 +35,6 @@ SET(INC
 SET(SRC
 	gen_messaging/intern/messaging.c
 	gen_system/GEN_HashedPtr.cpp
-	gen_system/GEN_Matrix4x4.cpp
 	gen_system/SYS_SingletonSystem.cpp
 	gen_system/SYS_System.cpp
 )
