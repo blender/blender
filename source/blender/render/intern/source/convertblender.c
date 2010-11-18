@@ -2944,7 +2944,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 									*/
 
 								if(frontside)
-									normal_tri_v3( vlr->n,vlr->v2->co, vlr->v3->co, vlr->v4->co);
+									normal_tri_v3( vlr->n,vlr->v4->co, vlr->v3->co, vlr->v2->co);
 								else
 									normal_tri_v3( vlr->n,vlr->v1->co, vlr->v2->co, vlr->v3->co);
 
