@@ -13,4 +13,4 @@ incs += ' #intern/guardedalloc #source/blender/blenlib'
 if env['WITH_BF_CXX_GUARDEDALLOC']:
     defs.append('WITH_CXX_GUARDEDALLOC')
 
-env.BlenderLib ( 'bf_oglrasterizer', Split(sources), Split(incs), defines = defs, libtype=['core','player'], priority=[350,75], cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib ( 'ge_oglrasterizer', Split(sources), Split(incs), defines = defs, libtype=['core','player'], priority=[350,75], cxx_compileflags=env['BGE_CXXFLAGS'])

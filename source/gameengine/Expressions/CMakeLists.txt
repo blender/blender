@@ -61,4 +61,4 @@ IF(WITH_PYTHON)
 	ADD_DEFINITIONS(-DWITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
-BLENDERLIB(bf_expressions "${SRC}" "${INC}")
+BLENDERLIB(ge_logic_expressions "${SRC}" "${INC}")

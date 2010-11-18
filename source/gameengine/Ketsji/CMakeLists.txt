@@ -147,4 +147,4 @@ IF(WITH_BULLET)
 	LIST(APPEND INC ../../../source/gameengine/Physics/Bullet )
 ENDIF(WITH_BULLET)
 
-BLENDERLIB(bf_ketsji "${SRC}" "${INC}")
+BLENDERLIB(ge_logic_ketsji "${SRC}" "${INC}")

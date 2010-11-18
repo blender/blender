@@ -53,7 +53,7 @@ ADD_DEPENDENCIES(blenderplayer makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
-SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} gp_common gp_ghost blenkernel_blc)
+SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} ge_player_common ge_player_ghost blenkernel_blc)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} extern_binreloc)
@@ -62,53 +62,53 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 IF(UNIX)
 	# Sort libraries
 	SET(BLENDER_SORTED_LIBS
-		gp_ghost 
-		gp_common 
+		ge_player_ghost 
+		ge_player_common 
 		bf_intern_string 
 		bf_intern_ghost
 		bf_rna
 		bf_blenkernel
 		bf_blenloader 
 		bf_blenpluginapi 
-		bf_blroutines
+		ge_blen_routines
 		bf_editor_datafiles
-		bf_converter 
-		bf_ketsji 
-		bf_bullet 
-		bf_dummy
-		bf_common 
-		bf_logic 
-		bf_rasterizer 
-		bf_oglrasterizer 
-		bf_expressions 
-		bf_scenegraph
+		ge_converter 
+		ge_logic_ketsji 
+		ge_phys_bullet 
+		ge_phys_dummy
+		ge_phys_common 
+		ge_logic 
+		ge_rasterizer 
+		ge_oglrasterizer 
+		ge_logic_expressions 
+		ge_scenegraph
 		bf_ikplugin
 		bf_intern_itasc
 		bf_intern_ik
 		bf_intern_smoke
 		bf_modifiers
 		bf_intern_moto 
-		bf_kernel 
+		bf_gen_system 
 		bf_nodes
 		bf_gpu
 		bf_imbuf
 		bf_avi 
-		kx_network 
-		bf_ngnetwork 
-		bf_loopbacknetwork 
+		ge_logic_network 
+		ge_logic_ngnetwork 
+		ge_logic_loopbacknetwork 
 		extern_bullet 
 		bf_intern_guardedalloc 
 		bf_intern_memutil 
 		bf_python
 		bf_python_ext
 		bf_blenlib 
-		bf_cineon
-		bf_openexr 
+		bf_imbuf_cineon
+		bf_imbuf_openexr 
 		extern_openjpeg 
-		bf_dds
+		bf_imbuf_dds
 		bf_readblenfile 
 		bf_dna
-		bf_videotex
+		ge_videotex
 		bf_blenfont
 		bf_intern_audaspace
 		blenkernel_blc

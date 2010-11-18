@@ -26,4 +26,4 @@ if env['WITH_BF_CXX_GUARDEDALLOC']:
     defs.append('WITH_CXX_GUARDEDALLOC')
     incs += ' #/intern/guardedalloc'
 
-env.BlenderLib ( 'bf_logic', sources, Split(incs), defs, libtype=['core','player'], priority=[330,65], cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib ( 'ge_logic', sources, Split(incs), defs, libtype=['core','player'], priority=[330,65], cxx_compileflags=env['BGE_CXXFLAGS'])

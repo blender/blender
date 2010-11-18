@@ -40,4 +40,4 @@ SET(SRC
 	gen_system/SYS_System.cpp
 )
 
-BLENDERLIB(bf_kernel "${SRC}" "${INC}")
+BLENDERLIB(bf_gen_system "${SRC}" "${INC}")

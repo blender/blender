@@ -38,4 +38,4 @@ SET(SRC
 	SG_Tree.cpp
 )
 
-BLENDERLIB(bf_scenegraph "${SRC}" "${INC}")
+BLENDERLIB(ge_scenegraph "${SRC}" "${INC}")

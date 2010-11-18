@@ -44,4 +44,4 @@ IF(WITH_IMAGE_OPENEXR)
 	ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_IMAGE_OPENEXR)
 
-BLENDERLIB(bf_openexr "${SRC}" "${INC}")                 
+BLENDERLIB(bf_imbuf_openexr "${SRC}" "${INC}")                 

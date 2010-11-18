@@ -54,4 +54,4 @@ IF(WITH_PYTHON)
 	ADD_DEFINITIONS(-DWITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
-BLENDERLIB(bf_blroutines "${SRC}" "${INC}")
+BLENDERLIB(ge_blen_routines "${SRC}" "${INC}")

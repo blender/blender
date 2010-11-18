@@ -33,4 +33,4 @@ SET(SRC
 	DummyPhysicsEnvironment.cpp
 )
 
-BLENDERLIB(bf_dummy "${SRC}" "${INC}")
+BLENDERLIB(ge_phys_dummy "${SRC}" "${INC}")

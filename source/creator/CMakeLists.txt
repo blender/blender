@@ -524,44 +524,44 @@ ENDIF(WITH_MOD_FLUID)
 		bf_blenpluginapi 
 		bf_imbuf 
 		bf_avi 
-		bf_cineon 
-		bf_openexr 
-		bf_dds
+		bf_imbuf_cineon 
+		bf_imbuf_openexr 
+		bf_imbuf_dds
 		bf_readblenfile
 		bf_collada
 		bf_intern_bsp 
 		bf_intern_bop 
-		bf_kernel 
+		bf_gen_system 
 		bf_intern_decimate 
 		bf_intern_elbeem 
 		bf_intern_ik 
 		bf_intern_memutil 
 		bf_intern_guardedalloc 
 		bf_intern_ctr 
-		bf_blroutines 
-		bf_converter 
-		bf_dummy
-		bf_bullet 
+		ge_blen_routines 
+		ge_converter 
+		ge_phys_dummy
+		ge_phys_bullet 
 		bf_intern_smoke
 		extern_minilzo
 		extern_lzma
-		bf_ketsji 
-		bf_common
-		bf_logic 
-		bf_rasterizer 
-		bf_oglrasterizer 
-		bf_expressions 
-		bf_scenegraph 
-		kx_network 
-		bf_kernel
+		ge_logic_ketsji 
+		ge_phys_common
+		ge_logic 
+		ge_rasterizer 
+		ge_oglrasterizer 
+		ge_logic_expressions 
+		ge_scenegraph 
+		ge_logic_network 
+		bf_gen_system
 		bf_python # duplicate for BPY_eval_driver
-		bf_ngnetwork 
+		ge_logic_ngnetwork 
 		extern_bullet 
-		bf_loopbacknetwork 
+		ge_logic_loopbacknetwork 
 		bf_intern_moto 
 		extern_glew
 		extern_openjpeg
-		bf_videotex
+		ge_videotex
 		bf_rna
 		bf_dna
 		bf_blenfont

@@ -44,4 +44,4 @@ SET(SRC
 	logmemfile.c
 )
 
-BLENDERLIB(bf_cineon "${SRC}" "${INC}")
+BLENDERLIB(bf_imbuf_cineon "${SRC}" "${INC}")

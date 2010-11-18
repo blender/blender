@@ -53,4 +53,4 @@ SET(SRC
 
 ADD_DEFINITIONS(-DGLEW_STATIC)
 
-BLENDERLIB(bf_rasterizer "${SRC}" "${INC}")
+BLENDERLIB(ge_rasterizer "${SRC}" "${INC}")
