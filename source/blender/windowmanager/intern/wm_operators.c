@@ -869,7 +869,7 @@ int WM_operator_winactive(bContext *C)
 	return 1;
 }
 
-/* op->invoke */
+/* op->exec */
 static void redo_cb(bContext *C, void *arg_op, int UNUSED(event))
 {
 	wmOperator *lastop= arg_op;
