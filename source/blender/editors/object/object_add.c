@@ -105,15 +105,16 @@ void ED_object_location_from_view(bContext *C, float *loc)
 
 void ED_object_rotation_from_view(bContext *C, float *rot)
 {
-	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
-	
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	if(rv3d) {
-		rv3d->viewquat[0]= -rv3d->viewquat[0];
-		quat_to_eul( rot, rv3d->viewquat);
-		rv3d->viewquat[0]= -rv3d->viewquat[0];
+		float quat[4];
+		copy_qt_qt(quat, rv3d->viewquat);
+		quat[0]= -quat[0];
+		quat_to_eul(rot, quat);
 	}
-	else
-		rot[0] = rot[1] = rot[2] = 0.f;
+	else {
+		zero_v3(rot);
+	}
 }
 
 void ED_object_base_init_transform(bContext *C, Base *base, float *loc, float *rot)
@@ -258,8 +259,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 		view_align = RNA_boolean_get(op->ptr, "view_align");
 	else {
 		view_align = U.flag & USER_ADD_VIEWALIGNED;
-		if(view_align) 
-			RNA_boolean_set(op->ptr, "view_align", 1);
+		RNA_boolean_set(op->ptr, "view_align", view_align);
 	}
 	
 	if (view_align)
