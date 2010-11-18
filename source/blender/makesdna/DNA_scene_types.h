@@ -453,7 +453,7 @@ typedef struct GameData {
 
 	/* stereo/dome mode */
 	struct GameDome dome;
-	short stereoflag, stereomode, xsch, ysch; //xsch and ysch can be deleted !!!
+	short stereoflag, stereomode, xsch, ysch; //xsch and ysch used for backwards compat.
 	float eyeseparation, pad1;
 } GameData;
 

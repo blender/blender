@@ -946,7 +946,7 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 	RNA_pointer_create(&mball->id, &RNA_MetaElement, mball->lastelem, &ptr);
 	
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, &ptr, "location", 0, "Location", 0);
+	uiItemR(col, &ptr, "co", 0, "Location", 0);
 	
 	uiItemR(col, &ptr, "radius", 0, "Radius", 0);
 	uiItemR(col, &ptr, "stiffness", 0, "Stiffness", 0);

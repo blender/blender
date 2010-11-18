@@ -338,26 +338,41 @@ Scene *add_scene(const char *name)
 	sce->r.yasp= 1;
 	sce->r.xparts= 8;
 	sce->r.yparts= 8;
-	sce->r.size= 25;
+	sce->r.mblur_samples= 1;
+	sce->r.filtertype= R_FILTER_MITCH;
+	sce->r.size= 50;
 	sce->r.planes= 24;
+	sce->r.imtype= R_PNG;
 	sce->r.quality= 90;
+	sce->r.displaymode= R_OUTPUT_AREA;
 	sce->r.framapto= 100;
 	sce->r.images= 100;
 	sce->r.framelen= 1.0;
-	sce->r.frs_sec= 25;
+	sce->r.blurfac= 0.5;
+	sce->r.frs_sec= 24;
 	sce->r.frs_sec_base= 1;
+	sce->r.edgeint= 10;
 	sce->r.ocres = 128;
 	sce->r.color_mgt_flag |= R_COLOR_MANAGEMENT;
+	sce->r.gauss= 1.0;
+	
+	/* deprecated but keep for upwards compat */
+	sce->r.postgamma= 1.0;
+	sce->r.posthue= 0.0;
+	sce->r.postsat= 1.0;
 	
 	sce->r.bake_mode= 1;	/* prevent to include render stuff here */
-	sce->r.bake_filter= 8;
+	sce->r.bake_filter= 2;
 	sce->r.bake_osa= 5;
 	sce->r.bake_flag= R_BAKE_CLEAR;
 	sce->r.bake_normal_space= R_BAKE_SPACE_TANGENT;
-
 	sce->r.scemode= R_DOCOMP|R_DOSEQ|R_EXTENSION;
-	sce->r.stamp= R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_SCENE|R_STAMP_CAMERA|R_STAMP_RENDERTIME;
+	sce->r.stamp= R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE|R_STAMP_FILENAME|R_STAMP_RENDERTIME;
 	sce->r.stamp_font_id= 12;
+	sce->r.fg_stamp[0]= sce->r.fg_stamp[1]= sce->r.fg_stamp[2]= 0.8f;
+	sce->r.fg_stamp[3]= 1.0f;
+	sce->r.bg_stamp[0]= sce->r.bg_stamp[1]= sce->r.bg_stamp[2]= 0.0f;
+	sce->r.bg_stamp[3]= 0.25f;
 
 	sce->r.seq_prev_type= OB_SOLID;
 	sce->r.seq_rend_type= OB_SOLID;
@@ -445,6 +460,9 @@ Scene *add_scene(const char *name)
 	pset->brush[PE_BRUSH_CUT].strength= 100;
 
 	sce->r.ffcodecdata.audio_mixrate = 44100;
+	sce->r.ffcodecdata.audio_volume = 1.0f;
+
+	BLI_strncpy(sce->r.engine, "BLENDER_RENDER", sizeof(sce->r.engine));
 
 	sce->audio.distance_model = 2.0;
 	sce->audio.doppler_factor = 1.0;
@@ -470,8 +488,8 @@ Scene *add_scene(const char *name)
 	sce->gm.dome.resbuf = 1.0f;
 	sce->gm.dome.tilt = 0;
 
-	sce->gm.xplay= 800;
-	sce->gm.yplay= 600;
+	sce->gm.xplay= 640;
+	sce->gm.yplay= 480;
 	sce->gm.freqplay= 60;
 	sce->gm.depth= 32;
 
