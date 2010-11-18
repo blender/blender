@@ -859,6 +859,21 @@ int scene_marker_tfm_extend(Scene *scene, int delta, int flag, int frame, char s
 	return tot;
 }
 
+int scene_marker_tfm_scale(struct Scene *scene, float value, int flag)
+{
+	TimeMarker *marker;
+	int tot= 0;
+
+	for (marker= scene->markers.first; marker; marker= marker->next) {
+		if ((marker->flag & flag) == flag) {
+			marker->frame= CFRA + (int)floorf(((float)(marker->frame - CFRA) * value) + 0.5f);
+			tot++;
+		}
+	}
+
+	return tot;
+}
+
 Base *scene_add_base(Scene *sce, Object *ob)
 {
 	Base *b= MEM_callocN(sizeof(*b), "scene_add_base");

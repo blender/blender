@@ -4886,6 +4886,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				else if (ELEM(t->frame_side, 'L', 'R'))
 					scene_marker_tfm_extend(t->scene, floor(t->vec[0] + 0.5f), SELECT, t->scene->r.cfra, t->frame_side);
 			}
+			else if(t->mode == TFM_TIME_SCALE) {
+				scene_marker_tfm_scale(t->scene, t->vec[0], SELECT);
+			}
 		}
 
 #if 0 // XXX future of this is still not clear
