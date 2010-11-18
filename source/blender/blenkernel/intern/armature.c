@@ -2410,7 +2410,7 @@ void where_is_pose (Scene *scene, Object *ob)
 	
 	if(ELEM(NULL, arm, scene)) return;
 	if((ob->pose==NULL) || (ob->pose->flag & POSE_RECALC)) 
-	   armature_rebuild_pose(ob, arm);
+		armature_rebuild_pose(ob, arm);
 	   
 	ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);	/* not accurate... */
 	

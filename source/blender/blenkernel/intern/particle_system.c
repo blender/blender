@@ -2296,7 +2296,7 @@ static void psys_update_effectors(ParticleSimulationData *sim)
 
  In theory, there could be unlimited implementation of SPH simulators
 
- This code uses in some parts adapted algorithms from the pseduo code as outlined in the Research paper:
+ This code uses in some parts adapted algorithms from the pseudo code as outlined in the Research paper:
 
  Titled: Particle-based Viscoelastic Fluid Simulation.
  Authors: Simon Clavet, Philippe Beaudoin and Pierre Poulin
