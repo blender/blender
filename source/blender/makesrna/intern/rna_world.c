@@ -98,6 +98,16 @@ static void rna_World_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, wo);
 }
 
+/* so camera mist limits redraw */
+static void rna_World_draw_mist_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	World *wo= ptr->id.data;
+
+	DAG_id_flush_update(&wo->id, 0);
+	WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, wo);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
+}
+
 static void rna_World_stars_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
@@ -388,14 +398,14 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 10000, 10, 2);
 	RNA_def_property_ui_text(prop, "Start", "Starting distance of the mist, measured from the camera");
-	RNA_def_property_update(prop, 0, "rna_World_draw_update");
+	RNA_def_property_update(prop, 0, "rna_World_draw_mist_update");
 
 	prop= RNA_def_property(srna, "depth", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "mistdist");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 10000, 10, 2);
 	RNA_def_property_ui_text(prop, "Depth", "The distance over which the mist effect fades in");
-	RNA_def_property_update(prop, 0, "rna_World_draw_update");
+	RNA_def_property_update(prop, 0, "rna_World_draw_mist_update");
 
 	prop= RNA_def_property(srna, "height", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "misthi");
