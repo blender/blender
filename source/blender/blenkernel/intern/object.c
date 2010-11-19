@@ -2534,51 +2534,52 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			if (G.f & G_DEBUG)
 				printf("recalcdata %s\n", ob->id.name+2);
-			
+
+			if(adt) {
+				/* evaluate drivers */
+				// XXX: for mesh types, should we push this to derivedmesh instead?
+				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
+			}
+
 			/* includes all keys and modifiers */
-			if(ob->type==OB_MESH) {
-				EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
-				
-				/* evaluate drivers */
-				// XXX: should we push this to derivedmesh instead?
-				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
-				
-					// here was vieweditdatamask? XXX
-				if(em) {
-					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
-					BKE_mesh_end_editmesh(ob->data, em);
-				} else
-					makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
-			}
-			else if(ob->type==OB_MBALL) {
-				/* evaluate drivers */
-				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
-				makeDispListMBall(scene, ob);
-			} 
-			else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-				/* evaluate drivers */
-				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
-				makeDispListCurveTypes(scene, ob, 0);
-			}
-			else if(ELEM(ob->type, OB_CAMERA, OB_LAMP)) {
-				/* evaluate drivers */
-				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
-			}
-			else if(ob->type==OB_LATTICE) {
-				lattice_calc_modifiers(scene, ob);
-			}
-			else if(ob->type==OB_ARMATURE) {
-				/* evaluate drivers */
-				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
-				
+			switch(ob->type) {
+			case OB_MESH:
+				{
+					EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
+						// here was vieweditdatamask? XXX
+					if(em) {
+						makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
+						BKE_mesh_end_editmesh(ob->data, em);
+					} else
+						makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
+				}
+				break;
+
+			case OB_ARMATURE:
 				if(ob->id.lib && ob->proxy_from) {
-					copy_pose_result(ob->pose, ob->proxy_from->pose);
 					// printf("pose proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
+					copy_pose_result(ob->pose, ob->proxy_from->pose);
 				}
 				else {
 					where_is_pose(scene, ob);
 				}
+				break;
+
+			case OB_MBALL:
+				makeDispListMBall(scene, ob);
+				break;
+
+			case OB_CURVE:
+			case OB_SURF:
+			case OB_FONT:
+				makeDispListCurveTypes(scene, ob, 0);
+				break;
+				
+			case OB_LATTICE:
+				lattice_calc_modifiers(scene, ob);
+				break;
 			}
+
 
 			if(ob->particlesystem.first) {
 				ParticleSystem *tpsys, *psys;
