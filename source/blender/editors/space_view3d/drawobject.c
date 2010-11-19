@@ -3559,6 +3559,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		case PART_DRAW_AXIS:
 			/* lets calculate the scale: */
 			pixsize= view3d_pixel_size(rv3d, ob->obmat[3]);
+			
+			if(part->draw_size==0.0)
+				pixsize*=2.0;
+			else
+				pixsize*=part->draw_size;
 
 			if(draw_as==PART_DRAW_AXIS)
 				create_cdata = 1;
