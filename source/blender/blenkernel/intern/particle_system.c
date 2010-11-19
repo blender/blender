@@ -2305,7 +2305,7 @@ static void psys_update_effectors(ParticleSimulationData *sim)
  Presented at Siggraph, (2005)
 
 ***********************************************************************************************************/
-static void particle_fluidsim(ParticleSystem *psys, int own_psys, ParticleData *pa, ParticleSettings *part, float dtime, float mass, float *gravity)
+static void particle_fluidsim(ParticleSystem *psys, int own_psys, ParticleData *pa, float dtime, float mass, float *gravity)
 {
 	SPHFluidSettings *fluid = psys->part->fluid;
 	KDTreeNearest *ptn = NULL;
@@ -2398,14 +2398,14 @@ static void particle_fluidsim(ParticleSystem *psys, int own_psys, ParticleData *
 static void apply_particle_fluidsim(Object *ob, ParticleSystem *psys, ParticleData *pa, float dtime, float *gravity){
 	ParticleTarget *pt;
 
-	particle_fluidsim(psys, 1, pa, psys->part, dtime, psys->part->mass, gravity);
+	particle_fluidsim(psys, 1, pa, dtime, psys->part->mass, gravity);
 	
 	/*----check other SPH systems (Multifluids) , each fluid has its own parameters---*/
 	for(pt=psys->targets.first; pt; pt=pt->next) {
 		ParticleSystem *epsys = psys_get_target_system(ob, pt);
 
 		if(epsys)
-			particle_fluidsim(epsys, 0, pa, epsys->part, dtime, psys->part->mass, gravity);
+			particle_fluidsim(epsys, 0, pa, dtime, psys->part->mass, gravity);
 	}
 	/*----------------------------------------------------------------*/	 	 
 }
