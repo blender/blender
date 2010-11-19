@@ -52,25 +52,23 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.label(text="Object:")
         col.prop(md, "object", text="")
-
-        col = split.column()
-        col.label(text="Vertex Group::")
-        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        sub = col.column()
-        sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert_vertex_group")
-
-        split = layout.split()
+        col.prop(md, "use_deform_preserve_volume")
 
         col = split.column()
         col.label(text="Bind To:")
         col.prop(md, "use_vertex_groups", text="Vertex Groups")
         col.prop(md, "use_bone_envelopes", text="Bone Envelopes")
 
+        split = layout.split()
+        
         col = split.column()
-        col.label(text="Deformation:")
-        col.prop(md, "use_deform_preserve_volume")
         col.prop(md, "use_multi_modifier")
+        col = col.split()
+        col.active = md.use_multi_modifier
+        col.prop_search(md, "vertex_group_multi_modifier", ob, "vertex_groups", text="")
+        sub = col.column()
+        sub.active = bool(md.vertex_group_multi_modifier)
+        sub.prop(md, "invert_vertex_group_multi_modifier")
 
     def ARRAY(self, layout, ob, md):
         layout.prop(md, "fit_type")
