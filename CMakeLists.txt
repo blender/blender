@@ -318,12 +318,6 @@ IF(UNIX AND NOT APPLE)
 
 	# GNU Compiler
 	IF(CMAKE_COMPILER_IS_GNUCC)
-		IF(WITH_OPENMP)
-			LIST(APPEND LLIBS -lgomp)
-			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-		ENDIF(WITH_OPENMP)
-
 		SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 	
 		# Better warnings
@@ -333,12 +327,6 @@ IF(UNIX AND NOT APPLE)
 
 	# Intel C++ Compiler
 	ELSEIF(CMAKE_C_COMPILER_ID MATCHES "Intel")
-		IF(WITH_OPENMP)
-			LIST(APPEND LLIBS -lgomp)
-			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -openmp")
-			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -openmp")
-		ENDIF(WITH_OPENMP)
-
 		# think these next two are broken
 		FIND_PROGRAM(XIAR xiar) 
 		IF(XIAR) 
@@ -462,12 +450,7 @@ IF(WIN32)
 		SET(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
 		SET(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
 		SET(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
-		
-		IF(WITH_OPENMP)
-			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /openmp ")
-			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp ")
-		ENDIF(WITH_OPENMP)
-		
+
 		IF(WITH_INTERNATIONAL)
 			SET(GETTEXT ${LIBDIR}/gettext)
 			SET(GETTEXT_INC ${GETTEXT}/include)
@@ -589,12 +572,6 @@ IF(WIN32)
 			# Better warnings
 			SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 			SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
-			
-			IF(WITH_OPENMP)
-				SET(LLIBS "${LLIBS} -lgomp")
-				SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-				SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-			ENDIF(WITH_OPENMP)
 
 			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
 			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
@@ -825,12 +802,6 @@ IF(APPLE)
 		SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
 	ENDIF (WITH_COCOA)
 
-	IF(WITH_OPENMP)
-		SET(LLIBS "${LLIBS} -lgomp")
-		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-	ENDIF(WITH_OPENMP)
-
 	IF (WITH_OPENCOLLADA)
 		SET(OPENCOLLADA ${LIBDIR}/opencollada)
 		SET(OPENCOLLADA_INC ${OPENCOLLADA}/include)
@@ -953,6 +924,18 @@ FIND_PACKAGE(OpenGL)
 INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 # UNSET(OPENGL_LIBRARIES CACHE) # not compat with older cmake 
 # UNSET(OPENGL_xmesa_INCLUDE_DIR CACHE) # not compat with older cmake 
+
+#-----------------------------------------------------------------------------
+# Configure OpenMP.
+IF(WITH_OPENMP)
+	FIND_PACKAGE(OpenMP)	
+	IF(OPENMP_FOUND)
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+	ELSE(OPENMP_FOUND)
+		SET(WITH_OPENMP OFF)
+	ENDIF(OPENMP_FOUND)
+ENDIF(WITH_OPENMP) 
 
 #-----------------------------------------------------------------------------
 # Extra compile flags
