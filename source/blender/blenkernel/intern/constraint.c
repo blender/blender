@@ -3814,7 +3814,6 @@ static void pivotcon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 
 	/* pivot correction */
 	float axis[3], angle;
-	float dvec[3];
 	
 	/* firstly, check if pivoting should take place based on the current rotation */
 	if (data->rotAxis != PIVOTCON_AXIS_NONE) {
@@ -3861,14 +3860,16 @@ static void pivotcon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 
 	/* correct the pivot by the rotation axis otherwise the pivot translates when it shouldnt */
 	mat3_to_axis_angle(axis, &angle, rotMat);
-	sub_v3_v3v3(vec, pivot, cob->matrix[3]);
-	project_v3_v3v3(dvec, vec, axis);
-	sub_v3_v3(pivot, dvec);
-
+	if(angle) {
+		float dvec[3];
+		sub_v3_v3v3(vec, pivot, cob->matrix[3]);
+		project_v3_v3v3(dvec, vec, axis);
+		sub_v3_v3(pivot, dvec);
+	}
 
 	/* perform the pivoting... */
 		/* 1. take the vector from owner to the pivot */
-	sub_v3_v3v3(vec, pivot, cob->matrix[3]);
+	sub_v3_v3v3(vec, cob->matrix[3], pivot);
 		/* 2. rotate this vector by the rotation of the object... */
 	mul_m3_v3(rotMat, vec);
 		/* 3. make the rotation in terms of the pivot now */
