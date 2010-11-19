@@ -2689,10 +2689,19 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			case TEXCO_ANGMAP:
 				/* only works with texture being "real" */
 				/* use saacos(), fixes bug [#22398], float precission caused lo[2] to be slightly less then -1.0 */
-				fact= (1.0/M_PI)*saacos(lo[2])/(sqrt(lo[0]*lo[0] + lo[1]*lo[1])); 
-				tempvec[0]= lo[0]*fact;
-				tempvec[1]= lo[1]*fact;
-				tempvec[2]= 0.0;
+				if(lo[0] || lo[1]) { /* check for zero case [#24807] */
+					fact= (1.0/M_PI)*saacos(lo[2])/(sqrt(lo[0]*lo[0] + lo[1]*lo[1])); 
+					tempvec[0]= lo[0]*fact;
+					tempvec[1]= lo[1]*fact;
+					tempvec[2]= 0.0;
+				}
+				else {
+					/* this value has no angle, the vector is directly along the view.
+					 * avoide divide by zero and use a dummy value. */
+					tempvec[0]= 1.0f;
+					tempvec[1]= 0.0;
+					tempvec[2]= 0.0;
+				}
 				co= tempvec;
 				break;
 				
