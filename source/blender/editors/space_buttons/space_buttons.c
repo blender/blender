@@ -235,13 +235,8 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					buttons_area_redraw(sa, BCONTEXT_RENDER);
 					break;
 				case ND_FRAME:
-					buttons_area_redraw(sa, BCONTEXT_RENDER);
-					buttons_area_redraw(sa, BCONTEXT_OBJECT);
-					buttons_area_redraw(sa, BCONTEXT_MATERIAL);
-					buttons_area_redraw(sa, BCONTEXT_TEXTURE);
-					buttons_area_redraw(sa, BCONTEXT_WORLD);
-					buttons_area_redraw(sa, BCONTEXT_DATA);
-					buttons_area_redraw(sa, BCONTEXT_PHYSICS);
+					/* any buttons area can have animated properties so redraw all */
+					ED_area_tag_redraw(sa);
 					sbuts->preview= 1;
 					break;
 				case ND_OB_ACTIVE:
