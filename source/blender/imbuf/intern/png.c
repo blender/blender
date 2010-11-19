@@ -94,7 +94,7 @@ static void ReadData( png_structp png_ptr, png_bytep data, png_size_t length)
 	longjmp(png_jmpbuf(png_ptr), 1);
 }
 
-int imb_savepng(struct ImBuf *ibuf, char *name, int flags)
+int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 {
 	png_structp png_ptr;
 	png_infop info_ptr;

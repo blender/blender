@@ -206,7 +206,7 @@ void IMB_close_anim(struct anim *anim);
  * @attention Defined in anim.c
  */
 
-int ismovie(char *name);
+int ismovie(const char *name);
 void IMB_anim_set_preseek(struct anim *anim, int preseek);
 int IMB_anim_get_preseek(struct anim *anim);
 
@@ -296,19 +296,19 @@ short IMB_png_encode(struct ImBuf *ibuf, int file, int flags);
  *
  * @attention Defined in util.c
  */
-int IMB_ispic(char *name);
+int IMB_ispic(const char *name);
 
 /**
  *
  * @attention Defined in util.c
  */
-int IMB_isanim(char *name);
+int IMB_isanim(const char *name);
 
 /**
  *
  * @attention Defined in util.c
  */
-int imb_get_anim_type(char *name);
+int imb_get_anim_type(const char *name);
 
 /**
  *

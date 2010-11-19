@@ -54,14 +54,14 @@ int unpackSound(struct Main *bmain, struct ReportList *reports, struct bSound *s
 int unpackImage(struct ReportList *reports, struct Image *ima, int how);
 void unpackAll(struct Main *bmain, struct ReportList *reports, int how);
 
-int writePackedFile(struct ReportList *reports, char *filename, struct PackedFile *pf, int guimode);
+int writePackedFile(struct ReportList *reports, const char *filename, struct PackedFile *pf, int guimode);
 
 /* free */
 void freePackedFile(struct PackedFile *pf);
 
 /* info */
 int countPackedFiles(struct Main *bmain);
-int checkPackedFile(char *filename, struct PackedFile *pf);
+int checkPackedFile(const char *filename, struct PackedFile *pf);
 
 /* read */
 int seekPackedFile(struct PackedFile *pf, int offset, int whence);

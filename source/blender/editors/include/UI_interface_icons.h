@@ -66,7 +66,7 @@ void UI_icons_free();
 void UI_icons_free_drawinfo(void *drawinfo);
 
 struct ListBase *UI_iconfile_list(void);
-int UI_iconfile_get_index(char *filename);
+int UI_iconfile_get_index(const char *filename);
 
 
 #endif /*  UI_INTERFACE_ICONS_H */

@@ -211,7 +211,7 @@ int AVI_is_avi (char *name) {
 }
 */
 
-int AVI_is_avi (char *name) {
+int AVI_is_avi (const char *name) {
 	int temp, fcca, j;
 	AviMovie movie;
 	AviMainHeader header;
@@ -404,7 +404,7 @@ int AVI_is_avi (char *name) {
 				       
 }
 
-AviError AVI_open_movie (char *name, AviMovie *movie) {
+AviError AVI_open_movie (const char *name, AviMovie *movie) {
 	int temp, fcca, size, j;
 	
 	DEBUG_PRINT("opening movie\n");

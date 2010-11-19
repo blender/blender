@@ -233,7 +233,7 @@ static int dumptarga(struct ImBuf * ibuf, FILE * file)
 }
 
 
-int imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
+int imb_savetarga(struct ImBuf * ibuf, const char *name, int flags)
 {
 	char buf[20]= {0};
 	FILE *fildes;

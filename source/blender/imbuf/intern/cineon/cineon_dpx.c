@@ -116,7 +116,7 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 	return ibuf;
 }
 
-static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int flags)
+static int imb_save_dpx_cineon(ImBuf *buf, const char *filename, int use_cineon, int flags)
 {
 	LogImageByteConversionParameters conversion;
 	int width, height, depth;
@@ -182,7 +182,7 @@ static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int f
 	return 1;
 }
 
-short imb_savecineon(struct ImBuf *buf, char *myfile, int flags)
+short imb_savecineon(struct ImBuf *buf, const char *myfile, int flags)
 {
 	return imb_save_dpx_cineon(buf, myfile, 1, flags);
 }
@@ -200,7 +200,7 @@ ImBuf *imb_loadcineon(unsigned char *mem, int size, int flags)
 	return NULL;
 }
 
-short imb_save_dpx(struct ImBuf *buf, char *myfile, int flags)
+short imb_save_dpx(struct ImBuf *buf, const char *myfile, int flags)
 {
 	return imb_save_dpx_cineon(buf, myfile, 0, flags);
 }

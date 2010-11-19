@@ -62,7 +62,7 @@ char *get_valid_qtname(char *name);
 
 // quicktime movie import functions
 
-int		anim_is_quicktime (char *name);
+int		anim_is_quicktime (const char *name);
 int		startquicktime (struct anim *anim);
 void	free_anim_quicktime (struct anim *anim);
 ImBuf  *qtime_fetchibuf (struct anim *anim, int position);

@@ -79,7 +79,7 @@ void quicktime_exit(void)
 }
 
 
-int anim_is_quicktime (char *name)
+int anim_is_quicktime (const char *name)
 {
 	NSAutoreleasePool *pool;
 	

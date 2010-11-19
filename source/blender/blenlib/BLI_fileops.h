@@ -40,19 +40,19 @@
 extern "C" {
 #endif
 
-void  BLI_recurdir_fileops(char *dirname);
-int BLI_link(char *file, char *to);
-int BLI_is_writable(char *filename);
+void  BLI_recurdir_fileops(const char *dirname);
+int BLI_link(const char *file, const char *to);
+int BLI_is_writable(const char *filename);
 
 /**
  * @attention Do not confuse with BLI_exist
  */
 int   BLI_exists(const char *file);
-int   BLI_copy_fileops(char *file, char *to);
-int   BLI_rename(char *from, char *to);
-int   BLI_gzip(char *from, char *to);
-int   BLI_delete(char *file, int dir, int recursive);
-int   BLI_move(char *file, char *to);
+int   BLI_copy_fileops(const char *file, const char *to);
+int   BLI_rename(const char *from, const char *to);
+int   BLI_gzip(const char *from, const char *to);
+int   BLI_delete(const char *file, int dir, int recursive);
+int   BLI_move(const char *file, const char *to);
 int   BLI_touch(const char *file);
 
 /* only for the sane unix world: direct calls to system functions :( */

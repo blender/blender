@@ -661,7 +661,7 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-int imb_savejp2(struct ImBuf *ibuf, char *name, int flags) {
+int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags) {
 	
 	int quality = ibuf->ftype & 0xff;
 	

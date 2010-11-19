@@ -295,7 +295,7 @@ static int idp_sequence_type(PyObject *seq)
 }
 
 /* note: group can be a pointer array or a group */
-char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObject *ob)
+const char *BPy_IDProperty_Map_ValidateAndCreate(const char *name, IDProperty *group, PyObject *ob)
 {
 	IDProperty *prop = NULL;
 	IDPropertyTemplate val = {0};
@@ -352,7 +352,7 @@ char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObje
 		case IDP_IDPARRAY:
 			prop= IDP_NewIDPArray(name);
 			for (i=0; i<val.array.len; i++) {
-				char *error;
+				const char *error;
 				item = PySequence_GetItem(ob, i);
 				error= BPy_IDProperty_Map_ValidateAndCreate("", prop, item);
 				Py_DECREF(item);
@@ -432,7 +432,7 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 		}
 	}
 	else {
-		char *err;
+		const char *err;
 
 		if (!PyUnicode_Check(key)) {
 			PyErr_SetString( PyExc_TypeError, "only strings are allowed as subgroup keys" );

@@ -263,7 +263,7 @@ static char *find_new_name(char *name)
 	
 */
 
-int writePackedFile(ReportList *reports, char *filename, PackedFile *pf, int guimode)
+int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, int guimode)
 {
 	int file, number, remove_tmp = FALSE;
 	int ret_value = RET_OK;
@@ -331,7 +331,7 @@ PF_NOFILE		- the original file doens't exist
 
 */
 
-int checkPackedFile(char *filename, PackedFile *pf)
+int checkPackedFile(const char *filename, PackedFile *pf)
 {
 	struct stat st;
 	int ret_val, i, len, file;

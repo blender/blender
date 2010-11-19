@@ -341,7 +341,7 @@ IDProperty *IDP_CopyString(IDProperty *prop)
 }
 
 
-void IDP_AssignString(IDProperty *prop, char *st, int maxlen)
+void IDP_AssignString(IDProperty *prop, const char *st, int maxlen)
 {
 	int stlen;
 
@@ -356,7 +356,7 @@ void IDP_AssignString(IDProperty *prop, char *st, int maxlen)
 	BLI_strncpy(prop->data.pointer, st, stlen);
 }
 
-void IDP_ConcatStringC(IDProperty *prop, char *st)
+void IDP_ConcatStringC(IDProperty *prop, const char *st)
 {
 	int newlen;
 

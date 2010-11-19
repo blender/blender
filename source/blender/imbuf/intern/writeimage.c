@@ -51,7 +51,7 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 					IMB_rect_from_float(ibuf);
 			}
 			/* TODO. have const char for image write funcs */
-			return type->save(ibuf, (char *)name, flags);
+			return type->save(ibuf, name, flags);
 		}
 	}
 

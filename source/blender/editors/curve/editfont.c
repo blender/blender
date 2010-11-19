@@ -325,7 +325,7 @@ void FONT_OT_insert_lorem(wmOperatorType *ot)
 /* note this handles both ascii and utf8 unicode, previously
  * there were 3 functions that did effectively the same thing. */
 
-static int paste_file(bContext *C, ReportList *reports, char *filename)
+static int paste_file(bContext *C, ReportList *reports, const char *filename)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);

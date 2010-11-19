@@ -170,7 +170,7 @@ char *get_valid_qtname(char *name)
 #endif /* _WIN32 */
 
 
-int anim_is_quicktime (char *name)
+int anim_is_quicktime (const char *name)
 {
 	FSSpec	theFSSpec;
 	char	theFullPath[255];
