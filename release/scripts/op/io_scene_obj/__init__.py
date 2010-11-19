@@ -64,8 +64,9 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     bl_idname = "export_scene.obj"
     bl_label = 'Export OBJ'
-    
+
     filename_ext = ".obj"
+    filter_glob = StringProperty(default="*.obj;*.mtl", options={'HIDDEN'})
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.

@@ -53,6 +53,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
     bl_label = 'Export 3DS'
 
     filename_ext = ".3ds"
+    filter_glob = StringProperty(default="*.3ds", options={'HIDDEN'})
 
     def execute(self, context):
         import io_scene_3ds.export_3ds

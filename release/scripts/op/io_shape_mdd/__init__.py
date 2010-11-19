@@ -63,6 +63,7 @@ class ExportMDD(bpy.types.Operator, ExportHelper):
     bl_label = "Export MDD"
     
     filename_ext = ".mdd"
+    filter_glob = StringProperty(default="*.mdd", options={'HIDDEN'})
 
     # get first scene to get min and max properties for frames, fps
 

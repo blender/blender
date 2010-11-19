@@ -36,6 +36,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     bl_label = "Export FBX"
 
     filename_ext = ".fbx"
+    filter_glob = StringProperty(default="*.fbx", options={'HIDDEN'})
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.

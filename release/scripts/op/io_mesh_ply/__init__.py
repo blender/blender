@@ -33,6 +33,7 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
     bl_label = "Export PLY"
     
     filename_ext = ".ply"
+    filter_glob = StringProperty(default="*.ply", options={'HIDDEN'})
 
     use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default=True)
     use_normals = BoolProperty(name="Normals", description="Export Normals for smooth and hard shaded faces", default=True)
