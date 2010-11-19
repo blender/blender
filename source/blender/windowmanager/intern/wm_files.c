@@ -353,7 +353,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 			tstr[0] = '\0';
 			from_memory = 1;
 			if (op) {
-				BKE_report(op->reports, RPT_INFO, "Config directory with startup.blend file found."); 
+				BKE_report(op->reports, RPT_INFO, "Config directory with startup.blend file not found."); 
 			}
 		}
 	}

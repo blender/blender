@@ -2551,9 +2551,13 @@ void object_handle_update(Scene *scene, Object *ob)
 					makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
 			}
 			else if(ob->type==OB_MBALL) {
+				/* evaluate drivers */
+				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
 				makeDispListMBall(scene, ob);
 			} 
 			else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+				/* evaluate drivers */
+				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
 				makeDispListCurveTypes(scene, ob, 0);
 			}
 			else if(ELEM(ob->type, OB_CAMERA, OB_LAMP)) {
