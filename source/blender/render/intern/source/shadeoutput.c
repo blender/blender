@@ -1415,10 +1415,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 			}
 			if(i_noshad>0.0f) {
 				if(passflag & (SCE_PASS_DIFFUSE|SCE_PASS_SHADOW)) {
-					if(ma->mode & MA_SHADOW_TRA)
-						add_to_diffuse(shr->diff, shi, is, i_noshad*shadfac[0]*lacol[0], i_noshad*shadfac[1]*lacol[1], i_noshad*shadfac[2]*lacol[2]);
-					else
-						add_to_diffuse(shr->diff, shi, is, i_noshad*lacol[0], i_noshad*lacol[1], i_noshad*lacol[2]);
+					add_to_diffuse(shr->diff, shi, is, i_noshad*lacol[0], i_noshad*lacol[1], i_noshad*lacol[2]);
 				}
 				else
 					VECCOPY(shr->diff, shr->shad);
