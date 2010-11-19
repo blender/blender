@@ -1425,8 +1425,10 @@ static void rna_def_material_strand(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tangent Shading", "Uses direction of strands as normal for tangent-shading");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
+	/* this flag is only set when rendering, not to be edited manually */
 	prop= RNA_def_property(srna, "use_surface_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_STR_SURFDIFF);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Surface Diffuse", "Make diffuse shading more similar to shading the surface");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
