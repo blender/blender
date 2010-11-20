@@ -817,7 +817,7 @@ void recalcData(TransInfo *t)
 				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
 				if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
 					animrecord_check_state(t->scene, &ob->id, t->animtimer);
-					autokeyframe_ob_cb_func(NULL, t->scene, (View3D *)t->view, ob, t->mode);
+					autokeyframe_ob_cb_func(t->context, t->scene, (View3D *)t->view, ob, t->mode);
 				}
 				
 				/* sets recalc flags fully, instead of flushing existing ones 

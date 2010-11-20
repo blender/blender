@@ -1490,6 +1490,8 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 {
 	int options = 0;
 
+	t->context = C;
+
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 
 	t->state = TRANS_STARTING;
@@ -1723,11 +1725,15 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		}
 	}
 
+	t->context = NULL;
+
 	return 1;
 }
 
-void transformApply(const bContext *C, TransInfo *t)
+void transformApply(bContext *C, TransInfo *t)
 {
+	t->context = C;
+
 	if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT)))
 	{
 		selectConstraint(t);
@@ -1752,21 +1758,25 @@ void transformApply(const bContext *C, TransInfo *t)
 		//do_screenhandlers(G.curscreen);
 		t->redraw |= TREDRAW_HARD;
 	}
+
+	t->context = NULL;
 }
 
-void drawTransformApply(const struct bContext *C, struct ARegion *UNUSED(ar), void *arg)
+void drawTransformApply(const bContext *C, struct ARegion *UNUSED(ar), void *arg)
 {
 	TransInfo *t = arg;
 
 	if (t->redraw & TREDRAW_SOFT) {
 		t->redraw |= TREDRAW_HARD;
-		transformApply(C, t);
+		transformApply((bContext *)C, t);
 	}
 }
 
 int transformEnd(bContext *C, TransInfo *t)
 {
 	int exit_code = OPERATOR_RUNNING_MODAL;
+
+	t->context = C;
 
 	if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING)
 	{
@@ -1803,6 +1813,8 @@ int transformEnd(bContext *C, TransInfo *t)
 
 		viewRedrawForce(C, t);
 	}
+
+	t->context = NULL;
 
 	return exit_code;
 }
