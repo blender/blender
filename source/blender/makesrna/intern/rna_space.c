@@ -1376,7 +1376,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceImageEditor_image_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Image", "Image displayed and edited in this space");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
+	RNA_def_property_update(prop, NC_GEOM|ND_DATA, NULL); // is handled in image editor too
 
 	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
