@@ -2138,6 +2138,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	RegionView3D *rv3d= ar->regiondata;
 	ImBuf *ibuf;
 	GPUOffScreen *ofs;
+	
+	/* state changes make normal drawing go weird otherwise */
+	glPushAttrib(GL_LIGHTING_BIT);
 
 	/* bind */
 	ofs= GPU_offscreen_create(&sizex, &sizey);
@@ -2175,6 +2178,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	GPU_offscreen_unbind(ofs);
 	GPU_offscreen_free(ofs);
 
+	glPopAttrib();
+	
 	if(ibuf->rect_float && ibuf->rect)
 		IMB_rect_from_float(ibuf);
 	
