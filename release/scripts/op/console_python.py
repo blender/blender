@@ -82,6 +82,9 @@ def get_console(console_id):
         namespace["__builtins__"] = sys.modules["builtins"]
         namespace["bpy"] = bpy
         namespace["C"] = bpy.context
+        
+        namespace.update(__import__("mathutils").__dict__) # from mathutils import *
+        namespace.update(__import__("math").__dict__) # from math import *
 
         console = InteractiveConsole(locals=namespace, filename="<blender_console>")
 
@@ -263,6 +266,7 @@ def banner(context):
     add_scrollback("Autocomplete:     Ctrl+Space", 'OUTPUT')
     add_scrollback("Ctrl +/-  Wheel:  Zoom", 'OUTPUT')
     add_scrollback("Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, bgl, blf, mathutils", 'OUTPUT')
+    add_scrollback("Convenience Imports: from mathutils import *; from math import *", 'OUTPUT')
     add_scrollback("", 'OUTPUT')
     add_scrollback("  WARNING!!! Blender 2.5 API is subject to change, see API reference for more info.", 'ERROR')
     add_scrollback("", 'OUTPUT')

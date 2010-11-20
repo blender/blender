@@ -23,13 +23,12 @@ This module contains utility functions specific to blender but
 not assosiated with blenders internal data.
 """
 
-import bpy as _bpy
-import os as _os
-import sys as _sys
-
 from _bpy import blend_paths, user_resource
 from _bpy import script_paths as _bpy_script_paths
 
+import bpy as _bpy
+import os as _os
+import sys as _sys
 
 def _test_import(module_name, loaded_modules):
     import traceback

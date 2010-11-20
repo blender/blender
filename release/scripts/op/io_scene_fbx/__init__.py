@@ -20,9 +20,9 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
-    # only reload if we alredy loaded, highly annoying
-    import sys
-    reload(sys.modules.get("io_scene_fbx.export_fbx", sys))
+    from imp import reload
+    if "export_fbx" in locals():
+        reload(export_fbx)
 
 
 import bpy
@@ -87,7 +87,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
 
         import io_scene_fbx.export_fbx
-        return io_scene_fbx.export_fbx.save(self, context, **self.as_keywords(ignore=("TX_XROT90", "TX_YROT90", "TX_ZROT90", "TX_SCALE", "check_existing")))
+        return io_scene_fbx.export_fbx.save(self, context, **self.as_keywords(ignore=("TX_XROT90", "TX_YROT90", "TX_ZROT90", "TX_SCALE", "check_existing", "filter_glob")))
 
 
 def menu_func(self, context):
