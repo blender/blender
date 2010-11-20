@@ -5244,6 +5244,20 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 	}
 
 	if(err != 0) {
+		ReportList *reports;
+		/* alert the user, else they wont know unless they see the console. */
+		if (!is_static && ptr->data && RNA_struct_is_a(ptr->type, &RNA_Operator)) {
+			wmOperator *op= ptr->data;
+			reports= op->reports;
+		}
+		else {
+			/* wont alert users but they can view in 'info' space */
+			reports= CTX_wm_reports(C);
+		}
+
+		BPy_errors_to_report(reports);
+
+		/* also print in the console for py */
 		PyErr_Print();
 		PyErr_Clear();
 	}
