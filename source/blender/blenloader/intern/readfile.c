@@ -6108,7 +6108,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			case SPACE_NODE:
 				ar= MEM_callocN(sizeof(ARegion), "nodetree area for node");
 				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_CHANNELS;
+				ar->regiontype= RGN_TYPE_UI;
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
@@ -6356,6 +6356,9 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 			if(sl->spacetype==SPACE_IMASEL)
 				sl->spacetype= SPACE_INFO;	/* spacedata then matches */
 		}		
+		
+		/* it seems to be possible in 2.5 to have this saved, filewindow probably */
+		sa->butspacetype= sa->spacetype;
 		
 		/* pushed back spaces also need regions! */
 		if(sa->spacedata.first) {
