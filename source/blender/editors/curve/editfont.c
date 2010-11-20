@@ -1696,7 +1696,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		cu = ob->data;
 		font = cu->vfont;
 	}
-	printf("%s\n", font->name);
+
 	path = (font && strcmp(font->name, FO_BUILTIN_NAME) != 0)? font->name: U.fontdir;
 	 
 	if(RNA_property_is_set(op->ptr, "filepath"))

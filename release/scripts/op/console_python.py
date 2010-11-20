@@ -186,8 +186,14 @@ def execute(context):
 
     # restore the stdin
     sys.stdin = stdin_backup
+    
+    # execute any hooks
+    for func, args in execute.hooks:
+        func(*args)
 
     return {'FINISHED'}
+
+execute.hooks = []
 
 
 def autocomplete(context):

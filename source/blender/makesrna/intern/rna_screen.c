@@ -176,6 +176,8 @@ static void rna_def_region(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "winy");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Height", "Region height");
+	
+	RNA_def_function(srna, "tag_redraw", "ED_region_tag_redraw");
 }
 
 static void rna_def_screen(BlenderRNA *brna)
