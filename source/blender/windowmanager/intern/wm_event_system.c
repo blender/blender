@@ -751,6 +751,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 					case WM_OP_EXEC_REGION_CHANNELS:
 					case WM_OP_INVOKE_REGION_CHANNELS:
 						type = RGN_TYPE_CHANNELS;
+						break;
 					
 					case WM_OP_EXEC_REGION_PREVIEW:
 					case WM_OP_INVOKE_REGION_PREVIEW:
