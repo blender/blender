@@ -544,7 +544,7 @@ static Nurb *rna_Curve_spline_new(Curve *cu, int type)
 	nu->resolu= nu->resolv= 12;
 	nu->flag= CU_SMOOTH;
 
-	BLI_addtail(&cu->nurb, nu);
+	BLI_addtail(BKE_curve_nurbs(cu), nu);
 
 	return nu;
 }
@@ -640,6 +640,12 @@ static char *rna_TextBox_path(PointerRNA *ptr)
 		return BLI_sprintfN("textboxes[%d]", index);
 	else
 		return BLI_strdup("");
+}
+
+static void rna_Curve_splines_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	rna_iterator_listbase_begin(iter, BKE_curve_nurbs(cu), NULL);
 }
 
 #else
@@ -1189,8 +1195,14 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "key");
 	RNA_def_property_ui_text(prop, "Shape Keys", "");
 
+
 	prop= RNA_def_property(srna, "splines", PROP_COLLECTION, PROP_NONE);
+#if 0
 	RNA_def_property_collection_sdna(prop, NULL, "nurb", NULL);
+#else
+	/* this way we get editmode nurbs too, keyframe in editmode */
+	RNA_def_property_collection_funcs(prop, "rna_Curve_splines_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+#endif
 	RNA_def_property_struct_type(prop, "Spline");
 	RNA_def_property_ui_text(prop, "Splines", "Collection of splines in this curve data object");
 	rna_def_curve_splines(brna, prop);
