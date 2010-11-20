@@ -1325,6 +1325,52 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 	multires_mvert_to_ss(dm, vdst);
 }
 
+/* Copy the first-level vcol data to the mesh, if it exists */
+/* Warning: higher-level vcol data will be lost */
+static void multires_load_old_vcols(Mesh *me)
+{
+	MultiresLevel *lvl;
+	MultiresColFace *colface;
+	MCol *mcol;
+	int i, j;
+
+	if(!(lvl = me->mr->levels.first))
+		return;
+
+	if(!(colface = lvl->colfaces))
+		return;
+
+	/* older multires format never supported multiple vcol layers,
+	   so we can assume the active vcol layer is the correct one */
+	if(!(mcol = CustomData_get_layer(&me->fdata, CD_MCOL)))
+		return;
+	
+	for(i = 0; i < me->totface; ++i) {
+		for(j = 0; j < 4; ++j) {
+			mcol[i*4 + j].a = colface[i].col[j].a;
+			mcol[i*4 + j].r = colface[i].col[j].r;
+			mcol[i*4 + j].g = colface[i].col[j].g;
+			mcol[i*4 + j].b = colface[i].col[j].b;
+		}
+	}
+}
+
+/* Copy the first-level face-flag data to the mesh */
+static void multires_load_old_face_flags(Mesh *me)
+{
+	MultiresLevel *lvl;
+	MultiresFace *faces;
+	int i;
+
+	if(!(lvl = me->mr->levels.first))
+		return;
+
+	if(!(faces = lvl->faces))
+		return;
+
+	for(i = 0; i < me->totface; ++i)
+		me->mface[i].flag = faces[i].flag;
+}
 
 void multires_load_old(Object *ob, Mesh *me)
 {
@@ -1385,6 +1431,9 @@ void multires_load_old(Object *ob, Mesh *me)
 		CustomData_add_layer(&me->fdata, l->type, CD_REFERENCE, l->data, me->totface);
 	memset(&me->mr->vdata, 0, sizeof(CustomData));
 	memset(&me->mr->fdata, 0, sizeof(CustomData));
+
+	multires_load_old_vcols(me);
+	multires_load_old_face_flags(me);
 
 	/* Remove the old multires */
 	multires_free(me->mr);
