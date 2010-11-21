@@ -5413,7 +5413,7 @@ static void drawtexspace(Object *ob)
 }
 
 /* draws wire outline */
-static void drawSolidSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base) 
+static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	Object *ob= base->object;
@@ -5811,12 +5811,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		if (cu->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
 	}
 	
-	/* draw outline for selected solid objects, mesh does itself */
+	/* draw outline for selected objects, mesh does itself */
 	if((v3d->flag & V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && ob->type!=OB_MESH) {
-		if(dt>OB_WIRE && dt<OB_TEXTURE && (ob->mode & OB_MODE_EDIT)==0 && (flag & DRAW_SCENESET)==0) {
+		if(dt>OB_WIRE && (ob->mode & OB_MODE_EDIT)==0 && (flag & DRAW_SCENESET)==0) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
 				
-				drawSolidSelect(scene, v3d, ar, base);
+				drawObjectSelect(scene, v3d, ar, base);
 			}
 		}
 	}
