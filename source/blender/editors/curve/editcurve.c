@@ -3712,7 +3712,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	BezTriple *bezt;
 	BPoint *bp;
 	float *fp, offset;
-	int a;
+	int a, ok= 0;
 
 	/* first decide if this is a surface merge! */
 	if(obedit->type==OB_SURF) nu= nubase->first;
@@ -3854,16 +3854,27 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 		}
 		
 		set_actNurb(obedit, NULL);	/* for selected */
-
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
-
-		return OPERATOR_FINISHED;
+		ok= 1;
+	} else if(nu1 && !nu2 && nu1->type == CU_BEZIER) {
+		if(!(nu1->flagu & CU_NURB_CYCLIC)) {
+			if(BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt) &&
+				BEZSELECTED_HIDDENHANDLES(cu, bezt+(nu1->pntsu-1))) {
+				nu1->flagu|= CU_NURB_CYCLIC;
+				calchandlesNurb(nu1);
+				ok= 1;
+			}
+		}
 	}
-	else {
+
+	if(!ok) {
 		BKE_report(op->reports, RPT_ERROR, "Can't make segment");
 		return OPERATOR_CANCELLED;
 	}
+
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+
+	return OPERATOR_FINISHED;
 }
 
 void CURVE_OT_make_segment(wmOperatorType *ot)
