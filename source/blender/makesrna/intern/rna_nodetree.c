@@ -1128,7 +1128,7 @@ static void def_cmp_output_file(StructRNA *srna)
 		{0, "NONE",  0, "None",           ""},
 		{1, "PXR24", 0, "Pxr24 (lossy)",  ""},
 		{2, "ZIP",   0, "ZIP (lossless)", ""},
-		{3, "PIZ",   0, "PIX (lossless)", ""},
+		{3, "PIZ",   0, "PIZ (lossless)", ""},
 		{4, "RLE",   0, "RLE (lossless)", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
