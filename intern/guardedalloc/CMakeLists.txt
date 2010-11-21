@@ -30,9 +30,9 @@ SET(SRC
 	./intern/mallocn.c
 )
 
-IF(WIN32)
+IF(WIN32 AND NOT UNIX)
 	LIST(APPEND SRC ./intern/mmap_win.c)
-ENDIF(WIN32)
+ENDIF(WIN32 AND NOT UNIX)
 
 BLENDERLIB(bf_intern_guardedalloc "${SRC}" "${INC}")
 

@@ -42,10 +42,6 @@ INCLUDE_DIRECTORIES(
 	../blender/windowmanager
 )
 
-IF(WIN32)
-	INCLUDE_DIRECTORIES(${PTHREADS_INC})
-ENDIF(WIN32)
-
 IF(WITH_QUICKTIME)
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
@@ -96,9 +92,9 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 # Setup the exe sources and buildinfo
 SET(EXESRC creator.c)
 
-IF(WIN32)
+IF(WIN32 AND NOT UNIX)
 	LIST(APPEND EXESRC ../icons/winblender.rc)
-ENDIF(WIN32)
+ENDIF(WIN32 AND NOT UNIX)
 
 IF(WITH_BUILDINFO)
 	STRING(REPLACE " " "\ " BUILDINFO_CFLAGS ${CMAKE_C_FLAGS})
@@ -254,53 +250,7 @@ IF(WITH_INSTALL)
 		
 		# end "make install"
 	
-	ENDIF(UNIX AND NOT APPLE)
-
-	IF(APPLE)
-		SET(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
-		SET(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
-		SET(TARGETINFO ${TARGETDIR}/blender.app/Contents/Info.plist)
-
-		ADD_CUSTOM_COMMAND(
-			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-			COMMAND cp -Rf ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
-			COMMAND cp -Rf ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
-			COMMAND cp -Rf ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
-			COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
-			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}
-			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}
-			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
-			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
-		)
-	  
-		IF(WITH_INTERNATIONAL)
-			ADD_CUSTOM_COMMAND(
-				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
-			)
-		ENDIF(WITH_INTERNATIONAL)
-	  
-		IF(WITH_PYTHON)
-			SET(PYTHON_ZIP "python_${CMAKE_OSX_ARCHITECTURES}.zip")
-			ADD_CUSTOM_COMMAND(
-				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/
-				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/python/
-				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/python/
-				COMMAND find ${TARGETDIR}/blender.app -name "*.py?" -prune -exec rm -rf {} "\;"
-			)
-		ENDIF(WITH_PYTHON)	  
-	
-		ADD_CUSTOM_COMMAND(
-			TARGET blender POST_BUILD MAIN_DEPENDENCY blender	
-			COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
-			COMMAND find ${TARGETDIR}/blender.app -name .svn -prune -exec rm -rf {} "\;"
-					COMMAND find ${TARGETDIR}/blender.app -name __MACOSX -prune -exec rm -rf {} "\;"
-		)
-	ENDIF(APPLE)
-
-	IF(WIN32)
+	ELSEIF(WIN32)
 		# notice 'xcopy /Y /H' on .bfont.ttf, this is needed when building over samba
 		ADD_CUSTOM_COMMAND(TARGET blender
 			POST_BUILD
@@ -451,7 +401,50 @@ IF(WITH_INSTALL)
 			ENDIF(NOT CMAKE_CL_64)
 		ENDIF(WITH_SDL)
 
-	ENDIF(WIN32)
+	ELSEIF(APPLE)
+		SET(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
+		SET(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
+		SET(TARGETINFO ${TARGETDIR}/blender.app/Contents/Info.plist)
+
+		ADD_CUSTOM_COMMAND(
+			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
+			COMMAND cp -Rf ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
+			COMMAND cp -Rf ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
+			COMMAND cp -Rf ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
+			COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
+			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}
+			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}
+			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
+			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
+		)
+	  
+		IF(WITH_INTERNATIONAL)
+			ADD_CUSTOM_COMMAND(
+				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
+				COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
+			)
+		ENDIF(WITH_INTERNATIONAL)
+	  
+		IF(WITH_PYTHON)
+			SET(PYTHON_ZIP "python_${CMAKE_OSX_ARCHITECTURES}.zip")
+			ADD_CUSTOM_COMMAND(
+				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/
+				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/python/
+				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/python/
+				COMMAND find ${TARGETDIR}/blender.app -name "*.py?" -prune -exec rm -rf {} "\;"
+			)
+		ENDIF(WITH_PYTHON)	  
+	
+		ADD_CUSTOM_COMMAND(
+			TARGET blender POST_BUILD MAIN_DEPENDENCY blender	
+			COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
+			COMMAND find ${TARGETDIR}/blender.app -name .svn -prune -exec rm -rf {} "\;"
+					COMMAND find ${TARGETDIR}/blender.app -name __MACOSX -prune -exec rm -rf {} "\;"
+		)
+	ENDIF(UNIX AND NOT APPLE)
+
 ENDIF(WITH_INSTALL)
 
 ADD_DEPENDENCIES(blender makesdna)

@@ -68,16 +68,7 @@ IF(APPLE)
 	IF(WITH_QUICKTIME)
 		ADD_DEFINITIONS(-DWITH_QUICKTIME)
 	ENDIF(WITH_QUICKTIME)
-ELSEIF(WIN32)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
-	LIST(APPEND INC ${WINTAB_INC})
 
-	LIST(APPEND SRC
-		./intern/GHOST_DisplayManagerWin32.cpp
-		./intern/GHOST_SystemWin32.cpp
-		./intern/GHOST_WindowWin32.cpp
-		./intern/GHOST_DropTargetWin32.cpp
-	)
 ELSEIF(UNIX)
 	LIST(APPEND INC ${X11_X11_INCLUDE_PATH})
 
@@ -89,6 +80,18 @@ ELSEIF(UNIX)
 
 	ADD_DEFINITIONS(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
 
+ELSEIF(WIN32)
+	IF(MSVC)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
+		LIST(APPEND INC ${WINTAB_INC})
+	ENDIF(MSVC)
+
+	LIST(APPEND SRC
+		./intern/GHOST_DisplayManagerWin32.cpp
+		./intern/GHOST_SystemWin32.cpp
+		./intern/GHOST_WindowWin32.cpp
+		./intern/GHOST_DropTargetWin32.cpp
+	)
 ENDIF(APPLE)
 
 BLENDERLIB(bf_intern_ghost "${SRC}" "${INC}")

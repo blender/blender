@@ -96,9 +96,9 @@ OPTION(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
 # Audio format support
 OPTION(WITH_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)" OFF)
 OPTION(WITH_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
-IF(APPLE OR WIN32)
+IF(APPLE OR (WIN32 AND NOT UNIX))
 	OPTION(WITH_QUICKTIME     "Enable Quicktime Support" OFF)
-ENDIF(APPLE OR WIN32)
+ENDIF(APPLE OR (WIN32 AND NOT UNIX))
 
 # 3D format support
 # disable opencollada on non-apple unix because opencollada has no package for debian
@@ -352,10 +352,8 @@ IF(UNIX AND NOT APPLE)
 
 		SET(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -static-intel")
 	ENDIF(CMAKE_COMPILER_IS_GNUCC)
-ENDIF(UNIX AND NOT APPLE)
 
-
-IF(WIN32)
+ELSEIF(WIN32)
 
 	# this file is included anyway when building under Windows with cl.exe
 	#  INCLUDE(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
@@ -670,10 +668,8 @@ IF(WIN32)
 	# used in many places so include globally, like OpenGL
 	INCLUDE_DIRECTORIES(${PTHREADS_INC})
 
-ENDIF(WIN32)
+ELSEIF(APPLE)
 
-
-IF(APPLE)
 	IF(WITH_LIBS10.5)
 		SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
 	ELSE(WITH_LIBS10.5)
@@ -861,7 +857,7 @@ IF(APPLE)
 	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
-ENDIF(APPLE)
+ENDIF(UNIX AND NOT APPLE)
 
 
 # buildinfo
@@ -935,6 +931,10 @@ IF(WITH_OPENMP)
 	IF(OPENMP_FOUND)
 		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+
+		IF(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
+			SET(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
+		ENDIF(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
 	ELSE(OPENMP_FOUND)
 		SET(WITH_OPENMP OFF)
 	ENDIF(OPENMP_FOUND)

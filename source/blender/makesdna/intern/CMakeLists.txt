@@ -33,9 +33,9 @@ SET(SRC
 	../../../../intern/guardedalloc/intern/mallocn.c
 )
 
-IF(WIN32)
+IF(WIN32 AND NOT UNIX)
 	LIST(APPEND SRC ../../../../intern/guardedalloc/intern/mmap_win.c)
-ENDIF(WIN32)
+ENDIF(WIN32 AND NOT UNIX)
 
 ADD_EXECUTABLE(makesdna ${SRC} ${INC_FILES})
 
