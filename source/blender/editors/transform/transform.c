@@ -574,7 +574,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		t->mval[0] = event->x - t->ar->winrct.xmin;
 		t->mval[1] = event->y - t->ar->winrct.ymin;
 
-		t->redraw |= TREDRAW_SOFT;
+		// t->redraw |= TREDRAW_SOFT; /* Use this for soft redraw. Might cause flicker in object mode */
+		t->redraw |= TREDRAW_HARD;
+
 
 		if (t->state == TRANS_STARTING) {
 			t->state = TRANS_RUNNING;
