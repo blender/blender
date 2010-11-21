@@ -40,8 +40,4 @@ SET(SRC
 	screendump.c
 )
 
-IF(WIN32)
-	LIST(APPEND INC ${PTHREADS_INC})
-ENDIF(WIN32)
-
 BLENDERLIB(bf_editor_screen "${SRC}" "${INC}")

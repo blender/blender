@@ -667,6 +667,9 @@ IF(WIN32)
 
 	ENDIF(MSVC)
 
+	# used in many places so include globally, like OpenGL
+	INCLUDE_DIRECTORIES(${PTHREADS_INC})
+
 ENDIF(WIN32)
 
 
