@@ -4457,24 +4457,99 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 
 /***************** select linked operator ******************/
 
-static int select_linked_exec(bContext *C, wmOperator *op)
+static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+	Curve *cu= (Curve*)obedit->data;
+	EditNurb *editnurb= cu->editnurb;
+	ListBase *nurbs= &editnurb->nurbs;
+	Nurb *nu;
+	BezTriple *bezt;
+	BPoint *bp;
+	int a;
+
+	for(nu= nurbs->first; nu; nu= nu->next) {
+		if(nu->type == CU_BEZIER) {
+			bezt= nu->bezt;
+			a= nu->pntsu;
+			while(a--) {
+				if( (bezt->f1 & SELECT) || (bezt->f2 & SELECT) || (bezt->f3 & SELECT) ) {
+					a= nu->pntsu;
+					bezt= nu->bezt;
+					while(a--) {
+						select_beztriple(bezt, SELECT, 1, VISIBLE);
+						bezt++;
+					}
+					break;
+				}
+				bezt++;
+			}
+		}
+		else {
+			bp= nu->bp;
+			a= nu->pntsu*nu->pntsv;
+			while(a--) {
+				if( bp->f1 & 1 ) {
+					a= nu->pntsu*nu->pntsv;
+					bp= nu->bp;
+					while(a--) {
+						select_bpoint(bp, SELECT, 1, VISIBLE);
+						bp++;
+					}
+					break;
+				}
+				bp++;
+			}
+		}
+	}
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	return select_linked_exec(C, op);
+}
+
+void CURVE_OT_select_linked(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Linked All";
+	ot->idname= "CURVE_OT_select_linked";
+
+	/* api callbacks */
+	ot->exec= select_linked_exec;
+	ot->invoke= select_linked_invoke;
+	ot->poll= ED_operator_editsurfcurve;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+}
+
+
+/***************** select linked pick operator ******************/
+
+static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	ARegion *ar= CTX_wm_region(C);
 	ViewContext vc;
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	int a, location[2], deselect;
 
-	if(!rv3d)
-		return OPERATOR_CANCELLED;
-	
 	deselect= RNA_boolean_get(op->ptr, "deselect");
-	RNA_int_get_array(op->ptr, "location", location);
-	
+ 	location[0]= event->x - ar->winrct.xmin;
+ 	location[1]= event->y - ar->winrct.ymin;
+
 	view3d_operator_needs_opengl(C);
 	view3d_set_viewcontext(C, &vc);
+
 	findnearestNurbvert(&vc, 1, location, &nu, &bezt, &bp);
 
 	if(bezt) {
@@ -4497,39 +4572,25 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-	
+
 	return OPERATOR_FINISHED;
 }
 
-static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	ARegion *ar= CTX_wm_region(C);
-	int location[2];
-
-	location[0]= event->x - ar->winrct.xmin;
-	location[1]= event->y - ar->winrct.ymin;
-	RNA_int_set_array(op->ptr, "location", location);
-
-	return select_linked_exec(C, op);
-}
-
-void CURVE_OT_select_linked(wmOperatorType *ot)
+void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked";
-	ot->idname= "CURVE_OT_select_linked";
-	
+	ot->idname= "CURVE_OT_select_linked_pick";
+
 	/* api callbacks */
-	ot->exec= select_linked_exec;
-	ot->invoke= select_linked_invoke;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->invoke= select_linked_pick_invoke;
+	ot->poll= ED_operator_editsurfcurve_region_view3d;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked control points rather than selecting them.");
-	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "", 0, 16384);
 }
 
 /***************** select row operator **********************/

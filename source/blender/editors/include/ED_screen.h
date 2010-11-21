@@ -156,6 +156,7 @@ int		ED_operator_editarmature(struct bContext *C);
 int		ED_operator_editcurve(struct bContext *C);
 int		ED_operator_editsurf(struct bContext *C);
 int		ED_operator_editsurfcurve(struct bContext *C);
+int		ED_operator_editsurfcurve_region_view3d(struct bContext *C);
 int		ED_operator_editfont(struct bContext *C);
 int		ED_operator_editlattice(struct bContext *C);
 int		ED_operator_editmball(struct bContext *C);
