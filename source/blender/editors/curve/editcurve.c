@@ -4117,7 +4117,10 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	invert_m3_m3(imat,mat);
 
 	findselectedNurbvert(&editnurb->nurbs, &nu, &bezt, &bp);
-	if(bezt==0 && bp==0) return OPERATOR_CANCELLED;
+
+	if((nu->type==CU_BEZIER && bezt==NULL) || (nu->type!=CU_BEZIER && bp==NULL)) {
+		return OPERATOR_CANCELLED;
+	}
 
 	if(nu->type == CU_BEZIER) {
 		/* which bezpoint? */

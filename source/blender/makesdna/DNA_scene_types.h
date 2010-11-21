@@ -221,8 +221,8 @@ typedef struct RenderData {
 	float edgeR, edgeG, edgeB;
 	
 	short fullscreen, xplay, yplay, freqplay;	/* standalone player */  //  XXX deprecated since 2.5
-	short depth, attrib, rt2;			/* standalone player */  //  XXX deprecated since 2.5
-	short frame_step;		/* frames to jump during render/playback */
+	short depth, attrib;			/* standalone player */  //  XXX deprecated since 2.5
+	int frame_step;		/* frames to jump during render/playback */
 
 	short stereomode;	/* standalone player stereo settings */  //  XXX deprecated since 2.5
 	

@@ -280,7 +280,7 @@ static void rna_def_imageuser(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "fields_per_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "fie_ima");
-	RNA_def_property_range(prop, 1, MAXFRAMEF);
+	RNA_def_property_range(prop, 1, 200);
 	RNA_def_property_ui_text(prop, "Fields per Frame", "The number of fields per rendered frame (2 fields is 1 image)");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 

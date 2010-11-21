@@ -420,7 +420,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "default_key_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "totaddkey");
-	RNA_def_property_range(prop, 2, INT_MAX);
+	RNA_def_property_range(prop, 2, SHRT_MAX);
 	RNA_def_property_ui_range(prop, 2, 20, 10, 3);
 	RNA_def_property_ui_text(prop, "Keys", "How many keys to make new particles with");
 
@@ -482,7 +482,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "steps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "step");
-	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_range(prop, 1, SHRT_MAX);
 	RNA_def_property_ui_range(prop, 1, 50, 10, 3);
 	RNA_def_property_ui_text(prop, "Steps", "Brush steps");
 

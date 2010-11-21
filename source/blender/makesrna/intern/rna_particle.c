@@ -942,7 +942,7 @@ static void rna_def_particle_dupliweight(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "count", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_range(prop, 0, SHRT_MAX);
 	RNA_def_property_ui_text(prop, "Count", "The number of times this object is repeated with respect to other objects");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 }
@@ -1426,7 +1426,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	//TODO: not found in UI, readonly?
 	prop= RNA_def_property(srna, "keys_step", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0, INT_MAX);//TODO:min,max
+	RNA_def_property_range(prop, 0, SHRT_MAX);//TODO:min,max
 	RNA_def_property_ui_text(prop, "Keys Step", "");
 
 	/* adaptive path rendering */
@@ -2142,7 +2142,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "reactor_target_particle_system", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "target_psys");
-	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_range(prop, 1, SHRT_MAX);
 	RNA_def_property_ui_text(prop, "Reactor Target Particle System", "For reactor systems, index of particle system on the target object");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 

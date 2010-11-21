@@ -94,9 +94,9 @@ typedef struct RegionView3D {
 	float camdx, camdy;				/* camera view offsets, 1.0 = viewplane moves entire width/height */
 	float pixsize;
 	float ofs[3];
-	short camzoom, viewbut;
+	short camzoom;
 	short twdrawflag;
-	short pad;
+	int pad;
 	
 	short rflag, viewlock;
 	short persp;

@@ -1213,7 +1213,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	prop= RNA_def_property(srna, "etch_subdivision_number", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "skgen_subdivision_number");
-	RNA_def_property_range(prop, 1, 10000);
+	RNA_def_property_range(prop, 1, 255);
 	RNA_def_property_ui_text(prop, "Subdivisions", "Number of bones in the subdivided stroke");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
