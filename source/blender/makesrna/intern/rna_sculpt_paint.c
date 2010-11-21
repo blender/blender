@@ -467,7 +467,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Particle Brush", "Particle editing brush");
 
 	prop= RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_range(prop, 1, SHRT_MAX);
 	RNA_def_property_ui_range(prop, 1, 100, 10, 3);
 	RNA_def_property_ui_text(prop, "Size", "Brush size");
 

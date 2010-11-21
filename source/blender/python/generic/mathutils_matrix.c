@@ -325,11 +325,11 @@ static PyObject *C_Matrix_Translation(PyObject *cls, VectorObject * vec)
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	
 	if(!VectorObject_Check(vec)) {
-		PyErr_SetString(PyExc_TypeError, "mathutils.TranslationMatrix(): expected vector\n");
+		PyErr_SetString(PyExc_TypeError, "mathutils.Matrix.Translation(): expected vector\n");
 		return NULL;
 	}
 	if(vec->size != 3 && vec->size != 4) {
-		PyErr_SetString(PyExc_TypeError, "mathutils.TranslationMatrix(): vector must be 3D or 4D\n");
+		PyErr_SetString(PyExc_TypeError, "mathutils.Matrix.Translation(): vector must be 3D or 4D\n");
 		return NULL;
 	}
 	
@@ -344,7 +344,7 @@ static PyObject *C_Matrix_Translation(PyObject *cls, VectorObject * vec)
 
 	return newMatrixObject(mat, 4, 4, Py_NEW, (PyTypeObject *)cls);
 }
-//----------------------------------mathutils.ScaleMatrix() -------------
+//----------------------------------mathutils.Matrix.Scale() -------------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 static char C_Matrix_Scale_doc[] =
 ".. classmethod:: Scale(factor, size, axis)\n"
@@ -369,16 +369,16 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
 	if(!PyArg_ParseTuple(args, "fi|O!", &factor, &matSize, &vector_Type, &vec)) {
-		PyErr_SetString(PyExc_TypeError, "mathutils.ScaleMatrix(): expected float int and optional vector\n");
+		PyErr_SetString(PyExc_TypeError, "mathutils.Matrix.Scale(): expected float int and optional vector\n");
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
-		PyErr_SetString(PyExc_AttributeError, "mathutils.ScaleMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.Scale(): can only return a 2x2 3x3 or 4x4 matrix\n");
 		return NULL;
 	}
 	if(vec) {
 		if(vec->size > 2 && matSize == 2) {
-			PyErr_SetString(PyExc_AttributeError, "mathutils.ScaleMatrix(): please use 2D vectors when scaling in 2D\n");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.Scale(): please use 2D vectors when scaling in 2D\n");
 			return NULL;
 		}
 		
@@ -435,7 +435,7 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 	//pass to matrix creation
 	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
-//----------------------------------mathutils.OrthoProjectionMatrix() ---
+//----------------------------------mathutils.Matrix.OrthoProjection() ---
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 static char C_Matrix_OrthoProjection_doc[] =
 ".. classmethod:: OrthoProjection(plane, size, axis)\n"
@@ -460,16 +460,16 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	
 	if(!PyArg_ParseTuple(args, "si|O!", &plane, &matSize, &vector_Type, &vec)) {
-		PyErr_SetString(PyExc_TypeError, "mathutils.OrthoProjectionMatrix(): expected string and int and optional vector\n");
+		PyErr_SetString(PyExc_TypeError, "mathutils.Matrix.OrthoProjection(): expected string and int and optional vector\n");
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
-		PyErr_SetString(PyExc_AttributeError,"mathutils.OrthoProjectionMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
+		PyErr_SetString(PyExc_AttributeError,"mathutils.Matrix.OrthoProjection(): can only return a 2x2 3x3 or 4x4 matrix\n");
 		return NULL;
 	}
 	if(vec) {
 		if(vec->size > 2 && matSize == 2) {
-			PyErr_SetString(PyExc_AttributeError, "mathutils.OrthoProjectionMatrix(): please use 2D vectors when scaling in 2D\n");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.OrthoProjection(): please use 2D vectors when scaling in 2D\n");
 			return NULL;
 		}
 		
@@ -492,7 +492,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 			mat[4] = 1.0f;
 			mat[8] = 1.0f;
 		} else {
-			PyErr_SetString(PyExc_AttributeError, "mathutils.OrthoProjectionMatrix(): unknown plane - expected: X, Y, XY, XZ, YZ\n");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.OrthoProjection(): unknown plane - expected: X, Y, XY, XZ, YZ\n");
 			return NULL;
 		}
 	} else { //arbitrary plane
@@ -520,7 +520,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 			mat[7] = -(vec->vec[1] * vec->vec[2]);
 			mat[8] = 1 - (vec->vec[2] * vec->vec[2]);
 		} else {
-			PyErr_SetString(PyExc_AttributeError, "mathutils.OrthoProjectionMatrix(): unknown plane - expected: 'r' expected for axis designation\n");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.OrthoProjection(): unknown plane - expected: 'r' expected for axis designation\n");
 			return NULL;
 		}
 	}
@@ -562,11 +562,11 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
 	if(!PyArg_ParseTuple(args, "sfi", &plane, &factor, &matSize)) {
-		PyErr_SetString(PyExc_TypeError,"mathutils.ShearMatrix(): expected string float and int\n");
+		PyErr_SetString(PyExc_TypeError,"mathutils.Matrix.Shear(): expected string float and int\n");
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
-		PyErr_SetString(PyExc_AttributeError,"mathutils.ShearMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
+		PyErr_SetString(PyExc_AttributeError,"mathutils.Matrix.Shear(): can only return a 2x2 3x3 or 4x4 matrix\n");
 		return NULL;
 	}
 
@@ -597,7 +597,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 		mat[4] = 1.0f;
 		mat[8] = 1.0f;
 	} else {
-		PyErr_SetString(PyExc_AttributeError, "mathutils.ShearMatrix(): expected: x, y, xy, xz, yz or wrong matrix size for shearing plane\n");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.Shear(): expected: x, y, xy, xz, yz or wrong matrix size for shearing plane\n");
 		return NULL;
 	}
 	if(matSize == 4) {

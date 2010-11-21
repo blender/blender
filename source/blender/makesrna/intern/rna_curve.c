@@ -1449,14 +1449,14 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu");
-	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_range(prop, 1, SHRT_MAX);
 	RNA_def_property_ui_range(prop, 1, 64, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution U", "Curve or Surface subdivisions per segment");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv");
-	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_range(prop, 1, SHRT_MAX);
 	RNA_def_property_ui_range(prop, 1, 64, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution V", "Surface subdivisions per segment");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
