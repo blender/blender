@@ -5006,18 +5006,12 @@ void uiContextAnimUpdate(const bContext *C)
 		}
 
 		if(activebut) {
-			if(activebut->rnapoin.data) {
-				/* found RNA button */
+			/* always recurse into opened menu, so all buttons update (like colorpicker) */
+			uiHandleButtonData *data= activebut->active;
+			if(data && data->menu)
+				ar = data->menu->region;
+			else
 				return;
-			}
-			else {
-				/* recurse into opened menu */
-				uiHandleButtonData *data= activebut->active;
-				if(data && data->menu)
-					ar = data->menu->region;
-				else
-					return;
-			}
 		}
 		else {
 			/* no active button */
