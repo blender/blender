@@ -2472,6 +2472,7 @@ static void do_render_seq(Render * re)
 	struct ImBuf *ibuf;
 	RenderResult *rr; /* don't assign re->result here as it might change during give_ibuf_seq */
 	int cfra = re->r.cfra;
+	SeqRenderData context;
 
 	re->i.cfra= cfra;
 
@@ -2482,7 +2483,11 @@ static void do_render_seq(Render * re)
 
 	recurs_depth++;
 
-	ibuf= give_ibuf_seq(re->main, re->scene, re->result->rectx, re->result->recty, cfra, 0, 100.0);
+	context = seq_new_render_data(re->main, re->scene,
+				      re->result->rectx, re->result->recty, 
+				      100);
+
+	ibuf = give_ibuf_seq(context, cfra, 0);
 
 	recurs_depth--;
 

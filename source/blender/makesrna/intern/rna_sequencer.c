@@ -180,6 +180,19 @@ static int rna_Sequence_frame_length_get(PointerRNA *ptr)
 	return seq_tx_get_final_right(seq, 0)-seq_tx_get_final_left(seq, 0);
 }
 
+static int rna_Sequence_orx_get(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	return seq->strip->orx;
+}
+
+static int rna_Sequence_ory_get(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	return seq->strip->ory;
+}
+
+
 static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
@@ -1187,6 +1200,16 @@ static void rna_def_input(StructRNA *srna)
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_anim_endofs_final_set", NULL); // overlap tests
 	RNA_def_property_ui_text(prop, "Animation End Offset", "Animation end offset (trim end)");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "orig_width", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Orig Width", "Original image width");
+	RNA_def_property_int_funcs(prop, "rna_Sequence_orx_get", NULL,NULL);
+
+	prop= RNA_def_property(srna, "orig_height", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Orig Height", "Original image height");
+	RNA_def_property_int_funcs(prop, "rna_Sequence_ory_get", NULL,NULL);
 }
 
 static void rna_def_image(BlenderRNA *brna)

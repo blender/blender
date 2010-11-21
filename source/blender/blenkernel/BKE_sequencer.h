@@ -83,6 +83,22 @@ void seq_array(struct Editing *ed, struct Sequence ***seqarray, int *tot, int us
 		seq_end(&iter); \
 	}
 
+typedef struct SeqRenderData {
+	struct Main *bmain;
+	struct Scene *scene;
+	int rectx;
+	int recty;
+	int preview_render_size;
+	int motion_blur_samples;
+	float motion_blur_shutter;
+} SeqRenderData;
+
+SeqRenderData seq_new_render_data(
+	struct Main * bmain, struct Scene * scene,
+	int rectx, int recty, int preview_render_size);
+
+int seq_cmp_render_data(SeqRenderData * a, SeqRenderData * b);
+unsigned int seq_hash_render_data(SeqRenderData * a);
 
 /* Wipe effect */
 enum {DO_SINGLE_WIPE, DO_DOUBLE_WIPE, DO_BOX_WIPE, DO_CROSS_WIPE,
@@ -129,35 +145,39 @@ struct SeqEffectHandle {
            (mixed cases are handled one layer up...) */
 	
 	struct ImBuf* (*execute)(
-		struct Main *bmain,
-		struct Scene *scene, struct Sequence *seq, float cfra,
+		SeqRenderData context,
+		struct Sequence *seq, float cfra,
 		float facf0, float facf1,
-		int x, int y, int preview_render_size,
 		struct ImBuf *ibuf1, struct ImBuf *ibuf2,
 		struct ImBuf *ibuf3);
 };
 
 /* ********************* prototypes *************** */
 
-/* sequence.c */
-void printf_strip(struct Sequence *seq);
+/* **********************************************************************
+   * sequence.c
+
+   * sequencer render functions
+   ********************************************************************** */
+
+struct ImBuf *give_ibuf_seq(SeqRenderData context, float cfra, int chanshown);
+struct ImBuf *give_ibuf_seq_threaded(SeqRenderData context, float cfra, int chanshown);
+struct ImBuf *give_ibuf_seq_direct(SeqRenderData context, float cfra, struct Sequence *seq);
+struct ImBuf *give_ibuf_seqbase(SeqRenderData context, float cfra, int chan_shown, struct ListBase *seqbasep);
+void give_ibuf_prefetch_request(SeqRenderData context, float cfra, int chan_shown);
 
 /* apply functions recursively */
 int seqbase_recursive_apply(struct ListBase *seqbase, int (*apply_func)(struct Sequence *seq, void *), void *arg);
 int seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence *, void *), void *arg);
 
-// extern
+/* maintainance functions, mostly for RNA */
+// extern 
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
 void seq_free_strip(struct Strip *strip);
 void seq_free_editing(struct Scene *scene);
 void seq_free_clipboard(void);
 struct Editing *seq_give_editing(struct Scene *scene, int alloc);
 char *give_seqname(struct Sequence *seq);
-struct ImBuf *give_ibuf_seq(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int preview_render_size);
-struct ImBuf *give_ibuf_seq_threaded(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int preview_render_size);
-struct ImBuf *give_ibuf_seq_direct(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int preview_render_size, struct Sequence *seq);
-struct ImBuf *give_ibuf_seqbase(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chan_shown, int preview_render_size, struct ListBase *seqbasep);
-void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, int render_size);
 void calc_sequence(struct Scene *scene, struct Sequence *seq);
 void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);
 void new_tstripdata(struct Sequence *seq);
@@ -168,14 +188,18 @@ void build_seqar_cb(struct ListBase *seqbase, struct Sequence  ***seqar, int *to
 int evaluate_seq_frame(struct Scene *scene, int cfra);
 struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 
-// intern?
+// intern
+void printf_strip(struct Sequence *seq); // debugging function (unused)
 void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_seq, int len_change, int ibuf_change);
 
 int input_have_to_preprocess(
-	struct Scene *scene, struct Sequence * seq, 
-	float cfra, int seqrectx, int seqrecty);
+	SeqRenderData context, struct Sequence * seq, float cfra);
 
-/* seqcache.c */
+/* **********************************************************************
+   seqcache.c
+
+   Sequencer memory cache management functions
+   ********************************************************************** */
 
 typedef enum {
 	SEQ_STRIPELEM_IBUF,
@@ -190,22 +214,33 @@ void seq_stripelem_cache_destruct();
 void seq_stripelem_cache_cleanup();
 
 struct ImBuf * seq_stripelem_cache_get(
-	struct Sequence * seq, int rectx, int recty, 
+	SeqRenderData context, struct Sequence * seq, 
 	float cfra, seq_stripelem_ibuf_t type);
 void seq_stripelem_cache_put(
-	struct Sequence * seq, int rectx, int recty, 
+	SeqRenderData context, struct Sequence * seq, 
 	float cfra, seq_stripelem_ibuf_t type, struct ImBuf * nval);
 
+/* **********************************************************************
+   seqeffects.c 
 
-/* seqeffects.c */
-// intern?
+   Sequencer effect strip managment functions
+   **********************************************************************
+*/
+
+/* intern */
 struct SeqEffectHandle get_sequence_blend(struct Sequence *seq);
 void sequence_effect_speed_rebuild_map(struct Scene *scene, struct Sequence *seq, int force);
 
-// extern
+/* extern */
 struct SeqEffectHandle get_sequence_effect(struct Sequence *seq);
 int get_sequence_effect_num_inputs(int seq_type);
 
+
+/* **********************************************************************
+   Sequencer editing functions
+   **********************************************************************
+*/
+   
 /* for transform but also could use elsewhere */
 int seq_tx_get_start(struct Sequence *seq);
 int seq_tx_get_end(struct Sequence *seq);
