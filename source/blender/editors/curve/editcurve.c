@@ -5362,6 +5362,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 								bezt2= bezt+(nu->pntsu-1);
 								if( (bezt2->f1 & SELECT) || (bezt2->f2 & SELECT) || (bezt2->f3 & SELECT) ) {
 									nu->flagu &= ~CU_NURB_CYCLIC;
+									calchandlesNurb(nu);
 									WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 									DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 								}
