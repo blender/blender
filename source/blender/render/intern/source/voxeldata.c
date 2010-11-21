@@ -39,6 +39,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
@@ -262,11 +263,12 @@ static void init_frame_smoke(VoxelData *vd)
 	return;
 }
 
-static void cache_voxeldata(struct Render *re,Tex *tex)
+static void cache_voxeldata(struct Render *re, Tex *tex)
 {	
 	VoxelData *vd = tex->vd;
 	FILE *fp;
 	int curframe;
+	char path[FILE_MAX];
 	
 	if (!vd) return;
 	
@@ -285,6 +287,8 @@ static void cache_voxeldata(struct Render *re,Tex *tex)
 	else
 		curframe = re->r.cfra;
 	
+	BLI_strncpy(path, vd->source_path, FILE_MAX);
+	
 	switch(vd->file_format) {
 		case TEX_VD_IMAGE_SEQUENCE:
 			load_frame_image_sequence(vd, tex);
@@ -293,8 +297,9 @@ static void cache_voxeldata(struct Render *re,Tex *tex)
 			init_frame_smoke(vd);
 			return;
 		case TEX_VD_BLENDERVOXEL:
-			if (!BLI_exists(vd->source_path)) return;
-			fp = fopen(vd->source_path,"rb");
+			BLI_path_abs(path, G.main->name);
+			if (!BLI_exists(path)) return;
+			fp = fopen(path,"rb");
 			if (!fp) return;
 			
 			if(read_voxeldata_header(fp, vd))
@@ -304,8 +309,9 @@ static void cache_voxeldata(struct Render *re,Tex *tex)
 			
 			return;
 		case TEX_VD_RAW_8BIT:
-			if (!BLI_exists(vd->source_path)) return;
-			fp = fopen(vd->source_path,"rb");
+			BLI_path_abs(path, G.main->name);
+			if (!BLI_exists(path)) return;
+			fp = fopen(path,"rb");
 			if (!fp) return;
 			
 			if (load_frame_raw8(vd, fp, curframe))
