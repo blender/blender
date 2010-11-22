@@ -374,7 +374,8 @@ void initSnappingMode(TransInfo *t)
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 			(obedit != NULL && ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) ) // Temporary limited to edit mode meshes, armature, curves
 		{
-			if ((t->flag & T_PROP_EDIT) || t->tsnap.project) /* also exclude edit for project, for now */
+			/* editmode meshes now supported */
+			if ((obedit->type != OB_MESH) && ((t->flag & T_PROP_EDIT) || t->tsnap.project)) /* also exclude edit for project, for now */
 			{
 				t->tsnap.modeSelect = SNAP_NOT_OBEDIT;
 			}
@@ -1266,7 +1267,7 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, E
 	int retval = 0;
 	int totvert = dm->getNumVerts(dm);
 	int totface = dm->getNumFaces(dm);
-	
+
 	if (totvert > 0) {
 		float imat[4][4];
 		float timat[3][3]; /* transpose inverse matrix for normals */
@@ -1306,6 +1307,7 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, E
 					/* local scale in normal direction */
 					float local_scale = len_v3(ray_normal_local);
 
+					treeData.em_evil= em;
 					bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6);
 
 					hit.index = -1;
