@@ -403,9 +403,11 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 
 		/* rna info */
-		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
-		data->color[data->totline]= 0x888888;
-		data->totline++;
+		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+			data->color[data->totline]= 0x888888;
+			data->totline++;
+		}
 		
 		if(but->rnapoin.id.data) {
 			ID *id= but->rnapoin.id.data;
@@ -424,9 +426,11 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		str= WM_operator_pystring(C, but->optype, opptr, 0);
 
 		/* operator info */
-		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s", str);
-		data->color[data->totline]= 0x888888;
-		data->totline++;
+		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s", str);
+			data->color[data->totline]= 0x888888;
+			data->totline++;
+		}
 
 		MEM_freeN(str);
 

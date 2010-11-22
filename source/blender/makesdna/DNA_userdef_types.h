@@ -425,6 +425,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_FILENOUI			(1 << 23)
 #define USER_NONEGFRAMES		(1 << 24)
 #define USER_TXT_TABSTOSPACES_DISABLE	(1 << 25)
+#define USER_TOOLTIPS_PYTHON    (1 << 26)
 
 /* helper macro for checking frame clamping */
 #define FRAMENUMBER_MIN_CLAMP(cfra) \

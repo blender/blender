@@ -156,6 +156,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col = row.column()
         col.label(text="Display:")
         col.prop(view, "show_tooltips")
+        col.prop(view, "hide_tooltips_python")
         col.prop(view, "show_object_info", text="Object Info")
         col.prop(view, "show_large_cursors")
         col.prop(view, "show_view_name", text="View Name")
