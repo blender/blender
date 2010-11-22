@@ -2262,14 +2262,17 @@ static void ui_block_do_align_but(uiBut *first, int nr)
 			else {	/* next button switches to new row */
 				
 				if(prev && buts_are_horiz(prev, but))
-				   flag |= UI_BUT_ALIGN_LEFT;
+					flag |= UI_BUT_ALIGN_LEFT;
+				else
+					flag |= UI_BUT_ALIGN_TOP;
 				
 				if( (flag & UI_BUT_ALIGN_TOP)==0) {	/* stil top row */
 					if(prev) {
 						if(next && buts_are_horiz(but, next))
-							flag = UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT;
+							flag = UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT|UI_BUT_ALIGN_RIGHT;
 						else {
-							flag = UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_TOP;
+							/* last button in top row */
+							flag = UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT;
 						}
 					}
 					else 
