@@ -4960,15 +4960,14 @@ void uiContextActiveProperty(const bContext *C, struct PointerRNA *ptr, struct P
 
 		if(activebut) {
 			if(activebut->rnapoin.data) {
+				uiHandleButtonData *data= activebut->active;
+				
 				/* found RNA button */
 				*ptr= activebut->rnapoin;
 				*prop= activebut->rnaprop;
 				*index= activebut->rnaindex;
-				return;
-			}
-			else {
-				/* recurse into opened menu */
-				uiHandleButtonData *data= activebut->active;
+			
+				/* recurse into opened menu, like colorpicker case */
 				if(data && data->menu)
 					ar = data->menu->region;
 				else
