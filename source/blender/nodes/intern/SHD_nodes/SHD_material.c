@@ -235,10 +235,12 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, 
 		
 		/* write to outputs */
 		if(node->custom1 & SH_NODE_MAT_DIFF) {
-			if(node->custom1 & SH_NODE_MAT_SPEC)
-				out[MAT_OUT_COLOR].link= shr.combined;
-			else
-				out[MAT_OUT_COLOR].link= shr.diff;
+			out[MAT_OUT_COLOR].link= shr.combined;
+
+			if(!(node->custom1 & SH_NODE_MAT_SPEC)) {
+				GPUNodeLink *link;
+				GPU_link(mat, "vec_math_sub", shr.combined, shr.spec, &out[MAT_OUT_COLOR].link, &link);
+			}
 		}
 		else if(node->custom1 & SH_NODE_MAT_SPEC) {
 			out[MAT_OUT_COLOR].link= shr.spec;
