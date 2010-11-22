@@ -1923,9 +1923,9 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TOOLTIPS);
 	RNA_def_property_ui_text(prop, "Tooltips", "Display tooltips");
 
-	prop= RNA_def_property(srna, "hide_tooltips_python", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TOOLTIPS_PYTHON);
-	RNA_def_property_ui_text(prop, "Hide Python Tooltips", "Hide Python references in tooltips");
+	prop= RNA_def_property(srna, "show_tooltips_python", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_TOOLTIPS_PYTHON);
+	RNA_def_property_ui_text(prop, "Show Python Tooltips", "Show Python references in tooltips");
 
 	prop= RNA_def_property(srna, "show_object_info", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_DRAWVIEWINFO);

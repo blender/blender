@@ -1527,7 +1527,7 @@ static void color_balance(Sequence * seq, ImBuf* ibuf, float mul)
 */
 
 int input_have_to_preprocess(
-	SeqRenderData UNUSED(context), Sequence * seq, float cfra)
+	SeqRenderData UNUSED(context), Sequence * seq, float UNUSED(cfra))
 {
 	float mul;
 
