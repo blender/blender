@@ -237,13 +237,12 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filename
 	}
 	
 	/* free G.main Main database */
-	CTX_wm_manager_set(C, NULL);
+//	CTX_wm_manager_set(C, NULL);
 	clear_global();	
 	
 	G.main= bfd->main;
 
 	CTX_data_main_set(C, G.main);
-	CTX_wm_manager_set(C, G.main->wm.first);
 	
 	if (bfd->user) {
 		
