@@ -269,7 +269,7 @@ static int find_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
 	char *path;
 	
 	path= RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
-	findMissingFiles(path, G.main->name);
+	findMissingFiles(G.main->name, path);
 	MEM_freeN(path);
 
 	return OPERATOR_FINISHED;
