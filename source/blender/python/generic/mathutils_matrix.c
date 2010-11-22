@@ -1043,6 +1043,50 @@ static PyObject *Matrix_decompose(MatrixObject * self)
 }
 
 
+
+static char Matrix_Lerp_doc[] =
+".. function:: lerp(other, factor)\n"
+"\n"
+"   Returns the interpolation of two matricies.\n"
+"\n"
+"   :arg other: value to interpolate with.\n"
+"   :type other: :class:`Matrix`\n"
+"   :arg factor: The interpolation value in [0.0, 1.0].\n"
+"   :type factor: float\n"
+"   :return: The interpolated rotation.\n"
+"   :rtype: :class:`Matrix`\n";
+
+static PyObject *Matrix_Lerp(MatrixObject *self, PyObject *args)
+{
+	MatrixObject *mat2 = NULL;
+	float fac, mat[MATRIX_MAX_DIM*MATRIX_MAX_DIM];
+
+	if(!PyArg_ParseTuple(args, "O!f:lerp", &matrix_Type, &mat2, &fac))
+		return NULL;
+
+	if(self->rowSize != mat2->rowSize || self->colSize != mat2->colSize) {
+		PyErr_SetString(PyExc_AttributeError, "matrix.lerp(): expects both matrix objects of the same dimensions");
+		return NULL;
+	}
+
+	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(mat2))
+		return NULL;
+
+	/* TODO, different sized matrix */
+	if(self->rowSize==4 && self->colSize==4) {
+		blend_m4_m4m4((float (*)[4])mat, (float (*)[4])self->contigPtr, (float (*)[4])mat2->contigPtr, fac);
+	}
+	else if (self->rowSize==3 && self->colSize==3) {
+		blend_m3_m3m3((float (*)[3])mat, (float (*)[3])self->contigPtr, (float (*)[3])mat2->contigPtr, fac);
+	}
+	else {
+		PyErr_SetString(PyExc_AttributeError, "matrix.lerp(): only 3x3 and 4x4 matrices supported");
+		return NULL;
+	}
+
+	return (PyObject*)newMatrixObject(mat, self->rowSize, self->colSize, Py_NEW, Py_TYPE(self));
+}
+
 /*---------------------------Matrix.determinant() ----------------*/
 static char Matrix_Determinant_doc[] =
 ".. method:: determinant()\n"
@@ -1791,6 +1835,7 @@ static struct PyMethodDef Matrix_methods[] = {
 	{"zero", (PyCFunction) Matrix_Zero, METH_NOARGS, Matrix_Zero_doc},
 	{"identity", (PyCFunction) Matrix_Identity, METH_NOARGS, Matrix_Identity_doc},
 	{"transpose", (PyCFunction) Matrix_Transpose, METH_NOARGS, Matrix_Transpose_doc},
+	{"lerp", (PyCFunction) Matrix_Lerp, METH_VARARGS, Matrix_Lerp_doc},
 	{"determinant", (PyCFunction) Matrix_Determinant, METH_NOARGS, Matrix_Determinant_doc},
 	{"invert", (PyCFunction) Matrix_Invert, METH_NOARGS, Matrix_Invert_doc},
 	{"translation_part", (PyCFunction) Matrix_TranslationPart, METH_NOARGS, Matrix_TranslationPart_doc},

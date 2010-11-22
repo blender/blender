@@ -38,10 +38,9 @@ extern PyTypeObject matrix_Type;
 
 typedef struct {
 	BASE_MATH_MEMBERS(contigPtr)
-
-	unsigned char rowSize;
-	unsigned int colSize;
 	float *matrix[MATRIX_MAX_DIM];		/* ptr to the contigPtr (accessor) */
+	unsigned short rowSize;
+	unsigned short colSize;
 } MatrixObject;
 
 /*struct data contains a pointer to the actual data that the

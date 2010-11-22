@@ -670,7 +670,7 @@ static PyObject *Vector_Lerp(VectorObject *self, PyObject *args)
 		return NULL;
 
 	if(self->size != vec2->size) {
-		PyErr_SetString(PyExc_AttributeError, "vector.lerp(): expects (2) vector objects of the same size");
+		PyErr_SetString(PyExc_AttributeError, "vector.lerp(): expects both vector objects to have the same size");
 		return NULL;
 	}
 
