@@ -132,6 +132,11 @@ void RNA_api_wm(StructRNA *srna)
 	func= RNA_def_function(srna, "invoke_popup", "WM_operator_ui_popup");
 	RNA_def_function_ui_description(func, "Operator popup invoke.");
 	rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE|WM_GEN_INVOKE_RETURN);
+
+	func= RNA_def_function(srna, "invoke_confirm", "WM_operator_confirm");
+	RNA_def_function_ui_description(func, "Operator confirmation.");
+	rna_generic_op_invoke(func, WM_GEN_INVOKE_EVENT|WM_GEN_INVOKE_RETURN);
+	
 }
 
 void RNA_api_operator(StructRNA *srna)
