@@ -134,6 +134,16 @@ class bpy_ops_submodule_op(object):
 
         return C_dict, C_exec
 
+    @staticmethod
+    def _scene_update(context):
+        scene = context.scene
+        if scene: # None in backgroud mode
+            scene.update()
+        else:
+            for scene in bpy.data.scenes:
+                scene.update()
+        
+
     __doc__ = property(_get_doc)
 
     def __init__(self, module, func):
@@ -159,6 +169,9 @@ class bpy_ops_submodule_op(object):
         # Get the operator from blender
         wm = context.window_manager
 
+        # run to account for any rna values the user changes.
+        __class__._scene_update(context)
+
         if args:
             C_dict, C_exec = __class__._parse_args(args)
             ret = op_call(self.idname_py(), C_dict, kw, C_exec)
@@ -166,12 +179,7 @@ class bpy_ops_submodule_op(object):
             ret = op_call(self.idname_py(), None, kw)
 
         if 'FINISHED' in ret and context.window_manager == wm:
-            scene = context.scene
-            if scene: # None in backgroud mode
-                scene.update()
-            else:
-                for scene in bpy.data.scenes:
-                    scene.update()
+            __class__._scene_update(context)
 
         return ret
 
