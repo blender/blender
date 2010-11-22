@@ -140,6 +140,7 @@ class bpy_ops_submodule_op(object):
         if scene: # None in backgroud mode
             scene.update()
         else:
+            import bpy
             for scene in bpy.data.scenes:
                 scene.update()
         
