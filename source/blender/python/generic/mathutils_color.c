@@ -198,7 +198,7 @@ static int Color_ass_item(ColorObject * self, int i, PyObject * value)
 	if(i<0) i= COLOR_SIZE-i;
 
 	if(i < 0 || i >= COLOR_SIZE){
-		PyErr_SetString(PyExc_IndexError, "color[attribute] = x: array assignment index out of range\n");
+		PyErr_SetString(PyExc_IndexError, "color[attribute] = x: array assignment index out of range");
 		return -1;
 	}
 

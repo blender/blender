@@ -68,11 +68,11 @@ static PyObject *M_Geometry_Intersect(PyObject *UNUSED(self), PyObject* args)
 	int clip = 1;
 
 	if(!PyArg_ParseTuple(args, "O!O!O!O!O!|i", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &ray, &vector_Type, &ray_off , &clip)) {
-		PyErr_SetString( PyExc_TypeError, "expected 5 vector types\n" );
+		PyErr_SetString(PyExc_TypeError, "expected 5 vector types" );
 		return NULL;
 	}
 	if(vec1->size != 3 || vec2->size != 3 || vec3->size != 3 || ray->size != 3 || ray_off->size != 3) {
-		PyErr_SetString( PyExc_TypeError, "only 3D vectors for all parameters\n");
+		PyErr_SetString(PyExc_TypeError, "only 3D vectors for all parameters");
 		return NULL;
 	}
 
@@ -140,11 +140,11 @@ static PyObject *M_Geometry_LineIntersect(PyObject *UNUSED(self), PyObject* args
 	float v1[3], v2[3], v3[3], v4[3], i1[3], i2[3];
 
 	if( !PyArg_ParseTuple( args, "O!O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4 ) ) {
-		PyErr_SetString( PyExc_TypeError, "expected 4 vector types\n" );
+		PyErr_SetString(PyExc_TypeError, "expected 4 vector types" );
 		return NULL;
 	}
 	if( vec1->size != vec2->size || vec1->size != vec3->size || vec3->size != vec2->size) {
-		PyErr_SetString( PyExc_TypeError,"vectors must be of the same size\n" );
+		PyErr_SetString(PyExc_TypeError,"vectors must be of the same size" );
 		return NULL;
 	}
 
@@ -192,7 +192,7 @@ static PyObject *M_Geometry_LineIntersect(PyObject *UNUSED(self), PyObject* args
 		}
 	}
 	else {
-		PyErr_SetString( PyExc_TypeError, "2D/3D vectors only\n" );
+		PyErr_SetString(PyExc_TypeError, "2D/3D vectors only" );
 		return NULL;
 	}
 }
@@ -210,15 +210,15 @@ static PyObject *M_Geometry_QuadNormal(PyObject *UNUSED(self), PyObject* args)
 	float v1[3], v2[3], v3[3], v4[3], e1[3], e2[3], n1[3], n2[3];
 
 	if( !PyArg_ParseTuple( args, "O!O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4 ) ) {
-		PyErr_SetString( PyExc_TypeError, "expected 4 vector types\n" );
+		PyErr_SetString(PyExc_TypeError, "expected 4 vector types" );
 		return NULL;
 	}
 	if( vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec4->size) {
-		PyErr_SetString( PyExc_TypeError,"vectors must be of the same size\n" );
+		PyErr_SetString(PyExc_TypeError,"vectors must be of the same size" );
 		return NULL;
 	}
 	if( vec1->size != 3 ) {
-		PyErr_SetString( PyExc_TypeError, "only 3D vectors\n" );
+		PyErr_SetString(PyExc_TypeError, "only 3D vectors" );
 		return NULL;
 	}
 
@@ -258,15 +258,15 @@ static PyObject *M_Geometry_TriangleNormal(PyObject *UNUSED(self), PyObject* arg
 	float v1[3], v2[3], v3[3], e1[3], e2[3], n[3];
 
 	if( !PyArg_ParseTuple( args, "O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3 ) ) {
-		PyErr_SetString( PyExc_TypeError, "expected 3 vector types\n" );
+		PyErr_SetString(PyExc_TypeError, "expected 3 vector types" );
 		return NULL;
 	}
 	if( vec1->size != vec2->size || vec1->size != vec3->size ) {
-		PyErr_SetString( PyExc_TypeError, "vectors must be of the same size\n" );
+		PyErr_SetString(PyExc_TypeError, "vectors must be of the same size" );
 		return NULL;
 	}
 	if( vec1->size != 3 ) {
-		PyErr_SetString( PyExc_TypeError, "only 3D vectors\n" );
+		PyErr_SetString(PyExc_TypeError, "only 3D vectors" );
 		return NULL;
 	}
 
@@ -297,11 +297,11 @@ static PyObject *M_Geometry_TriangleArea(PyObject *UNUSED(self), PyObject* args)
 	if( !PyArg_ParseTuple
 		( args, "O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2
 		, &vector_Type, &vec3 ) ) {
-		PyErr_SetString( PyExc_TypeError, "expected 3 vector types\n");
+		PyErr_SetString(PyExc_TypeError, "expected 3 vector types");
 		return NULL;
 	}
 	if( vec1->size != vec2->size || vec1->size != vec3->size ) {
-		PyErr_SetString( PyExc_TypeError, "vectors must be of the same size\n" );
+		PyErr_SetString(PyExc_TypeError, "vectors must be of the same size" );
 		return NULL;
 	}
 
@@ -328,7 +328,7 @@ static PyObject *M_Geometry_TriangleArea(PyObject *UNUSED(self), PyObject* args)
 		return PyFloat_FromDouble( area_tri_v2(v1, v2, v3) );
 	}
 	else {
-		PyErr_SetString( PyExc_TypeError, "only 2D,3D vectors are supported\n" );
+		PyErr_SetString(PyExc_TypeError, "only 2D,3D vectors are supported" );
 		return NULL;
 	}
 }
@@ -352,7 +352,7 @@ static PyObject *M_Geometry_PolyFill(PyObject *UNUSED(self), PyObject * polyLine
 	
 	
 	if(!PySequence_Check(polyLineSeq)) {
-		PyErr_SetString( PyExc_TypeError, "expected a sequence of poly lines" );
+		PyErr_SetString(PyExc_TypeError, "expected a sequence of poly lines" );
 		return NULL;
 	}
 	
@@ -363,7 +363,7 @@ static PyObject *M_Geometry_PolyFill(PyObject *UNUSED(self), PyObject * polyLine
 		if (!PySequence_Check(polyLine)) {
 			freedisplist(&dispbase);
 			Py_XDECREF(polyLine); /* may be null so use Py_XDECREF*/
-			PyErr_SetString( PyExc_TypeError, "One or more of the polylines is not a sequence of mathutils.Vector's" );
+			PyErr_SetString(PyExc_TypeError, "One or more of the polylines is not a sequence of mathutils.Vector's" );
 			return NULL;
 		}
 		
@@ -373,7 +373,7 @@ static PyObject *M_Geometry_PolyFill(PyObject *UNUSED(self), PyObject * polyLine
 			if (EXPP_check_sequence_consistency( polyLine, &vector_Type ) != 1) {
 				freedisplist(&dispbase);
 				Py_DECREF(polyLine);
-				PyErr_SetString( PyExc_TypeError, "A point in one of the polylines is not a mathutils.Vector type" );
+				PyErr_SetString(PyExc_TypeError, "A point in one of the polylines is not a mathutils.Vector type" );
 				return NULL;
 			}
 #endif
@@ -414,7 +414,7 @@ static PyObject *M_Geometry_PolyFill(PyObject *UNUSED(self), PyObject * polyLine
 	
 	if(ls_error) {
 		freedisplist(&dispbase); /* possible some dl was allocated */
-		PyErr_SetString( PyExc_TypeError, "A point in one of the polylines is not a mathutils.Vector type" );
+		PyErr_SetString(PyExc_TypeError, "A point in one of the polylines is not a mathutils.Vector type" );
 		return NULL;
 	}
 	else if (totpoints) {
@@ -428,7 +428,7 @@ static PyObject *M_Geometry_PolyFill(PyObject *UNUSED(self), PyObject * polyLine
 		tri_list= PyList_New(dl->parts);
 		if( !tri_list ) {
 			freedisplist(&dispbase);
-			PyErr_SetString( PyExc_RuntimeError, "geometry.PolyFill failed to make a new list" );
+			PyErr_SetString(PyExc_RuntimeError, "geometry.PolyFill failed to make a new list" );
 			return NULL;
 		}
 		
@@ -460,7 +460,7 @@ static PyObject *M_Geometry_LineIntersect2D(PyObject *UNUSED(self), PyObject* ar
 	  &vector_Type, &line_b1,
 	  &vector_Type, &line_b2)
 	) {
-		PyErr_SetString( PyExc_TypeError, "expected 4 vector types\n" );
+		PyErr_SetString(PyExc_TypeError, "expected 4 vector types" );
 		return NULL;
 	}
 	
@@ -560,7 +560,7 @@ static PyObject *M_Geometry_ClosestPointOnLine(PyObject *UNUSED(self), PyObject*
 	&vector_Type, &line_1,
 	&vector_Type, &line_2)
 	  ) {
-		PyErr_SetString( PyExc_TypeError, "expected 3 vector types\n" );
+		PyErr_SetString(PyExc_TypeError, "expected 3 vector types" );
 		return NULL;
 	}
 	
@@ -596,7 +596,7 @@ static PyObject *M_Geometry_PointInTriangle2D(PyObject *UNUSED(self), PyObject* 
 	  &vector_Type, &tri_p2,
 	  &vector_Type, &tri_p3)
 	) {
-		PyErr_SetString( PyExc_TypeError, "expected 4 vector types\n" );
+		PyErr_SetString(PyExc_TypeError, "expected 4 vector types" );
 		return NULL;
 	}
 	
@@ -617,7 +617,7 @@ static PyObject *M_Geometry_PointInQuad2D(PyObject *UNUSED(self), PyObject* args
 	  &vector_Type, &quad_p3,
 	  &vector_Type, &quad_p4)
 	) {
-		PyErr_SetString( PyExc_TypeError, "expected 5 vector types\n" );
+		PyErr_SetString(PyExc_TypeError, "expected 5 vector types" );
 		return NULL;
 	}
 	
@@ -636,7 +636,7 @@ static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
 	
 	/* Error checking must already be done */
 	if( !PyList_Check( value ) ) {
-		PyErr_SetString( PyExc_TypeError, "can only back a list of [x,y,x,w]" );
+		PyErr_SetString(PyExc_TypeError, "can only back a list of [x,y,x,w]" );
 		return -1;
 	}
 	
@@ -649,7 +649,7 @@ static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
 		list_item = PyList_GET_ITEM( value, i );
 		if( !PyList_Check( list_item ) || PyList_Size( list_item ) < 4 ) {
 			MEM_freeN(*boxarray);
-			PyErr_SetString( PyExc_TypeError, "can only back a list of [x,y,x,w]" );
+			PyErr_SetString(PyExc_TypeError, "can only back a list of [x,y,x,w]" );
 			return -1;
 		}
 		
@@ -660,7 +660,7 @@ static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
 		
 		if (!PyNumber_Check(item_1) || !PyNumber_Check(item_2)) {
 			MEM_freeN(*boxarray);
-			PyErr_SetString( PyExc_TypeError, "can only back a list of 2d boxes [x,y,x,w]" );
+			PyErr_SetString(PyExc_TypeError, "can only back a list of 2d boxes [x,y,x,w]" );
 			return -1;
 		}
 		
@@ -698,7 +698,7 @@ static PyObject *M_Geometry_BoxPack2D(PyObject *UNUSED(self), PyObject * boxlist
 	int error;
 	
 	if(!PyList_Check(boxlist)) {
-		PyErr_SetString( PyExc_TypeError, "expected a sequence of boxes [[x,y,w,h], ... ]" );
+		PyErr_SetString(PyExc_TypeError, "expected a sequence of boxes [[x,y,w,h], ... ]" );
 		return NULL;
 	}
 	
@@ -739,7 +739,7 @@ static PyObject *M_Geometry_BezierInterp(PyObject *UNUSED(self), PyObject* args)
 	  &vector_Type, &vec_h2,
 	  &vector_Type, &vec_k2, &resolu) || (resolu<=1)
 	) {
-		PyErr_SetString( PyExc_TypeError, "expected 4 vector types and an int greater then 1\n" );
+		PyErr_SetString(PyExc_TypeError, "expected 4 vector types and an int greater then 1" );
 		return NULL;
 	}
 	
@@ -789,7 +789,7 @@ static PyObject *M_Geometry_BarycentricTransform(PyObject *UNUSED(self), PyObjec
 										vec_t2_tar->size != 3 ||
 										vec_t3_tar->size != 3)
 	) {
-		PyErr_SetString( PyExc_TypeError, "expected 7, 3D vector types\n" );
+		PyErr_SetString(PyExc_TypeError, "expected 7, 3D vector types" );
 		return NULL;
 	}
 

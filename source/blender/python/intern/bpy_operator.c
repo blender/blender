@@ -150,7 +150,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 
 	if(WM_operator_poll_context((bContext*)C, ot, context) == FALSE) {
 		const char *msg= CTX_wm_operator_poll_msg_get(C);
-		PyErr_Format( PyExc_SystemError, "Operator bpy.ops.%.200s.poll() %s", opname, msg ? msg : "failed, context is incorrect");
+		PyErr_Format(PyExc_SystemError, "Operator bpy.ops.%.200s.poll() %.200s", opname, msg ? msg : "failed, context is incorrect");
 		CTX_wm_operator_poll_msg_set(C, NULL); /* better set to NULL else it could be used again */
 		error_val= -1;
 	}
@@ -240,7 +240,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 	ot= WM_operatortype_find(opname, TRUE);
 
 	if (ot == NULL) {
-		PyErr_Format( PyExc_SystemError, "_bpy.ops.as_string: operator \"%s\"could not be found", opname);
+		PyErr_Format(PyExc_SystemError, "_bpy.ops.as_string: operator \"%.200s\"could not be found", opname);
 		return NULL;
 	}
 
