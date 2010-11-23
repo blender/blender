@@ -1353,8 +1353,10 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			}
 		}
 
-		if(!smd->domain->fluid && (framenr != startframe) && (cache->flag & PTCACHE_BAKED)==0)
+		if(!smd->domain->fluid && (framenr != startframe) && (smd->domain->flags & MOD_SMOKE_FILE_LOAD)==0 && (cache->flag & PTCACHE_BAKED)==0)
 			return;
+
+		smd->domain->flags &= ~MOD_SMOKE_FILE_LOAD;
 
 		if(framenr < startframe)
 			framenr = startframe;
