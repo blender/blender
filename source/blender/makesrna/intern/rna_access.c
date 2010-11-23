@@ -56,6 +56,8 @@
 
 #include "rna_internal.h"
 
+const PointerRNA PointerRNA_NULL= {{0}};
+
 /* Init/Exit */
 
 void RNA_init()
