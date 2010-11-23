@@ -84,7 +84,7 @@ void ImagesExporter::operator()(Material *ma, Object *ob)
 			} 
 			
 			if (find(mImages.begin(), mImages.end(), name) == mImages.end()) {
-				COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(rel)), name);
+				COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(rel)), name, name); /* set name also to mNameNC. This helps other viewers import files exported from Blender better */
 				img.add(mSW);
 
 				mImages.push_back(name);
