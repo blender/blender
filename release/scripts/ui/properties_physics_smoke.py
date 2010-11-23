@@ -80,7 +80,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.label(text="Behavior:")
                 col.prop(domain, "alpha")
-                col.prop(domain, "beta")
+                col.prop(domain, "beta", text="Temp. Diff.")
                 col.prop(domain, "vorticity")
                 col.prop(domain, "use_dissolve_smoke", text="Dissolve")
                 sub = col.column()
@@ -109,10 +109,10 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
 
                 sub = split.column()
                 sub.active = not md.flow_settings.use_outflow
-                sub.label(text="Behavior:")
-                sub.prop(flow, "temperature")
-                sub.prop(flow, "density")
+                sub.label(text="Initial Values:")
                 sub.prop(flow, "use_absolute")
+                sub.prop(flow, "density")
+                sub.prop(flow, "temperature")
 
             #elif md.smoke_type == 'COLLISION':
             #	layout.separator()
