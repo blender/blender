@@ -175,9 +175,8 @@ static void readheader(FILE *inf, IMAGE *image)
 
 static int writeheader(FILE *outf, IMAGE *image)
 {
-	IMAGE t;
+	IMAGE t= {0};
 
-	memset(&t, 0, sizeof(IMAGE));
 	fwrite(&t,sizeof(IMAGE),1,outf);
 	fseek(outf,0,SEEK_SET);
 	putshort(outf,image->imagic);

@@ -583,7 +583,7 @@ void RNA_pointer_create(struct ID *id, StructRNA *type, void *data, PointerRNA *
 void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
 void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr);
 
-extern PointerRNA PointerRNA_NULL;
+#define PointerRNA_NULL ((PointerRNA){{0}})
 
 /* Structs */
 

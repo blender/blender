@@ -213,14 +213,12 @@ int AVI_is_avi (char *name) {
 
 int AVI_is_avi (const char *name) {
 	int temp, fcca, j;
-	AviMovie movie;
+	AviMovie movie= {0};
 	AviMainHeader header;
 	AviBitmapInfoHeader bheader;
 	int movie_tracks = 0;
 	
 	DEBUG_PRINT("opening movie\n");
-
-	memset(&movie, 0, sizeof(AviMovie));
 
 	movie.type = AVI_MOVIE_READ;
 	movie.fp = fopen (name, "rb");

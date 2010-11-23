@@ -287,13 +287,12 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
  */
 int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 {
-	BezTriple beztr;
+	BezTriple beztr= {{{0}}};
 	int a;
 	
 	/* set all three points, for nicer start position 
 	 * NOTE: +/- 1 on vec.x for left and right handles is so that 'free' handles work ok...
 	 */
-	memset(&beztr, 0, sizeof(BezTriple));
 	beztr.vec[0][0]= x-1.0f; 
 	beztr.vec[0][1]= y;
 	beztr.vec[1][0]= x;
@@ -1355,7 +1354,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	PropertyRNA *prop= NULL;
 	char *path;
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
@@ -1367,7 +1366,6 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	flag = ANIM_get_keyframing_flags(scene, 1);
 	
 	/* try to insert keyframe using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	if ((ptr.id.data && ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {

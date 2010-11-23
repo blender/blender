@@ -5412,12 +5412,10 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 {
 	Image *image= BLI_findlink(&CTX_data_main(C)->image, RNA_enum_get(op->ptr, "image"));
 	Scene *scene= CTX_data_scene(C);
-	ProjPaintState ps;
+	ProjPaintState ps= {0};
 	int orig_brush_size;
 	IDProperty *idgroup;
 	IDProperty *view_data= NULL;
-
-	memset(&ps, 0, sizeof(ps));
 
 	project_state_init(C, OBACT, &ps);
 

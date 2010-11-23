@@ -357,7 +357,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 /* Generic itemf's for operators that take library args */
 static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
-	EnumPropertyItem *item= NULL, item_tmp;
+	EnumPropertyItem item_tmp= {0}, *item= NULL;
 	int totitem= 0;
 	int i= 0;
 	Object *ob= ED_object_active_context(C);
@@ -365,8 +365,6 @@ static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *UNUSE
 
 	if(!ob || !ob->dup_group)
 		return DummyRNA_DEFAULT_items;
-
-	memset(&item_tmp, 0, sizeof(item_tmp));
 
 	/* find the object to affect */
 	for (go= ob->dup_group->gobject.first; go; go= go->next) {

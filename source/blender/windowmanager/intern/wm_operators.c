@@ -3426,11 +3426,9 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 /* Generic itemf's for operators that take library args */
 static EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), int *free, ID *id, int local)
 {
-	EnumPropertyItem *item= NULL, item_tmp;
+	EnumPropertyItem item_tmp= {0}, *item= NULL;
 	int totitem= 0;
 	int i= 0;
-
-	memset(&item_tmp, 0, sizeof(item_tmp));
 
 	for( ; id; id= id->next) {
 		if(local==FALSE || id->lib==NULL) {

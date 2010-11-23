@@ -1085,14 +1085,13 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 	if(idtype == ID_IM) {
 		Image *ima= (Image*)id;
 		ImBuf *ibuf= NULL;
-		ImageUser iuser;
+		ImageUser iuser= {0};
 
 		/* ima->ok is zero when Image cannot load */
 		if(ima==NULL || ima->ok==0)
 			return;
 
 		/* setup dummy image user */
-		memset(&iuser, 0, sizeof(ImageUser));
 		iuser.ok= iuser.framenr= 1;
 		iuser.scene= sp->scene;
 		

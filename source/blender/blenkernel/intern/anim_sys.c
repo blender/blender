@@ -1610,9 +1610,6 @@ void nladata_flush_channels (ListBase *channels)
  */
 static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 {
-	ListBase dummy_trackslist = {NULL, NULL};
-	NlaStrip dummy_strip;
-	
 	NlaTrack *nlt;
 	short track_index=0;
 	short has_strips = 0;
@@ -1655,7 +1652,9 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 		/* if there are strips, evaluate action as per NLA rules */
 		if ((has_strips) || (adt->actstrip)) {
 			/* make dummy NLA strip, and add that to the stack */
-			memset(&dummy_strip, 0, sizeof(NlaStrip));
+			NlaStrip dummy_strip= {0};
+			ListBase dummy_trackslist;
+
 			dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
 			
 			if ((nlt) && !(adt->flag & ADT_NLA_EDIT_NOMAP)) {

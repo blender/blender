@@ -90,8 +90,6 @@ void RNA_exit()
 
 /* Pointer */
 
-PointerRNA PointerRNA_NULL = {{0}, 0, 0};
-
 void RNA_main_pointer_create(struct Main *main, PointerRNA *r_ptr)
 {
 	r_ptr->id.data= NULL;
@@ -168,9 +166,8 @@ void RNA_blender_rna_pointer_create(PointerRNA *r_ptr)
 
 PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *data)
 {
-	PointerRNA result;
-
 	if(data) {
+		PointerRNA result;
 		result.data= data;
 		result.type= type;
 		rna_pointer_inherit_id(type, ptr, &result);
@@ -183,11 +180,11 @@ PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *da
 			else
 				result.type= type;
 		}
+		return result;
 	}
-	else
-		memset(&result, 0, sizeof(result));
-	
-	return result;
+	else {
+		return PointerRNA_NULL;
+	}
 }
 
 /**/
@@ -1972,8 +1969,7 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 		return RNA_property_pointer_get(ptr, prop);
 	}
 	else {
-		PointerRNA result= {{0}};
-		return result;
+		return PointerRNA_NULL;
 	}
 }
 
@@ -3561,12 +3557,9 @@ PointerRNA RNA_pointer_get(PointerRNA *ptr, const char *name)
 		return RNA_property_pointer_get(ptr, prop);
 	}
 	else {
-		PointerRNA result;
-
 		printf("RNA_pointer_get: %s.%s not found.\n", ptr->type->identifier, name);
 
-		memset(&result, 0, sizeof(result));
-		return result;
+		return PointerRNA_NULL;
 	}
 }
 

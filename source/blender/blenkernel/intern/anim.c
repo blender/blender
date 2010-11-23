@@ -1441,7 +1441,7 @@ static Object *find_family_object(Object **obar, char *family, char ch)
 
 static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int level, int animated)
 {
-	Object *ob, *obar[256];
+	Object *ob, *obar[256]= {0};
 	Curve *cu;
 	struct chartrans *ct, *chartransdata;
 	float vec[3], obmat[4][4], pmat[4][4], fsize, xof, yof;
@@ -1456,9 +1456,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int level, i
 	
 	chartransdata= BKE_text_to_curve(scene, par, FO_DUPLI);
 	if(chartransdata==0) return;
-	
-	memset(obar, 0, 256*sizeof(void *));
-	
+
 	cu= par->data;
 	slen= strlen(cu->str);
 	fsize= cu->fsize;

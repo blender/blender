@@ -1156,8 +1156,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				else {
 					/* data==NULL, assign to RNA */
 					if(value == Py_None) {
-						PointerRNA valueptr;
-						memset(&valueptr, 0, sizeof(valueptr));
+						PointerRNA valueptr= {{0}};
 						RNA_property_pointer_set(ptr, prop, valueptr);
 					}
 					else if(RNA_struct_is_a(param->ptr.type, ptype)) {
