@@ -306,7 +306,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
 				if(*grid_unit==NULL) {
 					*grid_unit= bUnit_GetNameDisplay(usys, i);
-					rv3d->gridview= (scalar * unit->scale_length);
+					rv3d->gridview= (scalar / unit->scale_length);
 				}
 				blend_fac= 1-((GRID_MIN_PX*2)/dx_scalar);
 
