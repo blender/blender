@@ -2013,7 +2013,8 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
         layout = self.layout
 
         view = context.space_data
-        gs = context.scene.game_settings
+        scene = context.scene
+        gs = scene.game_settings
         ob = context.object
 
         col = layout.column()
@@ -2042,8 +2043,10 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
         sub = col.column(align=True)
         sub.active = (display_all and view.show_floor)
         sub.prop(view, "grid_lines", text="Lines")
-        sub.prop(view, "grid_spacing", text="Spacing")
-        sub.prop(view, "grid_subdivisions", text="Subdivisions")
+        sub.prop(view, "grid_scale", text="Scale")
+        subsub = sub.column(align=True)
+        subsub.active = scene.unit_settings.system == 'NONE'
+        subsub.prop(view, "grid_subdivisions", text="Subdivisions")
 
         col = layout.column()
         col.label(text="Shading:")

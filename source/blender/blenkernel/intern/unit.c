@@ -69,13 +69,13 @@
 
 /* define a single unit */
 typedef struct bUnitDef {
-	char *name;
-	char *name_plural;	/* abused a bit for the display name */
-	char *name_short;	/* this is used for display*/
-	char *name_alt;		/* keyboard-friendly ASCII-only version of name_short, can be NULL */
+	const char *name;
+	const char *name_plural;	/* abused a bit for the display name */
+	const char *name_short;	/* this is used for display*/
+	const char *name_alt;		/* keyboard-friendly ASCII-only version of name_short, can be NULL */
 						/* if name_short has non-ASCII chars, name_alt should be present */
 	
-	char *name_display;		/* can be NULL */
+	const char *name_display;		/* can be NULL */
 
 	double scalar;
 	double bias;		/* not used yet, needed for converting temperature */
@@ -421,7 +421,7 @@ void bUnit_AsString(char *str, int len_max, double value, int prec, int system, 
 }
 
 
-static char *unit_find_str(char *str, char *substr)
+static char *unit_find_str(char *str, const char *substr)
 {
 	char *str_found;
 
@@ -476,7 +476,7 @@ static int ch_is_op(char op)
 	}
 }
 
-static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pref, bUnitDef *unit, char *replace_str)
+static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pref, bUnitDef *unit, const char *replace_str)
 {
 	char *str_found;
 
@@ -755,11 +755,11 @@ void bUnit_GetSystem(void **usys_pt, int *len, int system, int type)
 	*len= usys->length;
 }
 
-char *bUnit_GetName(void *usys_pt, int index)
+const char *bUnit_GetName(void *usys_pt, int index)
 {
 	return ((bUnitCollection *)usys_pt)->units[index].name;
 }
-char *bUnit_GetNameDisplay(void *usys_pt, int index)
+const char *bUnit_GetNameDisplay(void *usys_pt, int index)
 {
 	return ((bUnitCollection *)usys_pt)->units[index].name_display;
 }
