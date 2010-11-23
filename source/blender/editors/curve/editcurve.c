@@ -5686,7 +5686,48 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 }
 
 /************ add primitive, used by object/ module ****************/
-Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
+
+static char *get_curve_defname(int type)
+{
+	int stype= type & CU_PRIMITIVE;
+
+	if((type & CU_TYPE)==CU_BEZIER) {
+		switch (stype) {
+			case CU_PRIM_CURVE: return "BezierCurve";
+			case CU_PRIM_CIRCLE: return "BezierCircle";
+			case CU_PRIM_PATH: return "CurvePath";
+			default:
+				return "Curve";
+		}
+	}
+	else {
+		switch (stype) {
+			case CU_PRIM_CURVE: return "NurbsCurve";
+			case CU_PRIM_CIRCLE: return "NurbsCircle";
+			case CU_PRIM_PATH: return "NurbsPath";
+			default:
+				return "Curve";
+		}
+	}
+}
+
+static char *get_surf_defname(int type)
+{
+	int stype= type & CU_PRIMITIVE;
+
+	switch (stype) {
+		case CU_PRIM_CURVE: return "SurfCurve";
+		case CU_PRIM_CIRCLE: return "SurfCircle";
+		case CU_PRIM_PATCH: return "SurfPatch";
+		case CU_PRIM_SPHERE: return "SurfSphere";
+		case CU_PRIM_DONUT: return "SurfTorus";
+		default:
+			return "Surface";
+	}
+}
+
+
+Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 {
 	static int xzproj= 0;	/* this function calls itself... */
 	Object *obedit= CTX_data_edit_object(C);
@@ -5711,7 +5752,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	if (v3d)	grid = v3d->grid;
 	else		grid = 1.0;
 	
-
 	setflagsNurb(editnurb, 0);
 	
 	/* these types call this function to return a Nurb */
@@ -5725,10 +5765,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	switch(stype) {
 	case CU_PRIM_CURVE:	/* curve */
 		nu->resolu= cu->resolu;
-		if(newname) {
-			rename_id((ID *)obedit, "Curve");
-			rename_id((ID *)obedit->data, "Curve");
-		}
 		if(cutype==CU_BEZIER) {
 			if (!force_3d) nu->flag |= CU_2D;
 			nu->pntsu= 2;
@@ -5831,10 +5867,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 		break;
 	case CU_PRIM_CIRCLE:	/* circle */
 		nu->resolu= cu->resolu;
-		if(newname) {
-			rename_id((ID *)obedit, "CurveCircle");
-			rename_id((ID *)obedit->data, "CurveCircle");
-		}
+
 		if(cutype==CU_BEZIER) {
 			if (!force_3d) nu->flag |= CU_2D;
 			nu->pntsu= 4;
@@ -5902,10 +5935,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 		break;
 	case CU_PRIM_PATCH:	/* 4x4 patch */
 		if( cutype==CU_NURBS ) {  /* nurb */
-			if(newname) {
-				rename_id((ID *)obedit, "Surf");
-				rename_id((ID *)obedit->data, "Surf");
-			}
 
 			nu->pntsu= 4;
 			nu->pntsv= 4;
@@ -5941,11 +5970,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 		if( cutype==CU_NURBS ) {
 			Curve *cu= (Curve*)obedit->data;
 			
-			if(newname) {
-				rename_id((ID *)obedit, "SurfCylinder");
-				rename_id((ID *)obedit->data, "SurfCylinder");
-			}
-			
 			nu= add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
 			nu->resolu= cu->resolu;
 			nu->flag= CU_SMOOTH;
@@ -5953,7 +5977,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			vec[0]=vec[1]= 0.0;
 			vec[2]= -grid;
 			
-			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
+			if(newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
 				/* pass */
 			}
 			else {
@@ -5982,11 +6006,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			float tmp_cent[3] = {0.f, 0.f, 0.f};
 			float tmp_vec[3] = {0.f, 0.f, 1.f};
 			
-			if(newname) {
-				rename_id((ID *)obedit, "SurfSphere");
-				rename_id((ID *)obedit->data, "SurfSphere");
-			}
-
 			nu->pntsu= 5;
 			nu->pntsv= 1;
 			nu->orderu= 3;
@@ -6011,7 +6030,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 
 			BLI_addtail(editnurb, nu); /* temporal for spin */
 
-			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
+			if(newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
 			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(rv3d->viewmat, obedit, rv3d->viewinv[2], mat[3]);
 			else												spin_nurb(umat, obedit, tmp_vec, mat[3]);
 
@@ -6031,11 +6050,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			float tmp_cent[3] = {0.f, 0.f, 0.f};
 			float tmp_vec[3] = {0.f, 0.f, 1.f};
 			
-			if(newname) {
-				rename_id((ID *)obedit, "SurfTorus");
-				rename_id((ID *)obedit->data, "SurfTorus");
-			}
-
 			xzproj= 1;
 			nu= add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
 			xzproj= 0;
@@ -6045,7 +6059,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			BLI_addtail(editnurb, nu); /* temporal for spin */
 
 			/* same as above */
-			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
+			if(newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
 			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(rv3d->viewmat, obedit, rv3d->viewinv[2], mat[3]);
 			else												spin_nurb(umat, obedit, tmp_vec, mat[3]);
 
@@ -6088,21 +6102,43 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	if (!isSurf) { /* adding curve */
 		if(obedit==NULL || obedit->type!=OB_CURVE) {
 			Curve *cu;
+			
 			obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
 			newob = 1;
 
 			cu= (Curve*)obedit->data;
 			cu->flag |= CU_DEFORM_FILL;
+			
 			if(type & CU_PRIM_PATH)
 				cu->flag |= CU_PATH|CU_3D;
-		} else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
-	} else { /* adding surface */
+		} 
+		else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	} 
+	else { /* adding surface */
 		if(obedit==NULL || obedit->type!=OB_SURF) {
 			obedit= ED_object_add_type(C, OB_SURF, loc, rot, TRUE, layer);
 			newob = 1;
-		} else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+		} 
+		else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	}
 
+	/* rename here, the undo stack checks name for valid undo pushes */
+	if(newob) {
+
+		if(obedit->type==OB_CURVE) {
+			rename_id((ID *)obedit, get_curve_defname(type));
+			rename_id((ID *)obedit->data, get_curve_defname(type));
+		}
+		else {
+			rename_id((ID *)obedit, get_surf_defname(type));
+			rename_id((ID *)obedit->data, get_surf_defname(type));
+		}
+	}
+	
+	/* ED_object_add_type doesnt do an undo, is needed for redo operator on primitive */
+	if(newob && enter_editmode)
+		ED_undo_push(C, "Enter Editmode");
+	
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 
 	nu= add_nurbs_primitive(C, mat, type, newob);

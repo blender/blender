@@ -279,6 +279,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 }
 
 /* for object add primitive operators */
+/* do not call undo push in this function (users of this function have to) */
 Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int enter_editmode, unsigned int layer)
 {
 	Main *bmain= CTX_data_main(C);
