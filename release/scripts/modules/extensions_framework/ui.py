@@ -122,7 +122,7 @@ class property_group_renderer(object):
 				if type(sp) is float:
 					found_percent = sp
 				elif type(sp) is list:
-					for ssp in control_list_item:
+					for ssp in sp:
 						do_split = do_split and self.check_visibility(ssp,
 							property_group)
 				else:
@@ -131,8 +131,7 @@ class property_group_renderer(object):
 			
 			if do_split:
 				if found_percent is not None:
-					fp = {'percentage': found_percent}
-					splt = layout.split(**fp)
+					splt = layout.split(percentage=found_percent)
 				else:
 					splt = layout.row(True)
 				for sp in [s for s in control_list_item if type(s) in \
