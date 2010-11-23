@@ -776,16 +776,12 @@ def packIslands(islandList):
 
 
 
-def VectoMat(vec):
-    a3 = vec.__copy__().normalize()
-
-    up = Vector((0.0, 0.0, 1.0))
-    if abs(a3.dot(up)) == 1.0:
-        up = Vector((0.0, 1.0, 0.0))
-
-    a1 = a3.cross(up).normalize()
-    a2 = a3.cross(a1)
-    return Matrix([a1[0], a1[1], a1[2]], [a2[0], a2[1], a2[2]], [a3[0], a3[1], a3[2]])
+def VectoQuat(vec):
+    vec = vec.copy().normalize()
+    if abs(vec.x) > 0.5:
+        return vec.to_track_quat('Z', 'X')
+    else:
+        return vec.to_track_quat('Z', 'Y')
 
 
 class thickface(object):
@@ -1048,14 +1044,14 @@ def main(context, island_margin, projection_limit):
                 continue
 
             # Make a projection matrix from a unit length vector.
-            MatProj = VectoMat(projectVecs[i])
+            MatQuat = VectoQuat(projectVecs[i])
 
             # Get the faces UV's from the projected vertex.
             for f in faceProjectionGroupList[i]:
                 f_uv = f.uv
                 for j, v in enumerate(f.v):
                     # XXX - note, between mathutils in 2.4 and 2.5 the order changed.
-                    f_uv[j][:] = (v.co * MatProj)[:2]
+                    f_uv[j][:] = (v.co * MatQuat)[:2]
 
 
         if USER_SHARE_SPACE:
