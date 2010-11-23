@@ -353,7 +353,7 @@ static PyObject *Vector_ToTrackQuat(VectorObject *self, PyObject *args )
 			case 'X':
 				up = 0;
 				break;
-			case 'y':
+			case 'Y':
 				up = 1;
 				break;
 			case 'Z':
