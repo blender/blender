@@ -755,6 +755,11 @@ void bUnit_GetSystem(void **usys_pt, int *len, int system, int type)
 	*len= usys->length;
 }
 
+int bUnit_GetBaseUnit(void *usys_pt)
+{
+	return ((bUnitCollection *)usys_pt)->base_unit;
+}
+
 const char *bUnit_GetName(void *usys_pt, int index)
 {
 	return ((bUnitCollection *)usys_pt)->units[index].name;

@@ -250,8 +250,6 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	float wx, wy, x, y, fw, fx, fy, dx;
 	float vec4[4];
 	char col[3], col2[3];
-	
-	*grid_unit= NULL;
 
 	vec4[0]=vec4[1]=vec4[2]=0.0; 
 	vec4[3]= 1.0;
@@ -306,7 +304,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
 				if(*grid_unit==NULL) {
 					*grid_unit= bUnit_GetNameDisplay(usys, i);
-					rv3d->gridview= (scalar / unit->scale_length) * v3d->grid;
+					rv3d->gridview= (scalar * v3d->grid) / unit->scale_length;
 				}
 				blend_fac= 1-((GRID_MIN_PX*2)/dx_scalar);
 
@@ -417,9 +415,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 }
 #undef GRID_MIN_PX
 
-static void drawfloor(Scene *scene, View3D *v3d)
+static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 {
-	float vert[3], grid;
+	float vert[3], grid, grid_scale;
 	int a, gridlines, emphasise;
 	char col[3], col2[3];
 	short draw_line = 0;
@@ -428,11 +426,28 @@ static void drawfloor(Scene *scene, View3D *v3d)
 	
 	if(v3d->gridlines<3) return;
 	
+	grid_scale= v3d->grid;
+	/* use 'grid_scale' instead of 'v3d->grid' from now on */
+
+	/* apply units */
+	if(scene->unit.system) {
+		void *usys;
+		int len;
+
+		bUnit_GetSystem(&usys, &len, scene->unit.system, B_UNIT_LENGTH);
+
+		if(usys) {
+			int i= bUnit_GetBaseUnit(usys);
+			*grid_unit= bUnit_GetNameDisplay(usys, i);
+			 grid_scale = (grid_scale * bUnit_GetScaler(usys, i)) / scene->unit.scale_length;
+		}
+	}
+	
 	if(v3d->zbuf && scene->obedit) glDepthMask(0);	// for zbuffer-select
 	
 	gridlines= v3d->gridlines/2;
-	grid= gridlines*v3d->grid;
-	
+	grid= gridlines * grid_scale;
+
 	UI_GetThemeColor3ubv(TH_GRID, col);
 	UI_GetThemeColor3ubv(TH_BACK, col2);
 	
@@ -472,7 +487,7 @@ static void drawfloor(Scene *scene, View3D *v3d)
 		
 		if (draw_line) {
 			glBegin(GL_LINE_STRIP);
-			vert[0]= a*v3d->grid;
+			vert[0]= a * grid_scale;
 			vert[1]= grid;
 			glVertex3fv(vert);
 			vert[1]= -grid;
@@ -511,7 +526,7 @@ static void drawfloor(Scene *scene, View3D *v3d)
 		
 		if (draw_line) {
 			glBegin(GL_LINE_STRIP);
-			vert[1]= a*v3d->grid;
+			vert[1]= a * grid_scale;
 			vert[0]= grid;
 			glVertex3fv(vert );
 			vert[0]= -grid;
@@ -2340,7 +2355,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	if(rv3d->view==0 || rv3d->persp != RV3D_ORTHO) {
 		if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
-			drawfloor(scene, v3d);
+			drawfloor(scene, v3d, &grid_unit);
 		}
 		if(rv3d->persp==RV3D_CAMOB) {
 			if(scene->world) {
