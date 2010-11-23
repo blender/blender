@@ -585,12 +585,12 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
 
 }
 
-void WM_operator_properties_sanitize(PointerRNA *ptr, int val)
+void WM_operator_properties_sanitize(PointerRNA *ptr, const short no_context)
 {
 	RNA_STRUCT_BEGIN(ptr, prop) {
 		switch(RNA_property_type(prop)) {
 		case PROP_ENUM:
-			if (val)
+			if (no_context)
 				RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
 			else
 				RNA_def_property_clear_flag(prop, PROP_ENUM_NO_CONTEXT);
@@ -602,7 +602,7 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, int val)
 				/* recurse into operator properties */
 				if (RNA_struct_is_a(ptype, &RNA_OperatorProperties)) {
 					PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
-					WM_operator_properties_sanitize(&opptr, val);
+					WM_operator_properties_sanitize(&opptr, no_context);
 				}
 				break;
 			}

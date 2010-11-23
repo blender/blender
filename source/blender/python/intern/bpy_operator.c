@@ -156,6 +156,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	}
 	else {
 		WM_operator_properties_create_ptr(&ptr, ot);
+		WM_operator_properties_sanitize(&ptr, 0);
 
 		if(kw && PyDict_Size(kw))
 			error_val= pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
@@ -306,6 +307,7 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 
 	/* XXX - should call WM_operator_properties_free */
 	WM_operator_properties_create_ptr(&ptr, ot);
+	WM_operator_properties_sanitize(&ptr, 0);
 
 	
 	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);

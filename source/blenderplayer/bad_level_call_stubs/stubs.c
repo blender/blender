@@ -363,6 +363,7 @@ int WM_operator_props_popup(struct bContext *C, struct wmOperator *op, struct wm
 void WM_operator_properties_free(struct PointerRNA *ptr){}
 void WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring){}
 void WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot){}
+void WM_operator_properties_sanitize(struct PointerRNA *ptr, const short no_context){};
 void WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType*, void*), void *userdata){}
 void WM_operatortype_append_macro_ptr(void (*opfunc)(struct wmOperatorType*, void*), void *userdata){}
 void WM_operator_bl_idname(char *to, const char *from){}
