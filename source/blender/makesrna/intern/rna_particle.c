@@ -518,6 +518,27 @@ static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *str)
 	else
 		strcpy(str, "Invalid target!");
 }
+
+static int particle_id_check(PointerRNA *ptr)
+{
+	ID *id= ptr->id.data;
+
+	return (GS(id->name) == ID_PA);
+}
+
+static char *rna_SPHFluidSettings_path(PointerRNA *ptr)
+{
+	SPHFluidSettings *fluid = (SPHFluidSettings *)ptr->data;
+	
+	if(particle_id_check(ptr)) {
+		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
+		
+		if (part->fluid == fluid)
+			return BLI_sprintfN("fluid");
+	}
+	return NULL;
+}
+
 static int rna_ParticleSystem_multiple_caches_get(PointerRNA *ptr)
 {
 	ParticleSystem *psys= (ParticleSystem*)ptr->data;
@@ -953,6 +974,7 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "SPHFluidSettings", NULL);
+	RNA_def_struct_path_func(srna, "rna_SPHFluidSettings_path");
 	RNA_def_struct_ui_text(srna, "SPH Fluid Settings", "Settings for particle fluids physics");
 	
 	/* Fluid settings */
@@ -960,7 +982,7 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "spring_k");
  	RNA_def_property_range(prop, 0.0f, 1.0f);
  	RNA_def_property_ui_text(prop, "Spring", "Spring force constant");
-        RNA_def_property_update(prop, 0, "rna_Particle_reset");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
   
  	prop= RNA_def_property(srna, "fluid_radius", PROP_FLOAT, PROP_NONE);
  	RNA_def_property_float_sdna(prop, NULL, "radius");
@@ -1948,18 +1970,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 1.0f, 100.0f, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Loop count", "Number of times the keys are looped");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
-	/* boids */
-	prop= RNA_def_property(srna, "boids", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "BoidSettings");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Boid Settings", "");
-	
-	/* Fluid particles */
-	prop= RNA_def_property(srna, "fluid", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "SPHFluidSettings");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "SPH Fluid Settings", ""); 
 	
 	/* draw objects & groups */
 	prop= RNA_def_property(srna, "dupli_group", PROP_POINTER, PROP_NONE);
@@ -1997,6 +2007,19 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Billboard Object", "Billboards face this object (default is active camera)");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
+	/* boids */
+	prop= RNA_def_property(srna, "boids", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "BoidSettings");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Boid Settings", "");
+	
+	/* Fluid particles */
+	prop= RNA_def_property(srna, "fluid", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "SPHFluidSettings");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "SPH Fluid Settings", ""); 
+
+	/* Effector weights */
 	prop= RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "EffectorWeights");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -2347,10 +2370,9 @@ static void rna_def_particle_system(BlenderRNA *brna)
 void RNA_def_particle(BlenderRNA *brna)
 {
 	rna_def_particle_target(brna);
-
+	rna_def_fluid_settings(brna);
 	rna_def_particle_hair_key(brna);
 	rna_def_particle_key(brna);
-	rna_def_fluid_settings(brna);
 	
 	rna_def_child_particle(brna);
 	rna_def_particle(brna);
