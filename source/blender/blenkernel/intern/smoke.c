@@ -824,9 +824,109 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 	GroupObject *go = NULL;			
 	Base *base = NULL;	
 
+	// do collisions, needs to be done before emission, so that smoke isn't emitted inside collision cells
+	if(1)
+	{
+		Object *otherobj = NULL;
+		ModifierData *md = NULL;
+
+		if(sds->coll_group) // we use groups since we have 2 domains
+			go = sds->coll_group->gobject.first;
+		else
+			base = scene->base.first;
+
+		while(base || go)
+		{
+			otherobj = NULL;
+			if(sds->coll_group) 
+			{						
+				if(go->ob)							
+					otherobj = go->ob;					
+			}					
+			else						
+				otherobj = base->object;					
+			if(!otherobj)					
+			{						
+				if(sds->coll_group)							
+					go = go->next;						
+				else							
+					base= base->next;						
+				continue;					
+			}			
+			md = modifiers_findByType(otherobj, eModifierType_Smoke);
+			
+			// check for active smoke modifier
+			if(md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))					
+			{
+				SmokeModifierData *smd2 = (SmokeModifierData *)md;
+
+				if((smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll && smd2->coll->points)
+				{
+					// we got nice collision object
+					SmokeCollSettings *scs = smd2->coll;
+					size_t i, j;
+					unsigned char *obstacles = smoke_get_obstacle(smd->domain->fluid);
+
+					for(i = 0; i < scs->numpoints; i++)
+					{
+						int badcell = 0;
+						size_t index = 0;
+						int cell[3];
+
+						// 1. get corresponding cell
+						get_cell(smd->domain->p0, smd->domain->res, smd->domain->dx, &scs->points[3 * i], cell, 0);
+					
+						// check if cell is valid (in the domain boundary)
+						for(j = 0; j < 3; j++)
+							if((cell[j] > sds->res[j] - 1) || (cell[j] < 0))
+							{
+								badcell = 1;
+								break;
+							}
+																
+							if(badcell)									
+								continue;
+						// 2. set cell values (heat, density and velocity)
+						index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);
+														
+						// printf("cell[0]: %d, cell[1]: %d, cell[2]: %d\n", cell[0], cell[1], cell[2]);								
+						// printf("res[0]: %d, res[1]: %d, res[2]: %d, index: %d\n\n", sds->res[0], sds->res[1], sds->res[2], index);																	
+						obstacles[index] = 1;
+						// for moving gobstacles								
+						/*
+						const LbmFloat maxVelVal = 0.1666;
+						const LbmFloat maxusqr = maxVelVal*maxVelVal*3. *1.5;
+
+						LbmVec objvel = vec2L((mMOIVertices[n]-mMOIVerticesOld[n]) /dvec); 
+						{ 								
+						const LbmFloat usqr = (objvel[0]*objvel[0]+objvel[1]*objvel[1]+objvel[2]*objvel[2])*1.5; 								
+						USQRMAXCHECK(usqr, objvel[0],objvel[1],objvel[2], mMaxVlen, mMxvx,mMxvy,mMxvz); 								
+						if(usqr>maxusqr) { 									
+						// cutoff at maxVelVal 									
+						for(int jj=0; jj<3; jj++) { 										
+						if(objvel[jj]>0.) objvel[jj] =  maxVelVal;  										
+						if(objvel[jj]<0.) objvel[jj] = -maxVelVal; 									
+						} 								
+						} 
+						} 								
+						const LbmFloat dp=dot(objvel, vec2L((*pNormals)[n]) ); 								
+						const LbmVec oldov=objvel; // debug								
+						objvel = vec2L((*pNormals)[n]) *dp;								
+						*/
+					}
+				}
+			}
+
+			if(sds->coll_group)
+				go = go->next;
+			else
+				base= base->next;
+		}
+	}
+
 	// do flows and fluids
 	if(1)			
-	{				
+	{
 		Object *otherobj = NULL;				
 		ModifierData *md = NULL;
 		if(sds->fluid_group) // we use groups since we have 2 domains
@@ -928,7 +1028,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 								continue;																		
 							// 2. set cell values (heat, density and velocity)									
 							index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);																		
-							if(!(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW) && !(obstacle[index] & 2)) // this is inflow									
+							if(!(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW) && !(obstacle[index])) // this is inflow
 							{										
 								// heat[index] += sfs->temp * 0.1;										
 								// density[index] += sfs->density * 0.1;
@@ -1167,105 +1267,6 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 		pdEndEffectors(&effectors);
 	}
 
-	// do collisions	
-	if(1)
-	{
-		Object *otherobj = NULL;
-		ModifierData *md = NULL;
-
-		if(sds->coll_group) // we use groups since we have 2 domains
-			go = sds->coll_group->gobject.first;
-		else
-			base = scene->base.first;
-
-		while(base || go)
-		{
-			otherobj = NULL;
-			if(sds->coll_group) 
-			{						
-				if(go->ob)							
-					otherobj = go->ob;					
-			}					
-			else						
-				otherobj = base->object;					
-			if(!otherobj)					
-			{						
-				if(sds->coll_group)							
-					go = go->next;						
-				else							
-					base= base->next;						
-				continue;					
-			}			
-			md = modifiers_findByType(otherobj, eModifierType_Smoke);
-			
-			// check for active smoke modifier
-			if(md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))					
-			{
-				SmokeModifierData *smd2 = (SmokeModifierData *)md;
-
-				if((smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll && smd2->coll->points)
-				{
-					// we got nice collision object
-					SmokeCollSettings *scs = smd2->coll;
-					size_t i, j;
-					unsigned char *obstacles = smoke_get_obstacle(smd->domain->fluid);
-
-					for(i = 0; i < scs->numpoints; i++)
-					{
-						int badcell = 0;
-						size_t index = 0;
-						int cell[3];
-
-						// 1. get corresponding cell
-						get_cell(smd->domain->p0, smd->domain->res, smd->domain->dx, &scs->points[3 * i], cell, 0);
-					
-						// check if cell is valid (in the domain boundary)
-						for(j = 0; j < 3; j++)
-							if((cell[j] > sds->res[j] - 1) || (cell[j] < 0))
-							{
-								badcell = 1;
-								break;
-							}
-																
-							if(badcell)									
-								continue;
-						// 2. set cell values (heat, density and velocity)
-						index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);
-														
-						// printf("cell[0]: %d, cell[1]: %d, cell[2]: %d\n", cell[0], cell[1], cell[2]);								
-						// printf("res[0]: %d, res[1]: %d, res[2]: %d, index: %d\n\n", sds->res[0], sds->res[1], sds->res[2], index);																	
-						obstacles[index] = 1;
-						// for moving gobstacles								
-						/*
-						const LbmFloat maxVelVal = 0.1666;
-						const LbmFloat maxusqr = maxVelVal*maxVelVal*3. *1.5;
-
-						LbmVec objvel = vec2L((mMOIVertices[n]-mMOIVerticesOld[n]) /dvec); 
-						{ 								
-						const LbmFloat usqr = (objvel[0]*objvel[0]+objvel[1]*objvel[1]+objvel[2]*objvel[2])*1.5; 								
-						USQRMAXCHECK(usqr, objvel[0],objvel[1],objvel[2], mMaxVlen, mMxvx,mMxvy,mMxvz); 								
-						if(usqr>maxusqr) { 									
-						// cutoff at maxVelVal 									
-						for(int jj=0; jj<3; jj++) { 										
-						if(objvel[jj]>0.) objvel[jj] =  maxVelVal;  										
-						if(objvel[jj]<0.) objvel[jj] = -maxVelVal; 									
-						} 								
-						} 
-						} 								
-						const LbmFloat dp=dot(objvel, vec2L((*pNormals)[n]) ); 								
-						const LbmVec oldov=objvel; // debug								
-						objvel = vec2L((*pNormals)[n]) *dp;								
-						*/
-					}
-				}
-			}
-
-			if(sds->coll_group)
-				go = go->next;
-			else
-				base= base->next;
-		}
-	}
 }
 void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
 {	
