@@ -920,13 +920,13 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 
 	if (fd->flags & FD_FLAGS_FILE_OK) {
 		if (!read_file_dna(fd)) {
-			BKE_report(reports, RPT_ERROR, "File incomplete");
+			BKE_reportf(reports, RPT_ERROR, "Failed to read blend file: \"%s\", incomplete", fd->relabase);
 			blo_freefiledata(fd);
 			fd= NULL;
 		}
 	} 
 	else {
-		BKE_report(reports, RPT_ERROR, "File is not a Blender file");
+		BKE_reportf(reports, RPT_ERROR, "Failed to read blend file: \"%s\", not a blend file", fd->relabase);
 		blo_freefiledata(fd);
 		fd= NULL;
 	}
@@ -5251,14 +5251,14 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 		if(newmain->curlib) {
 			if(strcmp(newmain->curlib->filepath, lib->filepath)==0) {
 				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->filepath);
-				
+				BKE_reportf(fd->reports, RPT_WARNING, "Library '%s', '%s' had multiple instances, save and reload!", lib->name, lib->filepath);
+
 				change_idid_adr(&fd->mainlist, fd, lib, newmain->curlib);
 //				change_idid_adr_fd(fd, lib, newmain->curlib);
 				
 				BLI_remlink(&main->library, lib);
 				MEM_freeN(lib);
-				
-				BKE_report(fd->reports, RPT_WARNING, "Library had multiple instances, save and reload!");
+
 
 				return;
 			}
