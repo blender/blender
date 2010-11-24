@@ -1542,7 +1542,8 @@ int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, float obma
 		if (editobject)
 		{
 			em = ((Mesh *)ob->data)->edit_mesh;
-			dm = editmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH);
+			/* dm = editmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH); */
+			dm = editmesh_get_derived_base(ob, em); /* limitation, em & dm MUST have the same number of faces */
 		}
 		else
 		{

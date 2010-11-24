@@ -578,12 +578,11 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 			tree = BLI_bvhtree_new(numFaces, epsilon, tree_type, axis);
 			if(tree != NULL)
 			{
-				/* XXX numFaces is from different mesh as em_evil, made loop check for efa too */
 				/* XXX, for snap only, em & dm are assumed to be aligned, since dm is the em's cage */
 				EditMesh *em= data->em_evil;
 				if(em) {
 					EditFace *efa= em->faces.first;
-					for(i = 0; i < numFaces, efa; i++, efa= efa->next) {
+					for(i = 0; i < numFaces; i++, efa= efa->next) {
 						if(!(efa->f & 1) && efa->h==0 && !((efa->v1->f&1)+(efa->v2->f&1)+(efa->v3->f&1)+(efa->v4?efa->v4->f&1:0))) {
 							float co[4][3];
 							VECCOPY(co[0], vert[ face[i].v1 ].co);
