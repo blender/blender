@@ -262,7 +262,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filename
 		G.winpos= bfd->winpos;
 		G.displaymode= bfd->displaymode;
 		G.fileflags= bfd->fileflags;
-		
+		CTX_wm_manager_set(C, bfd->main->wm.first);
 		CTX_wm_screen_set(C, bfd->curscreen);
 		CTX_data_scene_set(C, bfd->curscreen->scene);
 		CTX_wm_area_set(C, NULL);
