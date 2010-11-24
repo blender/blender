@@ -380,12 +380,14 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	if(py_dict) {
 #ifdef PYMODULE_CLEAR_WORKAROUND
 		PyObject *py_dict_back= PyDict_Copy(py_dict);
+		Py_INCREF(py_dict);
 #endif
 		/* normal */
 		PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
 #ifdef PYMODULE_CLEAR_WORKAROUND
 		PyDict_Clear(py_dict);
 		PyDict_Update(py_dict, py_dict_back);
+		Py_DECREF(py_dict);
 		Py_DECREF(py_dict_back);
 #endif
 #undef PYMODULE_CLEAR_WORKAROUND
