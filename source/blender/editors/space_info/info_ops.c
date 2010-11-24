@@ -312,7 +312,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 #define INFO_COLOR_TIMEOUT	3.0
 #define ERROR_TIMEOUT		10.0
 #define ERROR_COLOR_TIMEOUT	6.0
-#define COLLAPSE_TIMEOUT	0.2
+#define COLLAPSE_TIMEOUT	0.25
 static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -323,11 +323,12 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	float neutral_col[3] = {0.35, 0.35, 0.35};
 	float neutral_grey= 0.6;
 	float timeout=0.0, color_timeout=0.0;
+	int send_note= 0;
 	
 	/* escape if not our timer */
 	if(reports->reporttimer==NULL || reports->reporttimer != event->customdata)
 		return OPERATOR_PASS_THROUGH;
-	
+
 	report= BKE_reports_last_displayable(reports);
 	rti = (ReportTimerInfo *)reports->reporttimer->customdata;
 	
@@ -366,17 +367,25 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	progress = reports->reporttimer->duration / timeout;
 	color_progress = reports->reporttimer->duration / color_timeout;
 	
-	/* fade colours out sharply according to progress through fade-out duration */
-	interp_v3_v3v3(rti->col, rti->col, neutral_col, color_progress);
-	rti->greyscale = interpf(neutral_grey, rti->greyscale, color_progress);
+	/* save us from too many draws */
+	if(color_progress <= 1.0f) {
+		send_note= 1;
+		
+		/* fade colours out sharply according to progress through fade-out duration */
+		interp_v3_v3v3(rti->col, rti->col, neutral_col, color_progress);
+		rti->greyscale = interpf(neutral_grey, rti->greyscale, color_progress);
+	}
 
 	/* collapse report at end of timeout */
 	if (progress*timeout > timeout - COLLAPSE_TIMEOUT) {
 		rti->widthfac = (progress*timeout - (timeout - COLLAPSE_TIMEOUT)) / COLLAPSE_TIMEOUT;
 		rti->widthfac = 1.0 - rti->widthfac;
+		send_note= 1;
 	}
 	
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_INFO, NULL);
+	if(send_note) {
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_INFO, NULL);
+	}
 	
 	return (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH);
 }

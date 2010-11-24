@@ -620,7 +620,8 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		}
 	}
 
-	if(screen->do_draw_gesture)
+	/* always draw, not only when screen tagged */
+	if(win->gesture.first)
 		wm_gesture_draw(win);
 
 	if(wm->paintcursors.first) {
