@@ -2526,7 +2526,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 		UI_ThemeColor(TH_TEXT_HI);
 		if(v3d->grid != 1.0f) {
-			BLI_snprintf(tstr, sizeof(tstr), "%s x %.4g", v3d->grid, grid_unit);
+			BLI_snprintf(tstr, sizeof(tstr), "%s x %.4g", grid_unit, v3d->grid);
 		}
 
 		BLF_draw_default(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */

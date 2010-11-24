@@ -218,7 +218,7 @@ int BLI_copy_fileops(const char *file, const char *to) {
 	return err;
 }
 
-int BLI_link(const char *file, const char *to) {
+int BLI_link(const char *UNUSED(file), const char *UNUSED(to)) {
 	callLocalErrorCallBack("Linking files is unsupported on Windows");
 	
 	return 1;

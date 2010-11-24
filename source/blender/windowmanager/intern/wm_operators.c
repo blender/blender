@@ -2041,7 +2041,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 /* *********************** */
 #if defined(WIN32)
 static int console= 1;
-void WM_toggle_console(bContext *C, short show)
+void WM_toggle_console(bContext *UNUSED(C), short show)
 {
 	if(show) {
 		ShowWindow(GetConsoleWindow(),SW_SHOW);
@@ -2053,7 +2053,7 @@ void WM_toggle_console(bContext *C, short show)
 	}
 }
 
-static int wm_toggle_console_op(bContext *C, wmOperator *op)
+static int wm_toggle_console_op(bContext *C, wmOperator *UNUSED(op))
 {
 	if(console) {
 		WM_toggle_console(C, 0);
