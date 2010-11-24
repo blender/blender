@@ -907,6 +907,16 @@ static int load_file(int UNUSED(argc), char **argv, void *data)
 		pointcache works */
 		if (retval!=0) {
 			wmWindowManager *wm= CTX_wm_manager(C);
+
+			/* special case, 2.4x files */
+			if(wm==NULL && CTX_data_main(C)->wm.first==NULL) {
+				extern void wm_add_default(bContext *C);
+
+				/* wm_add_default() needs the screen to be set. */
+				CTX_wm_screen_set(C, CTX_data_main(C)->screen.first);
+				wm_add_default(C);
+			}
+
 			CTX_wm_manager_set(C, NULL); /* remove wm to force check */
 			WM_check(C);
 			G.relbase_valid = 1;
