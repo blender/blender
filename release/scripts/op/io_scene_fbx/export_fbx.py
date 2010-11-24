@@ -1207,8 +1207,10 @@ def save(operator, context, filepath="",
             fn_abs_dest = os.path.join(basepath, fn_strip)
             if not os.path.exists(fn_abs_dest):
                 shutil.copy(fn, fn_abs_dest)
-        else:
+        elif bpy.path.is_subdir(fn, basepath):
             rel = os.path.relpath(fn, basepath)
+        else:
+            rel = fn
 
         return (rel, fn_strip)
 
@@ -2886,6 +2888,8 @@ Takes:  {''')
 # 	if EXP_IMAGE_COPY:
 # # 		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])
 # 		bpy.util.copy_images( [ tex[1] for tex in textures if tex[1] != None ], basepath)
+
+    file.close()
 
     print('export finished in %.4f sec.' % (time.clock() - start_time))
     return {'FINISHED'}
