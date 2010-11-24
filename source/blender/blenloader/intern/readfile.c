@@ -2213,13 +2213,21 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 	if (!pose || !arm)
 		return;
 	
+
 	/* always rebuild to match proxy or lib changes */
 	rebuild= ob->proxy || (ob->id.lib==NULL && arm->id.lib);
 
-	if (ob->proxy && pose->proxy_act_bone[0]) {
-		Bone *bone = get_named_bone(arm, pose->proxy_act_bone);
-		if (bone)
-			arm->act_bone = bone;
+	if(ob->proxy) {
+		/* sync proxy layer */
+		if(pose->proxy_layer)
+			arm->layer = pose->proxy_layer;
+		
+		/* sync proxy active bone */
+		if(pose->proxy_act_bone[0]) {
+			Bone *bone = get_named_bone(arm, pose->proxy_act_bone);
+			if (bone)
+				arm->act_bone = bone;
+		}
 	}
 
 	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {

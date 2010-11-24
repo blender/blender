@@ -117,6 +117,20 @@ void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, EditBone
 	ED_armature_edit_bone_remove(arm, ebone);
 }
 
+static void rna_Armature_update_layers(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bArmature *arm= ptr->id.data;
+	Object *ob;
+
+	/* proxy lib exception, store it here so we can restore layers on file
+	   load, since it would otherwise get lost due to being linked data */
+	for(ob = bmain->object.first; ob; ob=ob->id.next)
+		if(ob->data == arm && ob->pose)
+			ob->pose->proxy_layer = arm->layer;
+
+	WM_main_add_notifier(NC_GEOM|ND_DATA, arm);
+}
+
 static void rna_Armature_redraw_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
@@ -810,7 +824,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_array(prop, 32);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Armature layer visibility");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Armature_layer_set");
-	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Armature_redraw_data");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Armature_update_layers");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 		/* layer protection */

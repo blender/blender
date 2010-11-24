@@ -1456,10 +1456,6 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	if(error)
 		return;
 	
-	/* exception, armature local layer should be proxied too */
-	if (pose->proxy_layer)
-		((bArmature *)ob->data)->layer= pose->proxy_layer;
-	
 	/* clear all transformation values from library */
 	rest_pose(frompose);
 	
