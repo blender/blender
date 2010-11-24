@@ -2397,10 +2397,14 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	/* XXX: temporary operator to dump all reports to a text block, but only if more than 1 report 
 	 * to be shown instead of icon when appropriate...
 	 */
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+
 	if (reports->list.first != reports->list.last)
 		uiDefIconButO(block, BUT, "UI_OT_reports_to_textblock", WM_OP_INVOKE_REGION_WIN, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, "Click to see rest of reports in textblock: 'Recent Reports'");
 	else
 		uiDefIconBut(block, LABEL, 0, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+
+	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	uiDefBut(block, LABEL, 0, report->message, UI_UNIT_X+10, 0, UI_UNIT_X+width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
 }
