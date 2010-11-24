@@ -1654,7 +1654,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 			/* make dummy NLA strip, and add that to the stack */
 			NlaStrip dummy_strip= {0};
 			ListBase dummy_trackslist;
-
+			
 			dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
 			
 			if ((nlt) && !(adt->flag & ADT_NLA_EDIT_NOMAP)) {

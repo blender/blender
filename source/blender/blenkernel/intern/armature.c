@@ -1730,28 +1730,25 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		ikData->numpoints= ikData->chainlen+1; 
 		ikData->points= MEM_callocN(sizeof(float)*ikData->numpoints, "Spline IK Binding");
 		
+		/* bind 'tip' of chain (i.e. first joint = tip of bone with the Spline IK Constraint) */
+		ikData->points[0] = 1.0f;
+		
 		/* perform binding of the joints to parametric positions along the curve based 
 		 * proportion of the total length that each bone occupies
 		 */
 		for (i = 0; i < segcount; i++) {
-			if (i != 0) {
-				/* 'head' joints 
-				 * 	- 2 methods; the one chosen depends on whether we've got usable lengths
-				 */
-				if ((ikData->flag & CONSTRAINT_SPLINEIK_EVENSPLITS) || (totLength == 0.0f)) {
-					/* 1) equi-spaced joints */
-					ikData->points[i]= ikData->points[i-1] - segmentLen;
-				}
-				else {
-					 /*	2) to find this point on the curve, we take a step from the previous joint
-					  *	  a distance given by the proportion that this bone takes
-					  */
-					ikData->points[i]= ikData->points[i-1] - (boneLengths[i] / totLength);
-				}
+			/* 'head' joints, travelling towards the root of the chain
+			 * 	- 2 methods; the one chosen depends on whether we've got usable lengths
+			 */
+			if ((ikData->flag & CONSTRAINT_SPLINEIK_EVENSPLITS) || (totLength == 0.0f)) {
+				/* 1) equi-spaced joints */
+				ikData->points[i+1]= ikData->points[i] - segmentLen;
 			}
 			else {
-				/* 'tip' of chain, special exception for the first joint */
-				ikData->points[0]= 1.0f;
+				/*	2) to find this point on the curve, we take a step from the previous joint
+				 *	  a distance given by the proportion that this bone takes
+				 */
+				ikData->points[i+1]= ikData->points[i] - (boneLengths[i] / totLength);
 			}
 		}
 		
