@@ -362,7 +362,7 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 	
 	/* hardcoded exceptions, for these cases code below needs to find the id.data */
 	/* otherwise buttons never give all options for selected */
-	if (ptr->type==&RNA_Actuator || ptr->type==&RNA_ArmatureActuator || ptr->type==RNA_ShapeActionActuator) {
+	if (ptr->type==&RNA_Actuator || ptr->type==&RNA_ArmatureActuator || ptr->type==&RNA_ShapeActionActuator) {
 		ob = (Object *)ptr->id.data;
 	} else {
 		/* can't use ob from ptr->id.data because that enum is also used by operators */
