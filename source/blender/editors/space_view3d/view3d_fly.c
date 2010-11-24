@@ -894,7 +894,9 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int exit_code;
 	short do_draw= FALSE;
-	FlyInfo *fly = op->customdata;
+	FlyInfo *fly= op->customdata;
+	RegionView3D *rv3d= fly->rv3d;
+	Object *fly_object= fly->root_parent ? fly->root_parent : fly->v3d->camera;
 
 	fly->redraw= 0;
 
@@ -909,10 +911,10 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	if(exit_code!=OPERATOR_RUNNING_MODAL)
 		do_draw= TRUE;
-	
+
 	if(do_draw) {
-		if(fly->rv3d->persp==RV3D_CAMOB) {
-			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, fly->root_parent ? fly->root_parent : fly->v3d->camera);
+		if(rv3d->persp==RV3D_CAMOB) {
+			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, fly_object);
 		}
 
 		ED_region_tag_redraw(CTX_wm_region(C));

@@ -2169,6 +2169,7 @@ void BKE_image_release_ibuf(Image *ima, void *lock)
 	}
 }
 
+/* warning, this can allocate generated images */
 ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 {
 	return BKE_image_acquire_ibuf(ima, iuser, NULL);
