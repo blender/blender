@@ -275,8 +275,13 @@ DerivedMesh *fluidsim_read_obj(char *filename)
 	/* read no. of triangles */
 	gotBytes = gzread(gzf, &wri, sizeof(wri));
 
-	if(wri!=numfaces)
+	if(wri!=numfaces) {
 		printf("Fluidsim: error in reading data from file.\n");
+		if(dm)
+			dm->release(dm);
+		gzclose( gzf );
+		return NULL;
+	}
 
 	// read triangles from file
 	mface = CDDM_get_faces(dm);
@@ -540,7 +545,6 @@ DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData *fluid
 
 	return dm;
 }
-
 #endif // DISABLE_ELBEEM
 
 DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
@@ -567,7 +571,7 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
 	
 	// timescale not supported yet
 	// clmd->sim_parms->timescale= timescale;
-	
+
 	// support reversing of baked fluid frames here
 	if((fss->flag & OB_FLUIDSIM_REVERSE) && (fss->lastgoodframe >= 0))
 	{
@@ -576,39 +580,9 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
 	}
 	
 	/* try to read from cache */
-	if(((fss->lastgoodframe >= framenr) || (fss->lastgoodframe < 0)) && (result = fluidsim_read_cache(dm, fluidmd, framenr, useRenderParams)))
-	{
-		// fss->lastgoodframe = framenr; // set also in src/fluidsim.c
+	/* if the frame is there, fine, otherwise don't do anything */
+	if((result = fluidsim_read_cache(dm, fluidmd, framenr, useRenderParams)))
 		return result;
-	}
-	else
-	{	
-		// display last known good frame
-		if(fss->lastgoodframe >= 0)
-		{
-			if((result = fluidsim_read_cache(dm, fluidmd, fss->lastgoodframe, useRenderParams))) 
-			{
-				return result;
-			}
-			
-			// it was supposed to be a valid frame but it isn't!
-			fss->lastgoodframe = framenr - 1;
-			
-			
-			// this could be likely the case when you load an old fluidsim
-			if((result = fluidsim_read_cache(dm, fluidmd, fss->lastgoodframe, useRenderParams))) 
-			{
-				return result;
-			}
-		}
-		
-		result = CDDM_copy(dm);
-
-		if(result) 
-		{
-			return result;
-		}
-	}
 	
 	return dm;
 #else
