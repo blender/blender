@@ -934,31 +934,44 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	
 	/* get property to read from, and get value as appropriate */
 	if (RNA_path_resolve_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
-		switch (RNA_property_type(prop)) {
-			case PROP_BOOLEAN:
-				if (RNA_property_array_length(&ptr, prop))
+		if(RNA_property_array_check(&ptr, prop)) {
+			/* array */
+			if (index < RNA_property_array_length(&ptr, prop)) {	
+				switch (RNA_property_type(prop)) {
+				case PROP_BOOLEAN:
 					value= (float)RNA_property_boolean_get_index(&ptr, prop, index);
-				else
-					value= (float)RNA_property_boolean_get(&ptr, prop);
+					break;
+				case PROP_INT:
+					value= (float)RNA_property_int_get_index(&ptr, prop, index);
+					break;
+				case PROP_FLOAT:
+					value= RNA_property_float_get_index(&ptr, prop, index);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		else {
+			/* not an array */
+			switch (RNA_property_type(prop)) {
+			case PROP_BOOLEAN:
+				value= (float)RNA_property_boolean_get(&ptr, prop);
 				break;
 			case PROP_INT:
-				if (RNA_property_array_length(&ptr, prop))
-					value= (float)RNA_property_int_get_index(&ptr, prop, index);
-				else
-					value= (float)RNA_property_int_get(&ptr, prop);
+				value= (float)RNA_property_int_get(&ptr, prop);
 				break;
 			case PROP_FLOAT:
-				if (RNA_property_array_length(&ptr, prop))
-					value= RNA_property_float_get_index(&ptr, prop, index);
-				else
-					value= RNA_property_float_get(&ptr, prop);
+				value= RNA_property_float_get(&ptr, prop);
 				break;
 			case PROP_ENUM:
 				value= (float)RNA_property_enum_get(&ptr, prop);
 				break;
 			default:
 				break;
+			}
 		}
+
 	}
 	else {
 		if (G.f & G_DEBUG)
