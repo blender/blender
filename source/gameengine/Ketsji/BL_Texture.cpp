@@ -22,8 +22,6 @@
 
 #include "KX_GameObject.h"
 
-#include "GPU_extensions.h"
-
 #define spit(x) std::cout << x << std::endl;
 
 #include "MEM_guardedalloc.h"
@@ -63,8 +61,7 @@ BL_Texture::BL_Texture()
 	mNeedsDeleted(0),
 	mType(0),
 	mUnit(0),
-	mEnvState(0),
-	mTexSize(0)
+	mEnvState(0)
 {
 	// --
 }
@@ -80,9 +77,6 @@ void BL_Texture::DeleteTex()
 		glDeleteTextures(1, (GLuint*)&mTexture);
 		mNeedsDeleted = 0;
 		mOk = 0;
-
-		GPU_texture_vram_subtract(mTexSize);
-		mTexSize = 0;
 	}
 
 	if(mEnvState) {
@@ -171,15 +165,11 @@ void BL_Texture::InitGLTex(unsigned int *pix,int x,int y,bool mipmap)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, x, y, GL_RGBA, GL_UNSIGNED_BYTE, pix );
-		mTexSize = (x*y*4)+(x*y*4)/3;
-		GPU_texture_vram_add(mTexSize);
 	} 
 	else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pix );
-		mTexSize = x*y*4;
-		GPU_texture_vram_add(mTexSize);
 	}
 
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -200,15 +190,11 @@ void BL_Texture::InitNonPow2Tex(unsigned int *pix,int x,int y,bool mipmap)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, nx, ny, GL_RGBA, GL_UNSIGNED_BYTE, newPixels );
-		mTexSize = (x*y*4)+(x*y*4)/3;
-		GPU_texture_vram_add(mTexSize);
 	}
 	else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, nx, ny, 0, GL_RGBA, GL_UNSIGNED_BYTE, newPixels );
-		mTexSize = x*y*4;
-		GPU_texture_vram_add(mTexSize);
 	}
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	free(newPixels);

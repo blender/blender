@@ -27,7 +27,6 @@ private:
 	int					mUnit;			// Texture unit associated with mTexture
 	unsigned int		mEnvState;		// cache textureEnv
 	static unsigned int	mDisableState;	// speed up disabling calls
-	unsigned int		mTexSize;		// Size of texture in video ram
 
 	void InitNonPow2Tex(unsigned int *p,int x,int y,bool mipmap );
 	void InitGLTex(unsigned int *p,int x,int y,bool mipmap );

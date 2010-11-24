@@ -540,13 +540,11 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 
 	if (!(gpu_get_mipmap() && mipmap)) {
 		glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
-		GPU_texture_vram_add(rectw*recth*4);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 	}
 	else {
 		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, rect);
-		GPU_texture_vram_add((rectw*recth*4) + (rectw*recth*4)/3);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
@@ -819,8 +817,6 @@ void GPU_free_unused_buffers(void)
 
 void GPU_free_image(Image *ima)
 {
-	ImBuf *ibuf;
-
 	if(!BLI_thread_is_main()) {
 		gpu_queue_image_for_free(ima);
 		return;
@@ -831,13 +827,6 @@ void GPU_free_image(Image *ima)
 		glDeleteTextures(1, (GLuint *)&ima->bindcode);
 		ima->bindcode= 0;
 		ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
-
-		// Calculate how much vram was freed
-		ibuf = BKE_image_get_ibuf(ima, NULL);
-		if (!gpu_get_mipmap())
-			GPU_texture_vram_subtract(ibuf->x*ibuf->y*4);
-		else
-			GPU_texture_vram_subtract((ibuf->x*ibuf->y*4)+(ibuf->x*ibuf->y*4)/3);
 	}
 
 	/* free glsl image binding */
