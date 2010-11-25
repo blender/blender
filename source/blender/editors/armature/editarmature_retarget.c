@@ -185,12 +185,12 @@ float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4],
 	if (angle_normalized_v3v3(x_axis, new_up_axis) < angle_normalized_v3v3(z_axis, new_up_axis))
 	{
 		rotation_between_vecs_to_quat(qroll, new_up_axis, x_axis); /* set roll rotation quat */
-		return ED_rollBoneToVector(bone, x_axis);
+		return ED_rollBoneToVector(bone, x_axis, FALSE);
 	}
 	else
 	{
 		rotation_between_vecs_to_quat(qroll, new_up_axis, z_axis); /* set roll rotation quat */
-		return ED_rollBoneToVector(bone, z_axis);
+		return ED_rollBoneToVector(bone, z_axis, FALSE);
 	}
 }
 
@@ -240,7 +240,7 @@ float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float
 		/* real qroll between normal and up_axis */
 		rotation_between_vecs_to_quat(qroll, new_up_axis, normal);
 
-		return ED_rollBoneToVector(edge->bone, normal);
+		return ED_rollBoneToVector(edge->bone, normal, FALSE);
 	}
 }
 
@@ -251,9 +251,7 @@ float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float qrot[4])
 	VECCOPY(new_up_axis, old_up_axis);
 	mul_qt_v3(qrot, new_up_axis);
 	
-	normalize_v3(new_up_axis);
-	
-	return ED_rollBoneToVector(bone, new_up_axis);
+	return ED_rollBoneToVector(bone, new_up_axis, FALSE);
 }
 
 /************************************ DESTRUCTORS ******************************************************/

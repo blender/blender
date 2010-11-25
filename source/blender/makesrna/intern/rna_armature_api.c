@@ -38,14 +38,9 @@
 #include "BLI_blenlib.h"
 #include "BKE_armature.h"
 
-void rna_EditBone_align_roll(EditBone *ebo, float *no)
+void rna_EditBone_align_roll(EditBone *ebo, float no[3])
 {
-	if(!is_zero_v3(no)) {
-		float normal[3];
-		copy_v3_v3(normal, no);
-		normalize_v3(normal);
-		ebo->roll= ED_rollBoneToVector(ebo, normal);
-	}
+	ebo->roll= ED_rollBoneToVector(ebo, no, FALSE);
 }
 
 float rna_Bone_do_envelope(Bone *bone, float *vec)
