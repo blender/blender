@@ -177,7 +177,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 
 		if(size[0] > size[1])
 		{
-			if(size[0] > size[1])
+			if(size[0] > size[2])
 			{
 				scale = res / size[0];
 				smd->domain->dx = size[0] / res;
@@ -187,11 +187,11 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			}
 			else
 			{
-				scale = res / size[1];
-				smd->domain->dx = size[1] / res;
-				smd->domain->res[1] = res;
+				scale = res / size[2];
+				smd->domain->dx = size[2] / res;
+				smd->domain->res[2] = res;
 				smd->domain->res[0] = (int)(size[0] * scale + 0.5);
-				smd->domain->res[2] = (int)(size[2] * scale + 0.5);
+				smd->domain->res[1] = (int)(size[1] * scale + 0.5);
 			}
 		}
 		else
