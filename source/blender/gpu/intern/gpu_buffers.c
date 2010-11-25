@@ -1496,7 +1496,7 @@ void GPU_interleaved_attrib_setup( GPUBuffer *buffer, GPUAttrib data[], int numd
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, buffer->id );
 		for( i = 0; i < numdata; i++ ) {
 			glEnableVertexAttribArrayARB( data[i].index );
-			glVertexAttribPointerARB( data[i].index, data[i].size, data[i].type, GL_TRUE, elementsize, (void *)offset );
+			glVertexAttribPointerARB( data[i].index, data[i].size, data[i].type, GL_FALSE, elementsize, (void *)offset );
 			offset += data[i].size*GPU_typesize(data[i].type);
 
 			attribData[i].index = data[i].index;
@@ -1508,7 +1508,7 @@ void GPU_interleaved_attrib_setup( GPUBuffer *buffer, GPUAttrib data[], int numd
 	else {
 		for( i = 0; i < numdata; i++ ) {
 			glEnableVertexAttribArrayARB( data[i].index );
-			glVertexAttribPointerARB( data[i].index, data[i].size, data[i].type, GL_TRUE, elementsize, (char *)buffer->pointer + offset );
+			glVertexAttribPointerARB( data[i].index, data[i].size, data[i].type, GL_FALSE, elementsize, (char *)buffer->pointer + offset );
 			offset += data[i].size*GPU_typesize(data[i].type);
 		}
 	}
