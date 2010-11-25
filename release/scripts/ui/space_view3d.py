@@ -1714,7 +1714,7 @@ class VIEW3D_MT_edit_surface(bpy.types.Menu):
     draw = draw_curve
 
 
-class VIEW3D_MT_edit_text(bpy.types.Menu):
+class VIEW3D_MT_edit_font(bpy.types.Menu):
     bl_label = "Text"
 
     def draw(self, context):
