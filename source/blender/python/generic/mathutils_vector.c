@@ -428,7 +428,7 @@ static PyObject *Vector_Reflect(VectorObject *self, VectorObject *value )
 	normalize_v3(mirror);
 	reflect_v3_v3v3(reflect, vec, mirror);
 	
-	return newVectorObject(reflect, self->size, Py_NEW, NULL);
+	return newVectorObject(reflect, self->size, Py_NEW, Py_TYPE(self));
 }
 
 static char Vector_Cross_doc[] =
@@ -460,7 +460,7 @@ static PyObject *Vector_Cross(VectorObject *self, VectorObject *value )
 	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
 		return NULL;
 	
-	vecCross = (VectorObject *)newVectorObject(NULL, 3, Py_NEW, NULL);
+	vecCross = (VectorObject *)newVectorObject(NULL, 3, Py_NEW, Py_TYPE(self));
 	cross_v3_v3v3(vecCross->vec, self->vec, value->vec);
 	return (PyObject *)vecCross;
 }
@@ -645,7 +645,7 @@ static PyObject *Vector_Project(VectorObject *self, VectorObject *value)
 	for(x = 0; x < size; x++) {
 		vec[x] = (float)(dot * value->vec[x]);
 	}
-	return newVectorObject(vec, size, Py_NEW, NULL);
+	return newVectorObject(vec, size, Py_NEW, Py_TYPE(self));
 }
 
 static char Vector_Lerp_doc[] =
@@ -682,7 +682,7 @@ static PyObject *Vector_Lerp(VectorObject *self, PyObject *args)
 	for(x = 0; x < self->size; x++) {
 		vec[x] = (ifac * self->vec[x]) + (fac * vec2->vec[x]);
 	}
-	return newVectorObject(vec, self->size, Py_NEW, NULL);
+	return newVectorObject(vec, self->size, Py_NEW, Py_TYPE(self));
 }
 
 /*---------------------------- Vector.rotate(angle, axis) ----------------------*/
@@ -906,7 +906,7 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 		for(i = 0; i < vec1->size; i++) {
 			vec[i] = vec1->vec[i] +	vec2->vec[i];
 		}
-		return newVectorObject(vec, vec1->size, Py_NEW, NULL);
+		return newVectorObject(vec, vec1->size, Py_NEW, Py_TYPE(v1));
 	}
 	
 	PyErr_SetString(PyExc_AttributeError, "Vector addition: arguments not valid for this operation");
@@ -970,7 +970,7 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 		vec[i] = vec1->vec[i] -	vec2->vec[i];
 	}
 
-	return newVectorObject(vec, vec1->size, Py_NEW, NULL);
+	return newVectorObject(vec, vec1->size, Py_NEW, Py_TYPE(v1));
 }
 
 /*------------------------obj -= obj------------------------------
@@ -1100,7 +1100,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 			return NULL;
 		}
 
-		return newVectorObject(tvec, vec1->size, Py_NEW, NULL);
+		return newVectorObject(tvec, vec1->size, Py_NEW, Py_TYPE(vec1));
 	} else if (QuaternionObject_Check(v2)) {
 		/* VEC * QUAT */
 		QuaternionObject *quat2 = (QuaternionObject*)v2;
@@ -1115,7 +1115,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		}
 		copy_v3_v3(tvec, vec1->vec);
 		mul_qt_v3(quat2->quat, tvec);
-		return newVectorObject(tvec, 3, Py_NEW, NULL);
+		return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(vec1));
 	}
 	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*FLOAT */
 		int i;
@@ -1124,7 +1124,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		for(i = 0; i < vec1->size; i++) {
 			vec[i] = vec1->vec[i] * scalar;
 		}
-		return newVectorObject(vec, vec1->size, Py_NEW, NULL);
+		return newVectorObject(vec, vec1->size, Py_NEW, Py_TYPE(vec1));
 		
 	}
 	
@@ -1211,7 +1211,7 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 	for(i = 0; i < vec1->size; i++) {
 		vec[i] = vec1->vec[i] /	scalar;
 	}
-	return newVectorObject(vec, vec1->size, Py_NEW, NULL);
+	return newVectorObject(vec, vec1->size, Py_NEW, Py_TYPE(v1));
 }
 
 /*------------------------obj /= obj------------------------------
