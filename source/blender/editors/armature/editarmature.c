@@ -2108,6 +2108,7 @@ static EnumPropertyItem prop_calc_roll_types[] = {
 	{0, "X", 0, "X Axis", ""},
 	{1, "Y", 0, "Y Axis", ""},
 	{2, "Z", 0, "Z Axis", ""},
+	{5, "ACTIVE", 0, "Active Bone", ""},
 	{6, "VIEW", 0, "View Axis", ""},
 	{7, "CURSOR", 0, "Cursor", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -2155,14 +2156,29 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 			}
 
 			copy_v3_v3(vec, rv3d->viewinv[2]);
+			mul_m3_v3(imat, vec);
+		}
+		else if (type==5) {
+			bArmature *arm= ob->data;
+			EditBone *ebone= (EditBone *)arm->act_edbone;
+			float mat[3][3], nor[3];
+
+			if(ebone==NULL) {
+				BKE_report(op->reports, RPT_ERROR, "No active bone set");
+				return OPERATOR_CANCELLED;
+			}
+
+			sub_v3_v3v3(nor, ebone->tail, ebone->head);
+			vec_roll_to_mat3(nor, ebone->roll, mat);			
+			copy_v3_v3(vec, mat[2]);
 		}
 		else { /* Axis */
 			assert(type >= 0 && type <= 5);
 			if(type<3)	vec[type]= 1.0f; 
 			else		vec[type-2]= -1.0f; 
+			mul_m3_v3(imat, vec);
 		}
 
-		mul_m3_v3(imat, vec);
 		if(axis_flip) negate_v3(vec);
 
 		CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
