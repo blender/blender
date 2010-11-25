@@ -1230,7 +1230,7 @@ static int ptcache_file_read_data(PTCacheFile *pf)
 	int i;
 
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
-		if(pf->data_types & (1<<i) && !ptcache_file_read(pf, pf->cur[i], 1, ptcache_data_size[i]))
+		if((pf->data_types & (1<<i)) && !ptcache_file_read(pf, pf->cur[i], 1, ptcache_data_size[i]))
 			return 0;
 	}
 	
@@ -1241,7 +1241,7 @@ static int ptcache_file_write_data(PTCacheFile *pf)
 	int i;
 
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
-		if(pf->data_types & (1<<i) && !ptcache_file_write(pf, pf->cur[i], 1, ptcache_data_size[i]))
+		if((pf->data_types & (1<<i)) && !ptcache_file_write(pf, pf->cur[i], 1, ptcache_data_size[i]))
 			return 0;
 	}
 	
@@ -1295,14 +1295,14 @@ static void ptcache_file_init_pointers(PTCacheFile *pf)
 {
 	int data_types = pf->data_types;
 
-	pf->cur[BPHYS_DATA_INDEX] =		data_types & (1<<BPHYS_DATA_INDEX) ?		&pf->data.index	: NULL;
-	pf->cur[BPHYS_DATA_LOCATION] =	data_types & (1<<BPHYS_DATA_LOCATION) ?		&pf->data.loc	: NULL;
-	pf->cur[BPHYS_DATA_VELOCITY] =	data_types & (1<<BPHYS_DATA_VELOCITY) ?		&pf->data.vel	: NULL;
-	pf->cur[BPHYS_DATA_ROTATION] =	data_types & (1<<BPHYS_DATA_ROTATION) ?		&pf->data.rot	: NULL;
-	pf->cur[BPHYS_DATA_AVELOCITY] =	data_types & (1<<BPHYS_DATA_AVELOCITY) ?	&pf->data.ave	: NULL;
-	pf->cur[BPHYS_DATA_SIZE] =		data_types & (1<<BPHYS_DATA_SIZE)	?		&pf->data.size	: NULL;
-	pf->cur[BPHYS_DATA_TIMES] =		data_types & (1<<BPHYS_DATA_TIMES) ?		&pf->data.times	: NULL;
-	pf->cur[BPHYS_DATA_BOIDS] =		data_types & (1<<BPHYS_DATA_BOIDS) ?		&pf->data.boids	: NULL;
+	pf->cur[BPHYS_DATA_INDEX] =		(data_types & (1<<BPHYS_DATA_INDEX))	?		&pf->data.index	: NULL;
+	pf->cur[BPHYS_DATA_LOCATION] =	(data_types & (1<<BPHYS_DATA_LOCATION)) ?		&pf->data.loc	: NULL;
+	pf->cur[BPHYS_DATA_VELOCITY] =	(data_types & (1<<BPHYS_DATA_VELOCITY)) ?		&pf->data.vel	: NULL;
+	pf->cur[BPHYS_DATA_ROTATION] =	(data_types & (1<<BPHYS_DATA_ROTATION)) ?		&pf->data.rot	: NULL;
+	pf->cur[BPHYS_DATA_AVELOCITY] =	(data_types & (1<<BPHYS_DATA_AVELOCITY))?		&pf->data.ave	: NULL;
+	pf->cur[BPHYS_DATA_SIZE] =		(data_types & (1<<BPHYS_DATA_SIZE))		?		&pf->data.size	: NULL;
+	pf->cur[BPHYS_DATA_TIMES] =		(data_types & (1<<BPHYS_DATA_TIMES))	?		&pf->data.times	: NULL;
+	pf->cur[BPHYS_DATA_BOIDS] =		(data_types & (1<<BPHYS_DATA_BOIDS))	?		&pf->data.boids	: NULL;
 }
 
 static void ptcache_file_seek_pointers(int index, PTCacheFile *pf)
@@ -1329,7 +1329,7 @@ static void ptcache_file_seek_pointers(int index, PTCacheFile *pf)
 	}
 	else {
 		for(i=0; i<BPHYS_TOT_DATA; i++)
-			size += pf->data_types & (1<<i) ? ptcache_data_size[i] : 0;
+			size += (pf->data_types & (1<<i)) ? ptcache_data_size[i] : 0;
 
 		/* size of default header + data up to index */
 		fseek(pf->fp, 8 + 3*sizeof(int) + index * size, SEEK_SET);
@@ -1343,7 +1343,7 @@ void BKE_ptcache_mem_init_pointers(PTCacheMem *pm)
 	int i;
 
 	for(i=0; i<BPHYS_TOT_DATA; i++)
-		pm->cur[i] = data_types & (1<<i) ? pm->data[i] : NULL;
+		pm->cur[i] = ((data_types & (1<<i)) ? pm->data[i] : NULL);
 }
 
 void BKE_ptcache_mem_incr_pointers(PTCacheMem *pm)
@@ -1528,12 +1528,12 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 	if(pm) {
 		BKE_ptcache_mem_init_pointers(pm);
 		totpoint = pm->totpoint;
-		index = pm->data_types & (1<<BPHYS_DATA_INDEX) ? pm->cur[BPHYS_DATA_INDEX] : &i;
+		index = ((pm->data_types & (1<<BPHYS_DATA_INDEX)) ? pm->cur[BPHYS_DATA_INDEX] : &i);
 	}
 	if(pm2) {
 		BKE_ptcache_mem_init_pointers(pm2);
 		totpoint2 = pm2->totpoint;
-		index2 = pm2->data_types & (1<<BPHYS_DATA_INDEX) ? pm2->cur[BPHYS_DATA_INDEX] : &i;
+		index2 = ((pm2->data_types & (1<<BPHYS_DATA_INDEX)) ? pm2->cur[BPHYS_DATA_INDEX] : &i);
 	}
 	if(pf) {
 		if(ptcache_file_read_header_begin(pf)) {
@@ -1545,7 +1545,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 			else if(pid->read_header(pf)) {
 				ptcache_file_init_pointers(pf);
 				totpoint = pf->totpoint;
-				index = pf->data_types & (1<<BPHYS_DATA_INDEX) ? &pf->data.index : &i;
+				index = ((pf->data_types & (1<<BPHYS_DATA_INDEX)) ? &pf->data.index : &i);
 			}
 		}
 		else {
@@ -1564,7 +1564,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 			else if(pid->read_header(pf2)) {
 				ptcache_file_init_pointers(pf2);
 				totpoint2 = pf2->totpoint;
-				index2 = pf2->data_types & (1<<BPHYS_DATA_INDEX) ? &pf2->data.index : &i;
+				index2 = ((pf2->data_types & (1<<BPHYS_DATA_INDEX)) ? &pf2->data.index : &i);
 			}
 		}
 		else {
@@ -1608,14 +1608,14 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 			}
 			else {
 				if(pid->read_elem && (pm || ptcache_file_read_data(pf)))
-					pid->read_elem(*index, pid->calldata, pm ? pm->cur : pf->cur, frs_sec, cfra1 ? (float)cfra1 : (float)cfrai, NULL);
+					pid->read_elem(*index, pid->calldata, (pm ? pm->cur : pf->cur), frs_sec, (cfra1 ? (float)cfra1 : (float)cfrai), NULL);
 				else if(pid->read_elem)
 					{ error = 1; break; }
 			}
 
 			if(pm) {
 				BKE_ptcache_mem_incr_pointers(pm);
-				index = pm->data_types & (1<<BPHYS_DATA_INDEX) ? pm->cur[BPHYS_DATA_INDEX] : &i;
+				index = ((pm->data_types & (1<<BPHYS_DATA_INDEX)) ? pm->cur[BPHYS_DATA_INDEX] : &i);
 			}
 		}
 	}
@@ -1667,13 +1667,13 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 
 			if(pm2) {
 				BKE_ptcache_mem_incr_pointers(pm2);
-				index2 = pm2->data_types & (1<<BPHYS_DATA_INDEX) ? pm2->cur[BPHYS_DATA_INDEX] : &i;
+				index2 = ((pm2->data_types & (1<<BPHYS_DATA_INDEX)) ? pm2->cur[BPHYS_DATA_INDEX] : &i);
 			}
 		}
 	}
 
 	if(pm || pf)
-		ret = (pm2 || pf2) ? PTCACHE_READ_INTERPOLATED : PTCACHE_READ_EXACT;
+		ret = ((pm2 || pf2) ? PTCACHE_READ_INTERPOLATED : PTCACHE_READ_EXACT);
 	else if(pm2 || pf2) {
 		ret = PTCACHE_READ_OLD;
 		pid->cache->simframe = old_frame;
