@@ -5841,6 +5841,7 @@ static int merge_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	int count= 0, uvs= RNA_boolean_get(op->ptr, "uvs");
+	EditSelection *ese;
 
 	switch(RNA_enum_get(op->ptr, "type")) {
 		case 3:
@@ -5850,10 +5851,21 @@ static int merge_exec(bContext *C, wmOperator *op)
 			count = merge_target(C, em, 1, uvs);
 			break;
 		case 1:
-			count = merge_firstlast(em, 0, uvs);
+			ese= (EditSelection *)em->selected.last;
+			if(ese && ese->type == EDITVERT) {
+				count = merge_firstlast(em, 0, uvs);
+			} else {
+				BKE_report(op->reports, RPT_ERROR, "no last selected vertex set");
+			}
 			break;
 		case 6:
-			count = merge_firstlast(em, 1, uvs);
+			ese= (EditSelection *)em->selected.first;
+			if(ese && ese->type == EDITVERT) {
+				count = merge_firstlast(em, 1, uvs);
+			}
+			else {
+				BKE_report(op->reports, RPT_ERROR, "no last selected vertex set");
+			}
 			break;
 		case 5:
 			count = collapseEdges(em);
