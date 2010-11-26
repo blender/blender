@@ -1608,12 +1608,17 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, s
 	float co[3], mat[4][4];
 	short vertco[2];
 
+	PEData data;
+
 	if(!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
 
 	if (extend == 0 && select)
 		PE_deselect_all_visible(edit);
-	
+
+	/* only for depths */
+	PE_set_view3d_data(C, &data);
+
 	unit_m4(mat);
 
 	LOOP_VISIBLE_POINTS {
@@ -1625,7 +1630,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, s
 				VECCOPY(co, key->co);
 				mul_m4_v3(mat, co);
 				project_short(ar, co, vertco);
-				if((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1])) {
+				if((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1]) && key_test_depth(&data, co)) {
 					if(select && !(key->flag & PEK_SELECT)) {
 						key->flag |= PEK_SELECT;
 						point->flag |= PEP_EDIT_RECALC;
@@ -1643,7 +1648,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, s
 			VECCOPY(co, key->co);
 			mul_m4_v3(mat, co);
 			project_short(ar, co,vertco);
-			if((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1])) {
+			if((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1]) && key_test_depth(&data, co)) {
 				if(select && !(key->flag & PEK_SELECT)) {
 					key->flag |= PEK_SELECT;
 					point->flag |= PEP_EDIT_RECALC;
