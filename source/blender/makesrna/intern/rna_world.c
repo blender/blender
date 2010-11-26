@@ -309,7 +309,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "falloff_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aodistfac");
-	RNA_def_property_ui_text(prop, "Strength", "Distance attenuation factor, the higher, the 'shorter' the shadows");
+	RNA_def_property_ui_text(prop, "Strength", "Distance attenuation factor, the higher, the less influence farther away objects have influence");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "bias", PROP_FLOAT, PROP_NONE);
