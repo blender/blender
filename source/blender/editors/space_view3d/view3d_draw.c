@@ -2299,7 +2299,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Base *base;
 	Object *ob;
 	float backcol[3];
-	int retopo= 0, sculptparticle= 0;
 	unsigned int lay_used;
 	Object *obact = OBACT;
 	const char *grid_unit= NULL;
@@ -2439,11 +2438,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		v3d->lay_used= lay_used;
 	}
 
-//	retopo= retopo_mesh_check() || retopo_curve_check();
-	sculptparticle= (obact && obact->mode & (OB_MODE_PARTICLE_EDIT)) && !scene->obedit;
-	if(retopo)
-		view3d_update_depths(ar);
-	
 	/* draw selected and editmode */
 	for(base= scene->base.first; base; base= base->next) {
 		if(v3d->lay & base->lay) {
@@ -2451,11 +2445,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 				draw_object(scene, ar, v3d, base, 0);
 		}
 	}
-	
-	if(!retopo && sculptparticle && !(obact && (obact->dtx & OB_DRAWXRAY))) {
-		view3d_update_depths(ar);
-	}
-	
+
 //	REEB_draw();
 	
 	/* Transp and X-ray afterdraw stuff */
@@ -2464,11 +2454,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if(v3d->afterdraw_xraytransp.first)	view3d_draw_xraytransp(scene, ar, v3d, 1);
 	
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
-	
-	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
-		view3d_update_depths(ar);
-	}
-	
+
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
 	
