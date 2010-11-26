@@ -238,6 +238,7 @@ int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick
 	assert(cdc.cwidth > 0);
 	cdc.lheight= tvc->lheight;
 	cdc.console_width= (tvc->winx - (CONSOLE_DRAW_SCROLL + CONSOLE_DRAW_MARGIN*2) ) / cdc.cwidth;
+	CLAMP(cdc.console_width, 1, INT_MAX); /* avoid divide by zero on small windows */
 	cdc.winx= tvc->winx-(CONSOLE_DRAW_MARGIN+CONSOLE_DRAW_SCROLL);
 	cdc.ymin= tvc->ymin;
 	cdc.ymax= tvc->ymax;

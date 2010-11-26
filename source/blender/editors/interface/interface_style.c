@@ -264,9 +264,6 @@ void UI_DrawString(float x, float y, const char *str)
 		BLF_disable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
 }
 
-int blf_mono_font= -1;
-int blf_mono_font_render= -1;
-
 /* ************** init exit ************************ */
 
 /* called on each startup.blend read */

@@ -66,6 +66,10 @@ int global_font_default= -1;
 int global_font_points= 11;
 int global_font_dpi= 72;
 
+// XXX, should these be made into global_font_'s too?
+int blf_mono_font= -1;
+int blf_mono_font_render= -1;
+
 static FontBLF *BLF_get(int fontid)
 {
 	if (fontid >= 0 && fontid < BLF_MAX_FONT)
