@@ -39,18 +39,10 @@
 
 #include "textview.h"
 
-
-static int mono= -1; // XXX needs proper storage and change all the BLF_* here!
-
-
 static void console_font_begin(TextViewContext *sc)
 {
-	if(mono == -1) {
-		mono= BLF_load_mem("monospace", (unsigned char*)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
-	}
-
-	BLF_aspect(mono, 1.0);
-	BLF_size(mono, sc->lheight-2, 72);
+	BLF_aspect(blf_mono_font, 1.0);
+	BLF_size(blf_mono_font, sc->lheight-2, 72);
 }
 
 typedef struct ConsoleDrawContext {
@@ -95,6 +87,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 	int rct_ofs= cdc->lheight/4;
 	int tot_lines = (str_len/cdc->console_width)+1; /* total number of lines for wrapping */
 	int y_next = (str_len > cdc->console_width) ? cdc->xy[1]+cdc->lheight*tot_lines : cdc->xy[1]+cdc->lheight;
+	const int mono= blf_mono_font;
 
 	/* just advance the height */
 	if(cdc->draw==0) {
@@ -228,6 +221,7 @@ int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick
 	int xy[2], y_prev;
 	int sel[2]= {-1, -1}; /* defaults disabled */
 	unsigned char fg[3], bg[3];
+	const int mono= blf_mono_font;
 
 	console_font_begin(tvc);
 

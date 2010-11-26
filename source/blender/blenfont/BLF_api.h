@@ -179,4 +179,8 @@ void BLF_dir_free(char **dirs, int count);
 #define BLF_SHADOW (1<<2)
 #define BLF_KERNING_DEFAULT (1<<3)
 
+// XXX, bad design
+extern int blf_mono_font;
+extern int blf_mono_font_render; // dont mess drawing with render threads.
+
 #endif /* BLF_API_H */

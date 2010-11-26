@@ -985,29 +985,13 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 }
 
-// XXX - Bad level call.
-extern int datatoc_bmonofont_ttf_size;
-extern char datatoc_bmonofont_ttf[];
-
-// XXX - copied from text_font_begin ! Change all the BLF_* here
-static int mono= -1;
-
-int stamp_font_begin(int size)
-{
-	if (mono == -1)
-		mono= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
-
-	BLF_aspect(mono, 1.0);
-	BLF_size(mono, size, 72);
-	return(mono); // XXX This is for image_gen.c!!
-}
-
 void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, int height, int channels)
 {
 	struct StampData stamp_data;
 	float w, h, pad;
 	int x, y;
 	float h_fixed;
+	const int mono= blf_mono_font_render; // XXX
 	
 	if (!rect && !rectf)
 		return;
@@ -1018,8 +1002,10 @@ void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, i
 	if(scene->r.stamp_font_id < 8)
 		scene->r.stamp_font_id= 12;
 
-	stamp_font_begin(scene->r.stamp_font_id);
-
+	/* set before return */
+	BLF_aspect(mono, 1.0);
+	BLF_size(mono, scene->r.stamp_font_id, 72);
+	
 	BLF_buffer(mono, rectf, rect, width, height, channels);
 	BLF_buffer_col(mono, scene->r.fg_stamp[0], scene->r.fg_stamp[1], scene->r.fg_stamp[2], 1.0);
 	pad= BLF_width(mono, "--");

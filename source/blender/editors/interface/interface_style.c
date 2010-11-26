@@ -264,6 +264,9 @@ void UI_DrawString(float x, float y, const char *str)
 		BLF_disable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
 }
 
+int blf_mono_font= -1;
+int blf_mono_font_render= -1;
+
 /* ************** init exit ************************ */
 
 /* called on each startup.blend read */
@@ -314,6 +317,20 @@ void uiStyleInit(void)
 	if(style==NULL) {
 		ui_style_new(&U.uistyles, "Default Style");
 	}
+	
+	// XXX, this should be moved into a style, but for now best only load the monospaced font once.
+	if (blf_mono_font == -1)
+		blf_mono_font= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
+
+	BLF_aspect(blf_mono_font, 1.0);
+	BLF_size(blf_mono_font, 12, 72);
+	
+	/* second for rendering else we get threading problems */
+	if (blf_mono_font_render == -1)
+		blf_mono_font_render= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
+
+	BLF_aspect(blf_mono_font_render, 1.0);
+	BLF_size(blf_mono_font_render, 12, 72);
 }
 
 void uiStyleFontSet(uiFontStyle *fs)
