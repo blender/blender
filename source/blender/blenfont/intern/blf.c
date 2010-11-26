@@ -103,6 +103,18 @@ void BLF_exit(void)
 	blf_font_exit();
 }
 
+void BLF_cache_clear(void)
+{
+	FontBLF *font;
+	int i;
+
+	for (i= 0; i < global_font_num; i++) {
+		font= global_font[i];
+		if (font)
+			blf_glyph_cache_clear(font);
+	}
+}
+
 static int blf_search(const char *name)
 {
 	FontBLF *font;

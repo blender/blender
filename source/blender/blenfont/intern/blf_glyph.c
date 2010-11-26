@@ -41,6 +41,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_vec_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -113,6 +114,23 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 
 	BLI_addhead(&font->cache, gc);
 	return(gc);
+}
+
+void blf_glyph_cache_clear(FontBLF *font)
+{
+	GlyphCacheBLF *gc;
+	GlyphBLF *g;
+	int i;
+
+	for(gc=font->cache.first; gc; gc=gc->next) {
+		for (i= 0; i < 257; i++) {
+			while (gc->bucket[i].first) {
+				g= gc->bucket[i].first;
+				BLI_remlink(&(gc->bucket[i]), g);
+				blf_glyph_free(g);
+			}
+		}
+	}
 }
 
 void blf_glyph_cache_free(GlyphCacheBLF *gc)
@@ -193,11 +211,9 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 	GlyphBLF *g;
 	FT_Error err;
 	FT_Bitmap bitmap, tempbitmap;
-	int sharp;
+	int sharp = (U.text_render & USER_TEXT_DISABLE_AA);
 	FT_BBox bbox;
 	unsigned int key;
-
-	sharp = 0; /* TODO make the value be configurable somehow */
 
 	g= blf_glyph_search(font->glyph_cache, c);
 	if (g)

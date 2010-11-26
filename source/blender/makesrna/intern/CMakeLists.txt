@@ -54,6 +54,7 @@ INCLUDE_DIRECTORIES(
 	../../makesdna
 	../../blenkernel
 	../../blenlib
+	../../blenfont
 	../../ikplugin
 	../../windowmanager
 	../../editors/include

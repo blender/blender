@@ -34,6 +34,8 @@ struct rctf;
 int BLF_init(int points, int dpi);
 void BLF_exit(void);
 
+void BLF_cache_clear(void);
+
 int BLF_load(const char *name);
 int BLF_load_mem(const char *name, unsigned char *mem, int mem_size);
 
