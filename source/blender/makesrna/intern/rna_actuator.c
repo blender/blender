@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_access.h"
 
 #include "rna_internal.h"
 #include "DNA_constraint_types.h"
@@ -360,9 +361,7 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 	Object *ob= NULL;
 	int totitem= 0;
 	
-	/* hardcoded exceptions, for these cases code below needs to find the id.data */
-	/* otherwise buttons never give all options for selected */
-	if (ptr->type==&RNA_Actuator || ptr->type==&RNA_ArmatureActuator || ptr->type==&RNA_ShapeActionActuator) {
+	if (ptr->type==&RNA_Actuator || RNA_struct_is_a(ptr->type, &RNA_Actuator)){
 		ob = (Object *)ptr->id.data;
 	} else {
 		/* can't use ob from ptr->id.data because that enum is also used by operators */
