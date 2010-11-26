@@ -361,7 +361,7 @@ int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 	add_v3_v3(co, offset);
 
 	/* co is now in the range 0.0, 1.0 */
-	switch (tex->extend) {
+	switch (vd->extend) {
 		case TEX_CLIP:
 		{
 			if ((co[0] < 0.f || co[0] > 1.f) || (co[1] < 0.f || co[1] > 1.f) || (co[2] < 0.f || co[2] > 1.f)) {
