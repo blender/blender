@@ -1084,8 +1084,9 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		
 		
 		/* TRANSFORM_FIX_ME rna restrictions */
-		if (t->prop_size <= 0)
+		if (t->prop_size <= 0.00001f)
 		{
+			printf("Proportional size (%f) under 0.00001, reseting to 1!\n", t->prop_size);
 			t->prop_size = 1.0f;
 		}
 		
