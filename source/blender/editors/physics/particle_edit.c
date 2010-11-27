@@ -372,8 +372,10 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 
 	if((data->vc.v3d->drawtype>OB_WIRE) && (data->vc.v3d->flag & V3D_ZBUF_SELECT)) {
 		if(data->vc.v3d->flag & V3D_INVALID_BACKBUF) {
-			view3d_validate_backbuf(&data->vc);
+			/* needed or else the draw matrix can be incorrect */
+			view3d_operator_needs_opengl(C);
 
+			view3d_validate_backbuf(&data->vc);
 			/* we may need to force an update here by setting the rv3d as dirty
 			 * for now it seems ok, but take care!:
 			 * rv3d->depths->dirty = 1; */
@@ -1484,8 +1486,6 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	RNA_int_get_array(op->ptr, "location", location);
 	mval[0]= location[0];
 	mval[1]= location[1];
-
-	view3d_operator_needs_opengl(C);
 
 	PE_set_view3d_data(C, &data);
 	data.mval= mval;
