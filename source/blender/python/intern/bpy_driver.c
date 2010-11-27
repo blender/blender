@@ -40,7 +40,7 @@ PyObject *bpy_pydriver_Dict = NULL;
 /* For faster execution we keep a special dictionary for pydrivers, with
  * the needed modules and aliases.
  */
-static int bpy_pydriver_create_dict(void)
+int bpy_pydriver_create_dict(void)
 {
 	PyObject *d, *mod;
 
@@ -103,7 +103,7 @@ static int bpy_pydriver_create_dict(void)
  * reloading the Blender text module "pydrivers.py", if available, so
  * updates in it reach pydriver evaluation.
  */
-void BPY_pydriver_update(void)
+void BPY_reset_driver(void)
 {
 	PyGILState_STATE gilstate;
 	int use_gil= 1; // (PyThreadState_Get()==NULL);
@@ -126,12 +126,6 @@ void BPY_pydriver_update(void)
 /* error return function for BPY_eval_pydriver */
 static float pydriver_error(ChannelDriver *driver)
 {
-	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
-		PyDict_Clear(bpy_pydriver_Dict);
-		Py_DECREF(bpy_pydriver_Dict);
-		bpy_pydriver_Dict = NULL;
-	}
-
 	driver->flag |= DRIVER_FLAG_INVALID; /* py expression failed */
 	fprintf(stderr, "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n", driver->expression);
 

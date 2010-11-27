@@ -118,7 +118,7 @@ extern "C" {
 //	int BPY_do_spacehandlers(struct ScrArea *sa, unsigned short event,
 //		short eventValue, unsigned short space_event);
 //
-//	void BPY_pydriver_update(void);
+	void BPY_reset_driver(void);
 	float BPY_eval_driver(struct ChannelDriver *driver);
 //
 	int BPY_eval_button(struct bContext *C, const char *expr, double *value);
