@@ -69,7 +69,7 @@
 
 /*	**************** Generic Functions, data level *************** */
 
-bArmature *add_armature(char *name)
+bArmature *add_armature(const char *name)
 {
 	bArmature *arm;
 	
@@ -813,9 +813,9 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	bDeformGroup *dg;
 	DualQuat *dualquats= NULL;
 	float obinv[4][4], premat[4][4], postmat[4][4];
-	int use_envelope = deformflag & ARM_DEF_ENVELOPE;
-	int use_quaternion = deformflag & ARM_DEF_QUATERNION;
-	int invert_vgroup= deformflag & ARM_DEF_INVERT_VGROUP;
+	const short use_envelope = deformflag & ARM_DEF_ENVELOPE;
+	const short use_quaternion = deformflag & ARM_DEF_QUATERNION;
+	const short invert_vgroup= deformflag & ARM_DEF_INVERT_VGROUP;
 	int numGroups = 0;		/* safety for vertexgroup index overflow */
 	int i, target_totvert = 0;	/* safety for vertexgroup overflow */
 	int use_dverts = 0;
@@ -1456,10 +1456,6 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	if(error)
 		return;
 	
-	/* exception, armature local layer should be proxied too */
-	if (pose->proxy_layer)
-		((bArmature *)ob->data)->layer= pose->proxy_layer;
-	
 	/* clear all transformation values from library */
 	rest_pose(frompose);
 	
@@ -1734,28 +1730,25 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		ikData->numpoints= ikData->chainlen+1; 
 		ikData->points= MEM_callocN(sizeof(float)*ikData->numpoints, "Spline IK Binding");
 		
+		/* bind 'tip' of chain (i.e. first joint = tip of bone with the Spline IK Constraint) */
+		ikData->points[0] = 1.0f;
+		
 		/* perform binding of the joints to parametric positions along the curve based 
 		 * proportion of the total length that each bone occupies
 		 */
 		for (i = 0; i < segcount; i++) {
-			if (i != 0) {
-				/* 'head' joints 
-				 * 	- 2 methods; the one chosen depends on whether we've got usable lengths
-				 */
-				if ((ikData->flag & CONSTRAINT_SPLINEIK_EVENSPLITS) || (totLength == 0.0f)) {
-					/* 1) equi-spaced joints */
-					ikData->points[i]= ikData->points[i-1] - segmentLen;
-				}
-				else {
-					 /*	2) to find this point on the curve, we take a step from the previous joint
-					  *	  a distance given by the proportion that this bone takes
-					  */
-					ikData->points[i]= ikData->points[i-1] - (boneLengths[i] / totLength);
-				}
+			/* 'head' joints, travelling towards the root of the chain
+			 * 	- 2 methods; the one chosen depends on whether we've got usable lengths
+			 */
+			if ((ikData->flag & CONSTRAINT_SPLINEIK_EVENSPLITS) || (totLength == 0.0f)) {
+				/* 1) equi-spaced joints */
+				ikData->points[i+1]= ikData->points[i] - segmentLen;
 			}
 			else {
-				/* 'tip' of chain, special exception for the first joint */
-				ikData->points[0]= 1.0f;
+				/*	2) to find this point on the curve, we take a step from the previous joint
+				 *	  a distance given by the proportion that this bone takes
+				 */
+				ikData->points[i+1]= ikData->points[i] - (boneLengths[i] / totLength);
 			}
 		}
 		
@@ -2410,7 +2403,7 @@ void where_is_pose (Scene *scene, Object *ob)
 	
 	if(ELEM(NULL, arm, scene)) return;
 	if((ob->pose==NULL) || (ob->pose->flag & POSE_RECALC)) 
-	   armature_rebuild_pose(ob, arm);
+		armature_rebuild_pose(ob, arm);
 	   
 	ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);	/* not accurate... */
 	

@@ -286,7 +286,7 @@ static char Euler_MakeCompatible_doc[] =
 static PyObject *Euler_MakeCompatible(EulerObject * self, EulerObject *value)
 {
 	if(!EulerObject_Check(value)) {
-		PyErr_SetString(PyExc_TypeError, "euler.make_compatible(euler): expected a single euler argument.");
+		PyErr_SetString(PyExc_TypeError, "euler.make_compatible(euler): expected a single euler argument");
 		return NULL;
 	}
 	
@@ -294,7 +294,7 @@ static PyObject *Euler_MakeCompatible(EulerObject * self, EulerObject *value)
 		return NULL;
 
 	if(self->order != value->order) {
-		PyErr_SetString(PyExc_ValueError, "euler.make_compatible(euler): rotation orders don't match\n");
+		PyErr_SetString(PyExc_ValueError, "euler.make_compatible(euler): rotation orders don't match");
 		return NULL;
 	}
 
@@ -428,7 +428,7 @@ static int Euler_ass_item(EulerObject * self, int i, PyObject *value)
 	if(i<0) i= EULER_SIZE-i;
 	
 	if(i < 0 || i >= EULER_SIZE){
-		PyErr_SetString(PyExc_IndexError, "euler[attribute] = x: array assignment index out of range\n");
+		PyErr_SetString(PyExc_IndexError, "euler[attribute] = x: array assignment index out of range");
 		return -1;
 	}
 	

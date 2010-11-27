@@ -214,6 +214,7 @@ typedef struct ARegion {
 #define SCREEN_HANDLER_VERSE	3
 
 /* regiontype, first two are the default set */
+/* Do NOT change order, append on end. Types are hardcoded needed */
 enum {
 	RGN_TYPE_WINDOW = 0,
 	RGN_TYPE_HEADER,

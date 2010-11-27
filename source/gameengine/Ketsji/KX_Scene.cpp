@@ -1722,6 +1722,11 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 	if(sg) {
 		if(sg->GetSGClientInfo() == from) {
 			sg->SetSGClientInfo(to);
+
+			/* Make sure to grab the children too since they might not be tied to a game object */
+			NodeList children = sg->GetSGChildren();
+			for (int i=0; i<children.size(); i++)
+					children[i]->SetSGClientInfo(to);
 		}
 #ifdef USE_BULLET
 		SGControllerList::iterator contit;

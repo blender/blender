@@ -403,9 +403,11 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 
 		/* rna info */
-		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
-		data->color[data->totline]= 0x888888;
-		data->totline++;
+		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+			data->color[data->totline]= 0x888888;
+			data->totline++;
+		}
 		
 		if(but->rnapoin.id.data) {
 			ID *id= but->rnapoin.id.data;
@@ -424,9 +426,11 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		str= WM_operator_pystring(C, but->optype, opptr, 0);
 
 		/* operator info */
-		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s", str);
-		data->color[data->totline]= 0x888888;
-		data->totline++;
+		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s", str);
+			data->color[data->totline]= 0x888888;
+			data->totline++;
+		}
 
 		MEM_freeN(str);
 
@@ -2246,7 +2250,7 @@ static void confirm_cancel_operator(void *opv)
 	WM_operator_free(opv);
 }
 
-static void vconfirm_opname(bContext *C, char *opname, char *title, char *itemfmt, va_list ap)
+static void vconfirm_opname(bContext *C, const char *opname, char *title, char *itemfmt, va_list ap)
 {
 	uiPopupBlockHandle *handle;
 	char *s, buf[512];
@@ -2258,7 +2262,7 @@ static void vconfirm_opname(bContext *C, char *opname, char *title, char *itemfm
 	handle= ui_popup_menu_create(C, NULL, NULL, NULL, NULL, buf);
 
 	handle->popup_func= operator_name_cb;
-	handle->popup_arg= opname;
+	handle->popup_arg= (void *)opname;
 }
 
 static void confirm_operator(bContext *C, wmOperator *op, char *title, char *item)
@@ -2276,7 +2280,7 @@ static void confirm_operator(bContext *C, wmOperator *op, char *title, char *ite
 	handle->cancel_func= confirm_cancel_operator;
 }
 
-void uiPupMenuOkee(bContext *C, char *opname, char *str, ...)
+void uiPupMenuOkee(bContext *C, const char *opname, char *str, ...)
 {
 	va_list ap;
 	char titlestr[256];
@@ -2391,7 +2395,7 @@ void uiPupMenuInvoke(bContext *C, const char *idname)
 
 /*************************** Popup Block API **************************/
 
-void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, char *opname, int opcontext)
+void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, const char *opname, int opcontext)
 {
 	wmWindow *window= CTX_wm_window(C);
 	uiPopupBlockHandle *handle;

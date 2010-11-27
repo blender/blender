@@ -550,9 +550,39 @@ class ConstraintButtonsPanel():
         col.prop(con, "axis_x", text="X")
         col.prop(con, "axis_y", text="Y")
         col.prop(con, "axis_z", text="Z")
+        
 
-        #Missing: Limit arrays (not wrapped in RNA yet)
+        if con.pivot_type == 'CONE_TWIST':
+            layout.label(text="Limits:")
+            split = layout.split()
+        
+            col = split.column(align=True)
+            col.prop(con, "use_angular_limit_x", text="Angular X")
+            col.prop(con, "use_angular_limit_y", text="Angular Y")
+            col.prop(con, "use_angular_limit_z", text="Angular Z")
+                
+            col = split.column()
+            col.prop(con, "limit_cone_min", text="")
+            col = split.column()
+            col.prop(con, "limit_cone_max", text="")
 
+        elif con.pivot_type == 'GENERIC_6_DOF':
+            layout.label(text="Limits:")
+            split = layout.split()
+            
+            col = split.column(align=True)
+            col.prop(con, "use_limit_x", text="X")
+            col.prop(con, "use_limit_y", text="Y")
+            col.prop(con, "use_limit_z", text="Z")
+            col.prop(con, "use_angular_limit_x", text="Angular X")
+            col.prop(con, "use_angular_limit_y", text="Angular Y")
+            col.prop(con, "use_angular_limit_z", text="Angular Z")
+                
+            col = split.column()
+            col.prop(con, "limit_generic_min", text="")
+            col = split.column()
+            col.prop(con, "limit_generic_max", text="")
+      
     def CLAMP_TO(self, context, layout, con):
         self.target_template(layout, con)
 

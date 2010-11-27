@@ -26,9 +26,8 @@ data = _bpy.data
 context = _bpy.context
 
 # python modules
-from bpy import utils, path
-
-from bpy import ops as _ops_module
+from . import utils, path
+from . import ops as _ops_module
 
 # fake operator module
 ops = _ops_module.ops_fake_module

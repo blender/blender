@@ -866,7 +866,7 @@ void free_main(Main *mainvar)
 /* ***************** ID ************************ */
 
 
-ID *find_id(char *type, char *name)		/* type: "OB" or "MA" etc */
+ID *find_id(char *type, const char *name)		/* type: "OB" or "MA" etc */
 {
 	ListBase *lb= which_libbase(G.main, GS(type));
 	return BLI_findstring(lb, name, offsetof(ID, name) + 2);
@@ -1026,7 +1026,7 @@ static void sort_alpha_id(ListBase *lb, ID *id)
  * Check to see if there is an ID with the same name as 'name'.
  * Returns the ID if so, if not, returns NULL
  */
-static ID *is_dupid(ListBase *lb, ID *id, char *name)
+static ID *is_dupid(ListBase *lb, ID *id, const char *name)
 {
 	ID *idtest=NULL;
 	
@@ -1388,7 +1388,7 @@ void rename_id(ID *id, char *name)
 void name_uiprefix_id(char *name, ID *id)
 {
 	name[0] = id->lib ? 'L':' ';
-	name[1] = id->flag & LIB_FAKEUSER ? 'F':' ';
+	name[1] = id->flag & LIB_FAKEUSER ? 'F': (id->us==0)?'0':' ';
 	name[2] = ' ';
 
 	strcpy(name+3, id->name+2);

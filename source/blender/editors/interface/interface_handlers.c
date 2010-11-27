@@ -324,7 +324,7 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 {
 	Scene *scene= CTX_data_scene(C);
 	uiAfterFunc *after;
-	char *str= NULL;
+	const char *str= NULL;
 
 	if(but->flag & UI_BUT_UNDO) {
 		/* define which string to use for undo */
@@ -4090,7 +4090,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	int length;
-	char *name;
+	const char *name;
 
 	if((but->rnapoin.data && but->rnaprop)==0 && but->optype==NULL)
 		return 0;
@@ -4960,15 +4960,14 @@ void uiContextActiveProperty(const bContext *C, struct PointerRNA *ptr, struct P
 
 		if(activebut) {
 			if(activebut->rnapoin.data) {
+				uiHandleButtonData *data= activebut->active;
+				
 				/* found RNA button */
 				*ptr= activebut->rnapoin;
 				*prop= activebut->rnaprop;
 				*index= activebut->rnaindex;
-				return;
-			}
-			else {
-				/* recurse into opened menu */
-				uiHandleButtonData *data= activebut->active;
+			
+				/* recurse into opened menu, like colorpicker case */
 				if(data && data->menu)
 					ar = data->menu->region;
 				else
@@ -5006,18 +5005,12 @@ void uiContextAnimUpdate(const bContext *C)
 		}
 
 		if(activebut) {
-			if(activebut->rnapoin.data) {
-				/* found RNA button */
+			/* always recurse into opened menu, so all buttons update (like colorpicker) */
+			uiHandleButtonData *data= activebut->active;
+			if(data && data->menu)
+				ar = data->menu->region;
+			else
 				return;
-			}
-			else {
-				/* recurse into opened menu */
-				uiHandleButtonData *data= activebut->active;
-				if(data && data->menu)
-					ar = data->menu->region;
-				else
-					return;
-			}
 		}
 		else {
 			/* no active button */

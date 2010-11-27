@@ -682,7 +682,7 @@ static void free_iconfile_list(struct ListBase *list)
 	}
 }
 
-int UI_iconfile_get_index(char *filename)
+int UI_iconfile_get_index(const char *filename)
 {
 	IconFile *ifile;
 	ListBase *list=&(iconfilelist);

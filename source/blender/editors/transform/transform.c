@@ -571,7 +571,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		t->mval[0] = event->x - t->ar->winrct.xmin;
 		t->mval[1] = event->y - t->ar->winrct.ymin;
 
-		t->redraw |= TREDRAW_SOFT;
+		// t->redraw |= TREDRAW_SOFT; /* Use this for soft redraw. Might cause flicker in object mode */
+		t->redraw |= TREDRAW_HARD;
+
 
 		if (t->state == TRANS_STARTING) {
 			t->state = TRANS_RUNNING;
@@ -1487,6 +1489,8 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 {
 	int options = 0;
 
+	t->context = C;
+
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 
 	t->state = TRANS_STARTING;
@@ -1628,6 +1632,11 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		break;
 	case TFM_EDGE_SLIDE:
 		initEdgeSlide(t);
+		if(t->state == TRANS_CANCEL)
+		{
+			postTrans(C, t);
+			return 0;
+		}
 		break;
 	case TFM_BONE_ROLL:
 		initBoneRoll(t);
@@ -1715,11 +1724,15 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		}
 	}
 
+	t->context = NULL;
+
 	return 1;
 }
 
-void transformApply(const bContext *C, TransInfo *t)
+void transformApply(bContext *C, TransInfo *t)
 {
+	t->context = C;
+
 	if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT)))
 	{
 		if (t->modifiers & MOD_CONSTRAINT_SELECT)
@@ -1747,21 +1760,25 @@ void transformApply(const bContext *C, TransInfo *t)
 		//do_screenhandlers(G.curscreen);
 		t->redraw |= TREDRAW_HARD;
 	}
+
+	t->context = NULL;
 }
 
-void drawTransformApply(const struct bContext *C, struct ARegion *UNUSED(ar), void *arg)
+void drawTransformApply(const bContext *C, struct ARegion *UNUSED(ar), void *arg)
 {
 	TransInfo *t = arg;
 
 	if (t->redraw & TREDRAW_SOFT) {
 		t->redraw |= TREDRAW_HARD;
-		transformApply(C, t);
+		transformApply((bContext *)C, t);
 	}
 }
 
 int transformEnd(bContext *C, TransInfo *t)
 {
 	int exit_code = OPERATOR_RUNNING_MODAL;
+
+	t->context = C;
 
 	if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING)
 	{
@@ -1798,6 +1815,8 @@ int transformEnd(bContext *C, TransInfo *t)
 
 		viewRedrawForce(C, t);
 	}
+
+	t->context = NULL;
 
 	return exit_code;
 }
@@ -4271,6 +4290,7 @@ static int createSlideVerts(TransInfo *t)
 			efa->e1->f1++;
 			if(efa->e1->f1 > 2) {
 				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
+				MEM_freeN(sld);
 				return 0;
 			}
 		}
@@ -4279,6 +4299,7 @@ static int createSlideVerts(TransInfo *t)
 			efa->e2->f1++;
 			if(efa->e2->f1 > 2) {
 				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
+				MEM_freeN(sld);
 				return 0;
 			}
 		}
@@ -4287,6 +4308,7 @@ static int createSlideVerts(TransInfo *t)
 			efa->e3->f1++;
 			if(efa->e3->f1 > 2) {
 				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
+				MEM_freeN(sld);
 				return 0;
 			}
 		}
@@ -4295,13 +4317,15 @@ static int createSlideVerts(TransInfo *t)
 			efa->e4->f1++;
 			if(efa->e4->f1 > 2) {
 				//BKE_report(op->reports, RPT_ERROR, "3+ face edge");
+				MEM_freeN(sld);
 				return 0;
 			}
 		}
 		// Make sure loop is not 2 edges of same face
 		if(ct > 1) {
 		   //BKE_report(op->reports, RPT_ERROR, "Loop crosses itself");
-		   return 0;
+			MEM_freeN(sld);
+			return 0;
 		}
 	}
 
@@ -4313,6 +4337,7 @@ static int createSlideVerts(TransInfo *t)
 	// Test for multiple segments
 	if(vertsel > numsel+1) {
 		//BKE_report(op->reports, RPT_ERROR, "Please choose a single edge loop");
+		MEM_freeN(sld);
 		return 0;
 	}
 
@@ -4349,6 +4374,7 @@ static int createSlideVerts(TransInfo *t)
 		if(timesthrough >= numsel*2) {
 			BLI_linklist_free(edgelist,NULL);
 			//BKE_report(op->reports, RPT_ERROR, "Could not order loop");
+			MEM_freeN(sld);
 			return 0;
 		}
 	}
@@ -4759,7 +4785,11 @@ void initEdgeSlide(TransInfo *t)
 	t->mode = TFM_EDGE_SLIDE;
 	t->transform = EdgeSlide;
 	
-	createSlideVerts(t);
+	if(!createSlideVerts(t)) {
+		t->state= TRANS_CANCEL;
+		return;
+	}
+	
 	sld = t->customData;
 
 	if (!sld)

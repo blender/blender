@@ -5302,7 +5302,7 @@ static void operator_call_cb(struct bContext *UNUSED(C), void *arg_kmi, void *ar
 		BLI_strncpy(kmi->idname, ot->idname, OP_MAX_TYPENAME);
 }
 
-static void operator_search_cb(const struct bContext *UNUSED(C), void *UNUSED(arg_kmi), char *str, uiSearchItems *items)
+static void operator_search_cb(const struct bContext *UNUSED(C), void *UNUSED(arg_kmi), const char *str, uiSearchItems *items)
 {
 	wmOperatorType *ot = WM_operatortype_first();
 	

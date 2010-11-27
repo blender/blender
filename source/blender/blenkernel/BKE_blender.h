@@ -50,7 +50,7 @@ struct Main;
 #define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0
 
-int BKE_read_file(struct bContext *C, char *dir, struct ReportList *reports);
+int BKE_read_file(struct bContext *C, const char *filepath, struct ReportList *reports);
 int BKE_read_file_from_memory(struct bContext *C, char* filebuf, int filelength, struct ReportList *reports);
 int BKE_read_file_from_memfile(struct bContext *C, struct MemFile *memfile, struct ReportList *reports);
 
@@ -65,7 +65,7 @@ void set_blender_test_break_cb(void (*func)(void) );
 int blender_test_break(void);
 
 /* global undo */
-extern void BKE_write_undo(struct bContext *C, char *name);
+extern void BKE_write_undo(struct bContext *C, const char *name);
 extern void BKE_undo_step(struct bContext *C, int step);
 extern void BKE_undo_name(struct bContext *C, const char *name);
 extern void BKE_reset_undo(void);

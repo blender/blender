@@ -186,7 +186,7 @@ void init_material(Material *ma)
 	ma->preview = NULL;
 }
 
-Material *add_material(char *name)
+Material *add_material(const char *name)
 {
 	Material *ma;
 

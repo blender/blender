@@ -468,7 +468,9 @@ void makeraytree(Render *re)
 			max[i] += 0.01f;
 			sub[i] = max[i]-min[i];
 		}
-		re->maxdist = sqrt( sub[0]*sub[0] + sub[1]*sub[1] + sub[2]*sub[2] );
+
+		re->maxdist= sub[0]*sub[0] + sub[1]*sub[1] + sub[2]*sub[2];
+		if(re->maxdist > 0.0f) re->maxdist= sqrt(re->maxdist);
 
 		re->i.infostr= "Raytree finished";
 		re->stats_draw(re->sdh, &re->i);

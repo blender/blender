@@ -1064,7 +1064,7 @@ static int rna_Mesh_tot_face_get(PointerRNA *ptr)
 	return me->edit_mesh ? me->edit_mesh->totfacesel : 0;
 }
 
-static CustomDataLayer *rna_Mesh_vertex_color_new(struct Mesh *me, struct bContext *C, char *name)
+static CustomDataLayer *rna_Mesh_vertex_color_new(struct Mesh *me, struct bContext *C, const char *name)
 {
 	CustomData *fdata;
 	CustomDataLayer *cdl= NULL;
@@ -1078,7 +1078,7 @@ static CustomDataLayer *rna_Mesh_vertex_color_new(struct Mesh *me, struct bConte
 	return cdl;
 }
 
-static CustomDataLayer *rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, char *name)
+static CustomDataLayer *rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, const char *name)
 {
 	CustomData *fdata;
 	CustomDataLayer *cdl= NULL;

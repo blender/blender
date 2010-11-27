@@ -175,9 +175,8 @@ static void readheader(FILE *inf, IMAGE *image)
 
 static int writeheader(FILE *outf, IMAGE *image)
 {
-	IMAGE t;
+	IMAGE t= {0};
 
-	memset(&t, 0, sizeof(IMAGE));
 	fwrite(&t,sizeof(IMAGE),1,outf);
 	fseek(outf,0,SEEK_SET);
 	putshort(outf,image->imagic);
@@ -662,7 +661,7 @@ static void expandrow(unsigned char *optr, unsigned char *iptr, int z)
  *  Added: zbuf write
  */
 
-static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, char *name, int *zptr)
+static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, const char *name, int *zptr)
 {
 	FILE *outf;
 	IMAGE *image;
@@ -816,7 +815,7 @@ static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cn
 	return optr - (unsigned char *)rlebuf;
 }
 
-int imb_saveiris(struct ImBuf * ibuf, char *name, int flags)
+int imb_saveiris(struct ImBuf * ibuf, const char *name, int flags)
 {
 	short zsize;
 	int ret;

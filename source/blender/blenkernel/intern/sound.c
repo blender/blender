@@ -120,7 +120,7 @@ void sound_exit()
 	AUD_exit();
 }
 
-struct bSound* sound_new_file(struct Main *bmain, char* filename)
+struct bSound* sound_new_file(struct Main *bmain, const char *filename)
 {
 	bSound* sound = NULL;
 

@@ -115,11 +115,12 @@ static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
 
 	/* function to skip any id properties that are already known by RNA,
 	 * for the second loop where we go over unknown id properties */
+	do {
+		for(prop= ptype->cont.properties.first; prop; prop=prop->next)
+			if((prop->flag & PROP_BUILTIN) == 0 && strcmp(prop->identifier, idprop->name) == 0)
+				return 1;
+	} while((ptype=ptype->base));
 
-	for(prop= ptype->cont.properties.first; prop; prop=prop->next)
-		if(strcmp(prop->identifier, idprop->name) == 0)
-			return 1;
-	
 	return 0;
 }
 
@@ -303,9 +304,8 @@ PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	PointerRNA propptr;
+	PointerRNA propptr= {{0}};
 
-	memset(&propptr, 0, sizeof(propptr));
 	srna= ptr->type;
 
 	do {

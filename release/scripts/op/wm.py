@@ -268,8 +268,8 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
 
 
 class WM_OT_context_cycle_int(bpy.types.Operator):
-    '''Set a context value. Useful for cycling active material,
-    vertex keys, groups' etc.'''
+    '''Set a context value. Useful for cycling active material, '''
+    '''vertex keys, groups' etc.'''
     bl_idname = "wm.context_cycle_int"
     bl_label = "Context Int Cycle"
     bl_options = {'UNDO'}

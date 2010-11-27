@@ -66,5 +66,15 @@
 #endif
 #endif
 
+#ifdef __APPLE__
+#undef isalnum
+#undef isalpha
+#undef islower
+#undef isspace
+#undef isupper
+#undef tolower
+#undef toupper
+#endif
+
 #endif // KX_PYTHON_H
 

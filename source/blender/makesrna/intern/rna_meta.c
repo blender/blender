@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -138,14 +139,6 @@ static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, Meta
 
 #else
 
-static EnumPropertyItem metaelem_type_items[] = {
-	{MB_BALL, "BALL", ICON_META_BALL, "Ball", ""},
-	{MB_TUBE, "CAPSULE", ICON_META_CAPSULE, "Capsule", ""},
-	{MB_PLANE, "PLANE", ICON_META_PLANE, "Plane", ""},
-	{MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""}, // NOTE: typo at original definition!
-	{MB_CUBE, "CUBE", ICON_META_CUBE, "Cube", ""},
-	{0, NULL, 0, NULL, NULL}};
-
 static void rna_def_metaelement(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -155,7 +148,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "MetaElem");
 	RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a MetaBall datablock");
 	RNA_def_struct_ui_icon(srna, ICON_OUTLINER_DATA_META);
-	
+
 	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, metaelem_type_items);

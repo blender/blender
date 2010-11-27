@@ -111,7 +111,7 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
 	handle= PyCapsule_GetPointer(py_handle, RNA_CAPSULE_ID);
 
 	if(handle==NULL) {
-		PyErr_SetString(PyExc_ValueError, "callback_remove(handle): NULL handle given, invalid or already removed.");
+		PyErr_SetString(PyExc_ValueError, "callback_remove(handle): NULL handle given, invalid or already removed");
 		return NULL;
 	}
 

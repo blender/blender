@@ -706,6 +706,7 @@ int KX_Camera::pyattr_set_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	}
 	
 	self->m_camdata.m_perspective= param;
+	self->InvalidateProjectionMatrix();
 	return PY_SET_ATTR_SUCCESS;
 }
 

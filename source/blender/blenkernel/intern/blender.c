@@ -197,7 +197,7 @@ static void clean_paths(Main *main)
 /* context matching */
 /* handle no-ui case */
 
-static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename) 
+static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filename) 
 {
 	bScreen *curscreen= NULL;
 	Scene *curscene= NULL;
@@ -237,6 +237,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	}
 	
 	/* free G.main Main database */
+//	CTX_wm_manager_set(C, NULL);
 	clear_global();	
 	
 	G.main= bfd->main;
@@ -261,7 +262,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		G.winpos= bfd->winpos;
 		G.displaymode= bfd->displaymode;
 		G.fileflags= bfd->fileflags;
-		
+		CTX_wm_manager_set(C, bfd->main->wm.first);
 		CTX_wm_screen_set(C, bfd->curscreen);
 		CTX_data_scene_set(C, bfd->curscreen->scene);
 		CTX_wm_area_set(C, NULL);
@@ -364,7 +365,7 @@ void BKE_userdef_free(void)
    2: OK, and with new user settings
 */
 
-int BKE_read_file(bContext *C, char *dir, ReportList *reports) 
+int BKE_read_file(bContext *C, const char *dir, ReportList *reports) 
 {
 	BlendFileData *bfd;
 	int retval= 1;
@@ -486,7 +487,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 }
 
 /* name can be a dynamic string */
-void BKE_write_undo(bContext *C, char *name)
+void BKE_write_undo(bContext *C, const char *name)
 {
 	uintptr_t maxmem, totmem, memused;
 	int nr, success;

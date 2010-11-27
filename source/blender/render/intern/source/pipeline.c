@@ -930,7 +930,7 @@ static void renderresult_add_names(RenderResult *rr)
 }
 
 /* called for reading temp files, and for external engines */
-static int read_render_result_from_file(char *filename, RenderResult *rr)
+static int read_render_result_from_file(const char *filename, RenderResult *rr)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
@@ -2548,6 +2548,7 @@ static void do_render_seq(Render * re)
 	struct ImBuf *ibuf;
 	RenderResult *rr; /* don't assign re->result here as it might change during give_ibuf_seq */
 	int cfra = re->r.cfra;
+	SeqRenderData context;
 
 	re->i.cfra= cfra;
 
@@ -2558,7 +2559,11 @@ static void do_render_seq(Render * re)
 
 	recurs_depth++;
 
-	ibuf= give_ibuf_seq(re->main, re->scene, re->result->rectx, re->result->recty, cfra, 0, 100.0);
+	context = seq_new_render_data(re->main, re->scene,
+				      re->result->rectx, re->result->recty, 
+				      100);
+
+	ibuf = give_ibuf_seq(context, cfra, 0);
 
 	recurs_depth--;
 
@@ -2931,19 +2936,19 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	if(render_initialize_from_main(re, bmain, scene, srl, lay, 0, 0)) {
 		MEM_reset_peak_memory();
 		do_render_all_options(re);
-	}
 		
-	if(write_still) {
-		if(BKE_imtype_is_movie(scene->r.imtype)) {
-			/* operator checks this but incase its called from elsewhere */
-			printf("Error: cant write single images with a movie format!\n");
-		}
-		else {
-			char name[FILE_MAX];
-			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
-
-			/* reports only used for Movie */
-			do_write_image_or_movie(re, scene, NULL, NULL, name);
+		if(write_still && !G.afbreek) {
+			if(BKE_imtype_is_movie(scene->r.imtype)) {
+				/* operator checks this but incase its called from elsewhere */
+				printf("Error: cant write single images with a movie format!\n");
+			}
+			else {
+				char name[FILE_MAX];
+				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
+	
+				/* reports only used for Movie */
+				do_write_image_or_movie(re, scene, NULL, NULL, name);
+			}
 		}
 	}
 
@@ -3324,7 +3329,7 @@ int RE_engine_test_break(RenderEngine *engine)
 	return re->test_break(re->tbh);
 }
 
-void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info)
+void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info)
 {
 	Render *re= engine->re;
 
@@ -3337,7 +3342,7 @@ void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info)
 
 /* loads in image into a result, size must match
  * x/y offsets are only used on a partial copy when dimensions dont match */
-void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, char *filename)
+void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char *filename)
 {
 	ImBuf *ibuf = IMB_loadiffname(filename, IB_rect);
 
@@ -3377,7 +3382,7 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, char *file
 	}
 }
 
-void RE_result_load_from_file(RenderResult *result, ReportList *reports, char *filename)
+void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filename)
 {
 	if(!read_render_result_from_file(filename, result)) {
 		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);

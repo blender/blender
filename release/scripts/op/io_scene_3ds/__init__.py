@@ -20,9 +20,11 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
-    import sys
-    reload(sys.modules.get("io_scene_3ds.import_3ds", sys))
-    reload(sys.modules.get("io_scene_3ds.export_3ds", sys))
+    from imp import reload
+    if "import_3ds" in locals():
+        reload(import_3ds)
+    if "export_3ds" in locals():
+        reload(export_3ds)
 
 
 import bpy
@@ -43,8 +45,8 @@ class Import3DS(bpy.types.Operator, ImportHelper):
     use_apply_transform = BoolProperty(name="Apply Transform", description="Workaround for object transformations importing incorrectly", default=True)
 
     def execute(self, context):
-        import io_scene_3ds.import_3ds
-        return io_scene_3ds.import_3ds.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
+        from . import import_3ds
+        return import_3ds.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
 
 
 class Export3DS(bpy.types.Operator, ExportHelper):
@@ -53,10 +55,11 @@ class Export3DS(bpy.types.Operator, ExportHelper):
     bl_label = 'Export 3DS'
 
     filename_ext = ".3ds"
+    filter_glob = StringProperty(default="*.3ds", options={'HIDDEN'})
 
     def execute(self, context):
-        import io_scene_3ds.export_3ds
-        return io_scene_3ds.export_3ds.save(self, context, **self.as_keywords(ignore=("check_existing",)))
+        from . import export_3ds
+        return export_3ds.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))
 
 
 # Add to a menu

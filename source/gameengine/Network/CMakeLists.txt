@@ -37,4 +37,4 @@ SET(SRC
 	NG_NetworkScene.cpp
 )
 
-BLENDERLIB(bf_ngnetwork "${SRC}" "${INC}")
+BLENDERLIB(ge_logic_ngnetwork "${SRC}" "${INC}")

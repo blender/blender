@@ -14,49 +14,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-#
-# The Original Code is: all of this file.
-#
-# Contributor(s): Jacques Beaurainm, Campbell Barton
-#
 # ***** END GPL LICENSE BLOCK *****
 
+ADD_SUBDIRECTORY(intern)
 ADD_SUBDIRECTORY(generic)
-
-SET(INC 
-	.
-	../blenlib
-	../makesdna
-	../makesrna
-	../blenkernel
-	../windowmanager
-	../editors/include
-	../freestyle/intern/python
-	../../../intern/guardedalloc
-	../../../intern/audaspace/intern
-	${PYTHON_INC}
-)
-
-SET(SRC
-	intern/bpy.c
-	intern/bpy_app.c
-	intern/bpy_array.c
-	intern/bpy_driver.c
-	intern/bpy_interface.c
-	intern/bpy_operator.c
-	intern/bpy_operator_wrap.c
-	intern/bpy_props.c
-	intern/bpy_rna.c
-	intern/bpy_rna_callback.c
-	intern/bpy_util.c
-	intern/stubs.c
-)
-
-# only to check if buildinfo is available
-IF(WITH_BUILDINFO)
-	ADD_DEFINITIONS(-DBUILD_DATE)
-ENDIF(WITH_BUILDINFO)
-
-BLENDERLIB(bf_python "${SRC}" "${INC}")

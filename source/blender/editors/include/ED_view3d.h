@@ -79,6 +79,7 @@ void window_to_3d_delta(struct ARegion *ar, float *vec, short mx, short my);
 void view3d_unproject(struct bglMats *mats, float out[3], const short x, const short y, const float z);
 
 /* Depth buffer */
+void view3d_update_depths(struct ARegion *ar);
 float read_cached_depth(struct ViewContext *vc, int x, int y);
 void request_depth_update(struct RegionView3D *rv3d);
 

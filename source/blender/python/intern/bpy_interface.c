@@ -302,7 +302,7 @@ void BPY_end_python( void )
 /* Can run a file or text block */
 int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struct ReportList *reports)
 {
-	PyObject *py_dict, *py_result= NULL;
+	PyObject *py_dict= NULL, *py_result= NULL;
 	PyGILState_STATE gilstate;
 	
 	if (fn==NULL && text==NULL) {
@@ -373,8 +373,25 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	} else {
 		Py_DECREF( py_result );
 	}
-	
-	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
+
+/* super annoying, undo _PyModule_Clear() */	
+#define PYMODULE_CLEAR_WORKAROUND
+
+	if(py_dict) {
+#ifdef PYMODULE_CLEAR_WORKAROUND
+		PyObject *py_dict_back= PyDict_Copy(py_dict);
+		Py_INCREF(py_dict);
+#endif
+		/* normal */
+		PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
+#ifdef PYMODULE_CLEAR_WORKAROUND
+		PyDict_Clear(py_dict);
+		PyDict_Update(py_dict, py_dict_back);
+		Py_DECREF(py_dict);
+		Py_DECREF(py_dict_back);
+#endif
+#undef PYMODULE_CLEAR_WORKAROUND
+	}
 	
 	bpy_context_clear(C, &gilstate);
 

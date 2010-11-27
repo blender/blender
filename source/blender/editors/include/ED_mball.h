@@ -41,5 +41,5 @@ void free_editMball(struct Object *obedit);
 void make_editMball(struct Object *obedit);
 void load_editMball(struct Object *obedit);
 
-void undo_push_mball(struct bContext *C, char *name);
+void undo_push_mball(struct bContext *C, const char *name);
 

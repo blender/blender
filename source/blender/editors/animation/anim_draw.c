@@ -392,7 +392,7 @@ float ANIM_unit_mapping_get_factor (Scene *scene, ID *id, FCurve *fcu, short res
 			if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION)
 			{
 				/* if the radians flag is not set, default to using degrees which need conversions */
-				if ((scene) && (scene->unit.flag & USER_UNIT_ROT_RADIANS) == 0) {
+				if ((scene) && (scene->unit.system_rotation == USER_UNIT_ROT_RADIANS) == 0) {
 					if (restore)
 						return M_PI / 180.0f;	/* degrees to radians */
 					else

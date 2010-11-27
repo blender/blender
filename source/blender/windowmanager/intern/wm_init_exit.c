@@ -146,6 +146,8 @@ void WM_init(bContext *C, int argc, char **argv)
 #ifdef WITH_PYTHON
 	BPY_set_context(C); /* necessary evil */
 	BPY_start_python(argc, argv);
+
+	BPY_reset_driver();
 	BPY_load_user_modules(C);
 #else
 	(void)argc; /* unused */

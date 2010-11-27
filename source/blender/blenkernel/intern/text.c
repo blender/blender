@@ -172,7 +172,7 @@ void free_text(Text *text)
 #endif
 }
 
-Text *add_empty_text(char *name) 
+Text *add_empty_text(const char *name) 
 {
 	Main *bmain= G.main;
 	Text *ta;
@@ -325,7 +325,7 @@ int reopen_text(Text *text)
 	return 1;
 }
 
-Text *add_text(char *file, const char *relpath) 
+Text *add_text(const char *file, const char *relpath) 
 {
 	Main *bmain= G.main;
 	FILE *fp;
@@ -559,7 +559,7 @@ void clear_text(Text *text) /* called directly from rna */
 	txt_make_dirty(text);
 }
 
-void write_text(Text *text, char *str) /* called directly from rna */
+void write_text(Text *text, const char *str) /* called directly from rna */
 {
 	int oldstate;
 

@@ -35,4 +35,4 @@ if env['WITH_BF_CXX_GUARDEDALLOC']:
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 
-env.BlenderLib ( 'bf_bloutines', sources, Split(incs), defs, libtype=['core','player'], priority=[300,35] , cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib ( 'ge_blen_routines', sources, Split(incs), defs, libtype=['core','player'], priority=[300,35] , cxx_compileflags=env['BGE_CXXFLAGS'])

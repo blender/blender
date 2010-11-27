@@ -50,18 +50,12 @@ void setBoneRollFromNormal(EditBone *bone, float *no, float UNUSED(invmat[][4]),
 {
 	if (no != NULL && !is_zero_v3(no))
 	{
-		float tangent[3], vec[3], normal[3];
+		float normal[3];
 
-		VECCOPY(normal, no);	
+		copy_v3_v3(normal, no);	
 		mul_m3_v3(tmat, normal);
-
-		sub_v3_v3v3(tangent, bone->tail, bone->head);
-		project_v3_v3v3(vec, tangent, normal);
-		sub_v3_v3(normal, vec);
 		
-		normalize_v3(normal);
-		
-		bone->roll = ED_rollBoneToVector(bone, normal);
+		bone->roll = ED_rollBoneToVector(bone, normal, FALSE);
 	}
 }
 

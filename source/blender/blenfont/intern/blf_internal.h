@@ -56,6 +56,7 @@ void blf_font_free(FontBLF *font);
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi);
 GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font);
+void blf_glyph_cache_clear(FontBLF *font);
 void blf_glyph_cache_free(GlyphCacheBLF *gc);
 
 GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, unsigned int c);

@@ -33,7 +33,6 @@
 
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
-#include "GEN_DataCache.h"
 
 class SYS_SingletonSystem
 {

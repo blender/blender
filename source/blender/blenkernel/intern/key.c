@@ -1441,7 +1441,7 @@ Key *ob_get_key(Object *ob)
 	return NULL;
 }
 
-KeyBlock *add_keyblock(Key *key, char *name)
+KeyBlock *add_keyblock(Key *key, const char *name)
 {
 	KeyBlock *kb;
 	float curpos= -0.1;

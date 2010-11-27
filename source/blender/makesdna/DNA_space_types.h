@@ -923,6 +923,7 @@ enum {
 
 
 /* space types, moved from DNA_screen_types.h */
+/* Do NOT change order, append on end. types are hardcoded needed */
 enum {
 	SPACE_EMPTY,
 	SPACE_VIEW3D,

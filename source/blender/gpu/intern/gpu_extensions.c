@@ -67,10 +67,11 @@ static struct GPUGlobal {
 	int glslsupport;
 	int extdisabled;
 	int colordepth;
+	int npotdisabled; /* Special case for Ati R500 chipset cards that only support npot with severe restrictions */
 	GPUDeviceType device;
 	GPUOSType os;
 	GPUDriverType driver;
-} GG = {1, 0, 0, 0};
+} GG = {1, 0, 0, 0, 0};
 
 /* GPU Types */
 
@@ -119,6 +120,12 @@ void GPU_extensions_init()
 	if(strstr(vendor, "ATI")) {
 		GG.device = GPU_DEVICE_ATI;
 		GG.driver = GPU_DRIVER_OFFICIAL;
+
+		/* ATI X1xxx cards (R500 chipset) lack full support for npot textures
+		 * although they report the GLEW_ARB_texture_non_power_of_two extension.
+		 */
+		if(strstr(renderer, "X1"))
+			GG.npotdisabled = 1;
 	}
 	else if(strstr(vendor, "NVIDIA")) {
 		GG.device = GPU_DEVICE_NVIDIA;
@@ -175,6 +182,9 @@ int GPU_non_power_of_two_support()
 	/* Exception for buggy ATI/Apple driver in Mac OS X 10.5/10.6,
 	 * they claim to support this but can cause system freeze */
 	if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_MAC, GPU_DRIVER_OFFICIAL))
+		return 0;
+
+	if(GG.npotdisabled)
 		return 0;
 
 	return GLEW_ARB_texture_non_power_of_two;
@@ -820,7 +830,7 @@ struct GPUOffScreen {
 	GPUTexture *depth;
 };
 
-GPUOffScreen *GPU_offscreen_create(int width, int height)
+GPUOffScreen *GPU_offscreen_create(int *width, int *height)
 {
 	GPUOffScreen *ofs;
 
@@ -832,18 +842,24 @@ GPUOffScreen *GPU_offscreen_create(int width, int height)
 		return NULL;
 	}
 
-	ofs->depth = GPU_texture_create_depth(width, height);
+	ofs->depth = GPU_texture_create_depth(*width, *height);
 	if(!ofs->depth) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
 
+	if(*width!=ofs->depth->w || *height!=ofs->depth->h) {
+		*width= ofs->depth->w;
+		*height= ofs->depth->h;
+		printf("Offscreen size differs from given size!\n");
+	}
+	
 	if(!GPU_framebuffer_texture_attach(ofs->fb, ofs->depth)) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
 
-	ofs->color = GPU_texture_create_2D(width, height, NULL);
+	ofs->color = GPU_texture_create_2D(*width, *height, NULL);
 	if(!ofs->color) {
 		GPU_offscreen_free(ofs);
 		return NULL;

@@ -63,7 +63,7 @@
 
 /* ***************** generic undo system ********************* */
 
-void ED_undo_push(bContext *C, char *str)
+void ED_undo_push(bContext *C, const char *str)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	Object *obedit= CTX_data_edit_object(C);

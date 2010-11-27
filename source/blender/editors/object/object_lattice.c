@@ -414,7 +414,7 @@ static void *get_editlatt(bContext *C)
 }
 
 /* and this is all the undo system needs to know */
-void undo_push_lattice(bContext *C, char *name)
+void undo_push_lattice(bContext *C, const char *name)
 {
 	undo_editmode_push(C, name, get_editlatt, free_undoLatt, undoLatt_to_editLatt, editLatt_to_undoLatt, validate_undoLatt);
 }

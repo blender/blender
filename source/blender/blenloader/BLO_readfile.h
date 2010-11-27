@@ -80,7 +80,7 @@ typedef struct BlendFileData {
 	 * indicating the cause of the failure.
 	 * @return The data of the file.
 	 */
-BlendFileData*	BLO_read_from_file		(char *file, struct ReportList *reports);
+BlendFileData*	BLO_read_from_file(const char *file, struct ReportList *reports);
 
 	/**
 	 * Open a blender file from memory. The function

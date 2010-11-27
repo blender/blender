@@ -189,11 +189,11 @@ typedef struct Curve {
 	float rot[3];
 
 	short texflag, pad1; /* keep a short because of give_obdata_texspace() */
-
-	short drawflag, twist_mode,  pad[2];
+	short drawflag, twist_mode;
 	float twist_smooth, smallcaps_scale;
 
-	short pathlen, totcol;
+	int pathlen;
+	short pad, totcol;
 	short flag, bevresol;
 	float width, ext1, ext2;
 	

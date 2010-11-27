@@ -215,7 +215,7 @@ int ismovie(char *name) {
 
 #else
 
-int ismovie(char *UNUSED(name)) {
+int ismovie(const char *UNUSED(name)) {
 	return 0;
 }
 

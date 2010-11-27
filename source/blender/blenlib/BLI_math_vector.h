@@ -121,15 +121,15 @@ void mid_v3_v3v3(float r[3], const float a[3], const float b[3]);
 
 /********************************* Comparison ********************************/
 
-MINLINE int is_zero_v3(float a[3]);
-MINLINE int is_one_v3(float a[3]);
+MINLINE int is_zero_v3(const float a[3]);
+MINLINE int is_one_v3(const float a[3]);
 
-MINLINE int equals_v3v3(float a[3], float b[3]);
-MINLINE int compare_v3v3(float a[3], float b[3], float limit);
-MINLINE int compare_len_v3v3(float a[3], float b[3], float limit);
+MINLINE int equals_v3v3(const float a[3], const float b[3]);
+MINLINE int compare_v3v3(const float a[3], const float b[3], const float limit);
+MINLINE int compare_len_v3v3(const float a[3], const float b[3], const float limit);
 
-MINLINE int compare_v4v4(float a[4], float b[4], float limit);
-MINLINE int equals_v4v4(float a[4], float b[4]);
+MINLINE int compare_v4v4(const float a[4], const float b[4], const float limit);
+MINLINE int equals_v4v4(const float a[4], const float b[4]);
 
 MINLINE float line_point_side_v2(const float l1[2], const float l2[2], const float pt[2]);
 

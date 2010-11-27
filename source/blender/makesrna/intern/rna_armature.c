@@ -93,7 +93,7 @@ static void rna_Armature_act_edit_bone_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, char *name)
+EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, const char *name)
 {
 	if(arm->edbo==NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant add an editbone.", arm->id.name+2);
@@ -115,6 +115,20 @@ void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, EditBone
 	}
 
 	ED_armature_edit_bone_remove(arm, ebone);
+}
+
+static void rna_Armature_update_layers(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bArmature *arm= ptr->id.data;
+	Object *ob;
+
+	/* proxy lib exception, store it here so we can restore layers on file
+	   load, since it would otherwise get lost due to being linked data */
+	for(ob = bmain->object.first; ob; ob=ob->id.next)
+		if(ob->data == arm && ob->pose)
+			ob->pose->proxy_layer = arm->layer;
+
+	WM_main_add_notifier(NC_GEOM|ND_DATA, arm);
 }
 
 static void rna_Armature_redraw_data(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -785,6 +799,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_pose_position_items);
 	RNA_def_property_ui_text(prop, "Pose Position", "Show armature in binding pose or final posed state");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 	prop= RNA_def_property(srna, "draw_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
@@ -809,7 +824,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_array(prop, 32);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Armature layer visibility");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Armature_layer_set");
-	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Armature_redraw_data");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Armature_update_layers");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 		/* layer protection */

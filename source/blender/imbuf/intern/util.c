@@ -142,7 +142,7 @@ const char *imb_ext_audio[] = {
 	".eac3",
 	NULL};
 
-static int IMB_ispic_name(char *name)
+static int IMB_ispic_name(const char *name)
 {
 	ImFileType *type;
 	struct stat st;
@@ -176,7 +176,7 @@ static int IMB_ispic_name(char *name)
 	return FALSE;
 }
 
-int IMB_ispic(char *filename)
+int IMB_ispic(const char *filename)
 {
 	if(U.uiflag & USER_FILTERFILEEXTS) {
 		if(	(BLI_testextensie_array(filename, imb_ext_image)) ||
@@ -195,12 +195,12 @@ int IMB_ispic(char *filename)
 
 
 
-static int isavi (char *name) {
+static int isavi (const char *name) {
 	return AVI_is_avi (name);
 }
 
 #ifdef WITH_QUICKTIME
-static int isqtime (char *name) {
+static int isqtime (const char *name) {
 	return anim_is_quicktime (name);
 }
 #endif
@@ -248,7 +248,7 @@ static AVCodecContext* get_codec_from_stream(AVStream* stream)
 #endif
 
 
-static int isffmpeg (char *filename) {
+static int isffmpeg (const char *filename) {
 	AVFormatContext *pFormatCtx;
 	unsigned int i;
 	int videoStream;
@@ -331,7 +331,7 @@ static int isredcode(char * filename)
 
 #endif
 
-int imb_get_anim_type(char * name) {
+int imb_get_anim_type(const char * name) {
 	int type;
 	struct stat st;
 
@@ -372,7 +372,7 @@ int imb_get_anim_type(char * name) {
 	return(0);
 }
  
-int IMB_isanim(char *filename) {
+int IMB_isanim(const char *filename) {
 	int type;
 	
 	if(U.uiflag & USER_FILTERFILEEXTS) {

@@ -63,7 +63,7 @@ int PE_lasso_select(struct bContext *C, short mcords[][2], short moves, short ex
 void PE_deselect_all_visible(struct PTCacheEdit *edit);
 
 /* undo */
-void PE_undo_push(struct Scene *scene, char *str);
+void PE_undo_push(struct Scene *scene, const char *str);
 void PE_undo_step(struct Scene *scene, int step);
 void PE_undo(struct Scene *scene);
 void PE_redo(struct Scene *scene);

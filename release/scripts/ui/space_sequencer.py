@@ -384,6 +384,8 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
 
         col.label(text="Frame Offset %d:%d" % (strip.frame_offset_start, strip.frame_offset_end))
         col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
+        if strip.type in ('MOVIE', 'IMAGE'):
+            col.label(text="Orig Dim: %dx%d" % (strip.orig_width, strip.orig_height))
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
@@ -443,12 +445,14 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
             row.prop(strip, "use_only_boost")
 
         elif strip.type == 'SPEED':
-            layout.prop(strip, "use_as_speed")
-            if strip.use_as_speed:
-                layout.prop(strip, "speed_factor")
-            else:
-                layout.prop(strip, "speed_factor", text="Frame number")
-                layout.prop(strip, "scale_to_length")
+            layout.prop(strip, "use_default_fade", "Stretch to input strip length")
+            if not strip.use_default_fade:
+                layout.prop(strip, "use_as_speed")
+                if strip.use_as_speed:
+                    layout.prop(strip, "speed_factor")
+                else:
+                    layout.prop(strip, "speed_factor", text="Frame number")
+                    layout.prop(strip, "scale_to_length")
 
             #doesn't work currently
             #layout.prop(strip, "use_frame_blend")
@@ -573,6 +577,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(strip, "filepath", text="")
             col.prop(strip, "mpeg_preseek", text="MPEG Preseek")
+
         # TODO, sound???
         # end drawing filename
 

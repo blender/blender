@@ -321,7 +321,7 @@ static PointerRNA rna_KeyingSet_typeinfo_get(PointerRNA *ptr)
 
 
 static KS_Path *rna_KeyingSet_paths_add(KeyingSet *keyingset, ReportList *reports, 
-		ID *id, char rna_path[], int index, int group_method, char group_name[])
+		ID *id, const char rna_path[], int index, int group_method, const char group_name[])
 {
 	KS_Path *ksp = NULL;
 	short flag = 0;

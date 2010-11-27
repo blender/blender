@@ -25,23 +25,24 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 #
-import datetime, os, configparser, threading, tempfile
+import configparser
+import datetime
+import os
+import tempfile
+import threading
 
 import bpy
 
 config_paths = bpy.utils.script_paths()
 
-'''
-This path is set at the start of export, so that
-calls to path_relative_to_export() can make all
-exported paths relative to this one
-'''
+"""This path is set at the start of export, so that calls to
+path_relative_to_export() can make all exported paths relative to
+this one.
+"""
 export_path = '';
 
 def path_relative_to_export(p):
-	'''
-	Return a path that is relative to the export path
-	'''
+	"""Return a path that is relative to the export path"""
 	global export_path
 	p = filesystem_path(p)
 	try:
@@ -49,26 +50,25 @@ def path_relative_to_export(p):
 	except ValueError: # path on different drive on windows
 		relp = p
 	
-	#print('Resolving rel path %s -> %s'  % (p, relp))
-	
 	return relp.replace('\\', '/')
 
 def filesystem_path(p):
-	'''
-	Resolve a relative Blender path to a real filesystem path
-	'''
+	"""Resolve a relative Blender path to a real filesystem path"""
 	if p.startswith('//'):
 		pout = bpy.path.abspath(p)
 	else:
 		pout = os.path.realpath(p)
-	
-	#print('Resolving FS path %s -> %s' % (p,pout))
 	
 	return pout.replace('\\', '/')
 
 # TODO: - somehow specify TYPES to get/set from config
 
 def find_config_value(module, section, key, default):
+	"""Attempt to find the configuration value specified by string key
+	in the specified section of module's configuration file. If it is
+	not found, return default.
+	
+	"""
 	global config_paths
 	fc = []
 	for p in config_paths:
@@ -97,6 +97,10 @@ def find_config_value(module, section, key, default):
 		return default
 
 def write_config_value(module, section, key, value):
+	"""Attempt to write the configuration value specified by string key
+	in the specified section of module's configuration file.
+	
+	"""
 	global config_paths
 	fc = []
 	for p in config_paths:
@@ -104,7 +108,8 @@ def write_config_value(module, section, key, value):
 			fc.append( '/'.join([p, '%s.cfg' % module]))
 	
 	if len(fc) < 1:
-		raise Exception('Cannot find a writable path to store %s config file' % module)
+		raise Exception('Cannot find a writable path to store %s config file' %
+			module)
 		
 	cp = configparser.SafeConfigParser()
 	
@@ -130,32 +135,35 @@ def write_config_value(module, section, key, value):
 	return True
 
 def scene_filename():
-	'''
-	Construct a safe scene filename
-	'''
+	"""Construct a safe scene filename, using 'untitled' instead of ''"""
 	filename = os.path.splitext(os.path.basename(bpy.data.filepath))[0]
 	if filename == '':
 		filename = 'untitled'
 	return bpy.path.clean_name(filename)
 
 def temp_directory():
-	'''
-	Return the system temp directory
-	'''
+	"""Return the system temp directory"""
 	return tempfile.gettempdir()
 
 def temp_file(ext='tmp'):
-	'''
-	Get a temporary filename with the given extension
-	'''
+	"""Get a temporary filename with the given extension. This function
+	will actually attempt to create the file."""
 	tf, fn = tempfile.mkstemp(suffix='.%s'%ext)
 	os.close(tf)
 	return fn
 
 class TimerThread(threading.Thread):
-	'''
-	Periodically call self.kick()
-	'''
+	"""Periodically call self.kick(). The period of time in seconds
+	between calling is given by self.KICK_PERIOD, and the first call
+	may be delayed by setting self.STARTUP_DELAY, also in seconds.
+	self.kick() will continue to be called at regular intervals until
+	self.stop() is called. Since this is a thread, calling self.join()
+	may be wise after calling self.stop() if self.kick() is performing
+	a task necessary for the continuation of the program.
+	The object that creates this TimerThread may pass into it data
+	needed during self.kick() as a dict LocalStorage in __init__().
+	
+	"""
 	STARTUP_DELAY = 0
 	KICK_PERIOD = 8
 	
@@ -169,24 +177,27 @@ class TimerThread(threading.Thread):
 		self.LocalStorage = LocalStorage
 	
 	def set_kick_period(self, period):
+		"""Adjust the KICK_PERIOD between __init__() and start()"""
 		self.KICK_PERIOD = period + self.STARTUP_DELAY
 	
 	def stop(self):
+		"""Stop this timer. This method does not join()"""
 		self.active = False
 		if self.timer is not None:
 			self.timer.cancel()
 			
 	def run(self):
-		'''
-		Timed Thread loop
-		'''
-		
+		"""Timed Thread loop"""
 		while self.active:
 			self.timer = threading.Timer(self.KICK_PERIOD, self.kick_caller)
 			self.timer.start()
 			if self.timer.isAlive(): self.timer.join()
 	
 	def kick_caller(self):
+		"""Intermediary between the kick-wait-loop and kick to allow
+		adjustment of the first KICK_PERIOD by STARTUP_DELAY
+		
+		"""
 		if self.STARTUP_DELAY > 0:
 			self.KICK_PERIOD -= self.STARTUP_DELAY
 			self.STARTUP_DELAY = 0
@@ -194,15 +205,11 @@ class TimerThread(threading.Thread):
 		self.kick()
 	
 	def kick(self):
-		'''
-		sub-classes do their work here
-		'''
+		"""Sub-classes do their work here"""
 		pass
 
 def format_elapsed_time(t):
-	'''
-	Format a duration in seconds as an HH:MM:SS format time
-	'''
+	"""Format a duration in seconds as an HH:MM:SS format time"""
 	
 	td = datetime.timedelta(seconds=t)
 	min = td.days*1440  + td.seconds/60.0

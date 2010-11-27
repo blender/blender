@@ -39,9 +39,10 @@
 #include "BKE_library.h"
 #include "BLI_dynstr.h"
 
-
 #include "DNA_anim_types.h"
+#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_texture_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -1614,9 +1615,6 @@ void nladata_flush_channels (ListBase *channels)
  */
 static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 {
-	ListBase dummy_trackslist = {NULL, NULL};
-	NlaStrip dummy_strip;
-	
 	NlaTrack *nlt;
 	short track_index=0;
 	short has_strips = 0;
@@ -1659,7 +1657,9 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 		/* if there are strips, evaluate action as per NLA rules */
 		if ((has_strips) || (adt->actstrip)) {
 			/* make dummy NLA strip, and add that to the stack */
-			memset(&dummy_strip, 0, sizeof(NlaStrip));
+			NlaStrip dummy_strip= {0};
+			ListBase dummy_trackslist;
+			
 			dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
 			
 			if ((nlt) && !(adt->flag & ADT_NLA_EDIT_NOMAP)) {
@@ -1844,7 +1844,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	if (G.f & G_DEBUG)
 		printf("Evaluate all animation - %f \n", ctime);
 	
-	/* macro for less typing 
+	/* macros for less typing 
 	 *	- only evaluate animation data for id if it has users (and not just fake ones)
 	 *	- whether animdata exists is checked for by the evaluation function, though taking 
 	 *	  this outside of the function may make things slightly faster?
@@ -1853,6 +1853,24 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	for (id= first; id; id= id->next) { \
 		if (ID_REAL_USERS(id) > 0) { \
 			AnimData *adt= BKE_animdata_from_id(id); \
+			BKE_animsys_evaluate_animdata(id, adt, ctime, aflag); \
+		} \
+	}
+	/* another macro for the "embedded" nodetree cases 
+	 *	- this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees" 
+	 *	  (i.e. scene/material/texture->nodetree) which we need a special exception
+	 * 	  for, otherwise they'd get skipped
+	 *	- ntp = "node tree parent" = datablock where node tree stuff resides
+	 */
+#define EVAL_ANIM_NODETREE_IDS(first, NtId_Type, aflag) \
+	for (id= first; id; id= id->next) { \
+		if (ID_REAL_USERS(id) > 0) { \
+			AnimData *adt= BKE_animdata_from_id(id); \
+			NtId_Type *ntp= (NtId_Type *)id; \
+			if (ntp->nodetree) { \
+				AnimData *adt2= BKE_animdata_from_id((ID *)ntp->nodetree); \
+				BKE_animsys_evaluate_animdata((ID *)ntp->nodetree, adt2, ctime, ADT_RECALC_ANIM); \
+			} \
 			BKE_animsys_evaluate_animdata(id, adt, ctime, aflag); \
 		} \
 	}
@@ -1876,13 +1894,13 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	EVAL_ANIM_IDS(main->nodetree.first, ADT_RECALC_ANIM);
 	
 	/* textures */
-	EVAL_ANIM_IDS(main->tex.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_NODETREE_IDS(main->tex.first, Tex, ADT_RECALC_ANIM);
 	
 	/* lamps */
 	EVAL_ANIM_IDS(main->lamp.first, ADT_RECALC_ANIM);
 	
 	/* materials */
-	EVAL_ANIM_IDS(main->mat.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_NODETREE_IDS(main->mat.first, Material, ADT_RECALC_ANIM);
 	
 	/* cameras */
 	EVAL_ANIM_IDS(main->camera.first, ADT_RECALC_ANIM);
@@ -1920,19 +1938,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	EVAL_ANIM_IDS(main->world.first, ADT_RECALC_ANIM);
 	
 	/* scenes */
-	for (id= main->scene.first; id; id= id->next) {
-		AnimData *adt= BKE_animdata_from_id(id);
-		Scene *scene= (Scene *)id;
-		
-		/* do compositing nodes first (since these aren't included in main tree) */
-		if (scene->nodetree) {
-			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
-			BKE_animsys_evaluate_animdata((ID *)scene->nodetree, adt2, ctime, ADT_RECALC_ANIM);
-		}
-		
-		/* now execute scene animation data as per normal */
-		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM);
-	}
+	EVAL_ANIM_NODETREE_IDS(main->scene.first, Scene, ADT_RECALC_ANIM);
 }
 
 /* ***************************************** */ 

@@ -102,7 +102,9 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(psys, "name", text="")
             if part.type in ('EMITTER', 'REACTOR', 'HAIR'):
-                col.template_ID(psys, "settings", new="particle.new")
+                row = col.row()
+                row.enabled = particle_panel_enabled(context, psys)
+                row.template_ID(psys, "settings", new="particle.new")
 
             #row = layout.row()
             #row.label(text="Viewport")

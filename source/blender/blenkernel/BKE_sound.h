@@ -47,7 +47,7 @@ void sound_exit();
 void sound_force_device(int device);
 int sound_define_from_str(char *str);
 
-struct bSound* sound_new_file(struct Main *main, char* filename);
+struct bSound* sound_new_file(struct Main *main, const char *filename);
 
 // XXX unused currently
 #if 0

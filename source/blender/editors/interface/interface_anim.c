@@ -105,10 +105,11 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 		
 		// TODO: this should probably respect the keyingset only option for anim
 		if(autokeyframe_cfra_can_key(scene, id)) {
+			ReportList *reports = CTX_wm_reports(C);
 			short flag = ANIM_get_keyframing_flags(scene, 1);
 			
 			fcu->flag &= ~FCURVE_SELECTED;
-			insert_keyframe(id, action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+			insert_keyframe(reports, id, action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 			WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 		}
 	}

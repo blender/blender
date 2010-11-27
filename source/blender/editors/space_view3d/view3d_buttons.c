@@ -919,7 +919,7 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 	uiItemR(col, &eboneptr, "head", 0, "Head", 0);
 	if (ebone->parent && ebone->flag & BONE_CONNECTED ) {
 		PointerRNA parptr = RNA_pointer_get(&eboneptr, "parent");
-		uiItemR(col, &parptr, "tail_radius", 0, "Radius", 0);
+		uiItemR(col, &parptr, "tail_radius", 0, "Radius (Parent)", 0);
 	} else {
 		uiItemR(col, &eboneptr, "head_radius", 0, "Radius", 0);
 	}
@@ -946,7 +946,7 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 	RNA_pointer_create(&mball->id, &RNA_MetaElement, mball->lastelem, &ptr);
 	
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, &ptr, "location", 0, "Location", 0);
+	uiItemR(col, &ptr, "co", 0, "Location", 0);
 	
 	uiItemR(col, &ptr, "radius", 0, "Radius", 0);
 	uiItemR(col, &ptr, "stiffness", 0, "Stiffness", 0);

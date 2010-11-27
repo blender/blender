@@ -623,7 +623,7 @@ static void *get_data(bContext *C)
 }
 
 /* this is undo system for MetaBalls */
-void undo_push_mball(bContext *C, char *name)
+void undo_push_mball(bContext *C, const char *name)
 {
 	undo_editmode_push(C, name, get_data, free_undoMball, undoMball_to_editMball, editMball_to_undoMball, NULL);
 }

@@ -35,6 +35,7 @@
 #define MOD_SMOKE_DISSOLVE_LOG (1<<3) /* using 1/x for dissolve */
 
 #define MOD_SMOKE_HIGH_SMOOTH (1<<5) /* smoothens high res emission*/
+#define MOD_SMOKE_FILE_LOAD (1<<6) /* flag for file load */
 
 /* noise */
 #define MOD_SMOKE_NOISEWAVE (1<<0)

@@ -2597,7 +2597,7 @@ void CURVE_OT_select_inverse(wmOperatorType *ot)
 static void subdividenurb(Object *obedit, int number_cuts)
 {
 	Curve *cu= obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	EditNurb *editnurb= cu->editnurb;
 	Nurb *nu;
 	BezTriple *prevbezt, *bezt, *beztnew, *beztn;
 	BPoint *bp, *prevbp, *bpnew, *bpn;
@@ -2607,7 +2607,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 
    // printf("*** subdivideNurb: entering subdivide\n");
 
-	for(nu= editnurb->first; nu; nu= nu->next) {
+	for(nu= editnurb->nurbs.first; nu; nu= nu->next) {
 		amount= 0;
 		if(nu->type == CU_BEZIER) {
 		/* 
@@ -2649,6 +2649,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				}
 				while(a--) {
 					memcpy(beztn, prevbezt, sizeof(BezTriple));
+					keyIndex_updateBezt(editnurb, prevbezt, beztn, 1, 1);
 					beztn++;
 
 					if( BEZSELECTED_HIDDENHANDLES(cu, prevbezt) && BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
@@ -2691,7 +2692,10 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					bezt++;
 				}
 				/* last point */
-				if((nu->flagu & CU_NURB_CYCLIC)==0) memcpy(beztn, prevbezt, sizeof(BezTriple));
+				if((nu->flagu & CU_NURB_CYCLIC)==0) {
+					memcpy(beztn, prevbezt, sizeof(BezTriple));
+					keyIndex_updateBezt(editnurb, prevbezt, beztn, 1, 1);
+				}
 
 				MEM_freeN(nu->bezt);
 				nu->bezt= beztnew;
@@ -2742,6 +2746,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				}
 				while(a--) {
 					memcpy(bpn, prevbp, sizeof(BPoint));
+					keyIndex_updateBP(editnurb, prevbp, bpn, 1, 1);
 					bpn++;
 
 					if( (bp->f1 & SELECT) && (prevbp->f1 & SELECT) ) {
@@ -2758,7 +2763,10 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					prevbp= bp;
 					bp++;
 				}
-				if((nu->flagu & CU_NURB_CYCLIC)==0) memcpy(bpn, prevbp, sizeof(BPoint));	/* last point */
+				if((nu->flagu & CU_NURB_CYCLIC)==0) { /* last point */
+					memcpy(bpn, prevbp, sizeof(BPoint));
+					keyIndex_updateBP(editnurb, prevbp, bpn, 1, 1);
+				}
 
 				MEM_freeN(nu->bp);
 				nu->bp= bpnew;
@@ -2845,6 +2853,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				for(a=0; a<nu->pntsv; a++) {
 					for(b=0; b<nu->pntsu; b++) {
 						*bpn= *bp;
+						keyIndex_updateBP(editnurb, bp, bpn, 1, 1);
 						bpn++; 
 						bp++;
 						if(b<nu->pntsu-1) {
@@ -2901,6 +2910,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					for(a=0; a<nu->pntsv; a++) {
 						for(b=0; b<nu->pntsu; b++) {
 							*bpn= *bp;
+							keyIndex_updateBP(editnurb, bp, bpn, 1, 1);
 							bpn++;
 							bp++;
 						}
@@ -2947,6 +2957,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 						for(a=0; a<nu->pntsv; a++) {
 							for(b=0; b<nu->pntsu; b++) {
 								*bpn= *bp;
+								keyIndex_updateBP(editnurb, bp, bpn, 1, 1);
 								bpn++; 
 								bp++;
 								if( (b<nu->pntsu-1) && usel[b]==nu->pntsv && usel[b+1]==nu->pntsv ) {
@@ -3712,7 +3723,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	BezTriple *bezt;
 	BPoint *bp;
 	float *fp, offset;
-	int a;
+	int a, ok= 0;
 
 	/* first decide if this is a surface merge! */
 	if(obedit->type==OB_SURF) nu= nubase->first;
@@ -3854,16 +3865,27 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 		}
 		
 		set_actNurb(obedit, NULL);	/* for selected */
-
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
-
-		return OPERATOR_FINISHED;
+		ok= 1;
+	} else if(nu1 && !nu2 && nu1->type == CU_BEZIER) {
+		if(!(nu1->flagu & CU_NURB_CYCLIC)) {
+			if(BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt) &&
+				BEZSELECTED_HIDDENHANDLES(cu, bezt+(nu1->pntsu-1))) {
+				nu1->flagu|= CU_NURB_CYCLIC;
+				calchandlesNurb(nu1);
+				ok= 1;
+			}
+		}
 	}
-	else {
+
+	if(!ok) {
 		BKE_report(op->reports, RPT_ERROR, "Can't make segment");
 		return OPERATOR_CANCELLED;
 	}
+
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+
+	return OPERATOR_FINISHED;
 }
 
 void CURVE_OT_make_segment(wmOperatorType *ot)
@@ -4117,7 +4139,10 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	invert_m3_m3(imat,mat);
 
 	findselectedNurbvert(&editnurb->nurbs, &nu, &bezt, &bp);
-	if(bezt==0 && bp==0) return OPERATOR_CANCELLED;
+
+	if((nu->type==CU_BEZIER && bezt==NULL) || (nu->type!=CU_BEZIER && bp==NULL)) {
+		return OPERATOR_CANCELLED;
+	}
 
 	if(nu->type == CU_BEZIER) {
 		/* which bezpoint? */
@@ -4454,24 +4479,99 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 
 /***************** select linked operator ******************/
 
-static int select_linked_exec(bContext *C, wmOperator *op)
+static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+	Curve *cu= (Curve*)obedit->data;
+	EditNurb *editnurb= cu->editnurb;
+	ListBase *nurbs= &editnurb->nurbs;
+	Nurb *nu;
+	BezTriple *bezt;
+	BPoint *bp;
+	int a;
+
+	for(nu= nurbs->first; nu; nu= nu->next) {
+		if(nu->type == CU_BEZIER) {
+			bezt= nu->bezt;
+			a= nu->pntsu;
+			while(a--) {
+				if( (bezt->f1 & SELECT) || (bezt->f2 & SELECT) || (bezt->f3 & SELECT) ) {
+					a= nu->pntsu;
+					bezt= nu->bezt;
+					while(a--) {
+						select_beztriple(bezt, SELECT, 1, VISIBLE);
+						bezt++;
+					}
+					break;
+				}
+				bezt++;
+			}
+		}
+		else {
+			bp= nu->bp;
+			a= nu->pntsu*nu->pntsv;
+			while(a--) {
+				if( bp->f1 & 1 ) {
+					a= nu->pntsu*nu->pntsv;
+					bp= nu->bp;
+					while(a--) {
+						select_bpoint(bp, SELECT, 1, VISIBLE);
+						bp++;
+					}
+					break;
+				}
+				bp++;
+			}
+		}
+	}
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	return select_linked_exec(C, op);
+}
+
+void CURVE_OT_select_linked(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Linked All";
+	ot->idname= "CURVE_OT_select_linked";
+
+	/* api callbacks */
+	ot->exec= select_linked_exec;
+	ot->invoke= select_linked_invoke;
+	ot->poll= ED_operator_editsurfcurve;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+}
+
+
+/***************** select linked pick operator ******************/
+
+static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	ARegion *ar= CTX_wm_region(C);
 	ViewContext vc;
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	int a, location[2], deselect;
 
-	if(!rv3d)
-		return OPERATOR_CANCELLED;
-	
 	deselect= RNA_boolean_get(op->ptr, "deselect");
-	RNA_int_get_array(op->ptr, "location", location);
-	
+ 	location[0]= event->x - ar->winrct.xmin;
+ 	location[1]= event->y - ar->winrct.ymin;
+
 	view3d_operator_needs_opengl(C);
 	view3d_set_viewcontext(C, &vc);
+
 	findnearestNurbvert(&vc, 1, location, &nu, &bezt, &bp);
 
 	if(bezt) {
@@ -4494,39 +4594,25 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-	
+
 	return OPERATOR_FINISHED;
 }
 
-static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	ARegion *ar= CTX_wm_region(C);
-	int location[2];
-
-	location[0]= event->x - ar->winrct.xmin;
-	location[1]= event->y - ar->winrct.ymin;
-	RNA_int_set_array(op->ptr, "location", location);
-
-	return select_linked_exec(C, op);
-}
-
-void CURVE_OT_select_linked(wmOperatorType *ot)
+void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked";
-	ot->idname= "CURVE_OT_select_linked";
-	
+	ot->idname= "CURVE_OT_select_linked_pick";
+
 	/* api callbacks */
-	ot->exec= select_linked_exec;
-	ot->invoke= select_linked_invoke;
-	ot->poll= ED_operator_editsurfcurve;
+	ot->invoke= select_linked_pick_invoke;
+	ot->poll= ED_operator_editsurfcurve_region_view3d;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked control points rather than selecting them.");
-	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "", 0, 16384);
 }
 
 /***************** select row operator **********************/
@@ -5298,6 +5384,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 								bezt2= bezt+(nu->pntsu-1);
 								if( (bezt2->f1 & SELECT) || (bezt2->f2 & SELECT) || (bezt2->f3 & SELECT) ) {
 									nu->flagu &= ~CU_NURB_CYCLIC;
+									calchandlesNurb(nu);
 									WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 									DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 								}
@@ -5610,7 +5697,48 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 }
 
 /************ add primitive, used by object/ module ****************/
-Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
+
+static char *get_curve_defname(int type)
+{
+	int stype= type & CU_PRIMITIVE;
+
+	if((type & CU_TYPE)==CU_BEZIER) {
+		switch (stype) {
+			case CU_PRIM_CURVE: return "BezierCurve";
+			case CU_PRIM_CIRCLE: return "BezierCircle";
+			case CU_PRIM_PATH: return "CurvePath";
+			default:
+				return "Curve";
+		}
+	}
+	else {
+		switch (stype) {
+			case CU_PRIM_CURVE: return "NurbsCurve";
+			case CU_PRIM_CIRCLE: return "NurbsCircle";
+			case CU_PRIM_PATH: return "NurbsPath";
+			default:
+				return "Curve";
+		}
+	}
+}
+
+static char *get_surf_defname(int type)
+{
+	int stype= type & CU_PRIMITIVE;
+
+	switch (stype) {
+		case CU_PRIM_CURVE: return "SurfCurve";
+		case CU_PRIM_CIRCLE: return "SurfCircle";
+		case CU_PRIM_PATCH: return "SurfPatch";
+		case CU_PRIM_SPHERE: return "SurfSphere";
+		case CU_PRIM_DONUT: return "SurfTorus";
+		default:
+			return "Surface";
+	}
+}
+
+
+Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 {
 	static int xzproj= 0;	/* this function calls itself... */
 	Object *obedit= CTX_data_edit_object(C);
@@ -5635,7 +5763,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	if (v3d)	grid = v3d->grid;
 	else		grid = 1.0;
 	
-
 	setflagsNurb(editnurb, 0);
 	
 	/* these types call this function to return a Nurb */
@@ -5649,10 +5776,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	switch(stype) {
 	case CU_PRIM_CURVE:	/* curve */
 		nu->resolu= cu->resolu;
-		if(newname) {
-			rename_id((ID *)obedit, "Curve");
-			rename_id((ID *)obedit->data, "Curve");
-		}
 		if(cutype==CU_BEZIER) {
 			if (!force_3d) nu->flag |= CU_2D;
 			nu->pntsu= 2;
@@ -5755,10 +5878,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 		break;
 	case CU_PRIM_CIRCLE:	/* circle */
 		nu->resolu= cu->resolu;
-		if(newname) {
-			rename_id((ID *)obedit, "CurveCircle");
-			rename_id((ID *)obedit->data, "CurveCircle");
-		}
+
 		if(cutype==CU_BEZIER) {
 			if (!force_3d) nu->flag |= CU_2D;
 			nu->pntsu= 4;
@@ -5826,10 +5946,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 		break;
 	case CU_PRIM_PATCH:	/* 4x4 patch */
 		if( cutype==CU_NURBS ) {  /* nurb */
-			if(newname) {
-				rename_id((ID *)obedit, "Surf");
-				rename_id((ID *)obedit->data, "Surf");
-			}
 
 			nu->pntsu= 4;
 			nu->pntsv= 4;
@@ -5865,11 +5981,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 		if( cutype==CU_NURBS ) {
 			Curve *cu= (Curve*)obedit->data;
 			
-			if(newname) {
-				rename_id((ID *)obedit, "SurfCylinder");
-				rename_id((ID *)obedit->data, "SurfCylinder");
-			}
-			
 			nu= add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
 			nu->resolu= cu->resolu;
 			nu->flag= CU_SMOOTH;
@@ -5877,7 +5988,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			vec[0]=vec[1]= 0.0;
 			vec[2]= -grid;
 			
-			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
+			if(newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
 				/* pass */
 			}
 			else {
@@ -5906,11 +6017,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			float tmp_cent[3] = {0.f, 0.f, 0.f};
 			float tmp_vec[3] = {0.f, 0.f, 1.f};
 			
-			if(newname) {
-				rename_id((ID *)obedit, "SurfSphere");
-				rename_id((ID *)obedit->data, "SurfSphere");
-			}
-
 			nu->pntsu= 5;
 			nu->pntsv= 1;
 			nu->orderu= 3;
@@ -5935,7 +6041,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 
 			BLI_addtail(editnurb, nu); /* temporal for spin */
 
-			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
+			if(newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
 			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(rv3d->viewmat, obedit, rv3d->viewinv[2], mat[3]);
 			else												spin_nurb(umat, obedit, tmp_vec, mat[3]);
 
@@ -5955,11 +6061,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			float tmp_cent[3] = {0.f, 0.f, 0.f};
 			float tmp_vec[3] = {0.f, 0.f, 1.f};
 			
-			if(newname) {
-				rename_id((ID *)obedit, "SurfTorus");
-				rename_id((ID *)obedit->data, "SurfTorus");
-			}
-
 			xzproj= 1;
 			nu= add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
 			xzproj= 0;
@@ -5969,7 +6070,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			BLI_addtail(editnurb, nu); /* temporal for spin */
 
 			/* same as above */
-			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
+			if(newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
 			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(rv3d->viewmat, obedit, rv3d->viewinv[2], mat[3]);
 			else												spin_nurb(umat, obedit, tmp_vec, mat[3]);
 
@@ -6012,21 +6113,43 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	if (!isSurf) { /* adding curve */
 		if(obedit==NULL || obedit->type!=OB_CURVE) {
 			Curve *cu;
+			
 			obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
 			newob = 1;
 
 			cu= (Curve*)obedit->data;
 			cu->flag |= CU_DEFORM_FILL;
+			
 			if(type & CU_PRIM_PATH)
 				cu->flag |= CU_PATH|CU_3D;
-		} else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
-	} else { /* adding surface */
+		} 
+		else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	} 
+	else { /* adding surface */
 		if(obedit==NULL || obedit->type!=OB_SURF) {
 			obedit= ED_object_add_type(C, OB_SURF, loc, rot, TRUE, layer);
 			newob = 1;
-		} else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+		} 
+		else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	}
 
+	/* rename here, the undo stack checks name for valid undo pushes */
+	if(newob) {
+
+		if(obedit->type==OB_CURVE) {
+			rename_id((ID *)obedit, get_curve_defname(type));
+			rename_id((ID *)obedit->data, get_curve_defname(type));
+		}
+		else {
+			rename_id((ID *)obedit, get_surf_defname(type));
+			rename_id((ID *)obedit->data, get_surf_defname(type));
+		}
+	}
+	
+	/* ED_object_add_type doesnt do an undo, is needed for redo operator on primitive */
+	if(newob && enter_editmode)
+		ED_undo_push(C, "Enter Editmode");
+	
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 
 	nu= add_nurbs_primitive(C, mat, type, newob);
@@ -6468,7 +6591,7 @@ static void *get_data(bContext *C)
 }
 
 /* and this is all the undo system needs to know */
-void undo_push_curve(bContext *C, char *name)
+void undo_push_curve(bContext *C, const char *name)
 {
 	undo_editmode_push(C, name, get_data, free_undoCurve, undoCurve_to_editCurve, editCurve_to_undoCurve, NULL);
 }

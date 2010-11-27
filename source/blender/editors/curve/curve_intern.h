@@ -106,6 +106,7 @@ void CURVE_OT_de_select_last(struct wmOperatorType *ot);
 void CURVE_OT_select_all(struct wmOperatorType *ot);
 void CURVE_OT_select_inverse(struct wmOperatorType *ot);
 void CURVE_OT_select_linked(struct wmOperatorType *ot);
+void CURVE_OT_select_linked_pick(struct wmOperatorType *ot);
 void CURVE_OT_select_row(struct wmOperatorType *ot);
 void CURVE_OT_select_next(struct wmOperatorType *ot);
 void CURVE_OT_select_previous(struct wmOperatorType *ot);

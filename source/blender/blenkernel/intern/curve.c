@@ -130,7 +130,7 @@ void free_curve(Curve *cu)
 	if(cu->tb) MEM_freeN(cu->tb);
 }
 
-Curve *add_curve(char *name, int type)
+Curve *add_curve(const char *name, int type)
 {
 	Curve *cu;
 

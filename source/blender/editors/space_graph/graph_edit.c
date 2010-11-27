@@ -406,6 +406,7 @@ static void insert_graph_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
+	ReportList *reports = ac->reports;
 	Scene *scene= ac->scene;
 	float cfra= (float)CFRA;
 	short flag = 0;
@@ -432,7 +433,7 @@ static void insert_graph_keys(bAnimContext *ac, short mode)
 			
 		/* if there's an id */
 		if (ale->id)
-			insert_keyframe(ale->id, NULL, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+			insert_keyframe(reports, ale->id, NULL, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 		else
 			insert_vert_fcurve(fcu, cfra, fcu->curval, 0);
 	}
@@ -507,19 +508,33 @@ static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
 	}
 	fcu = ale->data;
 	
-	/* get frame and value from props */
-	frame= RNA_float_get(op->ptr, "frame");
-	val= RNA_float_get(op->ptr, "value");
-	
-	/* apply inverse NLA-mapping to frame to get correct time in un-scaled action */
-	adt= ANIM_nla_mapping_get(&ac, ale);
-	frame= BKE_nla_tweakedit_remap(adt, frame, NLATIME_CONVERT_UNMAP);
-	
-	/* apply inverse unit-mapping to value to get correct value for F-Curves */
-	val *= ANIM_unit_mapping_get_factor(ac.scene, ale->id, fcu, 1);
-	
-	/* insert keyframe on the specified frame + value */
-	insert_vert_fcurve(fcu, frame, val, 0);
+	/* when there are F-Modifiers on the curve, only allow adding
+	 * keyframes if these will be visible after doing so...
+	 */
+	if (fcurve_is_keyframable(fcu)) {
+		/* get frame and value from props */
+		frame= RNA_float_get(op->ptr, "frame");
+		val= RNA_float_get(op->ptr, "value");
+		
+		/* apply inverse NLA-mapping to frame to get correct time in un-scaled action */
+		adt= ANIM_nla_mapping_get(&ac, ale);
+		frame= BKE_nla_tweakedit_remap(adt, frame, NLATIME_CONVERT_UNMAP);
+		
+		/* apply inverse unit-mapping to value to get correct value for F-Curves */
+		val *= ANIM_unit_mapping_get_factor(ac.scene, ale->id, fcu, 1);
+		
+		/* insert keyframe on the specified frame + value */
+		insert_vert_fcurve(fcu, frame, val, 0);
+	}
+	else {
+		/* warn about why this can't happen */
+		if (fcu->fpt)
+			BKE_report(op->reports, RPT_ERROR, "Keyframes cannot be added to sampled F-Curves");
+		else if (fcu->flag & FCURVE_PROTECTED)
+			BKE_report(op->reports, RPT_ERROR, "Active F-Curve is not editable");
+		else
+			BKE_report(op->reports, RPT_ERROR, "Remove F-Modifiers from F-Curve to add keyframes");
+	}
 	
 	/* free temp data */
 	MEM_freeN(ale);

@@ -230,7 +230,7 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, char *str)
 /* ************** helpers ************************ */
 
 /* temporarily, does widget font */
-int UI_GetStringWidth(char *str)
+int UI_GetStringWidth(const char *str)
 {
 	uiStyle *style= U.uistyles.first;
 	uiFontStyle *fstyle= &style->widget;
@@ -249,7 +249,7 @@ int UI_GetStringWidth(char *str)
 }
 
 /* temporarily, does widget font */
-void UI_DrawString(float x, float y, char *str)
+void UI_DrawString(float x, float y, const char *str)
 {
 	uiStyle *style= U.uistyles.first;
 	
@@ -314,6 +314,20 @@ void uiStyleInit(void)
 	if(style==NULL) {
 		ui_style_new(&U.uistyles, "Default Style");
 	}
+	
+	// XXX, this should be moved into a style, but for now best only load the monospaced font once.
+	if (blf_mono_font == -1)
+		blf_mono_font= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
+
+	BLF_aspect(blf_mono_font, 1.0);
+	BLF_size(blf_mono_font, 12, 72);
+	
+	/* second for rendering else we get threading problems */
+	if (blf_mono_font_render == -1)
+		blf_mono_font_render= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
+
+	BLF_aspect(blf_mono_font_render, 1.0);
+	BLF_size(blf_mono_font_render, 12, 72);
 }
 
 void uiStyleFontSet(uiFontStyle *fs)

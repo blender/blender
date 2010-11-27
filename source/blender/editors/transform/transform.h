@@ -317,6 +317,7 @@ typedef struct TransInfo {
 	float		axis_orig[3];	/* TransCon can change 'axis', store the original value here */
 
 	void		*view;
+	struct bContext *context; /* Only valid (non null) during an operator called function. */
 	struct ScrArea	*sa;
 	struct ARegion	*ar;
 	struct Scene	*scene;
@@ -448,7 +449,7 @@ void TRANSFORM_OT_transform(struct wmOperatorType *ot);
 int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
 int  transformEvent(TransInfo *t, struct wmEvent *event);
-void transformApply(const struct bContext *C, TransInfo *t);
+void transformApply(struct bContext *C, TransInfo *t);
 int  transformEnd(struct bContext *C, TransInfo *t);
 
 void setTransformViewMatrices(TransInfo *t);

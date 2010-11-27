@@ -156,6 +156,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col = row.column()
         col.label(text="Display:")
         col.prop(view, "show_tooltips")
+        col.prop(view, "show_tooltips_python")
         col.prop(view, "show_object_info", text="Object Info")
         col.prop(view, "show_large_cursors")
         col.prop(view, "show_view_name", text="View Name")
@@ -435,6 +436,8 @@ class USERPREF_PT_system(bpy.types.Panel):
         #col.prop(system, "use_antialiasing")
         col.label(text="Window Draw Method:")
         col.prop(system, "window_draw_method", text="")
+        col.label(text="Text Draw Options:")
+        col.prop(system, "use_text_antialiasing")
         col.label(text="Textures:")
         col.prop(system, "gl_texture_limit", text="Limit Size")
         col.prop(system, "texture_time_out", text="Time Out")
@@ -861,9 +864,10 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 print("fake_module", mod_name, mod_path)
             import ast
             ModuleType = type(ast)
+            file_mod = open(mod_path, "r", encoding='UTF-8')
             if speedy:
                 lines = []
-                line_iter = iter(open(mod_path, "r", encoding='UTF-8'))
+                line_iter = iter(file_mod)
                 l = ""
                 while not l.startswith("bl_addon_info"):
                     l = line_iter.readline()
@@ -872,11 +876,12 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 while l.rstrip():
                     lines.append(l)
                     l = line_iter.readline()
-                del line_iter
                 data = "".join(lines)
 
             else:
-                data = open(mod_path, "r").read()
+                data = file_mod.read()
+
+            file_mod.close()
 
             ast_data = ast.parse(data, filename=mod_path)
             body_info = None

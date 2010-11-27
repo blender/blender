@@ -1301,6 +1301,18 @@ static int new_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+/* XXX is temp, redo is not possible in editmode due to undo conflicts */
+static int space_image_no_editmode_poll(bContext *C)
+{
+	SpaceImage *sima= CTX_wm_space_image(C);
+	Object *ob= CTX_data_edit_object(C);
+
+	if(sima && ob)
+		return 0; 
+	
+	return 1;
+}
+
 void IMAGE_OT_new(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -1313,7 +1325,8 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= new_exec;
 	ot->invoke= WM_operator_props_popup;
-
+	ot->poll= space_image_no_editmode_poll;
+	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 

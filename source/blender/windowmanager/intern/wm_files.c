@@ -262,7 +262,7 @@ static void wm_init_userdef(bContext *C)
 	if(U.tempdir[0]) BLI_where_is_temp(btempdir, 1);
 }
 
-void WM_read_file(bContext *C, char *name, ReportList *reports)
+void WM_read_file(bContext *C, const char *name, ReportList *reports)
 {
 	int retval;
 
@@ -319,6 +319,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
+		BPY_reset_driver();
 		BPY_load_user_modules(C);
 #endif
 		CTX_wm_window_set(C, NULL); /* exits queues */
@@ -353,7 +354,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 			tstr[0] = '\0';
 			from_memory = 1;
 			if (op) {
-				BKE_report(op->reports, RPT_INFO, "Config directory with startup.blend file found."); 
+				BKE_report(op->reports, RPT_INFO, "Config directory with startup.blend file not found."); 
 			}
 		}
 	}
@@ -410,6 +411,9 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	if(CTX_py_init_get(C)) {
 		/* sync addons, these may have changed from the defaults */
 		BPY_eval_string(C, "__import__('bpy').utils.addon_reset_all()");
+
+		BPY_reset_driver();
+		BPY_load_user_modules(C);
 	}
 #endif
 	

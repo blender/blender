@@ -364,6 +364,14 @@ int ED_operator_editsurfcurve(bContext *C)
 	return 0;
 }
 
+int ED_operator_editsurfcurve_region_view3d(bContext *C)
+{
+	if(ED_operator_editsurfcurve(C) && CTX_wm_region_view3d(C))
+		return 1;
+
+	CTX_wm_operator_poll_msg_set(C, "expected a view3d region & editcurve");
+	return 0;
+}
 
 int ED_operator_editcurve(bContext *C)
 {

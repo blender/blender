@@ -29,7 +29,7 @@
  * Used by SYS_System
  */
 #include "SYS_SingletonSystem.h"
-#include "GEN_DataCache.h"
+// #include "GEN_DataCache.h"
 
 SYS_SingletonSystem*	SYS_SingletonSystem::_instance = 0;
 

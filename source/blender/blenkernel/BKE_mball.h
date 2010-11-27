@@ -159,7 +159,7 @@ float init_meta(struct Scene *scene, struct Object *ob);
 
 void unlink_mball(struct MetaBall *mb);
 void free_mball(struct MetaBall *mb);
-struct MetaBall *add_mball(char *name);
+struct MetaBall *add_mball(const char *name);
 struct MetaBall *copy_mball(struct MetaBall *mb);
 void make_local_mball(struct MetaBall *mb);
 struct MetaElem *add_metaball_element(struct MetaBall *mb, const int type);

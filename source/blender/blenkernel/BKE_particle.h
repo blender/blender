@@ -63,6 +63,7 @@ struct BVHTreeRayHit;
 #define LOOP_PARTICLES	for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++)
 #define LOOP_EXISTING_PARTICLES for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++) if(!(pa->flag & PARS_UNEXIST))
 #define LOOP_SHOWN_PARTICLES for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++) if(!(pa->flag & (PARS_UNEXIST|PARS_NO_DISP)))
+#define LOOP_DYNAMIC_PARTICLES for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++) if(pa->state.time > 0.f)
 
 #define PSYS_FRAND_COUNT	1024
 #define PSYS_FRAND(seed)	psys->frand[(seed) % PSYS_FRAND_COUNT]
@@ -226,9 +227,9 @@ void copy_particle_key(struct ParticleKey *to, struct ParticleKey *from, int tim
 void psys_particle_on_emitter(struct ParticleSystemModifierData *psmd, int distr, int index, int index_dmcache, float *fuv, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
 struct ParticleSystemModifierData *psys_get_modifier(struct Object *ob, struct ParticleSystem *psys);
 
-struct ModifierData *object_add_particle_system(struct Scene *scene, struct Object *ob, char *name);
+struct ModifierData *object_add_particle_system(struct Scene *scene, struct Object *ob, const char *name);
 void object_remove_particle_system(struct Scene *scene, struct Object *ob);
-struct ParticleSettings *psys_new_settings(char *name, struct Main *main);
+struct ParticleSettings *psys_new_settings(const char *name, struct Main *main);
 struct ParticleSettings *psys_copy_settings(struct ParticleSettings *part);
 void make_local_particlesettings(struct ParticleSettings *part);
 

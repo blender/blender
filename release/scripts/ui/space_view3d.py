@@ -1439,13 +1439,16 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(bpy.types.Operator):
         totvert = mesh.total_vert_sel
 
         if select_mode[2] and totface == 1:
-            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": "NORMAL", "constraint_axis": [False, False, True]})
+            bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": 'NORMAL', "constraint_axis": (False, False, True)})
         elif select_mode[2] and totface > 1:
-            return bpy.ops.mesh.extrude_faces_move('INVOKE_REGION_WIN')
+            bpy.ops.mesh.extrude_faces_move('INVOKE_REGION_WIN')
         elif select_mode[1] and totedge >= 1:
-            return bpy.ops.mesh.extrude_edges_move('INVOKE_REGION_WIN')
+            bpy.ops.mesh.extrude_edges_move('INVOKE_REGION_WIN')
         else:
-            return bpy.ops.mesh.extrude_vertices_move('INVOKE_REGION_WIN')
+            bpy.ops.mesh.extrude_vertices_move('INVOKE_REGION_WIN')
+
+        # ignore return from operators above because they are 'RUNNING_MODAL', and cause this one not to be freed. [#24671]
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -1464,11 +1467,14 @@ class VIEW3D_OT_edit_mesh_extrude_move(bpy.types.Operator):
         totvert = mesh.total_vert_sel
 
         if totface >= 1:
-            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": "NORMAL", "constraint_axis": [False, False, True]})
+            bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": 'NORMAL', "constraint_axis": (False, False, True)})
         elif totedge == 1:
-            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": "NORMAL", "constraint_axis": [True, True, False]})
+            bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": 'NORMAL', "constraint_axis": (True, True, False)})
         else:
-            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN')
+            bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN')
+
+        # ignore return from operators above because they are 'RUNNING_MODAL', and cause this one not to be freed. [#24671]
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -1708,7 +1714,7 @@ class VIEW3D_MT_edit_surface(bpy.types.Menu):
     draw = draw_curve
 
 
-class VIEW3D_MT_edit_text(bpy.types.Menu):
+class VIEW3D_MT_edit_font(bpy.types.Menu):
     bl_label = "Text"
 
     def draw(self, context):
@@ -2007,7 +2013,8 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
         layout = self.layout
 
         view = context.space_data
-        gs = context.scene.game_settings
+        scene = context.scene
+        gs = scene.game_settings
         ob = context.object
 
         col = layout.column()
@@ -2036,8 +2043,10 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
         sub = col.column(align=True)
         sub.active = (display_all and view.show_floor)
         sub.prop(view, "grid_lines", text="Lines")
-        sub.prop(view, "grid_spacing", text="Spacing")
-        sub.prop(view, "grid_subdivisions", text="Subdivisions")
+        sub.prop(view, "grid_scale", text="Scale")
+        subsub = sub.column(align=True)
+        subsub.active = scene.unit_settings.system == 'NONE'
+        subsub.prop(view, "grid_subdivisions", text="Subdivisions")
 
         col = layout.column()
         col.label(text="Shading:")

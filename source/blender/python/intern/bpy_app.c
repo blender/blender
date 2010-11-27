@@ -159,15 +159,34 @@ static PyObject *bpy_app_tempdir_get(PyObject *UNUSED(self), void *UNUSED(closur
 	return PyC_UnicodeFromByte(btempdir);
 }
 
-PyGetSetDef bpy_app_debug_getset= {"debug", bpy_app_debug_get, bpy_app_debug_set, "Boolean, set when blender is running in debug mode (started with -d)", NULL};
-PyGetSetDef bpy_app_tempdir_getset= {"tempdir", bpy_app_tempdir_get, NULL, "String, the temp directory used by blender (read-only)", NULL};
+static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(closure))
+{
+	if (bpy_pydriver_Dict == NULL)
+		if (bpy_pydriver_create_dict() != 0) {
+			PyErr_SetString(PyExc_RuntimeError, "bpy.app.driver_namespace failed to create dictionary");
+			return NULL;
+	}
+
+	Py_INCREF(bpy_pydriver_Dict);
+	return bpy_pydriver_Dict;
+}
+
+
+PyGetSetDef bpy_app_getsets[]= {
+	{"debug", bpy_app_debug_get, bpy_app_debug_set, "Boolean, set when blender is running in debug mode (started with -d)", NULL},
+	{"tempdir", bpy_app_tempdir_get, NULL, "String, the temp directory used by blender (read-only)", NULL},
+	{"driver_namespace", bpy_app_driver_dict_get, NULL, "Dictionary for drivers namespace, editable in-place, reset on file load (read-only)", NULL},
+	{NULL, NULL, NULL, NULL, NULL}
+};
 
 static void py_struct_seq_getset_init(void)
 {
 	/* tricky dynamic members, not to py-spec! */
-	
-	PyDict_SetItemString(BlenderAppType.tp_dict, bpy_app_debug_getset.name, PyDescr_NewGetSet(&BlenderAppType, &bpy_app_debug_getset));
-	PyDict_SetItemString(BlenderAppType.tp_dict, bpy_app_tempdir_getset.name, PyDescr_NewGetSet(&BlenderAppType, &bpy_app_tempdir_getset));
+	PyGetSetDef *getset;
+
+	for(getset= bpy_app_getsets; getset->name; getset++) {
+		PyDict_SetItemString(BlenderAppType.tp_dict, getset->name, PyDescr_NewGetSet(&BlenderAppType, getset));
+	}
 }
 /* end dynamic bpy.app */
 

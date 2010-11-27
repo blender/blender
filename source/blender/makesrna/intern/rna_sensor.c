@@ -26,6 +26,7 @@
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_access.h"
 
 #include "rna_internal.h"
 
@@ -115,7 +116,7 @@ EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 	Object *ob=NULL;
 	int totitem= 0;
 
-	if (ptr->type == &RNA_Sensor) {
+	if (ptr->type == &RNA_Sensor || RNA_struct_is_a(ptr->type, &RNA_Sensor)) {
 		ob = (Object *)ptr->id.data;
 	} else {
 		/* can't use ob from ptr->id.data because that enum is also used by operators */
@@ -606,12 +607,12 @@ static void rna_def_radar_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem axis_items[] ={
-		{SENS_RAY_X_AXIS, "XAXIS", 0, "+X axis", ""},
-		{SENS_RAY_Y_AXIS, "YAXIS", 0, "+Y axis", ""},
-		{SENS_RAY_Z_AXIS, "ZAXIS", 0, "+Z axis", ""},
-		{SENS_RAY_NEG_X_AXIS, "NEGXAXIS", 0, "-X axis", ""},
-		{SENS_RAY_NEG_Y_AXIS, "NEGYAXIS", 0, "-Y axis", ""},
-		{SENS_RAY_NEG_Z_AXIS, "NEGZAXIS", 0, "-Z axis", ""},
+		{SENS_RADAR_X_AXIS, "XAXIS", 0, "+X axis", ""},
+		{SENS_RADAR_Y_AXIS, "YAXIS", 0, "+Y axis", ""},
+		{SENS_RADAR_Z_AXIS, "ZAXIS", 0, "+Z axis", ""},
+		{SENS_RADAR_NEG_X_AXIS, "NEGXAXIS", 0, "-X axis", ""},
+		{SENS_RADAR_NEG_Y_AXIS, "NEGYAXIS", 0, "-Y axis", ""},
+		{SENS_RADAR_NEG_Z_AXIS, "NEGZAXIS", 0, "-Z axis", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "RadarSensor", "Sensor");

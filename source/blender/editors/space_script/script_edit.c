@@ -90,6 +90,7 @@ static int script_reload_exec(bContext *C, wmOperator *UNUSED(op))
 	WM_cursor_wait(1);
 	BPY_eval_string(C, "__import__('bpy').utils.load_scripts(reload_scripts=True)");
 	WM_cursor_wait(0);
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	return OPERATOR_FINISHED;
 #else
 	(void)C; /* unused */

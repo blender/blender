@@ -35,7 +35,7 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, char *name, int icon, int expand, int slider, int toggle, int icon_only, int event, int full_event, int emboss, int index)
+static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, int icon, int expand, int slider, int toggle, int icon_only, int event, int full_event, int emboss, int index)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	int flag= 0;
@@ -56,7 +56,7 @@ static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, char 
 	uiItemFullR(layout, ptr, prop, index, 0, flag, name, icon);
 }
 
-static PointerRNA rna_uiItemO(uiLayout *layout, char *opname, char *name, int icon, int emboss)
+static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *name, int icon, int emboss)
 {
 	int flag= UI_ITEM_O_RETURN_PROPS;
 	flag |= (emboss)? 0: UI_ITEM_R_NO_BG;
@@ -327,6 +327,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lamps, etc.");
 	parm= RNA_def_pointer(func, "id", "ID", "", "ID datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_boolean(func, "show_buttons", 1, "", "Show preview buttons?");
 	RNA_def_pointer(func, "parent", "ID", "", "ID datablock.");
 	RNA_def_pointer(func, "slot", "TextureSlot", "", "Texture slot.");
 

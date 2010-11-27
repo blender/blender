@@ -622,9 +622,8 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):
         col.separator()
         sub = col.column()
         sub.active = (not mat.use_shadeless)
-        sub.prop(tan, "use_surface_diffuse")
+        sub.label("Surface diffuse:")
         sub = col.column()
-        sub.active = tan.use_surface_diffuse
         sub.prop(tan, "blend_distance", text="Distance")
 
 

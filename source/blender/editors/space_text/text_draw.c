@@ -56,13 +56,11 @@
 #include "text_intern.h"
 
 /******************** text font drawing ******************/
-static int mono= -1; // XXX needs proper storage and change all the BLF_* here
+// XXX, fixme
+#define mono blf_mono_font
 
 static void text_font_begin(SpaceText *st)
 {
-	if(mono == -1)
-		mono= BLF_load_mem("monospace", (unsigned char*)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
-
 	BLF_aspect(mono, 1.0);
 	BLF_size(mono, st->lheight, 72);
 }

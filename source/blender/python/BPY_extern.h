@@ -118,7 +118,7 @@ extern "C" {
 //	int BPY_do_spacehandlers(struct ScrArea *sa, unsigned short event,
 //		short eventValue, unsigned short space_event);
 //
-//	void BPY_pydriver_update(void);
+	void BPY_reset_driver(void);
 	float BPY_eval_driver(struct ChannelDriver *driver);
 //
 	int BPY_eval_button(struct bContext *C, const char *expr, double *value);
@@ -126,7 +126,7 @@ extern "C" {
 	int BPY_eval_string(struct bContext *C, const char *expr);
 
 /* format importer hook */
-	int BPY_call_importloader( char *name );
+	int BPY_call_importloader(const char *name);
 //
 //	void BPY_spacescript_do_pywin_draw( struct SpaceScript *sc );
 //	void BPY_spacescript_do_pywin_event( struct SpaceScript *sc,

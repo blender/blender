@@ -2509,7 +2509,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1; /* draw wire only, no depth buffer stuff  */
 	}
-	else if(	(is_paint_sel && (ob->mode & OB_MODE_TEXTURE_PAINT)) ||
+	else if(	(is_paint_sel || (ob==OBACT && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
 				CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
 		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || is_paint_sel) && !draw_wire) {
@@ -3559,6 +3559,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		case PART_DRAW_AXIS:
 			/* lets calculate the scale: */
 			pixsize= view3d_pixel_size(rv3d, ob->obmat[3]);
+			
+			if(part->draw_size==0.0)
+				pixsize*=2.0;
+			else
+				pixsize*=part->draw_size;
 
 			if(draw_as==PART_DRAW_AXIS)
 				create_cdata = 1;
@@ -4100,8 +4105,8 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 
-	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glEnable(GL_COLOR_MATERIAL);
 	glShadeModel(GL_SMOOTH);
 
 	if(pset->brushtype == PE_BRUSH_WEIGHT) {
@@ -5352,10 +5357,12 @@ static void draw_bounding_volume(Scene *scene, Object *ob)
 		bb= ob->bb ? ob->bb : ( (Curve *)ob->data )->bb;
 	}
 	else if(ob->type==OB_MBALL) {
-		bb= ob->bb;
-		if(bb==0) {
-			makeDispListMBall(scene, ob);
+		if(is_basis_mball(ob)) {
 			bb= ob->bb;
+			if(bb==0) {
+				makeDispListMBall(scene, ob);
+				bb= ob->bb;
+			}
 		}
 	}
 	else {
@@ -5406,7 +5413,7 @@ static void drawtexspace(Object *ob)
 }
 
 /* draws wire outline */
-static void drawSolidSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base) 
+static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	Object *ob= base->object;
@@ -5435,8 +5442,10 @@ static void drawSolidSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			draw_index_wire= 1;
 		}
 	} else if (ob->type==OB_MBALL) {
-		if((base->flag & OB_FROMDUPLI)==0) 
-			drawDispListwire(&ob->disp);
+		if(is_basis_mball(ob)) {
+			if((base->flag & OB_FROMDUPLI)==0)
+				drawDispListwire(&ob->disp);
+		}
 	}
 	else if(ob->type==OB_ARMATURE) {
 		if(!(ob->mode & OB_MODE_POSE))
@@ -5490,7 +5499,9 @@ static void drawWireExtra(Scene *scene, RegionView3D *rv3d, Object *ob)
 				draw_index_wire= 1;
 		}
 	} else if (ob->type==OB_MBALL) {
-		drawDispListwire(&ob->disp);
+		if(is_basis_mball(ob)) {
+			drawDispListwire(&ob->disp);
+		}
 	}
 
 	glDepthMask(1);
@@ -5800,12 +5811,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		if (cu->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
 	}
 	
-	/* draw outline for selected solid objects, mesh does itself */
+	/* draw outline for selected objects, mesh does itself */
 	if((v3d->flag & V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && ob->type!=OB_MESH) {
-		if(dt>OB_WIRE && dt<OB_TEXTURE && (ob->mode & OB_MODE_EDIT)==0 && (flag & DRAW_SCENESET)==0) {
+		if(dt>OB_WIRE && (ob->mode & OB_MODE_EDIT)==0 && (flag & DRAW_SCENESET)==0) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
 				
-				drawSolidSelect(scene, v3d, ar, base);
+				drawObjectSelect(scene, v3d, ar, base);
 			}
 		}
 	}

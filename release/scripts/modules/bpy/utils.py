@@ -23,13 +23,12 @@ This module contains utility functions specific to blender but
 not assosiated with blenders internal data.
 """
 
-import bpy as _bpy
-import os as _os
-import sys as _sys
-
 from _bpy import blend_paths, user_resource
 from _bpy import script_paths as _bpy_script_paths
 
+import bpy as _bpy
+import os as _os
+import sys as _sys
 
 def _test_import(module_name, loaded_modules):
     import traceback
@@ -200,7 +199,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     _bpy_types._register_immediate = True
 
     # deal with addons seperately
-    addon_reset_all()
+    addon_reset_all(reload_scripts)
 
 
     # run the active integration preset
@@ -473,7 +472,7 @@ def addon_disable(module_name, default_set=True):
     print("\tbpy.utils.addon_disable", module_name)
 
 
-def addon_reset_all():
+def addon_reset_all(reload_scripts=False):
     """
     Sets the addon state based on the user preferences.
     """
@@ -491,6 +490,13 @@ def addon_reset_all():
         _sys_path_ensure(path)
         for mod_name, mod_path in _bpy.path.module_names(path):
             is_enabled, is_loaded = addon_check(mod_name)
+
+            # first check if reload is needed before changing state.
+            if reload_scripts:
+                mod = _sys.modules.get(mod_name)
+                if mod:
+                    reload(mod)
+
             if is_enabled == is_loaded:
                 pass
             elif is_enabled:
@@ -498,6 +504,7 @@ def addon_reset_all():
             elif is_loaded:
                 print("\taddon_reset_all unloading", mod_name)
                 addon_disable(mod_name)
+
 
 def preset_find(name, preset_path, display_name=False):
     if not name:

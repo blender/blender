@@ -693,7 +693,7 @@ int exist_object(Object *obtest)
 	return 0;
 }
 
-void *add_camera(char *name)
+void *add_camera(const char *name)
 {
 	Camera *cam;
 	
@@ -794,7 +794,7 @@ float dof_camera(Object *ob)
 	return cam->YF_dofdist;
 }
 
-void *add_lamp(char *name)
+void *add_lamp(const char *name)
 {
 	Lamp *la;
 	
@@ -989,7 +989,7 @@ static char *get_obdata_defname(int type)
 }
 
 /* more general add: creates minimum required data, but without vertices etc. */
-Object *add_only_object(int type, char *name)
+Object *add_only_object(int type, const char *name)
 {
 	Object *ob;
 
@@ -2534,47 +2534,52 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			if (G.f & G_DEBUG)
 				printf("recalcdata %s\n", ob->id.name+2);
-			
+
+			if(adt) {
+				/* evaluate drivers */
+				// XXX: for mesh types, should we push this to derivedmesh instead?
+				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
+			}
+
 			/* includes all keys and modifiers */
-			if(ob->type==OB_MESH) {
-				EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
-				
-				/* evaluate drivers */
-				// XXX: should we push this to derivedmesh instead?
-				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
-				
-					// here was vieweditdatamask? XXX
-				if(em) {
-					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
-					BKE_mesh_end_editmesh(ob->data, em);
-				} else
-					makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
-			}
-			else if(ob->type==OB_MBALL) {
-				makeDispListMBall(scene, ob);
-			} 
-			else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-				makeDispListCurveTypes(scene, ob, 0);
-			}
-			else if(ELEM(ob->type, OB_CAMERA, OB_LAMP)) {
-				/* evaluate drivers */
-				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
-			}
-			else if(ob->type==OB_LATTICE) {
-				lattice_calc_modifiers(scene, ob);
-			}
-			else if(ob->type==OB_ARMATURE) {
-				/* evaluate drivers */
-				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
-				
+			switch(ob->type) {
+			case OB_MESH:
+				{
+					EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
+						// here was vieweditdatamask? XXX
+					if(em) {
+						makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
+						BKE_mesh_end_editmesh(ob->data, em);
+					} else
+						makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
+				}
+				break;
+
+			case OB_ARMATURE:
 				if(ob->id.lib && ob->proxy_from) {
-					copy_pose_result(ob->pose, ob->proxy_from->pose);
 					// printf("pose proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
+					copy_pose_result(ob->pose, ob->proxy_from->pose);
 				}
 				else {
 					where_is_pose(scene, ob);
 				}
+				break;
+
+			case OB_MBALL:
+				makeDispListMBall(scene, ob);
+				break;
+
+			case OB_CURVE:
+			case OB_SURF:
+			case OB_FONT:
+				makeDispListCurveTypes(scene, ob, 0);
+				break;
+				
+			case OB_LATTICE:
+				lattice_calc_modifiers(scene, ob);
+				break;
 			}
+
 
 			if(ob->particlesystem.first) {
 				ParticleSystem *tpsys, *psys;
@@ -2899,7 +2904,7 @@ void object_delete_ptcache(Object *ob, int index)
 /* shape key utility function */
 
 /************************* Mesh ************************/
-static KeyBlock *insert_meshkey(Scene *scene, Object *ob, char *name, int from_mix)
+static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, int from_mix)
 {
 	Mesh *me= ob->data;
 	Key *key= me->key;
@@ -2930,7 +2935,7 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, char *name, int from_m
 	return kb;
 }
 /************************* Lattice ************************/
-static KeyBlock *insert_lattkey(Scene *scene, Object *ob, char *name, int from_mix)
+static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int from_mix)
 {
 	Lattice *lt= ob->data;
 	Key *key= lt->key;
@@ -2962,7 +2967,7 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, char *name, int from_m
 	return kb;
 }
 /************************* Curve ************************/
-static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_mix)
+static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int from_mix)
 {
 	Curve *cu= ob->data;
 	Key *key= cu->key;
@@ -2998,7 +3003,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_
 	return kb;
 }
 
-KeyBlock *object_insert_shape_key(Scene *scene, Object *ob, char *name, int from_mix)
+KeyBlock *object_insert_shape_key(Scene *scene, Object *ob, const char *name, int from_mix)
 {
 	if(ob->type==OB_MESH)					 return insert_meshkey(scene, ob, name, from_mix);
 	else if ELEM(ob->type, OB_CURVE, OB_SURF)return insert_curvekey(scene, ob, name, from_mix);

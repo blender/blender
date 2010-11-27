@@ -261,6 +261,8 @@ void applyProject(TransInfo *t)
 			}
 			else if (t->flag & T_OBJECT)
 			{
+				td->ob->recalc |= OB_RECALC_ALL;
+				object_handle_update(t->scene, td->ob);
 				VECCOPY(iloc, td->ob->obmat[3]);
 			}
 			
@@ -372,7 +374,8 @@ void initSnappingMode(TransInfo *t)
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 			(obedit != NULL && ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) ) // Temporary limited to edit mode meshes, armature, curves
 		{
-			if ((t->flag & T_PROP_EDIT) || t->tsnap.project) /* also exclude edit for project, for now */
+			/* editmode meshes now supported */
+			if ((obedit->type != OB_MESH) && ((t->flag & T_PROP_EDIT) || t->tsnap.project)) /* also exclude edit for project, for now */
 			{
 				t->tsnap.modeSelect = SNAP_NOT_OBEDIT;
 			}
@@ -1264,7 +1267,7 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, E
 	int retval = 0;
 	int totvert = dm->getNumVerts(dm);
 	int totface = dm->getNumFaces(dm);
-	
+
 	if (totvert > 0) {
 		float imat[4][4];
 		float timat[3][3]; /* transpose inverse matrix for normals */
@@ -1304,6 +1307,7 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, E
 					/* local scale in normal direction */
 					float local_scale = len_v3(ray_normal_local);
 
+					treeData.em_evil= em;
 					bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6);
 
 					hit.index = -1;
@@ -1538,7 +1542,8 @@ int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, float obma
 		if (editobject)
 		{
 			em = ((Mesh *)ob->data)->edit_mesh;
-			dm = editmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH);
+			/* dm = editmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH); */
+			dm = editmesh_get_derived_base(ob, em); /* limitation, em & dm MUST have the same number of faces */
 		}
 		else
 		{

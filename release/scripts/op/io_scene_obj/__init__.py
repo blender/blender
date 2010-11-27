@@ -20,10 +20,11 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
-    # only reload if we alredy loaded, highly annoying
-    import sys
-    reload(sys.modules.get("io_scene_obj.import_obj", sys))
-    reload(sys.modules.get("io_scene_obj.export_obj", sys))
+    from imp import reload
+    if "import_obj" in locals():
+        reload(import_obj)
+    if "export_obj" in locals():
+        reload(export_obj)
 
 
 import bpy
@@ -55,8 +56,8 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
-        import io_scene_obj.import_obj
-        return io_scene_obj.import_obj.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
+        from . import import_obj
+        return import_obj.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
 
 
 class ExportOBJ(bpy.types.Operator, ExportHelper):
@@ -64,8 +65,9 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     bl_idname = "export_scene.obj"
     bl_label = 'Export OBJ'
-    
+
     filename_ext = ".obj"
+    filter_glob = StringProperty(default="*.obj;*.mtl", options={'HIDDEN'})
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
@@ -98,8 +100,8 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
 
     def execute(self, context):
-        import io_scene_obj.export_obj
-        return io_scene_obj.export_obj.save(self, context, **self.as_keywords(ignore=("check_existing",)))
+        from . import export_obj
+        return export_obj.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))
 
 
 def menu_func_import(self, context):

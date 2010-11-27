@@ -976,17 +976,15 @@ float mat4_to_scale(float mat[][4])
 	return mat3_to_scale(tmat);
 }
 
-void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wmat[][4])
+
+void mat3_to_rot_size(float rot[3][3], float size[3], float mat3[3][3])
 {
-	float mat3[3][3];    /* wmat -> 3x3 */
-	float mat3_n[3][3];  /* wmat -> normalized, 3x3 */
-	float imat3_n[3][3]; /* wmat -> normalized & inverted, 3x3 */
-	/* location */
-	copy_v3_v3(loc, wmat[3]);
+	float mat3_n[3][3];  /* mat3 -> normalized, 3x3 */
+	float imat3_n[3][3]; /* mat3 -> normalized & inverted, 3x3 */
 
 	/* rotation & scale are linked, we need to create the mat's
 	 * for these together since they are related. */
-	copy_m3_m4(mat3, wmat);
+
 	/* so scale doesnt interfear with rotation [#24291] */
 	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
 	normalize_m3_m3(mat3_n, mat3);
@@ -1008,6 +1006,17 @@ void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wm
 	size[0]= mat3[0][0];
 	size[1]= mat3[1][1];
 	size[2]= mat3[2][2];
+}
+
+void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wmat[][4])
+{
+	float mat3[3][3];    /* wmat -> 3x3 */
+
+	copy_m3_m4(mat3, wmat);
+	mat3_to_rot_size(rot, size, mat3);
+
+	/* location */
+	copy_v3_v3(loc, wmat[3]);
 }
 
 void scale_m3_fl(float m[][3], float scale)
@@ -1075,18 +1084,19 @@ void rotate_m4(float mat[][4], const char axis, const float angle)
 	}
 }
 
-void blend_m3_m3m3(float out[][3], float dst[][3], float src[][3], float srcweight)
+void blend_m3_m3m3(float out[][3], float dst[][3], float src[][3], const float srcweight)
 {
+	float srot[3][3], drot[3][3];
 	float squat[4], dquat[4], fquat[4];
 	float ssize[3], dsize[3], fsize[3];
 	float rmat[3][3], smat[3][3];
 	
-	mat3_to_quat(dquat,dst);
-	mat3_to_size(dsize,dst);
+	mat3_to_rot_size(drot, dsize, dst);
+	mat3_to_rot_size(srot, ssize, src);
 
-	mat3_to_quat(squat,src);
-	mat3_to_size(ssize,src);
-	
+	mat3_to_quat(dquat, drot);
+	mat3_to_quat(squat, srot);
+
 	/* do blending */
 	interp_qt_qtqt(fquat, dquat, squat, srcweight);
 	interp_v3_v3v3(fsize, dsize, ssize, srcweight);
@@ -1097,20 +1107,19 @@ void blend_m3_m3m3(float out[][3], float dst[][3], float src[][3], float srcweig
 	mul_m3_m3m3(out, rmat, smat);
 }
 
-void blend_m4_m4m4(float out[][4], float dst[][4], float src[][4], float srcweight)
+void blend_m4_m4m4(float out[][4], float dst[][4], float src[][4], const float srcweight)
 {
+	float sloc[3], dloc[3], floc[3];
+	float srot[3][3], drot[3][3];
 	float squat[4], dquat[4], fquat[4];
 	float ssize[3], dsize[3], fsize[3];
-	float sloc[3], dloc[3], floc[3];
-	
-	mat4_to_quat(dquat,dst);
-	mat4_to_size(dsize,dst);
-	copy_v3_v3(dloc, dst[3]);
 
-	mat4_to_quat(squat,src);
-	mat4_to_size(ssize,src);
-	copy_v3_v3(sloc, src[3]);
-	
+	mat4_to_loc_rot_size(dloc, drot, dsize, dst);
+	mat4_to_loc_rot_size(sloc, srot, ssize, src);
+
+	mat3_to_quat(dquat, drot);
+	mat3_to_quat(squat, srot);
+
 	/* do blending */
 	interp_v3_v3v3(floc, dloc, sloc, srcweight);
 	interp_qt_qtqt(fquat, dquat, squat, srcweight);

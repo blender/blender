@@ -121,7 +121,7 @@ int CustomData_number_of_layers(const struct CustomData *data, int type);
  * returns the layer data */
 void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type);
 void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
-												  int type, char *name);
+												  int type, const char *name);
 
 /* set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
  * zero for the layer type, so only layer types specified by the mask
@@ -195,10 +195,10 @@ void *CustomData_bmesh_get_n(const struct CustomData *data, void *block, int typ
 void *CustomData_get_layer(const struct CustomData *data, int type);
 void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
 void *CustomData_get_layer_named(const struct CustomData *data, int type,
-								 char *name);
+								 const char *name);
 
 int CustomData_get_layer_index(const struct CustomData *data, int type);
-int CustomData_get_named_layer_index(const struct CustomData *data, int type, char *name);
+int CustomData_get_named_layer_index(const struct CustomData *data, int type, const char *name);
 int CustomData_get_active_layer_index(const struct CustomData *data, int type);
 int CustomData_get_render_layer_index(const struct CustomData *data, int type);
 int CustomData_get_clone_layer_index(const struct CustomData *data, int type);

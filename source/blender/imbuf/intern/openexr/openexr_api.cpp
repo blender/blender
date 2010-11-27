@@ -187,7 +187,7 @@ static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
 		header->insert(info->key, StringAttribute(info->value));
 }
 
-static int imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
+static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags)
 {
 	int channels = ibuf->channels;
 	int width = ibuf->x;
@@ -314,7 +314,7 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 	return (1);
 }
 
-static int imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
+static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flags)
 {
 	int channels = ibuf->channels;
 	int width = ibuf->x;
@@ -372,7 +372,7 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 }
 
 
-int imb_save_openexr(struct ImBuf *ibuf, char *name, int flags)
+int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 {
 	if (flags & IB_mem) 
 	{

@@ -38,4 +38,4 @@ SET(SRC
 	PHY_IVehicle.cpp
 )
 
-BLENDERLIB(bf_common "${SRC}" "${INC}")
+BLENDERLIB(ge_phys_common "${SRC}" "${INC}")

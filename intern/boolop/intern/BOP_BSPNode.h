@@ -33,7 +33,7 @@
 #include "BOP_Face.h"
 
 typedef vector<MT_Point3> BOP_BSPPoints;
-typedef vector<MT_Point3>::iterator BOP_IT_BSPPoints;
+typedef vector<MT_Point3>::const_iterator BOP_IT_BSPPoints;
 
 class BOP_BSPNode
 {
@@ -47,7 +47,7 @@ public:
 	// Construction methods
 	BOP_BSPNode(const MT_Plane3& plane);
 	~BOP_BSPNode();
-	unsigned int addFace(BOP_BSPPoints pts, 
+	unsigned int addFace(const BOP_BSPPoints& pts, 
 						 const MT_Plane3& plane);
 	BOP_TAG classifyFace(const MT_Point3& p1, 
 						 const MT_Point3& p2, 

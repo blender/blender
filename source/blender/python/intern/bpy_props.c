@@ -140,7 +140,7 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 		return NULL; \
 	} \
 	if(RNA_def_property_free_identifier(srna, id) == -1) { \
-		PyErr_Format(PyExc_TypeError, #_func"(): '%s' is defined as a non-dynamic type.", id); \
+		PyErr_Format(PyExc_TypeError, #_func"(): '%s' is defined as a non-dynamic type", id); \
 		return NULL; \
 	} \
 	if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, #_func"(options={...}):")) \
@@ -149,7 +149,7 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 #define BPY_PROPDEF_SUBTYPE_CHECK(_func, _subtype) \
 	BPY_PROPDEF_CHECK(_func) \
 	if(pysubtype && RNA_enum_value_from_id(_subtype, pysubtype, &subtype)==0) { \
-		PyErr_Format(PyExc_TypeError, #_func"(subtype='%s'): invalid subtype.", pysubtype); \
+		PyErr_Format(PyExc_TypeError, #_func"(subtype='%s'): invalid subtype", pysubtype); \
 		return NULL; \
 	} \
 
@@ -410,7 +410,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		BPY_PROPDEF_SUBTYPE_CHECK(FloatProperty, property_subtype_number_items)
 
 		if(pyunit && RNA_enum_value_from_id(property_unit_items, pyunit, &unit)==0) {
-			PyErr_Format(PyExc_TypeError, "FloatProperty(unit='%s'): invalid unit.");
+			PyErr_Format(PyExc_TypeError, "FloatProperty(unit='%s'): invalid unit");
 			return NULL;
 		}
 
@@ -762,7 +762,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna==NULL) {
-		PyErr_SetString(PyExc_TypeError, "RemoveProperty(): struct rna not available for this type.");
+		PyErr_SetString(PyExc_TypeError, "RemoveProperty(): struct rna not available for this type");
 		return NULL;
 	}
 	else {
@@ -774,7 +774,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 			return NULL;
 
 		if(RNA_def_property_free_identifier(srna, id) != 1) {
-			PyErr_Format(PyExc_TypeError, "RemoveProperty(): '%s' not a defined dynamic property.", id);
+			PyErr_Format(PyExc_TypeError, "RemoveProperty(): '%s' not a defined dynamic property", id);
 			return NULL;
 		}
 	}

@@ -128,7 +128,7 @@ void unlink_group(Group *group)
 	group->id.us= 0;
 }
 
-Group *add_group(char *name)
+Group *add_group(const char *name)
 {
 	Group *group;
 	

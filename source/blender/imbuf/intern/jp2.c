@@ -55,14 +55,14 @@ typedef struct img_folder{
 	float *rates;
 }img_fol_t;
 
-static int checkj2p(unsigned char *mem) /* J2K_CFMT */
+static int check_jp2(unsigned char *mem) /* J2K_CFMT */
 {
 	return memcmp(JP2_HEAD, mem, 12) ? 0 : 1;
 }
 
 int imb_is_a_jp2(unsigned char *buf)
 {	
-	return checkj2p(buf);
+	return check_jp2(buf);
 }
 
 
@@ -112,7 +112,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 	opj_dinfo_t* dinfo = NULL;	/* handle to a decompressor */
 	opj_cio_t *cio = NULL;
 
-	if (checkj2p(mem) == 0) return(0);
+	if (check_jp2(mem) == 0) return(0);
 
 	/* configure the event callbacks (not required) */
 	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
@@ -661,7 +661,7 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-int imb_savejp2(struct ImBuf *ibuf, char *name, int flags) {
+int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags) {
 	
 	int quality = ibuf->ftype & 0xff;
 	

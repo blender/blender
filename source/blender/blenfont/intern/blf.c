@@ -66,6 +66,10 @@ int global_font_default= -1;
 int global_font_points= 11;
 int global_font_dpi= 72;
 
+// XXX, should these be made into global_font_'s too?
+int blf_mono_font= -1;
+int blf_mono_font_render= -1;
+
 static FontBLF *BLF_get(int fontid)
 {
 	if (fontid >= 0 && fontid < BLF_MAX_FONT)
@@ -97,6 +101,18 @@ void BLF_exit(void)
 	}
 
 	blf_font_exit();
+}
+
+void BLF_cache_clear(void)
+{
+	FontBLF *font;
+	int i;
+
+	for (i= 0; i < global_font_num; i++) {
+		font= global_font[i];
+		if (font)
+			blf_glyph_cache_clear(font);
+	}
 }
 
 static int blf_search(const char *name)

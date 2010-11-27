@@ -105,15 +105,16 @@ void ED_object_location_from_view(bContext *C, float *loc)
 
 void ED_object_rotation_from_view(bContext *C, float *rot)
 {
-	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
-	
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	if(rv3d) {
-		rv3d->viewquat[0]= -rv3d->viewquat[0];
-		quat_to_eul( rot, rv3d->viewquat);
-		rv3d->viewquat[0]= -rv3d->viewquat[0];
+		float quat[4];
+		copy_qt_qt(quat, rv3d->viewquat);
+		quat[0]= -quat[0];
+		quat_to_eul(rot, quat);
 	}
-	else
-		rot[0] = rot[1] = rot[2] = 0.f;
+	else {
+		zero_v3(rot);
+	}
 }
 
 void ED_object_base_init_transform(bContext *C, Base *base, float *loc, float *rot)
@@ -256,9 +257,11 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 		view_align = FALSE;
 	else if (RNA_property_is_set(op->ptr, "view_align"))
 		view_align = RNA_boolean_get(op->ptr, "view_align");
-	else
+	else {
 		view_align = U.flag & USER_ADD_VIEWALIGNED;
-
+		RNA_boolean_set(op->ptr, "view_align", view_align);
+	}
+	
 	if (view_align)
 		ED_object_rotation_from_view(C, rot);
 	else
@@ -276,6 +279,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 }
 
 /* for object add primitive operators */
+/* do not call undo push in this function (users of this function have to) */
 Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int enter_editmode, unsigned int layer)
 {
 	Main *bmain= CTX_data_main(C);
@@ -483,16 +487,6 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 
 
 /* ***************** add primitives *************** */
-
-static EnumPropertyItem prop_metaball_types[]= {
-	{MB_BALL, "MBALL_BALL", ICON_META_BALL, "Meta Ball", ""},
-	{MB_TUBE, "MBALL_CAPSULE", ICON_META_CAPSULE, "Meta Capsule", ""},
-	{MB_PLANE, "MBALL_PLANE", ICON_META_PLANE, "Meta Plane", ""},
-	{MB_CUBE, "MBALL_CUBE", ICON_META_CUBE, "Meta Cube", ""},
-	{MB_ELIPSOID, "MBALL_ELLIPSOID", ICON_META_ELLIPSOID, "Meta Ellipsoid", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 static int object_metaball_add_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -562,7 +556,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_metaball_types, 0, "Primitive", "");
+	RNA_def_enum(ot->srna, "type", metaelem_type_items, 0, "Primitive", "");
 	ED_object_add_generic_props(ot, TRUE);
 }
 

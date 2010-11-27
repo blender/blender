@@ -54,6 +54,7 @@ INCLUDE_DIRECTORIES(
 	../../makesdna
 	../../blenkernel
 	../../blenlib
+	../../blenfont
 	../../ikplugin
 	../../windowmanager
 	../../editors/include
@@ -69,10 +70,6 @@ FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 IF(WITH_PYTHON)
 	ADD_DEFINITIONS(-DWITH_PYTHON)
 ENDIF(WITH_PYTHON)
-
-IF(WIN32)
-	LIST(APPEND INC ${PTHREADS_INC})
-ENDIF(WIN32)
 
 IF(WITH_GAMEENGINE)
 	ADD_DEFINITIONS(-DWITH_GAMEENGINE)

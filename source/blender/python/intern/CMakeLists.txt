@@ -1,4 +1,3 @@
-# $Id: CMakeLists.txt 12931 2007-12-17 18:20:48Z theeth $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -15,44 +14,47 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# Contributor(s): Jacques Beaurain.
+# The Original Code is Copyright (C) 2006, Blender Foundation
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): Jacques Beaurainm, Campbell Barton
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
-	../include
-	../../blenkernel
+SET(INC 
+	../
 	../../blenlib
-	../../gpu
-	../../ikplugin
-	../../imbuf
 	../../makesdna
 	../../makesrna
-	../../python
+	../../blenkernel
 	../../windowmanager
-	../../render/extern/include
+	../../editors/include
+	../../freestyle/intern/python
 	../../../../intern/guardedalloc
+	../../../../intern/audaspace/intern
+	${PYTHON_INC}
 )
 
 SET(SRC
-	object_add.c
-	object_bake.c
-	object_constraint.c
-	object_edit.c
-	object_group.c
-	object_hook.c
-	object_lattice.c
-	object_modifier.c
-	object_ops.c
-	object_relations.c
-	object_select.c
-	object_shapekey.c
-	object_transform.c
-	object_vgroup.c
+	bpy.c
+	bpy_app.c
+	bpy_driver.c
+	bpy_interface.c
+	bpy_operator.c
+	bpy_operator_wrap.c
+	bpy_props.c
+	bpy_rna.c
+	bpy_rna_array.c
+	bpy_rna_callback.c
+	bpy_util.c
+	stubs.c
 )
 
-IF(WITH_PYTHON)
-	ADD_DEFINITIONS(-DWITH_PYTHON)
-ENDIF(WITH_PYTHON)
+# only to check if buildinfo is available
+IF(WITH_BUILDINFO)
+	ADD_DEFINITIONS(-DBUILD_DATE)
+ENDIF(WITH_BUILDINFO)
 
-BLENDERLIB(bf_editor_object "${SRC}" "${INC}")
+BLENDERLIB(bf_python "${SRC}" "${INC}")

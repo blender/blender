@@ -96,9 +96,9 @@ OPTION(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
 # Audio format support
 OPTION(WITH_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)" OFF)
 OPTION(WITH_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
-IF(APPLE OR WIN32)
+IF(APPLE OR (WIN32 AND NOT UNIX))
 	OPTION(WITH_QUICKTIME     "Enable Quicktime Support" OFF)
-ENDIF(APPLE OR WIN32)
+ENDIF(APPLE OR (WIN32 AND NOT UNIX))
 
 # 3D format support
 # disable opencollada on non-apple unix because opencollada has no package for debian
@@ -112,6 +112,7 @@ ENDIF()
 OPTION(WITH_SDL           "Enable SDL for sound and joystick support" ON)
 OPTION(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
 OPTION(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
+OPTION(WITH_SAMPLERATE    "Enable samplerate conversion" ON)
 
 # Compression
 OPTION(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON)
@@ -139,6 +140,10 @@ ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 IF(NOT WITH_INSTALL AND WITH_PYTHON_INSTALL)
 	MESSAGE("WARNING: WITH_PYTHON_INSTALL needs WITH_INSTALL")
 ENDIF(NOT WITH_INSTALL AND WITH_PYTHON_INSTALL)
+
+IF(NOT WITH_SAMPLERATE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))
+	MESSAGE(FATAL_ERROR "WITH_OPENAL/WITH_SDL/WITH_JACK need WITH_SAMPLERATE")
+ENDIF(NOT WITH_SAMPLERATE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))
 
 TEST_SSE_SUPPORT()
 
@@ -279,10 +284,12 @@ IF(UNIX AND NOT APPLE)
 		SET(FFTW3_LIBPATH ${FFTW3}/lib)
 	ENDIF(WITH_FFTW3)
 
-	SET(LIBSAMPLERATE /usr)
-	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
-	SET(LIBSAMPLERATE_LIB samplerate)
-	SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
+	IF(WITH_SAMPLERATE)
+		SET(LIBSAMPLERATE /usr)
+		SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
+		SET(LIBSAMPLERATE_LIB samplerate)
+		SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
+	ENDIF(WITH_SAMPLERATE)
 
 	IF (WITH_OPENCOLLADA)
 		SET(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
@@ -318,12 +325,6 @@ IF(UNIX AND NOT APPLE)
 
 	# GNU Compiler
 	IF(CMAKE_COMPILER_IS_GNUCC)
-		IF(WITH_OPENMP)
-			LIST(APPEND LLIBS -lgomp)
-			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-		ENDIF(WITH_OPENMP)
-
 		SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 	
 		# Better warnings
@@ -333,12 +334,6 @@ IF(UNIX AND NOT APPLE)
 
 	# Intel C++ Compiler
 	ELSEIF(CMAKE_C_COMPILER_ID MATCHES "Intel")
-		IF(WITH_OPENMP)
-			LIST(APPEND LLIBS -lgomp)
-			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -openmp")
-			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -openmp")
-		ENDIF(WITH_OPENMP)
-
 		# think these next two are broken
 		FIND_PROGRAM(XIAR xiar) 
 		IF(XIAR) 
@@ -364,10 +359,8 @@ IF(UNIX AND NOT APPLE)
 
 		SET(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -static-intel")
 	ENDIF(CMAKE_COMPILER_IS_GNUCC)
-ENDIF(UNIX AND NOT APPLE)
 
-
-IF(WIN32)
+ELSEIF(WIN32)
 
 	# this file is included anyway when building under Windows with cl.exe
 	#  INCLUDE(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
@@ -389,10 +382,12 @@ IF(WIN32)
 		SET(ICONV_LIBPATH ${ICONV}/lib)
 	ENDIF(WITH_INTERNATIONAL)
 
-	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
-	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
-	SET(LIBSAMPLERATE_LIB libsamplerate)
-	SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
+	IF(WITH_SAMPLERATE)
+		SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
+		SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
+		SET(LIBSAMPLERATE_LIB libsamplerate)
+		SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
+	ENDIF(WITH_SAMPLERATE)
 
 	SET(PNG "${LIBDIR}/png")
 	SET(PNG_INC "${PNG}/include")
@@ -462,12 +457,7 @@ IF(WIN32)
 		SET(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
 		SET(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
 		SET(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
-		
-		IF(WITH_OPENMP)
-			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /openmp ")
-			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp ")
-		ENDIF(WITH_OPENMP)
-		
+
 		IF(WITH_INTERNATIONAL)
 			SET(GETTEXT ${LIBDIR}/gettext)
 			SET(GETTEXT_INC ${GETTEXT}/include)
@@ -573,7 +563,7 @@ IF(WIN32)
 
 		# MSVC only, Mingw doesnt need
 		IF(CMAKE_CL_64)
-			SET(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib;MSVCRT.lib ")
+			SET(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib ")
 		ELSE(CMAKE_CL_64)
 			SET(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib ")
 		ENDIF(CMAKE_CL_64)
@@ -589,12 +579,6 @@ IF(WIN32)
 			# Better warnings
 			SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 			SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
-			
-			IF(WITH_OPENMP)
-				SET(LLIBS "${LLIBS} -lgomp")
-				SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-				SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-			ENDIF(WITH_OPENMP)
 
 			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
 			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
@@ -690,10 +674,11 @@ IF(WIN32)
 
 	ENDIF(MSVC)
 
-ENDIF(WIN32)
+	# used in many places so include globally, like OpenGL
+	INCLUDE_DIRECTORIES(${PTHREADS_INC})
 
+ELSEIF(APPLE)
 
-IF(APPLE)
 	IF(WITH_LIBS10.5)
 		SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
 	ELSE(WITH_LIBS10.5)
@@ -800,10 +785,12 @@ IF(APPLE)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 	ENDIF(WITH_FFMPEG)
 
-	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
-	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
-	SET(LIBSAMPLERATE_LIB samplerate)
-	SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
+	IF(WITH_SAMPLERATE)
+		SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
+		SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
+		SET(LIBSAMPLERATE_LIB samplerate)
+		SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
+	ENDIF(WITH_SAMPLERATE)
 
 	SET(LLIBS stdc++ SystemStubs)
 
@@ -824,12 +811,6 @@ IF(APPLE)
 		SET(PLATFORM_CFLAGS "-pipe -funsigned-char")
 		SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
 	ENDIF (WITH_COCOA)
-
-	IF(WITH_OPENMP)
-		SET(LLIBS "${LLIBS} -lgomp")
-		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-	ENDIF(WITH_OPENMP)
 
 	IF (WITH_OPENCOLLADA)
 		SET(OPENCOLLADA ${LIBDIR}/opencollada)
@@ -887,7 +868,7 @@ IF(APPLE)
 	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
-ENDIF(APPLE)
+ENDIF(UNIX AND NOT APPLE)
 
 
 # buildinfo
@@ -953,6 +934,22 @@ FIND_PACKAGE(OpenGL)
 INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 # UNSET(OPENGL_LIBRARIES CACHE) # not compat with older cmake 
 # UNSET(OPENGL_xmesa_INCLUDE_DIR CACHE) # not compat with older cmake 
+
+#-----------------------------------------------------------------------------
+# Configure OpenMP.
+IF(WITH_OPENMP)
+	FIND_PACKAGE(OpenMP)	
+	IF(OPENMP_FOUND)
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+
+		IF(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
+			SET(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
+		ENDIF(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
+	ELSE(OPENMP_FOUND)
+		SET(WITH_OPENMP OFF)
+	ENDIF(OPENMP_FOUND)
+ENDIF(WITH_OPENMP) 
 
 #-----------------------------------------------------------------------------
 # Extra compile flags

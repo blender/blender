@@ -18,8 +18,9 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
-    import sys
-    reload(sys.modules.get("io_mesh_ply.export_ply", sys))
+    from imp import reload
+    if "export_ply" in locals():
+        reload(export_ply)
 
 
 import bpy
@@ -33,6 +34,7 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
     bl_label = "Export PLY"
     
     filename_ext = ".ply"
+    filter_glob = StringProperty(default="*.ply", options={'HIDDEN'})
 
     use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default=True)
     use_normals = BoolProperty(name="Normals", description="Export Normals for smooth and hard shaded faces", default=True)
@@ -46,8 +48,8 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
-        import io_mesh_ply.export_ply
-        return io_mesh_ply.export_ply.save(self, context, **self.as_keywords(ignore=("check_existing",)))
+        from . import export_ply
+        return export_ply.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))
 
     def draw(self, context):
         layout = self.layout

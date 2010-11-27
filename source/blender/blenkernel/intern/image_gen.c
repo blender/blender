@@ -298,16 +298,17 @@ static void checker_board_grid_fill(unsigned char *rect, float *rect_float, int 
 }
 
 /* defined in image.c */
-extern int stamp_font_begin(int size);
 
 static void checker_board_text(unsigned char *rect, float *rect_float, int width, int height, int step, int outline)
 {
-	int x, y, mono;
+	int x, y;
 	int pen_x, pen_y;
 	char text[3]= {'A', '1', '\0'};
+	const int mono= blf_mono_font;
 
-	/* hard coded size! */
-	mono= stamp_font_begin(54);
+	BLF_aspect(mono, 1.0);
+	BLF_size(mono, 54, 72); /* hard coded size! */
+
 	BLF_buffer(mono, rect_float, rect, width, height, 4);
     
 	for(y= 0; y < height; y+=step)

@@ -46,4 +46,4 @@ if env['WITH_BF_BULLET']:
     defs.append('USE_BULLET')
     incs += ' #source/gameengine/Physics/Bullet'
 
-env.BlenderLib ( 'bf_ketsji', sources, Split(incs), defs, libtype=['core','player'], priority=[320,45], cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib ( 'ge_logic_ketsji', sources, Split(incs), defs, libtype=['core','player'], priority=[320,45], cxx_compileflags=env['BGE_CXXFLAGS'])

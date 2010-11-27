@@ -53,7 +53,7 @@
 
 #include "MEM_guardedalloc.h"
 
-static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports, char *path, Scene *scene)
+static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports, const char *path, Scene *scene)
 {
 	ImBuf *ibuf;
 

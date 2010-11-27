@@ -1853,7 +1853,7 @@ static void *getEditMesh(bContext *C)
 }
 
 /* and this is all the undo system needs to know */
-void undo_push_mesh(bContext *C, char *name)
+void undo_push_mesh(bContext *C, const char *name)
 {
 	undo_editmode_push(C, name, getEditMesh, free_undoMesh, undoMesh_to_editMesh, editMesh_to_undoMesh, NULL);
 }

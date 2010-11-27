@@ -11,6 +11,8 @@ def main(context):
 
     if not mesh.uv_textures:
         uvtex = bpy.ops.mesh.uv_texture_add()
+    else:
+        uvtex = mesh.uv_textures.active
 
     # adjust UVs
     for i, uv in enumerate(uvtex.data):

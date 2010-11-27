@@ -204,7 +204,7 @@ struct uiBut {
 	uiLink *link;
 	short linkto[2];
 	
-	char *tip, *lockstr;
+	const char *tip, *lockstr;
 
 	BIFIconID icon;
 	char lock;

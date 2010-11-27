@@ -124,31 +124,27 @@ wcsleninu8(wchar_t *src)
 }
 
 static int
-utf8slen(char *src)
+utf8slen(const char *strc)
 {
-	int size = 0, index = 0;
-	unsigned char c;
-	
-	c = src[index++];
-	while(c)
-	{    
-		if((c & 0x80) == 0)
-		{
-			index += 0;
+	int len=0;
+
+	while(*strc) {
+		if ((*strc & 0xe0) == 0xc0) {
+			if((strc[1] & 0x80) && (strc[1] & 0x40) == 0x00)
+				strc++;
+		} else if ((*strc & 0xf0) == 0xe0) {
+			if((strc[1] & strc[2] & 0x80) && ((strc[1] | strc[2]) & 0x40) == 0x00)
+				strc += 2;
+		} else if ((*strc & 0xf8) == 0xf0) {
+			if((strc[1] & strc[2] & strc[3] & 0x80) && ((strc[1] | strc[2] | strc[3]) & 0x40) == 0x00)
+				strc += 3;
 		}
-		else if((c & 0xe0) == 0xe0)
-		{
-			index += 2;
-		}
-		else
-		{
-			index += 1;
-		}
-		size += 1;
-		c = src[index++];		
+
+		strc++;
+		len++;
 	}
-	
-	return size;
+
+	return len;
 }
 
 
@@ -358,7 +354,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 	return vfont->data;	
 }
 
-VFont *load_vfont(char *name)
+VFont *load_vfont(const char *name)
 {
 	char filename[FILE_MAXFILE];
 	VFont *vfont= NULL;

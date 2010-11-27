@@ -46,10 +46,6 @@ SET(SRC
 	intern/gpu_shader_vertex.glsl.c
 )
 
-IF(WIN32)
-	INCLUDE_DIRECTORIES(${PTHREADS_INC})
-ENDIF(WIN32)
-
 ADD_DEFINITIONS(-DGLEW_STATIC)
 
 BLENDERLIB(bf_gpu "${SRC}" "${INC}")

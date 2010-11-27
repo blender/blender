@@ -24,12 +24,14 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 #
-from .plugin import plugin
+from extensions_framework.plugin import plugin
 
 class engine_base(plugin):
-	'''
-	Render Engine plugin base class
-	'''
+	"""Render Engine plugin base class
+	
+	TODO: Remove, this class hasn't grown to be useful
+	
+	"""
 	
 	bl_label = 'Abstract Render Engine Base Class'
 	

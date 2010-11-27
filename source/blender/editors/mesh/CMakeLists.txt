@@ -45,8 +45,4 @@ SET(SRC
 	meshtools.c
 )
 
-IF(WIN32)
-	LIST(APPEND INC ${PTHREADS_INC})
-ENDIF(WIN32)
-
 BLENDERLIB(bf_editor_mesh "${SRC}" "${INC}")

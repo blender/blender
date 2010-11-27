@@ -623,7 +623,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	PTCacheEditPoint *point;
 	PTCacheEditKey *ekey = NULL;
 	HairKey *key;
-	BVHTreeFromMesh bvhtree;
+	BVHTreeFromMesh bvhtree= {0};
 	BVHTreeNearest nearest;
 	MFace *mface;
 	DerivedMesh *dm = NULL;
@@ -645,8 +645,6 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 		dm= mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 
 	numverts = dm->getNumVerts (dm);
-
-	memset( &bvhtree, 0, sizeof(bvhtree) );
 
 	/* convert to global coordinates */
 	for (i=0; i<numverts; i++)

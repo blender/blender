@@ -184,7 +184,7 @@ void free_dverts(MDeformVert *dvert, int totvert)
 	MEM_freeN (dvert);
 }
 
-Mesh *add_mesh(char *name)
+Mesh *add_mesh(const char *name)
 {
 	Mesh *me;
 	

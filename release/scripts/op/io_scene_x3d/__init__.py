@@ -18,9 +18,9 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
-    # only reload if we alredy loaded, highly annoying
-    import sys
-    reload(sys.modules.get("io_scene_x3d.export_x3d", sys))
+    from imp import reload
+    if "export_x3d" in locals():
+        reload(export_x3d)
 
 
 import bpy
@@ -34,14 +34,15 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
     bl_label = 'Export X3D'
 
     filename_ext = ".x3d"
+    filter_glob = StringProperty(default="*.x3d", options={'HIDDEN'})
 
     use_apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object", default=True)
     use_triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=False)
     use_compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)
 
     def execute(self, context):
-        import io_scene_x3d.export_x3d
-        return io_scene_x3d.export_x3d.save(self, context, **self.as_keywords(ignore=("check_existing",)))
+        from . import export_x3d
+        return export_x3d.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))
 
 
 def menu_func(self, context):

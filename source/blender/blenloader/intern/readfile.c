@@ -921,13 +921,13 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 
 	if (fd->flags & FD_FLAGS_FILE_OK) {
 		if (!read_file_dna(fd)) {
-			BKE_report(reports, RPT_ERROR, "File incomplete");
+			BKE_reportf(reports, RPT_ERROR, "Failed to read blend file: \"%s\", incomplete", fd->relabase);
 			blo_freefiledata(fd);
 			fd= NULL;
 		}
 	} 
 	else {
-		BKE_report(reports, RPT_ERROR, "File is not a Blender file");
+		BKE_reportf(reports, RPT_ERROR, "Failed to read blend file: \"%s\", not a blend file", fd->relabase);
 		blo_freefiledata(fd);
 		fd= NULL;
 	}
@@ -937,7 +937,7 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 
 /* cannot be called with relative paths anymore! */
 /* on each new library added, it now checks for the current FileData and expands relativeness */
-FileData *blo_openblenderfile(char *name, ReportList *reports)
+FileData *blo_openblenderfile(const char *name, ReportList *reports)
 {
 	gzFile gzfile;
 	errno= 0;
@@ -2214,13 +2214,21 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 	if (!pose || !arm)
 		return;
 	
+
 	/* always rebuild to match proxy or lib changes */
 	rebuild= ob->proxy || (ob->id.lib==NULL && arm->id.lib);
 
-	if (ob->proxy && pose->proxy_act_bone[0]) {
-		Bone *bone = get_named_bone(arm, pose->proxy_act_bone);
-		if (bone)
-			arm->act_bone = bone;
+	if(ob->proxy) {
+		/* sync proxy layer */
+		if(pose->proxy_layer)
+			arm->layer = pose->proxy_layer;
+		
+		/* sync proxy active bone */
+		if(pose->proxy_act_bone[0]) {
+			Bone *bone = get_named_bone(arm, pose->proxy_act_bone);
+			if (bone)
+				arm->act_bone = bone;
+		}
 	}
 
 	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
@@ -3645,6 +3653,8 @@ static void lib_link_object(FileData *fd, Main *main)
 					smd->domain->fluid_group = newlibadr_us(fd, ob->id.lib, smd->domain->fluid_group);
 
 					smd->domain->effector_weights->group = newlibadr(fd, ob->id.lib, smd->domain->effector_weights->group);
+
+					smd->domain->flags |= MOD_SMOKE_FILE_LOAD; /* flag for refreshing the simulation after loading */
 				}
 			}
 
@@ -5262,14 +5272,14 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 		if(newmain->curlib) {
 			if(strcmp(newmain->curlib->filepath, lib->filepath)==0) {
 				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->filepath);
-				
+				BKE_reportf(fd->reports, RPT_WARNING, "Library '%s', '%s' had multiple instances, save and reload!", lib->name, lib->filepath);
+
 				change_idid_adr(&fd->mainlist, fd, lib, newmain->curlib);
 //				change_idid_adr_fd(fd, lib, newmain->curlib);
 				
 				BLI_remlink(&main->library, lib);
 				MEM_freeN(lib);
-				
-				BKE_report(fd->reports, RPT_WARNING, "Library had multiple instances, save and reload!");
+
 
 				return;
 			}
@@ -6257,7 +6267,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			case SPACE_NODE:
 				ar= MEM_callocN(sizeof(ARegion), "nodetree area for node");
 				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_CHANNELS;
+				ar->regiontype= RGN_TYPE_UI;
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
@@ -6505,6 +6515,9 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 			if(sl->spacetype==SPACE_IMASEL)
 				sl->spacetype= SPACE_INFO;	/* spacedata then matches */
 		}		
+		
+		/* it seems to be possible in 2.5 to have this saved, filewindow probably */
+		sa->butspacetype= sa->spacetype;
 		
 		/* pushed back spaces also need regions! */
 		if(sa->spacedata.first) {

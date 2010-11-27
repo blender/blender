@@ -58,7 +58,7 @@ void free_avicodecdata(struct AviCodecData *acd);
 void free_qtcodecdata(struct QuicktimeCodecData *acd);
 
 void free_scene(struct Scene *sce);
-struct Scene *add_scene(char *name);
+struct Scene *add_scene(const char *name);
 struct Base *object_in_scene(struct Object *ob, struct Scene *sce);
 
 void set_scene_bg(struct Main *bmain, struct Scene *sce);
@@ -76,6 +76,7 @@ char *scene_find_marker_name(struct Scene *scene, int frame);
 char *scene_find_last_marker_name(struct Scene *scene, int frame);
 int scene_marker_tfm_translate(struct Scene *scene, int delta, int flag);
 int scene_marker_tfm_extend(struct Scene *scene, int delta, int flag, int frame, char side);
+int scene_marker_tfm_scale(struct Scene *scene, float value, int flag);
 
 struct Base *scene_add_base(struct Scene *sce, struct Object *ob);
 void scene_deselect_all(struct Scene *sce);

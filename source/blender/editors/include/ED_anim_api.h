@@ -35,6 +35,7 @@ struct AnimData;
 
 struct bContext;
 struct wmKeyConfig;
+struct ReportList;
 struct ScrArea;
 struct ARegion;
 struct View2D;
@@ -73,7 +74,8 @@ typedef struct bAnimContext {
 	struct Scene *scene;	/* active scene */
 	struct Object *obact;	/* active object */
 	ListBase *markers;		/* active set of markers */
-	ListBase *reports;		/* pointer to current reports list */			// XXX not yet used
+	
+	struct ReportList *reports;	/* pointer to current reports list */
 } bAnimContext;
 
 /* Main Data container types */

@@ -31,7 +31,7 @@ defs = []
 
 incs = '#/intern/guardedalloc ../../blenlib ../../blenkernel'
 incs += ' ../../imbuf ../../makesdna ../../makesrna ../../ikplugin'
-incs += ' ../../windowmanager ../../editors/include'
+incs += ' ../../windowmanager ../../editors/include ../../blenfont'
 incs += ' ../../render/extern/include'
 incs += ' #/intern/audaspace/intern '
 

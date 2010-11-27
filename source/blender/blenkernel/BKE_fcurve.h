@@ -214,6 +214,14 @@ void calc_fcurve_range(struct FCurve *fcu, float *min, float *max);
 /* get the bounding-box extents for F-Curve */
 void calc_fcurve_bounds(struct FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax);
 
+/* .............. */
+
+/* Are keyframes on F-Curve of any use (to final result, and to show in editors)? */
+short fcurve_are_keyframes_usable(struct FCurve *fcu);
+
+/* Can keyframes be added to F-Curve? */
+short fcurve_is_keyframable(struct FCurve *fcu);
+
 /* -------- Curve Sanity --------  */
 
 void calchandles_fcurve(struct FCurve *fcu);

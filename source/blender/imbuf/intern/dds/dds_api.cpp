@@ -37,7 +37,7 @@ extern "C" {
 #include "IMB_allocimbuf.h"
 
 
-int imb_save_dds(struct ImBuf * ibuf, char *name, int flags)
+int imb_save_dds(struct ImBuf * ibuf, const char *name, int flags)
 {
 	return(0); /* todo: finish this function */
 

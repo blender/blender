@@ -23,7 +23,6 @@ SET(INC
 	../../blenlib
 	../../makesdna
 	../../blenkernel
-	../../editors/include
 	../../../../intern/guardedalloc
 	../../../../extern/glew/include
 	${PYTHON_INC}

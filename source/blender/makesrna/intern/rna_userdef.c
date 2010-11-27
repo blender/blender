@@ -44,13 +44,17 @@
 
 #ifdef RNA_RUNTIME
 
-#include "BKE_main.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_depsgraph.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "GPU_draw.h"
+
+#include "BKE_DerivedMesh.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
+
+#include "GPU_draw.h"
+
+#include "BLF_api.h"
 
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
@@ -252,6 +256,12 @@ static void rna_userdef_temp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	extern char btempdir[];
 	BLI_where_is_temp(btempdir, 1);
+}
+
+static void rna_userdef_text_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	BLF_cache_clear();
+	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
 #else
@@ -1923,6 +1933,10 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TOOLTIPS);
 	RNA_def_property_ui_text(prop, "Tooltips", "Display tooltips");
 
+	prop= RNA_def_property(srna, "show_tooltips_python", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_TOOLTIPS_PYTHON);
+	RNA_def_property_ui_text(prop, "Show Python Tooltips", "Show Python references in tooltips");
+
 	prop= RNA_def_property(srna, "show_object_info", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_DRAWVIEWINFO);
 	RNA_def_property_ui_text(prop, "Display Object Info", "Display objects name and frame number in 3D view");
@@ -2571,6 +2585,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_range(prop, 50, 1000);
 	RNA_def_property_ui_text(prop, "Wait Timer (ms)", "Time in milliseconds between each frame recorded for screencast");
 
+	prop= RNA_def_property(srna, "use_text_antialiasing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "text_render", USER_TEXT_DISABLE_AA);
+	RNA_def_property_ui_text(prop, "Text Anti-aliasing", "Draw user interface text anti-aliased");
+	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
+	
 #if 0
 	prop= RNA_def_property(srna, "verse_master", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "versemaster");

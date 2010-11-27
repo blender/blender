@@ -52,6 +52,7 @@ CPPFLAGS += -I$(NAN_MEMUTIL)/include
 CPPFLAGS += -I../../../../intern/audaspace/intern
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I../../blenfont
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../ikplugin
 CPPFLAGS += -I../../makesdna

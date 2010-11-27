@@ -2030,6 +2030,14 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
+
+int region3d_unlocked_poll(bContext *C)
+{
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	return (rv3d && rv3d->viewlock==0);
+}
+
+
 void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -2039,7 +2047,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewnumpad_exec;
-	ot->poll= ED_operator_region_view3d_active;
+	ot->poll= region3d_unlocked_poll;
 
 	/* flags */
 	ot->flag= 0;

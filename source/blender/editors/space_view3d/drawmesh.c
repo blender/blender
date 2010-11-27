@@ -661,8 +661,9 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	/* draw the textured mesh */
 	draw_textured_begin(scene, v3d, rv3d, ob);
 
+	glColor4f(1.0f,1.0f,1.0f,1.0f);
+
 	if(ob->mode & OB_MODE_EDIT) {
-		glColor4f(1.0f,1.0f,1.0f,1.0f);
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_mesh);
 	} else if(faceselect) {
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
@@ -674,7 +675,6 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 		if( GPU_buffer_legacy(dm) )
 			dm->drawFacesTex(dm, draw_tface__set_draw_legacy);
 		else {
-			glColor4f(1.0f,1.0f,1.0f,1.0f);
 			if( !CustomData_has_layer(&dm->faceData,CD_TEXTURE_MCOL) )
 				add_tface_color_layer(dm);
 			dm->drawFacesTex(dm, draw_tface__set_draw);

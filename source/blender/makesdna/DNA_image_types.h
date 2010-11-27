@@ -44,17 +44,20 @@ struct GPUTexture;
 /* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
 /* should be used in conjunction with an ID * to Image. */
 typedef struct ImageUser {
+	struct Scene *scene;		/* to retrieve render result */
+
 	int framenr;				/* movies, sequences: current to display */
 	int frames;					/* total amount of frames to use */
 	int offset, sfra;			/* offset within movie, start frame in global time */
-	short fie_ima, cycl;		/* fields/image in movie, cyclic flag */
-	short flag, ok;
-	
-	short multi_index, layer, pass;	 /* listbase indices, for menu browsing or retrieve buffer */
-	/* short menunr; */					/* localized menu entry, for handling browse event */
-	short pad;
+	char fie_ima, cycl;		/* fields/image in movie, cyclic flag */
+	char ok, pad;
 
-	struct Scene *scene;		/* to retrieve render result */
+	short multi_index, layer, pass;	 /* listbase indices, for menu browsing or retrieve buffer */
+
+	short flag;
+	
+	int pad2;
+
 } ImageUser;
 
 /* iuser->flag */

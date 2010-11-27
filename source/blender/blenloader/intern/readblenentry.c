@@ -242,7 +242,7 @@ void BLO_blendhandle_close(BlendHandle *bh) {
 
 	/**********/
 
-BlendFileData *BLO_read_from_file(char *file, ReportList *reports)
+BlendFileData *BLO_read_from_file(const char *file, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;

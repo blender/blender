@@ -325,7 +325,7 @@ void FONT_OT_insert_lorem(wmOperatorType *ot)
 /* note this handles both ascii and utf8 unicode, previously
  * there were 3 functions that did effectively the same thing. */
 
-static int paste_file(bContext *C, ReportList *reports, char *filename)
+static int paste_file(bContext *C, ReportList *reports, const char *filename)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -1696,7 +1696,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		cu = ob->data;
 		font = cu->vfont;
 	}
-	printf("%s\n", font->name);
+
 	path = (font && strcmp(font->name, FO_BUILTIN_NAME) != 0)? font->name: U.fontdir;
 	 
 	if(RNA_property_is_set(op->ptr, "filepath"))
@@ -1840,7 +1840,7 @@ static void *get_undoFont(bContext *C)
 }
 
 /* and this is all the undo system needs to know */
-void undo_push_font(bContext *C, char *name)
+void undo_push_font(bContext *C, const char *name)
 {
 	undo_editmode_push(C, name, get_undoFont, free_undoFont, undoFont_to_editFont, editFont_to_undoFont, NULL);
 }

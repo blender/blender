@@ -115,13 +115,13 @@ int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int
 int mouse_armature(struct bContext *C, short mval[2], int extend);
 int join_armature_exec(struct bContext *C, struct wmOperator *op);
 struct Bone *get_indexed_bone (struct Object *ob, int index);
-float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3]);
+float ED_rollBoneToVector(EditBone *bone, const float new_up_axis[3], const short axis_only);
 EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, EditBone *ebo); // XXX this is needed for populating the context iterators
 void ED_armature_sync_selection(struct ListBase *edbo);
 void ED_armature_validate_active(struct bArmature *arm);
 
 void add_primitive_bone(struct Scene *scene, struct View3D *v3d, struct RegionView3D *rv3d);
-struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name);
+struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *name);
 void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
 
 void transform_armature_mirror_update(struct Object *obedit);
@@ -140,7 +140,7 @@ void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
 void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */
 void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep);
 
-void undo_push_armature(struct bContext *C, char *name);
+void undo_push_armature(struct bContext *C, const char *name);
 
 /* poseobject.c */
 struct Object *ED_object_pose_armature(struct Object *ob);

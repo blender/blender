@@ -243,15 +243,13 @@ static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, flo
 
 #define GRID_MIN_PX 6.0f
 
-static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_unit)
+static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit)
 {
 	/* extern short bgpicmode; */
 	RegionView3D *rv3d= ar->regiondata;
 	float wx, wy, x, y, fw, fx, fy, dx;
 	float vec4[4];
 	char col[3], col2[3];
-	
-	*grid_unit= NULL;
 
 	vec4[0]=vec4[1]=vec4[2]=0.0; 
 	vec4[3]= 1.0;
@@ -266,7 +264,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 	x= (wx)*fx/fw;
 	y= (wy)*fy/fw;
 
-	vec4[0]=vec4[1]= (unit->system) ? 1.0 : v3d->grid;
+	vec4[0]=vec4[1]= v3d->grid;
 
 	vec4[2]= 0.0;
 	vec4[3]= 1.0;
@@ -306,7 +304,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
 				if(*grid_unit==NULL) {
 					*grid_unit= bUnit_GetNameDisplay(usys, i);
-					rv3d->gridview= (scalar * unit->scale_length);
+					rv3d->gridview= (scalar * v3d->grid) / unit->scale_length;
 				}
 				blend_fac= 1-((GRID_MIN_PX*2)/dx_scalar);
 
@@ -417,9 +415,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 }
 #undef GRID_MIN_PX
 
-static void drawfloor(Scene *scene, View3D *v3d)
+static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 {
-	float vert[3], grid;
+	float vert[3], grid, grid_scale;
 	int a, gridlines, emphasise;
 	char col[3], col2[3];
 	short draw_line = 0;
@@ -428,11 +426,28 @@ static void drawfloor(Scene *scene, View3D *v3d)
 	
 	if(v3d->gridlines<3) return;
 	
+	grid_scale= v3d->grid;
+	/* use 'grid_scale' instead of 'v3d->grid' from now on */
+
+	/* apply units */
+	if(scene->unit.system) {
+		void *usys;
+		int len;
+
+		bUnit_GetSystem(&usys, &len, scene->unit.system, B_UNIT_LENGTH);
+
+		if(usys) {
+			int i= bUnit_GetBaseUnit(usys);
+			*grid_unit= bUnit_GetNameDisplay(usys, i);
+			 grid_scale = (grid_scale * bUnit_GetScaler(usys, i)) / scene->unit.scale_length;
+		}
+	}
+	
 	if(v3d->zbuf && scene->obedit) glDepthMask(0);	// for zbuffer-select
 	
 	gridlines= v3d->gridlines/2;
-	grid= gridlines*v3d->grid;
-	
+	grid= gridlines * grid_scale;
+
 	UI_GetThemeColor3ubv(TH_GRID, col);
 	UI_GetThemeColor3ubv(TH_BACK, col2);
 	
@@ -472,7 +487,7 @@ static void drawfloor(Scene *scene, View3D *v3d)
 		
 		if (draw_line) {
 			glBegin(GL_LINE_STRIP);
-			vert[0]= a*v3d->grid;
+			vert[0]= a * grid_scale;
 			vert[1]= grid;
 			glVertex3fv(vert);
 			vert[1]= -grid;
@@ -511,7 +526,7 @@ static void drawfloor(Scene *scene, View3D *v3d)
 		
 		if (draw_line) {
 			glBegin(GL_LINE_STRIP);
-			vert[1]= a*v3d->grid;
+			vert[1]= a * grid_scale;
 			vert[0]= grid;
 			glVertex3fv(vert );
 			vert[0]= -grid;
@@ -2138,9 +2153,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	RegionView3D *rv3d= ar->regiondata;
 	ImBuf *ibuf;
 	GPUOffScreen *ofs;
+	
+	/* state changes make normal drawing go weird otherwise */
+	glPushAttrib(GL_LIGHTING_BIT);
 
 	/* bind */
-	ofs= GPU_offscreen_create(sizex, sizey);
+	ofs= GPU_offscreen_create(&sizex, &sizey);
 	if(ofs == NULL)
 		return NULL;
 
@@ -2175,6 +2193,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	GPU_offscreen_unbind(ofs);
 	GPU_offscreen_free(ofs);
 
+	glPopAttrib();
+	
 	if(ibuf->rect_float && ibuf->rect)
 		IMB_rect_from_float(ibuf);
 	
@@ -2279,10 +2299,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Base *base;
 	Object *ob;
 	float backcol[3];
-	int retopo= 0, sculptparticle= 0;
 	unsigned int lay_used;
 	Object *obact = OBACT;
-	char *grid_unit= NULL;
+	const char *grid_unit= NULL;
 
 	/* from now on all object derived meshes check this */
 	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
@@ -2335,7 +2354,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	if(rv3d->view==0 || rv3d->persp != RV3D_ORTHO) {
 		if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
-			drawfloor(scene, v3d);
+			drawfloor(scene, v3d, &grid_unit);
 		}
 		if(rv3d->persp==RV3D_CAMOB) {
 			if(scene->world) {
@@ -2419,11 +2438,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		v3d->lay_used= lay_used;
 	}
 
-//	retopo= retopo_mesh_check() || retopo_curve_check();
-	sculptparticle= (obact && obact->mode & (OB_MODE_PARTICLE_EDIT)) && !scene->obedit;
-	if(retopo)
-		view3d_update_depths(ar);
-	
 	/* draw selected and editmode */
 	for(base= scene->base.first; base; base= base->next) {
 		if(v3d->lay & base->lay) {
@@ -2431,11 +2445,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 				draw_object(scene, ar, v3d, base, 0);
 		}
 	}
-	
-	if(!retopo && sculptparticle && !(obact && (obact->dtx & OB_DRAWXRAY))) {
-		view3d_update_depths(ar);
-	}
-	
+
 //	REEB_draw();
 	
 	/* Transp and X-ray afterdraw stuff */
@@ -2444,11 +2454,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if(v3d->afterdraw_xraytransp.first)	view3d_draw_xraytransp(scene, ar, v3d, 1);
 	
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
-	
-	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
-		view3d_update_depths(ar);
-	}
-	
+
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
 	
@@ -2502,8 +2508,14 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		draw_viewport_name(ar, v3d);
 	}
 	if (grid_unit) { /* draw below the viewport name */
+		char tstr[32]= "";
+
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, grid_unit, 65535); /* XXX, use real length */
+		if(v3d->grid != 1.0f) {
+			BLI_snprintf(tstr, sizeof(tstr), "%s x %.4g", grid_unit, v3d->grid);
+		}
+
+		BLF_draw_default(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */
 	}
 
 	ob= OBACT;

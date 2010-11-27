@@ -20,10 +20,11 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
-    # only reload if we alredy loaded, highly annoying
-    import sys
-    reload(sys.modules.get("io_shape_mdd.import_mdd", sys))
-    reload(sys.modules.get("io_shape_mdd.export_mdd", sys))
+    from imp import reload
+    if "import_mdd" in locals():
+        reload(import_mdd)
+    if "export_mdd" in locals():
+        reload(export_mdd)
 
 
 import bpy
@@ -53,9 +54,9 @@ class ImportMDD(bpy.types.Operator, ImportHelper):
         scene = context.scene
         if not self.frame_start:
             self.frame_start = scene.frame_current
-        
-        import io_shape_mdd.import_mdd
-        return io_shape_mdd.import_mdd.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
+
+        from . import import_mdd
+        return import_mdd.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
 
 class ExportMDD(bpy.types.Operator, ExportHelper):
     '''Animated mesh to MDD vertex keyframe file'''
@@ -63,6 +64,7 @@ class ExportMDD(bpy.types.Operator, ExportHelper):
     bl_label = "Export MDD"
     
     filename_ext = ".mdd"
+    filter_glob = StringProperty(default="*.mdd", options={'HIDDEN'})
 
     # get first scene to get min and max properties for frames, fps
 
@@ -92,8 +94,8 @@ class ExportMDD(bpy.types.Operator, ExportHelper):
         if not self.fps:
             self.fps = scene.render.fps
 
-        import io_shape_mdd.export_mdd
-        return io_shape_mdd.export_mdd.save(self, context, **self.as_keywords(ignore=("check_existing",)))
+        from . import export_mdd
+        return export_mdd.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))
 
 
 def menu_func_import(self, context):

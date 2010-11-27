@@ -2786,7 +2786,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	float len, *data, *fp, *orco=NULL, *orcobase= NULL;
 	float n[3], mat[4][4];
 	int nr, startvert, startvlak, a, b;
-	int frontside, need_orco=0, totmat;
+	int need_orco=0, totmat;
 
 	cu= ob->data;
 	if(ob->type==OB_FONT && cu->str==NULL) return;
@@ -2844,15 +2844,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 					ver= RE_findOrAddVert(obr, obr->totvert++);
 					VECCOPY(ver->co, data);
 
-					/* flip normal if face is backfacing, also used in face loop below */
-					if(ver->co[2] < 0.0) {
-						VECCOPY(ver->n, n);
-						ver->flag = 1;
-					}
-					else {
-						ver->n[0]= -n[0]; ver->n[1]= -n[1]; ver->n[2]= -n[2];
-						ver->flag = 0;
-					}
+					negate_v3_v3(ver->n, n);
 
 					mul_m4_v3(mat, ver->co);
 
@@ -2873,12 +2865,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
 						vlr->v4= NULL;
 
-						if(vlr->v1->flag) {
-							VECCOPY(vlr->n, n);
-						}
-						else {
-							vlr->n[0]= -n[0]; vlr->n[1]= -n[1]; vlr->n[2]= -n[2];
-						}
+						negate_v3_v3(vlr->n, n);
 
 						vlr->mat= matar[ dl->col ];
 						vlr->flag= 0;
@@ -2917,8 +2904,6 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 						for(a=0; a<dl->parts; a++) {
 
-							frontside= (a >= dl->nr/2);
-
 							if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
 								break;
 
@@ -2929,25 +2914,16 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 							for(; b<dl->nr; b++) {
 								vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-								vlr->v1= RE_findOrAddVert(obr, p2);
-								vlr->v2= RE_findOrAddVert(obr, p1);
-								vlr->v3= RE_findOrAddVert(obr, p3);
-								vlr->v4= RE_findOrAddVert(obr, p4);
-								vlr->ec= ME_V2V3+ME_V3V4;
+								vlr->v1= RE_findOrAddVert(obr, p1);
+								vlr->v2= RE_findOrAddVert(obr, p2);
+								vlr->v3= RE_findOrAddVert(obr, p4);
+								vlr->v4= RE_findOrAddVert(obr, p3);
+								vlr->ec= ME_V4V1+ME_V3V4;
 								if(a==0) vlr->ec+= ME_V1V2;
 
 								vlr->flag= dl->rt;
 
-								/* this is not really scientific: the vertices
-									* 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
-									* front and backside treated different!!
-									*/
-
-								if(frontside)
-									normal_tri_v3( vlr->n,vlr->v2->co, vlr->v3->co, vlr->v4->co);
-								else
-									normal_tri_v3( vlr->n,vlr->v1->co, vlr->v2->co, vlr->v3->co);
-
+								normal_quad_v3(vlr->n, vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co);
 								vlr->mat= matar[ dl->col ];
 
 								p4= p3;
@@ -2975,15 +2951,6 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						for(a=startvert; a<obr->totvert; a++) {
 							ver= RE_findOrAddVert(obr, a);
 							len= normalize_v3(ver->n);
-							if(len==0.0) ver->flag= 1;	/* flag abuse, its only used in zbuf now  */
-							else ver->flag= 0;
-						}
-						for(a= startvlak; a<obr->totvlak; a++) {
-							vlr= RE_findOrAddVlak(obr, a);
-							if(vlr->v1->flag) VECCOPY(vlr->v1->n, vlr->n);
-							if(vlr->v2->flag) VECCOPY(vlr->v2->n, vlr->n);
-							if(vlr->v3->flag) VECCOPY(vlr->v3->n, vlr->n);
-							if(vlr->v4->flag) VECCOPY(vlr->v4->n, vlr->n);
 						}
 					}
 				}

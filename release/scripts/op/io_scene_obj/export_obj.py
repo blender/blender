@@ -611,7 +611,7 @@ def write_file(filepath, objects, scene,
                         file.write('s off\n')
                         contextSmooth = f_smooth
 
-                f_v_orig = [me_verts[v_idx] for v_idx in f.vertices]
+                f_v_orig = [(vi, me_verts[v_idx]) for vi, v_idx in enumerate(f.vertices)]
                 
                 if not EXPORT_TRI or len(f_v_orig) == 3:
                     f_v_iter = (f_v_orig, )
@@ -625,7 +625,7 @@ def write_file(filepath, objects, scene,
                     if faceuv:
                         if EXPORT_NORMALS:
                             if f_smooth: # Smoothed, use vertex normals
-                                for vi, v in enumerate(f_v):
+                                for vi, v in f_v:
                                     file.write( ' %d/%d/%d' % \
                                                     (v.index + totverts,
                                                      totuvco + uv_face_mapping[f_index][vi],
@@ -633,13 +633,13 @@ def write_file(filepath, objects, scene,
 
                             else: # No smoothing, face normals
                                 no = globalNormals[ veckey3d(f.normal) ]
-                                for vi, v in enumerate(f_v):
+                                for vi, v in f_v:
                                     file.write( ' %d/%d/%d' % \
                                                     (v.index + totverts,
                                                      totuvco + uv_face_mapping[f_index][vi],
                                                      no) ) # vert, uv, normal
                         else: # No Normals
-                            for vi, v in enumerate(f_v):
+                            for vi, v in f_v:
                                 file.write( ' %d/%d' % (\
                                   v.index + totverts,\
                                   totuvco + uv_face_mapping[f_index][vi])) # vert, uv
@@ -649,15 +649,15 @@ def write_file(filepath, objects, scene,
                     else: # No UV's
                         if EXPORT_NORMALS:
                             if f_smooth: # Smoothed, use vertex normals
-                                for v in f_v:
+                                for vi, v in f_v:
                                     file.write( ' %d//%d' %
                                                 (v.index + totverts, globalNormals[ veckey3d(v.normal) ]) )
                             else: # No smoothing, face normals
                                 no = globalNormals[ veckey3d(f.normal) ]
-                                for v in f_v:
+                                for vi, v in f_v:
                                     file.write( ' %d//%d' % (v.index + totverts, no) )
                         else: # No Normals
-                            for v in f_v:
+                            for vi, v in f_v:
                                 file.write( ' %d' % (v.index + totverts) )
 
                     file.write('\n')

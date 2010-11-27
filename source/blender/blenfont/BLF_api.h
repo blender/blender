@@ -34,6 +34,8 @@ struct rctf;
 int BLF_init(int points, int dpi);
 void BLF_exit(void);
 
+void BLF_cache_clear(void);
+
 int BLF_load(const char *name);
 int BLF_load_mem(const char *name, unsigned char *mem, int mem_size);
 
@@ -178,5 +180,9 @@ void BLF_dir_free(char **dirs, int count);
 #define BLF_CLIPPING (1<<1)
 #define BLF_SHADOW (1<<2)
 #define BLF_KERNING_DEFAULT (1<<3)
+
+// XXX, bad design
+extern int blf_mono_font;
+extern int blf_mono_font_render; // dont mess drawing with render threads.
 
 #endif /* BLF_API_H */
