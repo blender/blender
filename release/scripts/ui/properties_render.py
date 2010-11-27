@@ -194,6 +194,7 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
 
         if freestyle.mode == "EDITOR":
             col.label(text="Edge Detection Options:")
+            col.prop(freestyle, "use_smoothness")
             col.prop(freestyle, "crease_angle")
             col.prop(freestyle, "sphere_radius")
             col.prop(freestyle, "kr_derivative_epsilon")
@@ -253,6 +254,7 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
 
         else: # freestyle.mode == "SCRIPT"
 
+            col.prop(freestyle, "use_smoothness")
             col.prop(freestyle, "crease_angle")
             col.prop(freestyle, "sphere_radius")
             col.prop(freestyle, "use_ridges_and_valleys")

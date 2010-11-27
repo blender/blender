@@ -65,8 +65,10 @@ protected:
 	void insertShapeNode(ObjectInstanceRen *obi, int id);
 	int countClippedFaces(float v1[3], float v2[3], float v3[3], int clip[3]);
 	void clipLine(float v1[3], float v2[3], float c[3], float z);
-	void clipTriangle(int numTris, float triCoords[][3], float v1[3], float v2[3], float v3[3], int clip[3]);
-	void addTriangle(struct LoaderState *ls, float v1[3], float v2[3], float v3[3]);
+	void clipTriangle(int numTris, float triCoords[][3], float v1[3], float v2[3], float v3[3],
+		float triNormals[][3], float n1[3], float n2[3], float n3[3], int clip[3]);
+	void addTriangle(struct LoaderState *ls, float v1[3], float v2[3], float v3[3],
+		float n1[3], float n2[3], float n3[3]);
 
 protected:
 	Render* _re;
@@ -74,6 +76,7 @@ protected:
 	NodeGroup* _Scene;
 	unsigned _numFacesRead;
 	real _minEdgeSize;
+	bool _smooth; /* if true, face smoothness is taken into account */
 	float _viewplane_left;
 	float _viewplane_right;
 	float _viewplane_bottom;

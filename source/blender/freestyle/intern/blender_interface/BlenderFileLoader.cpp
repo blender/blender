@@ -9,6 +9,7 @@ BlenderFileLoader::BlenderFileLoader(Render *re, SceneRenderLayer* srl)
 	_Scene = NULL;
 	_numFacesRead = 0;
 	_minEdgeSize = DBL_MAX;
+	_smooth = (srl->freestyleConfig.flags & FREESTYLE_FACE_SMOOTHNESS_FLAG) != 0;
 }
 
 BlenderFileLoader::~BlenderFileLoader()
@@ -123,38 +124,49 @@ void BlenderFileLoader::clipLine(float v1[3], float v2[3], float c[3], float z)
 // clip the triangle (V1, V2, V3) by the near and far clipping plane and
 // obtain a set of vertices after the clipping.  The number of vertices
 // is at most 5.
-void BlenderFileLoader::clipTriangle(int numTris, float triCoords[][3], float v1[3], float v2[3], float v3[3], int clip[3])
+void BlenderFileLoader::clipTriangle(int numTris, float triCoords[][3], float v1[3], float v2[3], float v3[3],
+									 float triNormals[][3], float n1[3], float n2[3], float n3[3], int clip[3])
 {
-	float *v[3];
+	float *v[3], *n[3];
 	int i, j, k;
 
-	v[0] = v1;
-	v[1] = v2;
-	v[2] = v3;
+	v[0] = v1; n[0] = n1;
+	v[1] = v2; n[1] = n2;
+	v[2] = v3; n[2] = n3;
 	k = 0;
 	for (i = 0; i < 3; i++) {
 		j = (i + 1) % 3;
 		if (clip[i] == NOT_CLIPPED) {
-			copy_v3_v3(triCoords[k++], v[i]);
+			copy_v3_v3(triCoords[k], v[i]);
+			copy_v3_v3(triNormals[k], n[i]);
+			k++;
 			if (clip[j] != NOT_CLIPPED) {
-				clipLine(v[i], v[j], triCoords[k++], (clip[j] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
+				clipLine(v[i], v[j], triCoords[k], (clip[j] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
+				copy_v3_v3(triNormals[k], n[j]);
+				k++;
 			}
 		} else if (clip[i] != clip[j]) {
 			if (clip[j] == NOT_CLIPPED) {
-				clipLine(v[i], v[j], triCoords[k++], (clip[i] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
+				clipLine(v[i], v[j], triCoords[k], (clip[i] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
+				copy_v3_v3(triNormals[k], n[i]);
+				k++;
 			} else {
-				clipLine(v[i], v[j], triCoords[k++], (clip[i] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
-				clipLine(v[i], v[j], triCoords[k++], (clip[j] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
+				clipLine(v[i], v[j], triCoords[k], (clip[i] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
+				copy_v3_v3(triNormals[k], n[i]);
+				k++;
+				clipLine(v[i], v[j], triCoords[k], (clip[j] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
+				copy_v3_v3(triNormals[k], n[j]);
+				k++;
 			}
 		}
 	}
 	assert (k == 2 + numTris);
 }
 
-void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v2[3], float v3[3])
+void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v2[3], float v3[3],
+									float n1[3], float n2[3], float n3[3])
 {
-	float v12[3], v13[3], n[3];
-	float *fv[3], len;
+	float *fv[3], *fn[3], len;
 	unsigned i, j;
 
 	// initialize the bounding box by the first vertex
@@ -163,19 +175,13 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
 		copy_v3_v3(ls->maxBBox, v1);
 	}
 
-	// compute the normal of the triangle
-	sub_v3_v3v3(v12, v1, v2);
-	sub_v3_v3v3(v13, v1, v3);
-	cross_v3_v3v3(n, v12, v13);
-	normalize_v3(n);
-
-	fv[0] = v1;
-	fv[1] = v2;
-	fv[2] = v3;
+	fv[0] = v1; fn[0] = n1;
+	fv[1] = v2; fn[1] = n2;
+	fv[2] = v3; fn[2] = n3;
 	for (i = 0; i < 3; i++) {
 
 		copy_v3_v3(ls->pv, fv[i]);
-		copy_v3_v3(ls->pn, n);
+		copy_v3_v3(ls->pn, fn[i]);
 
 		// update the bounding box
 		for (j = 0; j < 3; j++)
@@ -215,6 +221,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	VlakRen *vlr;
 	unsigned numFaces = 0;
 	float v1[3], v2[3], v3[3], v4[3];
+	float n1[3], n2[3], n3[3], n4[3], facenormal[3];
 	int clip_1[3], clip_2[3];
 	int wire_material = 0;
 	for(int a=0; a < obr->totvlak; a++) {
@@ -302,6 +309,18 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 				mul_m4_v3(obi->mat, v3);
 				if (vlr->v4) mul_m4_v3(obi->mat, v4);
 			}
+			if (_smooth && (vlr->flag & R_SMOOTH)) {
+				copy_v3_v3(n1, vlr->v1->n);
+				copy_v3_v3(n2, vlr->v2->n);
+				copy_v3_v3(n3, vlr->v3->n);
+				if (vlr->v4) copy_v3_v3(n4, vlr->v4->n);
+			} else {
+				RE_vlakren_get_normal(_re, obi, vlr, facenormal);
+				copy_v3_v3(n1, facenormal);
+				copy_v3_v3(n2, facenormal);
+				copy_v3_v3(n3, facenormal);
+				if (vlr->v4) copy_v3_v3(n4, facenormal);
+			}
 
 			unsigned numTris_1, numTris_2;
 			numTris_1 = countClippedFaces(v1, v2, v3, clip_1);
@@ -347,20 +366,22 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		    	}
 	  		}
 
-			float triCoords[5][3];
+			float triCoords[5][3], triNormals[5][3];
 
 			if (numTris_1 > 0) {
-				clipTriangle(numTris_1, triCoords, v1, v2, v3, clip_1);
+				clipTriangle(numTris_1, triCoords, v1, v2, v3, triNormals, n1, n2, n3, clip_1);
 				for (i = 0; i < numTris_1; i++) {
-					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2]);
+					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
+						triNormals[0], triNormals[i+1], triNormals[i+2]);
 					_numFacesRead++;
 				}
 			}
 
 			if (numTris_2 > 0) {
-				clipTriangle(numTris_2, triCoords, v1, v3, v4, clip_2);
+				clipTriangle(numTris_2, triCoords, v1, v3, v4, triNormals, n1, n3, n4, clip_2);
 				for (i = 0; i < numTris_2; i++) {
-					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2]);
+					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
+						triNormals[0], triNormals[i+1], triNormals[i+2]);
 					_numFacesRead++;
 				}
 			}
