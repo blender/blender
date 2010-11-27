@@ -4938,17 +4938,16 @@ void ui_button_active_free(const bContext *C, uiBut *but)
 void uiContextActiveProperty(const bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index)
 {
 	ARegion *ar= CTX_wm_region(C);
-	uiBlock *block;
-	uiBut *but, *activebut;
 
 	memset(ptr, 0, sizeof(*ptr));
 	*prop= NULL;
 	*index= 0;
 
 	while(ar) {
+		uiBlock *block;
+		uiBut *but, *activebut= NULL;
+	
 		/* find active button */
-		activebut= NULL;
-
 		for(block=ar->uiblocks.first; block; block=block->next) {
 			for(but=block->buttons.first; but; but= but->next) {
 				if(but->active)
@@ -4958,20 +4957,20 @@ void uiContextActiveProperty(const bContext *C, struct PointerRNA *ptr, struct P
 			}
 		}
 
-		if(activebut) {
-			if(activebut->rnapoin.data) {
-				uiHandleButtonData *data= activebut->active;
-				
-				/* found RNA button */
-				*ptr= activebut->rnapoin;
-				*prop= activebut->rnaprop;
-				*index= activebut->rnaindex;
-			
-				/* recurse into opened menu, like colorpicker case */
-				if(data && data->menu)
-					ar = data->menu->region;
-				else
-					return;
+		if(activebut && activebut->rnapoin.data) {
+			uiHandleButtonData *data= activebut->active;
+
+			/* found RNA button */
+			*ptr= activebut->rnapoin;
+			*prop= activebut->rnaprop;
+			*index= activebut->rnaindex;
+
+			/* recurse into opened menu, like colorpicker case */
+			if(data && data->menu && (ar != data->menu->region)) {
+				ar = data->menu->region;
+			}
+			else {
+				return;
 			}
 		}
 		else {
