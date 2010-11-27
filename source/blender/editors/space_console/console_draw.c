@@ -154,6 +154,7 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 		int prompt_len= strlen(sc->prompt);
 		int xy[2] = {CONSOLE_DRAW_MARGIN, CONSOLE_DRAW_MARGIN};
 		const int cursor = ((ConsoleLine *)sc->history.last)->cursor;
+		xy[1] += tvc->lheight/6;
 		
 		/* cursor */
 		UI_GetThemeColor3ubv(TH_CONSOLE_CURSOR, (char *)fg);

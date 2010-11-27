@@ -217,7 +217,7 @@ int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick
 {
 	ConsoleDrawContext cdc= {0};
 
-	int x_orig=CONSOLE_DRAW_MARGIN, y_orig=CONSOLE_DRAW_MARGIN;
+	int x_orig=CONSOLE_DRAW_MARGIN, y_orig=CONSOLE_DRAW_MARGIN + tvc->lheight/6;
 	int xy[2], y_prev;
 	int sel[2]= {-1, -1}; /* defaults disabled */
 	unsigned char fg[3], bg[3];
