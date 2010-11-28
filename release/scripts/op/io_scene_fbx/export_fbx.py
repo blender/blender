@@ -2639,10 +2639,10 @@ Takes:  {''')
                 act_end = int(act_end)
 
                 # Set the action active
-                for my_bone in ob_arms:
-                    if ob.animation_data and blenAction in my_bone.blenActionList:
-                        ob.animation_data.action = blenAction
-                        # print '\t\tSetting Action!', blenAction
+                for my_arm in ob_arms:
+                    if my_arm.blenObject.animation_data and blenAction in my_arm.blenActionList:
+                        my_arm.blenObject.animation_data.action = blenAction
+                        # print('\t\tSetting Action!', blenAction)
                 # scene.update(1)
 
             file.write('\n\t\tFileName: "Default_Take.tak"') # ??? - not sure why this is needed
@@ -2801,9 +2801,9 @@ Takes:  {''')
 
             # end action loop. set original actions
             # do this after every loop incase actions effect eachother.
-            for my_bone in ob_arms:
-                if my_bone.blenObject.animation_data:
-                    my_bone.blenObject.animation_data.action = my_bone.blenAction
+            for my_arm in ob_arms:
+                if my_arm.blenObject.animation_data:
+                    my_arm.blenObject.animation_data.action = my_arm.blenAction
 
         file.write('\n}')
 
@@ -2871,10 +2871,12 @@ Takes:  {''')
     file.write('\n}')
     file.write('\n')
 
-    # Incase sombody imports this, clean up by clearing global dicts
+    # XXX, shouldnt be global!
     sane_name_mapping_ob.clear()
     sane_name_mapping_mat.clear()
     sane_name_mapping_tex.clear()
+    sane_name_mapping_take.clear()
+    sane_name_mapping_group.clear()
 
     ob_arms[:] =	[]
     ob_bones[:] =	[]
