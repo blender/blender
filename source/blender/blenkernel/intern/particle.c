@@ -4359,7 +4359,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 		normalize_v3(side);
 		cross_v3_v3v3(nor, vec, side);
 
-		 unit_m4(mat);
+		unit_m4(mat);
 		VECCOPY(mat[0], vec);
 		VECCOPY(mat[1], side);
 		VECCOPY(mat[2], nor);

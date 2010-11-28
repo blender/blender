@@ -5779,13 +5779,8 @@ EditBone * test_subdivideByCorrelation(Scene *scene, Object *obedit, ReebArc *ar
 
 	if (scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
 	{
-		float invmat[4][4] = {	{1, 0, 0, 0},
-								{0, 1, 0, 0},
-								{0, 0, 1, 0},
-								{0, 0, 0, 1}};
-		float tmat[3][3] = {	{1, 0, 0},
-								{0, 1, 0},
-								{0, 0, 1}};
+		float invmat[4][4]= MAT4_UNITY;
+		float tmat[3][3]= MAT3_UNITY;
 		ReebArcIterator arc_iter;
 		BArcIterator *iter = (BArcIterator*)&arc_iter;
 		bArmature *arm= obedit->data;
@@ -5831,13 +5826,8 @@ EditBone * test_subdivideByLength(Scene *scene, Object *obedit, ReebArc *arc, Re
 	if ((scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH) &&
 		arcLengthRatio(arc) >= G.scene->toolsettings->skgen_length_ratio)
 	{
-		float invmat[4][4] = {	{1, 0, 0, 0},
-								{0, 1, 0, 0},
-								{0, 0, 1, 0},
-								{0, 0, 0, 1}};
-		float tmat[3][3] = {	{1, 0, 0},
-								{0, 1, 0},
-								{0, 0, 1}};
+		float invmat[4][4]= MAT4_UNITY;
+		float tmat[3][3]= MAT3_UNITY;
 		ReebArcIterator arc_iter;
 		BArcIterator *iter = (BArcIterator*)&arc_iter;
 		bArmature *arm= obedit->data;

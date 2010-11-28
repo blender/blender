@@ -379,9 +379,7 @@ static PyObject *Vector_ToTrackQuat(VectorObject *self, PyObject *args )
 		flip vector around, since vectoquat expect a vector from target to tracking object 
 		and the python function expects the inverse (a vector to the target).
 	*/
-	vec[0] = -self->vec[0];
-	vec[1] = -self->vec[1];
-	vec[2] = -self->vec[2];
+	negate_v3_v3(vec, self->vec);
 
 	vec_to_quat( quat,vec, track, up);
 
@@ -1400,9 +1398,7 @@ static PyObject *Vector_subscript(VectorObject* self, PyObject* item)
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "vector indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "vector indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return NULL;
 	}
 }
@@ -1431,9 +1427,7 @@ static int Vector_ass_subscript(VectorObject* self, PyObject* item, PyObject* va
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "vector indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "vector indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return -1;
 	}
 }
@@ -2163,7 +2157,7 @@ static char vector_doc[] =
 PyTypeObject vector_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	/*  For printing, in format "<module>.<name>" */
-	"vector",             /* char *tp_name; */
+	"mathutils.Vector",             /* char *tp_name; */
 	sizeof(VectorObject),         /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
@@ -2296,6 +2290,6 @@ PyObject *newVectorObject_cb(PyObject *cb_user, int size, int cb_type, int cb_su
 		self->cb_type=			(unsigned char)cb_type;
 		self->cb_subtype=		(unsigned char)cb_subtype;
 	}
-	
+
 	return (PyObject *)self;
 }

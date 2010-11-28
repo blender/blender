@@ -105,7 +105,7 @@ Mathutils_Callback mathutils_matrix_vector_cb = {
 //----------------------------------mathutils.Matrix() -----------------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 //create a new matrix type
-static PyObject *Matrix_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PyObject *argObject, *m, *s;
 	MatrixObject *mat;
@@ -124,7 +124,7 @@ static PyObject *Matrix_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 		PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix(): expects 0-4 numeric sequences of the same size");
 		return NULL;
 	} else if (argSize == 0) { //return empty 4D matrix
-		return (PyObject *) newMatrixObject(NULL, 4, 4, Py_NEW, NULL);
+		return (PyObject *) newMatrixObject(NULL, 4, 4, Py_NEW, type);
 	}else if (argSize == 1){
 		//copy constructor for matrix objects
 		argObject = PyTuple_GET_ITEM(args, 0);
@@ -180,7 +180,7 @@ static PyObject *Matrix_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 			}
 		}
 	}
-	return newMatrixObject(matrix, argSize, seqSize, Py_NEW, NULL);
+	return newMatrixObject(matrix, argSize, seqSize, Py_NEW, type);
 }
 
 /*-----------------------CLASS-METHODS----------------------------*/
@@ -1410,7 +1410,7 @@ static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
 
 	list = PyList_New(end - begin);
 	for(count = begin; count < end; count++) {
-		PyList_SetItem(list, count - begin,
+		PyList_SET_ITEM(list, count - begin,
 				newVectorObject_cb((PyObject *)self, self->colSize, mathutils_matrix_vector_cb_index, count));
 
 	}
@@ -1597,7 +1597,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 			}
 		}
 		
-		return newMatrixObject(mat, mat2->rowSize, mat1->colSize, Py_NEW, NULL);
+		return newMatrixObject(mat, mat2->rowSize, mat1->colSize, Py_NEW, Py_TYPE(mat1));
 	}
 	
 	if(mat1==NULL){
@@ -1608,7 +1608,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 					mat[((x * mat2->colSize) + y)] = scalar * mat2->matrix[x][y];
 				}
 			}
-			return newMatrixObject(mat, mat2->rowSize, mat2->colSize, Py_NEW, NULL);
+			return newMatrixObject(mat, mat2->rowSize, mat2->colSize, Py_NEW, Py_TYPE(mat2));
 		}
 		
 		PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation");
@@ -1627,7 +1627,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 						mat[((x * mat1->colSize) + y)] = scalar * mat1->matrix[x][y];
 					}
 				}
-				return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW, NULL);
+				return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW, Py_TYPE(mat1));
 			}
 		}
 		PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation");
@@ -1688,9 +1688,7 @@ static PyObject *Matrix_subscript(MatrixObject* self, PyObject* item)
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "vector indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "vector indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return NULL;
 	}
 }
@@ -1719,9 +1717,7 @@ static int Matrix_ass_subscript(MatrixObject* self, PyObject* item, PyObject* va
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "matrix indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return -1;
 	}
 }
@@ -1865,7 +1861,7 @@ static char matrix_doc[] =
 
 PyTypeObject matrix_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"matrix",						/*tp_name*/
+	"mathutils.Matrix",						/*tp_name*/
 	sizeof(MatrixObject),			/*tp_basicsize*/
 	0,								/*tp_itemsize*/
 	(destructor)BaseMathObject_dealloc,		/*tp_dealloc*/

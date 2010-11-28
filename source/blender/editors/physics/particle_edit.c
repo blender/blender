@@ -593,7 +593,7 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 	ParticleSystemModifierData *psmd = NULL;
 	ParticleEditSettings *pset= PE_settings(data->scene);
 	POINT_P; KEY_K;
-	float mat[4][4], imat[4][4];
+	float mat[4][4]= MAT4_UNITY, imat[4][4]= MAT4_UNITY;
 
 	if(edit->psys)
 		psmd= psys_get_modifier(data->ob, edit->psys);
@@ -601,9 +601,6 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 	/* all is selected in path mode */
 	if(pset->selectmode==SCE_SELECT_PATH)
 		selected= 0;
-
-	unit_m4(imat);
-	unit_m4(mat);
 
 	LOOP_VISIBLE_POINTS {
 		if(pset->selectmode==SCE_SELECT_END) {
@@ -1605,7 +1602,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, s
 	ParticleSystem *psys = edit->psys;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 	POINT_P; KEY_K;
-	float co[3], mat[4][4];
+	float co[3], mat[4][4]= MAT4_UNITY;
 	short vertco[2];
 
 	PEData data;
@@ -1618,8 +1615,6 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, s
 
 	/* only for depths */
 	PE_set_view3d_data(C, &data);
-
-	unit_m4(mat);
 
 	LOOP_VISIBLE_POINTS {
 		if(edit->psys && !(psys->flag & PSYS_GLOBAL_HAIR))

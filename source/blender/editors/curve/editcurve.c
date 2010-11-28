@@ -5754,8 +5754,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 	int a, b, cutype, stype;
 	int force_3d = ((Curve *)obedit->data)->flag & CU_3D; /* could be adding to an existing 3D curve */
 
-	float umat[4][4];
-	unit_m4(umat);
+	float umat[4][4]= MAT4_UNITY;
 
 	cutype= type & CU_TYPE;	// poly, bezier, nurbs, etc
 	stype= type & CU_PRIMITIVE;

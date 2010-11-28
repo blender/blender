@@ -1316,8 +1316,7 @@ static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int mov
 
 	/* Screen aligned view rot circle */
 	if(drawflags & MAN_ROT_V) {
-		float unitmat[4][4];
-		unit_m4(unitmat);
+		float unitmat[4][4]= MAT4_UNITY;
 
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_V);
 		UI_ThemeColor(TH_TRANSFORM);

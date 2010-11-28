@@ -560,7 +560,7 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 
 int transformEvent(TransInfo *t, wmEvent *event)
 {
-	float mati[3][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
+	float mati[3][3]= MAT3_UNITY;
 	char cmode = constraintModeToChar(t);
 	int handled = 1;
 

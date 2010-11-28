@@ -225,9 +225,8 @@ static PyObject *Color_slice(ColorObject * self, int begin, int end)
 	begin = MIN2(begin,end);
 
 	list = PyList_New(end - begin);
-	for(count = begin; count < end; count++) {
-		PyList_SetItem(list, count - begin,
-				PyFloat_FromDouble(self->col[count]));
+	for(count= begin; count < end; count++) {
+		PyList_SET_ITEM(list, count - begin, PyFloat_FromDouble(self->col[count]));
 	}
 
 	return list;
@@ -290,9 +289,7 @@ static PyObject *Color_subscript(ColorObject *self, PyObject *item)
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "color indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return NULL;
 	}
 }
@@ -321,9 +318,7 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "color indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return -1;
 	}
 }
@@ -468,7 +463,7 @@ static char color_doc[] =
 
 PyTypeObject color_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"color",						//tp_name
+	"mathutils.Color",						//tp_name
 	sizeof(ColorObject),			//tp_basicsize
 	0,								//tp_itemsize
 	(destructor)BaseMathObject_dealloc,		//tp_dealloc

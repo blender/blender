@@ -305,7 +305,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		case PROP_QUATERNION:
 			if(len==3) { /* euler */
 				if(is_thick) {
-					/* attempt to get order, only needed for thixk types since wrapped with update via callbacks */
+					/* attempt to get order, only needed for thick types since wrapped with update via callbacks */
 					PropertyRNA *prop_eul_order= NULL;
 					short order= pyrna_rotation_euler_order_get(ptr, &prop_eul_order, ROT_MODE_XYZ);
 

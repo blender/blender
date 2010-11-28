@@ -1704,10 +1704,9 @@ void polarview_m4(float Vm[][4],float dist, float azimuth, float incidence, floa
 void lookat_m4(float mat[][4],float vx, float vy, float vz, float px, float py, float pz, float twist)
 {
 	float sine, cosine, hyp, hyp1, dx, dy, dz;
-	float mat1[4][4];
+	float mat1[4][4]= MAT4_UNITY;
 	
 	unit_m4(mat);
-	unit_m4(mat1);
 
 	rotate_m4(mat, 'Z', -twist);
 

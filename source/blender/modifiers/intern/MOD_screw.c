@@ -168,11 +168,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	ScrewVertConnect *vc, *vc_tmp, *vert_connect= NULL;
 
-	float mat[4][4] =	{{0.0f, 0.0f, 0.0f, 0.0f},
-						 {0.0f, 0.0f, 0.0f, 0.0f},
-						 {0.0f, 0.0f, 0.0f, 0.0f},
-						 {0.0f, 0.0f, 0.0f, 1.0f}};
-
 	/* dont do anything? */
 	if (!totvert)
 		return CDDM_from_template(dm, 0, 0, 0);
@@ -674,6 +669,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		const int varray_stride= totvert * step;
 		float step_angle;
 		float nor_tx[3];
+		float mat[4][4];
 		/* Rotation Matrix */
 		step_angle= (angle / (step_tot - (!close))) * step;
 

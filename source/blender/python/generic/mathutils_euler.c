@@ -39,7 +39,7 @@
 
 //----------------------------------mathutils.Euler() -------------------
 //makes a new euler for you to play with
-static PyObject *Euler_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PyObject *seq= NULL;
 	char *order_str= NULL;
@@ -67,7 +67,7 @@ static PyObject *Euler_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject 
 			return NULL;
 		break;
 	}
-	return newEulerObject(eul, order, Py_NEW, NULL);
+	return newEulerObject(eul, order, Py_NEW, type);
 }
 
 short euler_order_from_string(const char *str, const char *error_prefix)
@@ -456,8 +456,7 @@ static PyObject *Euler_slice(EulerObject * self, int begin, int end)
 
 	list = PyList_New(end - begin);
 	for(count = begin; count < end; count++) {
-		PyList_SetItem(list, count - begin,
-				PyFloat_FromDouble(self->eul[count]));
+		PyList_SET_ITEM(list, count - begin, PyFloat_FromDouble(self->eul[count]));
 	}
 
 	return list;
@@ -520,9 +519,7 @@ static PyObject *Euler_subscript(EulerObject *self, PyObject *item)
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "euler indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "euler indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return NULL;
 	}
 }
@@ -552,9 +549,7 @@ static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *valu
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "euler indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "euler indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return -1;
 	}
 }
@@ -650,7 +645,7 @@ static char euler_doc[] =
 
 PyTypeObject euler_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"euler",						//tp_name
+	"mathutils.Euler",						//tp_name
 	sizeof(EulerObject),			//tp_basicsize
 	0,								//tp_itemsize
 	(destructor)BaseMathObject_dealloc,		//tp_dealloc
