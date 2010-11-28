@@ -2907,6 +2907,8 @@ void ntreeCompositTagRender(Scene *curscene)
 			for(node= sce->nodetree->nodes.first; node; node= node->next) {
 				if(node->id==(ID *)curscene || node->type==CMP_NODE_COMPOSITE)
 					NodeTagChanged(sce->nodetree, node);
+				else if(node->type==CMP_NODE_TEXTURE) /* uses scene sizex/sizey */
+					NodeTagChanged(sce->nodetree, node);
 			}
 		}
 	}
