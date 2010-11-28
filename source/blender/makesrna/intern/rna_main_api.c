@@ -472,7 +472,7 @@ void rna_Main_particles_remove(Main *bmain, ReportList *reports, ParticleSetting
 	/* XXX python now has invalid pointer? */
 }
 
-FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, char* name)
+FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char* name)
 {
 	FreestyleLineStyle *linestyle = FRS_new_linestyle(name, bmain);
 	linestyle->id.us--;
