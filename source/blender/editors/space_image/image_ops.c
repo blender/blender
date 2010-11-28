@@ -1244,7 +1244,7 @@ void IMAGE_OT_reload(wmOperatorType *ot)
 
 /********************** new image operator *********************/
 
-static int new_exec(bContext *C, wmOperator *op)
+static int image_new_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima;
 	Scene *scene;
@@ -1301,16 +1301,11 @@ static int new_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-/* XXX is temp, redo is not possible in editmode due to undo conflicts */
-static int space_image_no_editmode_poll(bContext *C)
+/* XXX, Ton is not a fan of OK buttons but using this function to avoid undo/redo bug while in mesh-editmode, - campbell */
+static int image_new_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
-	Object *ob= CTX_data_edit_object(C);
+	return WM_operator_props_dialog_popup(C, op, 300, 100);
 
-	if(sima && ob)
-		return 0; 
-	
-	return 1;
 }
 
 void IMAGE_OT_new(wmOperatorType *ot)
@@ -1323,9 +1318,8 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_new";
 	
 	/* api callbacks */
-	ot->exec= new_exec;
-	ot->invoke= WM_operator_props_popup;
-	ot->poll= space_image_no_editmode_poll;
+	ot->exec= image_new_exec;
+	ot->invoke= image_new_invoke;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
