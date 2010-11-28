@@ -384,8 +384,16 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
 
         col.label(text="Frame Offset %d:%d" % (strip.frame_offset_start, strip.frame_offset_end))
         col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
-        if strip.type in ('MOVIE', 'IMAGE'):
-            col.label(text="Orig Dim: %dx%d" % (strip.orig_width, strip.orig_height))
+
+        elem = False
+        
+        if strip.type == 'IMAGE':
+            elem = strip.getStripElem(frame_current)
+        elif strip.type == 'MOVIE':
+            elem = strip.elements[0]
+
+        if elem and elem.orig_width > 0 and elem.orig_height > 0:
+            col.label(text="Orig Dim: %dx%d" % (elem.orig_width, elem.orig_height))
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):

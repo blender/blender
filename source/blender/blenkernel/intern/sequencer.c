@@ -1558,9 +1558,6 @@ static ImBuf * input_preprocess(
 {
 	float mul;
 
-	seq->strip->orx= ibuf->x;
-	seq->strip->ory= ibuf->y;
-
 	if((seq->flag & SEQ_FILTERY) && seq->type != SEQ_MOVIE) {
 		IMB_filtery(ibuf);
 	}
@@ -2054,6 +2051,9 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 					IMB_convert_profile(ibuf, IB_PROFILE_NONE);
 
 				copy_to_ibuf_still(context, seq, nr, ibuf);
+
+				s_elem->orig_width  = ibuf->x;
+				s_elem->orig_height = ibuf->y;
 			}
 			break;
 		}
@@ -2073,7 +2073,10 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 				/* we don't need both (speed reasons)! */
 				if (ibuf && ibuf->rect_float && ibuf->rect)
 					imb_freerectImBuf(ibuf);
-
+				if (ibuf) {
+					seq->strip->stripdata->orig_width = ibuf->x;
+					seq->strip->stripdata->orig_height = ibuf->y;
+				}
 			}
 			copy_to_ibuf_still(context, seq, nr, ibuf);
 			break;

@@ -2561,18 +2561,15 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 	if(active_seq==NULL)
 		return OPERATOR_CANCELLED;
 
-	switch (active_seq->type) {
+	StripElem * se = 0;
+
+	if (active_seq->strip) {
+		switch (active_seq->type) {
 		case SEQ_IMAGE:
+			se = give_stripelem(active_seq, scene->r.cfra);
+			break;
 		case SEQ_MOVIE:
-			if (active_seq->strip) {
-				// prevent setting the render size if sequence values aren't initialized
-				if ( (active_seq->strip->orx>0) && (active_seq->strip->ory>0) ) {
-					scene->r.xsch= active_seq->strip->orx;
-					scene->r.ysch= active_seq->strip->ory;
-					WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
-					retval = OPERATOR_FINISHED;
-				}
-			}
+			se = active_seq->strip->stripdata;
 			break;
 		case SEQ_SCENE:
 		case SEQ_META:
@@ -2580,7 +2577,19 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 		case SEQ_HD_SOUND:
 		default:
 			break;
+		}
 	}
+
+	if (se) {
+		// prevent setting the render size if sequence values aren't initialized
+		if ( (se->orig_width > 0) && (se->orig_height > 0) ) {
+			scene->r.xsch= se->orig_width;
+			scene->r.ysch= se->orig_height;
+			WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+			retval = OPERATOR_FINISHED;
+		}
+	}
+
 	return retval;
 }
 
