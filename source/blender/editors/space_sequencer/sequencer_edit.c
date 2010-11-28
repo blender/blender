@@ -2557,11 +2557,11 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 	int retval = OPERATOR_CANCELLED;
 	Scene *scene= CTX_data_scene(C);
 	Sequence *active_seq = seq_active_get(scene);
+	StripElem *se = NULL;
 
 	if(active_seq==NULL)
 		return OPERATOR_CANCELLED;
 
-	StripElem * se = 0;
 
 	if (active_seq->strip) {
 		switch (active_seq->type) {
