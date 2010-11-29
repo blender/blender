@@ -51,12 +51,6 @@
 
 #include "BIF_gl.h"
 
-
-#ifdef WITH_PYTHON
-//#include "BPY_extern.h"
-//#include "BPY_menus.h"
-#endif
-
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
