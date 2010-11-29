@@ -156,7 +156,7 @@ void WM_cursor_restore(wmWindow *win)
 void WM_cursor_wait(int val)
 {
 	wmWindowManager *wm= G.main->wm.first;
-	wmWindow *win= wm->windows.first; 
+	wmWindow *win= wm?wm->windows.first:NULL; 
 	
 	for(; win; win= win->next) {
 		if(val) {
