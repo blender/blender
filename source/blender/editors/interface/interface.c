@@ -3394,6 +3394,7 @@ uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxle
 	return but;
 }
 
+
 /* arg is user value, searchfunc and handlefunc both get it as arg */
 /* if active set, button opens with this item visible and selected */
 void uiButSetSearchFunc(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandleFunc bfunc, void *active)
@@ -3402,6 +3403,13 @@ void uiButSetSearchFunc(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandl
 	but->search_arg= arg;
 	
 	uiButSetFunc(but, bfunc, arg, active);
+	
+	/* search buttons show red-alert if item doesn't exist, not for menus */
+	if(0==(but->block->flag & UI_BLOCK_LOOP)) {
+		/* skip empty buttons, not all buttons need input, we only show invalid */
+		if(but->drawstr[0])
+			ui_but_search_test(but);
+	}
 }
 
 /* Program Init/Exit */

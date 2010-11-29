@@ -611,9 +611,12 @@ int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int icon
 		return 1;
 	}
 	
-	BLI_strncpy(items->names[items->totitem], name, items->maxstrlen);
-	items->pointers[items->totitem]= poin;
-	items->icons[items->totitem]= iconid;
+	if(items->names)
+		BLI_strncpy(items->names[items->totitem], name, items->maxstrlen);
+	if(items->pointers)
+		items->pointers[items->totitem]= poin;
+	if(items->icons)
+		items->icons[items->totitem]= iconid;
 	
 	items->totitem++;
 	
@@ -1075,6 +1078,32 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 void ui_searchbox_free(bContext *C, ARegion *ar)
 {
 	ui_remove_temporary_region(C, CTX_wm_screen(C), ar);
+}
+
+/* sets red alert if button holds a string it can't find */
+void ui_but_search_test(uiBut *but)
+{
+	uiSearchItems *items= MEM_callocN(sizeof(uiSearchItems), "search items");
+	char *strp[2], str[256];
+	
+	items->maxitem= 1;
+	items->maxstrlen= 256;
+	strp[0]= str;
+	items->names= strp;
+	
+	/* changed flag makes search only find name */
+	but->changed= TRUE;
+	but->search_func(but->block->evil_C, but->search_arg, but->drawstr, items);
+	but->changed= 0;
+	
+	if(items->totitem==0)
+		uiButSetFlag(but, UI_BUT_REDALERT);
+	else if(items->totitem==1) {
+		if(strcmp(but->drawstr, str)!=0)
+			uiButSetFlag(but, UI_BUT_REDALERT);
+	}
+				  
+	MEM_freeN(items);
 }
 
 

@@ -421,6 +421,7 @@ void ui_searchbox_autocomplete(struct bContext *C, struct ARegion *ar, uiBut *bu
 void ui_searchbox_event(struct bContext *C, struct ARegion *ar, uiBut *but, struct wmEvent *event);
 void ui_searchbox_apply(uiBut *but, struct ARegion *ar);
 void ui_searchbox_free(struct bContext *C, struct ARegion *ar);
+void ui_but_search_test(uiBut *but);
 
 typedef uiBlock* (*uiBlockHandleCreateFunc)(struct bContext *C, struct uiPopupBlockHandle *handle, void *arg1);
 
