@@ -90,10 +90,14 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 # Setup the exe sources and buildinfo
-SET(EXESRC creator.c)
+SET(SRC
+	creator.c
+)
 
 IF(WIN32 AND NOT UNIX)
-	LIST(APPEND EXESRC ../icons/winblender.rc)
+	LIST(APPEND SRC
+		../icons/winblender.rc
+	)
 ENDIF(WIN32 AND NOT UNIX)
 
 IF(WITH_BUILDINFO)
@@ -112,12 +116,14 @@ IF(WITH_BUILDINFO)
 		-DBUILD_SYSTEM="CMake"
 	)
 
-	LIST(APPEND EXESRC buildinfo.c)
+	LIST(APPEND SRC
+		buildinfo.c
+	)
 ENDIF(WITH_BUILDINFO)
 
 MESSAGE(STATUS "Configuring blender")
 
-ADD_EXECUTABLE(blender ${EXETYPE} ${EXESRC})
+ADD_EXECUTABLE(blender ${EXETYPE} ${SRC})
 
 # Post build steps for bundling/packaging.
 

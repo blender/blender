@@ -35,6 +35,8 @@ SET(SRC
 	action_ops.c
 	action_select.c
 	space_action.c
+
+	action_intern.h
 )
 
 BLENDERLIB(bf_editor_space_action "${SRC}" "${INC}")

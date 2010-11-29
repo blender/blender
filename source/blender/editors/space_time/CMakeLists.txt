@@ -32,6 +32,8 @@ SET(INC
 SET(SRC
 	space_time.c
 	time_ops.c
+
+	time_intern.h
 )
 
 BLENDERLIB(bf_editor_space_time "${SRC}" "${INC}")

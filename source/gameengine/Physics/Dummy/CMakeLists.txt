@@ -31,6 +31,8 @@ SET(INC
 
 SET(SRC
 	DummyPhysicsEnvironment.cpp
+
+	DummyPhysicsEnvironment.h
 )
 
 BLENDERLIB(ge_phys_dummy "${SRC}" "${INC}")

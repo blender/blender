@@ -53,6 +53,26 @@ SET(SRC
 	intern/BOP_Tag.cpp
 	intern/BOP_Triangulator.cpp
 	intern/BOP_Vertex.cpp
+
+	extern/BOP_Interface.h
+	intern/BOP_BBox.h
+	intern/BOP_BSPNode.h
+	intern/BOP_BSPTree.h
+	intern/BOP_Chrono.h
+	intern/BOP_Edge.h
+	intern/BOP_Face.h
+	intern/BOP_Face2Face.h
+	intern/BOP_Indexs.h
+	intern/BOP_MathUtils.h
+	intern/BOP_Merge.h
+	intern/BOP_Merge2.h
+	intern/BOP_Mesh.h
+	intern/BOP_Misc.h
+	intern/BOP_Segment.h
+	intern/BOP_Splitter.h
+	intern/BOP_Tag.h
+	intern/BOP_Triangulator.h
+	intern/BOP_Vertex.h
 )
 
 BLENDERLIB(bf_intern_bop "${SRC}" "${INC}")

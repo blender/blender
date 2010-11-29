@@ -34,6 +34,8 @@ SET(SRC
 	buttons_header.c
 	buttons_ops.c
 	space_buttons.c
+
+	buttons_intern.h
 )
 
 BLENDERLIB(bf_editor_space_buttons "${SRC}" "${INC}")

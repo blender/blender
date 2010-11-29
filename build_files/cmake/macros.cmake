@@ -7,16 +7,12 @@ MACRO(BLENDERLIB_NOLIST
 
 	MESSAGE(STATUS "Configuring library ${name}")
 
-	# Gather all headers
-	FILE(GLOB_RECURSE INC_ALL *.h)
-		 
 	INCLUDE_DIRECTORIES(${includes})
-	ADD_LIBRARY(${name} ${INC_ALL} ${sources})
+	ADD_LIBRARY(${name} ${sources})
 
 	# Group by location on disk
 	SOURCE_GROUP("Source Files" FILES CMakeLists.txt)
-	SET(ALL_FILES ${sources} ${INC_ALL})
-	FOREACH(SRC ${ALL_FILES})
+	FOREACH(SRC ${sources})
 		GET_FILENAME_COMPONENT(SRC_EXT ${SRC} EXT)
 		IF(${SRC_EXT} MATCHES ".h" OR ${SRC_EXT} MATCHES ".hpp") 
 			SOURCE_GROUP("Header Files" FILES ${SRC})

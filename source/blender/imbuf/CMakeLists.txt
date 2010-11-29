@@ -64,6 +64,36 @@ SET(SRC
 	intern/tiff.c
 	intern/util.c
 	intern/writeimage.c
+
+	IMB_imbuf.h
+	IMB_imbuf_types.h
+	IMB_thumbs.h
+	intern/IMB_allocimbuf.h
+	intern/IMB_anim.h
+	intern/IMB_filetype.h
+	intern/IMB_filter.h
+	intern/IMB_metadata.h
+	intern/cineon/cin_debug_stuff.h
+	intern/cineon/cineonfile.h
+	intern/cineon/cineonlib.h
+	intern/cineon/dpxfile.h
+	intern/cineon/dpxlib.h
+	intern/cineon/logImageCore.h
+	intern/cineon/logImageLib.h
+	intern/cineon/logmemfile.h
+	intern/dds/BlockDXT.h
+	intern/dds/Color.h
+	intern/dds/ColorBlock.h
+	intern/dds/Common.h
+	intern/dds/DirectDrawSurface.h
+	intern/dds/Image.h
+	intern/dds/PixelFormat.h
+	intern/dds/Stream.h
+	intern/dds/dds_api.h
+	intern/imbuf.h
+	intern/md5.h
+	intern/openexr/openexr_api.h
+	intern/openexr/openexr_multi.h
 )
 
 IF(WITH_IMAGE_OPENEXR)

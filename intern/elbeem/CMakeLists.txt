@@ -54,6 +54,36 @@ SET(SRC
 	intern/solver_main.cpp
 	intern/solver_util.cpp
 	intern/utilities.cpp
+
+	extern/LBM_fluidsim.h
+	extern/elbeem.h
+	intern/attributes.h
+	intern/controlparticles.h
+	intern/elbeem_control.h
+	intern/isosurface.h
+	intern/loop_tools.h
+	intern/mcubes_tables.h
+	intern/mvmcoords.h
+	intern/ntl_blenderdumper.h
+	intern/ntl_bsptree.h
+	intern/ntl_geometryclass.h
+	intern/ntl_geometrymodel.h
+	intern/ntl_geometryobject.h
+	intern/ntl_geometryshader.h
+	intern/ntl_lighting.h
+	intern/ntl_matrices.h
+	intern/ntl_ray.h
+	intern/ntl_vector3dim.h
+	intern/ntl_world.h
+	intern/paraloopend.h
+	intern/parametrizer.h
+	intern/particletracer.h
+	intern/simulation_object.h
+	intern/solver_class.h
+	intern/solver_control.h
+	intern/solver_interface.h
+	intern/solver_relax.h
+	intern/utilities.h
 )
 
 ADD_DEFINITIONS(-DNOGUI -DELBEEM_BLENDER=1)

@@ -75,6 +75,40 @@ SET(SRC
 	intern/source/volumetric.c
 	intern/source/voxeldata.c
 	intern/source/zbuf.c
+
+	extern/include/RE_pipeline.h
+	extern/include/RE_raytrace.h
+	extern/include/RE_render_ext.h
+	extern/include/RE_shader_ext.h
+	intern/include/envmap.h
+	intern/include/gammaCorrectionTables.h
+	intern/include/initrender.h
+	intern/include/occlusion.h
+	intern/include/pixelblending.h
+	intern/include/pixelshading.h
+	intern/include/pointdensity.h
+	intern/include/raycounter.h
+	intern/include/rayobject.h
+	intern/include/render_types.h
+	intern/include/rendercore.h
+	intern/include/renderdatabase.h
+	intern/include/renderpipeline.h
+	intern/include/shadbuf.h
+	intern/include/shading.h
+	intern/include/sss.h
+	intern/include/strand.h
+	intern/include/sunsky.h
+	intern/include/texture.h
+	intern/include/volume_precache.h
+	intern/include/volumetric.h
+	intern/include/voxeldata.h
+	intern/include/zbuf.h
+	intern/raytrace/bvh.h
+	intern/raytrace/rayobject_hint.h
+	intern/raytrace/rayobject_rtbuild.h
+	intern/raytrace/reorganize.h
+	intern/raytrace/svbvh.h
+	intern/raytrace/vbvh.h
 )
 
 IF(WITH_IMAGE_OPENEXR)

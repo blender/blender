@@ -33,6 +33,8 @@ SET(INC
 SET(SRC
 	mball_edit.c
 	mball_ops.c
+
+	mball_intern.h
 )
 
 BLENDERLIB(bf_editor_metaball "${SRC}" "${INC}")

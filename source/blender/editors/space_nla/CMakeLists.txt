@@ -37,6 +37,8 @@ SET(SRC
 	nla_ops.c
 	nla_select.c
 	space_nla.c
+
+	nla_intern.h
 )
 
 BLENDERLIB(bf_editor_space_nla "${SRC}" "${INC}")

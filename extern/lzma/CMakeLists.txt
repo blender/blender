@@ -34,6 +34,14 @@ SET(SRC
 	LzmaDec.c
 	LzmaEnc.c
 	LzmaLib.c
+
+	Alloc.h
+	LzFind.h
+	LzHash.h
+	LzmaDec.h
+	LzmaEnc.h
+	LzmaLib.h
+	Types.h
 )
 
 BLENDERLIB(extern_lzma "${SRC}" "${INC}")

@@ -32,6 +32,8 @@ SET(INC
 SET(SRC
 	space_userpref.c
 	userpref_ops.c
+
+	userpref_intern.h
 )
 
 BLENDERLIB(bf_editor_space_userpref "${SRC}" "${INC}")

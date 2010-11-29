@@ -28,16 +28,25 @@ SET(INC .)
 
 SET(SRC
 	./intern/mallocn.c
+
+	BLO_sys_types.h
+	MEM_guardedalloc.h
 )
 
 IF(WIN32 AND NOT UNIX)
-	LIST(APPEND SRC ./intern/mmap_win.c)
+	LIST(APPEND SRC
+		intern/mmap_win.c
+
+		mmap_win.h
+	)
 ENDIF(WIN32 AND NOT UNIX)
 
 BLENDERLIB(bf_intern_guardedalloc "${SRC}" "${INC}")
 
 # Override C++ alloc, optional.
 IF(WITH_CXX_GUARDEDALLOC)
-	SET(SRC cpp/mallocn.cpp)
+	SET(SRC
+		cpp/mallocn.cpp
+	)
 	BLENDERLIB(bf_intern_guardedalloc_cpp "${SRC}" "${INC}")
 ENDIF(WITH_CXX_GUARDEDALLOC)

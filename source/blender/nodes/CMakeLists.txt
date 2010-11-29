@@ -138,6 +138,14 @@ SET(SRC
 	intern/TEX_nodes/TEX_viewer.c
 	intern/TEX_util.c
 	intern/node_util.c
+
+	CMP_node.h
+	SHD_node.h
+	TEX_node.h
+	intern/CMP_util.h
+	intern/SHD_util.h
+	intern/TEX_util.h
+	intern/node_util.h
 )
 
 IF(WITH_PYTHON)

@@ -51,6 +51,8 @@ SET(SRC
 	view3d_snap.c
 	view3d_toolbar.c
 	view3d_view.c
+
+	view3d_intern.h
 )
 
 IF(WITH_GAMEENGINE)

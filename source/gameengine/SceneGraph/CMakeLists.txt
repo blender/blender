@@ -36,6 +36,16 @@ SET(SRC
 	SG_Node.cpp
 	SG_Spatial.cpp
 	SG_Tree.cpp
+
+	SG_BBox.h
+	SG_Controller.h
+	SG_DList.h
+	SG_IObject.h
+	SG_Node.h
+	SG_ParentRelation.h
+	SG_QList.h
+	SG_Spatial.h
+	SG_Tree.h
 )
 
 BLENDERLIB(ge_scenegraph "${SRC}" "${INC}")

@@ -35,6 +35,13 @@ SET(INC
 
 SET(SRC
 	intern/pluginapi.c
+
+	documentation.h
+	externdef.h
+	floatpatch.h
+	iff.h
+	plugin.h
+	util.h
 )
 
 IF(WITH_QUICKTIME)

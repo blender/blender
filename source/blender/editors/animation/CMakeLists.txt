@@ -45,6 +45,8 @@ SET(SRC
 	keyframes_general.c
 	keyframing.c
 	keyingsets.c
+
+	anim_intern.h
 )
 
 BLENDERLIB(bf_editor_animation "${SRC}" "${INC}")

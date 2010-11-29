@@ -49,6 +49,16 @@ SET(SRC
 	bpy_rna_callback.c
 	bpy_util.c
 	stubs.c
+
+	bpy.h
+	bpy_app.h
+	bpy_operator.h
+	bpy_operator_wrap.h
+	bpy_props.h
+	bpy_rna.h
+	bpy_rna_callback.h
+	bpy_util.h
+	../BPY_extern.h
 )
 
 # only to check if buildinfo is available

@@ -35,6 +35,8 @@ SET(SRC
 	console_draw.c
 	console_ops.c
 	space_console.c
+
+	console_intern.h
 )
 
 IF(WITH_PYTHON)

@@ -41,6 +41,8 @@ SET(SRC
 	render_ops.c
 	render_preview.c
 	render_shading.c
+
+	render_intern.h
 )
 
 IF(WITH_QUICKTIME)

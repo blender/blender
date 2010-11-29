@@ -73,6 +73,26 @@ SET(SRC
 	collada.cpp
 	collada_internal.cpp
 	collada_utils.cpp
+
+	AnimationImporter.h
+	ArmatureExporter.h
+	ArmatureImporter.h
+	CameraExporter.h
+	DocumentExporter.h
+	DocumentImporter.h
+	EffectExporter.h
+	GeometryExporter.h
+	ImageExporter.h
+	InstanceWriter.h
+	LightExporter.h
+	MaterialExporter.h
+	MeshImporter.h
+	SkinInfo.h
+	TransformReader.h
+	TransformWriter.h
+	collada.h
+	collada_internal.h
+	collada_utils.h
 )
 
 IF(WITH_BUILDINFO)

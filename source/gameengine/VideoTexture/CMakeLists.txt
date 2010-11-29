@@ -65,6 +65,24 @@ SET(SRC
 	VideoBase.cpp
 	VideoFFmpeg.cpp
 	blendVideoTex.cpp
+
+	BlendType.h
+	Common.h
+	Exception.h
+	FilterBase.h
+	FilterBlueScreen.h
+	FilterColor.h
+	FilterNormal.h
+	FilterSource.h
+	ImageBase.h
+	ImageBuff.h
+	ImageMix.h
+	ImageRender.h
+	ImageViewport.h
+	PyTypeList.h
+	Texture.h
+	VideoBase.h
+	VideoFFmpeg.h
 )
 
 IF(WITH_FFMPEG)

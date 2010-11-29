@@ -62,6 +62,14 @@ SET(SRC
 	superlu/sutil.c
 	superlu/util.c
 	superlu/xerbla.c
+
+	extern/ONL_opennl.h
+	superlu/BLO_sys_types.h
+	superlu/Cnames.h
+	superlu/colamd.h
+	superlu/ssp_defs.h
+	superlu/supermatrix.h
+	superlu/util.h
 )
 
 BLENDERLIB(bf_intern_opennl "${SRC}" "${INC}")

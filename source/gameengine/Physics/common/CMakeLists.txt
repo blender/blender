@@ -36,6 +36,15 @@ SET(SRC
 	PHY_IGraphicController.cpp
 	PHY_IPhysicsEnvironment.cpp
 	PHY_IVehicle.cpp
+
+	PHY_DynamicTypes.h
+	PHY_IController.h
+	PHY_IGraphicController.h
+	PHY_IMotionState.h
+	PHY_IPhysicsController.h
+	PHY_IPhysicsEnvironment.h
+	PHY_IVehicle.h
+	PHY_Pro.h
 )
 
 BLENDERLIB(ge_phys_common "${SRC}" "${INC}")

@@ -122,6 +122,82 @@ SET(SRC
 	KX_VisibilityActuator.cpp
 	KX_WorldInfo.cpp
 	KX_WorldIpoController.cpp
+
+	KX_ArmatureSensor.h
+	KX_BlenderMaterial.h
+	KX_BulletPhysicsController.h
+	KX_Camera.h
+	KX_CameraActuator.h
+	KX_CameraIpoSGController.h
+	KX_ClientObjectInfo.h
+	KX_ConstraintActuator.h
+	KX_ConstraintWrapper.h
+	KX_ConvertPhysicsObject.h
+	KX_Dome.h
+	KX_EmptyObject.h
+	KX_GameActuator.h
+	KX_GameObject.h
+	KX_IInterpolator.h
+	KX_IPOTransform.h
+	KX_IPO_SGController.h
+	KX_IPhysicsController.h
+	KX_IScalarInterpolator.h
+	KX_ISceneConverter.h
+	KX_ISystem.h
+	KX_IpoActuator.h
+	KX_KetsjiEngine.h
+	KX_Light.h
+	KX_LightIpoSGController.h
+	KX_MaterialIpoController.h
+	KX_MeshProxy.h
+	KX_MotionState.h
+	KX_MouseFocusSensor.h
+	KX_NearSensor.h
+	KX_ObColorIpoSGController.h
+	KX_ObjectActuator.h
+	KX_OrientationInterpolator.h
+	KX_ParentActuator.h
+	KX_PhysicsEngineEnums.h
+	KX_PhysicsObjectWrapper.h
+	KX_PhysicsPropertiesobsolete.h
+	KX_PolyProxy.h
+	KX_PolygonMaterial.h
+	KX_PositionInterpolator.h
+	KX_PyConstraintBinding.h
+	KX_PyMath.h
+	KX_PythonInit.h
+	KX_PythonInitTypes.h
+	KX_PythonSeq.h
+	KX_RadarSensor.h
+	KX_RayCast.h
+	KX_RayEventManager.h
+	KX_RaySensor.h
+	KX_SCA_AddObjectActuator.h
+	KX_SCA_DynamicActuator.h
+	KX_SCA_EndObjectActuator.h
+	KX_SCA_ReplaceMeshActuator.h
+	KX_SG_BoneParentNodeRelationship.h
+	KX_SG_NodeRelationships.h
+	KX_ScalarInterpolator.h
+	KX_ScalingInterpolator.h
+	KX_Scene.h
+	KX_SceneActuator.h
+	KX_SoundActuator.h
+	KX_StateActuator.h
+	KX_TimeCategoryLogger.h
+	KX_TimeLogger.h
+	KX_TouchEventManager.h
+	KX_TouchSensor.h
+	KX_TrackToActuator.h
+	KX_VehicleWrapper.h
+	KX_VertexProxy.h
+	KX_VisibilityActuator.h
+	KX_WorldInfo.h
+	KX_WorldIpoController.h
+	BL_BlenderShader.h
+	BL_Material.h
+	BL_Shader.h
+	BL_Texture.h
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)

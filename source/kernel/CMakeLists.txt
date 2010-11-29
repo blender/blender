@@ -37,6 +37,12 @@ SET(SRC
 	gen_system/GEN_HashedPtr.cpp
 	gen_system/SYS_SingletonSystem.cpp
 	gen_system/SYS_System.cpp
+
+	gen_messaging/GEN_messaging.h
+	gen_system/GEN_HashedPtr.h
+	gen_system/GEN_Map.h
+	gen_system/SYS_SingletonSystem.h
+	gen_system/SYS_System.h
 )
 
 BLENDERLIB(bf_gen_system "${SRC}" "${INC}")

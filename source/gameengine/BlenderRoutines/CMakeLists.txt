@@ -41,6 +41,14 @@ SET(SRC
 	KX_BlenderMouseDevice.cpp
 	KX_BlenderRenderTools.cpp
 	KX_BlenderSystem.cpp
+
+	KX_BlenderCanvas.h
+	KX_BlenderGL.h
+	KX_BlenderInputDevice.h
+	KX_BlenderKeyboardDevice.h
+	KX_BlenderMouseDevice.h
+	KX_BlenderRenderTools.h
+	KX_BlenderSystem.h
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)

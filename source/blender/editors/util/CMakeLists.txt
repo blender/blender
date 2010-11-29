@@ -34,6 +34,52 @@ SET(SRC
 	editmode_undo.c
 	numinput.c
 	undo.c
+
+	util_intern.h
+	# general includes
+	../include/BIF_gl.h
+	../include/BIF_glutil.h
+	../include/ED_anim_api.h
+	../include/ED_armature.h
+	../include/ED_curve.h
+	../include/ED_datafiles.h
+	../include/ED_fileselect.h
+	../include/ED_fluidsim.h
+	../include/ED_gpencil.h
+	../include/ED_image.h
+	../include/ED_info.h
+	../include/ED_keyframes_draw.h
+	../include/ED_keyframes_edit.h
+	../include/ED_keyframing.h
+	../include/ED_lattice.h
+	../include/ED_logic.h
+	../include/ED_markers.h
+	../include/ED_mball.h
+	../include/ED_mesh.h
+	../include/ED_node.h
+	../include/ED_numinput.h
+	../include/ED_object.h
+	../include/ED_particle.h
+	../include/ED_physics.h
+	../include/ED_render.h
+	../include/ED_retopo.h
+	../include/ED_screen.h
+	../include/ED_screen_types.h
+	../include/ED_sculpt.h
+	../include/ED_sequencer.h
+	../include/ED_sound.h
+	../include/ED_space_api.h
+	../include/ED_text.h
+	../include/ED_transform.h
+	../include/ED_types.h
+	../include/ED_util.h
+	../include/ED_uvedit.h
+	../include/ED_view3d.h
+	../include/UI_icons.h
+	../include/UI_interface.h
+	../include/UI_interface_icons.h
+	../include/UI_resources.h
+	../include/UI_view2d.h
 )
 
 BLENDERLIB(bf_editor_util "${SRC}" "${INC}")

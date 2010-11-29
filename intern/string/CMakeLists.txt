@@ -29,7 +29,10 @@ SET(INC
 )
 
 SET(SRC
-	./intern/STR_String.cpp
+	intern/STR_String.cpp
+
+	STR_HashedString.h
+	STR_String.h
 )
 
 BLENDERLIB(bf_intern_string "${SRC}" "${INC}")

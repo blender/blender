@@ -35,6 +35,8 @@ SET(SRC
 	outliner.c
 	outliner_ops.c
 	space_outliner.c
+
+	outliner_intern.h
 )
 
 BLENDERLIB(bf_editor_space_outliner "${SRC}" "${INC}")

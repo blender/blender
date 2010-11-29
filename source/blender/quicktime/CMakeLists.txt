@@ -25,9 +25,21 @@
 # ***** END GPL LICENSE BLOCK *****
 
 IF(USE_QTKIT)
-	SET(SRC apple/qtkit_import.m apple/qtkit_export.m)
+	SET(SRC
+		apple/qtkit_import.m
+		apple/qtkit_export.m
+
+		quicktime_export.h
+		quicktime_import.h
+	)
 ELSE(USE_QTKIT)
-	SET(SRC apple/quicktime_import.c apple/quicktime_export.c)
+	SET(SRC
+		apple/quicktime_import.c
+		apple/quicktime_export.c
+
+		quicktime_export.h
+		quicktime_import.h
+	)
 ENDIF(USE_QTKIT)
 
 SET(INC 

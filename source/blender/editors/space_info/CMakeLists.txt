@@ -38,6 +38,9 @@ SET(SRC
 	info_report.c
 	textview.c
 	space_info.c
+
+	info_intern.h
+	textview.h
 )
 
 BLENDERLIB(bf_editor_space_info "${SRC}" "${INC}")

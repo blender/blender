@@ -33,6 +33,8 @@ SET(INC
 
 SET(SRC
 	NG_LoopBackNetworkDeviceInterface.cpp
+
+	NG_LoopBackNetworkDeviceInterface.h
 )
 
 BLENDERLIB(ge_logic_loopbacknetwork "${SRC}" "${INC}")

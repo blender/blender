@@ -50,6 +50,8 @@ SET(SRC
 	resources.c
 	view2d.c
 	view2d_ops.c
+
+	interface_intern.h
 )
 
 IF(WITH_INTERNATIONAL)

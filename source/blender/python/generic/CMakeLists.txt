@@ -42,6 +42,19 @@ SET(SRC
 	mathutils_vector.c
 	noise.c
 	py_capi_utils.c
+
+	IDProp.h
+	bgl.h
+	blf_api.h
+	bpy_internal_import.h
+	mathutils.h
+	mathutils_color.h
+	mathutils_euler.h
+	mathutils_geometry.h
+	mathutils_matrix.h
+	mathutils_quat.h
+	mathutils_vector.h
+	py_capi_utils.h
 )
 
 BLENDERLIB(bf_python_ext "${SRC}" "${INC}")

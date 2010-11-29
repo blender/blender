@@ -36,6 +36,8 @@ SET(SRC
 	text_header.c
 	text_ops.c
 	text_python.c
+
+	text_intern.h
 )
 
 IF(WITH_PYTHON)

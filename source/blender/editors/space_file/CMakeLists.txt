@@ -41,6 +41,10 @@ SET(SRC
 	filesel.c
 	fsmenu.c
 	space_file.c
+
+	file_intern.h
+	filelist.h
+	fsmenu.h
 )
 
 IF(WITH_IMAGE_OPENEXR)

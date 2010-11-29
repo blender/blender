@@ -74,11 +74,18 @@ SET(SRC
 	intern/MOD_util.c
 	intern/MOD_uvproject.c
 	intern/MOD_wave.c
+
+	MOD_modifiertypes.h
+	intern/MOD_boolean_util.h
+	intern/MOD_fluidsim_util.h
+	intern/MOD_util.h
 )
 
 IF(WITH_MOD_BOOLEAN)
 	ADD_DEFINITIONS(-DWITH_MOD_BOOLEAN)
-	LIST(APPEND SRC intern/MOD_boolean_util.c)
+	LIST(APPEND SRC
+		intern/MOD_boolean_util.c
+	)
 	LIST(APPEND INC ../../../intern/bsp/extern)
 ENDIF(WITH_MOD_BOOLEAN)
 

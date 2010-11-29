@@ -63,6 +63,11 @@ SET(SRC
 	GPG_ghost.cpp
 	GPG_KeyboardDevice.cpp
 	GPG_System.cpp
+
+	GPG_Application.h
+	GPG_Canvas.h
+	GPG_KeyboardDevice.h
+	GPG_System.h
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)
