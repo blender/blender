@@ -39,6 +39,7 @@ extern "C" {
 	#include "DNA_scene_types.h"
 	
 	#include "BKE_context.h"
+	#include "BKE_object.h"
 	
 	extern Scene *freestyle_scene;
 	extern float freestyle_viewpoint[3];
@@ -70,6 +71,8 @@ extern "C" {
 	FreestyleLineSet *FRS_get_active_lineset(FreestyleConfig *config);
 	short FRS_get_active_lineset_index(FreestyleConfig *config);
 	void FRS_set_active_lineset_index(FreestyleConfig *config, short index);
+
+	void FRS_unlink_target_object(FreestyleConfig *config, struct Object *ob);
 
 #ifdef __cplusplus
 }

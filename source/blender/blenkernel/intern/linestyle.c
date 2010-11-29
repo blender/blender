@@ -368,3 +368,30 @@ char *FRS_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *c
 found:
 	return BLI_sprintfN("color_modifiers[\"%s\"].color_ramp", m->name);
 }
+
+void FRS_unlink_linestyle_target_object(FreestyleLineStyle *linestyle, struct Object *ob)
+{
+	LineStyleModifier *m;
+
+	for (m = (LineStyleModifier *)linestyle->color_modifiers.first; m; m = m->next) {
+		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+			if (((LineStyleColorModifier_DistanceFromObject *)m)->target == ob) {
+				((LineStyleColorModifier_DistanceFromObject *)m)->target = NULL;
+			}
+		}
+	}
+	for (m = (LineStyleModifier *)linestyle->alpha_modifiers.first; m; m = m->next) {
+		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+			if (((LineStyleAlphaModifier_DistanceFromObject *)m)->target == ob) {
+				((LineStyleAlphaModifier_DistanceFromObject *)m)->target = NULL;
+			}
+		}
+	}
+	for (m = (LineStyleModifier *)linestyle->thickness_modifiers.first; m; m = m->next) {
+		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+			if (((LineStyleThicknessModifier_DistanceFromObject *)m)->target == ob) {
+				((LineStyleThicknessModifier_DistanceFromObject *)m)->target = NULL;
+			}
+		}
+	}
+}

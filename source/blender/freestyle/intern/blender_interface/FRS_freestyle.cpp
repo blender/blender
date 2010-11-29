@@ -519,6 +519,15 @@ extern "C" {
 		}
 	}
 
+	void FRS_unlink_target_object(FreestyleConfig *config, Object *ob)
+	{
+		FreestyleLineSet *lineset;
+
+		for(lineset=(FreestyleLineSet *)config->linesets.first; lineset; lineset=lineset->next) {
+			FRS_unlink_linestyle_target_object(lineset->linestyle, ob);
+		}
+	}
+
 #ifdef __cplusplus
 }
 #endif

@@ -39,6 +39,7 @@
 #define LS_MODIFIER_TYPE_THICKNESS  3
 
 struct Main;
+struct Object;
 
 FreestyleLineStyle *FRS_new_linestyle(char *name, struct Main *main);
 void FRS_free_linestyle(FreestyleLineStyle *linestyle);
@@ -57,5 +58,7 @@ void FRS_move_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineSt
 
 void FRS_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase);
 char *FRS_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *color_ramp);
+
+void FRS_unlink_linestyle_target_object(FreestyleLineStyle *linestyle, struct Object *ob);
 
 #endif

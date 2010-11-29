@@ -102,6 +102,8 @@
 
 #include "GPU_material.h"
 
+#include "FRS_freestyle.h"
+
 /* Local function protos */
 static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul);
 
@@ -576,6 +578,14 @@ void unlink_object(Object *ob)
 						seq->scene_camera= NULL;
 					}
 				SEQ_END
+			}
+
+			{
+				SceneRenderLayer *srl;
+
+				for (srl= sce->r.layers.first; srl; srl= srl->next) {
+					FRS_unlink_target_object(&srl->freestyleConfig, ob);
+				}
 			}
 		}
 
