@@ -150,17 +150,35 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 
 	/* annoying hack, to draw the prompt */
 	if(tvc->iter_index == 0) {
-		SpaceConsole *sc= (SpaceConsole *)tvc->arg1;
-		int prompt_len= strlen(sc->prompt);
+		const SpaceConsole *sc= (SpaceConsole *)tvc->arg1;
+		const ConsoleLine *cl= (ConsoleLine *)sc->history.last;
+		const int prompt_len= strlen(sc->prompt);
+		const int cursor_loc= cl->cursor + prompt_len;
 		int xy[2] = {CONSOLE_DRAW_MARGIN, CONSOLE_DRAW_MARGIN};
-		const int cursor = ((ConsoleLine *)sc->history.last)->cursor;
+		int pen[2];
 		xy[1] += tvc->lheight/6;
-		
+
+		/* account for wrapping */
+		if(cl->len < tvc->console_width) {
+			/* simple case, no wrapping */
+			pen[0]= tvc->cwidth * cursor_loc;
+			pen[1]= -2;
+		}
+		else {
+			/* wrap */
+			pen[0]= tvc->cwidth * (cursor_loc % tvc->console_width);
+			pen[1]= -2 + (((cl->len / tvc->console_width) - (cursor_loc / tvc->console_width)) * tvc->lheight);
+		}
+
 		/* cursor */
 		UI_GetThemeColor3ubv(TH_CONSOLE_CURSOR, (char *)fg);
 		glColor3ubv(fg);
 
-		glRecti(xy[0]+(tvc->cwidth*(cursor+prompt_len)) -1, xy[1]-2, xy[0]+(tvc->cwidth*(cursor+prompt_len)) +1, xy[1]+tvc->lheight-2);
+		glRecti(	(xy[0] + pen[0]) - 1,
+					(xy[1] + pen[1]),
+					(xy[0] + pen[0]) + 1,
+					(xy[1] + pen[1] + tvc->lheight)
+		);
 	}
 
 	console_line_color(fg, cl->type);

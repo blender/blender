@@ -28,6 +28,8 @@ typedef struct TextViewContext {
 
 	/* view settings */
 	int cwidth; /* shouldnt be needed! */
+	int console_width; /* shouldnt be needed! */
+
 	int winx;
 	int ymin, ymax;
 	
