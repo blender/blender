@@ -2794,6 +2794,10 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int i
 
 	if(ptr == NULL)
 		length= 0;
+	else if (length == 0) {
+		ptr= NULL;
+		itemsize= 0;
+	}
 
 	internal= MEM_callocN(sizeof(ArrayIterator), "ArrayIterator");
 	internal->ptr= ptr;
