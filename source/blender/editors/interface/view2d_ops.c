@@ -1503,7 +1503,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			scroller_activate_exit(C, op);
 				
 			/* can't catch this event for ourselves, so let it go to someone else? */
-			// FIXME: still this doesn't fall through to the item_activate callback for the outliner...
+			/* XXX note: if handlers use mask rect to clip input, input will fail for this case */
 			return OPERATOR_PASS_THROUGH;
 		}
 		
