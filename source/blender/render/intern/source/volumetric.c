@@ -115,13 +115,6 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
 
 static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, Isect *isect, int intersect_type)
 {
-	/* XXX TODO - get raytrace max distance from object instance's bounding box */
-	/* need to account for scaling only, but keep coords in camera space...
-	 * below code is WIP and doesn't work!
-	sub_v3_v3v3(bb_dim, shi->obi->obr->boundbox[1], shi->obi->obr->boundbox[2]);
-	mul_m3_v3(shi->obi->nmat, bb_dim);
-	maxsize = len_v3(bb_dim);
-	*/
 	
 	VECCOPY(isect->start, co);
 	VECCOPY(isect->vec, vec );
@@ -743,6 +736,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	float tr[3] = {1.0,1.0,1.0};
 	Isect is;
 	float *startco, *endco;
+	int intersect_type = VOL_BOUNDS_DEPTH;
 
 	memset(shr, 0, sizeof(ShadeResult));
 	
@@ -751,10 +745,12 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	if (shi->flippednor) {
 		startco = last_is->start;
 		endco = shi->co;
+		intersect_type = VOL_BOUNDS_SS;
 	}
+	
 	/* trace to find a backface, the other side bounds of the volume */
 	/* (ray intersect ignores front faces here) */
-	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH)) {
+	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, intersect_type)) {
 		startco = shi->co;
 		endco = hitco;
 	}
@@ -765,9 +761,21 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	}
 
 	vol_get_transmittance(shi, tr, startco, endco);
+
+	
+	/* if we hit another face in the same volume bounds */
+	/* shift raytrace coordinates to the hit point, to avoid shading volume twice */
+	/* due to idiosyncracy in ray_trace_shadow_tra() */
+	if (is.hit.ob == shi->obi) {
+		copy_v3_v3(shi->co, hitco);
+		last_is->labda -= is.labda;
+		shi->vlr = (VlakRen *)is.hit.face;
+	}
+
 	
 	copy_v3_v3(shr->combined, tr);
 	shr->combined[3] = 1.0f - luminance(tr);
+	shr->alpha = shr->combined[3];
 }
 
 
