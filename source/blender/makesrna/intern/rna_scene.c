@@ -1621,7 +1621,7 @@ static void rna_def_freestyle_linesets(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "Linesets");
 	srna= RNA_def_struct(brna, "Linesets", NULL);
-	RNA_def_struct_sdna(srna, "RenderData");
+	RNA_def_struct_sdna(srna, "FreestyleSettings");
 	RNA_def_struct_ui_text(srna, "Line Sets", "Line sets for associating lines and style parameters");
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
