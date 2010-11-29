@@ -235,21 +235,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		}
 
 		// some blender stuff
-		MT_CmMatrix4x4 projmat;
-		MT_CmMatrix4x4 viewmat;
 		float camzoom;
-		int i;
-
-		for (i = 0; i < 16; i++)
-		{
-			float *viewmat_linear= (float*) rv3d->viewmat;
-			viewmat.setElem(i, viewmat_linear[i]);
-		}
-		for (i = 0; i < 16; i++)
-		{
-			float *projmat_linear= (float*) rv3d->winmat;
-			projmat.setElem(i, projmat_linear[i]);
-		}
 		
 		if(rv3d->persp==RV3D_CAMOB) {
 			if(startscene->gm.framing.type == SCE_GAMEFRAMING_BARS) { /* Letterbox */
@@ -265,7 +251,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			camzoom = 2.0;
 		}
 
-		
 
 		ketsjiengine->SetDrawType(v3d->drawtype);
 		ketsjiengine->SetCameraZoom(camzoom);
@@ -347,8 +332,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			{
 				ketsjiengine->EnableCameraOverride(startscenename);
 				ketsjiengine->SetCameraOverrideUseOrtho((rv3d->persp == RV3D_ORTHO));
-				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
-				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
+				ketsjiengine->SetCameraOverrideProjectionMatrix(MT_CmMatrix4x4(rv3d->winmat));
+				ketsjiengine->SetCameraOverrideViewMatrix(MT_CmMatrix4x4(rv3d->viewmat));
 				ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);
 				ketsjiengine->SetCameraOverrideLens(v3d->lens);
 			}

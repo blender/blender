@@ -1320,7 +1320,7 @@ static void rna_def_sound(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "attenuation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -100.0f, +40.0f);
-	RNA_def_property_ui_text(prop, "Attenuation/db", "Attenuation in dezibel");
+	RNA_def_property_ui_text(prop, "Attenuation/dB", "Attenuation in decibel");
 	RNA_def_property_float_funcs(prop, "rna_Sequence_attenuation_get", "rna_Sequence_attenuation_set", NULL); 
 
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
