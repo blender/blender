@@ -117,8 +117,12 @@ static void rna_Cache_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 			break;
 	}
 
-	if(pid)
+	if(pid) {
+		/* Just make sure this wasn't changed. */
+		if(pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
+			cache->step = 1;
 		BKE_ptcache_update_info(pid);
+	}
 
 	BLI_freelistN(&pidlist);
 }
@@ -140,8 +144,11 @@ static void rna_Cache_toggle_disk_cache(Main *bmain, Scene *scene, PointerRNA *p
 			break;
 	}
 
-	if(pid)
+	/* smoke can only use disk cache */
+	if(pid && pid->type != PTCACHE_TYPE_SMOKE_DOMAIN)
 		BKE_ptcache_toggle_disk_cache(pid);
+	else
+		cache->flag ^= PTCACHE_DISK_CACHE;
 
 	BLI_freelistN(&pidlist);
 }
@@ -153,7 +160,6 @@ static void rna_Cache_idname_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 	PTCacheID *pid = NULL, *pid2= NULL;
 	ListBase pidlist;
 	int new_name = 1;
-	char name[80];
 
 	if(!ob)
 		return;
@@ -188,19 +194,13 @@ static void rna_Cache_idname_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 		if(new_name) {
 			if(pid2 && cache->flag & PTCACHE_DISK_CACHE) {
-				/* TODO: change to simple file rename */
-				strcpy(name, cache->name);
-				strcpy(cache->name, cache->prev_name);
+				char old_name[80];
+				char new_name[80];
 
-				cache->flag &= ~PTCACHE_DISK_CACHE;
+				strcpy(old_name, cache->prev_name);
+				strcpy(new_name, cache->name);
 
-				BKE_ptcache_toggle_disk_cache(pid2);
-
-				strcpy(cache->name, name);
-
-				cache->flag |= PTCACHE_DISK_CACHE;
-
-				BKE_ptcache_toggle_disk_cache(pid2);
+				BKE_ptcache_disk_cache_rename(pid2, old_name, new_name);
 			}
 
 			strcpy(cache->prev_name, cache->name);

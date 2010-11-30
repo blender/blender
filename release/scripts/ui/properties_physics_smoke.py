@@ -69,6 +69,8 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
 
                 split = layout.split()
 
+                split.enabled = not domain.point_cache.is_baked
+
                 col = split.column()
                 col.label(text="Resolution:")
                 col.prop(domain, "resolution_max", text="Divisions")
@@ -146,6 +148,44 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(group, "collision_group", text="")
 
 
+class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
+    bl_label = "Smoke High Resolution"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        md = context.smoke
+        return md and (md.smoke_type == 'DOMAIN')
+
+    def draw_header(self, context):
+        md = context.smoke.domain_settings
+
+        self.layout.enabled = not md.point_cache.is_baked
+        self.layout.prop(md, "use_high_resolution", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        md = context.smoke.domain_settings
+
+        layout.active = md.use_high_resolution
+
+        split = layout.split()
+        split.enabled = not md.point_cache.is_baked
+
+        col = split.column()
+        col.label(text="Resolution:")
+        col.prop(md, "amplify", text="Divisions")
+        col.prop(md, "smooth_emitter")
+
+        col = split.column()
+        col.label(text="Noise Method:")
+        col.row().prop(md, "noise_type", text="")
+        col.prop(md, "strength")
+
+        layout.prop(md, "show_high_resolution")
+
+
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke Cache"
     bl_options = {'DEFAULT_CLOSED'}
@@ -159,66 +199,10 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         md = context.smoke.domain_settings
-        cache = md.point_cache_low
+        cache = md.point_cache
 
         layout.label(text="Compression:")
         layout.prop(md, "point_cache_compress_type", expand=True)
-
-        point_cache_ui(self, context, cache, (cache.is_baked is False), 'SMOKE')
-
-
-class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Smoke High Resolution"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        md = context.smoke
-        return md and (md.smoke_type == 'DOMAIN')
-
-    def draw_header(self, context):
-        md = context.smoke.domain_settings
-
-        self.layout.prop(md, "use_high_resolution", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        md = context.smoke.domain_settings
-
-        layout.active = md.use_high_resolution
-
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="Resolution:")
-        col.prop(md, "amplify", text="Divisions")
-        col.prop(md, "smooth_emitter")
-        col.prop(md, "show_high_resolution")
-
-        col = split.column()
-        col.label(text="Noise Method:")
-        col.row().prop(md, "noise_type", text="")
-        col.prop(md, "strength")
-
-
-class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Smoke High Resolution Cache"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        md = context.smoke
-        return md and (md.smoke_type == 'DOMAIN') and md.domain_settings.use_high_resolution
-
-    def draw(self, context):
-        layout = self.layout
-
-        md = context.smoke.domain_settings
-        cache = md.point_cache_high
-
-        layout.label(text="Compression:")
-        layout.prop(md, "point_cache_compress_high_type", expand=True)
 
         point_cache_ui(self, context, cache, (cache.is_baked is False), 'SMOKE')
 

@@ -32,6 +32,7 @@
 #include "DNA_ID.h"
 #include "DNA_object_force.h"
 #include "DNA_boid_types.h"
+#include <stdio.h> /* for FILE */
 
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non inclusive (they wont remove the cfra) */
@@ -234,7 +235,6 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, struct Object *ob, struct Soft
 void BKE_ptcache_id_from_particles(PTCacheID *pid, struct Object *ob, struct ParticleSystem *psys);
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, struct Object *ob, struct ClothModifierData *clmd);
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd);
-void BKE_ptcache_id_from_smoke_turbulence(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd);
 
 void BKE_ptcache_ids_from_object(struct ListBase *lb, struct Object *ob, struct Scene *scene, int duplis);
 
@@ -299,6 +299,9 @@ void BKE_ptcache_mem_to_disk(struct PTCacheID *pid);
 
 /* Convert disk cache to memory cache and vice versa. Clears the cache that was converted. */
 void BKE_ptcache_toggle_disk_cache(struct PTCacheID *pid);
+
+/* Rename all disk cache files with a new name. Doesn't touch the actual content of the files. */
+void BKE_ptcache_disk_cache_rename(struct PTCacheID *pid, char *from, char *to);
 
 /* Loads simulation from external (disk) cache files. */
 void BKE_ptcache_load_external(struct PTCacheID *pid);
