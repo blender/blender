@@ -946,6 +946,14 @@ int KX_KetsjiEngine::GetExitCode()
 		if (m_scenes.begin()==m_scenes.end())
 			m_exitcode = KX_EXIT_REQUEST_NO_SCENES_LEFT;
 	}
+	
+	// check if the window has been closed.
+	if(!m_exitcode)
+	{
+		//if(!m_canvas->Check()) {
+		//	m_exitcode = KX_EXIT_REQUEST_OUTSIDE;
+		//}
+	}
 
 	return m_exitcode;
 }

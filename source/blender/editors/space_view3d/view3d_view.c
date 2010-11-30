@@ -35,6 +35,7 @@
 
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_listbase.h"
 
 #include "BKE_anim.h"
 #include "BKE_action.h"
@@ -1629,9 +1630,8 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 #ifdef WITH_GAMEENGINE
 
 static ListBase queue_back;
-static void SaveState(bContext *C)
+static void SaveState(bContext *C, wmWindow *win)
 {
-	wmWindow *win= CTX_wm_window(C);
 	Object *obact = CTX_data_active_object(C);
 	
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -1646,9 +1646,8 @@ static void SaveState(bContext *C)
 	//XXX waitcursor(1);
 }
 
-static void RestoreState(bContext *C)
+static void RestoreState(bContext *C, wmWindow *win)
 {
-	wmWindow *win= CTX_wm_window(C);
 	Object *obact = CTX_data_active_object(C);
 	
 	if(obact && obact->mode & OB_MODE_TEXTURE_PAINT)
@@ -1662,7 +1661,8 @@ static void RestoreState(bContext *C)
 	//XXX waitcursor(0);
 	//XXX G.qual= 0;
 	
-	win->queue= queue_back;
+	if(win) /* check because closing win can set to NULL */
+		win->queue= queue_back;
 	
 	GPU_state_init();
 	GPU_set_tpage(NULL, 0);
@@ -1809,16 +1809,25 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	}
 
 
-	SaveState(C);
+	SaveState(C, prevwin);
 
 	StartKetsjiShell(C, ar, &cam_frame, 1);
+
+	/* window wasnt closed while the BGE was running */
+	if(BLI_findindex(&CTX_wm_manager(C)->windows, prevwin) == -1) {
+		prevwin= NULL;
+		CTX_wm_window_set(C, NULL);
+	}
 	
-	/* restore context, in case it changed in the meantime, for
-	   example by working in another window or closing it */
-	CTX_wm_region_set(C, prevar);
-	CTX_wm_window_set(C, prevwin);
-	CTX_wm_area_set(C, prevsa);
-	RestoreState(C);
+	if(prevwin) {
+		/* restore context, in case it changed in the meantime, for
+		   example by working in another window or closing it */
+		CTX_wm_region_set(C, prevar);
+		CTX_wm_window_set(C, prevwin);
+		CTX_wm_area_set(C, prevsa);
+	}
+
+	RestoreState(C, prevwin);
 
 	//XXX restore_all_scene_cfra(scene_cfra_store);
 	set_scene_bg(CTX_data_main(C), startscene);
