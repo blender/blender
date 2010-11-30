@@ -888,6 +888,13 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 				ibuf->depth= 24;
 			}
 		}
+		else {
+			/* TODO, better solution, if a 24bit image is painted onto it may contain alpha */
+			if(ibuf->userflags & IB_BITMAPDIRTY) { /* it has been painted onto */
+				/* checks each pixel, not ideal */
+				ibuf->depth= BKE_alphatest_ibuf(ibuf) ? 32 : 24;
+			}
+		}
 
 		if(scene->r.scemode & R_EXTENSION)  {
 			BKE_add_image_extension(path, sima->imtypenr);

@@ -1188,6 +1188,29 @@ void BKE_stamp_info(Scene *scene, struct ImBuf *ibuf)
 	if (stamp_data.rendertime[0]) IMB_metadata_change_field (ibuf, "RenderTime", stamp_data.rendertime);
 }
 
+int BKE_alphatest_ibuf(ImBuf *ibuf)
+{
+	int tot;
+	if(ibuf->rect_float) {
+		float *buf= ibuf->rect_float;
+		for(tot= ibuf->x * ibuf->y; tot--; buf+=4) {
+			if(buf[3] < 1.0f) {
+				return TRUE;
+			}
+		}
+	}
+	else if (ibuf->rect) {
+		unsigned char *buf= (unsigned char *)ibuf->rect;
+		for(tot= ibuf->x * ibuf->y; tot--; buf+=4) {
+			if(buf[3] != 255) {
+				return TRUE;
+			}
+		}
+	}
+
+	return FALSE;
+}
+
 int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, const char *name, int imtype, int subimtype, int quality)
 {
 	int ok;
