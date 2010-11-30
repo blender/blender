@@ -187,7 +187,7 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 }
 
 
-static int console_textview_main__internal(struct SpaceConsole *sc, struct ARegion *ar, ReportList *UNUSED(reports), int draw, int mval[2], void **mouse_pick, int *pos_pick)
+static int console_textview_main__internal(struct SpaceConsole *sc, struct ARegion *ar, int draw, int mval[2], void **mouse_pick, int *pos_pick)
 {
 	ConsoleLine cl_dummy= {0};
 	int ret= 0;
@@ -195,6 +195,7 @@ static int console_textview_main__internal(struct SpaceConsole *sc, struct ARegi
 	View2D *v2d= &ar->v2d;
 
 	TextViewContext tvc= {0};
+
 	tvc.begin= console_textview_begin;
 	tvc.end= console_textview_end;
 
@@ -221,19 +222,19 @@ static int console_textview_main__internal(struct SpaceConsole *sc, struct ARegi
 }
 
 
-void console_textview_main(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports)
+void console_textview_main(struct SpaceConsole *sc, struct ARegion *ar)
 {
 	int mval[2] = {INT_MAX, INT_MAX};
-	console_textview_main__internal(sc, ar, reports, 1,  mval, NULL, NULL);
+	console_textview_main__internal(sc, ar, 1,  mval, NULL, NULL);
 }
 
-int console_textview_height(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports)
+int console_textview_height(struct SpaceConsole *sc, struct ARegion *ar)
 {
 	int mval[2] = {INT_MAX, INT_MAX};
-	return console_textview_main__internal(sc, ar, reports, 0,  mval, NULL, NULL);
+	return console_textview_main__internal(sc, ar, 0,  mval, NULL, NULL);
 }
 
-void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int mouse_y)
+void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, int mouse_y)
 {
 	void *mouse_pick= NULL;
 	int mval[2];
@@ -241,11 +242,11 @@ void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList 
 	mval[0]= 0;
 	mval[1]= mouse_y;
 
-	console_textview_main__internal(sc, ar, reports, 0, mval, &mouse_pick, NULL);
+	console_textview_main__internal(sc, ar, 0, mval, &mouse_pick, NULL);
 	return (void *)mouse_pick;
 }
 
-int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int mval[2])
+int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, int mval[2])
 {
 	int pos_pick= 0;
 	void *mouse_pick= NULL;
@@ -254,6 +255,6 @@ int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *r
 	mval_clamp[0]= CLAMPIS(mval[0], CONSOLE_DRAW_MARGIN, ar->winx-(CONSOLE_DRAW_SCROLL + CONSOLE_DRAW_MARGIN));
 	mval_clamp[1]= CLAMPIS(mval[1], CONSOLE_DRAW_MARGIN, ar->winy-CONSOLE_DRAW_MARGIN);
 
-	console_textview_main__internal(sc, ar, reports, 0, mval_clamp, &mouse_pick, &pos_pick);
+	console_textview_main__internal(sc, ar, 0, mval_clamp, &mouse_pick, &pos_pick);
 	return pos_pick;
 }
