@@ -795,6 +795,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
 	RNA_def_property_ui_text(prop, "Basis Matrix", "Provides an alternative access to loc/scale/rotation relative to the parent and own rest bone.");
 	RNA_def_property_float_funcs(prop, "rna_PoseChannel_matrix_basis_get", "rna_PoseChannel_matrix_basis_set", NULL);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
 	/* final matrix */
@@ -975,6 +976,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bone_group_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "agrp_index");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_funcs(prop, "rna_PoseChannel_bone_group_index_get", "rna_PoseChannel_bone_group_index_set", "rna_PoseChannel_bone_group_index_range");
 	RNA_def_property_ui_text(prop, "Bone Group Index", "Bone Group this pose channel belongs to (0=no group)");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");

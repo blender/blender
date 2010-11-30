@@ -114,7 +114,10 @@ EnumPropertyItem object_type_curve_items[] = {
 	OBTYPE_CU_SURF,
 	OBTYPE_CU_TEXT,
 	{0, NULL, 0, NULL, NULL}};
-    
+
+static int rna_matrix_dimsize_4x4[]= {4, 4};
+static int rna_matrix_dimsize_3x3[]= {3, 3};
+
 #ifdef RNA_RUNTIME
 
 #include "BLI_math.h"
@@ -1660,8 +1663,7 @@ static void rna_def_object(BlenderRNA *brna)
 	static float default_quat[4] = {1,0,0,0};	/* default quaternion values */
 	static float default_axisAngle[4] = {0,0,1,0};	/* default axis-angle rotation values */
 	static float default_scale[3] = {1,1,1}; /* default scale values */
-	const int matrix_dimsize[]= {4, 4};
-	const int boundbox_dimsize[]= {8, 3};
+	static int boundbox_dimsize[]= {8, 3};
 
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene");
@@ -1897,18 +1899,21 @@ static void rna_def_object(BlenderRNA *brna)
 	/* matrix */
 	prop= RNA_def_property(srna, "matrix_world", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "obmat");
-	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Matrix World", "Worldspace transformation matrix");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_matrix_world_update");
 
 	prop= RNA_def_property(srna, "matrix_local", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Local Matrix", "Parent relative transformation matrix");
 	RNA_def_property_float_funcs(prop, "rna_Object_matrix_local_get", "rna_Object_matrix_local_set", NULL);
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	prop= RNA_def_property(srna, "matrix_basis", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Input Matrix", "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied.");
 	RNA_def_property_float_funcs(prop, "rna_Object_matrix_basis_get", "rna_Object_matrix_basis_set", NULL);
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
@@ -2225,12 +2230,14 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "matrix_original", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "omat");
-	RNA_def_property_array(prop, 16);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Object Matrix", "The original matrix of this object before it was duplicated");
 
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "mat");
-	RNA_def_property_array(prop, 16);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Object Duplicate Matrix", "Object duplicate transformation matrix");
 
 	/* TODO: DupliObject has more properties that can be wrapped */
