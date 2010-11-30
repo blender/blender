@@ -67,18 +67,3 @@ CPPFLAGS += -I../../../gameengine/Rasterizer
 CPPFLAGS += -I../../../gameengine/SceneGraph
 CPPFLAGS += -I../../../gameengine/Rasterizer/RAS_OpenGLRasterizer
 CPPFLAGS += -I../../../gameengine/Physics/common
-
-###############################
-
-SOURCEDIR = source/gameengine/GamePlayer/common
-DIRS =
-ifeq ($(OS),windows)
-# Still 
-    DIRS = windows
-else
-  ifneq ($(OS),darwin)
-    DIRS = unix
-  endif
-endif
-
-include nan_subdirs.mk

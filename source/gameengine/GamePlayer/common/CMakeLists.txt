@@ -77,15 +77,6 @@ SET(SRC
 	GPC_RawLogoArrays.h
 	GPC_RenderTools.h
 	GPC_System.h
-	unix/GPU_Canvas.h
-	unix/GPU_Engine.h
-	unix/GPU_KeyboardDevice.h
-	unix/GPU_PolygonMaterial.h
-	unix/GPU_System.h
-	windows/GPW_Canvas.h
-	windows/GPW_Engine.h
-	windows/GPW_KeyboardDevice.h
-	windows/GPW_System.h
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)
