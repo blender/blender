@@ -446,16 +446,6 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		v3d->modeselect = ob->mode;
 	else
 		v3d->modeselect = OB_MODE_OBJECT;
-		
-	v3d->flag &= ~V3D_MODE;
-	
-	/* not sure what the v3d->flag is useful for now... modeselect is confusing */
-	if(obedit) v3d->flag |= V3D_EDITMODE;
-	if(ob && (ob->mode & OB_MODE_POSE)) v3d->flag |= V3D_POSEMODE;
-	if(ob && (ob->mode & OB_MODE_VERTEX_PAINT)) v3d->flag |= V3D_VERTEXPAINT;
-	if(ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) v3d->flag |= V3D_WEIGHTPAINT;
-	if(ob && (ob->mode & OB_MODE_TEXTURE_PAINT)) v3d->flag |= V3D_TEXTUREPAINT;
-	if(paint_facesel_test(ob)) v3d->flag |= V3D_FACESELECT;
 
 	uiBlockBeginAlign(block);
 	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene) , 

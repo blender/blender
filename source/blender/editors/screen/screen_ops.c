@@ -307,7 +307,7 @@ int ED_operator_posemode(bContext *C)
 {
 	Object *obact= CTX_data_active_object(C);
 
-	if ((obact != CTX_data_edit_object(C))) {
+	if (!(obact->mode & OB_MODE_EDIT)) {
 		Object *obpose;
 		if((obpose= ED_object_pose_armature(obact))) {
 			if((obact == obpose) || (obact->mode & OB_MODE_WEIGHT_PAINT)) {

@@ -987,7 +987,8 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 	btn= uiDefBut(block, BUT, 0, "OK", 0, 0, 0, 20, NULL, 0, 0, 0, 0, "");
 	uiButSetFunc(btn, dialog_exec_cb, op, block);
 
-	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	/* center around the mouse */
+	uiPopupBoundsBlock(block, 4.0f, data->width/-2, data->height/2);
 	uiEndBlock(C, block);
 
 	return block;

@@ -876,15 +876,19 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		short ok= FALSE;
 
 		BLI_path_abs(path, bmain->name);
-		
+
 		WM_cursor_wait(1);
 
-		/* enforce user setting for RGB or RGBA, but skip BW */
-		if(scene->r.planes==32)
-			ibuf->depth= 32;
-		else if(scene->r.planes==24)
-			ibuf->depth= 24;
-		
+		if(ima->type == IMA_TYPE_R_RESULT) {
+			/* enforce user setting for RGB or RGBA, but skip BW */
+			if(scene->r.planes==32) {
+				ibuf->depth= 32;
+			}
+			else if(scene->r.planes==24) {
+				ibuf->depth= 24;
+			}
+		}
+
 		if(scene->r.scemode & R_EXTENSION)  {
 			BKE_add_image_extension(path, sima->imtypenr);
 		}
@@ -946,9 +950,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		else {
 			BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", path);
 		}
-		
-		
-		
+
+
 		WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 
 		WM_cursor_wait(0);
