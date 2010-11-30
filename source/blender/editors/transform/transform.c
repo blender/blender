@@ -3111,9 +3111,7 @@ int Rotation(TransInfo *t, short UNUSED(mval[2]))
 	char str[64];
 	
 	float final;
-	
-	float mat[3][3];
-	
+
 	final = t->values[0];
 	
 	applyNDofInput(&t->ndof, &final);
@@ -3152,8 +3150,6 @@ int Rotation(TransInfo *t, short UNUSED(mval[2]))
 	}
 	
 	t->values[0] = final;
-
-	vec_rot_to_mat3( mat, t->axis, final);
 	
 	applyRotation(t, final, t->axis);
 	
