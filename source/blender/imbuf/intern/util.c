@@ -319,7 +319,7 @@ static int isffmpeg (const char *filename) {
 #endif
 
 #ifdef WITH_REDCODE
-static int isredcode(char * filename)
+static int isredcode(const char * filename)
 {
 	struct redcode_handle * h = redcode_open(filename);
 	if (!h) {
