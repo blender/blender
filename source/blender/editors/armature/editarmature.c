@@ -3279,7 +3279,7 @@ static int armature_hide_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_armature_validate_active(arm);
 	ED_armature_sync_selection(arm->edbo);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
@@ -3315,7 +3315,7 @@ static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_armature_validate_active(arm);
 	ED_armature_sync_selection(arm->edbo);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
@@ -3529,6 +3529,8 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	/* Transform the endpoints */
 	ED_armature_sync_selection(arm->edbo);
 
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -3589,8 +3591,8 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 		add_v3_v3v3(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
-	
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -3775,7 +3777,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	BLI_freelistN(&chains);	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3924,7 +3926,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -4002,7 +4004,7 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 	ED_armature_sync_selection(arm->edbo);
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
 	
 	return OPERATOR_FINISHED;
 }
