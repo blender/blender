@@ -2982,7 +2982,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 			if(cache->totpoint > totpoint)
 				sprintf(mem_info, "%i cells + High Resolution cached", totpoint);
 			else
-				sprintf(mem_info, "%i cells cached");
+				sprintf(mem_info, "%i cells cached", totpoint);
 		}
 		else {
 			int cfra = cache->startframe;

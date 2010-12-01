@@ -115,8 +115,6 @@ EnumPropertyItem object_type_curve_items[] = {
 	OBTYPE_CU_TEXT,
 	{0, NULL, 0, NULL, NULL}};
 
-static int rna_matrix_dimsize_4x4[]= {4, 4};
-static int rna_matrix_dimsize_3x3[]= {3, 3};
 
 #ifdef RNA_RUNTIME
 
@@ -1130,6 +1128,8 @@ int rna_Camera_object_poll(PointerRNA *ptr, PointerRNA value)
 }
 
 #else
+
+static int rna_matrix_dimsize_4x4[]= {4, 4};
 
 static void rna_def_vertex_group(BlenderRNA *brna)
 {

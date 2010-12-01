@@ -2949,7 +2949,7 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 
 static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointCache **ocache, int force_disk)
 {
-	PointCache *cache;
+	PointCache *cache= NULL;
 
 	if(ptcaches->first) {
 		link_list(fd, ptcaches);
@@ -3813,7 +3813,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				/* Smoke uses only one cache from now on, so store pointer convert */
 				if(smd->domain->ptcaches[1].first || smd->domain->point_cache[1]) {
 					printf("High resolution smoke cache not available due to pointcache update. Please reset the simulation.\n");
-					smd->domain->ptcaches[1].first = smd->domain->ptcaches[1].first = NULL;
+					smd->domain->ptcaches[1].first = NULL;
+					smd->domain->ptcaches[1].last = NULL;
 					smd->domain->point_cache[1] = NULL;
 				}
 			}
