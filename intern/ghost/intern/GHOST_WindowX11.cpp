@@ -176,10 +176,21 @@ GHOST_WindowX11(
 	int attributes[40], i, samples;
 	Atom atoms[2];
 	int natom;
-	int glxVersionMajor, glxVersionMinor; // As in GLX major.minor
+	int glxVersionMajor, glxVersionMinor; // As in GLX major.mino
+	
+	/* initialize incase X11 fails to load */
+	memset(&m_xtablet, 0, sizeof(m_xtablet));
+	m_visual= NULL;
 
 	if (!glXQueryVersion(m_display, &glxVersionMajor, &glxVersionMinor)) {
 		printf("%s:%d: X11 glXQueryVersion() failed, verify working openGL system!\n", __FILE__, __LINE__);
+		
+		/* exit if this is the first window */
+		if(s_firstContext==NULL) {
+			printf("initial window could not find the GLX extension, exit!\n");
+			exit(1);
+		}
+
 		return;
 	}
 
@@ -211,6 +222,12 @@ GHOST_WindowX11(
 			if (samples == 0) {
 				/* All options exhausted, cannot continue */
 				printf("%s:%d: X11 glXChooseVisual() failed, verify working openGL system!\n", __FILE__, __LINE__);
+				
+				if(s_firstContext==NULL) {
+					printf("initial window could not find the GLX extension, exit!\n");
+					exit(1);
+				}
+				
 				return;
 			}
 		} else {
@@ -220,8 +237,6 @@ GHOST_WindowX11(
 			break;
 		}
 	}
-
-	memset(&m_xtablet, 0, sizeof(m_xtablet));
 
 	// Create a bunch of attributes needed to create an X window.
 
