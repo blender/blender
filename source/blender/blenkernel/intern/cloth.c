@@ -447,6 +447,11 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		return dm;
 	}
 
+	/* XXX, workaround for bug [#24958], see report for more info */
+	if(CustomData_has_layer(&dm->vertData, CD_MDEFORMVERT) && !CustomData_has_layer(&result->vertData, CD_MDEFORMVERT)) {
+		DM_add_vert_layer(result, CD_MDEFORMVERT, CD_DUPLICATE, dm->getVertDataArray(dm, CD_MDEFORMVERT));
+	}
+
 	if(clmd->sim_parms->reset
 		|| (framenr == (startframe - clmd->sim_parms->preroll) && clmd->sim_parms->preroll != 0)
 		|| (clmd->clothObject && result->getNumVerts(result) != clmd->clothObject->numverts))
