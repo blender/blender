@@ -3047,6 +3047,9 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 					else {
 						/* otherwise do int lookup */
 						intkey= atoi(token);
+						if(intkey==0 && (token[0] != '0' || token[1] != '\0')) {
+							return 0; /* we can be sure the fixedbuf was used in this case */
+						}
 						RNA_property_collection_lookup_int(&curptr, prop, intkey, &nextptr);
 					}
 
@@ -3096,6 +3099,9 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 					else {
 						/* otherwise do int lookup */
 						*index= atoi(token);
+						if(intkey==0 && (token[0] != '0' || token[1] != '\0')) {
+							return 0; /* we can be sure the fixedbuf was used in this case */
+						}
 					}
 				}
 				else {
