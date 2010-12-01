@@ -773,6 +773,9 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 		tsmd->domain->viewsettings = smd->domain->viewsettings;
 		tsmd->domain->fluid_group = smd->domain->fluid_group;
 		tsmd->domain->coll_group = smd->domain->coll_group;
+		tsmd->domain->vorticity = smd->domain->vorticity;
+		tsmd->domain->time_scale = smd->domain->time_scale;
+		tsmd->domain->border_collisions = smd->domain->border_collisions;
 		
 		MEM_freeN(tsmd->domain->effector_weights);
 		tsmd->domain->effector_weights = MEM_dupallocN(smd->domain->effector_weights);
@@ -781,6 +784,8 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 		tsmd->flow->temp = smd->flow->temp;
 		tsmd->flow->psys = smd->flow->psys;
 		tsmd->flow->type = smd->flow->type;
+		tsmd->flow->flags = smd->flow->flags;
+		tsmd->flow->vel_multi = smd->flow->vel_multi;
 	} else if (tsmd->coll) {
 		;
 		/* leave it as initialised, collision settings is mostly caches */
