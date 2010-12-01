@@ -447,11 +447,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		return dm;
 	}
 
-	/* XXX, workaround for bug [#24958], see report for more info */
-	if(CustomData_has_layer(&dm->vertData, CD_MDEFORMVERT) && !CustomData_has_layer(&result->vertData, CD_MDEFORMVERT)) {
-		DM_add_vert_layer(result, CD_MDEFORMVERT, CD_DUPLICATE, dm->getVertDataArray(dm, CD_MDEFORMVERT));
-	}
-
 	if(clmd->sim_parms->reset
 		|| (framenr == (startframe - clmd->sim_parms->preroll) && clmd->sim_parms->preroll != 0)
 		|| (clmd->clothObject && result->getNumVerts(result) != clmd->clothObject->numverts))
@@ -473,10 +468,10 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		BKE_ptcache_invalidate(cache);
 
 		/* do simulation */
-		if(!do_init_cloth(ob, clmd, result, framenr))
+		if(!do_init_cloth(ob, clmd, dm, framenr))
 			return result;
 
-		do_step_cloth(ob, clmd, result, framenr);
+		do_step_cloth(ob, clmd, dm, framenr);
 		cloth_to_object(ob, clmd, result);
 
 		return result;
@@ -497,12 +492,12 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		framedelta= -1;
 
 	/* initialize simulation data if it didn't exist already */
-	if(!do_init_cloth(ob, clmd, result, framenr))
+	if(!do_init_cloth(ob, clmd, dm, framenr))
 		return result;
 
 	if((framenr == startframe) && (clmd->sim_parms->preroll == 0)) {
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-		do_init_cloth(ob, clmd, result, framenr);
+		do_init_cloth(ob, clmd, dm, framenr);
 		BKE_ptcache_validate(cache, framenr);
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
 		return result;
@@ -540,7 +535,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	/* do simulation */
 	BKE_ptcache_validate(cache, framenr);
 
-	if(!do_step_cloth(ob, clmd, result, framenr)) {
+	if(!do_step_cloth(ob, clmd, dm, framenr)) {
 		BKE_ptcache_invalidate(cache);
 	}
 	else
