@@ -2996,6 +2996,7 @@ static void rbj_id_looper (bConstraint *con, ConstraintIDFunc func, void *userda
 	
 	/* target only */
 	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->child, userdata);
 }
 
 static int rbj_get_tars (bConstraint *con, ListBase *list)
