@@ -101,7 +101,7 @@ EnumPropertyItem event_timer_type_items[]= {
 	{TIMER2, "TIMER2", 0, "Timer 2", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-/* not returned: CAPSLOCKKEY, UNKNOWNKEY, GRLESSKEY */
+/* not returned: CAPSLOCKKEY, UNKNOWNKEY */
 EnumPropertyItem event_type_items[] = {
 
 	{0, "NONE", 0, "", ""},
@@ -176,7 +176,7 @@ EnumPropertyItem event_type_items[] = {
 	{RIGHTSHIFTKEY,	"RIGHT_SHIFT",	0, "Right Shift", ""},
 	{0, "", 0, NULL, NULL},
 	{OSKEY,	"OSKEY",	0, "OS Key", ""},
-	{0, "", 0, NULL, NULL},
+	{GRLESSKEY,	"GRLESS",	0, "Grless", ""},
 	{ESCKEY, "ESC", 0, "Esc", ""},
 	{TABKEY, "TAB", 0, "Tab", ""},
 	{RETKEY, "RET", 0, "Return", ""},
