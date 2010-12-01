@@ -2931,9 +2931,24 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 			if(pm->index_array)
 				pm->index_array = newdataadr(fd, pm->index_array);
 			
+			/* writedata saved array of ints */
+			if(pm->index_array && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
+				for(i=0; i<pm->totpoint; i++)
+					SWITCH_INT(pm->index_array[i]);
+			}
+			
 			for(i=0; i<BPHYS_TOT_DATA; i++) {
-				if(pm->data[i] && pm->data_types & (1<<i))
-					pm->data[i] = newdataadr(fd, pm->data[i]);
+				pm->data[i] = newdataadr(fd, pm->data[i]);
+				
+				/* XXX the cache saves structs and data without DNA */
+				if(pm->data[i] && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
+					int j, tot= (BKE_ptcache_data_size (i) * pm->totpoint)/4; /* data_size returns bytes */
+					int *poin= pm->data[i];
+					
+					/* XXX fails for boid struct, it has 2 shorts */
+					for(j= 0; j<tot; j++)
+						SWITCH_INT(poin[j]);
+				}
 			}
 		}
 	}
