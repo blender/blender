@@ -92,7 +92,7 @@ OPTION(WITH_IMAGE_TIFF          "Enable LibTIFF Support" ON)
 OPTION(WITH_IMAGE_DDS           "Enable DDS Image Support" ON)
 OPTION(WITH_IMAGE_CINEON        "Enable CINEON and DPX Image Support" ON)
 OPTION(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
-OPTION(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" ON)
+OPTION(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" OFF)
 
 # Audio/Video format support
 OPTION(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu)" OFF)
