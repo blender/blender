@@ -3085,8 +3085,12 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 				if (*path=='[') {
 					token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
 
+					if(token==NULL) {
+						/* invalid syntax blah[] */
+						return 0;
+					}
 					/* check for "" to see if it is a string */
-					if(rna_token_strip_quotes(token)) {
+					else if(rna_token_strip_quotes(token)) {
 						*index= RNA_property_array_item_index(prop, *(token+1));
 					}
 					else {
@@ -3096,6 +3100,10 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 				}
 				else {
 					token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
+					if(token==NULL) {
+						/* invalid syntax blah.. */
+						return 0;
+					}
 					*index= RNA_property_array_item_index(prop, *token);
 				}
 
