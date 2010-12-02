@@ -326,10 +326,13 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	int send_note= 0;
 	
 	/* escape if not our timer */
-	if(reports->reporttimer==NULL || reports->reporttimer != event->customdata)
+	if(		(reports->reporttimer==NULL) ||
+			(reports->reporttimer != event->customdata) ||
+			((report= BKE_reports_last_displayable(reports))==NULL) /* may have been deleted */
+	) {
 		return OPERATOR_PASS_THROUGH;
+	}
 
-	report= BKE_reports_last_displayable(reports);
 	rti = (ReportTimerInfo *)reports->reporttimer->customdata;
 	
 	timeout = (report->type & RPT_ERROR_ALL)?ERROR_TIMEOUT:INFO_TIMEOUT;
