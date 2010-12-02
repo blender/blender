@@ -48,9 +48,14 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_linklist.h"
+
 #include "ED_node.h"
 
 #include "RE_pipeline.h"
+
+#include "DNA_scene_types.h"
+#include "WM_api.h"
 
 static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 {
@@ -88,6 +93,22 @@ static StructRNA *rna_NodeSocketType_refine(struct PointerRNA *ptr)
 			return &RNA_UnknownType;
 	}
 }		
+
+static StructRNA *rna_NodeTree_refine(struct PointerRNA *ptr)
+{
+	bNodeTree *ntree= (bNodeTree*)ptr->data;
+
+	switch(ntree->type) {
+		case NTREE_SHADER:
+			return &RNA_ShaderNodeTree;
+		case NTREE_COMPOSIT:
+			return &RNA_CompositorNodeTree;
+		case NTREE_TEXTURE:
+			return &RNA_TextureNodeTree;
+		default:
+			return &RNA_UnknownType;
+	}
+}
 
 static char *rna_Node_path(PointerRNA *ptr)
 {
@@ -156,6 +177,22 @@ static void rna_Image_end_frame_set(PointerRNA *ptr, int value)
 	CLAMP(value, image->sfra, MAXFRAME);
 	image->efra= value;
 }
+
+static void rna_Node_scene_set(PointerRNA *ptr, PointerRNA value)
+{
+	bNode *node= (bNode*)ptr->data;
+
+	if (node->id) {
+		id_us_min(node->id);
+		node->id= NULL;
+	}
+
+	node->id= value.data;
+
+	id_us_plus(node->id);
+}
+
+
 
 static void node_update(Main *bmain, Scene *scene, bNodeTree *ntree, bNode *node)
 {
@@ -390,6 +427,117 @@ static EnumPropertyItem *rna_Node_channel_itemf(bContext *C, PointerRNA *ptr, in
 	return item;
 }
 
+static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *reports, int type, bNodeTree *group)
+{
+	bNode *node= nodeAddNodeType(ntree, type, group, NULL);
+
+	if (node == NULL) {
+		 BKE_reportf(reports, RPT_ERROR, "Unable to create node");
+	}
+	else {
+		nodeVerifyGroup(ntree); /* update group node socket links*/
+		NodeTagChanged(ntree, node);
+		WM_event_add_notifier(C, NC_NODE|NA_EDITED, ntree);
+	}
+
+	return node;
+}
+
+static bNode *rna_NodeTree_node_composite_new(bNodeTree *ntree, bContext *C, ReportList *reports, int type, bNodeTree *group)
+{
+	/* raises error on failier */
+	bNode *node= rna_NodeTree_node_new(ntree, C, reports, type, group);
+	
+	if (node) {
+		if(ELEM4(node->type, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE, CMP_NODE_R_LAYERS)) {
+			/* annoying, find the node tree we are in, scene can be NULL */
+			Scene *scene;
+			for(scene= CTX_data_main(C)->scene.first; scene; scene= scene->id.next) {
+				if(scene->nodetree == ntree) {
+					break;
+				}
+			}
+			node->id= (ID *)scene;
+			id_us_plus(node->id);
+		}
+
+		ntreeCompositForceHidden(ntree, CTX_data_scene(C));
+		ntreeSolveOrder(ntree);
+	}
+
+	return node;
+}
+
+static bNode *rna_NodeTree_node_texture_new(bNodeTree *ntree, bContext *C, ReportList *reports, int type, bNodeTree *group)
+{
+	/* raises error on failier */
+	bNode *node= rna_NodeTree_node_new(ntree, C, reports, type, group);
+
+	if (node) {
+		ntreeTexCheckCyclics(ntree);
+	}
+
+	return node;
+}
+
+static void rna_NodeTree_node_remove(bNodeTree *ntree, bContext *C, ReportList *reports, bNode *node)
+{
+	if (BLI_findindex(&ntree->nodes, node) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "Unable to locate node '%s' in nodetree", node->name);
+	}
+	else {
+		if (node->id)
+			id_us_min(node->id);
+
+		nodeFreeNode(ntree, node);
+		nodeVerifyGroup(ntree); /* update group node socket links*/
+
+		WM_event_add_notifier(C, NC_NODE|NA_EDITED, ntree);
+	}
+}
+
+static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, bContext *C, ReportList *reports, bNodeSocket *in, bNodeSocket *out)
+{
+	bNodeLink *ret;
+	bNode *fromnode, *tonode;
+
+	if (!nodeFindNode(ntree, in, &fromnode, NULL)) {
+		BKE_reportf(reports, RPT_ERROR, "Unable to locate input socket's node in nodetree");
+		return NULL;
+	}
+
+	if (!nodeFindNode(ntree, out, &tonode, NULL)) {
+		BKE_reportf(reports, RPT_ERROR, "Unable to locate output socket's node in nodetree");
+		return NULL;
+	}
+
+	/* unlink node input socket */
+	nodeRemSocketLinks(ntree, out);
+
+	ret= nodeAddLink(ntree, fromnode, in, tonode, out);
+
+	NodeTagChanged(ntree, tonode);
+
+	ntreeSolveOrder(ntree);
+
+	WM_event_add_notifier(C, NC_NODE|NA_EDITED, ntree);
+
+	return ret;
+}
+
+static void rna_NodeTree_link_remove(bNodeTree *ntree, bContext *C, ReportList *reports, bNodeLink *link)
+{
+	if (BLI_findindex(&ntree->links, link) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "Unable to locate link in nodetree");
+	}
+	else {
+		nodeRemLink(ntree, link);
+		ntreeSolveOrder(ntree);
+		nodeVerifyGroup(ntree); /* update group node socket links*/
+
+		WM_event_add_notifier(C, NC_NODE|NA_EDITED, ntree);
+	}
+}
 
 #else
 
@@ -1095,8 +1243,9 @@ static void def_cmp_render_layers(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Node_scene_set", NULL, NULL);
 	RNA_def_property_struct_type(prop, "Scene");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Scene", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
@@ -2167,9 +2316,129 @@ static void rna_def_texture_node(BlenderRNA *brna)
 
 /* -------------------------------------------------------------------------- */
 
+static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *parm;
+	FunctionRNA *func;
+
+	RNA_def_property_srna(cprop, "NodeLinks");
+	srna= RNA_def_struct(brna, "NodeLinks", NULL);
+	RNA_def_struct_sdna(srna, "bNodeTree");
+	RNA_def_struct_ui_text(srna, "Node Links", "Collection of Node Links");
+
+	func= RNA_def_function(srna, "new", "rna_NodeTree_link_new");
+	RNA_def_function_ui_description(func, "Add a node link to this node tree.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "input", "NodeSocket", "", "The input socket.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "output", "NodeSocket", "", "The output socket.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return */
+	parm= RNA_def_pointer(func, "link", "NodeLink", "", "New node link.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_NodeTree_link_remove");
+	RNA_def_function_ui_description(func, "remove a node link from the node tree.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "link", "NodeLink", "", "The node link to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
+static void rna_def_composite_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *parm;
+	FunctionRNA *func;
+
+	RNA_def_property_srna(cprop, "CompositorNodes");
+	srna= RNA_def_struct(brna, "CompositorNodes", NULL);
+	RNA_def_struct_sdna(srna, "bNodeTree");
+	RNA_def_struct_ui_text(srna, "Compositor Nodes", "Collection of Compositor Nodes");
+
+	func= RNA_def_function(srna, "new", "rna_NodeTree_node_composite_new");
+	RNA_def_function_ui_description(func, "Add a node to this node tree.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_enum(func, "type", compositor_node_type_items, 0, "Type", "Type of node to add");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "group", "NodeTree", "", "The group tree");
+	/* return value */
+	parm= RNA_def_pointer(func, "node", "Node", "", "New node.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_NodeTree_node_remove");
+	RNA_def_function_ui_description(func, "remove a node from this node tree.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "node", "Node", "", "The node to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
+static void rna_def_shader_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *parm;
+	FunctionRNA *func;
+
+	RNA_def_property_srna(cprop, "ShaderNodes");
+	srna= RNA_def_struct(brna, "ShaderNodes", NULL);
+	RNA_def_struct_sdna(srna, "bNodeTree");
+	RNA_def_struct_ui_text(srna, "Shader Nodes", "Collection of Shader Nodes");
+
+	func= RNA_def_function(srna, "new", "rna_NodeTree_node_new");
+	RNA_def_function_ui_description(func, "Add a node to this node tree.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_enum(func, "type", shader_node_type_items, 0, "Type", "Type of node to add");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "group", "NodeTree", "", "The group tree");
+	/* return value */
+	parm= RNA_def_pointer(func, "node", "Node", "", "New node.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_NodeTree_node_remove");
+	RNA_def_function_ui_description(func, "remove a node from this node tree.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "node", "Node", "", "The node to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
+static void rna_def_texture_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *parm;
+	FunctionRNA *func;
+
+	RNA_def_property_srna(cprop, "TextureNodes");
+	srna= RNA_def_struct(brna, "TextureNodes", NULL);
+	RNA_def_struct_sdna(srna, "bNodeTree");
+	RNA_def_struct_ui_text(srna, "Texture Nodes", "Collection of Texture Nodes");
+
+	func= RNA_def_function(srna, "new", "rna_NodeTree_node_texture_new");
+	RNA_def_function_ui_description(func, "Add a node to this node tree.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_enum(func, "type", texture_node_type_items, 0, "Type", "Type of node to add");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "group", "NodeTree", "", "The group tree");
+	/* return value */
+	parm= RNA_def_pointer(func, "node", "Node", "", "New node.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_NodeTree_node_remove");
+	RNA_def_function_ui_description(func, "remove a node from this node tree.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "node", "Node", "", "The node to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
 static void rna_def_node_socket(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem node_socket_type_items[] = {
+		{SOCK_VALUE,  "VALUE",     0,    "Value",     ""},
+		{SOCK_VECTOR, "VECTOR",    0,    "Vector",    ""},
+		{SOCK_RGBA,   "RGBA",      0,    "RGBA",      ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "NodeSocket", NULL);
 	RNA_def_struct_ui_text(srna, "Node Socket", "Input or output socket of a node");
@@ -2178,24 +2447,43 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_PLUG);
 	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
 
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Name", "Socket name");
+	RNA_def_struct_name_property(srna, prop);
+
+	/* can add back if there is any use in reading them */
+#if 0
+	prop = RNA_def_property(srna, "min", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ns.min");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Minimum Value", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeSocket_update");
+
+	prop = RNA_def_property(srna, "max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ns.max");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Maximum Value", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeSocket_update");
+#endif
+
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_items(prop, node_socket_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Node Socket type");
 }
 
 static void rna_def_node_socket_value(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
-	srna = RNA_def_struct(brna, "ValueNodeSocket", NULL);
+
+	srna = RNA_def_struct(brna, "ValueNodeSocket", "NodeSocket");
 	RNA_def_struct_ui_text(srna, "Value Node Socket", "Input or output socket of a node");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
 	RNA_def_struct_ui_icon(srna, ICON_PLUG);
 	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
-	
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "Socket name");
-	RNA_def_struct_name_property(srna, prop);
-	
+
 	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ns.vec");
 	RNA_def_property_array(prop, 1);
@@ -2208,18 +2496,13 @@ static void rna_def_node_socket_vector(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
-	srna = RNA_def_struct(brna, "VectorNodeSocket", NULL);
+
+	srna = RNA_def_struct(brna, "VectorNodeSocket", "NodeSocket");
 	RNA_def_struct_ui_text(srna, "Vector Node Socket", "Input or output socket of a node");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
 	RNA_def_struct_ui_icon(srna, ICON_PLUG);
 	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
-	
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "Socket name");
-	RNA_def_struct_name_property(srna, prop);
-	
+
 	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "ns.vec");
 	RNA_def_property_array(prop, 3);
@@ -2232,18 +2515,13 @@ static void rna_def_node_socket_rgba(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
-	srna = RNA_def_struct(brna, "RGBANodeSocket", NULL);
+
+	srna = RNA_def_struct(brna, "RGBANodeSocket", "NodeSocket");
 	RNA_def_struct_ui_text(srna, "RGBA Node Socket", "Input or output socket of a node");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
 	RNA_def_struct_ui_icon(srna, ICON_PLUG);
 	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
-	
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "Socket name");
-	RNA_def_struct_name_property(srna, prop);
-	
+
 	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "ns.vec");
 	RNA_def_property_array(prop, 4);
@@ -2323,33 +2601,117 @@ static void rna_def_nodetree(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	/* FunctionRNA *func; */
+	/* PropertyRNA *parm; */
+
+	static EnumPropertyItem nodetree_type_items[] = {
+		{NTREE_SHADER,      "SHADER",       0,    "Shader",       ""},
+		{NTREE_COMPOSIT,    "COMPOSITE",    0,    "Composite",    ""},
+		{NTREE_TEXTURE,     "TEXTURE",      0,    "Texture",      ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "NodeTree", "ID");
 	RNA_def_struct_ui_text(srna, "Node Tree", "Node tree consisting of linked nodes used for materials, textures and compositing");
 	RNA_def_struct_sdna(srna, "bNodeTree");
 	RNA_def_struct_ui_icon(srna, ICON_NODETREE);
-	
+	RNA_def_struct_refine_func(srna, "rna_NodeTree_refine");
+
 	/* AnimData */
 	rna_def_animdata_common(srna);
 	
-	/* Nodes Collection */
-	prop = RNA_def_property(srna, "nodes", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "nodes", NULL);
-	RNA_def_property_struct_type(prop, "Node");
-	RNA_def_property_ui_text(prop, "Nodes", "");
-
 	/* NodeLinks Collection */
 	prop = RNA_def_property(srna, "links", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "links", NULL);
 	RNA_def_property_struct_type(prop, "NodeLink");
 	RNA_def_property_ui_text(prop, "Links", "");
-	
+	rna_def_nodetree_link_api(brna, prop);
+
 	/* Grease Pencil */
 	prop= RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
+
+	/* these are too much like operators, better to have data level access 
+	 * ngroup = bpy.data.node_groups.new() 
+	 * ngroup.nodes.new(....) etc. */
+#if 0
+	func= RNA_def_function(srna, "group_add", "nodeMakeGroupFromSelected");
+	RNA_def_function_ui_description(func, "Make a group from the active nodes.");
+	/* return */
+	parm= RNA_def_pointer(func, "group", "Node", "", "New group.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "ungroup", "nodeGroupUnGroup");
+	RNA_def_function_ui_description(func, "Ungroup node group");
+	parm= RNA_def_pointer(func, "group", "Node", "", "The group to ungroup.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_int(func, "bool", 0, 0, 1, "Bool", "", 0, 1);
+	RNA_def_function_return(func, parm);
+#endif
+	
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_items(prop, nodetree_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Node Tree type");
+}
+
+static void rna_def_composite_nodetree(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "CompositorNodeTree", "NodeTree");
+	RNA_def_struct_ui_text(srna, "Compositor Node Tree", "Node tree consisting of linked nodes used for compositing");
+	RNA_def_struct_sdna(srna, "bNodeTree");
+	RNA_def_struct_ui_icon(srna, ICON_NODETREE);
+
+	/* Nodes Collection */
+	prop = RNA_def_property(srna, "nodes", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "nodes", NULL);
+	RNA_def_property_struct_type(prop, "Node");
+	RNA_def_property_ui_text(prop, "Nodes", "");
+
+	rna_def_composite_nodetree_api(brna, prop);
+}
+
+static void rna_def_shader_nodetree(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "ShaderNodeTree", "NodeTree");
+	RNA_def_struct_ui_text(srna, "Shader Node Tree", "Node tree consisting of linked nodes used for materials");
+	RNA_def_struct_sdna(srna, "bNodeTree");
+	RNA_def_struct_ui_icon(srna, ICON_NODETREE);
+
+	/* Nodes Collection */
+	prop = RNA_def_property(srna, "nodes", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "nodes", NULL);
+	RNA_def_property_struct_type(prop, "Node");
+	RNA_def_property_ui_text(prop, "Nodes", "");
+
+	rna_def_shader_nodetree_api(brna, prop);
+}
+
+static void rna_def_texture_nodetree(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "TextureNodeTree", "NodeTree");
+	RNA_def_struct_ui_text(srna, "Texture Node Tree", "Node tree consisting of linked nodes used for textures");
+	RNA_def_struct_sdna(srna, "bNodeTree");
+	RNA_def_struct_ui_icon(srna, ICON_NODETREE);
+
+	/* Nodes Collection */
+	prop = RNA_def_property(srna, "nodes", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "nodes", NULL);
+	RNA_def_property_struct_type(prop, "Node");
+	RNA_def_property_ui_text(prop, "Nodes", "");
+
+	rna_def_texture_nodetree_api(brna, prop);
 }
 
 static void define_specific_node(BlenderRNA *brna, int id, void (*func)(StructRNA*))
@@ -2373,7 +2735,9 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	rna_def_shader_node(brna);
 	rna_def_compositor_node(brna);
 	rna_def_texture_node(brna);
-		
+	rna_def_composite_nodetree(brna);
+	rna_def_shader_nodetree(brna);
+	rna_def_texture_nodetree(brna);
 	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 		define_specific_node(brna, ID, DefFunc);
 		
