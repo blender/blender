@@ -160,7 +160,6 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         md = context.smoke.domain_settings
 
-        self.layout.enabled = not md.point_cache.is_baked
         self.layout.prop(md, "use_high_resolution", text="")
 
     def draw(self, context):
