@@ -702,12 +702,12 @@ static PyObject *Vector_Rotate(VectorObject *self, PyObject *args)
 	float angle, vec[3];
 
 	if(!PyArg_ParseTuple(args, "O!f", &vector_Type, &axis_vec, &angle)){
-		PyErr_SetString(PyExc_TypeError, "vec.rotate(angle, axis): expected angle (float) and 3D axis");
+		PyErr_SetString(PyExc_TypeError, "vec.rotate(axis, angle): expected 3D axis (Vector) and angle (float)");
 		return NULL;
 	}
 
 	if(self->size != 3 || axis_vec->size != 3) {
-		PyErr_SetString(PyExc_AttributeError, "vec.rotate(angle, axis): expects both vectors to be 3D");
+		PyErr_SetString(PyExc_AttributeError, "vec.rotate(axis, angle): expects both vectors to be 3D");
 		return NULL;
 	}
 
