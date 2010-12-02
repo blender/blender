@@ -607,15 +607,21 @@ void BKE_image_free_all_textures(void)
 	
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if(ima->ibufs.first && (ima->id.flag & LIB_DOIT)) {
-			/*
 			ImBuf *ibuf;
+			
 			for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next) {
-				if(ibuf->mipmap[0]) 
+				/* escape when image is painted on */
+				if(ibuf->userflags & IB_BITMAPDIRTY)
+					break;
+				
+				/* if(ibuf->mipmap[0]) 
 					totsize+= 1.33*ibuf->x*ibuf->y*4;
 				else
-					totsize+= ibuf->x*ibuf->y*4;
-			} */
-			image_free_buffers(ima);
+					totsize+= ibuf->x*ibuf->y*4;*/
+				
+			}
+			if(ibuf==NULL)
+				image_free_buffers(ima);
 		}
 	}
 	/* printf("freed total %d MB\n", totsize/(1024*1024)); */
