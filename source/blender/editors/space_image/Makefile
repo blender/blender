@@ -41,6 +41,7 @@ CPPFLAGS += -I$(OPENGL_HEADERS)
 # not very neat....
 CPPFLAGS += -I../../windowmanager
 CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I../../blenfont
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
