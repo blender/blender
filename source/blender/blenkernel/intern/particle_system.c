@@ -340,6 +340,11 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		
 		/* cache the verts/faces! */
 		LOOP_PARTICLES {
+			if(pa->num < 0) {
+				pa->num_dmcache = -1;
+				continue;
+			}
+
 			if(psys->part->from == PART_FROM_VERT) {
 				if(nodearray[pa->num])
 					pa->num_dmcache= GET_INT_FROM_POINTER(nodearray[pa->num]->link);
