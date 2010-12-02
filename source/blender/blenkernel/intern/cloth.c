@@ -936,7 +936,7 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 {
 	unsigned int numverts = dm->getNumVerts ( dm );
 	unsigned int numfaces = dm->getNumFaces ( dm );
-	MFace *mface = CDDM_get_faces(dm);
+	MFace *mface = dm->getFaceArray( dm );
 	unsigned int i = 0;
 
 	/* Allocate our vertices. */
@@ -1049,8 +1049,8 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	unsigned int numverts = (unsigned int)dm->getNumVerts ( dm );
 	unsigned int numedges = (unsigned int)dm->getNumEdges ( dm );
 	unsigned int numfaces = (unsigned int)dm->getNumFaces ( dm );
-	MEdge *medge = CDDM_get_edges ( dm );
-	MFace *mface = CDDM_get_faces ( dm );
+	MEdge *medge = dm->getEdgeArray ( dm );
+	MFace *mface = dm->getFaceArray ( dm );
 	int index2 = 0; // our second vertex index
 	LinkNode **edgelist = NULL;
 	EdgeHash *edgehash = NULL;
