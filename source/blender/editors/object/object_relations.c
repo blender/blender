@@ -1313,6 +1313,7 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_make_links_scene";
 
 	/* api callbacks */
+	ot->invoke= WM_enum_search_invoke;
 	ot->exec= make_links_scene_exec;
 	/* better not run the poll check */
 

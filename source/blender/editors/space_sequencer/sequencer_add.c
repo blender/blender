@@ -253,6 +253,9 @@ static int sequencer_add_scene_strip_invoke(bContext *C, wmOperator *op, wmEvent
 		return OPERATOR_CANCELLED;
 	}
 
+	if(!RNA_property_is_set(op->ptr, "scene"))
+		return WM_enum_search_invoke(C, op, event);
+
 	sequencer_generic_invoke_xy__internal(C, op, event, 0);
 	return sequencer_add_scene_strip_exec(C, op);
 	// needs a menu
