@@ -45,8 +45,9 @@
 
 #include "info_intern.h"
 
-int info_report_mask(SpaceInfo *sinfo)
+int info_report_mask(SpaceInfo *UNUSED(sinfo))
 {
+#if 0
 	int report_mask = 0;
 
 	if(sinfo->rpt_mask & INFO_RPT_DEBUG)	report_mask |= RPT_DEBUG_ALL;
@@ -56,6 +57,9 @@ int info_report_mask(SpaceInfo *sinfo)
 	if(sinfo->rpt_mask & INFO_RPT_ERR)		report_mask |= RPT_ERROR_ALL;
 
 	return report_mask;
+#endif
+
+	return RPT_DEBUG_ALL|RPT_INFO_ALL|RPT_OPERATOR_ALL|RPT_WARNING_ALL|RPT_ERROR_ALL;
 }
 
 // TODO, get this working again!

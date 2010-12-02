@@ -49,7 +49,7 @@ int info_textview_height(struct SpaceInfo *sinfo, struct ARegion *ar, struct Rep
 void info_textview_main(struct SpaceInfo *sinfo, struct ARegion *ar, struct ReportList *reports);
 
 /* info_report.c */
-/* console_report.c */
+int info_report_mask(struct SpaceInfo *sinfo);
 void INFO_OT_select_pick(struct wmOperatorType *ot); /* report selection */
 void INFO_OT_select_all_toggle(struct wmOperatorType *ot);
 void INFO_OT_select_border(struct wmOperatorType *ot);
