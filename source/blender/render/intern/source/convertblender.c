@@ -2914,11 +2914,12 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 							for(; b<dl->nr; b++) {
 								vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-								vlr->v1= RE_findOrAddVert(obr, p1);
-								vlr->v2= RE_findOrAddVert(obr, p2);
-								vlr->v3= RE_findOrAddVert(obr, p4);
-								vlr->v4= RE_findOrAddVert(obr, p3);
-								vlr->ec= ME_V4V1+ME_V3V4;
+								/* important 1 offset in order is kept [#24913] */
+								vlr->v1= RE_findOrAddVert(obr, p2);
+								vlr->v2= RE_findOrAddVert(obr, p1);
+								vlr->v3= RE_findOrAddVert(obr, p3);
+								vlr->v4= RE_findOrAddVert(obr, p4);
+								vlr->ec= ME_V2V3+ME_V3V4;
 								if(a==0) vlr->ec+= ME_V1V2;
 
 								vlr->flag= dl->rt;
