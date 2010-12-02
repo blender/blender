@@ -4882,10 +4882,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				else if(sl->spacetype==SPACE_FILE) {
 					
 					SpaceFile *sfile= (SpaceFile *)sl;
-					sfile->files= NULL;
-					sfile->folders_prev= NULL;
-					sfile->folders_next= NULL;
-					sfile->params= NULL;
 					sfile->op= NULL;
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
