@@ -1024,6 +1024,7 @@ void ANIM_OT_channels_move (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Channels";
 	ot->idname= "ANIM_OT_channels_move";
+	ot->description = "Rearrange selected animation channels";
 	
 	/* api callbacks */
 	ot->exec= animchannels_rearrange_exec;
