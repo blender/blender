@@ -444,7 +444,7 @@ extern "C" {
 		lineset->qi_start = 0;
 		lineset->qi_end = 100;
 		lineset->edge_types = 0;
-		lineset->objects.first = lineset->objects.last = NULL;
+		lineset->group = NULL;
 		if (lineset_index > 0)
 			sprintf(lineset->name, "LineSet %i", lineset_index+1);
 		else

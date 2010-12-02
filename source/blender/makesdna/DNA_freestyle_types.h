@@ -50,10 +50,12 @@ struct FreestyleLineStyle;
 #define FREESTYLE_LINESET_ENABLED  2
 #define FREESTYLE_LINESET_FE_NOT   4
 #define FREESTYLE_LINESET_FE_AND   8
+#define FREESTYLE_LINESET_GR_NOT   16
 
 /* FreestyleLineSet::selection */
 #define FREESTYLE_SEL_VISIBILITY  1
 #define FREESTYLE_SEL_EDGE_TYPES  2
+#define FREESTYLE_SEL_GROUP       4
 
 /* FreestyleLineSet::fedge_types */
 #define FREESTYLE_FE_SILHOUETTE          1
@@ -82,10 +84,9 @@ typedef struct FreestyleLineSet {
 	short pad1;
 	int qi_start, qi_end;
 	int edge_types; /* feature edge types */
+	struct Group *group; /* group of target objects */
 
 	struct FreestyleLineStyle *linestyle;
-
-	ListBase objects; /* target objects on which stylized lines are drawn */
 
 } FreestyleLineSet;
 

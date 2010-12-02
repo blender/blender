@@ -299,6 +299,19 @@ def join_unary_predicates(upred_list, bpred):
         upred = bpred(upred, p)
     return upred
 
+class ObjectNamesUP1D(UnaryPredicate1D):
+    def __init__(self, names, negative):
+        UnaryPredicate1D.__init__(self)
+        self._names = names
+        self._negative = negative
+    def getName(self):
+        return "ObjectNamesUP1D"
+    def __call__(self, viewEdge):
+        found = viewEdge.viewShape().getName() in self._names
+        if self._negative:
+            return not found
+        return found
+
 # Stroke caps
 
 def iter_stroke_vertices(stroke):
@@ -505,6 +518,12 @@ def process(layer_name, lineset_name):
         if upred is not None:
             if lineset.edge_type_negation == "EXCLUSIVE":
                 upred = NotUP1D(upred)
+            selection_criteria.append(upred)
+    # prepare selection criteria by group of objects
+    if lineset.select_by_group:
+        if lineset.group is not None and len(lineset.group.objects) > 0:
+            names = dict((ob.name, True) for ob in lineset.group.objects)
+            upred = ObjectNamesUP1D(names, lineset.group_negation == 'EXCLUSIVE')
             selection_criteria.append(upred)
     # do feature edge selection
     upred = join_unary_predicates(selection_criteria, AndUP1D)

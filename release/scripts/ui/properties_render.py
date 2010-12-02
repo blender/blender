@@ -220,20 +220,19 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
 
             if lineset:
                 col.prop(lineset, "name")
-                col.prop(lineset, "select_by_visibility")
-                col.prop(lineset, "select_by_edge_types")
 
+                col.prop(lineset, "select_by_visibility")
                 if lineset.select_by_visibility:
-                    col.label(text="Visibility:")
                     sub = col.row(align=True)
                     sub.prop(lineset, "visibility", expand=True)
                     if lineset.visibility == "RANGE":
                         sub = col.row(align=True)
                         sub.prop(lineset, "qi_start")
                         sub.prop(lineset, "qi_end")
+                    col.separator() # XXX
 
+                col.prop(lineset, "select_by_edge_types")
                 if lineset.select_by_edge_types:
-                    col.label(text="Edge Types:")
                     row = col.row()
                     row.prop(lineset, "edge_type_negation", expand=True)
                     row = col.row()
@@ -251,6 +250,13 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
                     sub = row.column()
                     sub.prop(lineset, "select_contour")
                     sub.prop(lineset, "select_external_contour")
+                    col.separator() # XXX
+
+                col.prop(lineset, "select_by_group")
+                if lineset.select_by_group:
+                    col.prop(lineset, "group")
+                    row = col.row()
+                    row.prop(lineset, "group_negation", expand=True)
 
         else: # freestyle.mode == "SCRIPT"
 

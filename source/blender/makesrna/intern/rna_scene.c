@@ -1641,14 +1641,19 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem negation_items[] = {
+	static EnumPropertyItem edge_type_negation_items[] = {
 		{0, "INCLUSIVE", 0, "Inclusive", "Select feature edges satisfying the given edge type conditions."},
 		{FREESTYLE_LINESET_FE_NOT, "EXCLUSIVE", 0, "Exclusive", "Select feature edges not satisfying the given edge type conditions."},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem combination_items[] = {
+	static EnumPropertyItem edge_type_combination_items[] = {
 		{0, "OR", 0, "Logical OR", "Combine feature edge type conditions by logical OR (logical disjunction)."},
 		{FREESTYLE_LINESET_FE_AND, "AND", 0, "Logical AND", "Combine feature edge type conditions by logical AND (logical conjunction)."},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem group_negation_items[] = {
+		{0, "INCLUSIVE", 0, "Inclusive", "Select feature edges belonging to some object in the group."},
+		{FREESTYLE_LINESET_GR_NOT, "EXCLUSIVE", 0, "Exclusive", "Select feature edges not belonging to any object in the group."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem freestyle_ui_mode_items[] = {
@@ -1697,22 +1702,35 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Selection by Edge Types", "Select feature edges based on edge types.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+	prop= RNA_def_property(srna, "select_by_group", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_GROUP);
+	RNA_def_property_ui_text(prop, "Selection by Group", "Select feature edges based on a group of objects.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
 	prop= RNA_def_property(srna, "edge_type_negation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
-	RNA_def_property_enum_items(prop, negation_items);
+	RNA_def_property_enum_items(prop, edge_type_negation_items);
 	RNA_def_property_ui_text(prop, "Edge Type Negation", "Set the negation operation for conditions on feature edge types.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "edge_type_combination", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
-	RNA_def_property_enum_items(prop, combination_items);
+	RNA_def_property_enum_items(prop, edge_type_combination_items);
 	RNA_def_property_ui_text(prop, "Edge Type Combination", "Set the combination operation for conditions on feature edge types.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "objects", NULL);
-	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_ui_text(prop, "Target Objects", "A list of objects on which stylized lines are drawn.");
+	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "group");
+	RNA_def_property_struct_type(prop, "Group");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Group", "A group of objects based on which feature edges are selected.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "group_negation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
+	RNA_def_property_enum_items(prop, group_negation_items);
+	RNA_def_property_ui_text(prop, "Edge Type Negation", "Set the negation operation for conditions on feature edge types.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "select_silhouette", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_SILHOUETTE);

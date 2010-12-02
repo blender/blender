@@ -1895,6 +1895,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			for(fls= srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
 				writestruct(wd, DATA, "FreestyleLineSet", 1, fls);
 				writestruct(wd, DATA, "FreestyleLineStyle", 1, fls->linestyle);
+				writestruct(wd, DATA, "Group", 1, fls->group);
 			}
 
 		}

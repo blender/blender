@@ -4243,6 +4243,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				srl->light_override= newlibadr_us(fd, sce->id.lib, srl->light_override);
 				for(fls=srl->freestyleConfig.linesets.first; fls; fls= fls->next) {
 					fls->linestyle= newlibadr_us(fd, sce->id.lib, fls->linestyle);
+					fls->group= newlibadr_us(fd, sce->id.lib, fls->group);
 				}
 			}
 			/*Game Settings: Dome Warp Text*/
