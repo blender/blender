@@ -219,8 +219,8 @@ void silence_log_ffmpeg(int quiet)
 	}
 }
 
-extern void do_init_ffmpeg();
-void do_init_ffmpeg()
+extern void do_init_ffmpeg(void);
+void do_init_ffmpeg(void)
 {
 	static int ffmpeg_init = 0;
 	if (!ffmpeg_init) {
