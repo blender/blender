@@ -85,7 +85,7 @@ static void itend(void)
 {
 	gettimeofday(&_itend,&itz);
 }
-double itval()
+double itval(void)
 {
 	double t1, t2;
 	t1 =  (double)_itstart.tv_sec + (double)_itstart.tv_usec/(1000*1000);

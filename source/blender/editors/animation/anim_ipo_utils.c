@@ -172,14 +172,14 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 /* step between the major distinguishable color bands of the primary colors */
 #define HSV_BANDWIDTH	0.3f
 
-/* used to determine the colour of F-Curves with FCURVE_COLOR_AUTO_RAINBOW set */
+/* used to determine the color of F-Curves with FCURVE_COLOR_AUTO_RAINBOW set */
 //void fcurve_rainbow (unsigned int cur, unsigned int tot, float *out)
 void getcolor_fcurve_rainbow (int cur, int tot, float *out)
 {
 	float hue, val, sat, fac;
 	int grouping;
 	
-	/* we try to divide the colours into groupings of n colors,
+	/* we try to divide the color into groupings of n colors,
 	 * where n is:
 	 *	3 - for 'odd' numbers of curves - there should be a majority of triplets of curves
 	 *	4 - for 'even' numbers of curves - there should be a majority of quartets of curves

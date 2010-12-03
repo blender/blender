@@ -1212,16 +1212,10 @@ void ARMATURE_OT_separate (wmOperatorType *ot)
 /* only for opengl selection indices */
 Bone *get_indexed_bone (Object *ob, int index)
 {
-	bPoseChannel *pchan;
-	int a= 0;
-	
 	if(ob->pose==NULL) return NULL;
 	index>>=16;		// bone selection codes use left 2 bytes
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
-		if(a==index) return pchan->bone;
-	}
-	return NULL;
+	return BLI_findlink(&ob->pose->chanbase, index);
 }
 
 /* See if there are any selected bones in this buffer */
@@ -1780,7 +1774,7 @@ EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bArmature *arm;
-	EditBone	*curBone, *next;
+	EditBone	*curBone, *ebone_next;
 	bConstraint *con;
 	Object *obedit= CTX_data_edit_object(C); // XXX get from context
 	arm = obedit->data;
@@ -1794,9 +1788,9 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
 			if (arm->layer & curBone->layer) {
 				if (curBone->flag & BONE_SELECTED) {
-					next = ED_armature_bone_get_mirrored(arm->edbo, curBone);
-					if (next)
-						next->flag |= BONE_SELECTED;
+					ebone_next= ED_armature_bone_get_mirrored(arm->edbo, curBone);
+					if (ebone_next)
+						ebone_next->flag |= BONE_SELECTED;
 				}
 			}
 		}
@@ -1804,9 +1798,9 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/*  First erase any associated pose channel */
 	if (obedit->pose) {
-		bPoseChannel *pchan, *next;
-		for (pchan=obedit->pose->chanbase.first; pchan; pchan=next) {
-			next= pchan->next;
+		bPoseChannel *pchan, *pchan_next;
+		for (pchan=obedit->pose->chanbase.first; pchan; pchan= pchan_next) {
+			pchan_next= pchan->next;
 			curBone = editbone_name_exists(arm->edbo, pchan->name);
 			
 			if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
@@ -1844,8 +1838,8 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	
-	for (curBone=arm->edbo->first;curBone;curBone=next) {
-		next=curBone->next;
+	for (curBone=arm->edbo->first; curBone; curBone= ebone_next) {
+		ebone_next= curBone->next;
 		if (arm->layer & curBone->layer) {
 			if (curBone->flag & BONE_SELECTED) {
 				if(curBone==arm->act_edbone) arm->act_edbone= NULL;

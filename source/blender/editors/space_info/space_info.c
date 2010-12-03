@@ -277,7 +277,7 @@ static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 	}
 }
 
-void recent_files_menu_register()
+void recent_files_menu_register(void)
 {
 	MenuType *mt;
 

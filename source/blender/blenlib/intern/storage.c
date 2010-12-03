@@ -289,7 +289,7 @@ void BLI_builddir(const char *dirname, char *relname)
 	}
 }
 
-void BLI_adddirstrings()
+void BLI_adddirstrings(void)
 {
 	char datum[100];
 	char buf[512];

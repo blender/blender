@@ -932,7 +932,7 @@ static FModifierTypeInfo *fmodifiersTypeInfo[FMODIFIER_NUM_TYPES];
 static short FMI_INIT= 1; /* when non-zero, the list needs to be updated */
 
 /* This function only gets called when FMI_INIT is non-zero */
-static void fmods_init_typeinfo () 
+static void fmods_init_typeinfo (void) 
 {
 	fmodifiersTypeInfo[0]=  NULL; 					/* 'Null' F-Curve Modifier */
 	fmodifiersTypeInfo[1]=  &FMI_GENERATOR; 		/* Generator F-Curve Modifier */

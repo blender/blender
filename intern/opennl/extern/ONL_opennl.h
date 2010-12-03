@@ -136,7 +136,7 @@ void nlMatrixMultiply(NLfloat *x, NLfloat *y);
 /* Solve */
 
 void nlPrintMatrix(void);
-NLboolean nlSolve();
+NLboolean nlSolve(void);
 NLboolean nlSolveAdvanced(NLint *permutation, NLboolean solveAgain);
 
 #ifdef __cplusplus

@@ -1121,7 +1121,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "reflection_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "reflection_col");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Reflection Color", "Colour of light scattered out of the volume (does not affect transmission)");
+	RNA_def_property_ui_text(prop, "Reflection Color", "Color of light scattered out of the volume (does not affect transmission)");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 	
 	prop= RNA_def_property(srna, "reflection", PROP_FLOAT, PROP_NONE);

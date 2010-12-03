@@ -102,8 +102,8 @@ static void waitcursor(int UNUSED(val)) {}
 static int pupmenu(const char *UNUSED(msg)) {return 0;}
 
 /* port over here */
-static bContext *C;
-static void error_libdata() {}
+static bContext *evil_C;
+static void error_libdata(void) {}
 
 
 /* find the correct active object per context
@@ -1078,13 +1078,13 @@ static void copymenu_modifiers(Main *bmain, Scene *scene, View3D *v3d, Object *o
 	for (base= FIRSTBASE; base; base= base->next) {
 		if(base->object != ob) {
 			if(TESTBASELIB(v3d, base)) {
-				ModifierData *md;
 
 				base->object->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 
 				if (base->object->type==ob->type) {
 					/* copy all */
 					if (event==NUM_MODIFIER_TYPES) {
+						ModifierData *md;
 						object_free_modifiers(base->object);
 
 						for (md=ob->modifiers.first; md; md=md->next) {
@@ -1805,7 +1805,7 @@ void ofs_timeoffs(Scene *scene, View3D *v3d)
 // XXX	if(fbutton(&offset, -10000.0f, 10000.0f, 10, 10, "Offset")==0) return;
 
 	/* make array of all bases, xco yco (screen) */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN(evil_C, Object*, ob, selected_editable_objects) {
 		ob->sf += offset;
 		if (ob->sf < -MAXFRAMEF)		ob->sf = -MAXFRAMEF;
 		else if (ob->sf > MAXFRAMEF)	ob->sf = MAXFRAMEF;
@@ -1818,17 +1818,17 @@ void ofs_timeoffs(Scene *scene, View3D *v3d)
 void rand_timeoffs(Scene *scene, View3D *v3d)
 {
 	Base *base;
-	float rand=0.0f;
+	float rand_ofs=0.0f;
 
 	if(BASACT==0 || v3d==NULL) return;
 	
-// XXX	if(fbutton(&rand, 0.0f, 10000.0f, 10, 10, "Randomize")==0) return;
+// XXX	if(fbutton(&rand_ofs, 0.0f, 10000.0f, 10, 10, "Randomize")==0) return;
 	
-	rand *= 2;
+	rand_ofs *= 2;
 	
 	for(base= FIRSTBASE; base; base= base->next) {
 		if(TESTBASELIB(v3d, base)) {
-			base->object->sf += (BLI_drand()-0.5) * rand;
+			base->object->sf += (BLI_drand()-0.5) * rand_ofs;
 			if (base->object->sf < -MAXFRAMEF)		base->object->sf = -MAXFRAMEF;
 			else if (base->object->sf > MAXFRAMEF)	base->object->sf = MAXFRAMEF;
 		}

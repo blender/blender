@@ -113,7 +113,7 @@ struct SeqEffectHandle {
 	
 	/* number of input strips needed 
 		(called directly after construction) */
-	int (*num_inputs)();
+	int (*num_inputs)(void);
 	
 	/* load is called first time after readblenfile in
 		get_sequence_effect automatically */
@@ -208,10 +208,10 @@ typedef enum {
 	SEQ_STRIPELEM_IBUF_ENDSTILL
 } seq_stripelem_ibuf_t;
 
-void seq_stripelem_cache_init();
-void seq_stripelem_cache_destruct();
+void seq_stripelem_cache_init(void);
+void seq_stripelem_cache_destruct(void);
 
-void seq_stripelem_cache_cleanup();
+void seq_stripelem_cache_cleanup(void);
 
 struct ImBuf * seq_stripelem_cache_get(
 	SeqRenderData context, struct Sequence * seq, 

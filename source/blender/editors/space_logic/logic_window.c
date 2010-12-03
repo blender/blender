@@ -2206,7 +2206,6 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		eoa= act->data;
 
 		if(eoa->type==ACT_EDOB_ADD_OBJECT) {
-			int wval; /* just a temp width */
 			ysize = 92;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);

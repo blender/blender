@@ -73,7 +73,7 @@
 
 /* ******* XXX ********** */
 
-static void action_set_activemarker() {}
+static void action_set_activemarker(void *UNUSED(a), void *UNUSED(b), void *UNUSED(c)) {}
 
 /* ************************************************************* */
 /* == POSE-LIBRARY TOOL FOR BLENDER == 

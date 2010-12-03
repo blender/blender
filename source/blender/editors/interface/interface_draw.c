@@ -386,7 +386,7 @@ void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, float rad
 	float raddiff;
 	int i, passes=4;
 	
-	/* get the colour and divide up the alpha */
+	/* get the color and divide up the alpha */
 	glGetFloatv(GL_CURRENT_COLOR, color);
 	alpha = 1; //color[3];
 	color[3]= 0.5*alpha/(float)passes;

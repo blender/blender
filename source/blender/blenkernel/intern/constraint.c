@@ -3903,7 +3903,7 @@ static bConstraintTypeInfo *constraintsTypeInfo[NUM_CONSTRAINT_TYPES];
 static short CTI_INIT= 1; /* when non-zero, the list needs to be updated */
 
 /* This function only gets called when CTI_INIT is non-zero */
-static void constraints_init_typeinfo () {
+static void constraints_init_typeinfo (void) {
 	constraintsTypeInfo[0]=  NULL; 					/* 'Null' Constraint */
 	constraintsTypeInfo[1]=  &CTI_CHILDOF; 			/* ChildOf Constraint */
 	constraintsTypeInfo[2]=  &CTI_TRACKTO;			/* TrackTo Constraint */

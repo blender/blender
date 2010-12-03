@@ -307,7 +307,7 @@ static void gpu_make_repbind(Image *ima)
 		ima->repbind= MEM_callocN(sizeof(int)*ima->totbind, "repbind");
 }
 
-static void gpu_clear_tpage()
+static void gpu_clear_tpage(void)
 {
 	if(GTS.lasttface==0)
 		return;

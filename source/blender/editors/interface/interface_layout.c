@@ -716,17 +716,17 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 		for(i=0; i<totitem; i++) {
 			if(item[i].identifier[0]) {
 				if(properties) {
-					PointerRNA ptr;
+					PointerRNA tptr;
 
-					WM_operator_properties_create(&ptr, opname);
-					if(ptr.data) {
-						IDP_FreeProperty(ptr.data);
-						MEM_freeN(ptr.data);
+					WM_operator_properties_create(&tptr, opname);
+					if(tptr.data) {
+						IDP_FreeProperty(tptr.data);
+						MEM_freeN(tptr.data);
 					}
-					ptr.data= IDP_CopyProperty(properties);
-					RNA_enum_set(&ptr, propname, item[i].value);
+					tptr.data= IDP_CopyProperty(properties);
+					RNA_enum_set(&tptr, propname, item[i].value);
 
-					uiItemFullO(column, opname, (char*)item[i].name, item[i].icon, ptr.data, context, flag);
+					uiItemFullO(column, opname, (char*)item[i].name, item[i].icon, tptr.data, context, flag);
 				}
 				else
 					uiItemEnumO(column, opname, (char*)item[i].name, item[i].icon, propname, item[i].value);
@@ -2548,7 +2548,7 @@ void uiBlockLayoutResolve(uiBlock *block, int *x, int *y)
 	/* XXX silly trick, interface_templates.c doesn't get linked
 	 * because it's not used by other files in this module? */
 	{
-		void ui_template_fix_linking();
+		void ui_template_fix_linking(void);
 		ui_template_fix_linking();
 	}
 }

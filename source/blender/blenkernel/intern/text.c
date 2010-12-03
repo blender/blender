@@ -93,7 +93,7 @@ TMARK_EDITALL is set the group ID defines which other markers should be edited.
 The mrk->clr field is used to visually group markers where the flags may not
 match. A template system, for example, may allow editing of repeating tokens
 (in one group) but include other marked positions (in another group) all in the
-same template with the same colour.
+same template with the same color.
 
 Undo
 --

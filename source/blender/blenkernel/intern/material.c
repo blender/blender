@@ -1402,7 +1402,7 @@ void paste_matcopybuf(Material *ma)
 		MEM_freeN(ma->nodetree);
 	}
 
-	GPU_materials_free(ma);
+	GPU_material_free(ma);
 
 	id= (ma->id);
 	memcpy(ma, &matcopybuf, sizeof(Material));

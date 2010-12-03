@@ -923,12 +923,12 @@ static int cut_seq_list(Scene *scene, ListBase *old, ListBase *new, int cutframe
 			Sequence * (*cut_seq)(Scene *, Sequence *, int))
 {
 	int did_something = FALSE;
-	Sequence *seq, *seq_next;
+	Sequence *seq, *seq_next_iter;
 	
 	seq= old->first;
 	
 	while(seq) {
-		seq_next = seq->next; /* we need this because we may remove seq */
+		seq_next_iter = seq->next; /* we need this because we may remove seq */
 		
 		seq->tmp= NULL;
 		if(seq->flag & SELECT) {
@@ -947,7 +947,7 @@ static int cut_seq_list(Scene *scene, ListBase *old, ListBase *new, int cutframe
 				BLI_addtail(new, seq);
 			}
 		}
-		seq = seq_next;
+		seq = seq_next_iter;
 	}
 	return did_something;
 }
@@ -1781,7 +1781,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
-	Sequence *seq, *seq_new, *seq_next;
+	Sequence *seq, *seq_new, *seq_next_iter;
 	Strip *strip_new;
 	StripElem *se, *se_new;
 	int start_ofs, cfra, frame_end;
@@ -1793,7 +1793,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 		if((seq->flag & SELECT) && (seq->type == SEQ_IMAGE) && (seq->len > 1)) {
 			/* remove seq so overlap tests dont conflict,
 			see seq_free_sequence below for the real free'ing */
-			seq_next = seq->next;
+			seq_next_iter = seq->next;
 			BLI_remlink(ed->seqbasep, seq);
 			/* if(seq->ipo) seq->ipo->id.us--; */
 			/* XXX, remove fcurve and assign to split image strips */

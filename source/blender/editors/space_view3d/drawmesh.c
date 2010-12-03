@@ -383,7 +383,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	glShadeModel(GL_SMOOTH);
 }
 
-static void draw_textured_end()
+static void draw_textured_end(void)
 {
 	/* switch off textures */
 	GPU_set_tpage(NULL, 0);

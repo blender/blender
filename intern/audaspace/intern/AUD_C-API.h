@@ -58,7 +58,7 @@ typedef struct
 /**
  * Initializes FFMPEG if it is enabled.
  */
-extern void AUD_initOnce();
+extern void AUD_initOnce(void);
 
 /**
  * Initializes an audio device.
@@ -72,17 +72,17 @@ extern int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize
 /**
  * Unitinitializes an audio device.
  */
-extern void AUD_exit();
+extern void AUD_exit(void);
 
 /**
  * Locks the playback device.
  */
-extern void AUD_lock();
+extern void AUD_lock(void);
 
 /**
  * Unlocks the device.
  */
-extern void AUD_unlock();
+extern void AUD_unlock(void);
 
 /**
  * Returns information about a sound.
@@ -471,9 +471,9 @@ extern void AUD_muteSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry,
 
 extern int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length);
 
-extern void AUD_startPlayback();
+extern void AUD_startPlayback(void);
 
-extern void AUD_stopPlayback();
+extern void AUD_stopPlayback(void);
 
 extern void AUD_seekSequencer(AUD_Channel* handle, float time);
 
@@ -483,7 +483,7 @@ extern float AUD_getSequencerPosition(AUD_Channel* handle);
 extern void AUD_setSyncCallback(AUD_syncFunction function, void* data);
 #endif
 
-extern int AUD_doesPlayback();
+extern int AUD_doesPlayback(void);
 
 #ifdef __cplusplus
 }

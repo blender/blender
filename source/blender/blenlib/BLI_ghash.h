@@ -190,7 +190,7 @@ BM_INLINE void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	gh->buckets[hash]= e;
 	
 	if (++gh->nentries>(float)gh->nbuckets/2) {
-		Entry *e, **old= gh->buckets;
+		Entry **old= gh->buckets;
 		int i, nold= gh->nbuckets;
 		
 		gh->nbuckets= hashsizes[++gh->cursize];

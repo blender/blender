@@ -5978,8 +5978,6 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 		break;
 	case CU_PRIM_TUBE:	/* Cylinder */
 		if( cutype==CU_NURBS ) {
-			Curve *cu= (Curve*)obedit->data;
-			
 			nu= add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
 			nu->resolu= cu->resolu;
 			nu->flag= CU_SMOOTH;

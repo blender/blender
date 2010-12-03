@@ -979,7 +979,7 @@ IF((NOT WIN32) AND (NOT MSVC))
 ENDIF((NOT WIN32) AND (NOT MSVC))
 
 IF(CMAKE_COMPILER_IS_GNUCC)
-	SET(C_WARNINGS "${C_WARNINGS} -Wunused-parameter -Werror=declaration-after-statement -Werror=implicit-function-declaration -Werror=return-type")
+	SET(C_WARNINGS "${C_WARNINGS} -Wunused-parameter -Werror=strict-prototypes -Werror=declaration-after-statement -Werror=implicit-function-declaration -Werror=return-type")
 ENDIF(CMAKE_COMPILER_IS_GNUCC)
 
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")

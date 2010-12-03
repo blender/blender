@@ -330,7 +330,7 @@ void vol_get_emission(ShadeInput *shi, float *emission_col, float *co)
 
 
 /* A combination of scattering and absorption -> known as sigma T.
- * This can possibly use a specific scattering colour, 
+ * This can possibly use a specific scattering color, 
  * and absorption multiplier factor too, but these parameters are left out for simplicity.
  * It's easy enough to get a good wide range of results with just these two parameters. */
 void vol_get_sigma_t(ShadeInput *shi, float *sigma_t, float *co)
@@ -571,8 +571,8 @@ outgoing radiance from behind surface * beam transmittance/attenuation
 /* For ease of use, I've also introduced a 'reflection' and 'reflection color' parameter, which isn't 
  * physically correct. This works as an RGB tint/gain on out-scattered light, but doesn't affect the light 
  * that is transmitted through the volume. While having wavelength dependent absorption/scattering is more correct,
- * it also makes it harder to control the overall look of the volume since colouring the outscattered light results
- * in the inverse colour being transmitted through the rest of the volume.
+ * it also makes it harder to control the overall look of the volume since coloring the outscattered light results
+ * in the inverse color being transmitted through the rest of the volume.
  */
 static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float *endco)
 {

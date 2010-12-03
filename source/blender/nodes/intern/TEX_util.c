@@ -29,11 +29,11 @@
 /*
 	HOW TEXTURE NODES WORK
 
-	In contrast to Shader nodes, which place a colour into the output
+	In contrast to Shader nodes, which place a color into the output
 	stack when executed, Texture nodes place a TexDelegate* there. To
-	obtain a colour value from this, a node further up the chain reads
+	obtain a color value from this, a node further up the chain reads
 	the TexDelegate* from its input stack, and uses tex_call_delegate to
-	retrieve the colour from the delegate.
+	retrieve the color from the delegate.
  
 	comments: (ton)
     

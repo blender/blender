@@ -783,16 +783,16 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 		transvmain= NULL;
 	}
 	else {
-		Object *ob= CTX_data_active_object(C);
+		Object *obact= CTX_data_active_object(C);
 		
-		if(ob && (ob->mode & OB_MODE_POSE)) {
-			bArmature *arm= ob->data;
+		if(obact && (obact->mode & OB_MODE_POSE)) {
+			bArmature *arm= obact->data;
 			bPoseChannel *pchan;
-			for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+			for (pchan = obact->pose->chanbase.first; pchan; pchan=pchan->next) {
 				if(arm->layer & pchan->bone->layer) {
 					if(pchan->bone->flag & BONE_SELECTED) {
 						VECCOPY(vec, pchan->pose_head);
-						mul_m4_v3(ob->obmat, vec);
+						mul_m4_v3(obact->obmat, vec);
 						add_v3_v3(centroid, vec);
 						DO_MINMAX(vec, min, max);
 						count++;

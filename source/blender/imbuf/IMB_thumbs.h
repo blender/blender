@@ -69,7 +69,7 @@ void IMB_thumb_delete(const char* path, ThumbSize size);
 ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source);
 
 /* create the necessary dirs to store the thumbnails */
-void IMB_thumb_makedirs();
+void IMB_thumb_makedirs(void);
 
 /* special function for loading a thumbnail embedded into a blend file */
 ImBuf *IMB_loadblend_thumb(const char *path);

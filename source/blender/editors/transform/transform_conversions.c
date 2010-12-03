@@ -446,7 +446,7 @@ static short apply_targetless_ik(Object *ob)
 
 				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
 				{
-					float rmat3[3][3], qrmat[3][3], imat[3][3], smat[3][3];
+					float rmat3[3][3], qrmat[3][3], imat3[3][3], smat[3][3];
 					
 					copy_m3_m4(rmat3, rmat);
 					
@@ -473,8 +473,8 @@ static short apply_targetless_ik(Object *ob)
 						else
 							quat_to_mat3( qrmat,parchan->quat);
 						
-						invert_m3_m3(imat, qrmat);
-						mul_m3_m3m3(smat, rmat3, imat);
+						invert_m3_m3(imat3, qrmat);
+						mul_m3_m3m3(smat, rmat3, imat3);
 						mat3_to_size( parchan->size,smat);
 					}
 					
@@ -5051,10 +5051,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 		for (i = 0; i < t->total; i++) {
 			TransData *td = t->data + i;
-			Object *ob = td->ob;
 			ListBase pidlist;
 			PTCacheID *pid;
-			
+			ob = td->ob;
+
 			if (td->flag & TD_NOACTION)
 				break;
 			

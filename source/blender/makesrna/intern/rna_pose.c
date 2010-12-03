@@ -91,13 +91,13 @@ static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
 {
 	bActionGroup *grp= ptr->data;
 	
-	/* if valid value, set the new enum value, then copy the relevant colours? */
+	/* if valid value, set the new enum value, then copy the relevant colors? */
 	if ((value >= -1) && (value < 21))
 		grp->customCol= value;
 	else
 		return;
 	
-	/* only do color copying if using a custom color (i.e. not default colour)  */
+	/* only do color copying if using a custom color (i.e. not default color)  */
 	if (grp->customCol) {
 		if (grp->customCol > 0) {
 			/* copy theme colors on-to group's custom color in case user tries to edit color */

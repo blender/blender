@@ -3666,7 +3666,7 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void ED_operatortypes_sculpt()
+void ED_operatortypes_sculpt(void)
 {
 	WM_operatortype_append(SCULPT_OT_radial_control);
 	WM_operatortype_append(SCULPT_OT_brush_stroke);

@@ -1628,16 +1628,16 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	ImageSampleInfo *info= op->customdata;
 	float fx, fy;
-	int x, y;
+	int mx, my;
 	
 	if(ibuf == NULL) {
 		ED_space_image_release_buffer(sima, lock);
 		return;
 	}
 
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
-	UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
+	mx= event->x - ar->winrct.xmin;
+	my= event->y - ar->winrct.ymin;
+	UI_view2d_region_to_view(&ar->v2d, mx, my, &fx, &fy);
 
 	if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
 		float *fp;

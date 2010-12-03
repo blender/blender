@@ -68,7 +68,7 @@ void BKE_icon_delete(struct ID* id);
 void BKE_icon_changed(int icon_id);
 
 /* free all icons */
-void BKE_icons_free();
+void BKE_icons_free(void);
 
 /* free the preview image */
 void BKE_previewimg_free(struct PreviewImage **prv);
@@ -77,7 +77,7 @@ void BKE_previewimg_free(struct PreviewImage **prv);
 void BKE_previewimg_free_id(ID *id);
 
 /* create a new preview image */
-struct PreviewImage* BKE_previewimg_create() ;
+struct PreviewImage* BKE_previewimg_create(void) ;
 
 /* create a copy of the preview image */
 struct PreviewImage* BKE_previewimg_copy(struct PreviewImage *prv);

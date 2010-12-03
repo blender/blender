@@ -451,7 +451,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 }
 
-/* XXX: should be re-implemented as a vertex/weight paint 'colour correct' operator
+/* XXX: should be re-implemented as a vertex/weight paint 'color correct' operator
  
 void vpaint_dogamma(Scene *scene)
 {

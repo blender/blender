@@ -47,8 +47,8 @@ struct rcti;
 struct ReportList;
 
 struct FileList *	filelist_new(short type);
-void				filelist_init_icons();
-void				filelist_free_icons();
+void				filelist_init_icons(void);
+void				filelist_free_icons(void);
 int					filelist_find(struct FileList* filelist, char *file);
 void				filelist_free(struct FileList* filelist);
 void				filelist_sort(struct FileList* filelist, short sort);
@@ -78,7 +78,7 @@ void				filelist_from_library(struct FileList* filelist);
 void				filelist_freelib(struct FileList* filelist);
 void				filelist_hideparent(struct FileList* filelist, short hide);
 
-struct ListBase *	folderlist_new();
+struct ListBase *	folderlist_new(void);
 void				folderlist_free(struct ListBase* folderlist);
 struct ListBase	*	folderlist_duplicate(ListBase* folderlist);
 void				folderlist_popdir(struct ListBase* folderlist, char *dir);

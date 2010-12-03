@@ -735,12 +735,12 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 static int texture_slot_move(bContext *C, wmOperator *op)
 {
 	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
-	Material *ma = (Material *)id;
 
 	if(id) {
 		MTex **mtex_ar, *mtexswap;
 		short act;
 		int type= RNA_enum_get(op->ptr, "type");
+		struct AnimData *adt= BKE_animdata_from_id(id);
 
 		give_active_mtex(id, &mtex_ar, &act);
 
@@ -750,9 +750,9 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				mtex_ar[act] = mtex_ar[act-1];
 				mtex_ar[act-1] = mtexswap;
 				
-				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act-1, -1, 0);
-				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act, act-1, 0);
-				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, -1, act, 0);
+				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act-1, -1, 0);
+				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act, act-1, 0);
+				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, -1, act, 0);
 
 				if(GS(id->name)==ID_MA) {
 					Material *ma= (Material *)id;
@@ -772,9 +772,9 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				mtex_ar[act] = mtex_ar[act+1];
 				mtex_ar[act+1] = mtexswap;
 				
-				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act+1, -1, 0);
-				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act, act+1, 0);
-				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, -1, act, 0);
+				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act+1, -1, 0);
+				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, act, act+1, 0);
+				BKE_animdata_fix_paths_rename(id, adt, "texture_slots", NULL, NULL, -1, act, 0);
 
 				if(GS(id->name)==ID_MA) {
 					Material *ma= (Material *)id;

@@ -3964,7 +3964,7 @@ static int project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, int *
 
 /* Imagepaint Partial Redraw & Dirty Region */
 
-static void imapaint_clear_partial_redraw()
+static void imapaint_clear_partial_redraw(void)
 {
 	memset(&imapaintpartial, 0, sizeof(imapaintpartial));
 }

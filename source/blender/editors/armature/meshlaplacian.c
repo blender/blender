@@ -63,8 +63,8 @@
 /* ************* XXX *************** */
 static void waitcursor(int UNUSED(val)) {}
 static void progress_bar(int UNUSED(dummy_val), const char *UNUSED(dummy)) {}
-static void start_progress_bar() {}
-static void end_progress_bar() {}
+static void start_progress_bar(void) {}
+static void end_progress_bar(void) {}
 static void error(char *str) { printf("error: %s\n", str); }
 /* ************* XXX *************** */
 

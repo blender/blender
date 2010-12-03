@@ -143,8 +143,8 @@ ParamHandle *construct_param_handle(Scene *scene, EditMesh *em, short implicit, 
 		efa = EM_get_actFace(em, 1);
 
 		if(efa) {
-			MTFace *tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			float aspx, aspy;
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
 			ED_image_uv_aspect(tf->tpage, &aspx, &aspy);
 		

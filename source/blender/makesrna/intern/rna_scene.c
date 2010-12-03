@@ -1656,7 +1656,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frame_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "framing.col");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Framing Color", "Set colour of the bars");
+	RNA_def_property_ui_text(prop, "Framing Color", "Set color of the bars");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	/* Stereo */

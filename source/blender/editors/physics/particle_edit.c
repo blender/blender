@@ -3245,8 +3245,8 @@ static int brush_add(PEData *data, short number)
 
 			if(tree) {
 				ParticleData *ppa;
-				HairKey *hkey;
-				ParticleKey key[3];
+				HairKey *thkey;
+				ParticleKey key3[3];
 				KDTreeNearest ptn[3];
 				int w, maxw;
 				float maxd, mind, dd, totw=0.0, weight[3];
@@ -3272,36 +3272,36 @@ static int brush_add(PEData *data, short number)
 				ppa= psys->particles+ptn[0].index;
 
 				for(k=0; k<pset->totaddkey; k++) {
-					hkey= (HairKey*)pa->hair + k;
-					hkey->time= pa->time + k * framestep;
+					thkey= (HairKey*)pa->hair + k;
+					thkey->time= pa->time + k * framestep;
 
-					key[0].time= hkey->time/ 100.0f;
-					psys_get_particle_on_path(&sim, ptn[0].index, key, 0);
-					mul_v3_fl(key[0].co, weight[0]);
+					key3[0].time= thkey->time/ 100.0f;
+					psys_get_particle_on_path(&sim, ptn[0].index, key3, 0);
+					mul_v3_fl(key3[0].co, weight[0]);
 					
 					/* TODO: interpolatint the weight would be nicer */
-					hkey->weight= (ppa->hair+MIN2(k, ppa->totkey-1))->weight;
+					thkey->weight= (ppa->hair+MIN2(k, ppa->totkey-1))->weight;
 					
 					if(maxw>1) {
-						key[1].time= key[0].time;
-						psys_get_particle_on_path(&sim, ptn[1].index, key + 1, 0);
-						mul_v3_fl(key[1].co, weight[1]);
-						VECADD(key[0].co, key[0].co, key[1].co);
+						key3[1].time= key3[0].time;
+						psys_get_particle_on_path(&sim, ptn[1].index, &key3[1], 0);
+						mul_v3_fl(key3[1].co, weight[1]);
+						VECADD(key3[0].co, key3[0].co, key3[1].co);
 
 						if(maxw>2) {						
-							key[2].time= key[0].time;
-							psys_get_particle_on_path(&sim, ptn[2].index, key + 2, 0);
-							mul_v3_fl(key[2].co, weight[2]);
-							VECADD(key[0].co, key[0].co, key[2].co);
+							key3[2].time= key3[0].time;
+							psys_get_particle_on_path(&sim, ptn[2].index, &key3[2], 0);
+							mul_v3_fl(key3[2].co, weight[2]);
+							VECADD(key3[0].co, key3[0].co, key3[2].co);
 						}
 					}
 
 					if(k==0)
-						VECSUB(co1, pa->state.co, key[0].co);
+						VECSUB(co1, pa->state.co, key3[0].co);
 
-					VECADD(hkey->co, key[0].co, co1);
+					VECADD(thkey->co, key3[0].co, co1);
 
-					hkey->time= key[0].time;
+					thkey->time= key3[0].time;
 				}
 			}
 			else {

@@ -81,9 +81,6 @@
 #define TEST_EDITMESH	if(obedit==0) return; \
 						if( (v3d->lay & obedit->lay)==0 ) return;
 
-/* XXX port over */	
-extern void borderselect();
-
 /* view3d handler codes */
 #define VIEW3D_HANDLER_BACKGROUND	1
 #define VIEW3D_HANDLER_PROPERTIES	2

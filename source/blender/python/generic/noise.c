@@ -174,7 +174,7 @@ static void setRndSeed(int seed)
 }
 
 /* float number in range [0, 1) using the mersenne twister rng */
-static float frand()
+static float frand(void)
 {
 	unsigned long y;
 

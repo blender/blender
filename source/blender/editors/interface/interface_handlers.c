@@ -1068,19 +1068,19 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 	/* text/string and ID data */
 	else if(ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
-		uiHandleButtonData *data= but->active;
+		uiHandleButtonData *active_data= but->active;
 
 		if(but->poin==NULL && but->rnapoin.data==NULL);
 		else if(mode=='c') {
 			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-			BLI_strncpy(buf, data->str, UI_MAX_DRAW_STR);
-			WM_clipboard_text_set(data->str, 0);
-			data->cancel= 1;
+			BLI_strncpy(buf, active_data->str, UI_MAX_DRAW_STR);
+			WM_clipboard_text_set(active_data->str, 0);
+			active_data->cancel= 1;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		else {
 			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-			BLI_strncpy(data->str, buf, data->maxlen);
+			BLI_strncpy(active_data->str, buf, active_data->maxlen);
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 	}
@@ -1281,7 +1281,7 @@ static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char asc
 	return changed;
 }
 
-void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int select, int jump)
+static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int select, int jump)
 {
 	char *str;
 	int len;
@@ -1384,7 +1384,7 @@ void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int s
 	}
 }
 
-void ui_textedit_move_end(uiBut *but, uiHandleButtonData *data, int direction, int select)
+static void ui_textedit_move_end(uiBut *but, uiHandleButtonData *data, int direction, int select)
 {
 	char *str;
 

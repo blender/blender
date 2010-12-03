@@ -444,7 +444,7 @@ typedef struct {
    GHOST_TUns64 delta;
 } GHOST_TEventNDOFData;
 
-typedef int     (*GHOST_NDOFLibraryInit_fp)();
+typedef int     (*GHOST_NDOFLibraryInit_fp)(void);
 typedef void    (*GHOST_NDOFLibraryShutdown_fp)(void* deviceHandle);
 typedef void*   (*GHOST_NDOFDeviceOpen_fp)(void* platformData);
 

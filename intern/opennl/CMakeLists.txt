@@ -24,6 +24,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+# External project, better not fix warnings.
+REMOVE_STRICT_FLAGS()
+
 SET(INC
 	extern
 	superlu

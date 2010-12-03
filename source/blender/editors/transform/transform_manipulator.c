@@ -793,7 +793,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 	GLUquadricObj *qobj;
 	double plane[4];
 	float matt[4][4];
-	float size, vec[3], unitmat[4][4];
+	float size, unitmat[4][4];
 	float cywid= 0.33f*0.01f*(float)U.tw_handlesize;
 	float cusize= cywid*0.65f;
 	int arcs= (G.rt!=2);
@@ -814,8 +814,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 	gluQuadricDrawStyle(qobj, GLU_FILL);
 
 	/* prepare for screen aligned draw */
-	VECCOPY(vec, rv3d->twmat[0]);
-	size= normalize_v3(vec);
+	size= len_v3(rv3d->twmat[0]);
 	glPushMatrix();
 	glTranslatef(rv3d->twmat[3][0], rv3d->twmat[3][1], rv3d->twmat[3][2]);
 

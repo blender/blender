@@ -427,7 +427,7 @@ static void draw_bonevert_solid(void)
 	glCallList(displist);
 }
 
-static void draw_bone_octahedral()
+static void draw_bone_octahedral(void)
 {
 	static GLuint displist=0;
 	

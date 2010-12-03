@@ -177,13 +177,13 @@ static void print_error(const char *str, ...)
 	if (error_callback) error_callback(buf);
 }
 
-static void mem_lock_thread()
+static void mem_lock_thread(void)
 {
 	if (thread_lock_callback)
 		thread_lock_callback();
 }
 
-static void mem_unlock_thread()
+static void mem_unlock_thread(void)
 {
 	if (thread_unlock_callback)
 		thread_unlock_callback();

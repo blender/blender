@@ -824,7 +824,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 				sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
 		}
 		
-		/* colour depends on whether there is a keyframe */
+		/* color depends on whether there is a keyframe */
 		if (id_frame_has_keyframe((ID *)ob, /*BKE_curframe(scene)*/(float)(CFRA), v3d->keyflags))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
@@ -837,7 +837,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 		else
 			sprintf(info, "(%d)", CFRA);
 		
-		/* colour is always white */
+		/* color is always white */
 		UI_ThemeColor(TH_TEXT_HI);
 	}
 	
@@ -2425,13 +2425,13 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 	if(v3d->lay_used != lay_used) { /* happens when loading old files or loading with UI load */
-		ARegion *ar;
+		ARegion *ar_iter;
 		ScrArea *sa= CTX_wm_area(C);
 
 		/* find header and force tag redraw */
-		for(ar= sa->regionbase.first; ar; ar= ar->next)
-			if(ar->regiontype==RGN_TYPE_HEADER) {
-				ED_region_tag_redraw(ar);
+		for(ar_iter= sa->regionbase.first; ar_iter; ar_iter= ar_iter->next)
+			if(ar_iter->regiontype==RGN_TYPE_HEADER) {
+				ED_region_tag_redraw(ar_iter);
 				break;
 			}
 

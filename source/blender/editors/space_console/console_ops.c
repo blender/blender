@@ -365,7 +365,7 @@ static int insert_exec(bContext *C, wmOperator *op)
 
 	// XXX, alligned tab key hack
 	if(str[0]=='\t' && str[1]=='\0') {
-		int len= TAB_LENGTH - (ci->cursor % TAB_LENGTH);
+		len= TAB_LENGTH - (ci->cursor % TAB_LENGTH);
 		MEM_freeN(str);
 		str= MEM_mallocN(len + 1, "insert_exec");
 		memset(str, ' ', len);
@@ -380,7 +380,6 @@ static int insert_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		SpaceConsole *sc= CTX_wm_space_console(C);
 		console_select_offset(sc, len);
 	}
 
@@ -468,7 +467,6 @@ static int delete_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		SpaceConsole *sc= CTX_wm_space_console(C);
 		console_select_offset(sc, -1);
 	}
 
@@ -616,7 +614,6 @@ static int history_append_exec(bContext *C, wmOperator *op)
 	int prev_len= ci->len;
 
 	if(rem_dupes) {
-		SpaceConsole *sc= CTX_wm_space_console(C);
 		ConsoleLine *cl;
 
 		while((cl= console_history_find(sc, ci->line, ci)))

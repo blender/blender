@@ -321,8 +321,7 @@ static int fcu_test_selected(FCurve *fcu)
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
-	Scene *scene = t->scene;
-	Base *base = scene->basact;
+	Base *base = t->scene->basact;
 
 	if (t->spacetype==SPACE_NODE) {
 		flushTransNodes(t);
@@ -785,9 +784,9 @@ void recalcData(TransInfo *t)
 				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 			}
 			else
-				where_is_pose(scene, ob);
+				where_is_pose(t->scene, ob);
 		}
-		else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(scene, base->object)) {
+		else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, base->object)) {
 			if(t->state != TRANS_CANCEL) {
 				applyProject(t);
 			}

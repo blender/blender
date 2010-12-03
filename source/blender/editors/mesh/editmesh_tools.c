@@ -3554,7 +3554,7 @@ static const EnumPropertyItem direction_items[]= {
 #define AXIS_X		1
 #define AXIS_Y		2
 
-static const EnumPropertyItem axis_items[]= {
+static const EnumPropertyItem axis_items_xy[]= {
 	{AXIS_X, "X", 0, "X", ""},
 	{AXIS_Y, "Y", 0, "Y", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -6701,7 +6701,7 @@ void MESH_OT_uvs_mirror(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror UVs around.");
+	RNA_def_enum(ot->srna, "axis", axis_items_xy, DIRECTION_CW, "Axis", "Axis to mirror UVs around.");
 }
 
 void MESH_OT_colors_rotate(wmOperatorType *ot)
@@ -6737,7 +6737,7 @@ void MESH_OT_colors_mirror(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around.");
+	RNA_def_enum(ot->srna, "axis", axis_items_xy, DIRECTION_CW, "Axis", "Axis to mirror colors around.");
 }
 
 /********************** Subdivide Operator *************************/
@@ -7493,7 +7493,7 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 		{-1, "ALIGNED",  0, "Aligned Axis", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
-	static EnumPropertyItem axis_items[] = {
+	static EnumPropertyItem axis_items_xyz[] = {
 		{0, "X_AXIS", 0, "X Axis", ""},
 		{1, "Y_AXIS", 0, "Y Axis", ""},
 		{2, "Z_AXIS", 0, "Z Axis", ""},
@@ -7513,6 +7513,6 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "mode", axis_mode_items, 0, "Axis Mode", "Axis side to use when selecting");
-	RNA_def_enum(ot->srna, "axis", axis_items, 0, "Axis", "Select the axis to compare each vertex on");
+	RNA_def_enum(ot->srna, "axis", axis_items_xyz, 0, "Axis", "Select the axis to compare each vertex on");
 }
 

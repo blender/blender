@@ -1070,7 +1070,7 @@ void GPU_shader_bind(GPUShader *shader)
 	GPU_print_error("Post Shader Bind");
 }
 
-void GPU_shader_unbind()
+void GPU_shader_unbind(GPUShader *UNUSED(shader))
 {
 	GPU_print_error("Pre Shader Unbind");
 	glUseProgramObjectARB(0);

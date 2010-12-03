@@ -35,10 +35,8 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "MEM_guardedalloc.h"
-
 
 
 #include "DNA_material_types.h"
@@ -139,14 +137,13 @@ void EM_automerge(Scene *scene, Object *obedit, int update)
 		(obedit && obedit->type==OB_MESH && (obedit->mode & OB_MODE_EDIT)) &&
 		(me->mr==NULL)
 	  ) {
-		Mesh *me= (Mesh*)obedit->data;
 		EditMesh *em= me->edit_mesh;
 
 		len = removedoublesflag(em, 1, 1, scene->toolsettings->doublimit);
 		if (len) {
 			em->totvert -= len; /* saves doing a countall */
 			if (update) {
-				DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+				DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 			}
 		}
 	}

@@ -422,7 +422,7 @@ typedef enum eItasc_Solver {
  * ensure that action-groups never end up being the sole 'owner' of a channel.
  * 
  * This is also exploited for bone-groups. Bone-Groups are stored per bPose, and are used 
- * primarily to colour bones in the 3d-view. There are other benefits too, but those are mostly related
+ * primarily to color bones in the 3d-view. There are other benefits too, but those are mostly related
  * to Action-Groups.
  */
 typedef struct bActionGroup {
@@ -595,7 +595,7 @@ typedef enum eSAction_Flag {
 	//SACTION_HORIZOPTIMISEON = (1<<5), // XXX depreceated... old irrelevant trick
 		/* hack for moving pose-markers (temp flag)  */
 	SACTION_POSEMARKERS_MOVE = (1<<6),
-		/* don't draw action channels using group colours (where applicable) */
+		/* don't draw action channels using group colors (where applicable) */
 	SACTION_NODRAWGCOLORS = (1<<7), // XXX depreceated... irrelevant for current groups implementation
 		/* don't draw current frame number beside frame indicator */
 	SACTION_NODRAWCFRANUM = (1<<8),

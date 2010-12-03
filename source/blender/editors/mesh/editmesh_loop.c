@@ -70,9 +70,9 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 
 /* **** XXX ******** */
 static void BIF_undo_push(const char *UNUSED(arg)) {}
-static void BIF_undo() {}
+static void BIF_undo(void) {}
 static void error(const char *UNUSED(arg)) {}
-static int qtest() {return 0;}
+static int qtest(void) {return 0;}
 /* **** XXX ******** */
 
 

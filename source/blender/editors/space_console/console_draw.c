@@ -146,7 +146,7 @@ static int console_textview_line_get(struct TextViewContext *tvc, const char **l
 
 static int console_textview_line_color(struct TextViewContext *tvc, unsigned char fg[3], unsigned char UNUSED(bg[3]))
 {
-	ConsoleLine *cl= (ConsoleLine *)tvc->iter;
+	ConsoleLine *cl_iter= (ConsoleLine *)tvc->iter;
 
 	/* annoying hack, to draw the prompt */
 	if(tvc->iter_index == 0) {
@@ -181,7 +181,7 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 		);
 	}
 
-	console_line_color(fg, cl->type);
+	console_line_color(fg, cl_iter->type);
 
 	return TVC_LINE_FG;
 }

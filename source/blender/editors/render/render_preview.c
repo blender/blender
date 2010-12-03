@@ -94,7 +94,7 @@
 #define PR_YMAX		195
 
 /* XXX */
-static int qtest() {return 0;}
+static int qtest(void) {return 0;}
 /* XXX */
 
 ImBuf* get_brush_icon(Brush *brush)
@@ -487,12 +487,12 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 	Render *re;
 	RenderResult rres;
 	char name[32];
-	int gamma_correct=0;
+	int do_gamma_correct=0;
 	int offx=0, newx= rect->xmax-rect->xmin, newy= rect->ymax-rect->ymin;
 
 	if (id && GS(id->name) != ID_TE) {
 		/* exception: don't color manage texture previews - show the raw values */
-		if (sce) gamma_correct = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+		if (sce) do_gamma_correct = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	}
 
 	if(!split || first) sprintf(name, "Preview %p", (void *)sa);
@@ -518,7 +518,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 			newrect->xmax= MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
 			newrect->ymax= MAX2(newrect->ymax, rect->ymin + rres.recty);
 
-			glaDrawPixelsSafe_to32(rect->xmin+offx, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
+			glaDrawPixelsSafe_to32(rect->xmin+offx, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, do_gamma_correct);
 
 			RE_ReleaseResultImage(re);
 			return 1;

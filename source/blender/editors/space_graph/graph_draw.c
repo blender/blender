@@ -70,7 +70,7 @@
  */
 #define drawFCurveFade(fcu) ( ((fcu)->flag & FCURVE_SELECTED)? 1.0f : 0.25f )
 
-/* set the colour for some point from some value given packed into an int 
+/* set the color for some point from some value given packed into an int 
  *	- intV: integer value containing color info packed into an int
  *	- alpha: float value describing the 
  */

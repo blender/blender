@@ -99,7 +99,7 @@ void text_free_caches(struct SpaceText *st);
 int text_file_modified(struct Text *text);
 
 int text_do_suggest_select(struct SpaceText *st, struct ARegion *ar);
-void text_pop_suggest_list();
+void text_pop_suggest_list(void);
 
 int text_get_visible_lines(struct SpaceText *st, struct ARegion *ar, char *str);
 int text_get_span_wrap(struct SpaceText *st, struct ARegion *ar, struct TextLine *from, struct TextLine *to);

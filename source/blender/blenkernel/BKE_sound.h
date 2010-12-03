@@ -38,11 +38,11 @@ struct ListBase;
 struct Main;
 struct Sequence;
 
-void sound_init_once();
+void sound_init_once(void);
 
 void sound_init(struct Main *main);
 
-void sound_exit();
+void sound_exit(void);
 
 void sound_force_device(int device);
 int sound_define_from_str(char *str);

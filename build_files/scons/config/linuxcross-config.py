@@ -178,7 +178,7 @@ CPPFLAGS = ['-DWIN32', '-DFREE_WINDOWS', '-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_
 CXXFLAGS = ['-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 REL_CFLAGS = [ '-O2' ]
 REL_CCFLAGS = [ '-O2' ]
-C_WARN = [ '-Wall' , '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
+C_WARN = ['-Wall', '-Wstrict-prototypes', '-Wno-char-subscripts', '-Wdeclaration-after-statement']
 
 CC_WARN = [ '-Wall' ]
 

@@ -27,11 +27,11 @@
  */
 
 /* python, will come back */
-//void BPY_run_python_script() {}
-//void BPY_start_python() {}
+//void BPY_run_python_script(void) {}
+//void BPY_start_python(void) {}
 void BPY_call_importloader(const char *filepath) {(void)filepath;}
-//void BPY_free_compiled_text() {}
-void BPY_pyconstraint_eval() {}
-void BPY_pyconstraint_target() {}
-int BPY_is_pyconstraint() {return 0;}
-void BPY_pyconstraint_update() {}
+//void BPY_free_compiled_text(void) {}
+void BPY_pyconstraint_eval(void) {}
+void BPY_pyconstraint_target(void) {}
+int BPY_is_pyconstraint(void) {return 0;}
+void BPY_pyconstraint_update(void) {}

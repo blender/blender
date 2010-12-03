@@ -1294,7 +1294,7 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 	return mat;
 }
 
-void GPU_materials_free()
+void GPU_materials_free(void)
 {
 	Object *ob;
 	Material *ma;

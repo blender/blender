@@ -304,7 +304,7 @@ void RIG_freeRigGraph(BGraph *rg)
 
 /************************************* ALLOCATORS ******************************************************/
 
-static RigGraph *newRigGraph()
+static RigGraph *newRigGraph(void)
 {
 	RigGraph *rg;
 	int totthread;
@@ -1535,8 +1535,7 @@ RigGraph *RIG_graphFromArmature(const bContext *C, Object *ob, bArmature *arm)
 	
 	if (obedit == ob)
 	{
-		bArmature *arm = obedit->data;
-		rg->editbones = arm->edbo;
+		rg->editbones = ((bArmature *)obedit->data)->edbo;
 	}
 	else
 	{
@@ -2792,7 +2791,7 @@ int RIG_nbJoints(RigGraph *rg)
 	return total;
 }
 
-void BIF_freeRetarget()
+void BIF_freeRetarget(void)
 {
 	if (GLOBAL_RIGG)
 	{

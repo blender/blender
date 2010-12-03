@@ -56,8 +56,8 @@ typedef struct wmJob wmJob;
 
 /* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
-void		WM_setinitialstate_fullscreen();
-void		WM_setinitialstate_normal();
+void		WM_setinitialstate_fullscreen(void);
+void		WM_setinitialstate_normal(void);
 
 void		WM_init				(struct bContext *C, int argc, char **argv);
 void		WM_exit				(struct bContext *C);
