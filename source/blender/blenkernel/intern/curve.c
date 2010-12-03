@@ -3056,7 +3056,7 @@ void curve_applyKeyVertexTilts(Curve *UNUSED(cu), ListBase *lb, float *key)
 			for(i=0; i<nu->pntsu; i++,bezt++) {
 				key+=3*3;
 				bezt->alfa= *key;
-				key++;
+				key+=3;
 			}
 		}
 		else {

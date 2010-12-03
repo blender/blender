@@ -776,7 +776,6 @@ static void calc_shapeKeys(Object *obedit)
 								for (j= 0; j < 3; ++j) {
 									VECSUB(ofs[i], bezt->vec[j], oldbezt->vec[j]);
 									i++;
-									// fp+= 3; // unused
 								}
 								ofs[i++][0]= bezt->alfa - oldbezt->alfa;
 							} else {
@@ -796,7 +795,6 @@ static void calc_shapeKeys(Object *obedit)
 							}
 							i += 2;
 							++bp;
-							// fp += 4; //unused
 						}
 					}
 
