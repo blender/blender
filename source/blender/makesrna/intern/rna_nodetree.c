@@ -429,7 +429,13 @@ static EnumPropertyItem *rna_Node_channel_itemf(bContext *C, PointerRNA *ptr, in
 
 static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *reports, int type, bNodeTree *group)
 {
-	bNode *node= nodeAddNodeType(ntree, type, group, NULL);
+	bNode *node;
+
+	if (type == NODE_GROUP && group == NULL) {
+		BKE_reportf(reports, RPT_ERROR, "node type \'GROUP\' missing group argument");
+		return NULL;
+	}
+	node = nodeAddNodeType(ntree, type, group, NULL);
 
 	if (node == NULL) {
 		 BKE_reportf(reports, RPT_ERROR, "Unable to create node");
@@ -438,6 +444,9 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *r
 		nodeVerifyGroup(ntree); /* update group node socket links*/
 		NodeTagChanged(ntree, node);
 		WM_event_add_notifier(C, NC_NODE|NA_EDITED, ntree);
+
+		if (group)
+			id_us_plus(&group->id);
 	}
 
 	return node;

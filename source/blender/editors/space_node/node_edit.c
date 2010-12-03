@@ -244,7 +244,7 @@ void ED_node_shader_default(Material *ma)
 		return;
 	}
 	
-	ma->nodetree= ntreeAddTree(NTREE_SHADER);
+	ma->nodetree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, FALSE);
 	
 	out= nodeAddNodeType(ma->nodetree, SH_NODE_OUTPUT, NULL, NULL);
 	out->locx= 300.0f; out->locy= 300.0f;
@@ -275,7 +275,7 @@ void ED_node_composit_default(Scene *sce)
 		return;
 	}
 	
-	sce->nodetree= ntreeAddTree(NTREE_COMPOSIT);
+	sce->nodetree= ntreeAddTree("Compositing Nodetree", NTREE_COMPOSIT, FALSE);
 	
 	out= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL, NULL);
 	out->locx= 300.0f; out->locy= 400.0f;
@@ -312,7 +312,7 @@ void ED_node_texture_default(Tex *tx)
 		return;
 	}
 	
-	tx->nodetree= ntreeAddTree(NTREE_TEXTURE);
+	tx->nodetree= ntreeAddTree("Texture Nodetree", NTREE_TEXTURE, FALSE);
 	
 	out= nodeAddNodeType(tx->nodetree, TEX_NODE_OUTPUT, NULL, NULL);
 	out->locx= 300.0f; out->locy= 300.0f;

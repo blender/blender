@@ -496,9 +496,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 		return NULL;
 	
 	/* OK! new nodetree */
-	ngroup= alloc_libblock(&G.main->nodetree, ID_NT, "NodeGroup");
-	ngroup->type= ntree->type;
-	ngroup->alltypes= ntree->alltypes;
+	ngroup= ntreeAddTree("NodeGroup", ntree->type, TRUE);
 	
 	/* move nodes over */
 	for(node= ntree->nodes.first; node; node= nextn) {
@@ -884,6 +882,11 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 	bNode *node= NULL;
 	bNodeType *ntype= NULL;
 
+	if (ngroup && BLI_findindex(&G.main->nodetree, ngroup)==-1) {
+		printf("nodeAddNodeType() error: '%s' not in main->nodetree\n", ngroup->id.name);
+		return NULL;
+	}
+
 	if(type>=NODE_DYNAMIC_MENU) {
 		int a=0, idx= type-NODE_DYNAMIC_MENU;
 		ntype= ntree->alltypes.first;
@@ -1034,21 +1037,22 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 }
 
 
-bNodeTree *ntreeAddTree(int type)
+bNodeTree *ntreeAddTree(const char *name, int type, const short is_group)
 {
-	bNodeTree *ntree= MEM_callocN(sizeof(bNodeTree), "new node tree");
+	bNodeTree *ntree;
+
+	if (is_group)
+		ntree= alloc_libblock(&G.main->nodetree, ID_NT, name);
+	else {
+		ntree= MEM_callocN(sizeof(bNodeTree), "new node tree");
+		*( (short *)ntree->id.name )= type;
+		BLI_strncpy(ntree->id.name+2, name, sizeof(ntree->id.name));
+	}
+
 	ntree->type= type;
 	ntree->alltypes.first = NULL;
 	ntree->alltypes.last = NULL;
 
-	/* this helps RNA identify ID pointers as nodetree */
-	if(ntree->type==NTREE_SHADER)
-		BLI_strncpy(ntree->id.name, "NTShader Nodetree", sizeof(ntree->id.name));
-	else if(ntree->type==NTREE_COMPOSIT)
-		BLI_strncpy(ntree->id.name, "NTCompositing Nodetree", sizeof(ntree->id.name));
-	else if(ntree->type==NTREE_TEXTURE)
-		BLI_strncpy(ntree->id.name, "NTTexture Nodetree", sizeof(ntree->id.name));
-	
 	ntreeInitTypes(ntree);
 	return ntree;
 }

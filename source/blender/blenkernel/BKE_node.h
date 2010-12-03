@@ -129,7 +129,7 @@ typedef struct bNodeType {
 
 void			ntreeVerifyTypes(struct bNodeTree *ntree);
 
-struct bNodeTree *ntreeAddTree(int type);
+struct bNodeTree *ntreeAddTree(const char *name, int type, const short is_group);
 void			ntreeInitTypes(struct bNodeTree *ntree);
 
 void			ntreeMakeOwnType(struct bNodeTree *ntree);

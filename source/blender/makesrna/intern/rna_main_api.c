@@ -201,10 +201,12 @@ void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material
 	/* XXX python now has invalid pointer? */
 }
 
-// XXX, commended for now, need to see how this can be used with node groups.
-struct bNodeTree *rna_Main_nodetree_new(Main *bmain, int type)
+struct bNodeTree *rna_Main_nodetree_new(Main *bmain, const char *name, int type)
 {
-	bNodeTree *tree = ntreeAddTree(type);
+	bNodeTree *tree = ntreeAddTree(name, type, TRUE);
+
+	ntreeMakeOwnType(tree);
+
 	tree->id.us--;
 	return tree;
 }
@@ -598,23 +600,24 @@ void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)
 void RNA_def_main_node_groups(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
-//	FunctionRNA *func;
-//	PropertyRNA *parm;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
-/*	static EnumPropertyItem node_nodetree_items[] = {
+	static EnumPropertyItem node_nodetree_items[] = {
 	{0, "SHADER",       0,    "Shader",       ""},
 	{1, "COMPOSITE",    0,    "Composite",    ""},
 	{2, "TEXTURE",      0,    "Texture",      ""},
-	{0, NULL, 0, NULL, NULL}}; */
+	{0, NULL, 0, NULL, NULL}};
 
 	RNA_def_property_srna(cprop, "MainNodeTrees");
 	srna= RNA_def_struct(brna, "MainNodeTrees", NULL);
 	RNA_def_struct_ui_text(srna, "Main Node Trees", "Collection of node trees");
 
-#if 0 // need to see some examples of using these functions before enabling.
 	func= RNA_def_function(srna, "new", "rna_Main_nodetree_new");
 	RNA_def_function_ui_description(func, "Add a new node tree to the main database");
-	parm= RNA_def_enum(func, "type", node_nodetree_items, 0, "Type", "The type of curve object to add");
+	parm= RNA_def_string(func, "name", "NodeGroup", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "type", node_nodetree_items, 0, "Type", "The type of node_group to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "tree", "NodeTree", "", "New node tree datablock.");
@@ -625,7 +628,6 @@ void RNA_def_main_node_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a node tree from the current blendfile.");
 	parm= RNA_def_pointer(func, "tree", "NodeTree", "", "Node tree to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
-#endif
 }
 void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 {
