@@ -95,7 +95,7 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
         if obj.type == 'MESH':
 
             loc_world = obj.location
-            bb_world = [obj.matrix_world * Vector(v[:]) for v in obj.bound_box]
+            bb_world = [Vector(v[:]) * obj.matrix_world for v in obj.bound_box]
 
             Left_Up_Front = bb_world[1]
             Right_Down_Back = bb_world[7]
