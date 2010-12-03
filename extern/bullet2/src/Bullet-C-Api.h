@@ -65,7 +65,7 @@ extern "C" {
 	Create and Delete a Physics SDK	
 */
 
-	extern	plPhysicsSdkHandle	plNewBulletSdk(); //this could be also another sdk, like ODE, PhysX etc.
+	extern	plPhysicsSdkHandle	plNewBulletSdk(void); //this could be also another sdk, like ODE, PhysX etc.
 	extern	void		plDeletePhysicsSdk(plPhysicsSdkHandle	physicsSdk);
 
 /** Collision World, not strictly necessary, you can also just create a Dynamics World with Rigid Bodies which internally manages the Collision World with Collision Objects */
@@ -116,16 +116,16 @@ extern "C" {
 	extern  plCollisionShapeHandle plNewCapsuleShape(plReal radius, plReal height);	
 	extern  plCollisionShapeHandle plNewConeShape(plReal radius, plReal height);
 	extern  plCollisionShapeHandle plNewCylinderShape(plReal radius, plReal height);
-	extern	plCollisionShapeHandle plNewCompoundShape();
+	extern	plCollisionShapeHandle plNewCompoundShape(void);
 	extern	void	plAddChildShape(plCollisionShapeHandle compoundShape,plCollisionShapeHandle childShape, plVector3 childPos,plQuaternion childOrn);
 
 	extern  void plDeleteShape(plCollisionShapeHandle shape);
 
 	/* Convex Meshes */
-	extern  plCollisionShapeHandle plNewConvexHullShape();
+	extern  plCollisionShapeHandle plNewConvexHullShape(void);
 	extern  void		plAddVertex(plCollisionShapeHandle convexHull, plReal x,plReal y,plReal z);
 /* Concave static triangle meshes */
-	extern  plMeshInterfaceHandle		   plNewMeshInterface();
+	extern  plMeshInterfaceHandle		   plNewMeshInterface(void);
 	extern  void		plAddTriangle(plMeshInterfaceHandle meshHandle, plVector3 v0,plVector3 v1,plVector3 v2);
 	extern  plCollisionShapeHandle plNewStaticTriangleMeshShape(plMeshInterfaceHandle);
 
