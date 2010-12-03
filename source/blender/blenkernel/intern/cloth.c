@@ -49,7 +49,7 @@ void tstart ( void )
 void tend ( void )
 {
 }
-double tval()
+double tval( void )
 {
 	return 0;
 }

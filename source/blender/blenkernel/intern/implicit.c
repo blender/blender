@@ -63,7 +63,7 @@ static void itend(void)
 {
 	QueryPerformanceCounter(&_itend);
 }
-double itval()
+double itval(void)
 {
 	return ((double)_itend.QuadPart -
 			(double)_itstart.QuadPart)/((double)ifreq.QuadPart);
