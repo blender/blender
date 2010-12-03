@@ -85,9 +85,9 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	const char *lib;
 
 	int absolute = 0;
-	static char *kwlist[] = {"absolute", NULL};
+	static const char *kwlist[] = {"absolute", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", kwlist, &absolute))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", (char **)kwlist, &absolute))
 		return NULL;
 
 	for(BLI_bpathIterator_init(&bpi, NULL); !BLI_bpathIterator_isDone(&bpi); BLI_bpathIterator_step(&bpi)) {
@@ -132,11 +132,11 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 	char *type;
 	char *subdir= NULL;
 	int folder_id;
-	static char *kwlist[] = {"type", "subdir", NULL};
+	static const char *kwlist[] = {"type", "subdir", NULL};
 
 	char *path;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|s:user_resource", kwlist, &type, &subdir))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|s:user_resource", (char **)kwlist, &type, &subdir))
 		return NULL;
 	
 	/* stupid string compare */
@@ -162,9 +162,9 @@ static PyMethodDef meth_bpy_script_paths = {"script_paths", (PyCFunction)bpy_scr
 static PyMethodDef meth_bpy_blend_paths = {"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
 static PyMethodDef meth_bpy_user_resource = {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, bpy_user_resource_doc};
 
-static void bpy_import_test(char *modname)
+static void bpy_import_test(const char *modname)
 {
-	PyObject *mod= PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
+	PyObject *mod= PyImport_ImportModuleLevel((char *)modname, NULL, NULL, NULL, 0);
 	if(mod) {
 		Py_DECREF(mod);
 	}

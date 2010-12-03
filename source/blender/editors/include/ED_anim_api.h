@@ -345,7 +345,7 @@ typedef enum eAnimChannel_Settings {
 typedef struct bAnimChannelType {
 	/* type data */
 		/* name of the channel type, for debugging */
-	char *channel_type_name;
+	const char *channel_type_name;
 	
 	/* drawing */
 		/* get RGB color that is used to draw the majority of the backdrop */

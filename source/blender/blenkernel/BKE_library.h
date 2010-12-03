@@ -67,17 +67,17 @@ void free_libblock_us(struct ListBase *lb, void *idv);
 void free_main(struct Main *mainvar);
 void tag_main(struct Main *mainvar, int tag);
 
-void rename_id(struct ID *id, char *name);
+void rename_id(struct ID *id, const char *name);
 void name_uiprefix_id(char *name, struct ID *id);
 void test_idbutton(char *name);
 void text_idbutton(struct ID *id, char *text);
 void all_local(struct Library *lib, int untagged_only);
-struct ID *find_id(char *type, const char *name);
+struct ID *find_id(const char *type, const char *name);
 void clear_id_newpoins(void);
 
-void IDnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb,struct ID* link, short *nr);
-void IMAnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb, struct ID *link, short *nr);
-void IPOnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb, struct ID* link, short *nr, int blocktype);
+void IDnames_to_pupstring(const char **str, const char *title, const char *extraops, struct ListBase *lb,struct ID* link, short *nr);
+void IMAnames_to_pupstring(const char **str, const char *title, const char *extraops, struct ListBase *lb, struct ID *link, short *nr);
+void IPOnames_to_pupstring(const char **str, const char *title, const char *extraops, struct ListBase *lb, struct ID* link, short *nr, int blocktype);
 
 void flag_listbase_ids(ListBase *lb, short flag, short value);
 void flag_all_listbases_ids(short flag, short value);

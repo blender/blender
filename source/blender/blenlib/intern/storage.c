@@ -201,7 +201,7 @@ double BLI_diskfree(const char *dir)
 #endif
 }
 
-void BLI_builddir(const char *dirname, char *relname)
+void BLI_builddir(const char *dirname, const char *relname)
 {
 	struct dirent *fname;
 	struct dirlink *dlink;
@@ -294,7 +294,7 @@ void BLI_adddirstrings(void)
 	char datum[100];
 	char buf[512];
 	char size[250];
-	static char * types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
+	static const char * types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 	int num, mode;
 #ifdef WIN32
 	__int64 st_size;

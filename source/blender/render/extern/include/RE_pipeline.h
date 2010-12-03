@@ -237,7 +237,7 @@ void RE_display_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle
 void RE_stats_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderStats *rs));
 void RE_progress_cb	(struct Render *re, void *handle, void (*f)(void *handle, float));
 void RE_test_break_cb	(struct Render *re, void *handle, int (*f)(void *handle));
-void RE_error_cb		(struct Render *re, void *handle, void (*f)(void *handle, char *str));
+void RE_error_cb		(struct Render *re, void *handle, void (*f)(void *handle, const char *str));
 
 /* should move to kernel once... still unsure on how/where */
 float RE_filter_value(int type, float x);
@@ -301,7 +301,7 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 void RE_engines_init(void);
 void RE_engines_exit(void);
 
-int RE_is_rendering_allowed(struct Scene *scene, void *erh, void (*error)(void *handle, char *str));
+int RE_is_rendering_allowed(struct Scene *scene, void *erh, void (*error)(void *handle, const char *str));
 
 #endif /* RE_PIPELINE_H */
 

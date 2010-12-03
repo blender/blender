@@ -38,7 +38,7 @@ typedef struct SDNA {
 	int datalen;		/* length of data */
 
 	int nr_names;		/* total number of struct members */
-	char **names;		/* struct member names */
+	const char **names;		/* struct member names */
 
 	int pointerlen;		/* size of a pointer in bytes */
 

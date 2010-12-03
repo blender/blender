@@ -1233,7 +1233,7 @@ static int ptcache_file_read_header_begin(PTCacheFile *pf)
 
 static int ptcache_file_write_header_begin(PTCacheFile *pf)
 {
-	char *bphysics = "BPHYSICS";
+	const char *bphysics = "BPHYSICS";
 	
 	if(fwrite(bphysics, sizeof(char), 8, pf->fp) != 8)
 		return 0;

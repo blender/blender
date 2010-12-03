@@ -1413,7 +1413,7 @@ static void RIG_findHead(RigGraph *rg)
 
 /*******************************************************************************************************/
 
-void RIG_printNode(RigNode *node, char name[])
+void RIG_printNode(RigNode *node, const char name[])
 {
 	printf("%s %p %i <%0.3f, %0.3f, %0.3f>\n", name, (void *)node, node->degree, node->p[0], node->p[1], node->p[2]);
 	
@@ -2746,7 +2746,7 @@ static void retargetGraphs(bContext *C, RigGraph *rigg)
 	ED_armature_from_edit(rigg->ob);
 }
 
-char *RIG_nameBone(RigGraph *rg, int arc_index, int bone_index)
+const char *RIG_nameBone(RigGraph *rg, int arc_index, int bone_index)
 {
 	RigArc *arc = BLI_findlink(&rg->arcs, arc_index);
 	RigEdge *iedge;

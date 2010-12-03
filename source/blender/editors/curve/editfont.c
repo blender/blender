@@ -416,7 +416,7 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 
 static int paste_buffer_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	char *filename;
+	const char *filename;
 
 #ifdef WIN32
 	filename= "C:\\windows\\temp\\cutbuf.txt";

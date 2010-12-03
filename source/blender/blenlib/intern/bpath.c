@@ -442,7 +442,7 @@ int BLI_bpathIterator_isDone( struct BPathIterator *bpi) {
 /* include the path argument */
 static void bpath_as_report(struct BPathIterator *bpi, const char *message, ReportList *reports)
 {
-	char *prefix;
+	const char *prefix;
 	const char *name;
 	char path_expanded[FILE_MAXDIR*2];
 	

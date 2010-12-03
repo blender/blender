@@ -2018,7 +2018,7 @@ void spreadWeight(EditMesh *em)
 
 /******************************************** EXPORT ***************************************************/
 
-void exportNode(FILE *f, char *text, ReebNode *node)
+void exportNode(FILE *f, const char *text, ReebNode *node)
 {
 	fprintf(f, "%s i:%i w:%f d:%i %f %f %f\n", text, node->index, node->weight, node->degree, node->p[0], node->p[1], node->p[2]);
 }

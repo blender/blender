@@ -595,10 +595,10 @@ static void pyrna_struct_dealloc( BPy_StructRNA *self )
 	return;
 }
 
-static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
+static const char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
 	EnumPropertyItem *item;
-	char *result;
+	const char *result;
 	int free= FALSE;
 	
 	RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
@@ -621,15 +621,15 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 	char *param= _PyUnicode_AsString(item);
 
 	if (param==NULL) {
-		char *enum_str= pyrna_enum_as_string(ptr, prop);
+		const char *enum_str= pyrna_enum_as_string(ptr, prop);
 		PyErr_Format(PyExc_TypeError, "%.200s expected a string enum type in (%.200s)", error_prefix, enum_str);
-		MEM_freeN(enum_str);
+		MEM_freeN((void *)enum_str);
 		return 0;
 	} else {
 		if (!RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, val)) {
-			char *enum_str= pyrna_enum_as_string(ptr, prop);
+			const char *enum_str= pyrna_enum_as_string(ptr, prop);
 			PyErr_Format(PyExc_TypeError, "%.200s enum \"%.200s\" not found in (%.200s)", error_prefix, param, enum_str);
-			MEM_freeN(enum_str);
+			MEM_freeN((void *)enum_str);
 			return 0;
 		}
 	}
@@ -1065,9 +1065,9 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				}
 			}
 			else {
-				char *enum_str= pyrna_enum_as_string(ptr, prop);
+				const char *enum_str= pyrna_enum_as_string(ptr, prop);
 				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s expected a string enum or a set of strings in (%.2000s)", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), enum_str);
-				MEM_freeN(enum_str);
+				MEM_freeN((void *)enum_str);
 				return -1;
 			}
 
@@ -2077,7 +2077,7 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, PyObject *kw,  const char *parse_str, const char *error_prefix,
 	char **path_full, int *index, float *cfra, char **group_name) /* return values */
 {
-	static char *kwlist[] = {"data_path", "index", "frame", "group", NULL};
+	static const char *kwlist[] = {"data_path", "index", "frame", "group", NULL};
 	char *path;
 
 	/* note, parse_str MUST start with 's|ifs' */
@@ -2925,13 +2925,13 @@ static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self)
 /*****************************************************************************/
 
 static PyGetSetDef pyrna_prop_getseters[] = {
-	{"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, "The :class:`ID` object this datablock is from or None, (not available for all data types)", NULL},
+	{(char *)"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, (char *)"The :class:`ID` object this datablock is from or None, (not available for all data types)", NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
 
 static PyGetSetDef pyrna_struct_getseters[] = {
-	{"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, "The :class:`ID` object this datablock is from or None, (not available for all data types)", NULL},
+	{(char *)"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, (char *)"The :class:`ID` object this datablock is from or None, (not available for all data types)", NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -4367,7 +4367,7 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 	PyObject *newclass;
 
 	if(bpy_types_dict==NULL) {
-		PyObject *bpy_types= PyImport_ImportModuleLevel("bpy_types", NULL, NULL, NULL, 0);
+		PyObject *bpy_types= PyImport_ImportModuleLevel((char *)"bpy_types", NULL, NULL, NULL, 0);
 
 		if(bpy_types==NULL) {
 			PyErr_Print();
@@ -4452,7 +4452,7 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		}
 
 		/* always use O not N when calling, N causes refcount errors */
-		newclass = PyObject_CallFunction(metaclass, "s(O){sss()}", idname, py_base, "__module__","bpy.types", "__slots__");
+		newclass = PyObject_CallFunction(metaclass, (char *)"s(O){sss()}", idname, py_base, "__module__","bpy.types", "__slots__");
 
 		/* newclass will now have 2 ref's, ???, probably 1 is internal since decrefing here segfaults */
 

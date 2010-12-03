@@ -25,12 +25,12 @@
 #ifndef PY_CAPI_UTILS_H
 #define PY_CAPI_UTILS_H
 
-void			PyC_ObSpit(char *name, PyObject *var);
+void			PyC_ObSpit(const char *name, PyObject *var);
 void			PyC_LineSpit(void);
 PyObject *		PyC_ExceptionBuffer(void);
 PyObject *		PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 void			PyC_FileAndNum(const char **filename, int *lineno);
-int				PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, char *error_prefix);
+int				PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, const char *error_prefix);
 
 /* follow http://www.python.org/dev/peps/pep-0383/ */
 PyObject *		PyC_UnicodeFromByte(const char *str);

@@ -910,15 +910,15 @@ static struct PyMethodDef Quaternion_methods[] = {
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Quaternion_getseters[] = {
-	{"w", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion W value.\n\n:type: float", (void *)0},
-	{"x", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion X axis.\n\n:type: float", (void *)1},
-	{"y", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Y axis.\n\n:type: float", (void *)2},
-	{"z", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Z axis.\n\n:type: float", (void *)3},
-	{"magnitude", (getter)Quaternion_getMagnitude, (setter)NULL, "Size of the quaternion (readonly).\n\n:type: float", NULL},
-	{"angle", (getter)Quaternion_getAngle, (setter)Quaternion_setAngle, "angle of the quaternion.\n\n:type: float", NULL},
-	{"axis",(getter)Quaternion_getAxisVec, (setter)Quaternion_setAxisVec, "quaternion axis as a vector.\n\n:type: :class:`Vector`", NULL},
-	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
-	{"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
+	{(char *)"w", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, (char *)"Quaternion W value.\n\n:type: float", (void *)0},
+	{(char *)"x", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, (char *)"Quaternion X axis.\n\n:type: float", (void *)1},
+	{(char *)"y", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, (char *)"Quaternion Y axis.\n\n:type: float", (void *)2},
+	{(char *)"z", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, (char *)"Quaternion Z axis.\n\n:type: float", (void *)3},
+	{(char *)"magnitude", (getter)Quaternion_getMagnitude, (setter)NULL, (char *)"Size of the quaternion (readonly).\n\n:type: float", NULL},
+	{(char *)"angle", (getter)Quaternion_getAngle, (setter)Quaternion_setAngle, (char *)"angle of the quaternion.\n\n:type: float", NULL},
+	{(char *)"axis",(getter)Quaternion_getAxisVec, (setter)Quaternion_setAxisVec, (char *)"quaternion axis as a vector.\n\n:type: :class:`Vector`", NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, (char *)BaseMathObject_Wrapped_doc, NULL},
+	{(char *)"owner", (getter)BaseMathObject_getOwner, (setter)NULL, (char *)BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 

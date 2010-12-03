@@ -40,7 +40,7 @@
 
 /*************************** RNA Utilities ******************************/
 
-uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2)
+uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, const char *name, int icon, int x1, int y1, int x2, int y2)
 {
 	uiBut *but=NULL;
 	const char *propname= RNA_property_identifier(prop);

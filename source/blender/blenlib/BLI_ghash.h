@@ -45,8 +45,8 @@ extern "C" {
 #include "BLI_mempool.h"
 #include "BLI_blenlib.h"
 
-typedef unsigned int	(*GHashHashFP)		(void *key);
-typedef int				(*GHashCmpFP)		(void *a, void *b);
+typedef unsigned int	(*GHashHashFP)		(const void *key);
+typedef int				(*GHashCmpFP)		(const void *a, const void *b);
 typedef	void			(*GHashKeyFreeFP)	(void *key);
 typedef void			(*GHashValFreeFP)	(void *val);
 
@@ -141,14 +141,14 @@ int				BLI_ghashIterator_isDone	(GHashIterator *ghi);
 
 /* *** */
 
-unsigned int	BLI_ghashutil_ptrhash	(void *key);
-int				BLI_ghashutil_ptrcmp	(void *a, void *b);
+unsigned int	BLI_ghashutil_ptrhash	(const void *key);
+int				BLI_ghashutil_ptrcmp	(const void *a, const void *b);
 
-unsigned int	BLI_ghashutil_strhash	(void *key);
-int				BLI_ghashutil_strcmp	(void *a, void *b);
+unsigned int	BLI_ghashutil_strhash	(const void *key);
+int				BLI_ghashutil_strcmp	(const void *a, const void *b);
 
-unsigned int	BLI_ghashutil_inthash	(void *ptr);
-int				BLI_ghashutil_intcmp(void *a, void *b);
+unsigned int	BLI_ghashutil_inthash	(const void *ptr);
+int				BLI_ghashutil_intcmp(const void *a, const void *b);
 
 /*begin of macro-inlined functions*/
 extern unsigned int hashsizes[];
@@ -213,7 +213,7 @@ BM_INLINE void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	}
 }
 
-BM_INLINE void* BLI_ghash_lookup(GHash *gh, void *key) 
+BM_INLINE void* BLI_ghash_lookup(GHash *gh, const void *key) 
 {
 	if(gh) {
 		unsigned int hash= gh->hashfp(key)%gh->nbuckets;

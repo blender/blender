@@ -766,7 +766,7 @@ int BKE_imtype_is_movie(int imtype)
 
 int BKE_add_image_extension(char *string, int imtype)
 {
-	char *extension= NULL;
+	const char *extension= NULL;
 	
 	if(imtype== R_IRIS) {
 		if(!BLI_testextensie(string, ".rgb"))

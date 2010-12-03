@@ -408,7 +408,7 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac)
 
 /* empty screen, with 1 dummy area without spacedata */
 /* uses window size */
-bScreen *ED_screen_add(wmWindow *win, Scene *scene, char *name)
+bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 {
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;

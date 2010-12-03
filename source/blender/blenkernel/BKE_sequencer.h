@@ -97,8 +97,8 @@ SeqRenderData seq_new_render_data(
 	struct Main * bmain, struct Scene * scene,
 	int rectx, int recty, int preview_render_size);
 
-int seq_cmp_render_data(SeqRenderData * a, SeqRenderData * b);
-unsigned int seq_hash_render_data(SeqRenderData * a);
+int seq_cmp_render_data(const SeqRenderData * a, const SeqRenderData * b);
+unsigned int seq_hash_render_data(const SeqRenderData * a);
 
 /* Wipe effect */
 enum {DO_SINGLE_WIPE, DO_DOUBLE_WIPE, DO_BOX_WIPE, DO_CROSS_WIPE,
@@ -177,7 +177,7 @@ void seq_free_strip(struct Strip *strip);
 void seq_free_editing(struct Scene *scene);
 void seq_free_clipboard(void);
 struct Editing *seq_give_editing(struct Scene *scene, int alloc);
-char *give_seqname(struct Sequence *seq);
+const char *give_seqname(struct Sequence *seq);
 void calc_sequence(struct Scene *scene, struct Sequence *seq);
 void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);
 void new_tstripdata(struct Sequence *seq);

@@ -303,7 +303,7 @@ struct uiBlock {
 	short auto_open;
 	double auto_open_last;
 
-	char *lockstr;
+	const char *lockstr;
 
 	char lock;
 	char active;					// to keep blocks while drawing and free them afterwards
@@ -436,7 +436,7 @@ void ui_set_name_menu(uiBut *but, int value);
 int ui_step_name_menu(uiBut *but, int step);
 
 struct AutoComplete;
-struct AutoComplete *autocomplete_begin(char *startname, int maxlen);
+struct AutoComplete *autocomplete_begin(const char *startname, int maxlen);
 void autocomplete_do_name(struct AutoComplete *autocpl, const char *name);
 void autocomplete_end(struct AutoComplete *autocpl, char *autoname);
 

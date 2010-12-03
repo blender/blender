@@ -1817,12 +1817,12 @@ static PyObject *Matrix_getIsNegative(MatrixObject *self, void *UNUSED(closure))
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Matrix_getseters[] = {
-	{"row_size", (getter)Matrix_getRowSize, (setter)NULL, "The row size of the matrix (readonly).\n\n:type: int", NULL},
-	{"col_size", (getter)Matrix_getColSize, (setter)NULL, "The column size of the matrix (readonly).\n\n:type: int", NULL},
-	{"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, "The average scale applied to each axis (readonly).\n\n:type: float", NULL},
-	{"is_negative", (getter)Matrix_getIsNegative, (setter)NULL, "True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
-	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
-	{"owner",(getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
+	{(char *)"row_size", (getter)Matrix_getRowSize, (setter)NULL, (char *)"The row size of the matrix (readonly).\n\n:type: int", NULL},
+	{(char *)"col_size", (getter)Matrix_getColSize, (setter)NULL, (char *)"The column size of the matrix (readonly).\n\n:type: int", NULL},
+	{(char *)"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, (char *)"The average scale applied to each axis (readonly).\n\n:type: float", NULL},
+	{(char *)"is_negative", (getter)Matrix_getIsNegative, (setter)NULL, (char *)"True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, (char *)BaseMathObject_Wrapped_doc, NULL},
+	{(char *)"owner",(getter)BaseMathObject_getOwner, (setter)NULL, (char *)BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 

@@ -739,7 +739,7 @@ int WM_enum_search_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 }
 
 /* Can't be used as an invoke directly, needs message arg (can be NULL) */
-int WM_operator_confirm_message(bContext *C, wmOperator *op, char *message)
+int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;

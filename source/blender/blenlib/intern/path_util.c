@@ -1649,10 +1649,10 @@ void BLI_where_am_i(char *fullname, const char *name)
 	char *path = NULL, *temp;
 	
 #ifdef _WIN32
-	char *separator = ";";
+	const char *separator = ";";
 	char slash = '\\';
 #else
-	char *separator = ":";
+	const char *separator = ":";
 	char slash = '/';
 #endif
 

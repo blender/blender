@@ -653,7 +653,7 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
-static char *get_lamp_defname(int type)
+static const char *get_lamp_defname(int type)
 {
 	switch (type) {
 		case LA_LOCAL: return "Point";

@@ -389,7 +389,7 @@ static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *
 
 	/* B_NODE_EXEC is handled in butspace.c do_node_buts */
 	if(!node->id) {
-			char *strp;
+			const char *strp;
 			IDnames_to_pupstring(&strp, NULL, "", &(bmain->text), NULL, NULL);
 			node->menunr= 0;
 			bt= uiDefButS(block, MENU, B_NODE_EXEC/*+node->nr*/, strp, 
@@ -397,7 +397,7 @@ static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *
 							&node->menunr, 0, 0, 0, 0, "Browses existing choices");
 			uiButSetFunc(bt, node_browse_text_cb, ntree, node);
 			xoff=19;
-			if(strp) MEM_freeN(strp);	
+			if(strp) MEM_freeN((void *)strp);
 	}
 	else {
 		bt = uiDefBut(block, BUT, B_NOP, "Update",

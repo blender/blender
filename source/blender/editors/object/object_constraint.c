@@ -212,7 +212,7 @@ void update_pyconstraint_cb (void *arg1, void *arg2)
 }
 
 /* helper function for add_constriant - sets the last target for the active constraint */
-static void set_constraint_nth_target (bConstraint *con, Object *target, char subtarget[], int index)
+static void set_constraint_nth_target (bConstraint *con, Object *target, const char subtarget[], int index)
 {
 	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 	ListBase targets = {NULL, NULL};

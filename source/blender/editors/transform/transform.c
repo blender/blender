@@ -3854,7 +3854,7 @@ int Bevel(TransInfo *t, short UNUSED(mval[2]))
 	float distance,d;
 	int i;
 	char str[128];
-	char *mode;
+	const char *mode;
 	TransData *td = t->data;
 
 	mode = (G.editBMesh->options & BME_BEVEL_VERT) ? "verts only" : "normal";

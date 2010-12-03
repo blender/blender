@@ -321,7 +321,7 @@ static int report_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 		if((report->type & report_mask) && (report->flag & SELECT)) {
 			BLI_remlink(&reports->list, report);
-			MEM_freeN(report->message);
+			MEM_freeN((void *)report->message);
 			MEM_freeN(report);
 		}
 

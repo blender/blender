@@ -1192,9 +1192,9 @@ float *editmesh_get_mirror_uv(int axis, float *uv, float *mirrCent, float *face_
 }
 #endif
 
-static unsigned int mirror_facehash(void *ptr)
+static unsigned int mirror_facehash(const void *ptr)
 {
-	MFace *mf= ptr;
+	const MFace *mf= ptr;
 	int v0, v1;
 
 	if(mf->v4) {
@@ -1233,7 +1233,7 @@ static int mirror_facerotation(MFace *a, MFace *b)
 	return -1;
 }
 
-static int mirror_facecmp(void *a, void *b)
+static int mirror_facecmp(const void *a, const void *b)
 {
 	return (mirror_facerotation((MFace*)a, (MFace*)b) == -1);
 }

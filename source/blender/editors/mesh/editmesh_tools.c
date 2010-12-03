@@ -1194,7 +1194,7 @@ static void delete_mesh(EditMesh *em, wmOperator *op, int event)
 	EditVert *eve,*nextve;
 	EditEdge *eed,*nexted;
 	int count;
-	char *str="Erase";
+	const char *str="Erase";
 
 
 	if(event<1) return;

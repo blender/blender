@@ -35,7 +35,7 @@
 #define BLI_CALLBACKS_H
 
 // This is blenlib internal only
-void callLocalErrorCallBack(char* msg);
+void callLocalErrorCallBack(const char* msg);
 
 #endif
 

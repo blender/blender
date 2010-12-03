@@ -64,7 +64,7 @@ struct Sequence *find_neighboring_sequence(struct Scene *scene, struct Sequence 
 void deselect_all_seq(struct Scene *scene);
 void recurs_sel_seq(struct Sequence *seqm);
 int event_to_efftype(int event);
-int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3, char **error_str);
+int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3, const char **error_str);
 struct Sequence *alloc_sequence(struct ListBase *lb, int cfra, int machine);
 
 /* operator helpers */

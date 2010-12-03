@@ -773,7 +773,7 @@ int CTX_data_mode_enum(const bContext *C)
 
 /* would prefer if we can use the enum version below over this one - Campbell */
 /* must be aligned with above enum  */
-static char *data_mode_strings[] = {
+static const char *data_mode_strings[] = {
 	"mesh_edit",
 	"curve_edit",
 	"surface_edit",
@@ -790,7 +790,7 @@ static char *data_mode_strings[] = {
 	"objectmode",
 	0
 };
-char *CTX_data_mode_string(const bContext *C)
+const char *CTX_data_mode_string(const bContext *C)
 {
 	return data_mode_strings[CTX_data_mode_enum(C)];
 }

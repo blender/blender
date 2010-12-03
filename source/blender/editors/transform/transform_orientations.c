@@ -400,7 +400,7 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 	return item;
 }
 
-char * BIF_menustringTransformOrientation(const bContext *C, char *title) {
+const char * BIF_menustringTransformOrientation(const bContext *C, const char *title) {
 	char menu[] = "%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3";
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;

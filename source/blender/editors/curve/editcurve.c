@@ -5696,7 +5696,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 
 /************ add primitive, used by object/ module ****************/
 
-static char *get_curve_defname(int type)
+static const char *get_curve_defname(int type)
 {
 	int stype= type & CU_PRIMITIVE;
 
@@ -5720,7 +5720,7 @@ static char *get_curve_defname(int type)
 	}
 }
 
-static char *get_surf_defname(int type)
+static const char *get_surf_defname(int type)
 {
 	int stype= type & CU_PRIMITIVE;
 

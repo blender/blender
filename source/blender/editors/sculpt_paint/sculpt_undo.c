@@ -274,7 +274,7 @@ SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
 	return unode;
 }
 
-void sculpt_undo_push_begin(char *name)
+void sculpt_undo_push_begin(const char *name)
 {
 	undo_paint_push_begin(UNDO_PAINT_MESH, name,
 		sculpt_undo_restore, sculpt_undo_free);

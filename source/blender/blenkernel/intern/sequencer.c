@@ -263,7 +263,7 @@ SeqRenderData seq_new_render_data(
 	return rval;
 }
 
-int seq_cmp_render_data(SeqRenderData * a, SeqRenderData * b)
+int seq_cmp_render_data(const SeqRenderData * a, const SeqRenderData * b)
 {
 	if (a->preview_render_size < b->preview_render_size) {
 		return -1;
@@ -317,7 +317,7 @@ int seq_cmp_render_data(SeqRenderData * a, SeqRenderData * b)
 	return 0;
 }
 
-unsigned int seq_hash_render_data(SeqRenderData * a)
+unsigned int seq_hash_render_data(const SeqRenderData * a)
 {
 	unsigned int rval = a->rectx + a->recty;
 
@@ -875,7 +875,7 @@ void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq)
 	strcpy(seq->name+2, sui.name_dest);
 }
 
-static char *give_seqname_by_type(int type)
+static const char *give_seqname_by_type(int type)
 {
 	switch(type) {
 	case SEQ_META:	     return "Meta";
@@ -902,9 +902,9 @@ static char *give_seqname_by_type(int type)
 	}
 }
 
-char *give_seqname(Sequence *seq)
+const char *give_seqname(Sequence *seq)
 {
-	char * name = give_seqname_by_type(seq->type);
+	const char *name = give_seqname_by_type(seq->type);
 
 	if (!name) {
 		if(seq->type<SEQ_EFFECT) {

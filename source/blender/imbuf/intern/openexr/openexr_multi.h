@@ -48,7 +48,7 @@ int		IMB_exr_begin_read			(void *handle, const char *filename, int *width, int *
 void	IMB_exr_begin_write			(void *handle, const char *filename, int width, int height, int compress);
 void	IMB_exrtile_begin_write		(void *handle, const char *filename, int mipmap, int width, int height, int tilex, int tiley);
 
-void	IMB_exr_set_channel			(void *handle, char *layname, char *passname, int xstride, int ystride, float *rect);
+void	IMB_exr_set_channel			(void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect);
 
 void	IMB_exr_read_channels		(void *handle);
 void	IMB_exr_write_channels		(void *handle);
@@ -73,7 +73,7 @@ int		IMB_exr_begin_read			(void *handle, const char *filename, int *width, int *
 void	IMB_exr_begin_write			(void *handle, const char *filename, int width, int height, int compress) { (void)handle; (void)filename; (void)width; (void)height; (void)compress; }
 void	IMB_exrtile_begin_write		(void *handle, const char *filename, int mipmap, int width, int height, int tilex, int tiley) { (void)handle; (void)filename; (void)mipmap; (void)width; (void)height; (void)tilex; (void)tiley; }
 
-void	IMB_exr_set_channel			(void *handle, char *layname, char *channame, int xstride, int ystride, float *rect) { (void)handle; (void)layname; (void)channame; (void)xstride; (void)ystride; (void)rect; }
+void	IMB_exr_set_channel			(void *handle, char *layname, const char *channame, int xstride, int ystride, float *rect) { (void)handle; (void)layname; (void)channame; (void)xstride; (void)ystride; (void)rect; }
 
 void	IMB_exr_read_channels		(void *handle) { (void)handle; }
 void	IMB_exr_write_channels		(void *handle) { (void)handle; }

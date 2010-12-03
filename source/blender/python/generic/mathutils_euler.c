@@ -615,13 +615,13 @@ static int Euler_setOrder(EulerObject *self, PyObject *value, void *UNUSED(closu
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Euler_getseters[] = {
-	{"x", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler X axis in radians.\n\n:type: float", (void *)0},
-	{"y", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler Y axis in radians.\n\n:type: float", (void *)1},
-	{"z", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler Z axis in radians.\n\n:type: float", (void *)2},
-	{"order", (getter)Euler_getOrder, (setter)Euler_setOrder, "Euler rotation order.\n\n:type: string in ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']", (void *)NULL},
+	{(char *)"x", (getter)Euler_getAxis, (setter)Euler_setAxis, (char *)"Euler X axis in radians.\n\n:type: float", (void *)0},
+	{(char *)"y", (getter)Euler_getAxis, (setter)Euler_setAxis, (char *)"Euler Y axis in radians.\n\n:type: float", (void *)1},
+	{(char *)"z", (getter)Euler_getAxis, (setter)Euler_setAxis, (char *)"Euler Z axis in radians.\n\n:type: float", (void *)2},
+	{(char *)"order", (getter)Euler_getOrder, (setter)Euler_setOrder, (char *)"Euler rotation order.\n\n:type: string in ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']", (void *)NULL},
 
-	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
-	{"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, (char *)BaseMathObject_Wrapped_doc, NULL},
+	{(char *)"owner", (getter)BaseMathObject_getOwner, (setter)NULL, (char *)BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 

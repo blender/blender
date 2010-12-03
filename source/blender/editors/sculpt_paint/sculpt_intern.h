@@ -104,7 +104,7 @@ typedef struct SculptUndoNode {
 
 SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node);
 SculptUndoNode *sculpt_undo_get_node(PBVHNode *node);
-void sculpt_undo_push_begin(char *name);
+void sculpt_undo_push_begin(const char *name);
 void sculpt_undo_push_end(void);
 
 struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);

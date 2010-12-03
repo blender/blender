@@ -3625,8 +3625,8 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			FluidsimSettings *fss= fluidmd->fss;
 			ParticleSettings *part = psys->part;
 			ParticleData *pa=0;
-			char *suffix  = "fluidsurface_particles_####";
-			char *suffix2 = ".gz";
+			const char *suffix  = "fluidsurface_particles_####";
+			const char *suffix2 = ".gz";
 			char filename[256];
 			char debugStrBuffer[256];
 			int  curFrame = sim->scene->r.cfra -1; // warning - sync with derived mesh fsmesh loading

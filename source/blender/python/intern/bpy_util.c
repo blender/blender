@@ -201,7 +201,7 @@ int BPy_errors_to_report(ReportList *reports)
 }
 
 /* array utility function */
-int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, char *error_prefix)
+int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, const char *error_prefix)
 {
 	PyObject *value_fast;
 	int value_len;

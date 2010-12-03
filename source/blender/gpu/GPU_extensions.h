@@ -57,7 +57,7 @@ typedef struct GPUShader GPUShader;
 void GPU_extensions_disable(void);
 void GPU_extensions_init(void); /* call this before running any of the functions below */
 void GPU_extensions_exit(void);
-int GPU_print_error(char *str);
+int GPU_print_error(const char *str);
 
 int GPU_glsl_support(void);
 int GPU_non_power_of_two_support(void);
@@ -159,7 +159,7 @@ void GPU_shader_free(GPUShader *shader);
 void GPU_shader_bind(GPUShader *shader);
 void GPU_shader_unbind(GPUShader *shader);
 
-int GPU_shader_get_uniform(GPUShader *shader, char *name);
+int GPU_shader_get_uniform(GPUShader *shader, const char *name);
 void GPU_shader_uniform_vector(GPUShader *shader, int location, int length,
 	int arraysize, float *value);
 void GPU_shader_uniform_texture(GPUShader *shader, int location, GPUTexture *tex);

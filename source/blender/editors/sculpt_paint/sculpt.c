@@ -2692,7 +2692,7 @@ int sculpt_poll(bContext *C)
 	return sculpt_mode_poll(C) && paint_poll(C);
 }
 
-static char *sculpt_tool_name(Sculpt *sd)
+static const char *sculpt_tool_name(Sculpt *sd)
 {
 	Brush *brush = paint_brush(&sd->paint);
 

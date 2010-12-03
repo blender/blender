@@ -226,7 +226,7 @@ typedef struct OldNewMap {
 
 
 /* local prototypes */
-static void *read_struct(FileData *fd, BHead *bh, char *blockname);
+static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
 
 
 static OldNewMap *oldnewmap_new(void) 
@@ -1263,7 +1263,7 @@ static void switch_endian_structs(struct SDNA *filesdna, BHead *bhead)
 	}
 }
 
-static void *read_struct(FileData *fd, BHead *bh, char *blockname)
+static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
 {
 	void *temp= NULL;
 
@@ -5410,7 +5410,7 @@ static void lib_link_group(FileData *fd, Main *main)
 /* ************** GENERAL & MAIN ******************** */
 
 
-static char *dataname(short id_code)
+static const char *dataname(short id_code)
 {
 	
 	switch( id_code ) {
@@ -5445,7 +5445,7 @@ static char *dataname(short id_code)
 	
 }
 
-static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, char *allocname)
+static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *allocname)
 {
 	bhead = blo_nextbhead(fd, bhead);
 
@@ -5481,7 +5481,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 
 	ID *id;
 	ListBase *lb;
-	char *allocname;
+	const char *allocname;
 	
 	/* read libblock */
 	id = read_struct(fd, bhead, "lib block");
@@ -6409,7 +6409,7 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 	}
 }
 
-static void versions_gpencil_add_main(ListBase *lb, ID *id, char *name)
+static void versions_gpencil_add_main(ListBase *lb, ID *id, const char *name)
 {
 	
 	BLI_addtail(lb, id);

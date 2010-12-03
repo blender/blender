@@ -90,8 +90,8 @@ typedef struct Report {
 	short type; /* ReportType */
 	short flag;
 	int len; /* strlen(message), saves some time calculating the word wrap  */
-	char *typestr;
-	char *message;
+	const char *typestr;
+	const char *message;
 } Report;
 
 /* saved in the wm, dont remove */

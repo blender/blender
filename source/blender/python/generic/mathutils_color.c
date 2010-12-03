@@ -434,18 +434,18 @@ static int Color_setHSV(ColorObject * self, PyObject * value, void *UNUSED(closu
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Color_getseters[] = {
-	{"r", (getter)Color_getChannel, (setter)Color_setChannel, "Red color channel.\n\n:type: float", (void *)0},
-	{"g", (getter)Color_getChannel, (setter)Color_setChannel, "Green color channel.\n\n:type: float", (void *)1},
-	{"b", (getter)Color_getChannel, (setter)Color_setChannel, "Blue color channel.\n\n:type: float", (void *)2},
+	{(char *)"r", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Red color channel.\n\n:type: float", (void *)0},
+	{(char *)"g", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Green color channel.\n\n:type: float", (void *)1},
+	{(char *)"b", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Blue color channel.\n\n:type: float", (void *)2},
 
-	{"h", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Hue component in [0, 1].\n\n:type: float", (void *)0},
-	{"s", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Saturation component in [0, 1].\n\n:type: float", (void *)1},
-	{"v", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Value component in [0, 1].\n\n:type: float", (void *)2},
+	{(char *)"h", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Hue component in [0, 1].\n\n:type: float", (void *)0},
+	{(char *)"s", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Saturation component in [0, 1].\n\n:type: float", (void *)1},
+	{(char *)"v", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Value component in [0, 1].\n\n:type: float", (void *)2},
 
-	{"hsv", (getter)Color_getHSV, (setter)Color_setHSV, "HSV Values in [0, 1].\n\n:type: float triplet", (void *)0},
+	{(char *)"hsv", (getter)Color_getHSV, (setter)Color_setHSV, (char *)"HSV Values in [0, 1].\n\n:type: float triplet", (void *)0},
 
-	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
-	{"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
+	{(char *)"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 

@@ -846,7 +846,7 @@ DagNode * dag_get_sub_node (DagForest *forest,void * fob)
 	return node;
 }
 
-static void dag_add_parent_relation(DagForest *UNUSED(forest), DagNode *fob1, DagNode *fob2, short rel, char *name) 
+static void dag_add_parent_relation(DagForest *UNUSED(forest), DagNode *fob1, DagNode *fob2, short rel, const char *name) 
 {
 	DagAdjList *itA = fob2->parent;
 	
@@ -868,7 +868,7 @@ static void dag_add_parent_relation(DagForest *UNUSED(forest), DagNode *fob1, Da
 	fob2->parent = itA;
 }
 
-void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, char *name) 
+void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, const char *name) 
 {
 	DagAdjList *itA = fob1->child;
 	
@@ -893,7 +893,7 @@ void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel
 	fob1->child = itA;
 }
 
-static char *dag_node_name(DagNode *node)
+static const char *dag_node_name(DagNode *node)
 {
 	if(node->ob == NULL)
 		return "null";
@@ -938,7 +938,7 @@ static int dag_node_print_dependency_recurs(DagNode *node, DagNode *endnode)
 	return 0;
 }
 
-static void dag_node_print_dependency_cycle(DagForest *dag, DagNode *startnode, DagNode *endnode, char *name)
+static void dag_node_print_dependency_cycle(DagForest *dag, DagNode *startnode, DagNode *endnode, const char *name)
 {
 	DagNode *node;
 

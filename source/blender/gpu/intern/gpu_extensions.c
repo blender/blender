@@ -206,7 +206,7 @@ int GPU_color_depth()
     return GG.colordepth;
 }
 
-int GPU_print_error(char *str)
+int GPU_print_error(const char *str)
 {
 	GLenum errCode;
 
@@ -921,7 +921,7 @@ struct GPUShader {
 	int totattrib;			/* total number of attributes */
 };
 
-static void shader_print_errors(char *task, char *log, const char *code)
+static void shader_print_errors(const char *task, char *log, const char *code)
 {
 	const char *c, *pos, *end = code + strlen(code);
 	int line = 1;
@@ -1090,7 +1090,7 @@ void GPU_shader_free(GPUShader *shader)
 	MEM_freeN(shader);
 }
 
-int GPU_shader_get_uniform(GPUShader *shader, char *name)
+int GPU_shader_get_uniform(GPUShader *shader, const char *name)
 {
 	return glGetUniformLocationARB(shader->object, name);
 }

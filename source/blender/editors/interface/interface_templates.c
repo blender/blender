@@ -1962,7 +1962,8 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiBut *but;
 	uiLayout *split, *overlap, *sub, *row;
-	char *name, *namebuf;
+	char *namebuf;
+	const char *name;
 	int icon;
 
 	overlap= uiLayoutOverlap(layout);

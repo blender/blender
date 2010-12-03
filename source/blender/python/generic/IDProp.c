@@ -209,10 +209,7 @@ static PyObject *BPy_IDGroup_GetType(BPy_IDProperty *self)
 #endif
 
 static PyGetSetDef BPy_IDGroup_getseters[] = {
-	{"name",
-	 (getter)BPy_IDGroup_GetName, (setter)BPy_IDGroup_SetName,
-	 "The name of this Group.",
-	 NULL},
+	{(char *)"name", (getter)BPy_IDGroup_GetName, (setter)BPy_IDGroup_SetName, (char *)"The name of this Group.", NULL},
 	 {NULL, NULL, NULL, NULL, NULL}
 };
 
@@ -876,14 +873,8 @@ static PyObject *BPy_IDArray_GetLen(BPy_IDArray *self)
 }
 
 static PyGetSetDef BPy_IDArray_getseters[] = {
-	{"len",
-	 (getter)BPy_IDArray_GetLen, (setter)NULL,
-	 "The length of the array, can also be gotten with len(array).",
-	 NULL},
-	{"type",
-	 (getter)BPy_IDArray_GetType, (setter)NULL,
-	 "The type of the data in the array, is an ant.",
-	 NULL},
+	{(char *)"len", (getter)BPy_IDArray_GetLen, (setter)NULL, (char *)"The length of the array, can also be gotten with len(array).", NULL},
+	{(char *)"type", (getter)BPy_IDArray_GetType, (setter)NULL, (char *)"The type of the data in the array, is an ant.", NULL},
 	{NULL, NULL, NULL, NULL, NULL},
 };
 

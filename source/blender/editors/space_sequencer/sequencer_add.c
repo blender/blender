@@ -559,7 +559,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	int start_frame, end_frame, channel, type; /* operator props */
 	
 	Sequence *seq1, *seq2, *seq3;
-	char *error_msg;
+	const char *error_msg;
 
 	start_frame= RNA_int_get(op->ptr, "frame_start");
 	end_frame= RNA_int_get(op->ptr, "frame_end");

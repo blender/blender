@@ -44,7 +44,7 @@
 #endif
 #endif
 
-static char *report_type_str(int type)
+static const char *report_type_str(int type)
 {
 	switch(type) {
 		case RPT_DEBUG: return "Debug";
@@ -82,7 +82,7 @@ void BKE_reports_clear(ReportList *reports)
 
 	while (report) {
 		report_next= report->next;
-		MEM_freeN(report->message);
+		MEM_freeN((void *)report->message);
 		MEM_freeN(report);
 		report= report_next;
 	}
@@ -105,13 +105,15 @@ void BKE_report(ReportList *reports, ReportType type, const char *message)
 	}
 
 	if(reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
+		char *message_alloc;
 		report= MEM_callocN(sizeof(Report), "Report");
 		report->type= type;
 		report->typestr= report_type_str(type);
 
 		len= strlen(message);
-		report->message= MEM_callocN(sizeof(char)*(len+1), "ReportMessage");
-		memcpy(report->message, message, sizeof(char)*(len+1));
+		message_alloc= MEM_callocN(sizeof(char)*(len+1), "ReportMessage");
+		memcpy(message_alloc, message, sizeof(char)*(len+1));
+		report->message= message_alloc;
 		report->len= len;
 		BLI_addtail(&reports->list, report);
 	}
@@ -163,7 +165,7 @@ void BKE_reports_prepend(ReportList *reports, const char *prepend)
 
 		BLI_dynstr_append(ds, prepend);
 		BLI_dynstr_append(ds, report->message);
-		MEM_freeN(report->message);
+		MEM_freeN((void *)report->message);
 
 		report->message= BLI_dynstr_get_cstring(ds);
 		report->len= BLI_dynstr_get_len(ds);
@@ -188,7 +190,7 @@ void BKE_reports_prependf(ReportList *reports, const char *prepend, ...)
 		va_end(args);
 
 		BLI_dynstr_append(ds, report->message);
-		MEM_freeN(report->message);
+		MEM_freeN((void *)report->message);
 
 		report->message= BLI_dynstr_get_cstring(ds);
 		report->len= BLI_dynstr_get_len(ds);

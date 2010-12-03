@@ -93,7 +93,7 @@ typedef enum GPUBlendMode {
 
 typedef struct GPUNodeStack {
 	GPUType type;
-	char *name;
+	const char *name;
 	float vec[4];
 	struct GPUNodeLink *link;
 	short hasinput;
@@ -101,7 +101,7 @@ typedef struct GPUNodeStack {
 	short sockettype;
 } GPUNodeStack;
 
-GPUNodeLink *GPU_attribute(int type, char *name);
+GPUNodeLink *GPU_attribute(int type, const char *name);
 GPUNodeLink *GPU_uniform(float *num);
 GPUNodeLink *GPU_dynamic_uniform(float *num);
 GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser);
@@ -110,8 +110,8 @@ GPUNodeLink *GPU_dynamic_texture(struct GPUTexture *tex);
 GPUNodeLink *GPU_socket(GPUNodeStack *sock);
 GPUNodeLink *GPU_builtin(GPUBuiltin builtin);
 
-int GPU_link(GPUMaterial *mat, char *name, ...);
-int GPU_stack_link(GPUMaterial *mat, char *name, GPUNodeStack *in, GPUNodeStack *out, ...);
+int GPU_link(GPUMaterial *mat, const char *name, ...);
+int GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...);
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_enable_alpha(GPUMaterial *material);

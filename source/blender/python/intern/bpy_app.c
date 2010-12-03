@@ -48,27 +48,27 @@ extern char build_system[];
 static PyTypeObject BlenderAppType;
 
 static PyStructSequence_Field app_info_fields[] = {
-	{"version", "The Blender version as a tuple of 3 numbers. eg. (2, 50, 11)"},
-	{"version_string", "The Blender version formatted as a string"},
-	{"binary_path", "The location of blenders executable, useful for utilities that spawn new instances"},
-	{"background", "Boolean, True when blender is running without a user interface (started with -b)"},
+	{(char *)"version", (char *)"The Blender version as a tuple of 3 numbers. eg. (2, 50, 11)"},
+	{(char *)"version_string", (char *)"The Blender version formatted as a string"},
+	{(char *)"binary_path", (char *)"The location of blenders executable, useful for utilities that spawn new instances"},
+	{(char *)"background", (char *)"Boolean, True when blender is running without a user interface (started with -b)"},
 
 	/* buildinfo */
-	{"build_date", "The date this blender instance was built"},
-	{"build_time", "The time this blender instance was built"},
-	{"build_revision", "The subversion revision this blender instance was built with"},
-	{"build_platform", "The platform this blender instance was built for"},
-	{"build_type", "The type of build (Release, Debug)"},
-	{"build_cflags", ""},
-	{"build_cxxflags", ""},
-	{"build_linkflags", ""},
-	{"build_system", ""},
+	{(char *)"build_date", (char *)"The date this blender instance was built"},
+	{(char *)"build_time", (char *)"The time this blender instance was built"},
+	{(char *)"build_revision", (char *)"The subversion revision this blender instance was built with"},
+	{(char *)"build_platform", (char *)"The platform this blender instance was built for"},
+	{(char *)"build_type", (char *)"The type of build (Release, Debug)"},
+	{(char *)"build_cflags", (char *)""},
+	{(char *)"build_cxxflags", (char *)""},
+	{(char *)"build_linkflags", (char *)""},
+	{(char *)"build_system", (char *)""},
 	{0}
 };
 
 static PyStructSequence_Desc app_info_desc = {
-	"bpy.app",     /* name */
-	"This module contains application values that remain unchanged during runtime.",    /* doc */
+	(char *)"bpy.app",     /* name */
+	(char *)"This module contains application values that remain unchanged during runtime.",    /* doc */
 	app_info_fields,    /* fields */
 	(sizeof(app_info_fields)/sizeof(PyStructSequence_Field)) - 1
 };
@@ -173,9 +173,9 @@ static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(cl
 
 
 PyGetSetDef bpy_app_getsets[]= {
-	{"debug", bpy_app_debug_get, bpy_app_debug_set, "Boolean, set when blender is running in debug mode (started with -d)", NULL},
-	{"tempdir", bpy_app_tempdir_get, NULL, "String, the temp directory used by blender (read-only)", NULL},
-	{"driver_namespace", bpy_app_driver_dict_get, NULL, "Dictionary for drivers namespace, editable in-place, reset on file load (read-only)", NULL},
+	{(char *)"debug", bpy_app_debug_get, bpy_app_debug_set, (char *)"Boolean, set when blender is running in debug mode (started with -d)", NULL},
+	{(char *)"tempdir", bpy_app_tempdir_get, NULL, (char *)"String, the temp directory used by blender (read-only)", NULL},
+	{(char *)"driver_namespace", bpy_app_driver_dict_get, NULL, (char *)"Dictionary for drivers namespace, editable in-place, reset on file load (read-only)", NULL},
 	{NULL, NULL, NULL, NULL, NULL}
 };
 

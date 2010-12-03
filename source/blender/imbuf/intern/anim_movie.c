@@ -510,7 +510,7 @@ static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
 
 #ifdef WITH_FFMPEG
 
-extern void do_init_ffmpeg();
+extern void do_init_ffmpeg(void);
 
 #ifdef FFMPEG_CODEC_IS_POINTER
 static AVCodecContext* get_codec_from_stream(AVStream* stream)

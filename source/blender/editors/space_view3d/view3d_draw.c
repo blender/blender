@@ -688,9 +688,9 @@ static void draw_view_icon(RegionView3D *rv3d)
 	glDisable(GL_BLEND);
 }
 
-static char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
+static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 {
-	char *name = NULL;
+	const char *name = NULL;
 	
 	switch (rv3d->view) {
 		case RV3D_VIEW_FRONT:
@@ -739,7 +739,7 @@ static char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 static void draw_viewport_name(ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
-	char *name= view3d_get_name(v3d, rv3d);
+	const char *name= view3d_get_name(v3d, rv3d);
 	char tmpstr[24];
 	
 	if (v3d->localvd) {

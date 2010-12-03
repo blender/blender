@@ -112,11 +112,11 @@ void		WM_keyconfig_userdef(void);
 void		WM_keymap_init		(struct bContext *C);
 void		WM_keymap_free		(struct wmKeyMap *keymap);
 
-wmKeyMapItem *WM_keymap_verify_item(struct wmKeyMap *keymap, char *idname, int type, 
+wmKeyMapItem *WM_keymap_verify_item(struct wmKeyMap *keymap, const char *idname, int type, 
 								 int val, int modifier, int keymodifier);
 wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, const char *idname, int type, 
 								 int val, int modifier, int keymodifier);
-wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, char *idname, int type,
+wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, const char *idname, int type,
 								 int val, int modifier, int keymodifier);
 
 void		WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
@@ -200,7 +200,7 @@ int 		WM_operator_props_dialog_popup (struct bContext *C, struct wmOperator *op,
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
 int			WM_operator_ui_popup	(struct bContext *C, struct wmOperator *op, int width, int height);
 
-int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, char *message);
+int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, const char *message);
 
 		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);
@@ -296,7 +296,7 @@ void				WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx
 
 struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(struct bContext *, struct wmDrag *, struct wmEvent *event),
 						  void (*copy)(struct wmDrag *, struct wmDropBox *));
-ListBase	*WM_dropboxmap_find(char *idname, int spaceid, int regionid);
+ListBase	*WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
 			/* Set a subwindow active in pixelspace view, with optional scissor subset */
 void		wmSubWindowSet			(struct wmWindow *win, int swinid);
@@ -316,7 +316,7 @@ int			WM_framebuffer_to_index(unsigned int col);
 #define WM_JOB_EXCL_RENDER	2
 #define WM_JOB_PROGRESS		4
 
-struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, char *name, int flag);
+struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, const char *name, int flag);
 
 int			WM_jobs_test(struct wmWindowManager *wm, void *owner);
 float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);

@@ -44,13 +44,13 @@ void BLI_argsFree(struct bArgs *ba);
 /* pass starts at 1, -1 means valid all the time
  * short_arg or long_arg can be null to specify no short or long versions
  * */
-void BLI_argsAdd(struct bArgs *ba, int pass, char *short_arg, char *long_arg, char *doc, BA_ArgCallback cb, void *data);
+void BLI_argsAdd(struct bArgs *ba, int pass, const char *short_arg, const char *long_arg, const char *doc, BA_ArgCallback cb, void *data);
 /* short_case and long_case specify if those arguments are case specific */
-void BLI_argsAddCase(struct bArgs *ba, int pass, char *short_arg, int short_case, char *long_arg, int long_case, char *doc, BA_ArgCallback cb, void *data);
+void BLI_argsAddCase(struct bArgs *ba, int pass, const char *short_arg, int short_case, const char *long_arg, int long_case, const char *doc, BA_ArgCallback cb, void *data);
 
 void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *data);
 
-void BLI_argsPrintArgDoc(struct bArgs *ba, char *arg);
+void BLI_argsPrintArgDoc(struct bArgs *ba, const char *arg);
 void BLI_argsPrintOtherDoc(struct bArgs *ba);
 
 void BLI_argsPrint(struct bArgs *ba);

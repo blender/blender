@@ -71,7 +71,7 @@
 /*********************** Menu Data Parsing ********************* */
 
 typedef struct MenuEntry {
-	char *str;
+	const char *str;
 	int retval;
 	int icon;
 	int sepr;
@@ -79,7 +79,7 @@ typedef struct MenuEntry {
 
 typedef struct MenuData {
 	char *instr;
-	char *title;
+	const char *title;
 	int titleicon;
 	
 	MenuEntry *items;
@@ -99,7 +99,7 @@ static MenuData *menudata_new(char *instr)
 	return md;
 }
 
-static void menudata_set_title(MenuData *md, char *title, int titleicon)
+static void menudata_set_title(MenuData *md, const char *title, int titleicon)
 {
 	if (!md->title)
 		md->title= title;
@@ -107,7 +107,7 @@ static void menudata_set_title(MenuData *md, char *title, int titleicon)
 		md->titleicon= titleicon;
 }
 
-static void menudata_add_item(MenuData *md, char *str, int retval, int icon, int sepr)
+static void menudata_add_item(MenuData *md, const char *str, int retval, int icon, int sepr)
 {
 	if (md->nitems==md->itemssize) {
 		int nsize= md->itemssize?(md->itemssize<<1):1;
@@ -154,7 +154,8 @@ MenuData *decompose_menu_string(char *str)
 {
 	char *instr= BLI_strdup(str);
 	MenuData *md= menudata_new(instr);
-	char *nitem= NULL, *s= instr;
+	const char *nitem= NULL;
+	char *s= instr;
 	int nicon=0, nretval= 1, nitem_is_title= 0, nitem_is_sepr= 0;
 	
 	while (1) {
@@ -2279,7 +2280,7 @@ static void confirm_cancel_operator(void *opv)
 	WM_operator_free(opv);
 }
 
-static void vconfirm_opname(bContext *C, const char *opname, char *title, char *itemfmt, va_list ap)
+static void vconfirm_opname(bContext *C, const char *opname, const char *title, const char *itemfmt, va_list ap)
 {
 	uiPopupBlockHandle *handle;
 	char *s, buf[512];
@@ -2294,7 +2295,7 @@ static void vconfirm_opname(bContext *C, const char *opname, char *title, char *
 	handle->popup_arg= (void *)opname;
 }
 
-static void confirm_operator(bContext *C, wmOperator *op, char *title, char *item)
+static void confirm_operator(bContext *C, wmOperator *op, const char *title, const char *item)
 {
 	uiPopupBlockHandle *handle;
 	char *s, buf[512];
@@ -2309,7 +2310,7 @@ static void confirm_operator(bContext *C, wmOperator *op, char *title, char *ite
 	handle->cancel_func= confirm_cancel_operator;
 }
 
-void uiPupMenuOkee(bContext *C, const char *opname, char *str, ...)
+void uiPupMenuOkee(bContext *C, const char *opname, const char *str, ...)
 {
 	va_list ap;
 	char titlestr[256];
@@ -2321,7 +2322,7 @@ void uiPupMenuOkee(bContext *C, const char *opname, char *str, ...)
 	va_end(ap);
 }
 
-void uiPupMenuSaveOver(bContext *C, wmOperator *op, char *filename)
+void uiPupMenuSaveOver(bContext *C, wmOperator *op, const char *filename)
 {
 	size_t len= strlen(filename);
 
@@ -2339,7 +2340,7 @@ void uiPupMenuSaveOver(bContext *C, wmOperator *op, char *filename)
 		confirm_operator(C, op, "Save Over", filename);
 }
 
-void uiPupMenuNotice(bContext *C, char *str, ...)
+void uiPupMenuNotice(bContext *C, const char *str, ...)
 {
 	va_list ap;
 
@@ -2348,7 +2349,7 @@ void uiPupMenuNotice(bContext *C, char *str, ...)
 	va_end(ap);
 }
 
-void uiPupMenuError(bContext *C, char *str, ...)
+void uiPupMenuError(bContext *C, const char *str, ...)
 {
 	va_list ap;
 	char nfmt[256];

@@ -240,7 +240,7 @@ void outliner_free_tree(ListBase *lb)
 		outliner_free_tree(&te->subtree);
 		BLI_remlink(lb, te);
 
-		if(te->flag & TE_FREE_NAME) MEM_freeN(te->name);
+		if(te->flag & TE_FREE_NAME) MEM_freeN((void *)te->name);
 		MEM_freeN(te);
 	}
 }
@@ -324,7 +324,7 @@ static ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode)
 struct treesort {
 	TreeElement *te;
 	ID *id;
-	char *name;
+	const char *name;
 	short idcode;
 };
 
@@ -1112,8 +1112,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			c= RNA_property_array_item_char(prop, index);
 
 			te->name= MEM_callocN(sizeof(char)*20, "OutlinerRNAArrayName");
-			if(c) sprintf(te->name, "  %c", c);
-			else sprintf(te->name, "  %d", index+1);
+			if(c) sprintf((char *)te->name, "  %c", c);
+			else sprintf((char *)te->name, "  %d", index+1);
 			te->flag |= TE_FREE_NAME;
 		}
 	}
@@ -1308,7 +1308,7 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 				outliner_free_tree(&te->subtree);
 				BLI_remlink(lb, te);
 				
-				if(te->flag & TE_FREE_NAME) MEM_freeN(te->name);
+				if(te->flag & TE_FREE_NAME) MEM_freeN((void *)te->name);
 				MEM_freeN(te);
 			}
 		}
@@ -3386,7 +3386,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int event;
-	char *str= NULL;
+	const char *str= NULL;
 	
 	/* check for invalid states */
 	if (soops == NULL)
@@ -5592,7 +5592,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				spx=te->xs+2*OL_X-4;
 				if(spx+dx+10>ar->v2d.cur.xmax) dx = ar->v2d.cur.xmax-spx-10;
 
-				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len, 0, 0, "");
+				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (short)te->ys, dx+10, OL_H-1, (void *)te->name, 1.0, (float)len, 0, 0, "");
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);
 				
 				/* returns false if button got removed */

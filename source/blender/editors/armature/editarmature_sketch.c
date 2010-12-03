@@ -287,7 +287,7 @@ int BIF_nbJointsTemplate(const bContext *C)
 	}
 }
 
-char * BIF_nameBoneTemplate(const bContext *C)
+const char * BIF_nameBoneTemplate(const bContext *C)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *stk = contextSketch(C, 1);

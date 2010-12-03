@@ -1432,7 +1432,7 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 
 /********************* unpack operator *********************/
 
-void unpack_menu(bContext *C, char *opname, Image *ima, char *folder, PackedFile *pf)
+static void unpack_menu(bContext *C, const char *opname, Image *ima, const char *folder, PackedFile *pf)
 {
 	PointerRNA props_ptr;
 	uiPopupMenu *pup;

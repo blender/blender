@@ -464,7 +464,7 @@ static void area_lamp_vectors(LampRen *lar)
 
 static void ramp_blend(GPUMaterial *mat, GPUNodeLink *fac, GPUNodeLink *col1, GPUNodeLink *col2, int type, GPUNodeLink **outcol)
 {
-	static char *names[] = {"mix_blend", "mix_add", "mix_mult", "mix_sub",
+	static const char *names[] = {"mix_blend", "mix_add", "mix_mult", "mix_sub",
 		"mix_screen", "mix_div", "mix_diff", "mix_dark", "mix_light",
 		"mix_overlay", "mix_dodge", "mix_burn", "mix_hue", "mix_sat",
 		"mix_val", "mix_color", "mix_soft", "mix_linear"};

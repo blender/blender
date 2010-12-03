@@ -179,7 +179,7 @@ void unique_property(bProperty *first, bProperty *prop, int force)
 	}
 }
 
-bProperty *get_ob_property(Object *ob, char *name)
+bProperty *get_ob_property(Object *ob, const char *name)
 {
 	return BLI_findstring(&ob->prop, name, offsetof(bProperty, name));
 }

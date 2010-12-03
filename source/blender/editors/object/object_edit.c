@@ -1052,7 +1052,7 @@ static void copymenu_modifiers(Main *bmain, Scene *scene, View3D *v3d, Object *o
 	Base *base;
 	int i, event;
 	char str[512];
-	char *errorstr= NULL;
+	const char *errorstr= NULL;
 
 	strcpy(str, "Copy Modifiers %t");
 

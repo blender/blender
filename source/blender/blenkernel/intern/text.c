@@ -585,7 +585,7 @@ static void make_new_line (TextLine *line, char *newline)
 	line->format= NULL;
 }
 
-static TextLine *txt_new_line(char *str)
+static TextLine *txt_new_line(const char *str)
 {
 	TextLine *tmp;
 
@@ -1431,7 +1431,7 @@ void txt_print_undo(Text *text)
 {
 	int i= 0;
 	int op;
-	char *ops;
+	const char *ops;
 	int linep, charp;
 	
 	dump_buffer(text);
@@ -2470,7 +2470,7 @@ void indent(Text *text)
 	int len, num;
 	char *tmp;
 
-	char *add = "\t";
+	const char *add = "\t";
 	int indentlen = 1;
 	
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
@@ -2531,7 +2531,7 @@ void indent(Text *text)
 void unindent(Text *text)
 {
 	int num = 0;
-	char *remove = "\t";
+	const char *remove = "\t";
 	int indent = 1;
 	
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
@@ -2694,7 +2694,7 @@ int setcurr_tab_spaces (Text *text, int space)
 	const char *word = ":";
 	const char *comm = "#";
 	const char indent= (text->flags & TXT_TABSTOSPACES) ? ' ' : '\t';
-	static char *back_words[]= {"return", "break", "continue", "pass", "yield", NULL};
+	static const char *back_words[]= {"return", "break", "continue", "pass", "yield", NULL};
 	if (!text) return 0;
 	if (!text->curl) return 0;
 

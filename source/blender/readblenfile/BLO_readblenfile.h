@@ -73,7 +73,7 @@ blo_read_runtime(
 	struct ReportList *reports);
 
 #define BLO_RESERVEDSIZE 12
-extern char *headerMagic;
+extern const char *headerMagic;
 
 #ifdef __cplusplus
 }

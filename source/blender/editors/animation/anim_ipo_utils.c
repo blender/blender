@@ -74,7 +74,8 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 		
 		/* try to resolve the path */
 		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
-			char *structname=NULL, *propname=NULL, *arrayname=NULL, arrayindbuf[16];
+			char *structname=NULL, *propname=NULL, arrayindbuf[16];
+			const char *arrayname=NULL;
 			short free_structname = 0;
 			
 			/* For now, name will consist of 3 parts: struct-name, property name, array index

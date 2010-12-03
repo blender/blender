@@ -294,7 +294,7 @@ int           modifier_couldBeCage(struct Scene *scene, struct ModifierData *md)
 int           modifier_isCorrectableDeformed(struct ModifierData *md);
 int			  modifier_sameTopology(ModifierData *md);
 int           modifier_isEnabled(struct Scene *scene, struct ModifierData *md, int required_mode);
-void          modifier_setError(struct ModifierData *md, char *format, ...);
+void          modifier_setError(struct ModifierData *md, const char *format, ...);
 
 void          modifiers_foreachObjectLink(struct Object *ob,
 										  ObjectWalkFunc walk,

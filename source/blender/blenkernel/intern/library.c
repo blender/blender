@@ -852,7 +852,7 @@ void free_main(Main *mainvar)
 /* ***************** ID ************************ */
 
 
-ID *find_id(char *type, const char *name)		/* type: "OB" or "MA" etc */
+ID *find_id(const char *type, const char *name)		/* type: "OB" or "MA" etc */
 {
 	ListBase *lb= which_libbase(G.main, GS(type));
 	return BLI_findstring(lb, name, offsetof(ID, name) + 2);
@@ -941,7 +941,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 
 /* used by headerbuttons.c buttons.c editobject.c editseq.c */
 /* if nr==NULL no MAX_IDPUP, this for non-header browsing */
-void IDnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb, ID *link, short *nr)
+void IDnames_to_pupstring(const char **str, const char *title, const char *extraops, ListBase *lb, ID *link, short *nr)
 {
 	DynStr *pupds= BLI_dynstr_new();
 
@@ -963,7 +963,7 @@ void IDnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb,
 }
 
 /* skips viewer images */
-void IMAnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb, ID *link, short *nr)
+void IMAnames_to_pupstring(const char **str, const char *title, const char *extraops, ListBase *lb, ID *link, short *nr)
 {
 	DynStr *pupds= BLI_dynstr_new();
 	
@@ -1361,7 +1361,7 @@ void text_idbutton(struct ID *id, char *text)
 	}
 }
 
-void rename_id(ID *id, char *name)
+void rename_id(ID *id, const char *name)
 {
 	ListBase *lb;
 

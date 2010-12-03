@@ -969,7 +969,7 @@ static void *add_obdata_from_type(int type)
 	}
 }
 
-static char *get_obdata_defname(int type)
+static const char *get_obdata_defname(int type)
 {
 	switch (type) {
 	case OB_MESH: return "Mesh";

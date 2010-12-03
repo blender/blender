@@ -724,7 +724,7 @@ short insert_keyframe_direct (ReportList *reports, PointerRNA ptr, PropertyRNA *
 		/* try to get property we should be affecting */
 		if ((RNA_path_resolve(&ptr, fcu->rna_path, &tmp_ptr, &prop) == 0) || (prop == NULL)) {
 			/* property not found... */
-			char *idname= (ptr.id.data) ? ((ID *)ptr.id.data)->name : "<No ID-Pointer>";
+			const char *idname= (ptr.id.data) ? ((ID *)ptr.id.data)->name : "<No ID-Pointer>";
 			
 			BKE_reportf(reports, RPT_ERROR,
 				"Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", 

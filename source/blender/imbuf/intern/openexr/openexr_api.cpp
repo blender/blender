@@ -552,7 +552,7 @@ int IMB_exr_begin_read(void *handle, const char *filename, int *width, int *heig
 }
 
 /* still clumsy name handling, layers/channels can be ordered as list in list later */
-void IMB_exr_set_channel(void *handle, char *layname, char *passname, int xstride, int ystride, float *rect)
+void IMB_exr_set_channel(void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	ExrChannel *echan;

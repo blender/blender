@@ -3220,7 +3220,7 @@ static void remove_dynamic_typeinfos(ListBase *list)
 			if(ntype->inputs) {
 				bNodeSocketType *sock= ntype->inputs;
 				while(sock->type!=-1) {
-					MEM_freeN(sock->name);
+					MEM_freeN((void *)sock->name);
 					sock++;
 				}
 				MEM_freeN(ntype->inputs);
@@ -3228,13 +3228,13 @@ static void remove_dynamic_typeinfos(ListBase *list)
 			if(ntype->outputs) {
 				bNodeSocketType *sock= ntype->outputs;
 				while(sock->type!=-1) {
-					MEM_freeN(sock->name);
+					MEM_freeN((void *)sock->name);
 					sock++;
 				}
 				MEM_freeN(ntype->outputs);
 			}
 			if(ntype->name) {
-				MEM_freeN(ntype->name);
+				MEM_freeN((void *)ntype->name);
 			}
 			MEM_freeN(ntype);
 		}

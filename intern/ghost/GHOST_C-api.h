@@ -167,7 +167,7 @@ extern void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
  * @return	A handle to the new window ( == NULL if creation failed).
  */
 extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
-	char* title,
+	const char* title,
 	GHOST_TInt32 left,
 	GHOST_TInt32 top,
 	GHOST_TUns32 width,
@@ -525,7 +525,7 @@ extern GHOST_TSuccess GHOST_SetDrawingContextType(GHOST_WindowHandle windowhandl
  * @param title	The title to display in the title bar.
  */
 extern void GHOST_SetTitle(GHOST_WindowHandle windowhandle,
-						   char* title);
+						   const char* title);
 
 /**
  * Returns the title displayed in the title bar. The title

@@ -54,7 +54,7 @@
 #include "BLI_blenlib.h"
 
 /** Magic number for the file header */
-char *headerMagic = "BLENDFI";
+const char *headerMagic = "BLENDFI";
 
 /**
  * \brief Set the version number into the array.

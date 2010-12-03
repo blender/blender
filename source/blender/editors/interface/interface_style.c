@@ -136,7 +136,7 @@ static uiFont *uifont_to_blfont(int id)
 
 /* *************** draw ************************ */
 
-void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
+void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, const char *str)
 {
 	float height;
 	int xofs=0, yofs;
@@ -174,7 +174,7 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 }
 
 /* drawn same as above, but at 90 degree angle */
-void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, char *str)
+void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, const char *str)
 {
 	float height;
 	int xofs, yofs;

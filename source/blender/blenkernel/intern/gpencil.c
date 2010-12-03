@@ -190,7 +190,7 @@ bGPDlayer *gpencil_layer_addnew (bGPdata *gpd)
 }
 
 /* add a new gp-datablock */
-bGPdata *gpencil_data_addnew (char name[])
+bGPdata *gpencil_data_addnew (const char name[])
 {
 	bGPdata *gpd;
 	

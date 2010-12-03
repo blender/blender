@@ -1312,7 +1312,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 
 /* ********* add primitive operators ************* */
 
-static char *get_mesh_defname(int type)
+static const char *get_mesh_defname(int type)
 {
 	switch (type) {
 		case PRIM_PLANE: return "Plane";

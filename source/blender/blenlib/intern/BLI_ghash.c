@@ -149,17 +149,17 @@ int BLI_ghashIterator_isDone(GHashIterator *ghi) {
 
 /***/
 
-unsigned int BLI_ghashutil_ptrhash(void *key) {
+unsigned int BLI_ghashutil_ptrhash(const void *key) {
 	return (unsigned int)(intptr_t)key;
 }
-int BLI_ghashutil_ptrcmp(void *a, void *b) {
+int BLI_ghashutil_ptrcmp(const void *a, const void *b) {
 	if (a==b)
 		return 0;
 	else
 		return (a<b)?-1:1;
 }
 
-unsigned int BLI_ghashutil_inthash(void *ptr) {
+unsigned int BLI_ghashutil_inthash(const void *ptr) {
 	uintptr_t key = (uintptr_t)ptr;
 
 	key += ~(key << 16);
@@ -172,15 +172,15 @@ unsigned int BLI_ghashutil_inthash(void *ptr) {
 	  return (unsigned int)(key & 0xffffffff);
 }
 
-int BLI_ghashutil_intcmp(void *a, void *b) {
+int BLI_ghashutil_intcmp(const void *a, const void *b) {
 	if (a==b)
 		return 0;
 	else
 		return (a<b)?-1:1;
 }
 
-unsigned int BLI_ghashutil_strhash(void *ptr) {
-	char *s= ptr;
+unsigned int BLI_ghashutil_strhash(const void *ptr) {
+	const char *s= ptr;
 	unsigned int i= 0;
 	unsigned char c;
 	
@@ -189,6 +189,6 @@ unsigned int BLI_ghashutil_strhash(void *ptr) {
 		
 	return i;
 }
-int BLI_ghashutil_strcmp(void *a, void *b) {
+int BLI_ghashutil_strcmp(const void *a, const void *b) {
 	return strcmp(a, b);
 }

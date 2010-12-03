@@ -633,7 +633,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	FILE *fileCfg;
 	int dirExist = 0;
 	char newSurfdataPath[FILE_MAXDIR+FILE_MAXFILE]; // modified output settings
-	char *suffixConfig = FLUID_SUFFIX_CONFIG;
+	const char *suffixConfig = FLUID_SUFFIX_CONFIG;
 	int outStringsChanged = 0;
 	
 	// prepare names...
@@ -813,8 +813,8 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	
 	int gridlevels = 0;
 	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
-	char *suffixConfig = FLUID_SUFFIX_CONFIG;
-	char *suffixSurface = FLUID_SUFFIX_SURFACE;
+	const char *suffixConfig = FLUID_SUFFIX_CONFIG;
+	const char *suffixSurface = FLUID_SUFFIX_SURFACE;
 
 	char targetDir[FILE_MAXDIR+FILE_MAXFILE];  // store & modify output settings
 	char targetFile[FILE_MAXDIR+FILE_MAXFILE]; // temp. store filename from targetDir for access

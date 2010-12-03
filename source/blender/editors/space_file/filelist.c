@@ -238,8 +238,8 @@ static int compare_size(const void *a1, const void *a2)
 
 static int compare_extension(const void *a1, const void *a2) {
 	const struct direntry *entry1=a1, *entry2=a2;
-	char *sufix1, *sufix2;
-	char *nil="";
+	const char *sufix1, *sufix2;
+	const char *nil="";
 
 	if (!(sufix1= strstr (entry1->relname, ".blend.gz"))) 
 		sufix1= strrchr (entry1->relname, '.');
