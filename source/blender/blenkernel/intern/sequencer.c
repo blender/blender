@@ -2085,6 +2085,9 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 		{	// scene can be NULL after deletions
 			ibuf = seq_render_scene_strip_impl(context, seq, nr);
 
+			/* Scene strips update all animation, so we need to restore original state.*/
+			BKE_animsys_evaluate_all_animation(context.bmain, cfra);
+
 			copy_to_ibuf_still(context, seq, nr, ibuf);
 			break;
 		}
