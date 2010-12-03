@@ -724,6 +724,12 @@ static void psys_vg_name_set__internal(PointerRNA *ptr, const char *value, int i
 	}
 }
 
+static char *rna_ParticleSystem_path(PointerRNA *ptr)
+{
+	ParticleSystem *psys= (ParticleSystem*)ptr->data;
+	return BLI_sprintfN("particle_systems[\"%s\"]", psys->name);
+}
+
 /* irritating string functions for each index :/ */
 static void rna_ParticleVGroup_name_get_0(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 0); }
 static void rna_ParticleVGroup_name_get_1(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 1); }
@@ -2365,6 +2371,9 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_ParticleSystem_edited_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Edited", "Particle system has been edited in particle mode");
+
+
+	RNA_def_struct_path_func(srna, "rna_ParticleSystem_path");
 }
 
 void RNA_def_particle(BlenderRNA *brna)
