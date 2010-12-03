@@ -110,6 +110,8 @@ static void tend ( void )
 {
 	gettimeofday ( &_tend,&tz );
 }
+
+#if 0 // unused
 static double tval()
 {
 	double t1, t2;
@@ -117,6 +119,7 @@ static double tval()
 	t2 = ( double ) _tend.tv_sec*1000 + ( double ) _tend.tv_usec/ ( 1000 );
 	return t2-t1;
 }
+#endif
 #endif
 
 struct Object;

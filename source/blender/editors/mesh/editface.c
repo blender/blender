@@ -87,7 +87,7 @@ void paintface_flush_flags(Object *ob)
 	
 	for (i= 0; i<totface; i++, mf++) { /* loop over derived mesh faces */
 		mf_orig= me->mface + index_array[i];
-		mf->flag= mf_orig->flag;;
+		mf->flag= mf_orig->flag;
 	}
 }
 

@@ -77,7 +77,7 @@ static EnumPropertyItem particle_edit_cache_brush_items[] = {
 static PointerRNA rna_ParticleEdit_brush_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset= (ParticleEditSettings*)ptr->data;
-	ParticleBrushData *brush= NULL;;
+	ParticleBrushData *brush= NULL;
 
 	if(pset->brushtype != PE_BRUSH_NONE)
 		brush= &pset->brush[pset->brushtype];

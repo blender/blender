@@ -140,7 +140,7 @@ typedef enum eFMI_Action_Types {
 		/* modifier only modifies the values of points (but times stay the same) */
 	FMI_TYPE_REPLACE_VALUES,
 		/* modifier generates a curve regardless of what came before */
-	FMI_TYPE_GENERATE_CURVE,
+	FMI_TYPE_GENERATE_CURVE
 } eFMI_Action_Types;
 
 /* Flags for the requirements of a FModifier Type */
@@ -152,7 +152,7 @@ typedef enum eFMI_Requirement_Flags {
 		 */
 	FMI_REQUIRES_NOTHING			= (1<<1),
 		/* refer to modifier instance */
-	FMI_REQUIRES_RUNTIME_CHECK		= (1<<2),
+	FMI_REQUIRES_RUNTIME_CHECK		= (1<<2)
 } eFMI_Requirement_Flags;
 
 /* Function Prototypes for FModifierTypeInfo's */

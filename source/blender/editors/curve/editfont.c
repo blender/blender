@@ -274,9 +274,9 @@ static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int re
 static int insert_lorem_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	char *p, *p2;
+	const char *p, *p2;
 	int i;
-	static char *lastlorem;
+	static const char *lastlorem;
 	
 	if(lastlorem)
 		p= lastlorem;

@@ -72,7 +72,7 @@
 
 /* ************* XXX *************** */
 static int pupmenu(const char *UNUSED(dummy)) {return 0;}
-static void error(const char *UNUSED(dummy)) {};
+static void error(const char *UNUSED(dummy)) {}
 static void BIF_undo_push(const char *UNUSED(dummy)) {}
 /* ************* XXX *************** */
 

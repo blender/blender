@@ -329,9 +329,9 @@ static PySequenceMethods Color_SeqMethods = {
 	(binaryfunc) NULL,						/* sq_concat */
 	(ssizeargfunc) NULL,					/* sq_repeat */
 	(ssizeargfunc) Color_item,				/* sq_item */
-	(ssizessizeargfunc) NULL,				/* sq_slice, deprecated */
+	NULL,									/* sq_slice, deprecated */
 	(ssizeobjargproc) Color_ass_item,		/* sq_ass_item */
-	(ssizessizeobjargproc) NULL,			/* sq_ass_slice, deprecated */
+	NULL,									/* sq_ass_slice, deprecated */
 	(objobjproc) NULL,						/* sq_contains */
 	(binaryfunc) NULL,						/* sq_inplace_concat */
 	(ssizeargfunc) NULL,					/* sq_inplace_repeat */

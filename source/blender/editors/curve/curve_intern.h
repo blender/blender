@@ -33,7 +33,7 @@
 struct wmOperatorType;
 
 /* lorem.c */
-extern char *ED_lorem;
+extern const char ED_lorem[];
 
 /* editfont.c */
 enum { DEL_ALL, DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };

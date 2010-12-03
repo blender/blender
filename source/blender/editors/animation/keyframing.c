@@ -1401,7 +1401,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 		}
 	}
 	else if (G.f & G_DEBUG) {
-		printf("ptr.data = %p, prop = %p,", ptr.data, prop);
+		printf("ptr.data = %p, prop = %p,", (void *)ptr.data, (void *)prop);
 		if(prop)
 			printf("animateable = %d \n", RNA_property_animateable(&ptr, prop));
 		else
@@ -1476,7 +1476,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 			printf("Button Delete-Key: no path to property \n");
 	}
 	else if (G.f & G_DEBUG) {
-		printf("ptr.data = %p, prop = %p \n", ptr.data, prop);
+		printf("ptr.data = %p, prop = %p \n", (void *)ptr.data, (void *)prop);
 	}
 	
 	

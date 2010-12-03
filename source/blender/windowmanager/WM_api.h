@@ -332,7 +332,7 @@ void		WM_jobs_callbacks(struct wmJob *,
 
 void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner, void *startjob);
-void		WM_jobs_kill(struct wmWindowManager *wm, void *owner, void *startjob);
+void		WM_jobs_kill(struct wmWindowManager *wm, void *owner, void (*)(void *, short int *, short int *, float *));
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
 			/* clipboard */

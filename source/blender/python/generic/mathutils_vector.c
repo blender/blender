@@ -573,7 +573,7 @@ static char Vector_Difference_doc[] =
 "   :return: the rotational difference between the two vectors.\n"
 "   :rtype: :class:`Quaternion`\n"
 "\n"
-"   .. note:: 2D vectors raise an :exc:`AttributeError`.\n";;
+"   .. note:: 2D vectors raise an :exc:`AttributeError`.\n";
 
 static PyObject *Vector_Difference(VectorObject *self, VectorObject *value )
 {

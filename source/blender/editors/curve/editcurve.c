@@ -701,7 +701,7 @@ static void calc_keyHandles(ListBase *nurb, float *key)
 				}
 				else {
 					++nextp;
-					nextfp += 12;;
+					nextfp += 12;
 				}
 
 				++bezt;

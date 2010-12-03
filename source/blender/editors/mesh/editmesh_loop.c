@@ -632,7 +632,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	if (EM_nvertices_selected(em) < 2) {
 		error("No edges are selected to operate on");
 		BKE_mesh_end_editmesh(obedit->data, em);
-		return OPERATOR_CANCELLED;;
+		return OPERATOR_CANCELLED;
 	}
 
 	/* get the cut curve */

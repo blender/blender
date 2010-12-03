@@ -173,7 +173,7 @@ static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 		
 		if (node->flag & NODE_SELECT) {
 			/* ui block */
-			sprintf(str, "node buttons %p", node);
+			sprintf(str, "node buttons %p", (void *)node);
 			node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
 			uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
 		}
@@ -184,7 +184,7 @@ static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 		
 		if (!(node->flag & (NODE_GROUP_EDIT|NODE_SELECT))) {
 			/* ui block */
-			sprintf(str, "node buttons %p", node);
+			sprintf(str, "node buttons %p", (void *)node);
 			node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
 			uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
 		}

@@ -4416,7 +4416,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	RNA_pointer_create(NULL, &RNA_SpaceLogicEditor, slogic, &logic_ptr);
 	idar= get_selected_and_linked_obs(C, &count, slogic->scaflag);
 	
-	sprintf(name, "buttonswin %p", ar);
+	sprintf(name, "buttonswin %p", (void *)ar);
 	block= uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
 	
@@ -4734,7 +4734,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	if(ob==NULL) return;
 //	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
-	sprintf(name, "buttonswin %p", ar);
+	sprintf(name, "buttonswin %p", (void *)ar);
 	block= uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
 

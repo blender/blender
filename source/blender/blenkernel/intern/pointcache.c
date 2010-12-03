@@ -652,6 +652,7 @@ static int ptcache_totpoint_smoke(void *smoke_v, int UNUSED(cfra))
 }
 
 /* Smoke functions */
+#if 0
 static int ptcache_totpoint_smoke_turbulence(void *smoke_v, int UNUSED(cfra))
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
@@ -663,6 +664,7 @@ static int ptcache_totpoint_smoke_turbulence(void *smoke_v, int UNUSED(cfra))
 	else
 		return 0;
 }
+#endif
 
 // forward decleration
 static int ptcache_file_write(PTCacheFile *pf, void *f, size_t tot, int size);

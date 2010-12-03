@@ -495,8 +495,8 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 		if (sce) gamma_correct = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	}
 
-	if(!split || first) sprintf(name, "Preview %p", sa);
-	else sprintf(name, "SecondPreview %p", sa);
+	if(!split || first) sprintf(name, "Preview %p", (void *)sa);
+	else sprintf(name, "SecondPreview %p", (void *)sa);
 
 	if(split) {
 		if(first) {
@@ -736,7 +736,7 @@ void BIF_view3d_previewrender(Main *bmain, Scene *scene, ScrArea *sa)
 		
 		ri->status= 0;
 		
-		sprintf(name, "View3dPreview %p", sa);
+		sprintf(name, "View3dPreview %p", (void *)sa);
 		re= ri->re= RE_NewRender(name);
 		//RE_display_draw_cb(re, view3d_previewrender_progress);
 		//RE_stats_draw_cb(re, view3d_previewrender_stats);

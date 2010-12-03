@@ -351,7 +351,7 @@ void WM_jobs_stop(wmWindowManager *wm, void *owner, void *startjob)
 }
 
 /* actually terminate thread and job timer */
-void WM_jobs_kill(wmWindowManager *wm, void *owner, void *startjob)
+void WM_jobs_kill(wmWindowManager *wm, void *owner, void (*startjob)(void *, short int *, short int *, float *))
 {
 	wmJob *steve;
 	

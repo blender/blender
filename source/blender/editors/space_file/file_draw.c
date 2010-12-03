@@ -135,7 +135,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	ARegion*		  artmp;
 	
 	/* Initialize UI block. */
-	sprintf(name, "win %p", ar);
+	sprintf(name, "win %p", (void *)ar);
 	block = uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_file_buttons, NULL);
 

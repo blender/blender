@@ -244,7 +244,7 @@ int add_type(char *str, int len)
 	
 	if(nr_types>=maxnr) {
 		printf("too many types\n");
-		return nr_types-1;;
+		return nr_types-1;
 	}
 	nr_types++;
 	

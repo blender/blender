@@ -1758,7 +1758,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	Material *ma, ***matarar;
 	Lamp *la;
 	ID *id;
-	int a, b, mode= RNA_enum_get(op->ptr, "type");;
+	int a, b, mode= RNA_enum_get(op->ptr, "type");
 	
 	if(mode==3) {
 		all_local(NULL, 0);	/* NULL is all libs */

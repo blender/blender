@@ -603,7 +603,7 @@ void verifyMultiResolutionLinks(ReebGraph *rg, int level)
 		{
 			if (BLI_findindex(&lower_rg->arcs, arc->link_up) == -1)
 			{
-				printf("missing arc %p for level %i\n", arc->link_up, level);
+				printf("missing arc %p for level %i\n", (void *)arc->link_up, level);
 				printf("Source arc was ---\n");
 				printArc(arc);
 

@@ -81,7 +81,7 @@ typedef enum ReportType {
 enum ReportListFlags {
 	RPT_PRINT = 1,
 	RPT_STORE = 2,
-	RPT_FREE = 4,
+	RPT_FREE = 4
 };
 #
 #
@@ -313,7 +313,7 @@ typedef struct wmOperator {
 typedef enum wmRadialControlMode {
 	WM_RADIALCONTROL_SIZE,
 	WM_RADIALCONTROL_STRENGTH,
-	WM_RADIALCONTROL_ANGLE,
+	WM_RADIALCONTROL_ANGLE
 } wmRadialControlMode;
 
 #endif /* DNA_WINDOWMANAGER_TYPES_H */

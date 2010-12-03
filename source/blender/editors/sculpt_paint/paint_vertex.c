@@ -1511,10 +1511,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if(mface->v4) (me->dvert+mface->v4)->flag= 1;
 					
 			if(brush->vertexpaint_tool==VP_BLUR) {
-				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int);
+				MDeformWeight *dw, *(*dw_func)(MDeformVert *, const int);
 						
 				if(wp->flag & VP_ONLYVGROUP)
-					dw_func= (void *)defvert_find_index; /* uses a const, cast to quiet warning */
+					dw_func= (MDeformWeight *(*)(MDeformVert *, const int))defvert_find_index;
 				else
 					dw_func= defvert_verify_index;
 						

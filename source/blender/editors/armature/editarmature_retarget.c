@@ -1415,7 +1415,7 @@ static void RIG_findHead(RigGraph *rg)
 
 void RIG_printNode(RigNode *node, char name[])
 {
-	printf("%s %p %i <%0.3f, %0.3f, %0.3f>\n", name, node, node->degree, node->p[0], node->p[1], node->p[2]);
+	printf("%s %p %i <%0.3f, %0.3f, %0.3f>\n", name, (void *)node, node->degree, node->p[0], node->p[1], node->p[2]);
 	
 	if (node->symmetry_flag & SYM_TOPOLOGICAL)
 	{

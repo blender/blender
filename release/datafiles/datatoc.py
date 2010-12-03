@@ -45,8 +45,8 @@ fpin.seek(0, os.SEEK_END)
 size = fpin.tell()
 fpin.seek(0)
 
-if filename[0] == ".":
-    filename = filename[1:]
+if filename[0:2] == "." + os.sep:
+    filename = filename[2:]
 
 cname = filename + ".c"
 sys.stdout.write("Making C file <%s>\n" % cname)

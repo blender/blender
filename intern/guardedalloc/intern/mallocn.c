@@ -502,7 +502,7 @@ static void MEM_printmemlist_internal( int pydict )
 	}
 	while(membl) {
 		if (pydict) {
-			fprintf(stderr, "{'len':" SIZET_FORMAT ", 'name':'''%s''', 'pointer':'%p'},\\\n", SIZET_ARG(membl->len), membl->name, membl+1);
+			fprintf(stderr, "{'len':" SIZET_FORMAT ", 'name':'''%s''', 'pointer':'%p'},\\\n", SIZET_ARG(membl->len), membl->name, (void *)(membl+1));
 		} else {
 #ifdef DEBUG_MEMCOUNTER
 			print_error("%s len: " SIZET_FORMAT " %p, count: %d\n", membl->name, SIZET_ARG(membl->len), membl+1, membl->_count);

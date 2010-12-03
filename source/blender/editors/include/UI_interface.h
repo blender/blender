@@ -338,7 +338,7 @@ enum {
 	UI_BLOCK_BOUNDS_TEXT,
 	UI_BLOCK_BOUNDS_POPUP_MOUSE,
 	UI_BLOCK_BOUNDS_POPUP_MENU,
-	UI_BLOCK_BOUNDS_POPUP_CENTER,
+	UI_BLOCK_BOUNDS_POPUP_CENTER
 } eBlockBoundsCalc;
 
 void uiBoundsBlock(struct uiBlock *block, int addval);
