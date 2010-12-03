@@ -2906,38 +2906,41 @@ void switchdirectionNurb(Nurb *nu)
 			bp2--;
 		}
 		if(nu->type == CU_NURBS) {
-			/* inverse knots */
-			a= KNOTSU(nu);
-			fp1= nu->knotsu;
-			fp2= fp1+(a-1);
-			a/= 2;
-			while(fp1!=fp2 && a>0) {
-				SWAP(float, *fp1, *fp2);
-				a--;
-				fp1++; 
-				fp2--;
-			}
-			/* and make in increasing order again */
-			a= KNOTSU(nu);
-			fp1= nu->knotsu;
-			fp2=tempf= MEM_mallocN(sizeof(float)*a, "switchdirect");
-			while(a--) {
-				fp2[0]= fabs(fp1[1]-fp1[0]);
+			/* no knots for too short paths */
+			if(nu->knotsu) {
+				/* inverse knots */
+				a= KNOTSU(nu);
+				fp1= nu->knotsu;
+				fp2= fp1+(a-1);
+				a/= 2;
+				while(fp1!=fp2 && a>0) {
+					SWAP(float, *fp1, *fp2);
+					a--;
+					fp1++; 
+					fp2--;
+				}
+				/* and make in increasing order again */
+				a= KNOTSU(nu);
+				fp1= nu->knotsu;
+				fp2=tempf= MEM_mallocN(sizeof(float)*a, "switchdirect");
+				while(a--) {
+					fp2[0]= fabs(fp1[1]-fp1[0]);
+					fp1++;
+					fp2++;
+				}
+		
+				a= KNOTSU(nu)-1;
+				fp1= nu->knotsu;
+				fp2= tempf;
+				fp1[0]= 0.0;
 				fp1++;
-				fp2++;
+				while(a--) {
+					fp1[0]= fp1[-1]+fp2[0];
+					fp1++;
+					fp2++;
+				}
+				MEM_freeN(tempf);
 			}
-	
-			a= KNOTSU(nu)-1;
-			fp1= nu->knotsu;
-			fp2= tempf;
-			fp1[0]= 0.0;
-			fp1++;
-			while(a--) {
-				fp1[0]= fp1[-1]+fp2[0];
-				fp1++;
-				fp2++;
-			}
-			MEM_freeN(tempf);
 		}
 	}
 	else {
