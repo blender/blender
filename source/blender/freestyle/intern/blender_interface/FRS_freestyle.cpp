@@ -439,11 +439,11 @@ extern "C" {
 
 		lineset->linestyle = FRS_new_linestyle("LineStyle", NULL);
 		lineset->flags |= FREESTYLE_LINESET_ENABLED;
-		lineset->selection = 0;
+		lineset->selection = FREESTYLE_SEL_IMAGE_BORDER;
 		lineset->qi = FREESTYLE_QI_VISIBLE;
 		lineset->qi_start = 0;
 		lineset->qi_end = 100;
-		lineset->edge_types = 0;
+		lineset->edge_types = FREESTYLE_FE_SILHOUETTE | FREESTYLE_FE_BORDER | FREESTYLE_FE_CREASE;
 		lineset->group = NULL;
 		if (lineset_index > 0)
 			sprintf(lineset->name, "LineSet %i", lineset_index+1);

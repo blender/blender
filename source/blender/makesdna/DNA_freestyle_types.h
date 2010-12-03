@@ -53,9 +53,10 @@ struct FreestyleLineStyle;
 #define FREESTYLE_LINESET_GR_NOT   16
 
 /* FreestyleLineSet::selection */
-#define FREESTYLE_SEL_VISIBILITY  1
-#define FREESTYLE_SEL_EDGE_TYPES  2
-#define FREESTYLE_SEL_GROUP       4
+#define FREESTYLE_SEL_VISIBILITY    1
+#define FREESTYLE_SEL_EDGE_TYPES    2
+#define FREESTYLE_SEL_GROUP         4
+#define FREESTYLE_SEL_IMAGE_BORDER  8
 
 /* FreestyleLineSet::fedge_types */
 #define FREESTYLE_FE_SILHOUETTE          1

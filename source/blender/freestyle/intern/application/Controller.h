@@ -94,6 +94,9 @@ public:
   void RemoveStyleModule(unsigned index);
   void ReloadStyleModule(unsigned index, const char * iFileName);
   void Clear();
+  void ClearRootNode();
+  void DeleteWingedEdge();
+  void DeleteViewMap();
   void toggleLayer(unsigned index, bool iDisplay);
   void setModified(unsigned index, bool iMod);
   void resetModified(bool iMod=false);
@@ -106,10 +109,10 @@ public:
   NodeGroup* BuildRep(vector<ViewEdge*>::iterator vedges_begin, 
 		      vector<ViewEdge*>::iterator vedges_end) ;
   
-  NodeGroup* debugNode() {return _DebugNode;}
-  AppView * view() {return _pView;}
-  NodeGroup* debugScene() {return _DebugNode;}
-  Grid& grid() {return _Grid;}
+  //NodeGroup* debugNode() {return _DebugNode;}
+  //AppView * view() {return _pView;}
+  //NodeGroup* debugScene() {return _DebugNode;}
+  //Grid& grid() {return _Grid;}
   
   void toggleVisibilityAlgo();
 

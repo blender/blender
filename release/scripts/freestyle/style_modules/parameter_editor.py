@@ -312,6 +312,22 @@ class ObjectNamesUP1D(UnaryPredicate1D):
             return not found
         return found
 
+class WithinImageBorderUP1D(UnaryPredicate1D):
+    def __init__(self, xmin, xmax, ymin, ymax):
+        UnaryPredicate1D.__init__(self)
+        self._xmin = xmin
+        self._xmax = xmax
+        self._ymin = ymin
+        self._ymax = ymax
+    def getName(self):
+        return "WithinImageBorderUP1D"
+    def __call__(self, inter):
+        return self.withinBorder(inter.A()) or self.withinBorder(inter.B())
+    def withinBorder(self, vert):
+        x = vert.getProjectedX()
+        y = vert.getProjectedY()
+        return self._xmin <= x <= self._xmax and self._ymin <= y <= self._ymax
+
 # Stroke caps
 
 def iter_stroke_vertices(stroke):
@@ -525,6 +541,20 @@ def process(layer_name, lineset_name):
             names = dict((ob.name, True) for ob in lineset.group.objects)
             upred = ObjectNamesUP1D(names, lineset.group_negation == 'EXCLUSIVE')
             selection_criteria.append(upred)
+    # prepare selection criteria by image border
+    if lineset.select_by_image_border:
+        w = scene.render.resolution_x
+        h = scene.render.resolution_y
+        if scene.render.use_border:
+            xmin = scene.render.border_min_x * w
+            xmax = scene.render.border_max_x * w
+            ymin = scene.render.border_min_y * h
+            ymax = scene.render.border_max_y * h
+        else:
+            xmin, xmax = 0.0, float(w)
+            ymin, ymax = 0.0, float(h)
+        upred = WithinImageBorderUP1D(xmin, xmax, ymin, ymax)
+        selection_criteria.append(upred)
     # do feature edge selection
     upred = join_unary_predicates(selection_criteria, AndUP1D)
     if upred is None:

@@ -257,6 +257,9 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
                     col.prop(lineset, "group")
                     row = col.row()
                     row.prop(lineset, "group_negation", expand=True)
+                    col.separator() # XXX
+
+                col.prop(lineset, "select_by_image_border")
 
         else: # freestyle.mode == "SCRIPT"
 

@@ -295,34 +295,68 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
   cout << "Triangles nb     : " << _SceneNumFaces << endl;
   _bboxDiag = (_RootNode->bbox().getMax()-_RootNode->bbox().getMin()).norm();
   cout << "Bounding Box     : " << _bboxDiag << endl;
+
+  ClearRootNode();
+
   return 0;
 }
-
 
 void Controller::CloseFile()
 {
   WShape::setCurrentId(0);
-  _pView->DetachModel();
   _ListOfModels.clear();
-  if(NULL != _RootNode)
-    {
-      int ref = _RootNode->destroy();
-      if(0 == ref)
-	_RootNode->addRef();
-    
-      _RootNode->clearBBox();
-    }
-  
-  _pView->DetachSilhouette();
-  if (NULL != _SilhouetteNode)
-    {
-      int ref = _SilhouetteNode->destroy();
-      if(0 == ref)
+
+  // We deallocate the memory:
+  ClearRootNode();
+  DeleteWingedEdge();
+  DeleteViewMap();
+
+  // clears the canvas
+  _Canvas->Clear();
+
+  // soc: reset passes
+  setPassDiffuse(NULL, 0, 0);
+  setPassZ(NULL, 0, 0);
+}
+
+void Controller::ClearRootNode()
+{
+	_pView->DetachModel();
+	if(NULL != _RootNode)
 	{
-	  delete _SilhouetteNode;
-	  _SilhouetteNode = NULL;
+		int ref = _RootNode->destroy();
+		if(0 == ref)
+			_RootNode->addRef();
+		_RootNode->clearBBox();
 	}
-    }
+}
+
+void Controller::DeleteWingedEdge()
+{
+	if(_winged_edge)
+	{
+		delete _winged_edge;
+		_winged_edge = NULL;
+	}
+
+	// clears the grid
+	_Grid.clear();
+	_SceneNumFaces = 0;
+	_minEdgeSize = DBL_MAX;
+}
+
+void Controller::DeleteViewMap()
+{
+	_pView->DetachSilhouette();
+	if (NULL != _SilhouetteNode)
+	{
+		int ref = _SilhouetteNode->destroy();
+		if(0 == ref) {
+			delete _SilhouetteNode;
+			_SilhouetteNode = NULL;
+		}
+	}
+
   //  if(NULL != _ProjectedSilhouette)
   //    {
   //      int ref = _ProjectedSilhouette->destroy();
@@ -340,42 +374,20 @@ void Controller::CloseFile()
   //	  delete _VisibleProjectedSilhouette;
   //	  _VisibleProjectedSilhouette = NULL;
   //	}
-  //  }
-  
-  _pView->DetachDebug();
-  if(NULL != _DebugNode)
-    {
+  //  }  
+
+	_pView->DetachDebug();
+	if(NULL != _DebugNode) {
       int ref = _DebugNode->destroy();
       if(0 == ref)
-	_DebugNode->addRef();
+		  _DebugNode->addRef();
     }
-  
-  if(_winged_edge) {
-    delete _winged_edge;
-    _winged_edge = NULL;
-  }
 
-  // We deallocate the memory:
-  if(NULL != _ViewMap)
-    {
+	if(NULL != _ViewMap) {
       delete _ViewMap;
       _ViewMap = 0;
     }
-
-  // clears the canvas
-  _Canvas->Clear();
-
-  // clears the grid
-  _Grid.clear();
-  _SceneNumFaces = 0;
-  _minEdgeSize = DBL_MAX;
-
-  // soc: reset passes
-  setPassDiffuse(NULL, 0, 0);
-  setPassZ(NULL, 0, 0);
 }
-
-
 
 void Controller::ComputeViewMap()
 {
@@ -527,6 +539,8 @@ void Controller::ComputeViewMap()
   }
   // Reset Style modules modification flags
   resetModified(true);
+
+  DeleteWingedEdge();
 }
 
 void Controller::ComputeSteerableViewMap(){
@@ -699,6 +713,7 @@ void Controller::ResetRenderCount()
 Render* Controller::RenderStrokes(Render *re) {
 	BlenderStrokeRenderer* blenderRenderer = new BlenderStrokeRenderer(re, ++_render_count);
   	_Canvas->Render( blenderRenderer );
+	DeleteViewMap();
 	Render* freestyle_render = blenderRenderer->RenderScene(re);
 	delete blenderRenderer;
 	
