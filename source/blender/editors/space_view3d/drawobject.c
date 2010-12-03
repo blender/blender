@@ -413,6 +413,9 @@ void drawaxes(float size, char drawtype)
 	
 	case OB_PLAINAXES:
 		for (axis=0; axis<3; axis++) {
+			float v1[3]= {0.0, 0.0, 0.0};
+			float v2[3]= {0.0, 0.0, 0.0};
+			
 			glBegin(GL_LINES);
 			
 			v1[axis]= size;
@@ -475,6 +478,8 @@ void drawaxes(float size, char drawtype)
 	case OB_ARROWS:
 	default:
 		for (axis=0; axis<3; axis++) {
+			float v1[3]= {0.0, 0.0, 0.0};
+			float v2[3]= {0.0, 0.0, 0.0};
 			int arrow_axis= (axis==0)?1:0;
 			
 			glBegin(GL_LINES);
