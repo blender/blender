@@ -50,6 +50,7 @@
 #include "DNA_anim_types.h"
 #include "ED_keyframing.h"
 
+#define USE_PEDANTIC_WRITE
 #define USE_MATHUTILS
 #define USE_STRING_COERCE
 
@@ -67,6 +68,31 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
 
 /* bpyrna vector/euler/quat callbacks */
 static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
+#ifdef USE_PEDANTIC_WRITE
+static short rna_disallow_writes= FALSE;
+
+static int rna_id_write_error(PointerRNA *ptr, PyObject *key)
+{
+	ID *id= ptr->id.data;
+	if(id) {
+		const short idcode= GS(id->name);
+		if(!ELEM(idcode, ID_WM, ID_SCR)) { /* may need more added here */
+			const char *idtype= BKE_idcode_to_name(idcode);
+			const char *pyname;
+			if(key && PyUnicode_Check(key))	pyname= _PyUnicode_AsString(key);
+			else							pyname= "<UNKNOWN>";
+	
+			/* make a nice string error */
+			assert(idtype != NULL);
+			PyErr_Format(PyExc_RuntimeError, "Writing to ID classes in this context is not allowed: %.200s, %.200s datablock, error setting %.200s.%.200s", id->name+2, idtype, RNA_struct_identifier(ptr->type), pyname);
+	
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+#endif
 
 /* subtype not used much yet */
 #define MATHUTILS_CB_SUBTYPE_EUL 0
@@ -104,7 +130,13 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 	float min, max;
 	if(self->prop==NULL)
 		return 0;
-	
+
+#ifdef USE_PEDANTIC_WRITE
+	if(rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
+		return 0;
+	}
+#endif
+
 	if (!RNA_property_editable_flag(&self->ptr, self->prop)) {
 		PyErr_Format(PyExc_AttributeError, "bpy_prop \"%.200s.%.200s\" is read-only", RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
 		return 0;
@@ -157,6 +189,12 @@ static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int UNUSED(subtyp
 	if(self->prop==NULL)
 		return 0;
 	
+#ifdef USE_PEDANTIC_WRITE
+	if(rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
+		return 0;
+	}
+#endif
+	
 	if (!RNA_property_editable_flag(&self->ptr, self->prop)) {
 		PyErr_Format(PyExc_AttributeError, "bpy_prop \"%.200s.%.200s\" is read-only", RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
 		return 0;
@@ -201,7 +239,13 @@ static int mathutils_rna_matrix_set(BaseMathObject *bmo, int UNUSED(subtype))
 	
 	if(self->prop==NULL)
 		return 0;
-	
+
+#ifdef USE_PEDANTIC_WRITE
+	if(rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
+		return 0;
+	}
+#endif
+
 	if (!RNA_property_editable_flag(&self->ptr, self->prop)) {
 		PyErr_Format(PyExc_AttributeError, "bpy_prop \"%.200s.%.200s\" is read-only", RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
 		return 0;
@@ -1903,6 +1947,12 @@ static int pyrna_struct_ass_subscript( BPy_StructRNA *self, PyObject *key, PyObj
 {
 	IDProperty *group= RNA_struct_idprops(&self->ptr, 1);
 
+#ifdef USE_PEDANTIC_WRITE
+	if(rna_disallow_writes && rna_id_write_error(&self->ptr, key)) {
+		return -1;
+	}
+#endif
+
 	if(group==NULL) {
 		PyErr_SetString(PyExc_TypeError, "bpy_struct[key] = val: id properties not supported for this type");
 		return -1;
@@ -2727,6 +2777,12 @@ static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObjec
 	char *name = _PyUnicode_AsString(pyname);
 	PropertyRNA *prop= NULL;
 
+#ifdef USE_PEDANTIC_WRITE
+	if(rna_disallow_writes && rna_id_write_error(&self->ptr, pyname)) {
+		return -1;
+	}
+#endif
+
 	if(name == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "bpy_struct: __setattr__ must be a string");
 		return -1;
@@ -2839,6 +2895,12 @@ static int pyrna_prop_collection_setattro( BPy_PropertyRNA *self, PyObject *pyna
 	char *name = _PyUnicode_AsString(pyname);
 	PropertyRNA *prop;
 	PointerRNA r_ptr;
+
+#ifdef USE_PEDANTIC_WRITE
+	if(rna_disallow_writes && rna_id_write_error(&self->ptr, pyname)) {
+		return -1;
+	}
+#endif
 
 	if(name == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "bpy_prop: __setattr__ must be a string");
@@ -5080,7 +5142,11 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 	PyGILState_STATE gilstate;
 
 	bContext *C= BPy_GetContext(); // XXX - NEEDS FIXING, QUITE BAD.
-	
+#ifdef USE_PEDANTIC_WRITE
+	/* testing, for correctness, not operator and not draw function */
+	const short is_readonly= strstr("draw", RNA_function_identifier(func)) || !RNA_struct_is_a(ptr->type, &RNA_Operator);
+#endif
+
 	py_class= RNA_struct_py_type_get(ptr->type);
 	
 	/* rare case. can happen when registering subclasses */
@@ -5177,7 +5243,18 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 				i++;
 			}
 
+#ifdef USE_PEDANTIC_WRITE
+			rna_disallow_writes= is_readonly ? TRUE:FALSE;	
+#endif
+			/* *** Main Caller *** */
+			
 			ret = PyObject_Call(item, args, NULL);
+
+			/* *** Done Calling *** */
+
+#ifdef USE_PEDANTIC_WRITE
+			rna_disallow_writes= FALSE;
+#endif
 
 			RNA_parameter_list_end(&iter);
 			Py_DECREF(item);
