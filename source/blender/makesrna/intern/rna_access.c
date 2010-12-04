@@ -3771,7 +3771,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 			BLI_dynstr_appendf(dynstr, "'%s'", identifier);
 		}
 		else {
-			BLI_dynstr_appendf(dynstr, "'<UNKNOWN ENUM>'", identifier);
+			BLI_dynstr_append(dynstr, "'<UNKNOWN ENUM>'");
 		}
 		break;
 	}

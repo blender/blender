@@ -102,13 +102,21 @@ char *BLI_replacestr(char *str, const char *oldText, const char *newText);
 	/* 
 	 * Replacement for snprintf
 	 */
-int BLI_snprintf(char *buffer, size_t count, const char *format, ...);
+int BLI_snprintf(char *buffer, size_t count, const char *format, ...)
+#ifdef __GNUC__
+__attribute__ ((format (printf, 3, 4)));
+#endif
+;
 
 	/* 
 	 * Print formatted string into a newly mallocN'd string
 	 * and return it.
 	 */
-char *BLI_sprintfN(const char *format, ...);
+char *BLI_sprintfN(const char *format, ...)
+#ifdef __GNUC__
+__attribute__ ((format (printf, 1, 2)));
+#endif
+;
 
 	/**
 	 * Compare two strings
