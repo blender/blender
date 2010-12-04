@@ -918,7 +918,7 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 		fprintf(f, "			}\n");
 		fprintf(f, "		}\n");
 		fprintf(f, "		else {\n");
-		fprintf(f, "			while(index-- > 0)\n");
+		fprintf(f, "			while(index-- > 0 && internal->link)\n");
 		fprintf(f, "				internal->link= internal->link->next;\n");
 		fprintf(f, "		}\n");
 	}
