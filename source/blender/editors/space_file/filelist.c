@@ -1136,11 +1136,10 @@ static void thumbnail_joblist_free(ThumbnailJob *tj)
 	FileImage* limg = tj->loadimages.first;
 	
 	/* free the images not yet copied to the filelist -> these will get freed with the filelist */
-	while (limg != tj->loadimages.last) {
+	for( ; limg; limg= limg->next) {
 		if ((limg->img) && (!limg->done)) {
 			IMB_freeImBuf(limg->img);
 		}
-		limg = limg->next;
 	}
 	BLI_freelistN(&tj->loadimages);
 }
