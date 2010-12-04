@@ -1212,10 +1212,12 @@ void ARMATURE_OT_separate (wmOperatorType *ot)
 /* only for opengl selection indices */
 Bone *get_indexed_bone (Object *ob, int index)
 {
+	bPoseChannel *pchan;
 	if(ob->pose==NULL) return NULL;
 	index>>=16;		// bone selection codes use left 2 bytes
 	
-	return BLI_findlink(&ob->pose->chanbase, index);
+	pchan= BLI_findlink(&ob->pose->chanbase, index);
+	return pchan ? pchan->bone : NULL;
 }
 
 /* See if there are any selected bones in this buffer */
