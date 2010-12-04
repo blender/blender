@@ -107,7 +107,6 @@ SculptUndoNode *sculpt_undo_get_node(PBVHNode *node);
 void sculpt_undo_push_begin(const char *name);
 void sculpt_undo_push_end(void);
 
-struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
 int sculpt_modifiers_active(Scene *scene, Object *ob);
 void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
 

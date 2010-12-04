@@ -460,9 +460,9 @@ enum {
 
 typedef struct wmReport {
 	struct wmReport *next, *prev;
-	int type;
 	const char *typestr;
 	char *message;
+	int type;
 } wmReport;
 
 /* *************** Drag and drop *************** */

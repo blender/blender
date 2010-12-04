@@ -44,10 +44,6 @@ void do_versions_ipos_to_animato(struct Main *main);
 
 void free_ipo(struct Ipo *ipo);
 
-// xxx perhaps this should be in curve api not in anim api
-void correct_bezpart(float *v1, float *v2, float *v3, float *v4);
-	
-
 #ifdef __cplusplus
 };
 #endif

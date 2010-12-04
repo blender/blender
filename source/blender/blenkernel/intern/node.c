@@ -1972,7 +1972,6 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 /* copy stack compbufs to sockets */
 static void composit_end_exec(bNodeTree *ntree, int is_group)
 {
-	extern void print_compbuf(char *str, struct CompBuf *cbuf);
 	bNode *node;
 	bNodeStack *ns;
 	int a;

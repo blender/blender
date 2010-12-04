@@ -63,8 +63,8 @@ typedef struct PathPoint {
 #
 #
 typedef struct Path {
-	int len;
 	struct PathPoint *data;
+	int len;
 	float totdist;
 } Path;
 

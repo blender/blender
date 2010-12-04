@@ -96,7 +96,6 @@ int isect_ray_tri_epsilon_v3(float p1[3], float d[3],
 	float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float epsilon);
 
 /* point in polygon */
-int isect_point_tri_v2(float p[2], float a[2], float b[2], float c[2]);
 int isect_point_quad_v2(float p[2], float a[2], float b[2], float c[2], float d[2]);
 
 int isect_point_tri_v2(float v1[2], float v2[2], float v3[2], float pt[2]);
@@ -165,8 +164,8 @@ void map_to_sphere(float *u, float *v, float x, float y, float z);
 /********************************* Tangents **********************************/
 
 typedef struct VertexTangent {
-	float tang[3], uv[2];
 	struct VertexTangent *next;
+	float tang[3], uv[2];
 } VertexTangent;
 
 float *find_vertex_tangent(VertexTangent *vtang, float *uv);

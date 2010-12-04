@@ -80,8 +80,6 @@ extern EnumPropertyItem object_type_curve_items[];
 
 extern EnumPropertyItem controller_type_items[];
 
-extern EnumPropertyItem space_type_items[];
-
 extern EnumPropertyItem keymap_propvalue_items[];
 
 extern EnumPropertyItem operator_context_items[];

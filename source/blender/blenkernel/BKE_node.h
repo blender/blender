@@ -399,7 +399,6 @@ int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositForceHidden(struct bNodeTree *ntree, struct Scene *scene);
 
-void free_compbuf(struct CompBuf *cbuf); /* internal...*/
 
 
 /* ************** TEXTURE NODES *************** */

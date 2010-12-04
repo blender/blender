@@ -43,7 +43,7 @@
 
 #include "BKE_colortools.h"
 #include "BKE_curve.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"

@@ -44,12 +44,6 @@ struct wmWindowManager;
 /* text_draw.c */
 void draw_text_main(struct SpaceText *st, struct ARegion *ar);
 
-int text_check_bracket(char ch);
-int text_check_delim(char ch);
-int text_check_digit(char ch);
-int text_check_identifier(char ch);
-int text_check_whitespace(char ch);
-
 int text_font_width_character(struct SpaceText *st);
 int text_font_width(struct SpaceText *st, char *str);
 

@@ -436,9 +436,6 @@ void ui_set_name_menu(uiBut *but, int value);
 int ui_step_name_menu(uiBut *but, int step);
 
 struct AutoComplete;
-struct AutoComplete *autocomplete_begin(const char *startname, int maxlen);
-void autocomplete_do_name(struct AutoComplete *autocpl, const char *name);
-void autocomplete_end(struct AutoComplete *autocpl, char *autoname);
 
 /* interface_panel.c */
 extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);

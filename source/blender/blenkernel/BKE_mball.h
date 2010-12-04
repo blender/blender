@@ -127,12 +127,7 @@ struct pgn_elements {
 	char *data;
 };
 
-void calc_mballco(struct MetaElem *ml, float *vec);
-float densfunc(struct MetaElem *ball, float x, float y, float z);
 octal_node* find_metaball_octal_node(octal_node *node, float x, float y, float z, short depth);
-float metaball(float x, float y, float z);
-void accum_mballfaces(int i1, int i2, int i3, int i4);
-void *new_pgn_element(int size);
 
 void freepolygonize(PROCESS *p);
 void docube(CUBE *cube, PROCESS *p, struct MetaBall *mb);

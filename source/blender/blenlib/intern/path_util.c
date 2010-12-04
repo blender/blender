@@ -79,6 +79,8 @@
 /* local */
 #define UNIQUE_NAME_MAX 128
 
+extern char bprogname[];
+
 static int add_win32_extension(char *name);
 static char *blender_version_decimal(void);
 
@@ -894,7 +896,6 @@ static int test_env_path(char *path, const char *envvar)
 
 static int get_path_local(char *targetpath, const char *folder_name, const char *subfolder_name)
 {
-	extern char bprogname[]; /* argv[0] from creator.c */
 	char bprogdir[FILE_MAX];
 	char relfolder[FILE_MAX];
 	
@@ -963,7 +964,6 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 
 	/* first allow developer only overrides to the system path
 	 * these are only used when running blender from source */
-	extern char bprogname[]; /* argv[0] from creator.c */
 	char cwd[FILE_MAX];
 	char relfolder[FILE_MAX];
 	char bprogdir[FILE_MAX];
@@ -1778,7 +1778,6 @@ void BLI_where_is_temp(char *fullname, int usertemp)
 }
 
 char *get_install_dir(void) {
-	extern char bprogname[];
 	char *tmpname = BLI_strdup(bprogname);
 	char *cut;
 

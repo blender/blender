@@ -43,6 +43,4 @@ void validate_layer_name(const struct CustomData *data, int type, char *name, ch
 struct DerivedMesh *get_cddm(struct Object *ob, struct EditMesh *em, struct DerivedMesh *dm, float (*vertexCos)[3]);
 struct DerivedMesh *get_dm(struct Object *ob, struct EditMesh *em, struct DerivedMesh *dm, float (*vertexCos)[3], int orco);
 
-void modifier_type_init(struct ModifierTypeInfo *types[]);
-
 #endif /* MOD_UTIL_H */

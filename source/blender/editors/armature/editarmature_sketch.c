@@ -105,10 +105,6 @@ typedef struct SK_StrokeIterator {
 
 void initStrokeIterator(BArcIterator *iter, SK_Stroke *stk, int start, int end);
 
-void sk_deleteSelectedStrokes(SK_Sketch *sketch);
-
-SK_Point *sk_lastStrokePoint(SK_Stroke *stk);
-
 int sk_detectCutGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);
 void sk_applyCutGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);
 int sk_detectTrimGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);

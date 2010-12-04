@@ -104,9 +104,6 @@ struct Object *ED_object_add_type(struct bContext *C, int type, float *loc, floa
 
 void ED_object_single_users(struct Main *bmain, struct Scene *scene, int full);
 
-/* cleanup */
-int object_is_libdata(struct Object *ob);
-int object_data_is_libdata(struct Object *ob);
 
 /* object motion paths */
 void ED_objects_clear_paths(struct bContext *C);
