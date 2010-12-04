@@ -1201,7 +1201,10 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		else if(ext==0) 
 			depth= 0.0f;
 	
-		/* vertices */
+		/* first vertex at 0° for circular objects */
+		if( ELEM3(type, PRIM_CIRCLE,PRIM_CYLINDER,PRIM_CONE) )
+			phi = 0.0f;
+			
 		vtop= vdown= v1= v2= 0;
 		for(b=0; b<=ext; b++) {
 			for(a=0; a<tot; a++) {
