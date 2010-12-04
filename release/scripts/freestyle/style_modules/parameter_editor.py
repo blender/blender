@@ -205,7 +205,7 @@ class ThicknessDistanceFromCameraShader(CurveMappingModifier):
 def iter_distance_from_object(stroke, object, range_min, range_max):
     scene = Freestyle.getCurrentScene()
     mv = scene.camera.matrix_world.copy().invert() # model-view matrix
-    loc = mv * object.location # loc in the camera coordinate
+    loc = object.location * mv # loc in the camera coordinate
     normfac = range_max - range_min # normalization factor
     it = stroke.strokeVerticesBegin()
     while not it.isEnd():
