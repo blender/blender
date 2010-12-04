@@ -11481,7 +11481,11 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					 * lib_indirect.blend but lib.blend does too, linking in a Scene or Group from lib.blend can result in an
 					 * empty without the dupli group referenced. Once you save and reload the group would appier. - Campbell */
 					/* This crashes files, must look further into it */
-					/*oldnewmap_insert(fd->libmap, bhead->old, id, 1);*/
+					
+					/* Update: the issue is that in file reading, the oldnewmap is OK, but for existing data, it has to be
+					   inserted in the map to be found! */
+					if(id->flag & LIB_PRE_EXISTING)
+						oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 					
 					change_idid_adr_fd(fd, bhead->old, id);
 					// commented because this can print way too much
