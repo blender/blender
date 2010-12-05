@@ -265,7 +265,8 @@ PyObject *PyC_UnicodeFromByte(const char *str)
 	}
 	else {
 		PyErr_Clear();
-		result= PyUnicode_DecodeUTF8(str, strlen(str), "surrogateescape");
+		/* this means paths will always be accessible once converted, on all OS's */
+		result= PyUnicode_DecodeFSDefault(str);
 		return result;
 	}
 }
