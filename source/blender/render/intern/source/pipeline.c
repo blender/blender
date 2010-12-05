@@ -2205,6 +2205,7 @@ static void ntree_render_scenes(Render *re)
 {
 	bNode *node;
 	int cfra= re->scene->r.cfra;
+	int restore_scene= 0;
 	
 	if(re->scene->nodetree==NULL) return;
 	
@@ -2216,12 +2217,19 @@ static void ntree_render_scenes(Render *re)
 		if(node->type==CMP_NODE_R_LAYERS) {
 			if(node->id && node->id != (ID *)re->scene) {
 				if(node->id->flag & LIB_DOIT) {
-					render_scene(re, (Scene *)node->id, cfra);
+					Scene *scene = (Scene*)node->id;
+
+					render_scene(re, scene, cfra);
+					restore_scene= (scene != re->scene);
 					node->id->flag &= ~LIB_DOIT;
 				}
 			}
 		}
 	}
+
+	/* restore scene if we rendered another last */
+	if(restore_scene)
+		set_scene_bg(re->main, re->scene);
 }
 
 /* helper call to detect if theres a composite with render-result node */
