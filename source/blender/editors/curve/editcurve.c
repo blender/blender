@@ -2647,7 +2647,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				}
 				while(a--) {
 					memcpy(beztn, prevbezt, sizeof(BezTriple));
-					keyIndex_updateBezt(editnurb, prevbezt, beztn, 1, 1);
+					keyIndex_updateBezt(editnurb, prevbezt, beztn, 1, 0);
 					beztn++;
 
 					if( BEZSELECTED_HIDDENHANDLES(cu, prevbezt) && BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
@@ -2692,7 +2692,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				/* last point */
 				if((nu->flagu & CU_NURB_CYCLIC)==0) {
 					memcpy(beztn, prevbezt, sizeof(BezTriple));
-					keyIndex_updateBezt(editnurb, prevbezt, beztn, 1, 1);
+					keyIndex_updateBezt(editnurb, prevbezt, beztn, 1, 0);
 				}
 
 				MEM_freeN(nu->bezt);
@@ -2744,7 +2744,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				}
 				while(a--) {
 					memcpy(bpn, prevbp, sizeof(BPoint));
-					keyIndex_updateBP(editnurb, prevbp, bpn, 1, 1);
+					keyIndex_updateBP(editnurb, prevbp, bpn, 1, 0);
 					bpn++;
 
 					if( (bp->f1 & SELECT) && (prevbp->f1 & SELECT) ) {
@@ -2763,7 +2763,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				}
 				if((nu->flagu & CU_NURB_CYCLIC)==0) { /* last point */
 					memcpy(bpn, prevbp, sizeof(BPoint));
-					keyIndex_updateBP(editnurb, prevbp, bpn, 1, 1);
+					keyIndex_updateBP(editnurb, prevbp, bpn, 1, 0);
 				}
 
 				MEM_freeN(nu->bp);
@@ -2851,7 +2851,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				for(a=0; a<nu->pntsv; a++) {
 					for(b=0; b<nu->pntsu; b++) {
 						*bpn= *bp;
-						keyIndex_updateBP(editnurb, bp, bpn, 1, 1);
+						keyIndex_updateBP(editnurb, bp, bpn, 1, 0);
 						bpn++; 
 						bp++;
 						if(b<nu->pntsu-1) {
@@ -2908,7 +2908,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					for(a=0; a<nu->pntsv; a++) {
 						for(b=0; b<nu->pntsu; b++) {
 							*bpn= *bp;
-							keyIndex_updateBP(editnurb, bp, bpn, 1, 1);
+							keyIndex_updateBP(editnurb, bp, bpn, 1, 0);
 							bpn++;
 							bp++;
 						}
@@ -2955,7 +2955,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 						for(a=0; a<nu->pntsv; a++) {
 							for(b=0; b<nu->pntsu; b++) {
 								*bpn= *bp;
-								keyIndex_updateBP(editnurb, bp, bpn, 1, 1);
+								keyIndex_updateBP(editnurb, bp, bpn, 1, 0);
 								bpn++; 
 								bp++;
 								if( (b<nu->pntsu-1) && usel[b]==nu->pntsv && usel[b+1]==nu->pntsv ) {
@@ -3017,7 +3017,7 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, 100, "Number of cuts", "", 1, 100);
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of cuts", "", 1, 10);
 }
 
 /******************** find nearest ************************/
