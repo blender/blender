@@ -8,3 +8,6 @@ if is_ntsc:
     bpy.context.scene.render.resolution_y = 480
 else:
     bpy.context.scene.render.resolution_y = 576
+
+bpy.context.scene.render.ffmpeg_audio_mixrate = 48000
+bpy.context.scene.render.ffmpeg_audio_codec = "PCM"
