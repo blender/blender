@@ -851,7 +851,7 @@ void pose_copy_menu(Scene *scene)
 			ob->pose->flag |= POSE_RECALC;
 	}
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);	// and all its relations
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);	// and all its relations
 	
 	BIF_undo_push("Copy Pose Attributes");
 	
@@ -1069,7 +1069,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* Update event for pose and deformation children */
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1471,7 +1471,7 @@ static int pose_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1518,7 +1518,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1581,7 +1581,7 @@ void pose_activate_flipped_bone(Scene *scene)
 				/* in weightpaint we select the associated vertex group too */
 				if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 					ED_vgroup_select_by_name(OBACT, name);
-					DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
+					DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
 				}
 				
 				// XXX notifiers need to be sent to other editors to update
@@ -1865,7 +1865,7 @@ static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_END;
 	
 	/* notifiers and updates */
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 	
 	return OPERATOR_FINISHED;
@@ -1954,7 +1954,7 @@ static void pose_clear_user_transforms(Object *ob)
 		rest_pose(ob->pose);
 	}
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	BIF_undo_push("Clear User Transform");
 }
 

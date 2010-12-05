@@ -111,7 +111,7 @@ static void rna_ChannelDriver_update_data(Main *bmain, Scene *scene, PointerRNA 
 	
 	// TODO: this really needs an update guard...
 	DAG_scene_sort(bmain, scene);
-	DAG_id_flush_update(id, OB_RECALC_OB|OB_RECALC_DATA);
+	DAG_id_tag_update(id, OB_RECALC_OB|OB_RECALC_DATA);
 	
 	WM_main_add_notifier(NC_SCENE|ND_FRAME, scene);
 }

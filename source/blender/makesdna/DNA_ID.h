@@ -215,6 +215,8 @@ typedef struct PreviewImage {
 #define LIB_DOIT		1024
 /* tag existing data before linking so we know what is new */
 #define LIB_PRE_EXISTING	2048
+/* runtime */
+#define LIB_ID_RECALC		4096
 
 #ifdef __cplusplus
 }

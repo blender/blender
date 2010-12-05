@@ -402,7 +402,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 	// exit armature edit mode
 	ED_armature_from_edit(ob_arm);
 	ED_armature_edit_free(ob_arm);
-	DAG_id_flush_update(&ob_arm->id, OB_RECALC_OB|OB_RECALC_DATA);
+	DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB|OB_RECALC_DATA);
 
 	set_leaf_bone_shapes(ob_arm);
 

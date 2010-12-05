@@ -79,7 +79,7 @@
 #include "render_intern.h"	// own include
 
 /***************************** Updates ***********************************
- * ED_render_id_flush_update gets called from DAG_id_flush_update, to do *
+ * ED_render_id_flush_update gets called from DAG_id_tag_update, to do *
  * editor level updates when the ID changes. when these ID blocks are in *
  * the dependency graph, we can get rid of the manual dependency checks  */
 
@@ -355,7 +355,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 	
 	return OPERATOR_FINISHED;

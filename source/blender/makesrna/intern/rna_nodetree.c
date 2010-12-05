@@ -443,7 +443,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *r
 	else {
 		nodeVerifyGroup(ntree); /* update group node socket links*/
 		NodeTagChanged(ntree, node);
-		WM_event_add_notifier(C, NC_NODE|NA_EDITED, ntree);
+		WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 
 		if (group)
 			id_us_plus(&group->id);
@@ -489,7 +489,7 @@ static bNode *rna_NodeTree_node_texture_new(bNodeTree *ntree, bContext *C, Repor
 	return node;
 }
 
-static void rna_NodeTree_node_remove(bNodeTree *ntree, bContext *C, ReportList *reports, bNode *node)
+static void rna_NodeTree_node_remove(bNodeTree *ntree, ReportList *reports, bNode *node)
 {
 	if (BLI_findindex(&ntree->nodes, node) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to locate node '%s' in nodetree", node->name);
@@ -501,11 +501,11 @@ static void rna_NodeTree_node_remove(bNodeTree *ntree, bContext *C, ReportList *
 		nodeFreeNode(ntree, node);
 		nodeVerifyGroup(ntree); /* update group node socket links*/
 
-		WM_event_add_notifier(C, NC_NODE|NA_EDITED, ntree);
+		WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 	}
 }
 
-static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, bContext *C, ReportList *reports, bNodeSocket *in, bNodeSocket *out)
+static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, bNodeSocket *in, bNodeSocket *out)
 {
 	bNodeLink *ret;
 	bNode *fromnode, *tonode;
@@ -529,12 +529,12 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, bContext *C, ReportLis
 
 	ntreeSolveOrder(ntree);
 
-	WM_event_add_notifier(C, NC_NODE|NA_EDITED, ntree);
+	WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 
 	return ret;
 }
 
-static void rna_NodeTree_link_remove(bNodeTree *ntree, bContext *C, ReportList *reports, bNodeLink *link)
+static void rna_NodeTree_link_remove(bNodeTree *ntree, ReportList *reports, bNodeLink *link)
 {
 	if (BLI_findindex(&ntree->links, link) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to locate link in nodetree");
@@ -544,7 +544,7 @@ static void rna_NodeTree_link_remove(bNodeTree *ntree, bContext *C, ReportList *
 		ntreeSolveOrder(ntree);
 		nodeVerifyGroup(ntree); /* update group node socket links*/
 
-		WM_event_add_notifier(C, NC_NODE|NA_EDITED, ntree);
+		WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 	}
 }
 
@@ -2338,7 +2338,7 @@ static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "new", "rna_NodeTree_link_new");
 	RNA_def_function_ui_description(func, "Add a node link to this node tree.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "input", "NodeSocket", "", "The input socket.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "output", "NodeSocket", "", "The output socket.");
@@ -2349,7 +2349,7 @@ static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "remove", "rna_NodeTree_link_remove");
 	RNA_def_function_ui_description(func, "remove a node link from the node tree.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "link", "NodeLink", "", "The node link to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
@@ -2377,7 +2377,7 @@ static void rna_def_composite_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "remove", "rna_NodeTree_node_remove");
 	RNA_def_function_ui_description(func, "remove a node from this node tree.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "node", "Node", "", "The node to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
@@ -2405,7 +2405,7 @@ static void rna_def_shader_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "remove", "rna_NodeTree_node_remove");
 	RNA_def_function_ui_description(func, "remove a node from this node tree.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "node", "Node", "", "The node to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
@@ -2433,7 +2433,7 @@ static void rna_def_texture_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "remove", "rna_NodeTree_node_remove");
 	RNA_def_function_ui_description(func, "remove a node from this node tree.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "node", "Node", "", "The node to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }

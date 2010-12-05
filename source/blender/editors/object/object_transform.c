@@ -557,7 +557,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		where_is_object(scene, ob);
 		ignore_parent_tx(bmain, scene, ob);
 
-		DAG_id_flush_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
 
 		change = 1;
 	}
@@ -581,7 +581,7 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 		where_is_object(scene, ob);
 
 		/* update for any children that may get moved */
-		DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 	
 		change = 1;
 	}
@@ -780,7 +780,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 			recalc_editnormals(em);
 			tot_change++;
-			DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 			BKE_mesh_end_editmesh(me, em);
 		}
 	}
@@ -872,7 +872,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				if(obedit) {
 					if (centermode == GEOMETRY_TO_ORIGIN) {
-						DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+						DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 					}
 					break;
 				}

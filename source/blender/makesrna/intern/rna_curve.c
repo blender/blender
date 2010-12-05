@@ -278,7 +278,7 @@ static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA 
 
 static void rna_Curve_update_data_id(Main *bmain, Scene *scene, ID *id)
 {
-	DAG_id_flush_update(id, OB_RECALC_DATA);
+	DAG_id_tag_update(id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 }
 

@@ -242,7 +242,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 			{
 				Material *ma= ptr->id.data;
 				
-				DAG_id_flush_update(&ma->id, 0);
+				DAG_id_tag_update(&ma->id, 0);
 				WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
 			}
 				break;
@@ -262,7 +262,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 			{
 				Tex *tex= ptr->id.data;
 
-				DAG_id_flush_update(&tex->id, 0);
+				DAG_id_tag_update(&tex->id, 0);
 				WM_main_add_notifier(NC_TEXTURE, tex);
 			}
 				break;

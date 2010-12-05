@@ -3425,7 +3425,7 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 	psys->cfra=bsystem_time(scene,ob,scene->r.cfra+1,0.0);
 
 	DAG_scene_sort(G.main, scene);
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	return md;
 }
@@ -3462,7 +3462,7 @@ void object_remove_particle_system(Scene *scene, Object *ob)
 		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 
 	DAG_scene_sort(G.main, scene);
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 static void default_particle_settings(ParticleSettings *part)
 {

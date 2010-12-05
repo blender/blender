@@ -77,7 +77,7 @@ void ED_node_changed_update(ID *id, bNode *node)
 	node_tree_from_ID(id, &nodetree, &edittree, &treetype);
 
 	if(treetype==NTREE_SHADER) {
-		DAG_id_flush_update(id, 0);
+		DAG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, id);
 	}
 	else if(treetype==NTREE_COMPOSIT) {
@@ -91,7 +91,7 @@ void ED_node_changed_update(ID *id, bNode *node)
 		WM_main_add_notifier(NC_SCENE|ND_NODES, id);
 	}			
 	else if(treetype==NTREE_TEXTURE) {
-		DAG_id_flush_update(id, 0);
+		DAG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_TEXTURE|ND_NODES, id);
 	}
 }

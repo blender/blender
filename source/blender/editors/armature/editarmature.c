@@ -409,7 +409,7 @@ void ED_armature_from_edit(Object *obedit)
 			armature_rebuild_pose(obt, arm);
 	}
 	
-	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 }
 
 void ED_armature_apply_transform(Object *ob, float mat[4][4])
@@ -677,7 +677,7 @@ static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op)
 	CTX_DATA_END;
 
 	// ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1172,8 +1172,8 @@ static int separate_armature_exec (bContext *C, wmOperator *UNUSED(op))
 	/* 4) fix links before depsgraph flushes */ // err... or after?
 	separated_armature_fix_links(oldob, newob);
 	
-	DAG_id_flush_update(&oldob->id, OB_RECALC_DATA);	/* this is the original one */
-	DAG_id_flush_update(&newob->id, OB_RECALC_DATA);	/* this is the separated one */
+	DAG_id_tag_update(&oldob->id, OB_RECALC_DATA);	/* this is the original one */
+	DAG_id_tag_update(&newob->id, OB_RECALC_DATA);	/* this is the separated one */
 	
 	
 	/* 5) restore original conditions */
@@ -4414,7 +4414,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		if (OBACT && OBACT->mode & OB_MODE_WEIGHT_PAINT) {
 			if (nearBone == arm->act_bone) {
 				ED_vgroup_select_by_name(OBACT, nearBone->name);
-				DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
+				DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
 			}
 		}
 		
@@ -4885,7 +4885,7 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *UNUSED(op))
 			ED_pose_recalculate_paths(scene, ob);
 	}
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -4954,7 +4954,7 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *UNUSED(op))
 			ED_pose_recalculate_paths(scene, ob);
 	}
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -5107,7 +5107,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 			ED_pose_recalculate_paths(scene, ob);
 	}
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -5554,7 +5554,7 @@ static int armature_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -5600,7 +5600,7 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);

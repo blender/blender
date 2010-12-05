@@ -169,7 +169,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			multires_mark_as_modified(ob);
 
 		if(ss->modifiers_active || ((Mesh*)ob->data)->id.us > 1)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 }
 

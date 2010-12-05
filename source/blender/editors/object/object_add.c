@@ -506,7 +506,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 		obedit= ED_object_add_type(C, OB_MBALL, loc, rot, TRUE, layer);
 		newob = 1;
 	}
-	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	else DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 	
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 	
@@ -617,7 +617,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
-	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	else DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 	
 	if(obedit==NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot create editmode armature.");
@@ -1309,7 +1309,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		}
 
 		if (!keep_original) {
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 
 		/* delete original if needed */
@@ -1659,7 +1659,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		if(BASACT==base)
 			ED_base_object_activate(C, basen);
 		
-		DAG_id_flush_update(base->object->data, 0);
+		DAG_id_tag_update(base->object->data, 0);
 	}
 	CTX_DATA_END;
 

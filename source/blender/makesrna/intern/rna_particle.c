@@ -201,10 +201,10 @@ static void particle_recalc(Main *bmain, Scene *scene, PointerRNA *ptr, short fl
 		
 		psys->recalc = flag;
 
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	}
 	else
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|flag);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA|flag);
 
 	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
@@ -279,7 +279,7 @@ static void rna_Particle_target_reset(Main *bmain, Scene *scene, PointerRNA *ptr
 		
 		psys->recalc = PSYS_RECALC_RESET;
 
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		DAG_scene_sort(bmain, scene);
 	}
 
@@ -295,7 +295,7 @@ static void rna_Particle_target_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 		
 		psys->recalc = PSYS_RECALC_REDO;
 
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 	}
 }

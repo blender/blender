@@ -666,7 +666,7 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 //		ED_vgroup_mirror(ob, 1, 1, 0);
 
 	/* default for now */
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 }
 
@@ -1006,14 +1006,14 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 		return; /* no notifier! */
 		
 	case B_OBJECTPANEL:
-		DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 		break;
 
 	
 	case B_OBJECTPANELMEDIAN:
 		if(ob) {
 			v3d_editvertex_buts(NULL, v3d, ob, 1.0);
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 		break;
 		
@@ -1024,7 +1024,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 				ob->parent= NULL;
 			else {
 				DAG_scene_sort(bmain, scene);
-				DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+				DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 		}
 		break;
@@ -1058,7 +1058,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 	case B_ARMATUREPANEL2:
 		{
 			ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 		break;
 	case B_TRANSFORMSPACEADD:
@@ -1114,7 +1114,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 				int a;
 				for(a=0; a<me->totvert; a++)
 					ED_vgroup_vert_remove (ob, defGroup, a);
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 		}
 		break;

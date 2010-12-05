@@ -521,7 +521,7 @@ void unlink_text(Main *bmain, Text *text)
 		}
 		
 		if(update)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	/* pynodes */

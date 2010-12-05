@@ -86,7 +86,7 @@ static void rna_World_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
-	DAG_id_flush_update(&wo->id, 0);
+	DAG_id_tag_update(&wo->id, 0);
 	WM_main_add_notifier(NC_WORLD, wo);
 }
 
@@ -94,7 +94,7 @@ static void rna_World_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
-	DAG_id_flush_update(&wo->id, 0);
+	DAG_id_tag_update(&wo->id, 0);
 	WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, wo);
 }
 
@@ -103,7 +103,7 @@ static void rna_World_draw_mist_update(Main *bmain, Scene *scene, PointerRNA *pt
 {
 	World *wo= ptr->id.data;
 
-	DAG_id_flush_update(&wo->id, 0);
+	DAG_id_tag_update(&wo->id, 0);
 	WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, wo);
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
 }
@@ -112,7 +112,7 @@ static void rna_World_stars_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	World *wo= ptr->id.data;
 
-	DAG_id_flush_update(&wo->id, 0);
+	DAG_id_tag_update(&wo->id, 0);
 	WM_main_add_notifier(NC_WORLD|ND_WORLD_STARS, wo);
 }
 

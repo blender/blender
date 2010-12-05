@@ -318,7 +318,7 @@ static void rna_Key_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	for(ob=bmain->object.first; ob; ob= ob->id.next) {
 		if(ob_get_key(ob) == key) {
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 		}
 	}

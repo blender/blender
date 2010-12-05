@@ -725,7 +725,7 @@ static void rna_Scene_glsl_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 
-	DAG_id_flush_update(&scene->id, 0);
+	DAG_id_tag_update(&scene->id, 0);
 }
 
 static void rna_RenderSettings_color_management_update(Main *bmain, Scene *unused, PointerRNA *ptr)

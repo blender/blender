@@ -52,6 +52,7 @@
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_key.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
@@ -2290,26 +2291,21 @@ static void dag_id_flush_update__isDependentTexture(void *userData, Object *UNUS
 	}
 }
 
-void DAG_id_flush_update(ID *id, short flag)
+static void dag_id_flush_update(Scene *sce, ID *id)
 {
 	Main *bmain= G.main;
-	Scene *sce;
 	Object *obt, *ob= NULL;
 	short idtype;
-	unsigned int lay;
 
-	dag_current_scene_layers(bmain, &sce, &lay);
-
-	if(!id || !sce || !sce->theDag)
-		return;
+	/* here we flush a few things before actual scene wide flush, mostly
+	   due to only objects and not other datablocks being in the depsgraph */
 
 	/* set flags & pointcache for object */
 	if(GS(id->name) == ID_OB) {
 		ob= (Object*)id;
-		ob->recalc |= (flag & OB_RECALC_ALL);
 		BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
 
-		if(flag & OB_RECALC_DATA) {
+		if(ob->recalc & OB_RECALC_DATA) {
 			/* all users of this ob->data should be checked */
 			id= ob->data;
 
@@ -2374,23 +2370,90 @@ void DAG_id_flush_update(ID *id, short flag)
 		/* set flags based on particle settings */
 		if(idtype == ID_PA) {
 			ParticleSystem *psys;
-			for(obt=bmain->object.first; obt; obt= obt->id.next) {
-				for(psys=obt->particlesystem.first; psys; psys=psys->next) {
-					if(&psys->part->id == id) {
+			for(obt=bmain->object.first; obt; obt= obt->id.next)
+				for(psys=obt->particlesystem.first; psys; psys=psys->next)
+					if(&psys->part->id == id)
 						BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
-						obt->recalc |= (flag & OB_RECALC_ALL);
-						psys->recalc |= (flag & PSYS_RECALC);
-					}
-				}
-			}
 		}
 
 		/* update editors */
 		dag_editors_update(bmain, id);
 	}
+}
 
-	/* flush to other objects that depend on this one */
-	DAG_scene_flush_update(bmain, sce, lay, 0);
+void DAG_ids_flush_tagged(Main *bmain)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	Scene *sce;
+	unsigned int lay;
+	int a, have_tag = 0;
+
+	dag_current_scene_layers(bmain, &sce, &lay);
+
+	if(!sce || !sce->theDag)
+		return;
+
+	/* loop over all ID types */
+	a  = set_listbasepointers(bmain, lbarray);
+
+	while(a--) {
+		ListBase *lb = lbarray[a];
+		ID *id = lb->first;
+
+		/* we tag based on first ID type character to avoid 
+		   looping over all ID's in case there are no tags */
+		if(id && bmain->id_tag_update[id->name[0]]) {
+			for(; id; id=id->next) {
+				if(id->flag & LIB_ID_RECALC) {
+					dag_id_flush_update(sce, id);
+					id->flag &= ~LIB_ID_RECALC;
+				}
+			}
+
+			have_tag = 1;
+		}
+	}
+
+	if(have_tag) {
+		/* clear tags */
+		memset(bmain->id_tag_update, 0, sizeof(bmain->id_tag_update));
+
+		/* flush changes to other objects */
+		DAG_scene_flush_update(bmain, sce, lay, 0);
+	}
+}
+
+void DAG_id_tag_update(ID *id, short flag)
+{
+	Main *bmain= G.main;
+
+	/* tag ID for update */
+	id->flag |= LIB_ID_RECALC;
+	bmain->id_tag_update[id->name[0]] = 1;
+
+	/* flag is for objects and particle systems */
+	if(flag) {
+		Object *ob;
+		ParticleSystem *psys;
+		short idtype = GS(id->name);
+
+		if(idtype == ID_OB) {
+			/* only quick tag */
+			ob = (Object*)id;
+			ob->recalc |= (flag & OB_RECALC_ALL);
+		}
+		else if(idtype == ID_PA) {
+			/* this is weak still, should be done delayed as well */
+			for(ob=bmain->object.first; ob; ob=ob->id.next) {
+				for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+					if(&psys->part->id == id) {
+						ob->recalc |= (flag & OB_RECALC_ALL);
+						psys->recalc |= (flag & PSYS_RECALC);
+					}
+				}
+			}
+		}
+	}
 }
 
 /* recursively descends tree, each node only checked once */
@@ -2421,68 +2484,6 @@ static int parent_check_node(DagNode *node, int curtime)
 	}
 	
 	return DAG_WHITE;
-}
-
-/* all nodes that influence this object get tagged, for calculating the exact
-   position of this object at a given timeframe */
-void DAG_id_update_flags(ID *id)
-{
-	Main *bmain= G.main;
-	Scene *sce;
-	DagNode *node;
-	DagAdjList *itA;
-	Object *ob;
-	unsigned int lay;
-
-	dag_current_scene_layers(bmain, &sce, &lay);
-
-	if(!id || !sce || !sce->theDag)
-		return;
-	
-	/* objects only currently */
-	if(GS(id->name) != ID_OB)
-		return;
-	
-	ob= (Object*)id;
-	
-	/* tag nodes unchecked */
-	for(node = sce->theDag->DagNode.first; node; node= node->next) 
-		node->color = DAG_WHITE;
-	
-	node= dag_find_node(sce->theDag, ob);
-	
-	/* object not in scene? then handle group exception. needs to be dagged once too */
-	if(node==NULL) {
-		Group *group= NULL;
-		while( (group = find_group(ob, group)) ) {
-			GroupObject *go;
-			/* primitive; tag all... this call helps building groups for particles */
-			for(go= group->gobject.first; go; go= go->next)
-				go->ob->recalc= OB_RECALC_ALL;
-		}
-	}
-	else {
-		
-		node->color = DAG_GRAY;
-		
-		sce->theDag->time++;
-		node= sce->theDag->DagNode.first;
-		for(itA = node->child; itA; itA= itA->next) {
-			if(itA->node->type==ID_OB && itA->node->lasttime!=sce->theDag->time)
-				itA->node->color= parent_check_node(itA->node, sce->theDag->time);
-		}
-		
-		/* set recalcs and flushes */
-		DAG_scene_update_flags(bmain, sce, lay);
-		
-		/* now we clear recalcs, unless color is set */
-		for(node = sce->theDag->DagNode.first; node; node= node->next) {
-			if(node->type==ID_OB && node->color==DAG_WHITE) {
-				Object *ob= node->ob;
-				ob->recalc= 0;
-			}
-		}
-	}
 }
 
 /* ******************* DAG FOR ARMATURE POSE ***************** */

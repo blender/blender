@@ -161,7 +161,7 @@ void poseAnim_mapping_refresh (bContext *C, Scene *scene, Object *ob)
 	 */
 	// FIXME: shouldn't this use the builtin stuff?
 	if ((arm->flag & ARM_DELAYDEFORM)==0)
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 	else
 		where_is_pose(scene, ob);
 	

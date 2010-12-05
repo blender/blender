@@ -110,14 +110,13 @@ void	DAG_scene_flush_update(struct Main *bmain, struct Scene *sce, unsigned int 
 		/* tag objects for update on file load */
 void	DAG_on_load_update(struct Main *bmain);
 
-		/* flag all IDs that need recalc because they're animated, influencing
-		   this ID only. only for objects currently */
-void	DAG_id_update_flags(struct ID *id);
-		/* flushes all recalc flags for this object down the dependency tree,
-		   but note the DAG only supports objects and object data currently */
-void	DAG_id_flush_update(struct ID *id, short flag);
 		/* when setting manual RECALC flags, call this afterwards */
 void	DAG_ids_flush_update(struct Main *bmain, int time);
+
+		/* tag datablock to get updated for the next redraw */
+void	DAG_id_tag_update(struct ID *id, short flag);
+		/* flush all tagged updates */
+void	DAG_ids_flush_tagged(struct Main *bmain);
 
 		/* (re)-create dependency graph for armature pose */
 void	DAG_pose_sort(struct Object *ob);

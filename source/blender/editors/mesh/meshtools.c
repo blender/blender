@@ -532,7 +532,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	free_editMesh(me->edit_mesh);
 	MEM_freeN(me->edit_mesh);
 	me->edit_mesh= NULL;
-	DAG_id_flush_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
 #endif
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 

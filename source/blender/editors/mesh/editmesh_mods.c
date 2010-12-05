@@ -143,7 +143,7 @@ void EM_automerge(Scene *scene, Object *obedit, int update)
 		if (len) {
 			em->totvert -= len; /* saves doing a countall */
 			if (update) {
-				DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+				DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 			}
 		}
 	}
@@ -1431,7 +1431,7 @@ void EM_mesh_copy_edge(EditMesh *em, short type)
 	}
 	
 	if (change) {
-//		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+//		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 		
 	}
 }
@@ -1559,7 +1559,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 	}
 	
 	if (change) {
-//		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+//		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 		
 	}
 }
@@ -1689,7 +1689,7 @@ void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type)
 	}
 
 	if (change) {
-//		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+//		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 		
 	}
 }
@@ -2199,7 +2199,7 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 				break;
 		}
 		
-		DAG_id_flush_update(vc.obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(vc.obedit->data, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
 	}
 }
@@ -2743,7 +2743,7 @@ void EM_hide_mesh(EditMesh *em, int swap)
 	em->totedgesel= em->totfacesel= em->totvertsel= 0;
 //	if(EM_texFaceCheck())
 
-	//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
+	//	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);	
 }
 
 static int hide_mesh_exec(bContext *C, wmOperator *op)
@@ -2810,7 +2810,7 @@ void EM_reveal_mesh(EditMesh *em)
 	EM_selectmode_flush(em);
 
 //	if (EM_texFaceCheck())
-//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
+//	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);	
 }
 
 static int reveal_mesh_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3747,7 +3747,7 @@ static int editmesh_mark_seam(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -3799,7 +3799,7 @@ static int editmesh_mark_sharp(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -4025,7 +4025,7 @@ void EM_recalc_normal_direction(EditMesh *em, int inside, int select)	/* makes f
 
 	recalc_editnormals(em);
 	
-//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+//	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 
 	waitcursor(0);
 }
@@ -4043,7 +4043,7 @@ static int normals_make_consistent_exec(bContext *C, wmOperator *op)
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data); //TODO is this needed ?
 
 	return OPERATOR_FINISHED;	
@@ -4383,7 +4383,7 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -4470,7 +4470,7 @@ static int mesh_noise_exec(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -4535,7 +4535,7 @@ static int flip_normals(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -4575,7 +4575,7 @@ static int solidify_exec(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -4611,7 +4611,7 @@ static int mesh_select_nth_exec(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;

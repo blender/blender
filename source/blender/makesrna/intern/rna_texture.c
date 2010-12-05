@@ -128,7 +128,7 @@ static void rna_Texture_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Tex *tex= ptr->id.data;
 
-	DAG_id_flush_update(&tex->id, 0);
+	DAG_id_tag_update(&tex->id, 0);
 	WM_main_add_notifier(NC_TEXTURE, tex);
 }
 
@@ -153,7 +153,7 @@ static void rna_Texture_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Tex *tex= ptr->id.data;
 
-	DAG_id_flush_update(&tex->id, 0);
+	DAG_id_tag_update(&tex->id, 0);
 	WM_main_add_notifier(NC_TEXTURE|ND_NODES, tex);
 }
 
@@ -168,7 +168,7 @@ void rna_TextureSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
-	DAG_id_flush_update(id, 0);
+	DAG_id_tag_update(id, 0);
 
 	switch(GS(id->name)) {
 		case ID_MA: 

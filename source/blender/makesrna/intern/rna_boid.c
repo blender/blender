@@ -78,10 +78,10 @@ static void rna_Boids_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 		
 		psys->recalc = PSYS_RECALC_RESET;
 
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	}
 	else
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
@@ -92,10 +92,10 @@ static void rna_Boids_reset_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 		
 		psys->recalc = PSYS_RECALC_RESET;
 
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	}
 	else
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	DAG_scene_sort(bmain, scene);
 

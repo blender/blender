@@ -260,7 +260,7 @@ printf("%d\n", event->val);
 		EM_project_snap_verts(C, vc.ar, vc.obedit, vc.em);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, vc.obedit->data); 
-	DAG_id_flush_update(vc.obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(vc.obedit->data, OB_RECALC_DATA);
 	
 	return OPERATOR_FINISHED;
 }
@@ -387,7 +387,7 @@ static int make_fgon_exec(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 
 	if( make_fgon(em, op, 1) ) {
-		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
+		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);	
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 		BKE_mesh_end_editmesh(obedit->data, em);
@@ -419,7 +419,7 @@ static int clear_fgon_exec(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	if( make_fgon(em, op, 0) ) {
-		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
+		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);	
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 		
 		BKE_mesh_end_editmesh(obedit->data, em);
@@ -708,7 +708,7 @@ void addfaces_from_edgenet(EditMesh *em)
 
 	EM_select_flush(em);
 	
-// XXX	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+// XXX	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 }
 
 static void addedgeface_mesh(EditMesh *em, wmOperator *op)
@@ -737,7 +737,7 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 		eed= addedgelist(em, neweve[0], neweve[1], NULL);
 		EM_select_edge(eed, 1);
 
-		// XXX		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
+		// XXX		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);	
 		return;
 	}
 	else if(amount > 4) {
@@ -835,7 +835,7 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 	
 	addedgeface_mesh(em, op);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);	
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -1351,7 +1351,7 @@ static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmod
 		ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
 		newob = 1;
 	}
-	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	else DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 
 	scale= ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 
@@ -1360,7 +1360,7 @@ static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmod
 
 	make_prim(obedit, type, mat, tot, seg, subdiv, dia, depth, ext, fill);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 
@@ -1722,7 +1722,7 @@ static int mesh_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_mesh_end_editmesh(ob->data, em);
 
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 	
 	return OPERATOR_FINISHED;
