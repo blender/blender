@@ -42,8 +42,6 @@ class SEQUENCER_HT_header(bpy.types.Header):
             sub = row.row(align=True)
             sub.menu("SEQUENCER_MT_view")
 
-            row.separator()
-
             if (st.view_type == 'SEQUENCER') or (st.view_type == 'SEQUENCER_PREVIEW'):
                 sub.menu("SEQUENCER_MT_select")
                 sub.menu("SEQUENCER_MT_marker")
