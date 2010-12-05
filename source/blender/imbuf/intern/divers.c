@@ -250,6 +250,8 @@ void IMB_float_from_rect(struct ImBuf *ibuf)
 /* no profile conversion */
 void IMB_float_from_rect_simple(struct ImBuf *ibuf)
 {
+	if(ibuf->rect_float==NULL)
+		imb_addrectfloatImBuf(ibuf);
 	imb_float_from_rect_nonlinear(ibuf, ibuf->rect_float);
 }
 
