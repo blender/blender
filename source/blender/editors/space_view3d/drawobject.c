@@ -1258,13 +1258,22 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		/* that way it's always visible - clipsta+0.1 */
 		float fac;
 		drawsize= cam->drawsize / ((scax + scay + scaz) / 3.0f);
-		fac= is_view ? (cam->clipsta + 0.1f) : drawsize;
-		depth= - fac*cam->lens/16.0 * scaz;
+
+		if(is_view) {
+			/* fixed depth, variable size (avoids exceeding clipping range) */
+			depth = -(cam->clipsta + 0.1);
+			fac = depth / (cam->lens/-16.0f * scaz);
+		}
+		else {
+			/* fixed size, variable depth (stays a reasonable size in the 3D view) */
+			depth= drawsize * cam->lens/-16.0f * scaz;
+			fac= drawsize;
+		}
+
 		facx= fac * caspx * scax;
 		facy= fac * caspy * scay;
 		shx= cam->shiftx*fac*2 * scax;
 		shy= cam->shifty*fac*2 * scay;
-		
 	}
 	
 	vec[0][0]= 0.0; vec[0][1]= 0.0; vec[0][2]= 0.0;
