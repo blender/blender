@@ -3964,7 +3964,7 @@ static void fluid_default_settings(ParticleSettings *part){
 	fluid->buoyancy = 0.f;
 }
 
-static void psys_changed_physics(ParticleSimulationData *sim)
+static void psys_prepare_physics(ParticleSimulationData *sim)
 {
 	ParticleSettings *part = sim->psys->part;
 
@@ -4047,8 +4047,9 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	if(psys->recalc & PSYS_RECALC_TYPE)
 		psys_changed_type(&sim);
-	else if(psys->recalc & PSYS_RECALC_PHYS)
-		psys_changed_physics(&sim);
+
+	/* setup necessary physics type dependent additional data if it doesn't yet exist */
+	psys_prepare_physics(&sim);
 
 	switch(part->type) {
 		case PART_HAIR:
