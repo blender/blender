@@ -32,36 +32,17 @@
 #ifndef BLI_BPATH_H
 #define BLI_BPATH_H
 
-struct BPathIteratorSeqData {
-	int totseq;
-	int seq;
-	struct Sequence **seqar; /* Sequence */
-	struct Scene *scene;			/* Current scene */
-};
+struct BPathIterator;
 
-struct BPathIterator {
-	char*	path;
-	const char*	lib;
-	const char*	name;
-	void*	data;
-	int		len;
-	int		type;
-	
-	void (*setpath_callback)(struct BPathIterator *, const char *);
-	void (*getpath_callback)(struct BPathIterator *, char *);
-	
-	const char*	base_path; /* base path, the directry the blend file is in - normally G.main->name */
-
-	/* only for seq data */
-	struct BPathIteratorSeqData seqdata;
-};
 
 void			BLI_bpathIterator_init				(struct BPathIterator *bpi, const char *base_path);
+void			BLI_bpathIterator_alloc				(struct BPathIterator **bpi);
 void			BLI_bpathIterator_free				(struct BPathIterator *bpi);
 const char*		BLI_bpathIterator_getLib			(struct BPathIterator *bpi);
 const char*		BLI_bpathIterator_getName			(struct BPathIterator *bpi);
 int				BLI_bpathIterator_getType			(struct BPathIterator *bpi);
 int				BLI_bpathIterator_getPathMaxLen		(struct BPathIterator *bpi);
+const char*		BLI_bpathIterator_getBasePath		(struct BPathIterator *bpi);
 void			BLI_bpathIterator_step				(struct BPathIterator *bpi);
 int				BLI_bpathIterator_isDone			(struct BPathIterator *bpi);
 void			BLI_bpathIterator_getPath			(struct BPathIterator *bpi, char *path);

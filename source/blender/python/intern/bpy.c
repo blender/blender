@@ -38,6 +38,8 @@
 
 #include "BKE_utildefines.h"
 
+#include "MEM_guardedalloc.h"
+
  /* external util modules */
 #include "../generic/mathutils.h"
 #include "../generic/bgl.h"
@@ -78,8 +80,8 @@ static char bpy_blend_paths_doc[] =
 "   :rtype: list of strigs\n";
 static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-	struct BPathIterator bpi;
-	PyObject *list = PyList_New(0), *st; /* stupidly big string to be safe */
+	struct BPathIterator *bpi;
+	PyObject *list, *st; /* stupidly big string to be safe */
 	/* be sure there is low chance of the path being too short */
 	char filepath_expanded[1024];
 	const char *lib;
@@ -90,27 +92,32 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", (char **)kwlist, &absolute))
 		return NULL;
 
-	for(BLI_bpathIterator_init(&bpi, NULL); !BLI_bpathIterator_isDone(&bpi); BLI_bpathIterator_step(&bpi)) {
+	BLI_bpathIterator_alloc(&bpi);
+
+	list= PyList_New(0);
+
+	for(BLI_bpathIterator_init(bpi, NULL); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
 		/* build the list */
 		if (absolute) {
-			BLI_bpathIterator_getPathExpanded(&bpi, filepath_expanded);
+			BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
 		}
 		else {
-			lib = BLI_bpathIterator_getLib(&bpi);
-			if (lib && (strcmp(lib, bpi.base_path))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
-				BLI_bpathIterator_getPathExpanded(&bpi, filepath_expanded);
+			lib = BLI_bpathIterator_getLib(bpi);
+			if (lib && (strcmp(lib, BLI_bpathIterator_getBasePath(bpi)))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
+				BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
 			}
 			else {
-				BLI_bpathIterator_getPath(&bpi, filepath_expanded);
+				BLI_bpathIterator_getPath(bpi, filepath_expanded);
 			}
 		}
-		st = PyUnicode_FromString(filepath_expanded);
+		st= PyUnicode_DecodeFSDefault(filepath_expanded);
 
 		PyList_Append(list, st);
 		Py_DECREF(st);
 	}
 
-	BLI_bpathIterator_free(&bpi);
+	BLI_bpathIterator_free(bpi);
+	MEM_freeN((void *)bpi);
 
 	return list;
 }

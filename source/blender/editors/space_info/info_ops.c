@@ -193,6 +193,9 @@ static int make_paths_relative_exec(bContext *UNUSED(C), wmOperator *op)
 
 	makeFilesRelative(G.main->name, op->reports);
 
+	/* redraw everything so any changed paths register */
+	WM_main_add_notifier(NC_WINDOW, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -219,6 +222,10 @@ static int make_paths_absolute_exec(bContext *UNUSED(C), wmOperator *op)
 	}
 
 	makeFilesAbsolute(G.main->name, op->reports);
+
+	/* redraw everything so any changed paths register */
+	WM_main_add_notifier(NC_WINDOW, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
