@@ -30,11 +30,11 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
     bl_label = "Delete Edge Loop"
 
     def execute(self, context):
-        if bpy.ops.transform.edge_slide(value=1.0) == 'FINISHED':
+        if 'FINISHED' in bpy.ops.transform.edge_slide(value=1.0):
             bpy.ops.mesh.select_more()
             bpy.ops.mesh.remove_doubles()
-
             return {'FINISHED'}
+
         return {'CANCELLED'}
 
 rna_path_prop = StringProperty(name="Context Attributes",
