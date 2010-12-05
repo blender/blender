@@ -33,7 +33,12 @@ import threading
 
 import bpy
 
-config_paths = bpy.utils.script_paths()
+"""List of possibly appropriate paths to load/save addon config from/to"""
+config_paths = []
+if bpy.utils.user_resource('CONFIG') != "": config_paths.append(bpy.utils.user_resource('CONFIG'))
+if bpy.utils.user_resource('SCRIPTS') != "": config_paths.append(bpy.utils.user_resource('SCRIPTS'))
+for pth in bpy.utils.script_paths():
+	if pth != "": config_paths.append(pth)
 
 """This path is set at the start of export, so that calls to
 path_relative_to_export() can make all exported paths relative to
