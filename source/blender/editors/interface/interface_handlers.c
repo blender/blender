@@ -1316,10 +1316,11 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 		} else {
 			if(select) {
 				/* make a selection, starting from the cursor position */
+				int tlen;
 				but->selsta = but->pos;
 				
 				but->pos++;
-				if(but->pos>strlen(str)) but->pos= strlen(str);
+				if(but->pos > (tlen= strlen(str))) but->pos= tlen;
 				
 				but->selend = but->pos;
 			} else if(jump) {
@@ -1331,8 +1332,9 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 					if(test_special_char(str[but->pos])) break;
 				}
 			} else {
+				int tlen;
 				but->pos++;
-				if(but->pos>strlen(str)) but->pos= strlen(str);
+				if(but->pos > (tlen= strlen(str))) but->pos= tlen;
 			}
 		}
 	}

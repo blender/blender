@@ -23,9 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "IDProp.h"
+
 #include "BKE_idprop.h"
 #include "BKE_utildefines.h"
-#include "IDProp.h"
+#include "BLI_string.h"
 #include "MEM_guardedalloc.h"
 
 #define USE_STRING_COERCE
@@ -192,7 +194,7 @@ static int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *UNUS
 	}
 
 	st = _PyUnicode_AsString(value);
-	if (strlen(st) >= MAX_IDPROP_NAME) {
+	if (BLI_strnlen(st, MAX_IDPROP_NAME) == MAX_IDPROP_NAME) {
 		PyErr_SetString(PyExc_TypeError, "string length cannot exceed 31 characters!");
 		return -1;
 	}

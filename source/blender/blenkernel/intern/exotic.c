@@ -1171,10 +1171,10 @@ static void dxf_get_mesh(Scene *scene, Mesh** m, Object** o, int noob)
 		*o = add_object(scene, OB_MESH);
 		ob = *o;
 		
-		if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
-		else if (strlen(layname)) new_id(&G.main->object, (ID *)ob,  layname);
+		if (entname[0]) new_id(&G.main->object, (ID *)ob, entname);
+		else if (layname[0]) new_id(&G.main->object, (ID *)ob,  layname);
 
-		if (strlen(layname)) ob->lay= dxf_get_layer_num(scene, layname);
+		if (layname[0]) ob->lay= dxf_get_layer_num(scene, layname);
 		else ob->lay= scene->lay;
 		// not nice i know... but add_object() sets active base, which needs layer setting too (ton)
 		scene->basact->lay= ob->lay;
@@ -1193,8 +1193,8 @@ static void dxf_get_mesh(Scene *scene, Mesh** m, Object** o, int noob)
 		
 		((ID *)me)->us=0;
 
-		if (strlen(entname)) new_id(&G.main->mesh, (ID *)me, entname);
-		else if (strlen(layname)) new_id(&G.main->mesh, (ID *)me, layname);
+		if (entname[0]) new_id(&G.main->mesh, (ID *)me, entname);
+		else if (layname[0]) new_id(&G.main->mesh, (ID *)me, layname);
 
 		vcenter = zerovec;
 	}
@@ -2395,7 +2395,7 @@ static void dxf_read(Scene *scene, const char *filename)
 							I leave it commented out here as warning (ton) */
 						//for (i=0; i<ob->totcol; i++) ob->mat[i]= ((Mesh*)ob->data)->mat[i];
 						
-						if (strlen(layname)) ob->lay= dxf_get_layer_num(scene, layname);
+						if (layname[0]) ob->lay= dxf_get_layer_num(scene, layname);
 						else ob->lay= scene->lay;
 	
 						/* link to scene */

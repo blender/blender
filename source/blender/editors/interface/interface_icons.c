@@ -507,7 +507,7 @@ static void init_internal_icons(void)
 	int x, y, icontype;
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
 	
-	if ((btheme!=NULL) && (strlen(btheme->tui.iconfile) > 0)) {
+	if ((btheme!=NULL) && btheme->tui.iconfile[0]) {
 		char *datadir= BLI_get_folder(BLENDER_DATAFILES, NULL);
 		if (datadir) {
 			BLI_make_file_string("/", iconfilestr, datadir, btheme->tui.iconfile);

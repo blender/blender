@@ -9492,7 +9492,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for(act= ob->actuators.first; act; act= act->next) {
 				if (act->type == ACT_MESSAGE) {
 					bMessageActuator *msgAct = (bMessageActuator *) act->data;
-					if (strlen(msgAct->toPropName) > 2) {
+					if (BLI_strnlen(msgAct->toPropName, 3) > 2) {
 						/* strip first 2 chars, would have only worked if these were OB anyway */
 						memmove( msgAct->toPropName, msgAct->toPropName+2, sizeof(msgAct->toPropName)-2 );
 					} else {

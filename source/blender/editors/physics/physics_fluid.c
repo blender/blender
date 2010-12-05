@@ -665,7 +665,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 		// invalid dir, reset to current/previous
 		strcpy(blendDir, G.main->name);
 		BLI_splitdirstring(blendDir, blendFile);
-		if(strlen(blendFile)>6){
+		if(BLI_strnlen(blendFile, 7) > 6){
 			int len = strlen(blendFile);
 			if( (blendFile[len-6]=='.')&& (blendFile[len-5]=='b')&& (blendFile[len-4]=='l')&&
 			   (blendFile[len-3]=='e')&& (blendFile[len-2]=='n')&& (blendFile[len-1]=='d') ){

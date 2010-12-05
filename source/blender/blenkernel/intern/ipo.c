@@ -1197,7 +1197,7 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 				fcurve= fcu;
 				
 			/* set path */
-			fcurve->rna_path= BLI_strdupn(abp->path, strlen(abp->path));
+			fcurve->rna_path= BLI_strdup(abp->path);
 			fcurve->array_index= abp->array_index;
 			
 			/* convert keyframes 

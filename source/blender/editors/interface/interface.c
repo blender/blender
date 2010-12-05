@@ -2357,7 +2357,7 @@ for float buttons:
 static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2, const char *tip)
 {
 	uiBut *but;
-	short slen;
+	int slen;
 	
 	if(type & BUTPOIN) {		/* a pointer is required */
 		if(poin==NULL)
@@ -2374,14 +2374,16 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 	but->iconadd=0;
 
 	but->retval= retval;
-	if( strlen(str)>=UI_MAX_NAME_STR-1 ) {
-		but->str= MEM_callocN( strlen(str)+2, "uiDefBut");
-		strcpy(but->str, str);
+
+	slen= strlen(str);
+	if(slen >= UI_MAX_NAME_STR-1) {
+		but->str= MEM_mallocN(slen+2, "ui_def_but str"); /* why +2 ? */
 	}
 	else {
 		but->str= but->strdata;
-		strcpy(but->str, str);
 	}
+	memcpy(but->str, str, slen+1);
+
 	but->x1= x1; 
 	but->y1= y1;
 	but->x2= (x1+x2); 
