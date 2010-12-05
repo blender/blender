@@ -5376,84 +5376,74 @@ static short keymap_menu_type(short type)
 	return 0;
 }
 
-static char *keymap_type_menu(void)
+static const char *keymap_type_menu(void)
 {
-	static char string[500];
-	static char formatstr[] = "|%s %%x%d";
-	char *str= string;
-	
-	str += sprintf(str, "Event Type %%t");
-	
-	str += sprintf(str, formatstr, "Keyboard", OL_KM_KEYBOARD);
-	str += sprintf(str, formatstr, "Mouse", OL_KM_MOUSE);
-	str += sprintf(str, formatstr, "Tweak", OL_KM_TWEAK);
-//	str += sprintf(str, formatstr, "Specials", OL_KM_SPECIALS);
-	
-	return string;
-}	
+	static const char string[]=
+	"Event Type%t"
+	"|Keyboard%x" STRINGIFY(OL_KM_KEYBOARD)
+	"|Mouse%x" STRINGIFY(OL_KM_MOUSE)
+	"|Tweak%x" STRINGIFY(OL_KM_TWEAK)
+//	"|Specials%x" STRINGIFY(OL_KM_SPECIALS)
+	;
 
-static char *keymap_mouse_menu(void)
-{
-	static char string[500];
-	static char formatstr[] = "|%s %%x%d";
-	char *str= string;
-	
-	str += sprintf(str, "Mouse Event %%t");
-	
-	str += sprintf(str, formatstr, "Left Mouse", LEFTMOUSE);
-	str += sprintf(str, formatstr, "Middle Mouse", MIDDLEMOUSE);
-	str += sprintf(str, formatstr, "Right Mouse", RIGHTMOUSE);
-	str += sprintf(str, formatstr, "Button4 Mouse ", BUTTON4MOUSE);
-	str += sprintf(str, formatstr, "Button5 Mouse ", BUTTON5MOUSE);
-	str += sprintf(str, formatstr, "Action Mouse", ACTIONMOUSE);
-	str += sprintf(str, formatstr, "Select Mouse", SELECTMOUSE);
-	str += sprintf(str, formatstr, "Mouse Move", MOUSEMOVE);
-	str += sprintf(str, formatstr, "Wheel Up", WHEELUPMOUSE);
-	str += sprintf(str, formatstr, "Wheel Down", WHEELDOWNMOUSE);
-	str += sprintf(str, formatstr, "Wheel In", WHEELINMOUSE);
-	str += sprintf(str, formatstr, "Wheel Out", WHEELOUTMOUSE);
-	str += sprintf(str, formatstr, "Mouse/Trackpad Pan", MOUSEPAN);
-	str += sprintf(str, formatstr, "Mouse/Trackpad Zoom", MOUSEZOOM);
-	str += sprintf(str, formatstr, "Mouse/Trackpad Rotate", MOUSEROTATE);
-	
 	return string;
 }
 
-static char *keymap_tweak_menu(void)
+static const char *keymap_mouse_menu(void)
 {
-	static char string[500];
-	static char formatstr[] = "|%s %%x%d";
-	char *str= string;
-	
-	str += sprintf(str, "Tweak Event %%t");
-	
-	str += sprintf(str, formatstr, "Left Mouse", EVT_TWEAK_L);
-	str += sprintf(str, formatstr, "Middle Mouse", EVT_TWEAK_M);
-	str += sprintf(str, formatstr, "Right Mouse", EVT_TWEAK_R);
-	str += sprintf(str, formatstr, "Action Mouse", EVT_TWEAK_A);
-	str += sprintf(str, formatstr, "Select Mouse", EVT_TWEAK_S);
-	
+	static const char string[]=
+	"Mouse Event%t"
+	"|Left Mouse%x" STRINGIFY(LEFTMOUSE)
+	"|Middle Mouse%x" STRINGIFY(MIDDLEMOUSE)
+	"|Right Mouse%x" STRINGIFY(RIGHTMOUSE)
+	"|Middle Mouse%x" STRINGIFY(MIDDLEMOUSE)
+	"|Right Mouse%x" STRINGIFY(RIGHTMOUSE)
+	"|Button4 Mouse%x" STRINGIFY(BUTTON4MOUSE)
+	"|Button5 Mouse%x" STRINGIFY(BUTTON5MOUSE)
+	"|Action Mouse%x" STRINGIFY(ACTIONMOUSE)
+	"|Select Mouse%x" STRINGIFY(SELECTMOUSE)
+	"|Mouse Move%x" STRINGIFY(MOUSEMOVE)
+	"|Wheel Up%x" STRINGIFY(WHEELUPMOUSE)
+	"|Wheel Down%x" STRINGIFY(WHEELDOWNMOUSE)
+	"|Wheel In%x" STRINGIFY(WHEELINMOUSE)
+	"|Wheel Out%x" STRINGIFY(WHEELOUTMOUSE)
+	"|Mouse/Trackpad Pan%x" STRINGIFY(MOUSEPAN)
+	"|Mouse/Trackpad Zoom%x" STRINGIFY(MOUSEZOOM)
+	"|Mouse/Trackpad Rotate%x" STRINGIFY(MOUSEROTATE)
+	;
+
 	return string;
 }
 
-static char *keymap_tweak_dir_menu(void)
+static const char *keymap_tweak_menu(void)
 {
-	static char string[500];
-	static char formatstr[] = "|%s %%x%d";
-	char *str= string;
-	
-	str += sprintf(str, "Tweak Direction %%t");
-	
-	str += sprintf(str, formatstr, "Any", KM_ANY);
-	str += sprintf(str, formatstr, "North", EVT_GESTURE_N);
-	str += sprintf(str, formatstr, "North-East", EVT_GESTURE_NE);
-	str += sprintf(str, formatstr, "East", EVT_GESTURE_E);
-	str += sprintf(str, formatstr, "Sout-East", EVT_GESTURE_SE);
-	str += sprintf(str, formatstr, "South", EVT_GESTURE_S);
-	str += sprintf(str, formatstr, "South-West", EVT_GESTURE_SW);
-	str += sprintf(str, formatstr, "West", EVT_GESTURE_W);
-	str += sprintf(str, formatstr, "North-West", EVT_GESTURE_NW);
-	
+	static const char string[]=
+	"Tweak Event%t"
+	"|Left Mouse%x" STRINGIFY(EVT_TWEAK_L)
+	"|Middle Mouse%x" STRINGIFY(EVT_TWEAK_M)
+	"|Right Mouse%x" STRINGIFY(EVT_TWEAK_R)
+	"|Action Mouse%x" STRINGIFY(EVT_TWEAK_A)
+	"|Select Mouse%x" STRINGIFY(EVT_TWEAK_S)
+	;
+
+	return string;
+}
+
+static const char *keymap_tweak_dir_menu(void)
+{
+	static const char string[]=
+	"Tweak Direction%t"
+	"|Any%x" STRINGIFY(KM_ANY)
+	"|North%x" STRINGIFY(EVT_GESTURE_N)
+	"|North-East%x" STRINGIFY(EVT_GESTURE_NE)
+	"|East%x" STRINGIFY(EVT_GESTURE_E)
+	"|Sout-East%x" STRINGIFY(EVT_GESTURE_SE)
+	"|South%x" STRINGIFY(EVT_GESTURE_S)
+	"|South-West%x" STRINGIFY(EVT_GESTURE_SW)
+	"|West%x" STRINGIFY(EVT_GESTURE_W)
+	"|North-West%x" STRINGIFY(EVT_GESTURE_NW)
+	;
+
 	return string;
 }
 
@@ -5496,7 +5486,7 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 		tselem= TREESTORE(te);
 		if(te->ys+2*OL_H >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {
 			uiBut *but;
-			char *str;
+			const char *str;
 			int xstart= 240;
 			int butw1= 20; /* operator */
 			int butw2= 90; /* event type, menus */
