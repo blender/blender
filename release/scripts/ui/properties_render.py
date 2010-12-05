@@ -223,6 +223,7 @@ class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = rd.use_compositing
         sub.prop(rd, "use_free_image_textures")
+        sub.prop(rd, "use_free_unused_nodes")
         sub = col.column()
         sub.active = rd.use_raytrace
         sub.label(text="Acceleration structure:")
