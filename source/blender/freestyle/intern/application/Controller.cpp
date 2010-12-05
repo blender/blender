@@ -703,6 +703,7 @@ void Controller::DrawStrokes()
   cout << "Strokes generation  : " << d << endl;
   cout << "Stroke count  : " << _Canvas->stroke_count << endl;
   resetModified();
+  DeleteViewMap();
 }
 
 void Controller::ResetRenderCount()
@@ -711,10 +712,12 @@ void Controller::ResetRenderCount()
 }
 
 Render* Controller::RenderStrokes(Render *re) {
+	_Chrono.start();
 	BlenderStrokeRenderer* blenderRenderer = new BlenderStrokeRenderer(re, ++_render_count);
   	_Canvas->Render( blenderRenderer );
-	DeleteViewMap();
 	Render* freestyle_render = blenderRenderer->RenderScene(re);
+	real d = _Chrono.stop();
+    cout << "Stroke rendering  : " << d << endl;
 	delete blenderRenderer;
 	
 	return freestyle_render;
