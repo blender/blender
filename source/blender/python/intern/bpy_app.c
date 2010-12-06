@@ -59,10 +59,10 @@ static PyStructSequence_Field app_info_fields[] = {
 	{(char *)"build_revision", (char *)"The subversion revision this blender instance was built with"},
 	{(char *)"build_platform", (char *)"The platform this blender instance was built for"},
 	{(char *)"build_type", (char *)"The type of build (Release, Debug)"},
-	{(char *)"build_cflags", (char *)""},
-	{(char *)"build_cxxflags", (char *)""},
-	{(char *)"build_linkflags", (char *)""},
-	{(char *)"build_system", (char *)""},
+	{(char *)"build_cflags", (char *)"C compiler flags"},
+	{(char *)"build_cxxflags", (char *)"C++ compiler flags"},
+	{(char *)"build_linkflags", (char *)"Binary linking flags"},
+	{(char *)"build_system", (char *)"Build system used"},
 	{0}
 };
 

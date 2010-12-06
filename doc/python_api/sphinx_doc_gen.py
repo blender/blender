@@ -224,6 +224,16 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     # write members of the module
     # only tested with PyStructs which are not exactly modules
     for key, descr in sorted(type(module).__dict__.items()):
+        if key.startswith("__"):
+            continue
+        # naughty, we also add getset's into PyStructs, this is not typical py but also not incorrect.
+        if type(descr) == types.GetSetDescriptorType: # 'bpy_app_type' name is only used for examples and messages
+            py_descr2sphinx("", fw, descr, module_name, "bpy_app_type", key)
+            attribute_set.add(key)
+    for key, descr in sorted(type(module).__dict__.items()):
+        if key.startswith("__"):
+            continue
+
         if type(descr) == types.MemberDescriptorType:
             if descr.__doc__:
                 fw(".. data:: %s\n\n" % key)
