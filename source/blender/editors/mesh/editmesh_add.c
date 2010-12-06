@@ -114,7 +114,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	float min[3], max[3];
 	int done= 0;
 	short use_proj;
-printf("%d\n", event->val);
+
 	em_setup_viewcontext(C, &vc);
 
 	use_proj= (vc.scene->toolsettings->snap_flag & SCE_SNAP) &&	(vc.scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE);
@@ -237,7 +237,8 @@ printf("%d\n", event->val);
 		
 		recalc_editnormals(vc.em);
 	}
-	else {
+	else if(vc.em->selectmode & SCE_SELECT_VERTEX) {
+
 		float mat[3][3],imat[3][3];
 		float *curs= give_cursor(vc.scene, vc.v3d);
 		
