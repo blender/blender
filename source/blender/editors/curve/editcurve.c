@@ -490,8 +490,8 @@ static void keyIndex_swap(EditNurb *editnurb, void *a, void *b)
 	BLI_ghash_remove(editnurb->keyindex, a, NULL, NULL);
 	BLI_ghash_remove(editnurb->keyindex, b, NULL, NULL);
 
-	BLI_ghash_insert(editnurb->keyindex, a, index2);
-	BLI_ghash_insert(editnurb->keyindex, b, index1);
+	if(index2) BLI_ghash_insert(editnurb->keyindex, a, index2);
+	if(index1) BLI_ghash_insert(editnurb->keyindex, b, index1);
 }
 
 static void keyIndex_switchDirection(EditNurb *editnurb, Nurb *nu)
@@ -563,7 +563,8 @@ static void keyIndex_switchDirection(EditNurb *editnurb, Nurb *nu)
 static void switch_keys_direction(Curve *cu, Nurb *actnu)
 {
 	KeyBlock *currkey;
-	ListBase *nubase= &cu->editnurb->nurbs;
+	EditNurb *editnurb= cu->editnurb;
+	ListBase *nubase= &editnurb->nurbs;
 	Nurb *nu;
 	float *fp;
 	int a;
@@ -575,20 +576,28 @@ static void switch_keys_direction(Curve *cu, Nurb *actnu)
 		nu= nubase->first;
 		while (nu) {
 			if (nu->bezt) {
+				BezTriple *bezt= nu->bezt;
 				a= nu->pntsu;
 				if (nu == actnu) {
 					while (a--) {
-						swap_v3_v3(fp, fp + 6);
-						*(fp+9) = -*(fp+9);
-						fp += 12;
+						if(getKeyIndexOrig_bezt(editnurb, bezt)) {
+							swap_v3_v3(fp, fp + 6);
+							*(fp+9) = -*(fp+9);
+							fp += 12;
+						}
+						bezt++;
 					}
 				} else fp += a * 12;
 			} else {
+				BPoint *bp= nu->bp;
 				a= nu->pntsu * nu->pntsv;
 				if (nu == actnu) {
 					while (a--) {
-						*(fp+3) = -*(fp+3);
-						fp += 4;
+						if(getKeyIndexOrig_bp(editnurb, bp)) {
+							*(fp+3) = -*(fp+3);
+							fp += 4;
+						}
+						bp++;
 					}
 				} else fp += a * 4;
 			}
