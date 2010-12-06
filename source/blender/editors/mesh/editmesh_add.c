@@ -1555,7 +1555,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
 	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
-	RNA_def_boolean(ot->srna, "cap_end", 0, "Cap End", "");
+	RNA_def_boolean(ot->srna, "cap_end", 1, "Cap End", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
