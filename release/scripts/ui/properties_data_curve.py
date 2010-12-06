@@ -270,7 +270,18 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
         text = context.curve
         char = context.curve.edit_format
 
-        layout.template_ID(text, "font", open="font.open", unlink="font.unlink")
+        row = layout.split(percentage=0.25)
+        row.label(text="Regular")
+        row.template_ID(text, "font", open="font.open", unlink="font.unlink")
+        row = layout.split(percentage=0.25)
+        row.label(text="Bold")
+        row.template_ID(text, "font_bold", open="font.open", unlink="font.unlink")
+        row = layout.split(percentage=0.25)
+        row.label(text="Italic")
+        row.template_ID(text, "font_italic", open="font.open", unlink="font.unlink")
+        row = layout.split(percentage=0.25)
+        row.label(text="Bold & Italic")
+        row.template_ID(text, "font_bold_italic", open="font.open", unlink="font.unlink")
 
         #layout.prop(text, "font")
 

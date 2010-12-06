@@ -421,6 +421,8 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	if(id && (flag & UI_ID_DELETE)) {
 		if(unlinkop) {
 			but= uiDefIconButO(block, BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+			/* so we can access the template from operators, font unlinking needs this */
+			uiButSetNFunc(but, NULL, MEM_dupallocN(template), 0);
 		}
 		else {
 			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Unlink datablock, Shift + Click to force removal on save");
