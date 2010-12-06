@@ -450,7 +450,7 @@ static void keyIndex_delNurbList(EditNurb *editnurb, ListBase *nubase)
 }
 
 static void keyIndex_updateCV(EditNurb *editnurb, char *cv,
-	char *newcv, int count, int size, int search)
+	char *newcv, int count, int size)
 {
 	int i;
 	CVKeyIndex *index;
@@ -461,13 +461,7 @@ static void keyIndex_updateCV(EditNurb *editnurb, char *cv,
 	}
 
 	for (i = 0; i < count; i++) {
-		for (;;) {
-			index= getCVKeyIndex(editnurb, cv);
-			if (!search || index) {
-				break;
-			}
-			cv += size;
-		}
+		index= getCVKeyIndex(editnurb, cv);
 
 		BLI_ghash_remove(editnurb->keyindex, cv, NULL, NULL);
 
@@ -481,23 +475,23 @@ static void keyIndex_updateCV(EditNurb *editnurb, char *cv,
 }
 
 static void keyIndex_updateBezt(EditNurb *editnurb, BezTriple *bezt,
-	BezTriple *newbezt, int count, int search)
+	BezTriple *newbezt, int count)
 {
-	keyIndex_updateCV(editnurb, (char*)bezt, (char*)newbezt, count, sizeof(BezTriple), search);
+	keyIndex_updateCV(editnurb, (char*)bezt, (char*)newbezt, count, sizeof(BezTriple));
 }
 
 static void keyIndex_updateBP(EditNurb *editnurb, BPoint *bp,
-	BPoint *newbp, int count, int search)
+	BPoint *newbp, int count)
 {
-	keyIndex_updateCV(editnurb, (char*)bp, (char*)newbp, count, sizeof(BPoint), search);
+	keyIndex_updateCV(editnurb, (char*)bp, (char*)newbp, count, sizeof(BPoint));
 }
 
 static void keyIndex_updateNurb(EditNurb *editnurb, Nurb *nu, Nurb *newnu)
 {
 	if (nu->bezt) {
-		keyIndex_updateBezt(editnurb, nu->bezt, newnu->bezt, newnu->pntsu, 0);
+		keyIndex_updateBezt(editnurb, nu->bezt, newnu->bezt, newnu->pntsu);
 	} else {
-		keyIndex_updateBP(editnurb, nu->bp, newnu->bp, newnu->pntsu * newnu->pntsv, 0);
+		keyIndex_updateBP(editnurb, nu->bp, newnu->bp, newnu->pntsu * newnu->pntsv);
 	}
 }
 
@@ -1580,6 +1574,7 @@ static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 				for(b=0; b<nu->pntsv; b++) {
 					if((bp->f1 & flag)==0) {
 						memcpy(bpn, bp, nu->pntsu*sizeof(BPoint));
+						keyIndex_updateBP(cu->editnurb, bp, bpn, nu->pntsu);
 						bpn+= nu->pntsu;
 					} else {
 						keyIndex_delBP(cu->editnurb, bp);
@@ -1587,7 +1582,6 @@ static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 					bp+= nu->pntsu;
 				}
 				nu->pntsv= newv;
-				keyIndex_updateBP(cu->editnurb, nu->bp, newbp, newv * nu->pntsu, 1);
 				MEM_freeN(nu->bp);
 				nu->bp= newbp;
 				clamp_nurb_order_v(nu);
@@ -1620,13 +1614,13 @@ static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 						for(a=0; a<nu->pntsu; a++, bp++) {
 							if((bp->f1 & flag)==0) {
 								*bpn= *bp;
+								keyIndex_updateBP(cu->editnurb, bp, bpn, 1);
 								bpn++;
 							} else {
 								keyIndex_delBP(cu->editnurb, bp);
 							}
 						}
 					}
-					keyIndex_updateBP(cu->editnurb, nu->bp, newbp, newu * nu->pntsv, 1);
 					MEM_freeN(nu->bp);
 					nu->bp= newbp;
 					if(newu==1 && nu->pntsv>1) {    /* make a U spline */
@@ -2832,7 +2826,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				}
 				while(a--) {
 					memcpy(beztn, prevbezt, sizeof(BezTriple));
-					keyIndex_updateBezt(editnurb, prevbezt, beztn, 1, 0);
+					keyIndex_updateBezt(editnurb, prevbezt, beztn, 1);
 					beztn++;
 
 					if( BEZSELECTED_HIDDENHANDLES(cu, prevbezt) && BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
@@ -2877,7 +2871,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				/* last point */
 				if((nu->flagu & CU_NURB_CYCLIC)==0) {
 					memcpy(beztn, prevbezt, sizeof(BezTriple));
-					keyIndex_updateBezt(editnurb, prevbezt, beztn, 1, 0);
+					keyIndex_updateBezt(editnurb, prevbezt, beztn, 1);
 				}
 
 				MEM_freeN(nu->bezt);
@@ -2929,7 +2923,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				}
 				while(a--) {
 					memcpy(bpn, prevbp, sizeof(BPoint));
-					keyIndex_updateBP(editnurb, prevbp, bpn, 1, 0);
+					keyIndex_updateBP(editnurb, prevbp, bpn, 1);
 					bpn++;
 
 					if( (bp->f1 & SELECT) && (prevbp->f1 & SELECT) ) {
@@ -2948,7 +2942,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				}
 				if((nu->flagu & CU_NURB_CYCLIC)==0) { /* last point */
 					memcpy(bpn, prevbp, sizeof(BPoint));
-					keyIndex_updateBP(editnurb, prevbp, bpn, 1, 0);
+					keyIndex_updateBP(editnurb, prevbp, bpn, 1);
 				}
 
 				MEM_freeN(nu->bp);
@@ -3036,7 +3030,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				for(a=0; a<nu->pntsv; a++) {
 					for(b=0; b<nu->pntsu; b++) {
 						*bpn= *bp;
-						keyIndex_updateBP(editnurb, bp, bpn, 1, 0);
+						keyIndex_updateBP(editnurb, bp, bpn, 1);
 						bpn++; 
 						bp++;
 						if(b<nu->pntsu-1) {
@@ -3093,7 +3087,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					for(a=0; a<nu->pntsv; a++) {
 						for(b=0; b<nu->pntsu; b++) {
 							*bpn= *bp;
-							keyIndex_updateBP(editnurb, bp, bpn, 1, 0);
+							keyIndex_updateBP(editnurb, bp, bpn, 1);
 							bpn++;
 							bp++;
 						}
@@ -3140,7 +3134,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 						for(a=0; a<nu->pntsv; a++) {
 							for(b=0; b<nu->pntsu; b++) {
 								*bpn= *bp;
-								keyIndex_updateBP(editnurb, bp, bpn, 1, 0);
+								keyIndex_updateBP(editnurb, bp, bpn, 1);
 								bpn++; 
 								bp++;
 								if( (b<nu->pntsu-1) && usel[b]==nu->pntsv && usel[b+1]==nu->pntsv ) {
@@ -5507,6 +5501,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 					if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
 						memmove(bezt, bezt+1, (nu->pntsu-a-1)*sizeof(BezTriple));
 						keyIndex_delBezt(editnurb, bezt + delta);
+						keyIndex_updateBezt(editnurb, bezt + 1, bezt, nu->pntsu-a-1);
 						nu->pntsu--;
 						a--;
 						type= 1;
@@ -5518,7 +5513,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 					bezt1 =
 						(BezTriple*)MEM_mallocN((nu->pntsu) * sizeof(BezTriple), "delNurb");
 					memcpy(bezt1, nu->bezt, (nu->pntsu)*sizeof(BezTriple) );
-					keyIndex_updateBezt(editnurb, nu->bezt, bezt1, nu->pntsu, 1);
+					keyIndex_updateBezt(editnurb, nu->bezt, bezt1, nu->pntsu);
 					MEM_freeN(nu->bezt);
 					nu->bezt= bezt1;
 					calchandlesNurb(nu);
@@ -5532,6 +5527,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 					if( bp->f1 & SELECT ) {
 						memmove(bp, bp+1, (nu->pntsu-a-1)*sizeof(BPoint));
 						keyIndex_delBP(editnurb, bp + delta);
+						keyIndex_updateBP(editnurb, bp+1, bp, nu->pntsu-a-1);
 						nu->pntsu--;
 						a--;
 						type= 1;
@@ -5544,7 +5540,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 				if(type) {
 					bp1 = (BPoint*)MEM_mallocN(nu->pntsu * sizeof(BPoint), "delNurb2");
 					memcpy(bp1, nu->bp, (nu->pntsu)*sizeof(BPoint) );
-					keyIndex_updateBP(editnurb, nu->bp, bp1, nu->pntsu, 1);
+					keyIndex_updateBP(editnurb, nu->bp, bp1, nu->pntsu);
 					MEM_freeN(nu->bp);
 					nu->bp= bp1;
 					
@@ -6807,11 +6803,11 @@ ListBase *ED_curve_editnurbs(Curve *cu)
 void ED_curve_beztcpy(EditNurb *editnurb, BezTriple *dst, BezTriple *src, int count)
 {
 	memcpy(dst, src, count*sizeof(BezTriple));
-	keyIndex_updateBezt(editnurb, src, dst, count, 0);
+	keyIndex_updateBezt(editnurb, src, dst, count);
 }
 
 void ED_curve_bpcpy(EditNurb *editnurb, BPoint *dst, BPoint *src, int count)
 {
 	memcpy(dst, src, count*sizeof(BPoint));
-	keyIndex_updateBP(editnurb, src, dst, count, 0);
+	keyIndex_updateBP(editnurb, src, dst, count);
 }
