@@ -612,6 +612,12 @@ static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
 		return 0;
 }
 
+static int rna_KeyMapItem_userdefined_get(PointerRNA *ptr)
+{
+	wmKeyMapItem *kmi= ptr->data;
+	return kmi->id < 0;
+}
+
 static void rna_wmClipboard_get(PointerRNA *ptr, char *value)
 {
 	char *pbuf;
@@ -1678,6 +1684,11 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", KMI_INACTIVE);
 	RNA_def_property_ui_text(prop, "Active", "Activate or deactivate item");
 	RNA_def_property_ui_icon(prop, ICON_CHECKBOX_DEHLT, 1);
+
+	prop= RNA_def_property(srna, "is_user_defined", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "User Defined", "Is this keymap item user defined (doesn't just override a builtin item)");
+	RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_userdefined_get", NULL);
 
 	RNA_api_keymapitem(srna);
 }

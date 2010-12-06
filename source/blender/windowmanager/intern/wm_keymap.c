@@ -196,6 +196,16 @@ static void keymap_event_set(wmKeyMapItem *kmi, short type, short val, int modif
 	}
 }
 
+static void keymap_item_set_id(wmKeyMap *keymap, wmKeyMapItem *kmi)
+{
+	keymap->kmi_id++;
+	if ((keymap->flag & KEYMAP_USER) == 0) {
+		kmi->id = keymap->kmi_id;
+	} else {
+		kmi->id = -keymap->kmi_id; // User defined keymap entries have negative ids
+	}
+}
+
 /* if item was added, then bail out */
 wmKeyMapItem *WM_keymap_verify_item(wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
 {
@@ -210,10 +220,7 @@ wmKeyMapItem *WM_keymap_verify_item(wmKeyMap *keymap, const char *idname, int ty
 		BLI_addtail(&keymap->items, kmi);
 		BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 		
-		if ((keymap->flag & KEYMAP_USER) == 0) {
-			keymap->kmi_id++;
-			kmi->id = keymap->kmi_id;
-		}
+		keymap_item_set_id(keymap, kmi);
 
 		keymap_event_set(kmi, type, val, modifier, keymodifier);
 		keymap_properties_set(kmi);
@@ -232,10 +239,7 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap, const char *idname, int type,
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
 	keymap_properties_set(kmi);
 
-	if ((keymap->flag & KEYMAP_USER) == 0) {
-		keymap->kmi_id++;
-		kmi->id = keymap->kmi_id;
-	}
+	keymap_item_set_id(keymap, kmi);
 
 	return kmi;
 }
@@ -354,10 +358,7 @@ wmKeyMapItem *WM_modalkeymap_add_item(wmKeyMap *km, int type, int val, int modif
 	
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
 
-	if ((km->flag & KEYMAP_USER) == 0) {
-		km->kmi_id++;
-		kmi->id = km->kmi_id;
-	}
+	keymap_item_set_id(km, kmi);
 
 	return kmi;
 }

@@ -228,7 +228,7 @@ typedef struct wmKeyMapItem {
 
 	/* runtime */
 	short maptype;					/* keymap editor */
-	short id;						/* unique identifier */
+	short id;						/* unique identifier. Positive for kmi that override builtins, negative otherwise */
 	short pad;
 	struct PointerRNA *ptr;			/* rna pointer to access properties */
 } wmKeyMapItem;
