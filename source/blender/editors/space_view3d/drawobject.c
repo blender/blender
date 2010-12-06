@@ -6436,12 +6436,11 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, v3d->customdata_mask);
 	Mesh *me = (Mesh*)ob->data;
-	int face_sel_mode = (me->flag & ME_EDIT_PAINT_MASK) ? 1:0;
 	
 	glColor3ub(0, 0, 0);
 		
-	if(face_sel_mode)	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, me, 0, GPU_enable_material);
-	else				dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 0, GPU_enable_material);
+	if((me->editflag & ME_EDIT_PAINT_MASK))	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, me, 0, GPU_enable_material);
+	else									dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 0, GPU_enable_material);
 
 	dm->release(dm);
 }
