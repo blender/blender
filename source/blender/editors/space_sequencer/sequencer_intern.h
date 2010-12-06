@@ -54,9 +54,6 @@ void seq_reset_imageofs(struct SpaceSeq *sseq);
 
 /* sequencer_edit.c */
 struct View2D;
-int seq_single_check(struct Sequence *seq);
-int seq_tx_get_final_left(struct Sequence *seq, int metaclip);
-int seq_tx_get_final_right(struct Sequence *seq, int metaclip);
 void seq_rectf(struct Sequence *seq, struct rctf *rectf);
 void boundbox_seq(struct Scene *scene, struct rctf *rect);
 struct Sequence *find_nearest_seq(struct Scene *scene, struct View2D *v2d, int *hand, short mval[2]);
@@ -64,8 +61,7 @@ struct Sequence *find_neighboring_sequence(struct Scene *scene, struct Sequence 
 void deselect_all_seq(struct Scene *scene);
 void recurs_sel_seq(struct Sequence *seqm);
 int event_to_efftype(int event);
-int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3, char **error_str);
-struct Sequence *alloc_sequence(struct ListBase *lb, int cfra, int machine);
+int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3, const char **error_str);
 
 /* operator helpers */
 int sequencer_edit_poll(struct bContext *C);

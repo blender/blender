@@ -28,6 +28,8 @@ typedef struct TextViewContext {
 
 	/* view settings */
 	int cwidth; /* shouldnt be needed! */
+	int console_width; /* shouldnt be needed! */
+
 	int winx;
 	int ymin, ymax;
 	
@@ -43,6 +45,9 @@ typedef struct TextViewContext {
 	int (*line_color)(struct TextViewContext *tvc, unsigned char fg[3], unsigned char bg[3]);
 	void *iter;
 	int iter_index;
+	int iter_char;		/* char intex, used for multi-line report display */
+	int iter_char_next;	/* same as above, next \n */
+	int iter_tmp;		/* internal iterator use */
 
 } TextViewContext;
 

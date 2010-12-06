@@ -448,7 +448,7 @@ void minmax_rgb(short c[])
 }
 
 /*If the requested RGB shade contains a negative weight for
-  one of the primaries, it lies outside the colour gamut 
+  one of the primaries, it lies outside the color gamut 
   accessible from the given triple of primaries.  Desaturate
   it by adding white, equal quantities of R, G, and B, enough
   to make RGB all positive.  The function returns 1 if the

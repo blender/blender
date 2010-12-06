@@ -53,7 +53,7 @@ typedef enum eEditKeyframes_Validate {
 	BEZT_OK_SELECTED,
 	BEZT_OK_VALUE,
 	BEZT_OK_VALUERANGE,
-	BEZT_OK_REGION,
+	BEZT_OK_REGION
 } eEditKeyframes_Validate;
 
 /* ------------ */
@@ -67,13 +67,13 @@ typedef enum eEditKeyframes_Select {
 		/* remove ok keyframes from selection */
 	SELECT_SUBTRACT	= 	(1<<2),
 		/* flip ok status of keyframes based on key status */
-	SELECT_INVERT	= 	(1<<3),
+	SELECT_INVERT	= 	(1<<3)
 } eEditKeyframes_Select;
 
 /* "selection map" building modes */
 typedef enum eEditKeyframes_SelMap {
 	SELMAP_MORE	= 0,
-	SELMAP_LESS,
+	SELMAP_LESS
 } eEditKeyframes_SelMap;
 
 /* snapping tools */
@@ -83,7 +83,7 @@ typedef enum eEditKeyframes_Snap {
 	SNAP_KEYS_NEARSEC,
 	SNAP_KEYS_NEARMARKER,
 	SNAP_KEYS_HORIZONTAL,
-	SNAP_KEYS_VALUE,
+	SNAP_KEYS_VALUE
 } eEditKeyframes_Snap;
 
 /* mirroring tools */
@@ -92,7 +92,7 @@ typedef enum eEditKeyframes_Mirror {
 	MIRROR_KEYS_YAXIS,
 	MIRROR_KEYS_XAXIS,
 	MIRROR_KEYS_MARKER,
-	MIRROR_KEYS_VALUE,
+	MIRROR_KEYS_VALUE
 } eEditKeyframes_Mirror;
 
 /* ************************************************ */

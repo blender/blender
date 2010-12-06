@@ -26,7 +26,6 @@
  */
 
 #include <stdio.h>
-#include <math.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
@@ -528,7 +527,7 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 }
 
 /* row_w is unused but kept for completeness */
-void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int UNUSED(row_w), float *rectf, int gamma_correct)
+void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int UNUSED(row_w), float *rectf, int do_gamma_correct)
 {
 	unsigned char *rect32;
 	
@@ -537,7 +536,7 @@ void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int UNUSED
 	
 	rect32= MEM_mallocN(img_w*img_h*sizeof(int), "temp 32 bits");
 	
-	if (gamma_correct) {
+	if (do_gamma_correct) {
 		floatbuf_to_srgb_byte(rectf, rect32, 0, img_w, 0, img_h, img_w);
 	} else {
 		floatbuf_to_byte(rectf, rect32, 0, img_w, 0, img_h, img_w);
@@ -767,13 +766,13 @@ void bglBegin(int mode)
 
 int bglPointHack() {
 	float value[4];
-	int pointhack;
+	int pointhack_px;
 	glGetFloatv(GL_POINT_SIZE_RANGE, value);
 	if(value[1]<2.0) {
 		glGetFloatv(GL_POINT_SIZE, value);
-		pointhack= floor(value[0]+0.5);
-		if(pointhack>4) pointhack= 4;
-		return pointhack;
+		pointhack_px= floor(value[0]+0.5);
+		if(pointhack_px>4) pointhack_px= 4;
+		return pointhack_px;
 	}
 	return 0;
 }

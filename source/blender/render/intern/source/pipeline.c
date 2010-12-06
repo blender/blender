@@ -137,7 +137,7 @@ static void result_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr)) {}
 static void result_rcti_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect)) {}
 static void stats_nothing(void *UNUSED(arg), RenderStats *UNUSED(rs)) {}
 static void float_nothing(void *UNUSED(arg), float UNUSED(val)) {}
-static void print_error(void *UNUSED(arg), char *str) {printf("ERROR: %s\n", str);}
+static void print_error(void *UNUSED(arg), const char *str) {printf("ERROR: %s\n", str);}
 static int default_break(void *UNUSED(arg)) {return G.afbreek == 1;}
 
 static void stats_background(void *UNUSED(arg), RenderStats *rs)
@@ -282,7 +282,7 @@ static void pop_render_result(Render *re)
 
 /* NOTE: OpenEXR only supports 32 chars for layer+pass names
    In blender we now use max 10 chars for pass, max 20 for layer */
-static char *get_pass_name(int passtype, int channel)
+static const char *get_pass_name(int passtype, int channel)
 {
 	
 	if(passtype == SCE_PASS_COMBINED) {
@@ -475,7 +475,7 @@ static void render_unique_exr_name(Render *re, char *str, int sample)
 
 static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int passtype)
 {
-	char *typestr= get_pass_name(passtype, 0);
+	const char *typestr= get_pass_name(passtype, 0);
 	RenderPass *rpass= MEM_callocN(sizeof(RenderPass), typestr);
 	int rectsize= rr->rectx*rr->recty*channels;
 	
@@ -1408,7 +1408,7 @@ void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
 	re->test_break= f;
 	re->tbh= handle;
 }
-void RE_error_cb(Render *re, void *handle, void (*f)(void *handle, char *str))
+void RE_error_cb(Render *re, void *handle, void (*f)(void *handle, const char *str))
 {
 	re->error= f;
 	re->erh= handle;
@@ -2216,6 +2216,7 @@ static void ntree_render_scenes(Render *re)
 {
 	bNode *node;
 	int cfra= re->scene->r.cfra;
+	int restore_scene= 0;
 	
 	if(re->scene->nodetree==NULL) return;
 	
@@ -2227,12 +2228,19 @@ static void ntree_render_scenes(Render *re)
 		if(node->type==CMP_NODE_R_LAYERS) {
 			if(node->id && node->id != (ID *)re->scene) {
 				if(node->id->flag & LIB_DOIT) {
-					render_scene(re, (Scene *)node->id, cfra);
+					Scene *scene = (Scene*)node->id;
+
+					render_scene(re, scene, cfra);
+					restore_scene= (scene != re->scene);
 					node->id->flag &= ~LIB_DOIT;
 				}
 			}
 		}
 	}
+
+	/* restore scene if we rendered another last */
+	if(restore_scene)
+		set_scene_bg(re->main, re->scene);
 }
 
 /* helper call to detect if theres a composite with render-result node */
@@ -2739,7 +2747,7 @@ static int check_valid_camera(Scene *scene)
 	return 1;
 }
 
-int RE_is_rendering_allowed(Scene *scene, void *erh, void (*error)(void *handle, char *str))
+int RE_is_rendering_allowed(Scene *scene, void *erh, void (*error)(void *handle, const char *str))
 {
 	SceneRenderLayer *srl;
 	

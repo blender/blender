@@ -94,7 +94,7 @@
 #define PR_YMAX		195
 
 /* XXX */
-static int qtest() {return 0;}
+static int qtest(void) {return 0;}
 /* XXX */
 
 ImBuf* get_brush_icon(Brush *brush)
@@ -147,6 +147,9 @@ typedef struct ShaderPreview {
 	ID *id;
 	ID *parent;
 	MTex *slot;
+	
+	/* node materials need full copy during preview render, glsl uses it too */
+	Material *matcopy;
 	
 	int sizex, sizey;
 	unsigned int *pr_rect;
@@ -329,9 +332,9 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		
 		sce->r.color_mgt_flag = scene->r.color_mgt_flag;
 		/* exception: don't color manage texture previews or icons */
-		if((sp && sp->pr_method==PR_ICON_RENDER) || id_type == ID_TE)
+		if((id && sp->pr_method==PR_ICON_RENDER) || id_type == ID_TE)
 			sce->r.color_mgt_flag &= ~R_COLOR_MANAGEMENT;
-		if((sp && sp->pr_method==PR_ICON_RENDER) && id_type != ID_WO)
+		if((id && sp->pr_method==PR_ICON_RENDER) && id_type != ID_WO)
 			sce->r.alphamode= R_ALPHAPREMUL;
 		else
 			sce->r.alphamode= R_ADDSKY;
@@ -340,9 +343,14 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		strcpy(sce->r.engine, scene->r.engine);
 		
 		if(id_type==ID_MA) {
-			Material *mat= (Material *)id;
+			Material *mat= NULL;
 			
 			if(id) {
+				/* work on a copy */
+				mat= copy_material((Material *)id);
+				sp->matcopy= mat;
+				BLI_remlink(&G.main->mat, mat);
+				
 				init_render_material(mat, 0, NULL);		/* call that retrieves mode_l */
 				end_render_material(mat);
 				
@@ -384,7 +392,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				}
 
 				
-				if(sp && sp->pr_method==PR_ICON_RENDER) {
+				if(sp->pr_method==PR_ICON_RENDER) {
 					if (mat->material_type == MA_TYPE_HALO) {
 						sce->lay= 1<<MA_FLAT;
 					} 
@@ -400,6 +408,10 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			}
 			else {
 				sce->r.mode &= ~(R_OSA|R_RAYTRACE|R_SSS);
+				
+				free_material(sp->matcopy);
+				MEM_freeN(sp->matcopy);
+				sp->matcopy= NULL;
 			}
 			
 			for(base= sce->base.first; base; base= base->next) {
@@ -428,7 +440,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					if(mat && mat->mtex[0]) {
 						mat->mtex[0]->tex= tex;
 						
-						if(sp && sp->slot)
+						if(tex && sp->slot)
 							mat->mtex[0]->which_output = sp->slot->which_output;
 						
 						/* show alpha in this case */
@@ -444,7 +456,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				}
 			}
 
-			if(tex && tex->nodetree && sp && sp->pr_method==PR_NODE_RENDER)
+			if(tex && tex->nodetree && sp->pr_method==PR_NODE_RENDER)
 				ntreeInitPreview(tex->nodetree, sp->sizex, sp->sizey);
 		}
 		else if(id_type==ID_LA) {
@@ -487,16 +499,16 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 	Render *re;
 	RenderResult rres;
 	char name[32];
-	int gamma_correct=0;
+	int do_gamma_correct=0;
 	int offx=0, newx= rect->xmax-rect->xmin, newy= rect->ymax-rect->ymin;
 
 	if (id && GS(id->name) != ID_TE) {
 		/* exception: don't color manage texture previews - show the raw values */
-		if (sce) gamma_correct = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+		if (sce) do_gamma_correct = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	}
 
-	if(!split || first) sprintf(name, "Preview %p", sa);
-	else sprintf(name, "SecondPreview %p", sa);
+	if(!split || first) sprintf(name, "Preview %p", (void *)sa);
+	else sprintf(name, "SecondPreview %p", (void *)sa);
 
 	if(split) {
 		if(first) {
@@ -518,7 +530,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 			newrect->xmax= MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
 			newrect->ymax= MAX2(newrect->ymax, rect->ymin + rres.recty);
 
-			glaDrawPixelsSafe_to32(rect->xmin+offx, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
+			glaDrawPixelsSafe_to32(rect->xmin+offx, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, do_gamma_correct);
 
 			RE_ReleaseResultImage(re);
 			return 1;
@@ -736,7 +748,7 @@ void BIF_view3d_previewrender(Main *bmain, Scene *scene, ScrArea *sa)
 		
 		ri->status= 0;
 		
-		sprintf(name, "View3dPreview %p", sa);
+		sprintf(name, "View3dPreview %p", (void *)sa);
 		re= ri->re= RE_NewRender(name);
 		//RE_display_draw_cb(re, view3d_previewrender_progress);
 		//RE_stats_draw_cb(re, view3d_previewrender_stats);
@@ -987,7 +999,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	}
 
 	/* unassign the pointers, reset vars */
-	preview_prepare_scene(sp->scene, NULL, GS(id->name), NULL);
+	preview_prepare_scene(sp->scene, NULL, GS(id->name), sp);
 }
 
 /* runs inside thread for material and icons */

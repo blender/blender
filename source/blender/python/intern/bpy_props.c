@@ -183,8 +183,8 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	BPY_PROPDEF_HEAD(BoolProperty)
 
 	if(srna) {
-		static char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", NULL};
-		char *id=NULL, *name="", *description="";
+		static const char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", NULL};
+		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int def=0;
 		PropertyRNA *prop;
@@ -229,7 +229,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", "size", NULL};
-		char *id=NULL, *name="", *description="";
+		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int def[PYRNA_STACK_ARRAY]={0};
 		int size=3;
@@ -286,7 +286,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", NULL};
-		char *id=NULL, *name="", *description="";
+		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def=0;
 		PropertyRNA *prop;
@@ -332,7 +332,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", "size", NULL};
-		char *id=NULL, *name="", *description="";
+		const char *id=NULL, *name="", *description="";
 		int id_len;
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def[PYRNA_STACK_ARRAY]={0};
 		int size=3;
@@ -392,7 +392,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "unit", NULL};
-		char *id=NULL, *name="", *description="";
+		const char *id=NULL, *name="", *description="";
 		int id_len;
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def=0.0f;
 		int precision= 2;
@@ -446,7 +446,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "size", NULL};
-		char *id=NULL, *name="", *description="";
+		const char *id=NULL, *name="", *description="";
 		int id_len;
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def[PYRNA_STACK_ARRAY]={0.0f};
 		int precision= 2, size=3;
@@ -503,7 +503,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "maxlen", "options", "subtype", NULL};
-		char *id=NULL, *name="", *description="", *def="";
+		const char *id=NULL, *name="", *description="", *def="";
 		int id_len;
 		int maxlen=0;
 		PropertyRNA *prop;
@@ -594,7 +594,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 	
 	if(srna) {
 		static const char *kwlist[] = {"attr", "items", "name", "description", "default", "options", NULL};
-		char *id=NULL, *name="", *description="", *def="";
+		const char *id=NULL, *name="", *description="", *def="";
 		int id_len;
 		int defvalue=0;
 		PyObject *items= Py_None;
@@ -662,7 +662,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 
 	if(srna) {
 		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
-		char *id=NULL, *name="", *description="";
+		const char *id=NULL, *name="", *description="";
 		int id_len;
 		PropertyRNA *prop;
 		StructRNA *ptype;
@@ -706,7 +706,7 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 
 	if(srna) {
 		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
-		char *id=NULL, *name="", *description="";
+		const char *id=NULL, *name="", *description="";
 		int id_len;
 		PropertyRNA *prop;
 		StructRNA *ptype;

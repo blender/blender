@@ -38,6 +38,13 @@ SET(SRC
 	intern/mjpeg.c
 	intern/options.c
 	intern/rgb32.c
+
+	AVI_avi.h
+	intern/avi_intern.h
+	intern/avirgb.h
+	intern/endian.h
+	intern/mjpeg.h
+	intern/rgb32.h
 )
 
 BLENDERLIB(bf_avi "${SRC}" "${INC}")

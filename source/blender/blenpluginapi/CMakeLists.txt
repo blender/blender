@@ -35,11 +35,18 @@ SET(INC
 
 SET(SRC
 	intern/pluginapi.c
+
+	documentation.h
+	externdef.h
+	floatpatch.h
+	iff.h
+	plugin.h
+	util.h
 )
 
-IF(WITH_QUICKTIME)
+IF(WITH_CODEC_QUICKTIME)
 	LIST(APPEND INC ${QUICKTIME_INC})
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
+ENDIF(WITH_CODEC_QUICKTIME)
 
 BLENDERLIB(bf_blenpluginapi "${SRC}" "${INC}")

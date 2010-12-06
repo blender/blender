@@ -3079,7 +3079,7 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 	short negflag, ptrsize, enabled, butType;
 	int flag, icon;
 	void *ptr;
-	char *tooltip;
+	const char *tooltip;
 	uiBut *but = NULL;
 	
 	/* get the flag and the pointer to that flag */

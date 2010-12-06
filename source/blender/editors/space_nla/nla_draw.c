@@ -171,7 +171,7 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 	}	
 	else if (strip->type == NLASTRIP_TYPE_META) {
 		/* Meta Clip */
-		// TODO: should temporary metas get different colours too?
+		// TODO: should temporary metas get different colors too?
 		if (strip->flag & NLASTRIP_FLAG_SELECT) {
 			/* selected - use a bold purple color */
 			// FIXME: hardcoded temp-hack colors
@@ -272,7 +272,7 @@ static void nla_draw_strip_curves (NlaStrip *strip, float yminc, float ymaxc)
 	}
 	
 	/* time -------------------------- */
-	// XXX do we want to draw this curve? in a different colour too?
+	// XXX do we want to draw this curve? in a different color too?
 	
 	/* turn off AA'd lines */
 	glDisable(GL_LINE_SMOOTH);
@@ -431,7 +431,7 @@ static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int UNU
 	else
 		sprintf(str, "%s | %.2f %s %.2f", strip->name, strip->start, dir, strip->end);
 	
-	/* set text colour - if colours (see above) are light, draw black text, otherwise draw white */
+	/* set text color - if colors (see above) are light, draw black text, otherwise draw white */
 	if (strip->flag & (NLASTRIP_FLAG_ACTIVE|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_TWEAKUSER))
 		glColor3f(0.0f, 0.0f, 0.0f);
 	else

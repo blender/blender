@@ -56,6 +56,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "BLF_api.h"
+
 #include "ED_gpencil.h"
 #include "ED_image.h"
 
@@ -127,9 +129,9 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 	char str[256];
 	int ofs;
 	
-	ofs= sprintf(str, "X: %d Y: %d ", x, y);
+	ofs= sprintf(str, "X: %4d Y: %4d ", x, y);
 	if(cp)
-		ofs+= sprintf(str+ofs, "| R: %d G: %d B: %d A: %d ", cp[0], cp[1], cp[2], cp[3]);
+		ofs+= sprintf(str+ofs, "| R: %3d G: %3d B: %3d A: %3d ", cp[0], cp[1], cp[2], cp[3]);
 
 	if(fp) {
 		if(channels==4)
@@ -149,12 +151,17 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 	glEnable(GL_BLEND);
 	
 	glColor4f(.0,.0,.0,.25);
-	glRectf(0.0, 0.0, ar->winrct.xmax - ar->winrct.xmin + 1, 30.0);
+	glRecti(0.0, 0.0, ar->winrct.xmax - ar->winrct.xmin + 1, 20);
 	glDisable(GL_BLEND);
 	
 	glColor3ub(255, 255, 255);
 	
-	UI_DrawString(10, 10, str);
+	// UI_DrawString(6, 6, str); // works ok but fixed width is nicer.
+	BLF_aspect(blf_mono_font, 1.0);
+	BLF_size(blf_mono_font, 11, 72);
+	BLF_position(blf_mono_font, 6, 6, 0);
+	BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+	
 }
 
 /* image drawing */

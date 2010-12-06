@@ -129,7 +129,9 @@ typedef struct EffectorWeights {
 */
 #define BPHYS_DATA_INDEX		0
 #define BPHYS_DATA_LOCATION		1
+#define BPHYS_DATA_SMOKE_LOW	1
 #define BPHYS_DATA_VELOCITY		2
+#define BPHYS_DATA_SMOKE_HIGH	2
 #define BPHYS_DATA_ROTATION		3
 #define BPHYS_DATA_AVELOCITY	4	/* used for particles */
 #define BPHYS_DATA_XCONST		4	/* used for cloth */

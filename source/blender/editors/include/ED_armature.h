@@ -166,7 +166,7 @@ int   BIF_currentTemplate(const struct bContext *C);
 void  BIF_freeTemplates(struct bContext *C);
 void  BIF_setTemplate(struct bContext *C, int index);
 int   BIF_nbJointsTemplate(const struct bContext *C);
-char * BIF_nameBoneTemplate(const struct bContext *C);
+const char * BIF_nameBoneTemplate(const struct bContext *C);
 
 void BDR_drawSketch(const struct bContext *vc);
 int BDR_drawSketchNames(struct ViewContext *vc);

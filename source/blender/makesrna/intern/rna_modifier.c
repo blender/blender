@@ -208,7 +208,7 @@ static char *rna_Modifier_path(PointerRNA *ptr)
 
 static void rna_Modifier_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
+	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ptr->id.data);
 }
 
@@ -255,7 +255,7 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 					part->ren_as = PART_DRAW_NOT;
 					sprintf(psys->name, "SmokeParticles");
 					psys->recalc |= (PSYS_RECALC_RESET|PSYS_RECALC_PHYS);
-					DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
+					DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 				}
 			}
 			if(smd->flow)

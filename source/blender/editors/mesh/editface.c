@@ -51,12 +51,6 @@
 
 #include "BIF_gl.h"
 
-
-#ifdef WITH_PYTHON
-//#include "BPY_extern.h"
-//#include "BPY_menus.h"
-#endif
-
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -93,7 +87,7 @@ void paintface_flush_flags(Object *ob)
 	
 	for (i= 0; i<totface; i++, mf++) { /* loop over derived mesh faces */
 		mf_orig= me->mface + index_array[i];
-		mf->flag= mf_orig->flag;;
+		mf->flag= mf_orig->flag;
 	}
 }
 

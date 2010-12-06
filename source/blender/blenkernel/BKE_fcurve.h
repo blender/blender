@@ -140,7 +140,7 @@ typedef enum eFMI_Action_Types {
 		/* modifier only modifies the values of points (but times stay the same) */
 	FMI_TYPE_REPLACE_VALUES,
 		/* modifier generates a curve regardless of what came before */
-	FMI_TYPE_GENERATE_CURVE,
+	FMI_TYPE_GENERATE_CURVE
 } eFMI_Action_Types;
 
 /* Flags for the requirements of a FModifier Type */
@@ -152,7 +152,7 @@ typedef enum eFMI_Requirement_Flags {
 		 */
 	FMI_REQUIRES_NOTHING			= (1<<1),
 		/* refer to modifier instance */
-	FMI_REQUIRES_RUNTIME_CHECK		= (1<<2),
+	FMI_REQUIRES_RUNTIME_CHECK		= (1<<2)
 } eFMI_Requirement_Flags;
 
 /* Function Prototypes for FModifierTypeInfo's */
@@ -193,7 +193,7 @@ struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int
 struct FCurve *iter_step_fcurve (struct FCurve *fcu_iter, const char rna_path[]);
 
 /* high level function to get an fcurve from C without having the rna */
-struct FCurve *id_data_find_fcurve(ID *id, void *data, struct StructRNA *type, char *prop_name, int index);
+struct FCurve *id_data_find_fcurve(ID *id, void *data, struct StructRNA *type, const char *prop_name, int index);
 
 /* Get list of LinkData's containing pointers to the F-Curves which control the types of data indicated 
  *	e.g.  numMatches = list_find_data_fcurves(matches, &act->curves, "pose.bones[", "MyFancyBone");

@@ -286,7 +286,7 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
         ob = context.active_object
         rd = context.scene.render
 
-        return (context.mode == 'EDIT_MESH') and (rd.engine == 'BLENDER_GAME') and ob and ob.type == 'MESH'
+        return (context.mode == 'EDIT_MESH') and ob and ob.type == 'MESH'
 
     def draw(self, context):
         layout = self.layout
@@ -297,9 +297,12 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
         tf = me.faces.active_tface
 
         if tf:
+            if context.scene.render.engine != 'BLENDER_GAME':
+                col.label(text="Options only supported in Game Engine")
+
             split = layout.split()
             col = split.column()
-
+			
             col.prop(tf, "use_image")
             col.prop(tf, "use_light")
             col.prop(tf, "hide")

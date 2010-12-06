@@ -204,7 +204,7 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGS = ruv
 ##ARFLAGSQUIET = ru
 ##
-C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wunused-parameter', '-Werror=declaration-after-statement', '-Werror=implicit-function-declaration', '-Werror=return-type']
+C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wunused-parameter', '-Wstrict-prototypes', '-Werror=declaration-after-statement', '-Werror=implicit-function-declaration', '-Werror=return-type']
 CC_WARN = ['-Wall']
 CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 

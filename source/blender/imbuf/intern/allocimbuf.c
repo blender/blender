@@ -443,7 +443,7 @@ static void imbuf_cache_destructor(void *data)
 	ibuf->c_handle = 0;
 }
 
-static MEM_CacheLimiterC **get_imbuf_cache_limiter()
+static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
 {
 	static MEM_CacheLimiterC *c = 0;
 

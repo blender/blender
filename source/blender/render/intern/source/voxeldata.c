@@ -268,7 +268,7 @@ static void cache_voxeldata(struct Render *re, Tex *tex)
 	VoxelData *vd = tex->vd;
 	FILE *fp;
 	int curframe;
-	char path[FILE_MAX];
+	char path[sizeof(vd->source_path)];
 	
 	if (!vd) return;
 	
@@ -287,7 +287,7 @@ static void cache_voxeldata(struct Render *re, Tex *tex)
 	else
 		curframe = re->r.cfra;
 	
-	BLI_strncpy(path, vd->source_path, FILE_MAX);
+	BLI_strncpy(path, vd->source_path, sizeof(path));
 	
 	switch(vd->file_format) {
 		case TEX_VD_IMAGE_SEQUENCE:

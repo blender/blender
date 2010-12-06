@@ -363,16 +363,16 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		{
 			SpaceSeq *sseq= CTX_wm_space_seq(C);
 			if (sseq && sseq->flag & SEQ_MARKER_TRANS) {
-				TimeMarker *marker;
+				TimeMarker *tmarker;
 
-				for (marker= scene->markers.first; marker; marker= marker->next) {
-					if(	((x < CFRA) && marker->frame < CFRA) ||
-						((x >= CFRA) && marker->frame >= CFRA)
+				for (tmarker= scene->markers.first; tmarker; tmarker= tmarker->next) {
+					if(	((x < CFRA) && tmarker->frame < CFRA) ||
+						((x >= CFRA) && tmarker->frame >= CFRA)
 					) {
-						marker->flag |= SELECT;
+						tmarker->flag |= SELECT;
 					}
 					else {
-						marker->flag &= ~SELECT;
+						tmarker->flag &= ~SELECT;
 					}
 				}
 			}

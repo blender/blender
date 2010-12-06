@@ -264,8 +264,8 @@ static ContainerDefRNA *rna_find_container_def(ContainerRNA *cont)
 /* DNA utility function for looking up members */
 
 typedef struct DNAStructMember {
-	char *type;
-	char *name;
+	const char *type;
+	const char *name;
 	int arraylength;
 	int pointerlevel;
 } DNAStructMember;
@@ -295,7 +295,7 @@ static int rna_member_cmp(const char *name, const char *oname)
 
 static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *membername, DNAStructMember *smember)
 {
-	char *dnaname;
+	const char *dnaname;
 	short *sp;
 	int a, b, structnr, totmember, cmp;
 
@@ -359,7 +359,7 @@ static int rna_validate_identifier(const char *identifier, char *error, int prop
 	int a=0;
 	
 	/*  list from http://docs.python.org/reference/lexical_analysis.html#id5 */
-	static char *kwlist[] = {
+	static const char *kwlist[] = {
 		"and", "as", "assert", "break",
 		"class", "continue", "def", "del",
 		"elif", "else", "except", "exec",

@@ -51,6 +51,10 @@ SET(SRC
 	CcdPhysicsEnvironment.cpp
 	CcdPhysicsController.cpp
 	CcdGraphicController.cpp
+
+	CcdGraphicController.h
+	CcdPhysicsController.h
+	CcdPhysicsEnvironment.h
 )
 
 IF(WITH_BULLET)

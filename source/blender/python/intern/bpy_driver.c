@@ -63,7 +63,7 @@ int bpy_pydriver_create_dict(void)
 	}
 
 	/* add bpy to global namespace */
-	mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
+	mod= PyImport_ImportModuleLevel((char *)"bpy", NULL, NULL, NULL, 0);
 	if (mod) {
 		PyDict_SetItemString(bpy_pydriver_Dict, "bpy", mod);
 		Py_DECREF(mod);

@@ -102,7 +102,7 @@ void free_ipo (Ipo *ipo)
 /* Mapping Table for bitflag <-> RNA path */
 typedef struct AdrBit2Path {
 	int bit;
-	char *path;
+	const char *path;
 	int array_index;
 } AdrBit2Path;
 
@@ -171,7 +171,7 @@ static AdrBit2Path *adrcode_bitmaps_to_paths (int blocktype, int adrcode, int *t
 /* ADRCODE to RNA-Path Conversion Code  - Standard */
 
 /* Object types */
-static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
+static const char *ob_adrcodes_to_paths (int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
 	*array_index= 0;
@@ -252,7 +252,7 @@ static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
 /* PoseChannel types 
  * NOTE: pchan name comes from 'actname' added earlier... 
  */
-static char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
+static const char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
 	*array_index= 0;
@@ -296,7 +296,7 @@ static char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
 }
 
 /* Constraint types */
-static char *constraint_adrcodes_to_paths (int adrcode, int *array_index)
+static const char *constraint_adrcodes_to_paths (int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
 	*array_index= 0;
@@ -330,9 +330,9 @@ static char *shapekey_adrcodes_to_paths (int adrcode, int *UNUSED(array_index))
 }
 
 /* MTex (Texture Slot) types */
-static char *mtex_adrcodes_to_paths (int adrcode, int *UNUSED(array_index))
+static const char *mtex_adrcodes_to_paths (int adrcode, int *UNUSED(array_index))
 {
-	char *base=NULL, *prop=NULL;
+	const char *base=NULL, *prop=NULL;
 	static char buf[128];
 	
 	/* base part of path */
@@ -400,7 +400,7 @@ static char *mtex_adrcodes_to_paths (int adrcode, int *UNUSED(array_index))
 }
 
 /* Texture types */
-static char *texture_adrcodes_to_paths (int adrcode, int *array_index)
+static const char *texture_adrcodes_to_paths (int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
 	*array_index= 0;
@@ -480,7 +480,7 @@ static char *texture_adrcodes_to_paths (int adrcode, int *array_index)
 }
 
 /* Material Types */
-static char *material_adrcodes_to_paths (int adrcode, int *array_index)
+static const char *material_adrcodes_to_paths (int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
 	*array_index= 0;
@@ -564,7 +564,7 @@ static char *material_adrcodes_to_paths (int adrcode, int *array_index)
 }
 
 /* Camera Types */
-static char *camera_adrcodes_to_paths (int adrcode, int *array_index)
+static const char *camera_adrcodes_to_paths (int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
 	*array_index= 0;
@@ -604,7 +604,7 @@ static char *camera_adrcodes_to_paths (int adrcode, int *array_index)
 }
 
 /* Lamp Types */
-static char *lamp_adrcodes_to_paths (int adrcode, int *array_index)
+static const char *lamp_adrcodes_to_paths (int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
 	*array_index= 0;
@@ -646,7 +646,7 @@ static char *lamp_adrcodes_to_paths (int adrcode, int *array_index)
 }
 
 /* Sound Types */
-static char *sound_adrcodes_to_paths (int adrcode, int *array_index)
+static const char *sound_adrcodes_to_paths (int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
 	*array_index= 0;
@@ -669,7 +669,7 @@ static char *sound_adrcodes_to_paths (int adrcode, int *array_index)
 }
 
 /* World Types */
-static char *world_adrcodes_to_paths (int adrcode, int *array_index)
+static const char *world_adrcodes_to_paths (int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
 	*array_index= 0;
@@ -722,7 +722,7 @@ static char *world_adrcodes_to_paths (int adrcode, int *array_index)
 }
 
 /* Particle Types */
-static char *particle_adrcodes_to_paths (int adrcode, int *array_index)
+static const char *particle_adrcodes_to_paths (int adrcode, int *array_index)
 {
 	/* set array index like this in-case nothing sets it correctly  */
 	*array_index= 0;
@@ -800,7 +800,8 @@ static char *particle_adrcodes_to_paths (int adrcode, int *array_index)
 static char *get_rna_access (int blocktype, int adrcode, char actname[], char constname[], Sequence * seq, int *array_index)
 {
 	DynStr *path= BLI_dynstr_new();
-	char *propname=NULL, *rpath=NULL;
+	const char *propname=NULL;
+	char *rpath=NULL;
 	char buf[512];
 	int dummy_index= 0;
 	
@@ -1196,7 +1197,7 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 				fcurve= fcu;
 				
 			/* set path */
-			fcurve->rna_path= BLI_strdupn(abp->path, strlen(abp->path));
+			fcurve->rna_path= BLI_strdup(abp->path);
 			fcurve->array_index= abp->array_index;
 			
 			/* convert keyframes 

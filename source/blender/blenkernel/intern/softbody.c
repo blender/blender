@@ -1659,7 +1659,7 @@ static void *exec_scan_for_ext_spring_forces(void *data)
 	return 0;
 }
 
-static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,int totsprings,int *UNUSED(ptr_to_break_func()))
+static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,int totsprings,int *UNUSED(ptr_to_break_func(void)))
 {
 	ListBase *do_effector = NULL;
 	ListBase threads;
@@ -2175,7 +2175,7 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float UN
 /* since this is definitely the most CPU consuming task here .. try to spread it */
 /* core function _softbody_calc_forces_slice_in_a_thread */
 /* result is int to be able to flag user break */
-static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, float forcetime, float timenow,int ifirst,int ilast,int *UNUSED(ptr_to_break_func()),ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
+static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, float forcetime, float timenow,int ifirst,int ilast,int *UNUSED(ptr_to_break_func(void)),ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
 {
 	float iks;
 	int bb,do_selfcollision,do_springcollision,do_aero;
@@ -2386,7 +2386,7 @@ static void *exec_softbody_calc_forces(void *data)
 	return 0;
 }
 
-static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float timenow,int totpoint,int *UNUSED(ptr_to_break_func()),struct ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
+static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float timenow,int totpoint,int *UNUSED(ptr_to_break_func(void)),struct ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
 {
 	ListBase threads;
 	SB_thread_context *sb_threads;

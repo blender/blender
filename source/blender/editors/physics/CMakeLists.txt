@@ -37,6 +37,8 @@ SET(SRC
 	physics_fluid.c
 	physics_ops.c
 	physics_pointcache.c
+
+	physics_intern.h
 )
 
 IF(NOT WITH_MOD_FLUID)

@@ -70,9 +70,9 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 
 /* **** XXX ******** */
 static void BIF_undo_push(const char *UNUSED(arg)) {}
-static void BIF_undo() {}
+static void BIF_undo(void) {}
 static void error(const char *UNUSED(arg)) {}
-static int qtest() {return 0;}
+static int qtest(void) {return 0;}
 /* **** XXX ******** */
 
 
@@ -376,7 +376,7 @@ void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 		EM_selectmode_set(em);
 	}	
 	
-//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+//	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	return;
 }
 
@@ -632,7 +632,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	if (EM_nvertices_selected(em) < 2) {
 		error("No edges are selected to operate on");
 		BKE_mesh_end_editmesh(obedit->data, em);
-		return OPERATOR_CANCELLED;;
+		return OPERATOR_CANCELLED;
 	}
 
 	/* get the cut curve */
@@ -696,7 +696,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;

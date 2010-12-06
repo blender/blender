@@ -285,7 +285,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 				WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, CTX_data_scene(C));
 			}
 			
-			DAG_id_flush_update(lcd->ob->data, OB_RECALC_DATA);
+			DAG_id_tag_update(lcd->ob->data, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_GEOM|ND_DATA, lcd->ob->data);
 		}
 		else {

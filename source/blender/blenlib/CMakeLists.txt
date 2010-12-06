@@ -81,6 +81,55 @@ SET(SRC
 	intern/uvproject.c
 	intern/voxel.c
 	intern/winstuff.c
+
+	BLI_args.h
+	BLI_blenlib.h
+	BLI_boxpack2d.h
+	BLI_bpath.h
+	BLI_cpu.h
+	BLI_dlrbTree.h
+	BLI_dynstr.h
+	BLI_edgehash.h
+	BLI_editVert.h
+	BLI_fileops.h
+	BLI_fnmatch.h
+	BLI_ghash.h
+	BLI_graph.h
+	BLI_gsqueue.h
+	BLI_heap.h
+	BLI_jitter.h
+	BLI_kdopbvh.h
+	BLI_kdtree.h
+	BLI_linklist.h
+	BLI_listbase.h
+	BLI_math.h
+	BLI_math_base.h
+	BLI_math_color.h
+	BLI_math_geom.h
+	BLI_math_inline.h
+	BLI_math_matrix.h
+	BLI_math_rotation.h
+	BLI_math_vector.h
+	BLI_memarena.h
+	BLI_mempool.h
+	BLI_noise.h
+	BLI_path_util.h
+	BLI_pbvh.h
+	BLI_rand.h
+	BLI_rect.h
+	BLI_scanfill.h
+	BLI_storage.h
+	BLI_storage_types.h
+	BLI_string.h
+	BLI_threads.h
+	BLI_uvproject.h
+	BLI_vfontdata.h
+	BLI_voxel.h
+	BLI_winstuff.h
+	PIL_dynlib.h
+	PIL_time.h
+	intern/BLI_callbacks.h
+	intern/dynamiclist.h
 )
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")

@@ -70,7 +70,7 @@ void	undo_editmode_step			(struct bContext *C, int step);
 /* ************** XXX OLD CRUFT WARNING ************* */
 
 void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, float fac3, int invert);
-int GetButStringLength(char *str);
+int GetButStringLength(const char *str);
 
 #endif /* ED_UTIL_H */
 

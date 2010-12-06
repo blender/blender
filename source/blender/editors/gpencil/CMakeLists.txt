@@ -37,6 +37,8 @@ SET(SRC
 	gpencil_edit.c
 	gpencil_ops.c
 	gpencil_paint.c
+
+	gpencil_intern.h
 )
 
 BLENDERLIB(bf_editor_gpencil "${SRC}" "${INC}")

@@ -295,7 +295,7 @@ static short check_rna_path_is_valid (ID *owner_id, char *path)
 /* Check if some given RNA Path needs fixing - free the given path and set a new one as appropriate 
  * NOTE: we assume that oldName and newName have [" "] padding around them
  */
-static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, char *oldpath, int verify_paths)
+static char *rna_path_rename_fix (ID *owner_id, const char *prefix, char *oldName, char *newName, char *oldpath, int verify_paths)
 {
 	char *prefixPtr= strstr(oldpath, prefix);
 	char *oldNamePtr= strstr(oldpath, oldName);
@@ -353,7 +353,7 @@ static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, cha
 }
 
 /* Check RNA-Paths for a list of F-Curves */
-static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, ListBase *curves, int verify_paths)
+static void fcurves_path_rename_fix (ID *owner_id, const char *prefix, char *oldName, char *newName, ListBase *curves, int verify_paths)
 {
 	FCurve *fcu;
 	
@@ -366,7 +366,7 @@ static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, 
 }
 
 /* Check RNA-Paths for a list of Drivers */
-static void drivers_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, char *oldKey, char *newKey, ListBase *curves, int verify_paths)
+static void drivers_path_rename_fix (ID *owner_id, const char *prefix, char *oldName, char *newName, char *oldKey, char *newKey, ListBase *curves, int verify_paths)
 {
 	FCurve *fcu;
 	
@@ -406,7 +406,7 @@ static void drivers_path_rename_fix (ID *owner_id, char *prefix, char *oldName, 
 }
 
 /* Fix all RNA-Paths for Actions linked to NLA Strips */
-static void nlastrips_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, ListBase *strips, int verify_paths)
+static void nlastrips_path_rename_fix (ID *owner_id, const char *prefix, char *oldName, char *newName, ListBase *strips, int verify_paths)
 {
 	NlaStrip *strip;
 	
@@ -426,7 +426,7 @@ static void nlastrips_path_rename_fix (ID *owner_id, char *prefix, char *oldName
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
  * 		i.e. pose.bones["Bone"]
  */
-void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, char *oldName, char *newName, int oldSubscript, int newSubscript, int verify_paths)
+void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, const char *prefix, char *oldName, char *newName, int oldSubscript, int newSubscript, int verify_paths)
 {
 	NlaTrack *nlt;
 	char *oldN, *newN;

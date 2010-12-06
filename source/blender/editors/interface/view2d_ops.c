@@ -1167,7 +1167,7 @@ typedef struct v2dScrollerMove {
 	ARegion *ar;			/* region that the scroller is in */
 	
 	short scroller;			/* scroller that mouse is in ('h' or 'v') */
-	short zone;				/* -1 is min zoomer, 0 is bar, 1 is max zoomer */ // XXX find some way to provide visual feedback of this (active colour?)
+	short zone;				/* -1 is min zoomer, 0 is bar, 1 is max zoomer */ // XXX find some way to provide visual feedback of this (active color?)
 	
 	float fac;				/* view adjustment factor, based on size of region */
 	float delta;			/* amount moved by mouse on axis of interest */
@@ -1503,7 +1503,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			scroller_activate_exit(C, op);
 				
 			/* can't catch this event for ourselves, so let it go to someone else? */
-			// FIXME: still this doesn't fall through to the item_activate callback for the outliner...
+			/* XXX note: if handlers use mask rect to clip input, input will fail for this case */
 			return OPERATOR_PASS_THROUGH;
 		}
 		

@@ -88,7 +88,7 @@ typedef enum eAnimCont_Types {
 	ANIMCONT_DOPESHEET,		/* dopesheet (bDopesheet) */
 	ANIMCONT_FCURVES,		/* animation F-Curves (bDopesheet) */
 	ANIMCONT_DRIVERS,		/* drivers (bDopesheet) */
-	ANIMCONT_NLA,			/* nla (bDopesheet) */
+	ANIMCONT_NLA			/* nla (bDopesheet) */
 } eAnimCont_Types;
 
 /* --------------- Channels -------------------- */
@@ -164,7 +164,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_NLAACTION,
 	
 		/* always as last item, the total number of channel types... */
-	ANIMTYPE_NUM_TYPES,
+	ANIMTYPE_NUM_TYPES
 } eAnim_ChannelType;
 
 /* types of keyframe data in bAnimListElem */
@@ -178,7 +178,7 @@ typedef enum eAnim_KeyType {
 	ALE_SCE,			/* Scene summary */
 	ALE_OB,				/* Object summary */
 	ALE_ACT,			/* Action summary */
-	ALE_GROUP,			/* Action Group summary */
+	ALE_GROUP			/* Action Group summary */
 } eAnim_KeyType;
 
 /* ----------------- Filtering -------------------- */
@@ -329,7 +329,7 @@ typedef enum eAnimChannels_SetFlag {
 	ACHANNEL_SETFLAG_CLEAR = 0,		/* turn off */
 	ACHANNEL_SETFLAG_ADD,			/* turn on */
 	ACHANNEL_SETFLAG_INVERT,		/* on->off, off->on */
-	ACHANNEL_SETFLAG_TOGGLE,		/* some on -> all off // all on */
+	ACHANNEL_SETFLAG_TOGGLE			/* some on -> all off // all on */
 } eAnimChannels_SetFlag;
 
 /* types of settings for AnimChannels */
@@ -339,7 +339,7 @@ typedef enum eAnimChannel_Settings {
 	ACHANNEL_SETTING_MUTE,
 	ACHANNEL_SETTING_EXPAND,
 	ACHANNEL_SETTING_VISIBLE,			/* only for Graph Editor */
-	ACHANNEL_SETTING_SOLO,				/* only for NLA Tracks */
+	ACHANNEL_SETTING_SOLO				/* only for NLA Tracks */
 } eAnimChannel_Settings;
 
 
@@ -347,7 +347,7 @@ typedef enum eAnimChannel_Settings {
 typedef struct bAnimChannelType {
 	/* type data */
 		/* name of the channel type, for debugging */
-	char *channel_type_name;
+	const char *channel_type_name;
 	
 	/* drawing */
 		/* get RGB color that is used to draw the majority of the backdrop */
@@ -446,7 +446,7 @@ enum {
 		/* time indication in seconds or frames */
 	DRAWCFRA_UNIT_SECONDS 	= (1<<1),
 		/* show time-offset line */
-	DRAWCFRA_SHOW_TIMEOFS	= (1<<2),
+	DRAWCFRA_SHOW_TIMEOFS	= (1<<2)
 } eAnimEditDraw_CurrentFrame; 
 
 /* main call to draw current-frame indicator in an Animation Editor */
@@ -521,7 +521,7 @@ typedef enum eAnimUnitConv_Flags {
 		/* only touch selected BezTriples */
 	ANIM_UNITCONV_ONLYSEL	= (1<<2),
 		/* only touch selected vertices */
-	ANIM_UNITCONV_SELVERTS	= (1<<3),
+	ANIM_UNITCONV_SELVERTS	= (1<<3)
 } eAnimUnitConv_Flags;
 
 /* Get unit conversion factor for given ID + F-Curve */

@@ -31,8 +31,8 @@
 #include "../generic/py_capi_utils.h"
 
 bContext*	__py_context = NULL;
-bContext*	BPy_GetContext(void) { return __py_context; };
-void		BPy_SetContext(bContext *C) { __py_context= C; };
+bContext*	BPy_GetContext(void) { return __py_context; }
+void		BPy_SetContext(bContext *C) { __py_context= C; }
 
 int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_class, BPY_class_attr_check* class_attrs, PyObject **py_class_attrs)
 {
@@ -201,7 +201,7 @@ int BPy_errors_to_report(ReportList *reports)
 }
 
 /* array utility function */
-int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, char *error_prefix)
+int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, const char *error_prefix)
 {
 	PyObject *value_fast;
 	int value_len;

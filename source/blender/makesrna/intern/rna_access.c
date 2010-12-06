@@ -1259,7 +1259,7 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 	else {
 		/* WARNING! This is so property drivers update the display!
 		 * not especially nice  */
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_ALL);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_ALL);
 		WM_main_add_notifier(NC_WINDOW, NULL);
 	}
 
@@ -2794,6 +2794,10 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int i
 
 	if(ptr == NULL)
 		length= 0;
+	else if (length == 0) {
+		ptr= NULL;
+		itemsize= 0;
+	}
 
 	internal= MEM_callocN(sizeof(ArrayIterator), "ArrayIterator");
 	internal->ptr= ptr;
@@ -3043,6 +3047,9 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 					else {
 						/* otherwise do int lookup */
 						intkey= atoi(token);
+						if(intkey==0 && (token[0] != '0' || token[1] != '\0')) {
+							return 0; /* we can be sure the fixedbuf was used in this case */
+						}
 						RNA_property_collection_lookup_int(&curptr, prop, intkey, &nextptr);
 					}
 
@@ -3081,17 +3088,28 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 				if (*path=='[') {
 					token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
 
+					if(token==NULL) {
+						/* invalid syntax blah[] */
+						return 0;
+					}
 					/* check for "" to see if it is a string */
-					if(rna_token_strip_quotes(token)) {
+					else if(rna_token_strip_quotes(token)) {
 						*index= RNA_property_array_item_index(prop, *(token+1));
 					}
 					else {
 						/* otherwise do int lookup */
 						*index= atoi(token);
+						if(intkey==0 && (token[0] != '0' || token[1] != '\0')) {
+							return 0; /* we can be sure the fixedbuf was used in this case */
+						}
 					}
 				}
 				else {
 					token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
+					if(token==NULL) {
+						/* invalid syntax blah.. */
+						return 0;
+					}
 					*index= RNA_property_array_item_index(prop, *token);
 				}
 
@@ -3753,7 +3771,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 			BLI_dynstr_appendf(dynstr, "'%s'", identifier);
 		}
 		else {
-			BLI_dynstr_appendf(dynstr, "'<UNKNOWN ENUM>'", identifier);
+			BLI_dynstr_append(dynstr, "'<UNKNOWN ENUM>'");
 		}
 		break;
 	}

@@ -71,7 +71,7 @@
 
 static void error(const char *UNUSED(dummy)) {}
 static void waitcursor(int UNUSED(val)) {}
-static void activate_fileselect(int UNUSED(d1), char *UNUSED(d2), char *UNUSED(d3), void *UNUSED(d4)) {}
+static void activate_fileselect(int UNUSED(d1), const char *UNUSED(d2), const char *UNUSED(d3), void *UNUSED(d4)) {}
 static int pupmenu(const char *UNUSED(dummy)) {return 0;}
 static int okee(const char *UNUSED(dummy)) {return 0;}
 
@@ -603,7 +603,7 @@ void change_sequence(Scene *scene)
 
 }
 
-int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3, char **error_str)
+int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3, const char **error_str)
 {
 	Editing *ed = seq_give_editing(scene, FALSE);
 	Sequence *seq1= 0, *seq2= 0, *seq3= 0, *seq;
@@ -923,12 +923,12 @@ static int cut_seq_list(Scene *scene, ListBase *old, ListBase *new, int cutframe
 			Sequence * (*cut_seq)(Scene *, Sequence *, int))
 {
 	int did_something = FALSE;
-	Sequence *seq, *seq_next;
+	Sequence *seq, *seq_next_iter;
 	
 	seq= old->first;
 	
 	while(seq) {
-		seq_next = seq->next; /* we need this because we may remove seq */
+		seq_next_iter = seq->next; /* we need this because we may remove seq */
 		
 		seq->tmp= NULL;
 		if(seq->flag & SELECT) {
@@ -947,7 +947,7 @@ static int cut_seq_list(Scene *scene, ListBase *old, ListBase *new, int cutframe
 				BLI_addtail(new, seq);
 			}
 		}
-		seq = seq_next;
+		seq = seq_next_iter;
 	}
 	return did_something;
 }
@@ -1441,7 +1441,7 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Sequence *seq1, *seq2, *seq3, *last_seq = seq_active_get(scene);
-	char *error_msg;
+	const char *error_msg;
 
 	if(!seq_effect_find_selected(scene, last_seq, last_seq->type, &seq1, &seq2, &seq3, &error_msg)) {
 		BKE_report(op->reports, RPT_ERROR, error_msg);
@@ -1781,7 +1781,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
-	Sequence *seq, *seq_new, *seq_next;
+	Sequence *seq, *seq_new, *seq_next_iter;
 	Strip *strip_new;
 	StripElem *se, *se_new;
 	int start_ofs, cfra, frame_end;
@@ -1793,7 +1793,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 		if((seq->flag & SELECT) && (seq->type == SEQ_IMAGE) && (seq->len > 1)) {
 			/* remove seq so overlap tests dont conflict,
 			see seq_free_sequence below for the real free'ing */
-			seq_next = seq->next;
+			seq_next_iter = seq->next;
 			BLI_remlink(ed->seqbasep, seq);
 			/* if(seq->ipo) seq->ipo->id.us--; */
 			/* XXX, remove fcurve and assign to split image strips */
@@ -2557,22 +2557,19 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 	int retval = OPERATOR_CANCELLED;
 	Scene *scene= CTX_data_scene(C);
 	Sequence *active_seq = seq_active_get(scene);
+	StripElem *se = NULL;
 
 	if(active_seq==NULL)
 		return OPERATOR_CANCELLED;
 
-	switch (active_seq->type) {
+
+	if (active_seq->strip) {
+		switch (active_seq->type) {
 		case SEQ_IMAGE:
+			se = give_stripelem(active_seq, scene->r.cfra);
+			break;
 		case SEQ_MOVIE:
-			if (active_seq->strip) {
-				// prevent setting the render size if sequence values aren't initialized
-				if ( (active_seq->strip->orx>0) && (active_seq->strip->ory>0) ) {
-					scene->r.xsch= active_seq->strip->orx;
-					scene->r.ysch= active_seq->strip->ory;
-					WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
-					retval = OPERATOR_FINISHED;
-				}
-			}
+			se = active_seq->strip->stripdata;
 			break;
 		case SEQ_SCENE:
 		case SEQ_META:
@@ -2580,7 +2577,19 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 		case SEQ_HD_SOUND:
 		default:
 			break;
+		}
 	}
+
+	if (se) {
+		// prevent setting the render size if sequence values aren't initialized
+		if ( (se->orig_width > 0) && (se->orig_height > 0) ) {
+			scene->r.xsch= se->orig_width;
+			scene->r.ysch= se->orig_height;
+			WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+			retval = OPERATOR_FINISHED;
+		}
+	}
+
 	return retval;
 }
 

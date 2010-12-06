@@ -38,6 +38,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_report.h"
@@ -55,7 +56,7 @@
 
 #include "BLF_api.h"
 
-void ui_template_fix_linking()
+void ui_template_fix_linking(void)
 {
 }
 
@@ -600,7 +601,7 @@ static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 
 static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
@@ -619,7 +620,7 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 	ob->partype = PAROBJECT;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	ED_undo_push(C, "Modifier convert to real");
 }
@@ -848,8 +849,8 @@ void do_constraint_panels(bContext *C, void *UNUSED(arg), int event)
 	// object_test_constraints(ob);
 	// if(ob->pose) update_pose_constraint_flags(ob->pose);
 	
-	if(ob->type==OB_ARMATURE) DAG_id_flush_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
-	else DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+	if(ob->type==OB_ARMATURE) DAG_id_tag_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
+	else DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
 	
@@ -1959,11 +1960,11 @@ static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon)
 
 static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i, int rnaicon, PointerRNA *activeptr, const char *activepropname)
 {
-	Object *ob;
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiBut *but;
 	uiLayout *split, *overlap, *sub, *row;
-	char *name, *namebuf;
+	char *namebuf;
+	const char *name;
 	int icon;
 
 	overlap= uiLayoutOverlap(layout);
@@ -2024,7 +2025,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		}
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
-		ob= (Object*)activeptr->data;
+		Object *ob= (Object*)activeptr->data;
 
 		split= uiLayoutSplit(sub, 0.75f, 0);
 
@@ -2324,9 +2325,9 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	}
 
 	if(WM_jobs_test(wm, owner)) {
-		uiLayout *abs;
+		uiLayout *ui_abs;
 		
-		abs = uiLayoutAbsolute(layout, 0);
+		ui_abs= uiLayoutAbsolute(layout, 0);
 		
 		uiDefIconBut(block, BUT, handle_event, ICON_PANEL_CLOSE, 
 				0, UI_UNIT_Y*0.1, UI_UNIT_X*0.8, UI_UNIT_Y*0.8, NULL, 0.0f, 0.0f, 0, 0, "Stop this job");
@@ -2349,7 +2350,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	Report *report= BKE_reports_last_displayable(reports);
 	ReportTimerInfo *rti;
 	
-	uiLayout *abs;
+	uiLayout *ui_abs;
 	uiBlock *block;
 	uiBut *but;
 	uiStyle *style= U.uistyles.first;
@@ -2363,8 +2364,8 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	
 	if (!rti || rti->widthfac==0.0 || !report) return;
 	
-	abs = uiLayoutAbsolute(layout, 0);
-	block= uiLayoutGetBlock(abs);
+	ui_abs= uiLayoutAbsolute(layout, 0);
+	block= uiLayoutGetBlock(ui_abs);
 	
 	width = BLF_width(style->widget.uifont_id, report->message);
 	width = MIN2(rti->widthfac*width, width);
@@ -2373,7 +2374,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	/* make a box around the report to make it stand out */
 	uiBlockBeginAlign(block);
 	but= uiDefBut(block, ROUNDBOX, 0, "", 0, 0, UI_UNIT_X+10, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
-	/* set the report's bg colour in but->col - ROUNDBOX feature */
+	/* set the report's bg color in but->col - ROUNDBOX feature */
 	but->col[0]= FTOCHAR(rti->col[0]);
 	but->col[1]= FTOCHAR(rti->col[1]);
 	but->col[2]= FTOCHAR(rti->col[2]);

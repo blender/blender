@@ -205,12 +205,12 @@ extern PyObject *BPyInit_blf(void);
 extern PyObject *AUD_initPython(void);
 
 static struct _inittab bpy_internal_modules[]= {
-	{"noise", BPyInit_noise},
-	{"mathutils", BPyInit_mathutils},
-//	{"mathutils.geometry", BPyInit_mathutils_geometry},
-	{"bgl", BPyInit_bgl},
-	{"blf", BPyInit_blf},
-	{"aud", AUD_initPython},
+	{(char *)"noise", BPyInit_noise},
+	{(char *)"mathutils", BPyInit_mathutils},
+//	{(char *)"mathutils.geometry", BPyInit_mathutils_geometry},
+	{(char *)"bgl", BPyInit_bgl},
+	{(char *)"blf", BPyInit_blf},
+	{(char *)"aud", AUD_initPython},
 	{NULL, NULL}
 };
 

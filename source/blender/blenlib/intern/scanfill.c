@@ -36,10 +36,10 @@
 #include "BLI_math.h"
 
 /* callbacks for errors and interrupts and some goo */
-static void (*BLI_localErrorCallBack)(char*) = NULL;
+static void (*BLI_localErrorCallBack)(const char*) = NULL;
 static int (*BLI_localInterruptCallBack)(void) = NULL;
 
-void BLI_setErrorCallBack(void (*f)(char*))
+void BLI_setErrorCallBack(void (*f)(const char *))
 {
 	BLI_localErrorCallBack = f;
 }
@@ -50,7 +50,7 @@ void BLI_setInterruptCallBack(int (*f)(void))
 }
 
 /* just flush the error to /dev/null if the error handler is missing */
-void callLocalErrorCallBack(char* msg)
+void callLocalErrorCallBack(const char* msg)
 {
 	if (BLI_localErrorCallBack) {
 		BLI_localErrorCallBack(msg);
@@ -360,7 +360,7 @@ static ScFillVert *addedgetoscanlist(EditEdge *eed, int len)
 	sc= (ScFillVert *)bsearch(&scsearch,scdata,len,
 		sizeof(ScFillVert), vergscdata);
 
-	if(sc==0) printf("Error in search edge: %p\n",eed);
+	if(sc==0) printf("Error in search edge: %p\n", (void *)eed);
 	else if(addedgetoscanvert(sc,eed)==0) return sc;
 
 	return 0;

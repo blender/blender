@@ -104,7 +104,6 @@ void POSE_OT_select_grouped(struct wmOperatorType *ot);
 
 void POSE_OT_group_add(struct wmOperatorType *ot);
 void POSE_OT_group_remove(struct wmOperatorType *ot);
-void POSE_OT_group_remove(struct wmOperatorType *ot);
 void POSE_OT_group_assign(struct wmOperatorType *ot);
 void POSE_OT_group_unassign(struct wmOperatorType *ot);
 void POSE_OT_group_select(struct wmOperatorType *ot);

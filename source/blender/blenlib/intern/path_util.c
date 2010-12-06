@@ -79,6 +79,8 @@
 /* local */
 #define UNIQUE_NAME_MAX 128
 
+extern char bprogname[];
+
 static int add_win32_extension(char *name);
 static char *blender_version_decimal(void);
 
@@ -416,8 +418,8 @@ void BLI_path_rel(char *file, const char *relfile)
 	/* also bail out if relative path is not set */
 	if (relfile[0] == 0) return;
 
-#ifdef WIN32 
-	if (strlen(relfile) > 2 && relfile[1] != ':') {
+#ifdef WIN32
+	if (BLI_strnlen(relfile, 3) > 2 && relfile[1] != ':') {
 		char* ptemp;
 		/* fix missing volume name in relative base,
 		   can happen with old recent-files.txt files */
@@ -431,7 +433,7 @@ void BLI_path_rel(char *file, const char *relfile)
 		BLI_strncpy(temp, relfile, FILE_MAXDIR + FILE_MAXFILE);
 	}
 
-	if (strlen(file) > 2) {
+	if (BLI_strnlen(file, 3) > 2) {
 		if ( temp[1] == ':' && file[1] == ':' && temp[0] != file[0] )
 			return;
 	}
@@ -894,7 +896,6 @@ static int test_env_path(char *path, const char *envvar)
 
 static int get_path_local(char *targetpath, const char *folder_name, const char *subfolder_name)
 {
-	extern char bprogname[]; /* argv[0] from creator.c */
 	char bprogdir[FILE_MAX];
 	char relfolder[FILE_MAX];
 	
@@ -963,7 +964,6 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 
 	/* first allow developer only overrides to the system path
 	 * these are only used when running blender from source */
-	extern char bprogname[]; /* argv[0] from creator.c */
 	char cwd[FILE_MAX];
 	char relfolder[FILE_MAX];
 	char bprogdir[FILE_MAX];
@@ -1181,8 +1181,9 @@ void BLI_setenv_if_new(const char *env, const char* val)
 void BLI_clean(char *path)
 {
 	if(path==0) return;
+
 #ifdef WIN32
-	if(path && strlen(path)>2) {
+	if(path && BLI_strnlen(path, 3) > 2) {
 		BLI_char_switch(path+2, '/', '\\');
 	}
 #else
@@ -1271,7 +1272,7 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 	}
 #ifdef WIN32
 	else {
-		if (strlen(dir) >= 2 && dir[1] == ':' ) {
+		if (BLI_strnlen(dir, 3) >= 2 && dir[1] == ':' ) {
 			BLI_strncpy(string, dir, 3);
 			dir += 2;
 		}
@@ -1649,10 +1650,10 @@ void BLI_where_am_i(char *fullname, const char *name)
 	char *path = NULL, *temp;
 	
 #ifdef _WIN32
-	char *separator = ";";
+	const char *separator = ";";
 	char slash = '\\';
 #else
-	char *separator = ":";
+	const char *separator = ":";
 	char slash = '/';
 #endif
 
@@ -1778,7 +1779,6 @@ void BLI_where_is_temp(char *fullname, int usertemp)
 }
 
 char *get_install_dir(void) {
-	extern char bprogname[];
 	char *tmpname = BLI_strdup(bprogname);
 	char *cut;
 

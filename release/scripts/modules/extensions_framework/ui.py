@@ -90,14 +90,6 @@ class property_group_renderer(object):
 					property_group=property_group)
 			property_group.draw_callback(context)
 	
-	@staticmethod
-	def property_reload():
-		"""Override this in sub classes to force data refresh upon scene reload
-		
-		TODO: Remove, this is not used anywhere
-		"""
-		pass
-	
 	def check_visibility(self, lookup_property, property_group):
 		"""Determine if the lookup_property should be drawn in the Panel"""
 		vt = Visibility(property_group)
@@ -110,32 +102,48 @@ class property_group_renderer(object):
 				property_group.visibility[lookup_property])
 		else:
 			return True
-			
+	
+	# tab_level = 0
+	
+	def is_real_property(self, lookup_property, property_group):
+		for prop in property_group.properties:
+			if prop['attr'] == lookup_property:
+				return prop['type'] not in ['text', 'prop_search']
+		
+		return False
+	
 	def draw_column(self, control_list_item, layout, context,
 					supercontext=None, property_group=None):
+		# self.tab_level += 1
 		"""Draw a column's worth of UI controls in this Panel"""
 		if type(control_list_item) is list:
 			draw_row = False
 			
 			found_percent = None
+			# print('\t'*self.tab_level, '--', property_group, '--')
 			for sp in control_list_item:
+				# print('\t'*self.tab_level, sp)
 				if type(sp) is float:
 					found_percent = sp
 				elif type(sp) is list:
-					for ssp in sp:
+					for ssp in [s for s in sp if self.is_real_property(s, property_group)]:
 						draw_row = draw_row or self.check_visibility(ssp,
 							property_group)
+						# print('\t'*self.tab_level, 'List: ', draw_row)
 				else:
 					draw_row = draw_row or self.check_visibility(sp,
 						property_group)
+					# print('\t'*self.tab_level, 'Single: ', draw_row)
+			# print('\t'*self.tab_level, '-->', draw_row)
+			# print('\t'*self.tab_level, '--', property_group, '--')
 			
-			if draw_row:
+			next_items = [s for s in control_list_item if type(s) in [str, list]]
+			if draw_row and len(next_items) > 0:
 				if found_percent is not None:
 					splt = layout.split(percentage=found_percent)
 				else:
 					splt = layout.row(True)
-				for sp in [s for s in control_list_item if type(s) in \
-						[str, list]]:
+				for sp in next_items:
 					col2 = splt.column()
 					self.draw_column(sp, col2, context, supercontext,
 						property_group)
@@ -242,3 +250,4 @@ class property_group_renderer(object):
 							current_property['draw'](supercontext, context)
 						
 						break
+		# self.tab_level -= 1

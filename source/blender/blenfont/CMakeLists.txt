@@ -40,6 +40,11 @@ SET(SRC
 	intern/blf_glyph.c
 	intern/blf_lang.c
 	intern/blf_util.c
+
+	BLF_api.h
+	BLF_types.h
+	intern/blf_internal.h
+	intern/blf_internal_types.h
 )
 
 IF(WITH_INTERNATIONAL)

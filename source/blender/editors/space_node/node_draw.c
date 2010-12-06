@@ -77,7 +77,7 @@ void ED_node_changed_update(ID *id, bNode *node)
 	node_tree_from_ID(id, &nodetree, &edittree, &treetype);
 
 	if(treetype==NTREE_SHADER) {
-		DAG_id_flush_update(id, 0);
+		DAG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, id);
 	}
 	else if(treetype==NTREE_COMPOSIT) {
@@ -91,7 +91,7 @@ void ED_node_changed_update(ID *id, bNode *node)
 		WM_main_add_notifier(NC_SCENE|ND_NODES, id);
 	}			
 	else if(treetype==NTREE_TEXTURE) {
-		DAG_id_flush_update(id, 0);
+		DAG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_TEXTURE|ND_NODES, id);
 	}
 }
@@ -173,7 +173,7 @@ static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 		
 		if (node->flag & NODE_SELECT) {
 			/* ui block */
-			sprintf(str, "node buttons %p", node);
+			sprintf(str, "node buttons %p", (void *)node);
 			node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
 			uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
 		}
@@ -184,7 +184,7 @@ static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 		
 		if (!(node->flag & (NODE_GROUP_EDIT|NODE_SELECT))) {
 			/* ui block */
-			sprintf(str, "node buttons %p", node);
+			sprintf(str, "node buttons %p", (void *)node);
 			node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
 			uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
 		}

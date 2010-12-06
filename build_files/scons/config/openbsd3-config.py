@@ -132,7 +132,7 @@ REL_CCFLAGS = ['-O2']
 ##
 CC = 'gcc'
 CXX = 'g++'
-C_WARN = ['-Wdeclaration-after-statement']
+C_WARN = ['-Wdeclaration-after-statement', '-Wstrict-prototypes']
 
 CC_WARN = ['-Wall']
 

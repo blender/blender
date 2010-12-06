@@ -110,15 +110,19 @@ static void rna_Cache_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	for(pid=pidlist.first; pid; pid=pid->next) {
 		if(pid->cache==cache)
 			break;
 	}
 
-	if(pid)
+	if(pid) {
+		/* Just make sure this wasn't changed. */
+		if(pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
+			cache->step = 1;
 		BKE_ptcache_update_info(pid);
+	}
 
 	BLI_freelistN(&pidlist);
 }
@@ -140,8 +144,11 @@ static void rna_Cache_toggle_disk_cache(Main *bmain, Scene *scene, PointerRNA *p
 			break;
 	}
 
-	if(pid)
+	/* smoke can only use disk cache */
+	if(pid && pid->type != PTCACHE_TYPE_SMOKE_DOMAIN)
 		BKE_ptcache_toggle_disk_cache(pid);
+	else
+		cache->flag ^= PTCACHE_DISK_CACHE;
 
 	BLI_freelistN(&pidlist);
 }
@@ -153,7 +160,6 @@ static void rna_Cache_idname_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 	PTCacheID *pid = NULL, *pid2= NULL;
 	ListBase pidlist;
 	int new_name = 1;
-	char name[80];
 
 	if(!ob)
 		return;
@@ -173,7 +179,7 @@ static void rna_Cache_idname_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 		BKE_ptcache_load_external(pid);
 
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	else {
 		for(pid=pidlist.first; pid; pid=pid->next) {
@@ -188,19 +194,13 @@ static void rna_Cache_idname_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 		if(new_name) {
 			if(pid2 && cache->flag & PTCACHE_DISK_CACHE) {
-				/* TODO: change to simple file rename */
-				strcpy(name, cache->name);
-				strcpy(cache->name, cache->prev_name);
+				char old_name[80];
+				char new_name[80];
 
-				cache->flag &= ~PTCACHE_DISK_CACHE;
+				strcpy(old_name, cache->prev_name);
+				strcpy(new_name, cache->name);
 
-				BKE_ptcache_toggle_disk_cache(pid2);
-
-				strcpy(cache->name, name);
-
-				cache->flag |= PTCACHE_DISK_CACHE;
-
-				BKE_ptcache_toggle_disk_cache(pid2);
+				BKE_ptcache_disk_cache_rename(pid2, old_name, new_name);
 			}
 
 			strcpy(cache->prev_name, cache->name);
@@ -480,7 +480,7 @@ static void rna_FieldSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 			part->pd2->tex= 0;
 		}
 
-		DAG_id_flush_update(&part->id, OB_RECALC_ALL|PSYS_RECALC_RESET);
+		DAG_id_tag_update(&part->id, OB_RECALC_ALL|PSYS_RECALC_RESET);
 		WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
 
 	}
@@ -492,7 +492,7 @@ static void rna_FieldSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 			ob->pd->tex= 0;
 		}
 
-		DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 		WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 	}
 }
@@ -522,7 +522,7 @@ static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA
 static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if(particle_id_check(ptr)) {
-		DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC_ALL|PSYS_RECALC_RESET);
+		DAG_id_tag_update((ID*)ptr->id.data, OB_RECALC_ALL|PSYS_RECALC_RESET);
 	}
 	else {
 		Object *ob= (Object*)ptr->id.data;
@@ -539,9 +539,9 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
 		DAG_scene_sort(bmain, scene);
 
 		if(ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
-			DAG_id_flush_update(&ob->id, OB_RECALC_ALL);
+			DAG_id_tag_update(&ob->id, OB_RECALC_ALL);
 		else
-			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 		WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 	}
@@ -573,7 +573,7 @@ static char *rna_FieldSettings_path(PointerRNA *ptr)
 
 static void rna_EffectorWeight_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DAG_id_tag_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
 }
@@ -582,7 +582,7 @@ static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *scene, Poin
 {
 	DAG_scene_sort(bmain, scene);
 
-	DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DAG_id_tag_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
 }
@@ -649,7 +649,7 @@ static void rna_CollisionSettings_update(Main *bmain, Scene *scene, PointerRNA *
 {
 	Object *ob= (Object*)ptr->id.data;
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_ALL);
+	DAG_id_tag_update(&ob->id, OB_RECALC_ALL);
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 }
 
@@ -657,7 +657,7 @@ static void rna_softbody_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 

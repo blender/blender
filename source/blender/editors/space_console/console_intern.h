@@ -32,10 +32,10 @@ struct ReportList;
 struct bContext;
 
 /* console_draw.c */
-void console_textview_main(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports);
-int console_textview_height(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports); /* needed to calculate the scrollbar */
-void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports, int mouse_y); /* needed for selection */
-int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int mval[2]);
+void console_textview_main(struct SpaceConsole *sc, struct ARegion *ar);
+int console_textview_height(struct SpaceConsole *sc, struct ARegion *ar); /* needed to calculate the scrollbar */
+void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, int mouse_y); /* needed for selection */
+int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, int mval[2]);
 
 void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_dummy);
 void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dummy);

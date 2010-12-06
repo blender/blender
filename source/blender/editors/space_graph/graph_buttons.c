@@ -620,7 +620,6 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			
 		/* value of variable */
 		if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
-			uiLayout *row;
 			char valBuf[32];
 			
 			box= uiLayoutBox(col);

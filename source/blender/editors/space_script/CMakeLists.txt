@@ -34,6 +34,8 @@ SET(SRC
 	script_header.c
 	script_ops.c
 	space_script.c
+
+	script_intern.h
 )
 
 IF(WITH_PYTHON)

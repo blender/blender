@@ -102,8 +102,8 @@ static void waitcursor(int UNUSED(val)) {}
 static int pupmenu(const char *UNUSED(msg)) {return 0;}
 
 /* port over here */
-static bContext *C;
-static void error_libdata() {}
+static bContext *evil_C;
+static void error_libdata(void) {}
 
 
 /* find the correct active object per context
@@ -371,7 +371,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		BKE_ptcache_object_reset(scene, obedit, PTCACHE_RESET_OUTDATED);
 
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
-		DAG_id_flush_update(&obedit->id, OB_RECALC_OB|OB_RECALC_DATA);
+		DAG_id_tag_update(&obedit->id, OB_RECALC_OB|OB_RECALC_DATA);
 	
 		if(flag & EM_DO_UNDO)
 			ED_undo_push(C, "Editmode");
@@ -460,7 +460,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit= ob;
 		ED_armature_to_edit(ob);
 		/* to ensure all goes in restposition and without striding */
-		DAG_id_flush_update(&ob->id, OB_RECALC_ALL); // XXX: should this be OB_RECALC_DATA?
+		DAG_id_tag_update(&ob->id, OB_RECALC_ALL); // XXX: should this be OB_RECALC_DATA?
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_ARMATURE, scene);
 	}
@@ -494,7 +494,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	}
 	
 	if(ok) {
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	else {
 		scene->obedit= NULL; // XXX for context
@@ -777,7 +777,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 					}
 				}
 			}
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 		else if(ob->mode & OB_MODE_VERTEX_PAINT) {
 			Mesh *me= get_mesh(ob);
@@ -789,7 +789,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 				
 // XXX				do_shared_vertexcol(me);
 				
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 		}
 		else if(ob->mode & OB_MODE_WEIGHT_PAINT) {
@@ -836,7 +836,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 				break;
 			}
 			
-			DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 			
 			if(nr>0) waitcursor(0);
 #endif
@@ -1052,7 +1052,7 @@ static void copymenu_modifiers(Main *bmain, Scene *scene, View3D *v3d, Object *o
 	Base *base;
 	int i, event;
 	char str[512];
-	char *errorstr= NULL;
+	const char *errorstr= NULL;
 
 	strcpy(str, "Copy Modifiers %t");
 
@@ -1078,13 +1078,13 @@ static void copymenu_modifiers(Main *bmain, Scene *scene, View3D *v3d, Object *o
 	for (base= FIRSTBASE; base; base= base->next) {
 		if(base->object != ob) {
 			if(TESTBASELIB(v3d, base)) {
-				ModifierData *md;
 
 				base->object->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 
 				if (base->object->type==ob->type) {
 					/* copy all */
 					if (event==NUM_MODIFIER_TYPES) {
+						ModifierData *md;
 						object_free_modifiers(base->object);
 
 						for (md=ob->modifiers.first; md; md=md->next) {
@@ -1621,7 +1621,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 		if(ob->type==OB_MESH) {
 			mesh_set_smooth_flag(ob, !clear);
 
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 
 			done= 1;
@@ -1634,7 +1634,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 				else nu->flag &= ~ME_SMOOTH;
 			}
 
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 
 			done= 1;
@@ -1726,7 +1726,7 @@ void image_aspect(Scene *scene, View3D *v3d)
 								else ob->size[1]= ob->size[0]*y/x;
 								
 								done= 1;
-								DAG_id_flush_update(&ob->id, OB_RECALC_OB);								
+								DAG_id_tag_update(&ob->id, OB_RECALC_OB);								
 							}
 						}
 						if(done) break;
@@ -1805,7 +1805,7 @@ void ofs_timeoffs(Scene *scene, View3D *v3d)
 // XXX	if(fbutton(&offset, -10000.0f, 10000.0f, 10, 10, "Offset")==0) return;
 
 	/* make array of all bases, xco yco (screen) */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN(evil_C, Object*, ob, selected_editable_objects) {
 		ob->sf += offset;
 		if (ob->sf < -MAXFRAMEF)		ob->sf = -MAXFRAMEF;
 		else if (ob->sf > MAXFRAMEF)	ob->sf = MAXFRAMEF;
@@ -1818,17 +1818,17 @@ void ofs_timeoffs(Scene *scene, View3D *v3d)
 void rand_timeoffs(Scene *scene, View3D *v3d)
 {
 	Base *base;
-	float rand=0.0f;
+	float rand_ofs=0.0f;
 
 	if(BASACT==0 || v3d==NULL) return;
 	
-// XXX	if(fbutton(&rand, 0.0f, 10000.0f, 10, 10, "Randomize")==0) return;
+// XXX	if(fbutton(&rand_ofs, 0.0f, 10000.0f, 10, 10, "Randomize")==0) return;
 	
-	rand *= 2;
+	rand_ofs *= 2;
 	
 	for(base= FIRSTBASE; base; base= base->next) {
 		if(TESTBASELIB(v3d, base)) {
-			base->object->sf += (BLI_drand()-0.5) * rand;
+			base->object->sf += (BLI_drand()-0.5) * rand_ofs;
 			if (base->object->sf < -MAXFRAMEF)		base->object->sf = -MAXFRAMEF;
 			else if (base->object->sf > MAXFRAMEF)	base->object->sf = MAXFRAMEF;
 		}

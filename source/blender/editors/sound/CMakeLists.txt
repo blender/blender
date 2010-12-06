@@ -32,6 +32,8 @@ SET(INC
 
 SET(SRC
 	sound_ops.c
+
+	sound_intern.h
 )
 
 BLENDERLIB(bf_editor_sound "${SRC}" "${INC}")

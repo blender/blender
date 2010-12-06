@@ -17,3 +17,7 @@ bpy.context.scene.render.ffmpeg_minrate = 1150
 bpy.context.scene.render.ffmpeg_buffersize = 40*8
 bpy.context.scene.render.ffmpeg_packetsize = 2324
 bpy.context.scene.render.ffmpeg_muxrate = 2352 * 75 * 8
+
+bpy.context.scene.render.ffmpeg_audio_bitrate = 224
+bpy.context.scene.render.ffmpeg_audio_mixrate = 44100
+bpy.context.scene.render.ffmpeg_audio_codec = "MP2"

@@ -169,7 +169,7 @@ CXXFLAGS = ['-pipe', '-mwindows', '-funsigned-char', '-fno-strict-aliasing' ]
 REL_CFLAGS = [ '-O2' ]
 REL_CCFLAGS = [ '-O2' ]
 
-C_WARN = [ '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
+C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wstrict-prototypes']
 
 CC_WARN = [ '-Wall' ]
 

@@ -76,13 +76,13 @@ typedef enum GPUDataSource {
 	GPU_SOURCE_ATTRIB
 } GPUDataSource;
 
-static char* GPU_DATATYPE_STR[17] = {"", "float", "vec2", "vec3", "vec4",
+static const char* GPU_DATATYPE_STR[17] = {"", "float", "vec2", "vec3", "vec4",
 	0, 0, 0, 0, "mat3", 0, 0, 0, 0, 0, 0, "mat4"};
 
 struct GPUNode {
 	struct GPUNode *next, *prev;
 
-	char *name;
+	const char *name;
 	int tag;
 
 	ListBase inputs;
@@ -93,7 +93,7 @@ struct GPUNodeLink {
 	GPUNodeStack *socket;
 
 	int attribtype;
-	char *attribname;
+	const char *attribname;
 
 	int image;
 
@@ -188,7 +188,7 @@ static GHash *FUNCTION_HASH= NULL;
 /*static char *FUNCTION_PROTOTYPES= NULL;
 static GPUShader *FUNCTION_LIB= NULL;*/
 
-static int gpu_str_prefix(char *str, char *prefix)
+static int gpu_str_prefix(const char *str, const char *prefix)
 {
 	while(*str && *prefix) {
 		if(*str != *prefix)
@@ -346,7 +346,7 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 }
 #endif
 
-GPUFunction *GPU_lookup_function(char *name)
+GPUFunction *GPU_lookup_function(const char *name)
 {
 	if(!FUNCTION_HASH) {
 		FUNCTION_HASH = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "GPU_lookup_function gh");
@@ -355,7 +355,7 @@ GPUFunction *GPU_lookup_function(char *name)
 		FUNCTION_LIB = GPU_shader_create_lib(datatoc_gpu_shader_material_glsl);*/
 	}
 
-	return (GPUFunction*)BLI_ghash_lookup(FUNCTION_HASH, name);
+	return (GPUFunction*)BLI_ghash_lookup(FUNCTION_HASH, (void *)name);
 }
 
 void GPU_extensions_exit(void)
@@ -381,7 +381,7 @@ void GPU_extensions_exit(void)
 
 /* GLSL code generation */
 
-static void codegen_convert_datatype(DynStr *ds, int from, int to, char *tmp, int id)
+static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *tmp, int id)
 {
 	char name[1024];
 
@@ -449,7 +449,7 @@ static int codegen_input_has_texture(GPUInput *input)
 		return input->tex != 0;
 }
 
-char *GPU_builtin_name(GPUBuiltin builtin)
+const char *GPU_builtin_name(GPUBuiltin builtin)
 {
 	if(builtin == GPU_VIEW_MATRIX)
 		return "unfviewmat";
@@ -554,7 +554,7 @@ static void codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
 {
 	GPUNode *node;
 	GPUInput *input;
-	char *name;
+	const char *name;
 	int builtins = 0;
 
 	/* print uniforms */
@@ -907,11 +907,11 @@ void GPU_node_link_free(GPUNodeLink *link)
 
 /* Node Functions */
 
-GPUNode *GPU_node_begin(char *name)
+GPUNode *GPU_node_begin(const char *name)
 {
 	GPUNode *node = MEM_callocN(sizeof(GPUNode), "GPUNode");
 
-	node->name = name;
+	node->name= name;
 
 	return node;
 }
@@ -925,7 +925,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, int type)
 {
 	GPUInput *input;
 	GPUNode *outnode;
-	char *name;
+	const char *name;
 
 	if(link->output) {
 		outnode = link->output->node;
@@ -1036,7 +1036,7 @@ static void gpu_node_input_socket(GPUNode *node, GPUNodeStack *sock)
 	}
 }
 
-void GPU_node_output(GPUNode *node, int type, char *UNUSED(name), GPUNodeLink **link)
+static void GPU_node_output(GPUNode *node, int type, const char *UNUSED(name), GPUNodeLink **link)
 {
 	GPUOutput *output = MEM_callocN(sizeof(GPUOutput), "GPUOutput");
 
@@ -1149,7 +1149,7 @@ void gpu_nodes_get_builtin_flag(ListBase *nodes, int *builtin)
 
 /* varargs linking  */
 
-GPUNodeLink *GPU_attribute(int type, char *name)
+GPUNodeLink *GPU_attribute(int type, const char *name)
 {
 	GPUNodeLink *link = GPU_node_link_create(0);
 
@@ -1230,7 +1230,7 @@ GPUNodeLink *GPU_builtin(GPUBuiltin builtin)
 	return link;
 }
 
-int GPU_link(GPUMaterial *mat, char *name, ...)
+int GPU_link(GPUMaterial *mat, const char *name, ...)
 {
 	GPUNode *node;
 	GPUFunction *function;
@@ -1266,7 +1266,7 @@ int GPU_link(GPUMaterial *mat, char *name, ...)
 	return 1;
 }
 
-int GPU_stack_link(GPUMaterial *mat, char *name, GPUNodeStack *in, GPUNodeStack *out, ...)
+int GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...)
 {
 	GPUNode *node;
 	GPUFunction *function;
@@ -1333,7 +1333,7 @@ int GPU_link_changed(GPUNodeLink *link)
 {
 	GPUNode *node;
 	GPUInput *input;
-	char *name;
+	const char *name;
 
 	if(link->output) {
 		node = link->output->node;

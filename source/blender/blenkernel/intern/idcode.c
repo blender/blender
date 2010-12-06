@@ -35,7 +35,7 @@
 
 typedef struct {
 	unsigned short code;
-	char *name, *plural;
+	const char *name, *plural;
 	
 	int flags;
 #define IDTYPE_FLAGS_ISLINKABLE	(1<<0)

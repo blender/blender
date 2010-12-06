@@ -3964,7 +3964,7 @@ static int project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, int *
 
 /* Imagepaint Partial Redraw & Dirty Region */
 
-static void imapaint_clear_partial_redraw()
+static void imapaint_clear_partial_redraw(void)
 {
 	memset(&imapaintpartial, 0, sizeof(imapaintpartial));
 }
@@ -5329,7 +5329,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		toggle_paint_cursor(C, 1);
 	}
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_SCENE|ND_MODE, scene);
 
 	return OPERATOR_FINISHED;

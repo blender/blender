@@ -100,7 +100,7 @@ static void tend ( void )
 {
 	QueryPerformanceCounter ( &liCurrentTime );
 }
-static double tval()
+static double tval( void )
 {
 	return ((double)( (liCurrentTime.QuadPart - liStartTime.QuadPart)* (double)1000.0/(double)liFrequency.QuadPart ));
 }

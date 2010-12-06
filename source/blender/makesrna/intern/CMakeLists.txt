@@ -44,7 +44,8 @@ SET(SRC
 	${DEFSRC}
 	${APISRC}
 	../../../../intern/guardedalloc/intern/mallocn.c
-	../../../../intern/guardedalloc/intern/mmap_win.c)
+	../../../../intern/guardedalloc/intern/mmap_win.c
+)
 
 INCLUDE_DIRECTORIES(
 	../../../../intern/audaspace/intern
@@ -63,7 +64,8 @@ INCLUDE_DIRECTORIES(
 	../../render/extern/include
 	../../../../extern/glew/include
 	../../freestyle
-	. )
+	.
+)
 
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 
@@ -99,15 +101,15 @@ IF(WITH_IMAGE_HDR)
 	ADD_DEFINITIONS(-DWITH_HDR)
 ENDIF(WITH_IMAGE_HDR)
 
-IF(WITH_QUICKTIME)
+IF(WITH_CODEC_QUICKTIME)
 	LIST(APPEND INC ../../quicktime)
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
+ENDIF(WITH_CODEC_QUICKTIME)
 
-IF(WITH_FFMPEG)
+IF(WITH_CODEC_FFMPEG)
 	LIST(APPEND INC ${FFMPEG_INC})
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_FFMPEG)
+ENDIF(WITH_CODEC_FFMPEG)
 
 IF(WITH_LCMS)
 	LIST(APPEND INC ${LCMS_INCLUDE_DIR})
@@ -151,5 +153,18 @@ ADD_CUSTOM_COMMAND(
 )
 
 # Build bf_rna
-SET(SRC rna_access.c ${GENSRC})
+SET(SRC
+	rna_access.c
+	${GENSRC}
+
+	../RNA_access.h
+	../RNA_define.h
+	../RNA_enum_types.h
+	../RNA_types.h
+
+	rna_internal.h
+	rna_internal_types.h
+	rna_nodetree_types.h
+)
+
 BLENDERLIB(bf_rna "${SRC}" "${INC}")

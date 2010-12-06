@@ -87,7 +87,7 @@ static void special_transvert_update(Object *obedit)
 	
 	if(obedit) {
 		
-		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 		
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
@@ -522,7 +522,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 				
 				/* auto-keyframing */
 // XXX				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;
@@ -646,7 +646,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 				
 				/* auto-keyframing */
 // XXX				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;
@@ -783,16 +783,16 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 		transvmain= NULL;
 	}
 	else {
-		Object *ob= CTX_data_active_object(C);
+		Object *obact= CTX_data_active_object(C);
 		
-		if(ob && (ob->mode & OB_MODE_POSE)) {
-			bArmature *arm= ob->data;
+		if(obact && (obact->mode & OB_MODE_POSE)) {
+			bArmature *arm= obact->data;
 			bPoseChannel *pchan;
-			for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+			for (pchan = obact->pose->chanbase.first; pchan; pchan=pchan->next) {
 				if(arm->layer & pchan->bone->layer) {
 					if(pchan->bone->flag & BONE_SELECTED) {
 						VECCOPY(vec, pchan->pose_head);
-						mul_m4_v3(ob->obmat, vec);
+						mul_m4_v3(obact->obmat, vec);
 						add_v3_v3(centroid, vec);
 						DO_MINMAX(vec, min, max);
 						count++;

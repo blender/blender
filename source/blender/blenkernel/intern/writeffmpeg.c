@@ -69,7 +69,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-extern void do_init_ffmpeg();
+extern void do_init_ffmpeg(void);
 
 static int ffmpeg_type = 0;
 static int ffmpeg_codec = CODEC_ID_MPEG4;

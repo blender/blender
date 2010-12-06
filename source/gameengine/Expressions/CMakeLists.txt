@@ -54,11 +54,28 @@ SET(SRC
 	StringValue.cpp
 	Value.cpp
 	VectorValue.cpp
-)
 
-IF(WITH_PYTHON)
-	LIST(APPEND INC ${PYTHON_INC})
-	ADD_DEFINITIONS(-DWITH_PYTHON)
-ENDIF(WITH_PYTHON)
+	BoolValue.h
+	ConstExpr.h
+	EXP_C-Api.h
+	EmptyValue.h
+	ErrorValue.h
+	Expression.h
+	FloatValue.h
+	IdentifierExpr.h
+	IfExpr.h
+	InputParser.h
+	IntValue.h
+	KX_HashedPtr.h
+	KX_Python.h
+	ListValue.h
+	Operator1Expr.h
+	Operator2Expr.h
+	PyObjectPlus.h
+	StringValue.h
+	Value.h
+	VectorValue.h
+	VoidValue.h
+)
 
 BLENDERLIB(ge_logic_expressions "${SRC}" "${INC}")

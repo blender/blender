@@ -199,7 +199,7 @@ static void rna_sortlist(ListBase *listbase, int(*cmp)(const void*, const void*)
 
 static void rna_print_c_string(FILE *f, const char *str)
 {
-	static char *escape[] = {"\''", "\"\"", "\??", "\\\\","\aa", "\bb", "\ff", "\nn", "\rr", "\tt", "\vv", NULL};
+	static const char *escape[] = {"\''", "\"\"", "\??", "\\\\","\aa", "\bb", "\ff", "\nn", "\rr", "\tt", "\vv", NULL};
 	int i, j;
 
 	if(!str) {
@@ -918,7 +918,7 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 		fprintf(f, "			}\n");
 		fprintf(f, "		}\n");
 		fprintf(f, "		else {\n");
-		fprintf(f, "			while(index-- > 0)\n");
+		fprintf(f, "			while(index-- > 0 && internal->link)\n");
 		fprintf(f, "				internal->link= internal->link->next;\n");
 		fprintf(f, "		}\n");
 	}
@@ -1402,7 +1402,8 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	FunctionRNA *func;
 	PropertyDefRNA *dparm;
 	PropertyType type;
-	char *funcname, *ptrstr, *valstr;
+	const char *funcname, *valstr;
+	const char *ptrstr;
 	int flag, pout, cptr, first;
 
 	srna= dsrna->srna;
@@ -1483,7 +1484,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		if(dparm->prop==func->c_ret)
 			fprintf(f, "\t_retdata= _data;\n");
 		else  {
-			char *data_str;
+			const char *data_str;
 			if (cptr || (flag & PROP_DYNAMIC)) {
 				ptrstr= "**";
 				valstr= "*";
@@ -1808,7 +1809,7 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 	StructDefRNA *dsrna;
 	PropertyType type;
 	int flag, pout, cptr, first;
-	char *ptrstr;
+	const char *ptrstr;
 
 	dsrna= rna_find_struct_def(srna);
 	func= dfunc->func;
@@ -2254,8 +2255,8 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 }
 
 typedef struct RNAProcessItem {
-	char *filename;
-	char *api_filename;
+	const char *filename;
+	const char *api_filename;
 	void (*define)(BlenderRNA *brna);
 } RNAProcessItem;
 
@@ -2318,7 +2319,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_world.c", NULL, RNA_def_world},	
 	{NULL, NULL}};
 
-static void rna_generate(BlenderRNA *brna, FILE *f, char *filename, char *api_filename)
+static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const char *api_filename)
 {
 	StructDefRNA *ds;
 	PropertyDefRNA *dp;

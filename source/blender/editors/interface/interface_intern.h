@@ -303,7 +303,7 @@ struct uiBlock {
 	short auto_open;
 	double auto_open_last;
 
-	char *lockstr;
+	const char *lockstr;
 
 	char lock;
 	char active;					// to keep blocks while drawing and free them afterwards
@@ -421,6 +421,7 @@ void ui_searchbox_autocomplete(struct bContext *C, struct ARegion *ar, uiBut *bu
 void ui_searchbox_event(struct bContext *C, struct ARegion *ar, uiBut *but, struct wmEvent *event);
 void ui_searchbox_apply(uiBut *but, struct ARegion *ar);
 void ui_searchbox_free(struct bContext *C, struct ARegion *ar);
+void ui_but_search_test(uiBut *but);
 
 typedef uiBlock* (*uiBlockHandleCreateFunc)(struct bContext *C, struct uiPopupBlockHandle *handle, void *arg1);
 
@@ -435,9 +436,6 @@ void ui_set_name_menu(uiBut *but, int value);
 int ui_step_name_menu(uiBut *but, int step);
 
 struct AutoComplete;
-struct AutoComplete *autocomplete_begin(char *startname, int maxlen);
-void autocomplete_do_name(struct AutoComplete *autocpl, const char *name);
-void autocomplete_end(struct AutoComplete *autocpl, char *autoname);
 
 /* interface_panel.c */
 extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);

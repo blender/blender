@@ -42,8 +42,6 @@ class SEQUENCER_HT_header(bpy.types.Header):
             sub = row.row(align=True)
             sub.menu("SEQUENCER_MT_view")
 
-            row.separator()
-
             if (st.view_type == 'SEQUENCER') or (st.view_type == 'SEQUENCER_PREVIEW'):
                 sub.menu("SEQUENCER_MT_select")
                 sub.menu("SEQUENCER_MT_marker")
@@ -202,7 +200,12 @@ class SEQUENCER_MT_add(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator_menu_enum("sequencer.scene_strip_add", "scene", text="Scene...")
+        if len(bpy.data.scenes) > 10:
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("sequencer.scene_strip_add", text="Scene...")
+        else:
+            layout.operator_menu_enum("sequencer.scene_strip_add", "scene", text="Scene...")
+
         layout.operator("sequencer.movie_strip_add", text="Movie")
         layout.operator("sequencer.image_strip_add", text="Image")
         layout.operator("sequencer.sound_strip_add", text="Sound")
@@ -384,8 +387,16 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
 
         col.label(text="Frame Offset %d:%d" % (strip.frame_offset_start, strip.frame_offset_end))
         col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
-        if strip.type in ('MOVIE', 'IMAGE'):
-            col.label(text="Orig Dim: %dx%d" % (strip.orig_width, strip.orig_height))
+
+        elem = False
+        
+        if strip.type == 'IMAGE':
+            elem = strip.getStripElem(frame_current)
+        elif strip.type == 'MOVIE':
+            elem = strip.elements[0]
+
+        if elem and elem.orig_width > 0 and elem.orig_height > 0:
+            col.label(text="Orig Dim: %dx%d" % (elem.orig_width, elem.orig_height))
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):

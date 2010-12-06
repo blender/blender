@@ -49,6 +49,8 @@ SET(SRC
 	object_shapekey.c
 	object_transform.c
 	object_vgroup.c
+
+	object_intern.h
 )
 
 IF(WITH_PYTHON)

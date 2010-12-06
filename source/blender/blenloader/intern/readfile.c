@@ -227,7 +227,7 @@ typedef struct OldNewMap {
 
 
 /* local prototypes */
-static void *read_struct(FileData *fd, BHead *bh, char *blockname);
+static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
 
 
 static OldNewMap *oldnewmap_new(void) 
@@ -1264,7 +1264,7 @@ static void switch_endian_structs(struct SDNA *filesdna, BHead *bhead)
 	}
 }
 
-static void *read_struct(FileData *fd, BHead *bh, char *blockname)
+static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
 {
 	void *temp= NULL;
 
@@ -2932,9 +2932,24 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 			if(pm->index_array)
 				pm->index_array = newdataadr(fd, pm->index_array);
 			
+			/* writedata saved array of ints */
+			if(pm->index_array && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
+				for(i=0; i<pm->totpoint; i++)
+					SWITCH_INT(pm->index_array[i]);
+			}
+			
 			for(i=0; i<BPHYS_TOT_DATA; i++) {
-				if(pm->data[i] && pm->data_types & (1<<i))
-					pm->data[i] = newdataadr(fd, pm->data[i]);
+				pm->data[i] = newdataadr(fd, pm->data[i]);
+				
+				/* XXX the cache saves structs and data without DNA */
+				if(pm->data[i] && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
+					int j, tot= (BKE_ptcache_data_size (i) * pm->totpoint)/4; /* data_size returns bytes */
+					int *poin= pm->data[i];
+					
+					/* XXX fails for boid struct, it has 2 shorts */
+					for(j= 0; j<tot; j++)
+						SWITCH_INT(poin[j]);
+				}
 			}
 		}
 	}
@@ -2948,14 +2963,19 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 	cache->cached_frames= NULL;
 }
 
-static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointCache **ocache)
+static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointCache **ocache, int force_disk)
 {
-	PointCache *cache;
+	PointCache *cache= NULL;
 
 	if(ptcaches->first) {
 		link_list(fd, ptcaches);
-		for(cache=ptcaches->first; cache; cache=cache->next)
+		for(cache=ptcaches->first; cache; cache=cache->next) {
 			direct_link_pointcache(fd, cache);
+			if(force_disk) {
+				cache->flag |= PTCACHE_DISK_CACHE;
+				cache->step = 1;
+			}
+		}
 
 		*ocache = newdataadr(fd, *ocache);
 	}
@@ -2963,6 +2983,10 @@ static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointC
 		/* old "single" caches need to be linked too */
 		*ocache = newdataadr(fd, *ocache);
 		direct_link_pointcache(fd, *ocache);
+		if(force_disk) {
+			(*ocache)->flag |= PTCACHE_DISK_CACHE;
+			cache->step = 1;
+		}
 
 		ptcaches->first = ptcaches->last = *ocache;
 	}
@@ -3151,7 +3175,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->pdd = NULL;
 		psys->renderdata = NULL;
 		
-		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache);
+		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache, 0);
 
 		if(psys->clmd) {
 			psys->clmd = newdataadr(fd, psys->clmd);
@@ -3758,7 +3782,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			clmd->sim_parms= newdataadr(fd, clmd->sim_parms);
 			clmd->coll_parms= newdataadr(fd, clmd->coll_parms);
 
-			direct_link_pointcache_list(fd, &clmd->ptcaches, &clmd->point_cache);
+			direct_link_pointcache_list(fd, &clmd->ptcaches, &clmd->point_cache, 0);
 			
 			if(clmd->sim_parms) {
 				if(clmd->sim_parms->presets > 10)
@@ -3800,8 +3824,15 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				if(!smd->domain->effector_weights)
 					smd->domain->effector_weights = BKE_add_effector_weights(NULL);
 
-				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[0]), &(smd->domain->point_cache[0]));
-				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[1]), &(smd->domain->point_cache[1]));
+				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[0]), &(smd->domain->point_cache[0]), 1);
+
+				/* Smoke uses only one cache from now on, so store pointer convert */
+				if(smd->domain->ptcaches[1].first || smd->domain->point_cache[1]) {
+					printf("High resolution smoke cache not available due to pointcache update. Please reset the simulation.\n");
+					smd->domain->ptcaches[1].first = NULL;
+					smd->domain->ptcaches[1].last = NULL;
+					smd->domain->point_cache[1] = NULL;
+				}
 			}
 			else if(smd->type==MOD_SMOKE_TYPE_FLOW)
 			{
@@ -4035,7 +4066,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		if(!sb->effector_weights)
 			sb->effector_weights = BKE_add_effector_weights(NULL);
 
-		direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache);
+		direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache, 0);
 	}
 	ob->bsoft= newdataadr(fd, ob->bsoft);
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
@@ -4865,10 +4896,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				else if(sl->spacetype==SPACE_FILE) {
 					
 					SpaceFile *sfile= (SpaceFile *)sl;
-					sfile->files= NULL;
-					sfile->folders_prev= NULL;
-					sfile->folders_next= NULL;
-					sfile->params= NULL;
 					sfile->op= NULL;
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
@@ -5529,7 +5556,7 @@ static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
 /* ************** GENERAL & MAIN ******************** */
 
 
-static char *dataname(short id_code)
+static const char *dataname(short id_code)
 {
 	
 	switch( id_code ) {
@@ -5565,7 +5592,7 @@ static char *dataname(short id_code)
 	
 }
 
-static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, char *allocname)
+static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *allocname)
 {
 	bhead = blo_nextbhead(fd, bhead);
 
@@ -5601,7 +5628,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 
 	ID *id;
 	ListBase *lb;
-	char *allocname;
+	const char *allocname;
 	
 	/* read libblock */
 	id = read_struct(fd, bhead, "lib block");
@@ -5628,6 +5655,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	if(id->flag & LIB_FAKEUSER) id->us= 1;
 	else id->us= 0;
 	id->icon_id = 0;
+	id->flag &= ~LIB_ID_RECALC;
 
 	/* this case cannot be direct_linked: it's just the ID part */
 	if(bhead->code==ID_ID) {
@@ -6532,7 +6560,7 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 	}
 }
 
-static void versions_gpencil_add_main(ListBase *lb, ID *id, char *name)
+static void versions_gpencil_add_main(ListBase *lb, ID *id, const char *name)
 {
 	
 	BLI_addtail(lb, id);
@@ -9614,7 +9642,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for(act= ob->actuators.first; act; act= act->next) {
 				if (act->type == ACT_MESSAGE) {
 					bMessageActuator *msgAct = (bMessageActuator *) act->data;
-					if (strlen(msgAct->toPropName) > 2) {
+					if (BLI_strnlen(msgAct->toPropName, 3) > 2) {
 						/* strip first 2 chars, would have only worked if these were OB anyway */
 						memmove( msgAct->toPropName, msgAct->toPropName+2, sizeof(msgAct->toPropName)-2 );
 					} else {
@@ -11605,7 +11633,11 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					 * lib_indirect.blend but lib.blend does too, linking in a Scene or Group from lib.blend can result in an
 					 * empty without the dupli group referenced. Once you save and reload the group would appier. - Campbell */
 					/* This crashes files, must look further into it */
-					/*oldnewmap_insert(fd->libmap, bhead->old, id, 1);*/
+					
+					/* Update: the issue is that in file reading, the oldnewmap is OK, but for existing data, it has to be
+					   inserted in the map to be found! */
+					if(id->flag & LIB_PRE_EXISTING)
+						oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 					
 					change_idid_adr_fd(fd, bhead->old, id);
 					// commented because this can print way too much

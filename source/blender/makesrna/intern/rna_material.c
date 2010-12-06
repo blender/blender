@@ -67,7 +67,7 @@ static void rna_Material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
-	DAG_id_flush_update(&ma->id, 0);
+	DAG_id_tag_update(&ma->id, 0);
 	if(scene->gm.matmode == GAME_MAT_GLSL)
 		WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
 	else
@@ -78,7 +78,7 @@ static void rna_Material_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
-	DAG_id_flush_update(&ma->id, 0);
+	DAG_id_tag_update(&ma->id, 0);
 	WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
 }
 
@@ -1121,7 +1121,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "reflection_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "reflection_col");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Reflection Color", "Colour of light scattered out of the volume (does not affect transmission)");
+	RNA_def_property_ui_text(prop, "Reflection Color", "Color of light scattered out of the volume (does not affect transmission)");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 	
 	prop= RNA_def_property(srna, "reflection", PROP_FLOAT, PROP_NONE);

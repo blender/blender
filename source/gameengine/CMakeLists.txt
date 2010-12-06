@@ -24,6 +24,12 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+# there are too many inter-includes so best define here
+IF(WITH_PYTHON)
+	INCLUDE_DIRECTORIES(${PYTHON_INC})
+	ADD_DEFINITIONS(-DWITH_PYTHON)
+ENDIF(WITH_PYTHON)
+
 ADD_SUBDIRECTORY(BlenderRoutines)
 ADD_SUBDIRECTORY(Converter)
 ADD_SUBDIRECTORY(Expressions)

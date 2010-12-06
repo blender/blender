@@ -36,6 +36,8 @@ SET(INC
 
 SET(SRC
 	intern/BLO_readblenfile.c
+
+	BLO_readblenfile.h
 )
 
 BLENDERLIB(bf_readblenfile "${SRC}" "${INC}")

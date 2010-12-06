@@ -593,7 +593,7 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 	ParticleSystemModifierData *psmd = NULL;
 	ParticleEditSettings *pset= PE_settings(data->scene);
 	POINT_P; KEY_K;
-	float mat[4][4], imat[4][4];
+	float mat[4][4]= MAT4_UNITY, imat[4][4]= MAT4_UNITY;
 
 	if(edit->psys)
 		psmd= psys_get_modifier(data->ob, edit->psys);
@@ -601,9 +601,6 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 	/* all is selected in path mode */
 	if(pset->selectmode==SCE_SELECT_PATH)
 		selected= 0;
-
-	unit_m4(imat);
-	unit_m4(mat);
 
 	LOOP_VISIBLE_POINTS {
 		if(pset->selectmode==SCE_SELECT_END) {
@@ -1605,7 +1602,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, s
 	ParticleSystem *psys = edit->psys;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 	POINT_P; KEY_K;
-	float co[3], mat[4][4];
+	float co[3], mat[4][4]= MAT4_UNITY;
 	short vertco[2];
 
 	PEData data;
@@ -1618,8 +1615,6 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, s
 
 	/* only for depths */
 	PE_set_view3d_data(C, &data);
-
-	unit_m4(mat);
 
 	LOOP_VISIBLE_POINTS {
 		if(edit->psys && !(psys->flag & PSYS_GLOBAL_HAIR))
@@ -2398,7 +2393,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 
 	BKE_reportf(op->reports, RPT_INFO, "Remove %d double particles.", totremoved);
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 
 	return OPERATOR_FINISHED;
@@ -2448,7 +2443,7 @@ static int weight_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 
 	return OPERATOR_FINISHED;
@@ -2625,7 +2620,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		recalc_lengths(data.edit);
 	}
 
-	DAG_id_flush_update(&data.ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&data.ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -2786,7 +2781,7 @@ static int mirror_exec(bContext *C, wmOperator *UNUSED(op))
 
 	update_world_cos(ob, edit);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -3250,8 +3245,8 @@ static int brush_add(PEData *data, short number)
 
 			if(tree) {
 				ParticleData *ppa;
-				HairKey *hkey;
-				ParticleKey key[3];
+				HairKey *thkey;
+				ParticleKey key3[3];
 				KDTreeNearest ptn[3];
 				int w, maxw;
 				float maxd, mind, dd, totw=0.0, weight[3];
@@ -3277,36 +3272,36 @@ static int brush_add(PEData *data, short number)
 				ppa= psys->particles+ptn[0].index;
 
 				for(k=0; k<pset->totaddkey; k++) {
-					hkey= (HairKey*)pa->hair + k;
-					hkey->time= pa->time + k * framestep;
+					thkey= (HairKey*)pa->hair + k;
+					thkey->time= pa->time + k * framestep;
 
-					key[0].time= hkey->time/ 100.0f;
-					psys_get_particle_on_path(&sim, ptn[0].index, key, 0);
-					mul_v3_fl(key[0].co, weight[0]);
+					key3[0].time= thkey->time/ 100.0f;
+					psys_get_particle_on_path(&sim, ptn[0].index, key3, 0);
+					mul_v3_fl(key3[0].co, weight[0]);
 					
 					/* TODO: interpolatint the weight would be nicer */
-					hkey->weight= (ppa->hair+MIN2(k, ppa->totkey-1))->weight;
+					thkey->weight= (ppa->hair+MIN2(k, ppa->totkey-1))->weight;
 					
 					if(maxw>1) {
-						key[1].time= key[0].time;
-						psys_get_particle_on_path(&sim, ptn[1].index, key + 1, 0);
-						mul_v3_fl(key[1].co, weight[1]);
-						VECADD(key[0].co, key[0].co, key[1].co);
+						key3[1].time= key3[0].time;
+						psys_get_particle_on_path(&sim, ptn[1].index, &key3[1], 0);
+						mul_v3_fl(key3[1].co, weight[1]);
+						VECADD(key3[0].co, key3[0].co, key3[1].co);
 
 						if(maxw>2) {						
-							key[2].time= key[0].time;
-							psys_get_particle_on_path(&sim, ptn[2].index, key + 2, 0);
-							mul_v3_fl(key[2].co, weight[2]);
-							VECADD(key[0].co, key[0].co, key[2].co);
+							key3[2].time= key3[0].time;
+							psys_get_particle_on_path(&sim, ptn[2].index, &key3[2], 0);
+							mul_v3_fl(key3[2].co, weight[2]);
+							VECADD(key3[0].co, key3[0].co, key3[2].co);
 						}
 					}
 
 					if(k==0)
-						VECSUB(co1, pa->state.co, key[0].co);
+						VECSUB(co1, pa->state.co, key3[0].co);
 
-					VECADD(hkey->co, key[0].co, co1);
+					VECADD(thkey->co, key3[0].co, co1);
 
-					hkey->time= key[0].time;
+					thkey->time= key3[0].time;
 				}
 			}
 			else {
@@ -3565,7 +3560,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 			update_world_cos(ob,edit);
 			psys_free_path_cache(NULL, edit);
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 		else
 			PE_update_object(scene, ob, 1);
@@ -3890,7 +3885,7 @@ void PE_undo_step(Scene *scene, int step)
 		}
 	}
 
-	DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
 }
 
 static void PTCacheUndo_number(Scene *scene, PTCacheEdit *edit, int nr)
@@ -4154,7 +4149,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -4194,7 +4189,7 @@ static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 
 			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 	else { /* some operation might have protected hair from editing so let's clear the flag */
@@ -4202,7 +4197,7 @@ static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 		psys->flag &= ~PSYS_GLOBAL_HAIR;
 		psys->flag &= ~PSYS_EDITED;
 		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	return OPERATOR_FINISHED;

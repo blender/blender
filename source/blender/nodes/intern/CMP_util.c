@@ -414,12 +414,12 @@ CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 	return inbuf;
 }
 
-float *compbuf_get_pixel(CompBuf *cbuf, float *rectf, int x, int y, int xrad, int yrad)
+static float *compbuf_get_pixel(CompBuf *cbuf, float *defcol, float *use, int x, int y, int xrad, int yrad)
 {
 	if(cbuf) {
 		if(cbuf->rect_procedural) {
-			cbuf->rect_procedural(cbuf, rectf, (float)x/(float)xrad, (float)y/(float)yrad);
-			return rectf;
+			cbuf->rect_procedural(cbuf, use, (float)x/(float)xrad, (float)y/(float)yrad);
+			return use;
 		}
 		else {
 			static float col[4]= {0.0f, 0.0f, 0.0f, 0.0f};
@@ -434,7 +434,7 @@ float *compbuf_get_pixel(CompBuf *cbuf, float *rectf, int x, int y, int xrad, in
 			return cbuf->rect + cbuf->type*( (cbuf->yrad+y)*cbuf->x + (cbuf->xrad+x) );
 		}
 	}
-	else return rectf;
+	else return defcol;
 }
 
 /* **************************************************** */
@@ -446,6 +446,7 @@ void composit1_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, floa
 {
 	CompBuf *src_use;
 	float *outfp=out->rect, *srcfp;
+	float color[4];	/* local color if compbuf is procedural */
 	int xrad, yrad, x, y;
 	
 	src_use= typecheck_compbuf(src_buf, src_type);
@@ -455,7 +456,7 @@ void composit1_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, floa
 	
 	for(y= -yrad; y<-yrad+out->y; y++) {
 		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
-			srcfp= compbuf_get_pixel(src_use, src_col, x, y, xrad, yrad);
+			srcfp= compbuf_get_pixel(src_use, src_col, color, x, y, xrad, yrad);
 			func(node, outfp, srcfp);
 		}
 	}
@@ -471,6 +472,7 @@ void composit2_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, floa
 {
 	CompBuf *src_use, *fac_use;
 	float *outfp=out->rect, *srcfp, *facfp;
+	float color[4];	/* local color if compbuf is procedural */
 	int xrad, yrad, x, y;
 	
 	src_use= typecheck_compbuf(src_buf, src_type);
@@ -481,8 +483,8 @@ void composit2_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, floa
 	
 	for(y= -yrad; y<-yrad+out->y; y++) {
 		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
-			srcfp= compbuf_get_pixel(src_use, src_col, x, y, xrad, yrad);
-			facfp= compbuf_get_pixel(fac_use, fac, x, y, xrad, yrad);
+			srcfp= compbuf_get_pixel(src_use, src_col, color, x, y, xrad, yrad);
+			facfp= compbuf_get_pixel(fac_use, fac, color, x, y, xrad, yrad);
 			
 			func(node, outfp, srcfp, facfp);
 		}
@@ -500,6 +502,7 @@ void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 {
 	CompBuf *src1_use, *src2_use, *fac_use;
 	float *outfp=out->rect, *src1fp, *src2fp, *facfp;
+	float color[4];	/* local color if compbuf is procedural */
 	int xrad, yrad, x, y;
 	
 	src1_use= typecheck_compbuf(src1_buf, src1_type);
@@ -511,9 +514,9 @@ void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 	
 	for(y= -yrad; y<-yrad+out->y; y++) {
 		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
-			src1fp= compbuf_get_pixel(src1_use, src1_col, x, y, xrad, yrad);
-			src2fp= compbuf_get_pixel(src2_use, src2_col, x, y, xrad, yrad);
-			facfp= compbuf_get_pixel(fac_use, fac, x, y, xrad, yrad);
+			src1fp= compbuf_get_pixel(src1_use, src1_col, color, x, y, xrad, yrad);
+			src2fp= compbuf_get_pixel(src2_use, src2_col, color, x, y, xrad, yrad);
+			facfp= compbuf_get_pixel(fac_use, fac, color, x, y, xrad, yrad);
 			
 			func(node, outfp, src1fp, src2fp, facfp);
 		}
@@ -535,6 +538,7 @@ void composit4_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 {
 	CompBuf *src1_use, *src2_use, *fac1_use, *fac2_use;
 	float *outfp=out->rect, *src1fp, *src2fp, *fac1fp, *fac2fp;
+	float color[4];	/* local color if compbuf is procedural */
 	int xrad, yrad, x, y;
 	
 	src1_use= typecheck_compbuf(src1_buf, src1_type);
@@ -547,10 +551,10 @@ void composit4_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 	
 	for(y= -yrad; y<-yrad+out->y; y++) {
 		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
-			src1fp= compbuf_get_pixel(src1_use, src1_col, x, y, xrad, yrad);
-			src2fp= compbuf_get_pixel(src2_use, src2_col, x, y, xrad, yrad);
-			fac1fp= compbuf_get_pixel(fac1_use, fac1, x, y, xrad, yrad);
-			fac2fp= compbuf_get_pixel(fac2_use, fac2, x, y, xrad, yrad);
+			src1fp= compbuf_get_pixel(src1_use, src1_col, color, x, y, xrad, yrad);
+			src2fp= compbuf_get_pixel(src2_use, src2_col, color, x, y, xrad, yrad);
+			fac1fp= compbuf_get_pixel(fac1_use, fac1, color, x, y, xrad, yrad);
+			fac2fp= compbuf_get_pixel(fac2_use, fac2, color, x, y, xrad, yrad);
 			
 			func(node, outfp, src1fp, fac1fp, src2fp, fac2fp);
 		}

@@ -551,7 +551,7 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
 	BLI_remlink(&ob->modifiers, (ModifierData *)hmd);
 	modifier_free((ModifierData *)hmd);
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -646,7 +646,7 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -702,7 +702,7 @@ static int object_hook_recenter_exec(bContext *C, wmOperator *op)
 	sub_v3_v3v3(hmd->cent, scene->cursor, ob->obmat[3]);
 	mul_m3_v3(imat, hmd->cent);
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -765,7 +765,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	hmd->indexar= indexar;
 	hmd->totindex= tot;
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;

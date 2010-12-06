@@ -1222,8 +1222,6 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 			mf->flag &= ~ME_SMOOTH;
 		}
 	}
-
-// XXX do this in caller	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 }
 
 void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float **faceNors_r) 
@@ -1483,8 +1481,6 @@ void mesh_pmv_revert(Mesh *me)
 		me->pv->edge_map= NULL;
 		MEM_freeN(me->pv->vert_map);
 		me->pv->vert_map= NULL;
-
-// XXX do this in caller		DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	}
 }
 

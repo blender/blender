@@ -75,7 +75,11 @@ void	BLI_dynstr_nappend				(DynStr *ds, const char *cstr, int len);
 	 * @param ds The DynStr to append to.
 	 * @param format The printf format string to use.
 	 */
-void	BLI_dynstr_appendf				(DynStr *ds, const char *format, ...);
+void	BLI_dynstr_appendf				(DynStr *ds, const char *format, ...)
+#ifdef __GNUC__
+__attribute__ ((format (printf, 2, 3)));
+#endif
+;
 void	BLI_dynstr_vappendf				(DynStr *ds, const char *format, va_list args);
 
 	/**

@@ -155,7 +155,7 @@ void load_editLatt(Object *obedit)
 	}
 
 	if(editlt->dvert) {
-		int tot= lt->pntsu*lt->pntsv*lt->pntsw;
+		tot= lt->pntsu*lt->pntsv*lt->pntsw;
 
 		lt->dvert = MEM_mallocN (sizeof (MDeformVert)*tot, "Lattice MDeformVert");
 		copy_dverts(lt->dvert, editlt->dvert, tot);
@@ -274,7 +274,7 @@ int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
 		resizelattice(lt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
 	}
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 
 	return OPERATOR_FINISHED;

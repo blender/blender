@@ -918,9 +918,9 @@ void make_editMesh(Scene *scene, Object *ob)
 }
 
 /* makes Mesh out of editmesh */
-void load_editMesh(Scene *scene, Object *ob)
+void load_editMesh(Scene *scene, Object *obedit)
 {
-	Mesh *me= ob->data;
+	Mesh *me= obedit->data;
 	MVert *mvert, *oldverts;
 	MEdge *medge;
 	MFace *mface;
@@ -1110,7 +1110,7 @@ void load_editMesh(Scene *scene, Object *ob)
 		Object *ob;
 		ModifierData *md;
 		EditVert **vertMap = NULL;
-		int i,j;
+		int j;
 
 		for (ob=G.main->object.first; ob; ob=ob->id.next) {
 			if (ob->parent==ob && ELEM(ob->partype, PARVERT1,PARVERT3)) {
@@ -1310,13 +1310,13 @@ void load_editMesh(Scene *scene, Object *ob)
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 
 	/* topology could be changed, ensure mdisps are ok */
-	multires_topology_changed(ob);
+	multires_topology_changed(obedit);
 }
 
 void remake_editMesh(Scene *scene, Object *ob)
 {
 	make_editMesh(scene, ob);
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	BIF_undo_push("Undo all changes");
 }
 
@@ -1432,8 +1432,8 @@ static int mesh_separate_selected(wmOperator *op, Main *bmain, Scene *scene, Bas
 	/* hashedges are invalid now, make new! */
 	editMesh_set_hash(em);
 
-	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);	
-	DAG_id_flush_update(&basenew->object->id, OB_RECALC_DATA);	
+	DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);	
+	DAG_id_tag_update(&basenew->object->id, OB_RECALC_DATA);	
 
 	BKE_mesh_end_editmesh(me, em);
 

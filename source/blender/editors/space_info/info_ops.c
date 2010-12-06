@@ -193,6 +193,9 @@ static int make_paths_relative_exec(bContext *UNUSED(C), wmOperator *op)
 
 	makeFilesRelative(G.main->name, op->reports);
 
+	/* redraw everything so any changed paths register */
+	WM_main_add_notifier(NC_WINDOW, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -219,6 +222,10 @@ static int make_paths_absolute_exec(bContext *UNUSED(C), wmOperator *op)
 	}
 
 	makeFilesAbsolute(G.main->name, op->reports);
+
+	/* redraw everything so any changed paths register */
+	WM_main_add_notifier(NC_WINDOW, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -326,10 +333,13 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	int send_note= 0;
 	
 	/* escape if not our timer */
-	if(reports->reporttimer==NULL || reports->reporttimer != event->customdata)
+	if(		(reports->reporttimer==NULL) ||
+			(reports->reporttimer != event->customdata) ||
+			((report= BKE_reports_last_displayable(reports))==NULL) /* may have been deleted */
+	) {
 		return OPERATOR_PASS_THROUGH;
+	}
 
-	report= BKE_reports_last_displayable(reports);
 	rti = (ReportTimerInfo *)reports->reporttimer->customdata;
 	
 	timeout = (report->type & RPT_ERROR_ALL)?ERROR_TIMEOUT:INFO_TIMEOUT;
@@ -346,7 +356,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	}
 
 	if (rti->widthfac == 0.0) {
-		/* initialise colours based on report type */
+		/* initialise colors based on report type */
 		if(report->type & RPT_ERROR_ALL) {
 			rti->col[0] = 1.0;
 			rti->col[1] = 0.2;
@@ -371,7 +381,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wm
 	if(color_progress <= 1.0f) {
 		send_note= 1;
 		
-		/* fade colours out sharply according to progress through fade-out duration */
+		/* fade colors out sharply according to progress through fade-out duration */
 		interp_v3_v3v3(rti->col, rti->col, neutral_col, color_progress);
 		rti->greyscale = interpf(neutral_grey, rti->greyscale, color_progress);
 	}

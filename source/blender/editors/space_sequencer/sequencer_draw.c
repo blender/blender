@@ -513,7 +513,7 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 	if(seq->flag & SELECT){
 		cpack(0xFFFFFF);
 	}else if ((((int)background_col[0] + (int)background_col[1] + (int)background_col[2]) / 3) < 50){
-		cpack(0x505050); /* use lighter text colour for dark background */
+		cpack(0x505050); /* use lighter text color for dark background */
 	}else{
 		cpack(0);
 	}

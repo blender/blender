@@ -180,7 +180,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 		return NULL;
 		
 	if(strlen(identifier) >= sizeof(dummypt.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering panel class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummypt.idname));
+		BKE_reportf(reports, RPT_ERROR, "registering panel class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummypt.idname));
 		return NULL;
 	}
 	
@@ -283,7 +283,7 @@ static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, vo
 		return NULL;
 
 	if(strlen(identifier) >= sizeof(dummyht.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering header class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummyht.idname));
+		BKE_reportf(reports, RPT_ERROR, "registering header class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummyht.idname));
 		return NULL;
 	}
 
@@ -401,7 +401,7 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 		return NULL;
 	
 	if(strlen(identifier) >= sizeof(dummymt.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering menu class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummymt.idname));
+		BKE_reportf(reports, RPT_ERROR, "registering menu class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummymt.idname));
 		return NULL;
 	}
 

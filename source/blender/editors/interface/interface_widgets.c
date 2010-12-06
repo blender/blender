@@ -24,7 +24,6 @@
  */
 
 #include <limits.h>
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -1120,7 +1119,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
  
 */
 
-static struct uiWidgetStateColors wcol_state= {
+static struct uiWidgetStateColors wcol_state_colors= {
 	{115, 190, 76, 255},
 	{90, 166, 51, 255},
 	{240, 235, 100, 255},
@@ -1390,7 +1389,7 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_list_item= wcol_list_item;
 	tui->wcol_progress= wcol_progress;
 
-	tui->wcol_state= wcol_state;
+	tui->wcol_state= wcol_state_colors;
 }
 
 /* ************ button callbacks, state ***************** */
@@ -2325,10 +2324,10 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	ui_get_but_vectorf(but, col);
 	
 	if(state & (UI_BUT_ANIMATED|UI_BUT_ANIMATED_KEY|UI_BUT_DRIVEN|UI_BUT_REDALERT)) {
-		// draw based on state - colour for keyed etc
+		// draw based on state - color for keyed etc
 		widgetbase_draw(&wtb, wcol);
 		
-		// inset to draw swatch colour
+		// inset to draw swatch color
 		rect->xmin+= SWATCH_KEYED_BORDER;
 		rect->xmax-= SWATCH_KEYED_BORDER;
 		rect->ymin+= SWATCH_KEYED_BORDER;
@@ -2496,7 +2495,7 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 	
 	VECCOPY(old_col, wcol->inner);
 	
-	/* abuse but->hsv - if it's non-zero, use this colour as the box's background */
+	/* abuse but->hsv - if it's non-zero, use this color as the box's background */
 	if (but->col[3]) {
 		wcol->inner[0] = but->col[0];
 		wcol->inner[1] = but->col[1];

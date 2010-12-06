@@ -43,9 +43,9 @@ INCLUDE_DIRECTORIES(
 	../blender/windowmanager
 )
 
-IF(WITH_QUICKTIME)
+IF(WITH_CODEC_QUICKTIME)
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
+ENDIF(WITH_CODEC_QUICKTIME)
 
 IF(WITH_IMAGE_OPENEXR)
 	ADD_DEFINITIONS(-DWITH_OPENEXR)
@@ -91,10 +91,14 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 # Setup the exe sources and buildinfo
-SET(EXESRC creator.c)
+SET(SRC
+	creator.c
+)
 
 IF(WIN32 AND NOT UNIX)
-	LIST(APPEND EXESRC ../icons/winblender.rc)
+	LIST(APPEND SRC
+		../icons/winblender.rc
+	)
 ENDIF(WIN32 AND NOT UNIX)
 
 IF(WITH_BUILDINFO)
@@ -113,12 +117,14 @@ IF(WITH_BUILDINFO)
 		-DBUILD_SYSTEM="CMake"
 	)
 
-	LIST(APPEND EXESRC buildinfo.c)
+	LIST(APPEND SRC
+		buildinfo.c
+	)
 ENDIF(WITH_BUILDINFO)
 
 MESSAGE(STATUS "Configuring blender")
 
-ADD_EXECUTABLE(blender ${EXETYPE} ${EXESRC})
+ADD_EXECUTABLE(blender ${EXETYPE} ${SRC})
 
 # Post build steps for bundling/packaging.
 
@@ -356,7 +362,7 @@ IF(WITH_INSTALL)
 			ENDIF(CMAKE_CL_64)
 		ENDIF(WITH_INTERNATIONAL)
 
-		IF(WITH_FFMPEG)
+		IF(WITH_CODEC_FFMPEG)
 			ADD_CUSTOM_COMMAND(TARGET blender
 				POST_BUILD
 				MAIN_DEPENDENCY blender
@@ -366,15 +372,15 @@ IF(WITH_INSTALL)
 				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\avutil-50.dll\" \"${TARGETDIR}\\\"
 				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\swscale-0.dll\" \"${TARGETDIR}\\\"
 			)
-		ENDIF(WITH_FFMPEG)
+		ENDIF(WITH_CODEC_FFMPEG)
 
-		IF(WITH_SNDFILE)
+		IF(WITH_CODEC_SNDFILE)
 			ADD_CUSTOM_COMMAND(TARGET blender
 				POST_BUILD
 				MAIN_DEPENDENCY blender
 				COMMAND copy /Y \"${LIBDIR}\\sndfile\\lib\\libsndfile-1.dll\" \"${TARGETDIR}\\\"
 			)
-		ENDIF(WITH_SNDFILE)
+		ENDIF(WITH_CODEC_SNDFILE)
 
 		IF(WITH_JACK)
 			ADD_CUSTOM_COMMAND(TARGET blender
@@ -558,6 +564,7 @@ ENDIF(WITH_MOD_FLUID)
 		bf_intern_moto 
 		extern_glew
 		extern_openjpeg
+		extern_redcode
 		ge_videotex
 		bf_rna
 		bf_dna
@@ -577,9 +584,9 @@ ENDIF(WITH_MOD_FLUID)
 		LIST(APPEND BLENDER_SORTED_LIBS bf_intern_itasc)
 	ENDIF(WITH_IK_ITASC)
 
-	IF(WITH_QUICKTIME)
+	IF(WITH_CODEC_QUICKTIME)
 		LIST(APPEND BLENDER_SORTED_LIBS bf_quicktime)
-	ENDIF(WITH_QUICKTIME)
+	ENDIF(WITH_CODEC_QUICKTIME)
 
 
 	FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

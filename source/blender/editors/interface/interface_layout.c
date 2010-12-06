@@ -439,7 +439,7 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 	uiBut *but;
 	EnumPropertyItem *item;
 	const char *identifier;
-	char *name;
+	const char *name;
 	int a, totitem, itemw, icon, value, free;
 
 	identifier= RNA_property_identifier(prop);
@@ -646,7 +646,7 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *idname, const char *name, i
 	return PointerRNA_NULL;
 }
 
-static char *ui_menu_enumpropname(uiLayout *layout, const char *opname, const char *propname, int retval)
+static const char *ui_menu_enumpropname(uiLayout *layout, const char *opname, const char *propname, int retval)
 {
 	wmOperatorType *ot= WM_operatortype_find(opname, 0);
 	PointerRNA ptr;
@@ -676,7 +676,7 @@ static char *ui_menu_enumpropname(uiLayout *layout, const char *opname, const ch
 	return "";
 }
 
-void uiItemEnumO(uiLayout *layout, const char *opname, char *name, int icon, const char *propname, int value)
+void uiItemEnumO(uiLayout *layout, const char *opname, const char *name, int icon, const char *propname, int value)
 {
 	PointerRNA ptr;
 
@@ -716,17 +716,17 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 		for(i=0; i<totitem; i++) {
 			if(item[i].identifier[0]) {
 				if(properties) {
-					PointerRNA ptr;
+					PointerRNA tptr;
 
-					WM_operator_properties_create(&ptr, opname);
-					if(ptr.data) {
-						IDP_FreeProperty(ptr.data);
-						MEM_freeN(ptr.data);
+					WM_operator_properties_create(&tptr, opname);
+					if(tptr.data) {
+						IDP_FreeProperty(tptr.data);
+						MEM_freeN(tptr.data);
 					}
-					ptr.data= IDP_CopyProperty(properties);
-					RNA_enum_set(&ptr, propname, item[i].value);
+					tptr.data= IDP_CopyProperty(properties);
+					RNA_enum_set(&tptr, propname, item[i].value);
 
-					uiItemFullO(column, opname, (char*)item[i].name, item[i].icon, ptr.data, context, flag);
+					uiItemFullO(column, opname, (char*)item[i].name, item[i].icon, tptr.data, context, flag);
 				}
 				else
 					uiItemEnumO(column, opname, (char*)item[i].name, item[i].icon, propname, item[i].value);
@@ -759,7 +759,7 @@ void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname)
 }
 
 /* for use in cases where we have */
-void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, char *value_str)
+void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, const char *value_str)
 {
 	PointerRNA ptr;
 	
@@ -796,7 +796,7 @@ void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char
 	uiItemFullO(layout, opname, name, icon, ptr.data, layout->root->opcontext, 0);
 }
 
-void uiItemBooleanO(uiLayout *layout, char *name, int icon, const char *opname, const char *propname, int value)
+void uiItemBooleanO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, int value)
 {
 	PointerRNA ptr;
 
@@ -826,7 +826,7 @@ void uiItemFloatO(uiLayout *layout, const char *name, int icon, const char *opna
 	uiItemFullO(layout, opname, name, icon, ptr.data, layout->root->opcontext, 0);
 }
 
-void uiItemStringO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, char *value)
+void uiItemStringO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, const char *value)
 {
 	PointerRNA ptr;
 
@@ -1374,7 +1374,7 @@ void uiItemL(uiLayout *layout, const char *name, int icon)
 	uiItemL_(layout, name, icon);
 }
 
-void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, char *name, int icon)
+void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, const char *name, int icon)
 {
 	uiBut *but= uiItemL_(layout, name, icon);
 
@@ -1385,7 +1385,7 @@ void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, char *name, int icon)
 
 
 /* value item */
-void uiItemV(uiLayout *layout, char *name, int icon, int argval)
+void uiItemV(uiLayout *layout, const char *name, int icon, int argval)
 {
 	/* label */
 	uiBlock *block= layout->root->block;
@@ -2548,7 +2548,7 @@ void uiBlockLayoutResolve(uiBlock *block, int *x, int *y)
 	/* XXX silly trick, interface_templates.c doesn't get linked
 	 * because it's not used by other files in this module? */
 	{
-		void ui_template_fix_linking();
+		void ui_template_fix_linking(void);
 		ui_template_fix_linking();
 	}
 }

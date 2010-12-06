@@ -40,6 +40,8 @@ SET(SRC
 	transform_ops.c
 	transform_orientations.c
 	transform_snap.c
+
+	transform.h
 )
 
 BLENDERLIB(bf_editor_transform "${SRC}" "${INC}")

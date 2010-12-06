@@ -54,7 +54,11 @@
 
 #include "UI_resources.h"
 
+#include "info_intern.h"
 #include "../space_info/textview.h"
+
+/* complicates things a bit, so leaving in old simple code */
+#define USE_INFO_NEWLINE
 
 static void info_report_color(unsigned char *fg, unsigned char *bg, Report *report, int bool)
 {
@@ -89,8 +93,34 @@ static void info_report_color(unsigned char *fg, unsigned char *bg, Report *repo
 	}
 }
 
-
 /* reports! */
+#ifdef USE_INFO_NEWLINE
+static void report_textview_init__internal(TextViewContext *tvc)
+{
+	Report *report= (Report *)tvc->iter;
+	const char *str= report->message;
+	const char *next_str= strchr(str + tvc->iter_char, '\n');
+
+	if(next_str) {
+		tvc->iter_char_next= (int)(next_str - str);
+	}
+	else {
+		tvc->iter_char_next= report->len;
+	}
+}
+
+static int report_textview_skip__internal(TextViewContext *tvc)
+{
+	SpaceInfo *sinfo= (SpaceInfo *)tvc->arg1;
+	const int report_mask= info_report_mask(sinfo);
+	while (tvc->iter && (((Report *)tvc->iter)->type & report_mask)==0) {
+		tvc->iter= (void *)((Link *)tvc->iter)->prev;
+	}
+	return (tvc->iter != NULL);
+}
+
+#endif // USE_INFO_NEWLINE
+
 static int report_textview_begin(TextViewContext *tvc)
 {
 	// SpaceConsole *sc= (SpaceConsole *)tvc->arg1;
@@ -106,7 +136,21 @@ static int report_textview_begin(TextViewContext *tvc)
 	glClearColor(120.0/255.0, 120.0/255.0, 120.0/255.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+#ifdef USE_INFO_NEWLINE
+	tvc->iter_tmp= 0;
+	if(tvc->iter && report_textview_skip__internal(tvc)) {
+		/* init the newline iterator */
+		tvc->iter_char= 0;
+		report_textview_init__internal(tvc);
+
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+#else
 	return (tvc->iter != NULL);
+#endif
 }
 
 static void report_textview_end(TextViewContext *UNUSED(tvc))
@@ -114,9 +158,62 @@ static void report_textview_end(TextViewContext *UNUSED(tvc))
 	/* pass */
 }
 
+#ifdef USE_INFO_NEWLINE
 static int report_textview_step(TextViewContext *tvc)
 {
-	return ((tvc->iter= (void *)((Link *)tvc->iter)->prev) != NULL);
+	/* simple case, but no newline support */
+	Report *report= (Report *)tvc->iter;
+
+	if(report->len <= tvc->iter_char_next) {
+		tvc->iter= (void *)((Link *)tvc->iter)->prev;
+		if(tvc->iter && report_textview_skip__internal(tvc)) {
+			tvc->iter_tmp++;
+
+			tvc->iter_char= 0; /* reset start */
+			report_textview_init__internal(tvc);
+
+			return TRUE;
+		}
+		else {
+			return FALSE;
+		}
+	}
+	else {
+		/* step to the next newline */
+		tvc->iter_char= tvc->iter_char_next + 1;
+		report_textview_init__internal(tvc);
+
+		return TRUE;
+	}
+}
+
+static int report_textview_line_get(struct TextViewContext *tvc, const char **line, int *len)
+{
+	Report *report= (Report *)tvc->iter;
+	*line= report->message + tvc->iter_char;
+	*len= tvc->iter_char_next - tvc->iter_char;
+	return 1;
+}
+
+static int report_textview_line_color(struct TextViewContext *tvc, unsigned char fg[3], unsigned char bg[3])
+{
+	Report *report= (Report *)tvc->iter;
+	info_report_color(fg, bg, report, tvc->iter_tmp % 2);
+	return TVC_LINE_FG | TVC_LINE_BG;
+}
+
+
+#else // USE_INFO_NEWLINE
+
+static int report_textview_step(TextViewContext *tvc)
+{
+	SpaceInfo *sinfo= (SpaceInfo *)tvc->arg1;
+	const int report_mask= info_report_mask(sinfo);
+	do {
+		tvc->iter= (void *)((Link *)tvc->iter)->prev;
+	} while (tvc->iter && (((Report *)tvc->iter)->type & report_mask)==0);
+
+	return (tvc->iter != NULL);
 }
 
 static int report_textview_line_get(struct TextViewContext *tvc, const char **line, int *len)
@@ -131,10 +228,13 @@ static int report_textview_line_get(struct TextViewContext *tvc, const char **li
 static int report_textview_line_color(struct TextViewContext *tvc, unsigned char fg[3], unsigned char bg[3])
 {
 	Report *report= (Report *)tvc->iter;
-	info_report_color(fg, bg, report, tvc->iter_index % 2);
+	info_report_color(fg, bg, report, tvc->iter_tmp % 2);
 	return TVC_LINE_FG | TVC_LINE_BG;
 }
 
+#endif // USE_INFO_NEWLINE
+
+#undef USE_INFO_NEWLINE
 
 static int info_textview_main__internal(struct SpaceInfo *sinfo, struct ARegion *ar, ReportList *reports, int draw, int mval[2], void **mouse_pick, int *pos_pick)
 {

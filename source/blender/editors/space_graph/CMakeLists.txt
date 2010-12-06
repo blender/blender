@@ -38,6 +38,8 @@ SET(SRC
 	graph_select.c
 	graph_utils.c
 	space_graph.c
+
+	graph_intern.h
 )
 
 BLENDERLIB(bf_editor_space_graph "${SRC}" "${INC}")

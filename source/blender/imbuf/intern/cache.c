@@ -90,34 +90,34 @@ static ImGlobalTileCache GLOBAL_CACHE;
 
 /***************************** Hash Functions ********************************/
 
-static unsigned int imb_global_tile_hash(void *gtile_p)
+static unsigned int imb_global_tile_hash(const void *gtile_p)
 {
-	ImGlobalTile *gtile= gtile_p;
+	const ImGlobalTile *gtile= gtile_p;
 
 	return ((unsigned int)(intptr_t)gtile->ibuf)*769 + gtile->tx*53 + gtile->ty*97;
 }
 
-static int imb_global_tile_cmp(void *a_p, void *b_p)
+static int imb_global_tile_cmp(const void *a_p, const void *b_p)
 {
-	ImGlobalTile *a= a_p;
-	ImGlobalTile *b= b_p;
+	const ImGlobalTile *a= a_p;
+	const ImGlobalTile *b= b_p;
 
 	if(a->ibuf == b->ibuf && a->tx == b->tx && a->ty == b->ty) return 0;
 	else if(a->ibuf < b->ibuf || a->tx < b->tx || a->ty < b->ty) return -1;
 	else return 1;
 }
 
-static unsigned int imb_thread_tile_hash(void *ttile_p)
+static unsigned int imb_thread_tile_hash(const void *ttile_p)
 {
-	ImThreadTile *ttile= ttile_p;
+	const ImThreadTile *ttile= ttile_p;
 
 	return ((unsigned int)(intptr_t)ttile->ibuf)*769 + ttile->tx*53 + ttile->ty*97;
 }
 
-static int imb_thread_tile_cmp(void *a_p, void *b_p)
+static int imb_thread_tile_cmp(const void *a_p, const void *b_p)
 {
-	ImThreadTile *a= a_p;
-	ImThreadTile *b= b_p;
+	const ImThreadTile *a= a_p;
+	const ImThreadTile *b= b_p;
 
 	if(a->ibuf == b->ibuf && a->tx == b->tx && a->ty == b->ty) return 0;
 	else if(a->ibuf < b->ibuf || a->tx < b->tx || a->ty < b->ty) return -1;

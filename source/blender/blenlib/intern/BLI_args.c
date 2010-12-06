@@ -43,14 +43,14 @@ char NO_DOCS[] = "NO DOCUMENTATION SPECIFIED";
 struct bArgDoc;
 typedef struct bArgDoc {
 	struct bArgDoc *next, *prev;
-	char *short_arg;
-	char *long_arg;
-	char *documentation;
+	const char *short_arg;
+	const char *long_arg;
+	const char *documentation;
 	int  done;
 } bArgDoc;
 
 typedef struct bAKey {
-	char *arg;
+	const char *arg;
 	uintptr_t pass; /* cast easier */
 	int case_str; /* case specific or not */
 } bAKey;
@@ -70,8 +70,8 @@ struct bArgs {
 	int	  *passes;
 };
 
-static unsigned int case_strhash(void *ptr) {
-	char *s= ptr;
+static unsigned int case_strhash(const void *ptr) {
+	const char *s= ptr;
 	unsigned int i= 0;
 	unsigned char c;
 
@@ -81,27 +81,27 @@ static unsigned int case_strhash(void *ptr) {
 	return i;
 }
 
-static unsigned int	keyhash(void *ptr)
+static unsigned int	keyhash(const void *ptr)
 {
-	bAKey *k = ptr;
+	const bAKey *k = ptr;
 	return case_strhash(k->arg); // ^ BLI_ghashutil_inthash((void*)k->pass);
 }
 
-static int keycmp(void *a, void *b)
+static int keycmp(const void *a, const void *b)
 {
-	bAKey *ka = a;
-	bAKey *kb = b;
+	const bAKey *ka = a;
+	const bAKey *kb = b;
 	if (ka->pass == kb->pass || ka->pass == -1 || kb->pass == -1) { /* -1 is wildcard for pass */
 		if (ka->case_str == 1 || kb->case_str == 1)
 			return BLI_strcasecmp(ka->arg, kb->arg);
 		else
 			return strcmp(ka->arg, kb->arg);
 	} else {
-		return BLI_ghashutil_intcmp((void*)ka->pass, (void*)kb->pass);
+		return BLI_ghashutil_intcmp((const void*)ka->pass, (const void*)kb->pass);
 	}
 }
 
-static bArgument *lookUp(struct bArgs *ba, char *arg, int pass, int case_str)
+static bArgument *lookUp(struct bArgs *ba, const char *arg, int pass, int case_str)
 {
 	bAKey key;
 
@@ -150,7 +150,7 @@ char **BLI_argsArgv(struct bArgs *ba)
 	return ba->argv;
 }
 
-static bArgDoc *internalDocs(struct bArgs *ba, char *short_arg, char *long_arg, char *doc)
+static bArgDoc *internalDocs(struct bArgs *ba, const char *short_arg, const char *long_arg, const char *doc)
 {
 	bArgDoc *d;
 
@@ -168,7 +168,7 @@ static bArgDoc *internalDocs(struct bArgs *ba, char *short_arg, char *long_arg, 
 	return d;
 }
 
-static void internalAdd(struct bArgs *ba, char *arg, int pass, int case_str, BA_ArgCallback cb, void *data, bArgDoc *d)
+static void internalAdd(struct bArgs *ba, const char *arg, int pass, int case_str, BA_ArgCallback cb, void *data, bArgDoc *d)
 {
 	bArgument *a;
 	bAKey *key;
@@ -196,7 +196,7 @@ static void internalAdd(struct bArgs *ba, char *arg, int pass, int case_str, BA_
 	BLI_ghash_insert(ba->items, key, a);
 }
 
-void BLI_argsAddCase(struct bArgs *ba, int pass, char *short_arg, int short_case, char *long_arg, int long_case, char *doc, BA_ArgCallback cb, void *data)
+void BLI_argsAddCase(struct bArgs *ba, int pass, const char *short_arg, int short_case, const char *long_arg, int long_case, const char *doc, BA_ArgCallback cb, void *data)
 {
 	bArgDoc *d = internalDocs(ba, short_arg, long_arg, doc);
 
@@ -209,7 +209,7 @@ void BLI_argsAddCase(struct bArgs *ba, int pass, char *short_arg, int short_case
 
 }
 
-void BLI_argsAdd(struct bArgs *ba, int pass, char *short_arg, char *long_arg, char *doc, BA_ArgCallback cb, void *data)
+void BLI_argsAdd(struct bArgs *ba, int pass, const char *short_arg, const char *long_arg, const char *doc, BA_ArgCallback cb, void *data)
 {
 	BLI_argsAddCase(ba, pass, short_arg, 0, long_arg, 0, doc, cb, data);
 }
@@ -226,7 +226,7 @@ static void internalDocPrint(bArgDoc *d)
 	printf(" %s\n\n", d->documentation);
 }
 
-void BLI_argsPrintArgDoc(struct bArgs *ba, char *arg)
+void BLI_argsPrintArgDoc(struct bArgs *ba, const char *arg)
 {
 	bArgument *a = lookUp(ba, arg, -1, -1);
 

@@ -166,7 +166,7 @@ void copy_fcurves (ListBase *dst, ListBase *src)
 /* ----------------- Finding F-Curves -------------------------- */
 
 /* high level function to get an fcurve from C without having the rna */
-FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, char *prop_name, int index)
+FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *prop_name, int index)
 {
 	/* anim vars */
 	AnimData *adt= BKE_animdata_from_id(id);
@@ -884,7 +884,7 @@ typedef struct DriverVarTypeInfo {
 	
 	/* allocation of target slots */
 	int num_targets; 						/* number of target slots required */
-	char *target_names[MAX_DRIVER_TARGETS];	/* UI names that should be given to the slots */
+	const char *target_names[MAX_DRIVER_TARGETS];	/* UI names that should be given to the slots */
 	int target_flags[MAX_DRIVER_TARGETS];	/* flags defining the requirements for each slot */
 } DriverVarTypeInfo;
 

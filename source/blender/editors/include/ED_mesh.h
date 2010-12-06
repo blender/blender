@@ -98,10 +98,6 @@ void		ED_keymap_mesh(struct wmKeyConfig *keyconf);
 
 
 /* editmesh.c */
-
-void		ED_spacetypes_init(void);
-void		ED_keymap_mesh(struct wmKeyConfig *keyconf);
-
 void		make_editMesh(struct Scene *scene, struct Object *ob);
 void		load_editMesh(struct Scene *scene, struct Object *ob);
 void		remake_editMesh(struct Scene *scene, struct Object *ob);

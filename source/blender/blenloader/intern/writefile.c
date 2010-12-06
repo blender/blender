@@ -311,7 +311,7 @@ static int endwrite(WriteData *wd)
 
 /* ********** WRITE FILE ****************** */
 
-static void writestruct(WriteData *wd, int filecode, char *structname, int nr, void *adr)
+static void writestruct(WriteData *wd, int filecode, const char *structname, int nr, void *adr)
 {
 	BHead bh;
 	short *sp;
@@ -1476,7 +1476,7 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 
 	for (i=0; i<data->totlayer; i++) {
 		CustomDataLayer *layer= &data->layers[i];
-		char *structname;
+		const char *structname;
 		int structnum, datasize;
 
 		if (layer->type == CD_MDEFORMVERT) {

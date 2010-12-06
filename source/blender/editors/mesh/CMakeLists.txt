@@ -43,6 +43,8 @@ SET(SRC
 	mesh_data.c
 	mesh_ops.c
 	meshtools.c
+
+	mesh_intern.h
 )
 
 BLENDERLIB(bf_editor_mesh "${SRC}" "${INC}")

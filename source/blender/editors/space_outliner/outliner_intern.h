@@ -49,7 +49,7 @@ typedef struct TreeElement {
 	short index;		// index for data arrays
 	short idcode;		// from TreeStore id
 	short xend;			// width of item display, for select
-	char *name;
+	const char *name;
 	void *directdata;	// Armature Bones, Base, Sequence, Strip...
 	PointerRNA rnaptr;	// RNA Pointer
 }  TreeElement;

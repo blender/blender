@@ -46,31 +46,31 @@
 #define EVT_TABLET_STYLUS	1
 #define EVT_TABLET_ERASER	2
 
-#define MOUSEX		0x004	
-#define MOUSEY		0x005	
+#define MOUSEX		4
+#define MOUSEY		5
 
 /* MOUSE : 0x00x */
-#define LEFTMOUSE		0x001	
-#define MIDDLEMOUSE		0x002	
-#define RIGHTMOUSE		0x003	
-#define MOUSEMOVE		0x004	
+#define LEFTMOUSE		1
+#define MIDDLEMOUSE		2
+#define RIGHTMOUSE		3
+#define MOUSEMOVE		4
 		/* only use if you want user option switch possible */
-#define ACTIONMOUSE		0x005
-#define SELECTMOUSE		0x006
+#define ACTIONMOUSE		5
+#define SELECTMOUSE		6
 		/* Extra mouse buttons */
-#define BUTTON4MOUSE	0x007  
-#define BUTTON5MOUSE	0x008
+#define BUTTON4MOUSE	7
+#define BUTTON5MOUSE	8
 		/* Extra trackpad gestures */
-#define MOUSEPAN		0x00e
-#define MOUSEZOOM		0x00f
-#define MOUSEROTATE		0x010
+#define MOUSEPAN		14
+#define MOUSEZOOM		15
+#define MOUSEROTATE		16
 		/* defaults from ghost */
-#define WHEELUPMOUSE	0x00a	
-#define WHEELDOWNMOUSE	0x00b
+#define WHEELUPMOUSE	10
+#define WHEELDOWNMOUSE	11
 		/* mapped with userdef */
-#define WHEELINMOUSE	0x00c
-#define WHEELOUTMOUSE	0x00d
-#define INBETWEEN_MOUSEMOVE	0x011
+#define WHEELINMOUSE	12
+#define WHEELOUTMOUSE	13
+#define INBETWEEN_MOUSEMOVE	17
 
 
 /* SYSTEM : 0x01xx */
@@ -229,20 +229,20 @@
 /* test whether event type is acceptable as hotkey, excluding modifiers */
 #define ISHOTKEY(event)	((ISKEYBOARD(event) || ISMOUSE(event)) && !(event>=LEFTCTRLKEY && event<=LEFTSHIFTKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
 
-/* **************** BLENDER GESTURE EVENTS ********************* */
+/* **************** BLENDER GESTURE EVENTS (0x5000) **************** */
 
-#define EVT_ACTIONZONE_AREA		0x5000
-#define EVT_ACTIONZONE_REGION	0x5001
+#define EVT_ACTIONZONE_AREA		20480
+#define EVT_ACTIONZONE_REGION	20481
 
 		/* tweak events, for L M R mousebuttons */
-#define EVT_TWEAK_L		0x5002
-#define EVT_TWEAK_M		0x5003
-#define EVT_TWEAK_R		0x5004
+#define EVT_TWEAK_L		20482
+#define EVT_TWEAK_M		20483
+#define EVT_TWEAK_R		20484
 		/* tweak events for action or select mousebutton */
-#define EVT_TWEAK_A		0x5005
-#define EVT_TWEAK_S		0x5006
+#define EVT_TWEAK_A		20485
+#define EVT_TWEAK_S		20486
 
-#define EVT_GESTURE		0x5010
+#define EVT_GESTURE		20496
 
 /* value of tweaks and line gestures, note, KM_ANY (-1) works for this case too */
 #define EVT_GESTURE_N		1

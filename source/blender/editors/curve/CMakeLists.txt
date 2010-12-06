@@ -34,6 +34,8 @@ SET(SRC
 	editcurve.c
 	editfont.c
 	lorem.c
+
+	curve_intern.h
 )
 
 BLENDERLIB(bf_editor_curve "${SRC}" "${INC}")

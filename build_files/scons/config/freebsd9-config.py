@@ -137,7 +137,7 @@ BF_FFTW3_INC = '${BF_FFTW3}/include'
 BF_FFTW3_LIB = 'fftw3'
 BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
 
-WITH_BF_REDCODE = True  
+WITH_BF_REDCODE = False
 BF_REDCODE = '#extern/libredcode'
 BF_REDCODE_LIB = ''
 # BF_REDCODE_INC = '${BF_REDCODE}/include'
@@ -188,7 +188,7 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGS = ruv
 ##ARFLAGSQUIET = ru
 ##
-C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement']
+C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wstrict-prototypes']
 CC_WARN = ['-Wall']
 CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 

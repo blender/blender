@@ -607,15 +607,21 @@ void BKE_image_free_all_textures(void)
 	
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if(ima->ibufs.first && (ima->id.flag & LIB_DOIT)) {
-			/*
 			ImBuf *ibuf;
+			
 			for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next) {
-				if(ibuf->mipmap[0]) 
+				/* escape when image is painted on */
+				if(ibuf->userflags & IB_BITMAPDIRTY)
+					break;
+				
+				/* if(ibuf->mipmap[0]) 
 					totsize+= 1.33*ibuf->x*ibuf->y*4;
 				else
-					totsize+= ibuf->x*ibuf->y*4;
-			} */
-			image_free_buffers(ima);
+					totsize+= ibuf->x*ibuf->y*4;*/
+				
+			}
+			if(ibuf==NULL)
+				image_free_buffers(ima);
 		}
 	}
 	/* printf("freed total %d MB\n", totsize/(1024*1024)); */
@@ -760,7 +766,7 @@ int BKE_imtype_is_movie(int imtype)
 
 int BKE_add_image_extension(char *string, int imtype)
 {
-	char *extension= NULL;
+	const char *extension= NULL;
 	
 	if(imtype== R_IRIS) {
 		if(!BLI_testextensie(string, ".rgb"))
@@ -1186,6 +1192,29 @@ void BKE_stamp_info(Scene *scene, struct ImBuf *ibuf)
 	if (stamp_data.scene[0])	IMB_metadata_change_field (ibuf, "Scene",	stamp_data.scene);
 	if (stamp_data.strip[0])	IMB_metadata_change_field (ibuf, "Strip",	stamp_data.strip);
 	if (stamp_data.rendertime[0]) IMB_metadata_change_field (ibuf, "RenderTime", stamp_data.rendertime);
+}
+
+int BKE_alphatest_ibuf(ImBuf *ibuf)
+{
+	int tot;
+	if(ibuf->rect_float) {
+		float *buf= ibuf->rect_float;
+		for(tot= ibuf->x * ibuf->y; tot--; buf+=4) {
+			if(buf[3] < 1.0f) {
+				return TRUE;
+			}
+		}
+	}
+	else if (ibuf->rect) {
+		unsigned char *buf= (unsigned char *)ibuf->rect;
+		for(tot= ibuf->x * ibuf->y; tot--; buf+=4) {
+			if(buf[3] != 255) {
+				return TRUE;
+			}
+		}
+	}
+
+	return FALSE;
 }
 
 int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, const char *name, int imtype, int subimtype, int quality)

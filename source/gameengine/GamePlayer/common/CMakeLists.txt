@@ -67,12 +67,17 @@ SET(SRC
 	GPC_RawLogoArrays.cpp
 	GPC_RenderTools.cpp
 	GPC_System.cpp
-)
 
-IF(WITH_PYTHON)
-	LIST(APPEND INC ${PYTHON_INC})
-	ADD_DEFINITIONS(-DWITH_PYTHON)
-ENDIF(WITH_PYTHON)
+	GPC_Canvas.h
+	GPC_Engine.h
+	GPC_KeyboardDevice.h
+	GPC_MouseDevice.h
+	GPC_RawImage.h
+	GPC_RawLoadDotBlendArray.h
+	GPC_RawLogoArrays.h
+	GPC_RenderTools.h
+	GPC_System.h
+)
 
 ADD_DEFINITIONS(-DGLEW_STATIC)
 

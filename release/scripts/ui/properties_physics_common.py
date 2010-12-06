@@ -54,7 +54,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         if cachetype == 'SMOKE':
             if bpy.data.is_dirty:
                 layout.label(text="Cache is disabled until the file is saved")
-                layout.enabled = false
+                layout.enabled = False
 
         layout.prop(cache, "name", text="File Name")
 

@@ -250,6 +250,7 @@ int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick
 
 	/* shouldnt be needed */
 	tvc->cwidth= cdc.cwidth;
+	tvc->console_width= cdc.console_width;
 	tvc->iter_index= 0;
 
 	if(tvc->sel_start != tvc->sel_end) {

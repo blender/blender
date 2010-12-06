@@ -41,6 +41,9 @@ SET(SRC
 	paint_vertex.c
 	sculpt.c
 	sculpt_undo.c
+
+	paint_intern.h
+	sculpt_intern.h
 )
 
 BLENDERLIB(bf_editor_sculpt_paint "${SRC}" "${INC}")

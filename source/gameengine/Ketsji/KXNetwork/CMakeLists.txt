@@ -42,11 +42,12 @@ SET(SRC
 	KX_NetworkMessageSensor.cpp
 	KX_NetworkObjectActuator.cpp
 	KX_NetworkObjectSensor.cpp
-)
 
-IF(WITH_PYTHON)
-	LIST(APPEND INC ${PYTHON_INC})
-	ADD_DEFINITIONS(-DWITH_PYTHON)
-ENDIF(WITH_PYTHON)
+	KX_NetworkEventManager.h
+	KX_NetworkMessageActuator.h
+	KX_NetworkMessageSensor.h
+	KX_NetworkObjectActuator.h
+	KX_NetworkObjectSensor.h
+)
 
 BLENDERLIB(ge_logic_network "${SRC}" "${INC}")

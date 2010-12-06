@@ -173,7 +173,7 @@ static StructRNA *rna_KeyingSetInfo_register(const bContext *C, ReportList *repo
 		return NULL;
 	
 	if (strlen(identifier) >= sizeof(dummyksi.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering keying set info class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummyksi.idname));
+		BKE_reportf(reports, RPT_ERROR, "registering keying set info class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummyksi.idname));
 		return NULL;
 	}
 	

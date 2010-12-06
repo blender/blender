@@ -975,6 +975,8 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 /* this is called in main loop, doing tagged updates before redraw */
 void scene_update_tagged(Main *bmain, Scene *scene)
 {
+	DAG_ids_flush_tagged(bmain);
+
 	scene->physics_settings.quick_cache_step= 0;
 
 	/* update all objects: drivers, matrices, displists, etc. flags set

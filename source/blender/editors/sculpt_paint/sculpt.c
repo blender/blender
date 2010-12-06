@@ -516,8 +516,7 @@ float calc_overlap(StrokeCache *cache, const char symm, const char axis, const f
 	flip_coord(mirror, cache->true_location, symm);
 
 	if(axis != 0) {
-		float mat[4][4];
-		unit_m4(mat);
+		float mat[4][4]= MAT4_UNITY;
 		rotate_m4(mat, axis, angle);
 		mul_m4_v3(mat, mirror);
 	}
@@ -2693,7 +2692,7 @@ int sculpt_poll(bContext *C)
 	return sculpt_mode_poll(C) && paint_poll(C);
 }
 
-static char *sculpt_tool_name(Sculpt *sd)
+static const char *sculpt_tool_name(Sculpt *sd)
 {
 	Brush *brush = paint_brush(&sd->paint);
 
@@ -3330,7 +3329,7 @@ static void sculpt_flush_update(bContext *C)
 		GPU_drawobject_free(ob->derivedFinal);
 
 	if(ss->modifiers_active) {
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		ED_region_tag_redraw(ar);
 	}
 	else {
@@ -3461,7 +3460,7 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *unused)
 
 		/* try to avoid calling this, only for e.g. linked duplicates now */
 		if(((Mesh*)ob->data)->id.us > 1)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	}
@@ -3616,7 +3615,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *unused)
 			multires_force_update(ob);
 
 		if(flush_recalc)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 		/* Leave sculptmode */
 		ob->mode &= ~OB_MODE_SCULPT;
@@ -3628,7 +3627,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *unused)
 		ob->mode |= OB_MODE_SCULPT;
 
 		if(flush_recalc)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		
 		/* Create persistent sculpt mode data */
 		if(!ts->sculpt) {
@@ -3667,7 +3666,7 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void ED_operatortypes_sculpt()
+void ED_operatortypes_sculpt(void)
 {
 	WM_operatortype_append(SCULPT_OT_radial_control);
 	WM_operatortype_append(SCULPT_OT_brush_stroke);

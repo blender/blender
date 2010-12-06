@@ -455,7 +455,7 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float UNUSED(alpha)
 	glDisable(GL_LINE_SMOOTH);
 }
 
-static void init_brush_icons()
+static void init_brush_icons(void)
 {
 
 #define INIT_BRUSH_ICON(icon_id, name)					     \
@@ -500,14 +500,14 @@ static void init_brush_icons()
 #undef INIT_BRUSH_ICON
 }
 
-static void init_internal_icons()
+static void init_internal_icons(void)
 {
 	bTheme *btheme= U.themes.first;
 	ImBuf *bbuf= NULL;
 	int x, y, icontype;
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
 	
-	if ((btheme!=NULL) && (strlen(btheme->tui.iconfile) > 0)) {
+	if ((btheme!=NULL) && btheme->tui.iconfile[0]) {
 		char *datadir= BLI_get_folder(BLENDER_DATAFILES, NULL);
 		if (datadir) {
 			BLI_make_file_string("/", iconfilestr, datadir, btheme->tui.iconfile);
@@ -731,7 +731,7 @@ void UI_icons_free_drawinfo(void *drawinfo)
 	}
 }
 
-static DrawInfo *icon_create_drawinfo()
+static DrawInfo *icon_create_drawinfo(void)
 {
 	DrawInfo *di = NULL;
 

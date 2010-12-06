@@ -57,6 +57,9 @@
 
 /* *********************************************************************** */
 
+/* XXX still unresolved: scrolls hide/unhide vs region mask handling */
+/* XXX there's V2D_SCROLL_HORIZONTAL_HIDE and V2D_SCROLL_HORIZONTAL_FULLR ... */
+
 /* helper to allow scrollbars to dynamically hide
  * 	- returns a copy of the scrollbar settings with the flags to display 
  *	  horizontal/vertical scrollbars removed
@@ -83,6 +86,7 @@ static void view2d_masks(View2D *v2d)
 	v2d->mask.ymax= v2d->winy - 1;
 
 #if 0
+	// XXX see above
 	v2d->scroll &= ~(V2D_SCROLL_HORIZONTAL_HIDE|V2D_SCROLL_VERTICAL_HIDE);
 	/* check size if: */
 	if (v2d->scroll & V2D_SCROLL_HORIZONTAL)
@@ -845,7 +849,7 @@ void UI_view2d_totRect_set_resize (View2D *v2d, int width, int height, int resiz
 	
 	if (ELEM3(0, v2d, width, height)) {
 		if (G.f & G_DEBUG)
-			printf("Error: View2D totRect set exiting: v2d=%p width=%d height=%d \n", v2d, width, height); // XXX temp debug info
+			printf("Error: View2D totRect set exiting: v2d=%p width=%d height=%d \n", (void *)v2d, width, height); // XXX temp debug info
 		return;
 	}
 	

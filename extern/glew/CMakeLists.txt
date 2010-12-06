@@ -34,6 +34,10 @@ ENDIF(UNIX)
 
 SET(SRC
 	src/glew.c
+
+	include/GL/glew.h
+	include/GL/glxew.h
+	include/GL/wglew.h
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)

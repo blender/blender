@@ -152,7 +152,7 @@ void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, fl
 }
 
 
-int GetButStringLength(char *str) 
+int GetButStringLength(const char *str) 
 {
 	int rt;
 	

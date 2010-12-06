@@ -196,7 +196,7 @@ bNodeStack **out)
 
 static int gpu_shader_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
-	static char *names[] = {"math_add", "math_subtract", "math_multiply",
+	static const char *names[] = {"math_add", "math_subtract", "math_multiply",
 		"math_divide", "math_sine", "math_cosine", "math_tangent", "math_asin",
 		"math_acos", "math_atan", "math_pow", "math_log", "math_min", "math_max",
 		"math_round", "math_less_than", "math_greater_than"};

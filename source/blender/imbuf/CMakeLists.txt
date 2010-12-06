@@ -64,6 +64,36 @@ SET(SRC
 	intern/tiff.c
 	intern/util.c
 	intern/writeimage.c
+
+	IMB_imbuf.h
+	IMB_imbuf_types.h
+	IMB_thumbs.h
+	intern/IMB_allocimbuf.h
+	intern/IMB_anim.h
+	intern/IMB_filetype.h
+	intern/IMB_filter.h
+	intern/IMB_metadata.h
+	intern/cineon/cin_debug_stuff.h
+	intern/cineon/cineonfile.h
+	intern/cineon/cineonlib.h
+	intern/cineon/dpxfile.h
+	intern/cineon/dpxlib.h
+	intern/cineon/logImageCore.h
+	intern/cineon/logImageLib.h
+	intern/cineon/logmemfile.h
+	intern/dds/BlockDXT.h
+	intern/dds/Color.h
+	intern/dds/ColorBlock.h
+	intern/dds/Common.h
+	intern/dds/DirectDrawSurface.h
+	intern/dds/Image.h
+	intern/dds/PixelFormat.h
+	intern/dds/Stream.h
+	intern/dds/dds_api.h
+	intern/imbuf.h
+	intern/md5.h
+	intern/openexr/openexr_api.h
+	intern/openexr/openexr_multi.h
 )
 
 IF(WITH_IMAGE_OPENEXR)
@@ -71,24 +101,32 @@ IF(WITH_IMAGE_OPENEXR)
 ENDIF(WITH_IMAGE_OPENEXR)
 
 IF(WITH_IMAGE_TIFF)
-	SET(INC ${INC} ${TIFF_INCLUDE_DIR})
+	LIST(APPEND INC ${TIFF_INCLUDE_DIR})
 	ADD_DEFINITIONS(-DWITH_TIFF)
 ENDIF(WITH_IMAGE_TIFF)
 
 IF(WITH_IMAGE_OPENJPEG)
-	SET(INC ${INC} ${OPENJPEG_INC})
+	LIST(APPEND INC ${OPENJPEG_INC})
 	ADD_DEFINITIONS(-DWITH_OPENJPEG)
 ENDIF(WITH_IMAGE_OPENJPEG)
 
-IF(WITH_QUICKTIME)
-	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
-	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
+IF(WITH_IMAGE_REDCODE)
+	LIST(APPEND INC ${REDCODE_INC})
+	ADD_DEFINITIONS(-DWITH_REDCODE)
+ENDIF(WITH_IMAGE_REDCODE)
 
-IF(WITH_FFMPEG)
-	SET(INC ${INC} ${FFMPEG_INC})
+IF(WITH_CODEC_QUICKTIME)
+	LIST(APPEND INC
+		../quicktime
+		${QUICKTIME_INC}
+	)
+	ADD_DEFINITIONS(-DWITH_QUICKTIME)
+ENDIF(WITH_CODEC_QUICKTIME)
+
+IF(WITH_CODEC_FFMPEG)
+	LIST(APPEND INC ${FFMPEG_INC})
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_FFMPEG)
+ENDIF(WITH_CODEC_FFMPEG)
 
 IF(WITH_IMAGE_DDS)
 	ADD_DEFINITIONS(-DWITH_DDS)

@@ -496,9 +496,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 		return NULL;
 	
 	/* OK! new nodetree */
-	ngroup= alloc_libblock(&G.main->nodetree, ID_NT, "NodeGroup");
-	ngroup->type= ntree->type;
-	ngroup->alltypes= ntree->alltypes;
+	ngroup= ntreeAddTree("NodeGroup", ntree->type, TRUE);
 	
 	/* move nodes over */
 	for(node= ntree->nodes.first; node; node= nextn) {
@@ -884,6 +882,11 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 	bNode *node= NULL;
 	bNodeType *ntype= NULL;
 
+	if (ngroup && BLI_findindex(&G.main->nodetree, ngroup)==-1) {
+		printf("nodeAddNodeType() error: '%s' not in main->nodetree\n", ngroup->id.name);
+		return NULL;
+	}
+
 	if(type>=NODE_DYNAMIC_MENU) {
 		int a=0, idx= type-NODE_DYNAMIC_MENU;
 		ntype= ntree->alltypes.first;
@@ -1034,21 +1037,22 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 }
 
 
-bNodeTree *ntreeAddTree(int type)
+bNodeTree *ntreeAddTree(const char *name, int type, const short is_group)
 {
-	bNodeTree *ntree= MEM_callocN(sizeof(bNodeTree), "new node tree");
+	bNodeTree *ntree;
+
+	if (is_group)
+		ntree= alloc_libblock(&G.main->nodetree, ID_NT, name);
+	else {
+		ntree= MEM_callocN(sizeof(bNodeTree), "new node tree");
+		*( (short *)ntree->id.name )= type;
+		BLI_strncpy(ntree->id.name+2, name, sizeof(ntree->id.name));
+	}
+
 	ntree->type= type;
 	ntree->alltypes.first = NULL;
 	ntree->alltypes.last = NULL;
 
-	/* this helps RNA identify ID pointers as nodetree */
-	if(ntree->type==NTREE_SHADER)
-		BLI_strncpy(ntree->id.name, "NTShader Nodetree", sizeof(ntree->id.name));
-	else if(ntree->type==NTREE_COMPOSIT)
-		BLI_strncpy(ntree->id.name, "NTCompositing Nodetree", sizeof(ntree->id.name));
-	else if(ntree->type==NTREE_TEXTURE)
-		BLI_strncpy(ntree->id.name, "NTTexture Nodetree", sizeof(ntree->id.name));
-	
 	ntreeInitTypes(ntree);
 	return ntree;
 }
@@ -1968,7 +1972,6 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 /* copy stack compbufs to sockets */
 static void composit_end_exec(bNodeTree *ntree, int is_group)
 {
-	extern void print_compbuf(char *str, struct CompBuf *cbuf);
 	bNode *node;
 	bNodeStack *ns;
 	int a;
@@ -2907,6 +2910,8 @@ void ntreeCompositTagRender(Scene *curscene)
 			for(node= sce->nodetree->nodes.first; node; node= node->next) {
 				if(node->id==(ID *)curscene || node->type==CMP_NODE_COMPOSITE)
 					NodeTagChanged(sce->nodetree, node);
+				else if(node->type==CMP_NODE_TEXTURE) /* uses scene sizex/sizey */
+					NodeTagChanged(sce->nodetree, node);
 			}
 		}
 	}
@@ -3214,7 +3219,7 @@ static void remove_dynamic_typeinfos(ListBase *list)
 			if(ntype->inputs) {
 				bNodeSocketType *sock= ntype->inputs;
 				while(sock->type!=-1) {
-					MEM_freeN(sock->name);
+					MEM_freeN((void *)sock->name);
 					sock++;
 				}
 				MEM_freeN(ntype->inputs);
@@ -3222,13 +3227,13 @@ static void remove_dynamic_typeinfos(ListBase *list)
 			if(ntype->outputs) {
 				bNodeSocketType *sock= ntype->outputs;
 				while(sock->type!=-1) {
-					MEM_freeN(sock->name);
+					MEM_freeN((void *)sock->name);
 					sock++;
 				}
 				MEM_freeN(ntype->outputs);
 			}
 			if(ntype->name) {
-				MEM_freeN(ntype->name);
+				MEM_freeN((void *)ntype->name);
 			}
 			MEM_freeN(ntype);
 		}

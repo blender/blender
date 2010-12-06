@@ -41,17 +41,20 @@ SET(SRC
 	KX_BlenderMouseDevice.cpp
 	KX_BlenderRenderTools.cpp
 	KX_BlenderSystem.cpp
+
+	KX_BlenderCanvas.h
+	KX_BlenderGL.h
+	KX_BlenderInputDevice.h
+	KX_BlenderKeyboardDevice.h
+	KX_BlenderMouseDevice.h
+	KX_BlenderRenderTools.h
+	KX_BlenderSystem.h
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)
 
-IF(WITH_FFMPEG)
+IF(WITH_CODEC_FFMPEG)
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_FFMPEG)
-
-IF(WITH_PYTHON)
-	LIST(APPEND INC ${PYTHON_INC})
-	ADD_DEFINITIONS(-DWITH_PYTHON)
-ENDIF(WITH_PYTHON)
+ENDIF(WITH_CODEC_FFMPEG)
 
 BLENDERLIB(ge_blen_routines "${SRC}" "${INC}")

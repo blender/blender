@@ -916,8 +916,14 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_menu_enum("object.make_links_scene", "scene", text="Objects to Scene...")
-        layout.operator_menu_enum("marker.make_links_scene", "scene", text="Markers to Scene...")
+        if(len(bpy.data.scenes) > 10):
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("object.make_links_scene", text="Objects to Scene...", icon='OUTLINER_OB_EMPTY')
+            layout.operator("object.make_links_scene", text="Markers to Scene...", icon='OUTLINER_OB_EMPTY')
+        else:
+            layout.operator_menu_enum("object.make_links_scene", "scene", text="Objects to Scene...")
+            layout.operator_menu_enum("marker.make_links_scene", "scene", text="Markers to Scene...")
+
         layout.operator_enums("object.make_links_data", "type")  # inline
 
 

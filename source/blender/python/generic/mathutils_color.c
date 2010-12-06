@@ -225,9 +225,8 @@ static PyObject *Color_slice(ColorObject * self, int begin, int end)
 	begin = MIN2(begin,end);
 
 	list = PyList_New(end - begin);
-	for(count = begin; count < end; count++) {
-		PyList_SetItem(list, count - begin,
-				PyFloat_FromDouble(self->col[count]));
+	for(count= begin; count < end; count++) {
+		PyList_SET_ITEM(list, count - begin, PyFloat_FromDouble(self->col[count]));
 	}
 
 	return list;
@@ -290,9 +289,7 @@ static PyObject *Color_subscript(ColorObject *self, PyObject *item)
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "color indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return NULL;
 	}
 }
@@ -321,9 +318,7 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "color indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return -1;
 	}
 }
@@ -334,9 +329,9 @@ static PySequenceMethods Color_SeqMethods = {
 	(binaryfunc) NULL,						/* sq_concat */
 	(ssizeargfunc) NULL,					/* sq_repeat */
 	(ssizeargfunc) Color_item,				/* sq_item */
-	(ssizessizeargfunc) NULL,				/* sq_slice, deprecated */
+	NULL,									/* sq_slice, deprecated */
 	(ssizeobjargproc) Color_ass_item,		/* sq_ass_item */
-	(ssizessizeobjargproc) NULL,			/* sq_ass_slice, deprecated */
+	NULL,									/* sq_ass_slice, deprecated */
 	(objobjproc) NULL,						/* sq_contains */
 	(binaryfunc) NULL,						/* sq_inplace_concat */
 	(ssizeargfunc) NULL,					/* sq_inplace_repeat */
@@ -439,18 +434,18 @@ static int Color_setHSV(ColorObject * self, PyObject * value, void *UNUSED(closu
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Color_getseters[] = {
-	{"r", (getter)Color_getChannel, (setter)Color_setChannel, "Red color channel.\n\n:type: float", (void *)0},
-	{"g", (getter)Color_getChannel, (setter)Color_setChannel, "Green color channel.\n\n:type: float", (void *)1},
-	{"b", (getter)Color_getChannel, (setter)Color_setChannel, "Blue color channel.\n\n:type: float", (void *)2},
+	{(char *)"r", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Red color channel.\n\n:type: float", (void *)0},
+	{(char *)"g", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Green color channel.\n\n:type: float", (void *)1},
+	{(char *)"b", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Blue color channel.\n\n:type: float", (void *)2},
 
-	{"h", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Hue component in [0, 1].\n\n:type: float", (void *)0},
-	{"s", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Saturation component in [0, 1].\n\n:type: float", (void *)1},
-	{"v", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Value component in [0, 1].\n\n:type: float", (void *)2},
+	{(char *)"h", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Hue component in [0, 1].\n\n:type: float", (void *)0},
+	{(char *)"s", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Saturation component in [0, 1].\n\n:type: float", (void *)1},
+	{(char *)"v", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Value component in [0, 1].\n\n:type: float", (void *)2},
 
-	{"hsv", (getter)Color_getHSV, (setter)Color_setHSV, "HSV Values in [0, 1].\n\n:type: float triplet", (void *)0},
+	{(char *)"hsv", (getter)Color_getHSV, (setter)Color_setHSV, (char *)"HSV Values in [0, 1].\n\n:type: float triplet", (void *)0},
 
-	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
-	{"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
+	{(char *)"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -468,7 +463,7 @@ static char color_doc[] =
 
 PyTypeObject color_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"color",						//tp_name
+	"mathutils.Color",						//tp_name
 	sizeof(ColorObject),			//tp_basicsize
 	0,								//tp_itemsize
 	(destructor)BaseMathObject_dealloc,		//tp_dealloc

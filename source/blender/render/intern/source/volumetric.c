@@ -115,13 +115,6 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
 
 static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, Isect *isect, int intersect_type)
 {
-	/* XXX TODO - get raytrace max distance from object instance's bounding box */
-	/* need to account for scaling only, but keep coords in camera space...
-	 * below code is WIP and doesn't work!
-	sub_v3_v3v3(bb_dim, shi->obi->obr->boundbox[1], shi->obi->obr->boundbox[2]);
-	mul_m3_v3(shi->obi->nmat, bb_dim);
-	maxsize = len_v3(bb_dim);
-	*/
 	
 	VECCOPY(isect->start, co);
 	VECCOPY(isect->vec, vec );
@@ -337,7 +330,7 @@ void vol_get_emission(ShadeInput *shi, float *emission_col, float *co)
 
 
 /* A combination of scattering and absorption -> known as sigma T.
- * This can possibly use a specific scattering colour, 
+ * This can possibly use a specific scattering color, 
  * and absorption multiplier factor too, but these parameters are left out for simplicity.
  * It's easy enough to get a good wide range of results with just these two parameters. */
 void vol_get_sigma_t(ShadeInput *shi, float *sigma_t, float *co)
@@ -578,8 +571,8 @@ outgoing radiance from behind surface * beam transmittance/attenuation
 /* For ease of use, I've also introduced a 'reflection' and 'reflection color' parameter, which isn't 
  * physically correct. This works as an RGB tint/gain on out-scattered light, but doesn't affect the light 
  * that is transmitted through the volume. While having wavelength dependent absorption/scattering is more correct,
- * it also makes it harder to control the overall look of the volume since colouring the outscattered light results
- * in the inverse colour being transmitted through the rest of the volume.
+ * it also makes it harder to control the overall look of the volume since coloring the outscattered light results
+ * in the inverse color being transmitted through the rest of the volume.
  */
 static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float *endco)
 {
@@ -743,6 +736,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	float tr[3] = {1.0,1.0,1.0};
 	Isect is;
 	float *startco, *endco;
+	int intersect_type = VOL_BOUNDS_DEPTH;
 
 	memset(shr, 0, sizeof(ShadeResult));
 	
@@ -751,10 +745,12 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	if (shi->flippednor) {
 		startco = last_is->start;
 		endco = shi->co;
+		intersect_type = VOL_BOUNDS_SS;
 	}
+	
 	/* trace to find a backface, the other side bounds of the volume */
 	/* (ray intersect ignores front faces here) */
-	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH)) {
+	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, intersect_type)) {
 		startco = shi->co;
 		endco = hitco;
 	}
@@ -765,9 +761,21 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	}
 
 	vol_get_transmittance(shi, tr, startco, endco);
+
+	
+	/* if we hit another face in the same volume bounds */
+	/* shift raytrace coordinates to the hit point, to avoid shading volume twice */
+	/* due to idiosyncracy in ray_trace_shadow_tra() */
+	if (is.hit.ob == shi->obi) {
+		copy_v3_v3(shi->co, hitco);
+		last_is->labda -= is.labda;
+		shi->vlr = (VlakRen *)is.hit.face;
+	}
+
 	
 	copy_v3_v3(shr->combined, tr);
 	shr->combined[3] = 1.0f - luminance(tr);
+	shr->alpha = shr->combined[3];
 }
 
 
@@ -784,6 +792,7 @@ void shade_volume_inside(ShadeInput *shi, ShadeResult *shr)
 	MatInside *m;
 	Material *mat_backup;
 	ObjectInstanceRen *obi_backup;
+	float prev_alpha = shr->alpha;
 
 	/* XXX: extend to multiple volumes perhaps later */
 	mat_backup = shi->mat;
@@ -794,11 +803,14 @@ void shade_volume_inside(ShadeInput *shi, ShadeResult *shr)
 	shi->obi = m->obi;
 	shi->obr = m->obi->obr;
 	
-	memset(shr, 0, sizeof(ShadeResult));
-	
 	volume_trace(shi, shr, VOL_SHADE_INSIDE);
+	
+	shr->alpha = shr->alpha + prev_alpha;
+	CLAMP(shr->alpha, 0.0, 1.0);
 
 	shi->mat = mat_backup;
 	shi->obi = obi_backup;
 	shi->obr = obi_backup->obr;
 }
+
+

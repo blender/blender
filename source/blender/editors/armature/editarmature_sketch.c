@@ -105,10 +105,6 @@ typedef struct SK_StrokeIterator {
 
 void initStrokeIterator(BArcIterator *iter, SK_Stroke *stk, int start, int end);
 
-void sk_deleteSelectedStrokes(SK_Sketch *sketch);
-
-SK_Point *sk_lastStrokePoint(SK_Stroke *stk);
-
 int sk_detectCutGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);
 void sk_applyCutGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);
 int sk_detectTrimGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);
@@ -287,7 +283,7 @@ int BIF_nbJointsTemplate(const bContext *C)
 	}
 }
 
-char * BIF_nameBoneTemplate(const bContext *C)
+const char * BIF_nameBoneTemplate(const bContext *C)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *stk = contextSketch(C, 1);

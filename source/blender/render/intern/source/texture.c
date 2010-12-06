@@ -731,7 +731,7 @@ static int texnoise(Tex *tex, TexResult *texres)
 		div*= 3.0;
 	}
 	
-	texres->tin= ((float)val)/div;;
+	texres->tin= ((float)val)/div;
 
 	BRICONT;
 	return TEX_INT;

@@ -48,7 +48,7 @@ static void rna_cloth_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 
@@ -60,7 +60,7 @@ static void rna_cloth_pinning_changed(Main *bmain, Scene *scene, PointerRNA *ptr
 
 	cloth_free_modifier(clmd);
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 
@@ -71,7 +71,7 @@ static void rna_cloth_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	settings->reset = 1;
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 

@@ -816,6 +816,19 @@ class USERPREF_PT_input(InputKeyMapPanel):
 
         #print("runtime", time.time() - start)
 
+class USERPREF_MT_addons_dev_guides(bpy.types.Menu):
+    bl_label = "Addons develoment guides"
+
+    # menu to open webpages with addons development guides
+    def draw(self, context):
+        layout = self.layout
+        layout.operator('wm.url_open', text='API Concepts'
+            ).url = 'http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro'
+        layout.operator('wm.url_open', text='Addons guidelines',
+            ).url = 'http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons'
+        layout.operator('wm.url_open', text='How to share your addon',
+            ).url = 'http://wiki.blender.org/index.php/Dev:Py/Sharing'
+
 
 class USERPREF_PT_addons(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
@@ -948,6 +961,11 @@ class USERPREF_PT_addons(bpy.types.Panel):
         col = split.column()
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
         col.prop(context.window_manager, "addon_filter", text="Filter", expand=True)
+        
+        # menu to open webpages with addons development guides
+        col.separator()
+        col.label(text = ' Online Documentation', icon = 'INFO')
+        col.menu('USERPREF_MT_addons_dev_guides', text='Addons Developer Guides')
 
         col = split.column()
 

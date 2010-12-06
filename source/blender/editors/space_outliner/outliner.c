@@ -240,7 +240,7 @@ void outliner_free_tree(ListBase *lb)
 		outliner_free_tree(&te->subtree);
 		BLI_remlink(lb, te);
 
-		if(te->flag & TE_FREE_NAME) MEM_freeN(te->name);
+		if(te->flag & TE_FREE_NAME) MEM_freeN((void *)te->name);
 		MEM_freeN(te);
 	}
 }
@@ -324,7 +324,7 @@ static ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode)
 struct treesort {
 	TreeElement *te;
 	ID *id;
-	char *name;
+	const char *name;
 	short idcode;
 };
 
@@ -340,7 +340,7 @@ static int treesort_alpha(const void *v1, const void *v2)
 	if(comp==1) return 1;
 	else if(comp==2) return -1;
 	else if(comp==3) {
-		int comp= strcmp(x1->name, x2->name);
+		comp= strcmp(x1->name, x2->name);
 		
 		if( comp>0 ) return 1;
 		else if( comp<0) return -1;
@@ -1112,8 +1112,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			c= RNA_property_array_item_char(prop, index);
 
 			te->name= MEM_callocN(sizeof(char)*20, "OutlinerRNAArrayName");
-			if(c) sprintf(te->name, "  %c", c);
-			else sprintf(te->name, "  %d", index+1);
+			if(c) sprintf((char *)te->name, "  %c", c);
+			else sprintf((char *)te->name, "  %d", index+1);
 			te->flag |= TE_FREE_NAME;
 		}
 	}
@@ -1308,7 +1308,7 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 				outliner_free_tree(&te->subtree);
 				BLI_remlink(lb, te);
 				
-				if(te->flag & TE_FREE_NAME) MEM_freeN(te->name);
+				if(te->flag & TE_FREE_NAME) MEM_freeN((void *)te->name);
 				MEM_freeN(te);
 			}
 		}
@@ -2109,7 +2109,7 @@ static int tree_element_active_defgroup(bContext *C, Scene *scene, TreeElement *
 	ob= (Object *)tselem->id;
 	if(set) {
 		ob->actdef= te->index+1;
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 	}
 	else {
@@ -3386,7 +3386,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int event;
-	char *str= NULL;
+	const char *str= NULL;
 	
 	/* check for invalid states */
 	if (soops == NULL)
@@ -4912,7 +4912,7 @@ static void restrictbutton_modifier_cb(bContext *C, void *UNUSED(poin), void *po
 {
 	Object *ob = (Object *)poin2;
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 }
@@ -5371,84 +5371,74 @@ static short keymap_menu_type(short type)
 	return 0;
 }
 
-static char *keymap_type_menu(void)
+static const char *keymap_type_menu(void)
 {
-	static char string[500];
-	static char formatstr[] = "|%s %%x%d";
-	char *str= string;
-	
-	str += sprintf(str, "Event Type %%t");
-	
-	str += sprintf(str, formatstr, "Keyboard", OL_KM_KEYBOARD);
-	str += sprintf(str, formatstr, "Mouse", OL_KM_MOUSE);
-	str += sprintf(str, formatstr, "Tweak", OL_KM_TWEAK);
-//	str += sprintf(str, formatstr, "Specials", OL_KM_SPECIALS);
-	
-	return string;
-}	
+	static const char string[]=
+	"Event Type%t"
+	"|Keyboard%x" STRINGIFY(OL_KM_KEYBOARD)
+	"|Mouse%x" STRINGIFY(OL_KM_MOUSE)
+	"|Tweak%x" STRINGIFY(OL_KM_TWEAK)
+//	"|Specials%x" STRINGIFY(OL_KM_SPECIALS)
+	;
 
-static char *keymap_mouse_menu(void)
-{
-	static char string[500];
-	static char formatstr[] = "|%s %%x%d";
-	char *str= string;
-	
-	str += sprintf(str, "Mouse Event %%t");
-	
-	str += sprintf(str, formatstr, "Left Mouse", LEFTMOUSE);
-	str += sprintf(str, formatstr, "Middle Mouse", MIDDLEMOUSE);
-	str += sprintf(str, formatstr, "Right Mouse", RIGHTMOUSE);
-	str += sprintf(str, formatstr, "Button4 Mouse ", BUTTON4MOUSE);
-	str += sprintf(str, formatstr, "Button5 Mouse ", BUTTON5MOUSE);
-	str += sprintf(str, formatstr, "Action Mouse", ACTIONMOUSE);
-	str += sprintf(str, formatstr, "Select Mouse", SELECTMOUSE);
-	str += sprintf(str, formatstr, "Mouse Move", MOUSEMOVE);
-	str += sprintf(str, formatstr, "Wheel Up", WHEELUPMOUSE);
-	str += sprintf(str, formatstr, "Wheel Down", WHEELDOWNMOUSE);
-	str += sprintf(str, formatstr, "Wheel In", WHEELINMOUSE);
-	str += sprintf(str, formatstr, "Wheel Out", WHEELOUTMOUSE);
-	str += sprintf(str, formatstr, "Mouse/Trackpad Pan", MOUSEPAN);
-	str += sprintf(str, formatstr, "Mouse/Trackpad Zoom", MOUSEZOOM);
-	str += sprintf(str, formatstr, "Mouse/Trackpad Rotate", MOUSEROTATE);
-	
 	return string;
 }
 
-static char *keymap_tweak_menu(void)
+static const char *keymap_mouse_menu(void)
 {
-	static char string[500];
-	static char formatstr[] = "|%s %%x%d";
-	char *str= string;
-	
-	str += sprintf(str, "Tweak Event %%t");
-	
-	str += sprintf(str, formatstr, "Left Mouse", EVT_TWEAK_L);
-	str += sprintf(str, formatstr, "Middle Mouse", EVT_TWEAK_M);
-	str += sprintf(str, formatstr, "Right Mouse", EVT_TWEAK_R);
-	str += sprintf(str, formatstr, "Action Mouse", EVT_TWEAK_A);
-	str += sprintf(str, formatstr, "Select Mouse", EVT_TWEAK_S);
-	
+	static const char string[]=
+	"Mouse Event%t"
+	"|Left Mouse%x" STRINGIFY(LEFTMOUSE)
+	"|Middle Mouse%x" STRINGIFY(MIDDLEMOUSE)
+	"|Right Mouse%x" STRINGIFY(RIGHTMOUSE)
+	"|Middle Mouse%x" STRINGIFY(MIDDLEMOUSE)
+	"|Right Mouse%x" STRINGIFY(RIGHTMOUSE)
+	"|Button4 Mouse%x" STRINGIFY(BUTTON4MOUSE)
+	"|Button5 Mouse%x" STRINGIFY(BUTTON5MOUSE)
+	"|Action Mouse%x" STRINGIFY(ACTIONMOUSE)
+	"|Select Mouse%x" STRINGIFY(SELECTMOUSE)
+	"|Mouse Move%x" STRINGIFY(MOUSEMOVE)
+	"|Wheel Up%x" STRINGIFY(WHEELUPMOUSE)
+	"|Wheel Down%x" STRINGIFY(WHEELDOWNMOUSE)
+	"|Wheel In%x" STRINGIFY(WHEELINMOUSE)
+	"|Wheel Out%x" STRINGIFY(WHEELOUTMOUSE)
+	"|Mouse/Trackpad Pan%x" STRINGIFY(MOUSEPAN)
+	"|Mouse/Trackpad Zoom%x" STRINGIFY(MOUSEZOOM)
+	"|Mouse/Trackpad Rotate%x" STRINGIFY(MOUSEROTATE)
+	;
+
 	return string;
 }
 
-static char *keymap_tweak_dir_menu(void)
+static const char *keymap_tweak_menu(void)
 {
-	static char string[500];
-	static char formatstr[] = "|%s %%x%d";
-	char *str= string;
-	
-	str += sprintf(str, "Tweak Direction %%t");
-	
-	str += sprintf(str, formatstr, "Any", KM_ANY);
-	str += sprintf(str, formatstr, "North", EVT_GESTURE_N);
-	str += sprintf(str, formatstr, "North-East", EVT_GESTURE_NE);
-	str += sprintf(str, formatstr, "East", EVT_GESTURE_E);
-	str += sprintf(str, formatstr, "Sout-East", EVT_GESTURE_SE);
-	str += sprintf(str, formatstr, "South", EVT_GESTURE_S);
-	str += sprintf(str, formatstr, "South-West", EVT_GESTURE_SW);
-	str += sprintf(str, formatstr, "West", EVT_GESTURE_W);
-	str += sprintf(str, formatstr, "North-West", EVT_GESTURE_NW);
-	
+	static const char string[]=
+	"Tweak Event%t"
+	"|Left Mouse%x" STRINGIFY(EVT_TWEAK_L)
+	"|Middle Mouse%x" STRINGIFY(EVT_TWEAK_M)
+	"|Right Mouse%x" STRINGIFY(EVT_TWEAK_R)
+	"|Action Mouse%x" STRINGIFY(EVT_TWEAK_A)
+	"|Select Mouse%x" STRINGIFY(EVT_TWEAK_S)
+	;
+
+	return string;
+}
+
+static const char *keymap_tweak_dir_menu(void)
+{
+	static const char string[]=
+	"Tweak Direction%t"
+	"|Any%x" STRINGIFY(KM_ANY)
+	"|North%x" STRINGIFY(EVT_GESTURE_N)
+	"|North-East%x" STRINGIFY(EVT_GESTURE_NE)
+	"|East%x" STRINGIFY(EVT_GESTURE_E)
+	"|Sout-East%x" STRINGIFY(EVT_GESTURE_SE)
+	"|South%x" STRINGIFY(EVT_GESTURE_S)
+	"|South-West%x" STRINGIFY(EVT_GESTURE_SW)
+	"|West%x" STRINGIFY(EVT_GESTURE_W)
+	"|North-West%x" STRINGIFY(EVT_GESTURE_NW)
+	;
+
 	return string;
 }
 
@@ -5491,7 +5481,7 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 		tselem= TREESTORE(te);
 		if(te->ys+2*OL_H >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {
 			uiBut *but;
-			char *str;
+			const char *str;
 			int xstart= 240;
 			int butw1= 20; /* operator */
 			int butw2= 90; /* event type, menus */
@@ -5587,7 +5577,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				spx=te->xs+2*OL_X-4;
 				if(spx+dx+10>ar->v2d.cur.xmax) dx = ar->v2d.cur.xmax-spx-10;
 
-				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len, 0, 0, "");
+				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (short)te->ys, dx+10, OL_H-1, (void *)te->name, 1.0, (float)len, 0, 0, "");
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);
 				
 				/* returns false if button got removed */

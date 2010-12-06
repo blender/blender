@@ -603,7 +603,7 @@ void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
 
 /* --------------- */
 
-void ANIM_keyingset_infos_exit ()
+void ANIM_keyingset_infos_exit (void)
 {
 	KeyingSetInfo *ksi, *next;
 	

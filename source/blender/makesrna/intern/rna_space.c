@@ -670,7 +670,7 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, Scene *scene, Po
 		}
 		
 		/* force depsgraph flush too */
-		DAG_id_flush_update(&obact->id, OB_RECALC_OB|OB_RECALC_DATA);
+		DAG_id_tag_update(&obact->id, OB_RECALC_OB|OB_RECALC_DATA);
 	}
 }
 

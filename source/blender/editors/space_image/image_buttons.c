@@ -484,7 +484,7 @@ static void image_panel_preview(ScrArea *sa, short cntrl)	// IMAGE_HANDLER_PREVI
 
 /* ********************* callbacks for standard image buttons *************** */
 
-static char *slot_menu()
+static char *slot_menu(void)
 {
 	char *str;
 	int a, slot;

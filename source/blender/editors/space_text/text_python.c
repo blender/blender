@@ -388,7 +388,7 @@ short do_textmarkers(SpaceText *st, char ascii, unsigned short evnt, short val)
 		/* Find the next temporary marker */
 		if(evnt==TABKEY) {
 			int lineno= txt_get_span(text->lines.first, text->curl);
-			TextMarker *mrk= text->markers.first;
+			mrk= text->markers.first;
 			while(mrk) {
 				if(!marker && (mrk->flags & TMARK_TEMP)) marker= mrk;
 				if((mrk->flags & TMARK_TEMP) && (mrk->lineno > lineno || (mrk->lineno==lineno && mrk->end > text->curc))) {

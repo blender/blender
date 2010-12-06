@@ -246,7 +246,7 @@ struct Render
 	int (*test_break)(void *handle);
 	void *tbh;
 	
-	void (*error)(void *handle, char *str);
+	void (*error)(void *handle, const char *str);
 	void *erh;
 	
 	RenderStats i;

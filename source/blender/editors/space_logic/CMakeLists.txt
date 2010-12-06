@@ -35,6 +35,8 @@ SET(SRC
 	logic_ops.c
 	logic_window.c
 	space_logic.c
+
+	logic_intern.h
 )
 
 IF(WITH_GAMEENGINE)

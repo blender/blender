@@ -62,7 +62,7 @@
 
 /* Included the path relative from /source/blender/ here, so we can move     */
 /* headers around with more freedom.                                         */
-char *includefiles[] = {
+const char *includefiles[] = {
 
 	// if you add files here, please add them at the end
 	// of makesdna.c (this file) as well
@@ -164,7 +164,7 @@ int additional_slen_offset;
 /**
  * Add type <str> to struct indexed by <len>, if it was not yet found.
  */
-int add_type(char *str, int len);
+int add_type(const char *str, int len);
 
 /**
  * Add variable <str> to 
@@ -216,7 +216,7 @@ void printStructLenghts(void);
 
 /* ************************* MAKEN DNA ********************** */
 
-int add_type(char *str, int len)
+int add_type(const char *str, int len)
 {
 	int nr;
 	char *cp;
@@ -246,7 +246,7 @@ int add_type(char *str, int len)
 	
 	if(nr_types>=maxnr) {
 		printf("too many types\n");
-		return nr_types-1;;
+		return nr_types-1;
 	}
 	nr_types++;
 	

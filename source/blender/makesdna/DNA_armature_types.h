@@ -116,7 +116,7 @@ typedef enum eArmature_Flag {
 	ARM_MIRROR_EDIT		= (1<<8),
 	ARM_AUTO_IK			= (1<<9),
 	ARM_NO_CUSTOM		= (1<<10), 	/* made option negative, for backwards compat */
-	ARM_COL_CUSTOM		= (1<<11),	/* draw custom colours  */
+	ARM_COL_CUSTOM		= (1<<11),	/* draw custom colors  */
 	ARM_GHOST_ONLYSEL 	= (1<<12),	/* when ghosting, only show selected bones (this should belong to ghostflag instead) */ // XXX depreceated
 	ARM_DS_EXPAND 		= (1<<13)
 } eArmature_Flag;
@@ -180,7 +180,7 @@ typedef enum eBone_Flag {
 	BONE_EDITMODE_LOCKED		= (1<<19),	/* bone transforms are locked in EditMode */
 	BONE_TRANSFORM_CHILD		= (1<<20),	/* Indicates that a parent is also being transformed */
 	BONE_UNSELECTABLE			= (1<<21),	/* bone cannot be selected */
-	BONE_NO_LOCAL_LOCATION		= (1<<22),	/* bone location is in armature space */
+	BONE_NO_LOCAL_LOCATION		= (1<<22)	/* bone location is in armature space */
 } eBone_Flag;
 
 #endif

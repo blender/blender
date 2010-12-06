@@ -162,7 +162,9 @@ static int new_exec(bContext *C, wmOperator *UNUSED(op))
 	if(prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
-		text->id.us--;
+		/* doesnt always seem to happen... (ton) */
+		if(text->id.us>1)
+			text->id.us--;
 
 		RNA_id_pointer_create(&text->id, &idptr);
 		RNA_property_pointer_set(&ptr, prop, idptr);
@@ -629,7 +631,7 @@ static int refresh_pyconstraints_exec(bContext *UNUSED(C), wmOperator *UNUSED(op
 		}
 		
 		if(update) {
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 #endif

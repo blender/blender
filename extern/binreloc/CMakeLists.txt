@@ -20,6 +20,8 @@
 
 SET(SRC
 	binreloc.c
+
+	include/binreloc.h
 )
 
 SET(INC

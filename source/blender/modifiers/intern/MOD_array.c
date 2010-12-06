@@ -443,7 +443,13 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  }
 
 			  if(med.v1 == med.v2) continue;
-
+			  
+			  /* XXX Unfortunately the calc_mapping returns sometimes numVerts... leads to bad crashes */
+			  if(med.v1 >= numVerts)
+				  med.v1= numVerts-1;
+			  if(med.v2 >= numVerts)
+				  med.v2= numVerts-1;
+			  
 			  if (initFlags) {
 				  med.flag |= ME_EDGEDRAW | ME_EDGERENDER;
 			  }
@@ -460,9 +466,15 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  {
 				  vert1 = calc_mapping(indexMap, inMED.v1, j);
 				  vert2 = calc_mapping(indexMap, inMED.v2, j);
-
+				  
 				  /* edge could collapse to single point after mapping */
 				  if(vert1 == vert2) continue;
+				  
+				  /* XXX Unfortunately the calc_mapping returns sometimes numVerts... leads to bad crashes */
+				  if(vert1 >= numVerts)
+					  vert1= numVerts-1;
+				  if(vert2 >= numVerts)
+					  vert2= numVerts-1;
 
 				  /* avoid duplicate edges */
 				  if(!BLI_edgehash_haskey(edges, vert1, vert2)) {

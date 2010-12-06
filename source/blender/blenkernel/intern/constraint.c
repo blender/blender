@@ -1202,12 +1202,11 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 	if (VALID_CONS_TARGET(ct)) {
 		Curve *cu= ct->tar->data;
 		float vec[4], dir[3], radius;
-		float totmat[4][4];
+		float totmat[4][4]= MAT4_UNITY;
 		float curvetime;
-		
-		unit_m4(totmat);
+
 		unit_m4(ct->matrix);
-		
+
 		/* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
 		 *		currently for paths to work it needs to go through the bevlist/displist system (ton) 
 		 */
@@ -2997,6 +2996,7 @@ static void rbj_id_looper (bConstraint *con, ConstraintIDFunc func, void *userda
 	
 	/* target only */
 	func(con, (ID**)&data->tar, userdata);
+	func(con, (ID**)&data->child, userdata);
 }
 
 static int rbj_get_tars (bConstraint *con, ListBase *list)
@@ -3106,11 +3106,11 @@ static void clampto_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 	/* only evaluate if there is a target and it is a curve */
 	if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_CURVE)) {
 		Curve *cu= data->tar->data;
-		float obmat[4][4], targetMatrix[4][4], ownLoc[3];
+		float obmat[4][4], ownLoc[3];
 		float curveMin[3], curveMax[3];
+		float targetMatrix[4][4]= MAT4_UNITY;
 		
 		copy_m4_m4(obmat, cob->matrix);
-		unit_m4(targetMatrix);
 		copy_v3_v3(ownLoc, obmat[3]);
 		
 		INIT_MINMAX(curveMin, curveMax)
@@ -3903,7 +3903,7 @@ static bConstraintTypeInfo *constraintsTypeInfo[NUM_CONSTRAINT_TYPES];
 static short CTI_INIT= 1; /* when non-zero, the list needs to be updated */
 
 /* This function only gets called when CTI_INIT is non-zero */
-static void constraints_init_typeinfo () {
+static void constraints_init_typeinfo (void) {
 	constraintsTypeInfo[0]=  NULL; 					/* 'Null' Constraint */
 	constraintsTypeInfo[1]=  &CTI_CHILDOF; 			/* ChildOf Constraint */
 	constraintsTypeInfo[2]=  &CTI_TRACKTO;			/* TrackTo Constraint */

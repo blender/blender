@@ -560,7 +560,7 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 
 int transformEvent(TransInfo *t, wmEvent *event)
 {
-	float mati[3][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
+	float mati[3][3]= MAT3_UNITY;
 	char cmode = constraintModeToChar(t);
 	int handled = 1;
 
@@ -3111,9 +3111,7 @@ int Rotation(TransInfo *t, short UNUSED(mval[2]))
 	char str[64];
 	
 	float final;
-	
-	float mat[3][3];
-	
+
 	final = t->values[0];
 	
 	applyNDofInput(&t->ndof, &final);
@@ -3152,8 +3150,6 @@ int Rotation(TransInfo *t, short UNUSED(mval[2]))
 	}
 	
 	t->values[0] = final;
-
-	vec_rot_to_mat3( mat, t->axis, final);
 	
 	applyRotation(t, final, t->axis);
 	
@@ -3858,7 +3854,7 @@ int Bevel(TransInfo *t, short UNUSED(mval[2]))
 	float distance,d;
 	int i;
 	char str[128];
-	char *mode;
+	const char *mode;
 	TransData *td = t->data;
 
 	mode = (G.editBMesh->options & BME_BEVEL_VERT) ? "verts only" : "normal";
@@ -4546,7 +4542,7 @@ static int createSlideVerts(TransInfo *t)
 			sv = BLI_ghash_lookup(vertgh, ev);
 
 			if(sv) {
-				float co[3], co2[3], vec[3];
+				float co[3], co2[3], tvec[3];
 
 				ev = (EditVert*)look->link;
 
@@ -4563,12 +4559,12 @@ static int createSlideVerts(TransInfo *t)
 				}
 
 				if (ev == tempsv->up->v1) {
-					sub_v3_v3v3(vec, co, co2);
+					sub_v3_v3v3(tvec, co, co2);
 				} else {
-					sub_v3_v3v3(vec, co2, co);
+					sub_v3_v3v3(tvec, co2, co);
 				}
 
-				add_v3_v3(start, vec);
+				add_v3_v3(start, tvec);
 
 				if (v3d) {
 					view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
@@ -4576,12 +4572,12 @@ static int createSlideVerts(TransInfo *t)
 				}
 
 				if (ev == tempsv->down->v1) {
-					sub_v3_v3v3(vec, co2, co);
+					sub_v3_v3v3(tvec, co2, co);
 				} else {
-					sub_v3_v3v3(vec, co, co2);
+					sub_v3_v3v3(tvec, co, co2);
 				}
 
-				add_v3_v3(end, vec);
+				add_v3_v3(end, tvec);
 
 				totvec += 1.0f;
 				nearest = (EditVert*)look->link;
@@ -5857,7 +5853,7 @@ void BIF_TransformSetUndo(char *UNUSED(str))
 }
 
 
-void NDofTransform()
+void NDofTransform(void)
 {
 #if 0 // TRANSFORM_FIX_ME
 	float fval[7];

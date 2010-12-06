@@ -60,9 +60,9 @@
 /********************* Layer type information **********************/
 typedef struct LayerTypeInfo {
 	int size;          /* the memory size of one element of this layer's data */
-	char *structname;  /* name of the struct used, for file writing */
+	const char *structname;  /* name of the struct used, for file writing */
 	int structnum;     /* number of structs per element, for file writing */
-	char *defaultname; /* default layer name */
+	const char *defaultname; /* default layer name */
 
 	/* a function to copy count elements of this layer's data
 	 * (deep copy if appropriate)
@@ -2212,7 +2212,7 @@ void CustomData_from_bmesh_block(const CustomData *source, CustomData *dest,
 
 }
 
-void CustomData_file_write_info(int type, char **structname, int *structnum)
+void CustomData_file_write_info(int type, const char **structname, int *structnum)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
 

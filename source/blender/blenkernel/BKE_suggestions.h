@@ -64,27 +64,27 @@ typedef struct SuggList {
 } SuggList;
 
 /* Free all text tool memory */
-void free_texttools();
+void free_texttools(void);
 
 /* Used to identify which Text object the current tools should appear against */
 void texttool_text_set_active(Text *text);
-void texttool_text_clear();
+void texttool_text_clear(void);
 short texttool_text_is_active(Text *text);
 
 /* Suggestions */
 void texttool_suggest_add(const char *name, char type);
 void texttool_suggest_prefix(const char *prefix);
-void texttool_suggest_clear();
-SuggItem *texttool_suggest_first();
-SuggItem *texttool_suggest_last();
+void texttool_suggest_clear(void);
+SuggItem *texttool_suggest_first(void);
+SuggItem *texttool_suggest_last(void);
 void texttool_suggest_select(SuggItem *sel);
-SuggItem *texttool_suggest_selected();
-int *texttool_suggest_top();
+SuggItem *texttool_suggest_selected(void);
+int *texttool_suggest_top(void);
 
 /* Documentation */
 void texttool_docs_show(const char *docs);
-char *texttool_docs_get();
-void texttool_docs_clear();
+char *texttool_docs_get(void);
+void texttool_docs_clear(void);
 
 #ifdef __cplusplus
 }

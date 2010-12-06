@@ -68,7 +68,6 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 	uiBut *but;
 	uiLayout *box, *col;
 	struct FSMenu* fsmenu = fsmenu_get();
-	char *curdir= (sfile->params)? sfile->params->dir: "";
 	int i, i_iter, nentries = fsmenu_get_nentries(fsmenu, category);
 
 	/* reset each time */
@@ -95,8 +94,11 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 		entry = fsmenu_get_entry(fsmenu, category, i);
 		
 		/* set this list item as active if we have a match */
-		if(strcmp(curdir, entry) == 0)
-			*nr= i;
+		if(sfile->params) {
+			if(strcmp(sfile->params->dir, entry) == 0) {
+				*nr= i;
+			}
+		}
 
 		/* create nice bookmark name, shows last directory in the full path currently */
 		BLI_strncpy(temp, entry, FILE_MAX);

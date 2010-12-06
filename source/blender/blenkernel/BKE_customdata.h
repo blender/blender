@@ -266,7 +266,7 @@ void CustomData_from_bmesh_block(const struct CustomData *source,
 
 
 /* query info over types */
-void CustomData_file_write_info(int type, char **structname, int *structnum);
+void CustomData_file_write_info(int type, const char **structname, int *structnum);
 int CustomData_sizeof(int type);
 
 /* get the name of a layer type */

@@ -724,7 +724,7 @@ short insert_keyframe_direct (ReportList *reports, PointerRNA ptr, PropertyRNA *
 		/* try to get property we should be affecting */
 		if ((RNA_path_resolve(&ptr, fcu->rna_path, &tmp_ptr, &prop) == 0) || (prop == NULL)) {
 			/* property not found... */
-			char *idname= (ptr.id.data) ? ((ID *)ptr.id.data)->name : "<No ID-Pointer>";
+			const char *idname= (ptr.id.data) ? ((ID *)ptr.id.data)->name : "<No ID-Pointer>";
 			
 			BKE_reportf(reports, RPT_ERROR,
 				"Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", 
@@ -1177,6 +1177,7 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Insert Keyframe Menu";
 	ot->idname= "ANIM_OT_keyframe_insert_menu";
+	ot->description= "Insert Keyframes for specified Keying Set, with menu of available Keying Sets if undefined";
 	
 	/* callbacks */
 	ot->invoke= insert_key_menu_invoke;
@@ -1400,7 +1401,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 		}
 	}
 	else if (G.f & G_DEBUG) {
-		printf("ptr.data = %p, prop = %p,", ptr.data, prop);
+		printf("ptr.data = %p, prop = %p,", (void *)ptr.data, (void *)prop);
 		if(prop)
 			printf("animateable = %d \n", RNA_property_animateable(&ptr, prop));
 		else
@@ -1475,7 +1476,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 			printf("Button Delete-Key: no path to property \n");
 	}
 	else if (G.f & G_DEBUG) {
-		printf("ptr.data = %p, prop = %p \n", ptr.data, prop);
+		printf("ptr.data = %p, prop = %p \n", (void *)ptr.data, (void *)prop);
 	}
 	
 	

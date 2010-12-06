@@ -216,7 +216,7 @@ int modifier_sameTopology(ModifierData *md)
 	return ( mti->type == eModifierTypeType_OnlyDeform || mti->type == eModifierTypeType_Nonconstructive);
 }
 
-void modifier_setError(ModifierData *md, char *format, ...)
+void modifier_setError(ModifierData *md, const char *format, ...)
 {
 	char buffer[2048];
 	va_list ap;

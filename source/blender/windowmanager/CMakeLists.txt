@@ -62,6 +62,17 @@ SET(SRC
 	intern/wm_operators.c
 	intern/wm_subwindow.c
 	intern/wm_window.c
+
+	WM_api.h
+	WM_types.h
+	wm.h
+	wm_cursors.h
+	wm_draw.h
+	wm_event_system.h
+	wm_event_types.h
+	wm_files.h
+	wm_subwindow.h
+	wm_window.h
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)
@@ -74,15 +85,15 @@ IF(WITH_OPENCOLLADA)
 	ADD_DEFINITIONS(-DWITH_COLLADA)
 ENDIF(WITH_OPENCOLLADA)
 
-IF(WITH_QUICKTIME)
+IF(WITH_CODEC_QUICKTIME)
 	LIST(APPEND INC ../quicktime ${QUICKTIME_INC})
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
+ENDIF(WITH_CODEC_QUICKTIME)
 
-IF(WITH_FFMPEG)
+IF(WITH_CODEC_FFMPEG)
 	LIST(APPEND INC ${FFMPEG_INC})
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_FFMPEG)
+ENDIF(WITH_CODEC_FFMPEG)
 
 IF(WITH_PYTHON)
 	LIST(APPEND INC ../python ${PYTHON_INC})

@@ -1130,7 +1130,7 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CHANGED, sa);
 }
 
-static char *editortype_pup(void)
+static const char *editortype_pup(void)
 {
 	return(
 		   "Editor type:%t"
@@ -1227,7 +1227,7 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 
 /************************ standard UI regions ************************/
 
-void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *context, int contextnr)
+void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *context, int contextnr)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	uiStyle *style= U.uistyles.first;

@@ -35,6 +35,9 @@ SET(SRC
 	uvedit_ops.c
 	uvedit_parametrizer.c
 	uvedit_unwrap_ops.c
+
+	uvedit_intern.h
+	uvedit_parametrizer.h
 )
 
 BLENDERLIB(bf_editor_uvedit "${SRC}" "${INC}")

@@ -98,7 +98,7 @@ EnumPropertyItem brush_imagepaint_tool_items[] = {
 
 #include "WM_api.h"
 
-static void rna_Brush_reset_icon(Brush *br, char *type)
+static void rna_Brush_reset_icon(Brush *br, const char *UNUSED(type))
 {
 	ID *id = &br->id;
 

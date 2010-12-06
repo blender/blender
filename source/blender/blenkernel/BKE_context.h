@@ -225,7 +225,7 @@ struct Main *CTX_data_main(const bContext *C);
 struct Scene *CTX_data_scene(const bContext *C);
 struct ToolSettings *CTX_data_tool_settings(const bContext *C);
 
-char *CTX_data_mode_string(const bContext *C);
+const char *CTX_data_mode_string(const bContext *C);
 int CTX_data_mode_enum(const bContext *C);
 
 void CTX_data_main_set(bContext *C, struct Main *bmain);

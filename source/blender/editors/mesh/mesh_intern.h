@@ -49,8 +49,7 @@ int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge
 
 extern void free_editvert(EditMesh *em, EditVert *eve);
 extern void free_editedge(EditMesh *em, EditEdge *eed);
-extern void free_editface(EditMesh *em, EditFace *efa);
-void free_editMesh(EditMesh *em);
+extern void free_editface(EditMesh *em, EditFace *efa);;
 
 extern void free_vertlist(EditMesh *em, ListBase *edve);
 extern void free_edgelist(EditMesh *em, ListBase *lb);
@@ -172,7 +171,6 @@ void MESH_OT_select_nth(struct wmOperatorType *ot);
 
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
-extern void EM_automerge(Scene *scene, Object *obedit, int update);
 void editmesh_select_by_material(EditMesh *em, int index);
 void EM_recalc_normal_direction(EditMesh *em, int inside, int select);	/* makes faces righthand turning */
 void EM_select_more(EditMesh *em);

@@ -64,7 +64,7 @@ ImageRender::ImageRender (KX_Scene * scene, KX_Camera * camera) :
     m_mirror(NULL),
 	m_clip(100.f)
 {
-	// initialize background colour
+	// initialize background color
 	setBackground(0, 0, 255, 255);
     // retrieve rendering objects
     m_engine = KX_GetActiveEngine();

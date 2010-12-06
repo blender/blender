@@ -590,7 +590,7 @@ static void pchan_b_bone_defmats(bPoseChannel *pchan, bPoseChanDeform *pdef_info
 	Mat4 *b_bone_rest= b_bone_spline_setup(pchan, 1);
 	Mat4 *b_bone_mats;
 	DualQuat *b_bone_dual_quats= NULL;
-	float tmat[4][4];
+	float tmat[4][4]= MAT4_UNITY;
 	int a;
 	
 	/* allocate b_bone matrices and dual quats */
@@ -611,7 +611,6 @@ static void pchan_b_bone_defmats(bPoseChannel *pchan, bPoseChanDeform *pdef_info
 		- translate over the curve to the bbone mat space
 		- transform with b_bone matrix
 		- transform back into global space */
-	unit_m4(tmat);
 
 	for(a=0; a<bone->segments; a++) {
 		invert_m4_m4(tmat, b_bone_rest[a].mat);
@@ -1104,11 +1103,10 @@ void armature_mat_world_to_pose(Object *ob, float inmat[][4], float outmat[][4])
  */
 void armature_loc_world_to_pose(Object *ob, float *inloc, float *outloc) 
 {
-	float xLocMat[4][4];
+	float xLocMat[4][4]= MAT4_UNITY;
 	float nLocMat[4][4];
 	
 	/* build matrix for location */
-	unit_m4(xLocMat);
 	VECCOPY(xLocMat[3], inloc);
 
 	/* get bone-space cursor matrix and extract location */
@@ -1184,11 +1182,10 @@ void armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[][4], float outm
  */
 void armature_loc_pose_to_bone(bPoseChannel *pchan, float *inloc, float *outloc) 
 {
-	float xLocMat[4][4];
+	float xLocMat[4][4]= MAT4_UNITY;
 	float nLocMat[4][4];
 	
 	/* build matrix for location */
-	unit_m4(xLocMat);
 	VECCOPY(xLocMat[3], inloc);
 
 	/* get bone-space cursor matrix and extract location */

@@ -40,6 +40,8 @@ SET(SRC
 	sequencer_scopes.c
 	sequencer_select.c
 	space_sequencer.c
+
+	sequencer_intern.h
 )
 
 BLENDERLIB(bf_editor_space_sequencer "${SRC}" "${INC}")

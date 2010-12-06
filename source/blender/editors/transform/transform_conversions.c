@@ -446,7 +446,7 @@ static short apply_targetless_ik(Object *ob)
 
 				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
 				{
-					float rmat3[3][3], qrmat[3][3], imat[3][3], smat[3][3];
+					float rmat3[3][3], qrmat[3][3], imat3[3][3], smat[3][3];
 					
 					copy_m3_m4(rmat3, rmat);
 					
@@ -473,8 +473,8 @@ static short apply_targetless_ik(Object *ob)
 						else
 							quat_to_mat3( qrmat,parchan->quat);
 						
-						invert_m3_m3(imat, qrmat);
-						mul_m3_m3m3(smat, rmat3, imat);
+						invert_m3_m3(imat3, qrmat);
+						mul_m3_m3m3(smat, rmat3, imat3);
 						mat3_to_size( parchan->size,smat);
 					}
 					
@@ -4861,9 +4861,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			// fixme... some of this stuff is not good
 			if (ob) {
 				if (ob->pose || ob_get_key(ob))
-					DAG_id_flush_update(&ob->id, OB_RECALC_ALL);
+					DAG_id_tag_update(&ob->id, OB_RECALC_ALL);
 				else
-					DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+					DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 			
 			/* Do curve cleanups? */
@@ -5032,15 +5032,15 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled (or TFM_DUMMY) */
 		if (!cancelled && (t->mode != TFM_DUMMY)) {
 			autokeyframe_pose_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 		else if (arm->flag & ARM_DELAYDEFORM) {
 			/* old optimize trick... this enforces to bypass the depgraph */
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			ob->recalc= 0;	// is set on OK position already by recalcData()
 		}
 		else
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	}
 	else if(t->scene->basact && (ob = t->scene->basact->object) && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, ob)) {
@@ -5051,10 +5051,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 		for (i = 0; i < t->total; i++) {
 			TransData *td = t->data + i;
-			Object *ob = td->ob;
 			ListBase pidlist;
 			PTCacheID *pid;
-			
+			ob = td->ob;
+
 			if (td->flag & TD_NOACTION)
 				break;
 			
@@ -5077,7 +5077,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			/* Creates troubles for moving animated objects without */
 			/* autokey though, probably needed is an anim sys override? */
 			/* Please remove if some other solution is found. -jahka */
-			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 			/* Set autokey if necessary */
 			if (!cancelled) {

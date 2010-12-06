@@ -96,7 +96,7 @@ void file_operator_to_sfile(struct SpaceFile *sfile, struct wmOperator *op);
 float file_shorten_string(char* string, float w, int front);
 float file_string_width(const char* str);
 
-float file_font_pointsize();
+float file_font_pointsize(void);
 void file_change_dir(bContext *C, int checkdir);
 int file_select_match(struct SpaceFile *sfile, const char *pattern);
 void autocomplete_directory(struct bContext *C, char *str, void *arg_v);

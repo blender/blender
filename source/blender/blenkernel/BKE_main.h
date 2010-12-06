@@ -82,6 +82,8 @@ typedef struct Main {
 	ListBase wm;
 	ListBase gpencil;
 	ListBase linestyle;
+
+	char id_tag_update[256];
 } Main;
 
 

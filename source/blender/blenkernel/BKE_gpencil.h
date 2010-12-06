@@ -42,7 +42,7 @@ void free_gpencil_data(struct bGPdata *gpd);
 
 struct bGPDframe *gpencil_frame_addnew(struct bGPDlayer *gpl, int cframe);
 struct bGPDlayer *gpencil_layer_addnew(struct bGPdata *gpd);
-struct bGPdata *gpencil_data_addnew(char name[]);
+struct bGPdata *gpencil_data_addnew(const char name[]);
 
 struct bGPDframe *gpencil_frame_duplicate(struct bGPDframe *src);
 struct bGPDlayer *gpencil_layer_duplicate(struct bGPDlayer *src);

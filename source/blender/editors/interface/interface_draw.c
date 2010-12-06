@@ -386,7 +386,7 @@ void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, float rad
 	float raddiff;
 	int i, passes=4;
 	
-	/* get the colour and divide up the alpha */
+	/* get the color and divide up the alpha */
 	glGetFloatv(GL_CURRENT_COLOR, color);
 	alpha = 1; //color[3];
 	color[3]= 0.5*alpha/(float)passes;
@@ -808,7 +808,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	int i, c;
 	float w, w3, h, alpha, yofs;
 	GLint scissor[4];
-	float colors[3][3] = {{1,0,0},{0,1,0},{0,0,1}};
+	float colors[3][3]= MAT3_UNITY;
 	float colorsycc[3][3] = {{1,0,1},{1,1,0},{0,1,1}};
 	float colors_alpha[3][3], colorsycc_alpha[3][3]; /* colors  pre multiplied by alpha for speed up */
 	float min, max;

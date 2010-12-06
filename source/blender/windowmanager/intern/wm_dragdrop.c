@@ -75,7 +75,7 @@ typedef struct wmDropBoxMap {
 	
 } wmDropBoxMap;
 
-ListBase *WM_dropboxmap_find(char *idname, int spaceid, int regionid)
+ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 {
 	wmDropBoxMap *dm;
 	
@@ -256,7 +256,7 @@ static void wm_drop_operator_draw(char *name, int x, int y)
 	UI_DrawString(x+4, y+4, name);
 }
 
-static char *wm_drag_name(wmDrag *drag)
+static const char *wm_drag_name(wmDrag *drag)
 {
 	switch(drag->type) {
 		case WM_DRAG_ID:

@@ -390,7 +390,7 @@ static ScrArea *find_empty_image_area(bContext *C)
 }
 #endif // XXX not used
 
-static void render_error_reports(void *reports, char *str)
+static void render_error_reports(void *reports, const char *str)
 {
 	BKE_report(reports, RPT_ERROR, str);
 }

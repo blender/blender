@@ -38,6 +38,8 @@ SET(SRC
 	screen_edit.c
 	screen_ops.c
 	screendump.c
+
+	screen_intern.h
 )
 
 BLENDERLIB(bf_editor_screen "${SRC}" "${INC}")

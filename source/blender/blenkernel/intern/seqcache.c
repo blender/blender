@@ -60,9 +60,9 @@ static struct BLI_mempool * keypool = 0;
 static int ibufs_in  = 0;
 static int ibufs_rem = 0;
 
-static unsigned int HashHash(void *key_)
+static unsigned int HashHash(const void *key_)
 {
-	seqCacheKey * key = (seqCacheKey*) key_;
+	const seqCacheKey *key = (seqCacheKey*) key_;
 	unsigned int rval = seq_hash_render_data(&key->context);
 
 	rval ^= *(unsigned int*) &key->cfra;
@@ -72,10 +72,10 @@ static unsigned int HashHash(void *key_)
 	return rval;
 }
 
-static int HashCmp(void *a_, void *b_)
+static int HashCmp(const void *a_, const void *b_)
 {
-	seqCacheKey * a = (seqCacheKey*) a_;
-	seqCacheKey * b = (seqCacheKey*) b_;
+	const seqCacheKey * a = (seqCacheKey*) a_;
+	const seqCacheKey * b = (seqCacheKey*) b_;
 
 	if (a->seq < b->seq) {
 		return -1;		

@@ -509,6 +509,7 @@ class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = rd.use_compositing
         sub.prop(rd, "use_free_image_textures")
+        sub.prop(rd, "use_free_unused_nodes")
         sub = col.column()
         sub.active = rd.use_raytrace
         sub.label(text="Acceleration structure:")
@@ -628,7 +629,10 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
             col.prop(rd, "jpeg2k_ycc")
 
         elif file_format in ('CINEON', 'DPX'):
+            
             split = layout.split()
+            split.label("FIXME: hard coded Non-Linear, Gamma:1.0")
+            '''
             col = split.column()
             col.prop(rd, "use_cineon_log", text="Convert to Log")
 
@@ -637,6 +641,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
             col.prop(rd, "cineon_black", text="Black")
             col.prop(rd, "cineon_white", text="White")
             col.prop(rd, "cineon_gamma", text="Gamma")
+            '''
 
         elif file_format == 'TIFF':
             split = layout.split()

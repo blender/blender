@@ -219,7 +219,7 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 
 	for(ob= bmain->object.first; ob; ob= ob->id.next) {
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	rna_userdef_update(bmain, scene, ptr);

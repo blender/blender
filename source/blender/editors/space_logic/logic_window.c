@@ -593,7 +593,7 @@ void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 }
 
 
-static char *sensor_name(int type)
+static const char *sensor_name(int type)
 {
 	switch (type) {
 	case SENS_ALWAYS:
@@ -630,7 +630,7 @@ static char *sensor_name(int type)
 	return "unknown";
 }
 
-static char *sensor_pup(void)
+static const char *sensor_pup(void)
 {
 	/* the number needs to match defines in DNA_sensor_types.h */
 	return "Sensors %t|Always %x0|Delay %x13|Keyboard %x3|Mouse %x5|"
@@ -638,7 +638,7 @@ static char *sensor_pup(void)
 		"Property %x4|Random %x8|Ray %x9|Message %x10|Joystick %x11|Actuator %x12|Armature %x14";
 }
 
-static char *controller_name(int type)
+static const char *controller_name(int type)
 {
 	switch (type) {
 	case CONT_LOGIC_AND:
@@ -661,12 +661,12 @@ static char *controller_name(int type)
 	return "unknown";
 }
 
-static char *controller_pup(void)
+static const char *controller_pup(void)
 {
 	return "Controllers   %t|AND %x0|OR %x1|XOR %x6|NAND %x4|NOR %x5|XNOR %x7|Expression %x2|Python %x3";
 }
 
-static char *actuator_name(int type)
+static const char *actuator_name(int type)
 {
 	switch (type) {
 	case ACT_SHAPEACTION:
@@ -718,7 +718,7 @@ static char *actuator_name(int type)
 
 
 
-static char *actuator_pup(Object *owner)
+static const char *actuator_pup(Object *owner)
 {
 	switch (owner->type)
 	{
@@ -976,12 +976,12 @@ static void verify_logicbutton_func(bContext *UNUSED(C), void *data1, void *data
 	}
 }
 
-static void test_scriptpoin_but(struct bContext *C, char *name, ID **idpp)
+static void test_scriptpoin_but(struct bContext *C, const char *name, ID **idpp)
 {
 	*idpp= BLI_findstring(&CTX_data_main(C)->text, name, offsetof(ID, name) + 2);
 }
 
-static void test_actionpoin_but(struct bContext *C, char *name, ID **idpp)
+static void test_actionpoin_but(struct bContext *C, const char *name, ID **idpp)
 {
 	*idpp= BLI_findstring(&CTX_data_main(C)->action, name, offsetof(ID, name) + 2);
 	if(*idpp)
@@ -989,28 +989,28 @@ static void test_actionpoin_but(struct bContext *C, char *name, ID **idpp)
 }
 
 
-static void test_obpoin_but(struct bContext *C, char *name, ID **idpp)
+static void test_obpoin_but(struct bContext *C, const char *name, ID **idpp)
 {
 	*idpp= BLI_findstring(&CTX_data_main(C)->object, name, offsetof(ID, name) + 2);
 	if(*idpp)
 		id_lib_extern(*idpp);	/* checks lib data, sets correct flag for saving then */
 }
 
-static void test_meshpoin_but(struct bContext *C, char *name, ID **idpp)
+static void test_meshpoin_but(struct bContext *C, const char *name, ID **idpp)
 {
 	*idpp= BLI_findstring(&CTX_data_main(C)->mesh, name, offsetof(ID, name) + 2);
 	if(*idpp)
 		id_us_plus(*idpp);
 }
 
-static void test_matpoin_but(struct bContext *C, char *name, ID **idpp)
+static void test_matpoin_but(struct bContext *C, const char *name, ID **idpp)
 {
 	*idpp= BLI_findstring(&CTX_data_main(C)->mat, name, offsetof(ID, name) + 2);
 	if(*idpp)
 		id_us_plus(*idpp);
 }
 
-static void test_scenepoin_but(struct bContext *C, char *name, ID **idpp)
+static void test_scenepoin_but(struct bContext *C, const char *name, ID **idpp)
 {
 	*idpp= BLI_findstring(&CTX_data_main(C)->scene, name, offsetof(ID, name) + 2);
 	if(*idpp)
@@ -1134,7 +1134,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 	bDelaySensor     *ds		   = NULL;
 	uiBut *but;
 	short ysize;
-	char *str;
+	const char *str;
 	
 	/* yco is at the top of the rect, draw downwards */
 	
@@ -1839,7 +1839,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 	
 	float *fp;
 	short ysize = 0, wval;
-	char *str;
+	const char *str;
 	int myline, stbit;
 	uiBut *but;
 
@@ -2167,7 +2167,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 						uiDefButF(block, NUM, 0, "Cone Inner Angle: ", xco+wval+10, yco-176, wval, 19, &sa->sound3D.cone_inner_angle, 0.0, 360.0, 0.0, 0.0, "The angle of the inner cone.");
 					}
 				}
-				MEM_freeN(str);
+				MEM_freeN((void *)str);
 			} 
 			else {
 				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+10, yco-22, width-20, 19, "Load a sound file.");
@@ -2206,7 +2206,6 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		eoa= act->data;
 
 		if(eoa->type==ACT_EDOB_ADD_OBJECT) {
-			int wval; /* just a temp width */
 			ysize = 92;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
@@ -4416,7 +4415,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	RNA_pointer_create(NULL, &RNA_SpaceLogicEditor, slogic, &logic_ptr);
 	idar= get_selected_and_linked_obs(C, &count, slogic->scaflag);
 	
-	sprintf(name, "buttonswin %p", ar);
+	sprintf(name, "buttonswin %p", (void *)ar);
 	block= uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
 	
@@ -4734,7 +4733,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	if(ob==NULL) return;
 //	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
-	sprintf(name, "buttonswin %p", ar);
+	sprintf(name, "buttonswin %p", (void *)ar);
 	block= uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
 

@@ -253,6 +253,9 @@ static int sequencer_add_scene_strip_invoke(bContext *C, wmOperator *op, wmEvent
 		return OPERATOR_CANCELLED;
 	}
 
+	if(!RNA_property_is_set(op->ptr, "scene"))
+		return WM_enum_search_invoke(C, op, event);
+
 	sequencer_generic_invoke_xy__internal(C, op, event, 0);
 	return sequencer_add_scene_strip_exec(C, op);
 	// needs a menu
@@ -556,7 +559,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	int start_frame, end_frame, channel, type; /* operator props */
 	
 	Sequence *seq1, *seq2, *seq3;
-	char *error_msg;
+	const char *error_msg;
 
 	start_frame= RNA_int_get(op->ptr, "frame_start");
 	end_frame= RNA_int_get(op->ptr, "frame_end");

@@ -265,7 +265,7 @@ static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int re
 	BKE_text_to_curve(scene, obedit, mode);
 
 	if(recalc)
-		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 }
 
@@ -274,9 +274,9 @@ static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int re
 static int insert_lorem_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	char *p, *p2;
+	const char *p, *p2;
 	int i;
-	static char *lastlorem;
+	static const char *lastlorem;
 	
 	if(lastlorem)
 		p= lastlorem;
@@ -299,7 +299,7 @@ static int insert_lorem_exec(bContext *C, wmOperator *UNUSED(op))
 	insert_into_textbuf(obedit, '\n');
 	insert_into_textbuf(obedit, '\n');	
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -416,7 +416,7 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 
 static int paste_buffer_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	char *filename;
+	const char *filename;
 
 #ifdef WIN32
 	filename= "C:\\windows\\temp\\cutbuf.txt";
@@ -626,7 +626,7 @@ static int set_style(bContext *C, int style, int clear)
 			ef->textbufinfo[i].flag |= style;
 	}
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -1678,7 +1678,7 @@ static int open_exec(bContext *C, wmOperator *op)
 		cu->vfont = font;
 	}
 	
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA|NA_EDITED, ob->data);
 	
 	MEM_freeN(op->customdata);
@@ -1768,7 +1768,7 @@ static int font_unlink_exec(bContext *C, wmOperator *op)
 	id_us_plus(&cu->vfont->id);
 	id_us_min(&font->id);
 	
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA|NA_EDITED, ob->data);
 	
 	return OPERATOR_FINISHED;

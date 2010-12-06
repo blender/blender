@@ -44,12 +44,6 @@ struct wmWindowManager;
 /* text_draw.c */
 void draw_text_main(struct SpaceText *st, struct ARegion *ar);
 
-int text_check_bracket(char ch);
-int text_check_delim(char ch);
-int text_check_digit(char ch);
-int text_check_identifier(char ch);
-int text_check_whitespace(char ch);
-
 int text_font_width_character(struct SpaceText *st);
 int text_font_width(struct SpaceText *st, char *str);
 
@@ -99,7 +93,7 @@ void text_free_caches(struct SpaceText *st);
 int text_file_modified(struct Text *text);
 
 int text_do_suggest_select(struct SpaceText *st, struct ARegion *ar);
-void text_pop_suggest_list();
+void text_pop_suggest_list(void);
 
 int text_get_visible_lines(struct SpaceText *st, struct ARegion *ar, char *str);
 int text_get_span_wrap(struct SpaceText *st, struct ARegion *ar, struct TextLine *from, struct TextLine *to);

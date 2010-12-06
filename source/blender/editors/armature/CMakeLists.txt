@@ -42,6 +42,12 @@ SET(SRC
 	poselib.c
 	poseobject.c
 	reeb.c
+
+	BIF_generate.h
+	BIF_retarget.h
+	armature_intern.h
+	meshlaplacian.h
+	reeb.h
 )
 
 BLENDERLIB(bf_editor_armature "${SRC}" "${INC}")

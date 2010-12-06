@@ -59,7 +59,7 @@ static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	/* cheating way for importers to avoid slow updates */
 	if(id->us > 0) {
-		DAG_id_flush_update(id, OB_RECALC_DATA);
+		DAG_id_tag_update(id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 	}
 }
@@ -962,17 +962,17 @@ static char *rna_VertexGroupElement_path(PointerRNA *ptr)
 
 static char *rna_MeshFace_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("faces[%d]", (MFace*)ptr->data - ((Mesh*)ptr->id.data)->mface);
+	return BLI_sprintfN("faces[%d]", (int)((MFace*)ptr->data - ((Mesh*)ptr->id.data)->mface));
 }
 
 static char *rna_MeshEdge_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("edges[%d]", (MEdge*)ptr->data - ((Mesh*)ptr->id.data)->medge);
+	return BLI_sprintfN("edges[%d]", (int)((MEdge*)ptr->data - ((Mesh*)ptr->id.data)->medge));
 }
 
 static char *rna_MeshVertex_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("vertices[%d]", (MVert*)ptr->data - ((Mesh*)ptr->id.data)->mvert);
+	return BLI_sprintfN("vertices[%d]", (int)((MVert*)ptr->data - ((Mesh*)ptr->id.data)->mvert));
 }
 
 static char *rna_MeshTextureFaceLayer_path(PointerRNA *ptr)
@@ -1015,7 +1015,7 @@ static char *rna_MeshColor_path(PointerRNA *ptr)
 
 static char *rna_MeshSticky_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("sticky[%d]", (MSticky*)ptr->data - ((Mesh*)ptr->id.data)->msticky);
+	return BLI_sprintfN("sticky[%d]", (int)((MSticky*)ptr->data - ((Mesh*)ptr->id.data)->msticky));
 }
 
 static char *rna_MeshIntPropertyLayer_path(PointerRNA *ptr)

@@ -47,6 +47,7 @@ def file_list_py(path):
 
 
 def is_pep8(path):
+    print(path)
     f = open(path, 'r')
     for i in range(PEP8_SEEK_COMMENT):
         line = f.readline()
@@ -63,14 +64,16 @@ def main():
     files = []
     files_skip = []
     for f in file_list_py("."):
+        if [None for prefix in SKIP_PREFIX if f.startswith(prefix)]:
+            continue
+
         pep8_type = is_pep8(f)
 
         if pep8_type:
             # so we can batch them for each tool.
             files.append((os.path.abspath(f), pep8_type))
         else:
-            if not [None for prefix in SKIP_PREFIX if f.startswith(prefix)]:
-                files_skip.append(f)
+            files_skip.append(f)
 
     print("\nSkipping...")
     for f in files_skip:

@@ -44,6 +44,12 @@ SET(SRC
 	intern/gpu_material.c
 	intern/gpu_shader_material.glsl.c
 	intern/gpu_shader_vertex.glsl.c
+
+	GPU_buffers.h
+	GPU_draw.h
+	GPU_extensions.h
+	GPU_material.h
+	intern/gpu_codegen.h
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)

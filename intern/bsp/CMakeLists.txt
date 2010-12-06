@@ -35,6 +35,12 @@ SET(SRC
 	intern/BSP_CSGMesh.cpp
 	intern/BSP_MeshPrimitives.cpp
 	intern/CSG_BooleanOps.cpp
+
+	extern/CSG_BooleanOps.h
+	intern/BSP_CSGException.h
+	intern/BSP_CSGMesh.h
+	intern/BSP_CSGMesh_CFIterator.h
+	intern/BSP_MeshPrimitives.h
 )
 
 BLENDERLIB(bf_intern_bsp "${SRC}" "${INC}")

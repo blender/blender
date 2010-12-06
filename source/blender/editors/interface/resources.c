@@ -1182,7 +1182,7 @@ void init_userdef_do_versions(void)
 	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 11)) {
 		bTheme *btheme;
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* these should all use the same colour */
+			/* these should all use the same color */
 			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);

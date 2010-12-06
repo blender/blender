@@ -43,6 +43,8 @@ SET(SRC
 	node_select.c
 	node_state.c
 	space_node.c
+
+	node_intern.h
 )
 
 BLENDERLIB(bf_editor_space_node "${SRC}" "${INC}")

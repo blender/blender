@@ -273,7 +273,7 @@ static void make_vertexcol(Object *ob)	/* single ob */
 
 	memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
 	
-	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 	
 }
 
@@ -334,7 +334,7 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 		}
 	}
 	
-	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 }
 
 
@@ -448,10 +448,10 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	MEM_freeN(indexar);
 	copy_wpaint_prev(wp, NULL, 0);
 
-	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 }
 
-/* XXX: should be re-implemented as a vertex/weight paint 'colour correct' operator
+/* XXX: should be re-implemented as a vertex/weight paint 'color correct' operator
  
 void vpaint_dogamma(Scene *scene)
 {
@@ -925,7 +925,7 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *UNUSED(v3d), int mode)
 					val= 0; // XXX pupmenu(str);
 					if(val>=0) {
 						ob->actdef= val+1;
-						DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+						DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 					}
 					MEM_freeN(str);
 				}
@@ -1080,7 +1080,7 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))		/* toggle */
 		* exit (exit needs doing regardless because we
 				* should redeform).
 		*/
-	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 	
 	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 		Object *par;
@@ -1511,10 +1511,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if(mface->v4) (me->dvert+mface->v4)->flag= 1;
 					
 			if(brush->vertexpaint_tool==VP_BLUR) {
-				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int);
+				MDeformWeight *dw, *(*dw_func)(MDeformVert *, const int);
 						
 				if(wp->flag & VP_ONLYVGROUP)
-					dw_func= (void *)defvert_find_index; /* uses a const, cast to quiet warning */
+					dw_func= (MDeformWeight *(*)(MDeformVert *, const int))defvert_find_index;
 				else
 					dw_func= defvert_verify_index;
 						
@@ -1586,7 +1586,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	swap_m4m4(vc->rv3d->persmat, mat);
 			
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	ED_region_tag_redraw(vc->ar);
 }
 
@@ -1625,7 +1625,7 @@ static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 		}
 	}
 	
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);	
+	DAG_id_tag_update(ob->data, OB_RECALC_DATA);	
 }
 
 
@@ -1727,7 +1727,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	
 	if (me)
 		/* update modifier stack for mapping requirements */
-		DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MODE, scene);
 	
@@ -1903,7 +1903,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	ED_region_tag_redraw(vc->ar);
 			
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 }
 
 static void vpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
@@ -1973,7 +1973,7 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
 
 	create_vgroups_from_armature(op->reports, scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
 
-	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return OPERATOR_FINISHED;

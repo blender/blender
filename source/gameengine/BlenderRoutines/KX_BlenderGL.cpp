@@ -77,15 +77,6 @@ extern "C" {
 }
 
 /* end of blender block */
-
-/* was in drawmesh.c */
-void spack(unsigned int ucol)
-{
-	char *cp= (char *)&ucol;
-        
-	glColor3ub(cp[3], cp[2], cp[1]);
-}
-
 void BL_warp_pointer(wmWindow *win, int x,int y)
 {
 	WM_cursor_warp(win, x, y);

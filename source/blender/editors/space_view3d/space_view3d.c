@@ -38,6 +38,7 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
+#include "BKE_object.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
@@ -317,6 +318,10 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 	/* object ops. */
 	
+	/* important to be before Pose keymap since they can both be enabled at once */
+	keymap= WM_keymap_find(wm->defaultconf, "Face Mask", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
 	/* pose is not modal, operator poll checks for this */
 	keymap= WM_keymap_find(wm->defaultconf, "Pose", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
@@ -331,9 +336,6 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	keymap= WM_keymap_find(wm->defaultconf, "Weight Paint", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_find(wm->defaultconf, "Face Mask", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	keymap= WM_keymap_find(wm->defaultconf, "Sculpt", 0, 0);

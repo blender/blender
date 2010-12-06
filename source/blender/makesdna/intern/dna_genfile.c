@@ -196,7 +196,7 @@ void DNA_sdna_free(SDNA *sdna)
 	MEM_freeN(sdna);
 }
 
-static int ispointer(char *name)
+static int ispointer(const char *name)
 {
 	/* check if pointer or function pointer */
 	return (name[0]=='*' || (name[0]=='(' && name[1]=='*'));
@@ -206,7 +206,7 @@ static int elementsize(SDNA *sdna, short type, short name)
 /* call with numbers from struct-array */
 {
 	int mul, namelen, len;
-	char *cp;
+	const char *cp;
 	
 	cp= sdna->names[name];
 	len= 0;
@@ -251,7 +251,7 @@ static void printstruct(SDNA *sdna, short strnr)
 }
 #endif
 
-static short *findstruct_name(SDNA *sdna, char *str)
+static short *findstruct_name(SDNA *sdna, const char *str)
 {
 	int a;
 	short *sp=0;
@@ -502,7 +502,7 @@ static void recurs_test_compflags(SDNA *sdna, char *compflags, int structnr)
 {
 	int a, b, typenr, elems;
 	short *sp;
-	char *cp;
+	const char *cp;
 	
 	/* check all structs, test if it's inside another struct */
 	sp= sdna->structs[structnr];
@@ -546,7 +546,7 @@ char *DNA_struct_get_compareflags(SDNA *sdna, SDNA *newsdna)
 	 */
 	int a, b;
 	short *spold, *spcur;
-	char *str1, *str2;
+	const char *str1, *str2;
 	char *compflags;
 	
 	if(sdna->nr_structs==0) {
@@ -627,7 +627,7 @@ char *DNA_struct_get_compareflags(SDNA *sdna, SDNA *newsdna)
 	return compflags;
 }
 
-static void cast_elem(char *ctype, char *otype, char *name, char *curdata, char *olddata)
+static void cast_elem(char *ctype, char *otype, const char *name, char *curdata, char *olddata)
 {
 	double val = 0.0;
 	int arrlen, curlen=1, oldlen=1, ctypenr, otypenr;
@@ -721,7 +721,7 @@ static void cast_elem(char *ctype, char *otype, char *name, char *curdata, char 
 	}
 }
 
-static void cast_pointer(int curlen, int oldlen, char *name, char *curdata, char *olddata)
+static void cast_pointer(int curlen, int oldlen, const char *name, char *curdata, char *olddata)
 {
 #ifdef WIN32
 	__int64 lval;
@@ -764,7 +764,7 @@ static void cast_pointer(int curlen, int oldlen, char *name, char *curdata, char
 	}
 }
 
-static int elem_strcmp(char *name, char *oname)
+static int elem_strcmp(const char *name, const char *oname)
 {
 	int a=0;
 	
@@ -780,10 +780,10 @@ static int elem_strcmp(char *name, char *oname)
 	return 0;
 }
 
-static char *find_elem(SDNA *sdna, char *type, char *name, short *old, char *olddata, short **sppo)
+static char *find_elem(SDNA *sdna, const char *type, const char *name, short *old, char *olddata, short **sppo)
 {
 	int a, elemcount, len;
-	char *otype, *oname;
+	const char *otype, *oname;
 	
 	/* without arraypart, so names can differ: return old namenr and type */
 	
@@ -811,7 +811,7 @@ static char *find_elem(SDNA *sdna, char *type, char *name, short *old, char *old
 	return 0;
 }
 
-static void reconstruct_elem(SDNA *newsdna, SDNA *oldsdna, char *type, char *name, char *curdata, short *old, char *olddata)
+static void reconstruct_elem(SDNA *newsdna, SDNA *oldsdna, char *type, const char *name, char *curdata, short *old, char *olddata)
 {
 	/* rules: test for NAME:
 			- name equal:
@@ -823,7 +823,8 @@ static void reconstruct_elem(SDNA *newsdna, SDNA *oldsdna, char *type, char *nam
 	   can I force this?)
 	*/	
 	int a, elemcount, len, array, oldsize, cursize, mul;
-	char *otype, *oname, *cp;
+	char *otype;
+	const char *oname, *cp;
 	
 	/* is 'name' an array? */
 	cp= name;
@@ -888,7 +889,8 @@ static void reconstruct_struct(SDNA *newsdna, SDNA *oldsdna, char *compflags, in
 	 */
 	int a, elemcount, elen, eleno, mul, mulo, firststructtypenr;
 	short *spo, *spc, *sppo;
-	char *name, *nameo, *type, *cpo, *cpc;
+	char *type, *cpo, *cpc;
+	const char *name, *nameo;
 
 	if(oldSDNAnr== -1) return;
 	if(curSDNAnr== -1) return;
@@ -965,7 +967,8 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 	 */
 	int a, mul, elemcount, elen, elena, firststructtypenr;
 	short *spo, *spc, skip;
-	char *name, *type, *cpo, *cur, cval;
+	char *type, *cpo, *cur, cval;
+	const char *name;
 
 	if(oldSDNAnr== -1) return;
 	firststructtypenr= *(oldsdna->structs[0]);
@@ -1095,7 +1098,7 @@ void *DNA_struct_reconstruct(SDNA *newsdna, SDNA *oldsdna, char *compflags, int 
 	return cur;
 }
 
-int DNA_elem_offset(SDNA *sdna, char *stype, char *vartype, char *name)
+int DNA_elem_offset(SDNA *sdna, const char *stype, const char *vartype, const char *name)
 {
 	
 	int SDNAnr= DNA_struct_find_nr(sdna, stype);

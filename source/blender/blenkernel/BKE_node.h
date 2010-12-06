@@ -61,7 +61,7 @@ struct uiLayout;
 
 typedef struct bNodeSocketType {
 	int type, limit;
-	char *name;
+	const char *name;
 	float val1, val2, val3, val4;	/* default alloc value for inputs */
 	float min, max;					/* default range for inputs */
 	
@@ -75,7 +75,7 @@ typedef struct bNodeSocketType {
 typedef struct bNodeType {
 	void *next,*prev;
 	int type;
-	char *name;
+	const char *name; /* can be allocated too */
 	float width, minwidth, maxwidth;
 	short nclass, flag;
 	
@@ -129,7 +129,7 @@ typedef struct bNodeType {
 
 void			ntreeVerifyTypes(struct bNodeTree *ntree);
 
-struct bNodeTree *ntreeAddTree(int type);
+struct bNodeTree *ntreeAddTree(const char *name, int type, const short is_group);
 void			ntreeInitTypes(struct bNodeTree *ntree);
 
 void			ntreeMakeOwnType(struct bNodeTree *ntree);
@@ -399,7 +399,6 @@ int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositForceHidden(struct bNodeTree *ntree, struct Scene *scene);
 
-void free_compbuf(struct CompBuf *cbuf); /* internal...*/
 
 
 /* ************** TEXTURE NODES *************** */

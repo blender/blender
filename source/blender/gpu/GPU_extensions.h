@@ -57,7 +57,7 @@ typedef struct GPUShader GPUShader;
 void GPU_extensions_disable(void);
 void GPU_extensions_init(void); /* call this before running any of the functions below */
 void GPU_extensions_exit(void);
-int GPU_print_error(char *str);
+int GPU_print_error(const char *str);
 
 int GPU_glsl_support(void);
 int GPU_non_power_of_two_support(void);
@@ -130,14 +130,14 @@ int GPU_texture_opengl_height(GPUTexture *tex);
    - after any of the GPU_framebuffer_* functions, GPU_framebuffer_restore must
 	 be called before rendering to the window framebuffer again */
 
-GPUFrameBuffer *GPU_framebuffer_create();
+GPUFrameBuffer *GPU_framebuffer_create(void);
 int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex);
 void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex);
 void GPU_framebuffer_texture_bind(GPUFrameBuffer *fb, GPUTexture *tex);
 void GPU_framebuffer_texture_unbind(GPUFrameBuffer *fb, GPUTexture *tex);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);
 
-void GPU_framebuffer_restore();
+void GPU_framebuffer_restore(void);
 
 /* GPU OffScreen
    - wrapper around framebuffer and texture for simple offscreen drawing 
@@ -157,9 +157,9 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 void GPU_shader_free(GPUShader *shader);
 
 void GPU_shader_bind(GPUShader *shader);
-void GPU_shader_unbind();
+void GPU_shader_unbind(GPUShader *shader);
 
-int GPU_shader_get_uniform(GPUShader *shader, char *name);
+int GPU_shader_get_uniform(GPUShader *shader, const char *name);
 void GPU_shader_uniform_vector(GPUShader *shader, int location, int length,
 	int arraysize, float *value);
 void GPU_shader_uniform_texture(GPUShader *shader, int location, GPUTexture *tex);

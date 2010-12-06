@@ -140,6 +140,91 @@ SET(SRC
 	intern/writeavi.c
 	intern/writeffmpeg.c
 	intern/writeframeserver.c
+
+	BKE_DerivedMesh.h
+	BKE_action.h
+	BKE_anim.h
+	BKE_animsys.h
+	BKE_armature.h
+	BKE_blender.h
+	BKE_bmesh.h
+	BKE_bmeshCustomData.h
+	BKE_bmfont.h
+	BKE_bmfont_types.h
+	BKE_boids.h
+	BKE_booleanops_mesh.h
+	BKE_brush.h
+	BKE_bullet.h
+	BKE_bvhutils.h
+	BKE_cdderivedmesh.h
+	BKE_cloth.h
+	BKE_collision.h
+	BKE_colortools.h
+	BKE_constraint.h
+	BKE_context.h
+	BKE_curve.h
+	BKE_customdata.h
+	BKE_customdata_file.h
+	BKE_deform.h
+	BKE_depsgraph.h
+	BKE_displist.h
+	BKE_effect.h
+	BKE_endian.h
+	BKE_exotic.h
+	BKE_fcurve.h
+	BKE_fluidsim.h
+	BKE_font.h
+	BKE_global.h
+	BKE_gpencil.h
+	BKE_group.h
+	BKE_icons.h
+	BKE_idcode.h
+	BKE_idprop.h
+	BKE_image.h
+	BKE_ipo.h
+	BKE_key.h
+	BKE_lattice.h
+	BKE_library.h
+	BKE_main.h
+	BKE_material.h
+	BKE_mball.h
+	BKE_mesh.h
+	BKE_modifier.h
+	BKE_multires.h
+	BKE_nla.h
+	BKE_node.h
+	BKE_object.h
+	BKE_packedFile.h
+	BKE_paint.h
+	BKE_particle.h
+	BKE_plugin_types.h
+	BKE_pointcache.h
+	BKE_property.h
+	BKE_report.h
+	BKE_sca.h
+	BKE_scene.h
+	BKE_screen.h
+	BKE_script.h
+	BKE_sequencer.h
+	BKE_shrinkwrap.h
+	BKE_sketch.h
+	BKE_smoke.h
+	BKE_softbody.h
+	BKE_sound.h
+	BKE_subsurf.h
+	BKE_suggestions.h
+	BKE_text.h
+	BKE_texture.h
+	BKE_unit.h
+	BKE_utildefines.h
+	BKE_world.h
+	BKE_writeavi.h
+	BKE_writeffmpeg.h
+	BKE_writeframeserver.h
+	depsgraph_private.h
+	intern/CCGSubSurf.h
+	intern/bmesh_private.h
+	nla_private.h
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)
@@ -173,15 +258,15 @@ IF(WITH_IMAGE_HDR)
 	ADD_DEFINITIONS(-DWITH_HDR)
 ENDIF(WITH_IMAGE_HDR)
 
-IF(WITH_QUICKTIME)
+IF(WITH_CODEC_QUICKTIME)
 	LIST(APPEND INC ../quicktime ${QUICKTIME_INC})
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
+ENDIF(WITH_CODEC_QUICKTIME)
 
-IF(WITH_FFMPEG)
+IF(WITH_CODEC_FFMPEG)
 	LIST(APPEND INC ${FFMPEG_INC})
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_FFMPEG)
+ENDIF(WITH_CODEC_FFMPEG)
 
 IF(WITH_LCMS)
 	LIST(APPEND INC ${LCMS_INCLUDE_DIR})

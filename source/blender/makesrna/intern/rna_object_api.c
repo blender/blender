@@ -278,7 +278,7 @@ static void rna_Object_update(Object *ob, Scene *sce, int object, int data, int 
 	if(data) flag |= OB_RECALC_DATA;
 	if(time) flag |= OB_RECALC_TIME;
 
-	DAG_id_flush_update(&ob->id, flag);
+	DAG_id_tag_update(&ob->id, flag);
 }
 
 static PointerRNA rna_Object_add_shape_key(Object *ob, bContext *C, ReportList *reports, const char *name, int from_mix)

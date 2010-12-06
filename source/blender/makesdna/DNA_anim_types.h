@@ -88,7 +88,7 @@ typedef enum eFModifier_Flags {
 		/* modifier is active one (in UI) for editing purposes */
 	FMODIFIER_FLAG_ACTIVE		= (1<<2),
 		/* user wants modifier to be skipped */
-	FMODIFIER_FLAG_MUTED		= (1<<3),
+	FMODIFIER_FLAG_MUTED		= (1<<3)
 } eFModifier_Flags; 
 
 /* --- */
@@ -109,7 +109,7 @@ typedef struct FMod_Generator {
 /* generator modes */
 typedef enum eFMod_Generator_Modes {
 	FCM_GENERATOR_POLYNOMIAL	= 0,
-	FCM_GENERATOR_POLYNOMIAL_FACTORISED,
+	FCM_GENERATOR_POLYNOMIAL_FACTORISED
 } eFMod_Generator_Modes;
 
 
@@ -118,7 +118,7 @@ typedef enum eFMod_Generator_Modes {
  */
 typedef enum eFMod_Generator_Flags {
 		/* generator works in conjunction with other modifiers (i.e. doesn't replace those before it) */
-	FCM_GENERATOR_ADDITIVE	= (1<<0),
+	FCM_GENERATOR_ADDITIVE	= (1<<0)
 } eFMod_Generator_Flags;
 
 
@@ -149,7 +149,7 @@ typedef enum eFMod_Generator_Functions {
 	FCM_GENERATOR_FN_TAN,
 	FCM_GENERATOR_FN_SQRT,
 	FCM_GENERATOR_FN_LN,
-	FCM_GENERATOR_FN_SINC,
+	FCM_GENERATOR_FN_SINC
 } eFMod_Generator_Functions;
 
 
@@ -186,7 +186,7 @@ typedef enum eFMod_Cycling_Modes {
 	FCM_EXTRAPOLATE_NONE = 0,			/* don't do anything */
 	FCM_EXTRAPOLATE_CYCLIC,				/* repeat keyframe range as-is */
 	FCM_EXTRAPOLATE_CYCLIC_OFFSET,		/* repeat keyframe range, but with offset based on gradient between values */
-	FCM_EXTRAPOLATE_MIRROR,				/* alternate between forward and reverse playback of keyframe range */
+	FCM_EXTRAPOLATE_MIRROR				/* alternate between forward and reverse playback of keyframe range */
 } eFMod_Cycling_Modes;
 
 
@@ -209,7 +209,7 @@ typedef enum eFMod_Limit_Flags {
 	FCM_LIMIT_XMIN		= (1<<0),
 	FCM_LIMIT_XMAX		= (1<<1),
 	FCM_LIMIT_YMIN		= (1<<2),
-	FCM_LIMIT_YMAX		= (1<<3),
+	FCM_LIMIT_YMAX		= (1<<3)
 } eFMod_Limit_Flags;
 
 
@@ -229,7 +229,7 @@ typedef enum eFMod_Noise_Modifications {
 	FCM_NOISE_MODIF_REPLACE = 0,	/* Modify existing curve, matching it's shape */
 	FCM_NOISE_MODIF_ADD,			/* Add noise to the curve */
 	FCM_NOISE_MODIF_SUBTRACT,		/* Subtract noise from the curve */
-	FCM_NOISE_MODIF_MULTIPLY,		/* Multiply the curve by noise */
+	FCM_NOISE_MODIF_MULTIPLY		/* Multiply the curve by noise */
 } eFMod_Noise_Modifications;
 
 
@@ -379,7 +379,7 @@ typedef enum eDriver_Types {
 		/* smallest value */
 	DRIVER_TYPE_MIN,
 		/* largest value */
-	DRIVER_TYPE_MAX,
+	DRIVER_TYPE_MAX
 } eDriver_Types;
 
 /* driver flags */
@@ -396,7 +396,7 @@ typedef enum eDriver_Flags {
 		/* the names are cached so they dont need have python unicode versions created each time */
 	DRIVER_FLAG_RENAMEVAR	= (1<<4),
 		/* intermediate values of driver should be shown in the UI for debugging purposes */
-	DRIVER_FLAG_SHOWDEBUG	= (1<<5),
+	DRIVER_FLAG_SHOWDEBUG	= (1<<5)
 } eDriver_Flags;
 
 /* F-Curves -------------------------------------- */
@@ -467,20 +467,20 @@ typedef enum eFCurve_Flags {
 	FCURVE_DISCRETE_VALUES	= (1<<12),
 	
 		/* temporary tag for editing */
-	FCURVE_TAGGED			= (1<<15),
+	FCURVE_TAGGED			= (1<<15)
 } eFCurve_Flags;
 
 /* extrapolation modes (only simple value 'extending') */
 typedef enum eFCurve_Extend {
 	FCURVE_EXTRAPOLATE_CONSTANT	= 0,	/* just extend min/max keyframe value  */
-	FCURVE_EXTRAPOLATE_LINEAR,			/* just extend gradient of segment between first segment keyframes */
+	FCURVE_EXTRAPOLATE_LINEAR			/* just extend gradient of segment between first segment keyframes */
 } eFCurve_Extend;
 
 /* curve coloring modes */
 typedef enum eFCurve_Coloring {
 	FCURVE_COLOR_AUTO_RAINBOW = 0,		/* automatically determine color using rainbow (calculated at drawtime) */
 	FCURVE_COLOR_AUTO_RGB,				/* automatically determine color using XYZ (array index) <-> RGB */
-	FCURVE_COLOR_CUSTOM,				/* custom color */
+	FCURVE_COLOR_CUSTOM					/* custom color */
 } eFCurve_Coloring;
 
 /* ************************************************ */
@@ -575,7 +575,7 @@ typedef enum eNlaStrip_Blend_Mode {
 	NLASTRIP_MODE_REPLACE = 0,
 	NLASTRIP_MODE_ADD,
 	NLASTRIP_MODE_SUBTRACT,
-	NLASTRIP_MODE_MULTIPLY,
+	NLASTRIP_MODE_MULTIPLY
 } eNlaStrip_Blend_Mode;
 
 /* NLA Strip Extrpolation Mode */
@@ -585,7 +585,7 @@ typedef enum eNlaStrip_Extrapolate_Mode {
 		/* only hold+extend last frame */
 	NLASTRIP_EXTEND_HOLD_FORWARD,	
 		/* don't contribute at all */
-	NLASTRIP_EXTEND_NOTHING,
+	NLASTRIP_EXTEND_NOTHING
 } eNlaStrip_Extrapolate_Mode;
 
 /* NLA Strip Settings */
@@ -622,7 +622,7 @@ typedef enum eNlaStrip_Flag {
 	/* temporary editing flags */
 		/* NLA-Strip is really just a temporary meta used to facilitate easier transform code */
 	NLASTRIP_FLAG_TEMP_META		= (1<<30),
-	NLASTRIP_FLAG_EDIT_TOUCHED	= (1<<31),
+	NLASTRIP_FLAG_EDIT_TOUCHED	= (1<<31)
 } eNlaStrip_Flag;
 
 /* NLA Strip Type */
@@ -632,7 +632,7 @@ typedef enum eNlaStrip_Type {
 		/* 'transition' - blends between the adjacent strips */
 	NLASTRIP_TYPE_TRANSITION,
 		/* 'meta' - a strip which acts as a container for a few others */
-	NLASTRIP_TYPE_META,
+	NLASTRIP_TYPE_META
 } eNlaStrip_Type;
 
 /* NLA Tracks ------------------------------------- */
@@ -669,7 +669,7 @@ typedef enum eNlaTrack_Flag {
 	NLATRACK_PROTECTED	= (1<<4),
 	
 		/* track is not allowed to execute, usually as result of tweaking being enabled (internal flag) */
-	NLATRACK_DISABLED	= (1<<10),
+	NLATRACK_DISABLED	= (1<<10)
 } eNlaTrack_Flag;
 
 
@@ -705,7 +705,7 @@ typedef struct KS_Path {
 /* KS_Path->flag */
 typedef enum eKSP_Settings {
 		/* entire array (not just the specified index) gets keyframed */
-	KSP_FLAG_WHOLE_ARRAY	= (1<<0),
+	KSP_FLAG_WHOLE_ARRAY	= (1<<0)
 } eKSP_Settings;
 
 /* KS_Path->groupmode */
@@ -719,7 +719,7 @@ typedef enum eKSP_Grouping {
 		/* path should be grouped using name of inner-most context item from templates 
 		 * 	- this is most useful for relative KeyingSets only
 		 */
-	KSP_GROUP_TEMPLATE_ITEM,
+	KSP_GROUP_TEMPLATE_ITEM
 } eKSP_Grouping;
 
 /* KS_Path->templates  (Template Flags)
@@ -736,7 +736,7 @@ typedef enum eKSP_TemplateTypes {
 	KSP_TEMPLATE_NODE		 	= (1<<3),	/* #nod - selected node */
 	KSP_TEMPLATE_MODIFIER		= (1<<4),	/* #mod - active only */
 	
-	KSP_TEMPLATE_ROT		= (1<<16),	/* modify rotation paths based on rotation mode of Object or Pose Channel */
+	KSP_TEMPLATE_ROT			= (1<<16)	/* modify rotation paths based on rotation mode of Object or Pose Channel */
 } eKSP_TemplateTypes;
 
 /* ---------------- */
@@ -770,7 +770,7 @@ typedef enum eKS_Settings {
 		/* keyingset cannot be removed (and doesn't need to be freed) */
 	KEYINGSET_BUILTIN		= (1<<0),
 		/* keyingset does not depend on context info (i.e. paths are absolute) */
-	KEYINGSET_ABSOLUTE		= (1<<1),
+	KEYINGSET_ABSOLUTE		= (1<<1)
 } eKS_Settings;
 
 /* Flags for use by keyframe creation/deletion calls */
@@ -780,7 +780,7 @@ typedef enum eInsertKeyFlags {
 	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
 	INSERTKEY_FASTR		= (1<<3),	/* don't realloc mem (or increase count, as array has already been set out) */
 	INSERTKEY_REPLACE 	= (1<<4),	/* only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
-	INSERTKEY_XYZ2RGB	= (1<<5),	/* transform F-Curves should have XYZ->RGB color mode */
+	INSERTKEY_XYZ2RGB	= (1<<5)	/* transform F-Curves should have XYZ->RGB color mode */
 } eInsertKeyFlags;
 
 /* ************************************************ */
@@ -877,14 +877,14 @@ typedef enum eAnimData_Flag {
 	ADT_UI_ACTIVE			= (1<<15),
 	
 		/* F-Curves from this AnimData block are not visible in the Graph Editor */
-	ADT_CURVES_NOT_VISIBLE	= (1<<16),
+	ADT_CURVES_NOT_VISIBLE	= (1<<16)
 } eAnimData_Flag;
 
 /* Animation Data recalculation settings (to be set by depsgraph) */
 typedef enum eAnimData_Recalc {
 	ADT_RECALC_DRIVERS		= (1<<0),
 	ADT_RECALC_ANIM			= (1<<1),
-	ADT_RECALC_ALL			= (ADT_RECALC_DRIVERS|ADT_RECALC_ANIM),
+	ADT_RECALC_ALL			= (ADT_RECALC_DRIVERS|ADT_RECALC_ANIM)
 } eAnimData_Recalc;
 
 /* Base Struct for Anim ------------------------------------- */

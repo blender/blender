@@ -129,7 +129,7 @@ struct wmJob {
  * 1st priority: job with same owner and name
  * 2nd priority: job with same owner
  */
-static wmJob *wm_job_find(wmWindowManager *wm, void *owner, char *name)
+static wmJob *wm_job_find(wmWindowManager *wm, void *owner, const char *name)
 {
 	wmJob *steve, *found=NULL;
 	
@@ -148,7 +148,7 @@ static wmJob *wm_job_find(wmWindowManager *wm, void *owner, char *name)
 /* returns current or adds new job, but doesnt run it */
 /* every owner only gets a single job, adding a new one will stop running stop and 
    when stopped it starts the new one */
-wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, char *name, int flag)
+wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, const char *name, int flag)
 {
 	wmJob *steve= wm_job_find(wm, owner, name);
 	
@@ -351,7 +351,7 @@ void WM_jobs_stop(wmWindowManager *wm, void *owner, void *startjob)
 }
 
 /* actually terminate thread and job timer */
-void WM_jobs_kill(wmWindowManager *wm, void *owner, void *startjob)
+void WM_jobs_kill(wmWindowManager *wm, void *owner, void (*startjob)(void *, short int *, short int *, float *))
 {
 	wmJob *steve;
 	

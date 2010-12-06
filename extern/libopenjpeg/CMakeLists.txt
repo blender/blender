@@ -47,6 +47,30 @@ SET(SRC
 	t2.c
 	tcd.c
 	tgt.c
+
+	bio.h
+	cio.h
+	dwt.h
+	event.h
+	fix.h
+	image.h
+	int.h
+	j2k.h
+	j2k_lib.h
+	jp2.h
+	jpt.h
+	mct.h
+	mqc.h
+	openjpeg.h
+	opj_includes.h
+	opj_malloc.h
+	pi.h
+	raw.h
+	t1.h
+	t1_luts.h
+	t2.h
+	tcd.h
+	tgt.h
 )
 
 BLENDERLIB(extern_openjpeg "${SRC}" "${INC}")

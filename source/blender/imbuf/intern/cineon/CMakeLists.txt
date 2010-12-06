@@ -26,7 +26,6 @@
 
 SET(INC 
 		.
-		intern/include
 		..
 		../../
 		../../../blenkernel

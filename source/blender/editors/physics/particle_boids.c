@@ -76,7 +76,7 @@ static int rule_add_exec(bContext *C, wmOperator *op)
 
 	BLI_addtail(&state->rules, rule);
 
-	DAG_id_flush_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
@@ -128,7 +128,7 @@ static int rule_del_exec(bContext *C, wmOperator *UNUSED(op))
 		rule->flag |= BOIDRULE_CURRENT;
 
 	DAG_scene_sort(bmain, scene);
-	DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DAG_id_tag_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
@@ -166,7 +166,7 @@ static int rule_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&state->rules, rule);
 			BLI_insertlink(&state->rules, rule->prev->prev, rule);
 
-			DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+			DAG_id_tag_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 			break;
 		}
@@ -204,7 +204,7 @@ static int rule_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&state->rules, rule);
 			BLI_insertlink(&state->rules, rule->next, rule);
 
-			DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+			DAG_id_tag_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 			break;
 		}
@@ -301,7 +301,7 @@ static int state_del_exec(bContext *C, wmOperator *UNUSED(op))
 	state->flag |= BOIDSTATE_CURRENT;
 
 	DAG_scene_sort(bmain, scene);
-	DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DAG_id_tag_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
@@ -375,7 +375,7 @@ static int state_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 		if(state->flag & BOIDSTATE_CURRENT && state->next) {
 			BLI_remlink(&boids->states, state);
 			BLI_insertlink(&boids->states, state->next, state);
-			DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+			DAG_id_tag_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			break;
 		}
 	}

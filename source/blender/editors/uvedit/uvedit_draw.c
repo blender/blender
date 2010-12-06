@@ -47,6 +47,7 @@
 
 #include "ED_image.h"
 #include "ED_mesh.h"
+#include "ED_uvedit.h"
 
 #include "UI_resources.h"
 

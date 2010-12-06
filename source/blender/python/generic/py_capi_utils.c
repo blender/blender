@@ -24,7 +24,7 @@
 #include "py_capi_utils.h"
 
 /* for debugging */
-void PyC_ObSpit(char *name, PyObject *var) {
+void PyC_ObSpit(const char *name, PyObject *var) {
 	fprintf(stderr, "<%s> : ", name);
 	if (var==NULL) {
 		fprintf(stderr, "<NIL>");
@@ -171,7 +171,7 @@ PyObject *PyC_ExceptionBuffer(void)
 	
 	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
 		goto error_cleanup;
-	} else if (! (string_io = PyObject_CallMethod(string_io_mod, "StringIO", NULL))) {
+	} else if (! (string_io = PyObject_CallMethod(string_io_mod, (char *)"StringIO", NULL))) {
 		goto error_cleanup;
 	} else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
 		goto error_cleanup;
@@ -265,7 +265,8 @@ PyObject *PyC_UnicodeFromByte(const char *str)
 	}
 	else {
 		PyErr_Clear();
-		result= PyUnicode_DecodeUTF8(str, strlen(str), "surrogateescape");
+		/* this means paths will always be accessible once converted, on all OS's */
+		result= PyUnicode_DecodeFSDefault(str);
 		return result;
 	}
 }
@@ -323,12 +324,12 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 			char *format = va_arg(vargs, char *);
 			void *ptr = va_arg(vargs, void *);
 
-			ret= PyObject_CallFunction(calcsize, "s", format);
+			ret= PyObject_CallFunction(calcsize, (char *)"s", format);
 
 			if(ret) {
 				sizes[i]= PyLong_AsSsize_t(ret);
 				Py_DECREF(ret);
-				ret = PyObject_CallFunction(unpack, "sy#", format, (char *)ptr, sizes[i]);
+				ret = PyObject_CallFunction(unpack, (char *)"sy#", format, (char *)ptr, sizes[i]);
 			}
 
 			if(ret == NULL) {

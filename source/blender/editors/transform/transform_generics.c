@@ -321,8 +321,7 @@ static int fcu_test_selected(FCurve *fcu)
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
-	Scene *scene = t->scene;
-	Base *base = scene->basact;
+	Base *base = t->scene->basact;
 
 	if (t->spacetype==SPACE_NODE) {
 		flushTransNodes(t);
@@ -617,7 +616,7 @@ void recalcData(TransInfo *t)
 			if(sima->flag & SI_LIVE_UNWRAP)
 				ED_uvedit_live_unwrap_re_solve();
 			
-			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);
+			DAG_id_tag_update(t->obedit->data, OB_RECALC_DATA);
 		}
 	}
 	else if (t->spacetype == SPACE_VIEW3D) {
@@ -633,7 +632,7 @@ void recalcData(TransInfo *t)
 					applyProject(t);
 				}
 
-				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 
 				if (t->state == TRANS_CANCEL) {
 					while(nu) {
@@ -656,7 +655,7 @@ void recalcData(TransInfo *t)
 					applyProject(t);
 				}
 
-				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 	
 				if(la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
 			}
@@ -670,7 +669,7 @@ void recalcData(TransInfo *t)
 				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
 					editmesh_apply_to_mirror(t);
 					
-				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 				
 				recalc_editnormals(em);
 			}
@@ -761,7 +760,7 @@ void recalcData(TransInfo *t)
 				if(t->state != TRANS_CANCEL) {
 					applyProject(t);
 				}
-				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 			}
 		}
 		else if( (t->flag & T_POSE) && t->poseobj) {
@@ -782,12 +781,12 @@ void recalcData(TransInfo *t)
 			
 			/* old optimize trick... this enforces to bypass the depgraph */
 			if (!(arm->flag & ARM_DELAYDEFORM)) {
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 			}
 			else
-				where_is_pose(scene, ob);
+				where_is_pose(t->scene, ob);
 		}
-		else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(scene, base->object)) {
+		else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, base->object)) {
 			if(t->state != TRANS_CANCEL) {
 				applyProject(t);
 			}
@@ -823,7 +822,7 @@ void recalcData(TransInfo *t)
 				/* sets recalc flags fully, instead of flushing existing ones 
 				 * otherwise proxies don't function correctly
 				 */
-				DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+				DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 		}
 		
@@ -1084,8 +1083,9 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		
 		
 		/* TRANSFORM_FIX_ME rna restrictions */
-		if (t->prop_size <= 0)
+		if (t->prop_size <= 0.00001f)
 		{
+			printf("Proportional size (%f) under 0.00001, reseting to 1!\n", t->prop_size);
 			t->prop_size = 1.0f;
 		}
 		

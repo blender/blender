@@ -21,6 +21,7 @@
 
 SET(INC
 	../include
+	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../imbuf
@@ -38,6 +39,8 @@ SET(SRC
 	image_ops.c
 	image_render.c
 	space_image.c
+
+	image_intern.h
 )
 
 IF(WITH_IMAGE_OPENJPEG)

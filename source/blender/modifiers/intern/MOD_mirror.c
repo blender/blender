@@ -61,7 +61,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tmmd->axis = mmd->axis;
 	tmmd->flag = mmd->flag;
 	tmmd->tolerance = mmd->tolerance;
-	tmmd->mirror_ob = mmd->mirror_ob;;
+	tmmd->mirror_ob = mmd->mirror_ob;
 }
 
 static void foreachObjectLink(

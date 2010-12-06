@@ -117,7 +117,6 @@ CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, in
 CompBuf *scalefast_compbuf(CompBuf *inbuf, int newx, int newy);
 CompBuf *typecheck_compbuf(CompBuf *inbuf, int type);
 void typecheck_compbuf_color(float *out, float *in, int outtype, int intype);
-float *compbuf_get_pixel(CompBuf *cbuf, float *rectf, int x, int y, int xrad, int yrad);
 
 /* **************************************************** */
 

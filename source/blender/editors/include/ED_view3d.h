@@ -121,7 +121,7 @@ int view3d_test_clipping(struct RegionView3D *rv3d, float *vec, int local);
 void view3d_align_axis_to_vector(struct View3D *v3d, struct RegionView3D *rv3d, int axisidx, float vec[3]);
 float view3d_pixel_size(struct RegionView3D *rv3d, const float co[3]);
 
-void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
+void drawcircball(int mode, const float cent[3], float rad, float tmat[][4]);
 
 /* backbuffer select and draw support */
 void view3d_validate_backbuf(struct ViewContext *vc);

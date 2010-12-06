@@ -340,6 +340,11 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		
 		/* cache the verts/faces! */
 		LOOP_PARTICLES {
+			if(pa->num < 0) {
+				pa->num_dmcache = -1;
+				continue;
+			}
+
 			if(psys->part->from == PART_FROM_VERT) {
 				if(nodearray[pa->num])
 					pa->num_dmcache= GET_INT_FROM_POINTER(nodearray[pa->num]->link);
@@ -3620,8 +3625,8 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			FluidsimSettings *fss= fluidmd->fss;
 			ParticleSettings *part = psys->part;
 			ParticleData *pa=0;
-			char *suffix  = "fluidsurface_particles_####";
-			char *suffix2 = ".gz";
+			const char *suffix  = "fluidsurface_particles_####";
+			const char *suffix2 = ".gz";
 			char filename[256];
 			char debugStrBuffer[256];
 			int  curFrame = sim->scene->r.cfra -1; // warning - sync with derived mesh fsmesh loading
@@ -3959,7 +3964,7 @@ static void fluid_default_settings(ParticleSettings *part){
 	fluid->buoyancy = 0.f;
 }
 
-static void psys_changed_physics(ParticleSimulationData *sim)
+static void psys_prepare_physics(ParticleSimulationData *sim)
 {
 	ParticleSettings *part = sim->psys->part;
 
@@ -4042,8 +4047,9 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	if(psys->recalc & PSYS_RECALC_TYPE)
 		psys_changed_type(&sim);
-	else if(psys->recalc & PSYS_RECALC_PHYS)
-		psys_changed_physics(&sim);
+
+	/* setup necessary physics type dependent additional data if it doesn't yet exist */
+	psys_prepare_physics(&sim);
 
 	switch(part->type) {
 		case PART_HAIR:

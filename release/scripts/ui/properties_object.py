@@ -217,7 +217,8 @@ class OBJECT_PT_display(ObjectButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(ob, "show_texture_space", text="Texture Space")
         col.prop(ob, "show_x_ray", text="X-Ray")
-        col.prop(ob, "show_transparent", text="Transparency")
+        if ob.type == 'MESH':
+            col.prop(ob, "show_transparent", text="Transparency")
 
 
 class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):

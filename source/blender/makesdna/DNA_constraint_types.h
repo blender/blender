@@ -94,7 +94,7 @@ typedef struct bConstraintTarget {
 
 /* bConstraintTarget -> flag */
 typedef enum B_CONSTRAINT_TARGET_FLAG {
-	CONSTRAINT_TAR_TEMP = (1<<0),		/* temporary target-struct that needs to be freed after use */
+	CONSTRAINT_TAR_TEMP = (1<<0)		/* temporary target-struct that needs to be freed after use */
 } B_CONSTRAINT_TARGET_FLAG;
 
 /* bConstraintTarget/bConstraintOb -> type */
@@ -476,7 +476,7 @@ typedef enum eBConstraint_SpaceTypes {
 		 /* for posechannels - local with parent  */
 	CONSTRAINT_SPACE_PARLOCAL, /* = 3 */
 		/* for files from between 2.43-2.46 (should have been parlocal) */
-	CONSTRAINT_SPACE_INVALID, /* = 4. do not exchange for anything! */
+	CONSTRAINT_SPACE_INVALID /* = 4. do not exchange for anything! */
 } eBConstraint_SpaceTypes;
 
 /* bConstraintChannel.flag */
@@ -496,7 +496,7 @@ typedef enum eCopyRotation_Flags {
 	ROTLIKE_X_INVERT	= (1<<4),
 	ROTLIKE_Y_INVERT	= (1<<5),
 	ROTLIKE_Z_INVERT 	= (1<<6),
-	ROTLIKE_OFFSET		= (1<<7),
+	ROTLIKE_OFFSET		= (1<<7)
 } eCopyRotation_Flags;
 
 /* bLocateLikeConstraint.flag */
@@ -509,7 +509,7 @@ typedef enum eCopyLocation_Flags {
 	LOCLIKE_X_INVERT	= (1<<4),
 	LOCLIKE_Y_INVERT	= (1<<5),
 	LOCLIKE_Z_INVERT	= (1<<6),
-	LOCLIKE_OFFSET		= (1<<7),
+	LOCLIKE_OFFSET		= (1<<7)
 } eCopyLocation_Flags;
  
 /* bSizeLikeConstraint.flag */
@@ -517,28 +517,28 @@ typedef enum eCopyScale_Flags {
 	SIZELIKE_X		= (1<<0),
 	SIZELIKE_Y		= (1<<1),
 	SIZELIKE_Z		= (1<<2), 
-	SIZELIKE_OFFSET = (1<<3),
+	SIZELIKE_OFFSET = (1<<3)
 } eCopyScale_Flags;
 
 /* bSameVolumeConstraint.flag */
 typedef enum eSameVolume_Modes {
 	SAMEVOL_X		= 0,
 	SAMEVOL_Y,
-	SAMEVOL_Z, 
+	SAMEVOL_Z
 } eSameVolume_Modes;
 
 /* Locked-Axis Values (Locked Track) */
 typedef enum eLockAxis_Modes {
 	LOCK_X	= 0,
 	LOCK_Y,
-	LOCK_Z,
+	LOCK_Z
 } eLockAxis_Modes;
 
 /* Up-Axis Values (TrackTo and Locked Track) */
 typedef enum eUpAxis_Modes {
 	UP_X	= 0,
 	UP_Y,
-	UP_Z,
+	UP_Z
 } eUpAxis_Modes;
 
 /* Tracking axis (TrackTo, Locked Track, Damped Track) */
@@ -548,19 +548,19 @@ typedef enum eTrackToAxis_Modes {
 	TRACK_Z,
 	TRACK_nX,
 	TRACK_nY,
-	TRACK_nZ,
+	TRACK_nZ
 } eTrackToAxis_Modes;
 
 /* FollowPath flags */
 typedef enum eFollowPath_Flags {
 	FOLLOWPATH_FOLLOW	= (1<<0),
 	FOLLOWPATH_STATIC	= (1<<1),
-	FOLLOWPATH_RADIUS	= (1<<2),
+	FOLLOWPATH_RADIUS	= (1<<2)
 } eFollowPath_Flags;
 
 /* bTrackToConstraint->flags */
 typedef enum eTrackTo_Flags {
-	TARGET_Z_UP 	= (1<<0),
+	TARGET_Z_UP 	= (1<<0)
 } eTrackTo_Flags;
 
 /* Strech To Constraint -> volmode */
@@ -568,14 +568,14 @@ typedef enum eStretchTo_VolMode {
 	VOLUME_XZ	= 0,
 	VOLUME_X,
 	VOLUME_Z,
-	NO_VOLUME,
+	NO_VOLUME
 } eStretchTo_VolMode;
 
 /* Stretch To Constraint -> plane mode */
 typedef enum eStretchTo_PlaneMode {
 	PLANE_X		= 0,
 	PLANE_Y,
-	PLANE_Z,
+	PLANE_Z
 } eStretchTo_PlaneMode;
 
 /* Clamp-To Constraint ->flag */
@@ -583,12 +583,12 @@ typedef enum eClampTo_Modes {
 	CLAMPTO_AUTO = 0,
 	CLAMPTO_X,
 	CLAMPTO_Y,
-	CLAMPTO_Z,
+	CLAMPTO_Z
 } eClampTo_Modes;
 
 /* ClampTo Constraint ->flag2 */
 typedef enum eClampTo_Flags {
-	CLAMPTO_CYCLIC	= (1<<0),
+	CLAMPTO_CYCLIC	= (1<<0)
 } eClampTo_Flags;
 
 /* bKinematicConstraint->flag */
@@ -611,7 +611,7 @@ typedef enum eKinematic_Flags {
 	CONSTRAINT_IK_NO_ROT_Y		= (1<<12),
 	CONSTRAINT_IK_NO_ROT_Z		= (1<<13),
 	/* axis relative to target */
-	CONSTRAINT_IK_TARGETAXIS	= (1<<14),
+	CONSTRAINT_IK_TARGETAXIS	= (1<<14)
 } eKinematic_Flags;
 
 /* bSplineIKConstraint->flag */
@@ -625,7 +625,7 @@ typedef enum eSplineIK_Flags {
 	/* evenly distribute the bones along the path regardless of length */
 	CONSTRAINT_SPLINEIK_EVENSPLITS		= (1<<3),	
 	/* don't adjust the x and z scaling of the bones by the curve radius */
-	CONSTRAINT_SPLINEIK_NO_CURVERAD	= (1<<4),
+	CONSTRAINT_SPLINEIK_NO_CURVERAD	= (1<<4)
 } eSplineIK_Flags;
 
 /* bSplineIKConstraint->xzScaleMode */
@@ -635,14 +635,14 @@ typedef enum eSplineIK_XZScaleModes {
 	/* bones in the chain should take their x/z scales from the original scaling */
 	CONSTRAINT_SPLINEIK_XZS_ORIGINAL,
 	/* x/z scales are the inverse of the y-scale */
-	CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC,
+	CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC
 } eSplineIK_XZScaleModes;
 
 /* MinMax (floor) flags */
 typedef enum eFloor_Flags {
 	MINMAX_STICKY	= (1<<0),
 	MINMAX_STUCK	= (1<<1),
-	MINMAX_USEROT	= (1<<2),
+	MINMAX_USEROT	= (1<<2)
 } eFloor_Flags;
 
 /* transform limiting constraints -> flag2 */
@@ -650,7 +650,7 @@ typedef enum eTransformLimits_Flags2 {
 	/* not used anymore - for older Limit Location constraints only */
 	LIMIT_NOPARENT 	= (1<<0),
 	/* for all Limit constraints - allow to be used during transform? */
-	LIMIT_TRANSFORM = (1<<1),
+	LIMIT_TRANSFORM = (1<<1)
 } eTransformLimits_Flags2;
 
 /* transform limiting constraints -> flag (own flags)  */
@@ -660,33 +660,33 @@ typedef enum eTransformLimits_Flags {
 	LIMIT_YMIN = (1<<2),
 	LIMIT_YMAX = (1<<3),
 	LIMIT_ZMIN = (1<<4),
-	LIMIT_ZMAX = (1<<5),
+	LIMIT_ZMAX = (1<<5)
 } eTransformLimits_Flags;
 
 /* limit rotation constraint -> flag (own flags) */
 typedef enum eRotLimit_Flags {
 	LIMIT_XROT = (1<<0),
 	LIMIT_YROT = (1<<1),
-	LIMIT_ZROT = (1<<2),
+	LIMIT_ZROT = (1<<2)
 } eRotLimit_Flags;
 
 /* distance limit constraint */
 	/* bDistLimitConstraint->flag */
 typedef enum eDistLimit_Flag {
-	LIMITDIST_USESOFT	= (1<<0),
+	LIMITDIST_USESOFT	= (1<<0)
 } eDistLimit_Flag;
 
 	/* bDistLimitConstraint->mode */
 typedef enum eDistLimit_Modes {
 	LIMITDIST_INSIDE = 0,
 	LIMITDIST_OUTSIDE,
-	LIMITDIST_ONSURFACE,
+	LIMITDIST_ONSURFACE
 } eDistLimit_Modes;
 	
 /* python constraint -> flag */
 typedef enum ePyConstraint_Flags {
 	PYCON_USETARGETS	= (1<<0),
-	PYCON_SCRIPTERROR	= (1<<1),
+	PYCON_SCRIPTERROR	= (1<<1)
 } ePyConstraint_Flags;
 
 /* ChildOf Constraint -> flag */
@@ -699,7 +699,7 @@ typedef enum eChildOf_Flags {
 	CHILDOF_ROTZ	= (1<<5),
 	CHILDOF_SIZEX	= (1<<6),
 	CHILDOF_SIZEY	= (1<<7),
-	CHILDOF_SIZEZ	= (1<<8),
+	CHILDOF_SIZEZ	= (1<<8)
 } eChildOf_Flags;
 
 /* Pivot Constraint */
@@ -720,7 +720,7 @@ typedef enum ePivotConstraint_Axis {
 	/* consider +ve y-axis rotations */
 	PIVOTCON_AXIS_Y,
 	/* consider +ve z-axis rotations */
-	PIVOTCON_AXIS_Z,
+	PIVOTCON_AXIS_Z
 } ePivotConstraint_Axis;
 
 	/* settings for Pivot Constraint in general */
@@ -728,7 +728,7 @@ typedef enum ePivotConstraint_Flag {
 	/* offset is to be interpreted as being a fixed-point in space */
 	PIVOTCON_FLAG_OFFSET_ABS	= (1<<0),
 	/* rotation-based activation uses negative rotation to drive result */
-	PIVOTCON_FLAG_ROTACT_NEG	= (1<<1),
+	PIVOTCON_FLAG_ROTACT_NEG	= (1<<1)
 } ePivotConstraint_Flag;
 
 /* Rigid-Body Constraint */

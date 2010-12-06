@@ -25,7 +25,6 @@
 # ***** END GPL LICENSE BLOCK *****
 
 INCLUDE_DIRECTORIES(../../../../intern/guardedalloc ..)
-FILE(GLOB INC_FILES ../*.h)
 
 # Build makesdna executable
 SET(SRC
@@ -34,10 +33,72 @@ SET(SRC
 )
 
 IF(WIN32 AND NOT UNIX)
-	LIST(APPEND SRC ../../../../intern/guardedalloc/intern/mmap_win.c)
+	LIST(APPEND SRC
+		../../../../intern/guardedalloc/intern/mmap_win.c
+	)
 ENDIF(WIN32 AND NOT UNIX)
 
-ADD_EXECUTABLE(makesdna ${SRC} ${INC_FILES})
+SET(SRC_DNA_INC
+	../DNA_ID.h
+	../DNA_action_types.h
+	../DNA_actuator_types.h
+	../DNA_anim_types.h
+	../DNA_armature_types.h
+	../DNA_boid_types.h
+	../DNA_brush_types.h
+	../DNA_camera_types.h
+	../DNA_cloth_types.h
+	../DNA_color_types.h
+	../DNA_constraint_types.h
+	../DNA_controller_types.h
+	../DNA_curve_types.h
+	../DNA_customdata_types.h
+	../DNA_documentation.h
+	../DNA_effect_types.h
+	../DNA_fileglobal_types.h
+	../DNA_genfile.h
+	../DNA_gpencil_types.h
+	../DNA_group_types.h
+	../DNA_image_types.h
+	../DNA_ipo_types.h
+	../DNA_key_types.h
+	../DNA_lamp_types.h
+	../DNA_lattice_types.h
+	../DNA_listBase.h
+	../DNA_material_types.h
+	../DNA_mesh_types.h
+	../DNA_meshdata_types.h
+	../DNA_meta_types.h
+	../DNA_modifier_types.h
+	../DNA_nla_types.h
+	../DNA_node_types.h
+	../DNA_object_fluidsim.h
+	../DNA_object_force.h
+	../DNA_object_types.h
+	../DNA_outliner_types.h
+	../DNA_packedFile_types.h
+	../DNA_particle_types.h
+	../DNA_property_types.h
+	../DNA_scene_types.h
+	../DNA_screen_types.h
+	../DNA_sdna_types.h
+	../DNA_sensor_types.h
+	../DNA_sequence_types.h
+	../DNA_smoke_types.h
+	../DNA_sound_types.h
+	../DNA_space_types.h
+	../DNA_text_types.h
+	../DNA_texture_types.h
+	../DNA_userdef_types.h
+	../DNA_vec_types.h
+	../DNA_vfont_types.h
+	../DNA_view2d_types.h
+	../DNA_view3d_types.h
+	../DNA_windowmanager_types.h
+	../DNA_world_types.h
+)
+
+ADD_EXECUTABLE(makesdna ${SRC} ${SRC_DNA_INC})
 
 # Output dna.c
 ADD_CUSTOM_COMMAND(
@@ -47,7 +108,12 @@ ADD_CUSTOM_COMMAND(
 )
 
 # Build bf_dna library
-SET(SRC dna_genfile.c dna.c)
+SET(SRC
+	dna_genfile.c
+	dna.c
+	${SRC_DNA_INC}
+)
+
 BLENDERLIB(bf_dna "${SRC}" "${INC}")
 
 MESSAGE(STATUS "Configuring makesdna")

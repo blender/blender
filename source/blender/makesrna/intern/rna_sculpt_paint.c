@@ -77,7 +77,7 @@ static EnumPropertyItem particle_edit_cache_brush_items[] = {
 static PointerRNA rna_ParticleEdit_brush_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset= (ParticleEditSettings*)ptr->data;
-	ParticleBrushData *brush= NULL;;
+	ParticleBrushData *brush= NULL;
 
 	if(pset->brushtype != PE_BRUSH_NONE)
 		brush= &pset->brush[pset->brushtype];
@@ -105,7 +105,7 @@ static void rna_ParticleEdit_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
 
-	if(ob) DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	if(ob) DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 {
@@ -115,7 +115,7 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 	if((pset->brushtype == PE_BRUSH_WEIGHT || value == PE_BRUSH_WEIGHT) && pset->scene) {
 		Object *ob = (pset->scene->basact)? pset->scene->basact->object: NULL;
 		if(ob) {
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 		}
 	}

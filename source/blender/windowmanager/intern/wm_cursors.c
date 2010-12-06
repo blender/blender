@@ -156,7 +156,7 @@ void WM_cursor_restore(wmWindow *win)
 void WM_cursor_wait(int val)
 {
 	wmWindowManager *wm= G.main->wm.first;
-	wmWindow *win= wm->windows.first; 
+	wmWindow *win= wm?wm->windows.first:NULL; 
 	
 	for(; win; win= win->next) {
 		if(val) {
@@ -216,12 +216,14 @@ void WM_timecursor(wmWindow *win, int nr)
 	{0,  60,  66,  66,  60,  66,  66,  60}, 
 	{0,  56,  68,  68, 120,  64,  68,  56} 
 	};
-	unsigned char mask[16][2]= {{0}};
+	unsigned char mask[16][2];
 	unsigned char bitmap[16][2]= {{0}};
 	int i, idx;
 	
 	if(win->lastcursor == 0)
 		win->lastcursor= win->cursor; 
+	
+	memset(&mask, 0xFF, sizeof(mask));
 	
 	/* print number bottom right justified */
 	for (idx= 3; nr && idx>=0; idx--) {

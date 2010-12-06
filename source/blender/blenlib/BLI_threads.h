@@ -121,7 +121,7 @@ void BLI_insert_work(struct ThreadedWorker *worker, void *param);
 
 typedef struct ThreadQueue ThreadQueue;
 
-ThreadQueue *BLI_thread_queue_init();
+ThreadQueue *BLI_thread_queue_init(void);
 void BLI_thread_queue_free(ThreadQueue *queue);
 
 void BLI_thread_queue_push(ThreadQueue *queue, void *work);

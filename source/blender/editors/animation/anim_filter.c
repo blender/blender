@@ -2154,7 +2154,7 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 	if ((ads->source == NULL) || (GS(ads->source->name)!=ID_SCE)) {
 		printf("DopeSheet Error: Not scene!\n");
 		if (G.f & G_DEBUG)
-			printf("\tPointer = %p, Name = '%s' \n", ads->source, (ads->source)?ads->source->name:NULL);
+			printf("\tPointer = %p, Name = '%s' \n", (void *)ads->source, (ads->source)?ads->source->name:NULL);
 		return 0;
 	}
 	

@@ -169,7 +169,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			multires_mark_as_modified(ob);
 
 		if(ss->modifiers_active || ((Mesh*)ob->data)->id.us > 1)
-			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 }
 
@@ -274,7 +274,7 @@ SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
 	return unode;
 }
 
-void sculpt_undo_push_begin(char *name)
+void sculpt_undo_push_begin(const char *name)
 {
 	undo_paint_push_begin(UNDO_PAINT_MESH, name,
 		sculpt_undo_restore, sculpt_undo_free);

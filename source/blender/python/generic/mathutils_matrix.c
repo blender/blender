@@ -105,7 +105,7 @@ Mathutils_Callback mathutils_matrix_vector_cb = {
 //----------------------------------mathutils.Matrix() -----------------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 //create a new matrix type
-static PyObject *Matrix_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PyObject *argObject, *m, *s;
 	MatrixObject *mat;
@@ -124,7 +124,7 @@ static PyObject *Matrix_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 		PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix(): expects 0-4 numeric sequences of the same size");
 		return NULL;
 	} else if (argSize == 0) { //return empty 4D matrix
-		return (PyObject *) newMatrixObject(NULL, 4, 4, Py_NEW, NULL);
+		return (PyObject *) newMatrixObject(NULL, 4, 4, Py_NEW, type);
 	}else if (argSize == 1){
 		//copy constructor for matrix objects
 		argObject = PyTuple_GET_ITEM(args, 0);
@@ -180,7 +180,7 @@ static PyObject *Matrix_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 			}
 		}
 	}
-	return newMatrixObject(matrix, argSize, seqSize, Py_NEW, NULL);
+	return newMatrixObject(matrix, argSize, seqSize, Py_NEW, type);
 }
 
 /*-----------------------CLASS-METHODS----------------------------*/
@@ -1410,7 +1410,7 @@ static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
 
 	list = PyList_New(end - begin);
 	for(count = begin; count < end; count++) {
-		PyList_SetItem(list, count - begin,
+		PyList_SET_ITEM(list, count - begin,
 				newVectorObject_cb((PyObject *)self, self->colSize, mathutils_matrix_vector_cb_index, count));
 
 	}
@@ -1597,7 +1597,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 			}
 		}
 		
-		return newMatrixObject(mat, mat2->rowSize, mat1->colSize, Py_NEW, NULL);
+		return newMatrixObject(mat, mat2->rowSize, mat1->colSize, Py_NEW, Py_TYPE(mat1));
 	}
 	
 	if(mat1==NULL){
@@ -1608,7 +1608,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 					mat[((x * mat2->colSize) + y)] = scalar * mat2->matrix[x][y];
 				}
 			}
-			return newMatrixObject(mat, mat2->rowSize, mat2->colSize, Py_NEW, NULL);
+			return newMatrixObject(mat, mat2->rowSize, mat2->colSize, Py_NEW, Py_TYPE(mat2));
 		}
 		
 		PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation");
@@ -1627,7 +1627,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 						mat[((x * mat1->colSize) + y)] = scalar * mat1->matrix[x][y];
 					}
 				}
-				return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW, NULL);
+				return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW, Py_TYPE(mat1));
 			}
 		}
 		PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation");
@@ -1688,9 +1688,7 @@ static PyObject *Matrix_subscript(MatrixObject* self, PyObject* item)
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "vector indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "vector indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return NULL;
 	}
 }
@@ -1719,9 +1717,7 @@ static int Matrix_ass_subscript(MatrixObject* self, PyObject* item, PyObject* va
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "matrix indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return -1;
 	}
 }
@@ -1821,12 +1817,12 @@ static PyObject *Matrix_getIsNegative(MatrixObject *self, void *UNUSED(closure))
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Matrix_getseters[] = {
-	{"row_size", (getter)Matrix_getRowSize, (setter)NULL, "The row size of the matrix (readonly).\n\n:type: int", NULL},
-	{"col_size", (getter)Matrix_getColSize, (setter)NULL, "The column size of the matrix (readonly).\n\n:type: int", NULL},
-	{"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, "The average scale applied to each axis (readonly).\n\n:type: float", NULL},
-	{"is_negative", (getter)Matrix_getIsNegative, (setter)NULL, "True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
-	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
-	{"owner",(getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
+	{(char *)"row_size", (getter)Matrix_getRowSize, (setter)NULL, (char *)"The row size of the matrix (readonly).\n\n:type: int", NULL},
+	{(char *)"col_size", (getter)Matrix_getColSize, (setter)NULL, (char *)"The column size of the matrix (readonly).\n\n:type: int", NULL},
+	{(char *)"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, (char *)"The average scale applied to each axis (readonly).\n\n:type: float", NULL},
+	{(char *)"is_negative", (getter)Matrix_getIsNegative, (setter)NULL, (char *)"True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, (char *)BaseMathObject_Wrapped_doc, NULL},
+	{(char *)"owner",(getter)BaseMathObject_getOwner, (setter)NULL, (char *)BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1865,7 +1861,7 @@ static char matrix_doc[] =
 
 PyTypeObject matrix_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"matrix",						/*tp_name*/
+	"mathutils.Matrix",						/*tp_name*/
 	sizeof(MatrixObject),			/*tp_basicsize*/
 	0,								/*tp_itemsize*/
 	(destructor)BaseMathObject_dealloc,		/*tp_dealloc*/

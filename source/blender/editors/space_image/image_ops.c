@@ -876,15 +876,26 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		short ok= FALSE;
 
 		BLI_path_abs(path, bmain->name);
-		
+
 		WM_cursor_wait(1);
 
-		/* enforce user setting for RGB or RGBA, but skip BW */
-		if(scene->r.planes==32)
-			ibuf->depth= 32;
-		else if(scene->r.planes==24)
-			ibuf->depth= 24;
-		
+		if(ima->type == IMA_TYPE_R_RESULT) {
+			/* enforce user setting for RGB or RGBA, but skip BW */
+			if(scene->r.planes==32) {
+				ibuf->depth= 32;
+			}
+			else if(scene->r.planes==24) {
+				ibuf->depth= 24;
+			}
+		}
+		else {
+			/* TODO, better solution, if a 24bit image is painted onto it may contain alpha */
+			if(ibuf->userflags & IB_BITMAPDIRTY) { /* it has been painted onto */
+				/* checks each pixel, not ideal */
+				ibuf->depth= BKE_alphatest_ibuf(ibuf) ? 32 : 24;
+			}
+		}
+
 		if(scene->r.scemode & R_EXTENSION)  {
 			BKE_add_image_extension(path, sima->imtypenr);
 		}
@@ -946,9 +957,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		else {
 			BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", path);
 		}
-		
-		
-		
+
+
 		WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 
 		WM_cursor_wait(0);
@@ -1244,7 +1254,7 @@ void IMAGE_OT_reload(wmOperatorType *ot)
 
 /********************** new image operator *********************/
 
-static int new_exec(bContext *C, wmOperator *op)
+static int image_new_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima;
 	Scene *scene;
@@ -1301,16 +1311,11 @@ static int new_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-/* XXX is temp, redo is not possible in editmode due to undo conflicts */
-static int space_image_no_editmode_poll(bContext *C)
+/* XXX, Ton is not a fan of OK buttons but using this function to avoid undo/redo bug while in mesh-editmode, - campbell */
+static int image_new_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
-	Object *ob= CTX_data_edit_object(C);
+	return WM_operator_props_dialog_popup(C, op, 300, 100);
 
-	if(sima && ob)
-		return 0; 
-	
-	return 1;
 }
 
 void IMAGE_OT_new(wmOperatorType *ot)
@@ -1323,9 +1328,8 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_new";
 	
 	/* api callbacks */
-	ot->exec= new_exec;
-	ot->invoke= WM_operator_props_popup;
-	ot->poll= space_image_no_editmode_poll;
+	ot->exec= image_new_exec;
+	ot->invoke= image_new_invoke;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1428,7 +1432,7 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 
 /********************* unpack operator *********************/
 
-void unpack_menu(bContext *C, char *opname, Image *ima, char *folder, PackedFile *pf)
+static void unpack_menu(bContext *C, const char *opname, Image *ima, const char *folder, PackedFile *pf)
 {
 	PointerRNA props_ptr;
 	uiPopupMenu *pup;
@@ -1624,16 +1628,16 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	ImageSampleInfo *info= op->customdata;
 	float fx, fy;
-	int x, y;
+	int mx, my;
 	
 	if(ibuf == NULL) {
 		ED_space_image_release_buffer(sima, lock);
 		return;
 	}
 
-	x= event->x - ar->winrct.xmin;
-	y= event->y - ar->winrct.ymin;
-	UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
+	mx= event->x - ar->winrct.xmin;
+	my= event->y - ar->winrct.ymin;
+	UI_view2d_region_to_view(&ar->v2d, mx, my, &fx, &fy);
 
 	if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
 		float *fp;
