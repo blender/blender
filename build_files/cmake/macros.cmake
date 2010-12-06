@@ -41,8 +41,8 @@ MACRO(BLENDERLIB
 
 	BLENDERLIB_NOLIST(${name} "${sources}" "${includes}")
 
-	# Add to blender's list of libraries
-	FILE(APPEND ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt "${name};")
+	SET_PROPERTY(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
+
 ENDMACRO(BLENDERLIB)
 
 MACRO(SETUP_LIBDIRS)
