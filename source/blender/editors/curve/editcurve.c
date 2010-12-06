@@ -6695,9 +6695,10 @@ static void *undo_check_lastsel(void *lastsel, Nurb *nu, Nurb *newnu)
 	return NULL;
 }
 
-static void undoCurve_to_editCurve(void *ucu, void *cue)
+static void undoCurve_to_editCurve(void *ucu, void *obe)
 {
-	Curve *cu= cue;
+	Object *obedit= obe;
+	Curve *cu= (Curve*)obedit->data;
 	UndoCurve *undoCurve= ucu;
 	ListBase *undobase= &undoCurve->nubase;
 	ListBase *editbase= ED_curve_editnurbs(cu);
@@ -6728,11 +6729,14 @@ static void undoCurve_to_editCurve(void *ucu, void *cue)
 	}
 
 	cu->lastsel= lastsel;
+
+	ED_curve_updateAnimPaths(obedit);
 }
 
-static void *editCurve_to_undoCurve(void *cue)
+static void *editCurve_to_undoCurve(void *obe)
 {
-	Curve *cu= cue;
+	Object *obedit= obe;
+	Curve *cu= (Curve*)obedit->data;
 	ListBase *nubase= ED_curve_editnurbs(cu);
 	UndoCurve *undoCurve;
 	EditNurb *editnurb= cu->editnurb, tmpEditnurb;
@@ -6782,7 +6786,7 @@ static void free_undoCurve(void *ucv)
 static void *get_data(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	return obedit->data;
+	return obedit;
 }
 
 /* and this is all the undo system needs to know */
