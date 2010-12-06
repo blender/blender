@@ -131,14 +131,31 @@ extern "C" {
 		//print_m4("proj", freestyle_proj);
 	}
 
+	static char *escape_quotes(char *name)
+	{
+		char *s= (char *)MEM_mallocN(strlen(name) * 2 + 1, "escape_quotes");
+		char *p= s;
+		while (*name) {
+			if (*name == '\'')
+				*p++= '\\';
+			*p++ = *name++;
+		}
+		*p = '\0';
+		return s;
+	}
+
 	static Text *create_lineset_handler(char *layer_name, char *lineset_name)
 	{
-		Text *text = add_empty_text(lineset_name);
+		char *s1= escape_quotes(layer_name);
+		char *s2= escape_quotes(lineset_name);
+		Text *text= add_empty_text(lineset_name);
 		write_text(text, "import parameter_editor; parameter_editor.process('");
-		write_text(text, layer_name);
+		write_text(text, s1);
 		write_text(text, "', '");
-		write_text(text, lineset_name);
+		write_text(text, s2);
 		write_text(text, "')\n");
+		MEM_freeN(s1);
+		MEM_freeN(s2);
 		return text;
 	}
 

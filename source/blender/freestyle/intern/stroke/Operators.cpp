@@ -979,6 +979,11 @@ Stroke* createStroke(Interface1D& inter) {
       stroke->push_back(stroke_vertex);
     }
   }
+  // Discard the stroke if the number of stroke vertices is less than two
+  if (stroke->strokeVerticesSize() < 2) {
+    delete stroke;
+    return NULL;
+  }
   stroke->setLength(currentCurvilignAbscissa);
   return stroke;
 }
