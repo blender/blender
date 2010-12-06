@@ -210,10 +210,6 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 			uiItemR(subcol, &ptr, "use_onion_skinning", 0, "Onion Skinning", 0);
 			uiItemR(subcol, &ptr, "ghost_range_max", 0, "Frames", 0); // XXX shorter name here? i.e. GStep
 		
-		/* additional options... */
-		subcol= uiLayoutColumn(col, 1);
-			uiItemO(subcol, "Delete Frame", 0, "GPENCIL_OT_active_frame_delete");
-			uiItemO(subcol, "Convert...", 0, "GPENCIL_OT_convert");
 	}
 } 
 
@@ -242,8 +238,11 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 		uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_add", NULL, "GPENCIL_OT_data_unlink"); 
 		
 		/* add new layer button - can be used even when no data, since it can add a new block too */
-		uiItemO(col, NULL, 0, "GPENCIL_OT_layer_add");
-	
+		uiItemO(col, "New Layer", 0, "GPENCIL_OT_layer_add");
+		row= uiLayoutRow(col, 1);
+		uiItemO(row, "Delete Frame", 0, "GPENCIL_OT_active_frame_delete");
+		uiItemO(row, "Convert", 0, "GPENCIL_OT_convert");
+		
 	/* sanity checks... */
 	if (gpd == NULL)
 		return;
