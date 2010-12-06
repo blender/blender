@@ -590,66 +590,52 @@ Material *give_node_material(Material *ma)
 /* from misc_util: flip the bytes from x  */
 /*  #define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1]) */
 
+void resize_object_material(Object *ob, const short totcol)
+{
+	Material **newmatar;
+	char *newmatbits;
+
+	if(totcol==0) {
+		if(ob->totcol) {
+			MEM_freeN(ob->mat);
+			MEM_freeN(ob->matbits);
+			ob->mat= NULL;
+			ob->matbits= NULL;
+		}
+	}
+	else if(ob->totcol<totcol) {
+		newmatar= MEM_callocN(sizeof(void *)*totcol, "newmatar");
+		newmatbits= MEM_callocN(sizeof(char)*totcol, "newmatbits");
+		if(ob->totcol) {
+			memcpy(newmatar, ob->mat, sizeof(void *)*ob->totcol);
+			memcpy(newmatbits, ob->matbits, sizeof(char)*ob->totcol);
+			MEM_freeN(ob->mat);
+			MEM_freeN(ob->matbits);
+		}
+		ob->mat= newmatar;
+		ob->matbits= newmatbits;
+	}
+	ob->totcol= totcol;
+	if(ob->totcol && ob->actcol==0) ob->actcol= 1;
+	if(ob->actcol>ob->totcol) ob->actcol= ob->totcol;
+}
+
 void test_object_materials(ID *id)
 {
 	/* make the ob mat-array same size as 'ob->data' mat-array */
 	Object *ob;
-	Mesh *me;
-	Curve *cu;
-	MetaBall *mb;
-	Material **newmatar;
-	char *newmatbits;
-	int totcol=0;
+	short *totcol;
 
-	if(id==0) return;
+	if(id || (totcol=give_totcolp_id(id))==NULL) {
+		return;
+	}
 
-	if( GS(id->name)==ID_ME ) {
-		me= (Mesh *)id;
-		totcol= me->totcol;
-	}
-	else if( GS(id->name)==ID_CU ) {
-		cu= (Curve *)id;
-		totcol= cu->totcol;
-	}
-	else if( GS(id->name)==ID_MB ) {
-		mb= (MetaBall *)id;
-		totcol= mb->totcol;
-	}
-	else return;
-
-	ob= G.main->object.first;
-	while(ob) {
-		
+	for(ob= G.main->object.first; ob; ob= ob->id.next) {
 		if(ob->data==id) {
-		
-			if(totcol==0) {
-				if(ob->totcol) {
-					MEM_freeN(ob->mat);
-					MEM_freeN(ob->matbits);
-					ob->mat= NULL;
-					ob->matbits= NULL;
-				}
-			}
-			else if(ob->totcol<totcol) {
-				newmatar= MEM_callocN(sizeof(void *)*totcol, "newmatar");
-				newmatbits= MEM_callocN(sizeof(char)*totcol, "newmatbits");
-				if(ob->totcol) {
-					memcpy(newmatar, ob->mat, sizeof(void *)*ob->totcol);
-					memcpy(newmatbits, ob->matbits, sizeof(char)*ob->totcol);
-					MEM_freeN(ob->mat);
-					MEM_freeN(ob->matbits);
-				}
-				ob->mat= newmatar;
-				ob->matbits= newmatbits;
-			}
-			ob->totcol= totcol;
-			if(ob->totcol && ob->actcol==0) ob->actcol= 1;
-			if(ob->actcol>ob->totcol) ob->actcol= ob->totcol;
+			resize_object_material(ob, *totcol);
 		}
-		ob= ob->id.next;
 	}
 }
-
 
 void assign_material(Object *ob, Material *ma, int act)
 {

@@ -106,6 +106,7 @@
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for which_libbase
 #include "BKE_idcode.h"
+#include "BKE_material.h"
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
@@ -3507,7 +3508,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			
 			poin= ob->data;
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);
-			   
+
 			if(ob->data==NULL && poin!=NULL) {
 				if(ob->id.lib)
 					printf("Can't find obdata of %s lib %s\n", ob->id.name+2, ob->id.lib->name);
@@ -3525,6 +3526,17 @@ static void lib_link_object(FileData *fd, Main *main)
 			}
 			for(a=0; a<ob->totcol; a++) ob->mat[a]= newlibadr_us(fd, ob->id.lib, ob->mat[a]);
 			
+			/* When the object is local and the data is library its possible
+			 * the material list size gets out of sync. [#22663] */
+			if(ob->data && ob->id.lib != ((ID *)ob->data)->lib) {
+				short *totcol_data= give_totcolp(ob);
+				/* Only expand so as not to loose any object materials that might be set. */
+				if(totcol_data && *totcol_data > ob->totcol) {
+					/* printf("'%s' %d -> %d\n", ob->id.name, ob->totcol, *totcol_data); */
+					resize_object_material(ob, *totcol_data);
+				}
+			}
+
 			ob->gpd= newlibadr_us(fd, ob->id.lib, ob->gpd);
 			ob->duplilist= NULL;
             
