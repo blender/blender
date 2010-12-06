@@ -11155,24 +11155,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 	/* put compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 255 || (main->versionfile == 255 && main->subversionfile < 1)) {
 		Brush *br;
+		ParticleSettings *part;
+		bScreen *sc;
+		Object *ob;
+
 		for(br= main->brush.first; br; br= br->id.next) {
 			if(br->ob_mode==0)
 				br->ob_mode= OB_MODE_ALL_PAINT;
 		}
-		
-	}
-	{
-		ParticleSettings *part;
+
 		for(part = main->particle.first; part; part = part->id.next) {
 			if(part->boids)
 				part->boids->pitch = 1.0f;
 		}
-	}
 
-	{
-		bScreen *sc;
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
 			for (sa= sc->areabase.first; sa; sa= sa->next) {
@@ -11198,8 +11196,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		/* fix rotation actuators for objects so they use real angles (radians)
+		 * since before blender went opensource this strange scalar was used: (1 / 0.02) * 2 * math.pi/360 */
+		for(ob= main->object.first; ob; ob= ob->id.next) {
+			bActuator *act= ob->actuators.first;
+			while(act) {
+				if (act->type==ACT_OBJECT) {
+					/* multiply velocity with 50 in old files */
+					bObjectActuator *oa= act->data;
+					mul_v3_fl(oa->drot, 0.8726646259971648f);
+				}
+				act= act->next;
+			}
+		}
 	}
-	
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

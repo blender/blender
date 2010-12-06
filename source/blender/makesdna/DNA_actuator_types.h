@@ -112,7 +112,7 @@ typedef struct bObjectActuator {
 	short damping;
 	float forceloc[3], forcerot[3];
 	float pad[3], pad1[3];
-	float dloc[3], drot[3];
+	float dloc[3], drot[3]; /* angle in radians */
 	float linearvelocity[3], angularvelocity[3];
 	struct Object *reference;
 } bObjectActuator;
