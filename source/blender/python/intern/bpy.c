@@ -37,6 +37,7 @@
 #include "BLI_bpath.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_global.h" /* XXX, G.main only */
 
 #include "MEM_guardedalloc.h"
 
@@ -92,11 +93,9 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", (char **)kwlist, &absolute))
 		return NULL;
 
-	BLI_bpathIterator_alloc(&bpi);
-
 	list= PyList_New(0);
 
-	for(BLI_bpathIterator_init(bpi, NULL); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
+	for(BLI_bpathIterator_init(&bpi, G.main, NULL); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
 		/* build the list */
 		if (absolute) {
 			BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
@@ -117,7 +116,6 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	}
 
 	BLI_bpathIterator_free(bpi);
-	MEM_freeN((void *)bpi);
 
 	return list;
 }
