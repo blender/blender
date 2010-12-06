@@ -83,5 +83,7 @@ ListBase *ED_curve_editnurbs(struct Curve *cu);
 void ED_curve_beztcpy(struct EditNurb *editnurb, struct BezTriple *dst, struct BezTriple *src, int count);
 void ED_curve_bpcpy(struct EditNurb *editnurb, struct BPoint *dst, struct BPoint *src, int count);
 
+void ED_curve_updateAnimPaths(struct Object *obedit);
+
 #endif /* ED_CURVE_H */
 
