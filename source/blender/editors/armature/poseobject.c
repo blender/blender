@@ -1015,6 +1015,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					else {
 						float eul[3];
 						
+						normalize_qt(pchan->quat);
 						quat_to_eul(eul, pchan->quat);
 						eul[1]*= -1;
 						eul[2]*= -1;
