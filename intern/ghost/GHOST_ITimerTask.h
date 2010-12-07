@@ -83,6 +83,12 @@ public:
 	 * @param data The timer user data.
 	 */
 	virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GHOST:GHOST_ITimerTask"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // _GHOST_ITIMER_TASK_H_
