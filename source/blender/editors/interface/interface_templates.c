@@ -825,11 +825,11 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 #define REMAKEIPO					8
 #define B_DIFF						9
 
-void do_constraint_panels(bContext *C, void *UNUSED(arg), int event)
+void do_constraint_panels(bContext *C, void *ob_pt, int event)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= (Object *)ob_pt;
 	
 	switch(event) {
 	case B_CONSTRAINT_TEST:
@@ -898,7 +898,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 
 	/* unless button has own callback, it adds this callback to button */
 	block= uiLayoutGetBlock(layout);
-	uiBlockSetHandleFunc(block, do_constraint_panels, NULL);
+	uiBlockSetHandleFunc(block, do_constraint_panels, ob);
 	uiBlockSetFunc(block, constraint_active_func, ob, con);
 
 	RNA_pointer_create(&ob->id, &RNA_Constraint, con, &ptr);

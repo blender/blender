@@ -94,11 +94,16 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
         space = context.space_data
         tex = context.texture
         idblock = context_tex_datablock(context)
-        tex_collection = space.pin_id is None and type(idblock) != bpy.types.Brush and not node
+        pin_id = space.pin_id
+
+        if type(pin_id) != bpy.types.Material:
+            pin_id = None
+
+        tex_collection = pin_id is None and type(idblock) != bpy.types.Brush and not node
 
         if tex_collection:
             row = layout.row()
-
+            
             row.template_list(idblock, "texture_slots", idblock, "active_texture_index", rows=2)
 
             col = row.column(align=True)
@@ -116,7 +121,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
         elif idblock:
             col.template_ID(idblock, "texture", new="texture.new")
 
-        if space.pin_id:
+        if pin_id:
             col.template_ID(space, "pin_id")
 
         col = split.column()

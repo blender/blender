@@ -88,7 +88,7 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, bpy.types.Panel):
             #row.column().prop(pchan, "delta_rotation_angle", text="Angle")
             #row.column().prop(pchan, "delta_rotation_axis", text="Axis")
             #row.column().prop(ob, "delta_rotation_axis_angle", text="Rotation")
-            row.column().label(ob, text="Not for Axis-Angle")
+            row.column().label(text="Not for Axis-Angle")
         else:
             row.column().prop(ob, "delta_rotation_euler", text="Rotation")
 
