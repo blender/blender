@@ -1983,6 +1983,9 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		ibuf->flags &= ~IB_zbuffloat;
 	}
 
+	/* since its possible to access the buffer from the image directly, set the profile [#25073] */
+	ibuf->profile= (iuser->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_NONE;
+
 	ibuf->dither= dither;
 
 	ima->ok= IMA_OK_LOADED;
