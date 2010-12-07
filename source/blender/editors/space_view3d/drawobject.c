@@ -908,7 +908,11 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	float imat[4][4], curcol[4];
 	char col[4];
 	int drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && la->type == LA_SPOT && (la->mode & LA_SHOW_CONE));
-	
+
+	/* cone can't be drawn for duplicated lamps, because duplilist would be freed to */
+	/* the moment of view3d_draw_transp() call */
+	drawcone&= (base->flag & OB_FROMDUPLI)==0;
+
 	if(drawcone && !v3d->transp) {
 		/* in this case we need to draw delayed */
 		add_view3d_after(&v3d->afterdraw_transp, base, flag);
