@@ -5026,10 +5026,11 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 			else {
 				/* perform clamping using euler form (3-components) */
 				float eul[3], oldeul[3], quat1[4] = {0};
+				float qlen;
 				
 				if (pchan->rotmode == ROT_MODE_QUAT) {
-					copy_qt_qt(quat1, pchan->quat);
-					quat_to_eul( oldeul,pchan->quat);
+					qlen= normalize_qt_qt(quat1, pchan->quat);
+					quat_to_eul(oldeul, quat1);
 				}
 				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 					axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,pchan->rotAxis, pchan->rotAngle);
@@ -5048,7 +5049,11 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 					eul[2]= oldeul[2];
 				
 				if (pchan->rotmode == ROT_MODE_QUAT) {
-					eul_to_quat( pchan->quat,eul);
+					eul_to_quat(pchan->quat, eul);
+
+					/* restore original quat size */
+					mul_qt_fl(pchan->quat, qlen);
+
 					/* quaternions flip w sign to accumulate rotations correctly */
 					if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
 						mul_qt_fl(pchan->quat, -1.0f);
@@ -5064,8 +5069,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 		}						// Duplicated in source/blender/editors/object/object_transform.c
 		else { 
 			if (pchan->rotmode == ROT_MODE_QUAT) {
-				pchan->quat[1]=pchan->quat[2]=pchan->quat[3]= 0.0f; 
-				pchan->quat[0]= 1.0f;
+				unit_qt(pchan->quat);
 			}
 			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 				/* by default, make rotation of 0 radians around y-axis (roll) */

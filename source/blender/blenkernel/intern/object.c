@@ -1668,9 +1668,13 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */
-		normalize_qt(ob->quat);
-		quat_to_mat3( rmat,ob->quat);
-		quat_to_mat3( dmat,ob->dquat);
+		float tquat[4];
+
+		normalize_qt_qt(tquat, ob->quat);
+		quat_to_mat3(rmat, tquat);
+
+		normalize_qt_qt(tquat, ob->quat);
+		quat_to_mat3(dmat, tquat);
 	}
 	
 	/* combine these rotations */
@@ -1818,8 +1822,8 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 #else
 			quat_apply_track(quat, ob->trackflag, ob->upflag);
 #endif
-
-			quat_to_mat4(mat,quat);			
+			normalize_qt(quat);
+			quat_to_mat4(mat, quat);
 		}
 		
 		if(cu->flag & CU_PATH_RADIUS) {

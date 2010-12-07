@@ -1248,6 +1248,7 @@ void BKE_rotMode_change_values (float quat[4], float eul[3], float axis[3], floa
 		}
 		else if (oldMode == ROT_MODE_QUAT) {
 			/* quat to euler */
+			normalize_qt(quat);
 			quat_to_eulO( eul, newMode,quat);
 		}
 		/* else { no conversion needed } */
@@ -1270,6 +1271,7 @@ void BKE_rotMode_change_values (float quat[4], float eul[3], float axis[3], floa
 		}
 		else if (oldMode == ROT_MODE_QUAT) {
 			/* quat to axis angle */
+			normalize_qt(quat);
 			quat_to_axis_angle( axis, angle,quat);
 		}
 		
@@ -2092,8 +2094,7 @@ void pchan_to_mat4(bPoseChannel *pchan, float chan_mat[4][4])
 		 * but if this proves to be too problematic, switch back to the old system of operating directly on 
 		 * the stored copy
 		 */
-		QUATCOPY(quat, pchan->quat);
-		normalize_qt(quat);
+		normalize_qt_qt(quat, pchan->quat);
 		quat_to_mat3(rmat, quat);
 	}
 	

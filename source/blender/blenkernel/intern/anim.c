@@ -1339,12 +1339,16 @@ static void new_particle_duplilist(ListBase *lb, ID *UNUSED(id), Scene *scene, O
 			else {
 				/* first key */
 				state.time = ctime;
-				if(psys_get_particle_state(&sim, a, &state, 0) == 0)
+				if(psys_get_particle_state(&sim, a, &state, 0) == 0) {
 					continue;
-
-				quat_to_mat4( pamat,state.rot);
-				VECCOPY(pamat[3], state.co);
-				pamat[3][3]= 1.0f;
+				}
+				else {
+					float tquat[4];
+					normalize_qt_qt(tquat, state.rot);
+					quat_to_mat4(pamat, tquat);
+					copy_v3_v3(pamat[3], state.co);
+					pamat[3][3]= 1.0f;
+				}
 			}
 
 			if(part->ren_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {

@@ -1917,23 +1917,29 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 	}
 	else {
 		/* quaternions get limited with euler... (compatability mode) */
-		float eul[3], oldeul[3], quat1[4];
-		
-		QUATCOPY(quat1, quat);
-		quat_to_eul( eul,quat);
-		quat_to_eul( oldeul,oldquat);
-		
+		float eul[3], oldeul[3], nquat[4], noldquat[4];
+		float qlen;
+
+		qlen= normalize_qt_qt(nquat, quat);
+		normalize_qt_qt(noldquat, oldquat);
+
+		quat_to_eul(eul, nquat);
+		quat_to_eul(oldeul, noldquat);
+
 		if (protectflag & OB_LOCK_ROTX)
 			eul[0]= oldeul[0];
 		if (protectflag & OB_LOCK_ROTY)
 			eul[1]= oldeul[1];
 		if (protectflag & OB_LOCK_ROTZ)
 			eul[2]= oldeul[2];
-		
+
 		eul_to_quat( quat,eul);
+
+		/* restore original quat size */
+		mul_qt_fl(quat, qlen);
 		
 		/* quaternions flip w sign to accumulate rotations correctly */
-		if ( (quat1[0]<0.0f && quat[0]>0.0f) || (quat1[0]>0.0f && quat[0]<0.0f) ) {
+		if ( (nquat[0]<0.0f && quat[0]>0.0f) || (nquat[0]>0.0f && quat[0]<0.0f) ) {
 			mul_qt_fl(quat, -1.0f);
 		}
 	}
@@ -2013,8 +2019,7 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 			   we don't necessarily end up with a rotation matrix, and
 			   then conversion back to quat gives a different result */
 			float quat[4];
-			copy_qt_qt(quat, td->ext->quat);
-			normalize_qt(quat);
+			normalize_qt_qt(quat, td->ext->quat);
 			quat_to_mat4(cob->matrix, quat);
 		}
 		else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
