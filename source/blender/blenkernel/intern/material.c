@@ -626,7 +626,7 @@ void test_object_materials(ID *id)
 	Object *ob;
 	short *totcol;
 
-	if(id || (totcol=give_totcolp_id(id))==NULL) {
+	if(id==NULL || (totcol=give_totcolp_id(id))==NULL) {
 		return;
 	}
 
