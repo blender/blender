@@ -2380,6 +2380,8 @@ static PointCache *ptcache_copy(PointCache *cache)
 	/* hmm, should these be copied over instead? */
 	ncache->mem_cache.first = NULL;
 	ncache->mem_cache.last = NULL;
+	ncache->cached_frames = NULL;
+	ncache->edit = NULL;
 
 	ncache->flag= 0;
 	ncache->simframe= 0;
