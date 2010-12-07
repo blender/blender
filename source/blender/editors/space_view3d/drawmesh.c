@@ -526,10 +526,10 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
 	MTFace *tface = (me->mtface)? &me->mtface[index]: NULL;
-	MFace *mface = (me->mface)? &me->mface[index]: NULL;
+	MFace *mface = &me->mface[index];
 	MCol *mcol = (me->mcol)? &me->mcol[index]: NULL;
-	int matnr = me->mface[index].mat_nr;
-	if (mface && mface->flag&ME_HIDE) return 0;
+	const int matnr = mface->mat_nr;
+	if (mface->flag & ME_HIDE) return 0;
 	return draw_tface__set_draw(tface, mcol, matnr);
 }
 
@@ -669,7 +669,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1, GPU_enable_material);
 		else
-			dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, me);
+			dm->drawMappedFacesTex(dm, me->mface ? draw_tface_mapped__set_draw : NULL, me);
 	}
 	else {
 		if( GPU_buffer_legacy(dm) )
