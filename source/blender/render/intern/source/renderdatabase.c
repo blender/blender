@@ -1042,7 +1042,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 }
 
 HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma,   float *vec,   float *vec1, 
-				  float *orco, float *uvco, float hasize, float vectsize, int seed)
+				  float *orco, float *uvco, float hasize, float vectsize, int seed, float *pa_co)
 {
 	HaloRen *har;
 	MTex *mtex;
@@ -1146,6 +1146,12 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				texvec[0]=2.0f*uvco[2*uv_index]-1.0f;
 				texvec[1]=2.0f*uvco[2*uv_index+1]-1.0f;
 				texvec[2]=0.0f;
+			}
+			else if(mtex->texco & TEXCO_PARTICLE) {
+				/* particle coordinates in range [0,1] */
+				texvec[0] = 2.f * pa_co[0] - 1.f;
+				texvec[1] = 2.f * pa_co[1] - 1.f;
+				texvec[2] = pa_co[2];
 			}
 			else if(orco) {
 				VECCOPY(texvec, orco);
