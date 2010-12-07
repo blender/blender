@@ -1658,8 +1658,10 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		/* new object becomes active */
 		if(BASACT==base)
 			ED_base_object_activate(C, basen);
-		
-		DAG_id_tag_update(base->object->data, 0);
+
+		if(basen->object->data) {
+			DAG_id_tag_update(basen->object->data, 0);
+		}
 	}
 	CTX_DATA_END;
 
