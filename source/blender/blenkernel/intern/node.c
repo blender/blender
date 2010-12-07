@@ -1045,7 +1045,7 @@ bNodeTree *ntreeAddTree(const char *name, int type, const short is_group)
 		ntree= alloc_libblock(&G.main->nodetree, ID_NT, name);
 	else {
 		ntree= MEM_callocN(sizeof(bNodeTree), "new node tree");
-		*( (short *)ntree->id.name )= type;
+		*( (short *)ntree->id.name )= ID_NT; /* not "type", as that is ntree->type */
 		BLI_strncpy(ntree->id.name+2, name, sizeof(ntree->id.name));
 	}
 
