@@ -223,7 +223,7 @@ void BPy_init_modules( void )
 	PyModule_AddObject( mod, "app", BPY_app_struct() );
 
 	/* bpy context */
-	RNA_pointer_create(NULL, &RNA_Context, BPy_GetContext(), &ctx_ptr);
+	RNA_pointer_create(NULL, &RNA_Context, (void *)BPy_GetContext(), &ctx_ptr);
 	bpy_context_module= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ctx_ptr);
 	/* odd that this is needed, 1 ref on creation and another for the module
 	 * but without we get a crash on exit */

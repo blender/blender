@@ -311,9 +311,9 @@ typedef enum StructFlag {
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
-typedef int (*StructCallbackFunc)(struct PointerRNA *ptr, struct FunctionRNA *func, ParameterList *list);
+typedef int (*StructCallbackFunc)(struct bContext *C, struct PointerRNA *ptr, struct FunctionRNA *func, ParameterList *list);
 typedef void (*StructFreeFunc)(void *data);
-typedef struct StructRNA *(*StructRegisterFunc)(const struct bContext *C, struct ReportList *reports, void *data,
+typedef struct StructRNA *(*StructRegisterFunc)(struct bContext *C, struct ReportList *reports, void *data,
 	const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
 typedef void (*StructUnregisterFunc)(const struct bContext *C, struct StructRNA *type);
 
@@ -333,9 +333,9 @@ typedef struct BlenderRNA BlenderRNA;
 typedef struct ExtensionRNA {
 	void *data;
 	StructRNA *srna;
-
-	int (*call)(PointerRNA *, FunctionRNA *, ParameterList *);
-	void (*free)(void *data);
+	StructCallbackFunc call;
+	StructFreeFunc free;
+	
 } ExtensionRNA;
 
 /* fake struct definitions, needed otherwise collections end up owning the C

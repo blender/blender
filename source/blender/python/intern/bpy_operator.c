@@ -52,8 +52,13 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 	int context= WM_OP_EXEC_DEFAULT;
 
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
-	bContext *C = BPy_GetContext();
+	bContext *C= (bContext *)BPy_GetContext();
 	
+	if(C==NULL) {
+		PyErr_SetString(PyExc_SystemError, "Context is None, cant poll any operators");
+		return NULL;
+	}
+
 	if (!PyArg_ParseTuple(args, "s|Os:_bpy.ops.poll", &opname, &context_dict, &context_str))
 		return NULL;
 	
@@ -114,7 +119,12 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	int context= WM_OP_EXEC_DEFAULT;
 
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
-	bContext *C = BPy_GetContext();
+	bContext *C = (bContext *)BPy_GetContext();
+	
+	if(C==NULL) {
+		PyErr_SetString(PyExc_SystemError, "Context is None, cant poll any operators");
+		return NULL;
+	}
 	
 	if (!PyArg_ParseTuple(args, "sO|O!s:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context_str))
 		return NULL;
@@ -232,8 +242,13 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 	char *buf = NULL;
 	PyObject *pybuf;
 
-	bContext *C = BPy_GetContext();
+	bContext *C = (bContext *)BPy_GetContext();
 
+	if(C==NULL) {
+		PyErr_SetString(PyExc_SystemError, "Context is None, cant get the string representation of this object.");
+		return NULL;
+	}
+	
 	if (!PyArg_ParseTuple(args, "s|O!i:_bpy.ops.as_string", &opname, &PyDict_Type, &kw, &all_args))
 		return NULL;
 

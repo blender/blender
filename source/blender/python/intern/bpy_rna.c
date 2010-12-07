@@ -5125,7 +5125,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 extern void BPY_update_modules( void ); //XXX temp solution
 
 /* TODO - multiple return values like with rna functions */
-static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
+static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
 {
 	PyObject *args;
 	PyObject *ret= NULL, *py_srna= NULL, *py_class, *py_class_instance= NULL, *parmitem;
@@ -5141,7 +5141,6 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 
 	PyGILState_STATE gilstate;
 
-	bContext *C= BPy_GetContext(); // XXX - NEEDS FIXING, QUITE BAD.
 #ifdef USE_PEDANTIC_WRITE
 	/* testing, for correctness, not operator and not draw function */
 	const short is_readonly= strstr("draw", RNA_function_identifier(func)) || !RNA_struct_is_a(ptr->type, &RNA_Operator);

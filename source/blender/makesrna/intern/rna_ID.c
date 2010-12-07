@@ -208,7 +208,7 @@ void rna_IDPropertyGroup_unregister(const bContext *C, StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 }
 
-StructRNA *rna_IDPropertyGroup_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+StructRNA *rna_IDPropertyGroup_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	PointerRNA dummyptr;
 

@@ -179,7 +179,7 @@ void CTX_py_init_set(bContext *C, int value)
 	C->data.py_init= value;
 }
 
-void *CTX_py_dict_get(bContext *C)
+void *CTX_py_dict_get(const bContext *C)
 {
 	return C->data.py_context;
 }
