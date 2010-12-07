@@ -5122,7 +5122,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 	return 0;
 }
 
-extern void BPY_update_modules( void ); //XXX temp solution
+extern void BPY_update_modules(bContext *C); //XXX temp solution
 
 /* TODO - multiple return values like with rna functions */
 static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)

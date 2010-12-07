@@ -100,7 +100,7 @@ extern "C" {
 	int BPY_run_python_script( struct bContext *C, const char *filename, struct Text *text, struct ReportList *reports ); // 2.5 working
 	int BPY_run_script_space_draw(const struct bContext *C, struct SpaceScript * sc); // 2.5 working
 //	int BPY_run_script_space_listener(struct bContext *C, struct SpaceScript * sc, struct ARegion *ar, struct wmNotifier *wmn); // 2.5 working
-	void BPY_update_modules( void ); // XXX - annoying, need this for pointers that get out of date
+	void BPY_update_modules(struct bContext *C); // XXX - annoying, need this for pointers that get out of date
 //
 	int BPY_context_get(struct bContext *C, const char *member, struct bContextDataResult *result);
 //

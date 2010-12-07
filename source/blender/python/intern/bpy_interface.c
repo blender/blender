@@ -88,7 +88,7 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 			fprintf(stderr, "ERROR: Python context called with a NULL Context. this should not happen!\n");
 		}
 
-		BPY_update_modules(); /* can give really bad results if this isnt here */
+		BPY_update_modules(C); /* can give really bad results if this isnt here */
 
 #ifdef TIME_PY_RUN
 		if(bpy_timer_count==0) {
@@ -136,7 +136,7 @@ void BPY_free_compiled_text( struct Text *text )
 	}
 }
 
-void BPY_update_modules( void )
+void BPY_update_modules(bContext *C)
 {
 #if 0 // slow, this runs all the time poll, draw etc 100's of time a sec.
 	PyObject *mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
@@ -146,7 +146,7 @@ void BPY_update_modules( void )
 
 	/* refreshes the main struct */
 	BPY_update_rna_module();
-	bpy_context_module->ptr.data= (void *)BPy_GetContext();
+	bpy_context_module->ptr.data= (void *)C;
 }
 
 /* must be called before Py_Initialize */
