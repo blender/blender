@@ -1048,7 +1048,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 	MTex *mtex;
 	float tin, tr, tg, tb, ta;
 	float xn, yn, zn, texvec[3], hoco[4], hoco1[4], in[3],tex[3],out[3];
-	int i;
+	int i, hasrgb;
 
 	if(hasize==0.0) return NULL;
 
@@ -1151,7 +1151,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				VECCOPY(texvec, orco);
 			}
 
-			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0);
+			hasrgb = externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0);
 
 			//yn= tin*mtex->colfac;
 			//zn= tin*mtex->alphafac;
@@ -1172,6 +1172,11 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				har->g= in[1];
 				har->b= in[2];
 			}
+
+			/* alpha returned, so let's use it instead of intensity */
+			if(hasrgb)
+				tin = ta;
+
 			if(mtex->mapto & MAP_ALPHA)
 				har->alfa = texture_value_blend(mtex->def_var,har->alfa,tin,mtex->alphafac,mtex->blendtype);
 			if(mtex->mapto & MAP_HAR)
