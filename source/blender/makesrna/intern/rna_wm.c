@@ -294,6 +294,8 @@ EnumPropertyItem wm_report_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include <assert.h>
+
 #include "WM_api.h"
 
 #include "BKE_idprop.h"
@@ -1056,6 +1058,31 @@ static wmKeyMap *rna_keymap_find_modal(wmKeyConfig *keyconf, const char *idname)
 		return ot->modalkeymap;
 }
 
+/* just to work around 'const char *' warning and to ensure this is a python op */
+static void rna_Operator_bl_idname_set(PointerRNA *ptr, const char *value)
+{
+	wmOperator *data= (wmOperator*)(ptr->data);
+	char *str= (char *)data->type->idname;
+	if(!str[0])	strcpy(str, value);
+	else		assert(!"setting the bl_idname on a non-builtin operator");
+}
+
+static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
+{
+	wmOperator *data= (wmOperator*)(ptr->data);
+	char *str= (char *)data->type->name;
+	if(!str[0])	strcpy(str, value);
+	else		assert(!"setting the bl_label on a non-builtin operator");
+}
+
+static void rna_Operator_bl_description_set(PointerRNA *ptr, const char *value)
+{
+	wmOperator *data= (wmOperator*)(ptr->data);
+	char *str= (char *)data->type->description;
+	if(!str[0])	strcpy(str, value);
+	else		assert(!"setting the bl_description on a non-builtin operator");
+}
+
 #else /* RNA_RUNTIME */
 
 static void rna_def_operator(BlenderRNA *brna)
@@ -1094,6 +1121,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_idname_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_struct_name_property(srna, prop);
@@ -1101,12 +1129,14 @@ static void rna_def_operator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_label_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
 	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_description_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
@@ -1152,6 +1182,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_idname_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_struct_name_property(srna, prop);
@@ -1159,12 +1190,14 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_label_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
 	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_description_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
