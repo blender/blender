@@ -52,8 +52,8 @@ project(Blender)
 #-----------------------------------------------------------------------------
 # Redirect output files
 
-set(EXECUTABLE_OUTPUT_PATH CACHE INTERNAL ${CMAKE_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH CACHE INTERNAL ${CMAKE_BINARY_DIR}/lib)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 #-----------------------------------------------------------------------------
 # Load some macros.
