@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -29,7 +29,7 @@ SET(INC
 	../../../../intern/guardedalloc
 )
 
-SET(SRC
+set(SRC
 	transform.c
 	transform_constraints.c
 	transform_conversions.c
@@ -44,4 +44,4 @@ SET(SRC
 	transform.h
 )
 
-BLENDERLIB(bf_editor_transform "${SRC}" "${INC}")
+blenderlib(bf_editor_transform "${SRC}" "${INC}")

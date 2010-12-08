@@ -25,9 +25,9 @@
 # ***** END GPL LICENSE BLOCK *****
 
 # remove warning until render branch merged.
-REMOVE_STRICT_FLAGS()
+remove_strict_flags()
 
-SET(INC 
+set(INC 
 	intern/include
 	extern/include
 	../blenlib
@@ -41,7 +41,7 @@ SET(INC
 	../../../intern/guardedalloc
 )
 
-SET(SRC
+set(SRC
 	intern/raytrace/rayobject.cpp
 	intern/raytrace/rayobject_qbvh.cpp
 	intern/raytrace/rayobject_rtbuild.cpp
@@ -111,20 +111,20 @@ SET(SRC
 	intern/raytrace/vbvh.h
 )
 
-IF(WITH_IMAGE_OPENEXR)
-	ADD_DEFINITIONS(-DWITH_OPENEXR)
-ENDIF(WITH_IMAGE_OPENEXR)
+if(WITH_IMAGE_OPENEXR)
+	add_definitions(-DWITH_OPENEXR)
+endif()
 
-IF(WITH_CODEC_QUICKTIME)
-	LIST(APPEND INC ../quicktime ${QUICKTIME_INC})
-	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_CODEC_QUICKTIME)
+if(WITH_CODEC_QUICKTIME)
+	list(APPEND INC ../quicktime ${QUICKTIME_INC})
+	add_definitions(-DWITH_QUICKTIME)
+endif()
 
-IF(APPLE)
-	IF(CMAKE_OSX_ARCHITECTURES MATCHES "i386" OR CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
-		SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -mfpmath=sse")
-		SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mfpmath=sse")
-	ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES "i386" OR CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
-ENDIF(APPLE)
+if(APPLE)
+	if(CMAKE_OSX_ARCHITECTURES MATCHES "i386" OR CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
+		set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -mfpmath=sse")
+		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mfpmath=sse")
+	endif()
+endif()
 
-BLENDERLIB_NOLIST(bf_render "${SRC}" "${INC}")
+blenderlib_nolist(bf_render "${SRC}" "${INC}")

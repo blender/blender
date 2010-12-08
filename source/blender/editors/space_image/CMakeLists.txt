@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenfont
 	../../blenkernel
@@ -32,7 +32,7 @@ SET(INC
 	../../../../intern/guardedalloc
 )
 
-SET(SRC
+set(SRC
 	image_buttons.c
 	image_draw.c
 	image_header.c
@@ -43,25 +43,25 @@ SET(SRC
 	image_intern.h
 )
 
-IF(WITH_IMAGE_OPENJPEG)
-	ADD_DEFINITIONS(-DWITH_OPENJPEG)
-ENDIF(WITH_IMAGE_OPENJPEG)
+if(WITH_IMAGE_OPENJPEG)
+	add_definitions(-DWITH_OPENJPEG)
+endif()
 
-IF(WITH_IMAGE_OPENEXR)
-	ADD_DEFINITIONS(-DWITH_OPENEXR)
-ENDIF(WITH_IMAGE_OPENEXR)
+if(WITH_IMAGE_OPENEXR)
+	add_definitions(-DWITH_OPENEXR)
+endif()
 
-IF(WITH_IMAGE_TIFF)
-	ADD_DEFINITIONS(-DWITH_TIFF)
-ENDIF(WITH_IMAGE_TIFF)
+if(WITH_IMAGE_TIFF)
+	add_definitions(-DWITH_TIFF)
+endif()
 
-IF(WITH_IMAGE_CINEON)
-	ADD_DEFINITIONS(-DWITH_CINEON)
-ENDIF(WITH_IMAGE_CINEON)
+if(WITH_IMAGE_CINEON)
+	add_definitions(-DWITH_CINEON)
+endif()
 
-IF(WITH_LCMS)
-	SET(INC ${INC} ${LCMS_INCLUDE_DIR})
-	ADD_DEFINITIONS(-DWITH_LCMS)
-ENDIF(WITH_LCMS)
+if(WITH_LCMS)
+	set(INC ${INC} ${LCMS_INCLUDE_DIR})
+	add_definitions(-DWITH_LCMS)
+endif()
 
-BLENDERLIB(bf_editor_space_image "${SRC}" "${INC}")
+blenderlib(bf_editor_space_image "${SRC}" "${INC}")

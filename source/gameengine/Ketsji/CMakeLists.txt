@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../../../source/kernel/gen_system
 	../../../intern/string
@@ -54,7 +54,7 @@ SET(INC
 	../../../extern/glew/include
 )
 
-SET(SRC
+set(SRC
 	BL_BlenderShader.cpp
 	BL_Material.cpp
 	BL_Shader.cpp
@@ -200,22 +200,22 @@ SET(SRC
 	BL_Texture.h
 )
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
+add_definitions(-DGLEW_STATIC)
 
-IF(WITH_SDL)
-	SET(INC ${INC} ${SDL_INCLUDE_DIR})  
-ELSE(WITH_SDL)
-	ADD_DEFINITIONS(-DDISABLE_SDL)
-ENDIF(WITH_SDL)
+if(WITH_SDL)
+	set(INC ${INC} ${SDL_INCLUDE_DIR})  
+else()
+	add_definitions(-DDISABLE_SDL)
+endif()
 
-IF(WITH_CODEC_FFMPEG)
-	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_CODEC_FFMPEG)
+if(WITH_CODEC_FFMPEG)
+	add_definitions(-DWITH_FFMPEG)
+endif()
 
-IF(WITH_BULLET)
-	ADD_DEFINITIONS(-DUSE_BULLET)
-	LIST(APPEND INC ../../../extern/bullet2/src)
-	LIST(APPEND INC ../../../source/gameengine/Physics/Bullet )
-ENDIF(WITH_BULLET)
+if(WITH_BULLET)
+	add_definitions(-DUSE_BULLET)
+	list(APPEND INC ../../../extern/bullet2/src)
+	list(APPEND INC ../../../source/gameengine/Physics/Bullet )
+endif()
 
-BLENDERLIB(ge_logic_ketsji "${SRC}" "${INC}")
+blenderlib(ge_logic_ketsji "${SRC}" "${INC}")

@@ -22,7 +22,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../blenlib
 	../makesdna
@@ -33,7 +33,7 @@ SET(INC
 	${FREETYPE_INCLUDE_DIRS}
 )
 
-SET(SRC
+set(SRC
 	intern/blf.c
 	intern/blf_dir.c
 	intern/blf_font.c
@@ -47,14 +47,14 @@ SET(SRC
 	intern/blf_internal_types.h
 )
 
-IF(WITH_INTERNATIONAL)
-	LIST(APPEND INC ${GETTEXT_INC})
-	ADD_DEFINITIONS(-DINTERNATIONAL)
-ENDIF(WITH_INTERNATIONAL)
+if(WITH_INTERNATIONAL)
+	list(APPEND INC ${GETTEXT_INC})
+	add_definitions(-DINTERNATIONAL)
+endif()
 
-IF(WIN32 AND NOT UNIX)
-	ADD_DEFINITIONS(-DUSE_GETTEXT_DLL)
-ENDIF(WIN32 AND NOT UNIX)
+if(WIN32 AND NOT UNIX)
+	add_definitions(-DUSE_GETTEXT_DLL)
+endif()
 
-BLENDERLIB(bf_blenfont "${SRC}" "${INC}")
+blenderlib(bf_blenfont "${SRC}" "${INC}")
 

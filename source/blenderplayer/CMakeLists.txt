@@ -24,48 +24,48 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-MESSAGE(STATUS "Configuring blenderplayer")
+message(STATUS "Configuring blenderplayer")
 
-SETUP_LIBDIRS()
+setup_libdirs()
 
-IF(WITH_CODEC_QUICKTIME)
-	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_CODEC_QUICKTIME)
+if(WITH_CODEC_QUICKTIME)
+	add_definitions(-DWITH_QUICKTIME)
+endif()
 
-IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	ADD_DEFINITIONS(-DWITH_BINRELOC)
-	INCLUDE_DIRECTORIES(${BINRELOC_INC})
-ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	add_definitions(-DWITH_BINRELOC)
+	include_directories(${BINRELOC_INC})
+endif()
 
-ADD_CUSTOM_COMMAND(
+add_custom_command(
 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
 	COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
 	DEPENDS ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna
 )
 
-IF(WIN32 AND NOT UNIX)
-	ADD_EXECUTABLE(blenderplayer ${EXETYPE} ${CMAKE_CURRENT_BINARY_DIR}/dna.c ../icons/winblender.rc)
-ELSE(WIN32 AND NOT UNIX)
-	ADD_EXECUTABLE(blenderplayer ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
-ENDIF(WIN32 AND NOT UNIX)
+if(WIN32 AND NOT UNIX)
+	add_executable(blenderplayer ${EXETYPE} ${CMAKE_CURRENT_BINARY_DIR}/dna.c ../icons/winblender.rc)
+else()
+	add_executable(blenderplayer ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
+endif()
 
-ADD_DEPENDENCIES(blenderplayer makesdna)
+add_dependencies(blenderplayer makesdna)
 
-GET_PROPERTY(BLENDER_LINK_LIBS GLOBAL PROPERTY BLENDER_LINK_LIBS)
+get_property(BLENDER_LINK_LIBS GLOBAL PROPERTY BLENDER_LINK_LIBS)
 
-LIST(APPEND BLENDER_LINK_LIBS
+list(APPEND BLENDER_LINK_LIBS
 	ge_player_common
 	ge_player_ghost
 	blenkernel_blc
 )
 
-IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	LIST(APPEND BLENDER_LINK_LIBS extern_binreloc)
-ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	list(APPEND BLENDER_LINK_LIBS extern_binreloc)
+endif()
 
-IF(UNIX)
+if(UNIX)
 	# Sort libraries
-	SET(BLENDER_SORTED_LIBS
+	set(BLENDER_SORTED_LIBS
 		ge_player_ghost 
 		ge_player_common 
 		bf_intern_string 
@@ -123,34 +123,34 @@ IF(UNIX)
 		bf_blenkernel # duplicate for linking
 	)
   
-	IF(WITH_CODEC_QUICKTIME)
-		LIST(APPEND BLENDER_SORTED_LIBS bf_quicktime)
-	ENDIF(WITH_CODEC_QUICKTIME)
+	if(WITH_CODEC_QUICKTIME)
+		list(APPEND BLENDER_SORTED_LIBS bf_quicktime)
+	endif()
 
-	IF(WITH_CXX_GUARDEDALLOC)
-		LIST(APPEND BLENDER_SORTED_LIBS bf_intern_guardedalloc_cpp)
-	ENDIF(WITH_CXX_GUARDEDALLOC)
+	if(WITH_CXX_GUARDEDALLOC)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_guardedalloc_cpp)
+	endif()
 
-	FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})
-		SET(REMLIB ${SORTLIB})
-		FOREACH(SEARCHLIB ${BLENDER_LINK_LIBS})
-			IF(${SEARCHLIB} STREQUAL ${SORTLIB})
-				SET(REMLIB "")
-			ENDIF(${SEARCHLIB} STREQUAL ${SORTLIB})
-		ENDFOREACH(SEARCHLIB)
-		IF(REMLIB)
-			MESSAGE(STATUS "Removing library ${REMLIB} from blenderplayer linking because: not configured")
-			LIST(REMOVE_ITEM BLENDER_SORTED_LIBS ${REMLIB})
-		ENDIF(REMLIB)
-	ENDFOREACH(SORTLIB)
+	foreach(SORTLIB ${BLENDER_SORTED_LIBS})
+		set(REMLIB ${SORTLIB})
+		foreach(SEARCHLIB ${BLENDER_LINK_LIBS})
+			if(${SEARCHLIB} STREQUAL ${SORTLIB})
+				set(REMLIB "")
+			endif()
+		endforeach()
+		if(REMLIB)
+			message(STATUS "Removing library ${REMLIB} from blenderplayer linking because: not configured")
+			list(REMOVE_ITEM BLENDER_SORTED_LIBS ${REMLIB})
+		endif()
+	endforeach()
 
-	TARGET_LINK_LIBRARIES(blenderplayer ${BLENDER_SORTED_LIBS})
-ELSE(UNIX)
-	TARGET_LINK_LIBRARIES(blenderplayer ${BLENDER_LINK_LIBS})
-ENDIF(UNIX)
+	target_link_libraries(blenderplayer ${BLENDER_SORTED_LIBS})
+else()
+	target_link_libraries(blenderplayer ${BLENDER_LINK_LIBS})
+endif()
 
-IF(WITH_PLAYER)
-	ADD_SUBDIRECTORY(bad_level_call_stubs)
-ENDIF(WITH_PLAYER)
+if(WITH_PLAYER)
+	add_subdirectory(bad_level_call_stubs)
+endif()
 
-SETUP_LIBLINKS(blenderplayer)
+setup_liblinks(blenderplayer)

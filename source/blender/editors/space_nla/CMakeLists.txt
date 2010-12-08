@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -29,7 +29,7 @@ SET(INC
 	../../../../intern/guardedalloc
 )
 
-SET(SRC
+set(SRC
 	nla_buttons.c
 	nla_channels.c
 	nla_draw.c
@@ -41,4 +41,4 @@ SET(SRC
 	nla_intern.h
 )
 
-BLENDERLIB(bf_editor_space_nla "${SRC}" "${INC}")
+blenderlib(bf_editor_space_nla "${SRC}" "${INC}")

@@ -25,9 +25,9 @@
 # ***** END GPL LICENSE BLOCK *****
 
 # this warning on generated files gets annoying
-REMOVE_STRICT_FLAGS()
+remove_strict_flags()
 
-SET(INC 
+set(INC 
 	.
 	.. 
 	../../../intern/guardedalloc
@@ -36,23 +36,23 @@ SET(INC
 	../../../source/blender/blenkernel
 )
 
-SET(SRC
+set(SRC
 	stubs.c
 )
 
-IF(WITH_BUILDINFO)
-	ADD_DEFINITIONS(-DBUILD_DATE)
-	LIST(APPEND SRC
+if(WITH_BUILDINFO)
+	add_definitions(-DBUILD_DATE)
+	list(APPEND SRC
 		../../creator/buildinfo.c
 	)
-ENDIF(WITH_BUILDINFO)
+endif()
 
-IF(WITH_GAMEENGINE)
-	ADD_DEFINITIONS(-DWITH_GAMEENGINE)
-ENDIF(WITH_GAMEENGINE)
+if(WITH_GAMEENGINE)
+	add_definitions(-DWITH_GAMEENGINE)
+endif()
 
-IF(WITH_INTERNATIONAL)
-	ADD_DEFINITIONS(-DWITH_FREETYPE2)
-ENDIF(WITH_INTERNATIONAL)
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_FREETYPE2)
+endif()
 
-BLENDERLIB_NOLIST(blenkernel_blc "${SRC}" "${INC}")
+blenderlib_nolist(blenkernel_blc "${SRC}" "${INC}")

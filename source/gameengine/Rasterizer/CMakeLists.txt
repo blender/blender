@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../../../source/kernel/gen_system
 	../../../source/blender/makesdna
@@ -38,7 +38,7 @@ SET(INC
 	${PYTHON_INC}
 )
 
-SET(SRC
+set(SRC
 	RAS_2DFilterManager.cpp
 	RAS_BucketManager.cpp
 	RAS_FramingManager.cpp
@@ -79,6 +79,6 @@ SET(SRC
 	RAS_OpenGLFilters/RAS_Sobel2DFilter.h
 )
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
+add_definitions(-DGLEW_STATIC)
 
-BLENDERLIB(ge_rasterizer "${SRC}" "${INC}")
+blenderlib(ge_rasterizer "${SRC}" "${INC}")

@@ -24,17 +24,17 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../../../../source/kernel/gen_system
 	../../../../intern/string
 	../../../../source/gameengine/Network
 )
 
-SET(SRC
+set(SRC
 	NG_LoopBackNetworkDeviceInterface.cpp
 
 	NG_LoopBackNetworkDeviceInterface.h
 )
 
-BLENDERLIB(ge_logic_loopbacknetwork "${SRC}" "${INC}")
+blenderlib(ge_logic_loopbacknetwork "${SRC}" "${INC}")

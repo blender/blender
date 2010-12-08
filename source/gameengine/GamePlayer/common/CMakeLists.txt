@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../../../../intern/string
 	../../../../intern/ghost
@@ -56,7 +56,7 @@ SET(INC
 	${ZLIB_INC}
 )
 
-SET(SRC 
+set(SRC 
 	bmfont.cpp
 	GPC_Canvas.cpp
 	GPC_Engine.cpp
@@ -79,6 +79,6 @@ SET(SRC
 	GPC_System.h
 )
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
+add_definitions(-DGLEW_STATIC)
 
-BLENDERLIB_NOLIST(ge_player_common "${SRC}" "${INC}")
+blenderlib_nolist(ge_player_common "${SRC}" "${INC}")

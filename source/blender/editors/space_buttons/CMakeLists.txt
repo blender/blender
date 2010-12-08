@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -29,7 +29,7 @@ SET(INC
 	../../../../intern/guardedalloc
 )
 
-SET(SRC
+set(SRC
 	buttons_context.c
 	buttons_header.c
 	buttons_ops.c
@@ -38,4 +38,4 @@ SET(SRC
 	buttons_intern.h
 )
 
-BLENDERLIB(bf_editor_space_buttons "${SRC}" "${INC}")
+blenderlib(bf_editor_space_buttons "${SRC}" "${INC}")

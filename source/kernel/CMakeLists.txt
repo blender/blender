@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	gen_messaging
 	gen_system
 	../../intern/string
@@ -32,7 +32,7 @@ SET(INC
 	../../source/blender/blenloader
 )
 
-SET(SRC
+set(SRC
 	gen_messaging/intern/messaging.c
 	gen_system/GEN_HashedPtr.cpp
 	gen_system/SYS_SingletonSystem.cpp
@@ -45,4 +45,4 @@ SET(SRC
 	gen_system/SYS_System.h
 )
 
-BLENDERLIB(bf_gen_system "${SRC}" "${INC}")
+blenderlib(bf_gen_system "${SRC}" "${INC}")

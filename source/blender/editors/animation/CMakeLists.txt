@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -29,7 +29,7 @@ SET(INC
 	../../../../intern/guardedalloc
 )
 
-SET(SRC
+set(SRC
 	anim_channels_defines.c
 	anim_channels_edit.c
 	anim_deps.c
@@ -49,4 +49,4 @@ SET(SRC
 	anim_intern.h
 )
 
-BLENDERLIB(bf_editor_animation "${SRC}" "${INC}")
+blenderlib(bf_editor_animation "${SRC}" "${INC}")

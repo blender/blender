@@ -1,5 +1,5 @@
 
-SET(INC
+set(INC
 	.
 	../../../source/kernel/gen_system
 	../../../intern/string
@@ -32,7 +32,7 @@ SET(INC
 	../../../extern/glew/include
 )
 
-SET(SRC
+set(SRC
 	BL_KetsjiEmbedStart.cpp
 	KX_BlenderCanvas.cpp
 	KX_BlenderGL.cpp
@@ -51,10 +51,10 @@ SET(SRC
 	KX_BlenderSystem.h
 )
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
+add_definitions(-DGLEW_STATIC)
 
-IF(WITH_CODEC_FFMPEG)
-	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_CODEC_FFMPEG)
+if(WITH_CODEC_FFMPEG)
+	add_definitions(-DWITH_FFMPEG)
+endif()
 
-BLENDERLIB(ge_blen_routines "${SRC}" "${INC}")
+blenderlib(ge_blen_routines "${SRC}" "${INC}")

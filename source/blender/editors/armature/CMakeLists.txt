@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -30,7 +30,7 @@ SET(INC
 	../../../../intern/opennl/extern
 )
 
-SET(SRC
+set(SRC
 	armature_ops.c
 	editarmature.c
 	editarmature_generate.c
@@ -50,4 +50,4 @@ SET(SRC
 	reeb.h
 )
 
-BLENDERLIB(bf_editor_armature "${SRC}" "${INC}")
+blenderlib(bf_editor_armature "${SRC}" "${INC}")

@@ -24,12 +24,12 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	src
 )
 
-SET(SRC
+set(SRC
 	src/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp
 	src/BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp
 	src/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp
@@ -319,4 +319,4 @@ SET(SRC
 	src/btBulletDynamicsCommon.h
 )
 
-BLENDERLIB(extern_bullet "${SRC}" "${INC}")
+blenderlib(extern_bullet "${SRC}" "${INC}")

@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -29,9 +29,9 @@ SET(INC
 	../../../../intern/guardedalloc
 )
 
-SET(SRC
+set(SRC
 	space.c
 	spacetypes.c
 )
 
-BLENDERLIB(bf_editor_space_api "${SRC}" "${INC}")
+blenderlib(bf_editor_space_api "${SRC}" "${INC}")

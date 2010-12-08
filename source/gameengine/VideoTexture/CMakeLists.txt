@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../../../source/gameengine/Ketsji
 	../../../source/gameengine/Expressions
@@ -48,7 +48,7 @@ SET(INC
 	../../../extern/glew/include
 )
 
-SET(SRC
+set(SRC
 	Exception.cpp
 	FilterBase.cpp
 	FilterBlueScreen.cpp
@@ -85,10 +85,10 @@ SET(SRC
 	VideoFFmpeg.h
 )
 
-IF(WITH_CODEC_FFMPEG)
-	SET(INC ${INC} ${FFMPEG_INC} ${PTHREADS_INC})
-	ADD_DEFINITIONS(-DWITH_FFMPEG)
-	ADD_DEFINITIONS(-D__STDC_CONSTANT_MACROS)
-ENDIF(WITH_CODEC_FFMPEG)
+if(WITH_CODEC_FFMPEG)
+	set(INC ${INC} ${FFMPEG_INC} ${PTHREADS_INC})
+	add_definitions(-DWITH_FFMPEG)
+	add_definitions(-D__STDC_CONSTANT_MACROS)
+endif()
 
-BLENDERLIB(ge_videotex "${SRC}" "${INC}")
+blenderlib(ge_videotex "${SRC}" "${INC}")

@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -30,7 +30,7 @@ SET(INC
 	../../../../intern/opennl/extern
 )
 
-SET(SRC
+set(SRC
 	uvedit_draw.c
 	uvedit_ops.c
 	uvedit_parametrizer.c
@@ -40,4 +40,4 @@ SET(SRC
 	uvedit_parametrizer.h
 )
 
-BLENDERLIB(bf_editor_uvedit "${SRC}" "${INC}")
+blenderlib(bf_editor_uvedit "${SRC}" "${INC}")

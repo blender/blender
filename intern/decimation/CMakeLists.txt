@@ -24,14 +24,14 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../container
 	../memutil
 	../moto/include
 )
 
-SET(SRC
+set(SRC
 	intern/LOD_EdgeCollapser.cpp
 	intern/LOD_ExternNormalEditor.cpp
 	intern/LOD_FaceNormalEditor.cpp
@@ -56,4 +56,4 @@ SET(SRC
 	intern/LOD_QuadricEditor.h
 )
 
-BLENDERLIB(bf_intern_decimate "${SRC}" "${INC}")
+blenderlib(bf_intern_decimate "${SRC}" "${INC}")

@@ -24,29 +24,29 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC .)
+set(INC .)
 
-SET(SRC
+set(SRC
 	./intern/mallocn.c
 
 	BLO_sys_types.h
 	MEM_guardedalloc.h
 )
 
-IF(WIN32 AND NOT UNIX)
-	LIST(APPEND SRC
+if(WIN32 AND NOT UNIX)
+	list(APPEND SRC
 		intern/mmap_win.c
 
 		mmap_win.h
 	)
-ENDIF(WIN32 AND NOT UNIX)
+endif()
 
-BLENDERLIB(bf_intern_guardedalloc "${SRC}" "${INC}")
+blenderlib(bf_intern_guardedalloc "${SRC}" "${INC}")
 
 # Override C++ alloc, optional.
-IF(WITH_CXX_GUARDEDALLOC)
-	SET(SRC
+if(WITH_CXX_GUARDEDALLOC)
+	set(SRC
 		cpp/mallocn.cpp
 	)
-	BLENDERLIB(bf_intern_guardedalloc_cpp "${SRC}" "${INC}")
-ENDIF(WITH_CXX_GUARDEDALLOC)
+	blenderlib(bf_intern_guardedalloc_cpp "${SRC}" "${INC}")
+endif()

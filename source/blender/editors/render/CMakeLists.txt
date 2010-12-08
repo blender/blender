@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenfont
 	../../blenkernel
@@ -35,7 +35,7 @@ SET(INC
 	../../../../extern/glew/include
 )
 
-SET(SRC
+set(SRC
 	render_internal.c
 	render_opengl.c
 	render_ops.c
@@ -45,13 +45,13 @@ SET(SRC
 	render_intern.h
 )
 
-IF(WITH_CODEC_QUICKTIME)
-	LIST(APPEND INC ../../quicktime ${QUICKTIME_INC})
-	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_CODEC_QUICKTIME)
+if(WITH_CODEC_QUICKTIME)
+	list(APPEND INC ../../quicktime ${QUICKTIME_INC})
+	add_definitions(-DWITH_QUICKTIME)
+endif()
 
-IF(WITH_OPENMP)
-	ADD_DEFINITIONS(-DPARALLEL=1)
-ENDIF(WITH_OPENMP)
+if(WITH_OPENMP)
+	add_definitions(-DPARALLEL=1)
+endif()
 
-BLENDERLIB(bf_editor_render "${SRC}" "${INC}")
+blenderlib(bf_editor_render "${SRC}" "${INC}")

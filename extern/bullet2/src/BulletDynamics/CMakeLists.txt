@@ -1,6 +1,6 @@
-INCLUDE_DIRECTORIES( ${BULLET_PHYSICS_SOURCE_DIR}/src } )
+include_directories( ${BULLET_PHYSICS_SOURCE_DIR}/src } )
 
-SET(BulletDynamics_SRCS
+set(BulletDynamics_SRCS
 	ConstraintSolver/btContactConstraint.cpp
 	ConstraintSolver/btConeTwistConstraint.cpp
 	ConstraintSolver/btGeneric6DofConstraint.cpp
@@ -19,11 +19,11 @@ SET(BulletDynamics_SRCS
 	Character/btKinematicCharacterController.cpp
 )
 
-SET(Root_HDRS
+set(Root_HDRS
 	../btBulletDynamicsCommon.h
 	../btBulletCollisionCommon.h
 )
-SET(ConstraintSolver_HDRS
+set(ConstraintSolver_HDRS
 	ConstraintSolver/btConstraintSolver.h
 	ConstraintSolver/btContactConstraint.h
 	ConstraintSolver/btContactSolverInfo.h
@@ -39,27 +39,27 @@ SET(ConstraintSolver_HDRS
 	ConstraintSolver/btSolverConstraint.h
 	ConstraintSolver/btTypedConstraint.h
 )
-SET(Dynamics_HDRS
+set(Dynamics_HDRS
 	Dynamics/btContinuousDynamicsWorld.h
 	Dynamics/btDiscreteDynamicsWorld.h
 	Dynamics/btDynamicsWorld.h
 	Dynamics/btSimpleDynamicsWorld.h
 	Dynamics/btRigidBody.h
 )
-SET(Vehicle_HDRS
+set(Vehicle_HDRS
 	Vehicle/btRaycastVehicle.h
 	Vehicle/btVehicleRaycaster.h
 	Vehicle/btWheelInfo.h
 )
 
-SET(Character_HDRS
+set(Character_HDRS
 	Character/btCharacterControllerInterface.h
 	Character/btKinematicCharacterController.h
 )
 
 
 
-SET(BulletDynamics_HDRS
+set(BulletDynamics_HDRS
 	${Root_HDRS}
 	${ConstraintSolver_HDRS}
 	${Dynamics_HDRS}
@@ -68,26 +68,26 @@ SET(BulletDynamics_HDRS
 )
 
 
-ADD_LIBRARY(BulletDynamics ${BulletDynamics_SRCS} ${BulletDynamics_HDRS})
+add_library(BulletDynamics ${BulletDynamics_SRCS} ${BulletDynamics_HDRS})
 SET_TARGET_PROPERTIES(BulletDynamics PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(BulletDynamics PROPERTIES SOVERSION ${BULLET_VERSION})
-IF (BUILD_SHARED_LIBS)
-	TARGET_LINK_LIBRARIES(BulletDynamics BulletCollision LinearMath)
-ENDIF (BUILD_SHARED_LIBS)
+if(BUILD_SHARED_LIBS)
+	target_link_libraries(BulletDynamics BulletCollision LinearMath)
+endif()
 
-IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)
-	INSTALL(TARGETS BulletDynamics DESTINATION lib)
-	INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION include FILES_MATCHING PATTERN "*.h")
-ENDIF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)
+if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)
+	install(TARGETS BulletDynamics DESTINATION lib)
+	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION include FILES_MATCHING PATTERN "*.h")
+endif()
 
-IF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
+if(APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 	SET_TARGET_PROPERTIES(BulletDynamics PROPERTIES FRAMEWORK true)
 	
 	SET_TARGET_PROPERTIES(BulletDynamics PROPERTIES PUBLIC_HEADER "${Root_HDRS}")
 	# Have to list out sub-directories manually:
-	SET_PROPERTY(SOURCE ${ConstraintSolver_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/ConstraintSolver)
-	SET_PROPERTY(SOURCE ${Dynamics_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/Dynamics)
-	SET_PROPERTY(SOURCE ${Vehicle_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/Vehicle)
-	SET_PROPERTY(SOURCE ${Character_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/Character)
+	set_property(SOURCE ${ConstraintSolver_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/ConstraintSolver)
+	set_property(SOURCE ${Dynamics_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/Dynamics)
+	set_property(SOURCE ${Vehicle_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/Vehicle)
+	set_property(SOURCE ${Character_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/Character)
 		
-ENDIF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
+endif()

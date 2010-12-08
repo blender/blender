@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../../../source/kernel/gen_system
 	../../../intern/string
@@ -34,7 +34,7 @@ SET(INC
 	../../../source/blender/blenloader
 )
 
-SET(SRC
+set(SRC
 	BoolValue.cpp
 	ConstExpr.cpp
 	EXP_C-Api.cpp
@@ -78,4 +78,4 @@ SET(SRC
 	VoidValue.h
 )
 
-BLENDERLIB(ge_logic_expressions "${SRC}" "${INC}")
+blenderlib(ge_logic_expressions "${SRC}" "${INC}")

@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	. 
 	../../../source/kernel/gen_system 
 	../../../intern/string
@@ -34,7 +34,7 @@ SET(INC
 	../../../source/gameengine/Rasterizer
 )
 
-SET(SRC
+set(SRC
 	Joystick/SCA_Joystick.cpp
 	Joystick/SCA_JoystickEvents.cpp
 	SCA_2DFilterActuator.cpp
@@ -123,10 +123,10 @@ SET(SRC
 	SCA_XORController.h
 )
 
-IF(WITH_SDL)
-	SET(INC ${INC} ${SDL_INCLUDE_DIR})
-ELSE(WITH_SDL)
-	ADD_DEFINITIONS(-DDISABLE_SDL)
-ENDIF(WITH_SDL)
+if(WITH_SDL)
+	set(INC ${INC} ${SDL_INCLUDE_DIR})
+else()
+	add_definitions(-DDISABLE_SDL)
+endif()
 
-BLENDERLIB(ge_logic "${SRC}" "${INC}")
+blenderlib(ge_logic "${SRC}" "${INC}")

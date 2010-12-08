@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../../../source/kernel/gen_system
 	../../../intern/string
@@ -59,7 +59,7 @@ SET(INC
 	../../../extern/bullet2/src
 )
 
-SET(SRC
+set(SRC
 	BL_ActionActuator.cpp
 	BL_ArmatureActuator.cpp
 	BL_ArmatureChannel.cpp
@@ -105,8 +105,8 @@ SET(SRC
 	KX_SoftBodyDeformer.h
 )
 
-IF(WITH_BULLET)
-	ADD_DEFINITIONS(-DUSE_BULLET)
-ENDIF(WITH_BULLET)
+if(WITH_BULLET)
+	add_definitions(-DUSE_BULLET)
+endif()
 
-BLENDERLIB(ge_converter "${SRC}" "${INC}")
+blenderlib(ge_converter "${SRC}" "${INC}")
