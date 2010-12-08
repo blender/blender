@@ -199,6 +199,7 @@ void LOGIC_OT_links_cut(wmOperatorType *ot)
 	
 	ot->name= "Cut links";
 	ot->idname= "LOGIC_OT_links_cut";
+	ot->description= "Remove logic brick connections";
 	
 	ot->invoke= WM_gesture_lines_invoke;
 	ot->modal= WM_gesture_lines_modal;
