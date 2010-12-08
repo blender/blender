@@ -575,7 +575,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 # This operator is also used by interaction presets saving - AddPresetBase
@@ -665,7 +665,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 

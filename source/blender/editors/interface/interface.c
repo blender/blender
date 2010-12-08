@@ -1357,9 +1357,9 @@ void ui_set_but_val(uiBut *but, double value)
 					break;
 				case PROP_INT:
 					if(RNA_property_array_length(&but->rnapoin, prop))
-						RNA_property_int_set_index(&but->rnapoin, prop, but->rnaindex, value);
+						RNA_property_int_set_index(&but->rnapoin, prop, but->rnaindex, (int)value);
 					else
-						RNA_property_int_set(&but->rnapoin, prop, value);
+						RNA_property_int_set(&but->rnapoin, prop, (int)value);
 					break;
 				case PROP_FLOAT:
 					if(RNA_property_array_length(&but->rnapoin, prop))

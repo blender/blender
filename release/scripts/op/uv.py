@@ -365,7 +365,7 @@ class ExportUVLayout(bpy.types.Operator):
         self.size = self._image_size(context)
         self.filepath = os.path.splitext(bpy.data.filepath)[0]
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 

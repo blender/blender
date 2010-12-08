@@ -37,7 +37,7 @@ class ExportHelper:
 
             self.filepath = blend_filepath + self.filename_ext
 
-        context.window_manager.add_fileselect(self)
+        context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
     def check(self, context):
@@ -53,7 +53,7 @@ class ImportHelper:
     filepath = StringProperty(name="File Path", description="Filepath used for importing the file", maxlen=1024, default="", subtype='FILE_PATH')
 
     def invoke(self, context, event):
-        context.window_manager.add_fileselect(self)
+        context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 

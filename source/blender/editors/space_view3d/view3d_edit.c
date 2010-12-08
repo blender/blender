@@ -2202,7 +2202,7 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 
 /* ******************** add background image operator **************** */
 
-static BGpic *add_background_image(bContext *C)
+static BGpic *background_image_add(bContext *C)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	
@@ -2218,14 +2218,14 @@ static BGpic *add_background_image(bContext *C)
 	return bgpic;
 }
 
-static int add_background_image_exec(bContext *C, wmOperator *UNUSED(op))
+static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	add_background_image(C);
+	background_image_add(C);
 
 	return OPERATOR_FINISHED;
 }
 
-static int add_background_image_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int background_image_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	Image *ima= NULL;
@@ -2244,7 +2244,7 @@ static int add_background_image_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 		ima= (Image *)find_id("IM", name);
 	}
 	
-	bgpic = add_background_image(C);
+	bgpic = background_image_add(C);
 	
 	if (ima) {
 		bgpic->ima = ima;
@@ -2261,16 +2261,16 @@ static int add_background_image_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_add_background_image(wmOperatorType *ot)
+void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Add Background Image";
 	ot->description= "Add a new background image";
-	ot->idname = "VIEW3D_OT_add_background_image";
+	ot->idname = "VIEW3D_OT_background_image_add";
 
 	/* api callbacks */
-	ot->invoke = add_background_image_invoke;
-	ot->exec   = add_background_image_exec;
+	ot->invoke = background_image_add_invoke;
+	ot->exec   = background_image_add_exec;
 	ot->poll   = ED_operator_view3d_active;
 
 	/* flags */
@@ -2283,7 +2283,7 @@ void VIEW3D_OT_add_background_image(wmOperatorType *ot)
 
 
 /* ***** remove image operator ******* */
-static int remove_background_image_exec(bContext *C, wmOperator *op)
+static int background_image_remove_exec(bContext *C, wmOperator *op)
 {
 	BGpic *bgpic_rem = CTX_data_pointer_get_type(C, "bgpic", &RNA_BackgroundImage).data;
 	View3D *vd = CTX_wm_view3d(C);
@@ -2301,15 +2301,15 @@ static int remove_background_image_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_remove_background_image(wmOperatorType *ot)
+void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Remove Background Image";
 	ot->description= "Remove a background image from the 3D view";
-	ot->idname = "VIEW3D_OT_remove_background_image";
+	ot->idname = "VIEW3D_OT_background_image_remove";
 
 	/* api callbacks */
-	ot->exec   = remove_background_image_exec;
+	ot->exec   = background_image_remove_exec;
 	ot->poll   = ED_operator_view3d_active;
 
 	/* flags */

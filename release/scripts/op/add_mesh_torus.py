@@ -128,7 +128,7 @@ class AddTorus(bpy.types.Operator):
         mesh.update()
 
         import add_object_utils
-        add_object_utils.add_object_data(context, mesh, operator=self)
+        add_object_utils.object_data_add(context, mesh, operator=self)
 
         return {'FINISHED'}
 

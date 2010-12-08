@@ -44,7 +44,7 @@ def add_object_align_init(context, operator):
     return location * rotation
 
 
-def add_object_data(context, obdata, operator=None):
+def object_data_add(context, obdata, operator=None):
 
     scene = context.scene
 

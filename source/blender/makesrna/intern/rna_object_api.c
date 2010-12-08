@@ -281,7 +281,7 @@ static void rna_Object_update(Object *ob, Scene *sce, int object, int data, int 
 	DAG_id_tag_update(&ob->id, flag);
 }
 
-static PointerRNA rna_Object_add_shape_key(Object *ob, bContext *C, ReportList *reports, const char *name, int from_mix)
+static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *reports, const char *name, int from_mix)
 {
 	Scene *scene= CTX_data_scene(C);
 	KeyBlock *kb= NULL;
@@ -431,7 +431,7 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 
 	/* Shape key */
-	func= RNA_def_function(srna, "add_shape_key", "rna_Object_add_shape_key");
+	func= RNA_def_function(srna, "shape_key_add", "rna_Object_shape_key_add");
 	RNA_def_function_ui_description(func, "Add shape key to an object.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "name", "Key", 0, "", "Unique name for the new keylock."); /* optional */

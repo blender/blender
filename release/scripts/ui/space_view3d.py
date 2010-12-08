@@ -2159,7 +2159,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
         view = context.space_data
 
         col = layout.column()
-        col.operator("view3d.add_background_image", text="Add Image")
+        col.operator("view3d.background_image_add", text="Add Image")
 
         for i, bg in enumerate(view.background_images):
             layout.active = view.show_background_images
@@ -2170,7 +2170,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
                 row.prop(bg.image, "name", text="", emboss=False)
             else:
                 row.label(text="Not Set")
-            row.operator("view3d.remove_background_image", text="", emboss=False, icon='X').index = i
+            row.operator("view3d.background_image_remove", text="", emboss=False, icon='X').index = i
 
             box.prop(bg, "view_axis", text="Axis")
 
