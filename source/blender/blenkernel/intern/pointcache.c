@@ -228,7 +228,15 @@ void BKE_ptcache_make_particle_key(ParticleKey *key, int index, void **data, flo
 {
 	PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, index, key->co);
 	PTCACHE_DATA_TO(data, BPHYS_DATA_VELOCITY, index, key->vel);
-	PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, index, key->rot);
+	
+	/* no rotation info, so make something nice up */
+	if(data[BPHYS_DATA_ROTATION]==NULL) {
+		vec_to_quat( key->rot, key->vel, OB_NEGX, OB_POSZ);
+	}
+	else {
+		PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, index, key->rot);
+	}
+
 	PTCACHE_DATA_TO(data, BPHYS_DATA_AVELOCITY, index, key->ave);
 	key->time = time;
 }

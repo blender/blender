@@ -3904,26 +3904,38 @@ static void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *pte
 	int i = cpa - sim->psys->child;
 	int guided = 0;
 
+	float kink_freq = part->kink_freq;
+	float rough1 = part->rough1;
+	float rough2 = part->rough2;
+	float rough_end = part->rough_end;
+
+	if(ptex) {
+		kink_freq *= ptex->kink;
+		rough1 *= ptex->rough1;
+		rough2 *= ptex->rough2;
+		rough_end *= ptex->roughe;
+	}
+
 	if(part->flag & PART_CHILD_EFFECT)
 		/* state is safe to cast, since only co and vel are used */
 		guided = do_guides(sim->psys->effectors, (ParticleKey*)state, cpa->parent, t);
 
 	if(guided==0){
-		if(part->kink)
-			do_prekink(state, par, par_rot, t, part->kink_freq * ptex->kink, part->kink_shape,
+		if(kink_freq > 0.f)
+			do_prekink(state, par, par_rot, t, kink_freq, part->kink_shape,
 			part->kink_amp, part->kink, part->kink_axis, sim->ob->obmat);
 				
-		do_clump(state, par, t, part->clumpfac, part->clumppow, ptex->clump);
+		do_clump(state, par, t, part->clumpfac, part->clumppow, ptex ? ptex->clump : 1.f);
 	}
 
-	if(part->rough1 != 0.0 && ptex->rough1 != 0.0)
-		do_rough(orco, mat, t, ptex->rough1*part->rough1, part->rough1_size, 0.0, state);
+	if(rough1 > 0.f)
+		do_rough(orco, mat, t, rough1, part->rough1_size, 0.0, state);
 
-	if(part->rough2 != 0.0 && ptex->rough2 != 0.0)
-		do_rough(sim->psys->frand + ((i + 27) % (PSYS_FRAND_COUNT - 3)), mat, t, ptex->rough2*part->rough2, part->rough2_size, part->rough2_thres, state);
+	if(rough2 > 0.f)
+		do_rough(sim->psys->frand + ((i + 27) % (PSYS_FRAND_COUNT - 3)), mat, t, rough2, part->rough2_size, part->rough2_thres, state);
 
-	if(part->rough_end != 0.0 && ptex->roughe != 0.0)
-		do_rough_end(sim->psys->frand + ((i + 27) % (PSYS_FRAND_COUNT - 3)), mat, t, ptex->roughe*part->rough_end, part->rough_end_shape, state);
+	if(rough_end > 0.f)
+		do_rough_end(sim->psys->frand + ((i + 27) % (PSYS_FRAND_COUNT - 3)), mat, t, rough_end, part->rough_end_shape, state);
 }
 /* get's hair (or keyed) particles state at the "path time" specified in state->time */
 void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *state, int vel)
@@ -4033,7 +4045,10 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 
 			pa = psys->particles + cpa->parent;
 
-			psys_mat_hair_to_global(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
+			if(part->type == PART_HAIR)
+				psys_mat_hair_to_global(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
+			else
+				unit_m4(hairmat);
 
 			pa=0;
 		}
@@ -4049,9 +4064,16 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			cpa_num=pa->num;
 			cpa_fuv=pa->fuv;
 
-			psys_particle_on_emitter(psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,co,0,0,0,orco,0);
+			
 
-			psys_mat_hair_to_global(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
+			if(part->type == PART_HAIR) {
+				psys_particle_on_emitter(psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,co,0,0,0,orco,0);
+				psys_mat_hair_to_global(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
+			}
+			else {
+				copy_v3_v3(orco, cpa->fuv);
+				unit_m4(hairmat);
+			}
 		}
 
 		/* correct child ipo timing */
@@ -4185,18 +4207,17 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	}
 	else{
 		if(cpa){
+			float mat[4][4];
 			ParticleKey *key1;
 			float t = (cfra - pa->time) / pa->lifetime;
 
 			key1=&pa->state;
 			offset_child(cpa, key1, state, part->childflat, part->childrad);
-			
+
 			CLAMP(t,0.0,1.0);
-			if(part->kink)			/* TODO: part->kink_freq*pa_kink */
-				do_prekink(state,key1,key1->rot,t,part->kink_freq,part->kink_shape,part->kink_amp,part->kink,part->kink_axis,sim->ob->obmat);
-			
-			/* TODO: pa_clump vgroup */
-			do_clump(state,key1,t,part->clumpfac,part->clumppow,1.0);
+
+			unit_m4(mat);
+			do_child_modifiers(sim, NULL, key1, key1->rot, cpa, cpa->fuv, mat, state, t);
 
 			if(psys->lattice)
 				calc_latt_deform(sim->psys->lattice, state->co,1.0f);
