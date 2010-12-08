@@ -150,6 +150,9 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 			
 			if (boneflag & BONE_DRAW_ACTIVE) {
 				VECCOPY(cp, bcolor->active);
+				if(!(boneflag & BONE_SELECTED)) {
+					cp_shade_color3ub(cp, -80);
+				}
 			}
 			else if (boneflag & BONE_SELECTED) {
 				VECCOPY(cp, bcolor->select);
@@ -163,7 +166,8 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 			glColor3ub(cp[0], cp[1], cp[2]);
 		}
 		else {
-			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorShade(TH_BONE_POSE, 40);
+			if (boneflag & BONE_DRAW_ACTIVE && boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_BONE_POSE, 40);
+			else if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorBlend(TH_WIRE, TH_BONE_POSE, 0.15f); /* unselected active */
 			else if (boneflag & BONE_SELECTED) UI_ThemeColor(TH_BONE_POSE);
 			else UI_ThemeColor(TH_WIRE);
 		}
@@ -284,6 +288,13 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	return 0;
 }
 
+static void set_ebone_glColor(const unsigned int boneflag)
+{
+	if (boneflag & BONE_DRAW_ACTIVE && boneflag & BONE_SELECTED) UI_ThemeColor(TH_EDGE_SELECT);
+	else if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, 0.15f); /* unselected active */
+	else if (boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_EDGE_SELECT, -20);
+	else UI_ThemeColor(TH_WIRE);
+}
 
 /* *************** Armature drawing, helper calls for parts ******************* */
 
@@ -1153,9 +1164,7 @@ static void draw_b_bone(int dt, int armflag, int boneflag, int constflag, unsign
 	}
 	else if (armflag & ARM_EDITMODE) {
 		if (dt==OB_WIRE) {
-			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColor(TH_EDGE_SELECT);
-			else if (boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_EDGE_SELECT, -20);
-			else UI_ThemeColor(TH_WIRE);
+			set_ebone_glColor(boneflag);
 		}
 		else 
 			UI_ThemeColor(TH_BONE_SOLID);
@@ -1238,9 +1247,7 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 	if (dt <= OB_WIRE) {
 		/* colors */
 		if (armflag & ARM_EDITMODE) {
-			if (boneflag & BONE_DRAW_ACTIVE) UI_ThemeColor(TH_EDGE_SELECT);
-			else if (boneflag & BONE_SELECTED) UI_ThemeColorShade(TH_EDGE_SELECT, -20);
-			else UI_ThemeColor(TH_WIRE);
+			set_ebone_glColor(boneflag);
 		}
 		else if (armflag & ARM_POSEMODE) {
 			if (constflag) {
@@ -1642,7 +1649,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 						flag &= ~BONE_CONNECTED;
 					
 					/* set temporary flag for drawing bone as active, but only if selected */
-					if ((bone == arm->act_bone) && (bone->flag & BONE_SELECTED))
+					if (bone == arm->act_bone)
 						flag |= BONE_DRAW_ACTIVE;
 					
 					/* set color-set to use */
@@ -1728,7 +1735,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 								flag &= ~BONE_CONNECTED;
 								
 							/* set temporary flag for drawing bone as active, but only if selected */
-							if ((bone == arm->act_bone) && (bone->flag & BONE_SELECTED))
+							if (bone == arm->act_bone)
 								flag |= BONE_DRAW_ACTIVE;
 							
 							draw_custom_bone(scene, v3d, rv3d, pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
@@ -1823,7 +1830,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 						flag &= ~BONE_CONNECTED;
 					
 					/* set temporary flag for drawing bone as active, but only if selected */
-					if ((bone == arm->act_bone) && (bone->flag & BONE_SELECTED))
+					if (bone == arm->act_bone)
 						flag |= BONE_DRAW_ACTIVE;
 					
 					/* extra draw service for pose mode */
@@ -1983,7 +1990,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 						flag &= ~BONE_CONNECTED;
 						
 					/* set temporary flag for drawing bone as active, but only if selected */
-					if ((eBone == arm->act_edbone) && (eBone->flag & BONE_SELECTED))
+					if (eBone == arm->act_edbone)
 						flag |= BONE_DRAW_ACTIVE;
 					
 					if (arm->drawtype==ARM_ENVELOPE)
@@ -2022,7 +2029,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 					flag &= ~BONE_CONNECTED;
 					
 				/* set temporary flag for drawing bone as active, but only if selected */
-				if ((eBone == arm->act_edbone) && (eBone->flag & BONE_SELECTED))
+				if (eBone == arm->act_edbone)
 					flag |= BONE_DRAW_ACTIVE;
 				
 				if (arm->drawtype == ARM_ENVELOPE) {

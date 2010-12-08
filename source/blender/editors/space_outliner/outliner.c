@@ -2151,8 +2151,6 @@ static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElemen
 			
 			if(set==2 && (pchan->bone->flag & BONE_SELECTED)) {
 				pchan->bone->flag &= ~BONE_SELECTED;
-				if(arm->act_bone==pchan->bone)
-					arm->act_bone= NULL;
 			} else {
 				pchan->bone->flag |= BONE_SELECTED;
 				arm->act_bone= pchan->bone;
@@ -2182,8 +2180,6 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 			
 			if(set==2 && (bone->flag & BONE_SELECTED)) {
 				bone->flag &= ~BONE_SELECTED;
-				if(arm->act_bone==bone)
-					arm->act_bone= NULL;
 			} else {
 				bone->flag |= BONE_SELECTED;
 				arm->act_bone= bone;
@@ -2204,27 +2200,49 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 
 
 /* ebones only draw in editmode armature */
-static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tselem), int set)
+static void tree_element_active_ebone__sel(bContext *C, Scene *scene, bArmature *arm, EditBone *ebone, short sel)
 {
-	EditBone *ebone= te->directdata;
-	
-	if(set) {
-		if(!(ebone->flag & BONE_HIDDEN_A)) {
-			bArmature *arm= scene->obedit->data;
-			if(set==2) ED_armature_deselect_all(scene->obedit, 2);	// only clear active tag
-			else ED_armature_deselect_all(scene->obedit, 0);	// deselect
-
-			ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL;
-			arm->act_edbone= ebone;
-
-			// flush to parent?
-			if(ebone->parent && (ebone->flag & BONE_CONNECTED)) ebone->parent->flag |= BONE_TIPSEL;
-			
-			WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, scene->obedit);
-		}
+	if(sel) {
+		ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL;
+		arm->act_edbone= ebone;
+		// flush to parent?
+		if(ebone->parent && (ebone->flag & BONE_CONNECTED)) ebone->parent->flag |= BONE_TIPSEL;
 	}
 	else {
-		if (ebone->flag & BONE_SELECTED) return 1;
+		ebone->flag &= ~(BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL);
+		// flush to parent?
+		if(ebone->parent && (ebone->flag & BONE_CONNECTED)) ebone->parent->flag &= ~BONE_TIPSEL;
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, scene->obedit);
+}
+static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tselem), int set)
+{
+	bArmature *arm= scene->obedit->data;
+	EditBone *ebone= te->directdata;
+
+	if(set==1) {
+		if(!(ebone->flag & BONE_HIDDEN_A)) {
+			ED_armature_deselect_all(scene->obedit, 0);	// deselect
+			tree_element_active_ebone__sel(C, scene, arm, ebone, TRUE);
+			return 1;
+		}
+	}
+	else if (set==2) {
+		if(!(ebone->flag & BONE_HIDDEN_A)) {
+			if(!(ebone->flag & BONE_SELECTED)) {
+				tree_element_active_ebone__sel(C, scene, arm, ebone, TRUE);
+				return 1;
+			}
+			else {
+				/* entirely selected, so de-select */
+				tree_element_active_ebone__sel(C, scene, arm, ebone, FALSE);
+				return 0;
+			}
+		}
+	}
+	else if (ebone->flag & BONE_SELECTED) {
+		return 1;
 	}
 	return 0;
 }

@@ -119,7 +119,7 @@ void ED_armature_validate_active(struct bArmature *arm)
 	EditBone *ebone= arm->act_edbone;
 
 	if(ebone) { 
-		if(ebone->flag & BONE_HIDDEN_A || (ebone->flag & BONE_SELECTED)==0)
+		if(ebone->flag & BONE_HIDDEN_A)
 			arm->act_edbone= NULL;
 	}
 }
@@ -1875,8 +1875,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
 
 /* toggle==0: deselect
  * toggle==1: swap (based on test)
- * toggle==2: only active tag
- * toggle==3: swap (no test)
+ * toggle==2: swap (no test), CURRENTLY UNUSED
  */
 void ED_armature_deselect_all(Object *obedit, int toggle)
 {
@@ -1898,33 +1897,29 @@ void ED_armature_deselect_all(Object *obedit, int toggle)
 	}
 	else sel= toggle;
 	
-	if(sel==2) {
-		arm->act_edbone= NULL;
-	} else {
-		/*	Set the flags */
-		for (eBone=arm->edbo->first;eBone;eBone=eBone->next) {
-			if (sel==3) {
-				/* invert selection of bone */
-				if(EBONE_VISIBLE(arm, eBone)) {
-					eBone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					if(arm->act_edbone==eBone)
-						arm->act_edbone= NULL;
-				}
-			}
-			else if (sel==1) {
-				/* select bone */
-				if(EBONE_VISIBLE(arm, eBone)) {
-					eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					if(eBone->parent)
-						eBone->parent->flag |= (BONE_TIPSEL);
-				}
-			}
-			else {
-				/* deselect bone */
-				eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+	/*	Set the flags */
+	for (eBone=arm->edbo->first;eBone;eBone=eBone->next) {
+		if (sel==2) {
+			/* invert selection of bone */
+			if(EBONE_VISIBLE(arm, eBone)) {
+				eBone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 				if(arm->act_edbone==eBone)
 					arm->act_edbone= NULL;
 			}
+		}
+		else if (sel==1) {
+			/* select bone */
+			if(EBONE_VISIBLE(arm, eBone)) {
+				eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				if(eBone->parent)
+					eBone->parent->flag |= (BONE_TIPSEL);
+			}
+		}
+		else {
+			/* deselect bone */
+			eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			if(arm->act_edbone==eBone)
+				arm->act_edbone= NULL;
 		}
 	}
 	
@@ -1944,6 +1939,17 @@ void ED_armature_deselect_all_visible(Object *obedit)
 	}
 
 	ED_armature_sync_selection(arm->edbo);
+}
+
+/* accounts for connected parents */
+static int ebone_select_flag(EditBone *ebone)
+{
+	if(ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+		return ((ebone->parent->flag & BONE_TIPSEL) ? BONE_ROOTSEL : 0) | (ebone->flag & (BONE_SELECTED|BONE_TIPSEL));
+	}
+	else {
+		return ebone->flag & (BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL);
+	}
 }
 
 /* context: editmode armature in view3d */
@@ -2014,7 +2020,9 @@ int mouse_armature(bContext *C, short mval[2], int extend)
 		
 		if(nearBone) {
 			/* then now check for active status */
-			if(nearBone->flag & BONE_SELECTED) arm->act_edbone= nearBone;
+			if(ebone_select_flag(nearBone)) {
+				arm->act_edbone= nearBone;
+			}
 		}
 		
 		WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, vc.obedit);
@@ -3098,13 +3106,13 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	 *	- tail = head/tail of end (default tail)
 	 *	- parent = parent of start
 	 */
-	if ((start->flag & BONE_TIPSEL) && ((start->flag & BONE_SELECTED) || start==arm->act_edbone)==0) {
+	if ((start->flag & BONE_TIPSEL) && (start->flag & BONE_SELECTED)==0) {
 		copy_v3_v3(head, start->tail);
 	}
 	else {
 		copy_v3_v3(head, start->head);
 	}
-	if ((end->flag & BONE_ROOTSEL) && ((end->flag & BONE_SELECTED) || end==arm->act_edbone)==0) {
+	if ((end->flag & BONE_ROOTSEL) && (end->flag & BONE_SELECTED)==0) {
 		copy_v3_v3(tail, end->head);
 	}
 	else {
@@ -3188,7 +3196,7 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 				/* check if visible + selected */
 				if ( EBONE_VISIBLE(arm, ebo) &&
 					 ((ebo->flag & BONE_CONNECTED) || (ebo->parent==NULL)) &&
-					 ((ebo->flag & BONE_SELECTED) || (ebo==arm->act_edbone)) )
+					 (ebo->flag & BONE_SELECTED) )
 				{
 					/* set either end or start (end gets priority, unless it is already set) */
 					if (bend == NULL)  {
@@ -3518,9 +3526,6 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	if (totbone==1 && first) arm->act_edbone= first;
 
 	if (totbone==0) return OPERATOR_CANCELLED;
-	
-	if(arm->act_edbone && (((EditBone *)arm->act_edbone)->flag & BONE_SELECTED)==0)
-		arm->act_edbone= NULL;
 
 	/* Transform the endpoints */
 	ED_armature_sync_selection(arm->edbo);
@@ -4465,9 +4470,6 @@ void ED_pose_deselectall (Object *ob, int test)
 			}
 		}
 	}
-	
-	if(arm->act_bone && (arm->act_bone->flag & BONE_SELECTED)==0)
-		arm->act_bone= NULL;
 }
 
 static int bone_skinnable_cb(Object *ob, Bone *bone, void *datap)
@@ -5174,20 +5176,7 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 
 	if (action == SEL_TOGGLE) {
-		bPoseChannel *pchan= CTX_data_active_pose_bone(C);
-		int num_sel = CTX_DATA_COUNT(C, selected_pose_bones);
-		
-		/* cases for deselect:
-		 * 	1) there's only one bone selected, and that is the active one
-		 *	2) there's more than one bone selected
-		 */
-		if ( ((num_sel == 1) && (pchan) && (pchan->bone->flag & BONE_SELECTED)) ||
-			 (num_sel > 1) )
-		{
-			action = SEL_DESELECT;
-		}
-		else 
-			action = SEL_SELECT;
+		action= CTX_DATA_COUNT(C, selected_pose_bones) ? SEL_DESELECT : SEL_SELECT;
 	}
 	
 	/*	Set the flags */

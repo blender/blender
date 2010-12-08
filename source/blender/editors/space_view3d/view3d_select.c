@@ -364,10 +364,6 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, short mcords[][2],
 			}
 		}
 	}
-	
-	if(arm->act_bone && (arm->act_bone->flag & BONE_SELECTED)==0) {
-		arm->act_bone= NULL;
-	}
 }
 
 static void object_deselect_all_visible(Scene *scene, View3D *v3d)

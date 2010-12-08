@@ -79,6 +79,12 @@ typedef struct bArmature {
 	ListBase	chainbase;
 	ListBase	*edbo;					/* editbone listbase, we use pointer so we can check state */
 	
+	/* active bones should work like active object where possible
+	 * - active and selection are unrelated
+	 * - active & hidden is not allowed 
+	 * - from the user perspective active == last selected
+	 * - active should be ignored when not visible (hidden layer) */
+
 	Bone		*act_bone;				/* active bone (when not in editmode) */
 	void		*act_edbone;			/* active editbone (in editmode) */
 

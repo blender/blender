@@ -253,7 +253,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			for (pchan= obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if (PBONE_VISIBLE(arm, pchan->bone)) {
-					if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone)
+					if (pchan->bone->flag & BONE_SELECTED)
 						CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
 				}
 			}
