@@ -4997,11 +4997,14 @@ static void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 	}
 	else {
 		for(gob= gr->gobject.first; gob; gob= gob->next) {
-			gob->ob->restrictflag |= flag;
+			/* not in editmode */
+			if(scene->obedit!=gob->ob) {
+				gob->ob->restrictflag |= flag;
 
-			if(flag==OB_RESTRICT_VIEW)
-				if((gob->ob->flag & SELECT) == 0)
-					ED_base_object_select(object_in_scene(gob->ob, scene), BA_SELECT);
+				if(flag==OB_RESTRICT_VIEW)
+					if((gob->ob->flag & SELECT) == 0)
+						ED_base_object_select(object_in_scene(gob->ob, scene), BA_SELECT);
+			}
 		}
 	}
 } 
