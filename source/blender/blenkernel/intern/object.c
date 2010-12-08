@@ -1322,8 +1322,8 @@ Object *copy_object(Object *ob)
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
+	id_us_plus((ID *)obn->gpd);
 	id_lib_extern((ID *)obn->dup_group);
-	
 
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
