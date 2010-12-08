@@ -52,8 +52,8 @@ project(Blender)
 #-----------------------------------------------------------------------------
 # Redirect output files
 
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
+set(EXECUTABLE_OUTPUT_PATH CACHE INTERNAL ${CMAKE_BINARY_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH CACHE INTERNAL ${CMAKE_BINARY_DIR}/lib)
 
 #-----------------------------------------------------------------------------
 # Load some macros.
@@ -121,9 +121,12 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 
 # Misc
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
-option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking" OFF)
 option(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
+
+# Debug
+option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking" OFF)
+mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 
 if(APPLE)
 	option(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
@@ -201,6 +204,8 @@ if(UNIX AND NOT APPLE)
 			PATHS
 			/sw/lib
 		)
+		mark_as_advanced(ICONV_LIBRARY)
+		mark_as_advanced(INTL_LIBRARY)
 
 		if(INTL_LIBRARY AND ICONV_LIBRARY)
 			set(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
@@ -217,18 +222,24 @@ if(UNIX AND NOT APPLE)
 		set(PYTHON /usr)
 		set(PYTHON_VERSION 3.1)
 		set(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
+		mark_as_advanced(PYTHON_INC)
 		# set(PYTHON_BINARY python) # not used yet
 		set(PYTHON_LIB python${PYTHON_VERSION} CACHE STRING "")
+		mark_as_advanced(PYTHON_LIB)
 		set(PYTHON_LIBPATH ${PYTHON}/lib CACHE STRING "")
-	
+		mark_as_advanced(PYTHON_LIBPATH)
 		# find_package(PythonInterp) # not used yet
 		# set(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
 
 		set(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
+		mark_as_advanced(PYTHON_LINKFLAGS)
 	endif()
 
 	if(WITH_SDL)
 		find_package(SDL)
+		mark_as_advanced(SDLMAIN_LIBRARY)
+		mark_as_advanced(SDL_INCLUDE_DIR)
+		mark_as_advanced(SDL_LIBRARY)
 		# unset(SDLMAIN_LIBRARY CACHE)
 		if(NOT SDL_FOUND)
 			set(WITH_SDL OFF)
@@ -237,6 +248,7 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_IMAGE_OPENEXR)
 		set(OPENEXR /usr CACHE FILEPATH "OPENEXR Directory")
+		mark_as_advanced(OPENEXR)
 		find_path(OPENEXR_INC
 			ImfXdr.h
 			PATHS
@@ -247,6 +259,8 @@ if(UNIX AND NOT APPLE)
 			/opt/csw/include/OpenEXR
 			/opt/include/OpenEXR
 		)
+		mark_as_advanced(OPENEXR_INC)
+
 		set(OPENEXR_LIB Half IlmImf Iex Imath)
 		
 		if(NOT OPENEXR_INC)
@@ -276,8 +290,10 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_CODEC_FFMPEG)
 		set(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
+		mark_as_advanced(FFMPEG)
 		set(FFMPEG_INC ${FFMPEG}/include)
 		set(FFMPEG_LIB avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
+		mark_as_advanced(FFMPEG_LIB)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 	endif()
@@ -298,13 +314,18 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_OPENCOLLADA)
 		set(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
+		mark_as_advanced(OPENCOLLADA)
 		set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
 		set(OPENCOLLADA_LIB OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre ftoa buffer xml2)
 		set(OPENCOLLADA_INC ${OPENCOLLADA})
+
 		set(PCRE /usr CACHE FILEPATH "PCRE Directory")
+		mark_as_advanced(PCRE)
 		set(PCRE_LIBPATH ${PCRE}/lib)
 		set(PCRE_LIB pcre)
+
 		set(EXPAT /usr CACHE FILEPATH "Expat Directory")
+		mark_as_advanced(EXPAT)
 		set(EXPAT_LIBPATH ${EXPAT}/lib)
 		set(EXPAT_LIB expat)
 	endif()
