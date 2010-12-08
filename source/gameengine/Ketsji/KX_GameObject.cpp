@@ -1022,7 +1022,7 @@ void KX_GameObject::NodeSetGlobalOrientation(const MT_Matrix3x3& rot)
 	if (GetSGNode()->GetSGParent())
 		GetSGNode()->SetLocalOrientation(GetSGNode()->GetSGParent()->GetWorldOrientation().inverse()*rot);
 	else
-		GetSGNode()->SetLocalOrientation(rot);
+		NodeSetLocalOrientation(rot);
 }
 
 void KX_GameObject::NodeSetLocalScale(const MT_Vector3& scale)
