@@ -5154,6 +5154,11 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 		return -1;
 	}
 
+	/* XXX, this is needed because render engine calls without a context
+	 * this should be supported at some point but at the moment its not! */
+	if(C==NULL)
+		C= BPy_GetContext();
+
 	bpy_context_set(C, &gilstate);
 
 	if (!is_static) {
