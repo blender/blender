@@ -894,7 +894,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             return sub # XXX, temp. use_map_normal needs to override.
 
         if isinstance(idblock, bpy.types.Material):
-            if idblock.type in ('SURFACE', 'HALO', 'WIRE'):
+            if idblock.type in ('SURFACE', 'WIRE'):
                 split = layout.split()
 
                 col = split.column()
@@ -928,6 +928,19 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
                 #sub = col.column()
                 #sub.active = tex.use_map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
                 #sub.prop(tex, "default_value", text="Amount", slider=True)
+            elif idblock.type == 'HALO':
+                layout.label(text="Halo:")
+                
+                split = layout.split()
+                
+                col = split.column()
+                factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
+                factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
+                
+                col = split.column()
+                factor_but(col, "use_map_raymir", "raymir_factor", "Size")
+                factor_but(col, "use_map_hardness", "hardness_factor", "Hardness")
+                factor_but(col, "use_map_translucency", "translucency_factor", "Add")
             elif idblock.type == 'VOLUME':
                 split = layout.split()
 

@@ -1189,6 +1189,11 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				har->hard = 1.0+126.0*texture_value_blend(mtex->def_var,((float)har->hard)/127.0,tin,mtex->hardfac,mtex->blendtype);
 			if(mtex->mapto & MAP_RAYMIRR)
 				har->hasize = 100.0*texture_value_blend(mtex->def_var,har->hasize/100.0,tin,mtex->raymirrfac,mtex->blendtype);
+			if(mtex->mapto & MAP_TRANSLU) {
+				float add = texture_value_blend(mtex->def_var,(float)har->add/255.0,tin,mtex->translfac,mtex->blendtype);
+				CLAMP(add, 0.f, 1.f);
+				har->add = 255.0*add;
+			}
 			/* now what on earth is this good for?? */
 			//if(mtex->texco & 16) {
 			//	har->alfa= tin;
