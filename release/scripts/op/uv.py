@@ -269,7 +269,7 @@ class ExportUVLayout(bpy.types.Operator):
 
     def _space_image(self, context):
         space_data = context.space_data
-        if type(space_data) == bpy.types.SpaceImageEditor:
+        if isinstance(space_data, bpy.types.SpaceImageEditor):
             return space_data
         else:
             return None
