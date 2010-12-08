@@ -789,7 +789,9 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	cross_v3_v3v3(temp,vvec,lvec);		/* equation for a plane through vvec en lvec */
 	cross_v3_v3v3(plane,lvec,temp);		/* a plane perpendicular to this, parrallel with lvec */
 
-	normalize_v3(plane);
+	/* vectors are exactly aligned, use the X axis, this is arbitrary */
+	if(normalize_v3(plane) == 0.0f)
+		plane[1]= 1.0f;
 
 	/* now we've got two equations: one of a cone and one of a plane, but we have
 	three unknowns. We remove one unkown by rotating the plane to z=0 (the plane normal) */
