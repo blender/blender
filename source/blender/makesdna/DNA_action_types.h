@@ -188,7 +188,7 @@ typedef struct bPoseChannel {
 	short				flag;		/* dynamic, for detecting transform changes */
 	short				constflag;  /* for quick detecting which constraints affect this channel */
 	short				ikflag;		/* settings for IK bones */
-	short               selectflag;	/* copy of bone flag, so you can work with library armatures */
+	short               selectflag;	/* copy of bone flag, so you can work with library armatures, not for runtime use */
 	short				protectflag; /* protect channels from being transformed */
 	short				agrp_index; /* index of action-group this bone belongs to (0 = default/no group) */
 	

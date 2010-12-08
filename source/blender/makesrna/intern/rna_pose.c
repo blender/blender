@@ -708,10 +708,6 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_struct_name_property(srna, prop);
 
-	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selectflag", BONE_SELECTED);
-	RNA_def_property_ui_text(prop, "Select", "");
-
 	/* Baked Bone Path cache data */
 	rna_def_motionpath_common(srna);
 	
