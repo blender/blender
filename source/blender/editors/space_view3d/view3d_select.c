@@ -2122,9 +2122,12 @@ static void armature_circle_select(ViewContext *vc, int select, short *mval, flo
 				ebone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 			change= TRUE;
 		}
+		
+		change |= didpoint;
 	}
 
 	if(change) {
+		ED_armature_sync_selection(arm->edbo);
 		ED_armature_validate_active(arm);
 		WM_main_add_notifier(NC_OBJECT|ND_BONE_SELECT, vc->obedit);
 	}
