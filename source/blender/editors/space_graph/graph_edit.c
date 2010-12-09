@@ -1433,7 +1433,6 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
 	ot->description= "Set type of handle for selected keyframes";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
 	ot->exec= graphkeys_handletype_exec;
 	ot->poll= graphop_editable_keyframes_poll;
 	

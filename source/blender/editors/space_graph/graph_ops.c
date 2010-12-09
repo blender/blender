@@ -31,6 +31,7 @@
 
 
 #include "DNA_scene_types.h"
+#include "DNA_anim_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -331,7 +332,12 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "GRAPH_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_mirror", MKEY, KM_PRESS, KM_SHIFT, 0);
 	
-	WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", HKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", HKEY, KM_PRESS, 0, 0)->ptr, "type", HD_ALIGN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", HD_AUTO);
+	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", HKEY, KM_PRESS, KM_ALT, 0)->ptr, "type", HD_FREE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", VKEY, KM_PRESS, 0, 0)->ptr, "type", HD_VECT);
+	
+	
 	WM_keymap_add_item(keymap, "GRAPH_OT_interpolation_type", TKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0);
 	
