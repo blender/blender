@@ -2008,7 +2008,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		/* provision to draw active node name */
 		Material *ma, *manode;
 		Object *ob= (Object*)ptr->id.data;
-		int index= (Material**)ptr->data - ob->mat;
+		int index= (Material**)itemptr->data - ob->mat;
 		
 		/* default item with material base name */
 		uiItemL(sub, name, icon);

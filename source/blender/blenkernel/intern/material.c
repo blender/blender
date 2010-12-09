@@ -445,7 +445,7 @@ Material ***give_matarar_id(ID *id)
 		return &(((Curve *)id)->mat);
 		break;
 	case ID_MB:
-		return &(((Curve *)id)->mat);
+		return &(((MetaBall *)id)->mat);
 		break;
 	}
 	return NULL;
@@ -461,7 +461,7 @@ short *give_totcolp_id(ID *id)
 		return &(((Curve *)id)->totcol);
 		break;
 	case ID_MB:
-		return &(((Curve *)id)->totcol);
+		return &(((MetaBall *)id)->totcol);
 		break;
 	}
 	return NULL;
@@ -529,6 +529,10 @@ Material *give_current_material(Object *ob, int act)
 	/* if object cannot have material, totcolp==NULL */
 	totcolp= give_totcolp(ob);
 	if(totcolp==NULL || ob->totcol==0) return NULL;
+	
+	if(act<0) {
+		printf("no!\n");
+	}
 	
 	if(act>ob->totcol) act= ob->totcol;
 	else if(act<=0) act= 1;
