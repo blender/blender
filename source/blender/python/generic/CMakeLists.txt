@@ -31,7 +31,7 @@ set(INC
 set(SRC
 	IDProp.c
 	bgl.c
-	blf_api.c
+	blf_py_api.c
 	bpy_internal_import.c
 	mathutils.c
 	mathutils_color.c
@@ -45,7 +45,7 @@ set(SRC
 
 	IDProp.h
 	bgl.h
-	blf_api.h
+	blf_py_api.h
 	bpy_internal_import.h
 	mathutils.h
 	mathutils_color.h

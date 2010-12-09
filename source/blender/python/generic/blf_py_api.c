@@ -23,7 +23,7 @@
  */
 
 #include <Python.h>
-#include "blf_api.h"
+#include "blf_py_api.h"
 
 #include "../../blenfont/BLF_api.h"
 #include "BKE_utildefines.h"

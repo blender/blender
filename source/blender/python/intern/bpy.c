@@ -44,7 +44,7 @@
  /* external util modules */
 #include "../generic/mathutils.h"
 #include "../generic/bgl.h"
-#include "../generic/blf_api.h"
+#include "../generic/blf_py_api.h"
 #include "../generic/IDProp.h"
 
 #include "AUD_PyInit.h"
