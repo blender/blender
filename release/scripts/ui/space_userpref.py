@@ -705,10 +705,10 @@ class USERPREF_PT_file(bpy.types.Panel):
         col.separator()
         col.separator()
 
-        col.label(text="Auto Save:")
         col.prop(paths, "save_version")
         col.prop(paths, "recent_files")
         col.prop(paths, "use_save_preview_images")
+        col.label(text="Auto Save:")
         col.prop(paths, "use_auto_save_temporary_files")
         sub = col.column()
         sub.active = paths.use_auto_save_temporary_files
