@@ -547,12 +547,14 @@ class TEXTURE_PT_musgrave(TextureTypePanel, bpy.types.Panel):
         col.prop(tex, "lacunarity")
         col.prop(tex, "octaves")
 
+        musgrave_type = tex.musgrave_type
         col = split.column()
-        if (tex.musgrave_type in ('HETERO_TERRAIN', 'RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL')):
+        if musgrave_type in ('HETERO_TERRAIN', 'RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL'):
             col.prop(tex, "offset")
-        if (tex.musgrave_type in ('RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL')):
-            col.prop(tex, "gain")
+        if musgrave_type in ('MULTIFRACTAL', 'RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL'):
             col.prop(tex, "noise_intensity", text="Intensity")
+        if musgrave_type in ('RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL'):
+            col.prop(tex, "gain")
 
         layout.label(text="Noise:")
 
@@ -985,6 +987,9 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
         col.prop(tex, "use_rgb_to_intensity")
         # color is used on grayscale textures even when use_rgb_to_intensity is disabled.
         col.prop(tex, "color", text="")
+
+        # XXX, dont remove since old files have this users need to be able to disable!
+        col.prop(tex, "use_old_bump", text="Old Bump Mapping")
 
         col = split.column()
         col.prop(tex, "invert", text="Negative")
