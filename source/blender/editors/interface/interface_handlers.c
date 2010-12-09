@@ -5002,7 +5002,8 @@ void uiContextAnimUpdate(const bContext *C)
 		for(block=ar->uiblocks.first; block; block=block->next) {
 			for(but=block->buttons.first; but; but= but->next) {
 				ui_but_anim_flag(but, (scene)? scene->r.cfra: 0.0f);
-
+				ED_region_tag_redraw(ar);
+				
 				if(but->active)
 					activebut= but;
 				else if(!activebut && (but->flag & UI_BUT_LAST_ACTIVE))

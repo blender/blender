@@ -2350,6 +2350,20 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	
 }
 
+static void widget_icon_has_anim(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	if(state & (UI_BUT_ANIMATED|UI_BUT_ANIMATED_KEY|UI_BUT_DRIVEN|UI_BUT_REDALERT)) {
+		uiWidgetBase wtb;
+	
+		widget_init(&wtb);
+		wtb.outline= 0;
+		
+		/* rounded */
+		round_box_edges(&wtb, 15, rect, 10.0f);
+		widgetbase_draw(&wtb, wcol);
+	}	
+}
+
 
 static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
@@ -2693,7 +2707,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			
 			/* specials */
 		case UI_WTYPE_ICON:
-			wt.draw= NULL;
+			wt.custom= widget_icon_has_anim;
 			break;
 			
 		case UI_WTYPE_SWATCH:
