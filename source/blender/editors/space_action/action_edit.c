@@ -358,6 +358,10 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
+	if(ac.reports==NULL) {
+		ac.reports= op->reports;
+	}
+	
 	/* paste keyframes */
 	if (ac.datatype == ANIMCONT_GPENCIL) {
 		// FIXME...

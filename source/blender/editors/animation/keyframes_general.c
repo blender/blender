@@ -42,6 +42,11 @@
 
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
+#include "BKE_report.h"
+#include "BKE_library.h"
+#include "BKE_global.h"
+
+#include "RNA_access.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
@@ -453,6 +458,8 @@ typedef struct tAnimCopybufItem {
 	
 	int totvert;		/* number of keyframes stored for this channel */
 	BezTriple *bezt;	/* keyframes in buffer */
+
+	short id_type;		/* Result of GS(id->name)*/
 } tAnimCopybufItem;
 
 
@@ -510,6 +517,7 @@ short copy_animedit_keys (bAnimContext *UNUSED(ac), ListBase *anim_data)
 		/* init copybuf item info */
 		aci= MEM_callocN(sizeof(tAnimCopybufItem), "AnimCopybufItem");
 		aci->id= ale->id;
+		aci->id_type= GS(ale->id->name);
 		aci->grp= fcu->grp;
 		aci->rna_path= MEM_dupallocN(fcu->rna_path);
 		aci->array_index= fcu->array_index;
@@ -550,74 +558,183 @@ short copy_animedit_keys (bAnimContext *UNUSED(ac), ListBase *anim_data)
 	return 0;
 }
 
+static tAnimCopybufItem *pastebuf_match_path_full(FCurve *fcu, const short from_single, const short to_simple) {
+	tAnimCopybufItem *aci;
+
+	for (aci= animcopybuf.first; aci; aci= aci->next) {
+		/* check that paths exist */
+		if (to_simple || (aci->rna_path && fcu->rna_path)) {
+			if (to_simple || (strcmp(aci->rna_path, fcu->rna_path) == 0)) {
+				if ((from_single) || (aci->array_index == fcu->array_index)) {
+					break;
+				}
+			}
+		}
+	}
+
+	return aci;
+}
+
+static tAnimCopybufItem *pastebuf_match_path_property(FCurve *fcu, const short from_single, const short UNUSED(to_simple))
+{
+	tAnimCopybufItem *aci;
+
+	for (aci= animcopybuf.first; aci; aci= aci->next) {
+		/* check that paths exist */
+		if (aci->rna_path && fcu->rna_path) {
+	
+			/* find the property of the fcurve and compare against the end of the tAnimCopybufItem
+			 * more involves since it needs to to path lookups.
+			 * This is not 100% reliable since the user could be editing the curves on a path that wont
+			 * resolve, or a bone could be renamed after copying for eg. but in normal copy & paste
+			 * this should work out ok. */
+			if(BLI_findindex(which_libbase(G.main, aci->id_type), aci->id) == -1) {
+				/* pedantic but the ID could have been removed, and beats crashing! */
+				printf("paste_animedit_keys: error ID has been removed!\n");
+			}
+			else {
+				PointerRNA id_ptr, rptr;
+				PropertyRNA *prop;
+	
+				RNA_id_pointer_create(aci->id, &id_ptr);
+				RNA_path_resolve(&id_ptr, aci->rna_path, &rptr, &prop);
+	
+				if(prop) {
+					const char *identifier= RNA_property_identifier(prop);
+					int len_id = strlen(identifier);
+					int len_path = strlen(fcu->rna_path);
+					if(len_id <= len_path) {
+						/* note, paths which end with "] will fail with this test - Animated ID Props */
+						if(strcmp(identifier, fcu->rna_path + (len_path-len_id))==0) {
+							if ((from_single) || (aci->array_index == fcu->array_index)) {
+								break;
+							}
+						}
+					}
+				}
+				else {
+					printf("paste_animedit_keys: failed to resolve path id:%s, '%s'!\n", aci->id->name, aci->rna_path);
+				}
+			}
+		}
+	}
+
+	return aci;
+}
+
+static tAnimCopybufItem *pastebuf_match_index_only(FCurve *fcu, const short from_single, const short UNUSED(to_simple))
+{
+	tAnimCopybufItem *aci;
+
+	for (aci= animcopybuf.first; aci; aci= aci->next) {
+		/* check that paths exist */
+		if ((from_single) || (aci->array_index == fcu->array_index)) {
+			break;
+		}
+	}
+
+	return aci;
+}
+
+static void paste_animedit_keys_fcurve(FCurve *fcu, tAnimCopybufItem *aci, float offset)
+{
+	BezTriple *bezt;
+	int i;
+
+	/* just start pasting, with the the first keyframe on the current frame, and so on */
+	for (i=0, bezt=aci->bezt; i < aci->totvert; i++, bezt++) {						
+		/* temporarily apply offset to src beztriple while copying */
+		bezt->vec[0][0] += offset;
+		bezt->vec[1][0] += offset;
+		bezt->vec[2][0] += offset;
+		
+		/* insert the keyframe
+		 * NOTE: no special flags here for now
+		 */
+		insert_bezt_fcurve(fcu, bezt, 0); 
+		
+		/* un-apply offset from src beztriple after copying */
+		bezt->vec[0][0] -= offset;
+		bezt->vec[1][0] -= offset;
+		bezt->vec[2][0] -= offset;
+	}
+	
+	/* recalculate F-Curve's handles? */
+	calchandles_fcurve(fcu);
+}
+
 /* This function pastes data from the keyframes copy/paste buffer */
 short paste_animedit_keys (bAnimContext *ac, ListBase *anim_data)
 {
 	bAnimListElem *ale;
 	const Scene *scene= (ac->scene);
 	const float offset = (float)(CFRA - animcopy_firstframe);
-	short no_name= 0;
+	const short from_single= (animcopybuf.first == animcopybuf.last);
+	const short to_simple= (anim_data->first == anim_data->last);
+	int pass;
 	
 	/* check if buffer is empty */
 	if (ELEM(NULL, animcopybuf.first, animcopybuf.last)) {
-		//error("No data in buffer to paste");
+		BKE_report(ac->reports, RPT_WARNING, "No data in buffer to paste");
 		return -1;
 	}
-	/* check if single channel in buffer (disregard names if so)  */
-	if (animcopybuf.first == animcopybuf.last)
-		no_name= 1;
+
+	if(from_single && to_simple) {
+		/* 1:1 match, no tricky checking, just paste */
+		FCurve *fcu;
+		tAnimCopybufItem *aci;
+
+		ale= anim_data->first;
+		fcu= (FCurve *)ale->data;		/* destination F-Curve */
+		aci= animcopybuf.first;
+
+		paste_animedit_keys_fcurve(fcu, aci, offset);		
+	}
+	else {
+		/* from selected channels */
+		for(pass= 0; pass < 3; pass++) {
+			int totmatch= 0;
+			for (ale= anim_data->first; ale; ale= ale->next) {
+				
+				/* find buffer item to paste from 
+				 *	- if names don't matter (i.e. only 1 channel in buffer), don't check id/group
+				 *	- if names do matter, only check if id-type is ok for now (group check is not that important)
+				 *	- most importantly, rna-paths should match (array indices are unimportant for now)
+				 */
+				FCurve *fcu = (FCurve *)ale->data;		/* destination F-Curve */
+				tAnimCopybufItem *aci= NULL;
+				
+				switch(pass) {
+				case 0:
+					/* most strict, must be exact path match data_path & index */
+					aci= pastebuf_match_path_full(fcu, from_single, to_simple);
+					break;
 	
-	/* from selected channels */
-	for (ale= anim_data->first; ale; ale= ale->next) {
-		FCurve *fcu = (FCurve *)ale->data;		/* destination F-Curve */
-		tAnimCopybufItem *aci= NULL;
-		BezTriple *bezt;
-		int i;
-		
-		/* find buffer item to paste from 
-		 *	- if names don't matter (i.e. only 1 channel in buffer), don't check id/group
-		 *	- if names do matter, only check if id-type is ok for now (group check is not that important)
-		 *	- most importantly, rna-paths should match (array indices are unimportant for now)
-		 */
-		// TODO: the matching algorithm here is pathetic!
-		for (aci= animcopybuf.first; aci; aci= aci->next) {
-			/* check that paths exist */
-			if (aci->rna_path && fcu->rna_path) {
-				// FIXME: this breaks for bone names!
-				if (strcmp(aci->rna_path, fcu->rna_path) == 0) {
-					/* should be a match unless there's more than one of these */
-					if ((no_name) || (aci->array_index == fcu->array_index)) 
-						break;
+				case 1:
+					/* less strict, just compare property names */
+					aci= pastebuf_match_path_property(fcu, from_single, to_simple);
+					break;
+	
+				case 2:
+					/* Comparing properties gave no results, so just do index comparisons */
+					aci= pastebuf_match_index_only(fcu, from_single, to_simple);
+					break;
+				}
+
+				/* copy the relevant data from the matching buffer curve */
+				if (aci) {
+					totmatch++;
+					paste_animedit_keys_fcurve(fcu, aci, offset);
 				}
 			}
-		}
-		
-		
-		/* copy the relevant data from the matching buffer curve */
-		if (aci) {
-			/* just start pasting, with the the first keyframe on the current frame, and so on */
-			for (i=0, bezt=aci->bezt; i < aci->totvert; i++, bezt++) {						
-				/* temporarily apply offset to src beztriple while copying */
-				bezt->vec[0][0] += offset;
-				bezt->vec[1][0] += offset;
-				bezt->vec[2][0] += offset;
-				
-				/* insert the keyframe
-				 * NOTE: no special flags here for now
-				 */
-				insert_bezt_fcurve(fcu, bezt, 0); 
-				
-				/* un-apply offset from src beztriple after copying */
-				bezt->vec[0][0] -= offset;
-				bezt->vec[1][0] -= offset;
-				bezt->vec[2][0] -= offset;
-			}
 			
-			/* recalculate F-Curve's handles? */
-			calchandles_fcurve(fcu);
+			/* dont continue if some fcurves were pasted */
+			if(totmatch) {
+				break;
+			}
 		}
 	}
-	
+
 	return 0;
 }
 

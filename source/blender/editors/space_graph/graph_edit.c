@@ -681,9 +681,12 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
+	if(ac.reports==NULL) {
+		ac.reports= op->reports;
+	}
+
 	/* paste keyframes */
 	if (paste_graph_keys(&ac)) {
-		BKE_report(op->reports, RPT_ERROR, "No keyframes to paste");
 		return OPERATOR_CANCELLED;
 	}
 	
