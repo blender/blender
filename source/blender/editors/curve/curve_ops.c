@@ -195,7 +195,12 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	keymap->poll= ED_operator_editsurfcurve;
 
 	WM_keymap_add_menu(keymap, "INFO_MT_edit_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_menu(keymap, "INFO_MT_curve_handle_type_set", VKEY, KM_PRESS, 0, 0);
+																						/* XXX will fix it with proper defines (ton) */
+	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_handle_type_set", HKEY, KM_PRESS, 0, 0)->ptr, "type", 5);
+	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_handle_type_set", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", HD_AUTO);
+	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_handle_type_set", HKEY, KM_PRESS, KM_ALT, 0)->ptr, "type", 6);
+	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_handle_type_set", VKEY, KM_PRESS, 0, 0)->ptr, "type", HD_VECT);
+	
 	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_select_all", AKEY, KM_PRESS, 0, 0);

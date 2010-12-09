@@ -3537,11 +3537,11 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 void CURVE_OT_handle_type_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{1, "AUTOMATIC", 0, "Automatic", ""},
-		{2, "VECTOR", 0, "Vector", ""},
-		{3, "TOGGLE_FREE_ALIGN", 0, "Toggle Free/Align", ""},
+		{HD_AUTO, "AUTOMATIC", 0, "Automatic", ""},
+		{HD_VECT, "VECTOR", 0, "Vector", ""},
 		{5, "ALIGN", 0, "Align", ""},
 		{6, "FREE_ALIGN", 0, "Free Align", ""},
+		{3, "TOGGLE_FREE_ALIGN", 0, "Toggle Free/Align", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
