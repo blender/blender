@@ -42,7 +42,6 @@ set(SRC
 	intern/blf_util.c
 
 	BLF_api.h
-	BLF_types.h
 	intern/blf_internal.h
 	intern/blf_internal_types.h
 )
