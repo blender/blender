@@ -253,8 +253,8 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Shape Key";
-	ot->name= "Add shape key to the object.";
 	ot->idname= "OBJECT_OT_shape_key_add";
+	ot->description= "Add shape key to the object";
 	
 	/* api callbacks */
 	ot->poll= shape_key_mode_poll;
@@ -281,8 +281,8 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Shape Key";
-	ot->name= "Remove shape key from the object.";
 	ot->idname= "OBJECT_OT_shape_key_remove";
+	ot->description= "Remove shape key from the object";
 	
 	/* api callbacks */
 	ot->poll= shape_key_mode_poll;

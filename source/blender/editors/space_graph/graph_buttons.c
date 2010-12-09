@@ -746,6 +746,7 @@ void GRAPH_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
 	ot->idname= "GRAPH_OT_properties";
+	ot->description= "Toggle display properties panel";
 	
 	ot->exec= graph_properties;
 	ot->poll= ED_operator_ipo_active; // xxx
