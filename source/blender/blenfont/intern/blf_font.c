@@ -493,11 +493,16 @@ void blf_font_free(FontBLF *font)
 
 static void blf_font_fill(FontBLF *font)
 {
+	int i;
+
 	font->aspect= 1.0f;
 	font->pos[0]= 0.0f;
 	font->pos[1]= 0.0f;
 	font->angle= 0.0f;
-	unit_m4(font->mat);
+
+	for (i= 0; i < 16; i++)
+		font->m[i]= 0;
+
 	font->clip_rec.xmin= 0.0f;
 	font->clip_rec.xmax= 0.0f;
 	font->clip_rec.ymin= 0.0f;

@@ -330,6 +330,18 @@ void BLF_aspect(int fontid, float aspect)
 		font->aspect= aspect;
 }
 
+void BLF_matrix(int fontid, double *m)
+{
+	FontBLF *font;
+	int i;
+
+	font= BLF_get(fontid);
+	if (font) {
+		for (i= 0; i < 16; i++)
+			font->m[i]= m[i];
+	}
+}
+
 void BLF_position(int fontid, float x, float y, float z)
 {
 	FontBLF *font;
@@ -435,6 +447,10 @@ static void blf_draw__start(FontBLF *font)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glPushMatrix();
+
+	if (font->flags & BLF_MATRIX)
+		glMultMatrixd((GLdouble *)&font->m);
+
 	glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
 	glScalef(font->aspect, font->aspect, 1.0);
 
