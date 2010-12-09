@@ -157,7 +157,6 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 	glColor3ub(255, 255, 255);
 	
 	// UI_DrawString(6, 6, str); // works ok but fixed width is nicer.
-	BLF_aspect(blf_mono_font, 1.0);
 	BLF_size(blf_mono_font, 11, 72);
 	BLF_position(blf_mono_font, 6, 6, 0);
 	BLF_draw_ascii(blf_mono_font, str, sizeof(str));

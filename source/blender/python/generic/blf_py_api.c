@@ -99,7 +99,7 @@ static PyObject *py_blf_aspect(PyObject *UNUSED(self), PyObject *args)
 	if (!PyArg_ParseTuple(args, "if:blf.aspect", &fontid, &aspect))
 		return NULL;
 
-	BLF_aspect(fontid, aspect);
+	BLF_aspect(fontid, aspect, aspect, 1.0);
 
 	Py_RETURN_NONE;
 }

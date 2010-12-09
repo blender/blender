@@ -45,7 +45,7 @@ int BLF_load_mem_unique(const char *name, unsigned char *mem, int mem_size);
 /* Attach a file with metrics information from memory. */
 void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size);
 
-void BLF_aspect(int fontid, float aspect);
+void BLF_aspect(int fontid, float x, float y, float z);
 void BLF_position(int fontid, float x, float y, float z);
 void BLF_size(int fontid, int size, int dpi);
 
@@ -195,6 +195,7 @@ void BLF_dir_free(char **dirs, int count);
 #define BLF_SHADOW (1<<2)
 #define BLF_KERNING_DEFAULT (1<<3)
 #define BLF_MATRIX (1<<4)
+#define BLF_ASPECT (1<<5)
 
 // XXX, bad design
 extern int blf_mono_font;

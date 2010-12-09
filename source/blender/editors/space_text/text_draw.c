@@ -61,7 +61,6 @@
 
 static void text_font_begin(SpaceText *st)
 {
-	BLF_aspect(mono, 1.0);
 	BLF_size(mono, st->lheight, 72);
 }
 

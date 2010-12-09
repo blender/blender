@@ -1009,7 +1009,6 @@ void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, i
 		scene->r.stamp_font_id= 12;
 
 	/* set before return */
-	BLF_aspect(mono, 1.0);
 	BLF_size(mono, scene->r.stamp_font_id, 72);
 	
 	BLF_buffer(mono, rectf, rect, width, height, channels);

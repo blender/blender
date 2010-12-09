@@ -133,7 +133,7 @@ typedef struct FontBLF {
 	char *filename;
 
 	/* aspect ratio or scale. */
-	float aspect;
+	float aspect[3];
 
 	/* initial position for draw the text. */
 	float pos[3];

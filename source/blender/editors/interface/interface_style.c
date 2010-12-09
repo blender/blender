@@ -319,14 +319,12 @@ void uiStyleInit(void)
 	if (blf_mono_font == -1)
 		blf_mono_font= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
 
-	BLF_aspect(blf_mono_font, 1.0);
 	BLF_size(blf_mono_font, 12, 72);
 	
 	/* second for rendering else we get threading problems */
 	if (blf_mono_font_render == -1)
 		blf_mono_font_render= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
 
-	BLF_aspect(blf_mono_font_render, 1.0);
 	BLF_size(blf_mono_font_render, 12, 72);
 }
 
