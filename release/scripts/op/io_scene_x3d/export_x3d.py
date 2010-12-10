@@ -256,7 +256,7 @@ class x3d_class:
         # note  dy seems to equal om[3][2]
 
         #location=(ob.matrix_world*MATWORLD).translation_part() # now passed
-        location=(mtx*MATWORLD).translation_part()
+        location=(MATWORLD * mtx).translation_part()
 
         radius = lamp.distance*math.cos(beamWidth)
         # radius = lamp.dist*math.cos(beamWidth)
@@ -301,8 +301,7 @@ class x3d_class:
             ambi = 0
             ambientIntensity = 0
 
-        # location=(ob.matrix_world*MATWORLD).translation_part() # now passed
-        location= (mtx*MATWORLD).translation_part()
+        location= (MATWORLD * mtx).translation_part()
 
         self.file.write("<PointLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity,self.cp)))
@@ -319,8 +318,8 @@ class x3d_class:
             return
         else:
             dx,dy,dz = self.computeDirection(mtx)
-            # location=(ob.matrix_world*MATWORLD).translation_part()
-            location=(mtx*MATWORLD).translation_part()
+            # location=(MATWORLD * ob.matrix_world).translation_part()
+            location=(MATWORLD * mtx).translation_part()
             self.writeIndented("<%s\n" % obname,1)
             self.writeIndented("direction=\"%s %s %s\"\n" % (round(dx,3),round(dy,3),round(dz,3)))
             self.writeIndented("location=\"%s %s %s\"\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
@@ -396,8 +395,7 @@ class x3d_class:
         else:
             bTwoSided=0
 
-        # mtx = ob.matrix_world * MATWORLD # mtx is now passed
-        mtx = mtx * MATWORLD
+        mtx = MATWORLD * mtx
 
         loc= mtx.translation_part()
         sca= mtx.scale_part()
@@ -985,7 +983,7 @@ class x3d_class:
     def computeDirection(self, mtx):
         x,y,z=(0,-1.0,0) # point down
 
-        ax,ay,az = (mtx*MATWORLD).to_euler()
+        ax,ay,az = (MATWORLD * mtx).to_euler()
 
         # ax *= DEG2RAD
         # ay *= DEG2RAD
