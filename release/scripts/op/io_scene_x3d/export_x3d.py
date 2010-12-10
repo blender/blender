@@ -65,8 +65,6 @@ class x3d_class:
         self.writingtexture = 0
         self.writingcoords = 0
         self.proto = 1
-        self.matonly = 0
-        self.share = 0
         self.billnode = 0
         self.halonode = 0
         self.collnode = 0
@@ -205,14 +203,14 @@ class x3d_class:
         # rot = (((rot[0]-90)*DEG2RAD), rot[1]*DEG2RAD, rot[2]*DEG2RAD)
         nRot = self.rotatePointForVRML( rot )
         # convert to Quaternion and to Angle Axis
-        Q  = self.eulerToQuaternions(nRot[0], nRot[1], nRot[2])
+        Q  = self.eulerToQuaternions(*nRot)
         Q1 = self.multiplyQuaternions(Q[0], Q[1])
         Qf = self.multiplyQuaternions(Q1, Q[2])
         angleAxis = self.quaternionToAngleAxis(Qf)
         self.file.write("<Viewpoint DEF=\"%s\" " % (self.cleanStr(ob.name)))
         self.file.write("description=\"%s\" " % (ob.name))
         self.file.write("centerOfRotation=\"0 0 0\" ")
-        self.file.write("position=\"%3.2f %3.2f %3.2f\" " % (loc[0], loc[1], loc[2]))
+        self.file.write("position=\"%3.2f %3.2f %3.2f\" " % loc)
         self.file.write("orientation=\"%3.2f %3.2f %3.2f %3.2f\" " % (angleAxis[0], angleAxis[1], -angleAxis[2], angleAxis[3]))
         self.file.write("fieldOfView=\"%.3f\" />\n\n" % (lens))
 
@@ -351,7 +349,6 @@ class x3d_class:
     def writeIndexedFaceSet(self, ob, mesh, mtx, world, EXPORT_TRI = False):
         imageMap={}   # set of used images
         sided={}	  # 'one':cnt , 'two':cnt
-        vColors={}	# 'multi':1
         meshName = self.cleanStr(ob.name)
 
         meshME = self.cleanStr(ob.data.name) # We dont care if its the mesh name or not
@@ -381,9 +378,6 @@ class x3d_class:
         # elif mode & Mesh.FaceModes.BILLBOARD and self.billnode == 0:
             self.writeIndented("<Billboard axisOfRotation=\"0 1 0\">\n",1)
             self.billnode = 1
-        elif 'OBJECT_COLOR' in mode and self.matonly == 0:
-        # elif mode & Mesh.FaceModes.OBCOL and self.matonly == 0:
-            self.matonly = 1
         # TF_TILES is marked as deprecated in DNA_meshdata_types.h
         # elif mode & Mesh.FaceModes.TILES and self.tilenode == 0:
         # 	self.tilenode = 1
@@ -392,7 +386,7 @@ class x3d_class:
             self.writeIndented("<Collision enabled=\"false\">\n",1)
             self.collnode = 1
 
-        nIFSCnt=self.countIFSSetsNeeded(mesh, imageMap, sided, vColors)
+        nIFSCnt=self.countIFSSetsNeeded(mesh, imageMap, sided)
 
         if nIFSCnt > 1:
             self.writeIndented("<Group DEF=\"%s%s\">\n" % ("G_", meshName),1)
@@ -482,10 +476,9 @@ class x3d_class:
 
             #--- output textureCoordinates if UV texture used
             if mesh.uv_textures.active:
-                if self.matonly == 1 and self.share == 1:
-                    self.writeFaceColors(mesh)
-                elif hasImageTexture == True:
-                    self.writeTextureCoordinates(mesh)
+                self.writeTextureCoordinates(mesh)
+            if mesh.vertex_colors.active:
+                self.writeFaceColors(mesh)
             #--- output coordinates
             self.writeCoordinates(ob, mesh, meshName, EXPORT_TRI)
 
@@ -496,14 +489,10 @@ class x3d_class:
 
             #--- output textureCoordinates if UV texture used
             if mesh.uv_textures.active:
-            # if mesh.faceUV:
-                if hasImageTexture == True:
-                    self.writeTextureCoordinates(mesh)
-                elif self.matonly == 1 and self.share == 1:
-                    self.writeFaceColors(mesh)
+                self.writeTextureCoordinates(mesh)
+            if mesh.vertex_colors.active:
+                self.writeFaceColors(mesh)
             #--- output vertexColors
-        self.matonly = 0
-        self.share = 0
 
         self.writingcoords = 0
         self.writingtexture = 0
@@ -817,7 +806,6 @@ class x3d_class:
             # for ob, ob_mat in BPyObject.getDerivedObjects(ob_main):
                 objType=ob.type
                 objName=ob.name
-                self.matonly = 0
                 if objType == "CAMERA":
                 # if objType == "Camera":
                     self.writeViewpoint(ob, ob_mat, scene)
@@ -899,7 +887,7 @@ class x3d_class:
             newName=newName.replace(bad,'_')
         return newName
 
-    def countIFSSetsNeeded(self, mesh, imageMap, sided, vColors):
+    def countIFSSetsNeeded(self, mesh, imageMap, sided):
         """
         countIFFSetsNeeded() - should look at a blender mesh to determine
         how many VRML IndexFaceSets or IndexLineSets are needed.  A
@@ -1024,12 +1012,7 @@ class x3d_class:
     # swap Y and Z to handle axis difference between Blender and VRML
     #------------------------------------------------------------------------
     def rotatePointForVRML(self, v):
-        x = v[0]
-        y = v[2]
-        z = -v[1]
-
-        vrmlPoint=[x, y, z]
-        return vrmlPoint
+        return v[0], v[2], -v[1]
 
     # For writing well formed VRML code
     #------------------------------------------------------------------------
