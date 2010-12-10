@@ -3555,8 +3555,12 @@ static void update_children(ParticleSimulationData *sim)
 	if((sim->psys->part->type == PART_HAIR) && (sim->psys->flag & PSYS_HAIR_DONE)==0)
 	/* don't generate children while growing hair - waste of time */
 		psys_free_children(sim->psys);
-	else if(sim->psys->part->childtype && sim->psys->totchild != get_psys_tot_child(sim->scene, sim->psys))
-		distribute_particles(sim, PART_FROM_CHILD);
+	else if(sim->psys->part->childtype) {
+		if(sim->psys->totchild != get_psys_tot_child(sim->scene, sim->psys))
+			distribute_particles(sim, PART_FROM_CHILD);
+		else
+			; /* Children are up to date, nothing to do. */
+	}
 	else
 		psys_free_children(sim->psys);
 }
@@ -3876,8 +3880,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 			BKE_ptcache_write_cache(use_cache, framenr);
 	}
 
-	if(init)
-		update_children(sim);
+	update_children(sim);
 
 /* cleanup */
 	if(psys->lattice){
