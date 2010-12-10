@@ -1261,8 +1261,9 @@ int ui_is_but_unit(uiBut *but)
 		return 0;
 
 	if (scene->unit.system == USER_UNIT_NONE) {
-	   if (unit_type != PROP_UNIT_ROTATION)
+		if (unit_type != PROP_UNIT_ROTATION) {
 			return 0;
+		}
 	}
 
 	return 1;
@@ -3181,7 +3182,7 @@ void uiButSetUnitType(uiBut *but, const int unit_type)
 int uiButGetUnitType(uiBut *but)
 {
 	if(but->rnaprop) {
-		return RNA_property_subtype(but->rnaprop);
+		return RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
 	}
 	else {
 		return ((int)but->unit_type)<<16;
