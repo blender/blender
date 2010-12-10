@@ -1259,6 +1259,12 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 
 	if(RNA_property_is_set(op->ptr, "text"))
 		return insert_text_exec(C, op);
+
+	if(RNA_property_is_set(op->ptr, "accent")) {
+		if(cu->len!=0 && cu->pos>0)
+			accentcode= 1;
+		return OPERATOR_FINISHED;
+	}
 	
 	/* tab should exit editmode, but we allow it to be typed using modifier keys */
 	if(event==TABKEY) {
@@ -1333,6 +1339,9 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		RNA_string_set(op->ptr, "text", inserted_utf8);
 	}
 
+	/* reset property? */
+	accentcode= 0;
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -1353,6 +1362,7 @@ void FONT_OT_text_insert(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");
+	RNA_def_boolean(ot->srna, "accent", 0, "Accent mode", "Next typed character will strike through previous, for special character input.");
 }
 
 

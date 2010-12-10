@@ -189,6 +189,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "FONT_OT_line_break", RETKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FONT_OT_text_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
+	RNA_boolean_set(WM_keymap_add_item(keymap, "FONT_OT_text_insert", BACKSPACEKEY, KM_PRESS, KM_ALT, 0)->ptr, "accent", 1); // accented characters
 
 	/* only set in editmode curve, by space_view3d listener */
 	keymap= WM_keymap_find(keyconf, "Curve", 0, 0);
