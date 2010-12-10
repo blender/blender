@@ -281,6 +281,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		mul_m4_v3(ob->obmat, median);
 	
 	if(block) {	// buttons
+		uiBut *but;
 		int but_y;
 		if((ob->parent) && (ob->partype == PARBONE))	but_y = 135;
 		else											but_y = 150;
@@ -291,7 +292,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		
 		uiBlockBeginAlign(block);
 		if(tot==1) {
-			uiBut *but;
 			uiDefBut(block, LABEL, 0, "Vertex:",					0, 130, 200, 20, 0, 0, 0, 0, 0, "");
 			uiBlockBeginAlign(block);
 
@@ -327,9 +327,12 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		else {
 			uiDefBut(block, LABEL, 0, "Median:",					0, 130, 200, 20, 0, 0, 0, 0, 0, "");
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:",		0, 110, 200, 20, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:",		0, 90, 200, 20, &(tfp->ve_median[1]), -lim, lim, 10, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",		0, 70, 200, 20, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
+			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:",		0, 110, 200, 20, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
+			uiButSetUnitType(but, PROP_UNIT_LENGTH);
+			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:",		0, 90, 200, 20, &(tfp->ve_median[1]), -lim, lim, 10, 3, "");
+			uiButSetUnitType(but, PROP_UNIT_LENGTH);
+			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",		0, 70, 200, 20, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
+			uiButSetUnitType(but, PROP_UNIT_LENGTH);
 			if(totw==tot) {
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:",	0, 50, 200, 20, &(tfp->ve_median[3]), 0.01, 100.0, 10, 3, "");
 				uiBlockEndAlign(block);
