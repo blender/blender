@@ -367,7 +367,7 @@ struct PyMethodDef BLF_methods[] = {
 	{"dimensions", (PyCFunction) py_blf_dimensions, METH_VARARGS, py_blf_dimensions_doc},
 	{"draw", (PyCFunction) py_blf_draw, METH_VARARGS, py_blf_draw_doc},
 	{"enable", (PyCFunction) py_blf_enable, METH_VARARGS, py_blf_enable_doc},
-	{"position", (PyCFunction)py_blf_position, METH_VARARGS, py_blf_position_doc},
+	{"position", (PyCFunction) py_blf_position, METH_VARARGS, py_blf_position_doc},
 	{"rotation", (PyCFunction) py_blf_rotation, METH_VARARGS, py_blf_rotation_doc},
 	{"shadow", (PyCFunction) py_blf_shadow, METH_VARARGS, py_blf_shadow_doc},
 	{"shadow_offset", (PyCFunction) py_blf_shadow_offset, METH_VARARGS, py_blf_shadow_offset_doc},

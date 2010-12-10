@@ -64,11 +64,16 @@ EXAMPLE_SET_USED = set()
 _BPY_STRUCT_FAKE = "bpy_struct"
 _BPY_FULL_REBUILD = False
 
+
 def undocumented_message(module_name, type_name, identifier):
-    message = "Undocumented (`contribute " \
-        "<http://wiki.blender.org/index.php/Dev:2.5/Py/API/Documentation/Contribute" \
-        "?action=edit&section=new&preload=Dev:2.5/Py/API/Documentation/Contribute/Howto-message" \
-        "&preloadtitle=%s.%s.%s>`_)\n\n" % (module_name, type_name, identifier)
+    if str(type_name).startswith('<module'):
+        preloadtitle = '%s.%s' % (module_name, identifier)
+    else:
+        preloadtitle = '%s.%s.%s' % (module_name, type_name, identifier)
+    message = "Undocumented (`contribute "\
+        "<http://wiki.blender.org/index.php/Dev:2.5/Py/API/Documentation/Contribute"\
+        "?action=edit&section=new&preload=Dev:2.5/Py/API/Documentation/Contribute/Howto-message"\
+        "&preloadtitle=%s>`_)\n\n" % preloadtitle
     return message
 
 
@@ -405,6 +410,9 @@ def rna2sphinx(BASEPATH):
 
 
     fw("   mathutils.rst\n\n")
+    fw("   mathutils.geometry.rst\n\n")
+    # XXX TODO
+    #fw("   bgl.rst\n\n")
     fw("   blf.rst\n\n")
     fw("   aud.rst\n\n")
     
@@ -485,11 +493,20 @@ def rna2sphinx(BASEPATH):
     import mathutils as module
     pymodule2sphinx(BASEPATH, "mathutils", module, "Math Types & Utilities (mathutils)")
     del module
+    
+    import mathutils.geometry as module
+    pymodule2sphinx(BASEPATH, "mathutils.geometry", module, "Geometry Utilities (mathutils.geometry)")
+    del module
 
     import blf as module
     pymodule2sphinx(BASEPATH, "blf", module, "Font Drawing (blf)")
     del module
     
+    # XXX TODO
+    #import bgl as module
+    #pymodule2sphinx(BASEPATH, "bgl", module, "Blender OpenGl wrapper (bgl)")
+    #del module
+
     import aud as module
     pymodule2sphinx(BASEPATH, "aud", module, "Audio System (aud)")
     del module

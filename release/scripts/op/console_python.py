@@ -264,7 +264,8 @@ def banner(context):
     sc = context.space_data
     version_string = sys.version.strip().replace('\n', ' ')
 
-    add_scrollback(" * Python Interactive Console %s *" % version_string, 'OUTPUT')
+    add_scrollback("PYTHON INTERACTIVE CONSOLE %s" % version_string, 'OUTPUT')
+    add_scrollback("", 'OUTPUT')
     add_scrollback("Command History:     Up/Down Arrow", 'OUTPUT')
     add_scrollback("Cursor:              Left/Right Home/End", 'OUTPUT')
     add_scrollback("Remove:              Backspace/Delete", 'OUTPUT')
