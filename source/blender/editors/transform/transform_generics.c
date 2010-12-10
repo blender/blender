@@ -770,13 +770,15 @@ void recalcData(TransInfo *t)
 			/* if animtimer is running, and the object already has animation data,
 			 * check if the auto-record feature means that we should record 'samples'
 			 * (i.e. uneditable animation values)
+			 *
+			 * context is needed for keying set poll() functions.
 			 */
 			// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-			if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+			if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
 				int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
 				
 				animrecord_check_state(t->scene, &ob->id, t->animtimer);
-				autokeyframe_pose_cb_func(NULL, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
+				autokeyframe_pose_cb_func(t->context, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
 			}
 			
 			/* old optimize trick... this enforces to bypass the depgraph */
