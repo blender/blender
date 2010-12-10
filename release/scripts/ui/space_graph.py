@@ -152,6 +152,7 @@ class GRAPH_MT_channel(bpy.types.Menu):
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
         layout.operator("anim.channels_visibility_set")
+        layout.operator_menu_enum("graph.extrapolation_type", "type", text="Extrapolation Mode")
 
         layout.separator()
         layout.operator("anim.channels_expand")
@@ -187,8 +188,7 @@ class GRAPH_MT_key(bpy.types.Menu):
         layout.separator()
         layout.operator_menu_enum("graph.handle_type", "type", text="Handle Type")
         layout.operator_menu_enum("graph.interpolation_type", "type", text="Interpolation Mode")
-        layout.operator_menu_enum("graph.extrapolation_type", "type", text="Extrapolation Mode")
-
+ 
         layout.separator()
         layout.operator("graph.clean")
         layout.operator("graph.sample")
