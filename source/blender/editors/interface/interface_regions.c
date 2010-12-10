@@ -384,7 +384,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 
 	if(but->rnaprop) {
-		int unit_type = RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
+		int unit_type= uiButGetUnitType(but);
 		
 		if (unit_type == PROP_UNIT_ROTATION) {
 			if (RNA_property_type(but->rnaprop) == PROP_FLOAT) {

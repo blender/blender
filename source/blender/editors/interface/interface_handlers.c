@@ -2210,7 +2210,7 @@ static float ui_numedit_apply_snapf(uiBut *but, float tempf, float softmin, floa
 		
 		if(ui_is_but_unit(but)) {
 			Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
-			int unit_type = RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
+			int unit_type= uiButGetUnitType(but)>>16;
 
 			if(bUnit_IsValid(scene->unit.system, unit_type)) {
 				fac= (float)bUnit_BaseScalar(scene->unit.system, unit_type);

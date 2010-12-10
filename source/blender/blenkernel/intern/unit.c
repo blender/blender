@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <assert.h>
 #include "BKE_unit.h"
 
 #include "BLI_math.h"
@@ -274,6 +275,7 @@ static struct bUnitCollection *bUnitSystems[][9] = {
 /* internal, has some option not exposed */
 static bUnitCollection *unit_get_system(int system, int type)
 {
+	assert((system > -1) && (system < UNIT_SYSTEM_TOT) && (type > -1) && (type < B_UNIT_TYPE_TOT));
 	return bUnitSystems[system][type]; /* select system to use, metric/imperial/other? */
 }
 
@@ -738,7 +740,7 @@ double bUnit_BaseScalar(int system, int type)
 /* external access */
 int bUnit_IsValid(int system, int type)
 {
-	return !(type < 0 || type >= B_UNIT_MAXDEF || system < 0 || system > UNIT_SYSTEM_TOT);
+	return !(system < 0 || system > UNIT_SYSTEM_TOT || type < 0 || type > B_UNIT_TYPE_TOT);
 }
 
 

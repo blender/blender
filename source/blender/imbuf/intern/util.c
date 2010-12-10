@@ -126,6 +126,7 @@ const char *imb_ext_movie[] = {
 	".flv",
 	".divx",
 	".xvid",
+	".mxf",
 	NULL};
 
 /* sort of wrong being here... */

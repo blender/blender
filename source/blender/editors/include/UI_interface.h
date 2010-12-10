@@ -441,6 +441,9 @@ uiBut *uiDefIconTextButO(uiBlock *block, int type, const char *opname, int opcon
 /* for passing inputs to ButO buttons */
 struct PointerRNA *uiButGetOperatorPtrRNA(uiBut *but);
 
+void uiButSetUnitType(uiBut *but, const int unit_type);
+int uiButGetUnitType(uiBut *but);
+
 /* Special Buttons
  *
  * Butons with a more specific purpose:

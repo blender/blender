@@ -67,7 +67,7 @@ double		bUnit_GetScaler(void *usys_pt, int index);
 #define 	B_UNIT_TIME 6
 #define 	B_UNIT_VELOCITY 7
 #define 	B_UNIT_ACCELERATION 8
-#define 	B_UNIT_MAXDEF 9
+#define 	B_UNIT_TYPE_TOT 9
 
 #ifdef __cplusplus
 }

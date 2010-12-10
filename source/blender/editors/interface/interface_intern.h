@@ -209,7 +209,8 @@ struct uiBut {
 	BIFIconID icon;
 	char lock;
 	char dt;
-	short changed; /* could be made into a single flag */
+	char changed; /* could be made into a single flag */
+	unsigned char unit_type; /* so buttons can support unit systems which are not RNA */
 	short modifier_key;
 	short iconadd;
 
