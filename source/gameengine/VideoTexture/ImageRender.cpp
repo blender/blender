@@ -181,7 +181,9 @@ void ImageRender::Render()
         frustrum.camnear = -mirrorOffset[2];
         frustrum.camfar = -mirrorOffset[2]+m_clip;
     }
+	// Store settings to be restored later
     const RAS_IRasterizer::StereoMode stereomode = m_rasterizer->GetStereoMode();
+	RAS_Rect area = m_canvas->GetWindowArea();
 
     // The screen area that ImageViewport will copy is also the rendering zone
     m_canvas->SetViewPort(m_position[0], m_position[1], m_position[0]+m_capSize[0]-1, m_position[1]+m_capSize[1]-1);
@@ -258,6 +260,9 @@ void ImageRender::Render()
 	m_scene->CalculateVisibleMeshes(m_rasterizer,m_camera);
 
 	m_scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
+
+	// restore the canvas area now that the render is completed
+	m_canvas->GetWindowArea() = area;
 }
 
 
