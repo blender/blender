@@ -248,19 +248,32 @@ static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 	int suspend= 0;
 	
 	for(steve= wm->jobs.first; steve; steve= steve->next) {
+		/* obvious case, no test needed */
 		if(steve==test || !steve->running) continue;
-		if(steve->startjob!=test->startjob && !(test->flag & WM_JOB_EXCL_RENDER)) continue;
-		if((test->flag & WM_JOB_EXCL_RENDER) && !(steve->flag & WM_JOB_EXCL_RENDER)) continue;
+		
+		/* if new job is not render, then check for same startjob */
+		if(0==(test->flag & WM_JOB_EXCL_RENDER)) 
+			if(steve->startjob!=test->startjob)
+				continue;
+		
+		/* if new job is render, any render job should be stopped */
+		if(test->flag & WM_JOB_EXCL_RENDER)
+		   if(0==(steve->flag & WM_JOB_EXCL_RENDER)) 
+			   continue;
 
 		suspend= 1;
 
 		/* if this job has higher priority, stop others */
-		if(test->flag & WM_JOB_PRIORITY)
+		if(test->flag & WM_JOB_PRIORITY) {
 			steve->stop= 1;
+			// printf("job stopped: %s\n", steve->name);
+		}
 	}
 
 	/* possible suspend ourselfs, waiting for other jobs, or de-suspend */
 	test->suspended= suspend;
+	// if(suspend) printf("job suspended: %s\n", test->name);
+
 }
 
 /* if job running, the same owner gave it a new job */
@@ -294,7 +307,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 				BLI_init_threads(&steve->threads, do_job_thread, 1);
 				BLI_insert_thread(&steve->threads, steve);
 
-				// printf("job started\n");
+				// printf("job started: %s\n", steve->name);
 			}
 			
 			/* restarted job has timer already */

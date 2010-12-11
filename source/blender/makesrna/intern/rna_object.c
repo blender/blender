@@ -583,6 +583,7 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob= (Object*)ptr->id.data;
 
+	DAG_id_tag_update(value.data, 0);
 	assign_material(ob, value.data, ob->actcol);
 }
 
