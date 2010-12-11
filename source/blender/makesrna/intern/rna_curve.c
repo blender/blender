@@ -847,7 +847,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	
 	static EnumPropertyItem prop_align_items[] = {
 		{CU_LEFT, "LEFT", 0, "Left", "Align text to the left"},
-		{CU_MIDDLE, "CENTRAL", 0, "Center", "Center text"},
+		{CU_MIDDLE, "CENTER", 0, "Center", "Center text"},
 		{CU_RIGHT, "RIGHT", 0, "Right", "Align text to the right"},
 		{CU_JUSTIFY, "JUSTIFY", 0, "Justify", "Align to the left and the right"},
 		{CU_FLUSH, "FLUSH", 0, "Flush", "Align to the left and the right, with equal character spacing"},
