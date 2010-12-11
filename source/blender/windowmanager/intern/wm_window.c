@@ -148,10 +148,9 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 			CTX_wm_window_set(C, NULL);
 	}	
 
-	if(wm->windrawable==win)
-		wm->windrawable= NULL;
-	if(wm->winactive==win)
-		wm->winactive= NULL;
+	/* always set drawable and active to NULL, prevents non-drawable state of main windows (bugs #22967 and #25071, possibly #22477 too) */
+	wm->windrawable= NULL;
+	wm->winactive= NULL;
 
 	/* end running jobs, a job end also removes its timer */
 	for(wt= wm->timers.first; wt; wt= wtnext) {
