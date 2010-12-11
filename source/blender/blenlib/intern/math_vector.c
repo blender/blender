@@ -231,6 +231,16 @@ void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const 
 /********************************* Geometry **********************************/
 
 /* Project v1 on v2 */
+void project_v2_v2v2(float c[2], const float v1[2], const float v2[2])
+{
+	float mul;
+	mul = dot_v2v2(v1, v2) / dot_v2v2(v2, v2);
+
+	c[0] = mul * v2[0];
+	c[1] = mul * v2[1];
+}
+
+/* Project v1 on v2 */
 void project_v3_v3v3(float c[3], const float v1[3], const float v2[3])
 {
 	float mul;

@@ -429,6 +429,11 @@ MINLINE int is_one_v3(const float *v)
 	return (v[0] == 1 && v[1] == 1 && v[2] == 1);
 }
 
+MINLINE int equals_v2v2(const float *v1, const float *v2)
+{
+	return ((v1[0]==v2[0]) && (v1[1]==v2[1]));
+}
+
 MINLINE int equals_v3v3(const float *v1, const float *v2)
 {
 	return ((v1[0]==v2[0]) && (v1[1]==v2[1]) && (v1[2]==v2[2]));

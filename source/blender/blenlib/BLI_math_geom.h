@@ -73,6 +73,7 @@ void closest_to_line_segment_v3(float r[3], float p[3], float l1[3], float l2[3]
 
 int isect_line_line_v2(float a1[2], float a2[2], float b1[2], float b2[2]);
 int isect_line_line_v2_short(short a1[2], short a2[2], short b1[2], short b2[2]);
+int isect_seg_seg_v2_point(float v1[2], float v2[2], float v3[2], float v4[2], float vi[2]);
 
 /* Returns the number of point of interests
  * 0 - lines are colinear
