@@ -833,9 +833,6 @@ void do_constraint_panels(bContext *C, void *ob_pt, int event)
 	
 	switch(event) {
 	case B_CONSTRAINT_TEST:
-		// XXX allqueue(REDRAWVIEW3D, 0);
-		// XXX allqueue(REDRAWBUTSOBJECT, 0);
-		// XXX allqueue(REDRAWBUTSEDIT, 0);
 		break;  // no handling
 	case B_CONSTRAINT_CHANGETARGET:
 		if (ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
@@ -855,10 +852,6 @@ void do_constraint_panels(bContext *C, void *ob_pt, int event)
 	else DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
-	
-	// XXX allqueue(REDRAWVIEW3D, 0);
-	// XXX allqueue(REDRAWBUTSOBJECT, 0);
-	// XXX allqueue(REDRAWBUTSEDIT, 0);
 }
 
 static void constraint_active_func(bContext *UNUSED(C), void *ob_v, void *con_v)
@@ -920,17 +913,19 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	uiItemR(row, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", 0);
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
-	/* XXX if (con->flag & CONSTRAINT_DISABLE)
-		uiBlockSetCol(block, TH_REDALERT);*/
-	
 	/* name */
 	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco+10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
+	if (con->flag & CONSTRAINT_DISABLE)
+		uiLayoutSetRedAlert(row, 1);
+	
 	if(proxy_protected == 0) {
 		uiItemR(row, &ptr, "name", 0, "", 0);
 	}
 	else
 		uiItemL(row, con->name, 0);
+	
+	uiLayoutSetRedAlert(row, 0);
 	
 	/* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
 	if (proxy_protected) {
@@ -1001,7 +996,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		box= uiLayoutBox(col);
 		block= uiLayoutAbsoluteBlock(box);
 		result= box;
-		}
+	}
 
 	/* clear any locks set up for proxies/lib-linking */
 	uiBlockClearButLock(block);

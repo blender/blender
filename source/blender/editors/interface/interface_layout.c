@@ -961,6 +961,9 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	else if(type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER) {
 		but= ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, flag);
 		ui_but_add_search(but, ptr, prop, NULL, NULL);
+		
+		if(layout->redalert)
+			uiButSetFlag(but, UI_BUT_REDALERT);
 	}
 	/* single button */
 	else {
@@ -971,6 +974,9 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 
 		if(toggle && but->type==OPTION)
 			but->type= TOG;
+		
+		if(layout->redalert)
+			uiButSetFlag(but, UI_BUT_REDALERT);
 	}
 	
 	if (no_bg)
