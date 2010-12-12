@@ -30,6 +30,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_screen_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_listbase.h"
@@ -352,23 +353,35 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		int butw, buth, unit;
 		int cols= (len >= 20)? 2: 1;
 		int colbuts= len/(2*cols);
+		int layer_used= 0;
 
 		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, 0));
 
 		unit= UI_UNIT_X*0.75;
 		butw= unit;
 		buth= unit;
+		
+		if(ptr->type == &RNA_Armature) {
+			bArmature *arm= (bArmature *)ptr->data;
+			layer_used= arm->layer_used;
+		}
 
 		for(b=0; b<cols; b++) {
 			uiBlockBeginAlign(block);
 
 			for(a=0; a<colbuts; a++) {
-				but= uiDefAutoButR(block, ptr, prop, a+b*colbuts, "", ICON_BLANK1, x + butw*a, y+buth, butw, buth);
+				if(layer_used & (1<<(a+b*colbuts))) icon= ICON_LAYER_USED;
+				else icon= ICON_BLANK1;
+					
+				but= uiDefAutoButR(block, ptr, prop, a+b*colbuts, "", icon, x + butw*a, y+buth, butw, buth);
 				if(subtype == PROP_LAYER_MEMBER)
 					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+b*colbuts));
 			}
 			for(a=0; a<colbuts; a++) {
-				but= uiDefAutoButR(block, ptr, prop, a+len/2+b*colbuts, "", ICON_BLANK1, x + butw*a, y, butw, buth);
+				if(layer_used & (1<<(a+len/2+b*colbuts))) icon= ICON_LAYER_USED;
+				else icon= ICON_BLANK1;
+				
+				but= uiDefAutoButR(block, ptr, prop, a+len/2+b*colbuts, "", icon, x + butw*a, y, butw, buth);
 				if(subtype == PROP_LAYER_MEMBER)
 					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+len/2+b*colbuts));
 			}

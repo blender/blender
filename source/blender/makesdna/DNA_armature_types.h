@@ -95,8 +95,7 @@ typedef struct bArmature {
 	short		deformflag; 
 	short		pathflag;
 	
-	int			pad;
-	
+	unsigned int layer_used;		/* for UI, to show which layers are there */
 	unsigned int layer, layer_protected;		/* for buttons to work, both variables in this order together */
 	
 // XXX depreceated... old animaton system (armature only viz) ---
