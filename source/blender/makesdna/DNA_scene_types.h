@@ -1159,8 +1159,9 @@ typedef enum SculptFlags {
 
 /* ImagePaintSettings.flag */
 #define IMAGEPAINT_DRAWING				1
-#define IMAGEPAINT_DRAW_TOOL			2
-#define IMAGEPAINT_DRAW_TOOL_DRAWING	4
+// #define IMAGEPAINT_DRAW_TOOL			2 // deprecated
+// #define IMAGEPAINT_DRAW_TOOL_DRAWING	4 // deprecated
+
 /* projection painting only */
 #define IMAGEPAINT_PROJECT_DISABLE		8	/* Non projection 3D painting */
 #define IMAGEPAINT_PROJECT_XRAY			16

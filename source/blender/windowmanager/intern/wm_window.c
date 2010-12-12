@@ -1007,6 +1007,9 @@ char *WM_clipboard_text_get(int selection)
 {
 	char *p, *p2, *buf, *newbuf;
 
+	if(G.background)
+		return NULL;
+
 	buf= (char*)GHOST_getClipboard(selection);
 	if(!buf)
 		return NULL;
@@ -1027,6 +1030,9 @@ char *WM_clipboard_text_get(int selection)
 
 void WM_clipboard_text_set(char *buf, int selection)
 {
+	if(G.background)
+		return;
+	
 #ifdef _WIN32
 	/* do conversion from \n to \r\n on Windows */
 	char *p, *p2, *newbuf;

@@ -285,15 +285,6 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Image Paint", "Properties of image and texture painting mode");
 	
 	/* booleans */
-
-	prop= RNA_def_property(srna, "show_brush_draw", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_DRAW_TOOL);
-	RNA_def_property_ui_text(prop, "Show Brush Draw", "Enables brush shape while drawing");
-
-	prop= RNA_def_property(srna, "show_brush", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_DRAW_TOOL_DRAWING);
-	RNA_def_property_ui_text(prop, "Show Brush", "Enables brush shape while not drawing");
-		
 	prop= RNA_def_property(srna, "use_projection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_DISABLE);
 	RNA_def_property_ui_text(prop, "Project Paint", "Use projection painting for improved consistency in the brush strokes");
