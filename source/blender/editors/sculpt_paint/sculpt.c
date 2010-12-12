@@ -1331,7 +1331,7 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 	int n;
 	float len;
 
-	if (brush->normal_weight > 0)
+	if (brush->normal_weight > 0 || brush->flag & BRUSH_FRONTFACE)
 		calc_sculpt_normal(sd, ss, an, nodes, totnode);
 
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
@@ -1423,7 +1423,7 @@ static void do_snake_hook_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes,
 	int n;
 	float len;
 
-	if (brush->normal_weight > 0)
+	if (brush->normal_weight > 0 || brush->flag & BRUSH_FRONTFACE)
 		calc_sculpt_normal(sd, ss, an, nodes, totnode);
 
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
