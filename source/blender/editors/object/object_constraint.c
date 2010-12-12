@@ -1029,14 +1029,19 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, bPoseChannel*, chan, selected_pose_bones) 
 	{
 		/* if we're not handling the object we're copying from, copy all constraints over */
-		if (pchan != chan)
+		if (pchan != chan) {
 			copy_constraints(&chan->constraints, &pchan->constraints, TRUE);
+			/* update flags (need to add here, not just copy) */
+			chan->constflag |= pchan->constflag;
+		}
 	}
 	CTX_DATA_END;
 	
 	/* force depsgraph to get recalculated since new relationships added */
 	DAG_scene_sort(bmain, scene);		/* sort order of objects/bones */
 
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, NULL);
+	
 	return OPERATOR_FINISHED;
 }
 
