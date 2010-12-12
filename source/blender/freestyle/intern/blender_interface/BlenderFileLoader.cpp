@@ -314,6 +314,18 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 				copy_v3_v3(n2, vlr->v2->n);
 				copy_v3_v3(n3, vlr->v3->n);
 				if (vlr->v4) copy_v3_v3(n4, vlr->v4->n);
+				if (obi->flag & R_TRANSFORMED) {
+					mul_m3_v3(obi->nmat, n1);
+					mul_m3_v3(obi->nmat, n2);
+					mul_m3_v3(obi->nmat, n3);
+					normalize_v3(n1);
+					normalize_v3(n2);
+					normalize_v3(n3);
+					if (vlr->v4) {
+						mul_m3_v3(obi->nmat, n4);
+						normalize_v3(n4);
+					}
+				}
 			} else {
 				RE_vlakren_get_normal(_re, obi, vlr, facenormal);
 				copy_v3_v3(n1, facenormal);
