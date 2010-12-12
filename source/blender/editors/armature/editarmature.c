@@ -4902,7 +4902,6 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 	ot->idname= "POSE_OT_scale_clear";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = pose_clear_scale_exec;
 	ot->poll = ED_operator_posemode;
 	
@@ -4971,7 +4970,6 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 	ot->idname= "POSE_OT_loc_clear";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = pose_clear_loc_exec;
 	ot->poll = ED_operator_posemode;
 	
@@ -5128,7 +5126,6 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 	ot->idname= "POSE_OT_rot_clear";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = pose_clear_rot_exec;
 	ot->poll = ED_operator_posemode;
 	
