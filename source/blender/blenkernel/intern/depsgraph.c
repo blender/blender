@@ -2427,6 +2427,8 @@ void DAG_id_tag_update(ID *id, short flag)
 {
 	Main *bmain= G.main;
 
+	if(id==NULL) return;
+	
 	/* tag ID for update */
 	id->flag |= LIB_ID_RECALC;
 	bmain->id_tag_update[id->name[0]] = 1;
