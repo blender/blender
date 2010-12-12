@@ -1030,36 +1030,35 @@ char *WM_clipboard_text_get(int selection)
 
 void WM_clipboard_text_set(char *buf, int selection)
 {
+	if(!G.background) {
 #ifdef _WIN32
-	/* do conversion from \n to \r\n on Windows */
-	char *p, *p2, *newbuf;
-	int newlen= 0;
-	
-	for(p= buf; *p; p++) {
-		if(*p == '\n')
-			newlen += 2;
-		else
-			newlen++;
-	}
-	
-	newbuf= MEM_callocN(newlen+1, "WM_clipboard_text_set");
-
-	for(p= buf, p2= newbuf; *p; p++, p2++) {
-		if(*p == '\n') { 
-			*(p2++)= '\r'; *p2= '\n';
+		/* do conversion from \n to \r\n on Windows */
+		char *p, *p2, *newbuf;
+		int newlen= 0;
+		
+		for(p= buf; *p; p++) {
+			if(*p == '\n')
+				newlen += 2;
+			else
+				newlen++;
 		}
-		else *p2= *p;
-	}
-	*p2= '\0';
-
-	GHOST_putClipboard((GHOST_TInt8*)newbuf, selection);
-	MEM_freeN(newbuf);
+		
+		newbuf= MEM_callocN(newlen+1, "WM_clipboard_text_set");
+	
+		for(p= buf, p2= newbuf; *p; p++, p2++) {
+			if(*p == '\n') { 
+				*(p2++)= '\r'; *p2= '\n';
+			}
+			else *p2= *p;
+		}
+		*p2= '\0';
+	
+		GHOST_putClipboard((GHOST_TInt8*)newbuf, selection);
+		MEM_freeN(newbuf);
 #else
-	GHOST_putClipboard((GHOST_TInt8*)buf, selection);
+		GHOST_putClipboard((GHOST_TInt8*)buf, selection);
 #endif
-
-	if(G.background)
-		return;
+	}
 }
 
 /* ******************* progress bar **************** */
