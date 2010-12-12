@@ -737,35 +737,35 @@ enum FileSortTypeE {
 #define SI_STICKY_VERTEX	2
 
 /* SpaceImage->flag */
-#define SI_BE_SQUARE	1<<0
-#define SI_EDITTILE		1<<1
-#define SI_CLIP_UV		1<<2
-#define SI_DRAWTOOL		1<<3
-#define SI_DEPRECATED1  1<<4	/* stick UVs to others in the same location */
-#define SI_DRAWSHADOW   1<<5
-#define SI_SELACTFACE   1<<6	/* deprecated */
-#define SI_DEPRECATED2	1<<7
-#define SI_DEPRECATED3  1<<8	/* stick UV selection to mesh vertex (UVs wont always be touching) */
-#define SI_COORDFLOATS  1<<9
-#define SI_PIXELSNAP	1<<10
-#define SI_LIVE_UNWRAP	1<<11
-#define SI_USE_ALPHA	1<<12
-#define SI_SHOW_ALPHA	1<<13
-#define SI_SHOW_ZBUF	1<<14
+#define SI_BE_SQUARE	(1<<0)
+#define SI_EDITTILE		(1<<1)
+#define SI_CLIP_UV		(1<<2)
+#define SI_DRAWTOOL		(1<<3)
+#define SI_DEPRECATED1  (1<<4)	/* stick UVs to others in the same location */
+#define SI_DRAWSHADOW   (1<<5)
+#define SI_SELACTFACE   (1<<6)	/* deprecated */
+#define SI_DEPRECATED2	(1<<7)
+#define SI_DEPRECATED3  (1<<8)	/* stick UV selection to mesh vertex (UVs wont always be touching) */
+#define SI_COORDFLOATS  (1<<9)
+#define SI_PIXELSNAP	(1<<10)
+#define SI_LIVE_UNWRAP	(1<<11)
+#define SI_USE_ALPHA	(1<<12)
+#define SI_SHOW_ALPHA	(1<<13)
+#define SI_SHOW_ZBUF	(1<<14)
 		/* next two for render window dislay */
-#define SI_PREVSPACE	1<<15
-#define SI_FULLWINDOW	1<<16
-#define SI_DEPRECATED4	1<<17
-#define SI_DEPRECATED5	1<<18
+#define SI_PREVSPACE	(1<<15)
+#define SI_FULLWINDOW	(1<<16)
+#define SI_DEPRECATED4	(1<<17)
+#define SI_DEPRECATED5	(1<<18)
 		/* this means that the image is drawn until it reaches the view edge,
 		 * in the image view, its unrelated to the 'tile' mode for texface */
-#define SI_DRAW_TILE	1<<19 
-#define SI_SMOOTH_UV	1<<20
-#define SI_DRAW_STRETCH	1<<21
-#define SI_DISPGP		1<<22
-#define SI_DRAW_OTHER	1<<23
+#define SI_DRAW_TILE	(1<<19)
+#define SI_SMOOTH_UV	(1<<20)
+#define SI_DRAW_STRETCH	(1<<21)
+#define SI_DISPGP		(1<<22)
+#define SI_DRAW_OTHER	(1<<23)
 
-#define SI_COLOR_CORRECTION	1<<24
+#define SI_COLOR_CORRECTION	(1<<24)
 
 /* SpaceIpo->flag (Graph Editor Settings) */
 	/* OLD DEPRECEATED SETTING */

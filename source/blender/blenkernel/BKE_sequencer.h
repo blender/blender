@@ -293,17 +293,17 @@ typedef struct SeqLoadInfo {
 } SeqLoadInfo;
 
 /* SeqLoadInfo.flag */
-#define SEQ_LOAD_REPLACE_SEL	1<<0
-#define SEQ_LOAD_FRAME_ADVANCE	1<<1
-#define SEQ_LOAD_MOVIE_SOUND	1<<2
-#define SEQ_LOAD_SOUND_CACHE	1<<3
+#define SEQ_LOAD_REPLACE_SEL	(1<<0)
+#define SEQ_LOAD_FRAME_ADVANCE	(1<<1)
+#define SEQ_LOAD_MOVIE_SOUND	(1<<2)
+#define SEQ_LOAD_SOUND_CACHE	(1<<3)
 
 
 /* seq_dupli' flags */
-#define SEQ_DUPE_UNIQUE_NAME	1<<0
-#define SEQ_DUPE_CONTEXT		1<<1
-#define SEQ_DUPE_ANIM			1<<2
-#define SEQ_DUPE_ALL			1<<3 /* otherwise only selected are copied */
+#define SEQ_DUPE_UNIQUE_NAME	(1<<0)
+#define SEQ_DUPE_CONTEXT		(1<<1)
+#define SEQ_DUPE_ANIM			(1<<2)
+#define SEQ_DUPE_ALL			(1<<3) /* otherwise only selected are copied */
 
 /* use as an api function */
 typedef struct Sequence *(*SeqLoadFunc)(struct bContext *, ListBase *, struct SeqLoadInfo *);
