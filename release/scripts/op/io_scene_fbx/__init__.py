@@ -86,8 +86,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         if self.TX_ZROT90:
             GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
 
+        keywords = self.as_keywords(ignore=("TX_XROT90", "TX_YROT90", "TX_ZROT90", "TX_SCALE", "check_existing", "filter_glob"))
+        keywords["GLOBAL_MATRIX"] = GLOBAL_MATRIX
+
         import io_scene_fbx.export_fbx
-        return io_scene_fbx.export_fbx.save(self, context, **self.as_keywords(ignore=("TX_XROT90", "TX_YROT90", "TX_ZROT90", "TX_SCALE", "check_existing", "filter_glob")))
+        return io_scene_fbx.export_fbx.save(self, context, **keywords)
 
 
 def menu_func(self, context):
