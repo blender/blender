@@ -703,6 +703,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_GPENCIL:
 				case ND_ANIMPLAY:
+				case ND_SKETCH:
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_SCREENBROWSE:

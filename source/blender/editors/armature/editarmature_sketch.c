@@ -2456,6 +2456,7 @@ static int sketch_delete(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(ev
 		sk_deleteSelectedStrokes(sketch);
 //			allqueue(REDRAWVIEW3D, 0);
 	}
+	WM_event_add_notifier(C, NC_SCREEN|ND_SKETCH|NA_REMOVED, NULL);
 	return OPERATOR_FINISHED;
 }
 
