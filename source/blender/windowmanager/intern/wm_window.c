@@ -1030,9 +1030,6 @@ char *WM_clipboard_text_get(int selection)
 
 void WM_clipboard_text_set(char *buf, int selection)
 {
-	if(G.background)
-		return;
-	
 #ifdef _WIN32
 	/* do conversion from \n to \r\n on Windows */
 	char *p, *p2, *newbuf;
@@ -1060,6 +1057,9 @@ void WM_clipboard_text_set(char *buf, int selection)
 #else
 	GHOST_putClipboard((GHOST_TInt8*)buf, selection);
 #endif
+
+	if(G.background)
+		return;
 }
 
 /* ******************* progress bar **************** */
