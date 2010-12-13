@@ -202,9 +202,8 @@ static char *rna_LatticePoint_path(PointerRNA *ptr)
 			return BLI_sprintfN("points[%d]", pt_index);
 		}
 	}
-	else {
-		return BLI_strdup("");
-	}
+
+	return BLI_strdup("");
 }
 
 
