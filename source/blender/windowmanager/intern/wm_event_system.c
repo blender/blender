@@ -385,9 +385,10 @@ int WM_operator_poll_context(bContext *C, wmOperatorType *ot, int context)
 	return wm_operator_call_internal(C, ot, NULL, NULL, context, TRUE);
 }
 
-static void wm_operator_print(wmOperator *op)
+static void wm_operator_print(bContext *C, wmOperator *op)
 {
-	char *buf = WM_operator_pystring(NULL, op->type, op->ptr, 1);
+	/* context is needed for enum function */
+	char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
 	printf("%s\n", buf);
 	MEM_freeN(buf);
 }
@@ -404,7 +405,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 	
 	if(retval & OPERATOR_FINISHED) {
 		if(G.f & G_DEBUG)
-			wm_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
+			wm_operator_print(C, op); /* todo - this print may double up, might want to check more flags then the FINISHED */
 		
 		if (op->type->flag & OPTYPE_REGISTER) {
 			/* Report the python string representation of the operator */
@@ -1289,7 +1290,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 						
 						if (retval & OPERATOR_FINISHED)
 							if(G.f & G_DEBUG)
-								wm_operator_print(handler->op);
+								wm_operator_print(C, handler->op);
 						
 						/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
 						if(CTX_wm_manager(C) == wm && wm->op_undo_depth == 0)
