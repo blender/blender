@@ -11173,6 +11173,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(part = main->particle.first; part; part = part->id.next) {
 			if(part->boids)
 				part->boids->pitch = 1.0f;
+
+			part->flag &= ~PART_HAIR_REGROW; /* this was a deprecated flag before */
 		}
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {

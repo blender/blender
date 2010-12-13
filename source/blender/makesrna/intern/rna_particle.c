@@ -1183,6 +1183,11 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Multi React", "React multiple times");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
+	prop= RNA_def_property(srna, "regrow_hair", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_HAIR_REGROW);
+	RNA_def_property_ui_text(prop, "Regrow", "Regrow hair for each frame");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+
 	prop= RNA_def_property(srna, "show_unborn", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_UNBORN);
 	RNA_def_property_ui_text(prop, "Unborn", "Show particles before they are emitted");

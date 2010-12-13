@@ -125,7 +125,9 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
                     if psys.is_edited:
                         split.operator("particle.edited_clear", text="Free Edit")
                     else:
-                        split.label(text="")
+                        row = split.row()
+                        row.enabled = particle_panel_enabled(context, psys)
+                        row.prop(part, "regrow_hair")
                     row = split.row()
                     row.enabled = particle_panel_enabled(context, psys)
                     row.prop(part, "hair_step")

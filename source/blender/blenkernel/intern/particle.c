@@ -3473,7 +3473,7 @@ static void default_particle_settings(ParticleSettings *part)
 	part->bb_uv_split=1;
 	part->bb_align=PART_BB_VIEW;
 	part->bb_split_offset=PART_BB_OFF_LINEAR;
-	part->flag=PART_REACT_MULTIPLE|PART_HAIR_GEOMETRY|PART_EDISTR|PART_TRAND;
+	part->flag=PART_EDISTR|PART_TRAND;
 
 	part->sta= 1.0;
 	part->end= 200.0;
