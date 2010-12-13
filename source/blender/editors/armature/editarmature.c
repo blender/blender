@@ -152,6 +152,47 @@ void ED_armature_edit_bone_remove(bArmature *arm, EditBone *exBone)
 	bone_free(arm, exBone);
 }
 
+/* context: editmode armature */
+EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
+{
+	EditBone *eboflip= NULL;
+	char name[32];
+	
+	if (ebo == NULL)
+		return NULL;
+	
+	flip_side_name(name, ebo->name, FALSE);
+	
+	for (eboflip= edbo->first; eboflip; eboflip=eboflip->next) {
+		if (ebo != eboflip) {
+			if (!strcmp (name, eboflip->name)) 
+				break;
+		}
+	}
+	
+	return eboflip;
+}
+
+/* helper function for tools to work on mirrored parts.
+   it leaves mirrored bones selected then too, which is a good indication of what happened */
+static void armature_select_mirrored(bArmature *arm)
+{
+	/* Select mirrored bones */
+	if (arm->flag & ARM_MIRROR_EDIT) {
+		EditBone *curBone, *ebone_mirr;
+		
+		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
+			if (arm->layer & curBone->layer) {
+				if (curBone->flag & BONE_SELECTED) {
+					ebone_mirr= ED_armature_bone_get_mirrored(arm->edbo, curBone);
+					if (ebone_mirr)
+						ebone_mirr->flag |= BONE_SELECTED;
+				}
+			}
+		}
+	}
+	
+}
 
 /* converts Bones to EditBone list, used for tools as well */
 EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone *actBone)
@@ -1749,28 +1790,6 @@ static EditBone *get_nearest_editbonepoint (ViewContext *vc, short mval[2], List
 	return NULL;
 }
 
-/* context: editmode armature */
-EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
-{
-	EditBone *eboflip= NULL;
-	char name[32];
-	
-	if (ebo == NULL)
-		return NULL;
-
-	flip_side_name(name, ebo->name, FALSE);
-	
-	for (eboflip= edbo->first; eboflip; eboflip=eboflip->next) {
-		if (ebo != eboflip) {
-			if (!strcmp (name, eboflip->name)) 
-				break;
-		}
-	}
-	
-	return eboflip;
-}
-
-
 /* previously delete_armature */
 /* only editmode! */
 static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1785,18 +1804,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
 		return OPERATOR_CANCELLED;
 	
-	/* Select mirrored bones */
-	if (arm->flag & ARM_MIRROR_EDIT) {
-		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
-			if (arm->layer & curBone->layer) {
-				if (curBone->flag & BONE_SELECTED) {
-					ebone_next= ED_armature_bone_get_mirrored(arm->edbo, curBone);
-					if (ebone_next)
-						ebone_next->flag |= BONE_SELECTED;
-				}
-			}
-		}
-	}
+	armature_select_mirrored(arm);
 	
 	/*  First erase any associated pose channel */
 	if (obedit->pose) {
@@ -3721,6 +3729,9 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	/* get chains of bones (ends on chains) */
 	chains_find_tips(arm->edbo, &chains);
 	if (chains.first == NULL) return OPERATOR_CANCELLED;
+	
+	/* leaves mirrored bones selected, as indication of operation */
+	armature_select_mirrored(arm);
 	
 	/* loop over chains, only considering selected and visible bones */
 	for (chain= chains.first; chain; chain= chain->next) {
