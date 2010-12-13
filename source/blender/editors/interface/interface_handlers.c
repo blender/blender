@@ -4116,6 +4116,11 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
 	if(but->rnapoin.data && but->rnaprop) {
+		short is_anim= RNA_property_animateable(&but->rnapoin, but->rnaprop);
+
+		/* second slower test, saved people finding keyframe items in menus when its not possible */
+		if(is_anim)
+			is_anim= RNA_property_path_from_ID_check(&but->rnapoin, but->rnaprop);
 
 		length= RNA_property_array_length(&but->rnapoin, but->rnaprop);
 		
@@ -4133,7 +4138,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			}
 		}
 		else if(but->flag & UI_BUT_DRIVEN);
-		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
+		else if(is_anim) {
 			if(length) {
 				uiItemBooleanO(layout, "Insert Keyframes", 0, "ANIM_OT_keyframe_insert_button", "all", 1);
 				uiItemBooleanO(layout, "Insert Single Keyframe", 0, "ANIM_OT_keyframe_insert_button", "all", 0);
@@ -4158,7 +4163,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
 		}
 		else if(but->flag & (UI_BUT_ANIMATED_KEY|UI_BUT_ANIMATED));
-		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
+		else if(is_anim) {
 			uiItemS(layout);
 
 			if(length) {
@@ -4173,7 +4178,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		}
 		
 		/* Keying Sets */
-		if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
+		if(is_anim) {
 			uiItemS(layout);
 
 			if(length) {

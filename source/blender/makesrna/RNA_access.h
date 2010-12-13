@@ -682,6 +682,7 @@ int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 int RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop); /* without lib check, only checks the flag */
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_path_from_ID_check(PointerRNA *ptr, PropertyRNA *prop); /* slow, use with care */
 
 void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_update_main(struct Main *bmain, struct Scene *scene, PointerRNA *ptr, PropertyRNA *prop);

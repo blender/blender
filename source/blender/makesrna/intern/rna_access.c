@@ -1238,6 +1238,29 @@ int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
 	return 0;
 }
 
+
+/* this function is to check if its possible to create a valid path from the ID
+ * its slow so dont call in a loop */
+int RNA_property_path_from_ID_check(PointerRNA *ptr, PropertyRNA *prop)
+{
+	char *path= RNA_path_from_ID_to_property(ptr, prop);
+	int ret= 0;
+
+	if(path) {
+		PointerRNA id_ptr;
+		PointerRNA r_ptr;
+		PropertyRNA *r_prop;
+
+		RNA_id_pointer_create(ptr->id.data, &id_ptr);
+		RNA_path_resolve(&id_ptr, path, &r_ptr, &r_prop);
+		ret= (prop == r_prop);
+		MEM_freeN(path);
+	}
+
+	return ret;
+}
+
+
 static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerRNA *ptr, PropertyRNA *prop)
 {
 	int is_rna = (prop->magic == RNA_MAGIC);
@@ -4760,4 +4783,3 @@ int RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, i
 
 	return 0;
 }
-
