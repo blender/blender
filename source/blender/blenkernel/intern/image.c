@@ -2149,7 +2149,8 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 						BLI_lock_thread(LOCK_VIEWER);
 						*lock_r= ima;
 
-						frame= iuser?iuser->framenr:0;
+						/* XXX anim play for viewer nodes not yet supported */
+						frame= 0; // XXX iuser?iuser->framenr:0;
 						ibuf= image_get_ibuf(ima, 0, frame);
 
 						if(!ibuf) {
