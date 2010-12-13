@@ -42,6 +42,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_path_util.h"
+#include "BLI_editVert.h"
 
 #include "BKE_curve.h"
 #include "BKE_context.h"
@@ -68,6 +69,7 @@
 #include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_mesh.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -192,8 +194,16 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 	else if(md->type == eModifierType_Multires) {
 		Mesh *me= ob->data;
 
-		CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
-		CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
+		if(me->edit_mesh) {
+			EditMesh *em= me->edit_mesh;
+			/* CustomData_external_remove is used here only to mark layer as non-external
+			   for further free-ing, so zero element count looks safer than em->totface */
+			CustomData_external_remove(&em->fdata, &me->id, CD_MDISPS, 0);
+			EM_free_data_layer(em, &em->fdata, CD_MDISPS);
+		} else {
+			CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
+			CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
+		}
 	}
 
 	if(ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth) &&

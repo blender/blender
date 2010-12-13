@@ -37,6 +37,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_pbvh.h"
+#include "BLI_editVert.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
@@ -278,7 +279,10 @@ void multiresModifier_set_levels_from_disps(MultiresModifierData *mmd, Object *o
 	Mesh *me = ob->data;
 	MDisps *mdisp;
 
-	mdisp = CustomData_get_layer(&me->fdata, CD_MDISPS);
+	if(me->edit_mesh)
+		mdisp = CustomData_get_layer(&me->edit_mesh->fdata, CD_MDISPS);
+	else
+		mdisp = CustomData_get_layer(&me->fdata, CD_MDISPS);
 
 	if(mdisp) {
 		mmd->totlvl = get_levels_from_disps(ob);
