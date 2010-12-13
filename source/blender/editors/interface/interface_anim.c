@@ -84,6 +84,8 @@ int ui_but_anim_expression_set(uiBut *but, const char *str)
 
 		if(driver && driver->type == DRIVER_TYPE_PYTHON) {
 			BLI_strncpy(driver->expression, str, sizeof(driver->expression));
+			driver->flag |= DRIVER_FLAG_RECOMPILE;
+			WM_event_add_notifier(but->block->evil_C, NC_ANIMATION|ND_KEYFRAME, NULL);
 			return 1;
 		}
 	}
