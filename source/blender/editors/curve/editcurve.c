@@ -1108,8 +1108,10 @@ void ED_curve_updateAnimPaths(Object *obedit)
 		nu_index++;
 	}
 
+	/* the remainders in orig_curves can be copied back (like follow path) */
+	addlisttolist(&curves, &orig_curves);
+	
 	free_fcurves(&ad->action->curves);
-	free_fcurves(&orig_curves);
 	ad->action->curves= curves;
 }
 
