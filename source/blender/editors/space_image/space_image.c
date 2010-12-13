@@ -505,6 +505,7 @@ void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_scopes", PKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, KM_ALT, 0)->ptr, "reverse", TRUE);
 	
 	keymap= WM_keymap_find(keyconf, "Image", SPACE_IMAGE, 0);
 	
