@@ -756,7 +756,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 					bt= block->buttons.last;
 					bt->flag= UI_TEXT_LEFT;
 				}
-				else
+				else /* XXX bug here, collums draw bottom item badly */
 					uiItemS(column);
 			}
 		}
