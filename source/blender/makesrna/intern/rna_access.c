@@ -3085,36 +3085,76 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 			*index= -1;
 
 			if (*path) {
-				if (*path=='[') {
-					token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
+				int index_arr[RNA_MAX_ARRAY_DIMENSION]= {0};
+				int len[RNA_MAX_ARRAY_DIMENSION];
+				const int dim= RNA_property_array_dimension(&curptr, prop, len);
+				int i, temp_index;
 
-					if(token==NULL) {
-						/* invalid syntax blah[] */
-						return 0;
-					}
-					/* check for "" to see if it is a string */
-					else if(rna_token_strip_quotes(token)) {
-						*index= RNA_property_array_item_index(prop, *(token+1));
-					}
-					else {
-						/* otherwise do int lookup */
-						*index= atoi(token);
-						if(intkey==0 && (token[0] != '0' || token[1] != '\0')) {
-							return 0; /* we can be sure the fixedbuf was used in this case */
+				for(i=0; i<dim; i++) {
+					temp_index= -1; 
+
+					/* multi index resolve */
+					if (*path=='[') {
+						token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
+	
+						if(token==NULL) {
+							/* invalid syntax blah[] */
+							return 0;
+						}
+						/* check for "" to see if it is a string */
+						else if(rna_token_strip_quotes(token)) {
+							temp_index= RNA_property_array_item_index(prop, *(token+1));
+						}
+						else {
+							/* otherwise do int lookup */
+							temp_index= atoi(token);
+
+							if(temp_index==0 && (token[0] != '0' || token[1] != '\0')) {
+								if(token != fixedbuf) {
+									MEM_freeN(token);
+								}
+
+								return 0;
+							}
 						}
 					}
-				}
-				else {
-					token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
-					if(token==NULL) {
-						/* invalid syntax blah.. */
-						return 0;
+					else if(dim==1) {
+						/* location.x || scale.X, single dimension arrays only */
+						token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
+						if(token==NULL) {
+							/* invalid syntax blah.. */
+							return 0;
+						}
+						temp_index= RNA_property_array_item_index(prop, *token);
 					}
-					*index= RNA_property_array_item_index(prop, *token);
+	
+					if(token != fixedbuf) {
+						MEM_freeN(token);
+					}
+					
+					/* out of range */
+					if(temp_index < 0 || temp_index >= len[i])
+						return 0;
+
+					index_arr[i]= temp_index;
+					/* end multi index resolve */
 				}
 
-				if(token != fixedbuf)
-					MEM_freeN(token);
+				/* arrays always contain numbers so further values are not valid */
+				if(*path) {
+					return 0;
+				}
+				else {
+					int totdim= 1;
+					int flat_index= 0;
+
+					for(i=dim-1; i>=0; i--) {
+						flat_index += index_arr[i] * totdim;
+						totdim *= len[i];
+					}
+
+					*index= flat_index;
+				}
 			}
 		}
 	}
