@@ -31,6 +31,7 @@
 
 #include "DNA_ID.h"
 
+struct AnimData;
 struct BPoint;
 struct Ipo;
 struct Key;
@@ -46,6 +47,7 @@ typedef struct EditLatt {
 
 typedef struct Lattice {
 	ID id;
+	struct AnimData *adt;
 	
 	short pntsu, pntsv, pntsw, flag;
 	short opntsu, opntsv, opntsw, pad2;
@@ -56,7 +58,7 @@ typedef struct Lattice {
 	
 	struct BPoint *def;
 	
-	struct Ipo *ipo;
+	struct Ipo *ipo;  /* XXX: depreceated... old animation system */
 	struct Key *key;
 	
 	struct MDeformVert *dvert;

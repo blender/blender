@@ -3421,6 +3421,7 @@ static void lib_link_latt(FileData *fd, Main *main)
 	lt= main->latt.first;
 	while(lt) {
 		if(lt->id.flag & LIB_NEEDLINK) {
+			if(lt->adt) lib_link_animdata(fd, &lt->id, lt->adt);
 			
 			lt->ipo= newlibadr_us(fd, lt->id.lib, lt->ipo); // XXX depreceated - old animation system
 			lt->key= newlibadr_us(fd, lt->id.lib, lt->key);
@@ -3439,6 +3440,9 @@ static void direct_link_latt(FileData *fd, Lattice *lt)
 	direct_link_dverts(fd, lt->pntsu*lt->pntsv*lt->pntsw, lt->dvert);
 	
 	lt->editlatt= NULL;
+	
+	lt->adt = newdataadr(fd, lt->adt);
+	direct_link_animdata(fd, lt->adt);
 }
 
 
@@ -11766,6 +11770,9 @@ static void expand_lattice(FileData *fd, Main *mainvar, Lattice *lt)
 {
 	expand_doit(fd, mainvar, lt->ipo); // XXX depreceated - old animation system
 	expand_doit(fd, mainvar, lt->key);
+	
+	if (lt->adt)
+		expand_animdata(fd, mainvar, lt->adt);
 }
 
 

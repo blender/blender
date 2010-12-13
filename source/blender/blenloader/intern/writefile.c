@@ -1557,7 +1557,10 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_LT, "Lattice", 1, lt);
 			if (lt->id.properties) IDP_WriteProperty(lt->id.properties, wd);
-
+			
+			/* write animdata */
+			if (lt->adt) write_animdata(wd, lt->adt);
+			
 			/* direct data */
 			writestruct(wd, DATA, "BPoint", lt->pntsu*lt->pntsv*lt->pntsw, lt->def);
 			
