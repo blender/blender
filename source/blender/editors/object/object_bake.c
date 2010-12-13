@@ -235,7 +235,7 @@ static void bake_freejob(void *bkv)
 	BakeRender *bkr= bkv;
 	finish_bake_internal(bkr);
 
-	if(bkr->tot==0) BKE_report(bkr->reports, RPT_ERROR, "No valid images found to bake to");
+	if(bkr->tot==0) BKE_report(bkr->reports, RPT_ERROR, "No objects or images found to bake to");
 	MEM_freeN(bkr);
 	G.rendering = 0;
 }
