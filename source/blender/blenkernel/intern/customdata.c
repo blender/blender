@@ -396,7 +396,6 @@ static void layerDefault_origspace_face(void *data, int count)
 		osf[i] = default_osf;
 }
 
-#if 0
 /* Adapted from sculptmode.c */
 static void mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, float v)
 {
@@ -442,7 +441,6 @@ static void mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, fl
 
 	add_v3_v3v3(out, d2[0], d2[1]);
 }
-#endif
 
 static void layerSwap_mdisps(void *data, const int *ci)
 {
@@ -475,64 +473,280 @@ static void layerSwap_mdisps(void *data, const int *ci)
 	}
 }
 
-static void layerInterp_mdisps(void **UNUSED(sources), float *UNUSED(weights),
-				float *UNUSED(sub_weights), int UNUSED(count), void *dest)
+static void mdisp_get_crn_rect(int face_side, float crn[3][4][2])
 {
-	MDisps *d = dest;
-	int i;
+	float offset = face_side*0.5f - 0.5f;
+	float mid[2];
 
-	// XXX
-#if 0
+	mid[0] = offset * 4 / 3;
+	mid[1] = offset * 2 / 3;
+
+	crn[0][0][0] = mid[0]; crn[0][0][1] = mid[1];
+	crn[0][1][0] = offset; crn[0][1][1] = 0;
+	crn[0][2][0] = 0; crn[0][2][1] = 0;
+	crn[0][3][0] = offset; crn[0][3][1] = offset;
+
+	crn[1][0][0] = mid[0]; crn[1][0][1] = mid[1];
+	crn[1][1][0] = offset * 2; crn[1][1][1] = offset;
+	crn[1][2][0] = offset * 2; crn[1][2][1] = 0;
+	crn[1][3][0] = offset; crn[1][3][1] = 0;
+
+	crn[2][0][0] = mid[0]; crn[2][0][1] = mid[1];
+	crn[2][1][0] = offset; crn[2][1][1] = offset;
+	crn[2][2][0] = offset * 2; crn[2][2][1] = offset * 2;
+	crn[2][3][0] = offset * 2; crn[2][3][1] = offset;
+}
+
+static void mdisp_rot_crn_to_face(int S, int corners, int face_side, float x, float y, float *u, float *v)
+{
+	float offset = face_side*0.5f - 0.5f;
+
+	if(corners == 4) {
+		if(S == 1) { *u= offset + x; *v = offset - y; }
+		if(S == 2) { *u= offset + y; *v = offset + x; }
+		if(S == 3) { *u= offset - x; *v = offset + y; }
+		if(S == 0) { *u= offset - y; *v = offset - x; }
+	} else {
+		float crn[3][4][2], vec[4][2];
+		float p[2];
+
+		mdisp_get_crn_rect(face_side, crn);
+
+		interp_v2_v2v2(vec[0], crn[S][0], crn[S][1], x / offset);
+		interp_v2_v2v2(vec[1], crn[S][3], crn[S][2], x / offset);
+		interp_v2_v2v2(vec[2], crn[S][0], crn[S][3], y / offset);
+		interp_v2_v2v2(vec[3], crn[S][1], crn[S][2], y / offset);
+
+		isect_seg_seg_v2_point(vec[0], vec[1], vec[2], vec[3], p);
+
+		(*u) = p[0];
+		(*v) = p[1];
+	}
+}
+
+static int mdisp_pt_in_crn(float p[2], float crn[4][2])
+{
+	float v[2][2];
+	float a[2][2];
+
+	sub_v2_v2v2(v[0], crn[1], crn[0]);
+	sub_v2_v2v2(v[1], crn[3], crn[0]);
+
+	sub_v2_v2v2(a[0], p, crn[0]);
+	sub_v2_v2v2(a[1], crn[2], crn[0]);
+
+	if(cross_v2v2(a[0], v[0]) * cross_v2v2(a[1], v[0]) < 0)
+		return 0;
+
+	if(cross_v2v2(a[0], v[1]) * cross_v2v2(a[1], v[1]) < 0)
+		return 0;
+
+	return 1;
+}
+
+static void face_to_crn_interp(float u, float v, float v1[2], float v2[2], float v3[2], float v4[2], float *x)
+{
+	float a = (v4[1]-v3[1])*v2[0]+(-v4[1]+v3[1])*v1[0]+(-v2[1]+v1[1])*v4[0]+(v2[1]-v1[1])*v3[0];
+	float b = (v3[1]-v)*v2[0]+(v4[1]-2*v3[1]+v)*v1[0]+(-v4[1]+v3[1]+v2[1]-v1[1])*u+(v4[0]-v3[0])*v-v1[1]*v4[0]+(-v2[1]+2*v1[1])*v3[0];
+	float c = (v3[1]-v)*v1[0]+(-v3[1]+v1[1])*u+v3[0]*v-v1[1]*v3[0];
+	float d = b * b - 4 * a * c;
+	float x1, x2;
+
+	if(a == 0) {
+		*x = -c / b;
+		return;
+	}
+
+	x1 = (-b - sqrtf(d)) / (2 * a);
+	x2 = (-b + sqrtf(d)) / (2 * a);
+
+	*x = maxf(x1, x2);
+}
+
+static int mdisp_rot_face_to_crn(int corners, int face_side, float u, float v, float *x, float *y)
+{
+	float offset = face_side*0.5f - 0.5f;
+	int S;
+
+	if (corners == 4) {
+		if(u <= offset && v <= offset) S = 0;
+		else if(u > offset  && v <= offset) S = 1;
+		else if(u > offset  && v > offset) S = 2;
+		else if(u <= offset && v >= offset)  S = 3;
+
+		if(S == 0) {
+			*y = offset - u;
+			*x = offset - v;
+		} else if(S == 1) {
+			*x = u - offset;
+			*y = offset - v;
+		} else if(S == 2) {
+			*y = u - offset;
+			*x = v - offset;
+		} else if(S == 3) {
+			*x= offset - u;
+			*y = v - offset;
+		}
+	} else {
+		float crn[3][4][2];
+		float p[2] = {u, v};
+
+		mdisp_get_crn_rect(face_side, crn);
+
+		for (S = 0; S < 3; ++S) {
+			if (mdisp_pt_in_crn(p, crn[S]))
+				break;
+		}
+
+		face_to_crn_interp(u, v, crn[S][0], crn[S][1], crn[S][3], crn[S][2], &p[0]);
+		face_to_crn_interp(u, v, crn[S][0], crn[S][3], crn[S][1], crn[S][2], &p[1]);
+
+		*x = p[0] * offset;
+		*y = p[1] * offset;
+	}
+
+	return S;
+}
+
+static void mdisp_apply_weight(int S, int corners, int x, int y, int face_side,
+	float crn_weight[4][2], float *u_r, float *v_r)
+{
+	float u, v, xl, yl;
+	float mid1[2], mid2[2], mid3[2];
+
+	mdisp_rot_crn_to_face(S, corners, face_side, x, y, &u, &v);
+
+	if(corners == 4) {
+		xl = u / (face_side - 1);
+		yl = v / (face_side - 1);
+
+		mid1[0] = crn_weight[0][0] * (1 - xl) + crn_weight[1][0] * xl;
+		mid1[1] = crn_weight[0][1] * (1 - xl) + crn_weight[1][1] * xl;
+		mid2[0] = crn_weight[3][0] * (1 - xl) + crn_weight[2][0] * xl;
+		mid2[1] = crn_weight[3][1] * (1 - xl) + crn_weight[2][1] * xl;
+		mid3[0] = mid1[0] * (1 - yl) + mid2[0] * yl;
+		mid3[1] = mid1[1] * (1 - yl) + mid2[1] * yl;
+	} else {
+		yl = v / (face_side - 1);
+
+		if(v == face_side - 1) xl = 1;
+		else xl = 1 - (face_side - 1 - u) / (face_side - 1 - v);
+
+		mid1[0] = crn_weight[0][0] * (1 - xl) + crn_weight[1][0] * xl;
+		mid1[1] = crn_weight[0][1] * (1 - xl) + crn_weight[1][1] * xl;
+		mid3[0] = mid1[0] * (1 - yl) + crn_weight[2][0] * yl;
+		mid3[1] = mid1[1] * (1 - yl) + crn_weight[2][1] * yl;
+	}
+
+	*u_r = mid3[0];
+	*v_r = mid3[1];
+}
+
+static void mdisp_flip_disp(int S, int corners, float axis_x[2], float axis_y[2], float disp[3])
+{
+	float crn_x[2], crn_y[2];
+	float vx[2], vy[2], coord[2];
+
+	if (corners == 4) {
+		float x[4][2] = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
+		float y[4][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+
+		copy_v2_v2(crn_x, x[S]);
+		copy_v2_v2(crn_y, y[S]);
+
+		mul_v2_v2fl(vx, crn_x, disp[0]);
+		mul_v2_v2fl(vy, crn_y, disp[1]);
+		add_v2_v2v2(coord, vx, vy);
+
+		project_v2_v2v2(vx, coord, axis_x);
+		project_v2_v2v2(vy, coord, axis_y);
+
+		disp[0] = len_v2(vx);
+		disp[1] = len_v2(vy);
+
+		if(dot_v2v2(vx, axis_x) < 0)
+			disp[0] = -disp[0];
+
+		if(dot_v2v2(vy, axis_y) < 0)
+			disp[1] = -disp[1];
+	} else {
+		/* XXX: it was very overhead code to support displacement flipping
+		        for case of tris without visible profit.
+		        Maybe its not really big limitation? for now? (nazgul) */
+		disp[0] = 0;
+		disp[1] = 0;
+	}
+}
+
+static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
+				float *sub_weights, int count, void *dest)
+{
 	MDisps *d = dest;
 	MDisps *s = NULL;
 	int st, stl;
 	int i, x, y;
-	float crn[4][2];
+	int side, S, dst_corners, src_corners;
+	float crn_weight[4][2];
 	float (*sw)[4] = NULL;
-
-	/* Initialize the destination */
-	for(i = 0; i < d->totdisp; ++i) {
-		float z[3] = {0,0,0};
-		copy_v3_v3(d->disps[i], z);
-	}
-
-	/* For now, some restrictions on the input */
-	if(count != 1 || !sub_weights) return;
-
-	st = sqrt(d->totdisp);
-	stl = st - 1;
-
-	sw = (void*)sub_weights;
-	for(i = 0; i < 4; ++i) {
-		crn[i][0] = 0 * sw[i][0] + stl * sw[i][1] + stl * sw[i][2] + 0 * sw[i][3];
-		crn[i][1] = 0 * sw[i][0] + 0 * sw[i][1] + stl * sw[i][2] + stl * sw[i][3];
-	}
+	float (*disps)[3], (*out)[3];
 
 	s = sources[0];
-	for(y = 0; y < st; ++y) {
-		for(x = 0; x < st; ++x) {
-			/* One suspects this code could be cleaner. */
-			float xl = (float)x / (st - 1);
-			float yl = (float)y / (st - 1);
-			float mid1[2] = {crn[0][0] * (1 - xl) + crn[1][0] * xl,
-					 crn[0][1] * (1 - xl) + crn[1][1] * xl};
-			float mid2[2] = {crn[3][0] * (1 - xl) + crn[2][0] * xl,
-					 crn[3][1] * (1 - xl) + crn[2][1] * xl};
-			float mid3[2] = {mid1[0] * (1 - yl) + mid2[0] * yl,
-					 mid1[1] * (1 - yl) + mid2[1] * yl};
+	dst_corners = multires_mdisp_corners(d);
+	src_corners = multires_mdisp_corners(d);
 
-			float srcdisp[3];
-
-			mdisps_bilinear(srcdisp, s->disps, st, mid3[0], mid3[1]);
-			copy_v3_v3(d->disps[y * st + x], srcdisp);
-		}
-	}
-#else
-	if(d->disps) {
+	/* XXX: For now, some restrictions on the input
+	        should be implemented to allow quad<->tris face conversion */
+	if(count != 1 || !sub_weights || dst_corners != src_corners) {
 		for(i = 0; i < d->totdisp; ++i)
 			zero_v3(d->disps[i]);
+
+		return;
 	}
-#endif
+
+	/* Initialize the destination */
+	out = disps = MEM_callocN(3*d->totdisp*sizeof(float), "iterp disps");
+
+	side = sqrt(d->totdisp / dst_corners);
+	st = (side<<1)-1;
+	stl = st - 1;
+
+	sw= (void*)sub_weights;
+	for(i = 0; i < 4; ++i) {
+		crn_weight[i][0] = 0 * sw[i][0] + stl * sw[i][1] + stl * sw[i][2] + 0 * sw[i][3];
+		crn_weight[i][1] = 0 * sw[i][0] + 0 * sw[i][1] + stl * sw[i][2] + stl * sw[i][3];
+	}
+
+	multires_mdisp_smooth_bounds(s);
+
+	out = disps;
+	for(S = 0; S < dst_corners; S++) {
+		float base[2], axis_x[2], axis_y[2];
+
+		mdisp_apply_weight(S, dst_corners, 0, 0, st, crn_weight, &base[0], &base[1]);
+		mdisp_apply_weight(S, dst_corners, side-1, 0, st, crn_weight, &axis_x[0], &axis_x[1]);
+		mdisp_apply_weight(S, dst_corners, 0, side-1, st, crn_weight, &axis_y[0], &axis_y[1]);
+
+		sub_v3_v3(axis_x, base);
+		sub_v3_v3(axis_y, base);
+		normalize_v2(axis_x);
+		normalize_v2(axis_y);
+
+		for(y = 0; y < side; ++y) {
+			for(x = 0; x < side; ++x, ++out) {
+				int crn;
+				float face_u, face_v, crn_u, crn_v;
+
+				mdisp_apply_weight(S, dst_corners, x, y, st, crn_weight, &face_u, &face_v);
+				crn = mdisp_rot_face_to_crn(src_corners, st, face_u, face_v, &crn_u, &crn_v);
+
+				mdisps_bilinear((*out), &s->disps[crn*side*side], side, crn_u, crn_v);
+				mdisp_flip_disp(crn, dst_corners, axis_x, axis_y, *out);
+			}
+		}
+	}
+
+	MEM_freeN(d->disps);
+	d->disps = disps;
 }
 
 static void layerCopy_mdisps(const void *source, void *dest, int count)

@@ -76,6 +76,7 @@ void multiresModifier_scale_disp(struct Scene *scene, struct Object *ob);
 void multiresModifier_prepare_join(struct Scene *scene, struct Object *ob, struct Object *to_ob);
 
 int multires_mdisp_corners(struct MDisps *s);
+void multires_mdisp_smooth_bounds(struct MDisps *disps);
 
 /* update multires data after topology changing */
 void multires_topology_changed(struct Object *ob);

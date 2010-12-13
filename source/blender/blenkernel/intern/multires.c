@@ -1647,3 +1647,130 @@ void multires_topology_changed(Object *ob)
 		}
 	}
 }
+
+/* makes displacement along grid boundary symmetrical */
+void multires_mdisp_smooth_bounds(MDisps *disps)
+{
+	int x, y, side, S, corners;
+	float (*out)[3];
+
+	corners = multires_mdisp_corners(disps);
+	side = sqrt(disps->totdisp / corners);
+
+	out = disps->disps;
+	for(S = 0; S < corners; S++) {
+		for(y = 0; y < side; ++y) {
+			for(x = 0; x < side; ++x, ++out) {
+				float (*dispgrid)[3];
+				float *data;
+
+				if(x != 0 && y != 0) continue;
+
+				if(corners == 4) {
+					if(S == 0) {
+						if(y == 0) {
+							dispgrid = &disps->disps[1*side*side];
+							data = dispgrid[side * x + 0];
+
+							(*out)[0] = (*out)[0] + data[1];
+							(*out)[1] = (*out)[1] - data[0];
+							(*out)[2] = (*out)[2] + data[2];
+
+							mul_v3_fl(*out, 0.5);
+
+							data[0] = -(*out)[1];
+							data[1] = (*out)[0];
+							data[2] = (*out)[2];
+						} else if (x == 0) {
+							dispgrid = &disps->disps[3 * side * side];
+							data = dispgrid[side * 0 + y];
+
+							(*out)[0] = (*out)[0] - data[1];
+							(*out)[1] = (*out)[1] + data[0];
+							(*out)[2] = (*out)[2] + data[2];
+
+							mul_v3_fl(*out, 0.5);
+
+							data[0] = (*out)[1];
+							data[1] = -(*out)[0];
+							data[2] = (*out)[2];
+						}
+					} else if (S == 2) {
+						if(y == 0) {
+							dispgrid = &disps->disps[3 * side * side];
+							data = dispgrid[side * x + 0];
+
+							(*out)[0] = (*out)[0] + data[1];
+							(*out)[1] = (*out)[1] - data[0];
+							(*out)[2] = (*out)[2] + data[2];
+
+							mul_v3_fl(*out, 0.5);
+
+							data[0] = -(*out)[1];
+							data[1] = (*out)[0];
+							data[2] = (*out)[2];
+						} else if(x == 0) {
+							dispgrid = &disps->disps[1 * side * side];
+							data = dispgrid[side * 0 + y];
+
+							(*out)[0] = (*out)[0] - data[1];
+							(*out)[1] = (*out)[1] + data[0];
+							(*out)[2] = (*out)[2] + data[2];
+
+							mul_v3_fl(*out, 0.5);
+
+							data[0] = (*out)[1];
+							data[1] = -(*out)[0];
+							data[2] = (*out)[2];
+						}
+					}
+				} else if (corners == 3) {
+					if(S == 0) {
+						if(y == 0) {
+							dispgrid = &disps->disps[1*side*side];
+							data = dispgrid[side * x + 0];
+
+							(*out)[0] = (*out)[0] + data[1];
+							(*out)[1] = (*out)[1] - data[0];
+							(*out)[2] = (*out)[2] + data[2];
+
+							mul_v3_fl(*out, 0.5);
+
+							data[0] = -(*out)[1];
+							data[1] = (*out)[0];
+							data[2] = (*out)[2];
+						} else if (x == 0) {
+							dispgrid = &disps->disps[2 * side * side];
+							data = dispgrid[side * 0 + y];
+
+							(*out)[0] = (*out)[0] - data[1];
+							(*out)[1] = (*out)[1] + data[0];
+							(*out)[2] = (*out)[2] + data[2];
+
+							mul_v3_fl(*out, 0.5);
+
+							data[0] = (*out)[1];
+							data[1] = -(*out)[0];
+							data[2] = (*out)[2];
+						}
+					} else if (S == 2) {
+						if(x == 0) {
+							dispgrid = &disps->disps[1 * side * side];
+							data = dispgrid[side * 0 + y];
+
+							(*out)[0] = (*out)[0] - data[1];
+							(*out)[1] = (*out)[1] + data[0];
+							(*out)[2] = (*out)[2] + data[2];
+
+							mul_v3_fl(*out, 0.5);
+
+							data[0] = (*out)[1];
+							data[1] = -(*out)[0];
+							data[2] = (*out)[2];
+						}
+					}
+				}
+			}
+		}
+	}
+}
