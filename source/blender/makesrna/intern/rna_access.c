@@ -3807,7 +3807,31 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 		const char *identifier;
 		int val = RNA_property_enum_get(ptr, prop);
 
-		if(RNA_property_enum_identifier(C, ptr, prop, val, &identifier)) {
+		if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+			/* represent as a python set */
+			EnumPropertyItem *item= NULL;
+			int free;
+
+			BLI_dynstr_append(dynstr, "{");
+
+			RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
+			if(item) {
+				short is_first= TRUE;
+				for (; item->identifier; item++) {
+					if(item->identifier[0] && item->value & val) {
+						BLI_dynstr_appendf(dynstr, is_first ? "'%s'" : ", '%s'", item->identifier);
+						is_first= FALSE;
+					}
+				}
+
+				if(free) {
+					MEM_freeN(item);
+				}
+			}
+
+			BLI_dynstr_append(dynstr, "}");
+		}
+		else if(RNA_property_enum_identifier(C, ptr, prop, val, &identifier)) {
 			BLI_dynstr_appendf(dynstr, "'%s'", identifier);
 		}
 		else {
