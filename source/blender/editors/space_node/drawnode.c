@@ -1017,6 +1017,11 @@ static void node_composit_buts_huecorrect(uiLayout *layout, bContext *UNUSED(C),
 	uiTemplateCurveMapping(layout, ptr, "mapping", 'h', 0, 0);
 }
 
+static void node_composit_buts_ycc(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{ 
+	uiItemR(layout, ptr, "mode", 0, "", 0);
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -1161,6 +1166,10 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_ZCOMBINE:
 			ntype->uifunc=node_composit_buts_zcombine;
 			 break;
+		case CMP_NODE_COMBYCCA:
+		case CMP_NODE_SEPYCCA:
+			ntype->uifunc=node_composit_buts_ycc;
+			break;
 		default:
 			ntype->uifunc= NULL;
 	}

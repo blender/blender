@@ -630,6 +630,11 @@ static EnumPropertyItem node_filter_items[] = {
 {6, "SHADOW",  0, "Shadow",  ""},
 {0, NULL, 0, NULL, NULL}};
 
+static EnumPropertyItem node_ycc_items[] = {
+{ 0, "ITUBT601", 0, "ITU 601",  ""},
+{ 1, "ITUBT709", 0, "ITU 709",  ""},
+{ 2, "JFIF",     0, "Jpeg",     ""},
+{0, NULL, 0, NULL, NULL}};
 
 #define MaxNodes 1000
 
@@ -2200,6 +2205,17 @@ static void def_cmp_zcombine(StructRNA *srna)
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 0);
 	RNA_def_property_ui_text(prop, "Use Alpha", "Takes Alpha channel into account when doing the Z operation");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_ycc(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, node_ycc_items);
+	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
