@@ -2795,7 +2795,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	ParticleSettings *part = psys->part;
 	ParticleCacheKey *ca, **cache= psys->pathcache;
 
-	DerivedMesh *hair_dm = psys->hair_out_dm;
+	DerivedMesh *hair_dm = (psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS) ? psys->hair_out_dm : NULL;
 	
 	ParticleKey result;
 	
@@ -2828,7 +2828,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	BLI_srandom(psys->seed);
 
 	keyed = psys->flag & PSYS_KEYED;
-	baked = !hair_dm && psys->pointcache->mem_cache.first;
+	baked = psys->pointcache->mem_cache.first && psys->part->type != PART_HAIR;
 
 	/* clear out old and create new empty path cache */
 	psys_free_path_cache(psys, psys->edit);

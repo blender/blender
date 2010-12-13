@@ -302,6 +302,7 @@ static void rna_Particle_target_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Particle_hair_dynamics(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
+	Object *ob = (Object*)ptr->id.data;
 	ParticleSystem *psys = (ParticleSystem*)ptr->data;
 	
 	if(psys && !psys->clmd) {
@@ -313,6 +314,8 @@ static void rna_Particle_hair_dynamics(Main *bmain, Scene *scene, PointerRNA *pt
 	}
 	else
 		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
 {
