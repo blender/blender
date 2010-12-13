@@ -4908,7 +4908,7 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 	PyObject *item, *key;
 	PyObject *order;
 	Py_ssize_t pos = 0;
-	int ret;
+	int ret= 0;
 
 	/* in both cases PyDict_CheckExact(class_dict) will be true even
 	 * though Operators have a metaclass dict namespace */
@@ -4918,7 +4918,7 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 			key= PyList_GET_ITEM(order, pos);
 			item= PyDict_GetItem(class_dict, key);
 			ret= deferred_register_prop(srna, key, item);
-			if(ret==-1)
+			if(ret != 0)
 				break;
 		}
 	}
@@ -4926,12 +4926,12 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 		while (PyDict_Next(class_dict, &pos, &key, &item)) {
 			ret= deferred_register_prop(srna, key, item);
 
-			if(ret==-1)
+			if(ret != 0)
 				break;
 		}
 	}
 
-	return 0;
+	return ret;
 }
 
 static int pyrna_deferred_register_class_recursive(StructRNA *srna, PyTypeObject *py_class)
