@@ -35,6 +35,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -961,6 +962,9 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 //	int transopts;
 	char *cpoin = NULL;
 	
+	/* for underline drawing */
+	float font_xofs, font_yofs;
+
 	uiStyleFontSet(fstyle);
 	
 	if(but->editstr || (but->flag & UI_TEXT_LEFT))
@@ -1038,7 +1042,40 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	}
 	
 	glColor3ubv((unsigned char*)wcol->text);
-	uiStyleFontDraw(fstyle, rect, but->drawstr+but->ofs);
+
+	uiStyleFontDrawExt(fstyle, rect, but->drawstr+but->ofs, &font_xofs, &font_yofs);
+
+	if(but->menu_key != '\0') {
+		char fixedbuf[128];
+		char *str;
+
+		BLI_strncpy(fixedbuf, but->drawstr + but->ofs, sizeof(fixedbuf));
+
+		str= strchr(fixedbuf, but->menu_key-32); /* upper case */
+		if(str==NULL)
+			str= strchr(fixedbuf, but->menu_key);
+
+		if(str) {
+			int ul_index= -1;
+			float ul_advance;
+
+			ul_index= (int)(str - fixedbuf);
+
+			if (fstyle->kerning == 1) {
+				BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+			}
+
+			fixedbuf[ul_index]= '\0';
+			ul_advance= BLF_width(fstyle->uifont_id, fixedbuf);
+
+			BLF_position(fstyle->uifont_id, rect->xmin+font_xofs + ul_advance, rect->ymin+font_yofs, 0.0f);
+			BLF_draw(fstyle->uifont_id, "_", 2);
+
+			if (fstyle->kerning == 1) {
+				BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+			}
+		}
+	}
 
 	/* part text right aligned */
 	if(cpoin) {

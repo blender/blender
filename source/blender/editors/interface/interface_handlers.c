@@ -5635,8 +5635,65 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 
 						retval= WM_UI_HANDLER_BREAK;
 					}
-
 					break;
+
+				/* Handle keystrokes on menu items */
+				case AKEY:
+				case BKEY:
+				case CKEY:
+				case DKEY:
+				case EKEY:
+				case FKEY:
+				case GKEY:
+				case HKEY:
+				case IKEY:
+				case JKEY:
+				case KKEY:
+				case LKEY:
+				case MKEY:
+				case NKEY:
+				case OKEY:
+				case PKEY:
+				case QKEY:
+				case RKEY:
+				case SKEY:
+				case TKEY:
+				case UKEY:
+				case VKEY:
+				case WKEY:
+				case XKEY:
+				case YKEY:
+				case ZKEY:
+				{
+					if(event->val == KM_PRESS) {
+						count= 0;
+						for(but= block->buttons.first; but; but= but->next) {
+
+							if(but->menu_key==event->type) {
+								if(but->type == BUT) {
+									/* mainly for operator buttons */
+									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_APPLY);
+								}
+								else if(ELEM(but->type, BLOCK, PULLDOWN)) {
+									/* open submenus (like right arrow key) */
+									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_OPEN);
+								}
+								else if (but->type == MENU) {
+									/* activate menu items */
+									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
+								}
+								else {
+									printf("Error, but->menu_key type: %d\n", but->type);
+								}
+
+								break;
+							}
+						}
+
+						retval= WM_UI_HANDLER_BREAK;
+					}
+					break;
+				}
 			}
 		}
 		

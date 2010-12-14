@@ -237,9 +237,10 @@ struct uiBut {
 	struct IDProperty *opproperties;
 	struct PointerRNA *opptr;
 	short opcontext;
-	
+	unsigned char menu_key; /* 'a'-'z', always lower case */
+
 	/* Draggable data, type is WM_DRAG_... */
-	short dragtype;
+	char dragtype;
 	void *dragpoin;
 	struct ImBuf *imb;
 	float imb_scale;

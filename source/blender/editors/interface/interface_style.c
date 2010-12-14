@@ -136,7 +136,9 @@ static uiFont *uifont_to_blfont(int id)
 
 /* *************** draw ************************ */
 
-void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, const char *str)
+
+void uiStyleFontDrawExt(uiFontStyle *fs, rcti *rect, const char *str,
+	float *r_xofs, float *r_yofs)
 {
 	float height;
 	int xofs=0, yofs;
@@ -171,6 +173,16 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, const char *str)
 		BLF_disable(fs->uifont_id, BLF_SHADOW);
 	if (fs->kerning == 1)
 		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
+
+	*r_xofs= xofs;
+	*r_yofs= yofs;
+}
+
+void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, const char *str)
+{
+	float xofs, yofs;
+	uiStyleFontDrawExt(fs, rect, str,
+		&xofs, &yofs);
 }
 
 /* drawn same as above, but at 90 degree angle */

@@ -29,6 +29,7 @@
 #include <limits.h>
 #include <math.h>
 #include <string.h>
+#include <ctype.h>
  
 #include "MEM_guardedalloc.h"
 
@@ -585,6 +586,77 @@ int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
 	return 1;
 }
 
+/* assigns automatic keybindings to menu items for fast access
+ * (underline key in menu) */
+static void ui_menu_block_set_keyaccels(uiBlock *block)
+{
+	uiBut *but;
+
+	unsigned int meny_key_mask= 0;
+	unsigned char menu_key;
+	const char *str_pt;
+	int pass;
+	int tot_missing= 0;
+
+	/* only do it before bounding */
+	if(block->minx != block->maxx)
+		return;
+
+	for(pass=0; pass<2; pass++) {
+		/* 2 Passes, on for first letter only, second for any letter if first fails
+		 * fun first pass on all buttons so first word chars always get first priority */
+
+		for(but=block->buttons.first; but; but=but->next) {
+			if(!ELEM4(but->type, BUT, MENU, BLOCK, PULLDOWN) || (but->flag & UI_HIDDEN)) {
+				/* pass */
+			}
+			else if(but->menu_key=='\0') {
+				if(but->str) {
+					for(str_pt= but->str; *str_pt; ) {
+						menu_key= tolower(*str_pt);
+						if((menu_key >= 'a' && menu_key <= 'z') && !(meny_key_mask & 1<<(menu_key-'a'))) {
+							meny_key_mask |= 1<<(menu_key-'a');
+							break;
+						}
+
+						if(pass==0) {
+							/* Skip to next delimeter on first pass (be picky) */
+							while(isalpha(*str_pt))
+								str_pt++;
+
+							if(*str_pt)
+								str_pt++;
+						}
+						else {
+							/* just step over every char second pass and find first usable key */
+							str_pt++;
+						}
+					}
+
+					if(*str_pt) {
+						but->menu_key= menu_key;
+					}
+					else {
+						/* run second pass */
+						tot_missing++;
+					}
+
+					/* if all keys have been used just exit, unlikely */
+					if(meny_key_mask == (1<<26)-1) {
+						return;
+					}
+				}
+			}
+		}
+
+		/* check if second pass is needed */
+		if(!tot_missing) {
+			break;
+		}
+	}
+}
+
+
 void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
@@ -658,6 +730,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	/* handle pending stuff */
 	if(block->layouts.first) uiBlockLayoutResolve(block, NULL, NULL);
 	ui_block_do_align(block);
+	if((block->flag & UI_BLOCK_LOOP) && (block->flag & UI_BLOCK_NUMSELECT)) ui_menu_block_set_keyaccels(block); /* could use a different flag to check */
 	if(block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
 	
 	/* after keymaps! */
