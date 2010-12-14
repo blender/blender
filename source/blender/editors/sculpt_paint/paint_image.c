@@ -4013,8 +4013,9 @@ static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, s
 	if(ibuf->rect_float)
 		/* TODO - should just update a portion from imapaintpartial! */
 		imb_freerectImBuf(ibuf); /* force recreate of char rect */
+	
 	if(ibuf->mipmap[0])
-		imb_freemipmapImBuf(ibuf);
+		ibuf->userflags |= IB_MIPMAP_INVALID;
 
 	/* todo: should set_tpage create ->rect? */
 	if(texpaint || (sima && sima->lock)) {

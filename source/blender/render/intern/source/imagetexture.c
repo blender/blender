@@ -960,6 +960,30 @@ static void alpha_clip_aniso(ImBuf *ibuf, float minx, float miny, float maxx, fl
 	}
 }
 
+static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
+{
+	if (tex->imaflag & TEX_MIPMAP) {
+		if ((ibuf->flags & IB_fields) == 0) {
+			
+			if (ibuf->mipmap[0] && (ibuf->userflags & IB_MIPMAP_INVALID)) {
+				BLI_lock_thread(LOCK_IMAGE);
+				if (ibuf->userflags & IB_MIPMAP_INVALID) {
+					IMB_remakemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
+					ibuf->userflags &= ~IB_MIPMAP_INVALID;
+				}				
+				BLI_unlock_thread(LOCK_IMAGE);
+			}
+			if (ibuf->mipmap[0] == NULL) {
+				BLI_lock_thread(LOCK_IMAGE);
+				if (ibuf->mipmap[0] == NULL) 
+					IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
+				BLI_unlock_thread(LOCK_IMAGE);
+			}
+		}
+	}
+	
+}
+
 static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, float *dyt, TexResult *texres)
 {
 	TexResult texr;
@@ -996,15 +1020,9 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, 
 
 	if ((ibuf == NULL) || ((ibuf->rect == NULL) && (ibuf->rect_float == NULL))) return retval;
 
-	// mipmap test
-	if (tex->imaflag & TEX_MIPMAP) {
-		if (((ibuf->flags & IB_fields) == 0) && (ibuf->mipmap[0] == NULL)) {
-			BLI_lock_thread(LOCK_IMAGE);
-			if (ibuf->mipmap[0] == NULL) IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
-			BLI_unlock_thread(LOCK_IMAGE);
-		}
-	}
-
+	/* mipmap test */
+	image_mipmap_test(tex, ibuf);
+	
 	if ((tex->imaflag & TEX_USEALPHA) && ((tex->imaflag & TEX_CALCALPHA) == 0)) texres->talpha = 1;
 	texr.talpha = texres->talpha;
 
@@ -1388,17 +1406,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 	   return retval;
 	
 	/* mipmap test */
-	if (tex->imaflag & TEX_MIPMAP) {
-		if(ibuf->flags & IB_fields);
-		else if(ibuf->mipmap[0]==NULL) {
-			BLI_lock_thread(LOCK_IMAGE);
-			
-			if(ibuf->mipmap[0]==NULL)
-				IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
-
-			BLI_unlock_thread(LOCK_IMAGE);
-		}
-	}
+	image_mipmap_test(tex, ibuf);
 
 	if(tex->imaflag & TEX_USEALPHA) {
 		if(tex->imaflag & TEX_CALCALPHA);

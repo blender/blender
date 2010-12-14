@@ -131,11 +131,12 @@ typedef struct ImBuf {
 
 /* Moved from BKE_bmfont_types.h because it is a userflag bit mask. */
 /**
- * \brief Flags used internally by blender for imagebuffers
+ * \brief userflags: Flags used internally by blender for imagebuffers
  */
 
 #define IB_BITMAPFONT		(1 << 0)	/* this image is a font */
 #define IB_BITMAPDIRTY		(1 << 1)	/* image needs to be saved is not the same as filename */
+#define IB_MIPMAP_INVALID	(1 << 2)	/* image mipmaps are invalid, need recreate */
 
 /* From iff.h. This was once moved away by Frank, now Nzc moves it
  * back. Such is the way it is... It is a long list of defines, and
