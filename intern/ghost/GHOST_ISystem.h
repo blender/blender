@@ -27,7 +27,7 @@
  */
 /**
  * @file	GHOST_ISystem.h
- * Main interface file for C++ Api with declaration of GHOST_ISystem interface
+ * Main interface file for C++ API with declaration of GHOST_ISystem interface
  * class.
  * Contains the doxygen documentation main page.
  */

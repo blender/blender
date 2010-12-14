@@ -466,19 +466,12 @@ extern "C" {
 	struct bContext;
 	struct wmOperator;
 	extern int fromcocoa_request_qtcodec_settings(bContext *C, wmOperator *op);
-
-
-int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
-{
-	int result;
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
-	result = fromcocoa_request_qtcodec_settings(C, op);
-
-	[pool drain];
-	return result;
-}
-};
+	
+	int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
+	{
+		return fromcocoa_request_qtcodec_settings(C, op);
+	}
+} // "C"
 #endif
 
 
@@ -541,6 +534,8 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 
 GHOST_SystemCocoa::GHOST_SystemCocoa()
 {
+	m_pool = [[NSAutoreleasePool alloc] init];
+
 	int mib[2];
 	struct timeval boottime;
 	size_t len;
@@ -556,7 +551,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	m_tablet_pen_mode = GHOST_kTabletModeNone;
 	m_outsideLoopEventProcessed = false;
 	m_needDelayedApplicationBecomeActiveEventProcessing = false;
-	m_displayManager = new GHOST_DisplayManagerCocoa ();
+	m_displayManager = new GHOST_DisplayManagerCocoa;
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemCocoa::GHOST_SystemCocoa(): m_displayManager==0\n");
 	m_displayManager->initialize();
 
@@ -602,7 +597,6 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 
 		m_ndofManager = new GHOST_NDOFManagerCocoa(*this);
 		
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		if (NSApp == nil) {
 			[NSApplication sharedApplication];
 
@@ -666,8 +660,6 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 		}
 
 		[NSApp finishLaunching];
-
-		[pool drain];
 	}
 	return success;
 }
@@ -696,18 +688,12 @@ GHOST_TUns8 GHOST_SystemCocoa::getNumDisplays() const
 {
 	//Note that OS X supports monitor hot plug
 	// We do not support multiple monitors at the moment
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
-	GHOST_TUns8 count = [[NSScreen screens] count];
-
-	[pool drain];
-	return count;
+	return [[NSScreen screens] count];
 }
 
 
 void GHOST_SystemCocoa::getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	//Get visible frame, that is frame excluding dock and top menu bar
 	NSRect frame = [[NSScreen mainScreen] visibleFrame];
 
@@ -717,8 +703,6 @@ void GHOST_SystemCocoa::getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns
 
 	width = contentRect.size.width;
 	height = contentRect.size.height;
-
-	[pool drain];
 }
 
 
@@ -735,7 +719,6 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 	const GHOST_TEmbedderWindowID parentWindow
 )
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_IWindow* window = 0;
 
 	//Get the available rect for including window contents
@@ -768,7 +751,6 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 	else {
 		GHOST_PRINT("GHOST_SystemCocoa::createWindow(): could not create window\n");
 	}
-	[pool drain];
 	return window;
 }
 
@@ -789,8 +771,6 @@ GHOST_TSuccess GHOST_SystemCocoa::endFullScreen(void)
 
 	return currentWindow->setState(GHOST_kWindowStateNormal);
 }
-
-
 	
 /**
  * @note : returns coordinates in Cocoa screen coordinates
@@ -835,7 +815,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(float xf, float yf)
 	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
 	if (!window) return GHOST_kFailure;
 
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+//	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSScreen *windowScreen = window->getScreen();
 	NSRect screenRect = [windowScreen frame];
 
@@ -848,7 +828,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(float xf, float yf)
 	
 	CGDisplayMoveCursorToPoint((CGDirectDisplayID)[[[windowScreen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue], CGPointMake(xf, yf));
 
-	[pool drain];
+//	[pool drain];
 	return GHOST_kSuccess;
 }
 
@@ -995,8 +975,6 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		}
 	} while (event != nil);		
 
-	[pool drain];
-
 	if (m_needDelayedApplicationBecomeActiveEventProcessing)
 		handleApplicationBecomeActiveEvent();
 
@@ -1004,6 +982,9 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		m_outsideLoopEventProcessed = false;
 		return true;
 	}
+
+	[pool drain]; // for this event processing thread
+	[m_pool drain]; // for main thread
 
 	return anyProcessed;
 }
@@ -1404,9 +1385,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletProximity(void *eventPtr)
 		return GHOST_kFailure;
 	}
 
-// don't involve the window!
-//	GHOST_TabletData& ct = window->GetCocoaTabletData();
-
 	GHOST_TTabletMode active_tool;
 	int* tool_id_ptr;
 
@@ -1438,11 +1416,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletProximity(void *eventPtr)
 
 		m_tablet_pen_mode = active_tool;
 
-//		ct.Active = active_tool;
-//		ct.Pressure = (active_tool == GHOST_kTabletModeNone) ? /*mouse*/ 1 : /*pen*/ 0;
-//		ct.Xtilt = 0;
-//		ct.Ytilt = 0;
-
 		// this is a good place to remember the tool's capabilities
 		}
 	else {
@@ -1450,11 +1423,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletProximity(void *eventPtr)
 		*tool_id_ptr = TOOL_ID_NONE;
 
 		m_tablet_pen_mode = GHOST_kTabletModeNone;
-
-//		ct.Active = GHOST_kTabletModeNone;
-//		ct.Pressure = 0;
-//		ct.Xtilt = 0;
-//		ct.Ytilt = 0;
 		}
 
 	return GHOST_kSuccess;
@@ -1484,16 +1452,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 		//printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
 	}
-
-/*
-	// don't involve the window!
-	GHOST_TabletData& ct = window->GetCocoaTabletData();
-
-	ct.Pressure = [event pressure];
-	NSPoint tilt = [event tilt];
-	ct.Xtilt = tilt.x;
-	ct.Ytilt = tilt.y;
-*/
 
 	switch ([event type])
 		{
@@ -1814,12 +1772,9 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 	GHOST_TUns8 * temp_buff;
 	size_t pastedTextSize;	
 
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
 	NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
 
 	if (pasteBoard == nil) {
-		[pool drain];
 		return NULL;
 	}
 
@@ -1830,14 +1785,12 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 						  availableTypeFromArray:supportedTypes];
 
 	if (bestType == nil) {
-		[pool drain];
 		return NULL;
 	}
 
 	NSString * textPasted = [pasteBoard stringForType:NSStringPboardType];
 
 	if (textPasted == nil) {
-		[pool drain];
 		return NULL;
 	}
 
@@ -1846,7 +1799,6 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 	temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
 
 	if (temp_buff == NULL) {
-		[pool drain];
 		return NULL;
 	}
 
@@ -1854,8 +1806,6 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 
 	temp_buff[pastedTextSize] = '\0';
 	
-	[pool drain];
-
 	if(temp_buff) {
 		return temp_buff;
 	} else {
@@ -1869,12 +1819,9 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 	if(selection) {return;} // for copying the selection, used on X11
 
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
 	NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
 
 	if (pasteBoard == nil) {
-		[pool drain];
 		return;
 	}
 
@@ -1885,8 +1832,6 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	textToCopy = [NSString stringWithCString:buffer encoding:NSISOLatin1StringEncoding];
 
 	[pasteBoard setString:textToCopy forType:NSStringPboardType];
-
-	[pool drain];
 }
 
 #pragma mark Base directories retrieval
@@ -1894,7 +1839,6 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 const GHOST_TUns8* GHOST_SystemCocoa::getSystemDir() const
 {
 	static GHOST_TUns8 tempPath[512] = "";
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSString *basePath;
 	NSArray *paths;
 	
@@ -1903,20 +1847,17 @@ const GHOST_TUns8* GHOST_SystemCocoa::getSystemDir() const
 	if ([paths count] > 0)
 		basePath = [paths objectAtIndex:0];
 	else { 
-		[pool drain];
 		return NULL;
 	}
 	
 	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
 	
-	[pool drain];
 	return tempPath;
 }
 
 const GHOST_TUns8* GHOST_SystemCocoa::getUserDir() const
 {
 	static GHOST_TUns8 tempPath[512] = "";
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSString *basePath;
 	NSArray *paths;
 
@@ -1925,31 +1866,26 @@ const GHOST_TUns8* GHOST_SystemCocoa::getUserDir() const
 	if ([paths count] > 0)
 		basePath = [paths objectAtIndex:0];
 	else { 
-		[pool drain];
 		return NULL;
 	}
 
 	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
 	
-	[pool drain];
 	return tempPath;
 }
 
 const GHOST_TUns8* GHOST_SystemCocoa::getBinaryDir() const
 {
 	static GHOST_TUns8 tempPath[512] = "";
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSString *basePath;
 	
 	basePath = [[NSBundle mainBundle] bundlePath];
 	
 	if (basePath == nil) {
-		[pool drain];
 		return NULL;
 	}
 
 	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
 
-	[pool drain];
 	return tempPath;
 }
