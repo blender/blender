@@ -47,6 +47,7 @@
 #include "smoke_API.h"
 
 #include "DNA_texture_types.h"
+#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_smoke_types.h"
@@ -179,7 +180,7 @@ static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 	return 1;
 }
 
-static void init_frame_smoke(VoxelData *vd)
+static void init_frame_smoke(VoxelData *vd, float cfra)
 {
 	Object *ob;
 	ModifierData *md;
@@ -195,8 +196,9 @@ static void init_frame_smoke(VoxelData *vd)
 
 		
 		if(smd->domain && smd->domain->fluid) {
-			
-			if (vd->smoked_type == TEX_VD_SMOKEHEAT) {
+			if(cfra < smd->domain->point_cache[0]->startframe)
+				; /* don't show smoke before simulation starts, this could be made an option in the future */
+			else if (vd->smoked_type == TEX_VD_SMOKEHEAT) {
 				int totRes;
 				float *heat;
 				int i;
@@ -294,7 +296,7 @@ static void cache_voxeldata(struct Render *re, Tex *tex)
 			load_frame_image_sequence(vd, tex);
 			return;
 		case TEX_VD_SMOKE:
-			init_frame_smoke(vd);
+			init_frame_smoke(vd, re->r.cfra);
 			return;
 		case TEX_VD_BLENDERVOXEL:
 			BLI_path_abs(path, G.main->name);
