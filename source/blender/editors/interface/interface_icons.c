@@ -1026,30 +1026,46 @@ static int ui_id_brush_get_icon(bContext *C, ID *id, int preview)
 		BKE_icon_getid(id);
 		ui_id_icon_render(C, id, preview);
 	}
-	else if(!id->icon_id) {
-		/* no icon found, reset it */
-		
-		/* this is not nice, should probably make
-		   brushes be strictly in one paint mode only
-		   to avoid this kind of thing */
+	else {
 		Object *ob = CTX_data_active_object(C);
 		EnumPropertyItem *items;
-		int tool;
-		
-		if(ob && (ob->mode & OB_MODE_SCULPT)) {
+		int tool, mode = 0;
+
+		/* this is not nice, should probably make brushes be
+		   strictly in one paint mode only to avoid checking
+		   object mode here */
+
+		if(ob) {
+			if(ob->mode & OB_MODE_SCULPT)
+				mode = OB_MODE_SCULPT;
+			else if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))
+				mode = OB_MODE_VERTEX_PAINT;
+			else if(ob->mode & OB_MODE_TEXTURE_PAINT)
+				mode = OB_MODE_TEXTURE_PAINT;
+		}
+
+		/* check if cached icon is OK */
+		if(!mode || (id->icon_id && mode == br->icon_mode))
+			return id->icon_id;
+
+		br->icon_mode = mode;
+
+		/* reset the icon */
+		if(mode == OB_MODE_SCULPT) {
 			items = brush_sculpt_tool_items;
 			tool = br->sculpt_tool;
 		}
-		else if(ob && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))) {
+		else if(mode == OB_MODE_VERTEX_PAINT) {
 			items = brush_vertexpaint_tool_items;
 			tool = br->vertexpaint_tool;
 		}
-		else {
+		else if(mode == OB_MODE_TEXTURE_PAINT) {
 			items = brush_imagepaint_tool_items;
 			tool = br->imagepaint_tool;
 		}
 
-		RNA_enum_icon_from_value(items, tool, &id->icon_id);
+		if(!RNA_enum_icon_from_value(items, tool, &id->icon_id))
+			id->icon_id = 0;
 	}
 
 	return id->icon_id;
