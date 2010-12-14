@@ -1395,6 +1395,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Color", "Color of the F-Curve in the Graph Editor");
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);	
 	

@@ -169,6 +169,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	/* Drawing Color */
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Color", "Color for all strokes in this layer");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
