@@ -1352,14 +1352,6 @@ void GRAPH_OT_interpolation_type (wmOperatorType *ot)
 
 /* ******************** Set Handle-Type Operator *********************** */
 
-EnumPropertyItem graphkeys_handle_type_items[] = {
-	{HD_FREE, "FREE", 0, "Free", ""},
-	{HD_VECT, "VECTOR", 0, "Vector", ""},
-	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
-	{HD_AUTO, "AUTO", 0, "Auto", "Handles that are automatically adjusted upon moving the keyframe. Whole curve"},
-	{HD_AUTO_ANIM, "ANIM_CLAMPED", 0, "Auto Clamped", "Auto handles clamped to not overshoot. Whole curve"},
-	{0, NULL, 0, NULL, NULL}};
-
 /* ------------------- */
 
 /* this function is responsible for setting handle-type of selected keyframes */
@@ -1424,14 +1416,24 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
- void GRAPH_OT_handle_type (wmOperatorType *ot)
+ void GRAPH_OT_handle_type_set (wmOperatorType *ot)
 {
+	 /* sync with editcurve_handle_type_items */
+	 static EnumPropertyItem graphkeys_handle_type_items[] = {
+		 {HD_AUTO, "AUTO", 0, "Automatic", "Handles that are automatically adjusted upon moving the keyframe. Whole curve"},
+		 {HD_VECT, "VECTOR", 0, "Vector", ""},
+		 {HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
+		 {HD_FREE, "FREE_ALIGN", 0, "Free", ""},
+		 {HD_AUTO_ANIM, "ANIM_CLAMPED", 0, "Auto Clamped", "Auto handles clamped to not overshoot. Whole curve"},
+		 {0, NULL, 0, NULL, NULL}};	 
+
 	/* identifiers */
 	ot->name= "Set Keyframe Handle Type";
-	ot->idname= "GRAPH_OT_handle_type";
+	ot->idname= "GRAPH_OT_handle_type_set";
 	ot->description= "Set type of handle for selected keyframes";
 	
 	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
 	ot->exec= graphkeys_handletype_exec;
 	ot->poll= graphop_editable_keyframes_poll;
 	

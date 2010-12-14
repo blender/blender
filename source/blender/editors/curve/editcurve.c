@@ -3538,11 +3538,12 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 
 void CURVE_OT_handle_type_set(wmOperatorType *ot)
 {
-	static EnumPropertyItem type_items[]= {
+	/* keep in sync with graphkeys_handle_type_items */
+	static EnumPropertyItem editcurve_handle_type_items[]= {
 		{HD_AUTO, "AUTOMATIC", 0, "Automatic", ""},
 		{HD_VECT, "VECTOR", 0, "Vector", ""},
-		{5, "ALIGN", 0, "Align", ""},
-		{6, "FREE_ALIGN", 0, "Free Align", ""},
+		{5, "ALIGNED", 0, "Aligned", ""},
+		{6, "FREE_ALIGN", 0, "Free", ""},
 		{3, "TOGGLE_FREE_ALIGN", 0, "Toggle Free/Align", ""},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -3551,6 +3552,7 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 	ot->idname= "CURVE_OT_handle_type_set";
 	
 	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
 	ot->exec= set_handle_type_exec;
 	ot->poll= ED_operator_editcurve;
 	
@@ -3558,7 +3560,7 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, 1, "Type", "Spline type");
+	ot->prop= RNA_def_enum(ot->srna, "type", editcurve_handle_type_items, 1, "Type", "Spline type");
 }
 
 /***************** make segment operator **********************/

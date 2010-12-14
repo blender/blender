@@ -106,7 +106,7 @@ void GRAPH_OT_bake(struct wmOperatorType *ot);
 void GRAPH_OT_sound_bake(struct wmOperatorType *ot);
 void GRAPH_OT_smooth(struct wmOperatorType *ot);
 
-void GRAPH_OT_handle_type(struct wmOperatorType *ot);
+void GRAPH_OT_handle_type_set(struct wmOperatorType *ot);
 void GRAPH_OT_interpolation_type(struct wmOperatorType *ot);
 void GRAPH_OT_extrapolation_type(struct wmOperatorType *ot);
 
