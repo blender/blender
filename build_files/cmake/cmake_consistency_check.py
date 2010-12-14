@@ -30,10 +30,13 @@ IGNORE = \
     "/ik_glut_test/"
 
 import os
-from os.path import join, dirname, normpath
+from os.path import join, dirname, normpath, abspath
 
-base = join(os.getcwd(), "..", "..")
+base = join(os.path.dirname(__file__), "..", "..")
 base = normpath(base)
+base = abspath(base)
+
+print("Scanning:", base)
 
 global_h = set()
 global_c = set()
@@ -76,7 +79,7 @@ def cmake_get_src(f):
     sources_h = []
     sources_c = []
     
-    filen = open(f, "r")
+    filen = open(f, "r", encoding="utf8")
     it = iter(filen)
     found = False
     i = 0
@@ -91,15 +94,15 @@ def cmake_get_src(f):
                 break
             l = l.strip()
             if not l.startswith("#"):
-                if 'SET(SRC' in l or ('SET(' in l and l.endswith("SRC")):
+                if 'set(SRC' in l or ('set(' in l and l.endswith("SRC")):
                     if len(l.split()) > 1:
-                        raise Exception("strict formatting not kept 'SET(SRC*' %s:%d" % (f, i))
+                        raise Exception("strict formatting not kept 'set(SRC*' %s:%d" % (f, i))
                     found = True
                     break
                 
-                if "LIST(APPEND SRC" in l:
+                if "list(APPEND SRC" in l:
                     if l.endswith(")"):
-                        raise Exception("strict formatting not kept 'LIST(APPEND SRC...)' on 1 line %s:%d" % (f, i))
+                        raise Exception("strict formatting not kept 'list(APPEND SRC...)' on 1 line %s:%d" % (f, i))
                     found = True
                     break
 
