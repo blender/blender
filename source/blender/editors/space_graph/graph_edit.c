@@ -1416,7 +1416,7 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
- void GRAPH_OT_handle_type_set (wmOperatorType *ot)
+ void GRAPH_OT_handle_type (wmOperatorType *ot)
 {
 	 /* sync with editcurve_handle_type_items */
 	 static EnumPropertyItem graphkeys_handle_type_items[] = {
@@ -1429,7 +1429,7 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
 
 	/* identifiers */
 	ot->name= "Set Keyframe Handle Type";
-	ot->idname= "GRAPH_OT_handle_type_set";
+	ot->idname= "GRAPH_OT_handle_type";
 	ot->description= "Set type of handle for selected keyframes";
 	
 	/* api callbacks */

@@ -131,7 +131,7 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "ACTION_OT_mirror", MKEY, KM_PRESS, KM_SHIFT, 0);
 	
 		/* menu + set setting */
-	WM_keymap_add_item(keymap, "ACTION_OT_handle_type", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_handle_type", VKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_interpolation_type", TKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0); 
 	WM_keymap_add_item(keymap, "ACTION_OT_keyframe_type", RKEY, KM_PRESS, 0, 0); 
