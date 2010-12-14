@@ -3776,6 +3776,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 
 		/* simulation is only active during a specific period */
 		if(framenr < startframe) {
+			BKE_ptcache_read_cache(use_cache, startframe, sim->scene->r.frs_sec);
 			/* set correct particle state and reset particles */
 			cached_step(sim, cfra);
 			return;

@@ -4229,18 +4229,21 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 			else if(pa->prev_state.time==state->time)
 				copy_particle_key(state, &pa->prev_state, 1);
 			else {
+				float dfra, frs_sec = sim->scene->r.frs_sec;
 				/* let's interpolate to try to be as accurate as possible */
-				if(pa->state.time + 2.0f > state->time && pa->prev_state.time - 2.0f < state->time) {
-					ParticleKey keys[4];
-					float dfra, keytime, frs_sec = sim->scene->r.frs_sec;
-
+				if(pa->state.time + 2.0f >= state->time && pa->prev_state.time - 2.0f <= state->time) {
 					if(pa->prev_state.time >= pa->state.time) {
-						/* prev_state is wrong so let's not use it, this can happen at frame 1 or particle birth */
+						/* prev_state is wrong so let's not use it, this can happen at frames 1, 0 or particle birth */
+						dfra = state->time - pa->state.time;
+
 						copy_particle_key(state, &pa->state, 1);
 
-						VECADDFAC(state->co, state->co, state->vel, (state->time-pa->state.time)/frs_sec);
+						madd_v3_v3v3fl(state->co, state->co, state->vel, dfra/frs_sec);
 					}
 					else {
+						ParticleKey keys[4];
+						float keytime;
+
 						copy_particle_key(keys+1, &pa->prev_state, 1);
 						copy_particle_key(keys+2, &pa->state, 1);
 
@@ -4260,6 +4263,15 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 						interp_v3_v3v3(state->ave, keys[1].ave, keys[2].ave, keytime);
 						interp_qt_qtqt(state->rot, keys[1].rot, keys[2].rot, keytime);
 					}
+				}
+				else if(pa->state.time + 1.f >= state->time && pa->state.time - 1.f <= state->time) {
+					/* linear interpolation using only pa->state */
+
+					dfra = state->time - pa->state.time;
+
+					copy_particle_key(state, &pa->state, 1);
+
+					madd_v3_v3v3fl(state->co, state->co, state->vel, dfra/frs_sec);
 				}
 				else {
 					/* extrapolating over big ranges is not accurate so let's just give something close to reasonable back */
