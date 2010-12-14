@@ -988,8 +988,9 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
         # color is used on grayscale textures even when use_rgb_to_intensity is disabled.
         col.prop(tex, "color", text="")
 
-        # XXX, dont remove since old files have this users need to be able to disable!
-        col.prop(tex, "use_old_bump", text="Old Bump Mapping")
+        if isinstance(idblock, bpy.types.Material):
+            # XXX, dont remove since old files have this users need to be able to disable!
+            col.prop(tex, "use_old_bump", text="Old Bump Mapping")
 
         col = split.column()
         col.prop(tex, "invert", text="Negative")
