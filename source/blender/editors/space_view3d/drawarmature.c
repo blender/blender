@@ -1753,8 +1753,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 			if (index != -1) 
 				index+= 0x10000;	// pose bones count in higher 2 bytes only
 		}
-		
-		if (draw_wire) {
+		/* stick bones have not been drawn yet so dont clear object selection in this case */
+		if ((arm->drawtype != ARM_LINE) && draw_wire) {
 			/* object tag, for bordersel optim */
 			glLoadName(index & 0xFFFF);	
 			index= -1;
