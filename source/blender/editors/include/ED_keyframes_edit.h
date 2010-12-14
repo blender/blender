@@ -152,6 +152,29 @@ typedef struct KeyframeEditCD_Remap {
 	float newMin, newMax;			/* new range */
 } KeyframeEditCD_Remap;
 
+/* Paste options */
+typedef enum eKeyPasteOffset {
+		/* paste keys starting at current frame */
+	KEYFRAME_PASTE_OFFSET_CFRA_START,
+		/* paste keys ending at current frame */
+	KEYFRAME_PASTE_OFFSET_CFRA_END,
+		/* paste keys relative to the current frame when copying */
+	KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE,
+		/* paste keys from original time */
+	KEYFRAME_PASTE_OFFSET_NONE
+} eKeyPasteOffset;
+
+typedef enum eKeyMergeMode {
+		/* overlay existing with new keys */
+	KEYFRAME_PASTE_MERGE_MIX,
+		/* replace entire fcurve */
+	KEYFRAME_PASTE_MERGE_OVER,
+		/* overwrite keys in pasted range */
+	KEYFRAME_PASTE_MERGE_OVER_RANGE,
+		/* overwrite keys in pasted range (use all keyframe start & end for range) */
+	KEYFRAME_PASTE_MERGE_OVER_RANGE_ALL
+} eKeyMergeMode;
+
 /* ---------------- Looping API --------------------- */
 
 /* functions for looping over keyframes */
@@ -212,6 +235,7 @@ void bezt_remap_times(KeyframeEditData *ked, struct BezTriple *bezt);
 
 void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc);
 void delete_fcurve_keys(struct FCurve *fcu);
+void clear_fcurve_keys(struct FCurve *fcu);
 void duplicate_fcurve_keys(struct FCurve *fcu);
 
 void clean_fcurve(struct FCurve *fcu, float thresh);
@@ -222,7 +246,8 @@ void sample_fcurve(struct FCurve *fcu);
 
 void free_anim_copybuf(void);
 short copy_animedit_keys(struct bAnimContext *ac, ListBase *anim_data);
-short paste_animedit_keys(struct bAnimContext *ac, ListBase *anim_data);
+short paste_animedit_keys(struct bAnimContext *ac, ListBase *anim_data,
+	const eKeyPasteOffset offset_mode, const eKeyMergeMode merge_mode);
 
 /* ************************************************ */
 

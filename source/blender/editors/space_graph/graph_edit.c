@@ -618,7 +618,8 @@ static short copy_graph_keys (bAnimContext *ac)
 	return ok;
 }
 
-static short paste_graph_keys (bAnimContext *ac)
+static short paste_graph_keys (bAnimContext *ac,
+	const eKeyPasteOffset offset_mode, const eKeyMergeMode merge_mode)
 {	
 	ListBase anim_data = {NULL, NULL};
 	int filter, ok=0;
@@ -628,7 +629,7 @@ static short paste_graph_keys (bAnimContext *ac)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* paste keyframes */
-	ok= paste_animedit_keys(ac, &anim_data);
+	ok= paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode);
 	
 	/* clean up */
 	BLI_freelistN(&anim_data);
@@ -676,6 +677,9 @@ void GRAPH_OT_copy (wmOperatorType *ot)
 static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
+
+	const eKeyPasteOffset offset_mode= RNA_enum_get(op->ptr, "offset");
+	const eKeyMergeMode merge_mode= RNA_enum_get(op->ptr, "merge");
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -686,7 +690,7 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 	}
 
 	/* paste keyframes */
-	if (paste_graph_keys(&ac)) {
+	if (paste_graph_keys(&ac, offset_mode, merge_mode)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -707,11 +711,15 @@ void GRAPH_OT_paste (wmOperatorType *ot)
 	ot->description= "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame";
 	
 	/* api callbacks */
+//	ot->invoke= WM_operator_props_popup; // better wait for graph redo panel
 	ot->exec= graphkeys_paste_exec;
 	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
+	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merking pasted keys and existing");
 }
 
 /* ******************** Duplicate Keyframes Operator ************************* */
