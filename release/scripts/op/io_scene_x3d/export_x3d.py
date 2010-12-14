@@ -616,38 +616,46 @@ class x3d_class:
             self.matNames[matName]+=1
             return;
 
-        self.matNames[matName]=1
+        self.matNames[matName] = 1
 
-        ambient = mat.ambient/3
-        # ambient = mat.amb/3
-        diffuseR, diffuseG, diffuseB = tuple(mat.diffuse_color)
-        # diffuseR, diffuseG, diffuseB = mat.rgbCol[0], mat.rgbCol[1],mat.rgbCol[2]
+        ambient = mat.ambient / 3.0
+        diffuseR, diffuseG, diffuseB = mat.diffuse_color
         if world:
             ambi = world.ambient_color
-            # ambi = world.getAmb()
-            ambi0, ambi1, ambi2 = (ambi[0]*mat.ambient)*2, (ambi[1]*mat.ambient)*2, (ambi[2]*mat.ambient)*2
-            # ambi0, ambi1, ambi2 = (ambi[0]*mat.amb)*2, (ambi[1]*mat.amb)*2, (ambi[2]*mat.amb)*2
+            ambi0, ambi1, ambi2 = (ambi[0] * mat.ambient) * 2.0, (ambi[1] * mat.ambient) * 2.0, (ambi[2] * mat.ambient) * 2.0
         else:
-            ambi0, ambi1, ambi2 = 0, 0, 0
-        emisR, emisG, emisB = (diffuseR*mat.emit+ambi0)/2, (diffuseG*mat.emit+ambi1)/2, (diffuseB*mat.emit+ambi2)/2
+            ambi0, ambi1, ambi2 = 0.0, 0.0, 0.0
+
+        emisR, emisG, emisB = (diffuseR*mat.emit+ambi0) / 2.0, (diffuseG*mat.emit+ambi1) / 2.0, (diffuseB*mat.emit+ambi2) / 2.0
+        del ambi0, ambi1, ambi2
 
         shininess = mat.specular_hardness/512.0
-        # shininess = mat.hard/512.0
         specR = (mat.specular_color[0]+0.001)/(1.25/(mat.specular_intensity+0.001))
-        # specR = (mat.specCol[0]+0.001)/(1.25/(mat.spec+0.001))
         specG = (mat.specular_color[1]+0.001)/(1.25/(mat.specular_intensity+0.001))
-        # specG = (mat.specCol[1]+0.001)/(1.25/(mat.spec+0.001))
         specB = (mat.specular_color[2]+0.001)/(1.25/(mat.specular_intensity+0.001))
-        # specB = (mat.specCol[2]+0.001)/(1.25/(mat.spec+0.001))
-        transp = 1-mat.alpha
-        # matFlags = mat.getMode()
+
+        transp = 1.0 - mat.alpha
+
         if mat.use_shadeless:
-        # if matFlags & Blender.Material.Modes['SHADELESS']:
-          ambient = 1
-          shine = 1
-          specR = emitR = diffuseR
-          specG = emitG = diffuseG
-          specB = emitB = diffuseB
+            ambient = 1
+            shine = 1
+            specR = emitR = diffuseR
+            specG = emitG = diffuseG
+            specB = emitB = diffuseB
+
+        # Clamp to be safe
+        specR= max(min(specR, 1.0), 0.0)
+        specG= max(min(specG, 1.0), 0.0)
+        specB= max(min(specB, 1.0), 0.0)
+
+        diffuseR= max(min(diffuseR, 1.0), 0.0)
+        diffuseG= max(min(diffuseG, 1.0), 0.0)
+        diffuseB= max(min(diffuseB, 1.0), 0.0)
+
+        emitR= max(min(emitR, 1.0), 0.0)
+        emitG= max(min(emitG, 1.0), 0.0)
+        emitB= max(min(emitB, 1.0), 0.0)
+
         self.writeIndented("<Material DEF=\"MA_%s\" " % matName, 1)
         self.file.write("diffuseColor=\"%s %s %s\" " % (round(diffuseR,self.cp), round(diffuseG,self.cp), round(diffuseB,self.cp)))
         self.file.write("specularColor=\"%s %s %s\" " % (round(specR,self.cp), round(specG,self.cp), round(specB,self.cp)))
