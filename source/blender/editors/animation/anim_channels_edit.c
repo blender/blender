@@ -1173,7 +1173,7 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 	BLI_freelistN(&anim_data);
 	
 	/* make all the selected channels visible */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
+	filter= (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
