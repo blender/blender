@@ -887,6 +887,8 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 			fprop->hardmax= FLT_MAX;
 
 			if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA)) {
+				fprop->hardmin= 0.0f; /* disallow colors to go below zero */
+
 				fprop->softmin= 0.0f;
 				fprop->softmax= 1.0f;
 			}
