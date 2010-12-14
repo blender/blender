@@ -32,8 +32,8 @@ extern "C"
 
 	int collada_import(bContext *C, const char *filepath)
 	{
-		DocumentImporter imp;
-		imp.import(C, filepath);
+		DocumentImporter imp (C, filepath);
+		imp.import();
 
 		return 1;
 	}
