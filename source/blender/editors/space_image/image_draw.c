@@ -664,7 +664,8 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 		draw_image_buffer(sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
 	/* paint helpers */
-	draw_image_paint_helpers(ar, scene, zoomx, zoomy);
+	if(sima->flag & SI_DRAWTOOL)
+		draw_image_paint_helpers(ar, scene, zoomx, zoomy);
 
 
 	/* XXX integrate this code */
