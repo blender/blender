@@ -5726,10 +5726,10 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 				menu->menuretval= UI_RETURN_CANCEL;
 			}
 			else if(ELEM(event->type, RETKEY, PADENTER) && event->val==KM_PRESS) {
-				/* enter will always close this block, but we let the event
-				 * get handled by the button if it is activated */
+				/* enter will always close this block, we let the event
+				 * get handled by the button if it is activated, otherwise we cancel */
 				if(!ui_but_find_activated(ar))
-					menu->menuretval= UI_RETURN_OK;
+					menu->menuretval= UI_RETURN_CANCEL;
 			}
 			else {
 				ui_mouse_motion_towards_check(block, menu, mx, my);
