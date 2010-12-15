@@ -869,17 +869,6 @@ int WM_operator_winactive(bContext *C)
 	return 1;
 }
 
-/* op->exec */
-static void redo_cb(bContext *C, void *arg_op, int UNUSED(event))
-{
-	wmOperator *lastop= arg_op;
-	
-	if(lastop) {
-		ED_undo_pop_op(C, lastop);
-		WM_operator_repeat(C, lastop);
-	}
-}
-
 static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -896,10 +885,10 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
 	/* if register is not enabled, the operator gets freed on OPERATOR_FINISHED
-	 * ui_apply_but_funcs_after calls redo_cb and crashes */
+	 * ui_apply_but_funcs_after calls ED_undo_operator_repeate_cb and crashes */
 	assert(op->type->flag & OPTYPE_REGISTER);
 
-	uiBlockSetHandleFunc(block, redo_cb, arg_op);
+	uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, arg_op);
 
 	if(!op->properties) {
 		IDPropertyTemplate val = {0};
@@ -909,6 +898,13 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, 20, style);
 	uiItemL(layout, op->type->name, 0);
+
+	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
+	 * just fails silently */
+	if(!WM_operator_repeat_check(C, op)) {
+		uiBlockSetButLock(uiLayoutGetBlock(layout), TRUE, "Operator cannot redo");
+		uiItemL(layout, "* Redo Unsupported *", 0); // XXX, could give some nicer feedback or not show redo panel at all?
+	}
 
 	if(op->type->ui) {
 		op->layout= layout;

@@ -192,3 +192,16 @@ for hf in sorted(source_list(base, is_c_header)):
     if not is_ignore(hf):
         if hf not in global_h:
             print("missing_h: ", hf)
+
+# test encoding
+import traceback
+for files in (global_c, global_h):
+    for f in sorted(files):
+        i = 1
+        try:
+            for l in open(f, "r", encoding="utf8"):
+                i += 1
+        except:
+            print("Non utf8: %s:%d" % (f, i))
+            if i > 1:
+                traceback.print_exc()

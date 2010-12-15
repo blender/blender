@@ -1392,26 +1392,6 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, Panel *pa)
 	uiBlockEndAlign(block);
 }
 
-/* op->invoke */
-static void redo_cb(bContext *C, void *arg_op, void *arg2)
-{
-	wmOperator *lastop= arg_op;
-	
-	if(lastop) {
-		int retval;
-		
-		if (G.f & G_DEBUG)
-			printf("operator redo %s\n", lastop->type->name);
-		ED_undo_pop(C);
-		retval= WM_operator_repeat(C, lastop);
-		if((retval & OPERATOR_FINISHED)==0) {
-			if (G.f & G_DEBUG)
-				printf("operator redo failed %s\n", lastop->type->name);
-			ED_undo_redo(C);
-		}
-	}
-}
-
 static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -1429,7 +1409,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	if(op==NULL)
 		return;
 	
-	uiBlockSetFunc(block, redo_cb, op, NULL);
+	uiBlockSetFunc(block, ED_undo_operator_repeat_cb, op, NULL);
 	
 	if(!op->properties) {
 		IDPropertyTemplate val = {0};

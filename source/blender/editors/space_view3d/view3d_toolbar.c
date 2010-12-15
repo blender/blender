@@ -63,38 +63,6 @@
 
 /* ******************* view3d space & buttons ************** */
 
-
-/* op->exec */
-/* XXX DUPLICATE CODE */
-static void redo_cb(bContext *C, void *arg_op, void *UNUSED(arg2))
-{
-	wmOperator *lastop= arg_op;
-	
-	if(lastop) {
-		ARegion *ar= CTX_wm_region(C);
-		ARegion *ar1= BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_WINDOW);
-		int retval;
-		
-		if(ar1)
-			CTX_wm_region_set(C, ar1);
-		
-		if (G.f & G_DEBUG)
-			printf("operator redo %s\n", lastop->type->name);
-		
-		ED_undo_pop_op(C, lastop);
-		retval= WM_operator_repeat(C, lastop);
-		
-		if((retval & OPERATOR_FINISHED)==0) {
-			if (G.f & G_DEBUG)
-				printf("operator redo failed %s\n", lastop->type->name);
-			ED_undo_redo(C);
-		}
-		
-		/* set region back */
-		CTX_wm_region_set(C, ar);
-	}
-}
-
 static wmOperator *view3d_last_operator(const bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -118,6 +86,13 @@ static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOper
 		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
 	}
 	
+	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
+	 * just fails silently */
+	if(!WM_operator_repeat_check(C, op)) {
+		uiBlockSetButLock(uiLayoutGetBlock(pa->layout), TRUE, "Operator cannot redo");
+		uiItemL(pa->layout, "* Redo Unsupported *", 0); // XXX, could give some nicer feedback or not show redo panel at all?
+	}
+
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	if(op->type->ui) {
 		op->layout= pa->layout;
@@ -161,7 +136,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	
 	block= uiLayoutGetBlock(pa->layout);
 
-	uiBlockSetFunc(block, redo_cb, op, NULL);
+	uiBlockSetFunc(block, ED_undo_operator_repeat_cb, op, NULL);
 	
 	view3d_panel_operator_redo_operator(C, pa, op);
 }
