@@ -753,11 +753,16 @@ short paste_animedit_keys (bAnimContext *ac, ListBase *anim_data,
 	int pass;
 
 	/* check if buffer is empty */
-	if (ELEM(NULL, animcopybuf.first, animcopybuf.last)) {
+	if (animcopybuf.first == NULL) {
 		BKE_report(ac->reports, RPT_WARNING, "No data in buffer to paste");
 		return -1;
 	}
 
+	if (anim_data->first == NULL) {
+		BKE_report(ac->reports, RPT_WARNING, "No FCurves to paste into");
+		return -1;
+	}
+	
 	/* mathods of offset */
 	switch(offset_mode) {
 		case KEYFRAME_PASTE_OFFSET_CFRA_START:
