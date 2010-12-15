@@ -683,12 +683,22 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
 				}
 
 				if(wrap) {
+					rcti *winrect= NULL;
+					ARegion *ar= CTX_wm_region(C);
 					ScrArea *sa= CTX_wm_area(C);
-					if(sa) {
-						bounds[0]= sa->totrct.xmin;
-						bounds[1]= sa->totrct.ymax;
-						bounds[2]= sa->totrct.xmax;
-						bounds[3]= sa->totrct.ymin;
+
+					if(ar && ar->regiontype == RGN_TYPE_WINDOW && BLI_in_rcti(&ar->winrct, event->x, event->y)) {
+						winrect= &ar->winrct;
+					}
+					else if(sa) {
+						winrect= &sa->totrct;
+					}
+
+					if(winrect) {
+						bounds[0]= winrect->xmin;
+						bounds[1]= winrect->ymax;
+						bounds[2]= winrect->xmax;
+						bounds[3]= winrect->ymin;
 					}
 				}
 
