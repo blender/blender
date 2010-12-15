@@ -2664,3 +2664,45 @@ const char *uiLayoutIntrospect(uiLayout *layout)
 
 	return str;
 }
+
+/* this function does not initialize the layout, functions can be called on the layout before and after */
+void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,int (*check_prop)(struct PropertyRNA *), const char label_align, const short flag)
+{
+	if(!op->properties) {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+
+	if(flag & UI_LAYOUT_OP_SHOW_TITLE) {
+		uiItemL(layout, op->type->name, 0);
+	}
+
+	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
+	 * just fails silently */
+	if(!WM_operator_repeat_check(C, op)) {
+		uiBlockSetButLock(uiLayoutGetBlock(layout), TRUE, "Operator cannot redo");
+		uiItemL(layout, "* Redo Unsupported *", 0); // XXX, could give some nicer feedback or not show redo panel at all?
+	}
+
+	if(op->type->ui) {
+		op->layout= layout;
+		op->type->ui((bContext*)C, op);
+		op->layout= NULL;
+
+		/* UI_LAYOUT_OP_SHOW_EMPTY ignored */
+	}
+	else {
+		wmWindowManager *wm= CTX_wm_manager(C);
+		PointerRNA ptr;
+		int empty;
+
+		RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+		
+		/* main draw call */
+		empty= uiDefAutoButsRNA(layout, &ptr, check_prop, label_align) == 0;
+
+		if(empty && (flag & UI_LAYOUT_OP_SHOW_EMPTY)) {
+			uiItemL(layout, "No Properties.", 0);
+		}
+	}
+}

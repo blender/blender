@@ -1392,33 +1392,6 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, Panel *pa)
 	uiBlockEndAlign(block);
 }
 
-static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
-{
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmOperator *op;
-	PointerRNA ptr;
-	uiBlock *block;
-	
-	block= uiLayoutGetBlock(pa->layout);
-
-	/* only for operators that are registered and did an undo push */
-	for(op= wm->operators.last; op; op= op->prev)
-		if((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO))
-			break;
-	
-	if(op==NULL)
-		return;
-	
-	uiBlockSetFunc(block, ED_undo_operator_repeat_cb, op, NULL);
-	
-	if(!op->properties) {
-		IDPropertyTemplate val = {0};
-		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
-	}
-	
-	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(pa->layout, &ptr, 2);
-}
 #endif // XXX not used
 
 void view3d_buttons_register(ARegionType *art)

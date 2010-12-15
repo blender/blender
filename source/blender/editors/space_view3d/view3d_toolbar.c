@@ -78,29 +78,7 @@ static wmOperator *view3d_last_operator(const bContext *C)
 
 static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOperator *op)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	PointerRNA ptr;
-	
-	if(!op->properties) {
-		IDPropertyTemplate val = {0};
-		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
-	}
-	
-	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
-	 * just fails silently */
-	if(!WM_operator_repeat_check(C, op)) {
-		uiBlockSetButLock(uiLayoutGetBlock(pa->layout), TRUE, "Operator cannot redo");
-		uiItemL(pa->layout, "* Redo Unsupported *", 0); // XXX, could give some nicer feedback or not show redo panel at all?
-	}
-
-	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	if(op->type->ui) {
-		op->layout= pa->layout;
-		op->type->ui((bContext*)C, op);
-		op->layout= NULL;
-	}
-	else
-		uiDefAutoButsRNA(pa->layout, &ptr, 1);
+	uiLayoutOperatorButs(C, pa->layout, op, NULL, 'V', 0);
 }
 
 static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
