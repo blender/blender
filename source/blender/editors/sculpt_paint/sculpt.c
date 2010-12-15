@@ -2584,6 +2584,18 @@ static void do_radial_symmetry(Sculpt *sd, SculptSession *ss, Brush *brush, cons
 	}
 }
 
+/* noise texture gives different values for the same input coord; this
+   can tear a multires mesh during sculpting so do a stitch in this
+   case */
+static void sculpt_fix_noise_tear(Sculpt *sd, SculptSession *ss)
+{
+	Brush *brush = paint_brush(&sd->paint);
+	MTex *mtex = &brush->mtex;
+
+	if(ss->multires && mtex->tex && mtex->tex->type == TEX_NOISE)
+		multires_stitch_grids(ss->ob);
+}
+
 static void do_symmetrical_brush_actions(Sculpt *sd, SculptSession *ss)
 {
 	Brush *brush = paint_brush(&sd->paint);
@@ -2613,6 +2625,9 @@ static void do_symmetrical_brush_actions(Sculpt *sd, SculptSession *ss)
 	}
 
 	sculpt_combine_proxies(sd, ss);
+
+	/* hack to fix noise texture tearing mesh */
+	sculpt_fix_noise_tear(sd, ss);
 
 	cache->first_time= 0;
 }
