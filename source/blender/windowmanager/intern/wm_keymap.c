@@ -652,6 +652,10 @@ wmKeyMap *WM_keymap_copy_to_user(wmKeyMap *keymap)
 
 	usermap= WM_keymap_list_find(&U.keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 
+	/* XXX this function is only used by RMB setting hotkeys, and it clears maps on 2nd try this way */
+	if(keymap==usermap)
+		return keymap;
+	
 	if(!usermap) {
 		/* not saved yet, duplicate existing */
 		usermap= MEM_dupallocN(keymap);
