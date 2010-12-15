@@ -11156,7 +11156,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
-	/* put compatibility code here until next subversion bump */
 	if (main->versionfile < 255 || (main->versionfile == 255 && main->subversionfile < 1)) {
 		Brush *br;
 		ParticleSettings *part;
@@ -11214,6 +11213,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				act= act->next;
 			}
 		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
