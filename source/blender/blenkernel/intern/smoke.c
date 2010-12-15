@@ -973,9 +973,9 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 					
 					if(sfs && sfs->psys && sfs->psys->part && sfs->psys->part->type==PART_EMITTER) // is particle system selected
 					{
+						ParticleSimulationData sim;
 						ParticleSystem *psys = sfs->psys;
 						ParticleSettings *part=psys->part;
-						ParticleData *pa = NULL;							
 						int p = 0;								
 						float *density = smoke_get_density(sds->fluid);								
 						float *bigdensity = smoke_turbulence_get_density(sds->wt);								
@@ -995,6 +995,10 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 						*/
 						float *temp_emission_map = NULL;
 
+						sim.scene = scene;
+						sim.ob = otherobj;
+						sim.psys = psys;
+
 						// initialize temp emission map
 						if(!(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW))
 						{
@@ -1007,19 +1011,26 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 						}
 														
 						// mostly copied from particle code								
-						for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++)								
-						{									
-							int cell[3];									
-							size_t i = 0;									
-							size_t index = 0;									
-							int badcell = 0;																		
-							if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0) continue;									
-							else if(pa->alive == PARS_DEAD && (part->flag & PART_DIED)==0) continue;									
-							else if(pa->flag & (PARS_UNEXIST+PARS_NO_DISP)) continue;																		
+						for(p=0; p<psys->totpart; p++)								
+						{
+							int cell[3];
+							size_t i = 0;
+							size_t index = 0;
+							int badcell = 0;
+							ParticleKey state;
+
+							if(psys->particles[p].flag & (PARS_NO_DISP|PARS_UNEXIST))
+								continue;
+
+							state.time = smd->time;
+
+							if(psys_get_particle_state(&sim, p, &state, 0) == 0)
+								continue;
+							
 							// VECCOPY(pos, pa->state.co);									
 							// mul_m4_v3(ob->imat, pos);																		
 							// 1. get corresponding cell	
-							get_cell(smd->domain->p0, smd->domain->res, smd->domain->dx, pa->state.co, cell, 0);																	
+							get_cell(smd->domain->p0, smd->domain->res, smd->domain->dx, state.co, cell, 0);																	
 							// check if cell is valid (in the domain boundary)									
 							for(i = 0; i < 3; i++)									
 							{										
@@ -1045,9 +1056,9 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 								// Uses particle velocity as initial velocity for smoke
 								if(sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && (psys->part->phystype != PART_PHYS_NO))
 								{
-									velocity_x[index] = pa->state.vel[0]*sfs->vel_multi;
-									velocity_y[index] = pa->state.vel[1]*sfs->vel_multi;
-									velocity_z[index] = pa->state.vel[2]*sfs->vel_multi;
+									velocity_x[index] = state.vel[0]*sfs->vel_multi;
+									velocity_y[index] = state.vel[1]*sfs->vel_multi;
+									velocity_z[index] = state.vel[2]*sfs->vel_multi;
 								}										
 							}									
 							else if(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW) // outflow									

@@ -4193,11 +4193,11 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 
 	if(pa) {
 		if(!always)
-			if((pa->alive==PARS_UNBORN && (part->flag & PART_UNBORN)==0)
-				|| (pa->alive==PARS_DEAD && (part->flag & PART_DIED)==0))
+			if((cfra < pa->time && (part->flag & PART_UNBORN)==0)
+				|| (cfra > pa->dietime && (part->flag & PART_DIED)==0))
 				return 0;
 
-		state->time = MIN2(state->time, pa->dietime);
+		cfra = MIN2(cfra, pa->dietime);
 	}
 
 	if(sim->psys->flag & PSYS_KEYED){
@@ -4223,16 +4223,15 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 				calc_latt_deform(sim->psys->lattice, state->co,1.0f);
 		}
 		else{
-			if(pa->state.time==state->time || ELEM(part->phystype,PART_PHYS_NO,PART_PHYS_KEYED)
-				|| pa->prev_state.time <= 0.0f)
+			if(pa->state.time==cfra || ELEM(part->phystype,PART_PHYS_NO,PART_PHYS_KEYED))
 				copy_particle_key(state, &pa->state, 1);
-			else if(pa->prev_state.time==state->time)
+			else if(pa->prev_state.time==cfra)
 				copy_particle_key(state, &pa->prev_state, 1);
 			else {
 				float dfra, frs_sec = sim->scene->r.frs_sec;
 				/* let's interpolate to try to be as accurate as possible */
-				if(pa->state.time + 2.0f >= state->time && pa->prev_state.time - 2.0f <= state->time) {
-					if(pa->prev_state.time >= pa->state.time) {
+				if(pa->state.time + 2.f >= state->time && pa->prev_state.time - 2.f <= state->time) {
+					if(pa->prev_state.time >= pa->state.time || pa->prev_state.time < 0.f) {
 						/* prev_state is wrong so let's not use it, this can happen at frames 1, 0 or particle birth */
 						dfra = state->time - pa->state.time;
 
@@ -4258,7 +4257,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 						psys_interpolate_particle(-1, keys, keytime, state, 1);
 						
 						/* convert back to real velocity */
-						mul_v3_fl(state->vel, 1.0f / (dfra * timestep));
+						mul_v3_fl(state->vel, 1.f / (dfra * timestep));
 
 						interp_v3_v3v3(state->ave, keys[1].ave, keys[2].ave, keytime);
 						interp_qt_qtqt(state->rot, keys[1].rot, keys[2].rot, keytime);

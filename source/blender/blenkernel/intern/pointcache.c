@@ -1883,8 +1883,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 {
 	int len; /* store the length of the string */
 	int i;
-	int sta = pid->cache->startframe;
-	int end = pid->cache->endframe;
+	int sta, end;
 
 	/* mode is same as fopen's modes */
 	DIR *dir; 
@@ -1894,8 +1893,11 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 	char path_full[MAX_PTCACHE_FILE];
 	char ext[MAX_PTCACHE_PATH];
 
-	if(!pid->cache || pid->cache->flag & PTCACHE_BAKED)
+	if(!pid || !pid->cache || pid->cache->flag & PTCACHE_BAKED)
 		return;
+
+	sta = pid->cache->startframe;
+	end = pid->cache->endframe;
 
 #ifndef DURIAN_POINTCACHE_LIB_OK
 	/* don't allow clearing for linked objects */
