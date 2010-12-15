@@ -148,6 +148,12 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		dag_add_relation(forest, curNode, obNode,
 				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Displace Modifier");
 	}
+	
+
+	if(dmd->texmapping == MOD_DISP_MAP_GLOBAL)
+		dag_add_relation(forest, obNode, obNode,
+						 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Displace Modifier");
+	
 }
 
 static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
