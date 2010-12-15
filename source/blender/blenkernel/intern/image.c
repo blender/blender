@@ -940,8 +940,13 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	
 	if (scene->r.stamp & R_STAMP_FRAME) {
 		char format[32];
-		if (do_prefix)		sprintf(format, "Frame %%0%di", 1 + (int) log10(scene->r.efra));
-		else				sprintf(format, "%%0%di", 1 + (int) log10(scene->r.efra));
+		int digits= 1;
+		
+		if(scene->r.efra>9)
+			digits= 1 + (int) log10(scene->r.efra);
+		
+		if (do_prefix)		sprintf(format, "Frame %%0%di", digits);
+		else				sprintf(format, "%%0%di", digits);
 		sprintf (stamp_data->frame, format, scene->r.cfra);
 	} else {
 		stamp_data->frame[0] = '\0';
