@@ -26,6 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <math.h>
 #include <string.h>
 
 #include "BLI_blenlib.h"
@@ -292,20 +293,18 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 
 static void file_draw_string(int sx, int sy, const char* string, float width, int height, short align)
 {
-	char fname[FILE_MAXFILE];
-	rcti rect;
-	float sw;
 	uiStyle *style= U.uistyles.first;
 	uiFontStyle fs = style->widgetlabel;
+	rcti rect;
+	char fname[FILE_MAXFILE];
 
 	fs.align = align;
 
 	BLI_strncpy(fname,string, FILE_MAXFILE);
-	sw = file_shorten_string(fname, width+1, 0 );
-
-
+	
+	/* no text clipping needed, uiStyleFontDraw does it but is a bit too strict (for buttons it works) */
 	rect.xmin = sx;
-	rect.xmax = sx + width;
+	rect.xmax = sx + ceil(width+4.0f);
 	rect.ymin = sy - height;
 	rect.ymax = sy;
 	
