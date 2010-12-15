@@ -975,7 +975,6 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 					{
 						ParticleSimulationData sim;
 						ParticleSystem *psys = sfs->psys;
-						ParticleSettings *part=psys->part;
 						int p = 0;								
 						float *density = smoke_get_density(sds->fluid);								
 						float *bigdensity = smoke_turbulence_get_density(sds->wt);								

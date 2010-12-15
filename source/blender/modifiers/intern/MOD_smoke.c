@@ -98,7 +98,7 @@ static int dependsOnTime(ModifierData *UNUSED(md))
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
 						struct Scene *scene,
-						Object *ob,
+						Object *UNUSED(ob),
 						DagNode *obNode)
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
