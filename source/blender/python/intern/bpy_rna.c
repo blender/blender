@@ -72,7 +72,7 @@ static int rna_id_write_error(PointerRNA *ptr, PyObject *key)
 			else							pyname= "<UNKNOWN>";
 	
 			/* make a nice string error */
-			assert(idtype != NULL);
+			BKE_assert(idtype != NULL);
 			PyErr_Format(PyExc_RuntimeError, "Writing to ID classes in this context is not allowed: %.200s, %.200s datablock, error setting %.200s.%.200s", id->name+2, idtype, RNA_struct_identifier(ptr->type), pyname);
 	
 			return TRUE;
@@ -1544,7 +1544,8 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 				break;
 			}
 		default:
-			/* probably will never happen */
+			BKE_assert(!"Invalid array type");
+
 			PyErr_SetString(PyExc_TypeError, "not an array type");
 			Py_DECREF(list);
 			list= NULL;
@@ -2678,6 +2679,8 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 					break;
 				default:
 					/* should never happen */
+					BKE_assert(!"Invalid context type");
+
 					PyErr_Format(PyExc_AttributeError, "bpy_struct: Context type invalid %d, can't get \"%.200s\" from context", newtype, name);
 					ret= NULL;
 				}
@@ -3306,6 +3309,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 					break;
 				case PROP_RAW_UNSET:
 					/* should never happen */
+					BKE_assert(!"Invalid array type - set");
 					break;
 				}
 
@@ -3360,6 +3364,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 					break;
 				case PROP_RAW_UNSET:
 					/* should never happen */
+					BKE_assert(!"Invalid array type - get");
 					break;
 				}
 
@@ -3717,6 +3722,8 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	void *retdata_single= NULL;
 
 	/* Should never happen but it does in rare cases */
+	BKE_assert(self_ptr != NULL);
+
 	if(self_ptr==NULL) {
 		PyErr_SetString(PyExc_RuntimeError, "rna functions internal rna pointer is NULL, this is a bug. aborting");
 		return NULL;
