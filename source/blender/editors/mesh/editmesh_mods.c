@@ -731,7 +731,7 @@ static EnumPropertyItem prop_similar_types[] = {
 *0.5 so smaller faces arnt ALWAYS selected with a thresh of 1.0 */
 #define SCALE_CMP(a,b) ((a+a*thresh >= b) && (a-(a*thresh*0.5) <= b))
 
-static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode, float thresh)
+static int similar_face_select__internal(EditMesh *em, int mode, float thresh)
 {
 	EditFace *efa, *base_efa=NULL;
 	unsigned int selcount=0; /*count how many new faces we select*/
@@ -858,12 +858,11 @@ static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode, f
 
 static int similar_face_select_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
 	EditMesh *em= BKE_mesh_get_editmesh(me); 
 
-	int selcount = similar_face_select__internal(scene, em, RNA_int_get(op->ptr, "type"), RNA_float_get(op->ptr, "threshold"));
+	int selcount = similar_face_select__internal(em, RNA_int_get(op->ptr, "type"), RNA_float_get(op->ptr, "threshold"));
 	
 	if (selcount) {
 		/* here was an edge-mode only select flush case, has to be generalized */
@@ -879,7 +878,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 /* ***************************************************** */
 
-static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mode, float thresh)
+static int similar_edge_select__internal(EditMesh *em, int mode, float thresh)
 {
 	EditEdge *eed, *base_eed=NULL;
 	unsigned int selcount=0; /* count how many new edges we select*/
@@ -1078,12 +1077,11 @@ static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mod
 /* wrap the above function but do selection flushing edge to face */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
 	EditMesh *em= BKE_mesh_get_editmesh(me); 
 
-	int selcount = similar_edge_select__internal(ts, em, RNA_int_get(op->ptr, "type"), RNA_float_get(op->ptr, "threshold"));
+	int selcount = similar_edge_select__internal(em, RNA_int_get(op->ptr, "type"), RNA_float_get(op->ptr, "threshold"));
 	
 	if (selcount) {
 		/* here was an edge-mode only select flush case, has to be generalized */
@@ -1101,7 +1099,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
 	EditMesh *em= BKE_mesh_get_editmesh(me); 
