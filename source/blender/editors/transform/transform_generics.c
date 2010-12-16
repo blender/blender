@@ -1159,6 +1159,13 @@ void postTrans (bContext *C, TransInfo *t)
 		if(sima->flag & SI_LIVE_UNWRAP)
 			ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
 	}
+	else if(t->spacetype==SPACE_VIEW3D) {
+		View3D *v3d = t->sa->spacedata.first;
+		/* restore manipulator */
+		if (t->flag & T_MODAL) {
+			v3d->twtype = t->twtype;
+		}
+	}
 	
 	if (t->mouse.data)
 	{
