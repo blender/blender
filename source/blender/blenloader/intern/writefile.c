@@ -143,6 +143,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_utildefines.h" // for defines
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"
+#include "BKE_pointcache.h"
 
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
@@ -1176,19 +1177,32 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			
 			if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
 			{
+				if(smd->domain)
+				{
+					write_pointcaches(wd, &(smd->domain->ptcaches[0]));
+
+					/* create fake pointcache so that old blender versions can read it */
+					smd->domain->point_cache[1] = BKE_ptcache_add(&smd->domain->ptcaches[1]);
+					smd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE;
+					smd->domain->point_cache[1]->step = 1;
+
+					write_pointcaches(wd, &(smd->domain->ptcaches[1]));
+				}
+				
 				writestruct(wd, DATA, "SmokeDomainSettings", 1, smd->domain);
-				writestruct(wd, DATA, "EffectorWeights", 1, smd->domain->effector_weights);
+
+				if(smd->domain) {
+					/* cleanup the fake pointcache */
+					BKE_ptcache_free_list(&smd->domain->ptcaches[1]);
+					smd->domain->point_cache[1] = NULL;
+					
+					writestruct(wd, DATA, "EffectorWeights", 1, smd->domain->effector_weights);
+				}
 			}
 			else if(smd->type & MOD_SMOKE_TYPE_FLOW)
 				writestruct(wd, DATA, "SmokeFlowSettings", 1, smd->flow);
 			else if(smd->type & MOD_SMOKE_TYPE_COLL)
 				writestruct(wd, DATA, "SmokeCollSettings", 1, smd->coll);
-
-			if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
-			{
-				write_pointcaches(wd, &(smd->domain->ptcaches[0]));
-				write_pointcaches(wd, &(smd->domain->ptcaches[1]));
-			}
 		} 
 		else if(md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
