@@ -736,7 +736,7 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int freestyle_module_add_exec(bContext *C, wmOperator *op)
+static int freestyle_module_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
@@ -762,7 +762,7 @@ void SCENE_OT_freestyle_module_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int freestyle_module_remove_exec(bContext *C, wmOperator *op)
+static int freestyle_module_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
@@ -831,7 +831,7 @@ void SCENE_OT_freestyle_module_move(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to move, UP or DOWN");
 }
 
-static int freestyle_lineset_add_exec(bContext *C, wmOperator *op)
+static int freestyle_lineset_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
@@ -865,7 +865,7 @@ static int freestyle_active_lineset_poll(bContext *C)
 	return FRS_get_active_lineset(&srl->freestyleConfig) != NULL;
 }
 
-static int freestyle_lineset_remove_exec(bContext *C, wmOperator *op)
+static int freestyle_lineset_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
@@ -1082,7 +1082,7 @@ void SCENE_OT_freestyle_thickness_modifier_add(wmOperatorType *ot)
 	ot->prop= RNA_def_enum(ot->srna, "type", linestyle_thickness_modifier_type_items, 0, "Type", "");
 }
 
-static int freestyle_modifier_toggle_fold_exec(bContext *C, wmOperator *op)
+static int freestyle_modifier_toggle_fold_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);

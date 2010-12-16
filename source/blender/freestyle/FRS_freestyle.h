@@ -41,6 +41,8 @@ extern "C" {
 	#include "BKE_context.h"
 	#include "BKE_object.h"
 	
+	struct Render;
+	
 	extern Scene *freestyle_scene;
 	extern float freestyle_viewpoint[3];
 	extern float freestyle_mv[4][4];
@@ -48,14 +50,14 @@ extern "C" {
 	extern int freestyle_viewport[4];
 
 	// Rendering
-	void FRS_initialize();
+	void FRS_initialize(void);
 	void FRS_set_context(bContext* C);
 	int FRS_is_freestyle_enabled(struct SceneRenderLayer* srl);
 	void FRS_init_stroke_rendering(struct Render* re);
 	struct Render* FRS_do_stroke_rendering(struct Render* re, struct SceneRenderLayer* srl);
 	void FRS_finish_stroke_rendering(struct Render* re);
 	void FRS_composite_result(struct Render* re, struct SceneRenderLayer* srl, struct Render* freestyle_render);
-	void FRS_exit();
+	void FRS_exit(void);
 	
 	// Panel configuration
 	void FRS_add_module(FreestyleConfig *config);
