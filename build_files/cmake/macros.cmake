@@ -275,6 +275,37 @@ macro(remove_strict_flags)
 
 endmacro()
 
+macro(ADD_CHECK_C_COMPILER_FLAG
+	_CFLAGS
+	_FLAG)
+
+	include(CheckCCompilerFlag)
+
+	CHECK_C_COMPILER_FLAG(${_FLAG} SUPPORT_WALL)
+
+	if(SUPPORT_WALL)
+		message(STATUS "Using CFLAG: ${_FLAG}")
+		set(_CFLAGS "${_CFLAGS} ${_FLAG}")
+	else()
+		message(STATUS "Unsupported CFLAG: ${_FLAG}")
+	endif()
+endmacro()
+
+macro(ADD_CHECK_CXX_COMPILER_FLAG
+	_CXXFLAGS
+	_FLAG)
+
+	include(CheckCXXCompilerFlag)
+
+	CHECK_CXX_COMPILER_FLAG(${_FLAG} SUPPORT_WALL)
+
+	if(SUPPORT_WALL)
+		message(STATUS "Using CXXFLAG: ${_FLAG}")
+		set(_CFLAGS "${_CXXFLAGS} ${_FLAG}")
+	else()
+		message(STATUS "Unsupported CXXFLAG: ${_FLAG}")
+	endif()
+endmacro()
 
 macro(get_blender_version)
 	file(READ ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender.h CONTENT)

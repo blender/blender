@@ -355,12 +355,6 @@ if(UNIX AND NOT APPLE)
 	# GNU Compiler
 	if(CMAKE_COMPILER_IS_GNUCC)
 		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
-	
-		# Better warnings
-		# note: -Wunused-parameter is added below for all GCC compilers
-		set(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
-		set(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
-
 	# Intel C++ Compiler
 	elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 		# think these next two are broken
@@ -379,13 +373,8 @@ if(UNIX AND NOT APPLE)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fp-model precise -prec_div -parallel")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model precise -prec_div -parallel")
 
-		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
-
 		# set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -diag-enable sc3")
-
-		set(C_WARNINGS "-Wall -Wpointer-arith -Wno-unknown-pragmas")
-		set(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
-
+		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -static-intel")
 	endif()
 
@@ -604,10 +593,6 @@ elseif(WIN32)
 		if(CMAKE_COMPILER_IS_GNUCC)
 			set(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
 			set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
-
-			# Better warnings
-			set(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
-			set(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
 			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
@@ -892,11 +877,6 @@ elseif(APPLE)
 		set(CMAKE_C_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
 		set(CMAKE_CXX_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
 	endif()
-
-	# Better warnings
-	set(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
-	set(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
-
 endif()
 
 
@@ -1003,8 +983,36 @@ if((NOT WIN32) AND (NOT MSVC))
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
-	set(C_WARNINGS "${C_WARNINGS} -Wunused-parameter -Wwrite-strings -Werror=strict-prototypes -Werror=declaration-after-statement -Werror=implicit-function-declaration -Werror=return-type")
+
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wall)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wcast-align)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wdeclaration-after-statement)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Werror=declaration-after-statement)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Werror=implicit-function-declaration)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Werror=return-type)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Werror=strict-prototypes)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wno-char-subscripts)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wno-unknown-pragmas)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wpointer-arith)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wunused-parameter)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wwrite-strings)
+
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wall)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wno-invalid-offsetof)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wno-sign-compare)
+
+elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
+
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wall)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wpointer-arith)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wno-unknown-pragmas)
+
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wall)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wno-invalid-offsetof)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wno-sign-compare)
+
 endif()
+
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
