@@ -264,7 +264,7 @@ int BLI_rename(const char *from, const char *to) {
 	return rename(from, to);
 }
 
-#else /* The weirdo UNIX world */
+#else /* The UNIX world */
 
 /*
  * but the UNIX world is tied to the interface, and the system
