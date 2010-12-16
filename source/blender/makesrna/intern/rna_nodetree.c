@@ -318,8 +318,7 @@ static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *p
 	ImageUser *iuser= node->storage;
 	
 	BKE_image_multilayer_index(ima->rr, iuser);
-	/* do not call below function, it frees the multilayer exr */
-	/* BKE_image_signal(ima, iuser, IMA_SIGNAL_SRC_CHANGE); */
+	BKE_image_signal(ima, iuser, IMA_SIGNAL_SRC_CHANGE);
 	
 	rna_Node_update(bmain, scene, ptr);
 }

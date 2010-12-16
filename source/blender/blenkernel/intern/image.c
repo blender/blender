@@ -1440,7 +1440,9 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			}
 		}
 
-		image_free_buffers(ima);
+		/* force reload on first use, but not for multilayer, that makes nodes and buttons in ui drawing fail */
+		if(ima->type!=IMA_TYPE_MULTILAYER)
+			image_free_buffers(ima);
 
 		ima->ok= 1;
 		if(iuser)
