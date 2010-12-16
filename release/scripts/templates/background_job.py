@@ -18,7 +18,7 @@ def example_function(body_text, save_path, render_path):
     for obj in scene.objects:
         scene.objects.unlink(obj)
 
-    txt_data = bpy.data.curves.new(name="MyText", type='TEXT')
+    txt_data = bpy.data.curves.new(name="MyText", type='FONT')
 
     # Text Object
     txt_ob = bpy.data.objects.new(name="MyText", object_data=txt_data)

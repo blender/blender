@@ -755,7 +755,7 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
                 props.data_path_item = "data.dof_distance"
                 props.input_scale = 0.02
 
-        if obj.type in ('CURVE', 'TEXT'):
+        if obj.type in ('CURVE', 'FONT'):
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             props = layout.operator("wm.context_modal_mouse", text="Extrude Size")
