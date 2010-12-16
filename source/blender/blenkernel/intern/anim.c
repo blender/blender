@@ -296,7 +296,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	Base *base, *last=NULL;
 	
 	/* only stuff that moves or needs display still */
-	DAG_scene_update_flags(G.main, scene, scene->lay);
+	DAG_scene_update_flags(G.main, scene, scene->lay, TRUE);
 	
 	/* find the last object with the tag 
 	 *	- all those afterwards are assumed to not be relevant for our calculations

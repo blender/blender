@@ -467,8 +467,10 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	strcpy(G.main->name, mainstr); /* restore */
 	G.fileflags= fileflags;
 
-	if(success)
-		DAG_on_load_update(G.main);
+	if(success) {
+		/* important not to update time here, else non keyed tranforms are lost */
+		DAG_on_load_update(G.main, FALSE);
+	}
 
 	return success;
 }
