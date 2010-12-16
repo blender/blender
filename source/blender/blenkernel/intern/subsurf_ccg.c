@@ -1146,6 +1146,22 @@ static void ccgDM_drawVerts(DerivedMesh *dm) {
 	ccgFaceIterator_free(fi);
 	glEnd();
 }
+
+static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
+{
+	if(ccgdm->pbvh && ccgDM_use_grid_pbvh(ccgdm)) {
+		CCGFace **faces;
+		int totface;
+
+		BLI_pbvh_get_grid_updates(ccgdm->pbvh, 1, (void***)&faces, &totface);
+		if(totface) {
+			ccgSubSurf_updateFromFaces(ccgdm->ss, 0, faces, totface);
+			ccgSubSurf_updateNormals(ccgdm->ss, faces, totface);
+			MEM_freeN(faces);
+		}
+	}
+}
+
 static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int UNUSED(drawAllEdges)) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -1154,6 +1170,8 @@ static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int UNUSED(draw
 	int i, edgeSize = ccgSubSurf_getEdgeSize(ss);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int useAging;
+
+	ccgdm_pbvh_update(ccgdm);
 
 	ccgSubSurf_getUseAgeCounts(ss, &useAging, NULL, NULL, NULL);
 
@@ -1247,21 +1265,6 @@ static void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
 
 	/* don't normalize, GL_NORMALIZE is enabled */
 	glNormal3fv(no);
-}
-
-static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
-{
-	if(ccgdm->pbvh && ccgDM_use_grid_pbvh(ccgdm)) {
-		CCGFace **faces;
-		int totface;
-
-		BLI_pbvh_get_grid_updates(ccgdm->pbvh, 1, (void***)&faces, &totface);
-		if(totface) {
-			ccgSubSurf_updateFromFaces(ccgdm->ss, 0, faces, totface);
-			ccgSubSurf_updateNormals(ccgdm->ss, faces, totface);
-			MEM_freeN(faces);
-		}
-	}
 }
 
 	/* Only used by non-editmesh types */
