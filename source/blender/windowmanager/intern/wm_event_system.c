@@ -302,6 +302,12 @@ void wm_event_do_notifiers(bContext *C)
 	CTX_wm_window_set(C, NULL);
 }
 
+static int wm_event_always_pass(wmEvent *event)
+{
+	/* some events we always pass on, to ensure proper communication */
+	return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
+}
+
 /* ********************* ui handler ******************* */
 
 static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *event, int always_pass)
@@ -309,8 +315,19 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	ScrArea *area= CTX_wm_area(C);
 	ARegion *region= CTX_wm_region(C);
 	ARegion *menu= CTX_wm_menu(C);
+	static int do_wheel_ui= 1;
+	int is_wheel= ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE);
 	int retval;
-			
+	
+	/* UI is quite agressive with swallowing events, like scrollwheel */
+	/* I realize this is not extremely nice code... when UI gets keymaps it can be maybe smarter */
+	if(do_wheel_ui==0) {
+		if(is_wheel)
+			return WM_HANDLER_CONTINUE;
+		else if(wm_event_always_pass(event)==0)
+			do_wheel_ui= 1;
+	}
+	
 	/* we set context to where ui handler came from */
 	if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
 	if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
@@ -330,10 +347,14 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 		CTX_wm_region_set(C, NULL);
 		CTX_wm_menu_set(C, NULL);
 	}
-
+	
 	if(retval == WM_UI_HANDLER_BREAK)
 		return WM_HANDLER_BREAK;
-
+	
+	/* event not handled in UI, if wheel then we temporarily disable it */
+	if(is_wheel)
+		do_wheel_ui= 0;
+	
 	return WM_HANDLER_CONTINUE;
 }
 
@@ -1100,11 +1121,6 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 	return 1;
 }
 
-static int wm_event_always_pass(wmEvent *event)
-{
-	/* some events we always pass on, to ensure proper communication */
-	return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
-}
 
 /* operator exists */
 static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *event)
