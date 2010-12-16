@@ -5,7 +5,7 @@ macro(blenderlib_nolist
 	sources
 	includes)
 
-	message(STATUS "Configuring library ${name}")
+	# message(STATUS "Configuring library ${name}")
 
 	include_directories(${includes})
 	add_library(${name} ${sources})
@@ -205,7 +205,7 @@ endmacro()
 macro(TEST_SSE_SUPPORT)
 	include(CheckCSourceRuns)
 
-	message(STATUS "Detecting SSE support")
+	# message(STATUS "Detecting SSE support")
 	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 		set(CMAKE_REQUIRED_FLAGS "-msse -msse2")
 	elseif(MSVC)
@@ -221,18 +221,18 @@ macro(TEST_SSE_SUPPORT)
 		#include <emmintrin.h>
 		int main() { __m128d v = _mm_setzero_pd(); return 0; }"
 	SUPPORT_SSE2_BUILD)
-	message(STATUS "Detecting SSE support")
+	# message(STATUS "Detecting SSE support")
 
 	if(SUPPORT_SSE_BUILD)
-		message(STATUS "   ...SSE support found.")
+		message(STATUS "SSE Support: detected.")
 	else()
-		message(STATUS "   ...SSE support missing.")
+		message(STATUS "SSE Support: missing.")
 	endif()
 
 	if(SUPPORT_SSE2_BUILD)
-		message(STATUS "   ...SSE2 support found.")
+		message(STATUS "SSE2 Support: detected.")
 	else()
-		message(STATUS "   ...SSE2 support missing.")
+		message(STATUS "SSE2 Support: missing.")
 	endif()
 
 endmacro()
@@ -284,8 +284,8 @@ macro(ADD_CHECK_C_COMPILER_FLAG
 	CHECK_C_COMPILER_FLAG(${_FLAG} SUPPORT_WALL)
 
 	if(SUPPORT_WALL)
-		message(STATUS "Using CFLAG: ${_FLAG}")
-		set(_CFLAGS "${_CFLAGS} ${_FLAG}")
+		# message(STATUS "Using CFLAG: ${_FLAG}")
+		set(${_CFLAGS} "${${_CFLAGS}} ${_FLAG}")
 	else()
 		message(STATUS "Unsupported CFLAG: ${_FLAG}")
 	endif()
@@ -300,8 +300,8 @@ macro(ADD_CHECK_CXX_COMPILER_FLAG
 	CHECK_CXX_COMPILER_FLAG(${_FLAG} SUPPORT_WALL)
 
 	if(SUPPORT_WALL)
-		message(STATUS "Using CXXFLAG: ${_FLAG}")
-		set(_CFLAGS "${_CXXFLAGS} ${_FLAG}")
+		# message(STATUS "Using CXXFLAG: ${_FLAG}")
+		set(${_CXXFLAGS} "${${_CXXFLAGS}} ${_FLAG}")
 	else()
 		message(STATUS "Unsupported CXXFLAG: ${_FLAG}")
 	endif()
@@ -337,6 +337,6 @@ macro(get_blender_version)
 		set(LASTITEM ${ITEM})
 	endforeach()
 	
-	message(STATUS "Version major: ${BLENDER_VERSION_MAJOR}, Version minor: ${BLENDER_VERSION_MINOR}, Subversion: ${BLENDER_SUBVERSION}, Version: ${BLENDER_VERSION}")
-	message(STATUS "Minversion major: ${BLENDER_MINVERSION_MAJOR}, Minversion minor: ${BLENDER_MINVERSION_MINOR}, MinSubversion: ${BLENDER_MINSUBVERSION}, Minversion: ${BLENDER_MINVERSION}")
+	# message(STATUS "Version major: ${BLENDER_VERSION_MAJOR}, Version minor: ${BLENDER_VERSION_MINOR}, Subversion: ${BLENDER_SUBVERSION}, Version: ${BLENDER_VERSION}")
+	# message(STATUS "Minversion major: ${BLENDER_MINVERSION_MAJOR}, Minversion minor: ${BLENDER_MINVERSION_MINOR}, MinSubversion: ${BLENDER_MINSUBVERSION}, Minversion: ${BLENDER_MINVERSION}")
 endmacro()

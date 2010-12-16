@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-message(STATUS "Configuring blenderplayer")
+# message(STATUS "Configuring blenderplayer")
 
 setup_libdirs()
 
@@ -139,11 +139,13 @@ if(UNIX)
 			endif()
 		endforeach()
 		if(REMLIB)
-			message(STATUS "Removing library ${REMLIB} from blenderplayer linking because: not configured")
+			# message(STATUS "Removing library ${REMLIB} from blenderplayer linking because: not configured")
+			list(APPEND REM_MSG ${REMLIB})
 			list(REMOVE_ITEM BLENDER_SORTED_LIBS ${REMLIB})
 		endif()
 	endforeach()
-
+	list(SORT REM_MSG)
+	message(STATUS "Player Skipping: (${REM_MSG})")
 	target_link_libraries(blenderplayer ${BLENDER_SORTED_LIBS})
 else()
 	target_link_libraries(blenderplayer ${BLENDER_LINK_LIBS})

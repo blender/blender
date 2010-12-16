@@ -27,7 +27,7 @@
 # Generated code has some unused vars we can ignore.
 remove_strict_flags()
 
-message(STATUS "Configuring makesrna")
+# message(STATUS "Configuring makesrna")
 
 file(GLOB DEFSRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.c")
 file(GLOB APISRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*_api.c")

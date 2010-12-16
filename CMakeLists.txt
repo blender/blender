@@ -1026,6 +1026,9 @@ if(WITH_ASSERT_ABORT)
 	add_definitions(-DWITH_ASSERT_ABORT)
 endif()
 
+# message(STATUS "Using CFLAGS: ${CMAKE_C_FLAGS}")
+# message(STATUS "Using CXXFLAGS: ${CMAKE_CXX_FLAGS}")
+
 #-----------------------------------------------------------------------------
 # Libraries
 

@@ -24,6 +24,8 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+# message(STATUS "Configuring makesdna")
+
 include_directories(../../../../intern/guardedalloc ..)
 
 # Build makesdna executable
@@ -115,5 +117,3 @@ set(SRC
 )
 
 blenderlib(bf_dna "${SRC}" "${INC}")
-
-message(STATUS "Configuring makesdna")
