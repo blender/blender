@@ -64,6 +64,7 @@
 #include "KX_Light.h"
 #include "KX_Camera.h"
 #include "KX_EmptyObject.h"
+#include "KX_FontObject.h"
 #include "MT_Point3.h"
 #include "MT_Transform.h"
 #include "MT_MinMax.h"
@@ -1266,9 +1267,12 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 			break;
 		case OB_CURVE:
 		case OB_SURF:
-		case OB_FONT:
 			center[0]= center[1]= center[2]= 0.0;
 			size[0]  = size[1]=size[2]=0.0;
+			break;
+		case OB_FONT:
+			center[0]= center[1]= center[2]= 0.0;
+			size[0]  = size[1]=size[2]=1.0;
 			break;
 		case OB_MBALL:
 			bb= ob->bb;
@@ -1801,6 +1805,18 @@ static KX_GameObject *gameobject_from_blenderobject(
 		// set transformation
 		break;
 	}
+
+	case OB_FONT:
+	{
+		/* font objects have no bounding box */
+		gameobj = new KX_FontObject(kxscene,KX_Scene::m_callbacks, rendertools, ob);
+
+		/* add to the list only the visible fonts */
+		if((ob->lay & kxscene->GetBlenderScene()->lay) != 0)
+			kxscene->AddFont(static_cast<KX_FontObject*>(gameobj));
+		break;
+	}
+
 	}
 	if (gameobj) 
 	{

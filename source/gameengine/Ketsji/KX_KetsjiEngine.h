@@ -191,6 +191,7 @@ private:
 	void					RenderShadowBuffers(KX_Scene *scene);
 	void					SetBackGround(KX_WorldInfo* worldinfo);
 	void					DoSound(KX_Scene* scene);
+	void					RenderFonts(KX_Scene* scene);
 
 public:
 	KX_KetsjiEngine(class KX_ISystem* system);

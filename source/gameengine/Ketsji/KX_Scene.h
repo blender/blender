@@ -136,6 +136,13 @@ protected:
 	 * The set of cameras for this scene
 	 */
 	list<class KX_Camera*>       m_cameras;
+
+	/**
+	 * The set of fonts for this scene
+	 */
+	list<class KX_FontObject*>       m_fonts;
+
+
 	/**
 	 * Various SCA managers used by the scene
 	 */
@@ -360,6 +367,27 @@ public:
 		SCA_TimeEventManager*	
 	GetTimeEventManager(
 	);
+
+	/** Font Routines */
+		
+		list<class KX_FontObject*>*
+	GetFonts(
+	);
+
+	/** Find a font in the scene by pointer. */
+		KX_FontObject*              
+	FindFont(
+		KX_FontObject*
+	);
+
+	/** Add a camera to this scene. */
+		void                    
+	AddFont(
+		KX_FontObject*
+	);
+
+
+	/** Camera Routines */
 
 		list<class KX_Camera*>*
 	GetCameras(

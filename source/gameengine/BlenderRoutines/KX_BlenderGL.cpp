@@ -123,6 +123,32 @@ void DisableForText()
 	}
 }
 
+/* Print 3D text */
+void BL_print_game_line(int fontid, const char* text, int size, int dpi, float* color, double* mat, float aspect)
+{
+	/* gl prepping */
+	DisableForText();
+
+	/* the actual drawing */
+	glColor4fv(color);
+
+	/* multiply the text matrix by the object matrix */
+	BLF_enable(fontid, BLF_MATRIX|BLF_ASPECT);
+	BLF_matrix(fontid, mat);
+
+	/* aspect is the inverse scale that allows you to increase */
+	/* your resolution without sizing the final text size      */
+	/* the bigger the size, the smaller the aspect	           */
+	BLF_aspect(fontid, aspect, aspect, aspect);
+
+	BLF_size(fontid, size, dpi);
+	BLF_position(fontid, 0, 0, 0);
+	BLF_draw(fontid, (char *)text, strlen(text));
+
+	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT);
+	glEnable(GL_DEPTH_TEST);
+}
+
 void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int height)
 {	
 	/* gl prepping */

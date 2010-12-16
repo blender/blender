@@ -37,6 +37,7 @@ set(INC
 	../../../../source/blender/imbuf
 	../../../../source/gameengine/Ketsji
 	../../../../source/blender/blenlib
+	../../../../source/blender/blenfont
 	../../../../source/blender/blenkernel
 	../../../../source/blender
 	../../../../source/blender/makesdna

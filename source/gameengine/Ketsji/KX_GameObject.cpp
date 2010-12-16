@@ -47,6 +47,7 @@ typedef unsigned long uint_ptr;
 #include "KX_GameObject.h"
 #include "KX_Camera.h" // only for their ::Type
 #include "KX_Light.h"  // only for their ::Type
+#include "KX_FontObject.h"  // only for their ::Type
 #include "RAS_MeshObject.h"
 #include "KX_MeshProxy.h"
 #include "KX_PolyProxy.h"
@@ -3034,7 +3035,8 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 	
 	if (	PyObject_TypeCheck(value, &KX_GameObject::Type)	||
 			PyObject_TypeCheck(value, &KX_LightObject::Type)	||
-			PyObject_TypeCheck(value, &KX_Camera::Type)	)
+			PyObject_TypeCheck(value, &KX_Camera::Type)			||
+			PyObject_TypeCheck(value, &KX_FontObject::Type))
 	{
 		*object = static_cast<KX_GameObject*>BGE_PROXY_REF(value);
 		
