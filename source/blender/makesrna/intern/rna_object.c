@@ -92,14 +92,14 @@ EnumPropertyItem metaelem_type_items[] = {
 /* used for 2 enums */
 #define OBTYPE_CU_CURVE {OB_CURVE, "CURVE", 0, "Curve", ""}
 #define OBTYPE_CU_SURF {OB_SURF, "SURFACE", 0, "Surface", ""}
-#define OBTYPE_CU_TEXT {OB_FONT, "TEXT", 0, "Text", ""}
+#define OBTYPE_CU_FONT {OB_FONT, "FONT", 0, "Font", ""}
     
 EnumPropertyItem object_type_items[] = {
 	{OB_MESH, "MESH", 0, "Mesh", ""},
 	OBTYPE_CU_CURVE,
 	OBTYPE_CU_SURF,
 	{OB_MBALL, "META", 0, "Meta", ""},
-	OBTYPE_CU_TEXT,
+	OBTYPE_CU_FONT,
 	{0, "", 0, NULL, NULL},
 	{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
 	{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
@@ -112,7 +112,7 @@ EnumPropertyItem object_type_items[] = {
 EnumPropertyItem object_type_curve_items[] = {
 	OBTYPE_CU_CURVE,
 	OBTYPE_CU_SURF,
-	OBTYPE_CU_TEXT,
+	OBTYPE_CU_FONT,
 	{0, NULL, 0, NULL, NULL}};
 
 
@@ -1585,19 +1585,6 @@ static void rna_def_object(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static EnumPropertyItem object_type_items[] = {
-		{OB_EMPTY, "EMPTY", 0, "Empty", ""},
-		{OB_MESH, "MESH", 0, "Mesh", ""},
-		{OB_CURVE, "CURVE", 0, "Curve", ""},
-		{OB_SURF, "SURFACE", 0, "Surface", ""},
-		{OB_FONT, "FONT", 0, "Font", ""},
-		{OB_MBALL, "META", 0, "Meta", ""},
-		{OB_LAMP, "LAMP", 0, "Lamp", ""},
-		{OB_CAMERA, "CAMERA", 0, "Camera", ""},
-		{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
-		{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem empty_drawtype_items[] = {
 		{OB_ARROWS, "ARROWS", 0, "Arrows", ""},
