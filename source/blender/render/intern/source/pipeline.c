@@ -1494,14 +1494,15 @@ static void *do_part_thread(void *pa_v)
 float panorama_pixel_rot(Render *re)
 {
 	float psize, phi, xfac;
+	float borderfac= (float)(re->disprect.xmax - re->disprect.xmin) / (float)re->winx;
 	
 	/* size of 1 pixel mapped to viewplane coords */
-	psize= (re->viewplane.xmax-re->viewplane.xmin)/(float)re->winx;
+	psize= (re->viewplane.xmax-re->viewplane.xmin)/(float)(re->winx);
 	/* angle of a pixel */
 	phi= atan(psize/re->clipsta);
 	
 	/* correction factor for viewplane shifting, first calculate how much the viewplane angle is */
-	xfac= ((re->viewplane.xmax-re->viewplane.xmin))/(float)re->xparts;
+	xfac= borderfac*((re->viewplane.xmax-re->viewplane.xmin))/(float)re->xparts;
 	xfac= atan(0.5f*xfac/re->clipsta); 
 	/* and how much the same viewplane angle is wrapped */
 	psize= 0.5f*phi*((float)re->partx);
@@ -1532,9 +1533,9 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 			
 	if(best) {
 		float phi= panorama_pixel_rot(re);
-		/* R.disprect.xmax - R.disprect.xmin rather then R.winx for border render */
+
 		R.panodxp= (re->winx - (best->disprect.xmin + best->disprect.xmax) )/2;
-		R.panodxv= ((viewplane->xmax-viewplane->xmin)*R.panodxp)/(float)(R.disprect.xmax - R.disprect.xmin);
+		R.panodxv= ((viewplane->xmax-viewplane->xmin)*R.panodxp)/(float)(re->winx);
 
 		/* shift viewplane */
 		R.viewplane.xmin = viewplane->xmin + R.panodxv;
