@@ -7,21 +7,16 @@
 #define _WIN32_WINNT 0x501 // require Windows XP or newer
 #define WIN32_LEAN_AND_MEAN
 #include	<windows.h>
-#include "wintab.h"
 #include <map>
 #include <vector>
-
 #include "GHOST_Types.h"
+
 class GHOST_WindowWin32;
 
-// BEGIN from Wacom's Utils.h
-typedef UINT ( API * WTINFOA ) ( UINT, UINT, LPVOID );
-typedef HCTX ( API * WTOPENA ) ( HWND, LPLOGCONTEXTA, BOOL );
-typedef BOOL ( API * WTCLOSE ) ( HCTX );
-typedef BOOL ( API * WTQUEUESIZESET ) ( HCTX, int );
-typedef int  ( API * WTPACKETSGET ) ( HCTX, int, LPVOID );
-typedef BOOL ( API * WTPACKET ) ( HCTX, UINT, LPVOID );
-// END
+#include "wintab.h"
+#define PACKETDATA (PK_CURSOR | PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION)
+#define PACKETMODE (0)
+#include "pktdef.h"
 
 // TabletToolData (and its components) are meant to replace GHOST_TabletData
 // and its customdata analogue in the window manager. For now it's confined to the
@@ -49,12 +44,11 @@ typedef struct
 
 	} TabletToolData;
 
-
-// "Tablet" structure is not active by pencils down
-// but will be soon.
-
-struct Tablet
+class Tablet
 	{
+	int id;
+	TCHAR name[40];
+
 	bool hasPressure;
 	float pressureScale;
 
@@ -70,38 +64,28 @@ struct Tablet
 	WTPKT allTools; // standard info available from any tool (mouse/pen/etc.)
 	WTPKT someTools; // extra info available from only some tools
 
-	bool ownsCursor(UINT x)
-		{ return (x - cursorBase) < cursorCount; }
+public:
+	Tablet(int tabletID);
+	bool ownsCursor(int cursor);
+	TabletTool toolForCursor(int cursor);
+
+	void attachData(PACKET const&, TabletToolData&);
 	};
 
 class GHOST_TabletManagerWin32
 	{
-	// the Wintab library
-	HMODULE lib_Wintab;
-
-	// WinTab function pointers
-	WTOPENA func_Open;
-	WTCLOSE func_Close;
-	WTINFOA func_Info;
-	WTQUEUESIZESET func_QueueSizeSet;
-	WTPACKETSGET func_PacketsGet;
-	WTPACKET func_Packet;
-
-	void getExtraInfo(); // to help support new/untested tablets
+	void getHardwareInfo(); // to help support new/untested tablets
 
 	// tablet attributes
-	bool hasPressure;
-	float pressureScale;
-	bool hasTilt;
-	float azimuthScale;
-	float altitudeScale;
-//	float tiltScaleX;
-//	float tiltScaleY;
-//	UINT tiltMask;
-	UINT cursorCount;
-	UINT cursorBase;
-	WTPKT allTools; // standard info available from any tool (mouse/pen/etc.)
-	WTPKT someTools; // extra info available from only some tools
+// 	bool hasPressure;
+// 	float pressureScale;
+// 	bool hasTilt;
+// 	float azimuthScale;
+// 	float altitudeScale;
+// 	UINT cursorCount;
+// 	UINT cursorBase;
+// 	WTPKT allTools; // standard info available from any tool (mouse/pen/etc.)
+// 	WTPKT someTools; // extra info available from only some tools
 
 	// book-keeping
 	std::map<GHOST_WindowWin32*,HCTX> contexts;
@@ -110,6 +94,7 @@ class GHOST_TabletManagerWin32
 	std::vector<Tablet> tablets;
 
 	GHOST_WindowWin32* activeWindow;
+	Tablet* activeTablet;
 	TabletTool activeTool;
 	BYTE sysButtonMap[32]; // user's custom button assignments for active tool
 
@@ -117,7 +102,6 @@ class GHOST_TabletManagerWin32
 	int prevMouseY;
 	UINT prevButtons;
 
-	void convertTilt(ORIENTATION const&, TabletToolData&);
 	bool convertButton(const UINT button, GHOST_TButtonMask&);
 
 public:

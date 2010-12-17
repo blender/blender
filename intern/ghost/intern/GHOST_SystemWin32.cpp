@@ -1022,7 +1022,7 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 					{
 					// tablet manager handles all its own cursor moves.
 					// ignore 'regular' mouse while a tablet tool is being used.
-					DefWindowProc(window->getHWND(), WM_MOUSEMOVE, wParam, lParam);
+					// DefWindowProc(window->getHWND(), WM_MOUSEMOVE, wParam, lParam);
 					eventHandled = true;
 					break;
 					}
