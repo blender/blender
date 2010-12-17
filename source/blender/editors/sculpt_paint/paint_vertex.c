@@ -1331,8 +1331,10 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
 	
 	/* if nothing was added yet, we make dverts and a vertex deform group */
-	if (!me->dvert)
+	if (!me->dvert) {
 		ED_vgroup_data_create(&me->id);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+	}
 	
 	/* make mode data storage */
 	wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
