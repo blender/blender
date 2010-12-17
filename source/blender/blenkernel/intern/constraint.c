@@ -3423,7 +3423,7 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		float dist;
 		
 		SpaceTransform transform;
-		DerivedMesh *target = object_get_derived_final(cob->scene, ct->tar, CD_MASK_BAREMESH);
+		DerivedMesh *target = object_get_derived_final(ct->tar);
 		BVHTreeRayHit hit;
 		BVHTreeNearest nearest;
 		
