@@ -52,6 +52,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "GPU_buffers.h"
+
 #include "ED_sculpt.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
@@ -170,6 +172,9 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 
 		if(ss->modifiers_active || ((Mesh*)ob->data)->id.us > 1)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+
+		/* for non-PBVH drawing, need to recreate VBOs */
+		GPU_drawobject_free(ob->derivedFinal);
 	}
 }
 
