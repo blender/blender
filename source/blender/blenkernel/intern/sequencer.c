@@ -1770,6 +1770,7 @@ static ImBuf* seq_render_effect_strip_impl(
 	case EARLY_NO_INPUT:
 		out = sh.execute(context, seq, cfra, fac, facf, 
 				 NULL, NULL, NULL);
+		break;
 	case EARLY_DO_EFFECT:
 		for(i=0; i<3; i++) {
 			if(input[i])
