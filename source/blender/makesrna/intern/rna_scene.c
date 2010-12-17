@@ -224,7 +224,7 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	if(scene == scene_act)
 		ob->lay= base->lay;
 
-	ob->recalc |= OB_RECALC_ALL;
+	ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 
 	/* slows down importers too much, run scene.update() */
 	/* DAG_scene_sort(G.main, scene); */

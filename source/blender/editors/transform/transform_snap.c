@@ -261,7 +261,7 @@ void applyProject(TransInfo *t)
 			}
 			else if (t->flag & T_OBJECT)
 			{
-				td->ob->recalc |= OB_RECALC_ALL;
+				td->ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 				object_handle_update(t->scene, td->ob);
 				VECCOPY(iloc, td->ob->obmat[3]);
 			}

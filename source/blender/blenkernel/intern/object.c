@@ -316,7 +316,7 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 
 	if (*obpoin==unlinkOb) {
 		*obpoin = NULL;
-		ob->recalc |= OB_RECALC_ALL; // XXX: should this just be OB_RECALC_DATA?
+		ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME; // XXX: should this just be OB_RECALC_DATA?
 	}
 }
 
@@ -357,7 +357,7 @@ void unlink_object(Object *ob)
 		
 		if(obt->parent==ob) {
 			obt->parent= NULL;
-			obt->recalc |= OB_RECALC_ALL;
+			obt->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 		}
 		
 		modifiers_foreachObjectLink(obt, unlink_object__unlinkModifierLinks, ob);
@@ -367,15 +367,15 @@ void unlink_object(Object *ob)
 
 			if(cu->bevobj==ob) {
 				cu->bevobj= NULL;
-				obt->recalc |= OB_RECALC_ALL;
+				obt->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 			}
 			if(cu->taperobj==ob) {
 				cu->taperobj= NULL;
-				obt->recalc |= OB_RECALC_ALL;
+				obt->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 			}
 			if(cu->textoncurve==ob) {
 				cu->textoncurve= NULL;
-				obt->recalc |= OB_RECALC_ALL;
+				obt->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 			}
 		}
 		else if(obt->type==OB_ARMATURE && obt->pose) {
@@ -1078,7 +1078,7 @@ Object *add_object(struct Scene *scene, int type)
 	
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
-	ob->recalc |= OB_RECALC_ALL;
+	ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 
 	return ob;
 }
@@ -1538,7 +1538,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	ob->proxy_group= gob;
 	id_lib_extern(&target->id);
 	
-	ob->recalc= target->recalc= OB_RECALC_ALL;
+	ob->recalc= target->recalc= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 	
 	/* copy transform
 	 * - gob means this proxy comes from a group, just apply the matrix

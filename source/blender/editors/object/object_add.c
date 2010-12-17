@@ -1066,7 +1066,7 @@ static Base *duplibase_for_convert(Scene *scene, Base *base, Object *ob)
 	}
 
 	obn= copy_object(ob);
-	obn->recalc |= OB_RECALC_ALL;
+	obn->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 
 	basen= MEM_mallocN(sizeof(Base), "duplibase");
 	*basen= *base;
@@ -1150,7 +1150,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				newob->data= copy_mesh(me);
 			} else {
 				newob = ob;
-				ob->recalc |= OB_RECALC_ALL;
+				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 			}
 
 			/* make new mesh data from the original copy */
@@ -1211,7 +1211,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					for(ob1= bmain->object.first; ob1; ob1=ob1->id.next) {
 						if(ob1->data==ob->data) {
 							ob1->type= OB_CURVE;
-							ob1->recalc |= OB_RECALC_ALL;
+							ob1->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 						}
 					}
 				}
@@ -1404,7 +1404,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 	}
 	else {
 		obn= copy_object(ob);
-		obn->recalc |= OB_RECALC_ALL;
+		obn->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 		
 		basen= MEM_mallocN(sizeof(Base), "duplibase");
 		*basen= *base;

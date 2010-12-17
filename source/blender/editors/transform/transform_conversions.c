@@ -4872,7 +4872,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			// fixme... some of this stuff is not good
 			if (ob) {
 				if (ob->pose || ob_get_key(ob))
-					DAG_id_tag_update(&ob->id, OB_RECALC_ALL);
+					DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME);
 				else
 					DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}

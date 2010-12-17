@@ -2248,7 +2248,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 	}
 	
 	if(rebuild) {
-		ob->recalc= OB_RECALC_ALL;
+		ob->recalc= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 		pose->flag |= POSE_RECALC;
 	}
 }
@@ -3505,7 +3505,7 @@ static void lib_link_object(FileData *fd, Main *main)
 					/* this triggers object_update to always use a copy */
 					ob->proxy->proxy_from= ob;
 					/* force proxy updates after load/undo, a bit weak */
-					ob->recalc= ob->proxy->recalc= OB_RECALC_ALL;
+					ob->recalc= ob->proxy->recalc= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 				}
 			}
 			ob->proxy_group= newlibadr(fd, ob->id.lib, ob->proxy_group);
@@ -7955,7 +7955,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ob->type==OB_ARMATURE) {
 				if(ob->pose)
 					ob->pose->flag |= POSE_RECALC;
-				ob->recalc |= OB_RECALC_ALL;	// cannot call stuff now (pointers!), done in setup_app_data
+				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;	// cannot call stuff now (pointers!), done in setup_app_data
 
 				/* new generic xray option */
 				arm= newlibadr(fd, lib, ob->data);
@@ -12351,7 +12351,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 			base= scene_add_base(scene, ob);
 			base->flag |= SELECT;
 			base->object->flag= base->flag;
-			ob->recalc |= OB_RECALC_ALL;
+			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 			scene->basact= base;
 
 			/* assign the group */

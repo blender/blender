@@ -2376,7 +2376,7 @@ static void dxf_read(Scene *scene, const char *filename)
 	
 						ob->dupon= 1; ob->dupoff= 0;
 						ob->dupsta= 1; ob->dupend= 100;
-						ob->recalc= OB_RECALC_ALL;	/* needed because of weird way of adding libdata directly */
+						ob->recalc= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;	/* needed because of weird way of adding libdata directly */
 						
 						ob->data= obdata;
 						((ID*)ob->data)->us++;

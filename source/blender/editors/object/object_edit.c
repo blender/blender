@@ -460,7 +460,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit= ob;
 		ED_armature_to_edit(ob);
 		/* to ensure all goes in restposition and without striding */
-		DAG_id_tag_update(&ob->id, OB_RECALC_ALL); // XXX: should this be OB_RECALC_DATA?
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME); // XXX: should this be OB_RECALC_DATA?
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_ARMATURE, scene);
 	}

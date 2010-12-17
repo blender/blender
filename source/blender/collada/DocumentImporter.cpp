@@ -308,7 +308,7 @@ private:
 	Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Node *source_node, COLLADAFW::Node *instance_node, Scene *sce, bool is_library_node)
 	{
 		Object *obn = copy_object(source_ob);
-		obn->recalc |= OB_RECALC_ALL;
+		obn->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 		scene_add_base(sce, obn);
 
 		if (instance_node)

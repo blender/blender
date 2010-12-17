@@ -437,7 +437,8 @@ extern Object workob;
 #define OB_RECALC_DATA		2
 		/* time flag is set when time changes need recalc, so baked systems can ignore it */
 #define OB_RECALC_TIME		4
-#define OB_RECALC_ALL		7
+		/* only use for matching any flag, NOT as an argument since more flags may be added. */
+#define OB_RECALC_ALL		(OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME)
 
 /* controller state */
 #define OB_MAX_STATES		30
