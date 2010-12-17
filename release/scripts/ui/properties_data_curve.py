@@ -396,6 +396,7 @@ class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
 class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
+    _property_type = bpy.types.Curve
 
 
 def register():

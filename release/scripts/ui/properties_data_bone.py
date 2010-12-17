@@ -135,7 +135,7 @@ class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
         bone = context.bone
         arm = context.armature
 
-        if bone:
+        if ob and bone:
             pchan = ob.pose.bones[bone.name]
         else:
             bone = context.edit_bone
@@ -185,7 +185,7 @@ class BONE_PT_display(BoneButtonsPanel, bpy.types.Panel):
         ob = context.object
         bone = context.bone
 
-        if bone:
+        if ob and bone:
             pchan = ob.pose.bones[bone.name]
         else:
             bone = context.edit_bone
@@ -348,6 +348,7 @@ class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):
 
 class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _property_type = bpy.types.Bone, bpy.types.EditBone, bpy.types.PoseBone
 
     @property
     def _context_path(self):

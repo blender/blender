@@ -1093,6 +1093,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
 class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
     _context_path = "particle_system.settings"
+    _property_type = bpy.types.ParticleSettings
 
 
 def register():

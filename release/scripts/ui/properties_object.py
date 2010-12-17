@@ -335,9 +335,10 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # 
         self.draw_settings(context, ob.animation_visualisation)
 
 
-class OBJECT_PT_custom_props(bpy.types.Panel, PropertyPanel, ObjectButtonsPanel):
+class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object"
+    _property_type = bpy.types.Object
 
 
 def register():

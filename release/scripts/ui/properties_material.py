@@ -892,6 +892,7 @@ class MATERIAL_PT_volume_options(VolumeButtonsPanel, bpy.types.Panel):
 class MATERIAL_PT_custom_props(MaterialButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "material"
+    _property_type = bpy.types.Material
 
 
 def register():

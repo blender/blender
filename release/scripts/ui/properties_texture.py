@@ -1003,6 +1003,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
 class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "texture"
+    _property_type = bpy.types.Texture
 
 
 def register():

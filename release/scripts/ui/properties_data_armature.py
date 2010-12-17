@@ -101,7 +101,8 @@ class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(arm, "show_group_colors", text="Colors")
-        col.prop(ob, "show_x_ray", text="X-Ray")
+        if ob:
+            col.prop(ob, "show_x_ray", text="X-Ray")
         col.prop(arm, "use_deform_delay", text="Delay Refresh")
 
 
@@ -287,6 +288,7 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # in
 class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
+    _property_type = bpy.types.Armature
 
 
 def register():

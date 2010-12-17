@@ -302,7 +302,7 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
 
             split = layout.split()
             col = split.column()
-			
+
             col.prop(tf, "use_image")
             col.prop(tf, "use_light")
             col.prop(tf, "hide")
@@ -352,6 +352,7 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, bpy.types.Panel):
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
+    _property_type = bpy.types.Mesh
 
 
 def register():
