@@ -42,7 +42,8 @@ import mathutils
 from io_utils import create_derived_objects, free_derived_objects
 
 DEG2RAD=0.017453292519943295
-MATWORLD= mathutils.Matrix.Rotation(-90, 4, 'X')
+RAD_90D = -(math.pi / 2.0)
+MATWORLD= mathutils.Matrix.Rotation(RAD_90D, 4, 'X')
 
 def round_color(col, cp):
     return tuple([round(max(min(c, 1.0), 0.0), cp) for c in col])
@@ -190,32 +191,15 @@ class x3d_class:
 
     def writeViewpoint(self, ob, mat, scene):
         context = scene.render
-        # context = scene.render
-        ratio = float(context.resolution_x)/float(context.resolution_y)
-        # ratio = float(context.imageSizeY())/float(context.imageSizeX())
-        lens = (360* (math.atan(ratio *16 / ob.data.lens) / math.pi))*(math.pi/180)
-        # lens = (360* (math.atan(ratio *16 / ob.data.getLens()) / math.pi))*(math.pi/180)
-        lens = min(lens, math.pi)
 
-        # get the camera location, subtract 90 degress from X to orient like X3D does
-        # mat = ob.matrix_world - mat is now passed!
-
-        loc = self.rotatePointForVRML(mat.translation_part())
-        rot = mat.to_euler()
-        rot = (((rot[0]-90)), rot[1], rot[2])
-        # rot = (((rot[0]-90)*DEG2RAD), rot[1]*DEG2RAD, rot[2]*DEG2RAD)
-        nRot = self.rotatePointForVRML( rot )
-        # convert to Quaternion and to Angle Axis
-        Q  = self.eulerToQuaternions(*nRot)
-        Q1 = self.multiplyQuaternions(Q[0], Q[1])
-        Qf = self.multiplyQuaternions(Q1, Q[2])
-        angleAxis = self.quaternionToAngleAxis(Qf)
+        loc, quat, scale = (MATWORLD * mat).decompose()
+        angleAxis = tuple(quat.axis) + (quat.angle, )
         self.file.write("<Viewpoint DEF=\"%s\" " % (self.cleanStr(ob.name)))
         self.file.write("description=\"%s\" " % (ob.name))
         self.file.write("centerOfRotation=\"0 0 0\" ")
-        self.file.write("position=\"%3.2f %3.2f %3.2f\" " % loc)
-        self.file.write("orientation=\"%3.2f %3.2f %3.2f %3.2f\" " % (angleAxis[0], angleAxis[1], -angleAxis[2], angleAxis[3]))
-        self.file.write("fieldOfView=\"%.3f\" />\n\n" % (lens))
+        self.file.write("position=\"%3.2f %3.2f %3.2f\" " % tuple(loc))
+        self.file.write("orientation=\"%3.2f %3.2f %3.2f %3.2f\" " % angleAxis)
+        self.file.write("fieldOfView=\"%.3f\" />\n\n" % ob.data.angle)
 
     def writeFog(self, world):
         if world:
@@ -940,31 +924,7 @@ class x3d_class:
         return s
 
     def computeDirection(self, mtx):
-        x,y,z=(0,-1.0,0) # point down
-
-        ax,ay,az = (MATWORLD * mtx).to_euler()
-
-        # ax *= DEG2RAD
-        # ay *= DEG2RAD
-        # az *= DEG2RAD
-
-        # rot X
-        x1=x
-        y1=y*math.cos(ax)-z*math.sin(ax)
-        z1=y*math.sin(ax)+z*math.cos(ax)
-
-        # rot Y
-        x2=x1*math.cos(ay)+z1*math.sin(ay)
-        y2=y1
-        z2=z1*math.cos(ay)-x1*math.sin(ay)
-
-        # rot Z
-        x3=x2*math.cos(az)-y2*math.sin(az)
-        y3=x2*math.sin(az)+y2*math.cos(az)
-        z3=z2
-
-        return [x3,y3,z3]
-
+        return (mathutils.Vector((0, -1, 0)) * (MATWORLD * mtx).rotation_part())[:]
 
     # swap Y and Z to handle axis difference between Blender and VRML
     #------------------------------------------------------------------------
@@ -984,46 +944,6 @@ class x3d_class:
 
         if inc > 0:
             self.indentLevel = self.indentLevel + inc
-
-    # Converts a Euler to three new Quaternions
-    # Angles of Euler are passed in as radians
-    #------------------------------------------------------------------------
-    def eulerToQuaternions(self, x, y, z):
-        Qx = [math.cos(x/2), math.sin(x/2), 0, 0]
-        Qy = [math.cos(y/2), 0, math.sin(y/2), 0]
-        Qz = [math.cos(z/2), 0, 0, math.sin(z/2)]
-
-        quaternionVec=[Qx,Qy,Qz]
-        return quaternionVec
-
-    # Multiply two Quaternions together to get a new Quaternion
-    #------------------------------------------------------------------------
-    def multiplyQuaternions(self, Q1, Q2):
-        result = [((Q1[0] * Q2[0]) - (Q1[1] * Q2[1]) - (Q1[2] * Q2[2]) - (Q1[3] * Q2[3])),
-                  ((Q1[0] * Q2[1]) + (Q1[1] * Q2[0]) + (Q1[2] * Q2[3]) - (Q1[3] * Q2[2])),
-                  ((Q1[0] * Q2[2]) + (Q1[2] * Q2[0]) + (Q1[3] * Q2[1]) - (Q1[1] * Q2[3])),
-                  ((Q1[0] * Q2[3]) + (Q1[3] * Q2[0]) + (Q1[1] * Q2[2]) - (Q1[2] * Q2[1]))]
-
-        return result
-
-    # Convert a Quaternion to an Angle Axis (ax, ay, az, angle)
-    # angle is in radians
-    #------------------------------------------------------------------------
-    def quaternionToAngleAxis(self, Qf):
-        scale = math.pow(Qf[1],2) + math.pow(Qf[2],2) + math.pow(Qf[3],2)
-        ax = Qf[1]
-        ay = Qf[2]
-        az = Qf[3]
-
-        if scale > .0001:
-            ax/=scale
-            ay/=scale
-            az/=scale
-
-        angle = 2 * math.acos(Qf[0])
-
-        result = [ax, ay, az, angle]
-        return result
 
 ##########################################################
 # Callbacks, needed before Main
