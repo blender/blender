@@ -173,7 +173,7 @@ kmi = km.items.new('wm.context_set_enum', 'COMMA', 'PRESS', ctrl=True)
 kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'MEDIAN_POINT'
 kmi = km.items.new('wm.context_toggle', 'COMMA', 'PRESS', alt=True)
-kmi.properties.data_path = 'space_data.use_pivot_point_align'
+kmi.properties.data_path = 'space_data.use_pivot_point'
 kmi = km.items.new('wm.context_toggle', 'Q', 'PRESS')
 kmi.properties.data_path = 'space_data.show_manipulator'
 kmi = km.items.new('wm.context_set_enum', 'PERIOD', 'PRESS')

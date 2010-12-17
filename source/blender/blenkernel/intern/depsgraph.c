@@ -2139,10 +2139,10 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 	Object *ob;
 	Group *group;
 	GroupObject *go;
-	Scene *sce;
+	Scene *sce_iter;
 
 	/* set ob flags where animated systems are */
-	for(SETLOOPER(scene, base)) {
+	for(SETLOOPER(scene, sce_iter, base)) {
 		ob= base->object;
 
 		if(do_time) {
@@ -2167,12 +2167,12 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 		}
 	}
 
-	for(sce= scene; sce; sce= sce->set)
-		DAG_scene_flush_update(bmain, sce, lay, 1);
+	for(sce_iter= scene; sce_iter; sce_iter= sce_iter->set)
+		DAG_scene_flush_update(bmain, sce_iter, lay, 1);
 	
 	if(do_time) {
 		/* test: set time flag, to disable baked systems to update */
-		for(SETLOOPER(scene, base)) {
+		for(SETLOOPER(scene, sce_iter, base)) {
 			ob= base->object;
 			if(ob->recalc)
 				ob->recalc |= OB_RECALC_TIME;
@@ -2240,7 +2240,7 @@ void DAG_ids_flush_update(Main *bmain, int time)
 
 void DAG_on_load_update(Main *bmain, const short do_time)
 {
-	Scene *scene, *sce;
+	Scene *scene;
 	Base *base;
 	Object *ob;
 	Group *group;
@@ -2251,15 +2251,16 @@ void DAG_on_load_update(Main *bmain, const short do_time)
 	dag_current_scene_layers(bmain, &scene, &lay);
 
 	if(scene && scene->theDag) {
+		Scene *sce_iter;
 		/* derivedmeshes and displists are not saved to file so need to be
 		   remade, tag them so they get remade in the scene update loop,
 		   note armature poses or object matrices are preserved and do not
 		   require updates, so we skip those */
 		dag_scene_flush_layers(scene, lay);
 
-		for(SETLOOPER(scene, base)) {
+		for(SETLOOPER(scene, sce_iter, base)) {
 			ob= base->object;
-			node= (sce->theDag)? dag_get_node(sce->theDag, ob): NULL;
+			node= (sce_iter->theDag)? dag_get_node(sce_iter->theDag, ob): NULL;
 			oblay= (node)? node->lay: ob->lay;
 
 			if(oblay & lay) {

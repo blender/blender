@@ -2464,7 +2464,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 {
 	Main *bmain = baker->main;
 	Scene *scene = baker->scene;
-	Scene *sce; /* SETLOOPER macro only */
+	Scene *sce_iter; /* SETLOOPER macro only */
 	Base *base;
 	ListBase pidlist;
 	PTCacheID *pid = baker->pid;
@@ -2535,7 +2535,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 			cache->flag &= ~PTCACHE_BAKED;
 		}
 	}
-	else for(SETLOOPER(scene, base)) {
+	else for(SETLOOPER(scene, sce_iter, base)) {
 		/* cache/bake everything in the scene */
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
@@ -2624,7 +2624,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 				BKE_ptcache_write_cache(pid, 0);
 		}
 	}
-	else for(SETLOOPER(scene, base)) {
+	else for(SETLOOPER(scene, sce_iter, base)) {
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 		for(pid=pidlist.first; pid; pid=pid->next) {

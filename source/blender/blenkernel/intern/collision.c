@@ -1358,9 +1358,9 @@ Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned
 			add_collision_object(&objs, &numobj, &maxobj, go->ob, self, 0);
 	}
 	else {
-		Scene *sce; /* for SETLOOPER macro */
+		Scene *sce_iter;
 		/* add objects in same layer in scene */
-		for(SETLOOPER(scene, base)) {
+		for(SETLOOPER(scene, sce_iter, base)) {
 			if(base->lay & self->lay)
 				add_collision_object(&objs, &numobj, &maxobj, base->object, self, 0);
 
@@ -1417,11 +1417,11 @@ ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
 			add_collider_cache_object(&objs, go->ob, self, 0);
 	}
 	else {
-		Scene *sce; /* for SETLOOPER macro */
+		Scene *sce_iter;
 		Base *base;
 
 		/* add objects in same layer in scene */
-		for(SETLOOPER(scene, base)) {
+		for(SETLOOPER(scene, sce_iter, base)) {
 			if(!self || (base->lay & self->lay))
 				add_collider_cache_object(&objs, base->object, self, 0);
 

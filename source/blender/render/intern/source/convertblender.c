@@ -4679,7 +4679,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	Object *ob;
 	Group *group;
 	ObjectInstanceRen *obi;
-	Scene *sce;
+	Scene *sce_iter;
 	float mat[4][4];
 	int lay, vectorlay, redoimat= 0;
 
@@ -4688,7 +4688,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	 * NULL is just for init */
 	set_dupli_tex_mat(NULL, NULL, NULL);
 
-	for(SETLOOPER(re->scene, base)) {
+	for(SETLOOPER(re->scene, sce_iter, base)) {
 		ob= base->object;
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
 		mul_m4_m4m4(mat, ob->obmat, re->viewmat);
@@ -4698,7 +4698,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 		ob->transflag &= ~OB_RENDER_DUPLI;
 	}
 
-	for(SETLOOPER(re->scene, base)) {
+	for(SETLOOPER(re->scene, sce_iter, base)) {
 		ob= base->object;
 
 		/* in the prev/next pass for making speed vectors, avoid creating
@@ -4836,7 +4836,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 
 	/* imat objects has to be done again, since groups can mess it up */
 	if(redoimat) {
-		for(SETLOOPER(re->scene, base)) {
+		for(SETLOOPER(re->scene, sce_iter, base)) {
 			ob= base->object;
 			mul_m4_m4m4(mat, ob->obmat, re->viewmat);
 			invert_m4_m4(ob->imat, mat);

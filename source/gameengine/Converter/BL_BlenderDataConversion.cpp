@@ -227,10 +227,10 @@ static unsigned int KX_Mcol2uint_new(MCol col)
 static void SetDefaultFaceType(Scene* scene)
 {
 	default_face_mode = TF_DYNAMIC;
-	Scene *sce;
+	Scene *sce_iter;
 	Base *base;
 
-	for(SETLOOPER(scene,base))
+	for(SETLOOPER(scene, sce_iter, base))
 	{
 		if (base->object->type == OB_LAMP)
 		{
@@ -1931,7 +1931,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 	Scene *blenderscene = kxscene->GetBlenderScene();
 	// for SETLOOPER
-	Scene *sce;
+	Scene *sce_iter;
 	Base *base;
 
 	// Get the frame settings of the canvas.
@@ -2012,7 +2012,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	// Beware of name conflict in linked data, it will not crash but will create confusion
 	// in Python scripting and in certain actuators (replace mesh). Linked scene *should* have
 	// no conflicting name for Object, Object data and Action.
-	for (SETLOOPER(blenderscene, base))
+	for (SETLOOPER(blenderscene, sce_iter, base))
 	{
 		Object* blenderobject = base->object;
 		allblobj.insert(blenderobject);

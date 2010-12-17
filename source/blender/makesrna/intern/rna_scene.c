@@ -874,10 +874,10 @@ static void object_simplify_update(Object *ob)
 
 static void rna_Scene_use_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *sce;
+	Scene *sce_iter;
 	Base *base;
 
-	for(SETLOOPER(scene, base))
+	for(SETLOOPER(scene, sce_iter, base))
 		object_simplify_update(base->object);
 	
 	DAG_ids_flush_update(bmain, 0);
