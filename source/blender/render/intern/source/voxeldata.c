@@ -272,8 +272,6 @@ static void cache_voxeldata(struct Render *re, Tex *tex)
 	int curframe;
 	char path[sizeof(vd->source_path)];
 	
-	if (!vd) return;
-	
 	/* only re-cache if dataset needs updating */
 	if ((vd->flag & TEX_VD_STILL) || (vd->cachedframe == re->r.cfra))
 		if (vd->ok) return;
