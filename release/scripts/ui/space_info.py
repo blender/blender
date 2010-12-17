@@ -348,6 +348,8 @@ class INFO_MT_help(bpy.types.Menu):
     bl_label = "Help"
 
     def draw(self, context):
+        import sys
+
         layout = self.layout
 
         layout.operator("wm.url_open", text="Manual", icon='HELP').url = 'http://wiki.blender.org/index.php/Doc:Manual'
@@ -366,7 +368,7 @@ class INFO_MT_help(bpy.types.Menu):
         layout.operator("help.operator_cheat_sheet", icon='TEXT')
         layout.operator("wm.sysinfo", icon='TEXT')
         layout.separator()
-        if bpy.app.build_platform[0:7] == 'Windows':
+        if sys.platform == "win32":
             layout.operator("wm.toggle_console", icon='CONSOLE')
             layout.separator()
         layout.operator("anim.update_data_paths", text="FCurve/Driver 2.54 fix", icon='HELP')
