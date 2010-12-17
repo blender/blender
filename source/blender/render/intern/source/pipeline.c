@@ -2726,10 +2726,16 @@ int RE_is_rendering_allowed(Scene *scene, void *erh, void (*error)(void *handle,
 				if(node->type==CMP_NODE_COMPOSITE)
 					break;
 			
-			
 			if(node==NULL) {
 				error(erh, "No Render Output Node in Scene");
 				return 0;
+			}
+			
+			if(scene->r.scemode & R_FULL_SAMPLE) {
+				if(composite_needs_render(scene)==0) {
+					error(erh, "Full Sample AA not supported without 3d rendering");
+					return 0;
+				}
 			}
 		}
 	}
