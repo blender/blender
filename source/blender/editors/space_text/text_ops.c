@@ -1541,6 +1541,7 @@ static void wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 				*charp= endj;
 
 				if(j>=oldc) {
+					if(ch=='\0') *charp= start;
 					loop= 0;
 					break;
 				}
@@ -1549,10 +1550,11 @@ static void wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 
 				start= end;
 				end += max;
-				chop= 0;
+				chop= 1;
 			}
 			else if(ch==' ' || ch=='-' || ch=='\0') {
 				if(j>=oldc) {
+					*charp= start;
 					loop= 0;
 					break;
 				}
@@ -1603,17 +1605,18 @@ static void wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 
 		while(chars--) {
 			if(i-start>=max) {
+				if(chop) endj= j-1;
+
 				if(endj>=oldc) {
-					*charp= endj;
+					if(ch=='\0') *charp= (*linep)->len;
+					else *charp= endj;
 					loop= 0;
 					break;
 				}
 
-				if(chop) endj= j;
-
 				start= end;
 				end += max;
-				chop= 0;
+				chop= 1;
 			} else if(ch=='\0') {
 				*charp= (*linep)->len;
 				loop= 0;
