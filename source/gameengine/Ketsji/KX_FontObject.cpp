@@ -42,22 +42,22 @@ KX_FontObject::KX_FontObject(	void* sgReplicationInfo,
 								RAS_IRenderTools* rendertools,
 								Object *ob):
 	KX_GameObject(sgReplicationInfo, callbacks),
-	m_rendertools(rendertools),
 	m_object(ob),
 	m_dpi(72),
 	m_resolution(1.f),
-	m_color(ob->col) /* initial color - non-animatable */
+	m_color(ob->col), /* initial color - non-animatable */
+	m_rendertools(rendertools)
 {
 	Curve *text = static_cast<Curve *> (ob->data);
 	m_text = text->str;
 	m_fsize = text->fsize;
 
-	/* <builtin> != "default"					*/
+	/* FO_BUILTIN_NAME != "default"	*/
 	/* I hope at some point Blender (2.5x) can have a single font	*/
 	/* with unicode support for ui and OB_FONT			*/
-	/* once we have packed working we can load the <builtin> font	*/
+	/* once we have packed working we can load the FO_BUILTIN_NAME font	*/
 	const char* filepath = text->vfont->name;
-	if (strcmp("<builtin>", filepath) == 0)
+	if (strcmp(FO_BUILTIN_NAME, filepath) == 0)
 		filepath = "default";
 
 	/* XXX - if it's packed it will not work. waiting for bdiego (Diego) fix for that. */
@@ -89,7 +89,7 @@ void KX_FontObject::DrawText()
 	/* only draws the text if visible */
 	if(this->GetVisible() == 0) return;
 
-	/* XXX 2DO - handle multiple lines
+	/* XXX 2DO - handle multiple lines */
 	/* HARDCODED MULTIPLICATION FACTOR - this will affect the render resolution directly */
 	float RES = BGE_FONT_RES * m_resolution;
 
