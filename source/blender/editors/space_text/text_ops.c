@@ -2220,14 +2220,14 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 	Text *text= st->text;
 	TextLine **linep;
 	int *charp;
-	int w, tabs;
+	int w;
 
 	text_update_character_width(st);
 
 	if(sel) { linep= &text->sell; charp= &text->selc; } 
 	else { linep= &text->curl; charp= &text->curc; }
 	
-	y= (ar->winy - y)/st->lheight;
+	y= (ar->winy - 2 - y)/st->lheight;
 
 	if(st->showlinenrs)
 		x-= TXT_OFFSET+TEXTXLOC;
@@ -2267,14 +2267,12 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 			chars= 0;
 			curs= 0;
 			endj= 0;
-			tabs= 0;
 			for(i=0, j=0; loop; j++) {
 
 				/* Mimic replacement of tabs */
 				ch= (*linep)->line[j];
 				if(ch=='\t') {
 					chars= st->tabnumber-i%st->tabnumber;
-					tabs+= chars-1;
 					ch= ' ';
 				}
 				else
@@ -2302,7 +2300,7 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 						if(found) {
 							/* exact cursor position was found, check if it's */
 							/* still on needed line (hasn't been wrapped) */
-							if(*charp>endj && !chop) (*charp)= endj;
+							if(*charp>endj && !chop && ch!='\0') (*charp)= endj;
 							loop= 0;
 							break;
 						}
@@ -2311,7 +2309,7 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 						start= end;
 						end += max;
 
-						if(start-tabs<(*linep)->len)
+						if(j<(*linep)->len)
 							y--;
 
 						chop= 1;
@@ -2340,13 +2338,13 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 				}
 				if(ch=='\0') break;
 			}
-			if(!loop || y<0) break;
+			if(!loop || found) break;
 
 			if(!(*linep)->next) {
 				*charp= (*linep)->len;
 				break;
 			}
-			
+
 			/* On correct line but didn't meet cursor, must be at end */
 			if(y==0) {
 				*charp= (*linep)->len;
