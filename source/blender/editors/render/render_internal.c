@@ -43,6 +43,7 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
@@ -593,6 +594,11 @@ static void render_endjob(void *rjv)
 
 	/* else the frame will not update for the original value */
 	ED_update_for_newframe(G.main, rj->scene, rj->win->screen, 1);
+	
+	if(rj->srl) {
+		NodeTagIDChanged(rj->scene->nodetree, &rj->scene->id);
+		WM_main_add_notifier(NC_NODE|NA_EDITED, rj->scene);
+	}
 	
 	/* XXX render stability hack */
 	G.rendering = 0;

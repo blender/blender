@@ -2305,7 +2305,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
-	void *owner;
+	void *owner= NULL;
 	int handle_event;
 	
 	block= uiLayoutGetBlock(layout);
@@ -2314,14 +2314,20 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	uiBlockSetHandleFunc(block, do_running_jobs, NULL);
 
 	if(sa->spacetype==SPACE_NODE) {
-		owner = sa;
+		if(WM_jobs_test(wm, sa))
+		   owner = sa;
 		handle_event= B_STOPCOMPO;
-	} else {
+	} 
+	else {
+		/* another scene can be rendering too, for example via compositor */
+		for(scene= CTX_data_main(C)->scene.first; scene; scene= scene->id.next)
+			if(WM_jobs_test(wm, scene))
+				break;
 		owner = scene;
 		handle_event= B_STOPRENDER;
 	}
 
-	if(WM_jobs_test(wm, owner)) {
+	if(owner) {
 		uiLayout *ui_abs;
 		
 		ui_abs= uiLayoutAbsolute(layout, 0);
