@@ -527,6 +527,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
         row.menu("RENDER_MT_presets", text=bpy.types.RENDER_MT_presets.bl_label)
         row.operator("render.preset_add", text="", icon="ZOOMIN")
         row.operator("render.preset_add", text="", icon="ZOOMOUT").remove_active = True
+        
         split = layout.split()
 
         col = split.column()
@@ -554,8 +555,6 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
         sub.prop(scene, "frame_step", text="Step")
 
         sub.label(text="Frame Rate:")
-
-        sub = col.column(align=True)
         sub.prop(rd, "fps")
         sub.prop(rd, "fps_base", text="/")
         subrow = sub.row(align=True)
