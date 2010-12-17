@@ -75,6 +75,7 @@ typedef struct wmDropBoxMap {
 	
 } wmDropBoxMap;
 
+/* spaceid/regionid is zero for window drop maps */
 ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 {
 	wmDropBoxMap *dm;
@@ -103,6 +104,7 @@ wmDropBox *WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(bContext
 	drop->poll= poll;
 	drop->copy= copy;
 	drop->ot= WM_operatortype_find(idname, 0);
+	drop->opcontext= WM_OP_INVOKE_DEFAULT;
 	
 	if(drop->ot==NULL) {
 		MEM_freeN(drop);

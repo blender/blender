@@ -1468,8 +1468,14 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 								if(drop->poll(C, drag, event)) {
 									drop->copy(drag, drop);
 									
-									wm_operator_invoke(C, drop->ot, event, drop->ptr, NULL, FALSE);
+									WM_operator_name_call(C, drop->ot->idname, drop->opcontext, drop->ptr);
+									//wm_operator_invoke(C, drop->ot, event, drop->ptr, NULL, FALSE);
 									action |= WM_HANDLER_BREAK;
+									
+									/* prevent hanging on file read */
+									BLI_freelistN(event->customdata);
+									event->customdata= NULL;
+									event->custom= 0;
 								}
 							}
 						}

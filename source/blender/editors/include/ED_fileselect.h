@@ -93,5 +93,7 @@ void ED_fileselect_clear(struct bContext *C, struct SpaceFile *sfile);
 
 void ED_fileselect_exit(struct bContext *C, struct SpaceFile *sfile);
 
+int ED_file_extension_icon(char *relname);
+
 #endif /* ED_FILES_H */
 

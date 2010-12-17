@@ -64,6 +64,7 @@
 #include "RNA_define.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "wm_window.h"
 
@@ -3014,6 +3015,7 @@ void SCENE_OT_delete(wmOperatorType *ot)
 
 /* ****************  Assigning operatortypes to global list, adding handlers **************** */
 
+
 /* called in spacetypes.c */
 void ED_operatortypes_screen(void)
 {
@@ -3087,9 +3089,27 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
 	
 }
 
+static int open_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
+{
+	if(drag->type==WM_DRAG_PATH) {
+		if(drag->icon==ICON_FILE_BLEND)
+		   return 1;
+	}
+	return 0;
+}
+
+static void open_file_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	/* copy drag path to properties */
+	RNA_string_set(drop->ptr, "filepath", drag->path);
+	drop->opcontext= WM_OP_EXEC_DEFAULT;
+}
+
+
 /* called in spacetypes.c */
 void ED_keymap_screen(wmKeyConfig *keyconf)
 {
+	ListBase *lb;
 	wmKeyMap *keymap;
 	//wmKeyMapItem *kmi;
 	
@@ -3203,6 +3223,10 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", DOWNARROWKEY, KM_PRESS, KM_ALT, 0);
 #endif
 
+	/* dropbox for entire window */
+	lb= WM_dropboxmap_find("Window", 0, 0);
+	WM_dropbox_add(lb, "WM_OT_open_mainfile", open_file_drop_poll, open_file_drop_copy);
+	
 	keymap_modal_set(keyconf);
 }
 
