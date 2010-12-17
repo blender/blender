@@ -138,8 +138,14 @@ void id_us_plus(ID *id)
 
 void id_us_min(ID *id)
 {
-	if(id)
-		id->us--;
+	if(id) {
+		if(id->us<2 && (id->flag & LIB_FAKEUSER))
+		   id->us= 1;
+		else if(id->us<=0)
+			printf("ID user decrement error: %s \n", id->name);
+		else
+			id->us--;
+	}
 }
 
 int id_make_local(ID *id, int test)

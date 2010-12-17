@@ -252,8 +252,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			break;
 		case UI_ID_FAKE_USER:
 			if(id) {
-				if(id->flag & LIB_FAKEUSER) id->us++;
-				else id->us--;
+				if(id->flag & LIB_FAKEUSER) id_us_plus(id);
+				else id_us_min(id);
 			}
 			else return;
 			break;

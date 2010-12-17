@@ -190,11 +190,11 @@ void rna_ID_fake_user_set(PointerRNA *ptr, int value)
 
 	if(value && !(id->flag & LIB_FAKEUSER)) {
 		id->flag |= LIB_FAKEUSER;
-		id->us++;
+		id_us_plus(id);
 	}
 	else if(!value && (id->flag & LIB_FAKEUSER)) {
 		id->flag &= ~LIB_FAKEUSER;
-		id->us--;
+		id_us_min(id);
 	}
 }
 
@@ -241,7 +241,7 @@ ID *rna_ID_copy(ID *id)
 	ID *newid;
 
 	if(id_copy(id, &newid, 0)) {
-		if(newid) newid->us--;
+		if(newid) id_us_min(newid);
 		return newid;
 	}
 	
