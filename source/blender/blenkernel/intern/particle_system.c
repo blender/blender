@@ -3786,7 +3786,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 		/* flag for possible explode modifiers after this system */
 		sim->psmd->flag |= eParticleSystemFlag_Pars;
 
-		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, cfra);
+		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, cfra);
 	}
 
 /* 2. try to read from the cache */
