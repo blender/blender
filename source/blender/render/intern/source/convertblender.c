@@ -1931,6 +1931,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				float ct = (part->draw & PART_ABS_PATH_TIME) ? cfra : pa_time;
 				float dt = length / (trail_count ? (float)trail_count : 1.0f);
 
+				/* make sure we have pointcache in memory before getting particle on path */
+				psys_make_temp_pointcache(ob, psys);
+
 				for(i=0; i < trail_count; i++, ct -= dt) {
 					if(part->draw & PART_ABS_PATH_TIME) {
 						if(ct < pa_birthtime || ct > pa_dietime)
