@@ -137,7 +137,7 @@ PyMethodDef KX_FontObject::Methods[] = {
 };
 
 PyAttributeDef KX_FontObject::Attributes[] = {
-	KX_PYATTRIBUTE_STRING_RW("text", 0, 100, false, KX_FontObject, m_text),
+	KX_PYATTRIBUTE_STRING_RW("text", 0, 140, false, KX_FontObject, m_text),
 	KX_PYATTRIBUTE_FLOAT_RW("size", 0.0001f, 10000.0f, KX_FontObject, m_fsize),
 	KX_PYATTRIBUTE_FLOAT_RW("resolution", 0.0001f, 10000.0f, KX_FontObject, m_resolution),
 	/* KX_PYATTRIBUTE_INT_RW("dpi", 0, 10000, false, KX_FontObject, m_dpi), */// no real need for expose this I think
