@@ -1946,7 +1946,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 									
 									BLI_join_dirfile(path_full, path, de->d_name);
 									BLI_delete(path_full, 0, 0);
-									if(frame >=sta && frame <= end)
+									if(pid->cache->cached_frames && frame >=sta && frame <= end)
 										pid->cache->cached_frames[frame-sta] = 0;
 								}
 							}
