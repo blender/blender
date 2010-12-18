@@ -23,8 +23,9 @@ This module contains utility functions specific to blender but
 not assosiated with blenders internal data.
 """
 
-from _bpy import blend_paths, user_resource
+from _bpy import blend_paths
 from _bpy import script_paths as _bpy_script_paths
+from _bpy import user_resource as _user_resource
 
 import bpy as _bpy
 import os as _os
@@ -558,4 +559,37 @@ def keyconfig_set(filepath):
     kc_new.name = name
     keyconfigs.active = kc_new
 
+
+def user_resource(type, path, create=False):
+    """
+    Return a user resource path (normally from the users home directory).
+
+    :arg type: Resource type in ['DATAFILES', 'CONFIG', 'SCRIPTS', 'AUTOSAVE'].
+    :type type: string
+    :arg subdir: Optional subdirectory.
+    :type subdir: string
+    :arg create: Treat the path as a directory and create it if its not existing.
+    :type create: boolean
+    :return: a path.
+    :rtype: string
+    """
+
+    target_path = _user_resource(type, path)
+
+    if create:
+        # should always be true.
+        if target_path:
+            # create path if not existing.
+            if not _os.path.exists(target_path):
+                try:
+                    _os.makedirs(target_path)
+                except:
+                    import traceback
+                    traceback.print_exc()
+                    target_path = ""
+            elif not _os.path.isdir(target_path):
+                print("Path %r found but isn't a directory!" % path)
+                target_path = ""
+
+    return target_path
 
