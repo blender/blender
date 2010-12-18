@@ -3752,7 +3752,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	PTCacheID ptcacheid, *pid = NULL;
 	PARTICLE_P;
 	float disp, cache_cfra = cfra; /*, *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0; */
-	int startframe = 0, endframe = 100;
+	int startframe = 0, endframe = 100, oldtotpart = 0;
 
 	/* cache shouldn't be used for hair or "continue physics" */
 	if(part->type != PART_HAIR && BKE_ptcache_get_continue_physics() == 0) {
@@ -3778,10 +3778,12 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	}
 
 /* 1. emit particles and redo particles if needed */
+	oldtotpart = psys->totpart;
 	if(emit_particles(sim, pid, cfra) || psys->recalc & PSYS_RECALC_RESET) {
 		distribute_particles(sim, part->from);
 		initialize_all_particles(sim);
-		reset_all_particles(sim, 0.0, cfra, 0);
+		/* reset only just created particles (on startframe all particles are recreated) */
+		reset_all_particles(sim, 0.0, cfra, oldtotpart);
 
 		/* flag for possible explode modifiers after this system */
 		sim->psmd->flag |= eParticleSystemFlag_Pars;
