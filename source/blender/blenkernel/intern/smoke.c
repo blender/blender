@@ -1376,7 +1376,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		}
 
 		/* try to read from cache */
-		if(BKE_ptcache_read_cache(&pid, (float)framenr, scene->r.frs_sec) == PTCACHE_READ_EXACT) {
+		if(BKE_ptcache_read(&pid, (float)framenr, scene->r.frs_sec) == PTCACHE_READ_EXACT) {
 			BKE_ptcache_validate(cache, framenr);
 			smd->time = framenr;
 			return;
@@ -1407,7 +1407,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 				smoke_turbulence_step(sds->wt, sds->fluid);
 			}
 
-			BKE_ptcache_write_cache(&pid, startframe);
+			BKE_ptcache_write(&pid, startframe);
 		}
 		
 		// set new time
@@ -1439,7 +1439,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 	
 		BKE_ptcache_validate(cache, framenr);
 		if(framenr != startframe)
-			BKE_ptcache_write_cache(&pid, framenr);
+			BKE_ptcache_write(&pid, framenr);
 
 		tend();
 		//printf ( "Frame: %d, Time: %f\n", (int)smd->time, ( float ) tval() );

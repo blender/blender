@@ -2794,7 +2794,7 @@ static void update_physics_cache(Render *re, Scene *scene, int UNUSED(anim_init)
 	baker.break_data = re->tbh;
 	baker.progressbar = NULL;
 
-	BKE_ptcache_make_cache(&baker);
+	BKE_ptcache_bake(&baker);
 }
 /* evaluating scene options for general Blender render */
 static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int anim, int anim_init)

@@ -95,7 +95,7 @@ typedef struct PTCacheData {
 typedef struct PTCacheFile {
 	FILE *fp;
 
-	int totpoint, type;
+	int totpoint, type, frame, old_format;
 	unsigned int data_types;
 
 	struct PTCacheData data;
@@ -256,9 +256,9 @@ void BKE_ptcache_update_info(PTCacheID *pid);
 int		BKE_ptcache_data_size(int data_type);
 
 /* Memory cache read/write helpers. */
-void BKE_ptcache_mem_init_pointers(struct PTCacheMem *pm);
-void BKE_ptcache_mem_incr_pointers(struct PTCacheMem *pm);
-int BKE_ptcache_mem_seek_pointers(int point_index, struct PTCacheMem *pm);
+void BKE_ptcache_mem_pointers_init(struct PTCacheMem *pm);
+void BKE_ptcache_mem_pointers_incr(struct PTCacheMem *pm);
+int  BKE_ptcache_mem_pointers_seek(int point_index, struct PTCacheMem *pm);
 
 /* Copy a specific data type from cache data to point data. */
 void	BKE_ptcache_data_get(void **data, int type, int index, void *to);
@@ -267,10 +267,10 @@ void	BKE_ptcache_data_get(void **data, int type, int index, void *to);
 void	BKE_ptcache_data_set(void **data, int type, void *from);
 
 /* Main cache reading call. */
-int		BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec);
+int		BKE_ptcache_read(PTCacheID *pid, float cfra, float frs_sec);
 
 /* Main cache writing call. */
-int		BKE_ptcache_write_cache(PTCacheID *pid, int cfra);
+int		BKE_ptcache_write(PTCacheID *pid, int cfra);
 
 /****************** Continue physics ***************/
 void BKE_ptcache_set_continue_physics(struct Main *bmain, struct Scene *scene, int enable);
@@ -289,7 +289,7 @@ struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new, struct L
 void BKE_ptcache_quick_cache_all(struct Main *bmain, struct Scene *scene);
 
 /* Bake cache or simulate to current frame with settings defined in the baker. */
-void BKE_ptcache_make_cache(struct PTCacheBaker* baker);
+void BKE_ptcache_bake(struct PTCacheBaker* baker);
 
 /* Convert disk cache to memory cache. */
 void BKE_ptcache_disk_to_mem(struct PTCacheID *pid);

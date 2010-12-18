@@ -3797,7 +3797,7 @@ static void get_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 
 			pm->index_array = MEM_dupallocN(pm->index_array);
 
-			BKE_ptcache_mem_init_pointers(pm);
+			BKE_ptcache_mem_pointers_init(pm);
 
 			LOOP_POINTS {
 				LOOP_KEYS {
@@ -3808,7 +3808,7 @@ static void get_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 						key->time = &key->ftime;
 					}
 				}
-				BKE_ptcache_mem_incr_pointers(pm);
+				BKE_ptcache_mem_pointers_incr(pm);
 			}
 		}
 	}
@@ -4061,13 +4061,13 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 				totframe++;
 
 			for(pm=cache->mem_cache.first; pm; pm=pm->next) {
-				BKE_ptcache_mem_init_pointers(pm);
+				BKE_ptcache_mem_pointers_init(pm);
 
 				LOOP_POINTS {
 					if(psys) {
 						if(pm->index_array) {
 							if(pm->index_array[p])
-								BKE_ptcache_mem_seek_pointers(p, pm);
+								BKE_ptcache_mem_pointers_seek(p, pm);
 							else
 								continue;
 						}
@@ -4075,7 +4075,7 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 							pa = psys->particles + p;
 							if((pm->next && pm->next->frame < pa->time)
 								|| (pm->prev && pm->prev->frame >= pa->dietime)) {
-									BKE_ptcache_mem_incr_pointers(pm);
+									BKE_ptcache_mem_pointers_incr(pm);
 									continue;
 								}
 						}
@@ -4093,7 +4093,7 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 					key->rot = pm->cur[BPHYS_DATA_ROTATION];
 					key->ftime = (float)pm->frame;
 					key->time = &key->ftime;
-					BKE_ptcache_mem_incr_pointers(pm);
+					BKE_ptcache_mem_pointers_incr(pm);
 
 					point->totkey++;
 				}

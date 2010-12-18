@@ -3793,7 +3793,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 
 /* 2. try to read from the cache */
 	if(pid) {
-		int cache_result = BKE_ptcache_read_cache(pid, cache_cfra, sim->scene->r.frs_sec);
+		int cache_result = BKE_ptcache_read(pid, cache_cfra, sim->scene->r.frs_sec);
 
 		if(ELEM(cache_result, PTCACHE_READ_EXACT, PTCACHE_READ_INTERPOLATED)) {
 			cached_step(sim, cfra);
@@ -3803,7 +3803,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 			BKE_ptcache_validate(cache, (int)cache_cfra);
 
 			if(cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
-				BKE_ptcache_write_cache(pid, (int)cache_cfra);
+				BKE_ptcache_write(pid, (int)cache_cfra);
 
 			return;
 		}
@@ -3818,7 +3818,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 
 		/* if on second frame, write cache for first frame */
 		if(psys->cfra == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
-			BKE_ptcache_write_cache(pid, startframe);
+			BKE_ptcache_write(pid, startframe);
 	}
 	else
 		BKE_ptcache_invalidate(cache);
@@ -3859,7 +3859,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	if(pid) {
 		BKE_ptcache_validate(cache, (int)cache_cfra);
 		if((int)cache_cfra != startframe)
-			BKE_ptcache_write_cache(pid, (int)cache_cfra);
+			BKE_ptcache_write(pid, (int)cache_cfra);
 	}
 
 	update_children(sim);
