@@ -417,6 +417,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt)
 static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int UNUSED(index), View2D *v2d, float yminc, float ymaxc)
 {
 	char str[256], dir[3];
+	char col[4];
 	rctf rect;
 	
 	/* 'dir' - direction that strip is played in */
@@ -432,11 +433,14 @@ static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int UNU
 		sprintf(str, "%s | %.2f %s %.2f", strip->name, strip->start, dir, strip->end);
 	
 	/* set text color - if colors (see above) are light, draw black text, otherwise draw white */
-	if (strip->flag & (NLASTRIP_FLAG_ACTIVE|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_TWEAKUSER))
-		glColor3f(0.0f, 0.0f, 0.0f);
-	else
-		glColor3f(1.0f, 1.0f, 1.0f);
-	
+	if (strip->flag & (NLASTRIP_FLAG_ACTIVE|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_TWEAKUSER)) {
+		col[0]= col[1]= col[2]= 0;
+	}
+	else {
+		col[0]= col[1]= col[2]= 255;
+	}
+	col[3]= 1.0;
+
 	/* set bounding-box for text 
 	 *	- padding of 2 'units' on either side
 	 */
@@ -447,7 +451,8 @@ static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int UNU
 	rect.ymax= ymaxc;
 	
 	/* add this string to the cache of texts to draw*/
-	UI_view2d_text_cache_rectf(v2d, &rect, str);
+
+	UI_view2d_text_cache_rectf(v2d, &rect, str, col);
 }
 
 /* ---------------------- */

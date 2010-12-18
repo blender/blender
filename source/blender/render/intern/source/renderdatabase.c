@@ -1042,13 +1042,13 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 }
 
 HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma,   float *vec,   float *vec1, 
-				  float *orco, float *uvco, float hasize, float vectsize, int seed)
+				  float *orco, float *uvco, float hasize, float vectsize, int seed, float *pa_co)
 {
 	HaloRen *har;
 	MTex *mtex;
 	float tin, tr, tg, tb, ta;
 	float xn, yn, zn, texvec[3], hoco[4], hoco1[4], in[3],tex[3],out[3];
-	int i;
+	int i, hasrgb;
 
 	if(hasize==0.0) return NULL;
 
@@ -1147,11 +1147,17 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				texvec[1]=2.0f*uvco[2*uv_index+1]-1.0f;
 				texvec[2]=0.0f;
 			}
+			else if(mtex->texco & TEXCO_PARTICLE) {
+				/* particle coordinates in range [0,1] */
+				texvec[0] = 2.f * pa_co[0] - 1.f;
+				texvec[1] = 2.f * pa_co[1] - 1.f;
+				texvec[2] = pa_co[2];
+			}
 			else if(orco) {
 				VECCOPY(texvec, orco);
 			}
 
-			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0);
+			hasrgb = externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0);
 
 			//yn= tin*mtex->colfac;
 			//zn= tin*mtex->alphafac;
@@ -1172,12 +1178,22 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				har->g= in[1];
 				har->b= in[2];
 			}
+
+			/* alpha returned, so let's use it instead of intensity */
+			if(hasrgb)
+				tin = ta;
+
 			if(mtex->mapto & MAP_ALPHA)
 				har->alfa = texture_value_blend(mtex->def_var,har->alfa,tin,mtex->alphafac,mtex->blendtype);
 			if(mtex->mapto & MAP_HAR)
 				har->hard = 1.0+126.0*texture_value_blend(mtex->def_var,((float)har->hard)/127.0,tin,mtex->hardfac,mtex->blendtype);
 			if(mtex->mapto & MAP_RAYMIRR)
 				har->hasize = 100.0*texture_value_blend(mtex->def_var,har->hasize/100.0,tin,mtex->raymirrfac,mtex->blendtype);
+			if(mtex->mapto & MAP_TRANSLU) {
+				float add = texture_value_blend(mtex->def_var,(float)har->add/255.0,tin,mtex->translfac,mtex->blendtype);
+				CLAMP(add, 0.f, 1.f);
+				har->add = 255.0*add;
+			}
 			/* now what on earth is this good for?? */
 			//if(mtex->texco & 16) {
 			//	har->alfa= tin;

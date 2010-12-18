@@ -49,13 +49,17 @@ class AddPresetBase():
         preset_menu_class = getattr(bpy.types, self.preset_menu)
 
         if not self.remove_active:        
-            
+
             if not self.name:
                 return {'FINISHED'}
 
             filename = self.as_filename(self.name)
 
-            target_path = bpy.utils.preset_paths(self.preset_subdir)[0]  # we need some way to tell the user and system preset path
+            target_path = bpy.utils.user_resource('SCRIPTS', os.path.join("presets", self.preset_subdir), create=True)
+
+            if not target_path:
+                self.report({'WARNING'}, "Failed to create presets path")
+                return {'CANCELLED'}
 
             filepath = os.path.join(target_path, filename) + ".py"
             

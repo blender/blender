@@ -48,7 +48,7 @@ typedef struct MetaElem {
 
 	short type, flag, selcol1, selcol2;
 	float x, y, z;          /* Position of center of MetaElem */
-	float quat[4];          /* Rotation of MetaElem */
+	float quat[4];          /* Rotation of MetaElem (MUST be kept normalized) */
 	float expx; /* dimension parameters, used for some types like cubes */
 	float expy;
 	float expz;

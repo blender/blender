@@ -24,13 +24,13 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	intern
 	../memutil
 	../moto/include
 )
 
-SET(SRC
+set(SRC
 	intern/IK_QJacobian.cpp
 	intern/IK_QJacobianSolver.cpp
 	intern/IK_QSegment.cpp
@@ -70,4 +70,4 @@ SET(SRC
 	intern/TNT/version.h
 )
 
-BLENDERLIB(bf_intern_ik "${SRC}" "${INC}")
+blenderlib(bf_intern_ik "${SRC}" "${INC}")

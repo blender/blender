@@ -95,8 +95,6 @@ MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int UNU
 	MetaBall *mball = (MetaBall*)obedit->data;
 	MetaElem *ml;
 
-	if(!obedit) return NULL;
-
 	/* Deselect all existing metaelems */
 	ml= mball->editelems->first;
 	while(ml) {

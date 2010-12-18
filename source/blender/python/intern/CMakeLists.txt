@@ -23,7 +23,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC 
+set(INC 
 	../
 	../../blenlib
 	../../makesdna
@@ -37,7 +37,7 @@ SET(INC
 	${PYTHON_INC}
 )
 
-SET(SRC
+set(SRC
 	bpy.c
 	bpy_app.c
 	bpy_driver.c
@@ -63,8 +63,8 @@ SET(SRC
 )
 
 # only to check if buildinfo is available
-IF(WITH_BUILDINFO)
-	ADD_DEFINITIONS(-DBUILD_DATE)
-ENDIF(WITH_BUILDINFO)
+if(WITH_BUILDINFO)
+	add_definitions(-DBUILD_DATE)
+endif()
 
-BLENDERLIB(bf_python "${SRC}" "${INC}")
+blenderlib(bf_python "${SRC}" "${INC}")

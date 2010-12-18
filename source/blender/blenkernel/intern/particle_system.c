@@ -3392,7 +3392,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	psys_update_effectors(sim);
 
 	if(part->type != PART_HAIR)
-		sim->colliders = get_collider_cache(sim->scene, NULL, NULL);
+		sim->colliders = get_collider_cache(sim->scene, sim->ob, NULL);
 
 	/* initialize physics type specific stuff */
 	switch(part->phystype) {
@@ -3555,8 +3555,12 @@ static void update_children(ParticleSimulationData *sim)
 	if((sim->psys->part->type == PART_HAIR) && (sim->psys->flag & PSYS_HAIR_DONE)==0)
 	/* don't generate children while growing hair - waste of time */
 		psys_free_children(sim->psys);
-	else if(sim->psys->part->childtype && sim->psys->totchild != get_psys_tot_child(sim->scene, sim->psys))
-		distribute_particles(sim, PART_FROM_CHILD);
+	else if(sim->psys->part->childtype) {
+		if(sim->psys->totchild != get_psys_tot_child(sim->scene, sim->psys))
+			distribute_particles(sim, PART_FROM_CHILD);
+		else
+			; /* Children are up to date, nothing to do. */
+	}
 	else
 		psys_free_children(sim->psys);
 }
@@ -3745,79 +3749,61 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	PointCache *cache = psys->pointcache;
-	PTCacheID pid, *use_cache = NULL;
+	PTCacheID ptcacheid, *pid = NULL;
 	PARTICLE_P;
-	int oldtotpart;
-	float disp; /*, *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0; */
-	int init= 0, emit= 0; //, only_children_changed= 0;
-	int framenr, framedelta, startframe = 0, endframe = 100;
-
-	framenr= (int)sim->scene->r.cfra;
-	framedelta= framenr - cache->simframe;
+	float disp, cache_cfra = cfra; /*, *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0; */
+	int startframe = 0, endframe = 100, oldtotpart = 0;
 
 	/* cache shouldn't be used for hair or "continue physics" */
 	if(part->type != PART_HAIR && BKE_ptcache_get_continue_physics() == 0) {
-		BKE_ptcache_id_from_particles(&pid, sim->ob, psys);
-		use_cache = &pid;
-	}
-
-	if(use_cache) {
-		psys_clear_temp_pointcache(sim->psys);
+		psys_clear_temp_pointcache(psys);
 
 		/* set suitable cache range automatically */
 		if((cache->flag & (PTCACHE_BAKING|PTCACHE_BAKED))==0)
-			psys_get_pointcache_start_end(sim->scene, sim->psys, &cache->startframe, &cache->endframe);
-		
-		BKE_ptcache_id_time(&pid, sim->scene, 0.0f, &startframe, &endframe, NULL);
+			psys_get_pointcache_start_end(sim->scene, psys, &cache->startframe, &cache->endframe);
 
-		/* simulation is only active during a specific period */
-		if(framenr < startframe) {
-			/* set correct particle state and reset particles */
-			cached_step(sim, cfra);
-			return;
-		}
-		else if(framenr > endframe) {
-			framenr= endframe;
-		}
-		else if(framenr == startframe) {
-			BKE_ptcache_id_reset(sim->scene, use_cache, PTCACHE_RESET_OUTDATED);
-			BKE_ptcache_validate(cache, framenr);
+		pid = &ptcacheid;
+		BKE_ptcache_id_from_particles(pid, sim->ob, psys);
+		
+		BKE_ptcache_id_time(pid, sim->scene, 0.0f, &startframe, &endframe, NULL);
+
+		/* clear everythin on start frame */
+		if((int)cfra == startframe) {
+			BKE_ptcache_id_reset(sim->scene, pid, PTCACHE_RESET_OUTDATED);
+			BKE_ptcache_validate(cache, startframe);
 			cache->flag &= ~PTCACHE_REDO_NEEDED;
 		}
+		
+		CLAMP(cache_cfra, startframe, endframe);
 	}
 
-/* 1. emit particles */
-
-	/* verify if we need to reallocate */
+/* 1. emit particles and redo particles if needed */
 	oldtotpart = psys->totpart;
-
-	emit = emit_particles(sim, use_cache, cfra);
-	if(use_cache && emit > 0)
-		BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, cfra);
-	init = emit*emit + (psys->recalc & PSYS_RECALC_RESET);
-
-	if(init) {
+	if(emit_particles(sim, pid, cfra) || psys->recalc & PSYS_RECALC_RESET) {
 		distribute_particles(sim, part->from);
 		initialize_all_particles(sim);
+		/* reset only just created particles (on startframe all particles are recreated) */
 		reset_all_particles(sim, 0.0, cfra, oldtotpart);
 
 		/* flag for possible explode modifiers after this system */
 		sim->psmd->flag |= eParticleSystemFlag_Pars;
+
+		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, cfra);
 	}
 
 /* 2. try to read from the cache */
-	if(use_cache) {
-		int cache_result = BKE_ptcache_read_cache(use_cache, cfra, sim->scene->r.frs_sec);
+	if(pid) {
+		int cache_result = BKE_ptcache_read_cache(pid, cache_cfra, sim->scene->r.frs_sec);
 
 		if(ELEM(cache_result, PTCACHE_READ_EXACT, PTCACHE_READ_INTERPOLATED)) {
 			cached_step(sim, cfra);
 			update_children(sim);
 			psys_update_path_cache(sim, cfra);
 
-			BKE_ptcache_validate(cache, framenr);
+			BKE_ptcache_validate(cache, (int)cache_cfra);
 
 			if(cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
-				BKE_ptcache_write_cache(use_cache, framenr);
+				BKE_ptcache_write_cache(pid, (int)cache_cfra);
 
 			return;
 		}
@@ -3832,7 +3818,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 
 		/* if on second frame, write cache for first frame */
 		if(psys->cfra == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
-			BKE_ptcache_write_cache(use_cache, startframe);
+			BKE_ptcache_write_cache(pid, startframe);
 	}
 	else
 		BKE_ptcache_invalidate(cache);
@@ -3855,7 +3841,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 		
 		/* handle negative frame start at the first frame by doing
 		 * all the steps before the first frame */
-		if(framenr == startframe && part->sta < startframe)
+		if((int)cfra == startframe && part->sta < startframe)
 			totframesback = (startframe - (int)part->sta);
 		
 		for(dframe=-totframesback; dframe<=0; dframe++) {
@@ -3870,14 +3856,13 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	}
 	
 /* 4. only write cache starting from second frame */
-	if(use_cache) {
-		BKE_ptcache_validate(cache, framenr);
-		if(framenr != startframe)
-			BKE_ptcache_write_cache(use_cache, framenr);
+	if(pid) {
+		BKE_ptcache_validate(cache, (int)cache_cfra);
+		if((int)cache_cfra != startframe)
+			BKE_ptcache_write_cache(pid, (int)cache_cfra);
 	}
 
-	if(init)
-		update_children(sim);
+	update_children(sim);
 
 /* cleanup */
 	if(psys->lattice){
@@ -4003,7 +3988,7 @@ static void psys_prepare_physics(ParticleSimulationData *sim)
 static int hair_needs_recalc(ParticleSystem *psys)
 {
 	if(!(psys->flag & PSYS_EDITED) && (!psys->edit || !psys->edit->edited) &&
-		((psys->flag & PSYS_HAIR_DONE)==0 || psys->recalc & PSYS_RECALC_RESET)) {
+		((psys->flag & PSYS_HAIR_DONE)==0 || psys->recalc & PSYS_RECALC_RESET || (psys->part->flag & PART_HAIR_REGROW && !psys->edit))) {
 		return 1;
 	}
 

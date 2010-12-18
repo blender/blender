@@ -199,7 +199,6 @@ static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
 static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
-	Mesh *me= (ob)? ob->data: NULL;
 
 	if(!ob) {
 		cddm->pbvh= NULL;
@@ -217,6 +216,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	   this derivedmesh is just original mesh. it's the multires subsurf dm
 	   that this is actually for, to support a pbvh on a modified mesh */
 	if(!cddm->pbvh && ob->type == OB_MESH) {
+		Mesh *me= ob->data;
 		cddm->pbvh = BLI_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
@@ -224,6 +224,21 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	}
 
 	return cddm->pbvh;
+}
+
+/* update vertex normals so that drawing smooth faces works during sculpt
+   TODO: proper fix is to support the pbvh in all drawing modes */
+static void cdDM_update_normals_from_pbvh(DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
+	float (*face_nors)[3];
+
+	if(!cddm->pbvh || !cddm->pbvh_draw || !dm->numFaceData)
+		return;
+
+	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
+
+	BLI_pbvh_update(cddm->pbvh, PBVH_UpdateNormals, face_nors);
 }
 
 static void cdDM_drawVerts(DerivedMesh *dm)
@@ -538,6 +553,8 @@ static void cdDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 	if(col1 && col2)
 		glEnable(GL_CULL_FACE);
 
+	cdDM_update_normals_from_pbvh(dm);
+
 	if( GPU_buffer_legacy(dm) ) {
 		DEBUG_VBO( "Using legacy code. cdDM_drawFacesColored\n" );
 		glShadeModel(GL_SMOOTH);
@@ -616,6 +633,8 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	MCol *mcol = dm->getFaceDataArray(dm, CD_WEIGHT_MCOL);
 	if(!mcol)
 		mcol = dm->getFaceDataArray(dm, CD_MCOL);
+
+	cdDM_update_normals_from_pbvh(dm);
 
 	if( GPU_buffer_legacy(dm) ) {
 		DEBUG_VBO( "Using legacy code. cdDM_drawFacesTex_common\n" );
@@ -792,6 +811,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	if(!mc)
 		mc = DM_get_face_data_layer(dm, CD_MCOL);
 
+	cdDM_update_normals_from_pbvh(dm);
+
 	/* back-buffer always uses legacy since VBO's would need the
 	 * color array temporarily overwritten for drawing, then reset. */
 	if( GPU_buffer_legacy(dm) || G.f & G_BACKBUFSEL) {
@@ -937,6 +958,8 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 	int a, b, dodraw, smoothnormal, matnr, new_matnr;
 	int transp, new_transp, orig_transp;
 	int orig, *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
+
+	cdDM_update_normals_from_pbvh(dm);
 
 	matnr = -1;
 	smoothnormal = 0;

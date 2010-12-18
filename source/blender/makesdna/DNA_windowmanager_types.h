@@ -146,8 +146,8 @@ typedef struct wmWindowManager {
 } wmWindowManager;
 
 /* wmWindowManager.initialized */
-#define WM_INIT_WINDOW		1<<0
-#define WM_INIT_KEYMAP		1<<1
+#define WM_INIT_WINDOW		(1<<0)
+#define WM_INIT_KEYMAP		(1<<1)
 
 /* the savable part, rest of data is local in ghostwinlay */
 typedef struct wmWindow {
@@ -228,7 +228,7 @@ typedef struct wmKeyMapItem {
 
 	/* runtime */
 	short maptype;					/* keymap editor */
-	short id;						/* unique identifier */
+	short id;						/* unique identifier. Positive for kmi that override builtins, negative otherwise */
 	short pad;
 	struct PointerRNA *ptr;			/* rna pointer to access properties */
 } wmKeyMapItem;

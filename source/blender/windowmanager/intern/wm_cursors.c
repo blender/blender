@@ -155,14 +155,16 @@ void WM_cursor_restore(wmWindow *win)
 /* to allow usage all over, we do entire WM */
 void WM_cursor_wait(int val)
 {
-	wmWindowManager *wm= G.main->wm.first;
-	wmWindow *win= wm?wm->windows.first:NULL; 
-	
-	for(; win; win= win->next) {
-		if(val) {
-			WM_cursor_modal(win, CURSOR_WAIT);
-		} else {
-			WM_cursor_restore(win);
+	if(!G.background) {
+		wmWindowManager *wm= G.main->wm.first;
+		wmWindow *win= wm?wm->windows.first:NULL; 
+		
+		for(; win; win= win->next) {
+			if(val) {
+				WM_cursor_modal(win, CURSOR_WAIT);
+			} else {
+				WM_cursor_restore(win);
+			}
 		}
 	}
 }

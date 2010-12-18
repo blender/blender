@@ -41,6 +41,7 @@ CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I../../../blender/blenkernel
 CPPFLAGS += -I../../../blender/blenloader
 CPPFLAGS += -I../../../blender/blenlib
+CPPFLAGS += -I../../../blender/blenfont
 CPPFLAGS += -I../../../blender/imbuf
 CPPFLAGS += -I../../../blender/makesdna
 CPPFLAGS += -I../../../blender/gpu

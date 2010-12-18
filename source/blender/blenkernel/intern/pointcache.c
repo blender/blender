@@ -228,7 +228,15 @@ void BKE_ptcache_make_particle_key(ParticleKey *key, int index, void **data, flo
 {
 	PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, index, key->co);
 	PTCACHE_DATA_TO(data, BPHYS_DATA_VELOCITY, index, key->vel);
-	PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, index, key->rot);
+	
+	/* no rotation info, so make something nice up */
+	if(data[BPHYS_DATA_ROTATION]==NULL) {
+		vec_to_quat( key->rot, key->vel, OB_NEGX, OB_POSZ);
+	}
+	else {
+		PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, index, key->rot);
+	}
+
 	PTCACHE_DATA_TO(data, BPHYS_DATA_AVELOCITY, index, key->ave);
 	key->time = time;
 }
@@ -1875,8 +1883,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 {
 	int len; /* store the length of the string */
 	int i;
-	int sta = pid->cache->startframe;
-	int end = pid->cache->endframe;
+	int sta, end;
 
 	/* mode is same as fopen's modes */
 	DIR *dir; 
@@ -1886,8 +1893,11 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 	char path_full[MAX_PTCACHE_FILE];
 	char ext[MAX_PTCACHE_PATH];
 
-	if(!pid->cache || pid->cache->flag & PTCACHE_BAKED)
+	if(!pid || !pid->cache || pid->cache->flag & PTCACHE_BAKED)
 		return;
+
+	sta = pid->cache->startframe;
+	end = pid->cache->endframe;
 
 #ifndef DURIAN_POINTCACHE_LIB_OK
 	/* don't allow clearing for linked objects */
@@ -1936,7 +1946,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 									
 									BLI_join_dirfile(path_full, path, de->d_name);
 									BLI_delete(path_full, 0, 0);
-									if(frame >=sta && frame <= end)
+									if(pid->cache->cached_frames && frame >=sta && frame <= end)
 										pid->cache->cached_frames[frame-sta] = 0;
 								}
 							}
@@ -2380,6 +2390,8 @@ static PointCache *ptcache_copy(PointCache *cache)
 	/* hmm, should these be copied over instead? */
 	ncache->mem_cache.first = NULL;
 	ncache->mem_cache.last = NULL;
+	ncache->cached_frames = NULL;
+	ncache->edit = NULL;
 
 	ncache->flag= 0;
 	ncache->simframe= 0;
@@ -2452,7 +2464,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 {
 	Main *bmain = baker->main;
 	Scene *scene = baker->scene;
-	Scene *sce; /* SETLOOPER macro only */
+	Scene *sce_iter; /* SETLOOPER macro only */
 	Base *base;
 	ListBase pidlist;
 	PTCacheID *pid = baker->pid;
@@ -2523,7 +2535,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 			cache->flag &= ~PTCACHE_BAKED;
 		}
 	}
-	else for(SETLOOPER(scene, base)) {
+	else for(SETLOOPER(scene, sce_iter, base)) {
 		/* cache/bake everything in the scene */
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
@@ -2612,7 +2624,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 				BKE_ptcache_write_cache(pid, 0);
 		}
 	}
-	else for(SETLOOPER(scene, base)) {
+	else for(SETLOOPER(scene, sce_iter, base)) {
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 		for(pid=pidlist.first; pid; pid=pid->next) {

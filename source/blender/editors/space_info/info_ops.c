@@ -184,14 +184,16 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
 
 /********************* make paths relative operator *********************/
 
-static int make_paths_relative_exec(bContext *UNUSED(C), wmOperator *op)
+static int make_paths_relative_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
+
 	if(!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set relative paths with an unsaved blend file.");
 		return OPERATOR_CANCELLED;
 	}
 
-	makeFilesRelative(G.main->name, op->reports);
+	makeFilesRelative(bmain, bmain->name, op->reports);
 
 	/* redraw everything so any changed paths register */
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -214,14 +216,16 @@ void FILE_OT_make_paths_relative(wmOperatorType *ot)
 
 /********************* make paths absolute operator *********************/
 
-static int make_paths_absolute_exec(bContext *UNUSED(C), wmOperator *op)
+static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
+
 	if(!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set absolute paths with an unsaved blend file.");
 		return OPERATOR_CANCELLED;
 	}
 
-	makeFilesAbsolute(G.main->name, op->reports);
+	makeFilesAbsolute(bmain, bmain->name, op->reports);
 
 	/* redraw everything so any changed paths register */
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -251,7 +255,7 @@ static int report_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
 	txtname[0] = '\0';
 	
 	/* run the missing file check */
-	checkMissingFiles(G.main->name, op->reports);
+	checkMissingFiles(G.main, op->reports);
 	
 	return OPERATOR_FINISHED;
 }
@@ -276,7 +280,7 @@ static int find_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
 	char *path;
 	
 	path= RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
-	findMissingFiles(G.main->name, path);
+	findMissingFiles(G.main, path);
 	MEM_freeN(path);
 
 	return OPERATOR_FINISHED;

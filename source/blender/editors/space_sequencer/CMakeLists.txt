@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -31,7 +31,7 @@ SET(INC
 	../../../../intern/audaspace/intern
 )
 
-SET(SRC
+set(SRC
 	sequencer_add.c
 	sequencer_buttons.c
 	sequencer_draw.c
@@ -44,4 +44,4 @@ SET(SRC
 	sequencer_intern.h
 )
 
-BLENDERLIB(bf_editor_space_sequencer "${SRC}" "${INC}")
+blenderlib(bf_editor_space_sequencer "${SRC}" "${INC}")

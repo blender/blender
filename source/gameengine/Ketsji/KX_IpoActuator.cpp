@@ -81,7 +81,7 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 	m_ipo_local(ipo_local),
 	m_type(acttype)
 {
-	m_starttime = -2.0*fabs(m_endframe - m_startframe) - 1.0;
+	this->ResetStartTime();
 	m_bIpoPlaying = false;
 }
 
@@ -176,7 +176,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	bool result=true;
 	if (!bNegativeEvent)
 	{
-		if (m_starttime < -2.0f*start_smaller_then_end*(m_endframe - m_startframe))
+		if (m_starttime < -2.0f*fabs(m_endframe - m_startframe))
 		{
 			// start for all Ipo, initial start for LOOP_STOP
 			m_starttime = curtime;
@@ -371,11 +371,16 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	if (!result)
 	{
 		if (m_type != KX_ACT_IPO_LOOPSTOP)
-			m_starttime = -2.0*start_smaller_then_end*(m_endframe - m_startframe) - 1.0;
+			this->ResetStartTime();
 		m_bIpoPlaying = false;
 	}
 
 	return result;
+}
+
+void KX_IpoActuator::ResetStartTime()
+{
+	this->m_starttime = -2.0*fabs(this->m_endframe - this->m_startframe) - 1.0;
 }
 
 int KX_IpoActuator::string2mode(char* modename) {
@@ -435,8 +440,8 @@ PyMethodDef KX_IpoActuator::Methods[] = {
 };
 
 PyAttributeDef KX_IpoActuator::Attributes[] = {
-	KX_PYATTRIBUTE_FLOAT_RW("frameStart", 0, 300000, KX_IpoActuator, m_startframe),
-	KX_PYATTRIBUTE_FLOAT_RW("frameEnd", 0, 300000, KX_IpoActuator, m_endframe),
+	KX_PYATTRIBUTE_RW_FUNCTION("frameStart", KX_IpoActuator, pyattr_get_frame_start, pyattr_set_frame_start),
+	KX_PYATTRIBUTE_RW_FUNCTION("frameEnd", KX_IpoActuator, pyattr_get_frame_end, pyattr_set_frame_end),
 	KX_PYATTRIBUTE_STRING_RW("propName", 0, 64, false, KX_IpoActuator, m_propname),
 	KX_PYATTRIBUTE_STRING_RW("framePropName", 0, 64, false, KX_IpoActuator, m_framepropname),
 	KX_PYATTRIBUTE_INT_RW("mode", KX_ACT_IPO_NODEF+1, KX_ACT_IPO_MAX-1, true, KX_IpoActuator, m_type),
@@ -447,6 +452,48 @@ PyAttributeDef KX_IpoActuator::Attributes[] = {
 	
 	{ NULL }	//Sentinel
 };
+
+PyObject* KX_IpoActuator::pyattr_get_frame_start(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_IpoActuator* self= static_cast<KX_IpoActuator*>(self_v);
+	return PyLong_FromDouble(self->m_startframe);
+}
+
+int KX_IpoActuator::pyattr_set_frame_start(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_IpoActuator* self= static_cast<KX_IpoActuator*>(self_v);
+	float param = PyLong_AsDouble(value);
+
+	if (PyErr_Occurred()) {
+		PyErr_SetString(PyExc_AttributeError, "frameStart = integer: KX_IpoActuator, expected an integer value");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	self->m_startframe = param;
+	self->ResetStartTime();
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject* KX_IpoActuator::pyattr_get_frame_end(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_IpoActuator* self= static_cast<KX_IpoActuator*>(self_v);
+	return PyLong_FromDouble(self->m_endframe);
+}
+
+int KX_IpoActuator::pyattr_set_frame_end(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_IpoActuator* self= static_cast<KX_IpoActuator*>(self_v);
+	float param = PyLong_AsDouble(value);
+
+	if (PyErr_Occurred()) {
+		PyErr_SetString(PyExc_AttributeError, "frameEnd = integer: KX_IpoActuator, expected an integer value");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	self->m_endframe = param;
+	self->ResetStartTime();
+	return PY_SET_ATTR_SUCCESS;
+}
 
 #endif // WITH_PYTHON
 

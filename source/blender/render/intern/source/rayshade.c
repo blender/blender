@@ -1492,7 +1492,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 		if(!(shi->combinedflag & SCE_PASS_REFRACT))
 			VECSUB(diff, diff, shr->refr);
 		
-		shr->alpha= tracol[3];
+		shr->alpha= MIN2(1.0f, tracol[3]);
 	}
 	
 	if(do_mir) {

@@ -1203,6 +1203,8 @@ void makeDispListMBall(Scene *scene, Object *ob)
 void makeDispListMBall_forRender(Scene *scene, Object *ob, ListBase *dispbase)
 {
 	metaball_polygonize(scene, ob, dispbase);
+	tex_space_mball(ob);
+	
 	object_deform_mball(ob, dispbase);
 }
 

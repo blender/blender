@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -30,7 +30,7 @@ SET(INC
 	../../../../intern/audaspace/intern
 )
 
-SET(SRC
+set(SRC
 	graph_buttons.c
 	graph_draw.c
 	graph_edit.c
@@ -42,4 +42,4 @@ SET(SRC
 	graph_intern.h
 )
 
-BLENDERLIB(bf_editor_space_graph "${SRC}" "${INC}")
+blenderlib(bf_editor_space_graph "${SRC}" "${INC}")

@@ -71,6 +71,7 @@ static char Quaternion_ToEuler_doc[] =
 
 static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 {
+	float tquat[4];
 	float eul[3];
 	char *order_str= NULL;
 	short order= EULER_ORDER_XYZ;
@@ -88,6 +89,8 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 		if(order == -1)
 			return NULL;
 	}
+	
+	normalize_qt_qt(tquat, self->quat);
 
 	if(eul_compat) {
 		float mat[3][3];
@@ -95,14 +98,14 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 		if(!BaseMath_ReadCallback(eul_compat))
 			return NULL;
 		
-		quat_to_mat3(mat, self->quat);
+		quat_to_mat3(mat, tquat);
 
 		if(order == EULER_ORDER_XYZ)	mat3_to_compatible_eul(eul, eul_compat->eul, mat);
 		else							mat3_to_compatible_eulO(eul, eul_compat->eul, order, mat);
 	}
 	else {
-		if(order == EULER_ORDER_XYZ)	quat_to_eul(eul, self->quat);
-		else							quat_to_eulO(eul, order, self->quat);
+		if(order == EULER_ORDER_XYZ)	quat_to_eul(eul, tquat);
+		else							quat_to_eulO(eul, order, tquat);
 	}
 	
 	return newEulerObject(eul, order, Py_NEW, NULL);
@@ -765,21 +768,28 @@ static PyObject *Quaternion_getMagnitude(QuaternionObject * self, void *UNUSED(c
 
 static PyObject *Quaternion_getAngle(QuaternionObject * self, void *UNUSED(closure))
 {
+	float tquat[4];
+
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	return PyFloat_FromDouble(2.0 * (saacos(self->quat[0])));
+	normalize_qt_qt(tquat, self->quat);
+	return PyFloat_FromDouble(2.0 * (saacos(tquat[0])));
 }
 
 static int Quaternion_setAngle(QuaternionObject * self, PyObject * value, void *UNUSED(closure))
 {
+	float tquat[4];
+	float len;
+	
 	float axis[3];
 	float angle;
 
 	if(!BaseMath_ReadCallback(self))
 		return -1;
 
-	quat_to_axis_angle(axis, &angle, self->quat);
+	len= normalize_qt_qt(tquat, self->quat);
+	quat_to_axis_angle(axis, &angle, tquat);
 
 	angle = PyFloat_AsDouble(value);
 
@@ -797,6 +807,7 @@ static int Quaternion_setAngle(QuaternionObject * self, PyObject * value, void *
 	}
 	
 	axis_angle_to_quat(self->quat, axis, angle);
+	mul_qt_fl(self->quat, len);
 
 	if(!BaseMath_WriteCallback(self))
 		return -1;
@@ -806,13 +817,16 @@ static int Quaternion_setAngle(QuaternionObject * self, PyObject * value, void *
 
 static PyObject *Quaternion_getAxisVec(QuaternionObject *self, void *UNUSED(closure))
 {
+	float tquat[4];
+	
 	float axis[3];
 	float angle;
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
-	quat_to_axis_angle(axis, &angle, self->quat);
+
+	normalize_qt_qt(tquat, self->quat);
+	quat_to_axis_angle(axis, &angle, tquat);
 
 	/* If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations */
 	if( EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
@@ -827,15 +841,20 @@ static PyObject *Quaternion_getAxisVec(QuaternionObject *self, void *UNUSED(clos
 
 static int Quaternion_setAxisVec(QuaternionObject *self, PyObject *value, void *UNUSED(closure))
 {
+	float tquat[4];
+	float len;
+
 	float axis[3];
 	float angle;
 	
 	VectorObject *vec;
 
+	
 	if(!BaseMath_ReadCallback(self))
 		return -1;
 
-	quat_to_axis_angle(axis, &angle, self->quat);
+	len= normalize_qt_qt(tquat, self->quat);
+	quat_to_axis_angle(axis, &angle, tquat);
 
 	if(!VectorObject_Check(value)) {
 		PyErr_SetString(PyExc_TypeError, "quaternion.axis = value: expected a 3D Vector");
@@ -847,6 +866,7 @@ static int Quaternion_setAxisVec(QuaternionObject *self, PyObject *value, void *
 		return -1;
 
 	axis_angle_to_quat(self->quat, vec->vec, angle);
+	mul_qt_fl(self->quat, len);
 
 	if(!BaseMath_WriteCallback(self))
 		return -1;

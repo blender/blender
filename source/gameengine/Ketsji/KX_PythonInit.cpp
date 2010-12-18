@@ -51,7 +51,7 @@ extern "C" {
 	#include "py_capi_utils.h"
 	#include "mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 	#include "bgl.h"
-	#include "blf_api.h"
+	#include "blf_py_api.h"
 
 	#include "marshal.h" /* python header for loading/saving dicts */
 }

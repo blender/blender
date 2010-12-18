@@ -24,11 +24,11 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../../extern/Eigen2
 )
 
-SET(SRC
+set(SRC
 	Armature.cpp
 	Cache.cpp
 	ConstraintSet.cpp
@@ -222,4 +222,4 @@ SET(SRC
 	../../extern/Eigen2/Eigen/src/Sparse/UmfPackSupport.h
 )
 
-BLENDERLIB(bf_intern_itasc "${SRC}" "${INC}")
+blenderlib(bf_intern_itasc "${SRC}" "${INC}")

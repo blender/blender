@@ -88,7 +88,7 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, bpy.types.Panel):
             #row.column().prop(pchan, "delta_rotation_angle", text="Angle")
             #row.column().prop(pchan, "delta_rotation_axis", text="Axis")
             #row.column().prop(ob, "delta_rotation_axis_angle", text="Rotation")
-            row.column().label(ob, text="Not for Axis-Angle")
+            row.column().label(text="Not for Axis-Angle")
         else:
             row.column().prop(ob, "delta_rotation_euler", text="Rotation")
 
@@ -335,9 +335,10 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # 
         self.draw_settings(context, ob.animation_visualisation)
 
 
-class OBJECT_PT_custom_props(bpy.types.Panel, PropertyPanel, ObjectButtonsPanel):
+class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object"
+    _property_type = bpy.types.Object
 
 
 def register():

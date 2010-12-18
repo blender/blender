@@ -68,6 +68,13 @@ public:
 	void				DisableOpenGLLights();
 	void				ProcessLighting(RAS_IRasterizer *rasty, bool uselights, const MT_Transform& viewmat);
 
+	void				RenderText3D(int fontid,
+									 const char* text,
+									 int size,
+									 int dpi,
+									 float* color,
+									 double* mat,
+									 float aspect);
 	/* @attention mode is ignored here */
 	void			    RenderText2D(RAS_TEXT_RENDER_MODE mode,
 									 const char* text,

@@ -24,9 +24,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-ADD_SUBDIRECTORY(common)
-ADD_SUBDIRECTORY(ghost)
+add_subdirectory(common)
+add_subdirectory(ghost)
 
-IF(WITH_WEBPLUGIN) 
-	ADD_SUBDIRECTORY(xembed)
-ENDIF(WITH_WEBPLUGIN)
+if(WITH_WEBPLUGIN) 
+	add_subdirectory(xembed)
+endif()

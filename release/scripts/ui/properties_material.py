@@ -269,7 +269,7 @@ class MATERIAL_PT_shading(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = active_node_mat(context.material)
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE', 'HALO')) and (engine in cls.COMPAT_ENGINES)
+        return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -293,9 +293,6 @@ class MATERIAL_PT_shading(MaterialButtonsPanel, bpy.types.Panel):
             sub.active = not mat.use_shadeless
             sub.prop(mat, "use_tangent_shading")
             sub.prop(mat, "use_cubic")
-
-        elif mat.type == 'HALO':
-            layout.prop(mat, "alpha")
 
 
 class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
@@ -486,14 +483,30 @@ class MATERIAL_PT_halo(MaterialButtonsPanel, bpy.types.Panel):
         mat = context.material  # dont use node material
         halo = mat.halo
 
+        def number_but(layout, toggle, number, name, color):
+            row = layout.row(align=True)
+            row.prop(halo, toggle, text="")
+            sub = row.column()
+            sub.active = getattr(halo, toggle)
+            sub.prop(halo, number, text=name)
+            if not color == "":
+                sub.prop(mat, color, text="")
+
         split = layout.split()
 
         col = split.column()
+        col.prop(mat, "alpha")
         col.prop(mat, "diffuse_color", text="")
+
+        col = split.column()
         col.prop(halo, "size")
         col.prop(halo, "hardness")
         col.prop(halo, "add")
-        col.label(text="Options:")
+
+        layout.label(text="Options:")
+
+        split = layout.split()
+        col = split.column()
         col.prop(halo, "use_texture")
         col.prop(halo, "use_vertex_normal")
         col.prop(halo, "use_extreme_alpha")
@@ -501,22 +514,9 @@ class MATERIAL_PT_halo(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(halo, "use_soft")
 
         col = split.column()
-        col.prop(halo, "use_ring")
-        sub = col.column()
-        sub.active = halo.use_ring
-        sub.prop(halo, "ring_count")
-        sub.prop(mat, "mirror_color", text="")
-        col.separator()
-        col.prop(halo, "use_lines")
-        sub = col.column()
-        sub.active = halo.use_lines
-        sub.prop(halo, "line_count", text="Lines")
-        sub.prop(mat, "specular_color", text="")
-        col.separator()
-        col.prop(halo, "use_star")
-        sub = col.column()
-        sub.active = halo.use_star
-        sub.prop(halo, "star_tip_count")
+        number_but(col, "use_ring", "ring_count", "Rings", "mirror_color")
+        number_but(col, "use_lines", "line_count", "Lines", "specular_color")
+        number_but(col, "use_star", "star_tip_count", "Star tips", "")
 
 
 class MATERIAL_PT_flare(MaterialButtonsPanel, bpy.types.Panel):
@@ -892,6 +892,7 @@ class MATERIAL_PT_volume_options(VolumeButtonsPanel, bpy.types.Panel):
 class MATERIAL_PT_custom_props(MaterialButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "material"
+    _property_type = bpy.types.Material
 
 
 def register():

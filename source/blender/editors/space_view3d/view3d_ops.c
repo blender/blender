@@ -62,8 +62,8 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_view_orbit);
 	WM_operatortype_append(VIEW3D_OT_view_pan);
 	WM_operatortype_append(VIEW3D_OT_view_persportho);
-	WM_operatortype_append(VIEW3D_OT_add_background_image);
-	WM_operatortype_append(VIEW3D_OT_remove_background_image);
+	WM_operatortype_append(VIEW3D_OT_background_image_add);
+	WM_operatortype_append(VIEW3D_OT_background_image_remove);
 	WM_operatortype_append(VIEW3D_OT_view_selected);
 	WM_operatortype_append(VIEW3D_OT_view_center_cursor);
 	WM_operatortype_append(VIEW3D_OT_view_center_camera);
@@ -272,7 +272,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "value", "MEDIAN_POINT");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", COMMAKEY, KM_PRESS, KM_ALT, 0); /* new in 2.5 */
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point_align");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.use_pivot_point_align");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* new in 2.5 */
 	RNA_string_set(kmi->ptr, "data_path", "space_data.show_manipulator");

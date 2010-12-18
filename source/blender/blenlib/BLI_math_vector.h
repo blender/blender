@@ -124,6 +124,7 @@ void mid_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE int is_zero_v3(const float a[3]);
 MINLINE int is_one_v3(const float a[3]);
 
+MINLINE int equals_v2v2(const float *v1, const float *v2);
 MINLINE int equals_v3v3(const float a[3], const float b[3]);
 MINLINE int compare_v3v3(const float a[3], const float b[3], const float limit);
 MINLINE int compare_len_v3v3(const float a[3], const float b[3], const float limit);
@@ -149,6 +150,7 @@ void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const 
 
 /********************************* Geometry **********************************/
 
+void project_v2_v2v2(float c[2], const float v1[2], const float v2[2]);
 void project_v3_v3v3(float r[3], const float p[3], const float n[3]);
 void reflect_v3_v3v3(float r[3], const float v[3], const float n[3]);
 void ortho_basis_v3v3_v3(float r1[3], float r2[3], const float a[3]);

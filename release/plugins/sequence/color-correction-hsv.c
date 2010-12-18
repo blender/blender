@@ -187,12 +187,13 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 	double gamma_table[256];
 	double uv_table[256];
 	float *destf = out->rect_float;
-	float *src1f = ibuf1->rect_float;
+	float *src1f;
 	
 	if (!ibuf1) return;
 
 	dest= (char *) out->rect;
 	src1= (char *) ibuf1->rect;
+	src1f= ibuf1->rect_float;
 
 	for (y = 0; y < 256; y++) {
 	        float v = 1.0 * y / 255;

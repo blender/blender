@@ -264,6 +264,7 @@ class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "world"
+    _property_type = bpy.types.World
 
 
 def register():

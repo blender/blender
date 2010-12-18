@@ -90,7 +90,7 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 	else {
 		/* in other case we do standard depsgaph update, ideally
 		   we'd be calling property update functions here too ... */
-		DAG_id_tag_update(id, OB_RECALC_ALL); // XXX or do we want something more restrictive?
+		DAG_id_tag_update(id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME); // XXX or do we want something more restrictive?
 	}
 }
 
@@ -106,7 +106,7 @@ void ANIM_id_update(Scene *UNUSED(scene), ID *id)
 			adt->recalc |= ADT_RECALC_ANIM;
 			
 		/* set recalc flags */
-		DAG_id_tag_update(id, OB_RECALC_ALL); // XXX or do we want something more restrictive?
+		DAG_id_tag_update(id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME); // XXX or do we want something more restrictive?
 	}
 }
 

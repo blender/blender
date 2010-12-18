@@ -103,6 +103,13 @@ static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 }
 
+static void rna_MetaBall_update_rotation(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	MetaElem *ml= ptr->data;
+	normalize_qt(ml->quat);
+	rna_MetaBall_update_data(bmain, scene, ptr);
+}
+
 static MetaElem *rna_MetaBall_elements_new(MetaBall *mb, int type)
 {
 	MetaElem *ml= add_metaball_element(mb, type);
@@ -164,8 +171,8 @@ static void rna_def_metaelement(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
-	RNA_def_property_ui_text(prop, "Rotation", "");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_ui_text(prop, "Rotation", "Normalized quaternion rotation");
+	RNA_def_property_update(prop, 0, "rna_MetaBall_update_rotation");
 
 	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_UNSIGNED|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "rad");

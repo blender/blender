@@ -180,6 +180,32 @@ static void rna_Lattice_vg_name_set(PointerRNA *ptr, const char *value)
 		strcpy(lt->editlatt->latt->vgroup, value);
 }
 
+/* annoying, but is a consequence of RNA structures... */
+static char *rna_LatticePoint_path(PointerRNA *ptr)
+{
+	Lattice *lt= (Lattice*)ptr->id.data;
+	void *point= ptr->data;
+	BPoint *points = NULL;
+	
+	if (lt->editlatt && lt->editlatt->latt->def)
+		points = lt->editlatt->latt->def;
+	else
+		points = lt->def;
+	
+	if (points && point) {
+		int tot= lt->pntsu*lt->pntsv*lt->pntsw;
+		
+		/* only return index if in range */
+		if ((point >= (void *)points) && (point < (void *)(points + tot))) {
+			int pt_index = (int)((BPoint *)point - points);
+			
+			return BLI_sprintfN("points[%d]", pt_index);
+		}
+	}
+
+	return BLI_strdup("");
+}
+
 
 #else
 
@@ -191,6 +217,7 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "LatticePoint", NULL);
 	RNA_def_struct_sdna(srna, "BPoint");
 	RNA_def_struct_ui_text(srna, "LatticePoint", "Point in the lattice grid");
+	RNA_def_struct_path_func(srna, "rna_LatticePoint_path");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
@@ -287,6 +314,9 @@ static void rna_def_lattice(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "LatticePoint");
 	RNA_def_property_collection_funcs(prop, "rna_Lattice_points_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Points", "Points of the lattice");
+	
+	/* pointers */
+	rna_def_animdata_common(srna);
 }
 
 void RNA_def_lattice(BlenderRNA *brna)

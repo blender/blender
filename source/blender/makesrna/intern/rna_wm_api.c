@@ -63,7 +63,7 @@ static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
 	
 }
 
-static int rna_event_add_modal_handler(struct bContext *C, struct wmOperator *operator)
+static int rna_event_modal_handler_add(struct bContext *C, struct wmOperator *operator)
 {
 	return WM_event_add_modal_handler(C, operator) != NULL;
 }
@@ -104,11 +104,11 @@ void RNA_api_wm(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "add_fileselect", "WM_event_add_fileselect");
+	func= RNA_def_function(srna, "fileselect_add", "WM_event_add_fileselect");
 	RNA_def_function_ui_description(func, "Show up the file selector.");
 	rna_generic_op_invoke(func, 0);
 
-	func= RNA_def_function(srna, "add_modal_handler", "rna_event_add_modal_handler");
+	func= RNA_def_function(srna, "modal_handler_add", "rna_event_modal_handler_add");
 	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "operator", "Operator", "", "Operator to call.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);

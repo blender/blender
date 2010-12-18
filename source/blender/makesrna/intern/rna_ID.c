@@ -193,11 +193,11 @@ void rna_ID_fake_user_set(PointerRNA *ptr, int value)
 
 	if(value && !(id->flag & LIB_FAKEUSER)) {
 		id->flag |= LIB_FAKEUSER;
-		id->us++;
+		id_us_plus(id);
 	}
 	else if(!value && (id->flag & LIB_FAKEUSER)) {
 		id->flag &= ~LIB_FAKEUSER;
-		id->us--;
+		id_us_min(id);
 	}
 }
 
@@ -211,7 +211,7 @@ void rna_IDPropertyGroup_unregister(const bContext *C, StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 }
 
-StructRNA *rna_IDPropertyGroup_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+StructRNA *rna_IDPropertyGroup_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	PointerRNA dummyptr;
 
@@ -244,7 +244,7 @@ ID *rna_ID_copy(ID *id)
 	ID *newid;
 
 	if(id_copy(id, &newid, 0)) {
-		if(newid) newid->us--;
+		if(newid) id_us_min(newid);
 		return newid;
 	}
 	

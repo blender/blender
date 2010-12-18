@@ -1017,7 +1017,7 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 
 	/* Following 2 functions are recursive
 	 * so dont call within 'scene_update_tagged_recursive' */
-	DAG_scene_update_flags(bmain, sce, lay);   // only stuff that moves or needs display still
+	DAG_scene_update_flags(bmain, sce, lay, TRUE);   // only stuff that moves or needs display still
 
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,
 	 * with an 'local' to 'macro' order of evaluation. This should ensure that
@@ -1085,20 +1085,20 @@ float get_render_aosss_error(RenderData *r, float error)
 }
 
 /* helper function for the SETLOOPER macro */
-Base *_setlooper_base_step(Scene **sce, Base *base)
+Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 {
     if(base && base->next) {
         /* common case, step to the next */
         return base->next;
     }
-    else if(base==NULL && (*sce)->base.first) {
+	else if(base==NULL && (*sce_iter)->base.first) {
         /* first time looping, return the scenes first base */
-        return (Base *)(*sce)->base.first;
+		return (Base *)(*sce_iter)->base.first;
     }
     else {
         /* reached the end, get the next base in the set */
-        while((*sce= (*sce)->set)) {
-            base= (Base *)(*sce)->base.first;
+		while((*sce_iter= (*sce_iter)->set)) {
+			base= (Base *)(*sce_iter)->base.first;
             if(base) {
                 return base;
             }

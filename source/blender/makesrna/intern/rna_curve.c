@@ -847,7 +847,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	
 	static EnumPropertyItem prop_align_items[] = {
 		{CU_LEFT, "LEFT", 0, "Left", "Align text to the left"},
-		{CU_MIDDLE, "CENTRAL", 0, "Center", "Center text"},
+		{CU_MIDDLE, "CENTER", 0, "Center", "Center text"},
 		{CU_RIGHT, "RIGHT", 0, "Right", "Align text to the right"},
 		{CU_JUSTIFY, "JUSTIFY", 0, "Justify", "Align to the left and the right"},
 		{CU_FLUSH, "FLUSH", 0, "Flush", "Align to the left and the right, with equal character spacing"},
@@ -964,11 +964,29 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
+	prop= RNA_def_property(srna, "font_bold", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "vfontb");
+	RNA_def_property_ui_text(prop, "Font", "");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	prop= RNA_def_property(srna, "font_italic", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "vfonti");
+	RNA_def_property_ui_text(prop, "Font", "");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	prop= RNA_def_property(srna, "font_bold_italic", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "vfontbi");
+	RNA_def_property_ui_text(prop, "Font", "");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
 	prop= RNA_def_property(srna, "edit_format", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curinfo");
 	RNA_def_property_ui_text(prop, "Edit Format", "Editing settings character formatting");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
+
 	/* flags */
 	prop= RNA_def_property(srna, "use_fast_edit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_FAST);

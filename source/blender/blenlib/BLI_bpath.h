@@ -33,9 +33,10 @@
 #define BLI_BPATH_H
 
 struct BPathIterator;
+struct ReportList;
+struct Main;
 
-void			BLI_bpathIterator_init				(struct BPathIterator *bpi, const char *base_path);
-void			BLI_bpathIterator_alloc				(struct BPathIterator **bpi);
+void			BLI_bpathIterator_init				(struct BPathIterator **bpi, struct Main *bmain, const char *basedir);
 void			BLI_bpathIterator_free				(struct BPathIterator *bpi);
 const char*		BLI_bpathIterator_getLib			(struct BPathIterator *bpi);
 const char*		BLI_bpathIterator_getName			(struct BPathIterator *bpi);
@@ -51,9 +52,9 @@ void			BLI_bpathIterator_setPath			(struct BPathIterator *bpi, const char *path)
 /* high level funcs */
 
 /* creates a text file with missing files if there are any */
-void checkMissingFiles(const char *basepath, ReportList *reports);
-void makeFilesRelative(const char *basepath, ReportList *reports);
-void makeFilesAbsolute(const char *basepath, ReportList *reports);
-void findMissingFiles(const char *basepath, const char *str);
+void checkMissingFiles(struct Main *bmain, struct ReportList *reports);
+void makeFilesRelative(struct Main *bmain, const char *basedir, struct ReportList *reports);
+void makeFilesAbsolute(struct Main *bmain, const char *basedir, struct ReportList *reports);
+void findMissingFiles(struct Main *bmain, const char *str);
 
 #endif // BLI_BPATH_H

@@ -24,11 +24,11 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	include
 )
 
-SET(SRC
+set(SRC
 	intern/MT_Assert.cpp
 	intern/MT_CmMatrix4x4.cpp
 	intern/MT_Matrix3x3.cpp
@@ -67,4 +67,4 @@ SET(SRC
 	include/NM_Scalar.h
 )
 
-BLENDERLIB(bf_intern_moto "${SRC}" "${INC}")
+blenderlib(bf_intern_moto "${SRC}" "${INC}")

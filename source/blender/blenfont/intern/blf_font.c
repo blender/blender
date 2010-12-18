@@ -420,35 +420,57 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 
 void blf_font_width_and_height(FontBLF *font, const char *str, float *width, float *height)
 {
+	float xa, ya;
 	rctf box;
 
 	if (font->glyph_cache) {
+		if (font->flags & BLF_ASPECT) {
+			xa= font->aspect[0];
+			ya= font->aspect[1];
+		}
+		else {
+			xa= 1.0f;
+			ya= 1.0f;
+		}
+
 		blf_font_boundbox(font, str, &box);
-		*width= ((box.xmax - box.xmin) * font->aspect);
-		*height= ((box.ymax - box.ymin) * font->aspect);
+		*width= ((box.xmax - box.xmin) * xa);
+		*height= ((box.ymax - box.ymin) * ya);
 	}
 }
 
 float blf_font_width(FontBLF *font, const char *str)
 {
+	float xa;
 	rctf box;
 
 	if (!font->glyph_cache)
 		return(0.0f);
 
+	if (font->flags & BLF_ASPECT)
+		xa= font->aspect[0];
+	else
+		xa= 1.0f;
+
 	blf_font_boundbox(font, str, &box);
-	return((box.xmax - box.xmin) * font->aspect);
+	return((box.xmax - box.xmin) * xa);
 }
 
 float blf_font_height(FontBLF *font, const char *str)
 {
+	float ya;
 	rctf box;
 
 	if (!font->glyph_cache)
 		return(0.0f);
 
+	if (font->flags & BLF_ASPECT)
+		ya= font->aspect[1];
+	else
+		ya= 1.0f;
+
 	blf_font_boundbox(font, str, &box);
-	return((box.ymax - box.ymin) * font->aspect);
+	return((box.ymax - box.ymin) * ya);
 }
 
 float blf_font_fixed_width(FontBLF *font)
@@ -493,11 +515,18 @@ void blf_font_free(FontBLF *font)
 
 static void blf_font_fill(FontBLF *font)
 {
-	font->aspect= 1.0f;
+	int i;
+
+	font->aspect[0]= 1.0f;
+	font->aspect[1]= 1.0f;
+	font->aspect[2]= 1.0f;
 	font->pos[0]= 0.0f;
 	font->pos[1]= 0.0f;
 	font->angle= 0.0f;
-	unit_m4(font->mat);
+
+	for (i= 0; i < 16; i++)
+		font->m[i]= 0;
+
 	font->clip_rec.xmin= 0.0f;
 	font->clip_rec.xmax= 0.0f;
 	font->clip_rec.ymin= 0.0f;

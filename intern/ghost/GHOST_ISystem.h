@@ -404,6 +404,12 @@ protected:
 
 	/** The one and only system */
 	static GHOST_ISystem* m_system;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GHOST:GHOST_ISystem"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // _GHOST_ISYSTEM_H_

@@ -197,6 +197,7 @@ class SCENE_PT_simplify(SceneButtonsPanel, bpy.types.Panel):
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "scene"
+    _property_type = bpy.types.Scene
 
 
 from bpy.props import *
@@ -305,7 +306,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 

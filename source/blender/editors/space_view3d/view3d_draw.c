@@ -1726,7 +1726,6 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 {
 	RegionView3D *rv3d= ar->regiondata;
 	Base *base;
-	Scene *sce;
 	short zbuf= v3d->zbuf;
 	short flag= v3d->flag;
 	float glalphaclip= U.glalphaclip;
@@ -1759,7 +1758,8 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	
 	/* draw set first */
 	if(scene->set) {
-		for(SETLOOPER(scene->set, base)) {
+		Scene *sce_iter;
+		for(SETLOOPER(scene->set, sce_iter, base)) {
 			if(v3d->lay & base->lay) {
 				if (func == NULL || func(base)) {
 					draw_object(scene, ar, v3d, base, 0);
@@ -1881,14 +1881,14 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 {
 	ListBase shadows;
 	View3DShadow *shadow;
-	Scene *sce;
+	Scene *sce_iter;
 	Base *base;
 	Object *ob;
 	
 	shadows.first= shadows.last= NULL;
 	
 	/* update lamp transform and gather shadow lamps */
-	for(SETLOOPER(scene, base)) {
+	for(SETLOOPER(scene, sce_iter, base)) {
 		ob= base->object;
 		
 		if(ob->type == OB_LAMP)
@@ -2036,7 +2036,6 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy, float viewmat[][4], float winmat[][4])
 {
-	Scene *sce;
 	Base *base;
 	float backcol[3];
 	int bwinx, bwiny;
@@ -2091,7 +2090,8 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 
 	/* draw set first */
 	if(scene->set) {
-		for(SETLOOPER(scene->set, base)) {
+		Scene *sce_iter;
+		for(SETLOOPER(scene->set, sce_iter, base)) {
 			if(v3d->lay & base->lay) {
 				UI_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
 				draw_object(scene, ar, v3d, base, DRAW_CONSTCOLOR|DRAW_SCENESET);
@@ -2295,7 +2295,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	Scene *sce;
 	Base *base;
 	Object *ob;
 	float backcol[3];
@@ -2389,7 +2388,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* draw set first */
 	if(scene->set) {
-		for(SETLOOPER(scene->set, base)) {
+		Scene *sce_iter;
+		for(SETLOOPER(scene->set, sce_iter, base)) {
 			
 			if(v3d->lay & base->lay) {
 				

@@ -155,6 +155,10 @@ typedef struct EditNurb {
 	/* base of nurbs' list (old Curve->editnurb) */
 	ListBase nurbs;
 
+	/* copy of animation curves to keep them in consistent state */
+	/* when changing curve topology */
+	ListBase fcurves;
+
 	/* index data for shape keys */
 	struct GHash *keyindex;
 

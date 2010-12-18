@@ -157,7 +157,6 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 	glColor3ub(255, 255, 255);
 	
 	// UI_DrawString(6, 6, str); // works ok but fixed width is nicer.
-	BLF_aspect(blf_mono_font, 1.0);
 	BLF_size(blf_mono_font, 11, 72);
 	BLF_position(blf_mono_font, 6, 6, 0);
 	BLF_draw_ascii(blf_mono_font, str, sizeof(str));
@@ -665,7 +664,8 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 		draw_image_buffer(sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
 	/* paint helpers */
-	draw_image_paint_helpers(ar, scene, zoomx, zoomy);
+	if(sima->flag & SI_DRAWTOOL)
+		draw_image_paint_helpers(ar, scene, zoomx, zoomy);
 
 
 	/* XXX integrate this code */

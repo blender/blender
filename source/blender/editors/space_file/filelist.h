@@ -69,7 +69,6 @@ void				filelist_readdir(struct FileList* filelist);
 
 int					filelist_empty(struct FileList* filelist);
 void				filelist_parent(struct FileList* filelist);
-void				filelist_setfiletypes(struct FileList* filelist, short has_quicktime);
 
 
 int					filelist_islibrary (struct FileList* filelist, char* dir, char* group);

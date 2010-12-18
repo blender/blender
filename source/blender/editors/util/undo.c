@@ -38,6 +38,8 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
+#include "BKE_screen.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -261,3 +263,53 @@ void ED_OT_redo(wmOperatorType *ot)
 }
 
 
+/* ui callbacks should call this rather then calling WM_operator_repeat() themselves */
+int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
+{
+	int ret= 0;
+
+	if(op) {
+		ARegion *ar= CTX_wm_region(C);
+		ARegion *ar1= BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_WINDOW);
+
+		if(ar1)
+			CTX_wm_region_set(C, ar1);
+
+		if(WM_operator_repeat_check(C, op) && WM_operator_poll(C, op->type)) {
+			int retval;
+
+			if (G.f & G_DEBUG)
+				printf("redo_cb: operator redo %s\n", op->type->name);
+			ED_undo_pop_op(C, op);
+			retval= WM_operator_repeat(C, op);
+			if((retval & OPERATOR_FINISHED)==0) {
+				if (G.f & G_DEBUG)
+					printf("redo_cb: operator redo failed: %s, return %d\n", op->type->name, retval);
+				ED_undo_redo(C);
+			}
+			else {
+				ret= 1;
+			}
+		}
+
+		/* set region back */
+		CTX_wm_region_set(C, ar);
+	}
+	else {
+		if (G.f & G_DEBUG) {
+			printf("redo_cb: WM_operator_repeat_check returned false %s\n", op->type->name);
+		}
+	}
+
+	return ret;
+}
+
+void ED_undo_operator_repeat_cb(bContext *C, void *arg_op, void *UNUSED(arg_unused))
+{
+	ED_undo_operator_repeat(C, (wmOperator *)arg_op);
+}
+
+void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int UNUSED(arg_event))
+{
+	ED_undo_operator_repeat(C, (wmOperator *)arg_op);
+}

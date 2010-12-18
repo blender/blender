@@ -869,26 +869,13 @@ int WM_operator_winactive(bContext *C)
 	return 1;
 }
 
-/* op->exec */
-static void redo_cb(bContext *C, void *arg_op, int UNUSED(event))
-{
-	wmOperator *lastop= arg_op;
-	
-	if(lastop) {
-		ED_undo_pop_op(C, lastop);
-		WM_operator_repeat(C, lastop);
-	}
-}
-
 static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
 	wmOperator *op= arg_op;
-	PointerRNA ptr;
 	uiBlock *block;
 	uiLayout *layout;
 	uiStyle *style= U.uistyles.first;
-	int columns= 2, width= 300;
+	int width= 300;
 	
 
 	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS);
@@ -896,27 +883,13 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
 	/* if register is not enabled, the operator gets freed on OPERATOR_FINISHED
-	 * ui_apply_but_funcs_after calls redo_cb and crashes */
+	 * ui_apply_but_funcs_after calls ED_undo_operator_repeate_cb and crashes */
 	assert(op->type->flag & OPTYPE_REGISTER);
 
-	uiBlockSetHandleFunc(block, redo_cb, arg_op);
-
-	if(!op->properties) {
-		IDPropertyTemplate val = {0};
-		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
-	}
-
-	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, arg_op);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, 20, style);
-	uiItemL(layout, op->type->name, 0);
 
-	if(op->type->ui) {
-		op->layout= layout;
-		op->type->ui((bContext*)C, op);
-		op->layout= NULL;
-	}
-	else
-		uiDefAutoButsRNA(layout, &ptr, columns);
+	uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -949,38 +922,23 @@ void dialog_check_cb(bContext *C, void *op_ptr, void *UNUSED(arg))
 static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 {
 	struct { wmOperator *op; int width; int height; } * data = userData;
-	wmWindowManager *wm= CTX_wm_manager(C);
 	wmOperator *op= data->op;
-	PointerRNA ptr;
 	uiBlock *block;
 	uiLayout *layout;
 	uiBut *btn;
 	uiStyle *style= U.uistyles.first;
-	int columns= 2;
 
 	block = uiBeginBlock(C, ar, "operator dialog", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
-	if (!op->properties) {
-		IDPropertyTemplate val = {0};
-		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
-	}
-
-	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, style);
-	uiItemL(layout, op->type->name, 0);
 	
 	uiBlockSetFunc(block, dialog_check_cb, op, NULL);
 
-	if (op->type->ui) {
-		op->layout= layout;
-		op->type->ui((bContext*)C, op);
-		op->layout= NULL;
-	}
-	else
-		uiDefAutoButsRNA(layout, &ptr, columns);
+	uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
 	
+	/* clear so the OK button is left alone */
 	uiBlockSetFunc(block, NULL, NULL, NULL);
 
 	/* Create OK button, the callback of which will execute op */
@@ -997,9 +955,7 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
 {
 	struct { wmOperator *op; int width; int height; } * data = userData;
-	wmWindowManager *wm= CTX_wm_manager(C);
 	wmOperator *op= data->op;
-	PointerRNA ptr;
 	uiBlock *block;
 	uiLayout *layout;
 	uiStyle *style= U.uistyles.first;
@@ -1008,19 +964,10 @@ static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
-	if(!op->properties) {
-		IDPropertyTemplate val = {0};
-		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
-	}
-
-	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, style);
 
-	if(op->type->ui) {
-		op->layout= layout;
-		op->type->ui((bContext*)C, op);
-		op->layout= NULL;
-	}
+	/* since ui is defined the auto-layout args are not used */
+	uiLayoutOperatorButs(C, layout, op, NULL, 'V', 0);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -1087,52 +1034,19 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
 
 /* ***************** Debug menu ************************* */
 
-static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
-{
-	wmOperator *op= arg_op;
-	uiBlock *block;
-	uiLayout *layout;
-	uiStyle *style= U.uistyles.first;
-	
-	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
-	
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiItemL(layout, op->type->name, 0);
-
-	if(op->type->ui) {
-		op->layout= layout;
-		op->type->ui(C, op);
-		op->layout= NULL;
-	}
-	else
-		uiDefAutoButsRNA(layout, op->ptr, 2);
-	
-	uiPopupBoundsBlock(block, 4.0f, 0, 0);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
 static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 {
-	G.rt= RNA_int_get(op->ptr, "debugval");
+	G.rt= RNA_int_get(op->ptr, "debug_value");
 	ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
-	
+
 	return OPERATOR_FINISHED;	
 }
 
 static int wm_debug_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	
-	RNA_int_set(op->ptr, "debugval", G.rt);
-	
-	/* pass on operator, so return modal */
-	uiPupBlockOperator(C, wm_block_create_menu, op, WM_OP_EXEC_DEFAULT);
-	
-	return OPERATOR_RUNNING_MODAL;
+	RNA_int_set(op->ptr, "debug_value", G.rt);
+	return WM_operator_props_dialog_popup(C, op, 180, 20);
 }
 
 static void WM_OT_debug_menu(wmOperatorType *ot)
@@ -1145,7 +1059,7 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 	ot->exec= wm_debug_menu_exec;
 	ot->poll= WM_operator_winactive;
 	
-	RNA_def_int(ot->srna, "debugval", 0, -10000, 10000, "Debug Value", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "debug_value", 0, -10000, 10000, "Debug Value", "", INT_MIN, INT_MAX);
 }
 
 

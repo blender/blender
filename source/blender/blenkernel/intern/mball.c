@@ -86,7 +86,10 @@ void free_mball(MetaBall *mb)
 {
 	unlink_mball(mb);	
 	
-	if(mb->adt) BKE_free_animdata((ID *)mb);
+	if(mb->adt) {
+		BKE_free_animdata((ID *)mb);
+		mb->adt = NULL;
+	}
 	if(mb->mat) MEM_freeN(mb->mat);
 	if(mb->bb) MEM_freeN(mb->bb);
 	BLI_freelistN(&mb->elems);

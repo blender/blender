@@ -2151,8 +2151,6 @@ static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElemen
 			
 			if(set==2 && (pchan->bone->flag & BONE_SELECTED)) {
 				pchan->bone->flag &= ~BONE_SELECTED;
-				if(arm->act_bone==pchan->bone)
-					arm->act_bone= NULL;
 			} else {
 				pchan->bone->flag |= BONE_SELECTED;
 				arm->act_bone= pchan->bone;
@@ -2182,8 +2180,6 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 			
 			if(set==2 && (bone->flag & BONE_SELECTED)) {
 				bone->flag &= ~BONE_SELECTED;
-				if(arm->act_bone==bone)
-					arm->act_bone= NULL;
 			} else {
 				bone->flag |= BONE_SELECTED;
 				arm->act_bone= bone;
@@ -2204,27 +2200,49 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 
 
 /* ebones only draw in editmode armature */
-static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tselem), int set)
+static void tree_element_active_ebone__sel(bContext *C, Scene *scene, bArmature *arm, EditBone *ebone, short sel)
 {
-	EditBone *ebone= te->directdata;
-	
-	if(set) {
-		if(!(ebone->flag & BONE_HIDDEN_A)) {
-			bArmature *arm= scene->obedit->data;
-			if(set==2) ED_armature_deselect_all(scene->obedit, 2);	// only clear active tag
-			else ED_armature_deselect_all(scene->obedit, 0);	// deselect
-
-			ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL;
-			arm->act_edbone= ebone;
-
-			// flush to parent?
-			if(ebone->parent && (ebone->flag & BONE_CONNECTED)) ebone->parent->flag |= BONE_TIPSEL;
-			
-			WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, scene->obedit);
-		}
+	if(sel) {
+		ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL;
+		arm->act_edbone= ebone;
+		// flush to parent?
+		if(ebone->parent && (ebone->flag & BONE_CONNECTED)) ebone->parent->flag |= BONE_TIPSEL;
 	}
 	else {
-		if (ebone->flag & BONE_SELECTED) return 1;
+		ebone->flag &= ~(BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL);
+		// flush to parent?
+		if(ebone->parent && (ebone->flag & BONE_CONNECTED)) ebone->parent->flag &= ~BONE_TIPSEL;
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, scene->obedit);
+}
+static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tselem), int set)
+{
+	bArmature *arm= scene->obedit->data;
+	EditBone *ebone= te->directdata;
+
+	if(set==1) {
+		if(!(ebone->flag & BONE_HIDDEN_A)) {
+			ED_armature_deselect_all(scene->obedit, 0);	// deselect
+			tree_element_active_ebone__sel(C, scene, arm, ebone, TRUE);
+			return 1;
+		}
+	}
+	else if (set==2) {
+		if(!(ebone->flag & BONE_HIDDEN_A)) {
+			if(!(ebone->flag & BONE_SELECTED)) {
+				tree_element_active_ebone__sel(C, scene, arm, ebone, TRUE);
+				return 1;
+			}
+			else {
+				/* entirely selected, so de-select */
+				tree_element_active_ebone__sel(C, scene, arm, ebone, FALSE);
+				return 0;
+			}
+		}
+	}
+	else if (ebone->flag & BONE_SELECTED) {
+		return 1;
 	}
 	return 0;
 }
@@ -4974,11 +4992,14 @@ static void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 	}
 	else {
 		for(gob= gr->gobject.first; gob; gob= gob->next) {
-			gob->ob->restrictflag |= flag;
+			/* not in editmode */
+			if(scene->obedit!=gob->ob) {
+				gob->ob->restrictflag |= flag;
 
-			if(flag==OB_RESTRICT_VIEW)
-				if((gob->ob->flag & SELECT) == 0)
-					ED_base_object_select(object_in_scene(gob->ob, scene), BA_SELECT);
+				if(flag==OB_RESTRICT_VIEW)
+					if((gob->ob->flag & SELECT) == 0)
+						ED_base_object_select(object_in_scene(gob->ob, scene), BA_SELECT);
+			}
 		}
 	}
 } 
@@ -5131,17 +5152,17 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_VIEW_OFF,
-							  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1,
+							  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (int)te->ys, 17, OL_H-1,
 							  &ptr, "hide", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
 				
 				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_SELECT_OFF,
-								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1,
+								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (int)te->ys, 17, OL_H-1,
 								  &ptr, "hide_select", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
 				
 				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_RENDER_OFF,
-								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1,
+								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (int)te->ys, 17, OL_H-1,
 								  &ptr, "hide_render", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_rend_cb, scene, ob);
 				
@@ -5155,15 +5176,15 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 
 				restrict_bool= group_restrict_flag(gr, OB_RESTRICT_VIEW);
-				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (int)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_view, scene, gr);
 
 				restrict_bool= group_restrict_flag(gr, OB_RESTRICT_SELECT);
-				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_SELECT_ON : ICON_RESTRICT_SELECT_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_SELECT_ON : ICON_RESTRICT_SELECT_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (int)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_select, scene, gr);
 
 				restrict_bool= group_restrict_flag(gr, OB_RESTRICT_RENDER);
-				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_RENDER_ON : ICON_RESTRICT_RENDER_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow renderability");
+				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_RENDER_ON : ICON_RESTRICT_RENDER_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (int)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_render, scene, gr);
 
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -5173,7 +5194,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				
 				bt= uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, 0, ICON_CHECKBOX_HLT-1, 
-									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
+									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (int)te->ys, 17, OL_H-1, te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -5186,13 +5207,13 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				
 				bt= uiDefIconButBitI(block, ICONTOG, passflag, 0, ICON_CHECKBOX_HLT-1, 
-									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Render this Pass");
+									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (int)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Render this Pass");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				
 				layflag++;	/* is lay_xor */
 				if(ELEM8(passflag, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_INDIRECT, SCE_PASS_EMIT, SCE_PASS_ENVIRONMENT))
 					bt= uiDefIconButBitI(block, TOG, passflag, 0, (*layflag & passflag)?ICON_DOT:ICON_BLANK1, 
-									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
+									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (int)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -5203,11 +5224,11 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Realtime, 0, ICON_RESTRICT_VIEW_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (int)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
 				
 				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, 0, ICON_RESTRICT_RENDER_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
+						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (int)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
 			}
 			else if(tselem->type==TSE_POSE_CHANNEL)  {
@@ -5216,11 +5237,11 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (int)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, bone);
 				
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (int)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 			}
 			else if(tselem->type==TSE_EBONE)  {
@@ -5228,11 +5249,11 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (int)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, ebone);
 				
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (int)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, NULL);
 			}
 		}
@@ -5577,7 +5598,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				spx=te->xs+2*OL_X-4;
 				if(spx+dx+10>ar->v2d.cur.xmax) dx = ar->v2d.cur.xmax-spx-10;
 
-				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (short)te->ys, dx+10, OL_H-1, (void *)te->name, 1.0, (float)len, 0, 0, "");
+				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (int)te->ys, dx+10, OL_H-1, (void *)te->name, 1.0, (float)len, 0, 0, "");
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);
 				
 				/* returns false if button got removed */

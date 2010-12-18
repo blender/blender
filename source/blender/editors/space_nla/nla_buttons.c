@@ -493,6 +493,7 @@ void NLA_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
 	ot->idname= "NLA_OT_properties";
+	ot->description= "Toggle display properties panel";
 	
 	ot->exec= nla_properties;
 	ot->poll= ED_operator_nla_active;

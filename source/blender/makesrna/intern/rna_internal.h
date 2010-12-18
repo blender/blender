@@ -194,7 +194,7 @@ struct IDProperty *rna_ID_idprops(struct PointerRNA *ptr, int create);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, int value);
 struct IDProperty *rna_IDPropertyGroup_idprops(struct PointerRNA *ptr, int create);
 void rna_IDPropertyGroup_unregister(const struct bContext *C, struct StructRNA *type);
-struct StructRNA *rna_IDPropertyGroup_register(const struct bContext *C, struct ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
+struct StructRNA *rna_IDPropertyGroup_register(struct bContext *C, struct ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
 struct StructRNA* rna_IDPropertyGroup_refine(struct PointerRNA *ptr);
 
 void rna_object_vgroup_name_index_get(struct PointerRNA *ptr, char *value, int index);

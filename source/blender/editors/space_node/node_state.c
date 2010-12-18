@@ -295,6 +295,7 @@ void NODE_OT_view_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "View All";
 	ot->idname= "NODE_OT_view_all";
+	ot->description= "Resize view so you can see all nodes";
 	
 	/* api callbacks */
 	ot->exec= node_view_all_exec;

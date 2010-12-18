@@ -2094,13 +2094,15 @@ static int cycle_render_slot_poll(bContext *C)
 	return (ima && ima->type == IMA_TYPE_R_RESULT);
 }
 
-static int cycle_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
+static int cycle_render_slot_exec(bContext *C, wmOperator *op)
 {
 	Image *ima= CTX_data_edit_image(C);
 	int a, slot, cur= ima->render_slot;
+	const short use_reverse= RNA_boolean_get(op->ptr, "reverse");
 
 	for(a=1; a<IMA_MAX_RENDER_SLOT; a++) {
-		slot= (cur+a)%IMA_MAX_RENDER_SLOT;
+		slot= (cur + (use_reverse ? -a:a))%IMA_MAX_RENDER_SLOT;
+		if(slot<0) slot+=IMA_MAX_RENDER_SLOT;
 
 		if(ima->renders[slot] || slot == ima->last_render_slot) {
 			ima->render_slot= slot;
@@ -2132,6 +2134,8 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "reverse", 0, "Cycle in Reverse", "");
 }
 
 /******************** TODO ********************/

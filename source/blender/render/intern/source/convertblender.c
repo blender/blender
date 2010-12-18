@@ -1252,14 +1252,14 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, float *vec, float
 
 }
 
-static void particle_curve(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd, float *loc, float *loc1,	int seed)
+static void particle_curve(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd, float *loc, float *loc1,	int seed, float *pa_co)
 {
 	HaloRen *har=0;
 
 	if(ma->material_type == MA_TYPE_WIRE)
 		static_particle_wire(obr, ma, loc, loc1, sd->first, sd->line);
 	else if(ma->material_type == MA_TYPE_HALO) {
-		har= RE_inithalo_particle(re, obr, dm, ma, loc, loc1, sd->orco, sd->uvco, sd->size, 1.0, seed);
+		har= RE_inithalo_particle(re, obr, dm, ma, loc, loc1, sd->orco, sd->uvco, sd->size, 1.0, seed, pa_co);
 		if(har) har->lay= obr->ob->lay;
 	}
 	else
@@ -1387,7 +1387,7 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 		mtf->uv[3][1] = uvy;
 	}
 }
-static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd, ParticleBillboardData *bb, ParticleKey *state, int seed, float hasize)
+static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd, ParticleBillboardData *bb, ParticleKey *state, int seed, float hasize, float *pa_co)
 {
 	float loc[3], loc0[3], loc1[3], vel[3];
 	
@@ -1412,7 +1412,7 @@ static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re
 			VECADDFAC(loc0, loc, vel, -part->draw_line[0]);
 			VECADDFAC(loc1, loc, vel, part->draw_line[1]);
 
-			particle_curve(re, obr, dm, ma, sd, loc0, loc1, seed);
+			particle_curve(re, obr, dm, ma, sd, loc0, loc1, seed, pa_co);
 
 			break;
 
@@ -1429,7 +1429,7 @@ static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re
 		{
 			HaloRen *har=0;
 
-			har = RE_inithalo_particle(re, obr, dm, ma, loc, NULL, sd->orco, sd->uvco, hasize, 0.0, seed);
+			har = RE_inithalo_particle(re, obr, dm, ma, loc, NULL, sd->orco, sd->uvco, hasize, 0.0, seed, pa_co);
 			
 			if(har) har->lay= obr->ob->lay;
 
@@ -1497,7 +1497,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, r_tilt, r_length, cfra= BKE_curframe(re->scene);
 	float pa_time, pa_birthtime, pa_dietime;
-	float random, simplify[2];
+	float random, simplify[2], pa_co[3];
 	int i, a, k, max_k=0, totpart, dosimplify = 0, dosurfacecache = 0;
 	int totchild=0;
 	int seed, path_nbr=0, orco1=0, num;
@@ -1718,20 +1718,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			pa_time=(cfra-pa->time)/pa->lifetime;
 			pa_birthtime = pa->time;
 			pa_dietime = pa->dietime;
-#if 0 // XXX old animation system
-			if((part->flag&PART_ABS_TIME) == 0){
-				if(ma->ipo) {
-					/* correction for lifetime */
-					calc_ipo(ma->ipo, 100.0f * pa_time);
-					execute_ipo((ID *)ma, ma->ipo);
-				}
-				if(part->ipo){
-					/* correction for lifetime */
-					calc_ipo(part->ipo, 100.0f*pa_time);
-					execute_ipo((ID *)part, part->ipo);
-				}
-			}
-#endif // XXX old animation system
 
 			hasize = ma->hasize;
 
@@ -1779,22 +1765,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			}
 			
 			pa_time = psys_get_child_time(psys, cpa, cfra, &pa_birthtime, &pa_dietime);
-
-#if 0 // XXX old animation system
-			if((part->flag & PART_ABS_TIME) == 0) {
-				if(ma->ipo){
-					/* correction for lifetime */
-					calc_ipo(ma->ipo, 100.0f * pa_time);
-					execute_ipo((ID *)ma, ma->ipo);
-				}
-				if(part->ipo) {
-					/* correction for lifetime */
-					calc_ipo(part->ipo, 100.0f * pa_time);
-					execute_ipo((ID *)part, part->ipo);
-				}
-			}
-#endif // XXX old animation system
-
 			pa_size = psys_get_child_size(psys, cpa, cfra, &pa_time);
 
 			r_tilt = 2.0f*(PSYS_FRAND(a + 21) - 0.5f);
@@ -1841,6 +1811,11 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				}
 			}
 		}
+
+		/* TEXCO_PARTICLE */
+		pa_co[0] = pa_time;
+		pa_co[1] = 0.f;
+		pa_co[2] = 0.f;
 
 		/* surface normal shading setup */
 		if(ma->mode_l & MA_STR_SURFDIFF) {
@@ -1934,14 +1909,14 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 						VECSUB(loc0,loc1,loc);
 						VECADD(loc0,loc1,loc0);
 
-						particle_curve(re, obr, psmd->dm, ma, &sd, loc1, loc0, seed);
+						particle_curve(re, obr, psmd->dm, ma, &sd, loc1, loc0, seed, pa_co);
 					}
 
 					sd.first = 0;
 					sd.time = time;
 
 					if(k)
-						particle_curve(re, obr, psmd->dm, ma, &sd, loc, loc1, seed);
+						particle_curve(re, obr, psmd->dm, ma, &sd, loc, loc1, seed, pa_co);
 
 					VECCOPY(loc1,loc);
 				}
@@ -1955,6 +1930,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				int trail_count = part->trail_count * (1.0 - part->randlength * r_length);
 				float ct = (part->draw & PART_ABS_PATH_TIME) ? cfra : pa_time;
 				float dt = length / (trail_count ? (float)trail_count : 1.0f);
+
+				/* make sure we have pointcache in memory before getting particle on path */
+				psys_make_temp_pointcache(ob, psys);
 
 				for(i=0; i < trail_count; i++, ct -= dt) {
 					if(part->draw & PART_ABS_PATH_TIME) {
@@ -1978,7 +1956,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 						bb.num = a;
 					}
 
-					particle_normal_ren(part->ren_as, part, re, obr, psmd->dm, ma, &sd, &bb, &state, seed, hasize);
+					pa_co[0] = (part->draw & PART_ABS_PATH_TIME) ? (ct-pa_birthtime)/(pa_dietime-pa_birthtime) : ct;
+					pa_co[1] = (float)i/(float)(trail_count-1);
+
+					particle_normal_ren(part->ren_as, part, re, obr, psmd->dm, ma, &sd, &bb, &state, seed, hasize, pa_co);
 				}
 			}
 			else {
@@ -1998,7 +1979,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					bb.num = a;
 				}
 
-				particle_normal_ren(part->ren_as, part, re, obr, psmd->dm, ma, &sd, &bb, &state, seed, hasize);
+				particle_normal_ren(part->ren_as, part, re, obr, psmd->dm, ma, &sd, &bb, &state, seed, hasize, pa_co);
 			}
 		}
 
@@ -4698,7 +4679,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	Object *ob;
 	Group *group;
 	ObjectInstanceRen *obi;
-	Scene *sce;
+	Scene *sce_iter;
 	float mat[4][4];
 	int lay, vectorlay, redoimat= 0;
 
@@ -4707,7 +4688,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	 * NULL is just for init */
 	set_dupli_tex_mat(NULL, NULL, NULL);
 
-	for(SETLOOPER(re->scene, base)) {
+	for(SETLOOPER(re->scene, sce_iter, base)) {
 		ob= base->object;
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
 		mul_m4_m4m4(mat, ob->obmat, re->viewmat);
@@ -4717,7 +4698,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 		ob->transflag &= ~OB_RENDER_DUPLI;
 	}
 
-	for(SETLOOPER(re->scene, base)) {
+	for(SETLOOPER(re->scene, sce_iter, base)) {
 		ob= base->object;
 
 		/* in the prev/next pass for making speed vectors, avoid creating
@@ -4855,7 +4836,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 
 	/* imat objects has to be done again, since groups can mess it up */
 	if(redoimat) {
-		for(SETLOOPER(re->scene, base)) {
+		for(SETLOOPER(re->scene, sce_iter, base)) {
 			ob= base->object;
 			mul_m4_m4m4(mat, ob->obmat, re->viewmat);
 			invert_m4_m4(ob->imat, mat);

@@ -302,6 +302,12 @@ void wm_event_do_notifiers(bContext *C)
 	CTX_wm_window_set(C, NULL);
 }
 
+static int wm_event_always_pass(wmEvent *event)
+{
+	/* some events we always pass on, to ensure proper communication */
+	return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
+}
+
 /* ********************* ui handler ******************* */
 
 static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *event, int always_pass)
@@ -309,8 +315,19 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	ScrArea *area= CTX_wm_area(C);
 	ARegion *region= CTX_wm_region(C);
 	ARegion *menu= CTX_wm_menu(C);
+	static int do_wheel_ui= 1;
+	int is_wheel= ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE);
 	int retval;
-			
+	
+	/* UI is quite agressive with swallowing events, like scrollwheel */
+	/* I realize this is not extremely nice code... when UI gets keymaps it can be maybe smarter */
+	if(do_wheel_ui==0) {
+		if(is_wheel)
+			return WM_HANDLER_CONTINUE;
+		else if(wm_event_always_pass(event)==0)
+			do_wheel_ui= 1;
+	}
+	
 	/* we set context to where ui handler came from */
 	if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
 	if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
@@ -330,10 +347,14 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 		CTX_wm_region_set(C, NULL);
 		CTX_wm_menu_set(C, NULL);
 	}
-
+	
 	if(retval == WM_UI_HANDLER_BREAK)
 		return WM_HANDLER_BREAK;
-
+	
+	/* event not handled in UI, if wheel then we temporarily disable it */
+	if(is_wheel)
+		do_wheel_ui= 0;
+	
 	return WM_HANDLER_CONTINUE;
 }
 
@@ -385,9 +406,10 @@ int WM_operator_poll_context(bContext *C, wmOperatorType *ot, int context)
 	return wm_operator_call_internal(C, ot, NULL, NULL, context, TRUE);
 }
 
-static void wm_operator_print(wmOperator *op)
+static void wm_operator_print(bContext *C, wmOperator *op)
 {
-	char *buf = WM_operator_pystring(NULL, op->type, op->ptr, 1);
+	/* context is needed for enum function */
+	char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
 	printf("%s\n", buf);
 	MEM_freeN(buf);
 }
@@ -404,7 +426,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 	
 	if(retval & OPERATOR_FINISHED) {
 		if(G.f & G_DEBUG)
-			wm_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
+			wm_operator_print(C, op); /* todo - this print may double up, might want to check more flags then the FINISHED */
 		
 		if (op->type->flag & OPTYPE_REGISTER) {
 			/* Report the python string representation of the operator */
@@ -512,6 +534,14 @@ int WM_operator_call(bContext *C, wmOperator *op)
 int WM_operator_repeat(bContext *C, wmOperator *op)
 {
 	return wm_operator_exec(C, op, 1);
+}
+/* TRUE if WM_operator_repeat can run
+ * simple check for now but may become more involved.
+ * To be sure the operator can run call WM_operator_poll(C, op->type) also, since this call
+ * checks if WM_operator_repeat() can run at all, not that it WILL run at any time. */
+int WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
+{
+	return op->type->exec != NULL;
 }
 
 static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, PointerRNA *properties, ReportList *reports)
@@ -674,12 +704,22 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
 				}
 
 				if(wrap) {
+					rcti *winrect= NULL;
 					ARegion *ar= CTX_wm_region(C);
-					if(ar) {
-						bounds[0]= ar->winrct.xmin;
-						bounds[1]= ar->winrct.ymax;
-						bounds[2]= ar->winrct.xmax;
-						bounds[3]= ar->winrct.ymin;
+					ScrArea *sa= CTX_wm_area(C);
+
+					if(ar && ar->regiontype == RGN_TYPE_WINDOW && BLI_in_rcti(&ar->winrct, event->x, event->y)) {
+						winrect= &ar->winrct;
+					}
+					else if(sa) {
+						winrect= &sa->totrct;
+					}
+
+					if(winrect) {
+						bounds[0]= winrect->xmin;
+						bounds[1]= winrect->ymax;
+						bounds[2]= winrect->xmax;
+						bounds[3]= winrect->ymin;
 					}
 				}
 
@@ -1081,11 +1121,6 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 	return 1;
 }
 
-static int wm_event_always_pass(wmEvent *event)
-{
-	/* some events we always pass on, to ensure proper communication */
-	return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
-}
 
 /* operator exists */
 static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *event)
@@ -1289,7 +1324,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 						
 						if (retval & OPERATOR_FINISHED)
 							if(G.f & G_DEBUG)
-								wm_operator_print(handler->op);
+								wm_operator_print(C, handler->op);
 						
 						/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
 						if(CTX_wm_manager(C) == wm && wm->op_undo_depth == 0)
@@ -1433,8 +1468,14 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 								if(drop->poll(C, drag, event)) {
 									drop->copy(drag, drop);
 									
-									wm_operator_invoke(C, drop->ot, event, drop->ptr, NULL, FALSE);
+									WM_operator_name_call(C, drop->ot->idname, drop->opcontext, drop->ptr);
+									//wm_operator_invoke(C, drop->ot, event, drop->ptr, NULL, FALSE);
 									action |= WM_HANDLER_BREAK;
+									
+									/* prevent hanging on file read */
+									BLI_freelistN(event->customdata);
+									event->customdata= NULL;
+									event->custom= 0;
 								}
 							}
 						}

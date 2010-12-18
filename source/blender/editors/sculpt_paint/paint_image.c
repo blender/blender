@@ -163,17 +163,17 @@ typedef struct ImagePaintRegion {
 #define PROJ_DEBUG_WINCLIP 1
 
 /* projectFaceSeamFlags options */
-//#define PROJ_FACE_IGNORE	1<<0	/* When the face is hidden, backfacing or occluded */
-//#define PROJ_FACE_INIT	1<<1	/* When we have initialized the faces data */
-#define PROJ_FACE_SEAM1	1<<0	/* If this face has a seam on any of its edges */
-#define PROJ_FACE_SEAM2	1<<1
-#define PROJ_FACE_SEAM3	1<<2
-#define PROJ_FACE_SEAM4	1<<3
+//#define PROJ_FACE_IGNORE	(1<<0)	/* When the face is hidden, backfacing or occluded */
+//#define PROJ_FACE_INIT	(1<<1)	/* When we have initialized the faces data */
+#define PROJ_FACE_SEAM1	(1<<0)	/* If this face has a seam on any of its edges */
+#define PROJ_FACE_SEAM2	(1<<1)
+#define PROJ_FACE_SEAM3	(1<<2)
+#define PROJ_FACE_SEAM4	(1<<3)
 
-#define PROJ_FACE_NOSEAM1	1<<4
-#define PROJ_FACE_NOSEAM2	1<<5
-#define PROJ_FACE_NOSEAM3	1<<6
-#define PROJ_FACE_NOSEAM4	1<<7
+#define PROJ_FACE_NOSEAM1	(1<<4)
+#define PROJ_FACE_NOSEAM2	(1<<5)
+#define PROJ_FACE_NOSEAM3	(1<<6)
+#define PROJ_FACE_NOSEAM4	(1<<7)
 
 #define PROJ_SRC_VIEW		1
 #define PROJ_SRC_IMAGE_CAM	2
@@ -189,8 +189,8 @@ typedef struct ImagePaintRegion {
 #define PROJ_FACE_SCALE_SEAM	0.99f
 
 #define PROJ_BUCKET_NULL		0
-#define PROJ_BUCKET_INIT		1<<0
-// #define PROJ_BUCKET_CLONE_INIT	1<<1
+#define PROJ_BUCKET_INIT		(1<<0)
+// #define PROJ_BUCKET_CLONE_INIT	(1<<1)
 
 /* used for testing doubles, if a point is on a line etc */
 #define PROJ_GEOM_TOLERANCE 0.00075f
@@ -4013,8 +4013,9 @@ static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, s
 	if(ibuf->rect_float)
 		/* TODO - should just update a portion from imapaintpartial! */
 		imb_freerectImBuf(ibuf); /* force recreate of char rect */
+	
 	if(ibuf->mipmap[0])
-		imb_freemipmapImBuf(ibuf);
+		ibuf->userflags |= IB_MIPMAP_INVALID;
 
 	/* todo: should set_tpage create ->rect? */
 	if(texpaint || (sima && sima->lock)) {

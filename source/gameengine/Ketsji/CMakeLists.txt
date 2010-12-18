@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../../../source/kernel/gen_system
 	../../../intern/string
@@ -35,6 +35,7 @@ SET(INC
 	../../../intern/moto/include
 	../../../source/gameengine/Ketsji 
 	../../../source/blender/blenlib
+	../../../source/blender/blenfont
 	../../../source/blender/blenkernel
 	../../../source/blender/python
 	../../../source/blender/python/generic
@@ -54,7 +55,7 @@ SET(INC
 	../../../extern/glew/include
 )
 
-SET(SRC
+set(SRC
 	BL_BlenderShader.cpp
 	BL_Material.cpp
 	BL_Shader.cpp
@@ -70,6 +71,7 @@ SET(SRC
 	KX_ConvertPhysicsObjects.cpp
 	KX_Dome.cpp
 	KX_EmptyObject.cpp
+	KX_FontObject.cpp
 	KX_GameActuator.cpp
 	KX_GameObject.cpp
 	KX_IPO_SGController.cpp
@@ -135,6 +137,7 @@ SET(SRC
 	KX_ConvertPhysicsObject.h
 	KX_Dome.h
 	KX_EmptyObject.h
+	KX_FontObject.h
 	KX_GameActuator.h
 	KX_GameObject.h
 	KX_IInterpolator.h
@@ -200,22 +203,22 @@ SET(SRC
 	BL_Texture.h
 )
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
+add_definitions(-DGLEW_STATIC)
 
-IF(WITH_SDL)
-	SET(INC ${INC} ${SDL_INCLUDE_DIR})  
-ELSE(WITH_SDL)
-	ADD_DEFINITIONS(-DDISABLE_SDL)
-ENDIF(WITH_SDL)
+if(WITH_SDL)
+	set(INC ${INC} ${SDL_INCLUDE_DIR})  
+else()
+	add_definitions(-DDISABLE_SDL)
+endif()
 
-IF(WITH_CODEC_FFMPEG)
-	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_CODEC_FFMPEG)
+if(WITH_CODEC_FFMPEG)
+	add_definitions(-DWITH_FFMPEG)
+endif()
 
-IF(WITH_BULLET)
-	ADD_DEFINITIONS(-DUSE_BULLET)
-	LIST(APPEND INC ../../../extern/bullet2/src)
-	LIST(APPEND INC ../../../source/gameengine/Physics/Bullet )
-ENDIF(WITH_BULLET)
+if(WITH_BULLET)
+	add_definitions(-DUSE_BULLET)
+	list(APPEND INC ../../../extern/bullet2/src)
+	list(APPEND INC ../../../source/gameengine/Physics/Bullet )
+endif()
 
-BLENDERLIB(ge_logic_ketsji "${SRC}" "${INC}")
+blenderlib(ge_logic_ketsji "${SRC}" "${INC}")

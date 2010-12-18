@@ -1,6 +1,6 @@
-INCLUDE_DIRECTORIES( ${BULLET_PHYSICS_SOURCE_DIR}/src } )
+include_directories( ${BULLET_PHYSICS_SOURCE_DIR}/src } )
 
-SET(BulletCollision_SRCS
+set(BulletCollision_SRCS
 	BroadphaseCollision/btAxisSweep3.cpp
 	BroadphaseCollision/btBroadphaseProxy.cpp
 	BroadphaseCollision/btCollisionAlgorithm.cpp
@@ -88,10 +88,10 @@ SET(BulletCollision_SRCS
 	NarrowPhaseCollision/btVoronoiSimplexSolver.cpp
 )
 
-SET(Root_HDRS
+set(Root_HDRS
 	../btBulletCollisionCommon.h
 )
-SET(BroadphaseCollision_HDRS
+set(BroadphaseCollision_HDRS
 	BroadphaseCollision/btAxisSweep3.h
 	BroadphaseCollision/btBroadphaseInterface.h
 	BroadphaseCollision/btBroadphaseProxy.h
@@ -105,7 +105,7 @@ SET(BroadphaseCollision_HDRS
 	BroadphaseCollision/btQuantizedBvh.h
 	BroadphaseCollision/btSimpleBroadphase.h
 )
-SET(CollisionDispatch_HDRS
+set(CollisionDispatch_HDRS
 	CollisionDispatch/btActivatingCollisionAlgorithm.h
 	CollisionDispatch/btCollisionConfiguration.h
 	CollisionDispatch/btCollisionCreateFunc.h
@@ -129,7 +129,7 @@ SET(CollisionDispatch_HDRS
 	CollisionDispatch/btUnionFind.h
 	CollisionDispatch/SphereTriangleDetector.h
 )
-SET(CollisionShapes_HDRS
+set(CollisionShapes_HDRS
 	CollisionShapes/btBoxShape.h
 	CollisionShapes/btBvhTriangleMeshShape.h
 	CollisionShapes/btCapsuleShape.h
@@ -166,7 +166,7 @@ SET(CollisionShapes_HDRS
 	CollisionShapes/btTriangleMeshShape.h
 	CollisionShapes/btUniformScalingShape.h
 )
-SET(Gimpact_HDRS
+set(Gimpact_HDRS
 	Gimpact/btGImpactShape.h
 	Gimpact/gim_contact.h
 	Gimpact/btGImpactBvh.h
@@ -178,7 +178,7 @@ SET(Gimpact_HDRS
 	Gimpact/btGImpactQuantizedBvh.h
 	Gimpact/gim_box_set.h
 )
-SET(NarrowPhaseCollision_HDRS
+set(NarrowPhaseCollision_HDRS
 	NarrowPhaseCollision/btContinuousConvexCollision.h
 	NarrowPhaseCollision/btConvexCast.h
 	NarrowPhaseCollision/btConvexPenetrationDepthSolver.h
@@ -197,7 +197,7 @@ SET(NarrowPhaseCollision_HDRS
 	NarrowPhaseCollision/btVoronoiSimplexSolver.h
 )
 
-SET(BulletCollision_HDRS
+set(BulletCollision_HDRS
 	${Root_HDRS}
 	${BroadphaseCollision_HDRS}
 	${CollisionDispatch_HDRS}
@@ -207,28 +207,28 @@ SET(BulletCollision_HDRS
 )
 
 
-ADD_LIBRARY(BulletCollision ${BulletCollision_SRCS} ${BulletCollision_HDRS})
+add_library(BulletCollision ${BulletCollision_SRCS} ${BulletCollision_HDRS})
 SET_TARGET_PROPERTIES(BulletCollision PROPERTIES VERSION ${BULLET_VERSION})
 SET_TARGET_PROPERTIES(BulletCollision PROPERTIES SOVERSION ${BULLET_VERSION})
-IF (BUILD_SHARED_LIBS)
-	TARGET_LINK_LIBRARIES(BulletCollision LinearMath)
-ENDIF (BUILD_SHARED_LIBS)
+if(BUILD_SHARED_LIBS)
+	target_link_libraries(BulletCollision LinearMath)
+endif()
 
 #INSTALL of other files requires CMake 2.6
-IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)
-	INSTALL(TARGETS BulletCollision DESTINATION lib)
-				INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION include FILES_MATCHING PATTERN "*.h")
-ENDIF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)
+if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)
+	install(TARGETS BulletCollision DESTINATION lib)
+				install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION include FILES_MATCHING PATTERN "*.h")
+endif()
 
-IF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
+if(APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 	SET_TARGET_PROPERTIES(BulletCollision PROPERTIES FRAMEWORK true)
 
 	SET_TARGET_PROPERTIES(BulletCollision PROPERTIES PUBLIC_HEADER "${Root_HDRS}")
 	# Have to list out sub-directories manually:
-	SET_PROPERTY(SOURCE ${BroadphaseCollision_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/BroadphaseCollision)
-	SET_PROPERTY(SOURCE ${CollisionDispatch_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/CollisionDispatch)
-	SET_PROPERTY(SOURCE ${CollisionShapes_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/CollisionShapes)
-	SET_PROPERTY(SOURCE ${Gimpact_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/Gimpact)
-	SET_PROPERTY(SOURCE ${NarrowPhaseCollision_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/NarrowPhaseCollision)
+	set_property(SOURCE ${BroadphaseCollision_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/BroadphaseCollision)
+	set_property(SOURCE ${CollisionDispatch_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/CollisionDispatch)
+	set_property(SOURCE ${CollisionShapes_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/CollisionShapes)
+	set_property(SOURCE ${Gimpact_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/Gimpact)
+	set_property(SOURCE ${NarrowPhaseCollision_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/NarrowPhaseCollision)
 
-ENDIF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
+endif()

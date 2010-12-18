@@ -306,7 +306,6 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 	char text[3]= {'A', '1', '\0'};
 	const int mono= blf_mono_font;
 
-	BLF_aspect(mono, 1.0);
 	BLF_size(mono, 54, 72); /* hard coded size! */
 
 	BLF_buffer(mono, rect_float, rect, width, height, 4);

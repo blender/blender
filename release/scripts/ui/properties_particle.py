@@ -125,7 +125,9 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
                     if psys.is_edited:
                         split.operator("particle.edited_clear", text="Free Edit")
                     else:
-                        split.label(text="")
+                        row = split.row()
+                        row.enabled = particle_panel_enabled(context, psys)
+                        row.prop(part, "regrow_hair")
                     row = split.row()
                     row.enabled = particle_panel_enabled(context, psys)
                     row.prop(part, "hair_step")
@@ -234,7 +236,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, bpy.types.Panel):
         #part = psys.settings
         cloth = psys.cloth.settings
 
-        layout.enabled = psys.use_hair_dynamics
+        layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked == False
 
         split = layout.split()
 
@@ -274,12 +276,12 @@ class PARTICLE_PT_cache(ParticleButtonsPanel, bpy.types.Panel):
         phystype = psys.settings.physics_type
         if phystype == 'NO' or phystype == 'KEYED':
             return False
-        return (psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and psys.use_hair_dynamics)) and engine in cls.COMPAT_ENGINES
+        return (psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and (psys.use_hair_dynamics or psys.point_cache.is_baked))) and engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         psys = context.particle_system
 
-        point_cache_ui(self, context, psys.point_cache, True, 'HAIR' if psys.use_hair_dynamics else 'PSYS')
+        point_cache_ui(self, context, psys.point_cache, True, 'HAIR' if (psys.settings.type == 'HAIR') else 'PSYS')
 
 
 class PARTICLE_PT_velocity(ParticleButtonsPanel, bpy.types.Panel):
@@ -1091,6 +1093,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
 class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
     _context_path = "particle_system.settings"
+    _property_type = bpy.types.ParticleSettings
 
 
 def register():

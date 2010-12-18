@@ -279,7 +279,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         else:
             row.label()
 
-        if kmi.id:
+        if not kmi.is_user_defined:
             op = row.operator("wm.keyitem_restore", text="", icon='BACK')
             op.item_id = kmi.id
         op = row.operator("wm.keyitem_remove", text="", icon='X')
@@ -575,7 +575,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 # This operator is also used by interaction presets saving - AddPresetBase
@@ -665,7 +665,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
@@ -708,12 +708,18 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
 
     item_id = IntProperty(name="Item Identifier", description="Identifier of the item to remove")
 
+    @classmethod
+    def poll(cls, context):
+        km = context.keymap
+        return km.is_user_defined
+
     def execute(self, context):
         wm = context.window_manager
         km = context.keymap
         kmi = km.items.from_id(self.item_id)
 
-        km.restore_item_to_default(kmi)
+        if not kmi.is_user_defined:
+            km.restore_item_to_default(kmi)
 
         return {'FINISHED'}
 
@@ -749,8 +755,12 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
 
     item_id = IntProperty(name="Item Identifier", description="Identifier of the item to remove")
 
+    @classmethod
+    def poll(cls, context):
+        km = context.keymap
+        return km.is_user_defined
+
     def execute(self, context):
-        wm = context.window_manager
         km = context.keymap
         kmi = km.items.from_id(self.item_id)
         km.items.remove(kmi)

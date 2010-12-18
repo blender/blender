@@ -1836,7 +1836,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mirror Vertex Group";
 	ot->idname= "OBJECT_OT_vertex_group_mirror";
-	ot->description= "Mirror weights, and flip vertex group names, copying when only one side is selected";
+	ot->description= "Mirror all vertex groups, flip weights and/or names, editing only selected vertices, flipping when both sides are selected otherwise copy from unselected";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll_edit;
@@ -1847,7 +1847,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "mirror_weights", TRUE, "Mirror Weights", "Mirror weights.");
-	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Groups", "Flip vertex group names while mirroring.");
+	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Groups", "Flip vertex group names.");
 
 }
 

@@ -173,7 +173,7 @@ kmi = km.items.new('wm.context_set_enum', 'COMMA', 'PRESS', ctrl=True)
 kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'MEDIAN_POINT'
 kmi = km.items.new('wm.context_toggle', 'COMMA', 'PRESS', alt=True)
-kmi.properties.data_path = 'space_data.use_pivot_point_align'
+kmi.properties.data_path = 'space_data.use_pivot_point'
 kmi = km.items.new('wm.context_toggle', 'Q', 'PRESS')
 kmi.properties.data_path = 'space_data.show_manipulator'
 kmi = km.items.new('wm.context_set_enum', 'PERIOD', 'PRESS')
@@ -314,7 +314,7 @@ kmi = km.items.new('mesh.faces_select_linked_flat', 'F', 'PRESS', shift=True, ct
 kmi.properties.sharpness = 135.0
 kmi = km.items.new('mesh.select_similar', 'G', 'PRESS', shift=True)
 kmi = km.items.new('wm.call_menu', 'TAB', 'PRESS', ctrl=True)
-kmi.properties.name = 'VIEW3D_MT_edit_mesh_selection_mode'
+kmi.properties.name = 'VIEW3D_MT_edit_mesh_select_mode'
 kmi = km.items.new('mesh.hide', 'H', 'PRESS')
 kmi = km.items.new('mesh.hide', 'H', 'PRESS', shift=True)
 kmi.properties.unselected = True

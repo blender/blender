@@ -318,8 +318,7 @@ static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *p
 	ImageUser *iuser= node->storage;
 	
 	BKE_image_multilayer_index(ima->rr, iuser);
-	/* do not call below function, it frees the multilayer exr */
-	/* BKE_image_signal(ima, iuser, IMA_SIGNAL_SRC_CHANGE); */
+	BKE_image_signal(ima, iuser, IMA_SIGNAL_SRC_CHANGE);
 	
 	rna_Node_update(bmain, scene, ptr);
 }
@@ -630,6 +629,11 @@ static EnumPropertyItem node_filter_items[] = {
 {6, "SHADOW",  0, "Shadow",  ""},
 {0, NULL, 0, NULL, NULL}};
 
+static EnumPropertyItem node_ycc_items[] = {
+{ 0, "ITUBT601", 0, "ITU 601",  ""},
+{ 1, "ITUBT709", 0, "ITU 709",  ""},
+{ 2, "JFIF",     0, "Jpeg",     ""},
+{0, NULL, 0, NULL, NULL}};
 
 #define MaxNodes 1000
 
@@ -2020,7 +2024,7 @@ static void def_cmp_glare(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "use_rotate_45", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "angle", 1);
+	RNA_def_property_boolean_sdna(prop, NULL, "angle", 0);
 	RNA_def_property_ui_text(prop, "Rotate 45", "Simple star filter: add 45 degree rotation offset");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
@@ -2200,6 +2204,17 @@ static void def_cmp_zcombine(StructRNA *srna)
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 0);
 	RNA_def_property_ui_text(prop, "Use Alpha", "Takes Alpha channel into account when doing the Z operation");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_ycc(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, node_ycc_items);
+	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 

@@ -114,7 +114,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	float min[3], max[3];
 	int done= 0;
 	short use_proj;
-printf("%d\n", event->val);
+
 	em_setup_viewcontext(C, &vc);
 
 	use_proj= (vc.scene->toolsettings->snap_flag & SCE_SNAP) &&	(vc.scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE);
@@ -237,7 +237,8 @@ printf("%d\n", event->val);
 		
 		recalc_editnormals(vc.em);
 	}
-	else {
+	else if(vc.em->selectmode & SCE_SELECT_VERTEX) {
+
 		float mat[3][3],imat[3][3];
 		float *curs= give_cursor(vc.scene, vc.v3d);
 		
@@ -1555,7 +1556,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
 	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
-	RNA_def_boolean(ot->srna, "cap_end", 0, "Cap End", "");
+	RNA_def_boolean(ot->srna, "cap_end", 1, "Cap End", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }

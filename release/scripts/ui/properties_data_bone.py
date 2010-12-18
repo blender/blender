@@ -50,13 +50,21 @@ class BONE_PT_context_bone(BoneButtonsPanel, bpy.types.Panel):
 class BONE_PT_transform(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Transform"
 
+    @classmethod
+    def poll(cls, context):
+        if context.edit_bone:
+            return True
+        
+        ob = context.object
+        return ob and ob.mode == 'POSE' and context.bone
+
     def draw(self, context):
         layout = self.layout
 
         ob = context.object
         bone = context.bone
 
-        if bone:
+        if bone and ob:
             pchan = ob.pose.bones[bone.name]
 
             row = layout.row()
@@ -79,7 +87,7 @@ class BONE_PT_transform(BoneButtonsPanel, bpy.types.Panel):
 
             layout.prop(pchan, "rotation_mode")
 
-        else:
+        elif context.edit_bone:
             bone = context.edit_bone
             row = layout.row()
             row.column().prop(bone, "head")
@@ -99,7 +107,8 @@ class BONE_PT_transform_locks(BoneButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.bone
+        ob = context.object
+        return ob and ob.mode == 'POSE' and context.bone
 
     def draw(self, context):
         layout = self.layout
@@ -134,12 +143,12 @@ class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
         ob = context.object
         bone = context.bone
         arm = context.armature
+        pchan = None
 
-        if bone:
+        if ob and bone:
             pchan = ob.pose.bones[bone.name]
-        else:
+        elif bone is None:
             bone = context.edit_bone
-            pchan = None
 
         split = layout.split()
 
@@ -184,12 +193,12 @@ class BONE_PT_display(BoneButtonsPanel, bpy.types.Panel):
 
         ob = context.object
         bone = context.bone
+        pchan = None
 
-        if bone:
+        if ob and bone:
             pchan = ob.pose.bones[bone.name]
-        else:
+        elif bone is None:
             bone = context.edit_bone
-            pchan = None
 
         if bone:
             split = layout.split()
@@ -213,14 +222,15 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.active_pose_bone
+        ob = context.object
+        return ob and ob.mode == 'POSE' and context.bone
 
     def draw(self, context):
         layout = self.layout
 
-        pchan = context.active_pose_bone
-        # incase pose bone context is pinned don't use 'context.object'
-        ob = pchan.id_data
+        ob = context.object
+        bone = context.bone
+        pchan = ob.pose.bones[bone.name]
 
         row = layout.row()
         row.prop(ob.pose, "ik_solver")
@@ -348,6 +358,7 @@ class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):
 
 class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _property_type = bpy.types.Bone, bpy.types.EditBone, bpy.types.PoseBone
 
     @property
     def _context_path(self):

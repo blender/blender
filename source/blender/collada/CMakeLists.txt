@@ -24,9 +24,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-REMOVE_STRICT_FLAGS()
+remove_strict_flags()
 
-SET(INC
+set(INC
 	.
 	../blenlib
 	../blenkernel
@@ -37,23 +37,23 @@ SET(INC
 	../../../intern/guardedalloc
 )
 
-IF(APPLE)
-	LIST(APPEND INC
+if(APPLE)
+	list(APPEND INC
 		${OPENCOLLADA_INC}/COLLADAStreamWriter
 		${OPENCOLLADA_INC}/COLLADABaseUtils
 		${OPENCOLLADA_INC}/COLLADAFramework
 		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader 
 	)
-ELSE(APPLE)
-	LIST(APPEND INC
+else()
+	list(APPEND INC
 		${OPENCOLLADA_INC}/COLLADAStreamWriter/include
 		${OPENCOLLADA_INC}/COLLADABaseUtils/include
 		${OPENCOLLADA_INC}/COLLADAFramework/include
 		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader/include 
 	)
-ENDIF(APPLE)
+endif()
 
-SET(SRC
+set(SRC
 	AnimationImporter.cpp
 	ArmatureExporter.cpp
 	ArmatureImporter.cpp
@@ -95,8 +95,8 @@ SET(SRC
 	collada_utils.h
 )
 
-IF(WITH_BUILDINFO)
-	ADD_DEFINITIONS(-DNAN_BUILDINFO)
-ENDIF(WITH_BUILDINFO)
+if(WITH_BUILDINFO)
+	add_definitions(-DNAN_BUILDINFO)
+endif()
 
-BLENDERLIB(bf_collada "${SRC}" "${INC}")
+blenderlib(bf_collada "${SRC}" "${INC}")

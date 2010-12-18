@@ -45,9 +45,23 @@ int BLF_load_mem_unique(const char *name, unsigned char *mem, int mem_size);
 /* Attach a file with metrics information from memory. */
 void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size);
 
-void BLF_aspect(int fontid, float aspect);
+void BLF_aspect(int fontid, float x, float y, float z);
 void BLF_position(int fontid, float x, float y, float z);
 void BLF_size(int fontid, int size, int dpi);
+
+/* Set a 4x4 matrix to be multiplied before draw the text.
+ * Remember that you need call BLF_enable(BLF_MATRIX)
+ * to enable this.
+ *
+ * The order of the matrix is like GL:
+
+	| m[0]  m[4]  m[8]  m[12] |
+	| m[1]  m[5]  m[9]  m[13] |
+	| m[2]  m[6]  m[10] m[14] |
+	| m[3]  m[7]  m[11] m[15] |
+
+ */
+void BLF_matrix(int fontid, double *m);
 
 /* Draw the string using the default font, size and dpi. */
 void BLF_draw_default(float x, float y, float z, const char *str, size_t len);
@@ -180,6 +194,8 @@ void BLF_dir_free(char **dirs, int count);
 #define BLF_CLIPPING (1<<1)
 #define BLF_SHADOW (1<<2)
 #define BLF_KERNING_DEFAULT (1<<3)
+#define BLF_MATRIX (1<<4)
+#define BLF_ASPECT (1<<5)
 
 // XXX, bad design
 extern int blf_mono_font;

@@ -101,7 +101,7 @@ static int panel_poll(const bContext *C, PanelType *pt)
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	pt->ext.call(&ptr, func, &list);
+	pt->ext.call((bContext *)C, &ptr, func, &list);
 
 	RNA_parameter_get_lookup(&list, "visible", &ret);
 	visible= *(int*)ret;
@@ -122,7 +122,7 @@ static void panel_draw(const bContext *C, Panel *pnl)
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	pnl->type->ext.call(&ptr, func, &list);
+	pnl->type->ext.call((bContext *)C, &ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
@@ -138,7 +138,7 @@ static void panel_draw_header(const bContext *C, Panel *pnl)
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	pnl->type->ext.call(&ptr, func, &list);
+	pnl->type->ext.call((bContext *)C, &ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
@@ -163,7 +163,7 @@ static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Panel_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	PanelType *pt, dummypt = {0};
@@ -241,7 +241,7 @@ static void header_draw(const bContext *C, Header *hdr)
 
 	RNA_parameter_list_create(&list, &htr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	hdr->type->ext.call(&htr, func, &list);
+	hdr->type->ext.call((bContext *)C, &htr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
@@ -266,7 +266,7 @@ static void rna_Header_unregister(const bContext *C, StructRNA *type)
 		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Header_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	HeaderType *ht, dummyht = {0};
@@ -341,7 +341,7 @@ static int menu_poll(const bContext *C, MenuType *pt)
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	pt->ext.call(&ptr, func, &list);
+	pt->ext.call((bContext *)C, &ptr, func, &list);
 
 	RNA_parameter_get_lookup(&list, "visible", &ret);
 	visible= *(int*)ret;
@@ -362,7 +362,7 @@ static void menu_draw(const bContext *C, Menu *hdr)
 
 	RNA_parameter_list_create(&list, &mtr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	hdr->type->ext.call(&mtr, func, &list);
+	hdr->type->ext.call((bContext *)C, &mtr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
@@ -385,7 +385,7 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Menu_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	MenuType *mt, dummymt = {0};
 	Menu dummymenu= {0};

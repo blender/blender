@@ -24,13 +24,13 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	extern
 	${PNG_INC}
 	${ZLIB_INC}
 )
 
-SET(SRC
+set(SRC
 	intern/attributes.cpp
 	intern/controlparticles.cpp
 	intern/elbeem.cpp
@@ -86,13 +86,13 @@ SET(SRC
 	intern/utilities.h
 )
 
-ADD_DEFINITIONS(-DNOGUI -DELBEEM_BLENDER=1)
-IF(WINDOWS)
-		ADD_DEFINITIONS(-DUSE_MSVC6FIXES)
-ENDIF(WINDOWS)
+add_definitions(-DNOGUI -DELBEEM_BLENDER=1)
+if(WINDOWS)
+		add_definitions(-DUSE_MSVC6FIXES)
+endif()
 
-IF(WITH_OPENMP)
-		ADD_DEFINITIONS(-DPARALLEL=1)
-ENDIF(WITH_OPENMP)
+if(WITH_OPENMP)
+		add_definitions(-DPARALLEL=1)
+endif()
 
-BLENDERLIB_NOLIST(bf_intern_elbeem "${SRC}" "${INC}")
+blenderlib_nolist(bf_intern_elbeem "${SRC}" "${INC}")

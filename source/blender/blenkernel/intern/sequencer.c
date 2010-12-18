@@ -1683,8 +1683,7 @@ static ImBuf * copy_from_ibuf_still(SeqRenderData context, Sequence * seq,
 		ibuf = seq_stripelem_cache_get(
 			context, seq, seq->start, 
 			SEQ_STRIPELEM_IBUF_STARTSTILL);
-	}
-	if (nr == seq->len - 1) {
+	} else if (nr == seq->len - 1) {
 		ibuf = seq_stripelem_cache_get(
 			context, seq, seq->start, 
 			SEQ_STRIPELEM_IBUF_ENDSTILL);
@@ -1705,7 +1704,8 @@ static void copy_to_ibuf_still(SeqRenderData context, Sequence * seq, float nr,
 		seq_stripelem_cache_put(
 			context, seq, seq->start, 
 			SEQ_STRIPELEM_IBUF_STARTSTILL, ibuf);
-	}
+	} 
+
 	if (nr == seq->len - 1) {
 		seq_stripelem_cache_put(
 			context, seq, seq->start, 
@@ -1770,6 +1770,7 @@ static ImBuf* seq_render_effect_strip_impl(
 	case EARLY_NO_INPUT:
 		out = sh.execute(context, seq, cfra, fac, facf, 
 				 NULL, NULL, NULL);
+		break;
 	case EARLY_DO_EFFECT:
 		for(i=0; i<3; i++) {
 			if(input[i])
@@ -1969,13 +1970,14 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 
 	ibuf = seq_stripelem_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
 
-	if (ibuf == NULL)
-		ibuf = copy_from_ibuf_still(context, seq, nr);
-	
-	/* currently, we cache preprocessed images */
+	/* currently, we cache preprocessed images in SEQ_STRIPELEM_IBUF,
+	   but not(!) on SEQ_STRIPELEM_IBUF_ENDSTILL and ..._STARTSTILL */
 	if (ibuf)
 		use_preprocess = FALSE;
 
+	if (ibuf == NULL)
+		ibuf = copy_from_ibuf_still(context, seq, nr);
+	
 	if (ibuf == NULL)
 		ibuf = seq_proxy_fetch(context, seq, cfra);
 

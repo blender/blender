@@ -104,11 +104,11 @@ void	draw_all_deps(void);
 void	DAG_scene_sort(struct Main *bmain, struct Scene *sce);
 
 		/* flag all objects that need recalc because they're animated */
-void	DAG_scene_update_flags(struct Main *bmain, struct Scene *sce, unsigned int lay);
+void	DAG_scene_update_flags(struct Main *bmain, struct Scene *sce, unsigned int lay, const short do_time);
 		/* flushes all recalc flags in objects down the dependency tree */
-void	DAG_scene_flush_update(struct Main *bmain, struct Scene *sce, unsigned int lay, int time);
+void	DAG_scene_flush_update(struct Main *bmain, struct Scene *sce, unsigned int lay, const short do_time);
 		/* tag objects for update on file load */
-void	DAG_on_load_update(struct Main *bmain);
+void	DAG_on_load_update(struct Main *bmain, const short do_time);
 
 		/* when setting manual RECALC flags, call this afterwards */
 void	DAG_ids_flush_update(struct Main *bmain, int time);

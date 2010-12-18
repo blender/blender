@@ -51,6 +51,11 @@ void	ED_undo_redo			(struct bContext *C);
 void	ED_OT_undo				(struct wmOperatorType *ot);
 void	ED_OT_redo				(struct wmOperatorType *ot);
 
+int		ED_undo_operator_repeat(struct bContext *C, struct wmOperator *op);
+	/* convenience since UI callbacks use this mostly*/
+void	ED_undo_operator_repeat_cb(struct bContext *C, void *arg_op, void *arg_unused);
+void	ED_undo_operator_repeat_cb_evt(struct bContext *C, void *arg_op, int arg_unused);
+
 /* undo_editmode.c */
 void undo_editmode_push(struct bContext *C, const char *name, 
 						void * (*getdata)(struct bContext *C),
@@ -65,7 +70,6 @@ struct uiBlock *editmode_undohistorymenu(struct bContext *C, struct ARegion *ar,
 void	undo_editmode_menu			(struct bContext *C);
 void	undo_editmode_clear			(void);
 void	undo_editmode_step			(struct bContext *C, int step);
-
 
 /* ************** XXX OLD CRUFT WARNING ************* */
 

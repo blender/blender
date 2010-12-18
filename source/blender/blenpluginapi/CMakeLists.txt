@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC 
+set(INC 
 	.
 	..
 	../blenlib
@@ -33,7 +33,7 @@ SET(INC
 	../../../intern/guardedalloc
 )
 
-SET(SRC
+set(SRC
 	intern/pluginapi.c
 
 	documentation.h
@@ -44,9 +44,9 @@ SET(SRC
 	util.h
 )
 
-IF(WITH_CODEC_QUICKTIME)
-	LIST(APPEND INC ${QUICKTIME_INC})
-	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_CODEC_QUICKTIME)
+if(WITH_CODEC_QUICKTIME)
+	list(APPEND INC ${QUICKTIME_INC})
+	add_definitions(-DWITH_QUICKTIME)
+endif()
 
-BLENDERLIB(bf_blenpluginapi "${SRC}" "${INC}")
+blenderlib(bf_blenpluginapi "${SRC}" "${INC}")

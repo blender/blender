@@ -208,6 +208,11 @@ int graphop_active_fcurve_poll (bContext *C)
 		
 	/* free temp data... */
 	has_fcurve= ((ale->data) && (ale->type == ANIMTYPE_FCURVE));
+	if(has_fcurve) {
+		FCurve *fcu= (FCurve *)ale->data;
+		has_fcurve= (fcu->flag & FCURVE_VISIBLE)!=0;
+	}
+	
 	MEM_freeN(ale);
 	
 	/* return success */

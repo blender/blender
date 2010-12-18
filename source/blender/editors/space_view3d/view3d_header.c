@@ -201,7 +201,7 @@ static int layers_exec(bContext *C, wmOperator *op)
 	if(v3d->scenelock) handle_view3d_lock(C);
 	
 	/* new layers might need unflushed events events */
-	DAG_scene_update_flags(bmain, scene, v3d->lay);	/* tags all that moves and flushes */
+	DAG_scene_update_flags(bmain, scene, v3d->lay, FALSE);	/* tags all that moves and flushes */
 
 	ED_area_tag_redraw(sa);
 	

@@ -18,7 +18,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC 
+set(INC 
 	.
 	../../blenlib
 	../../makesdna
@@ -28,10 +28,10 @@ SET(INC
 	${PYTHON_INC}
 )
 
-SET(SRC
+set(SRC
 	IDProp.c
 	bgl.c
-	blf_api.c
+	blf_py_api.c
 	bpy_internal_import.c
 	mathutils.c
 	mathutils_color.c
@@ -45,7 +45,7 @@ SET(SRC
 
 	IDProp.h
 	bgl.h
-	blf_api.h
+	blf_py_api.h
 	bpy_internal_import.h
 	mathutils.h
 	mathutils_color.h
@@ -57,4 +57,4 @@ SET(SRC
 	py_capi_utils.h
 )
 
-BLENDERLIB(bf_python_ext "${SRC}" "${INC}")
+blenderlib(bf_python_ext "${SRC}" "${INC}")

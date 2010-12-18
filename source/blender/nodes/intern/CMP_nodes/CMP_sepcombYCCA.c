@@ -43,11 +43,37 @@ static bNodeSocketType cmp_node_sepycca_out[]= {
 	{  -1, 0, ""   }
 };
 
-static void do_sepycca(bNode *UNUSED(node), float *out, float *in)
+static void do_sepycca_601(bNode *UNUSED(node), float *out, float *in)
 {
 	float y, cb, cr;
 	
 	rgb_to_ycc(in[0], in[1], in[2], &y, &cb, &cr, BLI_YCC_ITU_BT601);
+	
+	/*divided by 255 to normalize for viewing in */
+	out[0]= y/255.0;
+	out[1]= cb/255.0;
+	out[2]= cr/255.0;
+	out[3]= in[3];
+}
+
+static void do_sepycca_709(bNode *UNUSED(node), float *out, float *in)
+{
+	float y, cb, cr;
+	
+	rgb_to_ycc(in[0], in[1], in[2], &y, &cb, &cr, BLI_YCC_ITU_BT709);
+	
+	/*divided by 255 to normalize for viewing in */
+	out[0]= y/255.0;
+	out[1]= cb/255.0;
+	out[2]= cr/255.0;
+	out[3]= in[3];
+}
+
+static void do_sepycca_jfif(bNode *UNUSED(node), float *out, float *in)
+{
+	float y, cb, cr;
+	
+	rgb_to_ycc(in[0], in[1], in[2], &y, &cb, &cr, BLI_YCC_JFIF_0_255);
 	
 	/*divided by 255 to normalize for viewing in */
 	out[0]= y/255.0;
@@ -62,7 +88,19 @@ static void node_composit_exec_sepycca(void *UNUSED(data), bNode *node, bNodeSta
 	if(in[0]->data==NULL) {
 		float y, cb, cr;
 	
-		rgb_to_ycc(in[0]->vec[0], in[0]->vec[1], in[0]->vec[2], &y, &cb, &cr, BLI_YCC_ITU_BT601);
+		switch(node->custom1)
+		{
+		case 1:
+			rgb_to_ycc(in[0]->vec[0], in[0]->vec[1], in[0]->vec[2], &y, &cb, &cr, BLI_YCC_ITU_BT709);
+			break;
+		case 2:
+			rgb_to_ycc(in[0]->vec[0], in[0]->vec[1], in[0]->vec[2], &y, &cb, &cr, BLI_YCC_JFIF_0_255);
+			break;
+		case 0:
+		default:
+			rgb_to_ycc(in[0]->vec[0], in[0]->vec[1], in[0]->vec[2], &y, &cb, &cr, BLI_YCC_ITU_BT601);
+			break;
+		}
 	
 		/*divided by 255 to normalize for viewing in */
 		out[0]->vec[0] = y/255.0;
@@ -76,7 +114,19 @@ static void node_composit_exec_sepycca(void *UNUSED(data), bNode *node, bNodeSta
 		CompBuf *cbuf2=typecheck_compbuf(cbuf, CB_RGBA);
 	
 		/* convert the RGB stackbuf to an HSV representation */
-		composit1_pixel_processor(node, cbuf2, cbuf2, in[0]->vec, do_sepycca, CB_RGBA);
+		switch(node->custom1)
+		{
+		case 1:
+			composit1_pixel_processor(node, cbuf2, cbuf2, in[0]->vec, do_sepycca_709, CB_RGBA);
+			break;
+		case 2:
+			composit1_pixel_processor(node, cbuf2, cbuf2, in[0]->vec, do_sepycca_jfif, CB_RGBA);
+			break;
+		case 0:
+		default:
+			composit1_pixel_processor(node, cbuf2, cbuf2, in[0]->vec, do_sepycca_601, CB_RGBA);
+			break;
+		}
 	
 		/* separate each of those channels */
 		if(out[0]->hasoutput)
@@ -100,7 +150,7 @@ bNodeType cmp_node_sepycca= {
 	/* type code   */	CMP_NODE_SEPYCCA,
 	/* name        */	"Separate YCbCrA",
 	/* width+range */	80, 40, 140,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, 0,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_sepycca_in,
 	/* output sock */	cmp_node_sepycca_out,
 	/* storage     */	"",
@@ -116,8 +166,8 @@ bNodeType cmp_node_sepycca= {
 /* **************** COMBINE YCCA ******************** */
 static bNodeSocketType cmp_node_combycca_in[]= {
 	{	SOCK_VALUE, 1, "Y",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Cb",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Cr",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Cb",			0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Cr",			0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "A",			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
@@ -126,7 +176,7 @@ static bNodeSocketType cmp_node_combycca_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_comb_ycca(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
+static void do_comb_ycca_601(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
 {
 	float r,g,b;
 	float y, cb, cr;
@@ -144,6 +194,42 @@ static void do_comb_ycca(bNode *UNUSED(node), float *out, float *in1, float *in2
 	out[3] = in4[0];
 }
 
+static void do_comb_ycca_709(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
+{
+	float r,g,b;
+	float y, cb, cr;
+
+	/*need to un-normalize the data*/
+	y=in1[0]*255;
+	cb=in2[0]*255;
+	cr=in3[0]*255;
+
+	ycc_to_rgb(y,cb,cr, &r, &g, &b, BLI_YCC_ITU_BT709);
+	
+	out[0] = r;
+	out[1] = g;
+	out[2] = b;
+	out[3] = in4[0];
+}
+
+static void do_comb_ycca_jfif(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
+{
+	float r,g,b;
+	float y, cb, cr;
+
+	/*need to un-normalize the data*/
+	y=in1[0]*255;
+	cb=in2[0]*255;
+	cr=in3[0]*255;
+
+	ycc_to_rgb(y,cb,cr, &r, &g, &b, BLI_YCC_JFIF_0_255);
+	
+	out[0] = r;
+	out[1] = g;
+	out[2] = b;
+	out[3] = in4[0];
+}
+
 static void node_composit_exec_combycca(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order out: 1 ycca channels */
@@ -151,9 +237,24 @@ static void node_composit_exec_combycca(void *UNUSED(data), bNode *node, bNodeSt
 	
 	/* input no image? then only color operation */
 	if((in[0]->data==NULL) && (in[1]->data==NULL) && (in[2]->data==NULL) && (in[3]->data==NULL)) {
-		out[0]->vec[0] = in[0]->vec[0];
-		out[0]->vec[1] = in[1]->vec[0];
-		out[0]->vec[2] = in[2]->vec[0];
+		float y = in[0]->vec[0] * 255;
+		float cb = in[1]->vec[0] * 255;
+		float cr = in[2]->vec[0] * 255;
+		
+		switch(node->custom1)
+		{
+		case 1:
+			ycc_to_rgb(y, cb, cr, &out[0]->vec[0], &out[0]->vec[1], &out[0]->vec[2], BLI_YCC_ITU_BT709);
+			break;
+		case 2:
+			ycc_to_rgb(y, cb, cr, &out[0]->vec[0], &out[0]->vec[1], &out[0]->vec[2], BLI_YCC_JFIF_0_255);
+			break;
+		case 0:
+		default:
+			ycc_to_rgb(y, cb, cr, &out[0]->vec[0], &out[0]->vec[1], &out[0]->vec[2], BLI_YCC_ITU_BT601);
+			break;
+		}
+		
 		out[0]->vec[3] = in[3]->vec[0];
 	}
 	else {
@@ -169,9 +270,27 @@ static void node_composit_exec_combycca(void *UNUSED(data), bNode *node, bNodeSt
 		
 		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
-		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
-								  in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
-								  do_comb_ycca, CB_VAL, CB_VAL, CB_VAL, CB_VAL);
+		
+		switch(node->custom1)
+		{
+		case 1:
+			composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
+			                          in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
+			                          do_comb_ycca_709, CB_VAL, CB_VAL, CB_VAL, CB_VAL);
+			break;
+		
+		case 2:
+			composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
+			                          in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
+			                          do_comb_ycca_jfif, CB_VAL, CB_VAL, CB_VAL, CB_VAL);
+			break;
+		case 0:
+		default:
+			composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
+			                          in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
+			                          do_comb_ycca_601, CB_VAL, CB_VAL, CB_VAL, CB_VAL);
+			break;
+		}
 
 		out[0]->data= stackbuf;
 	}	

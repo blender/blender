@@ -330,8 +330,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         row.separator()
 
         col = row.column()
-        row = col.row(align=True)
-        row.prop(edit, "sculpt_paint_overlay_color", text="Sculpt Overlay Color")
+        col.prop(edit, "sculpt_paint_overlay_color", text="Sculpt Overlay Color")
 
         col.separator()
         col.separator()
@@ -712,10 +711,10 @@ class USERPREF_PT_file(bpy.types.Panel):
         col.separator()
         col.separator()
 
-        col.label(text="Auto Save:")
         col.prop(paths, "save_version")
         col.prop(paths, "recent_files")
         col.prop(paths, "use_save_preview_images")
+        col.label(text="Auto Save:")
         col.prop(paths, "use_auto_save_temporary_files")
         sub = col.column()
         sub.active = paths.use_auto_save_temporary_files
@@ -1141,22 +1140,11 @@ class WM_OT_addon_install(bpy.types.Operator):
         pyfile = self.filepath
 
         # dont use bpy.utils.script_paths("addons") because we may not be able to write to it.
-        path_addons = bpy.utils.user_resource('SCRIPTS', 'addons')
+        path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
 
-        # should never happen.
         if not path_addons:
             self.report({'WARNING'}, "Failed to get addons path\n")
             return {'CANCELLED'}
-
-        # create path if not existing.
-        if not os.path.exists(path_addons):
-            try:
-                os.makedirs(path_addons)
-            except:
-                self.report({'WARNING'}, "Failed to create %r\n" % path_addons)
-
-                traceback.print_exc()
-                return {'CANCELLED'}
 
         contents = set(os.listdir(path_addons))
 
@@ -1210,7 +1198,7 @@ class WM_OT_addon_install(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 

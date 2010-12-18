@@ -731,7 +731,7 @@ static EnumPropertyItem prop_similar_types[] = {
 *0.5 so smaller faces arnt ALWAYS selected with a thresh of 1.0 */
 #define SCALE_CMP(a,b) ((a+a*thresh >= b) && (a-(a*thresh*0.5) <= b))
 
-static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
+static int similar_face_select__internal(EditMesh *em, int mode, float thresh)
 {
 	EditFace *efa, *base_efa=NULL;
 	unsigned int selcount=0; /*count how many new faces we select*/
@@ -739,7 +739,6 @@ static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
 	/*deselcount, count how many deselected faces are left, so we can bail out early
 	also means that if there are no deselected faces, we can avoid a lot of looping */
 	unsigned int deselcount=0; 
-	float thresh= scene->toolsettings->select_thresh;
 	short ok=0;
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
@@ -859,12 +858,11 @@ static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
 
 static int similar_face_select_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
 	EditMesh *em= BKE_mesh_get_editmesh(me); 
 
-	int selcount = similar_face_select__internal(scene, em, RNA_int_get(op->ptr, "type"));
+	int selcount = similar_face_select__internal(em, RNA_int_get(op->ptr, "type"), RNA_float_get(op->ptr, "threshold"));
 	
 	if (selcount) {
 		/* here was an edge-mode only select flush case, has to be generalized */
@@ -880,7 +878,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 /* ***************************************************** */
 
-static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mode)
+static int similar_edge_select__internal(EditMesh *em, int mode, float thresh)
 {
 	EditEdge *eed, *base_eed=NULL;
 	unsigned int selcount=0; /* count how many new edges we select*/
@@ -890,7 +888,6 @@ static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mod
 	unsigned int deselcount=0;
 	
 	short ok=0;
-	float thresh= ts->select_thresh;
 	
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if (!eed->h) {
@@ -1080,12 +1077,11 @@ static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mod
 /* wrap the above function but do selection flushing edge to face */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
 	EditMesh *em= BKE_mesh_get_editmesh(me); 
 
-	int selcount = similar_edge_select__internal(ts, em, RNA_int_get(op->ptr, "type"));
+	int selcount = similar_edge_select__internal(em, RNA_int_get(op->ptr, "type"), RNA_float_get(op->ptr, "threshold"));
 	
 	if (selcount) {
 		/* here was an edge-mode only select flush case, has to be generalized */
@@ -1103,7 +1099,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
 	EditMesh *em= BKE_mesh_get_editmesh(me); 
@@ -1114,9 +1109,9 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	so we can return when there are none left */
 	unsigned int deselcount=0;
 	int mode= RNA_enum_get(op->ptr, "type");
+	float thresh = RNA_float_get(op->ptr, "threshold");
 	
 	short ok=0;
-	float thresh= ts->select_thresh;
 	
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if (!eve->h) {
@@ -1304,6 +1299,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	prop= RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
 	RNA_def_enum_funcs(prop, select_similar_type_itemf);
 	ot->prop= prop;
+	RNA_def_float(ot->srna, "threshold", 0.01f, 0.0f, FLT_MAX, "Threshold", "", 0.0f, 100.f);
 }
 
 /* ******************************************* */

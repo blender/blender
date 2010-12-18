@@ -24,25 +24,25 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-IF(USE_QTKIT)
-	SET(SRC
+if(USE_QTKIT)
+	set(SRC
 		apple/qtkit_import.m
 		apple/qtkit_export.m
 
 		quicktime_export.h
 		quicktime_import.h
 	)
-ELSE(USE_QTKIT)
-	SET(SRC
+else()
+	set(SRC
 		apple/quicktime_import.c
 		apple/quicktime_export.c
 
 		quicktime_export.h
 		quicktime_import.h
 	)
-ENDIF(USE_QTKIT)
+endif()
 
-SET(INC 
+set(INC 
 	.
 	../quicktime
 	../makesdna
@@ -61,6 +61,6 @@ SET(INC
 	${QUICKTIME_INC}
 )
 
-ADD_DEFINITIONS(-DWITH_QUICKTIME)
+add_definitions(-DWITH_QUICKTIME)
 
-BLENDERLIB(bf_quicktime "${SRC}" "${INC}")
+blenderlib(bf_quicktime "${SRC}" "${INC}")

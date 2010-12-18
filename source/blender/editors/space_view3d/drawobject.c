@@ -789,7 +789,9 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	cross_v3_v3v3(temp,vvec,lvec);		/* equation for a plane through vvec en lvec */
 	cross_v3_v3v3(plane,lvec,temp);		/* a plane perpendicular to this, parrallel with lvec */
 
-	normalize_v3(plane);
+	/* vectors are exactly aligned, use the X axis, this is arbitrary */
+	if(normalize_v3(plane) == 0.0f)
+		plane[1]= 1.0f;
 
 	/* now we've got two equations: one of a cone and one of a plane, but we have
 	three unknowns. We remove one unkown by rotating the plane to z=0 (the plane normal) */
@@ -908,7 +910,11 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	float imat[4][4], curcol[4];
 	char col[4];
 	int drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && la->type == LA_SPOT && (la->mode & LA_SHOW_CONE));
-	
+
+	/* cone can't be drawn for duplicated lamps, because duplilist would be freed to */
+	/* the moment of view3d_draw_transp() call */
+	drawcone&= (base->flag & OB_FROMDUPLI)==0;
+
 	if(drawcone && !v3d->transp) {
 		/* in this case we need to draw delayed */
 		add_view3d_after(&v3d->afterdraw_transp, base, flag);
@@ -6113,7 +6119,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		// only draw domains
 		if(smd->domain && smd->domain->fluid)
 		{
-			if(!smd->domain->wt || !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
+			if(CFRA < smd->domain->point_cache[0]->startframe)
+				; /* don't show smoke before simulation starts, this could be made an option in the future */
+			else if(!smd->domain->wt || !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
 			{
 // #if 0
 				smd->domain->tex = NULL;
@@ -6436,12 +6444,11 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, v3d->customdata_mask);
 	Mesh *me = (Mesh*)ob->data;
-	int face_sel_mode = (me->flag & ME_EDIT_PAINT_MASK) ? 1:0;
 	
 	glColor3ub(0, 0, 0);
 		
-	if(face_sel_mode)	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, me, 0, GPU_enable_material);
-	else				dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 0, GPU_enable_material);
+	if((me->editflag & ME_EDIT_PAINT_MASK))	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, me, 0, GPU_enable_material);
+	else									dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 0, GPU_enable_material);
 
 	dm->release(dm);
 }

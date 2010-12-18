@@ -117,7 +117,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	if(dataMask)
 		dm= get_cddm(ob, NULL, dm, vertexCos);
 
-	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, md->scene, ob, dm, vertexCos, numVerts);
+	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, dm, vertexCos, numVerts);
 
 	if(dm != derivedData)
 		dm->release(dm);
@@ -132,7 +132,7 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct EditMesh *editDat
 	if(dataMask)
 		dm= get_cddm(ob, editData, dm, vertexCos);
 
-	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, md->scene, ob, dm, vertexCos, numVerts);
+	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, dm, vertexCos, numVerts);
 
 	if(dm != derivedData)
 		dm->release(dm);

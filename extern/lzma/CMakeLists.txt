@@ -24,11 +24,11 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 )
 
-SET(SRC
+set(SRC
 	Alloc.c
 	LzFind.c
 	LzmaDec.c
@@ -44,4 +44,4 @@ SET(SRC
 	Types.h
 )
 
-BLENDERLIB(extern_lzma "${SRC}" "${INC}")
+blenderlib(extern_lzma "${SRC}" "${INC}")

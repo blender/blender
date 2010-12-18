@@ -43,6 +43,7 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
@@ -594,6 +595,11 @@ static void render_endjob(void *rjv)
 	/* else the frame will not update for the original value */
 	ED_update_for_newframe(G.main, rj->scene, rj->win->screen, 1);
 	
+	if(rj->srl) {
+		NodeTagIDChanged(rj->scene->nodetree, &rj->scene->id);
+		WM_main_add_notifier(NC_NODE|NA_EDITED, rj->scene);
+	}
+	
 	/* XXX render stability hack */
 	G.rendering = 0;
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -843,34 +849,46 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(unused), wmEv
 {
 	ScrArea *sa= find_area_showing_r_result(C);
 
-	/* test if we have a temp screen in front */
+	/* test if we have a temp screen active */
 	if(CTX_wm_window(C)->screen->temp) {
 		wm_window_lower(CTX_wm_window(C));
 	}
-	/* determine if render already shows */
-	else if(sa) {
-		SpaceImage *sima= sa->spacedata.first;
-
-		if(sima->flag & SI_PREVSPACE) {
-			sima->flag &= ~SI_PREVSPACE;
-
-			if(sima->flag & SI_FULLWINDOW) {
-				sima->flag &= ~SI_FULLWINDOW;
-				ED_screen_full_prevspace(C, sa);
-			}
-			else if(sima->next) {
-				/* workaround for case of double prevspace, render window
-				   with a file browser on top of it (same as in ED_area_prevspace) */
-				if(sima->next->spacetype == SPACE_FILE && sima->next->next)
-					ED_area_newspace(C, sa, sima->next->next->spacetype);
-				else
-					ED_area_newspace(C, sa, sima->next->spacetype);
-				ED_area_tag_redraw(sa);
+	else { 
+		/* is there another window? */
+		wmWindow *win;
+		
+		for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
+			if(win->screen->temp) {
+				wm_window_raise(win);
+				return OPERATOR_FINISHED;
 			}
 		}
-	}
-	else {
-		screen_set_image_output(C, event->x, event->y);
+		
+		/* determine if render already shows */
+		if(sa) {
+			SpaceImage *sima= sa->spacedata.first;
+
+			if(sima->flag & SI_PREVSPACE) {
+				sima->flag &= ~SI_PREVSPACE;
+
+				if(sima->flag & SI_FULLWINDOW) {
+					sima->flag &= ~SI_FULLWINDOW;
+					ED_screen_full_prevspace(C, sa);
+				}
+				else if(sima->next) {
+					/* workaround for case of double prevspace, render window
+					   with a file browser on top of it (same as in ED_area_prevspace) */
+					if(sima->next->spacetype == SPACE_FILE && sima->next->next)
+						ED_area_newspace(C, sa, sima->next->next->spacetype);
+					else
+						ED_area_newspace(C, sa, sima->next->spacetype);
+					ED_area_tag_redraw(sa);
+				}
+			}
+		}
+		else {
+			screen_set_image_output(C, event->x, event->y);
+		}
 	}
 
 	return OPERATOR_FINISHED;

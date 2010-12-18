@@ -252,8 +252,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			break;
 		case UI_ID_FAKE_USER:
 			if(id) {
-				if(id->flag & LIB_FAKEUSER) id->us++;
-				else id->us--;
+				if(id->flag & LIB_FAKEUSER) id_us_plus(id);
+				else id_us_min(id);
 			}
 			else return;
 			break;
@@ -421,6 +421,8 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	if(id && (flag & UI_ID_DELETE)) {
 		if(unlinkop) {
 			but= uiDefIconButO(block, BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+			/* so we can access the template from operators, font unlinking needs this */
+			uiButSetNFunc(but, NULL, MEM_dupallocN(template), 0);
 		}
 		else {
 			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Unlink datablock, Shift + Click to force removal on save");
@@ -823,17 +825,14 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 #define REMAKEIPO					8
 #define B_DIFF						9
 
-void do_constraint_panels(bContext *C, void *UNUSED(arg), int event)
+void do_constraint_panels(bContext *C, void *ob_pt, int event)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= (Object *)ob_pt;
 	
 	switch(event) {
 	case B_CONSTRAINT_TEST:
-		// XXX allqueue(REDRAWVIEW3D, 0);
-		// XXX allqueue(REDRAWBUTSOBJECT, 0);
-		// XXX allqueue(REDRAWBUTSEDIT, 0);
 		break;  // no handling
 	case B_CONSTRAINT_CHANGETARGET:
 		if (ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
@@ -853,10 +852,6 @@ void do_constraint_panels(bContext *C, void *UNUSED(arg), int event)
 	else DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
-	
-	// XXX allqueue(REDRAWVIEW3D, 0);
-	// XXX allqueue(REDRAWBUTSOBJECT, 0);
-	// XXX allqueue(REDRAWBUTSEDIT, 0);
 }
 
 static void constraint_active_func(bContext *UNUSED(C), void *ob_v, void *con_v)
@@ -896,7 +891,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 
 	/* unless button has own callback, it adds this callback to button */
 	block= uiLayoutGetBlock(layout);
-	uiBlockSetHandleFunc(block, do_constraint_panels, NULL);
+	uiBlockSetHandleFunc(block, do_constraint_panels, ob);
 	uiBlockSetFunc(block, constraint_active_func, ob, con);
 
 	RNA_pointer_create(&ob->id, &RNA_Constraint, con, &ptr);
@@ -918,17 +913,19 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	uiItemR(row, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", 0);
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
-	/* XXX if (con->flag & CONSTRAINT_DISABLE)
-		uiBlockSetCol(block, TH_REDALERT);*/
-	
 	/* name */
 	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco+10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
+	if (con->flag & CONSTRAINT_DISABLE)
+		uiLayoutSetRedAlert(row, 1);
+	
 	if(proxy_protected == 0) {
 		uiItemR(row, &ptr, "name", 0, "", 0);
 	}
 	else
 		uiItemL(row, con->name, 0);
+	
+	uiLayoutSetRedAlert(row, 0);
 	
 	/* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
 	if (proxy_protected) {
@@ -999,7 +996,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		box= uiLayoutBox(col);
 		block= uiLayoutAbsoluteBlock(box);
 		result= box;
-		}
+	}
 
 	/* clear any locks set up for proxies/lib-linking */
 	uiBlockClearButLock(block);
@@ -2006,7 +2003,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		/* provision to draw active node name */
 		Material *ma, *manode;
 		Object *ob= (Object*)ptr->id.data;
-		int index= (Material**)ptr->data - ob->mat;
+		int index= (Material**)itemptr->data - ob->mat;
 		
 		/* default item with material base name */
 		uiItemL(sub, name, icon);
@@ -2308,7 +2305,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
-	void *owner;
+	void *owner= NULL;
 	int handle_event;
 	
 	block= uiLayoutGetBlock(layout);
@@ -2317,14 +2314,20 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	uiBlockSetHandleFunc(block, do_running_jobs, NULL);
 
 	if(sa->spacetype==SPACE_NODE) {
-		owner = sa;
+		if(WM_jobs_test(wm, sa))
+		   owner = sa;
 		handle_event= B_STOPCOMPO;
-	} else {
+	} 
+	else {
+		/* another scene can be rendering too, for example via compositor */
+		for(scene= CTX_data_main(C)->scene.first; scene; scene= scene->id.next)
+			if(WM_jobs_test(wm, scene))
+				break;
 		owner = scene;
 		handle_event= B_STOPRENDER;
 	}
 
-	if(WM_jobs_test(wm, owner)) {
+	if(owner) {
 		uiLayout *ui_abs;
 		
 		ui_abs= uiLayoutAbsolute(layout, 0);

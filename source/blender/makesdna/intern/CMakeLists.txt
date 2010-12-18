@@ -24,21 +24,23 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-INCLUDE_DIRECTORIES(../../../../intern/guardedalloc ..)
+# message(STATUS "Configuring makesdna")
+
+include_directories(../../../../intern/guardedalloc ..)
 
 # Build makesdna executable
-SET(SRC
+set(SRC
 	makesdna.c
 	../../../../intern/guardedalloc/intern/mallocn.c
 )
 
-IF(WIN32 AND NOT UNIX)
-	LIST(APPEND SRC
+if(WIN32 AND NOT UNIX)
+	list(APPEND SRC
 		../../../../intern/guardedalloc/intern/mmap_win.c
 	)
-ENDIF(WIN32 AND NOT UNIX)
+endif()
 
-SET(SRC_DNA_INC
+set(SRC_DNA_INC
 	../DNA_ID.h
 	../DNA_action_types.h
 	../DNA_actuator_types.h
@@ -98,22 +100,20 @@ SET(SRC_DNA_INC
 	../DNA_world_types.h
 )
 
-ADD_EXECUTABLE(makesdna ${SRC} ${SRC_DNA_INC})
+add_executable(makesdna ${SRC} ${SRC_DNA_INC})
 
 # Output dna.c
-ADD_CUSTOM_COMMAND(
+add_custom_command(
 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
 	COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
 	DEPENDS makesdna
 )
 
 # Build bf_dna library
-SET(SRC
+set(SRC
 	dna_genfile.c
 	dna.c
 	${SRC_DNA_INC}
 )
 
-BLENDERLIB(bf_dna "${SRC}" "${INC}")
-
-MESSAGE(STATUS "Configuring makesdna")
+blenderlib(bf_dna "${SRC}" "${INC}")

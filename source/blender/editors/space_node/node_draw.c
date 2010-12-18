@@ -630,7 +630,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	
 }
 
-static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bNode *node)
+static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock;
 	uiBut *bt;
@@ -639,7 +639,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	int /*ofs,*/ color_id= node_get_colorid(node);
 	char showname[128]; /* 128 used below */
 	View2D *v2d = &ar->v2d;
-	bNodeTree *ntree = snode->nodetree;
 	PointerRNA ptr;
 	
 	/* hurmf... another candidate for callback, have to see how this works first */
@@ -943,7 +942,7 @@ static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode,
 			else if(node->flag & NODE_HIDDEN)
 				node_draw_hidden(C, ar, snode, node);
 			else
-				node_draw_basis(C, ar, snode, node);
+				node_draw_basis(C, ar, snode, ntree, node);
 		}
 	}
 	
@@ -954,7 +953,7 @@ static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode,
 			else if(node->flag & NODE_HIDDEN)
 				node_draw_hidden(C, ar, snode, node);
 			else
-				node_draw_basis(C, ar, snode, node);
+				node_draw_basis(C, ar, snode, ntree, node);
 		}
 	}	
 }

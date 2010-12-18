@@ -119,7 +119,7 @@ void ED_armature_validate_active(struct bArmature *arm)
 	EditBone *ebone= arm->act_edbone;
 
 	if(ebone) { 
-		if(ebone->flag & BONE_HIDDEN_A || (ebone->flag & BONE_SELECTED)==0)
+		if(ebone->flag & BONE_HIDDEN_A)
 			arm->act_edbone= NULL;
 	}
 }
@@ -152,6 +152,47 @@ void ED_armature_edit_bone_remove(bArmature *arm, EditBone *exBone)
 	bone_free(arm, exBone);
 }
 
+/* context: editmode armature */
+EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
+{
+	EditBone *eboflip= NULL;
+	char name[32];
+	
+	if (ebo == NULL)
+		return NULL;
+	
+	flip_side_name(name, ebo->name, FALSE);
+	
+	for (eboflip= edbo->first; eboflip; eboflip=eboflip->next) {
+		if (ebo != eboflip) {
+			if (!strcmp (name, eboflip->name)) 
+				break;
+		}
+	}
+	
+	return eboflip;
+}
+
+/* helper function for tools to work on mirrored parts.
+   it leaves mirrored bones selected then too, which is a good indication of what happened */
+static void armature_select_mirrored(bArmature *arm)
+{
+	/* Select mirrored bones */
+	if (arm->flag & ARM_MIRROR_EDIT) {
+		EditBone *curBone, *ebone_mirr;
+		
+		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
+			if (arm->layer & curBone->layer) {
+				if (curBone->flag & BONE_SELECTED) {
+					ebone_mirr= ED_armature_bone_get_mirrored(arm->edbo, curBone);
+					if (ebone_mirr)
+						ebone_mirr->flag |= BONE_SELECTED;
+				}
+			}
+		}
+	}
+	
+}
 
 /* converts Bones to EditBone list, used for tools as well */
 EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone *actBone)
@@ -1749,28 +1790,6 @@ static EditBone *get_nearest_editbonepoint (ViewContext *vc, short mval[2], List
 	return NULL;
 }
 
-/* context: editmode armature */
-EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
-{
-	EditBone *eboflip= NULL;
-	char name[32];
-	
-	if (ebo == NULL)
-		return NULL;
-
-	flip_side_name(name, ebo->name, FALSE);
-	
-	for (eboflip= edbo->first; eboflip; eboflip=eboflip->next) {
-		if (ebo != eboflip) {
-			if (!strcmp (name, eboflip->name)) 
-				break;
-		}
-	}
-	
-	return eboflip;
-}
-
-
 /* previously delete_armature */
 /* only editmode! */
 static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1785,18 +1804,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
 		return OPERATOR_CANCELLED;
 	
-	/* Select mirrored bones */
-	if (arm->flag & ARM_MIRROR_EDIT) {
-		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
-			if (arm->layer & curBone->layer) {
-				if (curBone->flag & BONE_SELECTED) {
-					ebone_next= ED_armature_bone_get_mirrored(arm->edbo, curBone);
-					if (ebone_next)
-						ebone_next->flag |= BONE_SELECTED;
-				}
-			}
-		}
-	}
+	armature_select_mirrored(arm);
 	
 	/*  First erase any associated pose channel */
 	if (obedit->pose) {
@@ -1875,8 +1883,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
 
 /* toggle==0: deselect
  * toggle==1: swap (based on test)
- * toggle==2: only active tag
- * toggle==3: swap (no test)
+ * toggle==2: swap (no test), CURRENTLY UNUSED
  */
 void ED_armature_deselect_all(Object *obedit, int toggle)
 {
@@ -1898,33 +1905,29 @@ void ED_armature_deselect_all(Object *obedit, int toggle)
 	}
 	else sel= toggle;
 	
-	if(sel==2) {
-		arm->act_edbone= NULL;
-	} else {
-		/*	Set the flags */
-		for (eBone=arm->edbo->first;eBone;eBone=eBone->next) {
-			if (sel==3) {
-				/* invert selection of bone */
-				if(EBONE_VISIBLE(arm, eBone)) {
-					eBone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					if(arm->act_edbone==eBone)
-						arm->act_edbone= NULL;
-				}
-			}
-			else if (sel==1) {
-				/* select bone */
-				if(EBONE_VISIBLE(arm, eBone)) {
-					eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					if(eBone->parent)
-						eBone->parent->flag |= (BONE_TIPSEL);
-				}
-			}
-			else {
-				/* deselect bone */
-				eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+	/*	Set the flags */
+	for (eBone=arm->edbo->first;eBone;eBone=eBone->next) {
+		if (sel==2) {
+			/* invert selection of bone */
+			if(EBONE_VISIBLE(arm, eBone)) {
+				eBone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 				if(arm->act_edbone==eBone)
 					arm->act_edbone= NULL;
 			}
+		}
+		else if (sel==1) {
+			/* select bone */
+			if(EBONE_VISIBLE(arm, eBone)) {
+				eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				if(eBone->parent)
+					eBone->parent->flag |= (BONE_TIPSEL);
+			}
+		}
+		else {
+			/* deselect bone */
+			eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			if(arm->act_edbone==eBone)
+				arm->act_edbone= NULL;
 		}
 	}
 	
@@ -1944,6 +1947,17 @@ void ED_armature_deselect_all_visible(Object *obedit)
 	}
 
 	ED_armature_sync_selection(arm->edbo);
+}
+
+/* accounts for connected parents */
+static int ebone_select_flag(EditBone *ebone)
+{
+	if(ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+		return ((ebone->parent->flag & BONE_TIPSEL) ? BONE_ROOTSEL : 0) | (ebone->flag & (BONE_SELECTED|BONE_TIPSEL));
+	}
+	else {
+		return ebone->flag & (BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL);
+	}
 }
 
 /* context: editmode armature in view3d */
@@ -2014,7 +2028,9 @@ int mouse_armature(bContext *C, short mval[2], int extend)
 		
 		if(nearBone) {
 			/* then now check for active status */
-			if(nearBone->flag & BONE_SELECTED) arm->act_edbone= nearBone;
+			if(ebone_select_flag(nearBone)) {
+				arm->act_edbone= nearBone;
+			}
 		}
 		
 		WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, vc.obedit);
@@ -3098,13 +3114,13 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	 *	- tail = head/tail of end (default tail)
 	 *	- parent = parent of start
 	 */
-	if ((start->flag & BONE_TIPSEL) && ((start->flag & BONE_SELECTED) || start==arm->act_edbone)==0) {
+	if ((start->flag & BONE_TIPSEL) && (start->flag & BONE_SELECTED)==0) {
 		copy_v3_v3(head, start->tail);
 	}
 	else {
 		copy_v3_v3(head, start->head);
 	}
-	if ((end->flag & BONE_ROOTSEL) && ((end->flag & BONE_SELECTED) || end==arm->act_edbone)==0) {
+	if ((end->flag & BONE_ROOTSEL) && (end->flag & BONE_SELECTED)==0) {
 		copy_v3_v3(tail, end->head);
 	}
 	else {
@@ -3188,7 +3204,7 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 				/* check if visible + selected */
 				if ( EBONE_VISIBLE(arm, ebo) &&
 					 ((ebo->flag & BONE_CONNECTED) || (ebo->parent==NULL)) &&
-					 ((ebo->flag & BONE_SELECTED) || (ebo==arm->act_edbone)) )
+					 (ebo->flag & BONE_SELECTED) )
 				{
 					/* set either end or start (end gets priority, unless it is already set) */
 					if (bend == NULL)  {
@@ -3518,9 +3534,6 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	if (totbone==1 && first) arm->act_edbone= first;
 
 	if (totbone==0) return OPERATOR_CANCELLED;
-	
-	if(arm->act_edbone && (((EditBone *)arm->act_edbone)->flag & BONE_SELECTED)==0)
-		arm->act_edbone= NULL;
 
 	/* Transform the endpoints */
 	ED_armature_sync_selection(arm->edbo);
@@ -3716,6 +3729,9 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	/* get chains of bones (ends on chains) */
 	chains_find_tips(arm->edbo, &chains);
 	if (chains.first == NULL) return OPERATOR_CANCELLED;
+	
+	/* leaves mirrored bones selected, as indication of operation */
+	armature_select_mirrored(arm);
 	
 	/* loop over chains, only considering selected and visible bones */
 	for (chain= chains.first; chain; chain= chain->next) {
@@ -4465,9 +4481,6 @@ void ED_pose_deselectall (Object *ob, int test)
 			}
 		}
 	}
-	
-	if(arm->act_bone && (arm->act_bone->flag & BONE_SELECTED)==0)
-		arm->act_bone= NULL;
 }
 
 static int bone_skinnable_cb(Object *ob, Bone *bone, void *datap)
@@ -4900,7 +4913,6 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 	ot->idname= "POSE_OT_scale_clear";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = pose_clear_scale_exec;
 	ot->poll = ED_operator_posemode;
 	
@@ -4969,7 +4981,6 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 	ot->idname= "POSE_OT_loc_clear";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = pose_clear_loc_exec;
 	ot->poll = ED_operator_posemode;
 	
@@ -5026,10 +5037,11 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 			else {
 				/* perform clamping using euler form (3-components) */
 				float eul[3], oldeul[3], quat1[4] = {0};
+				float qlen;
 				
 				if (pchan->rotmode == ROT_MODE_QUAT) {
-					copy_qt_qt(quat1, pchan->quat);
-					quat_to_eul( oldeul,pchan->quat);
+					qlen= normalize_qt_qt(quat1, pchan->quat);
+					quat_to_eul(oldeul, quat1);
 				}
 				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 					axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,pchan->rotAxis, pchan->rotAngle);
@@ -5048,7 +5060,11 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 					eul[2]= oldeul[2];
 				
 				if (pchan->rotmode == ROT_MODE_QUAT) {
-					eul_to_quat( pchan->quat,eul);
+					eul_to_quat(pchan->quat, eul);
+
+					/* restore original quat size */
+					mul_qt_fl(pchan->quat, qlen);
+
 					/* quaternions flip w sign to accumulate rotations correctly */
 					if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
 						mul_qt_fl(pchan->quat, -1.0f);
@@ -5064,8 +5080,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 		}						// Duplicated in source/blender/editors/object/object_transform.c
 		else { 
 			if (pchan->rotmode == ROT_MODE_QUAT) {
-				pchan->quat[1]=pchan->quat[2]=pchan->quat[3]= 0.0f; 
-				pchan->quat[0]= 1.0f;
+				unit_qt(pchan->quat);
 			}
 			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 				/* by default, make rotation of 0 radians around y-axis (roll) */
@@ -5122,7 +5137,6 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 	ot->idname= "POSE_OT_rot_clear";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
 	ot->exec = pose_clear_rot_exec;
 	ot->poll = ED_operator_posemode;
 	
@@ -5170,20 +5184,7 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 
 	if (action == SEL_TOGGLE) {
-		bPoseChannel *pchan= CTX_data_active_pose_bone(C);
-		int num_sel = CTX_DATA_COUNT(C, selected_pose_bones);
-		
-		/* cases for deselect:
-		 * 	1) there's only one bone selected, and that is the active one
-		 *	2) there's more than one bone selected
-		 */
-		if ( ((num_sel == 1) && (pchan) && (pchan->bone->flag & BONE_SELECTED)) ||
-			 (num_sel > 1) )
-		{
-			action = SEL_DESELECT;
-		}
-		else 
-			action = SEL_SELECT;
+		action= CTX_DATA_COUNT(C, selected_pose_bones) ? SEL_DESELECT : SEL_SELECT;
 	}
 	
 	/*	Set the flags */

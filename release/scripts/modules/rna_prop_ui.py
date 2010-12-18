@@ -58,7 +58,20 @@ def rna_idprop_ui_prop_clear(item, prop):
         pass
 
 
-def draw(layout, context, context_member, use_edit=True):
+def rna_idprop_context_value(context, context_member, property_type):
+    space = context.space_data
+    pin_id = space.pin_id
+
+    if pin_id and isinstance(pin_id, property_type):
+        rna_item = pin_id
+        context_member = "space_data.pin_id"
+    else:
+        rna_item = eval("context." + context_member)
+
+    return rna_item, context_member
+
+
+def draw(layout, context, context_member, property_type, use_edit=True):
 
     def assign_props(prop, val, key):
         prop.data_path = context_member
@@ -69,11 +82,13 @@ def draw(layout, context, context_member, use_edit=True):
         except:
             pass
 
-    rna_item = eval("context." + context_member)
+    rna_item, context_member = rna_idprop_context_value(context, context_member, property_type)
 
     # poll should really get this...
     if not rna_item:
         return
+
+    assert(isinstance(rna_item, property_type))
 
     items = rna_item.items()
     items.sort()
@@ -139,7 +154,16 @@ class PropertyPanel():
 
     @classmethod
     def poll(cls, context):
-        return bool(eval("context.%s" % cls._context_path))
+        rna_item, context_member = rna_idprop_context_value(context, cls._context_path, cls._property_type)
+        return bool(rna_item)
+
+    """
+    def draw_header(self, context):
+        rna_item, context_member = rna_idprop_context_value(context, self._context_path, self._property_type)
+        tot = len(rna_item.keys())
+        if tot:
+            self.layout().label("%d:" % tot)
+    """
 
     def draw(self, context):
-        draw(self.layout, context, self._context_path)
+        draw(self.layout, context, self._context_path, self._property_type)

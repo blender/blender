@@ -24,12 +24,12 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../../../intern/moto/include
 )
 
-SET(SRC
+set(SRC
 	SG_BBox.cpp
 	SG_Controller.cpp
 	SG_IObject.cpp
@@ -48,4 +48,4 @@ SET(SRC
 	SG_Tree.h
 )
 
-BLENDERLIB(ge_scenegraph "${SRC}" "${INC}")
+blenderlib(ge_scenegraph "${SRC}" "${INC}")

@@ -1238,6 +1238,29 @@ int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
 	return 0;
 }
 
+
+/* this function is to check if its possible to create a valid path from the ID
+ * its slow so dont call in a loop */
+int RNA_property_path_from_ID_check(PointerRNA *ptr, PropertyRNA *prop)
+{
+	char *path= RNA_path_from_ID_to_property(ptr, prop);
+	int ret= 0;
+
+	if(path) {
+		PointerRNA id_ptr;
+		PointerRNA r_ptr;
+		PropertyRNA *r_prop;
+
+		RNA_id_pointer_create(ptr->id.data, &id_ptr);
+		RNA_path_resolve(&id_ptr, path, &r_ptr, &r_prop);
+		ret= (prop == r_prop);
+		MEM_freeN(path);
+	}
+
+	return ret;
+}
+
+
 static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerRNA *ptr, PropertyRNA *prop)
 {
 	int is_rna = (prop->magic == RNA_MAGIC);
@@ -1259,7 +1282,7 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 	else {
 		/* WARNING! This is so property drivers update the display!
 		 * not especially nice  */
-		DAG_id_tag_update(ptr->id.data, OB_RECALC_ALL);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME);
 		WM_main_add_notifier(NC_WINDOW, NULL);
 	}
 
@@ -3085,36 +3108,76 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 			*index= -1;
 
 			if (*path) {
-				if (*path=='[') {
-					token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
+				int index_arr[RNA_MAX_ARRAY_DIMENSION]= {0};
+				int len[RNA_MAX_ARRAY_DIMENSION];
+				const int dim= RNA_property_array_dimension(&curptr, prop, len);
+				int i, temp_index;
 
-					if(token==NULL) {
-						/* invalid syntax blah[] */
-						return 0;
-					}
-					/* check for "" to see if it is a string */
-					else if(rna_token_strip_quotes(token)) {
-						*index= RNA_property_array_item_index(prop, *(token+1));
-					}
-					else {
-						/* otherwise do int lookup */
-						*index= atoi(token);
-						if(intkey==0 && (token[0] != '0' || token[1] != '\0')) {
-							return 0; /* we can be sure the fixedbuf was used in this case */
+				for(i=0; i<dim; i++) {
+					temp_index= -1; 
+
+					/* multi index resolve */
+					if (*path=='[') {
+						token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 1);
+	
+						if(token==NULL) {
+							/* invalid syntax blah[] */
+							return 0;
+						}
+						/* check for "" to see if it is a string */
+						else if(rna_token_strip_quotes(token)) {
+							temp_index= RNA_property_array_item_index(prop, *(token+1));
+						}
+						else {
+							/* otherwise do int lookup */
+							temp_index= atoi(token);
+
+							if(temp_index==0 && (token[0] != '0' || token[1] != '\0')) {
+								if(token != fixedbuf) {
+									MEM_freeN(token);
+								}
+
+								return 0;
+							}
 						}
 					}
-				}
-				else {
-					token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
-					if(token==NULL) {
-						/* invalid syntax blah.. */
-						return 0;
+					else if(dim==1) {
+						/* location.x || scale.X, single dimension arrays only */
+						token= rna_path_token(&path, fixedbuf, sizeof(fixedbuf), 0);
+						if(token==NULL) {
+							/* invalid syntax blah.. */
+							return 0;
+						}
+						temp_index= RNA_property_array_item_index(prop, *token);
 					}
-					*index= RNA_property_array_item_index(prop, *token);
+	
+					if(token != fixedbuf) {
+						MEM_freeN(token);
+					}
+					
+					/* out of range */
+					if(temp_index < 0 || temp_index >= len[i])
+						return 0;
+
+					index_arr[i]= temp_index;
+					/* end multi index resolve */
 				}
 
-				if(token != fixedbuf)
-					MEM_freeN(token);
+				/* arrays always contain numbers so further values are not valid */
+				if(*path) {
+					return 0;
+				}
+				else {
+					int totdim= 1;
+					int flat_index= 0;
+
+					for(i=dim-1; i>=0; i--) {
+						flat_index += index_arr[i] * totdim;
+						totdim *= len[i];
+					}
+
+					*index= flat_index;
+				}
 			}
 		}
 	}
@@ -3767,7 +3830,31 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 		const char *identifier;
 		int val = RNA_property_enum_get(ptr, prop);
 
-		if(RNA_property_enum_identifier(C, ptr, prop, val, &identifier)) {
+		if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+			/* represent as a python set */
+			EnumPropertyItem *item= NULL;
+			int free;
+
+			BLI_dynstr_append(dynstr, "{");
+
+			RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
+			if(item) {
+				short is_first= TRUE;
+				for (; item->identifier; item++) {
+					if(item->identifier[0] && item->value & val) {
+						BLI_dynstr_appendf(dynstr, is_first ? "'%s'" : ", '%s'", item->identifier);
+						is_first= FALSE;
+					}
+				}
+
+				if(free) {
+					MEM_freeN(item);
+				}
+			}
+
+			BLI_dynstr_append(dynstr, "}");
+		}
+		else if(RNA_property_enum_identifier(C, ptr, prop, val, &identifier)) {
 			BLI_dynstr_appendf(dynstr, "'%s'", identifier);
 		}
 		else {
@@ -4696,4 +4783,3 @@ int RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, i
 
 	return 0;
 }
-

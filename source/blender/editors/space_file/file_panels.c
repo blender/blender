@@ -171,41 +171,25 @@ static void file_panel_operator_header(const bContext *C, Panel *pa)
 	BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
 }
 
+static int file_panel_check_prop(PropertyRNA *prop)
+{
+	const char *prop_id= RNA_property_identifier(prop);
+	return !(	strcmp(prop_id, "filepath") == 0 ||
+				strcmp(prop_id, "directory") == 0 ||
+				strcmp(prop_id, "filename") == 0
+	);
+}
+
 static void file_panel_operator(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	wmOperator *op= sfile->op;
-	int empty= 1, flag;
+	// int empty= 1, flag;
 	
 	uiBlockSetFunc(uiLayoutGetBlock(pa->layout), file_draw_check_cb, NULL, NULL);
-	
-	if(op->type->ui) {
-		op->layout= pa->layout;
-		op->type->ui((bContext*)C, op);
-		op->layout= NULL;
-	}
-	else {
-		RNA_STRUCT_BEGIN(op->ptr, prop) {
-			flag= RNA_property_flag(prop);
 
-			if(flag & PROP_HIDDEN)
-				continue;
-			if(strcmp(RNA_property_identifier(prop), "filepath") == 0)
-				continue;
-			if(strcmp(RNA_property_identifier(prop), "directory") == 0)
-				continue;
-			if(strcmp(RNA_property_identifier(prop), "filename") == 0)
-				continue;
+	uiLayoutOperatorButs(C, pa->layout, op, file_panel_check_prop, '\0', UI_LAYOUT_OP_SHOW_EMPTY);
 
-			uiItemFullR(pa->layout, op->ptr, prop, -1, 0, 0, NULL, 0);
-			empty= 0;
-		}
-		RNA_STRUCT_END;
-
-		if(empty)
-			uiItemL(pa->layout, "No properties.", 0);
-	}
-	
 	uiBlockSetFunc(uiLayoutGetBlock(pa->layout), NULL, NULL, NULL);
 }
 

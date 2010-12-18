@@ -59,10 +59,10 @@ static PyStructSequence_Field app_info_fields[] = {
 	{(char *)"build_revision", (char *)"The subversion revision this blender instance was built with"},
 	{(char *)"build_platform", (char *)"The platform this blender instance was built for"},
 	{(char *)"build_type", (char *)"The type of build (Release, Debug)"},
-	{(char *)"build_cflags", (char *)""},
-	{(char *)"build_cxxflags", (char *)""},
-	{(char *)"build_linkflags", (char *)""},
-	{(char *)"build_system", (char *)""},
+	{(char *)"build_cflags", (char *)"C compiler flags"},
+	{(char *)"build_cxxflags", (char *)"C++ compiler flags"},
+	{(char *)"build_linkflags", (char *)"Binary linking flags"},
+	{(char *)"build_system", (char *)"Build system used"},
 	{0}
 };
 
@@ -153,6 +153,25 @@ static int bpy_app_debug_set(PyObject *UNUSED(self), PyObject *value, void *UNUS
 	return 0;
 }
 
+static PyObject *bpy_app_debug_value_get(PyObject *UNUSED(self), void *UNUSED(closure))
+{
+	return PyLong_FromSsize_t(G.rt);
+}
+
+static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void *UNUSED(closure))
+{
+	int param= PyLong_AsSsize_t(value);
+
+	if (param == -1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "bpy.app.debug_value can only be set to a whole number");
+		return -1;
+	}
+	
+	G.rt= param;
+
+	return 0;
+}
+
 static PyObject *bpy_app_tempdir_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
 	extern char btempdir[];
@@ -174,6 +193,7 @@ static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(cl
 
 PyGetSetDef bpy_app_getsets[]= {
 	{(char *)"debug", bpy_app_debug_get, bpy_app_debug_set, (char *)"Boolean, set when blender is running in debug mode (started with -d)", NULL},
+	{(char *)"debug_value", bpy_app_debug_value_get, bpy_app_debug_value_set, (char *)"Int, number which can be set to non-zero values for testing purposes.", NULL},
 	{(char *)"tempdir", bpy_app_tempdir_get, NULL, (char *)"String, the temp directory used by blender (read-only)", NULL},
 	{(char *)"driver_namespace", bpy_app_driver_dict_get, NULL, (char *)"Dictionary for drivers namespace, editable in-place, reset on file load (read-only)", NULL},
 	{NULL, NULL, NULL, NULL, NULL}

@@ -51,10 +51,11 @@ void mul_fac_qt_fl(float q[4], const float f);
 void sub_qt_qtqt(float q[4], const float a[4], const float b[4]);
 
 void invert_qt(float q[4]);
-void invert_qt_qt(float *q1, const float *q2);
+void invert_qt_qt(float q1[4], const float q2[4]);
 void conjugate_qt(float q[4]);
 float dot_qtqt(const float a[4], const float b[4]);
-void normalize_qt(float q[4]);
+float normalize_qt(float q[4]);
+float normalize_qt_qt(float q1[4], const float q2[4]);
 
 /* comparison */
 int is_zero_qt(float q[4]);

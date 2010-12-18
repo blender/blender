@@ -106,11 +106,10 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 		VECCOPY(prevbuf->procedural_size, in[1]->vec);
 		prevbuf->procedural_type= CB_RGBA;
 		composit1_pixel_processor(node, prevbuf, prevbuf, out[0]->vec, do_copy_rgba, CB_RGBA);
-		generate_preview(data, node, prevbuf);
-		free_compbuf(prevbuf);
 		
+		/* texture is procedural node, like RGBA node, we give it fake buffer for nodes that don't check it */
 		if(out[0]->hasoutput) {
-			CompBuf *stackbuf= alloc_compbuf(sizex, sizey, CB_VAL, 0); /* no buffer alloc */
+			CompBuf *stackbuf= dupalloc_compbuf(prevbuf); /* buffer alloc */
 			
 			stackbuf->rect_procedural= texture_procedural;
 			stackbuf->node= node;
@@ -121,7 +120,7 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			out[0]->data= stackbuf; 
 		}
 		if(out[1]->hasoutput) {
-			CompBuf *stackbuf= alloc_compbuf(sizex, sizey, CB_RGBA, 0); /* no buffer alloc */
+			CompBuf *stackbuf= dupalloc_compbuf(prevbuf); /* buffer alloc */
 			
 			stackbuf->rect_procedural= texture_procedural;
 			stackbuf->node= node;
@@ -131,6 +130,9 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			
 			out[1]->data= stackbuf;
 		}
+		
+		generate_preview(data, node, prevbuf);
+		free_compbuf(prevbuf);
 	}
 }
 

@@ -41,7 +41,6 @@
 
 static void console_font_begin(TextViewContext *sc)
 {
-	BLF_aspect(blf_mono_font, 1.0);
 	BLF_size(blf_mono_font, sc->lheight-2, 72);
 }
 

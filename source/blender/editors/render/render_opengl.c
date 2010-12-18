@@ -257,7 +257,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	sizex= (scene->r.size*scene->r.xsch)/100;
 	sizey= (scene->r.size*scene->r.ysch)/100;
 
-	/* corrects render size with actual size, some gfx cards return units of 256 or 512 */
+	/* corrects render size with actual size, not every card supports non-power-of-two dimensions */
 	ofs= GPU_offscreen_create(&sizex, &sizey);
 
 	if(!ofs) {

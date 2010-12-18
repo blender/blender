@@ -343,7 +343,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short dire
 	}
 	
 	if(G.moving || (seq->flag & whichsel)) {
-		cpack(0xFFFFFF);
+		const char col[4]= {255, 255, 255, 255};
 		if (direction == SEQ_LEFTHANDLE) {
 			sprintf(str, "%d", seq->startdisp);
 			x1= rx1;
@@ -353,7 +353,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short dire
 			x1= x2 - handsize*0.75;
 			y1= y2 + 0.05;
 		}
-		UI_view2d_text_cache_add(v2d, x1, y1, str);
+		UI_view2d_text_cache_add(v2d, x1, y1, str, col);
 	}	
 }
 
@@ -467,6 +467,7 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 	rctf rect;
 	char str[32 + FILE_MAXDIR+FILE_MAXFILE];
 	const char *name= seq->name+2;
+	char col[4];
 	
 	if(name[0]=='\0')
 		name= give_seqname(seq);
@@ -511,18 +512,19 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 	}
 	
 	if(seq->flag & SELECT){
-		cpack(0xFFFFFF);
+		col[0]= col[1]= col[2]= 255;
 	}else if ((((int)background_col[0] + (int)background_col[1] + (int)background_col[2]) / 3) < 50){
-		cpack(0x505050); /* use lighter text color for dark background */
+		col[0]= col[1]= col[2]= 80; /* use lighter text color for dark background */
 	}else{
-		cpack(0);
+		col[0]= col[1]= col[2]= 0;
 	}
-	
+	col[3]= 255;
+
 	rect.xmin= x1;
 	rect.ymin= y1;
 	rect.xmax= x2;
 	rect.ymax= y2;
-	UI_view2d_text_cache_rectf(v2d, &rect, str);
+	UI_view2d_text_cache_rectf(v2d, &rect, str, col);
 }
 
 /* draws a shaded strip, made from gradient + flat color + gradient */

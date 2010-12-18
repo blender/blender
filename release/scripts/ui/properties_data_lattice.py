@@ -85,6 +85,7 @@ class DATA_PT_lattice(DataButtonsPanel, bpy.types.Panel):
 class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
+    _property_type = bpy.types.Lattice
 
 
 def register():

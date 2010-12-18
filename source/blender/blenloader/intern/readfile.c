@@ -107,6 +107,7 @@
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for which_libbase
 #include "BKE_idcode.h"
+#include "BKE_material.h"
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
@@ -2248,7 +2249,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 	}
 	
 	if(rebuild) {
-		ob->recalc= OB_RECALC_ALL;
+		ob->recalc= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 		pose->flag |= POSE_RECALC;
 	}
 }
@@ -3421,6 +3422,7 @@ static void lib_link_latt(FileData *fd, Main *main)
 	lt= main->latt.first;
 	while(lt) {
 		if(lt->id.flag & LIB_NEEDLINK) {
+			if(lt->adt) lib_link_animdata(fd, &lt->id, lt->adt);
 			
 			lt->ipo= newlibadr_us(fd, lt->id.lib, lt->ipo); // XXX depreceated - old animation system
 			lt->key= newlibadr_us(fd, lt->id.lib, lt->key);
@@ -3439,6 +3441,9 @@ static void direct_link_latt(FileData *fd, Lattice *lt)
 	direct_link_dverts(fd, lt->pntsu*lt->pntsv*lt->pntsw, lt->dvert);
 	
 	lt->editlatt= NULL;
+	
+	lt->adt = newdataadr(fd, lt->adt);
+	direct_link_animdata(fd, lt->adt);
 }
 
 
@@ -3501,14 +3506,14 @@ static void lib_link_object(FileData *fd, Main *main)
 					/* this triggers object_update to always use a copy */
 					ob->proxy->proxy_from= ob;
 					/* force proxy updates after load/undo, a bit weak */
-					ob->recalc= ob->proxy->recalc= OB_RECALC_ALL;
+					ob->recalc= ob->proxy->recalc= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 				}
 			}
 			ob->proxy_group= newlibadr(fd, ob->id.lib, ob->proxy_group);
 			
 			poin= ob->data;
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);
-			   
+
 			if(ob->data==NULL && poin!=NULL) {
 				if(ob->id.lib)
 					printf("Can't find obdata of %s lib %s\n", ob->id.name+2, ob->id.lib->name);
@@ -3526,6 +3531,17 @@ static void lib_link_object(FileData *fd, Main *main)
 			}
 			for(a=0; a<ob->totcol; a++) ob->mat[a]= newlibadr_us(fd, ob->id.lib, ob->mat[a]);
 			
+			/* When the object is local and the data is library its possible
+			 * the material list size gets out of sync. [#22663] */
+			if(ob->data && ob->id.lib != ((ID *)ob->data)->lib) {
+				short *totcol_data= give_totcolp(ob);
+				/* Only expand so as not to loose any object materials that might be set. */
+				if(totcol_data && *totcol_data > ob->totcol) {
+					/* printf("'%s' %d -> %d\n", ob->id.name, ob->totcol, *totcol_data); */
+					resize_object_material(ob, *totcol_data);
+				}
+			}
+
 			ob->gpd= newlibadr_us(fd, ob->id.lib, ob->gpd);
 			ob->duplilist= NULL;
             
@@ -4945,8 +4961,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 
 					st->text= restore_pointer_by_name(newmain, (ID *)st->text, 1);
 					if(st->text==NULL) st->text= newmain->text.first;
-
-					st->drawcache= NULL;
 				}
 				else if(sl->spacetype==SPACE_SCRIPT) {
 					SpaceScript *scpt= (SpaceScript *)sl;
@@ -8091,7 +8105,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ob->type==OB_ARMATURE) {
 				if(ob->pose)
 					ob->pose->flag |= POSE_RECALC;
-				ob->recalc |= OB_RECALC_ALL;	// cannot call stuff now (pointers!), done in setup_app_data
+				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;	// cannot call stuff now (pointers!), done in setup_app_data
 
 				/* new generic xray option */
 				arm= newlibadr(fd, lib, ob->data);
@@ -11292,25 +11306,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
-	/* put compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 255 || (main->versionfile == 255 && main->subversionfile < 1)) {
 		Brush *br;
+		ParticleSettings *part;
+		bScreen *sc;
+		Object *ob;
+
 		for(br= main->brush.first; br; br= br->id.next) {
 			if(br->ob_mode==0)
 				br->ob_mode= OB_MODE_ALL_PAINT;
 		}
-		
-	}
-	{
-		ParticleSettings *part;
+
 		for(part = main->particle.first; part; part = part->id.next) {
 			if(part->boids)
 				part->boids->pitch = 1.0f;
-		}
-	}
 
-	{
-		bScreen *sc;
+			part->flag &= ~PART_HAIR_REGROW; /* this was a deprecated flag before */
+		}
+
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
 			for (sa= sc->areabase.first; sa; sa= sa->next) {
@@ -11336,8 +11349,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		/* fix rotation actuators for objects so they use real angles (radians)
+		 * since before blender went opensource this strange scalar was used: (1 / 0.02) * 2 * math.pi/360 */
+		for(ob= main->object.first; ob; ob= ob->id.next) {
+			bActuator *act= ob->actuators.first;
+			while(act) {
+				if (act->type==ACT_OBJECT) {
+					/* multiply velocity with 50 in old files */
+					bObjectActuator *oa= act->data;
+					mul_v3_fl(oa->drot, 0.8726646259971648f);
+				}
+				act= act->next;
+			}
+		}
 	}
-	
+
+	/* put compatibility code here until next subversion bump */
+	{
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
@@ -11893,6 +11924,9 @@ static void expand_lattice(FileData *fd, Main *mainvar, Lattice *lt)
 {
 	expand_doit(fd, mainvar, lt->ipo); // XXX depreceated - old animation system
 	expand_doit(fd, mainvar, lt->key);
+	
+	if (lt->adt)
+		expand_animdata(fd, mainvar, lt->adt);
 }
 
 
@@ -12491,7 +12525,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 			base= scene_add_base(scene, ob);
 			base->flag |= SELECT;
 			base->object->flag= base->flag;
-			ob->recalc |= OB_RECALC_ALL;
+			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 			scene->basact= base;
 
 			/* assign the group */

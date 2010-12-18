@@ -223,6 +223,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->idname= "NODE_OT_select_border";
+	ot->description= "Use box selection to select nodes";
 	
 	/* api callbacks */
 	ot->invoke= node_border_select_invoke;

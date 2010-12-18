@@ -269,7 +269,7 @@ class ExportUVLayout(bpy.types.Operator):
 
     def _space_image(self, context):
         space_data = context.space_data
-        if type(space_data) == bpy.types.SpaceImageEditor:
+        if isinstance(space_data, bpy.types.SpaceImageEditor):
             return space_data
         else:
             return None
@@ -365,7 +365,7 @@ class ExportUVLayout(bpy.types.Operator):
         self.size = self._image_size(context)
         self.filepath = os.path.splitext(bpy.data.filepath)[0]
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 

@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -30,7 +30,7 @@ SET(INC
 	../../../../intern/guardedalloc
 )
 
-SET(SRC
+set(SRC
 	particle_boids.c
 	particle_edit.c
 	particle_object.c
@@ -41,12 +41,12 @@ SET(SRC
 	physics_intern.h
 )
 
-IF(NOT WITH_MOD_FLUID)
-	ADD_DEFINITIONS(-DDISABLE_ELBEEM)
-ENDIF(NOT WITH_MOD_FLUID)
+if(NOT WITH_MOD_FLUID)
+	add_definitions(-DDISABLE_ELBEEM)
+endif()
 
-IF(WITH_OPENMP)
-		ADD_DEFINITIONS(-DPARALLEL=1)
-ENDIF(WITH_OPENMP)
+if(WITH_OPENMP)
+		add_definitions(-DPARALLEL=1)
+endif()
 
-BLENDERLIB(bf_editor_physics "${SRC}" "${INC}")
+blenderlib(bf_editor_physics "${SRC}" "${INC}")

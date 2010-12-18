@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../../../../intern/string
 	../../../../intern/ghost
@@ -57,7 +57,7 @@ SET(INC
 	${PYTHON_INC}
 )
 
-SET(SRC 
+set(SRC 
 	GPG_Application.cpp
 	GPG_Canvas.cpp
 	GPG_ghost.cpp
@@ -70,10 +70,10 @@ SET(SRC
 	GPG_System.h
 )
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
+add_definitions(-DGLEW_STATIC)
 
-IF(WITH_CODEC_FFMPEG)
-	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_CODEC_FFMPEG)
+if(WITH_CODEC_FFMPEG)
+	add_definitions(-DWITH_FFMPEG)
+endif()
 
-BLENDERLIB_NOLIST(ge_player_ghost "${SRC}" "${INC}")
+blenderlib_nolist(ge_player_ghost "${SRC}" "${INC}")

@@ -233,7 +233,7 @@ float dist_to_line_segment_v3(float *v1, float *v2, float *v3)
 /******************************* Intersection ********************************/
 
 /* intersect Line-Line, shorts */
-int isect_line_line_v2_short(short *v1, short *v2, short *v3, short *v4)
+int isect_line_line_v2_short(const short *v1, const short *v2, const short *v3, const short *v4)
 {
 	/* return:
 	-1: colliniar
@@ -258,7 +258,7 @@ int isect_line_line_v2_short(short *v1, short *v2, short *v3, short *v4)
 }
 
 /* intersect Line-Line, floats */
-int isect_line_line_v2(float *v1, float *v2, float *v3, float *v4)
+int isect_line_line_v2(const float *v1, const float *v2, const float *v3, const float *v4)
 {
 	/* return:
 	-1: colliniar
@@ -280,6 +280,79 @@ int isect_line_line_v2(float *v1, float *v2, float *v3, float *v4)
 		return 2;
 	}
 	return 0;
+}
+
+/* get intersection point of two 2D segments and return intersection type:
+    -1: colliniar
+     1: intersection */
+int isect_seg_seg_v2_point(const float *v1, const float *v2, const float *v3, const float *v4, float vi[2])
+{
+	float a1, a2, b1, b2, c1, c2, d;
+	float u, v;
+	const float eps= 0.000001f;
+
+	a1= v2[0]-v1[0];
+	b1= v4[0]-v3[0];
+	c1= v1[0]-v4[0];
+
+	a2= v2[1]-v1[1];
+	b2= v4[1]-v3[1];
+	c2= v1[1]-v4[1];
+
+	d= a1*b2-a2*b1;
+
+	if(d==0) {
+		if(a1*c2-a2*c1==0.0f && b1*c2-b2*c1==0.0f) { /* equal lines */
+			float a[2], b[2], c[2];
+			float u2;
+
+			if(len_v2v2(v1, v2)==0.0f) {
+				if(len_v2v2(v3, v4)>eps) {
+					/* use non-point segment as basis */
+					SWAP(const float *, v1, v3);
+					SWAP(const float *, v2, v4);
+				} else { /* both of segments are points */
+					if(equals_v2v2(v1, v3)) { /* points are equal */
+						copy_v2_v2(vi, v1);
+						return 1;
+					}
+
+					/* two different points */
+					return -1;
+				}
+			}
+
+			sub_v2_v2v2(a, v3, v1);
+			sub_v2_v2v2(b, v2, v1);
+			sub_v2_v2v2(c, v2, v1);
+			u= dot_v2v2(a, b) / dot_v2v2(c, c);
+
+			sub_v2_v2v2(a, v4, v1);
+			u2= dot_v2v2(a, b) / dot_v2v2(c, c);
+
+			if(u>u2) SWAP(float, u, u2);
+
+			if(u>1.0f+eps || u2<-eps) return -1; /* non-ovlerlapping segments */
+			else if(maxf(0.0f, u) == minf(1.0f, u2)){ /* one common point: can return result */
+				interp_v2_v2v2(vi, v1, v2, maxf(0, u));
+				return 1;
+			}
+		}
+
+		/* lines are colliniar */
+		return -1;
+	}
+
+	u= (c2*b1-b2*c1)/d;
+	v= (c1*a2-a1*c2)/d;
+
+	if(u>=-eps && u<=1.0f+eps && v>=-eps && v<=1.0f+eps) { /* intersection */
+		interp_v2_v2v2(vi, v1, v2, u);
+		return 1;
+	}
+
+	/* out of segment intersection */
+	return -1;
 }
 
 /*

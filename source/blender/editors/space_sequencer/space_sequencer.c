@@ -334,6 +334,7 @@ static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 		
 		RNA_string_set(drop->ptr, "directory", dir);
 
+		RNA_collection_clear(drop->ptr, "files");
 		RNA_collection_add(drop->ptr, "files", &itemptr);
 		RNA_string_set(&itemptr, "name", file);
 	}

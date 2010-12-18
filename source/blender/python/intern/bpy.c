@@ -37,13 +37,14 @@
 #include "BLI_bpath.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_global.h" /* XXX, G.main only */
 
 #include "MEM_guardedalloc.h"
 
  /* external util modules */
 #include "../generic/mathutils.h"
 #include "../generic/bgl.h"
-#include "../generic/blf_api.h"
+#include "../generic/blf_py_api.h"
 #include "../generic/IDProp.h"
 
 #include "AUD_PyInit.h"
@@ -94,11 +95,9 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", (char **)kwlist, &absolute))
 		return NULL;
 
-	BLI_bpathIterator_alloc(&bpi);
-
 	list= PyList_New(0);
 
-	for(BLI_bpathIterator_init(bpi, NULL); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
+	for(BLI_bpathIterator_init(&bpi, G.main, NULL); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
 		/* build the list */
 		if (absolute) {
 			BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
@@ -119,23 +118,12 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	}
 
 	BLI_bpathIterator_free(bpi);
-	MEM_freeN((void *)bpi);
 
 	return list;
 }
 
 
-static char bpy_user_resource_doc[] =
-".. function:: user_resource(type, subdir)\n"
-"\n"
-"   Returns a list of paths to external files referenced by the loaded .blend file.\n"
-"\n"
-"   :arg type: Resource type in ['DATAFILES', 'CONFIG', 'SCRIPTS', 'AUTOSAVE'].\n"
-"   :type type: string\n"
-"   :arg subdir: Optional subdirectory.\n"
-"   :type subdir: string\n"
-"   :return: a path.\n"
-"   :rtype: string\n";
+// static char bpy_user_resource_doc[] = // now in bpy/utils.py
 static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	char *type;
@@ -169,7 +157,7 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 
 static PyMethodDef meth_bpy_script_paths = {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
 static PyMethodDef meth_bpy_blend_paths = {"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
-static PyMethodDef meth_bpy_user_resource = {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, bpy_user_resource_doc};
+static PyMethodDef meth_bpy_user_resource = {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, NULL};
 
 static void bpy_import_test(const char *modname)
 {
@@ -228,7 +216,7 @@ void BPy_init_modules( void )
 	PyModule_AddObject( mod, "app", BPY_app_struct() );
 
 	/* bpy context */
-	RNA_pointer_create(NULL, &RNA_Context, BPy_GetContext(), &ctx_ptr);
+	RNA_pointer_create(NULL, &RNA_Context, (void *)BPy_GetContext(), &ctx_ptr);
 	bpy_context_module= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ctx_ptr);
 	/* odd that this is needed, 1 ref on creation and another for the module
 	 * but without we get a crash on exit */

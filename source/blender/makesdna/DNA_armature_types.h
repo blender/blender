@@ -79,6 +79,12 @@ typedef struct bArmature {
 	ListBase	chainbase;
 	ListBase	*edbo;					/* editbone listbase, we use pointer so we can check state */
 	
+	/* active bones should work like active object where possible
+	 * - active and selection are unrelated
+	 * - active & hidden is not allowed 
+	 * - from the user perspective active == last selected
+	 * - active should be ignored when not visible (hidden layer) */
+
 	Bone		*act_bone;				/* active bone (when not in editmode) */
 	void		*act_edbone;			/* active editbone (in editmode) */
 
@@ -89,8 +95,7 @@ typedef struct bArmature {
 	short		deformflag; 
 	short		pathflag;
 	
-	int			pad;
-	
+	unsigned int layer_used;		/* for UI, to show which layers are there */
 	unsigned int layer, layer_protected;		/* for buttons to work, both variables in this order together */
 	
 // XXX depreceated... old animaton system (armature only viz) ---

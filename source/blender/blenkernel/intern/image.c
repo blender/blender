@@ -940,8 +940,13 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	
 	if (scene->r.stamp & R_STAMP_FRAME) {
 		char format[32];
-		if (do_prefix)		sprintf(format, "Frame %%0%di", 1 + (int) log10(scene->r.efra));
-		else				sprintf(format, "%%0%di", 1 + (int) log10(scene->r.efra));
+		int digits= 1;
+		
+		if(scene->r.efra>9)
+			digits= 1 + (int) log10(scene->r.efra);
+		
+		if (do_prefix)		sprintf(format, "Frame %%0%di", digits);
+		else				sprintf(format, "%%0%di", digits);
 		sprintf (stamp_data->frame, format, scene->r.cfra);
 	} else {
 		stamp_data->frame[0] = '\0';
@@ -1009,7 +1014,6 @@ void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, i
 		scene->r.stamp_font_id= 12;
 
 	/* set before return */
-	BLF_aspect(mono, 1.0);
 	BLF_size(mono, scene->r.stamp_font_id, 72);
 	
 	BLF_buffer(mono, rectf, rect, width, height, channels);
@@ -1436,7 +1440,9 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			}
 		}
 
-		image_free_buffers(ima);
+		/* force reload on first use, but not for multilayer, that makes nodes and buttons in ui drawing fail */
+		if(ima->type!=IMA_TYPE_MULTILAYER)
+			image_free_buffers(ima);
 
 		ima->ok= 1;
 		if(iuser)
@@ -1983,6 +1989,9 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		ibuf->flags &= ~IB_zbuffloat;
 	}
 
+	/* since its possible to access the buffer from the image directly, set the profile [#25073] */
+	ibuf->profile= (iuser->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_NONE;
+
 	ibuf->dither= dither;
 
 	ima->ok= IMA_OK_LOADED;
@@ -2147,7 +2156,8 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 						BLI_lock_thread(LOCK_VIEWER);
 						*lock_r= ima;
 
-						frame= iuser?iuser->framenr:0;
+						/* XXX anim play for viewer nodes not yet supported */
+						frame= 0; // XXX iuser?iuser->framenr:0;
 						ibuf= image_get_ibuf(ima, 0, frame);
 
 						if(!ibuf) {

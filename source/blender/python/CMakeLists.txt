@@ -16,5 +16,5 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-ADD_SUBDIRECTORY(intern)
-ADD_SUBDIRECTORY(generic)
+add_subdirectory(intern)
+add_subdirectory(generic)

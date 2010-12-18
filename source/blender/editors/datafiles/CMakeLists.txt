@@ -19,9 +19,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC "")
+set(INC "")
 
-SET(SRC
+set(SRC
 	Bfont.c
 	add.png.c
 	bfont.ttf.c
@@ -60,4 +60,4 @@ SET(SRC
 	vertexdraw.png.c
 )
 
-BLENDERLIB(bf_editor_datafiles "${SRC}" "${INC}")
+blenderlib(bf_editor_datafiles "${SRC}" "${INC}")

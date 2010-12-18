@@ -506,7 +506,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
         else:
             self.initial_x = event.mouse_x
 
-            context.window_manager.add_modal_handler(self)
+            context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
 
 
@@ -528,7 +528,7 @@ class WM_OT_path_open(bpy.types.Operator):
     bl_idname = "wm.path_open"
     bl_label = ""
 
-    filepath = StringProperty(name="File Path", maxlen=1024)
+    filepath = StringProperty(name="File Path", maxlen=1024, subtype='FILE_PATH')
 
     def execute(self, context):
         import sys

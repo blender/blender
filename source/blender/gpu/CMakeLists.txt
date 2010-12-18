@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../blenlib
 	../blenkernel
@@ -36,7 +36,7 @@ SET(INC
 	../../../intern/smoke/extern
 )
 
-SET(SRC
+set(SRC
 	intern/gpu_buffers.c
 	intern/gpu_codegen.c
 	intern/gpu_draw.c
@@ -52,7 +52,7 @@ SET(SRC
 	intern/gpu_codegen.h
 )
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
+add_definitions(-DGLEW_STATIC)
 
-BLENDERLIB(bf_gpu "${SRC}" "${INC}")
+blenderlib(bf_gpu "${SRC}" "${INC}")
 

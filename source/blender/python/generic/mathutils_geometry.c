@@ -45,18 +45,152 @@
 
 /*-------------------------DOC STRINGS ---------------------------*/
 static char M_Geometry_doc[] = "The Blender geometry module\n\n";
-static char M_Geometry_Intersect_doc[] = "(v1, v2, v3, ray, orig, clip=1) - returns the intersection between a ray and a triangle, if possible, returns None otherwise";
-static char M_Geometry_TriangleArea_doc[] = "(v1, v2, v3) - returns the area size of the 2D or 3D triangle defined";
-static char M_Geometry_TriangleNormal_doc[] = "(v1, v2, v3) - returns the normal of the 3D triangle defined";
-static char M_Geometry_QuadNormal_doc[] = "(v1, v2, v3, v4) - returns the normal of the 3D quad defined";
-static char M_Geometry_LineIntersect_doc[] = "(v1, v2, v3, v4) - returns a tuple with the points on each line respectively closest to the other";
-static char M_Geometry_PolyFill_doc[] = "(veclist_list) - takes a list of polylines (each point a vector) and returns the point indicies for a polyline filled with triangles";
-static char M_Geometry_LineIntersect2D_doc[] = "(lineA_p1, lineA_p2, lineB_p1, lineB_p2) - takes 2 lines (as 4 vectors) and returns a vector for their point of intersection or None";
-static char M_Geometry_ClosestPointOnLine_doc[] = "(pt, line_p1, line_p2) - takes a point and a line and returns a (Vector, float) for the point on the line, and the bool so you can know if the point was between the 2 points";
-static char M_Geometry_PointInTriangle2D_doc[] = "(pt, tri_p1, tri_p2, tri_p3) - takes 4 vectors, one is the point and the next 3 define the triangle, only the x and y are used from the vectors";
-static char M_Geometry_PointInQuad2D_doc[] = "(pt, quad_p1, quad_p2, quad_p3, quad_p4) - takes 5 vectors, one is the point and the next 4 define the quad, only the x and y are used from the vectors";
+static char M_Geometry_Intersect_doc[] =
+".. function:: Intersect(v1, v2, v3, ray, orig, clip=True)\n"
+"\n"
+"   Returns the intersection between a ray and a triangle, if possible, returns None otherwise.\n"
+"\n"
+"   :rtype: boolean\n"
+"   :arg v1: Point1\n"
+"   :type v1: :class:`mathutils.Vector`\n"
+"   :arg v2: Point2\n"
+"   :type v2: :class:`mathutils.Vector`\n"
+"   :arg v3: Point3\n"
+"   :type v3: :class:`mathutils.Vector`\n"
+"   :arg ray: Direction of the projection\n"
+"   :type ray: :class:`mathutils.Vector`\n"
+"   :arg orig: Origin\n"
+"   :type orig: :class:`mathutils.Vector`\n"
+"   :arg clip: Clip by the ray length\n"
+"   :type clip: boolean\n";
+
+static char M_Geometry_TriangleArea_doc[] =
+".. function:: TriangleArea(v1, v2, v3)\n"
+"\n"
+"   Returns the area size of the 2D or 3D triangle defined.\n"
+"\n"
+"   :rtype: float\n"
+"   :arg v1: Point1\n"
+"   :type v1: :class:`mathutils.Vector`\n"
+"   :arg v2: Point2\n"
+"   :type v2: :class:`mathutils.Vector`\n"
+"   :arg v3: Point3\n"
+"   :type v3: :class:`mathutils.Vector`\n";
+
+static char M_Geometry_TriangleNormal_doc[] = 
+".. function:: TriangleNormal(v1, v2, v3)\n"
+"\n"
+"   Returns the normal of the 3D triangle defined.\n"
+"\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+"   :arg v1: Point1\n"
+"   :type v1: :class:`mathutils.Vector`\n"
+"   :arg v2: Point2\n"
+"   :type v2: :class:`mathutils.Vector`\n"
+"   :arg v3: Point3\n"
+"   :type v3: :class:`mathutils.Vector`\n";
+
+static char M_Geometry_QuadNormal_doc[] = 
+".. function:: QuadNormal(v1, v2, v3, v4)\n"
+"\n"
+"   Returns the normal of the 3D quad defined.\n"
+"\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+"   :arg v1: Point1\n"
+"   :type v1: :class:`mathutils.Vector`\n"
+"   :arg v2: Point2\n"
+"   :type v2: :class:`mathutils.Vector`\n"
+"   :arg v3: Point3\n"
+"   :type v3: :class:`mathutils.Vector`\n"
+"   :arg v4: Point4\n"
+"   :type v4: :class:`mathutils.Vector`\n";
+
+static char M_Geometry_LineIntersect_doc[] = 
+".. function:: LineIntersect(v1, v2, v3, v4)\n"
+"\n"
+"   Returns a tuple with the points on each line respectively closest to the other.\n"
+"\n"
+"   :rtype: tuple with elements being of type :class:`mathutils.Vector`\n"
+"   :arg v1: First point of the first line\n"
+"   :type v1: :class:`mathutils.Vector`\n"
+"   :arg v2: Second point of the first line\n"
+"   :type v2: :class:`mathutils.Vector`\n"
+"   :arg v3: First point of the second line\n"
+"   :type v3: :class:`mathutils.Vector`\n"
+"   :arg v4: Second point of the second line\n"
+"   :type v4: :class:`mathutils.Vector`\n";
+
+static char M_Geometry_PolyFill_doc[] = 
+".. function:: PolyFill(veclist_list)\n"
+"\n"
+"   Takes a list of polylines (each point a vector) and returns the point indicies for a polyline filled with triangles.\n"
+"\n"
+"   :rtype: list\n"
+"   :arg veclist_list: list of polylines\n";
+
+static char M_Geometry_LineIntersect2D_doc[] = 
+".. function:: LineIntersect2D(lineA_p1, lineA_p2, lineB_p1, lineB_p2)\n"
+"\n"
+"   Takes 2 lines (as 4 vectors) and returns a vector for their point of intersection or None.\n"
+"\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+"   :arg lineA_p1: First point of the first line\n"
+"   :type lineA_p1: :class:`mathutils.Vector`\n"
+"   :arg lineA_p2: Second point of the first line\n"
+"   :type lineA_p2: :class:`mathutils.Vector`\n"
+"   :arg lineB_p1: First point of the second line\n"
+"   :type lineB_p1: :class:`mathutils.Vector`\n"
+"   :arg lineB_p2: Second point of the second line\n"
+"   :type lineB_p2: :class:`mathutils.Vector`\n";
+
+static char M_Geometry_ClosestPointOnLine_doc[] =
+".. function:: ClosestPointOnLine(pt, line_p1, line_p2)\n"
+"\n"
+"   Takes a point and a line and returns a tuple with the closest point on the line and its distance from the first point of the line as a percentage of the length of the line.\n"
+"\n"
+"   :rtype: (:class:`mathutils.Vector`, float)\n"
+"   :arg pt: Point\n"
+"   :type pt: :class:`mathutils.Vector`\n"
+"   :arg line_p1: First point of the line\n"
+"   :type line_p1: :class:`mathutils.Vector`\n"
+"   :arg line_p1: Second point of the line\n"
+"   :type line_p1: :class:`mathutils.Vector`\n";
+
+static char M_Geometry_PointInTriangle2D_doc[] = 
+".. function:: PointInTriangle2D(pt, tri_p1, tri_p2, tri_p3)\n"
+"\n"
+"   Takes 4 vectors (using only the x and y coordinates): one is the point and the next 3 define the triangle. Returns 1 if the point is within the triangle, otherwise 0.\n"
+"\n"
+"   :rtype: int\n"
+"   :arg pt: Point\n"
+"   :type v1: :class:`mathutils.Vector`\n"
+"   :arg tri_p1: First point of the triangle\n"
+"   :type tri_p1: :class:`mathutils.Vector`\n"
+"   :arg tri_p2: Second point of the triangle\n"
+"   :type tri_p2: :class:`mathutils.Vector`\n"
+"   :arg tri_p3: Third point of the triangle\n"
+"   :type tri_p3: :class:`mathutils.Vector`\n";
+
+static char M_Geometry_PointInQuad2D_doc[] =
+".. function:: PointInQuad2D(pt, quad_p1, quad_p2, quad_p3, quad_p4)\n"
+"\n"
+"   Takes 5 vectors (using only the x and y coordinates): one is the point and the next 4 define the quad, only the x and y are used from the vectors. Returns 1 if the point is within the quad, otherwise 0.\n"
+"\n"
+"   :rtype: int\n"
+"   :arg pt: Point\n"
+"   :type v1: :class:`mathutils.Vector`\n"
+"   :arg quad_p1: First point of the quad\n"
+"   :type quad_p1: :class:`mathutils.Vector`\n"
+"   :arg quad_p2: Second point of the quad\n"
+"   :type quad_p2: :class:`mathutils.Vector`\n"
+"   :arg quad_p3: Third point of the quad\n"
+"   :type quad_p3: :class:`mathutils.Vector`\n"
+"   :arg quad_p4: Forth point of the quad\n"
+"   :type quad_p4: :class:`mathutils.Vector`\n";
+
 static char M_Geometry_BoxPack2D_doc[] = "";
 static char M_Geometry_BezierInterp_doc[] = "";
+static char M_Geometry_BarycentricTransform_doc[] = "";
 
 //---------------------------------INTERSECTION FUNCTIONS--------------------
 //----------------------------------geometry.Intersect() -------------------
@@ -453,7 +587,7 @@ static PyObject *M_Geometry_PolyFill(PyObject *UNUSED(self), PyObject * polyLine
 static PyObject *M_Geometry_LineIntersect2D(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *line_a1, *line_a2, *line_b1, *line_b2;
-	float a1x, a1y, a2x, a2y,  b1x, b1y, b2x, b2y, xi, yi, a1,a2,b1,b2, newvec[2];
+	float vi[2];
 	if( !PyArg_ParseTuple ( args, "O!O!O!O!",
 	  &vector_Type, &line_a1,
 	  &vector_Type, &line_a2,
@@ -466,86 +600,12 @@ static PyObject *M_Geometry_LineIntersect2D(PyObject *UNUSED(self), PyObject* ar
 	
 	if(!BaseMath_ReadCallback(line_a1) || !BaseMath_ReadCallback(line_a2) || !BaseMath_ReadCallback(line_b1) || !BaseMath_ReadCallback(line_b2))
 		return NULL;
-	
-	a1x= line_a1->vec[0];
-	a1y= line_a1->vec[1];
-	a2x= line_a2->vec[0];
-	a2y= line_a2->vec[1];
 
-	b1x= line_b1->vec[0];
-	b1y= line_b1->vec[1];
-	b2x= line_b2->vec[0];
-	b2y= line_b2->vec[1];
-	
-	if((MIN2(a1x, a2x) > MAX2(b1x, b2x)) ||
-	   (MAX2(a1x, a2x) < MIN2(b1x, b2x)) ||
-	   (MIN2(a1y, a2y) > MAX2(b1y, b2y)) ||
-	   (MAX2(a1y, a2y) < MIN2(b1y, b2y))  ) {
+	if(isect_seg_seg_v2_point(line_a1->vec, line_a2->vec, line_b1->vec, line_b2->vec, vi) == 1) {
+		return newVectorObject(vi, 2, Py_NEW, NULL);
+	} else {
 		Py_RETURN_NONE;
 	}
-	/* Make sure the hoz/vert line comes first. */
-	if (fabs(b1x - b2x) < eps || fabs(b1y - b2y) < eps) {
-		SWAP_FLOAT(a1x, b1x, xi); /*abuse xi*/
-		SWAP_FLOAT(a1y, b1y, xi);
-		SWAP_FLOAT(a2x, b2x, xi);
-		SWAP_FLOAT(a2y, b2y, xi);
-	}
-	
-	if (fabs(a1x-a2x) < eps) { /* verticle line */
-		if (fabs(b1x-b2x) < eps){ /*verticle second line */
-			Py_RETURN_NONE; /* 2 verticle lines dont intersect. */
-		}
-		else if (fabs(b1y-b2y) < eps) {
-			/*X of vert, Y of hoz. no calculation needed */
-			newvec[0]= a1x;
-			newvec[1]= b1y;
-			return newVectorObject(newvec, 2, Py_NEW, NULL);
-		}
-		
-		yi = (float)(((b1y / fabs(b1x - b2x)) * fabs(b2x - a1x)) + ((b2y / fabs(b1x - b2x)) * fabs(b1x - a1x)));
-		
-		if (yi > MAX2(a1y, a2y)) {/* New point above seg1's vert line */
-			Py_RETURN_NONE;
-		} else if (yi < MIN2(a1y, a2y)) { /* New point below seg1's vert line */
-			Py_RETURN_NONE;
-		}
-		newvec[0]= a1x;
-		newvec[1]= yi;
-		return newVectorObject(newvec, 2, Py_NEW, NULL);
-	} else if (fabs(a2y-a1y) < eps) {  /* hoz line1 */
-		if (fabs(b2y-b1y) < eps) { /*hoz line2*/
-			Py_RETURN_NONE; /*2 hoz lines dont intersect*/
-		}
-		
-		/* Can skip vert line check for seg 2 since its covered above. */
-		xi = (float)(((b1x / fabs(b1y - b2y)) * fabs(b2y - a1y)) + ((b2x / fabs(b1y - b2y)) * fabs(b1y - a1y)));
-		if (xi > MAX2(a1x, a2x)) { /* New point right of hoz line1's */
-			Py_RETURN_NONE;
-		} else if (xi < MIN2(a1x, a2x)) { /*New point left of seg1's hoz line */
-			Py_RETURN_NONE;
-		}
-		newvec[0]= xi;
-		newvec[1]= a1y;
-		return newVectorObject(newvec, 2, Py_NEW, NULL);
-	}
-	
-	b1 = (a2y-a1y)/(a2x-a1x);
-	b2 = (b2y-b1y)/(b2x-b1x);
-	a1 = a1y-b1*a1x;
-	a2 = b1y-b2*b1x;
-	
-	if (b1 - b2 == 0.0) {
-		Py_RETURN_NONE;
-	}
-	
-	xi = - (a1-a2)/(b1-b2);
-	yi = a1+b1*xi;
-	if ((a1x-xi)*(xi-a2x) >= 0 && (b1x-xi)*(xi-b2x) >= 0 && (a1y-yi)*(yi-a2y) >= 0 && (b1y-yi)*(yi-b2y)>=0) {
-		newvec[0]= xi;
-		newvec[1]= yi;
-		return newVectorObject(newvec, 2, Py_NEW, NULL);
-	}
-	Py_RETURN_NONE;
 }
 
 static PyObject *M_Geometry_ClosestPointOnLine(PyObject *UNUSED(self), PyObject* args)
@@ -813,7 +873,7 @@ struct PyMethodDef M_Geometry_methods[] = {
 	{"PointInQuad2D", ( PyCFunction ) M_Geometry_PointInQuad2D, METH_VARARGS, M_Geometry_PointInQuad2D_doc},
 	{"BoxPack2D", ( PyCFunction ) M_Geometry_BoxPack2D, METH_O, M_Geometry_BoxPack2D_doc},
 	{"BezierInterp", ( PyCFunction ) M_Geometry_BezierInterp, METH_VARARGS, M_Geometry_BezierInterp_doc},
-	{"BarycentricTransform", ( PyCFunction ) M_Geometry_BarycentricTransform, METH_VARARGS, NULL},
+	{"BarycentricTransform", ( PyCFunction ) M_Geometry_BarycentricTransform, METH_VARARGS, M_Geometry_BarycentricTransform_doc},
 	{NULL, NULL, 0, NULL}
 };
 

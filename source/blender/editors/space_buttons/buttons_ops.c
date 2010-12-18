@@ -104,16 +104,20 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 
 	/* add slash for directories, important for some properties */
 	if(RNA_property_subtype(fbo->prop) == PROP_DIRPATH) {
+		char name[FILE_MAX];
+		
 		id = fbo->ptr.id.data;
 		base = (id && id->lib)? id->lib->filepath: G.main->name;
 
 		BLI_strncpy(path, str, FILE_MAX);
 		BLI_path_abs(path, base);
-
+		
 		if(BLI_is_dir(path)) {
 			str = MEM_reallocN(str, strlen(str)+2);
 			BLI_add_slash(str);
 		}
+		else
+			BLI_splitdirstring(str, name);
 	}
 
 	RNA_property_string_set(&fbo->ptr, fbo->prop, str);

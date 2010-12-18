@@ -34,7 +34,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_group_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_smoke_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
@@ -93,12 +96,13 @@ static int dependsOnTime(ModifierData *UNUSED(md))
 	return 1;
 }
 
-static void updateDepgraph(ModifierData *UNUSED(md), DagForest *UNUSED(forest),
-						struct Scene *UNUSED(scene),
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *scene,
 						Object *UNUSED(ob),
-						DagNode *UNUSED(obNode))
+						DagNode *obNode)
 {
-	/*SmokeModifierData *smd = (SmokeModifierData *) md;
+	SmokeModifierData *smd = (SmokeModifierData *) md;
+
 	if(smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 	{
 		if(smd->domain->fluid_group)
@@ -112,7 +116,7 @@ static void updateDepgraph(ModifierData *UNUSED(md), DagForest *UNUSED(forest),
 					SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
 					
 					// check for initialized smoke object
-					if(smd2 && (smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow)
+					if(smd2 && (((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) || ((smd->type & MOD_SMOKE_TYPE_COLL) && smd2->coll)))
 					{
 						DagNode *curNode = dag_get_node(forest, go->ob);
 						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Flow");
@@ -120,8 +124,20 @@ static void updateDepgraph(ModifierData *UNUSED(md), DagForest *UNUSED(forest),
 				}
 			}
 		}
+		else {
+			Base *base = scene->base.first;
+
+			for(; base; base = base->next) {
+				SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(base->object, eModifierType_Smoke);
+
+				if(smd2 && (((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) || ((smd->type & MOD_SMOKE_TYPE_COLL) && smd2->coll)))
+				{
+					DagNode *curNode = dag_get_node(forest, base->object);
+					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Flow");
+				}
+			}
+		}
 	}
-	*/
 }
 
 

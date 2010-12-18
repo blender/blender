@@ -2795,7 +2795,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	ParticleSettings *part = psys->part;
 	ParticleCacheKey *ca, **cache= psys->pathcache;
 
-	DerivedMesh *hair_dm = psys->hair_out_dm;
+	DerivedMesh *hair_dm = (psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS) ? psys->hair_out_dm : NULL;
 	
 	ParticleKey result;
 	
@@ -2828,7 +2828,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	BLI_srandom(psys->seed);
 
 	keyed = psys->flag & PSYS_KEYED;
-	baked = !hair_dm && psys->pointcache->mem_cache.first;
+	baked = psys->pointcache->mem_cache.first && psys->part->type != PART_HAIR;
 
 	/* clear out old and create new empty path cache */
 	psys_free_path_cache(psys, psys->edit);
@@ -3473,7 +3473,7 @@ static void default_particle_settings(ParticleSettings *part)
 	part->bb_uv_split=1;
 	part->bb_align=PART_BB_VIEW;
 	part->bb_split_offset=PART_BB_OFF_LINEAR;
-	part->flag=PART_REACT_MULTIPLE|PART_HAIR_GEOMETRY|PART_EDISTR|PART_TRAND;
+	part->flag=PART_EDISTR|PART_TRAND;
 
 	part->sta= 1.0;
 	part->end= 200.0;
@@ -3904,26 +3904,38 @@ static void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *pte
 	int i = cpa - sim->psys->child;
 	int guided = 0;
 
+	float kink_freq = part->kink_freq;
+	float rough1 = part->rough1;
+	float rough2 = part->rough2;
+	float rough_end = part->rough_end;
+
+	if(ptex) {
+		kink_freq *= ptex->kink;
+		rough1 *= ptex->rough1;
+		rough2 *= ptex->rough2;
+		rough_end *= ptex->roughe;
+	}
+
 	if(part->flag & PART_CHILD_EFFECT)
 		/* state is safe to cast, since only co and vel are used */
 		guided = do_guides(sim->psys->effectors, (ParticleKey*)state, cpa->parent, t);
 
 	if(guided==0){
-		if(part->kink)
-			do_prekink(state, par, par_rot, t, part->kink_freq * ptex->kink, part->kink_shape,
+		if(kink_freq > 0.f)
+			do_prekink(state, par, par_rot, t, kink_freq, part->kink_shape,
 			part->kink_amp, part->kink, part->kink_axis, sim->ob->obmat);
 				
-		do_clump(state, par, t, part->clumpfac, part->clumppow, ptex->clump);
+		do_clump(state, par, t, part->clumpfac, part->clumppow, ptex ? ptex->clump : 1.f);
 	}
 
-	if(part->rough1 != 0.0 && ptex->rough1 != 0.0)
-		do_rough(orco, mat, t, ptex->rough1*part->rough1, part->rough1_size, 0.0, state);
+	if(rough1 > 0.f)
+		do_rough(orco, mat, t, rough1, part->rough1_size, 0.0, state);
 
-	if(part->rough2 != 0.0 && ptex->rough2 != 0.0)
-		do_rough(sim->psys->frand + ((i + 27) % (PSYS_FRAND_COUNT - 3)), mat, t, ptex->rough2*part->rough2, part->rough2_size, part->rough2_thres, state);
+	if(rough2 > 0.f)
+		do_rough(sim->psys->frand + ((i + 27) % (PSYS_FRAND_COUNT - 3)), mat, t, rough2, part->rough2_size, part->rough2_thres, state);
 
-	if(part->rough_end != 0.0 && ptex->roughe != 0.0)
-		do_rough_end(sim->psys->frand + ((i + 27) % (PSYS_FRAND_COUNT - 3)), mat, t, ptex->roughe*part->rough_end, part->rough_end_shape, state);
+	if(rough_end > 0.f)
+		do_rough_end(sim->psys->frand + ((i + 27) % (PSYS_FRAND_COUNT - 3)), mat, t, rough_end, part->rough_end_shape, state);
 }
 /* get's hair (or keyed) particles state at the "path time" specified in state->time */
 void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *state, int vel)
@@ -4033,7 +4045,10 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 
 			pa = psys->particles + cpa->parent;
 
-			psys_mat_hair_to_global(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
+			if(part->type == PART_HAIR)
+				psys_mat_hair_to_global(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
+			else
+				unit_m4(hairmat);
 
 			pa=0;
 		}
@@ -4049,9 +4064,16 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			cpa_num=pa->num;
 			cpa_fuv=pa->fuv;
 
-			psys_particle_on_emitter(psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,co,0,0,0,orco,0);
+			
 
-			psys_mat_hair_to_global(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
+			if(part->type == PART_HAIR) {
+				psys_particle_on_emitter(psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,co,0,0,0,orco,0);
+				psys_mat_hair_to_global(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
+			}
+			else {
+				copy_v3_v3(orco, cpa->fuv);
+				unit_m4(hairmat);
+			}
 		}
 
 		/* correct child ipo timing */
@@ -4171,11 +4193,11 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 
 	if(pa) {
 		if(!always)
-			if((pa->alive==PARS_UNBORN && (part->flag & PART_UNBORN)==0)
-				|| (pa->alive==PARS_DEAD && (part->flag & PART_DIED)==0))
+			if((cfra < pa->time && (part->flag & PART_UNBORN)==0)
+				|| (cfra > pa->dietime && (part->flag & PART_DIED)==0))
 				return 0;
 
-		state->time = MIN2(state->time, pa->dietime);
+		cfra = MIN2(cfra, pa->dietime);
 	}
 
 	if(sim->psys->flag & PSYS_KEYED){
@@ -4185,41 +4207,42 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	}
 	else{
 		if(cpa){
+			float mat[4][4];
 			ParticleKey *key1;
 			float t = (cfra - pa->time) / pa->lifetime;
 
 			key1=&pa->state;
 			offset_child(cpa, key1, state, part->childflat, part->childrad);
-			
+
 			CLAMP(t,0.0,1.0);
-			if(part->kink)			/* TODO: part->kink_freq*pa_kink */
-				do_prekink(state,key1,key1->rot,t,part->kink_freq,part->kink_shape,part->kink_amp,part->kink,part->kink_axis,sim->ob->obmat);
-			
-			/* TODO: pa_clump vgroup */
-			do_clump(state,key1,t,part->clumpfac,part->clumppow,1.0);
+
+			unit_m4(mat);
+			do_child_modifiers(sim, NULL, key1, key1->rot, cpa, cpa->fuv, mat, state, t);
 
 			if(psys->lattice)
 				calc_latt_deform(sim->psys->lattice, state->co,1.0f);
 		}
 		else{
-			if(pa->state.time==state->time || ELEM(part->phystype,PART_PHYS_NO,PART_PHYS_KEYED)
-				|| pa->prev_state.time <= 0.0f)
+			if(pa->state.time==cfra || ELEM(part->phystype,PART_PHYS_NO,PART_PHYS_KEYED))
 				copy_particle_key(state, &pa->state, 1);
-			else if(pa->prev_state.time==state->time)
+			else if(pa->prev_state.time==cfra)
 				copy_particle_key(state, &pa->prev_state, 1);
 			else {
+				float dfra, frs_sec = sim->scene->r.frs_sec;
 				/* let's interpolate to try to be as accurate as possible */
-				if(pa->state.time + 2.0f > state->time && pa->prev_state.time - 2.0f < state->time) {
-					ParticleKey keys[4];
-					float dfra, keytime, frs_sec = sim->scene->r.frs_sec;
+				if(pa->state.time + 2.f >= state->time && pa->prev_state.time - 2.f <= state->time) {
+					if(pa->prev_state.time >= pa->state.time || pa->prev_state.time < 0.f) {
+						/* prev_state is wrong so let's not use it, this can happen at frames 1, 0 or particle birth */
+						dfra = state->time - pa->state.time;
 
-					if(pa->prev_state.time >= pa->state.time) {
-						/* prev_state is wrong so let's not use it, this can happen at frame 1 or particle birth */
 						copy_particle_key(state, &pa->state, 1);
 
-						VECADDFAC(state->co, state->co, state->vel, (state->time-pa->state.time)/frs_sec);
+						madd_v3_v3v3fl(state->co, state->co, state->vel, dfra/frs_sec);
 					}
 					else {
+						ParticleKey keys[4];
+						float keytime;
+
 						copy_particle_key(keys+1, &pa->prev_state, 1);
 						copy_particle_key(keys+2, &pa->state, 1);
 
@@ -4234,11 +4257,20 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 						psys_interpolate_particle(-1, keys, keytime, state, 1);
 						
 						/* convert back to real velocity */
-						mul_v3_fl(state->vel, 1.0f / (dfra * timestep));
+						mul_v3_fl(state->vel, 1.f / (dfra * timestep));
 
 						interp_v3_v3v3(state->ave, keys[1].ave, keys[2].ave, keytime);
 						interp_qt_qtqt(state->rot, keys[1].rot, keys[2].rot, keytime);
 					}
+				}
+				else if(pa->state.time + 1.f >= state->time && pa->state.time - 1.f <= state->time) {
+					/* linear interpolation using only pa->state */
+
+					dfra = state->time - pa->state.time;
+
+					copy_particle_key(state, &pa->state, 1);
+
+					madd_v3_v3v3fl(state->co, state->co, state->vel, dfra/frs_sec);
 				}
 				else {
 					/* extrapolating over big ranges is not accurate so let's just give something close to reasonable back */

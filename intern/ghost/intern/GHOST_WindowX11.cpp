@@ -176,7 +176,7 @@ GHOST_WindowX11(
 	int attributes[40], i, samples;
 	Atom atoms[2];
 	int natom;
-	int glxVersionMajor, glxVersionMinor; // As in GLX major.mino
+	int glxVersionMajor, glxVersionMinor; // As in GLX major.minor
 	
 	/* initialize incase X11 fails to load */
 	memset(&m_xtablet, 0, sizeof(m_xtablet));

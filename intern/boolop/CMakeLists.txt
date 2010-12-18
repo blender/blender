@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC	
+set(INC	
 	.
 	./intern
 	./extern
@@ -36,7 +36,7 @@ SET(INC
 	../../source/blender/makesdna
 )
 
-SET(SRC
+set(SRC
 	intern/BOP_BBox.cpp
 	intern/BOP_BSPNode.cpp
 	intern/BOP_BSPTree.cpp
@@ -75,4 +75,4 @@ SET(SRC
 	intern/BOP_Vertex.h
 )
 
-BLENDERLIB(bf_intern_bop "${SRC}" "${INC}")
+blenderlib(bf_intern_bop "${SRC}" "${INC}")

@@ -1019,6 +1019,7 @@ void IMAGE_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
 	ot->idname= "IMAGE_OT_properties";
+	ot->description= "Toggle display properties panel";
 	
 	ot->exec= image_properties;
 	ot->poll= ED_operator_image_active;
@@ -1042,6 +1043,7 @@ void IMAGE_OT_scopes(wmOperatorType *ot)
 {
 	ot->name= "Scopes";
 	ot->idname= "IMAGE_OT_scopes";
+	ot->description= "Toggle display scopes panel";
 	
 	ot->exec= image_scopes;
 	ot->poll= ED_operator_image_active;

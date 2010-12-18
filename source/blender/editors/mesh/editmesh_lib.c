@@ -1391,27 +1391,22 @@ static short extrudeflag_edge(Object *obedit, EditMesh *em, short UNUSED(flag), 
 			if (efa->v4 && (efa->v4->tmp.v == NULL))
 				efa->v4->tmp.v = addvertlist(em, efa->v4->co, efa->v4);
 			
-			if(del_old==0) {	// keep old faces means flipping normal
-				if(efa->v4)
-					efan = addfacelist(em, efa->v4->tmp.v, efa->v3->tmp.v, 
-								efa->v2->tmp.v, efa->v1->tmp.v, efa, efa);
-				else
-					efan = addfacelist(em, efa->v3->tmp.v, efa->v2->tmp.v, 
-								efa->v1->tmp.v, NULL, efa, efa);
+			if(efa->v4)
+				efan = addfacelist(em, efa->v1->tmp.v, efa->v2->tmp.v,
+							efa->v3->tmp.v, efa->v4->tmp.v, efa, efa);
+			else
+				efan = addfacelist(em, efa->v1->tmp.v, efa->v2->tmp.v,
+							efa->v3->tmp.v, NULL, efa, efa);
+
+			/* keep old faces means flipping normal, reverse vertex order gives bad UV's & VCols etc - [#25260] */
+			if(del_old==0) {
+				flipface(em, efan);
 			}
-			else {
-				if(efa->v4)
-					efan = addfacelist(em, efa->v1->tmp.v, efa->v2->tmp.v, 
-								efa->v3->tmp.v, efa->v4->tmp.v, efa, efa);
-				else
-					efan = addfacelist(em, efa->v1->tmp.v, efa->v2->tmp.v, 
-								efa->v3->tmp.v, NULL, efa, efa);
-			}
-			
+
 			if (em->act_face == efa) {
 				em->act_face = efan; 
 			}
-			
+
 			/* for transform */
 			add_normal_aligned(nor, efa->n);
 		}

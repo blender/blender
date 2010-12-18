@@ -517,7 +517,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	int result = 0;
 	int charmax = G.charmax;
 	
-	/* <builtin> font in use. There are TTF <builtin> and non-TTF <builtin> fonts */
+	/* FO_BUILTIN_NAME font in use. There are TTF FO_BUILTIN_NAME and non-TTF FO_BUILTIN_NAME fonts */
 	if(!strcmp(G.selfont->name, FO_BUILTIN_NAME))
 	{
 		if(G.ui_international == TRUE)
