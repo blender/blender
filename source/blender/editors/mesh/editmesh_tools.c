@@ -495,6 +495,8 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_remove_doubles(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Remove Doubles";
 	ot->description= "Remove duplicate vertices";
@@ -507,7 +509,8 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "limit", 0.0001f, 0.000001f, 50.0f, "Merge Threshold", "Minimum distance between merged verts", 0.00001f, 2.0f);
+	prop= RNA_def_float(ot->srna, "limit", 0.0001f, 0.000001f, 50.0f, "Merge Threshold", "Minimum distance between merged verts", 0.00001f, 2.0f);
+	RNA_def_property_ui_range(prop,  0.000001f, 50.0f, 0.001, 5);
 }
 
 // XXX is this needed?

@@ -2221,7 +2221,7 @@ void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
 			if(cfra==0) cfra= len;
 		}
 		
-		if(cfra<1) cfra= 1;
+		if(cfra<0) cfra= 0;
 		else if(cfra>len) cfra= len;
 		
 		/* convert current frame to current field */
