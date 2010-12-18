@@ -220,19 +220,19 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime)
 		for (i=sta; i<=end; i++) {
 			
 			if (pid->cache->cached_frames[i-sta]) {
-				fp[0] = (float)i;
+				fp[0] = (float)i-0.5f;
 				fp[1] = 0.0;
 				fp+=2;
 				
-				fp[0] = (float)i;
+				fp[0] = (float)i-0.5f;
 				fp[1] = 1.0;
 				fp+=2;
 				
-				fp[0] = (float)(i+1);
+				fp[0] = (float)i+0.5f;
 				fp[1] = 1.0;
 				fp+=2;
 				
-				fp[0] = (float)(i+1);
+				fp[0] = (float)i+0.5f;
 				fp[1] = 0.0;
 				fp+=2;
 			}
