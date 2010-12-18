@@ -1967,6 +1967,7 @@ void CURVE_OT_switch_direction(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Switch Direction";
+	ot->description= "Switch direction of selected splines";
 	ot->idname= "CURVE_OT_switch_direction";
 	
 	/* api callbacks */
@@ -2013,7 +2014,8 @@ static int set_goal_weight_exec(bContext *C, wmOperator *op)
 void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Curve Weight";
+	ot->name= "Set Goal Weight";
+	ot->description= "Set softbody goal weight for selected points";
 	ot->idname= "CURVE_OT_spline_weight_set";
 	
 	/* api callbacks */
@@ -2065,6 +2067,7 @@ void CURVE_OT_radius_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Curve Radius";
+	ot->description= "Set per-point radius which is used for bevel tapering";
 	ot->idname= "CURVE_OT_radius_set";
 	
 	/* api callbacks */
@@ -2140,6 +2143,7 @@ void CURVE_OT_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Smooth";
+	ot->description= "Flatten angles of selected points";
 	ot->idname= "CURVE_OT_smooth";
 	
 	/* api callbacks */
@@ -2305,6 +2309,7 @@ void CURVE_OT_smooth_radius(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Smooth Curve Radius";
+	ot->description= "Flatten radiuses of selected points";
 	ot->idname= "CURVE_OT_smooth_radius";
 	
 	/* api clastbacks */
@@ -3191,6 +3196,7 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Subdivide";
+	ot->description= "Subdivide selected segments";
 	ot->idname= "CURVE_OT_subdivide";
 	
 	/* api callbacks */
