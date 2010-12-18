@@ -47,7 +47,20 @@
 /* Replace if different */
 #define TMP_EXT ".tmp"
 
-static int replace_if_different(char *tmpfile)
+
+/* copied from BLI_file_older */
+#include <sys/stat.h>
+static int file_older(const char *file1, const char *file2)
+{
+	struct stat st1, st2;
+
+	if(stat(file1, &st1)) return 0;
+	if(stat(file2, &st2)) return 0;
+
+	return (st1.st_mtime < st2.st_mtime);
+}
+
+static int replace_if_different(char *tmpfile, const char *dep_files[])
 {
 	// return 0; // use for testing had edited rna
 
@@ -77,6 +90,38 @@ static int replace_if_different(char *tmpfile)
 	if(fp_org==NULL) {
 		REN_IF_DIFF;
 	}
+
+
+	/* XXX, trick to work around dependancy problem
+	 * assumes dep_files is in the same dir as makesrna.c, which is true for now. */
+
+	if(1) {
+		/* first check if makesrna.c is newer then generated files
+		 * for development on makesrna.c you may want to disable this */
+		if(file_older(orgfile, __FILE__)) {
+			REN_IF_DIFF;
+		}
+
+		/* now check if any files we depend on are newer then any generated files */
+		if(dep_files) {
+			int pass;
+			for(pass=0; dep_files[pass]; pass++) {
+				char from_path[4096]= __FILE__;
+				char *p1, *p2;
+
+				/* dir only */
+				p1= strrchr(from_path, '/');
+				p2= strrchr(from_path, '\\');
+				strcpy((p1 > p2 ? p1 : p2)+1, dep_files[pass]);
+				/* account for build deps, if makesrna.c (this file) is newer */
+				if(file_older(orgfile, from_path)) {
+					REN_IF_DIFF;
+				}
+			}
+		}
+	}
+	/* XXX end dep trick */
+
 
 	fp_new= fopen(tmpfile, "rb");
 
@@ -2615,6 +2660,7 @@ static int rna_preprocess(char *outfile)
 	FILE *file;
 	char deffile[4096];
 	int i, status;
+	const char *deps[3]; /* expand as needed */
 
 	/* define rna */
 	brna= RNA_create();
@@ -2655,7 +2701,7 @@ static int rna_preprocess(char *outfile)
 		}
 	}
 
-	replace_if_different(deffile);
+	replace_if_different(deffile, NULL);
 
 	rna_sort(brna);
 
@@ -2683,7 +2729,12 @@ static int rna_preprocess(char *outfile)
 			}
 		}
 
-		replace_if_different(deffile);
+		/* avoid unneeded rebuilds */
+		deps[0]= PROCESS_ITEMS[i].filename;
+		deps[1]= PROCESS_ITEMS[i].api_filename;
+		deps[2]= NULL;
+
+		replace_if_different(deffile, deps);
 	}
 
 	/* create RNA_blender.h */
@@ -2707,7 +2758,7 @@ static int rna_preprocess(char *outfile)
 		}
 	}
 
-	replace_if_different(deffile);
+	replace_if_different(deffile, NULL);
 
 	/* free RNA */
 	RNA_define_free(brna);
