@@ -1485,7 +1485,7 @@ int BKE_ptcache_read(PTCacheID *pid, float cfra, float frs_sec)
 	cfra2 = ptcache_read_init(pid, &cache2, &totpoint2);
 
 	/* don't read old cache if already simulated past cached frame */
-	if(!cache1 && cfra1 && cfra1 <= pid->cache->simframe)
+	if(!cache1 && cfra2 && cfra2 <= pid->cache->simframe)
 		goto cleanup;
 	if(cfra1 && cfra1==cfra2)
 		goto cleanup;
