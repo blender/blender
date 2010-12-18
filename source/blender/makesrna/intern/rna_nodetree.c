@@ -1297,7 +1297,7 @@ static void def_cmp_output_file(StructRNA *srna)
 	
 	RNA_def_struct_sdna_from(srna, "NodeImageFile", "storage");
 	
-	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_DIRPATH);
+	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "File Path", "Output path for the image, same functionality as render output.");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
