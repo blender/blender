@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -69,7 +70,7 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 #define REN_IF_DIFF \
 	remove(orgfile); \
 	if(rename(tmpfile, orgfile) != 0) { \
-		fprintf(stderr, "%s:%d, rename error: \"%s\" -> \"%s\"\n", __FILE__, __LINE__, tmpfile, orgfile); \
+		fprintf(stderr, "%s:%d, Rename Error (%s): \"%s\" -> \"%s\"\n", __FILE__, __LINE__, strerror(errno), tmpfile, orgfile); \
 		return -1; \
 	} \
 	remove(tmpfile); \
