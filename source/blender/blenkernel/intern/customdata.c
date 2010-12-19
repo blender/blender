@@ -1444,9 +1444,8 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	data->layers[index].type = type;
 	data->layers[index].flag = flag;
 	data->layers[index].data = newlayerdata;
-
 	if(name || (name=typeInfo->defaultname)) {
-		strcpy(data->layers[index].name, name);
+		BLI_strncpy(data->layers[index].name, name, 32);
 		CustomData_set_layer_unique_name(data, index);
 	}
 	else
