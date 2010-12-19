@@ -33,6 +33,7 @@
 
 #include "BLI_string.h"
 
+#include "BKE_animsys.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -271,6 +272,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			if(id) {
 				/* make copy */
 				if(id_copy(id, &newid, 0) && newid) {
+					/* copy animation actions too */
+					BKE_copy_animdata_id_action(id);
 					/* us is 1 by convention, but RNA_property_pointer_set
 					   will also incremement it, so set it to zero */
 					newid->us= 0;
