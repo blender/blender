@@ -5391,8 +5391,12 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
-	else if (ob && (ob->mode & OB_MODE_SCULPT)) {
-		/* sculpt mode has own undo stack, transform ops redo clears sculpt undo stack */
+	else if (ob && (ob->mode & (OB_MODE_SCULPT|OB_MODE_TEXTURE_PAINT))) {
+		/* sculpt mode and project paint have own undo stack
+		 * transform ops redo clears sculpt/project undo stack.
+		 *
+		 * Could use 'OB_MODE_ALL_PAINT' since there are key conflicts,
+		 * transform + paint isnt well supported. */
 	}
 	else {
 		createTransObject(C, t);
