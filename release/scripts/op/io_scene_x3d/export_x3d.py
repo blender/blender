@@ -234,10 +234,7 @@ class x3d_class:
         # beamWidth=((lamp.spotSize*math.pi)/180.0)*.37;
         cutOffAngle=beamWidth*1.3
 
-        dx,dy,dz=self.computeDirection(mtx)
-        # note -dx seems to equal om[3][0]
-        # note -dz seems to equal om[3][1]
-        # note  dy seems to equal om[3][2]
+        dx, dy, dz = self.computeDirection(mtx)
 
         #location=(ob.matrix_world*MATWORLD).translation_part() # now passed
         location=(MATWORLD * mtx).translation_part()
@@ -266,7 +263,7 @@ class x3d_class:
             ambientIntensity = 0
 
         intensity=min(lamp.energy/1.75,1.0)
-        (dx,dy,dz)=self.computeDirection(mtx)
+        dx, dy, dz = self.computeDirection(mtx)
         self.file.write("<DirectionalLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity,self.cp)))
         self.file.write("color=\"%s %s %s\" " % (round(lamp.color[0],self.cp), round(lamp.color[1],self.cp), round(lamp.color[2],self.cp)))
@@ -924,7 +921,7 @@ class x3d_class:
         return s
 
     def computeDirection(self, mtx):
-        return (mathutils.Vector((0, -1, 0)) * (MATWORLD * mtx).rotation_part())[:]
+        return (mathutils.Vector((0.0, 0.0, -1.0)) * (MATWORLD * mtx).rotation_part()).normalize()[:]
 
     # swap Y and Z to handle axis difference between Blender and VRML
     #------------------------------------------------------------------------
