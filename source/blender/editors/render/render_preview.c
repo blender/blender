@@ -350,6 +350,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				mat= copy_material((Material *)id);
 				sp->matcopy= mat;
 				BLI_remlink(&G.main->mat, mat);
+				BLI_addtail(&pr_main->mat, mat);
 				
 				init_render_material(mat, 0, NULL);		/* call that retrieves mode_l */
 				end_render_material(mat);
@@ -409,6 +410,8 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			else {
 				sce->r.mode &= ~(R_OSA|R_RAYTRACE|R_SSS);
 				
+				/* get rid of copied material */
+				BLI_remlink(&pr_main->mat, sp->matcopy);
 				free_material(sp->matcopy);
 				MEM_freeN(sp->matcopy);
 				sp->matcopy= NULL;
@@ -982,7 +985,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 		((Camera *)sce->camera->data)->lens *= (float)sp->sizey/(float)sizex;
 
 	/* entire cycle for render engine */
-	RE_PreviewRender(re, G.main, sce);
+	RE_PreviewRender(re, pr_main, sce);
 
 	((Camera *)sce->camera->data)->lens= oldlens;
 

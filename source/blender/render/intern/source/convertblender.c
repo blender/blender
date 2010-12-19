@@ -924,7 +924,7 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 	if((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))
 		re->flag |= R_ZTRA;
 	
-	/* for light groups */
+	/* for light groups and SSS */
 	ma->flag |= MA_IS_USED;
 
 	if(ma->nodetree && ma->use_nodes)
