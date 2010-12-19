@@ -1091,7 +1091,7 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 		memcpy(values, bb->vec, sizeof(bb->vec));
 	}
 	else {
-		memset(values, -1.0f, sizeof(bb->vec));
+		fill_vn(values, sizeof(bb->vec)/sizeof(float), 0.0f);
 	}
 
 }
@@ -1696,7 +1696,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_multi_array(prop, 2, boundbox_dimsize);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_Object_boundbox_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Bound Box", "Objects bound box in object-space coordinates");
+	RNA_def_property_ui_text(prop, "Bound Box", "Objects bound box in object-space coordinates, all values are -1.0 when not available.");
 
 	/* parent */
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);

@@ -163,7 +163,14 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr, int (*check_prop)(Proper
 				col= NULL;
 			}
 
-			name= ""; /* name is shown above, empty name for button below */
+			/* may meed to add more cases here.
+			 * don't override enum flag names */
+			if(flag & PROP_ENUM_FLAG) {
+				name= NULL;
+			}
+			else {
+				name= ""; /* name is shown above, empty name for button below */
+			}
 		}
 		else {
 			col= layout;

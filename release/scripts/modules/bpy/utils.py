@@ -560,7 +560,7 @@ def keyconfig_set(filepath):
     keyconfigs.active = kc_new
 
 
-def user_resource(type, path, create=False):
+def user_resource(type, path="", create=False):
     """
     Return a user resource path (normally from the users home directory).
 
@@ -588,7 +588,7 @@ def user_resource(type, path, create=False):
                     traceback.print_exc()
                     target_path = ""
             elif not _os.path.isdir(target_path):
-                print("Path %r found but isn't a directory!" % path)
+                print("Path %r found but isn't a directory!" % target_path)
                 target_path = ""
 
     return target_path
