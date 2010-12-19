@@ -4325,10 +4325,11 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= (Curve*)obedit->data;
 	EditNurb *editnurb= cu->editnurb;
-	Nurb *nu;
+	Nurb *nu, *newnu= NULL;
 	BezTriple *bezt, *newbezt = NULL;
 	BPoint *bp, *newbp = NULL;
 	float mat[3][3],imat[3][3], temp[3];
+	int ok= 0;
 
 	copy_m3_m4(mat, obedit->obmat);
 	invert_m3_m3(imat,mat);
@@ -4336,28 +4337,67 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	findselectedNurbvert(&editnurb->nurbs, &nu, &bezt, &bp);
 
 	if ((nu == NULL) || (nu->type==CU_BEZIER && bezt==NULL) || (nu->type!=CU_BEZIER && bp==NULL)) {
-		/* FIXME: this is inconsistent with mesh ctrl-click, where clicking anywhere will add a vert, 
-		 * even without existing data to extrude
-		 */
-		return OPERATOR_CANCELLED;
+		if(cu->actnu >= 0) {
+			nu= BLI_findlink(&editnurb->nurbs, cu->actnu);
+
+			if(nu->type==CU_BEZIER) {
+				newbezt= (BezTriple*)MEM_callocN(sizeof(BezTriple), "addvert_Nurb");
+				newbezt->radius= 1;
+				newbezt->alfa= 0;
+				BEZ_SEL(newbezt);
+				newbezt->h2= newbezt->h1= HD_AUTO;
+
+				newnu= (Nurb*)MEM_mallocN(sizeof(Nurb), "addvert_Nurb newnu");
+				memcpy(newnu, nu, sizeof(Nurb));
+				BLI_addtail(&editnurb->nurbs, newnu);
+				set_actNurb(obedit, newnu);
+				newnu->bezt= newbezt;
+				newnu->pntsu= 1;
+
+				temp[0] = 1;
+				temp[1] = 0;
+				temp[2] = 0;
+				copy_v3_v3(newbezt->vec[1], location);
+				sub_v3_v3(newbezt->vec[1], obedit->obmat[3]);
+				sub_v3_v3v3(newbezt->vec[0], newbezt->vec[1],temp);
+				add_v3_v3v3(newbezt->vec[2], newbezt->vec[1],temp);
+
+				ok= 1;
+			} else if(nu->pntsv == 1) {
+				newbp= (BPoint*)MEM_callocN(sizeof(BPoint), "addvert_Nurb5");
+				newbp->radius= 1;
+				newbp->alfa= 0;
+				newbp->f1|= SELECT;
+				cu->lastsel= newbp;
+
+				newnu= (Nurb*)MEM_mallocN(sizeof(Nurb), "addvert_Nurb newnu");
+				memcpy(newnu, nu, sizeof(Nurb));
+				BLI_addtail(&editnurb->nurbs, newnu);
+				set_actNurb(obedit, newnu);
+				newnu->bp= newbp;
+				newnu->orderu= 2;
+				newnu->pntsu= 1;
+
+				copy_v3_v3(newbp->vec, location);
+				sub_v3_v3(newbp->vec, obedit->obmat[3]);
+				mul_m3_v3(imat,newbp->vec);
+				newbp->vec[3]= 1.0;
+
+				newnu->knotsu= newnu->knotsv= 0;
+				nurbs_knot_calc_u(newnu);
+
+				ok= 1;
+			}
+
+		}
+
+		if(!ok)
+			return OPERATOR_CANCELLED;
 	}
 
-	if(nu->type == CU_BEZIER) {
+	if(!ok && nu->type == CU_BEZIER) {
 		/* which bezpoint? */
-		if(bezt== nu->bezt) {   /* first */
-			BEZ_DESEL(bezt);
-			newbezt =
-				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
-			ED_curve_beztcpy(editnurb, newbezt+1, bezt, nu->pntsu);
-			*newbezt= *bezt;
-			BEZ_SEL(newbezt);
-			newbezt->h2= newbezt->h1;
-			VECCOPY(temp, bezt->vec[1]);
-			MEM_freeN(nu->bezt);
-			nu->bezt= newbezt;
-			bezt= newbezt+1;
-		}
-		else if(bezt== (nu->bezt+nu->pntsu-1)) {  /* last */
+		if(bezt== (nu->bezt+nu->pntsu-1)) {  /* last */
 			BEZ_DESEL(bezt);
 			newbezt =
 				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
@@ -4368,14 +4408,51 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			nu->bezt= newbezt;
 			newbezt+= nu->pntsu;
 			BEZ_SEL(newbezt);
+			cu->lastsel= newbezt;
 			newbezt->h2= newbezt->h1;
 			bezt= nu->bezt+nu->pntsu-1;
+			ok= 1;
+		}
+		else if(bezt== nu->bezt) {   /* first */
+			BEZ_DESEL(bezt);
+			newbezt =
+				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
+			ED_curve_beztcpy(editnurb, newbezt+1, bezt, nu->pntsu);
+			*newbezt= *bezt;
+			BEZ_SEL(newbezt);
+			cu->lastsel= newbezt;
+			newbezt->h2= newbezt->h1;
+			VECCOPY(temp, bezt->vec[1]);
+			MEM_freeN(nu->bezt);
+			nu->bezt= newbezt;
+			bezt= newbezt+1;
+			ok= 1;
+		}
+		else if(mode!='e') {
+			BEZ_DESEL(bezt);
+			newbezt= (BezTriple*)MEM_callocN(sizeof(BezTriple), "addvert_Nurb");
+			*newbezt= *bezt;
+			BEZ_SEL(newbezt);
+			newbezt->h2= newbezt->h1;
+			VECCOPY(temp, bezt->vec[1]);
+
+			newnu= (Nurb*)MEM_mallocN(sizeof(Nurb), "addvert_Nurb newnu");
+			memcpy(newnu, nu, sizeof(Nurb));
+			BLI_addtail(&editnurb->nurbs, newnu);
+			set_actNurb(obedit, newnu);
+			newnu->bezt= newbezt;
+			newnu->pntsu= 1;
+
+			cu->lastsel= newbezt;
+
+			bezt= newbezt;
+			ok= 1;
 		}
 		else bezt= 0;
 
 		if(bezt) {
-			nu->pntsu++;
-			
+			if(!newnu) nu->pntsu++;
+
 			if(mode=='e') {
 				copy_v3_v3(newbezt->vec[0], bezt->vec[0]);
 				copy_v3_v3(newbezt->vec[1], bezt->vec[1]);
@@ -4388,11 +4465,13 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				sub_v3_v3v3(temp, newbezt->vec[1],temp);
 				add_v3_v3v3(newbezt->vec[0], bezt->vec[0],temp);
 				add_v3_v3v3(newbezt->vec[2], bezt->vec[2],temp);
-				calchandlesNurb(nu);
+
+				if(newnu) calchandlesNurb(newnu);
+				else calchandlesNurb(nu);
 			}
 		}
 	}
-	else if(nu->pntsv==1) {
+	else if(!ok && nu->pntsv==1) {
 		/* which b-point? */
 		if(bp== nu->bp) {   /* first */
 			bp->f1= 0;
@@ -4400,10 +4479,12 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				(BPoint*)MEM_callocN((nu->pntsu+1) * sizeof(BPoint), "addvert_Nurb3");
 			ED_curve_bpcpy(editnurb, newbp+1, bp, nu->pntsu);
 			*newbp= *bp;
-			newbp->f1= 1;
+			newbp->f1|= SELECT;
+			cu->lastsel= newbp;
 			MEM_freeN(nu->bp);
 			nu->bp= newbp;
 			bp= newbp + 1;
+			ok= 1;
 		}
 		else if(bp== (nu->bp+nu->pntsu-1)) {  /* last */
 			bp->f1= 0;
@@ -4414,16 +4495,33 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			MEM_freeN(nu->bp);
 			nu->bp= newbp;
 			newbp+= nu->pntsu;
-			newbp->f1= 1;
+			newbp->f1|= SELECT;
+			cu->lastsel= newbp;
 			bp= newbp - 1;
+			ok= 1;
+		}
+		else if(mode!='e') {
+			bp->f1= 0;
+			newbp= (BPoint*)MEM_callocN(sizeof(BPoint), "addvert_Nurb5");
+			*newbp= *bp;
+			newbp->f1|= SELECT;
+			cu->lastsel= newbp;
+
+			newnu= (Nurb*)MEM_mallocN(sizeof(Nurb), "addvert_Nurb newnu");
+			memcpy(newnu, nu, sizeof(Nurb));
+			BLI_addtail(&editnurb->nurbs, newnu);
+			set_actNurb(obedit, newnu);
+			newnu->bp= newbp;
+			newnu->orderu= 2;
+			newnu->pntsu= 1;
+			newnu->knotsu= newnu->knotsv= NULL;
+
+			bp= newbp;
+			ok= 1;
 		}
 		else bp= 0;
 
 		if(bp) {
-			nu->pntsu++;
-			
-			nurbs_knot_calc_u(nu);
-			
 			if(mode=='e') {
 				copy_v3_v3(newbp->vec, bp->vec);
 			}
@@ -4432,20 +4530,32 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				sub_v3_v3(newbp->vec, obedit->obmat[3]);
 				mul_m3_v3(imat,newbp->vec);
 				newbp->vec[3]= 1.0;
+
+				if(!newnu && nu->orderu<4 && nu->orderu<=nu->pntsu)
+					nu->orderu++;
 			}
+
+			if(!newnu) {
+				nu->pntsu++;
+				nurbs_knot_calc_u(nu);
+			} else nurbs_knot_calc_u(newnu);
 		}
 	}
 
 	// XXX retopo_do_all();
 
-	test2DNurb(nu);
+	if(ok) {
+		test2DNurb(nu);
 
-	ED_curve_updateAnimPaths(obedit);
+		ED_curve_updateAnimPaths(obedit);
 
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
 }
 
 static int add_vertex_exec(bContext *C, wmOperator *op)
