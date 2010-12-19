@@ -1664,6 +1664,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
+	bDopeSheet ads= {0};
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
 	float cfra= (scene)? (float)(CFRA) : 0.0f;
@@ -1678,10 +1679,10 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	BLI_dlrbTree_init(&keys);
 	
 	/* populate tree with keyframe nodes */
-	if (scene && scene->adt)
-		scene_to_keylist(NULL, scene, &keys, NULL);
-	if (ob && ob->adt)
-		ob_to_keylist(NULL, ob, &keys, NULL);
+	if (scene)
+		scene_to_keylist(&ads, scene, &keys, NULL);
+	if (ob)
+		ob_to_keylist(&ads, ob, &keys, NULL);
 	
 	/* build linked-list for searching */
 	BLI_dlrbTree_linkedlist_sync(&keys);
