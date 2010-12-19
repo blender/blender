@@ -467,7 +467,7 @@ class JoinUVs(bpy.types.Operator):
 class MakeDupliFace(bpy.types.Operator):
     '''Make linked objects into dupli-faces'''
     bl_idname = "object.make_dupli_face"
-    bl_label = "Make DupliFace"
+    bl_label = "Make Dupli-Face"
 
     @classmethod
     def poll(cls, context):
@@ -487,7 +487,7 @@ class MakeDupliFace(bpy.types.Operator):
             trans = matrix.translation_part()
             rot = matrix.rotation_part()  # also contains scale
 
-            return [(rot * b) + trans for b in base_tri]
+            return [(b * rot) + trans for b in base_tri]
         scene = bpy.context.scene
         linked = {}
         for obj in bpy.context.selected_objects:

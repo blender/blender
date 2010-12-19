@@ -35,7 +35,7 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
 
     for obj in bpy.context.selected_objects:
         matrix_world = obj.matrix_world
-		bb_world = [Vector(v[:]) * matrix_world for v in obj.bound_box]
+        bb_world = [Vector(v[:]) * matrix_world for v in obj.bound_box]
         objs.append((obj, bb_world))
 
     if not objs:
