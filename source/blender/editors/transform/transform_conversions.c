@@ -5391,6 +5391,9 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
+	else if (ob && (ob->mode & OB_MODE_SCULPT)) {
+		/* sculpt mode has own undo stack, transform ops redo clears sculpt undo stack */
+	}
 	else {
 		createTransObject(C, t);
 		t->flag |= T_OBJECT;
