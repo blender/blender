@@ -5196,16 +5196,17 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 				}
 				else {
 					/* deselect the button when moving the mouse away */
+					/* also de-activate for buttons that only show higlights */
 					if(ui_mouse_inside_button(ar, but, event->x, event->y)) {
 						if(!(but->flag & UI_SELECT)) {
-							but->flag |= UI_SELECT;
+							but->flag |= (UI_SELECT|UI_ACTIVE);
 							data->cancel= 0;
 							ED_region_tag_redraw(data->region);
 						}
 					}
 					else {
 						if(but->flag & UI_SELECT) {
-							but->flag &= ~UI_SELECT;
+							but->flag &= ~(UI_SELECT|UI_ACTIVE);
 							data->cancel= 1;
 							ED_region_tag_redraw(data->region);
 						}
