@@ -500,10 +500,8 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)
 				}
 #else
 				for (k = 0; k < index_list_array.getCount(); k++) {
-					int uvset_index = index_list_array[k]->getSetIndex();
-					
 					// get mtface by face index and uv set index
-					MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, uvset_index);
+					MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
 					set_face_uv(&mtface[face_index], uvs, *index_list_array[k], index, false);
 				}
 #endif
