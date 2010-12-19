@@ -34,6 +34,7 @@
 #include "DNA_action_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_controller_types.h"
+#include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force.h"
@@ -41,6 +42,8 @@
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
+
+#include "BKE_group.h" /* needed for object_in_group() */
 
 #include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
 #include "ED_mesh.h"
@@ -424,6 +427,20 @@ static void rna_Object_parent_bone_set(PointerRNA *ptr, const char *value)
 	Object *ob= (Object*)ptr->data;
 
 	ED_object_parent(ob, ob->parent, ob->partype, value);
+}
+
+static void rna_Object_dup_group_set(PointerRNA *ptr, PointerRNA value)
+{
+	Object *ob= (Object *)ptr->data;
+	Group *grp = (Group *)value.data;
+	
+	/* must not let this be set if the object belongs in this group already,
+	 * thus causing a cycle/infinite-recursion leading to crashes on load [#25298]
+	 */
+	if (object_in_group(ob, grp) == 0)
+		ob->dup_group = grp;
+	else
+		BKE_report(NULL, RPT_ERROR, "Cannot set dupli-group as object belongs in group being instanced thus causing a cycle");
 }
 
 static int rna_VertexGroup_index_get(PointerRNA *ptr)
@@ -2043,6 +2060,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "dupli_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "dup_group");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_dup_group_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Dupli Group", "Instance an existing group");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 
