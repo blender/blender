@@ -4335,7 +4335,10 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 
 	findselectedNurbvert(&editnurb->nurbs, &nu, &bezt, &bp);
 
-	if((nu->type==CU_BEZIER && bezt==NULL) || (nu->type!=CU_BEZIER && bp==NULL)) {
+	if ((nu == NULL) || (nu->type==CU_BEZIER && bezt==NULL) || (nu->type!=CU_BEZIER && bp==NULL)) {
+		/* FIXME: this is inconsistent with mesh ctrl-click, where clicking anywhere will add a vert, 
+		 * even without existing data to extrude
+		 */
 		return OPERATOR_CANCELLED;
 	}
 
