@@ -4122,7 +4122,7 @@ void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void
 		RNA_parameter_get(parms, parm, value);
 }
 
-void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, void *value)
+void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, const void *value)
 {
 	ParameterIterator iter;
 
@@ -4138,7 +4138,7 @@ void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, void *value)
 	RNA_parameter_list_end(&iter);
 }
 
-void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void *value)
+void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, const void *value)
 {
 	PropertyRNA *parm;
 

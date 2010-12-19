@@ -919,8 +919,8 @@ void RNA_parameter_list_end(ParameterIterator *iter);
 
 void RNA_parameter_get(ParameterList *parms, PropertyRNA *parm, void **value);
 void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void **value);
-void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, void *value);
-void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void *value);
+void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, const void *value);
+void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, const void *value);
 int RNA_parameter_length_get(ParameterList *parms, PropertyRNA *parm);
 int RNA_parameter_length_get_data(ParameterList *parms, PropertyRNA *parm, void *data);
 void RNA_parameter_length_set(ParameterList *parms, PropertyRNA *parm, int length);
