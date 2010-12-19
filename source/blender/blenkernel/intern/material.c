@@ -203,9 +203,6 @@ Material *copy_material(Material *ma)
 	
 	man= copy_libblock(ma);
 	
-#if 0 // XXX old animation system
-	id_us_plus((ID *)man->ipo);
-#endif // XXX old animation system
 	id_lib_extern((ID *)man->group);
 	
 	for(a=0; a<MAX_MTEX; a++) {
