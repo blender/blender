@@ -343,13 +343,12 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		strcpy(sce->r.engine, scene->r.engine);
 		
 		if(id_type==ID_MA) {
-			Material *mat= NULL;
+			Material *mat= NULL, *origmat= (Material *)id;
 			
 			if(id) {
 				/* work on a copy */
-				mat= copy_material((Material *)id);
+				mat= localize_material(origmat);
 				sp->matcopy= mat;
-				BLI_remlink(&G.main->mat, mat);
 				BLI_addtail(&pr_main->mat, mat);
 				
 				init_render_material(mat, 0, NULL);		/* call that retrieves mode_l */
@@ -403,18 +402,16 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				}
 				else {
 					sce->lay= 1<<mat->pr_type;
-					if(mat->nodetree && sp->pr_method==PR_NODE_RENDER)
+					if(mat->nodetree && sp->pr_method==PR_NODE_RENDER) {
+						/* two previews, they get copied by wmJob */
 						ntreeInitPreview(mat->nodetree, sp->sizex, sp->sizey);
+						ntreeInitPreview(origmat->nodetree, sp->sizex, sp->sizey);
+					}
 				}
 			}
 			else {
 				sce->r.mode &= ~(R_OSA|R_RAYTRACE|R_SSS);
 				
-				/* get rid of copied material */
-				BLI_remlink(&pr_main->mat, sp->matcopy);
-				free_material(sp->matcopy);
-				MEM_freeN(sp->matcopy);
-				sp->matcopy= NULL;
 			}
 			
 			for(base= sce->base.first; base; base= base->next) {
@@ -918,10 +915,14 @@ static int shader_preview_break(void *spv)
 }
 
 /* outside thread, called before redraw notifiers, it moves finished preview over */
-static void shader_preview_updatejob(void *UNUSED(spv))
+static void shader_preview_updatejob(void *spv)
 {
-//	ShaderPreview *sp= spv;
+	ShaderPreview *sp= spv;
+	Material *mat= (Material *)sp->id;
 	
+	if(sp->matcopy && mat->nodetree)
+		ntreeLocalSync(sp->matcopy->nodetree, mat->nodetree);
+
 }
 
 static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int first)
@@ -1026,6 +1027,16 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 static void shader_preview_free(void *customdata)
 {
 	ShaderPreview *sp= customdata;
+	
+	if(sp->matcopy) {
+		/* node previews */
+		shader_preview_updatejob(sp);
+		
+		/* get rid of copied material */
+		BLI_remlink(&pr_main->mat, sp->matcopy);
+		free_material(sp->matcopy);
+		MEM_freeN(sp->matcopy);
+	}
 	
 	MEM_freeN(sp);
 }

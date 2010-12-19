@@ -49,6 +49,7 @@ void resize_object_material(struct Object *ob, const short totcol);
 void init_material(struct Material *ma);
 struct Material *add_material(const char *name);
 struct Material *copy_material(struct Material *ma);
+struct Material *localize_material(struct Material *ma);
 struct Material *give_node_material(struct Material *ma); /* returns node material or self */
 void make_local_material(struct Material *ma);
 

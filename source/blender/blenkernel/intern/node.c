@@ -1186,12 +1186,12 @@ static void node_init_preview(bNode *node, int xsize, int ysize)
 	}
 	
 	if(node->preview->rect==NULL) {
-		node->preview->rect= MEM_callocN(4*xsize + xsize*ysize*sizeof(float)*4, "node preview rect");
+		node->preview->rect= MEM_callocN(4*xsize + xsize*ysize*sizeof(char)*4, "node preview rect");
 		node->preview->xsize= xsize;
 		node->preview->ysize= ysize;
 	}
 	else
-		memset(node->preview->rect, 0, 4*xsize + xsize*ysize*sizeof(float)*4);
+		memset(node->preview->rect, 0, 4*xsize + xsize*ysize*sizeof(char)*4);
 }
 
 void ntreeInitPreview(bNodeTree *ntree, int xsize, int ysize)
@@ -1241,12 +1241,18 @@ void nodeAddToPreview(bNode *node, float *col, int x, int y)
 		if(x>=0 && y>=0) {
 			if(x<preview->xsize && y<preview->ysize) {
 				unsigned char *tar= preview->rect+ 4*((preview->xsize*y) + x);
-				//if(tar[0]==0.0f) {
-				tar[0]= FTOCHAR(col[0]);
-				tar[1]= FTOCHAR(col[1]);
-				tar[2]= FTOCHAR(col[2]);
+				
+				if(TRUE) {
+					tar[0]= FTOCHAR(linearrgb_to_srgb(col[0]));
+					tar[1]= FTOCHAR(linearrgb_to_srgb(col[1]));
+					tar[2]= FTOCHAR(linearrgb_to_srgb(col[2]));
+				}
+				else {
+					tar[0]= FTOCHAR(col[0]);
+					tar[1]= FTOCHAR(col[1]);
+					tar[2]= FTOCHAR(col[2]);
+				}
 				tar[3]= FTOCHAR(col[3]);
-				//}
 			}
 			//else printf("prv out bound x y %d %d\n", x, y);
 		}
@@ -1699,33 +1705,36 @@ static void ntreeSetOutput(bNodeTree *ntree)
 {
 	bNode *node;
 
-	/* find the active outputs, might become tree type dependant handler */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
-			bNode *tnode;
-			int output= 0;
-			
-			/* we need a check for which output node should be tagged like this, below an exception */
-			if(node->type==CMP_NODE_OUTPUT_FILE)
-			   continue;
-			   
-			/* there is more types having output class, each one is checked */
-			for(tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
-				if(tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
-					/* same type, exception for viewer */
-					if(tnode->type==node->type ||
-					   (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) &&
-					    ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))) {
-						if(tnode->flag & NODE_DO_OUTPUT) {
-							output++;
-							if(output>1)
-								tnode->flag &= ~NODE_DO_OUTPUT;
+	if(ntree->type==NTREE_COMPOSIT) {
+		
+		/* find the active outputs, might become tree type dependant handler */
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+				bNode *tnode;
+				int output= 0;
+				
+				/* we need a check for which output node should be tagged like this, below an exception */
+				if(node->type==CMP_NODE_OUTPUT_FILE)
+				   continue;
+				   
+				/* there is more types having output class, each one is checked */
+				for(tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
+					if(tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+						/* same type, exception for viewer */
+						if(tnode->type==node->type ||
+						   (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) &&
+							ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))) {
+							if(tnode->flag & NODE_DO_OUTPUT) {
+								output++;
+								if(output>1)
+									tnode->flag &= ~NODE_DO_OUTPUT;
+							}
 						}
 					}
 				}
+				if(output==0)
+					node->flag |= NODE_DO_OUTPUT;
 			}
-			if(output==0)
-				node->flag |= NODE_DO_OUTPUT;
 		}
 	}
 	
@@ -2586,8 +2595,6 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	/* ensures only a single output node is enabled */
 	ntreeSetOutput(ntree);
 
-	/* move over the compbufs */
-	/* right after ntreeCopyTree() oldsock pointers are valid */
 	for(node= ntree->nodes.first; node; node= node->next) {
 		
 		/* store new_node pointer to original */
@@ -2595,22 +2602,27 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		/* ensure new user input gets handled ok */
 		node->need_exec= 0;
 		
-		if(ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
-			if(node->id) {
-				if(node->flag & NODE_DO_OUTPUT)
-					node->new_node->id= (ID *)copy_image((Image *)node->id);
-				else
-					node->new_node->id= NULL;
+		if(ntree->type==NTREE_COMPOSIT) {
+			/* move over the compbufs */
+			/* right after ntreeCopyTree() oldsock pointers are valid */
+			
+			if(ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+				if(node->id) {
+					if(node->flag & NODE_DO_OUTPUT)
+						node->new_node->id= (ID *)copy_image((Image *)node->id);
+					else
+						node->new_node->id= NULL;
+				}
 			}
-		}
-		
-		for(sock= node->outputs.first; sock; sock= sock->next) {
 			
-			sock->new_sock->ns.data= sock->ns.data;
-			compbuf_set_node(sock->new_sock->ns.data, node->new_node);
-			
-			sock->ns.data= NULL;
-			sock->new_sock->new_sock= sock;
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				
+				sock->new_sock->ns.data= sock->ns.data;
+				compbuf_set_node(sock->new_sock->ns.data, node->new_node);
+				
+				sock->ns.data= NULL;
+				sock->new_sock->new_sock= sock;
+			}
 		}
 	}
 	
@@ -2638,19 +2650,38 @@ static int outsocket_exists(bNode *node, bNodeSocket *testsock)
 
 /* sync local composite with real tree */
 /* local composite is supposed to be running, be careful moving previews! */
+/* is called by jobs manager, outside threads, so it doesnt happen during draw */
 void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 {
 	bNode *lnode;
 	
-	/* move over the compbufs and previews */
-	for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
-		if( (lnode->exec & NODE_READY) && !(lnode->exec & NODE_SKIPPED) ) {
+	if(ntree->type==NTREE_COMPOSIT) {
+		/* move over the compbufs and previews */
+		for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+			if( (lnode->exec & NODE_READY) && !(lnode->exec & NODE_SKIPPED) ) {
+				if(node_exists(ntree, lnode->new_node)) {
+					
+					if(lnode->preview && lnode->preview->rect) {
+						node_free_preview(lnode->new_node);
+						lnode->new_node->preview= lnode->preview;
+						lnode->preview= NULL;
+					}
+				}
+			}
+		}
+	}
+	else if(ntree->type==NTREE_SHADER) {
+		/* copy over contents of previews */
+		for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
 			if(node_exists(ntree, lnode->new_node)) {
+				bNode *node= lnode->new_node;
 				
-				if(lnode->preview && lnode->preview->rect) {
-					node_free_preview(lnode->new_node);
-					lnode->new_node->preview= lnode->preview;
-					lnode->preview= NULL;
+				if(node->preview && node->preview->rect) {
+					if(lnode->preview && lnode->preview->rect) {
+						int xsize= node->preview->xsize;
+						int ysize= node->preview->ysize;
+						memcpy(node->preview->rect, lnode->preview->rect, 4*xsize + xsize*ysize*sizeof(char)*4);
+					}
 				}
 			}
 		}
