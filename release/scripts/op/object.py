@@ -207,9 +207,12 @@ class SubdivisionSet(bpy.types.Operator):
 
                     return
 
-            # adda new modifier
-            mod = obj.modifiers.new("Subsurf", 'SUBSURF')
-            mod.levels = level
+            # add a new modifier
+            try:
+                mod = obj.modifiers.new("Subsurf", 'SUBSURF')
+                mod.levels = level
+            except:
+                self.report({'WARNING'}, "Modifiers cannot be added to object: " + obj.name)
 
         for obj in context.selected_editable_objects:
             set_object_subd(obj)
