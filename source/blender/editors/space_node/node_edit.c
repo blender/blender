@@ -482,6 +482,16 @@ void node_set_active(SpaceNode *snode, bNode *node)
 					scene->r.actlay= node->custom1;
 				}
 			}
+			else if(node->type==CMP_NODE_COMPOSITE) {
+				bNode *tnode;
+				
+				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
+					if( tnode->type==CMP_NODE_COMPOSITE)
+						tnode->flag &= ~NODE_DO_OUTPUT;
+				
+				node->flag |= NODE_DO_OUTPUT;
+				ED_node_changed_update(snode->id, node);
+			}
 		}
 		else if(snode->treetype==NTREE_TEXTURE) {
 			// XXX
