@@ -397,13 +397,15 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	setlinestyle(0);
 	
 	/* center cross */
+	/* horizontal line */
 	if( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) 
 		UI_make_axis_color(col, col2, 'Y');
-	else UI_make_axis_color(col, col2, 'Z');
+	else UI_make_axis_color(col, col2, 'X');
 	glColor3ubv(col2);
 	
 	fdrawline(0.0,  y,  (float)ar->winx,  y); 
 	
+	/* vertical line */
 	if( ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) 
 		UI_make_axis_color(col, col2, 'Y');
 	else UI_make_axis_color(col, col2, 'Z');
