@@ -265,11 +265,9 @@ int ED_space_image_show_paint(SpaceImage *sima)
 
 int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 {
-	if(ED_space_image_show_render(sima))
+	if(sima && (ED_space_image_show_render(sima) || ED_space_image_show_paint(sima)))
 		return 0;
-	if(ED_space_image_show_paint(sima))
-		return 0;
-	
+
 	if(obedit && obedit->type == OB_MESH) {
 		EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
 		int ret;

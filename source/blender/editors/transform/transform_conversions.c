@@ -2444,7 +2444,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 	EditFace *efa;
 
-	if(!ED_uvedit_test(t->obedit)) return;
+	if(!ED_space_image_show_uvedit(sima, t->obedit)) return;
 
 	/* count */
 	for (efa= em->faces.first; efa; efa= efa->next) {

@@ -54,6 +54,7 @@
 #include "WM_types.h"
 
 #include "ED_util.h"
+#include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_object.h"
 #include "ED_armature.h"
@@ -320,23 +321,12 @@ int ED_operator_posemode(bContext *C)
 	return 0;
 }
 
-
+/* wrapper for ED_space_image_show_uvedit */
 int ED_operator_uvedit(bContext *C)
 {
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= NULL;
-	
-	if(obedit && obedit->type==OB_MESH)
-		em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	
-	if(em && (em->faces.first) && (CustomData_has_layer(&em->fdata, CD_MTFACE))) {
-		BKE_mesh_end_editmesh(obedit->data, em);
-		return 1;
-	}
-	
-	if(obedit)
-		BKE_mesh_end_editmesh(obedit->data, em);
-	return 0;
+	return ED_space_image_show_uvedit(sima, obedit);
 }
 
 int ED_operator_uvmap(bContext *C)
