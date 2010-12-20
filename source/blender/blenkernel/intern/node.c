@@ -1705,21 +1705,22 @@ static void ntreeSetOutput(bNodeTree *ntree)
 {
 	bNode *node;
 
-	if(ntree->type==NTREE_COMPOSIT) {
-		
-		/* find the active outputs, might become tree type dependant handler */
-		for(node= ntree->nodes.first; node; node= node->next) {
-			if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
-				bNode *tnode;
-				int output= 0;
-				
-				/* we need a check for which output node should be tagged like this, below an exception */
-				if(node->type==CMP_NODE_OUTPUT_FILE)
-				   continue;
-				   
-				/* there is more types having output class, each one is checked */
-				for(tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
-					if(tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+	/* find the active outputs, might become tree type dependant handler */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+			bNode *tnode;
+			int output= 0;
+			
+			/* we need a check for which output node should be tagged like this, below an exception */
+			if(node->type==CMP_NODE_OUTPUT_FILE)
+			   continue;
+			   
+			/* there is more types having output class, each one is checked */
+			for(tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
+				if(tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+					
+					if(ntree->type==NTREE_COMPOSIT) {
+							
 						/* same type, exception for viewer */
 						if(tnode->type==node->type ||
 						   (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) &&
@@ -1731,10 +1732,20 @@ static void ntreeSetOutput(bNodeTree *ntree)
 							}
 						}
 					}
+					else {
+						/* same type */
+						if(tnode->type==node->type) {
+							if(tnode->flag & NODE_DO_OUTPUT) {
+								output++;
+								if(output>1)
+									tnode->flag &= ~NODE_DO_OUTPUT;
+							}
+						}
+					}
 				}
-				if(output==0)
-					node->flag |= NODE_DO_OUTPUT;
 			}
+			if(output==0)
+				node->flag |= NODE_DO_OUTPUT;
 		}
 	}
 	

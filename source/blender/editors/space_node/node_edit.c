@@ -433,11 +433,25 @@ void node_set_active(SpaceNode *snode, bNode *node)
 	nodeSetActive(snode->edittree, node);
 	
 	if(node->type!=NODE_GROUP) {
+		int was_output= (node->flag & NODE_DO_OUTPUT);
+		
 		/* tree specific activate calls */
 		if(snode->treetype==NTREE_SHADER) {
 			/* when we select a material, active texture is cleared, for buttons */
 			if(node->id && GS(node->id->name)==ID_MA)
 				nodeClearActiveID(snode->edittree, ID_TE);
+			
+			if(node->type==SH_NODE_OUTPUT) {
+				bNode *tnode;
+				
+				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
+					if( tnode->type==SH_NODE_OUTPUT)
+						tnode->flag &= ~NODE_DO_OUTPUT;
+				
+				node->flag |= NODE_DO_OUTPUT;
+				if(was_output==0)
+					ED_node_changed_update(snode->id, node);
+			}
 
 			// XXX
 #if 0
@@ -454,7 +468,7 @@ void node_set_active(SpaceNode *snode, bNode *node)
 			/* make active viewer, currently only 1 supported... */
 			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				bNode *tnode;
-				int was_output= (node->flag & NODE_DO_OUTPUT);
+				
 
 				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
 					if( ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
