@@ -1727,6 +1727,16 @@ static int make_local_exec(bContext *C, wmOperator *op)
 			id_make_local(id, 0);
 			adt= BKE_animdata_from_id(id);
 			if(adt) BKE_animdata_make_local(adt);
+			
+			/* tag indirect data direct */
+			matarar= (Material ***)give_matarar(ob);
+			if(matarar) {
+				for(a=0; a<ob->totcol; a++) {
+					ma= (*matarar)[a];
+					if(ma)
+						id_lib_extern(&ma->id);
+				}
+			}
 		}
 
 		for(psys=ob->particlesystem.first; psys; psys=psys->next)
