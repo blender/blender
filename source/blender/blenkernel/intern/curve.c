@@ -139,7 +139,7 @@ Curve *add_curve(const char *name, int type)
 	cu->size[0]= cu->size[1]= cu->size[2]= 1.0;
 	cu->flag= CU_FRONT|CU_BACK|CU_DEFORM_BOUNDS_OFF|CU_PATH_RADIUS;
 	cu->pathlen= 100;
-	cu->resolu= cu->resolv= 12;
+	cu->resolu= cu->resolv= (type == OB_SURF) ? 4 : 12;
 	cu->width= 1.0;
 	cu->wordspace = 1.0;
 	cu->spacing= cu->linedist= 1.0;
