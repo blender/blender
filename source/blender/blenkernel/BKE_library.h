@@ -88,6 +88,8 @@ void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowMa
 /* use when "" is given to new_id() */
 #define ID_FALLBACK_NAME "Untitled"
 
+#define IS_TAGGED(_id) ((_id) && (((ID *)_id)->flag & LIB_DOIT))
+
 #ifdef __cplusplus
 }
 #endif
