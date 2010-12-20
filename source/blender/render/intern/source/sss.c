@@ -997,6 +997,14 @@ void make_sss_tree(Render *re)
 		if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
 			sss_create_tree_mat(re, mat);
 	
+	/* XXX preview exception */
+	/* localizing preview render data is not fun for node trees :( */
+	if(re->main!=G.main) {
+		for(mat= G.main->mat.first; mat; mat= mat->id.next)
+			if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
+				sss_create_tree_mat(re, mat);
+	}
+	
 }
 
 void free_sss(Render *re)

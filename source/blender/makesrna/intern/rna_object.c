@@ -587,12 +587,29 @@ static void rna_Object_active_material_index_range(PointerRNA *ptr, int *min, in
 	*max= MAX2(ob->totcol-1, 0);
 }
 
+/* returns active base material */
 static PointerRNA rna_Object_active_material_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	Material *ma;
-
+	
 	ma= (ob->totcol)? give_current_material(ob, ob->actcol): NULL;
+	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma);
+}
+
+/* returns (optional) active node material in base material */
+static PointerRNA rna_Object_active_node_material_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Material *ma;
+	
+	ma= (ob->totcol)? give_current_material(ob, ob->actcol): NULL;
+	if(ma) {
+		Material *manode= give_node_material(ma);
+		if(manode)
+			return rna_pointer_inherit_refine(ptr, &RNA_Material, manode);
+	}
+	
 	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma);
 }
 
@@ -1777,6 +1794,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Material", "Active material being displayed");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_MaterialSlot_update");
 
+	prop= RNA_def_property(srna, "active_node_material", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_node_material_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Material", "Active (node) material being displayed");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	
+	
 	prop= RNA_def_property(srna, "active_material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "actcol");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

@@ -49,6 +49,7 @@
 #include "DNA_world_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_space_types.h"
@@ -309,6 +310,32 @@ static Object *find_object(ListBase *lb, const char *name)
 	return ob;
 }
 
+static int preview_mat_has_sss(Material *mat, bNodeTree *ntree)
+{
+	if(mat) {
+		if(mat->sss_flag & MA_DIFF_SSS)
+			return 1;
+		if(mat->nodetree)
+			if( preview_mat_has_sss(NULL, mat->nodetree))
+				return 1;
+	}
+	else if(ntree) {
+		bNode *node;
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->type==NODE_GROUP && node->id) {
+				if( preview_mat_has_sss(NULL, (bNodeTree *)node->id))
+					return 1;
+			}
+			else if(node->id && ELEM(node->type, SH_NODE_MATERIAL, SH_NODE_MATERIAL_EXT)) {
+				mat= (Material *)node->id;
+				if(mat->sss_flag & MA_DIFF_SSS)
+					return 1;
+			}
+		}
+	}
+	return 0;
+}
+
 /* call this with a pointer to initialize preview scene */
 /* call this with NULL to restore assigned ID pointers in preview scene */
 static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPreview *sp)
@@ -361,7 +388,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					sce->r.mode |= R_RAYTRACE;
 				if((mat->mode_l & MA_RAYTRANSP) && (mat->mode_l & MA_TRANSP))
 					sce->r.mode |= R_RAYTRACE;
-				if(mat->sss_flag & MA_DIFF_SSS)
+				if(preview_mat_has_sss(mat, NULL))
 					sce->r.mode |= R_SSS;
 				
 				/* turn off fake shadows if needed */
