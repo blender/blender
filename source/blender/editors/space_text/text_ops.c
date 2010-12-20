@@ -2688,7 +2688,7 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 					text_drawcache_tag_update(CTX_wm_space_text(C), 1);
 				}
 				else if(mode==TEXT_MARK_ALL) {
-					char color[4];
+					unsigned char color[4];
 					UI_GetThemeColor4ubv(TH_SHADE2, color);
 
 					if(txt_find_marker(text, text->curl, text->selc, TMARK_GRP_FINDALL, 0)) {

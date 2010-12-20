@@ -1342,7 +1342,7 @@ static void ui_draw_but_curve_grid(rcti *rect, float zoomx, float zoomy, float o
 	
 }
 
-static void glColor3ubvShade(char *col, int shade)
+static void glColor3ubvShade(unsigned char *col, int shade)
 {
 	glColor3ub(col[0]-shade>0?col[0]-shade:0, 
 			   col[1]-shade>0?col[1]-shade:0,
@@ -1379,7 +1379,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	
 	/* backdrop */
 	if(cumap->flag & CUMA_DO_CLIP) {
-		glColor3ubvShade(wcol->inner, -20);
+		glColor3ubvShade((unsigned char *)wcol->inner, -20);
 		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		glColor3ubv((unsigned char*)wcol->inner);
 		glRectf(rect->xmin + zoomx*(cumap->clipr.xmin-offsx),
@@ -1393,13 +1393,13 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	}
 		
 	/* grid, every .25 step */
-	glColor3ubvShade(wcol->inner, -16);
+	glColor3ubvShade((unsigned char *)wcol->inner, -16);
 	ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.25f);
 	/* grid, every 1.0 step */
-	glColor3ubvShade(wcol->inner, -24);
+	glColor3ubvShade((unsigned char *)wcol->inner, -24);
 	ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 1.0f);
 	/* axes */
-	glColor3ubvShade(wcol->inner, -50);
+	glColor3ubvShade((unsigned char *)wcol->inner, -50);
 	glBegin(GL_LINES);
 	glVertex2f(rect->xmin, rect->ymin + zoomy*(-offsy));
 	glVertex2f(rect->xmax, rect->ymin + zoomy*(-offsy));

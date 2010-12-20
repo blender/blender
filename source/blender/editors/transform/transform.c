@@ -1333,20 +1333,20 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				}
 				case HLP_TRACKBALL:
 				{
-					char col[3], col2[3];
+					unsigned char col[3], col2[3];
 					UI_GetThemeColor3ubv(TH_GRID, col);
 
 					glTranslatef(mval[0], mval[1], 0);
 
 					glLineWidth(3.0);
 
-					UI_make_axis_color(col, col2, 'x');
+					UI_make_axis_color(col, col2, 'X');
 					glColor3ubv((GLubyte *)col2);
 
 					drawArrow(RIGHT, 5, 10, 5);
 					drawArrow(LEFT, 5, 10, 5);
 
-					UI_make_axis_color(col, col2, 'y');
+					UI_make_axis_color(col, col2, 'Y');
 					glColor3ubv((GLubyte *)col2);
 
 					drawArrow(UP, 5, 10, 5);
@@ -4525,7 +4525,7 @@ static int createSlideVerts(TransInfo *t)
 			return 0;
 		}
 
-		if(me->drawflag & ME_DRAW_EDGELEN) {
+		if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 			if(!(tempsv->up->f & SELECT)) {
 				tempsv->up->f |= SELECT;
 				tempsv->up->f2 |= 16;
@@ -4739,7 +4739,7 @@ void freeSlideVerts(TransInfo *t)
 	Mesh *me = t->obedit->data;
 	int uvlay_idx;
 
-	if(me->drawflag & ME_DRAW_EDGELEN) {
+	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 		TransDataSlideVert *tempsv;
 		LinkNode *look = sld->vertlist;
 		GHash *vertgh = sld->vhash;

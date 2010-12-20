@@ -695,16 +695,16 @@ static char axisBlendAngle(float angle)
    moving: in transform theme color
    else the red/green/blue
 */
-static void manipulator_setcolor(View3D *v3d, char axis, int colcode, char alpha)
+static void manipulator_setcolor(View3D *v3d, char axis, int colcode, unsigned char alpha)
 {
-	char col[4];
+	unsigned char col[4]= {0};
+	col[3]= alpha;
 
 	if(colcode==MAN_GHOST) {
-		glColor4ub(0, 0, 0, 70);
+		col[3]= 70;
 	}
 	else if(colcode==MAN_MOVECOL) {
 		UI_GetThemeColor3ubv(TH_TRANSFORM, col);
-		glColor4ub(col[0], col[1], col[2], alpha);
 	}
 	else {
 		switch(axis) {
@@ -720,19 +720,22 @@ static void manipulator_setcolor(View3D *v3d, char axis, int colcode, char alpha
 				col[1]= col[1]<55?0:col[1]-55;
 				col[2]= col[2]<55?0:col[2]-55;
 			}
-			glColor4ub(col[0], col[1], col[2], alpha);
 			break;
 		case 'x':
-			glColor4ub(220, 0, 0, alpha);
+			col[0]= 220;
 			break;
 		case 'y':
-			glColor4ub(0, 220, 0, alpha);
+			col[1]= 220;
 			break;
 		case 'z':
-			glColor4ub(30, 30, 220, alpha);
+			col[0]= 30;
+			col[1]= 30;
+			col[2]= 220;
 			break;
 		}
 	}
+
+	glColor4ubv(col);
 }
 
 /* viewmatrix should have been set OK, also no shademode! */

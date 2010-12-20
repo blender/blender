@@ -2746,7 +2746,7 @@ int setcurr_tab_spaces (Text *text, int space)
 /*********************************/
 
 /* Creates and adds a marker to the list maintaining sorted order */
-void txt_add_marker(Text *text, TextLine *line, int start, int end, char color[4], int group, int flags) {
+void txt_add_marker(Text *text, TextLine *line, int start, int end, const unsigned char color[4], int group, int flags) {
 	TextMarker *tmp, *marker;
 
 	marker= MEM_mallocN(sizeof(TextMarker), "text_marker");

@@ -1886,6 +1886,12 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 		/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];
+
+			unsigned char col[4];
+			float col_f[3];
+			glGetFloatv(GL_CURRENT_COLOR, col_f); /* incase this is not set below */
+			rgb_float_to_byte(col_f, col);
+			col[3]= 255;
 			
 			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 			
@@ -1894,17 +1900,16 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					if (pchan->bone->layer & arm->layer) {
 						if (arm->flag & (ARM_EDITMODE|ARM_POSEMODE)) {
 							bone= pchan->bone;
-							
-							if (bone->flag & BONE_SELECTED) UI_ThemeColor(TH_TEXT_HI);
-							else UI_ThemeColor(TH_TEXT);
+							UI_GetThemeColor3ubv((bone->flag & BONE_SELECTED) ? TH_TEXT_HI : TH_TEXT, col);
 						}
-						else if (dt > OB_WIRE)
-							UI_ThemeColor(TH_TEXT);
-						
+						else if (dt > OB_WIRE) {
+							UI_GetThemeColor3ubv(TH_TEXT, col);
+						}
+
 						/* 	Draw names of bone 	*/
 						if (arm->flag & ARM_DRAWNAMES) {
 							mid_v3_v3v3(vec, pchan->pose_head, pchan->pose_tail);
-							view3d_cached_text_draw_add(vec, pchan->name, 10, 0);
+							view3d_cached_text_draw_add(vec, pchan->name, 10, 0, col);
 						}	
 						
 						/*	Draw additional axes on the bone tail  */
@@ -1913,7 +1918,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 							copy_m4_m4(bmat, pchan->pose_mat);
 							bone_matrix_translate_y(bmat, pchan->bone->length);
 							glMultMatrixf(bmat);
-							
+
+							glColor3ubv(col);
 							drawaxes(pchan->bone->length*0.25f, OB_ARROWS);
 
 							glPopMatrix();
@@ -2088,21 +2094,22 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];
+			unsigned char col[4];
+			col[3]= 255;
 			
 			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 			
 			for (eBone=arm->edbo->first; eBone; eBone=eBone->next) {
 				if(eBone->layer & arm->layer) {
 					if ((eBone->flag & BONE_HIDDEN_A)==0) {
-						
-						if (eBone->flag & BONE_SELECTED) UI_ThemeColor(TH_TEXT_HI);
-						else UI_ThemeColor(TH_TEXT);
-						
+
+						UI_GetThemeColor3ubv((eBone->flag & BONE_SELECTED) ? TH_TEXT_HI : TH_TEXT, col);
+
 						/*	Draw name */
 						if (arm->flag & ARM_DRAWNAMES) {
 							mid_v3_v3v3(vec, eBone->head, eBone->tail);
 							glRasterPos3fv(vec);
-							view3d_cached_text_draw_add(vec, eBone->name, 10, 0);
+							view3d_cached_text_draw_add(vec, eBone->name, 10, 0, col);
 						}					
 						/*	Draw additional axes */
 						if (arm->flag & ARM_DRAWAXES) {
@@ -2110,7 +2117,8 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 							get_matrix_editbone(eBone, bmat);
 							bone_matrix_translate_y(bmat, eBone->length);
 							glMultMatrixf(bmat);
-							
+
+							glColor3ubv(col);
 							drawaxes(eBone->length*0.25f, OB_ARROWS);
 							
 							glPopMatrix();

@@ -1609,7 +1609,7 @@ static ImBuf * input_preprocess(
 	if(seq->sat != 1.0f) {
 		/* inline for now, could become an imbuf function */
 		int i;
-		char *rct= (char *)ibuf->rect;
+		unsigned char *rct= (unsigned char *)ibuf->rect;
 		float *rctf= ibuf->rect_float;
 		const float sat= seq->sat;
 		float hsv[3];

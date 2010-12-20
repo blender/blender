@@ -2006,7 +2006,10 @@ static ListBase strings= {NULL, NULL};
 
 typedef struct View2DString {
 	struct View2DString *next, *prev;
-	GLbyte col[4];
+	union {
+		unsigned char ub[4];
+		int pack;
+	} col;
 	short mval[2];
 	rcti rect;
 } View2DString;
@@ -2026,9 +2029,9 @@ void UI_view2d_text_cache_add(View2D *v2d, float x, float y, const char *str, co
 		memcpy(v2s_str, str, len);
 
 		BLI_addtail(&strings, v2s);
+		v2s->col.pack= *((int *)col);
 		v2s->mval[0]= mval[0];
 		v2s->mval[1]= mval[1];
-		QUATCOPY(v2s->col, col);
 	}
 }
 
@@ -2043,17 +2046,18 @@ void UI_view2d_text_cache_rectf(View2D *v2d, rctf *rect, const char *str, const 
 	UI_view2d_to_region_no_clip(v2d, rect->xmin, rect->ymin, &v2s->rect.xmin, &v2s->rect.ymin);
 	UI_view2d_to_region_no_clip(v2d, rect->xmax, rect->ymax, &v2s->rect.xmax, &v2s->rect.ymax);
 
+	v2s->col.pack= *((int *)col);
 	v2s->mval[0]= v2s->rect.xmin;
 	v2s->mval[1]= v2s->rect.ymin;
 
 	BLI_addtail(&strings, v2s);
-	QUATCOPY(v2s->col, col);
 }
 
 
 void UI_view2d_text_cache_draw(ARegion *ar)
 {
 	View2DString *v2s;
+	int col_pack_prev= 0;
 	
 	// glMatrixMode(GL_PROJECTION);
 	// glPushMatrix();
@@ -2068,7 +2072,10 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 		yofs= ceil( 0.5f*(v2s->rect.ymax - v2s->rect.ymin - BLF_height_default("28")));
 		if(yofs<1) yofs= 1;
 
-		glColor3bv(v2s->col);
+		if(col_pack_prev != v2s->col.pack) {
+			glColor3ubv(v2s->col.ub);
+			col_pack_prev= v2s->col.pack;
+		}
 
 		if(v2s->rect.xmin >= v2s->rect.xmax)
 			BLF_draw_default((float)v2s->mval[0]+xofs, (float)v2s->mval[1]+yofs, 0.0, str, 65535);

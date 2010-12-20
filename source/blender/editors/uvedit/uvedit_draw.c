@@ -423,7 +423,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	EditFace *efa, *efa_act;
 	MTFace *tf, *activetf = NULL;
 	DerivedMesh *finaldm, *cagedm;
-	char col1[4], col2[4];
+	unsigned char col1[4], col2[4];
 	float pointsize;
 	int drawfaces, interpedges, lastsel, sel;
 	Image *ima= sima->image;

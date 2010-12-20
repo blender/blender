@@ -4204,7 +4204,7 @@ useless:
 			return 0;
 		}
 
-		if(me->drawflag & ME_DRAW_EDGELEN) {
+		if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 			if(!(tempsv->up->f & SELECT)) {
 				tempsv->up->f |= SELECT;
 				tempsv->up->f2 |= 16;
@@ -4657,7 +4657,7 @@ useless:
 	}
 
 
-	if(me->drawflag & ME_DRAW_EDGELEN) {
+	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 		look = vertlist;
 		while(look) {
 			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);

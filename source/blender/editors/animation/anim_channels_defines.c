@@ -162,7 +162,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 	if ( (saction && !(saction->flag & SACTION_NODRAWGCOLORS)) && 
 		 ((grp) && (grp->customCol)) ) 
 	{
-		char cp[3];
+		unsigned char cp[3];
 		
 		if (indent == 2) {
 			VECCOPY(cp, grp->cs.solid);
