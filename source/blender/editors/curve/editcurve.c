@@ -4337,7 +4337,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	findselectedNurbvert(&editnurb->nurbs, &nu, &bezt, &bp);
 
 	if ((nu == NULL) || (nu->type==CU_BEZIER && bezt==NULL) || (nu->type!=CU_BEZIER && bp==NULL)) {
-		if(cu->actnu >= 0) {
+		if(cu->actnu >= 0 && mode!='e') {
 			nu= BLI_findlink(&editnurb->nurbs, cu->actnu);
 
 			if(nu->type==CU_BEZIER) {
