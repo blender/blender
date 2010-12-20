@@ -240,9 +240,8 @@ typedef struct SpaceOops {
 	/* search stuff */
 	char search_string[32];
 	struct TreeStoreElem search_tse;
-	int search_flags, do_;
-	
-	short flag, outlinevis, storeflag, pad;
+
+	short flag, outlinevis, storeflag, search_flags;
 } SpaceOops;
 
 typedef struct SpaceImage {

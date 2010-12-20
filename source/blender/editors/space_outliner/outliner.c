@@ -2715,7 +2715,7 @@ static TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, ID *id)
 		if(tselem->type==0) {
 			if(tselem->id==id) return te;
 			/* only deeper on scene or object */
-			if( te->idcode==ID_OB || te->idcode==ID_SCE) { 
+			if( te->idcode==ID_OB || te->idcode==ID_SCE || (soops->outlinevis == SO_GROUPS && te->idcode==ID_GR)) {
 				tes= outliner_find_id(soops, &te->subtree, id);
 				if(tes) return tes;
 			}
@@ -2770,8 +2770,6 @@ void OUTLINER_OT_show_active(wmOperatorType *ot)
 	/* callbacks */
 	ot->exec= outliner_show_active_exec;
 	ot->poll= ED_operator_outliner_active;
-	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* tse is not in the treestore, we use its contents to find a match */
