@@ -4559,6 +4559,21 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 	
 }
 
+/* closed tree element */
+static void outliner_set_coord_tree_element(SpaceOops *soops, TreeElement *te, int startx, int *starty)
+{
+	TreeElement *ten;
+	
+	/* store coord and continue, we need coordinates for elements outside view too */
+	te->xs= (float)startx;
+	te->ys= (float)(*starty);
+	
+	for(ten= te->subtree.first; ten; ten= ten->next) {
+		outliner_set_coord_tree_element(soops, ten, startx+OL_X, starty);
+	}	
+}
+
+
 static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int startx, int *starty)
 {
 	TreeElement *ten;
@@ -4713,13 +4728,18 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 	te->ys= (float)*starty;
 	te->xend= startx+offsx;
 		
-	*starty-= OL_H;
-
 	if((tselem->flag & TSE_CLOSED)==0) {
-		for(ten= te->subtree.first; ten; ten= ten->next) {
+		*starty-= OL_H;
+		
+		for(ten= te->subtree.first; ten; ten= ten->next)
 			outliner_draw_tree_element(C, block, scene, ar, soops, ten, startx+OL_X, starty);
-		}
 	}	
+	else {
+		for(ten= te->subtree.first; ten; ten= ten->next)
+			outliner_set_coord_tree_element(soops, te, startx, starty);
+
+		*starty-= OL_H;
+	}
 }
 
 static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, int *starty)
