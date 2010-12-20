@@ -918,11 +918,13 @@ static int shader_preview_break(void *spv)
 static void shader_preview_updatejob(void *spv)
 {
 	ShaderPreview *sp= spv;
-	Material *mat= (Material *)sp->id;
 	
-	if(sp->matcopy && mat->nodetree)
-		ntreeLocalSync(sp->matcopy->nodetree, mat->nodetree);
-
+	if(sp->id && GS(sp->id->name) == ID_MA) {
+		Material *mat= (Material *)sp->id;
+		
+		if(sp->matcopy && mat->nodetree && sp->matcopy->nodetree)
+			ntreeLocalSync(sp->matcopy->nodetree, mat->nodetree);
+	}
 }
 
 static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int first)
