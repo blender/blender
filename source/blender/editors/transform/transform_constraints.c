@@ -624,9 +624,9 @@ void drawConstraint(TransInfo *t)
 			convertViewVec(t, vec, (short)(t->mval[0] - t->con.imval[0]), (short)(t->mval[1] - t->con.imval[1]));
 			add_v3_v3(vec, tc->center);
 
-			drawLine(t, tc->center, tc->mtx[0], 'x', 0);
-			drawLine(t, tc->center, tc->mtx[1], 'y', 0);
-			drawLine(t, tc->center, tc->mtx[2], 'z', 0);
+			drawLine(t, tc->center, tc->mtx[0], 'X', 0);
+			drawLine(t, tc->center, tc->mtx[1], 'Y', 0);
+			drawLine(t, tc->center, tc->mtx[2], 'Z', 0);
 
 			glColor3ubv((GLubyte *)col2);
 
@@ -646,13 +646,13 @@ void drawConstraint(TransInfo *t)
 		}
 
 		if (tc->mode & CON_AXIS0) {
-			drawLine(t, tc->center, tc->mtx[0], 'x', DRAWLIGHT);
+			drawLine(t, tc->center, tc->mtx[0], 'X', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS1) {
-			drawLine(t, tc->center, tc->mtx[1], 'y', DRAWLIGHT);
+			drawLine(t, tc->center, tc->mtx[1], 'Y', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS2) {
-			drawLine(t, tc->center, tc->mtx[2], 'z', DRAWLIGHT);
+			drawLine(t, tc->center, tc->mtx[2], 'Z', DRAWLIGHT);
 		}
 	}
 }
@@ -713,26 +713,26 @@ static void drawObjectConstraint(TransInfo *t) {
 	   Without drawing the first light, users have little clue what they are doing.
 	 */
 	if (t->con.mode & CON_AXIS0) {
-		drawLine(t, td->ob->obmat[3], td->axismtx[0], 'x', DRAWLIGHT);
+		drawLine(t, td->ob->obmat[3], td->axismtx[0], 'X', DRAWLIGHT);
 	}
 	if (t->con.mode & CON_AXIS1) {
-		drawLine(t, td->ob->obmat[3], td->axismtx[1], 'y', DRAWLIGHT);
+		drawLine(t, td->ob->obmat[3], td->axismtx[1], 'Y', DRAWLIGHT);
 	}
 	if (t->con.mode & CON_AXIS2) {
-		drawLine(t, td->ob->obmat[3], td->axismtx[2], 'z', DRAWLIGHT);
+		drawLine(t, td->ob->obmat[3], td->axismtx[2], 'Z', DRAWLIGHT);
 	}
 
 	td++;
 
 	for(i=1;i<t->total;i++,td++) {
 		if (t->con.mode & CON_AXIS0) {
-			drawLine(t, td->ob->obmat[3], td->axismtx[0], 'x', 0);
+			drawLine(t, td->ob->obmat[3], td->axismtx[0], 'X', 0);
 		}
 		if (t->con.mode & CON_AXIS1) {
-			drawLine(t, td->ob->obmat[3], td->axismtx[1], 'y', 0);
+			drawLine(t, td->ob->obmat[3], td->axismtx[1], 'Y', 0);
 		}
 		if (t->con.mode & CON_AXIS2) {
-			drawLine(t, td->ob->obmat[3], td->axismtx[2], 'z', 0);
+			drawLine(t, td->ob->obmat[3], td->axismtx[2], 'Z', 0);
 		}
 	}
 }
