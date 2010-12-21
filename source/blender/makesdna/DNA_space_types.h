@@ -359,13 +359,11 @@ typedef struct SpaceScript {
 
 typedef struct SpaceTimeCache {
 	struct SpaceTimeCache *next, *prev;
-	int type;
-	int flag;
-	
+
+	struct PointCache *cache;
 	float *array;
-	int len;
-	int startframe, endframe;
-	int ok;
+
+	int type, len;
 } SpaceTimeCache;
 
 typedef struct SpaceTime {

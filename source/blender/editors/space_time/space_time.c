@@ -92,10 +92,35 @@ static void time_draw_cache(SpaceTime *stime)
 		return;
 	
 	for (stc= stime->caches.first; stc; stc=stc->next) {
-		float col[4];
-		
-		if (!stc->array || !stc->ok)
-			continue;
+		float col[4], *fp;
+		int i, sta = stc->cache->startframe, end = stc->cache->endframe;
+		int len = (end - sta + 1)*4;
+
+		if(!stc->array || MEM_allocN_len(stc->array) != len*2*sizeof(float)) {
+			stc->len = len;
+			stc->array = MEM_callocN(stc->len*2*sizeof(float), "SpaceTimeCache array");
+		}
+
+		/* fill the vertex array with a quad for each cached frame */
+		for (i=sta, fp=stc->array; i<=end; i++) {
+			if (stc->cache->cached_frames[i-sta]) {
+				fp[0] = (float)i-0.5f;
+				fp[1] = 0.0;
+				fp+=2;
+				
+				fp[0] = (float)i-0.5f;
+				fp[1] = 1.0;
+				fp+=2;
+				
+				fp[0] = (float)i+0.5f;
+				fp[1] = 1.0;
+				fp+=2;
+				
+				fp[0] = (float)i+0.5f;
+				fp[1] = 0.0;
+				fp+=2;
+			}
+		}
 		
 		glPushMatrix();
 		glTranslatef(0.0, (float)V2D_SCROLL_HEIGHT+yoffs, 0.0);
@@ -124,17 +149,17 @@ static void time_draw_cache(SpaceTime *stime)
 		
 		glEnable(GL_BLEND);
 		
-		glRectf((float)stc->startframe, 0.0, (float)stc->endframe, 1.0);
+		glRectf((float)sta, 0.0, (float)end, 1.0);
 		
 		col[3] = 0.4;
-		if (stc->flag & PTCACHE_BAKED) {
+		if (stc->cache->flag & PTCACHE_BAKED) {
 			col[0] -= 0.4;	col[1] -= 0.4;	col[2] -= 0.4;
 		}
 		glColor4fv(col);
 		
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(2, GL_FLOAT, 0, stc->array);
-		glDrawArrays(GL_QUADS, 0, stc->len);
+		glDrawArrays(GL_QUADS, 0, (fp-stc->array)/2);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		
 		glDisable(GL_BLEND);
@@ -176,9 +201,6 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime)
 	 * add spacetimecache and vertex array for each */
 	for(pid=pidlist.first; pid; pid=pid->next) {
 		SpaceTimeCache *stc;
-		float *fp, *array;
-		int i, len;
-		int sta, end;
 		
 		switch(pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
@@ -196,7 +218,7 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime)
 				break;
 		}
 
-		BKE_ptcache_id_time(pid, CTX_data_scene(C), 0, &sta, &end, NULL);
+		BKE_ptcache_id_time(pid, CTX_data_scene(C), 0, NULL, NULL, NULL);
 		
 		if(pid->cache->cached_frames==NULL)
 			continue;
@@ -204,48 +226,8 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime)
 		stc= MEM_callocN(sizeof(SpaceTimeCache), "spacetimecache");
 		
 		stc->type = pid->type;
-		
-		if (pid->cache->flag & PTCACHE_BAKED)
-			stc->flag |= PTCACHE_BAKED;
-		if (pid->cache->flag & PTCACHE_DISK_CACHE)
-			stc->flag |= PTCACHE_DISK_CACHE;
-		
-		/* first allocate with maximum number of frames needed */
-		stc->startframe = sta;
-		stc->endframe = end;
-		len = (end - sta + 1)*4;
-		fp = array = MEM_callocN(len*2*sizeof(float), "temporary timeline cache array");
-		
-		/* fill the vertex array with a quad for each cached frame */
-		for (i=sta; i<=end; i++) {
-			
-			if (pid->cache->cached_frames[i-sta]) {
-				fp[0] = (float)i-0.5f;
-				fp[1] = 0.0;
-				fp+=2;
-				
-				fp[0] = (float)i-0.5f;
-				fp[1] = 1.0;
-				fp+=2;
-				
-				fp[0] = (float)i+0.5f;
-				fp[1] = 1.0;
-				fp+=2;
-				
-				fp[0] = (float)i+0.5f;
-				fp[1] = 0.0;
-				fp+=2;
-			}
-		}
-		/* update with final number of frames */
-		stc->len = (i-stc->startframe)*4;
-		stc->array = MEM_mallocN(stc->len*2*sizeof(float), "SpaceTimeCache array");
-		memcpy(stc->array, array, stc->len*2*sizeof(float));
-		
-		MEM_freeN(array);
-		array = NULL;
-		
-		stc->ok = 1;
+		stc->cache = pid->cache;
+		stc->len = 0;
 		
 		BLI_addtail(&stime->caches, stc);
 	}
@@ -401,6 +383,8 @@ static void time_listener(ScrArea *sa, wmNotifier *wmn)
 			switch (wmn->data) {
 				case ND_BONE_ACTIVE:
 				case ND_POINTCACHE:
+				case ND_MODIFIER:
+				case ND_PARTICLE:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
@@ -430,6 +414,12 @@ static void time_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SPACE:
 			switch (wmn->data) {
 				case ND_SPACE_CHANGED:
+					ED_area_tag_refresh(sa);
+					break;
+			}
+		case NC_WM:
+			switch (wmn->data) {
+				case ND_FILEREAD:
 					ED_area_tag_refresh(sa);
 					break;
 			}
