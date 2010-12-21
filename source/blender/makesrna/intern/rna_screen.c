@@ -83,7 +83,7 @@ static int rna_Screen_is_animation_playing_get(PointerRNA *ptr)
 static int rna_Screen_fullscreen_get(PointerRNA *ptr)
 {
 	bScreen *sc= (bScreen*)ptr->data;
-	return (sc->full == SCREENFULL);
+	return (sc->full != 0);
 }
 
 static void rna_Area_type_set(PointerRNA *ptr, int value)
