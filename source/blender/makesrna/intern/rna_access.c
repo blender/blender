@@ -3287,6 +3287,136 @@ char *RNA_path_back(const char *path)
 	return result;
 }
 
+/* generic path search func
+ * if its needed this could also reference the IDProperty direct */
+typedef struct IDP_Chain {
+	struct IDP_Chain *up; /* parent member, reverse and set to child for path conversion. */
+
+	const char *name;
+	int index;
+
+} IDP_Chain;
+
+static char *rna_idp_path_create(IDP_Chain *child_link)
+{
+	DynStr *dynstr= BLI_dynstr_new();
+	char *path;
+	short first= TRUE;
+
+	int tot= 0;
+	IDP_Chain *link= child_link;
+
+	/* reverse the list */
+	IDP_Chain *link_prev;
+	link_prev= NULL;
+	while(link) {
+		IDP_Chain *link_next= link->up;
+		link->up= link_prev;
+		link_prev= link;
+		link= link_next;
+		tot++;
+	}
+
+	for(link= link_prev; link; link= link->up) {
+		/* pass */
+		if(link->index >= 0) {
+			BLI_dynstr_appendf(dynstr, first ? "%s[%d]" : ".%s[%d]", link->name, link->index);
+		}
+		else {
+			BLI_dynstr_appendf(dynstr, first ? "%s" : ".%s", link->name);
+		}
+
+		first= FALSE;
+	}
+
+	path= BLI_dynstr_get_cstring(dynstr);
+	BLI_dynstr_free(dynstr);
+
+	if(*path=='\0') {
+		MEM_freeN(path);
+		path= NULL;
+	}
+
+	return path;
+}
+
+static char *rna_idp_path(PointerRNA *ptr, IDProperty *haystack, IDProperty *needle, IDP_Chain *parent_link)
+{
+	char *path= NULL;
+	IDP_Chain link;
+
+	IDProperty *iter;
+	int i;
+
+	BKE_assert(haystack->type == IDP_GROUP);
+
+	link.up= parent_link;
+	link.name= NULL;
+	link.index= -1;
+
+	for (i=0, iter= haystack->data.group.first; iter; iter= iter->next, i++) {
+		if(needle == iter) {  /* found! */
+			link.name= iter->name;
+			path= rna_idp_path_create(&link);
+			break;
+		}
+		else {
+			if(iter->type == IDP_GROUP) {
+				/* ensure this is RNA */
+				PointerRNA child_ptr= RNA_pointer_get(ptr, iter->name);
+				if(child_ptr.type) {
+					link.name= iter->name;
+					if((path= rna_idp_path(&child_ptr, iter, needle, &link))) {
+						break;
+					}
+				}
+			}
+			else if (iter->type == IDP_IDPARRAY) {
+				PropertyRNA *prop= RNA_struct_find_property(ptr, iter->name);
+				if(prop && prop->type == PROP_COLLECTION) {
+					IDProperty *array= IDP_IDPArray(iter);
+					if(needle >= array && needle < (iter->len + array)) { /* found! */
+						link.name= iter->name;
+						link.index= (int)(needle - array);
+						path= rna_idp_path_create(&link);
+						break;
+					}
+					else {
+						int i;
+						link.name= iter->name;
+						for(i= 0; i < iter->len; i++, array++) {
+							PointerRNA child_ptr;
+							if(RNA_property_collection_lookup_int(ptr, prop, i, &child_ptr)) {
+								link.index= i;
+								if((path= rna_idp_path(&child_ptr, array, needle, &link))) {
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return path;
+}
+
+static char *rna_path_from_ID_to_idpgroup(PointerRNA *ptr)
+{
+	PointerRNA id_ptr;
+	IDProperty *haystack;
+	IDProperty *needle;
+
+	BKE_assert(ptr->id.data != NULL);
+	RNA_id_pointer_create(ptr->id.data, &id_ptr);
+
+	haystack= RNA_struct_idprops(&id_ptr, FALSE);
+	needle= ptr->data;
+
+	return rna_idp_path(&id_ptr, haystack, needle, NULL);
+}
+
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 {
 	char *ptrpath=NULL;
@@ -3313,6 +3443,10 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 				ptrpath= BLI_strdup(RNA_property_identifier(userprop));
 			else
 				return NULL; // can't do anything about this case yet...
+		}
+		else if (RNA_struct_is_a(ptr->type, &RNA_IDPropertyGroup)) {
+			/* special case, easier to deal with here then in ptr->type->path() */
+			return rna_path_from_ID_to_idpgroup(ptr);
 		}
 		else
 			return NULL;
