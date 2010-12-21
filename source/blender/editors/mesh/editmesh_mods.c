@@ -1458,7 +1458,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 		break;
 	case 2:	/* copy image */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
+			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1479,7 +1479,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 
 	case 3: /* copy UV's */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
+			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1492,7 +1492,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 		break;
 	case 4: /* mode's */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
+			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1505,7 +1505,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 		break;
 	case 5: /* copy transp's */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
+			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1519,7 +1519,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 
 	case 6: /* copy vcols's */
 		if (!mcol_act) {
-			BKE_report(op->reports, RPT_ERROR, "Mesh has no color layers.");
+			BKE_report(op->reports, RPT_WARNING, "Mesh has no color layers.");
 			return;
 		} else {
 			/* guess the 4th color if needs be */
@@ -1576,7 +1576,7 @@ void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type)
 	case 8:
 	case 9:
 		if (CustomData_number_of_layers(&em->fdata, CD_MTFACE)<2) {
-			BKE_report(op->reports, RPT_ERROR, "mesh does not have multiple uv/image layers");
+			BKE_report(op->reports, RPT_WARNING, "mesh does not have multiple uv/image layers");
 			return;
 		} else {
 			int layer_orig_idx, layer_idx;
@@ -1603,7 +1603,7 @@ void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type)
 
 	case 10: /* select vcol layers - make sure this stays in sync with above code */
 		if (CustomData_number_of_layers(&em->fdata, CD_MCOL)<2) {
-			BKE_report(op->reports, RPT_ERROR, "mesh does not have multiple color layers");
+			BKE_report(op->reports, RPT_WARNING, "mesh does not have multiple color layers");
 			return;
 		} else {
 			int layer_orig_idx, layer_idx;
@@ -2853,7 +2853,7 @@ int select_by_number_vertices_exec(bContext *C, wmOperator *op)
 		EM_set_flag_all(em, SELECT);
 	}
 	else if(em->selectmode!=SCE_SELECT_FACE) {
-		BKE_report(op->reports, RPT_ERROR, "Only works in face selection mode");
+		BKE_report(op->reports, RPT_WARNING, "Only works in face selection mode");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -2949,7 +2949,7 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	
 	if(em->selectmode==SCE_SELECT_FACE) {
-		BKE_report(op->reports, RPT_ERROR, "Doesn't work in face selection mode");
+		BKE_report(op->reports, RPT_WARNING, "Doesn't work in face selection mode");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -3067,7 +3067,7 @@ static void select_linked_flat_faces(EditMesh *em, wmOperator *op, float sharpne
 	float fsharpness;
 	
 	if(em->selectmode!=SCE_SELECT_FACE) {
-		BKE_report(op->reports, RPT_ERROR, "Only works in face selection mode");
+		BKE_report(op->reports, RPT_WARNING, "Only works in face selection mode");
 		return;
 	}
 
@@ -3231,7 +3231,7 @@ void select_non_manifold(EditMesh *em, wmOperator *op )
 	 */
 	
 	if(em->selectmode==SCE_SELECT_FACE) {
-		BKE_report(op->reports, RPT_ERROR, "Doesn't work in face selection mode");
+		BKE_report(op->reports, RPT_WARNING, "Doesn't work in face selection mode");
 		return;
 	}
 
@@ -4129,7 +4129,7 @@ void faceselect_align_view_to_selected(View3D *v3d, RegionView3D *rv3d, Mesh *me
 	}
 
 	if (totselected == 0)
-		BKE_report(op->reports, RPT_ERROR, "No faces selected.");
+		BKE_report(op->reports, RPT_WARNING, "No faces selected.");
 	else
 		view3d_align_axis_to_vector(v3d, rv3d, axis, norm);
 }
@@ -4161,7 +4161,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, wmOperator *o
 	float norm[3]={0.0, 0.0, 0.0}; /* used for storing the mesh normal */
 	
 	if (nselverts==0) {
-		BKE_report(op->reports, RPT_ERROR, "No faces or vertices selected.");
+		BKE_report(op->reports, RPT_WARNING, "No faces or vertices selected.");
 	} 
 	else if (EM_nfaces_selected(em)) {
 		EditFace *efa;

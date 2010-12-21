@@ -32,11 +32,11 @@
 #include <stdio.h>
 
 #include "DNA_ID.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -50,8 +50,10 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_scene.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
@@ -385,6 +387,12 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	EditEdge *edge;
 	int dist = 75;
 
+	
+	if(modifiers_getCageIndex(CTX_data_scene(C), CTX_data_edit_object(C), NULL, 1)>=0) {
+		BKE_report(op->reports, RPT_WARNING, "Loop cut can't work on deformed edit mesh display");
+		return OPERATOR_CANCELLED;
+	}
+	
 	view3d_operator_needs_opengl(C);
 
 	if (!ringsel_init(C, op, 1))

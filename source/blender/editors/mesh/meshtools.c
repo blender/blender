@@ -105,13 +105,13 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	CustomData vdata, edata, fdata;
 
 	if(scene->obedit) {
-		BKE_report(op->reports, RPT_ERROR, "Cant join while in editmode");
+		BKE_report(op->reports, RPT_WARNING, "Cant join while in editmode");
 		return OPERATOR_CANCELLED;
 	}
 	
 	/* ob is the object we are adding geometry to */
 	if(!ob || ob->type!=OB_MESH) {
-		BKE_report(op->reports, RPT_ERROR, "Active object is not a mesh");
+		BKE_report(op->reports, RPT_WARNING, "Active object is not a mesh");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -137,7 +137,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	
 	/* that way the active object is always selected */ 
 	if(ok==0) {
-		BKE_report(op->reports, RPT_ERROR, "Active object is not a selected mesh");
+		BKE_report(op->reports, RPT_WARNING, "Active object is not a selected mesh");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -146,12 +146,12 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	key= me->key;
 
 	if(totvert==0 || totvert==me->totvert) {
-		BKE_report(op->reports, RPT_ERROR, "No mesh data to join");
+		BKE_report(op->reports, RPT_WARNING, "No mesh data to join");
 		return OPERATOR_CANCELLED;
 	}
 	
 	if(totvert > MESH_MAX_VERTS) {
-		BKE_reportf(op->reports, RPT_ERROR, "Joining results in %d vertices, limit is " STRINGIFY(MESH_MAX_VERTS), totvert);
+		BKE_reportf(op->reports, RPT_WARNING, "Joining results in %d vertices, limit is " STRINGIFY(MESH_MAX_VERTS), totvert);
 		return OPERATOR_CANCELLED;		
 	}
 
@@ -571,9 +571,9 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	
 	if (!ok) {
 		if (nonequal_verts)
-			BKE_report(op->reports, RPT_ERROR, "Selected meshes must have equal numbers of vertices.");
+			BKE_report(op->reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices.");
 		else
-			BKE_report(op->reports, RPT_ERROR, "No additional selected meshes with equal vertex count to join.");
+			BKE_report(op->reports, RPT_WARNING, "No additional selected meshes with equal vertex count to join.");
 		return OPERATOR_CANCELLED;
 	}
 	
