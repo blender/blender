@@ -6025,7 +6025,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_END;
 	
 	cu= ob->data;
-	addlisttolist(&cu->nurb, &tempbase);
+	BLI_movelisttolist(&cu->nurb, &tempbase);
 	
 	DAG_scene_sort(bmain, scene);	// because we removed object(s), call before editmode!
 	

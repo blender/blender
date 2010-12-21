@@ -465,8 +465,8 @@ static void splitlist(ListBase *tempve, ListBase *temped, short nr)
 	EditVert *eve,*nextve;
 	EditEdge *eed,*nexted;
 
-	addlisttolist(tempve,&fillvertbase);
-	addlisttolist(temped,&filledgebase);
+	BLI_movelisttolist(tempve,&fillvertbase);
+	BLI_movelisttolist(temped,&filledgebase);
 
 	eve= tempve->first;
 	while(eve) {
@@ -1029,8 +1029,8 @@ int BLI_edgefill(int mat_nr)
 		}
 		pf++;
 	}
-	addlisttolist(&fillvertbase,&tempve);
-	addlisttolist(&filledgebase,&temped);
+	BLI_movelisttolist(&fillvertbase,&tempve);
+	BLI_movelisttolist(&filledgebase,&temped);
 
 	/* FREE */
 

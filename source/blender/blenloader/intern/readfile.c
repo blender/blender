@@ -384,7 +384,7 @@ static void add_main_to_main(Main *mainvar, Main *from)
 	a= set_listbasepointers(mainvar, lbarray);
 	a= set_listbasepointers(from, fromarray);
 	while(a--) {
-		addlisttolist(lbarray[a], fromarray[a]);
+		BLI_movelisttolist(lbarray[a], fromarray[a]);
 	}
 }
 

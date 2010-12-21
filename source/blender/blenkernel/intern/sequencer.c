@@ -790,7 +790,7 @@ void sort_seq(Scene *scene)
 		}
 	}
 
-	addlisttolist(&seqbase, &effbase);
+	BLI_movelisttolist(&seqbase, &effbase);
 	*(ed->seqbasep)= seqbase;
 }
 
@@ -3234,7 +3234,7 @@ void seq_dupe_animdata(Scene *scene, char *name_from, char *name_to)
 	BKE_animdata_fix_paths_rename(&scene->id, scene->adt, "sequence_editor.sequences_all", name_from, name_to, 0, 0, 0);
 
 	/* add the original fcurves back */
-	addlisttolist(&scene->adt->action->curves, &lb);
+	BLI_movelisttolist(&scene->adt->action->curves, &lb);
 }
 
 /* XXX - hackish function needed to remove all fcurves belonging to a sequencer strip */

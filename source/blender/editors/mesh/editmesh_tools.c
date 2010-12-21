@@ -555,7 +555,7 @@ void xsortvert_flag(bContext *C, int flag)
 		}
 	}
 
-	addlisttolist(&vc.em->verts, &tbase);
+	BLI_movelisttolist(&vc.em->verts, &tbase);
 
 	MEM_freeN(sortblock);
 
@@ -613,7 +613,7 @@ void hashvert_flag(EditMesh *em, int flag)
 		sb++;
 	}
 
-	addlisttolist(&em->verts, &tbase);
+	BLI_movelisttolist(&em->verts, &tbase);
 
 	MEM_freeN(sortblock);
 

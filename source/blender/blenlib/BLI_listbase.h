@@ -40,13 +40,12 @@
 extern "C" {
 #endif
 
-void addlisttolist(struct ListBase *list1, struct ListBase *list2);
 void BLI_insertlink(struct ListBase *listbase, void *vprevlink, void *vnewlink);
-void *BLI_findlink(struct ListBase *listbase, int number);
-int BLI_findindex(struct ListBase *listbase, void *vlink);
-void *BLI_findstring(struct ListBase *listbase, const char *id, int offset);
-void *BLI_findstring_ptr(struct ListBase *listbase, const char *id, int offset);
-int BLI_findstringindex(struct ListBase *listbase, const char *id, int offset);
+void *BLI_findlink(const struct ListBase *listbase, int number);
+int BLI_findindex(const struct ListBase *listbase, void *vlink);
+void *BLI_findstring(const struct ListBase *listbase, const char *id, const int offset);
+void *BLI_findstring_ptr(const struct ListBase *listbase, const char *id, const int offset);
+int BLI_findstringindex(const struct ListBase *listbase, const char *id, const int offset);
 void BLI_freelistN(struct ListBase *listbase);
 void BLI_addtail(struct ListBase *listbase, void *vlink);
 void BLI_remlink(struct ListBase *listbase, void *vlink);
@@ -57,9 +56,11 @@ void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnew
 void BLI_insertlinkafter(struct ListBase *listbase, void *vprevlink, void *vnewlink);
 void BLI_sortlist(struct ListBase *listbase, int (*cmp)(void *, void *));
 void BLI_freelist(struct ListBase *listbase);
-int BLI_countlist(struct ListBase *listbase);
+int BLI_countlist(const struct ListBase *listbase);
 void BLI_freelinkN(struct ListBase *listbase, void *vlink);
-void BLI_duplicatelist(struct ListBase *list1, const struct ListBase *list2);
+
+void BLI_movelisttolist(struct ListBase *dst, struct ListBase *src);
+void BLI_duplicatelist(struct ListBase *dst, const struct ListBase *src);
 
 /* create a generic list node containing link to provided data */
 struct LinkData *BLI_genericNodeN(void *data);

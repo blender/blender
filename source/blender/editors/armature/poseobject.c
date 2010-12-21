@@ -729,7 +729,7 @@ void pose_copy_menu(Scene *scene)
 							for (con= tmp_constraints.first; con; con= con->next)
 								con->flag |= CONSTRAINT_PROXY_LOCAL;
 						}
-						addlisttolist(&pchan->constraints, &tmp_constraints);
+						BLI_movelisttolist(&pchan->constraints, &tmp_constraints);
 						
 						/* update flags (need to add here, not just copy) */
 						pchan->constflag |= pchanact->constflag;
@@ -836,7 +836,7 @@ void pose_copy_menu(Scene *scene)
 					for (con= tmp_constraints.first; con; con= con->next)
 						con->flag |= CONSTRAINT_PROXY_LOCAL;
 				}
-				addlisttolist(&pchan->constraints, &tmp_constraints);
+				BLI_movelisttolist(&pchan->constraints, &tmp_constraints);
 				
 				/* update flags (need to add here, not just copy) */
 				pchan->constflag |= pchanact->constflag;

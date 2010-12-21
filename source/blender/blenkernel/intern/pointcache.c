@@ -890,7 +890,7 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 				if(dob->ob != ob) { /* avoids recursive loops with dupliframes: bug 22988 */
 					ListBase lb_dupli_pid;
 					BKE_ptcache_ids_from_object(&lb_dupli_pid, dob->ob, scene, duplis);
-					addlisttolist(lb, &lb_dupli_pid);
+					BLI_movelisttolist(lb, &lb_dupli_pid);
 					if(lb_dupli_pid.first)
 						printf("Adding Dupli\n");
 				}
