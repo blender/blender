@@ -212,27 +212,32 @@ macro(TEST_SSE_SUPPORT)
 		set(CMAKE_REQUIRED_FLAGS "/arch:SSE2") # TODO, SSE 1 ?
 	endif()
 
-	check_c_source_runs("
-		#include <xmmintrin.h>
-		int main() { __m128 v = _mm_setzero_ps(); return 0; }"
-	SUPPORT_SSE_BUILD)
+	if(NOT DEFINED ${SUPPORT_SSE_BUILD})
+		check_c_source_runs("
+			#include <xmmintrin.h>
+			int main() { __m128 v = _mm_setzero_ps(); return 0; }"
+		SUPPORT_SSE_BUILD)
+		
+		if(SUPPORT_SSE_BUILD)
+			message(STATUS "SSE Support: detected.")
+		else()
+			message(STATUS "SSE Support: missing.")
+		endif()
+		set(${SUPPORT_SSE_BUILD} ${SUPPORT_SSE_BUILD} CACHE INTERNAL "SSE Test")
+	endif()	
 
-	check_c_source_runs("
-		#include <emmintrin.h>
-		int main() { __m128d v = _mm_setzero_pd(); return 0; }"
-	SUPPORT_SSE2_BUILD)
-	# message(STATUS "Detecting SSE support")
+	if(NOT DEFINED ${SUPPORT_SSE2_BUILD})
+		check_c_source_runs("
+			#include <emmintrin.h>
+			int main() { __m128d v = _mm_setzero_pd(); return 0; }"
+		SUPPORT_SSE2_BUILD)
 
-	if(SUPPORT_SSE_BUILD)
-		message(STATUS "SSE Support: detected.")
-	else()
-		message(STATUS "SSE Support: missing.")
-	endif()
-
-	if(SUPPORT_SSE2_BUILD)
-		message(STATUS "SSE2 Support: detected.")
-	else()
-		message(STATUS "SSE2 Support: missing.")
+		if(SUPPORT_SSE2_BUILD)
+			message(STATUS "SSE2 Support: detected.")
+		else()
+			message(STATUS "SSE2 Support: missing.")
+		endif()	
+		set(${SUPPORT_SSE2_BUILD} ${SUPPORT_SSE2_BUILD} CACHE INTERNAL "SSE2 Test")
 	endif()
 
 endmacro()
@@ -276,7 +281,7 @@ macro(remove_strict_flags)
 endmacro()
 
 
-# XXX, until cmake fix this bug! from CheckCCompilerFlag.cmakem reported 11615
+# XXX, until cmake 2.8.4 is released.
 INCLUDE(CheckCSourceCompiles)
 MACRO (CHECK_C_COMPILER_FLAG__INTERNAL _FLAG _RESULT)
    SET(SAFE_CMAKE_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS}")
@@ -295,14 +300,13 @@ ENDMACRO (CHECK_C_COMPILER_FLAG__INTERNAL)
 
 macro(ADD_CHECK_C_COMPILER_FLAG
 	_CFLAGS
+	_CACHE_VAR
 	_FLAG)
 
 	# include(CheckCCompilerFlag)
 
-	# odd workaround
-	set(CFLAG_TEST "CFLAG_TEST")
-	CHECK_C_COMPILER_FLAG__INTERNAL("${_FLAG}" CFLAG_TEST)
-	if(CFLAG_TEST)
+	CHECK_C_COMPILER_FLAG__INTERNAL("${_FLAG}" "${_CACHE_VAR}")
+	if(${_CACHE_VAR})
 		# message(STATUS "Using CFLAG: ${_FLAG}")
 		set(${_CFLAGS} "${${_CFLAGS}} ${_FLAG}")
 	else()
@@ -312,14 +316,13 @@ endmacro()
 
 macro(ADD_CHECK_CXX_COMPILER_FLAG
 	_CXXFLAGS
+	_CACHE_VAR
 	_FLAG)
 
 	include(CheckCXXCompilerFlag)
 
-	# odd workaround
-	set(CFLAG_TEST "CXXFLAG_TEST")
-	CHECK_CXX_COMPILER_FLAG("${_FLAG}" CXXFLAG_TEST)
-	if(CXXFLAG_TEST)
+	CHECK_CXX_COMPILER_FLAG("${_FLAG}" "${_CACHE_VAR}")
+	if(${_CACHE_VAR})
 		# message(STATUS "Using CXXFLAG: ${_FLAG}")
 		set(${_CXXFLAGS} "${${_CXXFLAGS}} ${_FLAG}")
 	else()
