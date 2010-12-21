@@ -229,6 +229,8 @@ int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event, wmOper
 		else if(opm->type->exec)
 			retval= opm->type->exec(C, opm);
 
+		addlisttolist(&op->reports->list, &opm->reports->list);
+		
 		if (retval & OPERATOR_FINISHED) {
 			MacroData *md = op->customdata;
 			md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
