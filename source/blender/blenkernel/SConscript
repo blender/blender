@@ -91,4 +91,4 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
     env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [166,25]) #, cc_compileflags = env['CCFLAGS'].append('/WX') )
 else:
-    env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [166,25] )
+    env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player', 'player2'], priority = [166,25,0] )

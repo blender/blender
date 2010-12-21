@@ -70,7 +70,7 @@ quickdebug = None
 
 ##### BEGIN SETUP #####
 
-B.possible_types = ['core', 'player', 'intern', 'extern']
+B.possible_types = ['core', 'player', 'player2', 'intern', 'extern']
 
 B.binarykind = ['blender' , 'blenderplayer']
 ##################################
@@ -395,7 +395,7 @@ SConscript(B.root_build_dir+'/source/SConscript')
 # libraries to give as objects to linking phase
 mainlist = []
 for tp in B.possible_types:
-    if not tp == 'player':
+    if (not tp == 'player') and (not tp == 'player2'):
         mainlist += B.create_blender_liblist(env, tp)
 
 if B.arguments.get('BF_PRIORITYLIST', '0')=='1':
@@ -409,6 +409,7 @@ if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
     env.BlenderProg(B.root_build_dir, "blender", mainlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
     playerlist = B.create_blender_liblist(env, 'player')
+    playerlist += B.create_blender_liblist(env, 'player2')
     playerlist += B.create_blender_liblist(env, 'intern')
     playerlist += B.create_blender_liblist(env, 'extern')
     env.BlenderProg(B.root_build_dir, "blenderplayer",  playerlist, thestatlibs + dobj + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
