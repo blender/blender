@@ -388,22 +388,25 @@ class x3d_class:
         #   (meshName, loc[0], loc[1], loc[2], sca[0], sca[1], sca[2], rot[0], rot[1], rot[2], quat.angle*DEG2RAD) )
 
         self.writeIndented("<Shape>\n",1)
-        maters=mesh.materials
         hasImageTexture = False
         is_smooth = False
 
-        if len(maters) > 0 or mesh.uv_textures.active:
-        # if len(maters) > 0 or mesh.faceUV:
+        # XXX, lame, only exports first material.
+        mat_first = None
+        for mat_first in mesh.materials:
+            if mat_first:
+                break
+
+        if mat_first or mesh.uv_textures.active:
             self.writeIndented("<Appearance>\n", 1)
             # right now this script can only handle a single material per mesh.
-            if len(maters) >= 1 and maters[0].use_face_texture == False:
-                mat = maters[0]
-                self.writeMaterial(mat, self.cleanStr(mat.name,''), world)
-                if len(maters) > 1:
+            if mat_first and mat_first.use_face_texture == False:
+                self.writeMaterial(mat_first, self.cleanStr(mat_first.name, ""), world)
+                if len(mesh.materials) > 1:
                     print("Warning: mesh named %s has multiple materials" % meshName)
                     print("Warning: only one material per object handled")
 
-            if not len(maters) or maters[0].use_face_texture:
+            if mat_first is None or mat_first.use_face_texture:
                 #-- textures
                 image = None
                 if mesh.uv_textures.active:
@@ -414,6 +417,7 @@ class x3d_class:
                                 self.writeImageTexture(image)
                                 break
 
+                # XXX, incorrect, uses last image
                 if image:
                     hasImageTexture = True
 
