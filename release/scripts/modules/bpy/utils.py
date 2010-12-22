@@ -140,6 +140,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 traceback.print_exc()
 
     def test_reload(mod):
+        import imp
         # reloading this causes internal errors
         # because the classes from this module are stored internally
         # possibly to refresh internal references too but for now, best not to.
@@ -147,7 +148,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             return mod
 
         try:
-            return reload(mod)
+            return imp.reload(mod)
         except:
             traceback.print_exc()
 
@@ -365,6 +366,7 @@ def addon_enable(module_name, default_set=True):
     import os
     import sys
     import bpy_types as _bpy_types
+    import imp
 
 
     _bpy_types._register_immediate = False
@@ -385,7 +387,7 @@ def addon_enable(module_name, default_set=True):
             print("module changed on disk:", mod.__file__, "reloading...")
 
             try:
-                reload(mod)
+                imp.reload(mod)
             except:
                 handle_error()
                 del sys.modules[module_name]
@@ -477,7 +479,8 @@ def addon_reset_all(reload_scripts=False):
     """
     Sets the addon state based on the user preferences.
     """
-    
+    import imp
+
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
     paths = script_paths("addons")
     
@@ -496,7 +499,7 @@ def addon_reset_all(reload_scripts=False):
             if reload_scripts:
                 mod = _sys.modules.get(mod_name)
                 if mod:
-                    reload(mod)
+                    imp.reload(mod)
 
             if is_enabled == is_loaded:
                 pass

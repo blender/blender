@@ -20,9 +20,9 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
-    from imp import reload
+    import imp
     if "export_fbx" in locals():
-        reload(export_fbx)
+        imp.reload(export_fbx)
 
 
 import bpy

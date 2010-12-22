@@ -20,9 +20,9 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
-    from imp import reload
+    import imp
     if "import_bvh" in locals():
-        reload(import_bvh)
+        imp.reload(import_bvh)
 
 
 import bpy

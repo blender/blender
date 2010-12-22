@@ -20,11 +20,11 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
-    from imp import reload
+    import imp
     if "import_obj" in locals():
-        reload(import_obj)
+        imp.reload(import_obj)
     if "export_obj" in locals():
-        reload(export_obj)
+        imp.reload(export_obj)
 
 
 import bpy

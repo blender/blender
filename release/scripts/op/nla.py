@@ -75,8 +75,6 @@ def pose_info():
 
 
 def bake(frame_start, frame_end, step=1, only_selected=False):
-    # import nla; reload(nla); nla.bake()
-
     scene = bpy.context.scene
     obj = bpy.context.object
     pose = obj.pose

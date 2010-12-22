@@ -20,17 +20,18 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "init_data" in locals():
-    reload(model)
-    reload(operators)
-    reload(client)
-    reload(slave)
-    reload(master)
-    reload(master_html)
-    reload(utils)
-    reload(balancing)
-    reload(ui)
-    reload(repath)
-    reload(versioning)
+    import imp
+    imp.reload(model)
+    imp.reload(operators)
+    imp.reload(client)
+    imp.reload(slave)
+    imp.reload(master)
+    imp.reload(master_html)
+    imp.reload(utils)
+    imp.reload(balancing)
+    imp.reload(ui)
+    imp.reload(repath)
+    imp.reload(versioning)
 else:
     from netrender import model
     from netrender import operators
