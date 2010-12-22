@@ -76,4 +76,4 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
-blenderlib_nolist(ge_player_ghost "${SRC}" "${INC}")
+blender_add_lib_nolist(ge_player_ghost "${SRC}" "${INC}")

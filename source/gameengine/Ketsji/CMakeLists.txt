@@ -221,4 +221,4 @@ if(WITH_BULLET)
 	list(APPEND INC ../../../source/gameengine/Physics/Bullet )
 endif()
 
-blenderlib(ge_logic_ketsji "${SRC}" "${INC}")
+blender_add_lib(ge_logic_ketsji "${SRC}" "${INC}")

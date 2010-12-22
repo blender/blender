@@ -36,4 +36,4 @@ set(SRC
 	userpref_intern.h
 )
 
-blenderlib(bf_editor_space_userpref "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_userpref "${SRC}" "${INC}")

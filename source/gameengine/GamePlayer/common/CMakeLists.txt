@@ -82,4 +82,4 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
-blenderlib_nolist(ge_player_common "${SRC}" "${INC}")
+blender_add_lib_nolist(ge_player_common "${SRC}" "${INC}")

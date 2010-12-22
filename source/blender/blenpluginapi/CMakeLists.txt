@@ -49,4 +49,4 @@ if(WITH_CODEC_QUICKTIME)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
-blenderlib(bf_blenpluginapi "${SRC}" "${INC}")
+blender_add_lib(bf_blenpluginapi "${SRC}" "${INC}")

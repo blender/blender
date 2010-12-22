@@ -39,4 +39,4 @@ set(SRC
 	format.h
 )
 
-blenderlib(extern_redcode "${SRC}" "${INC}")
+blender_add_lib(extern_redcode "${SRC}" "${INC}")

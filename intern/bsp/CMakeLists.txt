@@ -43,4 +43,4 @@ set(SRC
 	intern/BSP_MeshPrimitives.h
 )
 
-blenderlib(bf_intern_bsp "${SRC}" "${INC}")
+blender_add_lib(bf_intern_bsp "${SRC}" "${INC}")

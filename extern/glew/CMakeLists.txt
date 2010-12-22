@@ -42,4 +42,4 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
-blenderlib(extern_glew "${SRC}" "${INC}")
+blender_add_lib(extern_glew "${SRC}" "${INC}")

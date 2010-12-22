@@ -52,4 +52,4 @@ if(WITH_IK_ITASC)
 	)
 endif()
 
-blenderlib(bf_ikplugin "${SRC}" "${INC}")
+blender_add_lib(bf_ikplugin "${SRC}" "${INC}")

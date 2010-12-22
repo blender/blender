@@ -35,4 +35,4 @@ set(SRC
 	STR_String.h
 )
 
-blenderlib(bf_intern_string "${SRC}" "${INC}")
+blender_add_lib(bf_intern_string "${SRC}" "${INC}")

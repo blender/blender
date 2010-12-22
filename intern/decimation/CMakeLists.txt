@@ -56,4 +56,4 @@ set(SRC
 	intern/LOD_QuadricEditor.h
 )
 
-blenderlib(bf_intern_decimate "${SRC}" "${INC}")
+blender_add_lib(bf_intern_decimate "${SRC}" "${INC}")

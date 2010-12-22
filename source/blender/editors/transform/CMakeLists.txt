@@ -44,4 +44,4 @@ set(SRC
 	transform.h
 )
 
-blenderlib(bf_editor_transform "${SRC}" "${INC}")
+blender_add_lib(bf_editor_transform "${SRC}" "${INC}")

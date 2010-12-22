@@ -54,5 +54,5 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
-blenderlib(bf_gpu "${SRC}" "${INC}")
+blender_add_lib(bf_gpu "${SRC}" "${INC}")
 

@@ -48,4 +48,4 @@ set(SRC
 	SG_Tree.h
 )
 
-blenderlib(ge_scenegraph "${SRC}" "${INC}")
+blender_add_lib(ge_scenegraph "${SRC}" "${INC}")

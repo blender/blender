@@ -42,4 +42,4 @@ set(SRC
 	NG_NetworkScene.h
 )
 
-blenderlib(ge_logic_ngnetwork "${SRC}" "${INC}")
+blender_add_lib(ge_logic_ngnetwork "${SRC}" "${INC}")

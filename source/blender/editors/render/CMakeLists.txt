@@ -54,4 +54,4 @@ if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
 endif()
 
-blenderlib(bf_editor_render "${SRC}" "${INC}")
+blender_add_lib(bf_editor_render "${SRC}" "${INC}")

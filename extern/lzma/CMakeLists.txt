@@ -44,4 +44,4 @@ set(SRC
 	Types.h
 )
 
-blenderlib(extern_lzma "${SRC}" "${INC}")
+blender_add_lib(extern_lzma "${SRC}" "${INC}")

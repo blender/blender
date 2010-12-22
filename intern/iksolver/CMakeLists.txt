@@ -70,4 +70,4 @@ set(SRC
 	intern/TNT/version.h
 )
 
-blenderlib(bf_intern_ik "${SRC}" "${INC}")
+blender_add_lib(bf_intern_ik "${SRC}" "${INC}")

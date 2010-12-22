@@ -50,4 +50,4 @@ set(SRC
 	reeb.h
 )
 
-blenderlib(bf_editor_armature "${SRC}" "${INC}")
+blender_add_lib(bf_editor_armature "${SRC}" "${INC}")

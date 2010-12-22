@@ -63,4 +63,4 @@ set(INC
 
 add_definitions(-DWITH_QUICKTIME)
 
-blenderlib(bf_quicktime "${SRC}" "${INC}")
+blender_add_lib(bf_quicktime "${SRC}" "${INC}")

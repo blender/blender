@@ -75,4 +75,4 @@ set(SRC
 	intern/BOP_Vertex.h
 )
 
-blenderlib(bf_intern_bop "${SRC}" "${INC}")
+blender_add_lib(bf_intern_bop "${SRC}" "${INC}")

@@ -117,4 +117,4 @@ set(SRC
 	${SRC_DNA_INC}
 )
 
-blenderlib(bf_dna "${SRC}" "${INC}")
+blender_add_lib(bf_dna "${SRC}" "${INC}")

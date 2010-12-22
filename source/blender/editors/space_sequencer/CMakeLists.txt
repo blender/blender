@@ -44,4 +44,4 @@ set(SRC
 	sequencer_intern.h
 )
 
-blenderlib(bf_editor_space_sequencer "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_sequencer "${SRC}" "${INC}")

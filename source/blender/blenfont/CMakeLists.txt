@@ -55,5 +55,5 @@ if(WIN32 AND NOT UNIX)
 	add_definitions(-DUSE_GETTEXT_DLL)
 endif()
 
-blenderlib(bf_blenfont "${SRC}" "${INC}")
+blender_add_lib(bf_blenfont "${SRC}" "${INC}")
 

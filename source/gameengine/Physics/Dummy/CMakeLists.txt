@@ -35,4 +35,4 @@ set(SRC
 	DummyPhysicsEnvironment.h
 )
 
-blenderlib(ge_phys_dummy "${SRC}" "${INC}")
+blender_add_lib(ge_phys_dummy "${SRC}" "${INC}")

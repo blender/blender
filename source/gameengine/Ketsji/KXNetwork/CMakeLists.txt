@@ -50,4 +50,4 @@ set(SRC
 	KX_NetworkObjectSensor.h
 )
 
-blenderlib(ge_logic_network "${SRC}" "${INC}")
+blender_add_lib(ge_logic_network "${SRC}" "${INC}")

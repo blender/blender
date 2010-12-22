@@ -31,4 +31,4 @@ set(INC
 add_definitions(-DENABLE_BINRELOC)
 
 
-blenderlib(extern_binreloc "${SRC}" "${INC}")
+blender_add_lib(extern_binreloc "${SRC}" "${INC}")

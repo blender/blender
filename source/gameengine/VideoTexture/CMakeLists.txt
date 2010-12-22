@@ -91,4 +91,4 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-D__STDC_CONSTANT_MACROS)
 endif()
 
-blenderlib(ge_videotex "${SRC}" "${INC}")
+blender_add_lib(ge_videotex "${SRC}" "${INC}")

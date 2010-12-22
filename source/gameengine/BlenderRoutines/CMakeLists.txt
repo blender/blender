@@ -57,4 +57,4 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
-blenderlib(ge_blen_routines "${SRC}" "${INC}")
+blender_add_lib(ge_blen_routines "${SRC}" "${INC}")

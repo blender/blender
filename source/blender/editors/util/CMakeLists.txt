@@ -82,4 +82,4 @@ set(SRC
 	../include/UI_view2d.h
 )
 
-blenderlib(bf_editor_util "${SRC}" "${INC}")
+blender_add_lib(bf_editor_util "${SRC}" "${INC}")

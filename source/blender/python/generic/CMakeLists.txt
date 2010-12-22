@@ -57,4 +57,4 @@ set(SRC
 	py_capi_utils.h
 )
 
-blenderlib(bf_python_ext "${SRC}" "${INC}")
+blender_add_lib(bf_python_ext "${SRC}" "${INC}")

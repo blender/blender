@@ -302,4 +302,4 @@ if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 endif()
 
-blenderlib(bf_blenkernel "${SRC}" "${INC}")
+blender_add_lib(bf_blenkernel "${SRC}" "${INC}")

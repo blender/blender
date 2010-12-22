@@ -39,4 +39,4 @@ set(SRC
 	action_intern.h
 )
 
-blenderlib(bf_editor_space_action "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_action "${SRC}" "${INC}")

@@ -99,4 +99,4 @@ if(WITH_BUILDINFO)
 	add_definitions(-DNAN_BUILDINFO)
 endif()
 
-blenderlib(bf_collada "${SRC}" "${INC}")
+blender_add_lib(bf_collada "${SRC}" "${INC}")

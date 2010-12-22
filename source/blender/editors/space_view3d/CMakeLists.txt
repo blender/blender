@@ -62,4 +62,4 @@ endif()
 
 add_definitions(-DGLEW_STATIC)
 
-blenderlib(bf_editor_space_view3d "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}")

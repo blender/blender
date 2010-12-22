@@ -38,4 +38,4 @@ set(SRC
 	CTR_UHeap.h
 )
 
-blenderlib(bf_intern_ctr "${SRC}" "${INC}")
+blender_add_lib(bf_intern_ctr "${SRC}" "${INC}")

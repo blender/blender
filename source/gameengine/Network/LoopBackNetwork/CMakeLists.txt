@@ -37,4 +37,4 @@ set(SRC
 	NG_LoopBackNetworkDeviceInterface.h
 )
 
-blenderlib(ge_logic_loopbacknetwork "${SRC}" "${INC}")
+blender_add_lib(ge_logic_loopbacknetwork "${SRC}" "${INC}")

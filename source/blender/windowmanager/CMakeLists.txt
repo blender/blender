@@ -112,4 +112,4 @@ if(WITH_BUILDINFO)
 	add_definitions(-DNAN_BUILDINFO)
 endif()
 
-blenderlib_nolist(bf_windowmanager "${SRC}" "${INC}")
+blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}")

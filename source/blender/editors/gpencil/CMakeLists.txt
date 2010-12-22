@@ -41,4 +41,4 @@ set(SRC
 	gpencil_intern.h
 )
 
-blenderlib(bf_editor_gpencil "${SRC}" "${INC}")
+blender_add_lib(bf_editor_gpencil "${SRC}" "${INC}")

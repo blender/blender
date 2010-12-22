@@ -71,4 +71,4 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
-blenderlib(bf_editor_space_file "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_file "${SRC}" "${INC}")

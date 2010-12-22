@@ -167,4 +167,4 @@ set(SRC
 	rna_nodetree_types.h
 )
 
-blenderlib(bf_rna "${SRC}" "${INC}")
+blender_add_lib(bf_rna "${SRC}" "${INC}")

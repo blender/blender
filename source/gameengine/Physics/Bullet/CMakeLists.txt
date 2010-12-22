@@ -61,4 +61,4 @@ if(WITH_BULLET)
 	add_definitions(-DUSE_BULLET)
 endif()
 
-blenderlib(ge_phys_bullet "${SRC}" "${INC}")
+blender_add_lib(ge_phys_bullet "${SRC}" "${INC}")

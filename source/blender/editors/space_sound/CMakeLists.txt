@@ -36,4 +36,4 @@ set(SRC
 	sound_intern.h
 )
 
-blenderlib(bf_editor_space_sound "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_sound "${SRC}" "${INC}")

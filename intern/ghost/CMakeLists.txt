@@ -144,5 +144,5 @@ elseif(WIN32)
 	)
 endif()
 
-blenderlib(bf_intern_ghost "${SRC}" "${INC}")
+blender_add_lib(bf_intern_ghost "${SRC}" "${INC}")
 

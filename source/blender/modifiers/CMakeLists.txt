@@ -98,4 +98,4 @@ if(NOT WITH_MOD_FLUID)
 	add_definitions(-DDISABLE_ELBEEM)
 endif()
 
-blenderlib(bf_modifiers "${SRC}" "${INC}")
+blender_add_lib(bf_modifiers "${SRC}" "${INC}")

@@ -14,7 +14,7 @@ macro(blender_include_dirs
 endmacro()
 
 # only MSVC uses SOURCE_GROUP
-macro(blenderlib_nolist
+macro(blender_add_lib_nolist
 	name
 	sources
 	includes)
@@ -37,7 +37,7 @@ macro(blenderlib_nolist
 endmacro()
 
 #	# works fine but having the includes listed is helpful for IDE's (QtCreator/MSVC)
-#	macro(blenderlib_nolist
+#	macro(blender_add_lib_nolist
 #		name
 #		sources
 #		includes)
@@ -47,12 +47,12 @@ endmacro()
 #		add_library(${name} ${sources})
 #	endmacro()
 
-macro(blenderlib
+macro(blender_add_lib
 	name
 	sources
 	includes)
 
-	blenderlib_nolist(${name} "${sources}" "${includes}")
+	blender_add_lib_nolist(${name} "${sources}" "${includes}")
 
 	set_property(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
 

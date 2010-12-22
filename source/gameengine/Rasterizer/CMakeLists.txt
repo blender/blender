@@ -81,4 +81,4 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
-blenderlib(ge_rasterizer "${SRC}" "${INC}")
+blender_add_lib(ge_rasterizer "${SRC}" "${INC}")
