@@ -692,7 +692,7 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 
 	s = sources[0];
 	dst_corners = multires_mdisp_corners(d);
-	src_corners = multires_mdisp_corners(d);
+	src_corners = multires_mdisp_corners(s);
 
 	/* XXX: For now, some restrictions on the input
 	        should be implemented to allow quad<->tris face conversion */
