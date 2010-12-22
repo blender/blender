@@ -388,7 +388,6 @@ class x3d_class:
         #   (meshName, loc[0], loc[1], loc[2], sca[0], sca[1], sca[2], rot[0], rot[1], rot[2], quat.angle*DEG2RAD) )
 
         self.writeIndented("<Shape>\n",1)
-        hasImageTexture = False
         is_smooth = False
 
         # XXX, lame, only exports first material.
@@ -406,24 +405,31 @@ class x3d_class:
                     print("Warning: mesh named %s has multiple materials" % meshName)
                     print("Warning: only one material per object handled")
 
+            image = None
+
             if mat_first is None or mat_first.use_face_texture:
                 #-- textures
-                image = None
                 if mesh.uv_textures.active:
                     for face in mesh.uv_textures.active.data:
                         if face.use_image:
                             image = face.image
                             if image:
-                                self.writeImageTexture(image)
                                 break
+            elif mat_first:
+                for mtex in mat_first.texture_slots:
+                    tex = mtex.texture
+                    if tex and tex.type == 'IMAGE':
+                        image = tex.image
+                        if image:
+                            break
 
-                # XXX, incorrect, uses last image
-                if image:
-                    hasImageTexture = True
+            # XXX, incorrect, uses first image
+            if image:
+                self.writeImageTexture(image)
 
-                    if self.tilenode == 1:
-                        self.writeIndented("<TextureTransform	scale=\"%s %s\" />\n" % (image.xrep, image.yrep))
-                        self.tilenode = 0
+                if self.tilenode == 1:
+                    self.writeIndented("<TextureTransform	scale=\"%s %s\" />\n" % (image.xrep, image.yrep))
+                    self.tilenode = 0
 
             self.writeIndented("</Appearance>\n", -1)
 
