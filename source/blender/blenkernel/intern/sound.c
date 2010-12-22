@@ -484,3 +484,12 @@ int sound_read_sound_buffer(struct bSound* sound, float* buffer, int length, flo
 	return AUD_readSound(limiter, buffer, length);
 	AUD_unload(limiter);
 }
+
+int sound_get_channels(struct bSound* sound)
+{
+	AUD_SoundInfo info;
+
+	info = AUD_getInfo(sound->playback_handle);
+
+	return info.specs.channels;
+}
