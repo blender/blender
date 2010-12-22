@@ -2380,7 +2380,10 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		normalize_v3(ver->n);
 		//if(ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
 		
-		if(need_orco) ver->orco= orco+=3;
+		if(need_orco) {
+			ver->orco= orco;
+			orco+=3;
+		}
 	}
 
 	index= dl->index;
