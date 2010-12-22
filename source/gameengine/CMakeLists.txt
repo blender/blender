@@ -1,3 +1,4 @@
+# -*- mode: cmake; indent-tabs-mode: t; -*-
 # $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -26,7 +27,7 @@
 
 # there are too many inter-includes so best define here
 if(WITH_PYTHON)
-	include_directories(${PYTHON_INC})
+	blender_include_dirs(${PYTHON_INC})
 	add_definitions(-DWITH_PYTHON)
 endif()
 

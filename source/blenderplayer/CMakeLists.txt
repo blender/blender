@@ -1,3 +1,4 @@
+# -*- mode: cmake; indent-tabs-mode: t; -*-
 # $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -34,7 +35,7 @@ endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	add_definitions(-DWITH_BINRELOC)
-	include_directories(${BINRELOC_INC})
+	blender_include_dirs(${BINRELOC_INC})
 endif()
 
 add_custom_command(

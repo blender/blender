@@ -1,3 +1,17 @@
+# -*- mode: cmake; indent-tabs-mode: t; -*-
+# $Id$
+
+# Nicer makefiles with -I/1/foo/ instead of -I/1/2/3/../../foo/
+# use it instead of include_directories()
+macro(blender_include_dirs
+	includes)
+
+	foreach(inc ${ARGV})
+		get_filename_component(abs_inc ${inc} ABSOLUTE)
+		list(APPEND all_incs ${abs_inc})
+	endforeach()
+	include_directories(${all_incs})
+endmacro()
 
 # only MSVC uses SOURCE_GROUP
 macro(blenderlib_nolist
@@ -7,14 +21,14 @@ macro(blenderlib_nolist
 
 	# message(STATUS "Configuring library ${name}")
 
-	include_directories(${includes})
+	blender_include_dirs("${includes}")
 	add_library(${name} ${sources})
 
 	# Group by location on disk
 	source_group("Source Files" FILES CMakeLists.txt)
 	foreach(SRC ${sources})
 		get_filename_component(SRC_EXT ${SRC} EXT)
-		if(${SRC_EXT} MATCHES ".h" OR ${SRC_EXT} MATCHES ".hpp") 
+		if(${SRC_EXT} MATCHES ".h" OR ${SRC_EXT} MATCHES ".hpp")
 			source_group("Header Files" FILES ${SRC})
 		else()
 			source_group("Source Files" FILES ${SRC})
@@ -33,7 +47,6 @@ endmacro()
 #		add_library(${name} ${sources})
 #	endmacro()
 
-
 macro(blenderlib
 	name
 	sources
@@ -50,7 +63,7 @@ macro(SETUP_LIBDIRS)
 	if(COMMAND cmake_policy)
 		cmake_policy(SET CMP0003 NEW)
 	endif()
-	
+
 	link_directories(${JPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH} ${FREETYPE_LIBPATH})
 
 	if(WITH_PYTHON)
@@ -136,7 +149,7 @@ macro(setup_liblinks
 	if(WITH_OPENAL)
 		target_link_libraries(${target} ${OPENAL_LIBRARY})
 	endif()
-	if(WITH_FFTW3)	
+	if(WITH_FFTW3)
 		target_link_libraries(${target} ${FFTW3_LIB})
 	endif()
 	if(WITH_JACK)
@@ -147,7 +160,7 @@ macro(setup_liblinks
 	endif()
 	if(WITH_SAMPLERATE)
 		target_link_libraries(${target} ${LIBSAMPLERATE_LIB})
-	endif()	
+	endif()
 	if(WITH_SDL)
 		target_link_libraries(${target} ${SDL_LIBRARY})
 	endif()
@@ -248,7 +261,7 @@ endmacro()
 # utility macro
 macro(_remove_strict_flags
 	flag)
-	
+
 	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
 	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
@@ -342,24 +355,24 @@ macro(get_blender_version)
 			MATH(EXPR BLENDER_VERSION_MINOR "${ITEM} % 100")
 			set(BLENDER_VERSION "${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}")
 		endif()
-		
+
 		if(LASTITEM MATCHES "BLENDER_SUBVERSION")
 			set(BLENDER_SUBVERSION ${ITEM})
 		endif()
-		
+
 		if(LASTITEM MATCHES "BLENDER_MINVERSION")
 			MATH(EXPR BLENDER_MINVERSION_MAJOR "${ITEM} / 100")
 			MATH(EXPR BLENDER_MINVERSION_MINOR "${ITEM} % 100")
 			set(BLENDER_MINVERSION "${BLENDER_MINVERSION_MAJOR}.${BLENDER_MINVERSION_MINOR}")
 		endif()
-		
+
 		if(LASTITEM MATCHES "BLENDER_MINSUBVERSION")
 			set(BLENDER_MINSUBVERSION ${ITEM})
 		endif()
 
 		set(LASTITEM ${ITEM})
 	endforeach()
-	
+
 	# message(STATUS "Version major: ${BLENDER_VERSION_MAJOR}, Version minor: ${BLENDER_VERSION_MINOR}, Subversion: ${BLENDER_SUBVERSION}, Version: ${BLENDER_VERSION}")
 	# message(STATUS "Minversion major: ${BLENDER_MINVERSION_MAJOR}, Minversion minor: ${BLENDER_MINVERSION_MINOR}, MinSubversion: ${BLENDER_MINSUBVERSION}, Minversion: ${BLENDER_MINVERSION}")
 endmacro()

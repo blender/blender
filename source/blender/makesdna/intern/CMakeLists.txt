@@ -1,3 +1,4 @@
+# -*- mode: cmake; indent-tabs-mode: t; -*-
 # $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -26,7 +27,7 @@
 
 # message(STATUS "Configuring makesdna")
 
-include_directories(../../../../intern/guardedalloc ..)
+blender_include_dirs(../../../../intern/guardedalloc ../)
 
 # Build makesdna executable
 set(SRC
