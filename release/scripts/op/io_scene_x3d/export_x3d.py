@@ -417,11 +417,12 @@ class x3d_class:
                                 break
             elif mat_first:
                 for mtex in mat_first.texture_slots:
-                    tex = mtex.texture
-                    if tex and tex.type == 'IMAGE':
-                        image = tex.image
-                        if image:
-                            break
+                    if mtex:
+                        tex = mtex.texture
+                        if tex and tex.type == 'IMAGE':
+                            image = tex.image
+                            if image:
+                                break
 
             # XXX, incorrect, uses first image
             if image:
