@@ -383,15 +383,13 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
+	Object *obedit= CTX_data_edit_object(C);
 	tringselOpData *lcd;
 	EditEdge *edge;
 	int dist = 75;
 
-	
-	if(modifiers_getCageIndex(CTX_data_scene(C), CTX_data_edit_object(C), NULL, 1)>=0) {
-		BKE_report(op->reports, RPT_WARNING, "Loop cut can't work on deformed edit mesh display");
-		return OPERATOR_CANCELLED;
-	}
+	if(modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
+		BKE_report(op->reports, RPT_WARNING, "Loop cut doesn't work well on deformed edit mesh display");
 	
 	view3d_operator_needs_opengl(C);
 
