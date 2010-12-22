@@ -438,15 +438,6 @@ static void rna_Actuator_Armature_update(Main *bmain, Scene *scene, PointerRNA *
 	constraint[0] = 0;
 }
 
-static void rna_Actuator_sound_sound_set(PointerRNA *ptr, PointerRNA value)
-{
-	bActuator *act = (bActuator *)ptr->data;
-	bSoundActuator *sa = (bSoundActuator *) act->data;
-
-	sa->sound = value.data;
-	((ID *)value.data)->us += 1;
-}
-
 /* note: the following set functions exists only to avoid id refcounting */
 static void rna_Actuator_editobject_mesh_set(PointerRNA *ptr, PointerRNA value)
 {
@@ -904,7 +895,6 @@ static void rna_def_sound_actuator(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Sound");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_struct_ui_text(srna, "Sound", "Sound file");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_sound_sound_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
