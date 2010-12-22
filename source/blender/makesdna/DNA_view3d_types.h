@@ -89,11 +89,13 @@ typedef struct RegionView3D {
 
 	/* transform widget matrix */
 	float twmat[4][4];
-	
-	float viewquat[4], dist, zfac;	/* zfac is initgrabz() result */
-	float camdx, camdy;				/* camera view offsets, 1.0 = viewplane moves entire width/height */
-	float pixsize;
-	float ofs[3];
+
+	float viewquat[4];			/* view rotation, must be kept normalized */
+	float dist;					/* distance from 'ofs' along -viewinv[2] vector, where result is negative as is 'ofs' */
+	float zfac;					/* initgrabz() result */
+	float camdx, camdy;			/* camera view offsets, 1.0 = viewplane moves entire width/height */
+	float pixsize;				/* runtime only */
+	float ofs[3];				/* view center & orbit pivot, negative of worldspace location */
 	short camzoom;
 	short twdrawflag;
 	int pad;
