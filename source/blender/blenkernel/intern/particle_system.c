@@ -3663,9 +3663,8 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			part->sta=part->end = 1.0f;
 			part->lifetime = sim->scene->r.efra + 1;
 	
-			/* initialize particles */
+			/* allocate particles */
 			realloc_particles(sim, part->totpart);
-			initialize_all_particles(sim);
 	
 			// set up reading mask
 			readMask = fss->typeFlags;
@@ -3697,6 +3696,9 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 					pa->state.rot[0] = 1.0;
 					pa->state.rot[1] = pa->state.rot[2] = pa->state.rot[3] = 0.0;
 	
+					pa->time = 1.f;
+					pa->dietime = sim->scene->r.efra + 1;
+					pa->lifetime = sim->scene->r.efra;
 					pa->alive = PARS_ALIVE;
 					//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f \n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
 				} else {
