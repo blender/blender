@@ -103,6 +103,7 @@
 #include "transform.h"
 
 void drawTransformApply(const struct bContext *C, struct ARegion *ar, void *arg);
+int doEdgeSlide(TransInfo *t, float perc);
 
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
@@ -1785,6 +1786,10 @@ int transformEnd(bContext *C, TransInfo *t)
 		/* handle restoring objects */
 		if(t->state == TRANS_CANCEL)
 		{
+			/* exception, edge slide transformed UVs too */
+			if(t->mode==TFM_EDGE_SLIDE)
+				doEdgeSlide(t, 0.0f);
+			
 			exit_code = OPERATOR_CANCELLED;
 			restoreTransObjects(t);	// calls recalcData()
 		}
