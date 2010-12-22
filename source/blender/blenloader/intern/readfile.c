@@ -2237,7 +2237,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 		/* hurms... loop in a loop, but yah... later... (ton) */
 		pchan->bone= get_named_bone(arm, pchan->name);
 		
-		pchan->custom= newlibadr(fd, arm->id.lib, pchan->custom);
+		pchan->custom= newlibadr_us(fd, arm->id.lib, pchan->custom);
 		if(pchan->bone==NULL)
 			rebuild= 1;
 		else if(ob->id.lib==NULL && arm->id.lib) {
