@@ -749,7 +749,7 @@ static void widget_draw_preview(BIFIconID icon, float aspect, float UNUSED(alpha
 {
 	int w, h, x, y, size;
 
-	if(!icon)
+	if(icon==ICON_NULL)
 		return;
 
 	w = rect->xmax - rect->xmin;

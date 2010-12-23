@@ -3946,7 +3946,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	EditBone *actbone = CTX_data_active_bone(C);
-	uiPopupMenu *pup= uiPupMenuBegin(C, "Make Parent ", 0);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Make Parent ", ICON_NULL);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	int allchildbones = 0;
 	

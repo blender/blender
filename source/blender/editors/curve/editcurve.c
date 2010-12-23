@@ -4775,7 +4775,7 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	for(nu= editnurb->first; nu; nu= nu->next) {
 		if(nu->pntsu>1 || nu->pntsv>1) {
 			if(nu->type==CU_NURBS) {
-				pup= uiPupMenuBegin(C, "Direction", 0);
+				pup= uiPupMenuBegin(C, "Direction", ICON_NULL);
 				layout= uiPupMenuLayout(pup);
 				uiItemsEnumO(layout, op->type->idname, "direction");
 				uiPupMenuEnd(C, pup);
@@ -5867,14 +5867,14 @@ static int delete_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	uiLayout *layout;
 
 	if(obedit->type==OB_SURF) {
-		pup= uiPupMenuBegin(C, "Delete", 0);
+		pup= uiPupMenuBegin(C, "Delete", ICON_NULL);
 		layout= uiPupMenuLayout(pup);
 		uiItemEnumO(layout, op->type->idname, NULL, 0, "type", 0);
 		uiItemEnumO(layout, op->type->idname, NULL, 0, "type", 2);
 		uiPupMenuEnd(C, pup);
 	}
 	else {
-		pup= uiPupMenuBegin(C, "Delete", 0);
+		pup= uiPupMenuBegin(C, "Delete", ICON_NULL);
 		layout= uiPupMenuLayout(pup);
 		uiItemsEnumO(layout, op->type->idname, "type");
 		uiPupMenuEnd(C, pup);

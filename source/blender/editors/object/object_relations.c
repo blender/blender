@@ -282,7 +282,7 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		PointerRNA props_ptr;
 		
 		/* create operator menu item with relevant properties filled in */
-		props_ptr= uiItemFullO(layout, op->idname, op->type->name, 0, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		props_ptr= uiItemFullO(layout, op->idname, op->type->name, ICON_NULL, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);
@@ -687,7 +687,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	Object *ob= ED_object_active_context(C);
-	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", 0);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", ICON_NULL);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);

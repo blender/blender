@@ -64,7 +64,7 @@ static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(e
 
 	RNA_pointer_create(&sc->id, &RNA_SpaceProperties, sbuts, &ptr);
 
-	pup= uiPupMenuBegin(C, "Align", 0);
+	pup= uiPupMenuBegin(C, "Align", ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 	uiItemsEnumR(layout, &ptr, "align");
 	uiPupMenuEnd(C, pup);

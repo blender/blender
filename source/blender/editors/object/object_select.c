@@ -431,7 +431,7 @@ static short select_grouped_group(bContext *C, Object *ob)	/* Select objects in 
 	}
 
 	/* build the menu. */
-	pup= uiPupMenuBegin(C, "Select Group", 0);
+	pup= uiPupMenuBegin(C, "Select Group", ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 
 	for (i=0; i<group_count; i++) {

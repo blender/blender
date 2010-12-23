@@ -525,16 +525,16 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
 	
 	/* Label - either use the provided text, or will become "ID-Block:" */
 	if (text)
-		uiItemL(row, text, 0);
+		uiItemL(row, text, ICON_NULL);
 	else
-		uiItemL(row, "ID-Block:", 0);
+		uiItemL(row, "ID-Block:", ICON_NULL);
 	
 	/* ID-Type Selector - just have a menu of icons */
 	// FIXME: the icon-only setting doesn't work when we supply a blank name
-	uiItemFullR(row, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", 0);
+	uiItemFullR(row, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
 	
 	/* ID-Block Selector - just use pointer widget... */
-	uiItemFullR(row, ptr, propID, 0, 0, 0, "", 0);
+	uiItemFullR(row, ptr, propID, 0, 0, 0, "", ICON_NULL);
 }
 
 /********************* RNA Path Builder Template ********************/
@@ -679,14 +679,14 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		/* Open/Close .................................  */
-		uiItemR(row, &ptr, "show_expanded", 0, "", 0);
+		uiItemR(row, &ptr, "show_expanded", 0, "", ICON_NULL);
 		
 		/* modifier-type icon */
 		uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
 		/* modifier name */
-		uiItemR(row, &ptr, "name", 0, "", 0);
+		uiItemR(row, &ptr, "name", 0, "", ICON_NULL);
 		
 		/* mode enabling buttons */
 		uiBlockBeginAlign(block);
@@ -694,11 +694,11 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		if ( ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) 
 			&& (md->type!=eModifierType_Surface) ) 
 		{
-			uiItemR(row, &ptr, "show_render", 0, "", 0);
-			uiItemR(row, &ptr, "show_viewport", 0, "", 0);
+			uiItemR(row, &ptr, "show_render", 0, "", ICON_NULL);
+			uiItemR(row, &ptr, "show_viewport", 0, "", ICON_NULL);
 			
 			if (mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, &ptr, "show_in_editmode", 0, "", 0);
+				uiItemR(row, &ptr, "show_in_editmode", 0, "", ICON_NULL);
 		}
 		if ((ob->type==OB_MESH) && modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) 
 		{
@@ -738,9 +738,9 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 				
 				if (!(ob->mode & OB_MODE_PARTICLE_EDIT) && psys->pathcache) {
 					if(ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB))
-						uiItemO(row, "Convert", 0, "OBJECT_OT_duplicates_make_real");
+						uiItemO(row, "Convert", ICON_NULL, "OBJECT_OT_duplicates_make_real");
 					else if(psys->part->ren_as == PART_DRAW_PATH)
-						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
+						uiItemO(row, "Convert", ICON_NULL, "OBJECT_OT_modifier_convert");
 				}
 			}
 			else {
@@ -755,7 +755,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 			
 			if (!ELEM5(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth, eModifierType_Smoke))
-				uiItemO(row, "Copy", 0, "OBJECT_OT_modifier_copy");
+				uiItemO(row, "Copy", ICON_NULL, "OBJECT_OT_modifier_copy");
 		}
 		
 		/* result is the layout block inside the box, that we return so that modifier settings can be drawn */
@@ -913,7 +913,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 
 	/* open/close */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	uiItemR(row, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", 0);
+	uiItemR(row, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* name */
@@ -923,10 +923,10 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		uiLayoutSetRedAlert(row, 1);
 	
 	if(proxy_protected == 0) {
-		uiItemR(row, &ptr, "name", 0, "", 0);
+		uiItemR(row, &ptr, "name", 0, "", ICON_NULL);
 	}
 	else
-		uiItemL(row, con->name, 0);
+		uiItemL(row, con->name, ICON_NULL);
 	
 	uiLayoutSetRedAlert(row, 0);
 	
@@ -1114,7 +1114,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, int show_buttons, ID *parent, M
 
 			col = uiLayoutColumn(row, 1);
 			uiLayoutSetScaleX(col, 1.5);
-			uiItemR(col, &material_ptr, "preview_render_type", UI_ITEM_R_EXPAND, "", 0);
+			uiItemR(col, &material_ptr, "preview_render_type", UI_ITEM_R_EXPAND, "", ICON_NULL);
 		}
 
 		if(pr_texture) {
@@ -1134,7 +1134,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, int show_buttons, ID *parent, M
 			/* Alpha buton for texture preview */
 			if(*pr_texture!=TEX_PR_OTHER) {
 				row = uiLayoutRow(layout, 0);
-				uiItemR(row, &texture_ptr, "use_preview_alpha", 0, NULL, 0);
+				uiItemR(row, &texture_ptr, "use_preview_alpha", 0, NULL, ICON_NULL);
 			}
 		}
 	}
@@ -1249,8 +1249,8 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 		PointerRNA ptr;
 		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
 		row= uiLayoutRow(layout, 0);
-		uiItemR(row, &ptr, "position", 0, "Pos", 0);
-		uiItemR(row, &ptr, "color", 0, "", 0);
+		uiItemR(row, &ptr, "position", 0, "Pos", ICON_NULL);
+		uiItemR(row, &ptr, "color", 0, "", ICON_NULL);
 	}
 
 }
@@ -1274,7 +1274,7 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 		CBData *cbd= coba->data + coba->cur;
 		PointerRNA ptr;
 		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
-		uiItemR(layout, &ptr, "color", 0, "", 0);
+		uiItemR(layout, &ptr, "color", 0, "", ICON_NULL);
 	}
 
 	bt= uiDefButS(block, MENU, 0,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
@@ -1753,8 +1753,8 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	/* black/white levels */
 	if(levels) {
 		split= uiLayoutSplit(layout, 0, 0);
-		uiItemR(uiLayoutColumn(split, 0), ptr, "black_level", UI_ITEM_R_EXPAND, NULL, 0);
-		uiItemR(uiLayoutColumn(split, 0), ptr, "white_level", UI_ITEM_R_EXPAND, NULL, 0);
+		uiItemR(uiLayoutColumn(split, 0), ptr, "black_level", UI_ITEM_R_EXPAND, NULL, ICON_NULL);
+		uiItemR(uiLayoutColumn(split, 0), ptr, "white_level", UI_ITEM_R_EXPAND, NULL, ICON_NULL);
 
 		uiLayoutRow(layout, 0);
 		bt=uiDefBut(block, BUT, 0, "Reset",	0, 0, UI_UNIT_X*10, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Reset Black/White point and curves");
@@ -1979,7 +1979,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 	/* retrieve icon and name */
 	icon= list_item_icon_get(C, itemptr, rnaicon);
-	if(!icon || icon == ICON_DOT)
+	if(icon == ICON_NULL || icon == ICON_DOT)
 		icon= 0;
 
 	namebuf= RNA_struct_name_get_alloc(itemptr, NULL, 0);
@@ -2020,7 +2020,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 				uiItemL(sub, str, ui_id_icon_get(C, &manode->id, 1));
 			}
 			else if(ma->use_nodes) {
-				uiItemL(sub, "Node <none>", 0);
+				uiItemL(sub, "Node <none>", ICON_NULL);
 			}
 		}
 	}
@@ -2033,8 +2033,8 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		row= uiLayoutRow(split, 1);
-		if(i == 0) uiItemL(row, "", 0);
-		else uiItemR(row, itemptr, "value", 0, "", 0);
+		if(i == 0) uiItemL(row, "", ICON_NULL);
+		else uiItemR(row, itemptr, "value", 0, "", ICON_NULL);
 
 		if(ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH))
 			uiLayoutSetActive(row, 0);
@@ -2161,7 +2161,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 
 		/* if not found, add in dummy button */
 		if(i == 0)
-			uiItemL(row, "", 0);
+			uiItemL(row, "", ICON_NULL);
 
 		/* next/prev button */
 		sprintf(str, "%d :", i);
@@ -2214,7 +2214,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 		/* add dummy buttons to fill space */
 		while(i < pa->list_scroll+items) {
 			if(i >= pa->list_scroll)
-				uiItemL(col, "", 0);
+				uiItemL(col, "", ICON_NULL);
 			i++;
 		}
 

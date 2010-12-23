@@ -995,7 +995,7 @@ static Base *mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffe
 	}
 	else {
 		/* UI */
-		uiPopupMenu *pup= uiPupMenuBegin(C, "Select Object", 0);
+		uiPopupMenu *pup= uiPupMenuBegin(C, "Select Object", ICON_NULL);
 		uiLayout *layout= uiPupMenuLayout(pup);
 		uiLayout *split= uiLayoutSplit(layout, 0, 0);
 		uiLayout *column= uiLayoutColumn(split, 0);

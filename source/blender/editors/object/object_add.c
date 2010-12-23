@@ -530,7 +530,7 @@ static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 
 	object_add_generic_invoke_options(C, op);
 
-	pup= uiPupMenuBegin(C, op->type->name, 0);
+	pup= uiPupMenuBegin(C, op->type->name, ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 	if(!obedit || obedit->type == OB_MBALL)
 		uiItemsEnumO(layout, op->type->idname, "type");
