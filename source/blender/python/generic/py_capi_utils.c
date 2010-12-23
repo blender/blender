@@ -75,7 +75,7 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 	
 	/* when executing a script */
 	if (filename) {
-		co_filename= PyC_Object_GetAttrStringArgs(frame, 1, "f_code", "co_filename");
+		co_filename= PyC_Object_GetAttrStringArgs(frame, 2, "f_code", "co_filename");
 		if (co_filename==NULL) {
 			PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_code.co_filename");
 			Py_DECREF(frame);
