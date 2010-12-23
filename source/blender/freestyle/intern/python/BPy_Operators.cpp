@@ -8,6 +8,7 @@
 #include "Iterator/BPy_ViewEdgeIterator.h"
 #include "Iterator/BPy_ChainingIterator.h"
 #include "BPy_StrokeShader.h"
+#include "BPy_Convert.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -509,6 +510,72 @@ static PyObject * Operators_create(BPy_Operators* self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
+static char Operators_getViewEdgeFromIndex___doc__[] =
+".. staticmethod:: getViewEdgeFromIndex()\n"
+"\n"
+"   Returns the ViewEdge at the index in the current set of ViewEdges.\n"
+"\n"
+"   :arg i: index (0 <= i < Operators.getViewEdgesSize()).\n"
+"   :type i: int\n"
+"   :return: The ViewEdge object.\n"
+"   :rtype: :class:`ViewEdge`\n";
+
+static PyObject * Operators_getViewEdgeFromIndex(BPy_Operators* self, PyObject *args) {
+	unsigned int i;
+
+	if (!PyArg_ParseTuple(args, "I", &i))
+		return NULL;
+	if (i >= Operators::getViewEdgesSize()) {
+		PyErr_SetString(PyExc_IndexError, "index out of range");
+		return NULL;
+	}
+	return BPy_ViewEdge_from_ViewEdge(*(Operators::getViewEdgeFromIndex(i)));
+}
+
+static char Operators_getChainFromIndex___doc__[] =
+".. staticmethod:: getChainFromIndex()\n"
+"\n"
+"   Returns the Chain at the index in the current set of Chains.\n"
+"\n"
+"   :arg i: index (0 <= i < Operators.getChainsSize()).\n"
+"   :type i: int\n"
+"   :return: The Chain object.\n"
+"   :rtype: :class:`Chain`\n";
+
+static PyObject * Operators_getChainFromIndex(BPy_Operators* self, PyObject *args) {
+	unsigned int i;
+
+	if (!PyArg_ParseTuple(args, "I", &i))
+		return NULL;
+	if (i >= Operators::getChainsSize()) {
+		PyErr_SetString(PyExc_IndexError, "index out of range");
+		return NULL;
+	}
+	return BPy_Chain_from_Chain(*(Operators::getChainFromIndex(i)));
+}
+
+static char Operators_getStrokeFromIndex___doc__[] =
+".. staticmethod:: getStrokeFromIndex()\n"
+"\n"
+"   Returns the Stroke at the index in the current set of Strokes.\n"
+"\n"
+"   :arg i: index (0 <= i < Operators.getStrokesSize()).\n"
+"   :type i: int\n"
+"   :return: The Stroke object.\n"
+"   :rtype: :class:`Stroke`\n";
+
+static PyObject * Operators_getStrokeFromIndex(BPy_Operators* self, PyObject *args) {
+	unsigned int i;
+
+	if (!PyArg_ParseTuple(args, "I", &i))
+		return NULL;
+	if (i >= Operators::getStrokesSize()) {
+		PyErr_SetString(PyExc_IndexError, "index out of range");
+		return NULL;
+	}
+	return BPy_Stroke_from_Stroke(*(Operators::getStrokeFromIndex(i)));
+}
+
 static char Operators_getViewEdgesSize___doc__[] =
 ".. staticmethod:: getViewEdgesSize()\n"
 "\n"
@@ -554,6 +621,9 @@ static PyMethodDef BPy_Operators_methods[] = {
 	{"recursiveSplit", ( PyCFunction ) Operators_recursiveSplit, METH_VARARGS | METH_STATIC, Operators_recursiveSplit___doc__},
 	{"sort", ( PyCFunction ) Operators_sort, METH_VARARGS | METH_STATIC, Operators_sort___doc__},
 	{"create", ( PyCFunction ) Operators_create, METH_VARARGS | METH_STATIC, Operators_create___doc__},
+	{"getViewEdgeFromIndex", ( PyCFunction ) Operators_getViewEdgeFromIndex, METH_VARARGS | METH_STATIC, Operators_getViewEdgeFromIndex___doc__},
+	{"getChainFromIndex", ( PyCFunction ) Operators_getChainFromIndex, METH_VARARGS | METH_STATIC, Operators_getChainFromIndex___doc__},
+	{"getStrokeFromIndex", ( PyCFunction ) Operators_getStrokeFromIndex, METH_VARARGS | METH_STATIC, Operators_getStrokeFromIndex___doc__},
 	{"getViewEdgesSize", ( PyCFunction ) Operators_getViewEdgesSize, METH_NOARGS | METH_STATIC, Operators_getViewEdgesSize___doc__},
 	{"getChainsSize", ( PyCFunction ) Operators_getChainsSize, METH_NOARGS | METH_STATIC, Operators_getChainsSize___doc__},
 	{"getStrokesSize", ( PyCFunction ) Operators_getStrokesSize, METH_NOARGS | METH_STATIC, Operators_getStrokesSize___doc__},
