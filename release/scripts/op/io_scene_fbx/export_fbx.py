@@ -2104,7 +2104,8 @@ def save(operator, context, filepath="",
 
             # The mesh uses this bones armature!
             if my_bone.fbxArm == my_mesh.fbxArm:
-                my_bone.blenMeshes[my_mesh.fbxName] = me
+                if my_bone.blenBone.use_deform:
+                    my_bone.blenMeshes[my_mesh.fbxName] = me
 
 
                 # parent bone: replace bone names with our class instances
