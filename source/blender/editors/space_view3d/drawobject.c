@@ -2481,7 +2481,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	int draw_wire = 0;
 	int totvert, totedge, totface;
 	DispList *dl;
-	DerivedMesh *dm= mesh_get_derived_final(scene, ob, v3d->customdata_mask);
+	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 
 	if(!dm)
 		return;
@@ -2656,7 +2656,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				dm->release(dm);
 				shadeDispList(scene, base);
 				dl = find_displist(&ob->disp, DL_VERTCOL);
-				dm= mesh_get_derived_final(scene, ob, v3d->customdata_mask);
+				dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 			}
 
 			if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !draw_wire) {
@@ -2765,7 +2765,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			finalDM = cageDM = editmesh_get_derived_base(ob, em);
 		else
 			cageDM = editmesh_get_derived_cage_and_final(scene, ob, em, &finalDM,
-											v3d->customdata_mask);
+											scene->customdata_mask);
 
 		if(dt>OB_WIRE) {
 			// no transp in editmode, the fancy draw over goes bad then
@@ -6440,9 +6440,9 @@ static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *UNUS
 	}
 }
 
-static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
+static void bbs_mesh_solid(Scene *scene, Object *ob)
 {
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, v3d->customdata_mask);
+	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	Mesh *me = (Mesh*)ob->data;
 	
 	glColor3ub(0, 0, 0);
@@ -6498,7 +6498,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 			EM_free_index_arrays();
 		}
-		else bbs_mesh_solid(scene, v3d, ob);
+		else bbs_mesh_solid(scene, ob);
 	}
 		break;
 	case OB_CURVE:

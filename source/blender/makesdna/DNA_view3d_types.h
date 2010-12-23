@@ -170,7 +170,7 @@ typedef struct View3D {
 	
 	float lens, grid;
 	float gridview; /* XXX deprecated, now in RegionView3D */
-	float padf, near, far;
+	float near, far;
 	float ofs[3];			/* XXX deprecated */
 	float cursor[3];
 
@@ -183,9 +183,6 @@ typedef struct View3D {
 	/* transform widget info */
 	short twtype, twmode, twflag;
 	short twdrawflag; /* XXX deprecated */
-	
-	/* customdata flags from modes */
-	unsigned int customdata_mask;
 	
 	/* afterdraw, for xray & transparent */
 	struct ListBase afterdraw_transp;

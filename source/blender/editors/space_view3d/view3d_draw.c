@@ -2305,9 +2305,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	unsigned int lay_used;
 	const char *grid_unit= NULL;
 
-	/* from now on all object derived meshes check this */
-	v3d->customdata_mask= scene->customdata_mask;
-
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows(scene, v3d);
