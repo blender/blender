@@ -2550,12 +2550,12 @@ void object_handle_update(Scene *scene, Object *ob)
 			case OB_MESH:
 				{
 					EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
-						// here was vieweditdatamask? XXX
+					BKE_assert((scene->customdata_mask & CD_MASK_BAREMESH) == CD_MASK_BAREMESH);
 					if(em) {
-						makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
+						makeDerivedMesh(scene, ob, em,  scene->customdata_mask); /* was CD_MASK_BAREMESH */
 						BKE_mesh_end_editmesh(ob->data, em);
 					} else
-						makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
+						makeDerivedMesh(scene, ob, NULL, scene->customdata_mask);
 				}
 				break;
 

@@ -170,5 +170,7 @@ struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int
 Base *ED_view3d_give_base_under_cursor(struct bContext *C, short *mval);
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar, short do_clip);
 
+unsigned int ED_viewedit_datamask(struct bScreen *screen);
+
 #endif /* ED_VIEW3D_H */
 

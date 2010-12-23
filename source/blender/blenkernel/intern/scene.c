@@ -946,6 +946,7 @@ float BKE_curframe(Scene *scene)
 static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent)
 {
 	Base *base;
+	scene->customdata_mask= scene_parent->customdata_mask;
 
 	/* sets first, we allow per definition current scene to have
 	   dependencies on sets, but not the other way around. */

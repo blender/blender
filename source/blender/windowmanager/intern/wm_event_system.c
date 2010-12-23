@@ -56,6 +56,7 @@
 #include "ED_fileselect.h"
 #include "ED_info.h"
 #include "ED_screen.h"
+#include "ED_view3d.h"
 #include "ED_util.h"
 
 #include "RNA_access.h"
@@ -296,6 +297,10 @@ void wm_event_do_notifiers(bContext *C)
 		/* XXX make lock in future, or separated derivedmesh users in scene */
 		if(!G.rendering)
 			/* depsgraph & animation: update tagged datablocks */
+
+			/* copied to set's in scene_update_tagged_recursive() */
+			win->screen->scene->customdata_mask= ED_viewedit_datamask(win->screen);
+
 			scene_update_tagged(CTX_data_main(C), win->screen->scene);
 	}
 

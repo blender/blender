@@ -1950,8 +1950,10 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 /* *********************** customdata **************** */
 
 /* goes over all modes and view3d settings */
-static CustomDataMask get_viewedit_datamask(bScreen *screen, Scene *scene, Object *ob)
+CustomDataMask ED_viewedit_datamask(bScreen *screen)
 {
+	Scene *scene= screen->scene;
+	Object *ob= scene->basact ? scene->basact->object : NULL;
 	CustomDataMask mask = CD_MASK_BAREMESH;
 	ScrArea *sa;
 	
@@ -2301,11 +2303,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Object *ob;
 	float backcol[3];
 	unsigned int lay_used;
-	Object *obact = OBACT;
 	const char *grid_unit= NULL;
 
 	/* from now on all object derived meshes check this */
-	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
+	v3d->customdata_mask= scene->customdata_mask;
 
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
