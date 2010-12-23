@@ -92,7 +92,7 @@
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
-
+#include "BLI_smallhash.h"
 
 #include "UI_resources.h"
 
@@ -4264,18 +4264,20 @@ static int createSlideVerts(TransInfo *t)
 	BMEditMesh *em = me->edit_btmesh;
 	BMesh *bm = em->bm;
 	BMIter iter, iter2;
-	BMEdge *e, *e1, *e2;
+	BMEdge *e, *e1, *e2, *ee, *le;
 	BMVert *v, *v2, *first;
 	BMLoop *l, *l1, *l2;
 	TransDataSlideVert *tempsv, *sv;
 	GHash **uvarray= NULL;
+	BMBVHTree *btree = BMBVH_NewBVH(em);
+	SmallHash table;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	TransDataSlideUv *slideuvs=NULL, *suv=NULL, *suv_last=NULL;
 	RegionView3D *v3d = t->ar->regiondata;
 	ARegion *ar = t->ar;
 	float projectMat[4][4];
-	float start[3] = {0.0f, 0.0f, 0.0f}, end[3] = {0.0f, 0.0f, 0.0f};
-	float vec[3], vec2[3], size, dis=0.0, z;
+	float start[3] = {0.0f, 0.0f, 0.0f}, dir[3], end[3] = {0.0f, 0.0f, 0.0f};
+	float vec[3], vec2[3], lastvec[3], size, dis=0.0, z;
 	float totvec=0.0;
 	int uvlay_tot= CustomData_number_of_layers(&em->bm->pdata, CD_MTFACE);
 	int uvlay_idx, numsel, i, j;
@@ -4286,6 +4288,8 @@ static int createSlideVerts(TransInfo *t)
 	} else {
 		view3d_get_object_project_mat(v3d, t->obedit, projectMat);
 	}
+	
+	BLI_smallhash_init(&table);
 	
 	/*ensure valid selection*/
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
@@ -4318,6 +4322,7 @@ static int createSlideVerts(TransInfo *t)
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_TestHFlag(v, BM_SELECT)) {
 			BMINDEX_SET(v, 1);
+			BLI_smallhash_insert(&table, (intptr_t)v, SET_INT_IN_POINTER(j));
 			j += 1;
 		} else BMINDEX_SET(v, 0);
 	}
@@ -4444,60 +4449,75 @@ static int createSlideVerts(TransInfo *t)
 	sld->totsv = j;
 	
 	/*find mouse vector*/
-	dis = z = 10000.0f;
+	dis = z = -1.0f;
 	size = 50.0;
+	zero_v3(lastvec); zero_v3(dir);
+	ee = le = NULL;
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_TestHFlag(e, BM_SELECT)) {
 			BMIter iter2;
 			BMEdge *e2;
-			float vec1[3], vec2[3], dir[3], vec[3], mval[2] = {t->mval[0], t->mval[1]}, d, z2;
-			
+			TransDataSlideVert *sv1, *sv2;
+			float vec1[3], dis2, ec2[3], vec[3], mval[2] = {t->mval[0], t->mval[1]}, d, z2;
+						
+			/*search cross edges for magnitude of transform vector*/
+			dis2 = -1.0f;
 			for (i=0; i<2; i++) {
 				BM_ITER(e2, &iter2, em->bm, BM_EDGES_OF_VERT, i?e->v1:e->v2) {
 					if (BM_TestHFlag(e2, BM_SELECT))
 						continue;
-
+					
+					if (!BMBVH_EdgeVisible(btree, e2, v3d, t->obedit))
+						continue;
+					
 					view3d_project_float_v3(ar, e2->v1->co, vec1, projectMat);
 					view3d_project_float_v3(ar, e2->v2->co, vec2, projectMat);
 					
-					add_v3_v3v3(vec, vec1, vec2);
-					mul_v3_fl(vec, 0.5);
-					z2 = vec[2];
-
 					d = dist_to_line_segment_v2(mval, vec1, vec2);
-					if (d < dis || (d < 15 && z2 < z)) {
-						dis = d;
+					if (dis2 == -1.0f || d < dis2) {
+						dis2 = d;
+						ee = e2;
 						size = len_v3v3(vec1, vec2);
 					}
 				}
 			}
-			view3d_project_float(ar, e->v1->co, vec1, projectMat);
-			view3d_project_float(ar, e->v2->co, vec2, projectMat);
-
-			sub_v3_v3v3(vec, vec1, vec2);
-			normalize_v3(vec);
-
-			if (dot_v3v3(dir, dir) != 0.0f) {
-				copy_v3_v3(dir, start);
+			
+			view3d_project_float_v3(ar, e->v1->co, vec1, projectMat);
+			view3d_project_float_v3(ar, e->v2->co, vec2, projectMat);
+			
+			d = dist_to_line_segment_v2(mval, vec1, vec2);
+			if ((d < dis || dis == -1.0) && (!le || BMBVH_EdgeVisible(btree, e, v3d, t->obedit))) {
+				le = e;
+				dis = d;
+				sub_v3_v3v3(dir, vec1, vec2);
 				normalize_v3(dir);
-				
-				if (dot_v3v3(dir, vec) < 0.0) {
-					mul_v3_fl(dir, -1.0);
-				}
 			}
-
-			add_v3_v3(start, dir);
 		}
 	}
 	
-	normalize_v3(start);
-	mul_v3_fl(start, size);
+	/*zero out start*/
+	zero_v3(start);
+	
+	/*dir holds a vector along edge loop*/
+	copy_v3_v3(end, dir);
 
-	end[0] = start[1];
-	end[1] = -start[0];
+	/*find perpindicular 2d line*/
+	SWAP(float, end[0], end[1]);
 
-	SWAP(float, start[0], start[1]);
+	if (le) {	
+		j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (intptr_t)le->v1));
+		sv = tempsv + j;
+		copy_v3_v3(vec, sv->upvec);
+		normalize_v3(vec);
 
+		if (dot_v2v2(vec, end) > 0.0) {
+			mul_v3_fl(end, -1.0);
+		}
+	}
+			
+	size *= 0.5;
+	mul_v3_fl(end, size);
+	
 	sld->start[0] = t->mval[0] + start[0];
 	sld->start[1] = t->mval[1] + start[1];
 
@@ -4505,7 +4525,10 @@ static int createSlideVerts(TransInfo *t)
 	sld->end[1] = t->mval[1] + end[1];
 	
 	t->customData = sld;
-
+	
+	BLI_smallhash_release(&table);
+	BMBVH_FreeBVH(btree);
+	
 	return 1;
 #endif
 #if 0

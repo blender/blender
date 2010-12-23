@@ -246,4 +246,6 @@ int ED_mesh_uv_texture_remove(struct bContext *C, struct Object *ob, struct Mesh
 int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me, const char *name, int active_set);
 int ED_mesh_color_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
 
+#include "../mesh/editbmesh_bvh.h"
+
 #endif /* ED_MESH_H */

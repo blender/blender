@@ -1,3 +1,6 @@
+#ifndef _EDITBMESH_BVH
+#define _EDITBMESH_BVH
+
 struct BMEditMesh;
 struct BMFace;
 struct BMEdge;
@@ -25,3 +28,4 @@ int BMBVH_EdgeVisible(struct BMBVHTree *tree, struct BMEdge *e,
 struct BMVert *BMBVH_FindClosestVert(struct BMBVHTree *tree, float *co, float maxdist);
 struct BMVert *BMBVH_FindClosestVertTopo(struct BMBVHTree *tree, float *co,
                                          float maxdist, struct BMVert *sourcev);
+#endif /* _EDITBMESH_H */
