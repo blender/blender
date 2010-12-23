@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB_RECURSE SRC *.cpp)
+FILE(GLOB_RECURSE SRC *.cpp *.h)
 
 SET(INC 
   ../blenkernel ../blenloader ../blenlib ../imbuf ../makesdna ../makesrna
