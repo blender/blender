@@ -1091,7 +1091,7 @@ void POSE_OT_paste (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "");
+	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "Paste the stored pose flipped on to current pose");
 }
 
 /* ********************************************** */

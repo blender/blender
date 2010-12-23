@@ -2200,6 +2200,12 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 				con->lin_error = 0.f;
 				con->rot_error = 0.f;
 			}
+			case CONSTRAINT_TYPE_CHILDOF:
+			{
+				/* XXX version patch, in older code this flag wasn't always set, and is inherent to type */
+				if(con->ownspace == CONSTRAINT_SPACE_POSE)
+					con->flag |= CONSTRAINT_SPACEONCE;
+			}
 				break;
 		}
 	}

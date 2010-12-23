@@ -1298,7 +1298,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 		{
 			/* if this constraint is being added to a posechannel, make sure
 			 * the constraint gets evaluated in pose-space */
-			if (ob->mode & OB_MODE_POSE) {
+			if (pchan) {
 				con->ownspace = CONSTRAINT_SPACE_POSE;
 				con->flag |= CONSTRAINT_SPACEONCE;
 			}

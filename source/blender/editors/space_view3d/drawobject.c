@@ -6293,11 +6293,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		}
 
 		/* Drawing the constraint lines */
-		list = &ob->constraints;
-		if (list) {
+		if (ob->constraints.first) {
 			bConstraint *curcon;
 			bConstraintOb *cob;
 			unsigned char col1[4], col2[4];
+			
+			list = &ob->constraints;
 			
 			UI_GetThemeColor3ubv(TH_GRID, col1);
 			UI_make_axis_color(col1, col2, 'Z');
