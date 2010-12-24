@@ -34,7 +34,10 @@ def fixName(name):
 def write_mtl(scene, filepath, copy_images, mtl_dict):
 
     world = scene.world
-    worldAmb = world.ambient_color
+    if world:
+        worldAmb = world.ambient_color[:]
+    else:
+        worldAmb = 0.0, 0.0, 0.0
 
     dest_dir = os.path.dirname(filepath)
 
@@ -69,10 +72,10 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
         file.write('newmtl %s\n' % mtl_mat_name) # Define a new material: matname_imgname
 
         if mat:
-            file.write('Ns %.6f\n' % ((mat.specular_hardness-1) * 1.9607843137254901) ) # Hardness, convert blenders 1-511 to MTL's
-            file.write('Ka %.6f %.6f %.6f\n' %  tuple([c*mat.ambient for c in worldAmb])  ) # Ambient, uses mirror colour,
-            file.write('Kd %.6f %.6f %.6f\n' % tuple([c*mat.diffuse_intensity for c in mat.diffuse_color]) ) # Diffuse
-            file.write('Ks %.6f %.6f %.6f\n' % tuple([c*mat.specular_intensity for c in mat.specular_color]) ) # Specular
+            file.write('Ns %.6f\n' % ((mat.specular_hardness-1) * 1.9607843137254901)) # Hardness, convert blenders 1-511 to MTL's
+            file.write('Ka %.6f %.6f %.6f\n' %  tuple(c * mat.ambient for c in worldAmb)) # Ambient, uses mirror colour,
+            file.write('Kd %.6f %.6f %.6f\n' % tuple(c * mat.diffuse_intensity for c in mat.diffuse_color)) # Diffuse
+            file.write('Ks %.6f %.6f %.6f\n' % tuple(c * mat.specular_intensity for c in mat.specular_color)) # Specular
             if hasattr(mat, "ior"):
                 file.write('Ni %.6f\n' % mat.ior) # Refraction index
             else:
@@ -90,7 +93,7 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
         else:
             #write a dummy material here?
             file.write('Ns 0\n')
-            file.write('Ka %.6f %.6f %.6f\n' %  tuple([c for c in worldAmb])  ) # Ambient, uses mirror colour,
+            file.write('Ka %.6f %.6f %.6f\n' %  tuple(c for c in worldAmb)) # Ambient, uses mirror colour,
             file.write('Kd 0.8 0.8 0.8\n')
             file.write('Ks 0.8 0.8 0.8\n')
             file.write('d 1\n') # No alpha
@@ -485,7 +488,7 @@ def write_file(filepath, objects, scene,
 
             # Vert
             for v in me_verts:
-                file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
+                file.write('v %.6f %.6f %.6f\n' % v.co[:])
 
             # UV
             if faceuv:
