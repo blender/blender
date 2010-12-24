@@ -514,22 +514,16 @@ class x3d_class:
         if self.writingcoords == 0:
             self.file.write('coordIndex="')
             for face in mesh.faces:
-                fv = face.vertices
-                # fv = face.v
+                fv = face.vertices[:]
 
                 if len(fv)==3:
-                # if len(face)==3:
                     self.file.write("%i %i %i -1, " % (fv[0], fv[1], fv[2]))
-                    # self.file.write("%i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index))
                 else:
                     if EXPORT_TRI:
                         self.file.write("%i %i %i -1, " % (fv[0], fv[1], fv[2]))
-                        # self.file.write("%i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index))
                         self.file.write("%i %i %i -1, " % (fv[0], fv[2], fv[3]))
-                        # self.file.write("%i %i %i -1, " % (fv[0].index, fv[2].index, fv[3].index))
                     else:
                         self.file.write("%i %i %i %i -1, " % (fv[0], fv[1], fv[2], fv[3]))
-                        # self.file.write("%i %i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index, fv[3].index))
 
             self.file.write("\">\n")
         else:
@@ -538,7 +532,7 @@ class x3d_class:
             self.writeIndented("<Coordinate DEF=\"%s%s\" \n" % ("coord_",meshName), 1)
             self.file.write("\t\t\t\tpoint=\"")
             for v in mesh.vertices:
-                self.file.write("%.6f %.6f %.6f, " % tuple(v.co))
+                self.file.write("%.6f %.6f %.6f, " % v.co[:])
             self.file.write("\" />")
             self.writeIndented("\n", -1)
 
@@ -580,23 +574,10 @@ class x3d_class:
         if self.writingcolor == 0:
             self.file.write("colorPerVertex=\"false\" ")
         elif mesh.vertex_colors.active:
-        # else:
             self.writeIndented("<Color color=\"", 1)
             for face in mesh.vertex_colors.active.data:
-                c = face.color1
-                if self.verbose > 2:
-                    print("Debug: face.col r=%d g=%d b=%d" % (c[0], c[1], c[2]))
-                    # print("Debug: face.col r=%d g=%d b=%d" % (c.r, c.g, c.b))
-                aColor = self.rgbToFS(c)
-                self.file.write("%s, " % aColor)
-
-            # for face in mesh.faces:
-            # 	if face.col:
-            # 		c=face.col[0]
-            # 		if self.verbose > 2:
-            # 			print("Debug: face.col r=%d g=%d b=%d" % (c.r, c.g, c.b))
-            # 		aColor = self.rgbToFS(c)
-            # 		self.file.write("%s, " % aColor)
+                # XXX, 1 color per face, only
+                self.file.write("%.3f %.3f %.3f, " % face.color1[:])
             self.file.write("\" />")
             self.writeIndented("\n",-1)
 
@@ -919,11 +900,6 @@ class x3d_class:
         print("Debug: mesh.vertices=%d" % len(mesh.vertices))
         print("Debug: mesh.faces=%d" % len(mesh.faces))
         print("Debug: mesh.materials=%d" % len(mesh.materials))
-
-    def rgbToFS(self, c):
-        s="%s %s %s" % (round(c[0]/255.0,self.cp),
-                        round(c[1]/255.0,self.cp),
-                        round(c[2]/255.0,self.cp))
 
         # s="%s %s %s" % (
         # 	round(c.r/255.0,self.cp),
