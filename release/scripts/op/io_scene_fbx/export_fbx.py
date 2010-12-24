@@ -1436,12 +1436,14 @@ def save(operator, context, filepath="",
         i=-1
 
         for v in me_vertices:
-            if i==-1:
-                file.write('%.6f,%.6f,%.6f' % tuple(v.co));	i=0
+            if i == -1:
+                file.write('%.6f,%.6f,%.6f' % v.co[:])
+                i = 0
             else:
-                if i==7:
-                    file.write('\n\t\t');	i=0
-                file.write(',%.6f,%.6f,%.6f'% tuple(v.co))
+                if i == 7:
+                    file.write('\n\t\t')
+                    i = 0
+                file.write(',%.6f,%.6f,%.6f'% v.co[:])
             i+=1
 
         file.write('\n\t\tPolygonVertexIndex: ')
@@ -1508,11 +1510,11 @@ def save(operator, context, filepath="",
         i=-1
         for v in me_vertices:
             if i==-1:
-                file.write('%.15f,%.15f,%.15f' % tuple(v.normal));	i=0
+                file.write('%.15f,%.15f,%.15f' % v.normal[:]);	i=0
             else:
                 if i==2:
                     file.write('\n			 ');	i=0
-                file.write(',%.15f,%.15f,%.15f' % tuple(v.normal))
+                file.write(',%.15f,%.15f,%.15f' % v.normal[:])
             i+=1
         file.write('\n\t\t}')
 
@@ -1558,14 +1560,6 @@ def save(operator, context, filepath="",
 
         file.write('\n\t\t}')
 
-        # small utility function
-        # returns a slice of data depending on number of face verts
-        # data is either a MeshTextureFace or MeshColor
-        def face_data(data, face):
-            totvert = len(f.vertices)
-
-            return data[:totvert]
-
 
         # Write VertexColor Layers
         # note, no programs seem to use this info :/
@@ -1585,21 +1579,21 @@ def save(operator, context, filepath="",
                 i = -1
                 ii = 0 # Count how many Colors we write
 
-                for f, cf in zip(me_faces, collayer.data):
-                    colors = [cf.color1, cf.color2, cf.color3, cf.color4]
-
-                    # determine number of verts
-                    colors = face_data(colors, f)
+                for fi, cf in enumerate(collayer.data):
+                    if len(me_faces[fi].vertices) == 4:
+                        colors = cf.color1[:], cf.color2[:], cf.color3[:], cf.color4[:]
+                    else:
+                        colors = cf.color1[:], cf.color2[:], cf.color3[:]
 
                     for col in colors:
                         if i==-1:
-                            file.write('%.4f,%.4f,%.4f,1' % tuple(col))
+                            file.write('%.4f,%.4f,%.4f,1' % col)
                             i=0
                         else:
                             if i==7:
                                 file.write('\n\t\t\t\t')
                                 i=0
-                            file.write(',%.4f,%.4f,%.4f,1' % tuple(col))
+                            file.write(',%.4f,%.4f,%.4f,1' % col)
                         i+=1
                         ii+=1 # One more Color
 
@@ -1646,7 +1640,7 @@ def save(operator, context, filepath="",
                             i=0
                         else:
                             if i==7:
-                                file.write('\n			 ')
+                                file.write('\n\t\t\t ')
                                 i=0
                             file.write(',%.6f,%.6f' % tuple(uv))
                         i+=1

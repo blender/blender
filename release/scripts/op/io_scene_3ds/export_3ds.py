@@ -120,9 +120,9 @@ SZ_FLOAT = 4
 class _3ds_short(object):
     '''Class representing a short (2-byte integer) for a 3ds file.
     *** This looks like an unsigned short H is unsigned from the struct docs - Cam***'''
-    __slots__ = 'value'
+    __slots__ = ('value', )
     def __init__(self, val=0):
-        self.value=val
+        self.value = val
 
     def get_size(self):
         return SZ_SHORT
@@ -135,9 +135,9 @@ class _3ds_short(object):
 
 class _3ds_int(object):
     '''Class representing an int (4-byte integer) for a 3ds file.'''
-    __slots__ = 'value'
-    def __init__(self, val=0):
-        self.value=val
+    __slots__ = ('value', )
+    def __init__(self, val):
+        self.value = val
 
     def get_size(self):
         return SZ_INT
@@ -150,8 +150,8 @@ class _3ds_int(object):
 
 class _3ds_float(object):
     '''Class representing a 4-byte IEEE floating point number for a 3ds file.'''
-    __slots__ = 'value'
-    def __init__(self, val=0.0):
+    __slots__ = ('value', )
+    def __init__(self, val):
         self.value=val
 
     def get_size(self):
@@ -166,8 +166,8 @@ class _3ds_float(object):
 
 class _3ds_string(object):
     '''Class representing a zero-terminated string for a 3ds file.'''
-    __slots__ = 'value'
-    def __init__(self, val=""):
+    __slots__ = ('value', )
+    def __init__(self, val):
         self.value=val
 
     def get_size(self):
@@ -183,7 +183,7 @@ class _3ds_string(object):
 class _3ds_point_3d(object):
     '''Class representing a three-dimensional point for a 3ds file.'''
     __slots__ = 'x','y','z'
-    def __init__(self, point=(0.0,0.0,0.0)):
+    def __init__(self, point):
         self.x, self.y, self.z = point
 
     def get_size(self):
@@ -216,8 +216,8 @@ class _3ds_point_4d(object):
 
 class _3ds_point_uv(object):
     '''Class representing a UV-coordinate for a 3ds file.'''
-    __slots__ = 'uv'
-    def __init__(self, point=(0.0,0.0)):
+    __slots__ = ('uv', )
+    def __init__(self, point):
         self.uv = point
 
     def __cmp__(self, other):
@@ -236,7 +236,7 @@ class _3ds_point_uv(object):
 class _3ds_rgb_color(object):
     '''Class representing a (24-bit) rgb color for a 3ds file.'''
     __slots__ = 'r','g','b'
-    def __init__(self, col=(0,0,0)):
+    def __init__(self, col):
         self.r, self.g, self.b = col
 
     def get_size(self):
@@ -251,7 +251,7 @@ class _3ds_rgb_color(object):
 
 class _3ds_face(object):
     '''Class representing a face for a 3ds file.'''
-    __slots__ = 'vindex'
+    __slots__ = ('vindex', )
     def __init__(self, vindex):
         self.vindex = vindex
 
