@@ -411,7 +411,6 @@ static float frontface(Brush *brush, float sculpt_normal[3], short no[3], float 
 		else {
 			dot= dot_v3v3(fno, sculpt_normal);
 		}
-
 		return dot > 0 ? dot : 0;
 	}
 	else {
@@ -1331,9 +1330,14 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 	int n;
 	float len;
 
-	if (brush->normal_weight > 0 || brush->flag & BRUSH_FRONTFACE)
+	if (brush->normal_weight > 0 || brush->flag & BRUSH_FRONTFACE) {
+		int cache= 1;
+		/* grab brush requires to test on original data */
+		SWAP(int, ss->cache->original, cache);
 		calc_sculpt_normal(sd, ss, an, nodes, totnode);
-
+		SWAP(int, ss->cache->original, cache);
+	}
+	
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
 	len = len_v3(grab_delta);
