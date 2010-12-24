@@ -1398,7 +1398,7 @@ static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
 static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
 {
 
-	PyObject *list = NULL;
+	PyObject *tuple;
 	int count;
 	
 	if(!BaseMath_ReadCallback(self))
@@ -1406,16 +1406,16 @@ static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
 
 	CLAMP(begin, 0, self->rowSize);
 	CLAMP(end, 0, self->rowSize);
-	begin = MIN2(begin,end);
+	begin= MIN2(begin,end);
 
-	list = PyList_New(end - begin);
-	for(count = begin; count < end; count++) {
-		PyList_SET_ITEM(list, count - begin,
+	tuple= PyTuple_New(end - begin);
+	for(count= begin; count < end; count++) {
+		PyTuple_SET_ITEM(tuple, count - begin,
 				newVectorObject_cb((PyObject *)self, self->colSize, mathutils_matrix_vector_cb_index, count));
 
 	}
 
-	return list;
+	return tuple;
 }
 /*----------------------------object[z:y]------------------------
   sequence slice (set)*/

@@ -807,7 +807,7 @@ static int Vector_ass_item(VectorObject *self, int i, PyObject * ob)
   sequence slice (get) */
 static PyObject *Vector_slice(VectorObject *self, int begin, int end)
 {
-	PyObject *list = NULL;
+	PyObject *tuple;
 	int count;
 
 	if(!BaseMath_ReadCallback(self))
@@ -816,14 +816,14 @@ static PyObject *Vector_slice(VectorObject *self, int begin, int end)
 	CLAMP(begin, 0, self->size);
 	if (end<0) end= self->size+end+1;
 	CLAMP(end, 0, self->size);
-	begin = MIN2(begin,end);
+	begin= MIN2(begin, end);
 
-	list = PyList_New(end - begin);
+	tuple= PyTuple_New(end - begin);
 	for(count = begin; count < end; count++) {
-		PyList_SET_ITEM(list, count - begin, PyFloat_FromDouble(self->vec[count]));
+		PyTuple_SET_ITEM(tuple, count - begin, PyFloat_FromDouble(self->vec[count]));
 	}
 
-	return list;
+	return tuple;
 }
 /*----------------------------object[z:y]------------------------
   sequence slice (set) */
