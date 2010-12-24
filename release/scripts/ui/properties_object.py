@@ -36,11 +36,11 @@ class OBJECT_PT_context_object(ObjectButtonsPanel, bpy.types.Panel):
         space = context.space_data
         ob = context.object
 
-        row = layout.row()
-        row.label(text="", icon='OBJECT_DATA')
         if space.use_pin_id:
-            row.template_ID(space, "pin_id")
+            layout.template_ID(space, "pin_id", unlink="None")
         else:
+            row = layout.row()
+            row.label(text="", icon='OBJECT_DATA')
             row.prop(ob, "name", text="")
 
 

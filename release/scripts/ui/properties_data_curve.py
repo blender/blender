@@ -59,14 +59,10 @@ class DATA_PT_context_curve(CurveButtonsPanel, bpy.types.Panel):
         curve = context.curve
         space = context.space_data
 
-        split = layout.split(percentage=0.65)
-
         if ob:
-            split.template_ID(ob, "data")
-            split.separator()
+            layout.template_ID(ob, "data", unlink="None")
         elif curve:
-            split.template_ID(space, "pin_id")
-            split.separator()
+            layout.template_ID(space, "pin_id", unlink="None") # XXX: broken
 
 
 class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):

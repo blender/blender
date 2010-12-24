@@ -292,6 +292,35 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 	}
 }
 
+static const char *template_id_browse_tip(StructRNA *type)
+{
+	if(type) {
+		switch(RNA_type_to_ID_code(type)) {
+			case ID_SCE: return "Browse Scene to be linked";
+			case ID_OB: return "Browse Object to be linked";
+			case ID_ME: return "Browse Mesh Data to be linked";
+			case ID_CU: return "Browse Curve Data to be linked";
+			case ID_MB: return "Browse MetaBall Data to be linked";
+			case ID_MA: return "Browse Material to be linked";
+			case ID_TE: return "Browse Texture to be linked";
+			case ID_IM: return "Browse Image to be linked";
+			case ID_LA: return "Browse Lattice Data to be linked";
+			case ID_CA: return "Browse Camera Data to be linked";
+			case ID_WO: return "Browse World Settings to be linked";
+			case ID_SCR: return "Choose Screen lay-out";
+			case ID_TXT: return "Browse Text to be linked";
+			case ID_SO: return "Browse Sound to be linked";
+			case ID_AR: return "Browse Armature data to be linked";
+			case ID_AC: return "Browse Action to be linked";
+			case ID_NT: return "Browse Node Tree to be linked";
+			case ID_BR: return "Browse Brush to be linked";
+			case ID_PA: return "Browse Particle System to be linked";
+			case ID_GD: return "Browse Grease Pencil Data to be linked";
+		}
+	}
+	return "Browse ID data to be linked";
+}
+
 static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, int flag, const char *newop, const char *openop, const char *unlinkop)
 {
 	uiBut *but;
@@ -313,7 +342,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 	if(flag & UI_ID_PREVIEWS) {
 
-		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, "Browse ID data");
+		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, template_id_browse_tip(type));
 		if(type) {
 			but->icon= RNA_struct_ui_icon(type);
 			if (id) but->icon = ui_id_icon_get(C, id, 1);
@@ -327,7 +356,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	} else 
 		
 	if(flag & UI_ID_BROWSE) {
-		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, "Browse ID data");
+		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, template_id_browse_tip(type));
 		if(type) {
 			but->icon= RNA_struct_ui_icon(type);
 			/* default dragging of icon for id browse buttons */
@@ -428,7 +457,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			uiButSetNFunc(but, NULL, MEM_dupallocN(template), 0);
 		}
 		else {
-			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Unlink datablock, Shift + Click to force removal on save");
+			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Unlink datablock. Shift + Click to set users to zero, data gets not saved");
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
 
 			if(RNA_property_flag(template->prop) & PROP_NEVER_NULL)
@@ -465,7 +494,9 @@ static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, const
 		flag |= UI_ID_ADD_NEW;
 	if(openop)
 		flag |= UI_ID_OPEN;
-	
+	if(unlinkop && strcmp(unlinkop, "None") == 0)
+		flag &= ~UI_ID_DELETE;
+
 	type= RNA_property_pointer_type(ptr, prop);
 	template->idlb= which_libbase(CTX_data_main(C), RNA_type_to_ID_code(type));
 	
