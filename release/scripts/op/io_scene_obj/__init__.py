@@ -65,6 +65,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     bl_idname = "export_scene.obj"
     bl_label = 'Export OBJ'
+    bl_options = {'PRESET'}
 
     filename_ext = ".obj"
     filter_glob = StringProperty(default="*.obj;*.mtl", options={'HIDDEN'})

@@ -301,6 +301,57 @@ class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
             keyconfigs.remove(keyconfigs.active)
 
 
+class AddPresetOperator(AddPresetBase, bpy.types.Operator):
+    '''Add an Application Interaction Preset'''
+    bl_idname = "wm.operator_preset_add"
+    bl_label = "Operator Preset"
+    preset_menu = "WM_MT_operator_presets"
+
+    operator = bpy.props.StringProperty(name="Operator", maxlen=64, options={'HIDDEN'})
+
+    # XXX, not ideal
+    preset_defines = [
+        "op = bpy.context.space_data.operator",
+    ]
+
+    @property
+    def preset_subdir(self):
+        return __class__.operator_path(self.operator)
+
+    @property
+    def preset_values(self):
+        properties_blacklist = bpy.types.Operator.bl_rna.properties.keys()
+
+        prefix, suffix = self.operator.split("_OT_", 1)
+        operator_rna = getattr(getattr(bpy.ops, prefix.lower()), suffix).get_rna().bl_rna
+
+        ret = []
+        for prop_id, prop in operator_rna.properties.items():
+            if (not prop.is_hidden) and prop_id not in properties_blacklist:
+                    ret.append("op.%s" % prop_id)
+
+        return ret
+
+    @staticmethod
+    def operator_path(operator):
+        import os
+        prefix, suffix = operator.split("_OT_", 1)
+        return os.path.join("operator", "%s.%s" % (prefix.lower(), suffix))
+
+
+class WM_MT_operator_presets(bpy.types.Menu):
+    bl_label = "Operator Presets"
+
+    def draw(self, context):
+        self.operator = context.space_data.operator.bl_idname
+        bpy.types.Menu.draw_preset(self, context)
+
+    @property
+    def preset_subdir(self):
+        return AddPresetOperator.operator_path(self.operator)
+
+    preset_operator = "script.execute_preset"
+
 def register():
     pass
 

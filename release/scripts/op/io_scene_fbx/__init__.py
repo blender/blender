@@ -34,6 +34,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     '''Selection to an ASCII Autodesk FBX'''
     bl_idname = "export_scene.fbx"
     bl_label = "Export FBX"
+    bl_options = {'PRESET'}
 
     filename_ext = ".fbx"
     filter_glob = StringProperty(default="*.fbx", options={'HIDDEN'})
