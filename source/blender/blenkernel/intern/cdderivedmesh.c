@@ -744,6 +744,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 
 		if( !GPU_buffer_legacy(dm) ) {
 			glShadeModel( GL_SMOOTH );
+			lastFlag = 0;
 			for(i = 0; i < dm->drawObject->nelements/3; i++) {
 				int actualFace = dm->drawObject->faceRemap[i];
 				int flag = 1;
@@ -754,6 +755,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				else {
 					if(index) {
 						orig = index[actualFace];
+						if(orig == ORIGINDEX_NONE) continue;
 						if(drawParamsMapped)
 							flag = drawParamsMapped(userData, orig);
 					}
