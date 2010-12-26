@@ -4176,13 +4176,23 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 			}
 
 			if(obr->strandbuf) {
+				float width;
+				
+				/* compute average bounding box of strandpoint itself (width) */
+				if(obr->strandbuf->flag & R_STRAND_B_UNITS)
+					obr->strandbuf->maxwidth= MAX2(obr->strandbuf->ma->strand_sta, obr->strandbuf->ma->strand_end);
+				else
+					obr->strandbuf->maxwidth= 0.0f;
+				
+				width= obr->strandbuf->maxwidth;
 				sbound= obr->strandbuf->bound;
 				for(b=0; b<obr->strandbuf->totbound; b++, sbound++) {
+					
 					INIT_MINMAX(smin, smax);
 
 					for(a=sbound->start; a<sbound->end; a++) {
 						strand= RE_findOrAddStrand(obr, a);
-						strand_minmax(strand, smin, smax);
+						strand_minmax(strand, smin, smax, width);
 					}
 
 					VECCOPY(sbound->boundbox[0], smin);

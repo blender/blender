@@ -578,7 +578,8 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 	}
 }
 
-static int strand_test_clip(float winmat[][4], ZSpan *zspan, float *bounds, float *co, float *zcomp)
+/* width is calculated in hoco space, to ensure strands are visible */
+static int strand_test_clip(float winmat[][4], ZSpan *zspan, float *bounds, float *co, float *zcomp, float widthx, float widthy)
 {
 	float hoco[4];
 	int clipflag= 0;
@@ -588,10 +589,11 @@ static int strand_test_clip(float winmat[][4], ZSpan *zspan, float *bounds, floa
 	/* we compare z without perspective division for segment sorting */
 	*zcomp= hoco[2];
 
-	if(hoco[0] > bounds[1]*hoco[3]) clipflag |= 1;
-	else if(hoco[0]< bounds[0]*hoco[3]) clipflag |= 2;
-	else if(hoco[1] > bounds[3]*hoco[3]) clipflag |= 4;
-	else if(hoco[1]< bounds[2]*hoco[3]) clipflag |= 8;
+	if(hoco[0]+widthx < bounds[0]*hoco[3]) clipflag |= 1;
+	else if(hoco[0]-widthx > bounds[1]*hoco[3]) clipflag |= 2;
+	
+	if(hoco[1]-widthy > bounds[3]*hoco[3]) clipflag |= 4;
+	else if(hoco[1]+widthy < bounds[2]*hoco[3]) clipflag |= 8;
 
 	clipflag |= testclip(hoco);
 
@@ -826,6 +828,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 	/* for all object instances */
 	for(obi=re->instancetable.first, i=0; obi; obi=obi->next, i++) {
 		Material *ma;
+		float widthx, widthy;
 
 		obr= obi->obr;
 
@@ -848,6 +851,9 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 
 		if(clip_render_object(obi->obr->boundbox, bounds, winmat))
 			continue;
+		
+		widthx= obr->strandbuf->maxwidth*obwinmat[0][0];
+		widthy= obr->strandbuf->maxwidth*obwinmat[1][1];
 
 		/* for each bounding box containing a number of strands */
 		sbound= obr->strandbuf->bound;
@@ -861,14 +867,14 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 				svert= strand->vert;
 
 				/* keep clipping and z depth for 4 control points */
-				clip[1]= strand_test_clip(obwinmat, &zspan, bounds, svert->co, &z[1]);
-				clip[2]= strand_test_clip(obwinmat, &zspan, bounds, (svert+1)->co, &z[2]);
+				clip[1]= strand_test_clip(obwinmat, &zspan, bounds, svert->co, &z[1], widthx, widthy);
+				clip[2]= strand_test_clip(obwinmat, &zspan, bounds, (svert+1)->co, &z[2], widthx, widthy);
 				clip[0]= clip[1]; z[0]= z[1];
 
 				for(b=0; b<strand->totvert-1; b++, svert++) {
 					/* compute 4th point clipping and z depth */
 					if(b < strand->totvert-2) {
-						clip[3]= strand_test_clip(obwinmat, &zspan, bounds, (svert+2)->co, &z[3]);
+						clip[3]= strand_test_clip(obwinmat, &zspan, bounds, (svert+2)->co, &z[3], widthx, widthy);
 					}
 					else {
 						clip[3]= clip[2]; z[3]= z[2];
@@ -1025,12 +1031,22 @@ void free_strand_surface(Render *re)
 	BLI_freelistN(&re->strandsurface);
 }
 
-void strand_minmax(StrandRen *strand, float *min, float *max)
+void strand_minmax(StrandRen *strand, float *min, float *max, float width)
 {
 	StrandVert *svert;
+	float vec[3], width2= 2.0f*width;
 	int a;
 
-	for(a=0, svert=strand->vert; a<strand->totvert; a++, svert++)
-		DO_MINMAX(svert->co, min, max)
+	for(a=0, svert=strand->vert; a<strand->totvert; a++, svert++) {
+		VECCOPY(vec, svert->co);
+		DO_MINMAX(vec, min, max);
+		
+		if(width!=0.0f) {
+			vec[0]+= width; vec[1]+= width; vec[2]+= width;
+			DO_MINMAX(vec, min, max);
+			vec[0]-= width2; vec[1]-= width2; vec[2]-= width2;
+			DO_MINMAX(vec, min, max);
+		}
+	}
 }
 
