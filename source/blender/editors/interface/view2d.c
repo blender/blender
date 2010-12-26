@@ -1697,10 +1697,10 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			 *	  NOTE: it's assumed that that scrollbar is there if this is involved!
 			 */
 			fac= (grid->starty- v2d->cur.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
-			fac= (vert.ymin + V2D_SCROLL_HEIGHT) + fac*(vert.ymax - vert.ymin - V2D_SCROLL_HEIGHT);
+			fac= vert.ymin + fac*(vert.ymax - vert.ymin);
 			
 			dfac= (grid->dy) / (v2d->cur.ymax - v2d->cur.ymin);
-			dfac= dfac * (vert.ymax - vert.ymin - V2D_SCROLL_HEIGHT);
+			dfac= dfac * (vert.ymax - vert.ymin);
 			
 			/* set starting value, and text color */
 			UI_ThemeColor(TH_TEXT);
