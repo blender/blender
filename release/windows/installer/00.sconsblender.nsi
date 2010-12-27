@@ -13,6 +13,7 @@
 !include "nsDialogs.nsh"
 !include "x64.nsh"
 
+RequestExecutionLevel user
 
 SetCompressor /SOLID lzma
 
