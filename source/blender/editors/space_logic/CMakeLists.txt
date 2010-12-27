@@ -43,4 +43,4 @@ if(WITH_GAMEENGINE)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
-blenderlib(bf_editor_space_logic "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_logic "${SRC}" "${INC}")

@@ -447,8 +447,12 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, bpy.types.Panel):
 
             col = split.column(align=True)
             col.label(text="Mirror:")
-            col.prop(tex, "use_mirror_x", text="X")
-            col.prop(tex, "use_mirror_y", text="Y")
+            row = col.row()
+            row.prop(tex, "use_mirror_x", text="X")
+            row.active = (tex.repeat_x > 1)
+            row = col.row()
+            row.prop(tex, "use_mirror_y", text="Y")
+            row.active = (tex.repeat_y > 1)
             layout.separator()
 
         elif tex.extension == 'CHECKER':

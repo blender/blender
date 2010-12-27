@@ -456,6 +456,12 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *UNUSED(op))
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			AnimData *adt= ale->adt;
 			
+			/* if track is currently 'solo', then AnimData should have its
+			 * 'has solo' flag disabled
+			 */
+			if (nlt->flag & NLATRACK_SOLO)
+				adt->flag &= ~ADT_NLA_SOLO_TRACK;
+			
 			/* call delete on this track - deletes all strips too */
 			free_nlatrack(&adt->nla_tracks, nlt);
 		}

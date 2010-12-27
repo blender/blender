@@ -129,4 +129,4 @@ else()
 	add_definitions(-DDISABLE_SDL)
 endif()
 
-blenderlib(ge_logic "${SRC}" "${INC}")
+blender_add_lib(ge_logic "${SRC}" "${INC}")

@@ -252,4 +252,4 @@ set(SRC
 	${PYTHONSRC}
 )
 
-blenderlib(bf_intern_audaspace "${SRC}" "${INC}")
+blender_add_lib(bf_intern_audaspace "${SRC}" "${INC}")

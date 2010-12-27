@@ -303,15 +303,15 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			uiButSetUnitType(but, PROP_UNIT_LENGTH);
 
 			if(totw==1) {
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:",	0, 50, 200, 20, &(tfp->ve_median[3]), 0.01, 100.0, 10, 3, "");
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:",	0, 50, 200, 20, &(tfp->ve_median[3]), 0.01, 100.0, 1, 3, "");
 				uiBlockBeginAlign(block);
 				uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 25, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
 				uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 25, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
 				uiBlockEndAlign(block);
 				if(totweight)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 0, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "");
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 0, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 1, 3, "");
 				if(totradius)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 0, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 10, 3, "Radius of curve CPs");
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 0, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, "Radius of curve CPs");
 				}
 			else {
 				uiBlockBeginAlign(block);
@@ -334,7 +334,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",		0, 70, 200, 20, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
 			uiButSetUnitType(but, PROP_UNIT_LENGTH);
 			if(totw==tot) {
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:",	0, 50, 200, 20, &(tfp->ve_median[3]), 0.01, 100.0, 10, 3, "");
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:",	0, 50, 200, 20, &(tfp->ve_median[3]), 0.01, 100.0, 1, 3, "");
 				uiBlockEndAlign(block);
 				uiBlockBeginAlign(block);
 				uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 25, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
@@ -352,17 +352,17 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 45, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
 				uiBlockEndAlign(block);
 				if(totweight)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 1, 3, "Weight is used for SoftBody Goal");
 				if(totradius)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 0, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 10, 3, "Radius of curve CPs");
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 0, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, "Radius of curve CPs");
 				uiBlockEndAlign(block);
 			}
 		}
 				
 		if(totedge==1)
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Crease:",	0, 20, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Crease:",	0, 20, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 1, 3, "");
 		else if(totedge>1)
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Mean Crease:",	0, 20, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Mean Crease:",	0, 20, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 1, 3, "");
 		
 	}
 	else {	// apply
@@ -784,57 +784,57 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 		uiLayoutSetActive(split, !(bone->parent && bone->flag & BONE_CONNECTED));
 	}
 	colsub = uiLayoutColumn(split, 1);
-	uiItemR(colsub, ptr, "location", 0, "Location", 0);
+	uiItemR(colsub, ptr, "location", 0, "Location", ICON_NULL);
 	colsub = uiLayoutColumn(split, 1);
-	uiItemL(colsub, "", 0);
-	uiItemR(colsub, ptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
+	uiItemL(colsub, "", ICON_NULL);
+	uiItemR(colsub, ptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
 	
 	split = uiLayoutSplit(layout, 0.8, 0);
 	
 	switch(RNA_enum_get(ptr, "rotation_mode")) {
 		case ROT_MODE_QUAT: /* quaternion */
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, ptr, "rotation_quaternion", 0, "Rotation", 0);
+			uiItemR(colsub, ptr, "rotation_quaternion", 0, "Rotation", ICON_NULL);
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", 0);
+			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", ICON_NULL);
 			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
-				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
+				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
 			else
-				uiItemL(colsub, "", 0);
-			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
+				uiItemL(colsub, "", ICON_NULL);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
 			break;
 		case ROT_MODE_AXISANGLE: /* axis angle */
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, ptr, "rotation_axis_angle", 0, "Rotation", 0);
+			uiItemR(colsub, ptr, "rotation_axis_angle", 0, "Rotation", ICON_NULL);
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", 0);
+			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", ICON_NULL);
 			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
-				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
+				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
 			else
-				uiItemL(colsub, "", 0);
-			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
+				uiItemL(colsub, "", ICON_NULL);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
 			break;
 		default: /* euler rotations */
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, ptr, "rotation_euler", 0, "Rotation", 0);
+			uiItemR(colsub, ptr, "rotation_euler", 0, "Rotation", ICON_NULL);
 			colsub = uiLayoutColumn(split, 1);
-			uiItemL(colsub, "", 0);
-			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
+			uiItemL(colsub, "", ICON_NULL);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
 			break;
 	}
-	uiItemR(layout, ptr, "rotation_mode", 0, "", 0);
+	uiItemR(layout, ptr, "rotation_mode", 0, "", ICON_NULL);
 	
 	split = uiLayoutSplit(layout, 0.8, 0);
 	colsub = uiLayoutColumn(split, 1);
-	uiItemR(colsub, ptr, "scale", 0, "Scale", 0);
+	uiItemR(colsub, ptr, "scale", 0, "Scale", ICON_NULL);
 	colsub = uiLayoutColumn(split, 1);
-	uiItemL(colsub, "", 0);
-	uiItemR(colsub, ptr, "lock_scale", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
+	uiItemL(colsub, "", ICON_NULL);
+	uiItemR(colsub, ptr, "lock_scale", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
 	
 	if (ptr->type == &RNA_Object) {
 		Object *ob = ptr->data;
 		if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
-			uiItemR(layout, ptr, "dimensions", 0, "Dimensions", 0);
+			uiItemR(layout, ptr, "dimensions", 0, "Dimensions", ICON_NULL);
 	}
 }
 
@@ -854,7 +854,7 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
 //	row= uiLayoutRow(layout, 0);
 	
 	if (!pchan)	{
-		uiItemL(layout, "No Bone Active", 0);
+		uiItemL(layout, "No Bone Active", ICON_NULL);
 		return; 
 	}
 
@@ -965,18 +965,18 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 
 
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, &eboneptr, "head", 0, "Head", 0);
+	uiItemR(col, &eboneptr, "head", 0, "Head", ICON_NULL);
 	if (ebone->parent && ebone->flag & BONE_CONNECTED ) {
 		PointerRNA parptr = RNA_pointer_get(&eboneptr, "parent");
-		uiItemR(col, &parptr, "tail_radius", 0, "Radius (Parent)", 0);
+		uiItemR(col, &parptr, "tail_radius", 0, "Radius (Parent)", ICON_NULL);
 	} else {
-		uiItemR(col, &eboneptr, "head_radius", 0, "Radius", 0);
+		uiItemR(col, &eboneptr, "head_radius", 0, "Radius", ICON_NULL);
 	}
 	
-	uiItemR(col, &eboneptr, "tail", 0, "Tail", 0);
-	uiItemR(col, &eboneptr, "tail_radius", 0, "Radius", 0);
+	uiItemR(col, &eboneptr, "tail", 0, "Tail", ICON_NULL);
+	uiItemR(col, &eboneptr, "tail_radius", 0, "Radius", ICON_NULL);
 	
-	uiItemR(col, &eboneptr, "roll", 0, "Roll", 0);
+	uiItemR(col, &eboneptr, "roll", 0, "Roll", ICON_NULL);
 }
 
 static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
@@ -995,37 +995,37 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 	RNA_pointer_create(&mball->id, &RNA_MetaElement, mball->lastelem, &ptr);
 	
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, &ptr, "co", 0, "Location", 0);
+	uiItemR(col, &ptr, "co", 0, "Location", ICON_NULL);
 	
-	uiItemR(col, &ptr, "radius", 0, "Radius", 0);
-	uiItemR(col, &ptr, "stiffness", 0, "Stiffness", 0);
+	uiItemR(col, &ptr, "radius", 0, "Radius", ICON_NULL);
+	uiItemR(col, &ptr, "stiffness", 0, "Stiffness", ICON_NULL);
 	
-	uiItemR(col, &ptr, "type", 0, "Type", 0);
+	uiItemR(col, &ptr, "type", 0, "Type", ICON_NULL);
 	
 	col= uiLayoutColumn(layout, 1);
 	switch (RNA_enum_get(&ptr, "type")) {
 		case MB_BALL:
 			break;
 		case MB_CUBE:
-			uiItemL(col, "Size:", 0);
-			uiItemR(col, &ptr, "size_x", 0, "X", 0);
-			uiItemR(col, &ptr, "size_y", 0, "Y", 0);
-			uiItemR(col, &ptr, "size_z", 0, "Z", 0);
+			uiItemL(col, "Size:", ICON_NULL);
+			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NULL);
+			uiItemR(col, &ptr, "size_y", 0, "Y", ICON_NULL);
+			uiItemR(col, &ptr, "size_z", 0, "Z", ICON_NULL);
 			break;
 		case MB_TUBE:
-			uiItemL(col, "Size:", 0);
-			uiItemR(col, &ptr, "size_x", 0, "X", 0);
+			uiItemL(col, "Size:", ICON_NULL);
+			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NULL);
 			break;
 		case MB_PLANE:
-			uiItemL(col, "Size:", 0);
-			uiItemR(col, &ptr, "size_x", 0, "X", 0);
-			uiItemR(col, &ptr, "size_y", 0, "Y", 0);
+			uiItemL(col, "Size:", ICON_NULL);
+			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NULL);
+			uiItemR(col, &ptr, "size_y", 0, "Y", ICON_NULL);
 			break;
 		case MB_ELIPSOID:
-			uiItemL(col, "Size:", 0);
-			uiItemR(col, &ptr, "size_x", 0, "X", 0);
-			uiItemR(col, &ptr, "size_y", 0, "Y", 0);
-			uiItemR(col, &ptr, "size_z", 0, "Z", 0);
+			uiItemL(col, "Size:", ICON_NULL);
+			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NULL);
+			uiItemR(col, &ptr, "size_y", 0, "Y", ICON_NULL);
+			uiItemR(col, &ptr, "size_z", 0, "Z", ICON_NULL);
 			break;		   
 	}	
 }

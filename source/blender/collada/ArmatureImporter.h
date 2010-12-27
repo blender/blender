@@ -105,9 +105,8 @@ private:
 
 	void fix_leaf_bones();
 
-	void set_leaf_bone_shapes(Object *ob_arm);
-
 #if 0
+	void set_leaf_bone_shapes(Object *ob_arm);
 	void set_euler_rotmode();
 #endif
 

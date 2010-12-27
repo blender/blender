@@ -47,4 +47,4 @@ set(SRC
 	mesh_intern.h
 )
 
-blenderlib(bf_editor_mesh "${SRC}" "${INC}")
+blender_add_lib(bf_editor_mesh "${SRC}" "${INC}")

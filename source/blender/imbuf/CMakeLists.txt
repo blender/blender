@@ -140,4 +140,4 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
-blenderlib(bf_imbuf "${SRC}" "${INC}")
+blender_add_lib(bf_imbuf "${SRC}" "${INC}")

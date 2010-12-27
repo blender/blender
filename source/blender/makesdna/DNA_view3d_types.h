@@ -89,11 +89,13 @@ typedef struct RegionView3D {
 
 	/* transform widget matrix */
 	float twmat[4][4];
-	
-	float viewquat[4], dist, zfac;	/* zfac is initgrabz() result */
-	float camdx, camdy;				/* camera view offsets, 1.0 = viewplane moves entire width/height */
-	float pixsize;
-	float ofs[3];
+
+	float viewquat[4];			/* view rotation, must be kept normalized */
+	float dist;					/* distance from 'ofs' along -viewinv[2] vector, where result is negative as is 'ofs' */
+	float zfac;					/* initgrabz() result */
+	float camdx, camdy;			/* camera view offsets, 1.0 = viewplane moves entire width/height */
+	float pixsize;				/* runtime only */
+	float ofs[3];				/* view center & orbit pivot, negative of worldspace location */
 	short camzoom;
 	short twdrawflag;
 	int pad;
@@ -168,7 +170,7 @@ typedef struct View3D {
 	
 	float lens, grid;
 	float gridview; /* XXX deprecated, now in RegionView3D */
-	float padf, near, far;
+	float near, far;
 	float ofs[3];			/* XXX deprecated */
 	float cursor[3];
 
@@ -181,9 +183,6 @@ typedef struct View3D {
 	/* transform widget info */
 	short twtype, twmode, twflag;
 	short twdrawflag; /* XXX deprecated */
-	
-	/* customdata flags from modes */
-	unsigned int customdata_mask;
 	
 	/* afterdraw, for xray & transparent */
 	struct ListBase afterdraw_transp;

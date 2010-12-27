@@ -729,7 +729,7 @@ void pose_copy_menu(Scene *scene)
 							for (con= tmp_constraints.first; con; con= con->next)
 								con->flag |= CONSTRAINT_PROXY_LOCAL;
 						}
-						addlisttolist(&pchan->constraints, &tmp_constraints);
+						BLI_movelisttolist(&pchan->constraints, &tmp_constraints);
 						
 						/* update flags (need to add here, not just copy) */
 						pchan->constflag |= pchanact->constflag;
@@ -836,7 +836,7 @@ void pose_copy_menu(Scene *scene)
 					for (con= tmp_constraints.first; con; con= con->next)
 						con->flag |= CONSTRAINT_PROXY_LOCAL;
 				}
-				addlisttolist(&pchan->constraints, &tmp_constraints);
+				BLI_movelisttolist(&pchan->constraints, &tmp_constraints);
 				
 				/* update flags (need to add here, not just copy) */
 				pchan->constflag |= pchanact->constflag;
@@ -1091,7 +1091,7 @@ void POSE_OT_paste (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "");
+	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "Paste the stored pose flipped on to current pose");
 }
 
 /* ********************************************** */
@@ -1204,20 +1204,20 @@ static int pose_groups_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED
 	/* if there's no active group (or active is invalid), create a new menu to find it */
 	if (pose->active_group <= 0) {
 		/* create a new menu, and start populating it with group names */
-		pup= uiPupMenuBegin(C, op->type->name, 0);
+		pup= uiPupMenuBegin(C, op->type->name, ICON_NULL);
 		layout= uiPupMenuLayout(pup);
 		
 		/* special entry - allow to create new group, then use that 
 		 *	(not to be used for removing though)
 		 */
 		if (strstr(op->idname, "assign")) {
-			uiItemIntO(layout, "New Group", 0, op->idname, "type", 0);
+			uiItemIntO(layout, "New Group", ICON_NULL, op->idname, "type", 0);
 			uiItemS(layout);
 		}
 		
 		/* add entries for each group */
 		for (grp= pose->agroups.first, i=1; grp; grp=grp->next, i++)
-			uiItemIntO(layout, grp->name, 0, op->idname, "type", i);
+			uiItemIntO(layout, grp->name, ICON_NULL, op->idname, "type", i);
 			
 		/* finish building the menu, and process it (should result in calling self again) */
 		uiPupMenuEnd(C, pup);

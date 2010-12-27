@@ -236,9 +236,9 @@ AUD_JackDevice::AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buff
 	create();
 
 	m_valid = true;
-	m_playing = false;
 	m_sync = 0;
 	m_syncFunc = NULL;
+	m_nextState = m_state = jack_transport_query(m_client, NULL);
 
 	pthread_mutex_init(&m_mixingLock, NULL);
 	pthread_cond_init(&m_mixingCondition, NULL);
@@ -307,11 +307,13 @@ void AUD_JackDevice::playing(bool playing)
 void AUD_JackDevice::startPlayback()
 {
 	jack_transport_start(m_client);
+	m_nextState = JackTransportRolling;
 }
 
 void AUD_JackDevice::stopPlayback()
 {
 	jack_transport_stop(m_client);
+	m_nextState = JackTransportStopped;
 }
 
 void AUD_JackDevice::seekPlayback(float time)
@@ -335,5 +337,10 @@ float AUD_JackDevice::getPlaybackPosition()
 
 bool AUD_JackDevice::doesPlayback()
 {
-	return jack_transport_query(m_client, NULL) != JackTransportStopped;
+	jack_transport_state_t state = jack_transport_query(m_client, NULL);
+
+	if(state != m_state)
+		m_nextState = m_state = state;
+
+	return m_nextState != JackTransportStopped;
 }

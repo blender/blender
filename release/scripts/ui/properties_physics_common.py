@@ -56,31 +56,34 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
                 layout.label(text="Cache is disabled until the file is saved")
                 layout.enabled = False
 
-        layout.prop(cache, "name", text="File Name")
+        if cache.use_disk_cache:
+            layout.prop(cache, "name", text="File Name")
+        else:
+            layout.prop(cache, "name", text="Cache Name")
 
-        split = layout.split()
-        col = split.column(align=True)
+        row = layout.row(align=True)
 
         if cachetype != 'PSYS':
-            col.enabled = enabled
-            col.prop(cache, "frame_start")
-            col.prop(cache, "frame_end")
+            row.enabled = enabled
+            row.prop(cache, "frame_start")
+            row.prop(cache, "frame_end")
         if cachetype not in ('SMOKE', 'CLOTH'):
-            col.prop(cache, "frame_step")
-
-        col = split.column()
+            row.prop(cache, "frame_step")
+        if cachetype != 'SMOKE':
+            layout.label(text=cache.info)
 
         if cachetype != 'SMOKE':
-            sub = col.column()
-            sub.enabled = enabled
-            sub.prop(cache, "use_quick_cache")
+            split = layout.split()
 
-            sub = col.column()
-            sub.enabled = (not bpy.data.is_dirty)
-            sub.prop(cache, "use_disk_cache")
-            col.label(text=cache.info)
+            col = split.column()
+            col.enabled = enabled
+            col.prop(cache, "use_quick_cache")
 
+            col = split.column()
+            col.enabled = (not bpy.data.is_dirty)
+            col.prop(cache, "use_disk_cache")
             sub = col.column()
+            sub.enabled = cache.use_disk_cache
             sub.prop(cache, "use_library_path", "Use Lib Path")
 
         layout.separator()

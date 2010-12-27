@@ -319,4 +319,4 @@ set(SRC
 	src/btBulletDynamicsCommon.h
 )
 
-blenderlib(extern_bullet "${SRC}" "${INC}")
+blender_add_lib(extern_bullet "${SRC}" "${INC}")

@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -53,12 +54,14 @@
 static int file_older(const char *file1, const char *file2)
 {
 	struct stat st1, st2;
+	// printf("compare: %s %s\n", file1, file2);
 
 	if(stat(file1, &st1)) return 0;
 	if(stat(file2, &st2)) return 0;
 
 	return (st1.st_mtime < st2.st_mtime);
 }
+const char *makesrna_path= NULL;
 
 static int replace_if_different(char *tmpfile, const char *dep_files[])
 {
@@ -67,7 +70,7 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 #define REN_IF_DIFF \
 	remove(orgfile); \
 	if(rename(tmpfile, orgfile) != 0) { \
-		fprintf(stderr, "%s:%d, rename error: \"%s\" -> \"%s\"\n", __FILE__, __LINE__, tmpfile, orgfile); \
+		fprintf(stderr, "%s:%d, Rename Error (%s): \"%s\" -> \"%s\"\n", __FILE__, __LINE__, strerror(errno), tmpfile, orgfile); \
 		return -1; \
 	} \
 	remove(tmpfile); \
@@ -99,6 +102,10 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 		/* first check if makesrna.c is newer then generated files
 		 * for development on makesrna.c you may want to disable this */
 		if(file_older(orgfile, __FILE__)) {
+			REN_IF_DIFF;
+		}
+
+		if(file_older(orgfile, makesrna_path)) {
 			REN_IF_DIFF;
 		}
 
@@ -2784,6 +2791,7 @@ int main(int argc, char **argv)
 	}
 	else {
 		printf("Running makesrna, program versions %s\n",  RNA_VERSION_DATE);
+		makesrna_path= argv[0];
 		return_status= rna_preprocess(argv[1]);
 	}
 

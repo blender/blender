@@ -1298,7 +1298,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 		{
 			/* if this constraint is being added to a posechannel, make sure
 			 * the constraint gets evaluated in pose-space */
-			if (ob->mode & OB_MODE_POSE) {
+			if (pchan) {
 				con->ownspace = CONSTRAINT_SPACE_POSE;
 				con->flag |= CONSTRAINT_SPACEONCE;
 			}
@@ -1506,7 +1506,7 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 	}
 	
 	/* prepare popup menu to choose targetting options */
-	pup= uiPupMenuBegin(C, "Add IK", 0);
+	pup= uiPupMenuBegin(C, "Add IK", ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 	
 	/* the type of targets we'll set determines the menu entries to show... */
@@ -1515,14 +1515,14 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 		 *	- the only thing that matters is that we want a target...
 		 */
 		if (tar_pchan)
-			uiItemBooleanO(layout, "To Active Bone", 0, "POSE_OT_ik_add", "with_targets", 1);
+			uiItemBooleanO(layout, "To Active Bone", ICON_NULL, "POSE_OT_ik_add", "with_targets", 1);
 		else
-			uiItemBooleanO(layout, "To Active Object", 0, "POSE_OT_ik_add", "with_targets", 1);
+			uiItemBooleanO(layout, "To Active Object", ICON_NULL, "POSE_OT_ik_add", "with_targets", 1);
 	}
 	else {
 		/* we have a choice of adding to a new empty, or not setting any target (targetless IK) */
-		uiItemBooleanO(layout, "To New Empty Object", 0, "POSE_OT_ik_add", "with_targets", 1);
-		uiItemBooleanO(layout, "Without Targets", 0, "POSE_OT_ik_add", "with_targets", 0);
+		uiItemBooleanO(layout, "To New Empty Object", ICON_NULL, "POSE_OT_ik_add", "with_targets", 1);
+		uiItemBooleanO(layout, "Without Targets", ICON_NULL, "POSE_OT_ik_add", "with_targets", 0);
 	}
 	
 	/* finish building the menu, and process it (should result in calling self again) */

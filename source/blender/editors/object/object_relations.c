@@ -282,7 +282,7 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		PointerRNA props_ptr;
 		
 		/* create operator menu item with relevant properties filled in */
-		props_ptr= uiItemFullO(layout, op->idname, op->type->name, 0, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		props_ptr= uiItemFullO(layout, op->idname, op->type->name, ICON_NULL, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);
@@ -687,7 +687,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	Object *ob= ED_object_active_context(C);
-	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", 0);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", ICON_NULL);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
@@ -1444,17 +1444,17 @@ void single_obdata_users(Main *bmain, Scene *scene, int flag)
 		if(ob->id.lib==NULL && (base->flag & flag)==flag ) {
 			id= ob->data;
 			
-			if(id && id->us>1 && id->lib==0) {
+			if(id && id->us>1 && id->lib==NULL) {
 				ob->recalc= OB_RECALC_DATA;
+				
+				BKE_copy_animdata_id_action(id);
 				
 				switch(ob->type) {
 				case OB_LAMP:
-					if(id && id->us>1 && id->lib==NULL) {
-						ob->data= la= copy_lamp(ob->data);
-						for(a=0; a<MAX_MTEX; a++) {
-							if(la->mtex[a]) {
-								ID_NEW(la->mtex[a]->object);
-							}
+					ob->data= la= copy_lamp(ob->data);
+					for(a=0; a<MAX_MTEX; a++) {
+						if(la->mtex[a]) {
+							ID_NEW(la->mtex[a]->object);
 						}
 					}
 					break;
@@ -1495,52 +1495,6 @@ void single_obdata_users(Main *bmain, Scene *scene, int flag)
 				
 			}
 			
-#if 0 // XXX old animation system
-			id= (ID *)ob->action;
-			if (id && id->us>1 && id->lib==NULL){
-				if(id->newid){
-					ob->action= (bAction *)id->newid;
-					id_us_plus(id->newid);
-				}
-				else {
-					ob->action= copy_action(ob->action);
-					id->us--;
-					id->newid=(ID *)ob->action;
-				}
-			}
-			id= (ID *)ob->ipo;
-			if(id && id->us>1 && id->lib==NULL) {
-				if(id->newid) {
-					ob->ipo= (Ipo *)id->newid;
-					id_us_plus(id->newid);
-				}
-				else {
-					ob->ipo= copy_ipo(ob->ipo);
-					id->us--;
-					id->newid= (ID *)ob->ipo;
-				}
-				ipo_idnew(ob->ipo);	/* drivers */
-			}
-			/* other ipos */
-			switch(ob->type) {
-			case OB_LAMP:
-				la= ob->data;
-				if(la->ipo && la->ipo->id.us>1) {
-					la->ipo->id.us--;
-					la->ipo= copy_ipo(la->ipo);
-					ipo_idnew(la->ipo);	/* drivers */
-				}
-				break;
-			case OB_CAMERA:
-				cam= ob->data;
-				if(cam->ipo && cam->ipo->id.us>1) {
-					cam->ipo->id.us--;
-					cam->ipo= copy_ipo(cam->ipo);
-					ipo_idnew(cam->ipo);	/* drivers */
-				}
-				break;
-			}
-#endif // XXX old animation system
 		}
 	}
 	
@@ -1551,29 +1505,18 @@ void single_obdata_users(Main *bmain, Scene *scene, int flag)
 	}
 }
 
-void single_ipo_users(Scene *UNUSED(scene), int UNUSED(flag))
+static void single_object_action_users(Scene *scene, int flag)
 {
-#if 0 // XXX old animation system
 	Object *ob;
 	Base *base;
-	ID *id;
 	
 	for(base= FIRSTBASE; base; base= base->next) {
 		ob= base->object;
 		if(ob->id.lib==NULL && (flag==0 || (base->flag & SELECT)) ) {
 			ob->recalc= OB_RECALC_DATA;
-			
-			id= (ID *)ob->ipo;
-			if(id && id->us>1 && id->lib==NULL) {
-				ob->ipo= copy_ipo(ob->ipo);
-				id->us--;
-				ipo_idnew(ob->ipo);	/* drivers */
-			}
+			BKE_copy_animdata_id_action(&ob->id);
 		}
 	}
-#endif // XXX old animation system
-	// TODO, something like this but must check users first.
-	// BKE_copy_animdata_id_action((ID *)obn->data);
 }
 
 static void single_mat_users(Scene *scene, int flag, int do_textures)
@@ -1595,17 +1538,11 @@ static void single_mat_users(Scene *scene, int flag, int do_textures)
 					
 					if(ma->id.us>1) {
 						man= copy_material(ma);
-					
+						BKE_copy_animdata_id_action(&man->id);
+						
 						man->id.us= 0;
 						assign_material(ob, man, a);
-	
-#if 0 // XXX old animation system						
-						if(ma->ipo) {
-							man->ipo= copy_ipo(ma->ipo);
-							ma->ipo->id.us--;
-							ipo_idnew(ma->ipo);	/* drivers */
-						}
-#endif // XXX old animation system
+
 						if(do_textures) {
 							for(b=0; b<MAX_MTEX; b++) {
 								if(ma->mtex[b] && ma->mtex[b]->tex) {
@@ -1638,6 +1575,7 @@ void do_single_tex_user(Tex **from)
 	}
 	else if(tex->id.us>1) {
 		texn= copy_texture(tex);
+		BKE_copy_animdata_id_action(&texn->id);
 		tex->id.newid= (ID *)texn;
 		tex->id.us--;
 		*from= texn;
@@ -1789,6 +1727,16 @@ static int make_local_exec(bContext *C, wmOperator *op)
 			id_make_local(id, 0);
 			adt= BKE_animdata_from_id(id);
 			if(adt) BKE_animdata_make_local(adt);
+			
+			/* tag indirect data direct */
+			matarar= (Material ***)give_matarar(ob);
+			if(matarar) {
+				for(a=0; a<ob->totcol; a++) {
+					ma= (*matarar)[a];
+					if(ma)
+						id_lib_extern(&ma->id);
+				}
+			}
 		}
 
 		for(psys=ob->particlesystem.first; psys; psys=psys->next)
@@ -1878,7 +1826,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 		single_mat_users(scene, flag, TRUE);
 
 	if(RNA_boolean_get(op->ptr, "animation"))
-		single_ipo_users(scene, flag);
+		single_object_action_users(scene, flag);
 
 	clear_id_newpoins();
 
@@ -1913,7 +1861,7 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "obdata", 0, "Object Data", "Make single user object data");
 	RNA_def_boolean(ot->srna, "material", 0, "Materials", "Make materials local to each datablock");
 	RNA_def_boolean(ot->srna, "texture", 0, "Textures", "Make textures local to each material");
-	RNA_def_boolean(ot->srna, "animation", 0, "Animation Data", "Make animation data local to each object");
+	RNA_def_boolean(ot->srna, "animation", 0, "Object Animation", "Make animation data local to each object");
 }
 
 static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *event)

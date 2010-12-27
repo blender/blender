@@ -41,6 +41,9 @@ typedef std::vector<PyTypeListItem*> PyTypeListType;
 class PyTypeList
 {
 public:
+	/// destructor
+	~PyTypeList();
+
 	/// check, if type is in list
 	bool in (PyTypeObject * type);
 

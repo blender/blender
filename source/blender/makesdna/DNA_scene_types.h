@@ -778,7 +778,7 @@ typedef struct Scene {
 	
 	unsigned int lay;			/* bitflags for layer visibility */
 	int layact;		/* active layer */
-	int pad1;
+	unsigned int customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by object_handle_update() */
 	
 	short flag;								/* various settings */
 	

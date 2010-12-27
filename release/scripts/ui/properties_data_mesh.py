@@ -70,13 +70,10 @@ class DATA_PT_context_mesh(MeshButtonsPanel, bpy.types.Panel):
         mesh = context.mesh
         space = context.space_data
 
-        split = layout.split(percentage=0.65)
         if ob:
-            split.template_ID(ob, "data")
-            split.separator()
+            layout.template_ID(ob, "data", unlink="None")
         elif mesh:
-            split.template_ID(space, "pin_id")
-            split.separator()
+            layout.template_ID(space, "pin_id", unlink="None")
 
 
 class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):

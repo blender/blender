@@ -78,4 +78,4 @@ set(SRC
 	VoidValue.h
 )
 
-blenderlib(ge_logic_expressions "${SRC}" "${INC}")
+blender_add_lib(ge_logic_expressions "${SRC}" "${INC}")

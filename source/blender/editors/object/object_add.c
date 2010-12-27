@@ -530,7 +530,7 @@ static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 
 	object_add_generic_invoke_options(C, op);
 
-	pup= uiPupMenuBegin(C, op->type->name, 0);
+	pup= uiPupMenuBegin(C, op->type->name, ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 	if(!obedit || obedit->type == OB_MBALL)
 		uiItemsEnumO(layout, op->type->idname, "type");
@@ -1091,8 +1091,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	MetaBall *mb;
 	Mesh *me;
-	int target= RNA_enum_get(op->ptr, "target");
-	int keep_original= RNA_boolean_get(op->ptr, "keep_original");
+	const short target= RNA_enum_get(op->ptr, "target");
+	const short keep_original= RNA_boolean_get(op->ptr, "keep_original");
 	int a, mballConverted= 0;
 
 	/* don't forget multiple users! */
@@ -1101,13 +1101,18 @@ static int convert_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		ob= base->object;
 		ob->flag &= ~OB_DONE;
+
+		/* flag data thats not been edited (only needed for !keep_original) */
+		if(ob->data) {
+			((ID *)ob->data)->flag |= LIB_DOIT;
+		}
 	}
 	CTX_DATA_END;
 
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		ob= base->object;
 
-		if(ob->flag & OB_DONE) {
+		if(ob->flag & OB_DONE || !IS_TAGGED(ob->data)) {
 			if (ob->type != target) {
 				base->flag &= ~SELECT;
 				ob->flag &= ~SELECT;
@@ -1243,13 +1248,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 				curvetomesh(scene, newob);
 			}
 		}
-		else if(ob->type==OB_MBALL) {
+		else if(ob->type==OB_MBALL && target == OB_MESH) {
 			Object *baseob;
-
-			if (target != OB_MESH) {
-				ob->flag |= OB_DONE;
-				continue;
-			}
 
 			base->flag &= ~SELECT;
 			ob->flag &= ~SELECT;
@@ -1292,11 +1292,12 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 				mballConverted= 1;
 			}
-			else
-				continue;
 		}
-		else
+		else {
 			continue;
+		}
+
+		/* tag obdata if it was been changed */
 
 		/* If the original object is active then make this object active */
 		if(basen) {
@@ -1308,8 +1309,9 @@ static int convert_exec(bContext *C, wmOperator *op)
 			basen= NULL;
 		}
 
-		if (!keep_original) {
+		if (!keep_original && (ob->flag & OB_DONE)) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			((ID *)ob->data)->flag &= ~LIB_DOIT; /* flag not to convert this datablock again */
 		}
 
 		/* delete original if needed */

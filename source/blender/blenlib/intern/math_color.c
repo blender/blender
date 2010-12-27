@@ -326,14 +326,14 @@ void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 	*b /= 255.0f;
 }
 
-void rgb_byte_to_float(char *in, float *out)
+void rgb_byte_to_float(const unsigned char *in, float *out)
 {
 	out[0]= ((float)in[0]) / 255.0f;
 	out[1]= ((float)in[1]) / 255.0f;
 	out[2]= ((float)in[2]) / 255.0f;
 }
 
-void rgb_float_to_byte(float *in, char *out)
+void rgb_float_to_byte(const float *in, unsigned char *out)
 {
 	int r, g, b;
 	
@@ -511,7 +511,7 @@ void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)
 }
 
 /* Applies an hue offset to a byte rgb color */
-void rgb_byte_set_hue_float_offset(char rgb[3], float hue_offset)
+void rgb_byte_set_hue_float_offset(unsigned char rgb[3], float hue_offset)
 {
 	float rgb_float[3];
 	

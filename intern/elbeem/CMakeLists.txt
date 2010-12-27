@@ -95,4 +95,4 @@ if(WITH_OPENMP)
 		add_definitions(-DPARALLEL=1)
 endif()
 
-blenderlib_nolist(bf_intern_elbeem "${SRC}" "${INC}")
+blender_add_lib_nolist(bf_intern_elbeem "${SRC}" "${INC}")

@@ -252,11 +252,24 @@ void BPY_start_python( int argc, char **argv )
 
 	{ /* our own import and reload functions */
 		PyObject *item;
+		PyObject *mod;
 		//PyObject *m = PyImport_AddModule("__builtin__");
 		//PyObject *d = PyModule_GetDict(m);
 		PyObject *d = PyEval_GetBuiltins(  );
-		PyDict_SetItemString(d, "reload",		item=PyCFunction_New(&bpy_reload_meth, NULL));	Py_DECREF(item);
+//		PyDict_SetItemString(d, "reload",		item=PyCFunction_New(&bpy_reload_meth, NULL));	Py_DECREF(item);
 		PyDict_SetItemString(d, "__import__",	item=PyCFunction_New(&bpy_import_meth, NULL));	Py_DECREF(item);
+
+		/* move reload here
+		 * XXX, use import hooks */
+		mod= PyImport_ImportModuleLevel((char *)"imp", NULL, NULL, NULL, 0);
+		if(mod) {
+			PyDict_SetItemString(PyModule_GetDict(mod), "reload",		item=PyCFunction_New(&bpy_reload_meth, NULL));	Py_DECREF(item);
+			Py_DECREF(mod);
+		}
+		else {
+			BKE_assert(!"unable to load 'imp' module.");
+		}
+
 	}
 	
 	pyrna_alloc_types();

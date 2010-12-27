@@ -480,7 +480,7 @@ static int Quaternion_ass_item(QuaternionObject * self, int i, PyObject * ob)
 //sequence slice (get)
 static PyObject *Quaternion_slice(QuaternionObject * self, int begin, int end)
 {
-	PyObject *list = NULL;
+	PyObject *tuple;
 	int count;
 
 	if(!BaseMath_ReadCallback(self))
@@ -489,14 +489,14 @@ static PyObject *Quaternion_slice(QuaternionObject * self, int begin, int end)
 	CLAMP(begin, 0, QUAT_SIZE);
 	if (end<0) end= (QUAT_SIZE + 1) + end;
 	CLAMP(end, 0, QUAT_SIZE);
-	begin = MIN2(begin,end);
+	begin= MIN2(begin, end);
 
-	list = PyList_New(end - begin);
-	for(count = begin; count < end; count++) {
-		PyList_SET_ITEM(list, count - begin, PyFloat_FromDouble(self->quat[count]));
+	tuple= PyTuple_New(end - begin);
+	for(count= begin; count < end; count++) {
+		PyTuple_SET_ITEM(tuple, count - begin, PyFloat_FromDouble(self->quat[count]));
 	}
 
-	return list;
+	return tuple;
 }
 //----------------------------object[z:y]------------------------
 //sequence slice (set)

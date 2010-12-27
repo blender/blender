@@ -385,7 +385,7 @@ static void add_main_to_main(Main *mainvar, Main *from)
 	a= set_listbasepointers(mainvar, lbarray);
 	a= set_listbasepointers(from, fromarray);
 	while(a--) {
-		addlisttolist(lbarray[a], fromarray[a]);
+		BLI_movelisttolist(lbarray[a], fromarray[a]);
 	}
 }
 
@@ -2201,6 +2201,12 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 				con->lin_error = 0.f;
 				con->rot_error = 0.f;
 			}
+			case CONSTRAINT_TYPE_CHILDOF:
+			{
+				/* XXX version patch, in older code this flag wasn't always set, and is inherent to type */
+				if(con->ownspace == CONSTRAINT_SPACE_POSE)
+					con->flag |= CONSTRAINT_SPACEONCE;
+			}
 				break;
 		}
 	}
@@ -2238,7 +2244,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 		/* hurms... loop in a loop, but yah... later... (ton) */
 		pchan->bone= get_named_bone(arm, pchan->name);
 		
-		pchan->custom= newlibadr(fd, arm->id.lib, pchan->custom);
+		pchan->custom= newlibadr_us(fd, arm->id.lib, pchan->custom);
 		if(pchan->bone==NULL)
 			rebuild= 1;
 		else if(ob->id.lib==NULL && arm->id.lib) {

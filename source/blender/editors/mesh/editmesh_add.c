@@ -359,13 +359,13 @@ int make_fgon(EditMesh *em, wmOperator *op, int make)
 		if(eve->f1==1) break;
 	}
 	if(eve) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot make a polygon with interior vertices");
+		BKE_report(op->reports, RPT_WARNING, "Cannot make a polygon with interior vertices");
 		return 0;
 	}
 	
 	// check for faces
 	if(nor==NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No faces were selected to make FGon");
+		BKE_report(op->reports, RPT_WARNING, "No faces were selected to make FGon");
 		return 0;
 	}
 
@@ -746,7 +746,7 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 		return;
 	}
 	else if(amount<2) {
-		BKE_report(op->reports, RPT_ERROR, "More vertices are needed to make an edge/face");
+		BKE_report(op->reports, RPT_WARNING, "More vertices are needed to make an edge/face");
 		return;
 	}
 
@@ -758,7 +758,7 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 			efa= addfacelist(em, neweve[0], neweve[1], neweve[2], 0, NULL, NULL);
 			EM_select_face(efa, 1);
 		}
-		else BKE_report(op->reports, RPT_ERROR, "The selected vertices already form a face");
+		else BKE_report(op->reports, RPT_WARNING, "The selected vertices already form a face");
 	}
 	else if(amount==4) {
 		/* this test survives when theres 2 triangles */
@@ -810,14 +810,14 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 						else if( convex(neweve[0]->co, neweve[3]->co, neweve[1]->co, neweve[2]->co) ) {
 							efa= addfacelist(em, neweve[0], neweve[3], neweve[1], neweve[2], NULL, NULL);
 						}
-						else BKE_report(op->reports, RPT_ERROR, "cannot find nice quad from concave set of vertices");
+						else BKE_report(op->reports, RPT_WARNING, "cannot find nice quad from concave set of vertices");
 
 					}
 				}
 			}
-			else BKE_report(op->reports, RPT_ERROR, "The selected vertices already form a face");
+			else BKE_report(op->reports, RPT_WARNING, "The selected vertices already form a face");
 		}
-		else BKE_report(op->reports, RPT_ERROR, "The selected vertices already form a face");
+		else BKE_report(op->reports, RPT_WARNING, "The selected vertices already form a face");
 	}
 	
 	if(efa) {

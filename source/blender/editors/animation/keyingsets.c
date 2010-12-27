@@ -700,14 +700,14 @@ void ANIM_keying_sets_menu_setup (bContext *C, const char title[], const char op
 	uiLayout *layout;
 	int i = 0;
 	
-	pup= uiPupMenuBegin(C, title, 0);
+	pup= uiPupMenuBegin(C, title, ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 	
 	/* active Keying Set 
 	 *	- only include entry if it exists
 	 */
 	if (scene->active_keyingset) {
-		uiItemIntO(layout, "Active Keying Set", 0, op_name, "type", i++);
+		uiItemIntO(layout, "Active Keying Set", ICON_NULL, op_name, "type", i++);
 		uiItemS(layout);
 	}
 	else
@@ -719,7 +719,7 @@ void ANIM_keying_sets_menu_setup (bContext *C, const char title[], const char op
 	if (scene->keyingsets.first) {
 		for (ks= scene->keyingsets.first; ks; ks= ks->next) {
 			if (ANIM_keyingset_context_ok_poll(C, ks))
-				uiItemIntO(layout, ks->name, 0, op_name, "type", i++);
+				uiItemIntO(layout, ks->name, ICON_NULL, op_name, "type", i++);
 		}
 		uiItemS(layout);
 	}
@@ -729,7 +729,7 @@ void ANIM_keying_sets_menu_setup (bContext *C, const char title[], const char op
 	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
 		/* only show KeyingSet if context is suitable */
 		if (ANIM_keyingset_context_ok_poll(C, ks))
-			uiItemIntO(layout, ks->name, 0, op_name, "type", i--);
+			uiItemIntO(layout, ks->name, ICON_NULL, op_name, "type", i--);
 	}
 	
 	uiPupMenuEnd(C, pup);

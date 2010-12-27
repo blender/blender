@@ -435,7 +435,9 @@ typedef struct StrandBuffer {
 	int overrideuv;
 	int flag, maxdepth;
 	float adaptcos, minwidth, widthfade;
-
+	
+	float maxwidth;	/* for cliptest of strands in blender unit */
+	
 	float winmat[4][4];
 	int winx, winy;
 } StrandBuffer;

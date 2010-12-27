@@ -46,4 +46,4 @@ set(SRC
 	sculpt_intern.h
 )
 
-blenderlib(bf_editor_sculpt_paint "${SRC}" "${INC}")
+blender_add_lib(bf_editor_sculpt_paint "${SRC}" "${INC}")

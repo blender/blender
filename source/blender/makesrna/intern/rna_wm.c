@@ -265,6 +265,7 @@ EnumPropertyItem operator_flag_items[] = {
 		{OPTYPE_BLOCKING, "BLOCKING", 0, "Finished", ""},
 		{OPTYPE_MACRO, "MACRO", 0, "Macro", ""},
 		{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer", ""},
+		{OPTYPE_PRESET, "PRESET", 0, "Preset", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem operator_return_items[] = {

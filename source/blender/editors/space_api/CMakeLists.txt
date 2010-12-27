@@ -34,4 +34,4 @@ set(SRC
 	spacetypes.c
 )
 
-blenderlib(bf_editor_space_api "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_api "${SRC}" "${INC}")

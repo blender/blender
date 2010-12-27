@@ -41,12 +41,12 @@ if(WIN32 AND NOT UNIX)
 	)
 endif()
 
-blenderlib(bf_intern_guardedalloc "${SRC}" "${INC}")
+blender_add_lib(bf_intern_guardedalloc "${SRC}" "${INC}")
 
 # Override C++ alloc, optional.
 if(WITH_CXX_GUARDEDALLOC)
 	set(SRC
 		cpp/mallocn.cpp
 	)
-	blenderlib(bf_intern_guardedalloc_cpp "${SRC}" "${INC}")
+	blender_add_lib(bf_intern_guardedalloc_cpp "${SRC}" "${INC}")
 endif()

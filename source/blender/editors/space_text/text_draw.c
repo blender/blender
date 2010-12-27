@@ -1173,7 +1173,7 @@ static void draw_textscroll(SpaceText *st, rcti *scroll)
 {
 	bTheme *btheme= U.themes.first;
 	uiWidgetColors wcol= btheme->tui.wcol_scroll;
-	char col[3];
+	unsigned char col[4];
 	float rad;
 	
 	uiWidgetScrollDraw(&wcol, scroll, &st->txtbar, (st->flags & ST_SCROLL_SELECT)?UI_SCROLL_PRESSED:0);
@@ -1181,7 +1181,8 @@ static void draw_textscroll(SpaceText *st, rcti *scroll)
 	uiSetRoundBox(15);
 	rad= 0.4f*MIN2(st->txtscroll.xmax - st->txtscroll.xmin, st->txtscroll.ymax - st->txtscroll.ymin);
 	UI_GetThemeColor3ubv(TH_HILITE, col);
-	glColor4ub(col[0], col[1], col[2], 48);
+	col[3]= 48;
+	glColor4ubv(col);
 	glEnable(GL_BLEND);
 	uiRoundBox(st->txtscroll.xmin+1, st->txtscroll.ymin, st->txtscroll.xmax-1, st->txtscroll.ymax, rad);
 	glDisable(GL_BLEND);
@@ -1228,7 +1229,7 @@ static void draw_markers(SpaceText *st, ARegion *ar)
 		/* invisible part of line (before top, after last visible line) */
 		if(y2 < 0 || y1 > st->top+st->viewlines) continue;
 
-		glColor3ub(marker->color[0], marker->color[1], marker->color[2]);
+		glColor3ubv(marker->color);
 		x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 		y= ar->winy-3;
 

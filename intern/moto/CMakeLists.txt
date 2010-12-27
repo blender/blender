@@ -67,4 +67,4 @@ set(SRC
 	include/NM_Scalar.h
 )
 
-blenderlib(bf_intern_moto "${SRC}" "${INC}")
+blender_add_lib(bf_intern_moto "${SRC}" "${INC}")

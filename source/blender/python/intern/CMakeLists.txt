@@ -67,4 +67,4 @@ if(WITH_BUILDINFO)
 	add_definitions(-DBUILD_DATE)
 endif()
 
-blenderlib(bf_python "${SRC}" "${INC}")
+blender_add_lib(bf_python "${SRC}" "${INC}")

@@ -140,4 +140,4 @@ if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
 endif()
 
-blenderlib(bf_blenlib "${SRC}" "${INC}")
+blender_add_lib(bf_blenlib "${SRC}" "${INC}")

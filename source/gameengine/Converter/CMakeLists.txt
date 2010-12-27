@@ -109,4 +109,4 @@ if(WITH_BULLET)
 	add_definitions(-DUSE_BULLET)
 endif()
 
-blenderlib(ge_converter "${SRC}" "${INC}")
+blender_add_lib(ge_converter "${SRC}" "${INC}")

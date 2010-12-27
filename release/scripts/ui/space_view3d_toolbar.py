@@ -1298,7 +1298,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, bpy.types.Panel):
 
         if not pe.is_editable:
             layout.label(text="Point cache must be baked")
-            layout.label(text="to enable editing!")
+            layout.label(text="in memory to enable editing!")
 
         col = layout.column(align=True)
         if pe.is_hair:

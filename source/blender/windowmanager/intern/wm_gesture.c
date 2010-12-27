@@ -325,8 +325,8 @@ void wm_gesture_draw(wmWindow *win)
 		
 		if(gt->type==WM_GESTURE_RECT)
 			wm_gesture_draw_rect(gt);
-		else if(gt->type==WM_GESTURE_TWEAK)
-			wm_gesture_draw_line(gt);
+//		else if(gt->type==WM_GESTURE_TWEAK)
+//			wm_gesture_draw_line(gt);
 		else if(gt->type==WM_GESTURE_CIRCLE)
 			wm_gesture_draw_circle(gt);
 		else if(gt->type==WM_GESTURE_CROSS_RECT) {

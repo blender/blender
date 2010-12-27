@@ -36,4 +36,4 @@ set(SRC
 	minilzo/minilzo.h
 )
 
-blenderlib(extern_minilzo "${SRC}" "${INC}")
+blender_add_lib(extern_minilzo "${SRC}" "${INC}")

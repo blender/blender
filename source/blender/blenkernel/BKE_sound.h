@@ -96,4 +96,6 @@ int sound_scene_playing(struct Scene *scene);
 
 int sound_read_sound_buffer(struct bSound* sound, float* buffer, int length, float start, float end);
 
+int sound_get_channels(struct bSound* sound);
+
 #endif

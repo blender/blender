@@ -55,6 +55,7 @@ struct ImBuf;
 #define OPTYPE_BLOCKING		4	/* let blender grab all input from the WM (X11) */
 #define OPTYPE_MACRO		8
 #define OPTYPE_GRAB_POINTER	16	/* */
+#define OPTYPE_PRESET		32	/* show preset menu */
 
 /* context to call operator in for WM_operator_name_call */
 /* rna_ui.c contains EnumPropertyItem's of these, keep in sync */

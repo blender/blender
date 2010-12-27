@@ -88,6 +88,7 @@ typedef struct uiFontStyle {
 
 
 /* this is fed to the layout engine and widget code */
+
 typedef struct uiStyle {
 	struct uiStyle *next, *prev;
 	
@@ -158,13 +159,13 @@ typedef struct ThemeSpace {
 	/* main window colors */
 	char back[4];
 	char title[4];
-	char text[4];	
+	char text[4];
 	char text_hi[4];
 	
 	/* header colors */
 	char header[4];
 	char header_title[4];
-	char header_text[4];	
+	char header_text[4];
 	char header_text_hi[4];
 
 	/* button/tool regions */
@@ -176,7 +177,7 @@ typedef struct ThemeSpace {
 	/* listview regions */
 	char list[4];
 	char list_title[4];
-	char list_text[4];	
+	char list_text[4];
 	char list_text_hi[4];
 	
 	/* float panel */
@@ -199,6 +200,7 @@ typedef struct ThemeSpace {
 	char edge_seam[4], edge_sharp[4], edge_facesel[4], edge_crease[4];
 	char face[4], face_select[4];	// solid faces
 	char face_dot[4];				// selected color
+	char extra_edge_len[4], extra_face_angle[4], extra_face_area[4], pad3[4];
 	char normal[4];
 	char vertex_normal[4];
 	char bone_solid[4], bone_pose[4];

@@ -113,7 +113,7 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
             uv = uv.uv1, uv.uv2, uv.uv3, uv.uv4 # XXX - crufty :/
         if vertexColors:
             col = active_col_layer[i]
-            col = col.color1, col.color2, col.color3, col.color4
+            col = col.color1[:], col.color2[:], col.color3[:], col.color4[:]
 
         f_verts = f.vertices
 
@@ -176,7 +176,7 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
     file.write('end_header\n')
 
     for i, v in enumerate(ply_verts):
-        file.write('%.6f %.6f %.6f ' % tuple(mesh_verts[v[0]].co)) # co
+        file.write('%.6f %.6f %.6f ' % mesh_verts[v[0]].co[:]) # co
         if use_normals:
             file.write('%.6f %.6f %.6f ' % v[1]) # no
         if use_uv_coords:

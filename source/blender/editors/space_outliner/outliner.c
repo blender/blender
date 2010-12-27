@@ -2715,7 +2715,7 @@ static TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, ID *id)
 		if(tselem->type==0) {
 			if(tselem->id==id) return te;
 			/* only deeper on scene or object */
-			if( te->idcode==ID_OB || te->idcode==ID_SCE) { 
+			if( te->idcode==ID_OB || te->idcode==ID_SCE || (soops->outlinevis == SO_GROUPS && te->idcode==ID_GR)) {
 				tes= outliner_find_id(soops, &te->subtree, id);
 				if(tes) return tes;
 			}
@@ -2770,8 +2770,6 @@ void OUTLINER_OT_show_active(wmOperatorType *ot)
 	/* callbacks */
 	ot->exec= outliner_show_active_exec;
 	ot->poll= ED_operator_outliner_active;
-	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* tse is not in the treestore, we use its contents to find a match */
@@ -4556,6 +4554,21 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 	
 }
 
+/* closed tree element */
+static void outliner_set_coord_tree_element(SpaceOops *soops, TreeElement *te, int startx, int *starty)
+{
+	TreeElement *ten;
+	
+	/* store coord and continue, we need coordinates for elements outside view too */
+	te->xs= (float)startx;
+	te->ys= (float)(*starty);
+	
+	for(ten= te->subtree.first; ten; ten= ten->next) {
+		outliner_set_coord_tree_element(soops, ten, startx+OL_X, starty);
+	}	
+}
+
+
 static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int startx, int *starty)
 {
 	TreeElement *ten;
@@ -4710,13 +4723,18 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 	te->ys= (float)*starty;
 	te->xend= startx+offsx;
 		
-	*starty-= OL_H;
-
 	if((tselem->flag & TSE_CLOSED)==0) {
-		for(ten= te->subtree.first; ten; ten= ten->next) {
+		*starty-= OL_H;
+		
+		for(ten= te->subtree.first; ten; ten= ten->next)
 			outliner_draw_tree_element(C, block, scene, ar, soops, ten, startx+OL_X, starty);
-		}
 	}	
+	else {
+		for(ten= te->subtree.first; ten; ten= ten->next)
+			outliner_set_coord_tree_element(soops, te, startx, starty);
+
+		*starty-= OL_H;
+	}
 }
 
 static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, int *starty)
@@ -5300,13 +5318,13 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				prop= te->directdata;
 				
 				if(!(RNA_property_type(prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
-					uiDefAutoButR(block, ptr, prop, -1, "", 0, sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+					uiDefAutoButR(block, ptr, prop, -1, "", ICON_NULL, sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 			else if(tselem->type == TSE_RNA_ARRAY_ELEM) {
 				ptr= &te->rnaptr;
 				prop= te->directdata;
 				
-				uiDefAutoButR(block, ptr, prop, te->index, "", 0, sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+				uiDefAutoButR(block, ptr, prop, te->index, "", ICON_NULL, sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 		}
 		

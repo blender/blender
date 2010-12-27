@@ -57,8 +57,16 @@ class TIME_HT_header(bpy.types.Header):
         row.operator("screen.frame_jump", text="", icon='REW').end = False
         row.operator("screen.keyframe_jump", text="", icon='PREV_KEYFRAME').next = False
         if not screen.is_animation_playing:
-            row.operator("screen.animation_play", text="", icon='PLAY_REVERSE').reverse = True
-            row.operator("screen.animation_play", text="", icon='PLAY')
+            # if using JACK and A/V sync:
+            #   hide the play-reversed button
+            #   since JACK transport doesn't support reversed playback
+            if (context.user_preferences.system.audio_device == 'JACK' and scene.sync_mode == 'AUDIO_SYNC'):
+                sub = row.row()
+                sub.scale_x = 2.0
+                sub.operator("screen.animation_play", text="", icon='PLAY')
+            else:
+                row.operator("screen.animation_play", text="", icon='PLAY_REVERSE').reverse = True
+                row.operator("screen.animation_play", text="", icon='PLAY')
         else:
             sub = row.row()
             sub.scale_x = 2.0

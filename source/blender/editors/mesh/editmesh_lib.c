@@ -698,7 +698,7 @@ static void check_fgons_selection(EditMesh *em)
 			if(sel) efa->f |= SELECT;
 			else efa->f &= ~SELECT;
 		}
-		addlisttolist(&em->faces, &lbar[index]);
+		BLI_movelisttolist(&em->faces, &lbar[index]);
 	}
 	
 	MEM_freeN(lbar);

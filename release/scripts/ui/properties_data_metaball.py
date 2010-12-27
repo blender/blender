@@ -42,13 +42,10 @@ class DATA_PT_context_metaball(DataButtonsPanel, bpy.types.Panel):
         mball = context.meta_ball
         space = context.space_data
 
-        split = layout.split(percentage=0.65)
         if ob:
-            split.template_ID(ob, "data")
-            split.separator()
+            layout.template_ID(ob, "data", unlink="None")
         elif mball:
-            split.template_ID(space, "pin_id")
-            split.separator()
+            layout.template_ID(space, "pin_id", unlink="None")
 
 
 class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):

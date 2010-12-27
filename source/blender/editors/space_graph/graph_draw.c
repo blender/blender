@@ -346,7 +346,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 		BezTriple *bezt=fcu->bezt, *prevbezt=NULL;
 		int basecol= (sel)? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
 		float *fp;
-		char col[4];
+		unsigned char col[4];
 		
 		/* if only selected keyframes have handles shown, skip the first round */
 		if ((sel == 0) && (sipo->flag & SIPO_SELVHANDLESONLY))

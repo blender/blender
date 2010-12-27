@@ -38,4 +38,4 @@ set(SRC
 	buttons_intern.h
 )
 
-blenderlib(bf_editor_space_buttons "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_buttons "${SRC}" "${INC}")

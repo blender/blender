@@ -94,7 +94,7 @@ void 	indent			(struct Text *text);
 void	uncomment		(struct Text *text);
 int	setcurr_tab_spaces	(struct Text *text, int space);
 
-void	txt_add_marker						(struct Text *text, struct TextLine *line, int start, int end, char color[4], int group, int flags);
+void	txt_add_marker						(struct Text *text, struct TextLine *line, int start, int end, const unsigned char color[4], int group, int flags);
 short	txt_clear_marker_region				(struct Text *text, struct TextLine *line, int start, int end, int group, int flags);
 short	txt_clear_markers					(struct Text *text, int group, int flags);
 struct TextMarker	*txt_find_marker		(struct Text *text, struct TextLine *line, int curs, int group, int flags);

@@ -406,14 +406,14 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 			col= a % dim_size[0];
 			row= a / dim_size[0];
 			
-			but= uiDefAutoButR(block, ptr, prop, a, "", 0, x + w*col, y+(dim_size[1]*UI_UNIT_Y)-(row*UI_UNIT_Y), w, UI_UNIT_Y);
+			but= uiDefAutoButR(block, ptr, prop, a, "", ICON_NULL, x + w*col, y+(dim_size[1]*UI_UNIT_Y)-(row*UI_UNIT_Y), w, UI_UNIT_Y);
 			if(slider && but->type==NUM)
 				but->type= NUMSLI;
 		}
 	}
 	else {
 		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand)
-			uiDefAutoButR(block, ptr, prop, -1, "", 0, 0, 0, w, UI_UNIT_Y);
+			uiDefAutoButR(block, ptr, prop, -1, "", ICON_NULL, 0, 0, w, UI_UNIT_Y);
 
 		if(!ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) || expand) {
 			/* layout for known array subtypes */
@@ -752,7 +752,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 						block->flag |= UI_BLOCK_NO_FLIP;
 					}
 
-					uiItemL(column, (char*)item[i].name, 0);
+					uiItemL(column, (char*)item[i].name, ICON_NULL);
 					bt= block->buttons.last;
 					bt->flag= UI_TEXT_LEFT;
 				}
@@ -877,7 +877,7 @@ static void ui_item_rna_size(uiLayout *layout, const char *name, int icon, Point
 
 	/* increase height for arrays */
 	if(index == RNA_NO_INDEX && len > 0) {
-		if(!name[0] && icon == 0)
+		if(!name[0] && icon == ICON_NULL)
 			h= 0;
 
 		if(ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER))
@@ -917,7 +917,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	/* set name and icon */
 	if(!name)
 		name= (char*)RNA_property_ui_name(prop);
-	if(!icon)
+	if(icon == ICON_NULL)
 		icon= RNA_property_ui_icon(prop);
 	
 	if(ELEM4(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER))
@@ -1077,7 +1077,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 
 		for(i=0; i<totitem; i++) {
 			if(item[i].identifier[0]) {
-				uiItemEnumR(column, (char*)item[i].name, 0, ptr, propname, item[i].value);
+				uiItemEnumR(column, (char*)item[i].name, ICON_NULL, ptr, propname, item[i].value);
 			}
 			else {
 				if(item[i].name) {
@@ -1087,7 +1087,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 						block->flag |= UI_BLOCK_NO_FLIP;
 					}
 
-					uiItemL(column, (char*)item[i].name, 0);
+					uiItemL(column, (char*)item[i].name, ICON_NULL);
 					bt= block->buttons.last;
 					bt->flag= UI_TEXT_LEFT;
 				}
@@ -1264,13 +1264,18 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 
 	searchprop= RNA_struct_find_property(searchptr, searchpropname);
 
-	if(!searchprop || RNA_property_type(searchprop) != PROP_COLLECTION) {
+
+	if(!searchprop) {
 		printf("uiItemPointerR: search collection property not found: %s.%s\n", RNA_struct_identifier(ptr->type), searchpropname);
+		return;
+	}
+	else if (RNA_property_type(searchprop) != PROP_COLLECTION) {
+		printf("uiItemPointerR: search collection property is not a collection type: %s.%s\n", RNA_struct_identifier(ptr->type), searchpropname);
 		return;
 	}
 
 	/* get icon & name */
-	if(!icon) {
+	if(icon==ICON_NULL) {
 		if(type == PROP_POINTER)
 			icontype= RNA_property_pointer_type(ptr, prop);
 		else
@@ -2674,14 +2679,14 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 	}
 
 	if(flag & UI_LAYOUT_OP_SHOW_TITLE) {
-		uiItemL(layout, op->type->name, 0);
+		uiItemL(layout, op->type->name, ICON_NULL);
 	}
 
 	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
 	 * just fails silently */
 	if(!WM_operator_repeat_check(C, op)) {
 		uiBlockSetButLock(uiLayoutGetBlock(layout), TRUE, "Operator cannot redo");
-		uiItemL(layout, "* Redo Unsupported *", 0); // XXX, could give some nicer feedback or not show redo panel at all?
+		uiItemL(layout, "* Redo Unsupported *", ICON_NULL); // XXX, could give some nicer feedback or not show redo panel at all?
 	}
 
 	if(op->type->ui) {
@@ -2697,12 +2702,31 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 		int empty;
 
 		RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-		
+
+		/* menu */
+		if(op->type->flag & OPTYPE_PRESET) {
+			/* XXX, no simple way to get WM_MT_operator_presets.bl_label from python! Label remains the same always! */
+			PointerRNA op_ptr;
+			uiLayout *row;
+
+			row= uiLayoutRow(layout, TRUE);
+			uiItemM(row, (bContext *)C, "WM_MT_operator_presets", NULL, ICON_NULL);
+
+			WM_operator_properties_create(&op_ptr, "WM_OT_operator_preset_add");
+			RNA_string_set(&op_ptr, "operator", op->type->idname);
+			op_ptr= uiItemFullO(row, "WM_OT_operator_preset_add", "", ICON_ZOOMIN, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
+
+			WM_operator_properties_create(&op_ptr, "WM_OT_operator_preset_add");
+			RNA_string_set(&op_ptr, "operator", op->type->idname);
+			RNA_boolean_set(&op_ptr, "remove_active", 1);
+			op_ptr= uiItemFullO(row, "WM_OT_operator_preset_add", "", ICON_ZOOMOUT, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
+		}
+
 		/* main draw call */
 		empty= uiDefAutoButsRNA(layout, &ptr, check_prop, label_align) == 0;
 
 		if(empty && (flag & UI_LAYOUT_OP_SHOW_EMPTY)) {
-			uiItemL(layout, "No Properties.", 0);
+			uiItemL(layout, "No Properties.", ICON_NULL);
 		}
 	}
 }

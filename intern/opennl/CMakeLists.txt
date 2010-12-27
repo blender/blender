@@ -75,4 +75,4 @@ set(SRC
 	superlu/util.h
 )
 
-blenderlib(bf_intern_opennl "${SRC}" "${INC}")
+blender_add_lib(bf_intern_opennl "${SRC}" "${INC}")

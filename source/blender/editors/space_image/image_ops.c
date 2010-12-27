@@ -1403,7 +1403,7 @@ static int pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	if(!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
 		pup= uiPupMenuBegin(C, "OK", ICON_QUESTION);
 		layout= uiPupMenuLayout(pup);
-		uiItemBooleanO(layout, "Can't pack edited image from disk. Pack as internal PNG?", 0, op->idname, "as_png", 1);
+		uiItemBooleanO(layout, "Can't pack edited image from disk. Pack as internal PNG?", ICON_NULL, op->idname, "as_png", 1);
 		uiPupMenuEnd(C, pup);
 
 		return OPERATOR_CANCELLED;
@@ -1445,7 +1445,7 @@ static void unpack_menu(bContext *C, const char *opname, Image *ima, const char 
 	BLI_splitdirstring(local_name, fi);
 	sprintf(local_name, "//%s/%s", folder, fi);
 
-	pup= uiPupMenuBegin(C, "Unpack file", 0);
+	pup= uiPupMenuBegin(C, "Unpack file", ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 
 	uiItemEnumO(layout, opname, "Remove Pack", 0, "method", PF_REMOVE);
@@ -1454,7 +1454,7 @@ static void unpack_menu(bContext *C, const char *opname, Image *ima, const char 
 		switch(checkPackedFile(local_name, pf)) {
 			case PF_NOFILE:
 				sprintf(line, "Create %s", local_name);
-				props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+				props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 				RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
 				RNA_string_set(&props_ptr, "image", ima->id.name+2);
 	
@@ -1462,7 +1462,7 @@ static void unpack_menu(bContext *C, const char *opname, Image *ima, const char 
 			case PF_EQUAL:
 				sprintf(line, "Use %s (identical)", local_name);
 				//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
-				props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+				props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 				RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
 				RNA_string_set(&props_ptr, "image", ima->id.name+2);
 				
@@ -1470,13 +1470,13 @@ static void unpack_menu(bContext *C, const char *opname, Image *ima, const char 
 			case PF_DIFFERS:
 				sprintf(line, "Use %s (differs)", local_name);
 				//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
-				props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+				props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 				RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
 				RNA_string_set(&props_ptr, "image", ima->id.name);
 				
 				sprintf(line, "Overwrite %s", local_name);
 				//uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_LOCAL);
-				props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+				props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 				RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
 				RNA_string_set(&props_ptr, "image", ima->id.name+2);
 				
@@ -1489,27 +1489,27 @@ static void unpack_menu(bContext *C, const char *opname, Image *ima, const char 
 		case PF_NOFILE:
 			sprintf(line, "Create %s", abs_name);
 			//uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
-			props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 			RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
 			RNA_string_set(&props_ptr, "image", ima->id.name+2);
 			break;
 		case PF_EQUAL:
 			sprintf(line, "Use %s (identical)", abs_name);
 			//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
-			props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 			RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
 			RNA_string_set(&props_ptr, "image", ima->id.name+2);
 			break;
 		case PF_DIFFERS:
 			sprintf(line, "Use %s (differs)", local_name);
 			//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
-			props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 			RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
 			RNA_string_set(&props_ptr, "image", ima->id.name+2);
 			
 			sprintf(line, "Overwrite %s", local_name);
 			//uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
-			props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 			RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
 			RNA_string_set(&props_ptr, "image", ima->id.name+2);
 			break;

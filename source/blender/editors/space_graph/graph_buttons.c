@@ -138,19 +138,19 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 
 	/* 2D-Cursor */
 	col= uiLayoutColumn(pa->layout, 0);
-		uiItemR(col, &spaceptr, "show_cursor", 0, NULL, 0);
+		uiItemR(col, &spaceptr, "show_cursor", 0, NULL, ICON_NULL);
 		
 		subcol= uiLayoutColumn(col, 1);
 		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
-			uiItemO(subcol, "Cursor from Selection", 0, "GRAPH_OT_frame_jump");
+			uiItemO(subcol, "Cursor from Selection", ICON_NULL, "GRAPH_OT_frame_jump");
 		
 		subcol= uiLayoutColumn(col, 1);
 		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
 			row= uiLayoutSplit(subcol, 0.7, 1);
-				uiItemR(row, &sceneptr, "frame_current", 0, "Cursor X", 0);
+				uiItemR(row, &sceneptr, "frame_current", 0, "Cursor X", ICON_NULL);
 				uiItemEnumO(row, "GRAPH_OT_snap", "To Keys", 0, "type", GRAPHKEYS_SNAP_CFRA);
 			row= uiLayoutSplit(subcol, 0.7, 1);
-				uiItemR(row, &spaceptr, "cursor_position_y", 0, "Cursor Y", 0);
+				uiItemR(row, &spaceptr, "cursor_position_y", 0, "Cursor Y", ICON_NULL);
 				uiItemEnumO(row, "GRAPH_OT_snap", "To Keys", 0, "type", GRAPHKEYS_SNAP_VALUE);
 }
 
@@ -186,18 +186,18 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 	col= uiLayoutColumn(layout, 1);
 		uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED)!=0); 
 		uiItemR(col, &fcu_ptr, "data_path", 0, "", ICON_RNA);
-		uiItemR(col, &fcu_ptr, "array_index", 0, NULL, 0);
+		uiItemR(col, &fcu_ptr, "array_index", 0, NULL, ICON_NULL);
 		
 	/* color settings */
 	col= uiLayoutColumn(layout, 1);
-		uiItemL(col, "Display Color:", 0);
+		uiItemL(col, "Display Color:", ICON_NULL);
 		
 		row= uiLayoutRow(col, 1);
-			uiItemR(row, &fcu_ptr, "color_mode", 0, "", 0);
+			uiItemR(row, &fcu_ptr, "color_mode", 0, "", ICON_NULL);
 			
 			subrow= uiLayoutRow(row, 1);
 				uiLayoutSetEnabled(subrow, (fcu->color_mode==FCURVE_COLOR_CUSTOM));
-				uiItemR(subrow, &fcu_ptr, "color", 0, "", 0);
+				uiItemR(subrow, &fcu_ptr, "color", 0, "", ICON_NULL);
 	
 	MEM_freeN(ale);
 }
@@ -263,23 +263,23 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 		
 		/* interpolation */
 		col= uiLayoutColumn(layout, 0);
-			uiItemR(col, &bezt_ptr, "interpolation", 0, NULL, 0);
+			uiItemR(col, &bezt_ptr, "interpolation", 0, NULL, ICON_NULL);
 			
 		/* numerical coordinate editing */
 		col= uiLayoutColumn(layout, 1);
 			/* keyframe itself */
-			uiItemR(col, &bezt_ptr, "co", 0, "Key", 0);
+			uiItemR(col, &bezt_ptr, "co", 0, "Key", ICON_NULL);
 			
 			/* previous handle - only if previous was Bezier interpolation */
 			if ((prevbezt) && (prevbezt->ipo == BEZT_IPO_BEZ))
-				uiItemR(col, &bezt_ptr, "handle_left", 0, NULL, 0);
+				uiItemR(col, &bezt_ptr, "handle_left", 0, NULL, ICON_NULL);
 			
 			/* next handle - only if current is Bezier interpolation */
 			if (bezt->ipo == BEZT_IPO_BEZ)
-				uiItemR(col, &bezt_ptr, "handle_right", 0, NULL, 0);
+				uiItemR(col, &bezt_ptr, "handle_right", 0, NULL, ICON_NULL);
 	}
 	else
-		uiItemL(layout, "No active keyframe on F-Curve", 0);
+		uiItemL(layout, "No active keyframe on F-Curve", ICON_NULL);
 	
 	MEM_freeN(ale);
 }
@@ -456,7 +456,7 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
 			uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		uiItemR(col, &dtar_ptr, "use_local_space_transform", 0, NULL, 0);
+		uiItemR(col, &dtar_ptr, "use_local_space_transform", 0, NULL, ICON_NULL);
 	
 	col= uiLayoutColumn(layout, 1);
 		uiTemplateAnyID(col, &dtar2_ptr, "id", "id_type", "Ob/Bone 2:");
@@ -468,7 +468,7 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
 			uiItemPointerR(col, &dtar2_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		uiItemR(col, &dtar2_ptr, "use_local_space_transform", 0, NULL, 0);
+		uiItemR(col, &dtar2_ptr, "use_local_space_transform", 0, NULL, ICON_NULL);
 }
 
 /* settings for 'transform channel' driver variable type */
@@ -494,8 +494,8 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
 		}
 		
 		row= uiLayoutRow(layout, 1);
-			uiItemR(row, &dtar_ptr, "transform_type", 0, "", 0);
-			uiItemR(row, &dtar_ptr, "use_local_space_transform", 0, NULL, 0);
+			uiItemR(row, &dtar_ptr, "transform_type", 0, "", ICON_NULL);
+			uiItemR(row, &dtar_ptr, "use_local_space_transform", 0, NULL, ICON_NULL);
 }
 
 /* driver settings for active F-Curve (only for 'Drivers' mode) */
@@ -534,12 +534,12 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	
 	col= uiLayoutColumn(pa->layout, 1);
 	block= uiLayoutGetBlock(col);
-		uiItemR(col, &driver_ptr, "type", 0, NULL, 0);
+		uiItemR(col, &driver_ptr, "type", 0, NULL, ICON_NULL);
 		
 		/* show expression box if doing scripted drivers, and/or error messages when invalid drivers exist */
 		if (driver->type == DRIVER_TYPE_PYTHON) {
 			/* expression */
-			uiItemR(col, &driver_ptr, "expression", 0, "Expr", 0);
+			uiItemR(col, &driver_ptr, "expression", 0, "Expr", ICON_NULL);
 			
 			/* errors? */
 			if (driver->flag & DRIVER_FLAG_INVALID)
@@ -553,17 +553,17 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		
 	col= uiLayoutColumn(pa->layout, 1);
 		/* debug setting */
-		uiItemR(col, &driver_ptr, "show_debug_info", 0, NULL, 0);
+		uiItemR(col, &driver_ptr, "show_debug_info", 0, NULL, ICON_NULL);
 		
 		/* value of driver */
 		if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
 			uiLayout *row= uiLayoutRow(col, 1);
 			char valBuf[32];
 			
-			uiItemL(row, "Driver Value:", 0);
+			uiItemL(row, "Driver Value:", ICON_NULL);
 			
 			sprintf(valBuf, "%.3f", driver->curval);
-			uiItemL(row, valBuf, 0);
+			uiItemL(row, valBuf, ICON_NULL);
 		}
 	
 	/* add driver variables */
@@ -588,7 +588,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			row= uiLayoutRow(box, 0);
 			block= uiLayoutGetBlock(row);
 				/* variable name */
-				uiItemR(row, &dvar_ptr, "name", 0, "", 0);
+				uiItemR(row, &dvar_ptr, "name", 0, "", ICON_NULL);
 				
 				/* remove button */
 				uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -598,7 +598,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			
 			/* variable type */
 			row= uiLayoutRow(box, 0);
-				uiItemR(row, &dvar_ptr, "type", 0, "", 0);
+				uiItemR(row, &dvar_ptr, "type", 0, "", ICON_NULL);
 				
 		/* variable type settings */
 		box= uiLayoutBox(col);
@@ -624,10 +624,10 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			
 			box= uiLayoutBox(col);
 			row= uiLayoutRow(box, 1);
-				uiItemL(row, "Value:", 0);
+				uiItemL(row, "Value:", ICON_NULL);
 				
 				sprintf(valBuf, "%.3f", dvar->curval);
-				uiItemL(row, valBuf, 0);
+				uiItemL(row, valBuf, ICON_NULL);
 		}
 	}
 	

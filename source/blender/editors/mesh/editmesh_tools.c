@@ -495,6 +495,8 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_remove_doubles(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Remove Doubles";
 	ot->description= "Remove duplicate vertices";
@@ -507,7 +509,8 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "limit", 0.0001f, 0.000001f, 50.0f, "Merge Threshold", "Minimum distance between merged verts", 0.00001f, 2.0f);
+	prop= RNA_def_float(ot->srna, "limit", 0.0001f, 0.000001f, 50.0f, "Merge Threshold", "Minimum distance between merged verts", 0.00001f, 2.0f);
+	RNA_def_property_ui_range(prop,  0.000001f, 50.0f, 0.001, 5);
 }
 
 // XXX is this needed?
@@ -552,7 +555,7 @@ void xsortvert_flag(bContext *C, int flag)
 		}
 	}
 
-	addlisttolist(&vc.em->verts, &tbase);
+	BLI_movelisttolist(&vc.em->verts, &tbase);
 
 	MEM_freeN(sortblock);
 
@@ -610,7 +613,7 @@ void hashvert_flag(EditMesh *em, int flag)
 		sb++;
 	}
 
-	addlisttolist(&em->verts, &tbase);
+	BLI_movelisttolist(&em->verts, &tbase);
 
 	MEM_freeN(sortblock);
 
@@ -632,7 +635,7 @@ static void extrude_mesh(Object *obedit, EditMesh *em, wmOperator *op, short typ
 	EM_stats_update(em);
 
 	if(transmode==0) {
-		BKE_report(op->reports, RPT_ERROR, "Not a valid selection for extrude");
+		BKE_report(op->reports, RPT_WARNING, "Not a valid selection for extrude");
 	}
 	else {
 		EM_fgon_flags(em);
@@ -988,7 +991,7 @@ static int spin_mesh_exec(bContext *C, wmOperator *op)
 
 	ok= spin_mesh(C, op, NULL, RNA_int_get(op->ptr,"steps"), RNA_float_get(op->ptr,"degrees"), RNA_boolean_get(op->ptr,"dupli"));
 	if(ok==0) {
-		BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
+		BKE_report(op->reports, RPT_WARNING, "No valid vertices are selected");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1074,7 +1077,7 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 		}
 	}
 	if(v1==NULL || v2==NULL) {
-		BKE_report(op->reports, RPT_ERROR, "You have to select a string of connected vertices too");
+		BKE_report(op->reports, RPT_WARNING, "You have to select a string of connected vertices too");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -1100,7 +1103,7 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
+		BKE_report(op->reports, RPT_WARNING, "No valid vertices are selected");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -3774,7 +3777,7 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 		}
 		else
 		{
-			BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
+			BKE_report(op->reports, RPT_WARNING, "Select one edge or two adjacent faces");
 			BKE_mesh_end_editmesh(obedit->data, em);
 			return OPERATOR_CANCELLED;
 		}
@@ -3789,7 +3792,7 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 		}
 	}
 	else  {
-		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
+		BKE_report(op->reports, RPT_WARNING, "Select one edge or two adjacent faces");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -4201,7 +4204,7 @@ useless:
 			return 0;
 		}
 
-		if(me->drawflag & ME_DRAW_EDGELEN) {
+		if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 			if(!(tempsv->up->f & SELECT)) {
 				tempsv->up->f |= SELECT;
 				tempsv->up->f2 |= 16;
@@ -4654,7 +4657,7 @@ useless:
 	}
 
 
-	if(me->drawflag & ME_DRAW_EDGELEN) {
+	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 		look = vertlist;
 		while(look) {
 			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
@@ -4875,12 +4878,12 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(efa) {
-		BKE_report(op->reports, RPT_ERROR, "Can't perform ripping with faces selected this way");
+		BKE_report(op->reports, RPT_WARNING, "Can't perform ripping with faces selected this way");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
 	if(sefa==NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No proper selection or faces included");
+		BKE_report(op->reports, RPT_WARNING, "No proper selection or faces included");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -4945,7 +4948,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(seed==NULL) {	// never happens?
-		BKE_report(op->reports, RPT_ERROR, "No proper edge found to start");
+		BKE_report(op->reports, RPT_WARNING, "No proper edge found to start");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -5075,7 +5078,7 @@ static void shape_propagate(Object *obedit, EditMesh *em, wmOperator *op)
 	if(me->key){
 		ky = me->key;
 	} else {
-		BKE_report(op->reports, RPT_ERROR, "Object Has No Key");
+		BKE_report(op->reports, RPT_WARNING, "Object Has No Key");
 		return;
 	}
 
@@ -5090,7 +5093,7 @@ static void shape_propagate(Object *obedit, EditMesh *em, wmOperator *op)
 			}
 		}
 	} else {
-		BKE_report(op->reports, RPT_ERROR, "Object Has No Blendshapes");
+		BKE_report(op->reports, RPT_WARNING, "Object Has No Blendshapes");
 		return;
 	}
 
@@ -5855,7 +5858,7 @@ static int merge_exec(bContext *C, wmOperator *op)
 			if(ese && ese->type == EDITVERT) {
 				count = merge_firstlast(em, 0, uvs);
 			} else {
-				BKE_report(op->reports, RPT_ERROR, "no last selected vertex set");
+				BKE_report(op->reports, RPT_WARNING, "no last selected vertex set");
 			}
 			break;
 		case 6:
@@ -5864,7 +5867,7 @@ static int merge_exec(bContext *C, wmOperator *op)
 				count = merge_firstlast(em, 1, uvs);
 			}
 			else {
-				BKE_report(op->reports, RPT_ERROR, "no last selected vertex set");
+				BKE_report(op->reports, RPT_WARNING, "no last selected vertex set");
 			}
 			break;
 		case 5:
@@ -6120,7 +6123,7 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		BKE_mesh_end_editmesh(obedit->data, em);
-		BKE_report(op->reports, RPT_ERROR, "Path Selection requires that exactly two vertices be selected");
+		BKE_report(op->reports, RPT_WARNING, "Path Selection requires that exactly two vertices be selected");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -6405,7 +6408,7 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 	int dir= RNA_enum_get(op->ptr, "direction");
 
 	if (!EM_texFaceCheck(em)) {
-		BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
+		BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -6479,7 +6482,7 @@ static int mesh_mirror_uvs(bContext *C, wmOperator *op)
 	int axis= RNA_enum_get(op->ptr, "axis");
 
 	if (!EM_texFaceCheck(em)) {
-		BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
+		BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -6567,7 +6570,7 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 	int dir= RNA_enum_get(op->ptr, "direction");
 
 	if (!EM_vertColorCheck(em)) {
-		BKE_report(op->reports, RPT_ERROR, "Mesh has no color layers.");
+		BKE_report(op->reports, RPT_WARNING, "Mesh has no color layers.");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -6624,7 +6627,7 @@ static int mesh_mirror_colors(bContext *C, wmOperator *op)
 	int axis= RNA_enum_get(op->ptr, "axis");
 
 	if (!EM_vertColorCheck(em)) {
-		BKE_report(op->reports, RPT_ERROR, "Mesh has no color layers");
+		BKE_report(op->reports, RPT_WARNING, "Mesh has no color layers");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}

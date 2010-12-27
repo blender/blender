@@ -866,23 +866,26 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(unused), wmEv
 		
 		/* determine if render already shows */
 		if(sa) {
-			SpaceImage *sima= sa->spacedata.first;
+			/* but don't close it when rendering */
+			if(!G.rendering) {
+				SpaceImage *sima= sa->spacedata.first;
 
-			if(sima->flag & SI_PREVSPACE) {
-				sima->flag &= ~SI_PREVSPACE;
+				if(sima->flag & SI_PREVSPACE) {
+					sima->flag &= ~SI_PREVSPACE;
 
-				if(sima->flag & SI_FULLWINDOW) {
-					sima->flag &= ~SI_FULLWINDOW;
-					ED_screen_full_prevspace(C, sa);
-				}
-				else if(sima->next) {
-					/* workaround for case of double prevspace, render window
-					   with a file browser on top of it (same as in ED_area_prevspace) */
-					if(sima->next->spacetype == SPACE_FILE && sima->next->next)
-						ED_area_newspace(C, sa, sima->next->next->spacetype);
-					else
-						ED_area_newspace(C, sa, sima->next->spacetype);
-					ED_area_tag_redraw(sa);
+					if(sima->flag & SI_FULLWINDOW) {
+						sima->flag &= ~SI_FULLWINDOW;
+						ED_screen_full_prevspace(C, sa);
+					}
+					else if(sima->next) {
+						/* workaround for case of double prevspace, render window
+						   with a file browser on top of it (same as in ED_area_prevspace) */
+						if(sima->next->spacetype == SPACE_FILE && sima->next->next)
+							ED_area_newspace(C, sa, sima->next->next->spacetype);
+						else
+							ED_area_newspace(C, sa, sima->next->spacetype);
+						ED_area_tag_redraw(sa);
+					}
 				}
 			}
 		}

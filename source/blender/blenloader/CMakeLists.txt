@@ -50,4 +50,4 @@ set(SRC
 	intern/readfile.h
 )
 
-blenderlib(bf_blenloader "${SRC}" "${INC}")
+blender_add_lib(bf_blenloader "${SRC}" "${INC}")

@@ -59,16 +59,16 @@ static void console_line_color(unsigned char fg[3], int type)
 {
 	switch(type) {
 	case CONSOLE_LINE_OUTPUT:
-		UI_GetThemeColor3ubv(TH_CONSOLE_OUTPUT, (char *)fg);
+		UI_GetThemeColor3ubv(TH_CONSOLE_OUTPUT, fg);
 		break;
 	case CONSOLE_LINE_INPUT:
-		UI_GetThemeColor3ubv(TH_CONSOLE_INPUT, (char *)fg);
+		UI_GetThemeColor3ubv(TH_CONSOLE_INPUT, fg);
 		break;
 	case CONSOLE_LINE_INFO:
-		UI_GetThemeColor3ubv(TH_CONSOLE_INFO, (char *)fg);
+		UI_GetThemeColor3ubv(TH_CONSOLE_INFO, fg);
 		break;
 	case CONSOLE_LINE_ERROR:
-		UI_GetThemeColor3ubv(TH_CONSOLE_ERROR, (char *)fg);
+		UI_GetThemeColor3ubv(TH_CONSOLE_ERROR, fg);
 		break;
 	}
 }
@@ -171,7 +171,7 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 		}
 
 		/* cursor */
-		UI_GetThemeColor3ubv(TH_CONSOLE_CURSOR, (char *)fg);
+		UI_GetThemeColor3ubv(TH_CONSOLE_CURSOR, fg);
 		glColor3ubv(fg);
 
 		glRecti(	(xy[0] + pen[0]) - 1,

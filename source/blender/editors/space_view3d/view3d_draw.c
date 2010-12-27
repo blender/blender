@@ -249,7 +249,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	RegionView3D *rv3d= ar->regiondata;
 	float wx, wy, x, y, fw, fx, fy, dx;
 	float vec4[4];
-	char col[3], col2[3];
+	unsigned char col[3], col2[3];
 
 	vec4[0]=vec4[1]=vec4[2]=0.0; 
 	vec4[3]= 1.0;
@@ -397,17 +397,19 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	setlinestyle(0);
 	
 	/* center cross */
+	/* horizontal line */
 	if( ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) 
-		UI_make_axis_color(col, col2, 'y');
-	else UI_make_axis_color(col, col2, 'x');
-	glColor3ubv((GLubyte *)col2);
+		UI_make_axis_color(col, col2, 'Y');
+	else UI_make_axis_color(col, col2, 'X');
+	glColor3ubv(col2);
 	
 	fdrawline(0.0,  y,  (float)ar->winx,  y); 
 	
+	/* vertical line */
 	if( ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) 
-		UI_make_axis_color(col, col2, 'y');
-	else UI_make_axis_color(col, col2, 'z');
-	glColor3ubv((GLubyte *)col2);
+		UI_make_axis_color(col, col2, 'Y');
+	else UI_make_axis_color(col, col2, 'Z');
+	glColor3ubv(col2);
 
 	fdrawline(x, 0.0, x, (float)ar->winy); 
 
@@ -419,7 +421,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 {
 	float vert[3], grid, grid_scale;
 	int a, gridlines, emphasise;
-	char col[3], col2[3];
+	unsigned char col[3], col2[3];
 	short draw_line = 0;
 	
 	vert[2]= 0.0;
@@ -462,8 +464,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		if(a==0) {
 			/* check for the 'show Y axis' preference */
 			if (v3d->gridflag & V3D_SHOW_Y) { 
-				UI_make_axis_color(col, col2, 'y');
-				glColor3ubv((GLubyte *)col2);
+				UI_make_axis_color(col, col2, 'Y');
+				glColor3ubv(col2);
 				
 				draw_line = 1;
 			} else if (v3d->gridflag & V3D_SHOW_FLOOR) {
@@ -501,8 +503,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		if(a==0) {
 			/* check for the 'show X axis' preference */
 			if (v3d->gridflag & V3D_SHOW_X) { 
-				UI_make_axis_color(col, col2, 'x');
-				glColor3ubv((GLubyte *)col2);
+				UI_make_axis_color(col, col2, 'X');
+				glColor3ubv(col2);
 				
 				draw_line = 1;
 			} else if (v3d->gridflag & V3D_SHOW_FLOOR) {
@@ -538,8 +540,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 	/* draw the Z axis line */	
 	/* check for the 'show Z axis' preference */
 	if (v3d->gridflag & V3D_SHOW_Z) {
-		UI_make_axis_color(col, col2, 'z');
-		glColor3ubv((GLubyte *)col2);
+		UI_make_axis_color(col, col2, 'Z');
+		glColor3ubv(col2);
 		
 		glBegin(GL_LINE_STRIP);
 		vert[0]= 0;
@@ -1948,8 +1950,10 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 /* *********************** customdata **************** */
 
 /* goes over all modes and view3d settings */
-static CustomDataMask get_viewedit_datamask(bScreen *screen, Scene *scene, Object *ob)
+CustomDataMask ED_viewedit_datamask(bScreen *screen)
 {
+	Scene *scene= screen->scene;
+	Object *ob= scene->basact ? scene->basact->object : NULL;
 	CustomDataMask mask = CD_MASK_BAREMESH;
 	ScrArea *sa;
 	
@@ -2299,11 +2303,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Object *ob;
 	float backcol[3];
 	unsigned int lay_used;
-	Object *obact = OBACT;
 	const char *grid_unit= NULL;
-
-	/* from now on all object derived meshes check this */
-	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
 
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))

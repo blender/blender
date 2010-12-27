@@ -128,4 +128,4 @@ if(APPLE)
 	endif()
 endif()
 
-blenderlib_nolist(bf_render "${SRC}" "${INC}")
+blender_add_lib_nolist(bf_render "${SRC}" "${INC}")

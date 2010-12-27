@@ -2061,7 +2061,7 @@ static void load_backbuffer(Render *re)
 		char name[256];
 		
 		strcpy(name, re->r.backbuf);
-		BLI_path_abs(name, G.main->name);
+		BLI_path_abs(name, re->main->name);
 		BLI_path_frame(name, re->r.cfra, 0);
 		
 		if(re->backbuf) {
@@ -2870,7 +2870,7 @@ static void update_physics_cache(Render *re, Scene *scene, int UNUSED(anim_init)
 	baker.break_data = re->tbh;
 	baker.progressbar = NULL;
 
-	BKE_ptcache_make_cache(&baker);
+	BKE_ptcache_bake(&baker);
 }
 /* evaluating scene options for general Blender render */
 static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int anim, int anim_init)

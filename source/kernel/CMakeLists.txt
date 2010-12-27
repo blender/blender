@@ -45,4 +45,4 @@ set(SRC
 	gen_system/SYS_System.h
 )
 
-blenderlib(bf_gen_system "${SRC}" "${INC}")
+blender_add_lib(bf_gen_system "${SRC}" "${INC}")

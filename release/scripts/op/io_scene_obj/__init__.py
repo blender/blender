@@ -20,11 +20,11 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
-    from imp import reload
+    import imp
     if "import_obj" in locals():
-        reload(import_obj)
+        imp.reload(import_obj)
     if "export_obj" in locals():
-        reload(export_obj)
+        imp.reload(export_obj)
 
 
 import bpy
@@ -65,6 +65,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     bl_idname = "export_scene.obj"
     bl_label = 'Export OBJ'
+    bl_options = {'PRESET'}
 
     filename_ext = ".obj"
     filter_glob = StringProperty(default="*.obj;*.mtl", options={'HIDDEN'})

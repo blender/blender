@@ -1,3 +1,4 @@
+# -*- mode: cmake; indent-tabs-mode: t; -*-
 # $Id: CMakeLists.txt 17433 2008-11-12 21:16:53Z blendix $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -47,7 +48,7 @@ set(SRC
 	../../../../intern/guardedalloc/intern/mmap_win.c
 )
 
-include_directories(
+blender_include_dirs(
 	../../../../intern/audaspace/intern
 	../../../../intern/guardedalloc
 	../../../../intern/memutil
@@ -167,4 +168,4 @@ set(SRC
 	rna_nodetree_types.h
 )
 
-blenderlib(bf_rna "${SRC}" "${INC}")
+blender_add_lib(bf_rna "${SRC}" "${INC}")

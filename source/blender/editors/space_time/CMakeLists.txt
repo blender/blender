@@ -36,4 +36,4 @@ set(SRC
 	time_intern.h
 )
 
-blenderlib(bf_editor_space_time "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_time "${SRC}" "${INC}")

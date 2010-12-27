@@ -49,4 +49,4 @@ set(SRC
 	anim_intern.h
 )
 
-blenderlib(bf_editor_animation "${SRC}" "${INC}")
+blender_add_lib(bf_editor_animation "${SRC}" "${INC}")

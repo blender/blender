@@ -243,14 +243,14 @@ int testclip(float *v)
 	   prevents issues with vertices lying exact on borders */
 	abs4= fabs(v[3]) + FLT_EPSILON;
 	
-	if(v[2]< -abs4) c=16;			/* this used to be " if(v[2]<0) ", see clippz() */
+	if( v[0] < -abs4) c+=1;
+	else if( v[0] > abs4) c+=2;
+	
+	if( v[1] > abs4) c+=4;
+	else if( v[1] < -abs4) c+=8;
+	
+	if(v[2] < -abs4) c+=16;			/* this used to be " if(v[2]<0) ", see clippz() */
 	else if(v[2]> abs4) c+= 32;
-	
-	if( v[0]>abs4) c+=2;
-	else if( v[0]< -abs4) c+=1;
-	
-	if( v[1]>abs4) c+=4;
-	else if( v[1]< -abs4) c+=8;
 	
 	return c;
 }
@@ -1782,10 +1782,10 @@ static int zbuf_part_project(ZbufProjectCache *cache, int index, float winmat[][
 		projectvert(co, winmat, ho);
 
 		wco= ho[3];
-		if(ho[0] > bounds[1]*wco) clipflag |= 1;
-		else if(ho[0]< bounds[0]*wco) clipflag |= 2;
+		if(ho[0] < bounds[0]*wco) clipflag |= 1;
+		else if(ho[0] > bounds[1]*wco) clipflag |= 2;
 		if(ho[1] > bounds[3]*wco) clipflag |= 4;
-		else if(ho[1]< bounds[2]*wco) clipflag |= 8;
+		else if(ho[1] < bounds[2]*wco) clipflag |= 8;
 
 		QUATCOPY(cache[cindex].ho, ho);
 		cache[cindex].clip= clipflag;

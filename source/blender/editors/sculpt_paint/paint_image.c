@@ -2819,7 +2819,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	/* Workaround for subsurf selection, try the display mesh first */
 	if (ps->source==PROJ_SRC_IMAGE_CAM) {
 		/* using render mesh, assume only camera was rendered from */
-		ps->dm = mesh_create_derived_render(ps->scene, ps->ob, ps->v3d->customdata_mask | CD_MASK_MTFACE);
+		ps->dm = mesh_create_derived_render(ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MTFACE);
 		ps->dm_release= TRUE;
 	}
 	else if(ps->ob->derivedFinal && CustomData_has_layer( &ps->ob->derivedFinal->faceData, CD_MTFACE)) {
@@ -2827,7 +2827,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		ps->dm_release= FALSE;
 	}
 	else {
-		ps->dm = mesh_get_derived_final(ps->scene, ps->ob, ps->v3d->customdata_mask | CD_MASK_MTFACE);
+		ps->dm = mesh_get_derived_final(ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MTFACE);
 		ps->dm_release= TRUE;
 	}
 	

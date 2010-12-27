@@ -2204,7 +2204,7 @@ void mergeArcEdges(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc, MergeDirection d
 			e->arc = aDst; // Edge is stolen by new arc
 		}
 		
-		addlisttolist(&aDst->edges , &aSrc->edges);
+		BLI_movelisttolist(&aDst->edges , &aSrc->edges);
 	}
 	else
 	{

@@ -1500,7 +1500,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			 */
 			extract_proxylocal_constraints(&proxylocal_constraints, &pchan->constraints);
 			copy_constraints(&pchanw.constraints, &pchanp->constraints, FALSE);
-			addlisttolist(&pchanw.constraints, &proxylocal_constraints);
+			BLI_movelisttolist(&pchanw.constraints, &proxylocal_constraints);
 			
 			/* constraints - set target ob pointer to own object */
 			for (con= pchanw.constraints.first; con; con= con->next) {

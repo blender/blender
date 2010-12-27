@@ -943,7 +943,12 @@ int main(int argc, char** argv)
 		}
 	}
 
-	free_nodesystem();
+	// Cleanup
+	RNA_exit();
+	BLF_exit();
+	free_blender();
+
+	SYS_DeleteSystem(syshandle);
 
 	return error ? -1 : 0;
 }

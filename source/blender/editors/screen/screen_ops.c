@@ -54,6 +54,7 @@
 #include "WM_types.h"
 
 #include "ED_util.h"
+#include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_object.h"
 #include "ED_armature.h"
@@ -320,23 +321,12 @@ int ED_operator_posemode(bContext *C)
 	return 0;
 }
 
-
+/* wrapper for ED_space_image_show_uvedit */
 int ED_operator_uvedit(bContext *C)
 {
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= NULL;
-	
-	if(obedit && obedit->type==OB_MESH)
-		em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	
-	if(em && (em->faces.first) && (CustomData_has_layer(&em->fdata, CD_MTFACE))) {
-		BKE_mesh_end_editmesh(obedit->data, em);
-		return 1;
-	}
-	
-	if(obedit)
-		BKE_mesh_end_editmesh(obedit->data, em);
-	return 0;
+	return ED_space_image_show_uvedit(sima, obedit);
 }
 
 int ED_operator_uvmap(bContext *C)
@@ -1664,6 +1654,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
+	bDopeSheet ads= {0};
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
 	float cfra= (scene)? (float)(CFRA) : 0.0f;
@@ -1678,10 +1669,10 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	BLI_dlrbTree_init(&keys);
 	
 	/* populate tree with keyframe nodes */
-	if (scene && scene->adt)
-		scene_to_keylist(NULL, scene, &keys, NULL);
-	if (ob && ob->adt)
-		ob_to_keylist(NULL, ob, &keys, NULL);
+	if (scene)
+		scene_to_keylist(&ads, scene, &keys, NULL);
+	if (ob)
+		ob_to_keylist(&ads, ob, &keys, NULL);
 	
 	/* build linked-list for searching */
 	BLI_dlrbTree_linkedlist_sync(&keys);
@@ -2141,11 +2132,11 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 	if(items==0)
 		return OPERATOR_CANCELLED;
 	
-	pup= uiPupMenuBegin(C, op->type->name, 0);
+	pup= uiPupMenuBegin(C, op->type->name, ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 	
 	for (i=items-1, lastop= wm->operators.last; lastop; lastop= lastop->prev, i--)
-		uiItemIntO(layout, lastop->type->name, 0, op->type->idname, "index", i);
+		uiItemIntO(layout, lastop->type->name, ICON_NULL, op->type->idname, "index", i);
 	
 	uiPupMenuEnd(C, pup);
 	
@@ -2413,23 +2404,23 @@ static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *U
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	
-	pup= uiPupMenuBegin(C, "Header", 0);
+	pup= uiPupMenuBegin(C, "Header", ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 	
 	// XXX SCREEN_OT_region_flip doesn't work - gets wrong context for active region, so added custom operator
 	if (ar->alignment == RGN_ALIGN_TOP)
-		uiItemO(layout, "Flip to Bottom", 0, "SCREEN_OT_header_flip");	
+		uiItemO(layout, "Flip to Bottom", ICON_NULL, "SCREEN_OT_header_flip");
 	else
-		uiItemO(layout, "Flip to Top", 0, "SCREEN_OT_header_flip");
+		uiItemO(layout, "Flip to Top", ICON_NULL, "SCREEN_OT_header_flip");
 	
 	uiItemS(layout);
 	
 	/* file browser should be fullscreen all the time, but other regions can be maximised/restored... */
 	if (sa->spacetype != SPACE_FILE) {
 		if (sa->full) 
-			uiItemO(layout, "Tile Area", 0, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, "Tile Area", ICON_NULL, "SCREEN_OT_screen_full_area");
 		else
-			uiItemO(layout, "Maximize Area", 0, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, "Maximize Area", ICON_NULL, "SCREEN_OT_screen_full_area");
 	}
 	
 	uiPupMenuEnd(C, pup);

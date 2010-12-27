@@ -1564,7 +1564,7 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 	
 	if (newlist.first) { /* got new strips ? */
 		Sequence *seq;
-		addlisttolist(ed->seqbasep, &newlist);
+		BLI_movelisttolist(ed->seqbasep, &newlist);
 
 		if (cut_side != SEQ_SIDE_BOTH) {
 			SEQP_BEGIN(ed, seq) {
@@ -1658,7 +1658,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	if(nseqbase.first) {
 		Sequence * seq= nseqbase.first;
 		/* rely on the nseqbase list being added at the end */
-		addlisttolist(ed->seqbasep, &nseqbase);
+		BLI_movelisttolist(ed->seqbasep, &nseqbase);
 
 		for( ; seq; seq= seq->next)
 			seq_recursive_apply(seq, apply_unique_name_cb, scene);
@@ -2029,7 +2029,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 	if(last_seq==NULL || last_seq->type!=SEQ_META)
 		return OPERATOR_CANCELLED;
 
-	addlisttolist(ed->seqbasep, &last_seq->seqbase);
+	BLI_movelisttolist(ed->seqbasep, &last_seq->seqbase);
 
 	last_seq->seqbase.first= 0;
 	last_seq->seqbase.last= 0;
@@ -2701,7 +2701,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	addlisttolist(ed->seqbasep, &nseqbase);
+	BLI_movelisttolist(ed->seqbasep, &nseqbase);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 

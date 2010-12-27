@@ -44,4 +44,4 @@ if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()
 
-blenderlib(bf_imbuf_openexr "${SRC}" "${INC}")                 
+blender_add_lib(bf_imbuf_openexr "${SRC}" "${INC}")                 

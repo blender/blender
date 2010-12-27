@@ -88,7 +88,7 @@ Tex *rna_Main_add_texture(Main *bmain, const char *name)
 Camera *rna_Main_cameras_new(Main *bmain, const char *name)
 {
 	ID *id= add_camera(name);
-	id->us--;
+	id_us_min(id);
 	return (Camera *)id;
 }
 void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Camera *camera)
@@ -163,11 +163,11 @@ Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char *name,
 			}
 		}
 
-		data->us++;
+		id_us_plus(data);
 	}
 
 	ob= add_only_object(type, name);
-	ob->id.us--;
+	id_us_min(&ob->id);
 
 	ob->data= data;
 	test_object_materials(ob->data);
@@ -189,7 +189,7 @@ void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *ob
 struct Material *rna_Main_materials_new(Main *bmain, const char *name)
 {
 	ID *id= (ID *)add_material(name);
-	id->us--;
+	id_us_min(id);
 	return (Material *)id;
 }
 void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material *material)
@@ -208,7 +208,7 @@ struct bNodeTree *rna_Main_nodetree_new(Main *bmain, const char *name, int type)
 
 	ntreeMakeOwnType(tree);
 
-	tree->id.us--;
+	id_us_min(&tree->id);
 	return tree;
 }
 void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, struct bNodeTree *tree)
@@ -224,7 +224,7 @@ void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, struct bNodeTree
 Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 {
 	Mesh *me= add_mesh(name);
-	me->id.us--;
+	id_us_min(&me->id);
 	return me;
 }
 void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
@@ -240,7 +240,7 @@ void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 Lamp *rna_Main_lamps_new(Main *bmain, const char *name)
 {
 	Lamp *lamp= add_lamp(name);
-	lamp->id.us--;
+	id_us_min(&lamp->id);
 	return lamp;
 }
 void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
@@ -257,7 +257,7 @@ Image *rna_Main_images_new(Main *bmain, const char *name, int width, int height,
 {
 	float color[4]= {0.0, 0.0, 0.0, 1.0};
 	Image *image= BKE_add_image_size(width, height, name, alpha ? 32:24, float_buffer, 0, color);
-	image->id.us--;
+	id_us_min(&image->id);
 	return image;
 }
 Image *rna_Main_images_load(Main *bmain, ReportList *reports, const char *filepath)
@@ -285,7 +285,7 @@ void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
 Lattice *rna_Main_lattices_new(Main *bmain, const char *name)
 {
 	Lattice *lt= add_lattice(name);
-	lt->id.us--;
+	id_us_min(&lt->id);
 	return lt;
 }
 void rna_Main_lattices_remove(Main *bmain, ReportList *reports, struct Lattice *lt)
@@ -299,7 +299,7 @@ void rna_Main_lattices_remove(Main *bmain, ReportList *reports, struct Lattice *
 Curve *rna_Main_curves_new(Main *bmain, const char *name, int type)
 {
 	Curve *cu= add_curve(name, type);
-	cu->id.us--;
+	id_us_min(&cu->id);
 	return cu;
 }
 void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curve *cu)
@@ -313,7 +313,7 @@ void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curve *cu)
 MetaBall *rna_Main_metaballs_new(Main *bmain, const char *name)
 {
 	MetaBall *mb= add_mball(name);
-	mb->id.us--;
+	id_us_min(&mb->id);
 	return mb;
 }
 void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall *mb)
@@ -351,7 +351,7 @@ Tex *rna_Main_textures_new(Main *bmain, const char *name, int type)
 {
 	Tex *tex= add_texture(name);
 	tex_set_type(tex, type);
-	tex->id.us--;
+	id_us_min(&tex->id);
 	return tex;
 }
 void rna_Main_textures_remove(Main *bmain, ReportList *reports, struct Tex *tex)
@@ -365,7 +365,7 @@ void rna_Main_textures_remove(Main *bmain, ReportList *reports, struct Tex *tex)
 Brush *rna_Main_brushes_new(Main *bmain, const char *name)
 {
 	Brush *brush = add_brush(name);
-	brush->id.us--;
+	id_us_min(&brush->id);
 	return brush;
 }
 void rna_Main_brushes_remove(Main *bmain, ReportList *reports, struct Brush *brush)
@@ -379,7 +379,7 @@ void rna_Main_brushes_remove(Main *bmain, ReportList *reports, struct Brush *bru
 World *rna_Main_worlds_new(Main *bmain, const char *name)
 {
 	World *world = add_world(name);
-	world->id.us--;
+	id_us_min(&world->id);
 	return world;
 }
 void rna_Main_worlds_remove(Main *bmain, ReportList *reports, struct World *world)
@@ -428,7 +428,7 @@ Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *filepath
 bArmature *rna_Main_armatures_new(Main *bmain, const char *name)
 {
 	bArmature *arm= add_armature(name);
-	arm->id.us--;
+	id_us_min(&arm->id);
 	return arm;
 }
 void rna_Main_armatures_remove(Main *bmain, ReportList *reports, bArmature *arm)
@@ -444,7 +444,7 @@ void rna_Main_armatures_remove(Main *bmain, ReportList *reports, bArmature *arm)
 bAction *rna_Main_actions_new(Main *bmain, const char *name)
 {
 	bAction *act= add_empty_action(name);
-	act->id.us--;
+	id_us_min(&act->id);
 	act->id.flag &= ~LIB_FAKEUSER;
 	return act;
 }
@@ -461,7 +461,7 @@ void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *act)
 ParticleSettings *rna_Main_particles_new(Main *bmain, const char *name)
 {
 	ParticleSettings *part = psys_new_settings(name, bmain);
-	part->id.us--;
+	id_us_min(&part->id);
 	return part;
 }
 void rna_Main_particles_remove(Main *bmain, ReportList *reports, ParticleSettings *part)

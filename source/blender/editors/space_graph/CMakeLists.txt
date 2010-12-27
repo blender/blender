@@ -42,4 +42,4 @@ set(SRC
 	graph_intern.h
 )
 
-blenderlib(bf_editor_space_graph "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_graph "${SRC}" "${INC}")

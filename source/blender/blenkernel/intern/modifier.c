@@ -236,7 +236,8 @@ void modifier_setError(ModifierData *md, const char *format, ...)
  * there
  * 
  * also used in transform_conversion.c, to detect CrazySpace [tm] (2nd arg
- * then is NULL)
+ * then is NULL) 
+ * also used for some mesh tools to give warnings
  */
 int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *lastPossibleCageIndex_r, int virtual_)
 {

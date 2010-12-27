@@ -1,3 +1,4 @@
+# -*- mode: cmake; indent-tabs-mode: t; -*-
 # $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -689,7 +690,7 @@ elseif(WIN32)
 	endif()
 
 	# used in many places so include globally, like OpenGL
-	include_directories(${PTHREADS_INC})
+	blender_include_dirs(${PTHREADS_INC})
 
 elseif(APPLE)
 
@@ -944,7 +945,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Configure OpenGL.
 find_package(OpenGL)
-include_directories(${OPENGL_INCLUDE_DIR})
+blender_include_dirs(${OPENGL_INCLUDE_DIR})
 # unset(OPENGL_LIBRARIES CACHE) # not compat with older cmake 
 # unset(OPENGL_xmesa_INCLUDE_DIR CACHE) # not compat with older cmake 
 
@@ -962,6 +963,9 @@ if(WITH_OPENMP)
 	else()
 		set(WITH_OPENMP OFF)
 	endif()
+
+	mark_as_advanced(OpenMP_C_FLAGS)
+	mark_as_advanced(OpenMP_CXX_FLAGS)
 endif() 
 
 #-----------------------------------------------------------------------------
@@ -984,32 +988,31 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
 
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wall)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wcast-align)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wdeclaration-after-statement)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Werror=declaration-after-statement)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Werror=implicit-function-declaration)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Werror=return-type)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Werror=strict-prototypes)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wno-char-subscripts)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wno-unknown-pragmas)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wpointer-arith)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wunused-parameter)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wwrite-strings)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_CAST_ALIGN -Wcast-align)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_DECLARATION_AFTER_STATEMENT -Werror=declaration-after-statement)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE -Werror=return-type)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_STRICT_PROTOTYPES -Werror=strict-prototypes)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_WRITE_STRINGS -Wwrite-strings)
 
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wall)
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wno-invalid-offsetof)
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wno-sign-compare)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wall)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wpointer-arith)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS -Wno-unknown-pragmas)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
 
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wall)
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wno-invalid-offsetof)
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS -Wno-sign-compare)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
 
 endif()
 

@@ -425,6 +425,7 @@ static void action_refresh(const bContext *C, ScrArea *sa)
 	if (saction->flag & SACTION_TEMP_NEEDCHANSYNC) {
 		ANIM_sync_animchannels_to_data(C);
 		saction->flag &= ~SACTION_TEMP_NEEDCHANSYNC;
+		ED_area_tag_redraw(sa);
 	}
 	
 	/* region updates? */

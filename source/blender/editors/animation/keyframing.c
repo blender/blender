@@ -572,6 +572,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 				case CONSTRAINT_TYPE_CHILDOF:
 					return 1;
 				case CONSTRAINT_TYPE_TRANSFORM:
+				case CONSTRAINT_TYPE_TRANSLIKE:
 					return 1;
 				case CONSTRAINT_TYPE_FOLLOWPATH:
 					return 1;

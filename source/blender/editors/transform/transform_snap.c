@@ -133,9 +133,10 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	if (validSnap(t) && activeSnap(t))
 		{
 		
-		char col[4] = {1, 0, 1};
+		unsigned char col[4];
 		UI_GetThemeColor3ubv(TH_TRANSFORM, col);
-		glColor4ub(col[0], col[1], col[2], 128);
+		col[3]= 128;
+		glColor4ubv(col);
 		
 		if (t->spacetype == SPACE_VIEW3D) {
 			TransSnapPoint *p;

@@ -474,6 +474,12 @@ static int rna_Property_is_never_none_get(PointerRNA *ptr)
 	return prop->flag & PROP_NEVER_NULL ? 1:0;
 }
 
+static int rna_Property_is_hidden_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return prop->flag & PROP_HIDDEN ? 1:0;
+}
+
 static int rna_Property_array_length_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -1010,6 +1016,11 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_never_none_get", NULL);
 	RNA_def_property_ui_text(prop, "Never None", "True when this value can't be set to None");
+
+	prop= RNA_def_property(srna, "is_hidden", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_hidden_get", NULL);
+	RNA_def_property_ui_text(prop, "Hidden", "True when the property is hidden");
 
 	prop= RNA_def_property(srna, "is_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

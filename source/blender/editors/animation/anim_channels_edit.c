@@ -889,7 +889,7 @@ static void join_groups_action_temp (bAction *act)
 		
 		/* add list of channels to action's channels */
 		tempGroup= agrp->channels;
-		addlisttolist(&act->curves, &agrp->channels);
+		BLI_movelisttolist(&act->curves, &agrp->channels);
 		agrp->channels= tempGroup;
 		
 		/* clear moved flag */

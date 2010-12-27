@@ -44,6 +44,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"		
+#include "BLI_listbase.h"		
 
 #include "BKE_animsys.h"
 #include "BKE_displist.h"
@@ -197,6 +198,7 @@ Material *add_material(const char *name)
 	return ma;	
 }
 
+/* XXX keep synced with next function */
 Material *copy_material(Material *ma)
 {
 	Material *man;
@@ -204,9 +206,6 @@ Material *copy_material(Material *ma)
 	
 	man= copy_libblock(ma);
 	
-#if 0 // XXX old animation system
-	id_us_plus((ID *)man->ipo);
-#endif // XXX old animation system
 	id_lib_extern((ID *)man->group);
 	
 	for(a=0; a<MAX_MTEX; a++) {
@@ -226,6 +225,38 @@ Material *copy_material(Material *ma)
 		man->nodetree= ntreeCopyTree(ma->nodetree, 0);	/* 0 == full new tree */
 	}
 
+	man->gpumaterial.first= man->gpumaterial.last= NULL;
+	
+	return man;
+}
+
+/* XXX (see above) material copy without adding to main dbase */
+Material *localize_material(Material *ma)
+{
+	Material *man;
+	int a;
+	
+	man= copy_libblock(ma);
+	BLI_remlink(&G.main->mat, man);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		if(ma->mtex[a]) {
+			man->mtex[a]= MEM_mallocN(sizeof(MTex), "copymaterial");
+			memcpy(man->mtex[a], ma->mtex[a], sizeof(MTex));
+			/* free_material decrements! */
+			id_us_plus((ID *)man->mtex[a]->tex);
+		}
+	}
+	
+	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
+	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
+	
+	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
+	
+	if(ma->nodetree) {
+		man->nodetree= ntreeLocalize(ma->nodetree);
+	}
+	
 	man->gpumaterial.first= man->gpumaterial.last= NULL;
 	
 	return man;

@@ -116,7 +116,7 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 		baker.progresscontext = NULL;
 	}
 
-	BKE_ptcache_make_cache(&baker);
+	BKE_ptcache_bake(&baker);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, NULL);
@@ -218,7 +218,7 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 		baker.progresscontext = NULL;
 	}
 
-	BKE_ptcache_make_cache(&baker);
+	BKE_ptcache_bake(&baker);
 
 	BLI_freelistN(&pidlist);
 

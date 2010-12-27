@@ -214,7 +214,7 @@ static void unpack_menu(bContext *C, const char *opname, const char *abs_name, c
 	BLI_splitdirstring(local_name, fi);
 	sprintf(local_name, "//%s/%s", folder, fi);
 
-	pup= uiPupMenuBegin(C, "Unpack file", 0);
+	pup= uiPupMenuBegin(C, "Unpack file", ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 
 	uiItemEnumO(layout, opname, "Remove Pack", 0, "method", PF_REMOVE);

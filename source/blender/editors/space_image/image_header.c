@@ -63,13 +63,13 @@ static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(e
 
 	show_uvedit= ED_space_image_show_uvedit(sima, obedit);
 
-	pup= uiPupMenuBegin(C, "Toolbox", 0);
+	pup= uiPupMenuBegin(C, "Toolbox", ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 
-	uiItemM(layout, C, "IMAGE_MT_view", NULL, 0);
-	if(show_uvedit) uiItemM(layout, C, "IMAGE_MT_select", NULL, 0);
-	uiItemM(layout, C, "IMAGE_MT_image", NULL, 0);
-	if(show_uvedit) uiItemM(layout, C, "IMAGE_MT_uvs", NULL, 0);
+	uiItemM(layout, C, "IMAGE_MT_view", NULL, ICON_NULL);
+	if(show_uvedit) uiItemM(layout, C, "IMAGE_MT_select", NULL, ICON_NULL);
+	uiItemM(layout, C, "IMAGE_MT_image", NULL, ICON_NULL);
+	if(show_uvedit) uiItemM(layout, C, "IMAGE_MT_uvs", NULL, ICON_NULL);
 
 	uiPupMenuEnd(C, pup);
 

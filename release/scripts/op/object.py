@@ -207,9 +207,12 @@ class SubdivisionSet(bpy.types.Operator):
 
                     return
 
-            # adda new modifier
-            mod = obj.modifiers.new("Subsurf", 'SUBSURF')
-            mod.levels = level
+            # add a new modifier
+            try:
+                mod = obj.modifiers.new("Subsurf", 'SUBSURF')
+                mod.levels = level
+            except:
+                self.report({'WARNING'}, "Modifiers cannot be added to object: " + obj.name)
 
         for obj in context.selected_editable_objects:
             set_object_subd(obj)
@@ -464,7 +467,7 @@ class JoinUVs(bpy.types.Operator):
 class MakeDupliFace(bpy.types.Operator):
     '''Make linked objects into dupli-faces'''
     bl_idname = "object.make_dupli_face"
-    bl_label = "Make DupliFace"
+    bl_label = "Make Dupli-Face"
 
     @classmethod
     def poll(cls, context):
@@ -484,7 +487,7 @@ class MakeDupliFace(bpy.types.Operator):
             trans = matrix.translation_part()
             rot = matrix.rotation_part()  # also contains scale
 
-            return [(rot * b) + trans for b in base_tri]
+            return [(b * rot) + trans for b in base_tri]
         scene = bpy.context.scene
         linked = {}
         for obj in bpy.context.selected_objects:

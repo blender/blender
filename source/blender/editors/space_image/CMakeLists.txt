@@ -64,4 +64,4 @@ if(WITH_LCMS)
 	add_definitions(-DWITH_LCMS)
 endif()
 
-blenderlib(bf_editor_space_image "${SRC}" "${INC}")
+blender_add_lib(bf_editor_space_image "${SRC}" "${INC}")

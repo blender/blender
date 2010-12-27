@@ -234,10 +234,7 @@ class x3d_class:
         # beamWidth=((lamp.spotSize*math.pi)/180.0)*.37;
         cutOffAngle=beamWidth*1.3
 
-        dx,dy,dz=self.computeDirection(mtx)
-        # note -dx seems to equal om[3][0]
-        # note -dz seems to equal om[3][1]
-        # note  dy seems to equal om[3][2]
+        dx, dy, dz = self.computeDirection(mtx)
 
         #location=(ob.matrix_world*MATWORLD).translation_part() # now passed
         location=(MATWORLD * mtx).translation_part()
@@ -266,7 +263,7 @@ class x3d_class:
             ambientIntensity = 0
 
         intensity=min(lamp.energy/1.75,1.0)
-        (dx,dy,dz)=self.computeDirection(mtx)
+        dx, dy, dz = self.computeDirection(mtx)
         self.file.write("<DirectionalLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity,self.cp)))
         self.file.write("color=\"%s %s %s\" " % (round(lamp.color[0],self.cp), round(lamp.color[1],self.cp), round(lamp.color[2],self.cp)))
@@ -391,38 +388,49 @@ class x3d_class:
         #   (meshName, loc[0], loc[1], loc[2], sca[0], sca[1], sca[2], rot[0], rot[1], rot[2], quat.angle*DEG2RAD) )
 
         self.writeIndented("<Shape>\n",1)
-        maters=mesh.materials
-        hasImageTexture = False
         is_smooth = False
 
-        if len(maters) > 0 or mesh.uv_textures.active:
-        # if len(maters) > 0 or mesh.faceUV:
+        # XXX, lame, only exports first material.
+        mat_first = None
+        for mat_first in mesh.materials:
+            if mat_first:
+                break
+
+        if mat_first or mesh.uv_textures.active:
             self.writeIndented("<Appearance>\n", 1)
             # right now this script can only handle a single material per mesh.
-            if len(maters) >= 1 and maters[0].use_face_texture == False:
-                mat = maters[0]
-                self.writeMaterial(mat, self.cleanStr(mat.name,''), world)
-                if len(maters) > 1:
+            if mat_first and mat_first.use_face_texture == False:
+                self.writeMaterial(mat_first, self.cleanStr(mat_first.name, ""), world)
+                if len(mesh.materials) > 1:
                     print("Warning: mesh named %s has multiple materials" % meshName)
                     print("Warning: only one material per object handled")
 
-            if not len(maters) or maters[0].use_face_texture:
+            image = None
+
+            if mat_first is None or mat_first.use_face_texture:
                 #-- textures
-                image = None
                 if mesh.uv_textures.active:
                     for face in mesh.uv_textures.active.data:
                         if face.use_image:
                             image = face.image
                             if image:
-                                self.writeImageTexture(image)
+                                break
+            elif mat_first:
+                for mtex in mat_first.texture_slots:
+                    if mtex:
+                        tex = mtex.texture
+                        if tex and tex.type == 'IMAGE':
+                            image = tex.image
+                            if image:
                                 break
 
-                if image:
-                    hasImageTexture = True
+            # XXX, incorrect, uses first image
+            if image:
+                self.writeImageTexture(image)
 
-                    if self.tilenode == 1:
-                        self.writeIndented("<TextureTransform	scale=\"%s %s\" />\n" % (image.xrep, image.yrep))
-                        self.tilenode = 0
+                if self.tilenode == 1:
+                    self.writeIndented("<TextureTransform	scale=\"%s %s\" />\n" % (image.xrep, image.yrep))
+                    self.tilenode = 0
 
             self.writeIndented("</Appearance>\n", -1)
 
@@ -506,22 +514,16 @@ class x3d_class:
         if self.writingcoords == 0:
             self.file.write('coordIndex="')
             for face in mesh.faces:
-                fv = face.vertices
-                # fv = face.v
+                fv = face.vertices[:]
 
                 if len(fv)==3:
-                # if len(face)==3:
                     self.file.write("%i %i %i -1, " % (fv[0], fv[1], fv[2]))
-                    # self.file.write("%i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index))
                 else:
                     if EXPORT_TRI:
                         self.file.write("%i %i %i -1, " % (fv[0], fv[1], fv[2]))
-                        # self.file.write("%i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index))
                         self.file.write("%i %i %i -1, " % (fv[0], fv[2], fv[3]))
-                        # self.file.write("%i %i %i -1, " % (fv[0].index, fv[2].index, fv[3].index))
                     else:
                         self.file.write("%i %i %i %i -1, " % (fv[0], fv[1], fv[2], fv[3]))
-                        # self.file.write("%i %i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index, fv[3].index))
 
             self.file.write("\">\n")
         else:
@@ -530,7 +532,7 @@ class x3d_class:
             self.writeIndented("<Coordinate DEF=\"%s%s\" \n" % ("coord_",meshName), 1)
             self.file.write("\t\t\t\tpoint=\"")
             for v in mesh.vertices:
-                self.file.write("%.6f %.6f %.6f, " % tuple(v.co))
+                self.file.write("%.6f %.6f %.6f, " % v.co[:])
             self.file.write("\" />")
             self.writeIndented("\n", -1)
 
@@ -572,23 +574,10 @@ class x3d_class:
         if self.writingcolor == 0:
             self.file.write("colorPerVertex=\"false\" ")
         elif mesh.vertex_colors.active:
-        # else:
             self.writeIndented("<Color color=\"", 1)
             for face in mesh.vertex_colors.active.data:
-                c = face.color1
-                if self.verbose > 2:
-                    print("Debug: face.col r=%d g=%d b=%d" % (c[0], c[1], c[2]))
-                    # print("Debug: face.col r=%d g=%d b=%d" % (c.r, c.g, c.b))
-                aColor = self.rgbToFS(c)
-                self.file.write("%s, " % aColor)
-
-            # for face in mesh.faces:
-            # 	if face.col:
-            # 		c=face.col[0]
-            # 		if self.verbose > 2:
-            # 			print("Debug: face.col r=%d g=%d b=%d" % (c.r, c.g, c.b))
-            # 		aColor = self.rgbToFS(c)
-            # 		self.file.write("%s, " % aColor)
+                # XXX, 1 color per face, only
+                self.file.write("%.3f %.3f %.3f, " % face.color1[:])
             self.file.write("\" />")
             self.writeIndented("\n",-1)
 
@@ -912,11 +901,6 @@ class x3d_class:
         print("Debug: mesh.faces=%d" % len(mesh.faces))
         print("Debug: mesh.materials=%d" % len(mesh.materials))
 
-    def rgbToFS(self, c):
-        s="%s %s %s" % (round(c[0]/255.0,self.cp),
-                        round(c[1]/255.0,self.cp),
-                        round(c[2]/255.0,self.cp))
-
         # s="%s %s %s" % (
         # 	round(c.r/255.0,self.cp),
         # 	round(c.g/255.0,self.cp),
@@ -924,7 +908,7 @@ class x3d_class:
         return s
 
     def computeDirection(self, mtx):
-        return (mathutils.Vector((0, -1, 0)) * (MATWORLD * mtx).rotation_part())[:]
+        return (mathutils.Vector((0.0, 0.0, -1.0)) * (MATWORLD * mtx).rotation_part()).normalize()[:]
 
     # swap Y and Z to handle axis difference between Blender and VRML
     #------------------------------------------------------------------------

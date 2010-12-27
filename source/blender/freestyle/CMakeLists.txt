@@ -24,9 +24,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB_RECURSE SRC *.cpp *.h)
+file(GLOB_RECURSE SRC *.cpp *.h)
 
-SET(INC 
+set(INC 
   ../blenkernel ../blenloader ../blenlib ../imbuf ../makesdna ../makesrna
   ../python ../python/intern
   ../render/extern/include ../render/intern/include ../include ../src
@@ -35,8 +35,8 @@ SET(INC
   ${PNG_INC}
 )
 
-IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
-ENDIF(WIN32)
+if(WIN32)
+	set(INC ${INC} ${PTHREADS_INC})
+endif(WIN32)
 
-BLENDERLIB(bf_freestyle "${SRC}" "${INC}")
+blender_add_lib(bf_freestyle "${SRC}" "${INC}")

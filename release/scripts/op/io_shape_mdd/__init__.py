@@ -20,11 +20,11 @@
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
-    from imp import reload
+    import imp
     if "import_mdd" in locals():
-        reload(import_mdd)
+        imp.reload(import_mdd)
     if "export_mdd" in locals():
-        reload(export_mdd)
+        imp.reload(export_mdd)
 
 
 import bpy

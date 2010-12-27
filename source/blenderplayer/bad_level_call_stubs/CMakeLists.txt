@@ -55,4 +55,4 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_FREETYPE2)
 endif()
 
-blenderlib_nolist(blenkernel_blc "${SRC}" "${INC}")
+blender_add_lib_nolist(blenkernel_blc "${SRC}" "${INC}")

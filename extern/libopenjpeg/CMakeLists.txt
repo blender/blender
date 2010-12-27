@@ -73,4 +73,4 @@ set(SRC
 	tgt.h
 )
 
-blenderlib(extern_openjpeg "${SRC}" "${INC}")
+blender_add_lib(extern_openjpeg "${SRC}" "${INC}")

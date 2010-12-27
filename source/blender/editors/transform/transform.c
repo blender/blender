@@ -103,6 +103,7 @@
 #include "transform.h"
 
 void drawTransformApply(const struct bContext *C, struct ARegion *ar, void *arg);
+int doEdgeSlide(TransInfo *t, float perc);
 
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
@@ -1330,20 +1331,20 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				}
 				case HLP_TRACKBALL:
 				{
-					char col[3], col2[3];
+					unsigned char col[3], col2[3];
 					UI_GetThemeColor3ubv(TH_GRID, col);
 
 					glTranslatef(mval[0], mval[1], 0);
 
 					glLineWidth(3.0);
 
-					UI_make_axis_color(col, col2, 'x');
+					UI_make_axis_color(col, col2, 'X');
 					glColor3ubv((GLubyte *)col2);
 
 					drawArrow(RIGHT, 5, 10, 5);
 					drawArrow(LEFT, 5, 10, 5);
 
-					UI_make_axis_color(col, col2, 'y');
+					UI_make_axis_color(col, col2, 'Y');
 					glColor3ubv((GLubyte *)col2);
 
 					drawArrow(UP, 5, 10, 5);
@@ -1785,6 +1786,10 @@ int transformEnd(bContext *C, TransInfo *t)
 		/* handle restoring objects */
 		if(t->state == TRANS_CANCEL)
 		{
+			/* exception, edge slide transformed UVs too */
+			if(t->mode==TFM_EDGE_SLIDE)
+				doEdgeSlide(t, 0.0f);
+			
 			exit_code = OPERATOR_CANCELLED;
 			restoreTransObjects(t);	// calls recalcData()
 		}
@@ -4508,7 +4513,7 @@ static int createSlideVerts(TransInfo *t)
 		look = look->next;
 	}
 
-	// make sure the UPs nad DOWNs are 'faceloops'
+	// make sure the UPs and DOWNs are 'faceloops'
 	// Also find the nearest slidevert to the cursor
 
 	look = vertlist;
@@ -4525,7 +4530,7 @@ static int createSlideVerts(TransInfo *t)
 			return 0;
 		}
 
-		if(me->drawflag & ME_DRAW_EDGELEN) {
+		if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 			if(!(tempsv->up->f & SELECT)) {
 				tempsv->up->f |= SELECT;
 				tempsv->up->f2 |= 16;
@@ -4664,7 +4669,7 @@ static int createSlideVerts(TransInfo *t)
 							uv_new = tf->uv[k];
 
 							if (ev->tmp.l) {
-								if (fabs(suv->origuv[0]-uv_new[0]) > 0.0001 || fabs(suv->origuv[1]-uv_new[1])) {
+								if (fabs(suv->origuv[0]-uv_new[0]) > 0.0001f || fabs(suv->origuv[1]-uv_new[1]) > 0.0001f) {
 									ev->tmp.l = -1; /* Tag as invalid */
 									BLI_linklist_free(suv->fuv_list,NULL);
 									suv->fuv_list = NULL;
@@ -4739,7 +4744,7 @@ void freeSlideVerts(TransInfo *t)
 	Mesh *me = t->obedit->data;
 	int uvlay_idx;
 
-	if(me->drawflag & ME_DRAW_EDGELEN) {
+	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 		TransDataSlideVert *tempsv;
 		LinkNode *look = sld->vertlist;
 		GHash *vertgh = sld->vhash;

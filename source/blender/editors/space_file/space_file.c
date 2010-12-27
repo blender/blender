@@ -327,6 +327,13 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		v2d->scroll = V2D_SCROLL_BOTTOM;
 		v2d->keepofs &= ~V2D_LOCKOFS_X;
 		v2d->keepofs |= V2D_LOCKOFS_Y;
+		
+		/* XXX this happens on scaling down Screen (like from startup.blend) */
+		/* view2d has no type specific for filewindow case, which doesnt scroll vertically */
+		if(v2d->cur.ymax < 0) {
+			v2d->cur.ymin -= v2d->cur.ymax;
+			v2d->cur.ymax= 0;
+		}
 	}
 	/* v2d has initialized flag, so this call will only set the mask correct */
 	UI_view2d_region_reinit(v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);

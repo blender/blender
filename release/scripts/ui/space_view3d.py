@@ -676,7 +676,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.operator("object.delete", text="Delete...")
         layout.operator("object.proxy_make", text="Make Proxy...")
         layout.menu("VIEW3D_MT_make_links", text="Make Links...")
-        layout.operator("object.make_dupli_face", text="Make Dupliface...")
+        layout.operator("object.make_dupli_face")
         layout.operator_menu_enum("object.make_local", "type", text="Make Local...")
         layout.menu("VIEW3D_MT_make_single_user")
 
@@ -897,16 +897,16 @@ class VIEW3D_MT_make_single_user(bpy.types.Menu):
         props = layout.operator("object.make_single_user", text="Object")
         props.object = True
 
-        props = layout.operator("object.make_single_user", text="Object & ObData")
+        props = layout.operator("object.make_single_user", text="Object & Data")
         props.object = props.obdata = True
 
-        props = layout.operator("object.make_single_user", text="Object & ObData & Materials+Tex")
+        props = layout.operator("object.make_single_user", text="Object & Data & Materials+Tex")
         props.object = props.obdata = props.material = props.texture = True
 
         props = layout.operator("object.make_single_user", text="Materials+Tex")
         props.material = props.texture = True
 
-        props = layout.operator("object.make_single_user", text="Animation")
+        props = layout.operator("object.make_single_user", text="Object Animation")
         props.animation = True
 
 
@@ -2290,12 +2290,11 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
 
     def draw(self, context):
         import rna_prop_ui
-        # reload(rna_prop_ui)
         member = __class__._active_context_member(context)
 
         if member:
             # Draw with no edit button
-            rna_prop_ui.draw(self.layout, context, member, False)
+            rna_prop_ui.draw(self.layout, context, member, object, False)
 
 
 def register():

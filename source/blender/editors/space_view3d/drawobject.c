@@ -561,7 +561,11 @@ static int CachedTextLevel= 0;
 
 typedef struct ViewCachedString {
 	struct ViewCachedString *next, *prev;
-	float vec[3], col[4];
+	float vec[3];
+	union {
+		unsigned char ub[4];
+		int pack;
+	} col;
 	short mval[2];
 	short xoffs;
 	short flag;
@@ -575,7 +579,7 @@ void view3d_cached_text_draw_begin()
 	CachedTextLevel++;
 }
 
-void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs, short flag)
+void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs, short flag, const unsigned char col[4])
 {
 	int alloc_len= strlen(str) + 1;
 	ListBase *strings= &CachedText[CachedTextLevel-1];
@@ -583,7 +587,7 @@ void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs
 
 	BLI_addtail(strings, vos);
 	copy_v3_v3(vos->vec, co);
-	glGetFloatv(GL_CURRENT_COLOR, vos->col);
+	vos->col.pack= *((int *)col);
 	vos->xoffs= xoffs;
 	vos->flag= flag;
 
@@ -608,6 +612,8 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 	}
 
 	if(tot) {
+		int col_pack_prev= 0;
+
 #if 0
 		bglMats mats; /* ZBuffer depth vars */
 		double ux, uy, uz;
@@ -643,7 +649,11 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 #endif
 			if(vos->mval[0]!=IS_CLIPPED) {
 				const char *str= (char *)(vos+1);
-				glColor3fv(vos->col);
+
+				if(col_pack_prev != vos->col.pack) {
+					glColor3ubv(vos->col.ub);
+					col_pack_prev= vos->col.pack;
+				}
 				if(vos->flag & V3D_CACHE_TEXT_ASCII) {
 					BLF_draw_default_ascii((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, 65535); /* XXX, use real length */
 				}
@@ -908,7 +918,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	float vec[3], lvec[3], vvec[3], circrad, x,y,z;
 	float lampsize;
 	float imat[4][4], curcol[4];
-	char col[4];
+	unsigned char col[4];
 	int drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && la->type == LA_SPOT && (la->mode & LA_SHOW_CONE));
 
 	/* cone can't be drawn for duplicated lamps, because duplilist would be freed to */
@@ -1166,7 +1176,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	}
 	
 	UI_GetThemeColor4ubv(TH_LAMP, col);
-	glColor4ub(col[0], col[1], col[2], col[3]);
+	glColor4ubv(col);
 	 
 	glEnable(GL_BLEND);
 	
@@ -1987,7 +1997,7 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, Deriv
 	if(v3d->zbuf) glDepthMask(0);		// disable write in zbuffer, zbuf select
 
 	for (sel=0; sel<2; sel++) {
-		char col[4], fcol[4];
+		unsigned char col[4], fcol[4];
 		int pass;
 
 		UI_GetThemeColor3ubv(sel?TH_VERTEX_SELECT:TH_VERTEX, col);
@@ -2015,13 +2025,13 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, Deriv
 				
 			if(ts->selectmode & SCE_SELECT_VERTEX) {
 				glPointSize(size);
-				glColor4ubv((GLubyte *)col);
+				glColor4ubv(col);
 				draw_dm_verts(cageDM, sel, eve_act);
 			}
 			
 			if(check_ob_drawface_dot(scene, v3d, obedit->dt)) {
 				glPointSize(fsize);
-				glColor4ubv((GLubyte *)fcol);
+				glColor4ubv(fcol);
 				draw_dm_face_centers(cageDM, sel);
 			}
 			
@@ -2043,9 +2053,9 @@ static void draw_em_fancy_edges(Scene *scene, View3D *v3d, Mesh *me, DerivedMesh
 	unsigned char wireCol[4], selCol[4], actCol[4];
 
 	/* since this function does transparant... */
-	UI_GetThemeColor4ubv(TH_EDGE_SELECT, (char *)selCol);
-	UI_GetThemeColor4ubv(TH_WIRE, (char *)wireCol);
-	UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, (char *)actCol);
+	UI_GetThemeColor4ubv(TH_EDGE_SELECT, selCol);
+	UI_GetThemeColor4ubv(TH_WIRE, wireCol);
+	UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, actCol);
 	
 	/* when sel only is used, dont render wire, only selected, this is used for
 	 * textured draw mode when the 'edges' option is disabled */
@@ -2102,42 +2112,30 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	float v1[3], v2[3], v3[3], v4[3], vmid[3];
 	float fvec[3];
 	char val[32]; /* Stores the measurement display text here */
-	char conv_float[5]; /* Use a float conversion matching the grid size */
-	float area, col[3]; /* area of the face,  color of the text to draw */
+	const char *conv_float; /* Use a float conversion matching the grid size */
+	unsigned char col[3]; /* color of the text to draw */
+	float area; /* area of the face */
 	float grid= unit->system ? unit->scale_length : v3d->grid;
 	const int do_split= unit->flag & USER_UNIT_OPT_SPLIT;
 	const int do_global= v3d->flag & V3D_GLOBAL_STATS;
 	const int do_moving= G.moving;
 
-	if(v3d->flag2 & V3D_RENDER_OVERRIDE)
-		return;
-
 	/* make the precision of the pronted value proportionate to the gridsize */
 
-	if (grid < 0.01f)
-		strcpy(conv_float, "%.6f");
-	else if (grid < 0.1f)
-		strcpy(conv_float, "%.5f");
-	else if (grid < 1.0f)
-		strcpy(conv_float, "%.4f");
-	else if (grid < 10.0f)
-		strcpy(conv_float, "%.3f");
-	else
-		strcpy(conv_float, "%.2f");
-	
-	
+	if (grid < 0.01f)		conv_float= "%.6g";
+	else if (grid < 0.1f)	conv_float= "%.5g";
+	else if (grid < 1.0f)	conv_float= "%.4g";
+	else if (grid < 10.0f)	conv_float= "%.3g";
+	else					conv_float= "%.2g";
+
 	if(v3d->zbuf && (v3d->flag & V3D_ZBUF_SELECT)==0)
 		glDisable(GL_DEPTH_TEST);
 
 	if(v3d->zbuf) bglPolygonOffset(rv3d->dist, 5.0f);
 	
-	if(me->drawflag & ME_DRAW_EDGELEN) {
-		UI_GetThemeColor3fv(TH_TEXT, col);
-		/* make color a bit more red */
-		if(col[0]> 0.5f) {col[1]*=0.7f; col[2]*= 0.7f;}
-		else col[0]= col[0]*0.7f + 0.3f;
-		glColor3fv(col);
-		
+	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
+
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			/* draw non fgon edges, or selected edges, or edges next to selected verts while draging */
 			if((eed->h != EM_FGON) && ((eed->f & SELECT) || (do_moving && ((eed->v1->f & SELECT) || (eed->v2->f & SELECT)) ))) {
@@ -2155,19 +2153,14 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				else
 					sprintf(val, conv_float, len_v3v3(v1, v2));
 				
-				view3d_cached_text_draw_add(vmid, val, 0, V3D_CACHE_TEXT_ASCII);
+				view3d_cached_text_draw_add(vmid, val, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
 		}
 	}
 
-	if(me->drawflag & ME_DRAW_FACEAREA) {
+	if(me->drawflag & ME_DRAWEXTRA_FACEAREA) {
 // XXX		extern int faceselectedOR(EditFace *efa, int flag);		// editmesh.h shouldn't be in this file... ok for now?
-		
-		UI_GetThemeColor3fv(TH_TEXT, col);
-		/* make color a bit more green */
-		if(col[1]> 0.5f) {col[0]*=0.7f; col[2]*= 0.7f;}
-		else col[1]= col[1]*0.7f + 0.3f;
-		glColor3fv(col);
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if((efa->f & SELECT)) { // XXX || (do_moving && faceselectedOR(efa, SELECT)) ) {
@@ -2194,20 +2187,14 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				else
 					sprintf(val, conv_float, area);
 
-				view3d_cached_text_draw_add(efa->cent, val, 0, V3D_CACHE_TEXT_ASCII);
+				view3d_cached_text_draw_add(efa->cent, val, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
 		}
 	}
 
-	if(me->drawflag & ME_DRAW_EDGEANG) {
+	if(me->drawflag & ME_DRAWEXTRA_FACEANG) {
 		EditEdge *e1, *e2, *e3, *e4;
-		
-		UI_GetThemeColor3fv(TH_TEXT, col);
-		/* make color a bit more blue */
-		if(col[2]> 0.5f) {col[0]*=0.7f; col[1]*= 0.7f;}
-		else col[2]= col[2]*0.7f + 0.3f;
-		glColor3fv(col);
-		
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			copy_v3_v3(v1, efa->v1->co);
 			copy_v3_v3(v2, efa->v2->co);
@@ -2234,31 +2221,31 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				
 			if( (e4->f & e1->f & SELECT) || (do_moving && (efa->v1->f & SELECT)) ) {
 				/* Vec 1 */
-				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v4, v1, v2)));
+				sprintf(val,"%.3g", RAD2DEG(angle_v3v3v3(v4, v1, v2)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v1->co, 0.8f);
-				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII);
+				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
 			if( (e1->f & e2->f & SELECT) || (do_moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
-				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v1, v2, v3)));
+				sprintf(val,"%.3g", RAD2DEG(angle_v3v3v3(v1, v2, v3)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v2->co, 0.8f);
-				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII);
+				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
 			if( (e2->f & e3->f & SELECT) || (do_moving && (efa->v3->f & SELECT)) ) {
 				/* Vec 3 */
 				if(efa->v4) 
-					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v2, v3, v4)));
+					sprintf(val,"%.3g", RAD2DEG(angle_v3v3v3(v2, v3, v4)));
 				else
-					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v2, v3, v1)));
+					sprintf(val,"%.3g", RAD2DEG(angle_v3v3v3(v2, v3, v1)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v3->co, 0.8f);
-				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII);
+				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
 				/* Vec 4 */
 			if(efa->v4) {
 				if( (e3->f & e4->f & SELECT) || (do_moving && (efa->v4->f & SELECT)) ) {
-					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v3, v4, v1)));
+					sprintf(val,"%.3g", RAD2DEG(angle_v3v3v3(v3, v4, v1)));
 					interp_v3_v3v3(fvec, efa->cent, efa->v4->co, 0.8f);
-					view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII);
+					view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII, col);
 				}
 			}
 		}
@@ -2355,9 +2342,9 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 	if(me->drawflag & ME_DRAWFACES) {	/* transp faces */
 		unsigned char col1[4], col2[4], col3[4];
 			
-		UI_GetThemeColor4ubv(TH_FACE, (char *)col1);
-		UI_GetThemeColor4ubv(TH_FACE_SELECT, (char *)col2);
-		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, (char *)col3);
+		UI_GetThemeColor4ubv(TH_FACE, col1);
+		UI_GetThemeColor4ubv(TH_FACE_SELECT, col2);
+		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
 		
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
@@ -2376,7 +2363,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		 * */
 		unsigned char col1[4], col2[4], col3[4];
 		col1[3] = col2[3] = 0; /* dont draw */
-		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, (char *)col3);
+		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
 		
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
@@ -2439,7 +2426,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			draw_dm_vert_normals(scene, cageDM);
 		}
 
-		if(me->drawflag & (ME_DRAW_EDGELEN|ME_DRAW_FACEAREA|ME_DRAW_EDGEANG))
+		if(me->drawflag & (ME_DRAWEXTRA_EDGELEN|ME_DRAWEXTRA_FACEAREA|ME_DRAWEXTRA_FACEANG) && !((v3d->flag2 & V3D_RENDER_OVERRIDE)))
 			draw_em_measure_stats(v3d, rv3d, ob, em, &scene->unit);
 	}
 
@@ -2494,7 +2481,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	int draw_wire = 0;
 	int totvert, totedge, totface;
 	DispList *dl;
-	DerivedMesh *dm= mesh_get_derived_final(scene, ob, v3d->customdata_mask);
+	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 
 	if(!dm)
 		return;
@@ -2669,7 +2656,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				dm->release(dm);
 				shadeDispList(scene, base);
 				dl = find_displist(&ob->disp, DL_VERTCOL);
-				dm= mesh_get_derived_final(scene, ob, v3d->customdata_mask);
+				dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 			}
 
 			if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !draw_wire) {
@@ -2778,7 +2765,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			finalDM = cageDM = editmesh_get_derived_base(ob, em);
 		else
 			cageDM = editmesh_get_derived_cage_and_final(scene, ob, em, &finalDM,
-											v3d->customdata_mask);
+											scene->customdata_mask);
 
 		if(dt>OB_WIRE) {
 			// no transp in editmode, the fancy draw over goes bad then
@@ -3474,6 +3461,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	int select=ob->flag&SELECT, create_cdata=0, need_v=0;
 	GLint polygonmode[2];
 	char val[32];
+	unsigned char tcol[4]= {0, 0, 0, 255};
 
 /* 1. */
 	if(psys==0)
@@ -3531,14 +3519,14 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	if(v3d->zbuf) glDepthMask(1);
 
 	if((ma) && (part->draw&PART_DRAW_MAT_COL)) {
-		glColor3f(ma->r,ma->g,ma->b);
+		rgb_float_to_byte(&(ma->r), tcol);
 
 		ma_r = ma->r;
 		ma_g = ma->g;
 		ma_b = ma->b;
 	}
-	else
-		cpack(0);
+
+	glColor3ubv(tcol);
 
 	timestep= psys_get_timestep(&sim);
 
@@ -3889,7 +3877,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					/* in path drawing state.co is the end point */
 					/* use worldspace beause object matrix is already applied */
 					mul_v3_m4v3(vec_txt, ob->imat, state.co);
-					view3d_cached_text_draw_add(vec_txt, val, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII);
+					view3d_cached_text_draw_add(vec_txt, val, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, tcol);
 				}
 			}
 		}
@@ -3981,7 +3969,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				sprintf(val, "%i", a);
 				/* use worldspace beause object matrix is already applied */
 				mul_v3_m4v3(vec_txt, ob->imat, cache[a]->co);
-				view3d_cached_text_draw_add(vec_txt, val, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII);
+				view3d_cached_text_draw_add(vec_txt, val, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, tcol);
 			}
 		}
 	}
@@ -5561,6 +5549,13 @@ void drawRBpivot(bRigidBodyJointConstraint *data)
 	int axis;
 	float mat[4][4];
 
+	/* color */
+	float curcol[4];
+	unsigned char tcol[4];
+	glGetFloatv(GL_CURRENT_COLOR, curcol);
+	rgb_float_to_byte(curcol, tcol);
+	tcol[3]= 255;
+
 	eul_to_mat4(mat,&data->axX);
 	glLineWidth (4.0f);
 	setlinestyle(2);
@@ -5578,11 +5573,11 @@ void drawRBpivot(bRigidBodyJointConstraint *data)
 		glVertex3fv(v);			
 		glEnd();
 		if (axis==0)
-			view3d_cached_text_draw_add(v, "px", 0, V3D_CACHE_TEXT_ASCII);
+			view3d_cached_text_draw_add(v, "px", 0, V3D_CACHE_TEXT_ASCII, tcol);
 		else if (axis==1)
-			view3d_cached_text_draw_add(v, "py", 0, V3D_CACHE_TEXT_ASCII);
+			view3d_cached_text_draw_add(v, "py", 0, V3D_CACHE_TEXT_ASCII, tcol);
 		else
-			view3d_cached_text_draw_add(v, "pz", 0, V3D_CACHE_TEXT_ASCII);
+			view3d_cached_text_draw_add(v, "pz", 0, V3D_CACHE_TEXT_ASCII, tcol);
 	}
 	glLineWidth (1.0f);
 	setlinestyle(0);
@@ -6212,7 +6207,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				/* but, we also dont draw names for sets or duplicators */
 				if(flag == 0) {
 					float zero[3]= {0,0,0};
-					view3d_cached_text_draw_add(zero, ob->id.name+2, 10, 0);
+					float curcol[4];
+					unsigned char tcol[4];
+					glGetFloatv(GL_CURRENT_COLOR, curcol);
+					rgb_float_to_byte(curcol, tcol);
+					tcol[3]= 255;
+					view3d_cached_text_draw_add(zero, ob->id.name+2, 10, 0, tcol);
 				}
 			}
 			/*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
@@ -6293,15 +6293,16 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		}
 
 		/* Drawing the constraint lines */
-		list = &ob->constraints;
-		if (list) {
+		if (ob->constraints.first) {
 			bConstraint *curcon;
 			bConstraintOb *cob;
-			char col1[4], col2[4];
+			unsigned char col1[4], col2[4];
+			
+			list = &ob->constraints;
 			
 			UI_GetThemeColor3ubv(TH_GRID, col1);
-			UI_make_axis_color(col1, col2, 'z');
-			glColor3ubv((GLubyte *)col2);
+			UI_make_axis_color(col1, col2, 'Z');
+			glColor3ubv(col2);
 			
 			cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 			
@@ -6440,9 +6441,9 @@ static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *UNUS
 	}
 }
 
-static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
+static void bbs_mesh_solid(Scene *scene, Object *ob)
 {
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, v3d->customdata_mask);
+	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	Mesh *me = (Mesh*)ob->data;
 	
 	glColor3ub(0, 0, 0);
@@ -6498,7 +6499,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 			EM_free_index_arrays();
 		}
-		else bbs_mesh_solid(scene, v3d, ob);
+		else bbs_mesh_solid(scene, ob);
 	}
 		break;
 	case OB_CURVE:

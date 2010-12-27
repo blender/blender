@@ -40,4 +40,4 @@ set(SRC
 	uvedit_parametrizer.h
 )
 
-blenderlib(bf_editor_uvedit "${SRC}" "${INC}")
+blender_add_lib(bf_editor_uvedit "${SRC}" "${INC}")

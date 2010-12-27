@@ -56,6 +56,7 @@
 #include "ED_fileselect.h"
 #include "ED_info.h"
 #include "ED_screen.h"
+#include "ED_view3d.h"
 #include "ED_util.h"
 
 #include "RNA_access.h"
@@ -294,9 +295,14 @@ void wm_event_do_notifiers(bContext *C)
 		}
 		
 		/* XXX make lock in future, or separated derivedmesh users in scene */
-		if(!G.rendering)
+		if(!G.rendering) {
 			/* depsgraph & animation: update tagged datablocks */
+
+			/* copied to set's in scene_update_tagged_recursive() */
+			win->screen->scene->customdata_mask= ED_viewedit_datamask(win->screen);
+
 			scene_update_tagged(CTX_data_main(C), win->screen->scene);
+		}
 	}
 
 	CTX_wm_window_set(C, NULL);
@@ -440,7 +446,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		ReportTimerInfo *rti;
 		
 		/* add reports to the global list, otherwise they are not seen */
-		addlisttolist(&CTX_wm_reports(C)->list, &op->reports->list);
+		BLI_movelisttolist(&CTX_wm_reports(C)->list, &op->reports->list);
 		
 		/* After adding reports to the global list, reset the report timer. */
 		WM_event_remove_timer(wm, NULL, reports->reporttimer);
@@ -1345,7 +1351,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 
 							/* XXX - copied from 'wm_operator_finished()' */
 							/* add reports to the global list, otherwise they are not seen */
-							addlisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
+							BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
 
 							CTX_wm_window_set(C, win_prev);
 						}

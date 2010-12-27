@@ -51,7 +51,6 @@ import os
 import inspect
 import bpy
 import rna_info
-reload(rna_info)
 
 # lame, python wont give some access
 ClassMethodDescriptorType = type(dict.__dict__['fromkeys'])

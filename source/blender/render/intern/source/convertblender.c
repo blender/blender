@@ -924,7 +924,7 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 	if((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))
 		re->flag |= R_ZTRA;
 	
-	/* for light groups */
+	/* for light groups and SSS */
 	ma->flag |= MA_IS_USED;
 
 	if(ma->nodetree && ma->use_nodes)
@@ -2380,7 +2380,10 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		normalize_v3(ver->n);
 		//if(ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
 		
-		if(need_orco) ver->orco= orco+=3;
+		if(need_orco) {
+			ver->orco= orco;
+			orco+=3;
+		}
 	}
 
 	index= dl->index;
@@ -4173,13 +4176,23 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 			}
 
 			if(obr->strandbuf) {
+				float width;
+				
+				/* compute average bounding box of strandpoint itself (width) */
+				if(obr->strandbuf->flag & R_STRAND_B_UNITS)
+					obr->strandbuf->maxwidth= MAX2(obr->strandbuf->ma->strand_sta, obr->strandbuf->ma->strand_end);
+				else
+					obr->strandbuf->maxwidth= 0.0f;
+				
+				width= obr->strandbuf->maxwidth;
 				sbound= obr->strandbuf->bound;
 				for(b=0; b<obr->strandbuf->totbound; b++, sbound++) {
+					
 					INIT_MINMAX(smin, smax);
 
 					for(a=sbound->start; a<sbound->end; a++) {
 						strand= RE_findOrAddStrand(obr, a);
-						strand_minmax(strand, smin, smax);
+						strand_minmax(strand, smin, smax, width);
 					}
 
 					VECCOPY(sbound->boundbox[0], smin);

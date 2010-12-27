@@ -2444,7 +2444,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 	EditFace *efa;
 
-	if(!ED_uvedit_test(t->obedit)) return;
+	if(!ED_space_image_show_uvedit(sima, t->obedit)) return;
 
 	/* count */
 	for (efa= em->faces.first; efa; efa= efa->next) {
@@ -5390,6 +5390,13 @@ void createTransData(bContext *C, TransInfo *t)
 			set_prop_dist(t, 1);
 			sort_trans_data_dist(t);
 		}
+	}
+	else if (ob && (ob->mode & (OB_MODE_SCULPT|OB_MODE_TEXTURE_PAINT))) {
+		/* sculpt mode and project paint have own undo stack
+		 * transform ops redo clears sculpt/project undo stack.
+		 *
+		 * Could use 'OB_MODE_ALL_PAINT' since there are key conflicts,
+		 * transform + paint isnt well supported. */
 	}
 	else {
 		createTransObject(C, t);

@@ -861,6 +861,7 @@ static void childof_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 	}
 }
 
+/* XXX note, con->flag should be CONSTRAINT_SPACEONCE for bone-childof, patched in readfile.c */
 static bConstraintTypeInfo CTI_CHILDOF = {
 	CONSTRAINT_TYPE_CHILDOF, /* type */
 	sizeof(bChildOfConstraint), /* size */
