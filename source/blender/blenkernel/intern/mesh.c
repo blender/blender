@@ -1929,7 +1929,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 			BLI_array_growone(mf);
 			BLI_array_growone(origIndex);
 
-			origIndex[k] = use_face_origindex ? k : f->v1->tmp.l;
+			origIndex[k] = use_face_origindex ? k : i;
 			
 			for (j=0; j<mp->totloop; j++, ml++) {
 				switch (j) {
