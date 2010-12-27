@@ -412,7 +412,7 @@ if env['WITH_BF_PLAYER']:
     playerlist += B.create_blender_liblist(env, 'player2')
     playerlist += B.create_blender_liblist(env, 'intern')
     playerlist += B.create_blender_liblist(env, 'extern')
-    env.BlenderProg(B.root_build_dir, "blenderplayer",  playerlist, thestatlibs + dobj + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
+    env.BlenderProg(B.root_build_dir, "blenderplayer",  playerlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
 
 ##### Now define some targets
 
