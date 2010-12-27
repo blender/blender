@@ -2474,6 +2474,25 @@ static bNode *getExecutableNode(bNodeTree *ntree)
 	return NULL;
 }
 
+/* check if texture nodes need exec or end */
+static  void ntree_composite_texnode(bNodeTree *ntree, int init)
+{
+	bNode *node;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_TEXTURE && node->id) {
+			Tex *tex= (Tex *)node->id;
+			if(tex->nodetree && tex->use_nodes) {
+				/* has internal flag to detect it only does it once */
+				if(init)
+					ntreeBeginExecTree(tex->nodetree); 
+				else
+					ntreeEndExecTree(tex->nodetree);
+			}
+		}
+	}
+
+}
 
 /* optimized tree execute test for compositing */
 void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
@@ -2489,6 +2508,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 		ntreeInitPreview(ntree, 0, 0);
 	
 	ntreeBeginExecTree(ntree);
+	ntree_composite_texnode(ntree, 1);
 	
 	/* prevent unlucky accidents */
 	if(G.background)

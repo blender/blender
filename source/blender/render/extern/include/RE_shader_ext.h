@@ -189,7 +189,11 @@ typedef struct ShadeInput
 /* node shaders... */
 struct Tex;
 struct MTex;
+/* this one uses nodes */
 int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
+/* nodes disabled */
+int multitex_ext_safe(struct Tex *tex, float *texvec, struct TexResult *texres);
+/* only for internal node usage */
 int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres,
 	short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex);
 
