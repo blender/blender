@@ -655,9 +655,11 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 						create_vgroups_from_armature(op->reports, scene, ob, par, ARM_GROUPS_NAME, 0);
 					else if(partype == PAR_ARMATURE_ENVELOPE)
 						create_vgroups_from_armature(op->reports, scene, ob, par, ARM_GROUPS_ENVELOPE, 0);
-					else if(partype == PAR_ARMATURE_AUTO)
+					else if(partype == PAR_ARMATURE_AUTO) {
+						WM_cursor_wait(1);
 						create_vgroups_from_armature(op->reports, scene, ob, par, ARM_GROUPS_AUTO, 0);
-					
+						WM_cursor_wait(0);
+					}
 					/* get corrected inverse */
 					ob->partype= PAROBJECT;
 					what_does_parent(scene, ob, &workob);
