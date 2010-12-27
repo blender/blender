@@ -104,7 +104,7 @@ struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 	Mesh *me= (Mesh*)ob->data;
 	ModifierData *md, *nmd;
 
-	if(!CustomData_get_layer(&me->fdata, CD_MDISPS)) {
+	if(!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
 		/* multires can't work without displacement layer */
 		return NULL;
 	}
