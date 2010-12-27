@@ -219,7 +219,7 @@ def prefixPath(prefix_directory, file_path, prefix_path, force = False):
             else:
                 full_path = os.path.join(prefix_directory, n)
     else:
-        full_path = (prefix_directory, file_path)
+        full_path = os.path.join(prefix_directory, file_path)
 
     return full_path
 
