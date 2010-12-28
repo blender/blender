@@ -2241,7 +2241,7 @@ static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 	if(pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_add():", path,  &path_full, &index) < 0) 
 		return NULL;
 
-	if(ANIM_add_driver((ID *)self->ptr.id.data, path_full, index, 0, DRIVER_TYPE_PYTHON)) {
+	if(ANIM_add_driver(/*ReportList*/NULL, (ID *)self->ptr.id.data, path_full, index, 0, DRIVER_TYPE_PYTHON)) {
 		ID *id= self->ptr.id.data;
 		AnimData *adt= BKE_animdata_from_id(id);
 		FCurve *fcu;
@@ -2300,7 +2300,7 @@ static PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 	if(pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_remove():", path,  &path_full, &index) < 0) 
 		return NULL;
 
-	ret= PyBool_FromLong(ANIM_remove_driver((ID *)self->ptr.id.data, path_full, index, 0));
+	ret= PyBool_FromLong(ANIM_remove_driver(/*ReportList*/NULL, (ID *)self->ptr.id.data, path_full, index, 0));
 
 	MEM_freeN(path_full);
 

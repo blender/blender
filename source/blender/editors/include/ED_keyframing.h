@@ -209,29 +209,36 @@ short ANIM_keyingset_context_ok_poll(struct bContext *C, struct KeyingSet *ks);
 
 /* ************ Drivers ********************** */
 
+/* Flags for use by driver creation calls */
+typedef enum eCreateDriverFlags {
+	CREATEDRIVER_WITH_DEFAULT_DVAR 	= (1<<0),	/* create drivers with a default variable for nicer UI */
+} eCreateDriverFlags;
+
+/* -------- */
+
 /* Returns whether there is a driver in the copy/paste buffer to paste */
 short ANIM_driver_can_paste(void);
 
 /* Main Driver Management API calls:
  * 	Add a new driver for the specified property on the given ID block
  */
-short ANIM_add_driver(struct ID *id, const char rna_path[], int array_index, short flag, int type);
+short ANIM_add_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag, int type);
 
 /* Main Driver Management API calls:
  * 	Remove the driver for the specified property on the given ID block (if available)
  */
-short ANIM_remove_driver(struct ID *id, const char rna_path[], int array_index, short flag);
+short ANIM_remove_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
 
 /* Main Driver Management API calls:
  * 	Make a copy of the driver for the specified property on the given ID block
  */
-short ANIM_copy_driver(struct ID *id, const char rna_path[], int array_index, short flag);
+short ANIM_copy_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
 
 /* Main Driver Management API calls:
  * 	Add a new driver for the specified property on the given ID block or replace an existing one
  *	with the driver + driver-curve data from the buffer 
  */
-short ANIM_paste_driver(struct ID *id, const char rna_path[], int array_index, short flag);
+short ANIM_paste_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:

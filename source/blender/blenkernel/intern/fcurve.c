@@ -1329,7 +1329,7 @@ DriverVar *driver_add_new_variable (ChannelDriver *driver)
 	
 #ifdef WITH_PYTHON
 	/* since driver variables are cached, the expression needs re-compiling too */
-	if(driver->type==DRIVER_TYPE_PYTHON)
+	if (driver->type==DRIVER_TYPE_PYTHON)
 		driver->flag |= DRIVER_FLAG_RENAMEVAR;
 #endif
 

@@ -722,23 +722,6 @@ typedef enum eKSP_Grouping {
 	KSP_GROUP_TEMPLATE_ITEM
 } eKSP_Grouping;
 
-/* KS_Path->templates  (Template Flags)
- *
- * Templates in paths are used to substitute information from the 
- * active context into relavent places in the path strings. This
- * enum here defines the flags which define which templates are
- * required by a path before it can be used
- */
-typedef enum eKSP_TemplateTypes {
-	KSP_TEMPLATE_OBJECT			= (1<<0),	/* #obj - selected object */
-	KSP_TEMPLATE_PCHAN 			= (1<<1),	/* #pch - selected posechannel */
-	KSP_TEMPLATE_CONSTRAINT 	= (1<<2),	/* #con - active only */
-	KSP_TEMPLATE_NODE		 	= (1<<3),	/* #nod - selected node */
-	KSP_TEMPLATE_MODIFIER		= (1<<4),	/* #mod - active only */
-	
-	KSP_TEMPLATE_ROT			= (1<<16)	/* modify rotation paths based on rotation mode of Object or Pose Channel */
-} eKSP_TemplateTypes;
-
 /* ---------------- */
  
 /* KeyingSet definition (ks)

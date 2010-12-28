@@ -310,18 +310,19 @@ static void do_graph_region_driver_buttons(bContext *C, void *UNUSED(arg), int e
 }
 
 /* callback to remove the active driver */
-static void driver_remove_cb (bContext *UNUSED(C), void *ale_v, void *UNUSED(arg))
+static void driver_remove_cb (bContext *C, void *ale_v, void *UNUSED(arg))
 {
 	bAnimListElem *ale= (bAnimListElem *)ale_v;
 	ID *id= ale->id;
 	FCurve *fcu= ale->data;
+	ReportList *reports = CTX_wm_reports(C);
 	
 	/* try to get F-Curve that driver lives on, and ID block which has this AnimData */
 	if (ELEM(NULL, id, fcu))
 		return;
 	
 	/* call API method to remove this driver  */	
-	ANIM_remove_driver(id, fcu->rna_path, fcu->array_index, 0);
+	ANIM_remove_driver(reports, id, fcu->rna_path, fcu->array_index, 0);
 }
 
 /* callback to add a target variable to the active driver */
