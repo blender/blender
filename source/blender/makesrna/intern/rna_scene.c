@@ -419,7 +419,7 @@ static int rna_Scene_active_keying_set_index_get(PointerRNA *ptr)
 }
 
 /* get KeyingSet index stuff for list of Keying Sets editing UI
- *	- value+1 since 0 is reserved for 'none'=
+ *	- value+1 since 0 is reserved for 'none'
  */
 static void rna_Scene_active_keying_set_index_set(PointerRNA *ptr, int value) 
 {

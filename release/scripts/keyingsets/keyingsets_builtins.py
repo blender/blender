@@ -60,7 +60,7 @@ class BUILTIN_KSI_LocRot(bpy.types.KeyingSetInfo):
     # iterator - use callback for selected bones/objects
     iterator = RKS_ITER_selected_item
 
-    # generator - use callback for location 
+    # generator 
     def generate(self, context, ks, data):
         # location
         RKS_GEN_location(self, context, ks, data)
@@ -77,7 +77,7 @@ class BUILTIN_KSI_LocScale(bpy.types.KeyingSetInfo):
     # iterator - use callback for selected bones/objects
     iterator = RKS_ITER_selected_item
 
-    # generator - use callback for location 
+    # generator 
     def generate(self, context, ks, data):
         # location
         RKS_GEN_location(self, context, ks, data)
@@ -94,7 +94,7 @@ class BUILTIN_KSI_LocRotScale(bpy.types.KeyingSetInfo):
     # iterator - use callback for selected bones/objects
     iterator = RKS_ITER_selected_item
 
-    # generator - use callback for location 
+    # generator 
     def generate(self, context, ks, data):
         # location
         RKS_GEN_location(self, context, ks, data)
@@ -113,7 +113,7 @@ class BUILTIN_KSI_RotScale(bpy.types.KeyingSetInfo):
     # iterator - use callback for selected bones/objects
     iterator = RKS_ITER_selected_item
 
-    # generator - use callback for location 
+    # generator 
     def generate(self, context, ks, data):
         # rotation
         RKS_GEN_rotation(self, context, ks, data)
@@ -126,7 +126,7 @@ class BUILTIN_KSI_RotScale(bpy.types.KeyingSetInfo):
 class BUILTIN_KSI_VisualLoc(bpy.types.KeyingSetInfo):
     bl_label = "Visual Location"
 
-    insertkey_visual = True
+    bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
     poll = RKS_POLL_selected_items
@@ -149,7 +149,7 @@ class BUILTIN_KSI_VisualRot(bpy.types.KeyingSetInfo):
     # iterator - use callback for selected bones/objects
     iterator = RKS_ITER_selected_item
 
-    # generator - use callback for location 
+    # generator - use callback for rotation 
     generate = RKS_GEN_rotation
 
 # VisualLocRot
@@ -164,7 +164,7 @@ class BUILTIN_KSI_VisualLocRot(bpy.types.KeyingSetInfo):
     # iterator - use callback for selected bones/objects
     iterator = RKS_ITER_selected_item
 
-    # generator - use callback for location 
+    # generator  
     def generate(self, context, ks, data):
         # location
         RKS_GEN_location(self, context, ks, data)
@@ -185,7 +185,7 @@ class BUILTIN_KSI_Available(bpy.types.KeyingSetInfo):
     # iterator - use callback for selected bones/objects
     iterator = RKS_ITER_selected_item
 
-    # generator - use callback for location 
+    # generator - use callback for doing this 
     generate = RKS_GEN_available
 
 ############################### 

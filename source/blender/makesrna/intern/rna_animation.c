@@ -161,7 +161,7 @@ static StructRNA *rna_KeyingSetInfo_register(bContext *C, ReportList *reports, v
 {
 	KeyingSetInfo dummyksi = {0};
 	KeyingSetInfo *ksi;
-	PointerRNA dummyptr;
+	PointerRNA dummyptr = {0};
 	int have_function[3];
 
 	/* setup dummy type info to store static properties in */
@@ -198,7 +198,7 @@ static StructRNA *rna_KeyingSetInfo_register(bContext *C, ReportList *reports, v
 	ksi->poll= (have_function[0])? RKS_POLL_rna_internal: NULL;
 	ksi->iter= (have_function[1])? RKS_ITER_rna_internal: NULL;
 	ksi->generate= (have_function[2])? RKS_GEN_rna_internal: NULL;
-
+	
 	/* add and register with other info as needed */
 	ANIM_keyingset_info_register(ksi);
 	
