@@ -1191,7 +1191,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 
 	if(key->slurph  && key->type!=KEY_RELATIVE) {
 		Nurb *nu;
-		int mode, i= 0, remain= 0, estep, count;
+		int mode=0, i= 0, remain= 0, estep=0, count=0;
 
 		delta= (float)key->slurph / tot;
 

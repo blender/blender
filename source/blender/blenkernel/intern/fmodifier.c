@@ -1009,9 +1009,13 @@ FModifier *add_fmodifier (ListBase *modifiers, int type)
 	fcm->flag = FMODIFIER_FLAG_EXPANDED;
 	BLI_addtail(modifiers, fcm);
 	
+	/* tag modifier as "active" if no other modifiers exist in the stack yet */
+	if (modifiers->first == modifiers->last)
+		fcm->flag |= FMODIFIER_FLAG_ACTIVE;
+	
 	/* add modifier's data */
 	fcm->data= MEM_callocN(fmi->size, fmi->structName);
-		
+	
 	/* init custom settings if necessary */
 	if (fmi->new_data)	
 		fmi->new_data(fcm->data);

@@ -5037,7 +5037,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 			else {
 				/* perform clamping using euler form (3-components) */
 				float eul[3], oldeul[3], quat1[4] = {0};
-				float qlen;
+				float qlen = 0.0f;
 				
 				if (pchan->rotmode == ROT_MODE_QUAT) {
 					qlen= normalize_qt_qt(quat1, pchan->quat);
@@ -5061,10 +5061,10 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 				
 				if (pchan->rotmode == ROT_MODE_QUAT) {
 					eul_to_quat(pchan->quat, eul);
-
+					
 					/* restore original quat size */
 					mul_qt_fl(pchan->quat, qlen);
-
+					
 					/* quaternions flip w sign to accumulate rotations correctly */
 					if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
 						mul_qt_fl(pchan->quat, -1.0f);
