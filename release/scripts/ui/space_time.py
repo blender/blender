@@ -73,16 +73,16 @@ class TIME_HT_header(bpy.types.Header):
             sub.operator("screen.animation_play", text="", icon='PAUSE')
         row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
         row.operator("screen.frame_jump", text="", icon='FF').end = True
+		
+        layout.prop(scene, "sync_mode", text="")
 
+        layout.separator()
+		
         row = layout.row(align=True)
         row.prop(tools, "use_keyframe_insert_auto", text="", toggle=True)
         if screen.is_animation_playing and tools.use_keyframe_insert_auto:
             subsub = row.row()
             subsub.prop(tools, "use_record_with_nla", toggle=True)
-
-        layout.prop(scene, "sync_mode", text="")
-
-        layout.separator()
 
         row = layout.row(align=True)
         row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
