@@ -488,11 +488,6 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, L
 	system->retrieveModifierKeys(oldModifiers);
 	system->getModifierKeys(newModifiers);
 
-	// check if modifier keys different from this event have changed and trigger those
-	// This can happen when some action takes a long time (Blender not responding), resulting
-	// in dropped events.
-	system->handleModifierKeys(window, wParam, lParam, oldModifiers, newModifiers);
-	
 	//std::cout << wParam << " " << system->m_curKeyStatus[wParam] << " shift pressed: " << system->shiftPressed() << std::endl;
 
 	if ((wParam >= '0') && (wParam <= '9')) {
@@ -777,12 +772,13 @@ LRESULT CALLBACK GHOST_SystemWin32::s_llKeyboardProc(int nCode, WPARAM wParam, L
 		
 	KBDLLHOOKSTRUCT &keyb = *(PKBDLLHOOKSTRUCT)(lParam);
 	system->m_prevKeyStatus[keyb.vkCode] = system->m_curKeyStatus[keyb.vkCode];
-	//std::cout << "ll: " << keyb.vkCode << " " << down << " ";
+	//std::cout << "ll: " << keyb.vkCode << " " << down << " ||| ";
 	if(keyb.flags) {
 		if((keyb.flags & LLKHF_EXTENDED) == LLKHF_EXTENDED) {
 			//std::cout << "extended ";
 		}
 		if((keyb.flags & LLKHF_ALTDOWN) == LLKHF_ALTDOWN) {
+			//std::cout << "alt ";
 		}
 		if((keyb.flags & LLKHF_INJECTED)== LLKHF_INJECTED) {
 			//std::cout << "injected ";
