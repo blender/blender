@@ -1059,7 +1059,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			vec[2]= 0.0f;
 			eve= addvertlist(em, vec, NULL);
 			eve->f= 1+2+4;
-			addedgelist(em, eve->prev, eve, NULL);
+			if(a < tot -1) addedgelist(em, eve->prev, eve, NULL);
 		}
 		/* extrude and translate */
 		vec[0]= vec[2]= 0.0;
@@ -1069,7 +1069,17 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			extrudeflag_vert(obedit, em, 2, nor, 0);	// nor unused
 			translateflag(em, 2, vec);
 		}
+			
+		/* and now do imat */
+		eve= em->verts.first;
+		while(eve) {
+			if(eve->f & SELECT) {
+				mul_m4_v3(mat,eve->co);
+			}
+			eve= eve->next;
+		}
 		break;
+			
 	case PRIM_UVSPHERE: /*  UVsphere */
 		
 		/* clear all flags */
