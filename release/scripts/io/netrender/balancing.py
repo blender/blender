@@ -25,6 +25,9 @@ class RatingRule:
     def __init__(self):
         self.enabled = True
 
+    def id(self):
+        return str(id(self))
+
     def rate(self, job):
         return 0
 
@@ -32,12 +35,18 @@ class ExclusionRule:
     def __init__(self):
         self.enabled = True
 
+    def id(self):
+        return str(id(self))
+
     def test(self, job):
         return False
 
 class PriorityRule:
     def __init__(self):
         self.enabled = True
+
+    def id(self):
+        return str(id(self))
 
     def test(self, job):
         return False
@@ -50,13 +59,13 @@ class Balancer:
 
     def ruleByID(self, rule_id):
         for rule in self.rules:
-            if id(rule) == rule_id:
+            if rule.id() == rule_id:
                 return rule
         for rule in self.priorities:
-            if id(rule) == rule_id:
+            if rule.id() == rule_id:
                 return rule
         for rule in self.exceptions:
-            if id(rule) == rule_id:
+            if rule.id() == rule_id:
                 return rule
 
         return None

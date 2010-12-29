@@ -183,28 +183,28 @@ def get(handler):
         for rule in handler.server.balancer.rules:
             rowTable(
                         "rating",
-                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
+                        checkbox("", rule.enabled, "balance_enable('%s', '%s')" % (rule.id(), str(not rule.enabled).lower())),
                         rule,
                         rule.str_limit() +
-                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
+                        """<button title="edit limit" onclick="balance_edit('%s', '%s');">edit</button>""" % (rule.id(), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
                     )
 
         for rule in handler.server.balancer.priorities:
             rowTable(
                         "priority",
-                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
+                        checkbox("", rule.enabled, "balance_enable('%s', '%s')" % (rule.id(), str(not rule.enabled).lower())),
                         rule,
                         rule.str_limit() +
-                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
+                        """<button title="edit limit" onclick="balance_edit('%s', '%s');">edit</button>""" % (rule.id(), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
                     )
 
         for rule in handler.server.balancer.exceptions:
             rowTable(
                         "exception",
-                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
+                        checkbox("", rule.enabled, "balance_enable('%s', '%s')" % (rule.id(), str(not rule.enabled).lower())),
                         rule,
                         rule.str_limit() +
-                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
+                        """<button title="edit limit" onclick="balance_edit('%s', '%s');">edit</button>""" % (rule.id(), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
                     )
 
         endTable()

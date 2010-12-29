@@ -238,43 +238,11 @@ def getFileInfo(filepath, infos):
 
     return values
 
-def thumbnail(filename):
-    root = os.path.splitext(filename)[0]
-    imagename = os.path.split(filename)[1]
-    thumbname = root + ".jpg"
-
-    if os.path.exists(thumbname):
-        return thumbname
-
-    if bpy:
-        scene = bpy.data.scenes[0] # FIXME, this is dodgy!
-        scene.render.file_format = "JPEG"
-        scene.render.file_quality = 90
-        
-        # remove existing image, if there's a leftover (otherwise open changes the name)
-        if imagename in bpy.data.images:
-            img = bpy.data.images[imagename]
-            bpy.data.images.remove(img)
-
-        bpy.ops.image.open(filepath=filename)
-        img = bpy.data.images[imagename]
-            
-        img.save_render(thumbname, scene=scene)
-        
-        img.user_clear()
-        bpy.data.images.remove(img)
-
-        try:
-            process = subprocess.Popen(["convert", thumbname, "-resize", "300x300", thumbname])
-            process.wait()
-            return thumbname
-        except Exception as exp:
-            print("Error while generating thumbnail")
-            print(exp)
-
-    return None
-
 if __name__ == "__main__":
     import bpy
-    for info in sys.argv[7:]:
+    try:
+        start = sys.argv.index("--") + 1
+    except ValueError:
+        start = 0
+    for info in sys.argv[start:]:
         print("$", eval(info))
