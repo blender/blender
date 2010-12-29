@@ -392,7 +392,7 @@ static const float _unit_diamond_shape[4][2] = {
 }; 
 
 /* draw a simple diamond shape with OpenGL */
-void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel, short key_type, short mode)
+void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel, short key_type, short mode, float alpha)
 {
 	static GLuint displist1=0;
 	static GLuint displist2=0;
@@ -441,23 +441,23 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 		switch (key_type) {
 			case BEZT_KEYTYPE_BREAKDOWN: /* bluish frames for now */
 			{
-				if (sel) glColor3f(0.33f, 0.75f, 0.93f);
-				else glColor3f(0.70f, 0.86f, 0.91f);
+				if (sel) glColor4f(0.33f, 0.75f, 0.93f, alpha);
+				else glColor4f(0.70f, 0.86f, 0.91f, alpha);
 			}
 				break;
 				
 			case BEZT_KEYTYPE_EXTREME: /* redish frames for now */
 			{
-				if (sel) glColor3f(95.0f, 0.5f, 0.5f);
-				else glColor3f(0.91f, 0.70f, 0.80f);
+				if (sel) glColor4f(95.0f, 0.5f, 0.5f, alpha);
+				else glColor4f(0.91f, 0.70f, 0.80f, alpha);
 			}
 				break;
 				
 			case BEZT_KEYTYPE_KEYFRAME: /* traditional yellowish frames for now */
 			default:
 			{
-				if (sel) UI_ThemeColorShade(TH_STRIP_SELECT, 50);
-				else glColor3f(0.91f, 0.91f, 0.91f);
+				if (sel) UI_ThemeColorShadeAlpha(TH_STRIP_SELECT, 50, -255*(1.0f-alpha));
+				else glColor4f(0.91f, 0.91f, 0.91f, alpha);
 			}
 				break;
 		}
@@ -467,7 +467,7 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 	
 	if ELEM(mode, KEYFRAME_SHAPE_FRAME, KEYFRAME_SHAPE_BOTH) {
 		/* exterior - black frame */
-		glColor3ub(0, 0, 0);
+		glColor4f(0.0f, 0.0f, 0.0f, alpha);
 		
 		glCallList(displist1);
 	}
@@ -479,7 +479,7 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 	glTranslatef(-x, -y, 0.0f);
 }
 
-static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, float ypos)
+static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, float ypos, short channelLocked)
 {
 	ActKeyColumn *ak;
 	ActKeyBlock *ab;
@@ -522,6 +522,10 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	
 	/* draw keys */
 	if (keys) {
+		/* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
+		// TODO: allow this opacity factor to be themed?
+		float kalpha = (channelLocked)? 0.35f : 1.0f;
+		
 		for (ak= keys->first; ak; ak= ak->next) {
 			/* optimisation: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw 
 			 *	- this might give some improvements, since we current have to flip between view/region matrices
@@ -532,7 +536,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 			/* draw using OpenGL - uglier but faster */
 			// NOTE1: a previous version of this didn't work nice for some intel cards
 			// NOTE2: if we wanted to go back to icons, these are  icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3;
-			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH);
+			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH, kalpha);
 		}	
 	}
 	
@@ -553,7 +557,7 @@ void draw_summary_channel(View2D *v2d, bAnimContext *ac, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-		draw_keylist(v2d, &keys, &blocks, ypos);
+		draw_keylist(v2d, &keys, &blocks, ypos, 0);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
@@ -571,7 +575,7 @@ void draw_scene_channel(View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-		draw_keylist(v2d, &keys, &blocks, ypos);
+		draw_keylist(v2d, &keys, &blocks, ypos, 0);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
@@ -589,7 +593,7 @@ void draw_object_channel(View2D *v2d, bDopeSheet *ads, Object *ob, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-		draw_keylist(v2d, &keys, &blocks, ypos);
+		draw_keylist(v2d, &keys, &blocks, ypos, 0);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
@@ -607,7 +611,7 @@ void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-		draw_keylist(v2d, &keys, &blocks, ypos);
+		draw_keylist(v2d, &keys, &blocks, ypos, (fcu->flag & FCURVE_PROTECTED));
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
@@ -625,7 +629,7 @@ void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float y
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-		draw_keylist(v2d, &keys, &blocks, ypos);
+		draw_keylist(v2d, &keys, &blocks, ypos, (agrp->flag & AGRP_PROTECTED));
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
@@ -643,7 +647,7 @@ void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-		draw_keylist(v2d, &keys, &blocks, ypos);
+		draw_keylist(v2d, &keys, &blocks, ypos, 0);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
@@ -659,7 +663,7 @@ void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos)
 	
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	
-		draw_keylist(v2d, &keys, NULL, ypos);
+		draw_keylist(v2d, &keys, NULL, ypos, (gpl->flag & GP_LAYER_LOCKED));
 	
 	BLI_dlrbTree_free(&keys);
 }
