@@ -313,6 +313,12 @@ static void rna_Scene_view3d_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 	BKE_screen_view3d_main_sync(&bmain->screen, scene);
 }
 
+static void rna_Scene_framelen_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{	
+	scene->r.framelen= (float)scene->r.framapto/(float)scene->r.images;
+}
+
+
 static void rna_Scene_current_frame_set(PointerRNA *ptr, int value)
 {
 	Scene *data= (Scene*)ptr->data;
@@ -2401,14 +2407,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1, 900);
 	RNA_def_property_ui_text(prop, "Frame Map Old", "Specify old mapping value in frames");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_framelen_update");
 	
 	prop= RNA_def_property(srna, "frame_map_new", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "images");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1, 900);
 	RNA_def_property_ui_text(prop, "Frame Map New", "Specify how many frames the Map Old will last");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_framelen_update");
 
 	
 	prop= RNA_def_property(srna, "dither_intensity", PROP_FLOAT, PROP_NONE);
