@@ -805,6 +805,7 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	bNodeLink *link, *linkn;
 	bNode *node, *nextn;
 	bNodeTree *ngroup, *wgroup;
+	ListBase anim_basepaths = {NULL, NULL};
 	int index;
 	
 	ngroup= (bNodeTree *)gnode->id;
@@ -813,16 +814,38 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	/* clear new pointers, set in copytree */
 	for(node= ntree->nodes.first; node; node= node->next)
 		node->new_node= NULL;
-
+	
+	/* wgroup is a temporary copy of the NodeTree we're merging in
+	 *	- all of wgroup's nodes are transferred across to their new home
+	 *	- ngroup (i.e. the source NodeTree) is left unscathed
+	 */
 	wgroup= ntreeCopyTree(ngroup, 0);
 	
 	/* add the nodes into the ntree */
 	for(node= wgroup->nodes.first; node; node= nextn) {
 		nextn= node->next;
+		
+		/* keep track of this node's RNA "base" path (the part of the pat identifying the node) 
+		 * if the old nodetree has animation data which potentially covers this node
+		 */
+		if (wgroup->adt) {
+			PointerRNA ptr;
+			char *path;
+			
+			RNA_pointer_create(&wgroup->id, &RNA_Node, node, &ptr);
+			path = RNA_path_from_ID_to_struct(&ptr);
+			
+			if (path)
+				BLI_addtail(&anim_basepaths, BLI_genericNodeN(path));
+		}
+		
+		/* migrate node */
 		BLI_remlink(&wgroup->nodes, node);
 		BLI_addtail(&ntree->nodes, node);
+		
 		node->locx+= gnode->locx;
 		node->locy+= gnode->locy;
+		
 		node->flag |= NODE_SELECT;
 	}
 	/* and the internal links */
@@ -830,6 +853,29 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 		linkn= link->next;
 		BLI_remlink(&wgroup->links, link);
 		BLI_addtail(&ntree->links, link);
+	}
+	
+	/* and copy across the animation */
+	if (wgroup->adt) {
+		LinkData *ld, *ldn=NULL;
+		bAction *waction;
+		
+		/* firstly, wgroup needs to temporary dummy action that can be destroyed, as it shares copies */
+		waction = wgroup->adt->action = copy_action(wgroup->adt->action);
+		
+		/* now perform the moving */
+		BKE_animdata_separate_by_basepath(&wgroup->id, &ntree->id, &anim_basepaths);
+		
+		/* paths + their wrappers need to be freed */
+		for (ld = anim_basepaths.first; ld; ld = ld->next) {
+			ldn = ld->next;
+			
+			MEM_freeN(ld->data);
+			BLI_freelinkN(&anim_basepaths, ld);
+		}
+		
+		/* free temp action too */
+		free_libblock(&G.main->action, waction);
 	}
 
 	/* restore links to and from the gnode */
