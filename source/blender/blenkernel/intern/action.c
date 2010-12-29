@@ -96,7 +96,6 @@ void make_local_action(bAction *act)
 	if (act->id.us==1) {
 		act->id.lib= 0;
 		act->id.flag= LIB_LOCAL;
-		//make_local_action_channels(act);
 		new_id(0, (ID *)act, 0);
 		return;
 	}
@@ -374,6 +373,20 @@ bActionGroup *action_groups_find_named (bAction *act, const char name[])
 		
 	/* do string comparisons */
 	return BLI_findstring(&act->groups, name, offsetof(bActionGroup, name));
+}
+
+/* Clear all 'temp' flags on all groups */
+void action_groups_clear_tempflags (bAction *act)
+{
+	bActionGroup *agrp;
+	
+	/* sanity checks */
+	if (ELEM(NULL, act, act->groups.first))
+		return;
+		
+	/* flag clearing loop */
+	for (agrp = act->groups.first; agrp; agrp = agrp->next)
+		agrp->flag &= ~AGRP_TEMP;
 }
 
 /* *************** Pose channels *************** */

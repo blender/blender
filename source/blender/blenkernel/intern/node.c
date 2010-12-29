@@ -36,11 +36,13 @@
 #include <string.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_action_types.h"
 
 #include "RNA_access.h"
 
+#include "BKE_animsys.h"
+#include "BKE_action.h"
 #include "BKE_fcurve.h"
-#include "BKE_animsys.h" /* BKE_free_animdata only */
 
 
 #include "PIL_time.h"
@@ -460,6 +462,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 	bNode *node, *gnode, *nextn;
 	bNodeSocket *sock;
 	bNodeTree *ngroup;
+	ListBase anim_basepaths = {NULL, NULL};
 	float min[2], max[2];
 	int totnode=0;
 	
@@ -502,11 +505,27 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 	for(node= ntree->nodes.first; node; node= nextn) {
 		nextn= node->next;
 		if(node->flag & NODE_SELECT) {
+			/* keep track of this node's RNA "base" path (the part of the pat identifying the node) 
+			 * if the old nodetree has animation data which potentially covers this node
+			 */
+			if (ntree->adt) {
+				PointerRNA ptr;
+				char *path;
+				
+				RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
+				path = RNA_path_from_ID_to_struct(&ptr);
+				
+				if (path)
+					BLI_addtail(&anim_basepaths, BLI_genericNodeN(path));
+			}
+			
+			/* change node-collection membership */
 			BLI_remlink(&ntree->nodes, node);
 			BLI_addtail(&ngroup->nodes, node);
+			
 			node->locx-= 0.5f*(min[0]+max[0]);
 			node->locy-= 0.5f*(min[1]+max[1]);
-
+			
 			/* set socket own_index to zero since it can still have a value
 			 * from being in a group before, otherwise it doesn't get a unique
 			 * index in group_verify_own_indices */
@@ -523,6 +542,21 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 		if(link->fromnode->flag & link->tonode->flag & NODE_SELECT) {
 			BLI_remlink(&ntree->links, link);
 			BLI_addtail(&ngroup->links, link);
+		}
+	}
+	
+	/* move animation data over */
+	if (ntree->adt) {
+		LinkData *ld, *ldn=NULL;
+		
+		BKE_animdata_separate_by_basepath(&ntree->id, &ngroup->id, &anim_basepaths);
+		
+		/* paths + their wrappers need to be freed */
+		for (ld = anim_basepaths.first; ld; ld = ld->next) {
+			ldn = ld->next;
+			
+			MEM_freeN(ld->data);
+			BLI_freelinkN(&anim_basepaths, ld);
 		}
 	}
 	

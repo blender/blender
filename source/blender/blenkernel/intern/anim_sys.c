@@ -276,6 +276,176 @@ void BKE_animdata_make_local(AnimData *adt)
 		make_local_strips(&nlt->strips);
 }
 
+/* Sub-ID Regrouping ------------------------------------------- */
+
+/* helper heuristic for determining if a path is compatible with the basepath 
+ * < path: (str) full RNA-path from some data (usually an F-Curve) to compare
+ * < basepath: (str) shorter path fragment to look for
+ * > returns (bool) whether there is a match
+ */
+static short animpath_matches_basepath (const char path[], const char basepath[])
+{
+	/* we need start of path to be basepath */
+	return (path && basepath) && (strstr(path, basepath) == path);
+}
+
+/* Move F-Curves in src action to dst action, setting up all the necessary groups 
+ * for this to happen, but only if the F-Curves being moved have the appropriate 
+ * "base path". 
+ *	- This is used when data moves from one datablock to another, causing the
+ *	  F-Curves to need to be moved over too
+ */
+void action_move_fcurves_by_basepath (bAction *srcAct, bAction *dstAct, const char basepath[])
+{
+	FCurve *fcu, *fcn=NULL;
+	
+	/* sanity checks */
+	if ELEM3(NULL, srcAct, dstAct, basepath) {
+		if (G.f & G_DEBUG) {
+			printf("ERROR: action_partition_fcurves_by_basepath(%p, %p, %p) has insufficient info to work with\n",
+					srcAct, dstAct, basepath);
+		}
+		return;
+	}
+		
+	/* clear 'temp' flags on all groups in src, as we'll be needing them later 
+	 * to identify groups that we've managed to empty out here
+	 */
+	action_groups_clear_tempflags(srcAct);
+	
+	/* iterate over all src F-Curves, moving over the ones that need to be moved */
+	for (fcu = srcAct->curves.first; fcu; fcu = fcn) {
+		/* store next pointer in case we move stuff */
+		fcn = fcu->next;
+		
+		/* should F-Curve be moved over?
+		 *	- we only need the start of the path to match basepath
+		 */
+		if (animpath_matches_basepath(fcu->rna_path, basepath)) {			
+			bActionGroup *agrp = NULL;
+			
+			/* if grouped... */
+			if (fcu->grp) {
+				/* make sure there will be a matching group on the other side for the migrants */
+				agrp = action_groups_find_named(dstAct, fcu->grp->name);
+				
+				if (agrp == NULL) {
+					/* add a new one with a similar name (usually will be the same though) */
+					agrp = action_groups_add_new(dstAct, fcu->grp->name);
+				}
+				
+				/* old groups should be tagged with 'temp' flags so they can be removed later
+				 * if we remove everything from them
+				 */
+				fcu->grp->flag |= AGRP_TEMP;
+			}
+			
+			/* perform the migration now */
+			action_groups_remove_channel(srcAct, fcu);
+			
+			if (agrp)
+				action_groups_add_channel(dstAct, agrp, fcu);
+			else
+				BLI_addtail(&dstAct->curves, fcu);
+		}
+	}
+	
+	/* cleanup groups (if present) */
+	if (srcAct->groups.first) {
+		bActionGroup *agrp, *grp=NULL;
+		
+		for (agrp = srcAct->groups.first; agrp; agrp = grp) {
+			grp = agrp->next;
+			
+			/* only tagged groups need to be considered - clearing these tags or removing them */
+			if (agrp->flag & AGRP_TEMP) {
+				/* if group is empty and tagged, then we can remove as this operation
+				 * moved out all the channels that were formerly here
+				 */
+				if (agrp->channels.first == NULL)
+					BLI_freelinkN(&srcAct->groups, agrp);
+				else
+					agrp->flag &= ~AGRP_TEMP;
+			}
+		}
+	}
+}
+
+/* Transfer the animation data from srcID to dstID where the srcID
+ * animation data is based off "basepath", creating new AnimData and
+ * associated data as necessary
+ */
+void BKE_animdata_separate_by_basepath (ID *srcID, ID *dstID, ListBase *basepaths)
+{
+	AnimData *srcAdt=NULL, *dstAdt=NULL;
+	LinkData *ld;
+	
+	/* sanity checks */
+	if ELEM(NULL, srcID, dstID) {
+		if (G.f & G_DEBUG)
+			printf("ERROR: no source or destination ID to separate AnimData with\n");
+		return;
+	}
+	
+	/* get animdata from src, and create for destination (if needed) */
+	srcAdt = BKE_animdata_from_id(srcID);
+	dstAdt = BKE_id_add_animdata(dstID);
+	
+	if ELEM(NULL, srcAdt, dstAdt) {
+		if (G.f & G_DEBUG)
+			printf("ERROR: no AnimData for this pair of ID's\n");
+		return;
+	}
+	
+	/* active action */
+	if (srcAdt->action) {
+		/* set up an action if necessary, and name it in a similar way so that it can be easily found again */
+		if (dstAdt->action == NULL) {
+			dstAdt->action = add_empty_action(srcAdt->action->id.name+2);
+		}
+		else if (dstAdt->action == srcAdt->action) {
+			printf("Argh! Source and Destination share animation! ('%s' and '%s' both use '%s') Making new empty action\n",
+				srcID, dstID, srcAdt->action);
+			
+			// TODO: review this...
+			id_us_min(dstAdt->action);
+			dstAdt->action = add_empty_action(dstAdt->action->id.name+2);
+		}
+			
+		/* loop over base paths, trying to fix for each one... */
+		for (ld = basepaths->first; ld; ld = ld->next) {
+			const char *basepath = (const char *)ld->data;
+			action_move_fcurves_by_basepath(srcAdt->action, dstAdt->action, basepath);
+		}
+	}
+	
+	/* drivers */
+	if (srcAdt->drivers.first) {
+		FCurve *fcu, *fcn=NULL;
+		
+		/* check each driver against all the base paths to see if any should go */
+		for (fcu = srcAdt->drivers.first; fcu; fcu = fcn) {
+			fcn = fcu->next;
+			
+			/* try each basepath in turn, but stop on the first one which works */
+			for (ld = basepaths->first; ld; ld = ld->next) {
+				const char *basepath = (const char *)ld->data;
+				
+				if (animpath_matches_basepath(fcu->rna_path, basepath)) {
+					/* just need to change lists */
+					BLI_remlink(&srcAdt->drivers, fcu);
+					BLI_addtail(&dstAdt->drivers, fcu);
+					
+					// TODO: add depsgraph flushing calls?
+					
+					/* can stop now, as moved already */
+					break;
+				}
+			}
+		}
+	}
+}
+
 /* Path Validation -------------------------------------------- */
 
 /* Check if a given RNA Path is valid, by tracing it from the given ID, and seeing if we can resolve it */

@@ -161,7 +161,7 @@ static StructRNA *rna_KeyingSetInfo_register(bContext *C, ReportList *reports, v
 {
 	KeyingSetInfo dummyksi = {0};
 	KeyingSetInfo *ksi;
-	PointerRNA dummyptr = {0};
+	PointerRNA dummyptr = {{0}};
 	int have_function[3];
 
 	/* setup dummy type info to store static properties in */
