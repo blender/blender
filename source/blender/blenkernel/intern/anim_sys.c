@@ -465,44 +465,73 @@ void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, const char *pre
 /* Whole Database Ops -------------------------------------------- */
 
 /* apply the given callback function on all data in main database */
-void BKE_animdata_main_cb (Main *main, ID_AnimData_Edit_Callback func, void *user_data)
+void BKE_animdata_main_cb (Main *mainptr, ID_AnimData_Edit_Callback func, void *user_data)
 {
 	ID *id;
 
+	/* standard data version */
 #define ANIMDATA_IDS_CB(first) \
 	for (id= first; id; id= id->next) { \
 		AnimData *adt= BKE_animdata_from_id(id); \
 		if (adt) func(id, adt, user_data); \
 	}
-
-	ANIMDATA_IDS_CB(main->nodetree.first);	/* nodes */
-	ANIMDATA_IDS_CB(main->tex.first);		/* textures */
-	ANIMDATA_IDS_CB(main->lamp.first);		/* lamps */
-	ANIMDATA_IDS_CB(main->mat.first);		/* materials */
-	ANIMDATA_IDS_CB(main->camera.first);	/* cameras */
-	ANIMDATA_IDS_CB(main->key.first);		/* shapekeys */
-	ANIMDATA_IDS_CB(main->mball.first);		/* metaballs */
-	ANIMDATA_IDS_CB(main->curve.first);		/* curves */
-	ANIMDATA_IDS_CB(main->armature.first);	/* armatures */
-	ANIMDATA_IDS_CB(main->mesh.first);		/* meshes */
-	ANIMDATA_IDS_CB(main->particle.first);	/* particles */
-	ANIMDATA_IDS_CB(main->object.first);	/* objects */
-	ANIMDATA_IDS_CB(main->world.first);		/* worlds */
-
-	/* scenes */
-	for (id= main->scene.first; id; id= id->next) {
-		AnimData *adt= BKE_animdata_from_id(id);
-		Scene *scene= (Scene *)id;
-		
-		/* do compositing nodes first (since these aren't included in main tree) */
-		if (scene->nodetree) {
-			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
-			if (adt2) func(id, adt2, user_data);
-		}
-		
-		/* now fix scene animation data as per normal */
-		if (adt) func((ID *)id, adt, user_data);
+	
+	/* "embedded" nodetree cases (i.e. scene/material/texture->nodetree) */
+#define ANIMDATA_NODETREE_IDS_CB(first, NtId_Type) \
+	for (id= first; id; id= id->next) { \
+		AnimData *adt= BKE_animdata_from_id(id); \
+		NtId_Type *ntp= (NtId_Type *)id; \
+		if (ntp->nodetree) { \
+			AnimData *adt2= BKE_animdata_from_id((ID *)ntp); \
+			if (adt2) func(id, adt2, user_data); \
+		} \
+		if (adt) func(id, adt, user_data); \
 	}
+	
+	/* nodes */
+	ANIMDATA_IDS_CB(mainptr->nodetree.first);
+	
+	/* textures */
+	ANIMDATA_NODETREE_IDS_CB(mainptr->tex.first, Tex);
+	
+	/* lamps */
+	ANIMDATA_IDS_CB(mainptr->lamp.first);
+	
+	/* materials */
+	ANIMDATA_NODETREE_IDS_CB(mainptr->mat.first, Material);
+	
+	/* cameras */
+	ANIMDATA_IDS_CB(mainptr->camera.first);
+	
+	/* shapekeys */
+	ANIMDATA_IDS_CB(mainptr->key.first);
+	
+	/* metaballs */
+	ANIMDATA_IDS_CB(mainptr->mball.first);
+	
+	/* curves */
+	ANIMDATA_IDS_CB(mainptr->curve.first);
+	
+	/* armatures */
+	ANIMDATA_IDS_CB(mainptr->armature.first);
+	
+	/* lattices */
+	ANIMDATA_IDS_CB(mainptr->latt.first);
+	
+	/* meshes */
+	ANIMDATA_IDS_CB(mainptr->mesh.first);
+	
+	/* particles */
+	ANIMDATA_IDS_CB(mainptr->particle.first);
+	
+	/* objects */
+	ANIMDATA_IDS_CB(mainptr->object.first);
+	
+	/* worlds */
+	ANIMDATA_IDS_CB(mainptr->world.first);
+	
+	/* scenes */
+	ANIMDATA_NODETREE_IDS_CB(mainptr->scene.first, Scene);
 }
 
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
@@ -525,17 +554,29 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 		BKE_animdata_fix_paths_rename(id, adt, prefix, oldName, newName, 0, 0, 1);\
 	}
 	
+	/* another version of this macro for nodetrees */
+#define RENAMEFIX_ANIM_NODETREE_IDS(first, NtId_Type) \
+	for (id= first; id; id= id->next) { \
+		AnimData *adt= BKE_animdata_from_id(id); \
+		NtId_Type *ntp= (NtId_Type *)id; \
+		if (ntp->nodetree) { \
+			AnimData *adt2= BKE_animdata_from_id((ID *)ntp); \
+			BKE_animdata_fix_paths_rename((ID *)ntp, adt2, prefix, oldName, newName, 0, 0, 1);\
+		} \
+		BKE_animdata_fix_paths_rename(id, adt, prefix, oldName, newName, 0, 0, 1);\
+	}
+	
 	/* nodes */
 	RENAMEFIX_ANIM_IDS(mainptr->nodetree.first);
 	
 	/* textures */
-	RENAMEFIX_ANIM_IDS(mainptr->tex.first);
+	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->tex.first, Tex);
 	
 	/* lamps */
 	RENAMEFIX_ANIM_IDS(mainptr->lamp.first);
 	
 	/* materials */
-	RENAMEFIX_ANIM_IDS(mainptr->mat.first);
+	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->mat.first, Material);
 	
 	/* cameras */
 	RENAMEFIX_ANIM_IDS(mainptr->camera.first);
@@ -552,8 +593,11 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 	/* armatures */
 	RENAMEFIX_ANIM_IDS(mainptr->armature.first);
 	
+	/* lattices */
+	RENAMEFIX_ANIM_IDS(mainptr->latt.first);
+	
 	/* meshes */
-	// TODO...
+	RENAMEFIX_ANIM_IDS(mainptr->mesh.first);
 	
 	/* particles */
 	RENAMEFIX_ANIM_IDS(mainptr->particle.first);
@@ -565,19 +609,7 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 	RENAMEFIX_ANIM_IDS(mainptr->world.first);
 	
 	/* scenes */
-	for (id= mainptr->scene.first; id; id= id->next) {
-		AnimData *adt= BKE_animdata_from_id(id);
-		Scene *scene= (Scene *)id;
-		
-		/* do compositing nodes first (since these aren't included in main tree) */
-		if (scene->nodetree) {
-			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
-			BKE_animdata_fix_paths_rename((ID *)scene->nodetree, adt2, prefix, oldName, newName, 0, 0, 1);
-		}
-		
-		/* now fix scene animation data as per normal */
-		BKE_animdata_fix_paths_rename((ID *)id, adt, prefix, oldName, newName, 0, 0, 1);
-	}
+	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->scene.first, Scene);
 }
 
 /* *********************************** */ 
@@ -1901,7 +1933,6 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	EVAL_ANIM_IDS(main->camera.first, ADT_RECALC_ANIM);
 	
 	/* shapekeys */
-		// TODO: we probably need the same hack as for curves (ctime-hack)
 	EVAL_ANIM_IDS(main->key.first, ADT_RECALC_ANIM);
 	
 	/* metaballs */
