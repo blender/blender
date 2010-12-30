@@ -405,10 +405,10 @@ void BKE_animdata_separate_by_basepath (ID *srcID, ID *dstID, ListBase *basepath
 		}
 		else if (dstAdt->action == srcAdt->action) {
 			printf("Argh! Source and Destination share animation! ('%s' and '%s' both use '%s') Making new empty action\n",
-				srcID, dstID, srcAdt->action);
+				srcID->id.name, dstID->id.name, srcAdt->action->id.name);
 			
 			// TODO: review this...
-			id_us_min(dstAdt->action);
+			id_us_min(&dstAdt->action->id);
 			dstAdt->action = add_empty_action(dstAdt->action->id.name+2);
 		}
 			
