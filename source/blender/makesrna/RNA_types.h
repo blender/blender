@@ -167,6 +167,10 @@ typedef enum PropertyFlag {
 	 * only apply this to types that are derived from an ID ()*/
 	PROP_ID_SELF_CHECK = 1<<20,
 	PROP_NEVER_NULL = 1<<18,
+	/* currently only used for UI, this is similar to PROP_NEVER_NULL
+	 * except that the value may be NULL at times, used for ObData, where an Empty's will be NULL
+	 * but setting NULL on a mesh object is not possible. So, if its not NULL, setting NULL cant be done! */
+	PROP_NEVER_UNLINK = 1<<25,
 
 	/* flag contains multiple enums.
 	 * note: not to be confused with prop->enumbitflags

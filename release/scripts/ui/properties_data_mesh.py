@@ -71,9 +71,9 @@ class DATA_PT_context_mesh(MeshButtonsPanel, bpy.types.Panel):
         space = context.space_data
 
         if ob:
-            layout.template_ID(ob, "data", unlink="None")
+            layout.template_ID(ob, "data")
         elif mesh:
-            layout.template_ID(space, "pin_id", unlink="None")
+            layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):

@@ -60,9 +60,9 @@ class DATA_PT_context_curve(CurveButtonsPanel, bpy.types.Panel):
         space = context.space_data
 
         if ob:
-            layout.template_ID(ob, "data", unlink="None")
+            layout.template_ID(ob, "data")
         elif curve:
-            layout.template_ID(space, "pin_id", unlink="None") # XXX: broken
+            layout.template_ID(space, "pin_id") # XXX: broken
 
 
 class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):

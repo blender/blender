@@ -212,7 +212,7 @@ short ANIM_add_driver (ReportList *reports, ID *id, const char rna_path[], int a
 /* Main Driver Management API calls:
  * 	Remove the driver for the specified property on the given ID block (if available)
  */
-short ANIM_remove_driver (ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
+short ANIM_remove_driver (ReportList *UNUSED(reports), ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {
 	AnimData *adt;
 	FCurve *fcu;
