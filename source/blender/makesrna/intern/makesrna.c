@@ -45,6 +45,8 @@
 #endif
 #endif
 
+static const char *rna_property_typename(PropertyType type);
+
 /* Replace if different */
 #define TMP_EXT ".tmp"
 
@@ -642,6 +644,13 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				fprintf(stderr, "rna_def_property_set_func: %s.%s has no valid dna info.\n", srna->identifier, prop->identifier);
 				DefRNA.error= 1;
 			}
+			return NULL;
+		}
+
+		/* error check to ensure floats are not wrapped as ints/bools */
+		if(dp->dnatype && (strcmp(dp->dnatype, "float") == 0 || strcmp(dp->dnatype, "double") == 0) && prop->type != PROP_FLOAT) {
+			fprintf(stderr, "rna_def_property_set_func: %s.%s is a float but wrapped as type '%s'.\n", srna->identifier, prop->identifier, rna_property_typename(prop->type));
+			DefRNA.error= 1;
 			return NULL;
 		}
 	}

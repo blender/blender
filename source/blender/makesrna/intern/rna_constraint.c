@@ -1113,7 +1113,7 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "offset", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Offset", "Offset from the position corresponding to the time frame");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
