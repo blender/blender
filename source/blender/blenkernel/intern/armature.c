@@ -936,19 +936,15 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			dvert = NULL;
 
 		if(armature_def_nr >= 0 && dvert) {
-			armature_weight = 0.0f; /* a def group was given, so default to 0 */
-			for(j = 0; j < dvert->totweight; j++) {
-				if(dvert->dw[j].def_nr == armature_def_nr) {
-					armature_weight = dvert->dw[j].weight;
-					break;
-				}
+			armature_weight= defvert_find_weight(dvert, armature_def_nr);
+
+			if(invert_vgroup) {
+				armature_weight= 1.0f-armature_weight;
 			}
+
 			/* hackish: the blending factor can be used for blending with prevCos too */
 			if(prevCos) {
-				if(invert_vgroup)
-					prevco_weight= 1.0f-armature_weight;
-				else
-					prevco_weight= armature_weight;
+				prevco_weight= armature_weight;
 				armature_weight= 1.0f;
 			}
 		}

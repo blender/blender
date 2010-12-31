@@ -448,7 +448,7 @@ void flip_side_name (char *name, const char *from_name, int strip_number)
 	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
-float defvert_find_weight(const struct MDeformVert *dvert, int group_num)
+float defvert_find_weight(const struct MDeformVert *dvert, const int group_num)
 {
 	MDeformWeight *dw= defvert_find_index(dvert, group_num);
 	return dw ? dw->weight : 0.0f;

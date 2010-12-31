@@ -61,14 +61,14 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         split = layout.split()
         
-        col = split.column()
-        col.prop(md, "use_multi_modifier")
-        col = col.split()
-        col.active = md.use_multi_modifier
-        col.prop_search(md, "vertex_group_multi_modifier", ob, "vertex_groups", text="")
+        col = split.split()
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
-        sub.active = bool(md.vertex_group_multi_modifier)
-        sub.prop(md, "invert_vertex_group_multi_modifier")
+        sub.active = bool(md.vertex_group)
+        sub.prop(md, "invert_vertex_group")
+        
+        col = layout.column()
+        col.prop(md, "use_multi_modifier")
 
     def ARRAY(self, layout, ob, md):
         layout.prop(md, "fit_type")
