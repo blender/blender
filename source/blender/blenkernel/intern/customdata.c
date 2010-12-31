@@ -611,7 +611,7 @@ static int mdisp_rot_face_to_crn(int corners, int face_side, float u, float v, f
 static void mdisp_apply_weight(int S, int corners, int x, int y, int face_side,
 	float crn_weight[4][2], float *u_r, float *v_r)
 {
-	float u, v, xl, yl;
+	float u = 0.f, v = 0.f, xl, yl;
 	float mid1[2], mid2[2], mid3[2];
 
 	mdisp_rot_crn_to_face(S, corners, face_side, x, y, &u, &v);

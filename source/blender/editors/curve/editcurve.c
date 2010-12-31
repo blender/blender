@@ -3928,7 +3928,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	Curve *cu= obedit->data;
 	ListBase *nubase= curve_get_editcurve(obedit);
 	Nurb *nu, *nu1=0, *nu2=0;
-	BezTriple *bezt;
+	BezTriple *bezt = NULL;
 	BPoint *bp;
 	float *fp, offset;
 	int a, ok= 0;

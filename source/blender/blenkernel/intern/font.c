@@ -670,7 +670,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 	VFont *vfont, *oldvfont;
 	VFontData *vfd= NULL;
 	Curve *cu;
-	CharInfo *info, *custrinfo;
+	CharInfo *info = NULL, *custrinfo;
 	TextBox *tb;
 	VChar *che;
 	struct chartrans *chartransdata=NULL, *ct;
