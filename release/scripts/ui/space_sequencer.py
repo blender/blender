@@ -608,7 +608,12 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
             col.prop(strip.crop, "max_x")
 
         col = layout.column(align=True)
-        col.label(text="Trim Duration:")
+        col.label(text="Trim Duration (hard):")
+        col.prop(strip, "animation_offset_start", text="Start")
+        col.prop(strip, "animation_offset_end", text="End")
+
+        col = layout.column(align=True)
+        col.label(text="Trim Duration (soft):")
         col.prop(strip, "frame_offset_start", text="Start")
         col.prop(strip, "frame_offset_end", text="End")
 
