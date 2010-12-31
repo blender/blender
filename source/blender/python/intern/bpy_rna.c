@@ -2167,20 +2167,29 @@ static char pyrna_struct_keyframe_insert_doc[] =
 
 static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
-	PyObject *result;
 	/* args, pyrna_struct_keyframe_parse handles these */
 	char *path_full= NULL;
 	int index= -1;
 	float cfra= FLT_MAX;
 	char *group_name= NULL;
 
-	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1)
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1) {
 		return NULL;
+	}
+	else {
+		short result;
+		ReportList reports;
 
-	result= PyBool_FromLong(insert_keyframe(/*ReportList*/NULL, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0));
-	MEM_freeN(path_full);
+		BKE_reports_init(&reports, RPT_STORE);
 
-	return result;
+		result= insert_keyframe(&reports, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0);
+		MEM_freeN(path_full);
+
+		if(BPy_reports_to_error(&reports, TRUE))
+			return NULL;
+
+		return PyBool_FromLong(result);
+	}
 }
 
 static char pyrna_struct_keyframe_delete_doc[] =
@@ -2201,20 +2210,30 @@ static char pyrna_struct_keyframe_delete_doc[] =
 
 static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
-	PyObject *result;
 	/* args, pyrna_struct_keyframe_parse handles these */
 	char *path_full= NULL;
 	int index= -1;
 	float cfra= FLT_MAX;
 	char *group_name= NULL;
 
-	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_delete()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1)
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_delete()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1) {
 		return NULL;
+	}
+	else {
+		short result;
+		ReportList reports;
 
-	result= PyBool_FromLong(delete_keyframe(/*ReportList*/NULL, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0));
-	MEM_freeN(path_full);
+		BKE_reports_init(&reports, RPT_STORE);
 
-	return result;
+		result= delete_keyframe(&reports, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0);
+		MEM_freeN(path_full);
+
+		if(BPy_reports_to_error(&reports, TRUE))
+			return NULL;
+
+		return PyBool_FromLong(result);
+	}
+
 }
 
 static char pyrna_struct_driver_add_doc[] =
@@ -2233,46 +2252,59 @@ static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 {
 	char *path, *path_full;
 	int index= -1;
-	PyObject *ret;
 
 	if (!PyArg_ParseTuple(args, "s|i:driver_add", &path, &index))
 		return NULL;
 
-	if(pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_add():", path,  &path_full, &index) < 0) 
+	if(pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_add():", path,  &path_full, &index) < 0) {
 		return NULL;
+	}
+	else {
+		PyObject *ret= NULL;
+		ReportList reports;
+		int result;
 
-	if(ANIM_add_driver(/*ReportList*/NULL, (ID *)self->ptr.id.data, path_full, index, 0, DRIVER_TYPE_PYTHON)) {
-		ID *id= self->ptr.id.data;
-		AnimData *adt= BKE_animdata_from_id(id);
-		FCurve *fcu;
+		BKE_reports_init(&reports, RPT_STORE);
 
-		PointerRNA tptr;
-		PyObject *item;
+		result= ANIM_add_driver(&reports, (ID *)self->ptr.id.data, path_full, index, 0, DRIVER_TYPE_PYTHON);
 
-		if(index == -1) { /* all, use a list */
-			int i= 0;
-			ret= PyList_New(0);
-			while((fcu= list_find_fcurve(&adt->drivers, path_full, i++))) {
+		if(BPy_reports_to_error(&reports, TRUE))
+			return NULL;
+
+		if(result) {
+			ID *id= self->ptr.id.data;
+			AnimData *adt= BKE_animdata_from_id(id);
+			FCurve *fcu;
+
+			PointerRNA tptr;
+			PyObject *item;
+
+			if(index == -1) { /* all, use a list */
+				int i= 0;
+				ret= PyList_New(0);
+				while((fcu= list_find_fcurve(&adt->drivers, path_full, i++))) {
+					RNA_pointer_create(id, &RNA_FCurve, fcu, &tptr);
+					item= pyrna_struct_CreatePyObject(&tptr);
+					PyList_Append(ret, item);
+					Py_DECREF(item);
+				}
+			}
+			else {
+				fcu= list_find_fcurve(&adt->drivers, path_full, index);
 				RNA_pointer_create(id, &RNA_FCurve, fcu, &tptr);
-				item= pyrna_struct_CreatePyObject(&tptr);
-				PyList_Append(ret, item);
-				Py_DECREF(item);
+				ret= pyrna_struct_CreatePyObject(&tptr);
 			}
 		}
 		else {
-			fcu= list_find_fcurve(&adt->drivers, path_full, index);
-			RNA_pointer_create(id, &RNA_FCurve, fcu, &tptr);
-			ret= pyrna_struct_CreatePyObject(&tptr);
+			/* XXX, should be handled by reports, */
+			PyErr_SetString(PyExc_TypeError, "bpy_struct.driver_add(): failed because of an internal error");
+			return NULL;
 		}
-	}
-	else {
-		PyErr_SetString(PyExc_TypeError, "bpy_struct.driver_add(): failed because of an internal error");
-		return NULL;
-	}
 
-	MEM_freeN(path_full);
+		MEM_freeN(path_full);
 
-	return ret;
+		return ret;
+	}
 }
 
 
@@ -2292,19 +2324,28 @@ static PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 {
 	char *path, *path_full;
 	int index= -1;
-	PyObject *ret;
 
 	if (!PyArg_ParseTuple(args, "s|i:driver_remove", &path, &index))
 		return NULL;
 
-	if(pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_remove():", path,  &path_full, &index) < 0) 
+	if(pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_remove():", path,  &path_full, &index) < 0) {
 		return NULL;
+	}
+	else {
+		short result;
+		ReportList reports;
 
-	ret= PyBool_FromLong(ANIM_remove_driver(/*ReportList*/NULL, (ID *)self->ptr.id.data, path_full, index, 0));
+		BKE_reports_init(&reports, RPT_STORE);
 
-	MEM_freeN(path_full);
+		result= ANIM_remove_driver(&reports, (ID *)self->ptr.id.data, path_full, index, 0);
 
-	return ret;
+		MEM_freeN(path_full);
+
+		if(BPy_reports_to_error(&reports, TRUE))
+			return NULL;
+
+		return PyBool_FromLong(result);
+	}
 }
 
 
@@ -3897,8 +3938,7 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 		BKE_reports_init(&reports, RPT_STORE);
 		RNA_function_call(C, &reports, self_ptr, self_func, &parms);
 
-		err= (BPy_reports_to_error(&reports))? -1: 0;
-		BKE_reports_clear(&reports);
+		err= (BPy_reports_to_error(&reports, TRUE))? -1: 0;
 
 		/* return value */
 		if(err==0) {
@@ -5498,13 +5538,10 @@ static PyObject *pyrna_basetype_register(PyObject *UNUSED(self), PyObject *py_cl
 
 	srna_new= reg(C, &reports, py_class, identifier, bpy_class_validate, bpy_class_call, bpy_class_free);
 
-	if(!srna_new) {
-		BPy_reports_to_error(&reports);
-		BKE_reports_clear(&reports);
+	if(BPy_reports_to_error(&reports, TRUE))
 		return NULL;
-	}
 
-	BKE_reports_clear(&reports);
+	BKE_assert(srna_new != NULL);
 
 	pyrna_subtype_set_rna(py_class, srna_new); /* takes a ref to py_class */
 
