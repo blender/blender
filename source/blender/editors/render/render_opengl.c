@@ -223,8 +223,8 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	OGLRender *oglrender;
 	int sizex, sizey;
 	short is_view_context= RNA_boolean_get(op->ptr, "view_context");
-	short is_write_still= is_view_context;
 	const short is_animation= RNA_boolean_get(op->ptr, "animation");
+	const short is_write_still= RNA_boolean_get(op->ptr, "write_still");
 
 	/* ensure we have a 3d view */
 
@@ -243,8 +243,8 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	}
 
 	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.imtype)) {
-		BKE_report(op->reports, RPT_WARNING, "Can't write a single file with an animation format selected.");
-		is_write_still= 0;
+		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected.");
+		return 0;
 	}
 
 	/* stop all running jobs, currently previews frustrate Render */
