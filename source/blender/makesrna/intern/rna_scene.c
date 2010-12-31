@@ -1736,8 +1736,8 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Physics Gravity", "Gravitational constant used for physics simulation in the game engine");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "occlusion_culling_resolution", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "occlusionRes");
+	prop= RNA_def_property(srna, "occlusion_culling_resolution", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "occlusionRes");
 	RNA_def_property_range(prop, 128.0, 1024.0);
 	RNA_def_property_ui_text(prop, "Occlusion Resolution", "The size of the occlusion buffer in pixel, use higher value for better precision (slower)");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
