@@ -2710,9 +2710,13 @@ int setcurr_tab_spaces (Text *text, int space)
 	}
 	if(strstr(text->curl->line, word))
 	{
-		//if we find a : then add a tab but not if it is in a comment
+		/* if we find a ':' on this line, then add a tab but not if it is:
+		 * 	1) in a comment
+		 * 	2) within an identifier
+		 *	3) after the cursor (text->curc), i.e. when creating space before a function def [#25414] 
+		 */
 		int a, indent = 0;
-		for(a=0; text->curl->line[a] != '\0'; a++)
+		for(a=0; (a < text->curc) && (text->curl->line[a] != '\0'); a++)
 		{
 			if (text->curl->line[a]=='#') {
 				break;
