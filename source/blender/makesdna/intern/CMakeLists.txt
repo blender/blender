@@ -27,7 +27,10 @@
 
 # message(STATUS "Configuring makesdna")
 
-blender_include_dirs(../../../../intern/guardedalloc ../)
+blender_include_dirs(
+	../../../../intern/guardedalloc
+	..
+)
 
 # Build makesdna executable
 set(SRC

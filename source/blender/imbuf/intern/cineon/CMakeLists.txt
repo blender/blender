@@ -27,7 +27,7 @@
 set(INC 
 		.
 		..
-		../../
+		../..
 		../../../blenkernel
 		../../../blenlib
 		../../../makesdna
