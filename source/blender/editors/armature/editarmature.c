@@ -3730,9 +3730,6 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	chains_find_tips(arm->edbo, &chains);
 	if (chains.first == NULL) return OPERATOR_CANCELLED;
 	
-	/* leaves mirrored bones selected, as indication of operation */
-	armature_select_mirrored(arm);
-	
 	/* loop over chains, only considering selected and visible bones */
 	for (chain= chains.first; chain; chain= chain->next) {
 		EditBone *ebo, *child=NULL, *parent=NULL;
