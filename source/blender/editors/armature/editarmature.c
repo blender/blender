@@ -2180,6 +2180,9 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 
 	float imat[3][3];
 
+	bArmature *arm= ob->data;
+	EditBone *ebone;
+
 	copy_m3_m4(imat, ob->obmat);
 	invert_m3(imat);
 
@@ -2194,13 +2197,14 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 		mul_m3_v3(imat, cursor_local);
 
 		/* cursor */
-		CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
-			float cursor_rel[3];
-			sub_v3_v3v3(cursor_rel, cursor_local, ebone->head);
-			if(axis_flip) negate_v3(cursor_rel);
-			ebone->roll= ED_rollBoneToVector(ebone, cursor_rel, axis_only);
+		for(ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+			if(EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
+				float cursor_rel[3];
+				sub_v3_v3v3(cursor_rel, cursor_local, ebone->head);
+				if(axis_flip) negate_v3(cursor_rel);
+				ebone->roll= ED_rollBoneToVector(ebone, cursor_rel, axis_only);
+			}
 		}
-		CTX_DATA_END;
 	}
 	else {
 		float vec[3]= {0.0f, 0.0f, 0.0f};
@@ -2237,11 +2241,23 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 
 		if(axis_flip) negate_v3(vec);
 
-		CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
-			/* roll func is a callback which assumes that all is well */
-			ebone->roll= ED_rollBoneToVector(ebone, vec, axis_only);
+		for(ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+			if(EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
+				/* roll func is a callback which assumes that all is well */
+				ebone->roll= ED_rollBoneToVector(ebone, vec, axis_only);
+			}
 		}
-		CTX_DATA_END;
+	}
+
+	if (arm->flag & ARM_MIRROR_EDIT) {
+		for(ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+			if((EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) == 0) {
+				EditBone *ebone_mirr= ED_armature_bone_get_mirrored(arm->edbo, ebone);
+				if (ebone_mirr && (EBONE_VISIBLE(arm, ebone_mirr) && EBONE_EDITABLE(ebone_mirr))) {
+					ebone->roll= -ebone_mirr->roll;
+				}
+			}
+		}
 	}
 
 	/* note, notifier might evolve */
