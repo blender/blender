@@ -2203,6 +2203,7 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Sequencer View Zoom Ratio";
 	ot->idname= "SEQUENCER_OT_view_zoom_ratio";
+	ot->description = "Change zoom ratio of sequencer preview";
 
 	/* api callbacks */
 	ot->exec= sequencer_view_zoom_ratio_exec;

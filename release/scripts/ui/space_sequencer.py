@@ -134,6 +134,7 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text='Fit preview in window')
+            layout.operator("sequencer.view_zoom_ratio", text='Show preview 1:1').ratio = 1.0
             layout.operator_context = 'INVOKE_DEFAULT'
 
             # # XXX, invokes in the header view
