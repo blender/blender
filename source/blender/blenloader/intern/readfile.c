@@ -4540,6 +4540,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->drags.first= wm->drags.last= NULL;
 	
 	wm->windrawable= NULL;
+	wm->winactive= NULL;
 	wm->initialized= 0;
 	wm->op_undo_depth= 0;
 }
