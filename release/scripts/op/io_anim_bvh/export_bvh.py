@@ -22,43 +22,31 @@
 # fixes from Andrea Rugliancich
 
 import bpy
-from mathutils import Matrix, Vector
-from math import degrees
 
-def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
+def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
 
-    # Window.EditMode(0)
+    from mathutils import Matrix, Vector
+    from math import degrees
 
     file = open(filepath, "w")
 
-    # bvh_nodes = {}
-    arm_data = obj.data
-    bones = arm_data.bones.values()
+    obj = context.object
+    arm = obj.data
 
     # Build a dictionary of bone children.
     # None is for parentless bones
     bone_children = {None: []}
 
     # initialize with blank lists
-    for bone in bones:
+    for bone in arm.bones:
         bone_children[bone.name] = []
 
-    for bone in bones:
-        parent = bone.parent
-        bone_name = bone.name
-        if parent:
-            bone_children[parent.name].append(bone_name)
-        else:  # root node
-            bone_children[None].append(bone_name)
+    for bone in arm.bones:
+        bone_children[getattr(bone.parent, "name", None)].append(bone.name)
 
     # sort the children
     for children_list in bone_children.values():
         children_list.sort()
-
-    # build a (name:bone) mapping dict
-    bone_dict = {}
-    for bone in bones:
-        bone_dict[bone.name] = bone
 
     # bone name list in the order that the bones are written
     bones_serialized_names = []
@@ -72,7 +60,7 @@ def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
 
         indent_str = "\t" * indent
 
-        bone = bone_dict[bone_name]
+        bone = arm.bones[bone_name]
         loc = bone.head_local
         bone_locs[bone_name] = loc
 
@@ -86,7 +74,7 @@ def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
             file.write("%sROOT %s\n" % (indent_str, bone_name))
 
         file.write("%s{\n" % indent_str)
-        file.write("%s\tOFFSET %.6f %.6f %.6f\n" % (indent_str, loc.x * pref_scale, loc.y * pref_scale, loc.z * pref_scale))
+        file.write("%s\tOFFSET %.6f %.6f %.6f\n" % (indent_str, loc.x * global_scale, loc.y * global_scale, loc.z * global_scale))
         file.write("%s\tCHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation\n" % indent_str)
 
         if my_bone_children:
@@ -103,7 +91,7 @@ def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
             file.write("%s\tEnd Site\n" % indent_str)
             file.write("%s\t{\n" % indent_str)
             loc = bone.tail_local - bone_locs[bone_name]
-            file.write("%s\t\tOFFSET %.6f %.6f %.6f\n" % (indent_str, loc.x * pref_scale, loc.y * pref_scale, loc.z * pref_scale))
+            file.write("%s\t\tOFFSET %.6f %.6f %.6f\n" % (indent_str, loc.x * global_scale, loc.y * global_scale, loc.z * global_scale))
             file.write("%s\t}\n" % indent_str)
 
         file.write("%s}\n" % indent_str)
@@ -129,9 +117,7 @@ def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
         file.write("}\n")
 
     # redefine bones as sorted by bones_serialized_names
-    # se we can write motion
-    pose_dict = obj.pose.bones
-    #pose_bones = [(pose_dict[bone_name], bone_dict[bone_name].matrix_local.copy().invert()) for bone_name in  bones_serialized_names]
+    # so we can write motion
 
     class decorated_bone(object):
         __slots__ = (\
@@ -148,8 +134,8 @@ def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
 
         def __init__(self, bone_name):
             self.name = bone_name
-            self.rest_bone = bone_dict[bone_name]
-            self.pose_bone = pose_dict[bone_name]
+            self.rest_bone = arm.bones[bone_name]
+            self.pose_bone = obj.pose.bones[bone_name]
 
             self.pose_mat = self.pose_bone.matrix
 
@@ -189,13 +175,13 @@ def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
     # finish assigning parents
 
     file.write("MOTION\n")
-    file.write("Frames: %d\n" % (pref_endframe - pref_startframe + 1))
+    file.write("Frames: %d\n" % (frame_end - frame_start + 1))
     file.write("Frame Time: %.6f\n" % 0.03)
 
     scene = bpy.context.scene
 
     triple = "%.6f %.6f %.6f "
-    for frame in range(pref_startframe, pref_endframe + 1):
+    for frame in range(frame_start, frame_end + 1):
         scene.frame_set(frame)
         obj.update(scene, 1,1,1)
         scene.update()
@@ -205,9 +191,6 @@ def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
             if  dbone.parent:
                 trans = Matrix.Translation(dbone.rest_bone.head_local)
                 itrans = Matrix.Translation(-dbone.rest_bone.head_local)
-                
-                # mat2 = dbone.rest_arm_imat * dbone.pose_mat * dbone.parent.pose_imat * dbone.parent.rest_arm_mat
-                # mat2 = trans * mat2 * itrans
                 mat2 = dbone.parent.rest_arm_mat * dbone.parent.pose_imat * dbone.pose_mat * dbone.rest_arm_imat
                 mat2 = itrans * mat2 * trans
                 
@@ -217,63 +200,37 @@ def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
                 trans = Matrix.Translation(dbone.rest_bone.head_local)
                 itrans = Matrix.Translation(-dbone.rest_bone.head_local)
 
-                # mat2 = dbone.rest_arm_imat * dbone.pose_mat
-                # mat2 = trans * mat2 * itrans
                 mat2 = dbone.pose_mat * dbone.rest_arm_imat
                 mat2 = itrans * mat2 * trans
                 
                 myloc = mat2.translation_part() + dbone.rest_bone.head_local
                 rot = mat2.copy().transpose().to_euler()
 
-            file.write(triple % (myloc[0] * pref_scale, myloc[1] * pref_scale, myloc[2] * pref_scale))
+            file.write(triple % (myloc[0] * global_scale, myloc[1] * global_scale, myloc[2] * global_scale))
             file.write(triple % (-degrees(rot[0]), -degrees(rot[1]), -degrees(rot[2])))
 
         file.write("\n")
 
-    numframes = pref_endframe - pref_startframe + 1
     file.close()
 
-    print("BVH Exported: %s frames:%d\n" % (filepath, numframes))
+    print("BVH Exported: %s frames:%d\n" % (filepath, frame_end - frame_start + 1))
 
-bvh_export("/foo.bvh", bpy.context.object, 1, 190, 1.0)
 
-'''
-def bvh_export_ui(filepath):
-    # Dont overwrite
-    if not BPyMessages.Warning_SaveOver(filepath):
-        return
+def save(operator, context, filepath="",
+          frame_start=-1,
+          frame_end=-1,
+          global_scale=1.0,
+          ):
 
-    scn = Scene.GetCurrent()
-    ob_act = scn.objects.active
-    if not ob_act or ob_act.type != 'Armature':
-        BPyMessages.Error_NoArmatureActive()
+    _read(context, filepath,
+           frame_start=frame_start,
+           frame_end=frame_end,
+           global_scale=global_scale,
+           )
 
-    arm_ob = scn.objects.active
+    return {'FINISHED'}
 
-    if not arm_ob or arm_ob.type != 'Armature':
-        Blender.Draw.PupMenu('No Armature object selected.')
-        return
 
-    ctx = scn.getRenderingContext()
-    orig_frame = Blender.Get('curframe')
-    pref_startframe = Blender.Draw.Create(int(ctx.startFrame()))
-    pref_endframe = Blender.Draw.Create(int(ctx.endFrame()))
-
-    block = [\
-    ("Start Frame: ", pref_startframe, 1, 30000, "Start Bake from what frame?: Default 1"),\
-    ("End Frame: ", pref_endframe, 1, 30000, "End Bake on what Frame?"),\
-    ]
-
-    if not Blender.Draw.PupBlock("Export MDD", block):
-        return
-
-    pref_startframe, pref_endframe = \
-        min(pref_startframe.val, pref_endframe.val),\
-        max(pref_startframe.val, pref_endframe.val)
-
-    bvh_export(filepath, ob_act, pref_startframe, pref_endframe)
-    Blender.Set('curframe', orig_frame)
-
-if __name__ == '__main__':
-    Blender.Window.FileSelector(bvh_export_ui, 'EXPORT BVH', sys.makename(ext='.bvh'))
-'''
+if __name__ == "__main__":
+    scene = bpy.context.scene
+    _read(bpy.data.filepath.rstrip(".blend") + ".bvh", bpy.context.object, scene.frame_start, scene.frame_end, 1.0)
