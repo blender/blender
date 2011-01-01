@@ -972,7 +972,11 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 	if(strcmp(nextfunc, "rna_iterator_array_next") == 0) {
 		fprintf(f, "		ArrayIterator *internal= iter.internal;\n");
 		fprintf(f, "		if(index < 0 || index >= internal->length) {\n");
+		fprintf(f, "#ifdef __GNUC__\n");
 		fprintf(f, "			printf(\"Array itterator out of range: %%s (index %%d range %%d)\\n\", __func__, index, internal->length);  \n");
+		fprintf(f, "#else\n");
+		fprintf(f, "			printf(\"Array itterator out of range: (index %%d range %%d)\\n\", index, internal->length);  \n");
+		fprintf(f, "#endif\n");
 		fprintf(f, "		}\n");
 		fprintf(f, "		else if(internal->skip) {\n");
 		fprintf(f, "			while(index-- > 0) {\n");
