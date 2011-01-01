@@ -971,7 +971,10 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 
 	if(strcmp(nextfunc, "rna_iterator_array_next") == 0) {
 		fprintf(f, "		ArrayIterator *internal= iter.internal;\n");
-		fprintf(f, "		if(internal->skip) {\n");
+		fprintf(f, "		if(index < 0 || index >= internal->length) {\n");
+		fprintf(f, "			printf(\"Array itterator out of range: %%s (index %%d range %%d)\\n\", __func__, index, internal->length);  \n");
+		fprintf(f, "		}\n");
+		fprintf(f, "		else if(internal->skip) {\n");
 		fprintf(f, "			while(index-- > 0) {\n");
 		fprintf(f, "				do {\n");
 		fprintf(f, "					internal->ptr += internal->itemsize;\n");
@@ -2389,6 +2392,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 				  "#define RNA_RUNTIME\n\n");
 
 	fprintf(f, "#include <float.h>\n");
+	fprintf(f, "#include <stdio.h>\n");
 	fprintf(f, "#include <limits.h>\n");
 	fprintf(f, "#include <string.h>\n\n");
 	fprintf(f, "#include <stddef.h>\n\n");

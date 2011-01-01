@@ -324,6 +324,7 @@ typedef struct ArrayIterator {
 	char *endptr;
 	void *free_ptr; /* will be free'd if set */
 	int itemsize;
+	int length;
 	IteratorSkipFunc skip;
 } ArrayIterator;
 
