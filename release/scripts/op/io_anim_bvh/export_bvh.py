@@ -23,7 +23,7 @@
 
 import bpy
 from mathutils import Matrix, Vector
-
+from math import degrees
 
 def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
 
@@ -197,26 +197,36 @@ def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
     triple = "%.6f %.6f %.6f "
     for frame in range(pref_startframe, pref_endframe + 1):
         scene.frame_set(frame)
+        obj.update(scene, 1,1,1)
+        scene.update()
         for dbone in bones_decorated:
             dbone.update_posedata()
         for dbone in bones_decorated:
             if  dbone.parent:
                 trans = Matrix.Translation(dbone.rest_bone.head_local)
                 itrans = Matrix.Translation(-dbone.rest_bone.head_local)
-                mat2 = dbone.rest_arm_imat * dbone.pose_mat * dbone.parent.pose_imat * dbone.parent.rest_arm_mat
-                mat2 = trans * mat2 * itrans
+                
+                # mat2 = dbone.rest_arm_imat * dbone.pose_mat * dbone.parent.pose_imat * dbone.parent.rest_arm_mat
+                # mat2 = trans * mat2 * itrans
+                mat2 = dbone.parent.rest_arm_mat * dbone.parent.pose_imat * dbone.pose_mat * dbone.rest_arm_imat
+                mat2 = itrans * mat2 * trans
+                
                 myloc = mat2.translation_part() + (dbone.rest_bone.head_local - dbone.parent.rest_bone.head_local)
                 rot = mat2.copy().transpose().to_euler()
             else:
                 trans = Matrix.Translation(dbone.rest_bone.head_local)
                 itrans = Matrix.Translation(-dbone.rest_bone.head_local)
-                mat2 = dbone.rest_arm_imat * dbone.pose_mat
-                mat2 = trans * mat2 * itrans
+
+                # mat2 = dbone.rest_arm_imat * dbone.pose_mat
+                # mat2 = trans * mat2 * itrans
+                mat2 = dbone.pose_mat * dbone.rest_arm_imat
+                mat2 = itrans * mat2 * trans
+                
                 myloc = mat2.translation_part() + dbone.rest_bone.head_local
                 rot = mat2.copy().transpose().to_euler()
 
             file.write(triple % (myloc[0] * pref_scale, myloc[1] * pref_scale, myloc[2] * pref_scale))
-            file.write(triple % (-rot[0], -rot[1], -rot[2]))
+            file.write(triple % (-degrees(rot[0]), -degrees(rot[1]), -degrees(rot[2])))
 
         file.write("\n")
 
