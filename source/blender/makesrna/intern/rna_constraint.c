@@ -918,12 +918,12 @@ static void rna_def_constraint_minmax(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem minmax_items[] = {
-		{LOCLIKE_X, "FLOOR_X", 0, "X", ""},
-		{LOCLIKE_Y, "FLOOR_Y", 0, "Y", ""},
-		{LOCLIKE_Z, "FLOOR_Z", 0, "Z", ""},
-		{LOCLIKE_X_INVERT, "FLOOR_NEGATIVE_X", 0, "-X", ""},
-		{LOCLIKE_Y_INVERT, "FLOOR_NEGATIVE_Y", 0, "-Y", ""},
-		{LOCLIKE_Z_INVERT, "FLOOR_NEGATIVE_Z", 0, "-Z", ""},
+		{TRACK_X, "FLOOR_X", 0, "X", ""},
+		{TRACK_Y, "FLOOR_Y", 0, "Y", ""},
+		{TRACK_Z, "FLOOR_Z", 0, "Z", ""},
+		{TRACK_nX, "FLOOR_NEGATIVE_X", 0, "-X", ""},
+		{TRACK_nY, "FLOOR_NEGATIVE_Y", 0, "-Y", ""},
+		{TRACK_nZ, "FLOOR_NEGATIVE_Z", 0, "-Z", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FloorConstraint", "Constraint");
