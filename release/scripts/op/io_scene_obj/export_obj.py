@@ -768,7 +768,7 @@ def _write(context, filepath,
             else:
                 objects = scene.objects
 
-            full_path= ''.join(context_name)
+            full_path = ''.join(context_name)
 
             # erm... bit of a problem here, this can overwrite files when exporting frames. not too bad.
             # EXPORT THE FILE.
@@ -788,7 +788,6 @@ def _write(context, filepath,
                   EXPORT_KEEP_VERT_ORDER,
                   EXPORT_POLYGROUPS,
                   EXPORT_CURVE_AS_NURBS)
-
 
         scene.frame_set(orig_frame, 0.0)
 
@@ -825,7 +824,7 @@ def save(operator, context, filepath="",
          use_animation=False,
          ):
 
-    _write(context, filepath, 
+    _write(context, filepath,
            EXPORT_TRI=use_triangles,
            EXPORT_EDGES=use_edges,
            EXPORT_NORMALS=use_normals,

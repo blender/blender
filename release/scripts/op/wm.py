@@ -85,10 +85,10 @@ class BRUSH_OT_set_active_number(bpy.types.Operator):
     number = IntProperty(name="number",
             description="Brush number")
 
-    _attr_dict = {"sculpt"      : "use_paint_sculpt",
+    _attr_dict = {"sculpt": "use_paint_sculpt",
                   "vertex_paint": "use_paint_vertex",
                   "weight_paint": "use_paint_weight",
-                  "image_paint" : "use_paint_texture"}
+                  "image_paint": "use_paint_texture"}
 
     def execute(self, context):
         attr = self._attr_dict.get(self.mode)
@@ -101,6 +101,7 @@ class BRUSH_OT_set_active_number(bpy.types.Operator):
                 return {'FINISHED'}
 
         return {'CANCELLED'}
+
 
 class WM_OT_context_set_boolean(bpy.types.Operator):
     '''Set a context value.'''
@@ -668,7 +669,6 @@ class WM_OT_doc_edit(bpy.types.Operator):
         return wm.invoke_props_dialog(self, width=600)
 
 
-
 from bpy.props import *
 
 
@@ -689,7 +689,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_edit"
     bl_label = "Edit Property"
-    bl_options = {'REGISTER'} # only because invoke_props_popup requires.
+    bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
 
     data_path = rna_path
     property = rna_property
@@ -803,6 +803,7 @@ class WM_OT_keyconfig_activate(bpy.types.Operator):
         bpy.utils.keyconfig_set(self.filepath)
         return {'FINISHED'}
 
+
 class WM_OT_sysinfo(bpy.types.Operator):
     '''Generate System Info'''
     bl_idname = "wm.sysinfo"
@@ -812,6 +813,7 @@ class WM_OT_sysinfo(bpy.types.Operator):
         import sys_info
         sys_info.write_sysinfo(self)
         return {'FINISHED'}
+
 
 def register():
     pass

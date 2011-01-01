@@ -68,7 +68,8 @@ class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
         row.column().prop(ob, "scale")
 
         layout.prop(ob, "rotation_mode")
-		
+
+
 class OBJECT_PT_delta_transform(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Delta Transform"
     bl_options = {'DEFAULT_CLOSED'}

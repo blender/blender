@@ -552,7 +552,6 @@ class IsolateTypeRender(bpy.types.Operator):
         return {'FINISHED'}
 
 
-
 class ClearAllRestrictRender(bpy.types.Operator):
     '''Reveal all render objects by setting the hide render flag'''
     bl_idname = "object.hide_render_clear_all"

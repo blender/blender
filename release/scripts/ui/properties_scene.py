@@ -229,7 +229,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         f.write("# Keying Set: %s\n" % ks.name)
 
         f.write("import bpy\n\n")
-        f.write("scene= bpy.data.scenes[0]\n\n") # XXX, why not use the current scene?
+        f.write("scene= bpy.data.scenes[0]\n\n")  # XXX, why not use the current scene?
 
         # Add KeyingSet and set general settings
         f.write("# Keying Set Level declarations\n")
@@ -238,7 +238,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         if not ks.is_path_absolute:
             f.write("ks.is_path_absolute = False\n")
         f.write("\n")
-    
+
         f.write("ks.bl_options = %r\n" % ks.bl_options)
         f.write("\n")
 

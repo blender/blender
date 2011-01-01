@@ -60,13 +60,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "use_bone_envelopes", text="Bone Envelopes")
 
         split = layout.split()
-        
+
         col = split.split()
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
         sub.active = bool(md.vertex_group)
         sub.prop(md, "invert_vertex_group")
-        
+
         col = layout.column()
         col.prop(md, "use_multi_modifier")
 

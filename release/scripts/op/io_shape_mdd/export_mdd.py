@@ -39,7 +39,7 @@ def zero_file(filepath):
     If a file fails, this replaces it with 1 char, better not remove it?
     '''
     file = open(filepath, 'w')
-    file.write('\n') # apparently macosx needs some data in a blank file?
+    file.write('\n')  # apparently macosx needs some data in a blank file?
     file.close()
 
 
@@ -84,13 +84,13 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
 
     numframes = frame_end - frame_start + 1
     fps = float(fps)
-    f = open(filepath, 'wb') #no Errors yet:Safe to create file
+    f = open(filepath, 'wb')  # no Errors yet:Safe to create file
 
     # Write the header
     f.write(pack(">2i", numframes, numverts))
 
     # Write the frame times (should we use the time IPO??)
-    f.write(pack(">%df" % (numframes), *[frame / fps for frame in range(numframes)])) # seconds
+    f.write(pack(">%df" % (numframes), *[frame / fps for frame in range(numframes)]))  # seconds
 
     #rest frame needed to keep frames in sync
     """
@@ -102,7 +102,7 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
     me.transform(mat_flip * obj.matrix_world)
     f.write(pack(">%df" % (numverts * 3), *[axis for v in me.vertices for axis in v.co]))
 
-    for frame in range(frame_start, frame_end + 1):#in order to start at desired frame
+    for frame in range(frame_start, frame_end + 1):  # in order to start at desired frame
         """
         Blender.Set('curframe', frame)
         me_tmp.getFromObject(obj.name)
@@ -127,5 +127,5 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
     Blender.Set('curframe', orig_frame)
     """
     scene.frame_set(orig_frame)
-    
+
     return {'FINISHED'}

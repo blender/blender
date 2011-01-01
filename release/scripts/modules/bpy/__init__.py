@@ -48,7 +48,7 @@ def _main():
     pydoc.getpager = lambda: pydoc.plainpager
     pydoc.Helper.getline = lambda self, prompt: None
     pydoc.TextDoc.use_bold = lambda self, text: text
-    
+
     # Possibly temp. addons path
     from os.path import join, dirname, normpath
     _sys.path.append(normpath(join(dirname(__file__), "..", "..", "addons", "modules")))

@@ -66,8 +66,10 @@ class Export3DS(bpy.types.Operator, ExportHelper):
 def menu_func_export(self, context):
     self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)")
 
+
 def menu_func_import(self, context):
     self.layout.operator(Import3DS.bl_idname, text="3D Studio (.3ds)")
+
 
 def register():
     bpy.types.INFO_MT_file_import.append(menu_func_import)
@@ -84,4 +86,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

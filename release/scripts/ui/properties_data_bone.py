@@ -54,7 +54,7 @@ class BONE_PT_transform(BoneButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         if context.edit_bone:
             return True
-        
+
         ob = context.object
         return ob and ob.mode == 'POSE' and context.bone
 

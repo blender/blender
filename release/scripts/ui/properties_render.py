@@ -337,7 +337,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
             col.prop(rd, "jpeg2k_ycc")
 
         elif file_format in ('CINEON', 'DPX'):
-            
+
             split = layout.split()
             split.label("FIXME: hard coded Non-Linear, Gamma:1.0")
             '''
@@ -491,7 +491,7 @@ class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Sampled Motion Blur"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-	
+
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
@@ -527,7 +527,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
         row.menu("RENDER_MT_presets", text=bpy.types.RENDER_MT_presets.bl_label)
         row.operator("render.preset_add", text="", icon="ZOOMIN")
         row.operator("render.preset_add", text="", icon="ZOOMOUT").remove_active = True
-        
+
         split = layout.split()
 
         col = split.column()

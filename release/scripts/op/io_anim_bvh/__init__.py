@@ -34,7 +34,7 @@ class BvhImporter(bpy.types.Operator, ImportHelper):
     '''Load a OBJ Motion Capture File'''
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"
-    
+
     filename_ext = ".bvh"
     filter_glob = StringProperty(default="*.bvh", options={'HIDDEN'})
 

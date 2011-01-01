@@ -21,11 +21,12 @@
 import bpy
 from bpy.props import *
 
+
 def write_svg(fw, mesh, image_width, image_height, face_iter):
     # for making an XML compatible string
     from xml.sax.saxutils import escape
     from os.path import basename
-    
+
     fw('<?xml version="1.0" standalone="no"?>\n')
     fw('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" \n')
     fw('  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')
@@ -126,7 +127,6 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
     for f in mesh_source.faces:
         tot_verts += len(f.vertices)
 
-
     faces_source = mesh_source.faces
 
     # get unique UV's incase there are many overlapping which slow down filling.
@@ -144,7 +144,6 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
     mesh_new_vertices = []
     mesh_new_materials = []
     mesh_new_face_vertices = []
-
 
     current_vert = 0
 
@@ -167,7 +166,7 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
     mesh.faces.foreach_set("material_index", mesh_new_materials)
 
     mesh.update(calc_edges=True)
-    
+
     obj_solid = bpy.data.objects.new("uv_temp_solid", mesh)
     obj_wire = bpy.data.objects.new("uv_temp_wire", mesh)
     base_solid = scene.objects.link(obj_solid)
@@ -177,11 +176,10 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
 
     # place behind the wire
     obj_solid.location = 0, 0, -1
-    
+
     obj_wire.material_slots[0].link = 'OBJECT'
     obj_wire.material_slots[0].material = material_wire
-    
-    
+
     # setup the camera
     cam = bpy.data.cameras.new("uv_temp")
     cam.type = 'ORTHO'
@@ -204,7 +202,6 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
     material_wire.use_shadeless = True
     material_wire.diffuse_color = 0, 0, 0
 
-
     # scene render settings
     scene.render.use_raytrace = False
     scene.render.alpha_mode = 'STRAIGHT'
@@ -217,11 +214,11 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
     if image_width > image_height:
         scene.render.pixel_aspect_y = image_width / image_height
     elif image_width < image_height:
-        scene.render.pixel_aspect_x = image_height /image_width
-        
+        scene.render.pixel_aspect_x = image_height / image_width
+
     scene.frame_start = 1
     scene.frame_end = 1
-    
+
     scene.render.file_format = 'PNG'
     scene.render.filepath = filepath
 
@@ -236,11 +233,10 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
 
     bpy.data.cameras.remove(cam)
     bpy.data.meshes.remove(mesh)
-    
+
     bpy.data.materials.remove(material_wire)
     for mat_solid in material_solids:
         bpy.data.materials.remove(mat_solid)
-
 
 
 class ExportUVLayout(bpy.types.Operator):
@@ -328,7 +324,6 @@ class ExportUVLayout(bpy.types.Operator):
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        
         mesh = obj.data
 
         mode = self.mode

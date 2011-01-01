@@ -152,7 +152,7 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
         split = layout.split()
         split.prop(light, "indirect_factor", text="Factor")
         split.prop(light, "indirect_bounces", text="Bounces")
-        
+
         if light.gather_method == 'RAYTRACE':
             layout.label(text="Only works with Approximate gather method")
 

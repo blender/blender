@@ -48,7 +48,7 @@ def file_list_py(path):
 
 def is_pep8(path):
     print(path)
-    f = open(path, 'r')
+    f = open(path, 'r', encoding="utf8")
     for i in range(PEP8_SEEK_COMMENT):
         line = f.readline()
         if line.startswith("# <pep8"):

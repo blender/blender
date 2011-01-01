@@ -638,7 +638,7 @@ class OrderedMeta(RNAMeta):
 # with doc generation 'self.properties.bl_rna.properties' can fail
 class Operator(StructRNA, metaclass=OrderedMeta):
     __slots__ = ()
-    
+
     def __getattribute__(self, attr):
         properties = StructRNA.path_resolve(self, "properties")
         bl_rna = getattr(properties, "bl_rna", None)
@@ -745,7 +745,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         import bpy.utils
 
         layout = self.layout
-        
+
         if not searchpaths:
             layout.label("* Missing Paths *")
 

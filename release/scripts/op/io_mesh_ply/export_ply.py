@@ -32,14 +32,13 @@ import os
 
 
 def save(operator, context, filepath="", use_modifiers=True, use_normals=True, use_uv_coords=True, use_colors=True):
-    
+
     def rvec3d(v):
         return round(v[0], 6), round(v[1], 6), round(v[2], 6)
 
-
     def rvec2d(v):
         return round(v[0], 6), round(v[1], 6)
-    
+
     scene = context.scene
     obj = context.object
 
@@ -94,14 +93,13 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
     # incase
     color = uvcoord = uvcoord_key = normal = normal_key = None
 
-    mesh_verts = mesh.vertices # save a lookup
-    ply_verts = [] # list of dictionaries
+    mesh_verts = mesh.vertices  # save a lookup
+    ply_verts = []  # list of dictionaries
     # vdict = {} # (index, normal, uv) -> new index
     vdict = [{} for i in range(len(mesh_verts))]
     ply_faces = [[] for f in range(len(mesh.faces))]
     vert_count = 0
     for i, f in enumerate(mesh.faces):
-
 
         smooth = f.use_smooth
         if not smooth:
@@ -110,7 +108,7 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
 
         if faceUV:
             uv = active_uv_layer[i]
-            uv = uv.uv1, uv.uv2, uv.uv3, uv.uv4 # XXX - crufty :/
+            uv = uv.uv1, uv.uv2, uv.uv3, uv.uv4  # XXX - crufty :/
         if vertexColors:
             col = active_col_layer[i]
             col = col.color1[:], col.color2[:], col.color3[:], col.color4[:]
@@ -136,13 +134,12 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
                 color = col[j]
                 color = int(color[0] * 255.0), int(color[1] * 255.0), int(color[2] * 255.0)
 
-
             key = normal_key, uvcoord_key, color
 
             vdict_local = vdict[vidx]
-            pf_vidx = vdict_local.get(key) # Will be None initially
+            pf_vidx = vdict_local.get(key)  # Will be None initially
 
-            if pf_vidx is None: # same as vdict_local.has_key(key)
+            if pf_vidx is None:  # same as vdict_local.has_key(key)
                 pf_vidx = vdict_local[key] = vert_count
                 ply_verts.append((vidx, normal, uvcoord, color))
                 vert_count += 1
@@ -176,13 +173,13 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
     file.write('end_header\n')
 
     for i, v in enumerate(ply_verts):
-        file.write('%.6f %.6f %.6f ' % mesh_verts[v[0]].co[:]) # co
+        file.write('%.6f %.6f %.6f ' % mesh_verts[v[0]].co[:])  # co
         if use_normals:
-            file.write('%.6f %.6f %.6f ' % v[1]) # no
+            file.write('%.6f %.6f %.6f ' % v[1])  # no
         if use_uv_coords:
-            file.write('%.6f %.6f ' % v[2]) # uv
+            file.write('%.6f %.6f ' % v[2])  # uv
         if use_colors:
-            file.write('%u %u %u' % v[3]) # col
+            file.write('%u %u %u' % v[3])  # col
         file.write('\n')
 
     for pf in ply_faces:
@@ -202,5 +199,5 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
     if is_editmode:
         Blender.Window.EditMode(1, '', 0)
     """
-    
+
     return {'FINISHED'}

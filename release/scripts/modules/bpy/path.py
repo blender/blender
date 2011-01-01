@@ -204,7 +204,7 @@ def module_names(path, recursive=False):
 
     for filename in sorted(_os.listdir(path)):
         if filename == "modules":
-            pass # XXX, hard coded exception.
+            pass  # XXX, hard coded exception.
         elif filename.endswith(".py") and filename != "__init__.py":
             fullpath = join(path, filename)
             modules.append((filename[0:-3], fullpath))

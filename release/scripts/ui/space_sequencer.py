@@ -390,7 +390,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
         col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
 
         elem = False
-        
+
         if strip.type == 'IMAGE':
             elem = strip.getStripElem(frame_current)
         elif strip.type == 'MOVIE':
@@ -684,7 +684,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
         layout.template_ID(strip, "scene_camera")
 
         sce = strip.scene
-        layout.label(text="Original frame range: "+ str(sce.frame_start) +" - "+ str(sce.frame_end) + " (" + str(sce.frame_end-sce.frame_start+1) + ")")
+        layout.label(text="Original frame range: %d-%d (%d)" % (sce.frame_start, sce.frame_end, sce.frame_end - sce.frame_start + 1))
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
@@ -793,7 +793,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, bpy.types.Panel):
         render = context.scene.render
 
         col = layout.column()
-        col.active = False #Currently only opengl preview works!
+        col.active = False  # Currently only opengl preview works!
         col.prop(render, "use_sequencer_gl_preview", text="Open GL Preview")
         col = layout.column()
         #col.active = render.use_sequencer_gl_preview

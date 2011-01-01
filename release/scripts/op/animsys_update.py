@@ -699,5 +699,6 @@ class UpdateAnimData(bpy.types.Operator):
 if __name__ == "__main__":
     bpy.ops.anim.update_data_paths()
 
+
 def register():
     pass
