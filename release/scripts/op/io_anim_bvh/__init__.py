@@ -69,8 +69,13 @@ class BvhExporter(bpy.types.Operator, ExportHelper):
     filter_glob = StringProperty(default="*.bvh", options={'HIDDEN'})
 
     global_scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=1.0)
-    frame_start = IntProperty(name="Start Frame", description="Starting frame to export")
-    frame_end = IntProperty(name="End Frame", description="End frame to export")
+    frame_start = IntProperty(name="Start Frame", description="Starting frame to export", default=0)
+    frame_end = IntProperty(name="End Frame", description="End frame to export", default=0)
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return obj and obj.type == 'ARMATURE'
 
     def invoke(self, context, event):
         self.frame_start = context.scene.frame_start
@@ -79,7 +84,13 @@ class BvhExporter(bpy.types.Operator, ExportHelper):
         return super().invoke(context, event)
 
     def execute(self, context):
+        if self.frame_start == 0 and self.frame_end == 0:
+            self.frame_start = context.scene.frame_start
+            self.frame_end = context.scene.frame_end
+
         from . import export_bvh
+        import imp
+        imp.reload(export_bvh)
         return export_bvh.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))
 
 

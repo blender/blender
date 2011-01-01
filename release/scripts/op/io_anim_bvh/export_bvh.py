@@ -25,7 +25,7 @@ import bpy
 
 def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
 
-    from mathutils import Matrix, Vector
+    from mathutils import Matrix, Vector, Euler
     from math import degrees
 
     file = open(filepath, "w")
@@ -130,8 +130,9 @@ def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
         "rest_local_mat",  # blender rest batrix (local space)
         "pose_imat",  # pose_mat inverted
         "rest_arm_imat",  # rest_arm_mat inverted
-        "rest_local_imat")  # rest_local_mat inverted
-
+        "rest_local_imat",  # rest_local_mat inverted
+        "prev_euler",  # last used euler to preserve euler compability inbetween keyframes
+        )
         def __init__(self, bone_name):
             self.name = bone_name
             self.rest_bone = arm.bones[bone_name]
@@ -149,6 +150,7 @@ def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
             self.rest_local_imat = self.rest_local_mat.copy().invert()
 
             self.parent = None
+            self.prev_euler = Euler((0.0, 0.0, 0.0))
 
         def update_posedata(self):
             self.pose_mat = self.pose_bone.matrix
@@ -174,40 +176,38 @@ def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
     del bones_decorated_dict
     # finish assigning parents
 
-    file.write("MOTION\n")
-    file.write("Frames: %d\n" % (frame_end - frame_start + 1))
-    file.write("Frame Time: %.6f\n" % 0.03)
-
     scene = bpy.context.scene
 
-    triple = "%.6f %.6f %.6f "
+    file.write("MOTION\n")
+    file.write("Frames: %d\n" % (frame_end - frame_start + 1))
+    file.write("Frame Time: %.6f\n" % (1.0 / (scene.render.fps / scene.render.fps_base)))
+
     for frame in range(frame_start, frame_end + 1):
         scene.frame_set(frame)
-        obj.update(scene, 1,1,1)
-        scene.update()
+
         for dbone in bones_decorated:
             dbone.update_posedata()
+
         for dbone in bones_decorated:
+            trans = Matrix.Translation(dbone.rest_bone.head_local)
+            itrans = Matrix.Translation(-dbone.rest_bone.head_local)
+
             if  dbone.parent:
-                trans = Matrix.Translation(dbone.rest_bone.head_local)
-                itrans = Matrix.Translation(-dbone.rest_bone.head_local)
-                mat2 = dbone.parent.rest_arm_mat * dbone.parent.pose_imat * dbone.pose_mat * dbone.rest_arm_imat
-                mat2 = itrans * mat2 * trans
-                
-                myloc = mat2.translation_part() + (dbone.rest_bone.head_local - dbone.parent.rest_bone.head_local)
-                rot = mat2.copy().transpose().to_euler()
+                mat_final = dbone.parent.rest_arm_mat * dbone.parent.pose_imat * dbone.pose_mat * dbone.rest_arm_imat
+                mat_final = itrans * mat_final * trans
+                loc = mat_final.translation_part() + (dbone.rest_bone.head_local - dbone.parent.rest_bone.head_local)
             else:
-                trans = Matrix.Translation(dbone.rest_bone.head_local)
-                itrans = Matrix.Translation(-dbone.rest_bone.head_local)
+                mat_final = dbone.pose_mat * dbone.rest_arm_imat
+                mat_final = itrans * mat_final * trans
+                loc = mat_final.translation_part() + dbone.rest_bone.head
 
-                mat2 = dbone.pose_mat * dbone.rest_arm_imat
-                mat2 = itrans * mat2 * trans
-                
-                myloc = mat2.translation_part() + dbone.rest_bone.head_local
-                rot = mat2.copy().transpose().to_euler()
+            # keep eulers compatible, no jumping on interpolation.
+            rot = mat_final.rotation_part().invert().to_euler('XYZ', dbone.prev_euler)
 
-            file.write(triple % (myloc[0] * global_scale, myloc[1] * global_scale, myloc[2] * global_scale))
-            file.write(triple % (-degrees(rot[0]), -degrees(rot[1]), -degrees(rot[2])))
+            file.write("%.6f %.6f %.6f " % (loc * global_scale)[:])
+            file.write("%.6f %.6f %.6f " % (-degrees(rot[0]), -degrees(rot[1]), -degrees(rot[2])))
+
+            dbone.prev_euler = rot
 
         file.write("\n")
 
