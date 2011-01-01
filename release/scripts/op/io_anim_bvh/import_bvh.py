@@ -39,10 +39,19 @@ class bvh_node_class(object):
     'rest_tail_local',  # worldspace rest location for the tail of this node
     'channels',  # list of 6 ints, -1 for an unused channel, otherwise an index for the BVH motion data lines, lock triple then rot triple
     'rot_order',  # a triple of indicies as to the order rotation is applied. [0,1,2] is x/y/z - [None, None, None] if no rotation.
-    'anim_data',  # a list one tuple's one for each frame. (locx, locy, locz, rotx, roty, rotz)
+    'rot_order_str',  # same as above but a string 'XYZ' format.
+    'anim_data',  # a list one tuple's one for each frame. (locx, locy, locz, rotx, roty, rotz), euler rotation ALWAYS stored xyz order, even when native used.
     'has_loc',  # Conveinience function, bool, same as (channels[0]!=-1 or channels[1]!=-1 channels[2]!=-1)
     'has_rot',  # Conveinience function, bool, same as (channels[3]!=-1 or channels[4]!=-1 channels[5]!=-1)
     'temp')  # use this for whatever you want
+
+    _eul_order_lookup = {\
+        (0, 1, 2): 'XYZ',
+        (0, 2, 1): 'XZY',
+        (1, 0, 2): 'YXZ',
+        (1, 2, 0): 'YZX',
+        (2, 0, 1): 'ZXY',
+        (2, 1, 0): 'ZYX'}
 
     def __init__(self, name, rest_head_world, rest_head_local, parent, channels, rot_order):
         self.name = name
@@ -52,7 +61,8 @@ class bvh_node_class(object):
         self.rest_tail_local = None
         self.parent = parent
         self.channels = channels
-        self.rot_order = rot_order
+        self.rot_order = tuple(rot_order)
+        self.rot_order_str = __class__._eul_order_lookup[self.rot_order]
 
         # convenience functions
         self.has_loc = channels[0] != -1 or channels[1] != -1 or channels[2] != -1
@@ -70,24 +80,6 @@ class bvh_node_class(object):
         (self.name,\
         self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z,\
         self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z)
-
-
-# Change the order rotation is applied.
-MATRIX_IDENTITY_3x3 = Matrix([1, 0, 0], [0, 1, 0], [0, 0, 1])
-MATRIX_IDENTITY_4x4 = Matrix([1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1])
-
-
-def eulerRotate(x, y, z, rot_order):
-    # Clamp all values between 0 and 360, values outside this raise an error.
-    mats = [Matrix.Rotation(x, 3, 'X'), Matrix.Rotation(y, 3, 'Y'), Matrix.Rotation(z, 3, 'Z')]
-    return (MATRIX_IDENTITY_3x3 * mats[rot_order[0]] * (mats[rot_order[1]] * (mats[rot_order[2]]))).to_euler()
-
-    # Should work but doesnt!
-    '''
-    eul = Euler((x, y, z))
-    eul.order = "XYZ"[rot_order[0]] + "XYZ"[rot_order[1]] + "XYZ"[rot_order[2]]
-    return tuple(eul.to_matrix().to_euler())
-    '''
 
 
 def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
@@ -229,12 +221,14 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
                 lz = global_scale * float(line[channels[2]])
 
             if channels[3] != -1 or channels[4] != -1 or channels[5] != -1:
-                rx, ry, rz = float(line[channels[3]]), float(line[channels[4]]), float(line[channels[5]])
 
-                if rotate_mode != 'NATIVE':
-                    rx, ry, rz = eulerRotate(radians(rx), radians(ry), radians(rz), bvh_node.rot_order)
-                else:
-                    rx, ry, rz = radians(rx), radians(ry), radians(rz)
+                rot = radians(float(line[channels[3]])), \
+                      radians(float(line[channels[4]])), \
+                      radians(float(line[channels[5]])),
+
+                # apply rotation order and convert to XYZ
+                # note that the rot_order_str is reversed.
+                rx, ry, rz = Euler(rot, bvh_node.rot_order_str[::-1]).to_matrix().to_euler('XYZ')
 
             # Done importing motion data #
             anim_data.append((lx, ly, lz, rx, ry, rz))
@@ -431,18 +425,10 @@ def bvh_node_dict2armature(context, bvh_nodes, rotate_mode='XYZ', IMPORT_START_F
     pose_bones = pose.bones
 
     if rotate_mode == 'NATIVE':
-        eul_order_lookup = {\
-            (0, 1, 2): 'XYZ',
-            (0, 2, 1): 'XZY',
-            (1, 0, 2): 'YXZ',
-            (1, 2, 0): 'YZX',
-            (2, 0, 1): 'ZXY',
-            (2, 1, 0): 'ZYX'}
-
         for bvh_node in bvh_nodes.values():
             bone_name = bvh_node.temp  # may not be the same name as the bvh_node, could have been shortened.
             pose_bone = pose_bones[bone_name]
-            pose_bone.rotation_mode = eul_order_lookup[tuple(bvh_node.rot_order)]
+            pose_bone.rotation_mode = bvh_node.rot_order_str
 
     elif rotate_mode != 'QUATERNION':
         for pose_bone in pose_bones:

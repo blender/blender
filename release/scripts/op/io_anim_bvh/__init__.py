@@ -53,7 +53,7 @@ class BvhImporter(bpy.types.Operator, ImportHelper):
             ),
                 name="Rotation",
                 description="Rotation conversion.",
-                default='QUATERNION')  # XXX, eulers are broken!
+                default='NATIVE')
 
     def execute(self, context):
         from . import import_bvh
@@ -89,8 +89,6 @@ class BvhExporter(bpy.types.Operator, ExportHelper):
             self.frame_end = context.scene.frame_end
 
         from . import export_bvh
-        import imp
-        imp.reload(export_bvh)
         return export_bvh.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))
 
 
