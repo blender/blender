@@ -1,62 +1,38 @@
-#!BPY
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
 
-"""
-Name: 'Motion Capture (.bvh)...'
-Blender: 249.2
-Group: 'Export'
-Tooltip: 'Active Armature to BVH'
-"""
+# <pep8 compliant>
 
+# Script copyright (C) Campbell Barton
+# fixes from Andrea Rugliancich
 
-__author__ = "Campbell Barton, Andrea Rugliancich"
-__url__ = ("blender.org", "blenderartists.org")
-__version__ = "10/12/30"
-__bpydoc__ = """\
-This script exports Blender armature motion data to BHV motion capture format
-"""
-
-
-# --------------------------------------------------------------------------
-# BVH Export by Campbell Barton (AKA Ideasman), Andrea Rugliancich
-# -------------------------------------------------------------------------- 
-# ***** BEGIN GPL LICENSE BLOCK ***** 
-# 
-# This program is free software; you can redistribute it and/or 
-# modify it under the terms of the GNU General Public License 
-# as published by the Free Software Foundation; either version 2 
-# of the License, or (at your option) any later version. 
-# 
-# This program is distributed in the hope that it will be useful, 
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the 
-# GNU General Public License for more details. 
-# 
-# You should have received a copy of the GNU General Public License 
-# along with this program; if not, write to the Free Software Foundation, 
-# Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA. 
-# 
-# ***** END GPL LICENCE BLOCK ***** 
-# -------------------------------------------------------------------------- 
+import bpy
+from mathutils import Matrix, Vector
 
 
-import Blender
-from Blender import Scene, Mathutils, Window, sys
-TranslationMatrix = Mathutils.TranslationMatrix
-Matrix = Blender.Mathutils.Matrix
-Vector = Blender.Mathutils.Vector
+def bvh_export(filepath, obj, pref_startframe, pref_endframe, pref_scale=1.0):
 
-import BPyMessages
-
-
-def bvh_export(filepath, ob, pref_startframe, pref_endframe, pref_scale=1.0):
-
-    Window.EditMode(0)
-    Blender.Window.WaitCursor(1)
+    # Window.EditMode(0)
 
     file = open(filepath, 'w')
     
     # bvh_nodes = {}
-    arm_data = ob.data
+    arm_data = obj.data
     bones = arm_data.bones.values()
     
     # Build a dictionary of bone children.
@@ -76,7 +52,7 @@ def bvh_export(filepath, ob, pref_startframe, pref_endframe, pref_scale=1.0):
             bone_children[None].append(bone_name)
     
     # sort the children
-    for children_list in bone_children.itervalues():
+    for children_list in bone_children.values():
         children_list.sort()
     
     # build a (name:bone) mapping dict
@@ -97,7 +73,7 @@ def bvh_export(filepath, ob, pref_startframe, pref_endframe, pref_scale=1.0):
         indent_str = '\t' * indent # cache?
         
         bone = bone_dict[bone_name]
-        loc = bone.head['ARMATURESPACE']
+        loc = bone.head_local
         bone_locs[bone_name] = loc
         
         # make relative if we can
@@ -128,7 +104,7 @@ def bvh_export(filepath, ob, pref_startframe, pref_endframe, pref_scale=1.0):
             # Write the bone end.
             file.write('%s\tEnd Site\n' % indent_str)
             file.write('%s\t{\n' % indent_str)
-            loc = bone.tail['ARMATURESPACE'] - bone_locs[bone_name]
+            loc = bone.tail_local - bone_locs[bone_name]
             file.write('%s\t\tOFFSET %.6f %.6f %.6f\n' % (indent_str, loc.x * pref_scale, loc.y * pref_scale, loc.z * pref_scale))
             file.write('%s\t}\n' % indent_str)
         
@@ -160,8 +136,8 @@ def bvh_export(filepath, ob, pref_startframe, pref_endframe, pref_scale=1.0):
     # redefine bones as sorted by bones_serialized_names
     # se we can write motion
     
-    pose_dict = ob.getPose().bones
-    #pose_bones = [(pose_dict[bone_name], bone_dict[bone_name].matrix['ARMATURESPACE'].copy().invert()) for bone_name in  bones_serialized_names]
+    pose_dict = obj.pose.bones
+    #pose_bones = [(pose_dict[bone_name], bone_dict[bone_name].matrix_local.copy().invert()) for bone_name in  bones_serialized_names]
     
     class decorated_bone(object):
         __slots__ = (\
@@ -182,11 +158,11 @@ def bvh_export(filepath, ob, pref_startframe, pref_endframe, pref_scale=1.0):
             self.pose_bone = pose_dict[bone_name]
             
             
-            self.pose_mat = self.pose_bone.poseMatrix
+            self.pose_mat = self.pose_bone.matrix
             
             mat = self.rest_bone.matrix
-            self.rest_arm_mat = mat['ARMATURESPACE'].copy()
-            self.rest_local_mat = mat['BONESPACE'].copy().resize4x4()
+            self.rest_arm_mat = self.rest_bone.matrix_local
+            self.rest_local_mat = self.rest_bone.matrix
             
             # inverted mats
             self.pose_imat = self.pose_mat.copy().invert()
@@ -196,7 +172,7 @@ def bvh_export(filepath, ob, pref_startframe, pref_endframe, pref_scale=1.0):
             self.parent = None
         
         def update_posedata(self):
-            self.pose_mat = self.pose_bone.poseMatrix
+            self.pose_mat = self.pose_bone.matrix
             self.pose_imat = self.pose_mat.copy().invert()
             
         def __repr__(self):
@@ -224,26 +200,28 @@ def bvh_export(filepath, ob, pref_startframe, pref_endframe, pref_scale=1.0):
     file.write('Frames: %d\n' % (pref_endframe - pref_startframe + 1))
     file.write('Frame Time: %.6f\n' % 0.03)
 
+    scene = bpy.context.scene
+
     triple = '%.6f %.6f %.6f '
-    for frame in xrange(pref_startframe, pref_endframe + 1):
-        Blender.Set('curframe', frame)
+    for frame in range(pref_startframe, pref_endframe + 1):
+        scene.frame_set(frame)
         for dbone in bones_decorated:
             dbone.update_posedata()
         for dbone in bones_decorated:
             if  dbone.parent:
-                trans = TranslationMatrix(dbone.rest_bone.head['ARMATURESPACE']) 
-                itrans = TranslationMatrix(-dbone.rest_bone.head['ARMATURESPACE']) 
+                trans = Matrix.Translation(dbone.rest_bone.head_local) 
+                itrans = Matrix.Translation(-dbone.rest_bone.head_local) 
                 mat2 = dbone.rest_arm_imat * dbone.pose_mat * dbone.parent.pose_imat *dbone.parent.rest_arm_mat #FASTER
                 mat2 = trans * mat2 * itrans
-                myloc = mat2.translationPart() + (dbone.rest_bone.head['ARMATURESPACE'] - dbone.parent.rest_bone.head['ARMATURESPACE'])
-                rot = mat2.copy().transpose().toEuler() 
+                myloc = mat2.translation_part() + (dbone.rest_bone.head_local - dbone.parent.rest_bone.head_local)
+                rot = mat2.copy().transpose().to_euler() 
             else:
-                trans = TranslationMatrix(dbone.rest_bone.head['ARMATURESPACE']) 
-                itrans = TranslationMatrix(-dbone.rest_bone.head['ARMATURESPACE']) 
+                trans = Matrix.Translation(dbone.rest_bone.head_local) 
+                itrans = Matrix.Translation(-dbone.rest_bone.head_local) 
                 mat2 = dbone.rest_arm_imat * dbone.pose_mat
                 mat2 = trans * mat2 * itrans
-                myloc = mat2.translationPart() + dbone.rest_bone.head['ARMATURESPACE']
-                rot = mat2.copy().transpose().toEuler()
+                myloc = mat2.translation_part() + dbone.rest_bone.head_local
+                rot = mat2.copy().transpose().to_euler()
 
             file.write(triple % (myloc[0] * pref_scale, myloc[1] * pref_scale, myloc[2] * pref_scale))
             file.write(triple % (-rot[0], -rot[1], -rot[2])) #NEGATED
@@ -253,10 +231,11 @@ def bvh_export(filepath, ob, pref_startframe, pref_endframe, pref_scale=1.0):
     numframes = pref_endframe - pref_startframe + 1
     file.close()
     
-    print'BVH Exported: %s frames:%d\n' % (filepath, numframes)  
-    Blender.Window.WaitCursor(0)
+    print("BVH Exported: %s frames:%d\n" % (filepath, numframes))
 
+bvh_export("/foo.bvh", bpy.context.object, 1, 190, 1.0)
 
+'''
 def bvh_export_ui(filepath):
     # Dont overwrite
     if not BPyMessages.Warning_SaveOver(filepath):
@@ -295,3 +274,4 @@ def bvh_export_ui(filepath):
 
 if __name__ == '__main__':
     Blender.Window.FileSelector(bvh_export_ui, 'EXPORT BVH', sys.makename(ext='.bvh'))
+'''
