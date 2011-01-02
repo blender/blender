@@ -1793,7 +1793,8 @@ static int ptcache_write_stream(PTCacheID *pid, int cfra, int totpoint)
 
 	ret = 1;
 cleanup:
-	ptcache_file_close(pf);
+	if(pf)
+		ptcache_file_close(pf);
 	
 	if (ret == 0 && G.f & G_DEBUG) 
 		printf("Error writing to disk cache\n");
