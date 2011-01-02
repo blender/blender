@@ -704,7 +704,7 @@ class ConstraintButtonsPanel():
         col.prop(con, "rotation_range", text="Pivot When")
 
     def SCRIPT(self, context, layout, con):
-        layout.label("blender 2.5 has no py-constraints")
+        layout.label("Blender 2.5 has no py-constraints")
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
@@ -719,8 +719,13 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-
-        layout.operator_menu_enum("object.constraint_add", "type")
+        
+        if ob.mode == 'POSE':
+            box = layout.box()
+            box.red_alert = True;
+            box.label(icon='INFO', text="See Bone Constraints tab to Add Constraints to active bone")
+        else:
+            layout.operator_menu_enum("object.constraint_add", "type")
 
         for con in ob.constraints:
             self.draw_constraint(context, con)
