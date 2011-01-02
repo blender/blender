@@ -4984,15 +4984,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 
 					ssound->sound= restore_pointer_by_name(newmain, (ID *)ssound->sound, 1);
 				}
-				else if(sl->spacetype==SPACE_TIME) {
-					SpaceTime *stime= (SpaceTime *)sl;
-					SpaceTimeCache *stc;
-					
-					/* XXX bad linking of internal object data to space */
-					for (stc= stime->caches.first; stc; stc=stc->next)
-						MEM_freeN(stc->array);
-					BLI_freelistN(&stime->caches);
-				}
 				else if(sl->spacetype==SPACE_NODE) {
 					SpaceNode *snode= (SpaceNode *)sl;
 					

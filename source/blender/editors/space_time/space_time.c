@@ -83,27 +83,61 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 
 #define CACHE_DRAW_HEIGHT	3.0f
 
-static void time_draw_cache(SpaceTime *stime)
+static void time_draw_cache(SpaceTime *stime, Object *ob)
 {
-	SpaceTimeCache *stc;
+	PTCacheID *pid;
+	ListBase pidlist;
+	SpaceTimeCache *stc = stime->caches.first;
 	float yoffs=0.f;
 	
-	if (!(stime->cache_display & TIME_CACHE_DISPLAY))
+	if (!(stime->cache_display & TIME_CACHE_DISPLAY) || (!ob))
 		return;
-	
-	for (stc= stime->caches.first; stc; stc=stc->next) {
+
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+
+	/* iterate over pointcaches on the active object, 
+	 * add spacetimecache and vertex array for each */
+	for(pid=pidlist.first; pid; pid=pid->next) {
 		float col[4], *fp;
-		int i, sta = stc->cache->startframe, end = stc->cache->endframe;
+		int i, sta = pid->cache->startframe, end = pid->cache->endframe;
 		int len = (end - sta + 1)*4;
 
-		if(!stc->array || MEM_allocN_len(stc->array) != len*2*sizeof(float)) {
-			stc->len = len;
-			stc->array = MEM_callocN(stc->len*2*sizeof(float), "SpaceTimeCache array");
+		switch(pid->type) {
+			case PTCACHE_TYPE_SOFTBODY:
+				if (!(stime->cache_display & TIME_CACHE_SOFTBODY)) continue;
+				break;
+			case PTCACHE_TYPE_PARTICLES:
+				if (!(stime->cache_display & TIME_CACHE_PARTICLES))	continue;
+				break;
+			case PTCACHE_TYPE_CLOTH:
+				if (!(stime->cache_display & TIME_CACHE_CLOTH))	continue;
+				break;
+			case PTCACHE_TYPE_SMOKE_DOMAIN:
+			case PTCACHE_TYPE_SMOKE_HIGHRES:
+				if (!(stime->cache_display & TIME_CACHE_SMOKE))	continue;
+				break;
+		}
+
+		if(pid->cache->cached_frames == NULL)
+			continue;
+
+
+		/* make sure we have stc with correct array length */
+		if(stc == NULL || MEM_allocN_len(stc->array) != len*2*sizeof(float)) {
+			if(stc) {
+				MEM_freeN(stc->array);
+			}
+			else {
+				stc = MEM_callocN(sizeof(SpaceTimeCache), "spacetimecache");
+				BLI_addtail(&stime->caches, stc);
+			}
+
+			stc->array = MEM_callocN(len*2*sizeof(float), "SpaceTimeCache array");
 		}
 
 		/* fill the vertex array with a quad for each cached frame */
 		for (i=sta, fp=stc->array; i<=end; i++) {
-			if (stc->cache->cached_frames[i-sta]) {
+			if (pid->cache->cached_frames[i-sta]) {
 				fp[0] = (float)i-0.5f;
 				fp[1] = 0.0;
 				fp+=2;
@@ -126,7 +160,7 @@ static void time_draw_cache(SpaceTime *stime)
 		glTranslatef(0.0, (float)V2D_SCROLL_HEIGHT+yoffs, 0.0);
 		glScalef(1.0, CACHE_DRAW_HEIGHT, 0.0);
 		
-		switch(stc->type) {
+		switch(pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
 				col[0] = 1.0;	col[1] = 0.4;	col[2] = 0.02;
 				col[3] = 0.1;
@@ -152,7 +186,7 @@ static void time_draw_cache(SpaceTime *stime)
 		glRectf((float)sta, 0.0, (float)end, 1.0);
 		
 		col[3] = 0.4;
-		if (stc->cache->flag & PTCACHE_BAKED) {
+		if (pid->cache->flag & PTCACHE_BAKED) {
 			col[0] -= 0.4;	col[1] -= 0.4;	col[2] -= 0.4;
 		}
 		glColor4fv(col);
@@ -167,6 +201,19 @@ static void time_draw_cache(SpaceTime *stime)
 		glPopMatrix();
 		
 		yoffs += CACHE_DRAW_HEIGHT;
+
+		stc = stc->next;
+	}
+
+	BLI_freelistN(&pidlist);
+
+	/* free excessive caches */
+	while(stc) {
+		SpaceTimeCache *tmp = stc->next;
+		BLI_remlink(&stime->caches, stc);
+		MEM_freeN(stc->array);
+		MEM_freeN(stc);
+		stc = tmp;
 	}
 }
 
@@ -186,56 +233,8 @@ static void time_cache_free(SpaceTime *stime)
 
 static void time_cache_refresh(const bContext *C, SpaceTime *stime)
 {
-	Object *ob = CTX_data_active_object(C);
-	PTCacheID *pid;
-	ListBase pidlist;
-	
+	/* Free previous caches to indicate full refresh */
 	time_cache_free(stime);
-	
-	if (!(stime->cache_display & TIME_CACHE_DISPLAY) || (!ob))
-		return;
-	
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
-	
-	/* iterate over pointcaches on the active object, 
-	 * add spacetimecache and vertex array for each */
-	for(pid=pidlist.first; pid; pid=pid->next) {
-		SpaceTimeCache *stc;
-		
-		switch(pid->type) {
-			case PTCACHE_TYPE_SOFTBODY:
-				if (!(stime->cache_display & TIME_CACHE_SOFTBODY)) continue;
-				break;
-			case PTCACHE_TYPE_PARTICLES:
-				if (!(stime->cache_display & TIME_CACHE_PARTICLES))	continue;
-				break;
-			case PTCACHE_TYPE_CLOTH:
-				if (!(stime->cache_display & TIME_CACHE_CLOTH))	continue;
-				break;
-			case PTCACHE_TYPE_SMOKE_DOMAIN:
-			case PTCACHE_TYPE_SMOKE_HIGHRES:
-				if (!(stime->cache_display & TIME_CACHE_SMOKE))	continue;
-				break;
-		}
-
-		BKE_ptcache_id_time(pid, CTX_data_scene(C), 0, NULL, NULL, NULL);
-		
-		if(pid->cache->cached_frames==NULL)
-			continue;
-		
-		stc= MEM_callocN(sizeof(SpaceTimeCache), "spacetimecache");
-		
-		stc->type = pid->type;
-		stc->cache = pid->cache;
-		stc->len = 0;
-		
-		BLI_addtail(&stime->caches, stc);
-	}
-	
-	/* todo: sort time->caches list for consistent order */
-	// ...
-	
-	BLI_freelistN(&pidlist);
 }
 
 /* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
@@ -445,6 +444,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 	Scene *scene= CTX_data_scene(C);
 	SpaceTime *stime= CTX_wm_space_time(C);
+	Object *obact = CTX_data_active_object(C);
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
@@ -479,7 +479,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	draw_markers_time(C, 0);
 	
 	/* caches */
-	time_draw_cache(stime);
+	time_draw_cache(stime, obact);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
