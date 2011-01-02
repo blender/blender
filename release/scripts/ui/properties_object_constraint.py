@@ -61,7 +61,7 @@ class ConstraintButtonsPanel():
             if con.target.type == 'ARMATURE':
                 layout.prop_search(con, "subtarget", con.target.data, "bones", text="Bone")
 
-                if con.type in ('COPY_LOCATION', 'STRETCH_TO', 'TRACK_TO', 'PIVOT'):
+                if hasattr(con, "head_tail"):
                     row = layout.row()
                     row.label(text="Head/Tail:")
                     row.prop(con, "head_tail", text="")
