@@ -87,6 +87,7 @@ void mdisp_rot_crn_to_face(int S, int corners, int face_side, float x, float y, 
 int mdisp_rot_face_to_crn(int corners, int face_side, float u, float v, float *x, float *y);
 void mdisp_apply_weight(int S, int corners, int x, int y, int face_side, float crn_weight[4][2], float *u_r, float *v_r);
 void mdisp_flip_disp(int S, int corners, float axis_x[2], float axis_y[2], float disp[3]);
+void mdisp_join_tris(struct MDisps *dst, struct MDisps *tri1, struct MDisps *tri2);
 
 #endif
 

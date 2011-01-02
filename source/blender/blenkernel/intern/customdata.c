@@ -441,16 +441,55 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 	int i, x, y;
 	int side, S, dst_corners, src_corners;
 	float crn_weight[4][2];
-	float (*sw)[4] = NULL;
+	float (*sw)[4] = (void*)sub_weights;
 	float (*disps)[3], (*out)[3];
 
 	s = sources[0];
 	dst_corners = multires_mdisp_corners(d);
 	src_corners = multires_mdisp_corners(s);
 
-	/* XXX: For now, some restrictions on the input
-	        should be implemented to allow quad<->tris face conversion */
-	if(count != 1 || !sub_weights || dst_corners != src_corners) {
+	if(sub_weights && count == 2 && src_corners == 3) {
+		src_corners = multires_mdisp_corners(sources[1]);
+
+		/* special case -- converting two triangles to quad */
+		if(src_corners == 3 && dst_corners == 4) {
+			MDisps tris[2];
+			int vindex[4] = {0};
+
+			S = 0;
+			for(i = 0; i < 2; i++)
+				for(y = 0; y < 4; y++)
+					for(x = 0; x < 4; x++)
+						if(sw[x+i*4][y])
+							vindex[x] = y;
+
+			for(i = 0; i < 2; i++) {
+				float sw[4][4] = {{0}};
+				int a = 7 & ~(1 << vindex[i*2] | 1 << vindex[i*2+1]);
+
+				sw[0][vindex[i*2+1]] = 1;
+				sw[1][vindex[i*2]] = 1;
+
+				for(x = 0; x < 3; x++)
+					if(a & (1 << x))
+						sw[2][x] = 1;
+
+				tris[i] = *((MDisps*)sources[i]);
+				tris[i].disps = MEM_dupallocN(tris[i].disps);
+				layerInterp_mdisps(&sources[i], NULL, (float*)sw, 1, &tris[i]);
+			}
+
+			mdisp_join_tris(d, &tris[0], &tris[1]);
+
+			for(i = 0; i < 2; i++)
+				MEM_freeN(tris[i].disps);
+
+			return;
+		}
+	}
+
+	/* For now, some restrictions on the input */
+	if(count != 1 || !sub_weights) {
 		for(i = 0; i < d->totdisp; ++i)
 			zero_v3(d->disps[i]);
 

@@ -1981,3 +1981,47 @@ void mdisp_flip_disp(int S, int corners, float axis_x[2], float axis_y[2], float
 		disp[1] = 0;
 	}
 }
+
+/* Join two triangular displacements into one quad
+	 Corners mapping:
+	 2 -------- 3
+	 | \   tri2 |
+	 |    \     |
+	 | tri1  \  |
+	 0 -------- 1 */
+void mdisp_join_tris(MDisps *dst, MDisps *tri1, MDisps *tri2)
+{
+	int side, st;
+	int S, x, y, crn;
+	float face_u, face_v, crn_u, crn_v;
+	float (*out)[3];
+	MDisps *src;
+
+	if(dst->disps)
+		MEM_freeN(dst->disps);
+
+	side = sqrt(tri1->totdisp / 3);
+	st = (side<<1)-1;
+
+	dst->totdisp = 4 * side * side;
+	out = dst->disps = MEM_callocN(3*dst->totdisp*sizeof(float), "join disps");
+
+	for(S = 0; S < 4; S++)
+		for(y = 0; y < side; ++y)
+			for(x = 0; x < side; ++x, ++out) {
+				mdisp_rot_crn_to_face(S, 4, st, x, y, &face_u, &face_v);
+				face_u = st - 1 - face_u;
+
+				if(face_v > face_u) {
+					src = tri2;
+					face_u = st - 1 - face_u;
+					face_v = st - 1 - face_v;
+				} else src = tri1;
+
+				crn = mdisp_rot_face_to_crn(3, st, face_u, face_v, &crn_u, &crn_v);
+
+				old_mdisps_bilinear((*out), &src->disps[crn*side*side], side, crn_u, crn_v);
+				(*out)[0] = 0;
+				(*out)[1] = 0;
+			}
+}
