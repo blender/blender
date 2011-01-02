@@ -35,7 +35,7 @@ import os
 import time
 import bpy
 import mathutils
-from mathutils.geometry import PolyFill
+from mathutils.geometry import tesselate_polygon
 from io_utils import load_image, unpack_list, unpack_face_list
 
 
@@ -84,7 +84,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
             if verts[i][1]==verts[i-1][0]:
                 verts.pop(i-1)
 
-        fill= PolyFill([verts])
+        fill= fill_polygon([verts])
 
     else:
         '''
@@ -192,7 +192,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
                     vert_map[i+ii]= vert[2]
                 ii+=len(verts)
 
-        fill= PolyFill([ [v[0] for v in loop] for loop in loop_list ])
+        fill= tesselate_polygon([ [v[0] for v in loop] for loop in loop_list ])
         #draw_loops(loop_list)
         #raise 'done loop'
         # map to original indicies

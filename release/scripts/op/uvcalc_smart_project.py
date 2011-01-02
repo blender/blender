@@ -225,7 +225,7 @@ def islandIntersectUvIsland(source, target, SourceOffset):
     # Edge intersect test
     for ed in edgeLoopsSource:
         for seg in edgeLoopsTarget:
-            i = geometry.LineIntersect2D(\
+            i = geometry.intersect_line_line_2d(\
             seg[0], seg[1], SourceOffset+ed[0], SourceOffset+ed[1])
             if i:
                 return 1 # LINE INTERSECTION
@@ -739,7 +739,7 @@ def packIslands(islandList):
 #XXX	Window.DrawProgressBar(0.7, 'Packing %i UV Islands...' % len(packBoxes) )
 
     time1 = time.time()
-    packWidth, packHeight = geometry.BoxPack2D(packBoxes)
+    packWidth, packHeight = geometry.box_pack_2d(packBoxes)
 
     # print 'Box Packing Time:', time.time() - time1
 
