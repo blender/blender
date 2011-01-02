@@ -96,7 +96,7 @@
 #define DURIAN_POINTCACHE_LIB_OK 1
 
 int ptcache_data_size[] = {	
-		sizeof(int), // BPHYS_DATA_INDEX
+		sizeof(uint32_t), // BPHYS_DATA_INDEX
 		3 * sizeof(float), // BPHYS_DATA_LOCATION:
 		3 * sizeof(float), // BPHYS_DATA_VELOCITY:
 		4 * sizeof(float), // BPHYS_DATA_ROTATION:
@@ -107,30 +107,38 @@ int ptcache_data_size[] = {
 };
 
 /* forward declerations */
-static int ptcache_file_write(PTCacheFile *pf, void *f, size_t tot, int size);
-static int ptcache_file_read(PTCacheFile *pf, void *f, size_t tot, int size);
+static int ptcache_file_compressed_read(PTCacheFile *pf, unsigned char *result, size_t len);
+static int ptcache_file_compressed_write(PTCacheFile *pf, unsigned char *in, size_t in_len, unsigned char *out, int mode);
+static int ptcache_file_write(PTCacheFile *pf, void *f, size_t tot, size_t size);
+static int ptcache_file_read(PTCacheFile *pf, void *f, size_t tot, size_t size);
 
 /* Common functions */
 static int ptcache_basic_header_read(PTCacheFile *pf)
 {
+	uint32_t totpoint, data_types;
 	int error=0;
 
 	/* Custom functions should read these basic elements too! */
-	if(!error && !fread(&pf->totpoint, sizeof(int), 1, pf->fp))
+	if(!error && !fread(&totpoint, sizeof(int), 1, pf->fp))
 		error = 1;
+	pf->totpoint = totpoint;
 	
-	if(!error && !fread(&pf->data_types, sizeof(int), 1, pf->fp))
+	if(!error && !fread(&data_types, sizeof(int), 1, pf->fp))
 		error = 1;
+	pf->data_types = data_types;
 
 	return !error;
 }
 static int ptcache_basic_header_write(PTCacheFile *pf)
 {
+	uint32_t totpoint = pf->totpoint;
+	uint32_t data_types = pf->data_types;
+
 	/* Custom functions should write these basic elements too! */
-	if(!fwrite(&pf->totpoint, sizeof(int), 1, pf->fp))
+	if(!fwrite(&totpoint, sizeof(int), 1, pf->fp))
 		return 0;
 	
-	if(!fwrite(&pf->data_types, sizeof(int), 1, pf->fp))
+	if(!fwrite(&data_types, sizeof(int), 1, pf->fp))
 		return 0;
 
 	return 1;
@@ -146,7 +154,7 @@ static int  ptcache_softbody_write(int index, void *soft_v, void **data, int UNU
 
 	return 1;
 }
-static void ptcache_softbody_read(int index, void *soft_v, void **data, float UNUSED(frs_sec), float UNUSED(cfra), float *old_data)
+static void ptcache_softbody_read(int index, void *soft_v, void **data, float UNUSED(cfra), float *old_data)
 {
 	SoftBody *soft= soft_v;
 	BodyPoint *bp = soft->bpoint + index;
@@ -160,7 +168,7 @@ static void ptcache_softbody_read(int index, void *soft_v, void **data, float UN
 		PTCACHE_DATA_TO(data, BPHYS_DATA_VELOCITY, 0, bp->vec);
 	}
 }
-static void ptcache_softbody_interpolate(int index, void *soft_v, void **data, float UNUSED(frs_sec), float cfra, float cfra1, float cfra2, float *old_data)
+static void ptcache_softbody_interpolate(int index, void *soft_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
 {
 	SoftBody *soft= soft_v;
 	BodyPoint *bp = soft->bpoint + index;
@@ -244,11 +252,12 @@ static int  ptcache_particle_write(int index, void *psys_v, void **data, int cfr
 	/* return flag 1+1=2 for newly born particles to copy exact birth location to previously cached frame */
 	return 1 + (pa->state.time >= pa->time && pa->prev_state.time <= pa->time);
 }
-static void ptcache_particle_read(int index, void *psys_v, void **data, float frs_sec, float cfra, float *old_data)
+static void ptcache_particle_read(int index, void *psys_v, void **data, float cfra, float *old_data)
 {
 	ParticleSystem *psys= psys_v;
 	ParticleData *pa;
 	BoidParticle *boid;
+	float timestep = 0.04f*psys->part->timetweak;
 
 	if(index >= psys->totpart)
 		return;
@@ -289,11 +298,11 @@ static void ptcache_particle_read(int index, void *psys_v, void **data, float fr
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
 		if(cfra > pa->prev_state.time) {
 			sub_v3_v3v3(pa->state.vel, pa->state.co, pa->prev_state.co);
-			mul_v3_fl(pa->state.vel, (cfra - pa->prev_state.time) / frs_sec);
+			mul_v3_fl(pa->state.vel, (cfra - pa->prev_state.time) * timestep);
 		}
 		else {
 			sub_v3_v3v3(pa->state.vel, pa->prev_state.co, pa->state.co);
-			mul_v3_fl(pa->state.vel, (pa->prev_state.time - cfra) / frs_sec);
+			mul_v3_fl(pa->state.vel, (pa->prev_state.time - cfra) * timestep);
 		}
 	}
 
@@ -302,12 +311,12 @@ static void ptcache_particle_read(int index, void *psys_v, void **data, float fr
 		vec_to_quat( pa->state.rot,pa->state.vel, OB_NEGX, OB_POSZ);
 	}
 }
-static void ptcache_particle_interpolate(int index, void *psys_v, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data)
+static void ptcache_particle_interpolate(int index, void *psys_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
 {
 	ParticleSystem *psys= psys_v;
 	ParticleData *pa;
 	ParticleKey keys[4];
-	float dfra;
+	float dfra, timestep = 0.04f*psys->part->timetweak;
 
 	if(index >= psys->totpart)
 		return;
@@ -335,11 +344,11 @@ static void ptcache_particle_interpolate(int index, void *psys_v, void **data, f
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
 		if(keys[1].time > keys[2].time) {
 			sub_v3_v3v3(keys[2].vel, keys[1].co, keys[2].co);
-			mul_v3_fl(keys[2].vel, (keys[1].time - keys[2].time) / frs_sec);
+			mul_v3_fl(keys[2].vel, (keys[1].time - keys[2].time) * timestep);
 		}
 		else {
 			sub_v3_v3v3(keys[2].vel, keys[2].co, keys[1].co);
-			mul_v3_fl(keys[2].vel, (keys[2].time - keys[1].time) / frs_sec);
+			mul_v3_fl(keys[2].vel, (keys[2].time - keys[1].time) * timestep);
 		}
 	}
 
@@ -353,13 +362,13 @@ static void ptcache_particle_interpolate(int index, void *psys_v, void **data, f
 
 	dfra = cfra2 - cfra1;
 
-	mul_v3_fl(keys[1].vel, dfra / frs_sec);
-	mul_v3_fl(keys[2].vel, dfra / frs_sec);
+	mul_v3_fl(keys[1].vel, dfra * timestep);
+	mul_v3_fl(keys[2].vel, dfra * timestep);
 
 	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
 	interp_qt_qtqt(pa->state.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
 
-	mul_v3_fl(pa->state.vel, frs_sec / dfra);
+	mul_v3_fl(pa->state.vel, 1.f / (dfra * timestep));
 
 	pa->state.time = cfra;
 }
@@ -375,6 +384,9 @@ static int  ptcache_particle_totwrite(void *psys_v, int cfra)
 	ParticleData *pa= psys->particles;
 	int p, step = psys->pointcache->step;
 	int totwrite = 0;
+
+	if(cfra == 0)
+		return psys->totpart;
 
 	for(p=0; p<psys->totpart; p++,pa++)
 		totwrite += (cfra >= pa->time - step && cfra <= pa->dietime + step);
@@ -395,7 +407,7 @@ static int  ptcache_cloth_write(int index, void *cloth_v, void **data, int UNUSE
 
 	return 1;
 }
-static void ptcache_cloth_read(int index, void *cloth_v, void **data, float UNUSED(frs_sec), float UNUSED(cfra), float *old_data)
+static void ptcache_cloth_read(int index, void *cloth_v, void **data, float UNUSED(cfra), float *old_data)
 {
 	ClothModifierData *clmd= cloth_v;
 	Cloth *cloth= clmd->clothObject;
@@ -412,7 +424,7 @@ static void ptcache_cloth_read(int index, void *cloth_v, void **data, float UNUS
 		PTCACHE_DATA_TO(data, BPHYS_DATA_XCONST, 0, vert->xconst);
 	}
 }
-static void ptcache_cloth_interpolate(int index, void *cloth_v, void **data, float UNUSED(frs_sec), float cfra, float cfra1, float cfra2, float *old_data)
+static void ptcache_cloth_interpolate(int index, void *cloth_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
 {
 	ClothModifierData *clmd= cloth_v;
 	Cloth *cloth= clmd->clothObject;
@@ -455,106 +467,6 @@ static int  ptcache_cloth_totpoint(void *cloth_v, int UNUSED(cfra))
 }
 
 /* Smoke functions */
-static int  ptcache_compress_write(PTCacheFile *pf, unsigned char *in, unsigned int in_len, unsigned char *out, int mode)
-{
-	int r = 0;
-	unsigned char compressed = 0;
-	unsigned int out_len= 0;
-	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
-	size_t sizeOfIt = 5;
-
-	(void)mode; /* unused when building w/o compression */
-
-#ifdef WITH_LZO
-	out_len= LZO_OUT_LEN(in_len);
-	if(mode == 1) {
-		LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
-		
-		r = lzo1x_1_compress(in, (lzo_uint)in_len, out, (lzo_uint *)&out_len, wrkmem);	
-		if (!(r == LZO_E_OK) || (out_len >= in_len))
-			compressed = 0;
-		else
-			compressed = 1;
-	}
-#endif
-#ifdef WITH_LZMA
-	if(mode == 2) {
-		
-		r = LzmaCompress(out, (size_t *)&out_len, in, in_len,//assume sizeof(char)==1....
-						props, &sizeOfIt, 5, 1 << 24, 3, 0, 2, 32, 2);
-
-		if(!(r == SZ_OK) || (out_len >= in_len))
-			compressed = 0;
-		else
-			compressed = 2;
-	}
-#endif
-	
-	ptcache_file_write(pf, &compressed, 1, sizeof(unsigned char));
-	if(compressed) {
-		ptcache_file_write(pf, &out_len, 1, sizeof(unsigned int));
-		ptcache_file_write(pf, out, out_len, sizeof(unsigned char));
-	}
-	else
-		ptcache_file_write(pf, in, in_len, sizeof(unsigned char));
-
-	if(compressed == 2)
-	{
-		ptcache_file_write(pf, &sizeOfIt, 1, sizeof(unsigned int));
-		ptcache_file_write(pf, props, sizeOfIt, sizeof(unsigned char));
-	}
-
-	MEM_freeN(props);
-
-	return r;
-}
-
-static int  ptcache_compress_read(PTCacheFile *pf, unsigned char *result, unsigned int len)
-{
-	int r = 0;
-	unsigned char compressed = 0;
-	unsigned int in_len;
-#ifdef WITH_LZO
-	unsigned int out_len = len;
-	size_t sizeOfIt = 5;
-#endif
-	unsigned char *in;
-	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
-
-	ptcache_file_read(pf, &compressed, 1, sizeof(unsigned char));
-	if(compressed) {
-		ptcache_file_read(pf, &in_len, 1, sizeof(unsigned int));
-		if(in_len==0) {
-			/* do nothing */
-		}
-		else {
-			in = (unsigned char *)MEM_callocN(sizeof(unsigned char)*in_len, "pointcache_compressed_buffer");
-			ptcache_file_read(pf, in, in_len, sizeof(unsigned char));
-#ifdef WITH_LZO
-			if(compressed == 1)
-				r = lzo1x_decompress_safe(in, (lzo_uint)in_len, result, (lzo_uint *)&out_len, NULL);
-#endif
-#ifdef WITH_LZMA
-			if(compressed == 2)
-			{
-				size_t leni = in_len, leno = out_len;
-				ptcache_file_read(pf, &sizeOfIt, 1, sizeof(unsigned int));
-				ptcache_file_read(pf, props, sizeOfIt, sizeof(unsigned char));
-				r = LzmaUncompress(result, &leno, in, &leni, props, sizeOfIt);
-			}
-#endif
-			MEM_freeN(in);
-		}
-	}
-	else {
-		ptcache_file_read(pf, result, len, sizeof(unsigned char));
-	}
-
-	MEM_freeN(props);
-
-	return r;
-}
-
 static int  ptcache_smoke_totpoint(void *smoke_v, int UNUSED(cfra))
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
@@ -566,8 +478,6 @@ static int  ptcache_smoke_totpoint(void *smoke_v, int UNUSED(cfra))
 	else
 		return 0;
 }
-
-
 static int  ptcache_smoke_write(PTCacheFile *pf, void *smoke_v)
 {	
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
@@ -586,18 +496,18 @@ static int  ptcache_smoke_write(PTCacheFile *pf, void *smoke_v)
 
 		smoke_export(sds->fluid, &dt, &dx, &dens, &densold, &heat, &heatold, &vx, &vy, &vz, &vxold, &vyold, &vzold, &obstacles);
 
-		ptcache_compress_write(pf, (unsigned char *)sds->shadow, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)dens, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)densold, in_len, out, mode);	
-		ptcache_compress_write(pf, (unsigned char *)heat, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)heatold, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)vx, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)vy, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)vz, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)vxold, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)vyold, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)vzold, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)obstacles, (unsigned int)res, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)sds->shadow, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)dens, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)densold, in_len, out, mode);	
+		ptcache_file_compressed_write(pf, (unsigned char *)heat, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)heatold, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)vx, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)vy, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)vz, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)vxold, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)vyold, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)vzold, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)obstacles, (unsigned int)res, out, mode);
 		ptcache_file_write(pf, &dt, 1, sizeof(float));
 		ptcache_file_write(pf, &dx, 1, sizeof(float));
 
@@ -627,14 +537,14 @@ static int  ptcache_smoke_write(PTCacheFile *pf, void *smoke_v)
 		smoke_turbulence_export(sds->wt, &dens, &densold, &tcu, &tcv, &tcw);
 
 		out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len_big), "pointcache_lzo_buffer");
-		ptcache_compress_write(pf, (unsigned char *)dens, in_len_big, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)densold, in_len_big, out, mode);	
+		ptcache_file_compressed_write(pf, (unsigned char *)dens, in_len_big, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)densold, in_len_big, out, mode);	
 		MEM_freeN(out);
 
 		out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len), "pointcache_lzo_buffer");
-		ptcache_compress_write(pf, (unsigned char *)tcu, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)tcv, in_len, out, mode);
-		ptcache_compress_write(pf, (unsigned char *)tcw, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)tcu, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)tcv, in_len, out, mode);
+		ptcache_file_compressed_write(pf, (unsigned char *)tcw, in_len, out, mode);
 		MEM_freeN(out);
 		
 		ret = 1;
@@ -642,9 +552,6 @@ static int  ptcache_smoke_write(PTCacheFile *pf, void *smoke_v)
 
 	return ret;
 }
-
-
-
 static void ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
@@ -658,18 +565,18 @@ static void ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 		
 		smoke_export(sds->fluid, &dt, &dx, &dens, &densold, &heat, &heatold, &vx, &vy, &vz, &vxold, &vyold, &vzold, &obstacles);
 
-		ptcache_compress_read(pf, (unsigned char *)sds->shadow, out_len);
-		ptcache_compress_read(pf, (unsigned char*)dens, out_len);
-		ptcache_compress_read(pf, (unsigned char*)densold, out_len);
-		ptcache_compress_read(pf, (unsigned char*)heat, out_len);
-		ptcache_compress_read(pf, (unsigned char*)heatold, out_len);
-		ptcache_compress_read(pf, (unsigned char*)vx, out_len);
-		ptcache_compress_read(pf, (unsigned char*)vy, out_len);
-		ptcache_compress_read(pf, (unsigned char*)vz, out_len);
-		ptcache_compress_read(pf, (unsigned char*)vxold, out_len);
-		ptcache_compress_read(pf, (unsigned char*)vyold, out_len);
-		ptcache_compress_read(pf, (unsigned char*)vzold, out_len);
-		ptcache_compress_read(pf, (unsigned char*)obstacles, (unsigned int)res);
+		ptcache_file_compressed_read(pf, (unsigned char *)sds->shadow, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char*)dens, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char*)densold, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char*)heat, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char*)heatold, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char*)vx, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char*)vy, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char*)vz, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char*)vxold, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char*)vyold, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char*)vzold, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char*)obstacles, (unsigned int)res);
 		ptcache_file_read(pf, &dt, 1, sizeof(float));
 		ptcache_file_read(pf, &dx, 1, sizeof(float));
 
@@ -686,12 +593,12 @@ static void ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 
 			smoke_turbulence_export(sds->wt, &dens, &densold, &tcu, &tcv, &tcw);
 
-			ptcache_compress_read(pf, (unsigned char*)dens, out_len_big);
-			ptcache_compress_read(pf, (unsigned char*)densold, out_len_big);
+			ptcache_file_compressed_read(pf, (unsigned char*)dens, out_len_big);
+			ptcache_file_compressed_read(pf, (unsigned char*)densold, out_len_big);
 
-			ptcache_compress_read(pf, (unsigned char*)tcu, out_len);
-			ptcache_compress_read(pf, (unsigned char*)tcv, out_len);
-			ptcache_compress_read(pf, (unsigned char*)tcw, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char*)tcu, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char*)tcv, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char*)tcw, out_len);
 		}
 	}
 }
@@ -709,21 +616,25 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 	pid->ptcaches= &sb->ptcaches;
 	pid->totpoint= pid->totwrite= ptcache_softbody_totpoint;
 
-	pid->write_elem= ptcache_softbody_write;
-	pid->write_stream = NULL;
-	pid->read_stream = NULL;
-	pid->read_elem= ptcache_softbody_read;
-	pid->interpolate_elem= ptcache_softbody_interpolate;
+	pid->write_point			= ptcache_softbody_write;
+	pid->read_point				= ptcache_softbody_read;
+	pid->interpolate_point		= ptcache_softbody_interpolate;
 
-	pid->write_header= ptcache_basic_header_write;
-	pid->read_header= ptcache_basic_header_read;
+	pid->write_stream			= NULL;
+	pid->read_stream			= NULL;
+
+	pid->write_extra_data		= NULL;
+	pid->read_extra_data		= NULL;
+	pid->interpolate_extra_data	= NULL;
+
+	pid->write_header			= ptcache_basic_header_write;
+	pid->read_header			= ptcache_basic_header_read;
 
 	pid->data_types= (1<<BPHYS_DATA_LOCATION) | (1<<BPHYS_DATA_VELOCITY);
 	pid->info_types= 0;
 
 	pid->stack_index = pid->cache->index;
 }
-
 void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *psys)
 {
 	memset(pid, 0, sizeof(PTCacheID));
@@ -739,19 +650,24 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 	if(psys->part->type != PART_HAIR)
 		pid->flag |= PTCACHE_VEL_PER_SEC;
 
-	pid->write_elem= ptcache_particle_write;
-	pid->write_stream = NULL;
-	pid->read_stream = NULL;
-	pid->read_elem= ptcache_particle_read;
-	pid->interpolate_elem= ptcache_particle_interpolate;
+	pid->totpoint				= ptcache_particle_totpoint;
+	pid->totwrite				= ptcache_particle_totwrite;
 
-	pid->totpoint= ptcache_particle_totpoint;
-	pid->totwrite= ptcache_particle_totwrite;
+	pid->write_point				= ptcache_particle_write;
+	pid->read_point				= ptcache_particle_read;
+	pid->interpolate_point		= ptcache_particle_interpolate;
 
-	pid->write_header= ptcache_basic_header_write;
-	pid->read_header= ptcache_basic_header_read;
+	pid->write_stream			= NULL;
+	pid->read_stream			= NULL;
 
-	pid->data_types= (1<<BPHYS_DATA_LOCATION) | (1<<BPHYS_DATA_VELOCITY) | (1<<BPHYS_DATA_INDEX);
+	pid->write_extra_data		= NULL;
+	pid->read_extra_data		= NULL;
+	pid->interpolate_extra_data	= NULL;
+
+	pid->write_header			= ptcache_basic_header_write;
+	pid->read_header			= ptcache_basic_header_read;
+
+	pid->data_types = (1<<BPHYS_DATA_LOCATION) | (1<<BPHYS_DATA_VELOCITY) | (1<<BPHYS_DATA_INDEX);
 
 	if(psys->part->phystype == PART_PHYS_BOIDS)
 		pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION) | (1<<BPHYS_DATA_BOIDS);
@@ -765,7 +681,6 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 
 	pid->info_types= (1<<BPHYS_DATA_TIMES);
 }
-
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *clmd)
 {
 	memset(pid, 0, sizeof(PTCacheID));
@@ -779,19 +694,23 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
 	pid->ptcaches= &clmd->ptcaches;
 	pid->totpoint= pid->totwrite= ptcache_cloth_totpoint;
 
-	pid->write_elem= ptcache_cloth_write;
-	pid->write_stream = NULL;
-	pid->read_stream = NULL;
-	pid->read_elem= ptcache_cloth_read;
-	pid->interpolate_elem= ptcache_cloth_interpolate;
+	pid->write_point			= ptcache_cloth_write;
+	pid->read_point				= ptcache_cloth_read;
+	pid->interpolate_point		= ptcache_cloth_interpolate;
 
-	pid->write_header= ptcache_basic_header_write;
-	pid->read_header= ptcache_basic_header_read;
+	pid->write_stream			= NULL;
+	pid->read_stream			= NULL;
+
+	pid->write_extra_data		= NULL;
+	pid->read_extra_data		= NULL;
+	pid->interpolate_extra_data	= NULL;
+
+	pid->write_header			= ptcache_basic_header_write;
+	pid->read_header			= ptcache_basic_header_read;
 
 	pid->data_types= (1<<BPHYS_DATA_LOCATION) | (1<<BPHYS_DATA_VELOCITY) | (1<<BPHYS_DATA_XCONST);
 	pid->info_types= 0;
 }
-
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd)
 {
 	SmokeDomainSettings *sds = smd->domain;
@@ -810,16 +729,19 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 
 	pid->totpoint= pid->totwrite= ptcache_smoke_totpoint;
 
-	pid->write_elem= NULL;
-	pid->read_elem= NULL;
+	pid->write_point			= NULL;
+	pid->read_point				= NULL;
+	pid->interpolate_point		= NULL;
 
-	pid->read_stream = ptcache_smoke_read;
-	pid->write_stream = ptcache_smoke_write;
-	
-	pid->interpolate_elem= NULL;
+	pid->read_stream			= ptcache_smoke_read;
+	pid->write_stream			= ptcache_smoke_write;
 
-	pid->write_header= ptcache_basic_header_write;
-	pid->read_header= ptcache_basic_header_read;
+	pid->write_extra_data		= NULL;
+	pid->read_extra_data		= NULL;
+	pid->interpolate_extra_data	= NULL;
+
+	pid->write_header			= ptcache_basic_header_write;
+	pid->read_header			= ptcache_basic_header_read;
 
 	pid->data_types= 0;
 	pid->info_types= 0;
@@ -829,7 +751,6 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 	if(sds->wt)
 		pid->data_types |= (1<<BPHYS_DATA_SMOKE_HIGH);
 }
-
 void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int duplis)
 {
 	PTCacheID *pid;
@@ -900,7 +821,6 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 		}
 	}
 }
-
 
 /* File handling */
 
@@ -1035,21 +955,124 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 	pf= MEM_mallocN(sizeof(PTCacheFile), "PTCacheFile");
 	pf->fp= fp;
 	pf->old_format = 0;
+	pf->frame = cfra;
  	
 	 return pf;
 }
-
 static void ptcache_file_close(PTCacheFile *pf)
 {
 	fclose(pf->fp);
 	MEM_freeN(pf);
 }
 
-static int ptcache_file_read(PTCacheFile *pf, void *f, size_t tot, int size)
+static int ptcache_file_compressed_read(PTCacheFile *pf, unsigned char *result, size_t len)
+{
+	int r = 0;
+	unsigned char compressed = 0;
+	size_t in_len;
+#ifdef WITH_LZO
+	size_t out_len = len;
+	size_t sizeOfIt = 5;
+#endif
+	unsigned char *in;
+	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
+
+	ptcache_file_read(pf, &compressed, 1, sizeof(unsigned char));
+	if(compressed) {
+		uint32_t size;
+		ptcache_file_read(pf, &size, 1, sizeof(uint32_t));
+		in_len = (size_t)size;
+		if(in_len==0) {
+			/* do nothing */
+		}
+		else {
+			in = (unsigned char *)MEM_callocN(sizeof(unsigned char)*in_len, "pointcache_compressed_buffer");
+			ptcache_file_read(pf, in, in_len, sizeof(unsigned char));
+#ifdef WITH_LZO
+			if(compressed == 1)
+				r = lzo1x_decompress_safe(in, (lzo_uint)in_len, result, (lzo_uint *)&out_len, NULL);
+#endif
+#ifdef WITH_LZMA
+			if(compressed == 2)
+			{
+				size_t leni = in_len, leno = out_len;
+				ptcache_file_read(pf, &size, 1, sizeof(unsigned int));
+				sizeOfIt = (size_t)size;
+				ptcache_file_read(pf, props, sizeOfIt, sizeof(unsigned char));
+				r = LzmaUncompress(result, &leno, in, &leni, props, sizeOfIt);
+			}
+#endif
+			MEM_freeN(in);
+		}
+	}
+	else {
+		ptcache_file_read(pf, result, len, sizeof(unsigned char));
+	}
+
+	MEM_freeN(props);
+
+	return r;
+}
+static int ptcache_file_compressed_write(PTCacheFile *pf, unsigned char *in, size_t in_len, unsigned char *out, int mode)
+{
+	int r = 0;
+	unsigned char compressed = 0;
+	size_t out_len= 0;
+	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
+	size_t sizeOfIt = 5;
+
+	(void)mode; /* unused when building w/o compression */
+
+#ifdef WITH_LZO
+	out_len= LZO_OUT_LEN(in_len);
+	if(mode == 1) {
+		LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
+		
+		r = lzo1x_1_compress(in, (lzo_uint)in_len, out, (lzo_uint *)&out_len, wrkmem);	
+		if (!(r == LZO_E_OK) || (out_len >= in_len))
+			compressed = 0;
+		else
+			compressed = 1;
+	}
+#endif
+#ifdef WITH_LZMA
+	if(mode == 2) {
+		
+		r = LzmaCompress(out, (size_t *)&out_len, in, in_len,//assume sizeof(char)==1....
+						props, &sizeOfIt, 5, 1 << 24, 3, 0, 2, 32, 2);
+
+		if(!(r == SZ_OK) || (out_len >= in_len))
+			compressed = 0;
+		else
+			compressed = 2;
+	}
+#endif
+	
+	ptcache_file_write(pf, &compressed, 1, sizeof(unsigned char));
+	if(compressed) {
+		uint32_t size = (uint32_t) out_len;
+		ptcache_file_write(pf, &size, 1, sizeof(uint32_t));
+		ptcache_file_write(pf, out, out_len, sizeof(unsigned char));
+	}
+	else
+		ptcache_file_write(pf, in, in_len, sizeof(unsigned char));
+
+	if(compressed == 2)
+	{
+		uint32_t size = (uint32_t) sizeOfIt;
+		ptcache_file_write(pf, &sizeOfIt, 1, sizeof(uint32_t));
+		ptcache_file_write(pf, props, sizeOfIt, sizeof(unsigned char));
+	}
+
+	MEM_freeN(props);
+
+	return r;
+}
+static int ptcache_file_read(PTCacheFile *pf, void *f, size_t tot, size_t size)
 {
 	return (fread(f, size, tot, pf->fp) == tot);
 }
-static int ptcache_file_write(PTCacheFile *pf, void *f, size_t tot, int size)
+static int ptcache_file_write(PTCacheFile *pf, void *f, size_t tot, size_t size)
 {
 	return (fwrite(f, size, tot, pf->fp) == tot);
 }
@@ -1077,6 +1100,7 @@ static int ptcache_file_data_write(PTCacheFile *pf)
 }
 static int ptcache_file_header_begin_read(PTCacheFile *pf)
 {
+	uint32_t typeflag=0;
 	int error=0;
 	char bphysics[8];
 	
@@ -1088,8 +1112,11 @@ static int ptcache_file_header_begin_read(PTCacheFile *pf)
 	if(!error && strncmp(bphysics, "BPHYSICS", 8))
 		error = 1;
 
-	if(!error && !fread(&pf->type, sizeof(int), 1, pf->fp))
+	if(!error && !fread(&typeflag, sizeof(uint32_t), 1, pf->fp))
 		error = 1;
+
+	pf->type = (typeflag & PTCACHE_TYPEFLAG_TYPEMASK);
+	pf->flag = (typeflag & PTCACHE_TYPEFLAG_FLAGMASK);
 	
 	/* if there was an error set file as it was */
 	if(error)
@@ -1097,21 +1124,19 @@ static int ptcache_file_header_begin_read(PTCacheFile *pf)
 
 	return !error;
 }
-
-
 static int ptcache_file_header_begin_write(PTCacheFile *pf)
 {
 	const char *bphysics = "BPHYSICS";
+	uint32_t typeflag = pf->type + pf->flag;
 	
 	if(fwrite(bphysics, sizeof(char), 8, pf->fp) != 8)
 		return 0;
 
-	if(!fwrite(&pf->type, sizeof(int), 1, pf->fp))
+	if(!fwrite(&typeflag, sizeof(uint32_t), 1, pf->fp))
 		return 0;
 	
 	return 1;
 }
-
 
 /* Data pointer handling */
 int BKE_ptcache_data_size(int data_type)
@@ -1239,8 +1264,15 @@ static void ptcache_data_copy(void *from[], void *to[])
 	}
 }
 
+static void ptcache_extra_free(PTCacheMem *pm)
+{
+	PTCacheExtra *extra = pm->extradata.first;
 
-
+	for(; extra; extra=extra->next) {
+		if(extra->data)
+			MEM_freeN(extra->data);
+	}
+}
 static int ptcache_old_elemsize(PTCacheID *pid)
 {
 	if(pid->type==PTCACHE_TYPE_SOFTBODY)
@@ -1253,57 +1285,33 @@ static int ptcache_old_elemsize(PTCacheID *pid)
 	return 0;
 }
 
-static void *ptcache_find_frame(PTCacheID *pid, int frame)
+static void ptcache_find_frames_around(PTCacheID *pid, int frame, int *fra1, int *fra2)
 {
 	if(pid->cache->flag & PTCACHE_DISK_CACHE) {
-		PTCacheFile *pf = ptcache_file_open(pid, PTCACHE_FILE_READ, frame);
-		if(pf)
-			pf->frame = frame;
-		return pf;
-	}
-	else {
-		PTCacheMem *pm = pid->cache->mem_cache.first;
-		for(; pm; pm=pm->next) {
-			if(pm->frame == frame)
-				break;
-		}
-		return (void*)pm;
-	}
-}
+		int cfra1=frame-1, cfra2=frame+1;
 
-static void ptcache_find_frames_around(PTCacheID *pid, int frame, void **cache1, void **cache2)
-{
-	int cfra1=frame, cfra2=frame;
-
-	if(pid->cache->flag & PTCACHE_DISK_CACHE) {
-		PTCacheFile *pf=NULL;
-		PTCacheFile *pf2=NULL;
-
-		while(cfra1 >= pid->cache->startframe && pf==NULL) {
+		while(cfra1 >= pid->cache->startframe && !BKE_ptcache_id_exist(pid, cfra1))
 			cfra1--;
-			pf= ptcache_file_open(pid, PTCACHE_FILE_READ, cfra1);
-		}
 
-		if(pf)
-			pf->frame = cfra1;
+		if(cfra1 < pid->cache->startframe)
+			cfra1 = 0;
 
-		while(cfra2 < pid->cache->endframe && !pf2) {
+		while(cfra2 <= pid->cache->endframe && !BKE_ptcache_id_exist(pid, cfra2))
 			cfra2++;
-			pf2= ptcache_file_open(pid, PTCACHE_FILE_READ, cfra2);
+
+		if(cfra2 > pid->cache->endframe)
+			cfra2 = 0;
+
+		if(cfra1 && !cfra2) {
+			*fra1 = 0;
+			*fra2 = cfra1;
 		}
-
-		if(pf2)
-			pf2->frame = cfra2;
-
-		if(pf && !pf2) {
-			pf2 = pf;
-			pf = NULL;
+		else {
+			*fra1 = cfra1;
+			*fra2 = cfra2;
 		}
-
-		*cache1 = (void*)pf;
-		*cache2 = (void*)pf2;
 	}
-	else if(pid->cache->mem_cache.first){
+	else if(pid->cache->mem_cache.first) {
 		PTCacheMem *pm = pid->cache->mem_cache.first;
 		PTCacheMem *pm2 = pid->cache->mem_cache.last;
 
@@ -1318,13 +1326,207 @@ static void ptcache_find_frames_around(PTCacheID *pid, int frame, void **cache1,
 		}
 
 		if(pm && !pm2) {
-			pm2 = pm;
-			pm = NULL;
+			*fra1 = 0;
+			*fra2 = pm->frame;
 		}
-
-		*cache1 = (void*)pm;
-		*cache2 = (void*)pm2;
+		else {
+			*fra1 = pm->frame;
+			*fra2 = pm2->frame;
+		}
 	}
+}
+static void ptcache_make_index_array(PTCacheMem *pm, int totpoint)
+{
+	int i, *index;
+
+	if(pm->index_array) {
+		MEM_freeN(pm->index_array);
+		pm->index_array = NULL;
+	}
+
+	if(!pm->data[BPHYS_DATA_INDEX])
+		return;
+
+	pm->index_array = MEM_callocN(totpoint * sizeof(int), "PTCacheMem index_array");
+	index = pm->data[BPHYS_DATA_INDEX];
+
+	for(i=0; i<pm->totpoint; i++, index++)
+		pm->index_array[*index] = i + 1;
+}
+
+static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
+{
+	PTCacheFile *pf = ptcache_file_open(pid, PTCACHE_FILE_READ, cfra);
+	PTCacheMem *pm = NULL;
+	int i, error = 1;
+
+	if(pf == NULL)
+		goto cleanup;
+
+	if(!ptcache_file_header_begin_read(pf))
+		goto cleanup;
+
+	if(pf->type != pid->type || !pid->read_header(pf))
+		goto cleanup;
+	
+	pm = MEM_callocN(sizeof(PTCacheMem), "Pointcache mem");
+
+	pm->totpoint = pf->totpoint;
+	pm->data_types = pf->data_types;
+	pm->frame = pf->frame;
+
+	ptcache_data_alloc(pm);
+
+	if(pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
+		for(i=0; i<BPHYS_TOT_DATA; i++) {
+			unsigned int out_len = pm->totpoint*ptcache_data_size[i];
+			if(pf->data_types & (1<<i))
+				ptcache_file_compressed_read(pf, (unsigned char*)(pm->data[i]), out_len);
+		}
+	}
+	else {
+		BKE_ptcache_mem_pointers_init(pm);
+		ptcache_file_pointers_init(pf);
+
+		for(i=0; i<pm->totpoint; i++) {
+			if(!ptcache_file_data_read(pf)) {
+				printf("Error reading from disk cache\n");
+				goto cleanup;
+			}
+			ptcache_data_copy(pf->cur, pm->cur);
+			BKE_ptcache_mem_pointers_incr(pm);
+		}
+	}
+
+	if(pf->flag & PTCACHE_TYPEFLAG_EXTRADATA) {
+		uint32_t extratype = 0;
+		uint32_t value;
+
+		while(ptcache_file_read(pf, &extratype, 1, sizeof(uint32_t))) {
+			PTCacheExtra *extra = MEM_callocN(sizeof(PTCacheExtra), "Pointcache extradata");
+
+			extra->type = extratype;
+
+			ptcache_file_read(pf, &value, 1, sizeof(uint32_t));
+			extra->flag = value;
+			ptcache_file_read(pf, &value, 1, sizeof(uint32_t));
+			extra->totdata = value;
+			ptcache_file_read(pf, &value, 1, sizeof(uint32_t));
+			extra->datasize = value;
+
+			extra->data = MEM_callocN(extra->totdata * extra->datasize, "Pointcache extradata->data");
+
+			if(pf->flag & PTCACHE_TYPEFLAG_COMPRESS)
+				ptcache_file_compressed_read(pf, (unsigned char*)(extra->data), extra->totdata*extra->datasize);
+			else
+				ptcache_file_read(pf, extra->data, extra->totdata, extra->datasize);
+
+			BLI_addtail(&pm->extradata, extra);
+		}
+	}
+
+	ptcache_make_index_array(pm, pid->totpoint(pid->calldata, pm->frame));
+
+	error = 0;
+
+cleanup:
+	if(error && pm) {
+		ptcache_data_free(pm);
+		ptcache_extra_free(pm);
+		MEM_freeN(pm);
+		pm = NULL;
+	}
+
+	if(pf)
+		ptcache_file_close(pf);
+	
+	return pm;
+}
+static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
+{
+	PTCacheFile *pf = NULL;
+	int i, ret = 0;
+	
+	BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_FRAME, pm->frame);
+
+	pf = ptcache_file_open(pid, PTCACHE_FILE_WRITE, pm->frame);
+
+	if(pf==NULL)
+		goto cleanup;
+
+	pf->data_types = pm->data_types;
+	pf->totpoint = pm->totpoint;
+	pf->type = pid->type;
+	pf->flag = 0;
+	
+	if(pm->extradata.first)
+		pf->flag |= PTCACHE_TYPEFLAG_EXTRADATA;
+	
+	if(pid->cache->compression)
+		pf->flag |= PTCACHE_TYPEFLAG_COMPRESS;
+
+	if(!ptcache_file_header_begin_write(pf) || !pid->write_header(pf))
+		goto cleanup;
+
+	if(pid->cache->compression) {
+		for(i=0; i<BPHYS_TOT_DATA; i++) {
+			if(pm->data[i]) {
+				unsigned int in_len = pm->totpoint*ptcache_data_size[i];
+				unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
+				ptcache_file_compressed_write(pf, (unsigned char*)(pm->data[i]), in_len, out, pid->cache->compression);
+				MEM_freeN(out);
+			}
+		}
+	}
+	else {
+		BKE_ptcache_mem_pointers_init(pm);
+		ptcache_file_pointers_init(pf);
+
+		for(i=0; i<pm->totpoint; i++) {
+			ptcache_data_copy(pm->cur, pf->cur);
+			if(!ptcache_file_data_write(pf))
+				goto cleanup;
+			BKE_ptcache_mem_pointers_incr(pm);
+		}
+	}
+
+	if(pm->extradata.first) {
+		PTCacheExtra *extra = pm->extradata.first;
+		uint32_t value;
+
+		for(; extra; extra=extra->next) {
+			if(extra->data == NULL || extra->totdata == 0)
+				continue;
+
+			value = extra->type;
+			ptcache_file_write(pf, &value, 1, sizeof(uint32_t));
+			value = extra->flag;
+			ptcache_file_write(pf, &value, 1, sizeof(uint32_t));
+			value = extra->totdata;
+			ptcache_file_write(pf, &value, 1, sizeof(uint32_t));
+			value = extra->datasize;
+			ptcache_file_write(pf, &value, 1, sizeof(uint32_t));
+
+			if(pid->cache->compression) {
+				unsigned int in_len = extra->totdata * extra->datasize;
+				unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
+				ptcache_file_compressed_write(pf, (unsigned char*)(extra->data), in_len, out, pid->cache->compression);
+				MEM_freeN(out);
+			}
+			else {
+				ptcache_file_write(pf, extra->data, extra->totdata, extra->datasize);
+			}
+		}
+	}
+
+	ret = 1;
+cleanup:
+	ptcache_file_close(pf);
+	
+	if (ret == 0 && G.f & G_DEBUG) 
+		printf("Error writing to disk cache\n");
+
+	return ret;
 }
 static int ptcache_read_init(PTCacheID *pid, void **cache, int *totpoint)
 {
@@ -1361,92 +1563,126 @@ static int ptcache_read_init(PTCacheID *pid, void **cache, int *totpoint)
 		return pm->frame;
 	}
 }
-static int ptcache_read(PTCacheID *pid, void *cache, int totpoint, float frs_sec)
+static int ptcache_read_stream(PTCacheID *pid, int cfra)
 {
+	PTCacheFile *pf = ptcache_file_open(pid, PTCACHE_FILE_READ, cfra);
+	int error = 1;
+
+	if(pf == NULL || pid->read_stream == NULL)
+		goto cleanup;
+
+	if(!ptcache_file_header_begin_read(pf))
+		goto cleanup;
+
+	if(pf->type != pid->type || !pid->read_header(pf))
+		goto cleanup;
+
+	if(pf->totpoint != pid->totpoint(pid->calldata, cfra))
+		goto cleanup;
+
+	ptcache_file_pointers_init(pf);
+
+	// we have stream reading here
+	pid->read_stream(pf, pid->calldata);
+
+	error = 0;
+
+cleanup:
+	if(pf)
+		ptcache_file_close(pf);
+	
+	return !error;
+}
+static int ptcache_read(PTCacheID *pid, int cfra)
+{
+	PTCacheMem *pm = NULL;
 	int i;
 	int *index = &i;
 
+	/* get a memory cache to read from */
 	if(pid->cache->flag & PTCACHE_DISK_CACHE) {
-		PTCacheFile *pf = (PTCacheFile *)cache;
-		if(pf->old_format) {
-			int old_elemsize = ptcache_old_elemsize(pid);
-			float old_data[14];
-
-			for(i=0; i<totpoint; i++) {
-				if(ptcache_file_read(pf, (void*)old_data, 1, old_elemsize))
-					pid->read_elem(i, pid->calldata, NULL, frs_sec, (float)pf->frame, old_data);
-				else
-					return 0;
-			}
-		}
-		else {
-			if(pf->data_types & (1<<BPHYS_DATA_INDEX))
-				index = &pf->data.index;
-
-			for(i=0; i<totpoint; i++) {
-				if(ptcache_file_data_read(pf))
-					pid->read_elem(*index, pid->calldata, pf->cur, frs_sec, (float)pf->frame, NULL);
-				else
-					return 0;
-			}
-		}
+		pm = ptcache_disk_frame_to_mem(pid, cfra);
 	}
 	else {
-		PTCacheMem *pm = (PTCacheMem *)cache;
+		pm = pid->cache->mem_cache.first;
+		
+		while(pm && pm->frame != cfra)
+			pm = pm->next;
+	}
+
+	/* read the cache */
+	if(pm) {
+		int totpoint = pm->totpoint;
+
+		if((pid->data_types & (1<<BPHYS_DATA_INDEX)) == 0)
+			totpoint = MIN2(totpoint, pid->totpoint(pid->calldata, cfra));
+
+		BKE_ptcache_mem_pointers_init(pm);
 
 		for(i=0; i<totpoint; i++) {
 			if(pm->data_types & (1<<BPHYS_DATA_INDEX))
 				index = pm->cur[BPHYS_DATA_INDEX];
 
-			pid->read_elem(*index, pid->calldata, pm->cur, frs_sec, (float)pm->frame, NULL);
+			pid->read_point(*index, pid->calldata, pm->cur, (float)pm->frame, NULL);
 		
 			BKE_ptcache_mem_pointers_incr(pm);
+		}
+
+		if(pid->read_extra_data && pm->extradata.first)
+			pid->read_extra_data(pid->calldata, pm, (float)pm->frame);
+
+		/* clean up temporary memory cache */
+		if(pid->cache->flag & PTCACHE_DISK_CACHE) {
+			ptcache_data_free(pm);
+			ptcache_extra_free(pm);
+			MEM_freeN(pm);
 		}
 	}
 
 	return 1;
 }
-static int ptcache_interpolate(PTCacheID *pid, void *cache1, void *cache2, int totpoint, float cfra, float frs_sec)
+static int ptcache_interpolate(PTCacheID *pid, float cfra, int cfra1, int cfra2)
 {
+	PTCacheMem *pm = NULL;
 	int i;
 	int *index = &i;
 
+	/* get a memory cache to read from */
 	if(pid->cache->flag & PTCACHE_DISK_CACHE) {
-		PTCacheFile *pf1 = (PTCacheFile *)cache1;
-		PTCacheFile *pf2 = (PTCacheFile *)cache2;
-		if(pf2->old_format) {
-			int old_elemsize = ptcache_old_elemsize(pid);
-			float old_data[14];
-
-			for(i=0; i<totpoint; i++) {
-				if(ptcache_file_read(pf2, (void*)old_data, 1, old_elemsize))
-					pid->interpolate_elem(i, pid->calldata, NULL, frs_sec, cfra, (float)pf1->frame, (float)pf2->frame, old_data);
-				else
-					return 0;
-			}
-		}
-		else {
-			if(pf2->data_types & (1<<BPHYS_DATA_INDEX))
-				index = &pf2->data.index;
-
-			for(i=0; i<totpoint; i++) {
-				if(ptcache_file_data_read(pf2))
-					pid->interpolate_elem(*index, pid->calldata, pf2->cur, frs_sec, cfra, (float)pf1->frame, (float)pf2->frame, NULL);
-				else
-					return 0;
-			}
-		}
+		pm = ptcache_disk_frame_to_mem(pid, cfra2);
 	}
 	else {
-		PTCacheMem *pm1 = (PTCacheMem *)cache1;
-		PTCacheMem *pm2 = (PTCacheMem *)cache2;
+		pm = pid->cache->mem_cache.first;
+		
+		while(pm && pm->frame != cfra2)
+			pm = pm->next;
+	}
+
+	/* read the cache */
+	if(pm) {
+		int totpoint = pm->totpoint;
+
+		if((pid->data_types & (1<<BPHYS_DATA_INDEX)) == 0)
+			totpoint = MIN2(totpoint, pid->totpoint(pid->calldata, (int)cfra));
+
+		BKE_ptcache_mem_pointers_init(pm);
 
 		for(i=0; i<totpoint; i++) {
-			if(pm2->data_types & (1<<BPHYS_DATA_INDEX))
-				index = pm2->cur[BPHYS_DATA_INDEX];
+			if(pm->data_types & (1<<BPHYS_DATA_INDEX))
+				index = pm->cur[BPHYS_DATA_INDEX];
 
-			pid->interpolate_elem(*index, pid->calldata, pm2->cur, frs_sec, cfra, (float)pm1->frame, (float)pm2->frame, NULL);
-			BKE_ptcache_mem_pointers_incr(pm2);
+			pid->interpolate_point(*index, pid->calldata, pm->cur, cfra, (float)cfra1, (float)cfra2, NULL);
+			BKE_ptcache_mem_pointers_incr(pm);
+		}
+
+		if(pid->interpolate_extra_data && pm->extradata.first)
+			pid->interpolate_extra_data(pid->calldata, pm, cfra, (float)cfra1, (float)cfra2);
+
+		/* clean up temporary memory cache */
+		if(pid->cache->flag & PTCACHE_DISK_CACHE) {
+			ptcache_data_free(pm);
+			ptcache_extra_free(pm);
+			MEM_freeN(pm);
 		}
 	}
 
@@ -1454,11 +1690,9 @@ static int ptcache_interpolate(PTCacheID *pid, void *cache1, void *cache2, int t
 }
 /* reads cache from disk or memory */
 /* possible to get old or interpolated result */
-int BKE_ptcache_read(PTCacheID *pid, float cfra, float frs_sec)
+int BKE_ptcache_read(PTCacheID *pid, float cfra)
 {
-	void *cache1=NULL, *cache2=NULL;
 	int cfrai = (int)cfra, cfra1=0, cfra2=0;
-	int totpoint = 0, totpoint2 = 0;
 	int ret = 0;
 
 	/* nothing to read to */
@@ -1467,88 +1701,49 @@ int BKE_ptcache_read(PTCacheID *pid, float cfra, float frs_sec)
 
 	if(pid->cache->flag & PTCACHE_READ_INFO) {
 		pid->cache->flag &= ~PTCACHE_READ_INFO;
-		BKE_ptcache_read(pid, 0, frs_sec);
+		ptcache_read(pid, 0);
 	}
 
 	/* first check if we have the actual frame cached */
-	if(cfra == (float)cfrai)
-		cache1 = ptcache_find_frame(pid, cfrai);
+	if(cfra == (float)cfrai && BKE_ptcache_id_exist(pid, cfrai))
+		cfra1 = cfrai;
 
 	/* no exact cache frame found so try to find cached frames around cfra */
-	if(cache1==NULL)
-		ptcache_find_frames_around(pid, cfrai, &cache1, &cache2);
+	if(cfra1 == 0)
+		ptcache_find_frames_around(pid, cfrai, &cfra1, &cfra2);
 
-	if(cache1==NULL && cache2==NULL)
+	if(cfra1 == 0 && cfra2 == 0)
 		return 0;
 
-	cfra1 = ptcache_read_init(pid, &cache1, &totpoint);
-	cfra2 = ptcache_read_init(pid, &cache2, &totpoint2);
-
 	/* don't read old cache if already simulated past cached frame */
-	if(!cache1 && cfra2 && cfra2 <= pid->cache->simframe)
-		goto cleanup;
-	if(cfra1 && cfra1==cfra2)
-		goto cleanup;
+	if(cfra1 == 0 && cfra2 && cfra2 <= pid->cache->simframe)
+		return 0;
+	if(cfra1 && cfra1 == cfra2)
+		return 0;
 
-	if(cache1) {
-		if(pid->read_stream) {
-			if(totpoint != pid->totpoint(pid->calldata, (int) cfra))
-				goto cleanup;
+	if(cfra1) {
+		if(pid->read_stream)
+			ptcache_read_stream(pid, cfra1);
+		else if(pid->read_point)
+			ptcache_read(pid, cfra1);
+	}
+
+	if(cfra2) {
+		if(pid->read_stream)
+			ptcache_read_stream(pid, cfra2);
+		else if(pid->read_point) {
+			if(cfra1 && cfra2 && pid->interpolate_point)
+				ptcache_interpolate(pid, cfra, cfra1, cfra2);
 			else
-			{
-				// we have stream reading here
-				pid->read_stream((PTCacheFile *)cache1, pid->calldata);
-			}
-		}
-		else if(pid->read_elem) {
-			if((pid->data_types & (1<<BPHYS_DATA_INDEX)) == 0)
-				totpoint = MIN2(totpoint, pid->totpoint(pid->calldata, (int) cfra));
-
-			if(ptcache_read(pid, cache1, totpoint, frs_sec)==0)
-				goto cleanup;
+				ptcache_read(pid, cfra2);
 		}
 	}
 
-	if(cache2) {
-		if(pid->read_stream) {
-			if(totpoint2 != pid->totpoint(pid->calldata, (int) cfra))
-				goto cleanup;
-			else
-			{
-				// we have stream reading here
-				pid->read_stream((PTCacheFile *)cache2, pid->calldata);
-			}
-		}
-		else if(pid->read_elem) {
-			if((pid->data_types & (1<<BPHYS_DATA_INDEX)) == 0)
-				totpoint2 = MIN2(totpoint2, pid->totpoint(pid->calldata, (int) cfra));
-
-			if(cache1 && cache2 && pid->interpolate_elem) {
-				if(ptcache_interpolate(pid, cache1, cache2, totpoint2, cfra, frs_sec)==0)
-					goto cleanup;
-			}
-			else {
-				if(ptcache_read(pid, cache2, totpoint2, frs_sec)==0)
-					goto cleanup;
-			}
-		}
-	}
-
-	if(cache1)
-		ret = (cache2 ? PTCACHE_READ_INTERPOLATED : PTCACHE_READ_EXACT);
-	else if(cache2) {
+	if(cfra1)
+		ret = (cfra2 ? PTCACHE_READ_INTERPOLATED : PTCACHE_READ_EXACT);
+	else if(cfra2) {
 		ret = PTCACHE_READ_OLD;
-		pid->cache->simframe = ((pid->cache->flag & PTCACHE_DISK_CACHE) ?
-			((PTCacheFile*)cache2)->frame : ((PTCacheMem*)cache2)->frame);
-	}
-
-cleanup:
-
-	if(pid->cache->flag & PTCACHE_DISK_CACHE) {
-		if(cache1)
-			ptcache_file_close((PTCacheFile*)cache1);
-		if(cache2)
-			ptcache_file_close((PTCacheFile*)cache2);
+		pid->cache->simframe = cfra2;
 	}
 
 	if((pid->cache->flag & PTCACHE_QUICK_CACHE)==0) {
@@ -1561,31 +1756,114 @@ cleanup:
 			if(cfra <= pid->cache->last_exact)
 				pid->cache->flag &= ~PTCACHE_FRAMES_SKIPPED;
 
-			BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, MAX2(cfrai,pid->cache->last_exact));
+			BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, MAX2(cfrai, pid->cache->last_exact));
 		}
 	}
 
 	return ret;
 }
-static void ptcache_make_index_array(PTCacheMem *pm, int totpoint)
+static int ptcache_write_stream(PTCacheID *pid, int cfra, int totpoint)
 {
-	int i, *index;
+	PTCacheFile *pf = NULL;
+	int ret = 0;
+	
+	BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_FRAME, cfra);
 
-	if(pm->index_array) {
-		MEM_freeN(pm->index_array);
-		pm->index_array = NULL;
+	pf = ptcache_file_open(pid, PTCACHE_FILE_WRITE, cfra);
+
+	if(pf==NULL)
+		goto cleanup;
+
+	pf->data_types = pid->data_types;
+	pf->totpoint = totpoint;
+	pf->type = pid->type;
+	pf->flag = 0;
+
+	if(!ptcache_file_header_begin_write(pf) || !pid->write_header(pf))
+		goto cleanup;
+
+	if(pid->write_stream)
+		pid->write_stream(pf, pid->calldata);
+
+	ret = 1;
+cleanup:
+	ptcache_file_close(pf);
+	
+	if (ret == 0 && G.f & G_DEBUG) 
+		printf("Error writing to disk cache\n");
+
+	return ret;
+}
+static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
+{
+	PointCache *cache = pid->cache;
+	PTCacheMem *pm=NULL, *pm2=NULL;
+	int totpoint = pid->totpoint(pid->calldata, cfra);
+	int i, error = 0;
+
+	pm = MEM_callocN(sizeof(PTCacheMem), "Pointcache mem");
+
+	pm->totpoint = pid->totwrite(pid->calldata, cfra);
+	pm->data_types = cfra ? pid->data_types : pid->info_types;
+
+	ptcache_data_alloc(pm);
+	BKE_ptcache_mem_pointers_init(pm);
+
+	if(overwrite) {
+		if(cache->flag & PTCACHE_DISK_CACHE) {
+			PTCacheFile *pf = NULL;
+			int fra = cfra-1;
+
+			while(fra >= cache->startframe && !BKE_ptcache_id_exist(pid, fra))
+				fra--;
+			
+			pm2 = ptcache_disk_frame_to_mem(pid, fra);
+		}
+		else
+			pm2 = cache->mem_cache.last;
 	}
 
-	if(!pm->data[BPHYS_DATA_INDEX])
-		return;
+	if(pid->write_point) {
+		for(i=0; i<totpoint; i++) {
+			int write = pid->write_point(i, pid->calldata, pm->cur, cfra);
+			if(write) {
+				BKE_ptcache_mem_pointers_incr(pm);
 
-	pm->index_array = MEM_callocN(totpoint * sizeof(int), "PTCacheMem index_array");
-	index = pm->data[BPHYS_DATA_INDEX];
+				/* newly born particles have to be copied to previous cached frame */
+				if(overwrite && write == 2 && pm2 && BKE_ptcache_mem_pointers_seek(i, pm2))
+					pid->write_point(i, pid->calldata, pm2->cur, cfra);
+			}
+		}
+	}
 
-	for(i=0; i<pm->totpoint; i++, index++)
-		pm->index_array[*index] = i + 1;
+	if(pid->write_extra_data)
+		pid->write_extra_data(pid->calldata, pm, cfra);
+
+	pm->frame = cfra;
+
+	if(cache->flag & PTCACHE_DISK_CACHE) {
+		error += !ptcache_mem_frame_to_disk(pid, pm);
+
+		if(pm) {
+			ptcache_data_free(pm);
+			ptcache_extra_free(pm);
+			MEM_freeN(pm);
+		}
+
+		if(pm2) {
+			error += !ptcache_mem_frame_to_disk(pid, pm2);
+			ptcache_data_free(pm2);
+			ptcache_extra_free(pm2);
+			MEM_freeN(pm2);
+		}
+	}
+	else {
+		ptcache_make_index_array(pm, pid->totpoint(pid->calldata, cfra));
+		BLI_addtail(&cache->mem_cache, pm);
+	}
+
+	return error;
 }
-
 static int ptcache_write_needed(PTCacheID *pid, int cfra, int *overwrite)
 {
 	PointCache *cache = pid->cache;
@@ -1639,10 +1917,8 @@ static int ptcache_write_needed(PTCacheID *pid, int cfra, int *overwrite)
 int BKE_ptcache_write(PTCacheID *pid, int cfra)
 {
 	PointCache *cache = pid->cache;
-	PTCacheFile *pf= NULL, *pf2= NULL;
-	int i, ret = 0;
 	int totpoint = pid->totpoint(pid->calldata, cfra);
-	int overwrite = 0;
+	int overwrite = 0, error = 0;
 
 	if(totpoint == 0 || (cfra ? pid->data_types == 0 : pid->info_types == 0))
 		return 0;
@@ -1650,109 +1926,29 @@ int BKE_ptcache_write(PTCacheID *pid, int cfra)
 	if(ptcache_write_needed(pid, cfra, &overwrite)==0)
 		return 0;
 
-	if(cache->flag & PTCACHE_DISK_CACHE) {
-		pf = ptcache_file_open(pid, PTCACHE_FILE_WRITE, cfra);
-		if(!pf)
-			goto cleanup;
-
-		pf->type = pid->type;
-		pf->totpoint = cfra ? pid->totwrite(pid->calldata, cfra) : totpoint;
-		pf->data_types = cfra ? pid->data_types : pid->info_types;
-
-		if(!ptcache_file_header_begin_write(pf) || !pid->write_header(pf))
-			goto cleanup;
-
-		ptcache_file_pointers_init(pf);
-
-		if(pid->write_stream) {
-			// we have stream writing here
-			pid->write_stream(pf, pid->calldata);
-		}
-		else if(pid->write_elem){
-			for(i=0; i<totpoint; i++) {
-				int write = pid->write_elem(i, pid->calldata, pf->cur, cfra);
-				if(write) {
-					if(!ptcache_file_data_write(pf))
-						goto cleanup;
-
-					/* newly born particles have to be copied to previous cached frame */
-					if(overwrite && write == 2) {
-						if(!pf2) {
-							/* find and initialize previous frame */
-							int ofra = cfra-1;
-							while(ofra > cache->startframe && !BKE_ptcache_id_exist(pid, ofra))
-								ofra--;
-
-							pf2 = ptcache_file_open(pid, PTCACHE_FILE_UPDATE, ofra);
-							if(!pf2)
-								goto cleanup;
-
-							pf2->type = pid->type;
-							pf2->totpoint = totpoint;
-							pf2->data_types = pid->data_types;
-						}
-						ptcache_file_pointers_seek(i, pf2);
-						pid->write_elem(i, pid->calldata, pf2->cur, cfra);
-						if(!ptcache_file_data_write(pf2))
-							goto cleanup;
-					}
-				}
-			}
-		}
+	if(pid->write_stream) {
+		ptcache_write_stream(pid, cfra, totpoint);
 	}
-	else {
-		PTCacheMem *pm;
-		PTCacheMem *pm2;
-
-		pm = MEM_callocN(sizeof(PTCacheMem), "Pointcache mem");
-
-		pm->totpoint = pid->totwrite(pid->calldata, cfra);
-		pm->data_types = cfra ? pid->data_types : pid->info_types;
-
-		ptcache_data_alloc(pm);
-		BKE_ptcache_mem_pointers_init(pm);
-
-		if(pid->write_elem) {
-			for(i=0; i<totpoint; i++) {
-				int write = pid->write_elem(i, pid->calldata, pm->cur, cfra);
-				if(write) {
-					BKE_ptcache_mem_pointers_incr(pm);
-
-					/* newly born particles have to be copied to previous cached frame */
-					if(overwrite && write == 2) {
-						pm2 = cache->mem_cache.last;
-						if(BKE_ptcache_mem_pointers_seek(i, pm2))
-							pid->write_elem(i, pid->calldata, pm2->cur, cfra);
-					}
-				}
-			}
-		}
-		ptcache_make_index_array(pm, pid->totpoint(pid->calldata, cfra));
-
-		pm->frame = cfra;
-		BLI_addtail(&cache->mem_cache, pm);
+	else if(pid->write_point) {
+		error += ptcache_write(pid, cfra, overwrite);
 	}
 
+	/* Mark frames skipped if more than 1 frame forwards since last non-skipped frame. */
 	if(cfra - cache->last_exact == 1 || cfra == cache->startframe) {
 		cache->last_exact = cfra;
 		cache->flag &= ~PTCACHE_FRAMES_SKIPPED;
 	}
-	else
+	/* Don't mark skipped when writing info file (frame 0) */
+	else if(cfra)
 		cache->flag |= PTCACHE_FRAMES_SKIPPED;
 
+	/* Update timeline cache display */
 	if(cache->cached_frames)
 		cache->cached_frames[cfra-cache->startframe] = 1;
 
-	ret = 1;
-
-cleanup:
-	if(pf) ptcache_file_close(pf);
-
-	if(pf2) ptcache_file_close(pf2);
-
 	BKE_ptcache_update_info(pid);
 
-	return ret;
+	return !error;
 }
 /* youll need to close yourself after!
  * mode - PTCACHE_CLEAR_ALL, 
@@ -1845,8 +2041,10 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 			if(mode == PTCACHE_CLEAR_ALL) {
 				/*we want startframe if the cache starts before zero*/
 				pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
-				for(; pm; pm=pm->next)
+				for(; pm; pm=pm->next) {
 					ptcache_data_free(pm);
+					ptcache_extra_free(pm);
+				}
 				BLI_freelistN(&pid->cache->mem_cache);
 
 				if(pid->cache->cached_frames) for(i=0; i<end-sta+1; i++)
@@ -1859,6 +2057,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 						if(pid->cache->cached_frames && pm->frame >=sta && pm->frame <= end)
 							pid->cache->cached_frames[pm->frame-sta] = 0;
 						ptcache_data_free(pm);
+						ptcache_extra_free(pm);
 						pm = pm->next;
 						BLI_freelinkN(&pid->cache->mem_cache, link);
 					}
@@ -1882,6 +2081,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 			for(; pm; pm=pm->next) {
 				if(pm->frame == cfra) {
 					ptcache_data_free(pm);
+					ptcache_extra_free(pm);
 					BLI_freelinkN(&pid->cache->mem_cache, pm);
 					break;
 				}
@@ -1894,7 +2094,6 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 
 	BKE_ptcache_update_info(pid);
 }
-
 int  BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
 {
 	if(!pid->cache)
@@ -1923,7 +2122,6 @@ int  BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
 		return 0;
 	}
 }
-
 void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startframe, int *endframe, float *timescale)
 {
 	Object *ob;
@@ -2030,7 +2228,6 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 		}
 	}
 }
-
 int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 {
 	PointCache *cache;
@@ -2093,7 +2290,6 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 
 	return (reset || clear || after);
 }
-
 int  BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 {
 	PTCacheID pid;
@@ -2235,8 +2431,10 @@ void BKE_ptcache_free_mem(ListBase *mem_cache)
 	PTCacheMem *pm = mem_cache->first;
 
 	if(pm) {
-		for(; pm; pm=pm->next)
+		for(; pm; pm=pm->next) {
 			ptcache_data_free(pm);
+			ptcache_extra_free(pm);
+		}
 
 		BLI_freelistN(mem_cache);
 	}
@@ -2549,120 +2747,51 @@ void BKE_ptcache_bake(PTCacheBaker* baker)
 void BKE_ptcache_disk_to_mem(PTCacheID *pid)
 {
 	PointCache *cache = pid->cache;
-	PTCacheFile *pf;
-	PTCacheMem *pm;
-
+	PTCacheMem *pm = NULL;
+	int baked = cache->flag & PTCACHE_BAKED;
 	int cfra, sfra = cache->startframe, efra = cache->endframe;
-	int i;
 
+	/* Remove possible bake flag to allow clear */
+	cache->flag &= ~PTCACHE_BAKED;
+
+	/* PTCACHE_DISK_CACHE flag was cleared already */
 	BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
 
+	/* restore possible bake flag */
+	cache->flag |= baked;
+
 	for(cfra=sfra; cfra <= efra; cfra++) {
-		pf = ptcache_file_open(pid, PTCACHE_FILE_READ, cfra);
+		pm = ptcache_disk_frame_to_mem(pid, cfra);
 
-		if(pf) {
-			if(!ptcache_file_header_begin_read(pf)) {
-				printf("Can't yet convert old cache format\n");
-				cache->flag |= PTCACHE_DISK_CACHE;
-				ptcache_file_close(pf);
-				return;
-			}
-
-			if(pf->type != pid->type || !pid->read_header(pf)) {
-				cache->flag |= PTCACHE_DISK_CACHE;
-				ptcache_file_close(pf);
-				return;
-			}
-			
-			pm = MEM_callocN(sizeof(PTCacheMem), "Pointcache mem");
-
-			pm->totpoint = pf->totpoint;
-			pm->data_types = pf->data_types;
-			pm->frame = cfra;
-
-			ptcache_data_alloc(pm);
-			BKE_ptcache_mem_pointers_init(pm);
-			ptcache_file_pointers_init(pf);
-
-			for(i=0; i<pm->totpoint; i++) {
-				if(!ptcache_file_data_read(pf)) {
-					printf("Error reading from disk cache\n");
-					
-					cache->flag |= PTCACHE_DISK_CACHE;
-					
-					ptcache_data_free(pm);
-					MEM_freeN(pm);
-					ptcache_file_close(pf);
-
-					return;
-				}
-				ptcache_data_copy(pf->cur, pm->cur);
-				BKE_ptcache_mem_pointers_incr(pm);
-			}
-
-			ptcache_make_index_array(pm, pid->totpoint(pid->calldata, cfra));
-
+		if(pm)
 			BLI_addtail(&pid->cache->mem_cache, pm);
-
-			ptcache_file_close(pf);
-		}
 	}
-
 }
 void BKE_ptcache_mem_to_disk(PTCacheID *pid)
 {
 	PointCache *cache = pid->cache;
-	PTCacheFile *pf;
-	PTCacheMem *pm;
-	int i;
+	PTCacheMem *pm = cache->mem_cache.first;
+	int baked = cache->flag & PTCACHE_BAKED;
 
-	pm = cache->mem_cache.first;
+	/* Remove possible bake flag to allow clear */
+	cache->flag &= ~PTCACHE_BAKED;
 
+	/* PTCACHE_DISK_CACHE flag was set already */
 	BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
 
+	/* restore possible bake flag */
+	cache->flag |= baked;
+
 	for(; pm; pm=pm->next) {
-		pf = ptcache_file_open(pid, PTCACHE_FILE_WRITE, pm->frame);
-
-		if(pf) {
-			pf->data_types = pm->data_types;
-			pf->totpoint = pm->totpoint;
-			pf->type = pid->type;
-
-			BKE_ptcache_mem_pointers_init(pm);
-			ptcache_file_pointers_init(pf);
-
-			if(!ptcache_file_header_begin_write(pf) || !pid->write_header(pf)) {
-				if (G.f & G_DEBUG) 
-					printf("Error writing to disk cache\n");
-				cache->flag &= ~PTCACHE_DISK_CACHE;
-
-				ptcache_file_close(pf);
-				return;
-			}
-
-			for(i=0; i<pm->totpoint; i++) {
-				ptcache_data_copy(pm->cur, pf->cur);
-				if(!ptcache_file_data_write(pf)) {
-					if (G.f & G_DEBUG) 
-						printf("Error writing to disk cache\n");
-					cache->flag &= ~PTCACHE_DISK_CACHE;
-
-					ptcache_file_close(pf);
-					return;
-				}
-				BKE_ptcache_mem_pointers_incr(pm);
-			}
-
-			ptcache_file_close(pf);
-
-			/* write info file */
-			if(cache->flag & PTCACHE_BAKED)
-				BKE_ptcache_write(pid, 0);
+		if(ptcache_mem_frame_to_disk(pid, pm)==0) {
+			cache->flag &= ~PTCACHE_DISK_CACHE;
+			break;
 		}
-		else
-			if (G.f & G_DEBUG) 
-				printf("Error creating disk cache file\n");
 	}
+
+	/* write info file */
+	if(cache->flag & PTCACHE_BAKED)
+		BKE_ptcache_write(pid, 0);
 }
 void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 {
@@ -2854,6 +2983,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 void BKE_ptcache_update_info(PTCacheID *pid)
 {
 	PointCache *cache = pid->cache;
+	PTCacheExtra *extra = NULL;
 	int totframes = 0;
 	char mem_info[64];
 
@@ -2903,7 +3033,16 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 		
 		for(; pm; pm=pm->next) {
 			for(i=0; i<BPHYS_TOT_DATA; i++)
-				bytes += pm->data[i] ? MEM_allocN_len(pm->data[i]) : 0.0f;
+				bytes += MEM_allocN_len(pm->data[i]);
+
+			for(extra=pm->extradata.first; extra; extra=extra->next) {
+				bytes += MEM_allocN_len(extra->data);
+				bytes += sizeof(PTCacheExtra);
+			}
+
+			bytes += MEM_allocN_len(pm->index_array);
+			bytes += sizeof(PTCacheMem);
+			
 			totframes++;
 		}
 

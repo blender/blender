@@ -141,6 +141,13 @@ typedef struct EffectorWeights {
 
 #define BPHYS_TOT_DATA			8
 
+typedef struct PTCacheExtra {
+	struct PTCacheExtra *next, *prev;
+	unsigned int type, flag;
+	unsigned int totdata, datasize;
+	void *data;
+} PTCacheExtra;
+
 typedef struct PTCacheMem {
 	struct PTCacheMem *next, *prev;
 	int frame, totpoint;
@@ -149,6 +156,8 @@ typedef struct PTCacheMem {
 
 	void *data[8]; /* BPHYS_TOT_DATA */
 	void *cur[8]; /* BPHYS_TOT_DATA */
+
+	struct ListBase extradata;
 } PTCacheMem;
 
 typedef struct PointCache {
@@ -175,7 +184,8 @@ typedef struct PointCache {
 
 	/* for external cache files */
 	int totpoint;   /* number of cached points */
-	int index, rt;	/* modifier stack index */
+	int index;	/* modifier stack index */
+	short compression, rt;
 	
 	char name[64];
 	char prev_name[64];
@@ -386,6 +396,10 @@ typedef struct SoftBody {
 
 /* PTCACHE_OUTDATED + PTCACHE_FRAMES_SKIPPED */
 #define PTCACHE_REDO_NEEDED			258
+
+#define PTCACHE_COMPRESS_NO			0
+#define PTCACHE_COMPRESS_LZO		1
+#define PTCACHE_COMPRESS_LZMA		2
 
 /* ob->softflag */
 #define OB_SB_ENABLE	1		/* deprecated, use modifier */

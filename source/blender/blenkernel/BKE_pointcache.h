@@ -63,6 +63,13 @@
 #define PTCACHE_TYPE_SMOKE_DOMAIN		3
 #define PTCACHE_TYPE_SMOKE_HIGHRES		4
 
+/* high bits reserved for flags that need to be stored in file */
+#define PTCACHE_TYPEFLAG_COMPRESS		(1<<16)
+#define PTCACHE_TYPEFLAG_EXTRADATA		(1<<17)
+
+#define PTCACHE_TYPEFLAG_TYPEMASK			0x0000FFFF
+#define PTCACHE_TYPEFLAG_FLAGMASK			0xFFFF0000
+
 /* PTCache read return code */
 #define PTCACHE_READ_EXACT				1
 #define PTCACHE_READ_INTERPOLATED		2
@@ -96,7 +103,7 @@ typedef struct PTCacheFile {
 	FILE *fp;
 
 	int totpoint, type, frame, old_format;
-	unsigned int data_types;
+	unsigned int data_types, flag;
 
 	struct PTCacheData data;
 	void *cur[BPHYS_TOT_DATA];
@@ -118,15 +125,23 @@ typedef struct PTCacheID {
 	unsigned int data_types, info_types;
 
 	/* copies point data to cache data */
-	int (*write_elem)(int index, void *calldata, void **data, int cfra);
+	int (*write_point)(int index, void *calldata, void **data, int cfra);
+	/* copies cache cata to point data */
+	void (*read_point)(int index, void *calldata, void **data, float cfra, float *old_data);
+	/* interpolated between previously read point data and cache data */
+	void (*interpolate_point)(int index, void *calldata, void **data, float cfra, float cfra1, float cfra2, float *old_data);
+
 	/* copies point data to cache data */
 	int (*write_stream)(PTCacheFile *pf, void *calldata);
 	/* copies cache cata to point data */
-	void (*read_elem)(int index, void *calldata, void **data, float frs_sec, float cfra, float *old_data);
-	/* copies cache cata to point data */
 	void (*read_stream)(PTCacheFile *pf, void *calldata);
-	/* interpolated between previously read point data and cache data */
-	void (*interpolate_elem)(int index, void *calldata, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data);
+
+	/* copies custom extradata to cache data */
+	int (*write_extra_data)(void *calldata, struct PTCacheMem *pm, int cfra);
+	/* copies custom extradata to cache data */
+	int (*read_extra_data)(void *calldata, struct PTCacheMem *pm, float cfra);
+	/* copies custom extradata to cache data */
+	int (*interpolate_extra_data)(void *calldata, struct PTCacheMem *pm, float cfra, float cfra1, float cfra2);
 
 	/* total number of simulated points (the cfra parameter is just for using same function pointer with totwrite) */
 	int (*totpoint)(void *calldata, int cfra);
@@ -267,7 +282,7 @@ void	BKE_ptcache_data_get(void **data, int type, int index, void *to);
 void	BKE_ptcache_data_set(void **data, int type, void *from);
 
 /* Main cache reading call. */
-int		BKE_ptcache_read(PTCacheID *pid, float cfra, float frs_sec);
+int		BKE_ptcache_read(PTCacheID *pid, float cfra);
 
 /* Main cache writing call. */
 int		BKE_ptcache_write(PTCacheID *pid, int cfra);

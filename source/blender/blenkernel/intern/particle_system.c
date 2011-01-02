@@ -2244,7 +2244,9 @@ void psys_make_temp_pointcache(Object *ob, ParticleSystem *psys)
 	if(cache->flag & PTCACHE_DISK_CACHE && cache->mem_cache.first == NULL) {
 		PTCacheID pid;
 		BKE_ptcache_id_from_particles(&pid, ob, psys);
+		cache->flag &= ~PTCACHE_DISK_CACHE;
 		BKE_ptcache_disk_to_mem(&pid);
+		cache->flag |= PTCACHE_DISK_CACHE;
 	}
 }
 static void psys_clear_temp_pointcache(ParticleSystem *psys)
@@ -3795,7 +3797,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 
 /* 2. try to read from the cache */
 	if(pid) {
-		int cache_result = BKE_ptcache_read(pid, cache_cfra, sim->scene->r.frs_sec);
+		int cache_result = BKE_ptcache_read(pid, cache_cfra);
 
 		if(ELEM(cache_result, PTCACHE_READ_EXACT, PTCACHE_READ_INTERPOLATED)) {
 			cached_step(sim, cfra);
