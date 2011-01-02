@@ -81,5 +81,12 @@ void multires_mdisp_smooth_bounds(struct MDisps *disps);
 /* update multires data after topology changing */
 void multires_topology_changed(struct Object *ob);
 
+/**** interpolation stuff ****/
+void old_mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, float v);
+void mdisp_rot_crn_to_face(int S, int corners, int face_side, float x, float y, float *u, float *v);
+int mdisp_rot_face_to_crn(int corners, int face_side, float u, float v, float *x, float *y);
+void mdisp_apply_weight(int S, int corners, int x, int y, int face_side, float crn_weight[4][2], float *u_r, float *v_r);
+void mdisp_flip_disp(int S, int corners, float axis_x[2], float axis_y[2], float disp[3]);
+
 #endif
 
