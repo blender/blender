@@ -85,7 +85,8 @@ void free_material(Material *ma)
 	
 	BKE_free_animdata((ID *)ma);
 	
-	BKE_previewimg_free(&ma->preview);
+	if(ma->preview)
+		BKE_previewimg_free(&ma->preview);
 	BKE_icon_delete((struct ID*)ma);
 	ma->id.icon_id = 0;
 	
@@ -250,7 +251,7 @@ Material *localize_material(Material *ma)
 	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
 	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
 	
-	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
+	man->preview = NULL;
 	
 	if(ma->nodetree) {
 		man->nodetree= ntreeLocalize(ma->nodetree);

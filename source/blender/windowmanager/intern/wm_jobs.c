@@ -283,6 +283,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 	if(steve->running) {
 		/* signal job to end and restart */
 		steve->stop= 1;
+		// printf("job started a running job, ending... %s\n", steve->name);
 	}
 	else {
 		if(steve->customdata && steve->startjob) {
@@ -304,10 +305,10 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 				steve->ready= 0;
 				steve->progress= 0.0;
 
+				// printf("job started: %s\n", steve->name);
+				
 				BLI_init_threads(&steve->threads, do_job_thread, 1);
 				BLI_insert_thread(&steve->threads, steve);
-
-				// printf("job started: %s\n", steve->name);
 			}
 			
 			/* restarted job has timer already */
@@ -431,8 +432,8 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 					steve->run_customdata= NULL;
 					steve->run_free= NULL;
 					
-					//	if(steve->stop) printf("job stopped\n");
-					//	else printf("job finished\n");
+					// if(steve->stop) printf("job ready but stopped %s\n", steve->name);
+					// else printf("job finished %s\n", steve->name);
 
 					steve->running= 0;
 					BLI_end_threads(&steve->threads);
@@ -444,6 +445,7 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 					
 					/* new job added for steve? */
 					if(steve->customdata) {
+						// printf("job restarted with new data %s\n", steve->name);
 						WM_jobs_start(wm, steve);
 					}
 					else {

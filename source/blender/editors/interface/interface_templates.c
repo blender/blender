@@ -1957,7 +1957,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, const char *propname,
 
 /************************* List Template **************************/
 
-static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon)
+static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon, int big)
 {
 	ID *id= NULL;
 	int icon;
@@ -1978,7 +1978,7 @@ static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon)
 
 	/* get icon from ID */
 	if(id) {
-		icon= ui_id_icon_get(C, id, 1);
+		icon= ui_id_icon_get(C, id, big);
 
 		if(icon)
 			return icon;
@@ -2007,7 +2007,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	sub= uiLayoutRow(overlap, 0);
 
 	/* retrieve icon and name */
-	icon= list_item_icon_get(C, itemptr, rnaicon);
+	icon= list_item_icon_get(C, itemptr, rnaicon, 0);
 	if(icon == ICON_NULL || icon == ICON_DOT)
 		icon= 0;
 
@@ -2152,7 +2152,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 				if(i == 9)
 					row= uiLayoutRow(col, 0);
 
-				icon= list_item_icon_get(C, &itemptr, rnaicon);
+				icon= list_item_icon_get(C, &itemptr, rnaicon, 1);
 				but= uiDefIconButR(block, LISTROW, 0, icon, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
 				uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
 				
@@ -2176,7 +2176,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 				if(found) {
 					/* create button */
 					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
-					icon= list_item_icon_get(C, &itemptr, rnaicon);
+					icon= list_item_icon_get(C, &itemptr, rnaicon, 0);
 					uiItemL(row, (name)? name: "", icon);
 
 					if(name)
