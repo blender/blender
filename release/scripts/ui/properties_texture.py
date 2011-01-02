@@ -103,7 +103,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
 
         if tex_collection:
             row = layout.row()
-            
+
             row.template_list(idblock, "texture_slots", idblock, "active_texture_index", rows=2)
 
             col = row.column(align=True)
@@ -141,7 +141,6 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
             else:
                 split.label(text="Type:")
                 split.prop(tex, "type", text="")
-
 
 
 class TEXTURE_PT_preview(TextureButtonsPanel, bpy.types.Panel):
@@ -395,8 +394,9 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
+        idblock = context_tex_datablock(context)
         tex = context.texture
-        # slot = context.texture_slot
+        slot = context.texture_slot
 
         split = layout.split()
 
@@ -410,10 +410,12 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
 
         col = split.column()
 
-        col.prop(tex, "use_normal_map")
-        row = col.row()
-        row.active = tex.use_normal_map
-        row.prop(tex, "normal_space", text="")
+        #Only for Material based textures, not for Lamp/World...
+        if isinstance(idblock, bpy.types.Material):
+            col.prop(tex, "use_normal_map")
+            row = col.row()
+            row.active = tex.use_normal_map
+            row.prop(slot, "normal_map_space", text="")
 
         col.prop(tex, "use_mipmap")
         row = col.row()
@@ -897,7 +899,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             sub = row.row()
             sub.active = getattr(tex, toggle)
             sub.prop(tex, factor, text=name, slider=True)
-            return sub # XXX, temp. use_map_normal needs to override.
+            return sub  # XXX, temp. use_map_normal needs to override.
 
         if isinstance(idblock, bpy.types.Material):
             if idblock.type in ('SURFACE', 'WIRE'):
@@ -936,13 +938,13 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
                 #sub.prop(tex, "default_value", text="Amount", slider=True)
             elif idblock.type == 'HALO':
                 layout.label(text="Halo:")
-                
+
                 split = layout.split()
-                
+
                 col = split.column()
                 factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
                 factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
-                
+
                 col = split.column()
                 factor_but(col, "use_map_raymir", "raymir_factor", "Size")
                 factor_but(col, "use_map_hardness", "hardness_factor", "Hardness")

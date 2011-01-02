@@ -450,7 +450,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	}
 	
 	/* delete button */
-	if(id && (flag & UI_ID_DELETE)) {
+	if(id && (flag & UI_ID_DELETE) && (RNA_property_flag(template->prop) & PROP_NEVER_UNLINK)==0) {
 		if(unlinkop) {
 			but= uiDefIconButO(block, BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
 			/* so we can access the template from operators, font unlinking needs this */
@@ -494,8 +494,6 @@ static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, const
 		flag |= UI_ID_ADD_NEW;
 	if(openop)
 		flag |= UI_ID_OPEN;
-	if(unlinkop && strcmp(unlinkop, "None") == 0)
-		flag &= ~UI_ID_DELETE;
 
 	type= RNA_property_pointer_type(ptr, prop);
 	template->idlb= which_libbase(CTX_data_main(C), RNA_type_to_ID_code(type));

@@ -47,7 +47,8 @@ typedef struct FileGlobal {
 	struct Scene *curscene;
 	int fileflags;
 	int globalf;
-	
+	int revision;		/* svn revision from buildinfo */
+	int pad;
 	/* file path where this was saved, for recover */
 	char filename[240]; /* 240 = FILE_MAX */
 } FileGlobal;

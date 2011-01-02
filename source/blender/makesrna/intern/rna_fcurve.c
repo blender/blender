@@ -747,8 +747,8 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Before Mode", "Cycling mode to use before first keyframe");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
-	prop= RNA_def_property(srna, "cycles_before", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "before_cycles");
+	prop= RNA_def_property(srna, "cycles_before", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "before_cycles");
 	RNA_def_property_ui_text(prop, "Before Cycles", "Maximum number of cycles to allow before first keyframe. (0 = infinite)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
@@ -759,8 +759,8 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "After Mode", "Cycling mode to use after last keyframe");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
-	prop= RNA_def_property(srna, "cycles_after", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "after_cycles");
+	prop= RNA_def_property(srna, "cycles_after", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "after_cycles");
 	RNA_def_property_ui_text(prop, "After Cycles", "Maximum number of cycles to allow after last keyframe. (0 = infinite)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 }

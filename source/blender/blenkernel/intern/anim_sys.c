@@ -277,6 +277,176 @@ void BKE_animdata_make_local(AnimData *adt)
 		make_local_strips(&nlt->strips);
 }
 
+/* Sub-ID Regrouping ------------------------------------------- */
+
+/* helper heuristic for determining if a path is compatible with the basepath 
+ * < path: (str) full RNA-path from some data (usually an F-Curve) to compare
+ * < basepath: (str) shorter path fragment to look for
+ * > returns (bool) whether there is a match
+ */
+static short animpath_matches_basepath (const char path[], const char basepath[])
+{
+	/* we need start of path to be basepath */
+	return (path && basepath) && (strstr(path, basepath) == path);
+}
+
+/* Move F-Curves in src action to dst action, setting up all the necessary groups 
+ * for this to happen, but only if the F-Curves being moved have the appropriate 
+ * "base path". 
+ *	- This is used when data moves from one datablock to another, causing the
+ *	  F-Curves to need to be moved over too
+ */
+void action_move_fcurves_by_basepath (bAction *srcAct, bAction *dstAct, const char basepath[])
+{
+	FCurve *fcu, *fcn=NULL;
+	
+	/* sanity checks */
+	if ELEM3(NULL, srcAct, dstAct, basepath) {
+		if (G.f & G_DEBUG) {
+			printf("ERROR: action_partition_fcurves_by_basepath(%p, %p, %p) has insufficient info to work with\n",
+					srcAct, dstAct, basepath);
+		}
+		return;
+	}
+		
+	/* clear 'temp' flags on all groups in src, as we'll be needing them later 
+	 * to identify groups that we've managed to empty out here
+	 */
+	action_groups_clear_tempflags(srcAct);
+	
+	/* iterate over all src F-Curves, moving over the ones that need to be moved */
+	for (fcu = srcAct->curves.first; fcu; fcu = fcn) {
+		/* store next pointer in case we move stuff */
+		fcn = fcu->next;
+		
+		/* should F-Curve be moved over?
+		 *	- we only need the start of the path to match basepath
+		 */
+		if (animpath_matches_basepath(fcu->rna_path, basepath)) {			
+			bActionGroup *agrp = NULL;
+			
+			/* if grouped... */
+			if (fcu->grp) {
+				/* make sure there will be a matching group on the other side for the migrants */
+				agrp = action_groups_find_named(dstAct, fcu->grp->name);
+				
+				if (agrp == NULL) {
+					/* add a new one with a similar name (usually will be the same though) */
+					agrp = action_groups_add_new(dstAct, fcu->grp->name);
+				}
+				
+				/* old groups should be tagged with 'temp' flags so they can be removed later
+				 * if we remove everything from them
+				 */
+				fcu->grp->flag |= AGRP_TEMP;
+			}
+			
+			/* perform the migration now */
+			action_groups_remove_channel(srcAct, fcu);
+			
+			if (agrp)
+				action_groups_add_channel(dstAct, agrp, fcu);
+			else
+				BLI_addtail(&dstAct->curves, fcu);
+		}
+	}
+	
+	/* cleanup groups (if present) */
+	if (srcAct->groups.first) {
+		bActionGroup *agrp, *grp=NULL;
+		
+		for (agrp = srcAct->groups.first; agrp; agrp = grp) {
+			grp = agrp->next;
+			
+			/* only tagged groups need to be considered - clearing these tags or removing them */
+			if (agrp->flag & AGRP_TEMP) {
+				/* if group is empty and tagged, then we can remove as this operation
+				 * moved out all the channels that were formerly here
+				 */
+				if (agrp->channels.first == NULL)
+					BLI_freelinkN(&srcAct->groups, agrp);
+				else
+					agrp->flag &= ~AGRP_TEMP;
+			}
+		}
+	}
+}
+
+/* Transfer the animation data from srcID to dstID where the srcID
+ * animation data is based off "basepath", creating new AnimData and
+ * associated data as necessary
+ */
+void BKE_animdata_separate_by_basepath (ID *srcID, ID *dstID, ListBase *basepaths)
+{
+	AnimData *srcAdt=NULL, *dstAdt=NULL;
+	LinkData *ld;
+	
+	/* sanity checks */
+	if ELEM(NULL, srcID, dstID) {
+		if (G.f & G_DEBUG)
+			printf("ERROR: no source or destination ID to separate AnimData with\n");
+		return;
+	}
+	
+	/* get animdata from src, and create for destination (if needed) */
+	srcAdt = BKE_animdata_from_id(srcID);
+	dstAdt = BKE_id_add_animdata(dstID);
+	
+	if ELEM(NULL, srcAdt, dstAdt) {
+		if (G.f & G_DEBUG)
+			printf("ERROR: no AnimData for this pair of ID's\n");
+		return;
+	}
+	
+	/* active action */
+	if (srcAdt->action) {
+		/* set up an action if necessary, and name it in a similar way so that it can be easily found again */
+		if (dstAdt->action == NULL) {
+			dstAdt->action = add_empty_action(srcAdt->action->id.name+2);
+		}
+		else if (dstAdt->action == srcAdt->action) {
+			printf("Argh! Source and Destination share animation! ('%s' and '%s' both use '%s') Making new empty action\n",
+				srcID->name, dstID->name, srcAdt->action->id.name);
+			
+			// TODO: review this...
+			id_us_min(&dstAdt->action->id);
+			dstAdt->action = add_empty_action(dstAdt->action->id.name+2);
+		}
+			
+		/* loop over base paths, trying to fix for each one... */
+		for (ld = basepaths->first; ld; ld = ld->next) {
+			const char *basepath = (const char *)ld->data;
+			action_move_fcurves_by_basepath(srcAdt->action, dstAdt->action, basepath);
+		}
+	}
+	
+	/* drivers */
+	if (srcAdt->drivers.first) {
+		FCurve *fcu, *fcn=NULL;
+		
+		/* check each driver against all the base paths to see if any should go */
+		for (fcu = srcAdt->drivers.first; fcu; fcu = fcn) {
+			fcn = fcu->next;
+			
+			/* try each basepath in turn, but stop on the first one which works */
+			for (ld = basepaths->first; ld; ld = ld->next) {
+				const char *basepath = (const char *)ld->data;
+				
+				if (animpath_matches_basepath(fcu->rna_path, basepath)) {
+					/* just need to change lists */
+					BLI_remlink(&srcAdt->drivers, fcu);
+					BLI_addtail(&dstAdt->drivers, fcu);
+					
+					// TODO: add depsgraph flushing calls?
+					
+					/* can stop now, as moved already */
+					break;
+				}
+			}
+		}
+	}
+}
+
 /* Path Validation -------------------------------------------- */
 
 /* Check if a given RNA Path is valid, by tracing it from the given ID, and seeing if we can resolve it */
@@ -466,46 +636,77 @@ void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, const char *pre
 /* Whole Database Ops -------------------------------------------- */
 
 /* apply the given callback function on all data in main database */
-void BKE_animdata_main_cb (Main *main, ID_AnimData_Edit_Callback func, void *user_data)
+void BKE_animdata_main_cb (Main *mainptr, ID_AnimData_Edit_Callback func, void *user_data)
 {
 	ID *id;
 
+	/* standard data version */
 #define ANIMDATA_IDS_CB(first) \
 	for (id= first; id; id= id->next) { \
 		AnimData *adt= BKE_animdata_from_id(id); \
 		if (adt) func(id, adt, user_data); \
 	}
 
-	ANIMDATA_IDS_CB(main->nodetree.first);	/* nodes */
-	ANIMDATA_IDS_CB(main->tex.first);		/* textures */
-	ANIMDATA_IDS_CB(main->lamp.first);		/* lamps */
-	ANIMDATA_IDS_CB(main->mat.first);		/* materials */
-	ANIMDATA_IDS_CB(main->camera.first);	/* cameras */
-	ANIMDATA_IDS_CB(main->key.first);		/* shapekeys */
-	ANIMDATA_IDS_CB(main->mball.first);		/* metaballs */
-	ANIMDATA_IDS_CB(main->curve.first);		/* curves */
-	ANIMDATA_IDS_CB(main->armature.first);	/* armatures */
-	ANIMDATA_IDS_CB(main->mesh.first);		/* meshes */
-	ANIMDATA_IDS_CB(main->particle.first);	/* particles */
-	ANIMDATA_IDS_CB(main->object.first);	/* objects */
-	ANIMDATA_IDS_CB(main->world.first);		/* worlds */
-	ANIMDATA_IDS_CB(main->linestyle.first);	/* linestyles */
-
-	/* scenes */
-	for (id= main->scene.first; id; id= id->next) {
-		AnimData *adt= BKE_animdata_from_id(id);
-		Scene *scene= (Scene *)id;
-		
-		/* do compositing nodes first (since these aren't included in main tree) */
-		if (scene->nodetree) {
-			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
-			if (adt2) func(id, adt2, user_data);
-		}
-		
-		/* now fix scene animation data as per normal */
-		if (adt) func((ID *)id, adt, user_data);
+	/* "embedded" nodetree cases (i.e. scene/material/texture->nodetree) */
+#define ANIMDATA_NODETREE_IDS_CB(first, NtId_Type) \
+	for (id= first; id; id= id->next) { \
+		AnimData *adt= BKE_animdata_from_id(id); \
+		NtId_Type *ntp= (NtId_Type *)id; \
+		if (ntp->nodetree) { \
+			AnimData *adt2= BKE_animdata_from_id((ID *)ntp); \
+			if (adt2) func(id, adt2, user_data); \
+		} \
+		if (adt) func(id, adt, user_data); \
 	}
-}
+
+	/* nodes */
+	ANIMDATA_IDS_CB(mainptr->nodetree.first);
+		
+	/* textures */
+	ANIMDATA_NODETREE_IDS_CB(mainptr->tex.first, Tex);
+		
+	/* lamps */
+	ANIMDATA_IDS_CB(mainptr->lamp.first);
+	
+	/* materials */
+	ANIMDATA_NODETREE_IDS_CB(mainptr->mat.first, Material);
+	
+	/* cameras */
+	ANIMDATA_IDS_CB(mainptr->camera.first);
+	
+	/* shapekeys */
+	ANIMDATA_IDS_CB(mainptr->key.first);
+	
+	/* metaballs */
+	ANIMDATA_IDS_CB(mainptr->mball.first);
+	
+	/* curves */
+	ANIMDATA_IDS_CB(mainptr->curve.first);
+	
+	/* armatures */
+	ANIMDATA_IDS_CB(mainptr->armature.first);
+	
+	/* lattices */
+	ANIMDATA_IDS_CB(mainptr->latt.first);
+	
+	/* meshes */
+	ANIMDATA_IDS_CB(mainptr->mesh.first);
+	
+	/* particles */
+	ANIMDATA_IDS_CB(mainptr->particle.first);
+	
+	/* objects */
+	ANIMDATA_IDS_CB(mainptr->object.first);
+	
+	/* worlds */
+	ANIMDATA_IDS_CB(mainptr->world.first);
+	
+	/* scenes */
+	ANIMDATA_NODETREE_IDS_CB(mainptr->scene.first, Scene);
+	
+	/* line styles */
+	ANIMDATA_IDS_CB(mainptr->linestyle.first);
+	}
 
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
@@ -527,17 +728,29 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 		BKE_animdata_fix_paths_rename(id, adt, prefix, oldName, newName, 0, 0, 1);\
 	}
 	
+	/* another version of this macro for nodetrees */
+#define RENAMEFIX_ANIM_NODETREE_IDS(first, NtId_Type) \
+	for (id= first; id; id= id->next) { \
+		AnimData *adt= BKE_animdata_from_id(id); \
+		NtId_Type *ntp= (NtId_Type *)id; \
+		if (ntp->nodetree) { \
+			AnimData *adt2= BKE_animdata_from_id((ID *)ntp); \
+			BKE_animdata_fix_paths_rename((ID *)ntp, adt2, prefix, oldName, newName, 0, 0, 1);\
+		} \
+		BKE_animdata_fix_paths_rename(id, adt, prefix, oldName, newName, 0, 0, 1);\
+	}
+	
 	/* nodes */
 	RENAMEFIX_ANIM_IDS(mainptr->nodetree.first);
 	
 	/* textures */
-	RENAMEFIX_ANIM_IDS(mainptr->tex.first);
+	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->tex.first, Tex);
 	
 	/* lamps */
 	RENAMEFIX_ANIM_IDS(mainptr->lamp.first);
 	
 	/* materials */
-	RENAMEFIX_ANIM_IDS(mainptr->mat.first);
+	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->mat.first, Material);
 	
 	/* cameras */
 	RENAMEFIX_ANIM_IDS(mainptr->camera.first);
@@ -554,8 +767,11 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 	/* armatures */
 	RENAMEFIX_ANIM_IDS(mainptr->armature.first);
 	
+	/* lattices */
+	RENAMEFIX_ANIM_IDS(mainptr->latt.first);
+	
 	/* meshes */
-	// TODO...
+	RENAMEFIX_ANIM_IDS(mainptr->mesh.first);
 	
 	/* particles */
 	RENAMEFIX_ANIM_IDS(mainptr->particle.first);
@@ -570,21 +786,9 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 	RENAMEFIX_ANIM_IDS(mainptr->linestyle.first);
 	
 	/* scenes */
-	for (id= mainptr->scene.first; id; id= id->next) {
-		AnimData *adt= BKE_animdata_from_id(id);
-		Scene *scene= (Scene *)id;
-		
-		/* do compositing nodes first (since these aren't included in main tree) */
-		if (scene->nodetree) {
-			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
-			BKE_animdata_fix_paths_rename((ID *)scene->nodetree, adt2, prefix, oldName, newName, 0, 0, 1);
+	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->scene.first, Scene);
 		}
 		
-		/* now fix scene animation data as per normal */
-		BKE_animdata_fix_paths_rename((ID *)id, adt, prefix, oldName, newName, 0, 0, 1);
-	}
-}
-
 /* *********************************** */ 
 /* KeyingSet API */
 
@@ -689,7 +893,7 @@ KS_Path *BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[],
 	/* just store absolute info */
 	ksp->id= id;
 	if (group_name)
-		BLI_snprintf(ksp->group, 64, group_name);
+		BLI_strncpy(ksp->group, group_name, sizeof(ksp->group));
 	else
 		ksp->group[0]= '\0';
 	
@@ -1906,7 +2110,6 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	EVAL_ANIM_IDS(main->camera.first, ADT_RECALC_ANIM);
 	
 	/* shapekeys */
-		// TODO: we probably need the same hack as for curves (ctime-hack)
 	EVAL_ANIM_IDS(main->key.first, ADT_RECALC_ANIM);
 	
 	/* metaballs */

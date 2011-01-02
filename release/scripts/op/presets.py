@@ -29,7 +29,7 @@ class AddPresetBase():
      - preset_subdir '''
     # bl_idname = "script.preset_base_add"
     # bl_label = "Add a Python Preset"
-    bl_options = {'REGISTER'} # only because invoke_props_popup requires.
+    bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
 
     name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen=64, default="")
     remove_active = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
@@ -42,13 +42,13 @@ class AddPresetBase():
 
     def execute(self, context):
         import os
-        
+
         if hasattr(self, "pre_cb"):
             self.pre_cb(context)
-        
+
         preset_menu_class = getattr(bpy.types, self.preset_menu)
 
-        if not self.remove_active:        
+        if not self.remove_active:
 
             if not self.name:
                 return {'FINISHED'}
@@ -62,7 +62,7 @@ class AddPresetBase():
                 return {'CANCELLED'}
 
             filepath = os.path.join(target_path, filename) + ".py"
-            
+
             if hasattr(self, "add"):
                 self.add(context, filepath)
             else:
@@ -351,6 +351,7 @@ class WM_MT_operator_presets(bpy.types.Menu):
         return AddPresetOperator.operator_path(self.operator)
 
     preset_operator = "script.execute_preset"
+
 
 def register():
     pass

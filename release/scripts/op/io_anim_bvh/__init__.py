@@ -27,18 +27,18 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import *
-from io_utils import ImportHelper
+from io_utils import ImportHelper, ExportHelper
 
 
 class BvhImporter(bpy.types.Operator, ImportHelper):
-    '''Load a OBJ Motion Capture File'''
+    '''Load a BVH motion capture file'''
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"
-    
+
     filename_ext = ".bvh"
     filter_glob = StringProperty(default="*.bvh", options={'HIDDEN'})
 
-    scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=0.1)
+    global_scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=1.0)
     frame_start = IntProperty(name="Start Frame", description="Starting frame for the animation", default=1)
     use_cyclic = BoolProperty(name="Loop", description="Loop the animation playback", default=False)
     rotate_mode = EnumProperty(items=(
@@ -60,16 +60,54 @@ class BvhImporter(bpy.types.Operator, ImportHelper):
         return import_bvh.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
 
 
-def menu_func(self, context):
+class BvhExporter(bpy.types.Operator, ExportHelper):
+    '''Save a BVH motion capture file from an armature'''
+    bl_idname = "export_anim.bvh"
+    bl_label = "Export BVH"
+
+    filename_ext = ".bvh"
+    filter_glob = StringProperty(default="*.bvh", options={'HIDDEN'})
+
+    global_scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=1.0)
+    frame_start = IntProperty(name="Start Frame", description="Starting frame to export", default=0)
+    frame_end = IntProperty(name="End Frame", description="End frame to export", default=0)
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return obj and obj.type == 'ARMATURE'
+
+    def invoke(self, context, event):
+        self.frame_start = context.scene.frame_start
+        self.frame_end = context.scene.frame_end
+
+        return super().invoke(context, event)
+
+    def execute(self, context):
+        if self.frame_start == 0 and self.frame_end == 0:
+            self.frame_start = context.scene.frame_start
+            self.frame_end = context.scene.frame_end
+
+        from . import export_bvh
+        return export_bvh.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))
+
+
+def menu_func_import(self, context):
     self.layout.operator(BvhImporter.bl_idname, text="Motion Capture (.bvh)")
 
 
+def menu_func_export(self, context):
+    self.layout.operator(BvhExporter.bl_idname, text="Motion Capture (.bvh)")
+
+
 def register():
-    bpy.types.INFO_MT_file_import.append(menu_func)
+    bpy.types.INFO_MT_file_import.append(menu_func_import)
+    bpy.types.INFO_MT_file_export.append(menu_func_export)
 
 
 def unregister():
-    bpy.types.INFO_MT_file_import.remove(menu_func)
+    bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    bpy.types.INFO_MT_file_export.remove(menu_func_export)
 
 if __name__ == "__main__":
     register()

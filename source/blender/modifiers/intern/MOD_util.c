@@ -53,7 +53,8 @@ void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 {
 	int result_type;
 
-	result_type = multitex_ext(texture, tex_co, NULL, NULL, 0, texres);
+	/* no node textures for now */
+	result_type = multitex_ext_safe(texture, tex_co, texres);
 
 	/* if the texture gave an RGB value, we assume it didn't give a valid
 	* intensity, so calculate one (formula from do_material_tex).

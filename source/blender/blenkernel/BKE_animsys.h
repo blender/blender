@@ -100,6 +100,14 @@ void BKE_animdata_fix_paths_rename(struct ID *owner_id, struct AnimData *adt, co
 /* Fix all the paths for the entire database... */
 void BKE_all_animdata_fix_paths_rename(char *prefix, char *oldName, char *newName);
 
+/* -------------------------------------- */
+
+/* Move animation data from src to destination if it's paths are based on basepaths */
+void BKE_animdata_separate_by_basepath(struct ID *srcID, struct ID *dstID, struct ListBase *basepaths);
+
+/* Move F-Curves from src to destination if it's path is based on basepath */
+void action_move_fcurves_by_basepath(struct bAction *srcAct, struct bAction *dstAct, const char basepath[]);
+
 /* ************************************* */
 /* Batch AnimData API */
 

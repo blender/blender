@@ -450,7 +450,7 @@ static PyObject *pyrna_py_from_array_internal(PointerRNA *ptr, PropertyRNA *prop
 			return NULL;
 		}
 
-		PyTuple_SetItem(tuple, i, item);
+		PyTuple_SET_ITEM(tuple, i, item);
 	}
 
 	return tuple;

@@ -59,9 +59,8 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
         return rel
 
 
-    file = open(filepath, "w")
-    # XXX
-#   file.write('# Blender MTL File: %s\n' % Blender.Get('filepath').split('\\')[-1].split('/')[-1])
+    file = open(filepath, "w", encoding='utf8')
+    file.write('# Blender MTL File: %r\n' % os.path.basename(bpy.data.filepath))
     file.write('# Material Count: %i\n' % len(mtl_dict))
     # Write material/image combinations we have used.
     for key, (mtl_mat_name, mat, img) in mtl_dict.items():
@@ -137,8 +136,6 @@ def copy_file(source, dest):
 def copy_images(dest_dir):
     if dest_dir[-1] != os.sep:
         dest_dir += os.sep
-#   if dest_dir[-1] != sys.sep:
-#       dest_dir += sys.sep
 
     # Get unique image names
     uniqueImages = {}
@@ -284,7 +281,6 @@ def write_file(filepath, objects, scene,
 
     def veckey2d(v):
         return round(v[0], 6), round(v[1], 6)
-        # return round(v.x, 6), round(v.y, 6)
 
     def findVertexGroupName(face, vWeightMap):
         """
@@ -503,7 +499,7 @@ def write_file(filepath, objects, scene,
                             uv_face_mapping[f_index][uv_index] = uv_dict[uvkey]
                         except:
                             uv_face_mapping[f_index][uv_index] = uv_dict[uvkey] = len(uv_dict)
-                            file.write('vt %.6f %.6f\n' % tuple(uv))
+                            file.write('vt %.6f %.6f\n' % uv[:])
 
                 uv_unique_count = len(uv_dict)
 #               del uv, uvkey, uv_dict, f_index, uv_index
@@ -546,18 +542,10 @@ def write_file(filepath, objects, scene,
             for f, f_index in face_index_pairs:
                 f_smooth= f.use_smooth
                 f_mat = min(f.material_index, len(materialNames)-1)
-#               f_mat = min(f.mat, len(materialNames)-1)
+
                 if faceuv:
-
                     tface = uv_layer[f_index]
-
                     f_image = tface.image
-                    f_uv = tface.uv
-                    # f_uv= [tface.uv1, tface.uv2, tface.uv3]
-                    # if len(f.vertices) == 4:
-                    #   f_uv.append(tface.uv4)
-#                   f_image = f.image
-#                   f_uv= f.uv
 
                 # MAKE KEY
                 if faceuv and f_image: # Object is always true.
@@ -768,7 +756,7 @@ def _write(context, filepath,
             else:
                 objects = scene.objects
 
-            full_path= ''.join(context_name)
+            full_path = ''.join(context_name)
 
             # erm... bit of a problem here, this can overwrite files when exporting frames. not too bad.
             # EXPORT THE FILE.
@@ -788,7 +776,6 @@ def _write(context, filepath,
                   EXPORT_KEEP_VERT_ORDER,
                   EXPORT_POLYGROUPS,
                   EXPORT_CURVE_AS_NURBS)
-
 
         scene.frame_set(orig_frame, 0.0)
 
@@ -825,7 +812,7 @@ def save(operator, context, filepath="",
          use_animation=False,
          ):
 
-    _write(context, filepath, 
+    _write(context, filepath,
            EXPORT_TRI=use_triangles,
            EXPORT_EDGES=use_edges,
            EXPORT_NORMALS=use_normals,

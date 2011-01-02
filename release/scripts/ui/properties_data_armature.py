@@ -43,9 +43,9 @@ class DATA_PT_context_arm(ArmatureButtonsPanel, bpy.types.Panel):
         space = context.space_data
 
         if ob:
-            layout.template_ID(ob, "data", unlink="None")
+            layout.template_ID(ob, "data")
         elif arm:
-            layout.template_ID(space, "pin_id", unlink="None")
+            layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_skeleton(ArmatureButtonsPanel, bpy.types.Panel):

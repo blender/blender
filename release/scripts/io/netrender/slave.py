@@ -26,6 +26,7 @@ import bpy
 from netrender.utils import *
 import netrender.model
 import netrender.repath
+import netrender.thumbnail as thumbnail
 
 BLENDER_PATH = sys.argv[0]
 
@@ -304,7 +305,7 @@ def render_slave(engine, netsettings, threads):
 
                             # thumbnail first
                             if netsettings.use_slave_thumb:
-                                thumbname = thumbnail(filename)
+                                thumbname = thumbnail.generate(filename)
                                 
                                 if thumbname:
                                     f = open(thumbname, 'rb')

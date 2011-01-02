@@ -30,6 +30,23 @@
  * 
  * The defined Below are for internal use only */
 
+typedef struct boxVert {
+	float x;
+	float y;
+	short free;
+
+	struct boxPack *trb; /* top right box */
+	struct boxPack *blb; /* bottom left box */
+	struct boxPack *brb; /* bottom right box */
+	struct boxPack *tlb; /* top left box */
+
+	/* Store last intersecting boxes here
+	 * speedup intersection testing */
+	struct boxPack *isect_cache[4];
+
+	int index;
+} boxVert;
+
 /* free vert flags */
 #define eps 0.0000001f
 #define BLF 1

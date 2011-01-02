@@ -27,8 +27,8 @@
 set(INC 
 	.
 	..
+	../..
 	./intern/include
-	../../
 	../../../blenlib
 	../../../blenkernel
 	../../../makesdna

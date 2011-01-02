@@ -276,8 +276,6 @@ class RENDER_PT_network_slaves(NeedValidAddress, NetRenderButtonsPanel, bpy.type
         sub.operator("render.netclientslaves", icon='FILE_REFRESH', text="")
         sub.operator("render.netclientblacklistslave", icon='ZOOMOUT', text="")
 
-        init_data(netsettings)
-
         if netsettings.active_slave_index >= 0 and len(netsettings.slaves) > 0:
             layout.separator()
 
@@ -308,8 +306,6 @@ class RENDER_PT_network_slaves_blacklist(NeedValidAddress, NetRenderButtonsPanel
 
         sub = row.column(align=True)
         sub.operator("render.netclientwhitelistslave", icon='ZOOMOUT', text="")
-
-        init_data(netsettings)
 
         if netsettings.active_blacklisted_slave_index >= 0 and len(netsettings.slaves_blacklist) > 0:
             layout.separator()
@@ -344,8 +340,6 @@ class RENDER_PT_network_jobs(NeedValidAddress, NetRenderButtonsPanel, bpy.types.
         sub.operator("render.netclientcancel", icon='ZOOMOUT', text="")
         sub.operator("render.netclientcancelall", icon='PANEL_CLOSE', text="")
         sub.operator("render.netclientdownload", icon='RENDER_ANIMATION', text="")
-
-        init_data(netsettings)
 
         if netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0:
             layout.separator()

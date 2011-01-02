@@ -194,6 +194,50 @@ static void armature_select_mirrored(bArmature *arm)
 	
 }
 
+static void armature_tag_select_mirrored(bArmature *arm)
+{
+	EditBone *curBone;
+
+	/* always untag */
+	for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
+		curBone->flag &= ~BONE_DONE;
+	}
+
+	/* Select mirrored bones */
+	if (arm->flag & ARM_MIRROR_EDIT) {
+		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
+			if (arm->layer & curBone->layer) {
+				if (curBone->flag & (BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL)) {
+					EditBone *ebone_mirr= ED_armature_bone_get_mirrored(arm->edbo, curBone);
+					if (ebone_mirr && (ebone_mirr->flag & BONE_SELECTED) == 0) {
+						ebone_mirr->flag |= BONE_DONE;
+					}
+				}
+			}
+		}
+
+		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
+			if (curBone->flag & BONE_DONE) {
+				EditBone *ebone_mirr= ED_armature_bone_get_mirrored(arm->edbo, curBone);
+				curBone->flag |= ebone_mirr->flag & (BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL);
+			}
+		}
+	}
+}
+
+
+/* only works when tagged */
+static void armature_tag_unselect(bArmature *arm)
+{
+	EditBone *curBone;
+
+	for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
+		if (curBone->flag & BONE_DONE) {
+			curBone->flag &= ~(BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL|BONE_DONE);
+		}
+	}
+}
+
 /* converts Bones to EditBone list, used for tools as well */
 EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone *actBone)
 {
@@ -2136,6 +2180,9 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 
 	float imat[3][3];
 
+	bArmature *arm= ob->data;
+	EditBone *ebone;
+
 	copy_m3_m4(imat, ob->obmat);
 	invert_m3(imat);
 
@@ -2150,13 +2197,14 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 		mul_m3_v3(imat, cursor_local);
 
 		/* cursor */
-		CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
-			float cursor_rel[3];
-			sub_v3_v3v3(cursor_rel, cursor_local, ebone->head);
-			if(axis_flip) negate_v3(cursor_rel);
-			ebone->roll= ED_rollBoneToVector(ebone, cursor_rel, axis_only);
+		for(ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+			if(EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
+				float cursor_rel[3];
+				sub_v3_v3v3(cursor_rel, cursor_local, ebone->head);
+				if(axis_flip) negate_v3(cursor_rel);
+				ebone->roll= ED_rollBoneToVector(ebone, cursor_rel, axis_only);
+			}
 		}
-		CTX_DATA_END;
 	}
 	else {
 		float vec[3]= {0.0f, 0.0f, 0.0f};
@@ -2193,11 +2241,23 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 
 		if(axis_flip) negate_v3(vec);
 
-		CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
-			/* roll func is a callback which assumes that all is well */
-			ebone->roll= ED_rollBoneToVector(ebone, vec, axis_only);
+		for(ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+			if(EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
+				/* roll func is a callback which assumes that all is well */
+				ebone->roll= ED_rollBoneToVector(ebone, vec, axis_only);
+			}
 		}
-		CTX_DATA_END;
+	}
+
+	if (arm->flag & ARM_MIRROR_EDIT) {
+		for(ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+			if((EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) == 0) {
+				EditBone *ebone_mirr= ED_armature_bone_get_mirrored(arm->edbo, ebone);
+				if (ebone_mirr && (EBONE_VISIBLE(arm, ebone_mirr) && EBONE_EDITABLE(ebone_mirr))) {
+					ebone->roll= -ebone_mirr->roll;
+				}
+			}
+		}
 	}
 
 	/* note, notifier might evolve */
@@ -3128,6 +3188,9 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	}
 	newbone= add_points_bone(obedit, head, tail);
 	newbone->parent = start->parent;
+
+	/* TODO, copy more things to the new bone */
+	newbone->flag= start->flag & (BONE_HINGE|BONE_NO_DEFORM|BONE_NO_SCALE|BONE_NO_CYCLICOFFSET|BONE_NO_LOCAL_LOCATION|BONE_DONE);
 	
 	/* step 2a: parent children of in-between bones to newbone */
 	for (chain= chains->first; chain; chain= chain->next) {
@@ -3189,7 +3252,9 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 		/* get chains (ends on chains) */
 		chains_find_tips(arm->edbo, &chains);
 		if (chains.first == NULL) return OPERATOR_CANCELLED;
-		
+
+		armature_tag_select_mirrored(arm);
+
 		/* each 'chain' is the last bone in the chain (with no children) */
 		for (chain= chains.first; chain; chain= nchain) {
 			EditBone *bstart= NULL, *bend= NULL;
@@ -3233,6 +3298,8 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 			BLI_insertlinkbefore(&chains, nchain, chain);
 		}		
 		
+		armature_tag_unselect(arm);
+
 		BLI_freelistN(&chains);
 	}
 	
@@ -3729,10 +3796,9 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	/* get chains of bones (ends on chains) */
 	chains_find_tips(arm->edbo, &chains);
 	if (chains.first == NULL) return OPERATOR_CANCELLED;
-	
-	/* leaves mirrored bones selected, as indication of operation */
-	armature_select_mirrored(arm);
-	
+
+	armature_tag_select_mirrored(arm);
+
 	/* loop over chains, only considering selected and visible bones */
 	for (chain= chains.first; chain; chain= chain->next) {
 		EditBone *ebo, *child=NULL, *parent=NULL;
@@ -3787,6 +3853,8 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* free chains */
 	BLI_freelistN(&chains);	
+
+	armature_tag_unselect(arm);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
@@ -5037,7 +5105,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 			else {
 				/* perform clamping using euler form (3-components) */
 				float eul[3], oldeul[3], quat1[4] = {0};
-				float qlen;
+				float qlen = 0.0f;
 				
 				if (pchan->rotmode == ROT_MODE_QUAT) {
 					qlen= normalize_qt_qt(quat1, pchan->quat);
@@ -5061,10 +5129,10 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 				
 				if (pchan->rotmode == ROT_MODE_QUAT) {
 					eul_to_quat(pchan->quat, eul);
-
+					
 					/* restore original quat size */
 					mul_qt_fl(pchan->quat, qlen);
-
+					
 					/* quaternions flip w sign to accumulate rotations correctly */
 					if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
 						mul_qt_fl(pchan->quat, -1.0f);

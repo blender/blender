@@ -4264,12 +4264,13 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			RNA_string_set(&ptr_props, "doc_id", buf);
 			uiItemFullO(layout, "WM_OT_doc_view", "View Docs", ICON_NULL, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
 
-
-			WM_operator_properties_create(&ptr_props, "WM_OT_doc_edit");
+			/* XXX inactive option, not for public! */
+/*			WM_operator_properties_create(&ptr_props, "WM_OT_doc_edit");
 			RNA_string_set(&ptr_props, "doc_id", buf);
 			RNA_string_set(&ptr_props, "doc_new", RNA_property_description(but->rnaprop));
 
 			uiItemFullO(layout, "WM_OT_doc_edit", "Submit Description", ICON_NULL, ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
+ */
 		}
 		else if (but->optype) {
 			WM_operator_py_idname(buf, but->optype->idname);
@@ -4829,7 +4830,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 
 	/* we disable auto_open in the block after a threshold, because we still
 	 * want to allow auto opening adjacent menus even if no button is activated
-	 * inbetween going over to the other button, but only for a short while */
+	 * in between going over to the other button, but only for a short while */
 	if(type == BUTTON_ACTIVATE_OVER && but->block->auto_open)
 		if(but->block->auto_open_last+BUTTON_AUTO_OPEN_THRESH < PIL_check_seconds_timer())
 			but->block->auto_open= 0;

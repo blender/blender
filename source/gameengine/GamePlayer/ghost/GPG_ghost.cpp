@@ -946,7 +946,8 @@ int main(int argc, char** argv)
 	// Cleanup
 	RNA_exit();
 	BLF_exit();
-	free_blender();
+	IMB_exit();
+	free_nodesystem();
 
 	SYS_DeleteSystem(syshandle);
 

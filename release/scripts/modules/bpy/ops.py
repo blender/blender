@@ -137,13 +137,12 @@ class bpy_ops_submodule_op(object):
     @staticmethod
     def _scene_update(context):
         scene = context.scene
-        if scene: # None in backgroud mode
+        if scene:  # None in backgroud mode
             scene.update()
         else:
             import bpy
             for scene in bpy.data.scenes:
                 scene.update()
-        
 
     __doc__ = property(_get_doc)
 
@@ -196,7 +195,8 @@ class bpy_ops_submodule_op(object):
         as_string = op_as_string(idname)
         op_class = getattr(bpy.types, idname)
         descr = op_class.bl_rna.description
-        # XXX, workaround for not registering every __doc__ to save time on load.
+        # XXX, workaround for not registering
+        # every __doc__ to save time on load.
         if not descr:
             descr = op_class.__doc__
             if not descr:

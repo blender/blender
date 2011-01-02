@@ -2276,7 +2276,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.type= MOUSEMOVE;
 
 				/* some painting operators want accurate mouse events, they can
-				   handle inbetween mouse move moves, others can happily ignore
+				   handle in between mouse move moves, others can happily ignore
 				   them for better performance */
 				if(lastevent && lastevent->type == MOUSEMOVE)
 					lastevent->type = INBETWEEN_MOUSEMOVE;

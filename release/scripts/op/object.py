@@ -257,7 +257,7 @@ class ShapeTransfer(bpy.types.Operator):
             ob.active_shape_key_index = len(me.shape_keys.keys) - 1
             ob.show_only_shape_key = True
 
-        from mathutils.geometry import BarycentricTransform
+        from mathutils.geometry import barycentric_transform
         from mathutils import Vector
 
         if use_clamp and mode == 'OFFSET':
@@ -300,38 +300,38 @@ class ShapeTransfer(bpy.types.Operator):
                 for face in me.faces:
                     i1, i2, i3, i4 = face.vertices_raw
                     if i4 != 0:
-                        pt = BarycentricTransform(orig_shape_coords[i1],
+                        pt = barycentric_transform(orig_shape_coords[i1],
                             orig_coords[i4], orig_coords[i1], orig_coords[i2],
                             target_coords[i4], target_coords[i1], target_coords[i2])
                         median_coords[i1].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i2],
+                        pt = barycentric_transform(orig_shape_coords[i2],
                             orig_coords[i1], orig_coords[i2], orig_coords[i3],
                             target_coords[i1], target_coords[i2], target_coords[i3])
                         median_coords[i2].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i3],
+                        pt = barycentric_transform(orig_shape_coords[i3],
                             orig_coords[i2], orig_coords[i3], orig_coords[i4],
                             target_coords[i2], target_coords[i3], target_coords[i4])
                         median_coords[i3].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i4],
+                        pt = barycentric_transform(orig_shape_coords[i4],
                             orig_coords[i3], orig_coords[i4], orig_coords[i1],
                             target_coords[i3], target_coords[i4], target_coords[i1])
                         median_coords[i4].append(pt)
 
                     else:
-                        pt = BarycentricTransform(orig_shape_coords[i1],
+                        pt = barycentric_transform(orig_shape_coords[i1],
                             orig_coords[i3], orig_coords[i1], orig_coords[i2],
                             target_coords[i3], target_coords[i1], target_coords[i2])
                         median_coords[i1].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i2],
+                        pt = barycentric_transform(orig_shape_coords[i2],
                             orig_coords[i1], orig_coords[i2], orig_coords[i3],
                             target_coords[i1], target_coords[i2], target_coords[i3])
                         median_coords[i2].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i3],
+                        pt = barycentric_transform(orig_shape_coords[i3],
                             orig_coords[i2], orig_coords[i3], orig_coords[i1],
                             target_coords[i2], target_coords[i3], target_coords[i1])
                         median_coords[i3].append(pt)
@@ -350,12 +350,12 @@ class ShapeTransfer(bpy.types.Operator):
                     n1loc_to = v1_to + target_normals[i1] * edlen_to
                     n2loc_to = v2_to + target_normals[i2] * edlen_to
 
-                    pt = BarycentricTransform(orig_shape_coords[i1],
+                    pt = barycentric_transform(orig_shape_coords[i1],
                         v2, v1, n1loc,
                         v2_to, v1_to, n1loc_to)
                     median_coords[i1].append(pt)
 
-                    pt = BarycentricTransform(orig_shape_coords[i2],
+                    pt = barycentric_transform(orig_shape_coords[i2],
                         v1, v2, n2loc,
                         v1_to, v2_to, n2loc_to)
                     median_coords[i2].append(pt)
@@ -550,7 +550,6 @@ class IsolateTypeRender(bpy.types.Operator):
                     obj.hide_render = True
 
         return {'FINISHED'}
-
 
 
 class ClearAllRestrictRender(bpy.types.Operator):

@@ -630,9 +630,6 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 
 	/* operator now handles overwrite checks */
 
-	/* don't forget not to return without! */
-	WM_cursor_wait(1);
-
 	if (G.fileflags & G_AUTOPACK) {
 		packAll(G.main, reports);
 	}
@@ -640,6 +637,9 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	ED_object_exit_editmode(C, EM_DO_UNDO);
 	ED_sculpt_force_update(C);
 
+	/* don't forget not to return without! */
+	WM_cursor_wait(1);
+	
 	/* blend file thumbnail */
 	ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
 

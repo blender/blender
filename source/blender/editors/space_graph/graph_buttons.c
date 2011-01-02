@@ -278,8 +278,19 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 			if (bezt->ipo == BEZT_IPO_BEZ)
 				uiItemR(col, &bezt_ptr, "handle_right", 0, NULL, ICON_NULL);
 	}
-	else
-		uiItemL(layout, "No active keyframe on F-Curve", ICON_NULL);
+	else {
+		if ((fcu->bezt == NULL) && (fcu->modifiers.first)) {
+			/* modifiers only - so no keyframes to be active */
+			uiItemL(layout, "F-Curve only has F-Modifiers", ICON_NULL);
+			uiItemL(layout, "See Modifiers panel below", ICON_INFO);
+		}
+		else if (fcu->fpt) {
+			/* samples only */
+			uiItemL(layout, "F-Curve doesn't have any keyframes as it only contains sampled points", ICON_NULL);
+		}
+		else
+			uiItemL(layout, "No active keyframe on F-Curve", ICON_NULL);
+	}
 	
 	MEM_freeN(ale);
 }
@@ -310,18 +321,19 @@ static void do_graph_region_driver_buttons(bContext *C, void *UNUSED(arg), int e
 }
 
 /* callback to remove the active driver */
-static void driver_remove_cb (bContext *UNUSED(C), void *ale_v, void *UNUSED(arg))
+static void driver_remove_cb (bContext *C, void *ale_v, void *UNUSED(arg))
 {
 	bAnimListElem *ale= (bAnimListElem *)ale_v;
 	ID *id= ale->id;
 	FCurve *fcu= ale->data;
+	ReportList *reports = CTX_wm_reports(C);
 	
 	/* try to get F-Curve that driver lives on, and ID block which has this AnimData */
 	if (ELEM(NULL, id, fcu))
 		return;
 	
 	/* call API method to remove this driver  */	
-	ANIM_remove_driver(id, fcu->rna_path, fcu->array_index, 0);
+	ANIM_remove_driver(reports, id, fcu->rna_path, fcu->array_index, 0);
 }
 
 /* callback to add a target variable to the active driver */

@@ -20,6 +20,7 @@
 
 import bpy
 
+
 # used for DopeSheet, NLA, and Graph Editors
 def dopesheet_filter(layout, context):
     dopesheet = context.space_data.dopesheet
@@ -102,7 +103,7 @@ class DOPESHEET_HT_header(bpy.types.Header):
         if st.mode == 'DOPESHEET':
             dopesheet_filter(layout, context)
 
-        elif st.mode in ('ACTION','SHAPEKEY'):
+        elif st.mode in ('ACTION', 'SHAPEKEY'):
             layout.template_ID(st, "action", new="action.new")
 
         if st.mode != 'GPENCIL':

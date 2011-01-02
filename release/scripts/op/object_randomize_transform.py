@@ -86,6 +86,7 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even):
 
 from bpy.props import *
 
+
 class RandomizeLocRotSize(bpy.types.Operator):
     '''Randomize objects loc/rot/scale'''
     bl_idname = "object.randomize_transform"

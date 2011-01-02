@@ -51,6 +51,7 @@ typedef struct Main {
 	char name[240];
 	short versionfile, subversionfile;
 	short minversionfile, minsubversionfile;
+	int revision;	/* svn revision of binary that saved file */
 	
 	struct Library *curlib;
 	ListBase scene;

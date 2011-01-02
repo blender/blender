@@ -128,6 +128,7 @@ class USERPREF_MT_keyconfigs(bpy.types.Menu):
     bl_label = "KeyPresets"
     preset_subdir = "keyconfig"
     preset_operator = "wm.keyconfig_activate"
+
     def draw(self, context):
         props = self.layout.operator("wm.context_set_value", text="Blender (default)")
         props.data_path = "window_manager.keyconfigs.active"
@@ -379,7 +380,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         subcol = subsplit.column()
 
         row = subcol.row(align=True)
-        
+
         #row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config:")
         text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
         if not text:
@@ -387,7 +388,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         row.menu("USERPREF_MT_keyconfigs", text=text)
         row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMIN")
         row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMOUT").remove_active = True
-    
+
 #        layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
 #        row.operator("wm.keyconfig_remove", text="", icon='X')
 
@@ -605,7 +606,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         f.write("import bpy\n")
         f.write("import os\n\n")
         f.write("wm = bpy.context.window_manager\n")
-        f.write("kc = wm.keyconfigs.new(os.path.splitext(os.path.basename(__file__))[0])\n\n") # keymap must be created by caller
+        f.write("kc = wm.keyconfigs.new(os.path.splitext(os.path.basename(__file__))[0])\n\n")  # keymap must be created by caller
 
         # Generate a list of keymaps to export:
         #

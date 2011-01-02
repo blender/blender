@@ -1348,17 +1348,23 @@ int multitex_mtex(ShadeInput *shi, MTex *mtex, float *texvec, float *dxt, float 
 
 /* Warning, if the texres's values are not declared zero, check the return value to be sure
  * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell */
-/* extern-tex doesn't support nodes (ntreeBeginExec() can't be called when rendering is going on) */
 int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
+{
+	return multitex_nodes(tex, texvec, dxt, dyt, osatex, texres, 0, 0, NULL, NULL);
+}
+
+/* extern-tex doesn't support nodes (ntreeBeginExec() can't be called when rendering is going on) */
+int multitex_ext_safe(Tex *tex, float *texvec, TexResult *texres)
 {
 	int use_nodes= tex->use_nodes, retval;
 	
 	tex->use_nodes= 0;
-	retval= multitex_nodes(tex, texvec, dxt, dyt, osatex, texres, 0, 0, NULL, NULL);
+	retval= multitex_nodes(tex, texvec, NULL, NULL, 0, texres, 0, 0, NULL, NULL);
 	tex->use_nodes= use_nodes;
 	
 	return retval;
 }
+
 
 /* ------------------------------------------------------------------------- */
 

@@ -1158,7 +1158,7 @@ static void init_particle_interpolation(Object *ob, ParticleSystem *psys, Partic
 		pind->dietime = (key + pa->totkey - 1)->time;
 	}
 	else if(pind->cache) {
-		float start, end;
+		float start=0.0f, end=0.0f;
 		get_pointcache_keys_for_time(ob, pind->cache, &pind->pm, -1, 0.0f, NULL, NULL);
 		pind->birthtime = pa ? pa->time : pind->cache->startframe;
 		pind->dietime = pa ? pa->dietime : pind->cache->endframe;
@@ -2807,7 +2807,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	float birthtime = 0.0, dietime = 0.0;
 	float t, time = 0.0, dfra = 1.0, frs_sec = sim->scene->r.frs_sec;
 	float col[4] = {0.5f, 0.5f, 0.5f, 1.0f};
-	float prev_tangent[3], hairmat[4][4];
+	float prev_tangent[3] = {0.0f, 0.0f, 0.0f}, hairmat[4][4];
 	float rotmat[3][3];
 	int k;
 	int steps = (int)pow(2.0, (double)(psys->renderdata ? part->ren_step : part->draw_step));
@@ -3025,7 +3025,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 	
 	float birthtime = 0.0, dietime = 0.0;
 	float t, time = 0.0, keytime = 0.0, frs_sec;
-	float hairmat[4][4], rotmat[3][3], prev_tangent[3];
+	float hairmat[4][4], rotmat[3][3], prev_tangent[3] = {0.0f, 0.0f, 0.0f};
 	int k, i;
 	int steps = (int)pow(2.0, (double)pset->draw_step);
 	int totpart = edit->totpoint, recalc_set=0;

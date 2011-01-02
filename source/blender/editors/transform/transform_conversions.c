@@ -875,6 +875,12 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 			pchan = pchan->parent;
 		else
 			pchan = NULL;
+		
+		/* but, constrainted bones can't get auto-ik transform applied, exclude these */
+		if(pchan && pchan->constraints.first) {
+			data->rootbone--;
+			pchan= NULL;
+		}
 	}
 
 	/* make a copy of maximum chain-length */

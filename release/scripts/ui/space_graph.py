@@ -188,7 +188,7 @@ class GRAPH_MT_key(bpy.types.Menu):
         layout.separator()
         layout.operator_menu_enum("graph.handle_type", "type", text="Handle Type")
         layout.operator_menu_enum("graph.interpolation_type", "type", text="Interpolation Mode")
- 
+
         layout.separator()
         layout.operator("graph.clean")
         layout.operator("graph.sample")

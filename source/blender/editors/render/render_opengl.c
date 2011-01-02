@@ -224,7 +224,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	int sizex, sizey;
 	short is_view_context= RNA_boolean_get(op->ptr, "view_context");
 	const short is_animation= RNA_boolean_get(op->ptr, "animation");
-	const short is_write_still= RNA_boolean_get(op->ptr, "view_context");
+	const short is_write_still= RNA_boolean_get(op->ptr, "write_still");
 
 	/* ensure we have a 3d view */
 
@@ -449,7 +449,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	OGLRender *oglrender= op->customdata;
-
+	int anim= RNA_boolean_get(op->ptr, "animation");
 	int ret;
 
 	switch(event->type) {
@@ -469,7 +469,13 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 	/* run first because screen_opengl_render_anim_step can free oglrender */
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, oglrender->scene);
 	
-	ret= screen_opengl_render_anim_step(C, op);
+	if(anim == 0) {
+		screen_opengl_render_apply(op->customdata);
+		screen_opengl_render_end(C, op->customdata);
+		return OPERATOR_FINISHED;
+	}
+	else
+		ret= screen_opengl_render_anim_step(C, op);
 
 	/* stop at the end or on error */
 	if(ret == 0) {
@@ -481,32 +487,24 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 
 static int screen_opengl_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	OGLRender *oglrender;
 	int anim= RNA_boolean_get(op->ptr, "animation");
 
 	if(!screen_opengl_render_init(C, op))
 		return OPERATOR_CANCELLED;
 
-	if(!anim) {
-		/* render image */
-		screen_opengl_render_apply(op->customdata);
-		screen_opengl_render_end(C, op->customdata);
-		screen_set_image_output(C, event->x, event->y);
-
-		return OPERATOR_FINISHED;
-	}
-	else {
-		OGLRender *oglrender= op->customdata;
-
+	if(anim) {
 		if(!screen_opengl_render_anim_initialize(C, op))
 			return OPERATOR_CANCELLED;
-
-		screen_set_image_output(C, event->x, event->y);
-
-		WM_event_add_modal_handler(C, op);
-		oglrender->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-
-		return OPERATOR_RUNNING_MODAL;
 	}
+	
+	oglrender= op->customdata;
+	screen_set_image_output(C, event->x, event->y);
+	
+	WM_event_add_modal_handler(C, op);
+	oglrender->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+	
+	return OPERATOR_RUNNING_MODAL;
 }
 
 /* executes blocking render */

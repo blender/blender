@@ -58,11 +58,12 @@ class ImportMDD(bpy.types.Operator, ImportHelper):
         from . import import_mdd
         return import_mdd.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
 
+
 class ExportMDD(bpy.types.Operator, ExportHelper):
     '''Animated mesh to MDD vertex keyframe file'''
     bl_idname = "export_shape.mdd"
     bl_label = "Export MDD"
-    
+
     filename_ext = ".mdd"
     filter_glob = StringProperty(default="*.mdd", options={'HIDDEN'})
 

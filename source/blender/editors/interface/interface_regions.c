@@ -1082,28 +1082,35 @@ void ui_searchbox_free(bContext *C, ARegion *ar)
 }
 
 /* sets red alert if button holds a string it can't find */
+/* XXX weak: search_func adds all partial matches... */
 void ui_but_search_test(uiBut *but)
 {
 	uiSearchItems *items= MEM_callocN(sizeof(uiSearchItems), "search items");
-	char *strp[2], str[256];
+	int x1;
 	
-	items->maxitem= 1;
+	/* setup search struct */
+	items->maxitem= 10;
 	items->maxstrlen= 256;
-	strp[0]= str;
-	items->names= strp;
+	items->names= MEM_callocN(items->maxitem*sizeof(void *), "search names");
+	for(x1=0; x1<items->maxitem; x1++)
+		items->names[x1]= MEM_callocN(but->hardmax+1, "search names");
 	
-	/* changed flag makes search only find name */
-	but->changed= TRUE;
 	but->search_func(but->block->evil_C, but->search_arg, but->drawstr, items);
-	but->changed= 0;
 	
+	/* only redalert when we are sure of it, this can miss cases when >10 matches */
 	if(items->totitem==0)
 		uiButSetFlag(but, UI_BUT_REDALERT);
-	else if(items->totitem==1) {
-		if(strcmp(but->drawstr, str)!=0)
+	else if(items->more==0) {
+		for(x1= 0; x1<items->totitem; x1++)
+			if(strcmp(but->drawstr, items->names[x1])==0)
+				break;
+		if(x1==items->totitem)
 			uiButSetFlag(but, UI_BUT_REDALERT);
 	}
-				  
+	
+	for(x1=0; x1<items->maxitem; x1++)
+		MEM_freeN(items->names[x1]);
+	MEM_freeN(items->names);
 	MEM_freeN(items);
 }
 

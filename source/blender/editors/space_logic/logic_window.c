@@ -3691,7 +3691,7 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 	bArmatureActuator *aa = (bArmatureActuator *) act->data;
 	Object *ob = (Object *)ptr->id.data;
 	PointerRNA pose_ptr, pchan_ptr;
-	PropertyRNA *bones_prop;
+	PropertyRNA *bones_prop = NULL;
 
 	if(ob->type != OB_ARMATURE){
 		uiItemL(layout, "Actuator only available for armatures", ICON_NULL);

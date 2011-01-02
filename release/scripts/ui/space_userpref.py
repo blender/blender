@@ -815,6 +815,7 @@ class USERPREF_PT_input(InputKeyMapPanel):
 
         #print("runtime", time.time() - start)
 
+
 class USERPREF_MT_addons_dev_guides(bpy.types.Menu):
     bl_label = "Addons develoment guides"
 
@@ -855,21 +856,21 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         modules = []
         loaded_modules = set()
-        
+
         # RELEASE SCRIPTS: official scripts distributed in Blender releases
         paths = bpy.utils.script_paths("addons")
-        
+
         # CONTRIB SCRIPTS: good for testing but not official scripts yet
         # if folder addons_contrib/ exists, scripts in there will be loaded too
         paths += bpy.utils.script_paths("addons_contrib")
-        
+
         # EXTERN SCRIPTS: external projects scripts
         # if folder addons_extern/ exists, scripts in there will be loaded too
         paths += bpy.utils.script_paths("addons_extern")
 
         if bpy.app.debug:
             t_main = time.time()
-        
+
         # fake module importing
         def fake_module(mod_name, mod_path, speedy=True):
             if bpy.app.debug:
@@ -960,11 +961,11 @@ class USERPREF_PT_addons(bpy.types.Panel):
         col = split.column()
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
         col.prop(context.window_manager, "addon_filter", text="Filter", expand=True)
-        
+
         # menu to open webpages with addons development guides
         col.separator()
-        col.label(text = ' Online Documentation', icon = 'INFO')
-        col.menu('USERPREF_MT_addons_dev_guides', text='Addons Developer Guides')
+        col.label(text=" Online Documentation", icon='INFO')
+        col.menu("USERPREF_MT_addons_dev_guides", text="Addons Developer Guides")
 
         col = split.column()
 

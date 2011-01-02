@@ -134,6 +134,7 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text='Fit preview in window')
+            layout.operator("sequencer.view_zoom_ratio", text='Show preview 1:1').ratio = 1.0
             layout.operator_context = 'INVOKE_DEFAULT'
 
             # # XXX, invokes in the header view
@@ -389,7 +390,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
         col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
 
         elem = False
-        
+
         if strip.type == 'IMAGE':
             elem = strip.getStripElem(frame_current)
         elif strip.type == 'MOVIE':
@@ -607,7 +608,12 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
             col.prop(strip.crop, "max_x")
 
         col = layout.column(align=True)
-        col.label(text="Trim Duration:")
+        col.label(text="Trim Duration (hard):")
+        col.prop(strip, "animation_offset_start", text="Start")
+        col.prop(strip, "animation_offset_end", text="End")
+
+        col = layout.column(align=True)
+        col.label(text="Trim Duration (soft):")
         col.prop(strip, "frame_offset_start", text="Start")
         col.prop(strip, "frame_offset_end", text="End")
 
@@ -678,7 +684,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
         layout.template_ID(strip, "scene_camera")
 
         sce = strip.scene
-        layout.label(text="Original frame range: "+ str(sce.frame_start) +" - "+ str(sce.frame_end) + " (" + str(sce.frame_end-sce.frame_start+1) + ")")
+        layout.label(text="Original frame range: %d-%d (%d)" % (sce.frame_start, sce.frame_end, sce.frame_end - sce.frame_start + 1))
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
@@ -787,7 +793,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, bpy.types.Panel):
         render = context.scene.render
 
         col = layout.column()
-        col.active = False #Currently only opengl preview works!
+        col.active = False  # Currently only opengl preview works!
         col.prop(render, "use_sequencer_gl_preview", text="Open GL Preview")
         col = layout.column()
         #col.active = render.use_sequencer_gl_preview

@@ -57,7 +57,7 @@ for line in infile.readlines():
 infile.close()
 
 # Major was changed to float, but minor is still a string
-# Note: removed returning minor, this messes up with install path code in BLI module
+# Note: removed returning minor, messes up install path code in BLI module
 if major:
     print "%.2f" % major
 else:

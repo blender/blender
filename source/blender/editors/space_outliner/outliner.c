@@ -3924,7 +3924,7 @@ enum {
 /* Utilities ---------------------------------- */ 
 
 /* Recursively iterate over tree, finding and working on selected items */
-static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short mode)
+static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, ReportList *reports, short mode)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -3949,6 +3949,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 			
 			/* only if ID and path were set, should we perform any actions */
 			if (id && path) {
+				short dflags = CREATEDRIVER_WITH_DEFAULT_DVAR;
 				int arraylen = 1;
 				
 				/* array checks */
@@ -3970,13 +3971,13 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 						case DRIVERS_EDITMODE_ADD:
 						{
 							/* add a new driver with the information obtained (only if valid) */
-							ANIM_add_driver(id, path, array_index, flag, DRIVER_TYPE_PYTHON);
+							ANIM_add_driver(reports, id, path, array_index, dflags, DRIVER_TYPE_PYTHON);
 						}
 							break;
 						case DRIVERS_EDITMODE_REMOVE:
 						{
 							/* remove driver matching the information obtained (only if valid) */
-							ANIM_remove_driver(id, path, array_index, flag);
+							ANIM_remove_driver(reports, id, path, array_index, dflags);
 						}
 							break;
 					}
@@ -3991,13 +3992,13 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 		
 		/* go over sub-tree */
 		if ((tselem->flag & TSE_CLOSED)==0)
-			do_outliner_drivers_editop(soops, &te->subtree, mode);
+			do_outliner_drivers_editop(soops, &te->subtree, reports, mode);
 	}
 }
 
 /* Add Operator ---------------------------------- */
 
-static int outliner_drivers_addsel_exec(bContext *C, wmOperator *UNUSED(op))
+static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soutliner= CTX_wm_space_outliner(C);
 	
@@ -4006,10 +4007,10 @@ static int outliner_drivers_addsel_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	/* recursively go into tree, adding selected items */
-	do_outliner_drivers_editop(soutliner, &soutliner->tree, DRIVERS_EDITMODE_ADD);
+	do_outliner_drivers_editop(soutliner, &soutliner->tree, op->reports, DRIVERS_EDITMODE_ADD);
 	
 	/* send notifiers */
-	WM_event_add_notifier(C, ND_KEYS, NULL); // XXX
+	WM_event_add_notifier(C, NC_ANIMATION|ND_FCURVES_ORDER, NULL); // XXX
 	
 	return OPERATOR_FINISHED;
 }
@@ -4032,7 +4033,7 @@ void OUTLINER_OT_drivers_add_selected(wmOperatorType *ot)
 
 /* Remove Operator ---------------------------------- */
 
-static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *UNUSED(op))
+static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soutliner= CTX_wm_space_outliner(C);
 	
@@ -4041,7 +4042,7 @@ static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	/* recursively go into tree, adding selected items */
-	do_outliner_drivers_editop(soutliner, &soutliner->tree, DRIVERS_EDITMODE_REMOVE);
+	do_outliner_drivers_editop(soutliner, &soutliner->tree, op->reports, DRIVERS_EDITMODE_REMOVE);
 	
 	/* send notifiers */
 	WM_event_add_notifier(C, ND_KEYS, NULL); // XXX

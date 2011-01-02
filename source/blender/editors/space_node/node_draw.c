@@ -662,6 +662,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColorShade(color_id, -20);
 	else
 		UI_ThemeColor(color_id);
+	
+	if(node->flag & NODE_MUTED)
+	   UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
 		
 	uiSetRoundBox(3);
 	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);

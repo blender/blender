@@ -123,21 +123,21 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
 
             # Align Mode
 
-            if relative_to == 'OPT_4': # Active relative
+            if relative_to == 'OPT_4':  # Active relative
                 if align_mode == 'OPT_1':
                     obj_x = obj_loc[0] - negative_x - size_active_x
 
                 elif align_mode == 'OPT_3':
                     obj_x = obj_loc[0] - positive_x + size_active_x
 
-            else: # Everything else relative
+            else:  # Everything else relative
                 if align_mode == 'OPT_1':
                     obj_x = obj_loc[0] - negative_x
 
                 elif align_mode == 'OPT_3':
                     obj_x = obj_loc[0] - positive_x
 
-            if align_mode == 'OPT_2': # All relative
+            if align_mode == 'OPT_2':  # All relative
                 obj_x = obj_loc[0] - center_x
 
             # Relative To
@@ -156,26 +156,24 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
 
             obj.location[0] = loc_x
 
-
         if align_y:
-
             # Align Mode
 
-            if relative_to == 'OPT_4': # Active relative
+            if relative_to == 'OPT_4':  # Active relative
                 if align_mode == 'OPT_1':
                     obj_y = obj_loc[1] - negative_y - size_active_y
 
                 elif align_mode == 'OPT_3':
                     obj_y = obj_loc[1] - positive_y + size_active_y
 
-            else: # Everything else relative
+            else:  # Everything else relative
                 if align_mode == 'OPT_1':
                     obj_y = obj_loc[1] - negative_y
 
                 elif align_mode == 'OPT_3':
                     obj_y = obj_loc[1] - positive_y
 
-            if align_mode == 'OPT_2': # All relative
+            if align_mode == 'OPT_2':  # All relative
                 obj_y = obj_loc[1] - center_y
 
             # Relative To
@@ -194,26 +192,23 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
 
             obj.location[1] = loc_y
 
-
         if align_z:
-
             # Align Mode
-
-            if relative_to == 'OPT_4': # Active relative
+            if relative_to == 'OPT_4':  # Active relative
                 if align_mode == 'OPT_1':
                     obj_z = obj_loc[2] - negative_z - size_active_z
 
                 elif align_mode == 'OPT_3':
                     obj_z = obj_loc[2] - positive_z + size_active_z
 
-            else: # Everything else relative
+            else:  # Everything else relative
                 if align_mode == 'OPT_1':
                     obj_z = obj_loc[2] - negative_z
 
                 elif align_mode == 'OPT_3':
                     obj_z = obj_loc[2] - positive_z
 
-            if align_mode == 'OPT_2': # All relative
+            if align_mode == 'OPT_2':  # All relative
                 obj_z = obj_loc[2] - center_z
 
             # Relative To

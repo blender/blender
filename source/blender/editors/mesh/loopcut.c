@@ -408,7 +408,8 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		lcd->eed = edge;
 		ringsel_find_edge(lcd, 1);
 	}
-
+	ED_area_headerprint(CTX_wm_area(C), "Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts");
+	
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -428,6 +429,7 @@ static int ringcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 				
 				ringsel_finish(C, op);
 				ringsel_exit(op);
+				ED_area_headerprint(CTX_wm_area(C), NULL);
 				
 				return OPERATOR_FINISHED;
 			}
@@ -439,6 +441,7 @@ static int ringcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			if (event->val == KM_RELEASE) {
 				/* cancel */
 				ED_region_tag_redraw(lcd->ar);
+				ED_area_headerprint(CTX_wm_area(C), NULL);
 				
 				return ringcut_cancel(C, op);
 			}

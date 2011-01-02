@@ -50,4 +50,8 @@ set(SRC
 	intern/readfile.h
 )
 
+if(WITH_BUILDINFO)
+	add_definitions(-DNAN_BUILDINFO)
+endif()
+
 blender_add_lib(bf_blenloader "${SRC}" "${INC}")

@@ -271,7 +271,7 @@ typedef void (*uiMenuHandleFunc)(struct bContext *C, void *arg, int event);
  *
  * Functions used to create popup menus. For more extended menus the
  * uiPupMenuBegin/End functions can be used to define own items with
- * the uiItem functions inbetween. If it is a simple confirmation menu
+ * the uiItem functions in between. If it is a simple confirmation menu
  * or similar, popups can be created with a single function call. */
 
 typedef struct uiPopupMenu uiPopupMenu;

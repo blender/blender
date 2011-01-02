@@ -143,12 +143,17 @@ extern "C" {
 	GHOST_TDragnDropTypes m_draggedObjectType;
 }
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
+- (GHOST_SystemCocoa*)systemCocoa;
 @end
 @implementation CocoaWindow
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa
 {
 	systemCocoa = sysCocoa;
 	associatedWindow = winCocoa;
+}
+- (GHOST_SystemCocoa*)systemCocoa
+{
+	return systemCocoa;
 }
 
 -(BOOL)canBecomeKeyWindow
@@ -777,6 +782,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[tmpWindow setReleasedWhenClosed:NO];
 				[tmpWindow setAcceptsMouseMovedEvents:YES];
 				[tmpWindow setDelegate:[m_window delegate]];
+				[tmpWindow setSystemAndWindowCocoa:[m_window systemCocoa] windowCocoa:this];
 				[tmpWindow registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
 												   NSStringPboardType, NSTIFFPboardType, nil]];
 				
@@ -837,6 +843,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[tmpWindow setReleasedWhenClosed:NO];
 				[tmpWindow setAcceptsMouseMovedEvents:YES];
 				[tmpWindow setDelegate:[m_window delegate]];
+				[tmpWindow setSystemAndWindowCocoa:[m_window systemCocoa] windowCocoa:this];
 				[tmpWindow registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
 												   NSStringPboardType, NSTIFFPboardType, nil]];
 				//Forbid to resize the window below the blender defined minimum one

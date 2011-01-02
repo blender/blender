@@ -110,7 +110,6 @@ def sane_name(name):
 
 def uv_key(uv):
     return round(uv[0], 6), round(uv[1], 6)
-# 	return round(uv.x, 6), round(uv.y, 6)
 
 # size defines:
 SZ_SHORT = 2

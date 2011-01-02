@@ -1935,12 +1935,12 @@ static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *curscene= CTX_data_scene(C);
 	Render *re= RE_NewRender(curscene->id.name);
 
-//	WM_cursor_wait(1);
+	WM_cursor_wait(1);
 
 	RE_MergeFullSample(re, bmain, curscene, snode->nodetree);
 	snode_notify(C, snode);
 	
-//	WM_cursor_wait(0);
+	WM_cursor_wait(0);
 	return OPERATOR_FINISHED;
 }
 

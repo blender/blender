@@ -357,13 +357,11 @@ typedef struct SpaceScript {
 	void *but_refs;
 } SpaceScript;
 
+# /* Only store the data array in the cache to avoid constant reallocation. */
+# /* No need to store when saved. */
 typedef struct SpaceTimeCache {
 	struct SpaceTimeCache *next, *prev;
-
-	struct PointCache *cache;
 	float *array;
-
-	int type, len;
 } SpaceTimeCache;
 
 typedef struct SpaceTime {

@@ -893,12 +893,13 @@ static void rna_def_constraint_transform_like(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "CopyTransformsConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Copy Transforms Constraint", "Copies all the transforms of the target");
-	RNA_def_struct_sdna_from(srna, "bTransLikeConstraint", "data");
 	
 	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, "bConstraint", "headtail");
 	RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	RNA_def_struct_sdna_from(srna, "bTransLikeConstraint", "data");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "tar");
@@ -918,12 +919,12 @@ static void rna_def_constraint_minmax(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem minmax_items[] = {
-		{LOCLIKE_X, "FLOOR_X", 0, "X", ""},
-		{LOCLIKE_Y, "FLOOR_Y", 0, "Y", ""},
-		{LOCLIKE_Z, "FLOOR_Z", 0, "Z", ""},
-		{LOCLIKE_X_INVERT, "FLOOR_NEGATIVE_X", 0, "-X", ""},
-		{LOCLIKE_Y_INVERT, "FLOOR_NEGATIVE_Y", 0, "-Y", ""},
-		{LOCLIKE_Z_INVERT, "FLOOR_NEGATIVE_Z", 0, "-Z", ""},
+		{TRACK_X, "FLOOR_X", 0, "X", ""},
+		{TRACK_Y, "FLOOR_Y", 0, "Y", ""},
+		{TRACK_Z, "FLOOR_Z", 0, "Z", ""},
+		{TRACK_nX, "FLOOR_NEGATIVE_X", 0, "-X", ""},
+		{TRACK_nY, "FLOOR_NEGATIVE_Y", 0, "-Y", ""},
+		{TRACK_nZ, "FLOOR_NEGATIVE_Z", 0, "-Z", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FloorConstraint", "Constraint");
@@ -1113,7 +1114,7 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "offset", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Offset", "Offset from the position corresponding to the time frame");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");

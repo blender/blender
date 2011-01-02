@@ -1492,8 +1492,19 @@ void RNA_def_property_boolean_sdna(PropertyRNA *prop, const char *structname, co
 		return;
 	}
 
-	if((dp=rna_def_property_sdna(prop, structname, propname)))
+	if((dp=rna_def_property_sdna(prop, structname, propname))) {
+
+		if(DefRNA.silent == 0) {
+			/* error check to ensure floats are not wrapped as ints/bools */
+			if(dp->dnatype && *dp->dnatype && IS_DNATYPE_INT_COMPAT(dp->dnatype) == 0) {
+				fprintf(stderr, "RNA_def_property_boolean_sdna: %s.%s is a '%s' but wrapped as type '%s'.\n", srna->identifier, prop->identifier, dp->dnatype, RNA_property_typename(prop->type));
+				DefRNA.error= 1;
+				return;
+			}
+		}
+
 		dp->booleanbit= bit;
+	}
 }
 
 void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop, const char *structname, const char *propname, int booleanbit)
@@ -1526,6 +1537,16 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
 	}
 
 	if((dp= rna_def_property_sdna(prop, structname, propname))) {
+
+		/* error check to ensure floats are not wrapped as ints/bools */
+		if(DefRNA.silent == 0) {
+			if(dp->dnatype && *dp->dnatype && IS_DNATYPE_INT_COMPAT(dp->dnatype) == 0) {
+				fprintf(stderr, "RNA_def_property_int_sdna: %s.%s is a '%s' but wrapped as type '%s'.\n", srna->identifier, prop->identifier, dp->dnatype, RNA_property_typename(prop->type));
+				DefRNA.error= 1;
+				return;
+			}
+		}
+
 		/* SDNA doesn't pass us unsigned unfortunately .. */
 		if(dp->dnatype && strcmp(dp->dnatype, "char") == 0) {
 			iprop->hardmin= iprop->softmin= CHAR_MIN;
@@ -1550,6 +1571,7 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
 
 void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
+	PropertyDefRNA *dp;
 	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
@@ -1561,6 +1583,19 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
 		fprintf(stderr, "RNA_def_property_float_sdna: \"%s.%s\", type is not float.\n", srna->identifier, prop->identifier);
 		DefRNA.error= 1;
 		return;
+	}
+
+	if((dp= rna_def_property_sdna(prop, structname, propname))) {
+		/* silent is for internal use */
+		if(DefRNA.silent == 0) {
+			if(dp->dnatype && *dp->dnatype && IS_DNATYPE_FLOAT_COMPAT(dp->dnatype) == 0) {
+				if(prop->subtype != PROP_COLOR_GAMMA) { /* colors are an exception. these get translated */
+					fprintf(stderr, "RNA_def_property_float_sdna: %s.%s is a '%s' but wrapped as type '%s'.\n", srna->identifier, prop->identifier, dp->dnatype, RNA_property_typename(prop->type));
+					DefRNA.error= 1;
+					return;
+				}
+			}
+		}
 	}
 
 	rna_def_property_sdna(prop, structname, propname);
@@ -2799,3 +2834,17 @@ int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *ide
 }
 #endif
 
+const char *RNA_property_typename(PropertyType type)
+{
+	switch(type) {
+		case PROP_BOOLEAN: return "PROP_BOOLEAN";
+		case PROP_INT: return "PROP_INT";
+		case PROP_FLOAT: return "PROP_FLOAT";
+		case PROP_STRING: return "PROP_STRING";
+		case PROP_ENUM: return "PROP_ENUM";
+		case PROP_POINTER: return "PROP_POINTER";
+		case PROP_COLLECTION: return "PROP_COLLECTION";
+	}
+
+	return "PROP_UNKNOWN";
+}

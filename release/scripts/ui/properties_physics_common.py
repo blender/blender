@@ -69,22 +69,26 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             row.prop(cache, "frame_end")
         if cachetype not in ('SMOKE', 'CLOTH'):
             row.prop(cache, "frame_step")
+            row.prop(cache, "use_quick_cache")
         if cachetype != 'SMOKE':
             layout.label(text=cache.info)
 
         if cachetype != 'SMOKE':
             split = layout.split()
+            split.enabled = enabled and (not bpy.data.is_dirty)
 
             col = split.column()
-            col.enabled = enabled
-            col.prop(cache, "use_quick_cache")
-
-            col = split.column()
-            col.enabled = (not bpy.data.is_dirty)
             col.prop(cache, "use_disk_cache")
-            sub = col.column()
-            sub.enabled = cache.use_disk_cache
-            sub.prop(cache, "use_library_path", "Use Lib Path")
+
+            col = split.column()
+            col.active = cache.use_disk_cache
+            col.prop(cache, "use_library_path", "Use Lib Path")
+
+            row = layout.row()
+            row.enabled = enabled and (not bpy.data.is_dirty)
+            row.active = cache.use_disk_cache
+            row.label(text="Compression:")
+            row.prop(cache, "compression", expand=True)
 
         layout.separator()
 

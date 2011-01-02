@@ -2011,9 +2011,9 @@ static void def_cmp_glare(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Streaks", "Total number of streaks");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
-	prop = RNA_def_property(srna, "angle_offset", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "angle_ofs");
-	RNA_def_property_range(prop, 0.0f, 180.0f);
+	prop = RNA_def_property(srna, "angle_offset", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "angle_ofs");
+	RNA_def_property_range(prop, 0, 180);
 	RNA_def_property_ui_text(prop, "Angle Offset", "Streak angle offset in degrees");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	

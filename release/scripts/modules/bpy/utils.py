@@ -31,6 +31,7 @@ import bpy as _bpy
 import os as _os
 import sys as _sys
 
+
 def _test_import(module_name, loaded_modules):
     import traceback
     import time
@@ -203,12 +204,10 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     # deal with addons seperately
     addon_reset_all(reload_scripts)
 
-
     # run the active integration preset
     filepath = preset_find(_bpy.context.user_preferences.inputs.active_keyconfig, "keyconfig")
     if filepath:
         keyconfig_set(filepath)
-
 
     if reload_scripts:
         import gc
@@ -368,14 +367,12 @@ def addon_enable(module_name, default_set=True):
     import bpy_types as _bpy_types
     import imp
 
-
     _bpy_types._register_immediate = False
 
     def handle_error():
         import traceback
         traceback.print_exc()
         _bpy_types._register_immediate = True
-
 
     # reload if the mtime changes
     mod = sys.modules.get(module_name)
@@ -428,7 +425,7 @@ def addon_enable(module_name, default_set=True):
         if not ext:
             ext = _bpy.context.user_preferences.addons.new()
             ext.module = module_name
-    
+
     _bpy_types._register_immediate = True
 
     mod.__addon_enabled__ = True
@@ -471,7 +468,7 @@ def addon_disable(module_name, default_set=True):
             addon = addons.get(module_name)
             if addon:
                 addons.remove(addon)
-    
+
     print("\tbpy.utils.addon_disable", module_name)
 
 
@@ -483,10 +480,10 @@ def addon_reset_all(reload_scripts=False):
 
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
     paths = script_paths("addons")
-    
+
     # CONTRIB SCRIPTS: good for testing but not official scripts yet
     paths += script_paths("addons_contrib")
-    
+
     # EXTERN SCRIPTS: external projects scripts
     paths += script_paths("addons_extern")
 
@@ -513,9 +510,9 @@ def addon_reset_all(reload_scripts=False):
 def preset_find(name, preset_path, display_name=False):
     if not name:
         return None
-    
+
     for directory in preset_paths(preset_path):
-        
+
         if display_name:
             filename = ""
             for fn in _os.listdir(directory):
@@ -558,7 +555,7 @@ def keyconfig_set(filepath):
             keyconfigs.remove(kc_dupe)
         else:
             break
-    
+
     kc_new.name = name
     keyconfigs.active = kc_new
 
@@ -595,4 +592,3 @@ def user_resource(type, path="", create=False):
                 target_path = ""
 
     return target_path
-

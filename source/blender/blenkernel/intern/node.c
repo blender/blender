@@ -36,11 +36,13 @@
 #include <string.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_action_types.h"
 
 #include "RNA_access.h"
 
+#include "BKE_animsys.h"
+#include "BKE_action.h"
 #include "BKE_fcurve.h"
-#include "BKE_animsys.h" /* BKE_free_animdata only */
 
 
 #include "PIL_time.h"
@@ -460,6 +462,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 	bNode *node, *gnode, *nextn;
 	bNodeSocket *sock;
 	bNodeTree *ngroup;
+	ListBase anim_basepaths = {NULL, NULL};
 	float min[2], max[2];
 	int totnode=0;
 	
@@ -502,11 +505,27 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 	for(node= ntree->nodes.first; node; node= nextn) {
 		nextn= node->next;
 		if(node->flag & NODE_SELECT) {
+			/* keep track of this node's RNA "base" path (the part of the pat identifying the node) 
+			 * if the old nodetree has animation data which potentially covers this node
+			 */
+			if (ntree->adt) {
+				PointerRNA ptr;
+				char *path;
+				
+				RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
+				path = RNA_path_from_ID_to_struct(&ptr);
+				
+				if (path)
+					BLI_addtail(&anim_basepaths, BLI_genericNodeN(path));
+			}
+			
+			/* change node-collection membership */
 			BLI_remlink(&ntree->nodes, node);
 			BLI_addtail(&ngroup->nodes, node);
+			
 			node->locx-= 0.5f*(min[0]+max[0]);
 			node->locy-= 0.5f*(min[1]+max[1]);
-
+			
 			/* set socket own_index to zero since it can still have a value
 			 * from being in a group before, otherwise it doesn't get a unique
 			 * index in group_verify_own_indices */
@@ -523,6 +542,21 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 		if(link->fromnode->flag & link->tonode->flag & NODE_SELECT) {
 			BLI_remlink(&ntree->links, link);
 			BLI_addtail(&ngroup->links, link);
+		}
+	}
+	
+	/* move animation data over */
+	if (ntree->adt) {
+		LinkData *ld, *ldn=NULL;
+		
+		BKE_animdata_separate_by_basepath(&ntree->id, &ngroup->id, &anim_basepaths);
+		
+		/* paths + their wrappers need to be freed */
+		for (ld = anim_basepaths.first; ld; ld = ld->next) {
+			ldn = ld->next;
+			
+			MEM_freeN(ld->data);
+			BLI_freelinkN(&anim_basepaths, ld);
 		}
 	}
 	
@@ -771,6 +805,7 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	bNodeLink *link, *linkn;
 	bNode *node, *nextn;
 	bNodeTree *ngroup, *wgroup;
+	ListBase anim_basepaths = {NULL, NULL};
 	int index;
 	
 	ngroup= (bNodeTree *)gnode->id;
@@ -779,16 +814,38 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	/* clear new pointers, set in copytree */
 	for(node= ntree->nodes.first; node; node= node->next)
 		node->new_node= NULL;
-
+	
+	/* wgroup is a temporary copy of the NodeTree we're merging in
+	 *	- all of wgroup's nodes are transferred across to their new home
+	 *	- ngroup (i.e. the source NodeTree) is left unscathed
+	 */
 	wgroup= ntreeCopyTree(ngroup, 0);
 	
 	/* add the nodes into the ntree */
 	for(node= wgroup->nodes.first; node; node= nextn) {
 		nextn= node->next;
+		
+		/* keep track of this node's RNA "base" path (the part of the pat identifying the node) 
+		 * if the old nodetree has animation data which potentially covers this node
+		 */
+		if (wgroup->adt) {
+			PointerRNA ptr;
+			char *path;
+			
+			RNA_pointer_create(&wgroup->id, &RNA_Node, node, &ptr);
+			path = RNA_path_from_ID_to_struct(&ptr);
+			
+			if (path)
+				BLI_addtail(&anim_basepaths, BLI_genericNodeN(path));
+		}
+		
+		/* migrate node */
 		BLI_remlink(&wgroup->nodes, node);
 		BLI_addtail(&ntree->nodes, node);
+		
 		node->locx+= gnode->locx;
 		node->locy+= gnode->locy;
+		
 		node->flag |= NODE_SELECT;
 	}
 	/* and the internal links */
@@ -796,6 +853,29 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 		linkn= link->next;
 		BLI_remlink(&wgroup->links, link);
 		BLI_addtail(&ntree->links, link);
+	}
+	
+	/* and copy across the animation */
+	if (wgroup->adt) {
+		LinkData *ld, *ldn=NULL;
+		bAction *waction;
+		
+		/* firstly, wgroup needs to temporary dummy action that can be destroyed, as it shares copies */
+		waction = wgroup->adt->action = copy_action(wgroup->adt->action);
+		
+		/* now perform the moving */
+		BKE_animdata_separate_by_basepath(&wgroup->id, &ntree->id, &anim_basepaths);
+		
+		/* paths + their wrappers need to be freed */
+		for (ld = anim_basepaths.first; ld; ld = ld->next) {
+			ldn = ld->next;
+			
+			MEM_freeN(ld->data);
+			BLI_freelinkN(&anim_basepaths, ld);
+		}
+		
+		/* free temp action too */
+		free_libblock(&G.main->action, waction);
 	}
 
 	/* restore links to and from the gnode */
@@ -2474,6 +2554,25 @@ static bNode *getExecutableNode(bNodeTree *ntree)
 	return NULL;
 }
 
+/* check if texture nodes need exec or end */
+static  void ntree_composite_texnode(bNodeTree *ntree, int init)
+{
+	bNode *node;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_TEXTURE && node->id) {
+			Tex *tex= (Tex *)node->id;
+			if(tex->nodetree && tex->use_nodes) {
+				/* has internal flag to detect it only does it once */
+				if(init)
+					ntreeBeginExecTree(tex->nodetree); 
+				else
+					ntreeEndExecTree(tex->nodetree);
+			}
+		}
+	}
+
+}
 
 /* optimized tree execute test for compositing */
 void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
@@ -2489,6 +2588,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 		ntreeInitPreview(ntree, 0, 0);
 	
 	ntreeBeginExecTree(ntree);
+	ntree_composite_texnode(ntree, 1);
 	
 	/* prevent unlucky accidents */
 	if(G.background)

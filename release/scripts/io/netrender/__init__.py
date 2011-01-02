@@ -56,6 +56,12 @@ init_data = True
 
 def register():
     ui.addProperties()
+
+    import bpy
+    scene = bpy.context.scene
+    if scene:
+        netsettings = scene.network_render
+        ui.init_data(netsettings)
     
 
 def unregister():

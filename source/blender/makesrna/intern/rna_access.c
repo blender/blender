@@ -2828,7 +2828,8 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int i
 	internal->endptr= ((char*)ptr)+length*itemsize;
 	internal->itemsize= itemsize;
 	internal->skip= skip;
-
+	internal->length= length;
+	
 	iter->internal= internal;
 	iter->valid= (internal->ptr != internal->endptr);
 

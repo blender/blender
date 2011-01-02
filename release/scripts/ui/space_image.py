@@ -250,7 +250,8 @@ class IMAGE_MT_uvs(bpy.types.Menu):
         layout.separator()
 
         layout.menu("IMAGE_MT_uvs_showhide")
-        
+
+
 class IMAGE_MT_uvs_select_mode(bpy.types.Menu):
     bl_label = "UV Select Mode"
 
@@ -259,9 +260,9 @@ class IMAGE_MT_uvs_select_mode(bpy.types.Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
         toolsettings = context.tool_settings
-        
+
         # do smart things depending on whether uv_select_sync is on
-        
+
         if toolsettings.use_uv_select_sync:
             prop = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
             prop.value = "(True, False, False)"
@@ -287,7 +288,7 @@ class IMAGE_MT_uvs_select_mode(bpy.types.Menu):
             prop = layout.operator("wm.context_set_string", text="Face", icon='UV_FACESEL')
             prop.value = "FACE"
             prop.data_path = "tool_settings.uv_select_mode"
-        
+
             prop = layout.operator("wm.context_set_string", text="Island", icon='UV_ISLANDSEL')
             prop.value = "ISLAND"
             prop.data_path = "tool_settings.uv_select_mode"

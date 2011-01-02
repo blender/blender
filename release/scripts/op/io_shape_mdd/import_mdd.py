@@ -36,10 +36,10 @@ from struct import unpack
 
 
 def load(operator, context, filepath, frame_start=0, frame_step=1):
-    
+
     scene = context.scene
     obj = context.object
-    
+
     print('\n\nimporting mdd %r' % filepath)
 
     if bpy.ops.object.mode_set.poll():
@@ -68,36 +68,33 @@ def load(operator, context, filepath, frame_start=0, frame_step=1):
         new_shapekey.name = ("frame_%.4d" % fr)
         new_shapekey_name = new_shapekey.name
 
-        obj.active_shape_key_index = len(obj.data.shape_keys.keys)-1
-        index = len(obj.data.shape_keys.keys)-1
+        obj.active_shape_key_index = len(obj.data.shape_keys.keys) - 1
+        index = len(obj.data.shape_keys.keys) - 1
         obj.show_only_shape_key = True
 
-        verts = obj.data.shape_keys.keys[len(obj.data.shape_keys.keys)-1].data
+        verts = obj.data.shape_keys.keys[len(obj.data.shape_keys.keys) - 1].data
 
-
-        for v in verts: # 12 is the size of 3 floats
+        for v in verts:  # 12 is the size of 3 floats
             v.co[:] = unpack('>3f', file.read(12))
         #me.update()
         obj.show_only_shape_key = False
-
 
         # insert keyframes
         shape_keys = obj.data.shape_keys
 
         scene.frame_current -= 1
         obj.data.shape_keys.keys[index].value = 0.0
-        shape_keys.keys[len(obj.data.shape_keys.keys)-1].keyframe_insert("value")
+        shape_keys.keys[len(obj.data.shape_keys.keys) - 1].keyframe_insert("value")
 
         scene.frame_current += 1
         obj.data.shape_keys.keys[index].value = 1.0
-        shape_keys.keys[len(obj.data.shape_keys.keys)-1].keyframe_insert("value")
+        shape_keys.keys[len(obj.data.shape_keys.keys) - 1].keyframe_insert("value")
 
         scene.frame_current += 1
         obj.data.shape_keys.keys[index].value = 0.0
-        shape_keys.keys[len(obj.data.shape_keys.keys)-1].keyframe_insert("value")
+        shape_keys.keys[len(obj.data.shape_keys.keys) - 1].keyframe_insert("value")
 
         obj.data.update()
-
 
     for i in range(frames):
         UpdateMesh(obj, i)
