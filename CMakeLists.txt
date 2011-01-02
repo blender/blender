@@ -945,11 +945,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Configure OpenGL.
 find_package(OpenGL)
-if(MSVC)
-	include_directories("${OPENGL_INCLUDE_DIR}")
-else()
-	blender_include_dirs("${OPENGL_INCLUDE_DIR}")
-endif()
+blender_include_dirs("${OPENGL_INCLUDE_DIR}")
 # unset(OPENGL_LIBRARIES CACHE) # not compat with older cmake 
 # unset(OPENGL_xmesa_INCLUDE_DIR CACHE) # not compat with older cmake 
 
