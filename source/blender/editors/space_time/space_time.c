@@ -231,7 +231,7 @@ static void time_cache_free(SpaceTime *stime)
 	BLI_freelistN(&stime->caches);
 }
 
-static void time_cache_refresh(const bContext *C, SpaceTime *stime)
+static void time_cache_refresh(SpaceTime *stime)
 {
 	/* Free previous caches to indicate full refresh */
 	time_cache_free(stime);
@@ -358,7 +358,7 @@ static void time_draw_keyframes(const bContext *C, SpaceTime *stime, ARegion *ar
 
 /* ---------------- */
 
-static void time_refresh(const bContext *C, ScrArea *sa)
+static void time_refresh(const bContext *UNUSED(C), ScrArea *sa)
 {
 	SpaceTime *stime = (SpaceTime *)sa->spacedata.first;
 	ARegion *ar;
@@ -366,7 +366,7 @@ static void time_refresh(const bContext *C, ScrArea *sa)
 	/* find the main timeline region and refresh cache display*/
 	for (ar= sa->regionbase.first; ar; ar= ar->next) {
 		if (ar->regiontype==RGN_TYPE_WINDOW) {
-			time_cache_refresh(C, stime);
+			time_cache_refresh(stime);
 			break;
 		}
 	}

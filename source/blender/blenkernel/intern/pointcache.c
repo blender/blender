@@ -1059,7 +1059,6 @@ static int ptcache_file_compressed_write(PTCacheFile *pf, unsigned char *in, siz
 
 	if(compressed == 2)
 	{
-		uint32_t size = (uint32_t) sizeOfIt;
 		ptcache_file_write(pf, &sizeOfIt, 1, sizeof(uint32_t));
 		ptcache_file_write(pf, props, sizeOfIt, sizeof(unsigned char));
 	}
@@ -1158,6 +1157,7 @@ static void ptcache_file_pointers_init(PTCacheFile *pf)
 	pf->cur[BPHYS_DATA_BOIDS] =		(data_types & (1<<BPHYS_DATA_BOIDS))	?		&pf->data.boids	: NULL;
 }
 
+#if 0 // UNUSED
 static void ptcache_file_pointers_seek(int index, PTCacheFile *pf)
 {
 	int i, size=0;
@@ -1190,6 +1190,8 @@ static void ptcache_file_pointers_seek(int index, PTCacheFile *pf)
 
 	ptcache_file_pointers_init(pf);
 }
+#endif
+
 void BKE_ptcache_mem_pointers_init(PTCacheMem *pm)
 {
 	int data_types = pm->data_types;
@@ -1528,6 +1530,8 @@ cleanup:
 
 	return ret;
 }
+
+#if 0 // UNUSED
 static int ptcache_read_init(PTCacheID *pid, void **cache, int *totpoint)
 {
 	if(*cache==NULL)
@@ -1563,6 +1567,8 @@ static int ptcache_read_init(PTCacheID *pid, void **cache, int *totpoint)
 		return pm->frame;
 	}
 }
+#endif
+
 static int ptcache_read_stream(PTCacheID *pid, int cfra)
 {
 	PTCacheFile *pf = ptcache_file_open(pid, PTCACHE_FILE_READ, cfra);
@@ -1811,7 +1817,6 @@ static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
 
 	if(overwrite) {
 		if(cache->flag & PTCACHE_DISK_CACHE) {
-			PTCacheFile *pf = NULL;
 			int fra = cfra-1;
 
 			while(fra >= cache->startframe && !BKE_ptcache_id_exist(pid, fra))

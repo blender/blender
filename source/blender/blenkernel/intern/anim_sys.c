@@ -886,7 +886,7 @@ KS_Path *BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[],
 	/* just store absolute info */
 	ksp->id= id;
 	if (group_name)
-		BLI_snprintf(ksp->group, 64, group_name);
+		BLI_strncpy(ksp->group, group_name, sizeof(ksp->group));
 	else
 		ksp->group[0]= '\0';
 	
