@@ -496,7 +496,7 @@ static ParamHandle *liveHandle = NULL;
 void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 {
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
-	short abf = scene->toolsettings->unwrapper == 1;
+	short abf = scene->toolsettings->unwrapper == 0;
 	short fillholes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 
 	if(!ED_uvedit_test(obedit)) {
@@ -821,6 +821,9 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
+
+	/* remember last method for live unwrap */
+	scene->toolsettings->unwrapper = method;
 
 	handle= construct_param_handle(scene, em, 0, fill_holes, 1, correct_aspect);
 
