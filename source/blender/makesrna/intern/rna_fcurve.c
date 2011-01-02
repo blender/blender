@@ -334,19 +334,36 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 
 static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
 {
-	AnimData *adt= BKE_animdata_from_id(ptr->id.data);
-	bAction *act= (adt) ? adt->action : NULL;
+	ID *pid = (ID *)ptr->id.data;
+	ID *vid = (ID *)value.id.data;
 	FCurve *fcu= ptr->data;
-
-	/* same ID? */
-	if (value.data && (ptr->id.data != value.id.data)) {
-		/* id's differ, cant do this, should raise an error */
+	bAction *act = NULL;
+	
+	/* get action */
+	if (ELEM(NULL, pid, vid)) {
+		printf("ERROR: one of the ID's for the groups to assign to is invalid (ptr=%p, val=%p)\n", pid, vid);
 		return;
 	}
+	else if (value.data && (pid != vid)) {
+		/* id's differ, cant do this, should raise an error */
+		printf("ERROR: ID's differ - ptr=%p vs value=%p \n", pid, vid);
+		return;
+	}
+	
+	if (GS(pid->name)==ID_AC && GS(vid->name)==ID_AC) {
+		/* the ID given is the action already - usually when F-Curve is obtained from an action's pointer */
+		act = (bAction *)pid;
+	}
+	else {
+		/* the ID given is the owner of the F-Curve (for drivers) */
+		AnimData *adt = BKE_animdata_from_id(ptr->id.data);
+		act = (adt)? adt->action : NULL;
+	}
+	
 	/* already belongs to group? */
 	if (fcu->grp == value.data) {
 		/* nothing to do */
-		printf("ERROR: F-Curve already belongs to the group\n");
+		printf("ERROR: F-Curve already belongs to this group\n");
 		return; 
 	}
 	
@@ -357,17 +374,15 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
 		/* can't change the grouping of F-Curve when it doesn't belong to an action */
 		printf("ERROR: cannot assign F-Curve to group, since F-Curve is not attached to any ID\n");
 		return;
-	}	
-	
-	/* try to remove F-Curve from action (including from any existing groups) 
-	 *	- if after this op it is still attached to something, then it is a driver 
-	 *	  not an animation curve as we thought, and we should exit
-	 */
-	action_groups_remove_channel(act, fcu);
-	if (fcu->next) {
-		/* F-Curve is not one that exists in the action, since the above op couldn't remove it from the list */
+	}
+	/* make sure F-Curve exists in this action first, otherwise we could still have been tricked */
+	else if (BLI_findindex(&act->curves, fcu) == -1) {
+		printf("ERROR: F-Curve (%p) doesn't exist in action '%s'\n", fcu, act->id.name);
 		return;
 	}
+	
+	/* try to remove F-Curve from action (including from any existing groups) */
+	action_groups_remove_channel(act, fcu);
 	
 	/* add the F-Curve back to the action now in the right place */
 	// TODO: make the api function handle the case where there isn't any group to assign to 
