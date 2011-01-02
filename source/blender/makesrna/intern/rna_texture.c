@@ -325,9 +325,6 @@ static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, int value)
 
 	if(value) tex->imaflag |= TEX_MIPMAP;
 	else tex->imaflag &= ~TEX_MIPMAP;
-
-	if(tex->imaflag & TEX_MIPMAP)
-		tex->texfilter = TXF_EWA;
 }
 
 static void rna_Envmap_source_update(Main *bmain, Scene *scene, PointerRNA *ptr)
