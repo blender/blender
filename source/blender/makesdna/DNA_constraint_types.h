@@ -541,7 +541,7 @@ typedef enum eUpAxis_Modes {
 	UP_Z
 } eUpAxis_Modes;
 
-/* Tracking axis (TrackTo, Locked Track, Damped Track) */
+/* Tracking axis (TrackTo, Locked Track, Damped Track) and minmax (floor) constraint */
 typedef enum eTrackToAxis_Modes {
 	TRACK_X		= 0,
 	TRACK_Y,

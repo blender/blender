@@ -5654,12 +5654,14 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bfd->main->subversionfile= fg->subversion;
 	bfd->main->minversionfile= fg->minversion;
 	bfd->main->minsubversionfile= fg->minsubversion;
+	bfd->main->revision= fg->revision;
 	
 	bfd->winpos= fg->winpos;
 	bfd->fileflags= fg->fileflags;
 	bfd->displaymode= fg->displaymode;
 	bfd->globalf= fg->globalf;
 	BLI_strncpy(bfd->filename, fg->filename, sizeof(bfd->filename));
+	
 	if(G.fileflags & G_FILE_RECOVER)
 		BLI_strncpy(fd->relabase, fg->filename, sizeof(fd->relabase));
 	
@@ -6642,7 +6644,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* WATCH IT!!!: pointers from libdata have not been converted */
 
 	if(G.f & G_DEBUG)
-		printf("read file %s\n  Version %d sub %d\n", fd->relabase, main->versionfile, main->subversionfile);
+		printf("read file %s\n  Version %d sub %d svn r%d\n", fd->relabase, main->versionfile, main->subversionfile, main->revision);
 	
 	if(main->versionfile == 100) {
 		/* tex->extend and tex->imageflag have changed: */
