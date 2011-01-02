@@ -961,8 +961,10 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 }
 static void ptcache_file_close(PTCacheFile *pf)
 {
-	fclose(pf->fp);
-	MEM_freeN(pf);
+	if(pf) {
+		fclose(pf->fp);
+		MEM_freeN(pf);
+	}
 }
 
 static int ptcache_file_compressed_read(PTCacheFile *pf, unsigned char *result, size_t len)
@@ -1157,41 +1159,6 @@ static void ptcache_file_pointers_init(PTCacheFile *pf)
 	pf->cur[BPHYS_DATA_BOIDS] =		(data_types & (1<<BPHYS_DATA_BOIDS))	?		&pf->data.boids	: NULL;
 }
 
-#if 0 // UNUSED
-static void ptcache_file_pointers_seek(int index, PTCacheFile *pf)
-{
-	int i, size=0;
-	int data_types = pf->data_types;
-
-	if(data_types & (1<<BPHYS_DATA_INDEX)) {
-		int totpoint;
-		/* The simplest solution is to just write to the very end. This may cause
-		 * some data duplication, but since it's on disk it's not so bad. The correct
-		 * thing would be to search through the file for the correct index and only
-		 * write to the end if it's not found, but this could be quite slow.
-		 */
-		fseek(pf->fp, 8 + sizeof(int), SEEK_SET);
-		fread(&totpoint, sizeof(int), 1, pf->fp);
-		
-		totpoint++;
-
-		fseek(pf->fp, 8 + sizeof(int), SEEK_SET);
-		fwrite(&totpoint, sizeof(int), 1, pf->fp);
-
-		fseek(pf->fp, 0, SEEK_END);
-	}
-	else {
-		for(i=0; i<BPHYS_TOT_DATA; i++)
-			size += (pf->data_types & (1<<i)) ? ptcache_data_size[i] : 0;
-
-		/* size of default header + data up to index */
-		fseek(pf->fp, 8 + 3*sizeof(int) + index * size, SEEK_SET);
-	}
-
-	ptcache_file_pointers_init(pf);
-}
-#endif
-
 void BKE_ptcache_mem_pointers_init(PTCacheMem *pm)
 {
 	int data_types = pm->data_types;
@@ -1360,47 +1327,49 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 {
 	PTCacheFile *pf = ptcache_file_open(pid, PTCACHE_FILE_READ, cfra);
 	PTCacheMem *pm = NULL;
-	int i, error = 1;
+	int i, error = 0;
 
 	if(pf == NULL)
-		goto cleanup;
+		return 0;
 
 	if(!ptcache_file_header_begin_read(pf))
-		goto cleanup;
+		error = 1;
 
-	if(pf->type != pid->type || !pid->read_header(pf))
-		goto cleanup;
-	
-	pm = MEM_callocN(sizeof(PTCacheMem), "Pointcache mem");
+	if(!error && (pf->type != pid->type || !pid->read_header(pf)))
+		error = 1;
 
-	pm->totpoint = pf->totpoint;
-	pm->data_types = pf->data_types;
-	pm->frame = pf->frame;
+	if(!error) {
+		pm = MEM_callocN(sizeof(PTCacheMem), "Pointcache mem");
 
-	ptcache_data_alloc(pm);
+		pm->totpoint = pf->totpoint;
+		pm->data_types = pf->data_types;
+		pm->frame = pf->frame;
 
-	if(pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
-		for(i=0; i<BPHYS_TOT_DATA; i++) {
-			unsigned int out_len = pm->totpoint*ptcache_data_size[i];
-			if(pf->data_types & (1<<i))
-				ptcache_file_compressed_read(pf, (unsigned char*)(pm->data[i]), out_len);
-		}
-	}
-	else {
-		BKE_ptcache_mem_pointers_init(pm);
-		ptcache_file_pointers_init(pf);
+		ptcache_data_alloc(pm);
 
-		for(i=0; i<pm->totpoint; i++) {
-			if(!ptcache_file_data_read(pf)) {
-				printf("Error reading from disk cache\n");
-				goto cleanup;
+		if(pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
+			for(i=0; i<BPHYS_TOT_DATA; i++) {
+				unsigned int out_len = pm->totpoint*ptcache_data_size[i];
+				if(pf->data_types & (1<<i))
+					ptcache_file_compressed_read(pf, (unsigned char*)(pm->data[i]), out_len);
 			}
-			ptcache_data_copy(pf->cur, pm->cur);
-			BKE_ptcache_mem_pointers_incr(pm);
+		}
+		else {
+			BKE_ptcache_mem_pointers_init(pm);
+			ptcache_file_pointers_init(pf);
+
+			for(i=0; i<pm->totpoint; i++) {
+				if(!ptcache_file_data_read(pf)) {
+					error = 1;
+					break;
+				}
+				ptcache_data_copy(pf->cur, pm->cur);
+				BKE_ptcache_mem_pointers_incr(pm);
+			}
 		}
 	}
 
-	if(pf->flag & PTCACHE_TYPEFLAG_EXTRADATA) {
+	if(!error && pf->flag & PTCACHE_TYPEFLAG_EXTRADATA) {
 		uint32_t extratype = 0;
 		uint32_t value;
 
@@ -1427,11 +1396,9 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 		}
 	}
 
-	ptcache_make_index_array(pm, pid->totpoint(pid->calldata, pm->frame));
+	if(!error)
+		ptcache_make_index_array(pm, pid->totpoint(pid->calldata, pm->frame));
 
-	error = 0;
-
-cleanup:
 	if(error && pm) {
 		ptcache_data_free(pm);
 		ptcache_extra_free(pm);
@@ -1439,22 +1406,27 @@ cleanup:
 		pm = NULL;
 	}
 
-	if(pf)
-		ptcache_file_close(pf);
+	ptcache_file_close(pf);
+
+	if (error && G.f & G_DEBUG) 
+		printf("Error reading from disk cache\n");
 	
 	return pm;
 }
 static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 {
 	PTCacheFile *pf = NULL;
-	int i, ret = 0;
+	int i, error = 0;
 	
 	BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_FRAME, pm->frame);
 
 	pf = ptcache_file_open(pid, PTCACHE_FILE_WRITE, pm->frame);
 
-	if(pf==NULL)
-		goto cleanup;
+	if(pf==NULL) {
+		if (G.f & G_DEBUG) 
+			printf("Error opening disk cache file for writing\n");
+		return 0;
+	}
 
 	pf->data_types = pm->data_types;
 	pf->totpoint = pm->totpoint;
@@ -1468,31 +1440,35 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 		pf->flag |= PTCACHE_TYPEFLAG_COMPRESS;
 
 	if(!ptcache_file_header_begin_write(pf) || !pid->write_header(pf))
-		goto cleanup;
+		error = 1;
 
-	if(pid->cache->compression) {
-		for(i=0; i<BPHYS_TOT_DATA; i++) {
-			if(pm->data[i]) {
-				unsigned int in_len = pm->totpoint*ptcache_data_size[i];
-				unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
-				ptcache_file_compressed_write(pf, (unsigned char*)(pm->data[i]), in_len, out, pid->cache->compression);
-				MEM_freeN(out);
+	if(!error) {
+		if(pid->cache->compression) {
+			for(i=0; i<BPHYS_TOT_DATA; i++) {
+				if(pm->data[i]) {
+					unsigned int in_len = pm->totpoint*ptcache_data_size[i];
+					unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
+					ptcache_file_compressed_write(pf, (unsigned char*)(pm->data[i]), in_len, out, pid->cache->compression);
+					MEM_freeN(out);
+				}
+			}
+		}
+		else {
+			BKE_ptcache_mem_pointers_init(pm);
+			ptcache_file_pointers_init(pf);
+
+			for(i=0; i<pm->totpoint; i++) {
+				ptcache_data_copy(pm->cur, pf->cur);
+				if(!ptcache_file_data_write(pf)) {
+					error = 1;
+					break;
+				}
+				BKE_ptcache_mem_pointers_incr(pm);
 			}
 		}
 	}
-	else {
-		BKE_ptcache_mem_pointers_init(pm);
-		ptcache_file_pointers_init(pf);
 
-		for(i=0; i<pm->totpoint; i++) {
-			ptcache_data_copy(pm->cur, pf->cur);
-			if(!ptcache_file_data_write(pf))
-				goto cleanup;
-			BKE_ptcache_mem_pointers_incr(pm);
-		}
-	}
-
-	if(pm->extradata.first) {
+	if(!error && pm->extradata.first) {
 		PTCacheExtra *extra = pm->extradata.first;
 		uint32_t value;
 
@@ -1521,83 +1497,47 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 		}
 	}
 
-	ret = 1;
-cleanup:
 	ptcache_file_close(pf);
 	
-	if (ret == 0 && G.f & G_DEBUG) 
+	if (error && G.f & G_DEBUG) 
 		printf("Error writing to disk cache\n");
 
-	return ret;
+	return error==0;
 }
-
-#if 0 // UNUSED
-static int ptcache_read_init(PTCacheID *pid, void **cache, int *totpoint)
-{
-	if(*cache==NULL)
-		return 0;
-
-	if(pid->cache->flag & PTCACHE_DISK_CACHE) {
-		PTCacheFile *pf = (PTCacheFile *)(*cache);
-
-		if(ptcache_file_header_begin_read(pf)) {
-			if(pf->type != pid->type) {
-				/* todo report error */
-				ptcache_file_close(pf);
-				*cache = NULL;
-				return 0;
-			}
-			else if(pid->read_header(pf)) {
-				ptcache_file_pointers_init(pf);
-				*totpoint = pf->totpoint;
-			}
-		}
-		else {
-			/* fall back to old cache file format */
-			pf->old_format = 1;
-			*totpoint = pid->totpoint(pid->calldata, (int) pf->frame);
-		}
-		return pf->frame;
-	}
-	else {
-		PTCacheMem *pm = (PTCacheMem *)(*cache);
-
-		BKE_ptcache_mem_pointers_init(pm);
-		*totpoint = pm->totpoint;
-		return pm->frame;
-	}
-}
-#endif
 
 static int ptcache_read_stream(PTCacheID *pid, int cfra)
 {
 	PTCacheFile *pf = ptcache_file_open(pid, PTCACHE_FILE_READ, cfra);
-	int error = 1;
+	int error = 0;
 
-	if(pf == NULL || pid->read_stream == NULL)
-		goto cleanup;
+	if(pid->read_stream == NULL)
+		return 0;
+
+	if(pf == NULL) {
+		if (G.f & G_DEBUG) 
+			printf("Error opening disk cache file for reading\n");
+		return 0;
+	}
 
 	if(!ptcache_file_header_begin_read(pf))
-		goto cleanup;
+		error = 1;
 
-	if(pf->type != pid->type || !pid->read_header(pf))
-		goto cleanup;
+	if(!error && (pf->type != pid->type || !pid->read_header(pf)))
+		error = 1;
 
-	if(pf->totpoint != pid->totpoint(pid->calldata, cfra))
-		goto cleanup;
+	if(!error && pf->totpoint != pid->totpoint(pid->calldata, cfra))
+		error = 1;
 
-	ptcache_file_pointers_init(pf);
+	if(!error) {
+		ptcache_file_pointers_init(pf);
 
-	// we have stream reading here
-	pid->read_stream(pf, pid->calldata);
+		// we have stream reading here
+		pid->read_stream(pf, pid->calldata);
+	}
 
-	error = 0;
-
-cleanup:
-	if(pf)
-		ptcache_file_close(pf);
+	ptcache_file_close(pf);
 	
-	return !error;
+	return error == 0;
 }
 static int ptcache_read(PTCacheID *pid, int cfra)
 {
@@ -1771,35 +1711,35 @@ int BKE_ptcache_read(PTCacheID *pid, float cfra)
 static int ptcache_write_stream(PTCacheID *pid, int cfra, int totpoint)
 {
 	PTCacheFile *pf = NULL;
-	int ret = 0;
+	int error = 0;
 	
 	BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_FRAME, cfra);
 
 	pf = ptcache_file_open(pid, PTCACHE_FILE_WRITE, cfra);
 
-	if(pf==NULL)
-		goto cleanup;
+	if(pf==NULL) {
+		if (G.f & G_DEBUG) 
+			printf("Error opening disk cache file for writing\n");
+		return 0;
+	}
 
 	pf->data_types = pid->data_types;
 	pf->totpoint = totpoint;
 	pf->type = pid->type;
 	pf->flag = 0;
 
-	if(!ptcache_file_header_begin_write(pf) || !pid->write_header(pf))
-		goto cleanup;
+	if(!error && (!ptcache_file_header_begin_write(pf) || !pid->write_header(pf)))
+		error = 1;
 
-	if(pid->write_stream)
+	if(!error && pid->write_stream)
 		pid->write_stream(pf, pid->calldata);
 
-	ret = 1;
-cleanup:
-	if(pf)
-		ptcache_file_close(pf);
-	
-	if (ret == 0 && G.f & G_DEBUG) 
+	ptcache_file_close(pf);
+
+	if (error && G.f & G_DEBUG) 
 		printf("Error writing to disk cache\n");
 
-	return ret;
+	return error == 0;
 }
 static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
 {
@@ -1964,7 +1904,6 @@ int BKE_ptcache_write(PTCacheID *pid, int cfra)
 void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 {
 	int len; /* store the length of the string */
-	int i;
 	int sta, end;
 
 	/* mode is same as fopen's modes */
@@ -2012,8 +1951,6 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 							pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
 							BLI_join_dirfile(path_full, path, de->d_name);
 							BLI_delete(path_full, 0, 0);
-							if(pid->cache->cached_frames) for(i=0; i<end-sta+1; i++)
-								pid->cache->cached_frames[i] = 0;
 						} else {
 							/* read the number of the file */
 							int frame, len2 = (int)strlen(de->d_name);
@@ -2037,6 +1974,9 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 				}
 			}
 			closedir(dir);
+
+			if(mode == PTCACHE_CLEAR_ALL && pid->cache->cached_frames)
+				memset(pid->cache->cached_frames, 0, MEM_allocN_len(pid->cache->cached_frames));
 		}
 		else {
 			PTCacheMem *pm= pid->cache->mem_cache.first;
@@ -2053,8 +1993,8 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 				}
 				BLI_freelistN(&pid->cache->mem_cache);
 
-				if(pid->cache->cached_frames) for(i=0; i<end-sta+1; i++)
-					pid->cache->cached_frames[i] = 0;
+				if(pid->cache->cached_frames) 
+					memset(pid->cache->cached_frames, 0, MEM_allocN_len(pid->cache->cached_frames));
 			} else {
 				while(pm) {
 					if((mode==PTCACHE_CLEAR_BEFORE && pm->frame < cfra)	|| 
@@ -2811,6 +2751,11 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 		return;
 	}
 
+	if(cache->cached_frames) {
+		MEM_freeN(cache->cached_frames);
+		cache->cached_frames=NULL;
+	}
+
 	if(cache->flag & PTCACHE_DISK_CACHE)
 		BKE_ptcache_mem_to_disk(pid);
 	else
@@ -2821,11 +2766,6 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 	cache->flag ^= PTCACHE_DISK_CACHE;
 	
 	cache->last_exact = last_exact;
-
-	if(cache->cached_frames) {
-		MEM_freeN(cache->cached_frames);
-		cache->cached_frames=NULL;
-	}
 
 	BKE_ptcache_id_time(pid, NULL, 0.0f, NULL, NULL, NULL);
 
