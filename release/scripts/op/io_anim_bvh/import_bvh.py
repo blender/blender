@@ -125,9 +125,9 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
 
             #print '%snode: %s, parent: %s' % (len(bvh_nodes_serial) * '  ', name,  bvh_nodes_serial[-1])
 
-            lineIdx += 2  # Incriment to the next line (Offset)
+            lineIdx += 2  # Increment to the next line (Offset)
             rest_head_local = Vector((float(file_lines[lineIdx][1]), float(file_lines[lineIdx][2]), float(file_lines[lineIdx][3]))) * global_scale
-            lineIdx += 1  # Incriment to the next line (Channels)
+            lineIdx += 1  # Increment to the next line (Channels)
 
             # newChannel[Xposition, Yposition, Zposition, Xrotation, Yrotation, Zrotation]
             # newChannel references indecies to the motiondata,
@@ -163,7 +163,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
 
             my_parent = bvh_nodes_serial[-1]  # account for none
 
-            # Apply the parents offset accumletivly
+            # Apply the parents offset accumulatively
             if my_parent is None:
                 rest_head_world = Vector(rest_head_local)
             else:
@@ -175,14 +175,14 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
             bvh_nodes_serial.append(bvh_node)
 
         # Account for an end node
-        if file_lines[lineIdx][0].lower() == 'end' and file_lines[lineIdx][1].lower() == 'site':  # There is somtimes a name after 'End Site' but we will ignore it.
-            lineIdx += 2  # Incriment to the next line (Offset)
+        if file_lines[lineIdx][0].lower() == 'end' and file_lines[lineIdx][1].lower() == 'site':  # There is sometimes a name after 'End Site' but we will ignore it.
+            lineIdx += 2  # Increment to the next line (Offset)
             rest_tail = Vector((float(file_lines[lineIdx][1]), float(file_lines[lineIdx][2]), float(file_lines[lineIdx][3]))) * global_scale
 
             bvh_nodes_serial[-1].rest_tail_world = bvh_nodes_serial[-1].rest_head_world + rest_tail
             bvh_nodes_serial[-1].rest_tail_local = bvh_nodes_serial[-1].rest_head_local + rest_tail
 
-            # Just so we can remove the Parents in a uniform way- End end never has kids
+            # Just so we can remove the Parents in a uniform way- End has kids
             # so this is a placeholder
             bvh_nodes_serial.append(None)
 

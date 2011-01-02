@@ -737,7 +737,7 @@ void accum_mballfaces(int i1, int i2, int i3, int i4)
 void *new_pgn_element(int size)
 {
 	/* during polygonize 1000s of elements are allocated
-	 * and never freed inbetween. Freeing only done at the end.
+	 * and never freed in between. Freeing only done at the end.
 	 */
 	int blocksize= 16384;
 	static int offs= 0;		/* the current free address */

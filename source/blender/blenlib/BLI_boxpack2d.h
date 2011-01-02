@@ -29,24 +29,6 @@
 
 /* Box Packer */
 
-/* verts, internal use only */
-typedef struct boxVert {
-	float x;
-	float y;
-	short free;
-	
-	struct boxPack *trb; /* top right box */
-	struct boxPack *blb; /* bottom left box */
-	struct boxPack *brb; /* bottom right box */
-	struct boxPack *tlb; /* top left box */
-	
-	/* Store last intersecting boxes here
-	 * speedup intersection testing */
-	struct boxPack *isect_cache[4];
-	
-	int index;
-} boxVert;
-
 typedef struct boxPack {
 	float x;
 	float y;
@@ -56,7 +38,7 @@ typedef struct boxPack {
 	
 	/* Verts this box uses
 	 * (BL,TR,TL,BR) / 0,1,2,3 */
-	boxVert *v[4];
+	struct boxVert *v[4];
 } boxPack;
 
 void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height); 

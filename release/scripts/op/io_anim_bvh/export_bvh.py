@@ -131,7 +131,7 @@ def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
         "pose_imat",  # pose_mat inverted
         "rest_arm_imat",  # rest_arm_mat inverted
         "rest_local_imat",  # rest_local_mat inverted
-        "prev_euler",  # last used euler to preserve euler compability inbetween keyframes
+        "prev_euler",  # last used euler to preserve euler compability in between keyframes
         )
         def __init__(self, bone_name):
             self.name = bone_name
