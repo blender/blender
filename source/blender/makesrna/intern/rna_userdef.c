@@ -2790,7 +2790,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "render_output_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "renderdir");
-	RNA_def_property_ui_text(prop, "Render Output Directory", "The default directory for rendering output");
+	RNA_def_property_ui_text(prop, "Render Output Directory", "The default directory for rendering output, for new scenes");
 
 	prop= RNA_def_property(srna, "script_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "pythondir");
