@@ -542,7 +542,7 @@ def save(operator, context, filepath="",
     print('\nFBX export starting... %r' % filepath)
     start_time = time.clock()
     try:
-        file = open(filepath, 'w')
+        file = open(filepath, 'w', encoding='utf8')
     except:
         return False
 
@@ -1636,13 +1636,13 @@ def save(operator, context, filepath="",
                     # workaround, since uf.uv iteration is wrong atm
                     for uv in uf.uv:
                         if i==-1:
-                            file.write('%.6f,%.6f' % tuple(uv))
+                            file.write('%.6f,%.6f' % uv[:])
                             i=0
                         else:
                             if i==7:
                                 file.write('\n\t\t\t ')
                                 i=0
-                            file.write(',%.6f,%.6f' % tuple(uv))
+                            file.write(',%.6f,%.6f' % uv[:])
                         i+=1
                         ii+=1 # One more UV
 

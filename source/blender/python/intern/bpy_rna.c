@@ -1485,13 +1485,13 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 {
 	int count, totdim;
 
-	PyObject *list = PyList_New(stop - start);
+	PyObject *tuple= PyTuple_New(stop - start);
 
 	totdim = RNA_property_array_dimension(ptr, prop, NULL);
 
 	if (totdim > 1) {
 		for (count = start; count < stop; count++)
-			PyList_SET_ITEM(list, count - start, pyrna_prop_array_to_py_index(self, count));
+			PyTuple_SET_ITEM(tuple, count - start, pyrna_prop_array_to_py_index(self, count));
 	}
 	else {
 		switch (RNA_property_type(prop)) {
@@ -1504,7 +1504,7 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 				RNA_property_float_get_array(ptr, prop, values);
 			
 				for(count=start; count<stop; count++)
-					PyList_SET_ITEM(list, count-start, PyFloat_FromDouble(values[count]));
+					PyTuple_SET_ITEM(tuple, count-start, PyFloat_FromDouble(values[count]));
 
 				if(values != values_stack) {
 					PyMem_FREE(values);
@@ -1520,7 +1520,7 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 
 				RNA_property_boolean_get_array(ptr, prop, values);
 				for(count=start; count<stop; count++)
-					PyList_SET_ITEM(list, count-start, PyBool_FromLong(values[count]));
+					PyTuple_SET_ITEM(tuple, count-start, PyBool_FromLong(values[count]));
 
 				if(values != values_stack) {
 					PyMem_FREE(values);
@@ -1536,7 +1536,7 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 
 				RNA_property_int_get_array(ptr, prop, values);
 				for(count=start; count<stop; count++)
-					PyList_SET_ITEM(list, count-start, PyLong_FromSsize_t(values[count]));
+					PyTuple_SET_ITEM(tuple, count-start, PyLong_FromSsize_t(values[count]));
 
 				if(values != values_stack) {
 					PyMem_FREE(values);
@@ -1547,11 +1547,11 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 			BKE_assert(!"Invalid array type");
 
 			PyErr_SetString(PyExc_TypeError, "not an array type");
-			Py_DECREF(list);
-			list= NULL;
+			Py_DECREF(tuple);
+			tuple= NULL;
 		}
 	}
-	return list;
+	return tuple;
 }
 
 static PyObject *pyrna_prop_collection_subscript(BPy_PropertyRNA *self, PyObject *key)

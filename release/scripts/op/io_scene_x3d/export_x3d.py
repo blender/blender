@@ -95,7 +95,7 @@ class x3d_class:
                 self.filepath = filepath[:-1] # remove trailing z
 
         if self.file is None:
-            self.file = open(self.filepath, "w")
+            self.file = open(self.filepath, "w", encoding='utf8')
 
         self.bNav=0
         self.nodeID=0
@@ -537,37 +537,28 @@ class x3d_class:
             self.writeIndented("\n", -1)
 
     def writeTextureCoordinates(self, mesh):
-        texCoordList=[]
-        texIndexList=[]
-        j=0
-
-        for face in mesh.uv_textures.active.data:
-        # for face in mesh.faces:
-            # workaround, since tface.uv iteration is wrong atm
-            uvs = face.uv
-            # uvs = [face.uv1, face.uv2, face.uv3, face.uv4] if face.vertices[3] else [face.uv1, face.uv2, face.uv3]
-
-            for uv in uvs:
-            # for uv in face.uv:
-                texIndexList.append(j)
-                texCoordList.append(uv)
-                j=j+1
-            texIndexList.append(-1)
-
         if self.writingtexture == 0:
             self.file.write("\n\t\t\ttexCoordIndex=\"")
-            texIndxStr=""
-            for i in range(len(texIndexList)):
-                texIndxStr = texIndxStr + "%d, " % texIndexList[i]
-                if texIndexList[i]==-1:
-                    self.file.write(texIndxStr)
-                    texIndxStr=""
-            self.file.write("\"\n\t\t\t")
+
+            fw = self.file.write
+            j = 0
+            for face in mesh.uv_textures.active.data:
+                if len(face.uv) == 4:
+                    fw("%d %d %d %d -1, " % (j, j + 1, j + 2, j + 3))
+                    j += 4
+                else:
+                    fw("%d %d %d -1, " % (j, j + 1, j + 2))
+                    j += 3
+
+            fw("\"\n\t\t\t")
         else:
+            texCoordList = (uv for fuv in mesh.uv_textures.active.data for uv in fuv.uv)
+
             self.writeIndented("<TextureCoordinate point=\"", 1)
-            for i in range(len(texCoordList)):
-                self.file.write("%s %s, " % (round(texCoordList[i][0],self.tp), round(texCoordList[i][1],self.tp)))
-            self.file.write("\" />")
+            fw = self.file.write
+            for uv in texCoordList:
+                fw("%.4f %.4f, " % uv[:])
+            fw("\" />")
             self.writeIndented("\n", -1)
 
     def writeFaceColors(self, mesh):
