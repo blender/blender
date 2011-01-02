@@ -1519,6 +1519,7 @@ static void facecopy(EditMesh *em, EditFace *source, EditFace *target)
 	if (target->v4)
 		interp_weights_face_v3( w[3],v1, v2, v3, v4, target->v4->co);
 
+	CustomData_em_validate_data(&em->fdata, target->data, target->v4 ? 4 : 3);
 	CustomData_em_interp(&em->fdata, &source->data, NULL, (float*)w, 1, target->data);
 }
 

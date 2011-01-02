@@ -380,6 +380,7 @@ EditFace *addfacelist(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, Ed
 		efa->mat_nr= example->mat_nr;
 		efa->flag= example->flag;
 		CustomData_em_copy_data(&em->fdata, &em->fdata, example->data, &efa->data);
+		CustomData_em_validate_data(&em->fdata, efa->data, efa->v4 ? 4 : 3);
 	}
 	else {
 		efa->mat_nr= em->mat_nr;

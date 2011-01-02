@@ -104,6 +104,11 @@ typedef struct LayerTypeInfo {
 
 	/* a function to determine file size */
 	size_t (*filesize)(CDataFile *cdf, void *data, int count);
+
+	/* a function to validate layer contents depending on
+	 * sub-elements count
+	 */
+	void (*validate)(void *source, int sub_elements);
 } LayerTypeInfo;
 
 static void layerCopy_mdeformvert(const void *source, void *dest,
@@ -517,6 +522,20 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 	}
 }
 
+static void layerValidate_mdisps(void *data, int sub_elements)
+{
+	MDisps *disps = data;
+	if(disps->disps) {
+		int corners = multires_mdisp_corners(disps);
+
+		if(corners != sub_elements) {
+			MEM_freeN(disps->disps);
+			disps->totdisp = disps->totdisp / corners * sub_elements;
+			disps->disps = MEM_callocN(3*disps->totdisp*sizeof(float), "layerValidate_mdisps");
+		}
+	}
+}
+
 static void layerFree_mdisps(void *data, int count, int UNUSED(size))
 {
 	int i;
@@ -768,7 +787,8 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, layerDefault_mloopcol},
 	{sizeof(float)*3*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MDisps), "MDisps", 1, NULL, layerCopy_mdisps,
-	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL, layerRead_mdisps, layerWrite_mdisps, layerFilesize_mdisps},
+	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL, layerRead_mdisps, layerWrite_mdisps,
+	 layerFilesize_mdisps, layerValidate_mdisps},
 	{sizeof(MCol)*4, "MCol", 4, "WeightCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
 	 {sizeof(MCol)*4, "MCol", 4, "IDCol", NULL, NULL, layerInterp_mcol,
@@ -1688,6 +1708,18 @@ void CustomData_em_copy_data(const CustomData *source, CustomData *dest,
 			 */
 			++dest_i;
 		}
+	}
+}
+
+void CustomData_em_validate_data(CustomData *data, void *block, int sub_elements)
+{
+	int i;
+	for(i = 0; i < data->totlayer; i++) {
+		const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[i].type);
+		char *leayer_data = (char*)block + data->layers[i].offset;
+
+		if(typeInfo->validate)
+			typeInfo->validate(leayer_data, sub_elements);
 	}
 }
 
