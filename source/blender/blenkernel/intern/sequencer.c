@@ -330,7 +330,7 @@ unsigned int seq_hash_render_data(const SeqRenderData * a)
 	return rval;
 }
 
-/* ************************* itterator ************************** */
+/* ************************* iterator ************************** */
 /* *************** (replaces old WHILE_SEQ) ********************* */
 /* **************** use now SEQ_BEGIN() SEQ_END ***************** */
 

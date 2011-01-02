@@ -571,7 +571,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	/* context itterator */
+	/* context iterator */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		
 		if(ob!=par) {
@@ -746,7 +746,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 	
 	par->recalc |= OB_RECALC_OB;
 	
-	/* context itterator */
+	/* context iterator */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if (ob != par) {
 			if (test_parent_loop(par, ob)) {
