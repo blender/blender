@@ -449,12 +449,12 @@ static void rna_UILayout_active_set(PointerRNA *ptr, int value)
 	uiLayoutSetActive(ptr->data, value);
 }
 
-static int rna_UILayout_red_alert_get(PointerRNA *ptr)
+static int rna_UILayout_alert_get(PointerRNA *ptr)
 {
 	return uiLayoutGetRedAlert(ptr->data);
 }
 
-static void rna_UILayout_red_alert_set(PointerRNA *ptr, int value)
+static void rna_UILayout_alert_set(PointerRNA *ptr, int value)
 {
 	uiLayoutSetRedAlert(ptr->data, value);
 }
@@ -562,8 +562,8 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");
 	RNA_def_property_ui_text(prop, "Enabled", "When false, this (sub)layout is greyed out.");
 	
-	prop= RNA_def_property(srna, "red_alert", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_UILayout_red_alert_get", "rna_UILayout_red_alert_set");
+	prop= RNA_def_property(srna, "alert", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_UILayout_alert_get", "rna_UILayout_alert_set");
 
 	prop= RNA_def_property(srna, "alignment", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, alignment_items);

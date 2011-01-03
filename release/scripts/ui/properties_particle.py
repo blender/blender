@@ -546,7 +546,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
                 if part.physics_type == 'KEYED':
                     col = row.column()
                     #doesn't work yet
-                    #col.red_alert = key.valid
+                    #col.alert = key.valid
                     col.prop(key, "object", text="")
                     col.prop(key, "system", text="System")
                     col = row.column()
@@ -556,7 +556,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
                 elif part.physics_type == 'BOIDS':
                     sub = row.row()
                     #doesn't work yet
-                    #sub.red_alert = key.valid
+                    #sub.alert = key.valid
                     sub.prop(key, "object", text="")
                     sub.prop(key, "system", text="System")
 
@@ -564,7 +564,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
                 elif part.physics_type == 'FLUID':
                     sub = row.row()
                     #doesn't work yet
-                    #sub.red_alert = key.valid
+                    #sub.alert = key.valid
                     sub.prop(key, "object", text="")
                     sub.prop(key, "system", text="System")
 
