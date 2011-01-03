@@ -66,7 +66,7 @@ struct KeyBlock *key_get_keyblock(struct Key *key, int index);
 struct KeyBlock *key_get_named_keyblock(struct Key *key, const char name[]);
 char *key_get_curValue_rnaPath(struct Key *key, struct KeyBlock *kb);
 // needed for the GE
-void do_rel_key(int start, int end, const int tot, char *basispoin, struct Key *key, struct KeyBlock *actkb, const int mode);
+void do_rel_key(const int start, int end, const int tot, char *basispoin, struct Key *key, struct KeyBlock *actkb, const int mode);
 
 /* conversion functions */
 void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
