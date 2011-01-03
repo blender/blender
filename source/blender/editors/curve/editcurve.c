@@ -4285,7 +4285,8 @@ static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cen
 static int spin_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	float cent[3], axis[3];
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+	float cent[3], axis[3], viewmat[4][4];
 	
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
@@ -4293,7 +4294,12 @@ static int spin_exec(bContext *C, wmOperator *op)
 	invert_m4_m4(obedit->imat, obedit->obmat);
 	mul_m4_v3(obedit->imat, cent);
 	
-	if(!spin_nurb(ED_view3d_context_rv3d(C)->viewmat, obedit, axis, cent)) {
+	if(rv3d)
+		copy_m4_m4(viewmat, rv3d->viewmat);
+	else
+		unit_m4(viewmat);
+	
+	if(!spin_nurb(viewmat, obedit, axis, cent)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't spin");
 		return OPERATOR_CANCELLED;
 	}
@@ -4312,9 +4318,13 @@ static int spin_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+	float axis[3]= {0.0f, 0.0f, 1.0f};
+	
+	if(rv3d)
+		copy_v3_v3(axis, rv3d->viewinv[2]);
 	
 	RNA_float_set_array(op->ptr, "center", give_cursor(scene, v3d));
-	RNA_float_set_array(op->ptr, "axis", rv3d->viewinv[2]);
+	RNA_float_set_array(op->ptr, "axis", axis);
 	
 	return spin_exec(C, op);
 }
@@ -6090,13 +6100,17 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 	BezTriple *bezt;
 	BPoint *bp;
 	Curve *cu= (Curve*)obedit->data;
-	float vec[3];
+	float vec[3], zvec[3]= {0.0f, 0.0f, 1.0f};
+	float umat[4][4]= MAT4_UNITY, viewmat[4][4]= MAT4_UNITY;
 	float fac, grid;
 	int a, b, cutype, stype;
 	int force_3d = ((Curve *)obedit->data)->flag & CU_3D; /* could be adding to an existing 3D curve */
 
-	float umat[4][4]= MAT4_UNITY;
-
+	if(rv3d) {
+		copy_m4_m4(viewmat, rv3d->viewmat);
+		VECCOPY(zvec, rv3d->viewinv[2]);
+	}
+	
 	cutype= type & CU_TYPE;	// poly, bezier, nurbs, etc
 	stype= type & CU_PRIMITIVE;
 	
@@ -6380,7 +6394,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 			BLI_addtail(editnurb, nu); /* temporal for spin */
 
 			if(newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
-			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(rv3d->viewmat, obedit, rv3d->viewinv[2], mat[3]);
+			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(viewmat, obedit, zvec, mat[3]);
 			else												spin_nurb(umat, obedit, tmp_vec, mat[3]);
 
 			nurbs_knot_calc_v(nu);
@@ -6409,7 +6423,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 
 			/* same as above */
 			if(newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
-			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(rv3d->viewmat, obedit, rv3d->viewinv[2], mat[3]);
+			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(viewmat, obedit, zvec, mat[3]);
 			else												spin_nurb(umat, obedit, tmp_vec, mat[3]);
 
 
