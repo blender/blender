@@ -391,6 +391,7 @@ static SpaceLink *image_new(const bContext *UNUSED(C))
 	simage->iuser.frames= 100;
 	
 	scopes_new(&simage->scopes);
+	simage->sample_line_hist.height= 100;
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for image");
