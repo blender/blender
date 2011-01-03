@@ -719,10 +719,10 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        
+
         if ob.mode == 'POSE':
             box = layout.box()
-            box.alert = True;
+            box.alert = True
             box.label(icon='INFO', text="See Bone Constraints tab to Add Constraints to active bone")
         else:
             layout.operator_menu_enum("object.constraint_add", "type")

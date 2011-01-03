@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
     import imp
@@ -51,6 +53,7 @@ def menu_func(self, context):
 
 def register():
     bpy.types.INFO_MT_file_export.append(menu_func)
+
 
 def unregister():
     bpy.types.INFO_MT_file_export.remove(menu_func)

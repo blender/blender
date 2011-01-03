@@ -23,6 +23,7 @@
 
 import bpy
 
+
 def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
 
     from mathutils import Matrix, Vector, Euler
@@ -133,6 +134,7 @@ def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
         "rest_local_imat",  # rest_local_mat inverted
         "prev_euler",  # last used euler to preserve euler compability in between keyframes
         )
+
         def __init__(self, bone_name):
             self.name = bone_name
             self.rest_bone = arm.bones[bone_name]

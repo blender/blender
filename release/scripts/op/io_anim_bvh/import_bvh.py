@@ -196,7 +196,6 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
 
         lineIdx += 1
 
-
     # Remove the None value used for easy parent reference
     del bvh_nodes[None]
     # Dont use anymore
@@ -222,13 +221,9 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
 
             if channels[3] != -1 or channels[4] != -1 or channels[5] != -1:
 
-                rot = radians(float(line[channels[3]])), \
-                      radians(float(line[channels[4]])), \
-                      radians(float(line[channels[5]])),
-
-                # apply rotation order and convert to XYZ
-                # note that the rot_order_str is reversed.
-                rx, ry, rz = Euler(rot, bvh_node.rot_order_str[::-1]).to_matrix().to_euler('XYZ')
+                rx = radians(float(line[channels[3]]))
+                ry = radians(float(line[channels[4]]))
+                rz = radians(float(line[channels[5]]))
 
             # Done importing motion data #
             anim_data.append((lx, ly, lz, rx, ry, rz))
@@ -274,57 +269,66 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
     return bvh_nodes
 
 
-def bvh_node_dict2objects(context, bvh_nodes, frame_start=1, IMPORT_LOOP=False):
+def bvh_node_dict2objects(context, bvh_name, bvh_nodes, rotate_mode='NATIVE', frame_start=1, IMPORT_LOOP=False):
 
     if frame_start < 1:
         frame_start = 1
 
     scene = context.scene
-    scene.objects.selected = []
+    for obj in scene.objects:
+        obj.select = False
 
     objects = []
 
     def add_ob(name):
-        ob = scene.objects.new('Empty', None)
-        objects.append(ob)
-        return ob
+        obj = bpy.data.objects.new(name, None)
+        scene.objects.link(obj)
+        objects.append(obj)
+        obj.select = True
+
+        # nicer drawing.
+        obj.empty_draw_type = 'CUBE'
+        obj.empty_draw_size = 0.1
+
+        return obj
 
     # Add objects
     for name, bvh_node in bvh_nodes.items():
         bvh_node.temp = add_ob(name)
+        bvh_node.temp.rotation_mode = bvh_node.rot_order_str[::-1]
 
     # Parent the objects
     for bvh_node in bvh_nodes.values():
-        bvh_node.temp.makeParent([bvh_node_child.temp for bvh_node_child in bvh_node.children], 1, 0)  # ojbs, noninverse, 1 = not fast.
+        for bvh_node_child in bvh_node.children:
+            bvh_node_child.temp.parent = bvh_node.temp
 
     # Offset
     for bvh_node in bvh_nodes.values():
         # Make relative to parents offset
-        bvh_node.temp.loc = bvh_node.rest_head_local
+        bvh_node.temp.location = bvh_node.rest_head_local
 
     # Add tail objects
     for name, bvh_node in bvh_nodes.items():
         if not bvh_node.children:
             ob_end = add_ob(name + '_end')
-            bvh_node.temp.makeParent([ob_end], 1, 0)  # ojbs, noninverse, 1 = not fast.
-            ob_end.loc = bvh_node.rest_tail_local
+            ob_end.parent = bvh_node.temp
+            ob_end.location = bvh_node.rest_tail_world - bvh_node.rest_head_world
 
+    for name, bvh_node in bvh_nodes.items():
+        obj = bvh_node.temp
 
-    # Animate the data, the last used bvh_node will do since they all have the same number of frames
-    for frame_current in range(len(bvh_node.anim_data)):
-        Blender.Set('curframe', frame_current + frame_start)
+        for frame_current in range(len(bvh_node.anim_data)):
 
-        for bvh_node in bvh_nodes.values():
             lx, ly, lz, rx, ry, rz = bvh_node.anim_data[frame_current]
 
-            rest_head_local = bvh_node.rest_head_local
-            bvh_node.temp.loc = rest_head_local + Vector((lx, ly, lz))
+            if bvh_node.has_loc:
+                obj.delta_location = Vector((lx, ly, lz)) - bvh_node.rest_head_world
+                obj.keyframe_insert("delta_location", index=-1, frame=frame_start + frame_current)
 
-            bvh_node.temp.rot = rx, ry, rz
+            if bvh_node.has_rot:
+                obj.delta_rotation_euler = rx, ry, rz
+                obj.keyframe_insert("delta_rotation_euler", index=-1, frame=frame_start + frame_current)
 
-            bvh_node.temp.insertIpoKey(Blender.Object.IpoKeyTypes.LOCROT)  # XXX invalid
-
-    scene.update(1)
     return objects
 
 
@@ -390,7 +394,6 @@ def bvh_node_dict2armature(context, bvh_name, bvh_nodes, rotate_mode='XYZ', fram
 
             ZERO_AREA_BONES.append(bone.name)
 
-
     for bvh_node in bvh_nodes.values():
         if bvh_node.parent:
             # bvh_node.temp is the Editbone
@@ -445,7 +448,6 @@ def bvh_node_dict2armature(context, bvh_name, bvh_nodes, rotate_mode='XYZ', fram
         rest_bone = arm_data.bones[bone_name]
         bone_rest_matrix = rest_bone.matrix_local.rotation_part()
 
-
         bone_rest_matrix_inv = Matrix(bone_rest_matrix)
         bone_rest_matrix_inv.invert()
 
@@ -453,12 +455,10 @@ def bvh_node_dict2armature(context, bvh_name, bvh_nodes, rotate_mode='XYZ', fram
         bone_rest_matrix.resize4x4()
         bvh_node.temp = (pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv)
 
-
     # Make a dict for fast access without rebuilding a list all the time.
 
     # KEYFRAME METHOD, SLOW, USE IPOS DIRECT
     # TODO: use f-point samples instead (Aligorith)
-
     if rotate_mode != 'QUATERNION':
         prev_euler = [Euler() for i in range(len(bvh_nodes))]
 
@@ -477,13 +477,15 @@ def bvh_node_dict2armature(context, bvh_name, bvh_nodes, rotate_mode='XYZ', fram
             lx, ly, lz, rx, ry, rz = bvh_node.anim_data[frame_current + 1]
 
             if bvh_node.has_rot:
-                bone_rotation_matrix = Euler((rx, ry, rz)).to_matrix().resize4x4()
+                # apply rotation order and convert to XYZ
+                # note that the rot_order_str is reversed.
+                bone_rotation_matrix = Euler((rx, ry, rz), bvh_node.rot_order_str[::-1]).to_matrix().resize4x4()
                 bone_rotation_matrix = bone_rest_matrix_inv * bone_rotation_matrix * bone_rest_matrix
 
                 if rotate_mode == 'QUATERNION':
                     pose_bone.rotation_quaternion = bone_rotation_matrix.to_quat()
                 else:
-                    euler = bone_rotation_matrix.to_euler(pose_bone.rotation_mode, prev_euler[i])
+                    euler = bone_rotation_matrix.to_euler(bvh_node.rot_order_str, prev_euler[i])
                     pose_bone.rotation_euler = euler
                     prev_euler[i] = euler
 
@@ -508,7 +510,7 @@ def bvh_node_dict2armature(context, bvh_name, bvh_nodes, rotate_mode='XYZ', fram
     return arm_ob
 
 
-def load(operator, context, filepath="", rotate_mode='NATIVE', global_scale=1.0, use_cyclic=False, frame_start=1):
+def load(operator, context, filepath="", target='ARMATURE', rotate_mode='NATIVE', global_scale=1.0, use_cyclic=False, frame_start=1):
     import time
     t1 = time.time()
     print('\tparsing bvh %r...' % filepath, end="")
@@ -518,21 +520,31 @@ def load(operator, context, filepath="", rotate_mode='NATIVE', global_scale=1.0,
             global_scale=global_scale)
 
     print('%.4f' % (time.time() - t1))
-    
+
     frame_orig = context.scene.frame_current
-    
+
     t1 = time.time()
     print('\timporting to blender...', end="")
-    
+
     bvh_name = bpy.path.display_name_from_filepath(filepath)
 
-    bvh_node_dict2armature(context, bvh_name, bvh_nodes,
-            rotate_mode=rotate_mode,
-            frame_start=frame_start,
-            IMPORT_LOOP=use_cyclic)
+    if target == 'ARMATURE':
+        bvh_node_dict2armature(context, bvh_name, bvh_nodes,
+                rotate_mode=rotate_mode,
+                frame_start=frame_start,
+                IMPORT_LOOP=use_cyclic)
+
+    elif target == 'OBJECT':
+        bvh_node_dict2objects(context, bvh_name, bvh_nodes,
+                rotate_mode=rotate_mode,
+                frame_start=frame_start,
+                IMPORT_LOOP=use_cyclic)
+
+    else:
+        raise Exception("invalid type")
 
     print('Done in %.4f\n' % (time.time() - t1))
-    
+
     context.scene.frame_set(frame_orig)
 
     return {'FINISHED'}
