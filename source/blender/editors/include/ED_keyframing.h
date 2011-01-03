@@ -51,6 +51,7 @@ struct ReportList;
 
 struct PointerRNA;
 struct PropertyRNA;
+struct EnumPropertyItem;
 
 #include "RNA_types.h"
 
@@ -203,6 +204,9 @@ struct KeyingSet *ANIM_get_keyingset_for_autokeying(struct Scene *scene, const c
 
 /* Create (and show) a menu containing all the Keying Sets which can be used in the current context */
 void ANIM_keying_sets_menu_setup(struct bContext *C, const char title[], const char op_name[]);
+
+/* Dynamically populate an enum of Keying Sets */
+struct EnumPropertyItem *ANIM_keying_sets_enum_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 
 /* Check if KeyingSet can be used in the current context */
 short ANIM_keyingset_context_ok_poll(struct bContext *C, struct KeyingSet *ks);

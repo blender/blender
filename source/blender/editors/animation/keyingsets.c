@@ -59,6 +59,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "anim_intern.h"
 
@@ -690,6 +691,67 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(Scene *scene, const char *tranformK
 }
 
 /* Menu of All Keying Sets ----------------------------- */
+
+/* Dynamically populate an enum of Keying Sets */
+EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(ptr), int *free)
+{
+	Scene *scene = CTX_data_scene(C);
+	KeyingSet *ks;
+	EnumPropertyItem *item= NULL, item_tmp= {0};
+	int totitem= 0;
+	int i= 0;
+
+	if (C == NULL) {
+		return DummyRNA_DEFAULT_items;
+	}
+	
+	/* active Keying Set 
+	 *	- only include entry if it exists
+	 */
+	if (scene->active_keyingset) {
+		/* active Keying Set */
+		item_tmp.identifier= item_tmp.name= "Active Keying Set";
+		item_tmp.value= i++;
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+		
+		/* separator */
+		RNA_enum_item_add_separator(&item, &totitem);
+	}
+	else
+		i++;
+		
+	/* user-defined Keying Sets 
+	 *	- these are listed in the order in which they were defined for the active scene
+	 */
+	if (scene->keyingsets.first) {
+		for (ks= scene->keyingsets.first; ks; ks= ks->next) {
+			if (ANIM_keyingset_context_ok_poll(C, ks)) {
+				item_tmp.identifier= item_tmp.name= ks->name;
+				item_tmp.value= i++;
+				RNA_enum_item_add(&item, &totitem, &item_tmp);
+			}
+		}
+		
+		/* separator */
+		RNA_enum_item_add_separator(&item, &totitem);
+	}
+	
+	/* builtin Keying Sets */
+	i= -1;
+	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
+		/* only show KeyingSet if context is suitable */
+		if (ANIM_keyingset_context_ok_poll(C, ks)) {
+			item_tmp.identifier= item_tmp.name= ks->name;
+			item_tmp.value= i--;
+			RNA_enum_item_add(&item, &totitem, &item_tmp);
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
 
 /* Create (and show) a menu containing all the Keying Sets which can be used in the current context */
 void ANIM_keying_sets_menu_setup (bContext *C, const char title[], const char op_name[])
