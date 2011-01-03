@@ -5541,7 +5541,10 @@ static PyObject *pyrna_basetype_register(PyObject *UNUSED(self), PyObject *py_cl
 	if(BPy_reports_to_error(&reports, TRUE))
 		return NULL;
 
-	BKE_assert(srna_new != NULL);
+	/* python errors validating are not converted into reports so the check above will fail.
+	 * the cause for returning NULL will be printed as an error */
+	if(srna_new == NULL)
+		return NULL;
 
 	pyrna_subtype_set_rna(py_class, srna_new); /* takes a ref to py_class */
 
