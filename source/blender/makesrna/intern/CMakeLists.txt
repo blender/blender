@@ -136,10 +136,6 @@ if(WITH_JACK)
 	add_definitions(-DWITH_JACK)
 endif()
 
-if(WITH_OPENCOLLADA)
-	add_definitions(-DWITH_COLLADA)
-endif()
-
 # Build makesrna executable
 add_executable(makesrna ${SRC} ${INC_FILES})
 target_link_libraries(makesrna bf_dna)
