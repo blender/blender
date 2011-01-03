@@ -305,9 +305,6 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 				write_history();
 		}
 
-// XXX		undo_editmode_clear();
-		BKE_reset_undo();
-		BKE_write_undo(C, "original");	/* save current state */
 
 		WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 //		refresh_interface_font();
@@ -323,6 +320,11 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 		BPY_load_user_modules(C);
 #endif
 		CTX_wm_window_set(C, NULL); /* exits queues */
+
+		// XXX		undo_editmode_clear();
+		BKE_reset_undo();
+		BKE_write_undo(C, "original");	/* save current state */
+		
 	}
 	else if(retval==1)
 		BKE_write_undo(C, "Import file");
