@@ -2463,6 +2463,9 @@ void DAG_id_tag_update(ID *id, short flag)
 				}
 			}
 		}
+		else {
+			BKE_assert(!"invalid flag for this 'idtype'");
+		}
 	}
 }
 

@@ -262,25 +262,6 @@ static void rna_Object_free_duplilist(Object *ob, ReportList *reports)
 	}
 }
 
-/* copied from old API Object.makeDisplayList (Object.c)
- * use _ suffix because this exists for internal rna */
-static void rna_Object_update(Object *ob, Scene *sce, int object, int data, int time)
-{
-	int flag= 0;
-
-	if (ob->type == OB_FONT) {
-		Curve *cu = ob->data;
-		freedisplist(&cu->disp);
-		BKE_text_to_curve(sce, ob, CU_LEFT);
-	}
-
-	if(object) flag |= OB_RECALC_OB;
-	if(data) flag |= OB_RECALC_DATA;
-	if(time) flag |= OB_RECALC_TIME;
-
-	DAG_id_tag_update(&ob->id, flag);
-}
-
 static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *reports, const char *name, int from_mix)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -461,16 +442,6 @@ void RNA_api_object(StructRNA *srna)
 	
 	parm= RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when no intersection is found.", 0, 0);
 	RNA_def_function_output(func, parm);
-
-	
-	/* DAG */
-	func= RNA_def_function(srna, "update", "rna_Object_update");
-	RNA_def_function_ui_description(func, "Tag the object to update its display data.");
-	parm= RNA_def_pointer(func, "scene", "Scene", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
-	RNA_def_boolean(func, "object", 1, "", "Tag the object for updating");
-	RNA_def_boolean(func, "data", 1, "", "Tag the objects display data for updating");
-	RNA_def_boolean(func, "time", 1, "", "Tag the object time related data for updating");
 
 	/* View */
 	func= RNA_def_function(srna, "is_visible", "rna_Object_is_visible");

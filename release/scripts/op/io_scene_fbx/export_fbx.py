@@ -1907,7 +1907,7 @@ def save(operator, context, filepath="",
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
                 if ob_base.type == 'ARMATURE':
-                    ob_base.update(scene)
+                    ob_base.update()
 
             # This causes the makeDisplayList command to effect the mesh
             scene.frame_set(scene.frame_current)
@@ -2055,7 +2055,7 @@ def save(operator, context, filepath="",
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
                 if ob_base.type == 'ARMATURE':
-                    ob_base.update(scene)
+                    ob_base.update()
             # This causes the makeDisplayList command to effect the mesh
             scene.frame_set(scene.frame_current)
 
