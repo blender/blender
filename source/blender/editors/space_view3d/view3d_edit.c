@@ -324,7 +324,7 @@ static void calctrackballvec(rcti *rect, int mx, int my, float *vec)
 static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 {
 	static float lastofs[3] = {0,0,0};
-	View3D *v3d = CTX_wm_view3d(C);
+	View3D *v3d;
 	RegionView3D *rv3d;
 	ViewOpsData *vod= MEM_callocN(sizeof(ViewOpsData), "viewops data");
 
@@ -332,6 +332,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= vod;
 	vod->sa= CTX_wm_area(C);
 	vod->ar= CTX_wm_region(C);
+	v3d= vod->sa->spacedata.first;
 	vod->rv3d= rv3d= vod->ar->regiondata;
 	vod->dist0= rv3d->dist;
 	copy_qt_qt(vod->oldquat, rv3d->viewquat);
@@ -404,19 +405,26 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 
 static void viewops_data_free(bContext *C, wmOperator *op)
 {
+	ARegion *ar;
 	Paint *p = paint_get_active(CTX_data_scene(C));
-	ViewOpsData *vod= op->customdata;
 
-	vod->rv3d->rflag &= ~RV3D_NAVIGATING;
+	if(op->customdata) {
+		ViewOpsData *vod= op->customdata;
+		ar= vod->ar;
+		vod->rv3d->rflag &= ~RV3D_NAVIGATING;
+
+		if(vod->timer)
+			WM_event_remove_timer(CTX_wm_manager(C), vod->timer->win, vod->timer);
+
+		MEM_freeN(vod);
+		op->customdata= NULL;
+	}
+	else {
+		ar= CTX_wm_region(C);
+	}
 
 	if(p && (p->flags & PAINT_FAST_NAVIGATE))
-		ED_region_tag_redraw(vod->ar);
-
-	if(vod->timer)
-		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), vod->timer);
-
-	MEM_freeN(vod);
-	op->customdata= NULL;
+		ED_region_tag_redraw(ar);
 }
 
 /* ************************** viewrotate **********************************/
@@ -1194,11 +1202,30 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 static int viewzoom_exec(bContext *C, wmOperator *op)
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	View3D *v3d;
+	RegionView3D *rv3d;
+	ScrArea *sa;
+	ARegion *ar;
+
 	int delta= RNA_int_get(op->ptr, "delta");
-	int mx = RNA_int_get(op->ptr, "mx");
-	int my = RNA_int_get(op->ptr, "my");
+	int mx, my;
+
+	if(op->customdata) {
+		ViewOpsData *vod= op->customdata;
+
+		sa= vod->sa;
+		ar= vod->ar;
+	}
+	else {
+		sa= CTX_wm_area(C);
+		ar= CTX_wm_region(C);
+	}
+
+	v3d= sa->spacedata.first;
+	rv3d= ar->regiondata;
+
+	mx= RNA_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") : ar->winx / 2;
+	my= RNA_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") : ar->winy / 2;
 
 	if(delta < 0) {
 		/* this min and max is also in viewmove() */
@@ -1207,7 +1234,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 			if(rv3d->camzoom < RV3D_CAMZOOM_MIN) rv3d->camzoom= RV3D_CAMZOOM_MIN;
 		}
 		else if(rv3d->dist<10.0*v3d->far) {
-			view_zoom_mouseloc(CTX_wm_region(C), 1.2f, mx, my);
+			view_zoom_mouseloc(ar, 1.2f, mx, my);
 		}
 	}
 	else {
@@ -1216,16 +1243,16 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 			if(rv3d->camzoom > RV3D_CAMZOOM_MAX) rv3d->camzoom= RV3D_CAMZOOM_MAX;
 		}
 		else if(rv3d->dist> 0.001*v3d->grid) {
-			view_zoom_mouseloc(CTX_wm_region(C), .83333f, mx, my);
+			view_zoom_mouseloc(ar, .83333f, mx, my);
 		}
 	}
 
 	if(rv3d->viewlock & RV3D_BOXVIEW)
-		view3d_boxview_sync(CTX_wm_area(C), CTX_wm_region(C));
+		view3d_boxview_sync(sa, ar);
 
 	request_depth_update(rv3d);
-	ED_region_tag_redraw(CTX_wm_region(C));
-	
+	ED_region_tag_redraw(ar);
+
 	viewops_data_free(C, op);
 
 	return OPERATOR_FINISHED;
@@ -1233,8 +1260,6 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 
 static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	int delta= RNA_int_get(op->ptr, "delta");
-	
 	/* if one or the other zoom position aren't set, set from event */
 	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
 	{
@@ -1242,7 +1267,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_int_set(op->ptr, "my", event->y);
 	}
 
-	if(delta) {
+	if(RNA_property_is_set(op->ptr, "delta")) {
 		/* makes op->customdata */
 		viewops_data_create(C, op, event);
 		viewzoom_exec(C, op);
