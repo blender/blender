@@ -154,7 +154,7 @@ bool BL_ShapeDeformer::Update(void)
 			/* store verts locally */
 			VerifyStorage();
 
-			do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)(float *)m_transverts, m_bmesh->key, NULL, 0);
+			do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)(float *)m_transverts, m_bmesh->key, NULL, 0); /* last arg is ignored */
 			m_bDynamic = true;
 		}
 
