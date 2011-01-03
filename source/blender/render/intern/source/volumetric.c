@@ -734,7 +734,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 {
 	float hitco[3];
 	float tr[3] = {1.0,1.0,1.0};
-	Isect is;
+	Isect is= {{0}};
 	float *startco, *endco;
 	int intersect_type = VOL_BOUNDS_DEPTH;
 
