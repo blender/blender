@@ -118,15 +118,15 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 	BLI_addtail(&snode->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin=  -10.0f;
-	ar->v2d.tot.ymin=  -10.0f;
-	ar->v2d.tot.xmax= 512.0f;
-	ar->v2d.tot.ymax= 512.0f;
+	ar->v2d.tot.xmin=  -256.0f;
+	ar->v2d.tot.ymin=  -256.0f;
+	ar->v2d.tot.xmax= 768.0f;
+	ar->v2d.tot.ymax= 768.0f;
 	
-	ar->v2d.cur.xmin=  0.0f;
-	ar->v2d.cur.ymin=  0.0f;
-	ar->v2d.cur.xmax= 512.0f;
-	ar->v2d.cur.ymax= 512.0f;
+	ar->v2d.cur.xmin=  -256.0f;
+	ar->v2d.cur.ymin=  -256.0f;
+	ar->v2d.cur.xmax= 768.0f;
+	ar->v2d.cur.ymax= 768.0f;
 	
 	ar->v2d.min[0]= 1.0f;
 	ar->v2d.min[1]= 1.0f;

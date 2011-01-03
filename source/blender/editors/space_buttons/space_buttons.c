@@ -347,6 +347,10 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_NODE:
+			if(wmn->action==NA_SELECTED)
+				ED_area_tag_redraw(sa);
+			break;
 		/* Listener for preview render, when doing an global undo. */
 		case NC_WINDOW:
 			ED_area_tag_redraw(sa);
