@@ -87,7 +87,7 @@ static void special_transvert_update(Object *obedit)
 	
 	if(obedit) {
 		
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 		
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;

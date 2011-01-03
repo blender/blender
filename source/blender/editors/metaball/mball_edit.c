@@ -282,7 +282,7 @@ static int duplicate_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 			ml= ml->prev;
 		}
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 	}
 
 	return OPERATOR_FINISHED;
@@ -341,7 +341,7 @@ static int delete_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 			ml= next;
 		}
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 	}
 
 	return OPERATOR_FINISHED;
@@ -391,7 +391,7 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
 			}
 		}
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 	}
 
 	return OPERATOR_FINISHED;
@@ -432,7 +432,7 @@ static int reveal_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 			ml= ml->next;
 		}
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 	}
 	
 	return OPERATOR_FINISHED;

@@ -1972,7 +1972,7 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	if(ED_curve_updateAnimPaths(obedit))
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -2020,7 +2020,7 @@ static int set_goal_weight_exec(bContext *C, wmOperator *op)
 		}
 	}	
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -2073,7 +2073,7 @@ static int set_radius_exec(bContext *C, wmOperator *op)
 	}	
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -2149,7 +2149,7 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -2315,7 +2315,7 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -2644,7 +2644,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;	
@@ -2704,7 +2704,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;	
@@ -3203,7 +3203,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;	
 }
@@ -3508,7 +3508,7 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 		if(ED_curve_updateAnimPaths(obedit))
 			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 		return OPERATOR_FINISHED;
@@ -3554,7 +3554,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 	sethandlesNurb(editnurb, RNA_enum_get(op->ptr, "type"));
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -3916,7 +3916,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 	set_actNurb(obedit, NULL);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -4094,7 +4094,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -4308,7 +4308,7 @@ static int spin_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -4580,7 +4580,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 
 		return OPERATOR_FINISHED;
 	}
@@ -4657,7 +4657,7 @@ static int extrude_exec(bContext *C, wmOperator *UNUSED(op))
 				WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-			DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+			DAG_id_tag_update(obedit->data, 0);
 		}
 	}
 
@@ -4769,7 +4769,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -5591,7 +5591,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		}
 
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 	
 		return OPERATOR_FINISHED;
 	}
@@ -5734,7 +5734,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 									nu->flagu &= ~CU_NURB_CYCLIC;
 									calchandlesNurb(nu);
 									WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-									DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+									DAG_id_tag_update(obedit->data, 0);
 								}
 							}
 
@@ -5760,7 +5760,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 								if( bp2->f1 & SELECT ) {
 									nu->flagu &= ~CU_NURB_CYCLIC;
 									WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-									DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+									DAG_id_tag_update(obedit->data, 0);
 								}
 							}
 
@@ -5865,7 +5865,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -5937,7 +5937,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	}
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -6814,7 +6814,7 @@ static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }

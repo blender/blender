@@ -59,7 +59,7 @@ static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	/* cheating way for importers to avoid slow updates */
 	if(id->us > 0) {
-		DAG_id_tag_update(id, OB_RECALC_DATA);
+		DAG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 	}
 }
