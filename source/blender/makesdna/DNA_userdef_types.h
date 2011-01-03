@@ -350,7 +350,7 @@ typedef struct UserDef {
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
 	short textimeout,texcollectrate;
 	short wmdrawmethod; /* removed wmpad */
-	short pad2;
+	short dragthreshold;
 	int memcachelimit;
 	int prefetchframes;
 	short frameserverport;

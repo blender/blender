@@ -1478,7 +1478,10 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 									//wm_operator_invoke(C, drop->ot, event, drop->ptr, NULL, FALSE);
 									action |= WM_HANDLER_BREAK;
 									
-									/* prevent hanging on file read */
+									/* XXX fileread case */
+									if(CTX_wm_window(C)==NULL)
+										return action;
+									
 									BLI_freelistN(event->customdata);
 									event->customdata= NULL;
 									event->custom= 0;
@@ -1501,7 +1504,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 		}
 		
-		/* fileread case */
+		/* XXX fileread case */
 		if(CTX_wm_window(C)==NULL)
 			return action;
 	}

@@ -646,13 +646,12 @@ static int ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, wmEvent *event)
 	return BLI_in_rcti(&rect, x, y);
 }
 
-#define UI_DRAG_THRESHOLD	3
 static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	/* prevent other WM gestures to start while we try to drag */
 	WM_gestures_remove(C);
 
-	if( ABS(data->dragstartx - event->x) + ABS(data->dragstarty - event->y) > UI_DRAG_THRESHOLD ) {
+	if( ABS(data->dragstartx - event->x) + ABS(data->dragstarty - event->y) > U.dragthreshold ) {
 		wmDrag *drag;
 		
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
