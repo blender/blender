@@ -1383,7 +1383,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 
 	hist = (Histogram *)cptr.data;
 
-	hist->height= (hist->height<=0)?100:hist->height;
+	hist->height= (hist->height<=20)?20:hist->height;
 
 	bt= uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, hist->height, hist, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
@@ -1420,7 +1420,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	
 	block= uiLayoutAbsoluteBlock(layout);
 	
-	scopes->wavefrm_height= (scopes->wavefrm_height<=0)?100:scopes->wavefrm_height;
+	scopes->wavefrm_height= (scopes->wavefrm_height<=20)?20:scopes->wavefrm_height;
 
 	bt= uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
 	
@@ -1456,7 +1456,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 	
 	block= uiLayoutAbsoluteBlock(layout);
 
-	scopes->vecscope_height= (scopes->vecscope_height<=0)?100:scopes->vecscope_height;
+	scopes->vecscope_height= (scopes->vecscope_height<=20)?20:scopes->vecscope_height;
 	
 	bt= uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
