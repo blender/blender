@@ -124,7 +124,7 @@ void BPY_reset_driver(void)
 }
 
 /* error return function for BPY_eval_pydriver */
-static float pydriver_error(ChannelDriver *driver)
+static void pydriver_error(ChannelDriver *driver)
 {
 	driver->flag |= DRIVER_FLAG_INVALID; /* py expression failed */
 	fprintf(stderr, "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n", driver->expression);
@@ -132,8 +132,6 @@ static float pydriver_error(ChannelDriver *driver)
 	// BPy_errors_to_report(NULL); // TODO - reports
 	PyErr_Print();
 	PyErr_Clear();
-
-	return 0.0f;
 }
 
 /* This evals py driver expressions, 'expr' is a Python expression that
@@ -232,7 +230,7 @@ float BPY_eval_driver (ChannelDriver *driver)
 		
 		/* try to add to dictionary */
 		/* if (PyDict_SetItemString(driver_vars, dvar->name, driver_arg)) { */
-		if (PyDict_SetItem(driver_vars, PyTuple_GET_ITEM(expr_vars, i++), driver_arg)) { /* use string interning for faster namespace creation */
+		if (PyDict_SetItem(driver_vars, PyTuple_GET_ITEM(expr_vars, i++), driver_arg) < 0) { /* use string interning for faster namespace creation */
 			/* this target failed - bad name */
 			if (targets_ok) {
 				/* first one - print some extra info for easier identification */

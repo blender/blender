@@ -75,11 +75,11 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject *UNUSED(self), PyObject* 
 	float det, inv_det, u, v, t;
 	int clip= 1;
 
-	if(!PyArg_ParseTuple(args, "intersect_ray_tri:O!O!O!O!O!|i", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &ray, &vector_Type, &ray_off , &clip)) {
+	if(!PyArg_ParseTuple(args, "O!O!O!O!O!|i:intersect_ray_tri", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &ray, &vector_Type, &ray_off , &clip)) {
 		return NULL;
 	}
 	if(vec1->size != 3 || vec2->size != 3 || vec3->size != 3 || ray->size != 3 || ray_off->size != 3) {
-		PyErr_SetString(PyExc_TypeError, "only 3D vectors for all parameters");
+		PyErr_SetString(PyExc_ValueError, "only 3D vectors for all parameters");
 		return NULL;
 	}
 
@@ -162,11 +162,11 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 	VectorObject *vec1, *vec2, *vec3, *vec4;
 	float v1[3], v2[3], v3[3], v4[3], i1[3], i2[3];
 
-	if(!PyArg_ParseTuple(args, "intersect_line_line:O!O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4)) {
+	if(!PyArg_ParseTuple(args, "O!O!O!O!:intersect_line_line", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4)) {
 		return NULL;
 	}
 	if(vec1->size != vec2->size || vec1->size != vec3->size || vec3->size != vec2->size) {
-		PyErr_SetString(PyExc_TypeError,"vectors must be of the same size");
+		PyErr_SetString(PyExc_ValueError,"vectors must be of the same size");
 		return NULL;
 	}
 
@@ -214,7 +214,7 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 		}
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "2D/3D vectors only");
+		PyErr_SetString(PyExc_ValueError, "2D/3D vectors only");
 		return NULL;
 	}
 }
@@ -244,15 +244,15 @@ static PyObject *M_Geometry_normal(PyObject *UNUSED(self), PyObject* args)
 	float n[3];
 
 	if(PyTuple_GET_SIZE(args) == 3) {
-		if(!PyArg_ParseTuple(args, "normal:O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3)) {
+		if(!PyArg_ParseTuple(args, "O!O!O!:normal", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3)) {
 			return NULL;
 		}
 		if(vec1->size != vec2->size || vec1->size != vec3->size) {
-			PyErr_SetString(PyExc_TypeError, "vectors must be of the same size");
+			PyErr_SetString(PyExc_ValueError, "vectors must be of the same size");
 			return NULL;
 		}
 		if(vec1->size < 3) {
-			PyErr_SetString(PyExc_TypeError, "2D vectors unsupported");
+			PyErr_SetString(PyExc_ValueError, "2D vectors unsupported");
 			return NULL;
 		}
 
@@ -262,15 +262,15 @@ static PyObject *M_Geometry_normal(PyObject *UNUSED(self), PyObject* args)
 		normal_tri_v3(n, vec1->vec, vec2->vec, vec3->vec);
 	}
 	else {
-		if(!PyArg_ParseTuple(args, "normal:O!O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4)) {
+		if(!PyArg_ParseTuple(args, "O!O!O!O!:normal", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4)) {
 			return NULL;
 		}
 		if(vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec4->size) {
-			PyErr_SetString(PyExc_TypeError,"vectors must be of the same size");
+			PyErr_SetString(PyExc_ValueError,"vectors must be of the same size");
 			return NULL;
 		}
 		if(vec1->size < 3) {
-			PyErr_SetString(PyExc_TypeError, "2D vectors unsupported");
+			PyErr_SetString(PyExc_ValueError, "2D vectors unsupported");
 			return NULL;
 		}
 
@@ -302,12 +302,12 @@ static PyObject *M_Geometry_area_tri(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *vec1, *vec2, *vec3;
 
-	if(!PyArg_ParseTuple(args, "area_tri:O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3)) {
+	if(!PyArg_ParseTuple(args, "O!O!O!:area_tri", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3)) {
 		return NULL;
 	}
 
 	if(vec1->size != vec2->size || vec1->size != vec3->size) {
-		PyErr_SetString(PyExc_TypeError, "vectors must be of the same size");
+		PyErr_SetString(PyExc_ValueError, "vectors must be of the same size");
 		return NULL;
 	}
 
@@ -321,7 +321,7 @@ static PyObject *M_Geometry_area_tri(PyObject *UNUSED(self), PyObject* args)
 		return PyFloat_FromDouble(area_tri_v2(vec1->vec, vec2->vec, vec3->vec));
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "only 2D,3D vectors are supported");
+		PyErr_SetString(PyExc_ValueError, "only 2D,3D vectors are supported");
 		return NULL;
 	}
 }
@@ -466,7 +466,7 @@ static PyObject *M_Geometry_intersect_line_line_2d(PyObject *UNUSED(self), PyObj
 {
 	VectorObject *line_a1, *line_a2, *line_b1, *line_b2;
 	float vi[2];
-	if(!PyArg_ParseTuple (args, "intersect_line_line_2d:O!O!O!O!",
+	if(!PyArg_ParseTuple(args, "O!O!O!O!:intersect_line_line_2d",
 	  &vector_Type, &line_a1,
 	  &vector_Type, &line_a2,
 	  &vector_Type, &line_b1,
@@ -506,7 +506,7 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 	float lambda;
 	PyObject *ret;
 	
-	if(!PyArg_ParseTuple (args, "intersect_point_line:O!O!O!",
+	if(!PyArg_ParseTuple(args, "O!O!O!:intersect_point_line",
 		&vector_Type, &pt,
 		&vector_Type, &line_1,
 		&vector_Type, &line_2)
@@ -555,7 +555,7 @@ static PyObject *M_Geometry_intersect_point_tri_2d(PyObject *UNUSED(self), PyObj
 {
 	VectorObject *pt_vec, *tri_p1, *tri_p2, *tri_p3;
 	
-	if(!PyArg_ParseTuple (args, "intersect_point_tri_2d:O!O!O!O!",
+	if(!PyArg_ParseTuple(args, "O!O!O!O!:intersect_point_tri_2d",
 		  &vector_Type, &pt_vec,
 		  &vector_Type, &tri_p1,
 		  &vector_Type, &tri_p2,
@@ -591,7 +591,7 @@ static PyObject *M_Geometry_intersect_point_quad_2d(PyObject *UNUSED(self), PyOb
 {
 	VectorObject *pt_vec, *quad_p1, *quad_p2, *quad_p3, *quad_p4;
 	
-	if(!PyArg_ParseTuple (args, "intersect_point_quad_2d:O!O!O!O!O!",
+	if(!PyArg_ParseTuple(args, "O!O!O!O!O!:intersect_point_quad_2d",
 		  &vector_Type, &pt_vec,
 		  &vector_Type, &quad_p1,
 		  &vector_Type, &quad_p2,
@@ -616,7 +616,7 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 	
 	/* Error checking must already be done */
 	if(!PyList_Check(value)) {
-		PyErr_SetString(PyExc_TypeError, "can only back a list of [x,y,x,w]");
+		PyErr_SetString(PyExc_TypeError, "can only back a list of [x, y, w, h]");
 		return -1;
 	}
 	
@@ -629,7 +629,7 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 		list_item= PyList_GET_ITEM(value, i);
 		if(!PyList_Check(list_item) || PyList_Size(list_item) < 4) {
 			MEM_freeN(*boxarray);
-			PyErr_SetString(PyExc_TypeError, "can only back a list of [x,y,x,w]");
+			PyErr_SetString(PyExc_TypeError, "can only pack a list of [x, y, w, h]");
 			return -1;
 		}
 		
@@ -638,15 +638,16 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 		item_1= PyList_GET_ITEM(list_item, 2);
 		item_2= PyList_GET_ITEM(list_item, 3);
 		
-		if (!PyNumber_Check(item_1) || !PyNumber_Check(item_2)) {
-			MEM_freeN(*boxarray);
-			PyErr_SetString(PyExc_TypeError, "can only back a list of 2d boxes [x,y,x,w]");
-			return -1;
-		}
-		
 		box->w=  (float)PyFloat_AsDouble(item_1);
 		box->h=  (float)PyFloat_AsDouble(item_2);
 		box->index= i;
+
+		if (box->w < 0.0f || box->h < 0.0f) {
+			MEM_freeN(*boxarray);
+			PyErr_SetString(PyExc_TypeError, "error parsing width and height values from list: [x, y, w, h], not numbers or below zero");
+			return -1;
+		}
+
 		/* verts will be added later */
 	}
 	return 0;
@@ -743,19 +744,23 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject*
 	float h2[4]= {0.0, 0.0, 0.0, 0.0};
 	
 	
-	if(!PyArg_ParseTuple (args, "O!O!O!O!i",
+	if(!PyArg_ParseTuple(args, "O!O!O!O!i:interpolate_bezier",
 	  &vector_Type, &vec_k1,
 	  &vector_Type, &vec_h1,
 	  &vector_Type, &vec_h2,
-	  &vector_Type, &vec_k2, &resolu) || (resolu<=1)
+	  &vector_Type, &vec_k2, &resolu)
 	) {
-		PyErr_SetString(PyExc_TypeError, "expected 4 vector types and an int greater then 1");
 		return NULL;
 	}
-	
+
+	if(resolu <= 1) {
+		PyErr_SetString(PyExc_ValueError, "resolution must be 2 or over");
+		return NULL;
+	}
+
 	if(!BaseMath_ReadCallback(vec_k1) || !BaseMath_ReadCallback(vec_h1) || !BaseMath_ReadCallback(vec_k2) || !BaseMath_ReadCallback(vec_h2))
 		return NULL;
-	
+
 	dims= MAX4(vec_k1->size, vec_h1->size, vec_h2->size, vec_k2->size);
 	
 	for(i=0; i < vec_k1->size; i++) k1[i]= vec_k1->vec[i];
@@ -806,24 +811,29 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 	VectorObject *vec_t1_src, *vec_t2_src, *vec_t3_src;
 	float vec[3];
 
-	if(!PyArg_ParseTuple (args, "O!O!O!O!O!O!O!",
+	if(!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!:barycentric_transform",
 		  &vector_Type, &vec_pt,
 		  &vector_Type, &vec_t1_src,
 		  &vector_Type, &vec_t2_src,
 		  &vector_Type, &vec_t3_src,
 		  &vector_Type, &vec_t1_tar,
 		  &vector_Type, &vec_t2_tar,
-		  &vector_Type, &vec_t3_tar) ||(vec_pt->size != 3 ||
-										vec_t1_src->size != 3 ||
-										vec_t2_src->size != 3 ||
-										vec_t3_src->size != 3 ||
-										vec_t1_tar->size != 3 ||
-										vec_t2_tar->size != 3 ||
-										vec_t3_tar->size != 3)
+		  &vector_Type, &vec_t3_tar)
 	) {
-		PyErr_SetString(PyExc_TypeError, "expected 7, 3D vector types");
 		return NULL;
 	}
+
+	if(	vec_pt->size != 3 ||
+		vec_t1_src->size != 3 ||
+		vec_t2_src->size != 3 ||
+		vec_t3_src->size != 3 ||
+		vec_t1_tar->size != 3 ||
+		vec_t2_tar->size != 3 ||
+		vec_t3_tar->size != 3)
+	 {
+		 PyErr_SetString(PyExc_ValueError, "One of more of the vector arguments wasnt a 3D vector");
+		 return NULL;
+	 }
 
 	barycentric_transform(vec, vec_pt->vec,
 			vec_t1_tar->vec, vec_t2_tar->vec, vec_t3_tar->vec,
