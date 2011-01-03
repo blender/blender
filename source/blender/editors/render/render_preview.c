@@ -995,7 +995,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	else if(sp->pr_method==PR_NODE_RENDER) {
 		if(idtype == ID_MA) sce->r.scemode |= R_MATNODE_PREVIEW;
 		else if(idtype == ID_TE) sce->r.scemode |= R_TEXNODE_PREVIEW;
-		sce->r.mode |= R_OSA;
+		sce->r.mode &= ~R_OSA;
 	}
 	else {	/* PR_BUTS_RENDER */
 		sce->r.mode |= R_OSA;
