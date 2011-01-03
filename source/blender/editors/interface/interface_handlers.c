@@ -5673,7 +5673,11 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 				case YKEY:
 				case ZKEY:
 				{
-					if(event->val == KM_PRESS) {
+					if(	(event->val == KM_PRESS) &&
+						(event->shift == FALSE) &&
+						(event->ctrl == FALSE) &&
+						(event->oskey == FALSE)
+					) {
 						count= 0;
 						for(but= block->buttons.first; but; but= but->next) {
 
