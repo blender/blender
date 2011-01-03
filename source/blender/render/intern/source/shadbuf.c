@@ -300,8 +300,14 @@ static void compress_deepshadowbuf(Render *re, ShadBuf *shb, APixstr *apixbuf, A
 	DeepSample *ds[RE_MAX_OSA], *sampleds[RE_MAX_OSA], *dsb, *newbuf;
 	APixstr *ap, *apn;
 	APixstrand *aps, *apns;
-	float visibility, totbuf= shb->totbuf;
-	int a, b, c, tot, minz, found, size= shb->size, prevtot, newtot;
+	float visibility;
+
+	const int totbuf= shb->totbuf;
+	const float totbuf_f= (float)shb->totbuf;
+	const float totbuf_f_inv= 1.0f/totbuf_f;
+	const int size= shb->size;
+
+	int a, b, c, tot, minz, found, prevtot, newtot;
 	int sampletot[RE_MAX_OSA], totsample = 0, totsamplec = 0;
 	
 	shsample= MEM_callocN( sizeof(ShadSampleBuf), "shad sample buf");
@@ -456,9 +462,9 @@ static void compress_deepshadowbuf(Render *re, ShadBuf *shb, APixstr *apixbuf, A
 				}
 
 				if(sampleds[c] == ds[c])
-					visibility += 1.0f/totbuf;
+					visibility += totbuf_f_inv;
 				else
-					visibility += (ds[c]-1)->v/totbuf;
+					visibility += (ds[c]-1)->v / totbuf_f;
 			}
 
 			dsb->v= visibility;

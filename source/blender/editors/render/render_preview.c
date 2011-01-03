@@ -1030,7 +1030,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
 	/* handle results */
 	if(sp->pr_method==PR_ICON_RENDER) {
-		char *rct= (char *)(sp->pr_rect + 32*16 + 16);
+		// char *rct= (char *)(sp->pr_rect + 32*16 + 16);
 		
 		if(sp->pr_rect)
 			RE_ResultGet32(re, sp->pr_rect);
