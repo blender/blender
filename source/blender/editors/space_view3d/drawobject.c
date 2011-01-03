@@ -919,11 +919,10 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	float lampsize;
 	float imat[4][4], curcol[4];
 	unsigned char col[4];
-	int drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && la->type == LA_SPOT && (la->mode & LA_SHOW_CONE));
-
 	/* cone can't be drawn for duplicated lamps, because duplilist would be freed to */
 	/* the moment of view3d_draw_transp() call */
-	drawcone&= (base->flag & OB_FROMDUPLI)==0;
+	const short is_view= (rv3d->persp==RV3D_CAMOB && v3d->camera == base->object);
+	const short drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && (la->type == LA_SPOT) && (la->mode & LA_SHOW_CONE) && !(base->flag & OB_FROMDUPLI) && !is_view);
 
 	if(drawcone && !v3d->transp) {
 		/* in this case we need to draw delayed */
@@ -1028,7 +1027,10 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	glPopMatrix();	/* back in object space */
 	zero_v3(vec);
 	
-	if ((la->type==LA_SPOT) || (la->type==LA_YF_PHOTON)) {	
+	if(is_view) {
+		/* skip drawing extra info */
+	}
+	else if ((la->type==LA_SPOT) || (la->type==LA_YF_PHOTON)) {
 		lvec[0]=lvec[1]= 0.0; 
 		lvec[2] = 1.0;
 		x = rv3d->persmat[0][2];
@@ -1171,7 +1173,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 
 	setlinestyle(0);
 	
-	if(la->type==LA_SPOT && (la->mode & LA_SHAD_BUF) ) {
+	if((la->type == LA_SPOT) && (la->mode & LA_SHAD_BUF) && (is_view == FALSE)) {
 		drawshadbuflimits(la, ob->obmat);
 	}
 	
