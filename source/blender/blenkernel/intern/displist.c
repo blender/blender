@@ -150,7 +150,10 @@ void copy_displist(ListBase *lbn, ListBase *lb)
 		dln->index= MEM_dupallocN(dl->index);
 		dln->col1= MEM_dupallocN(dl->col1);
 		dln->col2= MEM_dupallocN(dl->col2);
-		
+
+		if(dl->bevelSplitFlag)
+			dln->bevelSplitFlag= MEM_dupallocN(dl->bevelSplitFlag);
+
 		dl= dl->next;
 	}
 }
@@ -1790,7 +1793,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							/* CU_2D conflicts with R_NOPUNOFLIP */
 							dl->rt= nu->flag & ~CU_2D;
 
-							dl->bevelSplitFlag= MEM_callocN(sizeof(*dl->col2)*((bl->nr+0x1F)>>5), "col2");
+							dl->bevelSplitFlag= MEM_callocN(sizeof(*dl->col2)*((bl->nr+0x1F)>>5), "bevelSplitFlag");
 							bevp= (BevPoint *)(bl+1);
 	
 							/* for each point of poly make a bevel piece */
