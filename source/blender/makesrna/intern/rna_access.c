@@ -704,8 +704,8 @@ int RNA_property_array_dimension(PointerRNA *ptr, PropertyRNA *prop, int length[
 {
 	PropertyRNA *rprop= rna_ensure_property(prop);
 
-	if(length && rprop->arraydimension > 1)
-		rna_ensure_property_multi_array_length(ptr, prop, length);
+	if(length)
+			rna_ensure_property_multi_array_length(ptr, prop, length);
 
 	return rprop->arraydimension;
 }
