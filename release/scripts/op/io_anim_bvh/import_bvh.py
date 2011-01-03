@@ -274,18 +274,18 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
     return bvh_nodes
 
 
-def bvh_node_dict2objects(context, bvh_nodes, IMPORT_START_FRAME=1, IMPORT_LOOP=False):
+def bvh_node_dict2objects(context, bvh_nodes, frame_start=1, IMPORT_LOOP=False):
 
-    if IMPORT_START_FRAME < 1:
-        IMPORT_START_FRAME = 1
+    if frame_start < 1:
+        frame_start = 1
 
-    scn = context.scene
-    scn.objects.selected = []
+    scene = context.scene
+    scene.objects.selected = []
 
     objects = []
 
     def add_ob(name):
-        ob = scn.objects.new('Empty', None)
+        ob = scene.objects.new('Empty', None)
         objects.append(ob)
         return ob
 
@@ -312,7 +312,7 @@ def bvh_node_dict2objects(context, bvh_nodes, IMPORT_START_FRAME=1, IMPORT_LOOP=
 
     # Animate the data, the last used bvh_node will do since they all have the same number of frames
     for frame_current in range(len(bvh_node.anim_data)):
-        Blender.Set('curframe', frame_current + IMPORT_START_FRAME)
+        Blender.Set('curframe', frame_current + frame_start)
 
         for bvh_node in bvh_nodes.values():
             lx, ly, lz, rx, ry, rz = bvh_node.anim_data[frame_current]
@@ -324,30 +324,27 @@ def bvh_node_dict2objects(context, bvh_nodes, IMPORT_START_FRAME=1, IMPORT_LOOP=
 
             bvh_node.temp.insertIpoKey(Blender.Object.IpoKeyTypes.LOCROT)  # XXX invalid
 
-    scn.update(1)
+    scene.update(1)
     return objects
 
 
-def bvh_node_dict2armature(context, bvh_nodes, rotate_mode='XYZ', IMPORT_START_FRAME=1, IMPORT_LOOP=False):
+def bvh_node_dict2armature(context, bvh_name, bvh_nodes, rotate_mode='XYZ', frame_start=1, IMPORT_LOOP=False):
 
-    if IMPORT_START_FRAME < 1:
-        IMPORT_START_FRAME = 1
+    if frame_start < 1:
+        frame_start = 1
 
     # Add the new armature,
-    scn = context.scene
-#XXX	scn.objects.selected = []
-    for ob in scn.objects:
-        ob.select = False
+    scene = context.scene
+    for obj in scene.objects:
+        obj.select = False
 
-    scn.frame_set(IMPORT_START_FRAME)
+    arm_data = bpy.data.armatures.new(bvh_name)
+    arm_ob = bpy.data.objects.new(bvh_name, arm_data)
 
-    arm_data = bpy.data.armatures.new("MyBVH")
-    arm_ob = bpy.data.objects.new("MyBVH", arm_data)
-
-    scn.objects.link(arm_ob)
+    scene.objects.link(arm_ob)
 
     arm_ob.select = True
-    scn.objects.active = arm_ob
+    scene.objects.active = arm_ob
 
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -413,13 +410,10 @@ def bvh_node_dict2armature(context, bvh_nodes, rotate_mode='XYZ', IMPORT_START_F
     for bvh_node in bvh_nodes.values():
         bvh_node.temp = bvh_node.temp.name
 
-#XXX	arm_data.update()
-
     # Now Apply the animation to the armature
 
     # Get armature animation data
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-    bpy.ops.object.mode_set(mode='POSE', toggle=False)
 
     pose = arm_ob.pose
     pose_bones = pose.bones
@@ -439,18 +433,9 @@ def bvh_node_dict2armature(context, bvh_nodes, rotate_mode='XYZ', IMPORT_START_F
 
     context.scene.update()
 
-    bpy.ops.pose.select_all()  # set
-    bpy.ops.anim.keyframe_insert_menu(type=-4)  # XXX -     -4 ???
-
-
-#XXX	action = Blender.Armature.NLA.NewAction("Action")
-#XXX	action.setActive(arm_ob)
-
-    #bpy.ops.action.new()
-    #action = bpy.data.actions[-1]
-
-    # arm_ob.animation_data.action = action
-    action = arm_ob.animation_data.action
+    arm_ob.animation_data_create()
+    action = bpy.data.actions.new(name=bvh_name)
+    arm_ob.animation_data.action = action
 
     # Replace the bvh_node.temp (currently an editbone)
     # With a tuple  (pose_bone, armature_bone, bone_rest_matrix, bone_rest_matrix_inv)
@@ -484,6 +469,8 @@ def bvh_node_dict2armature(context, bvh_nodes, rotate_mode='XYZ', IMPORT_START_F
         # if frame_current==40: # debugging
         # 	break
 
+        scene.frame_set(frame_start + frame_current)
+
         # Dont neet to set the current frame
         for i, bvh_node in enumerate(bvh_nodes.values()):
             pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv = bvh_node.temp
@@ -511,10 +498,6 @@ def bvh_node_dict2armature(context, bvh_nodes, rotate_mode='XYZ', IMPORT_START_F
                 else:
                     pose_bone.keyframe_insert("rotation_euler")
 
-
-        # bpy.ops.anim.keyframe_insert_menu(type=-4) # XXX -     -4 ???
-        bpy.ops.screen.frame_offset(delta=1)
-
     for cu in action.fcurves:
         if IMPORT_LOOP:
             pass  # 2.5 doenst have cyclic now?
@@ -535,14 +518,21 @@ def load(operator, context, filepath="", rotate_mode='NATIVE', global_scale=1.0,
             global_scale=global_scale)
 
     print('%.4f' % (time.time() - t1))
+    
+    frame_orig = context.scene.frame_current
+    
     t1 = time.time()
     print('\timporting to blender...', end="")
+    
+    bvh_name = bpy.path.display_name_from_filepath(filepath)
 
-    bvh_node_dict2armature(context, bvh_nodes,
+    bvh_node_dict2armature(context, bvh_name, bvh_nodes,
             rotate_mode=rotate_mode,
-            IMPORT_START_FRAME=frame_start,
+            frame_start=frame_start,
             IMPORT_LOOP=use_cyclic)
 
     print('Done in %.4f\n' % (time.time() - t1))
+    
+    context.scene.frame_set(frame_orig)
 
     return {'FINISHED'}
