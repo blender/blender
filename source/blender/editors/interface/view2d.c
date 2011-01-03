@@ -1573,6 +1573,9 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				state |= UI_SCROLL_ARROWS;
 			}
 			
+			UI_ThemeColor(TH_BACK);
+			glRecti(v2d->hor.xmin, v2d->hor.ymin, v2d->hor.xmax, v2d->hor.ymax);
+			
 			uiWidgetScrollDraw(&wcol, &hor, &slider, state);
 		}
 		
@@ -1681,6 +1684,9 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				state |= UI_SCROLL_ARROWS;
 			}
 				
+			UI_ThemeColor(TH_BACK);
+			glRecti(v2d->vert.xmin, v2d->vert.ymin, v2d->vert.xmax, v2d->vert.ymax);
+			
 			uiWidgetScrollDraw(&wcol, &vert, &slider, state);
 		}
 		
