@@ -591,7 +591,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 			brush_set_size(brush, pixel_radius);
 
 		// XXX: no way currently to know state of pen flip or invert key modifier without starting a stroke
-		flip = 1;
+		flip = brush->flag & BRUSH_INVERTED ? -1 : 1;
 
 		sign = flip * ((brush->flag & BRUSH_DIR_IN)? -1 : 1);
 
