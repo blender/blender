@@ -210,13 +210,17 @@ static short gp_stroke_filtermval (tGPsdata *p, int mval[2], int pmval[2])
 	if (p->gpd->sbuffer_size == 0)
 		return 1;
 	
-	/* check if mouse moved at least certain distance on both axes (best case) */
+	/* check if mouse moved at least certain distance on both axes (best case) 
+	 *	- aims to eliminate some jitter-noise from input when trying to draw straight lines freehand
+	 */
 	else if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX))
 		return 1;
 	
-	/* check if the distance since the last point is significant enough */
-	// future optimisation: sqrt here may be too slow?
-	else if (sqrt(dx*dx + dy*dy) > MIN_EUCLIDEAN_PX)
+	/* check if the distance since the last point is significant enough 
+	 *	- prevents points being added too densely
+	 *	- distance here doesn't use sqrt to prevent slowness... we should still be safe from overflows though
+	 */
+	else if ((dx*dx + dy*dy) > MIN_EUCLIDEAN_PX*MIN_EUCLIDEAN_PX)
 		return 1;
 	
 	/* mouse 'didn't move' */
@@ -415,7 +419,7 @@ static void gp_stroke_simplify (tGPsdata *p)
 		return;
 	
 	/* don't simplify if less than 4 points in buffer */
-	if ((num_points <= 2) || (old_points == NULL))
+	if ((num_points <= 4) || (old_points == NULL))
 		return;
 		
 	/* clear buffer (but don't free mem yet) so that we can write to it 
