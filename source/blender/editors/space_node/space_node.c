@@ -160,9 +160,9 @@ static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 {
 	/* note, ED_area_tag_refresh will re-execute compositor */
-	/* XXX, should edit some to check for the nodeTree type, especially  NC_NODE|NA_EDITED which refreshes all types */
 	SpaceNode *snode= sa->spacedata.first;
-
+	int type= snode->treetype;
+	
 	/* preview renders */
 	switch(wmn->category) {
 		case NC_SCENE:
@@ -180,14 +180,18 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 			
 		/* future: add ID checks? */
 		case NC_MATERIAL:
-			if(wmn->data==ND_SHADING)
-				ED_area_tag_refresh(sa);
-			else if(wmn->data==ND_SHADING_DRAW)
-				ED_area_tag_refresh(sa);
+			if(type==NTREE_SHADER) {
+				if(wmn->data==ND_SHADING)
+					ED_area_tag_refresh(sa);
+				else if(wmn->data==ND_SHADING_DRAW)
+					ED_area_tag_refresh(sa);
+			}
 			break;
 		case NC_TEXTURE:
-			if(wmn->data==ND_NODES)
-				ED_area_tag_refresh(sa);
+			if(type==NTREE_SHADER || type==NTREE_TEXTURE)) {
+				if(wmn->data==ND_NODES)
+					ED_area_tag_refresh(sa);
+			}
 			break;
 		case NC_TEXT:
 			/* pynodes */
