@@ -180,7 +180,7 @@ static void gp_get_3d_reference (tGPsdata *p, float *vec)
 	float *fp= give_cursor(p->scene, v3d);
 	
 	/* the reference point used depends on the owner... */
-#if 0 // XXX: disabled for now, since we can't draw relative ot the owner yet
+#if 0 // XXX: disabled for now, since we can't draw relative to the owner yet
 	if (p->ownerPtr.type == &RNA_Object) 
 	{
 		Object *ob= (Object *)p->ownerPtr.data;
@@ -232,7 +232,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[], flo
 	
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
-		if(gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out, 0, depth))) {
+		if (gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out, 0, depth))) {
 			/* projecting onto 3D-Geometry
 			 *	- nothing more needs to be done here, since view_autodist_simple() has already done it
 			 */
@@ -290,7 +290,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[], flo
 	
 	/* 2d - relative to screen (viewport area) */
 	else {
-		if(p->subrect == NULL) { /* normal 3D view */
+		if (p->subrect == NULL) { /* normal 3D view */
 			out[0] = (float)(mval[0]) / (float)(p->ar->winx) * 100;
 			out[1] = (float)(mval[1]) / (float)(p->ar->winy) * 100;
 		}
@@ -410,7 +410,7 @@ static void gp_stroke_simplify (tGPsdata *p)
 	short flag= gpd->sbuffer_sflag;
 	short i, j;
 	
-	/* only simplify if simlification is enabled, and we're not doing a straight line */
+	/* only simplify if simplification is enabled, and we're not doing a straight line */
 	if (!(U.gp_settings & GP_PAINT_DOSIMPLIFY) || (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT))
 		return;
 	
@@ -536,60 +536,62 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	}
 	else {
 		float *depth_arr= NULL;
-
+		
 		/* get an array of depths, far depths are blended */
-		if(gpencil_project_check(p)) {
+		if (gpencil_project_check(p)) {
 			short mval[2];
 			int interp_depth = 0;
 			int found_depth = 0;
-
+			
 			depth_arr= MEM_mallocN(sizeof(float) * gpd->sbuffer_size, "depth_points");
-
+			
 			for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size; i++, ptc++, pt++) {
 				mval[0]= ptc->x; mval[1]= ptc->y;
-				if(view_autodist_depth(p->ar, mval, depth_margin, depth_arr+i) == 0)
+				if (view_autodist_depth(p->ar, mval, depth_margin, depth_arr+i) == 0)
 					interp_depth= TRUE;
 				else
 					found_depth= TRUE;
 			}
-
-			if(found_depth==FALSE) {
+			
+			if (found_depth == FALSE) {
 				/* eeh... not much we can do.. :/, ignore depth in this case, use the 3D cursor */
 				for (i=gpd->sbuffer_size-1; i >= 0; i--)
 					depth_arr[i] = 0.9999f;
 			}
 			else {
-				if(p->gpd->flag & GP_DATA_DEPTH_STROKE_ENDPOINTS) {
+				if (p->gpd->flag & GP_DATA_DEPTH_STROKE_ENDPOINTS) {
 					/* remove all info between the valid endpoints */
 					int first_valid = 0;
 					int last_valid = 0;
-
-					for (i=0; i < gpd->sbuffer_size; i++)
-						if(depth_arr[i] != FLT_MAX)
+					
+					for (i=0; i < gpd->sbuffer_size; i++) {
+						if (depth_arr[i] != FLT_MAX)
 							break;
+					}
 					first_valid= i;
-
-					for (i=gpd->sbuffer_size-1; i >= 0; i--)
-						if(depth_arr[i] != FLT_MAX)
+					
+					for (i=gpd->sbuffer_size-1; i >= 0; i--) {
+						if (depth_arr[i] != FLT_MAX)
 							break;
+					}
 					last_valid= i;
-
+					
 					/* invalidate non-endpoints, so only blend between first and last */
 					for (i=first_valid+1; i < last_valid; i++)
 						depth_arr[i]= FLT_MAX;
-
+					
 					interp_depth= TRUE;
 				}
-
-				if(interp_depth) {
+				
+				if (interp_depth) {
 					interp_sparse_array(depth_arr, gpd->sbuffer_size, FLT_MAX);
 				}
 			}
 		}
-
-
+		
+		
 		pt= gps->points;
-
+		
 		/* convert all points (normal behaviour) */
 		for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size && ptc; i++, ptc++, pt++) {
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
@@ -598,8 +600,8 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 			/* copy pressure */
 			pt->pressure= ptc->pressure;
 		}
-
-		if(depth_arr)
+		
+		if (depth_arr)
 			MEM_freeN(depth_arr);
 	}
 	
@@ -729,7 +731,7 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 		}
 #endif
 		else {
-			if(p->subrect == NULL) { /* normal 3D view */
+			if (p->subrect == NULL) { /* normal 3D view */
 				x0= (int)(gps->points->x / 100 * p->ar->winx);
 				y0= (int)(gps->points->y / 100 * p->ar->winy);
 			}
