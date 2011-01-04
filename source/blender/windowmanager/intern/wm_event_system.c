@@ -1893,14 +1893,20 @@ void WM_event_fileselect_event(bContext *C, void *ophandle, int eventval)
 
 void WM_event_add_fileselect(bContext *C, wmOperator *op)
 {
-	wmEventHandler *handler;
+	wmEventHandler *handler, *handlernext;
 	wmWindow *win= CTX_wm_window(C);
 	int full= 1;	// XXX preset?
 
-	/* only allow file selector open per window bug [#23553] */
-	for(handler= win->modalhandlers.first; handler; handler=handler->next) {
-		if(handler->type == WM_HANDLER_FILESELECT)
-			return;
+	/* only allow 1 file selector open per window */
+	for(handler= win->modalhandlers.first; handler; handler=handlernext) {
+		handlernext= handler->next;
+		
+		if(handler->type == WM_HANDLER_FILESELECT) {
+			if(handler->op)
+				WM_operator_free(handler->op);
+			BLI_remlink(&win->modalhandlers, handler);
+			wm_event_free_handler(handler);
+		}
 	}
 	
 	handler = MEM_callocN(sizeof(wmEventHandler), "fileselect handler");
