@@ -466,7 +466,7 @@ class x3d_class:
             #--- output textureCoordinates if UV texture used
             if mesh.uv_textures.active:
                 self.writeTextureCoordinates(mesh)
-            if mesh.vertex_colors.active:
+            if mesh.vertex_colors.active and (mat_first is None or mat_first.use_vertex_color_paint):
                 self.writeFaceColors(mesh)
             #--- output coordinates
             self.writeCoordinates(ob, mesh, meshName, EXPORT_TRI)
@@ -479,7 +479,7 @@ class x3d_class:
             #--- output textureCoordinates if UV texture used
             if mesh.uv_textures.active:
                 self.writeTextureCoordinates(mesh)
-            if mesh.vertex_colors.active:
+            if mesh.vertex_colors.active and (mat_first is None or mat_first.use_vertex_color_paint):
                 self.writeFaceColors(mesh)
             #--- output vertexColors
 
