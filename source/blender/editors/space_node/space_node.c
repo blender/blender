@@ -188,7 +188,7 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_TEXTURE:
-			if(type==NTREE_SHADER || type==NTREE_TEXTURE)) {
+			if(type==NTREE_SHADER || type==NTREE_TEXTURE) {
 				if(wmn->data==ND_NODES)
 					ED_area_tag_refresh(sa);
 			}
