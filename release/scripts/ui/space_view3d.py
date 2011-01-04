@@ -584,7 +584,7 @@ class VIEW3D_MT_select_edit_metaball(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("mball.select_deselect_all_metaelems")
+        layout.operator("mball.select_all").action = 'TOGGLE'
         layout.operator("mball.select_inverse_metaelems")
 
         layout.separator()
