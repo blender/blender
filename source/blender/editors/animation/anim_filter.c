@@ -105,23 +105,7 @@ static Key *actedit_get_shapekeys (bAnimContext *ac)
 	//if (saction->pin) return NULL;
 	
 	/* shapekey data is stored with geometry data */
-	switch (ob->type) {
-		case OB_MESH:
-			key= ((Mesh *)ob->data)->key;
-			break;
-			
-		case OB_LATTICE:
-			key= ((Lattice *)ob->data)->key;
-			break;
-			
-		case OB_CURVE:
-		case OB_SURF:
-			key= ((Curve *)ob->data)->key;
-			break;
-			
-		default:
-			return NULL;
-	}
+	key= ob_get_key(ob);
 	
 	if (key) {
 		if (key->type == KEY_RELATIVE)

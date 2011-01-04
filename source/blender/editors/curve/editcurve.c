@@ -3928,7 +3928,6 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	Curve *cu= obedit->data;
 	ListBase *nubase= curve_get_editcurve(obedit);
 	Nurb *nu, *nu1=0, *nu2=0;
-	BezTriple *bezt = NULL;
 	BPoint *bp;
 	float *fp, offset;
 	int a, ok= 0;
@@ -3960,12 +3959,10 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	for(nu= nubase->first; nu; nu= nu->next) {
 		if((nu->flagu & CU_NURB_CYCLIC)==0) {    /* not cyclic */
 			if(nu->type == CU_BEZIER) {
-				bezt= nu->bezt;
 				if(nu1==0) {
-					if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) nu1= nu;
+					if( BEZSELECTED_HIDDENHANDLES(cu, nu->bezt) ) nu1= nu;
 					else {
-						bezt= bezt+(nu->pntsu-1);
-						if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
+						if( BEZSELECTED_HIDDENHANDLES(cu, &(nu->bezt[nu->pntsu-1])) ) {
 							nu1= nu;
 							switchdirectionNurb(nu);
 							keyData_switchDirectionNurb(cu, nu);
@@ -3973,14 +3970,13 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 					}
 				}
 				else if(nu2==0) {
-					if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
+					if( BEZSELECTED_HIDDENHANDLES(cu, nu->bezt) ) {
 						nu2= nu;
 						switchdirectionNurb(nu);
 						keyData_switchDirectionNurb(cu, nu);
 					}
 					else {
-						bezt= bezt+(nu->pntsu-1);
-						if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
+						if( BEZSELECTED_HIDDENHANDLES(cu, &(nu->bezt[nu->pntsu-1])) ) {
 							nu2= nu;
 						}
 					}
@@ -4021,7 +4017,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	if((nu1 && nu2) && (nu1!=nu2)) {
 		if( nu1->type==nu2->type) {
 			if(nu1->type == CU_BEZIER) {
-				bezt =
+				BezTriple *bezt =
 					(BezTriple*)MEM_mallocN((nu1->pntsu+nu2->pntsu) * sizeof(BezTriple), "addsegmentN");
 				ED_curve_beztcpy(cu->editnurb, bezt, nu2->bezt, nu2->pntsu);
 				ED_curve_beztcpy(cu->editnurb, bezt+nu2->pntsu, nu1->bezt, nu1->pntsu);
