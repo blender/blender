@@ -657,8 +657,11 @@ typedef struct ToolSettings {
 	short uvcalc_mapalign;
 	short uvcalc_flag;
 	short uv_flag, uv_selectmode;
-	short uv_pad[2];
-
+	short uv_pad;
+	
+	/* Grease Pencil */
+	short gpencil_flags;
+	
 	/* Auto-IK */
 	short autoik_chainlen;
 
@@ -1192,6 +1195,9 @@ typedef enum SculptFlags {
 #define EDGE_MODE_TAG_SHARP				2
 #define EDGE_MODE_TAG_CREASE			3
 #define EDGE_MODE_TAG_BEVEL				4
+
+/* toolsettings->gpencil_flags */
+#define GP_TOOL_FLAG_PAINTSESSIONS_ON	(1<<0)
 
 /* toolsettings->particle flag */
 #define PE_KEEP_LENGTHS			1
