@@ -418,12 +418,9 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 			
 			/* try to find a path matching this description */
 			ksp= BKE_keyingset_find_path(ks, ptr.id.data, ks->name, path, index, KSP_GROUP_KSNAME);
-			
+
 			if (ksp) {
-				/* just free it... */
-				MEM_freeN(ksp->rna_path);
-				BLI_freelinkN(&ks->paths, ksp);
-				
+				BKE_keyingset_free_path(ks, ksp);
 				success= 1;
 			}
 			

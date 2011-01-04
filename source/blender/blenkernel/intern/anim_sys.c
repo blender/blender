@@ -916,10 +916,11 @@ void BKE_keyingset_free_path (KeyingSet *ks, KS_Path *ksp)
 	/* sanity check */
 	if ELEM(NULL, ks, ksp)
 		return;
-	
+
 	/* free RNA-path info */
-	MEM_freeN(ksp->rna_path);
-	
+	if(ksp->rna_path)
+		MEM_freeN(ksp->rna_path);
+
 	/* free path itself */
 	BLI_freelinkN(&ks->paths, ksp);
 }
