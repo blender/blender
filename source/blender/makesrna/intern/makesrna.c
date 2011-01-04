@@ -72,6 +72,8 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 		FILE *file_test= fopen(orgfile, "rb"); \
 		if(file_test) { \
 			fclose(file_test); \
+			if(fp_org) fclose(fp_org); \
+			if(fp_new) fclose(fp_new); \
 			if(remove(orgfile) != 0) { \
 				fprintf(stderr, "%s:%d, Remove Error (%s): \"%s\"\n", __FILE__, __LINE__, strerror(errno), orgfile); \
 				return -1; \
@@ -87,7 +89,7 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 /* end REN_IF_DIFF */
 
 
-	FILE *fp_new, *fp_org;
+	FILE *fp_new= NULL, *fp_org= NULL;
 	int len_new, len_org;
 	char *arr_new, *arr_org;
 	int cmp;
