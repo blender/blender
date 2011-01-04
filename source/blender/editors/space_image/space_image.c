@@ -767,6 +767,9 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	//View2DScrollers *scrollers;
 	float col[3];
 	
+	/* XXX not supported yet, disabling for now */
+	scene->r.scemode &= ~R_COMP_CROP;
+	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
