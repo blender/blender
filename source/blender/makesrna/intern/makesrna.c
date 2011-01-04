@@ -68,7 +68,16 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 	// return 0; // use for testing had edited rna
 
 #define REN_IF_DIFF \
-	remove(orgfile); \
+	{ \
+		FILE *file_test= fopen(orgfile, "rb"); \
+		if(file_test) { \
+			fclose(file_test); \
+			if(remove(orgfile) != 0) { \
+				fprintf(stderr, "%s:%d, Remove Error (%s): \"%s\"\n", __FILE__, __LINE__, strerror(errno), orgfile); \
+				return -1; \
+			} \
+		} \
+	} \
 	if(rename(tmpfile, orgfile) != 0) { \
 		fprintf(stderr, "%s:%d, Rename Error (%s): \"%s\" -> \"%s\"\n", __FILE__, __LINE__, strerror(errno), tmpfile, orgfile); \
 		return -1; \
