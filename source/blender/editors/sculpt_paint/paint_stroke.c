@@ -595,7 +595,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 
 		sign = flip * ((brush->flag & BRUSH_DIR_IN)? -1 : 1);
 
-		if (sign < 0 && ELEM4(brush->sculpt_tool, SCULPT_TOOL_DRAW, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY, SCULPT_TOOL_PINCH))
+		if (sign < 0 && ELEM5(brush->sculpt_tool, SCULPT_TOOL_DRAW, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY, SCULPT_TOOL_PINCH, SCULPT_TOOL_CREASE))
 			col = brush->sub_col;
 		else
 			col = brush->add_col;
