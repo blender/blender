@@ -1376,6 +1376,15 @@ static void gpencil_draw_apply_event (wmOperator *op, wmEvent *event)
 	else
 		p->pressure= 1.0f;
 	
+	/* fill in stroke data (not actually used directly by gpencil_draw_apply) */
+	RNA_collection_add(op->ptr, "stroke", &itemptr);
+	
+	mousef[0]= p->mval[0];
+	mousef[1]= p->mval[1];
+	RNA_float_set_array(&itemptr, "mouse", mousef);
+	RNA_float_set(&itemptr, "pressure", p->pressure);
+	RNA_boolean_set(&itemptr, "is_start", (p->flags & GP_PAINTFLAG_FIRSTRUN));
+	
 	/* special exception for start of strokes (i.e. maybe for just a dot) */
 	if (p->flags & GP_PAINTFLAG_FIRSTRUN) {
 		p->flags &= ~GP_PAINTFLAG_FIRSTRUN;
@@ -1390,15 +1399,6 @@ static void gpencil_draw_apply_event (wmOperator *op, wmEvent *event)
 		if (tablet && (p->pressure >= 0.99f))
 			return;
 	}
-	
-	/* fill in stroke data (not actually used directly by gpencil_draw_apply) */
-	// FIXME: need a way to denote new strokes (for drawing session redo)
-	RNA_collection_add(op->ptr, "stroke", &itemptr);
-
-	mousef[0]= p->mval[0];
-	mousef[1]= p->mval[1];
-	RNA_float_set_array(&itemptr, "mouse", mousef);
-	RNA_float_set(&itemptr, "pressure", p->pressure);
 	
 	/* apply the current latest drawing point */
 	gpencil_draw_apply(op, p);
@@ -1430,7 +1430,6 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 	/* loop over the stroke RNA elements recorded (i.e. progress of mouse movement),
 	 * setting the relevant values in context at each step, then applying
 	 */
-	// FIXME: this doesn't work for redoing stroke sessions
 	RNA_BEGIN(op->ptr, itemptr, "stroke") 
 	{
 		float mousef[2];
@@ -1442,6 +1441,17 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 		p->mval[0] = (short)mousef[0];
 		p->mval[1] = (short)mousef[1];
 		p->pressure= RNA_float_get(&itemptr, "pressure");
+		
+		if (RNA_boolean_get(&itemptr, "is_start")) {
+			/* if first-run flag isn't set already (i.e. not true first stroke),
+			 * then we must terminate the previous one first before continuing
+			 */
+			if ((p->flags & GP_PAINTFLAG_FIRSTRUN) == 0) {
+				// TODO: both of these ops can set error-status, but we probably don't need to worry
+				gp_paint_strokeend(p);
+				gp_paint_initstroke(p, p->paintmode);
+			}
+		}
 		
 		/* if first run, set previous data too */
 		if (p->flags & GP_PAINTFLAG_FIRSTRUN) {

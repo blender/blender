@@ -792,6 +792,11 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "time", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_ui_text(prop, "Time", "");
+	
+	/* used for Grease Pencil sketching sessions */
+	prop= RNA_def_property(srna, "is_start", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_IDPROPERTY);
+	RNA_def_property_ui_text(prop, "Is Stroke Start", "");
 
 	/* XXX: Tool (this will be for pressing a modifier key for a different brush,
 			e.g. switching to a Smooth brush in the middle of the stroke */
