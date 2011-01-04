@@ -11225,6 +11225,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	/* put compatibility code here until next subversion bump */
+	
+	{
+		/* Fix for sample line scope initializing with no height */
+		bScreen *sc;
+		ScrArea *sa;
+		for(sc= main->screen.first; sc; sc= sc->id.next) {
+			sa= sc->areabase.first;
+			while(sa) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_IMAGE) {
+						SpaceImage *sima= (SpaceImage *)sl;
+						if (sima->sample_line_hist.height == 0 )
+							sima->sample_line_hist.height = 100;
+					}
+				}
+				sa= sa->next;
+			}
+		}
+	}
+	
 	{
 		Key *key;
 		
