@@ -4077,7 +4077,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	} else if(nu1 && !nu2 && nu1->type == CU_BEZIER) {
 		if(!(nu1->flagu & CU_NURB_CYCLIC)) {
 			if(BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt) &&
-				BEZSELECTED_HIDDENHANDLES(cu, bezt+(nu1->pntsu-1))) {
+				BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt+(nu1->pntsu-1))) {
 				nu1->flagu|= CU_NURB_CYCLIC;
 				calchandlesNurb(nu1);
 				ok= 1;
