@@ -151,6 +151,7 @@ typedef struct ShaderPreview {
 	
 	/* node materials need full copy during preview render, glsl uses it too */
 	Material *matcopy;
+	float col[4];		/* active object color */
 	
 	int sizex, sizey;
 	unsigned int *pr_rect;
@@ -389,6 +390,10 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				
 				init_render_material(mat, 0, NULL);		/* call that retrieves mode_l */
 				end_render_material(mat);
+				
+				/* un-useful option */
+				if(sp->pr_method==PR_ICON_RENDER)
+					mat->shade_flag &= ~MA_OBCOLOR;
 
 				/* turn on raytracing if needed */
 				if(mat->mode_l & MA_RAYMIRROR)
@@ -452,6 +457,9 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			
 			for(base= sce->base.first; base; base= base->next) {
 				if(base->object->id.name[2]=='p') {
+					/* copy over object color, in case material uses it */
+					copy_v4_v4(base->object->col, sp->col);
+					
 					if(ELEM4(base->object->type, OB_MESH, OB_CURVE, OB_SURF, OB_MBALL)) {
 						/* don't use assign_material, it changed mat->id.us, which shows in the UI */
 						Material ***matar= give_matarar(base->object);
@@ -1230,7 +1238,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 {
 	wmJob *steve;
 	ShaderPreview *sp;
-
+	
 	/* suspended start means it starts after 1 timer step, see WM_jobs_timer below */
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, "Icon Preview", WM_JOB_EXCL_RENDER|WM_JOB_SUSPEND);
 	sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
@@ -1254,6 +1262,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 
 void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, MTex *slot, int sizex, int sizey, int method)
 {
+	Object *ob= CTX_data_active_object(C);
 	wmJob *steve;
 	ShaderPreview *sp;
 
@@ -1269,6 +1278,8 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	sp->id = id;
 	sp->parent= parent;
 	sp->slot= slot;
+	if(ob && ob->totcol) copy_v4_v4(sp->col, ob->col);
+	else sp->col[0]= sp->col[1]= sp->col[2]= sp->col[3]= 1.0f;
 	
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);

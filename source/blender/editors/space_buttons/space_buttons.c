@@ -69,7 +69,7 @@ static SpaceLink *buttons_new(const bContext *UNUSED(C))
 	
 	BLI_addtail(&sbuts->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
-	ar->alignment= RGN_ALIGN_BOTTOM;
+	ar->alignment= RGN_ALIGN_TOP;
 	
 #if 0
 	/* context area */
