@@ -1076,6 +1076,8 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 	
 }
 
+/* **************** make links to scene ***************** */
+
 static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 {
 	ListBase *markers= context_get_markers(C);
@@ -1088,7 +1090,7 @@ static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 	}
 
 	if(scene_to == CTX_data_scene(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't link objects into the same scene");
+		BKE_report(op->reports, RPT_ERROR, "Can't re-link markers into the same scene");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1096,6 +1098,8 @@ static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 	for (marker= markers->first; marker; marker= marker->next) {
 		if(marker->flag & SELECT) {
 			marker_new= MEM_dupallocN(marker);
+			marker_new->prev= marker_new->next = NULL;
+			
 			BLI_addtail(&scene_to->markers, marker_new);
 		}
 	}
@@ -1109,7 +1113,7 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Make Links to Scene";
-	ot->description= "Link markers to another scene";
+	ot->description= "Copy selected markers to another scene";
 	ot->idname= "MARKER_OT_make_links_scene";
 
 	/* api callbacks */
