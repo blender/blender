@@ -59,7 +59,6 @@ class x3d_class:
 
     def __init__(self, filepath):
         #--- public you can change these ---
-        self.writingcolor = 0
         self.proto = 1
         self.billnode = 0
         self.halonode = 0
@@ -280,9 +279,8 @@ class x3d_class:
     def writeIndexedFaceSet(self, ob, mesh, mtx, world, EXPORT_TRI=False):
         # imageMap = {}  # set of used images
         sided = {}  # 'one':cnt , 'two':cnt
-        meshName = self.cleanStr(ob.name)
+        mesh_name_x3d = self.cleanStr(ob.name)
 
-        meshME = self.cleanStr(ob.data.name)  # We dont care if its the mesh name or not
         if not mesh.faces:
             return
 
@@ -320,71 +318,72 @@ class x3d_class:
 
         loc, quat, sca = mtx.decompose()
 
-        self.write_indented("<Transform DEF=\"%s\" " % meshName)
+        self.write_indented("<Transform DEF=\"%s\" " % mesh_name_x3d, 1)
         self.file.write("translation=\"%.6f %.6f %.6f\" " % loc[:])
         self.file.write("scale=\"%.6f %.6f %.6f\" " % sca[:])
         self.file.write("rotation=\"%.6f %.6f %.6f %.6f\" " % (quat.axis[:] + (quat.angle, )))
         self.file.write(">\n")
 
-        self.write_indented("<Group DEF=\"G_%s\">\n" % meshName, 1)
-
-        self.write_indented("<Shape>\n", 1)
-        is_smooth = False
-
-        # XXX, lame, only exports first material.
-        mat_first = None
-        for mat_first in mesh.materials:
-            if mat_first:
-                break
-
-        if mat_first or mesh.uv_textures.active:
-            self.write_indented("<Appearance>\n", 1)
-            # right now this script can only handle a single material per mesh.
-            if mat_first and mat_first.use_face_texture == False:
-                self.writeMaterial(mat_first, self.cleanStr(mat_first.name, ""), world)
-                if len(mesh.materials) > 1:
-                    print("Warning: mesh named %s has multiple materials" % meshName)
-                    print("Warning: only one material per object handled")
-
-            image = None
-
-            if mat_first is None or mat_first.use_face_texture:
-                #-- textures
-                if mesh.uv_textures.active:
-                    for face in mesh.uv_textures.active.data:
-                        if face.use_image:
-                            image = face.image
-                            if image:
-                                break
-            elif mat_first:
-                for mtex in mat_first.texture_slots:
-                    if mtex:
-                        tex = mtex.texture
-                        if tex and tex.type == 'IMAGE':
-                            image = tex.image
-                            if image:
-                                break
-
-            # XXX, incorrect, uses first image
-            if image:
-                self.writeImageTexture(image)
-
-                if self.tilenode == 1:
-                    self.write_indented("<TextureTransform	scale=\"%s %s\" />\n" % (image.xrep, image.yrep))
-                    self.tilenode = 0
-
-            self.write_indented("</Appearance>\n", -1)
-
-        #-- IndexedFaceSet or IndexedLineSet
-
-        # user selected BOUNDS=1, SOLID=3, SHARED=4, or TEXTURE=5
-        # look up mesh name, use it if available
         if mesh.tag:
-            self.write_indented("<IndexedFaceSet USE=\"ME_%s\">" % meshME, 1)
+            self.write_indented("<Group USE=\"G_%s\" />\n" % mesh_name_x3d, 1)
         else:
             mesh.tag = True
 
-            self.write_indented("<IndexedFaceSet DEF=\"ME_%s\" " % meshME, 1)
+            self.write_indented("<Group DEF=\"G_%s\">\n" % mesh_name_x3d, 1)
+
+            self.write_indented("<Shape>\n", 1)
+            is_smooth = False
+
+            # XXX, lame, only exports first material.
+            mat_first = None
+            for mat_first in mesh.materials:
+                if mat_first:
+                    break
+
+            if mat_first or mesh.uv_textures.active:
+                self.write_indented("<Appearance>\n", 1)
+                # right now this script can only handle a single material per mesh.
+                if mat_first and mat_first.use_face_texture == False:
+                    self.writeMaterial(mat_first, self.cleanStr(mat_first.name, ""), world)
+                    if len(mesh.materials) > 1:
+                        print("Warning: mesh named %s has multiple materials" % mesh_name_x3d)
+                        print("Warning: only one material per object handled")
+
+                image = None
+
+                if mat_first is None or mat_first.use_face_texture:
+                    #-- textures
+                    if mesh.uv_textures.active:
+                        for face in mesh.uv_textures.active.data:
+                            if face.use_image:
+                                image = face.image
+                                if image:
+                                    break
+                elif mat_first:
+                    for mtex in mat_first.texture_slots:
+                        if mtex:
+                            tex = mtex.texture
+                            if tex and tex.type == 'IMAGE':
+                                image = tex.image
+                                if image:
+                                    break
+
+                # XXX, incorrect, uses first image
+                if image:
+                    self.writeImageTexture(image)
+
+                    if self.tilenode == 1:
+                        self.write_indented("<TextureTransform	scale=\"%s %s\" />\n" % (image.xrep, image.yrep))
+                        self.tilenode = 0
+
+                self.write_indented("</Appearance>\n", -1)
+
+            #-- IndexedFaceSet or IndexedLineSet
+
+            # user selected BOUNDS=1, SOLID=3, SHARED=4, or TEXTURE=5
+            # look up mesh name, use it if available
+
+            self.write_indented("<IndexedFaceSet ", 1)
 
             # --- Write IndexedFaceSet Attributes
             if mesh.show_double_sided:
@@ -408,13 +407,13 @@ class x3d_class:
             if is_col:
                 self.write_ifs_color_attr(mesh)
 
-            self.write_ifs_coords_attr(ob, mesh, meshName, EXPORT_TRI)
+            self.write_ifs_coords_attr(ob, mesh, mesh_name_x3d, EXPORT_TRI)
 
             # close IndexedFaceSet
             self.file.write(">\n")
 
             # --- Write IndexedFaceSet Elements
-            self.write_ifs_coords_elem(ob, mesh, meshName, EXPORT_TRI)
+            self.write_ifs_coords_elem(ob, mesh, mesh_name_x3d, EXPORT_TRI)
 
             if is_col:
                 self.write_ifs_texco_elem(mesh)
@@ -422,11 +421,11 @@ class x3d_class:
                 self.write_ifs_color_elem(mesh)
             #--- output vertexColors
 
-        self.writingcolor = 0
-        #--- output closing braces
-        self.write_indented("</IndexedFaceSet>\n", -1)
-        self.write_indented("</Shape>\n", -1)
-        self.write_indented("</Group>\n", -1)
+            #--- output closing braces
+            self.write_indented("</IndexedFaceSet>\n", -1)
+            self.write_indented("</Shape>\n", -1)
+            self.write_indented("</Group>\n", -1)
+
         self.write_indented("</Transform>\n", -1)
 
         if self.halonode == 1:
@@ -443,7 +442,7 @@ class x3d_class:
 
         self.file.write("\n")
 
-    def write_ifs_coords_attr(self, ob, mesh, meshName, EXPORT_TRI=False):
+    def write_ifs_coords_attr(self, ob, mesh, mesh_name_x3d, EXPORT_TRI=False):
         self.file.write('coordIndex="')
         if EXPORT_TRI:
             for face in mesh.faces:
@@ -464,8 +463,8 @@ class x3d_class:
 
         self.file.write("\" ")
 
-    def write_ifs_coords_elem(self, ob, mesh, meshName, EXPORT_TRI=False):
-        self.write_indented("<Coordinate DEF=\"%s%s\" \n" % ("coord_", meshName), 1)
+    def write_ifs_coords_elem(self, ob, mesh, mesh_name_x3d, EXPORT_TRI=False):
+        self.write_indented("<Coordinate DEF=\"%s%s\" \n" % ("coord_", mesh_name_x3d), 1)
         self.file.write("\t\t\t\tpoint=\"")
         for v in mesh.vertices:
             self.file.write("%.6f %.6f %.6f, " % v.co[:])
