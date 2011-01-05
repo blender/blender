@@ -2943,7 +2943,7 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 			/* particle dies in collision */
 			if(through == 0 && (part->flag & PART_DIE_ON_COL || pd->flag & PDEFLE_KILL_PART)) {
 				pa->alive = PARS_DYING;
-				pa->dietime = pa->state.time + (cfra - pa->state.time) * f;
+				pa->dietime = sim->psys->cfra + (cfra - sim->psys->cfra) * f;
 
 				copy_v3_v3(pa->state.co, co);
 				interp_v3_v3v3(pa->state.vel, pa->prev_state.vel, pa->state.vel, f);
