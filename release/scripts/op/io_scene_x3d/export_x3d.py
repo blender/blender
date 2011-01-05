@@ -46,6 +46,7 @@ MATWORLD = mathutils.Matrix.Rotation(-(math.pi / 2.0), 4, 'X')
 def round_color(col, cp):
     return tuple([round(max(min(c, 1.0), 0.0), cp) for c in col])
 
+
 def matrix_direction(mtx):
     return (mathutils.Vector((0.0, 0.0, -1.0)) * (MATWORLD * mtx).rotation_part()).normalize()[:]
 
@@ -60,8 +61,6 @@ class x3d_class:
     def __init__(self, filepath):
         #--- public you can change these ---
         self.writingcolor = 0
-        self.writingtexture = 0
-        self.writingcoords = 0
         self.proto = 1
         self.billnode = 0
         self.halonode = 0
@@ -323,7 +322,7 @@ class x3d_class:
         nIFSCnt = self.countIFSSetsNeeded(mesh, imageMap, sided)
 
         if nIFSCnt > 1:
-            self.write_indented("<Group DEF=\"%s%s\">\n" % ("G_", meshName), 1)
+            self.write_indented("<Group DEF=\"G_%s\">\n" % meshName, 1)
 
         if 'two' in sided and sided['two'] > 0:
             bTwoSided = 1
@@ -398,6 +397,7 @@ class x3d_class:
 
             self.write_indented("<IndexedFaceSet DEF=\"ME_%s\" " % meshME, 1)
 
+            # --- Write IndexedFaceSet Attributes
             if bTwoSided == 1:
                 self.file.write("solid=\"false\" ")
             else:
@@ -411,28 +411,28 @@ class x3d_class:
             if is_smooth:
                 self.file.write("creaseAngle=\"%.4f\" " % creaseAngle)
 
-            #--- output textureCoordinates if UV texture used
-            if mesh.uv_textures.active:
-                self.writeTextureCoordinates(mesh)
-            if mesh.vertex_colors.active and (mat_first is None or mat_first.use_vertex_color_paint):
-                self.writeFaceColors(mesh)
-            #--- output coordinates
-            self.writeCoordinates(ob, mesh, meshName, EXPORT_TRI)
+            is_uv = bool(mesh.uv_textures.active)
+            is_col = (mesh.vertex_colors.active and (mat_first is None or mat_first.use_vertex_color_paint))
 
-            self.writingcoords = 1
-            self.writingtexture = 1
-            self.writingcolor = 1
-            self.writeCoordinates(ob, mesh, meshName, EXPORT_TRI)
+            if is_uv:
+                self.write_ifs_texco_attr(mesh)
+            if is_col:
+                self.write_ifs_color_attr(mesh)
 
-            #--- output textureCoordinates if UV texture used
-            if mesh.uv_textures.active:
-                self.writeTextureCoordinates(mesh)
-            if mesh.vertex_colors.active and (mat_first is None or mat_first.use_vertex_color_paint):
-                self.writeFaceColors(mesh)
+            self.write_ifs_coords_attr(ob, mesh, meshName, EXPORT_TRI)
+
+            # close IndexedFaceSet
+            self.file.write(">\n")
+
+            # --- Write IndexedFaceSet Elements
+            self.write_ifs_coords_elem(True, ob, mesh, meshName, EXPORT_TRI)
+
+            if is_col:
+                self.write_ifs_texco_elem(mesh)
+            if is_col:
+                self.write_ifs_color_elem(mesh)
             #--- output vertexColors
 
-        self.writingcoords = 0
-        self.writingtexture = 0
         self.writingcolor = 0
         #--- output closing braces
         self.write_indented("</IndexedFaceSet>\n", -1)
@@ -456,69 +456,70 @@ class x3d_class:
 
         self.file.write("\n")
 
-    def writeCoordinates(self, ob, mesh, meshName, EXPORT_TRI=False):
-        # create vertex list and pre rotate -90 degrees X for VRML
-
-        if self.writingcoords == 0:
-            self.file.write('coordIndex="')
+    def write_ifs_coords_attr(self, ob, mesh, meshName, EXPORT_TRI=False):
+        self.file.write('coordIndex="')
+        if EXPORT_TRI:
             for face in mesh.faces:
                 fv = face.vertices[:]
-
                 if len(fv) == 3:
+                    self.file.write("%i %i %i -1, " % fv)
+                else:
                     self.file.write("%i %i %i -1, " % (fv[0], fv[1], fv[2]))
-                else:
-                    if EXPORT_TRI:
-                        self.file.write("%i %i %i -1, " % (fv[0], fv[1], fv[2]))
-                        self.file.write("%i %i %i -1, " % (fv[0], fv[2], fv[3]))
-                    else:
-                        self.file.write("%i %i %i %i -1, " % (fv[0], fv[1], fv[2], fv[3]))
+                    self.file.write("%i %i %i -1, " % (fv[0], fv[2], fv[3]))
 
-            self.file.write("\">\n")
         else:
-            #-- vertices
-            # mesh.transform(ob.matrix_world)
-            self.write_indented("<Coordinate DEF=\"%s%s\" \n" % ("coord_", meshName), 1)
-            self.file.write("\t\t\t\tpoint=\"")
-            for v in mesh.vertices:
-                self.file.write("%.6f %.6f %.6f, " % v.co[:])
-            self.file.write("\" />")
-            self.write_indented("\n", -1)
-
-    def writeTextureCoordinates(self, mesh):
-        if self.writingtexture == 0:
-            self.file.write("\n\t\t\ttexCoordIndex=\"")
-
-            fw = self.file.write
-            j = 0
-            for face in mesh.uv_textures.active.data:
-                if len(face.uv) == 4:
-                    fw("%d %d %d %d -1, " % (j, j + 1, j + 2, j + 3))
-                    j += 4
+            for face in mesh.faces:
+                fv = face.vertices[:]
+                if len(fv) == 3:
+                    self.file.write("%i %i %i -1, " % fv)
                 else:
-                    fw("%d %d %d -1, " % (j, j + 1, j + 2))
-                    j += 3
+                    self.file.write("%i %i %i %i -1, " % fv)
 
-            fw("\"\n\t\t\t")
-        else:
-            texCoordList = (uv for fuv in mesh.uv_textures.active.data for uv in fuv.uv)
+        self.file.write("\" ")
 
-            self.write_indented("<TextureCoordinate point=\"", 1)
-            fw = self.file.write
-            for uv in texCoordList:
-                fw("%.4f %.4f, " % uv[:])
-            fw("\" />")
-            self.write_indented("\n", -1)
+    def write_ifs_coords_elem(self, ob, mesh, meshName, EXPORT_TRI=False):
+        self.write_indented("<Coordinate DEF=\"%s%s\" \n" % ("coord_", meshName), 1)
+        self.file.write("\t\t\t\tpoint=\"")
+        for v in mesh.vertices:
+            self.file.write("%.6f %.6f %.6f, " % v.co[:])
+        self.file.write("\" />")
+        self.write_indented("\n", -1)
 
-    def writeFaceColors(self, mesh):
-        if self.writingcolor == 0:
-            self.file.write("colorPerVertex=\"false\" ")
-        elif mesh.vertex_colors.active:
-            self.write_indented("<Color color=\"", 1)
-            for face in mesh.vertex_colors.active.data:
-                # XXX, 1 color per face, only
-                self.file.write("%.3f %.3f %.3f, " % face.color1[:])
-            self.file.write("\" />")
-            self.write_indented("\n", -1)
+    def write_ifs_texco_attr(self, mesh):
+        self.file.write("\n\t\t\ttexCoordIndex=\"")
+
+        fw = self.file.write
+        j = 0
+        for face in mesh.uv_textures.active.data:
+            if len(face.uv) == 4:
+                fw("%d %d %d %d -1, " % (j, j + 1, j + 2, j + 3))
+                j += 4
+            else:
+                fw("%d %d %d -1, " % (j, j + 1, j + 2))
+                j += 3
+
+        fw("\"\n\t\t\t")
+
+    def write_ifs_texco_elem(self, mesh):
+        texCoordList = (uv for fuv in mesh.uv_textures.active.data for uv in fuv.uv)
+
+        self.write_indented("<TextureCoordinate point=\"", 1)
+        fw = self.file.write
+        for uv in texCoordList:
+            fw("%.4f %.4f, " % uv[:])
+        fw("\" />")
+        self.write_indented("\n", -1)
+
+    def write_ifs_color_attr(self, mesh):
+        self.file.write("colorPerVertex=\"false\" ")
+
+    def write_ifs_color_elem(self, mesh):
+        self.write_indented("<Color color=\"", 1)
+        for face in mesh.vertex_colors.active.data:
+            # XXX, 1 color per face, only
+            self.file.write("%.3f %.3f %.3f, " % face.color1[:])
+        self.file.write("\" />")
+        self.write_indented("\n", -1)
 
     def writeMaterial(self, mat, matName, world):
         # look up material name, use it if available
