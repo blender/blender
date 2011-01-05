@@ -1266,10 +1266,10 @@ void makebevelcurve(Scene *scene, Object *ob, ListBase *disp, int forRender)
 				makeDispListCurveTypes_forRender(scene, cu->bevobj, &bevdisp, NULL, 0);
 				dl= bevdisp.first;
 			} else {
-				dl= bevcu->disp.first;
+				dl= cu->bevobj->disp.first;
 				if(dl==0) {
 					makeDispListCurveTypes(scene, cu->bevobj, 0);
-					dl= bevcu->disp.first;
+					dl= cu->bevobj->disp.first;
 				}
 			}
 

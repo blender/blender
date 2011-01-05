@@ -91,13 +91,12 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 	case OB_SURF:
 	case OB_CURVE:
 	case OB_FONT: {
-		Curve *cu= ob->data;
 		int tot= 0, totf= 0;
 
 		stats->totcurve += totob;
 
-		if(cu->disp.first)
-			count_displist(&cu->disp, &tot, &totf);
+		if(ob->disp.first)
+			count_displist(&ob->disp, &tot, &totf);
 
 		tot *= totob;
 		totf *= totob;

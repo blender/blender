@@ -2330,23 +2330,10 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 		idtype= GS(id->name);
 
 		if(ELEM7(idtype, ID_ME, ID_CU, ID_MB, ID_LA, ID_LT, ID_CA, ID_AR)) {
-			int first_ob= 1;
 			for(obt=bmain->object.first; obt; obt= obt->id.next) {
 				if(!(ob && obt == ob) && obt->data == id) {
-
-					/* try to avoid displist recalculation for linked curves */
-					if (!first_ob && ELEM(obt->type, OB_CURVE, OB_SURF)) {
-						/* if curve object has got derivedFinal it means this
-						   object has got constructive modifiers and object
-						   should be recalculated anyhow */
-						if (!obt->derivedFinal)
-							continue;
-					}
-
 					obt->recalc |= OB_RECALC_DATA;
 					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
-
-					first_ob= 0;
 				}
 			}
 		}

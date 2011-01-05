@@ -735,7 +735,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 int nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
 	MEdge **alledge, int *totedge, MFace **allface, int *totface)
 {
-	return nurbs_to_mdata_customdb(ob, &((Curve *)ob->data)->disp,
+	return nurbs_to_mdata_customdb(ob, &ob->disp,
 		allvert, totvert, alledge, totedge, allface, totface);
 }
 

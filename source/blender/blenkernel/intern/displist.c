@@ -660,7 +660,7 @@ void shadeDispList(Scene *scene, Base *base)
 		
 			/* now we need the normals */
 			cu= ob->data;
-			dl= cu->disp.first;
+			dl= ob->disp.first;
 			
 			while(dl) {
 				extern Material defmaterial;	/* material.c */
@@ -1140,16 +1140,14 @@ static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dis
 */
 float calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 {
-	Curve *cu;
 	DispList *dl;
 	
 	if(taperobj==NULL || taperobj->type!=OB_CURVE) return 1.0;
 	
-	cu= taperobj->data;
-	dl= cu->disp.first;
+	dl= taperobj->disp.first;
 	if(dl==NULL) {
 		makeDispListCurveTypes(scene, taperobj, 0);
-		dl= cu->disp.first;
+		dl= taperobj->disp.first;
 	}
 	if(dl) {
 		float fac= ((float)cur)/(float)(tot-1);
@@ -1678,6 +1676,11 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 		}
 	}
 
+	/* make copy of 'undeformed" displist for texture space calculation
+	   actually, it's not totally undeformed -- pre-tesselation modifiers are
+	   already applied, thats how it worked for years, so keep for compatibility (sergey) */
+	copy_displist(&cu->disp, dispbase);
+
 	if (!forRender) {
 		tex_space_curve(cu);
 	}
@@ -1851,6 +1854,11 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 		if(cu->flag & CU_PATH) calc_curvepath(ob);
 
+		/* make copy of 'undeformed" displist for texture space calculation
+		   actually, it's not totally undeformed -- pre-tesselation modifiers are
+		   already applied, thats how it worked for years, so keep for compatibility (sergey) */
+		copy_displist(&cu->disp, dispbase);
+
 		 if (!forRender) {
 			 tex_space_curve(cu);
 		 }
@@ -1865,12 +1873,15 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 {
-	Curve *cu = ob->data;
+	Curve *cu= ob->data;
 	ListBase *dispbase;
 
 	freedisplist(&(ob->disp));
-	dispbase= &(cu->disp);
+	dispbase= &(ob->disp);
 	freedisplist(dispbase);
+
+	/* free displist used for textspace */
+	freedisplist(&cu->disp);
 
 	do_makeDispListCurveTypes(scene, ob, dispbase, &ob->derivedFinal, 0, forOrco);
 
@@ -1941,7 +1952,7 @@ static void boundbox_displist(Object *ob)
 		if(cu->bb==0) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
 		bb= cu->bb;
 		
-		dl= cu->disp.first;
+		dl= ob->disp.first;
 
 		while (dl) {
 			if(dl->type==DL_INDEX3) tot= dl->nr;

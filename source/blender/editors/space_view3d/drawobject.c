@@ -3146,7 +3146,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 	case OB_CURVE:
 		cu= ob->data;
 		
-		lb= &cu->disp;
+		lb= &ob->disp;
 		
 		if(solid) {
 			dl= lb->first;
@@ -3193,7 +3193,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 		break;
 	case OB_SURF:
 
-		lb= &((Curve *)ob->data)->disp;
+		lb= &ob->disp;
 		
 		if(solid) {
 			dl= lb->first;
@@ -5436,7 +5436,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 		if (dm) {
 			hasfaces= dm->getNumFaces(dm);
 		} else {
-			hasfaces= displist_has_faces(&cu->disp);
+			hasfaces= displist_has_faces(&ob->disp);
 		}
 
 		if (hasfaces && boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
@@ -5444,7 +5444,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			if (dm) {
 				draw_mesh_object_outline(v3d, ob, dm);
 			} else {
-				drawDispListwire(&cu->disp);
+				drawDispListwire(&ob->disp);
 			}
 			draw_index_wire= 1;
 		}
@@ -5499,7 +5499,7 @@ static void drawWireExtra(Scene *scene, RegionView3D *rv3d, Object *ob)
 			if (ob->derivedFinal) {
 				drawCurveDMWired(ob);
 			} else {
-				drawDispListwire(&cu->disp);
+				drawDispListwire(&ob->disp);
 			}
 
 			if (ob->type==OB_CURVE)
@@ -5820,9 +5820,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	/* bad exception, solve this! otherwise outline shows too late */
 	if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		cu= ob->data;
 		/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
-		if (cu->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
+		if (ob->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
 	}
 	
 	/* draw outline for selected objects, mesh does itself */

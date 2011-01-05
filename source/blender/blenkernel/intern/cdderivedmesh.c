@@ -1644,7 +1644,7 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
 
 DerivedMesh *CDDM_from_curve(Object *ob)
 {
-	return CDDM_from_curve_customDB(ob, &((Curve *)ob->data)->disp);
+	return CDDM_from_curve_customDB(ob, &ob->disp);
 }
 
 DerivedMesh *CDDM_from_curve_customDB(Object *ob, ListBase *dispbase)
