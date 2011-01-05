@@ -444,6 +444,11 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 			}
 		}
 	}
+	
+	if (flags & P_OPTIONS)
+	{
+		RNA_def_boolean(ot->srna, "texture_space", 0, "Edit Object data texture space", "");
+	}
 
 	// Add confirm method all the time. At the end because it's not really that important and should be hidden only in log, not in keymap edit
 	prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "Always confirm operation when releasing button");
@@ -467,7 +472,7 @@ void TRANSFORM_OT_translate(struct wmOperatorType *ot)
 
 	RNA_def_float_vector_xyz(ot->srna, "value", 3, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
 
-	Transform_Properties(ot, P_CONSTRAINT|P_PROPORTIONAL|P_MIRROR|P_ALIGN_SNAP);
+	Transform_Properties(ot, P_CONSTRAINT|P_PROPORTIONAL|P_MIRROR|P_ALIGN_SNAP|P_OPTIONS);
 }
 
 void TRANSFORM_OT_resize(struct wmOperatorType *ot)
@@ -487,7 +492,7 @@ void TRANSFORM_OT_resize(struct wmOperatorType *ot)
 
 	RNA_def_float_vector(ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
 
-	Transform_Properties(ot, P_CONSTRAINT|P_PROPORTIONAL|P_MIRROR|P_GEO_SNAP);
+	Transform_Properties(ot, P_CONSTRAINT|P_PROPORTIONAL|P_MIRROR|P_GEO_SNAP|P_OPTIONS);
 }
 
 
@@ -854,6 +859,13 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			RNA_string_set(km->ptr, "data_path", "tool_settings.use_snap");
 
 			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_snap_type", TABKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+			
+			km = WM_keymap_add_item(keymap, OP_TRANSLATION, TKEY, KM_PRESS, KM_SHIFT, 0);
+			RNA_boolean_set(km->ptr, "texture_space", 1);
+			
+			km = WM_keymap_add_item(keymap, OP_RESIZE, TKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+			RNA_boolean_set(km->ptr, "texture_space", 1);
+
 
 			break;
 		case SPACE_ACTION:

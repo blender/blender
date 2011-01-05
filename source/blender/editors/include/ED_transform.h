@@ -142,6 +142,7 @@ void BIF_selectOrientation(void);
 #define P_GEO_SNAP		(P_SNAP|(1 << 4))
 #define P_ALIGN_SNAP	(P_GEO_SNAP|(1 << 5))
 #define P_CONSTRAINT	(1 << 6)
+#define P_OPTIONS		(1 << 7)
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 
