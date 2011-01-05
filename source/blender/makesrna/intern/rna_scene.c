@@ -182,18 +182,19 @@ EnumPropertyItem image_type_items[] = {
 
 #include "RE_pipeline.h"
 
-static PointerRNA rna_Scene_object_bases_lookup_string(PointerRNA *ptr, const char *key)
+static int rna_Scene_object_bases_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
 	Scene *scene= (Scene*)ptr->data;
 	Base *base;
 
 	for(base= scene->base.first; base; base= base->next) {
 		if(strncmp(base->object->id.name+2, key, sizeof(base->object->id.name)-2)==0) {
-			return rna_pointer_inherit_refine(ptr, &RNA_ObjectBase, base);
+			*r_ptr= rna_pointer_inherit_refine(ptr, &RNA_ObjectBase, base);
+			return TRUE;
 		}
 	}
 
-	return PointerRNA_NULL;
+	return FALSE;
 }
 
 static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)

@@ -965,16 +965,16 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 
 	func= rna_alloc_function_name(srna->identifier, prop->identifier, "lookup_int");
 
-	fprintf(f, "PointerRNA %s(PointerRNA *ptr, int index)\n", func);
+	fprintf(f, "int %s(PointerRNA *ptr, int index, PointerRNA *r_ptr)\n", func);
 	fprintf(f, "{\n");
 
 	if(manualfunc) {
-		fprintf(f, "\n	return %s(ptr, index);\n", manualfunc);
+		fprintf(f, "\n	return %s(ptr, index, r_ptr);\n", manualfunc);
 		fprintf(f, "}\n\n");
 		return func;
 	}
 
-	fprintf(f, "	PointerRNA r_ptr;\n");
+	fprintf(f, "	int found= FALSE;\n");
 	fprintf(f, "	CollectionPropertyIterator iter;\n\n");
 
 	fprintf(f, "	%s_%s_begin(&iter, ptr);\n\n", srna->identifier, prop->identifier);
@@ -998,6 +998,7 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 		fprintf(f, "		}\n");
 		fprintf(f, "		else {\n");
 		fprintf(f, "			internal->ptr += internal->itemsize*index;\n");
+		fprintf(f, "			found= TRUE;\n");
 		fprintf(f, "		}\n");
 	}
 	else if(strcmp(nextfunc, "rna_iterator_listbase_next") == 0) {
@@ -1013,14 +1014,15 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 		fprintf(f, "			while(index-- > 0 && internal->link)\n");
 		fprintf(f, "				internal->link= internal->link->next;\n");
 		fprintf(f, "		}\n");
+		fprintf(f, "		found= (index == -1);\n");
 	}
 
 	fprintf(f, "	}\n\n");
 
-	fprintf(f, "	r_ptr = %s_%s_get(&iter);\n", srna->identifier, prop->identifier);
+	fprintf(f, "	if(found) *r_ptr = %s_%s_get(&iter);\n", srna->identifier, prop->identifier);
 	fprintf(f, "	%s_%s_end(&iter);\n\n", srna->identifier, prop->identifier);
 
-	fprintf(f, "	return r_ptr;\n");
+	fprintf(f, "	return found;\n");
 
 #if 0
 	rna_print_data_get(f, dp);

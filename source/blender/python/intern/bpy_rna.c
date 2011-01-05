@@ -1422,8 +1422,9 @@ static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_s
 		if(RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr)) {
 			return pyrna_struct_CreatePyObject(&newptr);
 		}
-		else { /* fail's if ptr.data == NULL, valid for mesh.materials */
-			Py_RETURN_NONE;
+		else {
+			PyErr_SetString(PyExc_RuntimeError, "error getting an rna struct from a collection");
+			return NULL;
 		}
 	}
 	PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d out of range, size %d", keynum, len);
