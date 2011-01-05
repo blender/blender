@@ -40,7 +40,6 @@ import bpy
 import mathutils
 
 from io_utils import create_derived_objects, free_derived_objects
-MATWORLD = mathutils.Matrix.Rotation(-(math.pi / 2.0), 4, 'X')
 
 
 def round_color(col, cp):
@@ -48,7 +47,7 @@ def round_color(col, cp):
 
 
 def matrix_direction(mtx):
-    return (mathutils.Vector((0.0, 0.0, -1.0)) * (MATWORLD * mtx).rotation_part()).normalize()[:]
+    return (mathutils.Vector((0.0, 0.0, -1.0)) * mtx.rotation_part()).normalize()[:]
 
 
 ##########################################################
@@ -71,6 +70,8 @@ class x3d_class:
         self.vp = 3		  # decimals for vertex coordinate values  0.000 - n.000
         self.tp = 3		  # decimals for texture coordinate values 0.000 - 1.000
         self.it = 3
+
+        self.global_matrix = mathutils.Matrix.Rotation(-(math.pi / 2.0), 4, 'X')
 
         #--- class private don't touch ---
         self.indentLevel = 0  # keeps track of current indenting
@@ -161,16 +162,14 @@ class x3d_class:
     '''
 
     def writeViewpoint(self, ob, mat, scene):
-        context = scene.render
-
-        loc, quat, scale = (MATWORLD * mat).decompose()
-        angleAxis = tuple(quat.axis) + (quat.angle, )
+        loc, quat, scale = mat.decompose()
         self.file.write("<Viewpoint DEF=\"%s\" " % (self.cleanStr(ob.name)))
         self.file.write("description=\"%s\" " % (ob.name))
         self.file.write("centerOfRotation=\"0 0 0\" ")
-        self.file.write("position=\"%3.2f %3.2f %3.2f\" " % tuple(loc))
-        self.file.write("orientation=\"%3.2f %3.2f %3.2f %3.2f\" " % angleAxis)
-        self.file.write("fieldOfView=\"%.3f\" />\n\n" % ob.data.angle)
+        self.file.write("position=\"%3.2f %3.2f %3.2f\" " % loc[:])
+        self.file.write("orientation=\"%3.2f %3.2f %3.2f %3.2f\" " % (quat.axis[:] + (quat.angle, )))
+        self.file.write("fieldOfView=\"%.3f\" " % ob.data.angle)
+        self.file.write(" />\n\n")
 
     def writeFog(self, world):
         if world:
@@ -207,7 +206,7 @@ class x3d_class:
 
         dx, dy, dz = matrix_direction(mtx)
 
-        location = (MATWORLD * mtx).translation_part()
+        location = mtx.translation_part()
 
         radius = lamp.distance * math.cos(beamWidth)
         # radius = lamp.dist*math.cos(beamWidth)
@@ -249,7 +248,7 @@ class x3d_class:
             ambi = 0
             ambientIntensity = 0
 
-        location = (MATWORLD * mtx).translation_part()
+        location = mtx.translation_part()
 
         self.file.write("<PointLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity, self.cp)))
@@ -279,7 +278,7 @@ class x3d_class:
                 return "%s" % (newname)
 
     def writeIndexedFaceSet(self, ob, mesh, mtx, world, EXPORT_TRI=False):
-        imageMap = {}  # set of used images
+        # imageMap = {}  # set of used images
         sided = {}  # 'one':cnt , 'two':cnt
         meshName = self.cleanStr(ob.name)
 
@@ -319,25 +318,15 @@ class x3d_class:
             self.write_indented("<Collision enabled=\"false\">\n", 1)
             self.collnode = 1
 
-        nIFSCnt = self.countIFSSetsNeeded(mesh, imageMap, sided)
+        loc, quat, sca = mtx.decompose()
 
-        if nIFSCnt > 1:
-            self.write_indented("<Group DEF=\"G_%s\">\n" % meshName, 1)
+        self.write_indented("<Transform DEF=\"%s\" " % meshName)
+        self.file.write("translation=\"%.6f %.6f %.6f\" " % loc[:])
+        self.file.write("scale=\"%.6f %.6f %.6f\" " % sca[:])
+        self.file.write("rotation=\"%.6f %.6f %.6f %.6f\" " % (quat.axis[:] + (quat.angle, )))
+        self.file.write(">\n")
 
-        if 'two' in sided and sided['two'] > 0:
-            bTwoSided = 1
-        else:
-            bTwoSided = 0
-
-        mtx = MATWORLD * mtx
-
-        loc = mtx.translation_part()
-        sca = mtx.scale_part()
-        quat = mtx.to_quat()
-        rot = quat.axis
-
-        self.write_indented('<Transform DEF="%s" translation="%.6f %.6f %.6f" scale="%.6f %.6f %.6f" rotation="%.6f %.6f %.6f %.6f">\n' % \
-                           (meshName, loc[0], loc[1], loc[2], sca[0], sca[1], sca[2], rot[0], rot[1], rot[2], quat.angle))
+        self.write_indented("<Group DEF=\"G_%s\">\n" % meshName, 1)
 
         self.write_indented("<Shape>\n", 1)
         is_smooth = False
@@ -398,10 +387,10 @@ class x3d_class:
             self.write_indented("<IndexedFaceSet DEF=\"ME_%s\" " % meshME, 1)
 
             # --- Write IndexedFaceSet Attributes
-            if bTwoSided == 1:
-                self.file.write("solid=\"false\" ")
-            else:
+            if mesh.show_double_sided:
                 self.file.write("solid=\"true\" ")
+            else:
+                self.file.write("solid=\"false\" ")
 
             for face in mesh.faces:
                 if face.use_smooth:
@@ -425,7 +414,7 @@ class x3d_class:
             self.file.write(">\n")
 
             # --- Write IndexedFaceSet Elements
-            self.write_ifs_coords_elem(True, ob, mesh, meshName, EXPORT_TRI)
+            self.write_ifs_coords_elem(ob, mesh, meshName, EXPORT_TRI)
 
             if is_col:
                 self.write_ifs_texco_elem(mesh)
@@ -437,6 +426,7 @@ class x3d_class:
         #--- output closing braces
         self.write_indented("</IndexedFaceSet>\n", -1)
         self.write_indented("</Shape>\n", -1)
+        self.write_indented("</Group>\n", -1)
         self.write_indented("</Transform>\n", -1)
 
         if self.halonode == 1:
@@ -450,9 +440,6 @@ class x3d_class:
         if self.collnode == 1:
             self.write_indented("</Collision>\n", -1)
             self.collnode = 0
-
-        if nIFSCnt > 1:
-            self.write_indented("</Group>\n", -1)
 
         self.file.write("\n")
 
@@ -663,22 +650,8 @@ class x3d_class:
         self.writeBackground(world, alltextures)
         self.writeFog(world)
         self.proto = 0
-        # # COPIED FROM OBJ EXPORTER
-        # if EXPORT_APPLY_MODIFIERS:
-        # 	temp_mesh_name = '~tmp-mesh'
 
-        # 	# Get the container mesh. - used for applying modifiers and non mesh objects.
-        # 	containerMesh = meshName = tempMesh = None
-        # 	for meshName in Blender.NMesh.GetNames():
-        # 		if meshName.startswith(temp_mesh_name):
-        # 			tempMesh = Mesh.Get(meshName)
-        # 			if not tempMesh.users:
-        # 				containerMesh = tempMesh
-        # 	if not containerMesh:
-        # 		containerMesh = Mesh.New(temp_mesh_name)
-        # --------------------------
         for ob_main in [o for o in scene.objects if o.is_visible(scene)]:
-        # for ob_main in scene.objects.context:
 
             free, derived = create_derived_objects(scene, ob_main)
 
@@ -686,9 +659,10 @@ class x3d_class:
                 continue
 
             for ob, ob_mat in derived:
-            # for ob, ob_mat in BPyObject.getDerivedObjects(ob_main):
                 objType = ob.type
                 objName = ob.name
+                ob_mat = self.global_matrix * ob_mat
+
                 if objType == 'CAMERA':
                     self.writeViewpoint(ob, ob_mat, scene)
                 elif objType in ('MESH', 'CURVE', 'SURF', 'FONT'):
@@ -756,49 +730,6 @@ class x3d_class:
             newName = newName.replace(bad, '_')
         return newName
 
-    def countIFSSetsNeeded(self, mesh, imageMap, sided):
-        """
-        countIFFSetsNeeded() - should look at a blender mesh to determine
-        how many VRML IndexFaceSets or IndexLineSets are needed.  A
-        new mesh created under the following conditions:
-
-         o - split by UV Textures / one per mesh
-         o - split by face, one sided and two sided
-         o - split by smooth and flat faces
-         o - split when faces only have 2 vertices * needs to be an IndexLineSet
-        """
-
-        imageNameMap = {}
-        faceMap = {}
-        nFaceIndx = 0
-
-        if mesh.uv_textures.active:
-        # if mesh.faceUV:
-            for face in mesh.uv_textures.active.data:
-            # for face in mesh.faces
-                sidename = "two" if face.use_twoside else "one"
-
-                if sidename in sided:
-                    sided[sidename] += 1
-                else:
-                    sided[sidename] = 1
-
-                image = face.image
-                if image:
-                    faceName = "%s_%s" % (face.image.name, sidename)
-                    try:
-                        imageMap[faceName].append(face)
-                    except:
-                        imageMap[faceName] = [face.image.name, sidename, face]
-
-            if self.verbose > 2:
-                for faceName in imageMap.keys():
-                    ifs = imageMap[faceName]
-                    print("Debug: faceName=%s image=%s, solid=%s facecnt=%d" % \
-                          (faceName, ifs[0], ifs[1], len(ifs) - 2))
-
-        return len(imageMap)
-
     def faceToString(self, face):
 
         print("Debug: face.flag=0x%x (bitflags)" % face.flag)
@@ -816,19 +747,6 @@ class x3d_class:
         if face.image:
             print("Debug: face.image=%s" % face.image.name)
         print("Debug: face.materialIndex=%d" % face.materialIndex)
-
-    # XXX not used
-    # def getVertexColorByIndx(self, mesh, indx):
-    # 	c = None
-    # 	for face in mesh.faces:
-    # 		j=0
-    # 		for vertex in face.v:
-    # 			if vertex.index == indx:
-    # 				c=face.col[j]
-    # 				break
-    # 			j=j+1
-    # 		if c: break
-    # 	return c
 
     def meshToString(self, mesh):
         # print("Debug: mesh.hasVertexUV=%d" % mesh.vertexColors)
