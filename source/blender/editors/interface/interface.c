@@ -1734,7 +1734,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 				bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), but->drawstr, ui_get_but_scale_unit(but, 1.0), scene->unit.system, unit_type>>16);
 			}
 
-			if(BPY_eval_button(C, str_unit_convert, &value)) {
+			if(BPY_button_exec(C, str_unit_convert, &value)) {
 				value = ui_get_but_val(but); /* use its original value */
 
 				if(str[0])

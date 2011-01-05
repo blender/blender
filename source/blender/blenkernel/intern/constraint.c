@@ -2033,7 +2033,7 @@ static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targ
 #endif
 	
 	/* Now, run the actual 'constraint' function, which should only access the matrices */
-	BPY_pyconstraint_eval(data, cob, targets);
+	BPY_pyconstraint_exec(data, cob, targets);
 #endif /* WITH_PYTHON */
 }
 

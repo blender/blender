@@ -556,7 +556,7 @@ endif()
 		ge_scenegraph 
 		ge_logic_network 
 		bf_gen_system
-		bf_python # duplicate for BPY_eval_driver
+		bf_python # duplicate for BPY_driver_exec
 		ge_logic_ngnetwork 
 		extern_bullet 
 		ge_logic_loopbacknetwork 

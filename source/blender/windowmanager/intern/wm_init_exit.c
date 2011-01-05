@@ -144,11 +144,11 @@ void WM_init(bContext *C, int argc, char **argv)
 	 * Will try fix when the crash can be repeated. - campbell. */
 
 #ifdef WITH_PYTHON
-	BPY_set_context(C); /* necessary evil */
-	BPY_start_python(argc, argv);
+	BPY_context_set(C); /* necessary evil */
+	BPY_python_start(argc, argv);
 
-	BPY_reset_driver();
-	BPY_load_user_modules(C);
+	BPY_driver_reset();
+	BPY_modules_load_user(C);
 #else
 	(void)argc; /* unused */
 	(void)argv; /* unused */
@@ -412,7 +412,7 @@ void WM_exit(bContext *C)
 	/* Update for blender 2.5, move after free_blender because blender now holds references to PyObject's
 	 * so decref'ing them after python ends causes bad problems every time
 	 * the pyDriver bug can be fixed if it happens again we can deal with it then */
-	BPY_end_python();
+	BPY_python_end();
 #endif
 
 	if (!G.background) {
@@ -435,7 +435,7 @@ void WM_exit(bContext *C)
 	UI_exit();
 	BKE_userdef_free();
 
-	RNA_exit(); /* should be after BPY_end_python so struct python slots are cleared */
+	RNA_exit(); /* should be after BPY_python_end so struct python slots are cleared */
 	
 	wm_ghost_exit();
 

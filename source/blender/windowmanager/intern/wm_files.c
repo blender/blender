@@ -316,8 +316,8 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
-		BPY_reset_driver();
-		BPY_load_user_modules(C);
+		BPY_driver_reset();
+		BPY_modules_load_user(C);
 #endif
 		CTX_wm_window_set(C, NULL); /* exits queues */
 
@@ -415,10 +415,10 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 #ifdef WITH_PYTHON
 	if(CTX_py_init_get(C)) {
 		/* sync addons, these may have changed from the defaults */
-		BPY_eval_string(C, "__import__('bpy').utils.addon_reset_all()");
+		BPY_string_exec(C, "__import__('bpy').utils.addon_reset_all()");
 
-		BPY_reset_driver();
-		BPY_load_user_modules(C);
+		BPY_driver_reset();
+		BPY_modules_load_user(C);
 	}
 #endif
 	

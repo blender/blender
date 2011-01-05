@@ -314,7 +314,7 @@ static int reload_exec(bContext *C, wmOperator *op)
 
 #ifdef WITH_PYTHON
 	if(text->compiled)
-		BPY_free_compiled_text(text);
+		BPY_text_free_code(text);
 #endif
 
 	text_update_edited(text);
@@ -569,7 +569,7 @@ static int run_script_exec(bContext *C, wmOperator *op)
 	Text *text= CTX_data_edit_text(C);
 	SpaceText *st= CTX_wm_space_text(C);
 
-	if (BPY_run_python_script(C, NULL, text, op->reports))
+	if (BPY_text_exec(C, text, op->reports))
 		return OPERATOR_FINISHED;
 	
 	/* Dont report error messages while live editing */

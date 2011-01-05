@@ -492,12 +492,7 @@ int BKE_read_exotic(Scene *scene, const char *name)
 #ifdef WITH_PYTHON
 				// TODO: this should not be in the kernel...
 				else { // unknown format, call Python importloader 
-					if (BPY_call_importloader(name)) {
-						retval = 1;
-					} else {	
-						//XXX error("Unknown file type or error, check console");
-					}	
-				
+					/* pass */
 				}
 #endif /* WITH_PYTHON */
 				//XXX waitcursor(0);
