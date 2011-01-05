@@ -79,3 +79,10 @@ const GHOST_TUns8* GHOST_SystemPathsWin32::getBinaryDir() const
 
 	return NULL;
 }
+
+void GHOST_SystemPathsWin32::addToSystemRecentFiles(const char* filename) const
+{
+	/* SHARD_PATHA is for ansi strings, use SHARD_PATHW for wide */
+	SHAddToRecentDocs(SHARD_PATHA,filename);
+
+}

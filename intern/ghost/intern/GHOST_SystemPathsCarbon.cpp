@@ -76,3 +76,8 @@ const GHOST_TUns8* GHOST_SystemPathsCarbon::getBinaryDir() const
 	return (GHOST_TUns8*)path;
 }
 
+void GHOST_SystemPathsCarbon::addToSystemRecentFiles(const char* filename) const
+{
+	/* XXXXX TODO: Implementation for Carbon if possible */
+
+}

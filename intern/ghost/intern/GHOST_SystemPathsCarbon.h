@@ -75,6 +75,10 @@ public:
 	  */
 	 virtual const GHOST_TUns8* getBinaryDir() const;
 
+	/**
+	  * Add the file to the operating system most recently used files
+	  */
+	 void addToSystemRecentFiles(const char* filename) const;
 };
 
 #endif // _GHOST_SYSTEM_CARBON_H_

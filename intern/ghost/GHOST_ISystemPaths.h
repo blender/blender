@@ -85,6 +85,11 @@ public:
 	  */
 	 virtual const GHOST_TUns8* getBinaryDir() const = 0;
 
+	 /**
+	  * Add the file to the operating system most recently used files
+	  */
+	 virtual void addToSystemRecentFiles(const char* filename) const = 0;
+
 private:
 	/** The one and only system paths*/
 	static GHOST_ISystemPaths* m_systemPaths;

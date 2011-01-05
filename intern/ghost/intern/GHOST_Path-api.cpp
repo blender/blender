@@ -59,3 +59,11 @@ const GHOST_TUns8* GHOST_getBinaryDir()
 	GHOST_ISystemPaths* systemPaths = GHOST_ISystemPaths::get();
 	return systemPaths ? systemPaths->getBinaryDir() : 0;  /* shouldn't be NULL */
 }
+
+void GHOST_addToSystemRecentFiles(const char* filename)
+{
+	GHOST_ISystemPaths* systemPaths = GHOST_ISystemPaths::get();
+	if (systemPaths) {
+		systemPaths->addToSystemRecentFiles(filename);
+	}
+}

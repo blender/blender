@@ -73,4 +73,8 @@ const GHOST_TUns8* GHOST_SystemPathsX11::getBinaryDir() const
 	return NULL;
 }
 
+void GHOST_SystemPathsX11::addToSystemRecentFiles(const char* filename) const
+{
+	/* XXXXX TODO: Implementation for X11 if possible */
 
+}

@@ -70,6 +70,11 @@ extern const GHOST_TUns8* GHOST_getUserDir(void);
  */
 extern const GHOST_TUns8* GHOST_getBinaryDir(void);
 
+/**
+* Add the file to the operating system most recently used files
+*/
+extern void GHOST_addToSystemRecentFiles(const char* filename);
+
 #ifdef __cplusplus
 } 
 #endif

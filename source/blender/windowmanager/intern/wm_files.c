@@ -91,6 +91,7 @@
 #include "ED_util.h"
 
 #include "GHOST_C-api.h"
+#include "GHOST_Path-api.h"
 
 #include "UI_interface.h"
 
@@ -511,6 +512,9 @@ static void write_history(void)
 			}
 			fclose(fp);
 		}
+
+		/* also update most recent files on System */
+		GHOST_addToSystemRecentFiles(G.main->name);
 	}
 }
 
