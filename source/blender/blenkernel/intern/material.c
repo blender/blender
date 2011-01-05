@@ -786,6 +786,13 @@ int object_add_material_slot(Object *ob)
 	
 	ma= give_current_material(ob, ob->actcol);
 
+    if(ma == NULL)
+		ma= add_material("Material");
+	else
+		ma= copy_material(ma);
+
+	id_us_min(&ma->id);
+
 	assign_material(ob, ma, ob->totcol+1);
 	ob->actcol= ob->totcol;
 	return TRUE;
