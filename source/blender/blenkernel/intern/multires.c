@@ -197,7 +197,7 @@ int multiresModifier_reshapeFromDM(Scene *scene, MultiresModifierData *mmd,
 		return 1;
 	}
 
-	mrdm->release(mrdm);
+	if(mrdm) mrdm->release(mrdm);
 
 	return 0;
 }
@@ -1870,7 +1870,7 @@ void mdisp_rot_crn_to_face(int S, int corners, int face_side, float x, float y, 
 int mdisp_rot_face_to_crn(int corners, int face_side, float u, float v, float *x, float *y)
 {
 	float offset = face_side*0.5f - 0.5f;
-	int S;
+	int S = 0;
 
 	if (corners == 4) {
 		if(u <= offset && v <= offset) S = 0;
