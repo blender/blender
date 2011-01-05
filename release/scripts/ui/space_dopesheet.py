@@ -57,6 +57,8 @@ def dopesheet_filter(layout, context):
         row.prop(dopesheet, "show_curves", text="")
     if bpy.data.metaballs:
         row.prop(dopesheet, "show_metaballs", text="")
+    if bpy.data.lattices:
+        row.prop(dopesheet, "show_lattices", text="")
     if bpy.data.armatures:
         row.prop(dopesheet, "show_armatures", text="")
     if bpy.data.particles:

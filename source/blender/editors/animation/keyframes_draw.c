@@ -47,6 +47,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
@@ -810,6 +811,14 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 			
 			if ((me->adt) && !(filterflag & ADS_FILTER_NOMESH)) 
 				action_to_keylist(me->adt, me->adt->action, keys, blocks);
+		}
+			break;
+		case OB_LATTICE: /* ------- Lattice ---------- */
+		{
+			Lattice *lt= (Lattice *)ob->data;
+			
+			if ((lt->adt) && !(filterflag & ADS_FILTER_NOLAT)) 
+				action_to_keylist(lt->adt, lt->adt->action, keys, blocks);
 		}
 			break;
 	}

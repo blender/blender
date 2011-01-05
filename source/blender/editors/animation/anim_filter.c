@@ -626,6 +626,19 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
+			case ANIMTYPE_DSLAT:
+			{
+				Lattice *lt= (Lattice *)data;
+				AnimData *adt= lt->adt;
+				
+				ale->flag= FILTER_LATTICE_OBJD(lt);
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
+			}	
+				break;
 			case ANIMTYPE_DSSKEY:
 			{
 				Key *key= (Key *)data;
@@ -1583,6 +1596,14 @@ static int animdata_filter_dopesheet_obdata (bAnimContext *ac, ListBase *anim_da
 			expanded= FILTER_MESH_OBJD(me);
 		}
 			break;
+		case OB_LATTICE: /* ---- Lattice ---- */
+		{
+			Lattice *lt = (Lattice *)ob->data;
+			
+			type= ANIMTYPE_DSLAT;
+			expanded= FILTER_LATTICE_OBJD(lt);
+		}
+			break;
 	}
 	
 	/* special exception for drivers instead of action */
@@ -1834,6 +1855,19 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 			
 			if ((ads->filterflag & ADS_FILTER_NOMESH) == 0) {
 				ANIMDATA_FILTER_CASES(me,
+					{ /* AnimData blocks - do nothing... */ },
+					obdata_ok= 1;,
+					obdata_ok= 1;,
+					obdata_ok= 1;)
+			}
+		}
+			break;
+		case OB_LATTICE: /* ------- Lattice ---------- */
+		{
+			Lattice *lt= (Lattice *)ob->data;
+			
+			if ((ads->filterflag & ADS_FILTER_NOLAT) == 0) {
+				ANIMDATA_FILTER_CASES(lt,
 					{ /* AnimData blocks - do nothing... */ },
 					obdata_ok= 1;,
 					obdata_ok= 1;,
@@ -2352,6 +2386,23 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 							dataOk= !(ads->filterflag & ADS_FILTER_NOMESH);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOMESH);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOMESH);)
+					}
+						break;
+					case OB_LATTICE: /* ------- Lattice ---------- */
+					{
+						Lattice *lt= (Lattice *)ob->data;
+						dataOk= 0;
+						ANIMDATA_FILTER_CASES(lt, 
+							if ((ads->filterflag & ADS_FILTER_NOLAT)==0) {
+								/* for the special AnimData blocks only case, we only need to add
+								 * the block if it is valid... then other cases just get skipped (hence ok=0)
+								 */
+								ANIMDATA_ADD_ANIMDATA(lt);
+								dataOk=0;
+							},
+							dataOk= !(ads->filterflag & ADS_FILTER_NOLAT);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOLAT);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOLAT);)
 					}
 						break;
 					default: /* --- other --- */

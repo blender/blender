@@ -77,5 +77,7 @@ typedef struct Lattice {
 #define LT_GRID		1
 #define LT_OUTSIDE	2
 
+#define LT_DS_EXPAND	4
+
 #endif
 

@@ -153,6 +153,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSARM,
 	ANIMTYPE_DSMESH,
 	ANIMTYPE_DSTEX,
+	ANIMTYPE_DSLAT,
 	
 	ANIMTYPE_SHAPEKEY,
 	
@@ -230,6 +231,8 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_MBALL_OBJD(mb) ((mb->flag2 & MB_DS_EXPAND))
 #define FILTER_ARM_OBJD(arm) ((arm->flag & ARM_DS_EXPAND))
 #define FILTER_MESH_OBJD(me) ((me->flag & ME_DS_EXPAND))
+#define FILTER_LATTICE_OBJD(lt) ((lt->flag & LT_DS_EXPAND))
+
 	/* 'Sub-object/Action' channels (flags stored in Action) */
 #define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))
 #define EXPANDED_ACTC(actc) ((actc->flag & ACT_COLLAPSED)==0)
