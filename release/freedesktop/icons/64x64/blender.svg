@@ -10,18 +10,15 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="32"
-   height="32"
+   width="64"
+   height="64"
    id="svg7854"
    sodipodi:version="0.32"
    inkscape:version="0.48.0 r9654"
    version="1.0"
    sodipodi:docname="blender.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   sodipodi:modified="true"
-   inkscape:export-filename="/home/user/my/blender/builds/blender/release/freedesktop/icons/32x32/blender.png"
-   inkscape:export-xdpi="90"
-   inkscape:export-ydpi="90">
+   sodipodi:modified="true">
   <defs
      id="defs7856">
     <linearGradient
@@ -144,20 +141,20 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="8.1228891"
-     inkscape:cx="39.360762"
-     inkscape:cy="28.503541"
+     inkscape:zoom="5.74375"
+     inkscape:cx="35.434737"
+     inkscape:cy="23.665112"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="48px"
      height="48px"
      inkscape:showpageshadow="false"
-     inkscape:window-width="1392"
-     inkscape:window-height="976"
-     inkscape:window-x="0"
+     inkscape:window-width="1046"
+     inkscape:window-height="975"
+     inkscape:window-x="345"
      inkscape:window-y="0"
      showgrid="false"
-     inkscape:window-maximized="1" />
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata7859">
     <rdf:RDF>
@@ -197,11 +194,10 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-16)">
+     transform="translate(0,16)">
     <g
-       id="blender"
-       transform="matrix(0.65782075,0,0,0.65782075,-0.38501735,15.782256)"
-       inkscape:label="blender">
+       id="g3199"
+       transform="matrix(1.3520446,0,0,1.3520446,-1.3967542,-16.809965)">
       <path
          transform="matrix(1.274286,0,0,1.377124,-7.569123,-16.70193)"
          d="m 43.487067,38.98439 c 0,2.928932 -6.925242,5.303301 -15.467961,5.303301 -8.542719,0 -15.467961,-2.374369 -15.467961,-5.303301 0,-2.928932 6.925242,-5.303301 15.467961,-5.303301 8.542719,0 15.467961,2.374369 15.467961,5.303301 z"

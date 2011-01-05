@@ -10,8 +10,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="32"
-   height="32"
+   width="16"
+   height="16"
    id="svg7854"
    sodipodi:version="0.32"
    inkscape:version="0.48.0 r9654"
@@ -19,7 +19,7 @@
    sodipodi:docname="blender.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    sodipodi:modified="true"
-   inkscape:export-filename="/home/user/my/blender/builds/blender/release/freedesktop/icons/32x32/blender.png"
+   inkscape:export-filename="/home/user/my/blender/builds/blender/release/freedesktop/icons/16x16/blender.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -144,9 +144,9 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="8.1228891"
-     inkscape:cx="39.360762"
-     inkscape:cy="28.503541"
+     inkscape:zoom="16.245778"
+     inkscape:cx="10.326105"
+     inkscape:cy="15.440713"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="48px"
@@ -197,10 +197,10 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-16)">
+     transform="translate(0,-32)">
     <g
        id="blender"
-       transform="matrix(0.65782075,0,0,0.65782075,-0.38501735,15.782256)"
+       transform="matrix(0.32150786,0,0,0.32150786,0.0378132,31.723202)"
        inkscape:label="blender">
       <path
          transform="matrix(1.274286,0,0,1.377124,-7.569123,-16.70193)"
