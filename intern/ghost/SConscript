@@ -11,7 +11,7 @@ if window_system == 'darwin':
     sources += env.Glob('intern/*.mm')
 
 
-pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_Window', 'GHOST_DropTarget']
+pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_SystemPaths', 'GHOST_Window', 'GHOST_DropTarget']
 defs=['_USE_MATH_DEFINES']
 
 if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'freebsd9', 'irix6', 'aix4', 'aix5'):

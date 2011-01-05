@@ -68,6 +68,7 @@
 #ifdef WITH_GAMEENGINE
 #include "SYS_System.h"
 #endif
+#include "GHOST_Path-api.h"
 
 #include "RNA_define.h"
 
@@ -118,6 +119,8 @@ void WM_init(bContext *C, int argc, char **argv)
 		wm_ghost_init(C);	/* note: it assigns C to ghost! */
 		wm_init_cursor_data();
 	}
+	GHOST_CreateSystemPaths();
+
 	wm_operatortype_init();
 	
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
@@ -443,6 +446,9 @@ void WM_exit(bContext *C)
 #ifdef WITH_GAMEENGINE
 	SYS_DeleteSystem(SYS_GetSystem());
 #endif
+	
+	GHOST_DisposeSystemPaths();
+
 	if(MEM_get_memory_blocks_in_use()!=0) {
 		printf("Error Totblock: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();

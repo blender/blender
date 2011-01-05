@@ -46,7 +46,6 @@ extern "C" {
  * In the API the pointer is casted to the actual C++ class.
  * @param	name	Name of the handle to create.
  */
-#define GHOST_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
 
 GHOST_DECLARE_HANDLE(GHOST_SystemHandle);
 GHOST_DECLARE_HANDLE(GHOST_TimerTaskHandle);
