@@ -277,8 +277,7 @@ class x3d_class:
                 return "%s" % (newname)
 
     def writeIndexedFaceSet(self, ob, mesh, mtx, world, EXPORT_TRI=False):
-        # imageMap = {}  # set of used images
-        sided = {}  # 'one':cnt , 'two':cnt
+        fw = self.file.write
         mesh_name_x3d = self.cleanStr(ob.name)
 
         if not mesh.faces:
@@ -319,10 +318,10 @@ class x3d_class:
         loc, quat, sca = mtx.decompose()
 
         self.write_indented("<Transform DEF=\"%s\" " % mesh_name_x3d, 1)
-        self.file.write("translation=\"%.6f %.6f %.6f\" " % loc[:])
-        self.file.write("scale=\"%.6f %.6f %.6f\" " % sca[:])
-        self.file.write("rotation=\"%.6f %.6f %.6f %.6f\" " % (quat.axis[:] + (quat.angle, )))
-        self.file.write(">\n")
+        fw("translation=\"%.6f %.6f %.6f\" " % loc[:])
+        fw("scale=\"%.6f %.6f %.6f\" " % sca[:])
+        fw("rotation=\"%.6f %.6f %.6f %.6f\" " % (quat.axis[:] + (quat.angle, )))
+        fw(">\n")
 
         if mesh.tag:
             self.write_indented("<Group USE=\"G_%s\" />\n" % mesh_name_x3d, 1)
@@ -331,99 +330,173 @@ class x3d_class:
 
             self.write_indented("<Group DEF=\"G_%s\">\n" % mesh_name_x3d, 1)
 
-            self.write_indented("<Shape>\n", 1)
-            is_smooth = False
+            is_uv = bool(mesh.uv_textures.active)
+            # is_col, defined for each material
 
-            # XXX, lame, only exports first material.
-            mat_first = None
-            for mat_first in mesh.materials:
-                if mat_first:
-                    break
+            is_coords_written = False
 
-            if mat_first or mesh.uv_textures.active:
-                self.write_indented("<Appearance>\n", 1)
-                # right now this script can only handle a single material per mesh.
-                if mat_first and mat_first.use_face_texture == False:
-                    self.writeMaterial(mat_first, self.cleanStr(mat_first.name, ""), world)
-                    if len(mesh.materials) > 1:
-                        print("Warning: mesh named %s has multiple materials" % mesh_name_x3d)
-                        print("Warning: only one material per object handled")
+            mesh_materials = mesh.materials[:]
+            if not mesh_materials:
+                mesh_materials = [None]
 
-                image = None
-
-                if mat_first is None or mat_first.use_face_texture:
-                    #-- textures
-                    if mesh.uv_textures.active:
-                        for face in mesh.uv_textures.active.data:
-                            if face.use_image:
-                                image = face.image
-                                if image:
-                                    break
-                elif mat_first:
-                    for mtex in mat_first.texture_slots:
+            mesh_material_images = [None] * len(mesh_materials)
+            for i, material in enumerate(mesh_materials):
+                if material:
+                    for mtex in material.texture_slots:
                         if mtex:
                             tex = mtex.texture
                             if tex and tex.type == 'IMAGE':
                                 image = tex.image
                                 if image:
+                                    mesh_material_images[i] = image
                                     break
 
-                # XXX, incorrect, uses first image
-                if image:
-                    self.writeImageTexture(image)
+            mesh_materials_use_face_texture = [getattr(material, "use_face_texture", True) for material in mesh_materials]
 
-                    if self.tilenode == 1:
-                        self.write_indented("<TextureTransform	scale=\"%s %s\" />\n" % (image.xrep, image.yrep))
-                        self.tilenode = 0
+            mesh_faces = mesh.faces[:]
+            mesh_faces_materials = [f.material_index for f in mesh_faces]
 
-                self.write_indented("</Appearance>\n", -1)
-
-            #-- IndexedFaceSet or IndexedLineSet
-
-            # user selected BOUNDS=1, SOLID=3, SHARED=4, or TEXTURE=5
-            # look up mesh name, use it if available
-
-            self.write_indented("<IndexedFaceSet ", 1)
-
-            # --- Write IndexedFaceSet Attributes
-            if mesh.show_double_sided:
-                self.file.write("solid=\"true\" ")
+            if is_uv and True in mesh_materials_use_face_texture:
+                mesh_faces_image = [(fuv.image if (mesh_materials_use_face_texture[mesh_faces_materials[i]] and fuv.use_image) else mesh_material_images[mesh_faces_materials[i]]) for i, fuv in enumerate(mesh.uv_textures.active.data)]
+                mesh_faces_image_unique = set(mesh_faces_image)
             else:
-                self.file.write("solid=\"false\" ")
+                mesh_faces_image = [None] * len(mesh_faces)
+                mesh_faces_image_unique = {None}
 
-            for face in mesh.faces:
-                if face.use_smooth:
-                    is_smooth = True
-                    break
+            # group faces
+            face_groups = {}
+            for material_index in range(len(mesh_materials)):
+                for image in mesh_faces_image_unique:
+                    face_groups[material_index, image] = []
+            del mesh_faces_image_unique
 
-            if is_smooth:
-                self.file.write("creaseAngle=\"%.4f\" " % creaseAngle)
+            for i, (material_index, image) in enumerate(zip(mesh_faces_materials, mesh_faces_image)):
+                face_groups[material_index, image].append(i)
 
-            is_uv = bool(mesh.uv_textures.active)
-            is_col = (mesh.vertex_colors.active and (mat_first is None or mat_first.use_vertex_color_paint))
+            for (material_index, image), face_group in face_groups.items():
+                if face_group:
+                    material = mesh_materials[material_index]
 
-            if is_uv:
-                self.write_ifs_texco_attr(mesh)
-            if is_col:
-                self.write_ifs_color_attr(mesh)
+                    self.write_indented("<Shape>\n", 1)
+                    is_smooth = False
+                    is_col = (mesh.vertex_colors.active and (material is None or material.use_vertex_color_paint))
 
-            self.write_ifs_coords_attr(ob, mesh, mesh_name_x3d, EXPORT_TRI)
+                    # kludge but as good as it gets!
+                    for i in face_group:
+                        if mesh_faces[i].use_smooth:
+                            is_smooth = True
+                            break
 
-            # close IndexedFaceSet
-            self.file.write(">\n")
+                    if image:
+                        self.write_indented("<Appearance>\n", 1)
+                        self.writeImageTexture(image)
 
-            # --- Write IndexedFaceSet Elements
-            self.write_ifs_coords_elem(ob, mesh, mesh_name_x3d, EXPORT_TRI)
+                        if self.tilenode == 1:
+                            self.write_indented("<TextureTransform	scale=\"%s %s\" />\n" % (image.xrep, image.yrep))
+                            self.tilenode = 0
 
-            if is_col:
-                self.write_ifs_texco_elem(mesh)
-            if is_col:
-                self.write_ifs_color_elem(mesh)
-            #--- output vertexColors
+                        self.write_indented("</Appearance>\n", -1)
 
-            #--- output closing braces
-            self.write_indented("</IndexedFaceSet>\n", -1)
-            self.write_indented("</Shape>\n", -1)
+                    elif material:
+                        self.write_indented("<Appearance>\n", 1)
+                        self.writeMaterial(material, self.cleanStr(material.name, ""), world)
+                        self.write_indented("</Appearance>\n", -1)
+
+                    #-- IndexedFaceSet or IndexedLineSet
+
+                    self.write_indented("<IndexedFaceSet ", 1)
+
+                    # --- Write IndexedFaceSet Attributes
+                    if mesh.show_double_sided:
+                        fw("solid=\"true\" ")
+                    else:
+                        fw("solid=\"false\" ")
+
+                    if is_smooth:
+                        fw("creaseAngle=\"%.4f\" " % creaseAngle)
+
+                    if is_uv:
+                        # "texCoordIndex"
+                        fw("\n\t\t\ttexCoordIndex=\"")
+                        j = 0
+                        for i in face_group:
+                            if len(mesh_faces[i].vertices) == 4:
+                                fw("%d %d %d %d -1, " % (j, j + 1, j + 2, j + 3))
+                                j += 4
+                            else:
+                                fw("%d %d %d -1, " % (j, j + 1, j + 2))
+                                j += 3
+                        fw("\" ")
+                        # --- end texCoordIndex
+
+                    if is_col:
+                        fw("colorPerVertex=\"false\" ")
+
+                    if True:
+                        # "coordIndex"
+                        fw('coordIndex="')
+                        if EXPORT_TRI:
+                            for i in face_group:
+                                fv = mesh_faces[i].vertices[:]
+                                if len(fv) == 3:
+                                    fw("%i %i %i -1, " % fv)
+                                else:
+                                    fw("%i %i %i -1, " % (fv[0], fv[1], fv[2]))
+                                    fw("%i %i %i -1, " % (fv[0], fv[2], fv[3]))
+                        else:
+                            for i in face_group:
+                                fv = mesh_faces[i].vertices[:]
+                                if len(fv) == 3:
+                                    fw("%i %i %i -1, " % fv)
+                                else:
+                                    fw("%i %i %i %i -1, " % fv)
+
+                        fw("\" ")
+                        # --- end coordIndex
+
+                    # close IndexedFaceSet
+                    fw(">\n")
+
+                    # --- Write IndexedFaceSet Elements
+                    if True:
+                        if is_coords_written:
+                            self.write_indented("<Coordinate USE=\"%s%s\" />\n" % ("coord_", mesh_name_x3d))
+                        else:
+                            self.write_indented("<Coordinate DEF=\"%s%s\" \n" % ("coord_", mesh_name_x3d), 1)
+                            fw("\t\t\t\tpoint=\"")
+                            for v in mesh.vertices:
+                                fw("%.6f %.6f %.6f, " % v.co[:])
+                            fw("\" />")
+                            self.write_indented("\n", -1)
+                            is_coords_written = True
+
+                    if is_uv:
+                        self.write_indented("<TextureCoordinate point=\"", 1)
+                        fw = fw
+                        mesh_faces_uv = mesh.uv_textures.active.data
+                        for i in face_group:
+                            for uv in mesh_faces_uv[i].uv:
+                                fw("%.4f %.4f, " % uv[:])
+                        del mesh_faces_uv
+                        fw("\" />")
+                        self.write_indented("\n", -1)
+
+                    if is_col:
+                        self.write_indented("<Color color=\"", 1)
+                        # XXX, 1 color per face, only
+                        mesh_faces_col = mesh.vertex_colors.active.data
+                        for i in face_group:
+                            fw("%.3f %.3f %.3f, " % mesh_faces_col[i].color1[:])
+                        del mesh_faces_col
+                        fw("\" />")
+                        self.write_indented("\n", -1)
+
+                    #--- output vertexColors
+
+                    #--- output closing braces
+                    self.write_indented("</IndexedFaceSet>\n", -1)
+                    self.write_indented("</Shape>\n", -1)
+
             self.write_indented("</Group>\n", -1)
 
         self.write_indented("</Transform>\n", -1)
@@ -440,72 +513,7 @@ class x3d_class:
             self.write_indented("</Collision>\n", -1)
             self.collnode = 0
 
-        self.file.write("\n")
-
-    def write_ifs_coords_attr(self, ob, mesh, mesh_name_x3d, EXPORT_TRI=False):
-        self.file.write('coordIndex="')
-        if EXPORT_TRI:
-            for face in mesh.faces:
-                fv = face.vertices[:]
-                if len(fv) == 3:
-                    self.file.write("%i %i %i -1, " % fv)
-                else:
-                    self.file.write("%i %i %i -1, " % (fv[0], fv[1], fv[2]))
-                    self.file.write("%i %i %i -1, " % (fv[0], fv[2], fv[3]))
-
-        else:
-            for face in mesh.faces:
-                fv = face.vertices[:]
-                if len(fv) == 3:
-                    self.file.write("%i %i %i -1, " % fv)
-                else:
-                    self.file.write("%i %i %i %i -1, " % fv)
-
-        self.file.write("\" ")
-
-    def write_ifs_coords_elem(self, ob, mesh, mesh_name_x3d, EXPORT_TRI=False):
-        self.write_indented("<Coordinate DEF=\"%s%s\" \n" % ("coord_", mesh_name_x3d), 1)
-        self.file.write("\t\t\t\tpoint=\"")
-        for v in mesh.vertices:
-            self.file.write("%.6f %.6f %.6f, " % v.co[:])
-        self.file.write("\" />")
-        self.write_indented("\n", -1)
-
-    def write_ifs_texco_attr(self, mesh):
-        self.file.write("\n\t\t\ttexCoordIndex=\"")
-
-        fw = self.file.write
-        j = 0
-        for face in mesh.uv_textures.active.data:
-            if len(face.uv) == 4:
-                fw("%d %d %d %d -1, " % (j, j + 1, j + 2, j + 3))
-                j += 4
-            else:
-                fw("%d %d %d -1, " % (j, j + 1, j + 2))
-                j += 3
-
-        fw("\"\n\t\t\t")
-
-    def write_ifs_texco_elem(self, mesh):
-        texCoordList = (uv for fuv in mesh.uv_textures.active.data for uv in fuv.uv)
-
-        self.write_indented("<TextureCoordinate point=\"", 1)
-        fw = self.file.write
-        for uv in texCoordList:
-            fw("%.4f %.4f, " % uv[:])
-        fw("\" />")
-        self.write_indented("\n", -1)
-
-    def write_ifs_color_attr(self, mesh):
-        self.file.write("colorPerVertex=\"false\" ")
-
-    def write_ifs_color_elem(self, mesh):
-        self.write_indented("<Color color=\"", 1)
-        for face in mesh.vertex_colors.active.data:
-            # XXX, 1 color per face, only
-            self.file.write("%.3f %.3f %.3f, " % face.color1[:])
-        self.file.write("\" />")
-        self.write_indented("\n", -1)
+        fw("\n")
 
     def writeMaterial(self, mat, matName, world):
         # look up material name, use it if available
