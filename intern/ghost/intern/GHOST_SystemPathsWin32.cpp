@@ -1,5 +1,5 @@
 /**
- * $Id: GHOST_SystemWin32.cpp 30060 2010-07-06 20:31:55Z elubie $
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
