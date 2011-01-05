@@ -82,9 +82,6 @@ class x3d_class:
         self.it = 3
 
         #--- class private don't touch ---
-        self.texNames = {}   # dictionary of textureNames
-        self.matNames = {}   # dictionary of materiaNames
-        self.meshNames = {}   # dictionary of meshNames
         self.indentLevel = 0  # keeps track of current indenting
         self.filepath = filepath
         self.file = None
@@ -438,17 +435,13 @@ class x3d_class:
         #-- IndexedFaceSet or IndexedLineSet
 
         # user selected BOUNDS=1, SOLID=3, SHARED=4, or TEXTURE=5
-        ifStyle = "IndexedFaceSet"
         # look up mesh name, use it if available
-        if meshME in self.meshNames:
-            self.writeIndented("<%s USE=\"ME_%s\">" % (ifStyle, meshME), 1)
-            self.meshNames[meshME] += 1
+        if mesh.tag:
+            self.writeIndented("<IndexedFaceSet USE=\"ME_%s\">" % meshME, 1)
         else:
-            if int(mesh.users) > 1:
-                self.writeIndented("<%s DEF=\"ME_%s\" " % (ifStyle, meshME), 1)
-                self.meshNames[meshME] = 1
-            else:
-                self.writeIndented("<%s " % ifStyle, 1)
+            mesh.tag = True
+
+            self.writeIndented("<IndexedFaceSet DEF=\"ME_%s\" " % meshME, 1)
 
             if bTwoSided == 1:
                 self.file.write("solid=\"false\" ")
@@ -488,7 +481,7 @@ class x3d_class:
         self.writingtexture = 0
         self.writingcolor = 0
         #--- output closing braces
-        self.writeIndented("</%s>\n" % ifStyle, -1)
+        self.writeIndented("</IndexedFaceSet>\n", -1)
         self.writeIndented("</Shape>\n", -1)
         self.writeIndented("</Transform>\n", -1)
 
@@ -575,51 +568,49 @@ class x3d_class:
 
     def writeMaterial(self, mat, matName, world):
         # look up material name, use it if available
-        if matName in self.matNames:
+        if mat.tag:
             self.writeIndented("<Material USE=\"MA_%s\" />\n" % matName)
-            self.matNames[matName] += 1
-            return
-
-        self.matNames[matName] = 1
-
-        emit = mat.emit
-        ambient = mat.ambient / 3.0
-        diffuseColor = tuple(mat.diffuse_color)
-        if world:
-            ambiColor = tuple(((c * mat.ambient) * 2.0) for c in world.ambient_color)
         else:
-            ambiColor = 0.0, 0.0, 0.0
+            mat.tag = True
 
-        emitColor = tuple(((c * emit) + ambiColor[i]) / 2.0 for i, c in enumerate(diffuseColor))
-        shininess = mat.specular_hardness / 512.0
-        specColor = tuple((c + 0.001) / (1.25 / (mat.specular_intensity + 0.001)) for c in mat.specular_color)
-        transp = 1.0 - mat.alpha
+            emit = mat.emit
+            ambient = mat.ambient / 3.0
+            diffuseColor = tuple(mat.diffuse_color)
+            if world:
+                ambiColor = tuple(((c * mat.ambient) * 2.0) for c in world.ambient_color)
+            else:
+                ambiColor = 0.0, 0.0, 0.0
 
-        if mat.use_shadeless:
-            ambient = 1.0
-            shininess = 0.0
-            specColor = emitColor = diffuseColor
+            emitColor = tuple(((c * emit) + ambiColor[i]) / 2.0 for i, c in enumerate(diffuseColor))
+            shininess = mat.specular_hardness / 512.0
+            specColor = tuple((c + 0.001) / (1.25 / (mat.specular_intensity + 0.001)) for c in mat.specular_color)
+            transp = 1.0 - mat.alpha
 
-        self.writeIndented("<Material DEF=\"MA_%s\" " % matName, 1)
-        self.file.write("diffuseColor=\"%s %s %s\" " % round_color(diffuseColor, self.cp))
-        self.file.write("specularColor=\"%s %s %s\" " % round_color(specColor, self.cp))
-        self.file.write("emissiveColor=\"%s %s %s\" \n" % round_color(emitColor, self.cp))
-        self.writeIndented("ambientIntensity=\"%s\" " % (round(ambient, self.cp)))
-        self.file.write("shininess=\"%s\" " % (round(shininess, self.cp)))
-        self.file.write("transparency=\"%s\" />" % (round(transp, self.cp)))
-        self.writeIndented("\n", -1)
+            if mat.use_shadeless:
+                ambient = 1.0
+                shininess = 0.0
+                specColor = emitColor = diffuseColor
+
+            self.writeIndented("<Material DEF=\"MA_%s\" " % matName, 1)
+            self.file.write("diffuseColor=\"%s %s %s\" " % round_color(diffuseColor, self.cp))
+            self.file.write("specularColor=\"%s %s %s\" " % round_color(specColor, self.cp))
+            self.file.write("emissiveColor=\"%s %s %s\" \n" % round_color(emitColor, self.cp))
+            self.writeIndented("ambientIntensity=\"%s\" " % (round(ambient, self.cp)))
+            self.file.write("shininess=\"%s\" " % (round(shininess, self.cp)))
+            self.file.write("transparency=\"%s\" />" % (round(transp, self.cp)))
+            self.writeIndented("\n", -1)
 
     def writeImageTexture(self, image):
         name = image.name
         filepath = os.path.basename(image.filepath)
-        if name in self.texNames:
+        if image.tag:
             self.writeIndented("<ImageTexture USE=\"%s\" />\n" % self.cleanStr(name))
-            self.texNames[name] += 1
         else:
+            image.tag = True
+
             self.writeIndented("<ImageTexture DEF=\"%s\" " % self.cleanStr(name), 1)
             self.file.write("url=\"%s\" />" % filepath)
             self.writeIndented("\n", -1)
-            self.texNames[name] = 1
 
     def writeBackground(self, world, alltextures):
         if world:
@@ -707,6 +698,11 @@ class x3d_class:
                 EXPORT_TRI=False,
                 ):
 
+        # tag un-exported IDs
+        bpy.data.meshes.tag(False)
+        bpy.data.materials.tag(False)
+        bpy.data.images.tag(False)
+
         print("Info: starting X3D export to %r..." % self.filepath)
         self.writeHeader()
         # self.writeScript()
@@ -786,8 +782,6 @@ class x3d_class:
 
     def cleanup(self):
         self.file.close()
-        self.texNames = {}
-        self.matNames = {}
         self.indentLevel = 0
         print("Info: finished X3D export to %r" % self.filepath)
 

@@ -65,7 +65,10 @@ int set_listbasepointers(struct Main *main, struct ListBase **lb);
 void free_libblock(struct ListBase *lb, void *idv);
 void free_libblock_us(struct ListBase *lb, void *idv);
 void free_main(struct Main *mainvar);
-void tag_main(struct Main *mainvar, int tag);
+
+void tag_main_idcode(struct Main *mainvar, const short type, const short tag);
+void tag_main_lb(struct ListBase *lb, const short tag);
+void tag_main(struct Main *mainvar, const short tag);
 
 void rename_id(struct ID *id, const char *name);
 void name_uiprefix_id(char *name, struct ID *id);
