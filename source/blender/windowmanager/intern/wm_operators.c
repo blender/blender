@@ -2686,8 +2686,6 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	glutil_draw_lined_arc(0.0, M_PI*2.0, r1, 40);
 	glutil_draw_lined_arc(0.0, M_PI*2.0, r2, 40);
 	glDisable(GL_BLEND);
-	
-	glPopMatrix();
 }
 
 int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
