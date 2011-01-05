@@ -707,7 +707,8 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 	VECCOPY(isec.vec, vec );
 	isec.labda = dist_mir > 0 ? dist_mir : RE_RAYTRACE_MAXDIST;
 	isec.mode= RE_RAY_MIRROR;
-	isec.skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK;
+	isec.check = RE_CHECK_VLR_RENDER;
+	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
 	isec.hint = 0;
 
 	isec.orig.ob   = obi;
@@ -1850,7 +1851,8 @@ static void ray_ao_qmc(ShadeInput *shi, float *ao, float *env)
 	RE_RC_INIT(isec, *shi);
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
-	isec.skip = RE_SKIP_VLR_NEIGHBOUR|RE_SKIP_VLR_NON_SOLID_MATERIAL;
+	isec.check = RE_CHECK_VLR_NON_SOLID_MATERIAL;
+	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
 	isec.hint = 0;
 
 	isec.hit.ob   = 0;
@@ -1989,7 +1991,8 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *ao, float *env)
 	RE_RC_INIT(isec, *shi);
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
-	isec.skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK;
+	isec.check = RE_CHECK_VLR_RENDER;
+	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
 	isec.hint = 0;
 
 	isec.hit.ob   = 0;
@@ -2209,7 +2212,8 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	RE_rayobject_hint_bb( R.raytree, &bb_hint, min, max);
 	
 	isec->hint = &bb_hint;
-	isec->skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK;
+	isec->check = RE_CHECK_VLR_RENDER;
+	isec->skip = RE_SKIP_VLR_NEIGHBOUR;
 	VECCOPY(vec, lampco);
 	
 	while (samples < max_samples) {
@@ -2378,7 +2382,8 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 		isec->vec[1] = vec[1]+lampco[1]-isec->start[1];
 		isec->vec[2] = vec[2]+lampco[2]-isec->start[2];
 		isec->labda = 1.0f;
-		isec->skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK;
+		isec->check = RE_CHECK_VLR_RENDER;
+		isec->skip = RE_SKIP_VLR_NEIGHBOUR;
 		
 		if(isec->mode==RE_RAY_SHADOW_TRA) {
 			/* isec.col is like shadfac, so defines amount of light (0.0 is full shadow) */

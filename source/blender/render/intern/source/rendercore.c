@@ -2422,7 +2422,8 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			isec.orig.ob   = obi;
 			isec.orig.face = vlr;
 			isec.userdata= bs->actob;
-			isec.skip = RE_SKIP_VLR_NEIGHBOUR|RE_SKIP_VLR_BAKE_CHECK;
+			isec.check = RE_CHECK_VLR_BAKE;
+			isec.skip = RE_SKIP_VLR_NEIGHBOUR;
 			
 			if(bake_intersect_tree(R.raytree, &isec, shi->co, shi->vn, sign, co, &dist)) {
 				if(!hit || len_v3v3(shi->co, co) < len_v3v3(shi->co, minco)) {

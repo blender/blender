@@ -93,7 +93,8 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
 		}
 
 		is.mode = RE_RAY_MIRROR;
-		is.skip = RE_SKIP_VLR_RENDER_CHECK | RE_SKIP_VLR_NON_SOLID_MATERIAL;
+		is.check = RE_CHECK_VLR_NON_SOLID_MATERIAL;
+		is.skip = 0;
 		
 		if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
 			is.lay= lar->lay;	
@@ -122,6 +123,7 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	isect->mode= RE_RAY_MIRROR;
 	isect->last_hit = NULL;
 	isect->lay= -1;
+	isect->check= RE_CHECK_VLR_NONE;
 	
 	if (intersect_type == VOL_BOUNDS_DEPTH) {
 		isect->skip = RE_SKIP_VLR_NEIGHBOUR;
@@ -186,6 +188,7 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *co
 	isect.labda = FLT_MAX;
 	
 	isect.mode= RE_RAY_MIRROR;
+	isect.check = RE_CHECK_VLR_NONE;
 	isect.skip = RE_SKIP_VLR_NEIGHBOUR;
 	isect.orig.ob = (void*) shi->obi;
 	isect.orig.face = (void*)vlr;
