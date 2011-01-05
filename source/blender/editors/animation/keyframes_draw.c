@@ -758,6 +758,8 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 			
 			/* add material's data */
 			action_to_keylist(ma->adt, ma->adt->action, keys, blocks);
+			
+			// TODO: textures...
 		}
 	}
 	
