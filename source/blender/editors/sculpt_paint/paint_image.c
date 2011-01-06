@@ -1140,6 +1140,7 @@ static void project_face_seams_init(const ProjPaintState *ps, const int face_ind
 /* TODO - move to arithb.c */
 
 /* little sister we only need to know lambda */
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 static float lambda_cp_line2(const float p[2], const float l1[2], const float l2[2])
 {
 	float h[2], u[2];
@@ -1152,6 +1153,7 @@ static float lambda_cp_line2(const float p[2], const float l1[2], const float l2
 	
 	return(dot_v2v2(u, h)/dot_v2v2(u, u));
 }
+#endif // PROJ_DEBUG_NOSEAMBLEED
 
 
 /* Converts a UV location to a 3D screenspace location
@@ -1624,6 +1626,7 @@ static int line_clip_rect2f(
 /* scale the quad & tri about its center
  * scaling by PROJ_FACE_SCALE_SEAM (0.99x) is used for getting fake UV pixel coords that are on the
  * edge of the face but slightly inside it occlusion tests dont return hits on adjacent faces */
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 static void scale_quad(float insetCos[4][3], float *origCos[4], const float inset)
 {
 	float cent[3];
@@ -1667,7 +1670,7 @@ static void scale_tri(float insetCos[4][3], float *origCos[4], const float inset
 	add_v3_v3(insetCos[1], cent);
 	add_v3_v3(insetCos[2], cent);
 }
-
+#endif //PROJ_DEBUG_NOSEAMBLEED
 
 static float Vec2Lenf_nosqrt(const float *v1, const float *v2)
 {
@@ -2497,26 +2500,32 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											
 											/* Only bother calculating the weights if we intersect */
 											if (ps->do_mask_normal || ps->dm_mtface_clone) {
-#if 0
-												/* This is not QUITE correct since UV is not inside the UV's but good enough for seams */
+#if 1
+												/* get the UV on the line since we want to copy the pixels from there for bleeding */
+												float uv_close[2];
+												float fac= closest_to_line_v2(uv_close, uv, tf_uv_pxoffset[fidx1], tf_uv_pxoffset[fidx2]);
+												if		(fac < 0.0f) copy_v2_v2(uv_close, tf_uv_pxoffset[fidx1]);
+												else if	(fac > 1.0f) copy_v2_v2(uv_close, tf_uv_pxoffset[fidx2]);
+
 												if (side) {
-													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv, w);
+													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv_close, w);
 												}
 												else {
-													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv, w);
+													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv_close, w);
 												}
-#endif
-#if 1
+#else											/* this is buggy with quads, dont use for now */
+
 												/* Cheat, we know where we are along the edge so work out the weights from that */
 												fac = fac1 + (fac * (fac2-fac1));
+
 												w[0]=w[1]=w[2]= 0.0;
 												if (side) {
-													w[fidx1?fidx1-1:0] = fac;
-													w[fidx2?fidx2-1:0] = 1.0f-fac;
+													w[fidx1?fidx1-1:0] = 1.0f-fac;
+													w[fidx2?fidx2-1:0] = fac;
 												}
 												else {
-													w[fidx1] = fac;
-													w[fidx2] = 1.0f-fac;
+													w[fidx1] = 1.0f-fac;
+													w[fidx2] = fac;
 												}
 #endif
 											}

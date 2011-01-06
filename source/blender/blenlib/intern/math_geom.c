@@ -1030,7 +1030,7 @@ int isect_aabb_aabb_v3(float min1[3], float max1[3], float min2[3], float max2[3
 /* find closest point to p on line through l1,l2 and return lambda,
  * where (0 <= lambda <= 1) when cp is in the line segement l1,l2
  */
-float closest_to_line_v3(float cp[3],float p[3], float l1[3], float l2[3])
+float closest_to_line_v3(float cp[3], const float p[3], const float l1[3], const float l2[3])
 {
 	float h[3],u[3],lambda;
 	sub_v3_v3v3(u, l2, l1);
@@ -1039,6 +1039,17 @@ float closest_to_line_v3(float cp[3],float p[3], float l1[3], float l2[3])
 	cp[0] = l1[0] + u[0] * lambda;
 	cp[1] = l1[1] + u[1] * lambda;
 	cp[2] = l1[2] + u[2] * lambda;
+	return lambda;
+}
+
+float closest_to_line_v2(float cp[2],const float p[2], const float l1[2], const float l2[2])
+{
+	float h[2],u[2],lambda;
+	sub_v2_v2v2(u, l2, l1);
+	sub_v2_v2v2(h, p, l1);
+	lambda =dot_v2v2(u,h)/dot_v2v2(u,u);
+	cp[0] = l1[0] + u[0] * lambda;
+	cp[1] = l1[1] + u[1] * lambda;
 	return lambda;
 }
 
