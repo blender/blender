@@ -1499,8 +1499,9 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	t->state = TRANS_STARTING;
 
-	if(RNA_boolean_get(op->ptr, "texture_space"))
-		options |= CTX_TEXTURE;
+	if(RNA_struct_find_property(op->ptr, "texture_space"))
+		if(RNA_boolean_get(op->ptr, "texture_space"))
+			options |= CTX_TEXTURE;
 	
 	t->options = options;
 

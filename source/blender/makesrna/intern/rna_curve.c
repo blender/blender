@@ -175,6 +175,14 @@ static void rna_BezTriple_ctrlpoint_set(PointerRNA *ptr, const float *values)
 	bt->vec[1][2]= values[2];
 }
 
+static void rna_Curve_texspace_set(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->data;
+	
+	if (cu->texflag & CU_AUTOSPACE)
+		tex_space_curve(cu);
+}
+
 static int rna_Curve_texspace_editable(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->data;
@@ -1355,7 +1363,8 @@ static void rna_def_curve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_auto_texspace", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", CU_AUTOSPACE);
 	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
-	
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Curve_texspace_set");
+
 	prop= RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
