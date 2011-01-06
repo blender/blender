@@ -1224,7 +1224,7 @@ void loc_axisangle_size_to_mat4(float mat[4][4], const float loc[3], const float
 
 /*********************************** Other ***********************************/
 
-void print_m3(char *str, float m[][3])
+void print_m3(const char *str, float m[][3])
 {
 	printf("%s\n", str);
 	printf("%f %f %f\n",m[0][0],m[1][0],m[2][0]);
@@ -1233,7 +1233,7 @@ void print_m3(char *str, float m[][3])
 	printf("\n");
 }
 
-void print_m4(char *str, float m[][4])
+void print_m4(const char *str, float m[][4])
 {
 	printf("%s\n", str);
 	printf("%f %f %f %f\n",m[0][0],m[1][0],m[2][0],m[3][0]);
