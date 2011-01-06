@@ -51,7 +51,7 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *first, float *la
 
 void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short sel);
 
-short ED_markers_has_selected(ListBase *markers);
+struct TimeMarker *ED_markers_get_first_selected(ListBase *markers);
 
 /* Operators ------------------------------ */
 

@@ -224,19 +224,19 @@ void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short only_sel)
 
 /* --------------------------------- */
 
-/* This function checks if there are any markers selected at all */
-short ED_markers_has_selected(ListBase *markers)
+/* Get the first selected marker */
+TimeMarker *ED_markers_get_first_selected(ListBase *markers)
 {
 	TimeMarker *marker;
 	
 	if (markers) {
 		for (marker = markers->first; marker; marker = marker->next) {
 			if (marker->flag & SELECT)
-				return 1;
+				return marker;
 		}
 	}
 	
-	return 0;
+	return NULL;
 }
 
 /* ************* Marker Drawing ************ */
@@ -376,7 +376,7 @@ static int ed_markers_poll_selected_markers(bContext *C)
 		return 0;
 		
 	/* check if some marker is selected */
-	return ED_markers_has_selected(markers);
+	return ED_markers_get_first_selected(markers) != NULL;
 }
  
 /* ------------------------ */ 
@@ -1094,7 +1094,7 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if (action == SEL_TOGGLE) {
-		action = (ED_markers_has_selected(markers)) ? SEL_DESELECT : SEL_SELECT;
+		action = (ED_markers_get_first_selected(markers) != NULL) ? SEL_DESELECT : SEL_SELECT;
 	}
 	
 	for(marker= markers->first; marker; marker= marker->next) {
@@ -1136,7 +1136,7 @@ static void MARKER_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
-/* ******************************* remove marker ***************** */
+/* ***************** remove marker *********************** */
 
 /* remove selected TimeMarkers */
 static int ed_marker_delete_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1183,8 +1183,69 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 	ot->poll= ed_markers_poll_selected_markers;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;	
+}
+
+
+/* **************** rename marker ***************** */
+
+/* rename first selected TimeMarker */
+static int ed_marker_rename_exec(bContext *C, wmOperator *op)
+{
+	ListBase *markers= context_get_markers(C);
+	TimeMarker *marker;
+	short changed= 0;
 	
+	if (markers == NULL)
+		return OPERATOR_CANCELLED;
+	
+	for (marker= markers->first; marker; marker= marker->next) {
+		if (marker->flag & SELECT) {
+			/* directly get new name */
+			RNA_string_get(op->ptr, "name", marker->name);
+			
+			changed= 1;
+			break;
+		}
+	}
+	
+	if (changed) {
+		WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+static int ed_marker_rename_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
+{
+	/* must initialise the marker name first if there is a marker selected */
+	TimeMarker *marker = ED_markers_get_first_selected(context_get_markers(C));
+	if (marker)
+		RNA_string_set(op->ptr, "name", marker->name);
+	
+	/* now see if the operator is usable */
+	return ed_markers_opwrap_invoke_custom(C, op, evt, WM_operator_props_popup);
+}
+
+static void MARKER_OT_rename(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rename Marker";
+	ot->description= "Rename first selected time marker";
+	ot->idname= "MARKER_OT_rename";
+	
+	/* api callbacks */
+	ot->invoke= ed_marker_rename_invoke_wrapper;
+	ot->exec= ed_marker_rename_exec;
+	ot->poll= ed_markers_poll_selected_markers;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;	
+	
+	/* properties */
+	ot->prop = RNA_def_string(ot->srna, "name", "RenamedMarker", 64, "Name", "New name for marker");
+	//RNA_def_boolean(ot->srna, "ensure_unique", 0, "Ensure Unique", "Ensure that new name is unique within collection of markers");
 }
 
 /* **************** make links to scene ***************** */
@@ -1299,6 +1360,7 @@ void ED_operatortypes_marker(void)
 	WM_operatortype_append(MARKER_OT_select_border);
 	WM_operatortype_append(MARKER_OT_select_all);
 	WM_operatortype_append(MARKER_OT_delete);
+	WM_operatortype_append(MARKER_OT_rename);
 	WM_operatortype_append(MARKER_OT_make_links_scene);
 #ifdef DURIAN_CAMERA_SWITCH
 	WM_operatortype_append(MARKER_OT_camera_bind);
@@ -1330,6 +1392,7 @@ void ED_marker_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_rename", MKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
 #ifdef DURIAN_CAMERA_SWITCH
