@@ -1192,29 +1192,19 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 /* rename first selected TimeMarker */
 static int ed_marker_rename_exec(bContext *C, wmOperator *op)
 {
-	ListBase *markers= context_get_markers(C);
-	TimeMarker *marker;
-	short changed= 0;
-	
-	if (markers == NULL)
-		return OPERATOR_CANCELLED;
-	
-	for (marker= markers->first; marker; marker= marker->next) {
-		if (marker->flag & SELECT) {
-			/* directly get new name */
-			RNA_string_get(op->ptr, "name", marker->name);
-			
-			changed= 1;
-			break;
-		}
-	}
-	
-	if (changed) {
+	TimeMarker *marker= ED_markers_get_first_selected(context_get_markers(C));
+
+	if(marker) {
+		RNA_string_get(op->ptr, "name", marker->name);
+
 		WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 		WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
+
+		return OPERATOR_FINISHED;
 	}
-	
-	return OPERATOR_FINISHED;
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 static int ed_marker_rename_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
@@ -1244,7 +1234,7 @@ static void MARKER_OT_rename(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;	
 	
 	/* properties */
-	ot->prop = RNA_def_string(ot->srna, "name", "RenamedMarker", 64, "Name", "New name for marker");
+	ot->prop = RNA_def_string(ot->srna, "name", "RenamedMarker", sizeof(((TimeMarker *)NULL)->name), "Name", "New name for marker");
 	//RNA_def_boolean(ot->srna, "ensure_unique", 0, "Ensure Unique", "Ensure that new name is unique within collection of markers");
 }
 

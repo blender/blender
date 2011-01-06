@@ -798,7 +798,7 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 		if(block->active && block->panel)
 			ui_offset_panel_block(block);
 
-	/* consistancy; are panels not made, whilst they have tabs */
+	/* consistency; are panels not made, whilst they have tabs */
 	for(panot= ar->panels.first; panot; panot= panot->next) {
 		if((panot->runtime_flag & PNL_ACTIVE)==0) { // not made
 

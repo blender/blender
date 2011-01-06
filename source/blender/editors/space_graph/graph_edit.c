@@ -60,6 +60,7 @@
 #include "ED_keyframes_edit.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
+#include "ED_markers.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1769,13 +1770,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 		TimeMarker *marker= NULL;
 		
 		/* find first selected marker */
-		if (ac->markers) {
-			for (marker= ac->markers->first; marker; marker=marker->next) {
-				if (marker->flag & SELECT) {
-					break;
-				}
-			}
-		}
+		marker= ED_markers_get_first_selected(ac->markers);
 		
 		/* store marker's time (if available) */
 		if (marker)
