@@ -575,6 +575,14 @@ static void rna_SpaceProperties_pin_id_update(Main *bmain, Scene *scene, Pointer
 }
 
 
+static void rna_SpaceProperties_context_set(PointerRNA *ptr, int value)
+{
+	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
+	
+	sbuts->mainb= value;
+	sbuts->mainbuser = value;
+}
+
 static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
 {
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
@@ -1333,6 +1341,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "context", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mainb");
 	RNA_def_property_enum_items(prop, buttons_context_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceProperties_context_set", NULL);
 	RNA_def_property_ui_text(prop, "Context", "Type of active data to display and edit");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_PROPERTIES, NULL);
 	
