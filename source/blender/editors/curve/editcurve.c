@@ -5710,11 +5710,10 @@ static int delete_exec(bContext *C, wmOperator *op)
 	}
 	else if(type==1) {	/* erase segment */
 		/* find the 2 selected points */
-		bezt1= bezt2= 0;
-		bp1= bp2= 0;
-		nu= nubase->first;
-		nu1= 0;
-		while(nu) {
+		bezt1= bezt2= NULL;
+		bp1= bp2= NULL;
+		nu1= NULL;
+		for(nu= nubase->first; nu; nu= nu->next) {
 			next= nu->next;
 			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
@@ -5770,8 +5769,6 @@ static int delete_exec(bContext *C, wmOperator *op)
 				}
 			}
 			if(nu1) break;
-
-			nu= nu->next;
 		}
 		if(nu1) {
 			if(bezt1) {

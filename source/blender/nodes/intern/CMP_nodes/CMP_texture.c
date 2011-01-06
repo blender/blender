@@ -90,15 +90,15 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 	/* outputs: value, color, normal */
 	
 	if(node->id) {
-		RenderData *rd= data;
-		short sizex, sizey;
+		/* RenderData *rd= data; */
+		/* short sizex, sizey; */
 		
 		/* first make the preview image */
 		CompBuf *prevbuf= alloc_compbuf(140, 140, CB_RGBA, 1); /* alloc */
 
 		/* Also take care about the render size! */
-		sizex = (rd->size*rd->xsch)/100;
-		sizey = (rd->size*rd->ysch)/100;
+		/* sizex = (rd->size*rd->xsch)/100; */
+		/* sizey = (rd->size*rd->ysch)/100; */
 
 		prevbuf->rect_procedural= texture_procedural;
 		prevbuf->node= node;

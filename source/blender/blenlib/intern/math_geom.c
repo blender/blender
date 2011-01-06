@@ -827,7 +827,7 @@ int isect_sweeping_sphere_tri_v3(float p1[3], float p2[3], float radius, float v
 	sub_v3_v3v3(bv,v0,p1);
 	elen2 = dot_v3v3(e1,e1);
 	edotv = dot_v3v3(e1,vel);
-	edotbv = dot_v3v3(e1,bv);
+	/* edotbv = dot_v3v3(e1,bv); */ /* UNUSED */
 
 	sub_v3_v3v3(bv,v1,p1);
 	elen2 = dot_v3v3(e3,e3);
@@ -972,7 +972,6 @@ int isect_line_line_strict_v3(float v1[3], float v2[3], float v3[3], float v4[3]
 {
 	float a[3], b[3], c[3], ab[3], cb[3], ca[3], dir1[3], dir2[3];
 	float d;
-	float d1;
 	
 	sub_v3_v3v3(c, v3, v1);
 	sub_v3_v3v3(a, v2, v1);
@@ -985,8 +984,6 @@ int isect_line_line_strict_v3(float v1[3], float v2[3], float v3[3], float v4[3]
 		/* colinear or one vector is zero-length*/
 		return 0;
 	}
-	
-	d1 = d;
 
 	cross_v3_v3v3(ab, a, b);
 	d = dot_v3v3(c, ab);

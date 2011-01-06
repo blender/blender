@@ -1462,7 +1462,6 @@ void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg
 
 	case MTEX_LIGHT:
 		fact*= facg;
-		facm= 1.0-fact;
 		
 		col= fact*tex[0];
 		if(col > out[0]) in[0]= col; else in[0]= out[0];
@@ -1565,7 +1564,6 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 		break;
 
 	case MTEX_SOFT_LIGHT: 
-		col= fact*tex; 
 		scf=1.0 - (1.0 - tex) * (1.0 - out); 
 		in= facm*out + fact * ((1.0 - out) * tex * out) + (out * scf); 
 		break;       
@@ -2364,7 +2362,6 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 			/* which coords */
 			if(mtex->texco==TEXCO_OBJECT) { 
 				Object *ob= mtex->object;
-				ob= mtex->object;
 				if(ob) {						
 					VECCOPY(co, xyz);	
 					if(mtex->texflag & MTEX_OB_DUPLI_ORIG) {

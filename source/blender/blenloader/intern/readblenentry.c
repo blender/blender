@@ -169,11 +169,11 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 					memcpy(new_prv, prv, sizeof(PreviewImage));
 					if (prv->rect[0]) {
 						unsigned int *rect = NULL;
-						int rectlen = 0;
+						// int rectlen = 0;
 						new_prv->rect[0] = MEM_callocN(new_prv->w[0]*new_prv->h[0]*sizeof(unsigned int), "prvrect");
 						bhead= blo_nextbhead(fd, bhead);
 						rect = (unsigned int*)(bhead+1);
-						rectlen = new_prv->w[0]*new_prv->h[0]*sizeof(unsigned int);
+						// rectlen = new_prv->w[0]*new_prv->h[0]*sizeof(unsigned int);
 						memcpy(new_prv->rect[0], rect, bhead->len);					
 					} else {
 						new_prv->rect[0] = NULL;
@@ -181,11 +181,11 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 					
 					if (prv->rect[1]) {
 						unsigned int *rect = NULL;
-						int rectlen = 0;
+						// int rectlen = 0;
 						new_prv->rect[1] = MEM_callocN(new_prv->w[1]*new_prv->h[1]*sizeof(unsigned int), "prvrect");
 						bhead= blo_nextbhead(fd, bhead);
 						rect = (unsigned int*)(bhead+1);
-						rectlen = new_prv->w[1]*new_prv->h[1]*sizeof(unsigned int);					
+						// rectlen = new_prv->w[1]*new_prv->h[1]*sizeof(unsigned int);
 						memcpy(new_prv->rect[1], rect, bhead->len);							
 					} else {
 						new_prv->rect[1] = NULL;

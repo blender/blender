@@ -1050,7 +1050,7 @@ static TextLine *first_visible_line(SpaceText *st, ARegion *ar, int *wrap_top)
 			}
 		}
 	} else {
-		for(i=st->top, pline= text->lines.first; pline->next && i>0; i--)
+		for(i=st->top; pline->next && i>0; i--)
 			pline= pline->next;
 	}
 
@@ -1284,7 +1284,7 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 {
 	TextLine *tmp;
 	char *docs, buf[DOC_WIDTH+1], *p;
-	int len, i, br, lines;
+	int i, br, lines;
 	int boxw, boxh, l, x, y, top;
 	
 	if(!st || !st->text) return;
@@ -1309,7 +1309,6 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 	}
 
 	top= y= ar->winy - st->lheight*l - 2;
-	len= strlen(docs);
 	boxw= DOC_WIDTH*st->cwidth + 20;
 	boxh= (DOC_HEIGHT+1)*st->lheight;
 

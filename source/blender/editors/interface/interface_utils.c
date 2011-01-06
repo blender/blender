@@ -56,19 +56,11 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 
 	switch(RNA_property_type(prop)) {
 		case PROP_BOOLEAN: {
-			int value, length;
 
 			if(arraylen && index == -1)
 				return NULL;
-
-			length= RNA_property_array_length(ptr, prop);
-
-			if(length)
-				value= RNA_property_boolean_get_index(ptr, prop, index);
-			else
-				value= RNA_property_boolean_get(ptr, prop);
 			
-			if(icon && name && strcmp(name, "") == 0)
+			if(icon && name && name[0] == '\0')
 				but= uiDefIconButR(block, ICONTOG, 0, icon, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			else if(icon)
 				but= uiDefIconTextButR(block, ICONTOG, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);

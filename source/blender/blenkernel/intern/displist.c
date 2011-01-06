@@ -625,7 +625,6 @@ void shadeDispList(Scene *scene, Base *base)
 	Object *ob= base->object;
 	DispList *dl, *dlob;
 	Material *ma = NULL;
-	Curve *cu;
 	Render *re;
 	float imat[3][3], mat[4][4], vec[3];
 	float *fp, *nor, n1[3];
@@ -659,7 +658,6 @@ void shadeDispList(Scene *scene, Base *base)
 		if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		
 			/* now we need the normals */
-			cu= ob->data;
 			dl= ob->disp.first;
 			
 			while(dl) {

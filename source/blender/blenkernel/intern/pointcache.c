@@ -115,7 +115,7 @@ static int ptcache_file_read(PTCacheFile *pf, void *f, size_t tot, size_t size);
 /* Common functions */
 static int ptcache_basic_header_read(PTCacheFile *pf)
 {
-	uint32_t totpoint, data_types;
+	uint32_t totpoint, data_types= 0;
 	int error=0;
 
 	/* Custom functions should read these basic elements too! */
