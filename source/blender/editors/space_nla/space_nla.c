@@ -514,7 +514,7 @@ void ED_spacetype_nla(void)
 	art->init= nla_main_area_init;
 	art->draw= nla_main_area_draw;
 	art->listener= nla_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D/*|ED_KEYMAP_MARKERS*/|ED_KEYMAP_ANIMATION|ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS|ED_KEYMAP_ANIMATION|ED_KEYMAP_FRAMES;
 
 	BLI_addhead(&st->regiontypes, art);
 	

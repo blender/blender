@@ -599,7 +599,7 @@ void ED_spacetype_ipo(void)
 	art->init= graph_main_area_init;
 	art->draw= graph_main_area_draw;
 	art->listener= graph_region_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D/*|ED_KEYMAP_MARKERS*/|ED_KEYMAP_ANIMATION|ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS|ED_KEYMAP_ANIMATION|ED_KEYMAP_FRAMES;
 
 	BLI_addhead(&st->regiontypes, art);
 	
