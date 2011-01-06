@@ -381,7 +381,7 @@ static void add_main_to_main(Main *mainvar, Main *from)
 	ListBase *lbarray[MAX_LIBARRAY], *fromarray[MAX_LIBARRAY];
 	int a;
 
-	a= set_listbasepointers(mainvar, lbarray);
+	set_listbasepointers(mainvar, lbarray);
 	a= set_listbasepointers(from, fromarray);
 	while(a--) {
 		BLI_movelisttolist(lbarray[a], fromarray[a]);
@@ -3160,7 +3160,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			for(a=1,pa++; a<psys->totpart; a++, pa++)
 				pa->boid = (pa-1)->boid + 1;
 		}
-		else {
+		else if(psys->particles) {
 			for(a=0,pa=psys->particles; a<psys->totpart; a++, pa++)
 				pa->boid = NULL;
 		}
@@ -3810,9 +3810,10 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					clmd->sim_parms->presets = 0;
 
 				clmd->sim_parms->reset = 0;
+
+				clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
 			}
 
-			clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
 			if(!clmd->sim_parms->effector_weights)
 				clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
 			
@@ -4316,9 +4317,8 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 
 static void direct_link_paint(FileData *fd, Paint **paint)
 {
-	Paint *p;
 /* TODO. is this needed */
-	p= (*paint)= newdataadr(fd, (*paint));
+	(*paint)= newdataadr(fd, (*paint));
 }
 
 static void direct_link_scene(FileData *fd, Scene *sce)
@@ -12575,7 +12575,7 @@ static void append_do_cursor(Scene *scene, Library *curlib, short flag)
 
 static void library_append_end(const bContext *C, Main *mainl, FileData **fd, int idcode, short flag)
 {
-	Main *mainvar= CTX_data_main(C);
+	Main *mainvar;
 	Scene *scene= CTX_data_scene(C);
 	Library *curlib;
 
@@ -12678,7 +12678,7 @@ static int mainvar_count_libread_blocks(Main *mainvar)
 
 	a= set_listbasepointers(mainvar, lbarray);
 	while(a--) {
-		ID *id= lbarray[a]->first;
+		ID *id;
 
 		for (id= lbarray[a]->first; id; id= id->next)
 			if (id->flag & LIB_READ)
