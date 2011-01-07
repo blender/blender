@@ -3297,8 +3297,8 @@ static void hair_step(ParticleSimulationData *sim, float cfra)
 			cloth_free_modifier(psys->clmd);
 	}
 
-	/* dynamics with cloth simulation */
-	if(psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS)
+	/* dynamics with cloth simulation, psys->particles can be NULL with 0 particles [#25519] */
+	if(psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS && psys->particles)
 		do_hair_dynamics(sim);
 
 	/* following lines were removed r29079 but cause bug [#22811], see report for details */
