@@ -1677,9 +1677,12 @@ void do_material_tex(ShadeInput *shi)
 	float fact, facm, factt, facmm, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3]={0.0f, 0.0f, 0.0f}, Tnor=1.0;
 	int tex_nr, rgbnor= 0, warpdone=0;
-	float nu[3] = {0,0,0}, nv[3] = {0,0,0}, nn[3] = {0,0,0}, dudnu = 1.f, dudnv = 0.f, dvdnu = 0.f, dvdnv = 1.f; // bump mapping
 	int nunvdone= 0, newbump;
-
+	// bumpmapping
+	float vNacc[3]; // original surface normal minus the surface gradient of every bump map which is encountered
+	float vR1[3], vR2[3]; // cross products (sigma_y, original_normal), (original_normal, sigma_x)
+	float sgn_det=0.0f; // sign of the determinant of the matrix {sigma_x, sigma_y, original_normal}
+	
 	if (R.r.scemode & R_NO_TEX) return;
 	/* here: test flag if there's a tex (todo) */
 
@@ -1705,7 +1708,9 @@ void do_material_tex(ShadeInput *shi)
 					dyt[0]= dyt[1]= dyt[2]= 0.0f;
 				}
 				else {
-					co= shi->lo; dx= shi->dxlo; dy= shi->dylo;
+					co= shi->lo;
+					dx= shi->dxlo;
+					dy= shi->dylo;
 				}
 			}
 			else if(mtex->texco==TEXCO_STICKY) {
@@ -1768,59 +1773,8 @@ void do_material_tex(ShadeInput *shi)
 
 					co= suv->uv;
 					dx= suv->dxuv;
-					dy= suv->dyuv; 
+					dy= suv->dyuv;
 
-					// uvmapping only, calculation of normal tangent u/v partial derivatives
-					// (should not be here, dudnu, dudnv, dvdnu & dvdnv should probably be part of ShadeInputUV struct,
-					//  nu/nv in ShadeInput and this calculation should then move to shadeinput.c, shade_input_set_shade_texco() func.)
-					// NOTE: test for shi->obr->ob here, since vlr/obr/obi can be 'fake' when called from fastshade(), another reason to move it..
-					// NOTE: shi->v1 is NULL when called from displace_render_vert, assigning verts in this case is not trivial because the shi quad face side is not know.
-					if ((mtex->texflag & MTEX_NEW_BUMP) && shi->obr && shi->obr->ob && shi->v1) {
-						if(mtex->mapto & (MAP_NORM|MAP_WARP) && !((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP))) {
-							MTFace* tf = RE_vlakren_get_tface(shi->obr, shi->vlr, i, NULL, 0);
-							int j1 = shi->i1, j2 = shi->i2, j3 = shi->i3;
-
-							vlr_set_uv_indices(shi->vlr, &j1, &j2, &j3);
-
-							// compute ortho basis around normal
-							if(!nunvdone) {
-								// render normal is negated
-								nn[0] = -shi->vn[0];
-								nn[1] = -shi->vn[1];
-								nn[2] = -shi->vn[2];
-								ortho_basis_v3v3_v3( nu, nv,nn);
-								nunvdone= 1;
-							}
-
-							if (tf) {
-								float *uv1 = tf->uv[j1], *uv2 = tf->uv[j2], *uv3 = tf->uv[j3];
-								const float an[3] = {fabsf(nn[0]), fabsf(nn[1]), fabsf(nn[2])};
-								const int a1 = (an[0] > an[1] && an[0] > an[2]) ? 1 : 0;
-								const int a2 = (an[2] > an[0] && an[2] > an[1]) ? 1 : 2;
-								const float dp1_a1 = shi->v1->co[a1] - shi->v3->co[a1];
-								const float dp1_a2 = shi->v1->co[a2] - shi->v3->co[a2];
-								const float dp2_a1 = shi->v2->co[a1] - shi->v3->co[a1];
-								const float dp2_a2 = shi->v2->co[a2] - shi->v3->co[a2];
-								const float du1 = uv1[0] - uv3[0], du2 = uv2[0] - uv3[0];
-								const float dv1 = uv1[1] - uv3[1], dv2 = uv2[1] - uv3[1];
-								const float dpdu_a1 = dv2*dp1_a1 - dv1*dp2_a1;
-								const float dpdu_a2 = dv2*dp1_a2 - dv1*dp2_a2;
-								const float dpdv_a1 = du1*dp2_a1 - du2*dp1_a1;
-								const float dpdv_a2 = du1*dp2_a2 - du2*dp1_a2;
-								float d = dpdu_a1*dpdv_a2 - dpdv_a1*dpdu_a2;
-								float uvd = du1*dv2 - dv1*du2;
-
-								if (uvd == 0.f) uvd = 1e-5f;
-								if (d == 0.f) d = 1e-5f;
-								d = uvd / d;
-
-								dudnu = (dpdv_a2*nu[a1] - dpdv_a1*nu[a2])*d;
-								dvdnu = (dpdu_a1*nu[a2] - dpdu_a2*nu[a1])*d;
-								dudnv = (dpdv_a2*nv[a1] - dpdv_a1*nv[a2])*d;
-								dvdnv = (dpdu_a1*nv[a2] - dpdu_a2*nv[a1])*d;
-							}
-						}
-					}
 				}
 			}
 			else if(mtex->texco==TEXCO_WINDOW) {
@@ -1854,142 +1808,145 @@ void do_material_tex(ShadeInput *shi)
 			else texres.nor= NULL;
 			
 			if(warpdone) {
-				VECADD(tempvec, co, warpvec);
+				VECADD(tempvec, co, warpvec)
 				co= tempvec;
 			}
 
 			/* XXX texture node trees don't work for this yet */
 			if(newbump) {
-				// compute ortho basis around normal
-				if(!nunvdone) {
-					// render normal is negated
-					nn[0] = -shi->vn[0];
-					nn[1] = -shi->vn[1];
-					nn[2] = -shi->vn[2];
-					ortho_basis_v3v3_v3( nu, nv,nn);
-					nunvdone= 1;
-				}
 
 				if(texres.nor && !((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP))) {
+					
 					TexResult ttexr = {0, 0, 0, 0, 0, texres.talpha, NULL};	// temp TexResult
-					float tco[3], texv[3], cd, ud, vd, du, dv, idu, idv;
+					float texv[3];
+					
 					const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
-					const float bf = 0.04f*Tnor*stencilTin*mtex->norfac;
-					// disable internal bump eval
-					float* nvec = texres.nor;
+					const float Hscale = 0.016f * Tnor*stencilTin*mtex->norfac; // factor 0.016 proved to look like the previous bump code
+					
+					// 2 channels for 2D texture and 3 for 3D textures.
+					const int nr_channels = (mtex->texco == TEXCO_UV)? 2 : 3;
+					int c;
+					float dHdx, dHdy;
+
+					// disable internal bump eval in sampler, save pointer
+					float *nvec = texres.nor;
 					texres.nor = NULL;
-					// du & dv estimates, constant value defaults
-					du = dv = 0.01f;
 
-					// two methods, either constant based on main image resolution,
-					// (which also works without osa, though of course not always good (or even very bad) results),
-					// or based on tex derivative max values (osa only). Not sure which is best...
+					if(!(mtex->texflag & MTEX_5TAP_BUMP)) {
+						// compute height derivatives with respect to output image pixel coordinates x and y
+						float STll[3], STlr[3], STul[3];
+						float Hll, Hlr, Hul;
 
-					if (!shi->osatex && (tex->type == TEX_IMAGE) && tex->ima) {
-						// in case we have no proper derivatives, fall back to
-						// computing du/dv it based on image size
-						ImBuf* ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
-						if (ibuf) {
-							du = 1.f/(float)ibuf->x;
-							dv = 1.f/(float)ibuf->y;
+						for(c=0; c<nr_channels; c++) {
+							// dx contains the derivatives (du/dx, dv/dx)
+							// dy contains the derivatives (du/dy, dv/dy)
+							STll[c] = co[c];
+							STlr[c] = co[c]+dx[c];	
+							STul[c] = co[c]+dy[c];
 						}
-					}
-					else if (shi->osatex) {
-						// we have derivatives, can compute proper du/dv
-						if (tex->type == TEX_IMAGE) {	// 2d image, use u & v max. of dx/dy 2d vecs
-							const float adx[2] = {fabsf(dx[0]), fabsf(dx[1])};
-							const float ady[2] = {fabsf(dy[0]), fabsf(dy[1])};
-							du = MAX2(adx[0], ady[0]);
-							dv = MAX2(adx[1], ady[1]);
+					
+						// clear unused derivatives
+						for(c=nr_channels; c<3; c++) {
+							STll[c] = 0.0f;
+							STlr[c] = 0.0f;
+							STul[c] = 0.0f;
 						}
-						else {	// 3d procedural, estimate from all dx/dy elems
-							const float adx[3] = {fabsf(dx[0]), fabsf(dx[1]), fabsf(dx[2])};
-							const float ady[3] = {fabsf(dy[0]), fabsf(dy[1]), fabsf(dy[2])};
-							du = MAX3(adx[0], adx[1], adx[2]);
-							dv = MAX3(ady[1], ady[1], ady[2]);
-						}
-					}
-
-					// center, main return value
-					texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
-					rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, &texres);
-					cd = fromrgb ? (texres.tr + texres.tg + texres.tb)*0.33333333f : texres.tin;
-
-					if (mtex->texco == TEXCO_UV) {
-						// for the uv case, use the same value for both du/dv,
-						// since individually scaling the normal derivatives makes them useless...
-						du = MIN2(du, dv);
-						idu = (du < 1e-5f) ? bf : (bf/du);
-
-						// +u val
-						tco[0] = co[0] + dudnu*du;
-						tco[1] = co[1] + dvdnu*du;
-						tco[2] = 0.f;
-						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
+						
+						// use texres and texvec for the center sample, set rgbnor
+						texco_mapping(shi, tex, mtex, STll, dx, dy, texvec, dxt, dyt);
+						rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, &texres);
+						Hll = (fromrgb)? (texres.tr + texres.tg + texres.tb)*0.33333333f: texres.tin;
+					
+						// use texv and ttexr for the other 2 taps
+						texco_mapping(shi, tex, mtex, STlr, dx, dy, texv, dxt, dyt);
 						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
-						ud = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
-
-						// +v val
-						tco[0] = co[0] + dudnv*du;
-						tco[1] = co[1] + dvdnv*du;
-						tco[2] = 0.f;
-						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
+						Hlr = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
+					
+						texco_mapping(shi, tex, mtex, STul, dx, dy, texv, dxt, dyt);
 						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
-						vd = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
+						Hul = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
+					
+						dHdx = Hscale*(Hlr - Hll);
+						dHdy = Hscale*(Hul - Hll);
 					}
 					else {
-						float tu[3] = {nu[0], nu[1], nu[2]}, tv[3] = {nv[0], nv[1], nv[2]};
+						/* same as above, but doing 5 taps, increasing quality at cost of speed */
+						float STc[3], STl[3], STr[3], STd[3], STu[3];
+						float Hc, Hl, Hr, Hd, Hu;
 
-						idu = (du < 1e-5f) ? bf : (bf/du);
-						idv = (dv < 1e-5f) ? bf : (bf/dv);
-
-						if ((mtex->texco == TEXCO_ORCO) && shi->obr && shi->obr->ob) {
-							mul_mat3_m4_v3(shi->obr->ob->imat, tu);
-							mul_mat3_m4_v3(shi->obr->ob->imat, tv);
-							normalize_v3(tu);
-							normalize_v3(tv);
-						}
-						else if (mtex->texco == TEXCO_GLOB) {
-							mul_mat3_m4_v3(R.viewinv, tu);
-							mul_mat3_m4_v3(R.viewinv, tv);
-						}
-						else if (mtex->texco == TEXCO_OBJECT && mtex->object) {
-							mul_mat3_m4_v3(mtex->object->imat, tu);
-							mul_mat3_m4_v3(mtex->object->imat, tv);
-							normalize_v3(tu);
-							normalize_v3(tv);
+						for(c=0; c<nr_channels; c++) {
+							STc[c] = co[c];
+							STl[c] = co[c] - 0.5f*dx[c];
+							STr[c] = co[c] + 0.5f*dx[c];
+							STd[c] = co[c] - 0.5f*dy[c];
+							STu[c] = co[c] + 0.5f*dy[c];
 						}
 
-						// +u val
-						tco[0] = co[0] + tu[0]*du;
-						tco[1] = co[1] + tu[1]*du;
-						tco[2] = co[2] + tu[2]*du;
-						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
+						// clear unused derivatives
+						for(c=nr_channels; c<3; c++) {
+							STc[c] = 0.0f;
+							STl[c] = 0.0f;
+							STr[c] = 0.0f;
+							STd[c] = 0.0f;
+							STu[c] = 0.0f;
+						}
+							
+						// use texres and texvec for the center sample, set rgbnor
+						texco_mapping(shi, tex, mtex, STc, dx, dy, texvec, dxt, dyt);
+						rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, &texres);
+						Hc = (fromrgb)? (texres.tr + texres.tg + texres.tb)*0.33333333f: texres.tin;
+					
+						// use texv and ttexr for the other taps
+						texco_mapping(shi, tex, mtex, STl, dx, dy, texv, dxt, dyt);
 						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
-						ud = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
-
-						// +v val
-						tco[0] = co[0] + tv[0]*dv;
-						tco[1] = co[1] + tv[1]*dv;
-						tco[2] = co[2] + tv[2]*dv;
-						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
+						Hl = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
+						texco_mapping(shi, tex, mtex, STr, dx, dy, texv, dxt, dyt);
 						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
-						vd = idv*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
+						Hr = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
+						texco_mapping(shi, tex, mtex, STd, dx, dy, texv, dxt, dyt);
+						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
+						Hd = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
+						texco_mapping(shi, tex, mtex, STu, dx, dy, texv, dxt, dyt);
+						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
+						Hu = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
+						
+						dHdx = Hscale*(Hr - Hl);
+						dHdy = Hscale*(Hu - Hd);
 					}
 
-					// bumped normal
-					nu[0] += ud*nn[0];
-					nu[1] += ud*nn[1];
-					nu[2] += ud*nn[2];
-					nv[0] += vd*nn[0];
-					nv[1] += vd*nn[1];
-					nv[2] += vd*nn[2];
-					cross_v3_v3v3(nvec, nu, nv);
-
-					nvec[0] = -nvec[0];
-					nvec[1] = -nvec[1];
-					nvec[2] = -nvec[2];
+					// restore pointer
 					texres.nor = nvec;
+
+					/* replaced newbump with code based on listing 1 and 2 of
+						[Mik08] Mikkelsen M. S.: Simulation of Wrinkled Surfaces Revisited.
+						-> http://jbit.net/~sparky/sfgrad_bump/mm_sfgrad_bump.pdf */
+					
+					if(!nunvdone) {
+						// initialize normal perturbation vectors
+						float *dPdx = shi->dxco;
+						float *dPdy = shi->dyco;
+						float *vN = shi->vn;
+						int xyz;
+						float fDet;
+						
+						cross_v3_v3v3(vR1, dPdy, vN);
+						cross_v3_v3v3(vR2, vN, dPdx);
+						fDet = dot_v3v3(dPdx, vR1);
+						sgn_det = (fDet < 0)? -1.0f: 1.0f;
+					
+						for(xyz=0; xyz<3; xyz++)
+							vNacc[xyz] = (sgn_det * fDet) * vN[xyz];
+						
+						nunvdone= 1;
+					}
+
+					// subtract the surface gradient from vNacc
+					for(c=0; c<3; c++) {
+						float vSurfGrad_compi = sgn_det * (dHdx * vR1[c] + dHdy * vR2[c]);
+						vNacc[c] -= vSurfGrad_compi;
+						texres.nor[c] = vNacc[c]; // copy
+					}
+					
 					rgbnor |= TEX_NOR;
 				}
 				else {
@@ -2003,7 +1960,7 @@ void do_material_tex(ShadeInput *shi)
 			}
 
 			/* texture output */
-
+			
 			if( (rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
 				texres.tin= (0.35*texres.tr+0.45*texres.tg+0.2*texres.tb);
 				rgbnor-= TEX_RGB;
@@ -2132,7 +2089,7 @@ void do_material_tex(ShadeInput *shi)
 					}
 				}
 			}
-			if( (mtex->mapto & MAP_NORM) ) {
+			if( mtex->mapto & MAP_NORM ) {
 				if(texres.nor) {
 					float norfac= mtex->norfac;
 					
@@ -2332,7 +2289,6 @@ void do_material_tex(ShadeInput *shi)
 		}
 	}
 }
-
 
 void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, float *val)
 {

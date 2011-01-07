@@ -455,6 +455,7 @@ typedef struct TexMapping {
 #define MTEX_DUPLI_MAPTO	32
 #define MTEX_OB_DUPLI_ORIG	64
 #define MTEX_NEW_BUMP		128
+#define MTEX_5TAP_BUMP		256
 
 /* blendtype */
 #define MTEX_BLEND		0
