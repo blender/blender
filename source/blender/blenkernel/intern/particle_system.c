@@ -616,15 +616,21 @@ static void psys_uv_to_w(float u, float v, int quad, float *w)
 	}
 }
 
+/* Find the index in "sum" array before "value" is crossed. */
 static int binary_search_distribution(float *sum, int n, float value)
 {
 	int mid, low=0, high=n;
 
+	if(value == 0.f)
+		return 0;
+
 	while(low <= high) {
 		mid= (low + high)/2;
-		if(sum[mid] <= value && value <= sum[mid+1])
+		
+		if(sum[mid] < value && value <= sum[mid+1])
 			return mid;
-		else if(sum[mid] > value)
+		
+		if(sum[mid] >= value)
 			high= mid - 1;
 		else if(sum[mid] < value)
 			low= mid + 1;
@@ -1297,7 +1303,8 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 		float pos;
 
 		for(p=0; p<totpart; p++) {
-			pos= BLI_frand();
+			/* In theory sys[tot] should be 1.0, but due to float errors this is not necessarily always true, so scale pos accordingly. */
+			pos= BLI_frand() * sum[tot];
 			index[p]= binary_search_distribution(sum, tot, pos);
 			index[p]= MIN2(tot-1, index[p]);
 			jitoff[index[p]]= pos;
