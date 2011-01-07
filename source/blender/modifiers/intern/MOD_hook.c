@@ -268,7 +268,7 @@ static void deformVertsEM(
 
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
-	deformVerts(md, ob, derivedData, vertexCos, numVerts, 0, 0);
+	deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
 
 	if(!derivedData) dm->release(dm);
 }
