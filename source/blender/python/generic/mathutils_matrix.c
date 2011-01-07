@@ -848,10 +848,8 @@ static char Matrix_TranslationPart_doc[] =
 "   Return a the translation part of a 4 row matrix.\n"
 "\n"
 "   :return: Return a the translation of a matrix.\n"
-"   :rtype: :class:`Matrix`\n"
-"\n"
-"   .. note:: Note that the (4,4) element of a matrix can be used for uniform scaling too.\n";
-
+"   :rtype: :class:`Vector`\n"
+;
 PyObject *Matrix_TranslationPart(MatrixObject * self)
 {
 	if(!BaseMath_ReadCallback(self))
