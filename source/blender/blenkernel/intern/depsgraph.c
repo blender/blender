@@ -2264,7 +2264,7 @@ void DAG_on_load_update(Main *bmain, const short do_time)
 			oblay= (node)? node->lay: ob->lay;
 
 			if(oblay & lay) {
-				if(ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+				if(ELEM6(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE))
 					ob->recalc |= OB_RECALC_DATA;
 				if(ob->dup_group) 
 					ob->dup_group->id.flag |= LIB_DOIT;
@@ -2274,7 +2274,7 @@ void DAG_on_load_update(Main *bmain, const short do_time)
 		for(group= bmain->group.first; group; group= group->id.next) {
 			if(group->id.flag & LIB_DOIT) {
 				for(go= group->gobject.first; go; go= go->next) {
-					if(ELEM5(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+					if(ELEM6(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE))
 						go->ob->recalc |= OB_RECALC_DATA;
 					if(go->ob->proxy_from)
 						go->ob->recalc |= OB_RECALC_OB;
