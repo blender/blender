@@ -100,109 +100,6 @@ static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata
 	glDisable(GL_LINE_SMOOTH);
 }
 
-#if 0
-
-// grid texture for testing
-
-#define GRID_WIDTH   8
-#define GRID_LENGTH  8
-
-#define W (0xFFFFFFFF)
-#define G (0x00888888)
-#define E (0xE1E1E1E1)
-#define C (0xC3C3C3C3)
-#define O (0xB4B4B4B4)
-#define Q (0xA9A9A9A9)
-
-static unsigned grid_texture0[256] =
-{
-   W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,G,G,G,G,G,G,G,G,G,G,G,G,G,G,W,
-   W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,
-};
-
-static unsigned grid_texture1[64] =
-{
-   C,C,C,C,C,C,C,C,
-   C,G,G,G,G,G,G,C,
-   C,G,G,G,G,G,G,C,
-   C,G,G,G,G,G,G,C,
-   C,G,G,G,G,G,G,C,
-   C,G,G,G,G,G,G,C,
-   C,G,G,G,G,G,G,C,
-   C,C,C,C,C,C,C,C,
-};
-
-static unsigned grid_texture2[16] =
-{
-   O,O,O,O,
-   O,G,G,O,
-   O,G,G,O,
-   O,O,O,O,
-};
-
-static unsigned grid_texture3[4] =
-{
-   Q,Q,
-   Q,Q,
-};
-
-static unsigned grid_texture4[1] =
-{
-   Q,
-};
-
-#undef W
-#undef G
-#undef E
-#undef C
-#undef O
-#undef Q
-
-static void load_grid()
-{
-	static GLuint overlay_texture;
-
-	if (!overlay_texture) {
-		//GLfloat largest_supported_anisotropy;
-
-		glGenTextures(1, &overlay_texture);
-		glBindTexture(GL_TEXTURE_2D, overlay_texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, grid_texture0);
-		glTexImage2D(GL_TEXTURE_2D, 1, GL_RGB,  8,  8, 0, GL_RGBA, GL_UNSIGNED_BYTE, grid_texture1);
-		glTexImage2D(GL_TEXTURE_2D, 2, GL_RGB,  4,  4, 0, GL_RGBA, GL_UNSIGNED_BYTE, grid_texture2);
-		glTexImage2D(GL_TEXTURE_2D, 3, GL_RGB,  2,  2, 0, GL_RGBA, GL_UNSIGNED_BYTE, grid_texture3);
-		glTexImage2D(GL_TEXTURE_2D, 4, GL_RGB,  1,  1, 0, GL_RGBA, GL_UNSIGNED_BYTE, grid_texture4);
-		glEnable(GL_TEXTURE_2D);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-		//glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest_supported_anisotropy);
-		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest_supported_anisotropy);
-	}
-}
-
-#endif
-
-extern float get_tex_pixel(Brush* br, float u, float v);
-
 typedef struct Snapshot {
 	float size[3];
 	float ofs[3];
@@ -373,7 +270,7 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 					x += br->mtex.ofs[0];
 					y += br->mtex.ofs[1];
 
-					avg = br->mtex.tex ? get_tex_pixel(br, x, y) : 1;
+					avg = br->mtex.tex ? paint_get_tex_pixel(br, x, y) : 1;
 
 					avg += br->texture_sample_bias;
 

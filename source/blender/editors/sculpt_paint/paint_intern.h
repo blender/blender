@@ -29,19 +29,20 @@
 #ifndef ED_PAINT_INTERN_H
 #define ED_PAINT_INTERN_H
 
+struct ARegion;
 struct bContext;
-struct Scene;
-struct Object;
+struct Brush;
+struct ListBase;
 struct Mesh;
+struct Object;
 struct PaintStroke;
 struct PointerRNA;
+struct Scene;
+struct VPaint;
 struct ViewContext;
 struct wmEvent;
 struct wmOperator;
 struct wmOperatorType;
-struct ARegion;
-struct VPaint;
-struct ListBase;
 
 /* paint_stroke.c */
 typedef int (*StrokeGetLocation)(struct bContext *C, struct PaintStroke *stroke, float location[3], float mouse[2]);
@@ -98,6 +99,7 @@ void PAINT_OT_image_from_view(struct wmOperatorType *ot);
 
 
 /* paint_utils.c */
+float paint_get_tex_pixel(struct Brush* br, float u, float v);
 int imapaint_pick_face(struct ViewContext *vc, struct Mesh *me, int *mval, unsigned int *index);
 void imapaint_pick_uv(struct Scene *scene, struct Object *ob, unsigned int faceindex, int *xy, float *uv);
 

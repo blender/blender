@@ -72,9 +72,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-
 #include "RE_render_ext.h"
-#include "RE_shader_ext.h"
 
 #include "GPU_buffers.h"
 
@@ -649,66 +647,6 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 	}
 }
 
-float get_tex_pixel(Brush* br, float u, float v)
-{
-	TexResult texres;
-	float co[3];
-	int hasrgb;
-
-	co[0] = u;
-	co[1] = v;
-	co[2] = 0;
-
-	memset(&texres, 0, sizeof(TexResult));
-	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 1, &texres);
-
-	if (hasrgb & TEX_RGB)
-		texres.tin = (0.35*texres.tr + 0.45*texres.tg + 0.2*texres.tb)*texres.ta;
-
-	return texres.tin;
-}
-
-#if 0
-
-/* Get a pixel from the texcache at (px, py) */
-static unsigned char get_texcache_pixel(const SculptSession *ss, int px, int py)
-{
-	unsigned *p;
-	p = ss->texcache + py * ss->texcache_side + px;
-	return ((unsigned char*)(p))[0];
-}
-
-static float get_texcache_pixel_bilinear(const SculptSession *ss, float u, float v)
-{
-	unsigned x, y, x2, y2;
-	const int tc_max = ss->texcache_side - 1;
-	float urat, vrat, uopp;
-
-	if(u < 0) u = 0;
-	else if(u >= ss->texcache_side) u = tc_max;
-	if(v < 0) v = 0;
-	else if(v >= ss->texcache_side) v = tc_max;
-
-	x = floor(u);
-	y = floor(v);
-	x2 = x + 1;
-	y2 = y + 1;
-
-	if(x2 > ss->texcache_side) x2 = tc_max;
-	if(y2 > ss->texcache_side) y2 = tc_max;
-	
-	urat = u - x;
-	vrat = v - y;
-	uopp = 1 - urat;
-		
-	return ((get_texcache_pixel(ss, x, y) * uopp +
-		 get_texcache_pixel(ss, x2, y) * urat) * (1 - vrat) + 
-		(get_texcache_pixel(ss, x, y2) * uopp +
-		 get_texcache_pixel(ss, x2, y2) * urat) * vrat) / 255.0;
-}
-
-#endif
-
 /* Return a multiplier for brush strength on a particular vertex. */
 static float tex_strength(SculptSession *ss, Brush *br, float *point, const float len)
 {
@@ -792,7 +730,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float *point, const floa
 		x += br->mtex.ofs[0];
 		y += br->mtex.ofs[1];
 
-		avg = get_tex_pixel(br, x, y);
+		avg = paint_get_tex_pixel(br, x, y);
 	}
 
 	avg += br->texture_sample_bias;

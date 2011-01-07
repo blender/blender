@@ -22,6 +22,8 @@
 
 #include "BIF_gl.h"
 
+#include "RE_shader_ext.h"
+
 #include "ED_view3d.h"
 #include "ED_screen.h"
 
@@ -32,6 +34,25 @@
 #include "WM_types.h"
 
 #include "paint_intern.h"
+
+float paint_get_tex_pixel(Brush* br, float u, float v)
+{
+	TexResult texres;
+	float co[3];
+	int hasrgb;
+
+	co[0] = u;
+	co[1] = v;
+	co[2] = 0;
+
+	memset(&texres, 0, sizeof(TexResult));
+	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 1, &texres);
+
+	if (hasrgb & TEX_RGB)
+		texres.tin = (0.35*texres.tr + 0.45*texres.tg + 0.2*texres.tb)*texres.ta;
+
+	return texres.tin;
+}
 
 /* 3D Paint */
 
