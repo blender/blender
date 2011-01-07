@@ -474,7 +474,7 @@ int BKE_read_exotic(Scene *scene, const char *name)
 			retval= BKE_READ_EXOTIC_FAIL_OPEN;
 		}
 		else {
-			len= gzread(gzfile, &head, sizeof(head));
+			len= gzread(gzfile, head, sizeof(head));
 			gzclose(gzfile);
 
 			if (len == sizeof(head) && (head[0] == BLEN && head[1] == DER_)) {
