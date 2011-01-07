@@ -1177,6 +1177,48 @@ void OBJECT_OT_multires_external_pack(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/********************* multires apply base ***********************/
+static int multires_base_apply_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_active_context(C);
+	MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(op, ob, eModifierType_Multires);
+	
+	if (!mmd)
+		return OPERATOR_CANCELLED;
+	
+	multiresModifier_base_apply(mmd, ob);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int multires_base_apply_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	if (edit_modifier_invoke_properties(C, op))
+		return multires_base_apply_exec(C, op);
+	else
+		return OPERATOR_CANCELLED;
+}
+
+
+void OBJECT_OT_multires_base_apply(wmOperatorType *ot)
+{
+	ot->name= "Multires Apply Base";
+	ot->description= "Modify the base mesh to conform to the displaced mesh";
+	ot->idname= "OBJECT_OT_multires_base_apply";
+
+	ot->poll= multires_poll;
+	ot->invoke= multires_base_apply_invoke;
+	ot->exec= multires_base_apply_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	edit_modifier_properties(ot);
+}
+
+
 /************************ mdef bind operator *********************/
 
 static int meshdeform_poll(bContext *C)
