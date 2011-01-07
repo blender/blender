@@ -458,7 +458,7 @@ int BKE_read_exotic(Scene *scene, const char *name)
 {
 	int len;
 	gzFile gzfile;
-	int head[2];
+	char header[7];
 	int retval;
 
 	// make sure we're not trying to read a directory....
@@ -474,10 +474,9 @@ int BKE_read_exotic(Scene *scene, const char *name)
 			retval= BKE_READ_EXOTIC_FAIL_OPEN;
 		}
 		else {
-			len= gzread(gzfile, head, sizeof(head));
+			len= gzread(gzfile, header, sizeof(header));
 			gzclose(gzfile);
-
-			if (len == sizeof(head) && (head[0] == BLEN && head[1] == DER_)) {
+			if (len == sizeof(header) && strncmp(header, "BLENDER", 7) == 0) {
 				retval= BKE_READ_EXOTIC_OK_BLEND;
 			}
 			else {
