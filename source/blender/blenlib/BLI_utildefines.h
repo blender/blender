@@ -1,5 +1,5 @@
 /*
- * $Id: BKE_utildefines.h 34147 2011-01-07 09:47:05Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
