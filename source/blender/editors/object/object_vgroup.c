@@ -68,6 +68,8 @@
 
 /************************ Exported Functions **********************/
 static void vgroup_remap_update_users(Object *ob, int *map);
+static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *defgroup);
+static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg);
 
 static Lattice *vgroup_edit_lattice(Object *ob)
 {
@@ -77,6 +79,16 @@ static Lattice *vgroup_edit_lattice(Object *ob)
 	}
 
 	return NULL;
+}
+
+int ED_vgroup_object_is_edit_mode(Object *ob)
+{
+	if(ob->type == OB_MESH)
+		return (((Mesh*)ob->data)->edit_mesh != NULL);
+	else if(ob->type == OB_LATTICE)
+		return (((Lattice*)ob->data)->editlatt != NULL);
+
+	return 0;
 }
 
 bDeformGroup *ED_vgroup_add_name(Object *ob, const char *name)
@@ -101,6 +113,25 @@ bDeformGroup *ED_vgroup_add_name(Object *ob, const char *name)
 bDeformGroup *ED_vgroup_add(Object *ob) 
 {
 	return ED_vgroup_add_name(ob, "Group");
+}
+
+void ED_vgroup_delete(Object *ob, bDeformGroup *defgroup) 
+{
+	bDeformGroup *dg = (bDeformGroup *)ob->defbase.first;
+
+	while (dg) {
+		if (dg == defgroup)
+			break;
+		dg = dg->next;
+	}
+
+	if (dg == NULL)
+		return;
+
+	if(ED_vgroup_object_is_edit_mode(ob))
+		vgroup_delete_edit_mode(ob, dg);
+	else
+		vgroup_delete_object_mode(ob, dg);
 }
 
 void ED_vgroup_data_create(ID *id)
@@ -508,7 +539,7 @@ static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 	}
 	
 	if(dvert==NULL)
-		return 0.0f;
+		return -1;
 	
 	dvert += vertnum;
 	
@@ -516,17 +547,17 @@ static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 		if(dvert->dw[i].def_nr == def_nr)
 			return dvert->dw[i].weight;
 
-	return 0.0f;
+	return -1;
 }
 
 float ED_vgroup_vert_weight(Object *ob, bDeformGroup *dg, int vertnum)
 {
 	int def_nr;
 
-	if(!ob) return 0.0f;
+	if(!ob) return -1;
 
 	def_nr = defgroup_find_index(ob, dg);
-	if(def_nr < 0) return 0.0f;
+	if(def_nr < 0) return -1;
 
 	return get_vert_def_nr(ob, def_nr, vertnum);
 }
@@ -1094,15 +1125,10 @@ static void vgroup_delete_update_users(Object *ob, int id)
 }
 
 
-static void vgroup_delete_object_mode(Object *ob)
+static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 {
-	bDeformGroup *dg;
 	MDeformVert *dvert, *dvert_array=NULL;
 	int i, e, dvert_tot=0;
-	
-	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
-	if(!dg)
-		return;
 	
 	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
 
@@ -1199,16 +1225,11 @@ static void vgroup_active_remove_verts(Object *ob, int allverts)
 	}
 }
 
-static void vgroup_delete_edit_mode(Object *ob)
+static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *defgroup)
 {
-	bDeformGroup *defgroup;
 	int i;
 
 	if(!ob->actdef)
-		return;
-
-	defgroup = BLI_findlink(&ob->defbase, ob->actdef-1);
-	if(!defgroup)
 		return;
 
 	/* Make sure that no verts are using this group */
@@ -1286,10 +1307,14 @@ static int vgroup_object_in_edit_mode(Object *ob)
 
 static void vgroup_delete(Object *ob)
 {
+	bDeformGroup *dg = BLI_findlink(&ob->defbase, ob->actdef-1);
+	if(!dg)
+		return;
+
 	if(vgroup_object_in_edit_mode(ob))
-		vgroup_delete_edit_mode(ob);
+		vgroup_delete_edit_mode(ob, dg);
 	else
-		vgroup_delete_object_mode(ob);
+		vgroup_delete_object_mode(ob, dg);
 }
 
 static void vgroup_delete_all(Object *ob)
