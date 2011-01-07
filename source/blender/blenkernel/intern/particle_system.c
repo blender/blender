@@ -130,6 +130,16 @@ int psys_get_current_display_percentage(ParticleSystem *psys)
 	return psys->part->disp;
 }
 
+static int tot_particles(ParticleSystem *psys, PTCacheID *pid)
+{
+	if(pid && psys->pointcache->flag & PTCACHE_EXTERNAL)
+		return pid->cache->totpoint;
+	else if(psys->part->distr == PART_DISTR_GRID && psys->part->from != PART_FROM_VERT)
+		return psys->part->grid_res * psys->part->grid_res * psys->part->grid_res;
+	else
+		return psys->part->totpart;
+}
+
 void psys_reset(ParticleSystem *psys, int mode)
 {
 	PARTICLE_P;
@@ -137,7 +147,7 @@ void psys_reset(ParticleSystem *psys, int mode)
 	if(ELEM(mode, PSYS_RESET_ALL, PSYS_RESET_DEPSGRAPH)) {
 		if(mode == PSYS_RESET_ALL || !(psys->flag & PSYS_EDITED)) {
 			/* don't free if not absolutely necessary */
-			if(psys->totpart != psys->part->totpart) {
+			if(psys->totpart != tot_particles(psys, NULL)) {
 				psys_free_particles(psys);
 				psys->totpart= 0;
 			}
@@ -3633,14 +3643,7 @@ static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float UNU
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	int oldtotpart = psys->totpart;
-	int totpart = oldtotpart;
-
-	if(pid && psys->pointcache->flag & PTCACHE_EXTERNAL)
-		totpart = pid->cache->totpoint;
-	else if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
-		totpart = part->grid_res*part->grid_res*part->grid_res;
-	else
-		totpart = psys->part->totpart;
+	int totpart = tot_particles(psys, pid);
 
 	if(totpart != oldtotpart)
 		realloc_particles(sim, totpart);
