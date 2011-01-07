@@ -2252,17 +2252,18 @@ int  BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 	}
 
 	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-		/* Baked cloth hair has to be checked first, because we don't want to reset */
+		/* children or just redo can be calculated without reseting anything */
+		if(psys->recalc & PSYS_RECALC_REDO || psys->recalc & PSYS_RECALC_CHILD)
+			skip = 1;
+		/* Baked cloth hair has to be checked too, because we don't want to reset */
 		/* particles or cloth in that case -jahka */
-		if(psys->clmd) {
+		else if(psys->clmd) {
 			BKE_ptcache_id_from_cloth(&pid, ob, psys->clmd);
 			if(mode == PSYS_RESET_ALL || !(psys->part->type == PART_HAIR && (pid.cache->flag & PTCACHE_BAKED))) 
 				reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 			else
 				skip = 1;
 		}
-		else if(psys->recalc & PSYS_RECALC_REDO || psys->recalc & PSYS_RECALC_CHILD)
-			skip = 1;
 
 		if(skip == 0 && psys->part) {
 			BKE_ptcache_id_from_particles(&pid, ob, psys);

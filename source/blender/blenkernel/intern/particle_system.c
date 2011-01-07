@@ -654,7 +654,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 	DerivedMesh *dm= ctx->dm;
 	ParticleData *tpa;
 /*	ParticleSettings *part= ctx->sim.psys->part; */
-	float *v1, *v2, *v3, *v4, nor[3], orco1[3], co1[3], co2[3], nor1[3], ornor1[3];
+	float *v1, *v2, *v3, *v4, nor[3], orco1[3], co1[3], co2[3], nor1[3];
 	float cur_d, min_d, randu, randv;
 	int from= ctx->from;
 	int cfrom= ctx->cfrom;
@@ -795,12 +795,9 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 			int parent[10];
 			float pweight[10];
 
-			/*do_seams= (part->flag&PART_CHILD_SEAMS && ctx->seams);*/
-
-			psys_particle_on_dm(dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,0,0,orco1,ornor1);
+			psys_particle_on_dm(dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,NULL,NULL,orco1,NULL);
 			transform_mesh_orco_verts((Mesh*)ob->data, &orco1, 1, 1);
-			//maxw = BLI_kdtree_find_n_nearest(ctx->tree,(do_seams)?10:4,orco1,ornor1,ptn);
-			maxw = BLI_kdtree_find_n_nearest(ctx->tree,4,orco1,ornor1,ptn);
+			maxw = BLI_kdtree_find_n_nearest(ctx->tree,4,orco1,NULL,ptn);
 
 			maxd=ptn[maxw-1].dist;
 			mind=ptn[0].dist;
@@ -815,63 +812,6 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 				parent[w]=-1;
 				pweight[w]=0.0f;
 			}
-			//if(do_seams){
-			//	ParticleSeam *seam=ctx->seams;
-			//	float temp[3],temp2[3],tan[3];
-			//	float inp,cur_len,min_len=10000.0f;
-			//	int min_seam=0, near_vert=0;
-			//	/* find closest seam */
-			//	for(i=0; i<ctx->totseam; i++, seam++){
-			//		sub_v3_v3v3(temp,co1,seam->v0);
-			//		inp=dot_v3v3(temp,seam->dir)/seam->length2;
-			//		if(inp<0.0f){
-			//			cur_len=len_v3v3(co1,seam->v0);
-			//		}
-			//		else if(inp>1.0f){
-			//			cur_len=len_v3v3(co1,seam->v1);
-			//		}
-			//		else{
-			//			copy_v3_v3(temp2,seam->dir);
-			//			mul_v3_fl(temp2,inp);
-			//			cur_len=len_v3v3(temp,temp2);
-			//		}
-			//		if(cur_len<min_len){
-			//			min_len=cur_len;
-			//			min_seam=i;
-			//			if(inp<0.0f) near_vert=-1;
-			//			else if(inp>1.0f) near_vert=1;
-			//			else near_vert=0;
-			//		}
-			//	}
-			//	seam=ctx->seams+min_seam;
-			//	
-			//	copy_v3_v3(temp,seam->v0);
-			//	
-			//	if(near_vert){
-			//		if(near_vert==-1)
-			//			sub_v3_v3v3(tan,co1,seam->v0);
-			//		else{
-			//			sub_v3_v3v3(tan,co1,seam->v1);
-			//			copy_v3_v3(temp,seam->v1);
-			//		}
-
-			//		normalize_v3(tan);
-			//	}
-			//	else{
-			//		copy_v3_v3(tan,seam->tan);
-			//		sub_v3_v3v3(temp2,co1,temp);
-			//		if(dot_v3v3(tan,temp2)<0.0f)
-			//			negate_v3(tan);
-			//	}
-			//	for(w=0; w<maxw; w++){
-			//		sub_v3_v3v3(temp2,ptn[w].co,temp);
-			//		if(dot_v3v3(tan,temp2)<0.0f){
-			//			parent[w]=-1;
-			//			pweight[w]=0.0f;
-			//		}
-			//	}
-
-			//}
 
 			for(w=0,i=0; w<maxw && i<4; w++){
 				if(parent[w]>=0){
@@ -1007,6 +947,8 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 	
 	if(from==PART_FROM_CHILD){
 		distr=PART_DISTR_RAND;
+		BLI_srandom(31415926 + psys->seed + psys->child_seed);
+
 		if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
 			dm= finaldm;
 			children=1;
@@ -1023,50 +965,6 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 
 			totpart=get_psys_tot_child(scene, psys);
 			cfrom=from=PART_FROM_FACE;
-
-			//if(part->flag&PART_CHILD_SEAMS){
-			//	MEdge *ed, *medge=dm->getEdgeDataArray(dm,CD_MEDGE);
-			//	MVert *mvert=dm->getVertDataArray(dm,CD_MVERT);
-			//	int totedge=dm->getNumEdges(dm);
-
-			//	for(p=0, ed=medge; p<totedge; p++,ed++)
-			//		if(ed->flag&ME_SEAM)
-			//			totseam++;
-
-			//	if(totseam){
-			//		ParticleSeam *cur_seam=seams=MEM_callocN(totseam*sizeof(ParticleSeam),"Child Distribution Seams");
-			//		float temp[3],temp2[3];
-
-			//		for(p=0, ed=medge; p<totedge; p++,ed++){
-			//			if(ed->flag&ME_SEAM){
-			//				copy_v3_v3(cur_seam->v0,(mvert+ed->v1)->co);
-			//				copy_v3_v3(cur_seam->v1,(mvert+ed->v2)->co);
-
-			//				sub_v3_v3v3(cur_seam->dir,cur_seam->v1,cur_seam->v0);
-
-			//				cur_seam->length2=len_v3(cur_seam->dir);
-			//				cur_seam->length2*=cur_seam->length2;
-
-			//				temp[0]=(float)((mvert+ed->v1)->no[0]);
-			//				temp[1]=(float)((mvert+ed->v1)->no[1]);
-			//				temp[2]=(float)((mvert+ed->v1)->no[2]);
-			//				temp2[0]=(float)((mvert+ed->v2)->no[0]);
-			//				temp2[1]=(float)((mvert+ed->v2)->no[1]);
-			//				temp2[2]=(float)((mvert+ed->v2)->no[2]);
-
-			//				add_v3_v3v3(cur_seam->nor,temp,temp2);
-			//				normalize_v3(cur_seam->nor);
-
-			//				cross_v3_v3v3(cur_seam->tan,cur_seam->dir,cur_seam->nor);
-
-			//				normalize_v3(cur_seam->tan);
-
-			//				cur_seam++;
-			//			}
-			//		}
-			//	}
-			//	
-			//}
 		}
 		else{
 			/* no need to figure out distribution */

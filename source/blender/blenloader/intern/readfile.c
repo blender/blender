@@ -11181,6 +11181,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				part->boids->pitch = 1.0f;
 
 			part->flag &= ~PART_HAIR_REGROW; /* this was a deprecated flag before */
+			part->kink_amp_clump = 1.f; /* keep old files looking similar */
 		}
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {

@@ -739,7 +739,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
             row = layout.row()
             col = row.column()
 
-            if part.type == 'HAIR' and part.use_strand_primitive == True and part.child_type == 'FACES':
+            if part.type == 'HAIR' and part.use_strand_primitive == True and part.child_type == 'INTERPOLATED':
                 layout.prop(part, "use_simplify")
                 if part.use_simplify == True:
                     row = layout.row()
@@ -925,60 +925,76 @@ class PARTICLE_PT_children(ParticleButtonsPanel, bpy.types.Panel):
         col.prop(part, "child_nbr", text="Display")
         col.prop(part, "rendered_child_count", text="Render")
 
-        col = row.column(align=True)
-
-        if part.child_type == 'FACES':
+        if part.child_type == 'INTERPOLATED':
+            col = row.column()
+            col.prop(psys, "child_seed", text="Seed")
             col.prop(part, "virtual_parents", slider=True)
+            col.prop(part, "create_long_hair_children")
         else:
-            col.prop(part, "child_radius", text="Radius")
-            col.prop(part, "child_roundness", text="Roundness", slider=True)
-
             col = row.column(align=True)
             col.prop(part, "child_size", text="Size")
             col.prop(part, "child_size_random", text="Random")
 
-        layout.row().label(text="Effects:")
+        split = layout.split()
 
-        row = layout.row()
+        col = split.column()
+        col.label(text="Effects:")
 
-        col = row.column(align=True)
-        col.prop(part, "clump_factor", slider=True)
-        col.prop(part, "clump_shape", slider=True)
+        sub = col.column(align=True)
+        sub.prop(part, "clump_factor", slider=True)
+        sub.prop(part, "clump_shape", slider=True)
+        
+        sub = col.column(align=True)
+        sub.prop(part, "child_length", slider=True)
+        sub.prop(part, "child_length_threshold", slider=True)
 
-        col = row.column(align=True)
-        col.prop(part, "roughness_endpoint")
-        col.prop(part, "roughness_end_shape")
+        if part.child_type == 'SIMPLE':
+            sub = col.column(align=True)
+            sub.prop(part, "child_radius", text="Radius")
+            sub.prop(part, "child_roundness", text="Roundness", slider=True)
+            sub.prop(psys, "child_seed", text="Seed")
+        elif part.virtual_parents > 0.0:
+            sub = col.column(align=True)
+            sub.label(text="Parting not")
+            sub.label(text="available with")
+            sub.label(text="virtual parents.")
+        else:
+            sub = col.column(align=True)
+            sub.prop(part, "child_parting_factor", text="Parting", slider=True)
+            sub.prop(part, "child_parting_min", text="Min")
+            sub.prop(part, "child_parting_max", text="Max")
 
-        row = layout.row()
+        col = split.column()
+        col.label(text="Roughness:")
 
-        col = row.column(align=True)
-        col.prop(part, "roughness_1")
-        col.prop(part, "roughness_1_size")
+        sub = col.column(align=True)
+        sub.prop(part, "roughness_1", text="Uniform")
+        sub.prop(part, "roughness_1_size", text="Size")
 
-        col = row.column(align=True)
-        col.prop(part, "roughness_2")
-        col.prop(part, "roughness_2_size")
-        col.prop(part, "roughness_2_threshold", slider=True)
+        sub = col.column(align=True)
+        sub.prop(part, "roughness_endpoint", "Endpoint")
+        sub.prop(part, "roughness_end_shape")
 
-        row = layout.row()
-        col = row.column(align=True)
-        col.prop(part, "child_length", slider=True)
-        col.prop(part, "child_length_threshold", slider=True)
-
-        col = row.column(align=True)
-        col.label(text="Space reserved for")
-        col.label(text="hair parting controls")
+        sub = col.column(align=True)
+        sub.prop(part, "roughness_2", text="Random")
+        sub.prop(part, "roughness_2_size", text="Size")
+        sub.prop(part, "roughness_2_threshold", slider=True)
 
         layout.row().label(text="Kink:")
         layout.row().prop(part, "kink", expand=True)
 
         split = layout.split()
+        split.active = part.kink != 'NO'
 
         col = split.column()
-        col.prop(part, "kink_amplitude")
-        col.prop(part, "kink_frequency")
+        sub = col.column(align=True)
+        sub.prop(part, "kink_amplitude")
+        sub.prop(part, "kink_amplitude_clump", text="Clump", slider=True)
+        col.prop(part, "kink_flat", slider=True)
         col = split.column()
-        col.prop(part, "kink_shape", slider=True)
+        sub = col.column(align=True)
+        sub.prop(part, "kink_frequency")
+        sub.prop(part, "kink_shape", slider=True)
 
 
 class PARTICLE_PT_field_weights(ParticleButtonsPanel, bpy.types.Panel):

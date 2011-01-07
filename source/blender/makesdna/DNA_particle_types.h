@@ -163,7 +163,7 @@ typedef struct ParticleSettings {
 
 	/* initial velocity factors */
 	float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
-	float ob_vel[3], rt;
+	float ob_vel[3];
 	float avefac, phasefac, randrotfac, randphasefac;
 	/* physical properties */
 	float mass, size, randsize, reactshape;
@@ -178,13 +178,17 @@ typedef struct ParticleSettings {
 	/* clumping */
 	float clumpfac, clumppow;
 	/* kink */
-	float kink_amp, kink_freq, kink_shape;
+	float kink_amp, kink_freq, kink_shape, kink_flat;
+	float kink_amp_clump;
 	/* rough */
 	float rough1, rough1_size;
 	float rough2, rough2_size, rough2_thres;
 	float rough_end, rough_end_shape;
 	/* length */
 	float clength, clength_thres;
+	/* parting */
+	float parting_fac;
+	float parting_min, parting_max;
 	/* branching */
 	float branch_thres;
 	/* drawing stuff */
@@ -232,7 +236,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	
 	float imat[4][4];	/* used for duplicators */
 	float cfra, tree_frame;
-	int seed, rt;
+	int seed, child_seed;
 	int flag, totpart, totchild, totcached, totchildcache;
 	short recalc, target_psys, totkeyed, bakespace;
 
@@ -294,18 +298,18 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 #define PART_BOIDS_2D		(1<<19)
 
-#define PART_BRANCHING		(1<<20)
-#define PART_ANIM_BRANCHING	(1<<21)
-#define PART_SYMM_BRANCHING	(1<<24)
+//#define PART_BRANCHING		(1<<20)
+//#define PART_ANIM_BRANCHING	(1<<21)
+//#define PART_SYMM_BRANCHING	(1<<24)
 
 #define PART_HAIR_BSPLINE	1024
 
 #define PART_GRID_INVERT	(1<<26)
 
-#define PART_CHILD_EFFECT	(1<<27)
-#define PART_CHILD_SEAMS	(1<<28)
-#define PART_CHILD_RENDER	(1<<29)
-#define PART_CHILD_GUIDE	(1<<30)
+#define PART_CHILD_EFFECT		(1<<27)
+#define PART_CHILD_LONG_HAIR	(1<<28)
+#define PART_CHILD_RENDER		(1<<29)
+#define PART_CHILD_GUIDE		(1<<30)
 
 #define PART_SELF_EFFECT	(1<<22)
 
