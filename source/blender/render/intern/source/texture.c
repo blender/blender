@@ -1818,7 +1818,6 @@ void do_material_tex(ShadeInput *shi)
 				if(texres.nor && !((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP))) {
 					
 					TexResult ttexr = {0, 0, 0, 0, 0, texres.talpha, NULL};	// temp TexResult
-					float texv[3];
 					
 					const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
 					const float Hscale = 0.016f * Tnor*stencilTin*mtex->norfac; // factor 0.016 proved to look like the previous bump code
@@ -1837,12 +1836,14 @@ void do_material_tex(ShadeInput *shi)
 						float STll[3], STlr[3], STul[3];
 						float Hll, Hlr, Hul;
 
+						texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
+
 						for(c=0; c<nr_channels; c++) {
 							// dx contains the derivatives (du/dx, dv/dx)
 							// dy contains the derivatives (du/dy, dv/dy)
-							STll[c] = co[c];
-							STlr[c] = co[c]+dx[c];	
-							STul[c] = co[c]+dy[c];
+							STll[c] = texvec[c];
+							STlr[c] = texvec[c]+dxt[c];	
+							STul[c] = texvec[c]+dyt[c];
 						}
 					
 						// clear unused derivatives
@@ -1852,18 +1853,15 @@ void do_material_tex(ShadeInput *shi)
 							STul[c] = 0.0f;
 						}
 						
-						// use texres and texvec for the center sample, set rgbnor
-						texco_mapping(shi, tex, mtex, STll, dx, dy, texvec, dxt, dyt);
-						rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, &texres);
+						// use texres for the center sample, set rgbnor
+						rgbnor = multitex_mtex(shi, mtex, STll, dxt, dyt, &texres);
 						Hll = (fromrgb)? (texres.tr + texres.tg + texres.tb)*0.33333333f: texres.tin;
 					
-						// use texv and ttexr for the other 2 taps
-						texco_mapping(shi, tex, mtex, STlr, dx, dy, texv, dxt, dyt);
-						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
+						// use ttexr for the other 2 taps
+						multitex_mtex(shi, mtex, STlr, dxt, dyt, &ttexr);
 						Hlr = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
 					
-						texco_mapping(shi, tex, mtex, STul, dx, dy, texv, dxt, dyt);
-						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
+						multitex_mtex(shi, mtex, STul, dxt, dyt, &ttexr);
 						Hul = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
 					
 						dHdx = Hscale*(Hlr - Hll);
@@ -1874,12 +1872,14 @@ void do_material_tex(ShadeInput *shi)
 						float STc[3], STl[3], STr[3], STd[3], STu[3];
 						float Hc, Hl, Hr, Hd, Hu;
 
+						texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
+
 						for(c=0; c<nr_channels; c++) {
-							STc[c] = co[c];
-							STl[c] = co[c] - 0.5f*dx[c];
-							STr[c] = co[c] + 0.5f*dx[c];
-							STd[c] = co[c] - 0.5f*dy[c];
-							STu[c] = co[c] + 0.5f*dy[c];
+							STc[c] = texvec[c];
+							STl[c] = texvec[c] - 0.5f*dxt[c];
+							STr[c] = texvec[c] + 0.5f*dxt[c];
+							STd[c] = texvec[c] - 0.5f*dyt[c];
+							STu[c] = texvec[c] + 0.5f*dyt[c];
 						}
 
 						// clear unused derivatives
@@ -1891,23 +1891,18 @@ void do_material_tex(ShadeInput *shi)
 							STu[c] = 0.0f;
 						}
 							
-						// use texres and texvec for the center sample, set rgbnor
-						texco_mapping(shi, tex, mtex, STc, dx, dy, texvec, dxt, dyt);
-						rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, &texres);
+						// use texres for the center sample, set rgbnor
+						rgbnor = multitex_mtex(shi, mtex, STc, dxt, dyt, &texres);
 						Hc = (fromrgb)? (texres.tr + texres.tg + texres.tb)*0.33333333f: texres.tin;
 					
-						// use texv and ttexr for the other taps
-						texco_mapping(shi, tex, mtex, STl, dx, dy, texv, dxt, dyt);
-						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
+						// use ttexr for the other taps
+						multitex_mtex(shi, mtex, STl, dxt, dyt, &ttexr);
 						Hl = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
-						texco_mapping(shi, tex, mtex, STr, dx, dy, texv, dxt, dyt);
-						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
+						multitex_mtex(shi, mtex, STr, dxt, dyt, &ttexr);
 						Hr = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
-						texco_mapping(shi, tex, mtex, STd, dx, dy, texv, dxt, dyt);
-						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
+						multitex_mtex(shi, mtex, STd, dxt, dyt, &ttexr);
 						Hd = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
-						texco_mapping(shi, tex, mtex, STu, dx, dy, texv, dxt, dyt);
-						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
+						multitex_mtex(shi, mtex, STu, dxt, dyt, &ttexr);
 						Hu = (fromrgb)? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f: ttexr.tin;
 						
 						dHdx = Hscale*(Hr - Hl);
