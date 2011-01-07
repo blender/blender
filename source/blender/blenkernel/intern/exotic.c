@@ -66,7 +66,7 @@
 #include "BLI_storage.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_main.h"

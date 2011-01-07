@@ -47,7 +47,7 @@
 #include "BKE_effect.h"
 #include "BKE_boids.h"
 #include "BKE_particle.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_modifier.h"
 
 #include "RNA_enum_types.h"

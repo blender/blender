@@ -32,7 +32,7 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 

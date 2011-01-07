@@ -96,10 +96,6 @@ EnumPropertyItem constraint_ik_axisref_items[] ={
 
 #ifdef RNA_RUNTIME
 
-#include <stdio.h>
-
-#include "BLI_utildefines.h"
-
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"

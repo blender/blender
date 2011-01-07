@@ -79,12 +79,6 @@
 /* bit-row */
 #define BROW(min, max)	(((max)>=31? 0xFFFFFFFF: (1<<(max+1))-1) - ((min)? ((1<<(min))-1):0) )
 
-
-#ifdef GS
-#undef GS
-#endif
-#define GS(a)	(*((short *)(a)))
-
 #define BMEMSET(mem, val, size) {unsigned int _i; char *_c = (char*) mem; for (_i=0; _i<size; _i++) *_c++ = val;}
 
 #endif // BKE_UTILDEFINES_H

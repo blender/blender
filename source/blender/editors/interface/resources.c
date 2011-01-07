@@ -49,7 +49,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "BIF_gl.h"
 

@@ -77,7 +77,7 @@ extern "C" {
 #include "BKE_global.h"
 #include "BKE_report.h"
 
-#include "BKE_utildefines.h"
+
 //XXX #include "BIF_screen.h"
 //XXX #include "BIF_scrarea.h"
 

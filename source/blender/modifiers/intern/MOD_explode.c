@@ -47,7 +47,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
+
 
 #include "MEM_guardedalloc.h"
 

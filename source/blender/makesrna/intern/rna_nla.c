@@ -40,8 +40,6 @@
 #include <math.h>
 
 /* needed for some of the validation stuff... */
-#include "BLI_utildefines.h"
-
 #include "BKE_animsys.h"
 #include "BKE_nla.h"
 

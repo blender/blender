@@ -60,7 +60,7 @@
 #include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_global.h" 	// XXX remove me!
-#include "BKE_utildefines.h"
+
 
 #include "BIF_gl.h"
 

@@ -32,7 +32,7 @@
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 /********************************** Polygons *********************************/
 
@@ -630,7 +630,7 @@ static int getLowestRoot(float a, float b, float c, float maxR, float* root)
 	if (determinant >= 0.0f)
 	{
 		// calculate the two roots: (if determinant == 0 then
-		// x1==x2 but let’s disregard that slight optimization)
+		// x1==x2 but lets disregard that slight optimization)
 		float sqrtD = (float)sqrt(determinant);
 		float r1 = (-b - sqrtD) / (2.0f*a);
 		float r2 = (-b + sqrtD) / (2.0f*a);

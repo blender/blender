@@ -30,7 +30,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_idprop.h"
-#include "BKE_utildefines.h"
+
 
 #define USE_STRING_COERCE
 

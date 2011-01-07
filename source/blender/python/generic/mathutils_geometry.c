@@ -38,7 +38,7 @@
 #include "BLI_utildefines.h"
  
 #include "BKE_displist.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_curve.h"
 
 #define SWAP_FLOAT(a,b,tmp) tmp=a; a=b; b=tmp

@@ -33,7 +33,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_brush.h"
 #include "BKE_library.h"
 #include "BKE_paint.h"

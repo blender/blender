@@ -37,7 +37,7 @@
 #include "IMB_imbuf.h"
 
 #include "IMB_allocimbuf.h"
-#include "BKE_utildefines.h"
+
 
 /* blend modes */
 

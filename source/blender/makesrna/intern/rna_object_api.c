@@ -59,7 +59,6 @@
 #include "BKE_modifier.h"
 
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"

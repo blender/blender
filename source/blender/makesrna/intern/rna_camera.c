@@ -36,8 +36,6 @@
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_utildefines.h"
-
 #include "BKE_object.h"
 
 /* only for rad/deg conversion! can remove later */

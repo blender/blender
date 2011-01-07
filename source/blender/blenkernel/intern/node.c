@@ -43,10 +43,9 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
-
+#include "BKE_utildefines.h"
 
 #include "PIL_time.h"
-
 
 #include "CMP_node.h"
 #include "intern/CMP_util.h"	/* stupid include path... */

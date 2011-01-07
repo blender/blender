@@ -53,7 +53,7 @@
 
 #include "BKE_global.h"
 #include "BKE_material.h"
-#include "BKE_utildefines.h"
+
 
 #include "RE_render_ext.h"
 

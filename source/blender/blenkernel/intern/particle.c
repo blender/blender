@@ -62,7 +62,7 @@
 #include "BKE_group.h"
 #include "BKE_main.h"
 #include "BKE_lattice.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_displist.h"
 #include "BKE_particle.h"
 #include "BKE_object.h"

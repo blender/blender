@@ -48,7 +48,7 @@
 #include "BKE_global.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 /* own module */
 #include "render_types.h"

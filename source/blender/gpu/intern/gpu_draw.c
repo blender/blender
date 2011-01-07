@@ -59,7 +59,7 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
+
 
 #include "BLI_threads.h"
 #include "BLI_blenlib.h"

@@ -40,7 +40,7 @@
 #include "BKE_image.h"
 #include "BKE_packedFile.h"
 #include "BKE_main.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_global.h" /* grr: G.main->name */
 
 #include "IMB_imbuf.h"

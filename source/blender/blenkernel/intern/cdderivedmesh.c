@@ -47,7 +47,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
-#include "BKE_utildefines.h"
+
 
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"

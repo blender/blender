@@ -41,7 +41,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"

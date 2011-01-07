@@ -27,7 +27,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 #define COLOR_SIZE 3
 

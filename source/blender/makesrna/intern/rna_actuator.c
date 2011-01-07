@@ -59,8 +59,6 @@ EnumPropertyItem actuator_type_items[] ={
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_utildefines.h"
-
 #include "BKE_sca.h"
 
 static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)

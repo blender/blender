@@ -53,7 +53,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "BLO_sys_types.h" // for intptr_t support
 

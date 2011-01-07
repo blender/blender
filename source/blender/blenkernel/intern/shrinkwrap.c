@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): André Pinto
+ * Contributor(s): Andr Pinto
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -47,7 +47,7 @@
 #include "BKE_shrinkwrap.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_lattice.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"

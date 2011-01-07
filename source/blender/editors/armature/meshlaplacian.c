@@ -45,7 +45,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"
-#include "BKE_utildefines.h"
+
 
 #ifdef RIGID_DEFORM
 #include "BLI_editVert.h"

@@ -34,7 +34,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_particle.h"
 #include "BKE_softbody.h"

@@ -126,7 +126,7 @@
 #include "DNA_object_force.h"
 
 #include "MEM_guardedalloc.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "MT_Point3.h"

@@ -31,7 +31,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 #ifndef int32_t
 #include "BLO_sys_types.h"

@@ -62,7 +62,7 @@ extern "C"{
 	#include "BKE_lattice.h"
 	#include "BKE_modifier.h"
 }
- #include "BKE_utildefines.h"
+ 
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"

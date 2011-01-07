@@ -37,7 +37,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 static char Method_Buffer_doc[] =
 	"(type, dimensions, [template]) - Create a new Buffer object\n\n\

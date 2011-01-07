@@ -32,7 +32,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"

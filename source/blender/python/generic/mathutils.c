@@ -74,7 +74,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 //-------------------------DOC STRINGS ---------------------------
 static char M_Mathutils_doc[] =

@@ -44,7 +44,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_text.h"
 #include "BKE_font.h" /* only for utf8towchar */

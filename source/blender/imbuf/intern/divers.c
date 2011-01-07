@@ -38,7 +38,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_colortools.h"
 
 #include "MEM_guardedalloc.h"

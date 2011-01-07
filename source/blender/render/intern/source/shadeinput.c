@@ -41,7 +41,7 @@
 #include "DNA_material_types.h"
 
 #include "BKE_colortools.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_node.h"
 
 /* local include */

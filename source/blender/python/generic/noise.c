@@ -42,7 +42,7 @@
 
 #include "DNA_texture_types.h"
 
-#include "BKE_utildefines.h"
+
 /*-----------------------------------------*/
 /* 'mersenne twister' random number generator */
 

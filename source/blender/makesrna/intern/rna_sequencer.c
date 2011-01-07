@@ -46,8 +46,6 @@
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_utildefines.h"
-
 static float to_dB(float x)
 {
 	return logf(x * x + 1e-30f) * 4.34294480f;

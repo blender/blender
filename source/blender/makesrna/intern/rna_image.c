@@ -48,8 +48,6 @@ static EnumPropertyItem image_source_items[]= {
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_utildefines.h"
-
 #include "IMB_imbuf_types.h"
 
 static void rna_Image_animated_update(Main *bmain, Scene *scene, PointerRNA *ptr)

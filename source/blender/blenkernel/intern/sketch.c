@@ -34,7 +34,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_sketch.h"
-#include "BKE_utildefines.h"
+
 
 #include "DNA_userdef_types.h"
 

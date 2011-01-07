@@ -40,8 +40,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
-
 #include "BKE_sound.h"
 
 #ifdef RNA_RUNTIME

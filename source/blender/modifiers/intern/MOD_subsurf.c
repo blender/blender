@@ -37,7 +37,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"

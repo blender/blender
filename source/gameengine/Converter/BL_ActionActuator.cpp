@@ -48,7 +48,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "MT_Matrix4x4.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_action.h"
 #include "FloatValue.h"
 #include "PyObjectPlus.h"

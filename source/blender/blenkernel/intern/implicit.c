@@ -43,7 +43,7 @@
 #include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
+
 
 #define CLOTH_OPENMP_LIMIT 25
 

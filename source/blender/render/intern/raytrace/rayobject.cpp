@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): André Pinto.
+ * Contributor(s): Andr Pinto.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -31,7 +31,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 #include "DNA_material_types.h"
 

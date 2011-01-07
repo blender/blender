@@ -50,7 +50,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_modifier.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_DerivedMesh.h"
 #ifdef USE_BULLET
 #include "Bullet-C-Api.h"

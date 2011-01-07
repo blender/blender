@@ -33,7 +33,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

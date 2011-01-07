@@ -59,8 +59,6 @@
 #include "BKE_font.h"
 #include "BKE_node.h"
 
-#include "BLI_utildefines.h"
-
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"

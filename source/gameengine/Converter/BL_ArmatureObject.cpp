@@ -38,7 +38,7 @@
 #include "BIK_api.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_constraint.h"
 #include "GEN_Map.h"
 #include "GEN_HashedPtr.h"

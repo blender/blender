@@ -46,7 +46,7 @@
 #include "BKE_context.h"
 #include "BKE_suggestions.h"
 #include "BKE_text.h"
-#include "BKE_utildefines.h"
+
 
 #include "BIF_gl.h"
 

@@ -37,7 +37,6 @@
 #include "BKE_utildefines.h"
 
 #ifdef RNA_RUNTIME
-#include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
 #include "BKE_depsgraph.h"

@@ -56,7 +56,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
-#include "BKE_utildefines.h"
+
 
 #include "GPU_material.h"
 

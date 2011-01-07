@@ -74,8 +74,6 @@ EnumPropertyItem texture_type_items[] = {
 
 #include "RNA_access.h"
 
-#include "BLI_utildefines.h"
-
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"

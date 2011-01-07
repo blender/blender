@@ -52,7 +52,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_text.h"
-#include "BKE_utildefines.h"
+
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"

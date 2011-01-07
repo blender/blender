@@ -51,8 +51,6 @@ static EnumPropertyItem particle_edit_hair_brush_items[] = {
 #ifdef RNA_RUNTIME
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-
 #include "BKE_context.h"
 #include "BKE_pointcache.h"
 #include "BKE_particle.h"

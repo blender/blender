@@ -67,8 +67,6 @@ EnumPropertyItem boidruleset_type_items[] ={
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_utildefines.h"
-
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_particle.h"

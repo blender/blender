@@ -52,7 +52,7 @@
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "GPU_extensions.h"
 #include "GPU_material.h"

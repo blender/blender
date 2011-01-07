@@ -67,7 +67,7 @@
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_world.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_sound.h"
 
 //XXX #include "BIF_previewrender.h"

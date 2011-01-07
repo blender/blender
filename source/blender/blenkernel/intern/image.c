@@ -71,6 +71,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 #include "BKE_node.h"
+#include "BKE_utildefines.h"
 
 //XXX #include "BIF_editseq.h"
 

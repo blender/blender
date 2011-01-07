@@ -52,7 +52,7 @@
 //XXX #include "BIF_toolbox.h"
 
 #include "BKE_font.h"
-#include "BKE_utildefines.h"
+
 
 #include "DNA_vfont_types.h"
 #include "DNA_packedFile_types.h"

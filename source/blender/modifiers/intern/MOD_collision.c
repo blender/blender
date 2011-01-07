@@ -39,7 +39,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_collision.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"

@@ -44,7 +44,7 @@
 
 #include "BKE_global.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
+
 
 #include "RE_shader_ext.h"
 

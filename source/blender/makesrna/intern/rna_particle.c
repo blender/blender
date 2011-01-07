@@ -97,7 +97,6 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_cloth.h"

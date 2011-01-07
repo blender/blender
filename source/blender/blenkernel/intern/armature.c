@@ -64,7 +64,7 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
+
 #include "BIK_api.h"
 #include "BKE_sketch.h"
 

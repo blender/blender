@@ -64,7 +64,7 @@
 #include "BKE_curve.h"
 /* -- */
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
+
 
 EditMesh *BKE_mesh_get_editmesh(Mesh *me)
 {

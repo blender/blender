@@ -29,7 +29,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_screen_types.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_context.h"
 #include "ED_space_api.h"
 

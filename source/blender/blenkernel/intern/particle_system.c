@@ -74,7 +74,7 @@
 #include "BKE_effect.h"
 #include "BKE_particle.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_material.h"

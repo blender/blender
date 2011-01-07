@@ -45,7 +45,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_sound.h"
 
 #include "IMB_imbuf.h"

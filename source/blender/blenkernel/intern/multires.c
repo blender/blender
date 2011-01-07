@@ -47,7 +47,7 @@
 #include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_object.h"
 
 #include "CCGSubSurf.h"

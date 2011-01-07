@@ -32,7 +32,7 @@
 
 #include "BKE_customdata_file.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
+
 
 /************************* File Format Definitions ***************************/
 

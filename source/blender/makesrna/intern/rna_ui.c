@@ -58,7 +58,6 @@ EnumPropertyItem operator_context_items[] = {
 #include "RNA_access.h"
 
 #include "BLI_dynstr.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"

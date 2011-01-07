@@ -38,8 +38,6 @@
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_utildefines.h"
-
 static PointerRNA rna_AnimViz_onion_skinning_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_AnimVizOnionSkinning, ptr->data);

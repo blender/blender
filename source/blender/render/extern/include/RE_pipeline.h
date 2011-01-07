@@ -32,7 +32,6 @@
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
-#include "BKE_utildefines.h"
 #include "RNA_types.h"
 
 struct bNodeTree;

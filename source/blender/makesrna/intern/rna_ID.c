@@ -70,8 +70,6 @@ EnumPropertyItem id_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_utildefines.h"
-
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_animsys.h"

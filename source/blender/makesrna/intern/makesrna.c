@@ -2419,12 +2419,12 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 	fprintf(f, "#include \"DNA_scene_types.h\"\n");
 
 	fprintf(f, "#include \"BLI_blenlib.h\"\n\n");
+	fprintf(f, "#include \"BLI_utildefines.h\"\n\n");
 
 	fprintf(f, "#include \"BKE_context.h\"\n");
 	fprintf(f, "#include \"BKE_library.h\"\n");
 	fprintf(f, "#include \"BKE_main.h\"\n");
 	fprintf(f, "#include \"BKE_report.h\"\n");
-	fprintf(f, "#include \"BKE_utildefines.h\"\n\n");
 
 	fprintf(f, "#include \"RNA_define.h\"\n");
 	fprintf(f, "#include \"RNA_types.h\"\n");

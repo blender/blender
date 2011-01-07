@@ -89,8 +89,6 @@ EnumPropertyItem brush_imagepaint_tool_items[] = {
 
 #include "RNA_access.h"
 
-#include "BLI_utildefines.h"
-
 #include "BKE_texture.h"
 #include "BKE_brush.h"
 #include "BKE_icons.h"

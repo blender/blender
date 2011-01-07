@@ -43,7 +43,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h" /* UNUSED */	
+ /* UNUSED */	
 #include "BKE_text.h" /* txt_to_buf */	
 #include "BKE_main.h"
 #include "BKE_global.h" /* grr, only for G.main->name */

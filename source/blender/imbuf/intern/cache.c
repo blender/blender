@@ -28,7 +28,7 @@
 #include "BLI_memarena.h"
 #include "BLI_threads.h"
 
-#include "BKE_utildefines.h"
+
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

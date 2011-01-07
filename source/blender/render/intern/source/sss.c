@@ -63,7 +63,7 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
+
 
 /* this module */
 #include "render_types.h"

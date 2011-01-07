@@ -57,8 +57,6 @@ EnumPropertyItem sensor_type_items[] ={
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_utildefines.h"
-
 #include "BKE_sca.h"
 
 static StructRNA* rna_Sensor_refine(struct PointerRNA *ptr)

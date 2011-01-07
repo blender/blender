@@ -33,7 +33,7 @@
 
 #include "BKE_report.h"
 #include "BKE_global.h" /* G.background only */
-#include "BKE_utildefines.h"
+
 
 #include <stdarg.h>
 #include <stdio.h>

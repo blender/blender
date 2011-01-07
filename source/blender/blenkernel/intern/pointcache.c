@@ -64,6 +64,7 @@
 #include "BKE_smoke.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
+
 #include "BIK_api.h"
 
 /* both in intern */

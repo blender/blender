@@ -35,7 +35,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_object.h"
 #include "BKE_action.h"

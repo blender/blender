@@ -91,7 +91,7 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_world.h"
 
 #include "PIL_time.h"

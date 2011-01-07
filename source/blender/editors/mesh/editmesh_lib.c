@@ -54,7 +54,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
-#include "BKE_utildefines.h"
+
 
 #include "ED_mesh.h"
 #include "ED_screen.h"

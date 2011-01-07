@@ -45,7 +45,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
-#include "BKE_utildefines.h"
+
 
 #include "render_types.h"
 #include "initrender.h"

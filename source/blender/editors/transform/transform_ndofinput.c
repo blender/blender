@@ -30,7 +30,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"		/* for G			*/
-#include "BKE_utildefines.h"	/* ABS */
+	/* ABS */
 
 #include "WM_types.h"
 

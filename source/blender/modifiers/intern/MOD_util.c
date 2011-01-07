@@ -41,7 +41,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_displist.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_modifier.h"
 
 #include "MOD_util.h"

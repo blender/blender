@@ -28,7 +28,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 #include "RNA_define.h" /* for defining our own rna */
 #include "RNA_enum_types.h"
