@@ -747,7 +747,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 static void widget_draw_preview(BIFIconID icon, float aspect, float UNUSED(alpha), rcti *rect)
 {
-	int w, h, x, y, size;
+	int w, h, size;
 
 	if(icon==ICON_NULL)
 		return;
@@ -756,11 +756,13 @@ static void widget_draw_preview(BIFIconID icon, float aspect, float UNUSED(alpha
 	h = rect->ymax - rect->ymin;
 	size = MIN2(w, h);
 	size -= PREVIEW_PAD*2;	/* padding */
-	
-	x = rect->xmin + w/2 - size/2;
-	y = rect->ymin + h/2 - size/2;
-	
-	UI_icon_draw_preview_aspect_size(x, y, icon, aspect, size);
+
+	if(size > 0) {
+		int x = rect->xmin + w/2 - size/2;
+		int y = rect->ymin + h/2 - size/2;
+
+		UI_icon_draw_preview_aspect_size(x, y, icon, aspect, size);
+	}
 }
 
 
