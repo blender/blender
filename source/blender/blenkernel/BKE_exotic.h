@@ -42,6 +42,13 @@ struct Scene;
  */
 int BKE_read_exotic(struct Scene *scene, const char *name);
 
+/* return codes */
+#define BKE_READ_EXOTIC_FAIL_PATH		-3 /* file format is not supported */
+#define BKE_READ_EXOTIC_FAIL_FORMAT		-2 /* file format is not supported */
+#define BKE_READ_EXOTIC_FAIL_OPEN		-1 /* Can't open the file */
+#define BKE_READ_EXOTIC_OK_BLEND		 0 /* .blend file */
+#define BKE_READ_EXOTIC_OK_OTHER		 1 /* other supported formats */
+
 void write_dxf(struct Scene *scene, char *str);
 void write_stl(struct Scene *scene, char *str);
 

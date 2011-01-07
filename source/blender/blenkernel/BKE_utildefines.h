@@ -203,8 +203,6 @@ do { \
 
 #define ID_NEW(a)		if( (a) && (a)->id.newid ) (a)= (void *)(a)->id.newid
 
-#define FORM MAKE_ID('F','O','R','M')
-
 #define BLEN MAKE_ID('B','L','E','N')
 #define DER_ MAKE_ID('D','E','R','_')
 #define V100 MAKE_ID('V','1','0','0')

@@ -904,7 +904,7 @@ static int load_file(int UNUSED(argc), char **argv, void *data)
 
 		/*we successfully loaded a blend file, get sure that
 		pointcache works */
-		if (retval!=0) {
+		if (retval != BKE_READ_FILE_FAIL) {
 			wmWindowManager *wm= CTX_wm_manager(C);
 
 			/* special case, 2.4x files */
