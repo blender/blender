@@ -38,11 +38,10 @@
 
 #include "PIL_dynlib.h"
 
-
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"

@@ -41,6 +41,13 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_math.h"
+#include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
+#include "BLI_kdtree.h"
+#include "BLI_rand.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 
@@ -54,13 +61,6 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 #include "BKE_pointcache.h"
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
-#include "BLI_kdtree.h"
-#include "BLI_rand.h"
-
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

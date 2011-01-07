@@ -31,6 +31,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_utildefines.h"
 #include "BKE_brush.h"
 #include "BKE_library.h"

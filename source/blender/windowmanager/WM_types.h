@@ -482,14 +482,14 @@ typedef struct wmDrag {
 	
 	int icon, type;					/* type, see WM_DRAG defines above */
 	void *poin;
-	char path[FILE_MAX];
+	char path[240]; /* FILE_MAX */
 	double value;
 	
 	struct ImBuf *imb;						/* if no icon but imbuf should be drawn around cursor */
 	float scale;
 	short sx, sy;
 	
-	char opname[FILE_MAX];			/* if set, draws operator name*/
+	char opname[240]; /* FILE_MAX */			/* if set, draws operator name*/
 } wmDrag;
 
 /* dropboxes are like keymaps, part of the screen/area/region definition */

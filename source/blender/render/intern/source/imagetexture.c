@@ -51,6 +51,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"

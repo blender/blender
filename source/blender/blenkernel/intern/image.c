@@ -60,6 +60,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_bmfont.h"
 #include "BKE_global.h"

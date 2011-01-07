@@ -59,6 +59,7 @@
 
 #include "BLI_math.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 
 #include "BIF_gl.h"
 

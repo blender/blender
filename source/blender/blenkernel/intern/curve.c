@@ -35,8 +35,10 @@
 #include <stdlib.h>  
 
 #include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"  
 #include "BLI_math.h"  
+#include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"  
 #include "DNA_material_types.h"  

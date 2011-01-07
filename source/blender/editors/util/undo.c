@@ -36,15 +36,15 @@
 
 #include "DNA_object_types.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_editVert.h"
+#include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_editVert.h"
-#include "BLI_dynstr.h"
-
 
 #include "ED_armature.h"
 #include "ED_particle.h"

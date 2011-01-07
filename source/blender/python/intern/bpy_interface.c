@@ -30,6 +30,8 @@
 
 #include <Python.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "bpy.h"
 #include "bpy_rna.h"
 #include "bpy_util.h"
@@ -37,10 +39,10 @@
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
-#include "MEM_guardedalloc.h"
 #include "BLI_path_util.h"
 #include "BLI_math_base.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_context.h"

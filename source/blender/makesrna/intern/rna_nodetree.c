@@ -41,6 +41,7 @@
 #include "BKE_texture.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "WM_types.h"
 

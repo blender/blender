@@ -91,7 +91,7 @@
 #include "BL_MeshDeformer.h"
 #include "KX_SoftBodyDeformer.h"
 //#include "BL_ArmatureController.h"
-
+#include "BLI_utildefines.h"
 #include "BlenderWorldInfo.h"
 
 #include "KX_KetsjiEngine.h"

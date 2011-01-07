@@ -36,7 +36,6 @@
 
 #include "MEM_guardedalloc.h"
 
-
 #include "DNA_curve_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_screen_types.h"
@@ -44,7 +43,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
-
+#include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"

@@ -26,6 +26,9 @@
 #include "blf_py_api.h"
 
 #include "../../blenfont/BLF_api.h"
+
+#include "BLI_utildefines.h"
+
 #include "BKE_utildefines.h"
 
 static char py_blf_position_doc[] =

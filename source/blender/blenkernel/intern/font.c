@@ -41,6 +41,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_vfontdata.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
@@ -49,9 +50,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_utildefines.h"
-
 #include "BKE_packedFile.h"
-
 #include "BKE_library.h"
 #include "BKE_font.h"
 #include "BKE_global.h"

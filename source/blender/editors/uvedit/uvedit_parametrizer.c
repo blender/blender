@@ -6,6 +6,7 @@
 #include "BLI_rand.h"
 #include "BLI_heap.h"
 #include "BLI_boxpack2d.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_utildefines.h"
 

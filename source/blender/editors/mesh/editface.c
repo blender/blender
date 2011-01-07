@@ -36,6 +36,7 @@
 #include "BLI_heap.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

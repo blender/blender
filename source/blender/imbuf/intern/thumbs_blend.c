@@ -26,6 +26,8 @@
 
 #include "zlib.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 

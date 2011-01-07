@@ -35,6 +35,7 @@
 #include "GL/glew.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"

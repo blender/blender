@@ -30,6 +30,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -37,8 +40,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
-
-#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_action.h"

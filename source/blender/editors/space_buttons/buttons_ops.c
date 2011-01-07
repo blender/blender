@@ -36,6 +36,7 @@
 #include "BLI_path_util.h"
 #include "BLI_storage.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"

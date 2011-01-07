@@ -45,6 +45,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
@@ -55,7 +56,6 @@
 #include "BKE_mesh.h"
 #include "BKE_screen.h"
 #include "BKE_deform.h"
-
 
 #include "WM_api.h"
 #include "WM_types.h"

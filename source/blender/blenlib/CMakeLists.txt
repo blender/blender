@@ -121,6 +121,7 @@ set(SRC
 	BLI_storage_types.h
 	BLI_string.h
 	BLI_threads.h
+	BLI_utildefines.h
 	BLI_uvproject.h
 	BLI_vfontdata.h
 	BLI_voxel.h

@@ -34,7 +34,7 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
-
+#include "BLI_utildefines.h"
 
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"

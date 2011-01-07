@@ -27,9 +27,11 @@
 
 #include "mathutils.h"
 
-#include "BKE_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
+#include "BKE_utildefines.h"
 
 /* matrix vector callbacks */
 int mathutils_matrix_vector_cb_index= -1;

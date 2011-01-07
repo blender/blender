@@ -45,6 +45,11 @@
 
 #include "COLLADASaxFWLLoader.h"
 
+#include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_main.h"
 #include "BKE_library.h"
 #include "BKE_texture.h"
@@ -56,10 +61,6 @@
 #include "BKE_material.h"
 #include "BKE_utildefines.h"
 #include "BKE_image.h"
-
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-#include "BLI_string.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"

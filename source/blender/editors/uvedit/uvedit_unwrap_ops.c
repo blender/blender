@@ -38,16 +38,17 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_math.h"
+#include "BLI_edgehash.h"
+#include "BLI_editVert.h"
+#include "BLI_uvproject.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_mesh.h"
-
-#include "BLI_math.h"
-#include "BLI_edgehash.h"
-#include "BLI_editVert.h"
-#include "BLI_uvproject.h"
 
 #include "PIL_time.h"
 

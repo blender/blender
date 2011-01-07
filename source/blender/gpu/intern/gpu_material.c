@@ -40,6 +40,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_math.h"
+#include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_anim.h"
 #include "BKE_colortools.h"
 #include "BKE_DerivedMesh.h"
@@ -49,9 +53,6 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
 
 #include "GPU_extensions.h"
 #include "GPU_material.h"

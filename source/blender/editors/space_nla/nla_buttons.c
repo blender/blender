@@ -33,6 +33,8 @@
 
 #include "DNA_anim_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"

@@ -38,6 +38,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 
@@ -49,6 +50,7 @@
 #include "BKE_library.h" // for free_main
 #include "BKE_idcode.h"
 #include "BKE_report.h"
+#include "BKE_utildefines.h"
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"

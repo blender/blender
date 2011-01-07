@@ -41,6 +41,8 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_boids.h"

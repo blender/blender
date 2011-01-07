@@ -37,6 +37,7 @@
 #include "BLI_editVert.h"	/* lasso tessellation */
 #include "BLI_math.h"
 #include "BLI_scanfill.h"	/* lasso tessellation */
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_utildefines.h"

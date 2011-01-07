@@ -41,13 +41,14 @@
 #include "DNA_color_types.h"
 #include "DNA_curve_types.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_colortools.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

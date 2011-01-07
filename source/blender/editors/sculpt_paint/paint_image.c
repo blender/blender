@@ -44,8 +44,10 @@
 #include "BLI_dynstr.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
-#include "PIL_time.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
+
+#include "PIL_time.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

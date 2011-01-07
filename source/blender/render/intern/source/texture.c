@@ -30,11 +30,10 @@
 #include <string.h>
 #include <math.h>
 
-
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_object_types.h"

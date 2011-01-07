@@ -40,8 +40,6 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-#include "BKE_utildefines.h"
-
 #include "BLI_mempool.h"
 #include "BLI_blenlib.h"
 

@@ -35,6 +35,7 @@
 #ifdef RNA_RUNTIME
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 

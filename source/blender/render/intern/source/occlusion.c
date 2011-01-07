@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_memarena.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_global.h"
 #include "BKE_scene.h"

@@ -28,6 +28,7 @@
 #include "DNA_screen_types.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "WM_types.h"
 

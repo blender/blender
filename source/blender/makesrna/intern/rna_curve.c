@@ -64,6 +64,7 @@ EnumPropertyItem curve_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"
 

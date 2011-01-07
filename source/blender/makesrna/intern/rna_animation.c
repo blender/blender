@@ -47,6 +47,8 @@ EnumPropertyItem keyingset_path_grouping_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_utildefines.h"
+
 #include "BKE_animsys.h"
 
 static int rna_AnimData_action_editable(PointerRNA *ptr)

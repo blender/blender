@@ -38,6 +38,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"

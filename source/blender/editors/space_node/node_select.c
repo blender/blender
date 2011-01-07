@@ -34,6 +34,7 @@
 #include "BKE_context.h"
 
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "ED_screen.h"
 #include "ED_types.h"

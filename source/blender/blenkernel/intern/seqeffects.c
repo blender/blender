@@ -35,6 +35,7 @@
 #include "PIL_dynlib.h"
 
 #include "BLI_math.h" /* windows needs for M_PI */
+#include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"

@@ -31,6 +31,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -45,8 +48,6 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
-
-#include "BLI_listbase.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"

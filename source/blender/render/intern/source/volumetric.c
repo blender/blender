@@ -37,6 +37,7 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_voxel.h"
+#include "BLI_utildefines.h"
 
 #include "RE_shader_ext.h"
 #include "RE_raytrace.h"

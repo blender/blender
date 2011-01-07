@@ -34,6 +34,8 @@
 
 #include "DNA_object_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.h"

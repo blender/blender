@@ -297,6 +297,8 @@ EnumPropertyItem wm_report_items[] = {
 
 #include <assert.h>
 
+#include "BLI_utildefines.h"
+
 #include "WM_api.h"
 
 #include "BKE_idprop.h"

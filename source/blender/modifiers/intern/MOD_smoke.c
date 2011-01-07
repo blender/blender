@@ -39,6 +39,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"

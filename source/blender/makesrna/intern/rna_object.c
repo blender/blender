@@ -29,6 +29,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "rna_internal.h"
 
 #include "DNA_action_types.h"
@@ -143,6 +145,7 @@ EnumPropertyItem object_type_curve_items[] = {
 #include "BKE_deform.h"
 
 #include "BLI_editVert.h" /* for EditMesh->mat_nr */
+#include "BLI_utildefines.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"

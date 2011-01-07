@@ -31,6 +31,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -50,9 +51,11 @@
 #include "DNA_world_types.h"
 
 #include "RNA_access.h"
+
 #include "BKE_curve.h"
 #include "BKE_key.h"
 #include "BKE_context.h"
+#include "BKE_utildefines.h" /* FILE_MAX */
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"

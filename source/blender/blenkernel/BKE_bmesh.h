@@ -38,6 +38,7 @@
 #define BKE_BMESH_H
 
 #include "DNA_listBase.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
 #include "BLI_memarena.h"

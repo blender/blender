@@ -33,6 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
@@ -40,7 +41,6 @@
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
-
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

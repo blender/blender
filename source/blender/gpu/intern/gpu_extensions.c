@@ -39,8 +39,8 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
-
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"

@@ -58,6 +58,7 @@
 #include "BLI_args.h"
 #include "BLI_threads.h"
 #include "BLI_scanfill.h" // for BLI_setErrorCallBack, TODO, move elsewhere
+#include "BLI_utildefines.h"
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"

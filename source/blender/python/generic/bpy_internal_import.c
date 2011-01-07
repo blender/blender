@@ -27,22 +27,26 @@
 */
 
 #include <Python.h>
+#include <stddef.h>
+
 #include "compile.h"	/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
 
 #include "bpy_internal_import.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_text_types.h"
 
-#include "MEM_guardedalloc.h"
+#include "BLI_listbase.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_utildefines.h" /* UNUSED */	
 #include "BKE_text.h" /* txt_to_buf */	
 #include "BKE_main.h"
 #include "BKE_global.h" /* grr, only for G.main->name */
-#include "BLI_listbase.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include <stddef.h>
 
 static Main *bpy_import_main= NULL;
 

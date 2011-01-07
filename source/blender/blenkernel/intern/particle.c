@@ -46,10 +46,11 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
-#include "BLI_math.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
@@ -2477,7 +2478,7 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 	float orco[3], ornor[3], hairmat[4][4], t, dvec[3], off1[4][3], off2[4][3];
 	float length, max_length = 1.0f, cur_length = 0.0f;
 	float eff_length, eff_vec[3], weight[4];
-	int k, cpa_num, maxw=0;
+	int k, cpa_num;
 	short cpa_from;
 
 	if(!pcache)
@@ -2749,7 +2750,6 @@ static void *exec_child_path_cache(void *data)
 
 void psys_cache_child_paths(ParticleSimulationData *sim, float cfra, int editupdate)
 {
-	ParticleSettings *part = sim->psys->part;
 	ParticleThread *pthreads;
 	ParticleThreadContext *ctx;
 	ParticleCacheKey **cache;

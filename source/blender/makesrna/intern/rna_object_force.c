@@ -84,6 +84,8 @@ EnumPropertyItem empty_vortex_shape_items[] = {
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
+
 #include "DNA_modifier_types.h"
 #include "DNA_texture_types.h"
 

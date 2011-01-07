@@ -24,11 +24,13 @@
  */
 
 #include "IDProp.h"
+#include "MEM_guardedalloc.h"
+
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_idprop.h"
 #include "BKE_utildefines.h"
-#include "BLI_string.h"
-#include "MEM_guardedalloc.h"
 
 #define USE_STRING_COERCE
 

@@ -32,6 +32,7 @@
 #include "BKE_utildefines.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 #include "RE_raytrace.h"
 #include "render_types.h"
 #include "rayobject.h"

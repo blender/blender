@@ -34,10 +34,11 @@
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
 
-#include "RNA_define.h"
-
-#include "BLI_ghash.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
+#include "BLI_ghash.h"
+
+#include "RNA_define.h"
 
 #include "rna_internal.h"
 

@@ -26,6 +26,8 @@
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
+#include "BLI_utildefines.h"
+
 #include "DNA_screen_types.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"

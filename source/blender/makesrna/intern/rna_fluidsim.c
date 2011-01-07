@@ -40,6 +40,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_particle_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_depsgraph.h"
 #include "BKE_fluidsim.h"
 #include "BKE_global.h"

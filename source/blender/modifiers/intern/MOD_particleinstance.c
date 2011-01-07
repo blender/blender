@@ -37,6 +37,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.h"

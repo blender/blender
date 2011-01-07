@@ -35,6 +35,9 @@
  */
 
 #include "BKE_utildefines.h"
+
+#include "BLI_utildefines.h"
+
 #include "MOD_modifiertypes.h"
 
 /* We only need to define isDisabled; because it always returns 1,

@@ -69,7 +69,7 @@
 #include "BKE_bmesh.h"
 #include "BKE_scene.h"
 #include "BKE_report.h"
-
+#include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -89,6 +89,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 
 #include "RNA_access.h"
 

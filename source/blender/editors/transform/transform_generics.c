@@ -87,7 +87,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
-
+#include "BLI_utildefines.h"
 
 #include "WM_types.h"
 #include "WM_api.h"

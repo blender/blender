@@ -42,6 +42,7 @@
 #include "BLI_jitter.h"
 #include "BLI_memarena.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 

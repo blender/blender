@@ -38,10 +38,12 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_mesh.h"
 #include "BKE_cdderivedmesh.h"
 
-#include "BLI_edgehash.h"
 //XXX #include "BIF_editmesh.h"
 //XXX #include "editmesh.h"
 #include "bmesh_private.h"

@@ -54,6 +54,7 @@ EnumPropertyItem property_unit_items[] = {
 
 #ifdef RNA_RUNTIME
 #include "MEM_guardedalloc.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 /* Struct */

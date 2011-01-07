@@ -37,7 +37,6 @@
 
 #include "IMB_imbuf.h"
 
-
 #include "WM_types.h"
 
 static EnumPropertyItem prop_direction_items[]= {
@@ -90,10 +89,11 @@ EnumPropertyItem brush_imagepaint_tool_items[] = {
 
 #include "RNA_access.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_texture.h"
 #include "BKE_brush.h"
 #include "BKE_icons.h"
-
 #include "BKE_paint.h"
 
 #include "WM_api.h"

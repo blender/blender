@@ -38,6 +38,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_math.h"
+#include "BLI_editVert.h"
+#include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
@@ -46,10 +51,6 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
-
-#include "BLI_math.h"
-#include "BLI_editVert.h"
-#include "BLI_edgehash.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

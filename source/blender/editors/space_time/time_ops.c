@@ -29,20 +29,17 @@
 #include <stdlib.h>
 #include <math.h>
 
-
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 
-
 #include "ED_screen.h"
-
 
 #include "WM_api.h"
 #include "WM_types.h"
-
 
 /* ****************** Start/End Frame Operators *******************************/
 

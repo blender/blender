@@ -974,7 +974,7 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 		return func;
 	}
 
-	fprintf(f, "	int found= FALSE;\n");
+	fprintf(f, "	int found= 0;\n");
 	fprintf(f, "	CollectionPropertyIterator iter;\n\n");
 
 	fprintf(f, "	%s_%s_begin(&iter, ptr);\n\n", srna->identifier, prop->identifier);
@@ -995,11 +995,11 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 		fprintf(f, "					internal->ptr += internal->itemsize;\n");
 		fprintf(f, "				} while(internal->skip(&iter, internal->ptr));\n");
 		fprintf(f, "			}\n");
-		fprintf(f, "			found= TRUE;\n");
+		fprintf(f, "			found= 1;\n");
 		fprintf(f, "		}\n");
 		fprintf(f, "		else {\n");
 		fprintf(f, "			internal->ptr += internal->itemsize*index;\n");
-		fprintf(f, "			found= TRUE;\n");
+		fprintf(f, "			found= 1;\n");
 		fprintf(f, "		}\n");
 	}
 	else if(strcmp(nextfunc, "rna_iterator_listbase_next") == 0) {

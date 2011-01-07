@@ -98,6 +98,8 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 
 /* ****************************** */
 
+#include "BLI_utildefines.h"
+
 #include "BKE_fcurve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_animsys.h"

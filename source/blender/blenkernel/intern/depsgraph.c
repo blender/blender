@@ -29,7 +29,11 @@
 #include <string.h>
 #include <math.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_winstuff.h"
+#include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
@@ -40,10 +44,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "BLI_ghash.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -61,6 +61,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #include "depsgraph_private.h"
  

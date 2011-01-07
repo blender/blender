@@ -21,16 +21,17 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#include <float.h> /* FLT_MIN/MAX */
 
 #include "bpy_rna.h"
 #include "bpy_props.h"
 #include "bpy_util.h"
 #include "bpy_rna_callback.h"
-//#include "blendef.h"
+
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
 #include "BLI_listbase.h"
-#include "float.h" /* FLT_MIN/MAX */
+#include "BLI_utildefines.h"
 
 #include "RNA_enum_types.h"
 #include "RNA_define.h" /* RNA_def_property_free_identifier */

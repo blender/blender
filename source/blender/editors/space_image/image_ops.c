@@ -32,6 +32,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
+#include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
@@ -47,9 +51,6 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

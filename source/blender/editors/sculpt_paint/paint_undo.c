@@ -27,9 +27,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_userdef_types.h"
-
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_context.h"

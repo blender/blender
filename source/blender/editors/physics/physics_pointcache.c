@@ -31,6 +31,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
@@ -43,10 +46,7 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h" 
 
-#include "BLI_blenlib.h"
-
 #include "ED_particle.h"
-
 
 #include "WM_api.h"
 #include "WM_types.h"

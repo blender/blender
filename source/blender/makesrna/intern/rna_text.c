@@ -39,6 +39,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_utildefines.h"
+
 int text_file_modified(Text *text);
 
 static void rna_Text_filename_get(PointerRNA *ptr, char *value)

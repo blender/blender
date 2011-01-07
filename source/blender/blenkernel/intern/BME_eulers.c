@@ -33,7 +33,7 @@
  */
 
 #include "MEM_guardedalloc.h"
-
+#include "BLI_utildefines.h"
 
 #include "bmesh_private.h"
 

@@ -9,16 +9,16 @@
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_paint.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "BIF_gl.h"
 

@@ -69,6 +69,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "BKE_animsys.h"
@@ -81,6 +82,7 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_sequencer.h"
+#include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
 

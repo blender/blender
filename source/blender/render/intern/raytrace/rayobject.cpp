@@ -28,11 +28,15 @@
  */
 #include <assert.h>
 
-#include "BKE_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
+#include "BKE_utildefines.h"
+
 #include "DNA_material_types.h"
 
 #include "RE_raytrace.h"
+
 #include "render_types.h"
 #include "rayobject.h"
 #include "raycounter.h"

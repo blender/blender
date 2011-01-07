@@ -41,6 +41,7 @@
 #include "BLI_jitter.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_utildefines.h"
 

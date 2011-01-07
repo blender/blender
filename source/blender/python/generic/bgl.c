@@ -35,6 +35,8 @@
 #include <GL/glew.h>
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_utildefines.h"
 
 static char Method_Buffer_doc[] =

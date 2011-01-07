@@ -37,15 +37,16 @@
 #include "DNA_material_types.h"
 #include "DNA_lamp_types.h"
 
-#include "BKE_global.h"
-#include "BKE_node.h"
-#include "BKE_utildefines.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_cpu.h"
 #include "BLI_jitter.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
+
+#include "BKE_global.h"
+#include "BKE_node.h"
+#include "BKE_utildefines.h"
 
 #include "PIL_time.h"
 

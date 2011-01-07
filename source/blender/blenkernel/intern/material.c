@@ -45,6 +45,7 @@
 
 #include "BLI_math.h"		
 #include "BLI_listbase.h"		
+#include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
 #include "BKE_displist.h"

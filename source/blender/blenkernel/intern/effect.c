@@ -59,6 +59,7 @@
 #include "BLI_listbase.h"
 #include "BLI_noise.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 

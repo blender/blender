@@ -26,6 +26,8 @@
 #include <math.h>
 #include <string.h>
 
+#include "BLI_utildefines.h"
+
 #include "BKE_utildefines.h"
 
 #include "IMB_imbuf_types.h"

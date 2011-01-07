@@ -38,6 +38,8 @@
 #include "structseq.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_texture_types.h"
 
 #include "BKE_utildefines.h"

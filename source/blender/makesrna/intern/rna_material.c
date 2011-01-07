@@ -55,6 +55,8 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 
 #include "DNA_node_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_material.h"

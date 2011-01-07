@@ -55,6 +55,7 @@
 #include "ED_view3d.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 //#include "blendef.h"
 //

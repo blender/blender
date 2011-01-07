@@ -34,13 +34,14 @@
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_anim.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
-#include "BKE_utildefines.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"

@@ -28,6 +28,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
@@ -40,9 +43,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-
-#include "BLI_math.h"
-
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

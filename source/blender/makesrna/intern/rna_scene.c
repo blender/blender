@@ -154,6 +154,11 @@ EnumPropertyItem image_type_items[] = {
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_threads.h"
+#include "BLI_editVert.h"
+#include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -167,10 +172,6 @@ EnumPropertyItem image_type_items[] = {
 #include "BKE_sound.h"
 #include "BKE_screen.h"
 #include "BKE_animsys.h"
-
-#include "BLI_threads.h"
-#include "BLI_editVert.h"
-#include "BLI_blenlib.h"
 
 #include "WM_api.h"
 

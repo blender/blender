@@ -33,6 +33,7 @@
 
 #include "bvh.h"
 #include "BLI_memarena.h"
+#include "BLI_utildefines.h"
 #include "BKE_global.h"
 #include <stdio.h>
 #include <algorithm>

@@ -43,6 +43,7 @@
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_curve.h"
 #include "BKE_context.h"

@@ -40,6 +40,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_node.h"

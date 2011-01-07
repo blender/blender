@@ -95,6 +95,10 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_math.h"
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_cloth.h"
 #include "BKE_deform.h"
@@ -103,9 +107,6 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-
-#include "BLI_math.h"
-#include "BLI_listbase.h"
 
 /* use for object space hair get/set */
 static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr, ParticleSystemModifierData **psmd_pt, ParticleData **pa_pt)

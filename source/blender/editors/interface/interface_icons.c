@@ -43,6 +43,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"

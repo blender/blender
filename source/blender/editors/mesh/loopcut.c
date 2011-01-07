@@ -46,6 +46,7 @@
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_editVert.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -54,6 +55,7 @@
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_array_mallocn.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */

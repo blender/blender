@@ -47,6 +47,7 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 #include "BLI_linklist.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_paint.h"

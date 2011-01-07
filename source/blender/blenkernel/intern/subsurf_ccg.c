@@ -41,6 +41,13 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_edgehash.h"
+#include "BLI_math.h"
+#include "BLI_memarena.h"
+#include "BLI_pbvh.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -49,12 +56,6 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_edgehash.h"
-#include "BLI_math.h"
-#include "BLI_memarena.h"
-#include "BLI_pbvh.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

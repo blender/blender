@@ -107,6 +107,7 @@ EnumPropertyItem viewport_shade_items[] = {
 #include "DNA_screen_types.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
 #include "BKE_brush.h"

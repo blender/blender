@@ -34,6 +34,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_utildefines.h"
+
 #include "BKE_property.h"
 
 static StructRNA* rna_GameProperty_refine(struct PointerRNA *ptr)

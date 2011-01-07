@@ -35,6 +35,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_voxel.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

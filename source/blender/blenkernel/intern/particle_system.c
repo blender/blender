@@ -63,6 +63,7 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_storage.h" /* For _LARGEFILE64_SOURCE;  zlib needs this on some systems */
+#include "BLI_utildefines.h"
 
 #include "BKE_main.h"
 #include "BKE_animsys.h"
@@ -3641,7 +3642,6 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float UNUSED(cfra))
 {
 	ParticleSystem *psys = sim->psys;
-	ParticleSettings *part = psys->part;
 	int oldtotpart = psys->totpart;
 	int totpart = tot_particles(psys, pid);
 

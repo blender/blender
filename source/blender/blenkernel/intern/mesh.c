@@ -43,6 +43,12 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_ipo_types.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_editVert.h"
+#include "BLI_math.h"
+#include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_animsys.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
@@ -59,12 +65,6 @@
 /* -- */
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_editVert.h"
-#include "BLI_math.h"
-#include "BLI_edgehash.h"
-
 
 EditMesh *BKE_mesh_get_editmesh(Mesh *me)
 {

@@ -46,12 +46,14 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mesh.h"
+#include "BKE_array_mallocn.h"
 
 #include "PIL_time.h"
 

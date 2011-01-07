@@ -58,6 +58,7 @@
 #include "BLI_bpath.h"
 #include "BLI_dynstr.h"
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf.h"
 

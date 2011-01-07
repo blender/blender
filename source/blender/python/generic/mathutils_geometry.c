@@ -30,14 +30,16 @@
 #include "mathutils_geometry.h"
 
 /* Used for PolyFill */
-#include "BKE_displist.h"
 #include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
- 
-#include "BKE_utildefines.h"
-#include "BKE_curve.h"
 #include "BLI_boxpack2d.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+ 
+#include "BKE_displist.h"
+#include "BKE_utildefines.h"
+#include "BKE_curve.h"
 
 #define SWAP_FLOAT(a,b,tmp) tmp=a; a=b; b=tmp
 #define eps 0.000001

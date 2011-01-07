@@ -38,6 +38,7 @@
 #include "BLI_math.h"
 #include "BLI_pbvh.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"

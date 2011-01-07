@@ -27,6 +27,7 @@
  */
 
 #include "BLI_voxel.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_utildefines.h"
 

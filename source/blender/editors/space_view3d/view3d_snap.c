@@ -43,6 +43,7 @@
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_linklist.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_armature.h"
 #include "BKE_context.h"

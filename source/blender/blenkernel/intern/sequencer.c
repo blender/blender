@@ -41,6 +41,14 @@
 #include "DNA_object_types.h"
 #include "DNA_sound_types.h"
 
+#include "BLI_math.h"
+#include "BLI_fileops.h"
+#include "BLI_listbase.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_threads.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_animsys.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -51,12 +59,6 @@
 #include "RNA_access.h"
 #include "RE_pipeline.h"
 
-#include "BLI_math.h"
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "BLI_threads.h"
 #include <pthread.h>
 
 #include "IMB_imbuf.h"

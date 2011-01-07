@@ -30,8 +30,8 @@
 #include <math.h>
 #include <string.h>
 
-
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
 #include "BKE_material.h"

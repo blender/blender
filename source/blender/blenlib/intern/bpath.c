@@ -54,6 +54,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_bpath.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_global.h"
 #include "BKE_image.h" /* so we can check the image's type */
