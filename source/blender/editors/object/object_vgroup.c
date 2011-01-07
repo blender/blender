@@ -555,9 +555,10 @@ static void vgroup_select_verts(Object *ob, int select)
 			if(dvert && dvert->totweight){
 				for(i=0; i<dvert->totweight; i++){
 					if(dvert->dw[i].def_nr == (ob->actdef-1)){
-						if(select) eve->f |= SELECT;
-						else eve->f &= ~SELECT;
-						
+						if(!eve->h) {
+							if(select) eve->f |= SELECT;
+							else eve->f &= ~SELECT;
+						}
 						break;
 					}
 				}
