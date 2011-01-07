@@ -995,7 +995,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
         col.prop(tex, "color", text="")
 
         if isinstance(idblock, bpy.types.Material):
-            sub = col.row()
+            sub = layout.row()
             sub.prop(tex, "bump_method", text="Bump Method")
             sub.active = tex.use_map_normal
 

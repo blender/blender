@@ -368,9 +368,8 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_bump_method_items[] = {
-		{0, "BUMP_OLD", 0, "Old Bump", ""},
-		{MTEX_NEW_BUMP, "BUMP_3_TAP", 0, "3-Tap", ""},
-		{MTEX_NEW_BUMP|MTEX_5TAP_BUMP, "BUMP_5_TAP", 0, "5-Tap", ""},
+		{0, "BUMP_ORIGINAL", 0, "Original", ""},
+		{MTEX_NEW_BUMP, "BUMP_IMPROVED", 0, "Improved", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MaterialTextureSlot", "TextureSlot");
