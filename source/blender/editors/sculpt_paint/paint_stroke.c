@@ -411,22 +411,6 @@ int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius, floa
 	return hit;
 }
 
-// XXX duplicated from sculpt.c
-float unproject_brush_radius(Object *ob, ViewContext *vc, float center[3], float offset)
-{
-	float delta[3], scale, loc[3];
-
-	mul_v3_m4v3(loc, ob->obmat, center);
-
-	initgrabz(vc->rv3d, loc[0], loc[1], loc[2]);
-	window_to_3d_delta(vc->ar, delta, offset, 0);
-
-	scale= fabsf(mat4_to_scale(ob->obmat));
-	scale= (scale == 0.0f)? 1.0f: scale;
-
-	return len_v3(delta)/scale;
-}
-
 // XXX paint cursor now does a lot of the same work that is needed during a sculpt stroke
 // problem: all this stuff was not intended to be used at this point, so things feel a
 // bit hacked.  I've put lots of stuff in Brush that probably better goes in Paint
@@ -613,13 +597,13 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 			if (visual_strength > 1) visual_strength = 1;
 
 			if (sd->draw_anchored) {
-				unprojected_radius = unproject_brush_radius(CTX_data_active_object(C), &vc, location, sd->anchored_size);
+				unprojected_radius = paint_calc_object_space_radius(&vc, location, sd->anchored_size);
 			}
 			else {
 				if (brush->flag & BRUSH_ANCHORED)
-					unprojected_radius = unproject_brush_radius(CTX_data_active_object(C), &vc, location, 8);
+					unprojected_radius = paint_calc_object_space_radius(&vc, location, 8);
 				else
-					unprojected_radius = unproject_brush_radius(CTX_data_active_object(C), &vc, location, brush_size(brush));
+					unprojected_radius = paint_calc_object_space_radius(&vc, location, brush_size(brush));
 			}
 
 			if (sd->draw_pressure && brush_use_size_pressure(brush))

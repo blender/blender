@@ -241,16 +241,6 @@ static void projectf(bglMats *mats, const float v[3], float p[2])
 	p[1]= uy;
 }
 
-/*XXX: static void project(bglMats *mats, const float v[3], short p[2])
-{
-	float f[2];
-	projectf(mats, v, f);
-
-	p[0]= f[0];
-	p[1]= f[1];
-}
-*/
-
 /*** BVH Tree ***/
 
 /* Get a screen-space rectangle of the modified area */
@@ -2752,21 +2742,6 @@ static void SCULPT_OT_radial_control(wmOperatorType *ot)
 /**** Operator for applying a stroke (various attributes including mouse path)
 	  using the current brush. ****/
 
-static float unproject_brush_radius(Object *ob, ViewContext *vc, float center[3], float offset)
-{
-	float delta[3], scale, loc[3];
-
-	mul_v3_m4v3(loc, ob->obmat, center);
-
-	initgrabz(vc->rv3d, loc[0], loc[1], loc[2]);
-	window_to_3d_delta(vc->ar, delta, offset, 0);
-
-	scale= fabsf(mat4_to_scale(ob->obmat));
-	scale= (scale == 0.0f)? 1.0f: scale;
-
-	return len_v3(delta)/scale;
-}
-
 static void sculpt_cache_free(StrokeCache *cache)
 {
 	if(cache->face_norms)
@@ -2840,8 +2815,8 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 	}
 
 	mode = RNA_int_get(op->ptr, "mode");
-	cache->invert = mode == WM_BRUSHSTROKE_INVERT;
-	cache->alt_smooth = mode == WM_BRUSHSTROKE_SMOOTH;
+	cache->invert = mode == BRUSH_STROKE_INVERT;
+	cache->alt_smooth = mode == BRUSH_STROKE_SMOOTH;
 
 	/* not very nice, but with current events system implementation
 	   we can't handle brush appearance inversion hotkey separately (sergey) */
@@ -3019,7 +2994,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, SculptSession 
 
 	if(cache->first_time) {
 		if (!brush_use_locked_size(brush)) {
-			cache->initial_radius= unproject_brush_radius(ss->ob, cache->vc, cache->true_location, brush_size(brush));
+			cache->initial_radius= paint_calc_object_space_radius(cache->vc, cache->true_location, brush_size(brush));
 			brush_set_unprojected_radius(brush, cache->initial_radius);
 		}
 		else {
@@ -3081,7 +3056,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, SculptSession 
 		if (!hit)
 			copy_v2_v2(sd->anchored_initial_mouse, cache->initial_mouse);
 
-		cache->radius= unproject_brush_radius(ss->ob, paint_stroke_view_context(stroke), cache->true_location, cache->pixel_radius);
+		cache->radius= paint_calc_object_space_radius(paint_stroke_view_context(stroke), cache->true_location, cache->pixel_radius);
 		cache->radius_squared = cache->radius*cache->radius;
 
 		copy_v3_v3(sd->anchored_location, cache->true_location);
@@ -3488,10 +3463,10 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {
 	static EnumPropertyItem stroke_mode_items[] = {
-		{ WM_BRUSHSTROKE_NORMAL, "NORMAL", 0, "Normal", "Apply brush normally" },
-		{ WM_BRUSHSTROKE_INVERT, "INVERT", 0, "Invert", "Invert action of brush for duration of stroke" },
-		{ WM_BRUSHSTROKE_SMOOTH, "SMOOTH", 0, "Smooth", "Switch brush to smooth mode for duration of stroke" },
-		{ 0 }
+		{BRUSH_STROKE_NORMAL, "NORMAL", 0, "Normal", "Apply brush normally"},
+		{BRUSH_STROKE_INVERT, "INVERT", 0, "Invert", "Invert action of brush for duration of stroke"},
+		{BRUSH_STROKE_SMOOTH, "SMOOTH", 0, "Smooth", "Switch brush to smooth mode for duration of stroke"},
+		{0}
 	};
 
 	/* identifiers */
@@ -3512,7 +3487,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement,
 			"Stroke", "");
 
-	RNA_def_enum(ot->srna, "mode", stroke_mode_items, WM_BRUSHSTROKE_NORMAL, 
+	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, 
 			"Sculpt Stroke Mode",
 			"Action taken when a sculpt stroke is made");
 
