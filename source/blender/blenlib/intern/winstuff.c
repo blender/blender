@@ -36,6 +36,9 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+
+#include "BKE_utildefines.h"
+
 #define WIN32_SKIP_HKEY_PROTECTION		// need to use HKEY
 #include "BLI_winstuff.h"
 
