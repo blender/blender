@@ -1182,7 +1182,7 @@ int  BKE_ptcache_mem_pointers_seek(int point_index, PTCacheMem *pm)
 	int data_types = pm->data_types;
 	int i, index = pm->index_array ? pm->index_array[point_index] - 1 : point_index;
 
-	if(index < 0) {
+	if(index < 0 || point_index >= MEM_allocN_len(pm->index_array)/sizeof(int)) {
 		/* Can't give proper location without reallocation, so don't give any location.
 		 * Some points will be cached improperly, but this only happens with simulation
 		 * steps bigger than cache->step, so the cache has to be recalculated anyways
