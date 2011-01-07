@@ -411,24 +411,123 @@ int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius, floa
 	return hit;
 }
 
+/* Draw an overlay that shows what effect the brush's texture will
+   have on brush strength */
+static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
+				     ViewContext *vc, int viewport[4],
+				     int x, int y)
+{
+	rctf quad;
+
+	/* check for overlay mode */
+	if(!(brush->flag & BRUSH_TEXTURE_OVERLAY) ||
+	   !(ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_FIXED, MTEX_MAP_MODE_TILED)))
+		return;
+
+	/* save lots of GL state
+	   TODO: check on whether all of these are needed? */
+	glPushAttrib(GL_COLOR_BUFFER_BIT|
+		     GL_CURRENT_BIT|
+		     GL_DEPTH_BUFFER_BIT|
+		     GL_ENABLE_BIT|
+		     GL_LINE_BIT|
+		     GL_POLYGON_BIT|
+		     GL_STENCIL_BUFFER_BIT|
+		     GL_TRANSFORM_BIT|
+		     GL_VIEWPORT_BIT|
+		     GL_TEXTURE_BIT);
+
+	if(load_tex(sd, brush, vc)) {
+		glEnable(GL_BLEND);
+
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_ALWAYS);
+
+		glMatrixMode(GL_TEXTURE);
+		glPushMatrix();
+		glLoadIdentity();
+
+		if(brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
+			/* brush rotation */
+			glTranslatef(0.5f, 0.5f, 0);
+			glRotatef(((brush->flag & BRUSH_RAKE) ?
+				   sd->last_angle : sd->special_rotation) * (180.0f/M_PI),
+				  0, 0, 1);
+			glTranslatef(-0.5f, -0.5f, 0);
+
+			/* scale based on tablet pressure */
+			if(sd->draw_pressure && brush_use_size_pressure(brush)) {
+				glTranslatef(0.5f, 0.5f, 0);
+				glScalef(1.0f/sd->pressure_value, 1.0f/sd->pressure_value, 1);
+				glTranslatef(-0.5f, -0.5f, 0);
+			}
+
+			if(sd->draw_anchored) {
+				const float *aim = sd->anchored_initial_mouse;
+				const rcti *win = &vc->ar->winrct;
+				quad.xmin = aim[0]-sd->anchored_size - win->xmin;
+				quad.ymin = aim[1]-sd->anchored_size - win->ymin;
+				quad.xmax = aim[0]+sd->anchored_size - win->xmin;
+				quad.ymax = aim[1]+sd->anchored_size - win->ymin;
+			}
+			else {
+				const int radius= brush_size(brush);
+				quad.xmin = x - radius;
+				quad.ymin = y - radius;
+				quad.xmax = x + radius;
+				quad.ymax = y + radius;
+			}
+		}
+		else {
+			quad.xmin = 0;
+			quad.ymin = 0;
+			quad.xmax = viewport[2];
+			quad.ymax = viewport[3];
+
+		}
+
+		/* set quad color */
+		glColor4f(U.sculpt_paint_overlay_col[0],
+			  U.sculpt_paint_overlay_col[1],
+			  U.sculpt_paint_overlay_col[2],
+			  brush->texture_overlay_alpha / 100.0f);
+
+		/* draw textured quad */
+		glBegin(GL_QUADS);
+		glTexCoord2f(0, 0);
+		glVertex2f(quad.xmin, quad.ymin);
+		glTexCoord2f(1, 0);
+		glVertex2f(quad.xmax, quad.ymin);
+		glTexCoord2f(1, 1);
+		glVertex2f(quad.xmax, quad.ymax);
+		glTexCoord2f(0, 1);
+		glVertex2f(quad.xmin, quad.ymax);
+		glEnd();
+
+		glPopMatrix();
+	}
+
+	glPopAttrib();
+}
+
 // XXX paint cursor now does a lot of the same work that is needed during a sculpt stroke
 // problem: all this stuff was not intended to be used at this point, so things feel a
 // bit hacked.  I've put lots of stuff in Brush that probably better goes in Paint
 // Functions should be refactored so that they can be used between sculpt.c and
 // paint_stroke.c clearly and optimally and the lines of communication between the
 // two modules should be more clearly defined.
-static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
+static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 {
-	ViewContext vc;
+	Paint *paint = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(paint);
 
-	(void)unused;
+	ViewContext vc;
 
 	view3d_set_viewcontext(C, &vc);
 
-	if (vc.obact->sculpt) {
-		Paint *paint = paint_get_active(CTX_data_scene(C));
+	if(vc.obact->sculpt) {
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-		Brush *brush = paint_brush(paint);
 
 		int pixel_radius, viewport[4];
 		float location[3], modelview[16], projection[16];
@@ -483,112 +582,12 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 
 		alpha = (paint->flags & PAINT_SHOW_BRUSH_ON_SURFACE) ? min_alpha + (visual_strength*(max_alpha-min_alpha)) : 0.50f;
 
-		if (ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_FIXED, MTEX_MAP_MODE_TILED) && brush->flag & BRUSH_TEXTURE_OVERLAY) {
-			glPushAttrib(
-				GL_COLOR_BUFFER_BIT|
-				GL_CURRENT_BIT|
-				GL_DEPTH_BUFFER_BIT|
-				GL_ENABLE_BIT|
-				GL_LINE_BIT|
-				GL_POLYGON_BIT|
-				GL_STENCIL_BUFFER_BIT|
-				GL_TRANSFORM_BIT|
-				GL_VIEWPORT_BIT|
-				GL_TEXTURE_BIT);
-
-			if (load_tex(sd, brush, &vc)) {
-				glEnable(GL_BLEND);
-
-				glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-				glDepthMask(GL_FALSE);
-				glDepthFunc(GL_ALWAYS);
-
-				glMatrixMode(GL_TEXTURE);
-				glPushMatrix();
-				glLoadIdentity();
-
-				if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
-					glTranslatef(0.5f, 0.5f, 0);
-
-					if (brush->flag & BRUSH_RAKE) {
-						glRotatef(sd->last_angle*(float)(180.0/M_PI), 0, 0, 1);
-					}
-					else {
-						glRotatef(sd->special_rotation*(float)(180.0/M_PI), 0, 0, 1);
-					}
-
-					glTranslatef(-0.5f, -0.5f, 0);
-
-					if (sd->draw_pressure && brush_use_size_pressure(brush)) {
-						glTranslatef(0.5f, 0.5f, 0);
-						glScalef(1.0f/sd->pressure_value, 1.0f/sd->pressure_value, 1);
-						glTranslatef(-0.5f, -0.5f, 0);
-					}
-				}
-
-				glColor4f(
-					U.sculpt_paint_overlay_col[0],
-					U.sculpt_paint_overlay_col[1],
-					U.sculpt_paint_overlay_col[2],
-					brush->texture_overlay_alpha / 100.0f);
-
-				glBegin(GL_QUADS);
-				if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
-					if (sd->draw_anchored) {
-						glTexCoord2f(0, 0);
-						glVertex2f(sd->anchored_initial_mouse[0]-sd->anchored_size - vc.ar->winrct.xmin, sd->anchored_initial_mouse[1]-sd->anchored_size - vc.ar->winrct.ymin);
-
-						glTexCoord2f(1, 0);
-						glVertex2f(sd->anchored_initial_mouse[0]+sd->anchored_size - vc.ar->winrct.xmin, sd->anchored_initial_mouse[1]-sd->anchored_size - vc.ar->winrct.ymin);
-
-						glTexCoord2f(1, 1);
-						glVertex2f(sd->anchored_initial_mouse[0]+sd->anchored_size - vc.ar->winrct.xmin, sd->anchored_initial_mouse[1]+sd->anchored_size - vc.ar->winrct.ymin);
-
-						glTexCoord2f(0, 1);
-						glVertex2f(sd->anchored_initial_mouse[0]-sd->anchored_size - vc.ar->winrct.xmin, sd->anchored_initial_mouse[1]+sd->anchored_size - vc.ar->winrct.ymin);
-					}
-					else {
-						const int radius= brush_size(brush);
-
-						glTexCoord2f(0, 0);
-						glVertex2f((float)x-radius, (float)y-radius);
-
-						glTexCoord2f(1, 0);
-						glVertex2f((float)x+radius, (float)y-radius);
-
-						glTexCoord2f(1, 1);
-						glVertex2f((float)x+radius, (float)y+radius);
-
-						glTexCoord2f(0, 1);
-						glVertex2f((float)x-radius, (float)y+radius);
-					}
-				}
-				else {
-					glTexCoord2f(0, 0);
-					glVertex2f(0, 0);
-
-					glTexCoord2f(1, 0);
-					glVertex2f(viewport[2], 0);
-
-					glTexCoord2f(1, 1);
-					glVertex2f(viewport[2], viewport[3]);
-
-					glTexCoord2f(0, 1);
-					glVertex2f(0, viewport[3]);
-				}
-				glEnd();
-
-				glPopMatrix();
-			}
-
-			glPopAttrib();
-		}
+		paint_draw_alpha_overlay(sd, brush, &vc, viewport, x, y);
 
 		if (hit) {
 			float unprojected_radius;
 
 			// XXX duplicated from brush_strength & paint_stroke_add_step, refactor later
-			//wmEvent* event = CTX_wm_window(C)->eventstate;
 
 			if (sd->draw_pressure && brush_use_alpha_pressure(brush))
 				visual_strength *= sd->pressure_value;
@@ -649,9 +648,6 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 		glPopAttrib();
 	}
 	else {
-		Paint *paint = paint_get_active(CTX_data_scene(C));
-		Brush *brush = paint_brush(paint);
-
 		if(!(paint->flags & PAINT_SHOW_BRUSH))
 			return;
 
@@ -660,7 +656,12 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 		glEnable(GL_BLEND);
 
 		glTranslatef((float)x, (float)y, 0.0f);
-		glutil_draw_lined_arc(0.0, M_PI*2.0, brush_size(brush), 40); // XXX: for now use the brushes size instead of potentially using the unified size because the feature has been enabled for sculpt
+
+		/* XXX: for now use the brushes size instead of
+		   potentially using the unified size because the
+		   feature has only been enabled for sculpt
+		*/
+		glutil_draw_lined_arc(0.0, M_PI*2.0, brush_size(brush), 40);
 		glTranslatef((float)-x, (float)-y, 0.0f);
 
 		glDisable(GL_BLEND);
