@@ -63,7 +63,6 @@ class x3d_class:
         self.billnode = 0
         self.halonode = 0
         self.collnode = 0
-        self.tilenode = 0
         self.verbose = 2	 # level of verbosity in console 0-none, 1-some, 2-most
         self.cp = 3		  # decimals for material color values	 0.000 - 1.000
         self.vp = 3		  # decimals for vertex coordinate values  0.000 - n.000
@@ -307,9 +306,6 @@ class x3d_class:
         # elif mode & Mesh.FaceModes.BILLBOARD and self.billnode == 0:
             self.write_indented("<Billboard axisOfRotation=\"0 1 0\">\n", 1)
             self.billnode = 1
-        # TF_TILES is marked as deprecated in DNA_meshdata_types.h
-        # elif mode & Mesh.FaceModes.TILES and self.tilenode == 0:
-        # 	self.tilenode = 1
         elif 'COLLISION' not in mode and self.collnode == 0:
         # elif not mode & Mesh.FaceModes.DYNAMIC and self.collnode == 0:
             self.write_indented("<Collision enabled=\"false\">\n", 1)
@@ -339,7 +335,10 @@ class x3d_class:
             if not mesh_materials:
                 mesh_materials = [None]
 
+            mesh_material_tex = [None] * len(mesh_materials)
+            mesh_material_mtex = [None] * len(mesh_materials)
             mesh_material_images = [None] * len(mesh_materials)
+
             for i, material in enumerate(mesh_materials):
                 if material:
                     for mtex in material.texture_slots:
@@ -348,6 +347,8 @@ class x3d_class:
                             if tex and tex.type == 'IMAGE':
                                 image = tex.image
                                 if image:
+                                    mesh_material_tex[i] = tex
+                                    mesh_material_mtex[i] = mtex
                                     mesh_material_images[i] = image
                                     break
 
@@ -355,9 +356,12 @@ class x3d_class:
 
             mesh_faces = mesh.faces[:]
             mesh_faces_materials = [f.material_index for f in mesh_faces]
-
+            
             if is_uv and True in mesh_materials_use_face_texture:
                 mesh_faces_image = [(fuv.image if (mesh_materials_use_face_texture[mesh_faces_materials[i]] and fuv.use_image) else mesh_material_images[mesh_faces_materials[i]]) for i, fuv in enumerate(mesh.uv_textures.active.data)]
+                mesh_faces_image_unique = set(mesh_faces_image)
+            elif len(set(mesh_material_images) | {None}) > 1:  # make sure there is at least one image
+                mesh_faces_image = [mesh_material_images[material_index] for material_index in mesh_faces_materials]
                 mesh_faces_image_unique = set(mesh_faces_image)
             else:
                 mesh_faces_image = [None] * len(mesh_faces)
@@ -391,9 +395,32 @@ class x3d_class:
                         self.write_indented("<Appearance>\n", 1)
                         self.writeImageTexture(image)
 
-                        if self.tilenode == 1:
-                            self.write_indented("<TextureTransform	scale=\"%s %s\" />\n" % (image.xrep, image.yrep))
-                            self.tilenode = 0
+                        if mesh_materials_use_face_texture[material_index]:
+                            if image.use_tile:
+                                self.write_indented("<TextureTransform scale=\"%s %s\" />\n" % (image.tiles_x, image.tiles_y))
+                        else:
+                            # transform by mtex
+                            loc = mesh_material_mtex[material_index].offset[:2]
+
+                            # mtex_scale * tex_repeat
+                            sca_x, sca_y = mesh_material_mtex[material_index].scale[:2]
+
+                            sca_x *= mesh_material_tex[material_index].repeat_x
+                            sca_y *= mesh_material_tex[material_index].repeat_y
+
+                            # flip x/y is a sampling feature, convert to transform
+                            if mesh_material_tex[material_index].use_flip_axis:
+                                rot = math.pi / -2.0
+                                sca_x, sca_y = sca_y, -sca_x
+                            else:
+                                rot = 0.0
+
+                            self.write_indented("<TextureTransform ", 1)
+                            # fw("center=\"%.6f %.6f\" " % (0.0, 0.0))
+                            fw("translation=\"%.6f %.6f\" " % loc)
+                            fw("scale=\"%.6f %.6f\" " % (sca_x, sca_y))
+                            fw("rotation=\"%.6f\" " % rot)
+                            fw("/>\n")
 
                         self.write_indented("</Appearance>\n", -1)
 
