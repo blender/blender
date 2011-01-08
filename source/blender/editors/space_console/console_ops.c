@@ -663,6 +663,8 @@ static int scrollback_append_exec(bContext *C, wmOperator *op)
 	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, dont free */
 	int type= RNA_enum_get(op->ptr, "type");
 
+	console_history_verify(C);
+	
 	ci= console_scrollback_add_str(sc, str, 1); /* own the string */
 	ci->type= type;
 	
