@@ -138,7 +138,7 @@ void copy_displist(ListBase *lbn, ListBase *lb)
 {
 	DispList *dln, *dl;
 	
-	lbn->first= lbn->last= 0;
+	freedisplist(lbn);
 	
 	dl= lb->first;
 	while(dl) {
