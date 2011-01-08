@@ -551,7 +551,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 		BKE_animdata_separate_by_basepath(&ntree->id, &ngroup->id, &anim_basepaths);
 		
 		/* paths + their wrappers need to be freed */
-		for (ld = anim_basepaths.first; ld; ld = ld->next) {
+		for (ld = anim_basepaths.first; ld; ld = ldn) {
 			ldn = ld->next;
 			
 			MEM_freeN(ld->data);
@@ -866,7 +866,7 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 		BKE_animdata_separate_by_basepath(&wgroup->id, &ntree->id, &anim_basepaths);
 		
 		/* paths + their wrappers need to be freed */
-		for (ld = anim_basepaths.first; ld; ld = ld->next) {
+		for (ld = anim_basepaths.first; ld; ld = ldn) {
 			ldn = ld->next;
 			
 			MEM_freeN(ld->data);
