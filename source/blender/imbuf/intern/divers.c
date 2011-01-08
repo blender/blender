@@ -278,9 +278,9 @@ void IMB_convert_profile(struct ImBuf *ibuf, int profile)
 			}
 			if(ibuf->rect) {
 				for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4) {
-					rctf[0]= (unsigned char)((srgb_to_linearrgb((float)rctf[0]/255.0f) * 255.0f) + 0.5f);
-					rctf[1]= (unsigned char)((srgb_to_linearrgb((float)rctf[1]/255.0f) * 255.0f) + 0.5f);
-					rctf[2]= (unsigned char)((srgb_to_linearrgb((float)rctf[2]/255.0f) * 255.0f) + 0.5f);
+					rct[0]= (unsigned char)((srgb_to_linearrgb((float)rct[0]/255.0f) * 255.0f) + 0.5f);
+					rct[1]= (unsigned char)((srgb_to_linearrgb((float)rct[1]/255.0f) * 255.0f) + 0.5f);
+					rct[2]= (unsigned char)((srgb_to_linearrgb((float)rct[2]/255.0f) * 255.0f) + 0.5f);
 				}
 			}
 			ok= TRUE;
@@ -297,9 +297,9 @@ void IMB_convert_profile(struct ImBuf *ibuf, int profile)
 			}
 			if(ibuf->rect) {
 				for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4) {
-					rctf[0]= (unsigned char)((linearrgb_to_srgb((float)rctf[0]/255.0f) * 255.0f) + 0.5f);
-					rctf[1]= (unsigned char)((linearrgb_to_srgb((float)rctf[1]/255.0f) * 255.0f) + 0.5f);
-					rctf[2]= (unsigned char)((linearrgb_to_srgb((float)rctf[2]/255.0f) * 255.0f) + 0.5f);
+					rct[0]= (unsigned char)((linearrgb_to_srgb((float)rct[0]/255.0f) * 255.0f) + 0.5f);
+					rct[1]= (unsigned char)((linearrgb_to_srgb((float)rct[1]/255.0f) * 255.0f) + 0.5f);
+					rct[2]= (unsigned char)((linearrgb_to_srgb((float)rct[2]/255.0f) * 255.0f) + 0.5f);
 				}
 			}
 			ok= TRUE;
