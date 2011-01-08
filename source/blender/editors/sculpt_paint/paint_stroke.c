@@ -373,7 +373,8 @@ static int project_brush_radius(RegionView3D* rv3d, float radius, float location
 	return len_v2v2(p1, p2);
 }
 
-int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius, float location[3], float modelview[16], float projection[16], int viewport[4])
+int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius,
+			      float location[3])
 {
 	struct PaintStroke *stroke;
 	float window[2];
@@ -384,11 +385,7 @@ int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius, floa
 	window[0] = x + stroke->vc.ar->winrct.xmin;
 	window[1] = y + stroke->vc.ar->winrct.ymin;
 
-	memcpy(modelview, stroke->vc.rv3d->viewmat, sizeof(float[16]));
-	memcpy(projection, stroke->vc.rv3d->winmat, sizeof(float[16]));
-	memcpy(viewport, stroke->mats.viewport, sizeof(int[4]));
-
-	if (stroke->vc.obact->sculpt && stroke->vc.obact->sculpt->pbvh && sculpt_stroke_get_location(C, stroke, location, window)) {
+	if(stroke->vc.obact->sculpt && stroke->vc.obact->sculpt->pbvh && sculpt_stroke_get_location(C, stroke, location, window)) {
 		*pixel_radius = project_brush_radius(stroke->vc.rv3d, brush_unprojected_radius(stroke->brush), location, &stroke->mats);
 
 		if (*pixel_radius == 0)
@@ -413,9 +410,9 @@ int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius, floa
 
 /* Draw an overlay that shows what effect the brush's texture will
    have on brush strength */
+/* TODO: sculpt only for now */
 static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
-				     ViewContext *vc, int viewport[4],
-				     int x, int y)
+				     ViewContext *vc, int x, int y)
 {
 	rctf quad;
 
@@ -482,9 +479,8 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 		else {
 			quad.xmin = 0;
 			quad.ymin = 0;
-			quad.xmax = viewport[2];
-			quad.ymax = viewport[3];
-
+			quad.xmax = vc->ar->winrct.xmax - vc->ar->winrct.xmin;
+			quad.ymax = vc->ar->winrct.ymax - vc->ar->winrct.ymin;
 		}
 
 		/* set quad color */
@@ -511,41 +507,75 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 	glPopAttrib();
 }
 
-// XXX paint cursor now does a lot of the same work that is needed during a sculpt stroke
-// problem: all this stuff was not intended to be used at this point, so things feel a
-// bit hacked.  I've put lots of stuff in Brush that probably better goes in Paint
-// Functions should be refactored so that they can be used between sculpt.c and
-// paint_stroke.c clearly and optimally and the lines of communication between the
-// two modules should be more clearly defined.
+/* Special actions taken when paint cursor goes over mesh */
+/* TODO: sculpt only for now */
+static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
+				float location[3], float *visual_strength)
+{
+	float unprojected_radius, projected_radius;
+
+	/* TODO: check whether this should really only be done when
+	   brush is over mesh? */
+	if(sd->draw_pressure && brush_use_alpha_pressure(brush))
+		(*visual_strength) *= sd->pressure_value;
+
+	if(sd->draw_anchored)
+		projected_radius = sd->anchored_size;
+	else {
+		if(brush->flag & BRUSH_ANCHORED)
+			projected_radius = 8;
+		else
+			projected_radius = brush_size(brush);
+	}
+	unprojected_radius = paint_calc_object_space_radius(vc, location,
+							    projected_radius);
+
+	if(sd->draw_pressure && brush_use_size_pressure(brush))
+		unprojected_radius *= sd->pressure_value;
+
+	if(!brush_use_locked_size(brush))
+		brush_set_unprojected_radius(brush, unprojected_radius);
+}
+
 static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 {
 	Paint *paint = paint_get_active(CTX_data_scene(C));
 	Brush *brush = paint_brush(paint);
-
 	ViewContext vc;
+	float final_radius;
+	float translation[2];
+	float outline_alpha, *outline_col;
+	
+	/* set various defaults */
+	translation[0] = x;
+	translation[1] = y;
+	outline_alpha = 0.5;
+	outline_col = brush->add_col;
+	final_radius = brush_size(brush);
 
+	/* check that brush drawing is enabled */
+	if(!(paint->flags & PAINT_SHOW_BRUSH))
+		return;
+
+	/* can't use stroke vc here because this will be called during
+	   mouse over too, not just during a stroke */	   
 	view3d_set_viewcontext(C, &vc);
 
+	/* TODO: as sculpt and other paint modes are unified, this
+	   special mode of drawing will go away */
 	if(vc.obact->sculpt) {
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-
-		int pixel_radius, viewport[4];
-		float location[3], modelview[16], projection[16];
-
-		int hit;
-
-		int flip;
-		int sign;
-
-		float* col;
-		float  alpha;
-
+		float location[3];
+		int pixel_radius, hit;
 		const float root_alpha = brush_alpha(brush);
 		float visual_strength = root_alpha*root_alpha;
-
 		const float min_alpha = 0.20f;
 		const float max_alpha = 0.80f;
 
+		/* this is probably here so that rake takes into
+		   account the brush movements before the stroke
+		   starts, but this doesn't really belong in draw code
+		   (TODO) */
 		{
 			const float u = 0.5f;
 			const float v = 1 - u;
@@ -554,7 +584,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 			const float dx = sd->last_x - x;
 			const float dy = sd->last_y - y;
 
-			if (dx*dx + dy*dy >= r*r) {
+			if(dx*dx + dy*dy >= r*r) {
 				sd->last_angle = atan2(dx, dy);
 
 				sd->last_x = u*sd->last_x + v*x;
@@ -562,111 +592,58 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 			}
 		}
 
-		if(!brush_use_locked_size(brush) && !(paint->flags & PAINT_SHOW_BRUSH)) 
-			return;
+		/* test if brush is over the mesh */
+		hit = sculpt_get_brush_geometry(C, x, y, &pixel_radius, location);
 
-		hit = sculpt_get_brush_geometry(C, x, y, &pixel_radius, location, modelview, projection, viewport);
+		/* draw overlay */
+		paint_draw_alpha_overlay(sd, brush, &vc, x, y);
 
-		if (brush_use_locked_size(brush))
+		if(brush_use_locked_size(brush))
 			brush_set_size(brush, pixel_radius);
 
-		// XXX: no way currently to know state of pen flip or invert key modifier without starting a stroke
-		flip = brush->flag & BRUSH_INVERTED ? -1 : 1;
+		/* check if brush is subtracting, use different color then */
+		/* TODO: no way currently to know state of pen flip or
+		   invert key modifier without starting a stroke */
+		if((!(brush->flag & BRUSH_INVERTED) ^
+		    !(brush->flag & BRUSH_DIR_IN)) &&
+		   ELEM5(brush->sculpt_tool, SCULPT_TOOL_DRAW,
+			 SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
+			 SCULPT_TOOL_PINCH, SCULPT_TOOL_CREASE))
+			outline_col = brush->sub_col;
 
-		sign = flip * ((brush->flag & BRUSH_DIR_IN)? -1 : 1);
+		/* only do if brush is over the mesh */
+		if(hit)
+			paint_cursor_on_hit(sd, brush, &vc, location, &visual_strength);
 
-		if (sign < 0 && ELEM5(brush->sculpt_tool, SCULPT_TOOL_DRAW, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY, SCULPT_TOOL_PINCH, SCULPT_TOOL_CREASE))
-			col = brush->sub_col;
-		else
-			col = brush->add_col;
+		/* don't show effect of strength past the soft limit */
+		if(visual_strength > 1)
+			visual_strength = 1;
 
-		alpha = (paint->flags & PAINT_SHOW_BRUSH_ON_SURFACE) ? min_alpha + (visual_strength*(max_alpha-min_alpha)) : 0.50f;
+		outline_alpha = ((paint->flags & PAINT_SHOW_BRUSH_ON_SURFACE) ?
+				 min_alpha + (visual_strength*(max_alpha-min_alpha)) : 0.50f);
 
-		paint_draw_alpha_overlay(sd, brush, &vc, viewport, x, y);
-
-		if (hit) {
-			float unprojected_radius;
-
-			// XXX duplicated from brush_strength & paint_stroke_add_step, refactor later
-
-			if (sd->draw_pressure && brush_use_alpha_pressure(brush))
-				visual_strength *= sd->pressure_value;
-
-			// don't show effect of strength past the soft limit
-			if (visual_strength > 1) visual_strength = 1;
-
-			if (sd->draw_anchored) {
-				unprojected_radius = paint_calc_object_space_radius(&vc, location, sd->anchored_size);
-			}
-			else {
-				if (brush->flag & BRUSH_ANCHORED)
-					unprojected_radius = paint_calc_object_space_radius(&vc, location, 8);
-				else
-					unprojected_radius = paint_calc_object_space_radius(&vc, location, brush_size(brush));
-			}
-
-			if (sd->draw_pressure && brush_use_size_pressure(brush))
-				unprojected_radius *= sd->pressure_value;
-
-			if (!brush_use_locked_size(brush))
-				brush_set_unprojected_radius(brush, unprojected_radius);
-
-			if(!(paint->flags & PAINT_SHOW_BRUSH))
-				return;
-
+		if(sd->draw_anchored) {
+			final_radius = sd->anchored_size;
+			translation[0] = sd->anchored_initial_mouse[0] - vc.ar->winrct.xmin;
+			translation[1] = sd->anchored_initial_mouse[1] - vc.ar->winrct.ymin;
 		}
-
-		glPushAttrib(
-			GL_COLOR_BUFFER_BIT|
-			GL_CURRENT_BIT|
-			GL_DEPTH_BUFFER_BIT|
-			GL_ENABLE_BIT|
-			GL_LINE_BIT|
-			GL_POLYGON_BIT|
-			GL_STENCIL_BUFFER_BIT|
-			GL_TRANSFORM_BIT|
-			GL_VIEWPORT_BIT|
-			GL_TEXTURE_BIT);
-
-		glColor4f(col[0], col[1], col[2], alpha);
-
-		glEnable(GL_BLEND);
-
-		glEnable(GL_LINE_SMOOTH);
-
-		if (sd->draw_anchored) {
-			glTranslatef(sd->anchored_initial_mouse[0] - vc.ar->winrct.xmin, sd->anchored_initial_mouse[1] - vc.ar->winrct.ymin, 0.0f);
-			glutil_draw_lined_arc(0.0, M_PI*2.0, sd->anchored_size, 40);
-			glTranslatef(-sd->anchored_initial_mouse[0] + vc.ar->winrct.xmin, -sd->anchored_initial_mouse[1] + vc.ar->winrct.xmin, 0.0f);
-		}
-		else {
-			glTranslatef((float)x, (float)y, 0.0f);
-			glutil_draw_lined_arc(0.0, M_PI*2.0, brush_size(brush), 40);
-			glTranslatef(-(float)x, -(float)y, 0.0f);
-		}
-
-		glPopAttrib();
 	}
-	else {
-		if(!(paint->flags & PAINT_SHOW_BRUSH))
-			return;
 
-		glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], 0.5f);
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
+	/* make lines pretty */
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
 
-		glTranslatef((float)x, (float)y, 0.0f);
+	/* set brush color */
+	glColor4f(outline_col[0], outline_col[1], outline_col[2], outline_alpha);
 
-		/* XXX: for now use the brushes size instead of
-		   potentially using the unified size because the
-		   feature has only been enabled for sculpt
-		*/
-		glutil_draw_lined_arc(0.0, M_PI*2.0, brush_size(brush), 40);
-		glTranslatef((float)-x, (float)-y, 0.0f);
+	/* draw brush outline */
+	glTranslatef(translation[0], translation[1], 0);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, final_radius, 40);
+	glTranslatef(-translation[0], -translation[1], 0);
 
-		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
-	}
+	/* restore GL state */
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH);
 }
 
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
