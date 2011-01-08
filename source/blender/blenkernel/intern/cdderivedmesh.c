@@ -190,7 +190,7 @@ static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
 static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
-	Mesh *me= (ob)? ob->data: NULL;
+	Mesh *me= ob->data;
 
 	if(ob->sculpt->modifiers_active) return 0;
 

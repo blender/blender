@@ -305,7 +305,7 @@ static float sh_eval(float *sh, float *v)
 
 /* ------------------------------ Building --------------------------------- */
 
-static void occ_face(const OccFace *face, float *co, float *normal, float *area)
+static void occ_face(const OccFace *face, float co[3], float normal[3], float *area)
 {
 	ObjectInstanceRen *obi;
 	VlakRen *vlr;
@@ -422,20 +422,22 @@ static void occ_node_from_face(OccFace *face, OccNode *node)
 	sh_from_disc(n, node->area, node->sh);
 }
 
-static void occ_build_dco(OcclusionTree *tree, OccNode *node, float *co, float *dco)
+static void occ_build_dco(OcclusionTree *tree, OccNode *node, const float co[3], float *dco)
 {
-	OccNode *child;
-	float dist, d[3], nco[3];
 	int b;
-
 	for(b=0; b<TOTCHILD; b++) {
+		float dist, d[3], nco[3];
+
 		if(node->childflag & (1<<b)) {
-			occ_face(tree->face+node->child[b].face, nco, 0, 0);
+			occ_face(tree->face+node->child[b].face, nco, NULL, NULL);
 		}
 		else if(node->child[b].node) {
-			child= node->child[b].node;
+			OccNode *child= node->child[b].node;
 			occ_build_dco(tree, child, co, dco);
 			VECCOPY(nco, child->co);
+		}
+		else {
+			continue;
 		}
 
 		VECSUB(d, nco, co);
@@ -522,7 +524,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 	ListBase threads;
 	OcclusionBuildThread othreads[BLENDER_MAX_THREADS];
 	OccNode *child, tmpnode;
-	OccFace *face;
+	/* OccFace *face; */
 	int a, b, totthread=0, offset[TOTCHILD], count[TOTCHILD];
 
 	/* add a new node */
@@ -531,7 +533,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 	/* leaf node with only children */
 	if(end - begin <= TOTCHILD) {
 		for(a=begin, b=0; a<end; a++, b++) {
-			face= &tree->face[a];
+			/* face= &tree->face[a]; */
 			node->child[b].face= a;
 			node->childflag |= (1<<b);
 		}
@@ -548,7 +550,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 				node->child[b].node= NULL;
 			}
 			else if(count[b] == 1) {
-				face= &tree->face[offset[b]];
+				/* face= &tree->face[offset[b]]; */
 				node->child[b].face= offset[b];
 				node->childflag |= (1<<b);
 			}
@@ -1527,7 +1529,7 @@ static int sample_occ_cache(OcclusionTree *tree, float *co, float *n, int x, int
 
 	for(i=0; i<4; i++) {
 		VECSUB(d, samples[i]->co, co);
-		dist2= INPR(d, d);
+		//dist2= INPR(d, d);
 
 		wz[i]= 1.0f; //(samples[i]->dist2/(1e-4f + dist2));
 		wn[i]= pow(INPR(samples[i]->n, n), 32.0f);
