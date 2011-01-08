@@ -149,14 +149,14 @@ ModifierData *modifiers_findByName(Object *ob, const char *name)
 void modifiers_clearErrors(Object *ob)
 {
 	ModifierData *md = ob->modifiers.first;
-	int qRedraw = 0;
+	/* int qRedraw = 0; */
 
 	for (; md; md=md->next) {
 		if (md->error) {
 			MEM_freeN(md->error);
 			md->error = NULL;
 
-			qRedraw = 1;
+			/* qRedraw = 1; */
 		}
 	}
 }

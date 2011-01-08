@@ -431,7 +431,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	PointCache *cache;
 	PTCacheID pid;
 	float timescale;
-	int framedelta, framenr, startframe, endframe;
+	int framenr, startframe, endframe;
 	int cache_result;
 
 	clmd->scene= scene;	/* nice to pass on later :) */
@@ -486,11 +486,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	else if(framenr > endframe) {
 		framenr= endframe;
 	}
-
-	if(cache->flag & PTCACHE_SIMULATION_VALID)
-		framedelta= framenr - cache->simframe;
-	else
-		framedelta= -1;
 
 	/* initialize simulation data if it didn't exist already */
 	if(!do_init_cloth(ob, clmd, dm, framenr))

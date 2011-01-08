@@ -859,12 +859,15 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				yof= cu->yof + tb->y/cu->fsize;
 			}
 
+			/* XXX, has been unused for years, need to check if this is useful, r4613 r5282 - campbell */
+#if 0
 			if(ascii == '\n' || ascii == '\r')
 				xof = cu->xof;
 			else
 				xof= cu->xof + (tb->x/cu->fsize);
-
+#else
 			xof= cu->xof + (tb->x/cu->fsize);
+#endif
 			lnr++;
 			cnr= 0;
 			wsnr= 0;

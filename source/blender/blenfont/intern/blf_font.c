@@ -159,7 +159,6 @@ void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len)
 	if (!font->glyph_cache)
 		return;
 
-	i= 0;
 	pen_x= 0;
 	pen_y= 0;
 	has_kerning= FT_HAS_KERNING(font->face);

@@ -1373,7 +1373,6 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 	ccgdm_pbvh_update(ccgdm);
 
 	doDraw = 0;
-	numVerts = 0;
 	matnr = -1;
 	transp = GPU_get_material_blend_mode();
 	orig_transp = transp;

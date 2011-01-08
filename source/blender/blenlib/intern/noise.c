@@ -1756,7 +1756,7 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 	signal = offset - fabs(noisefunc(x, y, z));
 	signal *= signal;
 	result = signal;
-	weight = 1.f;
+
 
 	for( i=1; i<(int)octaves; i++ ) {
 		x *= lacunarity;

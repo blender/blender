@@ -569,8 +569,6 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		wmSubWindowSet(win, screen->mainwin);
 
 		wm_triple_draw_textures(win, win->drawdata);
-
-		triple= win->drawdata;
 	}
 	else {
 		win->drawdata= MEM_callocN(sizeof(wmDrawTriple), "wmDrawTriple");

@@ -143,7 +143,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int step;
 	int i, j;
 	int i1,i2;
-	int step_tot= ltmd->steps;
+	int step_tot= useRenderParams ? ltmd->render_steps : ltmd->steps;
 	const int do_flip = ltmd->flag & MOD_SCREW_NORMAL_FLIP ? 1 : 0;
 	int maxVerts=0, maxEdges=0, maxFaces=0;
 	int totvert= dm->getNumVerts(dm);
@@ -172,8 +172,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* dont do anything? */
 	if (!totvert)
 		return CDDM_from_template(dm, 0, 0, 0);
-
-	step_tot= useRenderParams ? ltmd->render_steps : ltmd->steps;
 
 	switch(ltmd->axis) {
 	case 0:

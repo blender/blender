@@ -662,7 +662,7 @@ int isect_sweeping_sphere_tri_v3(float p1[3], float p2[3], float radius, float v
 {
 	float e1[3], e2[3], e3[3], point[3], vel[3], /*dist[3],*/ nor[3], temp[3], bv[3];
 	float a, b, c, d, e, x, y, z, radius2=radius*radius;
-	float elen2,edotv,edotbv,nordotv,vel2;
+	float elen2,edotv,edotbv,nordotv;
 	float newLambda;
 	int found_by_sweep=0;
 
@@ -736,7 +736,7 @@ int isect_sweeping_sphere_tri_v3(float p1[3], float p2[3], float radius, float v
 	*lambda=1.0f;
 
 /*---test points---*/
-	a=vel2=dot_v3v3(vel,vel);
+	a=dot_v3v3(vel,vel);
 
 	/*v0*/
 	sub_v3_v3v3(temp,p1,v0);
@@ -825,9 +825,9 @@ int isect_sweeping_sphere_tri_v3(float p1[3], float p2[3], float radius, float v
 	}
 
 	/*e3*/
-	sub_v3_v3v3(bv,v0,p1);
-	elen2 = dot_v3v3(e1,e1);
-	edotv = dot_v3v3(e1,vel);
+	/* sub_v3_v3v3(bv,v0,p1); */ /* UNUSED */
+	/* elen2 = dot_v3v3(e1,e1); */ /* UNUSED */
+	/* edotv = dot_v3v3(e1,vel); */ /* UNUSED */
 	/* edotbv = dot_v3v3(e1,bv); */ /* UNUSED */
 
 	sub_v3_v3v3(bv,v1,p1);

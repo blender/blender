@@ -2602,15 +2602,8 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	/* write tangent to layer */
 	for(i=0, tf=mtface, mf=mface; i < totface; mf++, tf++, i++, tangent+=4) {
 		len= (mf->v4)? 4 : 3; 
-		
-		if(mtface) {
-			uv1= tf->uv[0];
-			uv2= tf->uv[1];
-			uv3= tf->uv[2];
-			uv4= tf->uv[3];
-		}
-		else {
-			uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
+
+		if(mtface == NULL) {
 			map_to_sphere( &uv[0][0], &uv[0][1],orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
 			map_to_sphere( &uv[1][0], &uv[1][1],orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
 			map_to_sphere( &uv[2][0], &uv[2][1],orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);

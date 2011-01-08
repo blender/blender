@@ -3488,7 +3488,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	PARTICLE_P;
-	float disp, birthtime, dietime;
+	float disp, dietime;
 
 	BLI_srandom(psys->seed);
 
@@ -3503,7 +3503,6 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 
 		psys->lattice= psys_get_lattice(sim);
 
-		birthtime = pa->time;
 		dietime = pa->dietime;
 
 		/* update alive status and push events */

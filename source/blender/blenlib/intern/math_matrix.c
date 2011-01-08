@@ -1457,7 +1457,6 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 	eps = powf(2.0f,-52.0f);
 	while (p > 0) {
 		int kase=0;
-		k=0;
 
 		// Test for maximum iterations to avoid infinite loop
 		if(maxiter == 0)

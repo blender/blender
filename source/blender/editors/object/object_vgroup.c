@@ -1366,7 +1366,6 @@ static void vgroup_assign_verts(Object *ob, float weight)
 			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 
 			if(dvert && (eve->f & SELECT)){
-				done=0;
 				/* See if this vert already has a reference to this group */
 				/*		If so: Change its weight */
 				done=0;

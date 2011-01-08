@@ -1233,7 +1233,7 @@ int txt_find_string(Text *text, char *findstr, int wrap)
 {
 	TextLine *tl, *startl;
 	char *s= NULL;
-	int oldcl, oldsl, oldcc, oldsc;
+	int oldcl, oldsl;
 
 	if (!text || !text->curl || !text->sell) return 0;
 	
@@ -1242,8 +1242,6 @@ int txt_find_string(Text *text, char *findstr, int wrap)
 	oldcl= txt_get_span(text->lines.first, text->curl);
 	oldsl= txt_get_span(text->lines.first, text->sell);
 	tl= startl= text->sell;
-	oldcc= text->curc;
-	oldsc= text->selc;
 	
 	s= strstr(&tl->line[text->selc], findstr);
 	while (!s) {
