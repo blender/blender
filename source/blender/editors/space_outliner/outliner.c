@@ -1510,6 +1510,42 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 
 /* **************** INTERACTIVE ************* */
 
+
+static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	int dy= ar->v2d.mask.ymax - ar->v2d.mask.ymin;
+	int up= 0;
+	
+	if(RNA_boolean_get(op->ptr, "up"))
+		up= 1;
+
+	if(up == 0) dy= -dy;
+	ar->v2d.cur.ymin+= dy;
+	ar->v2d.cur.ymax+= dy;
+	
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
+
+
+void OUTLINER_OT_scroll_page(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Scroll Page";
+	ot->idname= "OUTLINER_OT_scroll_page";
+	ot->description= "Scroll page up or down";
+	
+	/* callbacks */
+	ot->exec= outliner_scroll_page_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "up", 0, "Up", "Scroll up one page.");
+}
+
+
 static int outliner_count_levels(SpaceOops *soops, ListBase *lb, int curlevel)
 {
 	TreeElement *te;

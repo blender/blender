@@ -131,6 +131,8 @@ void OUTLINER_OT_show_hierarchy(struct wmOperatorType *ot);
 void OUTLINER_OT_selected_toggle(struct wmOperatorType *ot);
 void OUTLINER_OT_expanded_toggle(struct wmOperatorType *ot);
 
+void OUTLINER_OT_scroll_page(struct wmOperatorType *ot);
+
 void OUTLINER_OT_renderability_toggle(struct wmOperatorType *ot);
 void OUTLINER_OT_selectability_toggle(struct wmOperatorType *ot);
 void OUTLINER_OT_visibility_toggle(struct wmOperatorType *ot);
