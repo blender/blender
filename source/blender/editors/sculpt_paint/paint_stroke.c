@@ -51,8 +51,9 @@
 #include "ED_view3d.h"
 
 #include "paint_intern.h"
-#include "sculpt_intern.h" // XXX, for expedience in getting this working, refactor later (or this just shows that this needs unification)
-
+/* still needed for sculpt_stroke_get_location, should be
+   removed eventually (TODO) */
+#include "sculpt_intern.h"
 
 #include <float.h>
 #include <math.h>
@@ -321,18 +322,6 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 	return 1;
 }
 
-/* Convert a point in model coordinates to 2D screen coordinates. */
-// XXX duplicated from sculpt.c, deal with this later.
-static void projectf(bglMats *mats, const float v[3], float p[2])
-{
-	double ux, uy, uz;
-
-	gluProject(v[0],v[1],v[2], mats->modelview, mats->projection,
-		   (GLint *)mats->viewport, &ux, &uy, &uz);
-	p[0]= ux;
-	p[1]= uy;
-}
-
 static int project_brush_radius(RegionView3D* rv3d, float radius, float location[3], bglMats* mats)
 {
 	float view[3], nonortho[3], ortho[3], offset[3], p1[2], p2[2];
@@ -385,8 +374,11 @@ int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius,
 	window[0] = x + stroke->vc.ar->winrct.xmin;
 	window[1] = y + stroke->vc.ar->winrct.ymin;
 
-	if(stroke->vc.obact->sculpt && stroke->vc.obact->sculpt->pbvh && sculpt_stroke_get_location(C, stroke, location, window)) {
-		*pixel_radius = project_brush_radius(stroke->vc.rv3d, brush_unprojected_radius(stroke->brush), location, &stroke->mats);
+	if(stroke->vc.obact->sculpt && stroke->vc.obact->sculpt->pbvh &&
+	   sculpt_stroke_get_location(C, stroke, location, window)) {
+		*pixel_radius = project_brush_radius(stroke->vc.rv3d,
+						     brush_unprojected_radius(stroke->brush),
+						     location, &stroke->mats);
 
 		if (*pixel_radius == 0)
 			*pixel_radius = brush_size(stroke->brush);
@@ -646,47 +638,52 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	glDisable(GL_LINE_SMOOTH);
 }
 
-/* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
-static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, float mouse_in[2])
+/* if this is a tablet event, return tablet pressure and set *pen_flip
+   to 1 if the eraser tool is being used, 0 otherwise */
+static float event_tablet_data(wmEvent *event, int *pen_flip)
 {
-	Paint *paint = paint_get_active(CTX_data_scene(C)); // XXX
-	Brush *brush = paint_brush(paint); // XXX
+	int erasor = 0;
+	float pressure = 1;
 
-	float mouse[3];
-
-	PointerRNA itemptr;
-
-	float location[3];
-
-	float pressure;
-	int   pen_flip;
-
-	ViewContext vc; // XXX
-
-	PaintStroke *stroke = op->customdata;
-
-	view3d_set_viewcontext(C, &vc); // XXX
-
-	/* Tablet */
 	if(event->custom == EVT_DATA_TABLET) {
 		wmTabletData *wmtab= event->customdata;
 
+		erasor = (wmtab->Active == EVT_TABLET_ERASER);
 		pressure = (wmtab->Active != EVT_TABLET_NONE) ? wmtab->Pressure : 1;
-		pen_flip = (wmtab->Active == EVT_TABLET_ERASER);
-	}
-	else {
-		pressure = 1;
-		pen_flip = 0;
 	}
 
-	// XXX: temporary check for sculpt mode until things are more unified
-	if (vc.obact->sculpt) {
+	if(pen_flip)
+		(*pen_flip) = erasor;
+
+	return pressure;
+}
+
+/* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
+static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, float mouse_in[2])
+{
+	Paint *paint = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(paint);
+	PaintStroke *stroke = op->customdata;
+	float mouse[3];
+	PointerRNA itemptr;
+	float location[3];
+	float pressure;
+	int pen_flip;
+
+	/* see if tablet affects event */
+	pressure = event_tablet_data(event, &pen_flip);
+
+	/* TODO: as sculpt and other paint modes are unified, this
+	   separation will go away */
+	if(stroke->vc.obact->sculpt) {
 		float delta[3];
 
 		brush_jitter_pos(brush, mouse_in, mouse);
 
-		// XXX: meh, this is round about because brush_jitter_pos isn't written in the best way to be reused here
-		if (brush->flag & BRUSH_JITTER_PRESSURE) {
+		/* XXX: meh, this is round about because
+		   brush_jitter_pos isn't written in the best way to
+		   be reused here */
+		if(brush->flag & BRUSH_JITTER_PRESSURE) {
 			sub_v3_v3v3(delta, mouse, mouse_in);
 			mul_v3_fl(delta, pressure);
 			add_v3_v3v3(mouse, mouse_in, delta);
@@ -695,7 +692,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	else
 		copy_v3_v3(mouse, mouse_in);
 
-	/* XXX: can remove the if statement once all modes have this */
+	/* TODO: can remove the if statement once all modes have this */
 	if(stroke->get_location)
 		stroke->get_location(C, stroke, location, mouse);
 	else
@@ -704,10 +701,10 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	/* Add to stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
-	RNA_float_set_array(&itemptr, "location",     location);
-	RNA_float_set_array(&itemptr, "mouse",        mouse);
-	RNA_boolean_set    (&itemptr, "pen_flip",     pen_flip);
-	RNA_float_set      (&itemptr, "pressure", pressure);
+	RNA_float_set_array(&itemptr, "location", location);
+	RNA_float_set_array(&itemptr, "mouse", mouse);
+	RNA_boolean_set(&itemptr, "pen_flip", pen_flip);
+	RNA_float_set(&itemptr, "pressure", pressure);
 
 	stroke->last_mouse_position[0] = mouse[0];
 	stroke->last_mouse_position[1] = mouse[1];
@@ -769,15 +766,9 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 		if(length > FLT_EPSILON) {
 			int steps;
 			int i;
-			float pressure = 1;
+			float pressure;
 
-			// XXX duplicate code
-			if(event->custom == EVT_DATA_TABLET) {
-				wmTabletData *wmtab= event->customdata;
-				if(wmtab->Active != EVT_TABLET_NONE)
-					pressure = brush_use_size_pressure(stroke->brush) ? wmtab->Pressure : 1;
-			}
-
+			pressure = event_tablet_data(event, NULL);
 			scale = (brush_size(stroke->brush)*pressure*stroke->brush->spacing/50.0f) / length;
 			mul_v2_fl(vec, scale);
 

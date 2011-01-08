@@ -21,6 +21,8 @@
 #include "RNA_define.h"
 
 #include "BIF_gl.h"
+/* TODO: remove once projectf goes away */
+#include "BIF_glutil.h"
 
 #include "RE_shader_ext.h"
 
@@ -34,6 +36,19 @@
 #include "WM_types.h"
 
 #include "paint_intern.h"
+
+/* convert a point in model coordinates to 2D screen coordinates */
+/* TODO: can be deleted once all calls are replaced with
+   view3d_project_float() */
+void projectf(bglMats *mats, const float v[3], float p[2])
+{
+	double ux, uy, uz;
+
+	gluProject(v[0],v[1],v[2], mats->modelview, mats->projection,
+		   (GLint *)mats->viewport, &ux, &uy, &uz);
+	p[0]= ux;
+	p[1]= uy;
+}
 
 float paint_calc_object_space_radius(ViewContext *vc, float center[3],
 				     float pixel_radius)

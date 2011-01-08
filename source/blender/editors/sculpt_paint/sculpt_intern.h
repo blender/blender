@@ -55,7 +55,6 @@ void sculpt_radialcontrol_start(int mode);
 struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
 
 struct Brush *sculptmode_brush(void);
-//void do_symmetrical_brush_actions(struct Sculpt *sd, struct wmOperator *wm, struct BrushAction *a, short *, short *);
 
 void sculpt(Sculpt *sd);
 
@@ -69,9 +68,6 @@ void sculpt_stroke_add_point(struct SculptStroke *, const short x, const short y
 void sculpt_stroke_apply(struct Sculpt *sd, struct SculptStroke *);
 void sculpt_stroke_apply_all(struct Sculpt *sd, struct SculptStroke *);
 int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float out[3], float mouse[2]);
-
-/* Partial Mesh Visibility */
-void sculptmode_pmv(int mode);
 
 /* Undo */
 
@@ -109,7 +105,5 @@ void sculpt_undo_push_end(void);
 
 int sculpt_modifiers_active(Scene *scene, Object *ob);
 void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
-
-void brush_jitter_pos(struct Brush *brush, float *pos, float *jitterpos);
 
 #endif

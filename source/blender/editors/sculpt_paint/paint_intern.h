@@ -31,6 +31,7 @@
 
 struct ARegion;
 struct bContext;
+struct bglMats;
 struct Brush;
 struct ListBase;
 struct Mesh;
@@ -99,6 +100,7 @@ void PAINT_OT_image_from_view(struct wmOperatorType *ot);
 
 
 /* paint_utils.c */
+void projectf(struct bglMats *mats, const float v[3], float p[2]);
 float paint_calc_object_space_radius(struct ViewContext *vc, float center[3], float pixel_radius);
 float paint_get_tex_pixel(struct Brush* br, float u, float v);
 int imapaint_pick_face(struct ViewContext *vc, struct Mesh *me, int *mval, unsigned int *index);

@@ -59,7 +59,6 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
@@ -83,10 +82,6 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-/* ==== FORWARD DEFINITIONS =====
- *
- */
 
 void ED_sculpt_force_update(bContext *C)
 {
@@ -150,10 +145,6 @@ int sculpt_modifiers_active(Scene *scene, Object *ob)
 
 	return 0;
 }
-
-/* ===== STRUCTS =====
- *
- */
 
 typedef enum StrokeFlags {
 	CLIP_X = 1,
@@ -224,22 +215,6 @@ typedef struct StrokeCache {
 
 	float plane_trim_squared;
 } StrokeCache;
-
-/* ===== OPENGL =====
- *
- * Simple functions to get data from the GL
- */
-
-/* Convert a point in model coordinates to 2D screen coordinates. */
-static void projectf(bglMats *mats, const float v[3], float p[2])
-{
-	double ux, uy, uz;
-
-	gluProject(v[0],v[1],v[2], mats->modelview, mats->projection,
-		   (GLint *)mats->viewport, &ux, &uy, &uz);
-	p[0]= ux;
-	p[1]= uy;
-}
 
 /*** BVH Tree ***/
 
