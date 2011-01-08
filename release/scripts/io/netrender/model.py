@@ -199,6 +199,8 @@ class RenderJob:
         self.blacklist = []
         
         self.version_info = None
+        
+        self.resolution = None
 
         self.usage = 0.0
         self.last_dispatched = 0.0
@@ -293,7 +295,8 @@ class RenderJob:
                             "usage": self.usage,
                             "blacklist": self.blacklist,
                             "last_dispatched": self.last_dispatched,
-                            "version_info": self.version_info.serialize() if self.version_info else None
+                            "version_info": self.version_info.serialize() if self.version_info else None,
+                            "resolution": self.resolution
                         }
 
     @staticmethod
@@ -314,6 +317,7 @@ class RenderJob:
         job.usage = data["usage"]
         job.blacklist = data["blacklist"]
         job.last_dispatched = data["last_dispatched"]
+        job.resolution = data["resolution"]
         
         version_info = data.get("version_info", None)
         if version_info:

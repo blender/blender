@@ -83,8 +83,6 @@ class MRenderJob(netrender.model.RenderJob):
         self.save_path = ""
         self.files = [MRenderFile(rfile.filepath, rfile.index, rfile.start, rfile.end, rfile.signature) for rfile in job_info.files]
 
-        self.resolution = None
-
     def initInfo(self):
         if not self.resolution:
             self.resolution = tuple(getFileInfo(self.files[0].filepath, ["bpy.context.scene.render.resolution_x", "bpy.context.scene.render.resolution_y", "bpy.context.scene.render.resolution_percentage"]))
