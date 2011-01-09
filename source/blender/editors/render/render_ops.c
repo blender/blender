@@ -67,7 +67,6 @@ void ED_operatortypes_render(void)
 	WM_operatortype_append(SCENE_OT_freestyle_color_modifier_add);
 	WM_operatortype_append(SCENE_OT_freestyle_alpha_modifier_add);
 	WM_operatortype_append(SCENE_OT_freestyle_thickness_modifier_add);
-	WM_operatortype_append(SCENE_OT_freestyle_modifier_toggle_fold);
 	WM_operatortype_append(SCENE_OT_freestyle_modifier_remove);
 	WM_operatortype_append(SCENE_OT_freestyle_modifier_move);
 

@@ -1084,36 +1084,6 @@ void SCENE_OT_freestyle_thickness_modifier_add(wmOperatorType *ot)
 	ot->prop= RNA_def_enum(ot->srna, "type", linestyle_thickness_modifier_type_items, 0, "Type", "");
 }
 
-static int freestyle_modifier_toggle_fold_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Scene *scene= CTX_data_scene(C);
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);
-	LineStyleModifier *modifier= ptr.data;
-
-	if (modifier->flags & LS_MODIFIER_EXPANDED)
-		modifier->flags &= ~LS_MODIFIER_EXPANDED;
-	else
-		modifier->flags |= LS_MODIFIER_EXPANDED;
-
-	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
-	
-	return OPERATOR_FINISHED;
-}
-
-void SCENE_OT_freestyle_modifier_toggle_fold(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Toggle Modifier Fold";
-	ot->idname= "SCENE_OT_freestyle_modifier_toggle_fold";
-	ot->description="Fold/expand the modifier tab.";
-	
-	/* api callbacks */
-	ot->exec= freestyle_modifier_toggle_fold_exec;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
 static int freestyle_get_modifier_type(PointerRNA *ptr)
 {
 	if (RNA_struct_is_a(ptr->type, &RNA_LineStyleColorModifier))

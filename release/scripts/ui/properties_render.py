@@ -305,7 +305,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
             icon = "TRIA_DOWN"
         else:
             icon = "TRIA_RIGHT"
-        row.operator("scene.freestyle_modifier_toggle_fold", icon=icon, text="", emboss=False)
+        row.prop(modifier, "expanded", text="", icon=icon, emboss=False)
         row.label(text=modifier.rna_type.name)
         row.prop(modifier, "name", text="")
         row.prop(modifier, "use", text="")
