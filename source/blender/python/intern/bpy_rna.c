@@ -1250,7 +1250,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				return -1;
 			}
 
-			seq_len = PySequence_Length(value);
+			seq_len = PySequence_Size(value);
 			for(i=0; i<seq_len; i++) {
 				item= PySequence_GetItem(value, i);
 
@@ -3279,7 +3279,7 @@ static int foreach_parse_args(
 		return -1;
 	}
 
-	*tot= PySequence_Length(*seq); // TODO - buffer may not be a sequence! array.array() is tho.
+	*tot= PySequence_Size(*seq); // TODO - buffer may not be a sequence! array.array() is tho.
 
 	if(*tot>0) {
 		foreach_attr_type(self, *attr, raw_type, attr_tot, attr_signed);

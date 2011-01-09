@@ -851,7 +851,7 @@ Factory_filter(Factory* self, PyObject* args)
 		return NULL;
 	}
 
-	if(!PySequence_Length(py_b) || (py_a != NULL && !PySequence_Length(py_a)))
+	if(!PySequence_Size(py_b) || (py_a != NULL && !PySequence_Size(py_a)))
 	{
 		PyErr_SetString(PyExc_ValueError, "The sequence has to contain at least one value!");
 		return NULL;
@@ -862,7 +862,7 @@ Factory_filter(Factory* self, PyObject* args)
 	float value;
 	int result;
 
-	for(int i = 0; i < PySequence_Length(py_b); i++)
+	for(int i = 0; i < PySequence_Size(py_b); i++)
 	{
 		py_value = PySequence_GetItem(py_b, i);
 		result = PyArg_Parse(py_value, "f:filter", &value);
@@ -876,7 +876,7 @@ Factory_filter(Factory* self, PyObject* args)
 
 	if(py_a)
 	{
-		for(int i = 0; i < PySequence_Length(py_a); i++)
+		for(int i = 0; i < PySequence_Size(py_a); i++)
 		{
 			py_value = PySequence_GetItem(py_a, i);
 			result = PyArg_Parse(py_value, "f:filter", &value);

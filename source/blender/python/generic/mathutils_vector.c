@@ -844,7 +844,7 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end,
 	CLAMP(end, 0, self->size);
 	begin = MIN2(begin,end);
 
-	size = PySequence_Length(seq);
+	size = PySequence_Size(seq);
 	if(size != (end - begin)){
 		PyErr_SetString(PyExc_TypeError, "vector[begin:end] = []: size mismatch in slice assignment");
 		return -1;

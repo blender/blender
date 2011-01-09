@@ -57,7 +57,7 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 	if (dim + 1 < totdim) {
 		/* check that a sequence contains dimsize[dim] items */
 
-		for (i= 0; i < PySequence_Length(seq); i++) {
+		for (i= 0; i < PySequence_Size(seq); i++) {
 			PyObject *item;
 			int ok= 1;
 			item= PySequence_GetItem(seq, i);
@@ -72,7 +72,7 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 			   dimsize[2]=5
 		   
 			   dim=0 */
-			else if (PySequence_Length(item) != dimsize[dim + 1]) {
+			else if (PySequence_Size(item) != dimsize[dim + 1]) {
 				/* BLI_snprintf(error_str, error_str_size, "sequences of dimension %d should contain %d items", (int)dim + 1, (int)dimsize[dim + 1]); */
 				PyErr_Format(PyExc_ValueError, "%s sequences of dimension %d should contain %d items", error_prefix, (int)dim + 1, (int)dimsize[dim + 1]);
 				ok= 0;
@@ -89,7 +89,7 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 	}
 	else {
 		/* check that items are of correct type */
-		for (i= 0; i < PySequence_Length(seq); i++) {
+		for (i= 0; i < PySequence_Size(seq); i++) {
 			PyObject *item= PySequence_GetItem(seq, i);
 
 			if (!check_item_type(item)) {
@@ -114,7 +114,7 @@ static int count_items(PyObject *seq)
 
 	if (PySequence_Check(seq)) {
 		int i;
-		for (i= 0; i < PySequence_Length(seq); i++) {
+		for (i= 0; i < PySequence_Size(seq); i++) {
 			PyObject *item= PySequence_GetItem(seq, i);
 			totitem += count_items(item);
 			Py_DECREF(item);
@@ -211,7 +211,7 @@ static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, int 
 	unsigned int i;
 	int totdim= RNA_property_array_dimension(ptr, prop, NULL);
 
-	for (i= 0; i < PySequence_Length(seq); i++) {
+	for (i= 0; i < PySequence_Size(seq); i++) {
 		PyObject *item= PySequence_GetItem(seq, i);
 
 		if (dim + 1 < totdim) {

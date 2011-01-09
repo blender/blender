@@ -207,7 +207,7 @@ static PyObject *Method_Buffer (PyObject *UNUSED(self), PyObject *args)
 		ndimensions= 1;
 		dimensions[0]= PyLong_AsLong(length_ob);
 	} else if (PySequence_Check(length_ob)) {
-		ndimensions= PySequence_Length(length_ob);
+		ndimensions= PySequence_Size(length_ob);
 		if (ndimensions > MAX_DIMENSIONS) {
 			PyErr_SetString(PyExc_AttributeError, "too many dimensions, max is 256");
 			return NULL;
@@ -360,8 +360,8 @@ static int Buffer_ass_slice(PyObject *self, int begin, int end, PyObject *seq)
 		return -1;
 	}
 
-	if (PySequence_Length(seq)!=(end-begin)) {
-		int seq_len = PySequence_Length(seq);
+	if (PySequence_Size(seq)!=(end-begin)) {
+		int seq_len = PySequence_Size(seq);
 		char err_str[128];
 		sprintf(err_str, "size mismatch in assignment. Expected size: %d (size provided: %d)", seq_len, (end-begin));
 		PyErr_SetString(PyExc_TypeError, err_str);

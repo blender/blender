@@ -336,7 +336,7 @@ PyObject * getBackground (PyImage * self, void * closure)
 static int setBackground (PyImage * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 4
+	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 4
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1))
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2))
