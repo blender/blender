@@ -768,9 +768,6 @@ static void write_boid_state(WriteData *wd, BoidState *state)
 	//for(; cond; cond=cond->next)
 	//	writestruct(wd, DATA, "BoidCondition", 1, cond);
 }
-/* TODO: replace *cache with *cachelist once it's coded */
-#define PTCACHE_WRITE_PSYS	0
-#define PTCACHE_WRITE_CLOTH	1
 static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 {
 	PointCache *cache = ptcaches->first;
@@ -786,8 +783,12 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 				writestruct(wd, DATA, "PTCacheMem", 1, pm);
 				
 				for(i=0; i<BPHYS_TOT_DATA; i++) {
-					if(pm->data[i] && pm->data_types & (1<<i))
-						writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
+					if(pm->data[i] && pm->data_types & (1<<i)) {
+						if(strcmp(ptcache_datastruct[i], "")==0)
+							writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
+						else
+							writestruct(wd, DATA, ptcache_datastruct[i], pm->totpoint, pm->data[i]);
+					}
 				}
 			}
 		}

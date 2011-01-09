@@ -150,7 +150,7 @@ typedef struct PTCacheExtra {
 
 typedef struct PTCacheMem {
 	struct PTCacheMem *next, *prev;
-	int frame, totpoint;
+	unsigned int frame, totpoint;
 	unsigned int data_types, flag;
 
 	void *data[8]; /* BPHYS_TOT_DATA */

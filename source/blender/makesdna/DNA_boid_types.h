@@ -106,8 +106,6 @@ typedef enum BoidMode {
 } BoidMode;
 
 
-/* XXX WARNING!!! */
-/* BoidData is NOT in DNA, it gets saved via write_data. Do not change struct */
 typedef struct BoidData {
 	float health, acc[3];
 	short state_id, mode;

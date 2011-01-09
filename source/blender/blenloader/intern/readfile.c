@@ -2939,12 +2939,11 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 			for(i=0; i<BPHYS_TOT_DATA; i++) {
 				pm->data[i] = newdataadr(fd, pm->data[i]);
 				
-				/* XXX the cache saves structs and data without DNA */
-				if(pm->data[i] && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
+				/* the cache saves non-struct data without DNA */
+				if(pm->data[i] && strcmp(ptcache_datastruct[i], "")==0 && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
 					int j, tot= (BKE_ptcache_data_size (i) * pm->totpoint)/4; /* data_size returns bytes */
 					int *poin= pm->data[i];
 					
-					/* XXX fails for boid struct, it has 2 shorts */
 					for(j= 0; j<tot; j++)
 						SWITCH_INT(poin[j]);
 				}
