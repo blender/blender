@@ -341,7 +341,7 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 	}
 	else {
 		BKE_reportf(reports, RPT_ERROR, "Unknown error loading: \"%s\".", name);
-		BKE_assert(!"invalid 'retval'");
+		BLI_assert(!"invalid 'retval'");
 	}
 
 	WM_cursor_wait(0);

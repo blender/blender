@@ -181,7 +181,7 @@
 #endif
 
 
-/* BKE_assert(), default only to print
+/* BLI_assert(), default only to print
  * for aborting need to define WITH_ASSERT_ABORT
  */
 #if !defined NDEBUG
@@ -191,28 +191,28 @@
 #    define _dummy_abort() (void)0
 #  endif
 #  ifdef __GNUC__ /* just want to check if __func__ is available */
-#    define BKE_assert(a) \
+#    define BLI_assert(a) \
 do { \
 	if (0 == (a)) { \
 		fprintf(stderr, \
-			"BKE_assert failed: %s, %s(), %d at \'%s\'\n", \
+			"BLI_assert failed: %s, %s(), %d at \'%s\'\n", \
 			__FILE__, __func__, __LINE__, STRINGIFY(a)); \
 		_dummy_abort(); \
 	} \
 } while (0)
 #  else
-#    define BKE_assert(a) \
+#    define BLI_assert(a) \
 do { \
 	if (0 == (a)) { \
 		fprintf(stderr, \
-			"BKE_assert failed: %s, %d at \'%s\'\n", \
+			"BLI_assert failed: %s, %d at \'%s\'\n", \
 			__FILE__, __LINE__, STRINGIFY(a)); \
 		_dummy_abort(); \
 	} \
 } while (0)
 #  endif
 #else
-#  define BKE_assert(a) (void)0
+#  define BLI_assert(a) (void)0
 #endif
 
 #endif // BLI_UTILDEFINES_H

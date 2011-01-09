@@ -269,7 +269,7 @@ void BPY_python_start( int argc, char **argv )
 			Py_DECREF(mod);
 		}
 		else {
-			BKE_assert(!"unable to load 'imp' module.");
+			BLI_assert(!"unable to load 'imp' module.");
 		}
 
 	}
@@ -319,7 +319,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 	PyObject *py_dict= NULL, *py_result= NULL;
 	PyGILState_STATE gilstate;
 
-	BKE_assert(fn || text);
+	BLI_assert(fn || text);
 
 	if (fn==NULL && text==NULL) {
 		return 0;

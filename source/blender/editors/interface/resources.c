@@ -981,7 +981,7 @@ void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3]
 			dst_col[2]= src_col[2]>209?255:src_col[2]+46;
 			break;
 		default:
-			BKE_assert(!"invalid axis arg");
+			BLI_assert(!"invalid axis arg");
 	}
 }
 

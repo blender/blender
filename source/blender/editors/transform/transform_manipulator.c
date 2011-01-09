@@ -734,7 +734,7 @@ static void manipulator_setcolor(View3D *v3d, char axis, int colcode, unsigned c
 			col[2]= 220;
 			break;
 		default:
-			BKE_assert(!"invalid axis arg");
+			BLI_assert(!"invalid axis arg");
 		}
 	}
 

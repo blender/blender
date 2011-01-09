@@ -684,7 +684,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 		}
 	}
 	else {
-		BKE_assert(!"internal error");
+		BLI_assert(!"internal error");
 	}
 
 	PyErr_Format(PyExc_TypeError, "Quaternion multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);

@@ -844,7 +844,7 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end,
 	CLAMP(end, 0, self->size);
 	begin = MIN2(begin,end);
 
-	size = PySequence_Length(seq);
+	size = PySequence_Size(seq);
 	if(size != (end - begin)){
 		PyErr_SetString(PyExc_TypeError, "vector[begin:end] = []: size mismatch in slice assignment");
 		return -1;
@@ -1129,7 +1129,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		}
 	}
 	else {
-		BKE_assert(!"internal error");
+		BLI_assert(!"internal error");
 	}
 
 	PyErr_Format(PyExc_TypeError, "Vector multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);

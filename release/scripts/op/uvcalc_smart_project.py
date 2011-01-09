@@ -78,11 +78,7 @@ def pointInTri2D(v, v1, v2, v3):
 
         nor = side1.cross(side2)
 
-        l1 = [side1[0], side1[1], side1[2]]
-        l2 = [side2[0], side2[1], side2[2]]
-        l3 = [nor[0], nor[1], nor[2]]
-
-        mtx = Matrix(l1, l2, l3)
+        mtx = Matrix((side1, side2, nor))
 
         # Zero area 2d tri, even tho we throw away zerop area faces
         # the projection UV can result in a zero area UV.

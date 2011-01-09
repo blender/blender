@@ -3326,13 +3326,15 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 			vec[1]=vec[2]=0.0;
 			mul_qt_v3(state->rot,vec);
 			if(draw_as==PART_DRAW_AXIS) {
-				cd[1]=cd[2]=cd[4]=cd[5]=0.0;
-				cd[0]=cd[3]=1.0;
-				cd[6]=cd[8]=cd[9]=cd[11]=0.0;
-				cd[7]=cd[10]=1.0;
-				cd[13]=cd[12]=cd[15]=cd[16]=0.0;
-				cd[14]=cd[17]=1.0;
-				pdd->cd+=18;
+				if(cd) {
+					cd[1]=cd[2]=cd[4]=cd[5]=0.0;
+					cd[0]=cd[3]=1.0;
+					cd[6]=cd[8]=cd[9]=cd[11]=0.0;
+					cd[7]=cd[10]=1.0;
+					cd[13]=cd[12]=cd[15]=cd[16]=0.0;
+					cd[14]=cd[17]=1.0;
+					pdd->cd+=18;
+				}
 
 				copy_v3_v3(vec2,state->co);
 			}

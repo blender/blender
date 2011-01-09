@@ -552,7 +552,7 @@ static short key_pointer_size(const Key *key, const int mode, int *poinsize, int
 
 		break;
 	default:
-		BKE_assert(!"invalid 'key->from' ID type");
+		BLI_assert(!"invalid 'key->from' ID type");
 		return FALSE;
 	}
 
@@ -641,7 +641,7 @@ static void cp_key(const int start, int end, const int tot, char *poin, Key *key
 				/* should never happen */
 				if(freek1) MEM_freeN(freek1);
 				if(freekref) MEM_freeN(freekref);
-				BKE_assert(!"invalid 'cp[1]'");
+				BLI_assert(!"invalid 'cp[1]'");
 				return;
 			}
 
@@ -777,7 +777,7 @@ void do_rel_key(const int start, int end, const int tot, char *basispoin, Key *k
 							/* should never happen */
 							if(freefrom) MEM_freeN(freefrom);
 							if(freereffrom) MEM_freeN(freereffrom);
-							BKE_assert(!"invalid 'cp[1]'");
+							BLI_assert(!"invalid 'cp[1]'");
 							return;
 						}
 
@@ -944,7 +944,7 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 				if(freek2) MEM_freeN(freek2);
 				if(freek3) MEM_freeN(freek3);
 				if(freek4) MEM_freeN(freek4);
-				BKE_assert(!"invalid 'cp[1]'");
+				BLI_assert(!"invalid 'cp[1]'");
 				return;
 			}
 			

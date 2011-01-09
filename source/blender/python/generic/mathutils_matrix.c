@@ -31,7 +31,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-
+static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject *value);
 
 /* matrix vector callbacks */
 int mathutils_matrix_vector_cb_index= -1;
@@ -109,80 +109,42 @@ Mathutils_Callback mathutils_matrix_vector_cb = {
 //create a new matrix type
 static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-	PyObject *argObject, *m, *s;
-	MatrixObject *mat;
-	int argSize, seqSize = 0, i, j;
-	float matrix[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-	float scalar;
-
 	if(kwds && PyDict_Size(kwds)) {
 		PyErr_SetString(PyExc_TypeError, "mathutils.Matrix(): takes no keyword args");
 		return NULL;
 	}
 
-	argSize = PyTuple_GET_SIZE(args);
-	if(argSize > MATRIX_MAX_DIM) {	//bad arg nums
-		PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix(): expects 0-4 numeric sequences of the same size");
-		return NULL;
-	} else if (argSize == 0) { //return empty 4D matrix
-		return (PyObject *) newMatrixObject(NULL, 4, 4, Py_NEW, type);
-	}else if (argSize == 1){
-		//copy constructor for matrix objects
-		argObject = PyTuple_GET_ITEM(args, 0);
-		if(MatrixObject_Check(argObject)){
-			mat = (MatrixObject*)argObject;
-			if(!BaseMath_ReadCallback(mat))
-				return NULL;
+	switch(PyTuple_GET_SIZE(args)) {
+		case 0:
+			return (PyObject *) newMatrixObject(NULL, 4, 4, Py_NEW, type);
+		case 1:
+		{
+			PyObject *arg= PyTuple_GET_ITEM(args, 0);
 
-			memcpy(matrix, mat->contigPtr, sizeof(float) * mat->rowSize * mat->colSize);
-			argSize = mat->rowSize;
-			seqSize = mat->colSize;
-		}
-	}else{ //2-4 arguments (all seqs? all same size?)
-		for(i =0; i < argSize; i++){
-			argObject = PyTuple_GET_ITEM(args, i);
-			if (PySequence_Check(argObject)) { //seq?
-				if(seqSize){ //0 at first
-					if(PySequence_Length(argObject) != seqSize){ //seq size not same
-						PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix(): expects 0-4 numeric sequences of the same size");
-						return NULL;
+			const unsigned short row_size= PySequence_Size(arg); /* -1 is an error, size checks will accunt for this */
+
+			if(IN_RANGE_INCL(row_size, 2, 4)) {
+				PyObject *item= PySequence_GetItem(arg, 0);
+				const unsigned short col_size= PySequence_Size(item);
+				Py_XDECREF(item);
+
+				if(IN_RANGE_INCL(col_size, 2, 4)) {
+					/* sane row & col size, new matrix and assign as slice  */
+					PyObject *matrix= newMatrixObject(NULL, row_size, col_size, Py_NEW, type);
+					if(Matrix_ass_slice((MatrixObject *)matrix, 0, INT_MAX, arg) == 0) {
+						return matrix;
+					}
+					else { /* matrix ok, slice assignment not */
+						Py_DECREF(matrix);
 					}
 				}
-				seqSize = PySequence_Length(argObject);
-			}else{ //arg not a sequence
-				PyErr_SetString(PyExc_TypeError, "mathutils.Matrix(): expects 0-4 numeric sequences of the same size");
-				return NULL;
-			}
-		}
-		//all is well... let's continue parsing
-		for (i = 0; i < argSize; i++){
-			m = PyTuple_GET_ITEM(args, i);
-			if (m == NULL) { // Failed to read sequence
-				PyErr_SetString(PyExc_RuntimeError, "mathutils.Matrix(): failed to parse arguments");
-				return NULL;
-			}
-
-			for (j = 0; j < seqSize; j++) {
-				s = PySequence_GetItem(m, j);
-				if (s == NULL) { // Failed to read sequence
-					PyErr_SetString(PyExc_RuntimeError, "mathutils.Matrix(): failed to parse arguments");
-					return NULL;
-				}
-				
-				scalar= (float)PyFloat_AsDouble(s);
-				Py_DECREF(s);
-				
-				if(scalar==-1 && PyErr_Occurred()) { // parsed item is not a number
-					PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix(): expects 0-4 numeric sequences of the same size");
-					return NULL;
-				}
-
-				matrix[(seqSize*i)+j]= scalar;
 			}
 		}
 	}
-	return newMatrixObject(matrix, argSize, seqSize, Py_NEW, type);
+
+	/* will overwrite error */
+	PyErr_SetString(PyExc_TypeError, "mathutils.Matrix(): expects no args or 2-4 numeric sequences");
+	return NULL;
 }
 
 /*-----------------------CLASS-METHODS----------------------------*/
@@ -1554,7 +1516,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 		}
 	}
 	else {
-		BKE_assert(!"internal error");
+		BLI_assert(!"internal error");
 	}
 
 	PyErr_Format(PyExc_TypeError, "Matrix multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
@@ -1847,7 +1809,7 @@ self->matrix[1][1] = self->contigPtr[4] */
  (i.e. it was allocated elsewhere by MEM_mallocN())
   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type, PyTypeObject *base_type)
+PyObject *newMatrixObject(float *mat, const unsigned short rowSize, const unsigned short colSize, int type, PyTypeObject *base_type)
 {
 	MatrixObject *self;
 	int x, row, col;
