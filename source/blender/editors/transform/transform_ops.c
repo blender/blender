@@ -320,7 +320,10 @@ static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	TransInfo *t = op->customdata;
 
+	/* XXX insert keys are called here, and require context */
+	t->context= C;
 	exit_code = transformEvent(t, event);
+	t->context= NULL;
 
 	transformApply(C, t);
 
