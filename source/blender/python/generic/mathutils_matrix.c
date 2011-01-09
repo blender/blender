@@ -1243,7 +1243,7 @@ static PyObject *Matrix_repr(MatrixObject * self)
 		return NULL;
 
 	for(x = 0; x < self->rowSize; x++){
-		rows[x]= PyTuple_New(self->rowSize);
+		rows[x]= PyTuple_New(self->colSize);
 		for(y = 0; y < self->colSize; y++) {
 			PyTuple_SET_ITEM(rows[x], y, PyFloat_FromDouble(self->matrix[x][y]));
 		}
@@ -1342,57 +1342,29 @@ static PyObject *Matrix_item(MatrixObject * self, int i)
 	return newVectorObject_cb((PyObject *)self, self->colSize, mathutils_matrix_vector_cb_index, i);
 }
 /*----------------------------object[]-------------------------
-  sequence accessor (set)*/
-static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
-{
-	int y, x, size = 0;
-	float vec[4];
-	PyObject *m, *f;
+  sequence accessor (set) */
 
+static int Matrix_ass_item(MatrixObject *self, int i, PyObject *value)
+{
+	float vec[4];
 	if(!BaseMath_ReadCallback(self))
 		return -1;
-	
+
 	if(i >= self->rowSize || i < 0){
 		PyErr_SetString(PyExc_TypeError, "matrix[attribute] = x: bad column");
 		return -1;
 	}
 
-	if(PySequence_Check(ob)){
-		size = PySequence_Length(ob);
-		if(size != self->colSize){
-			PyErr_SetString(PyExc_TypeError, "matrix[attribute] = x: bad sequence size");
-			return -1;
-		}
-		for (x = 0; x < size; x++) {
-			m = PySequence_GetItem(ob, x);
-			if (m == NULL) { /*Failed to read sequence*/
-				PyErr_SetString(PyExc_RuntimeError, "matrix[attribute] = x: unable to read sequence");
-				return -1;
-			}
-
-			f = PyNumber_Float(m);
-			if(f == NULL) { /*parsed item not a number*/
-				Py_DECREF(m);
-				PyErr_SetString(PyExc_TypeError, "matrix[attribute] = x: sequence argument not a number");
-				return -1;
-			}
-
-			vec[x] = (float)PyFloat_AS_DOUBLE(f);
-			Py_DECREF(m);
-			Py_DECREF(f);
-		}
-		/*parsed well - now set in matrix*/
-		for(y = 0; y < size; y++){
-			self->matrix[i][y] = vec[y];
-		}
-		
-		(void)BaseMath_WriteCallback(self);
-		return 0;
-	}else{
-		PyErr_SetString(PyExc_TypeError, "matrix[attribute] = x: expects a sequence of column size");
+	if(mathutils_array_parse(vec, self->colSize, self->colSize, value, "matrix[i] = value assignment") < 0) {
 		return -1;
 	}
+
+	memcpy(self->matrix[i], vec, self->colSize * sizeof(float));
+
+	(void)BaseMath_WriteCallback(self);
+	return 0;
 }
+
 /*----------------------------object[z:y]------------------------
   sequence slice (get)*/
 static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
@@ -1421,10 +1393,9 @@ static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
   sequence slice (set)*/
 static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject * seq)
 {
-	int i, x, y, size, sub_size = 0;
-	float mat[16], f;
+	int i;
+	float mat[16];
 	PyObject *subseq;
-	PyObject *m;
 
 	if(!BaseMath_ReadCallback(self))
 		return -1;
@@ -1434,11 +1405,13 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject * 
 	begin = MIN2(begin,end);
 
 	if(PySequence_Check(seq)){
-		size = PySequence_Length(seq);
-		if(size != (end - begin)){
+		const int size= end - begin;
+
+		if(PySequence_Length(seq) != size){
 			PyErr_SetString(PyExc_TypeError, "matrix[begin:end] = []: size mismatch in slice assignment");
 			return -1;
 		}
+
 		/*parse sub items*/
 		for (i = 0; i < size; i++) {
 			/*parse each sub sequence*/
@@ -1448,45 +1421,17 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject * 
 				return -1;
 			}
 
-			if(PySequence_Check(subseq)){
-				/*subsequence is also a sequence*/
-				sub_size = PySequence_Length(subseq);
-				if(sub_size != self->colSize){
-					Py_DECREF(subseq);
-					PyErr_SetString(PyExc_TypeError, "matrix[begin:end] = []: size mismatch in slice assignment");
-					return -1;
-				}
-				for (y = 0; y < sub_size; y++) {
-					m = PySequence_GetItem(subseq, y);
-					if (m == NULL) { /*Failed to read sequence*/
-						Py_DECREF(subseq);
-						PyErr_SetString(PyExc_RuntimeError, "matrix[begin:end] = []: unable to read sequence");
-						return -1;
-					}
-					
-					f = PyFloat_AsDouble(m); /* faster to assume a float and raise an error after */
-					if(f == -1 && PyErr_Occurred()) { /*parsed item not a number*/
-						Py_DECREF(m);
-						Py_DECREF(subseq);
-						PyErr_SetString(PyExc_TypeError, "matrix[begin:end] = []: sequence argument not a number");
-						return -1;
-					}
-
-					mat[(i * self->colSize) + y] = f;
-					Py_DECREF(m);
-				}
-			}else{
+			if(mathutils_array_parse(&mat[i * self->colSize], self->colSize, self->colSize, subseq, "matrix[a:b] = value assignment") < 0) {
 				Py_DECREF(subseq);
-				PyErr_SetString(PyExc_TypeError, "matrix[begin:end] = []: illegal argument type for built-in operation");
 				return -1;
 			}
+
 			Py_DECREF(subseq);
 		}
+
 		/*parsed well - now set in matrix*/
-		for(x = 0; x < (size * sub_size); x++){
-			self->matrix[begin + (int)floor(x / self->colSize)][x % self->colSize] = mat[x];
-		}
-		
+		memcpy(self->contigPtr + (begin * self->colSize), mat, sizeof(float) * (size * self->colSize));
+
 		(void)BaseMath_WriteCallback(self);
 		return 0;
 	}else{
@@ -1631,9 +1576,9 @@ static PySequenceMethods Matrix_SeqMethods = {
 	(binaryfunc) NULL,							/* sq_concat */
 	(ssizeargfunc) NULL,						/* sq_repeat */
 	(ssizeargfunc) Matrix_item,					/* sq_item */
-	(ssizessizeargfunc) Matrix_slice,			/* sq_slice, deprecated TODO, replace */
+	(ssizessizeargfunc) NULL,					/* sq_slice, deprecated */
 	(ssizeobjargproc) Matrix_ass_item,			/* sq_ass_item */
-	(ssizessizeobjargproc) Matrix_ass_slice,	/* sq_ass_slice, deprecated TODO, replace */
+	(ssizessizeobjargproc) NULL,				/* sq_ass_slice, deprecated */
 	(objobjproc) NULL,							/* sq_contains */
 	(binaryfunc) NULL,							/* sq_inplace_concat */
 	(ssizeargfunc) NULL,						/* sq_inplace_repeat */
