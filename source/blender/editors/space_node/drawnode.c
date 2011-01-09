@@ -1480,7 +1480,7 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 }
 
 #define LINK_RESOL	24
-void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int th_col2, int do_shaded)
+void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 )
 {
 	float coord_array[LINK_RESOL+1][2];
 	
@@ -1488,32 +1488,59 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 		float dist, spline_step = 0.0f;
 		int i;
 		
+		/* store current linewidth */
+		float linew;
+		glGetFloatv(GL_LINE_WIDTH, &linew);
+		
 		/* we can reuse the dist variable here to increment the GL curve eval amount*/
 		dist = 1.0f/(float)LINK_RESOL;
+		
+		glEnable(GL_LINE_SMOOTH);
+		
+		if(do_triple) {
+			UI_ThemeColorShadeAlpha(th_col3, -80, -120);
+			glLineWidth(4.0f);
+			
+			glBegin(GL_LINE_STRIP);
+			for(i=0; i<=LINK_RESOL; i++) {
+				glVertex2fv(coord_array[i]);
+			}
+			glEnd();
+		}
+		
+		UI_ThemeColor(th_col1);
+		glLineWidth(1.5f);
 		
 		glBegin(GL_LINE_STRIP);
 		for(i=0; i<=LINK_RESOL; i++) {
 			if(do_shaded) {
 				UI_ThemeColorBlend(th_col1, th_col2, spline_step);
 				spline_step += dist;
-			}				
+			}
 			glVertex2fv(coord_array[i]);
 		}
 		glEnd();
+		
+		glDisable(GL_LINE_SMOOTH);
+		
+		/* restore previuos linewidth */
+		glLineWidth(linew);
 	}
 }
 
 /* note; this is used for fake links in groups too */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 {
-	int do_shaded= 1, th_col1= TH_WIRE, th_col2= TH_WIRE;
+	int do_shaded= 0, th_col1= TH_HEADER, th_col2= TH_HEADER;
+	int do_triple= 0, th_col3= TH_WIRE;
 	
 	if(link->fromnode==NULL && link->tonode==NULL)
 		return;
 	
+	/* new connection */
 	if(link->fromnode==NULL || link->tonode==NULL) {
-		UI_ThemeColor(TH_WIRE);
-		do_shaded= 0;
+		th_col1 = TH_ACTIVE;
+		do_triple = 1;
 	}
 	else {
 		/* going to give issues once... */
@@ -1524,8 +1551,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 		
 		/* a bit ugly... but thats how we detect the internal group links */
 		if(link->fromnode==link->tonode) {
-			UI_ThemeColorBlend(TH_BACK, TH_WIRE, 0.25f);
-			do_shaded= 0;
+			th_col1 = TH_GRID;
 		}
 		else {
 			/* check cyclic */
@@ -1534,15 +1560,16 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 					th_col1= TH_EDGE_SELECT;
 				if(link->tonode->flag & SELECT)
 					th_col2= TH_EDGE_SELECT;
+				do_shaded= 1;
+				do_triple= 1;
 			}				
 			else {
-				UI_ThemeColor(TH_REDALERT);
-				do_shaded= 0;
+				th_col1 = TH_REDALERT;
 			}
 		}
 	}
 	
-	node_draw_link_bezier(v2d, snode, link, th_col1, th_col2, do_shaded);
+	node_draw_link_bezier(v2d, snode, link, th_col1, do_shaded, th_col2, do_triple, th_col3);
 }
 
 

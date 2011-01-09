@@ -449,7 +449,6 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 	}
 	
 	/* outputs, draw lines */
-	UI_ThemeColor(TH_REDALERT);
 	glEnable(GL_BLEND);
 	glEnable( GL_LINE_SMOOTH );
 	
@@ -460,17 +459,17 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 				
 				if(sock->type==SOCK_VALUE && valsock) {
 					link.fromsock= valsock;
-					node_draw_link_bezier(v2d, snode, &link, TH_WIRE, TH_WIRE, 0);
+					node_draw_link_bezier(v2d, snode, &link, TH_REDALERT, 0, TH_WIRE, 0, TH_WIRE);
 					valsock= NULL;
 				}
 				if(sock->type==SOCK_VECTOR && vecsock) {
 					link.fromsock= vecsock;
-					node_draw_link_bezier(v2d, snode, &link, TH_WIRE, TH_WIRE, 0);
+					node_draw_link_bezier(v2d, snode, &link, TH_REDALERT, 0, TH_WIRE, 0, TH_WIRE);
 					vecsock= NULL;
 				}
 				if(sock->type==SOCK_RGBA && colsock) {
 					link.fromsock= colsock;
-					node_draw_link_bezier(v2d, snode, &link, TH_WIRE, TH_WIRE, 0);
+					node_draw_link_bezier(v2d, snode, &link, TH_REDALERT, 0, TH_WIRE, 0, TH_WIRE);
 					colsock= NULL;
 				}
 			}
@@ -715,12 +714,13 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColorBlendShade(TH_TEXT, color_id, 0.4f, 10);
 	
 	/* open/close entirely? */
-	ui_draw_tria_icon(rct->xmin+8.0f, rct->ymax-NODE_DY+4.0f, 'v');
+	ui_draw_tria_icon(rct->xmin+10.0f, rct->ymax-NODE_DY/2.0f, 'v');
 	
+	/* this isn't doing anything for the label, so commenting out
 	if(node->flag & SELECT) 
 		UI_ThemeColor(TH_TEXT_HI);
 	else
-		UI_ThemeColor(TH_TEXT);
+		UI_ThemeColor(TH_TEXT); */
 	
 	if(node->flag & NODE_CUSTOM_NAME)
 		BLI_strncpy(showname, node->name, sizeof(showname));
@@ -744,12 +744,19 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* scaling indicator */
 	node_scaling_widget(TH_NODE, snode->aspect, rct->xmax-BASIS_RAD*snode->aspect, rct->ymin, rct->xmax, rct->ymin+BASIS_RAD*snode->aspect);
 
-	/* outline active emphasis */
-	if(node->flag & NODE_ACTIVE) {
+	/* outline active and selected emphasis */
+	if( node->flag & (NODE_ACTIVE|SELECT) ) {
 		glEnable(GL_BLEND);
-		glColor4ub(200, 200, 200, 140);
-		uiSetRoundBox(15-4);
-		uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
+		glEnable( GL_LINE_SMOOTH );
+			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
+			if( node->flag & NODE_ACTIVE ) 
+				UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
+			else
+				UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
+			uiSetRoundBox(15-4); // round all corners except lower right
+			uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
+			
+		glDisable( GL_LINE_SMOOTH );
 		glDisable(GL_BLEND);
 	}
 	
@@ -850,14 +857,22 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	ui_dropshadow(rct, hiddenrad, snode->aspect, node->flag & SELECT);
 
 	/* body */
-	UI_ThemeColor(color_id);	
+	UI_ThemeColor(color_id);
+	if(node->flag & NODE_MUTED)
+	   UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);	
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 	
-	/* outline active emphasis */
-	if(node->flag & NODE_ACTIVE) {
+	/* outline active and selected emphasis */
+	if( node->flag & (NODE_ACTIVE|SELECT) ) {
 		glEnable(GL_BLEND);
-		glColor4ub(200, 200, 200, 140);
-		uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
+		glEnable( GL_LINE_SMOOTH );
+			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
+			if( node->flag & NODE_ACTIVE ) 
+				UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
+			else
+				UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
+			uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
+		glDisable( GL_LINE_SMOOTH );
 		glDisable(GL_BLEND);
 	}
 	
@@ -868,7 +883,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		UI_ThemeColorBlendShade(TH_TEXT, color_id, 0.4f, 10);
 	
 	/* open entirely icon */
-	ui_draw_tria_icon(rct->xmin+9.0f, centy-6.0f, 'h');	
+	ui_draw_tria_icon(rct->xmin+10.0f, centy, 'h');	
 	
 	/* disable lines */
 	if(node->flag & NODE_MUTED)

@@ -323,13 +323,14 @@ void uiPanelPop(uiBlock *UNUSED(block))
 }
 
 /* triangle 'icon' for panel header */
+/* NOTE - this seems to be only used for hiding nodes now */
 void ui_draw_tria_icon(float x, float y, char dir)
 {
 	if(dir=='h') {
-		ui_draw_anti_tria(x-1, y, x-1, y+11.0, x+9, y+6.25);
+		ui_draw_anti_tria( x-3,y-5, x-3,y+5, x+7,y );
 	}
 	else {
-		ui_draw_anti_tria(x-3, y+10,  x+8-1, y+10, x+4.25-2, y);	
+		ui_draw_anti_tria( x-5,y+3,  x+5,y+3, x,y-7);	
 	}
 }
 
