@@ -488,7 +488,8 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	}
 
-	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s.", count, (count==1)?"ex":"ices");
+
 	BKE_mesh_end_editmesh(obedit->data, em);
 
 	return OPERATOR_FINISHED;
