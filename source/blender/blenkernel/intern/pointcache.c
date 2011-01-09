@@ -390,6 +390,48 @@ static int  ptcache_particle_totwrite(void *psys_v, int cfra)
 	return totwrite;
 }
 
+static void ptcache_particle_extra_write(void *psys_v, PTCacheMem *pm, int UNUSED(cfra))
+{
+	ParticleSystem *psys = psys_v;
+	PTCacheExtra *extra = NULL;
+
+	if(psys->part->phystype == PART_PHYS_FLUID &&
+		psys->part->fluid && psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS &&
+		psys->tot_fluidsprings && psys->fluid_springs) {
+
+		extra = MEM_callocN(sizeof(PTCacheExtra), "Point cache: fluid extra data");
+
+		extra->type = BPHYS_EXTRA_FLUID_SPRINGS;
+		extra->totdata = psys->tot_fluidsprings;
+
+		extra->data = MEM_callocN(extra->totdata * ptcache_extra_datasize[extra->type], "Point cache: extra data");
+		memcpy(extra->data, psys->fluid_springs, extra->totdata * ptcache_extra_datasize[extra->type]);
+
+		BLI_addtail(&pm->extradata, extra);
+	}
+}
+
+static int ptcache_particle_extra_read(void *psys_v, PTCacheMem *pm, float UNUSED(cfra))
+{
+	ParticleSystem *psys = psys_v;
+	PTCacheExtra *extra = pm->extradata.first;
+
+	for(; extra; extra=extra->next) {
+		switch(extra->type) {
+			case BPHYS_EXTRA_FLUID_SPRINGS:
+			{
+				if(psys->fluid_springs)
+					MEM_freeN(psys->fluid_springs);
+
+				psys->fluid_springs = MEM_dupallocN(extra->data);
+				psys->tot_fluidsprings = psys->alloc_fluidsprings = extra->totdata;
+				break;
+			}
+		}
+	}
+	return 1;
+}
+
 /* Cloth functions */
 static int  ptcache_cloth_write(int index, void *cloth_v, void **data, int UNUSED(cfra))
 {
@@ -667,6 +709,10 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 
 	if(psys->part->phystype == PART_PHYS_BOIDS)
 		pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION) | (1<<BPHYS_DATA_BOIDS);
+	else if(psys->part->phystype == PART_PHYS_FLUID && psys->part->fluid && psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS) {
+		pid->write_extra_data = ptcache_particle_extra_write;
+		pid->read_extra_data = ptcache_particle_extra_read;
+	}
 
 	if(psys->part->rotmode!=PART_ROT_VEL
 		|| psys->part->avemode!=PART_AVE_SPIN || psys->part->avefac!=0.0f)
@@ -1261,9 +1307,13 @@ static void ptcache_extra_free(PTCacheMem *pm)
 {
 	PTCacheExtra *extra = pm->extradata.first;
 
-	for(; extra; extra=extra->next) {
-		if(extra->data)
-			MEM_freeN(extra->data);
+	if(extra) {
+		for(; extra; extra=extra->next) {
+			if(extra->data)
+				MEM_freeN(extra->data);
+		}
+
+		BLI_freelistN(&pm->extradata);
 	}
 }
 static int ptcache_old_elemsize(PTCacheID *pid)
@@ -1383,16 +1433,14 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 
 			extra->type = extratype;
 
-			ptcache_file_read(pf, &extra->flag, 1, sizeof(unsigned int));
 			ptcache_file_read(pf, &extra->totdata, 1, sizeof(unsigned int));
-			ptcache_file_read(pf, &extra->datasize, 1, sizeof(unsigned int));
 
-			extra->data = MEM_callocN(extra->totdata * extra->datasize, "Pointcache extradata->data");
+			extra->data = MEM_callocN(extra->totdata * ptcache_extra_datasize[extra->type], "Pointcache extradata->data");
 
 			if(pf->flag & PTCACHE_TYPEFLAG_COMPRESS)
-				ptcache_file_compressed_read(pf, (unsigned char*)(extra->data), extra->totdata*extra->datasize);
+				ptcache_file_compressed_read(pf, (unsigned char*)(extra->data), extra->totdata*ptcache_extra_datasize[extra->type]);
 			else
-				ptcache_file_read(pf, extra->data, extra->totdata, extra->datasize);
+				ptcache_file_read(pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type]);
 
 			BLI_addtail(&pm->extradata, extra);
 		}
@@ -1475,18 +1523,16 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 				continue;
 
 			ptcache_file_write(pf, &extra->type, 1, sizeof(unsigned int));
-			ptcache_file_write(pf, &extra->flag, 1, sizeof(unsigned int));
 			ptcache_file_write(pf, &extra->totdata, 1, sizeof(unsigned int));
-			ptcache_file_write(pf, &extra->datasize, 1, sizeof(unsigned int));
 
 			if(pid->cache->compression) {
-				unsigned int in_len = extra->totdata * extra->datasize;
+				unsigned int in_len = extra->totdata * ptcache_extra_datasize[extra->type];
 				unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
 				ptcache_file_compressed_write(pf, (unsigned char*)(extra->data), in_len, out, pid->cache->compression);
 				MEM_freeN(out);
 			}
 			else {
-				ptcache_file_write(pf, extra->data, extra->totdata, extra->datasize);
+				ptcache_file_write(pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type]);
 			}
 		}
 	}

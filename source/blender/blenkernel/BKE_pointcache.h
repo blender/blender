@@ -32,6 +32,7 @@
 #include "DNA_ID.h"
 #include "DNA_object_force.h"
 #include "DNA_boid_types.h"
+#include "DNA_particle_types.h"
 #include <stdio.h> /* for FILE */
 
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
@@ -110,6 +111,16 @@ static char *ptcache_datastruct[] = {
 	"BoidData" // case BPHYS_DATA_BOIDS:
 };
 
+static char *ptcache_extra_datastruct[] = {
+	"",
+	"ParticleSpring"
+};
+
+static int ptcache_extra_datasize[] = {
+	0,
+	sizeof(ParticleSpring)
+};
+
 typedef struct PTCacheFile {
 	FILE *fp;
 
@@ -149,11 +160,11 @@ typedef struct PTCacheID {
 	void (*read_stream)(PTCacheFile *pf, void *calldata);
 
 	/* copies custom extradata to cache data */
-	int (*write_extra_data)(void *calldata, struct PTCacheMem *pm, int cfra);
+	void (*write_extra_data)(void *calldata, struct PTCacheMem *pm, int cfra);
 	/* copies custom extradata to cache data */
-	int (*read_extra_data)(void *calldata, struct PTCacheMem *pm, float cfra);
+	void (*read_extra_data)(void *calldata, struct PTCacheMem *pm, float cfra);
 	/* copies custom extradata to cache data */
-	int (*interpolate_extra_data)(void *calldata, struct PTCacheMem *pm, float cfra, float cfra1, float cfra2);
+	void (*interpolate_extra_data)(void *calldata, struct PTCacheMem *pm, float cfra, float cfra1, float cfra2);
 
 	/* total number of simulated points (the cfra parameter is just for using same function pointer with totwrite) */
 	int (*totpoint)(void *calldata, int cfra);

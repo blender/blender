@@ -561,6 +561,9 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		BLI_freelistN(&psys->targets);
 
 		BLI_kdtree_free(psys->tree);
+ 
+		if(psys->fluid_springs)
+			MEM_freeN(psys->fluid_springs);
 
 		pdEndEffectors(&psys->effectors);
 

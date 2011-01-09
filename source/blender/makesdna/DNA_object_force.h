@@ -141,10 +141,11 @@ typedef struct EffectorWeights {
 
 #define BPHYS_TOT_DATA			8
 
+#define BPHYS_EXTRA_FLUID_SPRINGS	1
+
 typedef struct PTCacheExtra {
 	struct PTCacheExtra *next, *prev;
-	unsigned int type, flag;
-	unsigned int totdata, datasize;
+	unsigned int type, totdata;
 	void *data;
 } PTCacheExtra;
 

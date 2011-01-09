@@ -989,59 +989,88 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 	/* Fluid settings */
  	prop= RNA_def_property(srna, "spring_force", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_k");
- 	RNA_def_property_range(prop, 0.0f, 1.0f);
- 	RNA_def_property_ui_text(prop, "Spring", "Spring force constant");
+ 	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+ 	RNA_def_property_ui_text(prop, "Spring Force", "Spring force");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
   
  	prop= RNA_def_property(srna, "fluid_radius", PROP_FLOAT, PROP_NONE);
  	RNA_def_property_float_sdna(prop, NULL, "radius");
- 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Radius", "Fluid interaction Radius");
+ 	RNA_def_property_range(prop, 0.0f, 20.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 2.0f, 1, 3);
+	RNA_def_property_ui_text(prop, "Interaction Radius", "Fluid interaction radius");
  	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
+	/* Hidden in ui to give a little easier user experience. */
  	prop= RNA_def_property(srna, "rest_length", PROP_FLOAT, PROP_NONE);
- 	RNA_def_property_float_sdna(prop, NULL, "rest_length");
  	RNA_def_property_range(prop, 0.0f, 1.0f);
- 	RNA_def_property_ui_text(prop, "Rest Length", "The Spring Rest Length (factor of interaction radius)");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset"); 
+	RNA_def_property_ui_text(prop, "Rest Length", "Spring rest length (factor of interaction radius)");
+ 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "use_viscoelastic_springs", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPH_VISCOELASTIC_SPRINGS);
+	RNA_def_property_ui_text(prop, "Viscoelastic Springs", "Use viscoelastic springs instead of Hooke's springs");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "use_initial_rest_length", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPH_CURRENT_REST_LENGTH);
+	RNA_def_property_ui_text(prop, "Initial Rest Length", "Use the initial length as spring rest length instead of interaction radius/2");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
+ 	prop= RNA_def_property(srna, "plasticity", PROP_FLOAT, PROP_NONE);
+ 	RNA_def_property_float_sdna(prop, NULL, "plasticity_constant");
+ 	RNA_def_property_range(prop, 0.0f, 1.0f);
+ 	RNA_def_property_ui_text(prop, "Plasticity", "How much the spring rest length can change after the elastic limit is crossed");
+ 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
+ 	prop= RNA_def_property(srna, "yield_ratio", PROP_FLOAT, PROP_NONE);
+ 	RNA_def_property_float_sdna(prop, NULL, "yield_ratio");
+ 	RNA_def_property_range(prop, 0.0f, 1.0f);
+ 	RNA_def_property_ui_text(prop, "Elastic Limit", "How much the spring has to be stretched/compressed in order to change it's rest length");
+ 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
  
  	/* Viscosity */
- 	prop= RNA_def_property(srna, "viscosity_omega", PROP_FLOAT, PROP_NONE);
+ 	prop= RNA_def_property(srna, "linear_viscosity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "viscosity_omega");
  	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
  	RNA_def_property_ui_text(prop, "Viscosity", "Linear viscosity");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
   
- 	prop= RNA_def_property(srna, "viscosity_beta", PROP_FLOAT, PROP_NONE);
+ 	prop= RNA_def_property(srna, "square_viscosity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "viscosity_beta");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
- 	RNA_def_property_ui_text(prop, "Square viscosity", "Square viscosity factor");
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+ 	RNA_def_property_ui_text(prop, "Square viscosity", "Square viscosity");
  	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* Double density relaxation */
- 	prop= RNA_def_property(srna, "stiffness", PROP_FLOAT, PROP_NONE);
+ 	prop= RNA_def_property(srna, "density_force", PROP_FLOAT, PROP_NONE);
  	RNA_def_property_float_sdna(prop, NULL, "stiffness_k");
  	RNA_def_property_range(prop, 0.0f, 100.0f);
- 	RNA_def_property_ui_text(prop, "Stiffness ", "Constant K - Stiffness");
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+ 	RNA_def_property_ui_text(prop, "Density Force", "How strongly the fluid tends to rest density");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
   
- 	prop= RNA_def_property(srna, "stiffness_near", PROP_FLOAT, PROP_NONE);
+ 	prop= RNA_def_property(srna, "repulsion_force", PROP_FLOAT, PROP_NONE);
  	RNA_def_property_float_sdna(prop, NULL, "stiffness_knear");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
- 	RNA_def_property_ui_text(prop, "Repulsion", "Repulsion factor: stiffness_knear");
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+ 	RNA_def_property_ui_text(prop, "Repulsion", "How strongly the fluid tries to keep from clustering");
  	RNA_def_property_update(prop, 0, "rna_Particle_reset");
   
  	prop= RNA_def_property(srna, "rest_density", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rest_density");
- 	RNA_def_property_range(prop, 0.0f, 100.0f);
- 	RNA_def_property_ui_text(prop, "Rest Density", "Density");
+ 	RNA_def_property_range(prop, 0.0f, 1000.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
+ 	RNA_def_property_ui_text(prop, "Rest Density", "Rest density of the fluid");
  	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 	
 	/* Buoyancy */
 	prop= RNA_def_property(srna, "buoyancy", PROP_FLOAT, PROP_NONE);
  	RNA_def_property_float_sdna(prop, NULL, "buoyancy");
  	RNA_def_property_range(prop, 0.0f, 1.0f);
- 	RNA_def_property_ui_text(prop, "Buoyancy", "");
+ 	RNA_def_property_ui_text(prop, "Buoyancy", "Artificial buoyancy force in negative gravity direction based on pressure differences inside the fluid");
  	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 	
 }

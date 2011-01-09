@@ -54,6 +54,7 @@
 #include "DNA_ipo_types.h" // XXX old animation system stuff... to be removed!
 #include "DNA_listBase.h"
 
+#include "BLI_edgehash.h"
 #include "BLI_rand.h"
 #include "BLI_jitter.h"
 #include "BLI_math.h"
@@ -182,6 +183,13 @@ void psys_reset(ParticleSystem *psys, int mode)
 
 	/* reset point cache */
 	BKE_ptcache_invalidate(psys->pointcache);
+
+	if(psys->fluid_springs) {
+		MEM_freeN(psys->fluid_springs);
+		psys->fluid_springs = NULL;
+	}
+
+	psys->tot_fluidsprings = psys->alloc_fluidsprings = 0;
 }
 
 static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
@@ -2228,32 +2236,79 @@ static void psys_update_effectors(ParticleSimulationData *sim)
  Presented at Siggraph, (2005)
 
 ***********************************************************************************************************/
-static void particle_fluidsim(ParticleSystem *psys, int own_psys, ParticleData *pa, float dtime, float mass, float *gravity)
+#define PSYS_FLUID_SPRINGS_INITIAL_SIZE 256
+ParticleSpring *add_fluid_spring(ParticleSystem *psys, ParticleSpring *spring)
+{
+	/* Are more refs required? */
+	if(psys->alloc_fluidsprings == 0 || psys->fluid_springs == NULL) {
+		psys->alloc_fluidsprings = PSYS_FLUID_SPRINGS_INITIAL_SIZE;
+		psys->fluid_springs = (ParticleSpring*)MEM_callocN(psys->alloc_fluidsprings * sizeof(ParticleSpring), "Particle Fluid Springs");
+	}
+	else if(psys->tot_fluidsprings == psys->alloc_fluidsprings) {
+		/* Double the number of refs allocated */
+		psys->alloc_fluidsprings *= 2;
+		psys->fluid_springs = (ParticleSpring*)MEM_reallocN(psys->fluid_springs, psys->alloc_fluidsprings * sizeof(ParticleSpring));
+	}
+
+	memcpy(psys->fluid_springs + psys->tot_fluidsprings, spring, sizeof(ParticleSpring));
+	psys->tot_fluidsprings++;
+
+	return psys->fluid_springs + psys->tot_fluidsprings - 1;
+}
+
+void  delete_fluid_spring(ParticleSystem *psys, int j)
+{
+	if (j != psys->tot_fluidsprings - 1)
+		psys->fluid_springs[j] = psys->fluid_springs[psys->tot_fluidsprings - 1];
+
+	psys->tot_fluidsprings--;
+
+	if (psys->tot_fluidsprings < psys->alloc_fluidsprings/2 && psys->alloc_fluidsprings > PSYS_FLUID_SPRINGS_INITIAL_SIZE){
+		psys->alloc_fluidsprings /= 2;
+		psys->fluid_springs = (ParticleSpring*)MEM_reallocN(psys->fluid_springs,  psys->alloc_fluidsprings * sizeof(ParticleSpring));
+	}
+}
+
+EdgeHash *build_fluid_springhash(ParticleSystem *psys)
+{
+	EdgeHash *springhash = NULL;
+	ParticleSpring *spring = psys->fluid_springs;
+	int i = 0;
+
+	springhash = BLI_edgehash_new();
+
+	for(i=0, spring=psys->fluid_springs; i<psys->tot_fluidsprings; i++, spring++)
+		BLI_edgehash_insert(springhash, spring->particle_index[0], spring->particle_index[1], SET_INT_IN_POINTER(i+1));
+
+	return springhash;
+}
+static void particle_fluidsim(ParticleSystem *psys, int own_psys, ParticleData *pa, float dtime, float mass, float *gravity, EdgeHash *springhash)
 {
 	SPHFluidSettings *fluid = psys->part->fluid;
 	KDTreeNearest *ptn = NULL;
 	ParticleData *npa;
+	ParticleSpring *spring = NULL;
 
 	float temp[3];
-	float q, q1, u, I, D;
+	float q, q1, u, I, D, rij, d, Lij;
 	float pressure_near, pressure;
 	float p=0, pnear=0;
 
-	float radius = fluid->radius;
 	float omega = fluid->viscosity_omega;
 	float beta = fluid->viscosity_beta;
 	float massfactor = 1.0f/mass;
 	float spring_k = fluid->spring_k;
-	float L = fluid->rest_length;
+	float h = fluid->radius;
+	float L = fluid->rest_length * fluid->radius;
 
-	int n, neighbours = BLI_kdtree_range_search(psys->tree, radius, pa->prev_state.co, NULL, &ptn);
-	int index = own_psys ? pa - psys->particles : -1;
+	int n, neighbours = BLI_kdtree_range_search(psys->tree, h, pa->prev_state.co, NULL, &ptn);
+	int spring_index = 0, index = own_psys ? pa - psys->particles : -1;
 
 	/* pressure and near pressure */
 	for(n=own_psys?1:0; n<neighbours; n++) {
 		sub_v3_v3(ptn[n].co, pa->prev_state.co);
 		mul_v3_fl(ptn[n].co, 1.f/ptn[n].dist);
-		q = ptn[n].dist/radius;
+		q = ptn[n].dist/h;
 
 		if(q < 1.f) {
 			q1 = 1.f - q;
@@ -2272,7 +2327,8 @@ static void particle_fluidsim(ParticleSystem *psys, int own_psys, ParticleData *
 	for(n=own_psys?1:0; n<neighbours; n++) {
 		npa = psys->particles + ptn[n].index;
 
-		q = ptn[n].dist/radius;
+		rij = ptn[n].dist;
+		q = rij/h;
 		q1 = 1.f-q;
 
 		/* Double Density Relaxation - Algorithm 2 (can't be thread safe!)*/
@@ -2296,14 +2352,40 @@ static void particle_fluidsim(ParticleSystem *psys, int own_psys, ParticleData *
 				}
 			}
 
-			/* Hooke's spring force */
 			if(spring_k > 0.f) {
-				/* L is a factor of radius */
-				D = 0.5 * dtime * dtime * 10.f * fluid->spring_k * (1.f - L) * (L - q);
+				/* Viscoelastic spring force - Algorithm 4*/
+				if (fluid->flag & SPH_VISCOELASTIC_SPRINGS && springhash){
+					spring_index = GET_INT_FROM_POINTER(BLI_edgehash_lookup(springhash, index, ptn[n].index));
 
-				madd_v3_v3fl(pa->state.co, ptn[n].co, -D * massfactor);
-				if(own_psys)
-					madd_v3_v3fl(npa->state.co, ptn[n].co, D * massfactor);
+					if(spring_index) {
+						spring = psys->fluid_springs + spring_index - 1;
+					}
+					else {
+						ParticleSpring temp_spring;
+						temp_spring.particle_index[0] = index;
+						temp_spring.particle_index[1] = ptn[n].index;
+						temp_spring.rest_length = (fluid->flag & SPH_CURRENT_REST_LENGTH) ? rij : L;
+						temp_spring.delete_flag = 0;
+						
+						spring = add_fluid_spring(psys, &temp_spring);
+					}
+
+					Lij = spring->rest_length;
+					d = fluid->yield_ratio * Lij;
+
+					if (rij > Lij + d) // Stretch, 25 is just a multiplier for plasticity_constant value to counter default dtime of 1/25
+						spring->rest_length += dtime * 25.f * fluid->plasticity_constant * (rij - Lij - d);
+					else if(rij < Lij - d) // Compress
+						spring->rest_length -= dtime * 25.f * fluid->plasticity_constant * (Lij - d - rij);
+				}
+				else { /* PART_SPRING_HOOKES - Hooke's spring force */
+					/* L is a factor of radius */
+					D = 0.5 * dtime * dtime * 10.f * fluid->spring_k * (1.f - L/h) * (L - rij);
+ 
+					madd_v3_v3fl(pa->state.co, ptn[n].co, -D * massfactor);
+					if(own_psys)
+						madd_v3_v3fl(npa->state.co, ptn[n].co, D * massfactor);
+				}
 			}
 		}
 	} 
@@ -2318,19 +2400,61 @@ static void particle_fluidsim(ParticleSystem *psys, int own_psys, ParticleData *
 		MEM_freeN(ptn);
 }
 
-static void apply_particle_fluidsim(Object *ob, ParticleSystem *psys, ParticleData *pa, float dtime, float *gravity){
+static void apply_particle_fluidsim(Object *ob, ParticleSystem *psys, ParticleData *pa, float dtime, float *gravity, EdgeHash *springhash){
 	ParticleTarget *pt;
 
-	particle_fluidsim(psys, 1, pa, dtime, psys->part->mass, gravity);
+	particle_fluidsim(psys, 1, pa, dtime, psys->part->mass, gravity, springhash);
 	
 	/*----check other SPH systems (Multifluids) , each fluid has its own parameters---*/
 	for(pt=psys->targets.first; pt; pt=pt->next) {
 		ParticleSystem *epsys = psys_get_target_system(ob, pt);
 
 		if(epsys)
-			particle_fluidsim(epsys, 0, pa, dtime, psys->part->mass, gravity);
+			particle_fluidsim(epsys, 0, pa, dtime, psys->part->mass, gravity, NULL);
 	}
 	/*----------------------------------------------------------------*/	 	 
+}
+
+static void apply_fluid_springs(ParticleSystem *psys, ParticleSettings *part, float timestep){
+	SPHFluidSettings *fluid = psys->part->fluid;
+	ParticleData *pa1, *pa2;
+	ParticleSpring *spring = psys->fluid_springs;
+	
+	float h = fluid->radius;
+	float massfactor = 1.0f/psys->part->mass;
+	float D, Rij[3], rij, Lij;
+	int i;
+
+	if((fluid->flag & SPH_VISCOELASTIC_SPRINGS)==0 || fluid->spring_k == 0.f)
+		return;
+
+	/* Loop through the springs */
+	for(i=0; i<psys->tot_fluidsprings; i++, spring++) {
+		Lij = spring->rest_length;
+
+		if (Lij > h) {
+			spring->delete_flag = 1;
+		}
+		else {
+			pa1 = psys->particles + spring->particle_index[0];
+			pa2 = psys->particles + spring->particle_index[1];
+
+			sub_v3_v3v3(Rij, pa2->prev_state.co, pa1->prev_state.co);
+			rij = normalize_v3(Rij);
+
+			/* Calculate displacement and apply value */
+			D =  0.5f * timestep * timestep * 10.f * fluid->spring_k * (1.f - Lij/h) * (Lij - rij);
+
+			madd_v3_v3fl(pa1->state.co, Rij, -D * pa1->state.time * pa1->state.time * massfactor);
+			madd_v3_v3fl(pa2->state.co, Rij, D * pa2->state.time * pa2->state.time * massfactor);
+		}
+	}
+
+	/* Loop through springs backwaqrds - for efficient delete function */
+	for (i=psys->tot_fluidsprings-1; i >= 0; i--) {
+		if(psys->fluid_springs[i].delete_flag)
+			delete_fluid_spring(psys, i);
+	}
 }
 
 /************************************************/
@@ -3420,6 +3544,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		}
 		case PART_PHYS_FLUID:
 		{
+			EdgeHash *springhash = build_fluid_springhash(psys);
 			float *gravity = NULL;
 
 			if(psys_uses_gravity(sim))
@@ -3434,8 +3559,11 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 
 			/* actual fluids calculations (not threadsafe!) */
 			LOOP_DYNAMIC_PARTICLES {
-				apply_particle_fluidsim(sim->ob, psys, pa, pa->state.time*timestep, gravity);
+				apply_particle_fluidsim(sim->ob, psys, pa, pa->state.time*timestep, gravity, springhash);
 			}
+
+			/* Apply springs to particles */
+			apply_fluid_springs(psys, part, timestep);
 
 			/* apply velocity, collisions and rotation */
 			LOOP_DYNAMIC_PARTICLES {
@@ -3451,6 +3579,11 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				
 				/* SPH particles are not physical particles, just interpolation particles,  thus rotation has not a direct sense for them */	
 				rotate_particle(part, pa, pa->state.time, timestep);  
+			}
+
+			if(springhash) {
+				BLI_edgehash_free(springhash, NULL);
+				springhash = NULL;
 			}
 			break;
 		}
@@ -3696,6 +3829,13 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 		/* reset only just created particles (on startframe all particles are recreated) */
 		reset_all_particles(sim, 0.0, cfra, oldtotpart);
 
+		if (psys->fluid_springs) {
+			MEM_freeN(psys->fluid_springs);
+			psys->fluid_springs = NULL;
+		}
+
+		psys->tot_fluidsprings = psys->alloc_fluidsprings = 0;
+
 		/* flag for possible explode modifiers after this system */
 		sim->psmd->flag |= eParticleSystemFlag_Pars;
 
@@ -3851,6 +3991,8 @@ static void fluid_default_settings(ParticleSettings *part){
 
 	fluid->radius = 0.5f;
 	fluid->spring_k = 0.f;
+	fluid->plasticity_constant = 0.1f;
+	fluid->yield_ratio = 0.1f;
 	fluid->rest_length = 0.5f;
 	fluid->viscosity_omega = 2.f;
 	fluid->viscosity_beta = 0.f;

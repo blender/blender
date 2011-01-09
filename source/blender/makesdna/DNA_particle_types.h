@@ -61,6 +61,11 @@ typedef struct BoidParticle {
 	float rt;
 } BoidParticle;
 
+typedef struct ParticleSpring {
+	float rest_length;
+	unsigned int particle_index[2], delete_flag;
+}ParticleSpring;
+
 /* Child particles are created around or between parent particles */
 typedef struct ChildParticle {
 	int num, parent;	/* num is face index on the final derived mesh */
@@ -116,11 +121,16 @@ typedef struct ParticleData {
 
 typedef struct SPHFluidSettings {
 	/*Particle Fluid*/
-	float spring_k, radius, rest_length;
+	float spring_k, radius, rest_length, plasticity_constant, yield_ratio;
 	float viscosity_omega, viscosity_beta;
 	float stiffness_k, stiffness_knear, rest_density;
 	float buoyancy;
+	int flag, pad;
 } SPHFluidSettings;
+
+/* fluid->flag */
+#define SPH_VISCOELASTIC_SPRINGS	1
+#define SPH_CURRENT_REST_LENGTH		2
 
 typedef struct ParticleSettings {
 	ID id;
@@ -253,6 +263,9 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	struct ListBase ptcaches;
 
 	struct ListBase *effectors;
+
+	ParticleSpring *fluid_springs;
+	int tot_fluidsprings, alloc_fluidsprings;
 
 	struct KDTree *tree;					/* used for interactions with self and other systems */
 

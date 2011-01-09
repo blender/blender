@@ -2929,6 +2929,7 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 {
 	if((cache->flag & PTCACHE_DISK_CACHE)==0) {
 		PTCacheMem *pm;
+		PTCacheExtra *extra;
 		int i;
 
 		link_list(fd, &cache->mem_cache);
@@ -2948,6 +2949,11 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 						SWITCH_INT(poin[j]);
 				}
 			}
+			
+			link_list(fd, &pm->extradata);
+
+			for(extra=pm->extradata.first; extra; extra=extra->next)
+				extra->data = newdataadr(fd, extra->data);
 		}
 	}
 	else
@@ -3156,6 +3162,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 				pa->boid = NULL;
 		}
 
+		psys->fluid_springs = newdataadr(fd, psys->fluid_springs);
 
 		psys->child = newdataadr(fd,psys->child);
 		psys->effectors = NULL;
