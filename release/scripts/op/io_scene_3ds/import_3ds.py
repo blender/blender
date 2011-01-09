@@ -612,11 +612,11 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             data = list( struct.unpack('<ffffffffffff', temp_data)  )
             new_chunk.bytes_read += STRUCT_SIZE_4x3MAT
 
-            contextMatrix_rot = mathutils.Matrix(\
-             data[:3] + [0],\
-             data[3:6] + [0],\
-             data[6:9] + [0],\
-             data[9:] + [1])
+            contextMatrix_rot = mathutils.Matrix((data[:3] + [0], \
+                                                  data[3:6] + [0], \
+                                                  data[6:9] + [0], \
+                                                  data[9:] + [1], \
+                                                  ))
 
         elif  (new_chunk.ID == MAT_MAP_FILEPATH):
             texture_name, read_str_len = read_string(file)

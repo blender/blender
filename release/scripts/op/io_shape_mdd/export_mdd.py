@@ -73,12 +73,11 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
     me = obj.create_mesh(scene, True, 'PREVIEW')
 
     #Flip y and z
-    mat_flip = mathutils.Matrix(\
-    [1.0, 0.0, 0.0, 0.0],\
-    [0.0, 0.0, 1.0, 0.0],\
-    [0.0, 1.0, 0.0, 0.0],\
-    [0.0, 0.0, 0.0, 1.0],\
-    )
+    mat_flip = mathutils.Matrix(((1.0, 0.0, 0.0, 0.0), \
+                                  (0.0, 0.0, 1.0, 0.0), \
+                                  (0.0, 1.0, 0.0, 0.0), \
+                                  (0.0, 0.0, 0.0, 1.0), \
+                                  ))
 
     numverts = len(me.vertices)
 
