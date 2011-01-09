@@ -880,8 +880,15 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 		
 		/* but, constrainted bones can't get auto-ik transform applied, exclude these */
 		if(pchan && pchan->constraints.first) {
-			data->rootbone--;
-			pchan= NULL;
+			/* if constraint is disabled or has no influence, OK then we allow :) */
+			for (con= pchan->constraints.first; con; con= con->next) {
+				if ((con->enforce==0.0f) || (con->flag & (CONSTRAINT_DISABLE|CONSTRAINT_OFF)));
+				else break;
+			}
+			if(con) {
+				data->rootbone--;
+				pchan= NULL;
+			}
 		}
 	}
 
