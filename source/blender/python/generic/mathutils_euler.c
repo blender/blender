@@ -157,65 +157,6 @@ static PyObject *Euler_ToMatrix(EulerObject * self)
 	return newMatrixObject(mat, 3, 3 , Py_NEW, NULL);
 }
 
-//sets the x,y,z values to a unique euler rotation
-// TODO, check if this works with rotation order!!!
-static char Euler_Unique_doc[] =
-".. method:: unique()\n"
-"\n"
-"   Calculate a unique rotation for this euler. Avoids gimble lock.\n"
-"\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Euler`\n";
-
-static PyObject *Euler_Unique(EulerObject * self)
-{
-#define PI_2		(Py_PI * 2.0)
-#define PI_HALF		(Py_PI / 2.0)
-#define PI_INV		(1.0 / Py_PI)
-
-	double heading, pitch, bank;
-
-	if(!BaseMath_ReadCallback(self))
-		return NULL;
-
-	heading = self->eul[0];
-	pitch = self->eul[1];
-	bank = self->eul[2];
-
-	//wrap heading in +180 / -180
-	pitch += Py_PI;
-	pitch -= floor(pitch * PI_INV) * PI_2;
-	pitch -= Py_PI;
-
-
-	if(pitch < -PI_HALF) {
-		pitch = -Py_PI - pitch;
-		heading += Py_PI;
-		bank += Py_PI;
-	} else if(pitch > PI_HALF) {
-		pitch = Py_PI - pitch;
-		heading += Py_PI;
-		bank += Py_PI;
-	}
-	//gimbal lock test
-	if(fabs(pitch) > PI_HALF - 1e-4) {
-		heading += bank;
-		bank = 0.0f;
-	} else {
-		bank += Py_PI;
-		bank -= (floor(bank * PI_INV)) * PI_2;
-		bank -= Py_PI;
-	}
-
-	heading += Py_PI;
-	heading -= (floor(heading * PI_INV)) * PI_2;
-	heading -= Py_PI;
-
-	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject *)self;
-}
-
 //sets the euler to 0,0,0
 static char Euler_Zero_doc[] =
 ".. method:: zero()\n"
@@ -631,7 +572,6 @@ static PyGetSetDef Euler_getseters[] = {
 //-----------------------METHOD DEFINITIONS ----------------------
 static struct PyMethodDef Euler_methods[] = {
 	{"zero", (PyCFunction) Euler_Zero, METH_NOARGS, Euler_Zero_doc},
-	{"unique", (PyCFunction) Euler_Unique, METH_NOARGS, Euler_Unique_doc},
 	{"to_matrix", (PyCFunction) Euler_ToMatrix, METH_NOARGS, Euler_ToMatrix_doc},
 	{"to_quat", (PyCFunction) Euler_ToQuat, METH_NOARGS, Euler_ToQuat_doc},
 	{"rotate_axis", (PyCFunction) Euler_rotate_axis, METH_VARARGS, Euler_rotate_axis_doc},
