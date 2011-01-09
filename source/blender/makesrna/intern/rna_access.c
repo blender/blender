@@ -3348,7 +3348,7 @@ static char *rna_idp_path(PointerRNA *ptr, IDProperty *haystack, IDProperty *nee
 	IDProperty *iter;
 	int i;
 
-	BKE_assert(haystack->type == IDP_GROUP);
+	BLI_assert(haystack->type == IDP_GROUP);
 
 	link.up= parent_link;
 	link.name= NULL;
@@ -3408,7 +3408,7 @@ static char *rna_path_from_ID_to_idpgroup(PointerRNA *ptr)
 	IDProperty *haystack;
 	IDProperty *needle;
 
-	BKE_assert(ptr->id.data != NULL);
+	BLI_assert(ptr->id.data != NULL);
 	RNA_id_pointer_create(ptr->id.data, &id_ptr);
 
 	haystack= RNA_struct_idprops(&id_ptr, FALSE);

@@ -1516,7 +1516,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 		}
 	}
 	else {
-		BKE_assert(!"internal error");
+		BLI_assert(!"internal error");
 	}
 
 	PyErr_Format(PyExc_TypeError, "Matrix multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);

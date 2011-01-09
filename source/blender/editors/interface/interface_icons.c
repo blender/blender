@@ -851,7 +851,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	/* sanity check */
 	if(w<=0 || h<=0 || w>2000 || h>2000) {
 		printf("icon_draw_rect: icons are %i x %i pixels?\n", w, h);
-		BKE_assert(!"invalid icon size");
+		BLI_assert(!"invalid icon size");
 		return;
 	}
 

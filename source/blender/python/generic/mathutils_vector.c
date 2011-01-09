@@ -1129,7 +1129,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		}
 	}
 	else {
-		BKE_assert(!"internal error");
+		BLI_assert(!"internal error");
 	}
 
 	PyErr_Format(PyExc_TypeError, "Vector multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
