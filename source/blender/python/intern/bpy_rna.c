@@ -5466,12 +5466,13 @@ static void bpy_class_free(void *pyob_ptr)
 	if(PyErr_Occurred())
 		PyErr_Clear();
 
+#if 0 /* needs further investigation, too annoying so quiet for now */
 	if(G.f&G_DEBUG) {
 		if(self->ob_refcnt > 1) {
 			PyC_ObSpit("zombie class - ref should be 1", self);
 		}
 	}
-
+#endif
 	Py_DECREF((PyObject *)pyob_ptr);
 
 	PyGILState_Release(gilstate);
