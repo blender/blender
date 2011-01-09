@@ -1499,6 +1499,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	PropertyType type;
 	const char *funcname, *valstr;
 	const char *ptrstr;
+	const short has_data= (dfunc->cont.properties.first != NULL);
 	int flag, pout, cptr, first;
 
 	srna= dsrna->srna;
@@ -1552,10 +1553,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		fprintf(f, "\t%s%s %s%s;\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, dparm->prop->identifier);
 	}
 
-	fprintf(f, "\tchar *_data");
-	if(func->c_ret) fprintf(f, ", *_retdata");
-	fprintf(f, ";\n");
-	fprintf(f, "\t\n");
+	if(has_data) {
+		fprintf(f, "\tchar *_data");
+		if(func->c_ret) fprintf(f, ", *_retdata");
+		fprintf(f, ";\n");
+		fprintf(f, "\t\n");
+	}
 
 	/* assign self */
 	if(func->flag & FUNC_USE_SELF_ID) {
@@ -1567,7 +1570,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		else fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", srna->identifier);
 	}
 
-	fprintf(f, "\t_data= (char *)_parms->data;\n");
+	if(has_data) {
+		fprintf(f, "\t_data= (char *)_parms->data;\n");
+	}
 
 	dparm= dfunc->cont.properties.first;
 	for(; dparm; dparm= dparm->next) {

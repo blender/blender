@@ -261,7 +261,6 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
-	short val;
 	rcti rect;
 	int extend = RNA_boolean_get(op->ptr, "extend");
 	int fill = RNA_boolean_get(op->ptr, "fill");
@@ -271,7 +270,6 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	rect.xmin = rect.xmax = event->x - ar->winrct.xmin;
 	rect.ymin = rect.ymax = event->y - ar->winrct.ymin;
-	val = event->val;
 
 	if(!BLI_in_rcti(&ar->v2d.mask, rect.xmin, rect.ymin))
 		return OPERATOR_CANCELLED;

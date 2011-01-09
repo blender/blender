@@ -164,7 +164,6 @@ static BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float eps
 	BVHTree *bvhtree;
 	Cloth *cloth;
 	ClothVertex *verts;
-	MFace *mfaces;
 	float co[12];
 
 	if(!clmd)
@@ -176,7 +175,6 @@ static BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float eps
 		return NULL;
 	
 	verts = cloth->verts;
-	mfaces = cloth->mfaces;
 	
 	// in the moment, return zero if no faces there
 	if(!cloth->numverts)

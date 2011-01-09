@@ -1284,7 +1284,7 @@ static void *emDM_getFaceDataArray(DerivedMesh *dm, int type)
 	EditFace *efa;
 	char *data, *emdata;
 	void *datalayer;
-	int index, offset, size;
+	int index, size;
 
 	datalayer = DM_get_face_data_layer(dm, type);
 	if(datalayer)
@@ -1296,7 +1296,7 @@ static void *emDM_getFaceDataArray(DerivedMesh *dm, int type)
 		index = CustomData_get_layer_index(&em->fdata, type);
 
 		if(index != -1) {
-			offset = em->fdata.layers[index].offset;
+			/* int offset = em->fdata.layers[index].offset; */ /* UNUSED */
 			size = CustomData_sizeof(type);
 
 			DM_add_face_layer(dm, type, CD_CALLOC, NULL);

@@ -1335,9 +1335,9 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_float(func, "value", 0.0f, -FLT_MAX, FLT_MAX, "", "Y Value of this keyframe point", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* optional */
-	parm= RNA_def_boolean(func, "replace", 0, "Replace", "Don't add any new keyframes, but just replace existing ones");
-	parm= RNA_def_boolean(func, "needed", 0, "Needed", "Only adds keyframes that are needed");
-	parm= RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe insertion to avoid recalculating the curve each time");
+	RNA_def_boolean(func, "replace", 0, "Replace", "Don't add any new keyframes, but just replace existing ones");
+	RNA_def_boolean(func, "needed", 0, "Needed", "Only adds keyframes that are needed");
+	RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe insertion to avoid recalculating the curve each time");
 
 	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Newly created keyframe");
 	RNA_def_function_return(func, parm);

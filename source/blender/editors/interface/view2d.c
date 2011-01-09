@@ -1110,7 +1110,6 @@ View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d, short xunits, short x
 
 	View2DGrid *grid;
 	float space, pixels, seconddiv;
-	int secondgrid;
 	
 	/* check that there are at least some workable args */
 	if (ELEM(V2D_ARG_DUMMY, xunits, xclamp) && ELEM(V2D_ARG_DUMMY, yunits, yclamp))
@@ -1121,11 +1120,9 @@ View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d, short xunits, short x
 	
 	/* rule: gridstep is minimal GRIDSTEP pixels */
 	if (xunits == V2D_UNIT_SECONDS) {
-		secondgrid= 1;
 		seconddiv= (float)(0.01 * FPS);
 	}
 	else {
-		secondgrid= 0;
 		seconddiv= 1.0f;
 	}
 	

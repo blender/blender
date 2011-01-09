@@ -2453,7 +2453,8 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bproot;
 	ListBase *do_effector = NULL;
-	float iks, gravity;
+	float gravity;
+	/* float iks; */
 	float fieldfactor = -1.0f, windfactor  = 0.25;
 	int   do_deflector,do_selfcollision,do_springcollision,do_aero;
 
@@ -2465,7 +2466,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 	do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
 	do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
 
-	iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
+	/* iks  = 1.0f/(1.0f-sb->inspring)-1.0f; */ /* inner spring constants function */ /* UNUSED */
 	bproot= sb->bpoint; /* need this for proper spring addressing */
 
 	if (do_springcollision || do_aero)

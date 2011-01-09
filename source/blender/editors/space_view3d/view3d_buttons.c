@@ -282,12 +282,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	
 	if(block) {	// buttons
 		uiBut *but;
-		int but_y;
-		if((ob->parent) && (ob->partype == PARBONE))	but_y = 135;
-		else											but_y = 150;
-		
-		
-		
+
 		memcpy(tfp->ve_median, median, sizeof(tfp->ve_median));
 		
 		uiBlockBeginAlign(block);

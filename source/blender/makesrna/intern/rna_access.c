@@ -4207,8 +4207,6 @@ void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 
 void RNA_parameter_list_next(ParameterIterator *iter)
 {
-	PropertyType ptype;
-
 	iter->offset+= iter->size;
 	iter->parm= iter->parm->next;
 	iter->valid= iter->parm != NULL;
@@ -4216,7 +4214,6 @@ void RNA_parameter_list_next(ParameterIterator *iter)
 	if(iter->valid) {
 		iter->size= rna_parameter_size_alloc(iter->parm);
 		iter->data= (((char*)iter->parms->data)+iter->offset);
-		ptype= RNA_property_type(iter->parm);
 	}
 }
 

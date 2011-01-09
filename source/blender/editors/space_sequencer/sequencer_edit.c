@@ -1781,7 +1781,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
-	Sequence *seq, *seq_new, *seq_next_iter;
+	Sequence *seq, *seq_new;
 	Strip *strip_new;
 	StripElem *se, *se_new;
 	int start_ofs, cfra, frame_end;
@@ -1793,7 +1793,6 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 		if((seq->flag & SELECT) && (seq->type == SEQ_IMAGE) && (seq->len > 1)) {
 			/* remove seq so overlap tests dont conflict,
 			see seq_free_sequence below for the real free'ing */
-			seq_next_iter = seq->next;
 			BLI_remlink(ed->seqbasep, seq);
 			/* if(seq->ipo) seq->ipo->id.us--; */
 			/* XXX, remove fcurve and assign to split image strips */
@@ -1818,7 +1817,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 
 				/* new stripdata */
 				strip_new->stripdata= se_new= MEM_callocN(sizeof(StripElem)*1, "stripelem");
-				strncpy(se_new->name, se->name, FILE_MAXFILE-1);
+				BLI_strncpy(se_new->name, se->name, sizeof(se_new->name));
 				calc_sequence(scene, seq_new);
 
 				if(step > 1) {

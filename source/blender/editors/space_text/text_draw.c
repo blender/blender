@@ -602,7 +602,6 @@ void wrap_offset_in_line(SpaceText *st, ARegion *ar, TextLine *linein, int cursi
 	start= 0;
 	end= max;
 	chop= 1;
-	chars= 0;
 	*offc= 0;
 
 	for(i=0, j=0; linein->line[j]!='\0'; j++) {

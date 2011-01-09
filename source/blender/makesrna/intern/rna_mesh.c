@@ -1727,7 +1727,7 @@ static void rna_def_vertex_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "new", "rna_Mesh_vertex_color_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh.");
-	parm= RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name.");
+	RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name.");
 	parm= RNA_def_pointer(func, "layer", "MeshColorLayer", "", "The newly created layer.");
 	RNA_def_function_return(func, parm);
 	
@@ -1768,7 +1768,7 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "new", "rna_Mesh_uv_texture_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a UV texture layer to Mesh.");
-	parm= RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name.");
+	RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name.");
 	parm= RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer.");
 	RNA_def_function_return(func, parm);
 

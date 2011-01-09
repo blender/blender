@@ -188,7 +188,7 @@ static void check_persistant(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	
 	/* case 1; no TreeStore */
 	if(soops->treestore==NULL) {
-		ts= soops->treestore= MEM_callocN(sizeof(TreeStore), "treestore");
+		soops->treestore= MEM_callocN(sizeof(TreeStore), "treestore");
 	}
 	ts= soops->treestore;
 	
