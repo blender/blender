@@ -1161,6 +1161,39 @@ static void ptcache_file_pointers_init(PTCacheFile *pf)
 	pf->cur[BPHYS_DATA_BOIDS] =		(data_types & (1<<BPHYS_DATA_BOIDS))	?		&pf->data.boids	: NULL;
 }
 
+/* Check to see if point number "index" is in pm, uses binary search for index data. */
+int BKE_ptcache_mem_index_find(PTCacheMem *pm, int index)
+{
+	if(pm->data[BPHYS_DATA_INDEX]) {
+		uint32_t key = index;
+		uint32_t *data = pm->data[BPHYS_DATA_INDEX];
+		uint32_t mid, low = 0, high = pm->totpoint - 1;
+
+		if(key < *data || key > *(data+high))
+			return -1;
+
+		/* check simple case for continuous indexes first */
+		if(data[key-*data]==key)
+			return key-*data;
+
+		while(low <= high) {
+			mid= (low + high)/2;
+
+			if(data[mid] > key)
+				high = mid - 1;
+			else if(data[mid] < key)
+				low = mid + 1;
+			else
+				return mid;
+		}
+
+		return -1;
+	}
+	else {
+		return (index < pm->totpoint ? index : -1);
+	}
+}
+
 void BKE_ptcache_mem_pointers_init(PTCacheMem *pm)
 {
 	int data_types = pm->data_types;
@@ -1182,9 +1215,9 @@ void BKE_ptcache_mem_pointers_incr(PTCacheMem *pm)
 int  BKE_ptcache_mem_pointers_seek(int point_index, PTCacheMem *pm)
 {
 	int data_types = pm->data_types;
-	int i, index = pm->index_array ? pm->index_array[point_index] - 1 : point_index;
+	int i, index = BKE_ptcache_mem_index_find(pm, point_index);
 
-	if(index < 0 || point_index >= MEM_allocN_len(pm->index_array)/sizeof(int)) {
+	if(index < 0) {
 		/* Can't give proper location without reallocation, so don't give any location.
 		 * Some points will be cached improperly, but this only happens with simulation
 		 * steps bigger than cache->step, so the cache has to be recalculated anyways
@@ -1217,11 +1250,6 @@ static void ptcache_data_free(PTCacheMem *pm)
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
 		if(data[i])
 			MEM_freeN(data[i]);
-	}
-
-	if(pm->index_array) {
-		MEM_freeN(pm->index_array);
-		pm->index_array = NULL;
 	}
 }
 static void ptcache_data_copy(void *from[], void *to[])
@@ -1306,24 +1334,6 @@ static void ptcache_find_frames_around(PTCacheID *pid, int frame, int *fra1, int
 		}
 	}
 }
-static void ptcache_make_index_array(PTCacheMem *pm, int totpoint)
-{
-	int i, *index;
-
-	if(pm->index_array) {
-		MEM_freeN(pm->index_array);
-		pm->index_array = NULL;
-	}
-
-	if(!pm->data[BPHYS_DATA_INDEX])
-		return;
-
-	pm->index_array = MEM_callocN(totpoint * sizeof(int), "PTCacheMem index_array");
-	index = pm->data[BPHYS_DATA_INDEX];
-
-	for(i=0; i<pm->totpoint; i++, index++)
-		pm->index_array[*index] = i + 1;
-}
 
 static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 {
@@ -1397,9 +1407,6 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 			BLI_addtail(&pm->extradata, extra);
 		}
 	}
-
-	if(!error)
-		ptcache_make_index_array(pm, pid->totpoint(pid->calldata, pm->frame));
 
 	if(error && pm) {
 		ptcache_data_free(pm);
@@ -1806,7 +1813,6 @@ static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
 		}
 	}
 	else {
-		ptcache_make_index_array(pm, pid->totpoint(pid->calldata, cfra));
 		BLI_addtail(&cache->mem_cache, pm);
 	}
 
@@ -2989,7 +2995,6 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 				bytes += sizeof(PTCacheExtra);
 			}
 
-			bytes += MEM_allocN_len(pm->index_array);
 			bytes += sizeof(PTCacheMem);
 			
 			totframes++;

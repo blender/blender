@@ -89,7 +89,7 @@ struct SoftBody;
 
 /* temp structure for read/write */
 typedef struct PTCacheData {
-	int index;
+	uint32_t index;
 	float loc[3];
 	float vel[3];
 	float rot[4];
@@ -269,6 +269,9 @@ void BKE_ptcache_update_info(PTCacheID *pid);
 
 /* Size of cache data type. */
 int		BKE_ptcache_data_size(int data_type);
+
+/* Is point with indes in memory cache */
+int BKE_ptcache_mem_index_find(struct PTCacheMem *pm, int index);
 
 /* Memory cache read/write helpers. */
 void BKE_ptcache_mem_pointers_init(struct PTCacheMem *pm);

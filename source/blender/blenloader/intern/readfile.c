@@ -2936,15 +2936,6 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 		pm = cache->mem_cache.first;
 
 		for(; pm; pm=pm->next) {
-			if(pm->index_array)
-				pm->index_array = newdataadr(fd, pm->index_array);
-			
-			/* writedata saved array of ints */
-			if(pm->index_array && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
-				for(i=0; i<pm->totpoint; i++)
-					SWITCH_INT(pm->index_array[i]);
-			}
-			
 			for(i=0; i<BPHYS_TOT_DATA; i++) {
 				pm->data[i] = newdataadr(fd, pm->data[i]);
 				

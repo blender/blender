@@ -1056,6 +1056,7 @@ typedef struct ParticleInterpolationData {
 static void get_pointcache_keys_for_time(Object *UNUSED(ob), PointCache *cache, PTCacheMem **cur, int index, float t, ParticleKey *key1, ParticleKey *key2)
 {
 	static PTCacheMem *pm = NULL;
+	int index1, index2;
 
 	if(index < 0) { /* initialize */
 		*cur = cache->mem_cache.first;
@@ -1070,15 +1071,19 @@ static void get_pointcache_keys_for_time(Object *UNUSED(ob), PointCache *cache, 
 
 			pm = *cur;
 
-			BKE_ptcache_make_particle_key(key2, pm->index_array ? pm->index_array[index] - 1 : index, pm->data, (float)pm->frame);
-			if(pm->prev->index_array && pm->prev->index_array[index] == 0)
+			index2 = BKE_ptcache_mem_index_find(pm, index);
+			index1 = BKE_ptcache_mem_index_find(pm->prev, index);
+
+			BKE_ptcache_make_particle_key(key2, index2, pm->data, (float)pm->frame);
+			if(index1 < 0)
 				copy_particle_key(key1, key2, 1);
 			else
-				BKE_ptcache_make_particle_key(key1, pm->prev->index_array ? pm->prev->index_array[index] - 1 : index, pm->prev->data, (float)pm->prev->frame);
+				BKE_ptcache_make_particle_key(key1, index1, pm->prev->data, (float)pm->prev->frame);
 		}
 		else if(cache->mem_cache.first) {
 			pm = cache->mem_cache.first;
-			BKE_ptcache_make_particle_key(key2, pm->index_array ? pm->index_array[index] - 1 : index, pm->data, (float)pm->frame);
+			index2 = BKE_ptcache_mem_index_find(pm, index);
+			BKE_ptcache_make_particle_key(key2, index2, pm->data, (float)pm->frame);
 			copy_particle_key(key1, key2, 1);
 		}
 	}
@@ -1089,14 +1094,7 @@ static int get_pointcache_times_for_particle(PointCache *cache, int index, float
 	int ret = 0;
 
 	for(pm=cache->mem_cache.first; pm; pm=pm->next) {
-		if(pm->index_array) {
-			if(pm->index_array[index]) {
-				*start = pm->frame;
-				ret++;
-				break;
-			}
-		}
-		else {
+		if(BKE_ptcache_mem_index_find(pm, index) >= 0) {
 			*start = pm->frame;
 			ret++;
 			break;
@@ -1104,14 +1102,7 @@ static int get_pointcache_times_for_particle(PointCache *cache, int index, float
 	}
 
 	for(pm=cache->mem_cache.last; pm; pm=pm->prev) {
-		if(pm->index_array) {
-			if(pm->index_array[index]) {
-				*end = pm->frame;
-				ret++;
-				break;
-			}
-		}
-		else {
+		if(BKE_ptcache_mem_index_find(pm, index) >= 0) {
 			*end = pm->frame;
 			ret++;
 			break;
@@ -1126,13 +1117,8 @@ float psys_get_dietime_from_cache(PointCache *cache, int index) {
 	int dietime = 10000000; /* some max value so that we can default to pa->time+lifetime */
 
 	for(pm=cache->mem_cache.last; pm; pm=pm->prev) {
-		if(pm->index_array) {
-			if(pm->index_array[index])
-				return (float)pm->frame;
-		}
-		else {
+		if(BKE_ptcache_mem_index_find(pm, index) >= 0)
 			return (float)pm->frame;
-		}
 	}
 
 	return (float)dietime;
