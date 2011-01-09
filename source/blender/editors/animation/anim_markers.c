@@ -68,18 +68,23 @@
 
 static ListBase *context_get_markers(const bContext *C)
 {
+	ScrArea *sa = CTX_wm_area(C);
 	
-#if 0
-	/* XXX get them from pose */
-	if ((slink->spacetype == SPACE_ACTION) && (saction->flag & SACTION_POSEMARKERS_MOVE)) {
-		if (saction->action)
-			markers= &saction->action->markers;
-		else
-			markers= NULL;
+	/* local marker sets... */
+	if (sa->spacetype == SPACE_ACTION) {
+		SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
+		
+		/* local markers can only be shown when there's only a single active action to grab them from 
+		 * 	- flag only takes effect when there's an action, otherwise it can get too confusing?
+		 */
+		if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) && (saction->action)) 
+		{
+			if (saction->flag & SACTION_POSEMARKERS_SHOW)
+				return &saction->action->markers;
+		}
 	}
-	else
-#endif
 	
+	/* default to using the scene's markers */
 	return &CTX_data_scene(C)->markers;
 }
 
@@ -453,7 +458,7 @@ static int ed_marker_add(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* deselect all */
-	for(marker= markers->first; marker; marker= marker->next)
+	for (marker= markers->first; marker; marker= marker->next)
 		marker->flag &= ~SELECT;
 	
 	marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
@@ -643,7 +648,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
-			if(WM_modal_tweak_exit(evt, mm->event_type)) {
+			if (WM_modal_tweak_exit(evt, mm->event_type)) {
 				ed_marker_move_exit(C, op);
 				WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 				WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
@@ -652,9 +657,9 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			
 			break;
 		case MOUSEMOVE:
-			if(hasNumInput(&mm->num))
+			if (hasNumInput(&mm->num))
 				break;
-
+			
 			dx= v2d->mask.xmax-v2d->mask.xmin;
 			dx= (v2d->cur.xmax-v2d->cur.xmin)/dx;
 			
@@ -729,22 +734,22 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			}
 	}
 
-	if(evt->val==KM_PRESS) {
+	if (evt->val==KM_PRESS) {
 		float vec[3];
 		char str_tx[256];
-
+		
 		if (handleNumInput(&mm->num, evt))
 		{
 			applyNumInput(&mm->num, vec);
 			outputNumInput(&mm->num, str_tx);
-
+			
 			RNA_int_set(op->ptr, "frames", vec[0]);
 			ed_marker_move_apply(op);
 			// ed_marker_header_update(C, op, str, (int)vec[0]);
 			// strcat(str, str_tx);
 			sprintf(str, "Marker offset %s", str_tx);
 			ED_area_headerprint(CTX_wm_area(C), str);
-
+			
 			WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 			WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 		}

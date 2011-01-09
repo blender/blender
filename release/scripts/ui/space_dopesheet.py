@@ -185,6 +185,8 @@ class DOPESHEET_MT_marker(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         
+        st = context.space_data
+        
         #layout.operator_context = 'EXEC_REGION_WIN'
         
         layout.column()
@@ -197,7 +199,9 @@ class DOPESHEET_MT_marker(bpy.types.Menu):
         layout.operator("marker.rename", text="Rename Marker")
         layout.operator("marker.move", text="Grab/Move Marker")
         
-        # TODO: pose markers for action edit mode only?
+        if st.mode in ('ACTION', 'SHAPEKEY') and st.action:
+            layout.separator()
+            layout.prop(st, "show_pose_markers")
 
 class DOPESHEET_MT_channel(bpy.types.Menu):
     bl_label = "Channel"
