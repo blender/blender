@@ -899,7 +899,7 @@ static void rna_def_particle(BlenderRNA *brna)
 
 	/* Hair & Keyed Keys */
 
-	prop= RNA_def_property(srna, "is_hair", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "hair", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "hair", "totkey");
 	RNA_def_property_struct_type(prop, "ParticleHairKey");
 	RNA_def_property_ui_text(prop, "Hair", "");
