@@ -30,13 +30,13 @@
 #include <math.h>
 #include <string.h>
 
-
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"

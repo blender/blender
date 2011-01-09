@@ -57,6 +57,8 @@ def dopesheet_filter(layout, context):
         row.prop(dopesheet, "show_curves", text="")
     if bpy.data.metaballs:
         row.prop(dopesheet, "show_metaballs", text="")
+    if bpy.data.lattices:
+        row.prop(dopesheet, "show_lattices", text="")
     if bpy.data.armatures:
         row.prop(dopesheet, "show_armatures", text="")
     if bpy.data.particles:
@@ -87,6 +89,7 @@ class DOPESHEET_HT_header(bpy.types.Header):
 
             sub.menu("DOPESHEET_MT_view")
             sub.menu("DOPESHEET_MT_select")
+            sub.menu("DOPESHEET_MT_marker")
 
             if st.mode == 'DOPESHEET' or (st.mode == 'ACTION' and st.action != None):
                 sub.menu("DOPESHEET_MT_channel")
@@ -178,6 +181,25 @@ class DOPESHEET_MT_select(bpy.types.Menu):
         layout.separator()
         layout.operator("action.select_linked")
 
+class DOPESHEET_MT_marker(bpy.types.Menu):
+    bl_label = "Marker"
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        #layout.operator_context = 'EXEC_REGION_WIN'
+        
+        layout.column()
+        layout.operator("marker.add", "Add Marker")
+        layout.operator("marker.duplicate", text="Duplicate Marker")
+        layout.operator("marker.delete", text="Delete Marker")
+
+        layout.separator()
+        
+        layout.operator("marker.rename", text="Rename Marker")
+        layout.operator("marker.move", text="Grab/Move Marker")
+        
+        # TODO: pose markers for action edit mode only?
 
 class DOPESHEET_MT_channel(bpy.types.Menu):
     bl_label = "Channel"

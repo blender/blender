@@ -54,6 +54,7 @@ EnumPropertyItem property_unit_items[] = {
 
 #ifdef RNA_RUNTIME
 #include "MEM_guardedalloc.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 /* Struct */
@@ -300,7 +301,7 @@ PointerRNA rna_builtin_properties_get(CollectionPropertyIterator *iter)
 	return rna_Struct_properties_get(iter);
 }
 
-PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key)
+int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -315,7 +316,9 @@ PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key
 			if(prop) {
 				propptr.type= &RNA_Property;
 				propptr.data= prop;
-				return propptr;
+
+				*r_ptr= propptr;
+				return TRUE;
 			}
 		}
 
@@ -323,7 +326,9 @@ PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key
 			if(!(prop->flag & PROP_BUILTIN) && strcmp(prop->identifier, key)==0) {
 				propptr.type= &RNA_Property;
 				propptr.data= prop;
-				return propptr;
+
+				*r_ptr= propptr;
+				return TRUE;
 			}
 		}
 	} while((srna=srna->base));
@@ -342,13 +347,15 @@ PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key
 				if(strcmp(idp->name, key) == 0) {
 					propptr.type= &RNA_Property;
 					propptr.data= idp;
-					return propptr;
+
+					*r_ptr= propptr;
+					return TRUE;
 				}
 			}
 		}
 	}
 #endif
-	return propptr;
+	return FALSE;
 }
 
 PointerRNA rna_builtin_type_get(PointerRNA *ptr)
@@ -842,34 +849,29 @@ static int rna_BlenderRNA_structs_length(PointerRNA *ptr)
 {
 	return BLI_countlist(&((BlenderRNA*)ptr->data)->structs);
 }
-static PointerRNA rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index)
+static int rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
 	StructRNA *srna= BLI_findlink(&((BlenderRNA*)ptr->data)->structs, index);
 
 	if(srna) {
-		PointerRNA r_ptr;
-		RNA_pointer_create(NULL, &RNA_Struct, srna, &r_ptr);
-		return r_ptr;
+		RNA_pointer_create(NULL, &RNA_Struct, srna, r_ptr);
+		return TRUE;
 	}
 	else {
-		return PointerRNA_NULL;
+		return FALSE;
 	}
 }
-static PointerRNA rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr, const char *key)
+static int rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
 	StructRNA *srna= ((BlenderRNA*)ptr->data)->structs.first;
-	for(; srna; srna=srna->cont.next)
-		if(key[0] == srna->identifier[0] && strcmp(key, srna->identifier)==0)
-			break;
+	for(; srna; srna=srna->cont.next) {
+		if(key[0] == srna->identifier[0] && strcmp(key, srna->identifier)==0) {
+			RNA_pointer_create(NULL, &RNA_Struct, srna, r_ptr);
+			return TRUE;
+		}
+	}
 
-	if(srna) {
-		PointerRNA r_ptr;
-		RNA_pointer_create(NULL, &RNA_Struct, srna, &r_ptr);
-		return r_ptr;
-	}
-	else {
-		return PointerRNA_NULL;
-	}
+	return FALSE;
 }
 
 

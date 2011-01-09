@@ -152,7 +152,6 @@ typedef struct PTCacheMem {
 	struct PTCacheMem *next, *prev;
 	int frame, totpoint;
 	unsigned int data_types, flag;
-	int *index_array; /* quick access to stored points with index */
 
 	void *data[8]; /* BPHYS_TOT_DATA */
 	void *cur[8]; /* BPHYS_TOT_DATA */

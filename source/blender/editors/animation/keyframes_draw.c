@@ -39,6 +39,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_dlrbTree.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -47,6 +48,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
@@ -59,7 +61,7 @@
 #include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_global.h" 	// XXX remove me!
-#include "BKE_utildefines.h"
+
 
 #include "BIF_gl.h"
 
@@ -775,6 +777,8 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 			
 			/* add material's data */
 			action_to_keylist(ma->adt, ma->adt->action, keys, blocks);
+			
+			// TODO: textures...
 		}
 	}
 	
@@ -829,6 +833,14 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 			if ((me->adt) && !(filterflag & ADS_FILTER_NOMESH)) 
 				action_to_keylist(me->adt, me->adt->action, keys, blocks);
 		}
+			break;
+		case OB_LATTICE: /* ------- Lattice ---------- */
+		{
+			Lattice *lt= (Lattice *)ob->data;
+			
+			if ((lt->adt) && !(filterflag & ADS_FILTER_NOLAT)) 
+				action_to_keylist(lt->adt, lt->adt->action, keys, blocks);
+	}
 			break;
 	}
 	

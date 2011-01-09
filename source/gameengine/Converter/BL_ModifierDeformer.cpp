@@ -49,6 +49,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
+#include "BLI_utildefines.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_key.h"
@@ -61,7 +62,7 @@ extern "C"{
 	#include "BKE_lattice.h"
 	#include "BKE_modifier.h"
 }
- #include "BKE_utildefines.h"
+ 
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"

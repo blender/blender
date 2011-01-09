@@ -39,7 +39,9 @@
 #include "DNA_brush_types.h"
 
 #include "PIL_time.h"
+
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

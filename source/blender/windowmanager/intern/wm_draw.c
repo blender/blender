@@ -39,10 +39,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
+
 
 #include "GHOST_C-api.h"
 
@@ -568,8 +569,6 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		wmSubWindowSet(win, screen->mainwin);
 
 		wm_triple_draw_textures(win, win->drawdata);
-
-		triple= win->drawdata;
 	}
 	else {
 		win->drawdata= MEM_callocN(sizeof(wmDrawTriple), "wmDrawTriple");

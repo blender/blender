@@ -97,6 +97,47 @@ static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max)
 	*max= data->slidermax;
 }
 
+/* epsilon for how close one end of shapekey range can get to the other */
+#define SHAPEKEY_SLIDER_TOL 0.001
+
+static void rna_ShapeKey_slider_min_range(PointerRNA *ptr, float *min, float *max)
+{
+	KeyBlock *data= (KeyBlock*)ptr->data;
+
+	*min= -10.0f;
+	*max= data->slidermax - SHAPEKEY_SLIDER_TOL;
+}
+
+static void rna_ShapeKey_slider_min_set(PointerRNA *ptr, float value)
+{
+	KeyBlock *data= (KeyBlock*)ptr->data;
+	float min, max;
+	
+	rna_ShapeKey_slider_min_range(ptr, &min, &max);
+	CLAMP(value, min, max);
+	data->slidermin = value;
+}
+
+static void rna_ShapeKey_slider_max_range(PointerRNA *ptr, float *min, float *max)
+{
+	KeyBlock *data= (KeyBlock*)ptr->data;
+
+	*min= data->slidermin + SHAPEKEY_SLIDER_TOL;
+	*max= 10.0f;
+}
+
+static void rna_ShapeKey_slider_max_set(PointerRNA *ptr, float value)
+{
+	KeyBlock *data= (KeyBlock*)ptr->data;
+	float min, max;
+	
+	rna_ShapeKey_slider_max_range(ptr, &min, &max);
+	CLAMP(value, min, max);
+	data->slidermax = value;
+}
+
+#undef SHAPEKEY_SLIDER_TOL
+
 PointerRNA rna_object_shapekey_index_get(ID *id, int value)
 {
 	Key *key= rna_ShapeKey_find_key(id);
@@ -446,12 +487,14 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "slider_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "slidermin");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
+	RNA_def_property_float_funcs(prop, NULL, "rna_ShapeKey_slider_min_set", "rna_ShapeKey_slider_min_range");
 	RNA_def_property_ui_text(prop, "Slider Min", "Minimum for slider");
 
 	prop= RNA_def_property(srna, "slider_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "slidermax");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
 	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_float_funcs(prop, NULL, "rna_ShapeKey_slider_max_set", "rna_ShapeKey_slider_max_range");
 	RNA_def_property_ui_text(prop, "Slider Max", "Maximum for slider");
 
 	prop= RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);

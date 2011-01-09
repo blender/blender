@@ -33,6 +33,8 @@
 #include "MEM_guardedalloc.h"
 #endif
 
+#define GHOST_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
+
 typedef	char				GHOST_TInt8;
 typedef	unsigned char		GHOST_TUns8;
 typedef short				GHOST_TInt16;

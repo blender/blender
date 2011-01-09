@@ -38,6 +38,12 @@
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_math.h"
+#include "BLI_editVert.h"
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -57,11 +63,6 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_editVert.h"
-#include "BLI_listbase.h"
 
 #include "GPU_material.h"
 

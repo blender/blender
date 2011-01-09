@@ -59,6 +59,7 @@
 #include "BLI_listbase.h"
 #include "BLI_noise.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 
@@ -86,7 +87,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
+
 
 #include "RE_render_ext.h"
 #include "RE_shader_ext.h"

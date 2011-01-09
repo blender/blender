@@ -38,6 +38,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
@@ -48,7 +49,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_utildefines.h"
+
 
 
 #include "WM_api.h"

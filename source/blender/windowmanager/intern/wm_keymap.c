@@ -37,6 +37,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -44,7 +45,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
+
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"

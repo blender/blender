@@ -32,6 +32,8 @@
 #include <vector>
 #include <queue>
 
+#include "BLI_utildefines.h"
+
 #include "BKE_global.h"
 
 #ifdef _WIN32

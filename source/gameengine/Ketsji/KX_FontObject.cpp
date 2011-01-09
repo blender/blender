@@ -30,6 +30,7 @@
 #include "DNA_curve_types.h"
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"
+#include "BLI_math.h"
 
 extern "C" {
 #include "BLF_api.h"
@@ -45,7 +46,6 @@ KX_FontObject::KX_FontObject(	void* sgReplicationInfo,
 	m_object(ob),
 	m_dpi(72),
 	m_resolution(1.f),
-	m_color(ob->col), /* initial color - non-animatable */
 	m_rendertools(rendertools)
 {
 	Curve *text = static_cast<Curve *> (ob->data);
@@ -64,6 +64,12 @@ KX_FontObject::KX_FontObject(	void* sgReplicationInfo,
 	m_fontid = BLF_load(filepath);
 	if (m_fontid == -1)
 		m_fontid = BLF_load("default");
+
+	/* initialize the color with the object color and store it in the KX_Object class
+	   This is a workaround waiting for the fix:
+	   [#25487] BGE: Object Color only works when it has a keyed frame */
+	copy_v4_v4(m_color, (const float*) ob->col);
+	this->SetObjectColor((const MT_Vector4&) m_color);
 }
 
 KX_FontObject::~KX_FontObject()
@@ -89,12 +95,16 @@ void KX_FontObject::DrawText()
 	/* only draws the text if visible */
 	if(this->GetVisible() == 0) return;
 
+	/* update the animated color */
+	this->GetObjectColor().getValue(m_color);
+
 	/* XXX 2DO - handle multiple lines */
 	/* HARDCODED MULTIPLICATION FACTOR - this will affect the render resolution directly */
 	float RES = BGE_FONT_RES * m_resolution;
 
 	float size = m_fsize * m_object->size[0] * RES;
 	float aspect = 1.f / (m_object->size[0] * RES);
+
 	m_rendertools->RenderText3D(m_fontid, m_text, int(size), m_dpi, m_color, this->GetOpenGLMatrix(), aspect);
 }
 
@@ -137,7 +147,7 @@ PyMethodDef KX_FontObject::Methods[] = {
 };
 
 PyAttributeDef KX_FontObject::Attributes[] = {
-	KX_PYATTRIBUTE_STRING_RW("text", 0, 140, false, KX_FontObject, m_text),
+	KX_PYATTRIBUTE_STRING_RW("text", 0, 280, false, KX_FontObject, m_text), //arbitrary limit. 280 = 140 unicode chars in unicode
 	KX_PYATTRIBUTE_FLOAT_RW("size", 0.0001f, 10000.0f, KX_FontObject, m_fsize),
 	KX_PYATTRIBUTE_FLOAT_RW("resolution", 0.0001f, 10000.0f, KX_FontObject, m_resolution),
 	/* KX_PYATTRIBUTE_INT_RW("dpi", 0, 10000, false, KX_FontObject, m_dpi), */// no real need for expose this I think

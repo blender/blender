@@ -38,6 +38,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_math.h"
+#include "BLI_editVert.h"
+#include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
@@ -46,10 +51,6 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
-
-#include "BLI_math.h"
-#include "BLI_editVert.h"
-#include "BLI_edgehash.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -189,7 +190,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 		mesh_update_customdata_pointers(me);
 	}
 
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return 1;
@@ -208,7 +209,7 @@ int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 		return 0;
 
 	delete_customdata_layer(C, ob, cdl);
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return 1;
@@ -252,7 +253,7 @@ int ED_mesh_color_add(bContext *C, Scene *scene, Object *ob, Mesh *me, const cha
 			shadeMeshMCol(scene, ob, me);
 	}
 
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return 1;
@@ -271,7 +272,7 @@ int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 		return 0;
 
 	delete_customdata_layer(C, ob, cdl);
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return 1;
@@ -485,7 +486,7 @@ static int sticky_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 	RE_make_sticky(scene, v3d);
 
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return OPERATOR_FINISHED;
@@ -517,7 +518,7 @@ static int sticky_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	CustomData_free_layer_active(&me->vdata, CD_MSTICKY, me->totvert);
 	me->msticky= NULL;
 
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return OPERATOR_FINISHED;
@@ -614,7 +615,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 
 	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mface, mesh->totface, NULL);
 
-	DAG_id_tag_update(&mesh->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&mesh->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mesh);
 }
 

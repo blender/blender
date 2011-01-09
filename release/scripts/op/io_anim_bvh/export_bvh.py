@@ -23,7 +23,8 @@
 
 import bpy
 
-def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
+
+def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
 
     from mathutils import Matrix, Vector, Euler
     from math import degrees
@@ -33,40 +34,40 @@ def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
     obj = context.object
     arm = obj.data
 
-    # Build a dictionary of bone children.
-    # None is for parentless bones
-    bone_children = {None: []}
+    # Build a dictionary of children.
+    # None for parentless
+    children = {None: []}
 
     # initialize with blank lists
     for bone in arm.bones:
-        bone_children[bone.name] = []
+        children[bone.name] = []
 
     for bone in arm.bones:
-        bone_children[getattr(bone.parent, "name", None)].append(bone.name)
+        children[getattr(bone.parent, "name", None)].append(bone.name)
 
     # sort the children
-    for children_list in bone_children.values():
+    for children_list in children.values():
         children_list.sort()
 
     # bone name list in the order that the bones are written
-    bones_serialized_names = []
+    serialized_names = []
 
-    bone_locs = {}
+    node_locations = {}
 
     file.write("HIERARCHY\n")
 
-    def write_bones_recursive(bone_name, indent):
-        my_bone_children = bone_children[bone_name]
+    def write_recursive_nodes(bone_name, indent):
+        my_children = children[bone_name]
 
         indent_str = "\t" * indent
 
         bone = arm.bones[bone_name]
         loc = bone.head_local
-        bone_locs[bone_name] = loc
+        node_locations[bone_name] = loc
 
         # make relative if we can
         if bone.parent:
-            loc = loc - bone_locs[bone.parent.name]
+            loc = loc - node_locations[bone.parent.name]
 
         if indent:
             file.write("%sJOINT %s\n" % (indent_str, bone_name))
@@ -77,31 +78,31 @@ def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
         file.write("%s\tOFFSET %.6f %.6f %.6f\n" % (indent_str, loc.x * global_scale, loc.y * global_scale, loc.z * global_scale))
         file.write("%s\tCHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation\n" % indent_str)
 
-        if my_bone_children:
+        if my_children:
             # store the location for the children
             # to het their relative offset
 
             # Write children
-            for child_bone in my_bone_children:
-                bones_serialized_names.append(child_bone)
-                write_bones_recursive(child_bone, indent + 1)
+            for child_bone in my_children:
+                serialized_names.append(child_bone)
+                write_recursive_nodes(child_bone, indent + 1)
 
         else:
             # Write the bone end.
             file.write("%s\tEnd Site\n" % indent_str)
             file.write("%s\t{\n" % indent_str)
-            loc = bone.tail_local - bone_locs[bone_name]
+            loc = bone.tail_local - node_locations[bone_name]
             file.write("%s\t\tOFFSET %.6f %.6f %.6f\n" % (indent_str, loc.x * global_scale, loc.y * global_scale, loc.z * global_scale))
             file.write("%s\t}\n" % indent_str)
 
         file.write("%s}\n" % indent_str)
 
-    if len(bone_children[None]) == 1:
-        key = bone_children[None][0]
-        bones_serialized_names.append(key)
+    if len(children[None]) == 1:
+        key = children[None][0]
+        serialized_names.append(key)
         indent = 0
 
-        write_bones_recursive(key, indent)
+        write_recursive_nodes(key, indent)
 
     else:
         # Write a dummy parent node
@@ -112,11 +113,11 @@ def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
         key = None
         indent = 1
 
-        write_bones_recursive(key, indent)
+        write_recursive_nodes(key, indent)
 
         file.write("}\n")
 
-    # redefine bones as sorted by bones_serialized_names
+    # redefine bones as sorted by serialized_names
     # so we can write motion
 
     class decorated_bone(object):
@@ -133,6 +134,7 @@ def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
         "rest_local_imat",  # rest_local_mat inverted
         "prev_euler",  # last used euler to preserve euler compability in between keyframes
         )
+
         def __init__(self, bone_name):
             self.name = bone_name
             self.rest_bone = arm.bones[bone_name]
@@ -162,7 +164,7 @@ def _read(context, filepath, frame_start, frame_end, global_scale=1.0):
             else:
                 return "[\"%s\" root bone]\n" % (self.name)
 
-    bones_decorated = [decorated_bone(bone_name) for bone_name in  bones_serialized_names]
+    bones_decorated = [decorated_bone(bone_name) for bone_name in serialized_names]
 
     # Assign parents
     bones_decorated_dict = {}
@@ -222,7 +224,7 @@ def save(operator, context, filepath="",
           global_scale=1.0,
           ):
 
-    _read(context, filepath,
+    write_armature(context, filepath,
            frame_start=frame_start,
            frame_end=frame_end,
            global_scale=global_scale,

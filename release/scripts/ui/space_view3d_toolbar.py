@@ -25,6 +25,29 @@ class View3DPanel():
     bl_region_type = 'TOOLS'
 
 
+# **************** standard tool clusters ******************
+
+# History/Repeat tools
+def draw_repeat_tools(context, layout):
+    col = layout.column(align=True)
+    col.label(text="Repeat:")
+    col.operator("screen.repeat_last")
+    col.operator("screen.repeat_history", text="History...")
+
+# Grease Pencil tools
+def draw_gpencil_tools(context, layout):
+    col = layout.column(align=True)
+    
+    col.label(text="Grease Pencil:")
+    
+    row = col.row()
+    row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+    row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+    row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+    
+    row = col.row()
+    row.prop(context.tool_settings, "use_grease_pencil_sessions")
+
 # ********** default tools for objectmode ****************
 
 
@@ -63,17 +86,9 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, bpy.types.Panel):
         col.operator("anim.keyframe_insert_menu", text="Insert")
         col.operator("anim.keyframe_delete_v3d", text="Remove")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 # ********** default tools for editmode_mesh ****************
 
@@ -131,17 +146,9 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, bpy.types.Panel):
         col.operator("mesh.faces_shade_smooth", text="Smooth")
         col.operator("mesh.faces_shade_flat", text="Flat")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, bpy.types.Panel):
@@ -202,17 +209,9 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, bpy.types.Panel):
         col.operator("curve.extrude")
         col.operator("curve.subdivide")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 # ********** default tools for editmode_surface ****************
 
@@ -242,17 +241,9 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel, bpy.types.Panel):
         col.operator("curve.extrude")
         col.operator("curve.subdivide")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 # ********** default tools for editmode_text ****************
 
@@ -281,10 +272,7 @@ class VIEW3D_PT_tools_textedit(View3DPanel, bpy.types.Panel):
         col.operator("font.style_toggle", text="Italic").style = 'ITALIC'
         col.operator("font.style_toggle", text="Underline").style = 'UNDERLINE'
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
 
 # ********** default tools for editmode_armature ****************
@@ -314,17 +302,9 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel, bpy.types.Panel):
         col.operator("armature.extrude_move")
         col.operator("armature.subdivide", text="Subdivide")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 
 class VIEW3D_PT_tools_armatureedit_options(View3DPanel, bpy.types.Panel):
@@ -355,17 +335,9 @@ class VIEW3D_PT_tools_mballedit(View3DPanel, bpy.types.Panel):
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 # ********** default tools for editmode_lattice ****************
 
@@ -386,17 +358,9 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel, bpy.types.Panel):
         col = layout.column(align=True)
         col.operator("lattice.make_regular")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 
 # ********** default tools for posemode ****************
@@ -437,17 +401,9 @@ class VIEW3D_PT_tools_posemode(View3DPanel, bpy.types.Panel):
         col.operator("anim.keyframe_insert_menu", text="Insert")
         col.operator("anim.keyframe_delete_v3d", text="Remove")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 
 class VIEW3D_PT_tools_posemode_options(View3DPanel, bpy.types.Panel):

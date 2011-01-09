@@ -35,8 +35,9 @@
 
 #include "BLI_path_util.h"
 #include "BLI_bpath.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_global.h" /* XXX, G.main only */
 
 #include "MEM_guardedalloc.h"

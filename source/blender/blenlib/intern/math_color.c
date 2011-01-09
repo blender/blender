@@ -209,7 +209,6 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 		s = (cmax - cmin)/cmax;
 	else {
 		s = 0.0f;
-		h = 0.0f;
 	}
 	if (s == 0.0f)
 		h = -1.0f;

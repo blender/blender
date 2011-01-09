@@ -41,6 +41,14 @@
 #include "DNA_object_types.h"
 #include "DNA_sound_types.h"
 
+#include "BLI_math.h"
+#include "BLI_fileops.h"
+#include "BLI_listbase.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_threads.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_animsys.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -49,14 +57,10 @@
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
 #include "RNA_access.h"
+#include "BKE_utildefines.h"
+
 #include "RE_pipeline.h"
 
-#include "BLI_math.h"
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "BLI_threads.h"
 #include <pthread.h>
 
 #include "IMB_imbuf.h"
@@ -330,7 +334,7 @@ unsigned int seq_hash_render_data(const SeqRenderData * a)
 	return rval;
 }
 
-/* ************************* itterator ************************** */
+/* ************************* iterator ************************** */
 /* *************** (replaces old WHILE_SEQ) ********************* */
 /* **************** use now SEQ_BEGIN() SEQ_END ***************** */
 

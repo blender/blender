@@ -28,8 +28,10 @@
 #include "mathutils.h"
 
 #include "BLI_blenlib.h"
-#include "BKE_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
+
 
 #define MAX_DIMENSIONS 4
 /* Swizzle axes get packed into a single value that is used as a closure. Each
@@ -1045,6 +1047,17 @@ static int column_vector_multiplication(float *rvec, VectorObject* vec, MatrixOb
 	return 0;
 }
 
+static PyObject *vector_mul_float(VectorObject *vec, const float scalar)
+{
+	float tvec[MAX_DIMENSIONS];
+	int i;
+
+	for(i = 0; i < vec->size; i++) {
+		tvec[i] = vec->vec[i] * scalar;
+	}
+	return newVectorObject(tvec, vec->size, Py_NEW, Py_TYPE(vec));
+}
+
 static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
@@ -1078,55 +1091,48 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		}
 		return PyFloat_FromDouble(dot);
 	}
-	
-	/* swap so vec1 is always the vector */
-	/* note: it would seem from this code that the matrix multiplication below
-	 * is communicative. however the matrix class will always handle the
-	 * (matrix * vector) case so we can ignore it here.
-	 * This is NOT so for Quaternions: TODO, check if communicative (vec * quat) is correct */
-	if (vec2) {
-		vec1= vec2;
-		v2= v1;
+	else if (vec1) {
+		if (MatrixObject_Check(v2)) {
+			/* VEC * MATRIX */
+			float tvec[MAX_DIMENSIONS];
+			if(!BaseMath_ReadCallback((MatrixObject *)v2))
+				return NULL;
+			if(column_vector_multiplication(tvec, vec1, (MatrixObject*)v2) == -1) {
+				return NULL;
+			}
+
+			return newVectorObject(tvec, vec1->size, Py_NEW, Py_TYPE(vec1));
+		}
+		else if (QuaternionObject_Check(v2)) {
+			/* VEC * QUAT */
+			QuaternionObject *quat2 = (QuaternionObject*)v2;
+			float tvec[3];
+
+			if(vec1->size != 3) {
+				PyErr_SetString(PyExc_TypeError, "Vector multiplication: only 3D vector rotations (with quats) currently supported");
+				return NULL;
+			}
+			if(!BaseMath_ReadCallback(quat2)) {
+				return NULL;
+			}
+			copy_v3_v3(tvec, vec1->vec);
+			mul_qt_v3(quat2->quat, tvec);
+			return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(vec1));
+		}
+		else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*FLOAT */
+			return vector_mul_float(vec1, scalar);
+		}
+	}
+	else if (vec2) {
+		if (((scalar= PyFloat_AsDouble(v1)) == -1.0 && PyErr_Occurred())==0) { /* VEC*FLOAT */
+			return vector_mul_float(vec2, scalar);
+		}
+	}
+	else {
+		BKE_assert(!"internal error");
 	}
 
-	if (MatrixObject_Check(v2)) {
-		/* VEC * MATRIX */
-		float tvec[MAX_DIMENSIONS];
-		if(!BaseMath_ReadCallback((MatrixObject *)v2))
-			return NULL;
-		if(column_vector_multiplication(tvec, vec1, (MatrixObject*)v2) == -1) {
-			return NULL;
-		}
-
-		return newVectorObject(tvec, vec1->size, Py_NEW, Py_TYPE(vec1));
-	} else if (QuaternionObject_Check(v2)) {
-		/* VEC * QUAT */
-		QuaternionObject *quat2 = (QuaternionObject*)v2;
-		float tvec[3];
-
-		if(vec1->size != 3) {
-			PyErr_SetString(PyExc_TypeError, "Vector multiplication: only 3D vector rotations (with quats) currently supported");
-			return NULL;
-		}
-		if(!BaseMath_ReadCallback(quat2)) {
-			return NULL;
-		}
-		copy_v3_v3(tvec, vec1->vec);
-		mul_qt_v3(quat2->quat, tvec);
-		return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(vec1));
-	}
-	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*FLOAT */
-		int i;
-		float vec[MAX_DIMENSIONS];
-		
-		for(i = 0; i < vec1->size; i++) {
-			vec[i] = vec1->vec[i] * scalar;
-		}
-		return newVectorObject(vec, vec1->size, Py_NEW, Py_TYPE(vec1));
-		
-	}
-	
-	PyErr_SetString(PyExc_TypeError, "Vector multiplication: arguments not acceptable for this operation");
+	PyErr_Format(PyExc_TypeError, "Vector multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 	return NULL;
 }
 

@@ -34,6 +34,7 @@
 
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_cloth.h"
@@ -41,7 +42,7 @@
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
+
 
 #ifdef _WIN32
 void tstart ( void )
@@ -163,7 +164,6 @@ static BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float eps
 	BVHTree *bvhtree;
 	Cloth *cloth;
 	ClothVertex *verts;
-	MFace *mfaces;
 	float co[12];
 
 	if(!clmd)
@@ -175,7 +175,6 @@ static BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float eps
 		return NULL;
 	
 	verts = cloth->verts;
-	mfaces = cloth->mfaces;
 	
 	// in the moment, return zero if no faces there
 	if(!cloth->numverts)
@@ -430,7 +429,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	PointCache *cache;
 	PTCacheID pid;
 	float timescale;
-	int framedelta, framenr, startframe, endframe;
+	int framenr, startframe, endframe;
 	int cache_result;
 
 	clmd->scene= scene;	/* nice to pass on later :) */
@@ -485,11 +484,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	else if(framenr > endframe) {
 		framenr= endframe;
 	}
-
-	if(cache->flag & PTCACHE_SIMULATION_VALID)
-		framedelta= framenr - cache->simframe;
-	else
-		framedelta= -1;
 
 	/* initialize simulation data if it didn't exist already */
 	if(!do_init_cloth(ob, clmd, dm, framenr))

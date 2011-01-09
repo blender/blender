@@ -33,12 +33,14 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
@@ -52,7 +54,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
-#include "BKE_utildefines.h"
+
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
@@ -317,6 +319,16 @@ static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFu
 				if (adt_keyframes_loop(ked, me->adt, key_ok, key_cb, fcu_cb, filterflag))
 					return 1;
 			}
+		}
+			break;
+		case OB_LATTICE: /* ---- Lattice ------ */
+		{
+			Lattice *lt= (Lattice *)ob->data;
+			
+			if ((lt->adt) && !(filterflag & ADS_FILTER_NOLAT)) {
+				if (adt_keyframes_loop(ked, lt->adt, key_ok, key_cb, fcu_cb, filterflag))
+					return 1;
+	}
 		}
 			break;
 	}

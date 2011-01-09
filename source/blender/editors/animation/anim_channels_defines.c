@@ -31,6 +31,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -42,6 +43,7 @@
 #include "DNA_space_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
@@ -50,9 +52,11 @@
 #include "DNA_world_types.h"
 
 #include "RNA_access.h"
+
 #include "BKE_curve.h"
 #include "BKE_key.h"
 #include "BKE_context.h"
+#include "BKE_utildefines.h" /* FILE_MAX */
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -2311,6 +2315,82 @@ static bAnimChannelType ACF_DSMESH=
 	acf_dsmesh_setting_ptr					/* pointer for setting */
 };
 
+/* Lattice Expander  ------------------------------------------- */
+
+// TODO: just get this from RNA?
+static int acf_dslat_icon(bAnimListElem *UNUSED(ale))
+{
+	return ICON_LATTICE_DATA;
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_dslat_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return LT_DS_EXPAND;
+			
+		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
+			
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_dslat_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	Lattice *lt= (Lattice *)ale->data;
+	
+	/* clear extra return data first */
+	*type= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			GET_ACF_FLAG_PTR(lt->flag);
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+			if (lt->adt)
+				GET_ACF_FLAG_PTR(lt->adt->flag)
+				else
+					return NULL;
+			
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* node tree expander type define */
+static bAnimChannelType ACF_DSLAT= 
+{
+	"Lattice Expander",				/* type name */
+	
+	acf_generic_dataexpand_color,	/* backdrop color */
+	acf_generic_dataexpand_backdrop,/* backdrop */
+	acf_generic_indention_1,		/* indent level */		// XXX this only works for compositing
+	acf_generic_basic_offset,		/* offset */
+	
+	acf_generic_idblock_name,		/* name */
+	acf_dslat_icon,					/* icon */
+	
+	acf_generic_dataexpand_setting_valid,	/* has setting */
+	acf_dslat_setting_flag,					/* flag for setting */
+	acf_dslat_setting_ptr					/* pointer for setting */
+};
+
 /* ShapeKey Entry  ------------------------------------------- */
 
 /* name for ShapeKey */
@@ -2567,6 +2647,7 @@ void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= &ACF_DSARM;		/* Armature Channel */
 		animchannelTypeInfo[type++]= &ACF_DSMESH;		/* Mesh Channel */
 		animchannelTypeInfo[type++]= &ACF_DSTEX;		/* Texture Channel */
+		animchannelTypeInfo[type++]= &ACF_DSLAT;		/* Lattice Channel */
 		animchannelTypeInfo[type++]= &ACF_DSLINESTYLE;	/* LineStyle Channel */
 		
 		animchannelTypeInfo[type++]= &ACF_SHAPEKEY;		/* ShapeKey */

@@ -38,7 +38,7 @@
 
 #include "DNA_text_types.h"
 #include "BKE_text.h"
-#include "BKE_utildefines.h"
+
 
 // XXX
 #if 0

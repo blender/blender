@@ -89,10 +89,10 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
-
 
 #include "UI_resources.h"
 
@@ -604,20 +604,22 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case TFM_MODAL_ROTATE:
 				/* only switch when... */
-				if( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
-					
-					resetTransRestrictions(t);
-					
-					if (t->mode == TFM_ROTATION) {
-						restoreTransObjects(t);
-						initTrackball(t);
+				if(!(t->options & CTX_TEXTURE)) {
+					if( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
+						
+						resetTransRestrictions(t);
+						
+						if (t->mode == TFM_ROTATION) {
+							restoreTransObjects(t);
+							initTrackball(t);
+						}
+						else {
+							restoreTransObjects(t);
+							initRotation(t);
+						}
+						initSnapping(t, NULL); // need to reinit after mode change
+						t->redraw |= TREDRAW_HARD;
 					}
-					else {
-						restoreTransObjects(t);
-						initRotation(t);
-					}
-					initSnapping(t, NULL); // need to reinit after mode change
-					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_RESIZE:
@@ -736,6 +738,8 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			case TFM_MODAL_PROPSIZE_UP:
 				if(t->flag & T_PROP_EDIT) {
 					t->prop_size*= 1.1f;
+					if(t->spacetype==SPACE_VIEW3D)
+						t->prop_size= MIN2(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
 				t->redraw |= TREDRAW_HARD;
@@ -855,20 +859,22 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case RKEY:
 			/* only switch when... */
-			if( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
+			if(!(t->options & CTX_TEXTURE)) {
+				if( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
 
-				resetTransRestrictions(t);
+					resetTransRestrictions(t);
 
-				if (t->mode == TFM_ROTATION) {
-					restoreTransObjects(t);
-					initTrackball(t);
+					if (t->mode == TFM_ROTATION) {
+						restoreTransObjects(t);
+						initTrackball(t);
+					}
+					else {
+						restoreTransObjects(t);
+						initRotation(t);
+					}
+					initSnapping(t, NULL); // need to reinit after mode change
+					t->redraw |= TREDRAW_HARD;
 				}
-				else {
-					restoreTransObjects(t);
-					initRotation(t);
-				}
-				initSnapping(t, NULL); // need to reinit after mode change
-				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case CKEY:
@@ -972,6 +978,8 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		case PADPLUSKEY:
 			if(event->alt && t->flag & T_PROP_EDIT) {
 				t->prop_size *= 1.1f;
+				if(t->spacetype==SPACE_VIEW3D)
+					t->prop_size= MIN2(t->prop_size, ((View3D *)t->view)->far);
 				calculatePropRatio(t);
 			}
 			t->redraw= 1;
@@ -1496,6 +1504,10 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	t->state = TRANS_STARTING;
 
+	if(RNA_struct_find_property(op->ptr, "texture_space"))
+		if(RNA_boolean_get(op->ptr, "texture_space"))
+			options |= CTX_TEXTURE;
+	
 	t->options = options;
 
 	t->mode = mode;
@@ -2536,6 +2548,9 @@ static void headerResize(TransInfo *t, float vec[3], char *str) {
 		else
 			sprintf(str, "Scale X: %s   Y: %s  Z: %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
 	}
+	
+	if (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
+		sprintf(str, "%s Proportional size: %.2f", str, t->prop_size);
 }
 
 #define SIGN(a)		(a<-FLT_EPSILON?1:a>FLT_EPSILON?2:3)
@@ -3159,6 +3174,9 @@ int Rotation(TransInfo *t, short UNUSED(mval[2]))
 		sprintf(str, "Rot: %.2f%s %s", 180.0*final/M_PI, t->con.text, t->proptext);
 	}
 	
+	if (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
+		sprintf(str, "%s Proportional size: %.2f", str, t->prop_size);
+	
 	t->values[0] = final;
 	
 	applyRotation(t, final, t->axis);
@@ -3380,6 +3398,9 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		else
 			sprintf(str, "Dx: %s   Dy: %s  Dz: %s (%s)%s %s  %s", &tvec[0], &tvec[20], &tvec[40], distvec, t->con.text, t->proptext, &autoik[0]);
 	}
+	
+	if (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
+		sprintf(str, "%s Proportional size: %.2f", str, t->prop_size);
 }
 
 static void applyTranslation(TransInfo *t, float vec[3]) {

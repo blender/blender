@@ -36,6 +36,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -791,7 +792,7 @@ void pose_copy_menu(Scene *scene)
 	} 
 	else { /* constraints, optional (note: max we can have is 24 constraints) */
 		bConstraint *con, *con_back;
-		int const_toggle[24];
+		int const_toggle[24]= {0}; /* XXX, initialize as 0 to quiet errors */
 		ListBase const_copy = {NULL, NULL};
 		
 		BLI_duplicatelist(&const_copy, &(pchanact->constraints));

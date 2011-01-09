@@ -995,8 +995,9 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
         col.prop(tex, "color", text="")
 
         if isinstance(idblock, bpy.types.Material):
-            # XXX, dont remove since old files have this users need to be able to disable!
-            col.prop(tex, "use_old_bump", text="Old Bump Mapping")
+            sub = layout.row()
+            sub.prop(tex, "bump_method", text="Bump Method")
+            sub.active = tex.use_map_normal
 
         col = split.column()
         col.prop(tex, "invert", text="Negative")

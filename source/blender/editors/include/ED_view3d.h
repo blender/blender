@@ -109,7 +109,7 @@ void view3d_get_object_project_mat(struct RegionView3D *v3d, struct Object *ob, 
 void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
 void view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct RegionView3D *rv3d, struct View3D *v3d, struct rctf *viewborder_r, short do_shift);
 
-/* drawobject.c itterators */
+/* drawobject.c iterators */
 void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, int clipVerts);
 void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
 void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct EditFace *efa, int x, int y, int index), void *userData);

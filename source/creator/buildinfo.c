@@ -28,7 +28,10 @@
  */
 
 #ifdef BUILD_DATE
-#include "BKE_utildefines.h"
+
+/* copied from BLI_utildefines.h */
+#define STRINGIFY_ARG(x) #x
+#define STRINGIFY(x) STRINGIFY_ARG(x)
 
 char build_date[]= STRINGIFY(BUILD_DATE);
 char build_time[]= STRINGIFY(BUILD_TIME);

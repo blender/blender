@@ -47,6 +47,7 @@
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
@@ -279,10 +280,9 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	else if (ob->id.lib) {
 		uiPopupMenu *pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
 		uiLayout *layout= uiPupMenuLayout(pup);
-		PointerRNA props_ptr;
 		
 		/* create operator menu item with relevant properties filled in */
-		props_ptr= uiItemFullO(layout, op->idname, op->type->name, ICON_NULL, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		uiItemFullO(layout, op->idname, op->type->name, ICON_NULL, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);
@@ -571,7 +571,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	/* context itterator */
+	/* context iterator */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		
 		if(ob!=par) {
@@ -746,7 +746,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 	
 	par->recalc |= OB_RECALC_OB;
 	
-	/* context itterator */
+	/* context iterator */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if (ob != par) {
 			if (test_parent_loop(par, ob)) {

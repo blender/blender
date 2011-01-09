@@ -200,6 +200,11 @@ typedef struct PreviewImage {
 
 #define ID_REAL_USERS(id) (((ID *)id)->us - ((((ID *)id)->flag & LIB_FAKEUSER) ? 1:0))
 
+#ifdef GS
+#undef GS
+#endif
+#define GS(a)	(*((short *)(a)))
+
 /* id->flag: set frist 8 bits always at zero while reading */
 #define LIB_LOCAL		0
 #define LIB_EXTERN		1

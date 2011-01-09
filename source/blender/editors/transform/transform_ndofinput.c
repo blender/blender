@@ -27,9 +27,10 @@
  #include <math.h>			/* fabs */
 #include <stdio.h>			/* for sprintf		*/
 
-#include "BKE_global.h"		/* for G			*/
-#include "BKE_utildefines.h"	/* ABS */
+#include "BLI_utildefines.h"
 
+#include "BKE_global.h"		/* for G			*/
+	/* ABS */
 
 #include "WM_types.h"
 

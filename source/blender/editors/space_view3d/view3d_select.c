@@ -47,6 +47,7 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 #include "BLI_linklist.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_paint.h"
@@ -54,6 +55,7 @@
 
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -66,7 +68,6 @@
 #include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
-#include "ED_retopo.h"
 #include "ED_screen.h"
 #include "ED_mball.h"
 

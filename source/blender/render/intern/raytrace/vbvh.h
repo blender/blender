@@ -31,7 +31,7 @@
 #include <algorithm>
 #include "rayobject_rtbuild.h"
 #include "BLI_memarena.h"
-
+#include "BLI_utildefines.h"
 
 /*
  * VBVHNode represents a BVHNode with support for a variable number of childrens

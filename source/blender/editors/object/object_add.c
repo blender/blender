@@ -43,6 +43,7 @@
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
@@ -1036,9 +1037,7 @@ static EnumPropertyItem convert_target_items[]= {
 
 static void curvetomesh(Scene *scene, Object *ob) 
 {
-	Curve *cu= ob->data;
-	
-	if(cu->disp.first==0)
+	if(ob->disp.first==0)
 		makeDispListCurveTypes(scene, ob, 0); /* force creation */
 
 	nurbs_to_mesh(ob); /* also does users */
@@ -1188,7 +1187,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 			cu= newob->data;
 
-			if (!cu->disp.first)
+			if (!newob->disp.first)
 				makeDispListCurveTypes(scene, newob, 0);
 
 			newob->type= OB_CURVE;
@@ -1225,8 +1224,12 @@ static int convert_exec(bContext *C, wmOperator *op)
 			for(nu=cu->nurb.first; nu; nu=nu->next)
 				nu->charidx= 0;
 
-			if(target == OB_MESH)
+			if(target == OB_MESH) {
 				curvetomesh(scene, newob);
+
+				/* meshes doesn't use displist */
+				freedisplist(&newob->disp);
+			}
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			ob->flag |= OB_DONE;
@@ -1243,6 +1246,9 @@ static int convert_exec(bContext *C, wmOperator *op)
 					newob->data= copy_curve(ob->data);
 				} else {
 					newob= ob;
+
+					/* meshes doesn't use displist */
+					freedisplist(&newob->disp);
 				}
 
 				curvetomesh(scene, newob);

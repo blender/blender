@@ -46,7 +46,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_utildefines.h"
+
 
 #include "ED_mesh.h" /* XXX Bad level call */
 
@@ -59,7 +59,7 @@ static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	/* cheating way for importers to avoid slow updates */
 	if(id->us > 0) {
-		DAG_id_tag_update(id, OB_RECALC_DATA);
+		DAG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 	}
 }
@@ -228,6 +228,15 @@ static void rna_MeshColor_color4_set(PointerRNA *ptr, const float *values)
 	(&mcol[3].r)[1]= (char)(CLAMPIS(values[1]*255.0f, 0, 255));
 	(&mcol[3].r)[0]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
 }
+
+static void rna_Mesh_texspace_set(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->data;
+	
+	if (me->texflag & AUTOSPACE)
+		tex_space_mesh(me);
+}
+
 
 static int rna_Mesh_texspace_editable(PointerRNA *ptr)
 {
@@ -1718,7 +1727,7 @@ static void rna_def_vertex_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "new", "rna_Mesh_vertex_color_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh.");
-	parm= RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name.");
+	RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name.");
 	parm= RNA_def_pointer(func, "layer", "MeshColorLayer", "", "The newly created layer.");
 	RNA_def_function_return(func, parm);
 	
@@ -1759,7 +1768,7 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "new", "rna_Mesh_uv_texture_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a UV texture layer to Mesh.");
-	parm= RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name.");
+	RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name.");
 	parm= RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer.");
 	RNA_def_function_return(func, parm);
 
@@ -1903,6 +1912,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_auto_texspace", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", AUTOSPACE);
 	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Mesh_texspace_set");
 	
 	prop= RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);

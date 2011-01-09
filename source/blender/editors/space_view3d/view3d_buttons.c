@@ -45,6 +45,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
@@ -55,7 +56,6 @@
 #include "BKE_mesh.h"
 #include "BKE_screen.h"
 #include "BKE_deform.h"
-
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -282,12 +282,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	
 	if(block) {	// buttons
 		uiBut *but;
-		int but_y;
-		if((ob->parent) && (ob->partype == PARBONE))	but_y = 135;
-		else											but_y = 150;
-		
-		
-		
+
 		memcpy(tfp->ve_median, median, sizeof(tfp->ve_median));
 		
 		uiBlockBeginAlign(block);

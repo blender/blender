@@ -32,6 +32,8 @@
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
 #include "bpy_util.h"
 
+#include "BLI_utildefines.h"
+
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"

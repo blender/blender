@@ -35,6 +35,7 @@
 #include "GL/glew.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -58,7 +59,7 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
+
 
 #include "BLI_threads.h"
 #include "BLI_blenlib.h"
@@ -901,7 +902,7 @@ static struct GPUMaterialState {
 } GMS = {NULL};
 
 /* fixed function material, alpha handed by caller */
-static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma)
+static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma, const Object *ob)
 {
 	if (bmat->mode & MA_SHLESS) {
 		copy_v3_v3(smat->diff, &bmat->r);
@@ -915,6 +916,9 @@ static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, 
 		mul_v3_v3fl(smat->diff, &bmat->r, bmat->ref + bmat->emit);
 		smat->diff[3]= 1.0; /* caller may set this to bmat->alpha */
 
+		if(bmat->shade_flag & MA_OBCOLOR)
+			mul_v3_v3(smat->diff, ob->col);
+		
 		mul_v3_v3fl(smat->spec, &bmat->specr, bmat->spec);
 		smat->spec[3]= 1.0; /* always 1 */
 		smat->hard= CLAMPIS(bmat->har, 0, 128);
@@ -979,7 +983,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 	/* no materials assigned? */
 	if(ob->totcol==0) {
-		gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0);
+		gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0, ob);
 
 		/* do material 1 too, for displists! */
 		memcpy(&GMS.matbuf[1], &GMS.matbuf[0], sizeof(GPUMaterialFixed));
@@ -1009,7 +1013,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 		}
 		else {
 			/* fixed function opengl materials */
-			gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma);
+			gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob);
 
 			blendmode = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
 			if(do_alpha_pass && GMS.alphapass)

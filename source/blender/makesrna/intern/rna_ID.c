@@ -30,6 +30,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_vfont_types.h"
+#include "DNA_object_types.h"
 
 #include "WM_types.h"
 
@@ -74,6 +75,7 @@ EnumPropertyItem id_type_items[] = {
 #include "BKE_library.h"
 #include "BKE_animsys.h"
 #include "BKE_material.h"
+#include "BKE_depsgraph.h"
 
 /* name functions that ignore the first two ID characters */
 void rna_ID_name_get(PointerRNA *ptr, char *value)
@@ -251,6 +253,43 @@ ID *rna_ID_copy(ID *id)
 	return NULL;
 }
 
+static void rna_ID_update(ID *id, ReportList *reports, int flag)
+{
+	/* XXX, new function for this! */
+	/*if (ob->type == OB_FONT) {
+		Curve *cu = ob->data;
+		freedisplist(&cu->disp);
+		BKE_text_to_curve(sce, ob, CU_LEFT);
+	}*/
+
+	if(flag == 0) {
+		/* pass */
+	}
+	else {
+		/* ensure flag us correct for the type */
+		switch(GS(id->name)) {
+		case ID_OB:
+			if(flag & ~(OB_RECALC_ALL)) {
+				BKE_report(reports, RPT_ERROR, "'refresh' incompatible with Object ID type");
+				return;
+			}
+			break;
+		/* Could add particle updates later */
+/*		case ID_PA:
+			if(flag & ~(OB_RECALC_ALL|PSYS_RECALC)) {
+				BKE_report(reports, RPT_ERROR, "'refresh' incompatible with ParticleSettings ID type");
+				return;
+			}
+			break; */
+		default:
+			BKE_report(reports, RPT_ERROR, "This ID type is not compatible with any 'refresh' options");
+			return;
+		}
+	}
+
+	DAG_id_tag_update(id, flag);
+}
+
 void rna_ID_user_clear(ID *id)
 {
 	id->us= 0; /* dont save */
@@ -385,6 +424,12 @@ static void rna_def_ID(BlenderRNA *brna)
 	FunctionRNA *func;
 	PropertyRNA *prop, *parm;
 
+	static EnumPropertyItem update_flag_items[] = {
+		{OB_RECALC_OB, "OBJECT", 0, "Object", ""},
+		{OB_RECALC_DATA, "DATA", 0, "Data", ""},
+		{OB_RECALC_TIME, "TIME", 0, "Time", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "ID", NULL);
 	RNA_def_struct_ui_text(srna, "ID", "Base type for datablocks, defining a unique name, linking from other libraries and garbage collection");
 	RNA_def_struct_flag(srna, STRUCT_ID|STRUCT_ID_REFCOUNT);
@@ -436,6 +481,11 @@ static void rna_def_ID(BlenderRNA *brna)
 	func= RNA_def_function(srna, "animation_data_clear", "BKE_free_animdata");
 	RNA_def_function_ui_description(func, "Clear animation on this this ID.");
 
+	func= RNA_def_function(srna, "update", "rna_ID_update");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Tag the id to update its display data.");
+	parm= RNA_def_enum(func, "refresh", update_flag_items, 0, "", "Type of updates to perform.");
+	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
 }
 
 static void rna_def_library(BlenderRNA *brna)

@@ -44,6 +44,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 
@@ -63,6 +64,7 @@
 #include "BKE_smoke.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
+
 #include "BIK_api.h"
 
 /* both in intern */
@@ -115,7 +117,7 @@ static int ptcache_file_read(PTCacheFile *pf, void *f, size_t tot, size_t size);
 /* Common functions */
 static int ptcache_basic_header_read(PTCacheFile *pf)
 {
-	uint32_t totpoint, data_types;
+	uint32_t totpoint, data_types= 0;
 	int error=0;
 
 	/* Custom functions should read these basic elements too! */
@@ -1159,6 +1161,39 @@ static void ptcache_file_pointers_init(PTCacheFile *pf)
 	pf->cur[BPHYS_DATA_BOIDS] =		(data_types & (1<<BPHYS_DATA_BOIDS))	?		&pf->data.boids	: NULL;
 }
 
+/* Check to see if point number "index" is in pm, uses binary search for index data. */
+int BKE_ptcache_mem_index_find(PTCacheMem *pm, int index)
+{
+	if(pm->data[BPHYS_DATA_INDEX]) {
+		uint32_t key = index;
+		uint32_t *data = pm->data[BPHYS_DATA_INDEX];
+		uint32_t mid, low = 0, high = pm->totpoint - 1;
+
+		if(key < *data || key > *(data+high))
+			return -1;
+
+		/* check simple case for continuous indexes first */
+		if(data[key-*data]==key)
+			return key-*data;
+
+		while(low <= high) {
+			mid= (low + high)/2;
+
+			if(data[mid] > key)
+				high = mid - 1;
+			else if(data[mid] < key)
+				low = mid + 1;
+			else
+				return mid;
+		}
+
+		return -1;
+	}
+	else {
+		return (index < pm->totpoint ? index : -1);
+	}
+}
+
 void BKE_ptcache_mem_pointers_init(PTCacheMem *pm)
 {
 	int data_types = pm->data_types;
@@ -1180,7 +1215,7 @@ void BKE_ptcache_mem_pointers_incr(PTCacheMem *pm)
 int  BKE_ptcache_mem_pointers_seek(int point_index, PTCacheMem *pm)
 {
 	int data_types = pm->data_types;
-	int i, index = pm->index_array ? pm->index_array[point_index] - 1 : point_index;
+	int i, index = BKE_ptcache_mem_index_find(pm, point_index);
 
 	if(index < 0) {
 		/* Can't give proper location without reallocation, so don't give any location.
@@ -1215,11 +1250,6 @@ static void ptcache_data_free(PTCacheMem *pm)
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
 		if(data[i])
 			MEM_freeN(data[i]);
-	}
-
-	if(pm->index_array) {
-		MEM_freeN(pm->index_array);
-		pm->index_array = NULL;
 	}
 }
 static void ptcache_data_copy(void *from[], void *to[])
@@ -1304,24 +1334,6 @@ static void ptcache_find_frames_around(PTCacheID *pid, int frame, int *fra1, int
 		}
 	}
 }
-static void ptcache_make_index_array(PTCacheMem *pm, int totpoint)
-{
-	int i, *index;
-
-	if(pm->index_array) {
-		MEM_freeN(pm->index_array);
-		pm->index_array = NULL;
-	}
-
-	if(!pm->data[BPHYS_DATA_INDEX])
-		return;
-
-	pm->index_array = MEM_callocN(totpoint * sizeof(int), "PTCacheMem index_array");
-	index = pm->data[BPHYS_DATA_INDEX];
-
-	for(i=0; i<pm->totpoint; i++, index++)
-		pm->index_array[*index] = i + 1;
-}
 
 static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 {
@@ -1395,9 +1407,6 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 			BLI_addtail(&pm->extradata, extra);
 		}
 	}
-
-	if(!error)
-		ptcache_make_index_array(pm, pid->totpoint(pid->calldata, pm->frame));
 
 	if(error && pm) {
 		ptcache_data_free(pm);
@@ -1804,7 +1813,6 @@ static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
 		}
 	}
 	else {
-		ptcache_make_index_array(pm, pid->totpoint(pid->calldata, cfra));
 		BLI_addtail(&cache->mem_cache, pm);
 	}
 
@@ -2252,17 +2260,18 @@ int  BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 	}
 
 	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-		/* Baked cloth hair has to be checked first, because we don't want to reset */
+		/* children or just redo can be calculated without reseting anything */
+		if(psys->recalc & PSYS_RECALC_REDO || psys->recalc & PSYS_RECALC_CHILD)
+			skip = 1;
+		/* Baked cloth hair has to be checked too, because we don't want to reset */
 		/* particles or cloth in that case -jahka */
-		if(psys->clmd) {
+		else if(psys->clmd) {
 			BKE_ptcache_id_from_cloth(&pid, ob, psys->clmd);
 			if(mode == PSYS_RESET_ALL || !(psys->part->type == PART_HAIR && (pid.cache->flag & PTCACHE_BAKED))) 
 				reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 			else
 				skip = 1;
 		}
-		else if(psys->recalc & PSYS_RECALC_REDO || psys->recalc & PSYS_RECALC_CHILD)
-			skip = 1;
 
 		if(skip == 0 && psys->part) {
 			BKE_ptcache_id_from_particles(&pid, ob, psys);
@@ -2986,7 +2995,6 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 				bytes += sizeof(PTCacheExtra);
 			}
 
-			bytes += MEM_allocN_len(pm->index_array);
 			bytes += sizeof(PTCacheMem);
 			
 			totframes++;

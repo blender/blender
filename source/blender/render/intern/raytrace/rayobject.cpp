@@ -22,17 +22,21 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): André Pinto.
+ * Contributor(s): Andr Pinto.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 #include <assert.h>
 
-#include "BKE_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
+
+
 #include "DNA_material_types.h"
 
 #include "RE_raytrace.h"
+
 #include "render_types.h"
 #include "rayobject.h"
 #include "raycounter.h"
@@ -195,19 +199,19 @@ static int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *is)
 		return 0;
 		
 	/* check if we should intersect this face */
-	if(is->skip & RE_SKIP_VLR_RENDER_CHECK)
+	if(is->check == RE_CHECK_VLR_RENDER)
 	{
 		if(vlr_check_intersect(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face ) == 0)
 			return 0;
 	}
-	else if(is->skip & RE_SKIP_VLR_NON_SOLID_MATERIAL)
+	else if(is->check == RE_CHECK_VLR_NON_SOLID_MATERIAL)
 	{
 		if(vlr_check_intersect(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face ) == 0)
 			return 0;
 		if(vlr_check_intersect_solid(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face) == 0)
 			return 0;
 	}
-	else if(is->skip & RE_SKIP_VLR_BAKE_CHECK) {
+	else if(is->check == RE_CHECK_VLR_BAKE) {
 		if(vlr_check_bake(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face ) == 0)
 			return 0;
 	}

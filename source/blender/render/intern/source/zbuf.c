@@ -41,7 +41,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
 #include "BLI_threads.h"
-
+#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -53,7 +53,7 @@
 
 #include "BKE_global.h"
 #include "BKE_material.h"
-#include "BKE_utildefines.h"
+
 
 #include "RE_render_ext.h"
 

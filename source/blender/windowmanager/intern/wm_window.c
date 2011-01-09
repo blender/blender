@@ -41,13 +41,14 @@
 #include "GHOST_C-api.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_utildefines.h"
+
 
 #include "BIF_gl.h"
 

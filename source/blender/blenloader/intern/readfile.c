@@ -89,6 +89,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_anim.h"
 #include "BKE_action.h"
@@ -382,7 +383,7 @@ static void add_main_to_main(Main *mainvar, Main *from)
 	ListBase *lbarray[MAX_LIBARRAY], *fromarray[MAX_LIBARRAY];
 	int a;
 
-	a= set_listbasepointers(mainvar, lbarray);
+	set_listbasepointers(mainvar, lbarray);
 	a= set_listbasepointers(from, fromarray);
 	while(a--) {
 		BLI_movelisttolist(lbarray[a], fromarray[a]);
@@ -2457,7 +2458,7 @@ static void direct_link_key(FileData *fd, Key *key)
 	while(kb) {
 
 		kb->data= newdataadr(fd, kb->data);
-
+		
 		if(fd->flags & FD_FLAGS_SWITCH_ENDIAN)
 			switch_endian_keyblock(key, kb);
 
@@ -2936,15 +2937,6 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 		pm = cache->mem_cache.first;
 
 		for(; pm; pm=pm->next) {
-			if(pm->index_array)
-				pm->index_array = newdataadr(fd, pm->index_array);
-			
-			/* writedata saved array of ints */
-			if(pm->index_array && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
-				for(i=0; i<pm->totpoint; i++)
-					SWITCH_INT(pm->index_array[i]);
-			}
-			
 			for(i=0; i<BPHYS_TOT_DATA; i++) {
 				pm->data[i] = newdataadr(fd, pm->data[i]);
 				
@@ -3161,7 +3153,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			for(a=1,pa++; a<psys->totpart; a++, pa++)
 				pa->boid = (pa-1)->boid + 1;
 		}
-		else {
+		else if(psys->particles) {
 			for(a=0,pa=psys->particles; a<psys->totpart; a++, pa++)
 				pa->boid = NULL;
 		}
@@ -3811,9 +3803,10 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					clmd->sim_parms->presets = 0;
 
 				clmd->sim_parms->reset = 0;
+
+				clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
 			}
 
-			clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
 			if(!clmd->sim_parms->effector_weights)
 				clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
 			
@@ -3927,9 +3920,10 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		} else if (md->type==eModifierType_ParticleSystem) {
 			ParticleSystemModifierData *psmd = (ParticleSystemModifierData*) md;
 
-			psmd->dm=0;
-			psmd->psys=newdataadr(fd, psmd->psys);
+			psmd->dm= NULL;
+			psmd->psys= newdataadr(fd, psmd->psys);
 			psmd->flag &= ~eParticleSystemFlag_psys_updated;
+			psmd->flag |= eParticleSystemFlag_file_loaded;
 		} else if (md->type==eModifierType_Explode) {
 			ExplodeModifierData *psmd = (ExplodeModifierData*) md;
 
@@ -4322,9 +4316,8 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 
 static void direct_link_paint(FileData *fd, Paint **paint)
 {
-	Paint *p;
 /* TODO. is this needed */
-	p= (*paint)= newdataadr(fd, (*paint));
+	(*paint)= newdataadr(fd, (*paint));
 }
 
 static void direct_link_scene(FileData *fd, Scene *sce)
@@ -11331,6 +11324,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				part->boids->pitch = 1.0f;
 
 			part->flag &= ~PART_HAIR_REGROW; /* this was a deprecated flag before */
+			part->kink_amp_clump = 1.f; /* keep old files looking similar */
 		}
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
@@ -11375,7 +11369,42 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	/* put compatibility code here until next subversion bump */
+	
 	{
+		/* Fix for sample line scope initializing with no height */
+		bScreen *sc;
+		ScrArea *sa;
+		for(sc= main->screen.first; sc; sc= sc->id.next) {
+			sa= sc->areabase.first;
+			while(sa) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_IMAGE) {
+						SpaceImage *sima= (SpaceImage *)sl;
+						if (sima->sample_line_hist.height == 0 )
+							sima->sample_line_hist.height = 100;
+					}
+				}
+				sa= sa->next;
+			}
+		}
+	}
+	
+	{
+		Key *key;
+		
+		/* old files could have been saved with slidermin = slidermax = 0.0, but the UI in
+		 * 2.4x would never reveal this to users as a dummy value always ended up getting used
+		 * instead
+		 */
+		for (key = main->key.first; key; key = key->id.next) {
+			KeyBlock *kb;
+			
+			for (kb = key->block.first; kb; kb = kb->next) {
+				if (IS_EQ(kb->slidermin, kb->slidermax) && IS_EQ(kb->slidermax, 0))
+					kb->slidermax = kb->slidermin + 1.0f;
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -12714,7 +12743,7 @@ static void append_do_cursor(Scene *scene, Library *curlib, short flag)
 
 static void library_append_end(const bContext *C, Main *mainl, FileData **fd, int idcode, short flag)
 {
-	Main *mainvar= CTX_data_main(C);
+	Main *mainvar;
 	Scene *scene= CTX_data_scene(C);
 	Library *curlib;
 
@@ -12817,7 +12846,7 @@ static int mainvar_count_libread_blocks(Main *mainvar)
 
 	a= set_listbasepointers(mainvar, lbarray);
 	while(a--) {
-		ID *id= lbarray[a]->first;
+		ID *id;
 
 		for (id= lbarray[a]->first; id; id= id->next)
 			if (id->flag & LIB_READ)

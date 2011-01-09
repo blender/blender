@@ -38,8 +38,10 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_bmesh.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
+#include "BKE_bmesh.h"
 
 /*split this all into a seperate bevel.c file in src*/
 

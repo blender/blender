@@ -36,6 +36,7 @@
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -45,7 +46,7 @@
 #include "BKE_main.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
+
 
 #include "RNA_access.h"
 #include "RNA_define.h"

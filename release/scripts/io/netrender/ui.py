@@ -351,6 +351,18 @@ class RENDER_PT_network_jobs(NeedValidAddress, NetRenderButtonsPanel, bpy.types.
             layout.label(text="Done: %04i" % job.results[DONE])
             layout.label(text="Error: %04i" % job.results[ERROR])
 
+import properties_render
+class RENDER_PT_network_output(NeedValidAddress, NetRenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Output"
+    COMPAT_ENGINES = {'NET_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        netsettings = context.scene.network_render
+        return super().poll(context) and netsettings.mode == "RENDER_CLIENT"
+    
+    draw = properties_render.RENDER_PT_output.draw
+
 class NetRenderSettings(bpy.types.IDPropertyGroup):
     pass
 

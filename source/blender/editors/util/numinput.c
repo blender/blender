@@ -30,6 +30,7 @@
 #include <math.h>			/* fabs */
 #include <stdio.h>			/* for sprintf		*/
 
+#include "BLI_utildefines.h"
 
 #include "WM_types.h"
 

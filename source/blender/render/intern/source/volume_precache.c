@@ -37,6 +37,7 @@
 #include "BLI_math.h"
 #include "BLI_threads.h"
 #include "BLI_voxel.h"
+#include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 

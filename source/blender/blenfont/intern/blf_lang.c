@@ -38,7 +38,7 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
-#include "BKE_utildefines.h"
+
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"	/* linknode */
@@ -46,7 +46,7 @@
 
 
 #ifdef __APPLE__
-#include "BKE_utildefines.h"
+
 #endif
 
 #define DOMAIN_NAME "blender"

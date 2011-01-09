@@ -30,11 +30,10 @@
 #include <string.h>
 #include <math.h>
 
-
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_object_types.h"
@@ -52,7 +51,7 @@
 #include "BKE_image.h"
 #include "BKE_node.h"
 #include "BKE_plugin_types.h"
-#include "BKE_utildefines.h"
+
 
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -1462,7 +1461,6 @@ void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg
 
 	case MTEX_LIGHT:
 		fact*= facg;
-		facm= 1.0-fact;
 		
 		col= fact*tex[0];
 		if(col > out[0]) in[0]= col; else in[0]= out[0];
@@ -1565,7 +1563,6 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 		break;
 
 	case MTEX_SOFT_LIGHT: 
-		col= fact*tex; 
 		scf=1.0 - (1.0 - tex) * (1.0 - out); 
 		in= facm*out + fact * ((1.0 - out) * tex * out) + (out * scf); 
 		break;       
@@ -2364,7 +2361,6 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 			/* which coords */
 			if(mtex->texco==TEXCO_OBJECT) { 
 				Object *ob= mtex->object;
-				ob= mtex->object;
 				if(ob) {						
 					VECCOPY(co, xyz);	
 					if(mtex->texflag & MTEX_OB_DUPLI_ORIG) {

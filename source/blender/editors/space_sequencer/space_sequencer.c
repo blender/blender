@@ -36,6 +36,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -518,7 +519,7 @@ void ED_spacetype_sequencer(void)
 	art->init= sequencer_main_area_init;
 	art->draw= sequencer_main_area_draw;
 	art->listener= sequencer_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_ANIMATION;
+	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS|ED_KEYMAP_FRAMES|ED_KEYMAP_ANIMATION;
 
 	BLI_addhead(&st->regiontypes, art);
 

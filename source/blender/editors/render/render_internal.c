@@ -34,6 +34,7 @@
 #include "BLI_math.h"
 #include "BLI_threads.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
 

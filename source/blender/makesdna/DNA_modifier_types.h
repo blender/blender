@@ -550,6 +550,7 @@ typedef struct MeshDeformModifierData {
 typedef enum {
 	eParticleSystemFlag_Pars =			(1<<0),
 	eParticleSystemFlag_psys_updated =	(1<<1),
+	eParticleSystemFlag_file_loaded =	(1<<2),
 } ParticleSystemModifierFlag;
 
 typedef struct ParticleSystemModifierData {

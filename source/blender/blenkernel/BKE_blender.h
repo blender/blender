@@ -51,6 +51,11 @@ struct Main;
 #define BLENDER_MINSUBVERSION	0
 
 int BKE_read_file(struct bContext *C, const char *filepath, struct ReportList *reports);
+
+#define BKE_READ_FILE_FAIL				0 /* no load */
+#define BKE_READ_FILE_OK				1 /* OK */
+#define BKE_READ_FILE_OK_USERPREFS		2 /* OK, and with new user settings */
+
 int BKE_read_file_from_memory(struct bContext *C, char* filebuf, int filelength, struct ReportList *reports);
 int BKE_read_file_from_memfile(struct bContext *C, struct MemFile *memfile, struct ReportList *reports);
 

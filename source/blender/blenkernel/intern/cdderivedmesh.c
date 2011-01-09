@@ -36,17 +36,18 @@
 #include <string.h>
 #include "BIF_gl.h"
 
-#include "BKE_cdderivedmesh.h"
-#include "BKE_global.h"
-#include "BKE_mesh.h"
-#include "BKE_paint.h"
-#include "BKE_utildefines.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_pbvh.h"
+#include "BLI_utildefines.h"
+
+#include "BKE_cdderivedmesh.h"
+#include "BKE_global.h"
+#include "BKE_mesh.h"
+#include "BKE_paint.h"
+
 
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -189,7 +190,7 @@ static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
 static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
-	Mesh *me= (ob)? ob->data: NULL;
+	Mesh *me= ob->data;
 
 	if(ob->sculpt->modifiers_active) return 0;
 
@@ -1644,7 +1645,7 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
 
 DerivedMesh *CDDM_from_curve(Object *ob)
 {
-	return CDDM_from_curve_customDB(ob, &((Curve *)ob->data)->disp);
+	return CDDM_from_curve_customDB(ob, &ob->disp);
 }
 
 DerivedMesh *CDDM_from_curve_customDB(Object *ob, ListBase *dispbase)

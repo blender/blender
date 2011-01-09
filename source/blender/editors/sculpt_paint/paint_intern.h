@@ -29,19 +29,21 @@
 #ifndef ED_PAINT_INTERN_H
 #define ED_PAINT_INTERN_H
 
+struct ARegion;
 struct bContext;
-struct Scene;
-struct Object;
+struct bglMats;
+struct Brush;
+struct ListBase;
 struct Mesh;
+struct Object;
 struct PaintStroke;
 struct PointerRNA;
+struct Scene;
+struct VPaint;
 struct ViewContext;
 struct wmEvent;
 struct wmOperator;
 struct wmOperatorType;
-struct ARegion;
-struct VPaint;
-struct ListBase;
 
 /* paint_stroke.c */
 typedef int (*StrokeGetLocation)(struct bContext *C, struct PaintStroke *stroke, float location[3], float mouse[2]);
@@ -98,6 +100,9 @@ void PAINT_OT_image_from_view(struct wmOperatorType *ot);
 
 
 /* paint_utils.c */
+void projectf(struct bglMats *mats, const float v[3], float p[2]);
+float paint_calc_object_space_radius(struct ViewContext *vc, float center[3], float pixel_radius);
+float paint_get_tex_pixel(struct Brush* br, float u, float v);
 int imapaint_pick_face(struct ViewContext *vc, struct Mesh *me, int *mval, unsigned int *index);
 void imapaint_pick_uv(struct Scene *scene, struct Object *ob, unsigned int faceindex, int *xy, float *uv);
 
@@ -111,11 +116,11 @@ void PAINT_OT_face_select_all(struct wmOperatorType *ot);
 int facemask_paint_poll(struct bContext *C);
 
 /* stroke operator */
-typedef enum wmBrushStrokeMode {
-	WM_BRUSHSTROKE_NORMAL,
-	WM_BRUSHSTROKE_INVERT,
-	WM_BRUSHSTROKE_SMOOTH,
-} wmBrushStrokeMode;
+typedef enum BrushStrokeMode {
+	BRUSH_STROKE_NORMAL,
+	BRUSH_STROKE_INVERT,
+	BRUSH_STROKE_SMOOTH,
+} BrushStrokeMode;
 
 /* paint_undo.c */
 typedef void (*UndoRestoreCb)(struct bContext *C, struct ListBase *lb);

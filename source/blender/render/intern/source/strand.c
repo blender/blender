@@ -39,12 +39,13 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
-#include "BKE_utildefines.h"
+
 
 #include "render_types.h"
 #include "initrender.h"

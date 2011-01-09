@@ -45,12 +45,13 @@
 #include <string.h>
 
 #include "imbuf.h"
- 
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
+ 
+#include "BKE_global.h"
+
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

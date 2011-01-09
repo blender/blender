@@ -33,6 +33,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_dlrbTree.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_lattice_types.h"
@@ -2094,6 +2095,44 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "max_y", -100, INT_MIN, INT_MAX, "Y 2", "", INT_MIN, INT_MAX);
 }
 
+
+static int spacedata_cleanup(bContext *C, wmOperator *op)
+{
+	Main *bmain= CTX_data_main(C);
+	bScreen *screen;
+	ScrArea *sa;
+	int tot= 0;
+	
+	for(screen= bmain->screen.first; screen; screen= screen->id.next) {
+		for(sa= screen->areabase.first; sa; sa= sa->next) {
+			if(sa->spacedata.first != sa->spacedata.last) {
+				SpaceLink *sl= sa->spacedata.first;
+
+				BLI_remlink(&sa->spacedata, sl);
+				tot+= BLI_countlist(&sa->spacedata);
+				BKE_spacedata_freelist(&sa->spacedata);
+				BLI_addtail(&sa->spacedata, sl);
+			}
+		}
+	}
+	BKE_reportf(op->reports, RPT_INFO, "Removed amount of editors: %d", tot);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void SCREEN_OT_spacedata_cleanup(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clean-up space-data";
+	ot->description= "Remove unused settings for invisible editors";
+	ot->idname= "SCREEN_OT_spacedata_cleanup";
+	
+	/* api callbacks */
+	ot->exec= spacedata_cleanup;
+	ot->poll= WM_operator_winactive;
+	
+}
+
 /* ************** repeat last operator ***************************** */
 
 static int repeat_last_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3030,6 +3069,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
 	WM_operatortype_append(SCREEN_OT_back_to_previous);
+	WM_operatortype_append(SCREEN_OT_spacedata_cleanup);
 	WM_operatortype_append(SCREEN_OT_screenshot);
 	WM_operatortype_append(SCREEN_OT_screencast);
 	WM_operatortype_append(SCREEN_OT_userpref_show);

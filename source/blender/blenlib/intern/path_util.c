@@ -43,6 +43,7 @@
 #include "BLI_string.h"
 #include "BLI_storage.h"
 #include "BLI_storage_types.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"	// BLENDER_VERSION

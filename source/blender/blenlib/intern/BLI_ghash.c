@@ -30,6 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLO_sys_types.h" // for intptr_t support
 /***/

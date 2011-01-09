@@ -130,6 +130,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_bpath.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
@@ -141,7 +142,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h" // for defines
+#include "BKE_utildefines.h"
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"
 #include "BKE_pointcache.h"
@@ -784,8 +785,6 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 
 			for(; pm; pm=pm->next) {
 				writestruct(wd, DATA, "PTCacheMem", 1, pm);
-				if(pm->index_array)
-					writedata(wd, DATA, MEM_allocN_len(pm->index_array), pm->index_array);
 				
 				for(i=0; i<BPHYS_TOT_DATA; i++) {
 					if(pm->data[i] && pm->data_types & (1<<i))

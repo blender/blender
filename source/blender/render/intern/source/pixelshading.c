@@ -27,13 +27,13 @@
 #include <float.h>
 #include <math.h>
 #include <string.h>
+
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 /* External modules: */
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
-
 
 #include "DNA_camera_types.h"
 #include "DNA_group_types.h"
@@ -48,7 +48,7 @@
 #include "BKE_global.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 /* own module */
 #include "render_types.h"

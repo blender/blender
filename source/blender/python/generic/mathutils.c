@@ -46,6 +46,7 @@
  * - Vector.toTrackQuat --> Vector.to_track_quat
  * - Quaternion * Quaternion --> cross product (not dot product)
  * - Euler.rotate(angle, axis) --> Euler.rotate_axis(axis, angle)
+ * - Euler.unique() *removed*, not a standard function only toggled different rotations.
  *
  * moved into class functions.
  * - Mathutils.RotationMatrix -> mathutils.Matrix.Rotation
@@ -72,8 +73,9 @@
 #include "mathutils.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 //-------------------------DOC STRINGS ---------------------------
 static char M_Mathutils_doc[] =

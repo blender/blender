@@ -32,6 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "DNA_armature_types.h"

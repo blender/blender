@@ -49,9 +49,6 @@ if env['WITH_BF_LCMS']:
 if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')
 
-if env['WITH_BF_COLLADA']:
-    defs.append('WITH_COLLADA')
-
 if env['BF_UNIT_TEST']:
     defs.append('UNIT_TEST')
 

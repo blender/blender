@@ -58,6 +58,7 @@
 #include "BLI_bpath.h"
 #include "BLI_dynstr.h"
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf.h"
 
@@ -81,7 +82,7 @@
 #include "BLO_readfile.h" 
 #include "BLO_writefile.h" 
 
-#include "BKE_utildefines.h" // O_BINARY FALSE
+#include "BKE_utildefines.h"
 
 #include "WM_api.h" // XXXXX BAD, very BAD dependency (bad level call) - remove asap, elubie
 
@@ -346,12 +347,6 @@ void BKE_userdef_free(void)
 	BLI_freelistN(&U.addons);
 }
 
-/* returns:
-   0: no load file
-   1: OK
-   2: OK, and with new user settings
-*/
-
 int BKE_read_file(bContext *C, const char *dir, ReportList *reports) 
 {
 	BlendFileData *bfd;
@@ -459,7 +454,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	G.fileflags |= G_FILE_NO_UI;
 
 	if(UNDO_DISK) 
-		success= BKE_read_file(C, uel->str, NULL);
+		success= (BKE_read_file(C, uel->str, NULL) != BKE_READ_FILE_FAIL);
 	else
 		success= BKE_read_file_from_memfile(C, &uel->memfile, NULL);
 

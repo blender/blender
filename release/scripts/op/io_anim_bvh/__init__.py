@@ -38,6 +38,14 @@ class BvhImporter(bpy.types.Operator, ImportHelper):
     filename_ext = ".bvh"
     filter_glob = StringProperty(default="*.bvh", options={'HIDDEN'})
 
+    target = EnumProperty(items=(
+            ('ARMATURE', "Armature", ""),
+            ('OBJECT', "Object", ""),
+            ),
+                name="Target",
+                description="Import target type.",
+                default='ARMATURE')
+
     global_scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=1.0)
     frame_start = IntProperty(name="Start Frame", description="Starting frame for the animation", default=1)
     use_cyclic = BoolProperty(name="Loop", description="Loop the animation playback", default=False)

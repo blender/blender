@@ -35,10 +35,10 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
 #include "BKE_nla.h"
@@ -173,6 +173,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		case ANIMTYPE_DSARM:
 		case ANIMTYPE_DSMESH:
 		case ANIMTYPE_DSTEX:
+		case ANIMTYPE_DSLAT:
 		case ANIMTYPE_DSLINESTYLE:
 		{
 			/* sanity checking... */

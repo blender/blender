@@ -36,6 +36,20 @@
 extern "C" { 
 #endif
 
+GHOST_DECLARE_HANDLE(GHOST_SystemPathsHandle);
+
+/**
+ * Creates the one and only instance of the system path access.
+ * @return An indication of success.
+ */
+extern GHOST_TSuccess GHOST_CreateSystemPaths(void);
+
+/**
+ * Disposes the one and only system.
+ * @return An indication of success.
+ */
+extern GHOST_TSuccess GHOST_DisposeSystemPaths(void);
+
 /**
  * Determine the base dir in which shared resources are located. It will first try to use
  * "unpack and run" path, then look for properly installed path, not including versioning.
@@ -55,6 +69,11 @@ extern const GHOST_TUns8* GHOST_getUserDir(void);
  * @return Unsigned char string pointing to binary dir (eg ~/usr/local/bin/).
  */
 extern const GHOST_TUns8* GHOST_getBinaryDir(void);
+
+/**
+* Add the file to the operating system most recently used files
+*/
+extern void GHOST_addToSystemRecentFiles(const char* filename);
 
 #ifdef __cplusplus
 } 

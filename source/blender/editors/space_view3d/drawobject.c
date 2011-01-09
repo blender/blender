@@ -47,6 +47,7 @@
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_anim.h"			//for the where_on_path function
 #include "BKE_constraint.h" // for the get_constraint_target function
@@ -67,7 +68,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_unit.h"
-#include "BKE_utildefines.h"
+
 #include "smoke_API.h"
 
 #include "BIF_gl.h"
@@ -919,11 +920,10 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	float lampsize;
 	float imat[4][4], curcol[4];
 	unsigned char col[4];
-	int drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && la->type == LA_SPOT && (la->mode & LA_SHOW_CONE));
-
 	/* cone can't be drawn for duplicated lamps, because duplilist would be freed to */
 	/* the moment of view3d_draw_transp() call */
-	drawcone&= (base->flag & OB_FROMDUPLI)==0;
+	const short is_view= (rv3d->persp==RV3D_CAMOB && v3d->camera == base->object);
+	const short drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && (la->type == LA_SPOT) && (la->mode & LA_SHOW_CONE) && !(base->flag & OB_FROMDUPLI) && !is_view);
 
 	if(drawcone && !v3d->transp) {
 		/* in this case we need to draw delayed */
@@ -1028,7 +1028,10 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	glPopMatrix();	/* back in object space */
 	zero_v3(vec);
 	
-	if ((la->type==LA_SPOT) || (la->type==LA_YF_PHOTON)) {	
+	if(is_view) {
+		/* skip drawing extra info */
+	}
+	else if ((la->type==LA_SPOT) || (la->type==LA_YF_PHOTON)) {
 		lvec[0]=lvec[1]= 0.0; 
 		lvec[2] = 1.0;
 		x = rv3d->persmat[0][2];
@@ -1171,7 +1174,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 
 	setlinestyle(0);
 	
-	if(la->type==LA_SPOT && (la->mode & LA_SHAD_BUF) ) {
+	if((la->type == LA_SPOT) && (la->mode & LA_SHAD_BUF) && (is_view == FALSE)) {
 		drawshadbuflimits(la, ob->obmat);
 	}
 	
@@ -3144,7 +3147,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 	case OB_CURVE:
 		cu= ob->data;
 		
-		lb= &cu->disp;
+		lb= &ob->disp;
 		
 		if(solid) {
 			dl= lb->first;
@@ -3191,7 +3194,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 		break;
 	case OB_SURF:
 
-		lb= &((Curve *)ob->data)->disp;
+		lb= &ob->disp;
 		
 		if(solid) {
 			dl= lb->first;
@@ -5434,7 +5437,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 		if (dm) {
 			hasfaces= dm->getNumFaces(dm);
 		} else {
-			hasfaces= displist_has_faces(&cu->disp);
+			hasfaces= displist_has_faces(&ob->disp);
 		}
 
 		if (hasfaces && boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
@@ -5442,7 +5445,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			if (dm) {
 				draw_mesh_object_outline(v3d, ob, dm);
 			} else {
-				drawDispListwire(&cu->disp);
+				drawDispListwire(&ob->disp);
 			}
 			draw_index_wire= 1;
 		}
@@ -5497,7 +5500,7 @@ static void drawWireExtra(Scene *scene, RegionView3D *rv3d, Object *ob)
 			if (ob->derivedFinal) {
 				drawCurveDMWired(ob);
 			} else {
-				drawDispListwire(&cu->disp);
+				drawDispListwire(&ob->disp);
 			}
 
 			if (ob->type==OB_CURVE)
@@ -5818,9 +5821,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	/* bad exception, solve this! otherwise outline shows too late */
 	if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		cu= ob->data;
 		/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
-		if (cu->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
+		if (ob->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
 	}
 	
 	/* draw outline for selected objects, mesh does itself */

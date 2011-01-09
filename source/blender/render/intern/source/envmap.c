@@ -34,6 +34,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"        /* for rectcpy */
@@ -48,7 +49,7 @@
 #include "BKE_main.h"
 #include "BKE_image.h"   // BKE_write_ibuf 
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 
 

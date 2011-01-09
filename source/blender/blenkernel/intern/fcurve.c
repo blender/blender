@@ -41,6 +41,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
@@ -1514,7 +1515,7 @@ static float evaluate_driver (ChannelDriver *driver, float UNUSED(evaltime))
 				/* this evaluates the expression using Python,and returns its result:
 				 * 	- on errors it reports, then returns 0.0f
 				 */
-				driver->curval= BPY_eval_driver(driver);
+				driver->curval= BPY_driver_exec(driver);
 			}
 #endif /* WITH_PYTHON*/
 		}

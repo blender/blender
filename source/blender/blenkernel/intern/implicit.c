@@ -37,12 +37,13 @@
 #include "BLI_threads.h"
 #include "BLI_math.h"
 #include "BLI_linklist.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cloth.h"
 #include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
+
 
 #define CLOTH_OPENMP_LIMIT 25
 

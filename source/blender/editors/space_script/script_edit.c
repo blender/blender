@@ -29,9 +29,8 @@
 #include <string.h>
 #include <stdio.h>
 
-
-
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 
@@ -47,7 +46,7 @@
 #include "script_intern.h"	// own include
 
 #ifdef WITH_PYTHON
-#include "BPY_extern.h" /* BPY_run_python_script */
+#include "BPY_extern.h" /* BPY_script_exec */
 #endif
 
 static int run_pyfile_exec(bContext *C, wmOperator *op)
@@ -55,7 +54,7 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 	char path[512];
 	RNA_string_get(op->ptr, "filepath", path);
 #ifdef WITH_PYTHON
-	if(BPY_run_python_script(C, path, NULL, op->reports)) {
+	if(BPY_filepath_exec(C, path, op->reports)) {
 		ARegion *ar= CTX_wm_region(C);
 		ED_region_tag_redraw(ar);
 		return OPERATOR_FINISHED;
@@ -88,7 +87,7 @@ static int script_reload_exec(bContext *C, wmOperator *UNUSED(op))
 	/* TODO, this crashes on netrender and keying sets, need to look into why
 	 * disable for now unless running in debug mode */
 	WM_cursor_wait(1);
-	BPY_eval_string(C, "__import__('bpy').utils.load_scripts(reload_scripts=True)");
+	BPY_string_exec(C, "__import__('bpy').utils.load_scripts(reload_scripts=True)");
 	WM_cursor_wait(0);
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	return OPERATOR_FINISHED;

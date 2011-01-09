@@ -46,6 +46,7 @@
 #include "BLI_linklist.h"
 #include "BLI_storage_types.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #ifdef WIN32
 #include "BLI_winstuff.h"

@@ -40,6 +40,11 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_math.h"
+#include "BLI_blenlib.h"
+#include "BLI_storage_types.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -50,11 +55,6 @@
 #include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_report.h"
-
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_storage_types.h"
 
 #include "RE_pipeline.h"
 
@@ -211,6 +211,8 @@ bNode *editnode_get_active(bNodeTree *ntree)
 
 void snode_notify(bContext *C, SpaceNode *snode)
 {
+	WM_event_add_notifier(C, NC_NODE|NA_EDITED, NULL);
+
 	if(snode->treetype==NTREE_SHADER)
 		WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, snode->id);
 	else if(snode->treetype==NTREE_COMPOSIT)
@@ -328,6 +330,7 @@ void ED_node_texture_default(Tex *tx)
 	ntreeSolveOrder(tx->nodetree);	/* needed for pointers */
 }
 
+/* id is supposed to contain a node tree */
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype)
 {
 	bNode *node= NULL;
@@ -344,6 +347,10 @@ void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *tre
 	else if(idtype == ID_TE) {
 		*ntree= ((Tex*)id)->nodetree;
 		if(treetype) *treetype= NTREE_TEXTURE;
+	}
+	else {
+		if(treetype) *treetype= 0;
+		return;
 	}
 
 	/* find editable group */
@@ -1464,7 +1471,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 	/* generics */
 	if(node) {
 		node->locx= locx;
-		node->locy= locy + 60.0f;		// arbitrary.. so its visible
+		node->locy= locy + 60.0f;		// arbitrary.. so its visible, (0,0) is top of node
 		node->flag |= SELECT;
 		
 		gnode= node_tree_get_editgroup(snode->nodetree);
@@ -1514,6 +1521,12 @@ static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	ntreeCopyTree(snode->edittree, 1);	/* 1 == internally selected nodes */
+	
+	/* to ensure redraws or rerenders happen */
+	for(node= snode->edittree->nodes.first; node; node= node->next)
+		if(node->flag & SELECT)
+			if(node->id)
+				ED_node_changed_update(snode->id, node);
 	
 	ntreeSolveOrder(snode->edittree);
 	node_tree_verify_groups(snode->nodetree);

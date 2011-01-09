@@ -32,13 +32,15 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_boids.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_particle.h"
 
-#include "BLI_listbase.h"
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 #include "RNA_define.h"

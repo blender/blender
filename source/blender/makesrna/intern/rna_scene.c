@@ -155,6 +155,10 @@ EnumPropertyItem image_type_items[] = {
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_threads.h"
+#include "BLI_editVert.h"
+#include "BLI_blenlib.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -169,10 +173,6 @@ EnumPropertyItem image_type_items[] = {
 #include "BKE_screen.h"
 #include "BKE_animsys.h"
 
-#include "BLI_threads.h"
-#include "BLI_editVert.h"
-#include "BLI_blenlib.h"
-
 #include "WM_api.h"
 
 #include "ED_info.h"
@@ -185,18 +185,19 @@ EnumPropertyItem image_type_items[] = {
 
 #include "FRS_freestyle.h"
 
-static PointerRNA rna_Scene_object_bases_lookup_string(PointerRNA *ptr, const char *key)
+static int rna_Scene_object_bases_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
 	Scene *scene= (Scene*)ptr->data;
 	Base *base;
 
 	for(base= scene->base.first; base; base= base->next) {
 		if(strncmp(base->object->id.name+2, key, sizeof(base->object->id.name)-2)==0) {
-			return rna_pointer_inherit_refine(ptr, &RNA_ObjectBase, base);
+			*r_ptr= rna_pointer_inherit_refine(ptr, &RNA_ObjectBase, base);
+			return TRUE;
 		}
 	}
 
-	return PointerRNA_NULL;
+	return FALSE;
 }
 
 static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
@@ -1132,6 +1133,11 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode");
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
+	prop= RNA_def_property(srna, "proportional_size", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "proportional_size");
+	RNA_def_property_ui_text(prop, "Proportional Size", "Display size for proportional editing circle");
+	RNA_def_property_range(prop, 0.00001, 5000.0);
+	
 	prop= RNA_def_property(srna, "normal_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "normalsize");
 	RNA_def_property_ui_text(prop, "Normal Size", "Display size for normals in the 3D view");
@@ -1179,6 +1185,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_icon(prop, ICON_RETOPO, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
+	/* Grease Pencil */
+	prop = RNA_def_property(srna, "use_grease_pencil_sessions", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gpencil_flags", GP_TOOL_FLAG_PAINTSESSIONS_ON);
+	RNA_def_property_ui_text(prop, "Use Sketching Sessions", "Allow drawing multiple strokes at a time with Grease Pencil");
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); // xxx: need toolbar to be redrawn...
+	
 	/* Auto Keying */
 	prop= RNA_def_property(srna, "use_keyframe_insert_auto", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_mode", AUTOKEY_ON);

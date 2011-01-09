@@ -59,6 +59,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 #include "IMB_imbuf.h"

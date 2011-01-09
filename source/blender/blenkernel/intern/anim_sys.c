@@ -36,8 +36,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BKE_library.h"
 #include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_material_types.h"
@@ -50,6 +50,7 @@
 #include "BKE_nla.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_library.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -923,10 +924,11 @@ void BKE_keyingset_free_path (KeyingSet *ks, KS_Path *ksp)
 	/* sanity check */
 	if ELEM(NULL, ks, ksp)
 		return;
-	
+
 	/* free RNA-path info */
-	MEM_freeN(ksp->rna_path);
-	
+	if(ksp->rna_path)
+		MEM_freeN(ksp->rna_path);
+
 	/* free path itself */
 	BLI_freelinkN(&ks->paths, ksp);
 }

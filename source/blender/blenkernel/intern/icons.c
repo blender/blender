@@ -40,6 +40,7 @@
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "BKE_icons.h"

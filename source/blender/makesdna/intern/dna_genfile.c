@@ -869,6 +869,10 @@ static void reconstruct_elem(SDNA *newsdna, SDNA *oldsdna, char *type, const cha
 					mul= len/oldsize;
 					mul*= (cursize < oldsize)? cursize: oldsize;
 					memcpy(curdata, olddata, mul);
+					
+					/* terminate strings */
+					if(oldsize > cursize && strcmp(type, "char")==0)
+						curdata[mul-1]= 0;
 				}
 				else {
 					if(cursize>oldsize) cast_elem(type, otype, oname, curdata, olddata);

@@ -36,10 +36,11 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
+
 
 #include "WM_api.h"
 
@@ -1109,7 +1110,6 @@ View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d, short xunits, short x
 
 	View2DGrid *grid;
 	float space, pixels, seconddiv;
-	int secondgrid;
 	
 	/* check that there are at least some workable args */
 	if (ELEM(V2D_ARG_DUMMY, xunits, xclamp) && ELEM(V2D_ARG_DUMMY, yunits, yclamp))
@@ -1120,11 +1120,9 @@ View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d, short xunits, short x
 	
 	/* rule: gridstep is minimal GRIDSTEP pixels */
 	if (xunits == V2D_UNIT_SECONDS) {
-		secondgrid= 1;
 		seconddiv= (float)(0.01 * FPS);
 	}
 	else {
-		secondgrid= 0;
 		seconddiv= 1.0f;
 	}
 	
@@ -1133,9 +1131,11 @@ View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d, short xunits, short x
 		space= v2d->cur.xmax - v2d->cur.xmin;
 		pixels= (float)(v2d->mask.xmax - v2d->mask.xmin);
 		
-		grid->dx= (U.v2d_min_gridsize * space) / (seconddiv * pixels);
-		step_to_grid(&grid->dx, &grid->powerx, xunits);
-		grid->dx *= seconddiv;
+		if(pixels!=0.0f) {
+			grid->dx= (U.v2d_min_gridsize * space) / (seconddiv * pixels);
+			step_to_grid(&grid->dx, &grid->powerx, xunits);
+			grid->dx *= seconddiv;
+		}
 		
 		if (xclamp == V2D_GRID_CLAMP) {
 			if (grid->dx < 0.1f) grid->dx= 0.1f;
@@ -1573,6 +1573,9 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				state |= UI_SCROLL_ARROWS;
 			}
 			
+			UI_ThemeColor(TH_BACK);
+			glRecti(v2d->hor.xmin, v2d->hor.ymin, v2d->hor.xmax, v2d->hor.ymax);
+			
 			uiWidgetScrollDraw(&wcol, &hor, &slider, state);
 		}
 		
@@ -1681,6 +1684,9 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				state |= UI_SCROLL_ARROWS;
 			}
 				
+			UI_ThemeColor(TH_BACK);
+			glRecti(v2d->vert.xmin, v2d->vert.ymin, v2d->vert.xmax, v2d->vert.ymax);
+			
 			uiWidgetScrollDraw(&wcol, &vert, &slider, state);
 		}
 		

@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
     import imp
@@ -32,7 +34,7 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
     '''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
     bl_idname = "export.ply"
     bl_label = "Export PLY"
-    
+
     filename_ext = ".ply"
     filter_glob = StringProperty(default="*.ply", options={'HIDDEN'})
 

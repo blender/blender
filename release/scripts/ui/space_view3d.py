@@ -152,6 +152,13 @@ class VIEW3D_MT_transform(bpy.types.Menu):
         layout.operator("transform.warp", text="Warp")
         layout.operator("transform.push_pull", text="Push/Pull")
 
+        layout.separator()
+
+        layout.operator("transform.translate", text="Move Texture Space").texture_space = True
+        layout.operator("transform.resize", text="Scale Texture Space").texture_space = True
+
+        layout.separator()
+
         obj = context.object
         if obj.type == 'ARMATURE' and obj.mode in ('EDIT', 'POSE') and obj.data.draw_type in ('BBONE', 'ENVELOPE'):
             layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
@@ -584,7 +591,7 @@ class VIEW3D_MT_select_edit_metaball(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("mball.select_deselect_all_metaelems")
+        layout.operator("mball.select_all").action = 'TOGGLE'
         layout.operator("mball.select_inverse_metaelems")
 
         layout.separator()

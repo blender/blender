@@ -33,6 +33,8 @@
 
 #include "DNA_anim_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
@@ -211,7 +213,7 @@ static int nla_strip_actclip_panel_poll(const bContext *C, PanelType *UNUSED(pt)
 static void nla_panel_animdata (const bContext *C, Panel *pa)
 {
 	PointerRNA adt_ptr;
-	AnimData *adt;
+	/* AnimData *adt; */
 	uiLayout *layout= pa->layout;
 	uiLayout *row;
 	uiBlock *block;
@@ -219,7 +221,8 @@ static void nla_panel_animdata (const bContext *C, Panel *pa)
 	/* check context and also validity of pointer */
 	if (!nla_panel_context(C, &adt_ptr, NULL, NULL))
 		return;
-	adt= adt_ptr.data;
+
+	/* adt= adt_ptr.data; */
 	
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);

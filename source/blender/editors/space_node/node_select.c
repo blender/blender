@@ -34,6 +34,7 @@
 #include "BKE_context.h"
 
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "ED_screen.h"
 #include "ED_types.h"
@@ -108,13 +109,6 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	
 	/* perform the select */
 	node= node_mouse_select(snode, ar, mval, extend);
-
-	/* WATCH THIS, there are a few other ways to change the active material */
-	if(node) {
-		if (node->id && ELEM(GS(node->id->name), ID_MA, ID_TE)) {
-			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, node->id);
-		}
-	}
 	
 	/* send notifiers */
 	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);

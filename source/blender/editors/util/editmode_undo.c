@@ -37,14 +37,14 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_utildefines.h"
+#include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
+
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
-
 
 #include "ED_mesh.h"
 

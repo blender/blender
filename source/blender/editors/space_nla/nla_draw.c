@@ -37,11 +37,11 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_dlrbTree.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"

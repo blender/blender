@@ -32,6 +32,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -44,7 +45,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_sound.h"
 
 #include "IMB_imbuf.h"

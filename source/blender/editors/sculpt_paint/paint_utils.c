@@ -9,18 +9,22 @@
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_paint.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "BIF_gl.h"
+/* TODO: remove once projectf goes away */
+#include "BIF_glutil.h"
+
+#include "RE_shader_ext.h"
 
 #include "ED_view3d.h"
 #include "ED_screen.h"
@@ -32,6 +36,55 @@
 #include "WM_types.h"
 
 #include "paint_intern.h"
+
+/* convert a point in model coordinates to 2D screen coordinates */
+/* TODO: can be deleted once all calls are replaced with
+   view3d_project_float() */
+void projectf(bglMats *mats, const float v[3], float p[2])
+{
+	double ux, uy, uz;
+
+	gluProject(v[0],v[1],v[2], mats->modelview, mats->projection,
+		   (GLint *)mats->viewport, &ux, &uy, &uz);
+	p[0]= ux;
+	p[1]= uy;
+}
+
+float paint_calc_object_space_radius(ViewContext *vc, float center[3],
+				     float pixel_radius)
+{
+	Object *ob = vc->obact;
+	float delta[3], scale, loc[3];
+
+	mul_v3_m4v3(loc, ob->obmat, center);
+
+	initgrabz(vc->rv3d, loc[0], loc[1], loc[2]);
+	window_to_3d_delta(vc->ar, delta, pixel_radius, 0);
+
+	scale= fabsf(mat4_to_scale(ob->obmat));
+	scale= (scale == 0.0f)? 1.0f: scale;
+
+	return len_v3(delta)/scale;
+}
+
+float paint_get_tex_pixel(Brush* br, float u, float v)
+{
+	TexResult texres;
+	float co[3];
+	int hasrgb;
+
+	co[0] = u;
+	co[1] = v;
+	co[2] = 0;
+
+	memset(&texres, 0, sizeof(TexResult));
+	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 1, &texres);
+
+	if (hasrgb & TEX_RGB)
+		texres.tin = (0.35*texres.tr + 0.45*texres.tg + 0.2*texres.tb)*texres.ta;
+
+	return texres.tin;
+}
 
 /* 3D Paint */
 

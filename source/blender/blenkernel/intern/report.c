@@ -29,10 +29,11 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_report.h"
 #include "BKE_global.h" /* G.background only */
-#include "BKE_utildefines.h"
+
 
 #include <stdarg.h>
 #include <stdio.h>

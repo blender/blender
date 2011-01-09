@@ -367,6 +367,11 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{MTEX_NSPACE_TANGENT, "TANGENT", 0, "Tangent", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem prop_bump_method_items[] = {
+		{0, "BUMP_ORIGINAL", 0, "Original", ""},
+		{MTEX_NEW_BUMP, "BUMP_IMPROVED", 0, "Improved", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "MaterialTextureSlot", "TextureSlot");
 	RNA_def_struct_sdna(srna, "MTex");
 	RNA_def_struct_ui_text(srna, "Material Texture Slot", "Texture slot for textures in a Material datablock");
@@ -668,9 +673,10 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this material texture slot");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
-	prop= RNA_def_property(srna, "use_old_bump", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "texflag", MTEX_NEW_BUMP);
-	RNA_def_property_ui_text(prop, "Old Bump", "Use old bump mapping (backwards compatibility option)");
+	prop= RNA_def_property(srna, "bump_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "texflag");
+	RNA_def_property_enum_items(prop, prop_bump_method_items);
+	RNA_def_property_ui_text(prop, "Bump Method", "Method to use for bump mapping");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
@@ -1601,7 +1607,7 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_object_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shade_flag", MA_OBCOLOR);
 	RNA_def_property_ui_text(prop, "Object Color", "Modulate the result with a per-object color");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	prop= RNA_def_property(srna, "shadow_ray_bias", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sbias");

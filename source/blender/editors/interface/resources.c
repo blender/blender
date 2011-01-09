@@ -36,7 +36,6 @@
 
 #include "MEM_guardedalloc.h"
 
-
 #include "DNA_curve_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_screen_types.h"
@@ -44,13 +43,13 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
-
+#include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "BIF_gl.h"
 
@@ -1527,7 +1526,7 @@ void init_userdef_do_versions(void)
 		U.dbl_click_time = 350;
 	}
 	if (U.anim_player_preset == 0) {
-		U.anim_player_preset =1 ;
+		U.anim_player_preset = 1 ;
 	}
 	if (U.scrcastfps == 0) {
 		U.scrcastfps = 10;
@@ -1536,6 +1535,8 @@ void init_userdef_do_versions(void)
 	if (U.v2d_min_gridsize == 0) {
 		U.v2d_min_gridsize= 35;
 	}
+	if (U.dragthreshold == 0 )
+		U.dragthreshold= 5;
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();

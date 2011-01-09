@@ -751,6 +751,7 @@ class USERPREF_PT_input(InputKeyMapPanel):
         sub1.active = (inputs.select_mouse == 'RIGHT')
         sub1.prop(inputs, "use_mouse_emulate_3_button")
         sub.prop(inputs, "use_mouse_continuous")
+        sub.prop(inputs, "drag_threshold")
 
         sub.label(text="Select With:")
         sub.row().prop(inputs, "select_mouse", expand=True)
@@ -896,14 +897,23 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
             file_mod.close()
 
-            ast_data = ast.parse(data, filename=mod_path)
+            try:
+                ast_data = ast.parse(data, filename=mod_path)
+            except:
+                print("Syntax error 'ast.parse' can't read %r" % mod_path)
+                import traceback
+                traceback.print_exc()
+                ast_data = None
+
             body_info = None
-            for body in ast_data.body:
-                if body.__class__ == ast.Assign:
-                    if len(body.targets) == 1:
-                        if getattr(body.targets[0], "id", "") == "bl_addon_info":
-                            body_info = body
-                            break
+
+            if ast_data:
+                for body in ast_data.body:
+                    if body.__class__ == ast.Assign:
+                        if len(body.targets) == 1:
+                            if getattr(body.targets[0], "id", "") == "bl_addon_info":
+                                body_info = body
+                                break
 
             if body_info:
                 mod = ModuleType(mod_name)

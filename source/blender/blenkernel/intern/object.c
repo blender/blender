@@ -57,8 +57,9 @@
 #include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_pbvh.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -2559,6 +2560,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			switch(ob->type) {
 			case OB_MESH:
 				{
+#if 0				// XXX, comment for 2.56a release, background wont set 'scene->customdata_mask'
 					EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
 					BKE_assert((scene->customdata_mask & CD_MASK_BAREMESH) == CD_MASK_BAREMESH);
 					if(em) {
@@ -2566,6 +2568,16 @@ void object_handle_update(Scene *scene, Object *ob)
 						BKE_mesh_end_editmesh(ob->data, em);
 					} else
 						makeDerivedMesh(scene, ob, NULL, scene->customdata_mask);
+
+#else				/* ensure CD_MASK_BAREMESH for now */
+					EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
+					if(em) {
+						makeDerivedMesh(scene, ob, em,  scene->customdata_mask | CD_MASK_BAREMESH); /* was CD_MASK_BAREMESH */
+						BKE_mesh_end_editmesh(ob->data, em);
+					} else
+						makeDerivedMesh(scene, ob, NULL, scene->customdata_mask | CD_MASK_BAREMESH);
+#endif
+
 				}
 				break;
 

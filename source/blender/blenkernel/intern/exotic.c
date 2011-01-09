@@ -61,10 +61,11 @@
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_storage.h"
+#include "BLI_utildefines.h"
+
 
 #include "BKE_blender.h"
 #include "BKE_global.h"
@@ -74,7 +75,7 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_report.h"
-
+#include "BKE_exotic.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_curve.h"
@@ -458,54 +459,49 @@ int BKE_read_exotic(Scene *scene, const char *name)
 {
 	int len;
 	gzFile gzfile;
-	char str[32];
-	int *s0 = (int*) str;
-	int retval = 0;
+	char header[7];
+	int retval;
 
 	// make sure we're not trying to read a directory....
 
 	len= strlen(name);
-	if (name[len-1] !='/' && name[len-1] != '\\') {
+	if (ELEM(name[len-1], '/', '\\')) {
+		retval= BKE_READ_EXOTIC_FAIL_PATH;
+	}
+	else {
 		gzfile = gzopen(name,"rb");
 
-		if (NULL == gzfile ) {
-			//XXX error("Can't open file: %s", name);
-			retval= -1;
-		} else {
-			gzread(gzfile, str, 31);
+		if (gzfile == NULL) {
+			retval= BKE_READ_EXOTIC_FAIL_OPEN;
+		}
+		else {
+			len= gzread(gzfile, header, sizeof(header));
 			gzclose(gzfile);
-
-			if ((*s0 != FORM) && (strncmp(str, "BLEN", 4) != 0) && !BLI_testextensie(name,".blend.gz")) {
-
+			if (len == sizeof(header) && strncmp(header, "BLENDER", 7) == 0) {
+				retval= BKE_READ_EXOTIC_OK_BLEND;
+			}
+			else {
 				//XXX waitcursor(1);
 				if(is_dxf(name)) {
 					dxf_read(scene, name);
-					retval = 1;
+					retval= BKE_READ_EXOTIC_OK_OTHER;
 				}
 				else if(is_stl(name)) {
 					if (is_stl_ascii(name))
 						read_stl_mesh_ascii(scene, name);
 					else
 						read_stl_mesh_binary(scene, name);
-					retval = 1;
+					retval= BKE_READ_EXOTIC_OK_OTHER;
 				}
-#ifdef WITH_PYTHON
-				// TODO: this should not be in the kernel...
-				else { // unknown format, call Python importloader 
-					if (BPY_call_importloader(name)) {
-						retval = 1;
-					} else {	
-						//XXX error("Unknown file type or error, check console");
-					}	
-				
+				else {
+					retval= BKE_READ_EXOTIC_FAIL_FORMAT;
 				}
-#endif /* WITH_PYTHON */
 				//XXX waitcursor(0);
 			}
 		}
 	}
 	
-	return (retval);
+	return retval;
 }
 
 

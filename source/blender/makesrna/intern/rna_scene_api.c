@@ -76,19 +76,6 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name
 		BKE_makepicstring(name, rd->pic, (frame==INT_MIN) ? rd->cfra : frame, rd->imtype, rd->scemode & R_EXTENSION, TRUE);
 }
 
-#ifdef WITH_COLLADA
-
-#include "../../collada/collada.h"
-
-static void rna_Scene_collada_export(Scene *scene, const char *filepath)
-{
-	/* XXX not really nice, as this will bring essentially in COLLADA as dependency for
-	 * blenderplayer. For now stubbing in blc. */
-	collada_export(scene, filepath);
-}
-
-#endif
-
 #else
 
 void RNA_api_scene(StructRNA *srna)
@@ -104,14 +91,6 @@ void RNA_api_scene(StructRNA *srna)
 
 	func= RNA_def_function(srna, "update", "rna_Scene_update_tagged");
 	RNA_def_function_ui_description(func, "Update data tagged to be updated from previous access to data or operators.");
-
-#ifdef WITH_COLLADA
-	func= RNA_def_function(srna, "collada_export", "rna_Scene_collada_export");
-	parm= RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "File path to write Collada file.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
-	RNA_def_function_ui_description(func, "Export to collada file.");
-#endif
 }
 
 void RNA_api_scene_render(StructRNA *srna)

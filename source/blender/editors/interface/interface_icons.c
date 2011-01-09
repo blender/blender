@@ -28,7 +28,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #ifndef WIN32
 #include <unistd.h>
@@ -44,6 +43,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
@@ -851,7 +851,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	/* sanity check */
 	if(w<=0 || h<=0 || w>2000 || h>2000) {
 		printf("icon_draw_rect: icons are %i x %i pixels?\n", w, h);
-		assert(!"invalid icon size");
+		BKE_assert(!"invalid icon size");
 		return;
 	}
 

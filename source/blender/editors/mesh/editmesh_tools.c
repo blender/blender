@@ -52,6 +52,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
@@ -483,11 +484,12 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	if(count) {
 		recalc_editnormals(em);
 
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	}
 
-	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s.", count, (count==1)?"ex":"ices");
+
 	BKE_mesh_end_editmesh(obedit->data, em);
 
 	return OPERATOR_FINISHED;
@@ -646,7 +648,7 @@ static void extrude_mesh(Object *obedit, EditMesh *em, wmOperator *op, short typ
 			* This shouldn't be necessary, derived queries should be
 			* automatically building this data if invalid. Or something.
 			*/
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 
 		/* individual faces? */
 //		BIF_TransformSetUndo("Extrude");
@@ -677,7 +679,7 @@ static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -691,7 +693,7 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 
 	extrude_mesh(obedit, em, op, RNA_int_get(op->ptr, "type"));
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -813,7 +815,7 @@ static int split_mesh(bContext *C, wmOperator *UNUSED(op))
 
 	WM_cursor_wait(0);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -873,7 +875,7 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 
 	EM_fgon_flags(em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -977,7 +979,7 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 
 		EM_fgon_flags(em);
 
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 	}
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -995,7 +997,7 @@ static int spin_mesh_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -1096,7 +1098,7 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 	}
 
 	if(spin_mesh(C, op, dvec, turns*steps, 360.0f*turns, 0)) {
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 		BKE_mesh_end_editmesh(obedit->data, em);
@@ -1197,13 +1199,13 @@ static void delete_mesh(EditMesh *em, wmOperator *op, int event)
 	EditVert *eve,*nextve;
 	EditEdge *eed,*nexted;
 	int count;
-	const char *str="Erase";
+	/* const char *str="Erase"; */
 
 
 	if(event<1) return;
 
 	if(event==10 ) {
-		str= "Erase Vertices";
+		/* str= "Erase Vertices"; */
 		erase_edges(em, &em->edges);
 		erase_faces(em, &em->faces);
 		erase_vertices(em, &em->verts);
@@ -1212,10 +1214,10 @@ static void delete_mesh(EditMesh *em, wmOperator *op, int event)
 		if(!EdgeLoopDelete(em, op))
 			return;
 
-		str= "Erase Edge Loop";
+		/* str= "Erase Edge Loop"; */
 	}
 	else if(event==4) {
-		str= "Erase Edges & Faces";
+		/* str= "Erase Edges & Faces"; */
 		efa= em->faces.first;
 		while(efa) {
 			nextvl= efa->next;
@@ -1257,7 +1259,7 @@ static void delete_mesh(EditMesh *em, wmOperator *op, int event)
 		}
 	}
 	else if(event==1) {
-		str= "Erase Edges";
+		/* str= "Erase Edges"; */
 		// faces first
 		efa= em->faces.first;
 		while(efa) {
@@ -1302,18 +1304,18 @@ static void delete_mesh(EditMesh *em, wmOperator *op, int event)
 
 	}
 	else if(event==2) {
-		str="Erase Faces";
+		/* str="Erase Faces"; */
 		delfaceflag(em, SELECT);
 	}
 	else if(event==3) {
-		str= "Erase All";
+		/* str= "Erase All"; */
 		if(em->verts.first) free_vertlist(em, &em->verts);
 		if(em->edges.first) free_edgelist(em, &em->edges);
 		if(em->faces.first) free_facelist(em, &em->faces);
 		if(em->selected.first) BLI_freelistN(&(em->selected));
 	}
 	else if(event==5) {
-		str= "Erase Only Faces";
+		/* str= "Erase Only Faces"; */
 		efa= em->faces.first;
 		while(efa) {
 			nextvl= efa->next;
@@ -1351,7 +1353,7 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 
 	delete_mesh(em, op, type);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -1684,7 +1686,7 @@ static void fill_quad_double_op(EditMesh *em, EditFace *efa, struct GHash *gh, i
 	EditEdge *cedge[2]={NULL, NULL};
 	EditVert *v[4], **verts[2];
 	EditFace *hold;
-	short start=0, end, left, right, vertsize,i;
+	short start=0, /*end,*/ left, /* right,*/ vertsize,i;
 
 	v[0] = efa->v1;
 	v[1] = efa->v2;
@@ -1705,9 +1707,9 @@ static void fill_quad_double_op(EditMesh *em, EditFace *efa, struct GHash *gh, i
 	// the array to the correct direction
 
 	if(verts[0][0] != v[start]) {flipvertarray(verts[0],numcuts+2);}
-	end	= (start+1)%4;
+	/* end	= (start+1)%4; */ /* UNUSED */
 	left   = (start+2)%4;
-	right  = (start+3)%4;
+	/* right  = (start+3)%4; */ /* UNUSED */
 	if(verts[1][0] != v[left]) {flipvertarray(verts[1],numcuts+2);}
 	/*
 	We should have something like this now
@@ -2760,7 +2762,7 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float 
 		}
 	}
 
-//	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+//	DAG_id_tag_update(obedit->data, 0);
 	// Now for each face in the mesh we need to figure out How many edges were cut
 	// and which filling method to use for that face
 	for(ef = em->faces.first;ef;ef = ef->next) {
@@ -3803,7 +3805,7 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -4654,7 +4656,7 @@ useless:
 		} else {
 			draw = 0;
 		}
-//		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+//		DAG_id_tag_update(obedit->data, 0);
 	}
 
 
@@ -4674,7 +4676,7 @@ useless:
 
 	if(!immediate)
 		EM_automerge(0);
-//	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+//	DAG_id_tag_update(obedit->data, 0);
 //	scrarea_queue_winredraw(curarea);
 
 	//BLI_ghash_free(edgesgh, freeGHash, NULL);
@@ -4725,7 +4727,7 @@ int EdgeLoopDelete(EditMesh *UNUSED(em), wmOperator *UNUSED(op))
 	EM_select_more(em);
 	removedoublesflag(em, 1,0, 0.001);
 	EM_select_flush(em);
-	//	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	//	DAG_id_tag_update(obedit->data, 0);
 	return 1;
 #endif
 	return 0;
@@ -5034,7 +5036,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -5107,7 +5109,7 @@ static void shape_propagate(Object *obedit, EditMesh *em, wmOperator *op)
 	}
 #endif
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	return;
 }
 
@@ -5120,7 +5122,7 @@ static int shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 
 	shape_propagate(obedit, em, op);
 
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return OPERATOR_FINISHED;
@@ -5182,7 +5184,7 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 	if(!blended)
 		return OPERATOR_CANCELLED;
 
-	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
 	return OPERATOR_FINISHED;
@@ -5885,7 +5887,7 @@ static int merge_exec(bContext *C, wmOperator *op)
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -6465,7 +6467,7 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 	if(!change)
 		return OPERATOR_CANCELLED;
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -6554,7 +6556,7 @@ static int mesh_mirror_uvs(bContext *C, wmOperator *op)
 	if(!change)
 		return OPERATOR_CANCELLED;
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -6610,7 +6612,7 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 	if(!change)
 		return OPERATOR_CANCELLED;
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -6666,7 +6668,7 @@ static int mesh_mirror_colors(bContext *C, wmOperator *op)
 	if(!change)
 		return OPERATOR_CANCELLED;
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -6764,7 +6766,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 
 	esubdivideflag(obedit, em, 1, smooth, fractal, ts->editbutflag|flag, cuts, corner_cut_pattern, 0);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -7046,7 +7048,7 @@ static int fill_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -7077,7 +7079,7 @@ static int beautify_fill_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -7241,7 +7243,7 @@ static int sort_faces_exec(bContext *C, wmOperator *op)
 	}
 
 	MEM_freeN(index);
-	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
+	DAG_id_tag_update(ob->data, 0);
 
 	/* Return to editmode. */
 	ED_object_enter_editmode(C, 0);
@@ -7285,7 +7287,7 @@ static int quads_convert_to_tris_exec(bContext *C, wmOperator *UNUSED(op))
 
 	convert_to_triface(em,0);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -7314,7 +7316,7 @@ static int tris_convert_to_quads_exec(bContext *C, wmOperator *UNUSED(op))
 
 	join_triangles(em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -7343,7 +7345,7 @@ static int edge_flip_exec(bContext *C, wmOperator *UNUSED(op))
 
 	edge_flip(em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -7390,7 +7392,7 @@ static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -7418,7 +7420,7 @@ static int mesh_faces_shade_flat_exec(bContext *C, wmOperator *UNUSED(op))
 
 	mesh_set_smooth_faces(em, 0);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;

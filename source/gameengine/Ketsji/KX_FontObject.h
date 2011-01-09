@@ -60,7 +60,7 @@ protected:
 	int			m_dpi;
 	float			m_fsize;
 	float			m_resolution;
-	float*			m_color;
+	float			m_color[4];
 
 	class RAS_IRenderTools*	m_rendertools;	//needed for drawing routine
 

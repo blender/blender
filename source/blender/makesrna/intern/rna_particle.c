@@ -95,6 +95,9 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_math.h"
+#include "BLI_listbase.h"
+
 #include "BKE_context.h"
 #include "BKE_cloth.h"
 #include "BKE_deform.h"
@@ -103,9 +106,6 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-
-#include "BLI_math.h"
-#include "BLI_listbase.h"
 
 /* use for object space hair get/set */
 static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr, ParticleSystemModifierData **psmd_pt, ParticleData **pa_pt)
@@ -899,7 +899,7 @@ static void rna_def_particle(BlenderRNA *brna)
 
 	/* Hair & Keyed Keys */
 
-	prop= RNA_def_property(srna, "is_hair", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "hair", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "hair", "totkey");
 	RNA_def_property_struct_type(prop, "ParticleHairKey");
 	RNA_def_property_ui_text(prop, "Hair", "");
@@ -1103,8 +1103,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem child_type_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{PART_CHILD_PARTICLES, "PARTICLES", 0, "Particles", ""},
-		{PART_CHILD_FACES, "FACES", 0, "Faces", ""},
+		{PART_CHILD_PARTICLES, "SIMPLE", 0, "Simple", ""},
+		{PART_CHILD_FACES, "INTERPOLATED", 0, "Interpolated", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1239,21 +1239,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Boids 2D", "Constrain boids to a surface");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "use_branching", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_BRANCHING);
-	RNA_def_property_ui_text(prop, "Branching", "Branch child paths from each other");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
-
-	prop= RNA_def_property(srna, "use_animate_branching", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_ANIM_BRANCHING);
-	RNA_def_property_ui_text(prop, "Animated", "Animate branching");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
-
-	prop= RNA_def_property(srna, "use_symmetric_branching", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_SYMM_BRANCHING);
-	RNA_def_property_ui_text(prop, "Symmetric", "Start and end points are the same");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
-
 	prop= RNA_def_property(srna, "use_hair_bspline", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_HAIR_BSPLINE);
 	RNA_def_property_ui_text(prop, "B-Spline", "Interpolate hair using B-Splines");
@@ -1269,10 +1254,10 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Children", "Apply effectors to children");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	//prop= RNA_def_property(srna, "child_seams", PROP_BOOLEAN, PROP_NONE);
-	//RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_SEAMS);
-	//RNA_def_property_ui_text(prop, "Use seams", "Use seams to determine parents");
-	//RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+	prop= RNA_def_property(srna, "create_long_hair_children", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_LONG_HAIR);
+	RNA_def_property_ui_text(prop, "Long Hair", "Calculate children that suit long hair well");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	prop= RNA_def_property(srna, "apply_guide_to_children", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_GUIDE);
@@ -1863,6 +1848,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Amplitude", "The amplitude of the offset");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
+	prop= RNA_def_property(srna, "kink_amplitude_clump", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "kink_amp_clump");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Amplitude Clump", "How much clump effects kink amplitude");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
 	prop= RNA_def_property(srna, "kink_frequency", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "kink_freq");
 	RNA_def_property_range(prop, -100000.0f, 100000.0f);
@@ -1875,6 +1866,10 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shape", "Adjust the offset to the beginning/end");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
+	prop= RNA_def_property(srna, "kink_flat", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Flatness", "How flat the hairs are");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* rough */
 	prop= RNA_def_property(srna, "roughness_1", PROP_FLOAT, PROP_NONE);
@@ -1934,6 +1929,25 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "clength_thres");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "Amount of particles left untouched by child path length");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	/* parting */
+	prop= RNA_def_property(srna, "child_parting_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "parting_fac");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Parting Factor", "Create parting in the children based on parent strands");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop= RNA_def_property(srna, "child_parting_min", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "parting_min");
+	RNA_def_property_range(prop, 0.0f, 180.0f);
+	RNA_def_property_ui_text(prop, "Parting Minimum", "Minimum root to tip angle (tip distance/root distance for long hair)");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop= RNA_def_property(srna, "child_parting_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "parting_max");
+	RNA_def_property_range(prop, 0.0f, 180.0f);
+	RNA_def_property_ui_text(prop, "Parting Maximum", "Maximum root to tip angle (tip distance/root distance for long hair)");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* branching */
@@ -2151,6 +2165,10 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(prop, "Seed", "Offset in the random number table, to get a different randomized result");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "child_seed", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(prop, "Child Seed", "Offset in the random number table for child particles, to get a different randomized result");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* hair */
 	prop= RNA_def_property(srna, "is_global_hair", PROP_BOOLEAN, PROP_NONE);

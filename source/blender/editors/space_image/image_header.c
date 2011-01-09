@@ -33,21 +33,17 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-
 
 #include "ED_image.h"
 
 #include "WM_types.h"
 
-
 #include "UI_interface.h"
-
-
 
 #include "image_intern.h"
 

@@ -40,14 +40,14 @@
 #include <io.h>
 #endif
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "BLF_api.h"
 
@@ -56,6 +56,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BLO_readfile.h"
 
@@ -69,7 +70,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h" /* BKE_ST_MAXNAME */
-#include "BKE_utildefines.h"
+
 #include "BKE_idcode.h"
 
 #include "BIF_gl.h"
@@ -2686,8 +2687,6 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	glutil_draw_lined_arc(0.0, M_PI*2.0, r1, 40);
 	glutil_draw_lined_arc(0.0, M_PI*2.0, r2, 40);
 	glDisable(GL_BLEND);
-	
-	glPopMatrix();
 }
 
 int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)

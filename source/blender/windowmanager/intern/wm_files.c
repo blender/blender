@@ -49,6 +49,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_ipo_types.h" // XXX old animation system
@@ -72,7 +73,7 @@
 #include "BKE_report.h"
 #include "BKE_sound.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
@@ -91,6 +92,7 @@
 #include "ED_util.h"
 
 #include "GHOST_C-api.h"
+#include "GHOST_Path-api.h"
 
 #include "UI_interface.h"
 
@@ -275,7 +277,7 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 	retval= BKE_read_exotic(CTX_data_scene(C), name);
 	
 	/* we didn't succeed, now try to read Blender file */
-	if (retval== 0) {
+	if (retval == BKE_READ_EXOTIC_OK_BLEND) {
 		int G_f= G.f;
 		ListBase wmbase;
 
@@ -297,17 +299,14 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 		
 // XXX		mainwindow_set_filename_to_title(G.main->name);
 
-		if(retval==2) wm_init_userdef(C);	// in case a userdef is read from regular .blend
+		if(retval == BKE_READ_FILE_OK_USERPREFS) wm_init_userdef(C);	// in case a userdef is read from regular .blend
 		
-		if (retval!=0) {
+		if (retval != BKE_READ_FILE_FAIL) {
 			G.relbase_valid = 1;
 			if(!G.background) /* assume automated tasks with background, dont write recent file list */
 				write_history();
 		}
 
-// XXX		undo_editmode_clear();
-		BKE_reset_undo();
-		BKE_write_undo(C, "original");	/* save current state */
 
 		WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 //		refresh_interface_font();
@@ -319,18 +318,32 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
-		BPY_reset_driver();
-		BPY_load_user_modules(C);
+		BPY_driver_reset();
+		BPY_modules_load_user(C);
 #endif
 		CTX_wm_window_set(C, NULL); /* exits queues */
+
+		// XXX		undo_editmode_clear();
+		BKE_reset_undo();
+		BKE_write_undo(C, "original");	/* save current state */
+		
 	}
-	else if(retval==1)
+	else if(retval == BKE_READ_EXOTIC_OK_OTHER)
 		BKE_write_undo(C, "Import file");
-	else if(retval == -1) {
-		if(reports)
-			BKE_reportf(reports, RPT_ERROR, "Can't read file: \"%s\", %s.", name, errno ? strerror(errno) : "Incompatible file format");
+	else if(retval == BKE_READ_EXOTIC_FAIL_OPEN) {
+		BKE_reportf(reports, RPT_ERROR, "Can't read file: \"%s\", %s.", name, errno ? strerror(errno) : "Unable to open the file");
 	}
-	
+	else if(retval == BKE_READ_EXOTIC_FAIL_FORMAT) {
+		BKE_reportf(reports, RPT_ERROR, "File format is not supported in file: \"%s\".", name);
+	}
+	else if(retval == BKE_READ_EXOTIC_FAIL_PATH) {
+		BKE_reportf(reports, RPT_ERROR, "File path invalid: \"%s\".", name);
+	}
+	else {
+		BKE_reportf(reports, RPT_ERROR, "Unknown error loading: \"%s\".", name);
+		BKE_assert(!"invalid 'retval'");
+	}
+
 	WM_cursor_wait(0);
 
 }
@@ -369,7 +382,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	wm_window_match_init(C, &wmbase); 
 	
 	if (!from_memory && BLI_exists(tstr)) {
-		success = BKE_read_file(C, tstr, NULL);
+		success = (BKE_read_file(C, tstr, NULL) != BKE_READ_FILE_FAIL);
 		
 		if(U.themes.first==NULL) {
 			printf("\nError: No valid startup.blend, fall back to built-in default.\n\n");
@@ -413,10 +426,10 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 #ifdef WITH_PYTHON
 	if(CTX_py_init_get(C)) {
 		/* sync addons, these may have changed from the defaults */
-		BPY_eval_string(C, "__import__('bpy').utils.addon_reset_all()");
+		BPY_string_exec(C, "__import__('bpy').utils.addon_reset_all()");
 
-		BPY_reset_driver();
-		BPY_load_user_modules(C);
+		BPY_driver_reset();
+		BPY_modules_load_user(C);
 	}
 #endif
 	
@@ -509,6 +522,9 @@ static void write_history(void)
 			}
 			fclose(fp);
 		}
+
+		/* also update most recent files on System */
+		GHOST_addToSystemRecentFiles(G.main->name);
 	}
 }
 

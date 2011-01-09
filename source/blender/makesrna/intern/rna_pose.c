@@ -547,13 +547,17 @@ static int rna_PoseChannel_rotation_4d_editable(PointerRNA *ptr, int index)
 }
 
 /* not essential, but much faster then the default lookup function */
-PointerRNA rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key)
+int rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
-	PointerRNA rptr;
 	bPose *pose= (bPose*)ptr->data;
 	bPoseChannel *pchan= get_pose_channel(pose, key);
-	RNA_pointer_create(ptr->id.data, &RNA_PoseBone, pchan, &rptr);
-	return rptr;
+	if(pchan) {
+		RNA_pointer_create(ptr->id.data, &RNA_PoseBone, pchan, r_ptr);
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
 }
 
 static void rna_PoseChannel_matrix_basis_get(PointerRNA *ptr, float *values)

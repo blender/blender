@@ -42,6 +42,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -49,7 +50,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_modifier.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_DerivedMesh.h"
 #ifdef USE_BULLET
 #include "Bullet-C-Api.h"

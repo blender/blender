@@ -32,6 +32,7 @@
 
 #include "DNA_sequence_types.h"
 #include "BKE_sequencer.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
 #include <pthread.h>

@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): André Pinto.
+ * Contributor(s): Andr Pinto.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -33,8 +33,11 @@
 
 #include "rayobject_rtbuild.h"
 #include "MEM_guardedalloc.h"
+
 #include "BLI_math.h"
-#include "BKE_utildefines.h"
+#include "BLI_utildefines.h"
+
+
 
 static bool selected_node(RTBuilder::Object *node)
 {

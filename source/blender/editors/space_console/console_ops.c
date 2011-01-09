@@ -33,6 +33,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_text.h" /* only for character utility funcs */
@@ -657,11 +658,12 @@ static int scrollback_append_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ARegion *ar= CTX_wm_region(C);
-
-	ConsoleLine *ci= console_history_verify(C);
+	ConsoleLine *ci;
 	
 	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, dont free */
 	int type= RNA_enum_get(op->ptr, "type");
+
+	console_history_verify(C);
 	
 	ci= console_scrollback_add_str(sc, str, 1); /* own the string */
 	ci->type= type;
@@ -702,7 +704,6 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 static int copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
-	int buf_len;
 
 	DynStr *buf_dyn= BLI_dynstr_new();
 	char *buf_str;
@@ -755,7 +756,7 @@ static int copy_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	buf_str= BLI_dynstr_get_cstring(buf_dyn);
-	buf_len= BLI_dynstr_get_len(buf_dyn);
+
 	BLI_dynstr_free(buf_dyn);
 	WM_clipboard_text_set(buf_str, 0);
 
@@ -792,7 +793,6 @@ static int paste_exec(bContext *C, wmOperator *UNUSED(op))
 	if(buf_str==NULL)
 		return OPERATOR_CANCELLED;
 
-	buf_next= buf_str;
 	buf_step= buf_str;
 
 	while((buf_next=buf_step) && buf_next[0] != '\0') {

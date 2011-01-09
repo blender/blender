@@ -38,8 +38,9 @@
 
 #include "BLI_math.h"
 #include "BLI_uvproject.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_DerivedMesh.h"
 
 #include "MOD_modifiertypes.h"

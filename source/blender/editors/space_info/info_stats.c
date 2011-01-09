@@ -34,13 +34,14 @@
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_anim.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
-#include "BKE_utildefines.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
@@ -91,13 +92,12 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 	case OB_SURF:
 	case OB_CURVE:
 	case OB_FONT: {
-		Curve *cu= ob->data;
 		int tot= 0, totf= 0;
 
 		stats->totcurve += totob;
 
-		if(cu->disp.first)
-			count_displist(&cu->disp, &tot, &totf);
+		if(ob->disp.first)
+			count_displist(&ob->disp, &tot, &totf);
 
 		tot *= totob;
 		totf *= totob;

@@ -48,6 +48,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_bvhutils.h"
 #include "BKE_cdderivedmesh.h"
@@ -58,7 +59,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_smoke.h"
-#include "BKE_utildefines.h"
+
 
 #include "DNA_customdata_types.h"
 #include "DNA_group_types.h"

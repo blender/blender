@@ -63,6 +63,7 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_storage.h" /* For _LARGEFILE64_SOURCE;  zlib needs this on some systems */
+#include "BLI_utildefines.h"
 
 #include "BKE_main.h"
 #include "BKE_animsys.h"
@@ -73,7 +74,7 @@
 #include "BKE_effect.h"
 #include "BKE_particle.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
@@ -130,6 +131,16 @@ int psys_get_current_display_percentage(ParticleSystem *psys)
 	return psys->part->disp;
 }
 
+static int tot_particles(ParticleSystem *psys, PTCacheID *pid)
+{
+	if(pid && psys->pointcache->flag & PTCACHE_EXTERNAL)
+		return pid->cache->totpoint;
+	else if(psys->part->distr == PART_DISTR_GRID && psys->part->from != PART_FROM_VERT)
+		return psys->part->grid_res * psys->part->grid_res * psys->part->grid_res;
+	else
+		return psys->part->totpart;
+}
+
 void psys_reset(ParticleSystem *psys, int mode)
 {
 	PARTICLE_P;
@@ -137,7 +148,7 @@ void psys_reset(ParticleSystem *psys, int mode)
 	if(ELEM(mode, PSYS_RESET_ALL, PSYS_RESET_DEPSGRAPH)) {
 		if(mode == PSYS_RESET_ALL || !(psys->flag & PSYS_EDITED)) {
 			/* don't free if not absolutely necessary */
-			if(psys->totpart != psys->part->totpart) {
+			if(psys->totpart != tot_particles(psys, NULL)) {
 				psys_free_particles(psys);
 				psys->totpart= 0;
 			}
@@ -616,15 +627,21 @@ static void psys_uv_to_w(float u, float v, int quad, float *w)
 	}
 }
 
+/* Find the index in "sum" array before "value" is crossed. */
 static int binary_search_distribution(float *sum, int n, float value)
 {
 	int mid, low=0, high=n;
 
+	if(value == 0.f)
+		return 0;
+
 	while(low <= high) {
 		mid= (low + high)/2;
-		if(sum[mid] <= value && value <= sum[mid+1])
+		
+		if(sum[mid] < value && value <= sum[mid+1])
 			return mid;
-		else if(sum[mid] > value)
+		
+		if(sum[mid] >= value)
 			high= mid - 1;
 		else if(sum[mid] < value)
 			low= mid + 1;
@@ -648,7 +665,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 	DerivedMesh *dm= ctx->dm;
 	ParticleData *tpa;
 /*	ParticleSettings *part= ctx->sim.psys->part; */
-	float *v1, *v2, *v3, *v4, nor[3], orco1[3], co1[3], co2[3], nor1[3], ornor1[3];
+	float *v1, *v2, *v3, *v4, nor[3], orco1[3], co1[3], co2[3], nor1[3];
 	float cur_d, min_d, randu, randv;
 	int from= ctx->from;
 	int cfrom= ctx->cfrom;
@@ -789,12 +806,9 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 			int parent[10];
 			float pweight[10];
 
-			/*do_seams= (part->flag&PART_CHILD_SEAMS && ctx->seams);*/
-
-			psys_particle_on_dm(dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,0,0,orco1,ornor1);
+			psys_particle_on_dm(dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,NULL,NULL,orco1,NULL);
 			transform_mesh_orco_verts((Mesh*)ob->data, &orco1, 1, 1);
-			//maxw = BLI_kdtree_find_n_nearest(ctx->tree,(do_seams)?10:4,orco1,ornor1,ptn);
-			maxw = BLI_kdtree_find_n_nearest(ctx->tree,4,orco1,ornor1,ptn);
+			maxw = BLI_kdtree_find_n_nearest(ctx->tree,4,orco1,NULL,ptn);
 
 			maxd=ptn[maxw-1].dist;
 			mind=ptn[0].dist;
@@ -809,63 +823,6 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 				parent[w]=-1;
 				pweight[w]=0.0f;
 			}
-			//if(do_seams){
-			//	ParticleSeam *seam=ctx->seams;
-			//	float temp[3],temp2[3],tan[3];
-			//	float inp,cur_len,min_len=10000.0f;
-			//	int min_seam=0, near_vert=0;
-			//	/* find closest seam */
-			//	for(i=0; i<ctx->totseam; i++, seam++){
-			//		sub_v3_v3v3(temp,co1,seam->v0);
-			//		inp=dot_v3v3(temp,seam->dir)/seam->length2;
-			//		if(inp<0.0f){
-			//			cur_len=len_v3v3(co1,seam->v0);
-			//		}
-			//		else if(inp>1.0f){
-			//			cur_len=len_v3v3(co1,seam->v1);
-			//		}
-			//		else{
-			//			copy_v3_v3(temp2,seam->dir);
-			//			mul_v3_fl(temp2,inp);
-			//			cur_len=len_v3v3(temp,temp2);
-			//		}
-			//		if(cur_len<min_len){
-			//			min_len=cur_len;
-			//			min_seam=i;
-			//			if(inp<0.0f) near_vert=-1;
-			//			else if(inp>1.0f) near_vert=1;
-			//			else near_vert=0;
-			//		}
-			//	}
-			//	seam=ctx->seams+min_seam;
-			//	
-			//	copy_v3_v3(temp,seam->v0);
-			//	
-			//	if(near_vert){
-			//		if(near_vert==-1)
-			//			sub_v3_v3v3(tan,co1,seam->v0);
-			//		else{
-			//			sub_v3_v3v3(tan,co1,seam->v1);
-			//			copy_v3_v3(temp,seam->v1);
-			//		}
-
-			//		normalize_v3(tan);
-			//	}
-			//	else{
-			//		copy_v3_v3(tan,seam->tan);
-			//		sub_v3_v3v3(temp2,co1,temp);
-			//		if(dot_v3v3(tan,temp2)<0.0f)
-			//			negate_v3(tan);
-			//	}
-			//	for(w=0; w<maxw; w++){
-			//		sub_v3_v3v3(temp2,ptn[w].co,temp);
-			//		if(dot_v3v3(tan,temp2)<0.0f){
-			//			parent[w]=-1;
-			//			pweight[w]=0.0f;
-			//		}
-			//	}
-
-			//}
 
 			for(w=0,i=0; w<maxw && i<4; w++){
 				if(parent[w]>=0){
@@ -1001,6 +958,8 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 	
 	if(from==PART_FROM_CHILD){
 		distr=PART_DISTR_RAND;
+		BLI_srandom(31415926 + psys->seed + psys->child_seed);
+
 		if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
 			dm= finaldm;
 			children=1;
@@ -1017,50 +976,6 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 
 			totpart=get_psys_tot_child(scene, psys);
 			cfrom=from=PART_FROM_FACE;
-
-			//if(part->flag&PART_CHILD_SEAMS){
-			//	MEdge *ed, *medge=dm->getEdgeDataArray(dm,CD_MEDGE);
-			//	MVert *mvert=dm->getVertDataArray(dm,CD_MVERT);
-			//	int totedge=dm->getNumEdges(dm);
-
-			//	for(p=0, ed=medge; p<totedge; p++,ed++)
-			//		if(ed->flag&ME_SEAM)
-			//			totseam++;
-
-			//	if(totseam){
-			//		ParticleSeam *cur_seam=seams=MEM_callocN(totseam*sizeof(ParticleSeam),"Child Distribution Seams");
-			//		float temp[3],temp2[3];
-
-			//		for(p=0, ed=medge; p<totedge; p++,ed++){
-			//			if(ed->flag&ME_SEAM){
-			//				copy_v3_v3(cur_seam->v0,(mvert+ed->v1)->co);
-			//				copy_v3_v3(cur_seam->v1,(mvert+ed->v2)->co);
-
-			//				sub_v3_v3v3(cur_seam->dir,cur_seam->v1,cur_seam->v0);
-
-			//				cur_seam->length2=len_v3(cur_seam->dir);
-			//				cur_seam->length2*=cur_seam->length2;
-
-			//				temp[0]=(float)((mvert+ed->v1)->no[0]);
-			//				temp[1]=(float)((mvert+ed->v1)->no[1]);
-			//				temp[2]=(float)((mvert+ed->v1)->no[2]);
-			//				temp2[0]=(float)((mvert+ed->v2)->no[0]);
-			//				temp2[1]=(float)((mvert+ed->v2)->no[1]);
-			//				temp2[2]=(float)((mvert+ed->v2)->no[2]);
-
-			//				add_v3_v3v3(cur_seam->nor,temp,temp2);
-			//				normalize_v3(cur_seam->nor);
-
-			//				cross_v3_v3v3(cur_seam->tan,cur_seam->dir,cur_seam->nor);
-
-			//				normalize_v3(cur_seam->tan);
-
-			//				cur_seam++;
-			//			}
-			//		}
-			//	}
-			//	
-			//}
 		}
 		else{
 			/* no need to figure out distribution */
@@ -1297,7 +1212,8 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 		float pos;
 
 		for(p=0; p<totpart; p++) {
-			pos= BLI_frand();
+			/* In theory sys[tot] should be 1.0, but due to float errors this is not necessarily always true, so scale pos accordingly. */
+			pos= BLI_frand() * sum[tot];
 			index[p]= binary_search_distribution(sum, tot, pos);
 			index[p]= MIN2(tot-1, index[p]);
 			jitoff[index[p]]= pos;
@@ -2943,7 +2859,7 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 			/* particle dies in collision */
 			if(through == 0 && (part->flag & PART_DIE_ON_COL || pd->flag & PDEFLE_KILL_PART)) {
 				pa->alive = PARS_DYING;
-				pa->dietime = pa->state.time + (cfra - pa->state.time) * f;
+				pa->dietime = sim->psys->cfra + (cfra - sim->psys->cfra) * f;
 
 				copy_v3_v3(pa->state.co, co);
 				interp_v3_v3v3(pa->state.vel, pa->prev_state.vel, pa->state.vel, f);
@@ -3297,8 +3213,8 @@ static void hair_step(ParticleSimulationData *sim, float cfra)
 			cloth_free_modifier(psys->clmd);
 	}
 
-	/* dynamics with cloth simulation */
-	if(psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS)
+	/* dynamics with cloth simulation, psys->particles can be NULL with 0 particles [#25519] */
+	if(psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS && psys->particles)
 		do_hair_dynamics(sim);
 
 	/* following lines were removed r29079 but cause bug [#22811], see report for details */
@@ -3572,7 +3488,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	PARTICLE_P;
-	float disp, birthtime, dietime;
+	float disp, dietime;
 
 	BLI_srandom(psys->seed);
 
@@ -3587,7 +3503,6 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 
 		psys->lattice= psys_get_lattice(sim);
 
-		birthtime = pa->time;
 		dietime = pa->dietime;
 
 		/* update alive status and push events */
@@ -3726,16 +3641,8 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float UNUSED(cfra))
 {
 	ParticleSystem *psys = sim->psys;
-	ParticleSettings *part = psys->part;
 	int oldtotpart = psys->totpart;
-	int totpart = oldtotpart;
-
-	if(pid && psys->pointcache->flag & PTCACHE_EXTERNAL)
-		totpart = pid->cache->totpoint;
-	else if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
-		totpart = part->grid_res*part->grid_res*part->grid_res;
-	else
-		totpart = psys->part->totpart;
+	int totpart = tot_particles(psys, pid);
 
 	if(totpart != oldtotpart)
 		realloc_particles(sim, totpart);

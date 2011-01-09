@@ -38,8 +38,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_threads.h"
 
 #include "DNA_meshdata_types.h"
@@ -241,7 +242,7 @@ void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool )
 	if( pool == 0 )
 		pool = globalPool;
 	if( pool == 0 )
-		globalPool = GPU_buffer_pool_new();
+		pool = globalPool = GPU_buffer_pool_new();
 
 	/* free the last used buffer in the queue if no more space, but only
 	   if we are in the main thread. for e.g. rendering or baking it can
@@ -268,7 +269,6 @@ void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool )
 GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 {
 	GPUDrawObject *object;
-	MVert *mvert;
 	MFace *mface;
 	int numverts[32768];	/* material number is an 16-bit short so there's at most 32768 materials */
 	int redir[32768];		/* material number is an 16-bit short so there's at most 32768 materials */
@@ -290,7 +290,6 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 	/*object->legacy = 1;*/
 	memset(numverts,0,sizeof(int)*32768);
 
-	mvert = dm->getVertArray(dm);
 	mface = dm->getFaceArray(dm);
 
 	numfaces= dm->getNumFaces(dm);
@@ -1115,14 +1114,12 @@ void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray, int *UNUSED(index), in
 {
 	int i;
 
-	MVert *mvert;
 	MEdge *medge;
 	unsigned int *varray_ = (unsigned int *)varray;
 	int numedges;
  
 	DEBUG_VBO("GPU_buffer_copy_edge\n");
 
-	mvert = dm->getVertArray(dm);
 	medge = dm->getEdgeArray(dm);
 
 	numedges= dm->getNumEdges(dm);

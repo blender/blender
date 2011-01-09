@@ -39,6 +39,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -52,7 +53,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_action.h"
 #include "BKE_anim.h" /* for the curve calculation part */
 #include "BKE_armature.h"
@@ -2033,7 +2034,7 @@ static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targ
 #endif
 	
 	/* Now, run the actual 'constraint' function, which should only access the matrices */
-	BPY_pyconstraint_eval(data, cob, targets);
+	BPY_pyconstraint_exec(data, cob, targets);
 #endif /* WITH_PYTHON */
 }
 

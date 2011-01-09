@@ -29,8 +29,8 @@
 
 #include <string.h>
 
-
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_group_types.h"
 #include "DNA_object_types.h"

@@ -46,12 +46,14 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mesh.h"
+#include "BKE_array_mallocn.h"
 
 #include "PIL_time.h"
 
@@ -376,7 +378,7 @@ void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 		EM_selectmode_set(em);
 	}	
 	
-//	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+//	DAG_id_tag_update(obedit->data, 0);
 	return;
 }
 
@@ -696,7 +698,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;

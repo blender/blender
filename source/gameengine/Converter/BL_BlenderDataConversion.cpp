@@ -91,7 +91,7 @@
 #include "BL_MeshDeformer.h"
 #include "KX_SoftBodyDeformer.h"
 //#include "BL_ArmatureController.h"
-
+#include "BLI_utildefines.h"
 #include "BlenderWorldInfo.h"
 
 #include "KX_KetsjiEngine.h"
@@ -126,7 +126,7 @@
 #include "DNA_object_force.h"
 
 #include "MEM_guardedalloc.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "MT_Point3.h"

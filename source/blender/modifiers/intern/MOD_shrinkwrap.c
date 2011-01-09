@@ -32,7 +32,9 @@
 
 #include <string.h>
 
-#include "BKE_utildefines.h"
+#include "BLI_utildefines.h"
+
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_shrinkwrap.h"

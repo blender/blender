@@ -303,7 +303,7 @@ void rna_builtin_properties_begin(struct CollectionPropertyIterator *iter, struc
 void rna_builtin_properties_next(struct CollectionPropertyIterator *iter);
 PointerRNA rna_builtin_properties_get(struct CollectionPropertyIterator *iter);
 PointerRNA rna_builtin_type_get(struct PointerRNA *ptr);
-PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key);
+int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr);
 
 /* Iterators */
 

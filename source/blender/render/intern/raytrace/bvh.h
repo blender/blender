@@ -31,6 +31,8 @@
 #include "rayobject_rtbuild.h"
 #include "rayobject_hint.h"
 
+#include "BLI_utildefines.h"
+
 #include <assert.h>
 
 #ifdef __SSE__

@@ -62,6 +62,7 @@
 #include "BLI_path_util.h"
 #include "BLI_storage_types.h"
 #include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"

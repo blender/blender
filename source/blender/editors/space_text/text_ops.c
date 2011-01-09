@@ -38,6 +38,8 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
 #include "PIL_time.h"
 
 #include "BKE_context.h"
@@ -314,7 +316,7 @@ static int reload_exec(bContext *C, wmOperator *op)
 
 #ifdef WITH_PYTHON
 	if(text->compiled)
-		BPY_free_compiled_text(text);
+		BPY_text_free_code(text);
 #endif
 
 	text_update_edited(text);
@@ -569,7 +571,7 @@ static int run_script_exec(bContext *C, wmOperator *op)
 	Text *text= CTX_data_edit_text(C);
 	SpaceText *st= CTX_wm_space_text(C);
 
-	if (BPY_run_python_script(C, NULL, text, op->reports))
+	if (BPY_text_exec(C, text, op->reports))
 		return OPERATOR_FINISHED;
 	
 	/* Dont report error messages while live editing */
@@ -1344,16 +1346,17 @@ static EnumPropertyItem move_type_items[]= {
 /* get cursor position in line by relative wrapped line and column positions */
 static int text_get_cursor_rel(SpaceText* st, ARegion *ar, TextLine *linein, int rell, int relc)
 {
-	int i, j, start, end, chars, max, chop, curs, loop, endj, found, selc;
+	int i, j, start, end, max, chop, curs, loop, endj, found, selc;
 	char ch;
 
 	max= wrap_width(st, ar);
 
-	selc= start= chars= endj= curs= found= 0;
+	selc= start= endj= curs= found= 0;
 	end= max;
 	chop= loop= 1;
 
 	for(i=0, j=0; loop; j++) {
+		int chars;
 		/* Mimic replacement of tabs */
 		ch= linein->line[j];
 		if(ch=='\t') {
@@ -1509,7 +1512,7 @@ static void wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 	Text *text= st->text;
 	TextLine **linep;
 	int *charp;
-	int oldl, oldc, i, j, max, start, end, chars, endj, chop, loop;
+	int oldl, oldc, i, j, max, start, end, endj, chop, loop;
 	char ch;
 
 	text_update_character_width(st);
@@ -1522,12 +1525,13 @@ static void wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 
 	max= wrap_width(st, ar);
 
-	start= chars= endj= 0;
+	start= endj= 0;
 	end= max;
 	chop= loop= 1;
 	*charp= 0;
 
 	for(i=0, j=0; loop; j++) {
+		int chars;
 		/* Mimic replacement of tabs */
 		ch= (*linep)->line[j];
 		if(ch=='\t') {
@@ -1576,7 +1580,7 @@ static void wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 	Text *text= st->text;
 	TextLine **linep;
 	int *charp;
-	int oldl, oldc, i, j, max, start, end, chars, endj, chop, loop;
+	int oldl, oldc, i, j, max, start, end, endj, chop, loop;
 	char ch;
 
 	text_update_character_width(st);
@@ -1589,12 +1593,13 @@ static void wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 
 	max= wrap_width(st, ar);
 
-	start= chars= endj= 0;
+	start= endj= 0;
 	end= max;
 	chop= loop= 1;
 	*charp= 0;
 
 	for(i=0, j=0; loop; j++) {
+		int chars;
 		/* Mimic replacement of tabs */
 		ch= (*linep)->line[j];
 		if(ch=='\t') {
@@ -2241,7 +2246,7 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 	x = (x/st->cwidth) + st->left;
 	
 	if(st->wordwrap) {
-		int i, j, endj, curs, max, chop, start, end, chars, loop, found;
+		int i, j, endj, curs, max, chop, start, end, loop, found;
 		char ch;
 
 		/* Point to first visible line */
@@ -2267,10 +2272,10 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 			start= 0;
 			end= max;
 			chop= 1;
-			chars= 0;
 			curs= 0;
 			endj= 0;
 			for(i=0, j=0; loop; j++) {
+				int chars;
 
 				/* Mimic replacement of tabs */
 				ch= (*linep)->line[j];

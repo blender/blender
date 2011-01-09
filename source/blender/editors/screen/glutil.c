@@ -32,7 +32,8 @@
 
 #include "DNA_vec_types.h"
 
-#include "BKE_utildefines.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_colortools.h"
 
 #include "BLI_math.h"

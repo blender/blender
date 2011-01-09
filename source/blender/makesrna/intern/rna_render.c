@@ -30,8 +30,9 @@
 
 #include "rna_internal.h"
 
-
 #include "RE_pipeline.h"
+
+#include "BKE_utildefines.h"
 
 #ifdef RNA_RUNTIME
 
@@ -41,7 +42,6 @@
 
 #include "BKE_context.h"
 #include "BKE_report.h"
-
 
 /* RenderEngine */
 

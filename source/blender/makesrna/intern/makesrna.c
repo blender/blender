@@ -68,7 +68,18 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 	// return 0; // use for testing had edited rna
 
 #define REN_IF_DIFF \
-	remove(orgfile); \
+	{ \
+		FILE *file_test= fopen(orgfile, "rb"); \
+		if(file_test) { \
+			fclose(file_test); \
+			if(fp_org) fclose(fp_org); \
+			if(fp_new) fclose(fp_new); \
+			if(remove(orgfile) != 0) { \
+				fprintf(stderr, "%s:%d, Remove Error (%s): \"%s\"\n", __FILE__, __LINE__, strerror(errno), orgfile); \
+				return -1; \
+			} \
+		} \
+	} \
 	if(rename(tmpfile, orgfile) != 0) { \
 		fprintf(stderr, "%s:%d, Rename Error (%s): \"%s\" -> \"%s\"\n", __FILE__, __LINE__, strerror(errno), tmpfile, orgfile); \
 		return -1; \
@@ -78,7 +89,7 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 /* end REN_IF_DIFF */
 
 
-	FILE *fp_new, *fp_org;
+	FILE *fp_new= NULL, *fp_org= NULL;
 	int len_new, len_org;
 	char *arr_new, *arr_org;
 	int cmp;
@@ -954,16 +965,16 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 
 	func= rna_alloc_function_name(srna->identifier, prop->identifier, "lookup_int");
 
-	fprintf(f, "PointerRNA %s(PointerRNA *ptr, int index)\n", func);
+	fprintf(f, "int %s(PointerRNA *ptr, int index, PointerRNA *r_ptr)\n", func);
 	fprintf(f, "{\n");
 
 	if(manualfunc) {
-		fprintf(f, "\n	return %s(ptr, index);\n", manualfunc);
+		fprintf(f, "\n	return %s(ptr, index, r_ptr);\n", manualfunc);
 		fprintf(f, "}\n\n");
 		return func;
 	}
 
-	fprintf(f, "	PointerRNA r_ptr;\n");
+	fprintf(f, "	int found= 0;\n");
 	fprintf(f, "	CollectionPropertyIterator iter;\n\n");
 
 	fprintf(f, "	%s_%s_begin(&iter, ptr);\n\n", srna->identifier, prop->identifier);
@@ -973,9 +984,9 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 		fprintf(f, "		ArrayIterator *internal= iter.internal;\n");
 		fprintf(f, "		if(index < 0 || index >= internal->length) {\n");
 		fprintf(f, "#ifdef __GNUC__\n");
-		fprintf(f, "			printf(\"Array itterator out of range: %%s (index %%d range %%d)\\n\", __func__, index, internal->length);  \n");
+		fprintf(f, "			printf(\"Array iterator out of range: %%s (index %%d range %%d)\\n\", __func__, index, internal->length);  \n");
 		fprintf(f, "#else\n");
-		fprintf(f, "			printf(\"Array itterator out of range: (index %%d range %%d)\\n\", index, internal->length);  \n");
+		fprintf(f, "			printf(\"Array iterator out of range: (index %%d range %%d)\\n\", index, internal->length);  \n");
 		fprintf(f, "#endif\n");
 		fprintf(f, "		}\n");
 		fprintf(f, "		else if(internal->skip) {\n");
@@ -984,9 +995,11 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 		fprintf(f, "					internal->ptr += internal->itemsize;\n");
 		fprintf(f, "				} while(internal->skip(&iter, internal->ptr));\n");
 		fprintf(f, "			}\n");
+		fprintf(f, "			found= 1;\n");
 		fprintf(f, "		}\n");
 		fprintf(f, "		else {\n");
 		fprintf(f, "			internal->ptr += internal->itemsize*index;\n");
+		fprintf(f, "			found= 1;\n");
 		fprintf(f, "		}\n");
 	}
 	else if(strcmp(nextfunc, "rna_iterator_listbase_next") == 0) {
@@ -1002,14 +1015,15 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 		fprintf(f, "			while(index-- > 0 && internal->link)\n");
 		fprintf(f, "				internal->link= internal->link->next;\n");
 		fprintf(f, "		}\n");
+		fprintf(f, "		found= (index == -1);\n");
 	}
 
 	fprintf(f, "	}\n\n");
 
-	fprintf(f, "	r_ptr = %s_%s_get(&iter);\n", srna->identifier, prop->identifier);
+	fprintf(f, "	if(found) *r_ptr = %s_%s_get(&iter);\n", srna->identifier, prop->identifier);
 	fprintf(f, "	%s_%s_end(&iter);\n\n", srna->identifier, prop->identifier);
 
-	fprintf(f, "	return r_ptr;\n");
+	fprintf(f, "	return found;\n");
 
 #if 0
 	rna_print_data_get(f, dp);
@@ -1485,6 +1499,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	PropertyType type;
 	const char *funcname, *valstr;
 	const char *ptrstr;
+	const short has_data= (dfunc->cont.properties.first != NULL);
 	int flag, pout, cptr, first;
 
 	srna= dsrna->srna;
@@ -1538,10 +1553,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		fprintf(f, "\t%s%s %s%s;\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, dparm->prop->identifier);
 	}
 
-	fprintf(f, "\tchar *_data");
-	if(func->c_ret) fprintf(f, ", *_retdata");
-	fprintf(f, ";\n");
-	fprintf(f, "\t\n");
+	if(has_data) {
+		fprintf(f, "\tchar *_data");
+		if(func->c_ret) fprintf(f, ", *_retdata");
+		fprintf(f, ";\n");
+		fprintf(f, "\t\n");
+	}
 
 	/* assign self */
 	if(func->flag & FUNC_USE_SELF_ID) {
@@ -1553,7 +1570,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		else fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", srna->identifier);
 	}
 
-	fprintf(f, "\t_data= (char *)_parms->data;\n");
+	if(has_data) {
+		fprintf(f, "\t_data= (char *)_parms->data;\n");
+	}
 
 	dparm= dfunc->cont.properties.first;
 	for(; dparm; dparm= dparm->next) {
@@ -2406,12 +2425,12 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 	fprintf(f, "#include \"DNA_scene_types.h\"\n");
 
 	fprintf(f, "#include \"BLI_blenlib.h\"\n\n");
+	fprintf(f, "#include \"BLI_utildefines.h\"\n\n");
 
 	fprintf(f, "#include \"BKE_context.h\"\n");
 	fprintf(f, "#include \"BKE_library.h\"\n");
 	fprintf(f, "#include \"BKE_main.h\"\n");
 	fprintf(f, "#include \"BKE_report.h\"\n");
-	fprintf(f, "#include \"BKE_utildefines.h\"\n\n");
 
 	fprintf(f, "#include \"RNA_define.h\"\n");
 	fprintf(f, "#include \"RNA_types.h\"\n");

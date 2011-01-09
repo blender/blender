@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): André Pinto
+ * Contributor(s): Andr Pinto
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -40,17 +40,17 @@
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_editVert.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_shrinkwrap.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_lattice.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
-
-#include "BLI_editVert.h"
-#include "BLI_math.h"
-
 
 /* Util macros */
 #define OUT_OF_MEMORY()	((void)printf("Shrinkwrap: Out of memory\n"))

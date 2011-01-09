@@ -46,6 +46,7 @@
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_mempool.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
 #include "BKE_customdata_file.h"

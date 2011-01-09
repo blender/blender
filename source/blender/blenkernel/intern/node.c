@@ -43,10 +43,9 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
-
+#include "BKE_utildefines.h"
 
 #include "PIL_time.h"
-
 
 #include "CMP_node.h"
 #include "intern/CMP_util.h"	/* stupid include path... */
@@ -552,7 +551,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 		BKE_animdata_separate_by_basepath(&ntree->id, &ngroup->id, &anim_basepaths);
 		
 		/* paths + their wrappers need to be freed */
-		for (ld = anim_basepaths.first; ld; ld = ld->next) {
+		for (ld = anim_basepaths.first; ld; ld = ldn) {
 			ldn = ld->next;
 			
 			MEM_freeN(ld->data);
@@ -867,7 +866,7 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 		BKE_animdata_separate_by_basepath(&wgroup->id, &ntree->id, &anim_basepaths);
 		
 		/* paths + their wrappers need to be freed */
-		for (ld = anim_basepaths.first; ld; ld = ld->next) {
+		for (ld = anim_basepaths.first; ld; ld = ldn) {
 			ldn = ld->next;
 			
 			MEM_freeN(ld->data);
@@ -1270,8 +1269,7 @@ static void node_init_preview(bNode *node, int xsize, int ysize)
 		node->preview->xsize= xsize;
 		node->preview->ysize= ysize;
 	}
-	else
-		memset(node->preview->rect, 0, 4*xsize + xsize*ysize*sizeof(char)*4);
+	/* no clear, makes nicer previews */
 }
 
 void ntreeInitPreview(bNodeTree *ntree, int xsize, int ysize)

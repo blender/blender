@@ -36,6 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
@@ -51,7 +52,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_text.h"
-#include "BKE_utildefines.h"
+
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -168,7 +169,7 @@ void free_text(Text *text)
 	if(text->name) MEM_freeN(text->name);
 	MEM_freeN(text->undo_buf);
 #ifdef WITH_PYTHON
-	if (text->compiled) BPY_free_compiled_text(text);
+	if (text->compiled) BPY_text_free_code(text);
 #endif
 }
 
@@ -684,7 +685,7 @@ static void txt_make_dirty (Text *text)
 {
 	text->flags |= TXT_ISDIRTY;
 #ifdef WITH_PYTHON
-	if (text->compiled) BPY_free_compiled_text(text);
+	if (text->compiled) BPY_text_free_code(text);
 #endif
 }
 
@@ -1232,7 +1233,7 @@ int txt_find_string(Text *text, char *findstr, int wrap)
 {
 	TextLine *tl, *startl;
 	char *s= NULL;
-	int oldcl, oldsl, oldcc, oldsc;
+	int oldcl, oldsl;
 
 	if (!text || !text->curl || !text->sell) return 0;
 	
@@ -1241,8 +1242,6 @@ int txt_find_string(Text *text, char *findstr, int wrap)
 	oldcl= txt_get_span(text->lines.first, text->curl);
 	oldsl= txt_get_span(text->lines.first, text->sell);
 	tl= startl= text->sell;
-	oldcc= text->curc;
-	oldsc= text->selc;
 	
 	s= strstr(&tl->line[text->selc], findstr);
 	while (!s) {

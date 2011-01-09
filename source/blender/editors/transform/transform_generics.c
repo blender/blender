@@ -87,7 +87,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
-
+#include "BLI_utildefines.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -616,7 +616,7 @@ void recalcData(TransInfo *t)
 			if(sima->flag & SI_LIVE_UNWRAP)
 				ED_uvedit_live_unwrap_re_solve();
 			
-			DAG_id_tag_update(t->obedit->data, OB_RECALC_DATA);
+			DAG_id_tag_update(t->obedit->data, 0);
 		}
 	}
 	else if (t->spacetype == SPACE_VIEW3D) {
@@ -632,7 +632,7 @@ void recalcData(TransInfo *t)
 					applyProject(t);
 				}
 
-				DAG_id_tag_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 
 				if (t->state == TRANS_CANCEL) {
 					while(nu) {
@@ -655,7 +655,7 @@ void recalcData(TransInfo *t)
 					applyProject(t);
 				}
 
-				DAG_id_tag_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 	
 				if(la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
 			}
@@ -669,7 +669,7 @@ void recalcData(TransInfo *t)
 				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
 					editmesh_apply_to_mirror(t);
 					
-				DAG_id_tag_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 				
 				recalc_editnormals(em);
 			}
@@ -760,7 +760,7 @@ void recalcData(TransInfo *t)
 				if(t->state != TRANS_CANCEL) {
 					applyProject(t);
 				}
-				DAG_id_tag_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 			}
 		}
 		else if( (t->flag & T_POSE) && t->poseobj) {

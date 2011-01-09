@@ -25,8 +25,9 @@
 #include "bpy_app.h"
 
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 #include "BKE_blender.h"
 #include "BKE_global.h"
 #include "structseq.h"

@@ -38,11 +38,12 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_writeavi.h"
 #include "AVI_avi.h"
 

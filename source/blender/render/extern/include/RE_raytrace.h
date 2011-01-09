@@ -177,6 +177,7 @@ struct Isect
 	int lay;				/* -1 default, set for layer lamps */
 	
 	int skip;				/* RE_SKIP_CULLFACE */
+	int check;
 
 	float col[4];			/* RGBA for shadow_tra */
 
@@ -195,13 +196,15 @@ struct Isect
 #define RE_RAY_SHADOW_TRA 2
 
 /* skip options */
-#define RE_SKIP_CULLFACE		(1 << 0)
-
+#define RE_SKIP_CULLFACE				(1 << 0)
 /* if using this flag then *face should be a pointer to a VlakRen */
 #define RE_SKIP_VLR_NEIGHBOUR			(1 << 1)
-#define RE_SKIP_VLR_RENDER_CHECK		(1 << 2)
-#define RE_SKIP_VLR_NON_SOLID_MATERIAL	(1 << 3)
-#define RE_SKIP_VLR_BAKE_CHECK			(1 << 4)
+
+/* check options */
+#define RE_CHECK_VLR_NONE				0
+#define RE_CHECK_VLR_RENDER				1
+#define RE_CHECK_VLR_NON_SOLID_MATERIAL	2
+#define RE_CHECK_VLR_BAKE				3
 
 /* TODO use: FLT_MAX? */
 #define RE_RAYTRACE_MAXDIST	1e33

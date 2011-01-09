@@ -28,23 +28,42 @@
  */
 
 #include "intern/GHOST_Debug.h"
+#include "GHOST_Types.h"
 #include "GHOST_Path-api.h"
-#include "GHOST_ISystem.h"
+#include "GHOST_ISystemPaths.h"
+
+GHOST_TSuccess GHOST_CreateSystemPaths(void)
+{
+	return GHOST_ISystemPaths::create();;
+}
+
+GHOST_TSuccess GHOST_DisposeSystemPaths(void)
+{
+	return GHOST_ISystemPaths::dispose();
+}
 
 const GHOST_TUns8* GHOST_getSystemDir()
 {
-	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	return system ? system->getSystemDir() : NULL;
+	GHOST_ISystemPaths* systemPaths = GHOST_ISystemPaths::get();
+	return systemPaths ? systemPaths->getSystemDir() : 0;
 }
 
 const GHOST_TUns8* GHOST_getUserDir()
 {
-	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	return system ? system->getUserDir() : NULL; /* will be NULL in background mode */
+	GHOST_ISystemPaths* systemPaths = GHOST_ISystemPaths::get();
+	return systemPaths ? systemPaths->getUserDir() : 0; /* shouldn't be NULL */
 }
 
 const GHOST_TUns8* GHOST_getBinaryDir()
 {
-	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	return system ? system->getBinaryDir() : NULL; /* will be NULL in background mode */
+	GHOST_ISystemPaths* systemPaths = GHOST_ISystemPaths::get();
+	return systemPaths ? systemPaths->getBinaryDir() : 0;  /* shouldn't be NULL */
+}
+
+void GHOST_addToSystemRecentFiles(const char* filename)
+{
+	GHOST_ISystemPaths* systemPaths = GHOST_ISystemPaths::get();
+	if (systemPaths) {
+		systemPaths->addToSystemRecentFiles(filename);
+	}
 }

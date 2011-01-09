@@ -40,6 +40,7 @@
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -349,6 +350,8 @@ static void image_panel_curves(const bContext *C, Panel *pa)
 #if 0
 /* 0: disable preview 
    otherwise refresh preview
+ 
+   XXX if you put this back, also check XXX in image_main_area_draw() */
 */
 void image_preview_event(int event)
 {

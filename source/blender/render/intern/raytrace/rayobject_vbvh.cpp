@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): André Pinto.
+ * Contributor(s): Andr Pinto.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -38,7 +38,7 @@ int tot_hints    = 0;
 #include "BLI_memarena.h"
 #include "MEM_guardedalloc.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
+
 #include "BLI_math.h"
 
 #include "reorganize.h"

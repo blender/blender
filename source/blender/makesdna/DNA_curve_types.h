@@ -171,7 +171,7 @@ typedef struct Curve {
 	struct BoundBox *bb;
 	
 	ListBase nurb;		/* actual data, called splines in rna */
-	ListBase disp;
+	ListBase disp;		/* undeformed display list, used mostly for texture space calculation */
 	
 	EditNurb *editnurb;	/* edited data, not in file, use pointer so we can check for it */
 	

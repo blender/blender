@@ -43,6 +43,12 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_ipo_types.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_editVert.h"
+#include "BLI_math.h"
+#include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_animsys.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
@@ -58,12 +64,6 @@
 #include "BKE_curve.h"
 /* -- */
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_editVert.h"
-#include "BLI_math.h"
-#include "BLI_edgehash.h"
 
 
 EditMesh *BKE_mesh_get_editmesh(Mesh *me)
@@ -735,7 +735,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 int nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
 	MEdge **alledge, int *totedge, MFace **allface, int *totface)
 {
-	return nurbs_to_mdata_customdb(ob, &((Curve *)ob->data)->disp,
+	return nurbs_to_mdata_customdb(ob, &ob->disp,
 		allvert, totvert, alledge, totedge, allface, totface);
 }
 

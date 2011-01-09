@@ -39,6 +39,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -118,15 +119,15 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 	BLI_addtail(&snode->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin=  -10.0f;
-	ar->v2d.tot.ymin=  -10.0f;
-	ar->v2d.tot.xmax= 512.0f;
-	ar->v2d.tot.ymax= 512.0f;
+	ar->v2d.tot.xmin=  -256.0f;
+	ar->v2d.tot.ymin=  -256.0f;
+	ar->v2d.tot.xmax= 768.0f;
+	ar->v2d.tot.ymax= 768.0f;
 	
-	ar->v2d.cur.xmin=  0.0f;
-	ar->v2d.cur.ymin=  0.0f;
-	ar->v2d.cur.xmax= 512.0f;
-	ar->v2d.cur.ymax= 512.0f;
+	ar->v2d.cur.xmin=  -256.0f;
+	ar->v2d.cur.ymin=  -256.0f;
+	ar->v2d.cur.xmax= 768.0f;
+	ar->v2d.cur.ymax= 768.0f;
 	
 	ar->v2d.min[0]= 1.0f;
 	ar->v2d.min[1]= 1.0f;
@@ -160,9 +161,9 @@ static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 {
 	/* note, ED_area_tag_refresh will re-execute compositor */
-	/* XXX, should edit some to check for the nodeTree type, especially  NC_NODE|NA_EDITED which refreshes all types */
 	SpaceNode *snode= sa->spacedata.first;
-
+	int type= snode->treetype;
+	
 	/* preview renders */
 	switch(wmn->category) {
 		case NC_SCENE:
@@ -180,14 +181,18 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 			
 		/* future: add ID checks? */
 		case NC_MATERIAL:
-			if(wmn->data==ND_SHADING)
-				ED_area_tag_refresh(sa);
-			else if(wmn->data==ND_SHADING_DRAW)
-				ED_area_tag_refresh(sa);
+			if(type==NTREE_SHADER) {
+				if(wmn->data==ND_SHADING)
+					ED_area_tag_refresh(sa);
+				else if(wmn->data==ND_SHADING_DRAW)
+					ED_area_tag_refresh(sa);
+			}
 			break;
 		case NC_TEXTURE:
-			if(wmn->data==ND_NODES)
-				ED_area_tag_refresh(sa);
+			if(type==NTREE_SHADER || type==NTREE_TEXTURE) {
+				if(wmn->data==ND_NODES)
+					ED_area_tag_refresh(sa);
+			}
 			break;
 		case NC_TEXT:
 			/* pynodes */

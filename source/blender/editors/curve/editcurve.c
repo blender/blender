@@ -48,6 +48,7 @@
 #include "BLI_math.h"
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "BKE_context.h"
@@ -1972,7 +1973,7 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	if(ED_curve_updateAnimPaths(obedit))
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -2020,7 +2021,7 @@ static int set_goal_weight_exec(bContext *C, wmOperator *op)
 		}
 	}	
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -2073,7 +2074,7 @@ static int set_radius_exec(bContext *C, wmOperator *op)
 	}	
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -2149,7 +2150,7 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -2315,7 +2316,7 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -2644,7 +2645,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;	
@@ -2704,7 +2705,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;	
@@ -3203,7 +3204,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;	
 }
@@ -3508,7 +3509,7 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 		if(ED_curve_updateAnimPaths(obedit))
 			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 		return OPERATOR_FINISHED;
@@ -3554,7 +3555,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 	sethandlesNurb(editnurb, RNA_enum_get(op->ptr, "type"));
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -3916,7 +3917,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 	set_actNurb(obedit, NULL);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3928,7 +3929,6 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	Curve *cu= obedit->data;
 	ListBase *nubase= curve_get_editcurve(obedit);
 	Nurb *nu, *nu1=0, *nu2=0;
-	BezTriple *bezt = NULL;
 	BPoint *bp;
 	float *fp, offset;
 	int a, ok= 0;
@@ -3960,12 +3960,10 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	for(nu= nubase->first; nu; nu= nu->next) {
 		if((nu->flagu & CU_NURB_CYCLIC)==0) {    /* not cyclic */
 			if(nu->type == CU_BEZIER) {
-				bezt= nu->bezt;
 				if(nu1==0) {
-					if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) nu1= nu;
+					if( BEZSELECTED_HIDDENHANDLES(cu, nu->bezt) ) nu1= nu;
 					else {
-						bezt= bezt+(nu->pntsu-1);
-						if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
+						if( BEZSELECTED_HIDDENHANDLES(cu, &(nu->bezt[nu->pntsu-1])) ) {
 							nu1= nu;
 							switchdirectionNurb(nu);
 							keyData_switchDirectionNurb(cu, nu);
@@ -3973,14 +3971,13 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 					}
 				}
 				else if(nu2==0) {
-					if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
+					if( BEZSELECTED_HIDDENHANDLES(cu, nu->bezt) ) {
 						nu2= nu;
 						switchdirectionNurb(nu);
 						keyData_switchDirectionNurb(cu, nu);
 					}
 					else {
-						bezt= bezt+(nu->pntsu-1);
-						if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
+						if( BEZSELECTED_HIDDENHANDLES(cu, &(nu->bezt[nu->pntsu-1])) ) {
 							nu2= nu;
 						}
 					}
@@ -4021,7 +4018,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	if((nu1 && nu2) && (nu1!=nu2)) {
 		if( nu1->type==nu2->type) {
 			if(nu1->type == CU_BEZIER) {
-				bezt =
+				BezTriple *bezt =
 					(BezTriple*)MEM_mallocN((nu1->pntsu+nu2->pntsu) * sizeof(BezTriple), "addsegmentN");
 				ED_curve_beztcpy(cu->editnurb, bezt, nu2->bezt, nu2->pntsu);
 				ED_curve_beztcpy(cu->editnurb, bezt+nu2->pntsu, nu1->bezt, nu1->pntsu);
@@ -4077,7 +4074,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	} else if(nu1 && !nu2 && nu1->type == CU_BEZIER) {
 		if(!(nu1->flagu & CU_NURB_CYCLIC)) {
 			if(BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt) &&
-				BEZSELECTED_HIDDENHANDLES(cu, bezt+(nu1->pntsu-1))) {
+				BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt+(nu1->pntsu-1))) {
 				nu1->flagu|= CU_NURB_CYCLIC;
 				calchandlesNurb(nu1);
 				ok= 1;
@@ -4094,7 +4091,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -4285,7 +4282,8 @@ static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cen
 static int spin_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	float cent[3], axis[3];
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+	float cent[3], axis[3], viewmat[4][4];
 	
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
@@ -4293,7 +4291,12 @@ static int spin_exec(bContext *C, wmOperator *op)
 	invert_m4_m4(obedit->imat, obedit->obmat);
 	mul_m4_v3(obedit->imat, cent);
 	
-	if(!spin_nurb(ED_view3d_context_rv3d(C)->viewmat, obedit, axis, cent)) {
+	if(rv3d)
+		copy_m4_m4(viewmat, rv3d->viewmat);
+	else
+		unit_m4(viewmat);
+	
+	if(!spin_nurb(viewmat, obedit, axis, cent)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't spin");
 		return OPERATOR_CANCELLED;
 	}
@@ -4302,7 +4305,7 @@ static int spin_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -4312,9 +4315,13 @@ static int spin_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+	float axis[3]= {0.0f, 0.0f, 1.0f};
+	
+	if(rv3d)
+		copy_v3_v3(axis, rv3d->viewinv[2]);
 	
 	RNA_float_set_array(op->ptr, "center", give_cursor(scene, v3d));
-	RNA_float_set_array(op->ptr, "axis", rv3d->viewinv[2]);
+	RNA_float_set_array(op->ptr, "axis", axis);
 	
 	return spin_exec(C, op);
 }
@@ -4570,7 +4577,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 
 		return OPERATOR_FINISHED;
 	}
@@ -4647,7 +4654,7 @@ static int extrude_exec(bContext *C, wmOperator *UNUSED(op))
 				WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-			DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+			DAG_id_tag_update(obedit->data, 0);
 		}
 	}
 
@@ -4759,7 +4766,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -5581,7 +5588,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		}
 
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(obedit->data, 0);
 	
 		return OPERATOR_FINISHED;
 	}
@@ -5704,11 +5711,10 @@ static int delete_exec(bContext *C, wmOperator *op)
 	}
 	else if(type==1) {	/* erase segment */
 		/* find the 2 selected points */
-		bezt1= bezt2= 0;
-		bp1= bp2= 0;
-		nu= nubase->first;
-		nu1= 0;
-		while(nu) {
+		bezt1= bezt2= NULL;
+		bp1= bp2= NULL;
+		nu1= NULL;
+		for(nu= nubase->first; nu; nu= nu->next) {
 			next= nu->next;
 			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
@@ -5724,7 +5730,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 									nu->flagu &= ~CU_NURB_CYCLIC;
 									calchandlesNurb(nu);
 									WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-									DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+									DAG_id_tag_update(obedit->data, 0);
 								}
 							}
 
@@ -5750,7 +5756,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 								if( bp2->f1 & SELECT ) {
 									nu->flagu &= ~CU_NURB_CYCLIC;
 									WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-									DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+									DAG_id_tag_update(obedit->data, 0);
 								}
 							}
 
@@ -5764,8 +5770,6 @@ static int delete_exec(bContext *C, wmOperator *op)
 				}
 			}
 			if(nu1) break;
-
-			nu= nu->next;
 		}
 		if(nu1) {
 			if(bezt1) {
@@ -5855,7 +5859,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obedit);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -5927,7 +5931,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	}
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -6090,13 +6094,17 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 	BezTriple *bezt;
 	BPoint *bp;
 	Curve *cu= (Curve*)obedit->data;
-	float vec[3];
+	float vec[3], zvec[3]= {0.0f, 0.0f, 1.0f};
+	float umat[4][4]= MAT4_UNITY, viewmat[4][4]= MAT4_UNITY;
 	float fac, grid;
 	int a, b, cutype, stype;
 	int force_3d = ((Curve *)obedit->data)->flag & CU_3D; /* could be adding to an existing 3D curve */
 
-	float umat[4][4]= MAT4_UNITY;
-
+	if(rv3d) {
+		copy_m4_m4(viewmat, rv3d->viewmat);
+		VECCOPY(zvec, rv3d->viewinv[2]);
+	}
+	
 	cutype= type & CU_TYPE;	// poly, bezier, nurbs, etc
 	stype= type & CU_PRIMITIVE;
 	
@@ -6380,7 +6388,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 			BLI_addtail(editnurb, nu); /* temporal for spin */
 
 			if(newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
-			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(rv3d->viewmat, obedit, rv3d->viewinv[2], mat[3]);
+			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(viewmat, obedit, zvec, mat[3]);
 			else												spin_nurb(umat, obedit, tmp_vec, mat[3]);
 
 			nurbs_knot_calc_v(nu);
@@ -6409,7 +6417,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 
 			/* same as above */
 			if(newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
-			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(rv3d->viewmat, obedit, rv3d->viewinv[2], mat[3]);
+			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(viewmat, obedit, zvec, mat[3]);
 			else												spin_nurb(umat, obedit, tmp_vec, mat[3]);
 
 
@@ -6800,7 +6808,7 @@ static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 
 	return OPERATOR_FINISHED;
 }

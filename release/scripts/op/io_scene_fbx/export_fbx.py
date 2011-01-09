@@ -1452,20 +1452,21 @@ def save(operator, context, filepath="",
             fi = f.vertices[:]
 
             # last index XORd w. -1 indicates end of face
-            fi[-1] = fi[-1] ^ -1
-            fi = tuple(fi)
-
-            if i==-1:
-                if len(fi) == 3:	file.write('%i,%i,%i' % fi )
-                else:				file.write('%i,%i,%i,%i' % fi )
-                i=0
+            if i == -1:
+                if len(fi) == 3:
+                    file.write('%i,%i,%i' % (fi[0], fi[1], fi[2] ^ -1))
+                else:
+                    file.write('%i,%i,%i,%i' % (fi[0], fi[1], fi[2], fi[3] ^ -1))
+                i = 0
             else:
-                if i==13:
+                if i == 13:
                     file.write('\n\t\t')
-                    i=0
-                if len(fi) == 3:	file.write(',%i,%i,%i' % fi )
-                else:				file.write(',%i,%i,%i,%i' % fi )
-            i+=1
+                    i = 0
+                if len(fi) == 3:
+                    file.write(',%i,%i,%i' % (fi[0], fi[1], fi[2] ^ -1))
+                else:
+                    file.write(',%i,%i,%i,%i' % (fi[0], fi[1], fi[2], fi[3] ^ -1))
+            i += 1
 
         # write loose edges as faces.
         for ed in me_edges:
@@ -1906,7 +1907,7 @@ def save(operator, context, filepath="",
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
                 if ob_base.type == 'ARMATURE':
-                    ob_base.update(scene)
+                    ob_base.update()
 
             # This causes the makeDisplayList command to effect the mesh
             scene.frame_set(scene.frame_current)
@@ -2054,7 +2055,7 @@ def save(operator, context, filepath="",
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
                 if ob_base.type == 'ARMATURE':
-                    ob_base.update(scene)
+                    ob_base.update()
             # This causes the makeDisplayList command to effect the mesh
             scene.frame_set(scene.frame_current)
 

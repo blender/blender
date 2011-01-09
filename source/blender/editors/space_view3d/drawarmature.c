@@ -43,6 +43,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_dlrbTree.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -50,7 +51,7 @@
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_nla.h"
-#include "BKE_utildefines.h"
+
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

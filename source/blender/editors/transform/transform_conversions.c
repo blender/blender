@@ -89,6 +89,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 
 #include "RNA_access.h"
 
@@ -268,6 +269,7 @@ static void createTransTexspace(TransInfo *t)
 	invert_m3_m3(td->smtx, td->mtx);
 
 	if (give_obdata_texspace(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
+		ob->dtx |= OB_TEXSPACE;
 		*texflag &= ~AUTOSPACE;
 	}
 

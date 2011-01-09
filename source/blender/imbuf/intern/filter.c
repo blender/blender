@@ -29,8 +29,11 @@
  * $Id$
  */
 
-#include "BKE_utildefines.h"
 #include "MEM_guardedalloc.h"
+
+#include "BLI_utildefines.h"
+
+
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

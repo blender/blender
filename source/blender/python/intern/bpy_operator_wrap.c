@@ -27,6 +27,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 
 #include "bpy_rna.h"

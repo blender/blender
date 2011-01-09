@@ -110,6 +110,13 @@ def display_name(name):
         return name_base
 
 
+def display_name_from_filepath(name):
+    """
+    Returns the path stripped of directort and extension, ensured to be utf8 compatible.
+    """
+    return _os.path.splitext(_os.path.basename(name))[0].encode("utf8", "replace").decode("utf8")
+
+
 def resolve_ncase(path):
     """
     Resolve a case insensitive path on a case sensitive system,

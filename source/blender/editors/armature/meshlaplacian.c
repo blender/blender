@@ -41,10 +41,11 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_memarena.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"
-#include "BKE_utildefines.h"
+
 
 #ifdef RIGID_DEFORM
 #include "BLI_editVert.h"
@@ -648,8 +649,8 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	MFace *mface;
 	float solution, weight;
 	int *vertsflipped = NULL, *mask= NULL;
-	int a, totface, j, bbone, firstsegment, lastsegment, thrownerror = 0;
-	
+	int a, totface, j, bbone, firstsegment, lastsegment;
+
 	*err_str= NULL;
 
 	/* count triangles and create mask */
@@ -761,9 +762,8 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 				}
 			}
 		}
-		else if(!thrownerror) {
+		else if(*err_str == NULL) {
 			*err_str= "Bone Heat Weighting: failed to find solution for one or more bones";
-			thrownerror= 1;
 			break;
 		}
 
@@ -1264,11 +1264,9 @@ static int meshdeform_inside_cage(MeshDeformBind *mdb, float *co)
 {
 	MDefBoundIsect *isect;
 	float outside[3], start[3], dir[3];
-	int i, counter;
+	int i;
 
 	for(i=1; i<=6; i++) {
-		counter = 0;
-
 		outside[0] = co[0] + (mdb->max[0] - mdb->min[0] + 1.0f)*MESHDEFORM_OFFSET[i][0];
 		outside[1] = co[1] + (mdb->max[1] - mdb->min[1] + 1.0f)*MESHDEFORM_OFFSET[i][1];
 		outside[2] = co[2] + (mdb->max[2] - mdb->min[2] + 1.0f)*MESHDEFORM_OFFSET[i][2];

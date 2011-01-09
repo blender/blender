@@ -55,6 +55,10 @@ typedef struct tGPspoint {
 	float pressure;			/* pressure of tablet at this point */
 } tGPspoint;
 
+
+/* Check if 'sketching sessions' are enabled */
+#define GPENCIL_SKETCH_SESSIONS_ON(scene) ((scene)->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINTSESSIONS_ON)
+
 /* ----------- Grease Pencil Tools/Context ------------- */
 
 struct bGPdata **gpencil_data_get_pointers(struct bContext *C, struct PointerRNA *ptr);

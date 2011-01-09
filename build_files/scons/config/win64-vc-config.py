@@ -22,6 +22,12 @@ BF_OPENAL_INC = '${BF_OPENAL}/include '
 BF_OPENAL_LIB = 'wrap_oal'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
+WITH_BF_SNDFILE = True
+BF_SNDFILE = LIBDIR + '/sndfile'
+BF_SNDFILE_INC = '${BF_SNDFILE}/include'
+BF_SNDFILE_LIB = 'libsndfile-1'
+BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
+
 # TODO - are these useful on win32?
 # BF_CXX = '/usr'
 # WITH_BF_STATICCXX = False

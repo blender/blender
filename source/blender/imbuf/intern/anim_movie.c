@@ -60,10 +60,13 @@
 
 #include "BLI_blenlib.h" /* BLI_remlink BLI_filesize BLI_addtail
 							BLI_countlist BLI_stringdec */
+#include "BLI_utildefines.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
-#include "BKE_utildefines.h"
+
+
 #include "BKE_global.h"
 #include "BKE_depsgraph.h"
 

@@ -38,6 +38,8 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
 #include "PIL_time.h"
 
 #include "BKE_colortools.h"
@@ -646,13 +648,12 @@ static int ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, wmEvent *event)
 	return BLI_in_rcti(&rect, x, y);
 }
 
-#define UI_DRAG_THRESHOLD	3
 static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	/* prevent other WM gestures to start while we try to drag */
 	WM_gestures_remove(C);
 
-	if( ABS(data->dragstartx - event->x) + ABS(data->dragstarty - event->y) > UI_DRAG_THRESHOLD ) {
+	if( ABS(data->dragstartx - event->x) + ABS(data->dragstarty - event->y) > U.dragthreshold ) {
 		wmDrag *drag;
 		
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -3756,13 +3757,13 @@ static int ui_numedit_but_VECTORSCOPE(uiBut *but, uiHandleButtonData *data, int 
 	Scopes *scopes = (Scopes *)but->poin;
 	rcti rect;
 	int changed= 1;
-	float dx, dy;
+	/* float dx, dy; */
 
 	rect.xmin= but->x1; rect.xmax= but->x2;
 	rect.ymin= but->y1; rect.ymax= but->y2;
 
-	dx = mx - data->draglastx;
-	dy = my - data->draglasty;
+	/* dx = mx - data->draglastx; */
+	/* dy = my - data->draglasty; */
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		 /* resize vectorscope widget itself */
@@ -5673,8 +5674,11 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 				case YKEY:
 				case ZKEY:
 				{
-					if(event->val == KM_PRESS) {
-						count= 0;
+					if(	(event->val == KM_PRESS) &&
+						(event->shift == FALSE) &&
+						(event->ctrl == FALSE) &&
+						(event->oskey == FALSE)
+					) {
 						for(but= block->buttons.first; but; but= but->next) {
 
 							if(but->menu_key==event->type) {

@@ -36,6 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "DNA_anim_types.h"
@@ -46,7 +47,7 @@
 #include "BKE_nla.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
-#include "BKE_utildefines.h"
+
 
 #include "RNA_access.h"
 #include "nla_private.h"

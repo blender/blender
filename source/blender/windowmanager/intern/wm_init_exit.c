@@ -52,7 +52,7 @@
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_packedFile.h"
 #include "BKE_sequencer.h" /* free seq clipboard */
 #include "BKE_material.h" /* clear_matcopybuf */
@@ -68,6 +68,7 @@
 #ifdef WITH_GAMEENGINE
 #include "SYS_System.h"
 #endif
+#include "GHOST_Path-api.h"
 
 #include "RNA_define.h"
 
@@ -118,6 +119,8 @@ void WM_init(bContext *C, int argc, char **argv)
 		wm_ghost_init(C);	/* note: it assigns C to ghost! */
 		wm_init_cursor_data();
 	}
+	GHOST_CreateSystemPaths();
+
 	wm_operatortype_init();
 	
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
@@ -144,11 +147,11 @@ void WM_init(bContext *C, int argc, char **argv)
 	 * Will try fix when the crash can be repeated. - campbell. */
 
 #ifdef WITH_PYTHON
-	BPY_set_context(C); /* necessary evil */
-	BPY_start_python(argc, argv);
+	BPY_context_set(C); /* necessary evil */
+	BPY_python_start(argc, argv);
 
-	BPY_reset_driver();
-	BPY_load_user_modules(C);
+	BPY_driver_reset();
+	BPY_modules_load_user(C);
 #else
 	(void)argc; /* unused */
 	(void)argv; /* unused */
@@ -412,7 +415,7 @@ void WM_exit(bContext *C)
 	/* Update for blender 2.5, move after free_blender because blender now holds references to PyObject's
 	 * so decref'ing them after python ends causes bad problems every time
 	 * the pyDriver bug can be fixed if it happens again we can deal with it then */
-	BPY_end_python();
+	BPY_python_end();
 #endif
 
 	if (!G.background) {
@@ -435,7 +438,7 @@ void WM_exit(bContext *C)
 	UI_exit();
 	BKE_userdef_free();
 
-	RNA_exit(); /* should be after BPY_end_python so struct python slots are cleared */
+	RNA_exit(); /* should be after BPY_python_end so struct python slots are cleared */
 	
 	wm_ghost_exit();
 
@@ -443,6 +446,9 @@ void WM_exit(bContext *C)
 #ifdef WITH_GAMEENGINE
 	SYS_DeleteSystem(SYS_GetSystem());
 #endif
+	
+	GHOST_DisposeSystemPaths();
+
 	if(MEM_get_memory_blocks_in_use()!=0) {
 		printf("Error Totblock: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();

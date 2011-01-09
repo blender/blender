@@ -36,6 +36,7 @@
 #include "BLF_api.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_text_types.h"
 #include "DNA_space_types.h"
@@ -45,7 +46,7 @@
 #include "BKE_context.h"
 #include "BKE_suggestions.h"
 #include "BKE_text.h"
-#include "BKE_utildefines.h"
+
 
 #include "BIF_gl.h"
 
@@ -601,7 +602,6 @@ void wrap_offset_in_line(SpaceText *st, ARegion *ar, TextLine *linein, int cursi
 	start= 0;
 	end= max;
 	chop= 1;
-	chars= 0;
 	*offc= 0;
 
 	for(i=0, j=0; linein->line[j]!='\0'; j++) {
@@ -1050,7 +1050,7 @@ static TextLine *first_visible_line(SpaceText *st, ARegion *ar, int *wrap_top)
 			}
 		}
 	} else {
-		for(i=st->top, pline= text->lines.first; pline->next && i>0; i--)
+		for(i=st->top; pline->next && i>0; i--)
 			pline= pline->next;
 	}
 
@@ -1059,7 +1059,7 @@ static TextLine *first_visible_line(SpaceText *st, ARegion *ar, int *wrap_top)
 
 /************************ draw scrollbar *****************************/
 
-static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll)
+static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 {
 	int lhlstart, lhlend, ltexth, sell_off, curl_off;
 	short barheight, barstart, hlstart, hlend, blank_lines;
@@ -1072,8 +1072,11 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll)
 	blank_lines = st->viewlines / 2;
 	
 	/* nicer code: use scroll rect for entire bar */
-	//scroll->xmin= 5;
-	//scroll->xmax= 17;
+	back->xmin= ar->winx -18;
+	back->xmax= ar->winx;
+	back->ymin= 0;
+	back->ymax= ar->winy;
+	
 	scroll->xmin= ar->winx - 17;
 	scroll->xmax= ar->winx - 5;
 	scroll->ymin= 4;
@@ -1169,13 +1172,16 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll)
 	CLAMP(st->txtscroll.ymax, pix_bottom_margin, ar->winy - pix_top_margin);
 }
 
-static void draw_textscroll(SpaceText *st, rcti *scroll)
+static void draw_textscroll(SpaceText *st, rcti *scroll, rcti *back)
 {
 	bTheme *btheme= U.themes.first;
 	uiWidgetColors wcol= btheme->tui.wcol_scroll;
 	unsigned char col[4];
 	float rad;
 	
+	UI_ThemeColor(TH_BACK);
+	glRecti(back->xmin, back->ymin, back->xmax, back->ymax);
+
 	uiWidgetScrollDraw(&wcol, scroll, &st->txtbar, (st->flags & ST_SCROLL_SELECT)?UI_SCROLL_PRESSED:0);
 
 	uiSetRoundBox(15);
@@ -1278,7 +1284,7 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 {
 	TextLine *tmp;
 	char *docs, buf[DOC_WIDTH+1], *p;
-	int len, i, br, lines;
+	int i, br, lines;
 	int boxw, boxh, l, x, y, top;
 	
 	if(!st || !st->text) return;
@@ -1303,7 +1309,6 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 	}
 
 	top= y= ar->winy - st->lheight*l - 2;
-	len= strlen(docs);
 	boxw= DOC_WIDTH*st->cwidth + 20;
 	boxh= (DOC_HEIGHT+1)*st->lheight;
 
@@ -1673,7 +1678,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 {
 	Text *text= st->text;
 	TextLine *tmp;
-	rcti scroll;
+	rcti scroll, back;
 	char linenr[12];
 	int i, x, y, winx, linecount= 0, lineno= 0;
 	int wraplinecount= 0, wrap_skip= 0;
@@ -1692,7 +1697,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	else st->viewlines= 0;
 	
 	/* update rects for scroll */
-	calc_text_rcts(st, ar, &scroll);	/* scroll will hold the entire bar size */
+	calc_text_rcts(st, ar, &scroll, &back);	/* scroll will hold the entire bar size */
 
 	/* update syntax formatting if needed */
 	tmp= text->lines.first;
@@ -1780,7 +1785,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	draw_brackets(st, ar);
 	draw_markers(st, ar);
 	glTranslatef(0.375f, 0.375f, 0.0f); /* XXX scroll requires exact pixel space */
-	draw_textscroll(st, &scroll);
+	draw_textscroll(st, &scroll, &back);
 	draw_documentation(st, ar);
 	draw_suggestion_list(st, ar);
 	

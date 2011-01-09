@@ -29,7 +29,11 @@
 #include <string.h>
 #include <math.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_winstuff.h"
+#include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
@@ -40,10 +44,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "BLI_ghash.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -61,6 +61,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #include "depsgraph_private.h"
  
@@ -2264,7 +2265,7 @@ void DAG_on_load_update(Main *bmain, const short do_time)
 			oblay= (node)? node->lay: ob->lay;
 
 			if(oblay & lay) {
-				if(ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+				if(ELEM6(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE))
 					ob->recalc |= OB_RECALC_DATA;
 				if(ob->dup_group) 
 					ob->dup_group->id.flag |= LIB_DOIT;
@@ -2274,7 +2275,7 @@ void DAG_on_load_update(Main *bmain, const short do_time)
 		for(group= bmain->group.first; group; group= group->id.next) {
 			if(group->id.flag & LIB_DOIT) {
 				for(go= group->gobject.first; go; go= go->next) {
-					if(ELEM5(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+					if(ELEM6(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE))
 						go->ob->recalc |= OB_RECALC_DATA;
 					if(go->ob->proxy_from)
 						go->ob->recalc |= OB_RECALC_OB;
@@ -2330,23 +2331,10 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 		idtype= GS(id->name);
 
 		if(ELEM7(idtype, ID_ME, ID_CU, ID_MB, ID_LA, ID_LT, ID_CA, ID_AR)) {
-			int first_ob= 1;
 			for(obt=bmain->object.first; obt; obt= obt->id.next) {
 				if(!(ob && obt == ob) && obt->data == id) {
-
-					/* try to avoid displist recalculation for linked curves */
-					if (!first_ob && ELEM(obt->type, OB_CURVE, OB_SURF)) {
-						/* if curve object has got derivedFinal it means this
-						   object has got constructive modifiers and object
-						   should be recalculated anyhow */
-						if (!obt->derivedFinal)
-							continue;
-					}
-
 					obt->recalc |= OB_RECALC_DATA;
 					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
-
-					first_ob= 0;
 				}
 			}
 		}
@@ -2462,6 +2450,9 @@ void DAG_id_tag_update(ID *id, short flag)
 					}
 				}
 			}
+		}
+		else {
+			BKE_assert(!"invalid flag for this 'idtype'");
 		}
 	}
 }

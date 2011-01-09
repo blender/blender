@@ -38,10 +38,11 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h" /* windows needs for M_PI */
+#include "BLI_utildefines.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
-#include "BKE_utildefines.h"
+
 
 #define SMALL -1.0e-10
 #define SELECT 1

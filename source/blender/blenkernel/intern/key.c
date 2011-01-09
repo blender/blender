@@ -39,6 +39,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_key_types.h"
@@ -57,13 +58,13 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
+
 
 #include "RNA_access.h"
 
-
-#define KEY_BPOINT		1
-#define KEY_BEZTRIPLE	2
+#define KEY_MODE_DUMMY		0 /* use where mode isn't checked for */
+#define KEY_MODE_BPOINT		1
+#define KEY_MODE_BEZTRIPLE	2
 
 	// old defines from DNA_ipo_types.h for data-type
 #define IPO_FLOAT		4
@@ -523,36 +524,53 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
 	return kb->data;
 }
 
-static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *actkb, KeyBlock *kb, float *weights, int mode)
+
+/* currently only the first value of 'ofs' may be set. */
+static short key_pointer_size(const Key *key, const int mode, int *poinsize, int *ofs)
+{
+	if(key->from==NULL) {
+		return FALSE;
+	}
+
+	switch(GS(key->from->name)) {
+	case ID_ME:
+		*ofs= sizeof(float)*3;
+		*poinsize= *ofs;
+		break;
+	case ID_LT:
+		*ofs= sizeof(float)*3;
+		*poinsize= *ofs;
+		break;
+	case ID_CU:
+		if(mode == KEY_MODE_BPOINT) {
+			*ofs= sizeof(float)*4;
+			*poinsize= *ofs;
+		} else {
+			ofs[0]= sizeof(float)*12;
+			*poinsize= (*ofs) / 3;
+		}
+
+		break;
+	default:
+		BKE_assert(!"invalid 'key->from' ID type");
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static void cp_key(const int start, int end, const int tot, char *poin, Key *key, KeyBlock *actkb, KeyBlock *kb, float *weights, const int mode)
 {
 	float ktot = 0.0, kd = 0.0;
 	int elemsize, poinsize = 0, a, *ofsp, ofs[32], flagflo=0;
 	char *k1, *kref, *freek1, *freekref;
 	char *cp, elemstr[8];
 
-	if(key->from==NULL) return;
+	/* currently always 0, in future key_pointer_size may assign */
+	ofs[1]= 0;
 
-	if( GS(key->from->name)==ID_ME ) {
-		ofs[0]= sizeof(float)*3;
-		ofs[1]= 0;
-		poinsize= ofs[0];
-	}
-	else if( GS(key->from->name)==ID_LT ) {
-		ofs[0]= sizeof(float)*3;
-		ofs[1]= 0;
-		poinsize= ofs[0];
-	}
-	else if( GS(key->from->name)==ID_CU ) {
-		if(mode==KEY_BPOINT) {
-			ofs[0]= sizeof(float)*4;
-			poinsize= ofs[0];
-		}else {
-			ofs[0]= sizeof(float)*12;
-			poinsize= ofs[0]/3;
-		}
-
-		ofs[1]= 0;
-	}
+	if(!key_pointer_size(key, mode, &poinsize, &ofs[0]))
+		return;
 
 	if(end>tot) end= tot;
 	
@@ -584,7 +602,7 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 		else k1+= start*key->elemsize;
 	}	
 	
-	if(mode==KEY_BEZTRIPLE) {
+	if(mode == KEY_MODE_BEZTRIPLE) {
 		elemstr[0]= 1;
 		elemstr[1]= IPO_BEZTRIPLE;
 		elemstr[2]= 0;
@@ -592,11 +610,11 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 	
 	/* just do it here, not above! */
 	elemsize= key->elemsize;
-	if(mode==KEY_BEZTRIPLE) elemsize*= 3;
+	if(mode == KEY_MODE_BEZTRIPLE) elemsize*= 3;
 
 	for(a=start; a<end; a++) {
 		cp= key->elemstr;
-		if(mode==KEY_BEZTRIPLE) cp= elemstr;
+		if(mode == KEY_MODE_BEZTRIPLE) cp= elemstr;
 
 		ofsp= ofs;
 		
@@ -619,8 +637,14 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 			case IPO_BEZTRIPLE:
 				memcpy(poin, k1, sizeof(float)*12);
 				break;
+			default:
+				/* should never happen */
+				if(freek1) MEM_freeN(freek1);
+				if(freekref) MEM_freeN(freekref);
+				BKE_assert(!"invalid 'cp[1]'");
+				return;
 			}
-			
+
 			poin+= ofsp[0];	
 			cp+= 2; ofsp++;
 		}
@@ -639,14 +663,14 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 			kref+= elemsize;
 		}
 		
-		if(mode==KEY_BEZTRIPLE) a+=2;
+		if(mode == KEY_MODE_BEZTRIPLE) a+=2;
 	}
 
 	if(freek1) MEM_freeN(freek1);
 	if(freekref) MEM_freeN(freekref);
 }
 
-static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, int start, int end, char *out, int tot)
+static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, const int start, int end, char *out, const int tot)
 {
 	Nurb *nu;
 	int a, step, a1, a2;
@@ -658,7 +682,7 @@ static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, int st
 			a1= MAX2(a, start);
 			a2= MIN2(a+step, end);
 
-			if(a1<a2) cp_key(a1, a2, tot, out, key, actkb, kb, NULL, KEY_BPOINT);
+			if(a1<a2) cp_key(a1, a2, tot, out, key, actkb, kb, NULL, KEY_MODE_BPOINT);
 		}
 		else if(nu->bezt) {
 			step= 3*nu->pntsu;
@@ -667,45 +691,26 @@ static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, int st
 			a1= MAX2(a, start);
 			a2= MIN2(a+step, end);
 
-			if(a1<a2) cp_key(a1, a2, tot, out, key, actkb, kb, NULL, KEY_BEZTRIPLE);
+			if(a1<a2) cp_key(a1, a2, tot, out, key, actkb, kb, NULL, KEY_MODE_BEZTRIPLE);
 		}
 		else
 			step= 0;
 	}
 }
 
-
-void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, KeyBlock *actkb, int mode)
+void do_rel_key(const int start, int end, const int tot, char *basispoin, Key *key, KeyBlock *actkb, const int mode)
 {
 	KeyBlock *kb;
 	int *ofsp, ofs[3], elemsize, b;
 	char *cp, *poin, *reffrom, *from, elemstr[8];
 	char *freefrom, *freereffrom;
-	int poinsize= 0;
+	int poinsize;
 
-	if(key->from==NULL) return;
+	/* currently always 0, in future key_pointer_size may assign */
+	ofs[1]= 0;
 
-	if( GS(key->from->name)==ID_ME ) {
-		ofs[0]= sizeof(float)*3;
-		ofs[1]= 0;
-		poinsize= ofs[0];
-	}
-	else if( GS(key->from->name)==ID_LT ) {
-		ofs[0]= sizeof(float)*3;
-		ofs[1]= 0;
-		poinsize= ofs[0];
-	}
-	else if( GS(key->from->name)==ID_CU ) {
-		if(mode==KEY_BPOINT) {
-			ofs[0]= sizeof(float)*4;
-			poinsize= ofs[0];
-		} else {
-			ofs[0]= sizeof(float)*12;
-			poinsize= ofs[0] / 3;
-		}
-
-		ofs[1]= 0;
-	}
+	if(!key_pointer_size(key, mode, &poinsize, &ofs[0]))
+		return;
 
 	if(end>tot) end= tot;
 
@@ -716,7 +721,7 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, KeyBlock
 
 	/* just here, not above! */
 	elemsize= key->elemsize;
-	if(mode==KEY_BEZTRIPLE) elemsize*= 3;
+	if(mode == KEY_MODE_BEZTRIPLE) elemsize*= 3;
 
 	/* step 1 init */
 	cp_key(start, end, tot, basispoin, key, actkb, key->refkey, NULL, mode);
@@ -752,7 +757,7 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, KeyBlock
 						weight= icuval;
 					
 					cp= key->elemstr;	
-					if(mode==KEY_BEZTRIPLE) cp= elemstr;
+					if(mode == KEY_MODE_BEZTRIPLE) cp= elemstr;
 					
 					ofsp= ofs;
 					
@@ -768,8 +773,14 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, KeyBlock
 						case IPO_BEZTRIPLE:
 							rel_flerp(12, (float *)poin, (float *)reffrom, (float *)from, weight);
 							break;
+						default:
+							/* should never happen */
+							if(freefrom) MEM_freeN(freefrom);
+							if(freereffrom) MEM_freeN(freereffrom);
+							BKE_assert(!"invalid 'cp[1]'");
+							return;
 						}
-						
+
 						poin+= ofsp[0];				
 						
 						cp+= 2;
@@ -779,7 +790,7 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, KeyBlock
 					reffrom+= elemsize;
 					from+= elemsize;
 					
-					if(mode==KEY_BEZTRIPLE) b+= 2;
+					if(mode == KEY_MODE_BEZTRIPLE) b+= 2;
 					if(weights) weights++;
 				}
 
@@ -791,7 +802,7 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, KeyBlock
 }
 
 
-static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *actkb, KeyBlock **k, float *t, int mode)
+static void do_key(const int start, int end, const int tot, char *poin, Key *key, KeyBlock *actkb, KeyBlock **k, float *t, const int mode)
 {
 	float k1tot = 0.0, k2tot = 0.0, k3tot = 0.0, k4tot = 0.0;
 	float k1d = 0.0, k2d = 0.0, k3d = 0.0, k4d = 0.0;
@@ -800,29 +811,11 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 	char *k1, *k2, *k3, *k4, *freek1, *freek2, *freek3, *freek4;
 	char *cp, elemstr[8];;
 
-	if(key->from==0) return;
+	/* currently always 0, in future key_pointer_size may assign */
+	ofs[1]= 0;
 
-	if( GS(key->from->name)==ID_ME ) {
-		ofs[0]= sizeof(float)*3;
-		ofs[1]= 0;
-		poinsize= ofs[0];
-	}
-	else if( GS(key->from->name)==ID_LT ) {
-		ofs[0]= sizeof(float)*3;
-		ofs[1]= 0;
-		poinsize= ofs[0];
-	}
-	else if( GS(key->from->name)==ID_CU ) {
-		if(mode==KEY_BPOINT) {
-			ofs[0]= sizeof(float)*4;
-			poinsize= ofs[0];
-		} else {
-			ofs[0]= sizeof(float)*12;
-			poinsize= ofs[0] / 3;
-		}
-
-		ofs[1]= 0;
-	}
+	if(!key_pointer_size(key, mode, &poinsize, &ofs[0]))
+		return;
 	
 	if(end>tot) end= tot;
 
@@ -924,12 +917,12 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 
 	/* only here, not above! */
 	elemsize= key->elemsize;
-	if(mode==KEY_BEZTRIPLE) elemsize*= 3;
+	if(mode == KEY_MODE_BEZTRIPLE) elemsize*= 3;
 
 	for(a=start; a<end; a++) {
 	
 		cp= key->elemstr;	
-		if(mode==KEY_BEZTRIPLE) cp= elemstr;
+		if(mode == KEY_MODE_BEZTRIPLE) cp= elemstr;
 		
 		ofsp= ofs;
 		
@@ -945,6 +938,14 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 			case IPO_BEZTRIPLE:
 				flerp(12, (void *)poin, (void *)k1, (void *)k2, (void *)k3, (void *)k4, t);
 				break;
+			default:
+				/* should never happen */
+				if(freek1) MEM_freeN(freek1);
+				if(freek2) MEM_freeN(freek2);
+				if(freek3) MEM_freeN(freek3);
+				if(freek4) MEM_freeN(freek4);
+				BKE_assert(!"invalid 'cp[1]'");
+				return;
 			}
 			
 			poin+= ofsp[0];				
@@ -993,7 +994,7 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 			else k4+= elemsize;
 		}
 		
-		if(mode==KEY_BEZTRIPLE) a+= 2;
+		if(mode == KEY_MODE_BEZTRIPLE) a+= 2;
 	}
 
 	if(freek1) MEM_freeN(freek1);
@@ -1067,7 +1068,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 	return NULL;
 }
 
-static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
+static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
 {
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
 	float cfra, ctime, t[4], delta;
@@ -1102,9 +1103,9 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			flag= setkeys(ctime, &key->block, k, t, 0);
 
 			if(flag==0)
-				do_key(a, a+step, tot, (char *)out, key, actkb, k, t, 0);
+				do_key(a, a+step, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
 			else
-				cp_key(a, a+step, tot, (char *)out, key, actkb, k[2], NULL, 0);
+				cp_key(a, a+step, tot, (char *)out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
 		}
 	}
 	else {
@@ -1114,7 +1115,7 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			for(kb= key->block.first; kb; kb= kb->next)
 				kb->weights= get_weights_array(ob, kb->vgroup);
 
-			do_rel_key(0, tot, tot, (char *)out, key, actkb, 0);
+			do_rel_key(0, tot, tot, (char *)out, key, actkb, KEY_MODE_DUMMY);
 			
 			for(kb= key->block.first; kb; kb= kb->next) {
 				if(kb->weights) MEM_freeN(kb->weights);
@@ -1137,14 +1138,14 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			flag= setkeys(ctime, &key->block, k, t, 0);
 
 			if(flag==0)
-				do_key(0, tot, tot, (char *)out, key, actkb, k, t, 0);
+				do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
 			else
-				cp_key(0, tot, tot, (char *)out, key, actkb, k[2], NULL, 0);
+				cp_key(0, tot, tot, (char *)out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
 		}
 	}
 }
 
-static void do_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock **k, float *t, char *out, int tot)
+static void do_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock **k, float *t, char *out, const int tot)
 {
 	Nurb *nu;
 	int a, step;
@@ -1152,18 +1153,18 @@ static void do_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock **k, float 
 	for(a=0, nu=cu->nurb.first; nu; nu=nu->next, a+=step) {
 		if(nu->bp) {
 			step= nu->pntsu*nu->pntsv;
-			do_key(a, a+step, tot, out, key, actkb, k, t, KEY_BPOINT);
+			do_key(a, a+step, tot, out, key, actkb, k, t, KEY_MODE_BPOINT);
 		}
 		else if(nu->bezt) {
 			step= 3*nu->pntsu;
-			do_key(a, a+step, tot, out, key, actkb, k, t, KEY_BEZTRIPLE);
+			do_key(a, a+step, tot, out, key, actkb, k, t, KEY_MODE_BEZTRIPLE);
 		}
 		else
 			step= 0;
 	}
 }
 
-static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, float UNUSED(ctime), char *out, int tot)
+static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, float UNUSED(ctime), char *out, const int tot)
 {
 	Nurb *nu;
 	int a, step;
@@ -1171,18 +1172,18 @@ static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, float UNUSED(cti
 	for(a=0, nu=cu->nurb.first; nu; nu=nu->next, a+=step) {
 		if(nu->bp) {
 			step= nu->pntsu*nu->pntsv;
-			do_rel_key(a, a+step, tot, out, key, actkb, KEY_BPOINT);
+			do_rel_key(a, a+step, tot, out, key, actkb, KEY_MODE_BPOINT);
 		}
 		else if(nu->bezt) {
 			step= 3*nu->pntsu;
-			do_rel_key(a, a+step, tot, out, key, actkb, KEY_BEZTRIPLE);
+			do_rel_key(a, a+step, tot, out, key, actkb, KEY_MODE_BEZTRIPLE);
 		}
 		else
 			step= 0;
 	}
 }
 
-static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
+static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
 {
 	Curve *cu= ob->data;
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
@@ -1206,11 +1207,11 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 
 		for(nu=cu->nurb.first; nu; nu=nu->next) {
 			if(nu->bp) {
-				mode= KEY_BPOINT;
+				mode= KEY_MODE_BPOINT;
 				estep= nu->pntsu*nu->pntsv;
 			}
 			else if(nu->bezt) {
-				mode= KEY_BEZTRIPLE;
+				mode= KEY_MODE_BEZTRIPLE;
 				estep= 3*nu->pntsu;
 			}
 			else
@@ -1230,7 +1231,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 				}
 
 				count= MIN2(remain, estep);
-				if (mode == KEY_BEZTRIPLE) {
+				if (mode == KEY_MODE_BEZTRIPLE) {
 					count += 3 - count % 3;
 				}
 
@@ -1268,7 +1269,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 	}
 }
 
-static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
+static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
 {
 	Lattice *lt= ob->data;
 	KeyBlock *k[4], *actkb= ob_get_keyblock(ob);
@@ -1294,9 +1295,9 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			flag= setkeys(ctime, &key->block, k, t, 0);
 
 			if(flag==0)
-				do_key(a, a+1, tot, (char *)out, key, actkb, k, t, 0);
+				do_key(a, a+1, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
 			else
-				cp_key(a, a+1, tot, (char *)out, key, actkb, k[2], NULL, 0);
+				cp_key(a, a+1, tot, (char *)out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
 		}		
 	}
 	else {
@@ -1306,7 +1307,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			for(kb= key->block.first; kb; kb= kb->next)
 				kb->weights= get_weights_array(ob, kb->vgroup);
 			
-			do_rel_key(0, tot, tot, (char *)out, key, actkb, 0);
+			do_rel_key(0, tot, tot, (char *)out, key, actkb, KEY_MODE_DUMMY);
 			
 			for(kb= key->block.first; kb; kb= kb->next) {
 				if(kb->weights) MEM_freeN(kb->weights);
@@ -1326,9 +1327,9 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, int tot)
 			flag= setkeys(ctime, &key->block, k, t, 0);
 
 			if(flag==0)
-				do_key(0, tot, tot, (char *)out, key, actkb, k, t, 0);
+				do_key(0, tot, tot, (char *)out, key, actkb, k, t, KEY_MODE_DUMMY);
 			else
-				cp_key(0, tot, tot, (char *)out, key, actkb, k[2], NULL, 0);
+				cp_key(0, tot, tot, (char *)out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
 		}
 	}
 	

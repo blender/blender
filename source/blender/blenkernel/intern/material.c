@@ -45,6 +45,7 @@
 
 #include "BLI_math.h"		
 #include "BLI_listbase.h"		
+#include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
 #include "BKE_displist.h"
@@ -55,7 +56,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
-#include "BKE_utildefines.h"
+
 
 #include "GPU_material.h"
 
@@ -85,7 +86,8 @@ void free_material(Material *ma)
 	
 	BKE_free_animdata((ID *)ma);
 	
-	BKE_previewimg_free(&ma->preview);
+	if(ma->preview)
+		BKE_previewimg_free(&ma->preview);
 	BKE_icon_delete((struct ID*)ma);
 	ma->id.icon_id = 0;
 	
@@ -251,7 +253,7 @@ Material *localize_material(Material *ma)
 	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
 	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
 	
-	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
+	man->preview = NULL;
 	
 	if(ma->nodetree) {
 		man->nodetree= ntreeLocalize(ma->nodetree);
@@ -786,6 +788,13 @@ int object_add_material_slot(Object *ob)
 	
 	ma= give_current_material(ob, ob->actcol);
 
+    if(ma == NULL)
+		ma= add_material("Material");
+	else
+		ma= copy_material(ma);
+
+	id_us_min(&ma->id);
+
 	assign_material(ob, ma, ob->totcol+1);
 	ob->actcol= ob->totcol;
 	return TRUE;
@@ -809,10 +818,10 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 			
 			ma->texco |= mtex->texco;
 			ma->mapto |= mtex->mapto;
-			if(r_mode & R_OSA) {
-				if ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) ma->texco |= TEXCO_OSA;
-				else if(mtex->texflag & MTEX_NEW_BUMP) ma->texco |= TEXCO_OSA; // NEWBUMP: need texture derivatives for procedurals as well
-			}
+
+			/* always get derivatives for these textures */
+			if ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) ma->texco |= TEXCO_OSA;
+			else if(mtex->texflag & MTEX_NEW_BUMP) ma->texco |= TEXCO_OSA;
 			
 			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;
 			else if(ma->texco & (TEXCO_GLOB|TEXCO_UV|TEXCO_OBJECT|TEXCO_SPEED)) needuv= 1;
@@ -1341,7 +1350,6 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 
 /* copy/paste buffer, if we had a propper py api that would be better */
 Material matcopybuf;
-// MTex mtexcopybuf;
 static short matcopied=0;
 
 void clear_matcopybuf(void)
@@ -1352,7 +1360,6 @@ void clear_matcopybuf(void)
 
 void free_matcopybuf(void)
 {
-//	extern MTex mtexcopybuf;	/* buttons.c */
 	int a;
 
 	for(a=0; a<MAX_MTEX; a++) {
@@ -1373,7 +1380,6 @@ void free_matcopybuf(void)
 		MEM_freeN(matcopybuf.nodetree);
 		matcopybuf.nodetree= NULL;
 	}
-//	default_mtex(&mtexcopybuf);
 
 	matcopied= 0;
 }
@@ -1442,10 +1448,4 @@ void paste_matcopybuf(Material *ma)
 	}
 
 	ma->nodetree= ntreeCopyTree(matcopybuf.nodetree, 0);
-
-	/*
-	BIF_preview_changed(ID_MA);
-	BIF_undo_push("Paste material settings");
-	scrarea_queue_winredraw(curarea);
-	*/
 }

@@ -35,7 +35,7 @@ DIR = $(OCGDIR)/intern/$(LIBNAME)
 
 CCSRCS = GHOST_Buttons.cpp GHOST_System.cpp GHOST_Window.cpp
 CCSRCS += GHOST_EventManager.cpp GHOST_EventPrinter.cpp GHOST_WindowManager.cpp
-CCSRCS += GHOST_ISystem.cpp GHOST_ModifierKeys.cpp GHOST_TimerManager.cpp
+CCSRCS += GHOST_ISystem.cpp GHOST_ISystemPaths.cpp GHOST_ModifierKeys.cpp GHOST_TimerManager.cpp
 CCSRCS += GHOST_Rect.cpp GHOST_DisplayManager.cpp GHOST_C-api.cpp
 CCSRCS += GHOST_CallbackEventConsumer.cpp
 CCSRCS += GHOST_NDOFManager.cpp GHOST_Path-api.cpp

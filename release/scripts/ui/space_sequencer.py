@@ -182,13 +182,17 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
+        #layout.operator_context = 'EXEC_REGION_WIN'
+        
         layout.column()
-        layout.operator("marker.add", text="Add Marker")
+        layout.operator("marker.add", "Add Marker")
         layout.operator("marker.duplicate", text="Duplicate Marker")
-        layout.operator("marker.move", text="Grab/Move Marker")
         layout.operator("marker.delete", text="Delete Marker")
+
         layout.separator()
-        layout.label(text="ToDo: Name Marker")
+        
+        layout.operator("marker.rename", text="Rename Marker")
+        layout.operator("marker.move", text="Grab/Move Marker")
 
         #layout.operator("sequencer.sound_strip_add", text="Transform Markers") # toggle, will be rna - (sseq->flag & SEQ_MARKER_TRANS)
 

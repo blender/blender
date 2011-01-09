@@ -37,12 +37,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_node.h"
 #include "BKE_main.h"
-
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -58,7 +58,21 @@
 static void do_node_add(bContext *C, void *UNUSED(arg), int event)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar;
 	bNode *node;
+	
+	/* get location to add node at mouse */
+	for(ar=sa->regionbase.first; ar; ar=ar->next) {
+		if(ar->regiontype == RGN_TYPE_WINDOW) {
+			wmWindow *win= CTX_wm_window(C);
+			int x= win->eventstate->x - ar->winrct.xmin;
+			int y= win->eventstate->y - ar->winrct.ymin;
+			
+			if(y < 60) y+= 60;
+			UI_view2d_region_to_view(&ar->v2d, x, y, &snode->mx, &snode->my);
+		}
+	}
 	
 	/* store selection in temp test flag */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -152,20 +166,8 @@ static void node_auto_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclas
 
 static void node_menu_add(const bContext *C, Menu *menu)
 {
-	uiLayout *layout= menu->layout;
 	SpaceNode *snode= CTX_wm_space_node(C);
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar;
-
-	/* get location to add node at mouse */
-	for(ar=sa->regionbase.first; ar; ar=ar->next) {
-		if(ar->regiontype == RGN_TYPE_WINDOW) {
-			wmWindow *win= CTX_wm_window(C);
-			UI_view2d_region_to_view(&ar->v2d,
-				win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin, 
-				&snode->mx, &snode->my);
-		}
-	}
+	uiLayout *layout= menu->layout;
 
 	if(!snode->nodetree)
 		uiLayoutSetActive(layout, 0);

@@ -34,7 +34,9 @@
 
 #include "DNA_material_types.h"
 
-#include "BKE_utildefines.h"
+#include "BLI_utildefines.h"
+
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
@@ -154,6 +156,10 @@ static void deformVerts(ModifierData *md, Object *ob,
 		psmd->dm->needsFree = 1;
 		psmd->dm->release(psmd->dm);
 	}
+	else if(psmd->flag & eParticleSystemFlag_file_loaded) {
+		/* in file read dm just wasn't saved in file so no need to reset everything */
+		psmd->flag &= ~eParticleSystemFlag_file_loaded;
+	}
 	else {
 		/* no dm before, so recalc particles fully */
 		psys->recalc |= PSYS_RECALC_RESET;
@@ -176,7 +182,6 @@ static void deformVerts(ModifierData *md, Object *ob,
 	if(psmd->dm->getNumVerts(psmd->dm)!=psmd->totdmvert ||
 		  psmd->dm->getNumEdges(psmd->dm)!=psmd->totdmedge ||
 		  psmd->dm->getNumFaces(psmd->dm)!=psmd->totdmface){
-		/* in file read dm hasn't really changed but just wasn't saved in file */
 
 		psys->recalc |= PSYS_RECALC_RESET;
 

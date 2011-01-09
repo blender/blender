@@ -41,6 +41,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_vfontdata.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
@@ -49,9 +50,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_utildefines.h"
-
 #include "BKE_packedFile.h"
-
 #include "BKE_library.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -860,12 +859,15 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				yof= cu->yof + tb->y/cu->fsize;
 			}
 
+			/* XXX, has been unused for years, need to check if this is useful, r4613 r5282 - campbell */
+#if 0
 			if(ascii == '\n' || ascii == '\r')
 				xof = cu->xof;
 			else
 				xof= cu->xof + (tb->x/cu->fsize);
-
+#else
 			xof= cu->xof + (tb->x/cu->fsize);
+#endif
 			lnr++;
 			cnr= 0;
 			wsnr= 0;

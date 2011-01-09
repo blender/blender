@@ -74,12 +74,12 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 	BKE_reports_clear(reports);
 	char *fn = const_cast<char*>(filename.c_str());
 #if 0
-	int status = BPY_run_python_script(_context, fn, NULL, reports);
+	int status = BPY_filepath_exec(_context, fn, reports);
 #else
 	int status;
 	Text *text = add_text(fn, G.main->name);
 	if (text) {
-		status = BPY_run_python_script(_context, NULL, text, reports);
+		status = BPY_text_exec(_context, text, reports);
 		unlink_text(G.main, text);
 		free_libblock(&G.main->text, text);
 	} else {
@@ -110,7 +110,7 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 
 	BKE_reports_clear(reports);
 
-	if (!BPY_run_python_script(_context, NULL, text, reports)) {
+	if (!BPY_text_exec(_context, text, reports)) {
 		cout << "\nError executing Python script from PythonInterpreter::interpretText" << endl;
 		cout << "Name: " << name << endl;
 		cout << "Errors: " << endl;
@@ -163,7 +163,7 @@ private:
 		}
 	}
 	
-	BPY_run_python_script(_context, NULL, text, NULL);
+	BPY_text_exec(_context, text, NULL);
 	
 	// cleaning up
 	unlink_text(G.main, text);

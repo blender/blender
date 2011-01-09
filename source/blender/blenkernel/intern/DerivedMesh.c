@@ -43,6 +43,7 @@
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_pbvh.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
@@ -52,7 +53,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -1283,7 +1284,7 @@ static void *emDM_getFaceDataArray(DerivedMesh *dm, int type)
 	EditFace *efa;
 	char *data, *emdata;
 	void *datalayer;
-	int index, offset, size;
+	int index, size;
 
 	datalayer = DM_get_face_data_layer(dm, type);
 	if(datalayer)
@@ -1295,7 +1296,7 @@ static void *emDM_getFaceDataArray(DerivedMesh *dm, int type)
 		index = CustomData_get_layer_index(&em->fdata, type);
 
 		if(index != -1) {
-			offset = em->fdata.layers[index].offset;
+			/* int offset = em->fdata.layers[index].offset; */ /* UNUSED */
 			size = CustomData_sizeof(type);
 
 			DM_add_face_layer(dm, type, CD_CALLOC, NULL);
@@ -2601,15 +2602,8 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	/* write tangent to layer */
 	for(i=0, tf=mtface, mf=mface; i < totface; mf++, tf++, i++, tangent+=4) {
 		len= (mf->v4)? 4 : 3; 
-		
-		if(mtface) {
-			uv1= tf->uv[0];
-			uv2= tf->uv[1];
-			uv3= tf->uv[2];
-			uv4= tf->uv[3];
-		}
-		else {
-			uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
+
+		if(mtface == NULL) {
 			map_to_sphere( &uv[0][0], &uv[0][1],orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
 			map_to_sphere( &uv[1][0], &uv[1][1],orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
 			map_to_sphere( &uv[2][0], &uv[2][1],orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);
