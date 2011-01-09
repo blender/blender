@@ -263,6 +263,11 @@ void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *
 void ED_object_constraint_update(struct Object *ob){}
 struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, char *name){return (struct bDeformGroup *) NULL;}
 void ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum, float weight, int assignmode){}
+void ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum){}
+void ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum){}
+void ED_vgroup_delete(struct Object *ob, struct bDeformGroup *defgroup){}
+void ED_vgroup_object_is_edit_mode(struct Object *ob){}
+
 void ED_sequencer_update_view(struct bContext *C, int view){}
 float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.0f;}
 void ED_space_image_size(struct SpaceImage *sima, int *width, int *height){}
@@ -379,10 +384,12 @@ struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int 
 struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return (struct wmKeyMap *) NULL;}
 
 /* intern/decimation */
+#if 1
 int LOD_FreeDecimationData(struct LOD_Decimation_Info *info){return 0;}
 int LOD_CollapseEdge(struct LOD_Decimation_Info *info){return 0;}
 int LOD_PreprocessMesh(struct LOD_Decimation_Info *info){return 0;}
 int LOD_LoadMesh(struct LOD_Decimation_Info *info){return 0;}
+#endif
 
 /* smoke */
 void LzmaCompress(void) { return; }
@@ -428,6 +435,7 @@ void sculpt_set_brush_alpha(struct Brush *brush, float alpha){}
 char blender_path[] = "";
 
 /* CSG */
+#if 1
 struct CSG_BooleanOperation * CSG_NewBooleanFunction( void ){return (struct CSG_BooleanOperation *) NULL;}
 void CSG_FreeBooleanOperation(struct CSG_BooleanOperation *operation){return;}
 void CSG_FreeFaceDescriptor(struct CSG_FaceIteratorDescriptor * f_descriptor){return;}
@@ -448,4 +456,5 @@ int CSG_PerformBooleanOperation(
 	CSG_VertexIteratorDescriptor	obBVertices)
 	{ return 0;}
 
+#endif
 #endif // WITH_GAMEENGINE
