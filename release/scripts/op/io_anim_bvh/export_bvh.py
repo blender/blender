@@ -76,7 +76,10 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
 
         file.write("%s{\n" % indent_str)
         file.write("%s\tOFFSET %.6f %.6f %.6f\n" % (indent_str, loc.x * global_scale, loc.y * global_scale, loc.z * global_scale))
-        file.write("%s\tCHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation\n" % indent_str)
+        if bone.use_connect and bone.parent:
+            file.write("%s\tCHANNELS 3 Xrotation Yrotation Zrotation\n" % indent_str)
+        else:
+            file.write("%s\tCHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation\n" % indent_str)
 
         if my_children:
             # store the location for the children
@@ -133,6 +136,7 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
         "rest_arm_imat",  # rest_arm_mat inverted
         "rest_local_imat",  # rest_local_mat inverted
         "prev_euler",  # last used euler to preserve euler compability in between keyframes
+        "connected",  # is the bone connected to the parent bone?
         )
 
         def __init__(self, bone_name):
@@ -153,6 +157,7 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
 
             self.parent = None
             self.prev_euler = Euler((0.0, 0.0, 0.0))
+            self.connected = (self.rest_bone.use_connect and self.rest_bone.parent)
 
         def update_posedata(self):
             self.pose_mat = self.pose_bone.matrix
@@ -206,7 +211,9 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
             # keep eulers compatible, no jumping on interpolation.
             rot = mat_final.rotation_part().invert().to_euler('XYZ', dbone.prev_euler)
 
-            file.write("%.6f %.6f %.6f " % (loc * global_scale)[:])
+            if not dbone.connected:
+                file.write("%.6f %.6f %.6f " % (loc * global_scale)[:])
+
             file.write("%.6f %.6f %.6f " % (-degrees(rot[0]), -degrees(rot[1]), -degrees(rot[2])))
 
             dbone.prev_euler = rot
