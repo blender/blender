@@ -641,6 +641,15 @@ static PyObject *Quaternion_sub(PyObject * q1, PyObject * q2)
 
 	return newQuaternionObject(quat, Py_NEW, Py_TYPE(q1));
 }
+
+static PyObject *quat_mul_float(QuaternionObject *quat, const float scalar)
+{
+	float tquat[4];
+	copy_qt_qt(tquat, quat->quat);
+	mul_qt_fl(tquat, scalar);
+	return newQuaternionObject(tquat, Py_NEW, Py_TYPE(quat));
+}
+
 //------------------------obj * obj------------------------------
 //mulplication
 static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
@@ -663,33 +672,22 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 		mul_qt_qtqt(quat, quat1->quat, quat2->quat);
 		return newQuaternionObject(quat, Py_NEW, Py_TYPE(q1));
 	}
-	
 	/* the only case this can happen (for a supported type is "FLOAT*QUAT" ) */
-	if(!QuaternionObject_Check(q1)) {
-		scalar= PyFloat_AsDouble(q1);
-		if ((scalar == -1.0 && PyErr_Occurred())==0) { /* FLOAT*QUAT */
-			QUATCOPY(quat, quat2->quat);
-			mul_qt_fl(quat, scalar);
-			return newQuaternionObject(quat, Py_NEW, Py_TYPE(q2));
-		}
-		PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: val * quat, val is not an acceptable type");
-		return NULL;
-	}
-	else { /* QUAT*SOMETHING */
-		if(VectorObject_Check(q2)){  /* QUAT*VEC */
-			PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: Only 'vector * quaternion' is supported, not the reverse");
-			return NULL;
-		}
-		
-		scalar= PyFloat_AsDouble(q2);
-		if ((scalar == -1.0 && PyErr_Occurred())==0) { /* QUAT*FLOAT */
-			QUATCOPY(quat, quat1->quat);
-			mul_qt_fl(quat, scalar);
-			return newQuaternionObject(quat, Py_NEW, Py_TYPE(q1));
+	else if(quat2) { /* FLOAT*QUAT */
+		if(((scalar= PyFloat_AsDouble(q1)) == -1.0 && PyErr_Occurred())==0) {
+			return quat_mul_float(quat2, scalar);
 		}
 	}
-	
-	PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: arguments not acceptable for this operation");
+	else if (quat1) { /* QUAT*FLOAT */
+		if((((scalar= PyFloat_AsDouble(q2)) == -1.0 && PyErr_Occurred())==0)) {
+			return quat_mul_float(quat1, scalar);
+		}
+	}
+	else {
+		BKE_assert(!"internal error");
+	}
+
+	PyErr_Format(PyExc_TypeError, "Quaternion multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
 	return NULL;
 }
 

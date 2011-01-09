@@ -1498,9 +1498,7 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject * 
   ------------------------obj + obj------------------------------*/
 static PyObject *Matrix_add(PyObject * m1, PyObject * m2)
 {
-	int x, y;
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[16];
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
 
 	mat1 = (MatrixObject*)m1;
@@ -1519,21 +1517,15 @@ static PyObject *Matrix_add(PyObject * m1, PyObject * m2)
 		return NULL;
 	}
 
-	for(x = 0; x < mat1->rowSize; x++) {
-		for(y = 0; y < mat1->colSize; y++) {
-			mat[((x * mat1->colSize) + y)] = mat1->matrix[x][y] + mat2->matrix[x][y];
-		}
-	}
+	add_vn_vnvn(mat, mat1->contigPtr, mat2->contigPtr, mat1->rowSize * mat1->colSize);
 
-	return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW, NULL);
+	return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW, Py_TYPE(mat1));
 }
 /*------------------------obj - obj------------------------------
   subtraction*/
 static PyObject *Matrix_sub(PyObject * m1, PyObject * m2)
 {
-	int x, y;
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[16];
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
 
 	mat1 = (MatrixObject*)m1;
@@ -1552,23 +1544,23 @@ static PyObject *Matrix_sub(PyObject * m1, PyObject * m2)
 		return NULL;
 	}
 
-	for(x = 0; x < mat1->rowSize; x++) {
-		for(y = 0; y < mat1->colSize; y++) {
-			mat[((x * mat1->colSize) + y)] = mat1->matrix[x][y] - mat2->matrix[x][y];
-		}
-	}
+	sub_vn_vnvn(mat, mat1->contigPtr, mat2->contigPtr, mat1->rowSize * mat1->colSize);
 
-	return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW, NULL);
+	return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW, Py_TYPE(mat1));
 }
 /*------------------------obj * obj------------------------------
   mulplication*/
+static PyObject *matrix_mul_float(MatrixObject *mat, const float scalar)
+{
+	float tmat[16];
+	mul_vn_vn_fl(tmat, mat->contigPtr, mat->rowSize * mat->colSize, scalar);
+	return newMatrixObject(tmat, mat->rowSize, mat->colSize, Py_NEW, Py_TYPE(mat));
+}
+
 static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 {
-	int x, y, z;
 	float scalar;
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-	double dot = 0.0f;
+
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
 
 	if(MatrixObject_Check(m1)) {
@@ -1587,54 +1579,42 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 			PyErr_SetString(PyExc_AttributeError,"Matrix multiplication: matrix A rowsize must equal matrix B colsize");
 			return NULL;
 		}
-		for(x = 0; x < mat2->rowSize; x++) {
-			for(y = 0; y < mat1->colSize; y++) {
-				for(z = 0; z < mat1->rowSize; z++) {
-					dot += (mat1->matrix[z][y] * mat2->matrix[x][z]);
-				}
-				mat[((x * mat1->colSize) + y)] = (float)dot;
-				dot = 0.0f;
-			}
-		}
-		
-		return newMatrixObject(mat, mat2->rowSize, mat1->colSize, Py_NEW, Py_TYPE(mat1));
-	}
-	
-	if(mat1==NULL){
-		scalar=PyFloat_AsDouble(m1); // may not be a float
-		if ((scalar == -1.0 && PyErr_Occurred())==0) { /*FLOAT/INT * MATRIX, this line annoys theeth, lets see if he finds it */
-			for(x = 0; x < mat2->rowSize; x++) {
-				for(y = 0; y < mat2->colSize; y++) {
-					mat[((x * mat2->colSize) + y)] = scalar * mat2->matrix[x][y];
-				}
-			}
-			return newMatrixObject(mat, mat2->rowSize, mat2->colSize, Py_NEW, Py_TYPE(mat2));
-		}
-		
-		PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation");
-		return NULL;
-	}
-	else /* if(mat1) { */ {
-		if(VectorObject_Check(m2)) { /* MATRIX*VECTOR */
-			PyErr_SetString(PyExc_TypeError, "Matrix multiplication: Only 'vec * matrix' is supported, not the reverse");
-			return NULL;
-		}
 		else {
-			scalar= PyFloat_AsDouble(m2);
-			if ((scalar == -1.0 && PyErr_Occurred())==0) { /* MATRIX*FLOAT/INT */
-				for(x = 0; x < mat1->rowSize; x++) {
-					for(y = 0; y < mat1->colSize; y++) {
-						mat[((x * mat1->colSize) + y)] = scalar * mat1->matrix[x][y];
+			float mat[16]= {0.0f, 0.0f, 0.0f, 0.0f,
+							0.0f, 0.0f, 0.0f, 0.0f,
+							0.0f, 0.0f, 0.0f, 0.0f,
+							0.0f, 0.0f, 0.0f, 1.0f};
+			double dot = 0.0f;
+			int x, y, z;
+
+			for(x = 0; x < mat2->rowSize; x++) {
+				for(y = 0; y < mat1->colSize; y++) {
+					for(z = 0; z < mat1->rowSize; z++) {
+						dot += (mat1->matrix[z][y] * mat2->matrix[x][z]);
 					}
+					mat[((x * mat1->colSize) + y)] = (float)dot;
+					dot = 0.0f;
 				}
-				return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW, Py_TYPE(mat1));
 			}
+
+			return newMatrixObject(mat, mat2->rowSize, mat1->colSize, Py_NEW, Py_TYPE(mat1));
 		}
-		PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation");
-		return NULL;
+	}
+	else if(mat2) {
+		if (((scalar= PyFloat_AsDouble(m1)) == -1.0 && PyErr_Occurred())==0) { /*FLOAT/INT * MATRIX */
+			return matrix_mul_float(mat2, scalar);
+		}
+	}
+	else if(mat1) {
+		if (((scalar= PyFloat_AsDouble(m2)) == -1.0 && PyErr_Occurred())==0) { /*FLOAT/INT * MATRIX */
+			return matrix_mul_float(mat1, scalar);
+		}
+	}
+	else {
+		BKE_assert(!"internal error");
 	}
 
-	PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation");
+	PyErr_Format(PyExc_TypeError, "Matrix multiplication: not supported between '%.200s' and '%.200s' types", Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 	return NULL;
 }
 static PyObject* Matrix_inv(MatrixObject *self)
