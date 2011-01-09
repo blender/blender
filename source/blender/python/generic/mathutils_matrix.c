@@ -1391,11 +1391,9 @@ static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
 }
 /*----------------------------object[z:y]------------------------
   sequence slice (set)*/
-static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject * seq)
+static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject *value)
 {
-	int i;
-	float mat[16];
-	PyObject *subseq;
+	PyObject *value_fast= NULL;
 
 	if(!BaseMath_ReadCallback(self))
 		return -1;
@@ -1404,10 +1402,18 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject * 
 	CLAMP(end, 0, self->rowSize);
 	begin = MIN2(begin,end);
 
-	if(PySequence_Check(seq)){
+	/* non list/tuple cases */
+	if(!(value_fast=PySequence_Fast(value, "matrix[begin:end] = value"))) {
+		/* PySequence_Fast sets the error */
+		return -1;
+	}
+	else {
 		const int size= end - begin;
+		int i;
+		float mat[16];
 
-		if(PySequence_Length(seq) != size){
+		if(PySequence_Fast_GET_SIZE(value_fast) != size) {
+			Py_DECREF(value_fast);
 			PyErr_SetString(PyExc_TypeError, "matrix[begin:end] = []: size mismatch in slice assignment");
 			return -1;
 		}
@@ -1415,28 +1421,20 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject * 
 		/*parse sub items*/
 		for (i = 0; i < size; i++) {
 			/*parse each sub sequence*/
-			subseq = PySequence_GetItem(seq, i);
-			if (subseq == NULL) { /*Failed to read sequence*/
-				PyErr_SetString(PyExc_RuntimeError, "matrix[begin:end] = []: unable to read sequence");
+			PyObject *item= PySequence_Fast_GET_ITEM(value_fast, i);
+
+			if(mathutils_array_parse(&mat[i * self->colSize], self->colSize, self->colSize, item, "matrix[begin:end] = value assignment") < 0) {
 				return -1;
 			}
-
-			if(mathutils_array_parse(&mat[i * self->colSize], self->colSize, self->colSize, subseq, "matrix[a:b] = value assignment") < 0) {
-				Py_DECREF(subseq);
-				return -1;
-			}
-
-			Py_DECREF(subseq);
 		}
+
+		Py_DECREF(value_fast);
 
 		/*parsed well - now set in matrix*/
 		memcpy(self->contigPtr + (begin * self->colSize), mat, sizeof(float) * (size * self->colSize));
 
 		(void)BaseMath_WriteCallback(self);
 		return 0;
-	}else{
-		PyErr_SetString(PyExc_TypeError, "matrix[begin:end] = []: illegal argument type for built-in operation");
-		return -1;
 	}
 }
 /*------------------------NUMERIC PROTOCOLS----------------------
