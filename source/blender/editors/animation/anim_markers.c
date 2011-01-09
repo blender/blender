@@ -363,7 +363,7 @@ void draw_markers_time(const bContext *C, int flag)
  */
 
 /* maximum y-axis value (in region screen-space) that marker events should still be accepted for  */
-#define ANIMEDIT_MARKER_YAXIS_MAX 	30
+#define ANIMEDIT_MARKER_YAXIS_MAX 	40
 
 /* ------------------------ */
 
