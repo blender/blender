@@ -1245,11 +1245,18 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	bPoseChannel *pchan;
 	bConstraint *con;
 	
-	if(list == &ob->constraints)
+	if(list == &ob->constraints) {
 		pchan= NULL;
-	else
+	}
+	else {
 		pchan= get_active_posechannel(ob);
 
+		/* ensure not to confuse object/pose adding */
+		if (pchan == NULL) {
+			BKE_report(op->reports, RPT_ERROR, "No active pose bone to add a constraint to.");
+			return OPERATOR_CANCELLED;
+		}
+	}
 	/* check if constraint to be added is valid for the given constraints stack */
 	if (type == CONSTRAINT_TYPE_NULL) {
 		return OPERATOR_CANCELLED;
@@ -1332,11 +1339,11 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	
 	/* make sure all settings are valid - similar to above checks, but sometimes can be wrong */
 	object_test_constraints(ob);
-	
-	if (ob->pose)
+
+	if (pchan)
 		update_pose_constraint_flags(ob->pose);
-	
-	
+
+
 	/* force depsgraph to get recalculated since new relationships added */
 	DAG_scene_sort(bmain, scene);		/* sort order of objects */
 	
