@@ -983,6 +983,13 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		{
 			t->current_orientation = v3d->twmode;
 		}
+
+		/* exceptional case */
+		if(t->around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
+			if(ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL)) {
+				t->options |= CTX_NO_PET;
+			}
+		}
 	}
 	else if(t->spacetype==SPACE_IMAGE || t->spacetype==SPACE_NODE)
 	{
