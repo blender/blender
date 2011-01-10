@@ -741,7 +741,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			case TFM_MODAL_PROPSIZE_UP:
 				if(t->flag & T_PROP_EDIT) {
 					t->prop_size*= 1.1f;
-					if(t->spacetype==SPACE_VIEW3D)
+					if(t->spacetype==SPACE_VIEW3D && t->persp != RV3D_ORTHO)
 						t->prop_size= MIN2(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
@@ -981,7 +981,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		case PADPLUSKEY:
 			if(event->alt && t->flag & T_PROP_EDIT) {
 				t->prop_size *= 1.1f;
-				if(t->spacetype==SPACE_VIEW3D)
+				if(t->spacetype==SPACE_VIEW3D && t->persp != RV3D_ORTHO)
 					t->prop_size= MIN2(t->prop_size, ((View3D *)t->view)->far);
 				calculatePropRatio(t);
 			}
