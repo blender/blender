@@ -1692,7 +1692,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 		{SACTCONT_DOPESHEET, "DOPESHEET", 0, "DopeSheet", ""},
 		{SACTCONT_ACTION, "ACTION", 0, "Action Editor", ""},
 		{SACTCONT_SHAPEKEY, "SHAPEKEY", 0, "ShapeKey Editor", ""},
-		//{SACTCONT_GPENCIL, "GPENCIL", 0, "Grease Pencil", ""}, // XXX: to be reimplemented, but not enough time before 2.53 - Aligorith, 2010Jul14
+		{SACTCONT_GPENCIL, "GPENCIL", 0, "Grease Pencil", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	

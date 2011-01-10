@@ -38,6 +38,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -54,6 +55,7 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
+#include "ED_gpencil.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 #include "ED_screen.h"
@@ -522,10 +524,10 @@ static void duplicate_action_keys (bAnimContext *ac)
 	
 	/* loop through filtered data and delete selected keys */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		//if (ale->type == ANIMTYPE_GPLAYER)
-		//	delete_gplayer_frames((bGPDlayer *)ale->data);
-		//else
+		if (ale->type == ANIMTYPE_FCURVE)
 			duplicate_fcurve_keys((FCurve *)ale->key_data);
+		else
+			duplicate_gplayer_frames((bGPDlayer *)ale->data);
 	}
 	
 	/* free filtered list */
@@ -611,8 +613,8 @@ static void delete_action_keys (bAnimContext *ac)
 			if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
 				ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
 		}
-		//else
-		//	delete_gplayer_frames((bGPDlayer *)ale->data);
+		else
+			delete_gplayer_frames((bGPDlayer *)ale->data);
 	}
 	
 	/* free filtered list */

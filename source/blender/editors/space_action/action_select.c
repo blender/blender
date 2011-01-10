@@ -37,6 +37,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -50,6 +51,7 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
+#include "ED_gpencil.h"
 #include "ED_keyframes_draw.h"
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
@@ -75,10 +77,7 @@
  *	- This is called by the deselect all operator, as well as other ones!
  *
  * 	- test: check if select or deselect all
- *	- sel: how to select keyframes 
- *		0 = deselect
- *		1 = select
- *		2 = invert
+ *	- sel: how to select keyframes (SELECT_*)
  */
 static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 {
@@ -105,10 +104,10 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 	if (test) {
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			if (ale->type == ANIMTYPE_GPLAYER) {
-				//if (is_gplayer_frame_selected(ale->data)) {
-				//	sel= 0;
-				//	break;
-				//}
+				if (is_gplayer_frame_selected(ale->data)) {
+					sel= SELECT_SUBTRACT;
+					break;
+				}
 			}
 			else {
 				if (ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, test_cb, NULL)) {
@@ -124,10 +123,10 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 	
 	/* Now set the flags */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		//if (ale->type == ACTTYPE_GPLAYER)
-		//	set_gplayer_frame_selection(ale->data, sel);
-		//else
+		if (ale->type == ANIMTYPE_FCURVE)
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, sel_cb, NULL);
+		else if (ale->type == ANIMTYPE_GPLAYER)
+			set_gplayer_frame_selection(ale->data, sel);
 	}
 	
 	/* Cleanup */
@@ -254,10 +253,10 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 			!((ymax < rectf.ymin) || (ymin > rectf.ymax)) )
 		{
 			/* loop over data selecting */
-			//if (ale->type == ANIMTYPE_GPLAYER)
-			//	borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
-			//else
+			if (ale->type == ANIMTYPE_FCURVE)
 				ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, filterflag);
+			else if (ale->type == ANIMTYPE_GPLAYER)
+				borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
 		}
 		
 		/* set minimum extent to be the maximum of the next channel */
@@ -395,6 +394,9 @@ static void markers_selectkeys_between (bAnimContext *ac)
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
+		else if (ale->type == ANIMTYPE_GPLAYER) {
+			borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
+		}
 		else {
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 		}
@@ -426,8 +428,8 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 				filter= (ANIMFILTER_VISIBLE);
 				ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 				
-				//for (ale= anim_data.first; ale; ale= ale->next)
-				//	gplayer_make_cfra_list(ale->data, &elems, 1);
+				for (ale= anim_data.first; ale; ale= ale->next)
+					gplayer_make_cfra_list(ale->data, &ked.list, 1);
 			}
 			else {
 				filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
@@ -482,20 +484,10 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 				ked.f1= ce->cfra;
 			
 			/* select elements with frame number matching cfraelem */
-			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
-			
-#if 0 // XXX reenable when Grease Pencil stuff is back
-			if (ale->type == ANIMTYPE_GPLAYER) {
-				bGPDlayer *gpl= (bGPDlayer *)ale->data;
-				bGPDframe *gpf;
-				
-				for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
-					if (ecfra == gpf->framenum) 
-						gpf->flag |= GP_FRAME_SELECT;
-				}
-			}
-			//else... 
-#endif // XXX reenable when Grease Pencil stuff is back
+			if (ale->type == ANIMTYPE_FCURVE)
+				ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
+			else if (ale->type == ANIMTYPE_GPLAYER)
+				select_gpencil_frame(ale->data, ce->cfra, SELECT_ADD);
 		}
 	}
 	
@@ -752,7 +744,10 @@ static void actkeys_mselect_single (bAnimContext *ac, bAnimListElem *ale, short 
 	ked.f1= selx;
 	
 	/* select the nominated keyframe on the given frame */
-	ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, ds_filter);
+	if (ale->type == ANIMTYPE_FCURVE)
+		ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, ds_filter);
+	else if (ale->type == ANIMTYPE_GPLAYER)
+		select_gpencil_frame(ale->data, selx, select_mode);
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
@@ -804,17 +799,18 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
-		//else if (ale->type == ANIMTYPE_GPLAYER)
-		//	borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
+		else if (ale->type == ANIMTYPE_GPLAYER)	
+			borderselect_gplayer_frames(ale->data, ked.f1, ked.f2, select_mode);
 		else
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 	}
 	
 	/* Sync marker support */
-	if((select_mode==SELECT_ADD) && (ac->spacetype==SPACE_ACTION) && ELEM(leftright, ACTKEYS_LRSEL_LEFT, ACTKEYS_LRSEL_RIGHT)) {
+	// FIXME: this doesn't work for local pose markers!
+	if ((select_mode==SELECT_ADD) && (ac->spacetype==SPACE_ACTION) && ELEM(leftright, ACTKEYS_LRSEL_LEFT, ACTKEYS_LRSEL_RIGHT)) {
 		SpaceAction *saction= ac->sa->spacedata.first;
 		
-		if (saction && saction->flag & SACTION_MARKERS_MOVE) {
+		if (saction && (saction->flag & SACTION_MARKERS_MOVE)) {
 			TimeMarker *marker;
 			
 			for (marker= scene->markers.first; marker; marker= marker->next) {
@@ -869,20 +865,10 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 			ked.f1= selx;
 		
 		/* select elements with frame number matching cfra */
-		ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
-			
-#if 0 // XXX reenable when Grease Pencil stuff is back
-			if (ale->type == ANIMTYPE_GPLAYER) {
-				bGPDlayer *gpl= (bGPDlayer *)ale->data;
-				bGPDframe *gpf;
-				
-				for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
-					if (ecfra == gpf->framenum) 
-						gpf->flag |= GP_FRAME_SELECT;
-				}
-			}
-			//else... 
-#endif // XXX reenable when Grease Pencil stuff is back
+		if (ale->type == ANIMTYPE_FCURVE)
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
+		else if (ale->type == ANIMTYPE_GPLAYER)
+			select_gpencil_frame(ale->key_data, selx, select_mode);
 	}
 	
 	/* free elements */
@@ -937,7 +923,6 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 		ActKeyColumn *ak, *akn=NULL;
 		
 		/* make list of keyframes */
-		// TODO: it would be great if we didn't have to apply this to all the keyframes to do this...
 		BLI_dlrbTree_init(&anim_keys);
 		
 		if (ale->key_data) {
@@ -972,27 +957,22 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 			/* dopesheet summary covers everything */
 			summary_to_keylist(ac, &anim_keys, NULL);
 		}
-		else if (ale->type == ANIMTYPE_GROUP) {
+		else if (ale->type == ANIMTYPE_GROUP) { 
+			// TODO: why don't we just give groups key_data too?
 			bActionGroup *agrp= (bActionGroup *)ale->data;
 			agroup_to_keylist(adt, agrp, &anim_keys, NULL);
 		}
-		else if (ale->type == ANIMTYPE_GPDATABLOCK) {
-			/* cleanup */
-			// FIXME:...
-			BLI_freelistN(&anim_data);
-			return;
-		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
-			struct bGPDlayer *gpl= (struct bGPDlayer *)ale->data;
+			// TODO: why don't we just give gplayers key_data too?
+			bGPDlayer *gpl = (bGPDlayer *)ale->data;
 			gpl_to_keylist(ads, gpl, &anim_keys);
 		}
 		
-		/* loop through keyframes, finding one that was within the range clicked on */
-		// TODO: replace this with API calls instead of inlining
+		/* start from keyframe at root of BST, traversing until we find one within the range that was clicked on */
 		for (ak= anim_keys.root; ak; ak= akn) {
 			if (IN_RANGE(ak->cfra, rectf.xmin, rectf.xmax)) {
 				/* set the frame to use, and apply inverse-correction for NLA-mapping 
-				 * so that the frame will get selected by the selection functiosn without
+				 * so that the frame will get selected by the selection functions without
 				 * requiring to map each frame once again...
 				 */
 				selx= BKE_nla_tweakedit_remap(adt, ak->cfra, NLATIME_CONVERT_UNMAP);
@@ -1045,11 +1025,16 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 			}
 		}
 		else if (ac->datatype == ANIMCONT_GPENCIL) {
+			/* deselect all other channels first */
 			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 			
-			/* Highlight gpencil layer */
-			//gpl->flag |= GP_LAYER_SELECT;
-			//gpencil_layer_setactive(gpd, gpl);
+			/* Highlight GPencil Layer */
+			if ((ale && ale->data) && (ale->type == ANIMTYPE_GPLAYER)) {
+				bGPDlayer *gpl = ale->data;
+				
+				gpl->flag |= GP_LAYER_SELECT;
+				//gpencil_layer_setactive(gpd, gpl);
+			}
 		}
 	}
 	
@@ -1057,11 +1042,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 	if (ale) {
 		if (found) {
 			/* apply selection to keyframes */
-			if (/*gpl*/0) {
-				/* grease pencil */
-				//select_gpencil_frame(gpl, (int)selx, selectmode);
-			}
-			else if (column) {
+			if (column) {
 				/* select all keyframes in the same frame as the one we hit on the active channel */
 				actkeys_mselect_column(ac, select_mode, selx);
 			}

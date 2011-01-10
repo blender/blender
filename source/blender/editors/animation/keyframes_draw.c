@@ -137,6 +137,49 @@ static void nupdate_ak_bezt (void *node, void *data)
 		ak->key_type= BEZT_KEYTYPE_KEYFRAME;
 }
 
+/* ......... */
+
+/* Comparator callback used for ActKeyColumns and GPencil frame */
+static short compare_ak_gpframe (void *node, void *data)
+{
+	ActKeyColumn *ak= (ActKeyColumn *)node;
+	bGPDframe *gpf= (bGPDframe *)data;
+	
+	if (gpf->framenum < ak->cfra)
+		return -1;
+	else if (gpf->framenum > ak->cfra)
+		return 1;
+	else
+		return 0;
+}
+
+/* New node callback used for building ActKeyColumns from GPencil frames */
+static DLRBT_Node *nalloc_ak_gpframe (void *data)
+{
+	ActKeyColumn *ak= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumnGPF");
+	bGPDframe *gpf= (bGPDframe *)data;
+	
+	/* store settings based on state of BezTriple */
+	ak->cfra= gpf->framenum;
+	ak->sel= (gpf->flag & GP_FRAME_SELECT) ? SELECT : 0;
+	
+	/* set 'modified', since this is used to identify long keyframes */
+	ak->modified = 1;
+	
+	return (DLRBT_Node *)ak;
+}
+
+/* Node updater callback used for building ActKeyColumns from GPencil frames */
+static void nupdate_ak_gpframe (void *node, void *data)
+{
+	ActKeyColumn *ak= (ActKeyColumn *)node;
+	bGPDframe *gpf= (bGPDframe *)data;
+	
+	/* set selection status and 'touched' status */
+	if (gpf->flag & GP_FRAME_SELECT) ak->sel = SELECT;
+	ak->modified += 1;
+}
+
 /* --------------- */
 
 /* Add the given BezTriple to the given 'list' of Keyframes */
@@ -146,6 +189,15 @@ static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTriple *bezt)
 		return;
 	else
 		BLI_dlrbTree_add(keys, compare_ak_bezt, nalloc_ak_bezt, nupdate_ak_bezt, bezt);
+}
+
+/* Add the given GPencil Frame to the given 'list' of Keyframes */
+static void add_gpframe_to_keycolumns_list(DLRBT_Tree *keys, bGPDframe *gpf)
+{
+	if ELEM(NULL, keys, gpf) 
+		return;
+	else
+		BLI_dlrbTree_add(keys, compare_ak_gpframe, nalloc_ak_gpframe, nupdate_ak_gpframe, gpf);
 }
 
 /* ActBeztColumns (Helpers for Long Keyframes) ------------------------------ */
@@ -917,23 +969,11 @@ void action_to_keylist(AnimData *adt, bAction *act, DLRBT_Tree *keys, DLRBT_Tree
 void gpl_to_keylist(bDopeSheet *UNUSED(ads), bGPDlayer *gpl, DLRBT_Tree *keys)
 {
 	bGPDframe *gpf;
-	ActKeyColumn *ak;
 	
 	if (gpl && keys) {
-		/* loop over frames, converting directly to 'keyframes' (should be in order too) */
-		for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
-			ak= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
-			BLI_addtail((ListBase *)keys, ak);
-			
-			ak->cfra= (float)gpf->framenum;
-			ak->modified = 1;
-			ak->key_type= 0; 
-			
-			if (gpf->flag & GP_FRAME_SELECT)
-				ak->sel = SELECT;
-			else
-				ak->sel = 0;
-		}
+		/* although the frames should already be in an ordered list, they are not suitable for displaying yet */
+		for (gpf= gpl->frames.first; gpf; gpf= gpf->next)
+			add_gpframe_to_keycolumns_list(keys, gpf);
 	}
 }
 

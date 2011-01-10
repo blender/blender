@@ -351,6 +351,13 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 	
 	/* context changes */
 	switch (wmn->category) {
+		case NC_SCREEN:
+			if (wmn->data == ND_GPENCIL) {
+				/* only handle this event in GPencil mode for performance considerations */
+				if (saction->mode == SACTCONT_GPENCIL)	
+					ED_area_tag_redraw(sa);
+			}
+			break;
 		case NC_ANIMATION:
 			/* for selection changes of animation data, we can just redraw... otherwise autocolor might need to be done again */
 			if (ELEM(wmn->data, ND_KEYFRAME, ND_ANIMCHAN) && (wmn->action == NA_SELECTED))

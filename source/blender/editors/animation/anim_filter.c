@@ -79,6 +79,7 @@
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_key.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_sequencer.h"
@@ -145,9 +146,11 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 			return 1;
 			
 		case SACTCONT_GPENCIL: /* Grease Pencil */ // XXX review how this mode is handled...
-			ac->datatype=ANIMCONT_GPENCIL;
-			//ac->data= CTX_wm_screen(C); // FIXME: add that dopesheet type thing here!
-			ac->data= NULL; // !!!
+			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
+			saction->ads.source= (ID *)ac->scene;
+			
+			ac->datatype= ANIMCONT_GPENCIL;
+			ac->data= &saction->ads;
 			
 			ac->mode= saction->mode;
 			return 1;
@@ -1181,38 +1184,28 @@ static int animdata_filter_shapekey (bAnimContext *ac, ListBase *anim_data, Key 
 	return items;
 }
 
-#if 0
-// FIXME: switch this to use the bDopeSheet...
-static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter_mode)
+/* Grab all Grase Pencil datablocks in file */
+// TODO: should this be amalgamated with the dopesheet filtering code?
+static int animdata_filter_gpencil (ListBase *anim_data, void *UNUSED(data), int filter_mode)
 {
 	bAnimListElem *ale;
-	ScrArea *sa, *curarea;
 	bGPdata *gpd;
 	bGPDlayer *gpl;
 	int items = 0;
 	
 	/* check if filtering types are appropriate */
+	if (!(filter_mode & (ANIMFILTER_ACTGROUPED|ANIMFILTER_CURVESONLY)))
 	{
-		/* special hack for fullscreen area (which must be this one then):
-		 * 	- we use the curarea->full as screen to get spaces from, since the
-		 * 	  old (pre-fullscreen) screen was stored there...
-		 *	- this is needed as all data would otherwise disappear
-		 */
-		// XXX need to get new alternative for curarea
-		if ((curarea->full) && (curarea->spacetype==SPACE_ACTION))
-			sc= curarea->full;
-		
-		/* loop over spaces in current screen, finding gpd blocks (could be slow!) */
-		for (sa= sc->areabase.first; sa; sa= sa->next) {
-			/* try to get gp data */
-			// XXX need to put back grease pencil api...
-			gpd= gpencil_data_get_active(sa);
-			if (gpd == NULL) continue;
+		/* for now, grab grease pencil datablocks directly from main*/
+		for (gpd = G.main->gpencil.first; gpd; gpd = gpd->id.next) {
+			/* only show if gpd is used by something... */
+			if (ID_REAL_USERS(gpd) < 1)
+				continue;
 			
 			/* add gpd as channel too (if for drawing, and it has layers) */
 			if ((filter_mode & ANIMFILTER_CHANNELS) && (gpd->layers.first)) {
 				/* add to list */
-				ale= make_new_animlistelem(gpd, ANIMTYPE_GPDATABLOCK, sa, ANIMTYPE_SPECIALDATA);
+				ale= make_new_animlistelem(gpd, ANIMTYPE_GPDATABLOCK, NULL, ANIMTYPE_NONE, NULL);
 				if (ale) {
 					BLI_addtail(anim_data, ale);
 					items++;
@@ -1228,7 +1221,7 @@ static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter
 						/* only if editable */
 						if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
 							/* add to list */
-							ale= make_new_animlistelem(gpl, ANIMTYPE_GPLAYER, gpd, ANIMTYPE_GPDATABLOCK);
+							ale= make_new_animlistelem(gpl, ANIMTYPE_GPLAYER, gpd, ANIMTYPE_GPDATABLOCK, (ID*)gpd);
 							if (ale) {
 								BLI_addtail(anim_data, ale);
 								items++;
@@ -1243,7 +1236,6 @@ static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter
 	/* return the number of items added to the list */
 	return items;
 }
-#endif 
 
 /* NOTE: owner_id is either material, lamp, or world block, which is the direct owner of the texture stack in question */
 static int animdata_filter_dopesheet_texs (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *owner_id, int filter_mode)
@@ -2591,7 +2583,7 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 				
 			case ANIMCONT_GPENCIL:
 			{
-				//items= animdata_filter_gpencil(anim_data, data, filter_mode);
+				items= animdata_filter_gpencil(anim_data, data, filter_mode);
 			}
 				break;
 				
