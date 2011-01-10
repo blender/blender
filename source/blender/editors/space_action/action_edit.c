@@ -347,15 +347,10 @@ void ACTION_OT_copy (wmOperatorType *ot)
 //	ot->invoke= WM_operator_props_popup; // better wait for graph redo panel
 	ot->exec= actkeys_copy_exec;
 	ot->poll= ED_operator_action_active;
-	
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
-	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merking pasted keys and existing");
 }
-
-
 
 static int actkeys_paste_exec(bContext *C, wmOperator *op)
 {
@@ -405,6 +400,9 @@ void ACTION_OT_paste (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
+	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merking pasted keys and existing");
 }
 
 /* ******************** Insert Keyframes Operator ************************* */
