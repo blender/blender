@@ -32,7 +32,6 @@
 #include "DNA_ID.h"
 #include "DNA_object_force.h"
 #include "DNA_boid_types.h"
-#include "DNA_particle_types.h"
 #include <stdio.h> /* for FILE */
 
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
@@ -99,27 +98,6 @@ typedef struct PTCacheData {
 	float times[3];
 	struct BoidData boids;
 } PTCacheData;
-
-static char *ptcache_datastruct[] = {
-	"", // BPHYS_DATA_INDEX
-	"", // BPHYS_DATA_LOCATION
-	"", // BPHYS_DATA_VELOCITY
-	"", // BPHYS_DATA_ROTATION
-	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
-	"", // BPHYS_DATA_SIZE:
-	"", // BPHYS_DATA_TIMES:	
-	"BoidData" // case BPHYS_DATA_BOIDS:
-};
-
-static char *ptcache_extra_datastruct[] = {
-	"",
-	"ParticleSpring"
-};
-
-static int ptcache_extra_datasize[] = {
-	0,
-	sizeof(ParticleSpring)
-};
 
 typedef struct PTCacheFile {
 	FILE *fp;

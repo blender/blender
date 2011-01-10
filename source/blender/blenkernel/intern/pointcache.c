@@ -97,7 +97,7 @@
 /* could be made into a pointcache option */
 #define DURIAN_POINTCACHE_LIB_OK 1
 
-int ptcache_data_size[] = {	
+static int ptcache_data_size[] = {	
 		sizeof(unsigned int), // BPHYS_DATA_INDEX
 		3 * sizeof(float), // BPHYS_DATA_LOCATION
 		3 * sizeof(float), // BPHYS_DATA_VELOCITY
@@ -106,6 +106,11 @@ int ptcache_data_size[] = {
 		sizeof(float), // BPHYS_DATA_SIZE
 		3 * sizeof(float), // BPHYS_DATA_TIMES
 		sizeof(BoidData) // case BPHYS_DATA_BOIDS
+};
+
+static int ptcache_extra_datasize[] = {
+	0,
+	sizeof(ParticleSpring)
 };
 
 /* forward declerations */

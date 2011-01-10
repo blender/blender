@@ -768,6 +768,22 @@ static void write_boid_state(WriteData *wd, BoidState *state)
 	//for(; cond; cond=cond->next)
 	//	writestruct(wd, DATA, "BoidCondition", 1, cond);
 }
+
+/* update this also to readfile.c */
+static char *ptcache_data_struct[] = {
+	"", // BPHYS_DATA_INDEX
+	"", // BPHYS_DATA_LOCATION
+	"", // BPHYS_DATA_VELOCITY
+	"", // BPHYS_DATA_ROTATION
+	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
+	"", // BPHYS_DATA_SIZE:
+	"", // BPHYS_DATA_TIMES:	
+	"BoidData" // case BPHYS_DATA_BOIDS:
+};
+static char *ptcache_extra_struct[] = {
+	"",
+	"ParticleSpring"
+};
 static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 {
 	PointCache *cache = ptcaches->first;
@@ -786,18 +802,18 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 				
 				for(i=0; i<BPHYS_TOT_DATA; i++) {
 					if(pm->data[i] && pm->data_types & (1<<i)) {
-						if(strcmp(ptcache_datastruct[i], "")==0)
+						if(strcmp(ptcache_data_struct[i], "")==0)
 							writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
 						else
-							writestruct(wd, DATA, ptcache_datastruct[i], pm->totpoint, pm->data[i]);
+							writestruct(wd, DATA, ptcache_data_struct[i], pm->totpoint, pm->data[i]);
 					}
 				}
 
 				for(; extra; extra=extra->next) {
-					if(strcmp(ptcache_extra_datastruct[extra->type], "")==0)
+					if(strcmp(ptcache_extra_struct[extra->type], "")==0)
 						continue;
 					writestruct(wd, DATA, "PTCacheExtra", 1, extra);
-					writestruct(wd, DATA, ptcache_extra_datastruct[extra->type], extra->totdata, extra->data);
+					writestruct(wd, DATA, ptcache_extra_struct[extra->type], extra->totdata, extra->data);
 				}
 			}
 		}
