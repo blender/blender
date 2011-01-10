@@ -2415,7 +2415,7 @@ static void apply_particle_fluidsim(Object *ob, ParticleSystem *psys, ParticleDa
 	/*----------------------------------------------------------------*/	 	 
 }
 
-static void apply_fluid_springs(ParticleSystem *psys, ParticleSettings *part, float timestep){
+static void apply_fluid_springs(ParticleSystem *psys, float timestep){
 	SPHFluidSettings *fluid = psys->part->fluid;
 	ParticleData *pa1, *pa2;
 	ParticleSpring *spring = psys->fluid_springs;
@@ -3563,7 +3563,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			}
 
 			/* Apply springs to particles */
-			apply_fluid_springs(psys, part, timestep);
+			apply_fluid_springs(psys, timestep);
 
 			/* apply velocity, collisions and rotation */
 			LOOP_DYNAMIC_PARTICLES {

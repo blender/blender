@@ -770,7 +770,7 @@ static void write_boid_state(WriteData *wd, BoidState *state)
 }
 
 /* update this also to readfile.c */
-static char *ptcache_data_struct[] = {
+static const char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_INDEX
 	"", // BPHYS_DATA_LOCATION
 	"", // BPHYS_DATA_VELOCITY
@@ -780,7 +780,7 @@ static char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_TIMES:	
 	"BoidData" // case BPHYS_DATA_BOIDS:
 };
-static char *ptcache_extra_struct[] = {
+static const char *ptcache_extra_struct[] = {
 	"",
 	"ParticleSpring"
 };

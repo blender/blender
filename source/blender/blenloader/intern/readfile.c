@@ -2925,7 +2925,7 @@ static void direct_link_material(FileData *fd, Material *ma)
 
 /* ************ READ PARTICLE SETTINGS ***************** */
 /* update this also to writefile.c */
-static char *ptcache_data_struct[] = {
+static const char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_INDEX
 	"", // BPHYS_DATA_LOCATION
 	"", // BPHYS_DATA_VELOCITY

@@ -416,7 +416,7 @@ static void ptcache_particle_extra_write(void *psys_v, PTCacheMem *pm, int UNUSE
 	}
 }
 
-static int ptcache_particle_extra_read(void *psys_v, PTCacheMem *pm, float UNUSED(cfra))
+static void ptcache_particle_extra_read(void *psys_v, PTCacheMem *pm, float UNUSED(cfra))
 {
 	ParticleSystem *psys = psys_v;
 	PTCacheExtra *extra = pm->extradata.first;
@@ -434,7 +434,6 @@ static int ptcache_particle_extra_read(void *psys_v, PTCacheMem *pm, float UNUSE
 			}
 		}
 	}
-	return 1;
 }
 
 /* Cloth functions */
