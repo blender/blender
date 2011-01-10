@@ -86,6 +86,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
+#include "ED_markers.h"
 
 /* ************************************************************ */
 /* Blender Context <-> Animation Context mapping */
@@ -306,7 +307,7 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 	/* get useful default context settings from context */
 	ac->scene= scene;
 	if (scene) {
-		ac->markers= &scene->markers;		
+		ac->markers= ED_context_get_markers(C);		
 		ac->obact= (scene->basact)?  scene->basact->object : NULL;
 	}
 	ac->sa= sa;

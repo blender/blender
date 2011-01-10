@@ -57,6 +57,7 @@
 #include "UI_view2d.h"
 #include "UI_resources.h"
 
+#include "ED_anim_api.h"
 #include "ED_markers.h"
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -66,26 +67,44 @@
 
 /* ************* Marker API **************** */
 
-static ListBase *context_get_markers(const bContext *C)
+/* helper function for getting the list of markers to work on */
+static ListBase *context_get_markers(Scene *scene, ScrArea *sa)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	
 	/* local marker sets... */
-	if (sa->spacetype == SPACE_ACTION) {
-		SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
-		
-		/* local markers can only be shown when there's only a single active action to grab them from 
-		 * 	- flag only takes effect when there's an action, otherwise it can get too confusing?
-		 */
-		if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) && (saction->action)) 
-		{
-			if (saction->flag & SACTION_POSEMARKERS_SHOW)
-				return &saction->action->markers;
+	if (sa) {
+		if (sa->spacetype == SPACE_ACTION) {
+			SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
+			
+			/* local markers can only be shown when there's only a single active action to grab them from 
+			 * 	- flag only takes effect when there's an action, otherwise it can get too confusing?
+			 */
+			if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) && (saction->action)) 
+			{
+				if (saction->flag & SACTION_POSEMARKERS_SHOW)
+					return &saction->action->markers;
+			}
 		}
 	}
 	
 	/* default to using the scene's markers */
-	return &CTX_data_scene(C)->markers;
+	return &scene->markers;
+}
+
+/* ............. */
+
+/* public API for getting markers from context */
+ListBase *ED_context_get_markers(const bContext *C)
+{
+	return context_get_markers(CTX_data_scene(C), CTX_wm_area(C));
+}
+
+/* public API for getting markers from "animation" context */
+ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
+{
+	if (ac)
+		return context_get_markers(ac->scene, ac->sa);
+	else
+		return NULL;
 }
 
 /* --------------------------------- */
@@ -341,7 +360,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 /* Draw Scene-Markers in time window */
 void draw_markers_time(const bContext *C, int flag)
 {
-	ListBase *markers= context_get_markers(C);
+	ListBase *markers= ED_context_get_markers(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 	TimeMarker *marker;
 	
@@ -375,7 +394,7 @@ void draw_markers_time(const bContext *C, int flag)
 /* special poll() which checks if there are selected markers first */
 static int ed_markers_poll_selected_markers(bContext *C)
 {
-	ListBase *markers = context_get_markers(C);
+	ListBase *markers = ED_context_get_markers(C);
 	
 	/* first things first: markers can only exist in timeline views */
 	if (ED_operator_animview_active(C) == 0)
@@ -444,7 +463,7 @@ static int ed_markers_opwrap_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 /* add TimeMarker at curent frame */
 static int ed_marker_add(bContext *C, wmOperator *UNUSED(op))
 {
-	ListBase *markers= context_get_markers(C);
+	ListBase *markers= ED_context_get_markers(C);
 	TimeMarker *marker;
 	int frame= CTX_data_scene(C)->r.cfra;
 	
@@ -527,7 +546,7 @@ typedef struct MarkerMove {
 /* return 0 if not OK */
 static int ed_marker_move_init(bContext *C, wmOperator *op)
 {
-	ListBase *markers= context_get_markers(C);
+	ListBase *markers= ED_context_get_markers(C);
 	MarkerMove *mm;
 	TimeMarker *marker;
 	int totmark=0;
@@ -811,7 +830,7 @@ callbacks:
 /* duplicate selected TimeMarkers */
 static void ed_marker_duplicate_apply(bContext *C)
 {
-	ListBase *markers= context_get_markers(C);
+	ListBase *markers= ED_context_get_markers(C);
 	TimeMarker *marker, *newmarker;
 	
 	if (markers == NULL) 
@@ -906,7 +925,7 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, unsigned 
 
 static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 {
-	ListBase *markers= context_get_markers(C);
+	ListBase *markers= ED_context_get_markers(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 	float viewx;
 	int x, y, cfra;
@@ -1027,7 +1046,7 @@ callbacks:
 static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 {
 	View2D *v2d= UI_view2d_fromcontext(C);
-	ListBase *markers= context_get_markers(C);
+	ListBase *markers= ED_context_get_markers(C);
 	TimeMarker *marker;
 	float xminf, xmaxf, yminf, ymaxf;
 	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
@@ -1092,7 +1111,7 @@ static void MARKER_OT_select_border(wmOperatorType *ot)
 
 static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 {
-	ListBase *markers= context_get_markers(C);
+	ListBase *markers= ED_context_get_markers(C);
 	TimeMarker *marker;
 	int action = RNA_enum_get(op->ptr, "action");
 
@@ -1147,7 +1166,7 @@ static void MARKER_OT_select_all(wmOperatorType *ot)
 /* remove selected TimeMarkers */
 static int ed_marker_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ListBase *markers= context_get_markers(C);
+	ListBase *markers= ED_context_get_markers(C);
 	TimeMarker *marker, *nmarker;
 	short changed= 0;
 	
@@ -1198,7 +1217,7 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 /* rename first selected TimeMarker */
 static int ed_marker_rename_exec(bContext *C, wmOperator *op)
 {
-	TimeMarker *marker= ED_markers_get_first_selected(context_get_markers(C));
+	TimeMarker *marker= ED_markers_get_first_selected(ED_context_get_markers(C));
 
 	if(marker) {
 		RNA_string_get(op->ptr, "name", marker->name);
@@ -1216,7 +1235,7 @@ static int ed_marker_rename_exec(bContext *C, wmOperator *op)
 static int ed_marker_rename_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
 {
 	/* must initialise the marker name first if there is a marker selected */
-	TimeMarker *marker = ED_markers_get_first_selected(context_get_markers(C));
+	TimeMarker *marker = ED_markers_get_first_selected(ED_context_get_markers(C));
 	if (marker)
 		RNA_string_set(op->ptr, "name", marker->name);
 	
@@ -1248,7 +1267,7 @@ static void MARKER_OT_rename(wmOperatorType *ot)
 
 static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 {
-	ListBase *markers= context_get_markers(C);
+	ListBase *markers= ED_context_get_markers(C);
 	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 	TimeMarker *marker, *marker_new;
 
@@ -1306,7 +1325,7 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	ListBase *markers= context_get_markers(C);
+	ListBase *markers= ED_context_get_markers(C);
 	TimeMarker *marker;
 	short changed= 0;
 

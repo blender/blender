@@ -744,10 +744,10 @@ static void actkeys_mselect_single (bAnimContext *ac, bAnimListElem *ale, short 
 	ked.f1= selx;
 	
 	/* select the nominated keyframe on the given frame */
-	if (ale->type == ANIMTYPE_FCURVE)
-		ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, ds_filter);
-	else if (ale->type == ANIMTYPE_GPLAYER)
+	if (ale->type == ANIMTYPE_GPLAYER)
 		select_gpencil_frame(ale->data, selx, select_mode);
+	else
+		ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, ds_filter);
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
@@ -806,14 +806,14 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 	}
 	
 	/* Sync marker support */
-	// FIXME: this doesn't work for local pose markers!
-	if ((select_mode==SELECT_ADD) && (ac->spacetype==SPACE_ACTION) && ELEM(leftright, ACTKEYS_LRSEL_LEFT, ACTKEYS_LRSEL_RIGHT)) {
+	if ((select_mode==SELECT_ADD) && ELEM(leftright, ACTKEYS_LRSEL_LEFT, ACTKEYS_LRSEL_RIGHT)) {
 		SpaceAction *saction= ac->sa->spacedata.first;
 		
-		if (saction && (saction->flag & SACTION_MARKERS_MOVE)) {
+		if ((saction) && (saction->flag & SACTION_MARKERS_MOVE)) {
+			ListBase *markers = ED_animcontext_get_markers(ac);
 			TimeMarker *marker;
 			
-			for (marker= scene->markers.first; marker; marker= marker->next) {
+			for (marker= markers->first; marker; marker= marker->next) {
 				if(	((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < CFRA)) ||
 					((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= CFRA)) ) 
 				{
