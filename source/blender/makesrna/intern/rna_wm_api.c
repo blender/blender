@@ -88,8 +88,8 @@ static void rna_generic_op_invoke(FunctionRNA *func, int flag)
 	}
 
 	if(flag & WM_GEN_INVOKE_SIZE) {
-		parm= RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
-		parm= RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
+		RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
+		RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
 	}
 
 	if(flag & WM_GEN_INVOKE_RETURN) {
@@ -257,7 +257,7 @@ void RNA_api_keymap(StructRNA *srna)
 	parm= RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "User editable key map.");
 	RNA_def_function_return(func, parm);
 
-	func= RNA_def_function(srna, "restore_to_default", "WM_keymap_restore_to_default");
+	RNA_def_function(srna, "restore_to_default", "WM_keymap_restore_to_default");
 
 	func= RNA_def_function(srna, "restore_item_to_default", "rna_keymap_restore_item_to_default");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

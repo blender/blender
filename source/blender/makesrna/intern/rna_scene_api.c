@@ -87,7 +87,7 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately.");
 	parm= RNA_def_int(func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set.", MINAFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_float(func, "subframe", 0.0, 0.0, 1.0, "", "Sub-frame time, between 0.0 and 1.0", 0.0, 1.0);
+	RNA_def_float(func, "subframe", 0.0, 0.0, 1.0, "", "Sub-frame time, between 0.0 and 1.0", 0.0, 1.0);
 
 	func= RNA_def_function(srna, "update", "rna_Scene_update_tagged");
 	RNA_def_function_ui_description(func, "Update data tagged to be updated from previous access to data or operators.");
@@ -100,7 +100,7 @@ void RNA_api_scene_render(StructRNA *srna)
 
 	func= RNA_def_function(srna, "frame_path", "rna_SceneRender_get_frame_path");
 	RNA_def_function_ui_description(func, "Return the absolute path to the filename to be written for a given frame.");
-	parm= RNA_def_int(func, "frame", INT_MIN, INT_MIN, INT_MAX, "", "Frame number to use, if unset the current frame will be used.", MINAFRAME, MAXFRAME);
+	RNA_def_int(func, "frame", INT_MIN, INT_MIN, INT_MAX, "", "Frame number to use, if unset the current frame will be used.", MINAFRAME, MAXFRAME);
 	parm= RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "the resulting filepath from the scenes render settings.");
 	RNA_def_property_flag(parm, PROP_THICK_WRAP); /* needed for string return value */
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */

@@ -2482,7 +2482,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	const short hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
 	const short is_paint_sel= (ob==OBACT && paint_facesel_test(ob));
 	int draw_wire = 0;
-	int totvert, totedge, totface;
+	int /* totvert,*/ totedge, totface;
 	DispList *dl;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 
@@ -2493,7 +2493,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		draw_wire = 2; /* draw wire after solid using zoffset and depth buffer adjusment */
 	}
 	
-	totvert = dm->getNumVerts(dm);
+	/* totvert = dm->getNumVerts(dm); */ /*UNUSED*/
 	totedge = dm->getNumEdges(dm);
 	totface = dm->getNumFaces(dm);
 	

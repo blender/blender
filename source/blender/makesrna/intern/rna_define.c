@@ -1604,7 +1604,7 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
 
 void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
-	PropertyDefRNA *dp;
+	/* PropertyDefRNA *dp; */
 	StructRNA *srna= DefRNA.laststruct;
 	
 	if(!DefRNA.preprocess) {
@@ -1618,7 +1618,7 @@ void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const
 		return;
 	}
 
-	if((dp=rna_def_property_sdna(prop, structname, propname))) {
+	if(( /* dp= */ rna_def_property_sdna(prop, structname, propname))) {
 		if(prop->arraydimension) {
 			prop->arraydimension= 0;
 			prop->totarraylength= 0;
@@ -1645,7 +1645,7 @@ void RNA_def_property_enum_bitflag_sdna(PropertyRNA *prop, const char *structnam
 
 void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
-	PropertyDefRNA *dp;
+	/* PropertyDefRNA *dp; */
 	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
 	StructRNA *srna= DefRNA.laststruct;
 
@@ -1660,7 +1660,7 @@ void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, con
 		return;
 	}
 
-	if((dp=rna_def_property_sdna(prop, structname, propname))) {
+	if((/* dp= */ rna_def_property_sdna(prop, structname, propname))) {
 		if(prop->arraydimension) {
 			sprop->maxlength= prop->totarraylength;
 			prop->arraydimension= 0;
@@ -1671,7 +1671,7 @@ void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, con
 
 void RNA_def_property_pointer_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
-	PropertyDefRNA *dp;
+	/* PropertyDefRNA *dp; */
 	StructRNA *srna= DefRNA.laststruct;
 	
 	if(!DefRNA.preprocess) {
@@ -1685,7 +1685,7 @@ void RNA_def_property_pointer_sdna(PropertyRNA *prop, const char *structname, co
 		return;
 	}
 
-	if((dp=rna_def_property_sdna(prop, structname, propname))) {
+	if((/* dp= */ rna_def_property_sdna(prop, structname, propname))) {
 		if(prop->arraydimension) {
 			prop->arraydimension= 0;
 			prop->totarraylength= 0;

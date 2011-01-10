@@ -200,7 +200,7 @@ void RNA_api_image(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "filepath", "", 0, "", "Save path.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene to take image parameters from");
+	RNA_def_pointer(func, "scene", "Scene", "", "Scene to take image parameters from");
 
 	func= RNA_def_function(srna, "save", "rna_Image_save");
 	RNA_def_function_ui_description(func, "Save image to its source path");
@@ -216,8 +216,8 @@ void RNA_api_image(StructRNA *srna)
 	func= RNA_def_function(srna, "gl_load", "rna_Image_gl_load");
 	RNA_def_function_ui_description(func, "Load the image into OpenGL graphics memory");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_int(func, "filter", GL_LINEAR_MIPMAP_NEAREST, -INT_MAX, INT_MAX, "Filter", "The texture minifying function", -INT_MAX, INT_MAX);
-	parm= RNA_def_int(func, "mag", GL_LINEAR, -INT_MAX, INT_MAX, "Magnification", "The texture magnification function", -INT_MAX, INT_MAX);
+	RNA_def_int(func, "filter", GL_LINEAR_MIPMAP_NEAREST, -INT_MAX, INT_MAX, "Filter", "The texture minifying function", -INT_MAX, INT_MAX);
+	RNA_def_int(func, "mag", GL_LINEAR, -INT_MAX, INT_MAX, "Magnification", "The texture magnification function", -INT_MAX, INT_MAX);
 	/* return value */
 	parm= RNA_def_int(func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
 	RNA_def_function_return(func, parm);

@@ -549,10 +549,10 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_string(func, "data_path", "", 256, "Data-Path", "RNA-Path to destination property."); // xxx hopefully this is long enough
 		RNA_def_property_flag(parm, PROP_REQUIRED);
 		/* index (defaults to -1 for entire array) */
-	parm=RNA_def_int(func, "index", -1, -1, INT_MAX, "Index", "The index of the destination property (i.e. axis of Location/Rotation/etc.), or -1 for the entire array.", 0, INT_MAX);
+	RNA_def_int(func, "index", -1, -1, INT_MAX, "Index", "The index of the destination property (i.e. axis of Location/Rotation/etc.), or -1 for the entire array.", 0, INT_MAX);
 		/* grouping */
-	parm=RNA_def_enum(func, "group_method", keyingset_path_grouping_items, KSP_GROUP_KSNAME, "Grouping Method", "Method used to define which Group-name to use.");
-	parm=RNA_def_string(func, "group_name", "", 64, "Group Name", "Name of Action Group to assign destination to (only if grouping mode is to use this name).");
+	RNA_def_enum(func, "group_method", keyingset_path_grouping_items, KSP_GROUP_KSNAME, "Grouping Method", "Method used to define which Group-name to use.");
+	RNA_def_string(func, "group_name", "", 64, "Group Name", "Name of Action Group to assign destination to (only if grouping mode is to use this name).");
 
 
 	/* Remove Path */
