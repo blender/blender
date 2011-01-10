@@ -126,6 +126,7 @@ void RNA_id_pointer_create(ID *id, PointerRNA *r_ptr)
 
 void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
 {
+#if 0 /* UNUSED */
 	StructRNA *idtype= NULL;
 
 	if(id) {
@@ -133,6 +134,7 @@ void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
 		tmp.data= id;
 		idtype= rna_ID_refine(&tmp);
 	}
+#endif
 
 	r_ptr->id.data= id;
 	r_ptr->type= type;
@@ -2001,9 +2003,9 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value)
 {
-	IDProperty *idprop;
+	/*IDProperty *idprop;*/
 
-	if((idprop=rna_idproperty_check(&prop, ptr))) {
+	if((/*idprop=*/ rna_idproperty_check(&prop, ptr))) {
 		/* not supported */
 	}
 	else {
@@ -2020,9 +2022,9 @@ void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr
 
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
 {
-	IDProperty *idprop;
+	/*IDProperty *idprop;*/
 
-	if((idprop=rna_idproperty_check(&prop, ptr))) {
+	if((/*idprop=*/rna_idproperty_check(&prop, ptr))) {
 		/* already exists */
 	}
 	else if(prop->flag & PROP_IDPROPERTY) {
@@ -4189,8 +4191,6 @@ int  RNA_parameter_list_ret_count(ParameterList *parms)
 
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 {
-	PropertyType ptype;
-
 	RNA_pointer_create(NULL, &RNA_Function, parms->func, &iter->funcptr);
 
 	iter->parms= parms;
@@ -4201,7 +4201,6 @@ void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 	if(iter->valid) {
 		iter->size= rna_parameter_size_alloc(iter->parm);
 		iter->data= (((char*)iter->parms->data)+iter->offset);
-		ptype= RNA_property_type(iter->parm);
 	}
 }
 
