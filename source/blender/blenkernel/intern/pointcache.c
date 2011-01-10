@@ -1213,7 +1213,7 @@ int BKE_ptcache_mem_index_find(PTCacheMem *pm, unsigned int index)
 			return -1;
 
 		/* check simple case for continuous indexes first */
-		if(data[index-*data]==index)
+		if(index-*data < high && data[index-*data] == index)
 			return index-*data;
 
 		while(low <= high) {
