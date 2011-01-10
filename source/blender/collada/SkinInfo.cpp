@@ -241,7 +241,11 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	for (it = joint_data.begin(), joint_index = 0; it != joint_data.end(); it++, joint_index++) {
 		const char *name = "Group";
 
+		// skip joints that have invalid UID
+		if ((*it).joint_uid == COLLADAFW::UniqueId::INVALID) continue;
+		
 		// name group by joint node name
+		
 		if (joint_by_uid.find((*it).joint_uid) != joint_by_uid.end()) {
 			name = bc_get_joint_name(joint_by_uid[(*it).joint_uid]);
 		}
