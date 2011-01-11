@@ -445,6 +445,10 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 	float (*sw)[4] = (void*)sub_weights;
 	float (*disps)[3], (*out)[3];
 
+	/* happens when flipping normals of newly created mesh */
+	if(!d->totdisp)
+		return;
+
 	s = sources[0];
 	dst_corners = multires_mdisp_corners(d);
 	src_corners = multires_mdisp_corners(s);
