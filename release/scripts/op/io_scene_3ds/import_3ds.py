@@ -529,13 +529,10 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             new_chunk.bytes_read += STRUCT_SIZE_3FLOAT
 
             # no lamp in dict that would be confusing
-            ob = bpy.data.objects.new("Lamp", bpy.data.lamps.new("Lamp"))
-            SCN.objects.link(ob)
+            contextLamp[1] = bpy.data.lamps.new("Lamp", 'POINT')
+            contextLamp[0] = ob = bpy.data.objects.new("Lamp", contextLamp[1])
 
-            contextLamp[1]= ob.data
-# 			contextLamp[1]= bpy.data.lamps.new()
-            contextLamp[0]= ob
-# 			contextLamp[0]= SCN_OBJECTS.new(contextLamp[1])
+            SCN.objects.link(ob)
             importedObjects.append(contextLamp[0])
 
             #print 'number of faces: ', num_faces

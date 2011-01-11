@@ -75,6 +75,8 @@ extern EnumPropertyItem brush_imagepaint_tool_items[];
 
 extern EnumPropertyItem texture_type_items[];
 
+extern EnumPropertyItem lamp_type_items[];
+
 extern EnumPropertyItem unpack_method_items[];
 
 extern EnumPropertyItem object_type_items[];

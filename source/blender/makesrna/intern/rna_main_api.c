@@ -236,9 +236,10 @@ void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 	/* XXX python now has invalid pointer? */
 }
 
-Lamp *rna_Main_lamps_new(Main *bmain, const char *name)
+Lamp *rna_Main_lamps_new(Main *bmain, const char *name, int type)
 {
 	Lamp *lamp= add_lamp(name);
+	lamp->type= type;
 	id_us_min(&lamp->id);
 	return lamp;
 }
@@ -715,6 +716,8 @@ void RNA_def_main_lamps(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "new", "rna_Main_lamps_new");
 	RNA_def_function_ui_description(func, "Add a new lamp to the main database");
 	parm= RNA_def_string(func, "name", "Lamp", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "type", lamp_type_items, 0, "Type", "The type of texture to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "lamp", "Lamp", "", "New lamp datablock.");
