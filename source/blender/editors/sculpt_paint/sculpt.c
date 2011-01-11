@@ -306,6 +306,7 @@ static void sculpt_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 {
 	test->radius_squared= ss->cache->radius_squared;
 	copy_v3_v3(test->location, ss->cache->location);
+	test->dist= 0.0f;	/* just for initialize */
 }
 
 static int sculpt_brush_test(SculptBrushTest *test, float co[3])

@@ -769,14 +769,18 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 			float pressure;
 
 			pressure = event_tablet_data(event, NULL);
-			scale = (brush_size(stroke->brush)*pressure*stroke->brush->spacing/50.0f) / length;
-			mul_v2_fl(vec, scale);
+			if(pressure > FLT_EPSILON) {
+				scale = (brush_size(stroke->brush)*pressure*stroke->brush->spacing/50.0f) / length;
+				if(scale > FLT_EPSILON) {
+					mul_v2_fl(vec, scale);
 
-			steps = (int)(1.0f / scale);
+					steps = (int)(1.0f / scale);
 
-			for(i = 0; i < steps; ++i, ++cnt) {
-				add_v2_v2(mouse, vec);
-				paint_brush_stroke_add_step(C, op, event, mouse);
+					for(i = 0; i < steps; ++i, ++cnt) {
+						add_v2_v2(mouse, vec);
+						paint_brush_stroke_add_step(C, op, event, mouse);
+					}
+				}
 			}
 		}
 	}
