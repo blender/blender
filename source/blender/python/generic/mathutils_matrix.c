@@ -170,11 +170,11 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 	VectorObject *vec= NULL;
 	char *axis= NULL;
 	int matSize;
-	float angle = 0.0f;
+	double angle; /* use double because of precission problems at high values */
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
-	if(!PyArg_ParseTuple(args, "fi|O", &angle, &matSize, &vec)) {
+	if(!PyArg_ParseTuple(args, "di|O", &angle, &matSize, &vec)) {
 		PyErr_SetString(PyExc_TypeError, "mathutils.RotationMatrix(angle, size, axis): expected float int and a string or vector");
 		return NULL;
 	}
@@ -191,11 +191,9 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 		}
 	}
 
-	while (angle<-(Py_PI*2))
-		angle+=(Py_PI*2);
-	while (angle>(Py_PI*2))
-		angle-=(Py_PI*2);
-	
+	/* clamp angle between -360 and 360 in radians */
+	angle= fmod(angle + M_PI*2, M_PI*4) - M_PI*2;
+
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
 		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): can only return a 2x2 3x3 or 4x4 matrix");
 		return NULL;

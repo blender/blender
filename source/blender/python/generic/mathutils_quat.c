@@ -782,21 +782,23 @@ static int Quaternion_setAngle(QuaternionObject * self, PyObject * value, void *
 	float tquat[4];
 	float len;
 	
-	float axis[3];
-	float angle;
+	float axis[3], angle_dummy;
+	double angle;
 
 	if(!BaseMath_ReadCallback(self))
 		return -1;
 
 	len= normalize_qt_qt(tquat, self->quat);
-	quat_to_axis_angle(axis, &angle, tquat);
+	quat_to_axis_angle(axis, &angle_dummy, tquat);
 
-	angle = PyFloat_AsDouble(value);
+	angle= PyFloat_AsDouble(value);
 
 	if(angle==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError, "quaternion.angle = value: float expected");
 		return -1;
 	}
+
+	angle= fmod(angle + M_PI*2, M_PI*4) - M_PI*2;
 
 	/* If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations */
 	if( EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
@@ -878,7 +880,7 @@ static int Quaternion_setAxisVec(QuaternionObject *self, PyObject *value, void *
 static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PyObject *seq= NULL;
-	float angle = 0.0f;
+	double angle = 0.0f;
 	float quat[QUAT_SIZE]= {0.0f, 0.0f, 0.0f, 0.0f};
 
 	if(kwds && PyDict_Size(kwds)) {
@@ -886,7 +888,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 		return NULL;
 	}
 	
-	if(!PyArg_ParseTuple(args, "|Of:mathutils.Quaternion", &seq, &angle))
+	if(!PyArg_ParseTuple(args, "|Od:mathutils.Quaternion", &seq, &angle))
 		return NULL;
 
 	switch(PyTuple_GET_SIZE(args)) {
@@ -899,7 +901,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 	case 2:
 		if (mathutils_array_parse(quat, 3, 3, seq, "mathutils.Quaternion()") == -1)
 			return NULL;
-
+		angle= fmod(angle + M_PI*2, M_PI*4) - M_PI*2; /* clamp because of precission issues */
 		axis_angle_to_quat(quat, quat, angle);
 		break;
 	/* PyArg_ParseTuple assures no more then 2 */
