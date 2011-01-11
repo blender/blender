@@ -76,26 +76,42 @@
 
 static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	bAction *action;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 
-	// XXX need to restore behaviour to copy old actions...
-	action= add_empty_action("Action");
-
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
-
-	if(prop) {
-		/* when creating new ID blocks, use is already 1, but RNA
-		 * pointer se also increases user, so this compensates it */
+	
+	if (prop) {
+		bAction *action=NULL, *oldact=NULL;
+		PointerRNA oldptr;
+		
+		/* create action - the way to do this depends on whether we've got an
+		 * existing one there already, in which case we make a copy of it
+		 * (which is useful for "versioning" actions within the same file)
+		 */
+		oldptr = RNA_property_pointer_get(&ptr, prop);
+		oldact = (bAction *)oldptr.id.data;
+		
+		if (oldact && GS(oldact->id.name)==ID_AC) {
+			/* make a copy of the existing action */
+			action= copy_action(oldact);
+		}
+		else {
+			/* just make a new (empty) action */
+			action= add_empty_action("Action");
+		}
+		
+		/* when creating new ID blocks, use is already 1 (fake user), 
+		 * but RNA pointer use also increases user, so this compensates it 
+		 */
 		action->id.us--;
-
+		
 		RNA_id_pointer_create(&action->id, &idptr);
 		RNA_property_pointer_set(&ptr, prop, idptr);
 		RNA_property_update(C, &ptr, prop);
 	}
-
+	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
