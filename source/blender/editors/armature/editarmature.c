@@ -1633,6 +1633,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Connected";
 	ot->idname= "POSE_OT_select_linked";
+	ot->description= "Select bones related to selected ones by parent/child relationships";
 	
 	/* api callbacks */
 	ot->exec= NULL;
@@ -1732,6 +1733,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Connected";
 	ot->idname= "ARMATURE_OT_select_linked";
+	ot->description= "Select bones related to selected ones by parent/child relationships";
 	
 	/* api callbacks */
 	ot->exec= NULL;
@@ -1916,6 +1918,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Delete Selected Bone(s)";
 	ot->idname= "ARMATURE_OT_delete";
+	ot->description= "Remove selected bones from the armature";
 	
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
@@ -2272,6 +2275,7 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Recalculate Roll";
 	ot->idname= "ARMATURE_OT_calculate_roll";
+	ot->description= "Automatically fix alignment of select bones' axes";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -2598,6 +2602,7 @@ void ARMATURE_OT_click_extrude(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Click-Extrude";
 	ot->idname= "ARMATURE_OT_click_extrude";
+	ot->description= "Create a new bone going from the last selected joint to the mouse position";
 	
 	/* api callbacks */
 	ot->invoke = armature_click_extrude_invoke;
@@ -2866,6 +2871,7 @@ void ARMATURE_OT_duplicate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Duplicate Selected Bone(s)";
 	ot->idname= "ARMATURE_OT_duplicate";
+	ot->description= "Make copies of the selected bones within the same armature";
 	
 	/* api callbacks */
 	ot->exec = armature_duplicate_selected_exec;
@@ -3369,6 +3375,7 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Hide Selected Bones";
 	ot->idname= "ARMATURE_OT_hide";
+	ot->description= "Tag selected bones to not be visible in Edit Mode";
 	
 	/* api callbacks */
 	ot->exec= armature_hide_exec;
@@ -3405,6 +3412,7 @@ void ARMATURE_OT_reveal(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reveal Bones";
 	ot->idname= "ARMATURE_OT_reveal";
+	ot->description= "Unhide all bones that have been tagged to be hidden in Edit Mode";
 	
 	/* api callbacks */
 	ot->exec= armature_reveal_exec;
@@ -3616,6 +3624,7 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Extrude";
 	ot->idname= "ARMATURE_OT_extrude";
+	ot->description= "Create new bones from the selected joints";
 	
 	/* api callbacks */
 	ot->exec= armature_extrude_exec;
@@ -3678,6 +3687,7 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Bone";
 	ot->idname= "ARMATURE_OT_bone_primitive_add";
+	ot->description= "Add a new bone located at the 3D-Cursor";
 	
 	/* api callbacks */
 	ot->exec = armature_bone_primitive_add_exec;
@@ -3767,6 +3777,7 @@ void ARMATURE_OT_subdivide(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Subdivide Multi";
 	ot->idname= "ARMATURE_OT_subdivide";
+	ot->description= "Break selected bones into chains of smaller bones";
 	
 	/* api callbacks */
 	ot->exec = armature_subdivide_exec;
@@ -3868,6 +3879,7 @@ void ARMATURE_OT_switch_direction(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Switch Direction";
 	ot->idname= "ARMATURE_OT_switch_direction";
+	ot->description= "Change the direction that a chain of bones points in (head <-> tail swap)";
 	
 	/* api callbacks */
 	ot->exec = armature_switch_direction_exec;
@@ -4042,6 +4054,7 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Make Parent";
 	ot->idname= "ARMATURE_OT_parent_set";
+	ot->description= "Set the active bone as the parent of the selected bones";
 	
 	/* api callbacks */
 	ot->invoke = armature_parent_set_invoke;
@@ -4095,6 +4108,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clear Parent";
 	ot->idname= "ARMATURE_OT_parent_clear";
+	ot->description= "Remove the parent-child relationship between selected bones and their parents";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -4131,6 +4145,7 @@ void ARMATURE_OT_select_inverse(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Inverse";
 	ot->idname= "ARMATURE_OT_select_inverse";
+	ot->description= "Flip the selection status of bones (selected -> unselected, unselected -> selected)";
 	
 	/* api callbacks */
 	ot->exec= armature_select_inverse_exec;
@@ -4168,7 +4183,8 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 			case SEL_INVERT:
 				if (ebone->flag & BONE_SELECTED) {
 					ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				} else {
+				} 
+				else {
 					ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 					if(ebone->parent)
 						ebone->parent->flag |= (BONE_TIPSEL);
@@ -4186,10 +4202,10 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 
 void ARMATURE_OT_select_all(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Select or Deselect All";
 	ot->idname= "ARMATURE_OT_select_all";
+	ot->description= "Toggle selection status of all bones";
 	
 	/* api callbacks */
 	ot->exec= armature_de_select_all_exec;
@@ -4270,6 +4286,7 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Hierarchy";
 	ot->idname= "ARMATURE_OT_select_hierarchy";
+	ot->description= "Select immediate parent/children of selected bones";
 	
 	/* api callbacks */
 	ot->exec= armature_select_hierarchy_exec;
@@ -5218,10 +5235,10 @@ static int pose_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 
 void POSE_OT_select_inverse(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Select Inverse";
 	ot->idname= "POSE_OT_select_inverse";
+	ot->description= "Flip the selection status of bones (selected -> unselected, unselected -> selected)";
 	
 	/* api callbacks */
 	ot->exec= pose_select_inverse_exec;
@@ -5253,7 +5270,8 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 		case SEL_INVERT:
 			if (pchan->bone->flag & BONE_SELECTED) {
 				pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-			} else if ((pchan->bone->flag & BONE_UNSELECTABLE)==0) {
+			} 
+			else if ((pchan->bone->flag & BONE_UNSELECTABLE)==0) {
 					pchan->bone->flag |= BONE_SELECTED;
 			}
 			break;
@@ -5268,10 +5286,10 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 
 void POSE_OT_select_all(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Select or Deselect All";
 	ot->idname= "POSE_OT_select_all";
+	ot->description= "Toggle selection status of all bones";
 	
 	/* api callbacks */
 	ot->exec= pose_de_select_all_exec;
@@ -5313,8 +5331,9 @@ static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_select_parent(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "select parent bone";
+	ot->name= "Select Parent Bone";
 	ot->idname= "POSE_OT_select_parent";
+	ot->description= "Select bones that are parents of the currently selected bones";
 
 	/* api callbacks */
 	ot->exec= pose_select_parent_exec;
@@ -5379,6 +5398,7 @@ void POSE_OT_hide(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Hide Selected";
 	ot->idname= "POSE_OT_hide";
+	ot->description= "Tag selected bones to not be visible in Pose Mode";
 	
 	/* api callbacks */
 	ot->exec= pose_hide_exec;
@@ -5424,6 +5444,7 @@ void POSE_OT_reveal(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reveal Selected";
 	ot->idname= "POSE_OT_reveal";
+	ot->description= "Unhide all bones that have been tagged to be hidden in Pose Mode";
 	
 	/* api callbacks */
 	ot->exec= pose_reveal_exec;
@@ -5620,7 +5641,7 @@ void ARMATURE_OT_flip_names (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Flip Names";
 	ot->idname= "ARMATURE_OT_flip_names";
-	ot->description= "Flips (and corrects) the names of selected bones";
+	ot->description= "Flips (and corrects) the axis suffixes of the names of selected bones";
 	
 	/* api callbacks */
 	ot->exec= armature_flip_names_exec;
