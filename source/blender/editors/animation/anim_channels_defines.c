@@ -80,6 +80,8 @@
 /* size of indent steps */
 #define INDENT_STEP_SIZE 	7
 
+#define ANIM_CHAN_NAME_SIZE 256
+
 /* macros used for type defines */
 	/* get the pointer used for some flag */
 #define GET_ACF_FLAG_PTR(ptr) \
@@ -304,7 +306,7 @@ static void acf_generic_idblock_name(bAnimListElem *ale, char *name)
 	
 	/* just copy the name... */
 	if (id && name)
-		strcpy(name, id->name+2);
+		BLI_strncpy(name, id->name+2, ANIM_CHAN_NAME_SIZE);
 }
 
 /* Settings ------------------------------------------- */
@@ -413,7 +415,7 @@ static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float ymi
 static void acf_summary_name(bAnimListElem *UNUSED(ale), char *name)
 {
 	if (name)
-		strcpy(name, "DopeSheet Summary");
+		BLI_strncpy(name, "DopeSheet Summary", ANIM_CHAN_NAME_SIZE);
 }
 
 // TODO: this is really a temp icon I think
@@ -629,7 +631,7 @@ static void acf_object_name(bAnimListElem *ale, char *name)
 	
 	/* just copy the name... */
 	if (ob && name)
-		strcpy(name, ob->id.name+2);
+		BLI_strncpy(name, ob->id.name+2, ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */
@@ -766,7 +768,7 @@ static void acf_group_name(bAnimListElem *ale, char *name)
 	
 	/* just copy the name... */
 	if (agrp && name)
-		strcpy(name, agrp->name);
+		BLI_strncpy(name, agrp->name, ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */
@@ -1026,7 +1028,7 @@ static int acf_filldrivers_icon(bAnimListElem *UNUSED(ale))
 
 static void acf_filldrivers_name(bAnimListElem *UNUSED(ale), char *name)
 {
-	strcpy(name, "Drivers");
+	BLI_strncpy(name, "Drivers", ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */
@@ -1104,7 +1106,7 @@ static int acf_fillmatd_icon(bAnimListElem *UNUSED(ale))
 
 static void acf_fillmatd_name(bAnimListElem *UNUSED(ale), char *name)
 {
-	strcpy(name, "Materials");
+	BLI_strncpy(name, "Materials", ANIM_CHAN_NAME_SIZE);
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
@@ -1150,7 +1152,7 @@ static int acf_fillpartd_icon(bAnimListElem *UNUSED(ale))
 
 static void acf_fillpartd_name(bAnimListElem *UNUSED(ale), char *name)
 {
-	strcpy(name, "Particles");
+	BLI_strncpy(name, "Particles", ANIM_CHAN_NAME_SIZE);
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
@@ -1218,7 +1220,7 @@ static int acf_filltexd_icon(bAnimListElem *UNUSED(ale))
 
 static void acf_filltexd_name(bAnimListElem *UNUSED(ale), char *name)
 {
-	strcpy(name, "Textures");
+	BLI_strncpy(name, "Textures", ANIM_CHAN_NAME_SIZE);
 }
 
 /* get pointer to the setting (category only) */
@@ -2326,9 +2328,9 @@ static void acf_shapekey_name(bAnimListElem *ale, char *name)
 	if (kb && name) {
 		/* if the KeyBlock had a name, use it, otherwise use the index */
 		if (kb->name[0])
-			strcpy(name, kb->name);
+			BLI_strncpy(name, kb->name, ANIM_CHAN_NAME_SIZE);
 		else
-			sprintf(name, "Key %d", ale->index);
+			BLI_snprintf(name, ANIM_CHAN_NAME_SIZE, "Key %d", ale->index);
 	}
 }
 
@@ -2490,7 +2492,7 @@ static void acf_gpl_name(bAnimListElem *ale, char *name)
 	bGPDlayer *gpl = (bGPDlayer *)ale->data;
 	
 	if (gpl && name)
-		sprintf(name, gpl->info);
+		BLI_strncpy(name, gpl->info, ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */
@@ -2646,14 +2648,14 @@ void ANIM_channel_debug_print_info (bAnimListElem *ale, short indent_level)
 	
 	/* print info */
 	if (acf) {
-		char name[256]; /* hopefully this will be enough! */
+		char name[ANIM_CHAN_NAME_SIZE]; /* hopefully this will be enough! */
 		
 		/* get UI name */
 		if (acf->name)
 			acf->name(ale, name);
 		else
-			sprintf(name, "<No name>");
-			
+			BLI_strncpy(name, "<No name>", sizeof(name));
+
 		/* print type name + ui name */
 		printf("ChanType: <%s> Name: \"%s\"\n", acf->channel_type_name, name);
 	}
@@ -2885,7 +2887,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 	
 	/* step 5) draw name ............................................... */
 	if (acf->name) {
-		char name[256]; /* hopefully this will be enough! */
+		char name[ANIM_CHAN_NAME_SIZE]; /* hopefully this will be enough! */
 		
 		/* set text color */
 		if (selected)
