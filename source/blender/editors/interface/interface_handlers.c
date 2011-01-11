@@ -326,18 +326,22 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 {
 	Scene *scene= CTX_data_scene(C);
 	uiAfterFunc *after;
-	const char *str= NULL;
 
 	if(but->flag & UI_BUT_UNDO) {
+		const char *str= NULL;
+
 		/* define which string to use for undo */
 		if ELEM(but->type, LINK, INLINK) str= "Add button link";
 		else if ELEM(but->type, MENU, ICONTEXTROW) str= but->drawstr;
 		else if(but->drawstr[0]) str= but->drawstr;
 		else str= but->tip;
-	}
 
-	/* delayed, after all other funcs run, popups are closed, etc */
-	if(str) {
+		/* fallback, else we dont get an undo! */
+		if(str == NULL || str[0] == '\0') {
+			str= "Unknown Action";
+		}
+
+		/* delayed, after all other funcs run, popups are closed, etc */
 		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
 		BLI_strncpy(after->undostr, str, sizeof(after->undostr));
 		BLI_addtail(&UIAfterFuncs, after);
