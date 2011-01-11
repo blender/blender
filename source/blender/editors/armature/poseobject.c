@@ -129,14 +129,15 @@ void set_pose_keys (Object *ob)
 /* This function is used to process the necessary updates for */
 void ED_armature_enter_posemode(bContext *C, Base *base)
 {
+	ReportList *reports= CTX_wm_reports(C);
 	Object *ob= base->object;
 	
-	if (ob->id.lib){
-		error ("Can't pose libdata");
+	if (ob->id.lib) {
+		BKE_report(reports, RPT_WARNING, "Can't pose libdata");
 		return;
 	}
 	
-	switch (ob->type){
+	switch (ob->type) {
 		case OB_ARMATURE:
 			ob->restore_mode = ob->mode;
 			ob->mode |= OB_MODE_POSE;
@@ -147,7 +148,8 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 		default:
 			return;
 	}
-
+	
+	// XXX: disabled as this would otherwise cause a nasty loop...
 	//ED_object_toggle_modes(C, ob->mode);
 }
 
@@ -408,6 +410,7 @@ void POSE_OT_select_constraint_target(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Constraint Target";
 	ot->idname= "POSE_OT_select_constraint_target";
+	ot->description= "Select bones used as targets for the currently selected bones";
 	
 	/* api callbacks */
 	ot->exec= pose_select_constraint_target_exec;
@@ -476,14 +479,15 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 void POSE_OT_select_hierarchy(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
-	{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
-	{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
-	{0, NULL, 0, NULL, NULL}
+		{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
+		{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	/* identifiers */
 	ot->name= "Select Hierarchy";
 	ot->idname= "POSE_OT_select_hierarchy";
+	ot->description= "Select immediate parent/children of selected bones";
 	
 	/* api callbacks */
 	ot->exec= pose_select_hierarchy_exec;
@@ -641,7 +645,7 @@ void POSE_OT_select_grouped (wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Select Grouped";
-	ot->description = "Select all visible bones grouped by various properties";
+	ot->description = "Select all visible bones grouped by similar properties";
 	ot->idname= "POSE_OT_select_grouped";
 	
 	/* api callbacks */
@@ -946,7 +950,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				flip_side_name(name, chan->name, 0);		/* 0 = don't strip off number extensions */
 			else
 				BLI_strncpy(name, chan->name, sizeof(name));
-
+			
 			/* only copy when channel exists, poses are not meant to add random channels to anymore */
 			pchan= get_pose_channel(ob->pose, name);
 			
@@ -1484,7 +1488,7 @@ void POSE_OT_flip_names (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Flip Names";
 	ot->idname= "POSE_OT_flip_names";
-	ot->description= "Flips (and corrects) the names of selected bones";
+	ot->description= "Flips (and corrects) the axis suffixes of the the names of selected bones";
 	
 	/* api callbacks */
 	ot->exec= pose_flip_names_exec;
@@ -1570,14 +1574,14 @@ void pose_activate_flipped_bone(Scene *scene)
 		if(arm->act_bone) {
 			char name[32];
 			flip_side_name(name, arm->act_bone->name, TRUE);
-
+			
 			pchanf= get_pose_channel(ob->pose, name);
 			if(pchanf && pchanf->bone != arm->act_bone) {
 				arm->act_bone->flag &= ~BONE_SELECTED;
 				pchanf->bone->flag |= BONE_SELECTED;
-
+				
 				arm->act_bone= pchanf->bone;
-
+				
 				/* in weightpaint we select the associated vertex group too */
 				if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 					ED_vgroup_select_by_name(OBACT, name);
