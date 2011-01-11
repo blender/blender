@@ -1789,8 +1789,8 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         # print(ifs_vcol)
         collay = bpymesh.vertex_colors.new()
 
-        for j, f in enumerate(collay.data):
-            fv = bpymesh.faces[j].vertices[:]
+        for f_idx, f in enumerate(collay.data):
+            fv = bpymesh.faces[f_idx].vertices[:]
             if len(fv) == 3:  # XXX speed
                 fcol = f.color1, f.color2, f.color3
             else:
@@ -1815,16 +1815,19 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
                     for c in fcol:
                         c.r, c.g, c.b = vcolor_spot
                 else:
-                    color_index = faces_orig_index[f.index]  # color index is face index
+                    color_index = faces_orig_index[f_idx]  # color index is face index
                     #print(color_index, ifs_color_index)
                     if ifs_color_index:
-                        if color_index <= len(ifs_color_index):
+                        if color_index >= len(ifs_color_index):
                             print('\tWarning: per face color index out of range')
                             color_index = 0
                         else:
                             color_index = ifs_color_index[color_index]
-
-                    col = ifs_vcol[color_index]
+                    try:
+                        col = ifs_vcol[color_index]
+                    except IndexError:
+                        # TODO, look
+                        col = (1.0, 1.0, 1.0)
                     for i, c in enumerate(fcol):
                         c.r, c.g, c.b = col
 
@@ -1862,25 +1865,18 @@ def importMesh_IndexedLineSet(geom, ancestry):
 
     # vcolor = geom.getChildByName('color') # blender dosnt have per vertex color
 
-    bpycurve = bpy.data.curves.new('IndexedCurve', 'Curve')
-    bpycurve.setFlag(1)
-
-    w = t = 1
-
-    curve_index = 0
+    bpycurve = bpy.data.curves.new('IndexedCurve', 'CURVE')
+    bpycurve.dimensions = '3D'
 
     for line in lines:
         if not line:
             continue
         co = points[line[0]]
-        bpycurve.appendNurb([co[0], co[1], co[2], w, t])
-        bpycurve[curve_index].type = 0  # Poly Line
+        nu = bpycurve.splines.new('POLY')
+        nu.points.add(len(line))
 
-        for il in line[1:]:
-            co = points[il]
-            bpycurve.appendPoint(curve_index, [co[0], co[1], co[2], w])
-
-        curve_index += 1
+        for il, pt in zip(line, nu.points):
+            pt.co[0:3] = points[il]
 
     return bpycurve
 
@@ -1896,8 +1892,10 @@ def importMesh_PointSet(geom, ancestry):
 
     # vcolor = geom.getChildByName('color') # blender dosnt have per vertex color
 
-    bpymesh = bpy.data.meshes.new()
-    bpymesh.vertices.extend(points)
+    bpymesh = bpy.data.meshes.new("XXX")
+    bpymesh.vertices.add(len(points))
+    bpymesh.vertices.foreach_set("co", [a for v in points for a in v])
+
     # bpymesh.calcNormals()  # will just be dummy normals
     bpymesh.update()
     return bpymesh
@@ -2348,20 +2346,21 @@ def importTransform(node, ancestry):
 
 
 #def importTimeSensor(node):
+def action_fcurve_ensure(action, data_path, array_index):
+    for fcu in action.fcurves:
+        if fcu.data_path == data_path and fcu.array_index == array_index:
+            return fcu
+
+    return action.fcurves.new(data_path=data_path, array_index=array_index)
 
 
-def translatePositionInterpolator(node, ipo, ancestry):
+def translatePositionInterpolator(node, action, ancestry):
     key = node.getFieldAsArray('key', 0, ancestry)
     keyValue = node.getFieldAsArray('keyValue', 3, ancestry)
 
-    try:
-        loc_x = ipo.addCurve('LocX')
-        loc_y = ipo.addCurve('LocY')
-        loc_z = ipo.addCurve('LocZ')
-    except ValueError:
-        return
-
-    loc_x.interpolation = loc_y.interpolation = loc_z.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
+    loc_x = action_fcurve_ensure(action, "location", 0)
+    loc_y = action_fcurve_ensure(action, "location", 1)
+    loc_z = action_fcurve_ensure(action, "location", 2)
 
     for i, time in enumerate(key):
         try:
@@ -2369,23 +2368,22 @@ def translatePositionInterpolator(node, ipo, ancestry):
         except:
             continue
 
-        loc_x.append((time, x))
-        loc_y.append((time, y))
-        loc_z.append((time, z))
+        loc_x.keyframe_points.add(time, x)
+        loc_y.keyframe_points.add(time, y)
+        loc_z.keyframe_points.add(time, z)
+
+    for fcu in (loc_x, loc_y, loc_z):
+        for kf in fcu.keyframe_points:
+            kf.interpolation = 'LINEAR'
 
 
-def translateOrientationInterpolator(node, ipo, ancestry):
+def translateOrientationInterpolator(node, action, ancestry):
     key = node.getFieldAsArray('key', 0, ancestry)
     keyValue = node.getFieldAsArray('keyValue', 4, ancestry)
 
-    try:
-        rot_x = ipo.addCurve('RotX')
-        rot_y = ipo.addCurve('RotY')
-        rot_z = ipo.addCurve('RotZ')
-    except ValueError:
-        return
-
-    rot_x.interpolation = rot_y.interpolation = rot_z.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
+    rot_x = action_fcurve_ensure(action, "rotation_euler", 0)
+    rot_y = action_fcurve_ensure(action, "rotation_euler", 1)
+    rot_z = action_fcurve_ensure(action, "rotation_euler", 2)
 
     for i, time in enumerate(key):
         try:
@@ -2395,42 +2393,46 @@ def translateOrientationInterpolator(node, ipo, ancestry):
 
         mtx = translateRotation((x, y, z, w))
         eul = mtx.to_euler()
-        rot_x.append((time, eul.x / 10.0))
-        rot_y.append((time, eul.y / 10.0))
-        rot_z.append((time, eul.z / 10.0))
+        rot_x.keyframe_points.add(time, eul.x)
+        rot_y.keyframe_points.add(time, eul.y)
+        rot_z.keyframe_points.add(time, eul.z)
+
+    for fcu in (rot_x, rot_y, rot_z):
+        for kf in fcu.keyframe_points:
+            kf.interpolation = 'LINEAR'
 
 
 # Untested!
-def translateScalarInterpolator(node, ipo, ancestry):
+def translateScalarInterpolator(node, action, ancestry):
     key = node.getFieldAsArray('key', 0, ancestry)
     keyValue = node.getFieldAsArray('keyValue', 4, ancestry)
 
-    try:
-        sca_x = ipo.addCurve('ScaleX')
-        sca_y = ipo.addCurve('ScaleY')
-        sca_z = ipo.addCurve('ScaleZ')
-    except ValueError:
-        return
-
-    sca_x.interpolation = sca_y.interpolation = sca_z.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
+    sca_x = action_fcurve_ensure(action, "scale", 0)
+    sca_y = action_fcurve_ensure(action, "scale", 1)
+    sca_z = action_fcurve_ensure(action, "scale", 2)
 
     for i, time in enumerate(key):
         try:
             x, y, z = keyValue[i]
         except:
             continue
-        sca_x.append((time, x / 10.0))
-        sca_y.append((time, y / 10.0))
-        sca_z.append((time, z / 10.0))
+
+        sca_x.keyframe_points.new(time, x)
+        sca_y.keyframe_points.new(time, y)
+        sca_z.keyframe_points.new(time, z)
 
 
-def translateTimeSensor(node, ipo, ancestry):
+def translateTimeSensor(node, action, ancestry):
     '''
-    Apply a time sensor to an IPO, VRML has many combinations of loop/start/stop/cycle times
+    Apply a time sensor to an action, VRML has many combinations of loop/start/stop/cycle times
     to give different results, for now just do the basics
     '''
 
-    time_cu = ipo.addCurve('Time')
+    # XXX25 TODO
+    if 1:
+        return
+
+    time_cu = action.addCurve('Time')
     time_cu.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
 
     cycleInterval = node.getFieldAsFloat('cycleInterval', None, ancestry)
@@ -2462,10 +2464,10 @@ def importRoute(node, ancestry):
 
     def getIpo(id):
         try:
-            ipo = routeIpoDict[id]
+            action = routeIpoDict[id]
         except:
-            ipo = routeIpoDict[id] = bpy.data.ipos.new('web3d_ipo', 'Object')
-        return ipo
+            action = routeIpoDict[id] = bpy.data.actions.new('web3d_ipo')
+        return action
 
     # for getting definitions
     defDict = node.getDefDict()
@@ -2498,24 +2500,24 @@ ROUTE champFly001.bindTime TO vpTs.set_startTime
 
             if from_type == 'value_changed':
                 if to_type == 'set_position':
-                    ipo = getIpo(to_id)
+                    action = getIpo(to_id)
                     set_data_from_node = defDict[from_id]
-                    translatePositionInterpolator(set_data_from_node, ipo, ancestry)
+                    translatePositionInterpolator(set_data_from_node, action, ancestry)
 
                 if to_type in ('set_orientation', 'rotation'):
-                    ipo = getIpo(to_id)
+                    action = getIpo(to_id)
                     set_data_from_node = defDict[from_id]
-                    translateOrientationInterpolator(set_data_from_node, ipo, ancestry)
+                    translateOrientationInterpolator(set_data_from_node, action, ancestry)
 
                 if to_type == 'set_scale':
-                    ipo = getIpo(to_id)
+                    action = getIpo(to_id)
                     set_data_from_node = defDict[from_id]
-                    translateScalarInterpolator(set_data_from_node, ipo, ancestry)
+                    translateScalarInterpolator(set_data_from_node, action, ancestry)
 
             elif from_type == 'bindTime':
-                ipo = getIpo(from_id)
+                action = getIpo(from_id)
                 time_node = defDict[to_id]
-                translateTimeSensor(time_node, ipo, ancestry)
+                translateTimeSensor(time_node, action, ancestry)
 
 
 def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC=None):
@@ -2564,8 +2566,8 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC=None):
             '''
         # These are delt with later within importRoute
         elif spec=='PositionInterpolator':
-            ipo = bpy.data.ipos.new('web3d_ipo', 'Object')
-            translatePositionInterpolator(node, ipo)
+            action = bpy.data.ipos.new('web3d_ipo', 'Object')
+            translatePositionInterpolator(node, action)
             '''
 
     # After we import all nodes, route events - anim paths
@@ -2579,14 +2581,18 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC=None):
             routeIpoDict = node.getRouteIpoDict()
             defDict = node.getDefDict()
 
-            for key, ipo in routeIpoDict.items():
+            for key, action in routeIpoDict.items():
 
                 # Assign anim curves
                 node = defDict[key]
                 if node.blendObject == None:  # Add an object if we need one for animation
-                    node.blendObject = bpy.context.scene.objects.new('Empty', 'AnimOb')  # , name)
+                    node.blendObject = bpy.data.objects.new('AnimOb', None)  # , name)
+                    bpy.context.scene.objects.link(node.blendObject)
 
-                node.blendObject.setIpo(ipo)
+                if node.blendObject.animation_data is None:
+                    node.blendObject.animation_data_create()
+
+                node.blendObject.animation_data.action = action
 
     # Add in hierarchy
     if PREF_FLAT == False:
@@ -2648,10 +2654,6 @@ def load_ui(path):
     Window.WaitCursor(0)
 
 
-if __name__ == '__main__':
-    Window.FileSelector(load_ui, 'Import X3D/VRML97')
-
-
 # Testing stuff
 
 # load_web3d('/test.x3d')
@@ -2696,7 +2698,7 @@ def test():
     files.sort()
     tot = len(files)
     for i, f in enumerate(files):
-        if i < 124 or i > 1000000:
+        if i < 1064:
             continue
 
         #if i != 1068:
@@ -2708,8 +2710,8 @@ def test():
         f = f.strip()
         print(f, i, tot)
         sce = bpy.data.scenes.new(str(i) + '_' + f.split('/')[-1])
-        bpy.context.scene = sce # XXX25
+        # bpy.context.scene = sce  # XXX25
         # Window.
         load_web3d(f, PREF_FLAT=True)
 
-# test()
+test()
