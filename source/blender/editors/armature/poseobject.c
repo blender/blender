@@ -1594,6 +1594,64 @@ void pose_activate_flipped_bone(Scene *scene)
 
 /* ********************************************** */
 
+/* Show all armature layers */
+static int pose_armature_layers_showall_poll (bContext *C)
+{
+	/* this single operator can be used in posemode OR editmode for armatures */
+	return ED_operator_posemode(C) || ED_operator_editarmature(C);
+}
+
+static int pose_armature_layers_showall_exec (bContext *C, wmOperator *op)
+{
+	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	bArmature *arm = (ob)? ob->data : NULL;
+	PointerRNA ptr;
+	int maxLayers = (RNA_boolean_get(op->ptr, "all"))? 32 : 16;
+	int layers[32] = {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
+	int i;
+	
+	/* sanity checking */
+	if (arm == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* use RNA to set the layers
+	 * 	although it would be faster to just set directly using bitflags, we still
+	 *	need to setup a RNA pointer so that we get the "update" callbacks for free...
+	 */
+	RNA_id_pointer_create(&arm->id, &ptr);
+	
+	for (i = 0; i < maxLayers; i++)
+		layers[i] = 1;
+	
+	RNA_boolean_set_array(&ptr, "layers", layers);
+	
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_layers_show_all (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Show All Layers";
+	ot->idname= "ARMATURE_OT_layers_show_all";
+	ot->description= "Make all armature layers visible";
+	
+	/* callbacks */
+	ot->exec= pose_armature_layers_showall_exec;
+	ot->poll= pose_armature_layers_showall_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All Layers", "Enable all layers or just the first 16 (top row)");
+}
+
+/* ------------------- */
+
 /* Present a popup to get the layers that should be used */
 static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
