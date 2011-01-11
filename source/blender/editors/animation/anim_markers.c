@@ -1321,27 +1321,20 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 #ifdef DURIAN_CAMERA_SWITCH
 /* ******************************* camera bind marker ***************** */
 
-/* remove selected TimeMarkers */
 static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	ListBase *markers= ED_context_get_markers(C);
 	TimeMarker *marker;
-	short changed= 0;
 
-	if(markers == NULL)
+	marker= ED_markers_get_first_selected(markers);
+	if(marker == NULL)
 		return OPERATOR_CANCELLED;
 
-	for(marker= markers->first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) {
-			marker->camera= scene->camera;
-		}
-	}
+	marker->camera= scene->camera;
 
-	if (changed) {
-		WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
-		WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
-	}
+	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 
 	return OPERATOR_FINISHED;
 }
