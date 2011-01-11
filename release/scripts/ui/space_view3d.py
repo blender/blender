@@ -2117,7 +2117,7 @@ class VIEW3D_PT_view3d_meshdisplay(bpy.types.Panel):
         col.separator()
         col.label(text="Numerics:")
         col.prop(mesh, "show_extra_edge_length")
-        col.prop(mesh, "show_extra_edge_angle")
+        col.prop(mesh, "show_extra_face_angle")
         col.prop(mesh, "show_extra_face_area")
 
 
