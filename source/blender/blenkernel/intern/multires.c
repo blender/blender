@@ -1299,7 +1299,6 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 	unsigned int i, j, totvert;
 
 	src = 0;
-	dst = 0;
 	vsrc = mr->verts;
 	vdst = dm->getVertArray(dm);
 	totvert = (unsigned int)dm->getNumVerts(dm);
@@ -1428,7 +1427,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 			dst = ldst;
 		}
 
-		lvl = lvl->next;
+		/*lvl = lvl->next;*/ /*UNUSED*/
 
 		for(i = 0; i < (unsigned int)(mr->level_count - 1); ++i) {
 			MEM_freeN(fmap[i]);
@@ -1596,10 +1595,9 @@ void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	DMGridData **gridData, **subGridData;
 	Mesh *me= (Mesh*)ob->data;
 	MFace *mface= me->mface;
-	MVert *mvert= NULL;
 	MDisps *mdisps;
 	int *gridOffset;
-	int i, numGrids, gridSize, dGridSize, dSkip, totvert;
+	int i, /*numGrids,*/ gridSize, dGridSize, dSkip, totvert;
 	float (*vertCos)[3] = NULL;
 	MultiresModifierData *mmd= get_multires_modifier(scene, ob);
 	MultiresModifierData high_mmd;
@@ -1627,13 +1625,11 @@ void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	CDDM_apply_vert_coords(cddm, vertCos);
 	MEM_freeN(vertCos);
 
-	mvert= cddm->getVertArray(cddm);
-
 	/* scaled ccgDM for tangent space of object with applied scale */
 	dm= subsurf_dm_create_local(ob, cddm, high_mmd.totlvl, high_mmd.simple, 0);
 	cddm->release(cddm);
 
-	numGrids= dm->getNumGrids(dm);
+	/*numGrids= dm->getNumGrids(dm);*/ /*UNUSED*/
 	gridSize= dm->getGridSize(dm);
 	gridData= dm->getGridData(dm);
 	gridOffset= dm->getGridOffset(dm);

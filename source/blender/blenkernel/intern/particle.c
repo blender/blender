@@ -197,7 +197,7 @@ void psys_set_current_num(Object *ob, int index)
 }
 Object *psys_find_object(Scene *scene, ParticleSystem *psys)
 {
-	Base *base = scene->base.first;
+	Base *base;
 	ParticleSystem *tpsys;
 
 	for(base = scene->base.first; base; base = base->next) {
@@ -3953,7 +3953,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 	float t, frs_sec = sim->scene->r.frs_sec;
 	float co[3], orco[3];
 	float hairmat[4][4];
-	int totparent = 0;
+	/*int totparent = 0;*/ /*UNUSED*/
 	int totpart = psys->totpart;
 	int totchild = psys->totchild;
 	short between = 0, edit = 0;
@@ -4009,11 +4009,12 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			t = psys_get_child_time(psys, cpa, -state->time, NULL, NULL);
 		
 		if(totchild && part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
+#if 0		/* totparent is UNUSED */
 			totparent=(int)(totchild*part->parents*0.3);
 			
 			if(G.rendering && part->child_nbr && part->ren_child_nbr)
 				totparent*=(float)part->child_nbr/(float)part->ren_child_nbr;
-			
+#endif
 			/* part->parents could still be 0 so we can't test with totparent */
 			between=1;
 		}

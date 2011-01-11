@@ -467,13 +467,13 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 	else if(ELEM(from,PART_FROM_FACE,PART_FROM_VOLUME)){
 		float co1[3], co2[3];
 
-		MFace *mface=0;
+		MFace *mface= NULL, *mface_array;
 		float v1[3], v2[3], v3[3], v4[4], lambda;
 		int a, a1, a2, a0mul, a1mul, a2mul, totface;
 		int amax= from==PART_FROM_FACE ? 3 : 1;
 
 		totface=dm->getNumFaces(dm);
-		mface=dm->getFaceDataArray(dm,CD_MFACE);
+		mface_array= dm->getFaceDataArray(dm,CD_MFACE);
 		
 		for(a=0; a<amax; a++){
 			if(a==0){ a0mul=res*res; a1mul=res; a2mul=1; }
@@ -482,7 +482,7 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 
 			for(a1=0; a1<size[(a+1)%3]; a1++){
 				for(a2=0; a2<size[(a+2)%3]; a2++){
-					mface=dm->getFaceDataArray(dm,CD_MFACE);
+					mface= mface_array;
 
 					pa=psys->particles + a1*a1mul + a2*a2mul;
 					VECCOPY(co1,pa->fuv);
@@ -533,7 +533,7 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 	}
 
 	if(psys->part->flag & PART_GRID_INVERT){
-		for(i=0,pa=psys->particles; i<size[0]; i++){
+		for(i=0; i<size[0]; i++){
 			for(j=0; j<size[1]; j++){
 				pa=psys->particles + res*(i*res + j);
 				for(k=0; k<size[2]; k++, pa++){
@@ -810,7 +810,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 		if(ctx->tree){
 			KDTreeNearest ptn[10];
 			int w,maxw;//, do_seams;
-			float maxd,mind,dd,totw=0.0;
+			float maxd,mind,/*dd,*/totw=0.0;
 			int parent[10];
 			float pweight[10];
 
@@ -820,7 +820,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 
 			maxd=ptn[maxw-1].dist;
 			mind=ptn[0].dist;
-			dd=maxd-mind;
+			/*dd=maxd-mind;*/ /*UNUSED*/
 			
 			/* the weights here could be done better */
 			for(w=0; w<maxw; w++){
@@ -941,7 +941,7 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 	DerivedMesh *dm= NULL;
 	float *jit= NULL;
 	int i, seed, p=0, totthread= threads[0].tot;
-	int no_distr=0, cfrom=0;
+	int /*no_distr=0,*/ cfrom=0;
 	int tot=0, totpart, *index=0, children=0, totseam=0;
 	//int *vertpart=0;
 	int jitlevel= 1, distr;
@@ -1028,7 +1028,7 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
 
 		distr=part->distr;
-		pa=psys->particles;
+
 		if(from==PART_FROM_VERT){
 			MVert *mv= dm->getVertDataArray(dm, CD_MVERT);
 			float (*orcodata)[3]= dm->getVertDataArray(dm, CD_ORCO);
@@ -1073,7 +1073,7 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 	}
 
 	if(tot==0){
-		no_distr=1;
+		/*no_distr=1;*/ /*UNUSED*/
 		if(children){
 			if(G.f & G_DEBUG)
 				fprintf(stderr,"Particle child distribution error: Nothing to emit from!\n");
@@ -2272,7 +2272,7 @@ void  delete_fluid_spring(ParticleSystem *psys, int j)
 EdgeHash *build_fluid_springhash(ParticleSystem *psys)
 {
 	EdgeHash *springhash = NULL;
-	ParticleSpring *spring = psys->fluid_springs;
+	ParticleSpring *spring;
 	int i = 0;
 
 	springhash = BLI_edgehash_new();
@@ -2469,7 +2469,7 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 	ParticleKey states[5], tkey;
 	float timestep = psys_get_timestep(sim);
 	float force[3],impulse[3],dx[4][3],dv[4][3],oldpos[3];
-	float dtime=dfra*timestep, time, pa_mass=part->mass, fac, fra=sim->psys->cfra;
+	float dtime=dfra*timestep, time, pa_mass=part->mass, fac /*, fra=sim->psys->cfra*/;
 	int i, steps=1;
 	
 	/* maintain angular velocity */
@@ -2542,7 +2542,7 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 				if(i==0){
 					VECADDFAC(states[1].co,states->co,states->vel,dtime*0.5f);
 					VECADDFAC(states[1].vel,states->vel,force,dtime*0.5f);
-					fra=sim->psys->cfra+0.5f*dfra;
+					/*fra=sim->psys->cfra+0.5f*dfra;*/
 				}
 				else{
 					VECADDFAC(pa->state.co,states->co,states[1].vel,dtime);
@@ -2559,7 +2559,7 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 
 						VECADDFAC(states[1].co,states->co,dx[0],0.5f);
 						VECADDFAC(states[1].vel,states->vel,dv[0],0.5f);
-						fra=sim->psys->cfra+0.5f*dfra;
+						/*fra=sim->psys->cfra+0.5f*dfra;*/
 						break;
 					case 1:
 						VECADDFAC(dx[1],states->vel,dv[0],0.5f);
@@ -2578,7 +2578,7 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 
 						VECADD(states[3].co,states->co,dx[2]);
 						VECADD(states[3].vel,states->vel,dv[2]);
-						fra=cfra;
+						/*fra=cfra;*/
 						break;
 					case 3:
 						VECADD(dx[3],states->vel,dv[2]);
@@ -3353,15 +3353,12 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra)){
 	ParticleSystem *psys = sim->psys;
 	HairKey *key, *root;
 	PARTICLE_P;
-	int totpart;
 
 	invert_m4_m4(ob->imat, ob->obmat);
 	
 	psys->lattice= psys_get_lattice(sim);
 
 	if(psys->totpart==0) return;
-
-	totpart=psys->totpart;
 	
 	/* save new keys for elements if needed */
 	LOOP_PARTICLES {
@@ -3684,7 +3681,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			char filename[256];
 			char debugStrBuffer[256];
 			int  curFrame = sim->scene->r.cfra -1; // warning - sync with derived mesh fsmesh loading
-			int  p, j, numFileParts, totpart;
+			int  p, j, totpart;
 			int readMask, activeParts = 0, fileParts = 0;
 			gzFile gzf;
 	
@@ -3706,7 +3703,6 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			}
 	
 			gzread(gzf, &totpart, sizeof(totpart));
-			numFileParts = totpart;
 			totpart = (G.rendering)?totpart:(part->disp*totpart)/100;
 			
 			part->totpart= totpart;
