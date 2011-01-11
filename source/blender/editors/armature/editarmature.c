@@ -4922,21 +4922,158 @@ void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob,
 } 
 /* ************* Clear Pose *****************************/
 
-static int pose_clear_scale_exec(bContext *C, wmOperator *UNUSED(op)) 
+/* clear scale of pose-channel */
+static void pchan_clear_scale(bPoseChannel *pchan)
+{
+	if ((pchan->protectflag & OB_LOCK_SCALEX)==0)
+		pchan->size[0]= 1.0f;
+	if ((pchan->protectflag & OB_LOCK_SCALEY)==0)
+		pchan->size[1]= 1.0f;
+	if ((pchan->protectflag & OB_LOCK_SCALEZ)==0)
+		pchan->size[2]= 1.0f;
+}
+
+/* clear location of pose-channel */
+static void pchan_clear_loc(bPoseChannel *pchan)
+{
+	if ((pchan->protectflag & OB_LOCK_LOCX)==0)
+		pchan->loc[0]= 0.0f;
+	if ((pchan->protectflag & OB_LOCK_LOCY)==0)
+		pchan->loc[1]= 0.0f;
+	if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
+		pchan->loc[2]= 0.0f;
+}
+
+/* clear rotation of pose-channel */
+static void pchan_clear_rot(bPoseChannel *pchan)
+{
+	if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
+		/* check if convert to eulers for locking... */
+		if (pchan->protectflag & OB_LOCK_ROT4D) {
+			/* perform clamping on a component by component basis */
+			if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+				if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
+					pchan->rotAngle= 0.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
+					pchan->rotAxis[0]= 0.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
+					pchan->rotAxis[1]= 0.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
+					pchan->rotAxis[2]= 0.0f;
+					
+				/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
+				if (IS_EQ(pchan->rotAxis[0], pchan->rotAxis[1]) && IS_EQ(pchan->rotAxis[1], pchan->rotAxis[2]))
+					pchan->rotAxis[1] = 1.0f;
+			}
+			else if (pchan->rotmode == ROT_MODE_QUAT) {
+				if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
+					pchan->quat[0]= 1.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
+					pchan->quat[1]= 0.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
+					pchan->quat[2]= 0.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
+					pchan->quat[3]= 0.0f;
+			}
+			else {
+				/* the flag may have been set for the other modes, so just ignore the extra flag... */
+				if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
+					pchan->eul[0]= 0.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
+					pchan->eul[1]= 0.0f;
+				if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
+					pchan->eul[2]= 0.0f;
+			}
+		}
+		else {
+			/* perform clamping using euler form (3-components) */
+			float eul[3], oldeul[3], quat1[4] = {0};
+			float qlen = 0.0f;
+			
+			if (pchan->rotmode == ROT_MODE_QUAT) {
+				qlen= normalize_qt_qt(quat1, pchan->quat);
+				quat_to_eul(oldeul, quat1);
+			}
+			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+				axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,pchan->rotAxis, pchan->rotAngle);
+			}
+			else {
+				copy_v3_v3(oldeul, pchan->eul);
+			}
+			
+			eul[0]= eul[1]= eul[2]= 0.0f;
+			
+			if (pchan->protectflag & OB_LOCK_ROTX)
+				eul[0]= oldeul[0];
+			if (pchan->protectflag & OB_LOCK_ROTY)
+				eul[1]= oldeul[1];
+			if (pchan->protectflag & OB_LOCK_ROTZ)
+				eul[2]= oldeul[2];
+			
+			if (pchan->rotmode == ROT_MODE_QUAT) {
+				eul_to_quat(pchan->quat, eul);
+				
+				/* restore original quat size */
+				mul_qt_fl(pchan->quat, qlen);
+				
+				/* quaternions flip w sign to accumulate rotations correctly */
+				if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
+					mul_qt_fl(pchan->quat, -1.0f);
+				}
+			}
+			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+				eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,eul, EULER_ORDER_DEFAULT);
+			}
+			else {
+				copy_v3_v3(pchan->eul, eul);
+			}
+		}
+	}						// Duplicated in source/blender/editors/object/object_transform.c
+	else { 
+		if (pchan->rotmode == ROT_MODE_QUAT) {
+			unit_qt(pchan->quat);
+		}
+		else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+			/* by default, make rotation of 0 radians around y-axis (roll) */
+			pchan->rotAxis[0]=pchan->rotAxis[2]=pchan->rotAngle= 0.0f;
+			pchan->rotAxis[1]= 1.0f;
+		}
+		else {
+			pchan->eul[0]= pchan->eul[1]= pchan->eul[2]= 0.0f;
+		}
+	}
+}
+
+/* clear loc/rot/scale of pose-channel */
+static void pchan_clear_transforms(bPoseChannel *pchan)
+{
+	pchan_clear_loc(pchan);
+	pchan_clear_rot(pchan);
+	pchan_clear_scale(pchan);
+}
+
+/* --------------- */
+
+/* generic exec for clear-pose operators */
+static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op, 
+		void (*clear_func)(bPoseChannel*), const char default_ksName[])
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	short autokey = 0;
 	
+	/* sanity checks */
+	if ELEM(NULL, clear_func, default_ksName) {
+		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform func or Keying Set Name");
+		return OPERATOR_CANCELLED;
+	}
+	
 	/* only clear those channels that are not locked */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
-		if ((pchan->protectflag & OB_LOCK_SCALEX)==0)
-			pchan->size[0]= 1.0f;
-		if ((pchan->protectflag & OB_LOCK_SCALEY)==0)
-			pchan->size[1]= 1.0f;
-		if ((pchan->protectflag & OB_LOCK_SCALEZ)==0)
-			pchan->size[2]= 1.0f;
-			
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
+	{
+		/* run provided clearing function */
+		clear_func(pchan);
+		
 		/* do auto-keyframing as appropriate */
 		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
 			/* clear any unkeyed tags */
@@ -4957,7 +5094,7 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *UNUSED(op))
 	/* perform autokeying on the bones if needed */
 	if (autokey) {
 		/* get KeyingSet to use */
-		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Scaling");
+		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
 		
 		/* insert keyframes */
 		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
@@ -4975,11 +5112,19 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
+/* --------------- */
+
+static int pose_clear_scale_exec(bContext *C, wmOperator *op) 
+{
+	return pose_clear_transform_generic_exec(C, op, pchan_clear_scale, "Scaling");
+}
+
 void POSE_OT_scale_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Pose Scale";
 	ot->idname= "POSE_OT_scale_clear";
+	ot->description = "Reset scaling of selected bones to their default values";
 	
 	/* api callbacks */
 	ot->exec = pose_clear_scale_exec;
@@ -4989,58 +5134,31 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int pose_clear_loc_exec(bContext *C, wmOperator *UNUSED(op)) 
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
-	short autokey = 0;
-	
-	/* only clear those channels that are not locked */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
-		/* clear location */
-		if ((pchan->protectflag & OB_LOCK_LOCX)==0)
-			pchan->loc[0]= 0.0f;
-		if ((pchan->protectflag & OB_LOCK_LOCY)==0)
-			pchan->loc[1]= 0.0f;
-		if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
-			pchan->loc[2]= 0.0f;
-			
-		/* do auto-keyframing as appropriate */
-		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-			/* clear any unkeyed tags */
-			if (pchan->bone)
-				pchan->bone->flag &= ~BONE_UNKEYED;
-				
-			/* tag for autokeying later */
-			autokey = 1;
-		}
-		else {
-			/* add unkeyed tags */
-			if (pchan->bone)
-				pchan->bone->flag |= BONE_UNKEYED;
-		}
-	}
-	CTX_DATA_END;
-	
-	/* perform autokeying on the bones if needed */
-	if (autokey) {
-		/* get KeyingSet to use */
-		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Location");
-		
-		/* insert keyframes */
-		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-		
-		/* now recalculate paths */
-		if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS))
-			ED_pose_recalculate_paths(scene, ob);
-	}
-	
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+static int pose_clear_rot_exec(bContext *C, wmOperator *op) 
+{
+	return pose_clear_transform_generic_exec(C, op, pchan_clear_rot, "Rotation");
+}
+
+void POSE_OT_rot_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Pose Rotation";
+	ot->idname= "POSE_OT_rot_clear";
+	ot->description = "Reset rotations of selected bones to their default values";
 	
-	return OPERATOR_FINISHED;
+	/* api callbacks */
+	ot->exec = pose_clear_rot_exec;
+	ot->poll = ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+static int pose_clear_loc_exec(bContext *C, wmOperator *op) 
+{
+	return pose_clear_transform_generic_exec(C, op, pchan_clear_loc, "Location");
 }
 
 void POSE_OT_loc_clear(wmOperatorType *ot)
@@ -5048,6 +5166,7 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clear Pose Location";
 	ot->idname= "POSE_OT_loc_clear";
+	ot->description = "Reset locations of selected bones to their default values";
 	
 	/* api callbacks */
 	ot->exec = pose_clear_loc_exec;
@@ -5057,161 +5176,25 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op)) 
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
-	short autokey = 0;
-	
-	/* only clear those channels that are not locked */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
-		if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
-			/* check if convert to eulers for locking... */
-			if (pchan->protectflag & OB_LOCK_ROT4D) {
-				/* perform clamping on a component by component basis */
-				if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-					if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
-						pchan->rotAngle= 0.0f;
-					if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
-						pchan->rotAxis[0]= 0.0f;
-					if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
-						pchan->rotAxis[1]= 0.0f;
-					if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
-						pchan->rotAxis[2]= 0.0f;
-						
-					/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
-					if (IS_EQ(pchan->rotAxis[0], pchan->rotAxis[1]) && IS_EQ(pchan->rotAxis[1], pchan->rotAxis[2]))
-						pchan->rotAxis[1] = 1.0f;
-				}
-				else if (pchan->rotmode == ROT_MODE_QUAT) {
-					if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
-						pchan->quat[0]= 1.0f;
-					if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
-						pchan->quat[1]= 0.0f;
-					if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
-						pchan->quat[2]= 0.0f;
-					if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
-						pchan->quat[3]= 0.0f;
-				}
-				else {
-					/* the flag may have been set for the other modes, so just ignore the extra flag... */
-					if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
-						pchan->eul[0]= 0.0f;
-					if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
-						pchan->eul[1]= 0.0f;
-					if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
-						pchan->eul[2]= 0.0f;
-				}
-			}
-			else {
-				/* perform clamping using euler form (3-components) */
-				float eul[3], oldeul[3], quat1[4] = {0};
-				float qlen = 0.0f;
-				
-				if (pchan->rotmode == ROT_MODE_QUAT) {
-					qlen= normalize_qt_qt(quat1, pchan->quat);
-					quat_to_eul(oldeul, quat1);
-				}
-				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-					axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,pchan->rotAxis, pchan->rotAngle);
-				}
-				else {
-					copy_v3_v3(oldeul, pchan->eul);
-				}
-				
-				eul[0]= eul[1]= eul[2]= 0.0f;
-				
-				if (pchan->protectflag & OB_LOCK_ROTX)
-					eul[0]= oldeul[0];
-				if (pchan->protectflag & OB_LOCK_ROTY)
-					eul[1]= oldeul[1];
-				if (pchan->protectflag & OB_LOCK_ROTZ)
-					eul[2]= oldeul[2];
-				
-				if (pchan->rotmode == ROT_MODE_QUAT) {
-					eul_to_quat(pchan->quat, eul);
-					
-					/* restore original quat size */
-					mul_qt_fl(pchan->quat, qlen);
-					
-					/* quaternions flip w sign to accumulate rotations correctly */
-					if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
-						mul_qt_fl(pchan->quat, -1.0f);
-					}
-				}
-				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-					eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,eul, EULER_ORDER_DEFAULT);
-				}
-				else {
-					copy_v3_v3(pchan->eul, eul);
-				}
-			}
-		}						// Duplicated in source/blender/editors/object/object_transform.c
-		else { 
-			if (pchan->rotmode == ROT_MODE_QUAT) {
-				unit_qt(pchan->quat);
-			}
-			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-				/* by default, make rotation of 0 radians around y-axis (roll) */
-				pchan->rotAxis[0]=pchan->rotAxis[2]=pchan->rotAngle= 0.0f;
-				pchan->rotAxis[1]= 1.0f;
-			}
-			else {
-				pchan->eul[0]= pchan->eul[1]= pchan->eul[2]= 0.0f;
-			}
-		}
-		
-		/* do auto-keyframing as appropriate */
-		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-			/* clear any unkeyed tags */
-			if (pchan->bone)
-				pchan->bone->flag &= ~BONE_UNKEYED;
-				
-			/* tag for autokeying later */
-			autokey = 1;
-		}
-		else {
-			/* add unkeyed tags */
-			if (pchan->bone)
-				pchan->bone->flag |= BONE_UNKEYED;
-		}
-	}
-	CTX_DATA_END;
-	
-	/* perform autokeying on the bones if needed */
-	if (autokey) {
-		/* get KeyingSet to use */
-		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Rotation");
-		
-		/* insert keyframes */
-		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-		
-		/* now recalculate paths */
-		if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS))
-			ED_pose_recalculate_paths(scene, ob);
-	}
-	
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
-	
-	return OPERATOR_FINISHED;
+static int pose_clear_transforms_exec(bContext *C, wmOperator *op) 
+{
+	return pose_clear_transform_generic_exec(C, op, pchan_clear_transforms, "LocRotScale");
 }
 
-void POSE_OT_rot_clear(wmOperatorType *ot)
+void POSE_OT_transforms_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Pose Rotation";
-	ot->idname= "POSE_OT_rot_clear";
+	ot->name= "Clear Pose Transforms";
+	ot->idname= "POSE_OT_transforms_clear";
+	ot->description = "Reset location, rotation, and scaling of selected bones to their default values";
 	
 	/* api callbacks */
-	ot->exec = pose_clear_rot_exec;
+	ot->exec = pose_clear_transforms_exec;
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
 }
 
 /* ***************** selections ********************** */

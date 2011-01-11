@@ -105,6 +105,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_rot_clear);
 	WM_operatortype_append(POSE_OT_loc_clear);
 	WM_operatortype_append(POSE_OT_scale_clear);
+	WM_operatortype_append(POSE_OT_transforms_clear);
 	
 	WM_operatortype_append(POSE_OT_copy);
 	WM_operatortype_append(POSE_OT_paste);

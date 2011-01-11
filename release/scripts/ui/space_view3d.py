@@ -1227,7 +1227,7 @@ class VIEW3D_MT_pose_transform(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.label(text="User Transform")
+        layout.operator("pose.transforms_clear", text="All")
 
         layout.operator("pose.loc_clear", text="Location")
         layout.operator("pose.rot_clear", text="Rotation")
