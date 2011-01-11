@@ -372,7 +372,7 @@ static void rna_Mesh_uv_textures_begin(CollectionPropertyIterator *iter, Pointer
 {
 	Mesh *me= (Mesh*)ptr->data;
 	CustomData *fdata= rna_mesh_fdata(me);
-	rna_iterator_array_begin(iter, (void*)fdata->layers, sizeof(CustomDataLayer), rna_CustomDataLayer_length(ptr, CD_MTFACE), 0, rna_uv_texture_check);
+	rna_iterator_array_begin(iter, (void*)fdata->layers, sizeof(CustomDataLayer), fdata->totlayer, 0, rna_uv_texture_check);
 }
 
 static int rna_Mesh_uv_textures_length(PointerRNA *ptr)
@@ -695,7 +695,7 @@ static void rna_Mesh_vertex_colors_begin(CollectionPropertyIterator *iter, Point
 {
 	Mesh *me= (Mesh*)ptr->data;
 	CustomData *fdata= rna_mesh_fdata(me);
-	rna_iterator_array_begin(iter, (void*)fdata->layers, sizeof(CustomDataLayer), rna_CustomDataLayer_length(ptr, CD_MCOL), 0, rna_vertex_color_check);
+	rna_iterator_array_begin(iter, (void*)fdata->layers, sizeof(CustomDataLayer), fdata->totlayer, 0, rna_vertex_color_check);
 }
 
 static int rna_Mesh_vertex_colors_length(PointerRNA *ptr)
@@ -820,7 +820,7 @@ static void rna_Mesh_float_layers_begin(CollectionPropertyIterator *iter, Pointe
 {
 	Mesh *me= (Mesh*)ptr->data;
 	CustomData *fdata= rna_mesh_fdata(me);
-	rna_iterator_array_begin(iter, (void*)fdata->layers, sizeof(CustomDataLayer), rna_CustomDataLayer_length(ptr, CD_PROP_FLT), 0, rna_float_layer_check);
+	rna_iterator_array_begin(iter, (void*)fdata->layers, sizeof(CustomDataLayer), fdata->totlayer, 0, rna_float_layer_check);
 }
 
 static int rna_Mesh_float_layers_length(PointerRNA *ptr)
@@ -851,7 +851,7 @@ static void rna_Mesh_int_layers_begin(CollectionPropertyIterator *iter, PointerR
 {
 	Mesh *me= (Mesh*)ptr->data;
 	CustomData *fdata= rna_mesh_fdata(me);
-	rna_iterator_array_begin(iter, (void*)fdata->layers, sizeof(CustomDataLayer), rna_CustomDataLayer_length(ptr, CD_PROP_INT), 0, rna_int_layer_check);
+	rna_iterator_array_begin(iter, (void*)fdata->layers, sizeof(CustomDataLayer), fdata->totlayer, 0, rna_int_layer_check);
 }
 
 static int rna_Mesh_int_layers_length(PointerRNA *ptr)
@@ -882,7 +882,7 @@ static void rna_Mesh_string_layers_begin(CollectionPropertyIterator *iter, Point
 {
 	Mesh *me= (Mesh*)ptr->data;
 	CustomData *fdata= rna_mesh_fdata(me);
-	rna_iterator_array_begin(iter, (void*)fdata->layers, sizeof(CustomDataLayer), rna_CustomDataLayer_length(ptr, CD_PROP_STR), 0, rna_string_layer_check);
+	rna_iterator_array_begin(iter, (void*)fdata->layers, sizeof(CustomDataLayer), fdata->totlayer, 0, rna_string_layer_check);
 }
 
 static int rna_Mesh_string_layers_length(PointerRNA *ptr)
