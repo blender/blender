@@ -21,10 +21,7 @@
 DEBUG = False
 
 # This should work without a blender at all
-try:
-    from Blender.sys import exists
-except:
-    from os.path import exists
+from os.path import exists
 
 
 def baseName(path):
@@ -946,13 +943,13 @@ class vrmlNode(object):
                 print(url)
                 urls = []
                 urls.append(url)
-                urls.append(BPySys.caseInsensitivePath(urls[-1]))
+                urls.append(bpy.path.resolve_ncase(urls[-1]))
 
                 urls.append(dirName(self.getFilename()) + url)
-                urls.append(BPySys.caseInsensitivePath(urls[-1]))
+                urls.append(bpy.path.resolve_ncase(urls[-1]))
 
                 urls.append(dirName(self.getFilename()) + baseName(url))
-                urls.append(BPySys.caseInsensitivePath(urls[-1]))
+                urls.append(bpy.path.resolve_ncase(urls[-1]))
 
                 try:
                     url = [url for url in urls if exists(url)][0]
@@ -1192,7 +1189,7 @@ class vrmlNode(object):
                         field_list = []
                         field_context = []
 
-                        for j in xrange(len(value)):
+                        for j in range(len(value)):
                             if iskey(value[j]):
                                 if field_context:
                                     # this IS a key but the previous value was not a key, ot it was a defined field.
@@ -1421,16 +1418,14 @@ for i, f in enumerate(files):
 # NO BLENDER CODE ABOVE THIS LINE.
 # -----------------------------------------------------------------------------------
 import bpy
-import BPyImage
-import BPySys
-reload(BPySys)
-reload(BPyImage)
-import Blender
-from Blender import Texture, Material, Mathutils, Mesh, Types, Window
-from Blender.Mathutils import TranslationMatrix
-from Blender.Mathutils import RotationMatrix
-from Blender.Mathutils import Vector
-from Blender.Mathutils import Matrix
+import image_utils
+# import BPyImage
+# import BPySys
+# reload(BPySys)
+# reload(BPyImage)
+# import Blender
+# from Blender import Texture, Material, Mathutils, Mesh, Types, Window
+from mathutils import Vector, Matrix
 
 RAD_TO_DEG = 57.29578
 
@@ -1439,7 +1434,7 @@ GLOBALS = {'CIRCLE_DETAIL': 16}
 
 def translateRotation(rot):
     ''' axis, angle '''
-    return RotationMatrix(rot[3] * RAD_TO_DEG, 4, 'r', Vector(rot[:3]))
+    return Matrix.Rotation(rot[3] * RAD_TO_DEG, 4, Vector(rot[:3]))
 
 
 def translateScale(sca):
@@ -1458,7 +1453,7 @@ def translateTransform(node, ancestry):
     tx = node.getFieldAsFloatTuple('translation', None, ancestry)  # (0.0, 0.0, 0.0)
 
     if cent:
-        cent_mat = TranslationMatrix(Vector(cent)).resize4x4()
+        cent_mat = Matrix.Translation(Vector(cent)).resize4x4()
         cent_imat = cent_mat.copy().invert()
     else:
         cent_mat = cent_imat = None
@@ -1480,7 +1475,7 @@ def translateTransform(node, ancestry):
         scaori_mat = scaori_imat = None
 
     if tx:
-        tx_mat = TranslationMatrix(Vector(tx)).resize4x4()
+        tx_mat = Matrix.Translation(Vector(tx)).resize4x4()
     else:
         tx_mat = None
 
@@ -1502,13 +1497,13 @@ def translateTexTransform(node, ancestry):
 
     if cent:
         # cent is at a corner by default
-        cent_mat = TranslationMatrix(Vector(cent).resize3D()).resize4x4()
+        cent_mat = Matrix.Translation(Vector(cent).resize3D()).resize4x4()
         cent_imat = cent_mat.copy().invert()
     else:
         cent_mat = cent_imat = None
 
     if rot:
-        rot_mat = RotationMatrix(rot * RAD_TO_DEG, 4, 'z')  # translateRotation(rot)
+        rot_mat = Matrix.Rotation(rot * RAD_TO_DEG, 4, 'Z')  # translateRotation(rot)
     else:
         rot_mat = None
 
@@ -1518,7 +1513,7 @@ def translateTexTransform(node, ancestry):
         sca_mat = None
 
     if tx:
-        tx_mat = TranslationMatrix(Vector(tx).resize3D()).resize4x4()
+        tx_mat = Matrix.Translation(Vector(tx).resize3D()).resize4x4()
     else:
         tx_mat = None
 
@@ -1598,11 +1593,11 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
     if vcolor:
         # float to char
         ifs_vcol = [(0, 0, 0)]  # EEKADOODLE - vertex start at 1
-        ifs_vcol.extend([[int(c * 256) for c in col] for col in vcolor.getFieldAsArray('color', 3, ancestry)])
+        ifs_vcol.extend([col for col in vcolor.getFieldAsArray('color', 3, ancestry)])
         ifs_color_index = geom.getFieldAsArray('colorIndex', 0, ancestry)
 
         if not ifs_vcol:
-            vcolor_spot = [int(c * 256) for c in vcolor.getFieldAsFloatTuple('color', [], ancestry)]
+            vcolor_spot = vcolor.getFieldAsFloatTuple('color', [], ancestry)
 
     # Convert faces into somthing blender can use
     edges = []
@@ -1631,7 +1626,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         elif l == 2:
             edges.append(face)
         elif l > 4:
-            for i in xrange(2, len(face)):
+            for i in range(2, len(face)):
                 faces.append([face[0], face[i - 1], face[i]])
                 if do_uvmap:
                     faces_uv.append([fuvs[0], fuvs[i - 1], fuvs[i]])
@@ -1668,21 +1663,24 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
     add_face(face, fuvs, orig_index)
     del add_face  # dont need this func anymore
 
-    bpymesh = bpy.data.meshes.new()
+    bpymesh = bpy.data.meshes.new(name="XXX")
 
-    bpymesh.verts.extend([(0, 0, 0)])  # EEKADOODLE
-    bpymesh.verts.extend(ifs_points)
+    # EEKADOODLE
+    bpymesh.vertices.add(1 + (len(ifs_points)))
+    bpymesh.vertices.foreach_set("co", [0, 0, 0] + [a for v in ifs_points for a in v])  # XXX25 speed
 
     # print(len(ifs_points), faces, edges, ngons)
 
     try:
-        bpymesh.faces.extend(faces, smooth=True, ignoreDups=True)
+        bpymesh.faces.add(len(faces))
+        bpymesh.faces.foreach_set("vertices_raw", [a for f in faces for a in (f + [0] if len(f) == 3 else f)])  # XXX25 speed
     except KeyError:
         print("one or more vert indicies out of range. corrupt file?")
         #for f in faces:
         #   bpymesh.faces.extend(faces, smooth=True)
 
-    bpymesh.calcNormals()
+    # bpymesh.calcNormals()
+    bpymesh.update()
 
     if len(bpymesh.faces) != len(faces):
         print('\tWarning: adding faces did not work! file is invalid, not adding UVs or vcolors')
@@ -1694,17 +1692,18 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
     if coords_tex:
         #print(ifs_texpoints)
         # print(geom)
-        bpymesh.faceUV = True
-        for i, f in enumerate(bpymesh.faces):
+        uvlay = bpymesh.uv_textures.new()
+
+        for i, f in enumerate(uvlay.data):
             f.image = bpyima
             fuv = faces_uv[i]  # uv indicies
             for j, uv in enumerate(f.uv):
                 # print(fuv, j, len(ifs_texpoints))
                 try:
-                    uv[:] = ifs_texpoints[fuv[j]]
+                    f.uv[j] = ifs_texpoints[fuv[j]]  # XXX25, speedup
                 except:
                     print('\tWarning: UV Index out of range')
-                    uv[:] = ifs_texpoints[0]
+                    f.uv[j] = ifs_texpoints[0]  # XXX25, speedup
 
     elif bpyima and len(bpymesh.faces):
         # Oh Bugger! - we cant really use blenders ORCO for for texture space since texspace dosnt rotate.
@@ -1768,30 +1767,37 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
             # This should be safe because when 2 axies have the same length, the lower index will be used.
             axis_v += 1
 
-        bpymesh.faceUV = True
+        uvlay = bpymesh.uv_textures.new()
 
         # HACK !!! - seems to be compatible with Cosmo though.
         depth_v = depth_u = max(depth_v, depth_u)
 
-        for f in bpymesh.faces:
+        bpymesh_vertices = bpymesh.vertices[:]
+        bpymesh_faces = bpymesh.faces[:]
+
+        for j, f in enumerate(uvlay.data):
             f.image = bpyima
             fuv = f.uv
+            f_v = bpymesh_faces[j].vertices[:]  # XXX25 speed
 
-            for i, v in enumerate(f):
-                co = v.co
-                fuv[i][:] = (co[axis_u] - min_u) / depth_u, (co[axis_v] - min_v) / depth_v
+            for i, v in enumerate(f_v):
+                co = bpymesh_vertices[v].co
+                fuv[i] = (co[axis_u] - min_u) / depth_u, (co[axis_v] - min_v) / depth_v
 
     # Add vcote
     if vcolor:
         # print(ifs_vcol)
-        bpymesh.vertexColors = True
+        collay = bpymesh.vertex_colors.new()
 
-        for f in bpymesh.faces:
-            fcol = f.col
+        for j, f in enumerate(collay.data):
+            fv = bpymesh.faces[j].vertices[:]
+            if len(fv) == 3:  # XXX speed
+                fcol = f.color1, f.color2, f.color3
+            else:
+                fcol = f.color1, f.color2, f.color3, f.color4
             if ifs_colorPerVertex:
-                fv = f.verts
                 for i, c in enumerate(fcol):
-                    color_index = fv[i].index  # color index is vert index
+                    color_index = fv[i]  # color index is vert index
                     if ifs_color_index:
                         try:
                             color_index = ifs_color_index[color_index]
@@ -1820,12 +1826,10 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
 
                     col = ifs_vcol[color_index]
                     for i, c in enumerate(fcol):
-                        try:
-                            c.r, c.g, c.b = col
-                        except:
-                            pass  # incase its not between 0 and 255
+                        c.r, c.g, c.b = col
 
-    bpymesh.verts.delete([0, ])  # EEKADOODLE
+    # XXX25
+    # bpymesh.vertices.delete([0, ])  # EEKADOODLE
 
     return bpymesh, ccw
 
@@ -1893,19 +1897,38 @@ def importMesh_PointSet(geom, ancestry):
     # vcolor = geom.getChildByName('color') # blender dosnt have per vertex color
 
     bpymesh = bpy.data.meshes.new()
-    bpymesh.verts.extend(points)
-    bpymesh.calcNormals()  # will just be dummy normals
+    bpymesh.vertices.extend(points)
+    # bpymesh.calcNormals()  # will just be dummy normals
+    bpymesh.update()
     return bpymesh
 
 GLOBALS['CIRCLE_DETAIL'] = 12
 
-MATRIX_Z_TO_Y = RotationMatrix(90, 4, 'x')
+MATRIX_Z_TO_Y = Matrix.Rotation(90, 4, 'X')
+
+
+def bpy_ops_add_object_hack():  # XXX25, evil
+    scene = bpy.context.scene
+    obj = scene.objects[0]
+    scene.objects.unlink(obj)
+    bpymesh = obj.data
+    bpy.data.objects.remove(obj)
+    return bpymesh
 
 
 def importMesh_Sphere(geom, ancestry):
-    # bpymesh = bpy.data.meshes.new()
     diameter = geom.getFieldAsFloat('radius', 0.5, ancestry) * 2  # * 2 for the diameter
-    bpymesh = Mesh.Primitives.UVsphere(GLOBALS['CIRCLE_DETAIL'], GLOBALS['CIRCLE_DETAIL'], diameter)
+    # bpymesh = Mesh.Primitives.UVsphere(GLOBALS['CIRCLE_DETAIL'], GLOBALS['CIRCLE_DETAIL'], diameter)
+
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=GLOBALS['CIRCLE_DETAIL'],
+                                         ring_count=GLOBALS['CIRCLE_DETAIL'],
+                                         size=diameter,
+                                         view_align=False,
+                                         enter_editmode=False,
+                                         )
+
+    bpymesh = bpy_ops_add_object_hack()
+
     bpymesh.transform(MATRIX_Z_TO_Y)
     return bpymesh
 
@@ -1914,7 +1937,19 @@ def importMesh_Cylinder(geom, ancestry):
     # bpymesh = bpy.data.meshes.new()
     diameter = geom.getFieldAsFloat('radius', 1.0, ancestry) * 2  # * 2 for the diameter
     height = geom.getFieldAsFloat('height', 2, ancestry)
-    bpymesh = Mesh.Primitives.Cylinder(GLOBALS['CIRCLE_DETAIL'], diameter, height)
+
+    # bpymesh = Mesh.Primitives.Cylinder(GLOBALS['CIRCLE_DETAIL'], diameter, height)
+
+    bpy.ops.mesh.primitive_cylinder_add(vertices=GLOBALS['CIRCLE_DETAIL'],
+                                        radius=diameter,
+                                        depth=height,
+                                        cap_ends=True,
+                                        view_align=False,
+                                        enter_editmode=False,
+                                        )
+
+    bpymesh = bpy_ops_add_object_hack()
+
     bpymesh.transform(MATRIX_Z_TO_Y)
 
     # Warning - Rely in the order Blender adds verts
@@ -1925,14 +1960,19 @@ def importMesh_Cylinder(geom, ancestry):
     top = geom.getFieldAsBool('top', True, ancestry)
 
     if not top:  # last vert is top center of tri fan.
-        bpymesh.verts.delete([(GLOBALS['CIRCLE_DETAIL'] + GLOBALS['CIRCLE_DETAIL']) + 1])
+        # bpymesh.vertices.delete([(GLOBALS['CIRCLE_DETAIL'] + GLOBALS['CIRCLE_DETAIL']) + 1])  # XXX25
+        pass
 
     if not bottom:  # second last vert is bottom of triangle fan
-        bpymesh.verts.delete([GLOBALS['CIRCLE_DETAIL'] + GLOBALS['CIRCLE_DETAIL']])
+        # XXX25
+        # bpymesh.vertices.delete([GLOBALS['CIRCLE_DETAIL'] + GLOBALS['CIRCLE_DETAIL']])
+        pass
 
     if not side:
         # remove all quads
-        bpymesh.faces.delete(1, [f for f in bpymesh.faces if len(f) == 4])
+        # XXX25
+        # bpymesh.faces.delete(1, [f for f in bpymesh.faces if len(f) == 4])
+        pass
 
     return bpymesh
 
@@ -1941,7 +1981,19 @@ def importMesh_Cone(geom, ancestry):
     # bpymesh = bpy.data.meshes.new()
     diameter = geom.getFieldAsFloat('bottomRadius', 1.0, ancestry) * 2  # * 2 for the diameter
     height = geom.getFieldAsFloat('height', 2, ancestry)
-    bpymesh = Mesh.Primitives.Cone(GLOBALS['CIRCLE_DETAIL'], diameter, height)
+
+    # bpymesh = Mesh.Primitives.Cone(GLOBALS['CIRCLE_DETAIL'], diameter, height)
+
+    bpy.ops.mesh.primitive_cone_add(vertices=GLOBALS['CIRCLE_DETAIL'],
+                                    radius=diameter,
+                                    depth=height,
+                                    cap_end=True,
+                                    view_align=False,
+                                    enter_editmode=False,
+                                    )
+
+    bpymesh = bpy_ops_add_object_hack()
+
     bpymesh.transform(MATRIX_Z_TO_Y)
 
     # Warning - Rely in the order Blender adds verts
@@ -1951,9 +2003,11 @@ def importMesh_Cone(geom, ancestry):
     side = geom.getFieldAsBool('side', True, ancestry)
 
     if not bottom:  # last vert is on the bottom
-        bpymesh.verts.delete([GLOBALS['CIRCLE_DETAIL'] + 1])
+        # bpymesh.vertices.delete([GLOBALS['CIRCLE_DETAIL'] + 1]) # XXX25
+        pass
     if not side:  # second last vert is on the pointy bit of the cone
-        bpymesh.verts.delete([GLOBALS['CIRCLE_DETAIL']])
+        # bpymesh.vertices.delete([GLOBALS['CIRCLE_DETAIL']]) # XXX25
+        pass
 
     return bpymesh
 
@@ -1962,10 +2016,16 @@ def importMesh_Box(geom, ancestry):
     # bpymesh = bpy.data.meshes.new()
 
     size = geom.getFieldAsFloatTuple('size', (2.0, 2.0, 2.0), ancestry)
-    bpymesh = Mesh.Primitives.Cube(1.0)
+
+    # bpymesh = Mesh.Primitives.Cube(1.0)
+    bpy.ops.mesh.primitive_cube_add(view_align=False,
+                                    enter_editmode=False,
+                                    )
+
+    bpymesh = bpy_ops_add_object_hack()
 
     # Scale the box to the size set
-    scale_mat = Matrix([size[0], 0, 0], [0, size[1], 0], [0, 0, size[2]])
+    scale_mat = Matrix(((size[0], 0, 0), (0, size[1], 0), (0, 0, size[2])))
     bpymesh.transform(scale_mat.resize4x4())
 
     return bpymesh
@@ -2016,21 +2076,21 @@ def importShape(node, ancestry):
                     mat = ima  # This is a bit dumb, but just means we use default values for all
 
                 # all values between 0.0 and 1.0, defaults from VRML docs
-                bpymat = bpy.data.materials.new()
-                bpymat.amb = mat.getFieldAsFloat('ambientIntensity', 0.2, ancestry)
-                bpymat.rgbCol = mat.getFieldAsFloatTuple('diffuseColor', [0.8, 0.8, 0.8], ancestry)
+                bpymat = bpy.data.materials.new("XXX")
+                bpymat.ambient = mat.getFieldAsFloat('ambientIntensity', 0.2, ancestry)
+                bpymat.diffuse_color = mat.getFieldAsFloatTuple('diffuseColor', [0.8, 0.8, 0.8], ancestry)
 
                 # NOTE - blender dosnt support emmisive color
                 # Store in mirror color and approximate with emit.
                 emit = mat.getFieldAsFloatTuple('emissiveColor', [0.0, 0.0, 0.0], ancestry)
-                bpymat.mirCol = emit
+                bpymat.mirror_color = emit
                 bpymat.emit = (emit[0] + emit[1] + emit[2]) / 3.0
 
-                bpymat.hard = int(1 + (510 * mat.getFieldAsFloat('shininess', 0.2, ancestry)))  # 0-1 -> 1-511
-                bpymat.specCol = mat.getFieldAsFloatTuple('specularColor', [0.0, 0.0, 0.0], ancestry)
+                bpymat.specular_hardness = int(1 + (510 * mat.getFieldAsFloat('shininess', 0.2, ancestry)))  # 0-1 -> 1-511
+                bpymat.specular_color = mat.getFieldAsFloatTuple('specularColor', [0.0, 0.0, 0.0], ancestry)
                 bpymat.alpha = 1.0 - mat.getFieldAsFloat('transparency', 0.0, ancestry)
                 if bpymat.alpha < 0.999:
-                    bpymat.mode |= Material.Modes.ZTRANSP
+                    bpymat.use_transparency = True
 
             if ima:
                 ima_url = ima.getFieldAsString('url', None, ancestry)
@@ -2044,10 +2104,9 @@ def importShape(node, ancestry):
                 if ima_url == None:
                     print("\twarning, image with no URL, this is odd")
                 else:
-                    bpyima = BPyImage.comprehensiveImageLoad(ima_url, dirName(node.getFilename()), PLACE_HOLDER=False, RECURSIVE=False, CONVERT_CALLBACK=imageConvertCompat)
+                    bpyima = image_utils.image_load(ima_url, dirName(node.getFilename()), place_holder=False, recursive=False, convert_callback=imageConvertCompat)
                     if bpyima:
-                        texture = bpy.data.textures.new()
-                        texture.setType('Image')
+                        texture = bpy.data.textures.new("XXX", 'IMAGE')
                         texture.image = bpyima
 
                         # Adds textures for materials (rendering)
@@ -2063,7 +2122,10 @@ def importShape(node, ancestry):
                             bpymat.mode |= Material.Modes.ZTRANSP
                             bpymat.alpha = 0.0
                         else:
-                            bpymat.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
+                            mtex = bpymat.texture_slots.add()
+                            mtex.texture = texture
+                            mtex.texture_coords = 'UV'
+                            mtex.use_map_diffuse = True
 
                         ima_repS = ima.getFieldAsBool('repeatS', True, ancestry)
                         ima_repT = ima.getFieldAsBool('repeatT', True, ancestry)
@@ -2072,9 +2134,9 @@ def importShape(node, ancestry):
                         # texture.repeat =  max(1, ima_repS * 512), max(1, ima_repT * 512)
 
                         if not ima_repS:
-                            bpyima.clampX = True
+                            bpyima.use_clamp_x = True
                         if not ima_repT:
-                            bpyima.clampY = True
+                            bpyima.use_clamp_y = True
 
         bpydata = None
         geom_spec = geom.getSpec()
@@ -2102,26 +2164,27 @@ def importShape(node, ancestry):
 
             bpydata.name = vrmlname
 
-            bpyob = node.blendObject = bpy.data.scenes.active.objects.new(bpydata)
+            bpyob = node.blendObject = bpy.data.objects.new(vrmlname, bpydata)
+            bpy.context.scene.objects.link(bpyob)
 
-            if type(bpydata) == Types.MeshType:
+            if type(bpydata) == bpy.types.Mesh:
                 is_solid = geom.getFieldAsBool('solid', True, ancestry)
                 creaseAngle = geom.getFieldAsFloat('creaseAngle', None, ancestry)
 
                 if creaseAngle != None:
-                    bpydata.maxSmoothAngle = 1 + int(min(79, creaseAngle * RAD_TO_DEG))
-                    bpydata.mode |= Mesh.Modes.AUTOSMOOTH
+                    bpydata.auto_smooth_angle = 1 + int(min(79, creaseAngle * RAD_TO_DEG))
+                    bpydata.use_auto_smooth = True
 
                 # Only ever 1 material per shape
                 if bpymat:
-                    bpydata.materials = [bpymat]
+                    bpydata.materials.append(bpymat)
 
-                if bpydata.faceUV:
+                if bpydata.uv_textures:
 
                     if depth == 32:  # set the faces alpha flag?
                         transp = Mesh.FaceTranspModes.ALPHA
-                        for f in bpydata.faces:
-                            f.transp = transp
+                        for f in bpydata.uv_textures.active.data:
+                            f.blend_type = 'ALPHA'
 
                     if texmtx:
                         # Apply texture transform?
@@ -2136,13 +2199,15 @@ def importShape(node, ancestry):
 
                 # Must be here and not in IndexedFaceSet because it needs an object for the flip func. Messy :/
                 if not ccw:
-                    bpydata.flipNormals()
+                    # bpydata.flipNormals()
+                    # XXX25
+                    pass
 
             # else could be a curve for example
 
             # Can transform data or object, better the object so we can instance the data
             #bpymesh.transform(getFinalMatrix(node))
-            bpyob.setMatrix(getFinalMatrix(node, None, ancestry))
+            bpyob.matrix_world = getFinalMatrix(node, None, ancestry)
 
 
 def importLamp_PointLight(node, ancestry):
@@ -2158,13 +2223,12 @@ def importLamp_PointLight(node, ancestry):
     # is_on = node.getFieldAsBool('on', True, ancestry) # TODO
     radius = node.getFieldAsFloat('radius', 100.0, ancestry)
 
-    bpylamp = bpy.data.lamps.new()
-    bpylamp.setType('Lamp')
+    bpylamp = bpy.data.lamps.new("ToDo", 'POINT')
     bpylamp.energy = intensity
-    bpylamp.dist = radius
-    bpylamp.col = color
+    bpylamp.distance = radius
+    bpylamp.color = color
 
-    mtx = TranslationMatrix(Vector(location))
+    mtx = Matrix.Translation(Vector(location))
 
     return bpylamp, mtx
 
@@ -2180,13 +2244,12 @@ def importLamp_DirectionalLight(node, ancestry):
     intensity = node.getFieldAsFloat('intensity', 1.0, ancestry)  # max is documented to be 1.0 but some files have higher.
     # is_on = node.getFieldAsBool('on', True, ancestry) # TODO
 
-    bpylamp = bpy.data.lamps.new(vrmlname)
-    bpylamp.setType('Sun')
+    bpylamp = bpy.data.lamps.new(vrmlname, 'SUN')
     bpylamp.energy = intensity
-    bpylamp.col = color
+    bpylamp.color = color
 
     # lamps have their direction as -z, yup
-    mtx = Vector(direction).toTrackQuat('-z', 'y').toMatrix().resize4x4()
+    mtx = Vector(direction).to_track_quat('-Z', 'Y').to_matrix().resize4x4()
 
     return bpylamp, mtx
 
@@ -2209,24 +2272,23 @@ def importLamp_SpotLight(node, ancestry):
     # is_on = node.getFieldAsBool('on', True, ancestry) # TODO
     radius = node.getFieldAsFloat('radius', 100.0, ancestry)
 
-    bpylamp = bpy.data.lamps.new(vrmlname)
-    bpylamp.setType('Spot')
+    bpylamp = bpy.data.lamps.new(vrmlname, 'SPOT')
     bpylamp.energy = intensity
-    bpylamp.dist = radius
-    bpylamp.col = color
-    bpylamp.spotSize = cutOffAngle
+    bpylamp.distance = radius
+    bpylamp.color = color
+    bpylamp.spot_size = cutOffAngle
     if beamWidth > cutOffAngle:
-        bpylamp.spotBlend = 0.0
+        bpylamp.spot_blend = 0.0
     else:
         if cutOffAngle == 0.0:  # this should never happen!
-            bpylamp.spotBlend = 0.5
+            bpylamp.spot_blend = 0.5
         else:
-            bpylamp.spotBlend = beamWidth / cutOffAngle
+            bpylamp.spot_blend = beamWidth / cutOffAngle
 
     # Convert
 
     # lamps have their direction as -z, y==up
-    mtx = Vector(direction).toTrackQuat('-z', 'y').toMatrix().resize4x4() * TranslationMatrix(Vector(location))
+    mtx = Vector(direction).to_track_quat('-Z', 'Y').to_matrix().resize4x4() * Matrix.Translation(Vector(location))
 
     return bpylamp, mtx
 
@@ -2242,8 +2304,10 @@ def importLamp(node, spec, ancestry):
         print("Error, not a lamp")
         raise ValueError
 
-    bpyob = node.blendObject = bpy.data.scenes.active.objects.new(bpylamp)
-    bpyob.setMatrix(getFinalMatrix(node, mtx, ancestry))
+    bpyob = node.blendObject = bpy.data.objects.new("TODO", bpylamp)
+    bpy.context.scene.objects.link(bpyob)
+
+    bpyob.matrix_world = getFinalMatrix(node, mtx, ancestry)
 
 
 def importViewpoint(node, ancestry):
@@ -2261,10 +2325,11 @@ def importViewpoint(node, ancestry):
 
     bpycam.angle = fieldOfView
 
-    mtx = translateRotation(orientation) * TranslationMatrix(Vector(position))
+    mtx = translateRotation(orientation) * Matrix.Translation(Vector(position))
 
-    bpyob = node.blendObject = bpy.data.scenes.active.objects.new(bpycam)
-    bpyob.setMatrix(getFinalMatrix(node, mtx, ancestry))
+    bpyob = node.blendObject = bpy.data.objects.new("TODO", bpycam)
+    bpy.context.scene.objects.link(bpyob)
+    bpyob.matrix_world = getFinalMatrix(node, mtx, ancestry)
 
 
 def importTransform(node, ancestry):
@@ -2272,12 +2337,14 @@ def importTransform(node, ancestry):
     if not name:
         name = 'Transform'
 
-    bpyob = node.blendObject = bpy.data.scenes.active.objects.new('Empty', name)  # , name)
-    bpyob.setMatrix(getFinalMatrix(node, None, ancestry))
+    bpyob = node.blendObject = bpy.data.objects.new(name, None)
+    bpy.context.scene.objects.link(bpyob)
+
+    bpyob.matrix_world = getFinalMatrix(node, None, ancestry)
 
     # so they are not too annoying
-    bpyob.emptyShape = Blender.Object.EmptyShapes.AXES
-    bpyob.drawSize = 0.2
+    bpyob.empty_draw_type = 'PLAIN_AXES'
+    bpyob.empty_draw_size = 0.2
 
 
 #def importTimeSensor(node):
@@ -2327,7 +2394,7 @@ def translateOrientationInterpolator(node, ipo, ancestry):
             continue
 
         mtx = translateRotation((x, y, z, w))
-        eul = mtx.toEuler()
+        eul = mtx.to_euler()
         rot_x.append((time, eul.x / 10.0))
         rot_y.append((time, eul.y / 10.0))
         rot_z.append((time, eul.z / 10.0))
@@ -2463,10 +2530,7 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC=None):
         root_node, msg = vrml_parse(path)
 
     if not root_node:
-        if Blender.mode == 'background':
-            print(msg)
-        else:
-            Blender.Draw.PupMenu(msg)
+        print(msg)
         return
 
     # fill with tuples - (node, [parents-parent, parent])
@@ -2515,12 +2579,12 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC=None):
             routeIpoDict = node.getRouteIpoDict()
             defDict = node.getDefDict()
 
-            for key, ipo in routeIpoDict.iteritems():
+            for key, ipo in routeIpoDict.items():
 
                 # Assign anim curves
                 node = defDict[key]
                 if node.blendObject == None:  # Add an object if we need one for animation
-                    node.blendObject = bpy.data.scenes.active.objects.new('Empty', 'AnimOb')  # , name)
+                    node.blendObject = bpy.context.scene.objects.new('Empty', 'AnimOb')  # , name)
 
                 node.blendObject.setIpo(ipo)
 
@@ -2549,12 +2613,13 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC=None):
                     except:
                         child_dict[blendObject] = [node.blendObject]
 
-        # Parent FAST
-        for parent, children in child_dict.iteritems():
-            parent.makeParent(children, 0, 1)
+        # Parent
+        for parent, children in child_dict.items():
+            for c in children:
+                c.parent = parent
 
         # update deps
-        bpy.data.scenes.active.update(1)
+        bpy.context.scene.update()
         del child_dict
 
 
@@ -2610,7 +2675,7 @@ if __name__ == '__main__':
 # load_web3d('/fe/wrl/new/daybreak_final.wrl') # no faces in mesh, face duplicate error
 # load_web3d('/fe/wrl/new/earth.wrl')
 # load_web3d('/fe/wrl/new/hendrix.ei.dtu.dk/vrml/talairach/fourd/TalaDruryRight.wrl') # define/use fields
-# load_web3d('/fe/wrl/new/imac.wrl') # extrusion and define/use fields, face index is a float somehow
+# load_web3d('/fe/wrl/new/imac.wrl')  # extrusion and define/use fields, face index is a float somehow
 # load_web3d('/fe/wrl/new/www.igs.net/~mascott/vrml/vrml2/mcastle.wrl')
 # load_web3d('/fe/wrl/new/www.igs.net/~mascott/vrml/vrml2/tower.wrl')
 # load_web3d('/fe/wrl/new/www.igs.net/~mascott/vrml/vrml2/temple.wrl')
@@ -2643,7 +2708,7 @@ def test():
         f = f.strip()
         print(f, i, tot)
         sce = bpy.data.scenes.new(str(i) + '_' + f.split('/')[-1])
-        bpy.data.scenes.active = sce
+        bpy.context.scene = sce # XXX25
         # Window.
         load_web3d(f, PREF_FLAT=True)
 
