@@ -2408,7 +2408,7 @@ static bAnimChannelType ACF_SHAPEKEY=
 /* GPencil Datablock ------------------------------------------- */
 
 /* get backdrop color for gpencil datablock widget */
-static void acf_gpd_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, float *color)
+static void acf_gpd_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float *color)
 {
 	/* highlight only for datablock channels */
 	//if (ale->flag & AGRP_ACTIVE)
@@ -2424,7 +2424,7 @@ static int acf_gpd_icon(bAnimListElem *UNUSED(ale))
 }
 
 /* check if some setting exists for this channel */
-static short acf_gpd_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale), int setting)
+static short acf_gpd_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
 {
 	switch (setting) {
 		/* only select and expand supported */
@@ -2438,7 +2438,7 @@ static short acf_gpd_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale),
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_gpd_setting_flag(bAnimContext *ac, int setting, short *neg)
+static int acf_gpd_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -2494,7 +2494,7 @@ static void acf_gpl_name(bAnimListElem *ale, char *name)
 }
 
 /* check if some setting exists for this channel */
-static short acf_gpl_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
+static short acf_gpl_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
 {
 	switch (setting) {
 		/* unsupported */
