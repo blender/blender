@@ -766,9 +766,12 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 		if(length > FLT_EPSILON) {
 			int steps;
 			int i;
-			float pressure;
+			float pressure= 1.0f;
 
-			pressure = event_tablet_data(event, NULL);
+			/* XXX mysterious :) what has 'use size' do with this here... if you don't check for it, pressure fails */
+			if(brush_use_size_pressure(stroke->brush))
+				pressure = event_tablet_data(event, NULL);
+			
 			if(pressure > FLT_EPSILON) {
 				scale = (brush_size(stroke->brush)*pressure*stroke->brush->spacing/50.0f) / length;
 				if(scale > FLT_EPSILON) {
