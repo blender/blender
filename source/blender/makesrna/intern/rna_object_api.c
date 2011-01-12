@@ -167,6 +167,8 @@ static Mesh *rna_Object_create_mesh(Object *ob, ReportList *reports, Scene *sce,
 	/* Copy materials to new mesh */
 	switch (ob->type) {
 	case OB_SURF:
+	case OB_FONT:
+	case OB_CURVE:
 		tmpmesh->totcol = tmpcu->totcol;		
 		
 		/* free old material list (if it exists) and adjust user counts */
