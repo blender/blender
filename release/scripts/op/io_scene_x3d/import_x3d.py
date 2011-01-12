@@ -2632,89 +2632,11 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC=None):
         del child_dict
 
 
-def load_ui(path):
-    Draw = Blender.Draw
-    PREF_HIERARCHY = Draw.Create(0)
-    PREF_CIRCLE_DIV = Draw.Create(16)
+def load(operator, context, filepath=""):
 
-    # Get USER Options
-    pup_block = [ \
-    'Import...',\
-    ('Hierarchy', PREF_HIERARCHY, 'Import transform nodes as empties to create a parent/child hierarchy'),\
-    ('Circle Div:', PREF_CIRCLE_DIV, 3, 128, 'Number of divisions to use for circular primitives')
-    ]
+    load_web3d(filepath,
+               PREF_FLAT=True,
+               PREF_CIRCLE_DIV=16,
+               )
 
-    if not Draw.PupBlock('Import X3D/VRML...', pup_block):
-        return
-
-    Window.WaitCursor(1)
-
-    load_web3d(path,\
-      (not PREF_HIERARCHY.val),\
-      PREF_CIRCLE_DIV.val,\
-    )
-
-    Window.WaitCursor(0)
-
-
-# Testing stuff
-
-# load_web3d('/test.x3d')
-# load_web3d('/_Cylinder.x3d')
-
-# Testing below
-# load_web3d('m:\\root\\Desktop\\_Cylinder.wrl')
-# load_web3d('/_Cylinder.wrl')
-# load_web3d('/fe/wrl/Vrml/EGS/BCKGD.WRL')
-
-# load_web3d('/fe/wrl/Vrml/EGS/GRNDPLNE.WRL')
-# load_web3d('/fe/wrl/Vrml/EGS/INDEXFST.WRL')
-# load_web3d('/fe/wrl/panel1c.wrl')
-# load_web3d('/test.wrl')
-# load_web3d('/fe/wrl/dulcimer.wrl')
-# load_web3d('/fe/wrl/rccad/Ju-52.wrl') # Face index out of range
-# load_web3d('/fe/wrl/16lat.wrl') # spotlight
-# load_web3d('/fe/wrl/Vrml/EGS/FOG.WRL') # spotlight
-# load_web3d('/fe/wrl/Vrml/EGS/LOD.WRL') # vcolor per face
-
-# load_web3d('/fe/wrl/new/daybreak_final.wrl') # no faces in mesh, face duplicate error
-# load_web3d('/fe/wrl/new/earth.wrl')
-# load_web3d('/fe/wrl/new/hendrix.ei.dtu.dk/vrml/talairach/fourd/TalaDruryRight.wrl') # define/use fields
-load_web3d('/fe/wrl/new/imac.wrl')  # extrusion and define/use fields, face index is a float somehow
-# load_web3d('/fe/wrl/new/www.igs.net/~mascott/vrml/vrml2/mcastle.wrl')
-# load_web3d('/fe/wrl/new/www.igs.net/~mascott/vrml/vrml2/tower.wrl')
-# load_web3d('/fe/wrl/new/www.igs.net/~mascott/vrml/vrml2/temple.wrl')
-# load_web3d('/fe/wrl/brain.wrl')  # field define test 'a IS b'
-# load_web3d('/fe/wrl/new/coaster.wrl')  # fields that are confusing to read.
-
-# X3D
-
-# load_web3d('/fe/x3d/www.web3d.org/x3d/content/examples/Basic/StudentProjects/PlayRoom.x3d') # invalid UVs
-
-def test():
-    import os
-
-    files = os.popen('find /fe/wrl -iname "*.wrl"').readlines()
-    # files = os.popen('find /fe/x3d -iname "*.x3d"').readlines()
-    # files = os.popen('find   /fe/x3d/X3dExamplesSavage   -iname "*.x3d"').readlines()
-
-    files.sort()
-    tot = len(files)
-    for i, f in enumerate(files):
-        if i < 9:
-            continue
-
-        #if i != 1068:
-        #   continue
-
-        #if i != 12686:
-        #   continue
-
-        f = f.strip()
-        print(f, i, tot)
-        sce = bpy.data.scenes.new(str(i) + '_' + f.split('/')[-1])
-        # bpy.context.scene = sce  # XXX25
-        # Window.
-        load_web3d(f, PREF_FLAT=False)
-
-# test()
+    return {'FINISHED'}
