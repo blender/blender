@@ -955,10 +955,11 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 		if(my >= block->maxy) button= 1;
 	}
 	else if(block->panel->control & UI_PNL_CLOSE) {
-		if(mx <= block->minx+10+PNL_ICON-2) button= 2;
-		else if(mx <= block->minx+10+2*PNL_ICON+2) button= 1;
+		/* whole of header can be used to collapse panel (except top-right corner) */
+		if(mx <= block->maxx-8-PNL_ICON) button= 2;
+		//else if(mx <= block->minx+10+2*PNL_ICON+2) button= 1;
 	}
-	else if(mx <= block->minx+10+PNL_ICON+2) {
+	else if(mx <= block->maxx-PNL_ICON-12) {
 		button= 1;
 	}
 	
@@ -996,10 +997,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 		else
 			ED_region_tag_redraw(ar);
 	}
-	else if(block->panel->flag & PNL_CLOSED) {
-		panel_activate_state(C, block->panel, PANEL_STATE_DRAG);
-	}
-	else {
+	else if(mx <= (block->maxx-PNL_ICON-12)+PNL_ICON+2) {
 		panel_activate_state(C, block->panel, PANEL_STATE_DRAG);
 	}
 }
