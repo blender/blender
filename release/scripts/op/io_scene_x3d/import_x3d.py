@@ -1434,7 +1434,7 @@ GLOBALS = {'CIRCLE_DETAIL': 16}
 
 def translateRotation(rot):
     ''' axis, angle '''
-    return Matrix.Rotation(rot[3] * RAD_TO_DEG, 4, Vector(rot[:3]))
+    return Matrix.Rotation(rot[3], 4, Vector(rot[:3]))
 
 
 def translateScale(sca):
@@ -1484,7 +1484,7 @@ def translateTransform(node, ancestry):
     mats = [tx_mat, cent_mat, rot_mat, scaori_mat, sca_mat, scaori_imat, cent_imat]
     for mtx in mats:
         if mtx:
-            new_mat = mtx * new_mat
+            new_mat = new_mat * mtx
 
     return new_mat
 
@@ -1503,7 +1503,7 @@ def translateTexTransform(node, ancestry):
         cent_mat = cent_imat = None
 
     if rot:
-        rot_mat = Matrix.Rotation(rot * RAD_TO_DEG, 4, 'Z')  # translateRotation(rot)
+        rot_mat = Matrix.Rotation(rot, 4, 'Z')  # translateRotation(rot)
     else:
         rot_mat = None
 
@@ -1524,7 +1524,7 @@ def translateTexTransform(node, ancestry):
 
     for mtx in mats:
         if mtx:
-            new_mat = mtx * new_mat
+            new_mat = new_mat * mtx
 
     return new_mat
 
@@ -1541,7 +1541,7 @@ def getFinalMatrix(node, mtx, ancestry):
 
     for node_tx in transform_nodes:
         mat = translateTransform(node_tx, ancestry)
-        mtx = mtx * mat
+        mtx =  mat * mtx
 
     return mtx
 
@@ -1902,7 +1902,9 @@ def importMesh_PointSet(geom, ancestry):
 
 GLOBALS['CIRCLE_DETAIL'] = 12
 
-MATRIX_Z_TO_Y = Matrix.Rotation(90, 4, 'X')
+# 90d X rotation
+import math
+MATRIX_Z_TO_Y = Matrix.Rotation(math.pi/2, 4, 'X')
 
 
 def bpy_ops_add_object_hack():  # XXX25, evil
@@ -1915,7 +1917,7 @@ def bpy_ops_add_object_hack():  # XXX25, evil
 
 
 def importMesh_Sphere(geom, ancestry):
-    diameter = geom.getFieldAsFloat('radius', 0.5, ancestry) * 2  # * 2 for the diameter
+    diameter = geom.getFieldAsFloat('radius', 0.5, ancestry)
     # bpymesh = Mesh.Primitives.UVsphere(GLOBALS['CIRCLE_DETAIL'], GLOBALS['CIRCLE_DETAIL'], diameter)
 
     bpy.ops.mesh.primitive_uv_sphere_add(segments=GLOBALS['CIRCLE_DETAIL'],
@@ -1933,7 +1935,7 @@ def importMesh_Sphere(geom, ancestry):
 
 def importMesh_Cylinder(geom, ancestry):
     # bpymesh = bpy.data.meshes.new()
-    diameter = geom.getFieldAsFloat('radius', 1.0, ancestry) * 2  # * 2 for the diameter
+    diameter = geom.getFieldAsFloat('radius', 1.0, ancestry)
     height = geom.getFieldAsFloat('height', 2, ancestry)
 
     # bpymesh = Mesh.Primitives.Cylinder(GLOBALS['CIRCLE_DETAIL'], diameter, height)
@@ -1977,7 +1979,7 @@ def importMesh_Cylinder(geom, ancestry):
 
 def importMesh_Cone(geom, ancestry):
     # bpymesh = bpy.data.meshes.new()
-    diameter = geom.getFieldAsFloat('bottomRadius', 1.0, ancestry) * 2  # * 2 for the diameter
+    diameter = geom.getFieldAsFloat('bottomRadius', 1.0, ancestry)
     height = geom.getFieldAsFloat('height', 2, ancestry)
 
     # bpymesh = Mesh.Primitives.Cone(GLOBALS['CIRCLE_DETAIL'], diameter, height)
@@ -2013,7 +2015,7 @@ def importMesh_Cone(geom, ancestry):
 def importMesh_Box(geom, ancestry):
     # bpymesh = bpy.data.meshes.new()
 
-    size = geom.getFieldAsFloatTuple('size', (2.0, 2.0, 2.0), ancestry)
+    size = geom.getFieldAsFloatTuple('size', (2.0, 2.0, 2.0), ancestry) 
 
     # bpymesh = Mesh.Primitives.Cube(1.0)
     bpy.ops.mesh.primitive_cube_add(view_align=False,
@@ -2023,7 +2025,7 @@ def importMesh_Box(geom, ancestry):
     bpymesh = bpy_ops_add_object_hack()
 
     # Scale the box to the size set
-    scale_mat = Matrix(((size[0], 0, 0), (0, size[1], 0), (0, 0, size[2])))
+    scale_mat = Matrix(((size[0], 0, 0), (0, size[1], 0), (0, 0, size[2]))) * 0.5
     bpymesh.transform(scale_mat.resize4x4())
 
     return bpymesh
@@ -2187,12 +2189,13 @@ def importShape(node, ancestry):
                     if texmtx:
                         # Apply texture transform?
                         uv_copy = Vector()
-                        for f in bpydata.faces:
-                            for uv in f.uv:
-                                uv_copy.x = uv.x
-                                uv_copy.y = uv.y
+                        for f in bpydata.uv_textures.active.data:
+                            fuv = f.uv
+                            for i, uv in enumerate(fuv):
+                                uv_copy.x = uv[0]
+                                uv_copy.y = uv[1]
 
-                                uv.x, uv.y = (uv_copy * texmtx)[0:2]
+                                fuv[i] = (uv_copy * texmtx)[0:2]
                 # Done transforming the texture
 
                 # Must be here and not in IndexedFaceSet because it needs an object for the flip func. Messy :/
@@ -2261,9 +2264,9 @@ def importLamp_SpotLight(node, ancestry):
 
     # ambientIntensity = geom.getFieldAsFloat('ambientIntensity', 0.0, ancestry) # TODO
     # attenuation = geom.getFieldAsFloatTuple('attenuation', (1.0, 0.0, 0.0), ancestry) # TODO
-    beamWidth = node.getFieldAsFloat('beamWidth', 1.570796, ancestry) * RAD_TO_DEG  # max is documented to be 1.0 but some files have higher.
+    beamWidth = node.getFieldAsFloat('beamWidth', 1.570796, ancestry)  # max is documented to be 1.0 but some files have higher.
     color = node.getFieldAsFloatTuple('color', (1.0, 1.0, 1.0), ancestry)
-    cutOffAngle = node.getFieldAsFloat('cutOffAngle', 0.785398, ancestry) * RAD_TO_DEG  # max is documented to be 1.0 but some files have higher.
+    cutOffAngle = node.getFieldAsFloat('cutOffAngle', 0.785398, ancestry)  # max is documented to be 1.0 but some files have higher.
     direction = node.getFieldAsFloatTuple('direction', (0.0, 0.0, -1.0), ancestry)
     intensity = node.getFieldAsFloat('intensity', 1.0, ancestry)  # max is documented to be 1.0 but some files have higher.
     location = node.getFieldAsFloatTuple('location', (0.0, 0.0, 0.0), ancestry)
@@ -2286,7 +2289,7 @@ def importLamp_SpotLight(node, ancestry):
     # Convert
 
     # lamps have their direction as -z, y==up
-    mtx = Vector(direction).to_track_quat('-Z', 'Y').to_matrix().resize4x4() * Matrix.Translation(Vector(location))
+    mtx = Matrix.Translation(Vector(location)) * Vector(direction).to_track_quat('-Z', 'Y').to_matrix().resize4x4()
 
     return bpylamp, mtx
 
@@ -2313,7 +2316,7 @@ def importViewpoint(node, ancestry):
     if not name:
         name = 'Viewpoint'
 
-    fieldOfView = node.getFieldAsFloat('fieldOfView', 0.785398, ancestry) * RAD_TO_DEG  # max is documented to be 1.0 but some files have higher.
+    fieldOfView = node.getFieldAsFloat('fieldOfView', 0.785398, ancestry)  # max is documented to be 1.0 but some files have higher.
     # jump = node.getFieldAsBool('jump', True, ancestry)
     orientation = node.getFieldAsFloatTuple('orientation', (0.0, 0.0, 1.0, 0.0), ancestry)
     position = node.getFieldAsFloatTuple('position', (0.0, 0.0, 0.0), ancestry)
@@ -2323,7 +2326,7 @@ def importViewpoint(node, ancestry):
 
     bpycam.angle = fieldOfView
 
-    mtx = translateRotation(orientation) * Matrix.Translation(Vector(position))
+    mtx = Matrix.Translation(Vector(position)) * translateRotation(orientation)
 
     bpyob = node.blendObject = bpy.data.objects.new("TODO", bpycam)
     bpy.context.scene.objects.link(bpyob)
@@ -2677,7 +2680,7 @@ def load_ui(path):
 # load_web3d('/fe/wrl/new/daybreak_final.wrl') # no faces in mesh, face duplicate error
 # load_web3d('/fe/wrl/new/earth.wrl')
 # load_web3d('/fe/wrl/new/hendrix.ei.dtu.dk/vrml/talairach/fourd/TalaDruryRight.wrl') # define/use fields
-# load_web3d('/fe/wrl/new/imac.wrl')  # extrusion and define/use fields, face index is a float somehow
+load_web3d('/fe/wrl/new/imac.wrl')  # extrusion and define/use fields, face index is a float somehow
 # load_web3d('/fe/wrl/new/www.igs.net/~mascott/vrml/vrml2/mcastle.wrl')
 # load_web3d('/fe/wrl/new/www.igs.net/~mascott/vrml/vrml2/tower.wrl')
 # load_web3d('/fe/wrl/new/www.igs.net/~mascott/vrml/vrml2/temple.wrl')
@@ -2698,7 +2701,7 @@ def test():
     files.sort()
     tot = len(files)
     for i, f in enumerate(files):
-        if i < 1064:
+        if i < 9:
             continue
 
         #if i != 1068:
@@ -2712,6 +2715,6 @@ def test():
         sce = bpy.data.scenes.new(str(i) + '_' + f.split('/')[-1])
         # bpy.context.scene = sce  # XXX25
         # Window.
-        load_web3d(f, PREF_FLAT=True)
+        load_web3d(f, PREF_FLAT=False)
 
-test()
+# test()
