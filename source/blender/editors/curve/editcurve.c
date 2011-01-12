@@ -2194,7 +2194,7 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 				/* loop over selection segments of a curve, smooth each */
 				
 				/* Start BezTriple code, this is duplicated below for points, make sure these functions stay in sync */
-				start_sel = end_sel = -1;
+				start_sel = -1;
 				for(bezt=nu->bezt+last_sel, a=last_sel; a<nu->pntsu; a++, bezt++) {
 					if(bezt->f2 & SELECT) {
 						start_sel = a;
@@ -2256,7 +2256,7 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 				/* loop over selection segments of a curve, smooth each */
 				
 				/* Start BezTriple code, this is duplicated below for points, make sure these functions stay in sync */
-				start_sel = end_sel = -1;
+				start_sel = -1;
 				for(bp=nu->bp+last_sel, a=last_sel; a<nu->pntsu; a++, bp++) {
 					if(bp->f1 & SELECT) {
 						start_sel = a;

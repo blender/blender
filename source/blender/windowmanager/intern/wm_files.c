@@ -118,7 +118,7 @@ static void write_history(void);
 */
 static void wm_window_match_init(bContext *C, ListBase *wmlist)
 {
-	wmWindowManager *wm= G.main->wm.first;
+	wmWindowManager *wm;
 	wmWindow *win, *active_win;
 	
 	*wmlist= G.main->wm;

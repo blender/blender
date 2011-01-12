@@ -410,7 +410,6 @@ static void insert_graph_keys(bAnimContext *ac, short mode)
 	
 	ReportList *reports = ac->reports;
 	Scene *scene= ac->scene;
-	float cfra= (float)CFRA;
 	short flag = 0;
 	
 	/* filter data */
@@ -426,6 +425,7 @@ static void insert_graph_keys(bAnimContext *ac, short mode)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
+		float cfra;
 		
 		/* adjust current frame for NLA-mapping */
 		if (adt)

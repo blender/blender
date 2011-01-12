@@ -639,9 +639,8 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 		}
 	}
 	else {
-		xi = (int)((uv[0]*ibuf->x) + 0.5f);
-		yi = (int)((uv[1]*ibuf->y) + 0.5f);
-		
+		//xi = (int)((uv[0]*ibuf->x) + 0.5f);
+		//yi = (int)((uv[1]*ibuf->y) + 0.5f);
 		//if (xi<0 || xi>=ibuf->x  ||  yi<0 || yi>=ibuf->y) return 0;
 		
 		/* wrap */

@@ -1743,7 +1743,6 @@ int ED_view3d_context_activate(bContext *C)
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar;
-	RegionView3D *rv3d;
 
 	/* sa can be NULL when called from python */
 	if(sa==NULL || sa->spacetype != SPACE_VIEW3D)
@@ -1764,7 +1763,6 @@ int ED_view3d_context_activate(bContext *C)
 	// bad context switch ..
 	CTX_wm_area_set(C, sa);
 	CTX_wm_region_set(C, ar);
-	rv3d= ar->regiondata;
 
 	return 1;
 }

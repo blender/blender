@@ -280,12 +280,12 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 {
 	uiBut *but;
 	float x,y;
-	float alpha=1.0f;
+	/*float alpha=1.0f;*/
 	
 	x = (float)(sx);
 	y = (float)(sy-height);
 	
-	if (icon == ICON_FILE_BLANK) alpha = 0.375f;
+	/*if (icon == ICON_FILE_BLANK) alpha = 0.375f;*/
 		
 	but= uiDefIconBut(block, LABEL, 0, icon, x, y, width, height, NULL, 0.0, 0.0, 0, 0, "");
 	uiButSetDragPath(but, path);

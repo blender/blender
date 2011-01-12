@@ -228,13 +228,9 @@ static void imb_float_from_rect_linear(struct ImBuf *ibuf, float *fbuf)
 void IMB_float_from_rect(struct ImBuf *ibuf)
 {
 	/* quick method to convert byte to floatbuf */
-	float *tof = ibuf->rect_float;
-
-	unsigned char *to = (unsigned char *) ibuf->rect;
-	if(to==NULL) return;
-	if(tof==NULL) {
+	if(ibuf->rect==NULL) return;
+	if(ibuf->rect_float==NULL) {
 		if (imb_addrectfloatImBuf(ibuf) == 0) return;
-		tof = ibuf->rect_float;
 	}
 	
 	/* Float bufs should be stored linear */

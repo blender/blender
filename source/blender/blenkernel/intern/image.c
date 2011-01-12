@@ -914,10 +914,10 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 	
 	if (scene->r.stamp & R_STAMP_TIME) {
-		int h, m, s, f;
-		h= m= s= f= 0;
-		f = (int)(scene->r.cfra % scene->r.frs_sec);
-		s = (int)(scene->r.cfra / scene->r.frs_sec);
+		int f = (int)(scene->r.cfra % scene->r.frs_sec);
+		int s = (int)(scene->r.cfra / scene->r.frs_sec);
+		int h= 0;
+		int m= 0;
 
 		if (s) {
 			m = (int)(s / 60);

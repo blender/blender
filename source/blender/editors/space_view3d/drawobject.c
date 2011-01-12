@@ -3448,7 +3448,6 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, ParticleSystem *psys, int ob_dt)
 {
 	Object *ob=base->object;
-	ParticleSystemModifierData *psmd;
 	ParticleEditSettings *pset = PE_settings(scene);
 	ParticleSettings *part;
 	ParticleData *pars, *pa;
@@ -3460,7 +3459,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	float vel[3], imat[4][4];
 	float timestep, pixsize=1.0, pa_size, r_tilt, r_length;
 	float pa_time, pa_birthtime, pa_dietime, pa_health;
-	float cfra= bsystem_time(scene, ob,(float)CFRA,0.0);
+	float cfra;
 	float ma_r=0.0f, ma_g=0.0f, ma_b=0.0f;
 	int a, totpart, totpoint=0, totve=0, drawn, draw_as, totchild=0;
 	int select=ob->flag&SELECT, create_cdata=0, need_v=0;
@@ -3496,7 +3495,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	sim.scene= scene;
 	sim.ob= ob;
 	sim.psys= psys;
-	sim.psmd = psmd = psys_get_modifier(ob,psys);
+	sim.psmd = psys_get_modifier(ob,psys);
 
 	if(part->phystype==PART_PHYS_KEYED){
 		if(psys->flag&PSYS_KEYED){

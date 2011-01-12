@@ -1795,7 +1795,6 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							dl->rt= nu->flag & ~CU_2D;
 
 							dl->bevelSplitFlag= MEM_callocN(sizeof(*dl->col2)*((bl->nr+0x1F)>>5), "bevelSplitFlag");
-							bevp= (BevPoint *)(bl+1);
 	
 							/* for each point of poly make a bevel piece */
 							bevp= (BevPoint *)(bl+1);

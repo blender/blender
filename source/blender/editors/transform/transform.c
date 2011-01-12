@@ -4849,17 +4849,15 @@ int doEdgeSlide(TransInfo *t, float perc)
 	LinkNode *vertlist=sld->vertlist, *look;
 	GHash *vertgh = sld->vhash;
 	TransDataSlideVert *tempsv;
-	float len = 0.0f;
+	float len;
 	int prop=1, flip=0;
 	/* UV correction vars */
 	GHash **uvarray= sld->uvhash;
 	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
 	int uvlay_idx;
-	TransDataSlideUv *suv=sld->slideuv;
+	TransDataSlideUv *suv;
 	float uv_tmp[2];
 	LinkNode *fuv_link;
-
-	len = 0.0f;
 
 	tempsv = BLI_ghash_lookup(vertgh,nearest);
 

@@ -3461,7 +3461,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 		if(event->type==LEFTMOUSE && event->val==KM_PRESS) {
 			CurveMapping *cumap= (CurveMapping*)but->poin;
 			CurveMap *cuma= cumap->cm+cumap->cur;
-			CurveMapPoint *cmp= cuma->curve;
+			CurveMapPoint *cmp;
 			float fx, fy, zoomx, zoomy, offsx, offsy;
 			float dist, mindist= 200.0f; // 14 pixels radius
 			int sel= -1;

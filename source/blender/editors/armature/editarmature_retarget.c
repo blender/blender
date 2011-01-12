@@ -1691,7 +1691,7 @@ void generateMissingArcsFromNode(RigGraph *rigg, ReebNode *node, int multi_level
 
 void generateMissingArcs(RigGraph *rigg)
 {
-	ReebGraph *reebg = rigg->link_mesh;
+	ReebGraph *reebg;
 	int multi_level_limit = 5;
 	
 	for (reebg = rigg->link_mesh; reebg; reebg = reebg->link_up)

@@ -466,7 +466,7 @@ static void ui_theme_init_new(bTheme *btheme)
 */
 void ui_theme_init_default(void)
 {
-	bTheme *btheme= U.themes.first;
+	bTheme *btheme;
 	
 	/* we search for the theme with name Default */
 	for(btheme= U.themes.first; btheme; btheme= btheme->next) {

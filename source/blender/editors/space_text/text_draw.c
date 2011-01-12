@@ -1029,10 +1029,8 @@ static TextLine *first_visible_line(SpaceText *st, ARegion *ar, int *wrap_top)
 	Text *text= st->text;
 	TextLine* pline= text->lines.first;
 	int i= st->top, lineno= 0;
-	DrawCache *drawcache;
 
 	text_update_drawcache(st, ar);
-	drawcache= (DrawCache *)st->drawcache;
 
 	if(wrap_top) *wrap_top= 0;
 

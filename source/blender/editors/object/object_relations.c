@@ -1338,8 +1338,6 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 		{MAKE_LINKS_MODIFIERS,	"MODIFIERS", 0, "Modifiers", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "Link Data";
 	ot->description = "Make links from the active object to other selected objects";
@@ -1353,7 +1351,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", make_links_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", make_links_items, 0, "Type", "");
 }
 
 
@@ -1464,7 +1462,8 @@ void single_obdata_users(Main *bmain, Scene *scene, int flag)
 					ob->data= copy_camera(ob->data);
 					break;
 				case OB_MESH:
-					me= ob->data= copy_mesh(ob->data);
+					ob->data= copy_mesh(ob->data);
+					//me= ob->data;
 					//if(me && me->key)
 					//	ipo_idnew(me->key->ipo);	/* drivers */
 					break;

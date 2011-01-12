@@ -696,7 +696,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 	// Create unicode string
 	utf8len = utf8slen(cu->str);
-	tmp = mem = MEM_callocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
+	mem = MEM_callocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
 	
 	utf8towchar(mem, cu->str);
 

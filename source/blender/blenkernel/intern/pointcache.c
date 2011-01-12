@@ -2025,8 +2025,6 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 			PTCacheMem *pm= pid->cache->mem_cache.first;
 			PTCacheMem *link= NULL;
 
-			pm= pid->cache->mem_cache.first;
-
 			if(mode == PTCACHE_CLEAR_ALL) {
 				/*we want startframe if the cache starts before zero*/
 				pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
@@ -2206,8 +2204,6 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 		}
 		else {
 			PTCacheMem *pm= pid->cache->mem_cache.first;
-
-			pm= pid->cache->mem_cache.first;
 
 			while(pm) {
 				if(pm->frame >= sta && pm->frame <= end)

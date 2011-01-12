@@ -2847,7 +2847,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	ParticleEditSettings *pset = &sim->scene->toolsettings->particle;
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
-	ParticleCacheKey *ca, **cache= psys->pathcache;
+	ParticleCacheKey *ca, **cache;
 
 	DerivedMesh *hair_dm = (psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS) ? psys->hair_out_dm : NULL;
 	

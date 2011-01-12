@@ -2334,7 +2334,6 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	Scene *scene= CTX_data_scene(C);
 	wmWindowManager *wm= CTX_wm_manager(C);
 	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
@@ -2352,6 +2351,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		handle_event= B_STOPCOMPO;
 	} 
 	else {
+		Scene *scene;
 		/* another scene can be rendering too, for example via compositor */
 		for(scene= CTX_data_main(C)->scene.first; scene; scene= scene->id.next)
 			if(WM_jobs_test(wm, scene))
