@@ -110,7 +110,7 @@ void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
 		if(len == sizeof(fixedmessage))
 			message= fixedmessage;
 		else
-			message= MEM_callocN(sizeof(char)*(len+1), "BLI_dynstr_appendf");
+			message= MEM_callocN(sizeof(char) * len, "BLI_dynstr_appendf");
 
 		/* cant reuse the same args, so work on a copy */
 		va_copy(args_cpy, args);
@@ -130,13 +130,14 @@ void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
 				break;
 			}
 		}
-		else if(retval > len) {
+		else if(retval >= len) {
 			/* in C99 the actual length required is returned */
 			if(message != fixedmessage)
 				MEM_freeN(message);
 			message= NULL;
 
-			len= retval;
+			/* retval doesnt include \0 terminator */
+			len= retval + 1;
 		}
 		else
 			break;
