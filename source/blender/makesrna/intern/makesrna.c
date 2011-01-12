@@ -948,6 +948,8 @@ static char *rna_def_property_begin_func(FILE *f, StructRNA *srna, PropertyRNA *
 
 static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *dp, char *manualfunc, char *nextfunc)
 {
+	/* note on indicies, this is for external functions and ignores skipped values.
+	 * so the the index can only be checked against the length when there is no 'skip' funcion. */
 	char *func;
 
 	if(prop->flag & PROP_IDPROPERTY && manualfunc==NULL)
@@ -984,9 +986,9 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 		fprintf(f, "		ArrayIterator *internal= iter.internal;\n");
 		fprintf(f, "		if(index < 0 || index >= internal->length) {\n");
 		fprintf(f, "#ifdef __GNUC__\n");
-		fprintf(f, "			printf(\"Array iterator out of range: %%s (index %%d range %%d)\\n\", __func__, index, internal->length);  \n");
+		fprintf(f, "			printf(\"Array iterator out of range: %%s (index %%d)\\n\", __func__, index);\n");
 		fprintf(f, "#else\n");
-		fprintf(f, "			printf(\"Array iterator out of range: (index %%d range %%d)\\n\", index, internal->length);  \n");
+		fprintf(f, "			printf(\"Array iterator out of range: (index %%d)\\n\", index);\n");
 		fprintf(f, "#endif\n");
 		fprintf(f, "		}\n");
 		fprintf(f, "		else if(internal->skip) {\n");
