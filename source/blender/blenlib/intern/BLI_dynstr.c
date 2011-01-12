@@ -101,15 +101,21 @@ void BLI_dynstr_nappend(DynStr *ds, const char *cstr, int len) {
 void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
 {
 	char *message, fixedmessage[256];
-	int len= 256, maxlen= 65536, retval;
+	int len= sizeof(fixedmessage);
+	const int maxlen= 65536;
+	int retval;
 
 	while(1) {
+		va_list args_cpy;
 		if(len == sizeof(fixedmessage))
 			message= fixedmessage;
 		else
 			message= MEM_callocN(sizeof(char)*(len+1), "BLI_dynstr_appendf");
 
-		retval= vsnprintf(message, len, format, args);
+		/* cant reuse the same args, so work on a copy */
+		va_copy(args_cpy, args);
+		retval= vsnprintf(message, len, format, args_cpy);
+		va_end(args_cpy);
 
 		if(retval == -1) {
 			/* -1 means not enough space, but on windows it may also mean
