@@ -41,6 +41,14 @@
 #endif
 #endif
 
+#ifndef va_copy
+# ifdef __va_copy
+#  define va_copy(a,b) __va_copy(a,b)
+# else /* !__va_copy */
+#  define va_copy(a,b) ((a)=(b))
+# endif /* __va_copy */
+#endif /* va_copy */
+
 /***/
 
 typedef struct DynStrElem DynStrElem;
