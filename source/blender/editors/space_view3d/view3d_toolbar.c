@@ -114,6 +114,9 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 		return;
 	
 	block= uiLayoutGetBlock(pa->layout);
+	
+	if(ED_undo_valid(C, op->type->name)==0)
+		uiLayoutSetEnabled(pa->layout, 0);
 
 	uiBlockSetFunc(block, ED_undo_operator_repeat_cb, op, NULL);
 	

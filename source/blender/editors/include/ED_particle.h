@@ -68,6 +68,7 @@ void PE_undo_step(struct Scene *scene, int step);
 void PE_undo(struct Scene *scene);
 void PE_redo(struct Scene *scene);
 void PE_undo_menu(struct Scene *scene, struct Object *ob);
+int PE_undo_valid(struct Scene *scene);
 
 #endif /* ED_PARTICLE_H */
 

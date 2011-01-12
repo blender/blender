@@ -314,6 +314,20 @@ void undo_editmode_name(bContext *C, const char *undoname)
 	}
 }
 
+/* undoname optionally, if NULL it just checks for existing undo steps */
+int undo_editmode_valid(const char *undoname)
+{
+	if(undoname) {
+		UndoElem *uel;
+		
+		for(uel= undobase.last; uel; uel= uel->prev) {
+			if(strcmp(undoname, uel->name)==0)
+				break;
+		}
+		return uel != NULL;
+	}
+	return undobase.last != undobase.first;
+}
 
 /* ************** for interaction with menu/pullown */
 

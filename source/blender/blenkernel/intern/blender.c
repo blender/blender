@@ -638,6 +638,22 @@ void BKE_undo_name(bContext *C, const char *name)
 	}
 }
 
+/* name optional */
+int BKE_undo_valid(const char *name)
+{
+	if(name) {
+		UndoElem *uel;
+		
+		for(uel= undobase.last; uel; uel= uel->prev)
+			if(strcmp(name, uel->name)==0)
+				break;
+		
+		return uel && uel->prev;
+	}
+	
+	return undobase.last != undobase.first;
+}
+
 
 char *BKE_undo_menu_string(void)
 {

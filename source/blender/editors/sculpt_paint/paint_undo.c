@@ -239,6 +239,27 @@ int ED_undo_paint_step(bContext *C, int type, int step, const char *name)
 	return 0;
 }
 
+int ED_undo_paint_valid(int type, const char *name)
+{
+	UndoStack *stack;
+	
+	if(type == UNDO_PAINT_IMAGE)
+		stack= &ImageUndoStack;
+	else if(type == UNDO_PAINT_MESH)
+		stack= &MeshUndoStack;
+	else 
+		return 0;
+	
+	if(stack->current==NULL);
+	else {
+		if(name && strcmp(stack->current->name, name) == 0)
+			return 1;
+		else
+			return stack->elems.first != stack->elems.last;
+	}
+	return 0;
+}
+
 void ED_undo_paint_free(void)
 {
 	undo_stack_free(&ImageUndoStack);

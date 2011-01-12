@@ -3884,6 +3884,16 @@ void PE_undo_step(Scene *scene, int step)
 	DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
 }
 
+int PE_undo_valid(Scene *scene)
+{
+	PTCacheEdit *edit= PE_get_current(scene, OBACT);
+	
+	if(edit) {
+		return (edit->undo.last != edit->undo.first);
+	}
+	return 0;
+}
+
 static void PTCacheUndo_number(Scene *scene, PTCacheEdit *edit, int nr)
 {
 	PTCacheUndo *undo;

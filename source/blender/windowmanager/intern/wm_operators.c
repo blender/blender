@@ -892,6 +892,9 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, arg_op);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, 20, style);
 
+	if(ED_undo_valid(C, op->type->name)==0)
+		uiLayoutSetEnabled(layout, 0);
+
 	uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);

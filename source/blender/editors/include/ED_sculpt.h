@@ -51,5 +51,6 @@ void ED_keymap_paint(struct wmKeyConfig *keyconf);
 
 int ED_undo_paint_step(struct bContext *C, int type, int step, const char *name);
 void ED_undo_paint_free(void);
+int ED_undo_paint_valid(int type, const char *name);
 
 #endif
