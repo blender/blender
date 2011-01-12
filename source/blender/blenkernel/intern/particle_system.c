@@ -4100,6 +4100,12 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 
 				free_hair(ob, psys, 0);
 
+				if(psys->edit && psys->free_edit) {
+					psys->free_edit(psys->edit);
+					psys->edit = NULL;
+					psys->free_edit = NULL;
+				}
+
 				/* first step is negative so particles get killed and reset */
 				psys->cfra= 1.0f;
 
