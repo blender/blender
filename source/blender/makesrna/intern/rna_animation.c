@@ -48,6 +48,10 @@ EnumPropertyItem keyingset_path_grouping_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BKE_animsys.h"
+#include "BKE_nla.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 static int rna_AnimData_action_editable(PointerRNA *ptr)
 {
@@ -381,6 +385,32 @@ static void rna_KeyingSet_paths_clear(KeyingSet *keyingset, ReportList *reports)
 	}
 }
 
+/* needs wrapper function to push notifier */
+static NlaTrack *rna_NlaTrack_new(AnimData *adt, bContext *C, NlaTrack *track)
+{
+	NlaTrack *new_track = add_nlatrack(adt, track);
+
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_ADDED, NULL);
+
+	return new_track;
+}
+
+static void rna_NlaTrack_remove(AnimData *adt, bContext *C, NlaTrack *track)
+{
+	free_nlatrack(&adt->nla_tracks, track);
+
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_REMOVED, NULL);
+}
+
+static NlaTrack *rna_NlaTrack_active(AnimData *adt, bContext *C, NlaTrack *track)
+{
+	if (track != NULL) {
+		BKE_nlatrack_set_active(&adt->nla_tracks, track);
+		/* XXX: should (but doesn't) update the active track in the NLA window */
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_SELECTED, NULL);
+	}
+	return BKE_nlatrack_find_active(&adt->nla_tracks);
+}
 
 #else
 
@@ -625,6 +655,40 @@ static void rna_def_keyingset(BlenderRNA *brna)
 
 /* --- */
 
+static void rna_api_animdata_nla_tracks(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *parm;
+	FunctionRNA *func;
+	
+	RNA_def_property_srna(cprop, "NlaTracks");
+	srna= RNA_def_struct(brna, "NlaTracks", NULL);
+	RNA_def_struct_sdna(srna, "AnimData");
+	RNA_def_struct_ui_text(srna, "NLA Tracks", "Collection of NLA Tracks");
+	
+	func = RNA_def_function(srna, "new", "rna_NlaTrack_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add a new NLA Tracks");
+	parm = RNA_def_pointer(func, "prev", "NlaTrack", "", "NLA Track to add the new one after.");
+	/* return type */
+	parm = RNA_def_pointer(func, "track", "NlaTrack", "", "New NLA Track.");
+	RNA_def_function_return(func, parm);
+	
+	func = RNA_def_function(srna, "remove", "rna_NlaTrack_remove");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Remove a NLA Track.");
+	parm = RNA_def_pointer(func, "track", "NlaTrack", "", "NLA Track to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	
+	func = RNA_def_function(srna, "active", "rna_NlaTrack_active");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Set active NLA Track");
+	parm = RNA_def_pointer(func, "track", "NlaTrack", "", "NLA Track set active.");
+	/* return type */
+	parm = RNA_def_pointer(func, "active_track", "NlaTrack", "", "Active NLA Track.");
+	RNA_def_function_return(func, parm);
+}
+
 void rna_def_animdata_common(StructRNA *srna)
 {
 	PropertyRNA *prop;
@@ -648,6 +712,8 @@ void rna_def_animdata(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "nla_tracks", NULL);
 	RNA_def_property_struct_type(prop, "NlaTrack");
 	RNA_def_property_ui_text(prop, "NLA Tracks", "NLA Tracks (i.e. Animation Layers)");
+
+	rna_api_animdata_nla_tracks(brna, prop);
 	
 	/* Active Action */
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
@@ -655,7 +721,6 @@ void rna_def_animdata(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_AnimData_action_editable");
 	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock");
 
-	
 	/* Active Action Settings */
 	prop= RNA_def_property(srna, "action_extrapolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "act_extendmode");
