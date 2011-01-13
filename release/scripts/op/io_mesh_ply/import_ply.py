@@ -18,12 +18,8 @@
 
 # <pep8 compliant>
 
-import Blender
-try:
-    import re
-    import struct
-except:
-    struct = None
+import re
+import struct
 
 
 class element_spec(object):
@@ -56,18 +52,18 @@ class property_spec(object):
 
     def read_format(self, format, count, num_type, stream):
         if format == 'ascii':
-            if (num_type == 's'):
+            if num_type == 's':
                 ans = []
                 for i in xrange(count):
                     s = stream[i]
                     if len(s) < 2 or s[0] != '"' or s[-1] != '"':
-                        print 'Invalid string', s
-                        print 'Note: ply_import.py does not handle whitespace in strings'
+                        print('Invalid string', s)
+                        print('Note: ply_import.py does not handle whitespace in strings')
                         return None
                     ans.append(s[1:-1])
                 stream[:count] = []
                 return ans
-            if (num_type == 'f' or num_type == 'd'):
+            if num_type == 'f' or num_type == 'd':
                 mapper = float
             else:
                 mapper = int
@@ -75,7 +71,7 @@ class property_spec(object):
             stream[:count] = []
             return ans
         else:
-            if (num_type == 's'):
+            if num_type == 's':
                 ans = []
                 for i in xrange(count):
                     fmt = format + 'i'
@@ -92,7 +88,7 @@ class property_spec(object):
                 return struct.unpack(fmt, data)
 
     def load(self, format, stream):
-        if (self.list_type != None):
+        if self.list_type is not None:
             count = int(self.read_format(format, 1, self.list_type, stream)[0])
             return self.read_format(format, count, self.numeric_type, stream)
         else:
@@ -150,39 +146,39 @@ def read(filename):
         signature = file.readline()
 
         if not signature.startswith('ply'):
-            print 'Signature line was invalid'
+            print('Signature line was invalid')
             return None
 
         while 1:
             tokens = re.split(r'[ \n]+', file.readline())
 
-            if (len(tokens) == 0):
+            if len(tokens) == 0:
                 continue
-            if (tokens[0] == 'end_header'):
+            if tokens[0] == 'end_header':
                 break
-            elif (tokens[0] == 'comment' or tokens[0] == 'obj_info'):
+            elif tokens[0] == 'comment' or tokens[0] == 'obj_info':
                 continue
-            elif (tokens[0] == 'format'):
-                if (len(tokens) < 3):
-                    print 'Invalid format line'
+            elif tokens[0] == 'format':
+                if len(tokens) < 3:
+                    print('Invalid format line')
                     return None
-                if tokens[1] not in format_specs:  # .keys()): # keys is implicit
-                    print 'Unknown format', tokens[1]
+                if tokens[1] not in format_specs:  # .keys(): # keys is implicit
+                    print('Unknown format', tokens[1])
                     return None
                 if tokens[2] != version:
-                    print 'Unknown version', tokens[2]
+                    print('Unknown version', tokens[2])
                     return None
                 format = tokens[1]
-            elif (tokens[0] == 'element'):
-                if (len(tokens) < 3):
-                    print 'Invalid element line'
+            elif tokens[0] == 'element':
+                if len(tokens) < 3:
+                    print('Invalid element line')
                     return None
                 obj_spec.specs.append(element_spec(tokens[1], int(tokens[2])))
-            elif (tokens[0] == 'property'):
-                if (not len(obj_spec.specs)):
-                    print 'Property without element'
+            elif tokens[0] == 'property':
+                if not len(obj_spec.specs):
+                    print('Property without element')
                     return None
-                if (tokens[1] == 'list'):
+                if tokens[1] == 'list':
                     obj_spec.specs[-1].properties.append(property_spec(tokens[4], type_specs[tokens[2]], type_specs[tokens[3]]))
                 else:
                     obj_spec.specs[-1].properties.append(property_spec(tokens[2], None, type_specs[tokens[1]]))
@@ -197,7 +193,7 @@ def read(filename):
 
         obj = obj_spec.load(format_specs[format], file)
 
-    except IOError, (errno, strerror):
+    except IOError:
         try:
             file.close()
         except:
@@ -215,8 +211,8 @@ def read(filename):
 def load_ply(filename):
     t = Blender.sys.time()
     obj_spec, obj = read(filename)
-    if obj == None:
-        print 'Invalid file'
+    if obj is None:
+        print('Invalid file')
         return
 
     uvindices = colindices = None
@@ -310,14 +306,14 @@ def load_ply(filename):
 
     Blender.Redraw()
     Blender.Window.DrawProgressBar(1.0, '')
-    print '\nSuccessfully imported "%s" in %.3f sec' % (filename, Blender.sys.time() - t)
+    print('\nSuccessfully imported "%s" in %.3f sec' % (filename, Blender.sys.time() - t))
 
 
 def main():
     if not struct:
         msg = 'This importer requires a full python install'
         if Blender.mode == 'background':
-            print msg
+            print(msg)
         else:
             Blender.Draw.PupMenu(msg)
         return
