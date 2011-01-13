@@ -832,48 +832,28 @@ static PyObject *Vector_slice(VectorObject *self, int begin, int end)
 static int Vector_ass_slice(VectorObject *self, int begin, int end,
 				 PyObject * seq)
 {
-	int i, y, size = 0;
-	float vec[4], scalar;
-	PyObject *v;
+	int y, size = 0;
+	float vec[MAX_DIMENSIONS];
 
 	if(!BaseMath_ReadCallback(self))
 		return -1;
-	
+
 	CLAMP(begin, 0, self->size);
-	if (end<0) end= self->size+end+1;
 	CLAMP(end, 0, self->size);
 	begin = MIN2(begin,end);
 
-	size = PySequence_Size(seq);
-	if(size != (end - begin)){
-		PyErr_SetString(PyExc_TypeError, "vector[begin:end] = []: size mismatch in slice assignment");
+	size = (end - begin);
+	if(mathutils_array_parse(vec, size, size, seq, "vector[begin:end] = [...]:") == -1)
 		return -1;
-	}
 
-	for (i = 0; i < size; i++) {
-		v = PySequence_GetItem(seq, i);
-		if (v == NULL) { /* Failed to read sequence */
-			PyErr_SetString(PyExc_RuntimeError, "vector[begin:end] = []: unable to read sequence");
-			return -1;
-		}
-		
-		if((scalar=PyFloat_AsDouble(v)) == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
-			Py_DECREF(v);
-			PyErr_SetString(PyExc_TypeError, "vector[begin:end] = []: sequence argument not a number");
-			return -1;
-		}
-
-		vec[i] = scalar;
-		Py_DECREF(v);
-	}
 	/*parsed well - now set in vector*/
 	for(y = 0; y < size; y++){
 		self->vec[begin + y] = vec[y];
 	}
-	
+
 	if(!BaseMath_WriteCallback(self))
 		return -1;
-	
+
 	return 0;
 }
 /*------------------------NUMERIC PROTOCOLS----------------------
