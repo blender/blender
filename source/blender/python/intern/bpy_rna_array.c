@@ -206,6 +206,23 @@ static int validate_array(PyObject *rvalue, PointerRNA *ptr, PropertyRNA *prop, 
 	return validate_array_length(rvalue, ptr, prop, lvalue_dim, totitem, error_prefix);
 }
 
+static char *copy_value_single(PyObject *item, PointerRNA *ptr, PropertyRNA *prop, char *data, unsigned int item_size, int *index, ItemConvertFunc convert_item, RNA_SetIndexFunc rna_set_index)
+{
+	if (!data) {
+		char value[sizeof(int)];
+
+		convert_item(item, value);
+		rna_set_index(ptr, prop, *index, value);
+		*index = *index + 1;
+	}
+	else {
+		convert_item(item, data);
+		data += item_size;
+	}
+
+	return data;
+}
+
 static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, int dim, char *data, unsigned int item_size, int *index, ItemConvertFunc convert_item, RNA_SetIndexFunc rna_set_index)
 {
 	unsigned int i;
@@ -218,19 +235,9 @@ static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, int 
 			data= copy_values(item, ptr, prop, dim + 1, data, item_size, index, convert_item, rna_set_index);
 		}
 		else {
-			if (!data) {
-				char value[sizeof(int)];
-
-				convert_item(item, value);
-				rna_set_index(ptr, prop, *index, value);
-				*index = *index + 1;
-			}
-			else {
-				convert_item(item, data);
-				data += item_size;
-			}
+			data= copy_value_single(item, ptr, prop, data, item_size, index, convert_item, rna_set_index);
 		}
-			
+
 		Py_DECREF(item);
 	}
 
@@ -302,12 +309,18 @@ static int py_to_array_index(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, i
 
 	index += arrayoffset;
 
-	if (!validate_array(py, ptr, prop, lvalue_dim, check_item_type, item_type_str, &totitem, error_prefix))
-		return 0;
+	if(lvalue_dim == totdim) { /* single item, assign directly */
+		copy_value_single(py, ptr, prop, NULL, 0, &index, convert_item, rna_set_index);
+	}
+	else {
+		if (!validate_array(py, ptr, prop, lvalue_dim, check_item_type, item_type_str, &totitem, error_prefix)) {
+			return 0;
+		}
 
-	if (totitem)
-		copy_values(py, ptr, prop, lvalue_dim, NULL, 0, &index, convert_item, rna_set_index);
-
+		if (totitem) {
+			copy_values(py, ptr, prop, lvalue_dim, NULL, 0, &index, convert_item, rna_set_index);
+		}
+	}
 	return 1;
 }
 
