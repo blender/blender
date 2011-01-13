@@ -147,7 +147,7 @@ class TIME_MT_frame(bpy.types.Menu):
         layout.operator("marker.delete", text="Delete Marker")
 
         layout.separator()
-        
+
         layout.operator("marker.rename", text="Rename Marker")
         layout.operator("marker.move", text="Grab/Move Marker")
 

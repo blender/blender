@@ -108,7 +108,6 @@ class AddTorus(bpy.types.Operator):
     location = FloatVectorProperty(name="Location")
     rotation = FloatVectorProperty(name="Rotation")
 
-
     def execute(self, context):
 
         if self.use_abso == True:

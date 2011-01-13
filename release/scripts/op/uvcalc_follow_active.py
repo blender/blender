@@ -31,7 +31,6 @@ def extend(obj, operator, EXTEND_MODE):
     if not me.uv_textures:
         me.uv_textures.new()
 
-
     # Toggle Edit mode
     is_editmode = (obj.mode == 'EDIT')
     if is_editmode:
@@ -41,7 +40,7 @@ def extend(obj, operator, EXTEND_MODE):
     edge_average_lengths = {}
 
     OTHER_INDEX = 2, 3, 0, 1
-    FAST_INDICIES = 0, 2, 1, 3 # order is faster
+    FAST_INDICIES = 0, 2, 1, 3  # order is faster
 
     def extend_uvs(face_source, face_target, edge_key):
         '''
@@ -86,30 +85,27 @@ def extend(obj, operator, EXTEND_MODE):
         except:
             target_matching_edge = edge_idxs_target.index(edge_key_swap)
 
-
         edgepair_inner_source = edge_idxs_source[source_matching_edge]
         edgepair_inner_target = edge_idxs_target[target_matching_edge]
         edgepair_outer_source = edge_idxs_source[OTHER_INDEX[source_matching_edge]]
         edgepair_outer_target = edge_idxs_target[OTHER_INDEX[target_matching_edge]]
 
         if edge_idxs_source[source_matching_edge] == edge_idxs_target[target_matching_edge]:
-            iA = 0 # Flipped, most common
+            iA = 0  # Flipped, most common
             iB = 1
-        else: # The normals of these faces must be different
+        else:  # The normals of these faces must be different
             iA = 1
             iB = 0
-
 
         # Set the target UV's touching source face, no tricky calc needed,
         uvs_vhash_target[edgepair_inner_target[0]][:] = uvs_vhash_source[edgepair_inner_source[iA]]
         uvs_vhash_target[edgepair_inner_target[1]][:] = uvs_vhash_source[edgepair_inner_source[iB]]
 
-
         # Set the 2 UV's on the target face that are not touching
         # for this we need to do basic expaning on the source faces UV's
         if EXTEND_MODE == 'LENGTH':
 
-            try: # divide by zero is possible
+            try:  # divide by zero is possible
                 '''
                 measure the length of each face from the middle of each edge to the opposite
                 allong the axis we are copying, use this
@@ -137,7 +133,6 @@ def extend(obj, operator, EXTEND_MODE):
             uvs_vhash_target[edgepair_outer_target[iB]][:] = uvs_vhash_source[edgepair_inner_source[0]] + (uvs_vhash_source[edgepair_inner_source[0]] - uvs_vhash_source[edgepair_outer_source[1]])
             uvs_vhash_target[edgepair_outer_target[iA]][:] = uvs_vhash_source[edgepair_inner_source[1]] + (uvs_vhash_source[edgepair_inner_source[1]] - uvs_vhash_source[edgepair_outer_source[0]])
 
-
     if not me.uv_textures:
         me.uv_textures.new()
 
@@ -158,15 +153,12 @@ def extend(obj, operator, EXTEND_MODE):
         operator.report({'ERROR'}, "Active face not selected.")
         return
 
-
-
     # Modes
     # 0 unsearched
     # 1:mapped, use search from this face. - removed!!
     # 2:all siblings have been searched. dont search again.
     face_modes = [0] * len(face_sel)
-    face_modes[face_act_local_index] = 1 # extend UV's from this face.
-
+    face_modes[face_act_local_index] = 1  # extend UV's from this face.
 
     # Edge connectivty
     edge_faces = {}
@@ -187,7 +179,6 @@ def extend(obj, operator, EXTEND_MODE):
                 looplen[0] += (me_verts[ed[0]].co - me_verts[ed[1]].co).length
             looplen[0] = looplen[0] / len(loop)
 
-
     # remove seams, so we dont map accross seams.
     for ed in me.edges:
         if ed.use_seam:
@@ -198,31 +189,29 @@ def extend(obj, operator, EXTEND_MODE):
                 pass
     # Done finding seams
 
-
     # face connectivity - faces around each face
     # only store a list of indicies for each face.
     face_faces = [[] for i in range(len(face_sel))]
 
     for edge_key, faces in edge_faces.items():
-        if len(faces) == 2: # Only do edges with 2 face users for now
+        if len(faces) == 2:  # Only do edges with 2 face users for now
             face_faces[faces[0]].append((faces[1], edge_key))
             face_faces[faces[1]].append((faces[0], edge_key))
-
 
     # Now we know what face is connected to what other face, map them by connectivity
     ok = True
     while ok:
         ok = False
         for i in range(len(face_sel)):
-            if face_modes[i] == 1: # searchable
+            if face_modes[i] == 1:  # searchable
                 for f_sibling, edge_key in face_faces[i]:
                     if face_modes[f_sibling] == 0:
-                        face_modes[f_sibling] = 1 # mapped and search from.
+                        face_modes[f_sibling] = 1  # mapped and search from.
                         extend_uvs(face_sel[i], face_sel[f_sibling], edge_key)
-                        face_modes[i] = 1 # we can map from this one now.
-                        ok = True # keep searching
+                        face_modes[i] = 1  # we can map from this one now.
+                        ok = True  # keep searching
 
-                face_modes[i] = 2 # dont search again
+                face_modes[i] = 2  # dont search again
 
     if is_editmode:
         bpy.ops.object.mode_set(mode='EDIT')

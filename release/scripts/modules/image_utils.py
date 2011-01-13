@@ -18,10 +18,10 @@
 
 # <pep8 compliant>
 
+
 def image_load(filepath, dirpath, place_holder=False, recursive=False, convert_callback=None):
     import bpy
     try:
         return bpy.data.images.load(filepath)
     except SystemError:
         return bpy.data.images.new("Untitled", 128, 128)
-        

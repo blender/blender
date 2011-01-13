@@ -896,9 +896,6 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
         col.prop(part, "show_number")
         if part.physics_type == 'BOIDS':
             col.prop(part, "show_health")
-        
- 
-        
 
         col = row.column()
         col.prop(part, "show_material_color", text="Use material color")
@@ -956,7 +953,7 @@ class PARTICLE_PT_children(ParticleButtonsPanel, bpy.types.Panel):
         sub = col.column(align=True)
         sub.prop(part, "clump_factor", slider=True)
         sub.prop(part, "clump_shape", slider=True)
-        
+
         sub = col.column(align=True)
         sub.prop(part, "child_length", slider=True)
         sub.prop(part, "child_length_threshold", slider=True)

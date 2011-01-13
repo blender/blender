@@ -20,6 +20,7 @@
 
 import bpy
 
+
 #######################################
 # DopeSheet Filtering
 
@@ -72,6 +73,7 @@ def dopesheet_filter(layout, context):
         if dopesheet.show_only_group_objects:
             row.prop(dopesheet, "filter_group", text="")
 
+
 #######################################
 # DopeSheet Editor - General/Standard UI
 
@@ -111,7 +113,7 @@ class DOPESHEET_HT_header(bpy.types.Header):
 
         elif st.mode in ('ACTION', 'SHAPEKEY'):
             layout.template_ID(st, "action", new="action.new")
-        
+
         # Grease Pencil mode doesn't need snapping, as it's frame-aligned only
         if st.mode != 'GPENCIL':
             layout.prop(st, "auto_snap", text="")
@@ -177,7 +179,7 @@ class DOPESHEET_MT_select(bpy.types.Menu):
 
         layout.operator("action.select_column", text="Columns on Selected Markers").mode = 'MARKERS_COLUMN'
         layout.operator("action.select_column", text="Between Selected Markers").mode = 'MARKERS_BETWEEN'
-        
+
         # FIXME: grease pencil mode isn't supported for these yet, so skip for that mode only
         if context.space_data.mode != 'GPENCIL':
             layout.separator()
@@ -187,29 +189,31 @@ class DOPESHEET_MT_select(bpy.types.Menu):
             layout.separator()
             layout.operator("action.select_linked")
 
+
 class DOPESHEET_MT_marker(bpy.types.Menu):
     bl_label = "Marker"
-    
+
     def draw(self, context):
         layout = self.layout
-        
+
         st = context.space_data
-        
+
         #layout.operator_context = 'EXEC_REGION_WIN'
-        
+
         layout.column()
         layout.operator("marker.add", "Add Marker")
         layout.operator("marker.duplicate", text="Duplicate Marker")
         layout.operator("marker.delete", text="Delete Marker")
 
         layout.separator()
-        
+
         layout.operator("marker.rename", text="Rename Marker")
         layout.operator("marker.move", text="Grab/Move Marker")
-        
+
         if st.mode in ('ACTION', 'SHAPEKEY') and st.action:
             layout.separator()
             layout.prop(st, "show_pose_markers")
+
 
 #######################################
 # Keyframe Editing
@@ -277,6 +281,7 @@ class DOPESHEET_MT_key(bpy.types.Menu):
         layout.operator("action.copy")
         layout.operator("action.paste")
 
+
 class DOPESHEET_MT_key_transform(bpy.types.Menu):
     bl_label = "Transform"
 
@@ -289,12 +294,13 @@ class DOPESHEET_MT_key_transform(bpy.types.Menu):
         layout.operator("transform.transform", text="Slide").mode = 'TIME_SLIDE'
         layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'
 
+
 #######################################
 # Grease Pencil Editing
 
 class DOPESHEET_MT_gpencil_channel(bpy.types.Menu):
     bl_label = "Channel"
-    
+
     def draw(self, context):
         layout = self.layout
 
@@ -310,7 +316,7 @@ class DOPESHEET_MT_gpencil_channel(bpy.types.Menu):
 
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
-        
+
         # XXX: to be enabled when these are ready for use!
         #layout.separator()
         #layout.operator("anim.channels_expand")
@@ -318,6 +324,7 @@ class DOPESHEET_MT_gpencil_channel(bpy.types.Menu):
 
         #layout.separator()
         #layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
+
 
 class DOPESHEET_MT_gpencil_frame(bpy.types.Menu):
     bl_label = "Frame"
@@ -338,7 +345,7 @@ class DOPESHEET_MT_gpencil_frame(bpy.types.Menu):
         #layout.separator()
         #layout.operator("action.copy")
         #layout.operator("action.paste")
-        
+
 
 def register():
     pass
