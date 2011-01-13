@@ -1457,13 +1457,13 @@ static void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, Collis
 static int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, CollisionModifierData *collmd, CollPair *collisions, CollPair *collisions_index)
 {
 	Cloth *cloth = clmd->clothObject;
-	int i=0, j = 0, numfaces = 0, numverts = 0;
+	int i=0, j = 0, /*numfaces = 0,*/ numverts = 0;
 	ClothVertex *verts = NULL;
 	int ret = 0;
 	int result = 0;
 	float tnull[3] = {0,0,0};
 	
-	numfaces = clmd->clothObject->numfaces;
+	/*numfaces = clmd->clothObject->numfaces;*/ /*UNUSED*/
 	numverts = clmd->clothObject->numverts;
  
 	verts = cloth->verts;

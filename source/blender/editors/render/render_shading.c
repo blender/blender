@@ -851,6 +851,10 @@ static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int
 		ibuf = IMB_allocImBuf(dx, dx, 24, IB_rectfloat);
 		IMB_rectcpy(ibuf, env->cube[1], 0, 0, 0, 0, dx, dx);		
 	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "Invalid environment map type");
+		return OPERATOR_CANCELLED;
+	}
 	
 	if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
 		ibuf->profile = IB_PROFILE_LINEAR_RGB;

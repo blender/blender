@@ -5685,7 +5685,7 @@ static int collapseEdges(EditMesh *em)
 	CollectedEdge *curredge;
 	Collection *edgecollection;
 
-	int totedges, groupcount, mergecount,vcount;
+	int totedges, mergecount,vcount /*, groupcount*/;
 	float avgcount[3];
 
 	allcollections.first = 0;
@@ -5694,7 +5694,7 @@ static int collapseEdges(EditMesh *em)
 	mergecount = 0;
 
 	build_edgecollection(em, &allcollections);
-	groupcount = BLI_countlist(&allcollections);
+	/*groupcount = BLI_countlist(&allcollections);*/ /*UNUSED*/
 
 
 	for(edgecollection = allcollections.first; edgecollection; edgecollection = edgecollection->next){

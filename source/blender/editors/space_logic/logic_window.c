@@ -4771,8 +4771,6 @@ void logic_buttons(bContext *C, ARegion *ar)
 	uiDefButBitS(block, TOG, BUTS_CONT_LINK, B_REDR, "Link", xco+110+2*(width-100)/3, yco+35, (width-100)/3, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show linked Objects to Sensor/Actuator");
 	uiBlockEndAlign(block);
 	
-	ob= CTX_data_active_object(C);
-	
 	for(a=0; a<count; a++) {
 		unsigned int controller_state_mask = 0; /* store a bitmask for states that are used */
 		

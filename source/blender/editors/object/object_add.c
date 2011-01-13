@@ -680,9 +680,7 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE, layer);
-	if(ob && ob->data)
-		((Lamp*)ob->data)->type= type;
-	
+	((Lamp*)ob->data)->type= type;
 	rename_id((ID *)ob, get_lamp_defname(type));
 	rename_id((ID *)ob->data, get_lamp_defname(type));
 	

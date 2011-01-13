@@ -239,11 +239,11 @@ static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, int 
 
 static int py_to_array(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, char *param_data, ItemTypeCheckFunc check_item_type, const char *item_type_str, int item_size, ItemConvertFunc convert_item, RNA_SetArrayFunc rna_set_array, const char *error_prefix)
 {
-	int totdim, dim_size[MAX_ARRAY_DIMENSION];
+	/*int totdim, dim_size[MAX_ARRAY_DIMENSION];*/
 	int totitem;
 	char *data= NULL;
 
-	totdim= RNA_property_array_dimension(ptr, prop, dim_size);
+	/*totdim= RNA_property_array_dimension(ptr, prop, dim_size);*/ /*UNUSED*/
 
 	if (!validate_array(py, ptr, prop, 0, check_item_type, item_type_str, &totitem, error_prefix)) {
 		return 0;

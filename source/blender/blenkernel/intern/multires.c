@@ -707,7 +707,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, int invert, int
 	MFace *mface = me->mface;
 	MDisps *mdisps = CustomData_get_layer(&me->fdata, CD_MDISPS);
 	int *gridOffset;
-	int i, numGrids, gridSize, dGridSize, dSkip;
+	int i, /*numGrids,*/ gridSize, dGridSize, dSkip;
 
 	if(!mdisps) {
 		if(invert)
@@ -716,7 +716,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, int invert, int
 			return;
 	}
 
-	numGrids = dm->getNumGrids(dm);
+	/*numGrids = dm->getNumGrids(dm);*/ /*UNUSED*/
 	gridSize = dm->getGridSize(dm);
 	gridData = dm->getGridData(dm);
 	gridOffset = dm->getGridOffset(dm);

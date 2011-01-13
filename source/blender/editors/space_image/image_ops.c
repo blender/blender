@@ -438,14 +438,12 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima;
 	ARegion *ar;
-	Object *obedit;
 	float aspx, aspy, zoomx, zoomy, w, h;
 	int width, height;
 
 	/* retrieve state */
 	sima= CTX_wm_space_image(C);
 	ar= CTX_wm_region(C);
-	obedit= CTX_data_edit_object(C);
 
 	ED_space_image_size(sima, &width, &height);
 	ED_space_image_aspect(sima, &aspx, &aspy);

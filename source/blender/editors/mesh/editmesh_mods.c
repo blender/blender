@@ -4474,8 +4474,6 @@ static int mesh_noise_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_noise(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Noise";
 	ot->description= "Use vertex coordinate as texture coordinate";
@@ -4488,8 +4486,7 @@ void MESH_OT_noise(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	prop= RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, "Factor", "", 0.0f, 1.0f);
-
+	RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, "Factor", "", 0.0f, 1.0f);
 }
 
 void flipface(EditMesh *em, EditFace *efa)

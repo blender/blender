@@ -715,7 +715,7 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
 					ARegion *ar= CTX_wm_region(C);
 					ScrArea *sa= CTX_wm_area(C);
 
-					if(ar && ar->regiontype == RGN_TYPE_WINDOW && BLI_in_rcti(&ar->winrct, event->x, event->y)) {
+					if(ar && ar->regiontype == RGN_TYPE_WINDOW && event && BLI_in_rcti(&ar->winrct, event->x, event->y)) {
 						winrect= &ar->winrct;
 					}
 					else if(sa) {

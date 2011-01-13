@@ -760,7 +760,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 				
 				if (samplesperpixel == 4) {
 					to16[to_i+3] = FTOUSHORT(fromf[from_i+3]);
-					to_i++; from_i++;
+					/*to_i++; from_i++;*/ /*unused, set on each loop */
 				}
 			}
 			else {

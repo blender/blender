@@ -1172,7 +1172,6 @@ static void new_particle_duplilist(ListBase *lb, ID *UNUSED(id), Scene *scene, O
 	float (*obmat)[4], (*oldobmat)[4];
 	int a, b, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
-	unsigned int lay;
 
 	if(psys==0) return;
 	
@@ -1193,8 +1192,7 @@ static void new_particle_duplilist(ListBase *lb, ID *UNUSED(id), Scene *scene, O
 	totchild = psys->totchild;
 
 	BLI_srandom(31415926 + psys->seed);
-	
-	lay= scene->lay;
+
 	if((psys->renderdata || part->draw_as==PART_DRAW_REND) && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
 		ParticleSimulationData sim= {0};
 		sim.scene= scene;

@@ -130,20 +130,19 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	 */
 
 	if(view_context) {
-		int is_ortho;
 		GPU_offscreen_bind(oglrender->ofs); /* bind */
 
 		/* render 3d view */
 		if(rv3d->persp==RV3D_CAMOB && v3d->camera) {
+			/*int is_ortho= scene->r.mode & R_ORTHO;*/
 			RE_GetCameraWindow(oglrender->re, v3d->camera, scene->r.cfra, winmat);
-			is_ortho= scene->r.mode & R_ORTHO;
 			
 		}
 		else {
 			rctf viewplane;
 			float clipsta, clipend;
-	
-			is_ortho= get_view3d_viewplane(v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
+
+			int is_ortho= get_view3d_viewplane(v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
 			if(is_ortho) orthographic_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, -clipend, clipend);
 			else  perspective_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
 		}

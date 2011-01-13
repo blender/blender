@@ -893,13 +893,13 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 					  CustomDataMask mask, int alloctype, int totelem)
 {
-	const LayerTypeInfo *typeInfo;
+	/*const LayerTypeInfo *typeInfo;*/
 	CustomDataLayer *layer, *newlayer;
 	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0, lastflag = 0;
 
 	for(i = 0; i < source->totlayer; ++i) {
 		layer = &source->layers[i];
-		typeInfo = layerType_getInfo(layer->type);
+		/*typeInfo = layerType_getInfo(layer->type);*/ /*UNUSED*/
 
 		type = layer->type;
 

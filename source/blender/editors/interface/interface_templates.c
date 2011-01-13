@@ -1893,15 +1893,12 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, const char *propname,
 	int groups, cols, layers;
 	int group, col, layer, row;
 	int cols_per_group = 5;
-	const char *desc;
-	
+
 	prop= RNA_struct_find_property(ptr, propname);
 	if (!prop) {
 		printf("uiTemplateLayer: layers property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
-
-	desc= RNA_property_description(prop);
 	
 	/* the number of layers determines the way we group them 
 	 *	- we want 2 rows only (for now)

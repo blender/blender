@@ -107,7 +107,6 @@ static void rna_def_area(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	FunctionRNA *func;
-	PropertyRNA *parm;
 	
 	srna= RNA_def_struct(brna, "Area", NULL);
 	RNA_def_struct_ui_text(srna, "Area", "Area in a subdivided screen, containing an editor");
@@ -144,7 +143,7 @@ static void rna_def_area(BlenderRNA *brna)
 
 	func= RNA_def_function(srna, "header_text_set", "ED_area_headerprint");
 	RNA_def_function_ui_description(func, "Set the header text");
-	parm= RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, no argument clears the text.");
+	RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, no argument clears the text.");
 }
 
 static void rna_def_region(BlenderRNA *brna)

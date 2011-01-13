@@ -1036,10 +1036,8 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 {
 	DerivedMesh *dm=psys_get_modifier(ob,psys)->dm;
 	PTCacheEdit *edit= psys->edit;
-	MFace *mface;
-	MVert *mvert;
 	float *vec, *nor;
-	int i, totface, totvert;
+	int i, totface /*, totvert*/;
 
 	if(!dm)
 		return;
@@ -1050,7 +1048,7 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 	BLI_kdtree_free(edit->emitter_field);
 
 	totface=dm->getNumFaces(dm);
-	totvert=dm->getNumVerts(dm);
+	/*totvert=dm->getNumVerts(dm);*/ /*UNSUED*/
 
 	edit->emitter_cosnos=MEM_callocN(totface*6*sizeof(float),"emitter cosnos");
 
@@ -1059,9 +1057,9 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 	vec=edit->emitter_cosnos;
 	nor=vec+3;
 
-	mvert=dm->getVertDataArray(dm,CD_MVERT);
 	for(i=0; i<totface; i++, vec+=6, nor+=6) {
-		mface=dm->getFaceData(dm,i,CD_MFACE);
+		MFace *mface=dm->getFaceData(dm,i,CD_MFACE);
+		MVert *mvert;
 
 		mvert=dm->getVertData(dm,mface->v1,CD_MVERT);
 		VECCOPY(vec,mvert->co);
@@ -2062,12 +2060,11 @@ static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
 	POINT_P;
 	PTCacheEditPoint *npoint=0, *new_points=0;
 	ParticleSystemModifierData *psmd;
-	int i, totpart, new_totpart= psys->totpart, removed= 0;
+	int i, new_totpart= psys->totpart, removed= 0;
 
 	if(mirror) {
 		/* mirror tags */
 		psmd= psys_get_modifier(ob, psys);
-		totpart= psys->totpart;
 
 		LOOP_TAGGED_POINTS {
 			PE_mirror_particle(ob, psmd->dm, psys, psys->particles + p, NULL);

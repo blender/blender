@@ -676,7 +676,7 @@ static void rna_api_animdata_nla_tracks(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_NlaTrack_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a new NLA Tracks");
-	parm = RNA_def_pointer(func, "prev", "NlaTrack", "", "NLA Track to add the new one after.");
+	RNA_def_pointer(func, "prev", "NlaTrack", "", "NLA Track to add the new one after.");
 	/* return type */
 	parm = RNA_def_pointer(func, "track", "NlaTrack", "", "New NLA Track.");
 	RNA_def_function_return(func, parm);

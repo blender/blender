@@ -141,7 +141,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other.");
 
 	func= RNA_def_function(srna, "column_flow", "uiLayoutColumnFlow");
-	parm= RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns, 0 is automatic.", 0, INT_MAX);
+	RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns, 0 is automatic.", 0, INT_MAX);
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
 	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other.");
@@ -327,7 +327,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lamps, etc.");
 	parm= RNA_def_pointer(func, "id", "ID", "", "ID datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_boolean(func, "show_buttons", 1, "", "Show preview buttons?");
+	RNA_def_boolean(func, "show_buttons", 1, "", "Show preview buttons?");
 	RNA_def_pointer(func, "parent", "ID", "", "ID datablock.");
 	RNA_def_pointer(func, "slot", "TextureSlot", "", "Texture slot.");
 

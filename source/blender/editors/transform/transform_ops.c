@@ -408,7 +408,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 
 	if (flags & P_CONSTRAINT)
 	{
-		prop= RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
+		RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
 		prop= RNA_def_property(ot->srna, "constraint_orientation", PROP_ENUM, PROP_NONE);
 		RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation");
 		RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
@@ -455,7 +455,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 	}
 
 	// Add confirm method all the time. At the end because it's not really that important and should be hidden only in log, not in keymap edit
-	prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "Always confirm operation when releasing button");
+	/*prop =*/ RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "Always confirm operation when releasing button");
 	//RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 

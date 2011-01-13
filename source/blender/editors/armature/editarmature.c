@@ -1209,12 +1209,10 @@ static int separate_armature_exec (bContext *C, wmOperator *UNUSED(op))
 	Object *obedit= CTX_data_edit_object(C);
 	Object *oldob, *newob;
 	Base *oldbase, *newbase;
-	bArmature *arm;
 	
 	/* sanity checks */
 	if (obedit == NULL)
 		return OPERATOR_CANCELLED;
-	arm= obedit->data;
 	
 	/* set wait cursor in case this takes a while */
 	WM_cursor_wait(1);

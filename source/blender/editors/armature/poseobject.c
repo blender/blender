@@ -667,7 +667,7 @@ void pose_copy_menu(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX context
 	Object *ob= OBACT;
-	bArmature *arm= ob->data;
+	bArmature *arm;
 	bPoseChannel *pchan, *pchanact;
 	short nr=0;
 	int i=0;
@@ -680,7 +680,8 @@ void pose_copy_menu(Scene *scene)
 	
 	if (pchan==NULL) return;
 	pchanact= pchan;
-	
+	arm= ob->data;
+
 	/* if proxy-protected bones selected, some things (such as locks + displays) shouldn't be changable, 
 	 * but for constraints (just add local constraints)
 	 */
@@ -1241,7 +1242,6 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
-	bArmature *arm;
 	bPose *pose;
 	short done= 0;
 	
@@ -1254,7 +1254,7 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
-	arm= ob->data;
+
 	pose= ob->pose;
 	
 	/* set the active group number to the one from operator props 
@@ -1306,8 +1306,6 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
-	bArmature *arm;
-	bPose *pose;
 	short done= 0;
 	
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
@@ -1319,8 +1317,6 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *UNUSED(op))
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
-	pose= ob->pose;
-	arm= ob->data;
 	
 	/* find selected bones to remove from all bone groups */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
@@ -1561,16 +1557,17 @@ void POSE_OT_autoside_names (wmOperatorType *ot)
 void pose_activate_flipped_bone(Scene *scene)
 {
 	Object *ob= OBACT;
-	bArmature *arm= ob->data;
-	
+
 	if(ob==NULL) return;
 
 	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 		ob= modifiers_isDeformedByArmature(ob);
 	}
+
 	if(ob && (ob->mode & OB_MODE_POSE)) {
 		bPoseChannel *pchanf;
-		
+		bArmature *arm= ob->data;
+
 		if(arm->act_bone) {
 			char name[32];
 			flip_side_name(name, arm->act_bone->name, TRUE);
