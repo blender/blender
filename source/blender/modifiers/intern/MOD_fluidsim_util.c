@@ -169,7 +169,7 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
 DerivedMesh *fluidsim_read_obj(char *filename)
 {
-	int wri,i,j;
+	int wri = 0,i,j;
 	float wrf;
 	int gotBytes;
 	gzFile gzf;
@@ -193,28 +193,30 @@ DerivedMesh *fluidsim_read_obj(char *filename)
 	numverts = wri;
 
 	// skip verts
-	for(i=0; i<numverts*3; i++)
+	for(i=0; i<numverts*3 && gotBytes; i++)
 	{
 		gotBytes = gzread(gzf, &wrf, sizeof( wrf ));
 	}
 
 	// read number of normals
-	gotBytes = gzread(gzf, &wri, sizeof(wri));
+	if(gotBytes)
+		gotBytes = gzread(gzf, &wri, sizeof(wri));
 
 	// skip normals
-	for(i=0; i<numverts*3; i++)
+	for(i=0; i<numverts*3 && gotBytes; i++)
 	{
 		gotBytes = gzread(gzf, &wrf, sizeof( wrf ));
 	}
 
 	/* get no. of triangles */
-	gotBytes = gzread(gzf, &wri, sizeof(wri));
+	if(gotBytes)
+		gotBytes = gzread(gzf, &wri, sizeof(wri));
 	numfaces = wri;
 
 	gzclose( gzf );
 	// ------------------------------------------------
 
-	if(!numfaces || !numverts)
+	if(!numfaces || !numverts || !gotBytes)
 		return NULL;
 
 	gzf = gzopen(filename, "rb");
