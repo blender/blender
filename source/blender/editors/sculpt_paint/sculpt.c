@@ -2343,87 +2343,45 @@ static void sculpt_combine_proxies(Sculpt *sd, SculptSession *ss)
 {
 	Brush *brush= paint_brush(&sd->paint);
 	PBVHNode** nodes;
-	int totnode;
-	int n;
+	int use_orco, totnode, n;
 
 	BLI_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
 
-	switch (brush->sculpt_tool) {
-		case SCULPT_TOOL_GRAB:
-		case SCULPT_TOOL_ROTATE:
-		case SCULPT_TOOL_THUMB:
-			#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
-			for (n= 0; n < totnode; n++) {
-				PBVHVertexIter vd;
-				PBVHProxyNode* proxies;
-				int proxy_count;
-				float (*origco)[3];
+	if(!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER)) {
+		/* these brushes start from original coordinates */
+		use_orco = (ELEM3(brush->sculpt_tool, SCULPT_TOOL_GRAB,
+				  SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB));
 
-				origco= sculpt_undo_push_node(ss, nodes[n])->co;
+		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+		for (n= 0; n < totnode; n++) {
+			PBVHVertexIter vd;
+			PBVHProxyNode* proxies;
+			int proxy_count;
+			float (*orco)[3];
 
-				BLI_pbvh_node_get_proxies(nodes[n], &proxies, &proxy_count);
+			if(use_orco)
+				orco= sculpt_undo_push_node(ss, nodes[n])->co;
 
-				BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
-					float val[3];
-					int p;
+			BLI_pbvh_node_get_proxies(nodes[n], &proxies, &proxy_count);
 
-					copy_v3_v3(val, origco[vd.i]);
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+				float val[3];
+				int p;
 
-					for (p= 0; p < proxy_count; p++)
-						add_v3_v3(val, proxies[p].co[vd.i]);
-
-					sculpt_clip(sd, ss, vd.co, val);
-				}
-				BLI_pbvh_vertex_iter_end;
-
-				BLI_pbvh_node_free_proxies(nodes[n]);
-			}
-
-			break;
-
-		case SCULPT_TOOL_DRAW:
-		case SCULPT_TOOL_CLAY:
-		case SCULPT_TOOL_CLAY_TUBES:
-		case SCULPT_TOOL_CREASE:
-		case SCULPT_TOOL_BLOB:
-		case SCULPT_TOOL_FILL:
-		case SCULPT_TOOL_FLATTEN:
-		case SCULPT_TOOL_INFLATE:
-		case SCULPT_TOOL_NUDGE:
-		case SCULPT_TOOL_PINCH:
-		case SCULPT_TOOL_SCRAPE:
-		case SCULPT_TOOL_SNAKE_HOOK:
-			#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
-			for (n= 0; n < totnode; n++) {
-				PBVHVertexIter vd;
-				PBVHProxyNode* proxies;
-				int proxy_count;
-
-				BLI_pbvh_node_get_proxies(nodes[n], &proxies, &proxy_count);
-
-				BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
-					float val[3];
-					int p;
-
+				if(use_orco)
+					copy_v3_v3(val, orco[vd.i]);
+				else
 					copy_v3_v3(val, vd.co);
 
-					for (p= 0; p < proxy_count; p++)
-						add_v3_v3(val, proxies[p].co[vd.i]);
+				for (p= 0; p < proxy_count; p++)
+					add_v3_v3(val, proxies[p].co[vd.i]);
 
-					sculpt_clip(sd, ss, vd.co, val);
-				}
-				BLI_pbvh_vertex_iter_end;
-
-				BLI_pbvh_node_free_proxies(nodes[n]);
-
+				sculpt_clip(sd, ss, vd.co, val);
 			}
+			BLI_pbvh_vertex_iter_end;
 
-			break;
-
-		case SCULPT_TOOL_SMOOTH:
-		case SCULPT_TOOL_LAYER:
-		default:
-			break;
+			BLI_pbvh_node_free_proxies(nodes[n]);
+		}
 	}
 
 	if (nodes)
