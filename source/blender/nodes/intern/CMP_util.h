@@ -164,7 +164,7 @@ void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2);
 extern void node_ID_title_cb(void *node_v, void *unused_v);
 
 
-/* utility functions used by glare, tonemap and lense distortion */
+/* utility functions used by glare, tonemap and lens distortion */
 /* soms macros for color handling */
 typedef float fRGB[4];
 /* clear color */

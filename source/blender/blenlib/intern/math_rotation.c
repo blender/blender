@@ -1650,7 +1650,7 @@ void vec_apply_track(float vec[3], short axis)
 	}
 }
 
-/* lense/angle conversion (radians) */
+/* lens/angle conversion (radians) */
 float lens_to_angle(float lens)
 {
 	return 2.0f * atan(16.0f/lens);
