@@ -396,7 +396,7 @@ class x3d_class:
                         self.writeImageTexture(image)
 
                         if mesh_materials_use_face_texture[material_index]:
-                            if image.use_tile:
+                            if image.use_tiles:
                                 self.write_indented("<TextureTransform scale=\"%s %s\" />\n" % (image.tiles_x, image.tiles_y))
                         else:
                             # transform by mtex

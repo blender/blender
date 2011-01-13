@@ -736,6 +736,19 @@ class vrmlNode(object):
         '''
         For this parser arrays are children
         '''
+
+        def array_as_number(array_string):
+            array_data = []
+            try:
+                array_data = [int(val) for val in array_string]
+            except:
+                try:
+                    array_data = [float(val) for val in array_string]
+                except:
+                    print('\tWarning, could not parse array data from field')
+
+            return array_data
+
         self_real = self.getRealNode()  # incase we're an instance
 
         child_array = self_real.getFieldName(field, ancestry, True)
@@ -743,8 +756,7 @@ class vrmlNode(object):
         #if type(child_array)==list: # happens occasionaly
         #   array_data = child_array
 
-        if child_array == None:
-
+        if child_array is None:
             # For x3d, should work ok with vrml too
             # for x3d arrays are fields, vrml they are nodes, annoying but not tooo bad.
             data_split = self.getFieldName(field, ancestry)
@@ -756,14 +768,14 @@ class vrmlNode(object):
 
             array_data = array_data.replace(',', ' ')
             data_split = array_data.split()
-            try:
-                array_data = [int(val) for val in data_split]
-            except:
-                try:
-                    array_data = [float(val) for val in data_split]
-                except:
-                    print('\tWarning, could not parse array data from field')
-                    array_data = []
+
+            array_data = array_as_number(data_split)
+
+        elif type(child_array) == list:
+            # x3d creates these
+            data_split = [w.strip(",") for w in child_array]
+
+            array_data = array_as_number(data_split)
         else:
             # print(child_array)
             # Normal vrml
@@ -1529,6 +1541,11 @@ def translateTexTransform(node, ancestry):
     return new_mat
 
 
+# 90d X rotation
+import math
+MATRIX_Z_TO_Y = Matrix.Rotation(math.pi / 2.0, 4, 'X')
+
+
 def getFinalMatrix(node, mtx, ancestry):
 
     transform_nodes = [node_tx for node_tx in ancestry if node_tx.getSpec() == 'Transform']
@@ -1541,7 +1558,10 @@ def getFinalMatrix(node, mtx, ancestry):
 
     for node_tx in transform_nodes:
         mat = translateTransform(node_tx, ancestry)
-        mtx =  mat * mtx
+        mtx = mat * mtx
+
+    # worldspace matrix
+    mtx = MATRIX_Z_TO_Y * mtx
 
     return mtx
 
@@ -1902,10 +1922,6 @@ def importMesh_PointSet(geom, ancestry):
 
 GLOBALS['CIRCLE_DETAIL'] = 12
 
-# 90d X rotation
-import math
-MATRIX_Z_TO_Y = Matrix.Rotation(math.pi/2, 4, 'X')
-
 
 def bpy_ops_add_object_hack():  # XXX25, evil
     scene = bpy.context.scene
@@ -2015,7 +2031,7 @@ def importMesh_Cone(geom, ancestry):
 def importMesh_Box(geom, ancestry):
     # bpymesh = bpy.data.meshes.new()
 
-    size = geom.getFieldAsFloatTuple('size', (2.0, 2.0, 2.0), ancestry) 
+    size = geom.getFieldAsFloatTuple('size', (2.0, 2.0, 2.0), ancestry)
 
     # bpymesh = Mesh.Primitives.Cube(1.0)
     bpy.ops.mesh.primitive_cube_add(view_align=False,
@@ -2266,7 +2282,7 @@ def importLamp_SpotLight(node, ancestry):
     # attenuation = geom.getFieldAsFloatTuple('attenuation', (1.0, 0.0, 0.0), ancestry) # TODO
     beamWidth = node.getFieldAsFloat('beamWidth', 1.570796, ancestry)  # max is documented to be 1.0 but some files have higher.
     color = node.getFieldAsFloatTuple('color', (1.0, 1.0, 1.0), ancestry)
-    cutOffAngle = node.getFieldAsFloat('cutOffAngle', 0.785398, ancestry)  # max is documented to be 1.0 but some files have higher.
+    cutOffAngle = node.getFieldAsFloat('cutOffAngle', 0.785398, ancestry) * 2.0  # max is documented to be 1.0 but some files have higher.
     direction = node.getFieldAsFloatTuple('direction', (0.0, 0.0, -1.0), ancestry)
     intensity = node.getFieldAsFloat('intensity', 1.0, ancestry)  # max is documented to be 1.0 but some files have higher.
     location = node.getFieldAsFloatTuple('location', (0.0, 0.0, 0.0), ancestry)
