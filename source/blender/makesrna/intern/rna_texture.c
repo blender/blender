@@ -148,6 +148,7 @@ static void rna_Texture_voxeldata_image_update(Main *bmain, Scene *scene, Pointe
 	rna_Texture_voxeldata_update(bmain, scene, ptr);
 }
 
+
 /* Used for Texture Properties, used (also) for/in Nodes */
 static void rna_Texture_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -358,6 +359,16 @@ static void rna_PointDensity_psys_set(PointerRNA *ptr, PointerRNA value)
 
 	if(ob && value.id.data == ob)
 		pd->psys= BLI_findindex(&ob->particlesystem, value.data) + 1;
+}
+
+static char *rna_PointDensity_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("point_density");
+}
+
+static char *rna_VoxelData_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("voxel_data");
 }
 
 #else
@@ -1413,6 +1424,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "PointDensity", NULL);
 	RNA_def_struct_sdna(srna, "PointDensity");
 	RNA_def_struct_ui_text(srna, "PointDensity", "Point density settings");
+	RNA_def_struct_path_func(srna, "rna_PointDensity_path");
 	
 	prop= RNA_def_property(srna, "point_source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "source");
@@ -1565,6 +1577,7 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "VoxelData", NULL);
 	RNA_def_struct_sdna(srna, "VoxelData");
 	RNA_def_struct_ui_text(srna, "VoxelData", "Voxel data settings");
+	RNA_def_struct_path_func(srna, "rna_VoxelData_path");
 	
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "interp_type");
