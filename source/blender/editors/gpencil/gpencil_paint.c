@@ -1636,6 +1636,13 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 				estate = OPERATOR_RUNNING_MODAL;
 			}
 		}
+		/* there shouldn't be any other events, but just in case there are, let's swallow them 
+		 * (i.e. to prevent problems with with undo)
+		 */
+		else {
+			/* swallow event to save ourselves trouble */
+			estate = OPERATOR_RUNNING_MODAL;
+		}
 	}
 	else if (p->status == GP_STATUS_IDLING) {
 		/* standard undo/redo shouldn't be allowed to execute or else it causes crashes, so catch it here */
