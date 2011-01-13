@@ -2412,11 +2412,8 @@ static bAnimChannelType ACF_SHAPEKEY=
 /* get backdrop color for gpencil datablock widget */
 static void acf_gpd_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float *color)
 {
-	/* highlight only for datablock channels */
-	//if (ale->flag & AGRP_ACTIVE)
-	//	UI_GetThemeColorShade3fv(TH_GROUP_ACTIVE, 10, color);
-	//else
-		UI_GetThemeColorShade3fv(TH_GROUP, 20, color);
+	/* these are ID-blocks, but not exactly standalone... */
+	UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, color);
 }
 
 // TODO: just get this from RNA?

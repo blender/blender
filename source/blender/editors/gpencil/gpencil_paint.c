@@ -1555,7 +1555,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 	//printf("\tGP - handle modal event...\n");
 	
 	/* exit painting mode (and/or end current stroke) */
-	if (ELEM3(event->type, RETKEY, PADENTER, ESCKEY)) {
+	if (ELEM4(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY)) {
 		/* exit() ends the current stroke before cleaning up */
 		//printf("\t\tGP - end of paint op + end of stroke\n");
 		gpencil_draw_exit(C, op);
@@ -1615,24 +1615,43 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 	
-	/* handle painting mouse-movements? */
-	if ((p->status == GP_STATUS_PAINTING) && 
-		(ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) ) 
-	{
-		/* handle drawing event */
-		//printf("\t\tGP - add point\n");
-		gpencil_draw_apply_event(op, event);
-		
-		/* finish painting operation if anything went wrong just now */
-		if (p->status == GP_STATUS_ERROR) {
-			//printf("\t\t\t\tGP - add error done! \n");
-			gpencil_draw_exit(C, op);
-			estate = OPERATOR_CANCELLED;
+	/* handle mode-specific events */
+	if (p->status == GP_STATUS_PAINTING) {
+		/* handle painting mouse-movements? */
+		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) 
+		{
+			/* handle drawing event */
+			//printf("\t\tGP - add point\n");
+			gpencil_draw_apply_event(op, event);
+			
+			/* finish painting operation if anything went wrong just now */
+			if (p->status == GP_STATUS_ERROR) {
+				//printf("\t\t\t\tGP - add error done! \n");
+				gpencil_draw_exit(C, op);
+				estate = OPERATOR_CANCELLED;
+			}
+			else {
+				/* event handled, so just tag as running modal */
+				//printf("\t\t\t\tGP - add point handled!\n");
+				estate = OPERATOR_RUNNING_MODAL;
+			}
 		}
-		else {
-			/* event handled, so just tag as running modal */
-			//printf("\t\t\t\tGP - add point handled!\n");
-			estate = OPERATOR_RUNNING_MODAL;
+	}
+	else if (p->status == GP_STATUS_IDLING) {
+		/* standard undo/redo shouldn't be allowed to execute or else it causes crashes, so catch it here */
+		// FIXME: this is a hardcoded hotkey that can't be changed
+		// TODO: catch redo as well, but how?
+		if (event->type == ZKEY) {
+			/* oskey = cmd key on macs as they seem to use cmd-z for undo as well? */
+			if ((event->ctrl) || (event->oskey)) {
+				/* just delete last stroke, which will look like undo to the end user */
+				//printf("caught attempted undo event... deleting last stroke \n");
+				gpencil_frame_delete_laststroke(p->gpl, p->gpf);
+				
+				/* event handled, so force refresh */
+				ED_region_tag_redraw(p->ar); /* just active area for now, since doing whole screen is too slow */
+				estate = OPERATOR_RUNNING_MODAL; 
+			}
 		}
 	}
 	
