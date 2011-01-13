@@ -30,7 +30,7 @@ from bpy.props import *
 from io_utils import ImportHelper, ExportHelper
 
 
-class BvhImporter(bpy.types.Operator, ImportHelper):
+class ImportBVH(bpy.types.Operator, ImportHelper):
     '''Load a BVH motion capture file'''
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"
@@ -68,7 +68,7 @@ class BvhImporter(bpy.types.Operator, ImportHelper):
         return import_bvh.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
 
 
-class BvhExporter(bpy.types.Operator, ExportHelper):
+class ExportBVH(bpy.types.Operator, ExportHelper):
     '''Save a BVH motion capture file from an armature'''
     bl_idname = "export_anim.bvh"
     bl_label = "Export BVH"
@@ -101,11 +101,11 @@ class BvhExporter(bpy.types.Operator, ExportHelper):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(BvhImporter.bl_idname, text="Motion Capture (.bvh)")
+    self.layout.operator(ImportBVH.bl_idname, text="Motion Capture (.bvh)")
 
 
 def menu_func_export(self, context):
-    self.layout.operator(BvhExporter.bl_idname, text="Motion Capture (.bvh)")
+    self.layout.operator(ExportBVH.bl_idname, text="Motion Capture (.bvh)")
 
 
 def register():

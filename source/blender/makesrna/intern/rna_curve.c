@@ -1135,7 +1135,7 @@ static void rna_def_curve_spline_bezpoints(BlenderRNA *brna, PropertyRNA *cprop)
 	//PropertyRNA *prop;
 
 	FunctionRNA *func;
-	PropertyRNA *parm;
+	//PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "SplineBezierPoints");
 	srna= RNA_def_struct(brna, "SplineBezierPoints", NULL);
