@@ -364,22 +364,17 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 		scene->r.cfra= cfrao;
 	}
 	else
-#else
+#endif
 	{
-		/* use 2 loops to avoid updating objects multiple times */
+		/* only do existing tags, as set by regular depsgraph */
 		for(go= group->gobject.first; go; go= go->next) {
-			if(go->ob && go->recalc) {
-				go->ob->recalc |= go->recalc;
-			}
-		}
-
-		for(go= group->gobject.first; go; go= go->next) {
-			if(go->ob && go->recalc) {
-				object_handle_update(scene, go->ob);
+			if(go->ob) {
+				if(go->ob->recalc) {
+					object_handle_update(scene, go->ob);
+				}
 			}
 		}
 	}
-#endif
 }
 
 Object *group_get_member_with_action(Group *group, bAction *act)
