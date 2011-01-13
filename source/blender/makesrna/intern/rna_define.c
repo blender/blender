@@ -1393,18 +1393,34 @@ void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 			EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
 			eprop->defaultvalue= value;
 
-			for(i=0; i<eprop->totitem; i++) {
-				if(eprop->item[i].identifier[0] && eprop->item[i].value == eprop->defaultvalue)
-					defaultfound= 1;
-			}
-
-			if(!defaultfound && eprop->totitem) {
-				if(value == 0) {
-					eprop->defaultvalue= eprop->item[0].value;
+			if(prop->flag & PROP_ENUM_FLAG) {
+				/* check all bits are accounted for */
+				int totflag= 0;
+				for(i=0; i<eprop->totitem; i++) {
+					if(eprop->item[i].identifier[0]) {
+						totflag |= eprop->item[i].value;
+					}
 				}
-				else {
-					fprintf(stderr, "RNA_def_property_enum_default: \"%s.%s\", default is not in items.\n", srna->identifier, prop->identifier);
+
+				if(eprop->defaultvalue & ~totflag) {
+					fprintf(stderr, "RNA_def_property_enum_default: \"%s.%s\", default includes unused bits (%d).\n", srna->identifier, prop->identifier, eprop->defaultvalue & ~totflag);
 					DefRNA.error= 1;
+				}
+			}
+			else {
+				for(i=0; i<eprop->totitem; i++) {
+					if(eprop->item[i].identifier[0] && eprop->item[i].value == eprop->defaultvalue)
+						defaultfound= 1;
+				}
+
+				if(!defaultfound && eprop->totitem) {
+					if(value == 0) {
+						eprop->defaultvalue= eprop->item[0].value;
+					}
+					else {
+						fprintf(stderr, "RNA_def_property_enum_default: \"%s.%s\", default is not in items.\n", srna->identifier, prop->identifier);
+						DefRNA.error= 1;
+					}
 				}
 			}
 
@@ -2205,6 +2221,27 @@ PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, co
 	}
 	
 	prop= RNA_def_property(cont, identifier, PROP_ENUM, PROP_NONE);
+	if(items) RNA_def_property_enum_items(prop, items);
+	RNA_def_property_enum_default(prop, default_value);
+	RNA_def_property_ui_text(prop, ui_name, ui_description);
+
+	return prop;
+}
+
+/* same as above but sets 'PROP_ENUM_FLAG' before setting the default value */
+PropertyRNA *RNA_def_enum_flag(StructOrFunctionRNA *cont_, const char *identifier, const EnumPropertyItem *items, int default_value,
+	const char *ui_name, const char *ui_description)
+{
+	ContainerRNA *cont= cont_;
+	PropertyRNA *prop;
+
+	if(!items) {
+		printf("RNA_def_enum_flag: items not allowed to be NULL.\n");
+		return NULL;
+	}
+
+	prop= RNA_def_property(cont, identifier, PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG); /* important to run before default set */
 	if(items) RNA_def_property_enum_items(prop, items);
 	RNA_def_property_enum_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);

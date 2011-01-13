@@ -1333,8 +1333,7 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_float(func, "value", 0.0f, -FLT_MAX, FLT_MAX, "", "Y Value of this keyframe point", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	parm= RNA_def_enum(func, "options", keyframe_flag_items, 0, "", "Keyframe options.");
-	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	RNA_def_enum_flag(func, "options", keyframe_flag_items, 0, "", "Keyframe options.");
 
 	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Newly created keyframe");
 	RNA_def_function_return(func, parm);

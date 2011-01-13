@@ -2023,7 +2023,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	switch(prop->type) {
 			case PROP_ENUM: {
 				EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
-				int i, defaultfound= 0;
+				int i, defaultfound= 0, totflag= 0;
 
 				if(eprop->item) {
 					fprintf(f, "static EnumPropertyItem rna_%s%s_%s_items[%d] = {\n\t", srna->identifier, strnest, prop->identifier, eprop->totitem+1);
@@ -2035,16 +2035,31 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 						rna_print_c_string(f, eprop->item[i].name); fprintf(f, ", ");
 						rna_print_c_string(f, eprop->item[i].description); fprintf(f, "},\n\t");
 
-						if(eprop->item[i].identifier[0])
-							if(eprop->defaultvalue == eprop->item[i].value)
-								defaultfound= 1;
+						if(eprop->item[i].identifier[0]) {
+							if(prop->flag & PROP_ENUM_FLAG) {
+								totflag |= eprop->item[i].value;
+							}
+							else {
+								if(eprop->defaultvalue == eprop->item[i].value) {
+									defaultfound= 1;
+								}
+							}
+						}
 					}
 
 					fprintf(f, "{0, NULL, 0, NULL, NULL}\n};\n\n");
 
-					if(!defaultfound) {
-						fprintf(stderr, "rna_generate_structs: %s%s.%s, enum default is not in items.\n", srna->identifier, errnest, prop->identifier);
-						DefRNA.error= 1;
+					if(prop->flag & PROP_ENUM_FLAG) {
+						if(eprop->defaultvalue & ~totflag) {
+							fprintf(stderr, "rna_generate_structs: %s%s.%s, enum default includes unused bits (%d).\n", srna->identifier, errnest, prop->identifier, eprop->defaultvalue & ~totflag);
+							DefRNA.error= 1;
+						}
+					}
+					else {
+						if(!defaultfound) {
+							fprintf(stderr, "rna_generate_structs: %s%s.%s, enum default is not in items.\n", srna->identifier, errnest, prop->identifier);
+							DefRNA.error= 1;
+						}
 					}
 				}
 				else {

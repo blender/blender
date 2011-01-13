@@ -93,8 +93,7 @@ static void rna_generic_op_invoke(FunctionRNA *func, int flag)
 	}
 
 	if(flag & WM_GEN_INVOKE_RETURN) {
-		parm= RNA_def_enum(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
-		RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+		parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
 		RNA_def_function_return(func, parm);
 	}
 }
@@ -146,8 +145,8 @@ void RNA_api_operator(StructRNA *srna)
 
 	/* utility, not for registering */
 	func= RNA_def_function(srna, "report", "rna_Operator_report");
-	parm= RNA_def_enum(func, "type", wm_report_items, 0, "Type", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_ENUM_FLAG);
+	parm= RNA_def_enum_flag(func, "type", wm_report_items, 0, "Type", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "message", "", 0, "Report Message", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
@@ -167,8 +166,7 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
-	parm= RNA_def_enum(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
-	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
 	RNA_def_function_return(func, parm);
 
 	/* check */
@@ -187,8 +185,7 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_pointer(func, "event", "Event", "", "");
 
-	parm= RNA_def_enum(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
-	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "modal", NULL); /* same as invoke */
@@ -197,8 +194,7 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_pointer(func, "event", "Event", "", "");
 
-	parm= RNA_def_enum(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
-	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
 	RNA_def_function_return(func, parm);
 
 	/* draw */
@@ -215,8 +211,8 @@ void RNA_api_macro(StructRNA *srna)
 
 	/* utility, not for registering */
 	func= RNA_def_function(srna, "report", "rna_Operator_report");
-	parm= RNA_def_enum(func, "type", wm_report_items, 0, "Type", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_ENUM_FLAG);
+	parm= RNA_def_enum_flag(func, "type", wm_report_items, 0, "Type", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "message", "", 0, "Report Message", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
