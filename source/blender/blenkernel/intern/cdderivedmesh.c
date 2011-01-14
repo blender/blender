@@ -958,14 +958,13 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 	MFace *mface = cddm->mface;
 	MTFace *tf = dm->getFaceDataArray(dm, CD_MTFACE);
 	float (*nors)[3] = dm->getFaceDataArray(dm, CD_NORMAL);
-	int a, b, dodraw, smoothnormal, matnr, new_matnr;
+	int a, b, dodraw, matnr, new_matnr;
 	int transp, new_transp, orig_transp;
 	int orig, *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
 
 	cdDM_update_normals_from_pbvh(dm);
 
 	matnr = -1;
-	smoothnormal = 0;
 	dodraw = 0;
 	transp = GPU_get_material_blend_mode();
 	orig_transp = transp;
@@ -979,6 +978,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 		glBegin(GL_QUADS);
 
 		for(a = 0; a < dm->numFaceData; a++, mface++) {
+			const int smoothnormal = (mface->flag & ME_SMOOTH);
 			new_matnr = mface->mat_nr + 1;
 
 			if(new_matnr != matnr) {
@@ -1022,8 +1022,6 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 					glBegin(GL_QUADS);
 				}
 			}
-
-			smoothnormal = (mface->flag & ME_SMOOTH);
 
 			if(!smoothnormal) {
 				if(nors) {

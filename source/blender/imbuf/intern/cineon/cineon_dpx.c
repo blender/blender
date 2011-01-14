@@ -126,7 +126,6 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 	LogImageFile* logImage;
 	unsigned short* line, *pixel;
 	int i, j;
-	int index;
 	float *fline;
 	float *fbuf;
 	int is_alloc= 0;
@@ -155,7 +154,6 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 		printf("error setting args\n");
 	}
 
-	index = 0;
 	line = MEM_mallocN(sizeof(unsigned short)*depth*width, "line");
 	
 	/*note that image is flipped when sent to logImageSetRowBytes (see last passed parameter).*/

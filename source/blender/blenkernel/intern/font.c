@@ -757,7 +757,6 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 	for (i = 0 ; i<=slen ; i++) {
 	makebreak:
 		// Characters in the list
-		che = vfd->characters.first;
 		info = &(custrinfo[i]);
 		ascii = mem[i];
 		if(info->flag & CU_CHINFO_SMALLCAPS) {
@@ -1042,10 +1041,9 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				che= find_vfont_char(vfd, ascii);
 	
 				twidth = char_width(cu, che, info);
-				
-				dtime= distfac*0.35f*twidth;	/* why not 0.5? */
-				dtime= distfac*0.5f*twidth;	/* why not 0.5? */
-				
+
+				dtime= distfac*0.5f*twidth;
+
 				ctime= timeofs + distfac*( ct->xof - minx);
 				CLAMP(ctime, 0.0, 1.0);
 

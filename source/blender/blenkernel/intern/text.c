@@ -280,7 +280,6 @@ int reopen_text(Text *text)
 	text->mtime= st.st_mtime;
 	
 	text->nlines=0;
-	i=0;
 	llen=0;
 	for(i=0; i<len; i++) {
 		if (buffer[i]=='\n') {
