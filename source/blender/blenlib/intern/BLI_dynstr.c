@@ -163,7 +163,9 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 {
 	va_list args;
 	char *message, fixedmessage[256];
-	int len= 256, maxlen= 65536, retval;
+	int len= sizeof(fixedmessage);
+	const int maxlen= 65536;
+	int retval;
 
 	/* note that it's tempting to just call BLI_dynstr_vappendf here
 	 * and avoid code duplication, that crashes on some system because
@@ -173,7 +175,7 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 		if(len == sizeof(fixedmessage))
 			message= fixedmessage;
 		else
-			message= MEM_callocN(sizeof(char)*(len+1), "BLI_dynstr_appendf");
+			message= MEM_callocN(sizeof(char)*(len), "BLI_dynstr_appendf");
 
 		va_start(args, format);
 		retval= vsnprintf(message, len, format, args);
@@ -192,13 +194,14 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 				break;
 			}
 		}
-		else if(retval > len) {
+		else if(retval >= len) {
 			/* in C99 the actual length required is returned */
 			if(message != fixedmessage)
 				MEM_freeN(message);
 			message= NULL;
 
-			len= retval;
+			/* retval doesnt include \0 terminator */
+			len= retval + 1;
 		}
 		else
 			break;
