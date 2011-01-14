@@ -876,7 +876,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 lines = []
                 line_iter = iter(file_mod)
                 l = ""
-                while not l.startswith("bl_addon_info"):
+                while not l.startswith("bl_info"):
                     l = line_iter.readline()
                     if len(l) == 0:
                         break
@@ -904,13 +904,13 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 for body in ast_data.body:
                     if body.__class__ == ast.Assign:
                         if len(body.targets) == 1:
-                            if getattr(body.targets[0], "id", "") == "bl_addon_info":
+                            if getattr(body.targets[0], "id", "") == "bl_info":
                                 body_info = body
                                 break
 
             if body_info:
                 mod = ModuleType(mod_name)
-                mod.bl_addon_info = ast.literal_eval(body.value)
+                mod.bl_info = ast.literal_eval(body.value)
                 mod.__file__ = mod_path
                 mod.__time__ = os.path.getmtime(mod_path)
                 return mod
@@ -940,7 +940,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         del modules_stale
 
         mod_list = list(USERPREF_PT_addons._addons_fake_modules.values())
-        mod_list.sort(key=lambda mod: (mod.bl_addon_info['category'], mod.bl_addon_info['name']))
+        mod_list.sort(key=lambda mod: (mod.bl_info['category'], mod.bl_info['name']))
         return mod_list
 
     def draw(self, context):
@@ -1074,14 +1074,14 @@ from bpy.props import *
 
 
 def addon_info_get(mod, info_basis={"name": "", "author": "", "version": (), "blender": (), "api": 0, "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "show_expanded": False}):
-    addon_info = getattr(mod, "bl_addon_info", {})
+    addon_info = getattr(mod, "bl_info", {})
 
     # avoid re-initializing
     if "_init" in addon_info:
         return addon_info
 
     if not addon_info:
-        mod.bl_addon_info = addon_info
+        mod.bl_info = addon_info
 
     for key, value in info_basis.items():
         addon_info.setdefault(key, value)
