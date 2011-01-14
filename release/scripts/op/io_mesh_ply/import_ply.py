@@ -33,7 +33,7 @@ class element_spec(object):
     def load(self, format, stream):
         if format == 'ascii':
             stream = re.split('\s+', stream.readline())
-        return map(lambda x: x.load(format, stream), self.properties)
+        return [x.load(format, stream) for x in self.properties]
 
     def index(self, name):
         for i, p in enumerate(self.properties):
@@ -54,7 +54,7 @@ class property_spec(object):
         if format == 'ascii':
             if num_type == 's':
                 ans = []
-                for i in xrange(count):
+                for i in range(count):
                     s = stream[i]
                     if len(s) < 2 or s[0] != '"' or s[-1] != '"':
                         print('Invalid string', s)
@@ -67,13 +67,13 @@ class property_spec(object):
                 mapper = float
             else:
                 mapper = int
-            ans = map(lambda x: mapper(x), stream[:count])
+            ans = [mapper(x) for x in stream[:count]]
             stream[:count] = []
             return ans
         else:
             if num_type == 's':
                 ans = []
-                for i in xrange(count):
+                for i in range(count):
                     fmt = format + 'i'
                     data = stream.read(struct.calcsize(fmt))
                     length = struct.unpack(fmt, data)[0]
@@ -102,14 +102,14 @@ class object_spec(object):
         self.specs = []
 
     def load(self, format, stream):
-        return dict([(i.name, [i.load(format, stream) for j in xrange(i.count)]) for i in self.specs])
+        return dict([(i.name, [i.load(format, stream) for j in range(i.count)]) for i in self.specs])
 
         '''
         # Longhand for above LC
         answer = {}
         for i in self.specs:
             answer[i.name] = []
-            for j in xrange(i.count):
+            for j in range(i.count):
                 if not j % 100 and meshtools.show_progress:
                     Blender.Window.DrawProgressBar(float(j) / i.count, 'Loading ' + i.name)
                 answer[i.name].append(i.load(format, stream))
@@ -117,7 +117,7 @@ class object_spec(object):
             '''
 
 
-def read(filename):
+def read(filepath):
     format = ''
     version = '1.0'
     format_specs = {'binary_little_endian': '<',
@@ -142,7 +142,7 @@ def read(filename):
     obj_spec = object_spec()
 
     try:
-        file = open(filename, 'rU')  # Only for parsing the header, not binary data
+        file = open(filepath, 'rU')  # Only for parsing the header, not binary data
         signature = file.readline()
 
         if not signature.startswith('ply'):
@@ -185,7 +185,7 @@ def read(filename):
 
         if format != 'ascii':
             file.close()  # was ascii, now binary
-            file = open(filename, 'rb')
+            file = open(filepath, 'rb')
 
             # skip the header...
             while not file.readline().startswith('end_header'):
@@ -208,9 +208,15 @@ def read(filename):
     return obj_spec, obj
 
 
-def load_ply(filename):
-    t = Blender.sys.time()
-    obj_spec, obj = read(filename)
+import bpy
+
+
+def load_ply(filepath):
+    import time
+    from io_utils import load_image, unpack_list, unpack_face_list
+
+    t = time.time()
+    obj_spec, obj = read(filepath)
     if obj is None:
         print('Invalid file')
         return
@@ -268,57 +274,56 @@ def load_ply(filename):
                 add_face(verts, ind, uvindices, colindices)
             else:
                 # Fan fill the face
-                for j in xrange(len_ind - 2):
+                for j in range(len_ind - 2):
                     add_face(verts, (ind[0], ind[j + 1], ind[j + 2]), uvindices, colindices)
 
-    mesh = Blender.Mesh.New()
+    ply_name = bpy.path.display_name_from_filepath(filepath)
 
-    mesh.verts.extend([(v[vindices_x], v[vindices_y], v[vindices_z]) for v in obj['vertex']])
+    mesh = bpy.data.meshes.new(name=ply_name)
+
+    mesh.vertices.add(len(obj['vertex']))
+
+    mesh.vertices.foreach_set("co", [a for v in obj['vertex'] for a in (v[vindices_x], v[vindices_y], v[vindices_z])])
 
     if mesh_faces:
-        mesh.faces.extend(mesh_faces, smooth=True, ignoreDups=True)
+        mesh.faces.add(len(mesh_faces))
+        mesh.faces.foreach_set("vertices_raw", unpack_face_list(mesh_faces))
 
         if uvindices or colindices:
             if uvindices:
-                mesh.faceUV = True
+                uvlay = mesh.uv_textures.new()
             if colindices:
-                mesh.vertexColors = True
+                vcol_lay = mesh.vertex_colors.new()
 
-            for i, f in enumerate(mesh.faces):
-                if uvindices:
+            if uvindices:
+                for i, f in enumerate(uvlay.data):
                     ply_uv = mesh_uvs[i]
                     for j, uv in enumerate(f.uv):
                         uv[:] = ply_uv[j]
 
-                if colindices:
+            if colindices:
+                # XXX25 TODO
+                '''
+                for i, f in enumerate(vcol_lay.data):
                     ply_col = mesh_colors[i]
                     for j, col in enumerate(f.col):
                         col.r, col.g, col.b = ply_col[j]
+                '''
 
-    mesh.calcNormals()
+    mesh.update()
 
-    objname = Blender.sys.splitext(Blender.sys.basename(filename))[0]
-    scn = Blender.Scene.GetCurrent()
-    scn.objects.selected = []
+    scn = bpy.context.scene
+    #scn.objects.selected = [] # XXX25
 
-    mesh.name = objname
-    scn.objects.active = scn.objects.new(mesh)
+    obj = bpy.data.objects.new(ply_name, mesh)
+    scn.objects.link(obj)
+    scn.objects.active = obj
 
-    Blender.Redraw()
-    Blender.Window.DrawProgressBar(1.0, '')
-    print('\nSuccessfully imported "%s" in %.3f sec' % (filename, Blender.sys.time() - t))
+    print('\nSuccessfully imported %r in %.3f sec' % (filepath, time.time() - t))
 
 
 def main():
-    if not struct:
-        msg = 'This importer requires a full python install'
-        if Blender.mode == 'background':
-            print(msg)
-        else:
-            Blender.Draw.PupMenu(msg)
-        return
-
-    Blender.Window.FileSelector(load_ply, 'Import PLY', '*.ply')
+    load_ply("/fe/ply/shark.ply")
 
 if __name__ == '__main__':
     main()
