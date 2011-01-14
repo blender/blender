@@ -3349,7 +3349,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		applyAspectRatio(t, dvec);
 
 		dist = len_v3(vec);
-		if(t->scene->unit.system) {
+		if(!(t->flag & T_2D_EDIT) && t->scene->unit.system) {
 			int i, do_split= t->scene->unit.flag & USER_UNIT_OPT_SPLIT ? 1:0;
 
 			for(i=0; i<3; i++)
@@ -3362,7 +3362,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		}
 	}
 
-	if(t->scene->unit.system)
+	if(!(t->flag & T_2D_EDIT) && t->scene->unit.system)
 		bUnit_AsString(distvec, sizeof(distvec), dist*t->scene->unit.scale_length, 4, t->scene->unit.system, B_UNIT_LENGTH, t->scene->unit.flag & USER_UNIT_OPT_SPLIT, 0);
 	else if( dist > 1e10 || dist < -1e10 )	/* prevent string buffer overflow */
 		sprintf(distvec, "%.4e", dist);
