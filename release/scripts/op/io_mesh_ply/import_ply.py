@@ -302,13 +302,17 @@ def load_ply(filepath):
                         uv[:] = ply_uv[j]
 
             if colindices:
-                # XXX25 TODO
-                '''
+                faces = obj['face']
                 for i, f in enumerate(vcol_lay.data):
+                    # XXX, colors dont come in right, needs further investigation.
                     ply_col = mesh_colors[i]
-                    for j, col in enumerate(f.col):
+                    if len(faces[i]) == 4:
+                        f_col = f.color1, f.color2, f.color3, f.color4
+                    else:
+                        f_col = f.color1, f.color2, f.color3
+
+                    for j, col in enumerate(f_col):
                         col.r, col.g, col.b = ply_col[j]
-                '''
 
     mesh.update()
 
@@ -318,12 +322,11 @@ def load_ply(filepath):
     obj = bpy.data.objects.new(ply_name, mesh)
     scn.objects.link(obj)
     scn.objects.active = obj
+    obj.select = True
 
     print('\nSuccessfully imported %r in %.3f sec' % (filepath, time.time() - t))
 
 
-def main():
-    load_ply("/fe/ply/shark.ply")
-
-if __name__ == '__main__':
-    main()
+def load(operator, context, filepath=""):
+    load_ply(filepath)
+    return {'FINISHED'}
