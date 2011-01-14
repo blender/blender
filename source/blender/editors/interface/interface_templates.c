@@ -44,6 +44,7 @@
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_report.h"
+#include "BKE_displist.h"
 
 #include "ED_screen.h"
 #include "ED_render.h"
@@ -738,6 +739,23 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 				uiButSetFlag(but, UI_BUT_DISABLED);
 			uiButSetFunc(but, modifiers_setOnCage, ob, md);
 		}
+
+		/* tesselation point for curve-typed objects */
+		if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+			/* some modifiers could work with pre-tesselated curves only */
+			if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
+				/* add disabled pre-tesselated button, so users could have
+				   message for this modifiers */
+				but = uiDefIconButBitI(block, TOG, eModifierMode_ApplyOnSpline, 0, ICON_SURFACE_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "This modifier could be applied on splines' points only");
+				uiButSetFlag(but, UI_BUT_DISABLED);
+			} else if (mti->type != eModifierTypeType_Constructive) {
+				/* constructive modifiers tesselates curve before applying */
+				uiItemR(row, &ptr, "use_apply_on_spline", 0, "", ICON_NULL);
+			}
+		}
+
 		uiBlockEndAlign(block);
 		
 		/* Up/Down + Delete ........................... */

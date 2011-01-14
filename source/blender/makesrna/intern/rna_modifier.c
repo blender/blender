@@ -2298,6 +2298,11 @@ void RNA_def_modifier(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Expanded", "Set modifier expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
+	prop= RNA_def_property(srna, "use_apply_on_spline", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_ApplyOnSpline);
+	RNA_def_property_ui_text(prop, "Apply on spline", "Apply this and all preceding deformation modifiers on splines' points rather than on filled curve/surface");
+	RNA_def_property_ui_icon(prop, ICON_SURFACE_DATA, 0);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	/* types */
 	rna_def_modifier_subsurf(brna);

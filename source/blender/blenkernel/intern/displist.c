@@ -1220,10 +1220,20 @@ static ModifierData *curve_get_tesselate_point(Scene *scene, Object *ob, int for
 
 	preTesselatePoint = NULL;
 	for (; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
 		if (!modifier_isEnabled(scene, md, required_mode)) continue;
+		if (mti->type == eModifierTypeType_Constructive) return preTesselatePoint;
 
 		if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
-			preTesselatePoint  = md;
+			preTesselatePoint = md;
+
+			/* this modifiers are moving point of tesselation automatically
+			   (some of them even can't be applied on tesselated curve), set flag
+			   for incformation button in modifier's header */
+			md->mode |= eModifierMode_ApplyOnSpline;
+		} else if(md->mode&eModifierMode_ApplyOnSpline) {
+			preTesselatePoint = md;
 		}
 	}
 
