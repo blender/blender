@@ -1,4 +1,4 @@
-bl_addon_info = {
+bl_info = {
     "name": "New Object",
     "author": "YourNameHere",
     "version": (1, 0),

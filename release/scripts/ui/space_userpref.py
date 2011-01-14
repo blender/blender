@@ -92,6 +92,7 @@ class USERPREF_HT_header(bpy.types.Header):
             layout.operator("wm.keyconfig_import")
         elif userpref.active_section == 'ADDONS':
             layout.operator("wm.addon_install")
+            layout.menu("USERPREF_MT_addons_dev_guides", text="  Addons Developer Guides", icon='INFO')
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
 
@@ -831,6 +832,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_options = {'HIDE_HEADER'}
 
     _addons_cats = None
+    _addons_sups = None
     _addons_fake_modules = {}
 
     @classmethod
@@ -960,25 +962,34 @@ class USERPREF_PT_addons(bpy.types.Panel):
             bpy.types.WindowManager.addon_search = bpy.props.StringProperty(name="Search", description="Search within the selected filter")
             USERPREF_PT_addons._addons_cats = cats
 
+        sups = {info["support"] for mod, info in addons}
+        sups.discard("")
+
+        if USERPREF_PT_addons._addons_sups != sups:
+            bpy.types.WindowManager.addon_support = bpy.props.EnumProperty(items=[(sup, sup.title(), "") for  sup in reversed(sorted(sups))], name="Support", description="Display support level", default={'OFFICIAL', 'COMMUNITY'}, options={'ENUM_FLAG'})
+            USERPREF_PT_addons._addons_sups = sups
+
         split = layout.split(percentage=0.2)
         col = split.column()
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
-        col.prop(context.window_manager, "addon_filter", text="Filter", expand=True)
+        col.prop(context.window_manager, "addon_filter", expand=True)
 
-        # menu to open webpages with addons development guides
-        col.separator()
-        col.label(text=" Online Documentation", icon='INFO')
-        col.menu("USERPREF_MT_addons_dev_guides", text="Addons Developer Guides")
+        col.label(text="Supported Level")
+        col.prop(context.window_manager, "addon_support", expand=True)
 
         col = split.column()
 
         filter = context.window_manager.addon_filter
         search = context.window_manager.addon_search.lower()
+        support = context.window_manager.addon_support
 
         for mod, info in addons:
             module_name = mod.__name__
 
             is_enabled = module_name in used_ext
+
+            if info["support"] not in support:
+                continue
 
             # check if add-on should be visible with current filters
             if (filter == "All") or \
@@ -1005,6 +1016,14 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 rowsub.label(text='%s: %s' % (info['category'], info["name"]))
                 if info["warning"]:
                     rowsub.label(icon='ERROR')
+
+                # icon showing support level.
+                if info["support"] == 'OFFICIAL':
+                    rowsub.label(icon='FILE_BLEND')
+                elif info["support"] == 'COMMUNITY':
+                    rowsub.label(icon='POSE_DATA')
+                else:
+                    rowsub.label(icon='QUESTION')
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
@@ -1073,7 +1092,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 from bpy.props import *
 
 
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": (), "blender": (), "api": 0, "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "show_expanded": False}):
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": (), "blender": (), "api": 0, "location": "", "description": "", "wiki_url": "", "tracker_url": "", "support": 'COMMUNITY', "category": "", "warning": "", "show_expanded": False}):
     addon_info = getattr(mod, "bl_info", {})
 
     # avoid re-initializing

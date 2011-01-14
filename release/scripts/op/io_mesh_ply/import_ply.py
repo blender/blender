@@ -23,7 +23,10 @@ import struct
 
 
 class element_spec(object):
-    __slots__ = 'name', 'count', 'properties'
+    __slots__ = ("name",
+                 "count",
+                 "properties",
+                 )
 
     def __init__(self, name, count):
         self.name = name
@@ -43,7 +46,10 @@ class element_spec(object):
 
 
 class property_spec(object):
-    __slots__ = 'name', 'list_type', 'numeric_type'
+    __slots__ = ("name",
+                 "list_type",
+                 "numeric_type",
+                 )
 
     def __init__(self, name, list_type, numeric_type):
         self.name = name
@@ -96,7 +102,8 @@ class property_spec(object):
 
 
 class object_spec(object):
-    __slots__ = 'specs'
+    __slots__ = ("specs",
+                )
     'A list of element_specs'
     def __init__(self):
         self.specs = []
