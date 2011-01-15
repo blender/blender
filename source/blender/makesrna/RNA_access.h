@@ -22,8 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef RNA_ACCESS
-#define RNA_ACCESS
+#ifndef RNA_ACCESS_H
+#define RNA_ACCESS_H
 
 #include <stdarg.h>
 
@@ -951,5 +951,4 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 }
 #endif
 
-#endif /* RNA_ACCESS */
-
+#endif /* RNA_ACCESS_H */

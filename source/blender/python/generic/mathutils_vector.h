@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef EXPP_vector_h
-#define EXPP_vector_h
+#ifndef MATHUTILS_VECTOR_H
+#define MATHUTILS_VECTOR_H
 
 #include <Python.h>
 
@@ -46,4 +46,4 @@ typedef struct {
 PyObject *newVectorObject(float *vec, int size, int type, PyTypeObject *base_type);
 PyObject *newVectorObject_cb(PyObject *user, int size, int callback_type, int subtype);
 
-#endif				/* EXPP_vector_h */
+#endif				/* MATHUTILS_VECTOR_H */

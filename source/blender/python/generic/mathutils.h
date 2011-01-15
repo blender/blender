@@ -28,8 +28,8 @@
 */
 //Include this file for access to vector, quat, matrix, euler, etc...
 
-#ifndef EXPP_Mathutils_H
-#define EXPP_Mathutils_H
+#ifndef MATHUTILS_H
+#define MATHUTILS_H
 
 #include <Python.h>
 
@@ -66,9 +66,6 @@ PyMODINIT_FUNC BPyInit_mathutils(void);
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 
-
-#define Py_PI  3.14159265358979323846
-
 #define Py_NEW  1
 #define Py_WRAP 2
 
@@ -104,4 +101,4 @@ int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
 /* utility func */
 int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix);
 
-#endif				/* EXPP_Mathutils_H */
+#endif /* MATHUTILS_H */

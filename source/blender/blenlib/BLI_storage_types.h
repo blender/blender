@@ -67,14 +67,6 @@ struct direntry{
 	struct ImBuf *image;
 };
 
-#define SELECT			1
-#define HIDDEN			1
-#define FIRST			1
-#define DESELECT		0
-#define NOT_YET			0
-#define VISIBLE			0
-#define LAST			0
-
 struct dirlink
 {
 	struct dirlink *next,*prev;

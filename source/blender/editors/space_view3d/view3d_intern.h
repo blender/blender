@@ -54,12 +54,6 @@ struct bMotionPath;
 #define DRAW_CONSTCOLOR	2
 #define DRAW_SCENESET	4
 
-#define V3D_XRAY	1
-#define V3D_TRANSP	2
-#define V3D_XRAYTRANSP	4
-
-#define V3D_SELECT_MOUSE	1
-
 /* view3d_header.c */
 void view3d_header_buttons(const struct bContext *C, struct ARegion *ar);
 void VIEW3D_OT_layers(struct wmOperatorType *ot);

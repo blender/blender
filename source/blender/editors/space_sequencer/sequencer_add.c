@@ -78,6 +78,8 @@
 #define SEQPROP_FILES		(1<<2)
 #define SEQPROP_NOPATHS		(1<<3)
 
+#define SELECT 1
+
 static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 {
 	if(flag & SEQPROP_STARTFRAME)

@@ -321,8 +321,7 @@ extern Object workob;
 
 /* (short) transflag */
 #define OB_OFFS_LOCAL		1
-	// XXX OB_QUAT was never used, but is now depreceated in favour of standard rotation handling...
-#define OB_QUAT				2
+/* #define OB_QUAT				2 */ /* never used, free flag */
 #define OB_NEG_SCALE		4
 #define OB_DUPLI			(8+16+256+512+2048)
 #define OB_DUPLIFRAMES		8
@@ -401,7 +400,7 @@ extern Object workob;
 #define OB_BOUND_CONE		3
 #define OB_BOUND_POLYH		4
 #define OB_BOUND_POLYT		5
-#define OB_BOUND_DYN_MESH   6
+/* #define OB_BOUND_DYN_MESH   6 */ /*UNUSED*/
 #define OB_BOUND_CAPSULE	7
 
 
@@ -476,7 +475,7 @@ extern Object workob;
 #define OB_LOCK_RIGID_BODY_Y_ROT_AXIS	64
 #define OB_LOCK_RIGID_BODY_Z_ROT_AXIS	128
 
-#define OB_LIFE			(OB_PROP|OB_DYNAMIC|OB_ACTOR|OB_MAINACTOR|OB_CHILD)
+/* #define OB_LIFE			(OB_PROP|OB_DYNAMIC|OB_ACTOR|OB_MAINACTOR|OB_CHILD) */
 
 /* ob->body_type */
 #define OB_BODY_TYPE_NO_COLLISION	0

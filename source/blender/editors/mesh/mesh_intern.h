@@ -36,9 +36,6 @@ struct bContext;
 struct wmOperatorType;
 struct wmOperator;
 
-
-#define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
-
 /* ******************** editface.c */
 
 int edgetag_context_check(Scene *scene, EditEdge *eed);
@@ -135,9 +132,6 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 extern int EM_view3d_poll(struct bContext *C);
 
 /* ******************* editmesh_loop.c */
-
-#define LOOP_SELECT	1
-#define LOOP_CUT	2
 
 void MESH_OT_knife_cut(struct wmOperatorType *ot);
 

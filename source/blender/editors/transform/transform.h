@@ -424,7 +424,7 @@ typedef struct TransInfo {
 #define	TD_USEQUAT			(1 << 3)
 #define TD_NOTCONNECTED		(1 << 4)
 #define TD_SINGLESIZE		(1 << 5)	/* used for scaling of MetaElem->rad */
-#define TD_TIMEONLY			(1 << 8)
+/*#define TD_TIMEONLY			(1 << 8) */ /*UNUSED*/
 #define TD_NOCENTER			(1 << 9)
 #define TD_NO_EXT			(1 << 10)	/* ext abused for particle key timing */
 #define TD_SKIP				(1 << 11)	/* don't transform this data */
@@ -660,8 +660,6 @@ TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTri
 
 /* DRAWLINE options flags */
 #define DRAWLIGHT	1
-#define DRAWDASHED	2
-#define DRAWBOLD	4
 
 void applyTransObjects(TransInfo *t);
 void restoreTransObjects(TransInfo *t);

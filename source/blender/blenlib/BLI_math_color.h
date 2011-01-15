@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_COLOR
-#define BLI_MATH_COLOR
+#ifndef BLI_MATH_COLOR_H
+#define BLI_MATH_COLOR_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,5 +102,5 @@ void rgb_float_to_byte(const float *in, unsigned char *out);
 }
 #endif
 
-#endif /* BLI_MATH_COLOR */
+#endif /* BLI_MATH_COLOR_H */
 

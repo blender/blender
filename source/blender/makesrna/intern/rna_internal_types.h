@@ -22,8 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef RNA_INTERNAL_TYPES
-#define RNA_INTERNAL_TYPES
+#ifndef RNA_INTERNAL_TYPES_H
+#define RNA_INTERNAL_TYPES_H
 
 #include "DNA_listBase.h"
 
@@ -340,5 +340,4 @@ struct BlenderRNA {
 	ListBase structs;
 };
 
-#endif /* RNA_INTERNAL_TYPES */
-
+#endif /* RNA_INTERNAL_TYPES_H */

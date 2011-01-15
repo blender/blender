@@ -232,6 +232,8 @@ typedef struct SpeedControlVars {
 	int lastValidFrame;
 } SpeedControlVars;
 
+#define SELECT 1
+
 /* Editor->over_flag */
 #define SEQ_EDIT_OVERLAY_SHOW			1
 #define SEQ_EDIT_OVERLAY_ABS			2

@@ -95,9 +95,9 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_REDRAW			2
 #define UI_BLOCK_RET_1			4		/* XXX 2.5 not implemented */
 #define UI_BLOCK_NUMSELECT		8
-#define UI_BLOCK_ENTER_OK		16
-#define UI_BLOCK_NOSHADOW		32
-#define UI_BLOCK_UNUSED			64
+/*#define UI_BLOCK_ENTER_OK		16*/ /*UNUSED*/
+/*#define UI_BLOCK_NOSHADOW		32*/ /*UNUSED*/
+/*#define UI_BLOCK_UNUSED			64*/ /*UNUSED*/
 #define UI_BLOCK_MOVEMOUSE_QUIT	128
 #define UI_BLOCK_KEEP_OPEN		256
 #define UI_BLOCK_POPUP			512
@@ -114,13 +114,8 @@ typedef struct uiLayout uiLayout;
 	/* block->flag bits 12-15 are identical to but->flag bits */
 
 /* panel controls */
-#define UI_PNL_TRANSP	1
 #define UI_PNL_SOLID	2
-
 #define UI_PNL_CLOSE	32
-#define UI_PNL_STOW		64
-#define UI_PNL_TO_MOUSE	128
-#define UI_PNL_UNSTOW	256
 #define UI_PNL_SCALE	512
 
 /* warning the first 6 flags are internal */
@@ -172,7 +167,7 @@ typedef struct uiLayout uiLayout;
 #define SHO	64
 #define INT	96
 #define FLO	128
-#define FUN	192
+/*#define FUN	192*/ /*UNUSED*/
 #define BIT	256
 
 #define BUTPOIN	(128+64+32)

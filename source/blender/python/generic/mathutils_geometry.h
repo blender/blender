@@ -28,12 +28,12 @@
 */
 /*Include this file for access to vector, quat, matrix, euler, etc...*/
 
-#ifndef EXPP_Geometry_H
-#define EXPP_Geometry_H
+#ifndef MATHUTILS_GEOMETRY_H
+#define MATHUTILS_GEOMETRY_H
 
 #include <Python.h>
 #include "mathutils.h"
 
 PyMODINIT_FUNC BPyInit_mathutils_geometry(void);
 
-#endif				/* EXPP_Geometry_H */
+#endif /* MATHUTILS_GEOMETRY_H */

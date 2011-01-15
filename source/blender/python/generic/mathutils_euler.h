@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef EXPP_euler_h
-#define EXPP_euler_h
+#ifndef MATHUTILS_EULER_H
+#define MATHUTILS_EULER_H
 
 #include <Python.h>
 
@@ -54,4 +54,4 @@ PyObject *newEulerObject_cb(PyObject *cb_user, short order, int cb_type, int cb_
 short euler_order_from_string(const char *str, const char *error_prefix);
 
 
-#endif				/* EXPP_euler_h */
+#endif /* MATHUTILS_EULER_H */
