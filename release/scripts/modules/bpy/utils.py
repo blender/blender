@@ -430,7 +430,8 @@ def addon_enable(module_name, default_set=True):
 
     mod.__addon_enabled__ = True
 
-    print("\tbpy.utils.addon_enable", mod.__name__)
+    if _bpy.app.debug:
+        print("\tbpy.utils.addon_enable", mod.__name__)
 
     return mod
 
@@ -469,7 +470,8 @@ def addon_disable(module_name, default_set=True):
             if addon:
                 addons.remove(addon)
 
-    print("\tbpy.utils.addon_disable", module_name)
+    if _bpy.app.debug:
+        print("\tbpy.utils.addon_disable", module_name)
 
 
 def addon_reset_all(reload_scripts=False):

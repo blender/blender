@@ -59,6 +59,13 @@
 #include "stdio.h" /* needed for FILE* */
 #include "BLO_sys_types.h" /* needed for uintptr_t */
 
+#ifdef __GNUC__
+#  define WARN_UNUSED  __attribute__((warn_unused_result))
+#else
+#  define WARN_UNUSED
+#endif
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -66,7 +73,7 @@ extern "C" {
 	/** Returns the length of the allocated memory segment pointed at
 	 * by vmemh. If the pointer was not previously allocated by this
 	 * module, the result is undefined.*/
-	size_t MEM_allocN_len(void *vmemh);
+	size_t MEM_allocN_len(void *vmemh) WARN_UNUSED;
 
 	/**
 	 * Release memory previously allocatred by this module. 
@@ -82,30 +89,30 @@ extern "C" {
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
-	void *MEM_dupallocN(void *vmemh);
+	void *MEM_dupallocN(void *vmemh) WARN_UNUSED;
 
 	/**
 	  * Reallocates a block of memory, and returns pointer to the newly
 	  * allocated block, the old one is freed. this is not as optimized
 	  * as a system realloc but just makes a new allocation and copies
 	  * over from existing memory. */
-	void *MEM_reallocN(void *vmemh, size_t len);
+	void *MEM_reallocN(void *vmemh, size_t len) WARN_UNUSED;
 
 	/**
 	 * Allocate a block of memory of size len, with tag name str. The
 	 * memory is cleared. The name must be static, because only a
 	 * pointer to it is stored ! */
-	void *MEM_callocN(size_t len, const char * str);
+	void *MEM_callocN(size_t len, const char * str) WARN_UNUSED;
 	
 	/** Allocate a block of memory of size len, with tag name str. The
 		* name must be a static, because only a pointer to it is stored !
 		* */
-	void *MEM_mallocN(size_t len, const char * str);
+	void *MEM_mallocN(size_t len, const char * str) WARN_UNUSED;
 	
 	/** Same as callocN, clears memory and uses mmap (disk cached) if supported.
 		Can be free'd with MEM_freeN as usual.
 		* */
-	void *MEM_mapallocN(size_t len, const char * str);
+	void *MEM_mapallocN(size_t len, const char * str) WARN_UNUSED;
 
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. as a python dict for easy investigation */ 
@@ -148,7 +155,7 @@ extern "C" {
 	void MEM_reset_peak_memory(void);
 
 	/*get the peak memory usage in bytes, including mmap allocations*/
-	uintptr_t MEM_get_peak_memory(void);
+	uintptr_t MEM_get_peak_memory(void) WARN_UNUSED;
 
 #ifndef NDEBUG
 const char *MEM_name_ptr(void *vmemh);

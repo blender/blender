@@ -35,16 +35,6 @@
 
 #include <sys/stat.h>
 
-#define HDRSIZE 512
-#define NAMSIZE 200
-
-struct header{
-	char	name[NAMSIZE];
-	unsigned int	size;
-	unsigned int	chksum;
-	char	fill[HDRSIZE-NAMSIZE-2*sizeof(unsigned int)];
-};
-
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 typedef unsigned int mode_t;
 #endif
