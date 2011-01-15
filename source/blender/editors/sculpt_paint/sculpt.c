@@ -2916,7 +2916,13 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, SculptSession 
 	cache->pen_flip = RNA_boolean_get(ptr, "pen_flip");
 	RNA_float_get_array(ptr, "mouse", cache->mouse);
 
-	cache->pressure = RNA_float_get(ptr, "pressure");
+	/* XXX: Use preassure value from first brush step for brushes which don't
+	        support strokes (grab, thumb). They depends on initial state and
+	        brush coord/pressure/etc.
+	        It's more an events design issue, which doesn't split coordinate/pressure/angle
+	        changing events. We should avoid this after events system re-design */
+	if(paint_space_stroke_enabled(brush) || cache->first_time)
+		cache->pressure = RNA_float_get(ptr, "pressure");
 
 	/* Truly temporary data that isn't stored in properties */
 

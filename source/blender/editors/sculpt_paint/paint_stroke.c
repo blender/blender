@@ -738,14 +738,6 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 	return 1;
 }
 
-/* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
-static int paint_space_stroke_enabled(Brush *br)
-{
-	return (br->flag & BRUSH_SPACE) &&
-	       !(br->flag & BRUSH_ANCHORED) &&
-	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
-}
-
 /* For brushes with stroke spacing enabled, moves mouse in steps
    towards the final mouse location. */
 static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const float final_mouse[2])
@@ -816,6 +808,14 @@ PaintStroke *paint_stroke_new(bContext *C,
 void paint_stroke_free(PaintStroke *stroke)
 {
 	MEM_freeN(stroke);
+}
+
+/* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
+int paint_space_stroke_enabled(Brush *br)
+{
+	return (br->flag & BRUSH_SPACE) &&
+	       !(br->flag & BRUSH_ANCHORED) &&
+	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
 }
 
 int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
