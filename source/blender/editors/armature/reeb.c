@@ -2558,10 +2558,10 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	EditVert *eve;
 	EditFace *efa;
 	int index;
-	int totvert;
-	int totfaces;
+	/*int totvert;*/
 	
 #ifdef DEBUG_REEB
+	int totfaces;
 	int countfaces = 0;
 #endif
  	
@@ -2569,8 +2569,10 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	
 	rg->resolution = subdivisions;
 	
-	totvert = BLI_countlist(&em->verts);
+	/*totvert = BLI_countlist(&em->verts);*/ /*UNUSED*/
+#ifdef DEBUG_REEB
 	totfaces = BLI_countlist(&em->faces);
+#endif
 	
 	renormalizeWeight(em, 1.0f);
 	
@@ -2641,7 +2643,7 @@ void renormalizeWeight(EditMesh *em, float newmax)
 	eve = em->verts.first;
 	minimum = weightData(eve);
 	maximum = minimum;
-	for(eve = em->verts.first; eve; eve = eve->next)
+	for(; eve; eve = eve->next)
 	{
 		maximum = MAX2(maximum, weightData(eve));
 		minimum = MIN2(minimum, weightData(eve));

@@ -27,8 +27,8 @@
 
 #include "BLI_math.h"
 
-#ifndef BLI_MATH_VECTOR_INLINE
-#define BLI_MATH_VECTOR_INLINE
+#ifndef BLI_MATH_VECTOR_INLINE_H
+#define BLI_MATH_VECTOR_INLINE_H
 
 /********************************** Init *************************************/
 
@@ -482,5 +482,5 @@ MINLINE float line_point_side_v2(const float *l1, const float *l2, const float *
 			((l2[0]-pt[0]) * (l1[1]-pt[1]));
 }
 
-#endif /* BLI_MATH_VECTOR_INLINE */
+#endif /* BLI_MATH_VECTOR_INLINE_H */
 

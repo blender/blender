@@ -127,7 +127,6 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 
 		// get number of on-curve points for beziertriples (including conic virtual on-points) 
 		for(j = 0; j < ftoutline.n_contours; j++) {
-			l = 0;
 			for(k = 0; k < npoints[j]; k++) {
 				if(j > 0) l = k + ftoutline.contours[j - 1] + 1; else l = k;
 					if(ftoutline.tags[l] == FT_Curve_Tag_On)

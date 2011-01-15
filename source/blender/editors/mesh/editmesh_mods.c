@@ -2078,8 +2078,11 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 //			if (EM_texFaceCheck())
 		
 		/* sets as active, useful for other tools */
-		if(select && em->selectmode & SCE_SELECT_EDGE) {
-			EM_store_selection(em, eed, EDITEDGE);
+		if(select) {
+			if(em->selectmode & SCE_SELECT_VERTEX)
+				EM_store_selection(em, eed->v1, EDITVERT);
+			if(em->selectmode & SCE_SELECT_EDGE)
+				EM_store_selection(em, eed, EDITEDGE);
 		}
 
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
@@ -4474,8 +4477,6 @@ static int mesh_noise_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_noise(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Noise";
 	ot->description= "Use vertex coordinate as texture coordinate";
@@ -4488,8 +4489,7 @@ void MESH_OT_noise(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	prop= RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, "Factor", "", 0.0f, 1.0f);
-
+	RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, "Factor", "", 0.0f, 1.0f);
 }
 
 void flipface(EditMesh *em, EditFace *efa)

@@ -484,8 +484,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	func= RNA_def_function(srna, "update", "rna_ID_update");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Tag the id to update its display data.");
-	parm= RNA_def_enum(func, "refresh", update_flag_items, 0, "", "Type of updates to perform.");
-	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	RNA_def_enum_flag(func, "refresh", update_flag_items, 0, "", "Type of updates to perform.");
 }
 
 static void rna_def_library(BlenderRNA *brna)

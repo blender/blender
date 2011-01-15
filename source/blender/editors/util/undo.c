@@ -199,6 +199,52 @@ void ED_undo_pop_op(bContext *C, wmOperator *op)
 	ed_undo_step(C, 0, op->type->name);
 }
 
+/* name optionally, function used to check for operator redo panel */
+int ED_undo_valid(const bContext *C, const char *undoname)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Object *obact= CTX_data_active_object(C);
+	ScrArea *sa= CTX_wm_area(C);
+	
+	if(sa && sa->spacetype==SPACE_IMAGE) {
+		SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
+		
+		if((obact && obact->mode & OB_MODE_TEXTURE_PAINT) || sima->flag & SI_DRAWTOOL) {
+			return 1;
+		}
+	}
+	
+	if(sa && sa->spacetype==SPACE_TEXT) {
+		return 1;
+	}
+	else if(obedit) {
+		if ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE) {
+			return undo_editmode_valid(undoname);
+		}
+	}
+	else {
+		
+		/* if below tests fail, global undo gets executed */
+		
+		if(obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
+			if( ED_undo_paint_valid(UNDO_PAINT_IMAGE, undoname) )
+				return 1;
+		}
+		else if(obact && obact->mode & OB_MODE_SCULPT) {
+			if( ED_undo_paint_valid(UNDO_PAINT_MESH, undoname) )
+				return 1;
+		}
+		else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
+			return PE_undo_valid(CTX_data_scene(C));
+		}
+		
+		if(U.uiflag & USER_GLOBALUNDO) {
+			return BKE_undo_valid(undoname);
+		}
+	}
+	return 0;
+}
+
 static int ed_undo_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	/* "last operator" should disappear, later we can tie ths with undo stack nicer */

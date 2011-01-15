@@ -837,12 +837,6 @@ typedef struct Scene {
 
 /* **************** RENDERDATA ********************* */
 
-/* bufflag */
-#define R_BACKBUF		1
-#define R_BACKBUFANIM	2
-#define R_FRONTBUF		4
-#define R_FRONTBUFANIM	8
-
 /* flag */
 	/* use preview range */
 #define SCER_PRV_RANGE	(1<<0)
@@ -860,7 +854,7 @@ typedef struct Scene {
 #define R_BORDER		0x0200
 #define R_PANORAMA		0x0400	/* deprecated as scene option, still used in renderer */
 #define R_CROP			0x0800
-#define R_COSMO			0x1000
+/*#define R_COSMO			0x1000 deprecated */
 #define R_ODDFIELD		0x2000
 #define R_MBLUR			0x4000
 		/* unified was here */
@@ -868,7 +862,7 @@ typedef struct Scene {
 		/* R_GAUSS is obsolete, but used to retrieve setting from old files */
 #define R_GAUSS      	0x20000
 		/* fbuf obsolete... */
-#define R_FBUF			0x40000
+/*#define R_FBUF			0x40000*/
 		/* threads obsolete... is there for old files, now use for autodetect threads */
 #define R_THREADS		0x80000
 		/* Use the same flag for autothreads */
@@ -890,7 +884,7 @@ typedef struct Scene {
 #define R_OUTPUT_SCREEN	0
 #define R_OUTPUT_AREA	1
 #define R_OUTPUT_WINDOW	2
-#define R_OUTPUT_FORKED	3
+/*#define R_OUTPUT_FORKED	3*/
 
 /* filtertype */
 #define R_FILTER_BOX	0
@@ -934,10 +928,10 @@ typedef struct Scene {
 #define R_COMP_FREE			0x0800
 #define R_NO_IMAGE_LOAD		0x1000
 #define R_NO_TEX			0x2000
-#define R_STAMP_INFO		0x4000	/* deprecated */
+/*#define R_STAMP_INFO		0x4000	deprecated */
 #define R_FULL_SAMPLE		0x8000
-#define R_DEPRECATED		0x10000
-#define R_RECURS_PROTECTION	0x20000
+/* #define R_DEPRECATED		0x10000 */
+/* #define R_RECURS_PROTECTION	0x20000 */
 #define R_TEXNODE_PREVIEW	0x40000
 
 /* r->stamp */
@@ -952,7 +946,8 @@ typedef struct Scene {
 #define R_STAMP_FILENAME	0x0100
 #define R_STAMP_SEQSTRIP	0x0200
 #define R_STAMP_RENDERTIME	0x0400
-#define R_STAMP_ALL		(R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE|R_STAMP_NOTE|R_STAMP_MARKER|R_STAMP_FILENAME|R_STAMP_SEQSTRIP|R_STAMP_RENDERTIME)
+#define R_STAMP_CAMERALENS	0x0800
+#define R_STAMP_ALL		(R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE|R_STAMP_NOTE|R_STAMP_MARKER|R_STAMP_FILENAME|R_STAMP_SEQSTRIP|R_STAMP_RENDERTIME|R_STAMP_CAMERALENS)
 
 /* alphamode */
 #define R_ADDSKY		0
@@ -973,7 +968,7 @@ typedef struct Scene {
 /* #define R_HAMX		2 */ /* hamx is nomore */
 /* #define R_FTYPE		3 */ /* ftype is nomore */
 #define R_JPEG90	4
-#define R_MOVIE		5
+/*#define R_MOVIE		5*/ /* movie is nomore */
 #define R_IRIZ		7
 #define R_RAWTGA	14
 #define R_AVIRAW	15
@@ -1059,7 +1054,6 @@ typedef struct Scene {
 #define ID_NEW_US2(a)	if( ((ID *)a)->newid) {(a)= ((ID *)a)->newid; ((ID *)a)->us++;}
 #define	CFRA			(scene->r.cfra)
 #define SUBFRA			(scene->r.subframe)
-#define	F_CFRA			((float)(scene->r.cfra))
 #define	SFRA			(scene->r.sfra)
 #define	EFRA			(scene->r.efra)
 #define PRVRANGEON		(scene->r.flag & SCER_PRV_RANGE)
@@ -1211,7 +1205,7 @@ typedef enum SculptFlags {
 #define PE_DEFLECT_EMITTER		4
 #define PE_INTERPOLATE_ADDED	8
 #define PE_DRAW_PART			16
-#define PE_X_MIRROR				64		/* deprecated */
+/* #define PE_X_MIRROR			64 */	/* deprecated */
 #define PE_FADE_TIME			128
 #define PE_AUTO_VELOCITY		256
 

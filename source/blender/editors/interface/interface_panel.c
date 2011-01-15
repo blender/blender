@@ -323,13 +323,14 @@ void uiPanelPop(uiBlock *UNUSED(block))
 }
 
 /* triangle 'icon' for panel header */
+/* NOTE - this seems to be only used for hiding nodes now */
 void ui_draw_tria_icon(float x, float y, char dir)
 {
 	if(dir=='h') {
-		ui_draw_anti_tria(x-1, y, x-1, y+11.0, x+9, y+6.25);
+		ui_draw_anti_tria( x-3,y-5, x-3,y+5, x+7,y );
 	}
 	else {
-		ui_draw_anti_tria(x-3, y+10,  x+8-1, y+10, x+4.25-2, y);	
+		ui_draw_anti_tria( x-5,y+3,  x+5,y+3, x,y-7);	
 	}
 }
 
@@ -954,10 +955,11 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 		if(my >= block->maxy) button= 1;
 	}
 	else if(block->panel->control & UI_PNL_CLOSE) {
-		if(mx <= block->minx+10+PNL_ICON-2) button= 2;
-		else if(mx <= block->minx+10+2*PNL_ICON+2) button= 1;
+		/* whole of header can be used to collapse panel (except top-right corner) */
+		if(mx <= block->maxx-8-PNL_ICON) button= 2;
+		//else if(mx <= block->minx+10+2*PNL_ICON+2) button= 1;
 	}
-	else if(mx <= block->minx+10+PNL_ICON+2) {
+	else if(mx <= block->maxx-PNL_ICON-12) {
 		button= 1;
 	}
 	
@@ -995,10 +997,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 		else
 			ED_region_tag_redraw(ar);
 	}
-	else if(block->panel->flag & PNL_CLOSED) {
-		panel_activate_state(C, block->panel, PANEL_STATE_DRAG);
-	}
-	else {
+	else if(mx <= (block->maxx-PNL_ICON-12)+PNL_ICON+2) {
 		panel_activate_state(C, block->panel, PANEL_STATE_DRAG);
 	}
 }

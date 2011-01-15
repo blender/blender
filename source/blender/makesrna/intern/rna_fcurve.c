@@ -546,17 +546,9 @@ static void rna_FModifierStepped_end_frame_range(PointerRNA *ptr, float *min, fl
 	*max= MAXFRAMEF;
 }
 
-static BezTriple *rna_FKeyframe_points_add(FCurve *fcu, float frame, float value, int do_replace, int do_needed, int do_fast)
+static BezTriple *rna_FKeyframe_points_add(FCurve *fcu, float frame, float value, int flag)
 {
-	int index;
-	int flag= 0;
-
-	if(do_replace) flag |= INSERTKEY_REPLACE;
-	if(do_needed) flag |= INSERTKEY_NEEDED;
-	if(do_fast) flag |= INSERTKEY_FAST;
-
-
-	index= insert_vert_fcurve(fcu, frame, value, flag);
+	int index= insert_vert_fcurve(fcu, frame, value, flag);
 	return ((fcu->bezt) && (index >= 0))? (fcu->bezt + index) : NULL;
 }
 
@@ -1323,6 +1315,12 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
+	static EnumPropertyItem keyframe_flag_items[] = {
+		{INSERTKEY_REPLACE, "REPLACE", 0, "Replace", "Don't add any new keyframes, but just replace existing ones"},
+		{INSERTKEY_NEEDED, "NEEDED", 0, "Needed", "Only adds keyframes that are needed"},
+		{INSERTKEY_FAST, "FAST", 0, "Fast", "Fast keyframe insertion to avoid recalculating the curve each time"},
+		{0, NULL, 0, NULL, NULL}};
+
 	RNA_def_property_srna(cprop, "FCurveKeyframePoints");
 	srna= RNA_def_struct(brna, "FCurveKeyframePoints", NULL);
 	RNA_def_struct_sdna(srna, "FCurve");
@@ -1334,10 +1332,8 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_float(func, "value", 0.0f, -FLT_MAX, FLT_MAX, "", "Y Value of this keyframe point", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	/* optional */
-	RNA_def_boolean(func, "replace", 0, "Replace", "Don't add any new keyframes, but just replace existing ones");
-	RNA_def_boolean(func, "needed", 0, "Needed", "Only adds keyframes that are needed");
-	RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe insertion to avoid recalculating the curve each time");
+
+	RNA_def_enum_flag(func, "options", keyframe_flag_items, 0, "", "Keyframe options.");
 
 	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Newly created keyframe");
 	RNA_def_function_return(func, parm);
@@ -1349,7 +1345,7 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Keyframe to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	/* optional */
-	parm= RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe removal to avoid recalculating the curve each time");
+	RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe removal to avoid recalculating the curve each time");
 }
 
 static void rna_def_fcurve(BlenderRNA *brna)

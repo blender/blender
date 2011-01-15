@@ -410,7 +410,7 @@ int	BLI_isGraphCyclic(BGraph *graph)
 
 BArc * BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
 {
-	BArc *nextArc = arc->next;
+	BArc *nextArc;
 	
 	for(nextArc = graph->arcs.first; nextArc; nextArc = nextArc->next)
 	{

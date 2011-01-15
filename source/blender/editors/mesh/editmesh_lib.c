@@ -1637,10 +1637,10 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int
 			VECCOPY(v1->co, eve->co);
 			VECCOPY(v1->no, eve->no);
 			v1->f= eve->f;
-			eve->f-= flag;
+			eve->f &= ~flag;
 			eve->tmp.v = v1;
 		}
-		else eve->tmp.v = 0;
+		else eve->tmp.v = NULL;
 		eve= eve->prev;
 	}
 
@@ -1698,17 +1698,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int
 
 		eed= nexted;
 	}
-	if(del_old) {
-		eed= em->edges.first;
-		while(eed) {
-			nexted= eed->next;
-			if(eed->f2==3 && eed->f1==1) {
-				remedge(em, eed);
-				free_editedge(em, eed);
-			}
-			eed= nexted;
-		}
-	}
+	
 	/* duplicate faces, if necessary remove old ones  */
 	efa= em->faces.first;
 	while(efa) {
@@ -1721,7 +1711,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int
 			if(efa->v4) 
 				v4 = efa->v4->tmp.v; 
 			else
-				v4= 0;
+				v4= NULL;
 
 			/* hmm .. not sure about edges here */
 			if(del_old==0)	// if we keep old, we flip normal
@@ -1738,6 +1728,18 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int
 			}
 		}
 		efa= nextvl;
+	}
+	/* delete edges after copying edges above! */
+	if(del_old) {
+		eed= em->edges.first;
+		while(eed) {
+			nexted= eed->next;
+			if(eed->f2==3 && eed->f1==1) {
+				remedge(em, eed);
+				free_editedge(em, eed);
+			}
+			eed= nexted;
+		}
 	}
 	
 	normalize_v3(nor);	// for grab
@@ -1824,7 +1826,7 @@ static EditVert *adduplicate_vertex(EditMesh *em, EditVert *eve, int flag)
 	EditVert *v1= addvertlist(em, eve->co, eve);
 	
 	v1->f= eve->f;
-	eve->f-= flag;
+	eve->f &= ~flag;
 	eve->f|= 128;
 	
 	eve->tmp.v = v1;
@@ -1863,7 +1865,7 @@ void adduplicateflag(EditMesh *em, int flag)
 			newed= addedgelist(em, v1, v2, eed);
 			
 			newed->f= eed->f;
-			eed->f -= flag;
+			eed->f &= ~flag;
 			eed->f |= 128;
 		}
 	}
@@ -1890,7 +1892,7 @@ void adduplicateflag(EditMesh *em, int flag)
 			}
 			
 			newfa->f= efa->f;
-			efa->f -= flag;
+			efa->f &= ~flag;
 			efa->f |= 128;
 		}
 	}

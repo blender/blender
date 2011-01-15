@@ -111,7 +111,6 @@ class DATA_PT_settings(MeshButtonsPanel, bpy.types.Panel):
         layout.prop(mesh, "use_auto_texspace")
 
 
-
 class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Vertex Groups"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}

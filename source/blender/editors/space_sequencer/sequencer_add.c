@@ -78,6 +78,8 @@
 #define SEQPROP_FILES		(1<<2)
 #define SEQPROP_NOPATHS		(1<<3)
 
+#define SELECT 1
+
 static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 {
 	if(flag & SEQPROP_STARTFRAME)
@@ -201,7 +203,6 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 
 	Sequence *seq;	/* generic strip vars */
 	Strip *strip;
-	StripElem *se;
 	
 	int start_frame, channel; /* operator props */
 	
@@ -227,7 +228,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	strip->len = seq->len = sce_seq->r.efra - sce_seq->r.sfra + 1;
 	strip->us= 1;
 	
-	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 	
 	strcpy(seq->name+2, sce_seq->id.name+2);
 	seqbase_unique_name_recursive(&ed->seqbase, seq);
@@ -559,7 +560,6 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
 	Sequence *seq;	/* generic strip vars */
 	Strip *strip;
-	StripElem *se;
 	struct SeqEffectHandle sh;
 
 	int start_frame, end_frame, channel, type; /* operator props */
@@ -614,7 +614,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	strip->len = seq->len;
 	strip->us= 1;
 	if(seq->len>0)
-		strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+		strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 
 	if (seq->type==SEQ_PLUGIN) {
 		char path[FILE_MAX];

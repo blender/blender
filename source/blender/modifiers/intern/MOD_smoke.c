@@ -85,7 +85,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 						int UNUSED(isFinalCalc))
 {
 	SmokeModifierData *smd = (SmokeModifierData*) md;
-	DerivedMesh *dm = dm= get_cddm(ob, NULL, derivedData, vertexCos);
+	DerivedMesh *dm = get_cddm(ob, NULL, derivedData, vertexCos);
 
 	smokeModifier_do(smd, md->scene, ob, dm);
 

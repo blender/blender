@@ -63,10 +63,22 @@ def RKS_GEN_available(ksi, context, ks, data):
     if adt is None or adt.action is None:
         return;
         
-    # for each F-Curve, include an path to key it
+    # if we haven't got an ID-block as 'data', try to restrict 
+    # paths added to only those which branch off from here
+    # i.e. for bones
+    if id_block != data:
+        basePath = data.path_from_id()
+    else:
+        basePath = None; # this is not needed...
+        
+    # for each F-Curve, include a path to key it
     # NOTE: we don't need to set the group settings here
     for fcu in adt.action.fcurves:
-        ks.paths.add(id_block, fcu.data_path, index=fcu.array_index)
+        if basePath:
+            if basePath in fcu.data_path:
+                ks.paths.add(id_block, fcu.data_path, index=fcu.array_index)
+        else:
+            ks.paths.add(id_block, fcu.data_path, index=fcu.array_index)
     
 # ------
 

@@ -738,14 +738,6 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 	return 1;
 }
 
-/* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
-static int paint_space_stroke_enabled(Brush *br)
-{
-	return (br->flag & BRUSH_SPACE) &&
-	       !(br->flag & BRUSH_ANCHORED) &&
-	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
-}
-
 /* For brushes with stroke spacing enabled, moves mouse in steps
    towards the final mouse location. */
 static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const float final_mouse[2])
@@ -766,17 +758,24 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 		if(length > FLT_EPSILON) {
 			int steps;
 			int i;
-			float pressure;
+			float pressure= 1.0f;
 
-			pressure = event_tablet_data(event, NULL);
-			scale = (brush_size(stroke->brush)*pressure*stroke->brush->spacing/50.0f) / length;
-			mul_v2_fl(vec, scale);
+			/* XXX mysterious :) what has 'use size' do with this here... if you don't check for it, pressure fails */
+			if(brush_use_size_pressure(stroke->brush))
+				pressure = event_tablet_data(event, NULL);
+			
+			if(pressure > FLT_EPSILON) {
+				scale = (brush_size(stroke->brush)*pressure*stroke->brush->spacing/50.0f) / length;
+				if(scale > FLT_EPSILON) {
+					mul_v2_fl(vec, scale);
 
-			steps = (int)(1.0f / scale);
+					steps = (int)(1.0f / scale);
 
-			for(i = 0; i < steps; ++i, ++cnt) {
-				add_v2_v2(mouse, vec);
-				paint_brush_stroke_add_step(C, op, event, mouse);
+					for(i = 0; i < steps; ++i, ++cnt) {
+						add_v2_v2(mouse, vec);
+						paint_brush_stroke_add_step(C, op, event, mouse);
+					}
+				}
 			}
 		}
 	}
@@ -809,6 +808,14 @@ PaintStroke *paint_stroke_new(bContext *C,
 void paint_stroke_free(PaintStroke *stroke)
 {
 	MEM_freeN(stroke);
+}
+
+/* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
+int paint_space_stroke_enabled(Brush *br)
+{
+	return (br->flag & BRUSH_SPACE) &&
+	       !(br->flag & BRUSH_ANCHORED) &&
+	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
 }
 
 int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)

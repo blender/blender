@@ -1692,7 +1692,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 		{SACTCONT_DOPESHEET, "DOPESHEET", 0, "DopeSheet", ""},
 		{SACTCONT_ACTION, "ACTION", 0, "Action Editor", ""},
 		{SACTCONT_SHAPEKEY, "SHAPEKEY", 0, "ShapeKey Editor", ""},
-		//{SACTCONT_GPENCIL, "GPENCIL", 0, "Grease Pencil", ""}, // XXX: to be reimplemented, but not enough time before 2.53 - Aligorith, 2010Jul14
+		{SACTCONT_GPENCIL, "GPENCIL", 0, "Grease Pencil", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	
@@ -1729,6 +1729,11 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "show_sliders", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_SLIDERS);
 	RNA_def_property_ui_text(prop, "Show Sliders", "Show sliders beside F-Curve channels");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
+	
+	prop= RNA_def_property(srna, "show_pose_markers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_POSEMARKERS_SHOW);
+	RNA_def_property_ui_text(prop, "Show Pose Markers", "Show markers belonging to the active action instead of Scene markers (Action and Shape Key Editors only)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
 	
 	/* editing */

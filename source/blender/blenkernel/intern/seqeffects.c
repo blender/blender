@@ -2730,8 +2730,8 @@ static struct ImBuf * do_solid_color(
 
 	unsigned char *rect;
 	float *rect_float;
-	int x = context.rectx;
-	int y = context.recty;
+	int x; /*= context.rectx;*/ /*UNUSED*/
+	int y; /*= context.recty;*/ /*UNUSED*/
 
 	if (out->rect) {
 		unsigned char col0[3];

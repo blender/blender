@@ -2482,7 +2482,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	const short hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
 	const short is_paint_sel= (ob==OBACT && paint_facesel_test(ob));
 	int draw_wire = 0;
-	int totvert, totedge, totface;
+	int /* totvert,*/ totedge, totface;
 	DispList *dl;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 
@@ -2493,7 +2493,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		draw_wire = 2; /* draw wire after solid using zoffset and depth buffer adjusment */
 	}
 	
-	totvert = dm->getNumVerts(dm);
+	/* totvert = dm->getNumVerts(dm); */ /*UNUSED*/
 	totedge = dm->getNumEdges(dm);
 	totface = dm->getNumFaces(dm);
 	
@@ -3448,7 +3448,6 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, ParticleSystem *psys, int ob_dt)
 {
 	Object *ob=base->object;
-	ParticleSystemModifierData *psmd;
 	ParticleEditSettings *pset = PE_settings(scene);
 	ParticleSettings *part;
 	ParticleData *pars, *pa;
@@ -3460,7 +3459,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	float vel[3], imat[4][4];
 	float timestep, pixsize=1.0, pa_size, r_tilt, r_length;
 	float pa_time, pa_birthtime, pa_dietime, pa_health;
-	float cfra= bsystem_time(scene, ob,(float)CFRA,0.0);
+	float cfra;
 	float ma_r=0.0f, ma_g=0.0f, ma_b=0.0f;
 	int a, totpart, totpoint=0, totve=0, drawn, draw_as, totchild=0;
 	int select=ob->flag&SELECT, create_cdata=0, need_v=0;
@@ -3496,7 +3495,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	sim.scene= scene;
 	sim.ob= ob;
 	sim.psys= psys;
-	sim.psmd = psmd = psys_get_modifier(ob,psys);
+	sim.psmd = psys_get_modifier(ob,psys);
 
 	if(part->phystype==PART_PHYS_KEYED){
 		if(psys->flag&PSYS_KEYED){
@@ -3685,6 +3684,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		pdd->nd= pdd->ndata;
 		pdd->tot_vec_size= tot_vec_size;
 	}
+	else if(psys->pdd) {
+		psys_free_pdd(psys);
+		MEM_freeN(psys->pdd);
+		pdd = psys->pdd = NULL;
+	}
 
 	if(pdd) {
 		pdd->ma_r = &ma_r;
@@ -3843,7 +3847,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			if(drawn) {
 				/* additional things to draw for each particle	*/
 				/* (velocity, size and number)					*/
-				if((part->draw & PART_DRAW_VEL) && pdd->vedata){
+				if((part->draw & PART_DRAW_VEL) && pdd && pdd->vedata){
 					copy_v3_v3(pdd->ved,state.co);
 					pdd->ved += 3;
 					mul_v3_v3fl(vel, state.vel, timestep);

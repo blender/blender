@@ -1086,7 +1086,6 @@ typedef struct UVVertAverage {
 
 static int stitch_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima;
 	Scene *scene;
 	Object *obedit;
 	EditMesh *em;
@@ -1094,8 +1093,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	EditVert *eve;
 	Image *ima;
 	MTFace *tf;
-	
-	sima= CTX_wm_space_image(C);
+
 	scene= CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
 	em= BKE_mesh_get_editmesh((Mesh*)obedit->data);

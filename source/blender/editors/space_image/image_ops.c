@@ -438,16 +438,12 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima;
 	ARegion *ar;
-	Scene *scene;
-	Object *obedit;
 	float aspx, aspy, zoomx, zoomy, w, h;
 	int width, height;
 
 	/* retrieve state */
 	sima= CTX_wm_space_image(C);
 	ar= CTX_wm_region(C);
-	scene= (Scene*)CTX_data_scene(C);
-	obedit= CTX_data_edit_object(C);
 
 	ED_space_image_size(sima, &width, &height);
 	ED_space_image_aspect(sima, &aspx, &aspy);
@@ -2030,7 +2026,7 @@ static int record_composite_exec(bContext *C, wmOperator *op)
 
 static int record_composite_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	RecordCompositeData *rcd= op->customdata;
+	RecordCompositeData *rcd;
 	
 	if(!record_composite_init(C, op))
 		return OPERATOR_CANCELLED;

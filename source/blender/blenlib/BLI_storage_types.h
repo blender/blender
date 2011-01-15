@@ -35,16 +35,6 @@
 
 #include <sys/stat.h>
 
-#define HDRSIZE 512
-#define NAMSIZE 200
-
-struct header{
-	char	name[NAMSIZE];
-	unsigned int	size;
-	unsigned int	chksum;
-	char	fill[HDRSIZE-NAMSIZE-2*sizeof(unsigned int)];
-};
-
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 typedef unsigned int mode_t;
 #endif
@@ -76,14 +66,6 @@ struct direntry{
 	int		nr;
 	struct ImBuf *image;
 };
-
-#define SELECT			1
-#define HIDDEN			1
-#define FIRST			1
-#define DESELECT		0
-#define NOT_YET			0
-#define VISIBLE			0
-#define LAST			0
 
 struct dirlink
 {

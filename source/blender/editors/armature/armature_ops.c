@@ -82,6 +82,7 @@ void ED_operatortypes_armature(void)
 	
 	WM_operatortype_append(ARMATURE_OT_flags_set);
 	
+	WM_operatortype_append(ARMATURE_OT_layers_show_all);
 	WM_operatortype_append(ARMATURE_OT_armature_layers);
 	WM_operatortype_append(ARMATURE_OT_bone_layers);
 
@@ -105,6 +106,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_rot_clear);
 	WM_operatortype_append(POSE_OT_loc_clear);
 	WM_operatortype_append(POSE_OT_scale_clear);
+	WM_operatortype_append(POSE_OT_transforms_clear);
 	
 	WM_operatortype_append(POSE_OT_copy);
 	WM_operatortype_append(POSE_OT_paste);
@@ -252,6 +254,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 		RNA_enum_set(kmi->ptr, "mode", 0); // clear
 		
 		/* armature/bone layers */
+	WM_keymap_add_item(keymap, "ARMATURE_OT_layers_show_all", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_bone_layers", MKEY, KM_PRESS, 0, 0);
 	
@@ -331,6 +334,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 		RNA_enum_set(kmi->ptr, "mode", 0); // clear
 		
 		/* armature/bone layers */
+	WM_keymap_add_item(keymap, "ARMATURE_OT_layers_show_all", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_bone_layers", MKEY, KM_PRESS, 0, 0);
 	

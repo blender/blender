@@ -76,6 +76,7 @@ void ARMATURE_OT_flip_names(struct wmOperatorType *ot);
 
 void ARMATURE_OT_flags_set(struct wmOperatorType *ot);
 
+void ARMATURE_OT_layers_show_all(struct wmOperatorType *ot);
 void ARMATURE_OT_armature_layers(struct wmOperatorType *ot);
 void ARMATURE_OT_bone_layers(struct wmOperatorType *ot);
 
@@ -90,6 +91,7 @@ void POSE_OT_visual_transform_apply(struct wmOperatorType *ot);
 void POSE_OT_rot_clear(struct wmOperatorType *ot);
 void POSE_OT_loc_clear(struct wmOperatorType *ot);
 void POSE_OT_scale_clear(struct wmOperatorType *ot);
+void POSE_OT_transforms_clear(struct wmOperatorType *ot);
 
 void POSE_OT_copy(struct wmOperatorType *ot);
 void POSE_OT_paste(struct wmOperatorType *ot);

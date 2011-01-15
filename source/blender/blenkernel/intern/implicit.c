@@ -1229,7 +1229,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	float vel[3];
 	float k = 0.0f;
 	float L = s->restlen;
-	float cb = clmd->sim_parms->structural;
+	float cb; /* = clmd->sim_parms->structural; */ /*UNUSED*/
 
 	float nullf[3] = {0,0,0};
 	float stretch_force[3] = {0,0,0};
@@ -1566,7 +1566,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	float 		tm2[3][3] 	= {{0}};
 	MFace 		*mfaces 	= cloth->mfaces;
 	unsigned int numverts = cloth->numverts;
-	LinkNode *search = cloth->springs;
+	LinkNode *search;
 	lfVector *winvec;
 	EffectedPoint epoint;
 

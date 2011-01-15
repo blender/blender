@@ -440,7 +440,6 @@ void IDP_SyncGroupValues(IDProperty *dest, IDProperty *src)
 
 							BLI_insertlinkafter(&dest->data.group, loop, copy);
 							BLI_remlink(&dest->data.group, tmp);
-							loop = copy;
 
 							IDP_FreeProperty(tmp);
 							MEM_freeN(tmp);

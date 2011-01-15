@@ -499,9 +499,9 @@ static void scanfill(PolyFill *pf, int mat_nr)
 	short nr, test, twoconnected=0;
 
 	nr= pf->nr;
-	verts= pf->verts;
 
 	/* PRINTS
+	verts= pf->verts;
 	eve= fillvertbase.first;
 	while(eve) {
 		printf("vert: %x co: %f %f\n",eve,eve->co[cox],eve->co[coy]);
@@ -558,7 +558,6 @@ static void scanfill(PolyFill *pf, int mat_nr)
 
 	qsort(scdata, verts, sizeof(ScFillVert), vergscdata);
 
-	sc= scdata;
 	eed= filledgebase.first;
 	while(eed) {
 		nexted= eed->next;
@@ -1005,8 +1004,8 @@ int BLI_edgefill(int mat_nr)
 		MEM_freeN(polycache);
 	}
 	
-	pf= pflist;
 	/* printf("after merge\n");
+	pf= pflist;
 	for(a=1;a<=poly;a++) {
 		printf("poly:%d edges:%d verts:%d flag: %d\n",a,pf->edges,pf->verts,pf->f);
 		pf++;

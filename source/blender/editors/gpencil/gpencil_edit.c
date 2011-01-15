@@ -543,9 +543,9 @@ static int gp_convert_poll (bContext *C)
 {
 	bGPdata *gpd= gpencil_data_get_active(C);
 	ScrArea *sa= CTX_wm_area(C);
-	
+
 	/* only if there's valid data, and the current view is 3D View */
-	return ((sa->spacetype == SPACE_VIEW3D) && gpencil_layer_getactive(gpd));
+	return ((sa && sa->spacetype == SPACE_VIEW3D) && gpencil_layer_getactive(gpd));
 }
 
 static int gp_convert_layer_exec (bContext *C, wmOperator *op)

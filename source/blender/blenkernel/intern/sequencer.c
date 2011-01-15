@@ -728,10 +728,8 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 
 		if (sce) {
 			seq->scene = sce;
-		} else {
-			sce = seq->scene;
 		}
-		
+
 		seq->len= seq->scene->r.efra - seq->scene->r.sfra + 1;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
@@ -3386,7 +3384,6 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	Scene *scene= CTX_data_scene(C); /* only for active seq */
 	Sequence *seq;
 	Strip *strip;
-	StripElem *se;
 
 	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
 	seq->type= SEQ_IMAGE;
@@ -3397,7 +3394,7 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	strip->len = seq->len = seq_load->len ? seq_load->len : 1;
 	strip->us= 1;
-	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 	BLI_strncpy(strip->dir, seq_load->path, sizeof(strip->dir));
 
 	seq_load_apply(scene, seq, seq_load);
@@ -3467,7 +3464,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	Scene *scene= CTX_data_scene(C); /* only for sound */
 	char path[sizeof(seq_load->path)];
 
-	Sequence *seq, *soundseq;	/* generic strip vars */
+	Sequence *seq;	/* generic strip vars */
 	Strip *strip;
 	StripElem *se;
 
@@ -3506,7 +3503,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 		int start_frame_back= seq_load->start_frame;
 		seq_load->channel++;
 
-		soundseq = sequencer_add_sound_strip(C, seqbasep, seq_load);
+		sequencer_add_sound_strip(C, seqbasep, seq_load);
 
 		seq_load->start_frame= start_frame_back;
 		seq_load->channel--;

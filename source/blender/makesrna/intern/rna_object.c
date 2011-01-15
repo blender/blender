@@ -1658,7 +1658,7 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	/* vertex groups */ // add_vertex_group
 	func= RNA_def_function(srna, "new", "rna_Object_vgroup_new");
 	RNA_def_function_ui_description(func, "Add vertex group to object.");
-	parm= RNA_def_string(func, "name", "Group", 0, "", "Vertex group name."); /* optional */
+	RNA_def_string(func, "name", "Group", 0, "", "Vertex group name."); /* optional */
 	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "New vertex group.");
 	RNA_def_function_return(func, parm);
 

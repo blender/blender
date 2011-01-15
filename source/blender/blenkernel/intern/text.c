@@ -280,7 +280,6 @@ int reopen_text(Text *text)
 	text->mtime= st.st_mtime;
 	
 	text->nlines=0;
-	i=0;
 	llen=0;
 	for(i=0; i<len; i++) {
 		if (buffer[i]=='\n') {
@@ -2218,7 +2217,6 @@ static void txt_combine_lines (Text *text, TextLine *linea, TextLine *lineb)
 		} while (mrk && mrk->lineno==lineno);
 	}
 	if (lineno==-1) lineno= txt_get_span(text->lines.first, lineb);
-	if (!mrk) mrk= text->markers.first;
 	
 	tmp= MEM_mallocN(linea->len+lineb->len+1, "textline_string");
 	

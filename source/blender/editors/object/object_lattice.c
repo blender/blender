@@ -86,8 +86,6 @@ void make_editLatt(Object *obedit)
 
 	free_editLatt(obedit);
 
-	lt= obedit->data;
-
 	actkey= ob_get_keyblock(obedit);
 	if(actkey)
 		key_to_latt(actkey, lt);

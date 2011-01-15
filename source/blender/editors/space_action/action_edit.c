@@ -38,6 +38,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -54,6 +55,7 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
+#include "ED_gpencil.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 #include "ED_screen.h"
@@ -74,26 +76,42 @@
 
 static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	bAction *action;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 
-	// XXX need to restore behaviour to copy old actions...
-	action= add_empty_action("Action");
-
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
-
-	if(prop) {
-		/* when creating new ID blocks, use is already 1, but RNA
-		 * pointer se also increases user, so this compensates it */
+	
+	if (prop) {
+		bAction *action=NULL, *oldact=NULL;
+		PointerRNA oldptr;
+		
+		/* create action - the way to do this depends on whether we've got an
+		 * existing one there already, in which case we make a copy of it
+		 * (which is useful for "versioning" actions within the same file)
+		 */
+		oldptr = RNA_property_pointer_get(&ptr, prop);
+		oldact = (bAction *)oldptr.id.data;
+		
+		if (oldact && GS(oldact->id.name)==ID_AC) {
+			/* make a copy of the existing action */
+			action= copy_action(oldact);
+		}
+		else {
+			/* just make a new (empty) action */
+			action= add_empty_action("Action");
+		}
+		
+		/* when creating new ID blocks, use is already 1 (fake user), 
+		 * but RNA pointer use also increases user, so this compensates it 
+		 */
 		action->id.us--;
-
+		
 		RNA_id_pointer_create(&action->id, &idptr);
 		RNA_property_pointer_set(&ptr, prop, idptr);
 		RNA_property_update(C, &ptr, prop);
 	}
-
+	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
@@ -347,15 +365,10 @@ void ACTION_OT_copy (wmOperatorType *ot)
 //	ot->invoke= WM_operator_props_popup; // better wait for graph redo panel
 	ot->exec= actkeys_copy_exec;
 	ot->poll= ED_operator_action_active;
-	
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
-	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merking pasted keys and existing");
 }
-
-
 
 static int actkeys_paste_exec(bContext *C, wmOperator *op)
 {
@@ -405,6 +418,9 @@ void ACTION_OT_paste (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
+	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merking pasted keys and existing");
 }
 
 /* ******************** Insert Keyframes Operator ************************* */
@@ -426,7 +442,6 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 	
 	ReportList *reports = ac->reports;
 	Scene *scene= ac->scene;
-	float cfra= (float)CFRA;
 	short flag = 0;
 	
 	/* filter data */
@@ -443,7 +458,8 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
-		
+		float cfra;
+
 		/* adjust current frame for NLA-scaling */
 		if (adt)
 			cfra= BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
@@ -524,10 +540,10 @@ static void duplicate_action_keys (bAnimContext *ac)
 	
 	/* loop through filtered data and delete selected keys */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		//if (ale->type == ANIMTYPE_GPLAYER)
-		//	delete_gplayer_frames((bGPDlayer *)ale->data);
-		//else
+		if (ale->type == ANIMTYPE_FCURVE)
 			duplicate_fcurve_keys((FCurve *)ale->key_data);
+		else
+			duplicate_gplayer_frames((bGPDlayer *)ale->data);
 	}
 	
 	/* free filtered list */
@@ -613,8 +629,8 @@ static void delete_action_keys (bAnimContext *ac)
 			if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
 				ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
 		}
-		//else
-		//	delete_gplayer_frames((bGPDlayer *)ale->data);
+		else
+			delete_gplayer_frames((bGPDlayer *)ale->data);
 	}
 	
 	/* free filtered list */

@@ -552,7 +552,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= object_metaball_add_invoke;
 	ot->exec= object_metaball_add_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= ED_operator_scene_editable;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -680,9 +680,7 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE, layer);
-	if(ob && ob->data)
-		((Lamp*)ob->data)->type= type;
-	
+	((Lamp*)ob->data)->type= type;
 	rename_id((ID *)ob, get_lamp_defname(type));
 	rename_id((ID *)ob->data, get_lamp_defname(type));
 	

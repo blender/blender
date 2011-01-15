@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_MATRIX
-#define BLI_MATH_MATRIX
+#ifndef BLI_MATH_MATRIX_H
+#define BLI_MATH_MATRIX_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -172,5 +172,5 @@ void print_m4(const char *str, float M[3][4]);
 }
 #endif
 
-#endif /* BLI_MATH_MATRIX */
+#endif /* BLI_MATH_MATRIX_H */
 

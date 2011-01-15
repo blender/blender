@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_BASE
-#define BLI_MATH_BASE
+#ifndef BLI_MATH_BASE_H
+#define BLI_MATH_BASE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -140,7 +140,7 @@ extern "C" {
 #define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
 #endif
 
-#ifdef BLI_MATH_INLINE
+#ifdef BLI_MATH_INLINE_H
 #include "intern/math_base_inline.c"
 #endif
 
@@ -173,5 +173,5 @@ double double_round(double x, int ndigits);
 }
 #endif
 
-#endif /* BLI_MATH_BASE */
+#endif /* BLI_MATH_BASE_H */
 

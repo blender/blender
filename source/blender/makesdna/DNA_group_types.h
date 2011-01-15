@@ -40,8 +40,8 @@ typedef struct GroupObject {
 	struct GroupObject *next, *prev;
 	struct Object *ob;
 	void *lampren;		/* used while render */
-	int recalc;			/* copy of ob->recalc, used to set animated groups OK */
-	int pad;
+	short recalc;			/* copy of ob->recalc, used to set animated groups OK */
+	char pad[6];
 } GroupObject;
 
 

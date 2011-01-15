@@ -1056,7 +1056,14 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 
 		if (!BLI_exists(sfile->params->dir)) {
 			BLI_recurdir_fileops(sfile->params->dir);
-		} 
+		}
+
+		/* special case, user may have pasted a fulepath into the directory */
+		if(BLI_exists(sfile->params->dir) && BLI_is_dir(sfile->params->dir) == 0) {
+			char path[sizeof(sfile->params->dir)];
+			BLI_strncpy(path, sfile->params->dir, sizeof(path));
+			BLI_split_dirfile(path, sfile->params->dir, sfile->params->file);
+		}
 
 		BLI_cleanup_dir(G.main->name, sfile->params->dir);
 		BLI_add_slash(sfile->params->dir);

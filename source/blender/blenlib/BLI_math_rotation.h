@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_ROTATION
-#define BLI_MATH_ROTATION
+#ifndef BLI_MATH_ROTATION_H
+#define BLI_MATH_ROTATION_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -180,5 +180,5 @@ float angle_to_lens(float angle);
 }
 #endif
 
-#endif /* BLI_MATH_ROTATION */
+#endif /* BLI_MATH_ROTATION_H */
 

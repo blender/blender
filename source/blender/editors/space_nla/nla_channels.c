@@ -297,7 +297,6 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
-	Scene *scene;
 	ARegion *ar;
 	View2D *v2d;
 	int mval[2], channel_index;
@@ -310,7 +309,6 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
 		return OPERATOR_CANCELLED;
 		
 	/* get useful pointers from animation context data */
-	scene= ac.scene;
 	ar= ac.ar;
 	v2d= &ar->v2d;
 	

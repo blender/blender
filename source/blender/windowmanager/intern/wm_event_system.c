@@ -423,10 +423,6 @@ static void wm_operator_print(bContext *C, wmOperator *op)
 
 static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int popup)
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
-	ReportList *reports = CTX_wm_reports(C);
-	char *buf;
-	
 	if(popup)
 		if(op->reports->list.first)
 			uiPupMenuReports(C, op->reports);
@@ -437,26 +433,29 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		
 		if (op->type->flag & OPTYPE_REGISTER) {
 			/* Report the python string representation of the operator */
-			buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+			char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
 			BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
 			MEM_freeN(buf);
 		}
 	}
 
 	if (op->reports->list.first) {
+
+		wmWindowManager *wm = CTX_wm_manager(C);
+		ReportList *wm_reports= CTX_wm_reports(C);
 		ReportTimerInfo *rti;
-		
+
 		/* add reports to the global list, otherwise they are not seen */
-		BLI_movelisttolist(&CTX_wm_reports(C)->list, &op->reports->list);
+		BLI_movelisttolist(&wm_reports->list, &op->reports->list);
 		
 		/* After adding reports to the global list, reset the report timer. */
-		WM_event_remove_timer(wm, NULL, reports->reporttimer);
+		WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
 		
 		/* Records time since last report was added */
-		reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMER, 0.05);
+		wm_reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMER, 0.05);
 		
 		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
-		reports->reporttimer->customdata = rti;
+		wm_reports->reporttimer->customdata = rti;
 	}
 }
 
@@ -715,7 +714,7 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
 					ARegion *ar= CTX_wm_region(C);
 					ScrArea *sa= CTX_wm_area(C);
 
-					if(ar && ar->regiontype == RGN_TYPE_WINDOW && BLI_in_rcti(&ar->winrct, event->x, event->y)) {
+					if(ar && ar->regiontype == RGN_TYPE_WINDOW && event && BLI_in_rcti(&ar->winrct, event->x, event->y)) {
 						winrect= &ar->winrct;
 					}
 					else if(sa) {

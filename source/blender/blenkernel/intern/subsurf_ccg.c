@@ -314,7 +314,7 @@ static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result,
 	CCGFace **faceMap;
 	MTFace *tf;
 	CCGFaceIterator *fi;
-	int index, gridSize, gridFaces, edgeSize, totface, x, y, S;
+	int index, gridSize, gridFaces, /*edgeSize,*/ totface, x, y, S;
 	MTFace *dmtface = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, n);
 	MTFace *tface = CustomData_get_layer_n(&result->faceData, CD_MTFACE, n);
 
@@ -331,7 +331,7 @@ static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result,
 
 	/* get some info from CCGSubSurf */
 	totface = ccgSubSurf_getNumFaces(uvss);
-	edgeSize = ccgSubSurf_getEdgeSize(uvss);
+	/* edgeSize = ccgSubSurf_getEdgeSize(uvss); */ /*UNUSED*/
 	gridSize = ccgSubSurf_getGridSize(uvss);
 	gridFaces = gridSize - 1;
 
@@ -689,7 +689,7 @@ static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
 		/* this edge comes from face data */
 		int lastface = ccgSubSurf_getNumFaces(ss) - 1;
 		CCGFace *f;
-		int x, y, grid, numVerts;
+		int x, y, grid /*, numVerts*/;
 		int offset;
 		int gridSize = ccgSubSurf_getGridSize(ss);
 		int edgeSize = ccgSubSurf_getEdgeSize(ss);
@@ -701,7 +701,7 @@ static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
 			++i;
 
 		f = ccgdm->faceMap[i].face;
-		numVerts = ccgSubSurf_getFaceNumVerts(f);
+		/* numVerts = ccgSubSurf_getFaceNumVerts(f); */ /*UNUSED*/
 
 		gridSideEdges = gridSize - 1;
 		gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2; 
@@ -766,7 +766,7 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 	int gridFaces = gridSideEdges * gridSideEdges;
 	int i;
 	CCGFace *f;
-	int numVerts;
+	/*int numVerts;*/
 	int offset;
 	int grid;
 	int x, y;
@@ -780,7 +780,7 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 		++i;
 
 	f = ccgdm->faceMap[i].face;
-	numVerts = ccgSubSurf_getFaceNumVerts(f);
+	/*numVerts = ccgSubSurf_getFaceNumVerts(f);*/ /*UNUSED*/
 
 	offset = faceNum - ccgdm->faceMap[i].startFace;
 	grid = offset / gridFaces;
@@ -2147,14 +2147,14 @@ static void ccgdm_create_grids(DerivedMesh *dm)
 	DMGridAdjacency *gridAdjacency, *adj;
 	CCGFace **gridFaces;
 	int *gridOffset;
-	int index, numFaces, numGrids, S, gIndex, gridSize;
+	int index, numFaces, numGrids, S, gIndex /*, gridSize*/;
 
 	if(ccgdm->gridData)
 		return;
 	
 	numGrids = ccgDM_getNumGrids(dm);
 	numFaces = ccgSubSurf_getNumFaces(ss);
-	gridSize = ccgDM_getGridSize(dm);
+	/*gridSize = ccgDM_getGridSize(dm);*/  /*UNUSED*/
 
 	/* compute offset into grid array for each face */
 	gridOffset = MEM_mallocN(sizeof(int)*numFaces, "ccgdm.gridOffset");
@@ -2333,7 +2333,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	int edgeSize;
 	int gridSize;
 	int gridFaces;
-	int gridSideVerts;
+	/*int gridSideVerts;*/
 	int gridSideEdges;
 	int gridInternalEdges;
 	MEdge *medge = NULL;
@@ -2431,8 +2431,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	edgeSize = ccgSubSurf_getEdgeSize(ss);
 	gridSize = ccgSubSurf_getGridSize(ss);
 	gridFaces = gridSize - 1;
-	gridSideVerts = gridSize - 2;
-	/*gridInternalVerts = gridSideVerts * gridSideVerts; - as yet, unused */
+	/*gridSideVerts = gridSize - 2;*/ /*UNUSED*/
+	/*gridInternalVerts = gridSideVerts * gridSideVerts; */ /*UNUSED*/
 	gridSideEdges = gridSize - 1;
 	gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2; 
 

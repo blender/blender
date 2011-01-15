@@ -948,6 +948,8 @@ static char *rna_def_property_begin_func(FILE *f, StructRNA *srna, PropertyRNA *
 
 static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *dp, char *manualfunc, char *nextfunc)
 {
+	/* note on indicies, this is for external functions and ignores skipped values.
+	 * so the the index can only be checked against the length when there is no 'skip' funcion. */
 	char *func;
 
 	if(prop->flag & PROP_IDPROPERTY && manualfunc==NULL)
@@ -978,24 +980,22 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 	fprintf(f, "	CollectionPropertyIterator iter;\n\n");
 
 	fprintf(f, "	%s_%s_begin(&iter, ptr);\n\n", srna->identifier, prop->identifier);
-	fprintf(f, "	{\n");
+	fprintf(f, "	if(iter.valid){\n");
 
 	if(strcmp(nextfunc, "rna_iterator_array_next") == 0) {
 		fprintf(f, "		ArrayIterator *internal= iter.internal;\n");
 		fprintf(f, "		if(index < 0 || index >= internal->length) {\n");
 		fprintf(f, "#ifdef __GNUC__\n");
-		fprintf(f, "			printf(\"Array iterator out of range: %%s (index %%d range %%d)\\n\", __func__, index, internal->length);  \n");
+		fprintf(f, "			printf(\"Array iterator out of range: %%s (index %%d)\\n\", __func__, index);\n");
 		fprintf(f, "#else\n");
-		fprintf(f, "			printf(\"Array iterator out of range: (index %%d range %%d)\\n\", index, internal->length);  \n");
+		fprintf(f, "			printf(\"Array iterator out of range: (index %%d)\\n\", index);\n");
 		fprintf(f, "#endif\n");
 		fprintf(f, "		}\n");
 		fprintf(f, "		else if(internal->skip) {\n");
-		fprintf(f, "			while(index-- > 0) {\n");
-		fprintf(f, "				do {\n");
-		fprintf(f, "					internal->ptr += internal->itemsize;\n");
-		fprintf(f, "				} while(internal->skip(&iter, internal->ptr));\n");
+		fprintf(f, "			while(index-- > 0 && iter.valid) {\n");
+		fprintf(f, "				rna_iterator_array_next(&iter);\n");
 		fprintf(f, "			}\n");
-		fprintf(f, "			found= 1;\n");
+		fprintf(f, "			found= (index == -1 && iter.valid);\n");
 		fprintf(f, "		}\n");
 		fprintf(f, "		else {\n");
 		fprintf(f, "			internal->ptr += internal->itemsize*index;\n");
@@ -1005,22 +1005,20 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 	else if(strcmp(nextfunc, "rna_iterator_listbase_next") == 0) {
 		fprintf(f, "		ListBaseIterator *internal= iter.internal;\n");
 		fprintf(f, "		if(internal->skip) {\n");
-		fprintf(f, "			while(index-- > 0) {\n");
-		fprintf(f, "				do {\n");
-		fprintf(f, "					internal->link= internal->link->next;\n");
-		fprintf(f, "				} while(internal->skip(&iter, internal->link));\n");
+		fprintf(f, "			while(index-- > 0 && iter.valid) {\n");
+		fprintf(f, "				rna_iterator_listbase_next(&iter);\n");
 		fprintf(f, "			}\n");
+		fprintf(f, "			found= (index == -1 && iter.valid);\n");
 		fprintf(f, "		}\n");
 		fprintf(f, "		else {\n");
 		fprintf(f, "			while(index-- > 0 && internal->link)\n");
 		fprintf(f, "				internal->link= internal->link->next;\n");
+		fprintf(f, "			found= 1;\n");
 		fprintf(f, "		}\n");
-		fprintf(f, "		found= (index == -1);\n");
 	}
 
+	fprintf(f, "		if(found) *r_ptr = %s_%s_get(&iter);\n", srna->identifier, prop->identifier);
 	fprintf(f, "	}\n\n");
-
-	fprintf(f, "	if(found) *r_ptr = %s_%s_get(&iter);\n", srna->identifier, prop->identifier);
 	fprintf(f, "	%s_%s_end(&iter);\n\n", srna->identifier, prop->identifier);
 
 	fprintf(f, "	return found;\n");
@@ -2025,7 +2023,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	switch(prop->type) {
 			case PROP_ENUM: {
 				EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
-				int i, defaultfound= 0;
+				int i, defaultfound= 0, totflag= 0;
 
 				if(eprop->item) {
 					fprintf(f, "static EnumPropertyItem rna_%s%s_%s_items[%d] = {\n\t", srna->identifier, strnest, prop->identifier, eprop->totitem+1);
@@ -2037,16 +2035,31 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 						rna_print_c_string(f, eprop->item[i].name); fprintf(f, ", ");
 						rna_print_c_string(f, eprop->item[i].description); fprintf(f, "},\n\t");
 
-						if(eprop->item[i].identifier[0])
-							if(eprop->defaultvalue == eprop->item[i].value)
-								defaultfound= 1;
+						if(eprop->item[i].identifier[0]) {
+							if(prop->flag & PROP_ENUM_FLAG) {
+								totflag |= eprop->item[i].value;
+							}
+							else {
+								if(eprop->defaultvalue == eprop->item[i].value) {
+									defaultfound= 1;
+								}
+							}
+						}
 					}
 
 					fprintf(f, "{0, NULL, 0, NULL, NULL}\n};\n\n");
 
-					if(!defaultfound) {
-						fprintf(stderr, "rna_generate_structs: %s%s.%s, enum default is not in items.\n", srna->identifier, errnest, prop->identifier);
-						DefRNA.error= 1;
+					if(prop->flag & PROP_ENUM_FLAG) {
+						if(eprop->defaultvalue & ~totflag) {
+							fprintf(stderr, "rna_generate_structs: %s%s.%s, enum default includes unused bits (%d).\n", srna->identifier, errnest, prop->identifier, eprop->defaultvalue & ~totflag);
+							DefRNA.error= 1;
+						}
+					}
+					else {
+						if(!defaultfound) {
+							fprintf(stderr, "rna_generate_structs: %s%s.%s, enum default is not in items.\n", srna->identifier, errnest, prop->identifier);
+							DefRNA.error= 1;
+						}
 					}
 				}
 				else {

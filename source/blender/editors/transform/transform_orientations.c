@@ -290,7 +290,7 @@ TransformOrientation* addMatrixSpace(bContext *C, float mat[3][3], char name[], 
 
 void BIF_removeTransformOrientation(bContext *C, TransformOrientation *target) {
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
-	TransformOrientation *ts = transform_spaces->first;
+	TransformOrientation *ts;
 	int i;
 	
 	for (i = 0, ts = transform_spaces->first; ts; ts = ts->next, i++) {
@@ -341,7 +341,7 @@ void BIF_removeTransformOrientationIndex(bContext *C, int index) {
 void BIF_selectTransformOrientation(bContext *C, TransformOrientation *target) {
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	View3D *v3d = CTX_wm_view3d(C);
-	TransformOrientation *ts = transform_spaces->first;
+	TransformOrientation *ts;
 	int i;
 	
 	for (i = 0, ts = transform_spaces->first; ts; ts = ts->next, i++) {

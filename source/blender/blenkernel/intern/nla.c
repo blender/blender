@@ -1210,12 +1210,12 @@ void BKE_nlastrip_validate_fcurves (NlaStrip *strip)
 	}
 }
 
+/* Sanity Validation ------------------------------------ */
+
 static int nla_editbone_name_check(void *arg, const char *name)
 {
 	return BLI_ghash_haskey((GHash *)arg, (void *)name);
 }
-
-/* Sanity Validation ------------------------------------ */
 
 /* Find (and set) a unique name for a strip from the whole AnimData block 
  * Uses a similar method to the BLI method, but is implemented differently

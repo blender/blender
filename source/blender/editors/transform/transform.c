@@ -738,7 +738,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			case TFM_MODAL_PROPSIZE_UP:
 				if(t->flag & T_PROP_EDIT) {
 					t->prop_size*= 1.1f;
-					if(t->spacetype==SPACE_VIEW3D)
+					if(t->spacetype==SPACE_VIEW3D && t->persp != RV3D_ORTHO)
 						t->prop_size= MIN2(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
@@ -978,7 +978,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		case PADPLUSKEY:
 			if(event->alt && t->flag & T_PROP_EDIT) {
 				t->prop_size *= 1.1f;
-				if(t->spacetype==SPACE_VIEW3D)
+				if(t->spacetype==SPACE_VIEW3D && t->persp != RV3D_ORTHO)
 					t->prop_size= MIN2(t->prop_size, ((View3D *)t->view)->far);
 				calculatePropRatio(t);
 			}
@@ -3349,7 +3349,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		applyAspectRatio(t, dvec);
 
 		dist = len_v3(vec);
-		if(t->scene->unit.system) {
+		if(!(t->flag & T_2D_EDIT) && t->scene->unit.system) {
 			int i, do_split= t->scene->unit.flag & USER_UNIT_OPT_SPLIT ? 1:0;
 
 			for(i=0; i<3; i++)
@@ -3362,7 +3362,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		}
 	}
 
-	if(t->scene->unit.system)
+	if(!(t->flag & T_2D_EDIT) && t->scene->unit.system)
 		bUnit_AsString(distvec, sizeof(distvec), dist*t->scene->unit.scale_length, 4, t->scene->unit.system, B_UNIT_LENGTH, t->scene->unit.flag & USER_UNIT_OPT_SPLIT, 0);
 	else if( dist > 1e10 || dist < -1e10 )	/* prevent string buffer overflow */
 		sprintf(distvec, "%.4e", dist);
@@ -4849,17 +4849,15 @@ int doEdgeSlide(TransInfo *t, float perc)
 	LinkNode *vertlist=sld->vertlist, *look;
 	GHash *vertgh = sld->vhash;
 	TransDataSlideVert *tempsv;
-	float len = 0.0f;
+	float len;
 	int prop=1, flip=0;
 	/* UV correction vars */
 	GHash **uvarray= sld->uvhash;
 	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
 	int uvlay_idx;
-	TransDataSlideUv *suv=sld->slideuv;
+	TransDataSlideUv *suv;
 	float uv_tmp[2];
 	LinkNode *fuv_link;
-
-	len = 0.0f;
 
 	tempsv = BLI_ghash_lookup(vertgh,nearest);
 

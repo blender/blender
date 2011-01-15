@@ -121,6 +121,10 @@ void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, flo
 			if ((ymax) && (tymax > *ymax)) 		*ymax= tymax;
 		}
 		
+		/* ensure that the extents are not too extreme that view implodes...*/
+		if ((xmin && xmax) && (fabs(*xmax - *xmin) < 0.1)) *xmax += 0.1;
+		if ((ymin && ymax) && (fabs(*ymax - *ymin) < 0.1)) *ymax += 0.1;
+		
 		/* free memory */
 		BLI_freelistN(&anim_data);
 	}
@@ -177,7 +181,7 @@ void GRAPH_OT_previewrange_set (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_previewrange_exec;
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->poll= ED_operator_ipo_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -225,7 +229,7 @@ void GRAPH_OT_view_all (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_viewall_exec;
-	ot->poll= graphop_visible_keyframes_poll;
+	ot->poll= ED_operator_ipo_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -410,7 +414,6 @@ static void insert_graph_keys(bAnimContext *ac, short mode)
 	
 	ReportList *reports = ac->reports;
 	Scene *scene= ac->scene;
-	float cfra= (float)CFRA;
 	short flag = 0;
 	
 	/* filter data */
@@ -426,6 +429,7 @@ static void insert_graph_keys(bAnimContext *ac, short mode)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
+		float cfra;
 		
 		/* adjust current frame for NLA-mapping */
 		if (adt)
@@ -1962,7 +1966,7 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
 	if (RNA_boolean_get(op->ptr, "only_active"))
-		filter |= ANIMFILTER_ACTIVE;
+		filter |= ANIMFILTER_ACTIVE; // FIXME: enforce in this case only a single channel to get handled?
 	else
 		filter |= (ANIMFILTER_SEL|ANIMFILTER_CURVEVISIBLE);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -1976,7 +1980,7 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 		fcm= add_fmodifier(&fcu->modifiers, type);
 		if (fcm)
 			set_active_fmodifier(&fcu->modifiers, fcm);
-		else { // TODO: stop when this happens?
+		else {
 			BKE_report(op->reports, RPT_ERROR, "Modifier couldn't be added. See console for details.");
 			break;
 		}

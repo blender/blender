@@ -54,6 +54,7 @@
 
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
@@ -859,6 +860,7 @@ typedef struct StampData {
 	char 	time[512];
 	char 	frame[512];
 	char 	camera[64];
+	char 	cameralens[64];
 	char 	scene[64];
 	char 	strip[64];
 	char 	rendertime[64];
@@ -914,10 +916,10 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 	
 	if (scene->r.stamp & R_STAMP_TIME) {
-		int h, m, s, f;
-		h= m= s= f= 0;
-		f = (int)(scene->r.cfra % scene->r.frs_sec);
-		s = (int)(scene->r.cfra / scene->r.frs_sec);
+		int f = (int)(scene->r.cfra % scene->r.frs_sec);
+		int s = (int)(scene->r.cfra / scene->r.frs_sec);
+		int h= 0;
+		int m= 0;
 
 		if (s) {
 			m = (int)(s / 60);
@@ -955,13 +957,25 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 
 	if (scene->r.stamp & R_STAMP_CAMERA) {
-		if (scene->camera) strcpy(text, ((Camera *) scene->camera)->id.name+2);
+		if (scene->camera) strcpy(text, scene->camera->id.name+2);
 		else 		strcpy(text, "<none>");
 		
 		if (do_prefix)		sprintf(stamp_data->camera, "Camera %s", text);
 		else				sprintf(stamp_data->camera, "%s", text);
 	} else {
 		stamp_data->camera[0] = '\0';
+	}
+
+	if (scene->r.stamp & R_STAMP_CAMERALENS) {
+		if (scene->camera && scene->camera->type == OB_CAMERA) {
+			sprintf(text, "%.2f", ((Camera *)scene->camera->data)->lens);
+		}
+		else 		strcpy(text, "<none>");
+
+		if (do_prefix)		sprintf(stamp_data->cameralens, "Lens %s", text);
+		else				sprintf(stamp_data->cameralens, "%s", text);
+	} else {
+		stamp_data->cameralens[0] = '\0';
 	}
 
 	if (scene->r.stamp & R_STAMP_SCENE) {
@@ -1145,6 +1159,18 @@ void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, i
 		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+2);
 		BLF_position(mono, x, y+3, 0.0);
 		BLF_draw_buffer(mono, stamp_data.camera);
+
+		/* space width. */
+		x += w + pad;
+	}
+
+	if (stamp_data.cameralens[0]) {
+		BLF_width_and_height(mono, stamp_data.cameralens, &w, &h); h= h_fixed;
+
+		/* extra space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x, y, x+w+2, y+h+2);
+		BLF_position(mono, x, y+3, 0.0);
+		BLF_draw_buffer(mono, stamp_data.cameralens);
 	}
 	
 	if (stamp_data.scene[0]) {
@@ -1195,6 +1221,7 @@ void BKE_stamp_info(Scene *scene, struct ImBuf *ibuf)
 	if (stamp_data.time[0])		IMB_metadata_change_field (ibuf, "Time",		stamp_data.time);
 	if (stamp_data.frame[0])	IMB_metadata_change_field (ibuf, "Frame",	stamp_data.frame);
 	if (stamp_data.camera[0])	IMB_metadata_change_field (ibuf, "Camera",	stamp_data.camera);
+	if (stamp_data.cameralens[0]) IMB_metadata_change_field (ibuf, "Lens",	stamp_data.cameralens);
 	if (stamp_data.scene[0])	IMB_metadata_change_field (ibuf, "Scene",	stamp_data.scene);
 	if (stamp_data.strip[0])	IMB_metadata_change_field (ibuf, "Strip",	stamp_data.strip);
 	if (stamp_data.rendertime[0]) IMB_metadata_change_field (ibuf, "RenderTime", stamp_data.rendertime);

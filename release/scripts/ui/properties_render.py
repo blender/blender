@@ -880,6 +880,7 @@ class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "use_stamp_frame", text="Frame")
         col.prop(rd, "use_stamp_scene", text="Scene")
         col.prop(rd, "use_stamp_camera", text="Camera")
+        col.prop(rd, "use_stamp_lens", text="Lens")
         col.prop(rd, "use_stamp_filename", text="Filename")
         col.prop(rd, "use_stamp_marker", text="Marker")
         col.prop(rd, "use_stamp_sequencer_strip", text="Seq. Strip")

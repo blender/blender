@@ -445,24 +445,32 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
             split = layout.split()
             sub = split.column()
             sub.label(text="Fluid Interaction:")
-            sub.prop(fluid, "fluid_radius", slider=True)
-            sub.prop(fluid, "stiffness")
-            sub.prop(fluid, "stiffness_near")
-            sub.prop(fluid, "rest_density")
+            sub.prop(fluid, "fluid_radius")
+            sub.prop(fluid, "repulsion_force")
+            subsub = sub.column(align=True)
+            subsub.prop(fluid, "rest_density")
+            subsub.prop(fluid, "density_force", text="Force")
 
             sub.label(text="Viscosity:")
-            sub.prop(fluid, "viscosity_omega", text="Linear")
-            sub.prop(fluid, "viscosity_beta", text="Square")
+            subsub = sub.column(align=True)
+            subsub.prop(fluid, "linear_viscosity", text="Linear")
+            subsub.prop(fluid, "square_viscosity", text="Square")
 
             sub = split.column()
 
             sub.label(text="Springs:")
-            sub.prop(fluid, "spring_force", text="Force", slider=True)
-            sub.prop(fluid, "rest_length", slider=True)
-            layout.label(text="Multiple fluids interactions:")
+            sub.prop(fluid, "spring_force", text="Force")
+            #Hidden to make ui a bit lighter, can be unhidden for a bit more control
+            #sub.prop(fluid, "rest_length", slider=True)
+            sub.prop(fluid, "use_viscoelastic_springs")
+            subsub = sub.column(align=True)
+            subsub.active = fluid.use_viscoelastic_springs
+            subsub.prop(fluid, "yield_ratio", slider=True)
+            subsub.prop(fluid, "plasticity", slider=True)
+            subsub.prop(fluid, "use_initial_rest_length")
 
             sub.label(text="Buoyancy:")
-            sub.prop(fluid, "buoyancy", slider=True)
+            sub.prop(fluid, "buoyancy", text="Strength", slider=True)
 
         elif part.physics_type == 'KEYED':
             split = layout.split()
@@ -526,6 +534,8 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
         if part.physics_type == 'KEYED' or part.physics_type == 'BOIDS' or part.physics_type == 'FLUID':
             if part.physics_type == 'BOIDS':
                 layout.label(text="Relations:")
+            elif part.physics_type == 'FLUID':
+                layout.label(text="Fluid interaction:")
 
             row = layout.row()
             row.template_list(psys, "targets", psys, "active_particle_target_index")
@@ -943,7 +953,7 @@ class PARTICLE_PT_children(ParticleButtonsPanel, bpy.types.Panel):
         sub = col.column(align=True)
         sub.prop(part, "clump_factor", slider=True)
         sub.prop(part, "clump_shape", slider=True)
-        
+
         sub = col.column(align=True)
         sub.prop(part, "child_length", slider=True)
         sub.prop(part, "child_length_threshold", slider=True)

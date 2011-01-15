@@ -93,23 +93,25 @@ class NLA_MT_select(bpy.types.Menu):
         layout.operator("nla.select_border")
         layout.operator("nla.select_border", text="Border Axis Range").axis_range = True
 
+
 class NLA_MT_marker(bpy.types.Menu):
     bl_label = "Marker"
-    
+
     def draw(self, context):
         layout = self.layout
-        
+
         #layout.operator_context = 'EXEC_REGION_WIN'
-        
+
         layout.column()
         layout.operator("marker.add", "Add Marker")
         layout.operator("marker.duplicate", text="Duplicate Marker")
         layout.operator("marker.delete", text="Delete Marker")
 
         layout.separator()
-        
+
         layout.operator("marker.rename", text="Rename Marker")
         layout.operator("marker.move", text="Grab/Move Marker")
+
 
 class NLA_MT_edit(bpy.types.Menu):
     bl_label = "Edit"

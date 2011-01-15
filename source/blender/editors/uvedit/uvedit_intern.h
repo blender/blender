@@ -37,9 +37,6 @@ struct Image;
 struct Object;
 struct wmOperatorType;
 
-#define UV_SELECT_ALL       1
-#define UV_SELECT_PINNED    2
-
 /* id can be from 0 to 3 */
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)

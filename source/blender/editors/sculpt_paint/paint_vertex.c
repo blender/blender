@@ -1430,7 +1430,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	Object *ob;
 	Mesh *me;
 	float mat[4][4];
-	float paintweight= ts->vgroup_weight;
+	float paintweight;
 	int *indexar;
 	int totindex, index, totw, flip;
 	float alpha;

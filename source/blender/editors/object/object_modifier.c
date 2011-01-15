@@ -627,7 +627,7 @@ static int edit_modifier_poll_generic(bContext *C, StructRNA *rna_type, int obty
 	
 	if (!ob || ob->id.lib) return 0;
 	if (obtype_flag && ((1<<ob->type) & obtype_flag)==0) return 0;
-	if (ptr.data && ((ID*)ptr.id.data)->lib) return 0;
+	if (ptr.id.data && ((ID*)ptr.id.data)->lib) return 0;
 	
 	return 1;
 }

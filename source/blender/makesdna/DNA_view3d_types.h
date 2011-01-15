@@ -208,16 +208,7 @@ typedef struct View3D {
 #define V3D_DISPBGPICS		2
 #define V3D_HIDE_HELPLINES	4
 #define V3D_INVALID_BACKBUF	8
-/* deprecated */
-/*
-#define V3D_MODE			(16+32+64+128+256+512)
-#define V3D_EDITMODE		16
-#define V3D_VERTEXPAINT		32
-#define V3D_FACESELECT		64
-#define V3D_POSEMODE		128
-#define V3D_TEXTUREPAINT	256
-#define V3D_WEIGHTPAINT		512
-*/
+
 #define V3D_ALIGN			1024
 #define V3D_SELECT_OUTLINE	2048
 #define V3D_ZBUF_SELECT		4096

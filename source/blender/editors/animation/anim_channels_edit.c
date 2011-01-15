@@ -246,6 +246,11 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
 						sel= ACHANNEL_SETFLAG_CLEAR;
 				}
 					break;
+					
+				case ANIMTYPE_GPLAYER:
+					if (ale->flag & GP_LAYER_SELECT)
+						sel= ACHANNEL_SETFLAG_CLEAR;
+					break;
 			}
 		}
 	}
@@ -332,6 +337,14 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
 					ACHANNEL_SET_FLAG(ale->adt, sel, ADT_UI_SELECTED);
 					ale->adt->flag &= ~ADT_UI_ACTIVE;
 				}
+			}
+				break;
+				
+			case ANIMTYPE_GPLAYER:
+			{
+				bGPDlayer *gpl = (bGPDlayer *)ale->data;
+				
+				ACHANNEL_SET_FLAG(gpl, sel, GP_LAYER_SELECT);
 			}
 				break;
 		}
@@ -1002,10 +1015,10 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 				rearrange_driver_channels(&ac, adt, mode);
 				break;
 				
-#if 0
 			case ANIMCONT_GPENCIL: /* Grease Pencil channels */
+				// FIXME: this case probably needs to get moved out of here or treated specially...
+				printf("grease pencil not supported for moving yet\n");
 				break;
-#endif
 				
 			case ANIMCONT_SHAPEKEY: // DOUBLE CHECK ME...
 				
@@ -2050,7 +2063,9 @@ static int mouse_anim_channels (bAnimContext *ac, float UNUSED(x), int channel_i
 		{
 			bGPdata *gpd= (bGPdata *)ale->data;
 			
-			/* toggle expand */
+			/* toggle expand 
+			 *	- although the triangle widget already allows this, the whole channel can also be used for this purpose
+			 */
 			gpd->flag ^= GP_DATA_EXPAND;
 			
 			notifierFlags |= (ND_ANIMCHAN|NA_EDITED);
@@ -2058,29 +2073,20 @@ static int mouse_anim_channels (bAnimContext *ac, float UNUSED(x), int channel_i
 			break;
 		case ANIMTYPE_GPLAYER:
 		{
-#if 0 // XXX future of this is unclear
-			bGPdata *gpd= (bGPdata *)ale->owner; // xxx depreceated
 			bGPDlayer *gpl= (bGPDlayer *)ale->data;
 			
-			if (x >= (ACHANNEL_NAMEWIDTH-16)) {
-				/* toggle lock */
-				gpl->flag ^= GP_LAYER_LOCKED;
+			/* select/deselect */
+			if (selectmode == SELECT_INVERT) {
+				/* invert selection status of this layer only */
+				gpl->flag ^= GP_LAYER_SELECT;
 			}
-			else if (x >= (ACHANNEL_NAMEWIDTH-32)) {
-				/* toggle hide */
-				gpl->flag ^= GP_LAYER_HIDE;
+			else {	
+				/* select layer by itself */
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				gpl->flag |= GP_LAYER_SELECT;
 			}
-			else {
-				/* select/deselect */
-				//if (G.qual & LR_SHIFTKEY) {
-					//select_gplayer_channel(gpd, gpl, SELECT_INVERT);
-				//}
-				//else {
-					//deselect_gpencil_layers(data, 0);
-					//select_gplayer_channel(gpd, gpl, SELECT_INVERT);
-				//}
-			}
-#endif // XXX future of this is unclear
+			
+			notifierFlags |= (ND_ANIMCHAN|NA_EDITED);
 		}
 			break;
 		default:

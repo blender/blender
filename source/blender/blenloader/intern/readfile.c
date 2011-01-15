@@ -2925,11 +2925,22 @@ static void direct_link_material(FileData *fd, Material *ma)
 }
 
 /* ************ READ PARTICLE SETTINGS ***************** */
-
+/* update this also to writefile.c */
+static const char *ptcache_data_struct[] = {
+	"", // BPHYS_DATA_INDEX
+	"", // BPHYS_DATA_LOCATION
+	"", // BPHYS_DATA_VELOCITY
+	"", // BPHYS_DATA_ROTATION
+	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
+	"", // BPHYS_DATA_SIZE:
+	"", // BPHYS_DATA_TIMES:	
+	"BoidData" // case BPHYS_DATA_BOIDS:
+};
 static void direct_link_pointcache(FileData *fd, PointCache *cache)
 {
 	if((cache->flag & PTCACHE_DISK_CACHE)==0) {
 		PTCacheMem *pm;
+		PTCacheExtra *extra;
 		int i;
 
 		link_list(fd, &cache->mem_cache);
@@ -2940,16 +2951,20 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 			for(i=0; i<BPHYS_TOT_DATA; i++) {
 				pm->data[i] = newdataadr(fd, pm->data[i]);
 				
-				/* XXX the cache saves structs and data without DNA */
-				if(pm->data[i] && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
+				/* the cache saves non-struct data without DNA */
+				if(pm->data[i] && strcmp(ptcache_data_struct[i], "")==0 && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
 					int j, tot= (BKE_ptcache_data_size (i) * pm->totpoint)/4; /* data_size returns bytes */
 					int *poin= pm->data[i];
 					
-					/* XXX fails for boid struct, it has 2 shorts */
 					for(j= 0; j<tot; j++)
 						SWITCH_INT(poin[j]);
 				}
 			}
+			
+			link_list(fd, &pm->extradata);
+
+			for(extra=pm->extradata.first; extra; extra=extra->next)
+				extra->data = newdataadr(fd, extra->data);
 		}
 	}
 	else
@@ -3158,6 +3173,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 				pa->boid = NULL;
 		}
 
+		psys->fluid_springs = newdataadr(fd, psys->fluid_springs);
 
 		psys->child = newdataadr(fd,psys->child);
 		psys->effectors = NULL;
@@ -10346,6 +10362,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					ob->pd->shape = PFIELD_SHAPE_PLANE;
 				else if(ob->pd->flag & PFIELD_SURFACE)
 					ob->pd->shape = PFIELD_SHAPE_SURFACE;
+
+				ob->pd->flag |= PFIELD_DO_LOCATION;
 			}
 		}
 	}

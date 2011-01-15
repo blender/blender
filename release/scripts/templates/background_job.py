@@ -34,7 +34,7 @@ def example_function(body_text, save_path, render_path):
     cam_ob.location =  0.0, 0.0, 10.0
 
     # Lamp
-    lamp_data = bpy.data.lamps.new("MyLamp")
+    lamp_data = bpy.data.lamps.new("MyLamp", 'POINT')
     lamp_ob = bpy.data.objects.new(name="MyCam", object_data=lamp_data)
     scene.objects.link(lamp_ob)
     lamp_ob.location = 2.0, 2.0, 5.0

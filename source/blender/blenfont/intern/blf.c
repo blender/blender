@@ -140,7 +140,7 @@ int BLF_load(const char *name)
 	/* check if we already load this font. */
 	i= blf_search(name);
 	if (i >= 0) {
-		font= global_font[i];
+		/*font= global_font[i];*/ /*UNUSED*/
 		return(i);
 	}
 
@@ -225,7 +225,7 @@ int BLF_load_mem(const char *name, unsigned char *mem, int mem_size)
 
 	i= blf_search(name);
 	if (i >= 0) {
-		font= global_font[i];
+		/*font= global_font[i];*/ /*UNUSED*/
 		return(i);
 	}
 

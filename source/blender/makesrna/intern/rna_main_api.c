@@ -237,9 +237,10 @@ void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 	/* XXX python now has invalid pointer? */
 }
 
-Lamp *rna_Main_lamps_new(Main *bmain, const char *name)
+Lamp *rna_Main_lamps_new(Main *bmain, const char *name, int type)
 {
 	Lamp *lamp= add_lamp(name);
+	lamp->type= type;
 	id_us_min(&lamp->id);
 	return lamp;
 }
@@ -734,6 +735,8 @@ void RNA_def_main_lamps(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new lamp to the main database");
 	parm= RNA_def_string(func, "name", "Lamp", 0, "", "New name for the datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "type", lamp_type_items, 0, "Type", "The type of texture to add");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "lamp", "Lamp", "", "New lamp datablock.");
 	RNA_def_function_return(func, parm);
@@ -808,9 +811,11 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_string(func, "name", "Image", 0, "", "New name for the datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "width", 1024, 1, INT_MAX, "", "Width of the image.", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "height", 1024, 1, INT_MAX, "", "Height of the image.", 0, INT_MAX);
-	parm= RNA_def_boolean(func, "alpha", 0, "Alpha", "Use alpha channel");
-	parm= RNA_def_boolean(func, "float_buffer", 0, "Float Buffer", "Create an image with floating point color");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "alpha", 0, "Alpha", "Use alpha channel");
+	RNA_def_boolean(func, "float_buffer", 0, "Float Buffer", "Create an image with floating point color");
 	/* return type */
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image datablock.");
 	RNA_def_function_return(func, parm);

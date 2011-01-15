@@ -96,7 +96,6 @@ typedef enum {
 
 #define UI_MAX_DRAW_STR	400
 #define UI_MAX_NAME_STR	128
-#define UI_ARRAY	29
 
 /* panel limits */
 #define UI_PANEL_MINX	100
@@ -104,7 +103,7 @@ typedef enum {
 
 /* uiBut->flag */
 #define UI_SELECT		1 /* use when the button is pressed */
-#define UI_MOUSE_OVER	2
+/*#define UI_MOUSE_OVER	2*/  /*UNUSED, free flag*/
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
 #define UI_TEXTINPUT	16
@@ -120,7 +119,7 @@ typedef enum {
 #define PNL_CLOSEDX	2
 #define PNL_CLOSEDY	4
 #define PNL_CLOSED	6
-#define PNL_TABBED	8
+/*#define PNL_TABBED	8*/ /*UNUSED*/
 #define PNL_OVERLAP	16
 
 /* Button text selection:

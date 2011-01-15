@@ -349,22 +349,29 @@ void recalcData(TransInfo *t)
 		
 		ANIM_animdata_context_getdata(&ac);
 		
-		/* get animdata blocks visible in editor, assuming that these will be the ones where things changed */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
-		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-		
-		/* just tag these animdata-blocks to recalc, assuming that some data there changed 
-		 * BUT only do this if realtime updates are enabled
-		 */
-		if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
-			for (ale= anim_data.first; ale; ale= ale->next) {
-				/* set refresh tags for objects using this animation */
-				ANIM_list_elem_update(t->scene, ale);
-			}
+		/* perform flush */
+		if (ac.datatype == ANIMCONT_GPENCIL) {
+			/* flush transform values back to actual coordinates */
+			flushTransGPactionData(t);
 		}
-		
-		/* now free temp channels */
-		BLI_freelistN(&anim_data);
+		else {
+			/* get animdata blocks visible in editor, assuming that these will be the ones where things changed */
+			filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
+			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+			
+			/* just tag these animdata-blocks to recalc, assuming that some data there changed 
+			 * BUT only do this if realtime updates are enabled
+			 */
+			if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
+				for (ale= anim_data.first; ale; ale= ale->next) {
+					/* set refresh tags for objects using this animation */
+					ANIM_list_elem_update(t->scene, ale);
+				}
+			}
+			
+			/* now free temp channels */
+			BLI_freelistN(&anim_data);
+		}
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		Scene *scene;
@@ -982,6 +989,13 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		else
 		{
 			t->current_orientation = v3d->twmode;
+		}
+
+		/* exceptional case */
+		if(t->around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
+			if(ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL)) {
+				t->options |= CTX_NO_PET;
+			}
 		}
 	}
 	else if(t->spacetype==SPACE_IMAGE || t->spacetype==SPACE_NODE)

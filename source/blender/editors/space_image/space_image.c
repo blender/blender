@@ -586,13 +586,13 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		MTFace *tf;
 		
 		if(em && EM_texFaceCheck(em)) {
-			sima->image= ima= NULL;
+			sima->image= NULL;
 			
 			tf = EM_get_active_mtface(em, NULL, NULL, 1); /* partially selected face is ok */
 			
 			if(tf && (tf->mode & TF_TEX)) {
 				/* don't need to check for pin here, see above */
-				sima->image= ima= tf->tpage;
+				sima->image= tf->tpage;
 				
 				if(sima->flag & SI_EDITTILE);
 				else sima->curtile= tf->tile;

@@ -2386,7 +2386,7 @@ static void rna_def_composite_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_enum(func, "type", compositor_node_type_items, 0, "Type", "Type of node to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_pointer(func, "group", "NodeTree", "", "The group tree");
+	RNA_def_pointer(func, "group", "NodeTree", "", "The group tree");
 	/* return value */
 	parm= RNA_def_pointer(func, "node", "Node", "", "New node.");
 	RNA_def_function_return(func, parm);
@@ -2414,7 +2414,7 @@ static void rna_def_shader_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_enum(func, "type", shader_node_type_items, 0, "Type", "Type of node to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_pointer(func, "group", "NodeTree", "", "The group tree");
+	RNA_def_pointer(func, "group", "NodeTree", "", "The group tree");
 	/* return value */
 	parm= RNA_def_pointer(func, "node", "Node", "", "New node.");
 	RNA_def_function_return(func, parm);
@@ -2442,7 +2442,7 @@ static void rna_def_texture_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_enum(func, "type", texture_node_type_items, 0, "Type", "Type of node to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_pointer(func, "group", "NodeTree", "", "The group tree");
+	RNA_def_pointer(func, "group", "NodeTree", "", "The group tree");
 	/* return value */
 	parm= RNA_def_pointer(func, "node", "Node", "", "New node.");
 	RNA_def_function_return(func, parm);

@@ -295,7 +295,7 @@ MTFace *RE_vlakren_get_tface(ObjectRen *obr, VlakRen *vlr, int n, char **name, i
 	if(verify) {
 		if(n>=node->totmtface) {
 			MTFace *mtface= node->mtface;
-			int size= size= (n+1)*256;
+			int size= (n+1)*256;
 
 			node->mtface= MEM_callocN(size*sizeof(MTFace), "Vlak mtface");
 

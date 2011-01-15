@@ -630,15 +630,15 @@ static float co[16] ={
 /* smat, imat = mat & imat to draw screenaligned */
 static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel *pchan, EditBone *ebone)
 {
-	float head, tail, length, dist;
+	float head, tail, dist /*, length*/;
 	float *headvec, *tailvec, dirvec[3];
 	
 	/* figure out the sizes of spheres */
 	if (ebone) {
 		/* this routine doesn't call get_matrix_editbone() that calculates it */
 		ebone->length = len_v3v3(ebone->head, ebone->tail);
-		
-		length= ebone->length;
+
+		/*length= ebone->length;*/ /*UNUSED*/
 		tail= ebone->rad_tail;
 		dist= ebone->dist;
 		if (ebone->parent && (ebone->flag & BONE_CONNECTED))
@@ -649,7 +649,7 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel
 		tailvec= ebone->tail;
 	}
 	else {
-		length= pchan->bone->length;
+		/*length= pchan->bone->length;*/ /*UNUSED*/
 		tail= pchan->bone->rad_tail;
 		dist= pchan->bone->dist;
 		if (pchan->parent && (pchan->bone->flag & BONE_CONNECTED))
@@ -760,7 +760,7 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel
 /* smat, imat = mat & imat to draw screenaligned */
 static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag, int boneflag, int constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
 {
-	float head, tail, length;
+	float head, tail /*, length*/;
 	float *headvec, *tailvec, dirvec[3];
 	
 	/* figure out the sizes of spheres */
@@ -768,7 +768,7 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 		/* this routine doesn't call get_matrix_editbone() that calculates it */
 		ebone->length = len_v3v3(ebone->head, ebone->tail);
 		
-		length= ebone->length;
+		/*length= ebone->length;*/ /*UNUSED*/
 		tail= ebone->rad_tail;
 		if (ebone->parent && (boneflag & BONE_CONNECTED))
 			head= ebone->parent->rad_tail;
@@ -778,7 +778,7 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 		tailvec= ebone->tail;
 	}
 	else {
-		length= pchan->bone->length;
+		/*length= pchan->bone->length;*/ /*UNUSED*/
 		tail= pchan->bone->rad_tail;
 		if ((pchan->parent) && (boneflag & BONE_CONNECTED))
 			head= pchan->parent->bone->rad_tail;

@@ -31,20 +31,23 @@
 #include <stddef.h>
 #include <math.h>
 
-#include "BLI_math.h"
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+
+#include "DNA_gpencil_types.h"
+#include "DNA_scene_types.h"
+
+#include "BKE_fcurve.h"
+#include "BKE_gpencil.h"
+
+#include "ED_anim_api.h"
+#include "ED_gpencil.h"
+#include "ED_keyframes_edit.h"
 
 #include "gpencil_intern.h"
-
-#if 0 // XXX disabled until grease pencil code stabilises again
-
-/* XXX */
-static void actdata_filter() {} // is now ANIM_animdata_filter()
-static void BIF_undo_push() {}
-static void error() {}
-static void *get_action_context() {return NULL;}  // is now ANIM_animdata_get_context()
-/* XXX */
-
 
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
@@ -126,6 +129,9 @@ short is_gplayer_frame_selected (bGPDlayer *gpl)
 /* helper function - select gp-frame based on SELECT_* mode */
 static void gpframe_select (bGPDframe *gpf, short select_mode)
 {
+	if (gpf == NULL)
+		return;
+	
 	switch (select_mode) {
 		case SELECT_ADD:
 			gpf->flag |= GP_FRAME_SELECT;
@@ -160,31 +166,19 @@ void set_gplayer_frame_selection (bGPDlayer *gpl, short mode)
 	/* error checking */
 	if (gpl == NULL) 
 		return;
-		
-	/* convert mode to select_mode */
-	switch (mode) {
-		case 2:
-			mode= SELECT_INVERT;
-			break;
-		case 1:
-			mode= SELECT_ADD;
-			break;
-		case 0:
-			mode= SELECT_SUBTRACT;
-			break;
-		default:
-			return;
-	}
 	
 	/* now call the standard function */
-	select_gpencil_frames (gpl, mode);
+	select_gpencil_frames(gpl, mode);
 }
 
 /* select the frame in this layer that occurs on this frame (there should only be one at most) */
 void select_gpencil_frame (bGPDlayer *gpl, int selx, short select_mode)
 {
 	bGPDframe *gpf;
-   
+	
+	if (gpl == NULL) 
+		return;
+	
 	/* search through frames for a match */
 	for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
 		/* there should only be one frame with this frame-number */
@@ -200,6 +194,9 @@ void borderselect_gplayer_frames (bGPDlayer *gpl, float min, float max, short se
 {
 	bGPDframe *gpf;
 	
+	if (gpl == NULL)
+		return;
+	
 	/* only select those frames which are in bounds */
 	for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
 		if (IN_RANGE(gpf->framenum, min, max))
@@ -207,6 +204,7 @@ void borderselect_gplayer_frames (bGPDlayer *gpl, float min, float max, short se
 	}
 }
 
+#if 0 // XXX disabled until grease pencil code stabilises again
 
 /* De-selects or inverts the selection of Layers for a grease-pencil block
  *	mode: 0 = default behaviour (select all), 1 = test if (de)select all, 2 = invert all 
@@ -252,9 +250,12 @@ void deselect_gpencil_layers (void *data, short mode)
 	BLI_freelistN(&act_data);
 }
 
+#endif // XXX disabled until Grease Pencil code stabilises again...
+
 /* ***************************************** */
 /* Frame Editing Tools */
 
+#if 0 // XXX disabled until grease pencil code stabilises again
 /* Delete selected grease-pencil layers */
 void delete_gpencil_layers (void)
 {
@@ -291,6 +292,7 @@ void delete_gpencil_layers (void)
 	
 	BIF_undo_push("Delete GPencil Layers");
 }
+#endif // XXX disabled until Grease Pencil code stabilises again...
 
 /* Delete selected frames */
 void delete_gplayer_frames (bGPDlayer *gpl)
@@ -336,6 +338,7 @@ void duplicate_gplayer_frames (bGPDlayer *gpl)
 	}
 }
 
+#if 0 // XXX disabled until grease pencil code stabilises again
 /* -------------------------------------- */
 /* Copy and Paste Tools */
 /* - The copy/paste buffer currently stores a set of GP_Layers, with temporary

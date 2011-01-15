@@ -1659,6 +1659,7 @@ static void wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 	col= text_get_char_pos(st, (*linep)->line, *charp) + offc;
 	if(offl) {
 		*charp= text_get_cursor_rel(st, ar, *linep, offl-1, col);
+		newl= BLI_findindex(&text->lines, linep);
 	} else {
 		if((*linep)->prev) {
 			int visible_lines;
@@ -1666,6 +1667,7 @@ static void wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 			*linep= (*linep)->prev;
 			visible_lines= text_get_visible_lines(st, ar, (*linep)->line);
 			*charp= text_get_cursor_rel(st, ar, *linep, visible_lines-1, col);
+			newl--;
 		} else *charp= 0;
 	}
 
@@ -1694,10 +1696,12 @@ static void wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 	visible_lines= text_get_visible_lines(st, ar, (*linep)->line);
 	if(offl<visible_lines-1) {
 		*charp= text_get_cursor_rel(st, ar, *linep, offl+1, col);
+		newl= BLI_findindex(&text->lines, linep);
 	} else {
 		if((*linep)->next) {
 			*linep= (*linep)->next;
 			*charp= text_get_cursor_rel(st, ar, *linep, 0, col);
+			newl++;
 		} else *charp= (*linep)->len;
 	}
 

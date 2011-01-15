@@ -22,8 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef RNA_ENUM_TYPES
-#define RNA_ENUM_TYPES
+#ifndef RNA_ENUM_TYPES_H
+#define RNA_ENUM_TYPES_H
 
 #include "RNA_types.h"
 
@@ -75,6 +75,8 @@ extern EnumPropertyItem brush_imagepaint_tool_items[];
 
 extern EnumPropertyItem texture_type_items[];
 
+extern EnumPropertyItem lamp_type_items[];
+
 extern EnumPropertyItem unpack_method_items[];
 
 extern EnumPropertyItem object_type_items[];
@@ -115,7 +117,4 @@ EnumPropertyItem *RNA_image_local_itemf(struct bContext *C, struct PointerRNA *p
 EnumPropertyItem *RNA_scene_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 EnumPropertyItem *RNA_scene_local_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 
-#endif /* RNA_ENUM_TYPES */
-
-
-
+#endif /* RNA_ENUM_TYPES_H */

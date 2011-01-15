@@ -340,9 +340,6 @@ typedef struct Script {
 	char scriptarg[256];
 } Script;
 #define SCRIPT_SET_NULL(_script) _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = _script->py_globaldict = NULL; _script->flags = 0;
-#define SCRIPT_RUNNING	0x01
-#define SCRIPT_GUI		0x02
-#define SCRIPT_FILESEL	0x04
 
 typedef struct SpaceScript {
 	SpaceLink *next, *prev;

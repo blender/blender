@@ -1221,7 +1221,7 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	char *inserted_utf8;
-	wchar_t *inserted_text, first;
+	wchar_t *inserted_text;
 	int a, len;
 
 	if(!RNA_property_is_set(op->ptr, "text"))
@@ -1232,7 +1232,6 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 
 	inserted_text= MEM_callocN(sizeof(wchar_t)*(len+1), "FONT_insert_text");
 	utf8towchar(inserted_text, inserted_utf8);
-	first= inserted_text[0];
 
 	for(a=0; a<len; a++)
 		insert_into_textbuf(obedit, inserted_text[a]);

@@ -769,9 +769,22 @@ static void write_boid_state(WriteData *wd, BoidState *state)
 	//for(; cond; cond=cond->next)
 	//	writestruct(wd, DATA, "BoidCondition", 1, cond);
 }
-/* TODO: replace *cache with *cachelist once it's coded */
-#define PTCACHE_WRITE_PSYS	0
-#define PTCACHE_WRITE_CLOTH	1
+
+/* update this also to readfile.c */
+static const char *ptcache_data_struct[] = {
+	"", // BPHYS_DATA_INDEX
+	"", // BPHYS_DATA_LOCATION
+	"", // BPHYS_DATA_VELOCITY
+	"", // BPHYS_DATA_ROTATION
+	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
+	"", // BPHYS_DATA_SIZE:
+	"", // BPHYS_DATA_TIMES:	
+	"BoidData" // case BPHYS_DATA_BOIDS:
+};
+static const char *ptcache_extra_struct[] = {
+	"",
+	"ParticleSpring"
+};
 static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 {
 	PointCache *cache = ptcaches->first;
@@ -784,11 +797,24 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 			PTCacheMem *pm = cache->mem_cache.first;
 
 			for(; pm; pm=pm->next) {
+				PTCacheExtra *extra = pm->extradata.first;
+
 				writestruct(wd, DATA, "PTCacheMem", 1, pm);
 				
 				for(i=0; i<BPHYS_TOT_DATA; i++) {
-					if(pm->data[i] && pm->data_types & (1<<i))
-						writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
+					if(pm->data[i] && pm->data_types & (1<<i)) {
+						if(strcmp(ptcache_data_struct[i], "")==0)
+							writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
+						else
+							writestruct(wd, DATA, ptcache_data_struct[i], pm->totpoint, pm->data[i]);
+					}
+				}
+
+				for(; extra; extra=extra->next) {
+					if(strcmp(ptcache_extra_struct[extra->type], "")==0)
+						continue;
+					writestruct(wd, DATA, "PTCacheExtra", 1, extra);
+					writestruct(wd, DATA, ptcache_extra_struct[extra->type], extra->totdata, extra->data);
 				}
 			}
 		}
@@ -850,6 +876,9 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 
 			if(psys->particles->boid && psys->part->phystype == PART_PHYS_BOIDS)
 				writestruct(wd, DATA, "BoidParticle", psys->totpart, psys->particles->boid);
+
+			if(psys->part->fluid && psys->part->phystype == PART_PHYS_FLUID && (psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS))
+				writestruct(wd, DATA, "ParticleSpring", psys->tot_fluidsprings, psys->fluid_springs);
 		}
 		pt = psys->targets.first;
 		for(; pt; pt=pt->next)

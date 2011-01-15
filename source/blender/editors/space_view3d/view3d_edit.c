@@ -2314,20 +2314,21 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 /* ***** remove image operator ******* */
 static int background_image_remove_exec(bContext *C, wmOperator *op)
 {
-	BGpic *bgpic_rem = CTX_data_pointer_get_type(C, "bgpic", &RNA_BackgroundImage).data;
 	View3D *vd = CTX_wm_view3d(C);
 	int index = RNA_int_get(op->ptr, "index");
+	BGpic *bgpic_rem= BLI_findlink(&vd->bgpicbase, index);
 
-	bgpic_rem = BLI_findlink(&vd->bgpicbase, index);
 	if(bgpic_rem) {
 		BLI_remlink(&vd->bgpicbase, bgpic_rem);
 		if(bgpic_rem->ima) bgpic_rem->ima->id.us--;
 		MEM_freeN(bgpic_rem);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, vd);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
 	}
 
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, vd);
-
-	return OPERATOR_FINISHED;
 }
 
 void VIEW3D_OT_background_image_remove(wmOperatorType *ot)

@@ -33,8 +33,8 @@
  * writers to make OpenGL calls in their Python scripts for Blender.  The
  * more important original comments are marked with an @ symbol. */
 
-#ifndef EXPP_BGL_H
-#define EXPP_BGL_H
+#ifndef BGL_H
+#define BGL_H
 
 #include <Python.h>
 
@@ -337,4 +337,4 @@ extern PyTypeObject BGL_bufferType;
 		return NULL;\
 	}
 
-#endif  /*  EXPP_BGL_H */
+#endif /* BGL_H */

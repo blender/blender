@@ -918,6 +918,8 @@ void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, int *red
 
 	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
+		const int smoothnormal = (mface[i].flag & ME_SMOOTH);
+
 		start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
 			index[redir[mface[i].mat_nr+16383]] += 18;
@@ -925,7 +927,7 @@ void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, int *red
 			index[redir[mface[i].mat_nr+16383]] += 9;
 
 		/* v1 v2 v3 */
-		if( mface[i].flag & ME_SMOOTH ) {
+		if(smoothnormal) {
 			VECCOPY(&varray[start],mvert[mface[i].v1].no);
 			VECCOPY(&varray[start+3],mvert[mface[i].v2].no);
 			VECCOPY(&varray[start+6],mvert[mface[i].v3].no);
@@ -947,7 +949,7 @@ void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, int *red
 
 		if( mface[i].v4 ) {
 			/* v3 v4 v1 */
-			if( mface[i].flag & ME_SMOOTH ) {
+			if(smoothnormal) {
 				VECCOPY(&varray[start+9],mvert[mface[i].v3].no);
 				VECCOPY(&varray[start+12],mvert[mface[i].v4].no);
 				VECCOPY(&varray[start+15],mvert[mface[i].v1].no);

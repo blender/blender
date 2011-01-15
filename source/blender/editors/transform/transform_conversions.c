@@ -47,6 +47,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -57,6 +58,7 @@
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
+#include "BKE_gpencil.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
@@ -709,9 +711,8 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 	for(pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
 		if(bone->flag & BONE_TRANSFORM) {
-
 			total++;
-
+			
 			if(mode == TFM_TRANSLATION) {
 				if( has_targetless_ik(pchan)==NULL ) {
 					if(pchan->parent && (pchan->bone->flag & BONE_CONNECTED)) {
@@ -752,7 +753,7 @@ static void pchan_autoik_adjust (bPoseChannel *pchan, short chainlen)
 	for (con= pchan->constraints.first; con; con= con->next) {
 		if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
 			bKinematicConstraint *data= con->data;
-
+			
 			/* only accept if a temporary one (for auto-ik) */
 			if (data->flag & CONSTRAINT_IK_TEMP) {
 				/* chainlen is new chainlen, but is limited by maximum chainlen */
@@ -801,8 +802,9 @@ static void pose_grab_with_ik_clear(Object *ob)
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		/* clear all temporary lock flags */
 		pchan->ikflag &= ~(BONE_IK_NO_XDOF_TEMP|BONE_IK_NO_YDOF_TEMP|BONE_IK_NO_ZDOF_TEMP);
-
+		
 		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
+		
 		/* remove all temporary IK-constraints added */
 		for (con= pchan->constraints.first; con; con= next) {
 			next= con->next;
@@ -877,12 +879,6 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 			pchan = pchan->parent;
 		else
 			pchan = NULL;
-		
-		/* but, constrainted bones can't get auto-ik transform applied, exclude these */
-		if(pchan && pchan->constraints.first) {
-			data->rootbone--;
-			pchan= NULL;
-		}
 	}
 
 	/* make a copy of maximum chain-length */
@@ -2797,7 +2793,6 @@ static void createTransNlaData(bContext *C, TransInfo *t)
  * It also makes sure gp-frames are still stored in chronological order after
  * transform.
  */
-#if 0
 static void posttrans_gpd_clean (bGPdata *gpd)
 {
 	bGPDlayer *gpl;
@@ -2806,17 +2801,17 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 		ListBase sel_buffer = {NULL, NULL};
 		bGPDframe *gpf, *gpfn;
 		bGPDframe *gfs, *gfsn;
-
+		
 		/* loop 1: loop through and isolate selected gp-frames to buffer
 		 * (these need to be sorted as they are isolated)
 		 */
 		for (gpf= gpl->frames.first; gpf; gpf= gpfn) {
 			short added= 0;
 			gpfn= gpf->next;
-
+			
 			if (gpf->flag & GP_FRAME_SELECT) {
 				BLI_remlink(&gpl->frames, gpf);
-
+				
 				/* find place to add them in buffer
 				 * - go backwards as most frames will still be in order,
 				 *   so doing it this way will be faster
@@ -2833,27 +2828,27 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 					BLI_addhead(&sel_buffer, gpf);
 			}
 		}
-
+		
 		/* error checking: it is unlikely, but may be possible to have none selected */
 		if (sel_buffer.first == NULL)
 			continue;
-
+		
 		/* if all were selected (i.e. gpl->frames is empty), then just transfer sel-buf over */
 		if (gpl->frames.first == NULL) {
 			gpl->frames.first= sel_buffer.first;
 			gpl->frames.last= sel_buffer.last;
-
+			
 			continue;
 		}
-
+		
 		/* loop 2: remove duplicates of frames in buffers */
 		for (gpf= gpl->frames.first; gpf && sel_buffer.first; gpf= gpfn) {
 			gpfn= gpf->next;
-
+			
 			/* loop through sel_buffer, emptying stuff from front of buffer if ok */
 			for (gfs= sel_buffer.first; gfs && gpf; gfs= gfsn) {
 				gfsn= gfs->next;
-
+				
 				/* if this buffer frame needs to go before current, add it! */
 				if (gfs->framenum < gpf->framenum) {
 					/* transfer buffer frame to frames list (before current) */
@@ -2865,24 +2860,22 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 					/* transfer buffer frame to frames list (before current) */
 					BLI_remlink(&sel_buffer, gfs);
 					BLI_insertlinkbefore(&gpl->frames, gpf, gfs);
-
+					
 					/* get rid of current frame */
-					// TRANSFORM_FIX_ME
-					//gpencil_layer_delframe(gpl, gpf);
+					gpencil_layer_delframe(gpl, gpf);
 				}
 			}
 		}
-
+		
 		/* if anything is still in buffer, append to end */
 		for (gfs= sel_buffer.first; gfs; gfs= gfsn) {
 			gfsn= gfs->next;
-
+			
 			BLI_remlink(&sel_buffer, gfs);
 			BLI_addtail(&gpl->frames, gfs);
 		}
 	}
 }
-#endif
 
 /* Called during special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
@@ -3005,15 +2998,14 @@ static int count_fcurve_keys(FCurve *fcu, char side, float cfra)
 }
 
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
-#if 0
 static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra)
 {
 	bGPDframe *gpf;
 	int count = 0;
-
+	
 	if (gpl == NULL)
 		return count;
-
+	
 	/* only include points that occur on the right side of cfra */
 	for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
 		if (gpf->flag & GP_FRAME_SELECT) {
@@ -3021,10 +3013,9 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra)
 				count++;
 		}
 	}
-
+	
 	return count;
 }
-#endif
 
 /* This function assigns the information to transdata */
 static void TimeToTransData(TransData *td, float *time, AnimData *adt)
@@ -3061,23 +3052,23 @@ static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FC
 			/* only add if on the right 'side' of the current frame */
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
 				TimeToTransData(td, bezt->vec[1], adt);
-
+				
 				/*set flags to move handles as necassary*/
 				td->flag |= TD_MOVEHANDLE1|TD_MOVEHANDLE2;
 				td2d->h1 = bezt->vec[0];
 				td2d->h2 = bezt->vec[2];
-
+				
 				VECCOPY2D(td2d->ih1, td2d->h1);
 				VECCOPY2D(td2d->ih2, td2d->h2);
-
+				
 				td++;
 				td2d++;
 			}
 		}
 	}
-
+	
 	*td2dv = td2d;
-
+	
 	return td;
 }
 
@@ -3112,12 +3103,11 @@ void flushTransGPactionData (TransInfo *t)
  * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
  * on the named side are used.
  */
-#if 0
 static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl, char side, float cfra)
 {
 	bGPDframe *gpf;
 	int count= 0;
-
+	
 	/* check for select frames on right side of current frame */
 	for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
 		if (gpf->flag & GP_FRAME_SELECT) {
@@ -3125,10 +3115,10 @@ static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl
 				/* memory is calloc'ed, so that should zero everything nicely for us */
 				td->val= &tfd->val;
 				td->ival= (float)gpf->framenum;
-
+				
 				tfd->val= (float)gpf->framenum;
 				tfd->sdata= &gpf->framenum;
-
+				
 				/* advance td now */
 				td++;
 				tfd++;
@@ -3136,10 +3126,9 @@ static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl
 			}
 		}
 	}
-
+	
 	return count;
 }
-#endif
 
 static void createTransActionData(bContext *C, TransInfo *t)
 {
@@ -3192,10 +3181,10 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		else
 			cfra = (float)CFRA;
 		
-		//if (ale->type == ANIMTYPE_GPLAYER)
-		//	count += count_gplayer_frames(ale->data, t->frame_side, cfra);
-		//else
+		if (ale->type == ANIMTYPE_FCURVE)
 			count += count_fcurve_keys(ale->key_data, t->frame_side, cfra);
+		else
+			count += count_gplayer_frames(ale->data, t->frame_side, cfra);
 	}
 	
 	/* stop if trying to build list if nothing selected */
@@ -3228,15 +3217,15 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	
 	/* loop 2: build transdata array */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		//if (ale->type == ANIMTYPE_GPLAYER) {
-		//	bGPDlayer *gpl= (bGPDlayer *)ale->data;
-		//	int i;
-		//
-		//	i = GPLayerToTransData(td, tfd, gpl, t->frame_side, cfra);
-		//	td += i;
-		//	tfd += i;
-		//}
-		//else {
+		if (ale->type == ANIMTYPE_GPLAYER) {
+			bGPDlayer *gpl= (bGPDlayer *)ale->data;
+			int i;
+			
+			i = GPLayerToTransData(td, tfd, gpl, t->frame_side, cfra);
+			td += i;
+			tfd += i;
+		}
+		else {
 			AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
 			
@@ -3249,7 +3238,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 				cfra = (float)CFRA;
 			
 			td= ActionFCurveToTransData(td, &td2d, fcu, adt, t->frame_side, cfra);
-		//}
+		}
 	}
 	
 	/* check if we're supposed to be setting minx/maxx for TimeSlide */
@@ -3583,13 +3572,13 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
 /* ------------------------ */
 
-/* struct for use in re-sorting BezTriples during IPO transform */
+/* struct for use in re-sorting BezTriples during Graph Editor transform */
 typedef struct BeztMap {
 	BezTriple *bezt;
-	int oldIndex; 		/* index of bezt in icu->bezt array before sorting */
-	int newIndex;		/* index of bezt in icu->bezt array after sorting */
-	short swapHs; 		/* swap order of handles (-1=clear; 0=not checked, 1=swap) */
-	char pipo, cipo;	/* interpolation of current and next segments */
+	unsigned int oldIndex; 		/* index of bezt in fcu->bezt array before sorting */
+	unsigned int newIndex;		/* index of bezt in fcu->bezt array after sorting */
+	short swapHs; 				/* swap order of handles (-1=clear; 0=not checked, 1=swap) */
+	char pipo, cipo;			/* interpolation of current and next segments */
 } BeztMap;
 
 
@@ -3720,11 +3709,11 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 			if (bezm->bezt->f2 & SELECT) {
 				if (td->loc2d == bezm->bezt->vec[1]) {
 					td->loc2d= (bezts + bezm->newIndex)->vec[1];
-
+					
 					/* if only control point is selected, the handle pointers need to be updated as well */
 					td->h1= (bezts + bezm->newIndex)->vec[0];
 					td->h2= (bezts + bezm->newIndex)->vec[2];
-
+					
 					adjusted[j] = 1;
 				}
 			}
@@ -3807,7 +3796,7 @@ void flushTransGraphData(TransInfo *t)
 					break;
 			}
 		}
-
+		
 		/* we need to unapply the nla-mapping from the time in some situations */
 		if (adt)
 			td2d->loc2d[0]= BKE_nla_tweakedit_remap(adt, td2d->loc[0], NLATIME_CONVERT_UNMAP);
@@ -3819,12 +3808,12 @@ void flushTransGraphData(TransInfo *t)
 			td2d->loc2d[1]= (float)((int)td2d->loc[1]);
 		else
 			td2d->loc2d[1]= td2d->loc[1];
-
+		
 		if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
 			td2d->h1[0] = td2d->ih1[0] + td->loc[0] - td->iloc[0];
 			td2d->h1[1] = td2d->ih1[1] + td->loc[1] - td->iloc[1];
 		}
-
+		
 		if ((td->flag & TD_MOVEHANDLE2) && td2d->h2) {
 			td2d->h2[0] = td2d->ih2[0] + td->loc[0] - td->iloc[0];
 			td2d->h2[1] = td2d->ih2[1] + td->loc[1] - td->iloc[1];
@@ -4909,27 +4898,21 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				scene_marker_tfm_scale(t->scene, t->vec[0], SELECT);
 			}
 		}
-
-#if 0 // XXX future of this is still not clear
+		
 		else if (ac.datatype == ANIMCONT_GPENCIL) {
 			/* remove duplicate frames and also make sure points are in order! */
 			if ((cancelled == 0) || (duplicate))
 			{
-				bScreen *sc= (bScreen *)ac.data;
-				ScrArea *sa;
+				bGPdata *gpd;
 				
-				/* BAD... we need to loop over all screen areas for current screen...
-				 * 	- sync this with actdata_filter_gpencil() in editaction.c
-				 */
-				for (sa= sc->areabase.first; sa; sa= sa->next) {
-					bGPdata *gpd= gpencil_data_get_active(sa);
-					
-					if (gpd)
+				// XXX: BAD! this get gpencil datablocks directly from main db...
+				// but that's how this currently works :/
+				for (gpd = G.main->gpencil.first; gpd; gpd = gpd->id.next) {
+					if (ID_REAL_USERS(gpd) > 1)
 						posttrans_gpd_clean(gpd);
 				}
 			}
 		}
-#endif // XXX future of this is still not clear
 		
 		/* make sure all F-Curves are set correctly */
 		ANIM_editkeyframes_refresh(&ac);

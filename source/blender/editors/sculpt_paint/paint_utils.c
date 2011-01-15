@@ -78,7 +78,7 @@ float paint_get_tex_pixel(Brush* br, float u, float v)
 	co[2] = 0;
 
 	memset(&texres, 0, sizeof(TexResult));
-	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 1, &texres);
+	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 0, &texres);
 
 	if (hasrgb & TEX_RGB)
 		texres.tin = (0.35*texres.tr + 0.45*texres.tg + 0.2*texres.tb)*texres.ta;

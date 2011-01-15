@@ -43,6 +43,11 @@
 #include "BKE_animsys.h"
 #include "BKE_nla.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
+#include "ED_anim_api.h"
+
 /* temp constant defined for these funcs only... */
 #define NLASTRIP_MIN_LEN_THRESH 	0.1f
 
@@ -263,6 +268,60 @@ static void rna_NlaStrip_animated_time_set(PointerRNA *ptr, int value)
 		data->flag &= ~NLASTRIP_FLAG_USR_TIME;
 }
 
+static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *reports, const char *name, int start, bAction *action)
+{
+	NlaStrip *strip = add_nlastrip(action);
+	
+	if (strip == NULL) {
+		BKE_reportf(reports, RPT_ERROR, "Unable to create new strip.");
+		return NULL;
+	}
+	
+	strip->end += (start - strip->start);
+	strip->start = start;
+	
+	if (BKE_nlastrips_add_strip(&track->strips, strip) == 0) {
+		BKE_reportf(reports, RPT_ERROR, "Unable to add strip. Track doesn't have any space to accommodate this new strip.");
+		free_nlastrip(NULL, strip);
+		return NULL;
+	}
+	
+	/* create dummy AnimData block so that BKE_nlastrip_validate_name() 
+	 * can be used to ensure a valid name, as we don't have one here...
+	 * 	- only the nla_tracks list is needed there, which we aim to reverse engineer here...
+	 */
+	{
+		AnimData adt = {0};
+		NlaTrack *nlt, *nlt_p;
+		
+		/* 'first' NLA track is found by going back up chain of given track's parents until we fall off */
+		nlt_p = track; nlt = track;
+		while ((nlt = nlt->prev) != NULL)
+			nlt_p = nlt;
+		adt.nla_tracks.first = nlt_p;
+		
+		/* do the same thing to find the last track */
+		nlt_p = track; nlt = track;
+		while ((nlt = nlt->next) != NULL)
+			nlt_p = nlt;
+		adt.nla_tracks.last = nlt_p;
+		
+		/* now we can just auto-name as usual */
+		BKE_nlastrip_validate_name(&adt, strip);
+	}
+	
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_ADDED, NULL);
+	
+	return strip;
+}
+
+static void rna_NlaStrip_remove(NlaTrack *track, bContext *C, ReportList *reports, NlaStrip *strip)
+{
+	free_nlastrip(&track->strips, strip);
+
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_REMOVED, NULL);
+}
+
 #else
 
 /* enum defines exported for rna_animation.c */
@@ -438,6 +497,37 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	// - sync length
 }
 
+static void rna_api_nlatrack_strips(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *parm;
+	FunctionRNA *func;
+
+	RNA_def_property_srna(cprop, "NlaStrips");
+	srna= RNA_def_struct(brna, "NlaStrips", NULL);
+	RNA_def_struct_sdna(srna, "NlaTrack");
+	RNA_def_struct_ui_text(srna, "Nla Strips", "Collection of Nla Strips");
+
+	func = RNA_def_function(srna, "new", "rna_NlaStrip_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Add a new Action-Clip strip to the track");
+	parm= RNA_def_string(func, "name", "NlaStrip", 0, "", "Name for the NLA Strips.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "start", 0, INT_MIN, INT_MAX, "Start Frame", "Start frame for this strip.", INT_MIN, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "action", "Action", "", "Action to assign to this strip.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	/* return type */
+	parm = RNA_def_pointer(func, "strip", "NlaStrip", "", "New NLA Strip.");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_NlaStrip_remove");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a NLA Strip.");
+	parm = RNA_def_pointer(func, "strip", "NlaStrip", "", "NLA Strip to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+}
+
 static void rna_def_nlatrack(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -451,7 +541,9 @@ static void rna_def_nlatrack(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "strips", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "NlaStrip");
 	RNA_def_property_ui_text(prop, "NLA Strips", "NLA Strips on this NLA-track");
-	
+
+	rna_api_nlatrack_strips(brna, prop);
+
 	/* name property */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");

@@ -1599,7 +1599,7 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, int select)
 	/* outline emphasis */
 	glEnable( GL_LINE_SMOOTH );
 	glColor4ub(0, 0, 0, 100);
-	uiDrawBox(GL_LINE_LOOP, rct->xmin-0.5f, rct->ymin-0.5f, rct->xmax+0.5f, rct->ymax+0.5f, radius);
+	uiDrawBox(GL_LINE_LOOP, rct->xmin-0.5f, rct->ymin-0.5f, rct->xmax+0.5f, rct->ymax+0.5f, radius+0.5f);
 	glDisable( GL_LINE_SMOOTH );
 	
 	glDisable(GL_BLEND);

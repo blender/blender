@@ -126,6 +126,7 @@ void RNA_id_pointer_create(ID *id, PointerRNA *r_ptr)
 
 void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
 {
+#if 0 /* UNUSED */
 	StructRNA *idtype= NULL;
 
 	if(id) {
@@ -133,6 +134,7 @@ void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
 		tmp.data= id;
 		idtype= rna_ID_refine(&tmp);
 	}
+#endif
 
 	r_ptr->id.data= id;
 	r_ptr->type= type;
@@ -2001,9 +2003,9 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value)
 {
-	IDProperty *idprop;
+	/*IDProperty *idprop;*/
 
-	if((idprop=rna_idproperty_check(&prop, ptr))) {
+	if((/*idprop=*/ rna_idproperty_check(&prop, ptr))) {
 		/* not supported */
 	}
 	else {
@@ -2018,11 +2020,17 @@ void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr
 	}
 }
 
+PointerRNA RNA_property_pointer_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop))
+{
+	//PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+	return PointerRNA_NULL; // FIXME: there has to be a way...
+}
+
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
 {
-	IDProperty *idprop;
+	/*IDProperty *idprop;*/
 
-	if((idprop=rna_idproperty_check(&prop, ptr))) {
+	if((/*idprop=*/rna_idproperty_check(&prop, ptr))) {
 		/* already exists */
 	}
 	else if(prop->flag & PROP_IDPROPERTY) {
@@ -4189,8 +4197,6 @@ int  RNA_parameter_list_ret_count(ParameterList *parms)
 
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 {
-	PropertyType ptype;
-
 	RNA_pointer_create(NULL, &RNA_Function, parms->func, &iter->funcptr);
 
 	iter->parms= parms;
@@ -4201,7 +4207,6 @@ void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 	if(iter->valid) {
 		iter->size= rna_parameter_size_alloc(iter->parm);
 		iter->data= (((char*)iter->parms->data)+iter->offset);
-		ptype= RNA_property_type(iter->parm);
 	}
 }
 
@@ -4809,9 +4814,15 @@ int RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
 			return 1;
 		}
 		
-		//case PROP_POINTER:
+		case PROP_POINTER:
+		{
+			PointerRNA value= RNA_property_pointer_get_default(ptr, prop);
+			RNA_property_pointer_set(ptr, prop, value);
+			return 1;
+		}
+		
 		default: 
-			// FIXME: many of the other types such as strings and pointers need this implemented too!
+			// FIXME: are there still any cases that haven't been handled? comment out "default" block to check :)
 			return 0;
 	}
 }

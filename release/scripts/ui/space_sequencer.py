@@ -183,14 +183,14 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
         layout = self.layout
 
         #layout.operator_context = 'EXEC_REGION_WIN'
-        
+
         layout.column()
         layout.operator("marker.add", "Add Marker")
         layout.operator("marker.duplicate", text="Duplicate Marker")
         layout.operator("marker.delete", text="Delete Marker")
 
         layout.separator()
-        
+
         layout.operator("marker.rename", text="Rename Marker")
         layout.operator("marker.move", text="Grab/Move Marker")
 

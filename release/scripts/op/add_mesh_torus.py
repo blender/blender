@@ -26,8 +26,8 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
     Vector = mathutils.Vector
     Quaternion = mathutils.Quaternion
 
-    PI_2 = pi * 2
-    z_axis = (0, 0, 1)
+    PI_2 = pi * 2.0
+    z_axis = 0.0, 0.0, 1.0
 
     verts = []
     faces = []
@@ -103,6 +103,8 @@ class AddTorus(bpy.types.Operator):
             default=0.5, min=0.01, max=100.0)
 
     # generic transform props
+    view_align = BoolProperty(name="Align to View",
+            default=False)
     location = FloatVectorProperty(name="Location")
     rotation = FloatVectorProperty(name="Rotation")
 

@@ -129,14 +129,15 @@ void set_pose_keys (Object *ob)
 /* This function is used to process the necessary updates for */
 void ED_armature_enter_posemode(bContext *C, Base *base)
 {
+	ReportList *reports= CTX_wm_reports(C);
 	Object *ob= base->object;
 	
-	if (ob->id.lib){
-		error ("Can't pose libdata");
+	if (ob->id.lib) {
+		BKE_report(reports, RPT_WARNING, "Can't pose libdata");
 		return;
 	}
 	
-	switch (ob->type){
+	switch (ob->type) {
 		case OB_ARMATURE:
 			ob->restore_mode = ob->mode;
 			ob->mode |= OB_MODE_POSE;
@@ -147,7 +148,8 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 		default:
 			return;
 	}
-
+	
+	// XXX: disabled as this would otherwise cause a nasty loop...
 	//ED_object_toggle_modes(C, ob->mode);
 }
 
@@ -408,6 +410,7 @@ void POSE_OT_select_constraint_target(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Constraint Target";
 	ot->idname= "POSE_OT_select_constraint_target";
+	ot->description= "Select bones used as targets for the currently selected bones";
 	
 	/* api callbacks */
 	ot->exec= pose_select_constraint_target_exec;
@@ -476,14 +479,15 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 void POSE_OT_select_hierarchy(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
-	{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
-	{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
-	{0, NULL, 0, NULL, NULL}
+		{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
+		{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	/* identifiers */
 	ot->name= "Select Hierarchy";
 	ot->idname= "POSE_OT_select_hierarchy";
+	ot->description= "Select immediate parent/children of selected bones";
 	
 	/* api callbacks */
 	ot->exec= pose_select_hierarchy_exec;
@@ -641,7 +645,7 @@ void POSE_OT_select_grouped (wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Select Grouped";
-	ot->description = "Select all visible bones grouped by various properties";
+	ot->description = "Select all visible bones grouped by similar properties";
 	ot->idname= "POSE_OT_select_grouped";
 	
 	/* api callbacks */
@@ -663,7 +667,7 @@ void pose_copy_menu(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX context
 	Object *ob= OBACT;
-	bArmature *arm= ob->data;
+	bArmature *arm;
 	bPoseChannel *pchan, *pchanact;
 	short nr=0;
 	int i=0;
@@ -676,7 +680,8 @@ void pose_copy_menu(Scene *scene)
 	
 	if (pchan==NULL) return;
 	pchanact= pchan;
-	
+	arm= ob->data;
+
 	/* if proxy-protected bones selected, some things (such as locks + displays) shouldn't be changable, 
 	 * but for constraints (just add local constraints)
 	 */
@@ -946,7 +951,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				flip_side_name(name, chan->name, 0);		/* 0 = don't strip off number extensions */
 			else
 				BLI_strncpy(name, chan->name, sizeof(name));
-
+			
 			/* only copy when channel exists, poses are not meant to add random channels to anymore */
 			pchan= get_pose_channel(ob->pose, name);
 			
@@ -1237,7 +1242,6 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
-	bArmature *arm;
 	bPose *pose;
 	short done= 0;
 	
@@ -1250,7 +1254,7 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
-	arm= ob->data;
+
 	pose= ob->pose;
 	
 	/* set the active group number to the one from operator props 
@@ -1302,8 +1306,6 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
-	bArmature *arm;
-	bPose *pose;
 	short done= 0;
 	
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
@@ -1315,8 +1317,6 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *UNUSED(op))
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
-	pose= ob->pose;
-	arm= ob->data;
 	
 	/* find selected bones to remove from all bone groups */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
@@ -1484,7 +1484,7 @@ void POSE_OT_flip_names (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Flip Names";
 	ot->idname= "POSE_OT_flip_names";
-	ot->description= "Flips (and corrects) the names of selected bones";
+	ot->description= "Flips (and corrects) the axis suffixes of the the names of selected bones";
 	
 	/* api callbacks */
 	ot->exec= pose_flip_names_exec;
@@ -1557,27 +1557,28 @@ void POSE_OT_autoside_names (wmOperatorType *ot)
 void pose_activate_flipped_bone(Scene *scene)
 {
 	Object *ob= OBACT;
-	bArmature *arm= ob->data;
-	
+
 	if(ob==NULL) return;
 
 	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 		ob= modifiers_isDeformedByArmature(ob);
 	}
+
 	if(ob && (ob->mode & OB_MODE_POSE)) {
 		bPoseChannel *pchanf;
-		
+		bArmature *arm= ob->data;
+
 		if(arm->act_bone) {
 			char name[32];
 			flip_side_name(name, arm->act_bone->name, TRUE);
-
+			
 			pchanf= get_pose_channel(ob->pose, name);
 			if(pchanf && pchanf->bone != arm->act_bone) {
 				arm->act_bone->flag &= ~BONE_SELECTED;
 				pchanf->bone->flag |= BONE_SELECTED;
-
+				
 				arm->act_bone= pchanf->bone;
-
+				
 				/* in weightpaint we select the associated vertex group too */
 				if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 					ED_vgroup_select_by_name(OBACT, name);
@@ -1593,6 +1594,64 @@ void pose_activate_flipped_bone(Scene *scene)
 
 
 /* ********************************************** */
+
+/* Show all armature layers */
+static int pose_armature_layers_showall_poll (bContext *C)
+{
+	/* this single operator can be used in posemode OR editmode for armatures */
+	return ED_operator_posemode(C) || ED_operator_editarmature(C);
+}
+
+static int pose_armature_layers_showall_exec (bContext *C, wmOperator *op)
+{
+	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	bArmature *arm = (ob)? ob->data : NULL;
+	PointerRNA ptr;
+	int maxLayers = (RNA_boolean_get(op->ptr, "all"))? 32 : 16;
+	int layers[32] = {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
+	int i;
+	
+	/* sanity checking */
+	if (arm == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* use RNA to set the layers
+	 * 	although it would be faster to just set directly using bitflags, we still
+	 *	need to setup a RNA pointer so that we get the "update" callbacks for free...
+	 */
+	RNA_id_pointer_create(&arm->id, &ptr);
+	
+	for (i = 0; i < maxLayers; i++)
+		layers[i] = 1;
+	
+	RNA_boolean_set_array(&ptr, "layers", layers);
+	
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_layers_show_all (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Show All Layers";
+	ot->idname= "ARMATURE_OT_layers_show_all";
+	ot->description= "Make all armature layers visible";
+	
+	/* callbacks */
+	ot->exec= pose_armature_layers_showall_exec;
+	ot->poll= pose_armature_layers_showall_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All Layers", "Enable all layers or just the first 16 (top row)");
+}
+
+/* ------------------- */
 
 /* Present a popup to get the layers that should be used */
 static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)

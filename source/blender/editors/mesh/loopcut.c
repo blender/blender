@@ -272,9 +272,12 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 	int cuts= (lcd->do_cut)? RNA_int_get(op->ptr,"number_cuts"): 0;
 
 	if (lcd->eed) {
+		EditMesh *em = BKE_mesh_get_editmesh(lcd->ob->data);
+		
 		edgering_sel(lcd, cuts, 1);
+		
 		if (lcd->do_cut) {
-			EditMesh *em = BKE_mesh_get_editmesh(lcd->ob->data);
+
 			esubdivideflag(lcd->ob, em, SELECT, 0.0f, 0.0f, 0, cuts, 0, SUBDIV_SELECT_LOOPCUT);
 
 			/* force edge slide to edge select mode in in face select mode */
@@ -293,6 +296,13 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			WM_event_add_notifier(C, NC_GEOM|ND_DATA, lcd->ob->data);
 		}
 		else {
+			
+			/* sets as active, useful for other tools */
+			if(em->selectmode & SCE_SELECT_VERTEX)
+				EM_store_selection(em, lcd->eed->v1, EDITVERT);
+			if(em->selectmode & SCE_SELECT_EDGE)
+				EM_store_selection(em, lcd->eed, EDITEDGE);
+			
 			EM_selectmode_flush(lcd->em);
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, lcd->ob->data);
 		}

@@ -191,7 +191,9 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* markers */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
-	draw_markers_time(C, 0);
+	
+	flag = (saction->flag & SACTION_POSEMARKERS_SHOW)? DRAW_MARKERS_LOCAL : 0;
+	draw_markers_time(C, flag);
 	
 	/* preview range */
 	UI_view2d_view_ortho(v2d);
@@ -349,6 +351,13 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 	
 	/* context changes */
 	switch (wmn->category) {
+		case NC_SCREEN:
+			if (wmn->data == ND_GPENCIL) {
+				/* only handle this event in GPencil mode for performance considerations */
+				if (saction->mode == SACTCONT_GPENCIL)	
+					ED_area_tag_redraw(sa);
+			}
+			break;
 		case NC_ANIMATION:
 			/* for selection changes of animation data, we can just redraw... otherwise autocolor might need to be done again */
 			if (ELEM(wmn->data, ND_KEYFRAME, ND_ANIMCHAN) && (wmn->action == NA_SELECTED))

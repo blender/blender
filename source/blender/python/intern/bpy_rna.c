@@ -1312,12 +1312,10 @@ static PyObject * pyrna_prop_array_to_py_index(BPy_PropertyArrayRNA *self, int i
 static int pyrna_py_to_prop_array_index(BPy_PropertyArrayRNA *self, int index, PyObject *value)
 {
 	int ret = 0;
-	int totdim;
 	PointerRNA *ptr= &self->ptr;
 	PropertyRNA *prop= self->prop;
-	int type = RNA_property_type(prop);
 
-	totdim= RNA_property_array_dimension(ptr, prop, NULL);
+	const int totdim= RNA_property_array_dimension(ptr, prop, NULL);
 
 	if (totdim > 1) {
 		/* char error_str[512]; */
@@ -1328,7 +1326,7 @@ static int pyrna_py_to_prop_array_index(BPy_PropertyArrayRNA *self, int index, P
 	}
 	else {
 		/* see if we can coorce into a python type - PropertyType */
-		switch (type) {
+		switch (RNA_property_type(prop)) {
 		case PROP_BOOLEAN:
 			{
 				int param = PyLong_AsLong( value );

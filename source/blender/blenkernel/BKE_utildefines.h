@@ -61,7 +61,6 @@
 
 #define DATA MAKE_ID('D','A','T','A')
 #define GLOB MAKE_ID('G','L','O','B')
-#define IMAG MAKE_ID('I','M','A','G')
 
 #define DNA1 MAKE_ID('D','N','A','1')
 #define TEST MAKE_ID('T','E','S','T') /* used as preview between 'REND' and 'GLOB' */

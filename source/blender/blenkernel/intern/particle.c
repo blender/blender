@@ -197,7 +197,7 @@ void psys_set_current_num(Object *ob, int index)
 }
 Object *psys_find_object(Scene *scene, ParticleSystem *psys)
 {
-	Base *base = scene->base.first;
+	Base *base;
 	ParticleSystem *tpsys;
 
 	for(base = scene->base.first; base; base = base->next) {
@@ -561,6 +561,9 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		BLI_freelistN(&psys->targets);
 
 		BLI_kdtree_free(psys->tree);
+ 
+		if(psys->fluid_springs)
+			MEM_freeN(psys->fluid_springs);
 
 		pdEndEffectors(&psys->effectors);
 
@@ -1959,8 +1962,10 @@ static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float 
 		float vec_one[3], radius, state_co[3];
 		float inp_y, inp_z, length;
 
-		mul_qt_v3(par_rot, y_vec);
-		mul_qt_v3(par_rot, z_vec);
+		if(par_rot) {
+			mul_qt_v3(par_rot, y_vec);
+			mul_qt_v3(par_rot, z_vec);
+		}
 		
 		mul_v3_fl(par_vec, -1.f);
 		radius= normalize_v3_v3(vec_one, par_vec);
@@ -2844,7 +2849,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	ParticleEditSettings *pset = &sim->scene->toolsettings->particle;
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
-	ParticleCacheKey *ca, **cache= psys->pathcache;
+	ParticleCacheKey *ca, **cache;
 
 	DerivedMesh *hair_dm = (psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS) ? psys->hair_out_dm : NULL;
 	
@@ -3950,7 +3955,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 	float t, frs_sec = sim->scene->r.frs_sec;
 	float co[3], orco[3];
 	float hairmat[4][4];
-	int totparent = 0;
+	/*int totparent = 0;*/ /*UNUSED*/
 	int totpart = psys->totpart;
 	int totchild = psys->totchild;
 	short between = 0, edit = 0;
@@ -4006,11 +4011,12 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			t = psys_get_child_time(psys, cpa, -state->time, NULL, NULL);
 		
 		if(totchild && part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
+#if 0		/* totparent is UNUSED */
 			totparent=(int)(totchild*part->parents*0.3);
 			
 			if(G.rendering && part->child_nbr && part->ren_child_nbr)
 				totparent*=(float)part->child_nbr/(float)part->ren_child_nbr;
-			
+#endif
 			/* part->parents could still be 0 so we can't test with totparent */
 			between=1;
 		}
