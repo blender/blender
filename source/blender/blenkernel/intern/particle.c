@@ -1962,8 +1962,10 @@ static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float 
 		float vec_one[3], radius, state_co[3];
 		float inp_y, inp_z, length;
 
-		mul_qt_v3(par_rot, y_vec);
-		mul_qt_v3(par_rot, z_vec);
+		if(par_rot) {
+			mul_qt_v3(par_rot, y_vec);
+			mul_qt_v3(par_rot, z_vec);
+		}
 		
 		mul_v3_fl(par_vec, -1.f);
 		radius= normalize_v3_v3(vec_one, par_vec);
