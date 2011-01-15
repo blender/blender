@@ -2078,8 +2078,11 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 //			if (EM_texFaceCheck())
 		
 		/* sets as active, useful for other tools */
-		if(select && em->selectmode & SCE_SELECT_EDGE) {
-			EM_store_selection(em, eed, EDITEDGE);
+		if(select) {
+			if(em->selectmode & SCE_SELECT_VERTEX)
+				EM_store_selection(em, eed->v1, EDITVERT);
+			if(em->selectmode & SCE_SELECT_EDGE)
+				EM_store_selection(em, eed, EDITEDGE);
 		}
 
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
