@@ -2104,8 +2104,11 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 				else if(ELEM3(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
 					((ImageUser *)node->storage)->ok= 1;
 			}
-			else if( ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) ) {
-				direct_link_curvemapping(fd, node->storage);
+			else if( ntree->type==NTREE_TEXTURE) {
+				if(node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME)
+					direct_link_curvemapping(fd, node->storage);
+				else if(node->type==TEX_NODE_IMAGE)
+					((ImageUser *)node->storage)->ok= 1;
 			}
 		}
 		link_list(fd, &node->inputs);
