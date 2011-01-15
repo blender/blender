@@ -3684,6 +3684,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		pdd->nd= pdd->ndata;
 		pdd->tot_vec_size= tot_vec_size;
 	}
+	else if(psys->pdd) {
+		psys_free_pdd(psys);
+		MEM_freeN(psys->pdd);
+		pdd = psys->pdd = NULL;
+	}
 
 	if(pdd) {
 		pdd->ma_r = &ma_r;
@@ -3842,7 +3847,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			if(drawn) {
 				/* additional things to draw for each particle	*/
 				/* (velocity, size and number)					*/
-				if((part->draw & PART_DRAW_VEL) && pdd->vedata){
+				if((part->draw & PART_DRAW_VEL) && pdd && pdd->vedata){
 					copy_v3_v3(pdd->ved,state.co);
 					pdd->ved += 3;
 					mul_v3_v3fl(vel, state.vel, timestep);
