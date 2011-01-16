@@ -48,6 +48,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -1028,14 +1029,15 @@ static int ui_id_brush_get_icon(bContext *C, ID *id, int preview)
 	}
 	else {
 		Object *ob = CTX_data_active_object(C);
-		EnumPropertyItem *items;
+		SpaceImage *sima;
+		EnumPropertyItem *items = NULL;
 		int tool, mode = 0;
 
-		/* this is not nice, should probably make brushes be
-		   strictly in one paint mode only to avoid checking
-		   object mode here */
+		/* XXX: this is not nice, should probably make brushes
+		   be strictly in one paint mode only to avoid
+		   checking various context stuff here */
 
-		if(ob) {
+		if(CTX_wm_view3d(C) && ob) {
 			if(ob->mode & OB_MODE_SCULPT)
 				mode = OB_MODE_SCULPT;
 			else if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))
@@ -1043,12 +1045,10 @@ static int ui_id_brush_get_icon(bContext *C, ID *id, int preview)
 			else if(ob->mode & OB_MODE_TEXTURE_PAINT)
 				mode = OB_MODE_TEXTURE_PAINT;
 		}
-
-		/* check if cached icon is OK */
-		if(!mode || (id->icon_id && mode == br->icon_mode))
-			return id->icon_id;
-
-		br->icon_mode = mode;
+		else if((sima = CTX_wm_space_image(C)) &&
+			(sima->flag & SI_DRAWTOOL)) {
+			mode = OB_MODE_TEXTURE_PAINT;
+		}
 
 		/* reset the icon */
 		if(mode == OB_MODE_SCULPT) {
@@ -1064,7 +1064,7 @@ static int ui_id_brush_get_icon(bContext *C, ID *id, int preview)
 			tool = br->imagepaint_tool;
 		}
 
-		if(!RNA_enum_icon_from_value(items, tool, &id->icon_id))
+		if(!items || !RNA_enum_icon_from_value(items, tool, &id->icon_id))
 			id->icon_id = 0;
 	}
 

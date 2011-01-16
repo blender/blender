@@ -57,9 +57,6 @@ typedef struct Brush {
 	struct ImBuf *icon_imbuf;
 	PreviewImage *preview;
 	char icon_filepath[240];
-	int icon_mode;			/* store paint mode for which brush's icon was last generated */
-	int pad;
-
 
 	float normal_weight;
 
