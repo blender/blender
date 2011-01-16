@@ -21,8 +21,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __MEM_Allocator_h_included__
-#define __MEM_Allocator_h_included__ 1
+#ifndef MEM_ALLOCATOR_H
+#define MEM_ALLOCATOR_H
 
 #include "guardedalloc/MEM_guardedalloc.h"
 #include "guardedalloc/BLO_sys_types.h"
@@ -106,4 +106,4 @@ struct MEM_Allocator
 	}
 };
 
-#endif
+#endif // MEM_ALLOCATOR_H

@@ -30,8 +30,8 @@
  * Declaration of MEM_RefCounted class.
  */
 
-#ifndef _H_MEM_REF_COUNTED
-#define _H_MEM_REF_COUNTED
+#ifndef MEM_REFCOUNTED_H
+#define MEM_REFCOUNTED_H
 
 /**
  * An object with reference counting.
@@ -108,5 +108,5 @@ inline int MEM_RefCounted::decRef()
 	return m_refCount;
 }
 
-#endif // _H_MEM_REF_COUNTED
+#endif // MEM_REFCOUNTED_H
 
