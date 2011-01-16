@@ -527,6 +527,8 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, b
 
 	NodeTagChanged(ntree, tonode);
 
+	nodeVerifyGroup(ntree); /* update group node socket links*/
+
 	ntreeSolveOrder(ntree);
 
 	WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
