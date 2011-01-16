@@ -34,7 +34,6 @@
 #include "MT_Transform.h"
 #include "MT_Matrix4x4.h"
 #include "IK_QJacobian.h"
-#include "MEM_SmartPtr.h"
 
 #include <vector>
 

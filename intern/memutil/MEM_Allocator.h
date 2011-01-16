@@ -27,12 +27,6 @@
 #include "guardedalloc/MEM_guardedalloc.h"
 #include "guardedalloc/BLO_sys_types.h"
 
-#ifdef _MSC_VER
-#if _MSC_VER < 1300 // 1200 == VC++ 6.0 according to boost
-#define MS_VISUALC_6_0_WORKAROUND 1
-#endif
-#endif
-
 template<typename _Tp>
 struct MEM_Allocator
 {
@@ -44,20 +38,16 @@ struct MEM_Allocator
 	typedef const _Tp& const_reference;
 	typedef _Tp        value_type;
 
-#ifndef MS_VISUALC_6_0_WORKAROUND
 	template<typename _Tp1>
         struct rebind { 
 		typedef MEM_Allocator<_Tp1> other; 
 	};
-#endif
 
 	MEM_Allocator() throw() {}
 	MEM_Allocator(const MEM_Allocator&) throw() {}
 
-#ifndef MS_VISUALC_6_0_WORKAROUND
 	template<typename _Tp1>
         MEM_Allocator(const MEM_Allocator<_Tp1>) throw() { }
-#endif
 
 	~MEM_Allocator() throw() {}
 
@@ -65,11 +55,6 @@ struct MEM_Allocator
 
 	const_pointer address(const_reference __x) const { return &__x; }
 
-#ifdef MS_VISUALC_6_0_WORKAROUND
-	char *_Charalloc(size_type n) {
-		return (char *) MEM_mallocN(n, "STL MEM_Allocator VC6.0");
-	}
-#endif
 	// NB: __n is permitted to be 0.  The C++ standard says nothing
 	// about what the return value is when __n == 0.
 	_Tp* allocate(size_type __n, const void* = 0) {
@@ -81,17 +66,10 @@ struct MEM_Allocator
 		return __ret;
 	}
 
-#ifndef MS_VISUALC_6_0_WORKAROUND
 	// __p is not permitted to be a null pointer.
 	void deallocate(pointer __p, size_type){ 
 		MEM_freeN(__p);
 	}
-#else
-	// __p is not permitted to be a null pointer.
-	void deallocate(void* __p, size_type){ 
-		MEM_freeN(__p);
-	}
-#endif
 
 	size_type max_size() const throw() { 
 		return size_t(-1) / sizeof(_Tp); 
