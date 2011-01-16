@@ -676,11 +676,12 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(!eitems)
 			return NULL;
 
-		prop= RNA_def_enum(srna, id, eitems, defvalue, name, description);
+		if(opts & PROP_ENUM_FLAG)	prop= RNA_def_enum_flag(srna, id, eitems, defvalue, name, description);
+		else						prop= RNA_def_enum(srna, id, eitems, defvalue, name, description);
+
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if(opts & PROP_ENUM_FLAG) RNA_def_property_flag(prop, PROP_ENUM_FLAG);
 		}
 		RNA_def_property_duplicate_pointers(srna, prop);
 		MEM_freeN(eitems);
