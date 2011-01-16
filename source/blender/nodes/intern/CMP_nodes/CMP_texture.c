@@ -118,7 +118,7 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			VECCOPY(stackbuf->procedural_offset, in[0]->vec);
 			VECCOPY(stackbuf->procedural_size, in[1]->vec);
 			stackbuf->procedural_type= CB_VAL;
-			composit1_pixel_processor(node, prevbuf, prevbuf, out[0]->vec, do_copy_value, CB_VAL);
+			composit1_pixel_processor(node, stackbuf, stackbuf, out[0]->vec, do_copy_value, CB_VAL);
 			stackbuf->rect_procedural= NULL;
 			
 			out[0]->data= stackbuf; 
@@ -131,7 +131,7 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			VECCOPY(stackbuf->procedural_offset, in[0]->vec);
 			VECCOPY(stackbuf->procedural_size, in[1]->vec);
 			stackbuf->procedural_type= CB_RGBA;
-			composit1_pixel_processor(node, prevbuf, prevbuf, out[0]->vec, do_copy_rgba, CB_RGBA);
+			composit1_pixel_processor(node, stackbuf, stackbuf, out[0]->vec, do_copy_rgba, CB_RGBA);
 			stackbuf->rect_procedural= NULL;
 			
 			out[1]->data= stackbuf;
