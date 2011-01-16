@@ -140,7 +140,7 @@ typedef struct Lamp {
 #define LA_SHAD_RAY		8192
 /* yafray: lamp shadowbuffer flag, softlight */
 /* Since it is used with LOCAL lamp, can't use LA_SHAD */
-#define LA_YF_SOFT		16384
+/* #define LA_YF_SOFT		16384 */ /* no longer used */
 #define LA_LAYER_SHADOW	32768
 #define LA_SHAD_TEX     (1<<16)
 #define LA_SHOW_CONE    (1<<17)

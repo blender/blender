@@ -320,7 +320,7 @@ extern Object workob;
 #define PARSLOW			16
 
 /* (short) transflag */
-#define OB_OFFS_LOCAL		1
+/*#define OB_OFFS_LOCAL		1*/ /*UNUSED*/
 /* #define OB_QUAT				2 */ /* never used, free flag */
 #define OB_NEG_SCALE		4
 #define OB_DUPLI			(8+16+256+512+2048)
@@ -328,7 +328,7 @@ extern Object workob;
 #define OB_DUPLIVERTS		16
 #define OB_DUPLIROT			32
 #define OB_DUPLINOSPEED		64
-#define OB_POWERTRACK		128
+/*#define OB_POWERTRACK		128*/ /*UNUSED*/
 #define OB_DUPLIGROUP		256
 #define OB_DUPLIFACES		512
 #define OB_DUPLIFACES_SCALE	1024
@@ -341,9 +341,9 @@ extern Object workob;
 #define OB_DRAWKEY			1
 #define OB_DRAWKEYSEL		2
 #define OB_OFFS_OB			4
-#define OB_OFFS_MAT			8
-#define OB_OFFS_VKEY		16
-#define OB_OFFS_PATH		32
+/* #define OB_OFFS_MAT		8 */ /*UNUSED*/
+/* #define OB_OFFS_VKEY		16 */ /*UNUSED*/
+/* #define OB_OFFS_PATH		32 */ /*UNUSED*/
 #define OB_OFFS_PARENT		64
 #define OB_OFFS_PARTICLE	128
 	/* get ipo from from action or not? */
@@ -415,7 +415,7 @@ extern Object workob;
 	/* NOTE: this was used as a proper setting in past, so nullify before using */
 #define BA_TEMP_TAG			32
 
-#define BA_FROMSET			128
+/* #define BA_FROMSET			128 */ /*UNUSED*/
 
 #define BA_TRANSFORM_CHILD	256 /* child of a transformed object */
 #define BA_TRANSFORM_PARENT	8192 /* parent of a transformed object */

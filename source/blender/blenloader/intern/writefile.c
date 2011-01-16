@@ -2386,6 +2386,10 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	bScreen *screen;
 	char subvstr[8];
 	
+	/* prevent mem checkers from complaining */
+	fg.pads= fg.pad= 0;
+	memset(fg.filename, 0, sizeof(fg.filename));
+
 	current_screen_compat(mainvar, &screen);
 
 	/* XXX still remap G */
@@ -2411,7 +2415,6 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 #else
 	fg.revision= 0;
 #endif
-	fg.pads= fg.pad= 0; /* prevent mem checkers from complaining */
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }
 

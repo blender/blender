@@ -75,8 +75,6 @@
 #endif //WIN32
 #endif
 
-#define EDITOR_LEVEL_VERSION 0x06
-
 enum VALUE_OPERATOR {
 	
 	VALUE_MOD_OPERATOR,			// %

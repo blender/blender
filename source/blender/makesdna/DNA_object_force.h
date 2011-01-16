@@ -339,7 +339,7 @@ typedef struct SoftBody {
 
 /* pd->flag: various settings */
 #define PFIELD_USEMAX			1
-#define PDEFLE_DEFORM			2
+/*#define PDEFLE_DEFORM			2*/			/*UNUSED*/
 #define PFIELD_GUIDE_PATH_ADD	4			/* TODO: do_versions for below */
 #define PFIELD_PLANAR			8			/* used for do_versions */
 #define PDEFLE_KILL_PART		16

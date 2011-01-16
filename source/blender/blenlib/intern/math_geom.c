@@ -236,51 +236,39 @@ float dist_to_line_segment_v3(float *v1, float *v2, float *v3)
 /* intersect Line-Line, shorts */
 int isect_line_line_v2_short(const short *v1, const short *v2, const short *v3, const short *v4)
 {
-	/* return:
-	-1: colliniar
-	 0: no intersection of segments
-	 1: exact intersection of segments
-	 2: cross-intersection of segments
-	*/
 	float div, labda, mu;
 	
 	div= (float)((v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]));
-	if(div==0.0f) return -1;
+	if(div==0.0f) return ISECT_LINE_LINE_COLINEAR;
 	
 	labda= ((float)(v1[1]-v3[1])*(v4[0]-v3[0])-(v1[0]-v3[0])*(v4[1]-v3[1]))/div;
 	
 	mu= ((float)(v1[1]-v3[1])*(v2[0]-v1[0])-(v1[0]-v3[0])*(v2[1]-v1[1]))/div;
 	
 	if(labda>=0.0f && labda<=1.0f && mu>=0.0f && mu<=1.0f) {
-		if(labda==0.0f || labda==1.0f || mu==0.0f || mu==1.0f) return 1;
-		return 2;
+		if(labda==0.0f || labda==1.0f || mu==0.0f || mu==1.0f) return ISECT_LINE_LINE_EXACT;
+		return ISECT_LINE_LINE_CROSS;
 	}
-	return 0;
+	return ISECT_LINE_LINE_NONE;
 }
 
 /* intersect Line-Line, floats */
 int isect_line_line_v2(const float *v1, const float *v2, const float *v3, const float *v4)
 {
-	/* return:
-	-1: colliniar
-0: no intersection of segments
-1: exact intersection of segments
-2: cross-intersection of segments
-	*/
 	float div, labda, mu;
 	
 	div= (v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]);
-	if(div==0.0) return -1;
+	if(div==0.0) return ISECT_LINE_LINE_COLINEAR;
 	
 	labda= ((float)(v1[1]-v3[1])*(v4[0]-v3[0])-(v1[0]-v3[0])*(v4[1]-v3[1]))/div;
 	
 	mu= ((float)(v1[1]-v3[1])*(v2[0]-v1[0])-(v1[0]-v3[0])*(v2[1]-v1[1]))/div;
 	
 	if(labda>=0.0 && labda<=1.0 && mu>=0.0 && mu<=1.0) {
-		if(labda==0.0 || labda==1.0 || mu==0.0 || mu==1.0) return 1;
-		return 2;
+		if(labda==0.0 || labda==1.0 || mu==0.0 || mu==1.0) return ISECT_LINE_LINE_EXACT;
+		return ISECT_LINE_LINE_CROSS;
 	}
-	return 0;
+	return ISECT_LINE_LINE_NONE;
 }
 
 /* get intersection point of two 2D segments and return intersection type:

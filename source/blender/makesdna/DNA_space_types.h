@@ -842,12 +842,6 @@ enum {
 #define B_IMASELHOME		451
 #define B_IMASELREMOVEBIP	452
 
-#define C_BACK  0xBAAAAA
-#define C_DARK  0x665656
-#define C_DERK  0x766666
-#define C_HI	0xCBBBBB
-#define C_LO	0x544444
-
 /* nla->flag */
 /* flags (1<<0), (1<<1), and (1<<3) are depreceated flags from old blenders */
 	/* draw timing in seconds instead of frames */
