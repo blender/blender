@@ -839,7 +839,7 @@ void RNA_def_struct_ui_icon(StructRNA *srna, int icon)
 
 PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier, int type, int subtype)
 {
-	StructRNA *srna= DefRNA.laststruct;
+	/*StructRNA *srna= DefRNA.laststruct;*/ /* invalid for python defined props */
 	ContainerRNA *cont= cont_;
 	ContainerDefRNA *dcont;
 	PropertyDefRNA *dprop= NULL;
@@ -849,7 +849,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		char error[512];
 		
 		if (rna_validate_identifier(identifier, error, 1) == 0) {
-			fprintf(stderr, "RNA_def_property: property identifier \"%s.%s\" - %s\n", srna->identifier, identifier, error);
+			fprintf(stderr, "RNA_def_property: property identifier \"%s.%s\" - %s\n", CONTAINER_RNA_ID(cont), identifier, error);
 			DefRNA.error= 1;
 		}
 		
@@ -857,7 +857,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 
 		/* XXX - toto, detect supertype collisions */
 		if(rna_findlink(&dcont->properties, identifier)) {
-			fprintf(stderr, "RNA_def_property: duplicate identifier \"%s.%s\"\n", srna->identifier, identifier);
+			fprintf(stderr, "RNA_def_property: duplicate identifier \"%s.%s\"\n", CONTAINER_RNA_ID(cont), identifier);
 			DefRNA.error= 1;
 		}
 
@@ -915,7 +915,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		case PROP_COLLECTION:
 			break;
 		default:
-			fprintf(stderr, "RNA_def_property: \"%s.%s\", invalid property type.\n", srna->identifier, identifier);
+			fprintf(stderr, "RNA_def_property: \"%s.%s\", invalid property type.\n", CONTAINER_RNA_ID(cont), identifier);
 			DefRNA.error= 1;
 			return NULL;
 	}

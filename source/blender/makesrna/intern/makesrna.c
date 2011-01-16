@@ -2296,11 +2296,9 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	prop= srna->cont.properties.last;
 	if(prop) fprintf(f, "(PropertyRNA*)&rna_%s_%s}},\n", srna->identifier, prop->identifier);
 	else fprintf(f, "NULL}},\n");
-
-	fprintf(f, "\tNULL,NULL,\n"); /* PyType - Cant initialize here */
-	
 	fprintf(f, "\t");
 	rna_print_c_string(f, srna->identifier);
+	fprintf(f, "\t, NULL,NULL\n"); /* PyType - Cant initialize here */
 	fprintf(f, ", %d, ", srna->flag);
 	rna_print_c_string(f, srna->name);
 	fprintf(f, ", ");

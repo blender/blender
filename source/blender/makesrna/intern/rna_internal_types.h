@@ -108,7 +108,7 @@ struct FunctionRNA {
 	/* structs are containers of properties */
 	ContainerRNA cont;
 
-	/* unique identifier */
+	/* unique identifier, keep after 'cont' */
 	const char *identifier;
 	/* various options */
 	int flag;
@@ -283,13 +283,14 @@ struct StructRNA {
 	/* structs are containers of properties */
 	ContainerRNA cont;
 
+	/* unique identifier, keep after 'cont' */
+	const char *identifier;
+
 	/* python type, this is a subtype of pyrna_struct_Type but used so each struct can have its own type
 	 * which is useful for subclassing RNA */
 	void *py_type;
 	void *blender_type;
 	
-	/* unique identifier */
-	const char *identifier;
 	/* various options */
 	int flag;
 
@@ -339,5 +340,7 @@ struct StructRNA {
 struct BlenderRNA {
 	ListBase structs;
 };
+
+#define CONTAINER_RNA_ID(cont) (const char *)(((ContainerRNA *)(cont))+1)
 
 #endif /* RNA_INTERNAL_TYPES_H */
