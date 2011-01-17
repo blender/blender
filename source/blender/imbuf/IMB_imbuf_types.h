@@ -137,12 +137,7 @@ typedef struct ImBuf {
 #define IB_BITMAPFONT		(1 << 0)	/* this image is a font */
 #define IB_BITMAPDIRTY		(1 << 1)	/* image needs to be saved is not the same as filename */
 #define IB_MIPMAP_INVALID	(1 << 2)	/* image mipmaps are invalid, need recreate */
-
-/* From iff.h. This was once moved away by Frank, now Nzc moves it
- * back. Such is the way it is... It is a long list of defines, and
- * there are a few external defines in the back. Most of the stuff is
- * probably imbuf_intern only. This will need to be merged later
- * on. */
+#define IB_RECT_INVALID		(1 << 3)    /* float buffer changed, needs recreation of byte rect */
 
 /**
  * \name Imbuf Component flags

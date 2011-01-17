@@ -432,7 +432,8 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 
 		GPU_free_image(ima); /* force OpenGL reload */
 		if(ibuf->rect_float)
-			imb_freerectImBuf(ibuf); /* force recreate of char rect */
+			ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
+
 	}
 
 	IMB_freeImBuf(tmpibuf);
@@ -4022,7 +4023,7 @@ static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, s
 {
 	if(ibuf->rect_float)
 		/* TODO - should just update a portion from imapaintpartial! */
-		imb_freerectImBuf(ibuf); /* force recreate of char rect */
+		ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
 	
 	if(ibuf->mipmap[0])
 		ibuf->userflags |= IB_MIPMAP_INVALID;

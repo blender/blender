@@ -83,7 +83,7 @@ static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
 	   NOTE: if float buffer changes, we have to manually remove the rect
 	*/
 
-	if(ibuf->rect_float && ibuf->rect==NULL) {
+	if(ibuf->rect_float && (ibuf->rect==NULL || (ibuf->userflags & IB_RECT_INVALID)) ) {
 		if(color_manage) {
 			if(ima && ima->source == IMA_SRC_VIEWER)
 				ibuf->profile = IB_PROFILE_LINEAR_RGB;
