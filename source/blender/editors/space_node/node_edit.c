@@ -194,6 +194,17 @@ void snode_composite_job(const bContext *C, ScrArea *sa)
 
 /* ***************************************** */
 
+/* operator poll callback */
+static int composite_node_active(bContext *C)
+{
+	if( ED_operator_node_active(C)) {
+		SpaceNode *snode= CTX_wm_space_node(C);
+		if(snode->treetype==NTREE_COMPOSIT)
+			return 1;
+	}
+	return 0;
+}
+
 /* also checks for edited groups */
 bNode *editnode_get_active(bNodeTree *ntree)
 {
@@ -821,7 +832,7 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= snode_bg_viewmove_invoke;
 	ot->modal= snode_bg_viewmove_modal;
-	ot->poll= ED_operator_node_active;
+	ot->poll= composite_node_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
@@ -849,7 +860,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= backimage_zoom;
-	ot->poll= ED_operator_node_active;
+	ot->poll= composite_node_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
@@ -1898,6 +1909,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 /* ******************************** */
 // XXX some code needing updating to operators...
 
+
 /* goes over all scenes, reads render layers */
 static int node_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1935,7 +1947,7 @@ void NODE_OT_read_renderlayers(wmOperatorType *ot)
 	
 	ot->exec= node_read_renderlayers_exec;
 	
-	ot->poll= ED_operator_node_active;
+	ot->poll= composite_node_active;
 	
 	/* flags */
 	ot->flag= 0;
@@ -1966,7 +1978,7 @@ void NODE_OT_read_fullsamplelayers(wmOperatorType *ot)
 	
 	ot->exec= node_read_fullsamplelayers_exec;
 	
-	ot->poll= ED_operator_node_active;
+	ot->poll= composite_node_active;
 	
 	/* flags */
 	ot->flag= 0;
@@ -2369,7 +2381,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	/* callbacks */
 	ot->exec= node_add_file_exec;
 	ot->invoke= node_add_file_invoke;
-	ot->poll= ED_operator_node_active;
+	ot->poll= composite_node_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
