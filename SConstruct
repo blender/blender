@@ -29,7 +29,7 @@
 # Set up some custom actions and target/argument handling
 # Then read all SConscripts and build
 #
-# TODO: fix /FORCE:MULTIPLE on windows to get proper debug builds
+# TODO: fix /FORCE:MULTIPLE on windows to get proper debug builds.
 
 import platform as pltfrm
 
