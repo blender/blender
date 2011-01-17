@@ -218,16 +218,24 @@ void arrows_move_cursor(unsigned short event)
 static int view3d_selectable_data(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
-	
+
 	if (!ED_operator_region_view3d_active(C))
 		return 0;
-	
-	if (!CTX_data_edit_object(C))
-		if (ob && ob->mode & OB_MODE_SCULPT)
+
+	if (ob->mode & OB_MODE_EDIT) {
+		if(ob->type == OB_FONT) {
 			return 0;
-		if (ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT) && !paint_facesel_test(ob))
+		}
+	}
+	else {
+		if (ob && ob->mode & OB_MODE_SCULPT) {
 			return 0;
-	
+		}
+		if (ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT) && !paint_facesel_test(ob)) {
+			return 0;
+		}
+	}
+
 	return 1;
 }
 
