@@ -1409,7 +1409,6 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		for(group= mainvar->group.first; group; group= group->id.next) {
 			if(group->gobject.first) {
 				te= outliner_add_element(soops, &soops->tree, group, NULL, 0, 0);
-				tselem= TREESTORE(te);
 				
 				for(go= group->gobject.first; go; go= go->next) {
 					ten= outliner_add_element(soops, &te->subtree, go->ob, te, 0, 0);
@@ -2022,13 +2021,13 @@ static int tree_element_active_material(bContext *C, Scene *scene, SpaceOops *so
 static int tree_element_active_texture(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, int set)
 {
 	TreeElement *tep;
-	TreeStoreElem *tselem, *tselemp;
+	TreeStoreElem /* *tselem,*/ *tselemp;
 	Object *ob=OBACT;
 	SpaceButs *sbuts=NULL;
 	
 	if(ob==NULL) return 0; // no active object
 	
-	tselem= TREESTORE(te);
+	/*tselem= TREESTORE(te);*/ /*UNUSED*/
 	
 	/* find buttons area (note, this is undefined really still, needs recode in blender) */
 	/* XXX removed finding sbuts */
@@ -4551,7 +4550,6 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 		if(level<1 || (tselem->type==0 && te->idcode==ID_OB)) {
 
 			/* active blocks get white circle */
-			active= 0;
 			if(tselem->type==0) {
 				if(te->idcode==ID_OB) active= (OBACT==(Object *)tselem->id);
 				else if(scene->obedit && scene->obedit->data==tselem->id) active= 1;	// XXX use context?

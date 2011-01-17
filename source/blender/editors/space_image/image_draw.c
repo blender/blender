@@ -473,13 +473,18 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 
 static void draw_image_buffer_repeated(SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float zoomx, float zoomy)
 {
-	float x, y;
-	double time_current;
-	
-	time_current = PIL_check_seconds_timer();
+	const double time_current= PIL_check_seconds_timer();
 
-	for(x=floor(ar->v2d.cur.xmin); x<ar->v2d.cur.xmax; x += 1.0f) { 
-		for(y=floor(ar->v2d.cur.ymin); y<ar->v2d.cur.ymax; y += 1.0f) { 
+	const int xmax= ceil(ar->v2d.cur.xmax);
+	const int ymax= ceil(ar->v2d.cur.ymax);
+	const int xmin= floor(ar->v2d.cur.xmin);
+	const int ymin= floor(ar->v2d.cur.ymin);
+
+	int x;
+
+	for(x=xmin; x<xmax; x++) {
+		int y;
+		for(y=ymin; y<ymax; y++) { 
 			if(ima && (ima->tpageflag & IMA_TILES))
 				draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
 			else
