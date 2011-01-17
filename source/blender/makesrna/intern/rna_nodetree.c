@@ -524,15 +524,16 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, b
 	nodeRemSocketLinks(ntree, out);
 
 	ret= nodeAddLink(ntree, fromnode, in, tonode, out);
+	
+	if(ret) {
+		NodeTagChanged(ntree, tonode);
 
-	NodeTagChanged(ntree, tonode);
+		nodeVerifyGroup(ntree); /* update group node socket links*/
 
-	nodeVerifyGroup(ntree); /* update group node socket links*/
+		ntreeSolveOrder(ntree);
 
-	ntreeSolveOrder(ntree);
-
-	WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
-
+		WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
+	}
 	return ret;
 }
 
