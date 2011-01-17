@@ -123,10 +123,10 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 	
 	/* Now set the flags */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		if (ale->type == ANIMTYPE_FCURVE)
-			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, sel_cb, NULL);
-		else if (ale->type == ANIMTYPE_GPLAYER)
+		if (ale->type == ANIMTYPE_GPLAYER)
 			set_gplayer_frame_selection(ale->data, sel);
+		else
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, sel_cb, NULL); 
 	}
 	
 	/* Cleanup */
@@ -255,7 +255,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 			/* loop over data selecting */
 			if (ale->type == ANIMTYPE_GPLAYER)
 				borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
-			else (ale->type == ANIMTYPE_FCURVE)
+			else
 				ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, filterflag);
 		}
 		
@@ -484,10 +484,10 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 				ked.f1= ce->cfra;
 			
 			/* select elements with frame number matching cfraelem */
-			if (ale->type == ANIMTYPE_FCURVE)
-				ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
-			else if (ale->type == ANIMTYPE_GPLAYER)
+			if (ale->type == ANIMTYPE_GPLAYER)
 				select_gpencil_frame(ale->data, ce->cfra, SELECT_ADD);
+			else
+				ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 		}
 	}
 	
@@ -865,10 +865,10 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 			ked.f1= selx;
 		
 		/* select elements with frame number matching cfra */
-		if (ale->type == ANIMTYPE_FCURVE)
-			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
-		else if (ale->type == ANIMTYPE_GPLAYER)
+		if (ale->type == ANIMTYPE_GPLAYER)
 			select_gpencil_frame(ale->key_data, selx, select_mode);
+		else 
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 	}
 	
 	/* free elements */
