@@ -253,10 +253,10 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 			!((ymax < rectf.ymin) || (ymin > rectf.ymax)) )
 		{
 			/* loop over data selecting */
-			if (ale->type == ANIMTYPE_FCURVE)
-				ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, filterflag);
-			else if (ale->type == ANIMTYPE_GPLAYER)
+			if (ale->type == ANIMTYPE_GPLAYER)
 				borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
+			else (ale->type == ANIMTYPE_FCURVE)
+				ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, filterflag);
 		}
 		
 		/* set minimum extent to be the maximum of the next channel */
