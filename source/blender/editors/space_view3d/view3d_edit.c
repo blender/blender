@@ -1364,7 +1364,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	}
 
 	for(base= scene->base.first; base; base= base->next) {
-		if(base->lay & v3d->lay) {
+		if(BASE_VISIBLE(v3d, base)) {
 			onedone= 1;
 			minmax_object(base->object, min, max);
 		}
