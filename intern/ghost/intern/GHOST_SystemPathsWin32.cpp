@@ -35,6 +35,29 @@
 #include <windows.h>
 #include <shlobj.h>
 
+#if defined(__MINGW32__) || defined(__CYGWIN__)
+
+#if !defined(SHARD_PIDL)
+#define SHARD_PIDL      0x00000001L
+#endif
+
+#if !defined(SHARD_PATHA)
+#define SHARD_PATHA     0x00000002L
+#endif
+
+#if !defined(SHARD_PATHA)
+#define SHARD_PATHW     0x00000003L
+#endif
+
+#if !defined(SHARD_PATH)
+#ifdef UNICODE
+#define SHARD_PATH  SHARD_PATHW
+#else
+#define SHARD_PATH  SHARD_PATHA
+#endif
+#endif
+
+#endif
 
 GHOST_SystemPathsWin32::GHOST_SystemPathsWin32()
 {
@@ -82,7 +105,6 @@ const GHOST_TUns8* GHOST_SystemPathsWin32::getBinaryDir() const
 
 void GHOST_SystemPathsWin32::addToSystemRecentFiles(const char* filename) const
 {
-	/* SHARD_PATHA is for ansi strings, use SHARD_PATHW for wide */
-	SHAddToRecentDocs(SHARD_PATHA,filename);
-
+	/* SHARD_PATH resolves to SHARD_PATHA for non-UNICODE build */
+	SHAddToRecentDocs(SHARD_PATH,filename);
 }
