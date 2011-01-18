@@ -314,13 +314,13 @@ class Mesh(bpy_types.ID):
         :arg faces: iterator of faces, each faces contains three or four indices to the *vertices* argument. eg: [(5, 6, 8, 9), (1, 2, 3), ...]
         :type faces: iterable object
         """
-        self.vertices.add(len(verts))
+        self.vertices.add(len(vertices))
         self.edges.add(len(edges))
         self.faces.add(len(faces))
 
-        verts_flat = [f for v in verts for f in v]
-        self.vertices.foreach_set("co", verts_flat)
-        del verts_flat
+        vertices_flat = [f for v in vertices for f in v]
+        self.vertices.foreach_set("co", vertices_flat)
+        del vertices_flat
 
         edges_flat = [i for e in edges for i in e]
         self.edges.foreach_set("vertices", edges_flat)
