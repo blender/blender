@@ -2184,7 +2184,7 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* use for smoothing */
 	int last_sel;
-	int start_sel, end_sel; /* selection indicies, inclusive */
+	int start_sel, end_sel; /* selection indices, inclusive */
 	float start_rad, end_rad, fac, range;
 	
 	for(nu= editnurb->first; nu; nu= nu->next) {

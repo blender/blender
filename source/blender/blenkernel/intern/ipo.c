@@ -315,7 +315,7 @@ static const char *constraint_adrcodes_to_paths (int adrcode, int *array_index)
 
 /* ShapeKey types 
  * NOTE: as we don't have access to the keyblock where the data comes from (for now), 
- *	 	we'll just use numerical indicies for now... 
+ *	 	we'll just use numerical indices for now... 
  */
 static char *shapekey_adrcodes_to_paths (int adrcode, int *UNUSED(array_index))
 {

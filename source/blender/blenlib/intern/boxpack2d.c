@@ -155,7 +155,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 	int box_index, verts_pack_len, i, j, k, isect;
 	int quad_flags[4]= {BLF,TRF,TLF,BRF}; /* use for looping */
 	boxPack *box, *box_test; /*current box and another for intersection tests*/
-	int *vertex_pack_indicies; /*an array of indices used for sorting verts*/
+	int *vertex_pack_indices; /*an array of indices used for sorting verts*/
 	
 	if (!len) {
 		*tot_width =  0.0f;
@@ -168,7 +168,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 	
 	/* add verts to the boxes, these are only used internally  */
 	vert = vertarray = MEM_mallocN( len*4*sizeof(boxVert), "boxPack Verts");
-	vertex_pack_indicies = MEM_mallocN( len*3*sizeof(int), "boxPack Indices");
+	vertex_pack_indices = MEM_mallocN( len*3*sizeof(int), "boxPack Indices");
 	
 	for (box=boxarray, box_index=0, i=0; box_index < len; box_index++, box++) {
 		 		
@@ -225,7 +225,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 	box->x = box->y = 0.0f;
 	
 	for (i=0; i<3; i++)
-		vertex_pack_indicies[i] = box->v[i+1]->index; 
+		vertex_pack_indices[i] = box->v[i+1]->index; 
 	verts_pack_len = 3;
 	box++; /* next box, needed for the loop below */
 	/* ...done packing the first box */
@@ -237,14 +237,14 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 		box_width = box->w;
 		box_height = box->h;
 		
-		qsort(vertex_pack_indicies, verts_pack_len, sizeof(int), vertex_sort);
+		qsort(vertex_pack_indices, verts_pack_len, sizeof(int), vertex_sort);
 		
 		/* Pack the box in with the others */
 		/* sort the verts */
 		isect = 1;
 		
 		for (i=0; i<verts_pack_len && isect; i++) {
-			vert = vertarray + vertex_pack_indicies[i];
+			vert = vertarray + vertex_pack_indices[i];
 			/* printf("\ttesting vert %i %i %i %f %f\n", i,
 			 * 		vert->free, verts_pack_len, vert->x, vert->y); */
 			
@@ -401,7 +401,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 						
 						for (k=0; k<4; k++) {
 							if (box->v[k] != vert) {
-								vertex_pack_indicies[verts_pack_len] =
+								vertex_pack_indices[verts_pack_len] =
 											box->v[k]->index; 
 								verts_pack_len++;
 							}
@@ -423,7 +423,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 		box = boxarray+box_index; 
 		box->v[0] = box->v[1] = box->v[2] = box->v[3] = NULL; 
 	}
-	MEM_freeN(vertex_pack_indicies);
+	MEM_freeN(vertex_pack_indices);
 	MEM_freeN(vertarray);
 }
 

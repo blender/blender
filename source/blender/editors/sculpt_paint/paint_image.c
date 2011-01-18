@@ -936,7 +936,7 @@ static int pixel_bounds_array(float (* uv)[2], rcti *bounds_px, const int ibuf_x
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 
-/* This function returns 1 if this face has a seam along the 2 face-vert indicies
+/* This function returns 1 if this face has a seam along the 2 face-vert indices
  * 'orig_i1_fidx' and 'orig_i2_fidx' */
 static int check_seam(const ProjPaintState *ps, const int orig_face, const int orig_i1_fidx, const int orig_i2_fidx, int *other_face, int *orig_fidx)
 {
@@ -949,7 +949,7 @@ static int check_seam(const ProjPaintState *ps, const int orig_face, const int o
 	const MFace *orig_mf = ps->dm_mface + orig_face;  
 	const MTFace *orig_tf = ps->dm_mtface + orig_face;
 	
-	/* vert indicies from face vert order indicies */
+	/* vert indices from face vert order indices */
 	i1 = (*(&orig_mf->v1 + orig_i1_fidx));
 	i2 = (*(&orig_mf->v1 + orig_i2_fidx));
 	
@@ -2577,7 +2577,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 }
 
 
-/* takes floating point screenspace min/max and returns int min/max to be used as indicies for ps->bucketRect, ps->bucketFlags */
+/* takes floating point screenspace min/max and returns int min/max to be used as indices for ps->bucketRect, ps->bucketFlags */
 static void project_paint_bucket_bounds(const ProjPaintState *ps, const float min[2], const float max[2], int bucketMin[2], int bucketMax[2])
 {
 	/* divide by bucketWidth & bucketHeight so the bounds are offset in bucket grid units */

@@ -134,7 +134,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			return derivedData;		
 		
 		/* hashes for finding mapping of:
-		 * 	- vgroups to indicies -> vgroupHash  (string, int)
+		 * 	- vgroups to indices -> vgroupHash  (string, int)
 		 *	- bones to vgroup indices -> boneHash (index of vgroup, dummy)
 		 */
 		vgroupHash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "mask vgroup gh");

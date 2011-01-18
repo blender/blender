@@ -296,7 +296,7 @@ PyAttributeDef SCA_JoystickSensor::Attributes[] = {
 /* get button active list  -------------------------------------------------- */
 const char SCA_JoystickSensor::GetButtonActiveList_doc[] = 
 "getButtonActiveList\n"
-"\tReturns a list containing the indicies of the button currently pressed.\n";
+"\tReturns a list containing the indices of the button currently pressed.\n";
 PyObject* SCA_JoystickSensor::PyGetButtonActiveList( ) {
 	SCA_Joystick *joy = ((SCA_JoystickManager *)m_eventmgr)->GetJoystickDevice(m_joyindex);
 	PyObject *ls = PyList_New(0);

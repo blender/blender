@@ -325,11 +325,11 @@ typedef struct ArrayIterator {
 	void *free_ptr; /* will be free'd if set */
 	int itemsize;
 
-	/* array length with no skip functins applied, take care not to compare against index from animsys or python indicies */
+	/* array length with no skip functins applied, take care not to compare against index from animsys or python indices */
 	int length;
 
 	/* optional skip function, when set the array as viewed by rna can contain only a subset of the members.
-	 * this changes indicies so quick array index lookups are not possible when skip function is used. */
+	 * this changes indices so quick array index lookups are not possible when skip function is used. */
 	IteratorSkipFunc skip;
 } ArrayIterator;
 

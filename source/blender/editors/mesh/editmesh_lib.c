@@ -2442,7 +2442,7 @@ void EM_make_hq_normals(EditMesh *em)
 
 
 	for(edge_iter = BLI_edgehashIterator_new(edge_hash); !BLI_edgehashIterator_isDone(edge_iter); BLI_edgehashIterator_step(edge_iter)) {
-		/* Get the edge vert indicies, and edge value (the face indicies that use it)*/
+		/* Get the edge vert indices, and edge value (the face indices that use it)*/
 		BLI_edgehashIterator_getKey(edge_iter, (int*)&ed_v1, (int*)&ed_v2);
 		edge_ref = BLI_edgehashIterator_getValue(edge_iter);
 

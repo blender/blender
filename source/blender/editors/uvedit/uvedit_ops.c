@@ -880,7 +880,7 @@ static void select_linked(Scene *scene, Image *ima, EditMesh *em, float limit[2]
 		nverts= efa->v4? 4: 3;
 
 		for(i=0; i<nverts; i++) {
-			/* make_uv_vert_map_EM sets verts tmp.l to the indicies */
+			/* make_uv_vert_map_EM sets verts tmp.l to the indices */
 			vlist= EM_get_uv_map_vert(vmap, (*(&efa->v1 + i))->tmp.l);
 			
 			startv= vlist;
@@ -2452,7 +2452,7 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 		eve->tmp.l=-1;
 	
 	/* index every vert that has a selected UV using it, but only once so as to
-	 * get unique indicies and to count how much to malloc */
+	 * get unique indices and to count how much to malloc */
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 

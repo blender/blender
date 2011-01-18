@@ -1938,7 +1938,7 @@ void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Vertex Group to Selected";
 	ot->idname= "OBJECT_OT_vertex_group_copy_to_selected";
-	ot->description= "Copy Vertex Groups to other selected objects with matching indicies";
+	ot->description= "Copy Vertex Groups to other selected objects with matching indices";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
