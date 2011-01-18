@@ -514,7 +514,7 @@ short BKE_nlastrips_has_space (ListBase *strips, float start, float end)
 		/* if start frame of strip is past the target end-frame, that means that
 		 * we've gone past the window we need to check for, so things are fine
 		 */
-		if (strip->start > end)
+		if (strip->start >= end)
 			return 1;
 		
 		/* if the end of the strip is greater than either of the boundaries, the range
@@ -591,7 +591,7 @@ short BKE_nlastrips_add_strip (ListBase *strips, NlaStrip *strip)
 	/* find the right place to add the strip to the nominated track */
 	for (ns= strips->first; ns; ns= ns->next) {
 		/* if current strip occurs after the new strip, add it before */
-		if (ns->start > strip->end) {
+		if (ns->start >= strip->end) {
 			BLI_insertlinkbefore(strips, ns, strip);
 			not_added= 0;
 			break;
@@ -683,7 +683,7 @@ void BKE_nlastrips_clear_metastrip (ListBase *strips, NlaStrip *strip)
 	}
 	
 	/* free the meta-strip now */
-	BLI_freelinkN(strips, strip);
+	free_nlastrip(strips, strip);
 }
 
 /* Remove meta-strips (i.e. flatten the list of strips) from the top-level of the list of strips
