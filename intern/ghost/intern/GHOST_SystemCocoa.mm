@@ -1356,7 +1356,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 
 	if (confirmOpen == NSAlertAlternateReturn)
 	{
-		filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
+		filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 		
 		temp_buff = (char*) malloc(filenameTextSize+1); 
 		
@@ -1364,7 +1364,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 			return GHOST_kFailure;
 		}
 		
-		strncpy(temp_buff, [filepath cStringUsingEncoding:NSISOLatin1StringEncoding], filenameTextSize);
+		strncpy(temp_buff, [filepath cStringUsingEncoding:NSUTF8StringEncoding], filenameTextSize);
 		
 		temp_buff[filenameTextSize] = '\0';
 
