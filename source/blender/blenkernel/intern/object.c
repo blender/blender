@@ -1674,7 +1674,7 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 		normalize_qt_qt(tquat, ob->quat);
 		quat_to_mat3(rmat, tquat);
 
-		normalize_qt_qt(tquat, ob->quat);
+		normalize_qt_qt(tquat, ob->dquat);
 		quat_to_mat3(dmat, tquat);
 	}
 	
