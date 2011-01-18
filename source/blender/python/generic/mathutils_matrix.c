@@ -1556,7 +1556,7 @@ static PyObject *Matrix_subscript(MatrixObject* self, PyObject* item)
 	} else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((PySliceObject*)item, self->rowSize, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx((void *)item, self->rowSize, &start, &stop, &step, &slicelength) < 0)
 			return NULL;
 
 		if (slicelength <= 0) {
@@ -1589,7 +1589,7 @@ static int Matrix_ass_subscript(MatrixObject* self, PyObject* item, PyObject* va
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((PySliceObject*)item, self->rowSize, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx((void *)item, self->rowSize, &start, &stop, &step, &slicelength) < 0)
 			return -1;
 
 		if (step == 1)

@@ -225,7 +225,7 @@ float BPY_driver_exec(ChannelDriver *driver)
 #else
 	/* evaluate the compiled expression */
 	if (expr_code)
-		retval= PyEval_EvalCode((PyCodeObject *)expr_code, bpy_pydriver_Dict, driver_vars);
+		retval= PyEval_EvalCode((void *)expr_code, bpy_pydriver_Dict, driver_vars);
 #endif
 
 	/* decref the driver vars first...  */
