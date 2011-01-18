@@ -1001,7 +1001,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	}
 }
 
-void ui_id_icon_render(bContext *C, ID *id, int preview)
+void ui_id_icon_render(bContext *C, ID *id, int UNUSED(preview))
 {
 	PreviewImage *pi = BKE_previewimg_get(id); 
 	int i;
@@ -1013,8 +1013,7 @@ void ui_id_icon_render(bContext *C, ID *id, int preview)
 		/* check if preview rect needs to be created; changed
 		   only set by dynamic icons */
 		if((pi->changed[i] || !pi->rect[i])) {
-			if(i == 0 || preview)
-				icon_set_image(C, id, pi, i);
+			icon_set_image(C, id, pi, i);
 			pi->changed[i] = 0;
 		}
 	}
