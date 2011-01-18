@@ -3480,11 +3480,37 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 	Py_RETURN_NONE;
 }
 
+static char pyrna_prop_collection_foreach_get_doc[] =
+".. method:: foreach_get(attr, seq)\n"
+"\n"
+"   This is a function to give fast access to attribites within a collection.\n"
+"\n"
+"   .. code-block:: python\n"
+"\n"
+"      collection.foreach_get(someseq, attr)\n"
+"\n"
+"      # Python equivelent\n"
+"      for i in range(len(seq)): someseq[i] = getattr(collection, attr)\n"
+"\n"
+;
 static PyObject *pyrna_prop_collection_foreach_get(BPy_PropertyRNA *self, PyObject *args)
 {
 	return foreach_getset(self, args, 0);
 }
 
+static char pyrna_prop_collection_foreach_set_doc[] =
+".. method:: foreach_set(attr, seq)\n"
+"\n"
+"   This is a function to give fast access to attribites within a collection.\n"
+"\n"
+"   .. code-block:: python\n"
+"\n"
+"      collection.foreach_set(seq, attr)\n"
+"\n"
+"      # Python equivelent\n"
+"      for i in range(len(seq)): setattr(collection[i], attr, seq[i])\n"
+"\n"
+;
 static  PyObject *pyrna_prop_collection_foreach_set(BPy_PropertyRNA *self, PyObject *args)
 {
 	return foreach_getset(self, args, 1);
@@ -3566,8 +3592,8 @@ static struct PyMethodDef pyrna_prop_array_methods[] = {
 };
 
 static struct PyMethodDef pyrna_prop_collection_methods[] = {
-	{"foreach_get", (PyCFunction)pyrna_prop_collection_foreach_get, METH_VARARGS, NULL},
-	{"foreach_set", (PyCFunction)pyrna_prop_collection_foreach_set, METH_VARARGS, NULL},
+	{"foreach_get", (PyCFunction)pyrna_prop_collection_foreach_get, METH_VARARGS, pyrna_prop_collection_foreach_get_doc},
+	{"foreach_set", (PyCFunction)pyrna_prop_collection_foreach_set, METH_VARARGS, pyrna_prop_collection_foreach_set_doc},
 
 	{"keys", (PyCFunction)pyrna_prop_collection_keys, METH_NOARGS, NULL},
 	{"items", (PyCFunction)pyrna_prop_collection_items, METH_NOARGS,NULL},
