@@ -1407,7 +1407,7 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 	ListBase *nodelist = MEM_callocN(sizeof(ListBase), "items_list");
 	bNodeListItem *nli;
 	bNode *node;
-	int i;
+	int i, numlinks=0;
 	
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & NODE_SELECT) {
@@ -1445,11 +1445,15 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 				nodeRemSocketLinks(snode->edittree, sock_to);
 			nodeAddLink(snode->edittree, node_fr, sock_fr, node_to, sock_to);
 			NodeTagChanged(snode->edittree, node_to);
+			++numlinks;
 			break;
 		}
 	}
 	
-	ntreeSolveOrder(snode->edittree);
+	if (numlinks > 0) {
+		node_tree_verify_groups(snode->nodetree);
+		ntreeSolveOrder(snode->edittree);
+	}
 	
 	BLI_freelistN(nodelist);
 	MEM_freeN(nodelist);
