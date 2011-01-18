@@ -615,6 +615,12 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 /* should become callbackable... */
 void nodeVerifyGroup(bNodeTree *ngroup)
 {
+	/* XXX nodeVerifyGroup is sometimes called for non-group trees.
+	 * This is not the best way to check if a tree is a group,
+	 * trees should get their own flag for this!
+	 */
+	if (!ngroup->owntype)
+		return;
 	
 	/* group changed, so we rebuild the type definition */
 	ntreeMakeOwnType(ngroup);
