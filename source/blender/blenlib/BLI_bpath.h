@@ -36,7 +36,7 @@ struct BPathIterator;
 struct ReportList;
 struct Main;
 
-void			BLI_bpathIterator_init				(struct BPathIterator **bpi, struct Main *bmain, const char *basedir);
+void			BLI_bpathIterator_init				(struct BPathIterator **bpi, struct Main *bmain, const char *basedir, const int flag);
 void			BLI_bpathIterator_free				(struct BPathIterator *bpi);
 const char*		BLI_bpathIterator_getLib			(struct BPathIterator *bpi);
 const char*		BLI_bpathIterator_getName			(struct BPathIterator *bpi);
@@ -56,5 +56,7 @@ void checkMissingFiles(struct Main *bmain, struct ReportList *reports);
 void makeFilesRelative(struct Main *bmain, const char *basedir, struct ReportList *reports);
 void makeFilesAbsolute(struct Main *bmain, const char *basedir, struct ReportList *reports);
 void findMissingFiles(struct Main *bmain, const char *str);
+
+#define BPATH_USE_PACKED 1
 
 #endif // BLI_BPATH_H
