@@ -899,8 +899,8 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 		/* supported views first */
 		case SPACE_VIEW3D:
 		{
-			View3D *v3d= curarea->spacedata.first;
-			RegionView3D *rv3d= ar->regiondata;
+			// View3D *v3d= curarea->spacedata.first;
+			// RegionView3D *rv3d= ar->regiondata;
 			
 			/* set current area 
 			 *	- must verify that region data is 3D-view (and not something else)
