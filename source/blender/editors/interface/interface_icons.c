@@ -1004,17 +1004,18 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 void ui_id_icon_render(bContext *C, ID *id, int preview)
 {
 	PreviewImage *pi = BKE_previewimg_get(id); 
+	int i;
 		
-	if (pi) {			
-		if ((pi->changed[0] ||!pi->rect[0])) /* changed only ever set by dynamic icons */
-		{
-			/* create the preview rect if necessary */				
-			
-			icon_set_image(C, id, pi, 0);		/* icon size */
-			if (preview)
-				icon_set_image(C, id, pi, 1);	/* preview size */
-			
-			pi->changed[0] = 0;
+	if(!pi)
+		return;
+
+	for(i = 0; i < PREVIEW_MIPMAPS; i++) {
+		/* check if preview rect needs to be created; changed
+		   only set by dynamic icons */
+		if((pi->changed[i] || !pi->rect[i])) {
+			if(i == 0 || preview)
+				icon_set_image(C, id, pi, i);
+			pi->changed[i] = 0;
 		}
 	}
 }
