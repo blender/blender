@@ -479,7 +479,6 @@ void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, char *name, in
 void uiStyleInit(void);
 
 /* interface_icons.c */
-void ui_id_icon_render(struct bContext *C, struct ID *id, int preview);
 int ui_id_icon_get(struct bContext *C, struct ID *id, int preview);
 
 /* resources.c */
