@@ -78,7 +78,7 @@ void free_nlastrip (ListBase *strips, NlaStrip *strip)
 		
 	/* remove reference to action */
 	if (strip->act)
-		strip->act->id.us--;
+		id_us_min(&strip->act->id);
 		
 	/* free remapping info */
 	//if (strip->remap)
@@ -160,7 +160,7 @@ NlaStrip *copy_nlastrip (NlaStrip *strip)
 	
 	/* increase user-count of action */
 	if (strip_d->act)
-		strip_d->act->id.us++;
+		id_us_plus(&strip_d->act->id);
 		
 	/* copy F-Curves and modifiers */
 	copy_fcurves(&strip_d->fcurves, &strip->fcurves);
@@ -1438,7 +1438,7 @@ void BKE_nla_action_pushdown (AnimData *adt)
 	/* do other necessary work on strip */	
 	if (strip) {
 		/* clear reference to action now that we've pushed it onto the stack */
-		adt->action->id.us--;
+		id_us_min(&adt->action->id);
 		adt->action= NULL;
 		
 		/* if the strip is the first one in the track it lives in, check if there
