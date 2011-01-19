@@ -44,7 +44,7 @@ static bNodeSocketType cmp_node_brightcontrast_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_brightnesscontrast(bNode *node, float *out, float *in, float *in_brightness, float *in_contrast)
+static void do_brightnesscontrast(bNode *UNUSED(node), float *out, float *in, float *in_brightness, float *in_contrast)
 {
 	float i;
 	int c;
