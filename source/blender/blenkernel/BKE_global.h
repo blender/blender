@@ -61,7 +61,8 @@ typedef struct Global {
 	struct ListBase recent_files;
         
 	short afbreek, moving, file_loaded;
-	short background;
+	char background;
+	char factory_startup;
 	short winpos, displaymode;	/* used to be in Render */
 	short rendering;			/* to indicate render is busy, prevent renderwindow events etc */
 

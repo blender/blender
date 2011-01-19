@@ -1015,7 +1015,7 @@ void init_userdef_do_versions(void)
 	}
 	if (U.savetime <= 0) {
 		U.savetime = 1;
-// XXX		error("startup.blend is buggy, please consider removing it.\n");
+// XXX		error(STRINGIFY(BLENDER_STARTUP_FILE)" is buggy, please consider removing it.\n");
 	}
 	/* transform widget settings */
 	if(U.tw_hotspot==0) {

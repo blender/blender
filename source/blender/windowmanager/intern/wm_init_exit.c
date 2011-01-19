@@ -136,7 +136,7 @@ void WM_init(bContext *C, int argc, char **argv)
 	BLF_lang_init();
 	
 	/* get the default database, plus a wm */
-	WM_read_homefile(C, NULL);
+	WM_read_homefile(C, NULL, G.factory_startup);
 
 	/* note: there is a bug where python needs initializing before loading the
 	 * startup.blend because it may contain PyDrivers. It also needs to be after

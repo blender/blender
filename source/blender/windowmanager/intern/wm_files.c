@@ -352,11 +352,10 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'New File' */
 /* op can be NULL */
-int WM_read_homefile(bContext *C, wmOperator *op)
+int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 {
 	ListBase wmbase;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
-	int from_memory= op && strcmp(op->type->idname, "WM_OT_read_factory_settings")==0;
 	int success= 0;
 	
 	free_ttfont(); /* still weird... what does it here? */
@@ -369,9 +368,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 		} else {
 			tstr[0] = '\0';
 			from_memory = 1;
-			if (op) {
-				BKE_report(op->reports, RPT_INFO, "Config directory with startup.blend file not found."); 
-			}
+			BKE_report(reports, RPT_INFO, "Config directory with "STRINGIFY(BLENDER_STARTUP_FILE)" file not found.");
 		}
 	}
 	
@@ -385,7 +382,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 		success = (BKE_read_file(C, tstr, NULL) != BKE_READ_FILE_FAIL);
 		
 		if(U.themes.first==NULL) {
-			printf("\nError: No valid startup.blend, fall back to built-in default.\n\n");
+			printf("\nError: No valid "STRINGIFY(BLENDER_STARTUP_FILE)", fall back to built-in default.\n\n");
 			success = 0;
 		}
 	}
@@ -436,9 +433,14 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 	CTX_wm_window_set(C, NULL); /* exits queues */
 
-	return OPERATOR_FINISHED;
+	return TRUE;
 }
 
+int WM_read_homefile_exec(bContext *C, wmOperator *op)
+{
+	int from_memory= strcmp(op->type->idname, "WM_OT_read_factory_settings") == 0;
+	return WM_read_homefile(C, op->reports, from_memory) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
 
 void read_history(void)
 {

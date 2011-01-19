@@ -245,6 +245,7 @@ static int print_help(int UNUSED(argc), char **UNUSED(argv), void *data)
 	printf ("Misc Options:\n");
 	BLI_argsPrintArgDoc(ba, "--debug");
 	BLI_argsPrintArgDoc(ba, "--debug-fpe");
+	BLI_argsPrintArgDoc(ba, "--factory-startup");
 
 	printf("\n");
 
@@ -389,6 +390,12 @@ static int set_fpe(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
 # endif /* _WIN32 && _MSC_VER */
 #endif
 
+	return 0;
+}
+
+static int set_factory_startup(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+{
+	G.factory_startup= 1;
 	return 0;
 }
 
@@ -1006,7 +1013,9 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, "-a", NULL, playback_doc, playback_mode, NULL);
 
 	BLI_argsAdd(ba, 1, "-d", "--debug", debug_doc, debug_mode, ba);
-    BLI_argsAdd(ba, 1, NULL, "--debug-fpe", "\n\tEnable floating point exceptions", set_fpe, NULL);
+	BLI_argsAdd(ba, 1, NULL, "--debug-fpe", "\n\tEnable floating point exceptions", set_fpe, NULL);
+
+	BLI_argsAdd(ba, 1, NULL, "--factory-startup", "\n\tSkip reading the "STRINGIFY(BLENDER_STARTUP_FILE)" in the users home directory", set_factory_startup, NULL);
 
 	/* second pass: custom window stuff */
 	BLI_argsAdd(ba, 2, "-p", "--window-geometry", "<sx> <sy> <w> <h>\n\tOpen with lower left corner at <sx>, <sy> and width and height as <w>, <h>", prefsize, NULL);
@@ -1139,7 +1148,7 @@ int main(int argc, char **argv)
 		BLI_argsParse(ba, 3, NULL, NULL);
 
 		WM_init(C, argc, argv);
-		
+
 		/* this is properly initialized with user defs, but this is default */
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the startup.blend so we can read U.tempdir */
 

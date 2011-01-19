@@ -1353,7 +1353,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 	ot->description="Open the default file (doesn't save the current file)";
 	
 	ot->invoke= WM_operator_confirm;
-	ot->exec= WM_read_homefile;
+	ot->exec= WM_read_homefile_exec;
 	ot->poll= WM_operator_winactive;
 }
 
@@ -1364,7 +1364,7 @@ static void WM_OT_read_factory_settings(wmOperatorType *ot)
 	ot->description="Load default file and user preferences";
 	
 	ot->invoke= WM_operator_confirm;
-	ot->exec= WM_read_homefile;
+	ot->exec= WM_read_homefile_exec;
 	ot->poll= WM_operator_winactive;
 }
 
