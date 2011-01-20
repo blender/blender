@@ -1344,7 +1344,6 @@ static void rna_def_effect(BlenderRNA *brna)
 
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
-	rna_def_input(srna); // XXX: why not? [#25737]
 }
 
 static void rna_def_multicam(BlenderRNA *brna)
