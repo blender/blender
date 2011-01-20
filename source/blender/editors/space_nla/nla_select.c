@@ -581,6 +581,7 @@ void NLA_OT_click_select (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mouse Select";
 	ot->idname= "NLA_OT_click_select";
+	ot->description= "Handle clicks to select NLA Strips";
 	
 	/* api callbacks - absolutely no exec() this yet... */
 	ot->invoke= nlaedit_clickselect_invoke;

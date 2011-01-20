@@ -1845,6 +1845,7 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Show/Hide One Level";
 	ot->idname= "OUTLINER_OT_show_one_level";
+	ot->description= "Expand/collapse all entries by one level";
 	
 	/* callbacks */
 	ot->exec= outliner_one_level_exec;
@@ -2594,6 +2595,7 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 {
 	ot->name= "Activate Item";
 	ot->idname= "OUTLINER_OT_item_activate";
+	ot->description= "Handle mouse clicks to activate/select items";
 	
 	ot->invoke= outliner_item_activate;
 	
@@ -2656,6 +2658,7 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 {
 	ot->name= "Open/Close Item";
 	ot->idname= "OUTLINER_OT_item_openclose";
+	ot->description= "Toggle whether item under cursor is enabled or closed";
 	
 	ot->invoke= outliner_item_openclose;
 	
@@ -2686,9 +2689,11 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 				error("Cannot edit sequence name");
 			else if(tselem->id->lib) {
 				// XXX						error_libdata();
-			} else if(te->idcode == ID_LI && te->parent) {
+			} 
+			else if(te->idcode == ID_LI && te->parent) {
 				error("Cannot edit the path of an indirectly linked library");
-			} else {
+			} 
+			else {
 				tselem->flag |= TSE_TEXTBUT;
 				ED_region_tag_redraw(ar);
 			}
@@ -2723,6 +2728,7 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
 {
 	ot->name= "Rename Item";
 	ot->idname= "OUTLINER_OT_item_rename";
+	ot->description= "Rename item under cursor";
 	
 	ot->invoke= outliner_item_rename;
 	
@@ -3777,6 +3783,7 @@ void OUTLINER_OT_operation(wmOperatorType *ot)
 {
 	ot->name= "Execute Operation";
 	ot->idname= "OUTLINER_OT_operation";
+	ot->description= "Context menu for item operations";
 	
 	ot->invoke= outliner_operation;
 	
@@ -4051,7 +4058,7 @@ void OUTLINER_OT_drivers_add_selected(wmOperatorType *ot)
 	ot->poll= ed_operator_outliner_datablocks_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -4086,7 +4093,7 @@ void OUTLINER_OT_drivers_delete_selected(wmOperatorType *ot)
 	ot->poll= ed_operator_outliner_datablocks_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ***************** KEYINGSET OPERATIONS *************** */
@@ -4216,14 +4223,15 @@ void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->idname= "OUTLINER_OT_keyingset_add_selected";
-	ot->name= "Keyingset Add Selected";
+	ot->name= "Keying Set Add Selected";
+	ot->description= "Add selected items (blue-grey rows) to active Keying Set";
 	
 	/* api callbacks */
 	ot->exec= outliner_keyingset_additems_exec;
 	ot->poll= ed_operator_outliner_datablocks_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -4252,14 +4260,15 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->idname= "OUTLINER_OT_keyingset_remove_selected";
-	ot->name= "Keyingset Remove Selected";
+	ot->name= "Keying Set Remove Selected";
+	ot->description = "Remove selected items (blue-grey rows) from active Keying Set";
 	
 	/* api callbacks */
 	ot->exec= outliner_keyingset_removeitems_exec;
 	ot->poll= ed_operator_outliner_datablocks_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ***************** DRAW *************** */
