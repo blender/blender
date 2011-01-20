@@ -3821,47 +3821,7 @@ void flushTransGraphData(TransInfo *t)
 	}
 }
 
-/* *************************** Object Transform data ******************* */
-
-/* Little helper function for ObjectToTransData used to give certain
- * constraints (ChildOf, FollowPath, and others that may be added)
- * inverse corrections for transform, so that they aren't in CrazySpace.
- * These particular constraints benefit from this, but others don't, hence
- * this semi-hack ;-)    - Aligorith
- */
-static short constraints_list_needinv(TransInfo *t, ListBase *list)
-{
-	bConstraint *con;
-
-	/* loop through constraints, checking if there's one of the mentioned
-	 * constraints needing special crazyspace corrections
-	 */
-	if (list) {
-		for (con= list->first; con; con=con->next) {
-			/* only consider constraint if it is enabled, and has influence on result */
-			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0)) {
-				/* (affirmative) returns for specific constraints here... */
-					/* constraints that require this regardless  */
-				if (con->type == CONSTRAINT_TYPE_CHILDOF) return 1;
-				if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) return 1;
-				if (con->type == CONSTRAINT_TYPE_CLAMPTO) return 1;
-
-					/* constraints that require this only under special conditions */
-				if (con->type == CONSTRAINT_TYPE_ROTLIKE) {
-					/* CopyRot constraint only does this when rotating, and offset is on */
-					bRotateLikeConstraint *data = (bRotateLikeConstraint *)con->data;
-
-					if ((data->flag & ROTLIKE_OFFSET) && (t->mode == TFM_ROTATION))
-						return 1;
-				}
-			}
-		}
-	}
-
-	/* no appropriate candidates found */
-	return 0;
-}
-
+/* ******************* Sequencer Transform data ******************* */
 
 /* This function applies the rules for transforming a strip so duplicate
  * checks dont need to be added in multiple places.
@@ -4266,6 +4226,47 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	SeqToTransData_Recursive(t, ed->seqbasep, td, td2d, tdsq);
 }
 
+
+/* *********************** Object Transform data ******************* */
+
+/* Little helper function for ObjectToTransData used to give certain
+ * constraints (ChildOf, FollowPath, and others that may be added)
+ * inverse corrections for transform, so that they aren't in CrazySpace.
+ * These particular constraints benefit from this, but others don't, hence
+ * this semi-hack ;-)    - Aligorith
+ */
+static short constraints_list_needinv(TransInfo *t, ListBase *list)
+{
+	bConstraint *con;
+
+	/* loop through constraints, checking if there's one of the mentioned
+	 * constraints needing special crazyspace corrections
+	 */
+	if (list) {
+		for (con= list->first; con; con=con->next) {
+			/* only consider constraint if it is enabled, and has influence on result */
+			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0)) {
+				/* (affirmative) returns for specific constraints here... */
+					/* constraints that require this regardless  */
+				if (con->type == CONSTRAINT_TYPE_CHILDOF) return 1;
+				if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) return 1;
+				if (con->type == CONSTRAINT_TYPE_CLAMPTO) return 1;
+				
+					/* constraints that require this only under special conditions */
+				if (con->type == CONSTRAINT_TYPE_ROTLIKE) {
+					/* CopyRot constraint only does this when rotating, and offset is on */
+					bRotateLikeConstraint *data = (bRotateLikeConstraint *)con->data;
+					
+					if ((data->flag & ROTLIKE_OFFSET) && (t->mode == TFM_ROTATION))
+						return 1;
+				}
+			}
+		}
+	}
+
+	/* no appropriate candidates found */
+	return 0;
+}
 
 /* transcribe given object into TransData for Transforming */
 static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
