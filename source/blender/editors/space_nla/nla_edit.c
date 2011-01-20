@@ -621,8 +621,8 @@ static int nlaedit_duplicate_exec (bContext *C, wmOperator *UNUSED(op))
 				/* deselect the original and the active flag */
 				strip->flag &= ~(NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_ACTIVE);
 				
-				/* auto-name it */
-				BKE_nlastrip_validate_name(adt, strip);
+				/* auto-name newly created strip */
+				BKE_nlastrip_validate_name(adt, nstrip);
 				
 				done++;
 			}
@@ -1038,7 +1038,7 @@ static int nlaedit_swap_exec (bContext *C, wmOperator *op)
 		/* special case: if there is only 1 island (i.e. temp meta BUT NOT unselected/normal/normal-meta strips) left after this, 
 		 * and this island has two strips inside it, then we should be able to just swap these still...
 		 */
-		if (nlt->strips.first == nlt->strips.last) {
+		if ((nlt->strips.first == nlt->strips.last) && (nlt->strips.first != NULL)) {
 			NlaStrip *mstrip = (NlaStrip *)nlt->strips.first;
 			
 			if ((mstrip->flag & NLASTRIP_FLAG_TEMP_META) && (BLI_countlist(&mstrip->strips) == 2)) 
