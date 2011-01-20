@@ -177,8 +177,11 @@ void WM_init(bContext *C, int argc, char **argv)
 	
 	read_history();
 
+	/* allow a path of "", this is what happens when making a new file */
+	/*
 	if(G.main->name[0] == 0)
 		BLI_make_file_string("/", G.main->name, BLI_getDefaultDocumentFolder(), "untitled.blend");
+	*/
 
 	BLI_strncpy(G.lib, G.main->name, FILE_MAX);
 
