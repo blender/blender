@@ -299,8 +299,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filename
 	/* these are the same at times, should never copy to the same location */
 	if(G.main->name != filename)
 		BLI_strncpy(G.main->name, filename, FILE_MAX);
-	
-	BLI_strncpy(G.main->name, filename, FILE_MAX); /* is guaranteed current file */
 
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(G.main, CTX_data_scene(C));

@@ -92,10 +92,6 @@ typedef struct Global {
 
 	/* ndof device found ? */
 	int ndofdevice;
-	
-	/* confusing... G.f and G.flags */
-	int flags;
-
 } Global;
 
 /* **************** GLOBAL ********************* */
