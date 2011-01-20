@@ -871,28 +871,42 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	if (fstyle->kerning==1)	/* for BLF_width */
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 
-	but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr);
-	but->ofs= 0;
+	/* if text editing we define ofs dynamically */
+	if(but->editstr && but->pos >= 0) {
+		if(but->ofs > but->pos)
+			but->ofs= but->pos;
+	}
+	else but->ofs= 0;
 	
-	while(but->strwidth > okwidth ) {
+	but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
+	
+	while(but->strwidth > okwidth) {
 		
-		but->ofs++;
-		but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
-		
-		/* textbut exception */
-		if(but->editstr && but->pos != -1) {
-			int pos= but->pos+1;
+		/* textbut exception, clip right when... */
+		if(but->editstr && but->pos >= 0) {
+			float width;
+			char buf[256];
 			
-			if(pos-1 < but->ofs) {
-				pos= but->ofs-pos+1;
-				but->ofs -= pos;
-				if(but->ofs<0) {
-					but->ofs= 0;
-					pos--;
-				}
-				but->drawstr[ strlen(but->drawstr)-pos ]= 0;
+			/* copy draw string */
+			BLI_strncpy(buf, but->drawstr, sizeof(buf));
+			/* string position of cursor */
+			buf[but->pos]= 0;
+			width= BLF_width(fstyle->uifont_id, buf+but->ofs);
+			
+			/* if cursor is at 20 pixels of right side button we clip left */
+			if(width > okwidth-20)
+				but->ofs++;
+			else {
+				/* shift string to the left */
+				if(width < 20 && but->ofs > 0)
+					but->ofs--;
+				but->drawstr[ strlen(but->drawstr)-1 ]= 0;
 			}
 		}
+		else
+			but->ofs++;
+
+		but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 		
 		if(but->strwidth < 10) break;
 	}

@@ -523,6 +523,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 #endif
 				but->active= oldbut->active;
 				but->pos= oldbut->pos;
+				but->ofs= oldbut->ofs;
 				but->editstr= oldbut->editstr;
 				but->editval= oldbut->editval;
 				but->editvec= oldbut->editvec;
