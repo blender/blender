@@ -746,7 +746,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 #define PREVIEW_PAD	4
 
-static void widget_draw_preview(BIFIconID icon, float aspect, float UNUSED(alpha), rcti *rect)
+static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), rcti *rect)
 {
 	int w, h, size;
 
@@ -762,7 +762,7 @@ static void widget_draw_preview(BIFIconID icon, float aspect, float UNUSED(alpha
 		int x = rect->xmin + w/2 - size/2;
 		int y = rect->ymin + h/2 - size/2;
 
-		UI_icon_draw_preview_aspect_size(x, y, icon, aspect, size);
+		UI_icon_draw_preview_aspect_size(x, y, icon, 1.0f, size);
 	}
 }
 
@@ -776,7 +776,7 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 	float aspect, height;
 	
 	if (but->flag & UI_ICON_PREVIEW) {
-		widget_draw_preview(icon, but->block->aspect, alpha, rect);
+		widget_draw_preview(icon, alpha, rect);
 		return;
 	}
 	
@@ -3118,7 +3118,7 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconi
 	wt->state(wt, state);
 	wt->draw(&wt->wcol, rect, 0, 0);
 	
-	widget_draw_preview(iconid, 1.f, 1.f, rect);
+	widget_draw_preview(iconid, 1.0f, rect);
 	
 	if (state == UI_ACTIVE)
 		glColor3ubv((unsigned char*)wt->wcol.text);
