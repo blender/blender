@@ -901,7 +901,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 	case 2:
 		if (mathutils_array_parse(quat, 3, 3, seq, "mathutils.Quaternion()") == -1)
 			return NULL;
-		angle= fmod(angle + M_PI*2, M_PI*4) - M_PI*2; /* clamp because of precission issues */
+		angle= fmod(angle + M_PI*2, M_PI*4) - M_PI*2; /* clamp because of precision issues */
 		axis_angle_to_quat(quat, quat, angle);
 		break;
 	/* PyArg_ParseTuple assures no more then 2 */

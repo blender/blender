@@ -699,7 +699,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 	vod->oldx= x;
 	vod->oldy= y;
 
-	/* avoid precission loss over time */
+	/* avoid precision loss over time */
 	normalize_qt(rv3d->viewquat);
 
 	ED_region_tag_redraw(vod->ar);
