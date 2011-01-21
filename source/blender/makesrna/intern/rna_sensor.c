@@ -502,7 +502,7 @@ static void rna_def_armature_sensor(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "test_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Test Type", "Type of value and test");
+	RNA_def_property_ui_text(prop, "Test", "Type of value and test");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "bone", PROP_STRING, PROP_NONE);

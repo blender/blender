@@ -3263,7 +3263,8 @@ static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
 	}
 	row = uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "test_type", 0, NULL, ICON_NULL);
-	uiItemR(row, ptr, "value", 0, NULL, ICON_NULL);
+	if (RNA_enum_get(ptr, "test_type") != SENS_ARM_STATE_CHANGED)
+		uiItemR(row, ptr, "value", 0, NULL, ICON_NULL);
 }
 
 static void draw_sensor_collision(uiLayout *layout, PointerRNA *ptr, bContext *C)
