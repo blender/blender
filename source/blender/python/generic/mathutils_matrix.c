@@ -170,7 +170,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 	VectorObject *vec= NULL;
 	char *axis= NULL;
 	int matSize;
-	double angle; /* use double because of precission problems at high values */
+	double angle; /* use double because of precision problems at high values */
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -330,8 +330,7 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
-	if(!PyArg_ParseTuple(args, "fi|O!", &factor, &matSize, &vector_Type, &vec)) {
-		PyErr_SetString(PyExc_TypeError, "mathutils.Matrix.Scale(): expected float int and optional vector");
+	if(!PyArg_ParseTuple(args, "fi|O!:Matrix.Scale", &factor, &matSize, &vector_Type, &vec)) {
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
@@ -421,8 +420,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	
-	if(!PyArg_ParseTuple(args, "si|O!", &plane, &matSize, &vector_Type, &vec)) {
-		PyErr_SetString(PyExc_TypeError, "mathutils.Matrix.OrthoProjection(): expected string and int and optional vector");
+	if(!PyArg_ParseTuple(args, "si|O!:Matrix.OrthoProjection", &plane, &matSize, &vector_Type, &vec)) {
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
@@ -506,25 +504,24 @@ static char C_Matrix_Shear_doc[] =
 "\n"
 "   Create a matrix to represent an shear transformation.\n"
 "\n"
-"   :arg plane: Can be any of the following: ['X', 'Y', 'XY', 'XZ', 'YZ'], where a single axis is for a 2D matrix.\n"
+"   :arg plane: Can be any of the following: ['X', 'Y', 'XY', 'XZ', 'YZ'], where a single axis is for a 2D matrix only.\n"
 "   :type plane: string\n"
-"   :arg factor: The factor of shear to apply.\n"
-"   :type factor: float\n"
+"   :arg factor: The factor of shear to apply. For a 3 or 4 *size* matrix pass a pair of floats corrasponding with the *plane* axis.\n"
+"   :type factor: float or float pair\n"
 "   :arg size: The size of the shear matrix to construct [2, 4].\n"
 "   :type size: int\n"
 "   :return: A new shear matrix.\n"
-"   :rtype: :class:`Matrix`\n";
-
+"   :rtype: :class:`Matrix`\n"
+;
 static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 {
 	int matSize;
 	char *plane;
-	float factor;
+	PyObject *fac;
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
-	if(!PyArg_ParseTuple(args, "sfi", &plane, &factor, &matSize)) {
-		PyErr_SetString(PyExc_TypeError,"mathutils.Matrix.Shear(): expected string float and int");
+	if(!PyArg_ParseTuple(args, "sOi:Matrix.Shear", &plane, &fac, &matSize)) {
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
@@ -532,37 +529,60 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 		return NULL;
 	}
 
-	if((strcmp(plane, "X") == 0)
-		&& matSize == 2) {
+	if(matSize == 2) {
+		float const factor= PyFloat_AsDouble(fac);
+
+		if(factor==-1.0 && PyErr_Occurred()) {
+			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.Shear(): the factor to be a float");
+			return NULL;
+		}
+
+		/* unit */
 		mat[0] = 1.0f;
-		mat[2] = factor;
 		mat[3] = 1.0f;
-	} else if((strcmp(plane, "Y") == 0) && matSize == 2) {
-		mat[0] = 1.0f;
-		mat[1] = factor;
-		mat[3] = 1.0f;
-	} else if((strcmp(plane, "XY") == 0) && matSize > 2) {
-		mat[0] = 1.0f;
-		mat[4] = 1.0f;
-		mat[6] = factor;
-		mat[7] = factor;
-		mat[8] = 1.0f;
-	} else if((strcmp(plane, "XZ") == 0) && matSize > 2) {
-		mat[0] = 1.0f;
-		mat[3] = factor;
-		mat[4] = 1.0f;
-		mat[5] = factor;
-		mat[8] = 1.0f;
-	} else if((strcmp(plane, "YZ") == 0) && matSize > 2) {
-		mat[0] = 1.0f;
-		mat[1] = factor;
-		mat[2] = factor;
-		mat[4] = 1.0f;
-		mat[8] = 1.0f;
-	} else {
-		PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.Shear(): expected: x, y, xy, xz, yz or wrong matrix size for shearing plane");
-		return NULL;
+
+		if(strcmp(plane, "X") == 0) {
+			mat[2] = factor;
+		}
+		else if(strcmp(plane, "Y") == 0) {
+			mat[1] = factor;
+		}
+		else {
+			PyErr_SetString(PyExc_AttributeError, "Matrix.Shear(): expected: X, Y or wrong matrix size for shearing plane");
+			return NULL;
+		}
 	}
+	else {
+		/* 3 or 4, apply as 3x3, resize later if needed */
+		float factor[2];
+
+		if(mathutils_array_parse(factor, 2, 2, fac, "Matrix.Shear()") < 0) {
+			return NULL;
+		}
+
+		/* unit */
+		mat[0] = 1.0f;
+		mat[4] = 1.0f;
+		mat[8] = 1.0f;
+
+		if(strcmp(plane, "XY") == 0) {
+			mat[6] = factor[0];
+			mat[7] = factor[1];
+		}
+		else if(strcmp(plane, "XZ") == 0) {
+			mat[3] = factor[0];
+			mat[5] = factor[1];
+		}
+		else if(strcmp(plane, "YZ") == 0) {
+			mat[1] = factor[0];
+			mat[2] = factor[1];
+		}
+		else {
+			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.Shear(): expected: X, Y, XY, XZ, YZ");
+			return NULL;
+		}
+	}
+
 	if(matSize == 4) {
 		//resize matrix
 		mat[10] = mat[8];

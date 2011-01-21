@@ -40,6 +40,7 @@
  * - Matrix.scalePart --> Matrix.scale_part
  * - Matrix.translationPart --> Matrix.translation_part
  * - Matrix.rotationPart --> Matrix.rotation_part
+ * - mathutils.Matrix.Shear(plane, fac, size), now takes a pair of floats for 3x3 or 4x4 shear factor.
  * - toMatrix --> to_matrix
  * - toEuler --> to_euler
  * - toQuat --> to_quat
