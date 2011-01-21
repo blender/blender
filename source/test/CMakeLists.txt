@@ -84,6 +84,54 @@ add_test(export_obj_all_objects ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS
 	--md5=c835899ca8993495af8a13c2f229629b --md5_method=FILE
 )
 
+
+
+# PLY Import tests
+add_test(import_ply_cube ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
+	--run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/cube_ascii.ply'\)
+	--md5=527134343c27fc0ea73115b85fbfd3ac --md5_method=SCENE
+)
+
+add_test(import_ply_bunny ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
+	--run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/bunny2.ply'\)
+	--md5=6ea5b8533400a17accf928b8fd024eaa --md5_method=SCENE
+)
+
+add_test(import_ply_small_holes ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
+	--run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/many_small_holes.ply'\)
+	--md5=c3093e26ecae5b6d59fbbcf2a0d0b39f --md5_method=SCENE
+)
+
+# PLY Export tests (TODO)
+
+
+
+# STL Import tests
+add_test(import_stl_cube ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
+	--run={'FINISHED'}&bpy.ops.import_mesh.stl\(filepath='${TEST_SRC_DIR}/io_tests/stl/cube.stl'\)
+	--md5=8ceb5bb7e1cb5f4342fa1669988c66b4 --md5_method=SCENE
+)
+
+add_test(import_stl_conrod ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
+	--run={'FINISHED'}&bpy.ops.import_mesh.stl\(filepath='${TEST_SRC_DIR}/io_tests/stl/conrod.stl'\)
+	--md5=690a4b8eb9002dcd8631c5a575ea7348 --md5_method=SCENE
+)
+
+add_test(import_stl_knot_max_simplified ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
+	--run={'FINISHED'}&bpy.ops.import_mesh.stl\(filepath='${TEST_SRC_DIR}/io_tests/stl/knot_max_simplified.stl'\)
+	--md5=baf82803f45a84ec4ddbad9cef57dd3e --md5_method=SCENE
+)
+
+# STL Export tests (TODO)
+
+
+
 # X3D Import
 add_test(import_x3d_cube ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
@@ -129,6 +177,8 @@ add_test(export_x3d_all_objects ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS
 	--md5=b4bddb55efd8e34af673ffb42bf4c372 --md5_method=FILE
 )
 
+
+
 # 3DS Import
 add_test(import_3ds_cube ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
@@ -173,6 +223,7 @@ add_test(export_3ds_all_objects ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS
 	--md5_source=${TEST_OUT_DIR}/export_3ds_all_objects.3ds
 	--md5=1523ca2e31cf7d781c7de1e17bd14520   --md5_method=FILE
 )
+
 
 
 # FBX Export
