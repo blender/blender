@@ -215,6 +215,12 @@ public:
 			 unsigned int *context) const;
 
 	/**
+	 * Create the atoms used by ndof events
+	 * @param display Current display
+	 */
+	void createNDOFAtoms(Display * display);
+
+	/**
 	 * Returns unsinged char from CUT_BUFFER0
 	 * @param selection		Get selection, X11 only feature
 	 * @return				Returns the Clipboard indicated by Flag
@@ -275,6 +281,14 @@ public:
 	Atom m_xclip_out;
 	Atom m_incr;
 	Atom m_utf8_string;
+
+	/**
+	 * Atoms for NDOF
+	 */
+	Atom motion_event;
+	Atom button_press_event;
+	Atom button_release_event;
+	Atom command_event;
 
 private :
 

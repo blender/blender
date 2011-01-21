@@ -267,6 +267,7 @@ createWindow(
 			m_windowManager->addWindow(window);
 			
 			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
+
 		}
 		else {
 			delete window;
@@ -631,10 +632,11 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				);
 			} else 
 #endif
-			if (sNdofInfo.currValues) {
+			if (m_ndofManager->available()) {
+
 //				static GHOST_TEventNDOFData data = {0,0,0,0,0,0,0,0,0,0,0};
-				if (xcme.message_type == sNdofInfo.motionAtom)
-				{
+				if (xcme.message_type == sNdofInfo.motionAtom
+				    || xcme.message_type == motion_event){
 // 					data.changed = 1;
 // 					data.delta = xcme.data.s[8] - data.time;
 // 					data.time = xcme.data.s[8];
@@ -646,9 +648,9 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 // 					data.rz =-xcme.data.s[7];
 						
 					short t[3], r[3];
-					t[0] = xcme.data.s[2] >> 2;
-					t[1] = xcme.data.s[3] >> 2;
-					t[2] = xcme.data.s[4] >> 2;
+					t[0] = xcme.data.s[2];
+					t[1] = xcme.data.s[3];
+					t[2] = xcme.data.s[4];
 					r[0] = xcme.data.s[5];
 					r[1] = xcme.data.s[6];
 					r[2] =-xcme.data.s[7];
@@ -663,7 +665,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 // 					                              GHOST_kEventNDOFMotion,
 // 					                              window, data);
 
-				} else if (xcme.message_type == sNdofInfo.btnPressAtom) {
+				} else if (xcme.message_type == sNdofInfo.btnPressAtom
+					   || xcme.message_type == button_press_event) {
 // 					data.changed = 2;
 // 					data.delta = xcme.data.s[8] - data.time;
 // 					data.time = xcme.data.s[8];
@@ -803,7 +806,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			XFlush(m_display);
 			break;
 		}
-		
+
 		default: {
 			if(xe->type == window->GetXTablet().MotionEvent) 
 			{
@@ -1505,3 +1508,9 @@ const GHOST_TUns8* GHOST_SystemX11::getBinaryDir() const
 	return NULL;
 }
 
+void GHOST_SystemX11::createNDOFAtoms(Display * display){
+    motion_event = XInternAtom(display, "MotionEvent", True);
+    button_press_event = XInternAtom(display, "ButtonPressEvent", True);
+    button_release_event = XInternAtom(display, "ButtonReleaseEvent", True);
+    command_event = XInternAtom(display, "CommandEvent", True);
+}

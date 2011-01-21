@@ -45,7 +45,7 @@ public:
 
 	// processes most recent raw data into an NDOFMotion event and sends it
 	// returns whether an event was sent
-	bool sendMotionEvent();
+	virtual bool sendMotionEvent();
 
 protected:
 	GHOST_System& m_system;

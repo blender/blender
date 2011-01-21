@@ -118,6 +118,9 @@ OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the rayt
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking" OFF)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 OPTION(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
+IF(UNIX AND NOT APPLE)
+OPTION(WITH_SPACENAV       "Support for NDOF devices in Linux" ON)
+ENDIF(UNIX AND NOT APPLE)
 
 IF(APPLE)
 	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
@@ -301,7 +304,9 @@ IF(UNIX AND NOT APPLE)
 	IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		# BSD's dont use libdl.so
 		SET(LLIBS "${LLIBS} -ldl")
-
+		IF(WITH_SPACENAV)
+			SET(LLIBS "${LLIBS} -lspnav")
+		ENDIF(WITH_SPACENAV)
 		# binreloc is linux only
 		SET(BINRELOC ${CMAKE_SOURCE_DIR}/extern/binreloc)
 		SET(BINRELOC_INC ${BINRELOC}/include)

@@ -35,6 +35,10 @@
 #include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 
+// libspnav
+#include <spnav.h>
+#include "GHOST_NDOFManagerX11.h"
+
 #if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__) || defined (_AIX)
 #include <strings.h>
 #endif
@@ -269,6 +273,11 @@ GHOST_WindowX11(
 				CWBorderPixel|CWColormap|CWEventMask, 
 				&xattributes
 			);
+		if (spnav_x11_open(m_display, m_window)  == -1) {
+		    fprintf(stderr, "failed to connect to the space navigator daemon\n");
+		} else {
+		    m_system->createNDOFAtoms(m_display);
+		}
 	} else {
 
 		Window root_return;
@@ -297,12 +306,12 @@ GHOST_WindowX11(
 				m_visual->visual,
 				CWBorderPixel|CWColormap|CWEventMask, 
 				&xattributes
-			);
 
+
+			);
 		XSelectInput(m_display , parentWindow, SubstructureNotifyMask);
-		
 	}	
-	
+
 	/*
 	 * One of the problem with WM-spec is that can't set a property
 	 * to a window that isn't mapped. That is why we can't "just
@@ -428,6 +437,8 @@ GHOST_WindowX11(
 	XMapWindow(m_display, m_window);
 	GHOST_PRINT("Mapped window\n");
 
+	
+	((GHOST_NDOFManagerX11 *)m_system->getNDOFManager())->setGHOSTWindowX11(this);;
 	XFlush(m_display);
 }
 
@@ -1257,6 +1268,9 @@ GHOST_WindowX11::
 	/* close tablet devices */
 	if(m_xtablet.StylusDevice)
 		XCloseDevice(m_display, m_xtablet.StylusDevice);
+	
+	/*close ndof */
+	spnav_close();
 	
 	if(m_xtablet.EraserDevice)
 		XCloseDevice(m_display, m_xtablet.EraserDevice);
