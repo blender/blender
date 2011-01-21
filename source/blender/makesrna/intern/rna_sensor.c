@@ -332,7 +332,7 @@ static void rna_def_near_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Property", "Only look for objects with this property");
+	RNA_def_property_ui_text(prop, "Property", "Only look for objects with this property. Leave it empty to detect all objects.");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
@@ -343,7 +343,7 @@ static void rna_def_near_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "reset_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "resetdist");
-	RNA_def_property_ui_text(prop, "Reset Distance", "");
+	RNA_def_property_ui_text(prop, "Reset Distance", "The distance where the sensor forgets the actor.");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
