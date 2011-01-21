@@ -34,7 +34,7 @@
   #include <Carbon/Carbon.h>
 #endif
 
-#include <OpenGL/gl.h>
+#include <OpenGL/OpenGL.h> // standard OpenGL + Mac CGL
 
 #include "GHOST_WindowCocoa.h"
 #include "GHOST_SystemCocoa.h"
@@ -321,7 +321,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		return;
 	}
 
-	[m_window setSystemAndWindowCocoa:ghostSystem windowCocoa:this];
+	[m_window setSystem:ghostSystem ghostWindow:this];
 
 	// Forbid to resize the window below the blender defined minimum one
 	[m_window setContentMinSize:NSMakeSize(320,240)];
@@ -400,7 +400,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	activateDrawingContext();
 
 	CocoaWindowDelegate *windowDelegate = [[CocoaWindowDelegate alloc] init];
-	[windowDelegate setSystemAndWindowCocoa:ghostSystem windowCocoa:this];
+	[windowDelegate setSystem:ghostSystem ghostWindow:this];
 	[m_window setDelegate:windowDelegate];
 
 	[m_window setAcceptsMouseMovedEvents:YES];
@@ -419,7 +419,6 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 {
 	if (m_customCursor) delete m_customCursor;
 
-//	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	[m_openGLView release];
 
 	if (m_window) {
@@ -434,8 +433,6 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 	if ([windowsList count]) {
 		[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
 	}
-
-//	[pool drain];
 }
 
 #pragma mark accessors
@@ -851,7 +848,6 @@ GHOST_TSuccess GHOST_WindowCocoa::swapBuffers()
 		}
 	}
 
-//	[m_pool drain]; // needed to put this in a function that is called regularly	
 	return success;
 }
 
@@ -872,12 +868,10 @@ GHOST_TSuccess GHOST_WindowCocoa::activateDrawingContext()
 {
 	if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
 		if (m_openGLContext != nil) {
-//			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			[m_openGLContext makeCurrentContext];
 
 			// Disable AA by default
 			if (m_numOfAASamples > 0) glDisable(GL_MULTISAMPLE_ARB);
-//			[pool drain];
 			return GHOST_kSuccess;
 		}
 	}
@@ -889,14 +883,8 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 {
 	GHOST_TSuccess success = GHOST_kFailure;
 
-//	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
 	NSOpenGLPixelFormat *pixelFormat;
 	NSOpenGLContext *tmpOpenGLContext;
-
-	/***** Multithreaded opengl code : uncomment for enabling
-	CGLContextObj cglCtx;
-	*/
 
 	switch (type) {
 		case GHOST_kDrawingContextTypeOpenGL:
@@ -910,20 +898,21 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 				break;
 			}
 
-			//Switch openGL to multhreaded mode
-			/******* Multithreaded opengl code : uncomment for enabling */
-			cglCtx = (CGLContextObj)[tmpOpenGLContext CGLContextObj];
+			/******* Multithreaded OpenGL code : uncomment for enabling */
+			CGLContextObj cglCtx = (CGLContextObj)[tmpOpenGLContext CGLContextObj];
 			if (CGLEnable(cglCtx, kCGLCEMPEngine) == kCGLNoError)
-				printf("\nSwitched openGL to multithreaded mode");
+				printf("\nUsing multithreaded OpenGL engine.\n");
 
 			if (!s_firstOpenGLcontext) s_firstOpenGLcontext = tmpOpenGLContext;
-#ifdef WAIT_FOR_VSYNC
-			{
+
+			#ifdef WAIT_FOR_VSYNC
+				{
 				GLint swapInt = 1;
 				/* wait for vsync, to avoid tearing artifacts */
 				[tmpOpenGLContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
-			}
-#endif
+				}
+			#endif
+
 			[m_openGLView setOpenGLContext:tmpOpenGLContext];
 			[tmpOpenGLContext setView:m_openGLView];
 
@@ -937,7 +926,7 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 		default:
 			break;
 	}
-//	[pool drain];
+
 	return success;
 }
 

@@ -53,7 +53,7 @@ public:
 	 * Constructor.
 	 */
 	GHOST_SystemCocoa();
-	
+
 	/** 
 	 * Destructor.
 	 */
@@ -263,7 +263,7 @@ protected:
 	 * @return          Indication whether the event was handled. 
 	 */
 	GHOST_TSuccess handleTabletEvent(void *eventPtr);
-	
+
 	/**
 	 * Helps handleTabletEvent function.
 	 */
@@ -336,7 +336,7 @@ protected:
 
 	/** Multitouch gesture in progress, useful to distinguish trackpad from mouse scroll events */
 	bool m_isGestureInProgress;
-	
+
 	NSAutoreleasePool* m_pool;
 };
 
