@@ -141,6 +141,9 @@ def cmake_get_src(f):
                             sources_h.append(new_file)
                         elif is_c(new_file):
                             sources_c.append(new_file)
+                        elif l in ("PARENT_SCOPE", ):
+                            # cmake var, ignore
+                            pass
                         else:
                             raise Exception("unknown file type - not c or h %s -> %s" % (f, new_file))
 
