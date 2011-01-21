@@ -332,7 +332,7 @@ static void rna_def_near_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Property", "Only look for objects with this property. Leave it empty to detect all objects.");
+	RNA_def_property_ui_text(prop, "Property", "Only look for objects with this property (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
@@ -343,7 +343,7 @@ static void rna_def_near_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "reset_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "resetdist");
-	RNA_def_property_ui_text(prop, "Reset Distance", "The distance where the sensor forgets the actor.");
+	RNA_def_property_ui_text(prop, "Reset Distance", "The distance where the sensor forgets the actor");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
@@ -388,7 +388,7 @@ static void rna_def_touch_sensor(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Material", "Only look for objects with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for objects with this material (blank = all objects)");
 	/* note: custom set function is ONLY to avoid rna setting a user for this. */
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Sensor_touch_material_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -583,13 +583,13 @@ static void rna_def_collision_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property");
+	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	//XXX to make a setFunction to create a lookup with all materials in Blend File (not only this object mat.)
 	prop= RNA_def_property(srna, "material", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "materialName");
-	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 /*//XXX either use a datablock look up to store the string name (material)
@@ -598,7 +598,7 @@ static void rna_def_collision_sensor(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
-	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material (blank = all objects)");
 */
 }
 
@@ -621,7 +621,7 @@ static void rna_def_radar_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property");
+	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
@@ -629,7 +629,7 @@ static void rna_def_radar_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Axis", "Specify along which axis the radar cone is cast");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_range(prop, 0.0, 179.9);
 	RNA_def_property_ui_text(prop, "Angle", "Opening angle of the radar cone");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -686,12 +686,12 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "propname");
-	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property");
+	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "material", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "matname");
-	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* //XXX either use a datablock look up to store the string name (material)
@@ -700,7 +700,7 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
-	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material (blank = all objects)");
 */
 
 	prop= RNA_def_property(srna, "use_x_ray", PROP_BOOLEAN, PROP_NONE);
