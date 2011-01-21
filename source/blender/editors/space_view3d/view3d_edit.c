@@ -833,6 +833,7 @@ float ndof_to_angle_axis(const float ndof[3], float axis[3])
 	return angular_velocity;
 	}
 
+#if 0 // my version
 static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
@@ -877,6 +878,90 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 	}
+#endif
+
+// Tom's version
+static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
+	
+	float phi, q1[4];
+	float m[3][3];
+	float m_inv[3][3];
+	float xvec[3] = {1,0,0};
+	float yvec[3] = {0,1,0};
+	float vec[3];
+	float mat[3][3];
+	const float rotaSensitivity = 0.007;
+	const float tranSensitivity = 0.120;
+	
+	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	
+	float dt = ndof->dt;
+	
+	if (dt > 0.25f) {
+		/* this is probably the first event for this motion, so set dt to something reasonable */
+		dt = 0.0125f;
+	}
+
+	/* Get the 3x3 matrix and its inverse from the quaternion */
+	quat_to_mat3(m,rv3d->viewquat);
+	invert_m3_m3(m_inv,m);
+	
+	/* Determine the direction of the x vector (for rotating up and down) */
+	/* This can likely be computed directly from the quaternion. */
+	mul_m3_v3(m_inv,xvec);
+	
+	//if(rv3d->persp=!= RV3D_PERSP)  //Camera control not supported yet
+	/* Lock fixed views out of using rotation controls */
+	if(rv3d->view!=RV3D_VIEW_FRONT && rv3d->view!=RV3D_VIEW_BACK)
+		if(rv3d->view!=RV3D_VIEW_TOP && rv3d->view!=RV3D_VIEW_BOTTOM)
+			if(rv3d->view!=RV3D_VIEW_RIGHT && rv3d->view!=RV3D_VIEW_LEFT) {
+				// Perform the up/down rotation 				
+				phi = (rotaSensitivity+dt) * -ndof->rx;
+				q1[0] = cos(phi);
+				mul_v3_v3fl(q1+1, xvec, sin(phi));
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+
+				// Perform the left/right rotation 
+				mul_m3_v3(m_inv,yvec);
+				phi = (rotaSensitivity+dt) * ndof->ry;
+				q1[0] = cos(phi);
+				mul_v3_v3fl(q1+1, yvec, sin(phi));
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+
+				// Perform the orbital rotation
+				phi = (rotaSensitivity+dt) * ndof->rz;
+				q1[0] = cos(phi);
+				q1[1] = q1[2] = 0.0;
+				q1[3] = sin(phi);
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+			}
+
+	// Perform Pan translation 	
+	vec[0]= (tranSensitivity+dt) * ndof->tx;
+	vec[1]= (tranSensitivity+dt) * ndof->tz;
+	//vec[2]= 0.0f;//tranSensitivity * ndof->ty;
+	//window_to_3d_delta(ar, vec, -ndof->tx, -ndof->tz); // experimented a little instead of above 
+	copy_m3_m4(mat, rv3d->viewinv);
+	mat[2][2] = 0.0f;
+	mul_m3_v3(mat, vec);
+	// translate the view
+	add_v3_v3(rv3d->ofs, vec);
+
+	// Perform Zoom translation 	
+	if (ndof->ty!=0.0f){ // TODO - need to add limits to prevent flipping past gridlines 
+		rv3d->dist += (tranSensitivity+dt)* ndof->ty;
+		// printf("dist %5.3f view %d grid %f\n",rv3d->dist,rv3d->view,v3d->grid);
+	}
+
+	//printf("Trans tx:%5.2f ty:%5.2f tz:%5.2f \n",ndof->tx, ndof->ty, ndof->tz);
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
 
 #if 0
 static int viewndof_invoke_1st_try(bContext *C, wmOperator *op, wmEvent *event)
