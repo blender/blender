@@ -546,6 +546,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 		mat[4] = 1.0f;
 		mat[6] = factor;
 		mat[7] = factor;
+		mat[8] = 1.0f;
 	} else if((strcmp(plane, "XZ") == 0) && matSize > 2) {
 		mat[0] = 1.0f;
 		mat[3] = factor;
