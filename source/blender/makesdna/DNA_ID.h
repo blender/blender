@@ -126,9 +126,13 @@ typedef struct Library {
 #define PREVIEW_MIPMAP_ZERO 0
 #define PREVIEW_MIPMAP_LARGE 1
 
+/* not saved, note 'PREVIEW_MIPMAPS' will break makesdna parsing.
+ * replace with value if saving to blend files */
+#
+#
 typedef struct PreviewImage {
 	unsigned int w[PREVIEW_MIPMAPS];
-	unsigned int h[PREVIEW_MIPMAPS];	
+	unsigned int h[PREVIEW_MIPMAPS];
 	short changed[PREVIEW_MIPMAPS];
 	short changed_timestamp[PREVIEW_MIPMAPS];
 	unsigned int * rect[PREVIEW_MIPMAPS];
