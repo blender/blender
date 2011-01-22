@@ -169,9 +169,10 @@ typedef struct wmWindow {
 	short monitor;		/* multiscreen... no idea how to store yet */
 	short active;		/* set to 1 if an active window, for quick rejects */
 	short cursor;		/* current mouse cursor type */
-	short lastcursor;	/* for temp waitcursor */
+	short lastcursor;	/* previous cursor when setting modal one */
+	short modalcursor;	/* the current modal cursor */
 	short addmousemove;	/* internal: tag this for extra mousemove event, makes cursors/buttons active on UI switching */
-	short pad2[2];
+	short pad2;
 
 	struct wmEvent *eventstate;	/* storage for event system */
 	
