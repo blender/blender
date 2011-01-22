@@ -150,7 +150,12 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        if context.particle_system.settings.is_fluid:
+        psys = context.particle_system
+        if psys is None:
+            return False
+        if psys.settings is None:
+            return False
+        if psys.settings.is_fluid:
             return False
         if particle_panel_poll(PARTICLE_PT_emission, context):
             return not context.particle_system.point_cache.use_external
