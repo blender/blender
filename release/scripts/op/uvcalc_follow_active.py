@@ -190,7 +190,7 @@ def extend(obj, operator, EXTEND_MODE):
     # Done finding seams
 
     # face connectivity - faces around each face
-    # only store a list of indicies for each face.
+    # only store a list of indices for each face.
     face_faces = [[] for i in range(len(face_sel))]
 
     for edge_key, faces in edge_faces.items():

@@ -40,6 +40,7 @@
  * - Matrix.scalePart --> Matrix.scale_part
  * - Matrix.translationPart --> Matrix.translation_part
  * - Matrix.rotationPart --> Matrix.rotation_part
+ * - mathutils.Matrix.Shear(plane, fac, size), now takes a pair of floats for 3x3 or 4x4 shear factor.
  * - toMatrix --> to_matrix
  * - toEuler --> to_euler
  * - toQuat --> to_quat
@@ -81,8 +82,7 @@
 static char M_Mathutils_doc[] =
 "This module provides access to matrices, eulers, quaternions and vectors.";
 
-/* helper functionm returns length of the 'value', -1 on error */
-int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
+static int mathutils_array_parse_fast(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
 {
 	PyObject *value_fast= NULL;
 
@@ -115,6 +115,37 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 
 	Py_XDECREF(value_fast);
 	return size;
+}
+
+/* helper functionm returns length of the 'value', -1 on error */
+int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
+{
+#if 1 /* approx 6x speedup for mathutils types */
+	int size;
+
+	if(	(VectorObject_Check(value) && (size= ((VectorObject *)value)->size)) ||
+		(EulerObject_Check(value) && (size= 3)) ||
+		(QuaternionObject_Check(value) && (size= 4)) ||
+		(ColorObject_Check(value) && (size= 3))
+	) {
+		if(!BaseMath_ReadCallback((BaseMathObject *)value)) {
+			return -1;
+		}
+
+		if(size > array_max || size < array_min) {
+			if (array_max == array_min)	PyErr_Format(PyExc_ValueError, "%.200s: sequence size is %d, expected %d", error_prefix, size, array_max);
+			else						PyErr_Format(PyExc_ValueError, "%.200s: sequence size is %d, expected [%d - %d]", error_prefix, size, array_min, array_max);
+			return -1;
+		}
+
+		memcpy(array, ((BaseMathObject *)value)->data, size * sizeof(float));
+		return size;
+	}
+	else
+#endif
+	{
+		return mathutils_array_parse_fast(array, array_min, array_max, value, error_prefix);
+	}
 }
 
 //----------------------------------MATRIX FUNCTIONS--------------------

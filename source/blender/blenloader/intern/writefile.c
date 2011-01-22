@@ -1963,21 +1963,23 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 	bGPDstroke *gps;
 	
 	for (gpd= lb->first; gpd; gpd= gpd->id.next) {
-		/* write gpd data block to file */
-		writestruct(wd, ID_GD, "bGPdata", 1, gpd);
-		
-		/* write grease-pencil layers to file */
-		for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-			writestruct(wd, DATA, "bGPDlayer", 1, gpl);
+		if (gpd->id.us>0 || wd->current) {
+			/* write gpd data block to file */
+			writestruct(wd, ID_GD, "bGPdata", 1, gpd);
 			
-			/* write this layer's frames to file */
-			for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
-				writestruct(wd, DATA, "bGPDframe", 1, gpf);
+			/* write grease-pencil layers to file */
+			for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+				writestruct(wd, DATA, "bGPDlayer", 1, gpl);
 				
-				/* write strokes */
-				for (gps= gpf->strokes.first; gps; gps= gps->next) {
-					writestruct(wd, DATA, "bGPDstroke", 1, gps);
-					writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);				
+				/* write this layer's frames to file */
+				for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+					writestruct(wd, DATA, "bGPDframe", 1, gpf);
+					
+					/* write strokes */
+					for (gps= gpf->strokes.first; gps; gps= gps->next) {
+						writestruct(wd, DATA, "bGPDstroke", 1, gps);
+						writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);				
+					}
 				}
 			}
 		}
@@ -2525,6 +2527,10 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	bScreen *screen;
 	char subvstr[8];
 	
+	/* prevent mem checkers from complaining */
+	fg.pads= fg.pad= 0;
+	memset(fg.filename, 0, sizeof(fg.filename));
+
 	current_screen_compat(mainvar, &screen);
 
 	/* XXX still remap G */
@@ -2550,7 +2556,6 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 #else
 	fg.revision= 0;
 #endif
-	fg.pads= fg.pad= 0; /* prevent mem checkers from complaining */
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }
 

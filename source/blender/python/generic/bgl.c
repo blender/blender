@@ -187,43 +187,60 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
 #define MAX_DIMENSIONS	256
 static PyObject *Method_Buffer (PyObject *UNUSED(self), PyObject *args)
 {
-	PyObject *length_ob= NULL, *template= NULL;
+	PyObject *length_ob= NULL, *init= NULL;
 	Buffer *buffer;
 	int dimensions[MAX_DIMENSIONS];
 	
 	int i, type;
 	int ndimensions = 0;
 	
-	if (!PyArg_ParseTuple(args, "iO|O", &type, &length_ob, &template)) {
+	if (!PyArg_ParseTuple(args, "iO|O", &type, &length_ob, &init)) {
 		PyErr_SetString(PyExc_AttributeError, "expected an int and one or two PyObjects");
 		return NULL;
 	}
-	if (type!=GL_BYTE && type!=GL_SHORT && type!=GL_INT && type!=GL_FLOAT && type!=GL_DOUBLE) {
+	if (!ELEM5(type, GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT, GL_DOUBLE)) {
 		PyErr_SetString(PyExc_AttributeError, "invalid first argument type, should be one of GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT or GL_DOUBLE");
 		return NULL;
 	}
 
-	if (PyNumber_Check(length_ob)) {
+	if (PyLong_Check(length_ob)) {
 		ndimensions= 1;
-		dimensions[0]= PyLong_AsLong(length_ob);
-	} else if (PySequence_Check(length_ob)) {
+		if(((dimensions[0]= PyLong_AsLong(length_ob)) < 1)) {
+			PyErr_SetString(PyExc_AttributeError, "dimensions must be between 1 and "STRINGIFY(MAX_DIMENSIONS));
+			return NULL;
+		}
+	}
+	else if (PySequence_Check(length_ob)) {
 		ndimensions= PySequence_Size(length_ob);
 		if (ndimensions > MAX_DIMENSIONS) {
-			PyErr_SetString(PyExc_AttributeError, "too many dimensions, max is 256");
+			PyErr_SetString(PyExc_AttributeError, "too many dimensions, max is "STRINGIFY(MAX_DIMENSIONS));
+			return NULL;
+		}
+		else if (ndimensions < 1) {
+			PyErr_SetString(PyExc_AttributeError, "sequence must have at least one dimension");
 			return NULL;
 		}
 		for (i=0; i<ndimensions; i++) {
 			PyObject *ob= PySequence_GetItem(length_ob, i);
 
-			if (!PyNumber_Check(ob)) dimensions[i]= 1;
+			if (!PyLong_Check(ob)) dimensions[i]= 1;
 			else dimensions[i]= PyLong_AsLong(ob);
 			Py_DECREF(ob);
+
+			if(dimensions[i] < 1) {
+				PyErr_SetString(PyExc_AttributeError, "dimensions must be between 1 and "STRINGIFY(MAX_DIMENSIONS));
+				return NULL;
+			}
 		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError, "invalid second argument argument expected a sequence or an int, not a %.200s", Py_TYPE(length_ob)->tp_name);
+		return NULL;
 	}
 	
 	buffer= BGL_MakeBuffer(type, ndimensions, dimensions, NULL);
-	if (template && ndimensions) {
-		if (Buffer_ass_slice((PyObject *) buffer, 0, dimensions[0], template)) {
+	if (init && ndimensions) {
+		if (Buffer_ass_slice((PyObject *) buffer, 0, dimensions[0], init)) {
 			Py_DECREF(buffer);
 			return NULL;
 		}

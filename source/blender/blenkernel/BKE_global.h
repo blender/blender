@@ -61,7 +61,8 @@ typedef struct Global {
 	struct ListBase recent_files;
         
 	short afbreek, moving, file_loaded;
-	short background;
+	char background;
+	char factory_startup;
 	short winpos, displaymode;	/* used to be in Render */
 	short rendering;			/* to indicate render is busy, prevent renderwindow events etc */
 
@@ -91,10 +92,6 @@ typedef struct Global {
 
 	/* ndof device found ? */
 	int ndofdevice;
-	
-	/* confusing... G.f and G.flags */
-	int flags;
-
 } Global;
 
 /* **************** GLOBAL ********************* */

@@ -2105,8 +2105,11 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 				else if(ELEM3(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
 					((ImageUser *)node->storage)->ok= 1;
 			}
-			else if( ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) ) {
-				direct_link_curvemapping(fd, node->storage);
+			else if( ntree->type==NTREE_TEXTURE) {
+				if(node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME)
+					direct_link_curvemapping(fd, node->storage);
+				else if(node->type==TEX_NODE_IMAGE)
+					((ImageUser *)node->storage)->ok= 1;
 			}
 		}
 		link_list(fd, &node->inputs);
@@ -3821,11 +3824,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				clmd->sim_parms->reset = 0;
 
 				clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
-			}
 
-			if(!clmd->sim_parms->effector_weights)
-				clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
-			
+				if(!clmd->sim_parms->effector_weights) {
+					clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
+				}
+			}
 		}
 		else if (md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
@@ -9014,9 +9017,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ob->soft->pointcache= BKE_ptcache_add(&ob->soft->ptcaches);
 
 			for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-				//if(psys->soft && !psys->soft->pointcache)
-				//	psys->soft->pointcache= BKE_ptcache_add(&psys->soft->ptcaches);
-				if(!psys->pointcache)
+				if(psys->pointcache) {
+					if(psys->pointcache->flag & PTCACHE_BAKED && (psys->pointcache->flag & PTCACHE_DISK_CACHE)==0) {
+						printf("Old memory cache isn't supported for particles, so re-bake the simulation!\n");
+						psys->pointcache->flag &= ~PTCACHE_BAKED;
+					}
+				}
+				else
 					psys->pointcache= BKE_ptcache_add(&psys->ptcaches);
 			}
 

@@ -302,18 +302,25 @@ def ord_ind(i1, i2):
 class Mesh(bpy_types.ID):
     __slots__ = ()
 
-    def from_pydata(self, verts, edges, faces):
+    def from_pydata(self, vertices, edges, faces):
         """
         Make a mesh from a list of verts/edges/faces
         Until we have a nicer way to make geometry, use this.
+
+        :arg vertices: float triplets each representing (X, Y, Z) eg: [(0.0, 1.0, 0.5), ...].
+        :type vertices: iterable object
+        :arg edges: int pairs, each pair contains two indices to the *vertices* argument. eg: [(1, 2), ...]
+        :type edges: iterable object
+        :arg faces: iterator of faces, each faces contains three or four indices to the *vertices* argument. eg: [(5, 6, 8, 9), (1, 2, 3), ...]
+        :type faces: iterable object
         """
-        self.vertices.add(len(verts))
+        self.vertices.add(len(vertices))
         self.edges.add(len(edges))
         self.faces.add(len(faces))
 
-        verts_flat = [f for v in verts for f in v]
-        self.vertices.foreach_set("co", verts_flat)
-        del verts_flat
+        vertices_flat = [f for v in vertices for f in v]
+        self.vertices.foreach_set("co", vertices_flat)
+        del vertices_flat
 
         edges_flat = [i for e in edges for i in e]
         self.edges.foreach_set("vertices", edges_flat)

@@ -500,7 +500,7 @@ void ANIM_OT_keying_set_active_set (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* keyingset to use
-	 *	- here the type is int not enum, since many of the indicies here are determined dynamically
+	 *	- here the type is int not enum, since many of the indices here are determined dynamically
 	 */
 	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
 }

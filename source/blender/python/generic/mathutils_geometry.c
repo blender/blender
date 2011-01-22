@@ -332,7 +332,7 @@ static PyObject *M_Geometry_area_tri(PyObject *UNUSED(self), PyObject* args)
 static char M_Geometry_tesselate_polygon_doc[] =
 ".. function:: tesselate_polygon(veclist_list)\n"
 "\n"
-"   Takes a list of polylines (each point a vector) and returns the point indicies for a polyline filled with triangles.\n"
+"   Takes a list of polylines (each point a vector) and returns the point indices for a polyline filled with triangles.\n"
 "\n"
 "   :arg veclist_list: list of polylines\n"
 "   :rtype: list\n"

@@ -204,7 +204,7 @@ typedef struct View3D {
 
 
 /* View3D->flag (short) */
-#define V3D_DISPIMAGE		1
+/*#define V3D_DISPIMAGE		1*/ /*UNUSED*/
 #define V3D_DISPBGPICS		2
 #define V3D_HIDE_HELPLINES	4
 #define V3D_INVALID_BACKBUF	8
@@ -285,7 +285,7 @@ typedef struct View3D {
    /* USE = user setting, DRAW = based on selection */
 #define V3D_USE_MANIPULATOR		1
 #define V3D_DRAW_MANIPULATOR	2
-#define V3D_CALC_MANIPULATOR	4
+/* #define V3D_CALC_MANIPULATOR	4 */ /*UNUSED*/
 
 /* BGPic->flag */
 /* may want to use 1 for select ?*/

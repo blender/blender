@@ -2184,7 +2184,7 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* use for smoothing */
 	int last_sel;
-	int start_sel, end_sel; /* selection indicies, inclusive */
+	int start_sel, end_sel; /* selection indices, inclusive */
 	float start_rad, end_rad, fac, range;
 	
 	for(nu= editnurb->first; nu; nu= nu->next) {
@@ -6096,21 +6096,18 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 	Curve *cu= (Curve*)obedit->data;
 	float vec[3], zvec[3]= {0.0f, 0.0f, 1.0f};
 	float umat[4][4]= MAT4_UNITY, viewmat[4][4]= MAT4_UNITY;
-	float fac, grid;
-	int a, b, cutype, stype;
-	int force_3d = ((Curve *)obedit->data)->flag & CU_3D; /* could be adding to an existing 3D curve */
+	float fac;
+	int a, b;
+	const float grid= v3d ? v3d->grid : 1.0f;
+	const int cutype= (type & CU_TYPE); // poly, bezier, nurbs, etc
+	const int stype= (type & CU_PRIMITIVE);
+	const int force_3d = ((Curve *)obedit->data)->flag & CU_3D; /* could be adding to an existing 3D curve */
 
 	if(rv3d) {
 		copy_m4_m4(viewmat, rv3d->viewmat);
 		VECCOPY(zvec, rv3d->viewinv[2]);
 	}
-	
-	cutype= type & CU_TYPE;	// poly, bezier, nurbs, etc
-	stype= type & CU_PRIMITIVE;
-	
-	if (v3d)	grid = v3d->grid;
-	else		grid = 1.0;
-	
+
 	setflagsNurb(editnurb, 0);
 	
 	/* these types call this function to return a Nurb */
@@ -6432,6 +6429,10 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 
 		}
 		break;
+
+	default: /* should never happen */
+		BLI_assert(!"invalid nurbs type");
+		return NULL;
 	}
 	
 	/* always do: */

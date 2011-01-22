@@ -469,11 +469,11 @@ static EnumPropertyItem constraint_owner_items[] = {
 static int edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", rna_type);
-	Object *ob= (ptr.id.data)?ptr.id.data:ED_object_active_context(C);
-	
+	Object *ob= (ptr.id.data) ? ptr.id.data : ED_object_active_context(C);
+
 	if (!ob || ob->id.lib) return 0;
-	if (ptr.data && ((ID*)ptr.id.data)->lib) return 0;
-	
+	if (ptr.id.data && ((ID*)ptr.id.data)->lib) return 0;
+
 	return 1;
 }
 

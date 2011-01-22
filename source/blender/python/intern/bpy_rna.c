@@ -1665,7 +1665,7 @@ static PyObject *pyrna_prop_array_subscript(BPy_PropertyArrayRNA *self, PyObject
 			int len= pyrna_prop_array_length(self);
 			Py_ssize_t start, stop, slicelength;
 
-			if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0)
+			if (PySlice_GetIndicesEx((void *)key, len, &start, &stop, &step, &slicelength) < 0)
 				return NULL;
 
 			if (slicelength <= 0) {
@@ -1821,7 +1821,7 @@ static int pyrna_prop_array_ass_subscript( BPy_PropertyArrayRNA *self, PyObject 
 		int len= RNA_property_array_length(&self->ptr, self->prop);
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0) {
+		if (PySlice_GetIndicesEx((void *)key, len, &start, &stop, &step, &slicelength) < 0) {
 			ret= -1;
 		}
 		else if (slicelength <= 0) {
@@ -2213,7 +2213,7 @@ static char pyrna_struct_keyframe_insert_doc[] =
 "\n"
 "   :arg data_path: path to the property to key, analogous to the fcurve's data path.\n"
 "   :type data_path: string\n"
-"   :arg index: array index of the property to key. Defaults to -1 which will key all indicies or a single channel if the property is not an array.\n"
+"   :arg index: array index of the property to key. Defaults to -1 which will key all indices or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is inserted, defaulting to the current frame.\n"
 "   :type frame: float\n"
@@ -2256,7 +2256,7 @@ static char pyrna_struct_keyframe_delete_doc[] =
 "\n"
 "   :arg data_path: path to the property to remove a key, analogous to the fcurve's data path.\n"
 "   :type data_path: string\n"
-"   :arg index: array index of the property to remove a key. Defaults to -1 removing all indicies or a single channel if the property is not an array.\n"
+"   :arg index: array index of the property to remove a key. Defaults to -1 removing all indices or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is deleted, defaulting to the current frame.\n"
 "   :type frame: float\n"
@@ -2300,7 +2300,7 @@ static char pyrna_struct_driver_add_doc[] =
 "\n"
 "   :arg path: path to the property to drive, analogous to the fcurve's data path.\n"
 "   :type path: string\n"
-"   :arg index: array index of the property drive. Defaults to -1 for all indicies or a single channel if the property is not an array.\n"
+"   :arg index: array index of the property drive. Defaults to -1 for all indices or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :return: The driver(s) added.\n"
 "   :rtype: :class:`FCurve` or list if index is -1 with an array property.";
@@ -2372,7 +2372,7 @@ static char pyrna_struct_driver_remove_doc[] =
 "\n"
 "   :arg path: path to the property to drive, analogous to the fcurve's data path.\n"
 "   :type path: string\n"
-"   :arg index: array index of the property drive. Defaults to -1 for all indicies or a single channel if the property is not an array.\n"
+"   :arg index: array index of the property drive. Defaults to -1 for all indices or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :return: Success of driver removal.\n"
 "   :rtype: boolean";
@@ -3480,11 +3480,37 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 	Py_RETURN_NONE;
 }
 
+static char pyrna_prop_collection_foreach_get_doc[] =
+".. method:: foreach_get(attr, seq)\n"
+"\n"
+"   This is a function to give fast access to attribites within a collection.\n"
+"\n"
+"   .. code-block:: python\n"
+"\n"
+"      collection.foreach_get(someseq, attr)\n"
+"\n"
+"      # Python equivelent\n"
+"      for i in range(len(seq)): someseq[i] = getattr(collection, attr)\n"
+"\n"
+;
 static PyObject *pyrna_prop_collection_foreach_get(BPy_PropertyRNA *self, PyObject *args)
 {
 	return foreach_getset(self, args, 0);
 }
 
+static char pyrna_prop_collection_foreach_set_doc[] =
+".. method:: foreach_set(attr, seq)\n"
+"\n"
+"   This is a function to give fast access to attribites within a collection.\n"
+"\n"
+"   .. code-block:: python\n"
+"\n"
+"      collection.foreach_set(seq, attr)\n"
+"\n"
+"      # Python equivelent\n"
+"      for i in range(len(seq)): setattr(collection[i], attr, seq[i])\n"
+"\n"
+;
 static  PyObject *pyrna_prop_collection_foreach_set(BPy_PropertyRNA *self, PyObject *args)
 {
 	return foreach_getset(self, args, 1);
@@ -3566,8 +3592,8 @@ static struct PyMethodDef pyrna_prop_array_methods[] = {
 };
 
 static struct PyMethodDef pyrna_prop_collection_methods[] = {
-	{"foreach_get", (PyCFunction)pyrna_prop_collection_foreach_get, METH_VARARGS, NULL},
-	{"foreach_set", (PyCFunction)pyrna_prop_collection_foreach_set, METH_VARARGS, NULL},
+	{"foreach_get", (PyCFunction)pyrna_prop_collection_foreach_get, METH_VARARGS, pyrna_prop_collection_foreach_get_doc},
+	{"foreach_set", (PyCFunction)pyrna_prop_collection_foreach_set, METH_VARARGS, pyrna_prop_collection_foreach_set_doc},
 
 	{"keys", (PyCFunction)pyrna_prop_collection_keys, METH_NOARGS, NULL},
 	{"items", (PyCFunction)pyrna_prop_collection_items, METH_NOARGS,NULL},

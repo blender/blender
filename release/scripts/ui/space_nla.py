@@ -137,8 +137,10 @@ class NLA_MT_edit(bpy.types.Menu):
         layout.separator()
         layout.operator("nla.apply_scale")
         layout.operator("nla.clear_scale")
+        layout.operator("nla.action_sync_length").active = False
 
         layout.separator()
+        layout.operator("nla.swap")
         layout.operator("nla.move_up")
         layout.operator("nla.move_down")
 

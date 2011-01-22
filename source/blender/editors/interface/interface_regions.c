@@ -1984,7 +1984,7 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	
 	uiBlockPicker(block, handle->retvec, &but->rnapoin, but->rnaprop);
 	
-	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
+	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN|UI_BLOCK_OUT_1;
 	uiBoundsBlock(block, 10);
 	
 	block->block_event_func= ui_picker_small_wheel_cb;

@@ -750,7 +750,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
             self.description = prop_ui.get("description", "")
 
         wm = context.window_manager
-        return wm.invoke_props_popup(self, event)
+        return wm.invoke_props_dialog(self)
 
 
 class WM_OT_properties_add(bpy.types.Operator):

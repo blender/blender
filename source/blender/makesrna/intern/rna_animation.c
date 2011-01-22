@@ -727,23 +727,27 @@ void rna_def_animdata(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE); /* this flag as well as the dynamic test must be defined for this to be editable... */
 	RNA_def_property_editable_func(prop, "rna_AnimData_action_editable");
 	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL); /* this will do? */
 
 	/* Active Action Settings */
 	prop= RNA_def_property(srna, "action_extrapolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "act_extendmode");
 	RNA_def_property_enum_items(prop, nla_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Action Extrapolation", "Action to take for gaps past the Active Action's range (when evaluating with NLA)");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_NLA, NULL); /* this will do? */
 	
 	prop= RNA_def_property(srna, "action_blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "act_blendmode");
 	RNA_def_property_enum_items(prop, nla_mode_blend_items);
 	RNA_def_property_ui_text(prop, "Action Blending", "Method used for combining Active Action's result with result of NLA stack");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_NLA, NULL); /* this will do? */
 	
 	prop= RNA_def_property(srna, "action_influence", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "act_influence");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Action Influence", "Amount the Active Action contributes to the result of the NLA stack");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_NLA, NULL); /* this will do? */
 	
 	/* Drivers */
 	prop= RNA_def_property(srna, "drivers", PROP_COLLECTION, PROP_NONE);
@@ -755,6 +759,7 @@ void rna_def_animdata(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_nla", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ADT_NLA_EVAL_OFF);
 	RNA_def_property_ui_text(prop, "NLA Evaluation Enabled", "NLA stack is evaluated when evaluating this block");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_NLA, NULL); /* this will do? */
 }
 
 /* --- */

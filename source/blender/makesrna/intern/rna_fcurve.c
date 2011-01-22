@@ -546,10 +546,27 @@ static void rna_FModifierStepped_end_frame_range(PointerRNA *ptr, float *min, fl
 	*max= MAXFRAMEF;
 }
 
-static BezTriple *rna_FKeyframe_points_add(FCurve *fcu, float frame, float value, int flag)
+static BezTriple *rna_FKeyframe_points_insert(FCurve *fcu, float frame, float value, int flag)
 {
 	int index= insert_vert_fcurve(fcu, frame, value, flag);
 	return ((fcu->bezt) && (index >= 0))? (fcu->bezt + index) : NULL;
+}
+
+static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
+{
+	if(tot > 0) {
+		if(fcu->totvert) {
+			BezTriple *nbezt= MEM_callocN(sizeof(BezTriple) * (fcu->totvert + tot), "rna_FKeyframe_points_add");
+			memcpy(nbezt, fcu->bezt, sizeof(BezTriple) * fcu->totvert);
+			MEM_freeN(fcu->bezt);
+			fcu->bezt= nbezt;
+		}
+		else {
+			fcu->bezt= MEM_callocN(sizeof(BezTriple) * tot, "rna_FKeyframe_points_add");
+		}
+
+		fcu->totvert += tot;
+	}
 }
 
 static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTriple *bezt, int do_fast)
@@ -1326,7 +1343,7 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "FCurve");
 	RNA_def_struct_ui_text(srna, "Keyframe Points", "Collection of keyframe points");
 
-	func= RNA_def_function(srna, "add", "rna_FKeyframe_points_add");
+	func= RNA_def_function(srna, "insert", "rna_FKeyframe_points_insert");
 	RNA_def_function_ui_description(func, "Add a keyframe point to a F-Curve.");
 	parm= RNA_def_float(func, "frame", 0.0f, -FLT_MAX, FLT_MAX, "", "X Value of this keyframe point", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -1338,6 +1355,9 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Newly created keyframe");
 	RNA_def_function_return(func, parm);
 
+	func= RNA_def_function(srna, "add", "rna_FKeyframe_points_add");
+	RNA_def_function_ui_description(func, "Add a keyframe point to a F-Curve.");
+	RNA_def_int(func, "count", 1, 1, INT_MAX, "Number", "Number of points to add to the spline", 1, INT_MAX);
 
 	func= RNA_def_function(srna, "remove", "rna_FKeyframe_points_remove");
 	RNA_def_function_ui_description(func, "Remove keyframe from an fcurve.");

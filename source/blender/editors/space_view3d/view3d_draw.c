@@ -2014,7 +2014,7 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	/* calculate pixelsize factor once, is used for lamps and obcenters */
 	{
 		/* note:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
-		 * because of float point precission problems at large values [#23908] */
+		 * because of float point precision problems at large values [#23908] */
 		float v1[3], v2[3];
 		float len1, len2;
 

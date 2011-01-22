@@ -41,7 +41,7 @@ def particle_panel_poll(cls, context):
         return False
     if psys.settings is None:
         return False
-    return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR') and (engine in cls.COMPAT_ENGINES)
+    return psys.settings.is_fluid == False and (engine in cls.COMPAT_ENGINES)
 
 
 class ParticleButtonsPanel():
@@ -95,13 +95,13 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
             split = layout.split(percentage=0.32)
             col = split.column()
             col.label(text="Name:")
-            if part.type in ('EMITTER', 'REACTOR', 'HAIR'):
+            if part.is_fluid == False:
                 col.label(text="Settings:")
                 col.label(text="Type:")
 
             col = split.column()
             col.prop(psys, "name", text="")
-            if part.type in ('EMITTER', 'REACTOR', 'HAIR'):
+            if part.is_fluid == False:
                 row = col.row()
                 row.enabled = particle_panel_enabled(context, psys)
                 row.template_ID(psys, "settings", new="particle.new")
@@ -111,8 +111,8 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
             #row.label(text="Render")
 
             if part:
-                if part.type not in ('EMITTER', 'REACTOR', 'HAIR'):
-                    layout.label(text="No settings for fluid particles")
+                if part.is_fluid:
+                    layout.label(text=str(part.count) + " fluid particles for this frame.")
                     return
 
                 row = col.row()
@@ -150,10 +150,16 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
+        psys = context.particle_system
+        if psys is None:
+            return False
+        if psys.settings is None:
+            return False
+        if psys.settings.is_fluid:
+            return False
         if particle_panel_poll(PARTICLE_PT_emission, context):
             return not context.particle_system.point_cache.use_external
-        else:
-            return False
+        return False
 
     def draw(self, context):
         layout = self.layout
@@ -272,6 +278,8 @@ class PARTICLE_PT_cache(ParticleButtonsPanel, bpy.types.Panel):
         if psys is None:
             return False
         if psys.settings is None:
+            return False
+        if psys.settings.is_fluid:
             return False
         phystype = psys.settings.physics_type
         if phystype == 'NO' or phystype == 'KEYED':
@@ -1011,6 +1019,10 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Field Weights"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
+    
+    @classmethod
+    def poll(cls, context):
+        return particle_panel_poll(cls, context)
 
     def draw(self, context):
         part = context.particle_system.settings
@@ -1052,6 +1064,10 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Vertexgroups"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
+    
+    @classmethod
+    def poll(cls, context):
+        return particle_panel_poll(cls, context)
 
     def draw(self, context):
         layout = self.layout

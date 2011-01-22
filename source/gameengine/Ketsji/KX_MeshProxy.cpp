@@ -181,7 +181,7 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* args, PyObject* kwds)
 	RAS_TexVert* vertex = m_meshobj->GetVertex(matindex,vertexindex);
 	
 	if(vertex==NULL) {
-		PyErr_SetString(PyExc_ValueError, "mesh.getVertex(mat_idx, vert_idx): KX_MeshProxy, could not get a vertex at the given indicies");
+		PyErr_SetString(PyExc_ValueError, "mesh.getVertex(mat_idx, vert_idx): KX_MeshProxy, could not get a vertex at the given indices");
 		return NULL;
 	}
 	

@@ -327,11 +327,11 @@ typedef struct ArrayIterator {
 	void *free_ptr; /* will be free'd if set */
 	int itemsize;
 
-	/* array length with no skip functins applied, take care not to compare against index from animsys or python indicies */
+	/* array length with no skip functins applied, take care not to compare against index from animsys or python indices */
 	int length;
 
 	/* optional skip function, when set the array as viewed by rna can contain only a subset of the members.
-	 * this changes indicies so quick array index lookups are not possible when skip function is used. */
+	 * this changes indices so quick array index lookups are not possible when skip function is used. */
 	IteratorSkipFunc skip;
 } ArrayIterator;
 
@@ -364,9 +364,9 @@ int rna_parameter_size(struct PropertyRNA *parm);
 int rna_parameter_size_alloc(struct PropertyRNA *parm);
 
 // XXX, these should not need to be defined here~!
-struct MTex *rna_mtex_texture_slots_add(struct ID *self, struct ReportList *reports);
-struct MTex *rna_mtex_texture_slots_create(struct ID *self, struct ReportList *reports, int index);
-void rna_mtex_texture_slots_clear(struct ID *self, struct ReportList *reports, int index);
+struct MTex *rna_mtex_texture_slots_add(struct ID *self, struct bContext *C, struct ReportList *reports);
+struct MTex *rna_mtex_texture_slots_create(struct ID *self, struct bContext *C, struct ReportList *reports, int index);
+void rna_mtex_texture_slots_clear(struct ID *self, struct bContext *C, struct ReportList *reports, int index);
 
 #endif /* RNA_INTERNAL_H */
 

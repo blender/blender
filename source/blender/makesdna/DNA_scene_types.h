@@ -1176,7 +1176,7 @@ typedef enum SculptFlags {
 
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1
-#define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
+/*#define UVCALC_NO_ASPECT_CORRECT	2*/	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
 #define UVCALC_TRANSFORM_CORRECT	4	/* adjust UV's while transforming to avoid distortion */
 
 /* toolsettings->uv_flag */
@@ -1234,10 +1234,10 @@ typedef enum SculptFlags {
 #define RETOPO 1
 #define RETOPO_PAINT 2
 
-/* toolsettings->retopo_paint_tool */
-#define RETOPO_PEN 1
-#define RETOPO_LINE 2
-#define RETOPO_ELLIPSE 4
+/* toolsettings->retopo_paint_tool */ /*UNUSED*/
+/* #define RETOPO_PEN 1 */
+/* #define RETOPO_LINE 2 */
+/* #define RETOPO_ELLIPSE 4 */
 
 /* toolsettings->skgen_options */
 #define SKGEN_FILTER_INTERNAL	(1 << 0)

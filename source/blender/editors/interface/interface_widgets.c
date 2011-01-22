@@ -746,7 +746,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 #define PREVIEW_PAD	4
 
-static void widget_draw_preview(BIFIconID icon, float aspect, float UNUSED(alpha), rcti *rect)
+static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), rcti *rect)
 {
 	int w, h, size;
 
@@ -762,7 +762,7 @@ static void widget_draw_preview(BIFIconID icon, float aspect, float UNUSED(alpha
 		int x = rect->xmin + w/2 - size/2;
 		int y = rect->ymin + h/2 - size/2;
 
-		UI_icon_draw_preview_aspect_size(x, y, icon, aspect, size);
+		UI_icon_draw_preview_aspect_size(x, y, icon, 1.0f, size);
 	}
 }
 
@@ -776,7 +776,7 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 	float aspect, height;
 	
 	if (but->flag & UI_ICON_PREVIEW) {
-		widget_draw_preview(icon, but->block->aspect, alpha, rect);
+		widget_draw_preview(icon, alpha, rect);
 		return;
 	}
 	
@@ -871,28 +871,42 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	if (fstyle->kerning==1)	/* for BLF_width */
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 
-	but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr);
-	but->ofs= 0;
+	/* if text editing we define ofs dynamically */
+	if(but->editstr && but->pos >= 0) {
+		if(but->ofs > but->pos)
+			but->ofs= but->pos;
+	}
+	else but->ofs= 0;
 	
-	while(but->strwidth > okwidth ) {
+	but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
+	
+	while(but->strwidth > okwidth) {
 		
-		but->ofs++;
-		but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
-		
-		/* textbut exception */
-		if(but->editstr && but->pos != -1) {
-			int pos= but->pos+1;
+		/* textbut exception, clip right when... */
+		if(but->editstr && but->pos >= 0) {
+			float width;
+			char buf[256];
 			
-			if(pos-1 < but->ofs) {
-				pos= but->ofs-pos+1;
-				but->ofs -= pos;
-				if(but->ofs<0) {
-					but->ofs= 0;
-					pos--;
-				}
-				but->drawstr[ strlen(but->drawstr)-pos ]= 0;
+			/* copy draw string */
+			BLI_strncpy(buf, but->drawstr, sizeof(buf));
+			/* string position of cursor */
+			buf[but->pos]= 0;
+			width= BLF_width(fstyle->uifont_id, buf+but->ofs);
+			
+			/* if cursor is at 20 pixels of right side button we clip left */
+			if(width > okwidth-20)
+				but->ofs++;
+			else {
+				/* shift string to the left */
+				if(width < 20 && but->ofs > 0)
+					but->ofs--;
+				but->drawstr[ strlen(but->drawstr)-1 ]= 0;
 			}
 		}
+		else
+			but->ofs++;
+
+		but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 		
 		if(but->strwidth < 10) break;
 	}
@@ -3118,7 +3132,7 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconi
 	wt->state(wt, state);
 	wt->draw(&wt->wcol, rect, 0, 0);
 	
-	widget_draw_preview(iconid, 1.f, 1.f, rect);
+	widget_draw_preview(iconid, 1.0f, rect);
 	
 	if (state == UI_ACTIVE)
 		glColor3ubv((unsigned char*)wt->wcol.text);

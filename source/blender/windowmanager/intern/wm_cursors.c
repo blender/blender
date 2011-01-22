@@ -116,6 +116,9 @@ void WM_cursor_set(wmWindow *win, int curs)
 
 	GHOST_SetCursorVisibility(win->ghostwin, 1);
 	
+	if(curs == CURSOR_STD && win->modalcursor)
+		curs= win->modalcursor;
+	
 	win->cursor= curs;
 	
 	/* detect if we use system cursor or Blender cursor */
@@ -141,11 +144,13 @@ void WM_cursor_modal(wmWindow *win, int val)
 {
 	if(win->lastcursor == 0)
 		win->lastcursor = win->cursor;
+	win->modalcursor = val;
 	WM_cursor_set(win, val);
 }
 
 void WM_cursor_restore(wmWindow *win)
 {
+	win->modalcursor = 0;
 	if(win->lastcursor)
 		WM_cursor_set(win, win->lastcursor);
 	win->lastcursor = 0;

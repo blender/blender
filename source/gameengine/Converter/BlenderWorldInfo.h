@@ -64,6 +64,12 @@ public:
     float	getMistColorGreen();
     float	getMistColorBlue();     
 
+		void
+	setBackColor(
+		float r,
+		float g,
+		float b
+	);
 		void	
 	setMistStart(
 		float d

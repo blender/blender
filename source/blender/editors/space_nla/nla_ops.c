@@ -139,6 +139,7 @@ void nla_operatortypes(void)
 	
 	WM_operatortype_append(NLA_OT_mute_toggle);
 	
+	WM_operatortype_append(NLA_OT_swap);
 	WM_operatortype_append(NLA_OT_move_up);
 	WM_operatortype_append(NLA_OT_move_down);
 	
@@ -225,6 +226,9 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 		/* toggles */
 	WM_keymap_add_item(keymap, "NLA_OT_mute_toggle", HKEY, KM_PRESS, 0, 0);
 	
+		/* swap */
+	WM_keymap_add_item(keymap, "NLA_OT_swap", FKEY, KM_PRESS, KM_ALT, 0);
+		
 		/* move up */
 	WM_keymap_add_item(keymap, "NLA_OT_move_up", PAGEUPKEY, KM_PRESS, 0, 0);
 		/* move down */

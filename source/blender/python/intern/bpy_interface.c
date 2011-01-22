@@ -62,8 +62,7 @@
 static int py_call_level= 0;
 BPy_StructRNA *bpy_context_module= NULL; /* for fast access */
 
-// only for tests
-#define TIME_PY_RUN
+// #define TIME_PY_RUN // simple python tests. prints on exit.
 
 #ifdef TIME_PY_RUN
 #include "PIL_time.h"

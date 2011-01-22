@@ -321,7 +321,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 #define PART_CHILD_EFFECT		(1<<27)
 #define PART_CHILD_LONG_HAIR	(1<<28)
-#define PART_CHILD_RENDER		(1<<29)
+/* #define PART_CHILD_RENDER		(1<<29) */ /*UNUSED*/
 #define PART_CHILD_GUIDE		(1<<30)
 
 #define PART_SELF_EFFECT	(1<<22)

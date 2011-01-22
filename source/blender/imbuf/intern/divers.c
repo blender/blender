@@ -188,6 +188,8 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 			}
 		}
 	}
+	/* ensure user flag is reset */
+	ibuf->userflags &= ~IB_RECT_INVALID;
 }
 
 static void imb_float_from_rect_nonlinear(struct ImBuf *ibuf, float *fbuf)

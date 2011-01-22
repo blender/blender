@@ -160,7 +160,7 @@ static void clean_paths(Main *main)
 	char filepath_expanded[1024];
 	Scene *scene;
 
-	for(BLI_bpathIterator_init(&bpi, main, main->name); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
+	for(BLI_bpathIterator_init(&bpi, main, main->name, BPATH_USE_PACKED); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
 		BLI_bpathIterator_getPath(bpi, filepath_expanded);
 
 		BLI_clean(filepath_expanded);
@@ -299,8 +299,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filename
 	/* these are the same at times, should never copy to the same location */
 	if(G.main->name != filename)
 		BLI_strncpy(G.main->name, filename, FILE_MAX);
-	
-	BLI_strncpy(G.main->name, filename, FILE_MAX); /* is guaranteed current file */
 
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(G.main, CTX_data_scene(C));

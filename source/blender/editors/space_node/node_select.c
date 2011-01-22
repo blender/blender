@@ -137,6 +137,7 @@ void NODE_OT_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select";
 	ot->idname= "NODE_OT_select";
+	ot->description= "Select node under cursor";
 	
 	/* api callbacks */
 	ot->invoke= node_select_invoke;

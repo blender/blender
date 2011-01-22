@@ -160,19 +160,23 @@ static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
 static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 {
 	Scene *scene= (Scene *)ptr->id.data;
-	Object *ob = OBACT;
+	ToolSettings *ts = scene->toolsettings;
 	Brush *brush= value.id.data;
-	
-	/* weak, for object painting we need to check against the object mode
-	 * but for 2D view image painting we always want texture brushes 
-	 * this is not quite correct since you could be in object weightpaint
-	 * mode at the same time as the 2D image view, but for now its *good enough* */
-	if(ob && ob->mode & OB_MODE_ALL_PAINT) {
-		return ob->mode & brush->ob_mode;
-	}
-	else {
-		return OB_MODE_TEXTURE_PAINT & brush->ob_mode;
-	}
+	int mode = 0;
+
+	/* check the origin of the Paint struct to see which paint
+	   mode to select from */
+
+	if(ptr->data == &ts->imapaint)
+		mode = OB_MODE_TEXTURE_PAINT;
+	else if(ptr->data == ts->sculpt)
+		mode = OB_MODE_SCULPT;
+	else if(ptr->data == ts->vpaint)
+		mode = OB_MODE_VERTEX_PAINT;
+	else if(ptr->data == ts->wpaint)
+		mode = OB_MODE_WEIGHT_PAINT;
+
+	return brush->ob_mode & mode;
 }
 
 #else

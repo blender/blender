@@ -4206,7 +4206,7 @@ void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 
 	if(iter->valid) {
 		iter->size= rna_parameter_size_alloc(iter->parm);
-		iter->data= (((char*)iter->parms->data)+iter->offset);
+		iter->data= (((char*)iter->parms->data)); /* +iter->offset, always 0 */
 	}
 }
 
@@ -4400,7 +4400,7 @@ static int rna_function_format_array_length(const char *format, int ofs, int fle
 		for (; ofs<flen && format[ofs]!=']' && idx<sizeof(*lenbuf)-1; idx++, ofs++)
 			lenbuf[idx]= format[ofs];
 
-	if (ofs<flen && format[ofs++]==']') {
+	if (ofs<flen && format[ofs+1]==']') {
 		/* XXX put better error reporting for ofs>=flen or idx over lenbuf capacity */
 		lenbuf[idx]= '\0';
 		return atoi(lenbuf);

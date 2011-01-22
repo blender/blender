@@ -523,6 +523,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 #endif
 				but->active= oldbut->active;
 				but->pos= oldbut->pos;
+				but->ofs= oldbut->ofs;
 				but->editstr= oldbut->editstr;
 				but->editval= oldbut->editval;
 				but->editvec= oldbut->editvec;
@@ -2505,8 +2506,10 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 		}
 	}
 
-	if(ELEM8(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, SEARCH_MENU, BUTM));
+	/* keep track of UI_interface.h */
+	if(ELEM7(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM));
 	else if(ELEM5(but->type, SCROLL, SEPR, LINK, INLINK, FTPREVIEW));
+	else if(but->type >= SEARCH_MENU);
 	else but->flag |= UI_BUT_UNDO;
 
 	BLI_addtail(&block->buttons, but);

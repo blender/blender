@@ -539,7 +539,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 	Py_RETURN_NONE;
 }
 
-static EnumPropertyItem *enum_items_from_py(PyObject *value, PyObject *def, int *defvalue, const short is_enum_flag)
+static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, int *defvalue, const short is_enum_flag)
 {
 	EnumPropertyItem *items= NULL;
 	PyObject *item;
@@ -547,12 +547,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *value, PyObject *def, int 
 	short def_used= 0;
 	const char *def_cmp= NULL;
 
-	if(!PySequence_Check(value)) {
-		PyErr_SetString(PyExc_TypeError, "EnumProperty(...): expected a sequence of tuples for the enum items");
-		return NULL;
-	}
-
-	seq_len= PySequence_Size(value);
+	seq_len= PySequence_Fast_GET_SIZE(seq_fast);
 
 	if(is_enum_flag) {
 		if(seq_len > RNA_ENUM_BITFLAG_SIZE) {
@@ -580,17 +575,15 @@ static EnumPropertyItem *enum_items_from_py(PyObject *value, PyObject *def, int 
 	for(i=0; i<seq_len; i++) {
 		EnumPropertyItem tmp= {0, "", 0, "", ""};
 
-		item= PySequence_GetItem(value, i);
-		if(item==NULL || PyTuple_Check(item)==0) {
+		item= PySequence_Fast_GET_ITEM(seq_fast, i);
+		if(PyTuple_Check(item)==0) {
 			PyErr_SetString(PyExc_TypeError, "EnumProperty(...): expected a sequence of tuples for the enum items");
 			if(items) MEM_freeN(items);
-			Py_XDECREF(item);
 			return NULL;
 		}
 
 		if(!PyArg_ParseTuple(item, "sss", &tmp.identifier, &tmp.name, &tmp.description)) {
 			PyErr_SetString(PyExc_TypeError, "EnumProperty(...): expected an identifier, name and description in the tuple");
-			Py_DECREF(item);
 			return NULL;
 		}
 
@@ -612,8 +605,6 @@ static EnumPropertyItem *enum_items_from_py(PyObject *value, PyObject *def, int 
 		}
 
 		RNA_enum_item_add(&items, &totitem, &tmp);
-
-		Py_DECREF(item);
 	}
 
 	RNA_enum_item_end(&items, &totitem);
@@ -635,6 +626,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *value, PyObject *def, int 
 			return NULL;
 		}
 	}
+
 	return items;
 }
 
@@ -661,7 +653,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PyObject *def= NULL;
 		int id_len;
 		int defvalue=0;
-		PyObject *items= Py_None;
+		PyObject *items, *items_fast;
 		EnumPropertyItem *eitems;
 		PropertyRNA *prop;
 		PyObject *pyopts= NULL;
@@ -672,15 +664,23 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		BPY_PROPDEF_CHECK(EnumProperty, property_flag_enum_items)
 
-		eitems= enum_items_from_py(items, def, &defvalue, (opts & PROP_ENUM_FLAG)!=0);
+		if(!(items_fast= PySequence_Fast(items, "EnumProperty(...): expected a sequence of tuples for the enum items"))) {
+			return NULL;
+		}
+
+		eitems= enum_items_from_py(items_fast, def, &defvalue, (opts & PROP_ENUM_FLAG)!=0);
+
+		Py_DECREF(items_fast);
+
 		if(!eitems)
 			return NULL;
 
-		prop= RNA_def_enum(srna, id, eitems, defvalue, name, description);
+		if(opts & PROP_ENUM_FLAG)	prop= RNA_def_enum_flag(srna, id, eitems, defvalue, name, description);
+		else						prop= RNA_def_enum(srna, id, eitems, defvalue, name, description);
+
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-			if(opts & PROP_ENUM_FLAG) RNA_def_property_flag(prop, PROP_ENUM_FLAG);
 		}
 		RNA_def_property_duplicate_pointers(srna, prop);
 		MEM_freeN(eitems);

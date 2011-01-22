@@ -178,6 +178,7 @@ void GRAPH_OT_previewrange_set (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Auto-Set Preview Range";
 	ot->idname= "GRAPH_OT_previewrange_set";
+	ot->description= "Automatically set Preview Range based on range of keyframes";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_previewrange_exec;

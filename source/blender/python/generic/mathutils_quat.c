@@ -545,7 +545,7 @@ static PyObject *Quaternion_subscript(QuaternionObject *self, PyObject *item)
 	} else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((PySliceObject*)item, QUAT_SIZE, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx((void *)item, QUAT_SIZE, &start, &stop, &step, &slicelength) < 0)
 			return NULL;
 
 		if (slicelength <= 0) {
@@ -579,7 +579,7 @@ static int Quaternion_ass_subscript(QuaternionObject *self, PyObject *item, PyOb
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((PySliceObject*)item, QUAT_SIZE, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx((void *)item, QUAT_SIZE, &start, &stop, &step, &slicelength) < 0)
 			return -1;
 
 		if (step == 1)
@@ -901,7 +901,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 	case 2:
 		if (mathutils_array_parse(quat, 3, 3, seq, "mathutils.Quaternion()") == -1)
 			return NULL;
-		angle= fmod(angle + M_PI*2, M_PI*4) - M_PI*2; /* clamp because of precission issues */
+		angle= fmod(angle + M_PI*2, M_PI*4) - M_PI*2; /* clamp because of precision issues */
 		axis_angle_to_quat(quat, quat, angle);
 		break;
 	/* PyArg_ParseTuple assures no more then 2 */

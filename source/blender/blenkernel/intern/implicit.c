@@ -1317,8 +1317,9 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 
 		VECSUB(extent, X[s->ij], tvect);
 		
-		dot = INPR(extent, extent);
-		length = sqrt(dot);
+		// SEE MSG BELOW (these are UNUSED)
+		// dot = INPR(extent, extent);
+		// length = sqrt(dot);
 		
 		k = clmd->sim_parms->goalspring;
 		

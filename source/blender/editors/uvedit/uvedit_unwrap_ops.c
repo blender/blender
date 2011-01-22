@@ -154,7 +154,7 @@ ParamHandle *construct_param_handle(Scene *scene, EditMesh *em, short implicit, 
 		}
 	}
 	
-	/* we need the vert indicies */
+	/* we need the vert indices */
 	for(ev= em->verts.first, a=0; ev; ev= ev->next, a++)
 		ev->tmp.l = a;
 	

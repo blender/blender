@@ -1,4 +1,4 @@
-.TH "BLENDER" "1" "January 01, 2011" "Blender Blender 2\&.56 (sub 0) "
+.TH "BLENDER" "1" "January 20, 2011" "Blender Blender 2\&.56 (sub 0) "
 
 .SH NAME
 blender \- a 3D modelling and rendering package
@@ -133,17 +133,9 @@ Use amount of <threads> for rendering in background
 .SS "Animation Playback Options:"
 
 .TP
-.B \-a <options> <file(s)>
+.B \-a or \-\-render\-anim
 .br
-Playback <file(s)>, only operates this way when not running in background.
-.br
-    \-p <sx> <sy> Open with lower left corner at <sx>, <sy>
-.br
-    \-m Read from disk (Don't buffer)
-.br
-    \-f <fps> <fps\-base> Specify FPS to start with
-.br
-    \-j <frame> Set frame step to <frame>
+Render frames from start to end (inclusive)
 .br
 
 .IP
@@ -206,6 +198,46 @@ Turn debugging on
 .B \-\-debug\-fpe
 .br
 Enable floating point exceptions
+.br
+
+.IP
+
+.TP
+.B \-\-factory\-startup
+.br
+Skip reading the "startup.blend" in the users home directory
+.br
+
+.IP
+
+.TP
+.B \-\-env\-system\-config
+.br
+Set the BLENDER_SYSTEM_CONFIG environment variable
+.br
+
+.TP
+.B \-\-env\-system\-datafiles
+.br
+Set the BLENDER_SYSTEM_DATAFILES environment variable
+.br
+
+.TP
+.B \-\-env\-system\-scripts
+.br
+Set the BLENDER_SYSTEM_SCRIPTS environment variable
+.br
+
+.TP
+.B \-\-env\-system\-plugins
+.br
+Set the BLENDER_SYSTEM_PLUGINS environment variable
+.br
+
+.TP
+.B \-\-env\-system\-python
+.br
+Set the BLENDER_SYSTEM_PYTHON environment variable
 .br
 
 .IP
@@ -290,6 +322,20 @@ Ends option processing, following arguments passed unchanged. Access via python'
 .B /?
 .br
 Print this help text and exit (windows only)
+.br
+
+.TP
+.B \-a <options> <file(s)>
+.br
+Playback <file(s)>, only operates this way when not running in background.
+.br
+    \-p <sx> <sy> Open with lower left corner at <sx>, <sy>
+.br
+    \-m Read from disk (Don't buffer)
+.br
+    \-f <fps> <fps\-base> Specify FPS to start with
+.br
+    \-j <frame> Set frame step to <frame>
 .br
 
 .TP

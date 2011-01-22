@@ -611,10 +611,11 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
             col.prop(strip.crop, "min_y")
             col.prop(strip.crop, "max_x")
 
-        col = layout.column(align=True)
-        col.label(text="Trim Duration (hard):")
-        col.prop(strip, "animation_offset_start", text="Start")
-        col.prop(strip, "animation_offset_end", text="End")
+        if not isinstance(strip, bpy.types.EffectSequence):
+            col = layout.column(align=True)
+            col.label(text="Trim Duration (hard):")
+            col.prop(strip, "animation_offset_start", text="Start")
+            col.prop(strip, "animation_offset_end", text="End")
 
         col = layout.column(align=True)
         col.label(text="Trim Duration (soft):")

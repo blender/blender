@@ -221,7 +221,7 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	for (fcu= list->first; fcu; fcu= fcu->next) {
 		/* simple string-compare (this assumes that they have the same root...) */
 		if (fcu->rna_path && !strcmp(fcu->rna_path, rna_path)) {
-			/* now check indicies */
+			/* now check indices */
 			if (fcu->array_index == array_index)
 				return fcu;
 		}

@@ -981,25 +981,21 @@ static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
 	return block;
 }
 
+/* operator menu needs undo, for redo callback */
 int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	int retval= OPERATOR_CANCELLED;
 	
 	if((op->type->flag & OPTYPE_REGISTER)==0) {
 		BKE_reportf(op->reports, RPT_ERROR, "Operator '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
 	
-	if(op->type->exec) {
-		retval= op->type->exec(C, op);
+	ED_undo_push_op(C, op);
+	wm_operator_register(C, op);
 
-		/* ED_undo_push_op(C, op), called by wm_operator_finished now. */
-	}
+	uiPupBlock(C, wm_block_create_redo, op);
 
-	if(retval != OPERATOR_CANCELLED)
-		uiPupBlock(C, wm_block_create_redo, op);
-
-	return retval;
+	return OPERATOR_RUNNING_MODAL;
 }
 
 int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int height)
@@ -1353,7 +1349,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 	ot->description="Open the default file (doesn't save the current file)";
 	
 	ot->invoke= WM_operator_confirm;
-	ot->exec= WM_read_homefile;
+	ot->exec= WM_read_homefile_exec;
 	ot->poll= WM_operator_winactive;
 }
 
@@ -1364,7 +1360,7 @@ static void WM_OT_read_factory_settings(wmOperatorType *ot)
 	ot->description="Load default file and user preferences";
 	
 	ot->invoke= WM_operator_confirm;
-	ot->exec= WM_read_homefile;
+	ot->exec= WM_read_homefile_exec;
 	ot->poll= WM_operator_winactive;
 }
 

@@ -45,7 +45,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 		TexParams params;
 		params_from_cdata(&params, cdata);
 
-		if(in[1]->hasinput && !in[0]->hasinput)
+		if(in[1] && in[1]->hasinput && !in[0]->hasinput)
 			tex_input_rgba(&target->tr, in[1], &params, cdata->thread);
 		else
 			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
@@ -63,7 +63,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 			target->talpha = 1.0f;
 		
 			if(target->nor) {
-				if(in[1]->hasinput)
+				if(in[1] && in[1]->hasinput)
 					tex_input_vec(target->nor, in[1], &params, cdata->thread);
 				else
 					target->nor = 0;

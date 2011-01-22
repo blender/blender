@@ -4014,6 +4014,9 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 	if(cache && cache->flag & PTCACHE_DISK_CACHE)
 		return;
 
+	if(psys == NULL && cache->mem_cache.first == NULL)
+		return;
+
 	if(!edit) {
 		totpoint = psys ? psys->totpart : ((PTCacheMem*)cache->mem_cache.first)->totpoint;
 

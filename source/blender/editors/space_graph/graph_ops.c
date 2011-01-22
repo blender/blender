@@ -204,6 +204,7 @@ void GRAPH_OT_view_togglehandles (wmOperatorType *ot)
 	/* identification */
 	ot->name= "Show/Hide All Handles";
 	ot->idname= "GRAPH_OT_handles_view_toggle";
+	ot->description= "Toggle whether handles are drawn on all keyframes that need them";
 	
 	/* callbacks */
 	ot->exec= view_toggle_handles_exec;

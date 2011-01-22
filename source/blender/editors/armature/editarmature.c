@@ -3000,14 +3000,13 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 	bArmature *arm= (obedit) ? obedit->data : NULL;
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	EditBone *newbone=NULL;
 	ListBase points = {NULL, NULL};
 	int count;
-	
+
 	/* sanity checks */
-	if ELEM(NULL, obedit, arm)
+	if (ELEM(NULL, obedit, arm))
 		return OPERATOR_CANCELLED;
-	
+
 	/* loop over all bones, and only consider if visible */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones)
 	{
@@ -3041,7 +3040,7 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 		mul_v3_m4v3(curs, obedit->imat, give_cursor(scene, v3d));
 		
 		/* Create a bone */
-		newbone= add_points_bone(obedit, ebp->vec, curs);
+		/* newbone= */ add_points_bone(obedit, ebp->vec, curs);
 	}
 	else if (count == 2) {
 		EditBonePoint *ebp, *ebp2;
@@ -3102,7 +3101,7 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 		
 		/* add new bone and parent it to the appropriate end */
 		if (headtail) {
-			newbone= add_points_bone(obedit, head, tail);
+			EditBone *newbone= add_points_bone(obedit, head, tail);
 			
 			/* do parenting (will need to set connected flag too) */
 			if (headtail == 2) {

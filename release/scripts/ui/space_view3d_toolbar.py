@@ -417,7 +417,6 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, bpy.types.Panel):
         arm = context.active_object.data
 
         col = layout.column(align=True)
-        col.prop(arm, "use_mirror_x")
         col.prop(arm, "use_auto_ik")
 
 # ********** default tools for paint modes ****************

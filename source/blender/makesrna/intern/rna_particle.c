@@ -423,6 +423,14 @@ static float rna_PartSetting_linelenhead_get(struct PointerRNA *ptr)
 	return settings->draw_line[1];
 }
 
+
+static int rna_PartSettings_is_fluid_get(PointerRNA *ptr)
+{
+	ParticleSettings *part= (ParticleSettings*)ptr->data;
+
+	return part->type == PART_FLUID;
+}
+
 static PointerRNA rna_ParticleSystem_active_particle_target_get(PointerRNA *ptr)
 {
 	ParticleSystem *psys= (ParticleSystem*)ptr->data;
@@ -1198,6 +1206,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ParticleSettings", "ID");
 	RNA_def_struct_ui_text(srna, "Particle Settings", "Particle settings, reusable by multiple particle systems");
 	RNA_def_struct_ui_icon(srna, ICON_PARTICLE_DATA);
+
+	/* fluid particle type can't be checked from the type value in rna as it's not shown in the menu */
+	prop= RNA_def_property(srna, "is_fluid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_PartSettings_is_fluid_get", NULL);
+	RNA_def_property_ui_text(prop, "Fluid", "Particles were created by a fluid simulation");
 
 	/* flag */
 	prop= RNA_def_property(srna, "use_react_start_end", PROP_BOOLEAN, PROP_NONE);

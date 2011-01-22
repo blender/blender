@@ -1470,21 +1470,26 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 						if(event->custom==EVT_DATA_LISTBASE) {
 							ListBase *lb= (ListBase *)event->customdata;
 							wmDrag *drag;
+							
 							for(drag= lb->first; drag; drag= drag->next) {
 								if(drop->poll(C, drag, event)) {
+									
 									drop->copy(drag, drop);
 									
+									/* free the drags before calling operator */
+									BLI_freelistN(event->customdata);
+									event->customdata= NULL;
+									event->custom= 0;
+									
 									WM_operator_name_call(C, drop->ot->idname, drop->opcontext, drop->ptr);
-									//wm_operator_invoke(C, drop->ot, event, drop->ptr, NULL, FALSE);
 									action |= WM_HANDLER_BREAK;
 									
 									/* XXX fileread case */
 									if(CTX_wm_window(C)==NULL)
 										return action;
 									
-									BLI_freelistN(event->customdata);
-									event->customdata= NULL;
-									event->custom= 0;
+									/* escape from drag loop, got freed */
+									break;
 								}
 							}
 						}

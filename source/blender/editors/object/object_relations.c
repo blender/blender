@@ -1050,7 +1050,8 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 	unsigned int lay= 0;
 
 	if(!RNA_property_is_set(op->ptr, "layers")) {
-		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		/* note: layers are set in bases, library objects work for this */
+		CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
 			lay |= base->lay;
 		}
 		CTX_DATA_END;
@@ -1098,8 +1099,8 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	
 	if(v3d && v3d->localvd) {
 		/* now we can move out of localview. */
-		// XXX if (!okee("Move from localview")) return;
-		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		/* note: layers are set in bases, library objects work for this */
+		CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
 			lay= base->lay & ~v3d->lay;
 			base->lay= lay;
 			base->object->lay= lay;
@@ -1111,7 +1112,8 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		/* normal non localview operation */
-		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		/* note: layers are set in bases, library objects work for this */
+		CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
 			/* upper byte is used for local view */
 			local= base->lay & 0xFF000000;  
 			base->lay= lay + local;

@@ -30,8 +30,8 @@
  * Interface for C access to functionality relating to shared objects in the foundation library.
  */
 
-#ifndef _H_MEM_REF_COUNTED_C_API
-#define _H_MEM_REF_COUNTED_C_API
+#ifndef MEM_REFCOUNTEDC_API_H
+#define MEM_REFCOUNTEDC_API_H
 
 /** A pointer to a private object. */
 typedef struct MEM_TOpaqueObject* MEM_TObjectPtr;
@@ -71,5 +71,4 @@ extern int	MEM_RefCountedDecRef(MEM_TRefCountedObjectPtr shared);
 }
 #endif
 
-#endif // _H_MEM_REF_COUNTED_C_API
-
+#endif // MEM_REFCOUNTEDC_API_H

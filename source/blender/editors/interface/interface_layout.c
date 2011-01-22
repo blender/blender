@@ -1234,7 +1234,7 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 		but->hardmax= MAX2(but->hardmax, 256);
 		but->rnasearchpoin= *searchptr;
 		but->rnasearchprop= searchprop;
-		but->flag |= UI_ICON_LEFT|UI_TEXT_LEFT|UI_BUT_UNDO;
+		but->flag |= UI_ICON_LEFT|UI_TEXT_LEFT;
 
 		uiButSetSearchFunc(but, rna_search_cb, but, NULL, NULL);
 	}
@@ -2729,5 +2729,13 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 		if(empty && (flag & UI_LAYOUT_OP_SHOW_EMPTY)) {
 			uiItemL(layout, "No Properties.", ICON_NULL);
 		}
+	}
+	
+	/* no undo for buttons for operator redo panels */
+	{
+		uiBut *but;
+		
+		for(but= uiLayoutGetBlock(layout)->buttons.first; but; but= but->next)
+			uiButClearFlag(but, UI_BUT_UNDO);
 	}
 }

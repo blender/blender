@@ -2743,7 +2743,7 @@ void psys_cache_child_paths(ParticleSimulationData *sim, float cfra, int editupd
 {
 	ParticleThread *pthreads;
 	ParticleThreadContext *ctx;
-	ParticleCacheKey **cache;
+	/*ParticleCacheKey **cache;*/ /*UNUSED*/
 	ListBase threads;
 	int i, totchild, totparent, totthread;
 
@@ -2762,7 +2762,7 @@ void psys_cache_child_paths(ParticleSimulationData *sim, float cfra, int editupd
 	totparent= ctx->totparent;
 
 	if(editupdate && sim->psys->childcache && totchild == sim->psys->totchildcache) {
-		cache = sim->psys->childcache;
+		/*cache = sim->psys->childcache;*/ /*UNUSED*/
 	}
 	else {
 		/* clear out old and create new empty path cache */

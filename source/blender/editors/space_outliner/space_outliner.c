@@ -117,6 +117,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
+				case ND_DRAW:
 				case ND_PARENT:
 				case ND_OB_SHADING:
 					ED_region_tag_redraw(ar);

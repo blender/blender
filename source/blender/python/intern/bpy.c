@@ -98,7 +98,7 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 
 	list= PyList_New(0);
 
-	for(BLI_bpathIterator_init(&bpi, G.main, NULL); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
+	for(BLI_bpathIterator_init(&bpi, G.main, NULL, 0); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
 		/* build the list */
 		if (absolute) {
 			BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);

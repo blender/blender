@@ -211,6 +211,7 @@ typedef struct uiLayout uiLayout;
 #define TOGBUT		(37<<9)
 #define OPTION		(38<<9)
 #define OPTIONN		(39<<9)
+		/* buttons with value >= SEARCH_MENU don't get undo pushes */
 #define SEARCH_MENU	(40<<9)
 #define BUT_EXTRA	(41<<9)
 #define HSVCIRCLE	(42<<9)

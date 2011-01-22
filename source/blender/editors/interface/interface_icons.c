@@ -48,6 +48,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -1000,42 +1001,62 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	}
 }
 
-void ui_id_icon_render(bContext *C, ID *id, int preview)
+static void ui_id_icon_render(bContext *C, ID *id, int big)
 {
 	PreviewImage *pi = BKE_previewimg_get(id); 
-		
+	
 	if (pi) {			
 		if ((pi->changed[0] ||!pi->rect[0])) /* changed only ever set by dynamic icons */
 		{
-			/* create the preview rect if necessary */				
+			/* create the rect if necessary */				
 			
 			icon_set_image(C, id, pi, 0);		/* icon size */
-			if (preview)
-				icon_set_image(C, id, pi, 1);	/* preview size */
+			if (big)
+				icon_set_image(C, id, pi, 1);	/* bigger preview size */
 			
 			pi->changed[0] = 0;
 		}
 	}
 }
 
-static int ui_id_brush_get_icon(bContext *C, ID *id, int preview)
+static void ui_id_brush_render(bContext *C, ID *id)
+{
+	PreviewImage *pi = BKE_previewimg_get(id); 
+	int i;
+	
+	if(!pi)
+		return;
+	
+	for(i = 0; i < PREVIEW_MIPMAPS; i++) {
+		/* check if rect needs to be created; changed
+		 only set by dynamic icons */
+		if((pi->changed[i] || !pi->rect[i])) {
+			icon_set_image(C, id, pi, i);
+			pi->changed[i] = 0;
+		}
+	}
+}
+
+
+static int ui_id_brush_get_icon(bContext *C, ID *id)
 {
 	Brush *br = (Brush*)id;
 
 	if(br->flag & BRUSH_CUSTOM_ICON) {
 		BKE_icon_getid(id);
-		ui_id_icon_render(C, id, preview);
+		ui_id_brush_render(C, id);
 	}
 	else {
 		Object *ob = CTX_data_active_object(C);
-		EnumPropertyItem *items;
+		SpaceImage *sima;
+		EnumPropertyItem *items = NULL;
 		int tool, mode = 0;
 
-		/* this is not nice, should probably make brushes be
-		   strictly in one paint mode only to avoid checking
-		   object mode here */
+		/* XXX: this is not nice, should probably make brushes
+		   be strictly in one paint mode only to avoid
+		   checking various context stuff here */
 
-		if(ob) {
+		if(CTX_wm_view3d(C) && ob) {
 			if(ob->mode & OB_MODE_SCULPT)
 				mode = OB_MODE_SCULPT;
 			else if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))
@@ -1043,12 +1064,10 @@ static int ui_id_brush_get_icon(bContext *C, ID *id, int preview)
 			else if(ob->mode & OB_MODE_TEXTURE_PAINT)
 				mode = OB_MODE_TEXTURE_PAINT;
 		}
-
-		/* check if cached icon is OK */
-		if(!mode || (id->icon_id && mode == br->icon_mode))
-			return id->icon_id;
-
-		br->icon_mode = mode;
+		else if((sima = CTX_wm_space_image(C)) &&
+			(sima->flag & SI_DRAWTOOL)) {
+			mode = OB_MODE_TEXTURE_PAINT;
+		}
 
 		/* reset the icon */
 		if(mode == OB_MODE_SCULPT) {
@@ -1064,14 +1083,14 @@ static int ui_id_brush_get_icon(bContext *C, ID *id, int preview)
 			tool = br->imagepaint_tool;
 		}
 
-		if(!RNA_enum_icon_from_value(items, tool, &id->icon_id))
+		if(!items || !RNA_enum_icon_from_value(items, tool, &id->icon_id))
 			id->icon_id = 0;
 	}
 
 	return id->icon_id;
 }
 
-int ui_id_icon_get(bContext *C, ID *id, int preview)
+int ui_id_icon_get(bContext *C, ID *id, int big)
 {
 	int iconid= 0;
 	
@@ -1079,7 +1098,7 @@ int ui_id_icon_get(bContext *C, ID *id, int preview)
 	switch(GS(id->name))
 	{
 		case ID_BR:
-			iconid= ui_id_brush_get_icon(C, id, preview);
+			iconid= ui_id_brush_get_icon(C, id);
 			break;
 		case ID_MA: /* fall through */
 		case ID_TE: /* fall through */
@@ -1088,7 +1107,7 @@ int ui_id_icon_get(bContext *C, ID *id, int preview)
 		case ID_LA: /* fall through */
 			iconid= BKE_icon_getid(id);
 			/* checks if not exists, or changed */
-			ui_id_icon_render(C, id, preview);
+			ui_id_icon_render(C, id, big);
 			break;
 		default:
 			break;

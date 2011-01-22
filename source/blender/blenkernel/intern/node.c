@@ -615,6 +615,12 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 /* should become callbackable... */
 void nodeVerifyGroup(bNodeTree *ngroup)
 {
+	/* XXX nodeVerifyGroup is sometimes called for non-group trees.
+	 * This is not the best way to check if a tree is a group,
+	 * trees should get their own flag for this!
+	 */
+	if (!ngroup->owntype)
+		return;
 	
 	/* group changed, so we rebuild the type definition */
 	ntreeMakeOwnType(ngroup);
@@ -1082,15 +1088,61 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 	return nnode;
 }
 
+/* fromsock and tosock can be NULL */
+/* also used via rna api, so we check for proper input output direction */
 bNodeLink *nodeAddLink(bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock, bNode *tonode, bNodeSocket *tosock)
 {
-	bNodeLink *link= MEM_callocN(sizeof(bNodeLink), "link");
+	bNodeSocket *sock;
+	bNodeLink *link= NULL; 
+	int from= 0, to= 0;
 	
-	BLI_addtail(&ntree->links, link);
-	link->fromnode= fromnode;
-	link->fromsock= fromsock;
-	link->tonode= tonode;
-	link->tosock= tosock;
+	if(fromsock) {
+		/* test valid input */
+		for(sock= fromnode->outputs.first; sock; sock= sock->next)
+			if(sock==fromsock)
+				break;
+		if(sock)
+			from= 1; /* OK */
+		else {
+			for(sock= fromnode->inputs.first; sock; sock= sock->next)
+				if(sock==fromsock)
+					break;
+			if(sock)
+				from= -1; /* OK but flip */
+		}
+	}
+	if(tosock) {
+		for(sock= tonode->inputs.first; sock; sock= sock->next)
+			if(sock==tosock)
+				break;
+		if(sock)
+			to= 1; /* OK */
+		else {
+			for(sock= tonode->outputs.first; sock; sock= sock->next)
+				if(sock==tosock)
+					break;
+			if(sock)
+				to= -1; /* OK but flip */
+		}
+	}
+	
+	/* this allows NULL sockets to work */
+	if(from >= 0 && to >= 0) {
+		link= MEM_callocN(sizeof(bNodeLink), "link");
+		BLI_addtail(&ntree->links, link);
+		link->fromnode= fromnode;
+		link->fromsock= fromsock;
+		link->tonode= tonode;
+		link->tosock= tosock;
+	}
+	else if(from <= 0 && to <= 0) {
+		link= MEM_callocN(sizeof(bNodeLink), "link");
+		BLI_addtail(&ntree->links, link);
+		link->fromnode= tonode;
+		link->fromsock= tosock;
+		link->tonode= fromnode;
+		link->tosock= fromsock;
+	}
 	
 	return link;
 }

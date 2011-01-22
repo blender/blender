@@ -247,9 +247,15 @@ static int print_help(int UNUSED(argc), char **UNUSED(argv), void *data)
 	printf ("Misc Options:\n");
 	BLI_argsPrintArgDoc(ba, "--debug");
 	BLI_argsPrintArgDoc(ba, "--debug-fpe");
-
 	printf("\n");
-
+	BLI_argsPrintArgDoc(ba, "--factory-startup");
+	printf("\n");
+	BLI_argsPrintArgDoc(ba, "--env-system-config");
+	BLI_argsPrintArgDoc(ba, "--env-system-datafiles");
+	BLI_argsPrintArgDoc(ba, "--env-system-scripts");
+	BLI_argsPrintArgDoc(ba, "--env-system-plugins");
+	BLI_argsPrintArgDoc(ba, "--env-system-python");
+	printf("\n");
 	BLI_argsPrintArgDoc(ba, "-nojoystick");
 	BLI_argsPrintArgDoc(ba, "-noglsl");
 	BLI_argsPrintArgDoc(ba, "-noaudio");
@@ -392,6 +398,34 @@ static int set_fpe(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
 #endif
 
 	return 0;
+}
+
+static int set_factory_startup(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+{
+	G.factory_startup= 1;
+	return 0;
+}
+
+static int set_env(int argc, char **argv, void *UNUSED(data))
+{
+	/* "--env-system-scripts" --> "BLENDER_SYSTEM_SCRIPTS" */
+
+	char env[64]= "BLENDER";
+	char *ch_dst= env + 7; /* skip BLENDER */
+	char *ch_src= argv[0] + 5; /* skip --env */
+
+	if (argc < 2) {
+		printf("%s requires one argument\n", argv[0]);
+		exit(1);
+	}
+
+	for(; *ch_src; ch_src++, ch_dst++) {
+		*ch_dst= (*ch_src == '-') ? '_' : (*ch_src)-32; /* toupper() */
+	}
+
+	*ch_dst= '\0';
+	BLI_setenv(env, argv[1]);
+	return 1;
 }
 
 static int playback_mode(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
@@ -1008,7 +1042,16 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, "-a", NULL, playback_doc, playback_mode, NULL);
 
 	BLI_argsAdd(ba, 1, "-d", "--debug", debug_doc, debug_mode, ba);
-    BLI_argsAdd(ba, 1, NULL, "--debug-fpe", "\n\tEnable floating point exceptions", set_fpe, NULL);
+	BLI_argsAdd(ba, 1, NULL, "--debug-fpe", "\n\tEnable floating point exceptions", set_fpe, NULL);
+
+	BLI_argsAdd(ba, 1, NULL, "--factory-startup", "\n\tSkip reading the "STRINGIFY(BLENDER_STARTUP_FILE)" in the users home directory", set_factory_startup, NULL);
+
+	/* TODO, add user env vars? */
+	BLI_argsAdd(ba, 1, NULL, "--env-system-config",		"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_CONFIG)" environment variable", set_env, NULL);
+	BLI_argsAdd(ba, 1, NULL, "--env-system-datafiles",	"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_DATAFILES)" environment variable", set_env, NULL);
+	BLI_argsAdd(ba, 1, NULL, "--env-system-scripts",	"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_SCRIPTS)" environment variable", set_env, NULL);
+	BLI_argsAdd(ba, 1, NULL, "--env-system-plugins",	"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_PLUGINS)" environment variable", set_env, NULL);
+	BLI_argsAdd(ba, 1, NULL, "--env-system-python",		"\n\tSet the "STRINGIFY_ARG(BLENDER_SYSTEM_PYTHON)" environment variable", set_env, NULL);
 
 	/* second pass: custom window stuff */
 	BLI_argsAdd(ba, 2, "-p", "--window-geometry", "<sx> <sy> <w> <h>\n\tOpen with lower left corner at <sx>, <sy> and width and height as <w>, <h>", prefsize, NULL);
@@ -1141,7 +1184,7 @@ int main(int argc, char **argv)
 		BLI_argsParse(ba, 3, NULL, NULL);
 
 		WM_init(C, argc, argv);
-		
+
 		/* this is properly initialized with user defs, but this is default */
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the startup.blend so we can read U.tempdir */
 

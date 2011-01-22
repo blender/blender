@@ -3403,7 +3403,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	PARTICLE_P;
 	float timestep;
 	/* current time */
-	float ctime;
+	/* float ctime; */ /*UNUSED*/
 	/* frame & time changes */
 	float dfra, dtime;
 	float birthtime, dietime;
@@ -3412,7 +3412,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	dfra= cfra - psys->cfra;
 
 	timestep = psys_get_timestep(sim);
-	ctime= cfra*timestep;
+	/*ctime= cfra*timestep;*/ /*UNUSED*/
 	dtime= dfra*timestep;
 
 	if(dfra<0.0){
@@ -3854,13 +3854,14 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 
 			return;
 		}
+		/* Cache is supposed to be baked, but no data was found so bail out */
+		else if(cache->flag & PTCACHE_BAKED) {
+			psys_reset(psys, PSYS_RESET_CACHE_MISS);
+			return;
+		}
 		else if(cache_result == PTCACHE_READ_OLD) {
 			psys->cfra = (float)cache->simframe;
 			cached_step(sim, psys->cfra);
-		}
-		else if(cfra != startframe && ( /*sim->ob->id.lib ||*/ (cache->flag & PTCACHE_BAKED))) { /* 2.4x disabled lib, but this can be used in some cases, testing further - campbell */
-			psys_reset(psys, PSYS_RESET_CACHE_MISS);
-			return;
 		}
 
 		/* if on second frame, write cache for first frame */

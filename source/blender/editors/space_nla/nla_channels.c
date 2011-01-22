@@ -342,8 +342,9 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
 void NLA_OT_channels_click (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mouse Click on Channels";
+	ot->name= "Mouse Click on NLA Channels";
 	ot->idname= "NLA_OT_channels_click";
+	ot->description= "Handle clicks to select NLA channels";
 	
 	/* api callbacks */
 	ot->invoke= nlachannels_mouseclick_invoke;
