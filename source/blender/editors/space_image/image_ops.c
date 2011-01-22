@@ -1445,7 +1445,10 @@ static void unpack_menu(bContext *C, const char *opname, Image *ima, const char 
 	pup= uiPupMenuBegin(C, "Unpack file", ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 
-	uiItemEnumO(layout, opname, "Remove Pack", 0, "method", PF_REMOVE);
+	sprintf(line, "Remove Pack");
+	props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&props_ptr, "method", PF_REMOVE);
+	RNA_string_set(&props_ptr, "image", ima->id.name+2);
 
 	if(strcmp(abs_name, local_name)) {
 		switch(checkPackedFile(local_name, pf)) {
