@@ -3403,7 +3403,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	PARTICLE_P;
 	float timestep;
 	/* current time */
-	float ctime;
+	/* float ctime; */ /*UNUSED*/
 	/* frame & time changes */
 	float dfra, dtime;
 	float birthtime, dietime;
@@ -3412,7 +3412,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	dfra= cfra - psys->cfra;
 
 	timestep = psys_get_timestep(sim);
-	ctime= cfra*timestep;
+	/*ctime= cfra*timestep;*/ /*UNUSED*/
 	dtime= dfra*timestep;
 
 	if(dfra<0.0){

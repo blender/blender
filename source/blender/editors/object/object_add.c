@@ -491,7 +491,7 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 static int object_metaball_add_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	MetaElem *elem;
+	/*MetaElem *elem;*/ /*UNUSED*/
 	int newob= 0;
 	int enter_editmode;
 	unsigned int layer;
@@ -511,7 +511,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 	
-	elem= (MetaElem*)add_metaball_primitive(C, mat, RNA_enum_get(op->ptr, "type"), newob);
+	/* elem= (MetaElem *) */ add_metaball_primitive(C, mat, RNA_enum_get(op->ptr, "type"), newob);
 
 	/* userdef */
 	if (newob && !enter_editmode) {

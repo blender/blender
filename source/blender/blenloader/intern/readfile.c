@@ -3823,11 +3823,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				clmd->sim_parms->reset = 0;
 
 				clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
-			}
 
-			if(!clmd->sim_parms->effector_weights)
-				clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
-			
+				if(!clmd->sim_parms->effector_weights) {
+					clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
+				}
+			}
 		}
 		else if (md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;

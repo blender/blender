@@ -95,9 +95,9 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 	struct ImBuf *ibuf = 0;
 	int use_float = 0; /* for precision higher then 8 use float */
 	
-	long signed_offsets[4] = {0,0,0,0};
-	int float_divs[4];
-	
+	long signed_offsets[4]= {0, 0, 0, 0};
+	int float_divs[4]= {1, 1, 1, 1};
+
 	int index;
 	
 	int w, h, depth;
