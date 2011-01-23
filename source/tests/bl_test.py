@@ -24,7 +24,7 @@ import os
 
 # may split this out into a new file
 def replace_bpy_app_version():
-    """ So MD5's are pradictable from output which uses blenders versions.
+    """ So MD5's are predictable from output which uses blenders versions.
     """
 
     import bpy

@@ -214,7 +214,7 @@ void BL_ConvertControllers(
 			if (bcontr->type==CONT_PYTHON) {
 				SCA_PythonController *pyctrl= static_cast<SCA_PythonController*>(gamecontroller);
 				/* not strictly needed but gives syntax errors early on and
-				 * gives more pradictable performance for larger scripts */
+				 * gives more predictable performance for larger scripts */
 				if(pyctrl->m_mode==SCA_PythonController::SCA_PYEXEC_SCRIPT)
 					pyctrl->Compile();
 				else {
