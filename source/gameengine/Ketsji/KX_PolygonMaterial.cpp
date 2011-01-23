@@ -108,6 +108,11 @@ KX_PolygonMaterial::~KX_PolygonMaterial()
 #endif // WITH_PYTHON
 }
 
+Image *KX_PolygonMaterial::GetBlenderImage() const
+{
+	return (m_tface) ? m_tface->tpage : NULL;
+}
+
 bool KX_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const 
 {
 	bool dopass = false;

@@ -2358,6 +2358,16 @@ DerivedMesh *mesh_create_derived_no_virtual(Scene *scene, Object *ob, float (*ve
 	return final;
 }
 
+DerivedMesh *mesh_create_derived_physics(Scene *scene, Object *ob, float (*vertCos)[3],
+											CustomDataMask dataMask)
+{
+	DerivedMesh *final;
+	
+	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, -1, 1, dataMask, -1, 0);
+
+	return final;
+}
+
 DerivedMesh *mesh_create_derived_no_deform_render(Scene *scene, Object *ob,
 												  float (*vertCos)[3],
 												  CustomDataMask dataMask)
