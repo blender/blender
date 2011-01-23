@@ -305,6 +305,7 @@ if(WITH_INSTALL)
 		endif()
 
 		if(WITH_PYTHON)
+			# note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
 			if(NOT CMAKE_BUILD_TYPE) # hack: with multi-configuration generator this is "", so for now copy both python31.dll/zip and python31_d.dll/zip
 				add_custom_command(TARGET blender
 					POST_BUILD
@@ -322,7 +323,7 @@ if(WITH_INSTALL)
 					COMMAND if \"$(ConfigurationName)\" == \"MinSizeRel\" xcopy /E /Y \"${LIBDIR}\\release\\python31\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
 				)
 			else()
-				if(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+				if(CMAKE_BUILD_TYPE STREQUAL Debug)
 					add_custom_command(TARGET blender
 						POST_BUILD
 						MAIN_DEPENDENCY blender

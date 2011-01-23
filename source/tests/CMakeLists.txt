@@ -81,7 +81,7 @@ add_test(export_obj_all_objects ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS
 	--run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_all_objects.obj',use_selection=False,use_nurbs=True\)
 	--md5_source=${TEST_OUT_DIR}/export_obj_all_objects.obj
 	--md5_source=${TEST_OUT_DIR}/export_obj_all_objects.mtl
-	--md5=c835899ca8993495af8a13c2f229629b --md5_method=FILE
+	--md5=6e033a6a9c923d7aa3613b36e373f55b --md5_method=FILE
 )
 
 
