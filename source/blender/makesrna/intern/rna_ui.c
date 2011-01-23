@@ -213,7 +213,19 @@ static StructRNA *rna_Panel_register(bContext *C, ReportList *reports, void *dat
 	pt->draw= (have_function[1])? panel_draw: NULL;
 	pt->draw_header= (have_function[2])? panel_draw_header: NULL;
 
-	BLI_addtail(&art->paneltypes, pt);
+	/* XXX use "no header" flag for some ordering of panels until we have real panel ordering */
+	if(pt->flag & PNL_NO_HEADER) {
+		PanelType *pth = art->paneltypes.first;
+		while(pth && pth->flag & PNL_NO_HEADER)
+			pth=pth->next;
+
+		if(pth)
+			BLI_insertlinkbefore(&art->paneltypes, pth, pt);
+		else
+			BLI_addtail(&art->paneltypes, pt);
+	}
+	else
+		BLI_addtail(&art->paneltypes, pt);
 
 	/* update while blender is running */
 	if(C)
