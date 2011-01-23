@@ -1110,7 +1110,10 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	if(but==NULL) return;
 
 	/* clip but->drawstr to fit in available space */
-	if (ELEM4(but->type, NUM, NUMABS, NUMSLI, SLI)) {
+	if (but->editstr && but->pos >= 0) {
+		ui_text_leftclip(fstyle, but, rect);
+	}
+	else if (ELEM4(but->type, NUM, NUMABS, NUMSLI, SLI)) {
 		ui_text_label_rightclip(fstyle, but, rect);
 	}
 	else if (ELEM(but->type, TEX, SEARCH_MENU)) {
