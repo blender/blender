@@ -39,7 +39,7 @@ class PhysicButtonsPanel():
         rd = context.scene.render
 #        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 # i really hate touching things i do not understand completely .. but i think this should read (bjornmose)
-        return (ob and (ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE')) and (not rd.use_game_engine)
+        return (ob and (ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE')) and (not rd.use_game_engine) and (context.soft_body)
 
 
 class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
@@ -50,21 +50,6 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
 
         md = context.soft_body
         ob = context.object
-
-        split = layout.split()
-
-        if md:
-            # remove modifier + settings
-            split.context_pointer_set("modifier", md)
-            split.operator("object.modifier_remove", text="Remove")
-
-            row = split.row(align=True)
-            row.prop(md, "show_render", text="")
-            row.prop(md, "show_viewport", text="")
-        else:
-            # add modifier
-            split.operator("object.modifier_add", text="Add").type = 'SOFT_BODY'
-            split.column()
 
         if md:
             softbody = md.settings
