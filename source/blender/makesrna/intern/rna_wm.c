@@ -867,6 +867,14 @@ static StructRNA *rna_Operator_register(bContext *C, ReportList *reports, void *
 		return NULL;
 	}
 
+	/* sanity check on name
+	 * foo.bar */
+//	{
+//		char *ch;
+//		for(ch=identifier)
+
+//	}
+
 	/* check if we have registered this operator type before, and remove it */
 	{
 		wmOperatorType *ot= WM_operatortype_find(dummyot.idname, TRUE);
@@ -1121,10 +1129,10 @@ static void rna_def_operator(BlenderRNA *brna)
 	/* Registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
+	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME-3); /* else it uses the pointer size!. -3 because '.' -> '_OT_' */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_idname_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
@@ -1185,7 +1193,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_idname_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
