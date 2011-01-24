@@ -105,8 +105,10 @@ class AddTorus(bpy.types.Operator):
     # generic transform props
     view_align = BoolProperty(name="Align to View",
             default=False)
-    location = FloatVectorProperty(name="Location")
-    rotation = FloatVectorProperty(name="Rotation")
+    location = FloatVectorProperty(name="Location",
+            subtype='TRANSLATION')
+    rotation = FloatVectorProperty(name="Rotation",
+            subtype='EULER')
 
     def execute(self, context):
 
