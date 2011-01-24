@@ -2002,6 +2002,13 @@ static void screen_skip(SpaceText *st, ARegion *ar, int lines)
 	if(st->top<0) st->top= 0;
 }
 
+/* quick enum for tsc->zone (scroller handles) */
+enum {
+	SCROLLHANDLE_BAR,
+	SCROLLHANDLE_MIN_OUTSIDE,
+	SCROLLHANDLE_MAX_OUTSIDE
+} TextScrollerHandle_Zone;
+
 typedef struct TextScroll {
 	short old[2];
 	short hold[2];
@@ -2011,6 +2018,8 @@ typedef struct TextScroll {
 	int characters;
 	int lines;
 	int scrollbar;
+
+	int zone;
 } TextScroll;
 
 static int scroll_exec(bContext *C, wmOperator *op)
@@ -2087,13 +2096,30 @@ static void scroll_exit(bContext *C, wmOperator *op)
 
 static int scroll_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+	TextScroll *tsc= op->customdata;
+	SpaceText *st= CTX_wm_space_text(C);
+	ARegion *ar= CTX_wm_region(C);
+
 	switch(event->type) {
 		case MOUSEMOVE:
-			scroll_apply(C, op, event);
+			if(tsc->zone == SCROLLHANDLE_BAR)
+				scroll_apply(C, op, event);
 			break;
 		case LEFTMOUSE:
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
+			if(ELEM(tsc->zone, SCROLLHANDLE_MIN_OUTSIDE, SCROLLHANDLE_MAX_OUTSIDE)) {
+				int last;
+
+				st->top+= st->viewlines * (tsc->zone==SCROLLHANDLE_MIN_OUTSIDE ? 1 : -1);
+
+				last= text_get_total_lines(st, ar);
+				last= last - (st->viewlines/2);
+
+				CLAMP(st->top, 0, last);
+
+				ED_area_tag_redraw(CTX_wm_area(C));
+			}
 			scroll_exit(C, op);
 			return OPERATOR_FINISHED;
 	}
@@ -2118,6 +2144,7 @@ static int scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	tsc= MEM_callocN(sizeof(TextScroll), "TextScroll");
 	tsc->first= 1;
+	tsc->zone= SCROLLHANDLE_BAR;
 	op->customdata= tsc;
 	
 	st->flags|= ST_SCROLL_SELECT;
@@ -2174,18 +2201,32 @@ static int scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ARegion *ar= CTX_wm_region(C);
 	TextScroll *tsc;
 	short *mval= event->mval;
+	int zone= -1;
 
 	if(RNA_property_is_set(op->ptr, "lines"))
 		return scroll_exec(C, op);
 	
 	/* verify we are in the right zone */
-	if(!(mval[0]>ar->winx-TXT_SCROLL_WIDTH && mval[0]<ar->winx-TXT_SCROLL_SPACE
-		&& mval[1]>TXT_SCROLL_SPACE && mval[1]<ar->winy))
+	if(mval[0]>st->txtbar.xmin && mval[0]<st->txtbar.xmax) {
+		if(mval[1]>=st->txtbar.ymin && mval[1]<=st->txtbar.ymax) {
+			/* mouse inside scroll handle */
+			zone = SCROLLHANDLE_BAR;
+		}
+		else if(mval[1]>TXT_SCROLL_SPACE && mval[1]<ar->winy-TXT_SCROLL_SPACE) {
+			if(mval[1]<st->txtbar.ymin) zone= SCROLLHANDLE_MIN_OUTSIDE;
+			else zone= SCROLLHANDLE_MAX_OUTSIDE;
+		}
+	}
+
+	if(zone == -1) {
+		/* we are outside slider - nothing to do */
 		return OPERATOR_PASS_THROUGH;
+	}
 
 	tsc= MEM_callocN(sizeof(TextScroll), "TextScroll");
 	tsc->first= 1;
 	tsc->scrollbar= 1;
+	tsc->zone= zone;
 	op->customdata= tsc;
 	
 	st->flags|= ST_SCROLL_SELECT;
