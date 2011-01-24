@@ -144,8 +144,10 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
 	m_displayManager->initialize();
 	
-	// Check if current keyboard layout uses AltGr
-	this->keyboardAltGr();
+	// Check if current keyboard layout uses AltGr and save keylayout ID for
+	// specialized handling if keys like VK_OEM_*. I.e. french keylayout
+	// generates VK_OEM_8 for their exclamation key (key left of right shift)
+	this->handleKeyboardChange();
 	// Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32.
 	OleInitialize(0);
 }
@@ -478,6 +480,20 @@ void GHOST_SystemWin32::handleModifierKeys(GHOST_IWindow *window, WPARAM wParam,
 	}
 }
 
+//! note: this function can be extended to include other exotic cases as they arise.
+// This function was added in response to bug [#25715]
+GHOST_TKey GHOST_SystemWin32::processSpecialKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam) const
+{
+	GHOST_TKey key = GHOST_kKeyUnknown;
+	switch(PRIMARYLANGID(m_langId)) {
+		case LANG_FRENCH:
+			if(wParam==VK_OEM_8) key = GHOST_kKey1; // on 'normal' shift + 1 to create '!' we also get GHOST_kKey1. ASCII will be '!'.
+			break;
+	}
+
+	return key;
+}
+
 GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam) const
 {
 	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
@@ -621,6 +637,9 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, L
 		case VK_NUMLOCK: key = GHOST_kKeyNumLock; break;
 		case VK_SCROLL: key = GHOST_kKeyScrollLock; break;
 		case VK_CAPITAL: key = GHOST_kKeyCapsLock; break;
+		case VK_OEM_8:
+			key = ((GHOST_SystemWin32*)getSystem())->processSpecialKey(window, wParam, lParam);
+			break;
 		default:
 			key = GHOST_kKeyUnknown;
 			break;
@@ -719,6 +738,7 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, bool k
 		}
 
 		event = new GHOST_EventKey(getSystem()->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, ascii);
+		std::cout << ascii << std::endl;
 	}
 	else {
 		event = 0;
@@ -812,7 +832,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 			switch (msg) {
 				// we need to check if new key layout has AltGr
 				case WM_INPUTLANGCHANGE:
-					system->keyboardAltGr();
+					system->handleKeyboardChange();
 					break;
 				////////////////////////////////////////////////////////////////////////
 				// Keyboard events, processed
