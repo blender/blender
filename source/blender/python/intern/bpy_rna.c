@@ -1092,19 +1092,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 			}
 			else {
 				if(data)	*((char**)data)= (char *)param; /*XXX, this is suspect but needed for function calls, need to see if theres a better way */
-				else {
-					if(RNA_property_flag(prop) & PROP_NEVER_CLAMP) {
-						int param_size_max= RNA_property_string_maxlength(prop);
-						if(param_size > param_size_max) {
-							PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s only supports a string of length %d, found %d", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), param_size, param_size_max);
-							return -1;
-						}
-#ifdef USE_STRING_COERCE
-						Py_XDECREF(value_coerce);
-#endif // USE_STRING_COERCE
-					}
-					RNA_property_string_set(ptr, prop, param);
-				}
+				else		RNA_property_string_set(ptr, prop, param);
 			}
 #ifdef USE_STRING_COERCE
 			Py_XDECREF(value_coerce);

@@ -847,33 +847,55 @@ static StructRNA *rna_Operator_register(bContext *C, ReportList *reports, void *
 
 	{	/* convert foo.bar to FOO_OT_bar
 		 * allocate the description and the idname in 1 go */
-		int idlen = strlen(_operator_idname) + 4;
-		int namelen = strlen(_operator_name) + 1;
-		int desclen = strlen(_operator_descr) + 1;
-		char *ch, *ch_arr;
-		ch_arr= ch= MEM_callocN(sizeof(char) * (idlen + namelen + desclen), "_operator_idname"); /* 2 terminators and 3 to convert a.b -> A_OT_b */
-		WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
-		dummyot.idname= ch;
-		ch += idlen;
-		strcpy(ch, _operator_name);
-		dummyot.name = ch;
-		ch += namelen;
-		strcpy(ch, _operator_descr);
-		dummyot.description = ch;
+
+		/* inconveniently long name sanity check */
+		{
+			char *ch= _operator_idname;
+			int i;
+			int dot= 0;
+			for(i=0; *ch; i++) {
+				if((*ch >= 'a' && *ch <= 'z') || (*ch >= '0' && *ch <= '9') || *ch == '_') {
+					/* pass */
+				}
+				else if(*ch == '.') {
+					dot++;
+				}
+				else {
+					BKE_reportf(reports, RPT_ERROR, "registering operator class: '%s', invalid bl_idname '%s', at position %d", identifier, _operator_idname, i);
+					return NULL;
+				}
+
+				ch++;
+			}
+
+			if(i > ((int)sizeof(dummyop.idname)) - 3) {
+				BKE_reportf(reports, RPT_ERROR, "registering operator class: '%s', invalid bl_idname '%s', is too long, maximum length is %d.", identifier, _operator_idname, (int)sizeof(dummyop.idname) - 3);
+				return NULL;
+			}
+
+			if(dot != 1) {
+				BKE_reportf(reports, RPT_ERROR, "registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character", identifier, _operator_idname);
+				return NULL;
+			}
+		}
+		/* end sanity check */
+
+		{
+			int idlen = strlen(_operator_idname) + 4;
+			int namelen = strlen(_operator_name) + 1;
+			int desclen = strlen(_operator_descr) + 1;
+			char *ch, *ch_arr;
+			ch_arr= ch= MEM_callocN(sizeof(char) * (idlen + namelen + desclen), "_operator_idname"); /* 2 terminators and 3 to convert a.b -> A_OT_b */
+			WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
+			dummyot.idname= ch;
+			ch += idlen;
+			strcpy(ch, _operator_name);
+			dummyot.name = ch;
+			ch += namelen;
+			strcpy(ch, _operator_descr);
+			dummyot.description = ch;
+		}
 	}
-
-	if(strlen(identifier) >= sizeof(dummyop.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering operator class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummyop.idname));
-		return NULL;
-	}
-
-	/* sanity check on name
-	 * foo.bar */
-//	{
-//		char *ch;
-//		for(ch=identifier)
-
-//	}
 
 	/* check if we have registered this operator type before, and remove it */
 	{

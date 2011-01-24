@@ -26,6 +26,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -634,7 +635,9 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *idname, const char *name, i
 		but= uiDefIconButO(block, BUT, ot->idname, context, icon, 0, 0, w, UI_UNIT_Y, NULL);
 	else
 		but= uiDefButO(block, BUT, ot->idname, context, name, 0, 0, w, UI_UNIT_Y, NULL);
-	
+
+	assert(but->optype != NULL);
+
 	/* text alignment for toolbar buttons */
 	if((layout->root->type == UI_LAYOUT_TOOLBAR) && !icon)
 		but->flag |= UI_TEXT_LEFT;
