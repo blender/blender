@@ -598,6 +598,13 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
 
+static void matrix_as_3x3(float mat[3][3], MatrixObject *self)
+{
+	copy_v3_v3(mat[0], self->matrix[0]);
+	copy_v3_v3(mat[1], self->matrix[1]);
+	copy_v3_v3(mat[2], self->matrix[2]);
+}
+
 /* assumes rowsize == colsize is checked and the read callback has run */
 static float matrix_determinant(MatrixObject * self)
 {
@@ -633,7 +640,7 @@ static PyObject *Matrix_toQuat(MatrixObject * self)
 		return NULL;
 	
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
-	if(self->colSize < 3 || self->rowSize < 3 || (self->colSize != self->rowSize)) {
+	if((self->colSize < 3) || (self->rowSize < 3) || (self->colSize != self->rowSize)) {
 		PyErr_SetString(PyExc_AttributeError, "Matrix.to_quat(): inappropriate matrix size - expects 3x3 or 4x4 matrix");
 		return NULL;
 	} 
@@ -807,21 +814,19 @@ static char Matrix_to_3x3_doc[] =
 "   :rtype: :class:`Matrix`\n";
 PyObject *Matrix_to_3x3(MatrixObject * self)
 {
+	float mat[3][3];
+
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->colSize==3 && self->rowSize==3) {
-		return (PyObject *)newMatrixObject(self->contigPtr, 3, 3, Py_NEW, Py_TYPE(self));
+	if((self->colSize < 3) || (self->rowSize < 3)) {
+		PyErr_SetString(PyExc_AttributeError, "Matrix.to_3x3(): inappropriate matrix size");
+		return NULL;
 	}
-	else if(self->colSize==4 && self->rowSize==4) {
-		float mat[3][3];
-		copy_m3_m4(mat, (float (*)[4])self->contigPtr);
-		return (PyObject *)newMatrixObject((float *)mat, 3, 3, Py_NEW, Py_TYPE(self));
-	}
-	/* TODO, 2x2 matrix */
 
-	PyErr_SetString(PyExc_TypeError, "Matrix.to_3x3(): inappropriate matrix size");
-	return NULL;
+	matrix_as_3x3(mat, self);
+
+	return newMatrixObject((float *)mat, 3, 3, Py_NEW, Py_TYPE(self));
 }
 
 /*---------------------------Matrix.translationPart() ------------*/
@@ -838,7 +843,7 @@ PyObject *Matrix_TranslationPart(MatrixObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
-	if(self->colSize < 3 || self->rowSize < 4){
+	if((self->colSize < 3) || self->rowSize < 4){
 		PyErr_SetString(PyExc_AttributeError, "Matrix.translation_part(): inappropriate matrix size");
 		return NULL;
 	}
@@ -856,30 +861,21 @@ static char Matrix_RotationPart_doc[] =
 "\n"
 "   .. note:: Note that the (4,4) element of a matrix can be used for uniform scaling too.\n";
 
-PyObject *Matrix_RotationPart(MatrixObject * self)
+PyObject *Matrix_RotationPart(MatrixObject *self)
 {
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[3][3];
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->colSize < 3 || self->rowSize < 3){
+	if((self->colSize < 3) || (self->rowSize < 3)) {
 		PyErr_SetString(PyExc_AttributeError, "Matrix.rotation_part(): inappropriate matrix size");
 		return NULL;
 	}
 
-	mat[0] = self->matrix[0][0];
-	mat[1] = self->matrix[0][1];
-	mat[2] = self->matrix[0][2];
-	mat[3] = self->matrix[1][0];
-	mat[4] = self->matrix[1][1];
-	mat[5] = self->matrix[1][2];
-	mat[6] = self->matrix[2][0];
-	mat[7] = self->matrix[2][1];
-	mat[8] = self->matrix[2][2];
+	matrix_as_3x3(mat, self);
 
-	return newMatrixObject(mat, 3, 3, Py_NEW, Py_TYPE(self));
+	return newMatrixObject((float *)mat, 3, 3, Py_NEW, Py_TYPE(self));
 }
 /*---------------------------Matrix.scalePart() --------------------*/
 static char Matrix_scalePart_doc[] =
@@ -894,31 +890,25 @@ static char Matrix_scalePart_doc[] =
 
 PyObject *Matrix_scalePart(MatrixObject * self)
 {
-	float scale[3], rot[3];
-	float mat[3][3], imat[3][3], tmat[3][3];
+	float rot[3][3];
+	float mat[3][3];
+	float size[3];
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
-	if(self->colSize == 4 && self->rowSize == 4)
-		copy_m3_m4(mat, (float (*)[4])self->contigPtr);
-	else if(self->colSize == 3 && self->rowSize == 3)
-		copy_m3_m3(mat, (float (*)[3])self->contigPtr);
-	else {
-		PyErr_SetString(PyExc_AttributeError, "Matrix.scale_part(): inappropriate matrix size - expects 3x3 or 4x4 matrix");
+	if((self->colSize < 3) || (self->rowSize < 3)) {
+		PyErr_SetString(PyExc_AttributeError, "Matrix.scale_part(): inappropriate matrix size, 3x3 minimum size");
 		return NULL;
 	}
-	/* functionality copied from editobject.c apply_obmat */
-	mat3_to_eul( rot,mat);
-	eul_to_mat3( tmat,rot);
-	invert_m3_m3(imat, tmat);
-	mul_m3_m3m3(tmat, imat, mat);
-	
-	scale[0]= tmat[0][0];
-	scale[1]= tmat[1][1];
-	scale[2]= tmat[2][2];
-	return newVectorObject(scale, 3, Py_NEW, NULL);
+
+	matrix_as_3x3(mat, self);
+
+	/* compatible mat4_to_loc_rot_size */
+	mat3_to_rot_size(rot, size, mat);
+
+	return newVectorObject(size, 3, Py_NEW, NULL);
 }
 
 /*---------------------------Matrix.invert() ---------------------*/
@@ -1688,15 +1678,13 @@ static PyObject *Matrix_getMedianScale(MatrixObject *self, void *UNUSED(closure)
 		return NULL;
 
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
-	if(self->colSize == 4 && self->rowSize == 4)
-		copy_m3_m4(mat, (float (*)[4])self->contigPtr);
-	else if(self->colSize == 3 && self->rowSize == 3)
-		copy_m3_m3(mat, (float (*)[3])self->contigPtr);
-	else {
-		PyErr_SetString(PyExc_AttributeError, "Matrix.median_scale: inappropriate matrix size - expects 3x3 or 4x4 matrix");
+	if((self->colSize < 3) || (self->rowSize < 3)) {
+		PyErr_SetString(PyExc_AttributeError, "Matrix.median_scale: inappropriate matrix size, 3x3 minimum");
 		return NULL;
 	}
-    
+
+	matrix_as_3x3(mat, self);
+
 	return PyFloat_FromDouble(mat3_to_scale(mat));
 }
 
