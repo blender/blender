@@ -5166,7 +5166,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 	}
 
 	/* verify callback functions */
-	lb= RNA_struct_defined_functions(srna);
+	lb= RNA_struct_type_functions(srna);
 	i= 0;
 	for(link=lb->first; link; link=link->next) {
 		func= (FunctionRNA*)link;
@@ -5668,26 +5668,25 @@ static PyObject *pyrna_basetype_register(PyObject *UNUSED(self), PyObject *py_cl
 
 static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props, StructRNA *srna, const char **prop_identifier)
 {
-	PointerRNA tptr;
-	PropertyRNA *iterprop;
-	RNA_pointer_create(NULL, &RNA_Struct, srna_props, &tptr);
-	
-	iterprop= RNA_struct_find_property(&tptr, "properties");
+	PropertyRNA *prop;
+	LinkData *link;
 
-	RNA_PROP_BEGIN(&tptr, itemptr, iterprop) {
-		PropertyRNA *prop= itemptr.data;
-		if(RNA_property_type(prop) == PROP_POINTER) {
-			if (strcmp(RNA_property_identifier(prop), "rna_type") == 0) {
-				/* pass */
-			}
-			else if(RNA_property_pointer_type(&tptr, prop) == srna) {
+	/* verify properties */
+	const ListBase *lb= RNA_struct_type_properties(srna);
+
+	for(link=lb->first; link; link=link->next) {
+		prop= (PropertyRNA*)link;
+		if(RNA_property_type(prop) == PROP_POINTER && !(RNA_property_flag(prop) & PROP_BUILTIN)) {
+			PointerRNA tptr;
+			RNA_pointer_create(NULL, &RNA_Struct, srna_props, &tptr);
+
+			if(RNA_property_pointer_type(&tptr, prop) == srna) {
 				*prop_identifier= RNA_property_identifier(prop);
 				return 1;
 			}
 		}
 	}
-	RNA_PROP_END;
-	
+
 	return 0;
 }
 

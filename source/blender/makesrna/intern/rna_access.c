@@ -616,7 +616,7 @@ FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 #endif
 }
 
-const struct ListBase *RNA_struct_defined_functions(StructRNA *srna)
+const struct ListBase *RNA_struct_type_functions(StructRNA *srna)
 {
 	return &srna->functions;
 }
