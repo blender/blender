@@ -1071,7 +1071,6 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 		case PROP_STRING:
 		{
 			const char *param;
-			Py_ssize_t param_size= 0;
 #ifdef USE_STRING_COERCE
 			PyObject *value_coerce= NULL;
 			int subtype= RNA_property_subtype(prop);
@@ -1080,10 +1079,10 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				param= PyC_UnicodeAsByte(value, &value_coerce);
 			}
 			else {
-				param= _PyUnicode_AsStringAndSize(value, &param_size);
+				param= _PyUnicode_AsString(value);
 			}
 #else // USE_STRING_COERCE
-			param= _PyUnicode_AsStringAndSize(value, &param_size);
+			param= _PyUnicode_AsStringSize(value);
 #endif // USE_STRING_COERCE
 
 			if (param==NULL) {

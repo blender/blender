@@ -48,6 +48,8 @@ def file_list_py(path):
 
 def is_pep8(path):
     print(path)
+    if open(path, 'rb').read(3) == b'\xef\xbb\xbf':
+        print("\nfile contains BOM, remove first 3 bytes: %r\n" % path)
     f = open(path, 'r', encoding="utf8")
     for i in range(PEP8_SEEK_COMMENT):
         line = f.readline()

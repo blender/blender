@@ -5279,7 +5279,11 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				for(cl= sconsole->history.first; cl; cl= cl_next) {
 					cl_next= cl->next;
 					cl->line= newdataadr(fd, cl->line);
-					if (cl->line == NULL) {
+					if (cl->line) {
+						/* the allocted length is not written, so reset here */
+						cl->len_alloc= cl->len + 1;
+					}
+					else {
 						BLI_remlink(&sconsole->history, cl);
 						MEM_freeN(cl);
 					}
