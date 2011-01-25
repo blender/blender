@@ -3119,7 +3119,7 @@ static int node_animation_properties(bNodeTree *ntree, bNode *node)
 	
 	/* check to see if any of the node's properties have fcurves */
 	RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
-	lb = RNA_struct_defined_properties(ptr.type);
+	lb = RNA_struct_type_properties(ptr.type);
 	
 	for (link=lb->first; link; link=link->next) {
 		int driven, len=1, index;

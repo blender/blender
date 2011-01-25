@@ -2831,14 +2831,29 @@ static int pyrna_is_deferred_prop(PyObject *value)
 	return PyTuple_CheckExact(value) && PyTuple_GET_SIZE(value)==2 && PyCallable_Check(PyTuple_GET_ITEM(value, 0)) && PyDict_CheckExact(PyTuple_GET_ITEM(value, 1));
 }
 
-static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *pyname)
+static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr)
 {
-	return PyType_Type.tp_getattro(cls, pyname);	
+	PyObject *ret= PyType_Type.tp_getattro(cls, attr);
+
+	if(ret == NULL) {
+		StructRNA *srna= srna_from_self(cls, "StructRNA.__getattr__");
+		if(srna) {
+			PropertyRNA *prop= RNA_struct_type_find_property(srna, _PyUnicode_AsString(attr));
+			if(prop) {
+				PointerRNA tptr;
+				PyErr_Clear(); /* clear error from tp_getattro */
+				RNA_pointer_create(NULL, &RNA_Property, prop, &tptr);
+				ret= pyrna_struct_CreatePyObject(&tptr);
+			}
+		}
+	}
+
+	return ret;
 }
 
 static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyObject *value)
 {
-	StructRNA *srna= srna_from_self(cls, "");
+	StructRNA *srna= srna_from_self(cls, "StructRNA.__setattr__");
 
 	if(srna == NULL) {
 		if(value && pyrna_is_deferred_prop(value)) {
@@ -2854,10 +2869,8 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
 	if(value) {
 		/* check if the value is a property */
 		if(pyrna_is_deferred_prop(value)) {
-			int ret= deferred_register_prop(srna, attr, value);
-			if(ret < 0)
-				return ret;
-			/* pass through, when the value isn't assigned it still works but gets confusing from script writers POV */
+			/* dont add this to the __dict__, getattr deals with returning the newly created RNA_Property type */
+			return deferred_register_prop(srna, attr, value);
 		}
 		else {
 			/* remove existing property if its set or we also end up with confusement */
@@ -2874,7 +2887,7 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
 			return -1;
 		}
 	}
-	
+
 	/* fallback to standard py, delattr/setattr */
 	return PyType_Type.tp_setattro(cls, attr, value);
 }
@@ -4951,12 +4964,10 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, int parent, const char *error_pr
 
 /* Orphan functions, not sure where they should go */
 /* get the srna for methods attached to types */
-/* */
+/*
+ * Caller needs to raise error.*/
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
 {
-	/* a bit sloppy but would cause a very confusing bug if
-	 * an error happened to be set here */
-	PyErr_Clear();
 
 	if(self==NULL) {
 		return NULL;
@@ -4967,10 +4978,24 @@ StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
 	else if (PyType_Check(self)==0) {
 		return NULL;
 	}
-	/* These cases above not errors, they just mean the type was not compatible
-	 * After this any errors will be raised in the script */
+	else {
+		/* These cases above not errors, they just mean the type was not compatible
+		 * After this any errors will be raised in the script */
 
-	return pyrna_struct_as_srna(self, 0, error_prefix);
+		PyObject *error_type, *error_value, *error_traceback;
+		StructRNA *srna;
+
+		PyErr_Fetch(&error_type, &error_value, &error_traceback);
+		PyErr_Clear();
+
+		srna= pyrna_struct_as_srna(self, 0, error_prefix);
+
+		if(!PyErr_Occurred()) {
+			PyErr_Restore(error_type, error_value, error_traceback);
+		}
+
+		return srna;
+	}
 }
 
 static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item)
@@ -5200,7 +5225,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 	}
 
 	/* verify properties */
-	lb= RNA_struct_defined_properties(srna);
+	lb= RNA_struct_type_properties(srna);
 	for(link=lb->first; link; link=link->next) {
 		const char *identifier;
 		prop= (PropertyRNA*)link;
