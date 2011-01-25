@@ -27,7 +27,7 @@
 set(INC 
 	.
 	../../../intern/guardedalloc
-	${JPEG_INC}
+	${JPEG_INCLUDE_DIR}
 )
 
 set(SRC

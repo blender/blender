@@ -32,9 +32,9 @@ set(INC
 	../makesdna
 	../../../intern/memutil
 	../../../intern/guardedalloc
-	${JPEG_INC}
-	${PNG_INC}
-	${ZLIB_INC}
+	${JPEG_INCLUDE_DIR}
+	${PNG_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC

@@ -33,7 +33,7 @@ set(INC
 	../../editors/include
 	../../../../intern/guardedalloc
 	../../../../intern/audaspace/intern
-	${PYTHON_INC}
+	${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC

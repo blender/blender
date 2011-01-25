@@ -35,7 +35,7 @@ set(INC
 	../../../extern/glew/include
 	../../../intern/guardedalloc
 	../Expressions
-	${PYTHON_INC}
+	${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC

@@ -128,10 +128,10 @@ macro(setup_liblinks
 		target_link_libraries(${target} ${PYTHON_LINKFLAGS})
 
 		if(WIN32 AND NOT UNIX)
-			target_link_libraries(${target} debug ${PYTHON_LIB}_d)
-			target_link_libraries(${target} optimized ${PYTHON_LIB})
+			target_link_libraries(${target} debug ${PYTHON_LIBRARY}_d)
+			target_link_libraries(${target} optimized ${PYTHON_LIBRARY})
 		else()
-			target_link_libraries(${target} ${PYTHON_LIB})
+			target_link_libraries(${target} ${PYTHON_LIBRARY})
 		endif()
 	endif()
 

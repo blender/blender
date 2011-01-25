@@ -39,7 +39,7 @@ set(SRC
 )
 
 if(WITH_PYTHON)
-	list(APPEND INC ${PYTHON_INC} ../../python)
+	list(APPEND INC ${PYTHON_INCLUDE_DIRS} ../../python)
 	add_definitions(-DWITH_PYTHON)
 endif()
 

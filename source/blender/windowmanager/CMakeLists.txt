@@ -96,7 +96,7 @@ if(WITH_CODEC_FFMPEG)
 endif()
 
 if(WITH_PYTHON)
-	list(APPEND INC ../python ${PYTHON_INC})
+	list(APPEND INC ../python ${PYTHON_INCLUDE_DIRS})
 	add_definitions(-DWITH_PYTHON)
 endif()
 

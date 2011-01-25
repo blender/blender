@@ -33,7 +33,7 @@ set(INC
 	../makesrna
 	../render/extern/include
 	../../../intern/guardedalloc
-	${ZLIB_INC}
+	${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC

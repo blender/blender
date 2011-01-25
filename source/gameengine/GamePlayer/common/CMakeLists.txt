@@ -52,9 +52,9 @@ set(INC
 	../../../../source/blender/blenloader
 	../../../../source/blender/gpu
 	../../../../extern/glew/include
-	${PYTHON_INC}
-	${PNG_INC}
-	${ZLIB_INC}
+	${PYTHON_INCLUDE_DIRS}
+	${PNG_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC 

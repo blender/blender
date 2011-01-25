@@ -26,8 +26,8 @@
 
 set(INC
 	extern
-	${PNG_INC}
-	${ZLIB_INC}
+	${PNG_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
