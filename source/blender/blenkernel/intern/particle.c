@@ -1001,6 +1001,8 @@ static float interpolate_particle_value(float v1, float v2, float v3, float v4, 
 	value= w[0]*v1 + w[1]*v2 + w[2]*v3;
 	if(four)
 		value += w[3]*v4;
+
+	CLAMP(value, 0.f, 1.f);
 	
 	return value;
 }
