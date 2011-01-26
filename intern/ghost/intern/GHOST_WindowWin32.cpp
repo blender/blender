@@ -139,6 +139,26 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_stereo(stereoVisual),
 	m_nextWindow(NULL)
 {
+	OSVERSIONINFOEX versionInfo;
+	bool hasMinVersionForTaskbar = false;
+	
+	ZeroMemory(&versionInfo, sizeof(OSVERSIONINFOEX));
+	
+	versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+	
+	if(!GetVersionEx((OSVERSIONINFO *)&versionInfo)) {
+		versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		if(GetVersionEx((OSVERSIONINFO*)&versionInfo)) {
+			if(versionInfo.dwMajorVersion>=6 && versionInfo.dwMinorVersion>=1) {
+				hasMinVersionForTaskbar = true;
+			}
+		}
+	} else {
+		if(versionInfo.dwMajorVersion>=6 && versionInfo.dwMinorVersion>=1) {
+			hasMinVersionForTaskbar = true;
+		}
+	}
+
 	if (state != GHOST_kWindowStateFullScreen) {
 		RECT rect;
 		MONITORINFO monitor;
@@ -308,11 +328,22 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			}
 		}
 	}
+
+	if(hasMinVersionForTaskbar)
+		CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_ITaskbarList ,(LPVOID*)&m_Bar);
+	else
+		m_Bar=NULL;
 }
 
 
 GHOST_WindowWin32::~GHOST_WindowWin32()
 {
+	if(m_Bar)
+	{
+		m_Bar->SetProgressState(m_hWnd, TBPF_NOPROGRESS);
+		m_Bar->Release();
+	};
+
 	if (m_wintab) {
 		GHOST_WIN32_WTClose fpWTClose = ( GHOST_WIN32_WTClose ) ::GetProcAddress( m_wintab, "WTClose" );
 		if (fpWTClose) {
@@ -1102,6 +1133,23 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 	return GHOST_kSuccess;
 }
 
+
+GHOST_TSuccess GHOST_WindowWin32::setProgressBar(float progress)
+{	
+	/*SetProgressValue sets state to TBPF_NORMAL automaticly*/
+	if(m_Bar && S_OK == m_Bar->SetProgressValue(m_hWnd,10000*progress,10000))
+		return GHOST_kSuccess;
+
+	return GHOST_kFailure;
+}
+
+GHOST_TSuccess GHOST_WindowWin32::endProgressBar()
+{
+	if(m_Bar && S_OK == m_Bar->SetProgressState(m_hWnd,TBPF_NOPROGRESS))
+		return GHOST_kSuccess;
+
+	return GHOST_kFailure;
+}
 
 /*  Ron Fosner's code for weighting pixel formats and forcing software.
 	See http://www.opengl.org/resources/faq/technical/weight.cpp */

@@ -153,6 +153,7 @@ elseif(WIN32)
 		intern/GHOST_SystemWin32.h
 		intern/GHOST_SystemPathsWin32.h
 		intern/GHOST_WindowWin32.h
+		intern/GHOST_TaskbarWin32.h
 	)
 endif()
 
