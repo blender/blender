@@ -361,6 +361,82 @@ static void rna_Key_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 }
 
+static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
+{
+	KeyBlock *kb;
+	
+	/* sanity checks */
+	if (ELEM(NULL, key, point))
+		return NULL;
+	
+	/* we'll need to manually search through the keyblocks and check 
+	 * if the point is somewhere in the middle of each block's data
+	 */
+	for (kb = key->block.first; kb; kb = kb->next) {
+		if (kb->data) {
+			float *start = (float *)kb->data;
+			float *end;
+			
+			/* easy cases first */
+			if ((start == NULL) || (start > point)) {
+				/* there's no chance point is in array */
+				continue;
+			}
+			else if (start == point) {
+				/* exact match - point is first in array */
+				return kb;
+			}
+			
+			/* determine where end of array is 
+			 *	- elemsize is in bytes, so use char* cast to get array in terms of bytes
+			 */
+			end = (float *)((char *)start + (key->elemsize * kb->totelem));
+			
+			/* if point's address is less than the end, then it is somewhere between start and end, so in array */
+			if (end > point) {
+				/* we've found the owner of the point data */
+				return kb;
+			}
+		}
+	}
+	
+	return NULL;
+}
+
+static int rna_ShapeKeyPoint_get_index(Key *key, KeyBlock *kb, float *point)
+{
+	/* if we frame the data array and point pointers as char*, then the difference between 
+	 * them will be in bytes. Thus, dividing through by key->elemsize (number of bytes per point)
+	 * gives us the offset of point from start of array.
+	 */
+	char *start = (char *)kb->data;
+	char *pt = (char *)point;
+	
+	return (int)(pt - start) / key->elemsize;
+}
+
+static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
+{
+	ID *id = (ID *)ptr->id.data;
+	Key *key = rna_ShapeKey_find_key(ptr->id.data);
+	KeyBlock *kb;
+	float *point = (float *)ptr->data;
+	
+	/* if we can get a key block, we can construct a path */
+	kb = rna_ShapeKeyData_find_keyblock(key, point); 
+	
+	if (kb) {
+		int index = rna_ShapeKeyPoint_get_index(key, kb, point);
+		
+		if (GS(id->name) == ID_KE)
+			return BLI_sprintfN("keys[\"%s\"].data[%d]", kb->name, index);
+		else
+			return BLI_sprintfN("shape_keys.keys[\"%s\"].data[%d]", kb->name, index);
+	}
+	else
+		return NULL; // XXX: there's really no way to resolve this...
+}
+
 #else
 
 static void rna_def_keydata(BlenderRNA *brna)
@@ -370,6 +446,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ShapeKeyPoint", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key Point", "Point in a shape key");
+	RNA_def_struct_path_func(srna, "rna_ShapeKeyPoint_path");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
@@ -379,6 +456,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ShapeKeyCurvePoint", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key Curve Point", "Point in a shape key for curves");
+	RNA_def_struct_path_func(srna, "rna_ShapeKeyPoint_path"); /* there's nothing type specific here, so this is fine for now */
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
@@ -393,6 +471,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ShapeKeyBezierPoint", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key Bezier Point", "Point in a shape key for bezier curves");
+	RNA_def_struct_path_func(srna, "rna_ShapeKeyPoint_path"); /* there's nothing type specific here, so this is fine for now */
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
