@@ -2056,7 +2056,7 @@ static void scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 	tsc->delta[1]+= mval[1] - tsc->old[1];
 
 	if(!tsc->scrollbar) {
-		txtdelta[0]= tsc->delta[0]/st->cwidth;
+		txtdelta[0]= -tsc->delta[0]/st->cwidth;
 		txtdelta[1]= tsc->delta[1]/st->lheight;
 
 		tsc->delta[0]%= st->cwidth;
