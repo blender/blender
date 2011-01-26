@@ -991,12 +991,12 @@ void UI_view2d_view_ortho(View2D *v2d)
 	
 	/* XXX ton: this flag set by outliner, for icons */
 	if(v2d->flag & V2D_PIXELOFS_X) {
-		curmasked.xmin= floor(curmasked.xmin) + 0.375f;
-		curmasked.xmax= floor(curmasked.xmax) + 0.375f;
+		curmasked.xmin= floor(curmasked.xmin) + 0.001f;
+		curmasked.xmax= floor(curmasked.xmax) + 0.001f;
 	}
 	if(v2d->flag & V2D_PIXELOFS_Y) {
-		curmasked.ymin= floor(curmasked.ymin) + 0.375f;
-		curmasked.ymax= floor(curmasked.ymax) + 0.375f;
+		curmasked.ymin= floor(curmasked.ymin) + 0.001f;
+		curmasked.ymax= floor(curmasked.ymax) + 0.001f;
 	}
 	
 	/* set matrix on all appropriate axes */
