@@ -5718,6 +5718,8 @@ void draw_outliner(const bContext *C)
 	/* update size of tot-rect (extents of data/viewable area) */
 	UI_view2d_totRect_set(v2d, sizex, sizey);
 
+	/* force display to pixel coords */
+	v2d->flag |= (V2D_PIXELOFS_X|V2D_PIXELOFS_Y);
 	/* set matrix for 2d-view controls */
 	UI_view2d_view_ortho(v2d);
 
