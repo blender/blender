@@ -57,6 +57,7 @@ static Key *rna_ShapeKey_find_key(ID *id)
 		case ID_KE: return (Key*)id;
 		case ID_LT: return ((Lattice*)id)->key;
 		case ID_ME: return ((Mesh*)id)->key;
+		case ID_OB: return ob_get_key((Object*)id);
 		default: return NULL;
 	}
 }
@@ -143,12 +144,9 @@ PointerRNA rna_object_shapekey_index_get(ID *id, int value)
 	Key *key= rna_ShapeKey_find_key(id);
 	KeyBlock *kb= NULL;
 	PointerRNA ptr;
-	int a;
 
-	if(key && value < key->totkey)
-		for(a=0, kb=key->block.first; kb; kb=kb->next, a++)
-			if(a == value)
-				break;
+	if (key && value < key->totkey)
+		kb = BLI_findlink(&key->block, value);
 	
 	RNA_pointer_create(id, &RNA_ShapeKey, kb, &ptr);
 
@@ -158,13 +156,11 @@ PointerRNA rna_object_shapekey_index_get(ID *id, int value)
 int rna_object_shapekey_index_set(ID *id, PointerRNA value, int current)
 {
 	Key *key= rna_ShapeKey_find_key(id);
-	KeyBlock *kb;
-	int a;
 
-	if(key)
-		for(a=0, kb=key->block.first; kb; kb=kb->next, a++)
-			if(kb == value.data)
-				return a;
+	if (key) {
+		int a = BLI_findindex(&key->block, value.data);
+		if (a >= 0) return a;
+	}
 	
 	return current;
 }
@@ -286,17 +282,17 @@ static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA
 	Curve *cu;
 	Nurb *nu;
 	int tot= kb->totelem, size= key->elemsize;
-
+	
 	if(GS(key->from->name) == ID_CU) {
 		cu= (Curve*)key->from;
 		nu= cu->nurb.first;
-
+		
 		if(nu->bezt) {
 			tot /= 3;
 			size *= 3;
 		}
 	}
-
+	
 	rna_iterator_array_begin(iter, (void*)kb->data, size, tot, 0, NULL);
 }
 
@@ -307,15 +303,15 @@ static int rna_ShapeKey_data_length(PointerRNA *ptr)
 	Curve *cu;
 	Nurb *nu;
 	int tot= kb->totelem;
-
+	
 	if(GS(key->from->name) == ID_CU) {
 		cu= (Curve*)key->from;
 		nu= cu->nurb.first;
-
+		
 		if(nu->bezt)
 			tot /= 3;
 	}
-
+	
 	return tot;
 }
 
@@ -325,11 +321,11 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 	StructRNA *type;
 	Curve *cu;
 	Nurb *nu;
-
+	
 	if(GS(key->from->name) == ID_CU) {
 		cu= (Curve*)key->from;
 		nu= cu->nurb.first;
-
+		
 		if(nu->bezt)
 			type= &RNA_ShapeKeyBezierPoint;
 		else
