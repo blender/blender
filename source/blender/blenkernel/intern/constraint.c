@@ -372,10 +372,22 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 	else {
 		/* objects */
 		if (from==CONSTRAINT_SPACE_WORLD && to==CONSTRAINT_SPACE_LOCAL) {
-			/* check if object has a parent - otherwise this won't work */
+			/* check if object has a parent */
 			if (ob->parent) {
 				/* 'subtract' parent's effects from owner */
 				mul_m4_m4m4(diff_mat, ob->parentinv, ob->parent->obmat);
+				invert_m4_m4(imat, diff_mat);
+				copy_m4_m4(tempmat, mat);
+				mul_m4_m4m4(mat, tempmat, imat);
+			}
+			else {
+				/* Local space in this case will have to be defined as local to the owner's 
+				 * transform-property-rotated axes. So subtract this rotation component.
+				 */
+				object_to_mat4(ob, diff_mat);
+				normalize_m4(diff_mat);
+				zero_v3(diff_mat[3]);
+				
 				invert_m4_m4(imat, diff_mat);
 				copy_m4_m4(tempmat, mat);
 				mul_m4_m4m4(mat, tempmat, imat);
@@ -387,6 +399,17 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				/* 'add' parent's effect back to owner */
 				copy_m4_m4(tempmat, mat);
 				mul_m4_m4m4(diff_mat, ob->parentinv, ob->parent->obmat);
+				mul_m4_m4m4(mat, tempmat, diff_mat);
+			}
+			else {
+				/* Local space in this case will have to be defined as local to the owner's 
+				 * transform-property-rotated axes. So add back this rotation component.
+				 */
+				object_to_mat4(ob, diff_mat);
+				normalize_m4(diff_mat);
+				zero_v3(diff_mat[3]);
+				
+				copy_m4_m4(tempmat, mat);
 				mul_m4_m4m4(mat, tempmat, diff_mat);
 			}
 		}
