@@ -272,6 +272,7 @@ static int print_help(int UNUSED(argc), char **UNUSED(argv), void *data)
 
 	BLI_argsPrintArgDoc(ba, "--python");
 	BLI_argsPrintArgDoc(ba, "--python-console");
+	BLI_argsPrintArgDoc(ba, "--addons");
 
 #ifdef WIN32
 	BLI_argsPrintArgDoc(ba, "-R");
@@ -925,6 +926,28 @@ static int run_python_console(int UNUSED(argc), char **argv, void *data)
 #endif /* WITH_PYTHON */
 }
 
+static int set_addons(int argc, char **argv, void *data)
+{
+	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
+	if (argc > 1) {
+#ifdef WITH_PYTHON
+		char *str= malloc(strlen(argv[1]) + 100);
+		bContext *C= data;
+		sprintf(str, "[__import__('bpy').utils.addon_enable(i) for i in '%s'.split(',')]", argv[1]);
+		BPY_CTX_SETUP(BPY_string_exec(C, str));
+		free(str);
+#else
+		(void)argv; (void)data; /* unused */
+#endif /* WITH_PYTHON */
+		return 1;
+	}
+	else {
+		printf("\nError: you must specify a comma separated list after '--addons'.\n");
+		return 0;
+	}
+}
+
+
 static int load_file(int UNUSED(argc), char **argv, void *data)
 {
 	bContext *C = data;
@@ -1073,6 +1096,7 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 4, "-j", "--frame-jump", "<frames>\n\tSet number of frames to step forward after each rendered frame", set_skip_frame, C);
 	BLI_argsAdd(ba, 4, "-P", "--python", "<filename>\n\tRun the given Python script (filename or Blender Text)", run_python, C);
 	BLI_argsAdd(ba, 4, NULL, "--python-console", "\n\tRun blender with an interactive console", run_python_console, C);
+	BLI_argsAdd(ba, 4, NULL, "--addons", "\n\tComma separated list of addons (no spaces)", set_addons, C);
 
 	BLI_argsAdd(ba, 4, "-o", "--render-output", output_doc, set_output, C);
 	BLI_argsAdd(ba, 4, "-E", "--engine", "<engine>\n\tSpecify the render engine\n\tuse -E help to list available engines", set_engine, C);
