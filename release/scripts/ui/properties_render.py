@@ -584,6 +584,8 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
             sub.prop(rd, "fps")
             sub.prop(rd, "fps_base", text="/")
         subrow = sub.row(align=True)
+        subrow.label(text="Time Remapping:")
+        subrow = sub.row(align=True)
         subrow.prop(rd, "frame_map_old", text="Old")
         subrow.prop(rd, "frame_map_new", text="New")
 
