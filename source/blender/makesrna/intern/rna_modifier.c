@@ -666,7 +666,7 @@ static void rna_def_modifier_lattice(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Name of Vertex Group which determines influence of modifier per point");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_LatticeModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
@@ -698,7 +698,7 @@ static void rna_def_modifier_curve(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Name of Vertex Group which determines influence of modifier per point");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_CurveModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1014,7 +1014,7 @@ static void rna_def_modifier_armature(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
-	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Name of Vertex Group which determines influence of modifier per point");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_ArmatureModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1057,7 +1057,7 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Name of Vertex Group which determines influence of modifier per point");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_HookModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
@@ -1275,7 +1275,7 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
-	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Name of Vertex Group which determines influence of modifier per point");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_DisplaceModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1438,7 +1438,7 @@ static void rna_def_modifier_smooth(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
-	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Name of Vertex Group which determines influence of modifier per point");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SmoothModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
