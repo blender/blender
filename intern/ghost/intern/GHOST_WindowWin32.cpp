@@ -141,31 +141,45 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 {
 	if (state != GHOST_kWindowStateFullScreen) {
 		RECT rect;
+		MONITORINFO monitor;
 		GHOST_TUns32 tw, th; 
 
 		width += GetSystemMetrics(SM_CXSIZEFRAME)*2;
 		height += GetSystemMetrics(SM_CYSIZEFRAME)*2 + GetSystemMetrics(SM_CYCAPTION);
 
+		rect.left = left;
+		rect.right = left + width;
+		rect.top = top;
+		rect.bottom = top + height;
+
+		monitor.cbSize=sizeof(monitor);
+		monitor.dwFlags=0;
+
 		// take taskbar into account
-		SystemParametersInfo(SPI_GETWORKAREA,0,&rect,0);
-		th = rect.bottom - rect.top;
-		tw = rect.right - rect.left;
+		GetMonitorInfo(MonitorFromRect(&rect,MONITOR_DEFAULTTONEAREST),&monitor);
+
+		th = monitor.rcWork.bottom - monitor.rcWork.top;
+		tw = monitor.rcWork.right - monitor.rcWork.left;
 
 		if(tw < width)
 		{
 			width = tw;
-			left = rect.left;
+			left = monitor.rcWork.left;
 		}
-		else if(left < rect.left)
-			left = rect.left;
+		else if(monitor.rcWork.right < left + (int)width)
+			left = monitor.rcWork.right - width;
+		else if(left < monitor.rcWork.left)
+			left = monitor.rcWork.left;
 
 		if(th < height)
 		{
 			height = th;
-			top = rect.top;
+			top = monitor.rcWork.top;
 		}
-		else if(top < rect.top)
-			top = rect.top;
+		else if(monitor.rcWork.bottom < top + (int)height)
+			top = monitor.rcWork.bottom - height;
+		else if(top < monitor.rcWork.top)
+			top = monitor.rcWork.top;
 
 		m_hWnd = ::CreateWindow(
 			s_windowClassName,			// pointer to registered class name
