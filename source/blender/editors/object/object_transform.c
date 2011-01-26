@@ -87,40 +87,45 @@ static void object_clear_rot(Object *ob)
 			/* perform clamping on a component by component basis */
 			if (ob->rotmode == ROT_MODE_AXISANGLE) {
 				if ((ob->protectflag & OB_LOCK_ROTW) == 0)
-					ob->rotAngle= 0.0f;
+					ob->rotAngle= ob->drotAngle= 0.0f;
 				if ((ob->protectflag & OB_LOCK_ROTX) == 0)
-					ob->rotAxis[0]= 0.0f;
+					ob->rotAxis[0]= ob->drotAxis[0]= 0.0f;
 				if ((ob->protectflag & OB_LOCK_ROTY) == 0)
-					ob->rotAxis[1]= 0.0f;
+					ob->rotAxis[1]= ob->drotAxis[1]= 0.0f;
 				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
-					ob->rotAxis[2]= 0.0f;
+					ob->rotAxis[2]= ob->drotAxis[2]= 0.0f;
 					
 				/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
 				if (IS_EQ(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQ(ob->rotAxis[1], ob->rotAxis[2]))
 					ob->rotAxis[1] = 1.0f;
+				if (IS_EQ(ob->drotAxis[0], ob->drotAxis[1]) && IS_EQ(ob->drotAxis[1], ob->drotAxis[2]))
+					ob->drotAxis[1]= 1.0f;
 			}
 			else if (ob->rotmode == ROT_MODE_QUAT) {
 				if ((ob->protectflag & OB_LOCK_ROTW) == 0)
-					ob->quat[0]= 1.0f;
+					ob->quat[0]= ob->dquat[0]= 1.0f;
 				if ((ob->protectflag & OB_LOCK_ROTX) == 0)
-					ob->quat[1]= 0.0f;
+					ob->quat[1]= ob->dquat[1]= 0.0f;
 				if ((ob->protectflag & OB_LOCK_ROTY) == 0)
-					ob->quat[2]= 0.0f;
+					ob->quat[2]= ob->dquat[2]= 0.0f;
 				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
-					ob->quat[3]= 0.0f;
+					ob->quat[3]= ob->dquat[3]= 0.0f;
+					
+				// TODO: does this quat need normalising now?
 			}
 			else {
 				/* the flag may have been set for the other modes, so just ignore the extra flag... */
 				if ((ob->protectflag & OB_LOCK_ROTX) == 0)
-					ob->rot[0]= 0.0f;
+					ob->rot[0]= ob->drot[0]= 0.0f;
 				if ((ob->protectflag & OB_LOCK_ROTY) == 0)
-					ob->rot[1]= 0.0f;
+					ob->rot[1]= ob->drot[1]= 0.0f;
 				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
-					ob->rot[2]= 0.0f;
+					ob->rot[2]= ob->drot[2]= 0.0f;
 			}
 		}
 		else {
 			/* perform clamping using euler form (3-components) */
+			// FIXME: deltas are not handled for these cases yet...
 			float eul[3], oldeul[3], quat1[4] = {0};
 			
 			if (ob->rotmode == ROT_MODE_QUAT) {
@@ -162,14 +167,22 @@ static void object_clear_rot(Object *ob)
 		if (ob->rotmode == ROT_MODE_QUAT) {
 			ob->quat[1]=ob->quat[2]=ob->quat[3]= 0.0f; 
 			ob->quat[0]= 1.0f;
+			
+			ob->dquat[1]=ob->dquat[2]=ob->dquat[3]= 0.0f;
+			ob->dquat[0]= 1.0f;
 		}
 		else if (ob->rotmode == ROT_MODE_AXISANGLE) {
 			/* by default, make rotation of 0 radians around y-axis (roll) */
 			ob->rotAxis[0]=ob->rotAxis[2]=ob->rotAngle= 0.0f;
 			ob->rotAxis[1]= 1.0f;
+			
+			ob->drotAxis[0]=ob->drotAxis[2]=ob->drotAngle= 0.0f;
+			ob->drotAxis[1]= 1.0f;
 		}
 		else {
 			ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
+			
+			ob->drot[0]= ob->drot[1]= ob->drot[2]= 0.0f;
 		}
 	}
 }
@@ -316,11 +329,13 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
-	float *v1, *v3, mat[3][3];
-	int armature_clear= 0;
+	float *v1, *v3;
+	float mat[3][3];
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if(ob->parent) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	{
+		if (ob->parent) {
+			/* vectors pointed to by v1 and v3 will get modified */
 			v1= ob->loc;
 			v3= ob->parentinv[3];
 			
@@ -332,8 +347,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	CTX_DATA_END;
 
-	if(armature_clear==0) /* in this case flush was done */
-		DAG_ids_flush_update(bmain, 0);
+	DAG_ids_flush_update(bmain, 0);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
