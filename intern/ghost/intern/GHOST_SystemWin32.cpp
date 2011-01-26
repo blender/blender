@@ -738,7 +738,10 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, bool k
 		}
 
 		event = new GHOST_EventKey(getSystem()->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, ascii);
+		
+#ifdef BF_GHOST_DEBUG
 		std::cout << ascii << std::endl;
+#endif
 	}
 	else {
 		event = 0;
