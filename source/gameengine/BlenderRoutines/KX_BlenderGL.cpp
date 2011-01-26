@@ -146,13 +146,13 @@ void BL_print_game_line(int fontid, const char* text, int size, int dpi, float* 
 	BLF_draw(fontid, (char *)text, strlen(text));
 
 	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT);
-	glEnable(GL_DEPTH_TEST);
 }
 
 void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int height)
 {	
 	/* gl prepping */
 	DisableForText();
+	glDisable(GL_DEPTH_TEST);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -181,6 +181,7 @@ void BL_print_gamedebug_line_padded(const char* text, int xco, int yco, int widt
 	 * behind quite as neatly as we'd have wanted to. I don't know
 	 * what cause it, though :/ .*/
 	DisableForText();
+	glDisable(GL_DEPTH_TEST);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
