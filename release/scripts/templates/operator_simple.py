@@ -1,11 +1,13 @@
 import bpy
 
+
 def main(context):
     for ob in context.scene.objects:
         print(ob)
 
+
 class SimpleOperator(bpy.types.Operator):
-    ''''''
+    '''Tooltip'''
     bl_idname = "object.simple_operator"
     bl_label = "Simple Object Operator"
 

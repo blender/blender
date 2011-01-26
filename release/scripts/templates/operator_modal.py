@@ -1,6 +1,7 @@
 import bpy
 from bpy.props import *
 
+
 class ModalOperator(bpy.types.Operator):
     '''Move an object with the mouse, example.'''
     bl_idname = "object.modal_operator"

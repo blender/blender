@@ -1,5 +1,6 @@
 import bpy
 
+
 def main(context):
     obj = context.active_object
     mesh = obj.data
@@ -7,7 +8,6 @@ def main(context):
     is_editmode = (obj.mode == 'EDIT')
     if is_editmode:
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
 
     if not mesh.uv_textures:
         uvtex = bpy.ops.mesh.uv_texture_add()
@@ -21,7 +21,6 @@ def main(context):
             if uv.select_uv[j]:
                 # apply the location of the vertex as a UV
                 uvs[j][:] = mesh.vertices[v_idx].co.xy
-
 
     if is_editmode:
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
