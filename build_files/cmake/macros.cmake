@@ -135,7 +135,7 @@ macro(setup_liblinks
 		endif()
 	endif()
 
-	target_link_libraries(${target} ${OPENGL_glu_LIBRARY} ${JPEG_LIB} ${PNG_LIB} ${ZLIB_LIB})
+	target_link_libraries(${target} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARY} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
 	target_link_libraries(${target} ${FREETYPE_LIBRARY})
 
 	if(WITH_INTERNATIONAL)
