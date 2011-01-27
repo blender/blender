@@ -265,9 +265,9 @@ void ArmatureExporter::add_joints_element(ListBase *defbase,
 	COLLADASW::JointsElement joints(mSW);
 	COLLADASW::InputList &input = joints.getInputList();
 
-	input.push_back(COLLADASW::Input(COLLADASW::JOINT, // constant declared in COLLADASWInputList.h
+	input.push_back(COLLADASW::Input(COLLADASW::InputSemantic::JOINT, // constant declared in COLLADASWInputList.h
 							   COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, joints_source_id)));
-	input.push_back(COLLADASW::Input(COLLADASW::BINDMATRIX,
+	input.push_back(COLLADASW::Input(COLLADASW::InputSemantic::BINDMATRIX,
 							   COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, inv_bind_mat_source_id)));
 	joints.add();
 }
@@ -425,9 +425,9 @@ void ArmatureExporter::add_vertex_weights_element(const std::string& weights_sou
 	COLLADASW::InputList &input = weights.getInputList();
 
 	int offset = 0;
-	input.push_back(COLLADASW::Input(COLLADASW::JOINT, // constant declared in COLLADASWInputList.h
+	input.push_back(COLLADASW::Input(COLLADASW::InputSemantic::JOINT, // constant declared in COLLADASWInputList.h
 									 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, joints_source_id), offset++));
-	input.push_back(COLLADASW::Input(COLLADASW::WEIGHT,
+	input.push_back(COLLADASW::Input(COLLADASW::InputSemantic::WEIGHT,
 									 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, weights_source_id), offset++));
 
 	weights.setCount(me->totvert);

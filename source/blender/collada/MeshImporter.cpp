@@ -315,16 +315,19 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
 
 void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
 {
-	// vertices	
-	me->totvert = mesh->getPositions().getFloatValues()->getCount() / 3;
+	// vertices
+	COLLADAFW::MeshVertexData& pos = mesh->getPositions();
+	int stride = pos.getStride(0);
+	if(stride==0) stride = 3;
+	
+	me->totvert = mesh->getPositions().getFloatValues()->getCount() / stride;
 	me->mvert = (MVert*)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
 
-	COLLADAFW::MeshVertexData& pos = mesh->getPositions();
 	MVert *mvert;
 	int i;
 
 	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
-		get_vector(mvert->co, pos, i);
+		get_vector(mvert->co, pos, i, stride);
 	}
 }
 
@@ -634,10 +637,10 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)
 	geom_uid_mat_mapping_map[mesh->getUniqueId()] = mat_prim_map;
 }
 
-void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i)
+void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i, int stride)
 {
-	i *= 3;
-
+	i *= stride;
+	
 	switch(arr.getType()) {
 	case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 		{
@@ -647,6 +650,7 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i)
 			v[0] = (*values)[i++];
 			v[1] = (*values)[i++];
 			v[2] = (*values)[i];
+
 		}
 		break;
 	case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
@@ -668,13 +672,13 @@ bool MeshImporter::flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor,
 {
 	float a[3], b[3];
 
-	get_vector(a, nor, *nind);
+	get_vector(a, nor, *nind, 3);
 	normalize_v3(a);
 
 	nind++;
 
 	for (int i = 1; i < count; i++, nind++) {
-		get_vector(b, nor, *nind);
+		get_vector(b, nor, *nind, 3);
 		normalize_v3(b);
 
 		float dp = dot_v3v3(a, b);

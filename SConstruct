@@ -143,6 +143,11 @@ if not env:
     Exit()
 
 
+env.Append(RCFLAGS="TEST=\"test it\"")
+print env['RCFLAGS']
+Exit()
+
+
 cc = B.arguments.get('CC', None)
 cxx = B.arguments.get('CXX', None)
 if cc:
