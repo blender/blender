@@ -2068,7 +2068,7 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	}
 
 	/* solve constraints */
-	if (ob->constraints.first && !(ob->flag & OB_NO_CONSTRAINTS)) {
+	if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
 		bConstraintOb *cob;
 		
 		cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
