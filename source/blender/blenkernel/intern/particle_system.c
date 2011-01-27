@@ -221,16 +221,18 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 
 		if(totpart) {
 			newpars= MEM_callocN(totpart*sizeof(ParticleData), "particles");
-			if(psys->part->phystype == PART_PHYS_BOIDS)
+			if(newpars == NULL)
+				return;
+
+			if(psys->part->phystype == PART_PHYS_BOIDS) {
 				newboids= MEM_callocN(totpart*sizeof(BoidParticle), "boid particles");
 
-			if(ELEM(NULL, newpars, newboids)) {
-				 /* allocation error! */
-				if(newpars)
-					MEM_freeN(newpars);
-				if(newboids)
-					MEM_freeN(newboids);
-				return;
+				if(newboids == NULL) {
+					 /* allocation error! */
+					if(newpars)
+						MEM_freeN(newpars);
+					return;
+				}
 			}
 		}
 	
