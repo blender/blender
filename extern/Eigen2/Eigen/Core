@@ -59,7 +59,7 @@
 #include <cstring>
 #include <string>
 #include <limits>
-#include <malloc.h>
+#include <cstddef>
 
 #if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_NO_EXCEPTIONS)
   #define EIGEN_EXCEPTIONS
