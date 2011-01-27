@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include "BoolValue.h"
 #include "IntValue.h"
 #include "FloatValue.h"

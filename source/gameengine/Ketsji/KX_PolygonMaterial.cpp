@@ -25,6 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+#include <stddef.h>
+
 #include "KX_PolygonMaterial.h"
 
 #include "BKE_mesh.h"

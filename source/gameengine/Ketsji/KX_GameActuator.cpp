@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
+#include <stddef.h>
+
 #include "SCA_IActuator.h"
 #include "KX_GameActuator.h"
 //#include <iostream>

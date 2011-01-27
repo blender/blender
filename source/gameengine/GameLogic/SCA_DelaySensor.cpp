@@ -35,6 +35,8 @@
 #pragma warning( disable : 4786 )     
 #endif
 
+#include <stddef.h>
+
 #include "SCA_DelaySensor.h"
 #include "SCA_LogicManager.h"
 #include "SCA_EventManager.h"

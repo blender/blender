@@ -20,6 +20,9 @@
  *
  */
 
+/* for types only, not alloc functions */
+#include <malloc.h>
+
 #include "MEM_CacheLimiter.h"
 #include "MEM_CacheLimiterC-Api.h"
 

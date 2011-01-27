@@ -30,6 +30,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include "SCA_MouseSensor.h"
 #include "SCA_EventManager.h"
 #include "SCA_MouseManager.h"

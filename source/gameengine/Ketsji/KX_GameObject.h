@@ -36,6 +36,7 @@
 #pragma warning (disable : 4355) 
 #endif 
 
+#include <stddef.h>
 
 #include "ListValue.h"
 #include "SCA_IObject.h"
