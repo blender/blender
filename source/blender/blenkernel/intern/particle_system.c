@@ -223,6 +223,15 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 			newpars= MEM_callocN(totpart*sizeof(ParticleData), "particles");
 			if(psys->part->phystype == PART_PHYS_BOIDS)
 				newboids= MEM_callocN(totpart*sizeof(BoidParticle), "boid particles");
+
+			if(ELEM(NULL, newpars, newboids)) {
+				 /* allocation error! */
+				if(newpars)
+					MEM_freeN(newpars);
+				if(newboids)
+					MEM_freeN(newboids);
+				return;
+			}
 		}
 	
 		if(psys->particles) {
@@ -3402,8 +3411,6 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	BoidBrainData bbd;
 	PARTICLE_P;
 	float timestep;
-	/* current time */
-	/* float ctime; */ /*UNUSED*/
 	/* frame & time changes */
 	float dfra, dtime;
 	float birthtime, dietime;
@@ -3412,7 +3419,6 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	dfra= cfra - psys->cfra;
 
 	timestep = psys_get_timestep(sim);
-	/*ctime= cfra*timestep;*/ /*UNUSED*/
 	dtime= dfra*timestep;
 
 	if(dfra<0.0){
@@ -3675,7 +3681,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 		if( fluidmd && fluidmd->fss) { 
 			FluidsimSettings *fss= fluidmd->fss;
 			ParticleSettings *part = psys->part;
-			ParticleData *pa=0;
+			ParticleData *pa=NULL;
 			const char *suffix  = "fluidsurface_particles_####";
 			const char *suffix2 = ".gz";
 			char filename[256];
