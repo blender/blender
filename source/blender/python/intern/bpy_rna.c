@@ -2706,6 +2706,18 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
 
 		BLI_freelistN(&lb);
 	}
+
+	{
+		/* set(), this is needed to remove-doubles because the deferred
+		 * register-props will be in both the python __dict__ and accessed as RNA */
+
+		PyObject *set= PySet_New(ret);
+
+		Py_DECREF(ret);
+		ret= PySequence_List(set);
+		Py_DECREF(set);
+	}
+
 	return ret;
 }
 
@@ -2835,7 +2847,15 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
 {
 	PyObject *ret= PyType_Type.tp_getattro(cls, attr);
 
-	if(ret == NULL) {
+	/* Allows:
+	 * >>> bpy.types.Scene.foo = BoolProperty()
+	 * >>> bpy.types.Scene.foo
+	 * <bpy_struct, BooleanProperty("foo")>
+	 * ...rather then returning the defered class register tuple as checked by pyrna_is_deferred_prop()
+	 *
+	 * Disable for now, this is faking internal behavior in a way thats too tricky to maintain well. */
+#if 0
+	if(ret == NULL) { // || pyrna_is_deferred_prop(ret)
 		StructRNA *srna= srna_from_self(cls, "StructRNA.__getattr__");
 		if(srna) {
 			PropertyRNA *prop= RNA_struct_type_find_property(srna, _PyUnicode_AsString(attr));
@@ -2847,6 +2867,7 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
 			}
 		}
 	}
+#endif
 
 	return ret;
 }
@@ -2869,8 +2890,15 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
 	if(value) {
 		/* check if the value is a property */
 		if(pyrna_is_deferred_prop(value)) {
-			/* dont add this to the __dict__, getattr deals with returning the newly created RNA_Property type */
-			return deferred_register_prop(srna, attr, value);
+			int ret= deferred_register_prop(srna, attr, value);
+			if(ret == -1) {
+				/* error set */
+				return ret;
+			}
+
+			/* pass through and assign to the classes __dict__ as well
+			 * when the value isn't assigned it still creates the RNA property
+			 * but gets confusing from script writers POV if the assigned value cant be read back. */
 		}
 		else {
 			/* remove existing property if its set or we also end up with confusement */
