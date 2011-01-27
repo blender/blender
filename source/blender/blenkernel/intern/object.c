@@ -1019,7 +1019,7 @@ Object *add_only_object(int type, const char *name)
 	unit_m4(ob->parentinv);
 	unit_m4(ob->obmat);
 	ob->dt= OB_TEXTURE;
-	ob->empty_drawtype= OB_ARROWS;
+	ob->empty_drawtype= OB_PLAINAXES;
 	ob->empty_drawsize= 1.0;
 
 	if(type==OB_CAMERA || type==OB_LAMP) {
