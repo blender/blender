@@ -1970,6 +1970,7 @@ static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float 
 		}
 		
 		mul_v3_fl(par_vec, -1.f);
+		normalize_v3_v3(vec_one, par_vec);
 
 		inp_y=dot_v3v3(y_vec, vec_one);
 		inp_z=dot_v3v3(z_vec, vec_one);
