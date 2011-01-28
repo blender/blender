@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -120,22 +120,37 @@ private:
 //public:
 
 	/** Constructor. */
-	DocumentImporter::DocumentImporter(bContext *C, const char *filename) : mFilename(filename), mContext(C),
-												armature_importer(&unit_converter, &mesh_importer, &anim_importer, CTX_data_scene(C)),
-												mesh_importer(&unit_converter, &armature_importer, CTX_data_scene(C)),
-												anim_importer(&unit_converter, &armature_importer, CTX_data_scene(C)) {}
+	DocumentImporter::DocumentImporter(bContext *C, const char *filename) :
+		mImportStage(General),
+		mFilename(filename),
+		mContext(C),
+		armature_importer(&unit_converter, &mesh_importer, &anim_importer, CTX_data_scene(C)),
+		mesh_importer(&unit_converter, &armature_importer, CTX_data_scene(C)),
+		anim_importer(&unit_converter, &armature_importer, CTX_data_scene(C))
+	{}
 
 	/** Destructor. */
 	DocumentImporter::~DocumentImporter() {}
 
 	bool DocumentImporter::import()
 	{
+		/** TODO Add error handler (implement COLLADASaxFWL::IErrorHandler */
 		COLLADASaxFWL::Loader loader;
 		COLLADAFW::Root root(&loader, this);
 
-		// XXX report error
 		if (!root.loadDocument(mFilename))
 			return false;
+		
+		/** TODO set up scene graph and such here */
+		
+		mImportStage = Controller;
+		
+		COLLADASaxFWL::Loader loader2;
+		COLLADAFW::Root root2(&loader2, this);
+		
+		if (!root2.loadDocument(mFilename))
+			return false;
+		
 
 		return true;
 	}
@@ -155,6 +170,10 @@ private:
 	/** This method is called after the last write* method. No other methods will be called after this.*/
 	void DocumentImporter::finish()
 	{
+		if(mImportStage!=General)
+			return;
+			
+		/** TODO Break up and put into 2-pass parsing of DAE */
 		std::vector<const COLLADAFW::VisualScene*>::iterator it;
 		for (it = vscenes.begin(); it != vscenes.end(); it++) {
 			PointerRNA sceneptr, unit_settings;
@@ -439,6 +458,9 @@ private:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	bool DocumentImporter::writeVisualScene ( const COLLADAFW::VisualScene* visualScene ) 
 	{
+		if(mImportStage!=General)
+			return true;
+			
 		// this method called on post process after writeGeometry, writeMaterial, etc.
 
 		// for each <node> in <visual_scene>:
@@ -459,6 +481,9 @@ private:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	bool DocumentImporter::writeLibraryNodes ( const COLLADAFW::LibraryNodes* libraryNodes ) 
 	{
+		if(mImportStage!=General)
+			return true;
+			
 		Scene *sce = CTX_data_scene(mContext);
 
 		const COLLADAFW::NodePointerArray& nodes = libraryNodes->getNodes();
@@ -474,6 +499,9 @@ private:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	bool DocumentImporter::writeGeometry ( const COLLADAFW::Geometry* geom ) 
 	{
+		if(mImportStage!=General)
+			return true;
+			
 		return mesh_importer.write_geometry(geom);
 	}
 
@@ -481,6 +509,9 @@ private:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat ) 
 	{
+		if(mImportStage!=General)
+			return true;
+			
 		const std::string& str_mat_id = cmat->getOriginalId();
 		Material *ma = add_material((char*)str_mat_id.c_str());
 		
@@ -655,6 +686,8 @@ private:
 	
 	bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect ) 
 	{
+		if(mImportStage!=General)
+			return true;
 		
 		const COLLADAFW::UniqueId& uid = effect->getUniqueId();
 		if (uid_effect_map.find(uid) == uid_effect_map.end()) {
@@ -682,6 +715,9 @@ private:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera ) 
 	{
+		if(mImportStage!=General)
+			return true;
+			
 		Camera *cam = NULL;
 		std::string cam_id, cam_name;
 		
@@ -794,6 +830,9 @@ private:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	bool DocumentImporter::writeImage( const COLLADAFW::Image* image ) 
 	{
+		if(mImportStage!=General)
+			return true;
+			
 		// XXX maybe it is necessary to check if the path is absolute or relative
 	    const std::string& filepath = image->getImageURI().toNativePath();
 		const char *filename = (const char*)mFilename.c_str();
@@ -816,6 +855,9 @@ private:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	bool DocumentImporter::writeLight( const COLLADAFW::Light* light ) 
 	{
+		if(mImportStage!=General)
+			return true;
+			
 		Lamp *lamp = NULL;
 		std::string la_id, la_name;
 		
@@ -911,6 +953,9 @@ private:
 	// this function is called only for animations that pass COLLADAFW::validate
 	bool DocumentImporter::writeAnimation( const COLLADAFW::Animation* anim ) 
 	{
+		if(mImportStage!=General)
+			return true;
+			
 		// return true;
 		return anim_importer.write_animation(anim);
 	}
@@ -918,6 +963,9 @@ private:
 	// called on post-process stage after writeVisualScenes
 	bool DocumentImporter::writeAnimationList( const COLLADAFW::AnimationList* animationList ) 
 	{
+		if(mImportStage!=General)
+			return true;
+			
 		// return true;
 		return anim_importer.write_animation_list(animationList);
 	}
@@ -932,6 +980,9 @@ private:
 	// this is called on postprocess, before writeVisualScenes
 	bool DocumentImporter::writeController( const COLLADAFW::Controller* controller ) 
 	{
+		if(mImportStage!=General)
+			return true;
+			
 		return armature_importer.write_controller(controller);
 	}
 

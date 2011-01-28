@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -46,32 +46,15 @@
 struct Main;
 struct bContext;
 
+/** Importer class. */
 class DocumentImporter : COLLADAFW::IWriter
 {
- private:
-    
-	std::string mFilename;
-
-    bContext *mContext;
-
-    UnitConverter unit_converter;
-    ArmatureImporter armature_importer;
-    MeshImporter mesh_importer;
-    AnimationImporter anim_importer;
-
-    std::map<COLLADAFW::UniqueId, Image*> uid_image_map;
-    std::map<COLLADAFW::UniqueId, Material*> uid_material_map;
-    std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
-    std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
-    std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
-    std::map<Material*, TexIndexTextureArrayMap> material_texture_mapping_map;
-    std::map<COLLADAFW::UniqueId, Object*> object_map;
-    std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> node_map;
-    std::vector<const COLLADAFW::VisualScene*> vscenes;
-    std::vector<Object*> libnode_ob;
-
-    std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> root_map; // find root joint by child joint uid, for bone tree evaluation during resampling
  public:
+	//! Enumeration to keep denote the stage of import
+	enum ImportStage {
+		General,		//!< First pass to collect all data except controller
+		Controller,		//!< Second pass to collect controller data
+	};
 	/** Constructor */
 	DocumentImporter(bContext *C, const char *filename);
 
@@ -134,6 +117,31 @@ class DocumentImporter : COLLADAFW::IWriter
 
 	bool writeKinematicsScene(const COLLADAFW::KinematicsScene*);
 
+ private:
+ 
+	/** Current import stage we're in. */
+	ImportStage mImportStage;
+	std::string mFilename;
+
+    bContext *mContext;
+
+    UnitConverter unit_converter;
+    ArmatureImporter armature_importer;
+    MeshImporter mesh_importer;
+    AnimationImporter anim_importer;
+
+    std::map<COLLADAFW::UniqueId, Image*> uid_image_map;
+    std::map<COLLADAFW::UniqueId, Material*> uid_material_map;
+    std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
+    std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
+    std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
+    std::map<Material*, TexIndexTextureArrayMap> material_texture_mapping_map;
+    std::map<COLLADAFW::UniqueId, Object*> object_map;
+    std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> node_map;
+    std::vector<const COLLADAFW::VisualScene*> vscenes;
+    std::vector<Object*> libnode_ob;
+
+    std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> root_map; // find root joint by child joint uid, for bone tree evaluation during resampling
 
 };
 
