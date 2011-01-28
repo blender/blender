@@ -174,6 +174,7 @@ void rna_TextureSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	switch(GS(id->name)) {
 		case ID_MA: 
 			WM_main_add_notifier(NC_MATERIAL|ND_SHADING, id);
+			WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, id);
 			break;
 		case ID_WO: 
 			WM_main_add_notifier(NC_WORLD, id);
