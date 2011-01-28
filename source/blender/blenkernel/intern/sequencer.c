@@ -1705,13 +1705,13 @@ static void copy_to_ibuf_still(SeqRenderData context, Sequence * seq, float nr,
 	if (nr == 0) {
 		seq_stripelem_cache_put(
 			context, seq, seq->start, 
-			SEQ_STRIPELEM_IBUF_STARTSTILL, ibuf);
+			SEQ_STRIPELEM_IBUF_STARTSTILL, IMB_dupImBuf(ibuf));
 	} 
 
 	if (nr == seq->len - 1) {
 		seq_stripelem_cache_put(
 			context, seq, seq->start, 
-			SEQ_STRIPELEM_IBUF_ENDSTILL, ibuf);
+			SEQ_STRIPELEM_IBUF_ENDSTILL, IMB_dupImBuf(ibuf));
 	}
 }
 
