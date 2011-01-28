@@ -130,7 +130,7 @@ def clientScan(report = None):
 
         return ("", 8000) # return default values
 
-def clientConnection(address, port, report = None, scan = True):
+def clientConnection(address, port, report = None, scan = True, timeout = 5):
     if address == "[default]":
 #            calling operator from python is fucked, scene isn't in context
 #			if bpy:
@@ -144,7 +144,7 @@ def clientConnection(address, port, report = None, scan = True):
             return None
 
     try:
-        conn = http.client.HTTPConnection(address, port, timeout = 5)
+        conn = http.client.HTTPConnection(address, port, timeout = timeout)
 
         if conn:
             if clientVerifyVersion(conn):

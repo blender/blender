@@ -71,11 +71,11 @@ def verify_address(netsettings):
     global LAST_ADDRESS_TEST
     init_file()
 
-    if LAST_ADDRESS_TEST + 5 < time.time():
+    if LAST_ADDRESS_TEST + 30 < time.time():
         LAST_ADDRESS_TEST = time.time()
 
         try:
-            conn = clientConnection(netsettings.server_address, netsettings.server_port, scan = False)
+            conn = clientConnection(netsettings.server_address, netsettings.server_port, scan = False, timeout = 1)
         except:
             conn = None
 
