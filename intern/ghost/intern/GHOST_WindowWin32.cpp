@@ -149,12 +149,12 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	if(!GetVersionEx((OSVERSIONINFO *)&versionInfo)) {
 		versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 		if(GetVersionEx((OSVERSIONINFO*)&versionInfo)) {
-			if(versionInfo.dwMajorVersion>=6 && versionInfo.dwMinorVersion>=1) {
+			if((versionInfo.dwMajorVersion==6 && versionInfo.dwMinorVersion>=1) || versionInfo.dwMajorVersion >= 7) {
 				hasMinVersionForTaskbar = true;
 			}
 		}
 	} else {
-		if(versionInfo.dwMajorVersion>=6 && versionInfo.dwMinorVersion>=1) {
+		if((versionInfo.dwMajorVersion==6 && versionInfo.dwMinorVersion>=1) || versionInfo.dwMajorVersion >= 7) {
 			hasMinVersionForTaskbar = true;
 		}
 	}
