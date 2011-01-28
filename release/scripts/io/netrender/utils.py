@@ -202,7 +202,10 @@ def hashData(data):
     
 
 def prefixPath(prefix_directory, file_path, prefix_path, force = False):
-    if os.path.isabs(file_path):
+    if (os.path.isabs(file_path) or
+        len(file_path) >= 3 and (file_path[1:3] == ":/" or file_path[1:3] == ":\\") or # Windows absolute path don't count as absolute on unix, have to handle them myself
+        file_path[0] == "/" or file_path[0] == "\\"): # and vice versa
+
         # if an absolute path, make sure path exists, if it doesn't, use relative local path
         full_path = file_path
         if force or not os.path.exists(full_path):
