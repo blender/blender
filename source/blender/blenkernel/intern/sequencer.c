@@ -1952,6 +1952,8 @@ static ImBuf * seq_render_scene_strip_impl(
 	
 	seq->scene->r.cfra = oldcfra;
 	seq->scene->camera= oldcamera;
+	if(frame != oldcfra)
+		scene_update_for_newframe(context.bmain, seq->scene, seq->scene->lay);
 	
 #ifdef DURIAN_CAMERA_SWITCH
 	/* stooping to new low's in hackyness :( */
