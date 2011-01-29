@@ -1301,6 +1301,8 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
+	DAG_scene_sort(bmain, CTX_data_scene(C));
+	
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 	return OPERATOR_FINISHED;
