@@ -978,7 +978,7 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "ior", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ang");
-	RNA_def_property_range(prop, 1.0f, 3.0f);
+	RNA_def_property_range(prop, 0.25f, 4.0f);
 	RNA_def_property_ui_text(prop, "IOR", "Sets angular index of refraction for raytraced refraction");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
