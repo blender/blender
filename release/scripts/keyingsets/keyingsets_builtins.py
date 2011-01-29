@@ -236,11 +236,17 @@ class BUILTIN_KSI_WholeCharacter(bpy.types.KeyingSetInfo):
     # helper to add some bone's property to the Keying Set
     def addProp(ksi, ks, bone, prop, index=-1, use_groups=True):        
         # add the property name to the base path
-        path = path_add_property(bone.path_from_id(), prop)
+        id_path = bone.path_from_id()
+        id_block = bone.id_data
+		
+        if prop.startswith('['): 
+            # custom properties
+            path = id_path + prop
+        else: 
+            # standard transforms/properties
+            path = path_add_property(id_path, prop)
         
         # add Keying Set entry for this...
-        id_block = bone.id_data
-        
         if use_groups:
             ks.paths.add(id_block, path, index, group_method='NAMED', group_name=bone.name)
         else:
