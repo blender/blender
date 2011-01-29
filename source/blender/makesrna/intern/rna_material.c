@@ -378,9 +378,17 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_bump_method_items[] = {
 		{0, "BUMP_ORIGINAL", 0, "Original", ""},
-		{MTEX_NEW_BUMP, "BUMP_IMPROVED", 0, "Improved", ""},
+		{MTEX_COMPAT_BUMP, "BUMP_COMPATIBLE", 0, "Compatible", ""},
+		{MTEX_3TAP_BUMP, "BUMP_DEFAULT", 0, "Default", ""},
+		{MTEX_5TAP_BUMP, "BUMP_BEST_QUALITY", 0, "Best Quality", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem prop_bump_space_items[] = {
+		{0, "BUMP_VIEWSPACE", 0, "ViewSpace", ""},
+		{MTEX_BUMP_OBJECTSPACE, "BUMP_OBJECTSPACE", 0, "ObjectSpace", ""},
+		{MTEX_BUMP_TEXTURESPACE, "BUMP_TEXTURESPACE", 0, "TextureSpace", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
 	srna= RNA_def_struct(brna, "MaterialTextureSlot", "TextureSlot");
 	RNA_def_struct_sdna(srna, "MTex");
 	RNA_def_struct_ui_text(srna, "Material Texture Slot", "Texture slot for textures in a Material datablock");
@@ -686,6 +694,12 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "texflag");
 	RNA_def_property_enum_items(prop, prop_bump_method_items);
 	RNA_def_property_ui_text(prop, "Bump Method", "Method to use for bump mapping");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+	
+	prop= RNA_def_property(srna, "bump_objectspace", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "texflag");
+	RNA_def_property_enum_items(prop, prop_bump_space_items);
+	RNA_def_property_ui_text(prop, "Bump Space", "Space to apply bump mapping in");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
