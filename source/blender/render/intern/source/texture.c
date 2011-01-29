@@ -1899,10 +1899,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	TexResult ttexr = {0, 0, 0, 0, 0, texres->talpha, NULL};	// temp TexResult
 
 	const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
-	// TODO: solve this Hscale issue more elegantly.
 	float Hscale = 0.1f * Tnor*mtex->norfac; // factor 0.1 proved to look like the previous bump code
-	if( mtex->texflag & MTEX_BUMP_TEXTURESPACE )
-		Hscale *= 130.0f;
 
 	// 2 channels for 2D texture and 3 for 3D textures.
 	const int nr_channels = (mtex->texco == TEXCO_UV)? 2 : 3;
@@ -1912,6 +1909,10 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	// disable internal bump eval in sampler, save pointer
 	float *nvec = texres->nor;
 	texres->nor = NULL;
+
+	// TODO: solve this Hscale issue more elegantly.
+	if( mtex->texflag & MTEX_BUMP_TEXTURESPACE )
+		Hscale *= 130.0f;
 
 	if(!(mtex->texflag & MTEX_5TAP_BUMP)) {
 		// compute height derivatives with respect to output image pixel coordinates x and y
