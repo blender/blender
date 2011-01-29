@@ -40,6 +40,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
+#include "IMB_imbuf_types.h"
+
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -48,6 +50,7 @@
 #include "BKE_colortools.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
@@ -1066,10 +1069,18 @@ static void do_material_tex(GPUShadeInput *shi)
 							          texco, GPU_image(tex->ima, &tex->iuser), GPU_uniform(&hScale),
 							          &dBs, &dBt );
 						
-						if( mtex->texflag & MTEX_BUMP_TEXTURESPACE )
+						if( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
+							float ima_x= 512.0f, ima_y= 512.f;		// prevent calling textureSize, glsl 1.3 only
+							ImBuf *ibuf= BKE_image_get_ibuf(tex->ima, &tex->iuser);
+							
+							if(ibuf) {
+								ima_x= ibuf->x; ima_y= ibuf->y;
+							}
+							
 							GPU_link( mat, "mtex_bump_apply_texspace",
 							          fDet, dBs, dBt, vR1, vR2, vN, GPU_image(tex->ima, &tex->iuser), texco, GPU_uniform(&fScaleTex),
-							          &tnor );
+									  GPU_uniform(&ima_x), GPU_uniform(&ima_y), &tnor );
+						}
 						else if( mtex->texflag & MTEX_BUMP_OBJECTSPACE )
 							GPU_link( mat, "mtex_bump_apply_objspace",
 							          fDet, dBs, dBt, vR1, vR2, vN, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(GPU_INVERSE_OBJECT_MATRIX), 

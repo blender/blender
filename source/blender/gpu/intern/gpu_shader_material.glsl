@@ -1114,16 +1114,26 @@ void mtex_bump_init_viewspace( vec3 surf_pos, vec3 surf_norm,
 	fDet = dot ( vSigmaS , vR1 );
 }
 
+/** helper method to extract the upper left 3x3 matrix from a 4x4 matrix */
+mat3 to_mat3(mat4 m4)
+{
+	mat3 m3;
+	m3[0] = m4[0].xyz;
+	m3[1] = m4[1].xyz;
+	m3[2] = m4[2].xyz;
+	return m3;
+}
+
 void mtex_bump_init_objspace( vec3 surf_pos, vec3 surf_norm,
                               mat4 mView, mat4 mViewInv, mat4 mObj, mat4 mObjInv,
                               out vec3 vR1, out vec3 vR2, out float fDet, out vec3 vN ) 
 {
-	mat3 obj2view = mat3(mView * mObj);
-	mat3 view2obj = mat3(mObjInv * mViewInv);
+	mat3 obj2view = to_mat3(mView * mObj);
+	mat3 view2obj = to_mat3(mObjInv * mViewInv);
 	
 	vec3 vSigmaS = view2obj * dFdx( surf_pos );
 	vec3 vSigmaT = view2obj * dFdy( surf_pos );
-	vN = normalize( transpose(obj2view) * surf_norm );
+	vN = normalize( surf_norm * obj2view );
 
 	vR1 = cross( vSigmaT , vN );
 	vR2 = cross( vN , vSigmaS ) ;
@@ -1183,21 +1193,20 @@ void mtex_bump_apply_objspace( float fDet, float dBs, float dBt, vec3 vR1in, vec
 	vec3 vSurfGrad = sign(fDet) * ( dBs * vR1in + dBt * vR2in );
 	perturbed_norm = normalize( abs(fDet) * vNin - vSurfGrad );
 	/* tranform back */
-	mat3 view2obj = mat3(mObjInv * mViewInv);
-	vR1 = transpose(view2obj) * vR1in;
-	vR2 = transpose(view2obj) * vR2in;
-	vN = transpose(view2obj) * vNin;
+	mat3 view2obj = to_mat3(mObjInv * mViewInv);
+	vR1 = vR1in * view2obj;
+	vR2 = vR2in * view2obj;
+	vN = vNin * view2obj;
 }
 void mtex_bump_apply_texspace( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vN,
-                               sampler2D ima, vec3 texco, float scale, out vec3 perturbed_norm ) 
+                               sampler2D ima, vec3 texco, float scale, float ima_x, float ima_y, out vec3 perturbed_norm ) 
 {
 	vec2 TexDx = dFdx(texco.xy);
 	vec2 TexDy = dFdy(texco.xy);
 
-	ivec2 ts = textureSize( ima, 0 );
 	vec3 vSurfGrad = sign(fDet) * scale * ( 
-	            dBs / length( vec2(ts.x*TexDx.x, ts.y*TexDx.y) ) * normalize(vR1) + 
-	            dBt / length( vec2(ts.x*TexDy.x, ts.y*TexDy.y) ) * normalize(vR2) );
+	            dBs / length( vec2(ima_x*TexDx.x, ima_y*TexDx.y) ) * normalize(vR1) + 
+	            dBt / length( vec2(ima_x*TexDy.x, ima_y*TexDy.y) ) * normalize(vR2) );
 	perturbed_norm = normalize( vN - vSurfGrad );
 	
 }
