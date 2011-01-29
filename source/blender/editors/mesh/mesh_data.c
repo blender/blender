@@ -316,6 +316,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	Base *base= ED_view3d_give_base_under_cursor(C, event->mval);
 	Image *ima= NULL;
 	Mesh *me;
@@ -367,6 +368,10 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		me->edit_mesh= NULL;
 	}
 
+	/* dummie drop support; ensure view shows a result :) */
+	if(v3d)
+		v3d->flag2 |= V3D_SOLID_TEX;
+	
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	
 	return OPERATOR_FINISHED;
