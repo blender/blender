@@ -1039,7 +1039,7 @@ void blo_freefiledata(FileData *fd)
 
 int BLO_has_bfile_extension(char *str)
 {
-	return (BLI_testextensie(str, ".ble") || BLI_testextensie(str, ".blend")||BLI_testextensie(str, ".blend.gz"));
+	return (BLI_testextensie(str, ".ble") || BLI_testextensie(str, ".blend*")||BLI_testextensie(str, ".blend.gz"));
 }
 
 int BLO_is_a_library(const char *path, char *dir, char *group)
