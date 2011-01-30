@@ -1194,12 +1194,12 @@ void mtex_bump_apply( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3
 }
 
 void mtex_bump_apply_texspace( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vN,
-                               sampler2D ima, vec3 texco, float scale, float ima_x, float ima_y, out vec3 perturbed_norm ) 
+                               sampler2D ima, vec3 texco, float ima_x, float ima_y, out vec3 perturbed_norm ) 
 {
 	vec2 TexDx = dFdx(texco.xy);
 	vec2 TexDy = dFdy(texco.xy);
 
-	vec3 vSurfGrad = sign(fDet) * scale * ( 
+	vec3 vSurfGrad = sign(fDet) * ( 
 	            dBs / length( vec2(ima_x*TexDx.x, ima_y*TexDx.y) ) * normalize(vR1) + 
 	            dBt / length( vec2(ima_x*TexDy.x, ima_y*TexDy.y) ) * normalize(vR2) );
 	perturbed_norm = normalize( vN - vSurfGrad );

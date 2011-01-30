@@ -1056,12 +1056,14 @@ static void do_material_tex(GPUShadeInput *shi)
 					} else if( mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) {
 						/* ntap bumpmap image */
 						float hScale = 0.1f; // compatibility adjustment factor for all bumpspace types
-						float fScaleTex = 130.0f; // factor for scaling texspace bumps
+						float hScaleTex = 13.0f; // factor for scaling texspace bumps
 						
 						GPUNodeLink *surf_pos = GPU_builtin(GPU_VIEW_POSITION);
 						GPUNodeLink *vR1, *vR2, *fDet;
 						GPUNodeLink *dBs, *dBt, *vN;
 						
+						if( mtex->texflag & MTEX_BUMP_TEXTURESPACE )
+							hScale = hScaleTex;
 						norfac = hScale * mtex->norfac;
 						tnorfac = GPU_uniform(&norfac);
 						
@@ -1094,7 +1096,7 @@ static void do_material_tex(GPUShadeInput *shi)
 								ima_x= ibuf->x; ima_y= ibuf->y;
 							
 							GPU_link( mat, "mtex_bump_apply_texspace",
-							          fDet, dBs, dBt, vR1, vR2, vN, GPU_image(tex->ima, &tex->iuser), texco, GPU_uniform(&fScaleTex),
+							          fDet, dBs, dBt, vR1, vR2, vN, GPU_image(tex->ima, &tex->iuser), texco,
 							          GPU_uniform(&ima_x), GPU_uniform(&ima_y), &shi->vn );
 						} else
 							GPU_link( mat, "mtex_bump_apply",
