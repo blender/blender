@@ -1720,11 +1720,15 @@ void multiresModifier_prepare_join(Scene *scene, Object *ob, Object *to_ob)
 }
 
 /* update multires data after topology changing */
-void multires_topology_changed(Object *ob)
+void multires_topology_changed(Scene *scene, Object *ob)
 {
 	Mesh *me= (Mesh*)ob->data;
 	MDisps *mdisp= NULL, *cur= NULL;
 	int i, grid= 0, corners;
+	MultiresModifierData *mmd= get_multires_modifier(scene, ob);
+
+	if(mmd)
+		multires_set_tot_mdisps(me, mmd->totlvl);
 
 	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
 	mdisp= CustomData_get_layer(&me->fdata, CD_MDISPS);
