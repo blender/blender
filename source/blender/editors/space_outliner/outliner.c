@@ -2560,9 +2560,12 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 	TreeElement *te;
 	float fmval[2];
 	int extend= RNA_boolean_get(op->ptr, "extend");
-	
+
 	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, fmval, fmval+1);
-	
+
+	if(!ELEM3(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF, SO_KEYMAP) && !(soops->flag & SO_HIDE_RESTRICTCOLS) && fmval[0] > ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX)
+		return OPERATOR_CANCELLED;
+
 	for(te= soops->tree.first; te; te= te->next) {
 		if(do_outliner_item_activate(C, scene, ar, soops, te, extend, fmval)) break;
 	}
