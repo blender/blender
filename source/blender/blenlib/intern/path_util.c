@@ -1319,21 +1319,22 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 int BLI_testextensie(const char *str, const char *ext)
 {
 	short a, b;
-	int retval;
-
+	int retval= 0;
+	
 	a= strlen(str);
 	b= strlen(ext);
-
+	
 	if(a==0 || b==0 || b>=a) {
 		retval = 0;
-	} 
-	else {
-		if(ext[b-1]=='*')
-			retval= 0==BLI_strncasecmp(ext, str + a - b, b-1);
-		else
-			retval= 0==BLI_strcasecmp(ext, str + a - b);
 	}
-
+	else {
+		/* allow .blend1 .blend2 */
+		char *loc= BLI_strcasestr(str+a-b-1, ext);
+		
+		if(loc)
+			retval= 1;
+	}
+	
 	return (retval);
 }
 
