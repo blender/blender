@@ -1138,6 +1138,12 @@ void mtex_bump_init_objspace( vec3 surf_pos, vec3 surf_norm,
 	vR1 = cross( vSigmaT , vN );
 	vR2 = cross( vN , vSigmaS ) ;
 	fDet = dot ( vSigmaS , vR1 );
+	
+		/* transform back */
+	vR1 = vR1 * view2obj;
+	vR2 = vR2 * view2obj;
+	vN = vN * view2obj;
+
 }
 
 void mtex_bump_tap3( vec3 texco, sampler2D ima, float hScale, 
@@ -1191,13 +1197,13 @@ void mtex_bump_apply_objspace( float fDet, float dBs, float dBt, vec3 vR1in, vec
                       out vec3 perturbed_norm, out vec3 vR1, out vec3 vR2, out vec3 vN ) 
 {
 	vec3 vSurfGrad = sign(fDet) * ( dBs * vR1in + dBt * vR2in );
-	perturbed_norm = normalize( abs(fDet) * vNin - vSurfGrad );
-	/* tranform back */
-	mat3 view2obj = to_mat3(mObjInv * mViewInv);
-	vR1 = vR1in * view2obj;
-	vR2 = vR2in * view2obj;
-	vN = vNin * view2obj;
+	perturbed_norm = normalize( abs(fDet) * vNin - vSurfGrad );	
+	
+	vR1= vR1in;
+	vR2= vR2in;
+	vN= vNin;
 }
+
 void mtex_bump_apply_texspace( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vN,
                                sampler2D ima, vec3 texco, float scale, float ima_x, float ima_y, out vec3 perturbed_norm ) 
 {
