@@ -157,7 +157,7 @@ static void rna_Object_internal_update(Main *bmain, Scene *scene, PointerRNA *pt
 
 static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	/* dont use compat so we get pradictable rotation */
+	/* dont use compat so we get predictable rotation */
 	object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat, FALSE, TRUE);
 	rna_Object_internal_update(bmain, scene, ptr);
 }
@@ -192,7 +192,7 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
 		copy_m4_m4(ob->obmat, (float(*)[4])values);
 	}
 
-	/* dont use compat so we get pradictable rotation */
+	/* dont use compat so we get predictable rotation */
 	object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 }
 
@@ -1675,9 +1675,9 @@ static void rna_def_object(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem empty_drawtype_items[] = {
+		{OB_PLAINAXES, "PLAIN_AXES", 0, "Plain Axes", ""},
 		{OB_ARROWS, "ARROWS", 0, "Arrows", ""},
 		{OB_SINGLE_ARROW, "SINGLE_ARROW", 0, "Single Arrow", ""},
-		{OB_PLAINAXES, "PLAIN_AXES", 0, "Plain Axes", ""},
 		{OB_CIRCLE, "CIRCLE", 0, "Circle", ""},
 		{OB_CUBE, "CUBE", 0, "Cube", ""},
 		{OB_EMPTY_SPHERE, "SPHERE", 0, "Sphere", ""},

@@ -821,7 +821,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 
 			/* always get derivatives for these textures */
 			if ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) ma->texco |= TEXCO_OSA;
-			else if(mtex->texflag & MTEX_NEW_BUMP) ma->texco |= TEXCO_OSA;
+			else if(mtex->texflag & (MTEX_COMPAT_BUMP|MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) ma->texco |= TEXCO_OSA;
 			
 			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;
 			else if(ma->texco & (TEXCO_GLOB|TEXCO_UV|TEXCO_OBJECT|TEXCO_SPEED)) needuv= 1;

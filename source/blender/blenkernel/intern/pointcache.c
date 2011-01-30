@@ -1932,7 +1932,7 @@ int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra)
 		cache->flag |= PTCACHE_FRAMES_SKIPPED;
 
 	/* Update timeline cache display */
-	if(cache->cached_frames)
+	if(cfra && cache->cached_frames)
 		cache->cached_frames[cfra-cache->startframe] = 1;
 
 	BKE_ptcache_update_info(pid);

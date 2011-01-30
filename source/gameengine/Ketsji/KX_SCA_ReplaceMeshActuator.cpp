@@ -35,6 +35,8 @@
 
 // Please look here for revision history.
 
+#include <stddef.h>
+
 #include "KX_SCA_ReplaceMeshActuator.h"
 #include "KX_MeshProxy.h"
 

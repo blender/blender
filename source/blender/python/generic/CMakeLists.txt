@@ -25,7 +25,7 @@ set(INC
 	../../blenkernel
 	../../../../intern/guardedalloc
 	../../../../extern/glew/include
-	${PYTHON_INC}
+	${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC

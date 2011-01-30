@@ -3968,7 +3968,7 @@ static void set_fullsample_flag(Render *re, ObjectRen *obr)
 	}
 }
 
-/* split quads for pradictable baking
+/* split quads for predictable baking
  * dir 1 == (0,1,2) (0,2,3),  2 == (1,3,0) (1,2,3) 
  */
 static void split_quads(ObjectRen *obr, int dir) 

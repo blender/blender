@@ -44,7 +44,7 @@ set(INC
 	../../../../source/blender/makesdna
 	../../../../source/blender/blenlib
 	../../../../source/blender/blenkernel
-	${PYTHON_INC}
+	${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC

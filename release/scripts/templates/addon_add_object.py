@@ -22,12 +22,14 @@ def add_object(self, context):
     scale_x = self.scale.x
     scale_y = self.scale.y
 
-    verts = [Vector((-1 * scale_x,  1 * scale_y, 0)),
-             Vector(( 1 * scale_x,  1 * scale_y, 0)),
-             Vector(( 1 * scale_x, -1 * scale_y, 0)),
-             Vector((-1 * scale_x, -1 * scale_y, 0)),]
+    verts = [Vector((-1 * scale_x, 1 * scale_y, 0)),
+             Vector((1 * scale_x, 1 * scale_y, 0)),
+             Vector((1 * scale_x, -1 * scale_y, 0)),
+             Vector((-1 * scale_x, -1 * scale_y, 0)),
+            ]
+
     edges = []
-    faces = [[0,1,2,3]]
+    faces = [[0, 1, 2, 3]]
 
     mesh_data = bpy.data.meshes.new(name='New Object Mesh')
     mesh_data.from_pydata(verts, edges, faces)
@@ -42,14 +44,14 @@ class OBJECT_OT_add_object(bpy.types.Operator, AddObjectHelper):
     bl_options = {'REGISTER', 'UNDO'}
 
     scale = FloatVectorProperty(name='scale',
-                                default=(1,1,1),
+                                default=(1.0, 1.0, 1.0),
                                 subtype='TRANSLATION',
                                 description='scaling')
 
     def execute(self, context):
- 
+
         add_object(self, context)
- 
+
         return {'FINISHED'}
 
 
@@ -61,8 +63,10 @@ def add_object_button(self, context):
         text="Add Object",
         icon="PLUGIN")
 
+
 def register():
     bpy.types.INFO_MT_mesh_add.append(add_object_button)
+
 
 def unregister():
     bpy.types.INFO_MT_mesh_add.remove(add_object_button)

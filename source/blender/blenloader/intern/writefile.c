@@ -2154,6 +2154,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					ConsoleLine *cl;
 
 					for (cl=con->history.first; cl; cl=cl->next) {
+						/* 'len_alloc' is invalid on write, set from 'len' on read */
 						writestruct(wd, DATA, "ConsoleLine", 1, cl);
 						writedata(wd, DATA, cl->len+1, cl->line);
 					}

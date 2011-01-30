@@ -20,6 +20,8 @@
  *
  */
 
+#include <cstddef>
+
 #include "MEM_CacheLimiter.h"
 #include "MEM_CacheLimiterC-Api.h"
 

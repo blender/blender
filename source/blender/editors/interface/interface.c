@@ -1703,7 +1703,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 	}
 	else if(but->type == IDPOIN) {
 		/* ID pointer */
-		but->idpoin_func(C, (char*)str, but->idpoin_idpp);
+		but->idpoin_func(C, str, but->idpoin_idpp);
 		return 1;
 	}
 	else if(but->type == TEX) {
@@ -2574,18 +2574,18 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 				for(i=0; i<totitem; i++) {
 					if(item[i].identifier[0] && item[i].value == (int)max) {
-						str= (char*)item[i].name;
+						str= item[i].name;
 						icon= item[i].icon;
 					}
 				}
 
 				if(!str)
-					str= (char*)RNA_property_ui_name(prop);
+					str= RNA_property_ui_name(prop);
 				if(free)
 					MEM_freeN(item);
 			}
 			else {
-				str= (char*)RNA_property_ui_name(prop);
+				str= RNA_property_ui_name(prop);
 				icon= RNA_property_ui_icon(prop);
 			}
 		}
@@ -2600,7 +2600,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 				for(i=0; i<totitem; i++) {
 					if(item[i].identifier[0] && item[i].value == (int)max) {
 						if(item[i].description[0])
-							tip= (char*)item[i].description;
+							tip= item[i].description;
 						break;
 					}
 				}
@@ -2611,7 +2611,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 		}
 		
 		if(!tip)
-			tip= (char*)RNA_property_ui_description(prop);
+			tip= RNA_property_ui_description(prop);
 
 		if(min == max || a1 == -1 || a2 == -1) {
 			if(proptype == PROP_INT) {
@@ -2654,7 +2654,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	}
 	else {
 		printf("ui_def_but_rna: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
-		str= (char*)propname;
+		str= propname;
 	}
 
 	/* now create button */

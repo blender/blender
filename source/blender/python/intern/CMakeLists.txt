@@ -34,7 +34,7 @@ set(INC
 	../../freestyle/intern/python
 	../../../../intern/guardedalloc
 	../../../../intern/audaspace/intern
-	${PYTHON_INC}
+	${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC

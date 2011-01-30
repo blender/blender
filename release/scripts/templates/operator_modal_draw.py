@@ -2,10 +2,11 @@ import bpy
 import bgl
 import blf
 
+
 def draw_callback_px(self, context):
     print("mouse points", len(self.mouse_path))
 
-    font_id = 0 # XXX, need to find out how best to get this.
+    font_id = 0  # XXX, need to find out how best to get this.
 
     # draw some text
     blf.position(font_id, 15, 30, 0)

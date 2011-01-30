@@ -5082,7 +5082,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 		return OPERATOR_CANCELLED;
 	}
 	
-	/* only clear those channels that are not locked */
+	/* only clear relevant transforms for selected bones */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
 	{
 		/* run provided clearing function */

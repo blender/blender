@@ -79,7 +79,7 @@ EnumPropertyItem space_pchan_items[] = {
 
 EnumPropertyItem space_object_items[] = {
 	{0, "WORLD", 0, "World Space", ""},
-	{1, "LOCAL", 0, "Local (Without Parent) Space", ""},
+	{1, "LOCAL", 0, "Local Space", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem constraint_ik_type_items[] ={

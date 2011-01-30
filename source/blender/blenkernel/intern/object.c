@@ -1029,7 +1029,7 @@ Object *add_only_object(int type, const char *name)
 	unit_m4(ob->parentinv);
 	unit_m4(ob->obmat);
 	ob->dt= OB_TEXTURE;
-	ob->empty_drawtype= OB_ARROWS;
+	ob->empty_drawtype= OB_PLAINAXES;
 	ob->empty_drawsize= 1.0;
 
 	if(type==OB_CAMERA || type==OB_LAMP) {
@@ -2078,7 +2078,7 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	}
 
 	/* solve constraints */
-	if (ob->constraints.first && !(ob->flag & OB_NO_CONSTRAINTS)) {
+	if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
 		bConstraintOb *cob;
 		
 		cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);

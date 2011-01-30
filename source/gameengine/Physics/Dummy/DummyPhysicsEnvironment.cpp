@@ -26,6 +26,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+#include <stddef.h>
+
 #include "DummyPhysicsEnvironment.h"
 #include "PHY_IMotionState.h"
 

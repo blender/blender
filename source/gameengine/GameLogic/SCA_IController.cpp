@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include "SCA_IController.h"
 #include "SCA_LogicManager.h"
 #include "SCA_IActuator.h"

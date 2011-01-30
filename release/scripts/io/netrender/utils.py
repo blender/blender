@@ -130,7 +130,7 @@ def clientScan(report = None):
 
         return ("", 8000) # return default values
 
-def clientConnection(address, port, report = None, scan = True):
+def clientConnection(address, port, report = None, scan = True, timeout = 5):
     if address == "[default]":
 #            calling operator from python is fucked, scene isn't in context
 #			if bpy:
@@ -144,7 +144,7 @@ def clientConnection(address, port, report = None, scan = True):
             return None
 
     try:
-        conn = http.client.HTTPConnection(address, port, timeout = 5)
+        conn = http.client.HTTPConnection(address, port, timeout = timeout)
 
         if conn:
             if clientVerifyVersion(conn):
@@ -202,7 +202,10 @@ def hashData(data):
     
 
 def prefixPath(prefix_directory, file_path, prefix_path, force = False):
-    if os.path.isabs(file_path):
+    if (os.path.isabs(file_path) or
+        len(file_path) >= 3 and (file_path[1:3] == ":/" or file_path[1:3] == ":\\") or # Windows absolute path don't count as absolute on unix, have to handle them myself
+        file_path[0] == "/" or file_path[0] == "\\"): # and vice versa
+
         # if an absolute path, make sure path exists, if it doesn't, use relative local path
         full_path = file_path
         if force or not os.path.exists(full_path):
@@ -256,6 +259,10 @@ def _getResults(server_address, server_port, job_id, resolution_x, resolution_y,
     render.resolution_x = int(resolution_x)
     render.resolution_y = int(resolution_y)
     render.resolution_percentage = int(resolution_percentage)
+
+    render.use_full_sample = False
+    render.use_compositing = False
+    render.use_border = False
     
 
 def getFileInfo(filepath, infos):

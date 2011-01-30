@@ -213,7 +213,19 @@ static StructRNA *rna_Panel_register(bContext *C, ReportList *reports, void *dat
 	pt->draw= (have_function[1])? panel_draw: NULL;
 	pt->draw_header= (have_function[2])? panel_draw_header: NULL;
 
-	BLI_addtail(&art->paneltypes, pt);
+	/* XXX use "no header" flag for some ordering of panels until we have real panel ordering */
+	if(pt->flag & PNL_NO_HEADER) {
+		PanelType *pth = art->paneltypes.first;
+		while(pth && pth->flag & PNL_NO_HEADER)
+			pth=pth->next;
+
+		if(pth)
+			BLI_insertlinkbefore(&art->paneltypes, pth, pt);
+		else
+			BLI_addtail(&art->paneltypes, pt);
+	}
+	else
+		BLI_addtail(&art->paneltypes, pt);
 
 	/* update while blender is running */
 	if(C)
@@ -634,7 +646,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	/* registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name", "If this is set, the panel gets a custom ID, otherwise it takes the name of the class used to define the panel. For example, if the class name is \"OBJECT_PT_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_PT_hello\"");
 	
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
@@ -696,7 +708,7 @@ static void rna_def_header(BlenderRNA *brna)
 	/* registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name", "If this is set, the header gets a custom ID, otherwise it takes the name of the class used to define the panel. For example, if the class name is \"OBJECT_HT_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_HT_hello\"");
 
 	prop= RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
@@ -746,7 +758,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	/* registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name", "If this is set, the menu gets a custom ID, otherwise it takes the name of the class used to define the panel. For example, if the class name is \"OBJECT_MT_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_MT_hello\"");
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);

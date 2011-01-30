@@ -28,6 +28,8 @@
  * Ketsji Logic Extenstion: Network Message Sensor generic implementation
  */
 
+#include <stddef.h>
+
 #include "KX_NetworkMessageSensor.h"
 #include "KX_NetworkEventManager.h"
 #include "NG_NetworkMessage.h"

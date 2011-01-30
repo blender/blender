@@ -118,7 +118,7 @@ private:
 	// TODO: import uv set names
 	void read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris);
 
-	void get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i);
+	void get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i, int stride);
 
 	bool flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor, int count);
 	

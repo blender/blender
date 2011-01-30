@@ -641,9 +641,9 @@ void valtorgb(float fac, sampler1D colormap, out vec4 outcol, out float outalpha
 	outalpha = outcol.a;
 }
 
-void rgbtobw(vec4 color, out float outval)
+void rgbtobw(vec4 color, out float outval)  
 {
-	outval = color.r*0.35 + color.g*0.45 + color.b*0.2;
+	outval = color.r*0.35 + color.g*0.45 + color.b*0.2; /* keep these factors in sync with texture.h:RGBTOBW */
 }
 
 void invert(float fac, vec4 col, out vec4 outcol)
@@ -1090,12 +1090,120 @@ void mtex_2d_mapping(vec3 vec, out vec3 outvec)
 	outvec = vec3(vec.xy*0.5 + vec2(0.5, 0.5), vec.z);
 }
 
-void mtex_image(vec3 vec, sampler2D ima, out float value, out vec4 color, out vec3 normal)
+void mtex_image(vec3 texco, sampler2D ima, out float value, out vec4 color)
 {
-	color = texture2D(ima, vec.xy);
+	color = texture2D(ima, texco.xy);
 	value = 1.0;
-	
+}
+
+void mtex_normal(vec3 texco, sampler2D ima, out vec3 normal)
+{
+    vec4 color = texture2D(ima, texco.xy);
 	normal = 2.0*(vec3(color.r, -color.g, color.b) - vec3(0.5, -0.5, 0.5));
+}
+
+void mtex_bump_init_viewspace( vec3 surf_pos, vec3 surf_norm,
+                     out vec3 vR1, out vec3 vR2, out float fDet, out vec3 vN ) 
+{
+	vec3 vSigmaS = dFdx( surf_pos );
+	vec3 vSigmaT = dFdy( surf_pos );
+	vN = surf_norm; /* normalized interpolated vertex normal */
+	
+	vR1 = cross( vSigmaT , vN );
+	vR2 = cross( vN , vSigmaS ) ;
+	fDet = dot ( vSigmaS , vR1 );
+}
+
+/** helper method to extract the upper left 3x3 matrix from a 4x4 matrix */
+mat3 to_mat3(mat4 m4)
+{
+	mat3 m3;
+	m3[0] = m4[0].xyz;
+	m3[1] = m4[1].xyz;
+	m3[2] = m4[2].xyz;
+	return m3;
+}
+
+void mtex_bump_init_objspace( vec3 surf_pos, vec3 surf_norm,
+                              mat4 mView, mat4 mViewInv, mat4 mObj, mat4 mObjInv,
+                              out vec3 vR1, out vec3 vR2, out float fDet, out vec3 vN ) 
+{
+	mat3 obj2view = to_mat3(mView * mObj);
+	mat3 view2obj = to_mat3(mObjInv * mViewInv);
+	
+	vec3 vSigmaS = view2obj * dFdx( surf_pos );
+	vec3 vSigmaT = view2obj * dFdy( surf_pos );
+	vN = normalize( surf_norm * obj2view );
+
+	vR1 = cross( vSigmaT , vN );
+	vR2 = cross( vN , vSigmaS ) ;
+	fDet = dot ( vSigmaS , vR1 );
+	
+		/* transform back */
+	vR1 = vR1 * view2obj;
+	vR2 = vR2 * view2obj;
+	vN = vN * view2obj;
+
+}
+
+void mtex_bump_tap3( vec3 texco, sampler2D ima, float hScale, 
+                     out float dBs, out float dBt ) 
+{
+	vec2 STll = texco.xy;
+	vec2 STlr = texco.xy + dFdx(texco.xy) ;
+	vec2 STul = texco.xy + dFdy(texco.xy) ;
+	
+	float Hll,Hlr,Hul;
+	rgbtobw( texture2D(ima, STll), Hll );
+	rgbtobw( texture2D(ima, STlr), Hlr );
+	rgbtobw( texture2D(ima, STul), Hul );
+	
+	dBs = hScale * (Hlr - Hll);
+	dBt = hScale * (Hul - Hll);
+}
+
+void mtex_bump_tap5( vec3 texco, sampler2D ima, float hScale, 
+                     out float dBs, out float dBt ) 
+{
+	vec2 TexDx = dFdx(texco.xy);
+	vec2 TexDy = dFdy(texco.xy);
+
+	vec2 STc = texco.xy;
+	vec2 STl = texco.xy - 0.5 * TexDx ;
+	vec2 STr = texco.xy + 0.5 * TexDx ;
+	vec2 STd = texco.xy - 0.5 * TexDy ;
+	vec2 STu = texco.xy + 0.5 * TexDy ;
+	
+	float Hc,Hl,Hr,Hd,Hu;
+	rgbtobw( texture2D(ima, STc), Hc );
+	rgbtobw( texture2D(ima, STl), Hl );
+	rgbtobw( texture2D(ima, STr), Hr );
+	rgbtobw( texture2D(ima, STd), Hd );
+	rgbtobw( texture2D(ima, STu), Hu );
+	
+	dBs = hScale * (Hr - Hl);
+	dBt = hScale * (Hu - Hd);
+}
+
+void mtex_bump_apply( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vN,
+                      out vec3 perturbed_norm ) 
+{
+	vec3 vSurfGrad = sign(fDet) * ( dBs * vR1 + dBt * vR2 );
+	perturbed_norm = normalize( abs(fDet) * vN - vSurfGrad );
+	
+}
+
+void mtex_bump_apply_texspace( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vN,
+                               sampler2D ima, vec3 texco, float ima_x, float ima_y, out vec3 perturbed_norm ) 
+{
+	vec2 TexDx = dFdx(texco.xy);
+	vec2 TexDy = dFdy(texco.xy);
+
+	vec3 vSurfGrad = sign(fDet) * ( 
+	            dBs / length( vec2(ima_x*TexDx.x, ima_y*TexDx.y) ) * normalize(vR1) + 
+	            dBt / length( vec2(ima_x*TexDy.x, ima_y*TexDy.y) ) * normalize(vR2) );
+	perturbed_norm = normalize( vN - vSurfGrad );
+	
 }
 
 void mtex_negate_texnormal(vec3 normal, out vec3 outnormal)

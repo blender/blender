@@ -1,5 +1,6 @@
 import bge
 
+
 def main():
 
     cont = bge.logic.getCurrentController()

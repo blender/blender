@@ -142,7 +142,6 @@ if not env:
     print "Could not create a build environment"
     Exit()
 
-
 cc = B.arguments.get('CC', None)
 cxx = B.arguments.get('CXX', None)
 if cc:

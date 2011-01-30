@@ -31,7 +31,7 @@ set(INC
   ../python ../python/intern
   ../render/extern/include ../render/intern/include ../include ../src
   ../../../extern/glew/include ../../../intern/guardedalloc ../freestyle
-  ${PYTHON_INC}
+  ${PYTHON_INCLUDE_DIRS}
   ${PNG_INC}
 )
 

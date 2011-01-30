@@ -66,31 +66,179 @@
 
 /*************************** Clear Transformation ****************************/
 
-static int object_location_clear_exec(bContext *C, wmOperator *UNUSED(op))
+/* clear location of object */
+static void object_clear_loc(Object *ob)
+{
+	/* clear location if not locked */
+	if ((ob->protectflag & OB_LOCK_LOCX)==0)
+		ob->loc[0]= ob->dloc[0]= 0.0f;
+	if ((ob->protectflag & OB_LOCK_LOCY)==0)
+		ob->loc[1]= ob->dloc[1]= 0.0f;
+	if ((ob->protectflag & OB_LOCK_LOCZ)==0)
+		ob->loc[2]= ob->dloc[2]= 0.0f;
+}
+
+/* clear rotation of object */
+static void object_clear_rot(Object *ob)
+{
+	/* clear rotations that aren't locked */
+	if (ob->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
+		if (ob->protectflag & OB_LOCK_ROT4D) {
+			/* perform clamping on a component by component basis */
+			if (ob->rotmode == ROT_MODE_AXISANGLE) {
+				if ((ob->protectflag & OB_LOCK_ROTW) == 0)
+					ob->rotAngle= ob->drotAngle= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTX) == 0)
+					ob->rotAxis[0]= ob->drotAxis[0]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTY) == 0)
+					ob->rotAxis[1]= ob->drotAxis[1]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
+					ob->rotAxis[2]= ob->drotAxis[2]= 0.0f;
+					
+				/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
+				if (IS_EQ(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQ(ob->rotAxis[1], ob->rotAxis[2]))
+					ob->rotAxis[1] = 1.0f;
+				if (IS_EQ(ob->drotAxis[0], ob->drotAxis[1]) && IS_EQ(ob->drotAxis[1], ob->drotAxis[2]))
+					ob->drotAxis[1]= 1.0f;
+			}
+			else if (ob->rotmode == ROT_MODE_QUAT) {
+				if ((ob->protectflag & OB_LOCK_ROTW) == 0)
+					ob->quat[0]= ob->dquat[0]= 1.0f;
+				if ((ob->protectflag & OB_LOCK_ROTX) == 0)
+					ob->quat[1]= ob->dquat[1]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTY) == 0)
+					ob->quat[2]= ob->dquat[2]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
+					ob->quat[3]= ob->dquat[3]= 0.0f;
+					
+				// TODO: does this quat need normalising now?
+			}
+			else {
+				/* the flag may have been set for the other modes, so just ignore the extra flag... */
+				if ((ob->protectflag & OB_LOCK_ROTX) == 0)
+					ob->rot[0]= ob->drot[0]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTY) == 0)
+					ob->rot[1]= ob->drot[1]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
+					ob->rot[2]= ob->drot[2]= 0.0f;
+			}
+		}
+		else {
+			/* perform clamping using euler form (3-components) */
+			// FIXME: deltas are not handled for these cases yet...
+			float eul[3], oldeul[3], quat1[4] = {0};
+			
+			if (ob->rotmode == ROT_MODE_QUAT) {
+				QUATCOPY(quat1, ob->quat);
+				quat_to_eul(oldeul, ob->quat);
+			}
+			else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+				axis_angle_to_eulO(oldeul, EULER_ORDER_DEFAULT, ob->rotAxis, ob->rotAngle);
+			}
+			else {
+				copy_v3_v3(oldeul, ob->rot);
+			}
+			
+			eul[0]= eul[1]= eul[2]= 0.0f;
+			
+			if (ob->protectflag & OB_LOCK_ROTX)
+				eul[0]= oldeul[0];
+			if (ob->protectflag & OB_LOCK_ROTY)
+				eul[1]= oldeul[1];
+			if (ob->protectflag & OB_LOCK_ROTZ)
+				eul[2]= oldeul[2];
+			
+			if (ob->rotmode == ROT_MODE_QUAT) {
+				eul_to_quat(ob->quat, eul);
+				/* quaternions flip w sign to accumulate rotations correctly */
+				if ((quat1[0]<0.0f && ob->quat[0]>0.0f) || (quat1[0]>0.0f && ob->quat[0]<0.0f)) {
+					mul_qt_fl(ob->quat, -1.0f);
+				}
+			}
+			else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+				eulO_to_axis_angle(ob->rotAxis, &ob->rotAngle,eul, EULER_ORDER_DEFAULT);
+			}
+			else {
+				copy_v3_v3(ob->rot, eul);
+			}
+		}
+	}						 // Duplicated in source/blender/editors/armature/editarmature.c
+	else { 
+		if (ob->rotmode == ROT_MODE_QUAT) {
+			ob->quat[1]=ob->quat[2]=ob->quat[3]= 0.0f; 
+			ob->quat[0]= 1.0f;
+			
+			ob->dquat[1]=ob->dquat[2]=ob->dquat[3]= 0.0f;
+			ob->dquat[0]= 1.0f;
+		}
+		else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+			/* by default, make rotation of 0 radians around y-axis (roll) */
+			ob->rotAxis[0]=ob->rotAxis[2]=ob->rotAngle= 0.0f;
+			ob->rotAxis[1]= 1.0f;
+			
+			ob->drotAxis[0]=ob->drotAxis[2]=ob->drotAngle= 0.0f;
+			ob->drotAxis[1]= 1.0f;
+		}
+		else {
+			ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
+			
+			ob->drot[0]= ob->drot[1]= ob->drot[2]= 0.0f;
+		}
+	}
+}
+
+/* clear scale of object */
+static void object_clear_scale(Object *ob)
+{
+	/* clear scale factors which are not locked */
+	if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
+		ob->dsize[0]= 0.0f;
+		ob->size[0]= 1.0f;
+	}
+	if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
+		ob->dsize[1]= 0.0f;
+		ob->size[1]= 1.0f;
+	}
+	if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
+		ob->dsize[2]= 0.0f;
+		ob->size[2]= 1.0f;
+	}
+}
+
+/* --------------- */
+
+/* generic exec for clear-transform operators */
+static int object_clear_transform_generic_exec(bContext *C, wmOperator *op, 
+		void (*clear_func)(Object*), const char default_ksName[])
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	
+	/* sanity checks */
+	if ELEM(NULL, clear_func, default_ksName) {
+		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform func or Keying Set Name");
+		return OPERATOR_CANCELLED;
+	}
 	
 	/* get KeyingSet to use */
-	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Location");
+	ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
 	
-	/* clear location of selected objects if not in weight-paint mode */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	/* operate on selected objects only if they aren't in weight-paint mode 
+	 * (so that object-transform clearing won't be applied at same time as bone-clearing)
+	 */
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	{
 		if (!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-			/* clear location if not locked */
-			if ((ob->protectflag & OB_LOCK_LOCX)==0)
-				ob->loc[0]= ob->dloc[0]= 0.0f;
-			if ((ob->protectflag & OB_LOCK_LOCY)==0)
-				ob->loc[1]= ob->dloc[1]= 0.0f;
-			if ((ob->protectflag & OB_LOCK_LOCZ)==0)
-				ob->loc[2]= ob->dloc[2]= 0.0f;
-				
+			/* run provided clearing function */
+			clear_func(ob);
+			
 			/* auto keyframing */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
 				ListBase dsources = {NULL, NULL};
 				
 				/* now insert the keyframe(s) using the Keying Set
-				 *	1) add datasource override for the PoseChannel
+				 *	1) add datasource override for the Object
 				 *	2) insert keyframes
 				 *	3) free the extra info 
 				 */
@@ -98,9 +246,10 @@ static int object_location_clear_exec(bContext *C, wmOperator *UNUSED(op))
 				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 				BLI_freelistN(&dsources);
 			}
+			
+			/* tag for updates */
+			ob->recalc |= OB_RECALC_OB;
 		}
-		
-		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
 	
@@ -110,6 +259,14 @@ static int object_location_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
+}
+
+/* --------------- */
+
+
+static int object_location_clear_exec(bContext *C, wmOperator *op)
+{
+	return object_clear_transform_generic_exec(C, op, object_clear_loc, "Location");
 }
 
 void OBJECT_OT_location_clear(wmOperatorType *ot)
@@ -127,134 +284,9 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_rotation_clear_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
-	
-	/* get KeyingSet to use */
-	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Rotation");
-	
-	/* clear rotation of selected objects if not in weight-paint mode */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-			/* clear rotations that aren't locked */
-			if (ob->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
-				if (ob->protectflag & OB_LOCK_ROT4D) {
-					/* perform clamping on a component by component basis */
-					if (ob->rotmode == ROT_MODE_AXISANGLE) {
-						if ((ob->protectflag & OB_LOCK_ROTW) == 0)
-							ob->rotAngle= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTX) == 0)
-							ob->rotAxis[0]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTY) == 0)
-							ob->rotAxis[1]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
-							ob->rotAxis[2]= 0.0f;
-							
-						/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
-						if (IS_EQ(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQ(ob->rotAxis[1], ob->rotAxis[2]))
-							ob->rotAxis[1] = 1.0f;
-					}
-					else if (ob->rotmode == ROT_MODE_QUAT) {
-						if ((ob->protectflag & OB_LOCK_ROTW) == 0)
-							ob->quat[0]= 1.0f;
-						if ((ob->protectflag & OB_LOCK_ROTX) == 0)
-							ob->quat[1]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTY) == 0)
-							ob->quat[2]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
-							ob->quat[3]= 0.0f;
-					}
-					else {
-						/* the flag may have been set for the other modes, so just ignore the extra flag... */
-						if ((ob->protectflag & OB_LOCK_ROTX) == 0)
-							ob->rot[0]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTY) == 0)
-							ob->rot[1]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
-							ob->rot[2]= 0.0f;
-					}
-				}
-				else {
-					/* perform clamping using euler form (3-components) */
-					float eul[3], oldeul[3], quat1[4] = {0};
-					
-					if (ob->rotmode == ROT_MODE_QUAT) {
-						QUATCOPY(quat1, ob->quat);
-						quat_to_eul( oldeul,ob->quat);
-					}
-					else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-						axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,ob->rotAxis, ob->rotAngle);
-					}
-					else {
-						copy_v3_v3(oldeul, ob->rot);
-					}
-					
-					eul[0]= eul[1]= eul[2]= 0.0f;
-					
-					if (ob->protectflag & OB_LOCK_ROTX)
-						eul[0]= oldeul[0];
-					if (ob->protectflag & OB_LOCK_ROTY)
-						eul[1]= oldeul[1];
-					if (ob->protectflag & OB_LOCK_ROTZ)
-						eul[2]= oldeul[2];
-					
-					if (ob->rotmode == ROT_MODE_QUAT) {
-						eul_to_quat( ob->quat,eul);
-						/* quaternions flip w sign to accumulate rotations correctly */
-						if ((quat1[0]<0.0f && ob->quat[0]>0.0f) || (quat1[0]>0.0f && ob->quat[0]<0.0f)) {
-							mul_qt_fl(ob->quat, -1.0f);
-						}
-					}
-					else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-						eulO_to_axis_angle( ob->rotAxis, &ob->rotAngle,eul, EULER_ORDER_DEFAULT);
-					}
-					else {
-						copy_v3_v3(ob->rot, eul);
-					}
-				}
-			}						 // Duplicated in source/blender/editors/armature/editarmature.c
-			else { 
-				if (ob->rotmode == ROT_MODE_QUAT) {
-					ob->quat[1]=ob->quat[2]=ob->quat[3]= 0.0f; 
-					ob->quat[0]= 1.0f;
-				}
-				else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-					/* by default, make rotation of 0 radians around y-axis (roll) */
-					ob->rotAxis[0]=ob->rotAxis[2]=ob->rotAngle= 0.0f;
-					ob->rotAxis[1]= 1.0f;
-				}
-				else {
-					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
-				}
-			}
-			
-			/* auto keyframing */
-			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				ListBase dsources = {NULL, NULL};
-				
-				/* now insert the keyframe(s) using the Keying Set
-				 *	1) add datasource override for the PoseChannel
-				 *	2) insert keyframes
-				 *	3) free the extra info 
-				 */
-				ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL); 
-				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-				BLI_freelistN(&dsources);
-			}
-		}
-		
-		ob->recalc |= OB_RECALC_OB;
-	}
-	CTX_DATA_END;
-	
-	/* this is needed so children are also updated */
-	DAG_ids_flush_update(bmain, 0);
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
-	
-	return OPERATOR_FINISHED;
+	return object_clear_transform_generic_exec(C, op, object_clear_rot, "Rotation");
 }
 
 void OBJECT_OT_rotation_clear(wmOperatorType *ot)
@@ -272,55 +304,9 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_scale_clear_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_scale_clear_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
-	
-	/* get KeyingSet to use */
-	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Scaling");
-	
-	/* clear scales of selected objects if not in weight-paint mode */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-			/* clear scale factors which are not locked */
-			if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
-				ob->dsize[0]= 0.0f;
-				ob->size[0]= 1.0f;
-			}
-			if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
-				ob->dsize[1]= 0.0f;
-				ob->size[1]= 1.0f;
-			}
-			if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
-				ob->dsize[2]= 0.0f;
-				ob->size[2]= 1.0f;
-			}
-			
-			/* auto keyframing */
-			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				ListBase dsources = {NULL, NULL};
-				
-				/* now insert the keyframe(s) using the Keying Set
-				 *	1) add datasource override for the PoseChannel
-				 *	2) insert keyframes
-				 *	3) free the extra info 
-				 */
-				ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL); 
-				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-				BLI_freelistN(&dsources);
-			}
-		}
-		ob->recalc |= OB_RECALC_OB;
-	}
-	CTX_DATA_END;
-	
-	/* this is needed so children are also updated */
-	DAG_ids_flush_update(bmain, 0);
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
-	
-	return OPERATOR_FINISHED;
+	return object_clear_transform_generic_exec(C, op, object_clear_scale, "Scaling");
 }
 
 void OBJECT_OT_scale_clear(wmOperatorType *ot)
@@ -338,14 +324,18 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* --------------- */
+
 static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
-	float *v1, *v3, mat[3][3];
-	int armature_clear= 0;
+	float *v1, *v3;
+	float mat[3][3];
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if(ob->parent) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	{
+		if (ob->parent) {
+			/* vectors pointed to by v1 and v3 will get modified */
 			v1= ob->loc;
 			v3= ob->parentinv[3];
 			
@@ -357,8 +347,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	CTX_DATA_END;
 
-	if(armature_clear==0) /* in this case flush was done */
-		DAG_ids_flush_update(bmain, 0);
+	DAG_ids_flush_update(bmain, 0);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	

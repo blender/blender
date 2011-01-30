@@ -1075,13 +1075,14 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 			PyObject *value_coerce= NULL;
 			int subtype= RNA_property_subtype(prop);
 			if(ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
+				/* TODO, get size */
 				param= PyC_UnicodeAsByte(value, &value_coerce);
 			}
 			else {
 				param= _PyUnicode_AsString(value);
 			}
 #else // USE_STRING_COERCE
-			param= _PyUnicode_AsString(value);
+			param= _PyUnicode_AsStringSize(value);
 #endif // USE_STRING_COERCE
 
 			if (param==NULL) {
@@ -2705,6 +2706,18 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
 
 		BLI_freelistN(&lb);
 	}
+
+	{
+		/* set(), this is needed to remove-doubles because the deferred
+		 * register-props will be in both the python __dict__ and accessed as RNA */
+
+		PyObject *set= PySet_New(ret);
+
+		Py_DECREF(ret);
+		ret= PySequence_List(set);
+		Py_DECREF(set);
+	}
+
 	return ret;
 }
 
@@ -2830,14 +2843,38 @@ static int pyrna_is_deferred_prop(PyObject *value)
 	return PyTuple_CheckExact(value) && PyTuple_GET_SIZE(value)==2 && PyCallable_Check(PyTuple_GET_ITEM(value, 0)) && PyDict_CheckExact(PyTuple_GET_ITEM(value, 1));
 }
 
-static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *pyname)
+static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr)
 {
-	return PyType_Type.tp_getattro(cls, pyname);	
+	PyObject *ret= PyType_Type.tp_getattro(cls, attr);
+
+	/* Allows:
+	 * >>> bpy.types.Scene.foo = BoolProperty()
+	 * >>> bpy.types.Scene.foo
+	 * <bpy_struct, BooleanProperty("foo")>
+	 * ...rather then returning the defered class register tuple as checked by pyrna_is_deferred_prop()
+	 *
+	 * Disable for now, this is faking internal behavior in a way thats too tricky to maintain well. */
+#if 0
+	if(ret == NULL) { // || pyrna_is_deferred_prop(ret)
+		StructRNA *srna= srna_from_self(cls, "StructRNA.__getattr__");
+		if(srna) {
+			PropertyRNA *prop= RNA_struct_type_find_property(srna, _PyUnicode_AsString(attr));
+			if(prop) {
+				PointerRNA tptr;
+				PyErr_Clear(); /* clear error from tp_getattro */
+				RNA_pointer_create(NULL, &RNA_Property, prop, &tptr);
+				ret= pyrna_struct_CreatePyObject(&tptr);
+			}
+		}
+	}
+#endif
+
+	return ret;
 }
 
 static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyObject *value)
 {
-	StructRNA *srna= srna_from_self(cls, "");
+	StructRNA *srna= srna_from_self(cls, "StructRNA.__setattr__");
 
 	if(srna == NULL) {
 		if(value && pyrna_is_deferred_prop(value)) {
@@ -2854,9 +2891,14 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
 		/* check if the value is a property */
 		if(pyrna_is_deferred_prop(value)) {
 			int ret= deferred_register_prop(srna, attr, value);
-			if(ret < 0)
+			if(ret == -1) {
+				/* error set */
 				return ret;
-			/* pass through, when the value isn't assigned it still works but gets confusing from script writers POV */
+			}
+
+			/* pass through and assign to the classes __dict__ as well
+			 * when the value isn't assigned it still creates the RNA property
+			 * but gets confusing from script writers POV if the assigned value cant be read back. */
 		}
 		else {
 			/* remove existing property if its set or we also end up with confusement */
@@ -2873,7 +2915,7 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
 			return -1;
 		}
 	}
-	
+
 	/* fallback to standard py, delattr/setattr */
 	return PyType_Type.tp_setattro(cls, attr, value);
 }
@@ -4950,12 +4992,10 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, int parent, const char *error_pr
 
 /* Orphan functions, not sure where they should go */
 /* get the srna for methods attached to types */
-/* */
+/*
+ * Caller needs to raise error.*/
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
 {
-	/* a bit sloppy but would cause a very confusing bug if
-	 * an error happened to be set here */
-	PyErr_Clear();
 
 	if(self==NULL) {
 		return NULL;
@@ -4966,10 +5006,24 @@ StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
 	else if (PyType_Check(self)==0) {
 		return NULL;
 	}
-	/* These cases above not errors, they just mean the type was not compatible
-	 * After this any errors will be raised in the script */
+	else {
+		/* These cases above not errors, they just mean the type was not compatible
+		 * After this any errors will be raised in the script */
 
-	return pyrna_struct_as_srna(self, 0, error_prefix);
+		PyObject *error_type, *error_value, *error_traceback;
+		StructRNA *srna;
+
+		PyErr_Fetch(&error_type, &error_value, &error_traceback);
+		PyErr_Clear();
+
+		srna= pyrna_struct_as_srna(self, 0, error_prefix);
+
+		if(!PyErr_Occurred()) {
+			PyErr_Restore(error_type, error_value, error_traceback);
+		}
+
+		return srna;
+	}
 }
 
 static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item)
@@ -5140,7 +5194,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 	}
 
 	/* verify callback functions */
-	lb= RNA_struct_defined_functions(srna);
+	lb= RNA_struct_type_functions(srna);
 	i= 0;
 	for(link=lb->first; link; link=link->next) {
 		func= (FunctionRNA*)link;
@@ -5199,7 +5253,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 	}
 
 	/* verify properties */
-	lb= RNA_struct_defined_properties(srna);
+	lb= RNA_struct_type_properties(srna);
 	for(link=lb->first; link; link=link->next) {
 		const char *identifier;
 		prop= (PropertyRNA*)link;
@@ -5642,26 +5696,25 @@ static PyObject *pyrna_basetype_register(PyObject *UNUSED(self), PyObject *py_cl
 
 static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props, StructRNA *srna, const char **prop_identifier)
 {
-	PointerRNA tptr;
-	PropertyRNA *iterprop;
-	RNA_pointer_create(NULL, &RNA_Struct, srna_props, &tptr);
-	
-	iterprop= RNA_struct_find_property(&tptr, "properties");
+	PropertyRNA *prop;
+	LinkData *link;
 
-	RNA_PROP_BEGIN(&tptr, itemptr, iterprop) {
-		PropertyRNA *prop= itemptr.data;
-		if(RNA_property_type(prop) == PROP_POINTER) {
-			if (strcmp(RNA_property_identifier(prop), "rna_type") == 0) {
-				/* pass */
-			}
-			else if(RNA_property_pointer_type(&tptr, prop) == srna) {
+	/* verify properties */
+	const ListBase *lb= RNA_struct_type_properties(srna);
+
+	for(link=lb->first; link; link=link->next) {
+		prop= (PropertyRNA*)link;
+		if(RNA_property_type(prop) == PROP_POINTER && !(RNA_property_flag(prop) & PROP_BUILTIN)) {
+			PointerRNA tptr;
+			RNA_pointer_create(NULL, &RNA_Struct, srna_props, &tptr);
+
+			if(RNA_property_pointer_type(&tptr, prop) == srna) {
 				*prop_identifier= RNA_property_identifier(prop);
 				return 1;
 			}
 		}
 	}
-	RNA_PROP_END;
-	
+
 	return 0;
 }
 

@@ -57,7 +57,7 @@
 
 /* Only for debugging:
  * lets you count the allocations so as to find the allocator of unfreed memory
- * in situations where the leak is pradictable */
+ * in situations where the leak is predictable */
 
 // #define DEBUG_MEMCOUNTER
 

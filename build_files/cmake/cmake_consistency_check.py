@@ -128,6 +128,10 @@ def cmake_get_src(f):
                             raise Exception("strict formatting not kept '*)' %s:%d" % (f, i))
                         break
 
+                    # replace dirs
+                    l = l.replace("${CMAKE_CURRENT_SOURCE_DIR}", cmake_base)
+                    
+
                     if not l:
                         pass
                     elif l.startswith("$"):
@@ -202,11 +206,14 @@ for hf in sorted(source_list(base, is_c_header)):
 import traceback
 for files in (global_c, global_h):
     for f in sorted(files):
-        i = 1
-        try:
-            for l in open(f, "r", encoding="utf8"):
-                i += 1
-        except:
-            print("Non utf8: %s:%d" % (f, i))
-            if i > 1:
-                traceback.print_exc()
+        if os.path.exists(f):
+            # ignore outside of our source tree
+            if "extern" not in f:
+                i = 1
+                try:
+                    for l in open(f, "r", encoding="utf8"):
+                        i += 1
+                except:
+                    print("Non utf8: %s:%d" % (f, i))
+                    if i > 1:
+                        traceback.print_exc()

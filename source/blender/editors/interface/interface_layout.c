@@ -26,6 +26,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -345,7 +346,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 	uiBlockSetCurLayout(block, sub);
 
 	/* create label */
-	if(strcmp(name, "") != 0)
+	if(name[0])
 		uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	/* create buttons */
@@ -464,12 +465,12 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 		if(!item[a].identifier[0])
 			continue;
 
-		name= (!uiname || uiname[0])? (char*)item[a].name: "";
+		name= (!uiname || uiname[0])? item[a].name: "";
 		icon= item[a].icon;
 		value= item[a].value;
 		itemw= ui_text_icon_width(block->curlayout, name, icon, 0);
 
-		if(icon && strcmp(name, "") != 0 && !icon_only)
+		if(icon && name[0] && !icon_only)
 			but= uiDefIconTextButR(block, ROW, 0, icon, name, 0, 0, itemw, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
 		else if(icon)
 			but= uiDefIconButR(block, ROW, 0, icon, 0, 0, itemw, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
@@ -508,7 +509,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 	sub= uiLayoutRow(layout, 0);
 	uiBlockSetCurLayout(block, sub);
 
-	if(strcmp(name, "") != 0) {
+	if(name[0]) {
 		/* XXX UI_GetStringWidth is not accurate
 		labelw= UI_GetStringWidth(name);
 		CLAMP(labelw, w/4, 3*w/4);*/
@@ -596,7 +597,7 @@ static void ui_item_disabled(uiLayout *layout, const char *name)
 
 	w= ui_text_icon_width(layout, name, 0, 0);
 
-	but= uiDefBut(block, LABEL, 0, (char*)name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	but= uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	but->flag |= UI_BUT_DISABLED;
 	but->lock = 1;
 	but->lockstr = "";
@@ -628,13 +629,15 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *idname, const char *name, i
 	if (flag & UI_ITEM_R_NO_BG)
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 
-	if(icon && strcmp(name, "") != 0)
-		but= uiDefIconTextButO(block, BUT, ot->idname, context, icon, (char*)name, 0, 0, w, UI_UNIT_Y, NULL);
+	if(icon && name[0])
+		but= uiDefIconTextButO(block, BUT, ot->idname, context, icon, name, 0, 0, w, UI_UNIT_Y, NULL);
 	else if(icon)
 		but= uiDefIconButO(block, BUT, ot->idname, context, icon, 0, 0, w, UI_UNIT_Y, NULL);
 	else
-		but= uiDefButO(block, BUT, ot->idname, context, (char*)name, 0, 0, w, UI_UNIT_Y, NULL);
-	
+		but= uiDefButO(block, BUT, ot->idname, context, name, 0, 0, w, UI_UNIT_Y, NULL);
+
+	assert(but->optype != NULL);
+
 	/* text alignment for toolbar buttons */
 	if((layout->root->type == UI_LAYOUT_TOOLBAR) && !icon)
 		but->flag |= UI_TEXT_LEFT;
@@ -680,7 +683,7 @@ static const char *ui_menu_enumpropname(uiLayout *layout, const char *opname, co
 		RNA_property_enum_items(layout->root->block->evil_C, &ptr, prop, &item, &totitem, &free);
 		if(RNA_enum_name(item, retval, &name)) {
 			if(free) MEM_freeN(item);
-			return (char*)name;
+			return name;
 		}
 		
 		if(free)
@@ -740,10 +743,10 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 					tptr.data= IDP_CopyProperty(properties);
 					RNA_enum_set(&tptr, propname, item[i].value);
 
-					uiItemFullO(column, opname, (char*)item[i].name, item[i].icon, tptr.data, context, flag);
+					uiItemFullO(column, opname, item[i].name, item[i].icon, tptr.data, context, flag);
 				}
 				else
-					uiItemEnumO(column, opname, (char*)item[i].name, item[i].icon, propname, item[i].value);
+					uiItemEnumO(column, opname, item[i].name, item[i].icon, propname, item[i].value);
 			}
 			else {
 				if(item[i].name) {
@@ -753,7 +756,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 						block->flag |= UI_BLOCK_NO_FLIP;
 					}
 
-					uiItemL(column, (char*)item[i].name, ICON_NULL);
+					uiItemL(column, item[i].name, ICON_NULL);
 					bt= block->buttons.last;
 					bt->flag= UI_TEXT_LEFT;
 				}
@@ -889,7 +892,7 @@ static void ui_item_rna_size(uiLayout *layout, const char *name, int icon, Point
 			h += len*UI_UNIT_Y;
 	}
 	else if(ui_layout_vary_direction(layout) == UI_ITEM_VARY_X) {
-		if(type == PROP_BOOLEAN && strcmp(name, "") != 0)
+		if(type == PROP_BOOLEAN && name[0])
 			w += UI_UNIT_X/5;
 		else if(type == PROP_ENUM)
 			w += UI_UNIT_X/4;
@@ -917,7 +920,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 
 	/* set name and icon */
 	if(!name)
-		name= (char*)RNA_property_ui_name(prop);
+		name= RNA_property_ui_name(prop);
 	if(icon == ICON_NULL)
 		icon= RNA_property_ui_icon(prop);
 	
@@ -959,9 +962,9 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		ui_item_array(layout, block, name, icon, ptr, prop, len, 0, 0, w, h, expand, slider, toggle, icon_only);
 	/* enum item */
 	else if(type == PROP_ENUM && index == RNA_ENUM_VALUE) {
-		char *identifier= (char*)RNA_property_identifier(prop);
+		const char *identifier= RNA_property_identifier(prop);
 
-		if(icon && strcmp(name, "") != 0 && !icon_only)
+		if(icon && name[0] && !icon_only)
 			uiDefIconTextButR(block, ROW, 0, icon, name, 0, 0, w, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
 		else if(icon)
 			uiDefIconButR(block, ROW, 0, icon, 0, 0, w, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
@@ -981,7 +984,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	}
 	/* single button */
 	else {
-		but= uiDefAutoButR(block, ptr, prop, index, (char*)name, icon, 0, 0, w, h);
+		but= uiDefAutoButR(block, ptr, prop, index, name, icon, 0, 0, w, h);
 
 		if(slider && but->type==NUM)
 			but->type= NUMSLI;
@@ -1046,7 +1049,7 @@ void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *pr
 
 	for(a=0; item[a].identifier; a++) {
 		if(item[a].value == ivalue) {
-			uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, ivalue, 0, name ? name : (char*)item[a].name, icon ? icon : item[a].icon);
+			uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, ivalue, 0, name ? name : item[a].name, icon ? icon : item[a].icon);
 			break;
 		}
 	}
@@ -1078,7 +1081,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 
 		for(i=0; i<totitem; i++) {
 			if(item[i].identifier[0]) {
-				uiItemEnumR(column, (char*)item[i].name, ICON_NULL, ptr, propname, item[i].value);
+				uiItemEnumR(column, item[i].name, ICON_NULL, ptr, propname, item[i].value);
 			}
 			else {
 				if(item[i].name) {
@@ -1088,7 +1091,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 						block->flag |= UI_BLOCK_NO_FLIP;
 					}
 
-					uiItemL(column, (char*)item[i].name, ICON_NULL);
+					uiItemL(column, item[i].name, ICON_NULL);
 					bt= block->buttons.last;
 					bt->flag= UI_TEXT_LEFT;
 				}
@@ -1285,7 +1288,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 		icon= RNA_struct_ui_icon(icontype);
 	}
 	if(!name)
-		name= (char*)RNA_property_ui_name(prop);
+		name= RNA_property_ui_name(prop);
 
 	/* create button */
 	block= uiLayoutGetBlock(layout);
@@ -1330,11 +1333,11 @@ static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCre
 		w -= 10;
 
 	if(name[0] && icon)
-		but= uiDefIconTextMenuBut(block, func, arg, icon, (char*)name, 0, 0, w, h, "");
+		but= uiDefIconTextMenuBut(block, func, arg, icon, name, 0, 0, w, h, "");
 	else if(icon)
 		but= uiDefIconMenuBut(block, func, arg, icon, 0, 0, w, h, "");
 	else
-		but= uiDefMenuBut(block, func, arg, (char*)name, 0, 0, w, h, "");
+		but= uiDefMenuBut(block, func, arg, name, 0, 0, w, h, "");
 
 	if(argN) { /* ugly .. */
 		but->poin= (char*)but;
@@ -1384,7 +1387,7 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
 
 	w= ui_text_icon_width(layout, name, icon, 0);
 
-	if(icon && strcmp(name, "") != 0)
+	if(icon && name[0])
 		but= uiDefIconTextBut(block, LABEL, 0, icon, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	else if(icon)
 		but= uiDefIconBut(block, LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
@@ -1426,12 +1429,12 @@ void uiItemV(uiLayout *layout, const char *name, int icon, int argval)
 
 	w= ui_text_icon_width(layout, name, icon, 0);
 
-	if(icon && strcmp(name, "") != 0)
-		uiDefIconTextButF(block, BUTM, 0, icon, (char*)name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
+	if(icon && name[0])
+		uiDefIconTextButF(block, BUTM, 0, icon, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
 	else if(icon)
 		uiDefIconButF(block, BUTM, 0, icon, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
 	else
-		uiDefButF(block, BUTM, 0, (char*)name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
+		uiDefButF(block, BUTM, 0, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
 }
 
 /* separator item */
@@ -1510,7 +1513,7 @@ void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propn
 	}
 
 	if(!name)
-		name= (char*)RNA_property_ui_name(prop);
+		name= RNA_property_ui_name(prop);
 	if(layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon= ICON_BLANK1;
 

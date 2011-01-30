@@ -282,6 +282,15 @@ protected:
 	 */
 	static GHOST_EventKey* processKeyEvent(GHOST_IWindow *window, bool keyDown, WPARAM wParam, LPARAM lParam);
 
+	/**
+	 * Process special keys (VK_OEM_*), to see if current key layout
+	 * gives us anything special, like ! on french AZERTY.
+	 * @param window	The window receiving the event (the active window).
+	 * @param wParam	The wParam from the wndproc
+	 * @param lParam	The lParam from the wndproc
+	 */
+	virtual GHOST_TKey processSpecialKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam) const;
+
 	/** 
 	 * Creates a window event.
 	 * @param type		The type of event to create.
@@ -311,7 +320,7 @@ protected:
 	/**
 	 * Check current key layout for AltGr
 	 */
-	inline virtual void keyboardAltGr(void);
+	inline virtual void handleKeyboardChange(void);
 
 	/**
 	 * Windows call back routine for our window class.
@@ -338,6 +347,8 @@ protected:
 	__int64 m_start;
 	/** AltGr on current keyboard layout. */
 	bool m_hasAltGr;
+	/** language identifier. */
+	WORD m_langId;
 	/** holding hook handle for low-level keyboard handling */
 	HHOOK m_llKeyboardHook;
 	bool m_prevKeyStatus[255]; /* VK_* codes 0x01-0xFF, with 0xFF reserved */
@@ -354,11 +365,15 @@ inline void GHOST_SystemWin32::storeModifierKeys(const GHOST_ModifierKeys& keys)
 	m_modifierKeys = keys;
 }
 
-inline void GHOST_SystemWin32::keyboardAltGr(void)
+inline void GHOST_SystemWin32::handleKeyboardChange(void)
 {
 	HKL keylayout = GetKeyboardLayout(0); // get keylayout for current thread
 	int i;
 	SHORT s;
+
+	// save the language identifier.
+	m_langId = LOWORD(keylayout);
+
 	for(m_hasAltGr = false, i = 32; i < 256; ++i) {
 		s = VkKeyScanEx((char)i, keylayout);
 		// s == -1 means no key that translates passed char code

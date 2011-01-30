@@ -55,6 +55,7 @@ set(SRC
 	GHOST_IEvent.h
 	GHOST_IEventConsumer.h
 	GHOST_ISystem.h
+	GHOST_ISystemPaths.h
 	GHOST_ITimerTask.h
 	GHOST_IWindow.h
 	GHOST_Path-api.h
@@ -78,6 +79,7 @@ set(SRC
 	intern/GHOST_ModifierKeys.h
 	intern/GHOST_NDOFManager.h
 	intern/GHOST_System.h
+	intern/GHOST_SystemPaths.h
 	intern/GHOST_TimerManager.h
 	intern/GHOST_TimerTask.h
 	intern/GHOST_Window.h
@@ -151,6 +153,7 @@ elseif(WIN32)
 		intern/GHOST_SystemWin32.h
 		intern/GHOST_SystemPathsWin32.h
 		intern/GHOST_WindowWin32.h
+		intern/GHOST_TaskbarWin32.h
 	)
 endif()
 

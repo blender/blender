@@ -37,6 +37,12 @@ class PhysicButtonsPanel():
 
 class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Force Fields"
+    
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        rd = context.scene.render
+        return (not rd.use_game_engine) and (ob.field) and (ob.field.type != 'NONE')
 
     def draw(self, context):
         layout = self.layout
@@ -164,7 +170,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+        return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.collision)
 
     def draw(self, context):
         layout = self.layout
@@ -173,24 +179,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
 
         split = layout.split()
 
-        if md:
-            # remove modifier + settings
-            split.context_pointer_set("modifier", md)
-            split.operator("object.modifier_remove", text="Remove")
-            col = split.column()
-
-            #row = split.row(align=True)
-            #row.prop(md, "show_render", text="")
-            #row.prop(md, "show_viewport", text="")
-
-            coll = md.settings
-
-        else:
-            # add modifier
-            split.operator("object.modifier_add", text="Add").type = 'COLLISION'
-            split.label()
-
-            coll = None
+        coll = md.settings
 
         if coll:
             settings = context.object.collision

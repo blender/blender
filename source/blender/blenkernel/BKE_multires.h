@@ -80,7 +80,7 @@ int multires_mdisp_corners(struct MDisps *s);
 void multires_mdisp_smooth_bounds(struct MDisps *disps);
 
 /* update multires data after topology changing */
-void multires_topology_changed(struct Object *ob);
+void multires_topology_changed(struct Scene *scene, struct Object *ob);
 
 /**** interpolation stuff ****/
 void old_mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, float v);

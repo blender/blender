@@ -47,7 +47,7 @@ class PhysicButtonsPanel():
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+        return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.cloth)
 
 
 class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
@@ -58,21 +58,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
 
         md = context.cloth
         ob = context.object
-
-        split = layout.split()
-
-        if md:
-            # remove modifier + settings
-            split.context_pointer_set("modifier", md)
-            split.operator("object.modifier_remove", text="Remove")
-
-            row = split.row(align=True)
-            row.prop(md, "show_render", text="")
-            row.prop(md, "show_viewport", text="")
-        else:
-            # add modifier
-            split.operator("object.modifier_add", text="Add").type = 'CLOTH'
-            split.label()
 
         if md:
             cloth = md.settings

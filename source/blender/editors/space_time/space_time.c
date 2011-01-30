@@ -466,14 +466,14 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_draw(v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
 	UI_view2d_grid_free(grid);
 	
-	/* keyframes */
-	if(!G.rendering) /* ANIM_nla_mapping_apply_fcurve() modifies curve data while rendering, possible race condition */
-		time_draw_keyframes(C, stime, ar);
-	
 	/* current frame */
 	if ((stime->flag & TIME_DRAWFRAMES)==0) 	flag |= DRAWCFRA_UNIT_SECONDS;
 	if (stime->flag & TIME_CFRA_NUM) 			flag |= DRAWCFRA_SHOW_NUMBOX;
 	ANIM_draw_cfra(C, v2d, flag);
+	
+	/* keyframes */
+	if(!G.rendering) /* ANIM_nla_mapping_apply_fcurve() modifies curve data while rendering, possible race condition */
+		time_draw_keyframes(C, stime, ar);
 	
 	/* markers */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);

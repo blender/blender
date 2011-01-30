@@ -217,7 +217,9 @@ class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
 
         gs = context.scene.game_settings
 
-        layout.prop(gs, "show_fullscreen")
+        row = layout.row()
+        row.prop(gs, "show_fullscreen")
+        row.prop(gs, "show_mouse")
 
         split = layout.split()
 

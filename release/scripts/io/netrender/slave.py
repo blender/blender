@@ -170,6 +170,10 @@ def render_slave(engine, netsettings, threads):
                 if not os.path.exists(JOB_PREFIX):
                     os.mkdir(JOB_PREFIX)
 
+                # set tempdir for fsaa temp files
+                # have to set environ var because render is done in a subprocess and that's the easiest way to propagate the setting
+                os.environ["TMP"] = JOB_PREFIX
+
 
                 if job.type == netrender.model.JOB_BLENDER:
                     job_path = job.files[0].filepath # path of main file

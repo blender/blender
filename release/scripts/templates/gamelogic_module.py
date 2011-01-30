@@ -12,6 +12,7 @@ import bge
 # inside the function if you intend to use the module
 # with multiple objects.
 
+
 def main(cont):
     own = cont.owner
 

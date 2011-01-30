@@ -20,7 +20,7 @@ SSH_UPLOAD_FULL=$SSH_UPLOAD/"blender_python_api_"$BLENDER_VERSION
 SPHINXBASE=doc/python_api/
 
 # dont delete existing docs, now partial updates are used for quick builds.
-$BLENDER --background --python $SPHINXBASE/sphinx_doc_gen.py
+$BLENDER --background --factory-startup --python $SPHINXBASE/sphinx_doc_gen.py
 
 # html
 sphinx-build $SPHINXBASE/sphinx-in $SPHINXBASE/sphinx-out

@@ -692,13 +692,17 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 {
 	StructRNA *srna;
 
-	srna= srna_from_self(value, "BoolProperty(...):");
+	srna= srna_from_self(value, "");
 	if(!srna) {
-
-		PyObject *msg= PyC_ExceptionBuffer();
-		char *msg_char= _PyUnicode_AsString(msg);
-		PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with: %s", error_prefix, msg_char);
-		Py_DECREF(msg);
+		if(PyErr_Occurred()) {
+			PyObject *msg= PyC_ExceptionBuffer();
+			char *msg_char= _PyUnicode_AsString(msg);
+			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with: %s", error_prefix, msg_char);
+			Py_DECREF(msg);
+		}
+		else {
+			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with type '%s'", error_prefix, Py_TYPE(value)->tp_name);
+		}
 		return NULL;
 	}
 

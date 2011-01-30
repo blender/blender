@@ -23,6 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include "SCA_IActuator.h"
 #include "SCA_2DFilterActuator.h"
 

@@ -27,6 +27,9 @@
  * ***** END GPL LICENSE BLOCK *****
  * Sensor for keyboard input
  */
+
+#include <stddef.h>
+
 #include "SCA_KeyboardSensor.h"
 #include "SCA_KeyboardManager.h"
 #include "SCA_LogicManager.h"

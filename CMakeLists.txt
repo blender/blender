@@ -166,9 +166,9 @@ TEST_SSE_SUPPORT()
 
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix: 
-#   cmake -D PYTHON_LIB=/usr/local/lib/python3.1/config/libpython3.1.so -D PYTHON_INC=/usr/local/include/python3.1 -G "Unix Makefiles" ../blender
+#   cmake -D PYTHON_LIBRARY=/usr/local/lib/python3.1/config/libpython3.1.so -D PYTHON_INCLUDE_DIRS=/usr/local/include/python3.1 -G "Unix Makefiles" ../blender
 # On Macs: 
-#   cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/3.1/include/python3.1 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.1/lib/python3.1/config -G Xcode ../blender
+#   cmake -D PYTHON_INCLUDE_DIRS=/System/Library/Frameworks/Python.framework/Versions/3.1/include/python3.1 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.1/lib/python3.1/config -G Xcode ../blender
 #
 # When changing any of this remember to update the notes in doc/build_systems/cmake.txt
 
@@ -227,11 +227,11 @@ if(UNIX AND NOT APPLE)
 		# find_package(PythonLibs)
 		set(PYTHON /usr)
 		set(PYTHON_VERSION 3.1)
-		set(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
-		mark_as_advanced(PYTHON_INC)
+		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
+		mark_as_advanced(PYTHON_INCLUDE_DIRS)
 		# set(PYTHON_BINARY python) # not used yet
-		set(PYTHON_LIB python${PYTHON_VERSION} CACHE STRING "")
-		mark_as_advanced(PYTHON_LIB)
+		set(PYTHON_LIBRARY python${PYTHON_VERSION} CACHE STRING "")
+		mark_as_advanced(PYTHON_LIBRARY)
 		set(PYTHON_LIBPATH ${PYTHON}/lib CACHE STRING "")
 		mark_as_advanced(PYTHON_LIBPATH)
 		# find_package(PythonInterp) # not used yet
@@ -246,6 +246,7 @@ if(UNIX AND NOT APPLE)
 		mark_as_advanced(SDLMAIN_LIBRARY)
 		mark_as_advanced(SDL_INCLUDE_DIR)
 		mark_as_advanced(SDL_LIBRARY)
+		mark_as_advanced(SDL_LIBRARY_TEMP)
 		# unset(SDLMAIN_LIBRARY CACHE)
 		if(NOT SDL_FOUND)
 			set(WITH_SDL OFF)
@@ -411,12 +412,12 @@ elseif(WIN32)
 	endif()
 
 	set(PNG "${LIBDIR}/png")
-	set(PNG_INC "${PNG}/include")
-	set(PNG_LIBPATH ${PNG}/lib)
+	set(PNG_INCLUDE_DIR "${PNG}/include")
+	set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 
 	set(JPEG "${LIBDIR}/jpeg")
-	set(JPEG_INC "${JPEG}/include")
-	set(JPEG_LIBPATH ${JPEG}/lib)
+	set(JPEG_INCLUDE_DIR "${JPEG}/include")
+	set(JPEG_LIBPATH ${JPEG}/lib) # not cmake defined
 
 	set(WINTAB_INC ${LIBDIR}/wintab/include) 
 
@@ -495,10 +496,10 @@ elseif(WIN32)
 		else()
 			set(PNG_LIBRARIES libpng_st)
 		endif()
-		set(JPEG_LIBRARY libjpeg)
+		set(JPEG_LIBRARIES libjpeg)
 
 		set(ZLIB ${LIBDIR}/zlib)
-		set(ZLIB_INC ${ZLIB}/include)
+		set(ZLIB_INCLUDE_DIRS ${ZLIB}/include)
 		set(ZLIB_LIBPATH ${ZLIB}/lib)
 		if(CMAKE_CL_64)
 			set(ZLIB_LIBRARIES libz)
@@ -527,7 +528,7 @@ elseif(WIN32)
 			set(OPENCOLLADA ${LIBDIR}/opencollada)
 			set(OPENCOLLADA_INC ${OPENCOLLADA}/include)
 			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-			set(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser xml2 buffer ftoa)
+			set(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser xml2 buffer ftoa UTF)
 			set(PCRE_LIB pcre)
 		endif()
 		
@@ -576,9 +577,9 @@ elseif(WIN32)
 		if(WITH_PYTHON)
 			set(PYTHON ${LIBDIR}/python)
 			set(PYTHON_VERSION 3.1)
-			set(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
+			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIB python31)
+			set(PYTHON_LIBRARY python31)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
 
@@ -613,11 +614,11 @@ elseif(WIN32)
 			set(GETTEXT_LIB intl)
 		endif()
 
-		set(JPEG_LIBRARY libjpeg)
+		set(JPEG_LIBRARIES libjpeg)
 		set(PNG_LIBRARIES png)
 
 		set(ZLIB ${LIBDIR}/zlib)
-		set(ZLIB_INC ${ZLIB}/include)
+		set(ZLIB_INCLUDE_DIRS ${ZLIB}/include)
 		set(ZLIB_LIBPATH ${ZLIB}/lib)
 		set(ZLIB_LIBRARIES z)
 
@@ -683,9 +684,9 @@ elseif(WIN32)
 		if(WITH_PYTHON)
 			set(PYTHON ${LIBDIR}/python)
 			set(PYTHON_VERSION 3.1)
-			set(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
+			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIB python31mw)
+			set(PYTHON_LIBRARY python31mw)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
 
@@ -737,9 +738,9 @@ elseif(APPLE)
 		# we use precompiled libraries for py 3.1 and up by default
 
 		set(PYTHON ${LIBDIR}/python)
-		set(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
+		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 		# set(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}") # not used yet
-		set(PYTHON_LIB python${PYTHON_VERSION})
+		set(PYTHON_LIBRARY python${PYTHON_VERSION})
 		set(PYTHON_LIBPATH "${PYTHON}/lib/python${PYTHON_VERSION}")
 		# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
 	else()
@@ -747,9 +748,9 @@ elseif(APPLE)
 
 		set(PYTHON /System/Library/Frameworks/Python.framework/Versions/)
 		set(PYTHON_VERSION 3.1)
-		set(PYTHON_INC "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}")
+		set(PYTHON_INCLUDE_DIRS "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}")
 		# set(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION}) # not used yet
-		set(PYTHON_LIB "")
+		set(PYTHON_LIBRARY "")
 		set(PYTHON_LIBPATH ${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config)
 		set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python")
 	endif()
@@ -769,10 +770,10 @@ elseif(APPLE)
 	endif()
 
 	set(PNG_LIBRARIES png)
-	set(JPEG_LIBRARY jpeg)
+	set(JPEG_LIBRARIES jpeg)
 
 	set(ZLIB /usr)
-	set(ZLIB_INC "${ZLIB}/include")
+	set(ZLIB_INCLUDE_DIRS "${ZLIB}/include")
 	set(ZLIB_LIBRARIES z bz2)
 
 	set(FREETYPE ${LIBDIR}/freetype)
@@ -852,11 +853,11 @@ elseif(APPLE)
 	endif()
 
 	set(PNG "${LIBDIR}/png")
-	set(PNG_INC "${PNG}/include")
+	set(PNG_INCLUDE_DIR "${PNG}/include")
 	set(PNG_LIBPATH ${PNG}/lib)
 
 	set(JPEG "${LIBDIR}/jpeg")
-	set(JPEG_INC "${JPEG}/include")
+	set(JPEG_INCLUDE_DIR "${JPEG}/include")
 	set(JPEG_LIBPATH ${JPEG}/lib)
 
 	if(WITH_IMAGE_TIFF)

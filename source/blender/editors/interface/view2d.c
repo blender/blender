@@ -255,8 +255,6 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				/* absolutely no scrollers allowed */
 				v2d->scroll= 0;
 				
-				/* pixel offsets need to be applied for smooth UI controls */
-				v2d->flag |= (V2D_PIXELOFS_X|V2D_PIXELOFS_Y);
 			}
 				break;
 			
@@ -980,10 +978,6 @@ void UI_view2d_view_ortho(View2D *v2d)
 	/* pixel offsets (-0.375f) are needed to get 1:1 correspondance with pixels for smooth UI drawing, 
 	 * but only applied where requsted
 	 */
-	/* XXX ton: fix this! */
-	xofs= 0.0; // (v2d->flag & V2D_PIXELOFS_X) ? 0.375f : 0.0f;
-	yofs= 0.0; // (v2d->flag & V2D_PIXELOFS_Y) ? 0.375f : 0.0f;
-
 	/* XXX brecht: instead of zero at least use a tiny offset, otherwise
 	 * pixel rounding is effectively random due to float inaccuracy */
 	xofs= 0.001f*(v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);
@@ -991,6 +985,19 @@ void UI_view2d_view_ortho(View2D *v2d)
 	
 	/* apply mask-based adjustments to cur rect (due to scrollers), to eliminate scaling artifacts */
 	view2d_map_cur_using_mask(v2d, &curmasked);
+	
+	curmasked.xmin-= xofs; curmasked.xmax-=xofs;
+	curmasked.ymin-= yofs; curmasked.ymax-=yofs;
+	
+	/* XXX ton: this flag set by outliner, for icons */
+	if(v2d->flag & V2D_PIXELOFS_X) {
+		curmasked.xmin= floor(curmasked.xmin) + 0.001f;
+		curmasked.xmax= floor(curmasked.xmax) + 0.001f;
+	}
+	if(v2d->flag & V2D_PIXELOFS_Y) {
+		curmasked.ymin= floor(curmasked.ymin) + 0.001f;
+		curmasked.ymax= floor(curmasked.ymax) + 0.001f;
+	}
 	
 	/* set matrix on all appropriate axes */
 	wmOrtho2(curmasked.xmin-xofs, curmasked.xmax-xofs, curmasked.ymin-yofs, curmasked.ymax-yofs);

@@ -484,12 +484,9 @@ static int key_inside_test(PEData *data, float co[3])
 static int point_is_selected(PTCacheEditPoint *point)
 {
 	KEY_K;
-	int sel;
 
 	if(point->flag & PEP_HIDE)
 		return 0;
-
-	sel= 0;
 
 	LOOP_SELECTED_KEYS {
 		return 1;
@@ -773,6 +770,9 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 	if(!mpa) {
 		if(!edit->mirror_cache)
 			PE_update_mirror_cache(ob, psys);
+		
+		if(!edit->mirror_cache)
+			return; /* something went wrong! */
 
 		mi= edit->mirror_cache[i];
 		if(mi == -1)
@@ -846,6 +846,9 @@ static void PE_apply_mirror(Object *ob, ParticleSystem *psys)
 
 	if(!edit->mirror_cache)
 		PE_update_mirror_cache(ob, psys);
+
+	if(!edit->mirror_cache)
+		return; /* something went wrong */
 
 	/* we delay settings the PARS_EDIT_RECALC for mirrored particles
 	 * to avoid doing mirror twice */
@@ -2080,6 +2083,15 @@ static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
 		if(new_totpart) {
 			npa= new_pars= MEM_callocN(new_totpart * sizeof(ParticleData), "ParticleData array");
 			npoint= new_points= MEM_callocN(new_totpart * sizeof(PTCacheEditPoint), "PTCacheEditKey array");
+
+			if(ELEM(NULL, new_pars, new_points)) {
+				 /* allocation error! */
+				if(new_pars)
+					MEM_freeN(new_pars);
+				if(new_points)
+					MEM_freeN(new_points);
+				return 0;
+			}
 		}
 
 		pa= psys->particles;
@@ -3246,14 +3258,12 @@ static int brush_add(PEData *data, short number)
 				ParticleKey key3[3];
 				KDTreeNearest ptn[3];
 				int w, maxw;
-				float maxd, mind, dd, totw=0.0, weight[3];
+				float maxd, totw=0.0, weight[3];
 
 				psys_particle_on_dm(psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,0,0);
 				maxw= BLI_kdtree_find_n_nearest(tree,3,co1,NULL,ptn);
 
 				maxd= ptn[maxw-1].dist;
-				mind= ptn[0].dist;
-				dd= maxd - mind;
 				
 				for(w=0; w<maxw; w++) {
 					weight[w]= (float)pow(2.0, (double)(-6.0f * ptn[w].dist / maxd));

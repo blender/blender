@@ -634,10 +634,13 @@ int RNA_struct_idprops_register_check(StructRNA *type);
 
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
-const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
+
+/* lower level functions for access to type properties */
+const struct ListBase *RNA_struct_type_properties(StructRNA *srna);
+PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier);
 
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier);
-const struct ListBase *RNA_struct_defined_functions(StructRNA *srna);
+const struct ListBase *RNA_struct_type_functions(StructRNA *srna);
 
 char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen);
 

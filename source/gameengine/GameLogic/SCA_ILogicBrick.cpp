@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include "SCA_ILogicBrick.h"
 #include "PyObjectPlus.h"
 

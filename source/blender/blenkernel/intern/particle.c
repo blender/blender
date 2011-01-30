@@ -1001,6 +1001,8 @@ static float interpolate_particle_value(float v1, float v2, float v3, float v4, 
 	value= w[0]*v1 + w[1]*v2 + w[2]*v3;
 	if(four)
 		value += w[3]*v4;
+
+	CLAMP(value, 0.f, 1.f);
 	
 	return value;
 }
@@ -1467,7 +1469,7 @@ void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float (*or
 		}
 		else {
 			VECCOPY(orco, vec);
-			if(ornor)
+			if(ornor && nor)
 				VECCOPY(ornor, nor);
 		}
 	}
@@ -1959,7 +1961,7 @@ static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float 
 	{
 		float y_vec[3]={0.f,1.f,0.f};
 		float z_vec[3]={0.f,0.f,1.f};
-		float vec_one[3], radius, state_co[3];
+		float vec_one[3], state_co[3];
 		float inp_y, inp_z, length;
 
 		if(par_rot) {
@@ -1968,7 +1970,7 @@ static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float 
 		}
 		
 		mul_v3_fl(par_vec, -1.f);
-		radius= normalize_v3_v3(vec_one, par_vec);
+		normalize_v3_v3(vec_one, par_vec);
 
 		inp_y=dot_v3v3(y_vec, vec_one);
 		inp_z=dot_v3v3(z_vec, vec_one);
@@ -2743,7 +2745,6 @@ void psys_cache_child_paths(ParticleSimulationData *sim, float cfra, int editupd
 {
 	ParticleThread *pthreads;
 	ParticleThreadContext *ctx;
-	/*ParticleCacheKey **cache;*/ /*UNUSED*/
 	ListBase threads;
 	int i, totchild, totparent, totthread;
 
@@ -2762,7 +2763,7 @@ void psys_cache_child_paths(ParticleSimulationData *sim, float cfra, int editupd
 	totparent= ctx->totparent;
 
 	if(editupdate && sim->psys->childcache && totchild == sim->psys->totchildcache) {
-		/*cache = sim->psys->childcache;*/ /*UNUSED*/
+		; /* just overwrite the existing cache */
 	}
 	else {
 		/* clear out old and create new empty path cache */
@@ -3100,6 +3101,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 		/* should init_particle_interpolation set this ? */
 		if(pset->brushtype==PE_BRUSH_WEIGHT){
 			pind.hkey[0] = NULL;
+			/* pa != NULL since the weight brush is only available for hair */
 			pind.hkey[1] = pa->hair;
 		}
 
@@ -3955,7 +3957,6 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 	float t, frs_sec = sim->scene->r.frs_sec;
 	float co[3], orco[3];
 	float hairmat[4][4];
-	/*int totparent = 0;*/ /*UNUSED*/
 	int totpart = psys->totpart;
 	int totchild = psys->totchild;
 	short between = 0, edit = 0;
@@ -3965,11 +3966,8 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 
 	float *cpa_fuv; int cpa_num; short cpa_from;
 
-	//if(psys_in_edit_mode(scene, psys)){
-	//	if((psys->edit_path->flag & PSYS_EP_SHOW_CHILD)==0)
-	//		totchild=0;
-	//	edit=1;
-	//}
+	/* initialize keys to zero */
+	memset(keys, 0, 4*sizeof(ParticleKey));
 
 	t=state->time;
 	CLAMP(t, 0.0, 1.0);
@@ -4011,12 +4009,6 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			t = psys_get_child_time(psys, cpa, -state->time, NULL, NULL);
 		
 		if(totchild && part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
-#if 0		/* totparent is UNUSED */
-			totparent=(int)(totchild*part->parents*0.3);
-			
-			if(G.rendering && part->child_nbr && part->ren_child_nbr)
-				totparent*=(float)part->child_nbr/(float)part->ren_child_nbr;
-#endif
 			/* part->parents could still be 0 so we can't test with totparent */
 			between=1;
 		}

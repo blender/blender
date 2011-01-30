@@ -33,7 +33,7 @@ class PhysicButtonsPanel():
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+        return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.smoke)
 
 
 class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
@@ -44,22 +44,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
 
         md = context.smoke
         ob = context.object
-
-        split = layout.split()
-
-        if md:
-            # remove modifier + settings
-            split.context_pointer_set("modifier", md)
-            split.operator("object.modifier_remove", text="Remove")
-
-            row = split.row(align=True)
-            row.prop(md, "show_render", text="")
-            row.prop(md, "show_viewport", text="")
-
-        else:
-            # add modifier
-            split.operator("object.modifier_add", text="Add").type = 'SMOKE'
-            split.label()
 
         if md:
             layout.prop(md, "smoke_type", expand=True)

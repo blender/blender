@@ -50,7 +50,7 @@ set(INC
 	../../../intern/opennl/extern
 	../../../intern/smoke/extern
     ../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
-	${ZLIB_INC}
+	${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -275,7 +275,7 @@ if(WITH_LCMS)
 endif()
 
 if(WITH_PYTHON)
-	list(APPEND INC ../python ${PYTHON_INC})
+	list(APPEND INC ../python ${PYTHON_INCLUDE_DIRS})
 	add_definitions(-DWITH_PYTHON)
 endif()
 

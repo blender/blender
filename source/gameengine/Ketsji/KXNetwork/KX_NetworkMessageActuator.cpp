@@ -28,6 +28,8 @@
  * Ketsji Logic Extenstion: Network Message Actuator generic implementation
  */
 
+#include <stddef.h>
+
 #include "NG_NetworkScene.h"
 #include "KX_NetworkMessageActuator.h"
 

@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include <iostream>
 #include "SCA_ActuatorSensor.h"
 #include "SCA_EventManager.h"

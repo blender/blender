@@ -33,6 +33,7 @@ class MESH_MT_vertex_group_specials(bpy.types.Menu):
         layout.operator("object.vertex_group_copy_to_linked", icon='LINK_AREA')
         layout.operator("object.vertex_group_copy_to_selected", icon='LINK_AREA')
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT')
+        layout.operator("object.vertex_group_remove", icon='X', text="Delete All").all=True
 
 
 class MESH_MT_shape_key_specials(bpy.types.Menu):

@@ -82,7 +82,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 				but= uiDefButR(block, NUM, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
 		case PROP_ENUM:
-			if(icon && name && strcmp(name, "") == 0)
+			if(icon && name && name[0] == '\0')
 				but= uiDefIconButR(block, MENU, 0, icon, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			else if(icon)
 				but= uiDefIconTextButR(block, MENU, 0, icon, NULL, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
@@ -90,7 +90,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 				but= uiDefButR(block, MENU, 0, NULL, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
 		case PROP_STRING:
-			if(icon && name && strcmp(name, "") == 0)
+			if(icon && name && name[0] == '\0')
 				but= uiDefIconButR(block, TEX, 0, icon, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			else if(icon)
 				but= uiDefIconTextButR(block, TEX, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);

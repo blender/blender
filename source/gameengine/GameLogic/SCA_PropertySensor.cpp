@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include <iostream>
 #include "SCA_PropertySensor.h"
 #include "Operator2Expr.h"

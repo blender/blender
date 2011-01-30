@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include "SCA_RandomSensor.h"
 #include "SCA_EventManager.h"
 #include "SCA_RandomEventManager.h"

@@ -149,7 +149,7 @@ set(SRC
 )
 
 if(WITH_PYTHON)
-	set(INC ${INC} ../python ${PYTHON_INC})
+	set(INC ${INC} ../python ${PYTHON_INCLUDE_DIRS})
 	add_definitions(-DWITH_PYTHON)
 endif()
 

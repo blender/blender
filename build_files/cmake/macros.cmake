@@ -121,21 +121,21 @@ macro(setup_liblinks
 	target)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS} ")
 
-	target_link_libraries(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARY} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${LLIBS})
+	target_link_libraries(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${LLIBS})
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
 	if(WITH_PYTHON)
 		target_link_libraries(${target} ${PYTHON_LINKFLAGS})
 
 		if(WIN32 AND NOT UNIX)
-			target_link_libraries(${target} debug ${PYTHON_LIB}_d)
-			target_link_libraries(${target} optimized ${PYTHON_LIB})
+			target_link_libraries(${target} debug ${PYTHON_LIBRARY}_d)
+			target_link_libraries(${target} optimized ${PYTHON_LIBRARY})
 		else()
-			target_link_libraries(${target} ${PYTHON_LIB})
+			target_link_libraries(${target} ${PYTHON_LIBRARY})
 		endif()
 	endif()
 
-	target_link_libraries(${target} ${OPENGL_glu_LIBRARY} ${JPEG_LIB} ${PNG_LIB} ${ZLIB_LIB})
+	target_link_libraries(${target} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
 	target_link_libraries(${target} ${FREETYPE_LIBRARY})
 
 	if(WITH_INTERNATIONAL)

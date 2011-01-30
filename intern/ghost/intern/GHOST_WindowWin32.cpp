@@ -139,33 +139,67 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_stereo(stereoVisual),
 	m_nextWindow(NULL)
 {
+	OSVERSIONINFOEX versionInfo;
+	bool hasMinVersionForTaskbar = false;
+	
+	ZeroMemory(&versionInfo, sizeof(OSVERSIONINFOEX));
+	
+	versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+	
+	if(!GetVersionEx((OSVERSIONINFO *)&versionInfo)) {
+		versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		if(GetVersionEx((OSVERSIONINFO*)&versionInfo)) {
+			if((versionInfo.dwMajorVersion==6 && versionInfo.dwMinorVersion>=1) || versionInfo.dwMajorVersion >= 7) {
+				hasMinVersionForTaskbar = true;
+			}
+		}
+	} else {
+		if((versionInfo.dwMajorVersion==6 && versionInfo.dwMinorVersion>=1) || versionInfo.dwMajorVersion >= 7) {
+			hasMinVersionForTaskbar = true;
+		}
+	}
+
 	if (state != GHOST_kWindowStateFullScreen) {
 		RECT rect;
+		MONITORINFO monitor;
 		GHOST_TUns32 tw, th; 
 
 		width += GetSystemMetrics(SM_CXSIZEFRAME)*2;
 		height += GetSystemMetrics(SM_CYSIZEFRAME)*2 + GetSystemMetrics(SM_CYCAPTION);
 
+		rect.left = left;
+		rect.right = left + width;
+		rect.top = top;
+		rect.bottom = top + height;
+
+		monitor.cbSize=sizeof(monitor);
+		monitor.dwFlags=0;
+
 		// take taskbar into account
-		SystemParametersInfo(SPI_GETWORKAREA,0,&rect,0);
-		th = rect.bottom - rect.top;
-		tw = rect.right - rect.left;
+		GetMonitorInfo(MonitorFromRect(&rect,MONITOR_DEFAULTTONEAREST),&monitor);
+
+		th = monitor.rcWork.bottom - monitor.rcWork.top;
+		tw = monitor.rcWork.right - monitor.rcWork.left;
 
 		if(tw < width)
 		{
 			width = tw;
-			left = rect.left;
+			left = monitor.rcWork.left;
 		}
-		else if(left < rect.left)
-			left = rect.left;
+		else if(monitor.rcWork.right < left + (int)width)
+			left = monitor.rcWork.right - width;
+		else if(left < monitor.rcWork.left)
+			left = monitor.rcWork.left;
 
 		if(th < height)
 		{
 			height = th;
-			top = rect.top;
+			top = monitor.rcWork.top;
 		}
-		else if(top < rect.top)
-			top = rect.top;
+		else if(monitor.rcWork.bottom < top + (int)height)
+			top = monitor.rcWork.bottom - height;
+		else if(top < monitor.rcWork.top)
+			top = monitor.rcWork.top;
 
 		m_hWnd = ::CreateWindow(
 			s_windowClassName,			// pointer to registered class name
@@ -294,11 +328,22 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			}
 		}
 	}
+
+	if(hasMinVersionForTaskbar)
+		CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_ITaskbarList ,(LPVOID*)&m_Bar);
+	else
+		m_Bar=NULL;
 }
 
 
 GHOST_WindowWin32::~GHOST_WindowWin32()
 {
+	if(m_Bar)
+	{
+		m_Bar->SetProgressState(m_hWnd, TBPF_NOPROGRESS);
+		m_Bar->Release();
+	};
+
 	if (m_wintab) {
 		GHOST_WIN32_WTClose fpWTClose = ( GHOST_WIN32_WTClose ) ::GetProcAddress( m_wintab, "WTClose" );
 		if (fpWTClose) {
@@ -1088,6 +1133,23 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 	return GHOST_kSuccess;
 }
 
+
+GHOST_TSuccess GHOST_WindowWin32::setProgressBar(float progress)
+{	
+	/*SetProgressValue sets state to TBPF_NORMAL automaticly*/
+	if(m_Bar && S_OK == m_Bar->SetProgressValue(m_hWnd,10000*progress,10000))
+		return GHOST_kSuccess;
+
+	return GHOST_kFailure;
+}
+
+GHOST_TSuccess GHOST_WindowWin32::endProgressBar()
+{
+	if(m_Bar && S_OK == m_Bar->SetProgressState(m_hWnd,TBPF_NOPROGRESS))
+		return GHOST_kSuccess;
+
+	return GHOST_kFailure;
+}
 
 /*  Ron Fosner's code for weighting pixel formats and forcing software.
 	See http://www.opengl.org/resources/faq/technical/weight.cpp */

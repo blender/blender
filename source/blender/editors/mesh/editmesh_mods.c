@@ -3220,7 +3220,7 @@ void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float(ot->srna, "sharpness", 0.0f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
+	RNA_def_float(ot->srna, "sharpness", 135.0f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
 }
 
 void select_non_manifold(EditMesh *em, wmOperator *op )

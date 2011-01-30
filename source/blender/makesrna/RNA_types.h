@@ -187,6 +187,12 @@ typedef enum PropertyFlag {
 	 * most common case is functions that return arrays where the array */
 	PROP_THICK_WRAP = 1<<23,
 
+	/* Reject values outside limits, use for python api only so far
+	 * this is for use when silently clamping string length will give
+	 * bad behavior later. Could also enforce this for INT's and other types.
+	 * note: currently no support for function arguments or non utf8 paths (filepaths) */
+	PROP_NEVER_CLAMP = 1<<26,
+
 	/* internal flags */
 	PROP_BUILTIN = 1<<7,
 	PROP_EXPORT = 1<<8,

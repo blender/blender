@@ -319,4 +319,9 @@ set(SRC
 	src/btBulletDynamicsCommon.h
 )
 
+if(CMAKE_COMPILER_IS_GNUCC)
+	# needed for gcc 4.6+
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+endif()
+
 blender_add_lib(extern_bullet "${SRC}" "${INC}")

@@ -48,7 +48,7 @@ def add_object_align_init(context, operator):
         else:
             operator.properties.view_align = view_align
 
-    if operator.properties.is_property_set("rotation") and not view_align_force:
+    if operator and operator.properties.is_property_set("rotation") and not view_align_force:
         rotation = mathutils.Euler(operator.properties.rotation).to_matrix().resize4x4()
     else:
         if view_align and space_data:

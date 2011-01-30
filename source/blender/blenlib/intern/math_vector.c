@@ -407,6 +407,14 @@ void add_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_
 	while(i--) { *(tar--) = *(src_a--) + *(src_b--); }
 }
 
+void sub_vn_vn(float *array_tar, const float *array_src, const int size)
+{
+	float *tar= array_tar + (size-1);
+	const float *src= array_src + (size-1);
+	int i= size;
+	while(i--) { *(tar--) -= *(src--); }
+}
+
 void sub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, const int size)
 {
 	float *tar= array_tar + (size-1);

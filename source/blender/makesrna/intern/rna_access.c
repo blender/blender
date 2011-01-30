@@ -569,9 +569,15 @@ PropertyRNA *RNA_struct_find_nested(PointerRNA *ptr, StructRNA *srna)
 	return prop;
 }
 
-const struct ListBase *RNA_struct_defined_properties(StructRNA *srna)
+/* low level direct access to type->properties, note this ignores parent classes so should be used with care */
+const struct ListBase *RNA_struct_type_properties(StructRNA *srna)
 {
 	return &srna->cont.properties;
+}
+
+PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier)
+{
+	return BLI_findstring_ptr(&srna->cont.properties, identifier, offsetof(PropertyRNA, identifier));
 }
 
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
@@ -610,7 +616,7 @@ FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 #endif
 }
 
-const struct ListBase *RNA_struct_defined_functions(StructRNA *srna)
+const struct ListBase *RNA_struct_type_functions(StructRNA *srna)
 {
 	return &srna->functions;
 }

@@ -1319,10 +1319,10 @@ int BLI_testextensie(const char *str, const char *ext)
 {
 	short a, b;
 	int retval;
-
+	
 	a= strlen(str);
 	b= strlen(ext);
-
+	
 	if(a==0 || b==0 || b>=a) {
 		retval = 0;
 	} else if (BLI_strcasecmp(ext, str + a - b)) {
@@ -1330,7 +1330,7 @@ int BLI_testextensie(const char *str, const char *ext)
 	} else {
 		retval = 1;
 	}
-
+	
 	return (retval);
 }
 

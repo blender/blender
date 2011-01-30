@@ -9,6 +9,7 @@ import bge
 # for functions like getWindowWidth(), getWindowHeight()
 # import Rasterizer
 
+
 def main():
     cont = bge.logic.getCurrentController()
 
@@ -17,7 +18,6 @@ def main():
 
     # for scripts that deal with spacial logic
     own_pos = own.worldPosition
-
 
     # Some example functions, remove to write your own script.
     # check for a positive sensor, will run on any object without errors.
@@ -52,13 +52,11 @@ def main():
     # sens_key = cont.sensors['key_sensor']
     # actu_motion = cont.actuators['motion']
 
-
     # Loop through all other objects in the scene
     sce = bge.logic.getCurrentScene()
     print('Scene Objects:', sce.name)
     for ob in sce.objects:
         print('   ', ob.name, ob.worldPosition)
-
 
     # Example where collision objects are checked for their properties
     # adding to our objects "life" property

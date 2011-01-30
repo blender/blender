@@ -42,6 +42,7 @@
 struct MTFace;
 struct Material;
 struct MTex;
+struct Image;
 
 /**
  *  Material class.
@@ -106,6 +107,8 @@ public:
 	{
 		return m_material;
 	}
+
+	Image *GetBlenderImage() const;
 
 	/**
 	 * Returns the Blender texture face structure that is used for this material.

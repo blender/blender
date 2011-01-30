@@ -961,10 +961,29 @@ static char *rna_VertexGroupElement_path(PointerRNA *ptr)
 	MDeformVert *dvert;
 	int a, b;
 	
-	for(a=0, dvert=me->dvert; a<me->totvert; a++, dvert++)
-		for(b=0; b<dvert->totweight; b++)
+	/* sanity check: make sure that mesh pointer is valid */
+	if (me == NULL) 
+		return NULL;
+	else if (GS(me->id.name) != ID_ME) {
+		/* if object pointer, try to resolve the object's data to mesh pointer */
+		if (GS(me->id.name) == ID_OB) {
+			Object *ob = (Object *)me;
+			
+			if (ob->type == OB_MESH)
+				me = (Mesh *)ob->data;
+			else
+				return NULL; /* nothing can be done */
+		}
+		else
+			return NULL; /* nothing can be done */
+	}
+	
+	for(a=0, dvert=me->dvert; a<me->totvert; a++, dvert++) {
+		for(b=0; b<dvert->totweight; b++) {
 			if(dw == &dvert->dw[b])
 				return BLI_sprintfN("vertices[%d].groups[%d]", a, b);
+		}
+	}
 
 	return NULL;
 }

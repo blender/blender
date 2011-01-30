@@ -27,18 +27,23 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_packedFile_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_utildefines.h"
+#include "BKE_packedFile.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
@@ -47,6 +52,11 @@
 #include "ED_util.h"
 
 #include "UI_interface.h"
+
+#include "WM_types.h"
+#include "RNA_access.h"
+
+
 
 /* ********* general editor util funcs, not BKE stuff please! ********* */
 
@@ -161,3 +171,91 @@ int GetButStringLength(const char *str)
 	return rt + 15;
 }
 
+
+void unpack_menu(bContext *C, const char *opname, const char *id_name, const char *abs_name, const char *folder, struct PackedFile *pf)
+{
+	PointerRNA props_ptr;
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	char line[FILE_MAXDIR + FILE_MAXFILE + 100];
+
+	pup= uiPupMenuBegin(C, "Unpack file", ICON_NULL);
+	layout= uiPupMenuLayout(pup);
+
+	sprintf(line, "Remove Pack");
+	props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&props_ptr, "method", PF_REMOVE);
+	RNA_string_set(&props_ptr, "id", id_name);
+
+	if(G.relbase_valid) {
+		char local_name[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
+
+		BLI_strncpy(local_name, abs_name, sizeof(local_name));
+		BLI_splitdirstring(local_name, fi);
+		sprintf(local_name, "//%s/%s", folder, fi);
+		if(strcmp(abs_name, local_name)!=0) {
+			switch(checkPackedFile(local_name, pf)) {
+				case PF_NOFILE:
+					sprintf(line, "Create %s", local_name);
+					props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+					RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
+					RNA_string_set(&props_ptr, "id", id_name);
+
+					break;
+				case PF_EQUAL:
+					sprintf(line, "Use %s (identical)", local_name);
+					//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
+					props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+					RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
+					RNA_string_set(&props_ptr, "id", id_name);
+
+					break;
+				case PF_DIFFERS:
+					sprintf(line, "Use %s (differs)", local_name);
+					//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
+					props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+					RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
+					RNA_string_set(&props_ptr, "id", id_name);
+
+					sprintf(line, "Overwrite %s", local_name);
+					//uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_LOCAL);
+					props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+					RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
+					RNA_string_set(&props_ptr, "id", id_name);
+					break;
+			}
+		}
+	}
+
+	switch(checkPackedFile(abs_name, pf)) {
+		case PF_NOFILE:
+			sprintf(line, "Create %s", abs_name);
+			//uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
+			props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
+			RNA_string_set(&props_ptr, "id", id_name);
+			break;
+		case PF_EQUAL:
+			sprintf(line, "Use %s (identical)", abs_name);
+			//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
+			props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
+			RNA_string_set(&props_ptr, "id", id_name);
+			break;
+		case PF_DIFFERS:
+			sprintf(line, "Use %s (differs)", abs_name);
+			//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
+			props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
+			RNA_string_set(&props_ptr, "id", id_name);
+
+			sprintf(line, "Overwrite %s", abs_name);
+			//uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
+			props_ptr= uiItemFullO(layout, opname, line, ICON_NULL, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
+			RNA_string_set(&props_ptr, "id", id_name);
+			break;
+	}
+
+	uiPupMenuEnd(C, pup);
+}

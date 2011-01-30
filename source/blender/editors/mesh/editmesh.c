@@ -1311,7 +1311,7 @@ void load_editMesh(Scene *scene, Object *obedit)
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 
 	/* topology could be changed, ensure mdisps are ok */
-	multires_topology_changed(obedit);
+	multires_topology_changed(scene, obedit);
 }
 
 void remake_editMesh(Scene *scene, Object *ob)

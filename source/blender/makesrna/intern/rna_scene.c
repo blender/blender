@@ -2128,6 +2128,10 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_SHOW_PHYSICS);
 	RNA_def_property_ui_text(prop, "Show Physics Visualization", "Show a visualization of physics bounds and interactions");
 
+	prop= RNA_def_property(srna, "show_mouse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_SHOW_MOUSE);
+	RNA_def_property_ui_text(prop, "Show Mouse", "Start player with a visible mouse cursor");
+
 	prop= RNA_def_property(srna, "use_frame_rate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_ENABLE_ALL_FRAMES);
 	RNA_def_property_ui_text(prop, "Use Frame Rate", "Respect the frame rate rather than rendering as many frames as possible");

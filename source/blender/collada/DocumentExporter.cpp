@@ -296,10 +296,11 @@ public:
 class AnimationExporter: COLLADASW::LibraryAnimations
 {
 	Scene *scene;
+	COLLADASW::StreamWriter *sw;
 
 public:
 
-	AnimationExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryAnimations(sw) {}
+	AnimationExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryAnimations(sw) { this->sw = sw; }
 
 	void exportAnimations(Scene *sce)
 	{
@@ -357,22 +358,22 @@ protected:
 		openAnimation(anim_id, COLLADABU::Utils::EMPTY_STRING);
 
 		// create input source
-		std::string input_id = create_source_from_fcurve(Sampler::INPUT, fcu, anim_id, axis_name);
+		std::string input_id = create_source_from_fcurve(COLLADASW::InputSemantic::INPUT, fcu, anim_id, axis_name);
 
 		// create output source
-		std::string output_id = create_source_from_fcurve(Sampler::OUTPUT, fcu, anim_id, axis_name);
+		std::string output_id = create_source_from_fcurve(COLLADASW::InputSemantic::OUTPUT, fcu, anim_id, axis_name);
 
 		// create interpolations source
 		std::string interpolation_id = create_interpolation_source(fcu->totvert, anim_id, axis_name);
 
 		std::string sampler_id = std::string(anim_id) + SAMPLER_ID_SUFFIX;
-		COLLADASW::LibraryAnimations::Sampler sampler(sampler_id);
+		COLLADASW::LibraryAnimations::Sampler sampler(sw, sampler_id);
 		std::string empty;
-		sampler.addInput(Sampler::INPUT, COLLADABU::URI(empty, input_id));
-		sampler.addInput(Sampler::OUTPUT, COLLADABU::URI(empty, output_id));
+		sampler.addInput(COLLADASW::InputSemantic::INPUT, COLLADABU::URI(empty, input_id));
+		sampler.addInput(COLLADASW::InputSemantic::OUTPUT, COLLADABU::URI(empty, output_id));
 
 		// this input is required
-		sampler.addInput(Sampler::INTERPOLATION, COLLADABU::URI(empty, interpolation_id));
+		sampler.addInput(COLLADASW::InputSemantic::INTERPOLATION, COLLADABU::URI(empty, interpolation_id));
 
 		addSampler(sampler);
 
@@ -533,28 +534,28 @@ protected:
 		openAnimation(anim_id, COLLADABU::Utils::EMPTY_STRING);
 
 		// create input source
-		std::string input_id = create_source_from_vector(Sampler::INPUT, fra, is_rot, anim_id, axis_name);
+		std::string input_id = create_source_from_vector(COLLADASW::InputSemantic::INPUT, fra, is_rot, anim_id, axis_name);
 
 		// create output source
 		std::string output_id;
 		if (axis == -1)
 			output_id = create_xyz_source(v, fra.size(), anim_id);
 		else
-			output_id = create_source_from_array(Sampler::OUTPUT, v, fra.size(), is_rot, anim_id, axis_name);
+			output_id = create_source_from_array(COLLADASW::InputSemantic::OUTPUT, v, fra.size(), is_rot, anim_id, axis_name);
 
 		// create interpolations source
 		std::string interpolation_id = create_interpolation_source(fra.size(), anim_id, axis_name);
 
 		std::string sampler_id = std::string(anim_id) + SAMPLER_ID_SUFFIX;
-		COLLADASW::LibraryAnimations::Sampler sampler(sampler_id);
+		COLLADASW::LibraryAnimations::Sampler sampler(sw, sampler_id);
 		std::string empty;
-		sampler.addInput(Sampler::INPUT, COLLADABU::URI(empty, input_id));
-		sampler.addInput(Sampler::OUTPUT, COLLADABU::URI(empty, output_id));
+		sampler.addInput(COLLADASW::InputSemantic::INPUT, COLLADABU::URI(empty, input_id));
+		sampler.addInput(COLLADASW::InputSemantic::OUTPUT, COLLADABU::URI(empty, output_id));
 
 		// TODO create in/out tangents source
 
 		// this input is required
-		sampler.addInput(Sampler::INTERPOLATION, COLLADABU::URI(empty, interpolation_id));
+		sampler.addInput(COLLADASW::InputSemantic::INTERPOLATION, COLLADABU::URI(empty, interpolation_id));
 
 		addSampler(sampler);
 
@@ -574,18 +575,18 @@ protected:
 		return COLLADABU::Math::Utils::radToDegF(angle);
 	}
 
-	std::string get_semantic_suffix(Sampler::Semantic semantic)
+	std::string get_semantic_suffix(COLLADASW::InputSemantic::Semantics semantic)
 	{
 		switch(semantic) {
-		case Sampler::INPUT:
+		case COLLADASW::InputSemantic::INPUT:
 			return INPUT_SOURCE_ID_SUFFIX;
-		case Sampler::OUTPUT:
+		case COLLADASW::InputSemantic::OUTPUT:
 			return OUTPUT_SOURCE_ID_SUFFIX;
-		case Sampler::INTERPOLATION:
+		case COLLADASW::InputSemantic::INTERPOLATION:
 			return INTERPOLATION_SOURCE_ID_SUFFIX;
-		case Sampler::IN_TANGENT:
+		case COLLADASW::InputSemantic::IN_TANGENT:
 			return INTANGENT_SOURCE_ID_SUFFIX;
-		case Sampler::OUT_TANGENT:
+		case COLLADASW::InputSemantic::OUT_TANGENT:
 			return OUTTANGENT_SOURCE_ID_SUFFIX;
 		default:
 			break;
@@ -594,13 +595,13 @@ protected:
 	}
 
 	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
-							   Sampler::Semantic semantic, bool is_rot, const char *axis)
+							   COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis)
 	{
 		switch(semantic) {
-		case Sampler::INPUT:
+		case COLLADASW::InputSemantic::INPUT:
 			param.push_back("TIME");
 			break;
-		case Sampler::OUTPUT:
+		case COLLADASW::InputSemantic::OUTPUT:
 			if (is_rot) {
 				param.push_back("ANGLE");
 			}
@@ -615,8 +616,8 @@ protected:
 				}
 			}
 			break;
-		case Sampler::IN_TANGENT:
-		case Sampler::OUT_TANGENT:
+		case COLLADASW::InputSemantic::IN_TANGENT:
+		case COLLADASW::InputSemantic::OUT_TANGENT:
 			param.push_back("X");
 			param.push_back("Y");
 			break;
@@ -625,14 +626,14 @@ protected:
 		}
 	}
 
-	void get_source_values(BezTriple *bezt, Sampler::Semantic semantic, bool rotation, float *values, int *length)
+	void get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool rotation, float *values, int *length)
 	{
 		switch (semantic) {
-		case Sampler::INPUT:
+		case COLLADASW::InputSemantic::INPUT:
 			*length = 1;
 			values[0] = convert_time(bezt->vec[1][0]);
 			break;
-		case Sampler::OUTPUT:
+		case COLLADASW::InputSemantic::OUTPUT:
 			*length = 1;
 			if (rotation) {
 				values[0] = convert_angle(bezt->vec[1][1]);
@@ -641,8 +642,8 @@ protected:
 				values[0] = bezt->vec[1][1];
 			}
 			break;
-		case Sampler::IN_TANGENT:
-		case Sampler::OUT_TANGENT:
+		case COLLADASW::InputSemantic::IN_TANGENT:
+		case COLLADASW::InputSemantic::OUT_TANGENT:
 			// XXX
 			*length = 2;
 			break;
@@ -652,7 +653,7 @@ protected:
 		}
 	}
 
-	std::string create_source_from_fcurve(Sampler::Semantic semantic, FCurve *fcu, const std::string& anim_id, const char *axis_name)
+	std::string create_source_from_fcurve(COLLADASW::InputSemantic::Semantics semantic, FCurve *fcu, const std::string& anim_id, const char *axis_name)
 	{
 		std::string source_id = anim_id + get_semantic_suffix(semantic);
 
@@ -686,7 +687,7 @@ protected:
 		return source_id;
 	}
 
-	std::string create_source_from_array(Sampler::Semantic semantic, float *v, int tot, bool is_rot, const std::string& anim_id, const char *axis_name)
+	std::string create_source_from_array(COLLADASW::InputSemantic::Semantics semantic, float *v, int tot, bool is_rot, const std::string& anim_id, const char *axis_name)
 	{
 		std::string source_id = anim_id + get_semantic_suffix(semantic);
 
@@ -703,7 +704,7 @@ protected:
 
 		for (int i = 0; i < tot; i++) {
 			float val = v[i];
-			if (semantic == Sampler::INPUT)
+			if (semantic == COLLADASW::InputSemantic::INPUT)
 				val = convert_time(val);
 			else if (is_rot)
 				val = convert_angle(val);
@@ -715,7 +716,7 @@ protected:
 		return source_id;
 	}
 
-	std::string create_source_from_vector(Sampler::Semantic semantic, std::vector<float> &fra, bool is_rot, const std::string& anim_id, const char *axis_name)
+	std::string create_source_from_vector(COLLADASW::InputSemantic::Semantics semantic, std::vector<float> &fra, bool is_rot, const std::string& anim_id, const char *axis_name)
 	{
 		std::string source_id = anim_id + get_semantic_suffix(semantic);
 
@@ -733,7 +734,7 @@ protected:
 		std::vector<float>::iterator it;
 		for (it = fra.begin(); it != fra.end(); it++) {
 			float val = *it;
-			if (semantic == Sampler::INPUT)
+			if (semantic == COLLADASW::InputSemantic::INPUT)
 				val = convert_time(val);
 			else if (is_rot)
 				val = convert_angle(val);
@@ -748,7 +749,7 @@ protected:
 	// only used for sources with OUTPUT semantic
 	std::string create_xyz_source(float *v, int tot, const std::string& anim_id)
 	{
-		Sampler::Semantic semantic = Sampler::OUTPUT;
+		COLLADASW::InputSemantic::Semantics semantic = COLLADASW::InputSemantic::OUTPUT;
 		std::string source_id = anim_id + get_semantic_suffix(semantic);
 
 		COLLADASW::FloatSourceF source(mSW);
@@ -774,7 +775,7 @@ protected:
 
 	std::string create_interpolation_source(int tot, const std::string& anim_id, const char *axis_name)
 	{
-		std::string source_id = anim_id + get_semantic_suffix(Sampler::INTERPOLATION);
+		std::string source_id = anim_id + get_semantic_suffix(COLLADASW::InputSemantic::INTERPOLATION);
 
 		COLLADASW::NameSource source(mSW);
 		source.setId(source_id);
