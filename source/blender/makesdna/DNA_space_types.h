@@ -698,7 +698,7 @@ enum FileSortTypeE {
 #define EDITING				(1<<0)
 #define ACTIVEFILE			(1<<1)
 #define BLENDERFILE			(1<<2)
-#define PSXFILE				(1<<3)
+#define BLENDERFILE_BACKUP	(1<<3)
 #define IMAGEFILE			(1<<4)
 #define MOVIEFILE			(1<<5)
 #define PYSCRIPTFILE		(1<<6)

@@ -722,10 +722,38 @@ void filelist_setfilter_types(struct FileList* filelist, const char *filter_glob
 	BLI_strncpy(filelist->filter_glob, filter_glob, sizeof(filelist->filter_glob));
 }
 
+static int file_is_blend_backup(const char *str)
+{
+	short a, b;
+	int retval= 0;
+	
+	a= strlen(str);
+	b= 7;
+	
+	if(a==0 || b>=a);
+	else {
+		char *loc;
+		
+		if(a > b+1)
+			b++;
+		
+		/* allow .blend1 .blend2 .blend32 */
+		loc= BLI_strcasestr(str+a-b, ".blend");
+		
+		if(loc)
+			retval= 1;
+	}
+	
+	return (retval);
+}
+
+
 static int file_extension_type(char *relname)
 {
 	if(BLO_has_bfile_extension(relname)) {
 		return BLENDERFILE;
+	} else if(file_is_blend_backup(relname)) {
+		return BLENDERFILE_BACKUP;
 	} else if(BLI_testextensie(relname, ".py")) {
 		return PYSCRIPTFILE;
 	} else if(BLI_testextensie(relname, ".txt")
@@ -757,7 +785,7 @@ int ED_file_extension_icon(char *relname)
 {
 	int type= file_extension_type(relname);
 	
-	if (type == BLENDERFILE)
+	if (type == BLENDERFILE || type==BLENDERFILE_BACKUP)
 		return ICON_FILE_BLEND;
 	else if (type ==  IMAGEFILE)
 		return ICON_FILE_IMAGE;
