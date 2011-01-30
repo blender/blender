@@ -259,6 +259,10 @@ def _getResults(server_address, server_port, job_id, resolution_x, resolution_y,
     render.resolution_x = int(resolution_x)
     render.resolution_y = int(resolution_y)
     render.resolution_percentage = int(resolution_percentage)
+
+    render.use_full_sample = False
+    render.use_compositing = False
+    render.use_border = False
     
 
 def getFileInfo(filepath, infos):
