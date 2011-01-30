@@ -1185,23 +1185,12 @@ void mtex_bump_tap5( vec3 texco, sampler2D ima, float hScale,
 	dBt = hScale * (Hu - Hd);
 }
 
-void mtex_bump_apply_viewspace( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vN,
+void mtex_bump_apply( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vN,
                       out vec3 perturbed_norm ) 
 {
 	vec3 vSurfGrad = sign(fDet) * ( dBs * vR1 + dBt * vR2 );
 	perturbed_norm = normalize( abs(fDet) * vN - vSurfGrad );
 	
-}
-void mtex_bump_apply_objspace( float fDet, float dBs, float dBt, vec3 vR1in, vec3 vR2in, vec3 vNin,
-                                mat4 mViewInv, mat4 mObjInv,
-                      out vec3 perturbed_norm, out vec3 vR1, out vec3 vR2, out vec3 vN ) 
-{
-	vec3 vSurfGrad = sign(fDet) * ( dBs * vR1in + dBt * vR2in );
-	perturbed_norm = normalize( abs(fDet) * vNin - vSurfGrad );	
-	
-	vR1= vR1in;
-	vR2= vR2in;
-	vN= vNin;
 }
 
 void mtex_bump_apply_texspace( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vN,

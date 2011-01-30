@@ -40,8 +40,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
-#include "IMB_imbuf_types.h"
-
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -56,6 +54,7 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
+#include "IMB_imbuf_types.h"
 
 #include "GPU_extensions.h"
 #include "GPU_material.h"
@@ -1041,6 +1040,19 @@ static void do_material_tex(GPUShadeInput *shi)
 							newnor = tnor;
 						
 						norfac = MIN2(fabsf(mtex->norfac), 1.0);
+						
+						if(norfac == 1.0f && !GPU_link_changed(stencil)) {
+							shi->vn = newnor;
+						}
+						else {
+							tnorfac = GPU_uniform(&norfac);
+	
+							if(GPU_link_changed(stencil))
+								GPU_link(mat, "math_multiply", tnorfac, stencil, &tnorfac);
+	
+							GPU_link(mat, "mtex_blend_normal", tnorfac, shi->vn, newnor, &shi->vn);
+						}
+						
 					} else if( mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) {
 						/* ntap bumpmap image */
 						float hScale = 0.1f; // compatibility adjustment factor for all bumpspace types
@@ -1049,6 +1061,12 @@ static void do_material_tex(GPUShadeInput *shi)
 						GPUNodeLink *surf_pos = GPU_builtin(GPU_VIEW_POSITION);
 						GPUNodeLink *vR1, *vR2, *fDet;
 						GPUNodeLink *dBs, *dBt, *vN;
+						
+						norfac = hScale * mtex->norfac;
+						tnorfac = GPU_uniform(&norfac);
+						
+						if(GPU_link_changed(stencil))
+							GPU_link(mat, "math_multiply", tnorfac, stencil, &tnorfac);
 						
 						if( mtex->texflag & MTEX_BUMP_OBJECTSPACE )
 							GPU_link( mat, "mtex_bump_init_objspace",
@@ -1062,52 +1080,27 @@ static void do_material_tex(GPUShadeInput *shi)
 						
 						if( mtex->texflag & MTEX_3TAP_BUMP )
 							GPU_link( mat, "mtex_bump_tap3", 
-							          texco, GPU_image(tex->ima, &tex->iuser), GPU_uniform(&hScale),
+							          texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
 							          &dBs, &dBt );
 						else
 							GPU_link( mat, "mtex_bump_tap5", 
-							          texco, GPU_image(tex->ima, &tex->iuser), GPU_uniform(&hScale),
+							          texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
 							          &dBs, &dBt );
 						
 						if( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
 							float ima_x= 512.0f, ima_y= 512.f;		// prevent calling textureSize, glsl 1.3 only
 							ImBuf *ibuf= BKE_image_get_ibuf(tex->ima, &tex->iuser);
-							
-							if(ibuf) {
+							if(ibuf) 
 								ima_x= ibuf->x; ima_y= ibuf->y;
-							}
 							
 							GPU_link( mat, "mtex_bump_apply_texspace",
 							          fDet, dBs, dBt, vR1, vR2, vN, GPU_image(tex->ima, &tex->iuser), texco, GPU_uniform(&fScaleTex),
-									  GPU_uniform(&ima_x), GPU_uniform(&ima_y), &tnor );
-						}
-						else if( mtex->texflag & MTEX_BUMP_OBJECTSPACE )
-							GPU_link( mat, "mtex_bump_apply_objspace",
-							          fDet, dBs, dBt, vR1, vR2, vN, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(GPU_INVERSE_OBJECT_MATRIX), 
-							          &tnor, &vR1, &vR2, &vN );
-						else
-							GPU_link( mat, "mtex_bump_apply_viewspace",
+							          GPU_uniform(&ima_x), GPU_uniform(&ima_y), &shi->vn );
+						} else
+							GPU_link( mat, "mtex_bump_apply",
 							          fDet, dBs, dBt, vR1, vR2, vN,
-							          &tnor );
+							          &shi->vn );
 						
-						newnor = tnor;
-						norfac = mtex->norfac;
-					} else {
-						/* original or compatible bump - don't have shaders */
-						newnor = shi->vn;
-						norfac = mtex->norfac;
-					}
-					
-					if(norfac == 1.0f && !GPU_link_changed(stencil)) {
-						shi->vn = newnor;
-					}
-					else {
-						tnorfac = GPU_uniform(&norfac);
-
-						if(GPU_link_changed(stencil))
-							GPU_link(mat, "math_multiply", tnorfac, stencil, &tnorfac);
-
-						GPU_link(mat, "mtex_blend_normal", tnorfac, shi->vn, newnor, &shi->vn);
 					}
 				}
 				
