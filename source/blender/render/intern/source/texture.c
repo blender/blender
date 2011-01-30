@@ -1912,7 +1912,8 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 	// TODO: solve this Hscale issue more elegantly.
 	if( mtex->texflag & MTEX_BUMP_TEXTURESPACE )
-		Hscale *= 130.0f;
+		if(tex->ima)
+			Hscale *= 130.0f;
 
 	if(!(mtex->texflag & MTEX_5TAP_BUMP)) {
 		// compute height derivatives with respect to output image pixel coordinates x and y
@@ -2033,10 +2034,12 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		abs_fDet = ntap_bump->sgn_det * fDet;
 
 		if( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
-			// crazy hack solution that gives results similar to normal mapping - part 1
-			normalize_v3(ntap_bump->vR1);
-			normalize_v3(ntap_bump->vR2);
-			abs_fDet = 1.0f;
+			if(tex->ima) {
+				// crazy hack solution that gives results similar to normal mapping - part 1
+				normalize_v3(ntap_bump->vR1);
+				normalize_v3(ntap_bump->vR2);
+				abs_fDet = 1.0f;
+			}
 		}
 		
 		for(xyz=0; xyz<3; xyz++)
@@ -2053,14 +2056,17 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	}
 
 	if( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
-		// crazy hack solution that gives results similar to normal mapping - part 2
-		float vec[2];
-		vec[0] = tex->ima->gen_x*dxt[0];
-		vec[1] = tex->ima->gen_y*dxt[1];
-		dHdx *= 1.0f/len_v2(vec);
-		vec[0] = tex->ima->gen_x*dyt[0];
-		vec[1] = tex->ima->gen_y*dyt[1];
-		dHdy *= 1.0f/len_v2(vec);
+		if(tex->ima) {
+			// crazy hack solution that gives results similar to normal mapping - part 2
+			float vec[2];
+			
+			vec[0] = tex->ima->gen_x*dxt[0];
+			vec[1] = tex->ima->gen_y*dxt[1];
+			dHdx *= 1.0f/len_v2(vec);
+			vec[0] = tex->ima->gen_x*dyt[0];
+			vec[1] = tex->ima->gen_y*dyt[1];
+			dHdy *= 1.0f/len_v2(vec);
+		}
 	}
 	
 	// subtract the surface gradient from vNacc
