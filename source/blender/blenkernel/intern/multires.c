@@ -92,8 +92,10 @@ MultiresModifierData *find_multires_modifier_before(Scene *scene, ModifierData *
 	return NULL;
 }
 
-/* used for applying scale on mdisps layer and syncing subdivide levels when joining objects */
-static MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob)
+/* used for applying scale on mdisps layer and syncing subdivide levels when joining objects
+   use_first - return first multires modifier if all multires'es are disabled
+*/
+MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob, int use_first)
 {
 	ModifierData *md;
 	MultiresModifierData *mmd= NULL, *firstmmd= NULL;
@@ -111,7 +113,7 @@ static MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob)
 		}
 	}
 
-	if(!mmd) {
+	if(!mmd && use_first) {
 		/* active multires have not been found
 		   try to use first one */
 		return firstmmd;
@@ -1568,8 +1570,8 @@ void multires_load_old(Object *ob, Mesh *me)
 
 static void multires_sync_levels(Scene *scene, Object *ob, Object *to_ob)
 {
-	MultiresModifierData *mmd= get_multires_modifier(scene, ob);
-	MultiresModifierData *to_mmd= get_multires_modifier(scene, to_ob);
+	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 1);
+	MultiresModifierData *to_mmd= get_multires_modifier(scene, to_ob, 1);
 
 	if(!mmd) {
 		/* object could have MDISP even when there is no multires modifier
@@ -1599,7 +1601,7 @@ void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	int *gridOffset;
 	int i, /*numGrids,*/ gridSize, dGridSize, dSkip, totvert;
 	float (*vertCos)[3] = NULL;
-	MultiresModifierData *mmd= get_multires_modifier(scene, ob);
+	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 1);
 	MultiresModifierData high_mmd;
 
 	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
@@ -1725,7 +1727,7 @@ void multires_topology_changed(Scene *scene, Object *ob)
 	Mesh *me= (Mesh*)ob->data;
 	MDisps *mdisp= NULL, *cur= NULL;
 	int i, grid= 0, corners;
-	MultiresModifierData *mmd= get_multires_modifier(scene, ob);
+	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 1);
 
 	if(mmd)
 		multires_set_tot_mdisps(me, mmd->totlvl);

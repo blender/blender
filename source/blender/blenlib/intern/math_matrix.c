@@ -109,6 +109,20 @@ void copy_m4_m3(float m1[][4], float m2[][3])	/* no clear */
 
 }
 
+void swap_m3m3(float m1[][3], float m2[][3])
+{
+	float t;
+	int i, j;
+
+	for(i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
+			t        = m1[i][j];
+			m1[i][j] = m2[i][j];
+			m2[i][j] = t;
+		}
+	}
+}
+
 void swap_m4m4(float m1[][4], float m2[][4])
 {
 	float t;

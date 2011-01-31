@@ -243,6 +243,7 @@ ModifierTypeInfo modifierType_Collision = {
 
 	/* copyData */          0,
 	/* deformVerts */       deformVerts,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     0,

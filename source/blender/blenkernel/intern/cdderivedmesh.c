@@ -76,6 +76,7 @@ typedef struct {
 	/* Cached */
 	struct PBVH *pbvh;
 	int pbvh_draw;
+
 	/* Mesh connectivity */
 	struct ListBase *fmap;
 	struct IndexNode *fmap_mem;
@@ -222,6 +223,17 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 				   me->totface, me->totvert);
+
+		if(ob->sculpt->modifiers_active) {
+			float (*vertCos)[3];
+			int totvert;
+
+			totvert= dm->getNumVerts(dm);
+			vertCos= MEM_callocN(3*totvert*sizeof(float), "cdDM_getPBVH vertCos");
+			dm->getVertCos(dm, vertCos);
+			BLI_pbvh_apply_vertCos(cddm->pbvh, vertCos);
+			MEM_freeN(vertCos);
+		}
 	}
 
 	return cddm->pbvh;

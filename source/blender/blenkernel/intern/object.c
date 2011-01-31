@@ -246,6 +246,13 @@ void free_sculptsession(Object *ob)
 		if(ss->layer_co)
 			MEM_freeN(ss->layer_co);
 
+		if(ss->orig_cos)
+			MEM_freeN(ss->orig_cos);
+		if(ss->deform_cos)
+			MEM_freeN(ss->deform_cos);
+		if(ss->deform_imats)
+			MEM_freeN(ss->deform_imats);
+
 		MEM_freeN(ss);
 
 		ob->sculpt = NULL;

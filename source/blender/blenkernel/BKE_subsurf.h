@@ -72,7 +72,6 @@ typedef struct CCGDerivedMesh {
 	char *faceFlags;
 
 	struct PBVH *pbvh;
-	int pbvh_draw;
 	struct ListBase *fmap;
 	struct IndexNode *fmap_mem;
 
