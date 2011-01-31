@@ -467,6 +467,53 @@ class DashedLineController:
             return True
         return False
 
+# predicates for chaining
+
+class AngleLargerThanBP1D(BinaryPredicate1D):
+    def __init__(self, angle):
+        BinaryPredicate1D.__init__(self)
+        self._angle = math.pi * angle / 180.0
+    def getName(self):
+        return "AngleLargerThanBP1D"
+    def __call__(self, i1, i2):
+        fe1a = i1.fedgeA()
+        fe1b = i1.fedgeB()
+        fe2a = i2.fedgeA()
+        fe2b = i2.fedgeB()
+        sv1a = fe1a.vertexA().getPoint2D()
+        sv1b = fe1b.vertexB().getPoint2D()
+        sv2a = fe2a.vertexA().getPoint2D()
+        sv2b = fe2b.vertexB().getPoint2D()
+        if (sv1a - sv2a).length < 1e-6:
+            dir1 = sv1a - sv1b
+            dir2 = sv2b - sv2a
+        elif (sv1b - sv2b).length < 1e-6:
+            dir1 = sv1b - sv1a
+            dir2 = sv2a - sv2b
+        elif (sv1a - sv2b).length < 1e-6:
+            dir1 = sv1a - sv1b
+            dir2 = sv2a - sv2b
+        elif (sv1b - sv2a).length < 1e-6:
+            dir1 = sv1b - sv1a
+            dir2 = sv2b - sv2a
+        else:
+            return False
+        denom = dir1.length * dir2.length
+        if denom < 1e-6:
+            return False
+        x = (dir1 * dir2) / denom
+        return math.acos(min(max(x, -1.0), 1.0)) > self._angle
+
+class AndBP1D(BinaryPredicate1D):
+    def __init__(self, pred1, pred2):
+        BinaryPredicate1D.__init__(self)
+        self.__pred1 = pred1
+        self.__pred2 = pred2
+    def getName(self):
+        return "AndBP1D"
+    def __call__(self, i1, i2):
+        return self.__pred1(i1, i2) and self.__pred2(i1, i2)
+
 # main function for parameter processing
 
 def process(layer_name, lineset_name):
@@ -561,12 +608,10 @@ def process(layer_name, lineset_name):
         upred = TrueUP1D()
     Operators.select(upred)
     # join feature edges
+    bpred = AngleLargerThanBP1D(1.0) # XXX temporary fix for occasional unexpected long lines
     if linestyle.same_object:
-        bpred = SameShapeIdBP1D()
-        chaining_iterator = ChainPredicateIterator(upred, bpred)
-    else:
-        chaining_iterator = ChainSilhouetteIterator()
-    Operators.bidirectionalChain(chaining_iterator, NotUP1D(upred))
+        bpred = AndBP1D(bpred, SameShapeIdBP1D())
+    Operators.bidirectionalChain(ChainPredicateIterator(upred, bpred), NotUP1D(upred))
     # dashed line
     if linestyle.use_dashed_line:
         pattern = []

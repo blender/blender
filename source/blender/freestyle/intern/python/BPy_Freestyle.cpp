@@ -172,6 +172,7 @@ static PyObject *Freestyle_evaluateColorRamp( PyObject *self, PyObject *args )
 	return newVectorObject( out, 4, Py_NEW, NULL);
 }
 
+#include "DNA_color_types.h"
 #include "BKE_colortools.h" /* curvemapping_evaluateF() */
 
 static char Freestyle_evaluateCurveMappingF___doc__[] =
@@ -206,6 +207,11 @@ static PyObject *Freestyle_evaluateCurveMappingF( PyObject *self, PyObject *args
 		return NULL;
 	}
 	cumap = (CurveMapping *)py_srna->ptr.data;
+	/* disable extrapolation if enabled */
+	if ((cumap->cm[cur].flag & CUMA_EXTEND_EXTRAPOLATE)) {
+		cumap->cm[cur].flag &= ~( CUMA_EXTEND_EXTRAPOLATE );
+		curvemapping_changed(cumap, 0);
+	}
 	return PyFloat_FromDouble(curvemapping_evaluateF(cumap, cur, value));
 }
 

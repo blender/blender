@@ -259,6 +259,7 @@ Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
         // the strip is most likely doing a U-turn, we can't compute the average vector.
         // We just continue and hope it's ok
         vPrev = v;
+        cerr << "Warning: problem in strip creation (the strip is most likely doing a U-turn).\n";
         continue;
       }
       
