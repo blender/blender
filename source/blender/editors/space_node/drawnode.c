@@ -55,6 +55,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "BLF_api.h"
+
 #include "MEM_guardedalloc.h"
 
 
@@ -1407,6 +1409,47 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 
 		BKE_image_release_ibuf(ima, lock);
 	}
+}
+
+void draw_nodespace_color_info(ARegion *ar, int channels, int x, int y, char *cp, float *fp)
+{
+	char str[256];
+	int ofs;
+	
+	ofs= sprintf(str, "X: %4d Y: %4d ", x, y);
+
+	if(channels==4) {
+		if(cp)
+			ofs+= sprintf(str+ofs, "| R: %3d G: %3d B: %3d A: %3d ", cp[0], cp[1], cp[2], cp[3]);
+		if (fp)
+			ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f A: %.3f ", fp[0], fp[1], fp[2], fp[3]);
+	}
+	else if(channels==1) {
+		if(cp)
+			ofs+= sprintf(str+ofs, "| Val: %3d ", cp[0]);
+		if (fp)
+			ofs+= sprintf(str+ofs, "| Val: %.3f ", fp[0]);
+	}
+	else if(channels==3) {
+		if(cp)
+			ofs+= sprintf(str+ofs, "| R: %3d G: %3d B: %3d ", cp[0], cp[1], cp[2]);
+		if (fp)
+			ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f ", fp[0], fp[1], fp[2]);
+	}
+
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	
+	glColor4f(.0,.0,.0,.25);
+	glRecti(0.0, 0.0, ar->winrct.xmax - ar->winrct.xmin + 1, 20);
+	glDisable(GL_BLEND);
+	
+	glColor3ub(255, 255, 255);
+	
+	// UI_DrawString(6, 6, str); // works ok but fixed width is nicer.
+	BLF_size(blf_mono_font, 11, 72);
+	BLF_position(blf_mono_font, 6, 6, 0);
+	BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 }
 
 #if 0
