@@ -1169,7 +1169,7 @@ static int area_split_apply(bContext *C, wmOperator *op)
 	fac= RNA_float_get(op->ptr, "factor");
 	dir= RNA_enum_get(op->ptr, "direction");
 	
-	sd->narea= area_split(sc, sd->sarea, dir, fac);
+	sd->narea= area_split(sc, sd->sarea, dir, fac, 0); /* 0 = no merge */
 	
 	if(sd->narea) {
 		ScrVert *sv;
