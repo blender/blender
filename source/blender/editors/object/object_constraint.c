@@ -531,11 +531,20 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
 		bPoseChannel *pchan= get_active_posechannel(ob);
 		if (pchan)
 			list = &pchan->constraints;
-		else
+		else {
+			//if (G.f & G_DEBUG)
+			//printf("edit_constraint_property_get: No active bone for object '%s'\n", (ob)? ob->id.name+2 : "<None>");
 			return NULL;
+		}
+	}
+	else {
+		//if (G.f & G_DEBUG)
+		//printf("edit_constraint_property_get: defaulting to getting list in the standard way\n");
+		list = get_active_constraints(ob);
 	}
 	
 	con = constraints_findByName(list, constraint_name);
+	printf("constraint found = %p, %s\n", con, (con)?con->name:"<Not found>");
 	
 	if (con && (type != 0) && (con->type != type))
 		con = NULL;
@@ -645,8 +654,11 @@ static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 	bPoseChannel *pchan= NULL;
 	
 	/* despite 3 layers of checks, we may still not be able to find a constraint */
-	if (data == NULL)
+	if (data == NULL) {
+		printf("DEBUG: Child-Of Set Inverse - object = '%s'\n", (ob)? ob->id.name+2 : "<None>");
+		BKE_report(op->reports, RPT_ERROR, "Couldn't find constraint data for Child-Of Set Inverse");
 		return OPERATOR_CANCELLED;
+	}
 	
 	/* try to find a pose channel */
 	// TODO: get from context instead?
