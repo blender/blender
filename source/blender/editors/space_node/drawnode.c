@@ -44,6 +44,7 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -1367,9 +1368,35 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 			}
 
 			if(ibuf->rect) {
-				glPixelZoom(snode->zoom, snode->zoom);
-				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-				glPixelZoom(1.0f, 1.0f);
+				if (snode->flag & SNODE_SHOW_ALPHA) {
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glPixelZoom(snode->zoom, snode->zoom);
+					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
+					if(ENDIAN_ORDER == B_ENDIAN)
+						glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
+					
+					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT, ibuf->rect);
+					
+					glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
+					glPixelZoom(1.0f, 1.0f);
+					glDisable(GL_BLEND);
+				} else if (snode->flag & SNODE_USE_ALPHA) {
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glPixelZoom(snode->zoom, snode->zoom);
+					
+					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+					
+					glPixelZoom(1.0f, 1.0f);
+					glDisable(GL_BLEND);
+				} else {
+					glPixelZoom(snode->zoom, snode->zoom);
+					
+					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+					
+					glPixelZoom(1.0f, 1.0f);
+				}
 			}
 			
 			glMatrixMode(GL_PROJECTION);

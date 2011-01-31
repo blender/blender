@@ -68,6 +68,9 @@ class NODE_HT_header(bpy.types.Header):
             layout.prop(scene, "use_nodes")
             layout.prop(scene.render, "use_free_unused_nodes", text="Free Unused")
             layout.prop(snode, "show_backdrop")
+            if snode.show_backdrop:
+                row = layout.row(align=True)
+                row.prop(snode, "backdrop_channels", text="", expand=True)
 
         layout.separator()
 

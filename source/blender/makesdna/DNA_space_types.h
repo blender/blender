@@ -405,6 +405,8 @@ typedef struct SpaceNode {
 /* snode->flag */
 #define SNODE_BACKDRAW		2
 #define SNODE_DISPGP		4
+#define SNODE_USE_ALPHA		8
+#define SNODE_SHOW_ALPHA	16
 
 /* snode->texfrom */
 #define SNODE_TEX_OBJECT	0
