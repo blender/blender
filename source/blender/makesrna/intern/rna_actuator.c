@@ -284,7 +284,6 @@ static void rna_ConstraintActuator_spring_set(struct PointerRNA *ptr, float valu
 
 	*fp = value;
 }
-
 /* ConstraintActuator uses the same property for Material and Property.
    Therefore we need to clear the property when "use_material_detect" mode changes */
 static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, int value)
@@ -322,6 +321,33 @@ static void rna_FcurveActuator_force_set(struct PointerRNA *ptr, int value)
 		ia->flag |= ACT_IPOFORCE;
 	}else
 		ia->flag &= ~ACT_IPOFORCE;
+}
+
+
+static void rna_ObjectActuator_type_set(struct PointerRNA *ptr, int value)
+{
+	bActuator *act= (bActuator *)ptr->data;
+	bObjectActuator *oa = act->data;
+	if (value != oa->type)
+	{
+		oa->type = value;
+		switch (oa->type) {
+		case ACT_OBJECT_NORMAL:
+			memset(oa, 0, sizeof(bObjectActuator));
+			oa->flag = ACT_FORCE_LOCAL|ACT_TORQUE_LOCAL|ACT_DLOC_LOCAL|ACT_DROT_LOCAL;
+			oa->type = ACT_OBJECT_NORMAL;
+			break;
+
+		case ACT_OBJECT_SERVO:
+			memset(oa, 0, sizeof(bObjectActuator));
+			oa->flag = ACT_LIN_VEL_LOCAL;
+			oa->type = ACT_OBJECT_SERVO;
+			oa->forcerot[0] = 30.0f;
+			oa->forcerot[1] = 0.5f;
+			oa->forcerot[2] = 0.0f;
+			break;
+		}
+	}
 }
 
 static void rna_ObjectActuator_integralcoefficient_set(struct PointerRNA *ptr, float value)
@@ -591,6 +617,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_ObjectActuator_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Motion Type", "Specify the motion system");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
