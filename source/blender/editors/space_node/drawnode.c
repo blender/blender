@@ -1371,8 +1371,6 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 
 			if(ibuf->rect) {
 				if (snode->flag & SNODE_SHOW_ALPHA) {
-					glEnable(GL_BLEND);
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glPixelZoom(snode->zoom, snode->zoom);
 					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
 					if(ENDIAN_ORDER == B_ENDIAN)
@@ -1382,7 +1380,6 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 					
 					glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
 					glPixelZoom(1.0f, 1.0f);
-					glDisable(GL_BLEND);
 				} else if (snode->flag & SNODE_USE_ALPHA) {
 					glEnable(GL_BLEND);
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
