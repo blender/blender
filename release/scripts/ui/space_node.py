@@ -161,6 +161,36 @@ class NODE_MT_node(bpy.types.Menu):
         layout.separator()
 
         layout.operator("node.show_cyclic_dependencies")
+        
+     
+# Node Backdrop options 
+class NODE_PT_properties(bpy.types.Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Backdrop"
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return snode.tree_type == 'COMPOSITING'
+        
+    def draw_header(self, context):
+        snode = context.space_data
+        self.layout.prop(snode, "show_backdrop", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        snode = context.space_data
+        layout.active = snode.show_backdrop
+        layout.prop(snode, "backdrop_channels", text="")
+        layout.prop(snode, "backdrop_zoom", text="Zoom")
+
+        col = layout.column(align=True)
+        col.label(text="Offset:")
+        col.prop(snode, "backdrop_x", text="X")
+        col.prop(snode, "backdrop_y", text="Y")
+        col.operator("node.backimage_move", text="Move")
 
 
 def register():
