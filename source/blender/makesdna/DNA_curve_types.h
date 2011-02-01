@@ -328,7 +328,8 @@ typedef enum eBezTriple_Interpolation {
 typedef enum eBezTriple_KeyframeType {
 	BEZT_KEYTYPE_KEYFRAME = 0,	/* default - 'proper' Keyframe */
 	BEZT_KEYTYPE_EXTREME,		/* 'extreme' keyframe */
-	BEZT_KEYTYPE_BREAKDOWN		/* 'breakdown' keyframe */
+	BEZT_KEYTYPE_BREAKDOWN,		/* 'breakdown' keyframe */
+	BEZT_KEYTYPE_JITTER,		/* 'jitter' keyframe (for adding 'filler' secondary motion) */
 } eBezTriple_KeyframeType;
 
 /* checks if the given BezTriple is selected */
