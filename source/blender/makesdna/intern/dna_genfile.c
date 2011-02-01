@@ -43,7 +43,7 @@
 
 /* gcc 4.1 on mingw was complaining that __int64 was already defined
 actually is saw the line below as typedef long long long long... 
-Anyhow, since its already defined, its safe to do an ifndef here- Cambpell*/
+Anyhow, since its already defined, its safe to do an ifndef here- Campbell */
 #ifdef FREE_WINDOWS
 #ifndef __int64
 typedef long long __int64;

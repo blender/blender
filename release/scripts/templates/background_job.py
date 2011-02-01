@@ -82,7 +82,7 @@ def main():
 
     # When --help or no args are given, print this help
     usage_text = "Run blender in background mode with this script:"
-    usage_text += "  blender -b -P " + __file__ + " -- [options]"
+    usage_text += "  blender --background --python " + __file__ + " -- [options]"
 
     parser = optparse.OptionParser(usage=usage_text)
 
