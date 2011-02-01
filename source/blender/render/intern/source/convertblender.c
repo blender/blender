@@ -4765,6 +4765,8 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						int psysindex;
 						float mat[4][4];
 
+						obi=NULL;
+
 						/* instances instead of the actual object are added in two cases, either
 						 * this is a duplivert/face/particle, or it is a non-animated object in
 						 * a dupligroup that has already been created before */
@@ -4789,15 +4791,14 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 									find_dupli_instances(re, obr);
 							}
 						}
-						else
-							/* can't instance, just create the object */
-							init_render_object(re, obd, ob, dob, timeoffset, vectorlay);
 
 						/* same logic for particles, each particle system has it's own object, so
 						 * need to go over them separately */
 						psysindex= 1;
 						for(psys=obd->particlesystem.first; psys; psys=psys->next) {
-							if(dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, ob, psysindex))) {
+							if(dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, psysindex))) {
+								if(obi == NULL)
+									mul_m4_m4m4(mat, dob->mat, re->viewmat);
 								obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, psysindex++, mat, obd->lay);
 
 								set_dupli_tex_mat(re, obi, dob);
@@ -4813,6 +4814,10 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 								}
 							}
 						}
+
+						if(obi==NULL)
+							/* can't instance, just create the object */
+							init_render_object(re, obd, ob, dob, timeoffset, vectorlay);
 						
 						if(dob->type != OB_DUPLIGROUP) {
 							obd->flag |= OB_DONE;
