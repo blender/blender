@@ -231,6 +231,12 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 	}
 
+	/* when calling  bpy.ops.wm.read_factory_settings() bpy.data's main pointer is freed by clear_globals(),
+	 * further access will crash blender. setting context is not needed in this case, only calling because this
+	 * function corrects bpy.data (internal Main pointer) */
+	BPY_modules_update(C);
+
+
 	/* return operator_ret as a bpy enum */
 	return pyrna_enum_bitfield_to_py(operator_return_items, operator_ret);
 

@@ -1350,7 +1350,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 	
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile_exec;
-	ot->poll= WM_operator_winactive;
+	/* ommit poll to run in background mode */
 }
 
 static void WM_OT_read_factory_settings(wmOperatorType *ot)
@@ -1361,7 +1361,7 @@ static void WM_OT_read_factory_settings(wmOperatorType *ot)
 	
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile_exec;
-	ot->poll= WM_operator_winactive;
+	/* ommit poll to run in background mode */
 }
 
 /* *************** open file **************** */

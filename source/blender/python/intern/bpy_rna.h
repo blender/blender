@@ -110,4 +110,6 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 
 int pyrna_write_check(void);
 
+void BPY_modules_update(struct bContext *C); //XXX temp solution
+
 #endif

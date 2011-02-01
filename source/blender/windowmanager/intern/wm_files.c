@@ -429,9 +429,13 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 		BPY_modules_load_user(C);
 	}
 #endif
-	
+
 	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
-	CTX_wm_window_set(C, NULL); /* exits queues */
+
+	/* in background mode the scene will stay NULL */
+	if(!G.background) {
+		CTX_wm_window_set(C, NULL); /* exits queues */
+	}
 
 	return TRUE;
 }
