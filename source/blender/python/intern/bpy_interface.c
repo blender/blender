@@ -328,6 +328,7 @@ typedef struct {
 
 static int python_script_exec(bContext *C, const char *fn, struct Text *text, struct ReportList *reports)
 {
+	PyObject *main_mod= NULL;
 	PyObject *py_dict= NULL, *py_result= NULL;
 	PyGILState_STATE gilstate;
 
@@ -338,6 +339,8 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 	}
 
 	bpy_context_set(C, &gilstate);
+
+	PyC_MainModule_Backup(&main_mod);
 
 	if (text) {
 		char fn_dummy[FILE_MAXDIR];
@@ -413,9 +416,9 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 #endif
 
 #undef PYMODULE_CLEAR_WORKAROUND
-		/* normal */
-		PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
 	}
+
+	PyC_MainModule_Restore(main_mod);
 
 	bpy_context_clear(C, &gilstate);
 
@@ -446,6 +449,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value)
 	PyGILState_STATE gilstate;
 	PyObject *py_dict, *mod, *retval;
 	int error_ret = 0;
+	PyObject *main_mod= NULL;
 	
 	if (!value || !expr) return -1;
 
@@ -455,7 +459,9 @@ int BPY_button_exec(bContext *C, const char *expr, double *value)
 	}
 
 	bpy_context_set(C, &gilstate);
-	
+
+	PyC_MainModule_Backup(&main_mod);
+
 	py_dict= PyC_DefaultNameSpace("<blender button>");
 
 	mod = PyImport_ImportModule("math");
@@ -506,7 +512,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value)
 		BPy_errors_to_report(CTX_wm_reports(C));
 	}
 
-	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
+	PyC_MainModule_Backup(&main_mod);
 	
 	bpy_context_clear(C, &gilstate);
 	
@@ -516,6 +522,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value)
 int BPY_string_exec(bContext *C, const char *expr)
 {
 	PyGILState_STATE gilstate;
+	PyObject *main_mod= NULL;
 	PyObject *py_dict, *retval;
 	int error_ret = 0;
 
@@ -526,6 +533,8 @@ int BPY_string_exec(bContext *C, const char *expr)
 	}
 
 	bpy_context_set(C, &gilstate);
+
+	PyC_MainModule_Backup(&main_mod);
 
 	py_dict= PyC_DefaultNameSpace("<blender string>");
 
@@ -540,8 +549,8 @@ int BPY_string_exec(bContext *C, const char *expr)
 		Py_DECREF(retval);
 	}
 
-	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
-	
+	PyC_MainModule_Restore(main_mod);
+
 	bpy_context_clear(C, &gilstate);
 	
 	return error_ret;
