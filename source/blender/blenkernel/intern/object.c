@@ -59,11 +59,9 @@
 #include "BLI_pbvh.h"
 #include "BLI_utildefines.h"
 
-
-
 #include "BKE_main.h"
 #include "BKE_global.h"
-
+#include "BKE_idprop.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_bullet.h"
@@ -1605,7 +1603,17 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		
 		armature_set_id_extern(ob);
 	}
-	
+
+	/* copy IDProperties */
+	if(ob->id.properties) {
+		IDP_FreeProperty(ob->id.properties);
+		MEM_freeN(ob->id.properties);
+		ob->id.properties= NULL;
+	}
+	if(target->id.properties) {
+		ob->id.properties= IDP_CopyProperty(target->id.properties);
+	}
+
 	/* copy drawtype info */
 	ob->dt= target->dt;
 }
