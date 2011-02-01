@@ -750,8 +750,8 @@ int RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, Pointer
 
 /* efficient functions to set properties for arrays */
 int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array);
-int RNA_property_collection_raw_get(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
-int RNA_property_collection_raw_set(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
+int RNA_property_collection_raw_get(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, const char *propname, void *array, RawPropertyType type, int len);
+int RNA_property_collection_raw_set(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, const char *propname, void *array, RawPropertyType type, int len);
 int RNA_raw_type_sizeof(RawPropertyType type);
 RawPropertyType RNA_property_raw_type(PropertyRNA *prop);
 
