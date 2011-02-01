@@ -800,7 +800,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 /* ----------------------------------------- */
 
 /* NOTE: when this function returns true, the F-Curve is to be skipped */
-static int skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id, int filter_mode)
+static int skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_id, int filter_mode)
 {
 	if (GS(owner_id->name) == ID_OB) {
 		Object *ob= (Object *)owner_id;
@@ -2568,9 +2568,11 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 		switch (datatype) {
 			case ANIMCONT_ACTION:	/* 'Action Editor' */
 			{
+				bDopeSheet *ads = ((ac->sa) && (ac->sa->spacetype==SPACE_ACTION)) ? &((SpaceAction*)ac->sa->spacedata.first)->ads : NULL;
+				
 				/* the check for the DopeSheet summary is included here since the summary works here too */
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
-					items += animdata_filter_action(ac, anim_data, NULL, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
+					items += animdata_filter_action(ac, anim_data, ads, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
 			}
 				break;
 				
