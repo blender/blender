@@ -108,4 +108,6 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
 
+int pyrna_write_check(void);
+
 #endif
