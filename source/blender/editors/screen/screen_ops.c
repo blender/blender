@@ -222,7 +222,7 @@ int ED_operator_node_active(bContext *C)
 }
 
 // XXX rename
-int ED_operator_ipo_active(bContext *C)
+int ED_operator_graphedit_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_IPO);
 }

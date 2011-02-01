@@ -170,7 +170,7 @@ void GRAPH_OT_cursor_set(wmOperatorType *ot)
 	ot->exec= graphview_cursor_exec;
 	ot->invoke= graphview_cursor_invoke;
 	ot->modal= graphview_cursor_modal;
-	ot->poll= ED_operator_ipo_active;
+	ot->poll= ED_operator_graphedit_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_UNDO;
@@ -208,7 +208,7 @@ void GRAPH_OT_view_togglehandles (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec= view_toggle_handles_exec;
-	ot->poll= ED_operator_ipo_active;
+	ot->poll= ED_operator_graphedit_active;
 }
 
 /* ************************** registration - operator types **********************************/
