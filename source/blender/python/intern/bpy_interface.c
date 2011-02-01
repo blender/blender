@@ -313,6 +313,19 @@ void BPY_python_end(void)
 
 }
 
+/* super annoying, undo _PyModule_Clear(), bug [#23871] */
+#define PYMODULE_CLEAR_WORKAROUND
+
+#ifdef PYMODULE_CLEAR_WORKAROUND
+/* bad!, we should never do this, but currently only safe way I could find to keep namespace.
+ * from being cleared. - campbell */
+typedef struct {
+	PyObject_HEAD
+	PyObject *md_dict;
+	/* ommit other values, we only want the dict. */
+} PyModuleObject;
+#endif
+
 static int python_script_exec(bContext *C, const char *fn, struct Text *text, struct ReportList *reports)
 {
 	PyObject *py_dict= NULL, *py_result= NULL;
@@ -389,23 +402,19 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 		Py_DECREF( py_result );
 	}
 
-/* super annoying, undo _PyModule_Clear() */
-#define PYMODULE_CLEAR_WORKAROUND
-
 	if(py_dict) {
 #ifdef PYMODULE_CLEAR_WORKAROUND
-		PyObject *py_dict_back= PyDict_Copy(py_dict);
-		Py_INCREF(py_dict);
+		PyModuleObject *mmod= (PyModuleObject *)PyDict_GetItemString(PyThreadState_GET()->interp->modules, "__main__");
+		PyObject *dict_back = mmod->md_dict;
+		/* freeing the module will clear the namespace,
+		 * gives problems running classes defined in this namespace being used later. */
+		mmod->md_dict= NULL;
+		Py_DECREF(dict_back);
 #endif
+
+#undef PYMODULE_CLEAR_WORKAROUND
 		/* normal */
 		PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
-#ifdef PYMODULE_CLEAR_WORKAROUND
-		PyDict_Clear(py_dict);
-		PyDict_Update(py_dict, py_dict_back);
-		Py_DECREF(py_dict);
-		Py_DECREF(py_dict_back);
-#endif
-#undef PYMODULE_CLEAR_WORKAROUND
 	}
 
 	bpy_context_clear(C, &gilstate);
