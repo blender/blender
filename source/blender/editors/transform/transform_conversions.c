@@ -862,15 +862,16 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 		data->flag= CONSTRAINT_IK_TIP;
 	data->flag |= CONSTRAINT_IK_TEMP|CONSTRAINT_IK_AUTO;
 	VECCOPY(data->grabtarget, pchan->pose_tail);
-	data->rootbone= 1;
+	data->rootbone= 0; /* watch-it! has to be 0 here, since we're still on the same bone for the first time through the loop [#25885] */
 	
 	/* we only include bones that are part of a continual connected chain */
 	while (pchan) {
 		/* here, we set ik-settings for bone from pchan->protectflag */
+		// XXX: careful with quats/axis-angle rotations where we're locking 4d components
 		if (pchan->protectflag & OB_LOCK_ROTX) pchan->ikflag |= BONE_IK_NO_XDOF_TEMP;
 		if (pchan->protectflag & OB_LOCK_ROTY) pchan->ikflag |= BONE_IK_NO_YDOF_TEMP;
 		if (pchan->protectflag & OB_LOCK_ROTZ) pchan->ikflag |= BONE_IK_NO_ZDOF_TEMP;
-
+		
 		/* now we count this pchan as being included */
 		data->rootbone++;
 		
