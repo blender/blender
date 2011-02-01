@@ -129,7 +129,7 @@ def resolve_ncase(path):
     import os
 
     def _ncase_path_found(path):
-        if path == "" or os.path.exists(path):
+        if not path or os.path.exists(path):
             return path, True
 
         filename = os.path.basename(path)  # filename may be a directory or a file

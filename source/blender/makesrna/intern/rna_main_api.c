@@ -516,7 +516,7 @@ void RNA_api_main(StructRNA *srna)
 	/*
 	func= RNA_def_function(srna, "add_image", "rna_Main_add_image");
 	RNA_def_function_ui_description(func, "Add a new image.");
-	parm= RNA_def_string(func, "filepath", "", 0, "", "File path to load image from.");
+	parm= RNA_def_string_file_path(func, "filepath", "", 0, "", "File path to load image from.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image.");
 	RNA_def_function_return(func, parm);
@@ -805,7 +805,7 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "load", "rna_Main_images_load");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Load a new image into the main database");
-	parm= RNA_def_string(func, "filepath", "File Path", 0, "", "path of the file to load.");
+	parm= RNA_def_string_file_path(func, "filepath", "File Path", 0, "", "path of the file to load.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image datablock.");
@@ -921,7 +921,7 @@ void RNA_def_main_fonts(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "load", "rna_Main_fonts_load");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Load a new font into the main database");
-	parm= RNA_def_string(func, "filepath", "File Path", 0, "", "path of the font to load.");
+	parm= RNA_def_string_file_path(func, "filepath", "File Path", 0, "", "path of the font to load.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "vfont", "VectorFont", "", "New font datablock.");
@@ -1081,7 +1081,7 @@ void RNA_def_main_texts(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "load", "rna_Main_texts_load");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new text to the main database from a file");
-	parm= RNA_def_string(func, "filepath", "Path", FILE_MAXDIR + FILE_MAXFILE, "", "path for the datablock.");
+	parm= RNA_def_string_file_path(func, "filepath", "Path", FILE_MAXDIR + FILE_MAXFILE, "", "path for the datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "text", "Text", "", "New text datablock.");

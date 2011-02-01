@@ -228,6 +228,10 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 		 * chars since blender doesnt limit this */
 		return result;
 	}
+	else if(PyBytes_Check(py_str)) {
+		PyErr_Clear();
+		return PyBytes_AS_STRING(py_str);
+	}
 	else {
 		/* mostly copied from fileio.c's, fileio_init */
 		PyObject *stringobj;
