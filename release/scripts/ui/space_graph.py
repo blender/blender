@@ -213,6 +213,7 @@ class GRAPH_MT_key(bpy.types.Menu):
 
         layout.separator()
         layout.operator("graph.clean")
+        layout.operator("graph.smooth")
         layout.operator("graph.sample")
         layout.operator("graph.bake")
 
