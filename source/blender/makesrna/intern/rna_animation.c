@@ -517,6 +517,7 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_ksPath_id_editable");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_ksPath_id_typef", NULL);
 	RNA_def_property_ui_text(prop, "ID-Block", "ID-Block that keyframes for Keying Set should be added to (for Absolute Keying Sets only)");
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_EDITED, NULL); // XXX: maybe a bit too noisy
 	
 	prop= RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "idtype");
@@ -524,30 +525,36 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_enum_default(prop, ID_OB);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_ksPath_id_type_set", NULL);
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used");
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_EDITED, NULL); // XXX: maybe a bit too noisy
 	
 	/* Group */
 	prop= RNA_def_property(srna, "group", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Group Name", "Name of Action Group to assign setting(s) for this path to");
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_EDITED, NULL); // XXX: maybe a bit too noisy
 	
 	/* Grouping */
 	prop= RNA_def_property(srna, "group_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "groupmode");
 	RNA_def_property_enum_items(prop, keyingset_path_grouping_items);
 	RNA_def_property_ui_text(prop, "Grouping Method", "Method used to define which Group-name to use");
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_EDITED, NULL); // XXX: maybe a bit too noisy
 	
 	/* Path + Array Index */
 	prop= RNA_def_property(srna, "data_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ksPath_RnaPath_get", "rna_ksPath_RnaPath_length", "rna_ksPath_RnaPath_set");
 	RNA_def_property_ui_text(prop, "Data Path", "Path to property setting");
 	RNA_def_struct_name_property(srna, prop); // XXX this is the best indicator for now...
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_EDITED, NULL);
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific setting if applicable");
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_EDITED, NULL); // XXX: maybe a bit too noisy
 	
 	/* Flags */
 	prop= RNA_def_property(srna, "use_entire_array", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KSP_FLAG_WHOLE_ARRAY);
 	RNA_def_property_ui_text(prop, "Entire Array", "When an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used");
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_EDITED, NULL); // XXX: maybe a bit too noisy
 	
 	/* Keyframing Settings */
 	rna_def_common_keying_flags(srna, 0);
@@ -630,6 +637,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_ui_icon(srna, ICON_KEY_HLT); // TODO: we need a dedicated icon
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_RENAME, NULL);
 	
 	/* KeyingSetInfo (Type Info) for Builtin Sets only  */
 	prop= RNA_def_property(srna, "type_info", PROP_POINTER, PROP_NONE);
