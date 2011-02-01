@@ -630,16 +630,6 @@ static void rna_ConsoleLine_cursor_index_range(PointerRNA *ptr, int *min, int *m
 	*max= ci->len;
 }
 
-/* Space Time */
-
-static void rna_SpaceTime_redraw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	SpaceTime *st= (SpaceTime*)ptr->data;
-	bScreen *screen= (bScreen*)ptr->id.data;
-
-	ED_screen_animation_timer_update(screen, st->redraws, SPACE_TIME);
-}
-
 /* Space Dopesheet */
 
 static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA value)
@@ -1933,43 +1923,7 @@ static void rna_def_space_time(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SpaceTime");
 	RNA_def_struct_ui_text(srna, "Space Timeline Editor", "Timeline editor space data");
 	
-	/* Define Anim Playback Areas */
-	prop= RNA_def_property(srna, "use_play_top_left_3d_editor", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_REGION);
-	RNA_def_property_ui_text(prop, "Top-Left 3D Editor", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_3d_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_3D_WIN);
-	RNA_def_property_ui_text(prop, "All 3D View Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_animation_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_ANIM_WIN);
-	RNA_def_property_ui_text(prop, "Animation Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_properties_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_BUTS_WIN);
-	RNA_def_property_ui_text(prop, "Property Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_image_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_IMAGE_WIN);
-	RNA_def_property_ui_text(prop, "Image Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_sequence_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_SEQ);
-	RNA_def_property_ui_text(prop, "Sequencer Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_node_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_NODES);
-	RNA_def_property_ui_text(prop, "Node Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	/* Other options */	
+	/* view settings */	
 	prop= RNA_def_property(srna, "show_only_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ONLYACTSEL);
 	RNA_def_property_ui_text(prop, "Only Selected channels", "Show keyframes for active Object and/or its selected channels only");	

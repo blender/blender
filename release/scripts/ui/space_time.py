@@ -168,16 +168,16 @@ class TIME_MT_playback(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        st = context.space_data
+        screen = context.screen
         scene = context.scene
 
-        layout.prop(st, "use_play_top_left_3d_editor")
-        layout.prop(st, "use_play_3d_editors")
-        layout.prop(st, "use_play_animation_editors")
-        layout.prop(st, "use_play_properties_editors")
-        layout.prop(st, "use_play_image_editors")
-        layout.prop(st, "use_play_sequence_editors")
-        layout.prop(st, "use_play_node_editors")
+        layout.prop(screen, "use_play_top_left_3d_editor")
+        layout.prop(screen, "use_play_3d_editors")
+        layout.prop(screen, "use_play_animation_editors")
+        layout.prop(screen, "use_play_properties_editors")
+        layout.prop(screen, "use_play_image_editors")
+        layout.prop(screen, "use_play_sequence_editors")
+        layout.prop(screen, "use_play_node_editors")
 
         layout.separator()
 

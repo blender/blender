@@ -11249,13 +11249,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-
-	/* put compatibility code here until next subversion bump */
 	
-	{
-		/* Fix for sample line scope initializing with no height */
+	if (main->versionfile < 256) {
 		bScreen *sc;
 		ScrArea *sa;
+		Key *key;
+		
+		/* Fix for sample line scope initializing with no height */
 		for(sc= main->screen.first; sc; sc= sc->id.next) {
 			sa= sc->areabase.first;
 			while(sa) {
@@ -11270,10 +11270,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sa= sa->next;
 			}
 		}
-	}
-	
-	{
-		Key *key;
 		
 		/* old files could have been saved with slidermin = slidermax = 0.0, but the UI in
 		 * 2.4x would never reveal this to users as a dummy value always ended up getting used
@@ -11285,6 +11281,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (kb = key->block.first; kb; kb = kb->next) {
 				if (IS_EQ(kb->slidermin, kb->slidermax) && IS_EQ(kb->slidermax, 0))
 					kb->slidermax = kb->slidermin + 1.0f;
+			}
+		}
+	}
+	
+	/* put compatibility code here until next subversion bump */
+	
+	{
+		bScreen *sc;
+		
+		/* redraws flag in SpaceTime has been moved to Screen level */
+		for (sc = main->screen.first; sc; sc= sc->id.next) {
+			if (sc->redraws_flag == 0) {
+				/* just initialise to default? */
+				// XXX: we could also have iterated through areas, and taken them from the first timeline available...
+				sc->redraws_flag = TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 			}
 		}
 	}

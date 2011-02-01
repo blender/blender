@@ -54,6 +54,9 @@ typedef struct bScreen {
 	struct Scene *scene;
 	struct Scene *newscene;				/* temporary when switching */
 	
+	int redraws_flag;					/* user-setting for which editors get redrawn during anim playback (used to be time->redraws) */
+	int pad1;
+	
 	short full;							/* temp screen for image render display or fileselect */
 	short temp;							/* temp screen in a temp window, don't save (like user prefs) */
 	short winid;						/* winid from WM, starts with 1 */

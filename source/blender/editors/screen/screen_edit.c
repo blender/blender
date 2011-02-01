@@ -418,6 +418,7 @@ bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 	sc= alloc_libblock(&G.main->screen, ID_SCR, name);
 	sc->scene= scene;
 	sc->do_refresh= 1;
+	sc->redraws_flag= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 	sc->winid= win->winid;
 	
 	sv1= screen_addvert(sc, 0, 0);
