@@ -779,12 +779,18 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 						norm[0]= - shi.vn[0];
 						norm[1]= - shi.vn[1];
 						norm[2]= - shi.vn[2];
-						if (!refraction(refract, norm, shi.view, shi.ang))
+						if (!refraction(refract, norm, shi.view, shi.ang)) {
 							reflection(refract, norm, shi.view, shi.vn);
+							/* for total internal reflection the ray stays inside the material, so don't flip the normal (double flip) */
+							traflag ^= RAY_TRAFLIP;
+						}
 					}
 					else {
-						if (!refraction(refract, shi.vn, shi.view, shi.ang))
+						if (!refraction(refract, shi.vn, shi.view, shi.ang)) {
 							reflection(refract, shi.vn, shi.view, shi.vn);
+							/* same reason as above */
+							traflag ^= RAY_TRAFLIP;
+						}
 					}
 					traflag |= RAY_TRA;
 					traceray(origshi, origshr, depth-1, shi.co, refract, tracol, shi.obi, shi.vlr, traflag ^ RAY_TRAFLIP);
