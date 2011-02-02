@@ -2622,7 +2622,7 @@ void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
 /* ************************* below the line! *********************** */
 
 
-static float view_autodist_depth_margin(ARegion *ar, short *mval, int margin)
+static float view_autodist_depth_margin(ARegion *ar, short mval[2], int margin)
 {
 	ViewDepths depth_temp= {0};
 	rcti rect;
@@ -2721,12 +2721,51 @@ int view_autodist_simple(ARegion *ar, short *mval, float mouse_worldloc[3], int 
 	return 1;
 }
 
-int view_autodist_depth(struct ARegion *ar, short *mval, int margin, float *depth)
+int view_autodist_depth(struct ARegion *ar, short mval[2], int margin, float *depth)
 {
 	*depth= view_autodist_depth_margin(ar, mval, margin);
 
 	return (*depth==FLT_MAX) ? 0:1;
+}
+
+static int depth_segment_cb(int x, int y, void *userData)
+{
+	struct { struct ARegion *ar; int margin; float depth; } *data = userData;
+	short mval[2];
+	float depth;
+
+	mval[0]= (short)x;
+	mval[1]= (short)y;
+
+	depth= view_autodist_depth_margin(data->ar, mval, data->margin);
+
+	if(depth != FLT_MAX) {
+		data->depth= depth;
 		return 0;
+	}
+	else {
+		return 1;
+	}
+}
+
+int view_autodist_depth_segment(struct ARegion *ar, short mval_sta[2], short mval_end[2], int margin, float *depth)
+{
+	struct { struct ARegion *ar; int margin; float depth; } data = {0};
+	int p1[2];
+	int p2[2];
+
+	data.ar= ar;
+	data.margin= margin;
+	data.depth= FLT_MAX;
+
+	VECCOPY2D(p1, mval_sta);
+	VECCOPY2D(p2, mval_end);
+
+	plot_line_v2v2i(p1, p2, depth_segment_cb, &data);
+
+	*depth= data.depth;
+
+	return (*depth==FLT_MAX) ? 0:1;
 }
 
 /* ********************* NDOF ************************ */

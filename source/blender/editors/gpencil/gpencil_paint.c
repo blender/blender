@@ -547,18 +547,25 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 		
 		/* get an array of depths, far depths are blended */
 		if (gpencil_project_check(p)) {
-			short mval[2];
+			short mval[2], mval_prev[2]= {0};
 			int interp_depth = 0;
 			int found_depth = 0;
 			
 			depth_arr= MEM_mallocN(sizeof(float) * gpd->sbuffer_size, "depth_points");
-			
+
 			for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size; i++, ptc++, pt++) {
 				mval[0]= ptc->x; mval[1]= ptc->y;
-				if (view_autodist_depth(p->ar, mval, depth_margin, depth_arr+i) == 0)
+
+				if ((view_autodist_depth(p->ar, mval, depth_margin, depth_arr+i) == 0) &&
+					(i && (view_autodist_depth_segment(p->ar, mval, mval_prev, depth_margin + 1, depth_arr+i) == 0))
+				) {
 					interp_depth= TRUE;
-				else
+				}
+				else {
 					found_depth= TRUE;
+				}
+
+				VECCOPY2D(mval_prev, mval);
 			}
 			
 			if (found_depth == FALSE) {
