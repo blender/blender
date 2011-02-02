@@ -424,7 +424,8 @@ bPoseChannel *verify_pose_channel(bPose *pose, const char *name)
 	
 	BLI_strncpy(chan->name, name, sizeof(chan->name));
 	/* init vars to prevent math errors */
-	chan->quat[0] = chan->rotAxis[1]= 1.0f;
+	unit_qt(chan->quat);
+	unit_axis_angle(chan->rotAxis, &chan->rotAngle);
 	chan->size[0] = chan->size[1] = chan->size[2] = 1.0f;
 	
 	chan->limitmin[0]= chan->limitmin[1]= chan->limitmin[2]= -180.0f;
@@ -1041,7 +1042,6 @@ void extract_pose_from_pose(bPose *pose, const bPose *src)
 void rest_pose(bPose *pose)
 {
 	bPoseChannel *pchan;
-	int i;
 	
 	if (!pose)
 		return;
@@ -1050,16 +1050,12 @@ void rest_pose(bPose *pose)
 	memset(pose->cyclic_offset, 0, sizeof(pose->cyclic_offset));
 	
 	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next) {
-		for (i=0; i<3; i++) {
-			pchan->loc[i]= 0.0f;
-			pchan->quat[i+1]= 0.0f;
-			pchan->eul[i]= 0.0f;
-			pchan->size[i]= 1.0f;
-			pchan->rotAxis[i]= 0.0f;
-		}
-		pchan->quat[0]= pchan->rotAxis[1]= 1.0f;
-		pchan->rotAngle= 0.0f;
-		
+		zero_v3(pchan->loc);
+		zero_v3(pchan->eul);
+		unit_qt(pchan->quat);
+		unit_axis_angle(pchan->rotAxis, &pchan->rotAngle);
+		pchan->size[0]= pchan->size[1]= pchan->size[2]= 1.0f;
+
 		pchan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
 	}
 }

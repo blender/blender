@@ -1013,10 +1013,13 @@ Object *add_only_object(int type, const char *name)
 	 * but rotations default to quaternions 
 	 */
 	ob->rotmode= ROT_MODE_EUL;
-	/* axis-angle must not have a 0,0,0 axis, so set y-axis as default... */
-	ob->rotAxis[1]= ob->drotAxis[1]= 1.0f;
-	/* quaternions should be 1,0,0,0 by default.... */
-	ob->quat[0]= ob->dquat[0]= 1.0f;
+
+	unit_axis_angle(ob->rotAxis, &ob->rotAngle);
+	unit_axis_angle(ob->drotAxis, &ob->drotAngle);
+
+	unit_qt(ob->quat);
+	unit_qt(ob->dquat);
+
 	/* rotation locks should be 4D for 4 component rotations by default... */
 	ob->protectflag = OB_LOCK_ROT4D;
 	

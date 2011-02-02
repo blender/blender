@@ -34,7 +34,17 @@
 /* used to test is a quat is not normalized */
 #define QUAT_EPSILON 0.0001
 
-void unit_qt(float *q)
+/* convenience, avoids setting Y axis everywhere */
+void unit_axis_angle(float axis[3], float *angle)
+{
+	axis[0]= 0.0f;
+	axis[1]= 1.0f;
+	axis[2]= 0.0f;
+	*angle= 0.0f;
+}
+
+
+void unit_qt(float q[4])
 {
 	q[0]= 1.0f;
 	q[1]= q[2]= q[3]= 0.0f;

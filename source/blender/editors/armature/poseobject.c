@@ -1892,11 +1892,8 @@ static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 		/* only if bone is using quaternion rotation */
 		if (pchan->rotmode == ROT_MODE_QUAT) {
 			/* quaternions have 720 degree range */
-			pchan->quat[0]= -pchan->quat[0];
-			pchan->quat[1]= -pchan->quat[1];
-			pchan->quat[2]= -pchan->quat[2];
-			pchan->quat[3]= -pchan->quat[3];
-			
+			negate_v4(pchan->quat);
+
 			/* tagging */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
 				ListBase dsources = {NULL, NULL};

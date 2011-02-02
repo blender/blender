@@ -282,6 +282,14 @@ MINLINE void negate_v3_v3(float r[3], const float a[3])
 	r[2]= -a[2];
 }
 
+MINLINE void negate_v4(float r[4])
+{
+	r[0]= -r[0];
+	r[1]= -r[1];
+	r[2]= -r[2];
+	r[3]= -r[3];
+}
+
 MINLINE float dot_v2v2(const float a[2], const float b[2])
 {
 	return a[0]*b[0] + a[1]*b[1];

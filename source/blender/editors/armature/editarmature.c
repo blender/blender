@@ -688,10 +688,11 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 		}
 		
 		/* clear transform values for pchan */
-		pchan->loc[0]= pchan->loc[1]= pchan->loc[2]= 0.0f;
-		pchan->eul[0]= pchan->eul[1]= pchan->eul[2]= 0.0f;
-		pchan->quat[1]= pchan->quat[2]= pchan->quat[3]= 0.0f;
-		pchan->quat[0]= pchan->size[0]= pchan->size[1]= pchan->size[2]= 1.0f;
+		zero_v3(pchan->loc);
+		zero_v3(pchan->eul);
+		unit_qt(pchan->quat);
+		unit_axis_angle(pchan->rotAxis, &pchan->rotAngle);
+		pchan->size[0]= pchan->size[1]= pchan->size[2]= 1.0f;
 		
 		/* set anim lock */
 		curbone->flag |= BONE_UNKEYED;
@@ -5049,11 +5050,10 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 		}
 		else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 			/* by default, make rotation of 0 radians around y-axis (roll) */
-			pchan->rotAxis[0]=pchan->rotAxis[2]=pchan->rotAngle= 0.0f;
-			pchan->rotAxis[1]= 1.0f;
+			unit_axis_angle(pchan->rotAxis, &pchan->rotAngle);
 		}
 		else {
-			pchan->eul[0]= pchan->eul[1]= pchan->eul[2]= 0.0f;
+			zero_v3(pchan->eul);
 		}
 	}
 }
