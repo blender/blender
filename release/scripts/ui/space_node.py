@@ -161,6 +161,8 @@ class NODE_MT_node(bpy.types.Menu):
         layout.separator()
 
         layout.operator("node.show_cyclic_dependencies")
+        layout.operator("node.read_renderlayers")
+        layout.operator("node.read_fullsamplelayers")
         
      
 # Node Backdrop options 
