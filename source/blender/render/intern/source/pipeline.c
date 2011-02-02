@@ -2349,6 +2349,7 @@ void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 	G.afbreek= 0;
 	
 	re->main= bmain;
+	re->scene= sce;
 	
 	/* first call RE_ReadRenderResult on every renderlayer scene. this creates Render structs */
 	
