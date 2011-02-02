@@ -1704,8 +1704,13 @@ void object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 {
 	switch(ob->rotmode) {
 	case ROT_MODE_QUAT:
-		mat3_to_quat(ob->quat, mat);
-		sub_v4_v4(ob->quat, ob->dquat);
+		{
+			float dquat[4];
+			mat3_to_quat(ob->quat, mat);
+			normalize_qt_qt(dquat, ob->dquat);
+			invert_qt(dquat);
+			mul_qt_qtqt(ob->quat, dquat, ob->quat);
+		}
 		break;
 	case ROT_MODE_AXISANGLE:
 		mat3_to_axis_angle(ob->rotAxis, &ob->rotAngle, mat);
