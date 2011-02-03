@@ -154,8 +154,8 @@ float mistfactor(float zcor, float *co)
 static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 {
 	double a, b, c, disc, nray[3], npos[3];
-	float t0, t1 = 0.0f, t2= 0.0f, t3, haint;
-	float p1[3], p2[3], ladist, maxz = 0.0f, maxy = 0.0f;
+	double t0, t1 = 0.0f, t2= 0.0f, t3;
+	float p1[3], p2[3], ladist, maxz = 0.0f, maxy = 0.0f, haint;
 	int snijp, doclip=1, use_yco=0;
 	int ok1=0, ok2=0;
 	
@@ -202,7 +202,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		maxz*= lar->sh_zfac;
 		maxy= lar->imat[0][1]*p1[0]+lar->imat[1][1]*p1[1]+lar->imat[2][1]*p1[2];
 
-		if( fabs(nray[2]) < DBL_EPSILON ) use_yco= 1;
+		if( fabs(nray[2]) < FLT_EPSILON ) use_yco= 1;
 	}
 	
 	/* scale z to make sure volume is normalized */	
