@@ -66,7 +66,7 @@
 
 
 #define RAY_TRA		1
-#define RAY_TRAFLIP	2
+#define RAY_INSIDE	2
 
 #define DEPTH_SHADOW_TRA  10
 
@@ -758,7 +758,8 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 		shi.mat_override= origshi->mat_override;
 		
 		shade_ray(&isec, &shi, &shr);
-		if (traflag & RAY_TRA)
+		/* ray has traveled inside the material, so shade by transmission */
+		if (traflag & RAY_INSIDE)
 			d= shade_by_transmission(&isec, &shi, &shr);
 		
 		if(depth>0) {
@@ -773,27 +774,33 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 				tracol[3]= col[3];	// we pass on and accumulate alpha
 				
 				if((shi.mat->mode & MA_TRANSP) && (shi.mat->mode & MA_RAYTRANSP)) {
-					/* odd depths: use normal facing viewer, otherwise flip */
-					if(traflag & RAY_TRAFLIP) {
+					if(traflag & RAY_INSIDE) {
+						/* inside the material, so use inverse normal */
 						float norm[3];
 						norm[0]= - shi.vn[0];
 						norm[1]= - shi.vn[1];
 						norm[2]= - shi.vn[2];
-						if (!refraction(refract, norm, shi.view, shi.ang)) {
+
+						if (refraction(refract, norm, shi.view, shi.ang)) {
+							/* ray comes out from the material into air */
+							traflag &= ~RAY_INSIDE;
+						}
+						else {
+							/* total internal reflection (ray stays inside the material) */
 							reflection(refract, norm, shi.view, shi.vn);
-							/* for total internal reflection the ray stays inside the material, so don't flip the normal (double flip) */
-							traflag ^= RAY_TRAFLIP;
 						}
 					}
 					else {
-						if (!refraction(refract, shi.vn, shi.view, shi.ang)) {
+						if (refraction(refract, shi.vn, shi.view, shi.ang)) {
+							/* ray goes in to the material from air */
+							traflag |= RAY_INSIDE;
+						}
+						else {
+							/* total external reflection (ray doesn't enter the material) */
 							reflection(refract, shi.vn, shi.view, shi.vn);
-							/* same reason as above */
-							traflag ^= RAY_TRAFLIP;
 						}
 					}
-					traflag |= RAY_TRA;
-					traceray(origshi, origshr, depth-1, shi.co, refract, tracol, shi.obi, shi.vlr, traflag ^ RAY_TRAFLIP);
+					traceray(origshi, origshr, depth-1, shi.co, refract, tracol, shi.obi, shi.vlr, traflag);
 				}
 				else
 					traceray(origshi, origshr, depth-1, shi.co, shi.view, tracol, shi.obi, shi.vlr, 0);
@@ -1291,6 +1298,7 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 {
 	QMCSampler *qsa=NULL;
 	int samp_type;
+	int traflag=0;
 	
 	float samp3d[3], orthx[3], orthy[3];
 	float v_refract[3], v_refract_new[3];
@@ -1318,7 +1326,18 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 	
 
 	while (samples < max_samples) {		
-		refraction(v_refract, shi->vn, shi->view, shi->ang);
+		if(refraction(v_refract, shi->vn, shi->view, shi->ang)) {
+			traflag |= RAY_INSIDE;
+		} else {
+			/* total external reflection can happen for materials with IOR < 1.0 */
+			if((shi->vlr->flag & R_SMOOTH)) 
+				reflection(v_refract, shi->vn, shi->view, shi->facenor);
+			else
+				reflection(v_refract, shi->vn, shi->view, NULL);
+
+			/* can't blur total external reflection */
+			max_samples = 1;
+		}
 		
 		if (max_samples > 1) {
 			/* get a quasi-random vector from a phong-weighted disc */
@@ -1340,7 +1359,7 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 		
 		sampcol[0]= sampcol[1]= sampcol[2]= sampcol[3]= 0.0f;
 
-		traceray(shi, shr, shi->mat->ray_depth_tra, shi->co, v_refract_new, sampcol, shi->obi, shi->vlr, RAY_TRA|RAY_TRAFLIP);
+		traceray(shi, shr, shi->mat->ray_depth_tra, shi->co, v_refract_new, sampcol, shi->obi, shi->vlr, traflag);
 	
 		col[0] += sampcol[0];
 		col[1] += sampcol[1];
