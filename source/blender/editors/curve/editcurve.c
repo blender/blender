@@ -61,6 +61,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_animsys.h"
+#include "BKE_action.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1010,7 +1011,7 @@ static int curve_is_animated(Object *ob)
 	return ad && ad->action;
 }
 
-static void fcurve_path_rename(char *orig_rna_path, char *rna_path, ListBase *orig_curves, ListBase *curves)
+static void fcurve_path_rename(AnimData *ad, char *orig_rna_path, char *rna_path, ListBase *orig_curves, ListBase *curves)
 {
 	FCurve *fcu, *nfcu, *nextfcu;
 	int len= strlen(orig_rna_path);
@@ -1025,7 +1026,13 @@ static void fcurve_path_rename(char *orig_rna_path, char *rna_path, ListBase *or
 			nfcu->rna_path= BLI_sprintfN("%s%s", rna_path, suffix);
 			BLI_addtail(curves, nfcu);
 
-			BLI_remlink(orig_curves, fcu);
+			if (fcu->grp) {
+				action_groups_remove_channel(ad->action, fcu);
+				action_groups_add_channel(ad->action, fcu->grp, nfcu);
+			}
+			else if (ad->action)
+				BLI_remlink(&ad->action->curves, fcu);
+
 			free_fcurve(fcu);
 
 			MEM_freeN(spath);
@@ -1043,14 +1050,14 @@ int ED_curve_updateAnimPaths(Object *obedit)
 	Nurb *nu= editnurb->nurbs.first;
 	CVKeyIndex *keyIndex;
 	char rna_path[64], orig_rna_path[64];
-	ListBase orig_curves= {0, 0};
-	ListBase curves= {0, 0};
 	AnimData *ad= BKE_animdata_from_id(&cu->id);
+	ListBase *orig_curves= NULL;
+	ListBase curves= {0, 0};
 	FCurve *fcu, *next;
 
 	if(!curve_is_animated(obedit)) return 0;
 
-	copy_fcurves(&orig_curves, &ad->action->curves);
+	orig_curves= &ad->action->curves;
 
 	while(nu) {
 		if(nu->bezt) {
@@ -1068,14 +1075,14 @@ int ED_curve_updateAnimPaths(Object *obedit)
 						char handle_path[64], orig_handle_path[64];
 						sprintf(orig_handle_path, "%s.handle_left", orig_rna_path);
 						sprintf(handle_path, "%s.handle_right", rna_path);
-						fcurve_path_rename(orig_handle_path, handle_path, &orig_curves, &curves);
+						fcurve_path_rename(ad, orig_handle_path, handle_path, orig_curves, &curves);
 
 						sprintf(orig_handle_path, "%s.handle_right", orig_rna_path);
 						sprintf(handle_path, "%s.handle_left", rna_path);
-						fcurve_path_rename(orig_handle_path, handle_path, &orig_curves, &curves);
+						fcurve_path_rename(ad, orig_handle_path, handle_path, orig_curves, &curves);
 					}
 
-					fcurve_path_rename(orig_rna_path, rna_path, &orig_curves, &curves);
+					fcurve_path_rename(ad, orig_rna_path, rna_path, orig_curves, &curves);
 
 					keyIndex->nu_index= nu_index;
 					keyIndex->pt_index= pt_index;
@@ -1094,7 +1101,7 @@ int ED_curve_updateAnimPaths(Object *obedit)
 				if(keyIndex) {
 					sprintf(rna_path, "splines[%d].points[%d]", nu_index, pt_index);
 					sprintf(orig_rna_path, "splines[%d].points[%d]", keyIndex->nu_index, keyIndex->pt_index);
-					fcurve_path_rename(orig_rna_path, rna_path, &orig_curves, &curves);
+					fcurve_path_rename(ad, orig_rna_path, rna_path, orig_curves, &curves);
 
 					keyIndex->nu_index= nu_index;
 					keyIndex->pt_index= pt_index;
@@ -1109,25 +1116,35 @@ int ED_curve_updateAnimPaths(Object *obedit)
 	}
 
 	nu_index= 0;
+	nu= editnurb->nurbs.first;
 	while(nu) {
+		keyIndex= NULL;
+		if(nu->pntsu) {
+			if(nu->bezt) keyIndex= getCVKeyIndex(editnurb, &nu->bezt[0]);
+			else keyIndex= getCVKeyIndex(editnurb, &nu->bp[0]);
+		}
+
 		if(keyIndex) {
 			sprintf(rna_path, "splines[%d]", nu_index);
 			sprintf(orig_rna_path, "splines[%d]", keyIndex->nu_index);
-			fcurve_path_rename(orig_rna_path, rna_path, &ad->action->curves, &curves);
+			fcurve_path_rename(ad, orig_rna_path, rna_path, &ad->action->curves, &curves);
 		}
+
 		nu_index++;
+		nu= nu->next;
 	}
 
 	/* the remainders in orig_curves can be copied back (like follow path) */
 	/* (if it's not path to spline) */
-	for(fcu= orig_curves.first; fcu; fcu= next) {
+	for(fcu= orig_curves->first; fcu; fcu= next) {
 		next= fcu->next;
 
-		if(!strncmp(fcu->rna_path, "splines", 7)) free_fcurve(fcu);
-		else BLI_addtail(&curves, fcu);
+		if(!strncmp(fcu->rna_path, "splines", 7)) {
+			action_groups_remove_channel(ad->action, fcu);
+			free_fcurve(fcu);
+		} else BLI_addtail(&curves, fcu);
 	}
 	
-	free_fcurves(&ad->action->curves);
 	ad->action->curves= curves;
 
 	return 1;
@@ -1221,13 +1238,12 @@ void make_editNurb(Object *obedit)
 			nu= nu->next;
 		}
 
-		if(actkey) {
+		if(actkey)
 			editnurb->shapenr= obedit->shapenr;
-			init_editNurb_keyIndex(editnurb, &cu->nurb);
-		}
 
-		if(is_anim)
-			init_editNurb_keyIndex(editnurb, &cu->nurb);
+		/* animation could be added in editmode even if teher was no animdata i
+		   object mode hence we always need CVs index be created */
+		init_editNurb_keyIndex(editnurb, &cu->nurb);
 	}
 }
 
