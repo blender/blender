@@ -20,11 +20,37 @@
 
 """
 Example Usage:
-  blender --background --python source/tests/batch_import.py --  --operator="bpy.ops.import_scene.obj" --path="/fe/obj" --match="*.obj" --start=0 --end=10 --save_path=/tmp/test
+
+./blender.bin --background --python source/tests/batch_import.py -- \
+    --operator="bpy.ops.import_scene.obj" \
+    --path="/fe/obj" \
+    --match="*.obj" \
+    --start=0 --end=10 \
+    --save_path=/tmp/test
+
+./blender.bin --background --python source/tests/batch_import.py -- \
+    --operator="bpy.ops.import_scene.autodesk_3ds" \
+    --path="/fe/" \
+    --match="*.3ds" \
+    --start=0 --end=1000 \
+    --save_path=/tmp/test
 """
 
 import os
 import sys
+
+def clear_scene():
+    import bpy
+    unique_obs = set()
+    for scene in bpy.data.scenes:
+        for obj in scene.objects[:]:
+            scene.objects.unlink(obj)
+            unique_obs.add(obj)
+
+    # remove obdata, for now only worry about the startup scene
+    for bpy_data_iter in (bpy.data.objects, bpy.data.meshes, bpy.data.lamps, bpy.data.cameras):
+        for id_data in bpy_data_iter:
+            bpy_data_iter.remove(id_data)
 
 
 def batch_import(operator="",
@@ -74,6 +100,7 @@ def batch_import(operator="",
     for i, f in enumerate(files):
         print("    %s(filepath=%r) # %d of %d" % (operator, f, i + start, len(files)))
         bpy.ops.wm.read_factory_settings()
+        clear_scene()
 
         op(filepath=f)
 

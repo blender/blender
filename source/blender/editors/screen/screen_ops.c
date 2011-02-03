@@ -2695,7 +2695,6 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 		sound_stop_scene(scene);
 	}
 	else {
-		ScrArea *sa= CTX_wm_area(C);
 		int refresh= SPACE_TIME; /* these settings are currently only available from a menu in the TimeLine */
 		
 		if (mode == 1) // XXX only play audio forwards!?
