@@ -1553,7 +1553,7 @@ static PyObject *Matrix_subscript(MatrixObject* self, PyObject* item)
 			return NULL;
 
 		if (slicelength <= 0) {
-			return PyList_New(0);
+			return PyTuple_New(0);
 		}
 		else if (step == 1) {
 			return Matrix_slice(self, start, stop);

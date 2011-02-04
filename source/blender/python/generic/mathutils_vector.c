@@ -1324,7 +1324,7 @@ static PyObject *Vector_subscript(VectorObject* self, PyObject* item)
 			return NULL;
 
 		if (slicelength <= 0) {
-			return PyList_New(0);
+			return PyTuple_New(0);
 		}
 		else if (step == 1) {
 			return Vector_slice(self, start, stop);

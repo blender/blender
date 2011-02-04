@@ -85,6 +85,7 @@ static char M_Mathutils_doc[] =
 static int mathutils_array_parse_fast(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
 {
 	PyObject *value_fast= NULL;
+	PyObject *item;
 
 	int i, size;
 
@@ -106,8 +107,8 @@ static int mathutils_array_parse_fast(float *array, int array_min, int array_max
 	i= size;
 	do {
 		i--;
-		if(((array[i]= PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i))) == -1.0) && PyErr_Occurred()) {
-			PyErr_Format(PyExc_ValueError, "%.200s: sequence index %d is not a float", error_prefix, i);
+		if(((array[i]= PyFloat_AsDouble((item= PySequence_Fast_GET_ITEM(value_fast, i)))) == -1.0) && PyErr_Occurred()) {
+			PyErr_Format(PyExc_ValueError, "%.200s: sequence index %d expected a number, found '%.200s' type, ", error_prefix, i, Py_TYPE(item)->tp_name);
 			Py_DECREF(value_fast);
 			return -1;
 		}

@@ -446,7 +446,7 @@ static PyObject *Euler_subscript(EulerObject *self, PyObject *item)
 			return NULL;
 
 		if (slicelength <= 0) {
-			return PyList_New(0);
+			return PyTuple_New(0);
 		}
 		else if (step == 1) {
 			return Euler_slice(self, start, stop);
