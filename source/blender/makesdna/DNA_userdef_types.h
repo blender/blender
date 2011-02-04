@@ -492,9 +492,9 @@ extern UserDef U; /* from blenkernel blender.c */
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
 #define		AUTOKEY_FLAG_XYZ2RGB		(1<<3)
-	/* U.autokey_flag (strictly autokeying only) */
+
+/* toolsettings->autokey_flag */
 #define 	AUTOKEY_FLAG_ONLYKEYINGSET	(1<<6)
-	/* toolsettings->autokey_flag */
 #define 	ANIMRECORD_FLAG_WITHNLA		(1<<10)
 
 /* transopts */

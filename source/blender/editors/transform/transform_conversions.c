@@ -4586,13 +4586,13 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 		/* add datasource override for the camera object */
 		ANIM_relative_keyingset_add_source(&dsources, id, NULL, NULL); 
 		
-		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
+		if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {
 			/* only insert into active keyingset 
 			 * NOTE: we assume here that the active Keying Set does not need to have its iterator overridden spe
 			 */
 			ANIM_apply_keyingset(C, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
 		}
-		else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+		else if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL)) {
 			AnimData *adt= ob->adt;
 			
 			/* only key on available channels */
@@ -4603,7 +4603,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 				}
 			}
 		}
-		else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
+		else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
 			short doLoc=0, doRot=0, doScale=0;
 			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
@@ -4700,12 +4700,12 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 				ANIM_relative_keyingset_add_source(&dsources, id, &RNA_PoseBone, pchan); 
 				
 				/* only insert into active keyingset? */
-				if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
+				if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {
 					/* run the active Keying Set on the current datasource */
 					ANIM_apply_keyingset(C, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
 				}
 				/* only insert into available channels? */
-				else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+				else if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL)) {
 					if (act) {
 						for (fcu= act->curves.first; fcu; fcu= fcu->next) {
 							/* only insert keyframes for this F-Curve if it affects the current bone */
@@ -4724,7 +4724,7 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 					}
 				}
 				/* only insert keyframe if needed? */
-				else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
+				else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
 					short doLoc=0, doRot=0, doScale=0;
 					
 					/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */

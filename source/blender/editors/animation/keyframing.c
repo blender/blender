@@ -88,15 +88,15 @@ short ANIM_get_keyframing_flags (Scene *scene, short incl_mode)
 	/* standard flags */
 	{
 		/* visual keying */
-		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) 
+		if (IS_AUTOKEY_FLAG(scene, AUTOMATKEY)) 
 			flag |= INSERTKEY_MATRIX;
 		
 		/* only needed */
-		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
+		if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) 
 			flag |= INSERTKEY_NEEDED;
 		
 		/* default F-Curve color mode - RGB from XYZ indices */
-		if (IS_AUTOKEY_FLAG(XYZ2RGB)) 
+		if (IS_AUTOKEY_FLAG(scene, XYZ2RGB)) 
 			flag |= INSERTKEY_XYZ2RGB;
 	}
 		

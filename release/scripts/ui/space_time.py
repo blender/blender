@@ -80,6 +80,7 @@ class TIME_HT_header(bpy.types.Header):
 
         row = layout.row(align=True)
         row.prop(tools, "use_keyframe_insert_auto", text="", toggle=True)
+        row.prop(tools, "use_keyframe_insert_keyingset", text="", toggle=True)
         if screen.is_animation_playing and tools.use_keyframe_insert_auto:
             subsub = row.row()
             subsub.prop(tools, "use_record_with_nla", toggle=True)
