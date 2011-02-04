@@ -805,12 +805,10 @@ GHOST_TSuccess GHOST_WindowWin32::removeDrawingContext()
 	GHOST_TSuccess success;
 	switch (m_drawingContextType) {
 	case GHOST_kDrawingContextTypeOpenGL:
-		if (m_hGlRc) {
-			bool first = m_hGlRc == s_firsthGLRc;
+		// we shouldn't remove the drawing context if it's the first OpenGL context
+		// If we do, we get corrupted drawing. See #19997
+		if (m_hGlRc && m_hGlRc!=s_firsthGLRc) {
 			success = ::wglDeleteContext(m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
-			if (first) {
-				s_firsthGLRc = 0;
-			}
 			m_hGlRc = 0;
 		}
 		else {
