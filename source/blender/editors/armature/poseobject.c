@@ -932,6 +932,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bPoseChannel *chan, *pchan;
 	int flip= RNA_boolean_get(op->ptr, "flipped");
+	int selOnly= RNA_boolean_get(op->ptr, "selected_mask");
 	
 	/* sanity checks */
 	if ELEM(NULL, ob, ob->pose)
@@ -945,17 +946,28 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	/* Safely merge all of the channels in the buffer pose into any existing pose */
 	for (chan= g_posebuf->chanbase.first; chan; chan=chan->next) {
 		if (chan->flag & POSE_KEY) {
-			/* get the name - if flipping, we must flip this first */
 			char name[32];
+			short paste_ok;
+			
+			/* get the name - if flipping, we must flip this first */
 			if (flip)
 				flip_side_name(name, chan->name, 0);		/* 0 = don't strip off number extensions */
 			else
 				BLI_strncpy(name, chan->name, sizeof(name));
 			
-			/* only copy when channel exists, poses are not meant to add random channels to anymore */
+			/* only copy when:
+			 * 	1) channel exists - poses are not meant to add random channels to anymore
+			 * 	2) if selection-masking is on, channel is selected - only selected bones get pasted on, allowing making both sides symmetrical
+			 */
 			pchan= get_pose_channel(ob->pose, name);
 			
-			if (pchan) {
+			if (selOnly)
+				paste_ok= ((pchan) && (pchan->bone->flag & BONE_SELECTED));
+			else
+				paste_ok= ((pchan != NULL));
+			
+			/* continue? */
+			if (paste_ok) {
 				/* only loc rot size 
 				 *	- only copies transform info for the pose 
 				 */
@@ -1098,6 +1110,7 @@ void POSE_OT_paste (wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "Paste the stored pose flipped on to current pose");
+	RNA_def_boolean(ot->srna, "selected_mask", 0, "On Selected Only", "Only paste the stored post on to selected bones in the current pose");
 }
 
 /* ********************************************** */
