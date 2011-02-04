@@ -32,7 +32,7 @@ CPU:=$(shell uname -m)
 
 
 # Source and Build DIR's
-BLENDER_DIR:=$(shell readlink $(PWD))
+BLENDER_DIR:=$(shell pwd -P)
 BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS)_$(CPU)
 
 
@@ -45,10 +45,10 @@ ifeq ($(OS), Darwin)
 	NPROCS:=$(shell system_profiler | awk '/Number Of CPUs/{print $4}{next;}')
 endif
 ifeq ($(OS), FreeBSD)
-	NPROCS:=$(shell sysctl -a | grep "hw.ncpu" | awk '{print $3}')
+	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3 )
 endif
 ifeq ($(OS), NetBSD)
-	NPROCS:=$(shell sysctl -a | grep "hw.ncpu" | awk '{print $3}')
+	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3 )
 endif
 
 
@@ -58,7 +58,7 @@ all:
 	@echo Configuring Blender ...
 
 	if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
-		mkdir --parents $(BUILD_DIR) ; \
+		mkdir -p $(BUILD_DIR) ; \
 		cd $(BUILD_DIR) ; \
 		cmake $(BLENDER_DIR) ; \
 	fi
