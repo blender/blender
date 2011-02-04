@@ -31,7 +31,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject *value);
+static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value);
 
 /* matrix vector callbacks */
 int mathutils_matrix_vector_cb_index= -1;
@@ -167,8 +167,8 @@ static char C_Matrix_Rotation_doc[] =
 
 static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 {
-	VectorObject *vec= NULL;
-	char *axis= NULL;
+	PyObject *vec= NULL;
+	const char *axis= NULL;
 	int matSize;
 	double angle; /* use double because of precision problems at high values */
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -179,7 +179,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 		return NULL;
 	}
 
-	if(vec && !VectorObject_Check(vec)) {
+	if(vec && PyUnicode_Check(vec)) {
 		axis= _PyUnicode_AsString((PyObject *)vec);
 		if(axis==NULL || axis[0]=='\0' || axis[1]!='\0' || axis[0] < 'X' || axis[0] > 'Z') {
 			PyErr_SetString(PyExc_TypeError, "mathutils.RotationMatrix(): 3rd argument axis value must be a 3D vector or a string in 'X', 'Y', 'Z'");
@@ -203,23 +203,18 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 		return NULL;
 	}
 	if((matSize == 3 || matSize == 4) && (axis == NULL) && (vec == NULL)) {
-		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): please choose an axis of rotation for 3d and 4d matrices");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): axis of rotation for 3d and 4d matrices is required");
 		return NULL;
-	}
-	if(vec) {
-		if(vec->size != 3) {
-			PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): the vector axis must be a 3D vector");
-			return NULL;
-		}
-		
-		if(!BaseMath_ReadCallback(vec))
-			return NULL;
-		
 	}
 
 	/* check for valid vector/axis above */
 	if(vec) {
-		axis_angle_to_mat3( (float (*)[3])mat,vec->vec, angle);
+		float tvec[3];
+
+		if (mathutils_array_parse(tvec, 3, 3, vec, "mathutils.RotationMatrix(angle, size, axis), invalid 'axis' arg") == -1)
+			return NULL;
+
+		axis_angle_to_mat3((float (*)[3])mat, tvec, angle);
 	}
 	else if(matSize == 2) {
 		//2D rotation matrix
@@ -281,29 +276,16 @@ static char C_Matrix_Translation_doc[] =
 "   :return: An identity matrix with a translation.\n"
 "   :rtype: :class:`Matrix`\n";
 
-static PyObject *C_Matrix_Translation(PyObject *cls, VectorObject * vec)
+static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
 {
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-	
-	if(!VectorObject_Check(vec)) {
-		PyErr_SetString(PyExc_TypeError, "mathutils.Matrix.Translation(): expected vector");
-		return NULL;
-	}
-	if(vec->size != 3 && vec->size != 4) {
-		PyErr_SetString(PyExc_TypeError, "mathutils.Matrix.Translation(): vector must be 3D or 4D");
-		return NULL;
-	}
-	
-	if(!BaseMath_ReadCallback(vec))
-		return NULL;
-	
-	//create a identity matrix and add translation
-	unit_m4((float(*)[4]) mat);
-	mat[12] = vec->vec[0];
-	mat[13] = vec->vec[1];
-	mat[14] = vec->vec[2];
+	float mat[16], tvec[3];
 
+	if (mathutils_array_parse(tvec, 3, 4, value, "mathutils.Matrix.Translation(vector), invalid vector arg") == -1)
+		return NULL;
+
+	/* create a identity matrix and add translation */
+	unit_m4((float(*)[4]) mat);
+	copy_v3_v3(mat + 12, tvec); /* 12, 13, 14 */
 	return newMatrixObject(mat, 4, 4, Py_NEW, (PyTypeObject *)cls);
 }
 //----------------------------------mathutils.Matrix.Scale() -------------
@@ -339,13 +321,13 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 	}
 	if(vec) {
 		if(vec->size > 2 && matSize == 2) {
-			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.Scale(): please use 2D vectors when scaling in 2D");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.Scale(): 2D vectors when scaling in 2D required");
 			return NULL;
 		}
-		
+
 		if(!BaseMath_ReadCallback(vec))
 			return NULL;
-		
+
 	}
 	if(vec == NULL) {	//scaling along axis
 		if(matSize == 2) {
@@ -413,29 +395,19 @@ static char C_Matrix_OrthoProjection_doc[] =
 "   :rtype: :class:`Matrix`\n";
 static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 {
-	VectorObject *vec = NULL;
-	char *plane;
+	PyObject *vec= NULL;
+	const char *plane;
 	int matSize, x;
 	float norm = 0.0f;
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-	
-	if(!PyArg_ParseTuple(args, "si|O!:Matrix.OrthoProjection", &plane, &matSize, &vector_Type, &vec)) {
+
+	if(!PyArg_ParseTuple(args, "si|O:Matrix.OrthoProjection", &plane, &matSize, &vec)) {
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
 		PyErr_SetString(PyExc_AttributeError,"mathutils.Matrix.OrthoProjection(): can only return a 2x2 3x3 or 4x4 matrix");
 		return NULL;
-	}
-	if(vec) {
-		if(vec->size > 2 && matSize == 2) {
-			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.OrthoProjection(): please use 2D vectors when scaling in 2D");
-			return NULL;
-		}
-		
-		if(!BaseMath_ReadCallback(vec))
-			return NULL;
-		
 	}
 	if(vec == NULL) {	//ortho projection onto cardinal plane
 		if((strcmp(plane, "X") == 0) && matSize == 2) {
@@ -455,32 +427,42 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.OrthoProjection(): unknown plane - expected: X, Y, XY, XZ, YZ");
 			return NULL;
 		}
-	} else { //arbitrary plane
+	}
+	else {
+		//arbitrary plane
+
+		int vec_size= 0;
+		float tvec[4];
+
+		if((vec_size= mathutils_array_parse(tvec, 2, matSize == 2 ? 2 : 3, vec, "Matrix.OrthoProjection(plane, size, axis), invalid 'axis' arg")) == -1) {
+			return NULL;
+		}
+
 		//normalize arbitrary axis
-		for(x = 0; x < vec->size; x++) {
-			norm += vec->vec[x] * vec->vec[x];
+		for(x = 0; x < vec_size; x++) {
+			norm += tvec[x] * tvec[x];
 		}
 		norm = (float) sqrt(norm);
-		for(x = 0; x < vec->size; x++) {
-			vec->vec[x] /= norm;
+		for(x = 0; x < vec_size; x++) {
+			tvec[x] /= norm;
 		}
 		if((strcmp(plane, "R") == 0) && matSize == 2) {
-			mat[0] = 1 - (vec->vec[0] * vec->vec[0]);
-			mat[1] = -(vec->vec[0] * vec->vec[1]);
-			mat[2] = -(vec->vec[0] * vec->vec[1]);
-			mat[3] = 1 - (vec->vec[1] * vec->vec[1]);
+			mat[0] = 1 - (tvec[0] * tvec[0]);
+			mat[1] = -(tvec[0] * tvec[1]);
+			mat[2] = -(tvec[0] * tvec[1]);
+			mat[3] = 1 - (tvec[1] * tvec[1]);
 		} else if((strcmp(plane, "R") == 0) && matSize > 2) {
-			mat[0] = 1 - (vec->vec[0] * vec->vec[0]);
-			mat[1] = -(vec->vec[0] * vec->vec[1]);
-			mat[2] = -(vec->vec[0] * vec->vec[2]);
-			mat[3] = -(vec->vec[0] * vec->vec[1]);
-			mat[4] = 1 - (vec->vec[1] * vec->vec[1]);
-			mat[5] = -(vec->vec[1] * vec->vec[2]);
-			mat[6] = -(vec->vec[0] * vec->vec[2]);
-			mat[7] = -(vec->vec[1] * vec->vec[2]);
-			mat[8] = 1 - (vec->vec[2] * vec->vec[2]);
+			mat[0] = 1 - (tvec[0] * tvec[0]);
+			mat[1] = -(tvec[0] * tvec[1]);
+			mat[2] = -(tvec[0] * tvec[2]);
+			mat[3] = -(tvec[0] * tvec[1]);
+			mat[4] = 1 - (tvec[1] * tvec[1]);
+			mat[5] = -(tvec[1] * tvec[2]);
+			mat[6] = -(tvec[0] * tvec[2]);
+			mat[7] = -(tvec[1] * tvec[2]);
+			mat[8] = 1 - (tvec[2] * tvec[2]);
 		} else {
-			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.OrthoProjection(): unknown plane - expected: 'r' expected for axis designation");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.OrthoProjection(): unknown plane - expected: 'R' expected for axis designation");
 			return NULL;
 		}
 	}
@@ -516,7 +498,7 @@ static char C_Matrix_Shear_doc[] =
 static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 {
 	int matSize;
-	char *plane;
+	const char *plane;
 	PyObject *fac;
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
@@ -606,7 +588,7 @@ static void matrix_as_3x3(float mat[3][3], MatrixObject *self)
 }
 
 /* assumes rowsize == colsize is checked and the read callback has run */
-static float matrix_determinant(MatrixObject * self)
+static float matrix_determinant_internal(MatrixObject *self)
 {
 	if(self->rowSize == 2) {
 		return determinant_m2(self->matrix[0][0], self->matrix[0][1],
@@ -624,7 +606,7 @@ static float matrix_determinant(MatrixObject * self)
 
 
 /*-----------------------------METHODS----------------------------*/
-static char Matrix_toQuat_doc[] =
+static char Matrix_to_quaternion_doc[] =
 ".. method:: to_quat()\n"
 "\n"
 "   Return a quaternion representation of the rotation matrix.\n"
@@ -632,29 +614,29 @@ static char Matrix_toQuat_doc[] =
 "   :return: Quaternion representation of the rotation matrix.\n"
 "   :rtype: :class:`Quaternion`\n";
 
-static PyObject *Matrix_toQuat(MatrixObject * self)
+static PyObject *Matrix_to_quaternion(MatrixObject *self)
 {
 	float quat[4];
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if((self->colSize < 3) || (self->rowSize < 3) || (self->colSize != self->rowSize)) {
 		PyErr_SetString(PyExc_AttributeError, "Matrix.to_quat(): inappropriate matrix size - expects 3x3 or 4x4 matrix");
 		return NULL;
-	} 
+	}
 	if(self->colSize == 3){
 		mat3_to_quat( quat,(float (*)[3])self->contigPtr);
 	}else{
 		mat4_to_quat( quat,(float (*)[4])self->contigPtr);
 	}
-	
+
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 
 /*---------------------------Matrix.toEuler() --------------------*/
-static char Matrix_toEuler_doc[] =
+static char Matrix_to_euler_doc[] =
 ".. method:: to_euler(order, euler_compat)\n"
 "\n"
 "   Return an Euler representation of the rotation matrix (3x3 or 4x4 matrix only).\n"
@@ -666,29 +648,29 @@ static char Matrix_toEuler_doc[] =
 "   :return: Euler representation of the matrix.\n"
 "   :rtype: :class:`Euler`\n";
 
-PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
+PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 {
-	char *order_str= NULL;
+	const char *order_str= NULL;
 	short order= EULER_ORDER_XYZ;
 	float eul[3], eul_compatf[3];
 	EulerObject *eul_compat = NULL;
 
 	float tmat[3][3];
 	float (*mat)[3];
-	
+
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	if(!PyArg_ParseTuple(args, "|sO!:to_euler", &order_str, &euler_Type, &eul_compat))
 		return NULL;
-	
+
 	if(eul_compat) {
 		if(!BaseMath_ReadCallback(eul_compat))
 			return NULL;
 
 		copy_v3_v3(eul_compatf, eul_compat->eul);
 	}
-	
+
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if(self->colSize ==3 && self->rowSize ==3) {
 		mat= (float (*)[3])self->contigPtr;
@@ -719,7 +701,7 @@ PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 	return newEulerObject(eul, order, Py_NEW, NULL);
 }
 /*---------------------------Matrix.resize4x4() ------------------*/
-static char Matrix_Resize4x4_doc[] =
+static char Matrix_resize4x4_doc[] =
 ".. method:: resize4x4()\n"
 "\n"
 "   Resize the matrix to 4x4.\n"
@@ -727,7 +709,7 @@ static char Matrix_Resize4x4_doc[] =
 "   :return: an instance of itself.\n"
 "   :rtype: :class:`Matrix`\n";
 
-PyObject *Matrix_Resize4x4(MatrixObject * self)
+PyObject *Matrix_resize4x4(MatrixObject *self)
 {
 	int x, first_row_elem, curr_pos, new_pos, blank_columns, blank_rows, index;
 
@@ -739,7 +721,7 @@ PyObject *Matrix_Resize4x4(MatrixObject * self)
 		PyErr_SetString(PyExc_TypeError, "cannot resize owned data - make a copy and resize that");
 		return NULL;
 	}
-	
+
 	self->contigPtr = PyMem_Realloc(self->contigPtr, (sizeof(float) * 16));
 	if(self->contigPtr == NULL) {
 		PyErr_SetString(PyExc_MemoryError, "matrix.resize4x4(): problem allocating pointer space");
@@ -774,7 +756,7 @@ PyObject *Matrix_Resize4x4(MatrixObject * self)
 	}
 	self->rowSize = 4;
 	self->colSize = 4;
-	
+
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
@@ -786,7 +768,7 @@ static char Matrix_to_4x4_doc[] =
 "\n"
 "   :return: a new matrix.\n"
 "   :rtype: :class:`Matrix`\n";
-PyObject *Matrix_to_4x4(MatrixObject * self)
+PyObject *Matrix_to_4x4(MatrixObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -812,7 +794,7 @@ static char Matrix_to_3x3_doc[] =
 "\n"
 "   :return: a new matrix.\n"
 "   :rtype: :class:`Matrix`\n";
-PyObject *Matrix_to_3x3(MatrixObject * self)
+PyObject *Matrix_to_3x3(MatrixObject *self)
 {
 	float mat[3][3];
 
@@ -830,7 +812,7 @@ PyObject *Matrix_to_3x3(MatrixObject * self)
 }
 
 /*---------------------------Matrix.translationPart() ------------*/
-static char Matrix_TranslationPart_doc[] =
+static char Matrix_translation_part_doc[] =
 ".. method:: translation_part()\n"
 "\n"
 "   Return a the translation part of a 4 row matrix.\n"
@@ -838,11 +820,11 @@ static char Matrix_TranslationPart_doc[] =
 "   :return: Return a the translation of a matrix.\n"
 "   :rtype: :class:`Vector`\n"
 ;
-PyObject *Matrix_TranslationPart(MatrixObject * self)
+PyObject *Matrix_translation_part(MatrixObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	if((self->colSize < 3) || self->rowSize < 4){
 		PyErr_SetString(PyExc_AttributeError, "Matrix.translation_part(): inappropriate matrix size");
 		return NULL;
@@ -851,7 +833,7 @@ PyObject *Matrix_TranslationPart(MatrixObject * self)
 	return newVectorObject(self->matrix[3], 3, Py_NEW, NULL);
 }
 /*---------------------------Matrix.rotationPart() ---------------*/
-static char Matrix_RotationPart_doc[] =
+static char Matrix_rotation_part_doc[] =
 ".. method:: rotation_part()\n"
 "\n"
 "   Return the 3d submatrix corresponding to the linear term of the embedded affine transformation in 3d. This matrix represents rotation and scale.\n"
@@ -861,7 +843,7 @@ static char Matrix_RotationPart_doc[] =
 "\n"
 "   .. note:: Note that the (4,4) element of a matrix can be used for uniform scaling too.\n";
 
-PyObject *Matrix_RotationPart(MatrixObject *self)
+PyObject *Matrix_rotation_part(MatrixObject *self)
 {
 	float mat[3][3];
 
@@ -878,7 +860,7 @@ PyObject *Matrix_RotationPart(MatrixObject *self)
 	return newMatrixObject((float *)mat, 3, 3, Py_NEW, Py_TYPE(self));
 }
 /*---------------------------Matrix.scalePart() --------------------*/
-static char Matrix_scalePart_doc[] =
+static char Matrix_scale_part_doc[] =
 ".. method:: scale_part()\n"
 "\n"
 "   Return a the scale part of a 3x3 or 4x4 matrix.\n"
@@ -888,7 +870,7 @@ static char Matrix_scalePart_doc[] =
 "\n"
 "   .. note:: This method does not return negative a scale on any axis because it is not possible to obtain this data from the matrix alone.\n";
 
-PyObject *Matrix_scalePart(MatrixObject * self)
+PyObject *Matrix_scale_part(MatrixObject *self)
 {
 	float rot[3][3];
 	float mat[3][3];
@@ -912,7 +894,7 @@ PyObject *Matrix_scalePart(MatrixObject * self)
 }
 
 /*---------------------------Matrix.invert() ---------------------*/
-static char Matrix_Invert_doc[] =
+static char Matrix_invert_doc[] =
 ".. method:: invert()\n"
 "\n"
 "   Set the matrix to its inverse.\n"
@@ -924,9 +906,9 @@ static char Matrix_Invert_doc[] =
 "\n"
 "   .. seealso:: <http://en.wikipedia.org/wiki/Inverse_matrix>\n";
 
-PyObject *Matrix_Invert(MatrixObject * self)
+PyObject *Matrix_invert(MatrixObject *self)
 {
-	
+
 	int x, y, z = 0;
 	float det = 0.0f;
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -941,7 +923,7 @@ PyObject *Matrix_Invert(MatrixObject * self)
 	}
 
 	/*calculate the determinant*/
-	det = matrix_determinant(self);
+	det = matrix_determinant_internal(self);
 
 	if(det != 0) {
 		/*calculate the classical adjoint*/
@@ -967,12 +949,12 @@ PyObject *Matrix_Invert(MatrixObject * self)
 			}
 		}
 		/*transpose
-		Matrix_Transpose(self);*/
+		Matrix_transpose(self);*/
 	} else {
 		PyErr_SetString(PyExc_ValueError, "matrix does not have an inverse");
 		return NULL;
 	}
-	
+
 	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject *)self;
@@ -986,7 +968,7 @@ static char Matrix_decompose_doc[] =
 "\n"
 "   :return: loc, rot, scale triple.\n"
 "   :rtype: (:class:`Vector`, :class:`Quaternion`, :class:`Vector`)";
-static PyObject *Matrix_decompose(MatrixObject * self)
+static PyObject *Matrix_decompose(MatrixObject *self)
 {
 	PyObject *ret;
 	float loc[3];
@@ -1015,7 +997,7 @@ static PyObject *Matrix_decompose(MatrixObject * self)
 
 
 
-static char Matrix_Lerp_doc[] =
+static char Matrix_lerp_doc[] =
 ".. function:: lerp(other, factor)\n"
 "\n"
 "   Returns the interpolation of two matricies.\n"
@@ -1027,7 +1009,7 @@ static char Matrix_Lerp_doc[] =
 "   :return: The interpolated rotation.\n"
 "   :rtype: :class:`Matrix`\n";
 
-static PyObject *Matrix_Lerp(MatrixObject *self, PyObject *args)
+static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
 {
 	MatrixObject *mat2 = NULL;
 	float fac, mat[MATRIX_MAX_DIM*MATRIX_MAX_DIM];
@@ -1059,7 +1041,7 @@ static PyObject *Matrix_Lerp(MatrixObject *self, PyObject *args)
 }
 
 /*---------------------------Matrix.determinant() ----------------*/
-static char Matrix_Determinant_doc[] =
+static char Matrix_determinant_doc[] =
 ".. method:: determinant()\n"
 "\n"
 "   Return the determinant of a matrix.\n"
@@ -1069,20 +1051,20 @@ static char Matrix_Determinant_doc[] =
 "\n"
 "   .. seealso:: <http://en.wikipedia.org/wiki/Determinant>\n";
 
-PyObject *Matrix_Determinant(MatrixObject * self)
+PyObject *Matrix_determinant(MatrixObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	if(self->rowSize != self->colSize){
 		PyErr_SetString(PyExc_AttributeError, "Matrix.determinant: only square matrices are supported");
 		return NULL;
 	}
 
-	return PyFloat_FromDouble((double)matrix_determinant(self));
+	return PyFloat_FromDouble((double)matrix_determinant_internal(self));
 }
 /*---------------------------Matrix.transpose() ------------------*/
-static char Matrix_Transpose_doc[] =
+static char Matrix_transpose_doc[] =
 ".. method:: transpose()\n"
 "\n"
 "   Set the matrix to its transpose.\n"
@@ -1092,13 +1074,13 @@ static char Matrix_Transpose_doc[] =
 "\n"
 "   .. seealso:: <http://en.wikipedia.org/wiki/Transpose>\n";
 
-PyObject *Matrix_Transpose(MatrixObject * self)
+PyObject *Matrix_transpose(MatrixObject *self)
 {
 	float t = 0.0f;
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	if(self->rowSize != self->colSize){
 		PyErr_SetString(PyExc_AttributeError, "Matrix.transpose(d): only square matrices are supported");
 		return NULL;
@@ -1121,7 +1103,7 @@ PyObject *Matrix_Transpose(MatrixObject * self)
 
 
 /*---------------------------Matrix.zero() -----------------------*/
-static char Matrix_Zero_doc[] =
+static char Matrix_zero_doc[] =
 ".. method:: zero()\n"
 "\n"
 "   Set all the matrix values to zero.\n"
@@ -1129,24 +1111,24 @@ static char Matrix_Zero_doc[] =
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Matrix`\n";
 
-PyObject *Matrix_Zero(MatrixObject * self)
+PyObject *Matrix_zero(MatrixObject *self)
 {
 	int row, col;
-	
+
 	for(row = 0; row < self->rowSize; row++) {
 		for(col = 0; col < self->colSize; col++) {
 			self->matrix[row][col] = 0.0f;
 		}
 	}
-	
+
 	if(!BaseMath_WriteCallback(self))
 		return NULL;
-	
+
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
 /*---------------------------Matrix.identity(() ------------------*/
-static char Matrix_Identity_doc[] =
+static char Matrix_identity_doc[] =
 ".. method:: identity()\n"
 "\n"
 "   Set the matrix to the identity matrix.\n"
@@ -1158,11 +1140,11 @@ static char Matrix_Identity_doc[] =
 "\n"
 "   .. seealso:: <http://en.wikipedia.org/wiki/Identity_matrix>\n";
 
-PyObject *Matrix_Identity(MatrixObject * self)
+PyObject *Matrix_identity(MatrixObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	if(self->rowSize != self->colSize){
 		PyErr_SetString(PyExc_AttributeError, "Matrix.identity: only square matrices are supported");
 		return NULL;
@@ -1181,7 +1163,7 @@ PyObject *Matrix_Identity(MatrixObject * self)
 
 	if(!BaseMath_WriteCallback(self))
 		return NULL;
-	
+
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
@@ -1199,13 +1181,13 @@ PyObject *Matrix_copy(MatrixObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	return (PyObject*)newMatrixObject((float (*))self->contigPtr, self->rowSize, self->colSize, Py_NEW, Py_TYPE(self));
 }
 
 /*----------------------------print object (internal)-------------*/
 /*print the object to screen*/
-static PyObject *Matrix_repr(MatrixObject * self)
+static PyObject *Matrix_repr(MatrixObject *self)
 {
 	int x, y;
 	PyObject *rows[MATRIX_MAX_DIM]= {0};
@@ -1256,7 +1238,7 @@ static PyObject* Matrix_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 
 	if(!BaseMath_ReadCallback(matA) || !BaseMath_ReadCallback(matB))
 		return NULL;
-	
+
 	if (matA->colSize != matB->colSize || matA->rowSize != matB->rowSize){
 		if (comparison_type == Py_NE){
 			Py_RETURN_TRUE;
@@ -1294,18 +1276,18 @@ static PyObject* Matrix_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 /*---------------------SEQUENCE PROTOCOLS------------------------
   ----------------------------len(object)------------------------
   sequence length*/
-static int Matrix_len(MatrixObject * self)
+static int Matrix_len(MatrixObject *self)
 {
 	return (self->rowSize);
 }
 /*----------------------------object[]---------------------------
   sequence accessor (get)
   the wrapped vector gives direct access to the matrix data*/
-static PyObject *Matrix_item(MatrixObject * self, int i)
+static PyObject *Matrix_item(MatrixObject *self, int i)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	if(i < 0 || i >= self->rowSize) {
 		PyErr_SetString(PyExc_IndexError, "matrix[attribute]: array index out of range");
 		return NULL;
@@ -1330,7 +1312,7 @@ static int Matrix_ass_item(MatrixObject *self, int i, PyObject *value)
 		return -1;
 	}
 
-	memcpy(self->matrix[i], vec, self->colSize * sizeof(float));
+	memcpy(self->matrix[i], vec, self->colSize *sizeof(float));
 
 	(void)BaseMath_WriteCallback(self);
 	return 0;
@@ -1338,12 +1320,12 @@ static int Matrix_ass_item(MatrixObject *self, int i, PyObject *value)
 
 /*----------------------------object[z:y]------------------------
   sequence slice (get)*/
-static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
+static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
 {
 
 	PyObject *tuple;
 	int count;
-	
+
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
@@ -1362,13 +1344,13 @@ static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
 }
 /*----------------------------object[z:y]------------------------
   sequence slice (set)*/
-static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject *value)
+static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value)
 {
 	PyObject *value_fast= NULL;
 
 	if(!BaseMath_ReadCallback(self))
 		return -1;
-	
+
 	CLAMP(begin, 0, self->rowSize);
 	CLAMP(end, 0, self->rowSize);
 	begin = MIN2(begin,end);
@@ -1410,7 +1392,7 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject *v
 }
 /*------------------------NUMERIC PROTOCOLS----------------------
   ------------------------obj + obj------------------------------*/
-static PyObject *Matrix_add(PyObject * m1, PyObject * m2)
+static PyObject *Matrix_add(PyObject *m1, PyObject *m2)
 {
 	float mat[16];
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
@@ -1422,10 +1404,10 @@ static PyObject *Matrix_add(PyObject * m1, PyObject * m2)
 		PyErr_SetString(PyExc_AttributeError, "Matrix addition: arguments not valid for this operation");
 		return NULL;
 	}
-	
+
 	if(!BaseMath_ReadCallback(mat1) || !BaseMath_ReadCallback(mat2))
 		return NULL;
-	
+
 	if(mat1->rowSize != mat2->rowSize || mat1->colSize != mat2->colSize){
 		PyErr_SetString(PyExc_AttributeError, "Matrix addition: matrices must have the same dimensions for this operation");
 		return NULL;
@@ -1437,7 +1419,7 @@ static PyObject *Matrix_add(PyObject * m1, PyObject * m2)
 }
 /*------------------------obj - obj------------------------------
   subtraction*/
-static PyObject *Matrix_sub(PyObject * m1, PyObject * m2)
+static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 {
 	float mat[16];
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
@@ -1449,10 +1431,10 @@ static PyObject *Matrix_sub(PyObject * m1, PyObject * m2)
 		PyErr_SetString(PyExc_AttributeError, "Matrix addition: arguments not valid for this operation");
 		return NULL;
 	}
-	
+
 	if(!BaseMath_ReadCallback(mat1) || !BaseMath_ReadCallback(mat2))
 		return NULL;
-	
+
 	if(mat1->rowSize != mat2->rowSize || mat1->colSize != mat2->colSize){
 		PyErr_SetString(PyExc_AttributeError, "Matrix addition: matrices must have the same dimensions for this operation");
 		return NULL;
@@ -1535,8 +1517,8 @@ static PyObject* Matrix_inv(MatrixObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
-	return Matrix_Invert(self);
+
+	return Matrix_invert(self);
 }
 
 /*-----------------PROTOCOL DECLARATIONS--------------------------*/
@@ -1720,24 +1702,24 @@ static PyGetSetDef Matrix_getseters[] = {
 
 /*-----------------------METHOD DEFINITIONS ----------------------*/
 static struct PyMethodDef Matrix_methods[] = {
-	{"zero", (PyCFunction) Matrix_Zero, METH_NOARGS, Matrix_Zero_doc},
-	{"identity", (PyCFunction) Matrix_Identity, METH_NOARGS, Matrix_Identity_doc},
-	{"transpose", (PyCFunction) Matrix_Transpose, METH_NOARGS, Matrix_Transpose_doc},
-	{"lerp", (PyCFunction) Matrix_Lerp, METH_VARARGS, Matrix_Lerp_doc},
-	{"determinant", (PyCFunction) Matrix_Determinant, METH_NOARGS, Matrix_Determinant_doc},
-	{"invert", (PyCFunction) Matrix_Invert, METH_NOARGS, Matrix_Invert_doc},
-	{"translation_part", (PyCFunction) Matrix_TranslationPart, METH_NOARGS, Matrix_TranslationPart_doc},
-	{"rotation_part", (PyCFunction) Matrix_RotationPart, METH_NOARGS, Matrix_RotationPart_doc},
-	{"scale_part", (PyCFunction) Matrix_scalePart, METH_NOARGS, Matrix_scalePart_doc},
+	{"zero", (PyCFunction) Matrix_zero, METH_NOARGS, Matrix_zero_doc},
+	{"identity", (PyCFunction) Matrix_identity, METH_NOARGS, Matrix_identity_doc},
+	{"transpose", (PyCFunction) Matrix_transpose, METH_NOARGS, Matrix_transpose_doc},
+	{"lerp", (PyCFunction) Matrix_lerp, METH_VARARGS, Matrix_lerp_doc},
+	{"determinant", (PyCFunction) Matrix_determinant, METH_NOARGS, Matrix_determinant_doc},
+	{"invert", (PyCFunction) Matrix_invert, METH_NOARGS, Matrix_invert_doc},
+	{"translation_part", (PyCFunction) Matrix_translation_part, METH_NOARGS, Matrix_translation_part_doc},
+	{"rotation_part", (PyCFunction) Matrix_rotation_part, METH_NOARGS, Matrix_rotation_part_doc},
+	{"scale_part", (PyCFunction) Matrix_scale_part, METH_NOARGS, Matrix_scale_part_doc},
 	{"decompose", (PyCFunction) Matrix_decompose, METH_NOARGS, Matrix_decompose_doc},
-	{"resize4x4", (PyCFunction) Matrix_Resize4x4, METH_NOARGS, Matrix_Resize4x4_doc},
+	{"resize4x4", (PyCFunction) Matrix_resize4x4, METH_NOARGS, Matrix_resize4x4_doc},
 	{"to_4x4", (PyCFunction) Matrix_to_4x4, METH_NOARGS, Matrix_to_4x4_doc},
 	{"to_3x3", (PyCFunction) Matrix_to_3x3, METH_NOARGS, Matrix_to_3x3_doc},
-	{"to_euler", (PyCFunction) Matrix_toEuler, METH_VARARGS, Matrix_toEuler_doc},
-	{"to_quat", (PyCFunction) Matrix_toQuat, METH_NOARGS, Matrix_toQuat_doc},
+	{"to_euler", (PyCFunction) Matrix_to_euler, METH_VARARGS, Matrix_to_euler_doc},
+	{"to_quat", (PyCFunction) Matrix_to_quaternion, METH_NOARGS, Matrix_to_quaternion_doc},
 	{"copy", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
 	{"__copy__", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
-	
+
 	/* class methods */
 	{"Rotation", (PyCFunction) C_Matrix_Rotation, METH_VARARGS | METH_CLASS, C_Matrix_Rotation_doc},
 	{"Scale", (PyCFunction) C_Matrix_Scale, METH_VARARGS | METH_CLASS, C_Matrix_Scale_doc},
@@ -1832,7 +1814,7 @@ PyObject *newMatrixObject(float *mat, const unsigned short rowSize, const unsign
 
 	self->rowSize = rowSize;
 	self->colSize = colSize;
-	
+
 	/* init callbacks as NULL */
 	self->cb_user= NULL;
 	self->cb_type= self->cb_subtype= 0;
@@ -1862,7 +1844,7 @@ PyObject *newMatrixObject(float *mat, const unsigned short rowSize, const unsign
 				}
 			}
 		} else if (rowSize == colSize ) { /*or if no arguments are passed return identity matrix for square matrices */
-			Matrix_Identity(self);
+			Matrix_identity(self);
 			Py_DECREF(self);
 		}
 		self->wrapped = Py_NEW;

@@ -80,8 +80,8 @@
 
 //-------------------------DOC STRINGS ---------------------------
 static char M_Mathutils_doc[] =
-"This module provides access to matrices, eulers, quaternions and vectors.";
-
+"This module provides access to matrices, eulers, quaternions and vectors."
+;
 static int mathutils_array_parse_fast(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
 {
 	PyObject *value_fast= NULL;
