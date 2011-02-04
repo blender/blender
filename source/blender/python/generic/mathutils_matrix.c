@@ -163,8 +163,8 @@ static char C_Matrix_Rotation_doc[] =
 "   :arg axis: a string in ['X', 'Y', 'Z'] or a 3D Vector Object (optional when size is 2).\n"
 "   :type axis: string or :class:`Vector`\n"
 "   :return: A new rotation matrix.\n"
-"   :rtype: :class:`Matrix`\n";
-
+"   :rtype: :class:`Matrix`\n"
+;
 static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 {
 	PyObject *vec= NULL;
@@ -274,8 +274,8 @@ static char C_Matrix_Translation_doc[] =
 "   :arg vector: The translation vector.\n"
 "   :type vector: :class:`Vector`\n"
 "   :return: An identity matrix with a translation.\n"
-"   :rtype: :class:`Matrix`\n";
-
+"   :rtype: :class:`Matrix`\n"
+;
 static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
 {
 	float mat[16], tvec[3];
@@ -302,8 +302,8 @@ static char C_Matrix_Scale_doc[] =
 "   :arg axis: Direction to influence scale. (optional).\n"
 "   :type axis: :class:`Vector`\n"
 "   :return: A new scale matrix.\n"
-"   :rtype: :class:`Matrix`\n";
-
+"   :rtype: :class:`Matrix`\n"
+;
 static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 {
 	VectorObject *vec = NULL;
@@ -381,60 +381,75 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 //----------------------------------mathutils.Matrix.OrthoProjection() ---
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 static char C_Matrix_OrthoProjection_doc[] =
-".. classmethod:: OrthoProjection(plane, size, axis)\n"
+".. classmethod:: OrthoProjection(axis, size)\n"
 "\n"
 "   Create a matrix to represent an orthographic projection.\n"
 "\n"
-"   :arg plane: Can be any of the following: ['X', 'Y', 'XY', 'XZ', 'YZ', 'R'], where a single axis is for a 2D matrix and 'R' requires axis is given.\n"
-"   :type plane: string\n"
+"   :arg axis: Can be any of the following: ['X', 'Y', 'XY', 'XZ', 'YZ'], where a single axis is for a 2D matrix. Or a vector for an arbitrary axis\n"
+"   :type axis: string or :class:`Vector`\n"
 "   :arg size: The size of the projection matrix to construct [2, 4].\n"
 "   :type size: int\n"
-"   :arg axis: Arbitrary perpendicular plane vector (optional).\n"
-"   :type axis: :class:`Vector`\n"
 "   :return: A new projection matrix.\n"
-"   :rtype: :class:`Matrix`\n";
+"   :rtype: :class:`Matrix`\n"
+;
 static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 {
-	PyObject *vec= NULL;
-	const char *plane;
+	PyObject *axis;
+
 	int matSize, x;
 	float norm = 0.0f;
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
-	if(!PyArg_ParseTuple(args, "si|O:Matrix.OrthoProjection", &plane, &matSize, &vec)) {
+	if(!PyArg_ParseTuple(args, "Oi:Matrix.OrthoProjection", &axis, &matSize)) {
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
 		PyErr_SetString(PyExc_AttributeError,"mathutils.Matrix.OrthoProjection(): can only return a 2x2 3x3 or 4x4 matrix");
 		return NULL;
 	}
-	if(vec == NULL) {	//ortho projection onto cardinal plane
-		if((strcmp(plane, "X") == 0) && matSize == 2) {
-			mat[0] = 1.0f;
-		} else if((strcmp(plane, "Y") == 0) && matSize == 2) {
-			mat[3] = 1.0f;
-		} else if((strcmp(plane, "XY") == 0) && matSize > 2) {
-			mat[0] = 1.0f;
-			mat[4] = 1.0f;
-		} else if((strcmp(plane, "XZ") == 0) && matSize > 2) {
-			mat[0] = 1.0f;
-			mat[8] = 1.0f;
-		} else if((strcmp(plane, "YZ") == 0) && matSize > 2) {
-			mat[4] = 1.0f;
-			mat[8] = 1.0f;
-		} else {
-			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.OrthoProjection(): unknown plane - expected: X, Y, XY, XZ, YZ");
-			return NULL;
+
+	if(PyUnicode_Check(axis)) {	//ortho projection onto cardinal plane
+		Py_ssize_t plane_len;
+		const char *plane= _PyUnicode_AsStringAndSize(axis, &plane_len);
+		if(matSize == 2) {
+			if(plane_len == 1 && plane[0]=='X') {
+				mat[0]= 1.0f;
+			}
+			else if (plane_len == 1 && plane[0]=='Y') {
+				mat[3]= 1.0f;
+			}
+			else {
+				PyErr_Format(PyExc_ValueError, "mathutils.Matrix.OrthoProjection(): unknown plane, expected: X, Y, not '%.200s'", plane);
+				return NULL;
+			}
+		}
+		else {
+			if(plane_len == 2 && plane[0]=='X' && plane[1]=='Y') {
+				mat[0]= 1.0f;
+				mat[4]= 1.0f;
+			}
+			else if (plane_len == 2 && plane[0]=='X' && plane[1]=='Z') {
+				mat[0]= 1.0f;
+				mat[8]= 1.0f;
+			}
+			else if (plane_len == 2 && plane[0]=='Y' && plane[1]=='Z') {
+				mat[4]= 1.0f;
+				mat[8]= 1.0f;
+			}
+			else {
+				PyErr_Format(PyExc_ValueError, "mathutils.Matrix.OrthoProjection(): unknown plane, expected: XY, XZ, YZ, not '%.200s'", plane);
+				return NULL;
+			}
 		}
 	}
 	else {
 		//arbitrary plane
 
-		int vec_size= 0;
+		int vec_size= (matSize == 2 ? 2 : 3);
 		float tvec[4];
 
-		if((vec_size= mathutils_array_parse(tvec, 2, matSize == 2 ? 2 : 3, vec, "Matrix.OrthoProjection(plane, size, axis), invalid 'axis' arg")) == -1) {
+		if(mathutils_array_parse(tvec, vec_size, vec_size, axis, "Matrix.OrthoProjection(axis, size), invalid 'axis' arg") == -1) {
 			return NULL;
 		}
 
@@ -446,12 +461,13 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 		for(x = 0; x < vec_size; x++) {
 			tvec[x] /= norm;
 		}
-		if((strcmp(plane, "R") == 0) && matSize == 2) {
+		if(matSize == 2) {
 			mat[0] = 1 - (tvec[0] * tvec[0]);
 			mat[1] = -(tvec[0] * tvec[1]);
 			mat[2] = -(tvec[0] * tvec[1]);
 			mat[3] = 1 - (tvec[1] * tvec[1]);
-		} else if((strcmp(plane, "R") == 0) && matSize > 2) {
+		}
+		else if(matSize > 2) {
 			mat[0] = 1 - (tvec[0] * tvec[0]);
 			mat[1] = -(tvec[0] * tvec[1]);
 			mat[2] = -(tvec[0] * tvec[2]);
@@ -461,9 +477,6 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 			mat[6] = -(tvec[0] * tvec[2]);
 			mat[7] = -(tvec[1] * tvec[2]);
 			mat[8] = 1 - (tvec[2] * tvec[2]);
-		} else {
-			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.OrthoProjection(): unknown plane - expected: 'R' expected for axis designation");
-			return NULL;
 		}
 	}
 	if(matSize == 4) {
@@ -612,8 +625,8 @@ static char Matrix_to_quaternion_doc[] =
 "   Return a quaternion representation of the rotation matrix.\n"
 "\n"
 "   :return: Quaternion representation of the rotation matrix.\n"
-"   :rtype: :class:`Quaternion`\n";
-
+"   :rtype: :class:`Quaternion`\n"
+;
 static PyObject *Matrix_to_quaternion(MatrixObject *self)
 {
 	float quat[4];
@@ -646,8 +659,8 @@ static char Matrix_to_euler_doc[] =
 "   :arg euler_compat: Optional euler argument the new euler will be made compatible with (no axis flipping between them). Useful for converting a series of matrices to animation curves.\n"
 "   :type euler_compat: :class:`Euler`\n"
 "   :return: Euler representation of the matrix.\n"
-"   :rtype: :class:`Euler`\n";
-
+"   :rtype: :class:`Euler`\n"
+;
 PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 {
 	const char *order_str= NULL;
@@ -707,8 +720,8 @@ static char Matrix_resize4x4_doc[] =
 "   Resize the matrix to 4x4.\n"
 "\n"
 "   :return: an instance of itself.\n"
-"   :rtype: :class:`Matrix`\n";
-
+"   :rtype: :class:`Matrix`\n"
+;
 PyObject *Matrix_resize4x4(MatrixObject *self)
 {
 	int x, first_row_elem, curr_pos, new_pos, blank_columns, blank_rows, index;
@@ -767,7 +780,8 @@ static char Matrix_to_4x4_doc[] =
 "   Return a 4x4 copy of this matrix.\n"
 "\n"
 "   :return: a new matrix.\n"
-"   :rtype: :class:`Matrix`\n";
+"   :rtype: :class:`Matrix`\n"
+;
 PyObject *Matrix_to_4x4(MatrixObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
@@ -793,7 +807,8 @@ static char Matrix_to_3x3_doc[] =
 "   Return a 3x3 copy of this matrix.\n"
 "\n"
 "   :return: a new matrix.\n"
-"   :rtype: :class:`Matrix`\n";
+"   :rtype: :class:`Matrix`\n"
+;
 PyObject *Matrix_to_3x3(MatrixObject *self)
 {
 	float mat[3][3];
@@ -841,8 +856,8 @@ static char Matrix_rotation_part_doc[] =
 "   :return: Return the 3d matrix for rotation and scale.\n"
 "   :rtype: :class:`Matrix`\n"
 "\n"
-"   .. note:: Note that the (4,4) element of a matrix can be used for uniform scaling too.\n";
-
+"   .. note:: Note that the (4,4) element of a matrix can be used for uniform scaling too.\n"
+;
 PyObject *Matrix_rotation_part(MatrixObject *self)
 {
 	float mat[3][3];
@@ -868,8 +883,8 @@ static char Matrix_scale_part_doc[] =
 "   :return: Return a the scale of a matrix.\n"
 "   :rtype: :class:`Vector`\n"
 "\n"
-"   .. note:: This method does not return negative a scale on any axis because it is not possible to obtain this data from the matrix alone.\n";
-
+"   .. note:: This method does not return negative a scale on any axis because it is not possible to obtain this data from the matrix alone.\n"
+;
 PyObject *Matrix_scale_part(MatrixObject *self)
 {
 	float rot[3][3];
@@ -904,8 +919,8 @@ static char Matrix_invert_doc[] =
 "\n"
 "   .. note:: :exc:`ValueError` exception is raised.\n"
 "\n"
-"   .. seealso:: <http://en.wikipedia.org/wiki/Inverse_matrix>\n";
-
+"   .. seealso:: <http://en.wikipedia.org/wiki/Inverse_matrix>\n"
+;
 PyObject *Matrix_invert(MatrixObject *self)
 {
 
@@ -967,7 +982,8 @@ static char Matrix_decompose_doc[] =
 "   Return the location, rotaion and scale components of this matrix.\n"
 "\n"
 "   :return: loc, rot, scale triple.\n"
-"   :rtype: (:class:`Vector`, :class:`Quaternion`, :class:`Vector`)";
+"   :rtype: (:class:`Vector`, :class:`Quaternion`, :class:`Vector`)"
+;
 static PyObject *Matrix_decompose(MatrixObject *self)
 {
 	PyObject *ret;
@@ -1007,8 +1023,8 @@ static char Matrix_lerp_doc[] =
 "   :arg factor: The interpolation value in [0.0, 1.0].\n"
 "   :type factor: float\n"
 "   :return: The interpolated rotation.\n"
-"   :rtype: :class:`Matrix`\n";
-
+"   :rtype: :class:`Matrix`\n"
+;
 static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
 {
 	MatrixObject *mat2 = NULL;
@@ -1049,8 +1065,8 @@ static char Matrix_determinant_doc[] =
 "   :return: Return a the determinant of a matrix.\n"
 "   :rtype: float\n"
 "\n"
-"   .. seealso:: <http://en.wikipedia.org/wiki/Determinant>\n";
-
+"   .. seealso:: <http://en.wikipedia.org/wiki/Determinant>\n"
+;
 PyObject *Matrix_determinant(MatrixObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
@@ -1072,8 +1088,8 @@ static char Matrix_transpose_doc[] =
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Matrix`\n"
 "\n"
-"   .. seealso:: <http://en.wikipedia.org/wiki/Transpose>\n";
-
+"   .. seealso:: <http://en.wikipedia.org/wiki/Transpose>\n"
+;
 PyObject *Matrix_transpose(MatrixObject *self)
 {
 	float t = 0.0f;
@@ -1109,8 +1125,8 @@ static char Matrix_zero_doc[] =
 "   Set all the matrix values to zero.\n"
 "\n"
 "   :return: an instance of itself\n"
-"   :rtype: :class:`Matrix`\n";
-
+"   :rtype: :class:`Matrix`\n"
+;
 PyObject *Matrix_zero(MatrixObject *self)
 {
 	int row, col;
@@ -1138,8 +1154,8 @@ static char Matrix_identity_doc[] =
 "\n"
 "   .. note:: An object with zero location and rotation, a scale of one, will have an identity matrix.\n"
 "\n"
-"   .. seealso:: <http://en.wikipedia.org/wiki/Identity_matrix>\n";
-
+"   .. seealso:: <http://en.wikipedia.org/wiki/Identity_matrix>\n"
+;
 PyObject *Matrix_identity(MatrixObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
@@ -1175,8 +1191,8 @@ static char Matrix_copy_doc[] =
 "   Returns a copy of this matrix.\n"
 "\n"
 "   :return: an instance of itself\n"
-"   :rtype: :class:`Matrix`\n";
-
+"   :rtype: :class:`Matrix`\n"
+;
 PyObject *Matrix_copy(MatrixObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
@@ -1731,8 +1747,8 @@ static struct PyMethodDef Matrix_methods[] = {
 
 /*------------------PY_OBECT DEFINITION--------------------------*/
 static char matrix_doc[] =
-"This object gives access to Matrices in Blender.";
-
+"This object gives access to Matrices in Blender."
+;
 PyTypeObject matrix_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"mathutils.Matrix",						/*tp_name*/

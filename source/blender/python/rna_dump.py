@@ -18,6 +18,8 @@
  #
  # #**** END GPL LICENSE BLOCK #****
 
+# <pep8 compliant>
+
 if 1:
     # Print once every 1000
     GEN_PATH = True
@@ -36,6 +38,7 @@ else:
     MAX_RECURSIVE = 8
 
 seek_count = [0]
+
 
 def seek(r, txt, recurs):
 
@@ -71,52 +74,60 @@ def seek(r, txt, recurs):
             print(txt + ' -> "' + str(r) + '"')
         return
 
-    try:	keys = r.keys()
-    except: keys = None
+    try:
+        keys = r.keys()
+    except:
+        keys = None
 
     if keys != None:
         if PRINT_DATA:
             print(txt + '.keys() - ' + str(r.keys()))
 
-    try:	__members__ = dir(r)
-    except: __members__ = []
+    try:
+        __members__ = dir(r)
+    except:
+        __members__ = []
 
     for item in __members__:
-        if item.startswith('__'):
+        if item.startswith("__"):
             continue
 
-        if GEN_PATH: newtxt = txt + '.' + item
+        if GEN_PATH:
+            newtxt = txt + '.' + item
 
-        if item == 'rna_type' and VERBOSE_TYPE==False: # just avoid because it spits out loads of data
+        if item == 'rna_type' and VERBOSE_TYPE == False:  # just avoid because it spits out loads of data
             continue
 
-        try:	value = getattr(r, item)
-        except:	value = None
+        value = getattr(r, item, None)
 
-        seek( value, newtxt, recurs + 1)
-
+        seek(value, newtxt, recurs + 1)
 
     if keys:
         for k in keys:
-            if GEN_PATH: newtxt = txt + '["' + k + '"]'
-            seek(r.__getitem__(k), newtxt, recurs+1)
+            if GEN_PATH:
+                newtxt = txt + '["' + k + '"]'
+            seek(r.__getitem__(k), newtxt, recurs + 1)
 
     else:
-        try:	length = len( r )
-        except:	length = 0
+        try:
+            length = len(r)
+        except:
+            length = 0
 
-        if VERBOSE==False and length >= 4:
-            for i in (0, length-1):
-                if i>0:
+        if VERBOSE == False and length >= 4:
+            for i in (0, length - 1):
+                if i > 0:
                     if PRINT_DATA:
-                        print((' '*len(txt)) + ' ... skipping '+str(length-2)+' items ...')
+                        print((" " * len(txt)) + " ... skipping " + str(length - 2) + " items ...")
 
-                if GEN_PATH: newtxt = txt + '[' + str(i) + ']'
-                seek(r[i], newtxt, recurs+1)
+                if GEN_PATH:
+                    newtxt = txt + '[' + str(i) + ']'
+                seek(r[i], newtxt, recurs + 1)
         else:
             for i in range(length):
-                if GEN_PATH: newtxt = txt + '[' + str(i) + ']'
-                seek(r[i], newtxt, recurs+1)
+                if GEN_PATH:
+                    newtxt = txt + '[' + str(i) + ']'
+                seek(r[i], newtxt, recurs + 1)
 
 seek(bpy.data, 'bpy.data', 0)
 # seek(bpy.types, 'bpy.types', 0)

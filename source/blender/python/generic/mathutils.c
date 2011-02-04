@@ -37,6 +37,7 @@
  * - Mathutils.Slerp --> quat.slerp(other, fac)
  * - Mathutils.Rand: removed, use pythons random module
  * - Mathutils.RotationMatrix(angle, size, axis_flag, axis) --> Mathutils.RotationMatrix(angle, size, axis); merge axis & axis_flag args
+ * - Mathutils.OrthoProjectionMatrix(plane, size, axis) --> Mathutils.OrthoProjectionMatrix(axis, size); merge axis & plane args
  * - Matrix.scalePart --> Matrix.scale_part
  * - Matrix.translationPart --> Matrix.translation_part
  * - Matrix.rotationPart --> Matrix.rotation_part
