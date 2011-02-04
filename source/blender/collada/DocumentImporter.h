@@ -50,7 +50,7 @@ struct bContext;
 class DocumentImporter : COLLADAFW::IWriter
 {
  public:
-	//! Enumeration to keep denote the stage of import
+	//! Enumeration to denote the stage of import
 	enum ImportStage {
 		General,		//!< First pass to collect all data except controller
 		Controller,		//!< Second pass to collect controller data
