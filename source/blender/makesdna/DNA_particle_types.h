@@ -168,8 +168,8 @@ typedef struct ParticleSettings {
 
 	/* general values */
 	float sta, end, lifetime, randlife;
-	float timetweak, jitfac, eff_hair;
-	int totpart, userjit, grid_res;
+	float timetweak, jitfac, eff_hair, grid_rand;
+	int totpart, userjit, grid_res, rt;
 
 	/* initial velocity factors */
 	float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
@@ -247,7 +247,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	float imat[4][4];	/* used for duplicators */
 	float cfra, tree_frame;
 	int seed, child_seed;
-	int flag, totpart, totchild, totcached, totchildcache;
+	int flag, totpart, totunexist, totchild, totcached, totchildcache, rt;
 	short recalc, target_psys, totkeyed, bakespace;
 
 	char bb_uvname[3][32];					/* billboard uv name */

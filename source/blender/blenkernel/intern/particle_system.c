@@ -137,9 +137,9 @@ static int tot_particles(ParticleSystem *psys, PTCacheID *pid)
 	if(pid && psys->pointcache->flag & PTCACHE_EXTERNAL)
 		return pid->cache->totpoint;
 	else if(psys->part->distr == PART_DISTR_GRID && psys->part->from != PART_FROM_VERT)
-		return psys->part->grid_res * psys->part->grid_res * psys->part->grid_res;
+		return psys->part->grid_res * psys->part->grid_res * psys->part->grid_res - psys->totunexist;
 	else
-		return psys->part->totpart;
+		return psys->part->totpart - psys->totunexist;
 }
 
 void psys_reset(ParticleSystem *psys, int mode)
@@ -439,9 +439,14 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 	size[(axis+1)%3] = MIN2(size[(axis+1)%3],res);
 	size[(axis+2)%3] = MIN2(size[(axis+2)%3],res);
 
-	min[0]+=d/2.0f;
-	min[1]+=d/2.0f;
-	min[2]+=d/2.0f;
+	size[0] = MAX2(size[0], 1);
+	size[1] = MAX2(size[1], 1);
+	size[2] = MAX2(size[2], 1);
+
+	/* no full offset for flat/thin objects */
+	min[0]+= d < delta[0] ? d/2.f : delta[0]/2.f;
+	min[1]+= d < delta[1] ? d/2.f : delta[1]/2.f;
+	min[2]+= d < delta[2] ? d/2.f : delta[2]/2.f;
 
 	for(i=0,p=0,pa=psys->particles; i<res; i++){
 		for(j=0; j<res; j++){
@@ -497,7 +502,7 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 
 					pa=psys->particles + a1*a1mul + a2*a2mul;
 					VECCOPY(co1,pa->fuv);
-					co1[a]-=d/2.0f;
+					co1[a]-= d < delta[a] ? d/2.f : delta[a]/2.f;
 					VECCOPY(co2,co1);
 					co2[a]+=delta[a] + 0.001f*d;
 					co1[a]-=0.001f*d;
@@ -551,6 +556,18 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 					pa->flag ^= PARS_UNEXIST;
 				}
 			}
+		}
+	}
+
+	if(psys->part->grid_rand > 0.f) {
+		float rfac = d * psys->part->grid_rand;
+		for(p=0,pa=psys->particles; p<psys->totpart; p++,pa++){
+			if(pa->flag & PARS_UNEXIST)
+				continue;
+
+			pa->fuv[0] += rfac * (PSYS_FRAND(p + 31) - 0.5f);
+			pa->fuv[1] += rfac * (PSYS_FRAND(p + 32) - 0.5f);
+			pa->fuv[2] += rfac * (PSYS_FRAND(p + 33) - 0.5f);
 		}
 	}
 }
@@ -1554,8 +1571,51 @@ static void initialize_all_particles(ParticleSimulationData *sim)
 	ParticleSystem *psys = sim->psys;
 	PARTICLE_P;
 
-	LOOP_PARTICLES
+	psys->totunexist = 0;
+
+	LOOP_PARTICLES {
 		initialize_particle(sim, pa, p);
+		if(pa->flag & PARS_UNEXIST)
+			psys->totunexist++;
+	}
+
+	/* Free unexisting particles. */
+	if(psys->totpart && psys->totunexist == psys->totpart) {
+		if(psys->particles->boid)
+			MEM_freeN(psys->particles->boid);
+
+		MEM_freeN(psys->particles);
+		psys->particles = NULL;
+		psys->totpart = psys->totunexist = 0;
+	}
+
+	if(psys->totunexist) {
+		int newtotpart = psys->totpart - psys->totunexist;
+		ParticleData *npa, *newpars;
+		
+		npa = newpars = MEM_callocN(newtotpart * sizeof(ParticleData), "particles");
+
+		for(p=0, pa=psys->particles; p<newtotpart; p++, pa++, npa++) {
+			while(pa->flag & PARS_UNEXIST)
+				pa++;
+
+			memcpy(npa, pa, sizeof(ParticleData));
+		}
+
+		if(psys->particles->boid)
+			MEM_freeN(psys->particles->boid);
+		MEM_freeN(psys->particles);
+		psys->particles = newpars;
+		psys->totpart -= psys->totunexist;
+
+		if(psys->particles->boid) {
+			BoidParticle *newboids = MEM_callocN(psys->totpart * sizeof(BoidParticle), "boid particles");
+
+			LOOP_PARTICLES
+				pa->boid = newboids++;
+
+		}
+	}
 	
 	if(psys->part->type != PART_FLUID) {
 #if 0 // XXX old animation system
@@ -4090,6 +4150,9 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	if(psys->recalc & PSYS_RECALC_TYPE)
 		psys_changed_type(&sim);
+
+	if(psys->recalc & PSYS_RECALC_RESET)
+		psys->totunexist = 0;
 
 	/* setup necessary physics type dependent additional data if it doesn't yet exist */
 	psys_prepare_physics(&sim);

@@ -190,8 +190,10 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
         row.prop(part, "emit_from", expand=True)
 
         row = layout.row()
-        row.prop(part, "use_emit_random")
-        if part.distribution != 'GRID':
+        if part.distribution == 'GRID':
+            row.prop(part, "invert_grid")
+        else:
+            row.prop(part, "use_emit_random")
             row.prop(part, "use_even_distribution")
 
         if part.emit_from == 'FACE' or part.emit_from == 'VOLUME':
@@ -206,6 +208,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
                 row.prop(part, "jitter_factor", text="Jittering Amount", slider=True)
             elif part.distribution == 'GRID':
                 row.prop(part, "grid_resolution")
+                row.prop(part, "grid_random", text="Random", slider=True)
 
 
 class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, bpy.types.Panel):
