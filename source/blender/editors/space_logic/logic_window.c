@@ -3814,7 +3814,7 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr, bContext
 			break;
 
 		case ACT_CONST_TYPE_ORI:
-			uiItemR(layout, ptr, "direction_axis", 0, NULL, ICON_NULL);
+			uiItemR(layout, ptr, "direction_axis_pos", 0, NULL, ICON_NULL);
 
 			row=uiLayoutRow(layout, 1);
 			uiItemR(row, ptr, "damping", UI_ITEM_R_SLIDER , NULL, ICON_NULL);
