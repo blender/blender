@@ -1684,8 +1684,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "grid_resolution", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "grid_res");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 1, 46); /* ~100k particles in a cube */
-	RNA_def_property_ui_range(prop, 1, 215, 1, 0); /* ~10M particles in a cube */
+	RNA_def_property_range(prop, 1, 215); /* ~10M particles in a cube */
+	RNA_def_property_ui_range(prop, 1, 46, 1, 0); /* ~100k particles in a cube */
 	RNA_def_property_ui_text(prop, "Resolution", "The resolution of the particle grid");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
