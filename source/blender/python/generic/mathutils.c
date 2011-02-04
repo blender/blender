@@ -38,6 +38,7 @@
  * - Mathutils.Rand: removed, use pythons random module
  * - Mathutils.RotationMatrix(angle, size, axis_flag, axis) --> Mathutils.RotationMatrix(angle, size, axis); merge axis & axis_flag args
  * - Mathutils.OrthoProjectionMatrix(plane, size, axis) --> Mathutils.OrthoProjectionMatrix(axis, size); merge axis & plane args
+ * - Mathutils.ShearMatrix(plane, factor, size) --> Mathutils.ShearMatrix(plane, size, factor); swap size & factor args, match other constructors.
  * - Matrix.scalePart --> Matrix.scale_part
  * - Matrix.translationPart --> Matrix.translation_part
  * - Matrix.rotationPart --> Matrix.rotation_part

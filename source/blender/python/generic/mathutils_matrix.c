@@ -495,16 +495,16 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 }
 
 static char C_Matrix_Shear_doc[] =
-".. classmethod:: Shear(plane, factor, size)\n"
+".. classmethod:: Shear(plane, size, factor)\n"
 "\n"
 "   Create a matrix to represent an shear transformation.\n"
 "\n"
 "   :arg plane: Can be any of the following: ['X', 'Y', 'XY', 'XZ', 'YZ'], where a single axis is for a 2D matrix only.\n"
 "   :type plane: string\n"
-"   :arg factor: The factor of shear to apply. For a 3 or 4 *size* matrix pass a pair of floats corrasponding with the *plane* axis.\n"
-"   :type factor: float or float pair\n"
 "   :arg size: The size of the shear matrix to construct [2, 4].\n"
 "   :type size: int\n"
+"   :arg factor: The factor of shear to apply. For a 3 or 4 *size* matrix pass a pair of floats corrasponding with the *plane* axis.\n"
+"   :type factor: float or float pair\n"
 "   :return: A new shear matrix.\n"
 "   :rtype: :class:`Matrix`\n"
 ;
@@ -516,7 +516,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
-	if(!PyArg_ParseTuple(args, "sOi:Matrix.Shear", &plane, &fac, &matSize)) {
+	if(!PyArg_ParseTuple(args, "siO:Matrix.Shear", &plane, &matSize, &fac)) {
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
