@@ -163,8 +163,8 @@ class NODE_MT_node(bpy.types.Menu):
         layout.operator("node.show_cyclic_dependencies")
         layout.operator("node.read_renderlayers")
         layout.operator("node.read_fullsamplelayers")
-        
-     
+
+
 # Node Backdrop options 
 class NODE_PT_properties(bpy.types.Panel):
     bl_space_type = 'NODE_EDITOR'
@@ -175,7 +175,7 @@ class NODE_PT_properties(bpy.types.Panel):
     def poll(cls, context):
         snode = context.space_data
         return snode.tree_type == 'COMPOSITING'
-        
+
     def draw_header(self, context):
         snode = context.space_data
         self.layout.prop(snode, "show_backdrop", text="")

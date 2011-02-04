@@ -18,6 +18,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 """
 Thumbnailer runs with python 2.6 and 3.x.
 To run automatically with nautilus:

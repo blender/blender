@@ -37,7 +37,7 @@ class PhysicButtonsPanel():
 
 class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Force Fields"
-    
+
     @classmethod
     def poll(cls, context):
         ob = context.object

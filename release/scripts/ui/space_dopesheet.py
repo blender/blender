@@ -32,10 +32,10 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
     row = layout.row(align=True)
     row.prop(dopesheet, "show_only_selected", text="")
     row.prop(dopesheet, "show_hidden", text="")
-	
+
     if genericFiltersOnly:
-        return	
-	
+        return
+
     row = layout.row(align=True)
     row.prop(dopesheet, "show_transforms", text="")
 
@@ -114,8 +114,8 @@ class DOPESHEET_HT_header(bpy.types.Header):
         if st.mode == 'DOPESHEET':
             dopesheet_filter(layout, context)
         elif st.mode == 'ACTION':
-		    # 'genericFiltersOnly' limits the options to only the relevant 'generic' subset of
-		    # filters which will work here and are useful (especially for character animation)
+            # 'genericFiltersOnly' limits the options to only the relevant 'generic' subset of
+            # filters which will work here and are useful (especially for character animation)
             dopesheet_filter(layout, context, genericFiltersOnly=True)
 
         if st.mode in ('ACTION', 'SHAPEKEY'):
