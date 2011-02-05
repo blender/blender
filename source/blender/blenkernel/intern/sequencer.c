@@ -3541,6 +3541,7 @@ static Sequence *seq_dupli(struct Scene *scene, struct Scene *scene_to, Sequence
 
 	if (seq->strip->proxy) {
 		seqn->strip->proxy = MEM_dupallocN(seq->strip->proxy);
+		seqn->strip->proxy->anim = 0;
 	}
 
 	if (seq->strip->color_balance) {
