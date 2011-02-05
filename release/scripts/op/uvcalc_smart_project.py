@@ -168,7 +168,7 @@ def island2Edge(island):
     #	e.pop(2)
 
     # return edges and unique points
-    return length_sorted_edges, [v.__copy__().resize3D() for v in unique_points.values()]
+    return length_sorted_edges, [v.to_3d() for v in unique_points.values()]
 
 # ========================= NOT WORKING????
 # Find if a points inside an edge loop, un-orderd.
@@ -227,7 +227,7 @@ def islandIntersectUvIsland(source, target, SourceOffset):
                 return 1 # LINE INTERSECTION
 
     # 1 test for source being totally inside target
-    SourceOffset.resize3D()
+    SourceOffset.resize_3d()
     for pv in source[7]:
         if pointInIsland(pv+SourceOffset, target[0]):
             return 2 # SOURCE INSIDE TARGET
@@ -926,7 +926,7 @@ def main(context, island_margin, projection_limit):
         # Initialize projectVecs
         if USER_VIEW_INIT:
             # Generate Projection
-            projectVecs = [Vector(Window.GetViewVector()) * ob.matrix_world.copy().invert().rotation_part()] # We add to this allong the way
+            projectVecs = [Vector(Window.GetViewVector()) * ob.matrix_world.inverted().to_3x3()] # We add to this allong the way
         else:
             projectVecs = []
 

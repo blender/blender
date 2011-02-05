@@ -37,7 +37,7 @@ def add_object_align_init(context, operator):
             location = mathutils.Matrix.Translation(context.scene.cursor_location)
 
         if operator:
-            operator.properties.location = location.translation_part()
+            operator.properties.location = location.to_translation()
 
     # rotation
     view_align = (context.user_preferences.edit.object_align == 'VIEW')
@@ -49,10 +49,10 @@ def add_object_align_init(context, operator):
             operator.properties.view_align = view_align
 
     if operator and operator.properties.is_property_set("rotation") and not view_align_force:
-        rotation = mathutils.Euler(operator.properties.rotation).to_matrix().resize4x4()
+        rotation = mathutils.Euler(operator.properties.rotation).to_matrix().to_4x4()
     else:
         if view_align and space_data:
-            rotation = space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
+            rotation = space_data.region_3d.view_matrix.to_3x3().inverted().to_4x4()
         else:
             rotation = mathutils.Matrix()
 
