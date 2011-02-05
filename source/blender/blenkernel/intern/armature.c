@@ -1401,13 +1401,6 @@ void where_is_armature_bone(Bone *bone, Bone *prevbone)
 		VECCOPY(bone->arm_mat[3], bone->head);
 	}
 	
-	/* head */
-	VECCOPY(bone->arm_head, bone->arm_mat[3]);
-	/* tail is in current local coord system */
-	VECCOPY(vec, bone->arm_mat[1]);
-	mul_v3_fl(vec, bone->length);
-	add_v3_v3v3(bone->arm_tail, bone->arm_head, vec);
-	
 	/* and the kiddies */
 	prevbone= bone;
 	for(bone= bone->childbase.first; bone; bone= bone->next) {

@@ -5746,6 +5746,23 @@ static int map_223_keybd_code_to_224_keybd_code(int code)
 	}
 }
 
+static void do_version_bone_head_tail_237(Bone *bone)
+{
+	Bone *child;
+	float vec[3];
+
+	/* head */
+	copy_v3_v3(bone->arm_head, bone->arm_mat[3]);
+
+	/* tail is in current local coord system */
+	copy_v3_v3(vec, bone->arm_mat[1]);
+	mul_v3_fl(vec, bone->length);
+	add_v3_v3v3(bone->arm_tail, bone->arm_head, vec);
+
+	for(child= bone->childbase.first; child; child= child->next)
+		do_version_bone_head_tail_237(child);
+}
+
 static void bone_version_238(ListBase *lb)
 {
 	Bone *bone;
@@ -6653,6 +6670,19 @@ static void do_versions_seq_unique_name_all_strips(
 		}
 		seq=seq->next;
 	}
+}
+
+
+static void do_version_bone_roll_256(Bone *bone)
+{
+	Bone *child;
+	float submat[3][3];
+	
+	copy_m3_m4(submat, bone->arm_mat);
+	mat3_to_vec_roll(submat, 0, &bone->arm_roll);
+	
+	for(child = bone->childbase.first; child; child = child->next)
+		do_version_bone_roll_256(child);
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
@@ -7964,10 +7994,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bArmature *arm;
 		bConstraint *con;
 		Object *ob;
+		Bone *bone;
 		
 		// armature recode checks 
 		for(arm= main->armature.first; arm; arm= arm->id.next) {
 			where_is_armature(arm);
+
+			for(bone= arm->bonebase.first; bone; bone= bone->next)
+				do_version_bone_head_tail_237(bone);
 		}
 		for(ob= main->object.first; ob; ob= ob->id.next) {
 			if(ob->parent) {
@@ -11285,6 +11319,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 1)) {
+		/* fix for bones that didn't have arm_roll before */
+		bArmature* arm;
+		Bone* bone;
+
+		for (arm = main->armature.first; arm; arm = arm->id.next)
+			for (bone = arm->bonebase.first; bone; bone = bone->next)
+				do_version_bone_roll_256(bone);
+	}
+				
 	/* put compatibility code here until next subversion bump */
 	
 	{
