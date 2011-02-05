@@ -766,7 +766,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if(rv3d->viewlock) { /* poll should check but in some cases fails, see poll func for details */
 		viewops_data_free(C, op);
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
 	}
 
 	/* switch from camera view when: */
@@ -828,21 +828,6 @@ static int view3d_camera_active_poll(bContext *C)
 	return 0;
 }
 
-static int view3d_rotate_poll(bContext *C)
-{
-	if (!ED_operator_region_view3d_active(C)) {
-		return 0;
-	} else {
-		RegionView3D *rv3d= CTX_wm_region_view3d(C);
-		/* rv3d is null in menus, but it's ok when the menu is clicked on */
-		/* XXX of course, this doesn't work with quadview
-		 * Maybe having exec return PASSTHROUGH would be better than polling here
-		 * Poll functions are full of problems anyway.
-		 * */
-		return rv3d == NULL || rv3d->viewlock == 0;
-	}
-}
-
 void VIEW3D_OT_rotate(wmOperatorType *ot)
 {
 
@@ -854,7 +839,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= viewrotate_invoke;
 	ot->modal= viewrotate_modal;
-	ot->poll= view3d_rotate_poll;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -1953,6 +1938,9 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	viewnum = RNA_enum_get(op->ptr, "type");
 	align_active = RNA_boolean_get(op->ptr, "align_active");
 
+	/* set this to zero, gets handled in axis_set_view */
+	if(rv3d->viewlock)
+		align_active= 0;
 
 	/* Use this to test if we started out with a camera */
 
@@ -2060,12 +2048,6 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-int region3d_unlocked_poll(bContext *C)
-{
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	return (rv3d && rv3d->viewlock==0);
-}
-
 
 void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 {
@@ -2076,7 +2058,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewnumpad_exec;
-	ot->poll= region3d_unlocked_poll;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= 0;
@@ -2144,7 +2126,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= vieworbit_exec;
-	ot->poll= view3d_rotate_poll;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= 0;

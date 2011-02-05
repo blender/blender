@@ -85,7 +85,6 @@ void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
 void view3d_persp_mat4(struct RegionView3D *rv3d, float mat[][4]);
-int region3d_unlocked_poll(struct bContext *C);
 
 /* view3d_fly.c */
 void view3d_keymap(struct wmKeyConfig *keyconf);
