@@ -31,9 +31,21 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-
-
 #define QUAT_SIZE 4
+
+#define QUAT_APPLY_TO_COPY(quat_meth_noargs, _self) \
+	QuaternionObject *ret= (QuaternionObject *)Quaternion_copy(_self); \
+	PyObject *ret_dummy= quat_meth_noargs(ret); \
+	if(ret_dummy) { \
+		Py_DECREF(ret_dummy); \
+		return (PyObject *)ret; \
+	} \
+	else { /* error */ \
+		Py_DECREF(ret); \
+		return NULL; \
+	} \
+
+static PyObject *Quaternion_copy(QuaternionObject *self);
 
 //-----------------------------METHODS------------------------------
 
@@ -250,9 +262,6 @@ static char Quaternion_normalize_doc[] =
 ".. function:: normalize()\n"
 "\n"
 "   Normalize the quaternion.\n"
-"\n"
-"   :return: an instance of itself.\n"
-"   :rtype: :class:`Quaternion`\n"
 ;
 static PyObject *Quaternion_normalize(QuaternionObject *self)
 {
@@ -262,19 +271,28 @@ static PyObject *Quaternion_normalize(QuaternionObject *self)
 	normalize_qt(self->quat);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
 }
-//----------------------------Quaternion.inverse()------------------
-static char Quaternion_inverse_doc[] =
-".. function:: inverse()\n"
+static char Quaternion_normalized_doc[] =
+".. function:: normalized()\n"
 "\n"
-"   Set the quaternion to its inverse.\n"
+"   Return a new normalized quaternion.\n"
 "\n"
-"   :return: an instance of itself.\n"
+"   :return: a normalized copy.\n"
 "   :rtype: :class:`Quaternion`\n"
 ;
-static PyObject *Quaternion_inverse(QuaternionObject *self)
+static PyObject *Quaternion_normalized(QuaternionObject *self)
+{
+	QUAT_APPLY_TO_COPY(Quaternion_normalize, self);
+}
+
+//----------------------------Quaternion.invert()------------------
+static char Quaternion_invert_doc[] =
+".. function:: invert()\n"
+"\n"
+"   Set the quaternion to its inverse.\n"
+;
+static PyObject *Quaternion_invert(QuaternionObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -282,9 +300,21 @@ static PyObject *Quaternion_inverse(QuaternionObject *self)
 	invert_qt(self->quat);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
 }
+static char Quaternion_inverted_doc[] =
+".. function:: inverted()\n"
+"\n"
+"   Return a new, inverted quaternion.\n"
+"\n"
+"   :return: the inverted value.\n"
+"   :rtype: :class:`Quaternion`\n"
+;
+static PyObject *Quaternion_inverted(QuaternionObject *self)
+{
+	QUAT_APPLY_TO_COPY(Quaternion_invert, self);
+}
+
 //----------------------------Quaternion.identity()-----------------
 static char Quaternion_identity_doc[] =
 ".. function:: identity()\n"
@@ -302,8 +332,7 @@ static PyObject *Quaternion_identity(QuaternionObject *self)
 	unit_qt(self->quat);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
 }
 //----------------------------Quaternion.negate()-------------------
 static char Quaternion_negate_doc[] =
@@ -322,17 +351,13 @@ static PyObject *Quaternion_negate(QuaternionObject *self)
 	mul_qt_fl(self->quat, -1.0f);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
 }
 //----------------------------Quaternion.conjugate()----------------
 static char Quaternion_conjugate_doc[] =
 ".. function:: conjugate()\n"
 "\n"
 "   Set the quaternion to its conjugate (negate x, y, z).\n"
-"\n"
-"   :return: an instance of itself.\n"
-"   :rtype: :class:`Quaternion`\n"
 ;
 static PyObject *Quaternion_conjugate(QuaternionObject *self)
 {
@@ -342,9 +367,21 @@ static PyObject *Quaternion_conjugate(QuaternionObject *self)
 	conjugate_qt(self->quat);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
 }
+static char Quaternion_conjugated_doc[] =
+".. function:: conjugated()\n"
+"\n"
+"   Return a new conjugated quaternion.\n"
+"\n"
+"   :return: a new quaternion.\n"
+"   :rtype: :class:`Quaternion`\n"
+;
+static PyObject *Quaternion_conjugated(QuaternionObject *self)
+{
+	QUAT_APPLY_TO_COPY(Quaternion_conjugate, self);
+}
+
 //----------------------------Quaternion.copy()----------------
 static char Quaternion_copy_doc[] =
 ".. function:: copy()\n"
@@ -902,17 +939,30 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 
 //-----------------------METHOD DEFINITIONS ----------------------
 static struct PyMethodDef Quaternion_methods[] = {
+	/* in place only */
 	{"identity", (PyCFunction) Quaternion_identity, METH_NOARGS, Quaternion_identity_doc},
 	{"negate", (PyCFunction) Quaternion_negate, METH_NOARGS, Quaternion_negate_doc},
+
+	/* operate on original or copy */
 	{"conjugate", (PyCFunction) Quaternion_conjugate, METH_NOARGS, Quaternion_conjugate_doc},
-	{"inverse", (PyCFunction) Quaternion_inverse, METH_NOARGS, Quaternion_inverse_doc},
+	{"conjugated", (PyCFunction) Quaternion_conjugated, METH_NOARGS, Quaternion_conjugated_doc},
+
+	{"invert", (PyCFunction) Quaternion_invert, METH_NOARGS, Quaternion_invert_doc},
+	{"inverted", (PyCFunction) Quaternion_inverted, METH_NOARGS, Quaternion_inverted_doc},
+
 	{"normalize", (PyCFunction) Quaternion_normalize, METH_NOARGS, Quaternion_normalize_doc},
+	{"normalized", (PyCFunction) Quaternion_normalized, METH_NOARGS, Quaternion_normalized_doc},
+
+	/* return converted representation */
 	{"to_euler", (PyCFunction) Quaternion_to_euler, METH_VARARGS, Quaternion_to_euler_doc},
 	{"to_matrix", (PyCFunction) Quaternion_to_matrix, METH_NOARGS, Quaternion_to_matrix_doc},
+
+	/* operation between 2 or more types  */
 	{"cross", (PyCFunction) Quaternion_cross, METH_O, Quaternion_cross_doc},
 	{"dot", (PyCFunction) Quaternion_dot, METH_O, Quaternion_dot_doc},
 	{"difference", (PyCFunction) Quaternion_difference, METH_O, Quaternion_difference_doc},
 	{"slerp", (PyCFunction) Quaternion_slerp, METH_VARARGS, Quaternion_slerp_doc},
+
 	{"__copy__", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
 	{"copy", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
 	{NULL, NULL, 0, NULL}

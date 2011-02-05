@@ -31,9 +31,20 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-
-
 #define MAX_DIMENSIONS 4
+
+#define VEC_APPLY_TO_COPY(vec_meth_noargs, _self) \
+	VectorObject *ret= (VectorObject *)Vector_copy(_self); \
+	PyObject *ret_dummy= vec_meth_noargs(ret); \
+	if(ret_dummy) { \
+		Py_DECREF(ret_dummy); \
+		return (PyObject *)ret; \
+	} \
+	else { /* error */ \
+		Py_DECREF(ret); \
+		return NULL; \
+	} \
+
 /* Swizzle axes get packed into a single value that is used as a closure. Each
    axis uses SWIZZLE_BITS_PER_AXIS bits. The first bit (SWIZZLE_VALID_AXIS) is
    used as a sentinel: if it is unset, the axis is not valid. */
@@ -41,11 +52,12 @@
 #define SWIZZLE_VALID_AXIS 0x4
 #define SWIZZLE_AXIS       0x3
 
+static PyObject *Vector_copy(VectorObject *self);
 static PyObject *Vector_to_tuple_ext(VectorObject *self, int ndigits);
 
-//----------------------------------mathutils.Vector() ------------------
-// Supports 2D, 3D, and 4D vector objects both int and float values
-// accepted. Mixed float and int values accepted. Ints are parsed to float 
+/* Supports 2D, 3D, and 4D vector objects both int and float values
+ * accepted. Mixed float and int values accepted. Ints are parsed to float
+ */
 static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *UNUSED(kwds))
 {
 	float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
@@ -70,26 +82,19 @@ static char Vector_zero_doc[] =
 ".. method:: zero()\n"
 "\n"
 "   Set all values to zero.\n"
-"\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Vector`\n"
 ;
 static PyObject *Vector_zero(VectorObject *self)
 {
 	fill_vn(self->vec, self->size, 0.0f);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
 }
-/*----------------------------Vector.normalize() ----------------- */
+
 static char Vector_normalize_doc[] =
 ".. method:: normalize()\n"
 "\n"
 "   Normalize the vector, making the length of the vector always 1.0.\n"
-"\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Vector`\n"
 "\n"
 "   .. warning:: Normalizing a vector where all values are zero results in all axis having a nan value (not a number).\n"
 "\n"
@@ -112,64 +117,72 @@ static PyObject *Vector_normalize(VectorObject *self)
 	}
 	
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
+}
+static char Vector_normalized_doc[] =
+".. method:: normalized()\n"
+"\n"
+"   Return a new, normalized vector.\n"
+"\n"
+"   :return: a normalized copy of the vector\n"
+"   :rtype: :class:`Vector`\n"
+;
+static PyObject *Vector_normalized(VectorObject *self)
+{
+	VEC_APPLY_TO_COPY(Vector_normalize, self);
 }
 
-
-/*----------------------------Vector.resize2D() ------------------ */
-static char Vector_resize2D_doc[] =
-".. method:: resize2D()\n"
+static char Vector_resize_2d_doc[] =
+".. method:: resize_2d()\n"
 "\n"
 "   Resize the vector to 2D  (x, y).\n"
 "\n"
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Vector`\n"
 ;
-static PyObject *Vector_resize2D(VectorObject *self)
+static PyObject *Vector_resize_2d(VectorObject *self)
 {
 	if(self->wrapped==Py_WRAP) {
-		PyErr_SetString(PyExc_TypeError, "vector.resize2D(): cannot resize wrapped data - only python vectors");
+		PyErr_SetString(PyExc_TypeError, "vector.resize_2d(): cannot resize wrapped data - only python vectors");
 		return NULL;
 	}
 	if(self->cb_user) {
-		PyErr_SetString(PyExc_TypeError, "vector.resize2D(): cannot resize a vector that has an owner");
+		PyErr_SetString(PyExc_TypeError, "vector.resize_2d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
 	
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 2));
 	if(self->vec == NULL) {
-		PyErr_SetString(PyExc_MemoryError, "vector.resize2D(): problem allocating pointer space");
+		PyErr_SetString(PyExc_MemoryError, "vector.resize_2d(): problem allocating pointer space");
 		return NULL;
 	}
 	
 	self->size = 2;
-	Py_INCREF(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
 }
-/*----------------------------Vector.resize3D() ------------------ */
-static char Vector_resize3D_doc[] =
-".. method:: resize3D()\n"
+
+static char Vector_resize_3d_doc[] =
+".. method:: resize_3d()\n"
 "\n"
 "   Resize the vector to 3D  (x, y, z).\n"
 "\n"
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Vector`\n"
 ;
-static PyObject *Vector_resize3D(VectorObject *self)
+static PyObject *Vector_resize_3d(VectorObject *self)
 {
 	if (self->wrapped==Py_WRAP) {
-		PyErr_SetString(PyExc_TypeError, "vector.resize3D(): cannot resize wrapped data - only python vectors");
+		PyErr_SetString(PyExc_TypeError, "vector.resize_3d(): cannot resize wrapped data - only python vectors");
 		return NULL;
 	}
 	if(self->cb_user) {
-		PyErr_SetString(PyExc_TypeError, "vector.resize3D(): cannot resize a vector that has an owner");
+		PyErr_SetString(PyExc_TypeError, "vector.resize_3d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
 	
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 3));
 	if(self->vec == NULL) {
-		PyErr_SetString(PyExc_MemoryError, "vector.resize3D(): problem allocating pointer space");
+		PyErr_SetString(PyExc_MemoryError, "vector.resize_3d(): problem allocating pointer space");
 		return NULL;
 	}
 	
@@ -177,32 +190,31 @@ static PyObject *Vector_resize3D(VectorObject *self)
 		self->vec[2] = 0.0f;
 	
 	self->size = 3;
-	Py_INCREF(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
 }
-/*----------------------------Vector.resize4D() ------------------ */
-static char Vector_resize4D_doc[] =
-".. method:: resize4D()\n"
+
+static char Vector_resize_4d_doc[] =
+".. method:: resize_4d()\n"
 "\n"
 "   Resize the vector to 4D (x, y, z, w).\n"
 "\n"
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Vector`\n"
 ;
-static PyObject *Vector_resize4D(VectorObject *self)
+static PyObject *Vector_resize_4d(VectorObject *self)
 {
 	if(self->wrapped==Py_WRAP) {
-		PyErr_SetString(PyExc_TypeError, "vector.resize4D(): cannot resize wrapped data - only python vectors");
+		PyErr_SetString(PyExc_TypeError, "vector.resize_4d(): cannot resize wrapped data - only python vectors");
 		return NULL;
 	}
 	if(self->cb_user) {
-		PyErr_SetString(PyExc_TypeError, "vector.resize4D(): cannot resize a vector that has an owner");
+		PyErr_SetString(PyExc_TypeError, "vector.resize_4d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
 	
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 4));
 	if(self->vec == NULL) {
-		PyErr_SetString(PyExc_MemoryError, "vector.resize4D(): problem allocating pointer space");
+		PyErr_SetString(PyExc_MemoryError, "vector.resize_4d(): problem allocating pointer space");
 		return NULL;
 	}
 	if(self->size == 2){
@@ -212,11 +224,60 @@ static PyObject *Vector_resize4D(VectorObject *self)
 		self->vec[3] = 1.0f;
 	}
 	self->size = 4;
-	Py_INCREF(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
+}
+static char Vector_to_2d_doc[] =
+".. method:: to_2d()\n"
+"\n"
+"   Return a 2d copy of the vector.\n"
+"\n"
+"   :return: a new vector\n"
+"   :rtype: :class:`Vector`\n"
+;
+static PyObject *Vector_to_2d(VectorObject *self)
+{
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	return newVectorObject(self->vec, 2, Py_NEW, Py_TYPE(self));
+}
+static char Vector_to_3d_doc[] =
+".. method:: to_3d()\n"
+"\n"
+"   Return a 3d copy of the vector.\n"
+"\n"
+"   :return: a new vector\n"
+"   :rtype: :class:`Vector`\n"
+;
+static PyObject *Vector_to_3d(VectorObject *self)
+{
+	float tvec[3]= {0.0f};
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	memcpy(tvec, self->vec, sizeof(float) * MIN2(self->size, 3));
+	return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(self));
+}
+static char Vector_to_4d_doc[] =
+".. method:: to_4d()\n"
+"\n"
+"   Return a 4d copy of the vector.\n"
+"\n"
+"   :return: a new vector\n"
+"   :rtype: :class:`Vector`\n"
+;
+static PyObject *Vector_to_4d(VectorObject *self)
+{
+	float tvec[4]= {0.0f, 0.0f, 0.0f, 1.0f};
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	memcpy(tvec, self->vec, sizeof(float) * MIN2(self->size, 4));
+	return newVectorObject(tvec, 4, Py_NEW, Py_TYPE(self));
 }
 
-/*----------------------------Vector.toTuple() ------------------ */
 static char Vector_to_tuple_doc[] =
 ".. method:: to_tuple(precision=-1)\n"
 "\n"
@@ -270,7 +331,6 @@ static PyObject *Vector_to_tuple(VectorObject *self, PyObject *args)
 	return Vector_to_tuple_ext(self, ndigits);
 }
 
-/*----------------------------Vector.toTrackQuat(track, up) ---------------------- */
 static char Vector_to_track_quat_doc[] =
 ".. method:: to_track_quat(track, up)\n"
 "\n"
@@ -385,10 +445,10 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args )
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 
-/*----------------------------Vector.reflect(mirror) ----------------------
-  return a reflected vector on the mirror normal
-   vec - ((2 * DotVecs(vec, mirror)) * mirror)
-*/
+/*
+ * Vector.reflect(mirror): return a reflected vector on the mirror normal
+ *  vec - ((2 * DotVecs(vec, mirror)) * mirror)
+ */
 static char Vector_reflect_doc[] =
 ".. method:: reflect(mirror)\n"
 "\n"
@@ -654,7 +714,6 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 	return newVectorObject(vec, size, Py_NEW, Py_TYPE(self));
 }
 
-/*---------------------------- Vector.rotate(angle, axis) ----------------------*/
 static char Vector_rotate_doc[] =
 ".. function:: rotate(axis, angle)\n"
 "\n"
@@ -696,7 +755,6 @@ static PyObject *Vector_rotate(VectorObject *self, PyObject *args)
 	return (PyObject *)self;
 }
 
-/*----------------------------Vector.copy() -------------------------------------- */
 static char Vector_copy_doc[] =
 ".. function:: copy()\n"
 "\n"
@@ -715,8 +773,6 @@ static PyObject *Vector_copy(VectorObject *self)
 	return newVectorObject(self->vec, self->size, Py_NEW, Py_TYPE(self));
 }
 
-/*----------------------------print object (internal)-------------
-  print the object to screen */
 static PyObject *Vector_repr(VectorObject *self)
 {
 	PyObject *ret, *tuple;
@@ -730,15 +786,13 @@ static PyObject *Vector_repr(VectorObject *self)
 	return ret;
 }
 
-/*---------------------SEQUENCE PROTOCOLS------------------------
-  ----------------------------len(object)------------------------
-  sequence length*/
+/* Sequence Protocol */
+/* sequence length len(vector) */
 static int Vector_len(VectorObject *self)
 {
 	return self->size;
 }
-/*----------------------------object[]---------------------------
-  sequence accessor (get)*/
+/* sequence accessor (get): vector[index] */
 static PyObject *Vector_item(VectorObject *self, int i)
 {
 	if(i<0)	i= self->size-i;
@@ -753,8 +807,7 @@ static PyObject *Vector_item(VectorObject *self, int i)
 	
 	return PyFloat_FromDouble(self->vec[i]);
 }
-/*----------------------------object[]-------------------------
-  sequence accessor (set)*/
+/* sequence accessor (set): vector[index] = value */
 static int Vector_ass_item(VectorObject *self, int i, PyObject * ob)
 {
 	float scalar;
@@ -776,8 +829,7 @@ static int Vector_ass_item(VectorObject *self, int i, PyObject * ob)
 	return 0;
 }
 
-/*----------------------------object[z:y]------------------------
-  sequence slice (get) */
+/* sequence slice (get): vector[a:b] */
 static PyObject *Vector_slice(VectorObject *self, int begin, int end)
 {
 	PyObject *tuple;
@@ -798,8 +850,7 @@ static PyObject *Vector_slice(VectorObject *self, int begin, int end)
 
 	return tuple;
 }
-/*----------------------------object[z:y]------------------------
-  sequence slice (set) */
+/* sequence slice (set): vector[a:b] = value */
 static int Vector_ass_slice(VectorObject *self, int begin, int end,
 				 PyObject * seq)
 {
@@ -827,9 +878,9 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end,
 
 	return 0;
 }
-/*------------------------NUMERIC PROTOCOLS----------------------
-  ------------------------obj + obj------------------------------
-  addition*/
+
+/* Numeric Protocols */
+/* addition: obj + obj */
 static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
@@ -856,8 +907,7 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 	return newVectorObject(vec, vec1->size, Py_NEW, Py_TYPE(v1));
 }
 
-/*  ------------------------obj += obj------------------------------
-  addition in place */
+/* addition in-place: obj += obj */
 static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
@@ -884,8 +934,7 @@ static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 	return v1;
 }
 
-/*------------------------obj - obj------------------------------
-  subtraction*/
+/* subtraction: obj - obj */
 static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
@@ -911,8 +960,7 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 	return newVectorObject(vec, vec1->size, Py_NEW, Py_TYPE(v1));
 }
 
-/*------------------------obj -= obj------------------------------
-  subtraction*/
+/* subtraction in-place: obj -= obj */
 static PyObject *Vector_isub(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec1= NULL, *vec2= NULL;
@@ -1067,8 +1115,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 	return NULL;
 }
 
-/*------------------------obj *= obj------------------------------
-  in place mulplication */
+/* mulplication in-place: obj *= obj */
 static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec = (VectorObject *)v1;
@@ -1116,8 +1163,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 	return v1;
 }
 
-/*------------------------obj / obj------------------------------
-  divide*/
+/* divid: obj / obj */
 static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 {
 	int i;
@@ -1149,8 +1195,7 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 	return newVectorObject(vec, vec1->size, Py_NEW, Py_TYPE(v1));
 }
 
-/*------------------------obj /= obj------------------------------
-  divide*/
+/* divide in-place: obj /= obj */
 static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 {
 	int i;
@@ -1179,21 +1224,17 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 	return v1;
 }
 
-/*-------------------------- -obj -------------------------------
+/* -obj
   returns the negative of this object*/
 static PyObject *Vector_neg(VectorObject *self)
 {
-	int i;
-	float vec[4];
+	float tvec[MAX_DIMENSIONS];
 	
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
-	for(i = 0; i < self->size; i++){
-		vec[i] = -self->vec[i];
-	}
-
-	return newVectorObject(vec, self->size, Py_NEW, Py_TYPE(self));
+	negate_vn_vn(tvec, self->vec, self->size);
+	return newVectorObject(tvec, self->size, Py_NEW, Py_TYPE(self));
 }
 
 /*------------------------vec_magnitude_nosqrt (internal) - for comparing only */
@@ -1209,7 +1250,7 @@ static double vec_magnitude_nosqrt(float *data, int size)
 	/* warning, line above removed because we are not using the length,
 	   rather the comparing the sizes and for this we do not need the sqrt
 	   for the actual length, the dot must be sqrt'd */
-	return (double)dot;
+	return dot;
 }
 
 
@@ -2043,28 +2084,34 @@ static char Vector_negate_doc[] =
 ;
 static PyObject *Vector_negate(VectorObject *self)
 {
-	int i;
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
-	for(i = 0; i < self->size; i++)
-		self->vec[i] = -(self->vec[i]);
-	
+	negate_vn(self->vec, self->size);
+
 	(void)BaseMath_WriteCallback(self); // already checked for error
-	
-	Py_INCREF(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
 }
 
 static struct PyMethodDef Vector_methods[] = {
+	/* in place only */
 	{"zero", (PyCFunction) Vector_zero, METH_NOARGS, Vector_zero_doc},
-	{"normalize", (PyCFunction) Vector_normalize, METH_NOARGS, Vector_normalize_doc},
 	{"negate", (PyCFunction) Vector_negate, METH_NOARGS, Vector_negate_doc},
-	{"resize2D", (PyCFunction) Vector_resize2D, METH_NOARGS, Vector_resize2D_doc},
-	{"resize3D", (PyCFunction) Vector_resize3D, METH_NOARGS, Vector_resize3D_doc},
-	{"resize4D", (PyCFunction) Vector_resize4D, METH_NOARGS, Vector_resize4D_doc},
+
+	/* operate on original or copy */
+	{"normalize", (PyCFunction) Vector_normalize, METH_NOARGS, Vector_normalize_doc},
+	{"normalized", (PyCFunction) Vector_normalized, METH_NOARGS, Vector_normalized_doc},
+
+	{"to_2d", (PyCFunction) Vector_to_2d, METH_NOARGS, Vector_to_2d_doc},
+	{"resize_2d", (PyCFunction) Vector_resize_2d, METH_NOARGS, Vector_resize_2d_doc},
+	{"to_3d", (PyCFunction) Vector_to_3d, METH_NOARGS, Vector_to_3d_doc},
+	{"resize_3d", (PyCFunction) Vector_resize_3d, METH_NOARGS, Vector_resize_3d_doc},
+	{"to_4d", (PyCFunction) Vector_to_4d, METH_NOARGS, Vector_to_4d_doc},
+	{"resize_4d", (PyCFunction) Vector_resize_4d, METH_NOARGS, Vector_resize_4d_doc},
 	{"to_tuple", (PyCFunction) Vector_to_tuple, METH_VARARGS, Vector_to_tuple_doc},
 	{"to_track_quat", (PyCFunction) Vector_to_track_quat, METH_VARARGS, Vector_to_track_quat_doc},
+
+	/* operation between 2 or more types  */
 	{"reflect", (PyCFunction) Vector_reflect, METH_O, Vector_reflect_doc},
 	{"cross", (PyCFunction) Vector_cross, METH_O, Vector_cross_doc},
 	{"dot", (PyCFunction) Vector_dot, METH_O, Vector_dot_doc},
@@ -2073,6 +2120,7 @@ static struct PyMethodDef Vector_methods[] = {
 	{"project", (PyCFunction) Vector_project, METH_O, Vector_project_doc},
 	{"lerp", (PyCFunction) Vector_lerp, METH_VARARGS, Vector_lerp_doc},
 	{"rotate", (PyCFunction) Vector_rotate, METH_VARARGS, Vector_rotate_doc},
+
 	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
 	{"__copy__", (PyCFunction) Vector_copy, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}

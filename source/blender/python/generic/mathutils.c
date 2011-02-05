@@ -50,7 +50,20 @@
  * - Quaternion * Quaternion --> cross product (not dot product)
  * - Euler.rotate(angle, axis) --> Euler.rotate_axis(axis, angle)
  * - Euler.unique() *removed*, not a standard function only toggled different rotations.
- *
+ * - Matrix.rotation_part() -> to_3x3()
+ * - Matrix.scale_part() -> to_scale()
+ * - Matrix.translation_part() -> to_translation()
+ * - Matrix.resize4x4() -> resize_4x4()
+ * - Euler.to_quat() -> to_quaternion()
+ * - Matrix.to_quat() -> to_quaternion()
+ * resizing nolonger returns the resized value.
+ * - Vector.resize2D -> resize_2d
+ * - Vector.resize3D -> resize_3d
+ * - Vector.resize4D -> resize_4d
+ * added new functions.
+ * - Vector.to_2d()
+ * - Vector.to_3d()
+ * - Vector.to_4d()
  * moved into class functions.
  * - Mathutils.RotationMatrix -> mathutils.Matrix.Rotation
  * - Mathutils.ScaleMatrix -> mathutils.Matrix.Scale

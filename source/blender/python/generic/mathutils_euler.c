@@ -146,7 +146,7 @@ static char Euler_to_matrix_doc[] =
 ;
 static PyObject *Euler_to_matrix(EulerObject * self)
 {
-	float mat[9] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+	float mat[9];
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -162,19 +162,13 @@ static char Euler_zero_doc[] =
 ".. method:: zero()\n"
 "\n"
 "   Set all values to zero.\n"
-"\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Euler`\n"
 ;
 static PyObject *Euler_zero(EulerObject * self)
 {
-	self->eul[0] = 0.0;
-	self->eul[1] = 0.0;
-	self->eul[2] = 0.0;
+	zero_v3(self->eul);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject *)self;
+	Py_RETURN_NONE;
 }
 
 static char Euler_rotate_axis_doc[] =
@@ -568,7 +562,7 @@ static PyGetSetDef Euler_getseters[] = {
 static struct PyMethodDef Euler_methods[] = {
 	{"zero", (PyCFunction) Euler_zero, METH_NOARGS, Euler_zero_doc},
 	{"to_matrix", (PyCFunction) Euler_to_matrix, METH_NOARGS, Euler_to_matrix_doc},
-	{"to_quat", (PyCFunction) Euler_to_quaternion, METH_NOARGS, Euler_to_quaternion_doc},
+	{"to_quaternion", (PyCFunction) Euler_to_quaternion, METH_NOARGS, Euler_to_quaternion_doc},
 	{"rotate_axis", (PyCFunction) Euler_rotate_axis, METH_VARARGS, Euler_rotate_axis_doc},
 	{"make_compatible", (PyCFunction) Euler_make_compatible, METH_O, Euler_make_compatible_doc},
 	{"__copy__", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
