@@ -22,22 +22,22 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Andr Pinto.
+ * Contributor(s): André Pinto.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <algorithm>
 
 #include "rayobject_rtbuild.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-
-
 
 static bool selected_node(RTBuilder::Object *node)
 {
@@ -94,13 +94,22 @@ void rtbuild_free(RTBuilder *b)
 
 void rtbuild_add(RTBuilder *b, RayObject *o)
 {
+	float bb[6];
+
 	assert( b->primitives.begin + b->primitives.maxsize != b->primitives.end );
+
+	INIT_MINMAX(bb, bb+3);
+	RE_rayobject_merge_bb(o, bb, bb+3);
+
+	/* skip objects with zero bounding box, they are of no use, and
+	   will give problems in rtbuild_heuristic_object_split later */
+	if(len_squared_v3v3(bb, bb+3) == 0.0f)
+		return;
 	
+	copy_v3_v3(b->primitives.end->bb, bb);
+	copy_v3_v3(b->primitives.end->bb+3, bb+3);
 	b->primitives.end->obj = o;
 	b->primitives.end->cost = RE_rayobject_cost(o);
-
-	INIT_MINMAX(b->primitives.end->bb, b->primitives.end->bb+3);
-	RE_rayobject_merge_bb(o, b->primitives.end->bb, b->primitives.end->bb+3);
 	
 	for(int i=0; i<3; i++)
 	{
@@ -333,8 +342,8 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 			{
 				if(i == size-1)
 				{
-					VECCOPY(sweep[i].bb, obj[i]->bb);
-					VECCOPY(sweep[i].bb+3, obj[i]->bb+3);
+					copy_v3_v3(sweep[i].bb, obj[i]->bb);
+					copy_v3_v3(sweep[i].bb+3, obj[i]->bb+3);
 					sweep[i].cost = obj[i]->cost;
 				}
 				else
@@ -365,8 +374,12 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 				//Worst case heuristic (cost of each child is linear)
 				float hcost, left_side, right_side;
 				
-				left_side = bb_area(sweep_left.bb, sweep_left.bb+3)*(sweep_left.cost+logf((float)i));
-				right_side= bb_area(sweep[i].bb, sweep[i].bb+3)*(sweep[i].cost+logf((float)size-i));
+				// not using log seems to have no impact on raytracing perf, but
+				// makes tree construction quicker, left out for now to test (brecht)
+				// left_side = bb_area(sweep_left.bb, sweep_left.bb+3)*(sweep_left.cost+logf((float)i));
+				// right_side= bb_area(sweep[i].bb, sweep[i].bb+3)*(sweep[i].cost+logf((float)size-i));
+				left_side = bb_area(sweep_left.bb, sweep_left.bb+3)*(sweep_left.cost);
+				right_side= bb_area(sweep[i].bb, sweep[i].bb+3)*(sweep[i].cost);
 				hcost = left_side+right_side;
 
 				assert(left_side >= 0);

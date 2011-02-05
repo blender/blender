@@ -26,6 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #ifndef RE_RAYOBJECT_H
 #define RE_RAYOBJECT_H
 
@@ -33,176 +34,86 @@
 extern "C" {
 #endif
 
-#include "RE_raytrace.h"
-#include "render_types.h"
-#include <stdio.h>
-#include <float.h>
-
+struct Isect;
+struct ObjectInstanceRen;
+struct RayHint;
+struct VlakRen;
 
 /* RayObject
-	
-	A ray object is everything where we can cast rays like:
-		* a face/triangle
-		* an octree
-		* a bvh tree
-		* an octree of bvh's
-		* a bvh of bvh's
-	
-		
-	All types of RayObjects can be created by implementing the
-	callbacks of the RayObject.
 
-	Due to high computing time evolved with casting on faces
-	there is a special type of RayObject (named RayFace)
-	which won't use callbacks like other generic nodes.
-	
-	In order to allow a mixture of RayFace+RayObjects,
-	all RayObjects must be 4byte aligned, allowing us to use the
-	2 least significant bits (with the mask 0x03) to define the
-	type of RayObject.
-	
-	This leads to 4 possible types of RayObject:
+   Can be a face/triangle, bvh tree, object instance, etc. This is the
+   public API used by the renderer, see rayobject_internal.h for the
+   internal implementation details. */
 
-	 addr&3  - type of object
-		 0		Self (reserved for each structure)
-		1     	RayFace (tri/quad primitive)
-		2		RayObject (generic with API callbacks)
-		3		VlakPrimitive
-				(vlak primitive - to be used when we have a vlak describing the data
-				 eg.: on render code)
+typedef struct RayObject RayObject;
 
-	0 means it's reserved and has it own meaning inside each ray acceleration structure
-	(this way each structure can use the allign offset to determine if a node represents a
-	 RayObject primitive, which can be used to save memory)
+/* Intersection, see rayintersection.h */
 
-	You actually don't need to care about this if you are only using the API
-	described on RE_raytrace.h
- */
+int RE_rayobject_raycast(RayObject *r, struct Isect *i);
 
-/* used to align a given ray object */
-#define RE_rayobject_align(o)				((RayObject*)(((intptr_t)o)&(~3)))
+/* Acceleration Structures */
 
-/* used to unalign a given ray object */
-#define RE_rayobject_unalignRayFace(o)		((RayObject*)(((intptr_t)o)|1))
-#define RE_rayobject_unalignRayAPI(o)		((RayObject*)(((intptr_t)o)|2))
-#define RE_rayobject_unalignVlakPrimitive(o)	((RayObject*)(((intptr_t)o)|3))
+RayObject* RE_rayobject_octree_create(int ocres, int size);
+RayObject* RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob);
+RayObject* RE_rayobject_empty_create();
 
-/* used to test the type of ray object */
-#define RE_rayobject_isAligned(o)	((((intptr_t)o)&3) == 0)
-#define RE_rayobject_isRayFace(o)	((((intptr_t)o)&3) == 1)
-#define RE_rayobject_isRayAPI(o)	((((intptr_t)o)&3) == 2)
-#define RE_rayobject_isVlakPrimitive(o)	((((intptr_t)o)&3) == 3)
+RayObject* RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
+RayObject* RE_rayobject_vbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
+RayObject* RE_rayobject_svbvh_create(int size);		/* raytrace/rayobject_svbvh.c */
+RayObject* RE_rayobject_qbvh_create(int size);		/* raytrace/rayobject_qbvh.c */
 
+/* Building */
 
+void RE_rayobject_add(RayObject *r, RayObject *);
+void RE_rayobject_done(RayObject *r);
+void RE_rayobject_free(RayObject *r);
 
-/*
- * This class is intended as a place holder for control, configuration of the rayobject like:
- *	- stop building (TODO maybe when porting build to threads this could be implemented with some thread_cancel function)
- *  - max number of threads and threads callback to use during build
- *	...
- */	
-typedef int  (*RE_rayobjectcontrol_test_break_callback)(void *data);
-typedef struct RayObjectControl RayObjectControl;
-struct RayObjectControl
-{
-	void *data;
-	RE_rayobjectcontrol_test_break_callback test_break;	
-};
+void RE_rayobject_set_control(RayObject *r, void *data, int (*test_break)(void *data));
 
-/*
- * This rayobject represents a generic object. With it's own callbacks for raytrace operations.
- * It's suitable to implement things like LOD.
- */
-struct RayObject
-{
-	struct RayObjectAPI *api;
+/* RayObject representing faces, all data is locally available instead
+   of referring to some external data structure, for possibly faster
+   intersection tests. */
 
-	struct RayObjectControl control;
-};
+typedef struct RayFace {
+	float v1[4], v2[4], v3[4], v4[3];
+	int quad;
+	void *ob;
+	void *face;
+} RayFace;
 
+#define RE_rayface_isQuad(a) ((a)->quad)
 
+RayObject* RE_rayface_from_vlak(RayFace *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
 
+/* RayObject representing faces directly from a given VlakRen structure. Thus
+   allowing to save memory, but making code triangle intersection dependant on
+   render structures. */
 
-typedef int  (*RE_rayobject_raycast_callback)(RayObject *, Isect *);
-typedef void (*RE_rayobject_add_callback)(RayObject *raytree, RayObject *rayobject);
-typedef void (*RE_rayobject_done_callback)(RayObject *);
-typedef void (*RE_rayobject_free_callback)(RayObject *);
-typedef void (*RE_rayobject_merge_bb_callback)(RayObject *, float *min, float *max);
-typedef float (*RE_rayobject_cost_callback)(RayObject *);
-typedef void (*RE_rayobject_hint_bb_callback)(RayObject *, RayHint *, float *, float *);
+typedef struct VlakPrimitive {
+	struct ObjectInstanceRen *ob;
+	struct VlakRen *face;
+} VlakPrimitive;
 
-typedef struct RayObjectAPI
-{
-	RE_rayobject_raycast_callback	raycast;
-	RE_rayobject_add_callback		add;
-	RE_rayobject_done_callback		done;
-	RE_rayobject_free_callback		free;
-	RE_rayobject_merge_bb_callback	bb;
-	RE_rayobject_cost_callback		cost;
-	RE_rayobject_hint_bb_callback	hint_bb;
-	
-} RayObjectAPI;
+RayObject* RE_vlakprimitive_from_vlak(VlakPrimitive *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
 
+/* Bounding Box */
 
-/*
- * This function differs from RE_rayobject_raycast
- * RE_rayobject_intersect does NOT perform last-hit optimization
- * So this is probably a function to call inside raytrace structures
- */
-int RE_rayobject_intersect(RayObject *r, Isect *i);
+/* extend min/max coords so that the rayobject is inside them */
+void RE_rayobject_merge_bb(RayObject *ob, float *min, float *max);
 
-/*
- * Returns distance ray must travel to hit the given bounding box
- * BB should be in format [2][3]
- */
-/* float RE_rayobject_bb_intersect(const Isect *i, const float *bb); */
-int RE_rayobject_bb_intersect_test(const Isect *i, const float *bb); /* same as bb_intersect but doens't calculates distance */
+/* initializes an hint for optiming raycast where it is know that a ray will pass by the given BB often the origin point */
+void RE_rayobject_hint_bb(RayObject *r, struct RayHint *hint, float *min, float *max);
 
-/*
- * Returns the expected cost of raycast on this node, primitives have a cost of 1
- */
-float RE_rayobject_cost(RayObject *r);
+/* initializes an hint for optiming raycast where it is know that a ray will be contained inside the given cone*/
+/* void RE_rayobject_hint_cone(RayObject *r, struct RayHint *hint, float *); */
 
+/* Internals */
 
-/*
- * Returns true if for some reason a heavy processing function should stop
- * (eg.: user asked to stop during a tree a build)
- */
-int RE_rayobjectcontrol_test_break(RayObjectControl *c);
-
-
-#define ISECT_EPSILON ((float)FLT_EPSILON)
-
-
-
-#if !defined(_WIN32) && !defined(_WIN64)
-
-#include <sys/time.h>
-#include <time.h>
-
-#define BENCH(a,name)	\
-	{			\
-		double _t1, _t2;				\
-		struct timeval _tstart, _tend;	\
-		clock_t _clock_init = clock();	\
-		gettimeofday ( &_tstart, NULL);	\
-		(a);							\
-		gettimeofday ( &_tend, NULL);	\
-		_t1 = ( double ) _tstart.tv_sec + ( double ) _tstart.tv_usec/ ( 1000*1000 );	\
-		_t2 = ( double )   _tend.tv_sec + ( double )   _tend.tv_usec/ ( 1000*1000 );	\
-		printf("BENCH:%s: %fs (real) %fs (cpu)\n", #name, _t2-_t1, (float)(clock()-_clock_init)/CLOCKS_PER_SEC);\
-	}
-#else
-
-#define BENCH(a,name)	(a)
-
-#endif
-
-
+#include "../raytrace/rayobject_internal.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-
 #endif
+

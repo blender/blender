@@ -26,7 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #include "MEM_guardedalloc.h"
+
+#include "BLI_utildefines.h"
+
 #include "vbvh.h"
 #include "svbvh.h"
 #include "reorganize.h"
@@ -60,10 +64,10 @@ void bvh_done<QBVHTree>(QBVHTree *obj)
 					   BLI_memarena_use_malloc(arena2);
 					   BLI_memarena_use_align(arena2, 16);
 
-	//Build and optimize the tree	
-	//TODO do this in 1 pass (half memory usage during building)	
+	//Build and optimize the tree
+	//TODO do this in 1 pass (half memory usage during building)
 	VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1, &obj->rayobj.control).transform(obj->builder);	
-	
+
 	if(RE_rayobjectcontrol_test_break(&obj->rayobj.control))
 	{
 		BLI_memarena_free(arena1);
@@ -71,28 +75,32 @@ void bvh_done<QBVHTree>(QBVHTree *obj)
 		return;
 	}
 	
-	pushup_simd<VBVHNode,4>(root);					   
+	pushup_simd<VBVHNode,4>(root);
+
 	obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
 	
-	//Cleanup
-	BLI_memarena_free(arena1);	
+	//Free data
+	BLI_memarena_free(arena1);
 	
-	rtbuild_free( obj->builder );
-	obj->builder = NULL;
-
 	obj->node_arena = arena2;
-	obj->cost = 1.0;	
-}
+	obj->cost = 1.0;
 
+	rtbuild_free(obj->builder);
+	obj->builder = NULL;
+}
 
 template<int StackSize>
 int intersect(QBVHTree *obj, Isect* isec)
 {
 	//TODO renable hint support
-	if(RE_rayobject_isAligned(obj->root))
-		return bvh_node_stack_raycast<SVBVHNode,StackSize,false>( obj->root, isec);
+	if(RE_rayobject_isAligned(obj->root)) {
+		if(isec->mode == RE_RAY_SHADOW)
+			return svbvh_node_stack_raycast<StackSize,true>(obj->root, isec);
+		else
+			return svbvh_node_stack_raycast<StackSize,false>(obj->root, isec);
+	}
 	else
-		return RE_rayobject_intersect( (RayObject*) obj->root, isec );
+		return RE_rayobject_intersect((RayObject*)obj->root, isec);
 }
 
 template<class Tree>
@@ -132,12 +140,10 @@ RayObjectAPI* bvh_get_api(int maxstacksize)
 	return 0;
 }
 
-
 RayObject *RE_rayobject_qbvh_create(int size)
 {
 	return bvh_create_tree<QBVHTree,DFS_STACK_SIZE>(size);
 }
-
 
 #else
 

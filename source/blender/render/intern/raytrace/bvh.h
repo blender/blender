@@ -26,12 +26,16 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#include "rayobject.h"
-#include "raycounter.h"
-#include "rayobject_rtbuild.h"
-#include "rayobject_hint.h"
 
-#include "BLI_utildefines.h"
+#include "MEM_guardedalloc.h"
+
+#include "BLI_math.h"
+
+#include "raycounter.h"
+#include "rayintersection.h"
+#include "rayobject.h"
+#include "rayobject_hint.h"
+#include "rayobject_rtbuild.h"
 
 #include <assert.h>
 
@@ -45,21 +49,49 @@
 #ifdef __SSE__
 inline int test_bb_group4(__m128 *bb_group, const Isect *isec)
 {
-	
 	const __m128 tmin0 = _mm_setzero_ps();
-	const __m128 tmax0 = _mm_load1_ps(&isec->labda);
+	const __m128 tmax0 = _mm_set_ps1(isec->dist);
 
-	const __m128 tmin1 = _mm_max_ps(tmin0, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[0]], _mm_load1_ps(&isec->start[0]) ), _mm_load1_ps(&isec->idot_axis[0])) );
-	const __m128 tmax1 = _mm_min_ps(tmax0, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[1]], _mm_load1_ps(&isec->start[0]) ), _mm_load1_ps(&isec->idot_axis[0])) );
-	const __m128 tmin2 = _mm_max_ps(tmin1, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[2]], _mm_load1_ps(&isec->start[1]) ), _mm_load1_ps(&isec->idot_axis[1])) );
-	const __m128 tmax2 = _mm_min_ps(tmax1, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[3]], _mm_load1_ps(&isec->start[1]) ), _mm_load1_ps(&isec->idot_axis[1])) );
-	const __m128 tmin3 = _mm_max_ps(tmin2, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[4]], _mm_load1_ps(&isec->start[2]) ), _mm_load1_ps(&isec->idot_axis[2])) );
-	const __m128 tmax3 = _mm_min_ps(tmax2, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[5]], _mm_load1_ps(&isec->start[2]) ), _mm_load1_ps(&isec->idot_axis[2])) );
+	float start[3], idot_axis[3];
+	copy_v3_v3(start, isec->start);
+	copy_v3_v3(idot_axis, isec->idot_axis);
+
+	const __m128 tmin1 = _mm_max_ps(tmin0, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[0]], _mm_set_ps1(start[0]) ), _mm_set_ps1(idot_axis[0])) );
+	const __m128 tmax1 = _mm_min_ps(tmax0, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[1]], _mm_set_ps1(start[0]) ), _mm_set_ps1(idot_axis[0])) );
+	const __m128 tmin2 = _mm_max_ps(tmin1, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[2]], _mm_set_ps1(start[1]) ), _mm_set_ps1(idot_axis[1])) );
+	const __m128 tmax2 = _mm_min_ps(tmax1, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[3]], _mm_set_ps1(start[1]) ), _mm_set_ps1(idot_axis[1])) );
+	const __m128 tmin3 = _mm_max_ps(tmin2, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[4]], _mm_set_ps1(start[2]) ), _mm_set_ps1(idot_axis[2])) );
+	const __m128 tmax3 = _mm_min_ps(tmax2, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[5]], _mm_set_ps1(start[2]) ), _mm_set_ps1(idot_axis[2])) );
 	
 	return _mm_movemask_ps(_mm_cmpge_ps(tmax3, tmin3));
 }
 #endif
 
+/*
+ * Determines the distance that the ray must travel to hit the bounding volume of the given node
+ * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
+ *  [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
+ */
+static int rayobject_bb_intersect_test(const Isect *isec, const float *_bb)
+{
+	const float *bb = _bb;
+	
+	float t1x = (bb[isec->bv_index[0]] - isec->start[0]) * isec->idot_axis[0];
+	float t2x = (bb[isec->bv_index[1]] - isec->start[0]) * isec->idot_axis[0];
+	float t1y = (bb[isec->bv_index[2]] - isec->start[1]) * isec->idot_axis[1];
+	float t2y = (bb[isec->bv_index[3]] - isec->start[1]) * isec->idot_axis[1];
+	float t1z = (bb[isec->bv_index[4]] - isec->start[2]) * isec->idot_axis[2];
+	float t2z = (bb[isec->bv_index[5]] - isec->start[2]) * isec->idot_axis[2];
+
+	RE_RC_COUNT(isec->raycounter->bb.test);
+	
+	if(t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return 0;
+	if(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return 0;
+	if(t1x > isec->dist || t1y > isec->dist || t1z > isec->dist) return 0;
+	RE_RC_COUNT(isec->raycounter->bb.hit);	
+
+	return 1;
+}
 
 /* bvh tree generics */
 template<class Tree> static int bvh_intersect(Tree *obj, Isect *isec);
@@ -108,7 +140,7 @@ static float bvh_cost(Tree *obj)
 /* bvh tree nodes generics */
 template<class Node> static inline int bvh_node_hit_test(Node *node, Isect *isec)
 {
-	return RE_rayobject_bb_intersect_test(isec, (const float*)node->bb);
+	return rayobject_bb_intersect_test(isec, (const float*)node->bb);
 }
 
 
@@ -133,7 +165,7 @@ static inline void bvh_node_merge_bb(Node *node, float *min, float *max)
  */
 template<class Node> static inline void bvh_node_push_childs(Node *node, Isect *isec, Node **stack, int &stack_pos);
 
-template<class Node,int MAX_STACK_SIZE,bool TEST_ROOT>
+template<class Node,int MAX_STACK_SIZE,bool TEST_ROOT,bool SHADOW>
 static int bvh_node_stack_raycast(Node *root, Isect *isec)
 {
 	Node *stack[MAX_STACK_SIZE];
@@ -158,7 +190,7 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
 		else
 		{
 			hit |= RE_rayobject_intersect( (RayObject*)node, isec);
-			if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+			if(SHADOW && hit) return hit;
 		}
 	}
 	return hit;

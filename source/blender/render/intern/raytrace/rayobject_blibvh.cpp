@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: rayobject_blibvh.cpp 29491 2010-06-16 18:57:23Z blendix $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Andr Pinto.
+ * Contributor(s): André Pinto.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -33,8 +33,8 @@
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "RE_raytrace.h"
-#include "render_types.h"
+
+#include "rayintersection.h"
 #include "rayobject.h"
 
 static int  RE_rayobject_blibvh_intersect(RayObject *o, Isect *isec);
@@ -71,14 +71,12 @@ typedef struct BVHObject
 	RayObject **leafs, **next_leaf;
 	BVHTree *bvh;
 	float bb[2][3];
-
 } BVHObject;
-
 
 RayObject *RE_rayobject_blibvh_create(int size)
 {
 	BVHObject *obj= (BVHObject*)MEM_callocN(sizeof(BVHObject), "BVHObject");
-	assert( RE_rayobject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
+	assert(RE_rayobject_isAligned(obj)); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	obj->rayobj.api = &bvh_api;
 	obj->bvh = BLI_bvhtree_new(size, 0.0, 4, 6);
@@ -107,7 +105,7 @@ static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTr
 		if(isec->mode == RE_RAY_SHADOW)
 			hit->dist = 0;
 		else
-			hit->dist = isec->labda*isec->dist;
+			hit->dist = isec->dist;
 	}
 }
 
@@ -120,11 +118,10 @@ static int  RE_rayobject_blibvh_intersect(RayObject *o, Isect *isec)
 	data.isec = isec;
 	data.leafs = obj->leafs;
 
-	VECCOPY(dir, isec->vec);
-	normalize_v3(dir);
+	copy_v3_v3(dir, isec->dir);
 
 	hit.index = 0;
-	hit.dist = isec->labda*isec->dist;
+	hit.dist = isec->dist;
 	
 	return BLI_bvhtree_ray_cast(obj->bvh, isec->start, dir, 0.0, &hit, bvh_callback, (void*)&data);
 }
@@ -139,7 +136,7 @@ static void RE_rayobject_blibvh_add(RayObject *o, RayObject *ob)
 	DO_MIN(min_max  , obj->bb[0]);
 	DO_MAX(min_max+3, obj->bb[1]);
 	
-	BLI_bvhtree_insert(obj->bvh, obj->next_leaf - obj->leafs, min_max, 2 );	
+	BLI_bvhtree_insert(obj->bvh, obj->next_leaf - obj->leafs, min_max, 2);	
 	*(obj->next_leaf++) = ob;
 }
 
@@ -165,6 +162,7 @@ static void RE_rayobject_blibvh_free(RayObject *o)
 static void RE_rayobject_blibvh_bb(RayObject *o, float *min, float *max)
 {
 	BVHObject *obj = (BVHObject*)o;
-	DO_MIN( obj->bb[0], min );
-	DO_MAX( obj->bb[1], max );
+	DO_MIN(obj->bb[0], min);
+	DO_MAX(obj->bb[1], max);
 }
+

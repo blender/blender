@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: rayobject_raycounter.cpp 29491 2010-06-16 18:57:23Z blendix $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,6 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #include "rayobject.h"
 #include "raycounter.h"
 

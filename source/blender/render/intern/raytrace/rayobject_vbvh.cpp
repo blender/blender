@@ -22,29 +22,33 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Andr Pinto.
+ * Contributor(s): André Pinto.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 int tot_pushup   = 0;
 int tot_pushdown = 0;
 int tot_hints    = 0;
 
-
 #include <assert.h>
-#include "rayobject.h"
-#include "rayobject_rtbuild.h"
-#include "RE_raytrace.h"
-#include "BLI_memarena.h"
+
 #include "MEM_guardedalloc.h"
+
 #include "BKE_global.h"
 
 #include "BLI_math.h"
+#include "BLI_memarena.h"
+#include "BLI_utildefines.h"
+
+#include "rayintersection.h"
+#include "rayobject.h"
+#include "rayobject_rtbuild.h"
 
 #include "reorganize.h"
 #include "bvh.h"
 #include "vbvh.h"
-#include "svbvh.h"
+
 #include <queue>
 #include <algorithm>
 
@@ -126,8 +130,12 @@ template<int StackSize>
 int intersect(VBVHTree *obj, Isect* isec)
 {
 	//TODO renable hint support
-	if(RE_rayobject_isAligned(obj->root))
-		return bvh_node_stack_raycast<VBVHNode,StackSize,false>( obj->root, isec);
+	if(RE_rayobject_isAligned(obj->root)) {
+		if(isec->mode == RE_RAY_SHADOW)
+			return bvh_node_stack_raycast<VBVHNode,StackSize,false,true>( obj->root, isec);
+		else
+			return bvh_node_stack_raycast<VBVHNode,StackSize,false,false>( obj->root, isec);
+	}
 	else
 		return RE_rayobject_intersect( (RayObject*) obj->root, isec );
 }

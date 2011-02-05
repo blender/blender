@@ -43,9 +43,14 @@ set(INC
 
 set(SRC
 	intern/raytrace/rayobject.cpp
+	intern/raytrace/rayobject_empty.cpp
+	intern/raytrace/rayobject_octree.cpp
+	intern/raytrace/rayobject_raycounter.cpp
+	intern/raytrace/rayobject_svbvh.cpp
+	intern/raytrace/rayobject_blibvh.cpp
+	intern/raytrace/rayobject_instance.cpp
 	intern/raytrace/rayobject_qbvh.cpp
 	intern/raytrace/rayobject_rtbuild.cpp
-	intern/raytrace/rayobject_svbvh.cpp
 	intern/raytrace/rayobject_vbvh.cpp
 	intern/source/convertblender.c
 	intern/source/envmap.c
@@ -57,10 +62,6 @@ set(SRC
 	intern/source/pixelblending.c
 	intern/source/pixelshading.c
 	intern/source/pointdensity.c
-	intern/source/rayobject_blibvh.c
-	intern/source/rayobject_instance.c
-	intern/source/rayobject_octree.c
-	intern/source/rayobject_raycounter.c
 	intern/source/rayshade.c
 	intern/source/rendercore.c
 	intern/source/render_texture.c
@@ -77,7 +78,6 @@ set(SRC
 	intern/source/zbuf.c
 
 	extern/include/RE_pipeline.h
-	extern/include/RE_raytrace.h
 	extern/include/RE_render_ext.h
 	extern/include/RE_shader_ext.h
 	intern/include/envmap.h
@@ -89,6 +89,8 @@ set(SRC
 	intern/include/pointdensity.h
 	intern/include/raycounter.h
 	intern/include/rayobject.h
+	intern/include/rayintersection.h
+	intern/include/raycounter.h
 	intern/include/render_types.h
 	intern/include/rendercore.h
 	intern/include/renderdatabase.h

@@ -26,6 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #ifdef __SSE__
  
 #ifndef RE_RAYTRACE_SVBVH_H
@@ -33,56 +34,132 @@
 
 #include "bvh.h"
 #include "BLI_memarena.h"
-#include "BLI_utildefines.h"
 #include "BKE_global.h"
 #include <stdio.h>
 #include <algorithm>
 
 struct SVBVHNode
 {
+	float child_bb[24];
+	SVBVHNode *child[4];
 	int nchilds;
-
-	//Array of bb, array of childs
-	float *child_bb;
-	SVBVHNode **child;
 };
 
-template<>
-inline int bvh_node_hit_test<SVBVHNode>(SVBVHNode *node, Isect *isec)
+static int svbvh_bb_intersect_test_simd4(const Isect *isec, const __m128 *bb_group)
 {
+	const __m128 tmin0 = _mm_setzero_ps();
+	const __m128 tmax0 = _mm_set_ps1(isec->dist);
+
+	const __m128 start0 = _mm_set_ps1(isec->start[0]);
+	const __m128 start1 = _mm_set_ps1(isec->start[1]);
+	const __m128 start2 = _mm_set_ps1(isec->start[2]);
+	const __m128 sub0 = _mm_sub_ps(bb_group[isec->bv_index[0]], start0);
+	const __m128 sub1 = _mm_sub_ps(bb_group[isec->bv_index[1]], start0);
+	const __m128 sub2 = _mm_sub_ps(bb_group[isec->bv_index[2]], start1);
+	const __m128 sub3 = _mm_sub_ps(bb_group[isec->bv_index[3]], start1);
+	const __m128 sub4 = _mm_sub_ps(bb_group[isec->bv_index[4]], start2);
+	const __m128 sub5 = _mm_sub_ps(bb_group[isec->bv_index[5]], start2);
+	const __m128 idot_axis0 = _mm_set_ps1(isec->idot_axis[0]);
+	const __m128 idot_axis1 = _mm_set_ps1(isec->idot_axis[1]);
+	const __m128 idot_axis2 = _mm_set_ps1(isec->idot_axis[2]);
+	const __m128 mul0 = _mm_mul_ps(sub0, idot_axis0);
+	const __m128 mul1 = _mm_mul_ps(sub1, idot_axis0);
+	const __m128 mul2 = _mm_mul_ps(sub2, idot_axis1);
+	const __m128 mul3 = _mm_mul_ps(sub3, idot_axis1);
+	const __m128 mul4 = _mm_mul_ps(sub4, idot_axis2);
+	const __m128 mul5 = _mm_mul_ps(sub5, idot_axis2);
+	const __m128 tmin1 = _mm_max_ps(tmin0, mul0);
+	const __m128 tmax1 = _mm_min_ps(tmax0, mul1);
+	const __m128 tmin2 = _mm_max_ps(tmin1, mul2);
+	const __m128 tmax2 = _mm_min_ps(tmax1, mul3);
+	const __m128 tmin3 = _mm_max_ps(tmin2, mul4);
+	const __m128 tmax3 = _mm_min_ps(tmax2, mul5);
+	
+	return _mm_movemask_ps(_mm_cmpge_ps(tmax3, tmin3));
+}
+
+static int svbvh_bb_intersect_test(const Isect *isec, const float *_bb)
+{
+	const float *bb = _bb;
+	
+	float t1x = (bb[isec->bv_index[0]] - isec->start[0]) * isec->idot_axis[0];
+	float t2x = (bb[isec->bv_index[1]] - isec->start[0]) * isec->idot_axis[0];
+	float t1y = (bb[isec->bv_index[2]] - isec->start[1]) * isec->idot_axis[1];
+	float t2y = (bb[isec->bv_index[3]] - isec->start[1]) * isec->idot_axis[1];
+	float t1z = (bb[isec->bv_index[4]] - isec->start[2]) * isec->idot_axis[2];
+	float t2z = (bb[isec->bv_index[5]] - isec->start[2]) * isec->idot_axis[2];
+	
+	RE_RC_COUNT(isec->raycounter->bb.test);
+
+	if(t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return 0;
+	if(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return 0;
+	if(t1x > isec->dist || t1y > isec->dist || t1z > isec->dist) return 0;
+
+	RE_RC_COUNT(isec->raycounter->bb.hit);	
+
 	return 1;
 }
 
-template<>
-inline void bvh_node_push_childs<SVBVHNode>(SVBVHNode *node, Isect *isec, SVBVHNode **stack, int &stack_pos)
+static bool svbvh_node_is_leaf(const SVBVHNode *node)
 {
-	int i=0;
-	while(i+4 <= node->nchilds)
-	{
-		int res = test_bb_group4( (__m128*) (node->child_bb+6*i), isec );
-		RE_RC_COUNT(isec->raycounter->simd_bb.test);
-		
-		if(res & 1) { stack[stack_pos++] = node->child[i+0]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
-		if(res & 2) { stack[stack_pos++] = node->child[i+1]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
-		if(res & 4) { stack[stack_pos++] = node->child[i+2]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
-		if(res & 8) { stack[stack_pos++] = node->child[i+3]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
-		
-		i += 4;
-	}
-	while(i < node->nchilds)
-	{
-		if(RE_rayobject_bb_intersect_test(isec, (const float*)node->child_bb+6*i))
-			stack[stack_pos++] = node->child[i];
-		i++;
-	}
+	return !RE_rayobject_isAligned(node);
 }
+
+template<int MAX_STACK_SIZE, bool SHADOW>
+static int svbvh_node_stack_raycast(SVBVHNode *root, Isect *isec)
+{
+	SVBVHNode *stack[MAX_STACK_SIZE], *node;
+	int hit = 0, stack_pos = 0;
+
+	stack[stack_pos++] = root;
+
+	while(stack_pos)
+	{
+		node = stack[--stack_pos];
+
+		if(!svbvh_node_is_leaf(node))
+		{
+			int nchilds= node->nchilds;
+
+			if(nchilds == 4) {
+				float *child_bb= node->child_bb;
+				int res = svbvh_bb_intersect_test_simd4(isec, ((__m128*) (child_bb)));
+				SVBVHNode **child= node->child;
+
+				RE_RC_COUNT(isec->raycounter->simd_bb.test);
+
+				if(res & 1) { stack[stack_pos++] = child[0]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
+				if(res & 2) { stack[stack_pos++] = child[1]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
+				if(res & 4) { stack[stack_pos++] = child[2]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
+				if(res & 8) { stack[stack_pos++] = child[3]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
+			}
+			else {
+				float *child_bb= node->child_bb;
+				SVBVHNode **child= node->child;
+				int i;
+
+				for(i=0; i<nchilds; i++)
+					if(svbvh_bb_intersect_test(isec, (float*)child_bb+6*i))
+						stack[stack_pos++] = child[i];
+			}
+		}
+		else
+		{
+			hit |= RE_rayobject_intersect((RayObject*)node, isec);
+			if(SHADOW && hit) break;
+		}
+	}
+
+	return hit;
+}
+
 
 template<>
 inline void bvh_node_merge_bb<SVBVHNode>(SVBVHNode *node, float *min, float *max)
 {
 	if(is_leaf(node))
 	{
-		RE_rayobject_merge_bb( (RayObject*)node, min, max);
+		RE_rayobject_merge_bb((RayObject*)node, min, max);
 	}
 	else
 	{
@@ -156,15 +233,13 @@ struct Reorganize_SVBVH
 	{
 		SVBVHNode *node = (SVBVHNode*)BLI_memarena_alloc(arena, sizeof(SVBVHNode));
 		node->nchilds = nchilds;
-		node->child_bb   = (float*)BLI_memarena_alloc(arena, sizeof(float)*6*nchilds);
-		node->child= (SVBVHNode**)BLI_memarena_alloc(arena, sizeof(SVBVHNode*)*nchilds);
 
 		return node;
 	}
 	
 	void copy_bb(float *bb, const float *old_bb)
 	{
-		std::copy( old_bb, old_bb+6, bb );
+		std::copy(old_bb, old_bb+6, bb);
 	}
 	
 	void prepare_for_simd(SVBVHNode *node)
@@ -174,7 +249,7 @@ struct Reorganize_SVBVH
 		{
 			float vec_tmp[4*6];
 			float *res = node->child_bb+6*i;
-			std::copy( res, res+6*4, vec_tmp);
+			std::copy(res, res+6*4, vec_tmp);
 			
 			for(int j=0; j<6; j++)
 			{
@@ -231,7 +306,7 @@ struct Reorganize_SVBVH
 			{
 				float bb[6];
 				INIT_MINMAX(bb, bb+3);
-				RE_rayobject_merge_bb( (RayObject*)o_child, bb, bb+3);
+				RE_rayobject_merge_bb((RayObject*)o_child, bb, bb+3);
 				copy_bb(node->child_bb+i*6, bb);
 				break;
 			}
@@ -240,7 +315,7 @@ struct Reorganize_SVBVH
 				copy_bb(node->child_bb+i*6, o_child->bb);
 			}
 		}
-		assert( i == 0 );
+		assert(i == 0);
 
 		prepare_for_simd(node);
 		
@@ -251,3 +326,4 @@ struct Reorganize_SVBVH
 #endif
 
 #endif //__SSE__
+
