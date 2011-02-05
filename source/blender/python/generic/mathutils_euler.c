@@ -180,8 +180,6 @@ static char Euler_rotate_axis_doc[] =
 "   :type axis: string\n"
 "   :arg angle: angle in radians.\n"
 "   :type angle: float\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Euler`"
 ;
 static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 {
@@ -204,8 +202,35 @@ static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 	else								rotate_eulO(self->eul, self->order, *axis, angle);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject *)self;
+
+	Py_RETURN_NONE;
+}
+
+static char Euler_rotate_doc[] =
+".. method:: rotate(other)\n"
+"\n"
+"   Rotates the euler a by another mathutils value.\n"
+"\n"
+"   :arg other: rotation component of mathutils value\n"
+"   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"
+;
+static PyObject *Euler_rotate(EulerObject * self, PyObject *value)
+{
+	float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	if(mathutils_any_to_rotmat(other_rmat, value, "euler.rotate(value)") == -1)
+		return NULL;
+
+	eulO_to_mat3(self_rmat, self->eul, self->order);
+	mul_m3_m3m3(rmat, self_rmat, other_rmat);
+
+	mat3_to_compatible_eulO(self->eul, self->eul, self->order, rmat);
+
+	(void)BaseMath_WriteCallback(self);
+	Py_RETURN_NONE;
 }
 
 static char Euler_make_compatible_doc[] =
@@ -215,8 +240,6 @@ static char Euler_make_compatible_doc[] =
 "\n"
 "   :arg other: make compatible with this rotation.\n"
 "   :type other: :class:`Euler`\n"
-"   :return: an instance of itself.\n"
-"   :rtype: :class:`Euler`\n"
 "\n"
 "   .. note:: the rotation order is not taken into account for this function.\n"
 ;
@@ -233,8 +256,8 @@ static PyObject *Euler_make_compatible(EulerObject * self, PyObject *value)
 	compatible_eul(self->eul, teul);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject *)self;
+
+	Py_RETURN_NONE;
 }
 
 //----------------------------Euler.rotate()-----------------------
@@ -564,6 +587,7 @@ static struct PyMethodDef Euler_methods[] = {
 	{"to_matrix", (PyCFunction) Euler_to_matrix, METH_NOARGS, Euler_to_matrix_doc},
 	{"to_quaternion", (PyCFunction) Euler_to_quaternion, METH_NOARGS, Euler_to_quaternion_doc},
 	{"rotate_axis", (PyCFunction) Euler_rotate_axis, METH_VARARGS, Euler_rotate_axis_doc},
+	{"rotate", (PyCFunction) Euler_rotate, METH_O, Euler_rotate_doc},
 	{"make_compatible", (PyCFunction) Euler_make_compatible, METH_O, Euler_make_compatible_doc},
 	{"__copy__", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
 	{"copy", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},

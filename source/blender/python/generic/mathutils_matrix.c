@@ -608,7 +608,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
 
-static void matrix_as_3x3(float mat[3][3], MatrixObject *self)
+void matrix_as_3x3(float mat[3][3], MatrixObject *self)
 {
 	copy_v3_v3(mat[0], self->matrix[0]);
 	copy_v3_v3(mat[1], self->matrix[1]);
@@ -733,9 +733,6 @@ static char Matrix_resize_4x4_doc[] =
 ".. method:: resize_4x4()\n"
 "\n"
 "   Resize the matrix to 4x4.\n"
-"\n"
-"   :return: an instance of itself.\n"
-"   :rtype: :class:`Matrix`\n"
 ;
 static PyObject *Matrix_resize_4x4(MatrixObject *self)
 {
@@ -785,8 +782,7 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
 	self->rowSize = 4;
 	self->colSize = 4;
 
-	Py_INCREF(self);
-	return (PyObject *)self;
+	Py_RETURN_NONE;
 }
 
 static char Matrix_to_4x4_doc[] =
@@ -974,6 +970,40 @@ static char Matrix_inverted_doc[] =
 static PyObject *Matrix_inverted(MatrixObject *self)
 {
 	MATRIX_APPLY_TO_COPY(Matrix_invert, self);
+}
+
+static char Matrix_rotate_doc[] =
+".. method:: rotate(other)\n"
+"\n"
+"   Rotates the matrix a by another mathutils value.\n"
+"\n"
+"   :arg other: rotation component of mathutils value\n"
+"   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"
+"\n"
+"   .. note:: If any of the columns are not unit length this may not have desired results.\n"
+;
+static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
+{
+	float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	if(mathutils_any_to_rotmat(other_rmat, value, "matrix.rotate(value)") == -1)
+		return NULL;
+
+	if(self->colSize != 3 || self->rowSize != 3) {
+		PyErr_SetString(PyExc_ValueError, "Matrix must have 3x3 dimensions");
+		return NULL;
+	}
+
+	matrix_as_3x3(self_rmat, self);
+	mul_m3_m3m3(rmat, self_rmat, other_rmat);
+
+	copy_m3_m3((float (*)[3])(self->contigPtr), rmat);
+
+	(void)BaseMath_WriteCallback(self);
+	Py_RETURN_NONE;
 }
 
 /*---------------------------Matrix.decompose() ---------------------*/
@@ -1733,6 +1763,7 @@ static struct PyMethodDef Matrix_methods[] = {
 	// TODO. {"resize_3x3", (PyCFunction) Matrix_resize3x3, METH_NOARGS, Matrix_resize3x3_doc},
 	{"to_4x4", (PyCFunction) Matrix_to_4x4, METH_NOARGS, Matrix_to_4x4_doc},
 	{"resize_4x4", (PyCFunction) Matrix_resize_4x4, METH_NOARGS, Matrix_resize_4x4_doc},
+	{"rotate", (PyCFunction) Matrix_rotate, METH_O, Matrix_rotate_doc},
 
 	/* return converted representation */
 	{"to_euler", (PyCFunction) Matrix_to_euler, METH_VARARGS, Matrix_to_euler_doc},

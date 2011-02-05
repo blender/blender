@@ -55,4 +55,6 @@ PyObject *newMatrixObject_cb(PyObject *user, int rowSize, int colSize, int cb_ty
 extern int mathutils_matrix_vector_cb_index;
 extern struct Mathutils_Callback mathutils_matrix_vector_cb;
 
+void matrix_as_3x3(float mat[3][3], MatrixObject *self);
+
 #endif /* MATHUTILS_MATRIX_H */

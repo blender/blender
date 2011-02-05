@@ -100,5 +100,6 @@ int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
 
 /* utility func */
 int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix);
+int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix);
 
 #endif /* MATHUTILS_H */

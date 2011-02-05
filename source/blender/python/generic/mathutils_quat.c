@@ -256,6 +256,36 @@ static PyObject *Quaternion_slerp(QuaternionObject *self, PyObject *args)
 	return newQuaternionObject(quat, Py_NEW, Py_TYPE(self));
 }
 
+static char Quaternion_rotate_doc[] =
+".. method:: rotate(other)\n"
+"\n"
+"   Rotates the quaternion a by another mathutils value.\n"
+"\n"
+"   :arg other: rotation component of mathutils value\n"
+"   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"
+;
+static PyObject *Quaternion_rotate(QuaternionObject *self, PyObject *value)
+{
+	float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
+	float tquat[4], length;
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	if(mathutils_any_to_rotmat(other_rmat, value, "quaternion.rotate(value)") == -1)
+		return NULL;
+
+	length= normalize_qt_qt(tquat, self->quat);
+	quat_to_mat3(self_rmat, tquat);
+	mul_m3_m3m3(rmat, self_rmat, other_rmat);
+
+	mat3_to_quat(self->quat, rmat);
+	mul_qt_fl(self->quat, length); /* maintain length after rotating */
+
+	(void)BaseMath_WriteCallback(self);
+	Py_RETURN_NONE;
+}
+
 //----------------------------Quaternion.normalize()----------------
 //normalize the axis of rotation of [theta,vector]
 static char Quaternion_normalize_doc[] =
@@ -962,6 +992,7 @@ static struct PyMethodDef Quaternion_methods[] = {
 	{"dot", (PyCFunction) Quaternion_dot, METH_O, Quaternion_dot_doc},
 	{"difference", (PyCFunction) Quaternion_difference, METH_O, Quaternion_difference_doc},
 	{"slerp", (PyCFunction) Quaternion_slerp, METH_VARARGS, Quaternion_slerp_doc},
+	{"rotate", (PyCFunction) Quaternion_rotate, METH_VARARGS, Quaternion_rotate_doc},
 
 	{"__copy__", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
 	{"copy", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},

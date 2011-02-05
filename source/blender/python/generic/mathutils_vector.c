@@ -715,44 +715,32 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 }
 
 static char Vector_rotate_doc[] =
-".. function:: rotate(axis, angle)\n"
+".. function:: rotate(other)\n"
 "\n"
-"   Return vector rotated around axis by angle.\n"
+"   Return vector by a rotation value.\n"
 "\n"
-"   :arg axis: rotation axis.\n"
-"   :type axis: :class:`Vector`\n"
-"   :arg angle: angle in radians.\n"
-"   :type angle: float\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Vector`\n"
+"   :arg other: rotation component of mathutils value\n"
+"   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"
 ;
-static PyObject *Vector_rotate(VectorObject *self, PyObject *args)
+static PyObject *Vector_rotate(VectorObject *self, PyObject *value)
 {
-	PyObject *value;
-	float angle, vec[3], tvec[3];
+	float other_rmat[3][3];
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(!PyArg_ParseTuple(args, "Of:rotate", &value, &angle)){
-		PyErr_SetString(PyExc_TypeError, "vec.rotate(axis, angle): expected 3D axis (Vector) and angle (float)");
+	if(mathutils_any_to_rotmat(other_rmat, value, "vector.rotate(value)") == -1)
+		return NULL;
+
+	if(self->size < 3) {
+		PyErr_SetString(PyExc_ValueError, "Vector must be 3D or 4D");
 		return NULL;
 	}
 
-	if(self->size != 3) {
-		PyErr_SetString(PyExc_AttributeError, "vec.rotate(axis, angle): expects both vectors to be 3D");
-		return NULL;
-	}
+	mul_m3_v3(other_rmat, self->vec);
 
-	if(mathutils_array_parse(tvec, 3, 3, value, "vector.rotate(axis, angle), invalid 'axis' arg") == -1)
-		return NULL;
-
-	rotate_v3_v3v3fl(vec, self->vec, tvec, angle);
-
-	copy_v3_v3(self->vec, vec);
-
-	Py_INCREF(self);
-	return (PyObject *)self;
+	(void)BaseMath_WriteCallback(self);
+	Py_RETURN_NONE;
 }
 
 static char Vector_copy_doc[] =
@@ -2119,7 +2107,7 @@ static struct PyMethodDef Vector_methods[] = {
 	{"difference", (PyCFunction) Vector_difference, METH_O, Vector_difference_doc},
 	{"project", (PyCFunction) Vector_project, METH_O, Vector_project_doc},
 	{"lerp", (PyCFunction) Vector_lerp, METH_VARARGS, Vector_lerp_doc},
-	{"rotate", (PyCFunction) Vector_rotate, METH_VARARGS, Vector_rotate_doc},
+	{"rotate", (PyCFunction) Vector_rotate, METH_O, Vector_rotate_doc},
 
 	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
 	{"__copy__", (PyCFunction) Vector_copy, METH_NOARGS, NULL},

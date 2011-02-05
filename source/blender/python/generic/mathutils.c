@@ -47,6 +47,7 @@
  * - toEuler --> to_euler
  * - toQuat --> to_quat
  * - Vector.toTrackQuat --> Vector.to_track_quat
+ * - Vector.rotate(axis, angle) --> rotate(other), where other can be Euler/Quaternion/Matrix.
  * - Quaternion * Quaternion --> cross product (not dot product)
  * - Euler.rotate(angle, axis) --> Euler.rotate_axis(axis, angle)
  * - Euler.unique() *removed*, not a standard function only toggled different rotations.
@@ -163,6 +164,49 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 		return mathutils_array_parse_fast(array, array_min, array_max, value, error_prefix);
 	}
 }
+
+int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix)
+{
+	if(EulerObject_Check(value)) {
+		if(!BaseMath_ReadCallback((BaseMathObject *)value)) {
+			return -1;
+		}
+		else {
+			eulO_to_mat3(rmat, ((EulerObject *)value)->eul, ((EulerObject *)value)->order);
+			return 0;
+		}
+	}
+	else if (QuaternionObject_Check(value)) {
+		if(!BaseMath_ReadCallback((BaseMathObject *)value)) {
+			return -1;
+		}
+		else {
+			float tquat[4];
+			normalize_qt_qt(tquat, ((QuaternionObject *)value)->quat);
+			quat_to_mat3(rmat, tquat);
+			return 0;
+		}
+	}
+	else if (MatrixObject_Check(value)) {
+		if(!BaseMath_ReadCallback((BaseMathObject *)value)) {
+			return -1;
+		}
+		else if(((MatrixObject *)value)->colSize < 3 || ((MatrixObject *)value)->rowSize < 3) {
+			PyErr_Format(PyExc_ValueError, "%.200s: matrix must have minimum 3x3 dimensions", error_prefix);
+			return -1;
+		}
+		else {
+			matrix_as_3x3(rmat, (MatrixObject *)value);
+			normalize_m3(rmat);
+			return 0;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError, "%.200s: expected a Euler, Quaternion or Matrix type, found %.200s", error_prefix, Py_TYPE(value)->tp_name);
+		return -1;
+	}
+}
+
 
 //----------------------------------MATRIX FUNCTIONS--------------------
 

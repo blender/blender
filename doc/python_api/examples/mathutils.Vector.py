@@ -10,7 +10,7 @@ vec_b = mathutils.Vector((0, 1, 2))
 
 vec2d = mathutils.Vector((1, 2))
 vec3d = mathutils.Vector((1, 0, 0))
-vec4d = vec_a.copy().resize4D()
+vec4d = vec_a.to_4d()
 
 # other mathutuls types
 quat = mathutils.Quaternion()
