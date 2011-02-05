@@ -63,6 +63,7 @@ set(SRC
 	intern/source/rayobject_raycounter.c
 	intern/source/rayshade.c
 	intern/source/rendercore.c
+	intern/source/render_texture.c
 	intern/source/renderdatabase.c
 	intern/source/shadbuf.c
 	intern/source/shadeinput.c
@@ -70,7 +71,6 @@ set(SRC
 	intern/source/sss.c
 	intern/source/strand.c
 	intern/source/sunsky.c
-	intern/source/texture.c
 	intern/source/volume_precache.c
 	intern/source/volumetric.c
 	intern/source/voxeldata.c
