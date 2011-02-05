@@ -534,15 +534,10 @@ void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	shi->mat= vlr->mat;
 	shade_input_init_material(shi);
 	
-	if(vlr->v4) {
-		if(is->isect==2) 
-			shade_input_set_triangle_i(shi, obi, vlr, 2, 1, 3);
-		else
-			shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 3);
-	}
-	else {
+	if(is->isect==2) 
+		shade_input_set_triangle_i(shi, obi, vlr, 0, 2, 3);
+	else
 		shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
-	}
 
 	shi->u= is->u;
 	shi->v= is->v;

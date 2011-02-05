@@ -2082,24 +2082,10 @@ static void bake_mask_clear( ImBuf *ibuf, char *mask, char val )
 
 static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInput *shi, int quad, int isect, int x, int y, float u, float v)
 {
-	if(isect) {
-		/* raytrace intersection with different u,v than scanconvert */
-		if(vlr->v4) {
-			if(quad)
-				shade_input_set_triangle_i(shi, obi, vlr, 2, 1, 3);
-			else
-				shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 3);
-		}
-		else
-			shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
-	}
-	else {
-		/* regular scanconvert */
-		if(quad) 
-			shade_input_set_triangle_i(shi, obi, vlr, 0, 2, 3);
-		else
-			shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
-	}
+	if(quad) 
+		shade_input_set_triangle_i(shi, obi, vlr, 0, 2, 3);
+	else
+		shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
 		
 	/* cache for shadow */
 	shi->samplenr= R.shadowsamplenr[shi->thread]++;
