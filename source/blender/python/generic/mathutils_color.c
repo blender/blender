@@ -118,48 +118,40 @@ static PyObject *Color_repr(ColorObject * self)
 
 //------------------------tp_richcmpr
 //returns -1 execption, 0 false, 1 true
-static PyObject* Color_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+static PyObject* Color_richcmpr(PyObject *a, PyObject *b, int op)
 {
-	ColorObject *colA = NULL, *colB = NULL;
-	int result = 0;
+	PyObject *res;
+	int ok= -1; /* zero is true */
 
-	if(ColorObject_Check(objectA)) {
-		colA = (ColorObject*)objectA;
-		if(!BaseMath_ReadCallback(colA))
+	if (ColorObject_Check(a) && ColorObject_Check(b)) {
+		ColorObject *colA= (ColorObject*)a;
+		ColorObject *colB= (ColorObject*)b;
+
+		if(!BaseMath_ReadCallback(colA) || !BaseMath_ReadCallback(colB))
 			return NULL;
-	}
-	if(ColorObject_Check(objectB)) {
-		colB = (ColorObject*)objectB;
-		if(!BaseMath_ReadCallback(colB))
-			return NULL;
+
+		ok= EXPP_VectorsAreEqual(colA->col, colB->col, COLOR_SIZE, 1) ? 0 : -1;
 	}
 
-	if (!colA || !colB){
-		if (comparison_type == Py_NE){
-			Py_RETURN_TRUE;
-		}else{
-			Py_RETURN_FALSE;
-		}
-	}
-	colA = (ColorObject*)objectA;
-	colB = (ColorObject*)objectB;
+	switch (op) {
+	case Py_NE:
+		ok = !ok; /* pass through */
+	case Py_EQ:
+		res = ok ? Py_False : Py_True;
+		break;
 
-	switch (comparison_type){
-		case Py_EQ:
-			result = EXPP_VectorsAreEqual(colA->col, colB->col, COLOR_SIZE, 1);
-			break;
-		case Py_NE:
-			result = !EXPP_VectorsAreEqual(colA->col, colB->col, COLOR_SIZE, 1);
-			break;
-		default:
-			printf("The result of the comparison could not be evaluated");
-			break;
+	case Py_LT:
+	case Py_LE:
+	case Py_GT:
+	case Py_GE:
+		res = Py_NotImplemented;
+		break;
+	default:
+		PyErr_BadArgument();
+		return NULL;
 	}
-	if (result == 1){
-		Py_RETURN_TRUE;
-	}else{
-		Py_RETURN_FALSE;
-	}
+
+	return Py_INCREF(res), res;
 }
 
 //---------------------SEQUENCE PROTOCOLS------------------------

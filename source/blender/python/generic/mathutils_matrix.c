@@ -1263,58 +1263,43 @@ static PyObject *Matrix_repr(MatrixObject *self)
 	return NULL;
 }
 
-/*------------------------tp_richcmpr*/
-/*returns -1 execption, 0 false, 1 true*/
-static PyObject* Matrix_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+static PyObject* Matrix_richcmpr(PyObject *a, PyObject *b, int op)
 {
-	MatrixObject *matA = NULL, *matB = NULL;
-	int result = 0;
+	PyObject *res;
+	int ok= -1; /* zero is true */
 
-	if (!MatrixObject_Check(objectA) || !MatrixObject_Check(objectB)){
-		if (comparison_type == Py_NE){
-			Py_RETURN_TRUE;
-		}else{
-			Py_RETURN_FALSE;
-		}
+	if (MatrixObject_Check(a) && MatrixObject_Check(b)) {
+		MatrixObject *matA= (MatrixObject*)a;
+		MatrixObject *matB= (MatrixObject*)b;
+
+		if(!BaseMath_ReadCallback(matA) || !BaseMath_ReadCallback(matB))
+			return NULL;
+
+		ok=	(	(matA->colSize == matB->colSize) &&
+				(matA->rowSize == matB->rowSize) &&
+				EXPP_VectorsAreEqual(matA->contigPtr, matB->contigPtr, (matA->rowSize * matA->colSize), 1)
+			) ? 0 : -1;
 	}
-	matA = (MatrixObject*)objectA;
-	matB = (MatrixObject*)objectB;
 
-	if(!BaseMath_ReadCallback(matA) || !BaseMath_ReadCallback(matB))
+	switch (op) {
+	case Py_NE:
+		ok = !ok; /* pass through */
+	case Py_EQ:
+		res = ok ? Py_False : Py_True;
+		break;
+
+	case Py_LT:
+	case Py_LE:
+	case Py_GT:
+	case Py_GE:
+		res = Py_NotImplemented;
+		break;
+	default:
+		PyErr_BadArgument();
 		return NULL;
-
-	if (matA->colSize != matB->colSize || matA->rowSize != matB->rowSize){
-		if (comparison_type == Py_NE){
-			Py_RETURN_TRUE;
-		}else{
-			Py_RETURN_FALSE;
-		}
 	}
 
-	switch (comparison_type){
-		case Py_EQ:
-			/*contigPtr is basically a really long vector*/
-			result = EXPP_VectorsAreEqual(matA->contigPtr, matB->contigPtr,
-				(matA->rowSize * matA->colSize), 1);
-			break;
-		case Py_NE:
-			result = EXPP_VectorsAreEqual(matA->contigPtr, matB->contigPtr,
-				(matA->rowSize * matA->colSize), 1);
-			if (result == 0){
-				result = 1;
-			}else{
-				result = 0;
-			}
-			break;
-		default:
-			printf("The result of the comparison could not be evaluated");
-			break;
-	}
-	if (result == 1){
-		Py_RETURN_TRUE;
-	}else{
-		Py_RETURN_FALSE;
-	}
+	return Py_INCREF(res), res;
 }
 
 /*---------------------SEQUENCE PROTOCOLS------------------------

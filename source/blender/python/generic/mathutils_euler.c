@@ -72,6 +72,13 @@ static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	return newEulerObject(eul, order, Py_NEW, type);
 }
 
+/* internal use, assuem read callback is done */
+static const char *euler_order_str(EulerObject *self)
+{
+	static const char order[][4] = {"XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"};
+	return order[self->order-EULER_ORDER_XYZ];
+}
+
 short euler_order_from_string(const char *str, const char *error_prefix)
 {
 	if((str[0] && str[1] && str[2] && str[3]=='\0')) {
@@ -129,8 +136,7 @@ static PyObject *Euler_to_quaternion(EulerObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->order==EULER_ORDER_XYZ)	eul_to_quat(quat, self->eul);
-	else								eulO_to_quat(quat, self->eul, self->order);
+	eulO_to_quat(quat, self->eul, self->order);
 
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
@@ -151,8 +157,7 @@ static PyObject *Euler_to_matrix(EulerObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->order==EULER_ORDER_XYZ)	eul_to_mat3((float (*)[3])mat, self->eul);
-	else								eulO_to_mat3((float (*)[3])mat, self->eul, self->order);
+	eulO_to_mat3((float (*)[3])mat, self->eul, self->order);
 
 	return newMatrixObject(mat, 3, 3 , Py_NEW, NULL);
 }
@@ -198,8 +203,8 @@ static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->order == EULER_ORDER_XYZ)	rotate_eul(self->eul, *axis, angle);
-	else								rotate_eulO(self->eul, self->order, *axis, angle);
+
+	rotate_eulO(self->eul, self->order, *axis, angle);
 
 	(void)BaseMath_WriteCallback(self);
 
@@ -293,56 +298,46 @@ static PyObject *Euler_repr(EulerObject * self)
 
 	tuple= Euler_ToTupleExt(self, -1);
 
-	ret= PyUnicode_FromFormat("Euler(%R)", tuple);
+	ret= PyUnicode_FromFormat("Euler(%R, '%s')", tuple, euler_order_str(self));
 
 	Py_DECREF(tuple);
 	return ret;
 }
 
-//------------------------tp_richcmpr
-//returns -1 execption, 0 false, 1 true
-static PyObject* Euler_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+static PyObject* Euler_richcmpr(PyObject *a, PyObject *b, int op)
 {
-	EulerObject *eulA = NULL, *eulB = NULL;
-	int result = 0;
+	PyObject *res;
+	int ok= -1; /* zero is true */
 
-	if(EulerObject_Check(objectA)) {
-		eulA = (EulerObject*)objectA;
-		if(!BaseMath_ReadCallback(eulA))
+	if (EulerObject_Check(a) && EulerObject_Check(b)) {
+		EulerObject *eulA= (EulerObject*)a;
+		EulerObject *eulB= (EulerObject*)b;
+
+		if(!BaseMath_ReadCallback(eulA) || !BaseMath_ReadCallback(eulB))
 			return NULL;
-	}
-	if(EulerObject_Check(objectB)) {
-		eulB = (EulerObject*)objectB;
-		if(!BaseMath_ReadCallback(eulB))
-			return NULL;
+
+		ok= ((eulA->order == eulB->order) && EXPP_VectorsAreEqual(eulA->eul, eulB->eul, EULER_SIZE, 1)) ? 0 : -1;
 	}
 
-	if (!eulA || !eulB){
-		if (comparison_type == Py_NE){
-			Py_RETURN_TRUE;
-		}else{
-			Py_RETURN_FALSE;
-		}
-	}
-	eulA = (EulerObject*)objectA;
-	eulB = (EulerObject*)objectB;
+	switch (op) {
+	case Py_NE:
+		ok = !ok; /* pass through */
+	case Py_EQ:
+		res = ok ? Py_False : Py_True;
+		break;
 
-	switch (comparison_type){
-		case Py_EQ:
-			result = EXPP_VectorsAreEqual(eulA->eul, eulB->eul, EULER_SIZE, 1);
-			break;
-		case Py_NE:
-			result = !EXPP_VectorsAreEqual(eulA->eul, eulB->eul, EULER_SIZE, 1);
-			break;
-		default:
-			printf("The result of the comparison could not be evaluated");
-			break;
+	case Py_LT:
+	case Py_LE:
+	case Py_GT:
+	case Py_GE:
+		res = Py_NotImplemented;
+		break;
+	default:
+		PyErr_BadArgument();
+		return NULL;
 	}
-	if (result == 1){
-		Py_RETURN_TRUE;
-	}else{
-		Py_RETURN_FALSE;
-	}
+
+	return Py_INCREF(res), res;
 }
 
 //---------------------SEQUENCE PROTOCOLS------------------------
@@ -545,12 +540,10 @@ static int Euler_setAxis(EulerObject *self, PyObject *value, void *type)
 /* rotation order */
 static PyObject *Euler_getOrder(EulerObject *self, void *UNUSED(closure))
 {
-	const char order[][4] = {"XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"};
-
 	if(!BaseMath_ReadCallback(self)) /* can read order too */
 		return NULL;
 
-	return PyUnicode_FromString(order[self->order-EULER_ORDER_XYZ]);
+	return PyUnicode_FromString(euler_order_str(self));
 }
 
 static int Euler_setOrder(EulerObject *self, PyObject *value, void *UNUSED(closure))

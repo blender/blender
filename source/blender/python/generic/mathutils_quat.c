@@ -448,53 +448,40 @@ static PyObject *Quaternion_repr(QuaternionObject *self)
 	return ret;
 }
 
-//------------------------tp_richcmpr
-//returns -1 execption, 0 false, 1 true
-static PyObject* Quaternion_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+static PyObject* Quaternion_richcmpr(PyObject *a, PyObject *b, int op)
 {
-	QuaternionObject *quatA = NULL, *quatB = NULL;
-	int result = 0;
+	PyObject *res;
+	int ok= -1; /* zero is true */
 
-	if(QuaternionObject_Check(objectA)) {
-		quatA = (QuaternionObject*)objectA;
-		if(!BaseMath_ReadCallback(quatA))
+	if (QuaternionObject_Check(a) && QuaternionObject_Check(b)) {
+		QuaternionObject *quatA= (QuaternionObject *)a;
+		QuaternionObject *quatB= (QuaternionObject *)b;
+
+		if(!BaseMath_ReadCallback(quatA) || !BaseMath_ReadCallback(quatB))
 			return NULL;
-	}
-	if(QuaternionObject_Check(objectB)) {
-		quatB = (QuaternionObject*)objectB;
-		if(!BaseMath_ReadCallback(quatB))
-			return NULL;
+
+		ok= (EXPP_VectorsAreEqual(quatA->quat, quatB->quat, QUAT_SIZE, 1)) ? 0 : -1;
 	}
 
-	if (!quatA || !quatB){
-		if (comparison_type == Py_NE){
-			Py_RETURN_TRUE;
-		}else{
-			Py_RETURN_FALSE;
-		}
+	switch (op) {
+	case Py_NE:
+		ok = !ok; /* pass through */
+	case Py_EQ:
+		res = ok ? Py_False : Py_True;
+		break;
+
+	case Py_LT:
+	case Py_LE:
+	case Py_GT:
+	case Py_GE:
+		res = Py_NotImplemented;
+		break;
+	default:
+		PyErr_BadArgument();
+		return NULL;
 	}
 
-	switch (comparison_type){
-		case Py_EQ:
-			result = EXPP_VectorsAreEqual(quatA->quat, quatB->quat, QUAT_SIZE, 1);
-			break;
-		case Py_NE:
-			result = EXPP_VectorsAreEqual(quatA->quat, quatB->quat, QUAT_SIZE, 1);
-			if (result == 0){
-				result = 1;
-			}else{
-				result = 0;
-			}
-			break;
-		default:
-			printf("The result of the comparison could not be evaluated");
-			break;
-	}
-	if (result == 1){
-		Py_RETURN_TRUE;
-	}else{
-		Py_RETURN_FALSE;
-	}
+	return Py_INCREF(res), res;
 }
 
 //---------------------SEQUENCE PROTOCOLS------------------------
