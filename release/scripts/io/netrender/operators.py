@@ -401,7 +401,7 @@ class netclientdownload(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         netsettings = context.scene.network_render
-        return netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0
+        return netsettings.active_job_index >= 0 and len(netsettings.jobs) > netsettings.active_job_index
 
     def execute(self, context):
         netsettings = context.scene.network_render
