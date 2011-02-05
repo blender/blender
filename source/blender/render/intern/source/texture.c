@@ -2113,7 +2113,8 @@ void do_material_tex(ShadeInput *shi)
 			use_ntap_bump= (mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP));
 
 			/* XXX texture node trees don't work for this yet */
-			if(tex->nodetree && tex->use_nodes) {
+			/* it also needs derivatives */
+			if((tex->nodetree && tex->use_nodes) || shi->osatex==0) {
 				use_compat_bump = 0;
 				use_ntap_bump = 0;
 			}
