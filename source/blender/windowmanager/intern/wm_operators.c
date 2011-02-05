@@ -1721,7 +1721,14 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 
 	save_set_compress(op);
 	
-	BLI_strncpy(name, G.main->name, FILE_MAX);
+	/* if not saved before, get the name of the most recently used .blend file */
+	if(G.main->name[0]==0 && G.recent_files.first) {
+		struct RecentFile *recent = G.recent_files.first;
+		BLI_strncpy(name, recent->filepath, FILE_MAX);
+	}
+	else
+		BLI_strncpy(name, G.main->name, FILE_MAX);
+	
 	untitled(name);
 	RNA_string_set(op->ptr, "filepath", name);
 	
@@ -1806,9 +1813,17 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 		return OPERATOR_CANCELLED;
 
 	save_set_compress(op);
-	
-	BLI_strncpy(name, G.main->name, FILE_MAX);
+
+	/* if not saved before, get the name of the most recently used .blend file */
+	if(G.main->name[0]==0 && G.recent_files.first) {
+		struct RecentFile *recent = G.recent_files.first;
+		BLI_strncpy(name, recent->filepath, FILE_MAX);
+	}
+	else
+		BLI_strncpy(name, G.main->name, FILE_MAX);
+
 	untitled(name);
+	
 	RNA_string_set(op->ptr, "filepath", name);
 	
 	if (RNA_struct_find_property(op->ptr, "check_existing"))
