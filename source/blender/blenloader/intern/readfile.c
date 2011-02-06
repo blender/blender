@@ -11323,12 +11323,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* fix for bones that didn't have arm_roll before */
 		bArmature* arm;
 		Bone* bone;
+		Object *ob;
 
 		for (arm = main->armature.first; arm; arm = arm->id.next)
 			for (bone = arm->bonebase.first; bone; bone = bone->next)
 				do_version_bone_roll_256(bone);
+
+		/* fix for objects which have zero dquat's
+		 * since this is multiplied with the quat rather then added */
+		for(ob= main->object.first; ob; ob= ob->id.next) {
+			if(is_zero_v4(ob->dquat)) {
+				unit_qt(ob->dquat);
+			}
+			if(is_zero_v3(ob->drotAxis) && ob->drotAngle == 0.0f) {
+				unit_axis_angle(ob->drotAxis, &ob->drotAngle);
+			}
+		}
 	}
-				
+
 	/* put compatibility code here until next subversion bump */
 	
 	{

@@ -427,9 +427,14 @@ MINLINE void normal_float_to_short_v3(short *out, const float *in)
 
 /********************************* Comparison ********************************/
 
-MINLINE int is_zero_v3(const float *v)
+MINLINE int is_zero_v3(const float v[3])
 {
 	return (v[0] == 0 && v[1] == 0 && v[2] == 0);
+}
+
+MINLINE int is_zero_v4(const float v[4])
+{
+	return (v[0] == 0 && v[1] == 0 && v[2] == 0 && v[3] == 0);
 }
 
 MINLINE int is_one_v3(const float *v)
