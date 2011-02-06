@@ -45,7 +45,6 @@
 
 
 static PyObject *Matrix_copy(MatrixObject *self);
-
 static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value);
 
 /* matrix vector callbacks */
@@ -162,9 +161,21 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	return NULL;
 }
 
+/* when a matrix is 4x4 size but initialized as a 3x3, re-assign values for 4x4 */
+static void matrix_3x3_as_4x4(float mat[16])
+{
+	mat[10] = mat[8];
+	mat[9] = mat[7];
+	mat[8] = mat[6];
+	mat[7] = 0.0f;
+	mat[6] = mat[5];
+	mat[5] = mat[4];
+	mat[4] = mat[3];
+	mat[3] = 0.0f;
+}
+
 /*-----------------------CLASS-METHODS----------------------------*/
 
-//----------------------------------mathutils.RotationMatrix() ----------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 static char C_Matrix_Rotation_doc[] =
 ".. classmethod:: Rotation(angle, size, axis)\n"
@@ -266,15 +277,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 	}
 
 	if(matSize == 4) {
-		//resize matrix
-		mat[10] = mat[8];
-		mat[9] = mat[7];
-		mat[8] = mat[6];
-		mat[7] = 0.0f;
-		mat[6] = mat[5];
-		mat[5] = mat[4];
-		mat[4] = mat[3];
-		mat[3] = 0.0f;
+		matrix_3x3_as_4x4(mat);
 	}
 	//pass to matrix creation
 	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
@@ -321,28 +324,26 @@ static char C_Matrix_Scale_doc[] =
 ;
 static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 {
-	VectorObject *vec = NULL;
-	float norm = 0.0f, factor;
-	int matSize, x;
+	PyObject *vec= NULL;
+	int vec_size;
+	float tvec[3];
+	float factor;
+	int matSize;
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
-	if(!PyArg_ParseTuple(args, "fi|O!:Matrix.Scale", &factor, &matSize, &vector_Type, &vec)) {
+	if(!PyArg_ParseTuple(args, "fi|O!:Matrix.Scale", &factor, &matSize, &vec)) {
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
-		PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.Scale(): can only return a 2x2 3x3 or 4x4 matrix");
+		PyErr_SetString(PyExc_AttributeError, "Matrix.Scale(): can only return a 2x2 3x3 or 4x4 matrix");
 		return NULL;
 	}
 	if(vec) {
-		if(vec->size > 2 && matSize == 2) {
-			PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix.Scale(): 2D vectors when scaling in 2D required");
+		vec_size= (matSize == 2 ? 2 : 3);
+		if(mathutils_array_parse(tvec, vec_size, vec_size, vec, "Matrix.Scale(factor, size, axis), invalid 'axis' arg") == -1) {
 			return NULL;
 		}
-
-		if(!BaseMath_ReadCallback(vec))
-			return NULL;
-
 	}
 	if(vec == NULL) {	//scaling along axis
 		if(matSize == 2) {
@@ -353,42 +354,37 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 			mat[4] = factor;
 			mat[8] = factor;
 		}
-	} else { //scaling in arbitrary direction
+	}
+	else { //scaling in arbitrary direction
 		//normalize arbitrary axis
-		for(x = 0; x < vec->size; x++) {
-			norm += vec->vec[x] * vec->vec[x];
+		float norm = 0.0f;
+		int x;
+		for(x = 0; x < vec_size; x++) {
+			norm += tvec[x] * tvec[x];
 		}
 		norm = (float) sqrt(norm);
-		for(x = 0; x < vec->size; x++) {
-			vec->vec[x] /= norm;
+		for(x = 0; x < vec_size; x++) {
+			tvec[x] /= norm;
 		}
 		if(matSize == 2) {
-			mat[0] = 1 +((factor - 1) *(vec->vec[0] * vec->vec[0]));
-			mat[1] =((factor - 1) *(vec->vec[0] * vec->vec[1]));
-			mat[2] =((factor - 1) *(vec->vec[0] * vec->vec[1]));
-			mat[3] = 1 + ((factor - 1) *(vec->vec[1] * vec->vec[1]));
+			mat[0] = 1 + ((factor - 1) *(tvec[0] * tvec[0]));
+			mat[1] =     ((factor - 1) *(tvec[0] * tvec[1]));
+			mat[2] =     ((factor - 1) *(tvec[0] * tvec[1]));
+			mat[3] = 1 + ((factor - 1) *(tvec[1] * tvec[1]));
 		} else {
-			mat[0] = 1 + ((factor - 1) *(vec->vec[0] * vec->vec[0]));
-			mat[1] =((factor - 1) *(vec->vec[0] * vec->vec[1]));
-			mat[2] =((factor - 1) *(vec->vec[0] * vec->vec[2]));
-			mat[3] =((factor - 1) *(vec->vec[0] * vec->vec[1]));
-			mat[4] = 1 + ((factor - 1) *(vec->vec[1] * vec->vec[1]));
-			mat[5] =((factor - 1) *(vec->vec[1] * vec->vec[2]));
-			mat[6] =((factor - 1) *(vec->vec[0] * vec->vec[2]));
-			mat[7] =((factor - 1) *(vec->vec[1] * vec->vec[2]));
-			mat[8] = 1 + ((factor - 1) *(vec->vec[2] * vec->vec[2]));
+			mat[0] = 1 + ((factor - 1) *(tvec[0] * tvec[0]));
+			mat[1] =     ((factor - 1) *(tvec[0] * tvec[1]));
+			mat[2] =     ((factor - 1) *(tvec[0] * tvec[2]));
+			mat[3] =     ((factor - 1) *(tvec[0] * tvec[1]));
+			mat[4] = 1 + ((factor - 1) *(tvec[1] * tvec[1]));
+			mat[5] =     ((factor - 1) *(tvec[1] * tvec[2]));
+			mat[6] =     ((factor - 1) *(tvec[0] * tvec[2]));
+			mat[7] =     ((factor - 1) *(tvec[1] * tvec[2]));
+			mat[8] = 1 + ((factor - 1) *(tvec[2] * tvec[2]));
 		}
 	}
 	if(matSize == 4) {
-		//resize matrix
-		mat[10] = mat[8];
-		mat[9] = mat[7];
-		mat[8] = mat[6];
-		mat[7] = 0.0f;
-		mat[6] = mat[5];
-		mat[5] = mat[4];
-		mat[4] = mat[3];
-		mat[3] = 0.0f;
+		matrix_3x3_as_4x4(mat);
 	}
 	//pass to matrix creation
 	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
@@ -495,15 +491,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 		}
 	}
 	if(matSize == 4) {
-		//resize matrix
-		mat[10] = mat[8];
-		mat[9] = mat[7];
-		mat[8] = mat[6];
-		mat[7] = 0.0f;
-		mat[6] = mat[5];
-		mat[5] = mat[4];
-		mat[4] = mat[3];
-		mat[3] = 0.0f;
+		matrix_3x3_as_4x4(mat);
 	}
 	//pass to matrix creation
 	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
@@ -594,15 +582,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 	}
 
 	if(matSize == 4) {
-		//resize matrix
-		mat[10] = mat[8];
-		mat[9] = mat[7];
-		mat[8] = mat[6];
-		mat[7] = 0.0f;
-		mat[6] = mat[5];
-		mat[5] = mat[4];
-		mat[4] = mat[3];
-		mat[3] = 0.0f;
+		matrix_3x3_as_4x4(mat);
 	}
 	//pass to matrix creation
 	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
