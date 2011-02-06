@@ -773,7 +773,7 @@ def packIslands(islandList):
 
 
 def VectoQuat(vec):
-    vec = vec.copy().normalize()
+    vec = vec.normalized()
     if abs(vec.x) > 0.5:
         return vec.to_track_quat('Z', 'X')
     else:
@@ -963,7 +963,7 @@ def main(context, island_margin, projection_limit):
                     averageVec += fprop.no
 
             if averageVec.x != 0 or averageVec.y != 0 or averageVec.z != 0: # Avoid NAN
-                projectVecs.append(averageVec.normalize())
+                projectVecs.append(averageVec.normalized())
 
 
             # Get the next vec!
