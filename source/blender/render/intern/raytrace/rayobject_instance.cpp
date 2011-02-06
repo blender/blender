@@ -1,5 +1,5 @@
 /**
- * $Id: rayobject_instance.cpp 29542 2010-06-18 09:45:46Z blendix $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

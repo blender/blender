@@ -1,5 +1,5 @@
 /**
- * $Id: rayobject_raycounter.cpp 29491 2010-06-16 18:57:23Z blendix $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
