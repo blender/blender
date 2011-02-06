@@ -32,6 +32,8 @@
 struct wmWindow;
 struct Scene;
 
+#define AZONESPOT		12
+
 /* area.c */
 void		area_copy_data	(ScrArea *sa1, ScrArea *sa2, int swap_space);
 

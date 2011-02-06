@@ -699,7 +699,8 @@ typedef enum eChildOf_Flags {
 	CHILDOF_ROTZ	= (1<<5),
 	CHILDOF_SIZEX	= (1<<6),
 	CHILDOF_SIZEY	= (1<<7),
-	CHILDOF_SIZEZ	= (1<<8)
+	CHILDOF_SIZEZ	= (1<<8),
+	CHILDOF_ALL		= 511
 } eChildOf_Flags;
 
 /* Pivot Constraint */

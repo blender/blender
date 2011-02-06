@@ -474,7 +474,10 @@ AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 	for(az= sa->actionzones.first; az; az= az->next) {
 		if(BLI_in_rcti(&az->rect, x, y)) {
 			if(az->type == AZONE_AREA) {
-				if(isect_point_tri_v2_int(az->x1, az->y1, az->x2, az->y2, x, y)) 
+				/* no triangle intersect but a hotspot circle based on corner */
+				int radius= (x-az->x1)*(x-az->x1) + (y-az->y1)*(y-az->y1);
+				
+				if(radius <= AZONESPOT*AZONESPOT)
 					break;
 			}
 			else if(az->type == AZONE_REGION) {
