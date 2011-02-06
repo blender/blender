@@ -2080,6 +2080,8 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 void do_material_tex(ShadeInput *shi)
 {
+	CompatibleBump compat_bump;
+	NTapBump ntap_bump;
 	MTex *mtex;
 	Tex *tex;
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
@@ -2087,9 +2089,6 @@ void do_material_tex(ShadeInput *shi)
 	float fact, facm, factt, facmm, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3]={0.0f, 0.0f, 0.0f}, Tnor=1.0;
 	int tex_nr, rgbnor= 0, warpdone=0;
-
-	CompatibleBump compat_bump;
-	NTapBump ntap_bump;
 	int use_compat_bump, use_ntap_bump;
 
 	compatible_bump_init(&compat_bump);
@@ -2113,10 +2112,15 @@ void do_material_tex(ShadeInput *shi)
 			use_ntap_bump= (mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP));
 
 			/* XXX texture node trees don't work for this yet */
-			/* it also needs derivatives */
-			if((tex->nodetree && tex->use_nodes) || shi->osatex==0) {
+			if(tex->nodetree && tex->use_nodes) {
 				use_compat_bump = 0;
 				use_ntap_bump = 0;
+			}
+			
+			/* case displacement mapping */
+			if(shi->osatex==0 && use_ntap_bump) {
+				use_ntap_bump = 0;
+				use_compat_bump = 1;
 			}
 
 			/* which coords */
