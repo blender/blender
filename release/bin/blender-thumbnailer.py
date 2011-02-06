@@ -118,7 +118,7 @@ def write_png(buf, width, height):
 if __name__ == '__main__':
     import sys
 
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         print("Expected 2 arguments <input.blend> <output.png>")
     else:
         file_in = sys.argv[-2]
