@@ -2460,7 +2460,7 @@ int RNA_raw_type_sizeof(RawPropertyType type)
 	}
 }
 
-static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *inarray, RawPropertyType intype, int inlen, int set)
+static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, const char *propname, void *inarray, RawPropertyType intype, int inlen, int set)
 {
 	StructRNA *ptype;
 	PointerRNA itemptr;
@@ -2762,12 +2762,12 @@ RawPropertyType RNA_property_raw_type(PropertyRNA *prop)
 	return prop->rawtype;
 }
 
-int RNA_property_collection_raw_get(ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len)
+int RNA_property_collection_raw_get(ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, const char *propname, void *array, RawPropertyType type, int len)
 {
 	return rna_raw_access(reports, ptr, prop, propname, array, type, len, 0);
 }
 
-int RNA_property_collection_raw_set(ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len)
+int RNA_property_collection_raw_set(ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, const char *propname, void *array, RawPropertyType type, int len)
 {
 	return rna_raw_access(reports, ptr, prop, propname, array, type, len, 1);
 }
@@ -3423,12 +3423,19 @@ static char *rna_path_from_ID_to_idpgroup(PointerRNA *ptr)
 	IDProperty *needle;
 
 	BLI_assert(ptr->id.data != NULL);
+
+	/* TODO, Support Bones/PoseBones. no pointers stored to the bones from here, only the ID. See example in [#25746]
+	 * unless this is added only way to find this is to also search all bones and pose bones of an armature or object */
 	RNA_id_pointer_create(ptr->id.data, &id_ptr);
 
 	haystack= RNA_struct_idprops(&id_ptr, FALSE);
-	needle= ptr->data;
-
-	return rna_idp_path(&id_ptr, haystack, needle, NULL);
+	if(haystack) { /* can fail when called on bones */
+		needle= ptr->data;
+		return rna_idp_path(&id_ptr, haystack, needle, NULL);
+	}
+	else {
+		return NULL;
+	}
 }
 
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr)

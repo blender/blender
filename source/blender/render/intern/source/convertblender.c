@@ -1492,13 +1492,13 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	StrandBound *sbound= 0;
 	StrandRen *strand=0;
 	RNG *rng= 0;
-	float loc[3],loc1[3],loc0[3],mat[4][4],nmat[3][3],co[3],nor[3];
+	float loc[3],loc1[3],loc0[3],mat[4][4],nmat[3][3],co[3],nor[3],duplimat[4][4];
 	float strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, r_tilt, r_length;
 	float pa_time, pa_birthtime, pa_dietime;
 	float random, simplify[2], pa_co[3];
 	const float cfra= BKE_curframe(re->scene);
-	int i, a, k, max_k=0, totpart, dosimplify = 0, dosurfacecache = 0;
+	int i, a, k, max_k=0, totpart, dosimplify = 0, dosurfacecache = 0, use_duplimat = 0;
 	int totchild=0;
 	int seed, path_nbr=0, orco1=0, num;
 	int totface, *origindex = 0;
@@ -1637,6 +1637,12 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	invert_m4_m4(ob->imat, mat);	/* need to be that way, for imat texture */
 	copy_m3_m4(nmat, ob->imat);
 	transpose_m3(nmat);
+
+	if(psys->flag & PSYS_USE_IMAT) {
+		/* psys->imat is the original emitter's inverse matrix, ob->obmat is the duplicated object's matrix */
+		mul_m4_m4m4(duplimat, psys->imat, ob->obmat);
+		use_duplimat = 1;
+	}
 
 /* 2.6 setup strand rendering */
 	if(part->ren_as == PART_DRAW_PATH && psys->pathcache){
@@ -1949,6 +1955,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					if(psys->parent)
 						mul_m4_v3(psys->parent->obmat, state.co);
 
+					if(use_duplimat)
+						mul_m4_v4(duplimat, state.co);
+
 					if(part->ren_as == PART_DRAW_BB) {
 						bb.random = random;
 						bb.size = pa_size;
@@ -1970,6 +1979,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 				if(psys->parent)
 					mul_m4_v3(psys->parent->obmat, state.co);
+
+				if(use_duplimat)
+					mul_m4_v4(duplimat, state.co);
 
 				if(part->ren_as == PART_DRAW_BB) {
 					bb.random = random;
@@ -3940,30 +3952,35 @@ static void set_phong_threshold(ObjectRen *obr)
 
 /* per face check if all samples should be taken.
    if raytrace or multisample, do always for raytraced material, or when material full_osa set */
-static void set_fullsample_flag(Render *re, ObjectRen *obr)
+static void set_fullsample_trace_flag(Render *re, ObjectRen *obr)
 {
 	VlakRen *vlr;
-	int a, trace, mode;
+	int a, trace, mode, osa;
 
-	if(re->osa==0)
-		return;
-	
+	osa= re->osa;
 	trace= re->r.mode & R_RAYTRACE;
 	
 	for(a=obr->totvlak-1; a>=0; a--) {
 		vlr= RE_findOrAddVlak(obr, a);
 		mode= vlr->mat->mode;
+
+		if(trace && (mode & MA_TRACEBLE))
+			vlr->flag |= R_TRACEBLE;
 		
-		if(mode & MA_FULL_OSA) 
-			vlr->flag |= R_FULL_OSA;
-		else if(trace) {
-			if(mode & MA_SHLESS);
-			else if(vlr->mat->material_type == MA_TYPE_VOLUME);
-			else if((mode & MA_RAYMIRROR) || ((mode & MA_TRANSP) && (mode & MA_RAYTRANSP)))
-				/* for blurry reflect/refract, better to take more samples 
-				 * inside the raytrace than as OSA samples */
-				if ((vlr->mat->gloss_mir == 1.0) && (vlr->mat->gloss_tra == 1.0)) 
-					vlr->flag |= R_FULL_OSA;
+		if(osa) {
+			if(mode & MA_FULL_OSA) {
+				vlr->flag |= R_FULL_OSA;
+			}
+			else if(trace) {
+				if(mode & MA_SHLESS);
+				else if(vlr->mat->material_type == MA_TYPE_VOLUME);
+				else if((mode & MA_RAYMIRROR) || ((mode & MA_TRANSP) && (mode & MA_RAYTRANSP))) {
+					/* for blurry reflect/refract, better to take more samples 
+					 * inside the raytrace than as OSA samples */
+					if ((vlr->mat->gloss_mir == 1.0) && (vlr->mat->gloss_tra == 1.0)) 
+						vlr->flag |= R_FULL_OSA;
+				}
+			}
 		}
 	}
 }
@@ -4158,7 +4175,7 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 					check_non_flat_quads(obr);
 			}
 			
-			set_fullsample_flag(re, obr);
+			set_fullsample_trace_flag(re, obr);
 
 			/* compute bounding boxes for clipping */
 			INIT_MINMAX(min, max);
@@ -4340,7 +4357,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 	int i;
 
 	if(obr->psysindex) {
-		if((!obr->prev || obr->prev->ob != ob) && ob->type==OB_MESH) {
+		if((!obr->prev || obr->prev->ob != ob || (obr->prev->flag & R_INSTANCEABLE)==0) && ob->type==OB_MESH) {
 			/* the emitter mesh wasn't rendered so the modifier stack wasn't
 			 * evaluated with render settings */
 			DerivedMesh *dm;
@@ -4432,8 +4449,11 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 			}
 			if(obr->lay & vectorlay)
 				obr->flag |= R_NEED_VECTORS;
+			if(dob)
+				psys->flag |= PSYS_USE_IMAT;
 			init_render_object_data(re, obr, timeoffset);
 			psys_render_restore(ob, psys);
+			psys->flag &= ~PSYS_USE_IMAT;
 
 			/* only add instance for objects that have not been used for dupli */
 			if(!(ob->transflag & OB_RENDER_DUPLI)) {
@@ -4765,6 +4785,8 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						int psysindex;
 						float mat[4][4];
 
+						obi=NULL;
+
 						/* instances instead of the actual object are added in two cases, either
 						 * this is a duplivert/face/particle, or it is a non-animated object in
 						 * a dupligroup that has already been created before */
@@ -4789,15 +4811,14 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 									find_dupli_instances(re, obr);
 							}
 						}
-						else
-							/* can't instance, just create the object */
-							init_render_object(re, obd, ob, dob, timeoffset, vectorlay);
 
 						/* same logic for particles, each particle system has it's own object, so
 						 * need to go over them separately */
 						psysindex= 1;
 						for(psys=obd->particlesystem.first; psys; psys=psys->next) {
-							if(dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, ob, psysindex))) {
+							if(dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, psysindex))) {
+								if(obi == NULL)
+									mul_m4_m4m4(mat, dob->mat, re->viewmat);
 								obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, psysindex++, mat, obd->lay);
 
 								set_dupli_tex_mat(re, obi, dob);
@@ -4813,6 +4834,10 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 								}
 							}
 						}
+
+						if(obi==NULL)
+							/* can't instance, just create the object */
+							init_render_object(re, obd, ob, dob, timeoffset, vectorlay);
 						
 						if(dob->type != OB_DUPLIGROUP) {
 							obd->flag |= OB_DONE;

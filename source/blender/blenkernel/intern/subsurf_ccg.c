@@ -70,8 +70,6 @@ static int ccgDM_getVertMapIndex(CCGSubSurf *ss, CCGVert *v);
 static int ccgDM_getEdgeMapIndex(CCGSubSurf *ss, CCGEdge *e);
 static int ccgDM_getFaceMapIndex(CCGSubSurf *ss, CCGFace *f);
 
-static int ccgDM_use_grid_pbvh(CCGDerivedMesh *ccgdm);
-
 ///
 
 static void *arena_alloc(CCGAllocatorHDL a, int numBytes) {
@@ -1150,7 +1148,7 @@ static void ccgDM_drawVerts(DerivedMesh *dm) {
 
 static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
 {
-	if(ccgdm->pbvh && ccgDM_use_grid_pbvh(ccgdm)) {
+	if(ccgdm->pbvh) {
 		CCGFace **faces;
 		int totface;
 
@@ -2240,28 +2238,10 @@ static ListBase *ccgDM_getFaceMap(Object *ob, DerivedMesh *dm)
 	return ccgdm->fmap;
 }
 
-static int ccgDM_use_grid_pbvh(CCGDerivedMesh *ccgdm)
-{
-	ModifierData *md;
-	MultiresModifierData *mmd= ccgdm->multires.mmd;
-
-	/* in sync with sculpt mode, only use multires grid pbvh if we are
-	   the last enabled modifier in the stack, otherwise we use the base
-	   mesh */
-	if(!mmd)
-		return 0;
-	
-	for(md=mmd->modifier.next; md; md= md->next)
-		if(modifier_isEnabled(mmd->modifier.scene, md, eModifierMode_Realtime))
-			return 0;
-	
-	return 1;
-}
-
 static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
-	int gridSize, numGrids, grid_pbvh;
+	int gridSize, numGrids;
 
 	if(!ob) {
 		ccgdm->pbvh= NULL;
@@ -2271,21 +2251,8 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	if(!ob->sculpt)
 		return NULL;
 
-	grid_pbvh = ccgDM_use_grid_pbvh(ccgdm);
-
-	if(ob->sculpt->pbvh) {
-		if(grid_pbvh) {
-			/* pbvh's grids, gridadj and gridfaces points to data inside ccgdm
-			   but this can be freed on ccgdm release, this updates the pointers
-			   when the ccgdm gets remade, the assumption is that the topology
-			   does not change. */
-			ccgdm_create_grids(dm);
-			BLI_pbvh_grids_update(ob->sculpt->pbvh, ccgdm->gridData, ccgdm->gridAdjacency, (void**)ccgdm->gridFaces);
-		}
-
+	if(ob->sculpt->pbvh)
 		ccgdm->pbvh = ob->sculpt->pbvh;
-		ccgdm->pbvh_draw = grid_pbvh;
-	}
 
 	if(ccgdm->pbvh)
 		return ccgdm->pbvh;
@@ -2293,25 +2260,14 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	/* no pbvh exists yet, we need to create one. only in case of multires
 	   we build a pbvh over the modified mesh, in other cases the base mesh
 	   is being sculpted, so we build a pbvh from that. */
-	if(grid_pbvh) {
-		ccgdm_create_grids(dm);
+	ccgdm_create_grids(dm);
 
-		gridSize = ccgDM_getGridSize(dm);
-		numGrids = ccgDM_getNumGrids(dm);
+	gridSize = ccgDM_getGridSize(dm);
+	numGrids = ccgDM_getNumGrids(dm);
 
-		ob->sculpt->pbvh= ccgdm->pbvh = BLI_pbvh_new();
-		BLI_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, ccgdm->gridAdjacency,
-			numGrids, gridSize, (void**)ccgdm->gridFaces);
-		ccgdm->pbvh_draw = 1;
-	}
-	else if(ob->type == OB_MESH) {
-		Mesh *me= ob->data;
-
-		ob->sculpt->pbvh= ccgdm->pbvh = BLI_pbvh_new();
-		BLI_pbvh_build_mesh(ccgdm->pbvh, me->mface, me->mvert,
-				   me->totface, me->totvert);
-		ccgdm->pbvh_draw = 0;
-	}
+	ob->sculpt->pbvh= ccgdm->pbvh = BLI_pbvh_new();
+	BLI_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, ccgdm->gridAdjacency,
+		numGrids, gridSize, (void**)ccgdm->gridFaces);
 
 	return ccgdm->pbvh;
 }

@@ -40,7 +40,6 @@
 #include "BLI_utildefines.h"
 
 #include "RE_shader_ext.h"
-#include "RE_raytrace.h"
 
 #include "DNA_material_types.h"
 #include "DNA_group_types.h"
@@ -51,6 +50,8 @@
 
 #include "render_types.h"
 #include "pixelshading.h"
+#include "rayintersection.h"
+#include "rayobject.h"
 #include "shading.h"
 #include "shadbuf.h"
 #include "texture.h"
@@ -84,13 +85,13 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
 		
 		copy_v3_v3(is.start, co);
 		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
-			is.vec[0] = -lar->vec[0];
-			is.vec[1] = -lar->vec[1];
-			is.vec[2] = -lar->vec[2];
-			is.labda = R.maxdist;
+			is.dir[0] = -lar->vec[0];
+			is.dir[1] = -lar->vec[1];
+			is.dir[2] = -lar->vec[2];
+			is.dist = R.maxdist;
 		} else {
-			VECSUB( is.vec, lar->co, is.start );
-			is.labda = len_v3( is.vec );
+			VECSUB( is.dir, lar->co, is.start );
+			is.dist = normalize_v3( is.dir );
 		}
 
 		is.mode = RE_RAY_MIRROR;
@@ -119,8 +120,8 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 {
 	
 	VECCOPY(isect->start, co);
-	VECCOPY(isect->vec, vec );
-	isect->labda = FLT_MAX;
+	VECCOPY(isect->dir, vec );
+	isect->dist = FLT_MAX;
 	isect->mode= RE_RAY_MIRROR;
 	isect->last_hit = NULL;
 	isect->lay= -1;
@@ -138,9 +139,9 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	
 	if(RE_rayobject_raycast(R.raytree, isect))
 	{
-		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
-		hitco[1] = isect->start[1] + isect->labda*isect->vec[1];
-		hitco[2] = isect->start[2] + isect->labda*isect->vec[2];
+		hitco[0] = isect->start[0] + isect->dist*isect->dir[0];
+		hitco[1] = isect->start[1] + isect->dist*isect->dir[1];
+		hitco[2] = isect->start[2] + isect->dist*isect->dir[2];
 		return 1;
 	} else {
 		return 0;
@@ -185,8 +186,8 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *co
 	Isect isect;
 	
 	VECCOPY(isect.start, co);
-	VECCOPY(isect.vec, shi->view);
-	isect.labda = FLT_MAX;
+	VECCOPY(isect.dir, shi->view);
+	isect.dist = FLT_MAX;
 	
 	isect.mode= RE_RAY_MIRROR;
 	isect.check = RE_CHECK_VLR_NONE;
@@ -772,7 +773,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	/* due to idiosyncracy in ray_trace_shadow_tra() */
 	if (is.hit.ob == shi->obi) {
 		copy_v3_v3(shi->co, hitco);
-		last_is->labda -= is.labda;
+		last_is->dist -= is.dist;
 		shi->vlr = (VlakRen *)is.hit.face;
 	}
 

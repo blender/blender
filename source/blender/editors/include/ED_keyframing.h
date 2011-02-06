@@ -259,8 +259,12 @@ short ANIM_paste_driver(struct ReportList *reports, struct ID *id, const char rn
 #define IS_AUTOKEY_ON(scene)	((scene) ? (scene->toolsettings->autokey_mode & AUTOKEY_ON) : (U.autokey_mode & AUTOKEY_ON))
 	/* check the mode for auto-keyframing (per scene takes presidence)  */
 #define IS_AUTOKEY_MODE(scene, mode) 	((scene) ? (scene->toolsettings->autokey_mode == AUTOKEY_MODE_##mode) : (U.autokey_mode == AUTOKEY_MODE_##mode))
-	/* check if a flag is set for auto-keyframing (as userprefs only!) */
-#define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag & AUTOKEY_FLAG_##flag)
+	/* check if a flag is set for auto-keyframing (per scene takes presidence) */
+#define IS_AUTOKEY_FLAG(scene, flag) \
+	((scene)? \
+		((scene->toolsettings->autokey_flag & AUTOKEY_FLAG_##flag) || (U.autokey_flag & AUTOKEY_FLAG_##flag)) \
+	 : \
+		(U.autokey_flag & AUTOKEY_FLAG_##flag))
 
 /* auto-keyframing feature - checks for whether anything should be done for the current frame */
 int autokeyframe_cfra_can_key(struct Scene *scene, struct ID *id);

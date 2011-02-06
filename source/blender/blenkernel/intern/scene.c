@@ -381,6 +381,7 @@ Scene *add_scene(const char *name)
 	sce->r.fg_stamp[3]= 1.0f;
 	sce->r.bg_stamp[0]= sce->r.bg_stamp[1]= sce->r.bg_stamp[2]= 0.0f;
 	sce->r.bg_stamp[3]= 0.25f;
+	sce->r.raytrace_options = R_RAYTRACE_USE_INSTANCES;
 
 	sce->r.seq_prev_type= OB_SOLID;
 	sce->r.seq_rend_type= OB_SOLID;

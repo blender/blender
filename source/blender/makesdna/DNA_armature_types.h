@@ -57,8 +57,9 @@ typedef struct Bone {
 	int				flag;
 	
 	float			arm_head[3];		
-	float			arm_tail[3];	/*	head/tail and roll in Armature Space (rest pos) */
+	float			arm_tail[3];	/*	head/tail in Armature Space (rest pos) */
 	float			arm_mat[4][4];  /*  matrix: (bonemat(b)+head(b))*arm_mat(b-1), rest pos*/
+	float           arm_roll;        /* roll in Armature Space (rest pos) */
 	
 	float			dist, weight;			/*  dist, weight: for non-deformgroup deforms */
 	float			xwidth, length, zwidth;	/*  width: for block bones. keep in this order, transform! */
@@ -68,7 +69,7 @@ typedef struct Bone {
 	float			size[3];		/*  patch for upward compat, UNUSED! */
 	int				layer;			/* layers that bone appears on */
 	short			segments;		/*  for B-bones */
-	short 			pad[3];
+	short 			pad[1];
 } Bone;
 
 typedef struct bArmature {

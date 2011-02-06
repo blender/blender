@@ -375,6 +375,7 @@ ModifierTypeInfo modifierType_SimpleDeform = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     0,

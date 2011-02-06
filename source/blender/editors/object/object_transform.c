@@ -165,24 +165,16 @@ static void object_clear_rot(Object *ob)
 	}						 // Duplicated in source/blender/editors/armature/editarmature.c
 	else { 
 		if (ob->rotmode == ROT_MODE_QUAT) {
-			ob->quat[1]=ob->quat[2]=ob->quat[3]= 0.0f; 
-			ob->quat[0]= 1.0f;
-			
-			ob->dquat[1]=ob->dquat[2]=ob->dquat[3]= 0.0f;
-			ob->dquat[0]= 1.0f;
+			unit_qt(ob->quat);
+			unit_qt(ob->dquat);
 		}
 		else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-			/* by default, make rotation of 0 radians around y-axis (roll) */
-			ob->rotAxis[0]=ob->rotAxis[2]=ob->rotAngle= 0.0f;
-			ob->rotAxis[1]= 1.0f;
-			
-			ob->drotAxis[0]=ob->drotAxis[2]=ob->drotAngle= 0.0f;
-			ob->drotAxis[1]= 1.0f;
+			unit_axis_angle(ob->rotAxis, &ob->rotAngle);
+			unit_axis_angle(ob->drotAxis, &ob->drotAngle);
 		}
 		else {
-			ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
-			
-			ob->drot[0]= ob->drot[1]= ob->drot[2]= 0.0f;
+			zero_v3(ob->rot);
+			zero_v3(ob->drot);
 		}
 	}
 }
@@ -532,16 +524,13 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			continue;
 
 		if(apply_loc)
-			ob->loc[0]= ob->loc[1]= ob->loc[2]= 0.0f;
+			zero_v3(ob->loc);
 		if(apply_scale)
 			ob->size[0]= ob->size[1]= ob->size[2]= 1.0f;
 		if(apply_rot) {
-			ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
-			ob->quat[1]= ob->quat[2]= ob->quat[3]= 0.0f;
-			ob->rotAxis[0]= ob->rotAxis[2]= 0.0f;
-			ob->rotAngle= 0.0f;
-			
-			ob->quat[0]= ob->rotAxis[1]= 1.0f;
+			zero_v3(ob->rot);
+			unit_qt(ob->quat);
+			unit_axis_angle(ob->rotAxis, &ob->rotAngle);
 		}
 
 		where_is_object(scene, ob);

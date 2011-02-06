@@ -282,6 +282,14 @@ MINLINE void negate_v3_v3(float r[3], const float a[3])
 	r[2]= -a[2];
 }
 
+MINLINE void negate_v4(float r[4])
+{
+	r[0]= -r[0];
+	r[1]= -r[1];
+	r[2]= -r[2];
+	r[3]= -r[3];
+}
+
 MINLINE float dot_v2v2(const float a[2], const float b[2])
 {
 	return a[0]*b[0] + a[1]*b[1];
@@ -419,9 +427,14 @@ MINLINE void normal_float_to_short_v3(short *out, const float *in)
 
 /********************************* Comparison ********************************/
 
-MINLINE int is_zero_v3(const float *v)
+MINLINE int is_zero_v3(const float v[3])
 {
 	return (v[0] == 0 && v[1] == 0 && v[2] == 0);
+}
+
+MINLINE int is_zero_v4(const float v[4])
+{
+	return (v[0] == 0 && v[1] == 0 && v[2] == 0 && v[3] == 0);
 }
 
 MINLINE int is_one_v3(const float *v)

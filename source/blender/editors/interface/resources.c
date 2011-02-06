@@ -1511,6 +1511,11 @@ void init_userdef_do_versions(void)
 		}
 	}
 	
+	if (bmain->versionfile < 257) {
+		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs, so that it doesn't linger around from old configs like a ghost */
+		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
+	}
+	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;

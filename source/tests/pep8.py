@@ -50,6 +50,12 @@ def is_pep8(path):
     print(path)
     if open(path, 'rb').read(3) == b'\xef\xbb\xbf':
         print("\nfile contains BOM, remove first 3 bytes: %r\n" % path)
+
+    # templates dont have a header but should be pep8
+    for d in ("presets", "templates", "examples"):
+        if ("%s%s%s" % (os.sep, d, os.sep)) in path:
+            return 1
+
     f = open(path, 'r', encoding="utf8")
     for i in range(PEP8_SEEK_COMMENT):
         line = f.readline()

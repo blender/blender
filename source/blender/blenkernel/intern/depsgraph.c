@@ -2452,7 +2452,9 @@ void DAG_id_tag_update(ID *id, short flag)
 			}
 		}
 		else {
-			BLI_assert(!"invalid flag for this 'idtype'");
+			/* disable because this is called on various ID types automatically.
+			 * where printing warning is not useful. for now just ignore */
+			/* BLI_assert(!"invalid flag for this 'idtype'"); */
 		}
 	}
 }

@@ -222,7 +222,7 @@ int ED_operator_node_active(bContext *C)
 }
 
 // XXX rename
-int ED_operator_ipo_active(bContext *C)
+int ED_operator_graphedit_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_IPO);
 }
@@ -1169,7 +1169,7 @@ static int area_split_apply(bContext *C, wmOperator *op)
 	fac= RNA_float_get(op->ptr, "factor");
 	dir= RNA_enum_get(op->ptr, "direction");
 	
-	sd->narea= area_split(sc, sd->sarea, dir, fac);
+	sd->narea= area_split(sc, sd->sarea, dir, fac, 0); /* 0 = no merge */
 	
 	if(sd->narea) {
 		ScrVert *sv;
@@ -2695,37 +2695,18 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 		sound_stop_scene(scene);
 	}
 	else {
-		ScrArea *sa= CTX_wm_area(C);
-		int refresh= SPACE_TIME;
+		int refresh= SPACE_TIME; /* these settings are currently only available from a menu in the TimeLine */
 		
 		if (mode == 1) // XXX only play audio forwards!?
 			sound_play_scene(scene);
 		
-		/* timeline gets special treatment since it has it's own menu for determining redraws */
-		if ((sa) && (sa->spacetype == SPACE_TIME)) {
-			SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
+		ED_screen_animation_timer(C, screen->redraws_flag, refresh, sync, mode);
+		
+		if (screen->animtimer) {
+			wmTimer *wt= screen->animtimer;
+			ScreenAnimData *sad= wt->customdata;
 			
-			ED_screen_animation_timer(C, stime->redraws, refresh, sync, mode);
-			
-			/* update region if TIME_REGION was set, to leftmost 3d window */
-			ED_screen_animation_timer_update(screen, stime->redraws, refresh);
-		}
-		else {
-			int redraws = TIME_REGION|TIME_ALL_3D_WIN;
-			
-			/* XXX - would like a better way to deal with this situation - Campbell */
-			if ((!sa) || (sa->spacetype == SPACE_SEQ)) {
-				redraws |= TIME_SEQ;
-			}
-			
-			ED_screen_animation_timer(C, redraws, refresh, sync, mode);
-			
-			if(screen->animtimer) {
-				wmTimer *wt= screen->animtimer;
-				ScreenAnimData *sad= wt->customdata;
-				
-				sad->ar= CTX_wm_region(C);
-			}
+			sad->ar= CTX_wm_region(C);
 		}
 	}
 
@@ -2763,7 +2744,7 @@ static int screen_animation_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bScreen *screen= CTX_wm_screen(C);
 	
-	if(screen->animtimer) {
+	if (screen->animtimer) {
 		ScreenAnimData *sad= screen->animtimer->customdata;
 		Scene *scene= CTX_data_scene(C);
 		

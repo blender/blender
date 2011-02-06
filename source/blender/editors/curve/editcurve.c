@@ -61,6 +61,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_animsys.h"
+#include "BKE_action.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -84,7 +85,7 @@ typedef struct {
 	ListBase nubase;
 	void *lastsel;
 	GHash *undoIndex;
-	ListBase fcurves;
+	ListBase fcurves, drivers;
 } UndoCurve;
 
 /* Definitions needed for shape keys */
@@ -1007,10 +1008,10 @@ static int curve_is_animated(Object *ob)
 	Curve *cu= (Curve*)ob->data;
 	AnimData *ad= BKE_animdata_from_id(&cu->id);
 
-	return ad && ad->action;
+	return ad && (ad->action || ad->drivers.first);
 }
 
-static void fcurve_path_rename(char *orig_rna_path, char *rna_path, ListBase *orig_curves, ListBase *curves)
+static void fcurve_path_rename(AnimData *ad, char *orig_rna_path, char *rna_path, ListBase *orig_curves, ListBase *curves)
 {
 	FCurve *fcu, *nfcu, *nextfcu;
 	int len= strlen(orig_rna_path);
@@ -1025,7 +1026,15 @@ static void fcurve_path_rename(char *orig_rna_path, char *rna_path, ListBase *or
 			nfcu->rna_path= BLI_sprintfN("%s%s", rna_path, suffix);
 			BLI_addtail(curves, nfcu);
 
-			BLI_remlink(orig_curves, fcu);
+			if (fcu->grp) {
+				action_groups_remove_channel(ad->action, fcu);
+				action_groups_add_channel(ad->action, fcu->grp, nfcu);
+			}
+			else if (ad->action && &ad->action->curves == orig_curves)
+				BLI_remlink(&ad->action->curves, fcu);
+			else
+				BLI_remlink(&ad->drivers, fcu);
+
 			free_fcurve(fcu);
 
 			MEM_freeN(spath);
@@ -1034,8 +1043,15 @@ static void fcurve_path_rename(char *orig_rna_path, char *rna_path, ListBase *or
 	}
 }
 
-/* return 0 if animation data wasn't changed, 1 otherwise */
-int ED_curve_updateAnimPaths(Object *obedit)
+static void fcurve_remove(AnimData *ad, ListBase *orig_curves, FCurve *fcu)
+{
+	if(orig_curves==&ad->drivers) BLI_remlink(&ad->drivers, fcu);
+	else action_groups_remove_channel(ad->action, fcu);
+
+	free_fcurve(fcu);
+}
+
+static void curve_rename_fcurves(Object *obedit, ListBase *orig_curves)
 {
 	int nu_index= 0, a, pt_index;
 	Curve *cu= (Curve*)obedit->data;
@@ -1043,14 +1059,9 @@ int ED_curve_updateAnimPaths(Object *obedit)
 	Nurb *nu= editnurb->nurbs.first;
 	CVKeyIndex *keyIndex;
 	char rna_path[64], orig_rna_path[64];
-	ListBase orig_curves= {0, 0};
-	ListBase curves= {0, 0};
 	AnimData *ad= BKE_animdata_from_id(&cu->id);
+	ListBase curves= {0, 0};
 	FCurve *fcu, *next;
-
-	if(!curve_is_animated(obedit)) return 0;
-
-	copy_fcurves(&orig_curves, &ad->action->curves);
 
 	while(nu) {
 		if(nu->bezt) {
@@ -1068,14 +1079,14 @@ int ED_curve_updateAnimPaths(Object *obedit)
 						char handle_path[64], orig_handle_path[64];
 						sprintf(orig_handle_path, "%s.handle_left", orig_rna_path);
 						sprintf(handle_path, "%s.handle_right", rna_path);
-						fcurve_path_rename(orig_handle_path, handle_path, &orig_curves, &curves);
+						fcurve_path_rename(ad, orig_handle_path, handle_path, orig_curves, &curves);
 
 						sprintf(orig_handle_path, "%s.handle_right", orig_rna_path);
 						sprintf(handle_path, "%s.handle_left", rna_path);
-						fcurve_path_rename(orig_handle_path, handle_path, &orig_curves, &curves);
+						fcurve_path_rename(ad, orig_handle_path, handle_path, orig_curves, &curves);
 					}
 
-					fcurve_path_rename(orig_rna_path, rna_path, &orig_curves, &curves);
+					fcurve_path_rename(ad, orig_rna_path, rna_path, orig_curves, &curves);
 
 					keyIndex->nu_index= nu_index;
 					keyIndex->pt_index= pt_index;
@@ -1094,7 +1105,7 @@ int ED_curve_updateAnimPaths(Object *obedit)
 				if(keyIndex) {
 					sprintf(rna_path, "splines[%d].points[%d]", nu_index, pt_index);
 					sprintf(orig_rna_path, "splines[%d].points[%d]", keyIndex->nu_index, keyIndex->pt_index);
-					fcurve_path_rename(orig_rna_path, rna_path, &orig_curves, &curves);
+					fcurve_path_rename(ad, orig_rna_path, rna_path, orig_curves, &curves);
 
 					keyIndex->nu_index= nu_index;
 					keyIndex->pt_index= pt_index;
@@ -1108,27 +1119,64 @@ int ED_curve_updateAnimPaths(Object *obedit)
 		nu_index++;
 	}
 
+	/* remove pathes for removed control points
+	   need this to make further step with copying non-cv related curves copying
+	   not touching cv's f-cruves */
+	fcu= orig_curves->first;
+	for(fcu= orig_curves->first; fcu; fcu= next) {
+		next= fcu->next;
+
+		if(!strncmp(fcu->rna_path, "splines", 7)) {
+			char *ch= strchr(fcu->rna_path, '.');
+
+			if (ch && (!strncmp(ch, ".bezier_points", 14) || !strncmp(ch, ".points", 8)))
+				fcurve_remove(ad, orig_curves, fcu);
+		}
+	}
+
 	nu_index= 0;
+	nu= editnurb->nurbs.first;
 	while(nu) {
+		keyIndex= NULL;
+		if(nu->pntsu) {
+			if(nu->bezt) keyIndex= getCVKeyIndex(editnurb, &nu->bezt[0]);
+			else keyIndex= getCVKeyIndex(editnurb, &nu->bp[0]);
+		}
+
 		if(keyIndex) {
 			sprintf(rna_path, "splines[%d]", nu_index);
 			sprintf(orig_rna_path, "splines[%d]", keyIndex->nu_index);
-			fcurve_path_rename(orig_rna_path, rna_path, &ad->action->curves, &curves);
+			fcurve_path_rename(ad, orig_rna_path, rna_path, orig_curves, &curves);
 		}
+
 		nu_index++;
+		nu= nu->next;
 	}
 
 	/* the remainders in orig_curves can be copied back (like follow path) */
 	/* (if it's not path to spline) */
-	for(fcu= orig_curves.first; fcu; fcu= next) {
+	for(fcu= orig_curves->first; fcu; fcu= next) {
 		next= fcu->next;
 
-		if(!strncmp(fcu->rna_path, "splines", 7)) free_fcurve(fcu);
+		if(!strncmp(fcu->rna_path, "splines", 7)) fcurve_remove(ad, orig_curves, fcu);
 		else BLI_addtail(&curves, fcu);
 	}
-	
-	free_fcurves(&ad->action->curves);
-	ad->action->curves= curves;
+
+	*orig_curves= curves;
+}
+
+/* return 0 if animation data wasn't changed, 1 otherwise */
+int ED_curve_updateAnimPaths(Object *obedit)
+{
+	Curve *cu= (Curve*)obedit->data;
+	AnimData *ad= BKE_animdata_from_id(&cu->id);
+
+	if(!curve_is_animated(obedit)) return 0;
+
+	if(ad->action)
+		curve_rename_fcurves(obedit, &ad->action->curves);
+
+	curve_rename_fcurves(obedit, &ad->drivers);
 
 	return 1;
 }
@@ -1176,7 +1224,6 @@ void make_editNurb(Object *obedit)
 	EditNurb *editnurb= cu->editnurb;
 	Nurb *nu, *newnu, *nu_act= NULL;
 	KeyBlock *actkey;
-	int is_anim;
 
 	if(obedit==NULL) return;
 
@@ -1184,16 +1231,11 @@ void make_editNurb(Object *obedit)
 
 	if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		actkey= ob_get_keyblock(obedit);
-		is_anim= curve_is_animated(obedit);
 
 		if(actkey) {
 			// XXX strcpy(G.editModeTitleExtra, "(Key) ");
 			undo_editmode_clear();
 			key_to_curve(actkey, cu, &cu->nurb);
-		}
-
-		if (is_anim) {
-			undo_editmode_clear();
 		}
 
 		if(editnurb) {
@@ -1221,13 +1263,12 @@ void make_editNurb(Object *obedit)
 			nu= nu->next;
 		}
 
-		if(actkey) {
+		if(actkey)
 			editnurb->shapenr= obedit->shapenr;
-			init_editNurb_keyIndex(editnurb, &cu->nurb);
-		}
 
-		if(is_anim)
-			init_editNurb_keyIndex(editnurb, &cu->nurb);
+		/* animation could be added in editmode even if teher was no animdata i
+		   object mode hence we always need CVs index be created */
+		init_editNurb_keyIndex(editnurb, &cu->nurb);
 	}
 }
 
@@ -6866,9 +6907,14 @@ static void undoCurve_to_editCurve(void *ucu, void *obe)
 		editnurb->keyindex= dupli_keyIndexHash(undoCurve->undoIndex);
 	}
 
-	if(ad && ad->action) {
-		free_fcurves(&ad->action->curves);
-		copy_fcurves(&ad->action->curves, &undoCurve->fcurves);
+	if(ad) {
+		if(ad->action) {
+			free_fcurves(&ad->action->curves);
+			copy_fcurves(&ad->action->curves, &undoCurve->fcurves);
+		}
+
+		free_fcurves(&ad->drivers);
+		copy_fcurves(&ad->drivers, &undoCurve->drivers);
 	}
 
 	/* copy  */
@@ -6909,8 +6955,12 @@ static void *editCurve_to_undoCurve(void *obe)
 		tmpEditnurb.keyindex= undoCurve->undoIndex;
 	}
 
-	if(ad && ad->action)
-		copy_fcurves(&undoCurve->fcurves, &ad->action->curves);
+	if(ad) {
+		if(ad->action)
+			copy_fcurves(&undoCurve->fcurves, &ad->action->curves);
+
+		copy_fcurves(&undoCurve->drivers, &ad->drivers);
+	}
 
 	/* copy  */
 	for(nu= nubase->first; nu; nu= nu->next) {
@@ -6942,6 +6992,7 @@ static void free_undoCurve(void *ucv)
 		BLI_ghash_free(undoCurve->undoIndex, NULL, (GHashValFreeFP)free_cvKeyIndex);
 
 	free_fcurves(&undoCurve->fcurves);
+	free_fcurves(&undoCurve->drivers);
 
 	MEM_freeN(undoCurve);
 }

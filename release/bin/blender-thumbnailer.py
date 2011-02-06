@@ -18,6 +18,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 """
 Thumbnailer runs with python 2.6 and 3.x.
 To run automatically with nautilus:
@@ -116,7 +118,7 @@ def write_png(buf, width, height):
 if __name__ == '__main__':
     import sys
 
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         print("Expected 2 arguments <input.blend> <output.png>")
     else:
         file_in = sys.argv[-2]

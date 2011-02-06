@@ -1358,6 +1358,71 @@ int clip_line_plane(float p1[3], float p2[3], float plane[4])
 	}
 }
 
+
+void plot_line_v2v2i(int p1[2], int p2[2], int (*callback)(int, int, void *), void *userData)
+{
+	int x1= p1[0];
+	int y1= p1[1];
+	int x2= p2[0];
+	int y2= p2[1];
+
+	signed char ix;
+	signed char iy;
+
+	// if x1 == x2 or y1 == y2, then it does not matter what we set here
+	int delta_x = (x2 > x1?(ix = 1, x2 - x1):(ix = -1, x1 - x2)) << 1;
+	int delta_y = (y2 > y1?(iy = 1, y2 - y1):(iy = -1, y1 - y2)) << 1;
+
+	if(callback(x1, y1, userData) == 0) {
+		return;
+	}
+
+	if (delta_x >= delta_y) {
+		// error may go below zero
+		int error = delta_y - (delta_x >> 1);
+
+		while (x1 != x2) {
+			if (error >= 0) {
+				if (error || (ix > 0)) {
+					y1 += iy;
+					error -= delta_x;
+				}
+				// else do nothing
+			}
+			// else do nothing
+
+			x1 += ix;
+			error += delta_y;
+
+			if(callback(x1, y1, userData) == 0) {
+				return ;
+			}
+		}
+	}
+	else {
+		// error may go below zero
+		int error = delta_x - (delta_y >> 1);
+
+		while (y1 != y2) {
+			if (error >= 0) {
+				if (error || (iy > 0)) {
+					x1 += ix;
+					error -= delta_y;
+				}
+				// else do nothing
+			}
+			// else do nothing
+
+			y1 += iy;
+			error += delta_x;
+
+			if(callback(x1, y1, userData) == 0) {
+				return;
+			}
+		}
+	}
+}
+
 /****************************** Interpolation ********************************/
 
 static float tri_signed_area(float *v1, float *v2, float *v3, int i, int j)
@@ -2566,4 +2631,3 @@ float form_factor_hemi_poly(float p[3], float n[3], float v1[3], float v2[3], fl
 
 	return contrib;
 }
-

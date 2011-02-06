@@ -80,6 +80,7 @@ class TIME_HT_header(bpy.types.Header):
 
         row = layout.row(align=True)
         row.prop(tools, "use_keyframe_insert_auto", text="", toggle=True)
+        row.prop(tools, "use_keyframe_insert_keyingset", text="", toggle=True)
         if screen.is_animation_playing and tools.use_keyframe_insert_auto:
             subsub = row.row()
             subsub.prop(tools, "use_record_with_nla", toggle=True)
@@ -168,16 +169,16 @@ class TIME_MT_playback(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        st = context.space_data
+        screen = context.screen
         scene = context.scene
 
-        layout.prop(st, "use_play_top_left_3d_editor")
-        layout.prop(st, "use_play_3d_editors")
-        layout.prop(st, "use_play_animation_editors")
-        layout.prop(st, "use_play_properties_editors")
-        layout.prop(st, "use_play_image_editors")
-        layout.prop(st, "use_play_sequence_editors")
-        layout.prop(st, "use_play_node_editors")
+        layout.prop(screen, "use_play_top_left_3d_editor")
+        layout.prop(screen, "use_play_3d_editors")
+        layout.prop(screen, "use_play_animation_editors")
+        layout.prop(screen, "use_play_properties_editors")
+        layout.prop(screen, "use_play_image_editors")
+        layout.prop(screen, "use_play_sequence_editors")
+        layout.prop(screen, "use_play_node_editors")
 
         layout.separator()
 

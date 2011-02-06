@@ -67,6 +67,12 @@ static void update_cb(PBVHNode *node, void *unused)
 	BLI_pbvh_node_mark_update(node);
 }
 
+static void sculpt_restore_deformed(SculptSession *ss, SculptUndoNode *unode, int uindex, int oindex, float coord[3])
+{
+	swap_v3_v3(coord, unode->orig_co[uindex]);
+	copy_v3_v3(unode->co[uindex], ss->deform_cos[oindex]);
+}
+
 static void sculpt_undo_restore(bContext *C, ListBase *lb)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -117,8 +123,10 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 				float (*vertCos)[3];
 				vertCos= key_to_vertcos(ob, ss->kb);
 
-				for(i=0; i<unode->totvert; i++)
-					swap_v3_v3(vertCos[index[i]], unode->co[i]);
+				for(i=0; i<unode->totvert; i++) {
+					if(ss->modifiers_active) sculpt_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
+					else swap_v3_v3(vertCos[index[i]], unode->co[i]);
+				}
 
 				/* propagate new coords to keyblock */
 				sculpt_vertcos_to_key(ob, ss->kb, vertCos);
@@ -130,7 +138,8 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 				MEM_freeN(vertCos);
 			} else {
 				for(i=0; i<unode->totvert; i++) {
-					swap_v3_v3(mvert[index[i]].co, unode->co[i]);
+					if(ss->modifiers_active) sculpt_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
+					else swap_v3_v3(mvert[index[i]].co, unode->co[i]);
 					mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
 				}
 			}
@@ -162,6 +171,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	}
 
 	if(update) {
+		int tag_update= 0;
 		/* we update all nodes still, should be more clever, but also
 		   needs to work correct when exiting/entering sculpt mode and
 		   the nodes get recreated, though in that case it could do all */
@@ -171,7 +181,14 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		if((mmd=sculpt_multires_active(scene, ob)))
 			multires_mark_as_modified(ob);
 
-		if(ss->modifiers_active || ((Mesh*)ob->data)->id.us > 1)
+		tag_update= ((Mesh*)ob->data)->id.us > 1;
+
+		if(ss->modifiers_active) {
+			sculpt_free_deformMats(ss);
+			tag_update|= 1;
+		}
+
+		if(tag_update)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 		/* for non-PBVH drawing, need to recreate VBOs */
@@ -194,6 +211,8 @@ static void sculpt_undo_free(ListBase *lb)
 			MEM_freeN(unode->grids);
 		if(unode->layer_disp)
 			MEM_freeN(unode->layer_disp);
+		if(unode->orig_co)
+			MEM_freeN(unode->orig_co);
 	}
 }
 
@@ -255,6 +274,9 @@ SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
 		unode->index= MEM_mapallocN(sizeof(int)*allvert, "SculptUndoNode.index");
 	}
 
+	if(ss->modifiers_active)
+		unode->orig_co= MEM_callocN(allvert*sizeof(*unode->orig_co), "undoSculpt orig_cos");
+
 	BLI_unlock_thread(LOCK_CUSTOM1);
 
 	/* copy threaded, hopefully this is the performance critical part */
@@ -266,6 +288,9 @@ SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
 			if(vd.no) VECCOPY(unode->no[vd.i], vd.no)
 			else normal_float_to_short_v3(unode->no[vd.i], vd.fno);
 			if(vd.vert_indices) unode->index[vd.i]= vd.vert_indices[vd.i];
+
+			if(ss->modifiers_active)
+				copy_v3_v3(unode->orig_co[vd.i], ss->orig_cos[unode->index[vd.i]]);
 		}
 		BLI_pbvh_vertex_iter_end;
 	}

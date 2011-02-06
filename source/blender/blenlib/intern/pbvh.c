@@ -1475,13 +1475,6 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smo
 	}
 }
 
-void BLI_pbvh_grids_update(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridadj, void **gridfaces)
-{
-	bvh->grids= grids;
-	bvh->gridadj= gridadj;
-	bvh->gridfaces= gridfaces;
-}
-
 float (*BLI_pbvh_get_vertCos(PBVH *pbvh))[3]
 {
 	int a;
@@ -1520,13 +1513,22 @@ void BLI_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
 	}
 
 	if (pbvh->verts) {
+		MVert *mvert= pbvh->verts;
 		/* copy new verts coords */
-		for (a= 0; a < pbvh->totvert; ++a) {
-			copy_v3_v3(pbvh->verts[a].co, vertCos[a]);
+		for (a= 0; a < pbvh->totvert; ++a, ++mvert) {
+			copy_v3_v3(mvert->co, vertCos[a]);
+			mvert->flag |= ME_VERT_PBVH_UPDATE;
 		}
 
 		/* coordinates are new -- normals should also be updated */
 		mesh_calc_normals(pbvh->verts, pbvh->totvert, pbvh->faces, pbvh->totprim, NULL);
+
+		for (a= 0; a < pbvh->totnode; ++a)
+			BLI_pbvh_node_mark_update(&pbvh->nodes[a]);
+
+		BLI_pbvh_update(pbvh, PBVH_UpdateBB, NULL);
+		BLI_pbvh_update(pbvh, PBVH_UpdateOriginalBB, NULL);
+
 	}
 }
 

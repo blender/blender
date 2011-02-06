@@ -68,6 +68,9 @@ class NODE_HT_header(bpy.types.Header):
             layout.prop(scene, "use_nodes")
             layout.prop(scene.render, "use_free_unused_nodes", text="Free Unused")
             layout.prop(snode, "show_backdrop")
+            if snode.show_backdrop:
+                row = layout.row(align=True)
+                row.prop(snode, "backdrop_channels", text="", expand=True)
 
         layout.separator()
 
@@ -158,6 +161,38 @@ class NODE_MT_node(bpy.types.Menu):
         layout.separator()
 
         layout.operator("node.show_cyclic_dependencies")
+        layout.operator("node.read_renderlayers")
+        layout.operator("node.read_fullsamplelayers")
+
+
+# Node Backdrop options 
+class NODE_PT_properties(bpy.types.Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Backdrop"
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return snode.tree_type == 'COMPOSITING'
+
+    def draw_header(self, context):
+        snode = context.space_data
+        self.layout.prop(snode, "show_backdrop", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        snode = context.space_data
+        layout.active = snode.show_backdrop
+        layout.prop(snode, "backdrop_channels", text="")
+        layout.prop(snode, "backdrop_zoom", text="Zoom")
+
+        col = layout.column(align=True)
+        col.label(text="Offset:")
+        col.prop(snode, "backdrop_x", text="X")
+        col.prop(snode, "backdrop_y", text="Y")
+        col.operator("node.backimage_move", text="Move")
 
 
 def register():

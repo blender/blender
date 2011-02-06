@@ -3753,7 +3753,7 @@ static void draw_actuator_camera(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "height", 0, NULL, ICON_NULL);
 	uiItemR(row, ptr, "axis", 0, NULL, ICON_NULL);
 
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "min", 0, NULL, ICON_NULL);
 	uiItemR(row, ptr, "max", 0, NULL, ICON_NULL);
 }
@@ -3814,7 +3814,7 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr, bContext
 			break;
 
 		case ACT_CONST_TYPE_ORI:
-			uiItemR(layout, ptr, "direction_axis", 0, NULL, ICON_NULL);
+			uiItemR(layout, ptr, "direction_axis_pos", 0, NULL, ICON_NULL);
 
 			row=uiLayoutRow(layout, 1);
 			uiItemR(row, ptr, "damping", UI_ITEM_R_SLIDER , NULL, ICON_NULL);

@@ -142,19 +142,19 @@ class _GenericBone:
     def x_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return Vector((1.0, 0.0, 0.0)) * self.matrix.rotation_part()
+        return Vector((1.0, 0.0, 0.0)) * self.matrix.to_3x3()
 
     @property
     def y_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return Vector((0.0, 1.0, 0.0)) * self.matrix.rotation_part()
+        return Vector((0.0, 1.0, 0.0)) * self.matrix.to_3x3()
 
     @property
     def z_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return Vector((0.0, 0.0, 1.0)) * self.matrix.rotation_part()
+        return Vector((0.0, 0.0, 1.0)) * self.matrix.to_3x3()
 
     @property
     def basename(self):
@@ -284,7 +284,7 @@ class EditBone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
         Expects a 4x4 or 3x3 matrix.
         """
         from mathutils import Vector
-        z_vec = Vector((0.0, 0.0, 1.0)) * self.matrix.rotation_part()
+        z_vec = Vector((0.0, 0.0, 1.0)) * self.matrix.to_3x3()
         self.tail = self.tail * matrix
         self.head = self.head * matrix
         scalar = matrix.median_scale

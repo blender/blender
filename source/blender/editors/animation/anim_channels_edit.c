@@ -1230,7 +1230,7 @@ void ANIM_OT_channels_visibility_set (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= animchannels_visibility_set_exec;
-	ot->poll= ED_operator_ipo_active;
+	ot->poll= ED_operator_graphedit_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1303,7 +1303,7 @@ void ANIM_OT_channels_visibility_toggle (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= animchannels_visibility_toggle_exec;
-	ot->poll= ED_operator_ipo_active;
+	ot->poll= ED_operator_graphedit_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

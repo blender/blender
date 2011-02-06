@@ -246,11 +246,6 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 	EditBone	*eBoneAct= NULL;
 	EditBone	*eBoneTest= NULL;
 	Bone		*curBone;
-	float delta[3];
-	float premat[3][3];
-	float postmat[3][3];
-	float imat[3][3];
-	float difmat[3][3];
 		
 	for (curBone=bones->first; curBone; curBone=curBone->next) {
 		eBone= MEM_callocN(sizeof(EditBone), "make_editbone");
@@ -291,20 +286,8 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		}
 
 		copy_v3_v3(eBone->head, curBone->arm_head);
-		copy_v3_v3(eBone->tail, curBone->arm_tail);		
-		
-		eBone->roll= 0.0f;
-		
-		/* roll fixing */
-		sub_v3_v3v3(delta, eBone->tail, eBone->head);
-		vec_roll_to_mat3(delta, 0.0f, postmat);
-		
-		copy_m3_m4(premat, curBone->arm_mat);
-		
-		invert_m3_m3(imat, postmat);
-		mul_m3_m3m3(difmat, imat, premat);
-		
-		eBone->roll = (float)atan2(difmat[2][0], difmat[2][2]);
+		copy_v3_v3(eBone->tail, curBone->arm_tail);
+		eBone->roll = curBone->arm_roll;
 		
 		/* rest of stuff copy */
 		eBone->length= curBone->length;
@@ -420,8 +403,10 @@ void ED_armature_from_edit(Object *obedit)
 		eBone->temp= newBone;	/* Associate the real Bones with the EditBones */
 		
 		BLI_strncpy(newBone->name, eBone->name, sizeof(newBone->name));
-		memcpy(newBone->head, eBone->head, sizeof(newBone->head));
-		memcpy(newBone->tail, eBone->tail, sizeof(newBone->tail));
+		copy_v3_v3(newBone->arm_head, eBone->head);
+		copy_v3_v3(newBone->arm_tail, eBone->tail);
+		newBone->arm_roll = eBone->roll;
+		
 		newBone->flag= eBone->flag;
 		
 		if (eBone == arm->act_edbone) {
@@ -456,7 +441,6 @@ void ED_armature_from_edit(Object *obedit)
 			BLI_addtail(&newBone->parent->childbase, newBone);
 			
 			{
-				float M_boneRest[3][3];
 				float M_parentRest[3][3];
 				float iM_parentRest[3][3];
 				float	delta[3];
@@ -464,10 +448,6 @@ void ED_armature_from_edit(Object *obedit)
 				/* Get the parent's  matrix (rotation only) */
 				sub_v3_v3v3(delta, eBone->parent->tail, eBone->parent->head);
 				vec_roll_to_mat3(delta, eBone->parent->roll, M_parentRest);
-				
-				/* Get this bone's  matrix (rotation only) */
-				sub_v3_v3v3(delta, eBone->tail, eBone->head);
-				vec_roll_to_mat3(delta, eBone->roll, M_boneRest);
 				
 				/* Invert the parent matrix */
 				invert_m3_m3(iM_parentRest, M_parentRest);
@@ -481,8 +461,11 @@ void ED_armature_from_edit(Object *obedit)
 			}
 		}
 		/*	...otherwise add this bone to the armature's bonebase */
-		else
+		else {
+			copy_v3_v3(newBone->head, eBone->head);
+			copy_v3_v3(newBone->tail, eBone->tail);
 			BLI_addtail(&arm->bonebase, newBone);
+		}
 	}
 	
 	/* Make a pass through the new armature to fix rolling */
@@ -688,10 +671,11 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 		}
 		
 		/* clear transform values for pchan */
-		pchan->loc[0]= pchan->loc[1]= pchan->loc[2]= 0.0f;
-		pchan->eul[0]= pchan->eul[1]= pchan->eul[2]= 0.0f;
-		pchan->quat[1]= pchan->quat[2]= pchan->quat[3]= 0.0f;
-		pchan->quat[0]= pchan->size[0]= pchan->size[1]= pchan->size[2]= 1.0f;
+		zero_v3(pchan->loc);
+		zero_v3(pchan->eul);
+		unit_qt(pchan->quat);
+		unit_axis_angle(pchan->rotAxis, &pchan->rotAngle);
+		pchan->size[0]= pchan->size[1]= pchan->size[2]= 1.0f;
 		
 		/* set anim lock */
 		curbone->flag |= BONE_UNKEYED;
@@ -5049,11 +5033,10 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 		}
 		else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 			/* by default, make rotation of 0 radians around y-axis (roll) */
-			pchan->rotAxis[0]=pchan->rotAxis[2]=pchan->rotAngle= 0.0f;
-			pchan->rotAxis[1]= 1.0f;
+			unit_axis_angle(pchan->rotAxis, &pchan->rotAngle);
 		}
 		else {
-			pchan->eul[0]= pchan->eul[1]= pchan->eul[2]= 0.0f;
+			zero_v3(pchan->eul);
 		}
 	}
 }

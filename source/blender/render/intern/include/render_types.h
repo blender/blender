@@ -609,6 +609,7 @@ typedef struct LampRen {
 #define R_DIVIDE_24		32	
 /* vertex normals are tangent or view-corrected vector, for hair strands */
 #define R_TANGENT		64		
+#define R_TRACEBLE		128
 
 /* strandbuffer->flag */
 #define R_STRAND_BSPLINE	1

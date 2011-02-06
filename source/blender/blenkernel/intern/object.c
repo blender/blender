@@ -59,11 +59,9 @@
 #include "BLI_pbvh.h"
 #include "BLI_utildefines.h"
 
-
-
 #include "BKE_main.h"
 #include "BKE_global.h"
-
+#include "BKE_idprop.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_bullet.h"
@@ -247,6 +245,13 @@ void free_sculptsession(Object *ob)
 
 		if(ss->layer_co)
 			MEM_freeN(ss->layer_co);
+
+		if(ss->orig_cos)
+			MEM_freeN(ss->orig_cos);
+		if(ss->deform_cos)
+			MEM_freeN(ss->deform_cos);
+		if(ss->deform_imats)
+			MEM_freeN(ss->deform_imats);
 
 		MEM_freeN(ss);
 
@@ -1018,10 +1023,13 @@ Object *add_only_object(int type, const char *name)
 	 * but rotations default to quaternions 
 	 */
 	ob->rotmode= ROT_MODE_EUL;
-	/* axis-angle must not have a 0,0,0 axis, so set y-axis as default... */
-	ob->rotAxis[1]= ob->drotAxis[1]= 1.0f;
-	/* quaternions should be 1,0,0,0 by default.... */
-	ob->quat[0]= ob->dquat[0]= 1.0f;
+
+	unit_axis_angle(ob->rotAxis, &ob->rotAngle);
+	unit_axis_angle(ob->drotAxis, &ob->drotAngle);
+
+	unit_qt(ob->quat);
+	unit_qt(ob->dquat);
+
 	/* rotation locks should be 4D for 4 component rotations by default... */
 	ob->protectflag = OB_LOCK_ROT4D;
 	
@@ -1608,7 +1616,17 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		
 		armature_set_id_extern(ob);
 	}
-	
+
+	/* copy IDProperties */
+	if(ob->id.properties) {
+		IDP_FreeProperty(ob->id.properties);
+		MEM_freeN(ob->id.properties);
+		ob->id.properties= NULL;
+	}
+	if(target->id.properties) {
+		ob->id.properties= IDP_CopyProperty(target->id.properties);
+	}
+
 	/* copy drawtype info */
 	ob->dt= target->dt;
 }
@@ -1696,8 +1714,13 @@ void object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 {
 	switch(ob->rotmode) {
 	case ROT_MODE_QUAT:
-		mat3_to_quat(ob->quat, mat);
-		sub_v4_v4(ob->quat, ob->dquat);
+		{
+			float dquat[4];
+			mat3_to_quat(ob->quat, mat);
+			normalize_qt_qt(dquat, ob->dquat);
+			invert_qt(dquat);
+			mul_qt_qtqt(ob->quat, dquat, ob->quat);
+		}
 		break;
 	case ROT_MODE_AXISANGLE:
 		mat3_to_axis_angle(ob->rotAxis, &ob->rotAngle, mat);

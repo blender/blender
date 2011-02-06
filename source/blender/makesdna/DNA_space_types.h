@@ -372,7 +372,7 @@ typedef struct SpaceTime {
 	ListBase caches;
 	int cache_display, pad;
 	
-	int flag, redraws;
+	int flag, redraws; /* redraws is deprecated... moved to screen */
 	
 } SpaceTime;
 
@@ -405,6 +405,8 @@ typedef struct SpaceNode {
 /* snode->flag */
 #define SNODE_BACKDRAW		2
 #define SNODE_DISPGP		4
+#define SNODE_USE_ALPHA		8
+#define SNODE_SHOW_ALPHA	16
 
 /* snode->texfrom */
 #define SNODE_TEX_OBJECT	0
@@ -861,7 +863,7 @@ enum {
 	/* only keyframes from active/selected channels get shown */
 #define TIME_ONLYACTSEL		4
 
-/* time->redraws */
+/* time->redraws (now screen->redraws_flag) */
 #define TIME_REGION				1
 #define TIME_ALL_3D_WIN			2
 #define TIME_ALL_ANIM_WIN		4

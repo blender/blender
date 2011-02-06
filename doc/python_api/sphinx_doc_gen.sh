@@ -4,10 +4,11 @@
 # ssh upload means you need an account on the server
 
 BLENDER="./blender.bin"
-SSH_HOST="ideasman42@emo.blender.org"
+SSH_USER="ideasman42"
+SSH_HOST=$SSH_USER"@emo.blender.org"
 SSH_UPLOAD="/data/www/vhosts/www.blender.org/documentation" # blender_python_api_VERSION, added after
 
-# sed string from hell, 'Blender 2.53 (sub 1) Build' --> '2_53_1'
+# 'Blender 2.53 (sub 1) Build' --> '2_53_1' as a shell script.
 # "_".join(str(v) for v in bpy.app.version)
 # custom blender vars
 blender_srcdir=$(dirname $0)/../../
@@ -25,12 +26,18 @@ $BLENDER --background --factory-startup --python $SPHINXBASE/sphinx_doc_gen.py
 # html
 sphinx-build $SPHINXBASE/sphinx-in $SPHINXBASE/sphinx-out
 cp $SPHINXBASE/sphinx-out/contents.html $SPHINXBASE/sphinx-out/index.html
-ssh ideasman42@emo.blender.org 'rm -rf '$SSH_UPLOAD_FULL'/*'
+ssh $SSH_USER@emo.blender.org 'rm -rf '$SSH_UPLOAD_FULL'/*'
 rsync --progress -avze "ssh -p 22" $SPHINXBASE/sphinx-out/* $SSH_HOST:$SSH_UPLOAD_FULL/
+
+# symlink the dir to a static URL
+ssh $SSH_USER@emo.blender.org 'rm '$SSH_UPLOAD'/250PythonDoc && ln -s '$SSH_UPLOAD_FULL' '$SSH_UPLOAD'/250PythonDoc'
 
 # pdf
 sphinx-build -b latex $SPHINXBASE/sphinx-in $SPHINXBASE/sphinx-out
 cd $SPHINXBASE/sphinx-out
 make
 cd -
-rsync --progress -avze "ssh -p 22" $SPHINXBASE/sphinx-out/contents.pdf $SSH_HOST:$SSH_UPLOAD_FULL/blender_python_reference_$BLENDER_VERSION.pdf
+
+# rename so local PDF has matching name.
+mv $SPHINXBASE/sphinx-out/contents.pdf $SPHINXBASE/sphinx-out/blender_python_reference_$BLENDER_VERSION.pdf
+rsync --progress -avze "ssh -p 22" $SPHINXBASE/sphinx-out/blender_python_reference_$BLENDER_VERSION.pdf $SSH_HOST:$SSH_UPLOAD_FULL/blender_python_reference_$BLENDER_VERSION.pdf

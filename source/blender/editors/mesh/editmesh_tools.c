@@ -7150,7 +7150,7 @@ static int sort_faces_exec(bContext *C, wmOperator *op)
 	if (!v3d) return OPERATOR_CANCELLED;
 
 	/* This operator work in Object Mode, not in edit mode.
-	 * After talk with Cambell we agree that there is no point to port this to EditMesh right now.
+	 * After talk with Campbell we agree that there is no point to port this to EditMesh right now.
 	 * so for now, we just exit_editmode and enter_editmode at the end of this function.
 	 */
 	ED_object_exit_editmode(C, EM_FREEDATA);

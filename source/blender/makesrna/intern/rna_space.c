@@ -630,16 +630,6 @@ static void rna_ConsoleLine_cursor_index_range(PointerRNA *ptr, int *min, int *m
 	*max= ci->len;
 }
 
-/* Space Time */
-
-static void rna_SpaceTime_redraw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	SpaceTime *st= (SpaceTime*)ptr->data;
-	bScreen *screen= (bScreen*)ptr->id.data;
-
-	ED_screen_animation_timer_update(screen, st->redraws, SPACE_TIME);
-}
-
 /* Space Dopesheet */
 
 static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA value)
@@ -1933,43 +1923,7 @@ static void rna_def_space_time(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SpaceTime");
 	RNA_def_struct_ui_text(srna, "Space Timeline Editor", "Timeline editor space data");
 	
-	/* Define Anim Playback Areas */
-	prop= RNA_def_property(srna, "use_play_top_left_3d_editor", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_REGION);
-	RNA_def_property_ui_text(prop, "Top-Left 3D Editor", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_3d_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_3D_WIN);
-	RNA_def_property_ui_text(prop, "All 3D View Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_animation_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_ANIM_WIN);
-	RNA_def_property_ui_text(prop, "Animation Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_properties_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_BUTS_WIN);
-	RNA_def_property_ui_text(prop, "Property Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_image_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_IMAGE_WIN);
-	RNA_def_property_ui_text(prop, "Image Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_sequence_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_SEQ);
-	RNA_def_property_ui_text(prop, "Sequencer Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	prop= RNA_def_property(srna, "use_play_node_editors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_NODES);
-	RNA_def_property_ui_text(prop, "Node Editors", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
-	
-	/* Other options */	
+	/* view settings */	
 	prop= RNA_def_property(srna, "show_only_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ONLYACTSEL);
 	RNA_def_property_ui_text(prop, "Only Selected channels", "Show keyframes for active Object and/or its selected channels only");	
@@ -2267,7 +2221,13 @@ static void rna_def_space_node(BlenderRNA *brna)
 		{SNODE_TEX_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit texture nodes from World"},
 		{SNODE_TEX_BRUSH, "BRUSH", ICON_BRUSH_DATA, "Brush", "Edit texture nodes from Brush"},
 		{0, NULL, 0, NULL, NULL}};
-	
+
+	static EnumPropertyItem backdrop_channels_items[] = {
+		{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors"},
+		{SNODE_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha", "Draw image with RGB colors and alpha transparency"},
+		{SNODE_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel"},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "SpaceNodeEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceNode");
 	RNA_def_struct_ui_text(srna, "Space Node Editor", "Node editor space data");
@@ -2305,6 +2265,8 @@ static void rna_def_space_node(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "backdrop_zoom", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "zoom");
+	RNA_def_property_range(prop, 0.01f, FLT_MAX);
+    RNA_def_property_ui_range(prop, 0.01, 100, 1, 2);
 	RNA_def_property_ui_text(prop, "Backdrop Zoom", "Backdrop zoom factor");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE_VIEW, NULL);
 	
@@ -2316,6 +2278,12 @@ static void rna_def_space_node(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "backdrop_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yof");
 	RNA_def_property_ui_text(prop, "Backdrop Y", "Backdrop Y offset");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE_VIEW, NULL);
+
+	prop= RNA_def_property(srna, "backdrop_channels", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, backdrop_channels_items);
+	RNA_def_property_ui_text(prop, "Draw Channels", "Channels of the image to draw");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE_VIEW, NULL);
 }
 

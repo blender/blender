@@ -403,6 +403,19 @@ static int ed_markers_poll_selected_markers(bContext *C)
 	/* check if some marker is selected */
 	return ED_markers_get_first_selected(markers) != NULL;
 }
+
+/* special poll() which checks if there are any markers at all first */
+static int ed_markers_poll_markers_exist(bContext *C)
+{
+	ListBase *markers = ED_context_get_markers(C);
+	
+	/* first things first: markers can only exist in timeline views */
+	if (ED_operator_animview_active(C) == 0)
+		return 0;
+		
+	/* list of markers must exist, as well as some markers in it! */
+	return (markers && markers->first);
+}
  
 /* ------------------------ */ 
 
@@ -1011,7 +1024,7 @@ static void MARKER_OT_select(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= ed_marker_select_invoke_wrapper;
-	ot->poll= ED_operator_animview_active;
+	ot->poll= ed_markers_poll_markers_exist;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1098,7 +1111,7 @@ static void MARKER_OT_select_border(wmOperatorType *ot)
 	ot->invoke= ed_marker_select_border_invoke_wrapper;
 	ot->modal= WM_border_select_modal;
 	
-	ot->poll= ED_operator_animview_active;
+	ot->poll= ed_markers_poll_markers_exist;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1152,7 +1165,7 @@ static void MARKER_OT_select_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= ed_marker_select_all_exec;
 	ot->invoke = ed_markers_opwrap_invoke;
-	ot->poll= ED_operator_animview_active;
+	ot->poll= ed_markers_poll_markers_exist;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1219,12 +1232,12 @@ static int ed_marker_rename_exec(bContext *C, wmOperator *op)
 {
 	TimeMarker *marker= ED_markers_get_first_selected(ED_context_get_markers(C));
 
-	if(marker) {
+	if (marker) {
 		RNA_string_get(op->ptr, "name", marker->name);
-
+		
 		WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 		WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
-
+		
 		return OPERATOR_FINISHED;
 	}
 	else {

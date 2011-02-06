@@ -20,7 +20,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -44,7 +44,7 @@
 static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PyObject *seq= NULL;
-	char *order_str= NULL;
+	const char *order_str= NULL;
 
 	float eul[EULER_SIZE]= {0.0f, 0.0f, 0.0f};
 	short order= EULER_ORDER_XYZ;
@@ -70,6 +70,13 @@ static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		break;
 	}
 	return newEulerObject(eul, order, Py_NEW, type);
+}
+
+/* internal use, assuem read callback is done */
+static const char *euler_order_str(EulerObject *self)
+{
+	static const char order[][4] = {"XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"};
+	return order[self->order-EULER_ORDER_XYZ];
 }
 
 short euler_order_from_string(const char *str, const char *error_prefix)
@@ -114,67 +121,59 @@ static PyObject *Euler_ToTupleExt(EulerObject *self, int ndigits)
 //-----------------------------METHODS----------------------------
 //return a quaternion representation of the euler
 
-static char Euler_ToQuat_doc[] =
-".. method:: to_quat()\n"
+static char Euler_to_quaternion_doc[] =
+".. method:: to_quaternion()\n"
 "\n"
 "   Return a quaternion representation of the euler.\n"
 "\n"
 "   :return: Quaternion representation of the euler.\n"
-"   :rtype: :class:`Quaternion`\n";
-
-static PyObject *Euler_ToQuat(EulerObject * self)
+"   :rtype: :class:`Quaternion`\n"
+;
+static PyObject *Euler_to_quaternion(EulerObject * self)
 {
 	float quat[4];
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->order==EULER_ORDER_XYZ)	eul_to_quat(quat, self->eul);
-	else								eulO_to_quat(quat, self->eul, self->order);
+	eulO_to_quat(quat, self->eul, self->order);
 
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 
 //return a matrix representation of the euler
-static char Euler_ToMatrix_doc[] =
+static char Euler_to_matrix_doc[] =
 ".. method:: to_matrix()\n"
 "\n"
 "   Return a matrix representation of the euler.\n"
 "\n"
 "   :return: A 3x3 roation matrix representation of the euler.\n"
-"   :rtype: :class:`Matrix`\n";
-
-static PyObject *Euler_ToMatrix(EulerObject * self)
+"   :rtype: :class:`Matrix`\n"
+;
+static PyObject *Euler_to_matrix(EulerObject * self)
 {
-	float mat[9] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+	float mat[9];
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->order==EULER_ORDER_XYZ)	eul_to_mat3((float (*)[3])mat, self->eul);
-	else								eulO_to_mat3((float (*)[3])mat, self->eul, self->order);
+	eulO_to_mat3((float (*)[3])mat, self->eul, self->order);
 
 	return newMatrixObject(mat, 3, 3 , Py_NEW, NULL);
 }
 
 //sets the euler to 0,0,0
-static char Euler_Zero_doc[] =
+static char Euler_zero_doc[] =
 ".. method:: zero()\n"
 "\n"
 "   Set all values to zero.\n"
-"\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Euler`\n";
-
-static PyObject *Euler_Zero(EulerObject * self)
+;
+static PyObject *Euler_zero(EulerObject * self)
 {
-	self->eul[0] = 0.0;
-	self->eul[1] = 0.0;
-	self->eul[2] = 0.0;
+	zero_v3(self->eul);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject *)self;
+	Py_RETURN_NONE;
 }
 
 static char Euler_rotate_axis_doc[] =
@@ -186,13 +185,11 @@ static char Euler_rotate_axis_doc[] =
 "   :type axis: string\n"
 "   :arg angle: angle in radians.\n"
 "   :type angle: float\n"
-"   :return: an instance of itself\n"
-"   :rtype: :class:`Euler`";
-
+;
 static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 {
 	float angle = 0.0f;
-	char *axis;
+	const char *axis;
 
 	if(!PyArg_ParseTuple(args, "sf:rotate", &axis, &angle)){
 		PyErr_SetString(PyExc_TypeError, "euler.rotate(): expected angle (float) and axis (x,y,z)");
@@ -206,46 +203,66 @@ static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->order == EULER_ORDER_XYZ)	rotate_eul(self->eul, *axis, angle);
-	else								rotate_eulO(self->eul, self->order, *axis, angle);
+
+	rotate_eulO(self->eul, self->order, *axis, angle);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject *)self;
+
+	Py_RETURN_NONE;
 }
 
-static char Euler_MakeCompatible_doc[] =
+static char Euler_rotate_doc[] =
+".. method:: rotate(other)\n"
+"\n"
+"   Rotates the euler a by another mathutils value.\n"
+"\n"
+"   :arg other: rotation component of mathutils value\n"
+"   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n"
+;
+static PyObject *Euler_rotate(EulerObject * self, PyObject *value)
+{
+	float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	if(mathutils_any_to_rotmat(other_rmat, value, "euler.rotate(value)") == -1)
+		return NULL;
+
+	eulO_to_mat3(self_rmat, self->eul, self->order);
+	mul_m3_m3m3(rmat, self_rmat, other_rmat);
+
+	mat3_to_compatible_eulO(self->eul, self->eul, self->order, rmat);
+
+	(void)BaseMath_WriteCallback(self);
+	Py_RETURN_NONE;
+}
+
+static char Euler_make_compatible_doc[] =
 ".. method:: make_compatible(other)\n"
 "\n"
 "   Make this euler compatible with another, so interpolating between them works as intended.\n"
 "\n"
 "   :arg other: make compatible with this rotation.\n"
 "   :type other: :class:`Euler`\n"
-"   :return: an instance of itself.\n"
-"   :rtype: :class:`Euler`\n"
 "\n"
-"   .. note:: the order of eulers must match or an exception is raised.\n";
-
-static PyObject *Euler_MakeCompatible(EulerObject * self, EulerObject *value)
+"   .. note:: the rotation order is not taken into account for this function.\n"
+;
+static PyObject *Euler_make_compatible(EulerObject * self, PyObject *value)
 {
-	if(!EulerObject_Check(value)) {
-		PyErr_SetString(PyExc_TypeError, "euler.make_compatible(euler): expected a single euler argument");
-		return NULL;
-	}
-	
-	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
+	float teul[EULER_SIZE];
+
+	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->order != value->order) {
-		PyErr_SetString(PyExc_ValueError, "euler.make_compatible(euler): rotation orders don't match");
+	if(mathutils_array_parse(teul, EULER_SIZE, EULER_SIZE, value, "euler.make_compatible(other), invalid 'other' arg") == -1)
 		return NULL;
-	}
 
-	compatible_eul(self->eul, value->eul);
+	compatible_eul(self->eul, teul);
 
 	(void)BaseMath_WriteCallback(self);
-	Py_INCREF(self);
-	return (PyObject *)self;
+
+	Py_RETURN_NONE;
 }
 
 //----------------------------Euler.rotate()-----------------------
@@ -259,8 +276,8 @@ static char Euler_copy_doc[] =
 "   :return: A copy of the euler.\n"
 "   :rtype: :class:`Euler`\n"
 "\n"
-"   .. note:: use this to get a copy of a wrapped euler with no reference to the original data.\n";
-
+"   .. note:: use this to get a copy of a wrapped euler with no reference to the original data.\n"
+;
 static PyObject *Euler_copy(EulerObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
@@ -275,62 +292,52 @@ static PyObject *Euler_copy(EulerObject *self)
 static PyObject *Euler_repr(EulerObject * self)
 {
 	PyObject *ret, *tuple;
-	
+
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
 	tuple= Euler_ToTupleExt(self, -1);
 
-	ret= PyUnicode_FromFormat("Euler(%R)", tuple);
+	ret= PyUnicode_FromFormat("Euler(%R, '%s')", tuple, euler_order_str(self));
 
 	Py_DECREF(tuple);
 	return ret;
 }
 
-//------------------------tp_richcmpr
-//returns -1 execption, 0 false, 1 true
-static PyObject* Euler_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+static PyObject* Euler_richcmpr(PyObject *a, PyObject *b, int op)
 {
-	EulerObject *eulA = NULL, *eulB = NULL;
-	int result = 0;
+	PyObject *res;
+	int ok= -1; /* zero is true */
 
-	if(EulerObject_Check(objectA)) {
-		eulA = (EulerObject*)objectA;
-		if(!BaseMath_ReadCallback(eulA))
+	if (EulerObject_Check(a) && EulerObject_Check(b)) {
+		EulerObject *eulA= (EulerObject*)a;
+		EulerObject *eulB= (EulerObject*)b;
+
+		if(!BaseMath_ReadCallback(eulA) || !BaseMath_ReadCallback(eulB))
 			return NULL;
-	}
-	if(EulerObject_Check(objectB)) {
-		eulB = (EulerObject*)objectB;
-		if(!BaseMath_ReadCallback(eulB))
-			return NULL;
+
+		ok= ((eulA->order == eulB->order) && EXPP_VectorsAreEqual(eulA->eul, eulB->eul, EULER_SIZE, 1)) ? 0 : -1;
 	}
 
-	if (!eulA || !eulB){
-		if (comparison_type == Py_NE){
-			Py_RETURN_TRUE;
-		}else{
-			Py_RETURN_FALSE;
-		}
-	}
-	eulA = (EulerObject*)objectA;
-	eulB = (EulerObject*)objectB;
+	switch (op) {
+	case Py_NE:
+		ok = !ok; /* pass through */
+	case Py_EQ:
+		res = ok ? Py_False : Py_True;
+		break;
 
-	switch (comparison_type){
-		case Py_EQ:
-			result = EXPP_VectorsAreEqual(eulA->eul, eulB->eul, EULER_SIZE, 1);
-			break;
-		case Py_NE:
-			result = !EXPP_VectorsAreEqual(eulA->eul, eulB->eul, EULER_SIZE, 1);
-			break;
-		default:
-			printf("The result of the comparison could not be evaluated");
-			break;
+	case Py_LT:
+	case Py_LE:
+	case Py_GT:
+	case Py_GE:
+		res = Py_NotImplemented;
+		break;
+	default:
+		PyErr_BadArgument();
+		return NULL;
 	}
-	if (result == 1){
-		Py_RETURN_TRUE;
-	}else{
-		Py_RETURN_FALSE;
-	}
+
+	return Py_INCREF(res), res;
 }
 
 //---------------------SEQUENCE PROTOCOLS------------------------
@@ -345,7 +352,7 @@ static int Euler_len(EulerObject *UNUSED(self))
 static PyObject *Euler_item(EulerObject * self, int i)
 {
 	if(i<0) i= EULER_SIZE-i;
-	
+
 	if(i < 0 || i >= EULER_SIZE) {
 		PyErr_SetString(PyExc_IndexError, "euler[attribute]: array index out of range");
 		return NULL;
@@ -369,12 +376,12 @@ static int Euler_ass_item(EulerObject * self, int i, PyObject *value)
 	}
 
 	if(i<0) i= EULER_SIZE-i;
-	
+
 	if(i < 0 || i >= EULER_SIZE){
 		PyErr_SetString(PyExc_IndexError, "euler[attribute] = x: array assignment index out of range");
 		return -1;
 	}
-	
+
 	self->eul[i] = f;
 
 	if(!BaseMath_WriteIndexCallback(self, i))
@@ -451,7 +458,7 @@ static PyObject *Euler_subscript(EulerObject *self, PyObject *item)
 			return NULL;
 
 		if (slicelength <= 0) {
-			return PyList_New(0);
+			return PyTuple_New(0);
 		}
 		else if (step == 1) {
 			return Euler_slice(self, start, stop);
@@ -533,17 +540,15 @@ static int Euler_setAxis(EulerObject *self, PyObject *value, void *type)
 /* rotation order */
 static PyObject *Euler_getOrder(EulerObject *self, void *UNUSED(closure))
 {
-	const char order[][4] = {"XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"};
-
 	if(!BaseMath_ReadCallback(self)) /* can read order too */
 		return NULL;
 
-	return PyUnicode_FromString(order[self->order-EULER_ORDER_XYZ]);
+	return PyUnicode_FromString(euler_order_str(self));
 }
 
 static int Euler_setOrder(EulerObject *self, PyObject *value, void *UNUSED(closure))
 {
-	char *order_str= _PyUnicode_AsString(value);
+	const char *order_str= _PyUnicode_AsString(value);
 	short order= euler_order_from_string(order_str, "euler.order");
 
 	if(order == -1)
@@ -571,11 +576,12 @@ static PyGetSetDef Euler_getseters[] = {
 
 //-----------------------METHOD DEFINITIONS ----------------------
 static struct PyMethodDef Euler_methods[] = {
-	{"zero", (PyCFunction) Euler_Zero, METH_NOARGS, Euler_Zero_doc},
-	{"to_matrix", (PyCFunction) Euler_ToMatrix, METH_NOARGS, Euler_ToMatrix_doc},
-	{"to_quat", (PyCFunction) Euler_ToQuat, METH_NOARGS, Euler_ToQuat_doc},
+	{"zero", (PyCFunction) Euler_zero, METH_NOARGS, Euler_zero_doc},
+	{"to_matrix", (PyCFunction) Euler_to_matrix, METH_NOARGS, Euler_to_matrix_doc},
+	{"to_quaternion", (PyCFunction) Euler_to_quaternion, METH_NOARGS, Euler_to_quaternion_doc},
 	{"rotate_axis", (PyCFunction) Euler_rotate_axis, METH_VARARGS, Euler_rotate_axis_doc},
-	{"make_compatible", (PyCFunction) Euler_MakeCompatible, METH_O, Euler_MakeCompatible_doc},
+	{"rotate", (PyCFunction) Euler_rotate, METH_O, Euler_rotate_doc},
+	{"make_compatible", (PyCFunction) Euler_make_compatible, METH_O, Euler_make_compatible_doc},
 	{"__copy__", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
 	{"copy", (PyCFunction) Euler_copy, METH_NOARGS, Euler_copy_doc},
 	{NULL, NULL, 0, NULL}
@@ -583,8 +589,8 @@ static struct PyMethodDef Euler_methods[] = {
 
 //------------------PY_OBECT DEFINITION--------------------------
 static char euler_doc[] =
-"This object gives access to Eulers in Blender.";
-
+"This object gives access to Eulers in Blender."
+;
 PyTypeObject euler_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"mathutils.Euler",						//tp_name

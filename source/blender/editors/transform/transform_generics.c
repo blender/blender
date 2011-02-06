@@ -269,7 +269,7 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 	 *	- we're not only keying for available channels
 	 *	- the option to add new actions for each round is not enabled
 	 */
-	if (IS_AUTOKEY_FLAG(INSERTAVAIL)==0 && (scene->toolsettings->autokey_flag & ANIMRECORD_FLAG_WITHNLA)) {
+	if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL)==0 && (scene->toolsettings->autokey_flag & ANIMRECORD_FLAG_WITHNLA)) {
 		/* if playback has just looped around, we need to add a new NLA track+strip to allow a clean pass to occur */
 		if ((sad) && (sad->flag & ANIMPLAY_FLAG_JUMPED)) {
 			AnimData *adt= BKE_animdata_from_id(id);

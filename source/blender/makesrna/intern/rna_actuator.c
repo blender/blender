@@ -35,6 +35,8 @@
 
 #include "WM_types.h"
 
+#include "BLI_utildefines.h"
+
 /* Always keep in alphabetical order */
 EnumPropertyItem actuator_type_items[] ={
 	{ACT_ACTION, "ACTION", 0, "Action", ""},
@@ -114,6 +116,29 @@ static void rna_Actuator_type_set(struct PointerRNA *ptr, int value)
 	{
 		act->type = value;
 		init_actuator(act);
+	}
+}
+
+static void rna_ConstraintActuator_type_set(struct PointerRNA *ptr, int value)
+{
+	bActuator *act= (bActuator *)ptr->data;
+	bConstraintActuator *ca= act->data;
+	if (value != ca->type)
+	{
+		ca->type = value;
+		switch (ca->type) {
+		case ACT_CONST_TYPE_ORI:
+			/* negative axis not supported in the orientation mode */
+			if (ELEM3(ca->mode, ACT_CONST_DIRNX,ACT_CONST_DIRNY, ACT_CONST_DIRNZ))
+				ca->mode = ACT_CONST_NONE;
+			break;
+
+		case ACT_CONST_TYPE_LOC:
+		case ACT_CONST_TYPE_DIST:
+		case ACT_CONST_TYPE_FH:
+		default:
+			break;
+		}
 	}
 }
 
@@ -284,7 +309,6 @@ static void rna_ConstraintActuator_spring_set(struct PointerRNA *ptr, float valu
 
 	*fp = value;
 }
-
 /* ConstraintActuator uses the same property for Material and Property.
    Therefore we need to clear the property when "use_material_detect" mode changes */
 static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, int value)
@@ -322,6 +346,33 @@ static void rna_FcurveActuator_force_set(struct PointerRNA *ptr, int value)
 		ia->flag |= ACT_IPOFORCE;
 	}else
 		ia->flag &= ~ACT_IPOFORCE;
+}
+
+
+static void rna_ObjectActuator_type_set(struct PointerRNA *ptr, int value)
+{
+	bActuator *act= (bActuator *)ptr->data;
+	bObjectActuator *oa = act->data;
+	if (value != oa->type)
+	{
+		oa->type = value;
+		switch (oa->type) {
+		case ACT_OBJECT_NORMAL:
+			memset(oa, 0, sizeof(bObjectActuator));
+			oa->flag = ACT_FORCE_LOCAL|ACT_TORQUE_LOCAL|ACT_DLOC_LOCAL|ACT_DROT_LOCAL;
+			oa->type = ACT_OBJECT_NORMAL;
+			break;
+
+		case ACT_OBJECT_SERVO:
+			memset(oa, 0, sizeof(bObjectActuator));
+			oa->flag = ACT_LIN_VEL_LOCAL;
+			oa->type = ACT_OBJECT_SERVO;
+			oa->forcerot[0] = 30.0f;
+			oa->forcerot[1] = 0.5f;
+			oa->forcerot[2] = 0.0f;
+			break;
+		}
+	}
 }
 
 static void rna_ObjectActuator_integralcoefficient_set(struct PointerRNA *ptr, float value)
@@ -591,6 +642,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_ObjectActuator_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Motion Type", "Specify the motion system");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
@@ -1049,6 +1101,14 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem prop_direction_pos_items[] ={
+		{ACT_CONST_NONE, "NONE", 0, "None", ""},
+		{ACT_CONST_DIRPX, "DIRPX", 0, "X axis", ""},
+		{ACT_CONST_DIRPY, "DIRPY", 0, "Y axis", ""},
+		{ACT_CONST_DIRPZ, "DIRPZ", 0, "Z axis", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna= RNA_def_struct(brna, "ConstraintActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Constraint Actuator", "Actuator to handle Constraints");
 	RNA_def_struct_sdna_from(srna, "bConstraintActuator", "data");
@@ -1056,6 +1116,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_ConstraintActuator_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Constraints Mode", "The type of the constraint");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
@@ -1090,7 +1151,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Max", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "damping", PROP_INT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "damping", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "damp");
 	RNA_def_property_ui_range(prop, 0, 100, 1, 1);
 	RNA_def_property_ui_text(prop, "Damping", "Damping factor: time constant (in frame) of low pass filter");
@@ -1127,13 +1188,19 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Time", "Maximum activation time in frame, 0 for unlimited");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "damping_rotation", PROP_INT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "damping_rotation", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "rotdamp");
 	RNA_def_property_ui_range(prop, 0, 100, 1, 1);
 	RNA_def_property_ui_text(prop, "rotDamp", "Use a different damping for orientation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* ACT_CONST_TYPE_ORI */
+	prop= RNA_def_property(srna, "direction_axis_pos", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, prop_direction_pos_items);
+	RNA_def_property_ui_text(prop, "Direction", "Select the axis to be aligned along the reference direction");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	prop= RNA_def_property(srna, "rotation_max", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "maxrot");
 	RNA_def_property_array(prop, 3);
@@ -1141,16 +1208,16 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Reference Direction", "Reference Direction");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "angle_min", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "angle_min", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "minloc[0]");
-	RNA_def_property_ui_range(prop, 0.0, 180.0, 10, 2);
-	RNA_def_property_ui_text(prop, "Min Angle", "Minimum angle (in degree) to maintain with target direction. No correction is done if angle with target direction is between min and max");
+	RNA_def_property_range(prop, 0.0, 180.0);
+	RNA_def_property_ui_text(prop, "Min Angle", "Minimum angle to maintain with target direction. No correction is done if angle with target direction is between min and max");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "angle_max", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "angle_max", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "maxloc[0]");
-	RNA_def_property_ui_range(prop, 0.0, 180.0, 10, 2);
-	RNA_def_property_ui_text(prop, "Max Angle", "Maximum angle (in degree) allowed with target direction. No correction is done if angle with target direction is between min and max");
+	RNA_def_property_range(prop, 0.0, 180.0);
+	RNA_def_property_ui_text(prop, "Max Angle", "Maximum angle allowed with target direction. No correction is done if angle with target direction is between min and max");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* ACT_CONST_TYPE_FH */
@@ -1160,7 +1227,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Distance", "Height of the Fh area");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "spring", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "spring", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_spring_get", "rna_ConstraintActuator_spring_set", NULL);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 2);
 	RNA_def_property_ui_text(prop, "Fh", "Spring force within the Fh area");

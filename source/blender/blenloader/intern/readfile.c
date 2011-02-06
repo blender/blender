@@ -5896,6 +5896,23 @@ static int map_223_keybd_code_to_224_keybd_code(int code)
 	}
 }
 
+static void do_version_bone_head_tail_237(Bone *bone)
+{
+	Bone *child;
+	float vec[3];
+
+	/* head */
+	copy_v3_v3(bone->arm_head, bone->arm_mat[3]);
+
+	/* tail is in current local coord system */
+	copy_v3_v3(vec, bone->arm_mat[1]);
+	mul_v3_fl(vec, bone->length);
+	add_v3_v3v3(bone->arm_tail, bone->arm_head, vec);
+
+	for(child= bone->childbase.first; child; child= child->next)
+		do_version_bone_head_tail_237(child);
+}
+
 static void bone_version_238(ListBase *lb)
 {
 	Bone *bone;
@@ -6803,6 +6820,19 @@ static void do_versions_seq_unique_name_all_strips(
 		}
 		seq=seq->next;
 	}
+}
+
+
+static void do_version_bone_roll_256(Bone *bone)
+{
+	Bone *child;
+	float submat[3][3];
+	
+	copy_m3_m4(submat, bone->arm_mat);
+	mat3_to_vec_roll(submat, 0, &bone->arm_roll);
+	
+	for(child = bone->childbase.first; child; child = child->next)
+		do_version_bone_roll_256(child);
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
@@ -8114,10 +8144,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bArmature *arm;
 		bConstraint *con;
 		Object *ob;
+		Bone *bone;
 		
 		// armature recode checks 
 		for(arm= main->armature.first; arm; arm= arm->id.next) {
 			where_is_armature(arm);
+
+			for(bone= arm->bonebase.first; bone; bone= bone->next)
+				do_version_bone_head_tail_237(bone);
 		}
 		for(ob= main->object.first; ob; ob= ob->id.next) {
 			if(ob->parent) {
@@ -11399,13 +11433,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-
-	/* put compatibility code here until next subversion bump */
 	
-	{
-		/* Fix for sample line scope initializing with no height */
+	if (main->versionfile < 256) {
 		bScreen *sc;
 		ScrArea *sa;
+		Key *key;
+		
+		/* Fix for sample line scope initializing with no height */
 		for(sc= main->screen.first; sc; sc= sc->id.next) {
 			sa= sc->areabase.first;
 			while(sa) {
@@ -11420,10 +11454,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sa= sa->next;
 			}
 		}
-	}
-	
-	{
-		Key *key;
 		
 		/* old files could have been saved with slidermin = slidermax = 0.0, but the UI in
 		 * 2.4x would never reveal this to users as a dummy value always ended up getting used
@@ -11435,6 +11465,43 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (kb = key->block.first; kb; kb = kb->next) {
 				if (IS_EQ(kb->slidermin, kb->slidermax) && IS_EQ(kb->slidermax, 0))
 					kb->slidermax = kb->slidermin + 1.0f;
+			}
+		}
+	}
+	
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 1)) {
+		/* fix for bones that didn't have arm_roll before */
+		bArmature* arm;
+		Bone* bone;
+		Object *ob;
+
+		for (arm = main->armature.first; arm; arm = arm->id.next)
+			for (bone = arm->bonebase.first; bone; bone = bone->next)
+				do_version_bone_roll_256(bone);
+
+		/* fix for objects which have zero dquat's
+		 * since this is multiplied with the quat rather then added */
+		for(ob= main->object.first; ob; ob= ob->id.next) {
+			if(is_zero_v4(ob->dquat)) {
+				unit_qt(ob->dquat);
+			}
+			if(is_zero_v3(ob->drotAxis) && ob->drotAngle == 0.0f) {
+				unit_axis_angle(ob->drotAxis, &ob->drotAngle);
+			}
+		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+	
+	{
+		bScreen *sc;
+		
+		/* redraws flag in SpaceTime has been moved to Screen level */
+		for (sc = main->screen.first; sc; sc= sc->id.next) {
+			if (sc->redraws_flag == 0) {
+				/* just initialise to default? */
+				// XXX: we could also have iterated through areas, and taken them from the first timeline available...
+				sc->redraws_flag = TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 			}
 		}
 	}

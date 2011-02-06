@@ -1157,12 +1157,26 @@ class WM_OT_addon_install(bpy.types.Operator):
     bl_idname = "wm.addon_install"
     bl_label = "Install Add-On..."
 
-    module = StringProperty(name="Module", description="Module name of the addon to disable")
+    overwrite = BoolProperty(name="Overwrite", description="Remove existing addons with the same ID", default=True)
 
     filepath = StringProperty(name="File Path", description="File path to write file to")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
     filter_glob = StringProperty(default="*.py;*.zip", options={'HIDDEN'})
+
+    @staticmethod
+    def _module_remove(path_addons, module):
+        module = os.path.splitext(module)[0]
+        for f in os.listdir(path_addons):
+            f_base = os.path.splitext(f)[0]
+            if f_base == module:
+                f_full = os.path.join(path_addons, f)
+
+                if os.path.isdir(f_full):
+                    os.rmdir(f_full)
+                else:
+                    os.remove(f_full)
+
 
     def execute(self, context):
         import traceback
@@ -1182,10 +1196,22 @@ class WM_OT_addon_install(bpy.types.Operator):
         if zipfile.is_zipfile(pyfile):
             try:
                 file_to_extract = zipfile.ZipFile(pyfile, 'r')
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
 
-                #extract the file to "addons"
+            if self.overwrite:
+                for f in file_to_extract.namelist():
+                    __class__._module_remove(path_addons, f)
+            else:
+                for f in file_to_extract.namelist():
+                    path_dest = os.path.join(path_addons, os.path.basename(f))
+                    if os.path.exists(path_dest):
+                        self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
+                        return {'CANCELLED'}
+
+            try:  # extract the file to "addons"
                 file_to_extract.extractall(path_addons)
-
             except:
                 traceback.print_exc()
                 return {'CANCELLED'}
@@ -1193,9 +1219,12 @@ class WM_OT_addon_install(bpy.types.Operator):
         else:
             path_dest = os.path.join(path_addons, os.path.basename(pyfile))
 
-            if os.path.exists(path_dest):
+            if self.overwrite:
+                __class__._module_remove(path_addons, os.path.basename(pyfile))
+            elif os.path.exists(path_dest):
                 self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
                 return {'CANCELLED'}
+                
 
             #if not compressed file just copy into the addon path
             try:

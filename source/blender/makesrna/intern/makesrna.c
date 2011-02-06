@@ -1013,7 +1013,7 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 		fprintf(f, "		else {\n");
 		fprintf(f, "			while(index-- > 0 && internal->link)\n");
 		fprintf(f, "				internal->link= internal->link->next;\n");
-		fprintf(f, "			found= 1;\n");
+		fprintf(f, "			found= (index == -1 && internal->link);\n");
 		fprintf(f, "		}\n");
 	}
 

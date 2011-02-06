@@ -346,7 +346,7 @@ static short testsplitpoint(ScrArea *sa, char dir, float fac)
 	}
 }
 
-ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac)
+ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 {
 	ScrArea *newa=NULL;
 	ScrVert *sv1, *sv2;
@@ -400,7 +400,8 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac)
 	}
 	
 	/* remove double vertices en edges */
-	removedouble_scrverts(sc);
+	if(merge)
+		removedouble_scrverts(sc);
 	removedouble_scredges(sc);
 	removenotused_scredges(sc);
 	
@@ -417,6 +418,7 @@ bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 	sc= alloc_libblock(&G.main->screen, ID_SCR, name);
 	sc->scene= scene;
 	sc->do_refresh= 1;
+	sc->redraws_flag= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 	sc->winid= win->winid;
 	
 	sv1= screen_addvert(sc, 0, 0);
@@ -1611,7 +1613,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 		oldscreen->animtimer= NULL;
 
 		/* returns the top small area */
-		newa= area_split(sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
+		newa= area_split(sc, (ScrArea *)sc->areabase.first, 'h', 0.99f, 1);
 		ED_area_newspace(C, newa, SPACE_INFO);
 
 		/* use random area when we have no active one, e.g. when the

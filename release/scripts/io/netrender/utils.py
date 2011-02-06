@@ -28,7 +28,7 @@ try:
 except:
   bpy = None
 
-VERSION = bytes("1.2", encoding='utf8')
+VERSION = bytes("1.3", encoding='utf8')
 
 # Jobs status
 JOB_WAITING = 0 # before all data has been entered
@@ -227,6 +227,10 @@ def prefixPath(prefix_directory, file_path, prefix_path, force = False):
     return full_path
 
 def getResults(server_address, server_port, job_id, resolution_x, resolution_y, resolution_percentage, frame_ranges):
+    if bpy.app.debug:
+        print("=============================================")
+        print("============= FETCHING RESULTS ==============")
+
     frame_arguments = []
     for r in frame_ranges:
         if len(r) == 2:
@@ -236,14 +240,28 @@ def getResults(server_address, server_port, job_id, resolution_x, resolution_y, 
             
     filepath = os.path.join(bpy.app.tempdir, "netrender_temp.blend")
     bpy.ops.wm.save_as_mainfile(filepath=filepath, copy=True, check_existing=False)
-            
-    process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", filepath, "-P", __file__] + frame_arguments + ["--", "GetResults", server_address, str(server_port), job_id, str(resolution_x), str(resolution_y), str(resolution_percentage)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    arguments = [sys.argv[0], "-b", "-noaudio", filepath, "-o", bpy.path.abspath(bpy.context.scene.render.filepath), "-P", __file__] + frame_arguments + ["--", "GetResults", server_address, str(server_port), job_id, str(resolution_x), str(resolution_y), str(resolution_percentage)]
+    if bpy.app.debug:
+        print("Starting subprocess:")
+        print(" ".join(arguments))
+
+    process = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     while process.poll() is None:
-        process.stdout.read(1024) # empty buffer to be sure
-    process.stdout.read()
+        stdout = process.stdout.read(1024)
+        if bpy.app.debug:
+            print(str(stdout, encoding='utf-8'), end="")
+        
+
+    # read leftovers if needed
+    stdout = process.stdout.read()
+    if bpy.app.debug:
+        print(str(stdout, encoding='utf-8'))
     
     os.remove(filepath)
     
+    if bpy.app.debug:
+        print("=============================================")
     return
 
 def _getResults(server_address, server_port, job_id, resolution_x, resolution_y, resolution_percentage):

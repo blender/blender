@@ -1289,7 +1289,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "invert_grid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_GRID_INVERT);
-	RNA_def_property_ui_text(prop, "Invert", "Invert what is considered object and what is not");
+	RNA_def_property_ui_text(prop, "Invert Grid", "Invert what is considered object and what is not");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "apply_effector_to_children", PROP_BOOLEAN, PROP_NONE);
@@ -1684,9 +1684,15 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "grid_resolution", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "grid_res");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 1, 46); /* ~100k particles in a cube */
-	RNA_def_property_ui_range(prop, 1, 215, 1, 0); /* ~10M particles in a cube */
+	RNA_def_property_range(prop, 1, 250); /* ~15M particles in a cube (ouch!), but could be very usable in a plane */
+	RNA_def_property_ui_range(prop, 1, 50, 1, 0); /* ~100k particles in a cube */
 	RNA_def_property_ui_text(prop, "Resolution", "The resolution of the particle grid");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "grid_random", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "grid_rand");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Grid Randomness", "Add random offset to the grid locations");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* initial velocity factors */

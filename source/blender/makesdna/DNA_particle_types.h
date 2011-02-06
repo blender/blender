@@ -168,8 +168,8 @@ typedef struct ParticleSettings {
 
 	/* general values */
 	float sta, end, lifetime, randlife;
-	float timetweak, jitfac, eff_hair;
-	int totpart, userjit, grid_res;
+	float timetweak, jitfac, eff_hair, grid_rand;
+	int totpart, userjit, grid_res, rt;
 
 	/* initial velocity factors */
 	float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
@@ -247,7 +247,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	float imat[4][4];	/* used for duplicators */
 	float cfra, tree_frame;
 	int seed, child_seed;
-	int flag, totpart, totchild, totcached, totchildcache;
+	int flag, totpart, totunexist, totchild, totcached, totchildcache, rt;
 	short recalc, target_psys, totkeyed, bakespace;
 
 	char bb_uvname[3][32];					/* billboard uv name */
@@ -459,7 +459,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PSYS_ENABLED		16	/* deprecated */
 #define PSYS_HAIR_UPDATED	32  /* signal for updating hair particle mode */
 #define PSYS_DRAWING		64
-//#define PSYS_SOFT_BAKE		128
+#define PSYS_USE_IMAT		128
 #define PSYS_DELETE			256	/* remove particlesystem as soon as possible */
 #define PSYS_HAIR_DONE		512
 #define PSYS_KEYED			1024

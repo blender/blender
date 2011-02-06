@@ -22,19 +22,19 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Andr Pinto.
+ * Contributor(s): André Pinto.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
-
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "RE_raytrace.h"
+#include "rayintersection.h"
 #include "rayobject.h"
 
 #define RE_COST_INSTANCE (1.0f)
@@ -44,7 +44,7 @@ static void RE_rayobject_instance_free(RayObject *o);
 static void RE_rayobject_instance_bb(RayObject *o, float *min, float *max);
 static float RE_rayobject_instance_cost(RayObject *o);
 
-static void RE_rayobject_instance_hint_bb(RayObject *UNUSED(o), RayHint *UNUSED(hint), float *UNUSED(min), float *UNUSED(max))
+static void RE_rayobject_instance_hint_bb(RayObject *o, RayHint *hint, float *min, float *max)
 {}
 
 static RayObjectAPI instance_api =
@@ -90,42 +90,32 @@ RayObject *RE_rayobject_instance_create(RayObject *target, float transform[][4],
 
 static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 {
-	//TODO
-	// *there is probably a faster way to convert between coordinates
-	
 	InstanceRayObject *obj = (InstanceRayObject*)o;
-	int res;
-	float start[3], vec[3], labda, dist;
-	int changed = 0, i;
+	float start[3], dir[3], idot_axis[3], dist;
+	int changed = 0, i, res;
 	
-	//TODO - this is disabling self intersection on instances
+	// TODO - this is disabling self intersection on instances
 	if(isec->orig.ob == obj->ob && obj->ob)
 	{
 		changed = 1;
 		isec->orig.ob = obj->target_ob;
 	}
 	
-	
-	VECCOPY( start, isec->start );
-	VECCOPY( vec  , isec->vec   );
-	labda = isec->labda;
-	dist  = isec->dist;
+	// backup old values
+	copy_v3_v3(start, isec->start);
+	copy_v3_v3(dir, isec->dir);
+	copy_v3_v3(idot_axis, isec->idot_axis);
+	dist = isec->dist;
 
-	//Transform to target coordinates system
-	VECADD( isec->vec, isec->vec, isec->start );	
-
+	// transform to target coordinates system
 	mul_m4_v3(obj->global2target, isec->start);
-	mul_m4_v3(obj->global2target, isec->vec  );
-
-	isec->dist = len_v3v3( isec->start, isec->vec );
-	VECSUB( isec->vec, isec->vec, isec->start );
+	mul_mat3_m4_v3(obj->global2target, isec->dir);
+	isec->dist *= normalize_v3(isec->dir);
 	
-	isec->labda *= isec->dist / dist;
-	
-	//Update idot_axis and bv_index
+	// update idot_axis and bv_index
 	for(i=0; i<3; i++)
 	{
-		isec->idot_axis[i]		= 1.0f / isec->vec[i];
+		isec->idot_axis[i]		= 1.0f / isec->dir[i];
 		
 		isec->bv_index[2*i]		= isec->idot_axis[i] < 0.0 ? 1 : 0;
 		isec->bv_index[2*i+1]	= 1 - isec->bv_index[2*i];
@@ -134,17 +124,24 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 		isec->bv_index[2*i+1]	= i+3*isec->bv_index[2*i+1];
 	}
 
-	//Raycast
+	// raycast
 	res = RE_rayobject_intersect(obj->target, isec);
 
-	//Restore coordinate space coords
+	// map dist into original coordinate space
 	if(res == 0)
 	{
-		isec->labda = labda;
+		isec->dist = dist;
 	}
 	else
 	{
-		isec->labda *= dist / isec->dist;
+		// note we don't just multiply dist, because of possible
+		// non-uniform scaling in the transform matrix
+		float vec[3];
+
+		mul_v3_v3fl(vec, isec->dir, isec->dist);
+		mul_mat3_m4_v3(obj->target2global, vec);
+
+		isec->dist = len_v3(vec);
 		isec->hit.ob = obj->ob;
 
 #ifdef RT_USE_LAST_HIT	
@@ -154,18 +151,18 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 		isec->last_hit = RE_rayobject_unalignRayAPI((RayObject*) obj);
 #endif
 	}
-	isec->dist = dist;
-	VECCOPY( isec->start, start );
-	VECCOPY( isec->vec,   vec );
+
+	// restore values
+	copy_v3_v3(isec->start, start);
+	copy_v3_v3(isec->dir, dir);
+	copy_v3_v3(isec->idot_axis, idot_axis);
 	
 	if(changed)
 		isec->orig.ob = obj->ob;
 
-	//Update idot_axis and bv_index
+	// restore bv_index
 	for(i=0; i<3; i++)
 	{
-		isec->idot_axis[i]		= 1.0f / isec->vec[i];
-		
 		isec->bv_index[2*i]		= isec->idot_axis[i] < 0.0 ? 1 : 0;
 		isec->bv_index[2*i+1]	= 1 - isec->bv_index[2*i];
 		
@@ -208,3 +205,4 @@ static void RE_rayobject_instance_bb(RayObject *o, float *min, float *max)
 		DO_MINMAX(t, min, max);
 	}
 }
+

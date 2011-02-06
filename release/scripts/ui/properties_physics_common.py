@@ -20,6 +20,7 @@
 
 import bpy
 
+
 class PhysicButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -29,7 +30,8 @@ class PhysicButtonsPanel():
     def poll(cls, context):
         rd = context.scene.render
         return (context.object) and (not rd.use_game_engine)
-        
+
+
 def physics_add(self, layout, md, name, type, typeicon, toggles):
     sub = layout.row(align=True)
     if md:
@@ -41,35 +43,36 @@ def physics_add(self, layout, md, name, type, typeicon, toggles):
     else:
         sub.operator("object.modifier_add", text=name, icon=typeicon).type = type
 
+
 class PHYSICS_PT_add(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    
+
     def draw(self, context):
         ob = context.object
-        
+
         layout = self.layout
         layout.label("Enable physics for:")
         split = layout.split()
         col = split.column()
-        
+
         if(context.object.field.type == 'NONE'):
             col.operator("object.forcefield_toggle", text="Force Field", icon='FORCE_FORCE')
         else:
             col.operator("object.forcefield_toggle", text="Force Field", icon='X')
-            
+
         if(ob.type == 'MESH'):
-            physics_add(self, col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False);
-            physics_add(self, col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True);
-        
+            physics_add(self, col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
+            physics_add(self, col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True)
+
         col = split.column()
-        
+
         if(ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE'):
-            physics_add(self, col, context.soft_body, "Soft Body", 'SOFT_BODY', 'MOD_SOFT', True);
-            
+            physics_add(self, col, context.soft_body, "Soft Body", 'SOFT_BODY', 'MOD_SOFT', True)
+
         if(ob.type == 'MESH'):
-            physics_add(self, col, context.fluid, "Fluid", 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True);
-            physics_add(self, col, context.smoke, "Smoke", 'SMOKE', 'MOD_SMOKE', True);
+            physics_add(self, col, context.fluid, "Fluid", 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True)
+            physics_add(self, col, context.smoke, "Smoke", 'SMOKE', 'MOD_SMOKE', True)
 
 
 #cachetype can be 'PSYS' 'HAIR' 'SMOKE' etc

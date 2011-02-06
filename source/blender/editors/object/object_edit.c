@@ -1241,9 +1241,9 @@ void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 				else if(event==2) {  /* rot */
 					VECCOPY(base->object->rot, ob->rot);
 					VECCOPY(base->object->drot, ob->drot);
-					/* Quats arnt used yet */
-					/*VECCOPY(base->object->quat, ob->quat);
-					VECCOPY(base->object->dquat, ob->dquat);*/
+
+					QUATCOPY(base->object->quat, ob->quat);
+					QUATCOPY(base->object->dquat, ob->dquat);
 				}
 				else if(event==3) {  /* size */
 					VECCOPY(base->object->size, ob->size);

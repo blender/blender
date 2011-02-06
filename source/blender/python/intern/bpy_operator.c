@@ -138,6 +138,11 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 	}
 	
+	if(!pyrna_write_check()) {
+		PyErr_Format(PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, can't modify blend data in this state (drawing/rendering)", opname);
+		return NULL;
+	}
+
 	if(context_str) {
 		if(RNA_enum_value_from_id(operator_context_items, context_str, &context)==0) {
 			char *enum_str= BPy_enum_as_string(operator_context_items);
@@ -225,6 +230,12 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	if (error_val==-1) {
 		return NULL;
 	}
+
+	/* when calling  bpy.ops.wm.read_factory_settings() bpy.data's main pointer is freed by clear_globals(),
+	 * further access will crash blender. setting context is not needed in this case, only calling because this
+	 * function corrects bpy.data (internal Main pointer) */
+	BPY_modules_update(C);
+
 
 	/* return operator_ret as a bpy enum */
 	return pyrna_enum_bitfield_to_py(operator_return_items, operator_ret);

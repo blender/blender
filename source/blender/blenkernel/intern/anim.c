@@ -1156,7 +1156,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	dm->release(dm);
 }
 
-static void new_particle_duplilist(ListBase *lb, ID *UNUSED(id), Scene *scene, Object *par, float par_space_mat[][4], ParticleSystem *psys, int level, int animated)
+static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], ParticleSystem *psys, int level, int animated)
 {
 	GroupObject *go;
 	Object *ob=0, **oblist=0, obcopy, *obcopylist=0;
@@ -1375,7 +1375,7 @@ static void new_particle_duplilist(ListBase *lb, ID *UNUSED(id), Scene *scene, O
 				/* Normal particles and cached hair live in global space so we need to
 				 * remove the real emitter's transformation before 2nd order duplication.
 				 */
-				if(par_space_mat)
+				if(par_space_mat && GS(id->name) != ID_GR)
 					mul_m4_m4m4(mat, pamat, psys->imat);
 				else
 					copy_m4_m4(mat, pamat);
@@ -1391,7 +1391,7 @@ static void new_particle_duplilist(ListBase *lb, ID *UNUSED(id), Scene *scene, O
 				if(part->draw & PART_DRAW_GLOBAL_OB)
 					VECADD(mat[3], mat[3], vec);
 
-				dob= new_dupli_object(lb, ob, mat, ob->lay, counter, OB_DUPLIPARTS, animated);
+				dob= new_dupli_object(lb, ob, mat, ob->lay, counter, GS(id->name) == ID_GR ? OB_DUPLIGROUP : OB_DUPLIPARTS, animated);
 				copy_m4_m4(dob->omat, oldobmat);
 				if(G.rendering)
 					psys_get_dupli_texture(par, part, sim.psmd, pa, cpa, dob->uv, dob->orco);

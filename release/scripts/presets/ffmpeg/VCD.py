@@ -14,7 +14,7 @@ else:
 bpy.context.scene.render.ffmpeg_video_bitrate = 1150
 bpy.context.scene.render.ffmpeg_maxrate = 1150
 bpy.context.scene.render.ffmpeg_minrate = 1150
-bpy.context.scene.render.ffmpeg_buffersize = 40*8
+bpy.context.scene.render.ffmpeg_buffersize = 40 * 8
 bpy.context.scene.render.ffmpeg_packetsize = 2324
 bpy.context.scene.render.ffmpeg_muxrate = 2352 * 75 * 8
 

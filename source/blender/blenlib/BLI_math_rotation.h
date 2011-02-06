@@ -39,6 +39,7 @@ extern "C" {
 /* stored in (w, x, y, z) order                                              */
 
 /* init */
+void unit_axis_angle(float axis[3], float *angle);
 void unit_qt(float q[4]);
 void copy_qt_qt(float q[4], const float a[4]);
 

@@ -874,6 +874,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		short ok= FALSE;
 
 		BLI_path_abs(path, bmain->name);
+		/* old global to ensure a 2nd save goes to same dir */
+		BLI_strncpy(G.ima, path, sizeof(G.ima));
 
 		WM_cursor_wait(1);
 

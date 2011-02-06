@@ -1607,7 +1607,6 @@ static void texco_mapping(ShadeInput* shi, Tex* tex, MTex* mtex, float* co, floa
 		do_2d_mapping(mtex, texvec, shi->vlr, shi->facenor, dxt, dyt);
 
 		// translate and scale
-		/*
 		texvec[0] = mtex->size[0]*(texvec[0] - 0.5f) + mtex->ofs[0] + 0.5f;
 		texvec[1] = mtex->size[1]*(texvec[1] - 0.5f) + mtex->ofs[1] + 0.5f;
 		if (shi->osatex) {
@@ -1616,7 +1615,6 @@ static void texco_mapping(ShadeInput* shi, Tex* tex, MTex* mtex, float* co, floa
 			dyt[0] = mtex->size[0]*dyt[0];
 			dyt[1] = mtex->size[1]*dyt[1];
 		}
-		*/
 		
 		/* problem: repeat-mirror is not a 'repeat' but 'extend' in imagetexture.c */
 		// TXF: bug was here, only modify texvec when repeat mode set, old code affected other modes too.
@@ -2115,7 +2113,8 @@ void do_material_tex(ShadeInput *shi)
 			use_ntap_bump= (mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP));
 
 			/* XXX texture node trees don't work for this yet */
-			if(tex->nodetree && tex->use_nodes) {
+			/* it also needs derivatives */
+			if((tex->nodetree && tex->use_nodes) || shi->osatex==0) {
 				use_compat_bump = 0;
 				use_ntap_bump = 0;
 			}

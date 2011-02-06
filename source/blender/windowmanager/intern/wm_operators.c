@@ -1350,7 +1350,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 	
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile_exec;
-	ot->poll= WM_operator_winactive;
+	/* ommit poll to run in background mode */
 }
 
 static void WM_OT_read_factory_settings(wmOperatorType *ot)
@@ -1361,7 +1361,7 @@ static void WM_OT_read_factory_settings(wmOperatorType *ot)
 	
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile_exec;
-	ot->poll= WM_operator_winactive;
+	/* ommit poll to run in background mode */
 }
 
 /* *************** open file **************** */
@@ -1721,7 +1721,14 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 
 	save_set_compress(op);
 	
-	BLI_strncpy(name, G.main->name, FILE_MAX);
+	/* if not saved before, get the name of the most recently used .blend file */
+	if(G.main->name[0]==0 && G.recent_files.first) {
+		struct RecentFile *recent = G.recent_files.first;
+		BLI_strncpy(name, recent->filepath, FILE_MAX);
+	}
+	else
+		BLI_strncpy(name, G.main->name, FILE_MAX);
+	
 	untitled(name);
 	RNA_string_set(op->ptr, "filepath", name);
 	
@@ -1786,8 +1793,8 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	ot->invoke= wm_save_as_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->check= blend_save_check;
-	ot->poll= WM_operator_winactive;
-	
+	/* ommit window poll so this can work in background mode */
+
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 1, "Remap Relative", "Remap relative paths when saving in a different directory");
@@ -1806,9 +1813,17 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 		return OPERATOR_CANCELLED;
 
 	save_set_compress(op);
-	
-	BLI_strncpy(name, G.main->name, FILE_MAX);
+
+	/* if not saved before, get the name of the most recently used .blend file */
+	if(G.main->name[0]==0 && G.recent_files.first) {
+		struct RecentFile *recent = G.recent_files.first;
+		BLI_strncpy(name, recent->filepath, FILE_MAX);
+	}
+	else
+		BLI_strncpy(name, G.main->name, FILE_MAX);
+
 	untitled(name);
+	
 	RNA_string_set(op->ptr, "filepath", name);
 	
 	if (RNA_struct_find_property(op->ptr, "check_existing"))

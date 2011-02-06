@@ -2576,10 +2576,12 @@ static int line_number_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 	static int jump_to= 0;
 	static double last_jump= 0;
 
+	text_update_character_width(st);
+
 	if(!st->showlinenrs)
 		return OPERATOR_PASS_THROUGH;
 
-	if(!(mval[0]>2 && mval[0]<60 && mval[1]>2 && mval[1]<ar->winy-2))
+	if(!(mval[0]>2 && mval[0]<(TXT_OFFSET + TEXTXLOC) && mval[1]>2 && mval[1]<ar->winy-2))
 		return OPERATOR_PASS_THROUGH;
 
 	if(!(event->ascii>='0' && event->ascii<='9'))

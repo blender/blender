@@ -53,6 +53,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
+#include "BKE_multires.h"
 
 
 #include "BLO_sys_types.h" // for intptr_t support
@@ -64,6 +65,8 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
+
+#include "ED_sculpt.h" /* for ED_sculpt_modifiers_changed */
 
 ///////////////////////////////////
 ///////////////////////////////////
@@ -1676,6 +1679,12 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	int required_mode;
 	int isPrevDeform= FALSE;
 	int skipVirtualArmature = (useDeform < 0);
+	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 0);
+	int has_multires = mmd != NULL, multires_applied = 0;
+	int sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt;
+
+	if(mmd && !mmd->sculptlvl)
+		has_multires = 0;
 
 	if(!skipVirtualArmature) {
 		firstmd = modifiers_getVirtualModifierList(ob);
@@ -1714,6 +1723,12 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			if(useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
 			if(mti->type == eModifierTypeType_OnlyDeform) {
+				if(sculpt_mode && !has_multires)
+					if(!ELEM(md->type, eModifierType_Armature, eModifierType_ShapeKey)) {
+						modifier_setError(md, "Not supported in sculpt mode.");
+						continue;
+					}
+
 				if(!deformedVerts)
 					deformedVerts = mesh_getVertexCos(me, &numVerts);
 
@@ -1759,13 +1774,18 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		md->scene= scene;
-		
+
 		if(!modifier_isEnabled(scene, md, required_mode)) continue;
 		if(mti->type == eModifierTypeType_OnlyDeform && !useDeform) continue;
 		if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
 			modifier_setError(md, "Modifier requires original data, bad stack position.");
 			continue;
 		}
+		if(sculpt_mode && (!has_multires || multires_applied))
+			if(md->type != eModifierType_Armature || multires_applied) {
+				modifier_setError(md, "Not supported in sculpt mode.");
+				continue;
+			}
 		if(needMapping && !modifier_supportsMapping(md)) continue;
 		if(useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
@@ -1928,6 +1948,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		/* grab modifiers until index i */
 		if((index >= 0) && (modifiers_indexInObject(ob, md) >= index))
 			break;
+
+		if(sculpt_mode && md->type == eModifierType_Multires)
+			multires_applied = 1;
 	}
 
 	for(md=firstmd; md; md=md->next)
@@ -2222,14 +2245,9 @@ static void clear_mesh_caches(Object *ob)
 		ob->derivedDeform->release(ob->derivedDeform);
 		ob->derivedDeform= NULL;
 	}
-	/* we free pbvh on changes, except during sculpt since it can't deal with
-	   changing PVBH node organization, we hope topology does not change in
-	   the meantime .. weak */
-	if(ob->sculpt && ob->sculpt->pbvh) {
-		if(!ob->sculpt->cache) {
-			BLI_pbvh_free(ob->sculpt->pbvh);
-			ob->sculpt->pbvh= NULL;
-		}
+
+	if(ob->sculpt) {
+		ED_sculpt_modifiers_changed(ob);
 	}
 }
 
@@ -2521,6 +2539,51 @@ int editmesh_get_first_deform_matrices(Scene *scene, Object *ob, EditMesh *em, f
 	*deformcos= deformedVerts;
 
 	return numleft;
+}
+
+void sculpt_get_deform_matrices(Scene *scene, Object *ob, float (**deformmats)[3][3], float (**deformcos)[3])
+{
+	ModifierData *md;
+	DerivedMesh *dm;
+	int a, numVerts= 0;
+	float (*defmats)[3][3]= NULL, (*deformedVerts)[3]= NULL;
+	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 0);
+	int has_multires = mmd != NULL && mmd->sculptlvl > 0;
+
+	if(has_multires) {
+		*deformmats= NULL;
+		*deformcos= NULL;
+		return;
+	}
+
+	dm= NULL;
+	md= modifiers_getVirtualModifierList(ob);
+
+	for(; md; md= md->next) {
+		ModifierTypeInfo *mti= modifierType_getInfo(md->type);
+
+		if(!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
+
+		if(mti->type==eModifierTypeType_OnlyDeform && mti->deformMatrices) {
+			if(!defmats) {
+				Mesh *me= (Mesh*)ob->data;
+				dm= getMeshDerivedMesh(me, ob, NULL);
+				deformedVerts= mesh_getVertexCos(me, &numVerts);
+				defmats= MEM_callocN(sizeof(*defmats)*numVerts, "defmats");
+
+				for(a=0; a<numVerts; a++)
+					unit_m3(defmats[a]);
+			}
+
+			mti->deformMatrices(md, ob, dm, deformedVerts, defmats, numVerts);
+		}
+	}
+
+	if(dm)
+		dm->release(dm);
+
+	*deformmats= defmats;
+	*deformcos= deformedVerts;
 }
 
 /* ******************* GLSL ******************** */

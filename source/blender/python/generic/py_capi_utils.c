@@ -228,6 +228,10 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 		 * chars since blender doesnt limit this */
 		return result;
 	}
+	else if(PyBytes_Check(py_str)) {
+		PyErr_Clear();
+		return PyBytes_AS_STRING(py_str);
+	}
 	else {
 		/* mostly copied from fileio.c's, fileio_init */
 		PyObject *stringobj;
@@ -278,6 +282,10 @@ PyObject *PyC_UnicodeFromByte(const char *str)
   for 'pickle' to work as well as strings like this...
  >> foo = 10
  >> print(__import__("__main__").foo)
+*
+* note: this overwrites __main__ which gives problems with nested calles.
+* be sure to run PyC_MainModule_Backup & PyC_MainModule_Restore if there is
+* any chance that python is in the call stack.
 *****************************************************************************/
 PyObject *PyC_DefaultNameSpace(const char *filename)
 {
@@ -293,6 +301,20 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
 	return PyModule_GetDict(mod_main);
 }
 
+/* restore MUST be called after this */
+void PyC_MainModule_Backup(PyObject **main_mod)
+{
+	PyInterpreterState *interp= PyThreadState_GET()->interp;
+	*main_mod= PyDict_GetItemString(interp->modules, "__main__");
+	Py_XINCREF(*main_mod); /* dont free */
+}
+
+void PyC_MainModule_Restore(PyObject *main_mod)
+{
+	PyInterpreterState *interp= PyThreadState_GET()->interp;
+	PyDict_SetItemString(interp->modules, "__main__", main_mod);
+	Py_XDECREF(main_mod);
+}
 
 /* Would be nice if python had this built in */
 void PyC_RunQuicky(const char *filepath, int n, ...)

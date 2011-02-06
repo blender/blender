@@ -503,8 +503,15 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 				
 			case BEZT_KEYTYPE_EXTREME: /* redish frames for now */
 			{
-				if (sel) glColor4f(95.0f, 0.5f, 0.5f, alpha);
+				if (sel) glColor4f(0.95f, 0.5f, 0.5f, alpha);
 				else glColor4f(0.91f, 0.70f, 0.80f, alpha);
+			}
+				break;
+				
+			case BEZT_KEYTYPE_JITTER: /* greenish frames for now? */
+			{
+				if (sel) glColor4f(0.38f, 0.75f, 0.26f, alpha);
+				else glColor4f(0.58f, 0.90f, 0.46f, alpha);
 			}
 				break;
 				
