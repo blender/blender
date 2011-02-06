@@ -635,7 +635,7 @@ static float matrix_determinant_internal(MatrixObject *self)
 
 /*-----------------------------METHODS----------------------------*/
 static char Matrix_to_quaternion_doc[] =
-".. method:: to_quat()\n"
+".. method:: to_quaternion()\n"
 "\n"
 "   Return a quaternion representation of the rotation matrix.\n"
 "\n"

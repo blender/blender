@@ -107,6 +107,7 @@ set(SRC
 	intern/include/zbuf.h
 	intern/raytrace/bvh.h
 	intern/raytrace/rayobject_hint.h
+	intern/raytrace/rayobject_internal.h
 	intern/raytrace/rayobject_rtbuild.h
 	intern/raytrace/reorganize.h
 	intern/raytrace/svbvh.h

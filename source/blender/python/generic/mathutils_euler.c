@@ -122,7 +122,7 @@ static PyObject *Euler_ToTupleExt(EulerObject *self, int ndigits)
 //return a quaternion representation of the euler
 
 static char Euler_to_quaternion_doc[] =
-".. method:: to_quat()\n"
+".. method:: to_quaternion()\n"
 "\n"
 "   Return a quaternion representation of the euler.\n"
 "\n"

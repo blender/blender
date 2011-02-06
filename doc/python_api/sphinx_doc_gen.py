@@ -328,7 +328,7 @@ def rna2sphinx(BASEPATH):
     file = open(filepath, "w")
     fw = file.write
 
-    version_string = bpy.app.version_string.split("(")[0]
+    version_string = ".".join(str(v) for v in bpy.app.version)
     if bpy.app.build_revision != "Unknown":
         version_string = version_string + " r" + bpy.app.build_revision
 
