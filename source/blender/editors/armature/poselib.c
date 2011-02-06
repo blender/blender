@@ -1037,6 +1037,12 @@ static int poselib_preview_handle_event (bContext *UNUSED(C), wmOperator *op, wm
 	tPoseLib_PreviewData *pld= op->customdata; 
 	int ret = OPERATOR_RUNNING_MODAL;
 	
+	/* only accept 'press' event, and ignore 'release', so that we don't get double actions */
+	if (ELEM(event->val, KM_PRESS, KM_NOTHING) == 0) {
+		//printf("PoseLib: skipping event with type '%s' and val %d\n", WM_key_event_string(event->type), event->val);
+		return ret; 
+	}
+	
 	/* backup stuff that needs to occur before every operation
 	 *	- make a copy of searchstr, so that we know if cache needs to be rebuilt
 	 */
@@ -1065,18 +1071,16 @@ static int poselib_preview_handle_event (bContext *UNUSED(C), wmOperator *op, wm
 			 */
 			case PAD0: case PAD1: case PAD2: case PAD3: case PAD4:
 			case PAD5: case PAD6: case PAD7: case PAD8: case PAD9:
-			case PADPLUSKEY: case PADMINUS: case MIDDLEMOUSE:
+			case PADPLUSKEY: case PADMINUS: 
+			case MIDDLEMOUSE: case MOUSEMOVE:
 				//pld->redraw= PL_PREVIEW_REDRAWHEADER;
-				ret |= OPERATOR_PASS_THROUGH;
+				ret = OPERATOR_PASS_THROUGH;
 				break;
 				
 			/* quicky compare to original */
 			case TABKEY:
-				/* only respond to one event */
-				if (event->val == 0) {
-					pld->flag &= ~PL_PREVIEW_SHOWORIGINAL;
-					pld->redraw= PL_PREVIEW_REDRAWALL;
-				}
+				pld->flag &= ~PL_PREVIEW_SHOWORIGINAL;
+				pld->redraw= PL_PREVIEW_REDRAWALL;
 				break;
 		}
 		
@@ -1103,11 +1107,8 @@ static int poselib_preview_handle_event (bContext *UNUSED(C), wmOperator *op, wm
 			
 		/* toggle between original pose and poselib pose*/
 		case TABKEY:
-			/* only respond to one event */
-			if (event->val == 0) {
-				pld->flag |= PL_PREVIEW_SHOWORIGINAL;
-				pld->redraw= PL_PREVIEW_REDRAWALL;
-			}
+			pld->flag |= PL_PREVIEW_SHOWORIGINAL;
+			pld->redraw= PL_PREVIEW_REDRAWALL;
 			break;
 		
 		/* change to previous pose (cyclic) */
@@ -1200,9 +1201,9 @@ static int poselib_preview_handle_event (bContext *UNUSED(C), wmOperator *op, wm
 		/* we add pass through here, so that the operators responsible for these can still run, 
 		 * even though we still maintain control (as RUNNING_MODAL flag is still set too)
 		 */
-		case MIDDLEMOUSE:
+		case MIDDLEMOUSE: case MOUSEMOVE:
 			//pld->redraw= PL_PREVIEW_REDRAWHEADER;
-			ret |= OPERATOR_PASS_THROUGH;
+			ret = OPERATOR_PASS_THROUGH;
 			break;
 			
 		/* view manipulation, or searching */
@@ -1216,7 +1217,7 @@ static int poselib_preview_handle_event (bContext *UNUSED(C), wmOperator *op, wm
 			else {
 				/* view manipulation (see above) */
 				//pld->redraw= PL_PREVIEW_REDRAWHEADER;
-				ret |= OPERATOR_PASS_THROUGH;
+				ret = OPERATOR_PASS_THROUGH;
 			}
 			break;
 			
