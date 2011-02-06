@@ -1492,13 +1492,13 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	StrandBound *sbound= 0;
 	StrandRen *strand=0;
 	RNG *rng= 0;
-	float loc[3],loc1[3],loc0[3],mat[4][4],nmat[3][3],co[3],nor[3];
+	float loc[3],loc1[3],loc0[3],mat[4][4],nmat[3][3],co[3],nor[3],duplimat[4][4];
 	float strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, r_tilt, r_length;
 	float pa_time, pa_birthtime, pa_dietime;
 	float random, simplify[2], pa_co[3];
 	const float cfra= BKE_curframe(re->scene);
-	int i, a, k, max_k=0, totpart, dosimplify = 0, dosurfacecache = 0;
+	int i, a, k, max_k=0, totpart, dosimplify = 0, dosurfacecache = 0, use_duplimat = 0;
 	int totchild=0;
 	int seed, path_nbr=0, orco1=0, num;
 	int totface, *origindex = 0;
@@ -1637,6 +1637,12 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	invert_m4_m4(ob->imat, mat);	/* need to be that way, for imat texture */
 	copy_m3_m4(nmat, ob->imat);
 	transpose_m3(nmat);
+
+	if(psys->flag & PSYS_USE_IMAT) {
+		/* psys->imat is the original emitter's inverse matrix, ob->obmat is the duplicated object's matrix */
+		mul_m4_m4m4(duplimat, psys->imat, ob->obmat);
+		use_duplimat = 1;
+	}
 
 /* 2.6 setup strand rendering */
 	if(part->ren_as == PART_DRAW_PATH && psys->pathcache){
@@ -1949,6 +1955,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					if(psys->parent)
 						mul_m4_v3(psys->parent->obmat, state.co);
 
+					if(use_duplimat)
+						mul_m4_v4(duplimat, state.co);
+
 					if(part->ren_as == PART_DRAW_BB) {
 						bb.random = random;
 						bb.size = pa_size;
@@ -1970,6 +1979,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 				if(psys->parent)
 					mul_m4_v3(psys->parent->obmat, state.co);
+
+				if(use_duplimat)
+					mul_m4_v4(duplimat, state.co);
 
 				if(part->ren_as == PART_DRAW_BB) {
 					bb.random = random;
@@ -4345,7 +4357,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 	int i;
 
 	if(obr->psysindex) {
-		if((!obr->prev || obr->prev->ob != ob) && ob->type==OB_MESH) {
+		if((!obr->prev || obr->prev->ob != ob || (obr->prev->flag & R_INSTANCEABLE)==0) && ob->type==OB_MESH) {
 			/* the emitter mesh wasn't rendered so the modifier stack wasn't
 			 * evaluated with render settings */
 			DerivedMesh *dm;
@@ -4437,8 +4449,11 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 			}
 			if(obr->lay & vectorlay)
 				obr->flag |= R_NEED_VECTORS;
+			if(dob)
+				psys->flag |= PSYS_USE_IMAT;
 			init_render_object_data(re, obr, timeoffset);
 			psys_render_restore(ob, psys);
+			psys->flag &= ~PSYS_USE_IMAT;
 
 			/* only add instance for objects that have not been used for dupli */
 			if(!(ob->transflag & OB_RENDER_DUPLI)) {
