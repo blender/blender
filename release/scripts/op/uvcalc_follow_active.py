@@ -216,7 +216,7 @@ def extend(obj, operator, EXTEND_MODE):
     if is_editmode:
         bpy.ops.object.mode_set(mode='EDIT')
     else:
-        me.update()
+        me.update_tag()
 
 
 def main(context, operator):

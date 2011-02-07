@@ -250,7 +250,7 @@ ID *rna_ID_copy(ID *id)
 	return NULL;
 }
 
-static void rna_ID_update(ID *id, ReportList *reports, int flag)
+static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 {
 	/* XXX, new function for this! */
 	/*if (ob->type == OB_FONT) {
@@ -478,7 +478,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	func= RNA_def_function(srna, "animation_data_clear", "BKE_free_animdata");
 	RNA_def_function_ui_description(func, "Clear animation on this this ID.");
 
-	func= RNA_def_function(srna, "update", "rna_ID_update");
+	func= RNA_def_function(srna, "update_tag", "rna_ID_update_tag");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Tag the id to update its display data.");
 	RNA_def_enum_flag(func, "refresh", update_flag_items, 0, "", "Type of updates to perform.");

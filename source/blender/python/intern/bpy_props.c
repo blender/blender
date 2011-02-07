@@ -639,7 +639,7 @@ static char BPy_EnumProperty_doc[] =
 "   :type default: string or set\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE', 'ENUM_FLAG'].\n"
 "   :type options: set\n"
-"   :arg items: The items that make up this enumerator.\n"
+"   :arg items: sequence of enum items formatted: [(identifier, name, description), ...] where the identifier is used for python access and other values are used for the interface.\n"
 "   :type items: sequence of string triplets";
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
