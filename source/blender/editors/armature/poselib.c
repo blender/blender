@@ -882,91 +882,90 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
  */
 static void poselib_preview_get_next (tPoseLib_PreviewData *pld, int step)
 {
-	/* check if we no longer have search-string, but don't have any marker */
-	if (pld->marker == NULL) {
-		if ((step) && (pld->searchstr[0] == 0))
-			pld->marker= pld->act->markers.first;
-	}	
+	/* stop if not going anywhere, as we assume that there is a direction to move in */
+	if (step == 0)
+		return;
 	
-	/* the following operations assume that there is a starting point and direction */
-	if ((pld->marker) && (step)) {
-		/* search-string dictates a special approach */
-		if (pld->searchstr[0]) {
-			TimeMarker *marker;
-			LinkData *ld, *ldn, *ldc;
+	/* search-string dictates a special approach */
+	if (pld->searchstr[0]) {
+		TimeMarker *marker;
+		LinkData *ld, *ldn, *ldc;
+		
+		/* free and rebuild if needed (i.e. if search-str changed) */
+		if (strcmp(pld->searchstr, pld->searchold)) {
+			/* free list of temporary search matches */
+			BLI_freelistN(&pld->searchp);
 			
-			/* free and rebuild if needed (i.e. if search-str changed) */
-			if (strcmp(pld->searchstr, pld->searchold)) {
-				/* free list of temporary search matches */
-				BLI_freelistN(&pld->searchp);
-				
-				/* generate a new list of search matches */
-				for (marker= pld->act->markers.first; marker; marker= marker->next) {
-					/* does the name partially match? 
-					 * 	- don't worry about case, to make it easier for users to quickly input a name (or 
-					 *	  part of one), which is the whole point of this feature
-					 */
-					if (BLI_strcasestr(marker->name, pld->searchstr)) {
-						/* make link-data to store reference to it */
-						ld= MEM_callocN(sizeof(LinkData), "PoseMatch");
-						ld->data= marker;
-						BLI_addtail(&pld->searchp, ld);
-					}
+			/* generate a new list of search matches */
+			for (marker= pld->act->markers.first; marker; marker= marker->next) {
+				/* does the name partially match? 
+				 * 	- don't worry about case, to make it easier for users to quickly input a name (or 
+				 *	  part of one), which is the whole point of this feature
+				 */
+				if (BLI_strcasestr(marker->name, pld->searchstr)) {
+					/* make link-data to store reference to it */
+					ld= MEM_callocN(sizeof(LinkData), "PoseMatch");
+					ld->data= marker;
+					BLI_addtail(&pld->searchp, ld);
 				}
-				
-				/* set current marker to NULL (so that we start from first) */
-				pld->marker= NULL;
 			}
 			
-			/* check if any matches */
-			if (pld->searchp.first == NULL) { 
-				pld->marker= NULL;
-				return;
-			}
+			/* set current marker to NULL (so that we start from first) */
+			pld->marker= NULL;
+		}
+		
+		/* check if any matches */
+		if (pld->searchp.first == NULL) { 
+			pld->marker= NULL;
+			return;
+		}
+		
+		/* find first match */
+		for (ldc= pld->searchp.first; ldc; ldc= ldc->next) {
+			if (ldc->data == pld->marker)
+				break;
+		}
+		if (ldc == NULL)
+			ldc= pld->searchp.first;
 			
-			/* find first match */
-			for (ldc= pld->searchp.first; ldc; ldc= ldc->next) {
-				if (ldc->data == pld->marker)
-					break;
-			}
-			if (ldc == NULL)
-				ldc= pld->searchp.first;
-				
-			/* Loop through the matches in a cyclic fashion, incrementing/decrementing step as appropriate 
-			 * until step == 0. At this point, marker should be the correct marker.
-			 */
-			if (step > 0) {
-				for (ld=ldc; ld && step; ld=ldn, step--)
-					ldn= (ld->next) ? ld->next : pld->searchp.first;
-			}
-			else {
-				for (ld=ldc; ld && step; ld=ldn, step++)
-					ldn= (ld->prev) ? ld->prev : pld->searchp.last;
-			}
-			
-			/* set marker */
-			if (ld)
-				pld->marker= ld->data;
+		/* Loop through the matches in a cyclic fashion, incrementing/decrementing step as appropriate 
+		 * until step == 0. At this point, marker should be the correct marker.
+		 */
+		if (step > 0) {
+			for (ld=ldc; ld && step; ld=ldn, step--)
+				ldn= (ld->next) ? ld->next : pld->searchp.first;
 		}
 		else {
-			TimeMarker *marker, *next;
-			
-			/* Loop through the markers in a cyclic fashion, incrementing/decrementing step as appropriate 
-			 * until step == 0. At this point, marker should be the correct marker.
-			 */
-			if (step > 0) {
-				for (marker=pld->marker; marker && step; marker=next, step--)
-					next= (marker->next) ? marker->next : pld->act->markers.first;
-			}
-			else {
-				for (marker=pld->marker; marker && step; marker=next, step++)
-					next= (marker->prev) ? marker->prev : pld->act->markers.last;
-			}
-			
-			/* it should be fairly impossible for marker to be NULL */
-			if (marker)
-				pld->marker= marker;
+			for (ld=ldc; ld && step; ld=ldn, step++)
+				ldn= (ld->prev) ? ld->prev : pld->searchp.last;
 		}
+		
+		/* set marker */
+		if (ld)
+			pld->marker= ld->data;
+	}
+	else {
+		TimeMarker *marker, *next;
+		
+		/* if no marker, because we just ended searching, then set that to the start of the list */
+		if (pld->marker == NULL)
+			pld->marker= pld->act->markers.first;
+		
+		/* Loop through the markers in a cyclic fashion, incrementing/decrementing step as appropriate 
+		 * until step == 0. At this point, marker should be the correct marker.
+		 */
+		if (step > 0) {
+			for (marker=pld->marker; marker && step; marker=next, step--)
+				next= (marker->next) ? marker->next : pld->act->markers.first;
+		}
+		else {
+			for (marker=pld->marker; marker && step; marker=next, step++)
+				next= (marker->prev) ? marker->prev : pld->act->markers.last;
+		}
+		
+		/* it should be fairly impossible for marker to be NULL */
+		if (marker)
+			pld->marker= marker;
 	}
 }
 
