@@ -729,24 +729,18 @@ static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op)
 	 * at once are to be predictable*/
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones)
 	{
-		float delta_mat[4][4], imat[4][4], mat[4][4];
-
-		where_is_pose_bone(scene, ob, pchan, CFRA, 1);
-
-		copy_m4_m4(mat, pchan->pose_mat);
-
-		/* calculate pchan->pose_mat without loc/size/rot & constraints applied */
-		where_is_pose_bone(scene, ob, pchan, CFRA, 0);
-		invert_m4_m4(imat, pchan->pose_mat);
-		mul_m4_m4m4(delta_mat, mat, imat);
-
+		float delta_mat[4][4];
+		
+		/* chan_mat already contains the delta transform from rest pose to pose-mode pose
+		 * as that is baked into there so that B-Bones will work. Once we've set this as the
+		 * new raw-transform components, don't recalc the poses yet, otherwise IK result will 
+		 * change, thus changing the result we may be trying to record.
+		 */
+		copy_m4_m4(delta_mat, pchan->chan_mat);
 		pchan_apply_mat4(pchan, delta_mat, TRUE);
-
-		where_is_pose_bone(scene, ob, pchan, CFRA, 1);
 	}
 	CTX_DATA_END;
-
-	// ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
+	
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
