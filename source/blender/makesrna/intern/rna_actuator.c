@@ -565,7 +565,7 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "play_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Action type", "Action playback type");
+	RNA_def_property_ui_text(prop, "Action Type", "Action playback type");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
@@ -590,13 +590,13 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sta");
 	RNA_def_property_range(prop, 0, MAXFRAME);
-	RNA_def_property_ui_text(prop, "Start frame", "");
+	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "end");
 	RNA_def_property_range(prop, 0, MAXFRAME);
-	RNA_def_property_ui_text(prop, "End frame", "");
+	RNA_def_property_ui_text(prop, "End Frame", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "frame_blend_in", PROP_INT, PROP_NONE);
@@ -1191,7 +1191,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "damping_rotation", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "rotdamp");
 	RNA_def_property_ui_range(prop, 0, 100, 1, 1);
-	RNA_def_property_ui_text(prop, "rotDamp", "Use a different damping for orientation");
+	RNA_def_property_ui_text(prop, "RotDamp", "Use a different damping for orientation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* ACT_CONST_TYPE_ORI */
@@ -1399,8 +1399,8 @@ static void rna_def_scene_actuator(BlenderRNA *brna)
 		{ACT_SCENE_RESTART, "RESTART", 0, "Restart", ""},
 		{ACT_SCENE_SET, "SET", 0, "Set Scene", ""},
 		{ACT_SCENE_CAMERA, "CAMERA", 0, "Set Camera", ""},
-		{ACT_SCENE_ADD_FRONT, "ADDFRONT", 0, "Add OverlayScene", ""},
-		{ACT_SCENE_ADD_BACK, "ADDBACK", 0, "Add BackgroundScene", ""},
+		{ACT_SCENE_ADD_FRONT, "ADDFRONT", 0, "Add Overlay Scene", ""},
+		{ACT_SCENE_ADD_BACK, "ADDBACK", 0, "Add Background Scene", ""},
 		{ACT_SCENE_REMOVE, "REMOVE", 0, "Remove Scene", ""},
 		{ACT_SCENE_SUSPEND, "SUSPEND", 0, "Suspend Scene", ""},
 		{ACT_SCENE_RESUME, "RESUME", 0, "Resume Scene", ""},
@@ -1490,7 +1490,7 @@ static void rna_def_random_actuator(BlenderRNA *brna)
 	/* ACT_RANDOM_BOOL_CONST */
 	prop= RNA_def_property(srna, "use_always_true", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "int_arg_1", 1);
-	RNA_def_property_ui_text(prop, "Always true", "Always false or always true");
+	RNA_def_property_ui_text(prop, "Always True", "Always false or always true");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* ACT_RANDOM_BOOL_UNIFORM */
@@ -1567,7 +1567,7 @@ static void rna_def_random_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "half_life_time", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "float_arg_1");
 	RNA_def_property_range(prop, -1000.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Half-life time", "Negative exponential dropoff");
+	RNA_def_property_ui_text(prop, "Half-Life Time", "Negative exponential dropoff");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
@@ -1608,7 +1608,7 @@ static void rna_def_message_actuator(BlenderRNA *brna)
 	/* ACT_MESG_PROP */
 	prop= RNA_def_property(srna, "body_property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "body");
-	RNA_def_property_ui_text(prop, "Propname", "The message body will be set by the Property Value");
+	RNA_def_property_ui_text(prop, "Prop Name", "The message body will be set by the Property Value");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
@@ -1618,14 +1618,14 @@ static void rna_def_game_actuator(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] ={
-//		{ACT_GAME_LOAD, "LOAD", 0, "Load game", ""},
-//		{ACT_GAME_START, "START", 0, "Start loaded game", ""},	
+//		{ACT_GAME_LOAD, "LOAD", 0, "Load Game", ""},
+//		{ACT_GAME_START, "START", 0, "Start Loaded Game", ""},	
 //		keeping the load/start hacky for compatibility with 2.49
 //		ideally we could use ACT_GAME_START again and do a do_version()
 
-		{ACT_GAME_LOAD, "START", 0, "Start new game", ""},
-		{ACT_GAME_RESTART, "RESTART", 0, "Restart this game", ""},
-		{ACT_GAME_QUIT, "QUIT", 0, "Quit this game", ""},
+		{ACT_GAME_LOAD, "START", 0, "Start New Game", ""},
+		{ACT_GAME_RESTART, "RESTART", 0, "Restart This Game", ""},
+		{ACT_GAME_QUIT, "QUIT", 0, "Quit This Game", ""},
 		{ACT_GAME_SAVECFG, "SAVECFG", 0, "Save bge.logic.globalDict", ""},
 		{ACT_GAME_LOADCFG, "LOADCFG", 0, "Load bge.logic.globalDict", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -1697,13 +1697,13 @@ static void rna_def_twodfilter_actuator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Filter2DActuator", "Actuator");
-	RNA_def_struct_ui_text(srna, "2D Filter Actuator", "Actuator to ..");
+	RNA_def_struct_ui_text(srna, "Filter 2D Actuator", "Actuator to apply screen graphic effects");
 	RNA_def_struct_sdna_from(srna, "bTwoDFilterActuator", "data");
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "2D Filter Type", "");
+	RNA_def_property_ui_text(prop, "Filter 2D Type", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "glsl_shader", PROP_POINTER, PROP_NONE);
@@ -1794,7 +1794,7 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Action type", "Action playback type");
+	RNA_def_property_ui_text(prop, "Action Type", "Action playback type");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
@@ -1819,13 +1819,13 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sta");
 	RNA_def_property_range(prop, 0, MAXFRAME);
-	RNA_def_property_ui_text(prop, "Start frame", "");
+	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "end");
 	RNA_def_property_range(prop, 0, MAXFRAME);
-	RNA_def_property_ui_text(prop, "End frame", "");
+	RNA_def_property_ui_text(prop, "End Frame", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "frame_blend_in", PROP_INT, PROP_NONE);
@@ -1925,7 +1925,7 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "subtarget");
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Secondary Target", "Set weight of this constraint");
+	RNA_def_property_ui_text(prop, "Secondary Target", "Set this object as the secondary target of the constraint (only IK polar target at the moment)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);

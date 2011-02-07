@@ -1079,6 +1079,30 @@ static void draw_default_sensor_header(bSensor *sens,
 			 "Invert the level (output) of this sensor");
 }
 
+static void get_armature_bone_constraint(Object *ob, char *posechannel, char *constraint_name, bConstraint **constraint)
+{
+	/* check that bone exist in the active object */
+	if (ob->type == OB_ARMATURE && ob->pose) {
+		bPoseChannel *pchan;
+		bPose *pose = ob->pose;
+		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
+			if (!strcmp(pchan->name, posechannel)) {
+				/* found it, now look for constraint channel */
+				bConstraint *con;
+				for (con=pchan->constraints.first; con; con=con->next) {
+					if (!strcmp(con->name, constraint_name)) {
+						/* found it, all ok */
+						*constraint = con;
+						return;						
+					}
+				}
+				/* didn't find constraint, make empty */
+				return;
+			}
+		}
+	}
+	/* didn't find any */
+}
 static void check_armature_bone_constraint(Object *ob, char *posechannel, char *constraint)
 {
 	/* check that bone exist in the active object */
@@ -3692,6 +3716,7 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 	bActuator *act = (bActuator*)ptr->data;
 	bArmatureActuator *aa = (bArmatureActuator *) act->data;
 	Object *ob = (Object *)ptr->id.data;
+	bConstraint *constraint = NULL;
 	PointerRNA pose_ptr, pchan_ptr;
 	PropertyRNA *bones_prop = NULL;
 
@@ -3729,7 +3754,12 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 			}
 
 			uiItemR(layout, ptr, "target", 0, NULL, ICON_NULL);
-			uiItemR(layout, ptr, "secondary_target", 0, NULL, ICON_NULL);
+
+			/* show second target only if the constraint supports it */
+			get_armature_bone_constraint(ob, aa->posechannel, aa->constraint, &constraint);
+			if (constraint && constraint->type == CONSTRAINT_TYPE_KINEMATIC) {
+				uiItemR(layout, ptr, "secondary_target", 0, NULL, ICON_NULL);
+			}
 			break;
 		case ACT_ARM_SETWEIGHT:
 			if (ob->pose) {

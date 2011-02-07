@@ -507,12 +507,12 @@ static void rna_def_armature_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "bone", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "posechannel");
-	RNA_def_property_ui_text(prop, "Bone name", "Identify the bone to check value from");
+	RNA_def_property_ui_text(prop, "Bone Name", "Identify the bone to check value from");
 	RNA_def_property_update(prop, NC_LOGIC, "rna_Sensor_Armature_update");
 
 	prop= RNA_def_property(srna, "constraint", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "constraint");
-	RNA_def_property_ui_text(prop, "Constraint name", "Identify the bone constraint to check value from");
+	RNA_def_property_ui_text(prop, "Constraint Name", "Identify the bone constraint to check value from");
 	RNA_def_property_update(prop, NC_LOGIC, "rna_Sensor_Armature_update");
 
 	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
