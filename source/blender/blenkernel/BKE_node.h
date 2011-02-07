@@ -193,6 +193,7 @@ void			nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 
 void			NodeTagChanged(struct bNodeTree *ntree, struct bNode *node);
 int				NodeTagIDChanged(struct bNodeTree *ntree, struct ID *id);
+void			ntreeClearTags(struct bNodeTree *ntree);
 
 /* ************** Groups ****************** */
 

@@ -396,8 +396,9 @@ typedef struct SpaceNode {
 	float mx, my;		/* mousepos for drawing socketless link */
 	
 	struct bNodeTree *nodetree, *edittree;
-	int treetype;			/* treetype: as same nodetree->type */
-	short texfrom, pad;		/* texfrom object, world or brush */
+	int treetype;		/* treetype: as same nodetree->type */
+	short texfrom;		/* texfrom object, world or brush */
+	short recalc;		/* currently on 0/1, for auto compo */
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceNode;
@@ -407,6 +408,7 @@ typedef struct SpaceNode {
 #define SNODE_DISPGP		4
 #define SNODE_USE_ALPHA		8
 #define SNODE_SHOW_ALPHA	16
+#define SNODE_AUTO_RENDER	32
 
 /* snode->texfrom */
 #define SNODE_TEX_OBJECT	0

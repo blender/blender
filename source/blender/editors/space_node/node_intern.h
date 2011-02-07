@@ -92,7 +92,7 @@ void node_tree_verify_groups(bNodeTree *nodetree);
 void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace);
 int node_has_hidden_sockets(bNode *node);
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
-
+int node_render_changed_exec(bContext *, wmOperator *);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
@@ -115,6 +115,7 @@ void NODE_OT_show_cyclic_dependencies(struct wmOperatorType *ot);
 void NODE_OT_link_viewer(struct wmOperatorType *ot);
 void NODE_OT_read_fullsamplelayers(struct wmOperatorType *ot);
 void NODE_OT_read_renderlayers(struct wmOperatorType *ot);
+void NODE_OT_render_changed(struct wmOperatorType *ot);
 
 void NODE_OT_backimage_move(struct wmOperatorType *ot);
 void NODE_OT_backimage_zoom(struct wmOperatorType *ot);

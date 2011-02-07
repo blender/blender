@@ -172,13 +172,21 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_FRAME:
 					ED_area_tag_refresh(sa);
 					break;
+				case ND_TRANSFORM_DONE:
+					if(type==NTREE_COMPOSIT) {
+						if(snode->flag & SNODE_AUTO_RENDER) {
+							snode->recalc= 1;
+							ED_area_tag_refresh(sa);
+						}
+					}
+					break;
 			}
 			break;
 		case NC_WM:
 			if(wmn->data==ND_FILEREAD)
 				ED_area_tag_refresh(sa);
 			break;
-			
+		
 		/* future: add ID checks? */
 		case NC_MATERIAL:
 			if(type==NTREE_SHADER) {
@@ -212,7 +220,7 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 
 		case NC_IMAGE:
 			if (wmn->action == NA_EDITED) {
-				if(snode->treetype==NTREE_COMPOSIT) {
+				if(type==NTREE_COMPOSIT) {
 					Scene *scene= wmn->window->screen->scene;
 					
 					/* note that NodeTagIDChanged is alredy called by BKE_image_signal() on all
@@ -241,8 +249,15 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			Scene *scene= (Scene *)snode->id;
-			if(scene->use_nodes)
-				snode_composite_job(C, sa);
+			if(scene->use_nodes) {
+				/* recalc is set on 3d view changes for auto compo */
+				if(snode->recalc) {
+					snode->recalc= 0;
+					node_render_changed_exec((struct bContext*)C, NULL);
+				}
+				else 
+					snode_composite_job(C, sa);
+			}
 		}
 		else if(snode->treetype==NTREE_TEXTURE) {
 			Tex *tex= (Tex *)snode->id;

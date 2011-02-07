@@ -2158,6 +2158,51 @@ void NODE_OT_read_fullsamplelayers(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
+int node_render_changed_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *sce= CTX_data_scene(C);
+	bNode *node;
+	
+	for(node= sce->nodetree->nodes.first; node; node= node->next) {
+		if(node->id==(ID *)sce && node->need_exec) {
+			break;
+		}
+	}
+	if(node) {
+		SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
+		
+		if(srl) {
+			PointerRNA op_ptr;
+			
+			WM_operator_properties_create(&op_ptr, "RENDER_OT_render");
+			RNA_string_set(&op_ptr, "layer", srl->name);
+			RNA_string_set(&op_ptr, "scene", sce->id.name+2);
+			
+			WM_operator_name_call(C, "RENDER_OT_render", WM_OP_INVOKE_DEFAULT, &op_ptr);
+
+			WM_operator_properties_free(&op_ptr);
+			
+			return OPERATOR_FINISHED;
+		}
+		   
+	}
+	return OPERATOR_CANCELLED;
+}
+
+void NODE_OT_render_changed(wmOperatorType *ot)
+{
+	
+	ot->name= "Render Changed Layer";
+	ot->idname= "NODE_OT_render_changed";
+	
+	ot->exec= node_render_changed_exec;
+	
+	ot->poll= composite_node_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
+
 
 /* ****************** Make Group operator ******************* */
 

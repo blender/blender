@@ -3182,10 +3182,7 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 			NodeTagChanged(ntree, node);
 			tagged= 1;
 		}
-		else if(node->type==CMP_NODE_R_LAYERS) {
-			NodeTagChanged(ntree, node);
-			tagged= 1;
-		}
+		/* here was tag render layer, but this is called after a render, so re-composites fail */
 		else if(node->type==NODE_GROUP) {
 			if( ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
 				NodeTagChanged(ntree, node);
@@ -3209,6 +3206,21 @@ void ntreeCompositTagGenerators(bNodeTree *ntree)
 			NodeTagChanged(ntree, node);
 	}
 }
+
+/* XXX after render animation system gets a refresh, this call allows composite to end clean */
+void ntreeClearTags(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree==NULL) return;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		node->need_exec= 0;
+		if(node->type==NODE_GROUP)
+			ntreeClearTags((bNodeTree *)node->id);
+	}
+}
+
 
 int ntreeTexTagAnimated(bNodeTree *ntree)
 {

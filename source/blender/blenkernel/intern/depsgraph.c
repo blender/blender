@@ -41,6 +41,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
@@ -54,6 +55,7 @@
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -1923,6 +1925,28 @@ static void dag_scene_flush_layers(Scene *sce, int lay)
 			flush_layer_node(sce, itA->node, lasttime);
 }
 
+static void dag_tag_renderlayers(Scene *sce, unsigned int lay)
+{
+	if(sce->nodetree) {
+		bNode *node;
+		Base *base;
+		unsigned int lay_changed;
+		
+		for(base= sce->base.first; base; base= base->next)
+			if(base->lay & lay)
+				if(base->object->recalc)
+					lay_changed |= base->lay;
+			
+		for(node= sce->nodetree->nodes.first; node; node= node->next) {
+			if(node->id==(ID *)sce) {
+				SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
+				if(srl && (srl->lay & lay_changed))
+					NodeTagChanged(sce->nodetree, node);
+			}
+		}
+	}
+}
+
 /* flushes all recalc flags in objects down the dependency tree */
 void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const short time)
 {
@@ -1967,6 +1991,8 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 			}
 		}
 	}
+	
+	dag_tag_renderlayers(sce, lay);
 }
 
 static int object_modifiers_use_time(Object *ob)

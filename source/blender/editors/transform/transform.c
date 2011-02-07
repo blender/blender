@@ -338,7 +338,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 	}
 }
 
-static void viewRedrawPost(TransInfo *t)
+static void viewRedrawPost(bContext *C, TransInfo *t)
 {
 	ED_area_headerprint(t->sa, NULL);
 	
@@ -346,6 +346,10 @@ static void viewRedrawPost(TransInfo *t)
 		/* if autokeying is enabled, send notifiers that keyframes were added */
 		if (IS_AUTOKEY_ON(t->scene))
 			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
+		
+		/* XXX temp, first hack to get auto-render in compositor work (ton) */
+		WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM_DONE, CTX_data_scene(C));
+
 	}
 	
 #if 0 // TRANSFORM_FIX_ME
@@ -1817,7 +1821,7 @@ int transformEnd(bContext *C, TransInfo *t)
 		postTrans(C, t);
 
 		/* send events out for redraws */
-		viewRedrawPost(t);
+		viewRedrawPost(C, t);
 
 		/*  Undo as last, certainly after special_trans_update! */
 

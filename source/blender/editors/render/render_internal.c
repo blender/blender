@@ -596,6 +596,9 @@ static void render_endjob(void *rjv)
 	/* else the frame will not update for the original value */
 	ED_update_for_newframe(G.main, rj->scene, rj->win->screen, 1);
 	
+	/* XXX above function sets all tags in nodes */
+	ntreeClearTags(rj->scene->nodetree);
+	
 	if(rj->srl) {
 		NodeTagIDChanged(rj->scene->nodetree, &rj->scene->id);
 		WM_main_add_notifier(NC_NODE|NA_EDITED, rj->scene);
@@ -648,6 +651,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	wmJob *steve;
 	RenderJob *rj;
 	Image *ima;
+	int jobflag;
 	const short is_animation= RNA_boolean_get(op->ptr, "animation");
 	const short is_write_still= RNA_boolean_get(op->ptr, "write_still");
 	
@@ -701,6 +705,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* ensure at least 1 area shows result */
 	screen_set_image_output(C, event->x, event->y);
 
+	jobflag= WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS;
+	
 	/* single layer re-render */
 	if(RNA_property_is_set(op->ptr, "layer")) {
 		SceneRenderLayer *rl;
@@ -712,11 +718,12 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		scn = (Scene *)BLI_findstring(&mainp->scene, scene_name, offsetof(ID, name) + 2);
 		rl = (SceneRenderLayer *)BLI_findstring(&scene->r.layers, rl_name, offsetof(SceneRenderLayer, name));
-
+		
 		if (scn && rl) {
 			scene = scn;
 			srl = rl;
 		}
+		jobflag |= WM_JOB_SUSPEND;
 	}
 
 	/* job custom data */
@@ -733,7 +740,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->reports= op->reports;
 
 	/* setup job */
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Render", WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS);
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Render", jobflag);
 	WM_jobs_customdata(steve, rj, render_freejob);
 	WM_jobs_timer(steve, 0.2, NC_SCENE|ND_RENDER_RESULT, 0);
 	WM_jobs_callbacks(steve, render_startjob, NULL, NULL, render_endjob);

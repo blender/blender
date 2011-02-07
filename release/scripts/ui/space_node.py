@@ -71,6 +71,7 @@ class NODE_HT_header(bpy.types.Header):
             if snode.show_backdrop:
                 row = layout.row(align=True)
                 row.prop(snode, "backdrop_channels", text="", expand=True)
+            layout.prop(snode, "use_auto_render")
 
         layout.separator()
 
