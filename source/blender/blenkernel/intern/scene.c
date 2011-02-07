@@ -945,27 +945,68 @@ float BKE_curframe(Scene *scene)
 	return ctime;
 }
 
+/* drivers support/hacks 
+ * 	- this method is called from scene_update_tagged_recursive(), so gets included in viewport + render
+ *	- these are always run since the depsgraph can't handle non-object data
+ *	- these happen after objects are all done so that we can read in their final transform values,
+ *	  though this means that objects can't refer to scene info for guidance...
+ */
+static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
+{
+	float ctime = BKE_curframe(scene);
+	
+	/* scene itself */
+	if (scene->adt && scene->adt->drivers.first) {
+		BKE_animsys_evaluate_animdata(&scene->id, scene->adt, ctime, ADT_RECALC_DRIVERS);
+	}
+	
+	/* world */
+	// TODO: what about world textures? but then those have nodes too...
+	if (scene->world) {
+		ID *wid = (ID *)scene->world;
+		AnimData *adt= BKE_animdata_from_id(wid);
+		
+		if (adt && adt->drivers.first)
+			BKE_animsys_evaluate_animdata(wid, adt, ctime, ADT_RECALC_DRIVERS);
+	}
+	
+	/* nodes */
+	if (scene->nodetree) {
+		ID *nid = (ID *)scene->nodetree;
+		AnimData *adt= BKE_animdata_from_id(nid);
+		
+		if (adt && adt->drivers.first)
+			BKE_animsys_evaluate_animdata(nid, adt, ctime, ADT_RECALC_DRIVERS);
+	}
+}
+
 static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent)
 {
 	Base *base;
+	
+	
 	scene->customdata_mask= scene_parent->customdata_mask;
 
 	/* sets first, we allow per definition current scene to have
 	   dependencies on sets, but not the other way around. */
-	if(scene->set)
+	if (scene->set)
 		scene_update_tagged_recursive(bmain, scene->set, scene_parent);
-
-	for(base= scene->base.first; base; base= base->next) {
+	
+	/* scene objects */
+	for (base= scene->base.first; base; base= base->next) {
 		Object *ob= base->object;
-
+		
 		object_handle_update(scene_parent, ob);
-
+		
 		if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
 			group_handle_recalc_and_update(scene_parent, ob, ob->dup_group);
 			
 		/* always update layer, so that animating layers works */
 		base->lay= ob->lay;
 	}
+	
+	/* scene drivers... */
+	scene_update_drivers(bmain, scene);
 }
 
 /* this is called in main loop, doing tagged updates before redraw */
@@ -982,14 +1023,14 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 
 	/* recalc scene animation data here (for sequencer) */
 	{
-		float ctime = BKE_curframe(scene); 
 		AnimData *adt= BKE_animdata_from_id(&scene->id);
-
-		if(adt && (adt->recalc & ADT_RECALC_ANIM))
+		float ctime = BKE_curframe(scene);
+		
+		if (adt && (adt->recalc & ADT_RECALC_ANIM))
 			BKE_animsys_evaluate_animdata(&scene->id, adt, ctime, 0);
 	}
-
-	if(scene->physics_settings.quick_cache_step)
+	
+	if (scene->physics_settings.quick_cache_step)
 		BKE_ptcache_quick_cache_all(bmain, scene);
 
 	/* in the future this should handle updates for all datablocks, not
