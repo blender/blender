@@ -1244,7 +1244,7 @@ void add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, short index)
 	}
 }
 
-static int outliner_filter_has_name(TreeElement *te, char *name, int flags)
+static int outliner_filter_has_name(TreeElement *te, const char *name, int flags)
 {
 #if 0
 	int found= 0;

@@ -47,6 +47,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -1079,25 +1080,15 @@ static void draw_default_sensor_header(bSensor *sens,
 			 "Invert the level (output) of this sensor");
 }
 
-static void get_armature_bone_constraint(Object *ob, char *posechannel, char *constraint_name, bConstraint **constraint)
+static void get_armature_bone_constraint(Object *ob, const char *posechannel, const char *constraint_name, bConstraint **constraint)
 {
 	/* check that bone exist in the active object */
 	if (ob->type == OB_ARMATURE && ob->pose) {
-		bPoseChannel *pchan;
-		bPose *pose = ob->pose;
-		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
-			if (!strcmp(pchan->name, posechannel)) {
-				/* found it, now look for constraint channel */
-				bConstraint *con;
-				for (con=pchan->constraints.first; con; con=con->next) {
-					if (!strcmp(con->name, constraint_name)) {
-						/* found it, all ok */
-						*constraint = con;
-						return;						
-					}
-				}
-				/* didn't find constraint, make empty */
-				return;
+		bPoseChannel *pchan= get_pose_channel(ob->pose, posechannel);
+		if(pchan) {
+			bConstraint *con= BLI_findstring(&pchan->constraints, constraint_name, offsetof(bConstraint, name));
+			if(con) {
+				*constraint= con;
 			}
 		}
 	}

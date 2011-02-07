@@ -581,7 +581,7 @@ void set_scene_bg(Main *bmain, Scene *scene)
 }
 
 /* called from creator.c */
-Scene *set_scene_name(Main *bmain, char *name)
+Scene *set_scene_name(Main *bmain, const char *name)
 {
 	Scene *sce= (Scene *)find_id("SC", name);
 	if(sce) {

@@ -12500,7 +12500,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 	}
 }
 
-static void append_named_part(const bContext *C, Main *mainl, FileData *fd, char *name, int idcode, short flag)
+static void append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *name, int idcode, short flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
@@ -12566,7 +12566,7 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, char
 	}
 }
 
-void BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, char *name, int idcode, short flag)
+void BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *name, int idcode, short flag)
 {
 	FileData *fd= (FileData*)(*bh);
 	append_named_part(C, mainl, fd, name, idcode, flag);
@@ -12744,7 +12744,7 @@ void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle**
 /* tentatively removed, Python should be able to use the split functions too: */
 /* BLO_library_append_begin, BLO_library_append_end, BLO_library_append_named_part */
 #if 0 
-void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, 
+void BLO_script_library_append(BlendHandle **bh, char *dir, const char *name, 
 		int idcode, short flag, Main *mainvar, Scene *scene, ReportList *reports)
 {
 	FileData *fd= (FileData*)(*bh);

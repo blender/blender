@@ -419,7 +419,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 /* ------------ General Target Matrix Tools ---------- */
 
 /* function that sets the given matrix based on given vertex group in mesh */
-static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, float mat[][4])
+static void contarget_get_mesh_mat (Scene *scene, Object *ob, const char *substring, float mat[][4])
 {
 	DerivedMesh *dm = NULL;
 	Mesh *me= ob->data;
@@ -524,7 +524,7 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, f
 }
 
 /* function that sets the given matrix based on given vertex group in lattice */
-static void contarget_get_lattice_mat (Object *ob, char *substring, float mat[][4])
+static void contarget_get_lattice_mat (Object *ob, const char *substring, float mat[][4])
 {
 	Lattice *lt= (Lattice *)ob->data;
 	
@@ -582,7 +582,7 @@ static void contarget_get_lattice_mat (Object *ob, char *substring, float mat[][
 
 /* generic function to get the appropriate matrix for most target cases */
 /* The cases where the target can be object data have not been implemented */
-static void constraint_target_to_mat4 (Scene *scene, Object *ob, char *substring, float mat[][4], short from, short to, float headtail)
+static void constraint_target_to_mat4 (Scene *scene, Object *ob, const char *substring, float mat[][4], short from, short to, float headtail)
 {
 	/*	Case OBJECT */
 	if (!strlen(substring)) {
