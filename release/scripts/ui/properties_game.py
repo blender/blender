@@ -232,9 +232,7 @@ class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
 
         gs = context.scene.game_settings
 
-        row = layout.row()
-        row.prop(gs, "show_fullscreen")
-        row.prop(gs, "show_mouse")
+        layout.prop(gs, "show_fullscreen")
 
         split = layout.split()
 
@@ -345,21 +343,25 @@ class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         gs = context.scene.game_settings
+        row = layout.row()
+        row.prop(gs, "use_frame_rate")
+        row.prop(gs, "use_display_lists")
 
-        split = layout.split()
+        
+class RENDER_PT_game_display(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Display"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
 
-        col = split.column()
-        col.label(text="Show:")
-        col.prop(gs, "show_debug_properties", text="Debug Properties")
-        col.prop(gs, "show_framerate_profile", text="Framerate and Profile")
-        col.prop(gs, "show_physics_visualization", text="Physics Visualization")
-        col.prop(gs, "use_deprecation_warnings")
+    def draw(self, context):
+        layout = self.layout
 
-        col = split.column()
-
-        col.label(text="Render:")
-        col.prop(gs, "use_frame_rate")
-        col.prop(gs, "use_display_lists")
+        gs = context.scene.game_settings
+        flow = layout.column_flow()
+        flow.prop(gs, "show_debug_properties", text="Debug Properties")
+        flow.prop(gs, "show_framerate_profile", text="Framerate and Profile")
+        flow.prop(gs, "show_physics_visualization", text="Physics Visualization")
+        flow.prop(gs, "use_deprecation_warnings")
+        flow.prop(gs, "show_mouse")
 
 
 class RENDER_PT_game_sound(RenderButtonsPanel, bpy.types.Panel):
