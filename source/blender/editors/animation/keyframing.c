@@ -653,7 +653,6 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 		}
 	}
 	else if (ptr->type == &RNA_PoseBone) {
-		Object *ob= (Object *)ptr->id.data; /* we assume that this is always set, and is an object */
 		bPoseChannel *pchan= (bPoseChannel *)ptr->data;
 		bPoseChannel tchan;
 		
@@ -663,7 +662,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 		 *	- it should be safe to just make a local copy like this, since we're not doing anything with the copied pointers
 		 */
 		memcpy(&tchan, pchan, sizeof(bPoseChannel));
-		pchan_apply_mat4(&tchan, pchan->chan_mat);
+		pchan_apply_mat4(&tchan, pchan->chan_mat, TRUE);
 		
 		/* Loc, Rot/Quat keyframes are supported... */
 		if (strstr(identifier, "location")) {
