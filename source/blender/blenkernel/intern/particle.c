@@ -2246,12 +2246,13 @@ static void do_path_effectors(ParticleSimulationData *sim, int i, ParticleCacheK
 
 	normalize_v3(force);
 
-	VECADDFAC(ca->co, (ca-1)->co, force, *length);
-
-	if(k < steps) {
+	if(k < steps)
 		sub_v3_v3v3(vec, (ca+1)->co, ca->co);
+
+	madd_v3_v3v3fl(ca->co, (ca-1)->co, force, *length);
+
+	if(k < steps)
 		*length = len_v3(vec);
-	}
 }
 static int check_path_length(int k, ParticleCacheKey *keys, ParticleCacheKey *state, float max_length, float *cur_length, float length, float *dvec)
 {
