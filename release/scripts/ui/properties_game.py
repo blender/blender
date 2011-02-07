@@ -72,7 +72,6 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
 
             col = split.column()
             sub = col.column()
-            sub.active = (game.physics_type == 'RIGID_BODY')
             sub.prop(game, "use_anisotropic_friction")
             subsub = sub.column()
             subsub.active = game.use_anisotropic_friction
@@ -148,6 +147,22 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col.prop(game, "use_actor")
             col.prop(game, "use_ghost")
             col.prop(ob, "hide_render", text="Invisible")
+
+            layout.separator()
+
+            split = layout.split()
+
+            col = split.column()
+            col.label(text="Attributes:")
+            col.prop(game, "radius")
+
+            col = split.column()
+            sub = col.column()
+            sub.prop(game, "use_anisotropic_friction")
+            subsub = sub.column()
+            subsub.active = game.use_anisotropic_friction
+            subsub.prop(game, "friction_coefficients", text="", slider=True)
+
 
         elif game.physics_type in ('SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'):
             layout.prop(ob, "hide_render", text="Invisible")
