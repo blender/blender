@@ -1623,9 +1623,9 @@ static void rna_def_game_actuator(BlenderRNA *brna)
 //		keeping the load/start hacky for compatibility with 2.49
 //		ideally we could use ACT_GAME_START again and do a do_version()
 
-		{ACT_GAME_LOAD, "START", 0, "Start New Game", ""},
-		{ACT_GAME_RESTART, "RESTART", 0, "Restart This Game", ""},
-		{ACT_GAME_QUIT, "QUIT", 0, "Quit This Game", ""},
+		{ACT_GAME_LOAD, "START", 0, "Start Game From File", ""},
+		{ACT_GAME_RESTART, "RESTART", 0, "Restart Game", ""},
+		{ACT_GAME_QUIT, "QUIT", 0, "Quit Game", ""},
 		{ACT_GAME_SAVECFG, "SAVECFG", 0, "Save bge.logic.globalDict", ""},
 		{ACT_GAME_LOADCFG, "LOADCFG", 0, "Load bge.logic.globalDict", ""},
 		{0, NULL, 0, NULL, NULL}};
