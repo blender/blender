@@ -43,6 +43,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
+#include "BKE_node.h"
 #include "BKE_utildefines.h"
 
 #include "PIL_time.h"
@@ -3232,6 +3233,51 @@ int ntreeTexTagAnimated(bNodeTree *ntree)
 
 /* ************* node definition init ********** */
 
+void node_type_init(bNodeType *ntype, int type, const char *name, short nclass, short flag,
+					struct bNodeSocketType *inputs, struct bNodeSocketType *outputs)
+{
+	memset(ntype, 0, sizeof(bNodeType));
+	
+	ntype->type = type;
+	ntype->name = name;
+	ntype->nclass = nclass;
+	ntype->flag = flag;
+	
+	ntype->inputs = inputs;
+	ntype->outputs = outputs;
+	
+	/* default size values */
+	ntype->width = 140;
+	ntype->minwidth = 100;
+	ntype->maxwidth = 320;
+}
+
+void node_type_size(struct bNodeType *ntype, int width, int minwidth, int maxwidth)
+{
+	ntype->width = width;
+	ntype->minwidth = minwidth;
+	ntype->maxwidth = maxwidth;
+}
+
+void node_type_storage(bNodeType *ntype, const char *storagename, void (*initfunc)(struct bNode *), void (*freestoragefunc)(struct bNode *), void (*copystoragefunc)(struct bNode *, struct bNode *))
+{
+	strncpy(ntype->storagename, storagename, sizeof(ntype->storagename));
+	ntype->initfunc = initfunc;
+	ntype->copystoragefunc = copystoragefunc;
+	ntype->freestoragefunc = freestoragefunc;
+}
+
+void node_type_exec(struct bNodeType *ntype, void (*execfunc)(void *data, struct bNode *, struct bNodeStack **, struct bNodeStack **))
+{
+	ntype->execfunc = execfunc;
+}
+
+void node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out))
+{
+	ntype->gpufunc = gpufunc;
+}
+
+
 static bNodeType *is_nodetype_registered(ListBase *typelist, int type, ID *id) 
 {
 	bNodeType *ntype= typelist->first;
@@ -3337,9 +3383,9 @@ static void registerShaderNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &sh_node_mix_rgb);
 	nodeRegisterType(ntypelist, &sh_node_valtorgb);
 	nodeRegisterType(ntypelist, &sh_node_rgbtobw);
-	nodeRegisterType(ntypelist, &sh_node_normal);
+	register_node_type_sh_normal(ntypelist);
 	nodeRegisterType(ntypelist, &sh_node_geom);
-	nodeRegisterType(ntypelist, &sh_node_mapping);
+	register_node_type_sh_mapping(ntypelist);
 	nodeRegisterType(ntypelist, &sh_node_curve_vec);
 	nodeRegisterType(ntypelist, &sh_node_curve_rgb);
 	nodeRegisterType(ntypelist, &sh_node_math);

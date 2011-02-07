@@ -65,21 +65,14 @@ static int gpu_shader_normal(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GP
 	return GPU_stack_link(mat, "normal", in, out, vec);
 }
 
-bNodeType sh_node_normal= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_NORMAL,
-	/* name        */	"Normal",
-	/* width+range */	100, 60, 200,
-	/* class+opts  */	NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
-	/* input sock  */	sh_node_normal_in,
-	/* output sock */	sh_node_normal_out,
-	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_normal,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_normal
-};
-
+void register_node_type_sh_normal(ListBase *lb)
+{
+	static bNodeType ntype;
+	
+	node_type_init(&ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
+				   sh_node_normal_in, sh_node_normal_out);
+	node_type_exec(&ntype, node_shader_exec_normal);
+	node_type_gpu(&ntype, gpu_shader_normal);
+	
+	nodeRegisterType(lb, &ntype);
+}
