@@ -235,8 +235,9 @@ IDProperty *rna_idproperty_ui(PropertyRNA *prop)
 		}
 	}
 
-	if (idprop)
-		return IDP_GetPropertyFromGroup(idprop, ((IDProperty *)prop)->name);
+	if (idprop) {
+		return IDP_GetPropertyTypeFromGroup(idprop, ((IDProperty *)prop)->name, IDP_GROUP);
+	}
 
 	return NULL;
 }
@@ -447,11 +448,10 @@ static const char *rna_ensure_property_description(PropertyRNA *prop)
 		/* attempt to get the local ID values */
 		IDProperty *idp_ui= rna_idproperty_ui(prop);
 
-		if(idp_ui) { /* TODO, type checking on ID props */
-
-			IDProperty *item= IDP_GetPropertyFromGroup(idp_ui, "description");
+		if(idp_ui) {
+			IDProperty *item= IDP_GetPropertyTypeFromGroup(idp_ui, "description", IDP_STRING);
 			if(item)
-				return (char *)item->data.pointer ;
+				return IDP_String(item);
 		}
 
 		return ((IDProperty*)prop)->name; /* XXX - not correct */
@@ -803,14 +803,15 @@ void RNA_property_int_range(PointerRNA *ptr, PropertyRNA *prop, int *hardmin, in
 	if(prop->magic != RNA_MAGIC) {
 		/* attempt to get the local ID values */
 		IDProperty *idp_ui= rna_idproperty_ui(prop);
-		IDProperty *item;
 
-		if(idp_ui) { /* TODO, type checking on ID props */
-			item= IDP_GetPropertyFromGroup(idp_ui, "min");
-			*hardmin= item ? item->data.val : INT_MIN;
+		if(idp_ui) {
+			IDProperty *item;
 
-			item= IDP_GetPropertyFromGroup(idp_ui, "max");
-			*hardmax= item ? item->data.val : INT_MAX;
+			item= IDP_GetPropertyTypeFromGroup(idp_ui, "min", IDP_INT);
+			*hardmin= item ? IDP_Int(item) : INT_MIN;
+
+			item= IDP_GetPropertyTypeFromGroup(idp_ui, "max", IDP_INT);
+			*hardmax= item ? IDP_Int(item) : INT_MAX;
 
 			return;
 		}
@@ -833,17 +834,18 @@ void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin,
 	if(prop->magic != RNA_MAGIC) {
 		/* attempt to get the local ID values */
 		IDProperty *idp_ui= rna_idproperty_ui(prop);
-		IDProperty *item;
 
-		if(idp_ui) { /* TODO, type checking on ID props */
-			item= IDP_GetPropertyFromGroup(idp_ui, "soft_min");
-			*softmin= item ? item->data.val : INT_MIN;
+		if(idp_ui) {
+			IDProperty *item;
 
-			item= IDP_GetPropertyFromGroup(idp_ui, "soft_max");
-			*softmax= item ? item->data.val : INT_MAX;
+			item= IDP_GetPropertyTypeFromGroup(idp_ui, "soft_min", IDP_INT);
+			*softmin= item ? IDP_Int(item) : INT_MIN;
 
-			item= IDP_GetPropertyFromGroup(idp_ui, "step");
-			*step= item ? item->data.val : 1;
+			item= IDP_GetPropertyTypeFromGroup(idp_ui, "soft_max", IDP_INT);
+			*softmax= item ? IDP_Int(item) : INT_MAX;
+
+			item= IDP_GetPropertyTypeFromGroup(idp_ui, "step", IDP_INT);
+			*step= item ? IDP_Int(item) : 1;
 
 			return;
 		}
@@ -869,14 +871,15 @@ void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin
 	if(prop->magic != RNA_MAGIC) {
 		/* attempt to get the local ID values */
 		IDProperty *idp_ui= rna_idproperty_ui(prop);
-		IDProperty *item;
 
-		if(idp_ui) { /* TODO, type checking on ID props */
-			item= IDP_GetPropertyFromGroup(idp_ui, "min");
-			*hardmin= item ? *(double*)&item->data.val : FLT_MIN;
+		if(idp_ui) {
+			IDProperty *item;
 
-			item= IDP_GetPropertyFromGroup(idp_ui, "max");
-			*hardmax= item ? *(double*)&item->data.val : FLT_MAX;
+			item= IDP_GetPropertyTypeFromGroup(idp_ui, "min", IDP_DOUBLE);
+			*hardmin= item ? IDP_Double(item) : FLT_MIN; 
+
+			item= IDP_GetPropertyTypeFromGroup(idp_ui, "max", IDP_DOUBLE);
+			*hardmax= item ? IDP_Double(item) : FLT_MAX;
 
 			return;
 		}
@@ -899,20 +902,21 @@ void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *soft
 	if(prop->magic != RNA_MAGIC) {
 		/* attempt to get the local ID values */
 		IDProperty *idp_ui= rna_idproperty_ui(prop);
-		IDProperty *item;
 
-		if(idp_ui) { /* TODO, type checking on ID props */
-			item= IDP_GetPropertyFromGroup(idp_ui, "soft_min");
-			*softmin= item ? *(double*)&item->data.val : FLT_MIN;
+		if(idp_ui) {
+			IDProperty *item;
 
-			item= IDP_GetPropertyFromGroup(idp_ui, "soft_max");
-			*softmax= item ? *(double*)&item->data.val : FLT_MAX;
+			item= IDP_GetPropertyTypeFromGroup(idp_ui, "soft_min", IDP_DOUBLE);
+			*softmin= item ? IDP_Double(item) : FLT_MIN;
 
-			item= IDP_GetPropertyFromGroup(idp_ui, "step");
-			*step= item ? *(double*)&item->data.val : 1.0f;
+			item= IDP_GetPropertyTypeFromGroup(idp_ui, "soft_max", IDP_DOUBLE);
+			*softmax= item ? IDP_Double(item) : FLT_MAX;
 
-			item= IDP_GetPropertyFromGroup(idp_ui, "precision");
-			*precision= item ? *(double*)&item->data.val : 3.0f;
+			item= IDP_GetPropertyTypeFromGroup(idp_ui, "step", IDP_DOUBLE);
+			*step= item ? IDP_Double(item) : 1.0f;
+
+			item= IDP_GetPropertyTypeFromGroup(idp_ui, "precision", IDP_DOUBLE);
+			*precision= item ? IDP_Double(item) : 3.0f;
 
 			return;
 		}

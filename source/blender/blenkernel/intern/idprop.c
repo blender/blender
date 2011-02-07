@@ -535,6 +535,12 @@ IDProperty *IDP_GetPropertyFromGroup(IDProperty *prop, const char *name)
 	return (IDProperty *)BLI_findstring(&prop->data.group, name, offsetof(IDProperty, name));
 }
 
+IDProperty *IDP_GetPropertyTypeFromGroup(IDProperty *prop, const char *name, const char type)
+{
+	IDProperty *idprop= IDP_GetPropertyFromGroup(prop, name);
+	return (idprop && idprop->type == type) ? idprop : NULL;
+}
+
 typedef struct IDPIter {
 	void *next;
 	IDProperty *parent;

@@ -28,12 +28,13 @@
 
 # System Vars
 OS:=$(shell uname -s)
-CPU:=$(shell uname -m)
+OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
+# CPU:=$(shell uname -m)  # UNUSED
 
 
 # Source and Build DIR's
 BLENDER_DIR:=$(shell pwd -P)
-BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS)_$(CPU)
+BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS_NCASE)
 
 
 # Get the number of cores for threaded build
