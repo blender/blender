@@ -304,7 +304,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_ROT_DYN		(1<<14)	/* dynamic rotation */
 #define PART_SIZEMASS		(1<<16)
 
-//#define PART_HAIR_GRAVITY	(1<<15)
+#define PART_HIDE_ADVANCED_HAIR	(1<<15)
 
 //#define PART_ABS_TIME		(1<<17)
 //#define PART_GLOB_TIME		(1<<18)

@@ -387,6 +387,18 @@ static void rna_PartSettings_end_set(struct PointerRNA *ptr, float value)
 	settings->end = value;
 }
 
+static void rna_PartSetting_hairlength_set(struct PointerRNA *ptr, float value)
+{
+	ParticleSettings *settings = (ParticleSettings*)ptr->data;
+	settings->normfac = value / 4.f;
+}
+
+static float rna_PartSetting_hairlength_get(struct PointerRNA *ptr)
+{
+	ParticleSettings *settings = (ParticleSettings*)ptr->data;
+	return settings->normfac * 4.f;
+}
+
 static void rna_PartSetting_linelentail_set(struct PointerRNA *ptr, float value)
 {
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
@@ -1277,6 +1289,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mass from Size", "Multiply mass by particle size");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
+	prop= RNA_def_property(srna, "use_advanced_hair", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", PART_HIDE_ADVANCED_HAIR);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Advanced", "Use full physics calculations for growing hair");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
 	prop= RNA_def_property(srna, "lock_boids_to_surface", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_BOIDS_2D);
 	RNA_def_property_ui_text(prop, "Boids 2D", "Constrain boids to a surface");
@@ -1294,7 +1312,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "apply_effector_to_children", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_EFFECT);
-	RNA_def_property_ui_text(prop, "Children", "Apply effectors to children");
+	RNA_def_property_ui_text(prop, "Effect Children", "Apply effectors to children");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	prop= RNA_def_property(srna, "create_long_hair_children", PROP_BOOLEAN, PROP_NONE);
@@ -1774,6 +1792,13 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "randphasefac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Random Phase", "Randomize rotation phase");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "hair_length", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_PartSetting_hairlength_get", "rna_PartSetting_hairlength_set", NULL);
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+	RNA_def_property_ui_text(prop, "Hair Length", "Length of the hair");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* physical properties */

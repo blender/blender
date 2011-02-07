@@ -128,6 +128,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
                         row = split.row()
                         row.enabled = particle_panel_enabled(context, psys)
                         row.prop(part, "regrow_hair")
+                        row.prop(part, "use_advanced_hair")
                     row = split.row()
                     row.enabled = particle_panel_enabled(context, psys)
                     row.prop(part, "hair_step")
@@ -173,6 +174,10 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
         row.active = part.distribution != 'GRID'
         row.prop(part, "count")
 
+        if part.type == 'HAIR' and not part.use_advanced_hair:
+            row.prop(part, "hair_length")
+            return
+            
         if part.type != 'HAIR':
             split = layout.split()
 
@@ -303,6 +308,8 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         if particle_panel_poll(PARTICLE_PT_velocity, context):
             psys = context.particle_system
+            if psys.settings.type == 'HAIR' and not psys.settings.use_advanced_hair:
+                return False
             return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.use_external
         else:
             return False
@@ -351,6 +358,8 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         if particle_panel_poll(PARTICLE_PT_rotation, context):
             psys = context.particle_system
+            if psys.settings.type == 'HAIR' and not psys.settings.use_advanced_hair:
+                return False
             return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.use_external
         else:
             return False
@@ -393,7 +402,10 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         if particle_panel_poll(PARTICLE_PT_physics, context):
-            return not context.particle_system.point_cache.use_external
+            psys = context.particle_system
+            if psys.settings.type == 'HAIR' and not psys.settings.use_advanced_hair:
+                return False
+            return not psys.point_cache.use_external
         else:
             return False
 
@@ -1032,7 +1044,11 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel, bpy.types.Panel):
         effector_weights_ui(self, context, part.effector_weights)
 
         if part.type == 'HAIR':
-            self.layout.prop(part.effector_weights, "apply_to_hair_growing")
+            row = self.layout.row()
+            row.prop(part.effector_weights, "apply_to_hair_growing")
+            row.prop(part, "apply_effector_to_children")
+            row = self.layout.row()
+            row.prop(part, "effect_hair", slider=True)
 
 
 class PARTICLE_PT_force_fields(ParticleButtonsPanel, bpy.types.Panel):
