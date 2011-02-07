@@ -106,17 +106,19 @@ float ResizeBetween(TransInfo *t, float p1[3], float p2[3]);
 
 /****************** IMPLEMENTATIONS *********************/
 
+#if 0
 int BIF_snappingSupported(Object *obedit)
 {
 	int status = 0;
 	
-	if (obedit == NULL || ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) /* only support object mesh, armature, curves */
+	if (obedit == NULL || ELEM4(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE)) /* only support object mesh, armature, curves */
 	{
 		status = 1;
 	}
 	
 	return status;
 }
+#endif
 
 int validSnap(TransInfo *t)
 {
@@ -374,7 +376,7 @@ void initSnappingMode(TransInfo *t)
 
 		/* Edit mode */
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-			(obedit != NULL && ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) ) // Temporary limited to edit mode meshes, armature, curves
+			(obedit != NULL && ELEM4(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE)) ) // Temporary limited to edit mode meshes, armature, curves
 		{
 			/* editmode meshes now supported */
 			if ((obedit->type != OB_MESH) && ((t->flag & T_PROP_EDIT) || t->tsnap.project)) /* also exclude edit for project, for now */
