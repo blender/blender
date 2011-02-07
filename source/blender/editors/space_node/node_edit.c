@@ -2178,6 +2178,9 @@ int node_render_changed_exec(bContext *C, wmOperator *UNUSED(op))
 			RNA_string_set(&op_ptr, "layer", srl->name);
 			RNA_string_set(&op_ptr, "scene", sce->id.name+2);
 			
+			/* to keep keypositions */
+			sce->r.scemode |= R_NO_FRAME_UPDATE;
+			
 			WM_operator_name_call(C, "RENDER_OT_render", WM_OP_INVOKE_DEFAULT, &op_ptr);
 
 			WM_operator_properties_free(&op_ptr);
