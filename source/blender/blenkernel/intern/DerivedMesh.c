@@ -1122,8 +1122,7 @@ static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 	vert_r->no[1] = ev->no[1] * 32767.0;
 	vert_r->no[2] = ev->no[2] * 32767.0;
 
-	/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
-	vert_r->mat_nr = 0;
+	/* TODO what to do with vert_r->flag? */
 	vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 }
 
@@ -1220,8 +1219,7 @@ static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 		vert_r->no[1] = ev->no[1] * 32767.0;
 		vert_r->no[2] = ev->no[2] * 32767.0;
 
-		/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
-		vert_r->mat_nr = 0;
+		/* TODO what to do with vert_r->flag? */
 		vert_r->flag = 0;
 		vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 	}

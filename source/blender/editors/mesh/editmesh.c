@@ -989,8 +989,6 @@ void load_editMesh(Scene *scene, Object *obedit)
 	while(eve) {
 		VECCOPY(mvert->co, eve->co);
 
-		mvert->mat_nr= 32767;  /* what was this for, halos? */
-		
 		/* vertex normal */
 		VECCOPY(nor, eve->no);
 		mul_v3_fl(nor, 32767.0);
@@ -1062,20 +1060,6 @@ void load_editMesh(Scene *scene, Object *obedit)
 		} else {
 			if(efa->f & 1) mface->flag |= ME_FACE_SEL;
 			else mface->flag &= ~ME_FACE_SEL;
-		}
-		
-		/* mat_nr in vertex */
-		if(me->totcol>1) {
-			mvert= me->mvert+mface->v1;
-			if(mvert->mat_nr == (char)32767) mvert->mat_nr= mface->mat_nr;
-			mvert= me->mvert+mface->v2;
-			if(mvert->mat_nr == (char)32767) mvert->mat_nr= mface->mat_nr;
-			mvert= me->mvert+mface->v3;
-			if(mvert->mat_nr == (char)32767) mvert->mat_nr= mface->mat_nr;
-			if(mface->v4) {
-				mvert= me->mvert+mface->v4;
-				if(mvert->mat_nr == (char)32767) mvert->mat_nr= mface->mat_nr;
-			}
 		}
 			
 		/* watch: efa->e1->f2==0 means loose edge */ 

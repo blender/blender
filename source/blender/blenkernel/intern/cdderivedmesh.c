@@ -1604,7 +1604,6 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
 		mv->no[2] = eve->no[2] * 32767.0;
 		mv->bweight = (unsigned char) (eve->bweight * 255.0f);
 
-		mv->mat_nr = 0;
 		mv->flag = 0;
 
 		*index = i;
