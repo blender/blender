@@ -50,6 +50,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
@@ -648,6 +649,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 				mat4_to_eulO(eul, ob->rotmode, ob->obmat);
 				return eul[array_index];
 			}
+			// FIXME: other types of rotation don't work
 		}
 	}
 	else if (ptr->type == &RNA_PoseBone) {
