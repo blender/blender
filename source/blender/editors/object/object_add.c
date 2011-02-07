@@ -404,6 +404,8 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 
 	ob->pd= object_add_collision_fields(type);
 
+	DAG_scene_sort(CTX_data_main(C), CTX_data_scene(C));
+
 	return ob;
 }
 
