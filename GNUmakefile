@@ -60,7 +60,7 @@ all:
 	if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
 		mkdir -p $(BUILD_DIR) ; \
 		cd $(BUILD_DIR) ; \
-		cmake $(BLENDER_DIR) ; \
+		cmake $(BLENDER_DIR) -DCMAKE_BUILD_TYPE:STRING=Release ; \
 	fi
 
 	@echo 
