@@ -66,6 +66,7 @@ typedef struct ButsContextPath {
 	PointerRNA ptr[8];
 	int len;
 	int flag;
+	int tex_ctx;
 } ButsContextPath;
 
 static int set_pointer_type(ButsContextPath *path, bContextDataResult *result, StructRNA *type)
@@ -368,7 +369,7 @@ static int buttons_context_path_texture(ButsContextPath *path)
 		return 1;
 	}
 	/* try brush */
-	if((path->flag & SB_BRUSH_TEX) && buttons_context_path_brush(path)) {
+	if((path->tex_ctx == SB_TEXC_BRUSH) && buttons_context_path_brush(path)) {
 		br= path->ptr[path->len-1].data;
 		
 		if(br) {
@@ -380,7 +381,7 @@ static int buttons_context_path_texture(ButsContextPath *path)
 		}
 	}
 	/* try world */
-	if((path->flag & SB_WORLD_TEX) && buttons_context_path_world(path)) {
+	if((path->tex_ctx == SB_TEXC_WORLD) && buttons_context_path_world(path)) {
 		wo= path->ptr[path->len-1].data;
 
 		if(wo && GS(wo->id.name)==ID_WO) {
@@ -442,6 +443,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 
 	memset(path, 0, sizeof(*path));
 	path->flag= flag;
+	path->tex_ctx = sbuts->texture_context;
 
 	/* if some ID datablock is pinned, set the root pointer */
 	if(sbuts->pinid) {
@@ -534,13 +536,12 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 {
 	ButsContextPath *path;
 	PointerRNA *ptr;
-	int a, pflag, flag= 0;
+	int a, pflag= 0, flag= 0;
 
 	if(!sbuts->path)
 		sbuts->path= MEM_callocN(sizeof(ButsContextPath), "ButsContextPath");
 	
 	path= sbuts->path;
-	pflag= (sbuts->flag & (SB_WORLD_TEX|SB_BRUSH_TEX));
 	
 	/* for each context, see if we can compute a valid path to it, if
 	 * this is the case, we know we have to display the button */

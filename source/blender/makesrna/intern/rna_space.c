@@ -742,6 +742,51 @@ static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
 	bgpic->blend = 1.0f - value;
 }
 
+static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	EnumPropertyItem *item= NULL;
+	EnumPropertyItem tmp= {0, "", 0, "", ""};
+	int totitem= 0;
+
+	if(ob) {
+		if(ob->type == OB_LAMP) {
+			tmp.value = SB_TEXC_MAT_OR_LAMP;
+			tmp.description = "Show Lamp Textures";
+			tmp.identifier = "LAMP";
+			tmp.icon = ICON_LAMP_POINT;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+		}
+		else if(ob->totcol) {
+			tmp.value = SB_TEXC_MAT_OR_LAMP;
+			tmp.description = "Show Material Textures";
+			tmp.identifier = "MATERIAL";
+			tmp.icon = ICON_MATERIAL;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+		}
+	}
+
+	if(scene && scene->world) {
+		tmp.value = SB_TEXC_WORLD;
+		tmp.description = "Show World Textures";
+		tmp.identifier = "WORLD";
+		tmp.icon = ICON_WORLD;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+
+	tmp.value = SB_TEXC_BRUSH;
+	tmp.description = "Show Brush Textures";
+	tmp.identifier = "BRUSH";
+	tmp.icon = ICON_BRUSH_DATA;
+	RNA_enum_item_add(&item, &totitem, &tmp);
+	
+	RNA_enum_item_end(&item, &totitem);
+	*free = 1;
+
+	return item;
+}
+
 #else
 
 static void rna_def_space(BlenderRNA *brna)
@@ -1323,6 +1368,10 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 		{BUT_HORIZONTAL, "HORIZONTAL", 0, "Horizontal", ""},
 		{BUT_VERTICAL, "VERTICAL", 0, "Vertical", ""},
 		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem buttons_texture_context_items[] = {
+		{SB_TEXC_MAT_OR_LAMP, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
+		{0, NULL, 0, NULL, NULL}}; //actually populated dynamically trough a function
 		
 	srna= RNA_def_struct(brna, "SpaceProperties", "Space");
 	RNA_def_struct_sdna(srna, "SpaceButs");
@@ -1342,9 +1391,10 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Align", "Arrangement of the panels");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_PROPERTIES, NULL);
 
-	prop= RNA_def_property(srna, "show_brush_texture", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SB_BRUSH_TEX);
-	RNA_def_property_ui_text(prop, "Brush Texture", "Show brush textures");
+	prop= RNA_def_property(srna, "texture_context", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, buttons_texture_context_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceProperties_texture_context_itemf");
+	RNA_def_property_ui_text(prop, "Texture Context", "Type of texture data to display and edit");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_PROPERTIES, NULL);
 
 	/* pinned data */

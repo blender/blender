@@ -62,12 +62,6 @@ static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 		case B_BUTSPREVIEW:
 			ED_area_tag_redraw(CTX_wm_area(C));
 
-			/* silly exception */
-			if(sbuts->mainb == BCONTEXT_WORLD)
-				sbuts->flag |= SB_WORLD_TEX;
-			else if(sbuts->mainb != BCONTEXT_TEXTURE)
-				sbuts->flag &= ~SB_WORLD_TEX;
-
 			sbuts->preview= 1;
 			break;
 	}

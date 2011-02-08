@@ -135,7 +135,8 @@ typedef struct SpaceButs {
 	short mainb, mainbo, mainbuser;	/* context tabs */
 	short re_align, align;			/* align for panels */
 	short preview;					/* preview is signal to refresh */
-	char flag, pad[3];
+	short texture_context;			/* texture context selector (material, world, brush)*/
+	char flag, pad;
 	
 	void *path;						/* runtime */
 	int pathflag, dataicon;			/* runtime */
@@ -627,9 +628,14 @@ typedef struct SpaceSound {
 /* sbuts->flag */
 #define SB_PRV_OSA			1
 #define SB_PIN_CONTEXT		2
-#define SB_WORLD_TEX		4
-#define SB_BRUSH_TEX		8
+//#define SB_WORLD_TEX		4	//not used anymore
+//#define SB_BRUSH_TEX		8	//not used anymore	
 #define SB_SHADING_CONTEXT	16
+
+/* sbuts->texture_context */
+#define SB_TEXC_MAT_OR_LAMP	0
+#define SB_TEXC_WORLD		1
+#define SB_TEXC_BRUSH		2
 
 /* sbuts->align */
 #define BUT_FREE  		0
