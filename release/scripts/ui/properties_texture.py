@@ -102,7 +102,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
         if not space.use_pin_id:
             layout.prop(space, "texture_context", expand=True)
 
-        tex_collection = (pin_id is None) and (node is None) and (not isinstance(idblock, bpy.types.Brush))
+        tex_collection = (not space.use_pin_id) and (node is None) and (not isinstance(idblock, bpy.types.Brush))
 
         if tex_collection:
             row = layout.row()
