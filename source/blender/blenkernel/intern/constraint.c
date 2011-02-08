@@ -4148,6 +4148,21 @@ static bConstraint *add_new_constraint (Object *ob, bPoseChannel *pchan, const c
 		constraints_set_active(list, con);
 	}
 	
+	/* set type+owner specific immutable settings */
+	// TODO: does action constraint need anything here - i.e. spaceonce?
+	switch (type) {
+		case CONSTRAINT_TYPE_CHILDOF:
+		{
+			/* if this constraint is being added to a posechannel, make sure
+			 * the constraint gets evaluated in pose-space */
+			if (pchan) {
+				con->ownspace = CONSTRAINT_SPACE_POSE;
+				con->flag |= CONSTRAINT_SPACEONCE;
+			}
+		}
+			break;
+	}
+	
 	return con;
 }
 

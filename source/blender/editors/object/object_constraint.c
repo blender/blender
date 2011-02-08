@@ -1272,12 +1272,12 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	bPoseChannel *pchan;
 	bConstraint *con;
 	
-	if(list == &ob->constraints) {
+	if (list == &ob->constraints) {
 		pchan= NULL;
 	}
 	else {
 		pchan= get_active_posechannel(ob);
-
+		
 		/* ensure not to confuse object/pose adding */
 		if (pchan == NULL) {
 			BKE_report(op->reports, RPT_ERROR, "No active pose bone to add a constraint to.");
@@ -1327,19 +1327,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	}
 	
 	/* do type-specific tweaking to the constraint settings  */
-	// TODO: does action constraint need anything here - i.e. spaceonce?
 	switch (type) {
-		case CONSTRAINT_TYPE_CHILDOF:
-		{
-			/* if this constraint is being added to a posechannel, make sure
-			 * the constraint gets evaluated in pose-space */
-			if (pchan) {
-				con->ownspace = CONSTRAINT_SPACE_POSE;
-				con->flag |= CONSTRAINT_SPACEONCE;
-			}
-		}
-			break;
-			
 		case CONSTRAINT_TYPE_PYTHON: // FIXME: this code is not really valid anymore
 		{
 #ifdef WITH_PYTHON
