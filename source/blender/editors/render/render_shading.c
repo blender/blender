@@ -791,6 +791,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 			}
 		}
 
+		DAG_id_tag_update(id, 0);
 		WM_event_add_notifier(C, NC_TEXTURE, CTX_data_scene(C));
 	}
 
