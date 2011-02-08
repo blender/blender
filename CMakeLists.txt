@@ -226,7 +226,7 @@ if(UNIX AND NOT APPLE)
 		# No way to set py31. remove for now.
 		# find_package(PythonLibs)
 		set(PYTHON /usr)
-		set(PYTHON_VERSION 3.1)
+		set(PYTHON_VERSION 3.1 CACHE STRING "")
 		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
 		mark_as_advanced(PYTHON_INCLUDE_DIRS)
 		# set(PYTHON_BINARY python) # not used yet

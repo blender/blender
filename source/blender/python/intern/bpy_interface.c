@@ -230,6 +230,11 @@ void BPY_python_start( int argc, char **argv )
 
 	BPY_python_start_path(); /* allow to use our own included python */
 
+	/* Python 3.2 now looks for '2.56/python/include/python3.2d/pyconfig.h' to parse
+	 * from the 'sysconfig' module which is used by 'site', so for now disable site.
+	 * alternatively we could copy the file. */
+	Py_NoSiteFlag= 1;
+
 	Py_Initialize(  );
 	
 	// PySys_SetArgv( argc, argv); // broken in py3, not a huge deal
