@@ -77,7 +77,7 @@ class AddBox(bpy.types.Operator):
 
         mesh.vertices.foreach_set("co", verts_loc)
         mesh.faces.foreach_set("vertices_raw", faces)
-        mesh.update_tag()
+        mesh.update()
 
         # add the mesh as an object into the scene with this utility module
         import add_object_utils

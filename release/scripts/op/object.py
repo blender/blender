@@ -506,7 +506,7 @@ class MakeDupliFace(bpy.types.Operator):
 
             mesh.vertices.foreach_set("co", face_verts)
             mesh.faces.foreach_set("vertices_raw", faces)
-            mesh.update_tag()  # generates edge data
+            mesh.update()  # generates edge data
 
             # pick an object to use
             obj = objects[0]
