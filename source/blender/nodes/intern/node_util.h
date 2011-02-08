@@ -38,6 +38,11 @@ extern void node_free_standard_storage(struct bNode *node);
 extern void node_copy_curves(struct bNode *orig_node, struct bNode *new_node);
 extern void node_copy_standard_storage(struct bNode *orig_node, struct bNode *new_node);
 
+const char *node_blend_label(struct bNode *node);
+const char *node_math_label(struct bNode *node);
+const char *node_vect_math_label(struct bNode *node);
+const char *node_filter_label(struct bNode *node);
+
 #endif
 
 // this is needed for inlining behaviour

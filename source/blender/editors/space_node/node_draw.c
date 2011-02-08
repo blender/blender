@@ -45,6 +45,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -264,10 +265,6 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 		BLI_unlock_thread(LOCK_PREVIEW);
 	}
 
-	/* XXX ugly hack, typeinfo for group is generated */
-	if(node->type == NODE_GROUP)
-		node->typeinfo->uifunc= node_buts_group;
-	
 	/* buttons rect? */
 	if((node->flag & NODE_OPTIONS) && node->typeinfo->uifunc) {
 		dy-= NODE_DYS/2;
@@ -721,11 +718,10 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		UI_ThemeColor(TH_TEXT); */
 	
-	if(node->flag & NODE_CUSTOM_NAME)
-		BLI_strncpy(showname, node->name, sizeof(showname));
+	if (node->typeinfo->labelfunc)
+		BLI_strncpy(showname, node->typeinfo->labelfunc(node), sizeof(showname));
 	else
-		/* todo: auto name display for node types */
-		BLI_strncpy(showname, node->name, sizeof(showname));
+		BLI_strncpy(showname, node->typeinfo->name, sizeof(showname));
 
 	//if(node->flag & NODE_MUTED)
 	//	sprintf(showname, "[%s]", showname);
@@ -894,14 +890,11 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		UI_ThemeColor(TH_TEXT);
 	
 	if(node->miniwidth>0.0f) {
-
-
-		if(node->flag & NODE_CUSTOM_NAME)
-			BLI_strncpy(showname, node->name, sizeof(showname));
+		if (node->typeinfo->labelfunc)
+			BLI_strncpy(showname, node->typeinfo->labelfunc(node), sizeof(showname));
 		else
-			/* todo: auto name display */
-			BLI_strncpy(showname, node->name, sizeof(showname));
-	
+			BLI_strncpy(showname, node->typeinfo->name, sizeof(showname));
+		
 		//if(node->flag & NODE_MUTED)
 		//	sprintf(showname, "[%s]", showname);
 
@@ -1012,18 +1005,19 @@ static void node_draw_group_links(View2D *v2d, SpaceNode *snode, bNode *gnode)
 }
 
 /* groups are, on creation, centered around 0,0 */
-static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bNode *gnode)
+static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
 {
 	bNodeTree *ngroup= (bNodeTree *)gnode->id;
 	bNodeSocket *sock;
 	rctf rect= gnode->totr;
-	char showname[128];
+	uiLayout *layout;
+	PointerRNA ptr;
 	
 	/* backdrop header */
 	glEnable(GL_BLEND);
 	uiSetRoundBox(3);
 	UI_ThemeColorShadeAlpha(TH_NODE_GROUP, 0, -70);
-	uiDrawBox(GL_POLYGON, rect.xmin, rect.ymax, rect.xmax, rect.ymax+NODE_DY, BASIS_RAD);
+	uiDrawBox(GL_POLYGON, rect.xmin, rect.ymax, rect.xmax, rect.ymax+26, BASIS_RAD);
 	
 	/* backdrop body */
 	UI_ThemeColorShadeAlpha(TH_BACK, -8, -70);
@@ -1034,21 +1028,19 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	uiSetRoundBox(15);
 	glColor4ub(200, 200, 200, 140);
 	glEnable( GL_LINE_SMOOTH );
-	uiDrawBox(GL_LINE_LOOP, rect.xmin, rect.ymin, rect.xmax, rect.ymax+NODE_DY, BASIS_RAD);
+	uiDrawBox(GL_LINE_LOOP, rect.xmin, rect.ymin, rect.xmax, rect.ymax+26, BASIS_RAD);
 	glDisable( GL_LINE_SMOOTH );
 	glDisable(GL_BLEND);
 	
 	/* backdrop title */
 	UI_ThemeColor(TH_TEXT_HI);
 
-	if (gnode->flag & NODE_CUSTOM_NAME)
-		BLI_strncpy(showname, gnode->name, sizeof(showname));
-	else
-		BLI_strncpy(showname, ngroup->id.name+2, sizeof(showname));
+	layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, (short)(rect.xmin+15), (short)(rect.ymax+23),
+						   MIN2((int)(rect.xmax - rect.xmin-18.0f), 140), 20, U.uistyles.first);
+	RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
+	uiTemplateIDBrowse(layout, (bContext*)C, &ptr, "node_tree", NULL, NULL, NULL);
+	uiBlockLayoutResolve(gnode->block, NULL, NULL);
 
-
-	uiDefBut(gnode->block, LABEL, 0, showname, (short)(rect.xmin+15), (short)(rect.ymax), 
-			 (int)(rect.xmax - rect.xmin-18.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
 	uiEndBlock(C, gnode->block);
 	uiDrawBlock(C, gnode->block);
 	gnode->block= NULL;
@@ -1128,7 +1120,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 		/* active group */
 		for(node= snode->nodetree->nodes.first; node; node= node->next) {
 			if(node->flag & NODE_GROUP_EDIT)
-				node_draw_group(C, ar, snode, node);
+				node_draw_group(C, ar, snode, snode->nodetree, node);
 		}
 	}
 	

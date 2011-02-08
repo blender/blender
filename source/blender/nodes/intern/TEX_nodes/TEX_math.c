@@ -181,6 +181,7 @@ void register_node_type_tex_math(ListBase *lb)
 	node_type_base(&ntype, TEX_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
 				   inputs, outputs);
 	node_type_size(&ntype, 120, 110, 160);
+	node_type_label(&ntype, node_math_label);
 	node_type_storage(&ntype, "node_math", NULL, NULL);
 	node_type_exec(&ntype, exec);
 	

@@ -29,7 +29,6 @@
 
 #include "../SHD_util.h"
 
-
 /* **************** MIX RGB ******************** */
 static bNodeSocketType sh_node_mix_rgb_in[]= {
 	{	SOCK_VALUE, 1, "Fac",			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -78,6 +77,7 @@ void register_node_type_sh_mix_rgb(ListBase *lb)
 	node_type_base(&ntype, SH_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
 		sh_node_mix_rgb_in, sh_node_mix_rgb_out);
 	node_type_size(&ntype, 100, 60, 150);
+	node_type_label(&ntype, node_blend_label);
 	node_type_exec(&ntype, node_shader_exec_mix_rgb);
 	node_type_gpu(&ntype, gpu_shader_mix_rgb);
 

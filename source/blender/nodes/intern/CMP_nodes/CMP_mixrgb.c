@@ -86,6 +86,7 @@ void register_node_type_cmp_mix_rgb(ListBase *lb)
 	node_type_base(&ntype, CMP_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, NODE_PREVIEW|NODE_OPTIONS,
 		cmp_node_mix_rgb_in, cmp_node_mix_rgb_out);
 	node_type_size(&ntype, 110, 60, 120);
+	node_type_label(&ntype, node_blend_label);
 	node_type_exec(&ntype, node_composit_exec_mix_rgb);
 
 	nodeRegisterType(lb, &ntype);

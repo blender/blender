@@ -224,6 +224,7 @@ void register_node_type_cmp_filter(ListBase *lb)
 	node_type_base(&ntype, CMP_NODE_FILTER, "Filter", NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
 		cmp_node_filter_in, cmp_node_filter_out);
 	node_type_size(&ntype, 80, 40, 120);
+	node_type_label(&ntype, node_filter_label);
 	node_type_exec(&ntype, node_composit_exec_filter);
 
 	nodeRegisterType(lb, &ntype);

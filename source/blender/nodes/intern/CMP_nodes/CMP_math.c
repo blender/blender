@@ -29,7 +29,6 @@
 
 #include "../CMP_util.h"
 
-
 /* **************** SCALAR MATH ******************** */ 
 static bNodeSocketType cmp_node_math_in[]= { 
 	{ SOCK_VALUE, 1, "Value", 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f}, 
@@ -188,6 +187,7 @@ void register_node_type_cmp_math(ListBase *lb)
 	node_type_base(&ntype, CMP_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
 		cmp_node_math_in, cmp_node_math_out);
 	node_type_size(&ntype, 120, 110, 160);
+	node_type_label(&ntype, node_math_label);
 	node_type_exec(&ntype, node_composit_exec_math);
 
 	nodeRegisterType(lb, &ntype);

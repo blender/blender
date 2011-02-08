@@ -96,6 +96,11 @@ extern EnumPropertyItem property_unit_items[];
 
 extern EnumPropertyItem viewport_shade_items[];
 
+extern EnumPropertyItem node_blend_type_items[];
+extern EnumPropertyItem node_math_items[];
+extern EnumPropertyItem node_vec_math_items[];
+extern EnumPropertyItem node_filter_items[];
+
 struct bContext;
 struct PointerRNA;
 EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);

@@ -87,6 +87,7 @@ typedef struct bNodeType {
 	
 	/* this line is set on startup of blender */
 	void (*uifunc)(struct uiLayout *, struct bContext *C, struct PointerRNA *ptr);
+	const char *(*labelfunc)(struct bNode *);
 
 	void (*initfunc)(struct bNode *);
 	void (*freestoragefunc)(struct bNode *);
@@ -218,6 +219,7 @@ void			node_type_storage(struct bNodeType *ntype,
 								  void (*copystoragefunc)(struct bNode *, struct bNode *));
 void			node_type_exec(struct bNodeType *ntype, void (*execfunc)(void *data, struct bNode *, struct bNodeStack **, struct bNodeStack **));
 void			node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out));
+void			node_type_label(struct bNodeType *ntype, const char *(*labelfunc)(struct bNode *));
 
 #define NODE_GROUP		2
 #define NODE_GROUP_MENU		1000

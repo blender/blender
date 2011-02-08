@@ -78,11 +78,6 @@
 
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
 
-void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-	uiTemplateIDBrowse(layout, C, ptr, "node_tree", NULL, NULL, "");
-}
-
 static void node_buts_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	PointerRNA sockptr;

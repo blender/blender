@@ -268,10 +268,17 @@ void ntreeVerifyTypes(bNodeTree *ntree)
 /* XXX group typeinfo struct is used directly in ntreeMakeOwnType, needs cleanup */
 static bNodeType ntype_group;
 
+/* groups display their internal tree name as label */
+const char *group_label(bNode *node)
+{
+	return node->id->name+2;
+}
+
 void register_node_type_group(ListBase *lb)
 {
 	node_type_base(&ntype_group, NODE_GROUP, "Group", NODE_CLASS_GROUP, NODE_OPTIONS, NULL, NULL);
 	node_type_size(&ntype_group, 120, 60, 200);
+	node_type_label(&ntype_group, group_label);
 	
 	nodeRegisterType(lb, &ntype_group);
 }
@@ -3290,6 +3297,10 @@ void node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *m
 	ntype->gpufunc = gpufunc;
 }
 
+void node_type_label(struct bNodeType *ntype, const char *(*labelfunc)(struct bNode *))
+{
+	ntype->labelfunc = labelfunc;
+}
 
 static bNodeType *is_nodetype_registered(ListBase *typelist, int type, ID *id) 
 {

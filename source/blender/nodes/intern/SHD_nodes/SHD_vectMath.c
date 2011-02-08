@@ -134,6 +134,7 @@ void register_node_type_sh_vect_math(ListBase *lb)
 	node_type_base(&ntype, SH_NODE_VECT_MATH, "Vector Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
 		sh_node_vect_math_in, sh_node_vect_math_out);
 	node_type_size(&ntype, 80, 75, 140);
+	node_type_label(&ntype, node_vect_math_label);
 	node_type_storage(&ntype, "node_vect_math", NULL, NULL);
 	node_type_exec(&ntype, node_shader_exec_vect_math);
 	node_type_gpu(&ntype, gpu_shader_vect_math);

@@ -28,7 +28,6 @@
 
 #include "../TEX_util.h"
 
-
 /* **************** MIX RGB ******************** */
 static bNodeSocketType inputs[]= {
 	{ SOCK_VALUE, 1, "Factor", 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f },
@@ -67,6 +66,7 @@ void register_node_type_tex_mix_rgb(ListBase *lb)
 	node_type_base(&ntype, TEX_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
 				   inputs, outputs);
 	node_type_size(&ntype, 100, 60, 150);
+	node_type_label(&ntype, node_blend_label);
 	node_type_exec(&ntype, exec);
 	
 	nodeRegisterType(lb, &ntype);
