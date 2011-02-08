@@ -267,39 +267,33 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, 
 	return 0;
 }
 
-bNodeType sh_node_material= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_MATERIAL,
-	/* name        */	"Material",
-	/* width+range */	120, 80, 240,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW,
-	/* input sock  */	sh_node_material_in,
-	/* output sock */	sh_node_material_out,
-	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_material,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_shader_init_material,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_material
-};
+void register_node_type_sh_material(ListBase *lb)
+{
+	static bNodeType ntype;
 
-bNodeType sh_node_material_ext= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_MATERIAL_EXT,
-	/* name        */	"Extended Material",
-	/* width+range */	120, 80, 240,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW,
-	/* input sock  */	sh_node_material_ext_in,
-	/* output sock */	sh_node_material_ext_out,
-	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_material,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_shader_init_material,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_material
-};
+	node_type_base(&ntype, SH_NODE_MATERIAL, "Material", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW,
+		sh_node_material_in, sh_node_material_out);
+	node_type_size(&ntype, 120, 80, 240);
+	node_type_init(&ntype, node_shader_init_material);
+	node_type_exec(&ntype, node_shader_exec_material);
+	node_type_gpu(&ntype, gpu_shader_material);
+
+	nodeRegisterType(lb, &ntype);
+}
+
+
+void register_node_type_sh_material_ext(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_MATERIAL_EXT, "Extended Material", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW,
+		sh_node_material_ext_in, sh_node_material_ext_out);
+	node_type_size(&ntype, 120, 80, 240);
+	node_type_init(&ntype, node_shader_init_material);
+	node_type_exec(&ntype, node_shader_exec_material);
+	node_type_gpu(&ntype, gpu_shader_material);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

@@ -181,22 +181,18 @@ static void node_composit_exec_math(void *UNUSED(data), bNode *node, bNodeStack 
 	out[0]->data= stackbuf;
 }
 
-bNodeType cmp_node_math= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_MATH,
-	/* name        */	"Math",
-	/* width+range */	120, 110, 160,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_math_in,
-	/* output sock */	cmp_node_math_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_math,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_math(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		cmp_node_math_in, cmp_node_math_out);
+	node_type_size(&ntype, 120, 110, 160);
+	node_type_exec(&ntype, node_composit_exec_math);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 
 

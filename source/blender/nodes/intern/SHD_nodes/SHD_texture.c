@@ -128,22 +128,17 @@ static int gpu_shader_texture(GPUMaterial *mat, bNode *node, GPUNodeStack *in, G
 		return 0;
 }
 
-bNodeType sh_node_texture= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_TEXTURE,
-	/* name        */	"Texture",
-	/* width+range */	120, 80, 240,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW,
-	/* input sock  */	sh_node_texture_in,
-	/* output sock */	sh_node_texture_out,
-	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_texture,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_texture
-	
-};
+void register_node_type_sh_texture(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW,
+		sh_node_texture_in, sh_node_texture_out);
+	node_type_size(&ntype, 120, 80, 240);
+	node_type_exec(&ntype, node_shader_exec_texture);
+	node_type_gpu(&ntype, gpu_shader_texture);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

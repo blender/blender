@@ -64,20 +64,14 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	tex_output(node, in, out[0], &colorfn, data);
 }
 
-bNodeType tex_node_checker= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	TEX_NODE_CHECKER,
-	/* name        */	"Checker",
-	/* width+range */	100, 60, 150,
-	/* class+opts  */	NODE_CLASS_PATTERN, NODE_OPTIONS | NODE_PREVIEW,
-	/* input sock  */	inputs,
-	/* output sock */	outputs,
-	/* storage     */	"", 
-	/* execfunc    */	exec,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+void register_node_type_tex_checker(ListBase *lb)
+{
+	static bNodeType ntype;
 	
-};
+	node_type_base(&ntype, TEX_NODE_CHECKER, "Checker", NODE_CLASS_PATTERN, NODE_PREVIEW|NODE_OPTIONS,
+				   inputs, outputs);
+	node_type_size(&ntype, 100, 60, 150);
+	node_type_exec(&ntype, exec);
+	
+	nodeRegisterType(lb, &ntype);
+}

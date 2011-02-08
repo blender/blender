@@ -484,19 +484,17 @@ static void node_composit_init_glare(bNode* node)
 	node->storage = ndg;
 }
 
-bNodeType cmp_node_glare = {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_GLARE,
-	/* name        */	"Glare",
-	/* width+range */	150, 120, 200,
-	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_OPTIONS,
-	/* input sock  */	cmp_node_glare_in,
-	/* output sock */	cmp_node_glare_out,
-	/* storage     */	"NodeGlare",
-	/* execfunc    */	node_composit_exec_glare,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_glare,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_glare(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_GLARE, "Glare", NODE_CLASS_OP_FILTER, NODE_OPTIONS,
+		cmp_node_glare_in, cmp_node_glare_out);
+	node_type_size(&ntype, 150, 120, 200);
+	node_type_init(&ntype, node_composit_init_glare);
+	node_type_storage(&ntype, "NodeGlare", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_glare);
+
+	nodeRegisterType(lb, &ntype);
+}
+

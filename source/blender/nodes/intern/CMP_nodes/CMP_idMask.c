@@ -104,21 +104,17 @@ static void node_composit_exec_idmask(void *data, bNode *node, bNodeStack **in, 
 }
 
 
-bNodeType cmp_node_idmask= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_ID_MASK,
-	/* name        */	"ID Mask",
-	/* width+range */	140, 100, 320,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_idmask_in,
-	/* output sock */	cmp_node_idmask_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_idmask,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_idmask(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_ID_MASK, "ID Mask", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		cmp_node_idmask_in, cmp_node_idmask_out);
+	node_type_size(&ntype, 140, 100, 320);
+	node_type_exec(&ntype, node_composit_exec_idmask);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

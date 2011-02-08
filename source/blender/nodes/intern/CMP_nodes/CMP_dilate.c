@@ -143,21 +143,16 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 	}
 }
 
-bNodeType cmp_node_dilateerode= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_DILATEERODE,
-	/* name        */	"Dilate/Erode",
-	/* width+range */	130, 100, 320,
-	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_OPTIONS,
-	/* input sock  */	cmp_node_dilateerode_in,
-	/* output sock */	cmp_node_dilateerode_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_dilateerode,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_dilateerode(ListBase *lb)
+{
+	static bNodeType ntype;
+	
+	node_type_base(&ntype, CMP_NODE_DILATEERODE, "Dilate/Erode", NODE_CLASS_OP_FILTER, NODE_OPTIONS,
+				   cmp_node_dilateerode_in, cmp_node_dilateerode_out);
+	node_type_size(&ntype, 130, 100, 320);
+	node_type_exec(&ntype, node_composit_exec_dilateerode);
+	
+	nodeRegisterType(lb, &ntype);
+}
 
 

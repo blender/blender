@@ -103,20 +103,18 @@ static void node_composit_init_luma_matte(bNode *node)
    c->t2= 0.0f;
 };
 
-bNodeType cmp_node_luma_matte={
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_LUMA_MATTE,
-	/* name        */	"Luminance Key",
-	/* width+range */	200, 80, 250,
-	/* class+opts  */	NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	cmp_node_luma_matte_in,
-	/* output sock */	cmp_node_luma_matte_out,
-	/* storage     */	"NodeChroma",
-	/* execfunc    */	node_composit_exec_luma_matte,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_luma_matte,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_luma_matte(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_LUMA_MATTE, "Luminance Key", NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+		cmp_node_luma_matte_in, cmp_node_luma_matte_out);
+	node_type_size(&ntype, 200, 80, 250);
+	node_type_init(&ntype, node_composit_init_luma_matte);
+	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_luma_matte);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

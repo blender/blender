@@ -152,20 +152,16 @@ static void copy(bNode *orig, bNode *new)
 	assign_index(new);
 }
 
-bNodeType tex_node_output= {
-	/* *next,*prev     */  NULL, NULL,
-	/* type code       */  TEX_NODE_OUTPUT,
-	/* name            */  "Output",
-	/* width+range     */  150, 60, 200,
-	/* class+opts      */  NODE_CLASS_OUTPUT, NODE_PREVIEW | NODE_OPTIONS, 
-	/* input sock      */  inputs,
-	/* output sock     */  NULL,
-	/* storage         */  "TexNodeOutput",
-	/* execfunc        */  exec,
-	/* butfunc         */  NULL,
-	/* initfunc        */  init,
-	/* freestoragefunc */  node_free_standard_storage,
-	/* copystoragefunc */  copy,  
-	/* id              */  NULL
-};
-
+void register_node_type_tex_output(ListBase *lb)
+{
+	static bNodeType ntype;
+	
+	node_type_base(&ntype, TEX_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS,
+				   inputs, NULL);
+	node_type_size(&ntype, 150, 60, 200);
+	node_type_init(&ntype, init);
+	node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
+	node_type_exec(&ntype, exec);
+	
+	nodeRegisterType(lb, &ntype);
+}

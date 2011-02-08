@@ -234,21 +234,18 @@ static int gpu_shader_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUN
 	return 1;
 }
 
-bNodeType sh_node_math= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_MATH, 
-	/* name        */	"Math", 
-	/* width+range */	120, 110, 160, 
-	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS, 
-	/* input sock  */	sh_node_math_in, 
-	/* output sock */	sh_node_math_out, 
-	/* storage     */	"node_math", 
-	/* execfunc    */	node_shader_exec_math,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_math
-};
+void register_node_type_sh_math(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		sh_node_math_in, sh_node_math_out);
+	node_type_size(&ntype, 120, 110, 160);
+	node_type_storage(&ntype, "node_math", NULL, NULL);
+	node_type_exec(&ntype, node_shader_exec_math);
+	node_type_gpu(&ntype, gpu_shader_math);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

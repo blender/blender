@@ -108,19 +108,17 @@ static void node_composit_init_crop(bNode* node)
    nxy->y2= 0;
 }
 
-bNodeType cmp_node_crop= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_CROP,
-	/* name        */	"Crop",
-	/* width+range */	140, 100, 320,
-	/* class+opts  */	NODE_CLASS_DISTORT, NODE_OPTIONS,
-	/* input sock  */	cmp_node_crop_in,
-	/* output sock */	cmp_node_crop_out,
-	/* storage     */	"NodeTwoXYs",
-	/* execfunc    */	node_composit_exec_crop,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_crop,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_crop(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_CROP, "Crop", NODE_CLASS_DISTORT, NODE_OPTIONS,
+		cmp_node_crop_in, cmp_node_crop_out);
+	node_type_size(&ntype, 140, 100, 320);
+	node_type_init(&ntype, node_composit_init_crop);
+	node_type_storage(&ntype, "NodeTwoXYs", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_crop);
+
+	nodeRegisterType(lb, &ntype);
+}
+

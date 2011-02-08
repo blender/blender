@@ -87,10 +87,11 @@ void register_node_type_sh_mapping(ListBase *lb)
 {
 	static bNodeType ntype;
 	
-	node_type_init(&ntype, SH_NODE_MAPPING, "Mapping", NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
+	node_type_base(&ntype, SH_NODE_MAPPING, "Mapping", NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
 				   sh_node_mapping_in, sh_node_mapping_out);
 	node_type_size(&ntype, 240, 160, 320);
-	node_type_storage(&ntype, "TexMapping", node_shader_init_mapping, node_free_standard_storage, node_copy_standard_storage);
+	node_type_init(&ntype, node_shader_init_mapping);
+	node_type_storage(&ntype, "TexMapping", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_shader_exec_mapping);
 	node_type_gpu(&ntype, gpu_shader_mapping);
 	

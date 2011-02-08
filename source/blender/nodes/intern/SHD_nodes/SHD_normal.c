@@ -69,7 +69,7 @@ void register_node_type_sh_normal(ListBase *lb)
 {
 	static bNodeType ntype;
 	
-	node_type_init(&ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
+	node_type_base(&ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
 				   sh_node_normal_in, sh_node_normal_out);
 	node_type_exec(&ntype, node_shader_exec_normal);
 	node_type_gpu(&ntype, gpu_shader_normal);

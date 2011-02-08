@@ -96,23 +96,18 @@ static void node_composit_exec_sephsva(void *UNUSED(data), bNode *node, bNodeSta
 	}
 }
 
-bNodeType cmp_node_sephsva= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_SEPHSVA,
-	/* name        */	"Separate HSVA",
-	/* width+range */	80, 40, 140,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, 0,
-	/* input sock  */	cmp_node_sephsva_in,
-	/* output sock */	cmp_node_sephsva_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_sephsva,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_sephsva(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTOR, 0,
+		cmp_node_sephsva_in, cmp_node_sephsva_out);
+	node_type_size(&ntype, 80, 40, 140);
+	node_type_exec(&ntype, node_composit_exec_sephsva);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 /* **************** COMBINE HSVA ******************** */
 static bNodeSocketType cmp_node_combhsva_in[]= {
@@ -171,21 +166,17 @@ static void node_composit_exec_combhsva(void *UNUSED(data), bNode *node, bNodeSt
    }	
 }
 
-bNodeType cmp_node_combhsva= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_COMBHSVA,
-	/* name        */	"Combine HSVA",
-	/* width+range */	80, 40, 140,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_combhsva_in,
-	/* output sock */	cmp_node_combhsva_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_combhsva,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_combhsva(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		cmp_node_combhsva_in, cmp_node_combhsva_out);
+	node_type_size(&ntype, 80, 40, 140);
+	node_type_exec(&ntype, node_composit_exec_combhsva);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

@@ -53,24 +53,19 @@ static int gpu_shader_seprgb(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack
 	return GPU_stack_link(mat, "separate_rgb", in, out);
 }
 
-bNodeType sh_node_seprgb= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_SEPRGB,
-	/* name        */	"Separate RGB",
-	/* width+range */	80, 40, 140,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, 0,
-	/* input sock  */	sh_node_seprgb_in,
-	/* output sock */	sh_node_seprgb_out,
-	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_seprgb,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_seprgb
-	
-};
+void register_node_type_sh_seprgb(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_SEPRGB, "Separate RGB", NODE_CLASS_CONVERTOR, 0,
+		sh_node_seprgb_in, sh_node_seprgb_out);
+	node_type_size(&ntype, 80, 40, 140);
+	node_type_exec(&ntype, node_shader_exec_seprgb);
+	node_type_gpu(&ntype, gpu_shader_seprgb);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 
 /* **************** COMBINE RGB ******************** */
@@ -97,21 +92,16 @@ static int gpu_shader_combrgb(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStac
 	return GPU_stack_link(mat, "combine_rgb", in, out);
 }
 
-bNodeType sh_node_combrgb= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_COMBRGB,
-	/* name        */	"Combine RGB",
-	/* width+range */	80, 40, 140,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
-	/* input sock  */	sh_node_combrgb_in,
-	/* output sock */	sh_node_combrgb_out,
-	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_combrgb,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_combrgb
-	
-};
+void register_node_type_sh_combrgb(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_COMBRGB, "Combine RGB", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		sh_node_combrgb_in, sh_node_combrgb_out);
+	node_type_size(&ntype, 80, 40, 140);
+	node_type_exec(&ntype, node_shader_exec_combrgb);
+	node_type_gpu(&ntype, gpu_shader_combrgb);
+
+	nodeRegisterType(lb, &ntype);
+}
+

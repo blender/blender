@@ -85,21 +85,17 @@ static void node_composit_exec_flip(void *UNUSED(data), bNode *node, bNodeStack 
 	}
 }
 
-bNodeType cmp_node_flip= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_FLIP,
-	/* name        */	"Flip",
-	/* width+range */	140, 100, 320,
-	/* class+opts  */	NODE_CLASS_DISTORT, NODE_OPTIONS,
-	/* input sock  */	cmp_node_flip_in,
-	/* output sock */	cmp_node_flip_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_flip,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_flip(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_FLIP, "Flip", NODE_CLASS_DISTORT, NODE_OPTIONS,
+		cmp_node_flip_in, cmp_node_flip_out);
+	node_type_size(&ntype, 140, 100, 320);
+	node_type_exec(&ntype, node_composit_exec_flip);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

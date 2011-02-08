@@ -127,21 +127,18 @@ static int gpu_shader_vect_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in,
 	return 1;
 }
 
-bNodeType sh_node_vect_math= { 
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */ SH_NODE_VECT_MATH, 
-	/* name        */ "Vector Math", 
-	/* width+range */ 80, 75, 140, 
-	/* class+opts  */ NODE_CLASS_CONVERTOR, NODE_OPTIONS, 
-	/* input sock  */ sh_node_vect_math_in, 
-	/* output sock */ sh_node_vect_math_out, 
-	/* storage     */ "node_vect_math", 
-	/* execfunc    */ node_shader_exec_vect_math,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_vect_math
-};
+void register_node_type_sh_vect_math(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_VECT_MATH, "Vector Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		sh_node_vect_math_in, sh_node_vect_math_out);
+	node_type_size(&ntype, 80, 75, 140);
+	node_type_storage(&ntype, "node_vect_math", NULL, NULL);
+	node_type_exec(&ntype, node_shader_exec_vect_math);
+	node_type_gpu(&ntype, gpu_shader_vect_math);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

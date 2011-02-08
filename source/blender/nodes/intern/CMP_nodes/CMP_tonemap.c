@@ -158,19 +158,17 @@ static void node_composit_init_tonemap(bNode* node)
 	node->storage = ntm;
 }
 
-bNodeType cmp_node_tonemap = {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_TONEMAP,
-	/* name        */	"Tonemap",
-	/* width+range */	150, 120, 200,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_tonemap_in,
-	/* output sock */	cmp_node_tonemap_out,
-	/* storage     */	"NodeTonemap",
-	/* execfunc    */	node_composit_exec_tonemap,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_tonemap,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_tonemap(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_TONEMAP, "Tonemap", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+		cmp_node_tonemap_in, cmp_node_tonemap_out);
+	node_type_size(&ntype, 150, 120, 200);
+	node_type_init(&ntype, node_composit_init_tonemap);
+	node_type_storage(&ntype, "NodeTonemap", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_tonemap);
+
+	nodeRegisterType(lb, &ntype);
+}
+

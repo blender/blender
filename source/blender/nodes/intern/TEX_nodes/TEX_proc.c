@@ -290,21 +290,29 @@ static void init(bNode *node)
 
 /* Node type definitions */
 #define TexDef(TEXTYPE, outputs, name, Name) \
-	{ NULL, NULL, TEX_NODE_PROC+TEXTYPE, Name, 140,80,140, NODE_CLASS_TEXTURE, \
-	NODE_OPTIONS | NODE_PREVIEW, name##_inputs, outputs, "Tex", name##_exec, NULL, init, \
-	node_free_standard_storage, node_copy_standard_storage, NULL }
+void register_node_type_tex_proc_##name(ListBase *lb) \
+{ \
+	static bNodeType ntype; \
+	\
+	node_type_base(&ntype, TEX_NODE_PROC+TEXTYPE, Name, NODE_CLASS_TEXTURE, NODE_PREVIEW|NODE_OPTIONS, name##_inputs, outputs); \
+	node_type_size(&ntype, 140, 80, 140); \
+	node_type_init(&ntype, init); \
+	node_type_storage(&ntype, "Tex", node_free_standard_storage, node_copy_standard_storage); \
+	node_type_exec(&ntype, name##_exec); \
+	\
+	nodeRegisterType(lb, &ntype); \
+}
 	
 #define C outputs_color_only
 #define CV outputs_both
 	
-bNodeType tex_node_proc_voronoi   = TexDef(TEX_VORONOI,   CV, voronoi,   "Voronoi"  );
-bNodeType tex_node_proc_blend     = TexDef(TEX_BLEND,     C,  blend,     "Blend"    );
-bNodeType tex_node_proc_magic     = TexDef(TEX_MAGIC,     C,  magic,     "Magic"    );
-bNodeType tex_node_proc_marble    = TexDef(TEX_MARBLE,    CV, marble,    "Marble"   );
-bNodeType tex_node_proc_clouds    = TexDef(TEX_CLOUDS,    CV, clouds,    "Clouds"   );
-bNodeType tex_node_proc_wood      = TexDef(TEX_WOOD,      CV, wood,      "Wood"     );
-bNodeType tex_node_proc_musgrave  = TexDef(TEX_MUSGRAVE,  CV, musgrave,  "Musgrave" );
-bNodeType tex_node_proc_noise     = TexDef(TEX_NOISE,     C,  noise,     "Noise"    );
-bNodeType tex_node_proc_stucci    = TexDef(TEX_STUCCI,    CV, stucci,    "Stucci"   );
-bNodeType tex_node_proc_distnoise = TexDef(TEX_DISTNOISE, CV, distnoise, "Distorted Noise" );
-
+TexDef(TEX_VORONOI,   CV, voronoi,   "Voronoi"  );
+TexDef(TEX_BLEND,     C,  blend,     "Blend"    );
+TexDef(TEX_MAGIC,     C,  magic,     "Magic"    );
+TexDef(TEX_MARBLE,    CV, marble,    "Marble"   );
+TexDef(TEX_CLOUDS,    CV, clouds,    "Clouds"   );
+TexDef(TEX_WOOD,      CV, wood,      "Wood"     );
+TexDef(TEX_MUSGRAVE,  CV, musgrave,  "Musgrave" );
+TexDef(TEX_NOISE,     C,  noise,     "Noise"    );
+TexDef(TEX_STUCCI,    CV, stucci,    "Stucci"   );
+TexDef(TEX_DISTNOISE, CV, distnoise, "Distorted Noise" );

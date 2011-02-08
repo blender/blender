@@ -66,24 +66,21 @@ static int gpu_shader_curve_vec(GPUMaterial *mat, bNode *node, GPUNodeStack *in,
 	return GPU_stack_link(mat, "curves_vec", in, out, GPU_texture(size, array));
 }
 
-bNodeType sh_node_curve_vec= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_CURVE_VEC,
-	/* name        */	"Vector Curves",
-	/* width+range */	200, 140, 320,
-	/* class+opts  */	NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
-	/* input sock  */	sh_node_curve_vec_in,
-	/* output sock */	sh_node_curve_vec_out,
-	/* storage     */	"CurveMapping",
-	/* execfunc    */	node_shader_exec_curve_vec,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_shader_init_curve_vec,
-	/* freestoragefunc    */	node_free_curves,
-	/* copystoragefunc    */	node_copy_curves,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_curve_vec
-	
-};
+void register_node_type_sh_curve_vec(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
+		sh_node_curve_vec_in, sh_node_curve_vec_out);
+	node_type_size(&ntype, 200, 140, 320);
+	node_type_init(&ntype, node_shader_init_curve_vec);
+	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+	node_type_exec(&ntype, node_shader_exec_curve_vec);
+	node_type_gpu(&ntype, gpu_shader_curve_vec);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 /* **************** CURVE RGB  ******************** */
 static bNodeSocketType sh_node_curve_rgb_in[]= {
@@ -123,21 +120,18 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in,
 	return GPU_stack_link(mat, "curves_rgb", in, out, GPU_texture(size, array));
 }
 
-bNodeType sh_node_curve_rgb= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_CURVE_RGB,
-	/* name        */	"RGB Curves",
-	/* width+range */	200, 140, 320,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */	sh_node_curve_rgb_in,
-	/* output sock */	sh_node_curve_rgb_out,
-	/* storage     */	"CurveMapping",
-	/* execfunc    */	node_shader_exec_curve_rgb,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   node_shader_init_curve_rgb,
-	/* freestoragefunc    */	node_free_curves,
-	/* copystoragefunc    */	node_copy_curves,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_curve_rgb
-};
+void register_node_type_sh_curve_rgb(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+		sh_node_curve_rgb_in, sh_node_curve_rgb_out);
+	node_type_size(&ntype, 200, 140, 320);
+	node_type_init(&ntype, node_shader_init_curve_rgb);
+	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+	node_type_exec(&ntype, node_shader_exec_curve_rgb);
+	node_type_gpu(&ntype, gpu_shader_curve_rgb);
+
+	nodeRegisterType(lb, &ntype);
+}
 

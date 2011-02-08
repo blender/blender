@@ -70,20 +70,15 @@ static void node_composit_exec_setalpha(void *UNUSED(data), bNode *node, bNodeSt
 	}
 }
 
-bNodeType cmp_node_setalpha= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_SETALPHA,
-	/* name        */	"Set Alpha",
-	/* width+range */	120, 40, 140,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_setalpha_in,
-	/* output sock */	cmp_node_setalpha_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_setalpha,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_setalpha(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_SETALPHA, "Set Alpha", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		cmp_node_setalpha_in, cmp_node_setalpha_out);
+	node_type_size(&ntype, 120, 40, 140);
+	node_type_exec(&ntype, node_composit_exec_setalpha);
+
+	nodeRegisterType(lb, &ntype);
+}
+

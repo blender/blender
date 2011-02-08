@@ -140,22 +140,19 @@ static void node_alphaover_init(bNode* node)
    node->storage= MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
 }
 
-bNodeType cmp_node_alphaover= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_ALPHAOVER,
-	/* name        */	"AlphaOver",
-	/* width+range */	80, 40, 120,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_alphaover_in,
-	/* output sock */	cmp_node_alphaover_out,
-	/* storage     */	"NodeTwoFloats",
-	/* execfunc    */	node_composit_exec_alphaover,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_alphaover_init,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_alphaover(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_ALPHAOVER, "AlphaOver", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+		cmp_node_alphaover_in, cmp_node_alphaover_out);
+	node_type_size(&ntype, 80, 40, 120);
+	node_type_init(&ntype, node_alphaover_init);
+	node_type_storage(&ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_alphaover);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

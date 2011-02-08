@@ -3245,7 +3245,7 @@ int ntreeTexTagAnimated(bNodeTree *ntree)
 
 /* ************* node definition init ********** */
 
-void node_type_init(bNodeType *ntype, int type, const char *name, short nclass, short flag,
+void node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag,
 					struct bNodeSocketType *inputs, struct bNodeSocketType *outputs)
 {
 	memset(ntype, 0, sizeof(bNodeType));
@@ -3264,6 +3264,11 @@ void node_type_init(bNodeType *ntype, int type, const char *name, short nclass, 
 	ntype->maxwidth = 320;
 }
 
+void node_type_init(bNodeType *ntype, void (*initfunc)(struct bNode *))
+{
+	ntype->initfunc = initfunc;
+}
+
 void node_type_size(struct bNodeType *ntype, int width, int minwidth, int maxwidth)
 {
 	ntype->width = width;
@@ -3271,10 +3276,12 @@ void node_type_size(struct bNodeType *ntype, int width, int minwidth, int maxwid
 	ntype->maxwidth = maxwidth;
 }
 
-void node_type_storage(bNodeType *ntype, const char *storagename, void (*initfunc)(struct bNode *), void (*freestoragefunc)(struct bNode *), void (*copystoragefunc)(struct bNode *, struct bNode *))
+void node_type_storage(bNodeType *ntype, const char *storagename, void (*freestoragefunc)(struct bNode *), void (*copystoragefunc)(struct bNode *, struct bNode *))
 {
-	strncpy(ntype->storagename, storagename, sizeof(ntype->storagename));
-	ntype->initfunc = initfunc;
+	if (storagename)
+		strncpy(ntype->storagename, storagename, sizeof(ntype->storagename));
+	else
+		ntype->storagename[0] = '\0';
 	ntype->copystoragefunc = copystoragefunc;
 	ntype->freestoragefunc = freestoragefunc;
 }
@@ -3316,146 +3323,146 @@ void nodeRegisterType(ListBase *typelist, const bNodeType *ntype)
 static void registerCompositNodes(ListBase *ntypelist)
 {
 	nodeRegisterType(ntypelist, &node_group_typeinfo);
-	nodeRegisterType(ntypelist, &cmp_node_rlayers);
-	nodeRegisterType(ntypelist, &cmp_node_image);
-	nodeRegisterType(ntypelist, &cmp_node_texture);
-	nodeRegisterType(ntypelist, &cmp_node_value);
-	nodeRegisterType(ntypelist, &cmp_node_rgb);
-	nodeRegisterType(ntypelist, &cmp_node_curve_time);
+	register_node_type_cmp_rlayers(ntypelist);
+	register_node_type_cmp_image(ntypelist);
+	register_node_type_cmp_texture(ntypelist);
+	register_node_type_cmp_value(ntypelist);
+	register_node_type_cmp_rgb(ntypelist);
+	register_node_type_cmp_curve_time(ntypelist);
 	
-	nodeRegisterType(ntypelist, &cmp_node_composite);
-	nodeRegisterType(ntypelist, &cmp_node_viewer);
-	nodeRegisterType(ntypelist, &cmp_node_splitviewer);
-	nodeRegisterType(ntypelist, &cmp_node_output_file);
-	nodeRegisterType(ntypelist, &cmp_node_view_levels);
+	register_node_type_cmp_composite(ntypelist);
+	register_node_type_cmp_viewer(ntypelist);
+	register_node_type_cmp_splitviewer(ntypelist);
+	register_node_type_cmp_output_file(ntypelist);
+	register_node_type_cmp_view_levels(ntypelist);
 	
-	nodeRegisterType(ntypelist, &cmp_node_curve_rgb);
-	nodeRegisterType(ntypelist, &cmp_node_mix_rgb);
-	nodeRegisterType(ntypelist, &cmp_node_hue_sat);
-	nodeRegisterType(ntypelist, &cmp_node_brightcontrast);
-	nodeRegisterType(ntypelist, &cmp_node_gamma);
-	nodeRegisterType(ntypelist, &cmp_node_invert);
-	nodeRegisterType(ntypelist, &cmp_node_alphaover);
-	nodeRegisterType(ntypelist, &cmp_node_zcombine);
-	nodeRegisterType(ntypelist, &cmp_node_colorbalance);
-	nodeRegisterType(ntypelist, &cmp_node_huecorrect);
+	register_node_type_cmp_curve_rgb(ntypelist);
+	register_node_type_cmp_mix_rgb(ntypelist);
+	register_node_type_cmp_hue_sat(ntypelist);
+	register_node_type_cmp_brightcontrast(ntypelist);
+	register_node_type_cmp_gamma(ntypelist);
+	register_node_type_cmp_invert(ntypelist);
+	register_node_type_cmp_alphaover(ntypelist);
+	register_node_type_cmp_zcombine(ntypelist);
+	register_node_type_cmp_colorbalance(ntypelist);
+	register_node_type_cmp_huecorrect(ntypelist);
 	
-	nodeRegisterType(ntypelist, &cmp_node_normal);
-	nodeRegisterType(ntypelist, &cmp_node_curve_vec);
-	nodeRegisterType(ntypelist, &cmp_node_map_value);
-	nodeRegisterType(ntypelist, &cmp_node_normalize);
+	register_node_type_cmp_normal(ntypelist);
+	register_node_type_cmp_curve_vec(ntypelist);
+	register_node_type_cmp_map_value(ntypelist);
+	register_node_type_cmp_normalize(ntypelist);
 	
-	nodeRegisterType(ntypelist, &cmp_node_filter);
-	nodeRegisterType(ntypelist, &cmp_node_blur);
-	nodeRegisterType(ntypelist, &cmp_node_dblur);
-	nodeRegisterType(ntypelist, &cmp_node_bilateralblur);
-	nodeRegisterType(ntypelist, &cmp_node_vecblur);
-	nodeRegisterType(ntypelist, &cmp_node_dilateerode);
-	nodeRegisterType(ntypelist, &cmp_node_defocus);
+	register_node_type_cmp_filter(ntypelist);
+	register_node_type_cmp_blur(ntypelist);
+	register_node_type_cmp_dblur(ntypelist);
+	register_node_type_cmp_bilateralblur(ntypelist);
+	register_node_type_cmp_vecblur(ntypelist);
+	register_node_type_cmp_dilateerode(ntypelist);
+	register_node_type_cmp_defocus(ntypelist);
 	
-	nodeRegisterType(ntypelist, &cmp_node_valtorgb);
-	nodeRegisterType(ntypelist, &cmp_node_rgbtobw);
-	nodeRegisterType(ntypelist, &cmp_node_setalpha);
-	nodeRegisterType(ntypelist, &cmp_node_idmask);
-	nodeRegisterType(ntypelist, &cmp_node_math);
-	nodeRegisterType(ntypelist, &cmp_node_seprgba);
-	nodeRegisterType(ntypelist, &cmp_node_combrgba);
-	nodeRegisterType(ntypelist, &cmp_node_sephsva);
-	nodeRegisterType(ntypelist, &cmp_node_combhsva);
-	nodeRegisterType(ntypelist, &cmp_node_sepyuva);
-	nodeRegisterType(ntypelist, &cmp_node_combyuva);
-	nodeRegisterType(ntypelist, &cmp_node_sepycca);
-	nodeRegisterType(ntypelist, &cmp_node_combycca);
-	nodeRegisterType(ntypelist, &cmp_node_premulkey);
+	register_node_type_cmp_valtorgb(ntypelist);
+	register_node_type_cmp_rgbtobw(ntypelist);
+	register_node_type_cmp_setalpha(ntypelist);
+	register_node_type_cmp_idmask(ntypelist);
+	register_node_type_cmp_math(ntypelist);
+	register_node_type_cmp_seprgba(ntypelist);
+	register_node_type_cmp_combrgba(ntypelist);
+	register_node_type_cmp_sephsva(ntypelist);
+	register_node_type_cmp_combhsva(ntypelist);
+	register_node_type_cmp_sepyuva(ntypelist);
+	register_node_type_cmp_combyuva(ntypelist);
+	register_node_type_cmp_sepycca(ntypelist);
+	register_node_type_cmp_combycca(ntypelist);
+	register_node_type_cmp_premulkey(ntypelist);
 	
-	nodeRegisterType(ntypelist, &cmp_node_diff_matte);
-	nodeRegisterType(ntypelist, &cmp_node_distance_matte);
-	nodeRegisterType(ntypelist, &cmp_node_chroma_matte);
-	nodeRegisterType(ntypelist, &cmp_node_color_matte);
-	nodeRegisterType(ntypelist, &cmp_node_channel_matte);
-	nodeRegisterType(ntypelist, &cmp_node_color_spill);
-	nodeRegisterType(ntypelist, &cmp_node_luma_matte);
+	register_node_type_cmp_diff_matte(ntypelist);
+	register_node_type_cmp_distance_matte(ntypelist);
+	register_node_type_cmp_chroma_matte(ntypelist);
+	register_node_type_cmp_color_matte(ntypelist);
+	register_node_type_cmp_channel_matte(ntypelist);
+	register_node_type_cmp_color_spill(ntypelist);
+	register_node_type_cmp_luma_matte(ntypelist);
 	
-	nodeRegisterType(ntypelist, &cmp_node_translate);
-	nodeRegisterType(ntypelist, &cmp_node_rotate);
-	nodeRegisterType(ntypelist, &cmp_node_scale);
-	nodeRegisterType(ntypelist, &cmp_node_flip);
-	nodeRegisterType(ntypelist, &cmp_node_crop);
-	nodeRegisterType(ntypelist, &cmp_node_displace);
-	nodeRegisterType(ntypelist, &cmp_node_mapuv);
-	nodeRegisterType(ntypelist, &cmp_node_glare);
-	nodeRegisterType(ntypelist, &cmp_node_tonemap);
-	nodeRegisterType(ntypelist, &cmp_node_lensdist);
+	register_node_type_cmp_translate(ntypelist);
+	register_node_type_cmp_rotate(ntypelist);
+	register_node_type_cmp_scale(ntypelist);
+	register_node_type_cmp_flip(ntypelist);
+	register_node_type_cmp_crop(ntypelist);
+	register_node_type_cmp_displace(ntypelist);
+	register_node_type_cmp_mapuv(ntypelist);
+	register_node_type_cmp_glare(ntypelist);
+	register_node_type_cmp_tonemap(ntypelist);
+	register_node_type_cmp_lensdist(ntypelist);
 }
 
 static void registerShaderNodes(ListBase *ntypelist) 
 {
 	nodeRegisterType(ntypelist, &node_group_typeinfo);
-	nodeRegisterType(ntypelist, &sh_node_output);
-	nodeRegisterType(ntypelist, &sh_node_mix_rgb);
-	nodeRegisterType(ntypelist, &sh_node_valtorgb);
-	nodeRegisterType(ntypelist, &sh_node_rgbtobw);
+	register_node_type_sh_output(ntypelist);
+	register_node_type_sh_mix_rgb(ntypelist);
+	register_node_type_sh_valtorgb(ntypelist);
+	register_node_type_sh_rgbtobw(ntypelist);
 	register_node_type_sh_normal(ntypelist);
-	nodeRegisterType(ntypelist, &sh_node_geom);
+	register_node_type_sh_geom(ntypelist);
 	register_node_type_sh_mapping(ntypelist);
-	nodeRegisterType(ntypelist, &sh_node_curve_vec);
-	nodeRegisterType(ntypelist, &sh_node_curve_rgb);
-	nodeRegisterType(ntypelist, &sh_node_math);
-	nodeRegisterType(ntypelist, &sh_node_vect_math);
-	nodeRegisterType(ntypelist, &sh_node_squeeze);
-	nodeRegisterType(ntypelist, &sh_node_camera);
-	nodeRegisterType(ntypelist, &sh_node_material);
-	nodeRegisterType(ntypelist, &sh_node_material_ext);
-	nodeRegisterType(ntypelist, &sh_node_value);
-	nodeRegisterType(ntypelist, &sh_node_rgb);
-	nodeRegisterType(ntypelist, &sh_node_texture);
-	nodeRegisterType(ntypelist, &node_dynamic_typeinfo);
-	nodeRegisterType(ntypelist, &sh_node_invert);
-	nodeRegisterType(ntypelist, &sh_node_seprgb);
-	nodeRegisterType(ntypelist, &sh_node_combrgb);
-	nodeRegisterType(ntypelist, &sh_node_hue_sat);
+	register_node_type_sh_curve_vec(ntypelist);
+	register_node_type_sh_curve_rgb(ntypelist);
+	register_node_type_sh_math(ntypelist);
+	register_node_type_sh_vect_math(ntypelist);
+	register_node_type_sh_squeeze(ntypelist);
+	register_node_type_sh_camera(ntypelist);
+	register_node_type_sh_material(ntypelist);
+	register_node_type_sh_material_ext(ntypelist);
+	register_node_type_sh_value(ntypelist);
+	register_node_type_sh_rgb(ntypelist);
+	register_node_type_sh_texture(ntypelist);
+	register_node_type_sh_dynamic(ntypelist);
+	register_node_type_sh_invert(ntypelist);
+	register_node_type_sh_seprgb(ntypelist);
+	register_node_type_sh_combrgb(ntypelist);
+	register_node_type_sh_hue_sat(ntypelist);
 }
 
 static void registerTextureNodes(ListBase *ntypelist)
 {
 	nodeRegisterType(ntypelist, &node_group_typeinfo);
-	nodeRegisterType(ntypelist, &tex_node_math);
-	nodeRegisterType(ntypelist, &tex_node_mix_rgb);
-	nodeRegisterType(ntypelist, &tex_node_valtorgb);
-	nodeRegisterType(ntypelist, &tex_node_rgbtobw);
-	nodeRegisterType(ntypelist, &tex_node_valtonor);
-	nodeRegisterType(ntypelist, &tex_node_curve_rgb);
-	nodeRegisterType(ntypelist, &tex_node_curve_time);
-	nodeRegisterType(ntypelist, &tex_node_invert);
-	nodeRegisterType(ntypelist, &tex_node_hue_sat);
-	nodeRegisterType(ntypelist, &tex_node_coord);
-	nodeRegisterType(ntypelist, &tex_node_distance);
-	nodeRegisterType(ntypelist, &tex_node_compose);
-	nodeRegisterType(ntypelist, &tex_node_decompose);
+	register_node_type_tex_math(ntypelist);
+	register_node_type_tex_mix_rgb(ntypelist);
+	register_node_type_tex_valtorgb(ntypelist);
+	register_node_type_tex_rgbtobw(ntypelist);
+	register_node_type_tex_valtonor(ntypelist);
+	register_node_type_tex_curve_rgb(ntypelist);
+	register_node_type_tex_curve_time(ntypelist);
+	register_node_type_tex_invert(ntypelist);
+	register_node_type_tex_hue_sat(ntypelist);
+	register_node_type_tex_coord(ntypelist);
+	register_node_type_tex_distance(ntypelist);
+	register_node_type_tex_compose(ntypelist);
+	register_node_type_tex_decompose(ntypelist);
 	
-	nodeRegisterType(ntypelist, &tex_node_output);
-	nodeRegisterType(ntypelist, &tex_node_viewer);
+	register_node_type_tex_output(ntypelist);
+	register_node_type_tex_viewer(ntypelist);
 	
-	nodeRegisterType(ntypelist, &tex_node_checker);
-	nodeRegisterType(ntypelist, &tex_node_texture);
-	nodeRegisterType(ntypelist, &tex_node_bricks);
-	nodeRegisterType(ntypelist, &tex_node_image);
+	register_node_type_tex_checker(ntypelist);
+	register_node_type_tex_texture(ntypelist);
+	register_node_type_tex_bricks(ntypelist);
+	register_node_type_tex_image(ntypelist);
 	
-	nodeRegisterType(ntypelist, &tex_node_rotate);
-	nodeRegisterType(ntypelist, &tex_node_translate);
-	nodeRegisterType(ntypelist, &tex_node_scale);
-	nodeRegisterType(ntypelist, &tex_node_at);
+	register_node_type_tex_rotate(ntypelist);
+	register_node_type_tex_translate(ntypelist);
+	register_node_type_tex_scale(ntypelist);
+	register_node_type_tex_at(ntypelist);
 	
-	nodeRegisterType(ntypelist, &tex_node_proc_voronoi);
-	nodeRegisterType(ntypelist, &tex_node_proc_blend);
-	nodeRegisterType(ntypelist, &tex_node_proc_magic);
-	nodeRegisterType(ntypelist, &tex_node_proc_marble);
-	nodeRegisterType(ntypelist, &tex_node_proc_clouds);
-	nodeRegisterType(ntypelist, &tex_node_proc_wood);
-	nodeRegisterType(ntypelist, &tex_node_proc_musgrave);
-	nodeRegisterType(ntypelist, &tex_node_proc_noise);
-	nodeRegisterType(ntypelist, &tex_node_proc_stucci);
-	nodeRegisterType(ntypelist, &tex_node_proc_distnoise);
+	register_node_type_tex_proc_voronoi(ntypelist);
+	register_node_type_tex_proc_blend(ntypelist);
+	register_node_type_tex_proc_magic(ntypelist);
+	register_node_type_tex_proc_marble(ntypelist);
+	register_node_type_tex_proc_clouds(ntypelist);
+	register_node_type_tex_proc_wood(ntypelist);
+	register_node_type_tex_proc_musgrave(ntypelist);
+	register_node_type_tex_proc_noise(ntypelist);
+	register_node_type_tex_proc_stucci(ntypelist);
+	register_node_type_tex_proc_distnoise(ntypelist);
 }
 
 static void remove_dynamic_typeinfos(ListBase *list)

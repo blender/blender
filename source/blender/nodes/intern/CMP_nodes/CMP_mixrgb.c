@@ -79,20 +79,15 @@ static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in,
 }
 
 /* custom1 = mix type */
-bNodeType cmp_node_mix_rgb= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_MIX_RGB,
-	/* name        */	"Mix",
-	/* width+range */	110, 60, 120,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	cmp_node_mix_rgb_in,
-	/* output sock */	cmp_node_mix_rgb_out,
-	/* storage     */	"", 
-	/* execfunc    */	node_composit_exec_mix_rgb,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_mix_rgb(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, NODE_PREVIEW|NODE_OPTIONS,
+		cmp_node_mix_rgb_in, cmp_node_mix_rgb_out);
+	node_type_size(&ntype, 110, 60, 120);
+	node_type_exec(&ntype, node_composit_exec_mix_rgb);
+
+	nodeRegisterType(lb, &ntype);
+}
+

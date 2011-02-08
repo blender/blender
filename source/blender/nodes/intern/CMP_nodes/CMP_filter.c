@@ -217,22 +217,17 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 }
 
 
-bNodeType cmp_node_filter= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_FILTER,
-	/* name        */	"Filter",
-	/* width+range */	80, 40, 120,
-	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	cmp_node_filter_in,
-	/* output sock */	cmp_node_filter_out,
-	/* storage     */	"", 
-	/* execfunc    */	node_composit_exec_filter,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_filter(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_FILTER, "Filter", NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
+		cmp_node_filter_in, cmp_node_filter_out);
+	node_type_size(&ntype, 80, 40, 120);
+	node_type_exec(&ntype, node_composit_exec_filter);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

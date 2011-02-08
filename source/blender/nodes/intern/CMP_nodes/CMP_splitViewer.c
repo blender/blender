@@ -146,22 +146,20 @@ static void node_composit_init_splitviewer(bNode* node)
    node->custom1= 50;	/* default 50% split */
 }
 
-bNodeType cmp_node_splitviewer= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_SPLITVIEWER,
-	/* name        */	"SplitViewer",
-	/* width+range */	140, 100, 320,
-	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	cmp_node_splitviewer_in,
-	/* output sock */	NULL,
-	/* storage     */	"ImageUser",
-	/* execfunc    */	node_composit_exec_splitviewer,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_splitviewer,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_splitviewer(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_SPLITVIEWER, "SplitViewer", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS,
+		cmp_node_splitviewer_in, NULL);
+	node_type_size(&ntype, 140, 100, 320);
+	node_type_init(&ntype, node_composit_init_splitviewer);
+	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_splitviewer);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 
 

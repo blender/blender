@@ -79,23 +79,20 @@ static void node_composit_init_map_value(bNode* node)
    node->storage= add_mapping();
 }
 
-bNodeType cmp_node_map_value= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_MAP_VALUE,
-	/* name        */	"Map Value",
-	/* width+range */	100, 60, 150,
-	/* class+opts  */	NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_map_value_in,
-	/* output sock */	cmp_node_map_value_out,
-	/* storage     */	"TexMapping",
-	/* execfunc    */	node_composit_exec_map_value,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_map_value,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_map_value(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_MAP_VALUE, "Map Value", NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
+		cmp_node_map_value_in, cmp_node_map_value_out);
+	node_type_size(&ntype, 100, 60, 150);
+	node_type_init(&ntype, node_composit_init_map_value);
+	node_type_storage(&ntype, "TexMapping", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_map_value);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 
 

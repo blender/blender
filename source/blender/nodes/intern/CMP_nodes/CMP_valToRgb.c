@@ -80,23 +80,20 @@ static void node_composit_init_valtorgb(bNode* node)
    node->storage= add_colorband(1);
 }
 
-bNodeType cmp_node_valtorgb= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_VALTORGB,
-	/* name        */	"ColorRamp",
-	/* width+range */	240, 200, 300,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_valtorgb_in,
-	/* output sock */	cmp_node_valtorgb_out,
-	/* storage     */	"ColorBand",
-	/* execfunc    */	node_composit_exec_valtorgb,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_valtorgb,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_valtorgb(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		cmp_node_valtorgb_in, cmp_node_valtorgb_out);
+	node_type_size(&ntype, 240, 200, 300);
+	node_type_init(&ntype, node_composit_init_valtorgb);
+	node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_valtorgb);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 
 /* **************** RGBTOBW ******************** */
@@ -137,21 +134,14 @@ static void node_composit_exec_rgbtobw(void *UNUSED(data), bNode *node, bNodeSta
 	}
 }
 
-bNodeType cmp_node_rgbtobw= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_RGBTOBW,
-	/* name        */	"RGB to BW",
-	/* width+range */	80, 40, 120,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, 0,
-	/* input sock  */	cmp_node_rgbtobw_in,
-	/* output sock */	cmp_node_rgbtobw_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_rgbtobw,
-	/* butfunc     */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+void register_node_type_cmp_rgbtobw(ListBase *lb)
+{
+	static bNodeType ntype;
 	
-};
-
-
+	node_type_base(&ntype, CMP_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0,
+				   cmp_node_rgbtobw_in, cmp_node_rgbtobw_out);
+	node_type_size(&ntype, 80, 40, 120);
+	node_type_exec(&ntype, node_composit_exec_rgbtobw);
+	
+	nodeRegisterType(lb, &ntype);
+}

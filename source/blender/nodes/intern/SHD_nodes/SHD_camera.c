@@ -54,21 +54,18 @@ static int gpu_shader_camera(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack
 	return GPU_stack_link(mat, "camera", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
-bNodeType sh_node_camera= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_CAMERA,
-	/* name        */	"Camera Data",
-	/* width+range */	95, 95, 120,
-	/* class+opts  */	NODE_CLASS_INPUT, 0,
-	/* input sock  */	NULL,
-	/* output sock */	sh_node_camera_out,
-	/* storage     */	"node_camera",
-	/* execfunc    */	node_shader_exec_camera,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_camera
-};
+void register_node_type_sh_camera(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_CAMERA, "Camera Data", NODE_CLASS_INPUT, 0,
+		NULL, sh_node_camera_out);
+	node_type_size(&ntype, 95, 95, 120);
+	node_type_storage(&ntype, "node_camera", NULL, NULL);
+	node_type_exec(&ntype, node_shader_exec_camera);
+	node_type_gpu(&ntype, gpu_shader_camera);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

@@ -704,21 +704,19 @@ static void node_composit_init_blur(bNode* node)
    node->storage= MEM_callocN(sizeof(NodeBlurData), "node blur data");
 }
 
-bNodeType cmp_node_blur= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_BLUR,
-	/* name        */	"Blur",
-	/* width+range */	120, 80, 200,
-	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	cmp_node_blur_in,
-	/* output sock */	cmp_node_blur_out,
-	/* storage     */	"NodeBlurData",
-	/* execfunc    */	node_composit_exec_blur,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_blur,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_blur(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_BLUR, "Blur", NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
+		cmp_node_blur_in, cmp_node_blur_out);
+	node_type_size(&ntype, 120, 80, 200);
+	node_type_init(&ntype, node_composit_init_blur);
+	node_type_storage(&ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_blur);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 
