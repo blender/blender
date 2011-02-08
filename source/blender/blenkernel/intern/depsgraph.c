@@ -1930,7 +1930,7 @@ static void dag_tag_renderlayers(Scene *sce, unsigned int lay)
 	if(sce->nodetree) {
 		bNode *node;
 		Base *base;
-		unsigned int lay_changed;
+		unsigned int lay_changed= 0;
 		
 		for(base= sce->base.first; base; base= base->next)
 			if(base->lay & lay)
