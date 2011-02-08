@@ -124,7 +124,6 @@ static int text_region_edit_poll(bContext *C)
 	return 1;
 }
 
-
 /********************** updates *********************/
 
 void text_update_line_edited(TextLine *line)
@@ -342,6 +341,12 @@ void TEXT_OT_reload(wmOperatorType *ot)
 
 /******************* delete operator *********************/
 
+static int text_unlink_poll(bContext *C)
+{
+	/* it should be possible to unlink texts if they're lib-linked in... */
+	return CTX_data_edit_text(C) != NULL;
+}
+
 static int unlink_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
@@ -381,7 +386,7 @@ void TEXT_OT_unlink(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= unlink_exec;
 	ot->invoke= WM_operator_confirm;
-	ot->poll= text_edit_poll;
+	ot->poll= text_unlink_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
@@ -2019,6 +2024,12 @@ typedef struct TextScroll {
 	int zone;
 } TextScroll;
 
+static int text_scroll_poll(bContext *C)
+{
+	/* it should be possible to still scroll linked texts to read them, even if they can't be edited... */
+	return CTX_data_edit_text(C) != NULL;
+}
+
 static int scroll_exec(bContext *C, wmOperator *op)
 {
 	SpaceText *st= CTX_wm_space_text(C);
@@ -2183,7 +2194,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	ot->invoke= scroll_invoke;
 	ot->modal= scroll_modal;
 	ot->cancel= scroll_cancel;
-	ot->poll= text_space_edit_poll;
+	ot->poll= text_scroll_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -2193,6 +2204,22 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 }
 
 /******************** scroll bar operator *******************/
+
+static int text_region_scroll_poll(bContext *C)
+{
+	/* same as text_region_edit_poll except it works on libdata too */
+	SpaceText *st= CTX_wm_space_text(C);
+	Text *text= CTX_data_edit_text(C);
+	ARegion *ar= CTX_wm_region(C);
+
+	if(!st || !text)
+		return 0;
+	
+	if(!ar || ar->regiontype != RGN_TYPE_WINDOW)
+		return 0;
+	
+	return 1;
+}
 
 static int scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -2249,7 +2276,7 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	ot->invoke= scroll_bar_invoke;
 	ot->modal= scroll_modal;
 	ot->cancel= scroll_cancel;
-	ot->poll= text_region_edit_poll;
+	ot->poll= text_region_scroll_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
