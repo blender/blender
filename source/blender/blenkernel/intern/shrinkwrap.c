@@ -384,7 +384,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 			}
 
 			//Project over negative direction of axis
-			if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)
+			if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR && hit.index == -1)
 			{
 				float inv_no[3];
 				negate_v3_v3(inv_no, tmp_no);
