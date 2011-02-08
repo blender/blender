@@ -1132,9 +1132,9 @@ void mtex_bump_init_objspace( vec3 surf_pos, vec3 surf_norm,
 	vec3 vSigmaT = view2obj * dFdy( surf_pos );
 	vec3 vN = normalize( surf_norm * obj2view );
 
-	vR1 = cross( vSigmaT , vN );
-	vR2 = cross( vN , vSigmaS ) ;
-	fDet = dot ( vSigmaS , vR1 );
+	vR1 = cross( vSigmaT, vN );
+	vR2 = cross( vN, vSigmaS ) ;
+	fDet = dot ( vSigmaS, vR1 );
 	
 	/* pretransform vNacc (in mtex_bump_apply) using the inverse transposed */
 	vR1 = vR1 * view2obj;
@@ -1155,9 +1155,9 @@ void mtex_bump_init_texturespace( vec3 surf_pos, vec3 surf_norm,
 	vec3 vSigmaT = dFdy( surf_pos );
 	vec3 vN = surf_norm; /* normalized interpolated vertex normal */
 	
-	vR1 = normalize( cross( vSigmaT , vN ) );
-	vR2 = normalize( cross( vN , vSigmaS ) );
-	fDet = (dot( vSigmaS , vR1 ) < 0)? (-1): 1;
+	vR1 = normalize( cross( vSigmaT, vN ) );
+	vR2 = normalize( cross( vN, vSigmaS ) );
+	fDet = sign( dot(vSigmaS, vR1) );
 	
 	float fMagnitude = abs(fDet);
 	vNacc_out = vNacc_in * (fMagnitude / fPrevMagnitude_in);
@@ -1173,9 +1173,9 @@ void mtex_bump_init_viewspace( vec3 surf_pos, vec3 surf_norm,
 	vec3 vSigmaT = dFdy( surf_pos );
 	vec3 vN = surf_norm; /* normalized interpolated vertex normal */
 	
-	vR1 = cross( vSigmaT , vN );
-	vR2 = cross( vN , vSigmaS ) ;
-	fDet = dot ( vSigmaS , vR1 );
+	vR1 = cross( vSigmaT, vN );
+	vR2 = cross( vN, vSigmaS ) ;
+	fDet = dot ( vSigmaS, vR1 );
 	
 	float fMagnitude = abs(fDet);
 	vNacc_out = vNacc_in * (fMagnitude / fPrevMagnitude_in);
@@ -1238,8 +1238,8 @@ void mtex_bump_apply_texspace( float fDet, float dBs, float dBt, vec3 vR1, vec3 
 	vec2 TexDy = dFdy(texco.xy);
 
 	vec3 vSurfGrad = sign(fDet) * ( 
-	            dBs / length( vec2(ima_x*TexDx.x, ima_y*TexDx.y) ) * normalize(vR1) + 
-	            dBt / length( vec2(ima_x*TexDy.x, ima_y*TexDy.y) ) * normalize(vR2) );
+	            dBs / length( vec2(ima_x*TexDx.x, ima_y*TexDx.y) ) * vR1 + 
+	            dBt / length( vec2(ima_x*TexDy.x, ima_y*TexDy.y) ) * vR2 );
 				
 	vNacc_out = vNacc_in - vSurfGrad;
 	perturbed_norm = normalize( vNacc_out );
