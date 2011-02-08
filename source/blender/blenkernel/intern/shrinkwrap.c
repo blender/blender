@@ -378,9 +378,6 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 					normal_projection_project_vertex(0, tmp_co, tmp_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
 
 				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
-
-				if(hit.index != -1)
-					madd_v3_v3v3fl(hit.co, hit.co, tmp_no, -calc->keepDist);
 			}
 
 			//Project over negative direction of axis
@@ -393,14 +390,12 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 					normal_projection_project_vertex(0, tmp_co, inv_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
 
 				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
-
-				if(hit.index != -1)
-					madd_v3_v3v3fl(hit.co, hit.co, tmp_no, calc->keepDist);
 			}
 
 
 			if(hit.index != -1)
 			{
+				madd_v3_v3v3fl(hit.co, hit.co, tmp_no, calc->keepDist);
 				interp_v3_v3v3(co, co, hit.co, weight);
 			}
 		}

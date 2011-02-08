@@ -1900,11 +1900,11 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_ShrinkwrapModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "keepDist");
-	RNA_def_property_range(prop, 0, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0, 100, 1, 2);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -100, 100, 1, 2);
 	RNA_def_property_ui_text(prop, "Offset", "Distance to keep from the target");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
