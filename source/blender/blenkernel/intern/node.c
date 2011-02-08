@@ -265,22 +265,16 @@ void ntreeVerifyTypes(bNodeTree *ntree)
 
 /* ************** Group stuff ********** */
 
-bNodeType node_group_typeinfo= {
-	/* next,prev   */	NULL, NULL,
-	/* type code   */	NODE_GROUP,
-	/* name        */	"Group",
-	/* width+range */	120, 60, 200,
-	/* class+opts  */	NODE_CLASS_GROUP, NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	NULL,
-	/* storage     */	"",
-	/* execfunc    */	NULL,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+/* XXX group typeinfo struct is used directly in ntreeMakeOwnType, needs cleanup */
+static bNodeType ntype_group;
+
+void register_node_type_group(ListBase *lb)
+{
+	node_type_base(&ntype_group, NODE_GROUP, "Group", NODE_CLASS_GROUP, NODE_OPTIONS, NULL, NULL);
+	node_type_size(&ntype_group, 120, 60, 200);
+	
+	nodeRegisterType(lb, &ntype_group);
+}
 
 /* tag internal sockets */
 static void group_tag_internal_sockets(bNodeTree *ngroup)
@@ -380,7 +374,7 @@ void ntreeMakeOwnType(bNodeTree *ngroup)
 	
 	/* make own type struct */
 	ngroup->owntype= MEM_callocN(sizeof(bNodeType), "group type");
-	*ngroup->owntype= node_group_typeinfo; /* copy data, for init */
+	*ngroup->owntype= ntype_group; /* copy data, for init */
 	
 	/* input type arrays */
 	if(totin) {
@@ -3322,7 +3316,8 @@ void nodeRegisterType(ListBase *typelist, const bNodeType *ntype)
 
 static void registerCompositNodes(ListBase *ntypelist)
 {
-	nodeRegisterType(ntypelist, &node_group_typeinfo);
+	register_node_type_group(ntypelist);
+	
 	register_node_type_cmp_rlayers(ntypelist);
 	register_node_type_cmp_image(ntypelist);
 	register_node_type_cmp_texture(ntypelist);
@@ -3397,7 +3392,8 @@ static void registerCompositNodes(ListBase *ntypelist)
 
 static void registerShaderNodes(ListBase *ntypelist) 
 {
-	nodeRegisterType(ntypelist, &node_group_typeinfo);
+	register_node_type_group(ntypelist);
+	
 	register_node_type_sh_output(ntypelist);
 	register_node_type_sh_mix_rgb(ntypelist);
 	register_node_type_sh_valtorgb(ntypelist);
@@ -3425,7 +3421,8 @@ static void registerShaderNodes(ListBase *ntypelist)
 
 static void registerTextureNodes(ListBase *ntypelist)
 {
-	nodeRegisterType(ntypelist, &node_group_typeinfo);
+	register_node_type_group(ntypelist);
+	
 	register_node_type_tex_math(ntypelist);
 	register_node_type_tex_mix_rgb(ntypelist);
 	register_node_type_tex_valtorgb(ntypelist);

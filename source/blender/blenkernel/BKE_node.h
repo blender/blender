@@ -223,8 +223,7 @@ void			node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial 
 #define NODE_GROUP_MENU		1000
 #define NODE_DYNAMIC_MENU	4000
 
-extern bNodeType node_group_typeinfo;
-
+void register_node_type_group(ListBase *lb);
 
 /* ************** SHADER NODES *************** */
 
