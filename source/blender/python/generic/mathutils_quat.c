@@ -744,6 +744,20 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
 	return NULL;
 }
 
+/* -obj
+  returns the negative of this object*/
+static PyObject *Quaternion_neg(QuaternionObject *self)
+{
+	float tquat[QUAT_SIZE];
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	negate_v4_v4(tquat, self->quat);
+	return newQuaternionObject(tquat, Py_NEW, Py_TYPE(self));
+}
+
+
 //-----------------PROTOCOL DECLARATIONS--------------------------
 static PySequenceMethods Quaternion_SeqMethods = {
 	(lenfunc) Quaternion_len,				/* sq_length */
@@ -771,7 +785,7 @@ static PyNumberMethods Quaternion_NumMethods = {
 	0,							/*nb_remainder*/
 	0,							/*nb_divmod*/
 	0,							/*nb_power*/
-	(unaryfunc) 	0,	/*nb_negative*/
+	(unaryfunc) 	Quaternion_neg,	/*nb_negative*/
 	(unaryfunc) 	0,	/*tp_positive*/
 	(unaryfunc) 	0,	/*tp_absolute*/
 	(inquiry)	0,	/*tp_bool*/
