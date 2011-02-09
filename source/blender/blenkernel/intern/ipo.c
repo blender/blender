@@ -709,6 +709,11 @@ static const char *world_adrcodes_to_paths (int adrcode, int *array_index)
 			*array_index= 1; return "stars.color";
 		case WO_STAR_B:
 			*array_index= 2; return "stars.color"; */
+		case WO_STAR_R:
+		case WO_STAR_G:
+		case WO_STAR_B:
+			printf("WARNING: WO_STAR_R/G/B deprecated\n");
+			return NULL;
 		
 		case WO_STARDIST:
 			return "stars.min_distance";
@@ -798,7 +803,7 @@ static const char *particle_adrcodes_to_paths (int adrcode, int *array_index)
  *		- array_index			- index in property's array (if applicable) to use
  *		- return				- the allocated path...
  */
-static char *get_rna_access (int blocktype, int adrcode, char actname[], char constname[], Sequence * seq, int *array_index)
+static char *get_rna_access (int blocktype, int adrcode, char actname[], char constname[], Sequence *seq, int *array_index)
 {
 	DynStr *path= BLI_dynstr_new();
 	const char *propname=NULL;
@@ -932,8 +937,7 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 	}
 	else if (seq) {
 		/* Sequence names in Scene */
-		sprintf(buf, "sequence_editor.sequences_all[\"%s\"]", 
-			seq->name+2);
+		sprintf(buf, "sequence_editor.sequences_all[\"%s\"]", seq->name+2);
 	}
 	else
 		strcpy(buf, ""); /* empty string */
@@ -1330,20 +1334,17 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 					}
 				}
 				
-				/* correct values for sequencer curves,
-				   that were not locked to frame */
-
-				if (seq && 
-				    (seq->flag & SEQ_IPO_FRAME_LOCKED) == 0) {
+				/* correct values for sequencer curves, that were not locked to frame */
+				if (seq && (seq->flag & SEQ_IPO_FRAME_LOCKED) == 0) {
 					double mul= (seq->enddisp-seq->startdisp)/100.0f;
 					double offset= seq->startdisp;
 					
 					dst->vec[0][0] *= mul;
 					dst->vec[0][0] += offset;
-
+					
 					dst->vec[1][0] *= mul;
 					dst->vec[1][0] += offset;
-
+					
 					dst->vec[2][0] *= mul;
 					dst->vec[2][0] += offset;
 				}
@@ -1490,7 +1491,7 @@ static void action_to_animato (ID *id, bAction *act, ListBase *groups, ListBase 
  * This assumes that AnimData has been added already. Separation of drivers
  * from animation data is accomplished here too...
  */
-static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[], Sequence * seq)
+static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[], Sequence *seq)
 {
 	AnimData *adt= BKE_animdata_from_id(id);
 	ListBase anim = {NULL, NULL};
@@ -1521,8 +1522,12 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[],
 		if (G.f & G_DEBUG) printf("\thas anim \n");
 		/* try to get action */
 		if (adt->action == NULL) {
-			adt->action= add_empty_action("ConvData_Action"); // XXX we need a better name for this
-			if (G.f & G_DEBUG) printf("\t\tadded new action \n");
+			char nameBuf[MAX_ID_NAME];
+			
+			BLI_snprintf(nameBuf, sizeof(nameBuf), "CDA:%s", ipo->id.name+2);
+			
+			adt->action= add_empty_action(nameBuf);
+			if (G.f & G_DEBUG) printf("\t\tadded new action - '%s' \n", nameBuf);
 		}
 		
 		/* add F-Curves to action */
@@ -1878,7 +1883,7 @@ void do_versions_ipos_to_animato(Main *main)
 				   to different DNA variables later 
 				   (semi-hack (tm) )
 				*/
-				switch(seq->type) {
+				switch (seq->type) {
 					case SEQ_IMAGE:
 					case SEQ_META:
 					case SEQ_SCENE:
