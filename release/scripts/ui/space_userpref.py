@@ -303,7 +303,6 @@ class USERPREF_PT_edit(bpy.types.Panel):
         sub = col.column()
 
         # sub.active = edit.use_keyframe_insert_auto # incorrect, timeline can enable
-        sub.prop(edit, "use_keyframe_insert_keyingset", text="Only Insert for Keying Set")
         sub.prop(edit, "use_keyframe_insert_available", text="Only Insert Available")
 
         col.separator()
