@@ -58,10 +58,8 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_boolean(func, "calc_edges", 0, "Calculate Edges", "Force recalculation of edges.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
-	/*
 	func= RNA_def_function(srna, "validate", "BKE_mesh_validate");
 	RNA_def_function_ui_description(func, "validate geometry.");
-	*/
 }
 
 #endif

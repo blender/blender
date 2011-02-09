@@ -704,6 +704,23 @@ void mesh_strip_loose_faces(Mesh *me)
 	me->totface = b;
 }
 
+void mesh_strip_loose_edges(Mesh *me)
+{
+	int a,b;
+
+	for (a=b=0; a<me->totedge; a++) {
+		if (me->medge[a].v1==me->medge[a].v2) {
+			if (a!=b) {
+				memcpy(&me->medge[b],&me->medge[a],sizeof(me->medge[b]));
+				CustomData_copy_data(&me->edata, &me->edata, a, b, 1);
+				CustomData_free_elem(&me->edata, a, 1);
+			}
+			b++;
+		}
+	}
+	me->totedge = b;
+}
+
 void mball_to_mesh(ListBase *lb, Mesh *me)
 {
 	DispList *dl;

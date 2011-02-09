@@ -89,7 +89,9 @@ void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_
 
 /* if old, it converts mface->edcode to edge drawflags */
 void make_edges(struct Mesh *me, int old);
+
 void mesh_strip_loose_faces(struct Mesh *me);
+void mesh_strip_loose_edges(struct Mesh *me);
 
 	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
 	 * and vertex normals are stored in actual mverts.
@@ -150,9 +152,11 @@ int mesh_center_bounds(struct Mesh *me, float cent[3]);
 void mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
 /* mesh_validate.c */
-void BKE_mesh_validate_arrays(struct MVert *mverts, int totvert, struct MEdge *medges, int totedge, struct MFace *mfaces, int totface);
+void BKE_mesh_validate_arrays(struct Mesh *me, struct MVert *mverts, int totvert, struct MEdge *medges, int totedge, struct MFace *mfaces, int totface, const short do_verbose, const short do_fixes);
 void BKE_mesh_validate(struct Mesh *me);
 void BKE_mesh_validate_dm(struct DerivedMesh *dm);
+
+void BKE_mesh_calc_edges(struct Mesh *mesh, int update);
 
 #ifdef __cplusplus
 }
