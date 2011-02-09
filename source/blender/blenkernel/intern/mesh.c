@@ -444,7 +444,7 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 		mface->v4= 0;
 		nr--;
 	}
-	if(mface->v2 && mface->v2==mface->v3) {
+	if((mface->v2 || mface->v4) && mface->v2==mface->v3) {
 		mface->v3= mface->v4;
 		mface->v4= 0;
 		nr--;
