@@ -82,10 +82,6 @@ struct rcti;
 #define B_FRACTAL			0x2000
 #define B_SPHERE			0x4000
 
-/* mesh_validate.c */
-void ED_mesh_validate_arrays(struct MVert *mverts, int totvert, struct MEdge *medges, int totedge, struct MFace *mfaces, int totface);
-void ED_mesh_validate(struct Mesh *me);
-
 /* meshtools.c */
 
 intptr_t	mesh_octree_table(struct Object *ob, struct EditMesh *em, float *co, char mode);

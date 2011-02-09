@@ -47,6 +47,8 @@ struct Object;
 struct MTFace;
 struct VecNor;
 struct CustomData;
+struct DerivedMesh;
+struct Scene;
 
 #ifdef __cplusplus
 extern "C" {
@@ -147,9 +149,13 @@ int mesh_center_median(struct Mesh *me, float cent[3]);
 int mesh_center_bounds(struct Mesh *me, float cent[3]);
 void mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
+/* mesh_validate.c */
+void BKE_mesh_validate_arrays(struct MVert *mverts, int totvert, struct MEdge *medges, int totedge, struct MFace *mfaces, int totface);
+void BKE_mesh_validate(struct Mesh *me);
+void BKE_mesh_validate_dm(struct DerivedMesh *dm);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif
-
+#endif /* BKE_MESH_H */

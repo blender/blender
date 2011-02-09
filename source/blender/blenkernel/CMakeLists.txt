@@ -105,6 +105,7 @@ set(SRC
 	intern/material.c
 	intern/mball.c
 	intern/mesh.c
+	intern/mesh_validate.c
 	intern/modifier.c
 	intern/multires.c
 	intern/nla.c

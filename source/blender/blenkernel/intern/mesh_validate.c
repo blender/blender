@@ -34,6 +34,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
 
+#include "BKE_DerivedMesh.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "ED_mesh.h"
@@ -71,7 +73,7 @@ static int search_face_cmp(const void *v1, const void *v2)
 	return 0;
 }
 
-void ED_mesh_validate_arrays(MVert *UNUSED(mverts), int totvert, MEdge *medges, int totedge, MFace *mfaces, int totface)
+void BKE_mesh_validate_arrays(MVert *UNUSED(mverts), int totvert, MEdge *medges, int totedge, MFace *mfaces, int totface)
 {
 //	MVert *mv;
 	MEdge *med;
@@ -242,11 +244,16 @@ void ED_mesh_validate_arrays(MVert *UNUSED(mverts), int totvert, MEdge *medges, 
 	BLI_edgehash_free(edge_hash, NULL);
 	MEM_freeN(search_faces);
 
-	printf("ED_mesh_validate: finished\n\n");
+	printf("BKE_mesh_validate: finished\n\n");
 }
 
-void ED_mesh_validate(Mesh *me)
+void BKE_mesh_validate(Mesh *me)
 {
 	printf("MESH: %s\n", me->id.name+2);
-	ED_mesh_validate_arrays(me->mvert, me->totvert, me->medge, me->totedge, me->mface, me->totface);
+	BKE_mesh_validate_arrays(me->mvert, me->totvert, me->medge, me->totedge, me->mface, me->totface);
+}
+
+void BKE_mesh_validate_dm(DerivedMesh *dm)
+{
+	BKE_mesh_validate_arrays(dm->getVertArray(dm), dm->getNumVerts(dm), dm->getEdgeArray(dm), dm->getNumEdges(dm), dm->getFaceArray(dm), dm->getNumFaces(dm));
 }

@@ -33,6 +33,7 @@
 
 #include "BLO_sys_types.h"
 
+#include "BKE_mesh.h"
 #include "ED_mesh.h"
 
 #ifdef RNA_RUNTIME
@@ -57,8 +58,10 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_boolean(func, "calc_edges", 0, "Calculate Edges", "Force recalculation of edges.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
-	/* Linking errors! */
-	/* func= RNA_def_function(srna, "validate", "ED_mesh_validate"); */
+	/*
+	func= RNA_def_function(srna, "validate", "BKE_mesh_validate");
+	RNA_def_function_ui_description(func, "validate geometry.");
+	*/
 }
 
 #endif

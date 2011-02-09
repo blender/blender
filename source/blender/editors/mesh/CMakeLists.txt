@@ -42,7 +42,6 @@ set(SRC
 	loopcut.c
 	mesh_data.c
 	mesh_ops.c
-	mesh_validate.c
 	meshtools.c
 
 	mesh_intern.h
