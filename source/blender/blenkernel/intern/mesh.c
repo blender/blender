@@ -456,6 +456,32 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 		nr--;
 	}
 
+	/* check corrupt cases, bowtie geometry, cant handle these because edge data wont exist so just return 0 */
+	if(nr==3) {
+		if(
+		/* real edges */
+			mface->v1==mface->v2 ||
+			mface->v2==mface->v3 ||
+			mface->v3==mface->v1
+		) {
+			return 0;
+		}
+	}
+	else if(nr==4) {
+		if(
+		/* real edges */
+			mface->v1==mface->v2 ||
+			mface->v2==mface->v3 ||
+			mface->v3==mface->v4 ||
+			mface->v4==mface->v1 ||
+		/* across the face */
+			mface->v1==mface->v3 ||
+			mface->v2==mface->v4
+		) {
+			return 0;
+		}
+	}
+
 	/* prevent a zero at wrong index location */
 	if(nr==3) {
 		if(mface->v3==0) {
