@@ -38,7 +38,7 @@
 #include "ED_screen.h"
 #include "ED_types.h"
 
-
+#include "DNA_object_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -49,6 +49,25 @@
 
 #define B_CONTEXT_SWITCH	101
 #define B_BUTSPREVIEW		102
+
+static void set_texture_context(bContext *C, SpaceButs *sbuts)
+{
+	switch(sbuts->mainb) {
+		case BCONTEXT_MATERIAL:
+			sbuts->texture_context = SB_TEXC_MAT_OR_LAMP;
+			break;
+		case BCONTEXT_DATA:
+		{
+			Object *ob = CTX_data_active_object(C);
+			if(ob && ob->type==OB_LAMP)
+				sbuts->texture_context = SB_TEXC_MAT_OR_LAMP;
+			break;
+		}
+		case BCONTEXT_WORLD:
+			sbuts->texture_context = SB_TEXC_WORLD;
+			break;
+	}
+}
 
 static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 {
@@ -61,6 +80,8 @@ static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 		case B_CONTEXT_SWITCH:
 		case B_BUTSPREVIEW:
 			ED_area_tag_redraw(CTX_wm_area(C));
+
+			set_texture_context(C, sbuts);
 
 			sbuts->preview= 1;
 			break;
