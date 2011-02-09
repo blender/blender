@@ -241,6 +241,7 @@ if(WITH_INSTALL)
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION}/scripts
 			PATTERN ".svn" EXCLUDE
 			PATTERN "*.pyc" EXCLUDE
+			PATTERN "__pycache__" EXCLUDE
 		)
 		install(
 			DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/brushicons/
