@@ -138,7 +138,7 @@ static void draw_fcurve_modifier_controls_envelope (FModifier *fcm, View2D *v2d)
 /* Points ---------------- */
 
 /* helper func - draw keyframe vertices only for an F-Curve */
-static void draw_fcurve_vertices_keyframes (FCurve *fcu, View2D *v2d, short edit, short sel)
+static void draw_fcurve_vertices_keyframes (FCurve *fcu, SpaceIpo *UNUSED(sipo), View2D *v2d, short edit, short sel)
 {
 	BezTriple *bezt= fcu->bezt;
 	const float fac= 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
@@ -210,7 +210,7 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 }
 
 /* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
-static void draw_fcurve_vertices_handles (FCurve *fcu, View2D *v2d, short sel, short sel_handle_only)
+static void draw_fcurve_vertices_handles (FCurve *fcu, SpaceIpo *sipo, View2D *v2d, short sel, short sel_handle_only)
 {
 	BezTriple *bezt= fcu->bezt;
 	BezTriple *prevbezt = NULL;
@@ -226,7 +226,7 @@ static void draw_fcurve_vertices_handles (FCurve *fcu, View2D *v2d, short sel, s
 	else UI_ThemeColor(TH_HANDLE_VERTEX);
 	
 	/* anti-aliased lines for more consistent appearance */
-	glEnable(GL_LINE_SMOOTH);
+	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF)==0) glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 	
 	for (i=0; i < fcu->totvert; i++, prevbezt=bezt, bezt++) {
@@ -251,7 +251,7 @@ static void draw_fcurve_vertices_handles (FCurve *fcu, View2D *v2d, short sel, s
 		}
 	}
 	
-	glDisable(GL_LINE_SMOOTH);
+	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF)==0) glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
 }
 
@@ -275,7 +275,7 @@ static void set_fcurve_vertex_color (FCurve *fcu, short sel)
 }
 
 
-static void draw_fcurve_vertices (ARegion *ar, FCurve *fcu, short do_handles, short sel_handle_only)
+static void draw_fcurve_vertices (SpaceIpo *sipo, ARegion *ar, FCurve *fcu, short do_handles, short sel_handle_only)
 {
 	View2D *v2d= &ar->v2d;
 	
@@ -292,18 +292,18 @@ static void draw_fcurve_vertices (ARegion *ar, FCurve *fcu, short do_handles, sh
 	if (do_handles)
 	{
 		set_fcurve_vertex_color(fcu, 0);
-		draw_fcurve_vertices_handles(fcu, v2d, 0, sel_handle_only);
+		draw_fcurve_vertices_handles(fcu, sipo, v2d, 0, sel_handle_only);
 		
 		set_fcurve_vertex_color(fcu, 1);
-		draw_fcurve_vertices_handles(fcu, v2d, 1, sel_handle_only);
+		draw_fcurve_vertices_handles(fcu, sipo, v2d, 1, sel_handle_only);
 	}
 		
 	/* draw keyframes over the handles */
 	set_fcurve_vertex_color(fcu, 0);
-	draw_fcurve_vertices_keyframes(fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 0);
+	draw_fcurve_vertices_keyframes(fcu, sipo, v2d, !(fcu->flag & FCURVE_PROTECTED), 0);
 	
 	set_fcurve_vertex_color(fcu, 1);
-	draw_fcurve_vertices_keyframes(fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 1);
+	draw_fcurve_vertices_keyframes(fcu, sipo, v2d, !(fcu->flag & FCURVE_PROTECTED), 1);
 	
 	glPointSize(1.0f);
 }
@@ -407,7 +407,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
 					col[3]= drawFCurveFade(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
-
+					
 					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
 			}
@@ -456,7 +456,7 @@ static void draw_fcurve_sample_control (float x, float y, float xscale, float ys
 }
 
 /* helper func - draw keyframe vertices only for an F-Curve */
-static void draw_fcurve_samples (ARegion *ar, FCurve *fcu)
+static void draw_fcurve_samples (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 {
 	FPoint *first, *last;
 	float hsize, xscale, yscale;
@@ -476,14 +476,14 @@ static void draw_fcurve_samples (ARegion *ar, FCurve *fcu)
 	/* draw */
 	if (first && last) {
 		/* anti-aliased lines for more consistent appearance */
-		glEnable(GL_LINE_SMOOTH);
+		if ((sipo->flag & SIPO_BEAUTYDRAW_OFF)==0) glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 		
 		draw_fcurve_sample_control(first->vec[0], first->vec[1], xscale, yscale, hsize);
 		draw_fcurve_sample_control(last->vec[0], last->vec[1], xscale, yscale, hsize);
 		
 		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
+		if ((sipo->flag & SIPO_BEAUTYDRAW_OFF)==0) glDisable(GL_LINE_SMOOTH);
 	}
 }
 
@@ -794,7 +794,7 @@ void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	glLineWidth(3.0f);
 	
 	/* anti-aliased lines for less jagged appearance */
-	glEnable(GL_LINE_SMOOTH);
+	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF)==0) glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 	
 	/* the ghost curves are simply sampled F-Curves stored in sipo->ghostCurves */
@@ -813,7 +813,7 @@ void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	setlinestyle(0);
 	glLineWidth(1.0f);
 	
-	glDisable(GL_LINE_SMOOTH);
+	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF)==0) glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
 }
 
@@ -871,7 +871,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 			}
 			
 			/* anti-aliased lines for less jagged appearance */
-			glEnable(GL_LINE_SMOOTH);
+			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF)==0) glEnable(GL_LINE_SMOOTH);
 			glEnable(GL_BLEND);
 			
 			/* draw F-Curve */
@@ -892,7 +892,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 			/* restore settings */
 			setlinestyle(0);
 			
-			glDisable(GL_LINE_SMOOTH);
+			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF)==0) glDisable(GL_LINE_SMOOTH);
 			glDisable(GL_BLEND);
 		}
 		
@@ -924,11 +924,11 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 						glDisable(GL_BLEND);
 					}
 					
-					draw_fcurve_vertices(ar, fcu, do_handles, sipo->flag&SIPO_SELVHANDLESONLY);
+					draw_fcurve_vertices(sipo, ar, fcu, do_handles, (sipo->flag & SIPO_SELVHANDLESONLY));
 				}
 				else {
 					/* samples: only draw two indicators at either end as indicators */
-					draw_fcurve_samples(ar, fcu);
+					draw_fcurve_samples(sipo, ar, fcu);
 				}
 				
 				/* unapply unit mapping */

@@ -81,6 +81,9 @@ class GRAPH_MT_view(bpy.types.Menu):
         layout.prop(st, "use_auto_merge_keyframes")
 
         layout.separator()
+        layout.prop(st, "use_fancy_drawing")
+
+        layout.separator()
         if st.show_handles:
             layout.operator("graph.handles_view_toggle", icon='CHECKBOX_HLT', text="Show All Handles")
         else:
