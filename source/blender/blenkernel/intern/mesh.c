@@ -1556,7 +1556,10 @@ int mesh_center_median(Mesh *me, float cent[3])
 	for(mvert= me->mvert; i--; mvert++) {
 		add_v3_v3(cent, mvert->co);
 	}
-	mul_v3_fl(cent, 1.0f/(float)me->totvert);
+	/* otherwise we get NAN for 0 verts */
+	if(me->totvert) {
+		mul_v3_fl(cent, 1.0f/(float)me->totvert);
+	}
 
 	return (me->totvert != 0);
 }
