@@ -51,6 +51,9 @@ struct MDeformWeight;
 struct MDeformVert;
 struct Scene;
 struct Mesh;
+struct MFace;
+struct MEdge;
+struct MVert;
 struct MCol;
 struct UvVertMap;
 struct UvMapVert;
@@ -78,6 +81,10 @@ struct rcti;
 #define B_JOINTRIA_MAT		0X1000
 #define B_FRACTAL			0x2000
 #define B_SPHERE			0x4000
+
+/* mesh_validate.c */
+void ED_mesh_validate_arrays(struct MVert *mverts, int totvert, struct MEdge *medges, int totedge, struct MFace *mfaces, int totface);
+void ED_mesh_validate(struct Mesh *me);
 
 /* meshtools.c */
 
