@@ -33,18 +33,7 @@
 
 #define QUAT_SIZE 4
 
-#define QUAT_APPLY_TO_COPY(quat_meth_noargs, _self) \
-	QuaternionObject *ret= (QuaternionObject *)Quaternion_copy(_self); \
-	PyObject *ret_dummy= quat_meth_noargs(ret); \
-	if(ret_dummy) { \
-		Py_DECREF(ret_dummy); \
-		return (PyObject *)ret; \
-	} \
-	else { /* error */ \
-		Py_DECREF(ret); \
-		return NULL; \
-	} \
-
+static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObject *self);
 static PyObject *Quaternion_copy(QuaternionObject *self);
 
 //-----------------------------METHODS------------------------------
@@ -313,7 +302,7 @@ static char Quaternion_normalized_doc[] =
 ;
 static PyObject *Quaternion_normalized(QuaternionObject *self)
 {
-	QUAT_APPLY_TO_COPY(Quaternion_normalize, self);
+	return quat__apply_to_copy((PyNoArgsFunction)Quaternion_normalize, self);
 }
 
 //----------------------------Quaternion.invert()------------------
@@ -342,7 +331,7 @@ static char Quaternion_inverted_doc[] =
 ;
 static PyObject *Quaternion_inverted(QuaternionObject *self)
 {
-	QUAT_APPLY_TO_COPY(Quaternion_invert, self);
+	return quat__apply_to_copy((PyNoArgsFunction)Quaternion_invert, self);
 }
 
 //----------------------------Quaternion.identity()-----------------
@@ -409,7 +398,7 @@ static char Quaternion_conjugated_doc[] =
 ;
 static PyObject *Quaternion_conjugated(QuaternionObject *self)
 {
-	QUAT_APPLY_TO_COPY(Quaternion_conjugate, self);
+	return quat__apply_to_copy((PyNoArgsFunction)Quaternion_conjugate, self);
 }
 
 //----------------------------Quaternion.copy()----------------
@@ -967,6 +956,19 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 	return newQuaternionObject(quat, Py_NEW, type);
 }
 
+static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObject *self)
+{
+	PyObject *ret= Quaternion_copy(self);
+	PyObject *ret_dummy= quat_func(ret);
+	if(ret_dummy) {
+		Py_DECREF(ret_dummy);
+		return (PyObject *)ret;
+	}
+	else { /* error */
+		Py_DECREF(ret);
+		return NULL;
+	}
+}
 
 //-----------------------METHOD DEFINITIONS ----------------------
 static struct PyMethodDef Quaternion_methods[] = {

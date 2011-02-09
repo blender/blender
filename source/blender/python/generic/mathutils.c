@@ -191,7 +191,7 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 		if(!BaseMath_ReadCallback((BaseMathObject *)value)) {
 			return -1;
 		}
-		else if(((MatrixObject *)value)->colSize < 3 || ((MatrixObject *)value)->rowSize < 3) {
+		else if(((MatrixObject *)value)->col_size < 3 || ((MatrixObject *)value)->row_size < 3) {
 			PyErr_Format(PyExc_ValueError, "%.200s: matrix must have minimum 3x3 dimensions", error_prefix);
 			return -1;
 		}

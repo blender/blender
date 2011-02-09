@@ -19,7 +19,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Willian P. Germano, Joseph Gilbert, Ken Hughes, Alex Fraser, Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -32,18 +32,6 @@
 #include "BLI_utildefines.h"
 
 #define MAX_DIMENSIONS 4
-
-#define VEC_APPLY_TO_COPY(vec_meth_noargs, _self) \
-	VectorObject *ret= (VectorObject *)Vector_copy(_self); \
-	PyObject *ret_dummy= vec_meth_noargs(ret); \
-	if(ret_dummy) { \
-		Py_DECREF(ret_dummy); \
-		return (PyObject *)ret; \
-	} \
-	else { /* error */ \
-		Py_DECREF(ret); \
-		return NULL; \
-	} \
 
 /* Swizzle axes get packed into a single value that is used as a closure. Each
    axis uses SWIZZLE_BITS_PER_AXIS bits. The first bit (SWIZZLE_VALID_AXIS) is
@@ -77,6 +65,20 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *UNUSED
 	return newVectorObject(vec, size, Py_NEW, type);
 }
 
+static PyObject *vec__apply_to_copy(PyNoArgsFunction vec_func, VectorObject *self)
+{
+	PyObject *ret= Vector_copy(self);
+	PyObject *ret_dummy= vec_func(ret);
+	if(ret_dummy) {
+		Py_DECREF(ret_dummy);
+		return (PyObject *)ret;
+	}
+	else { /* error */
+		Py_DECREF(ret);
+		return NULL;
+	}
+}
+
 /*-----------------------------METHODS---------------------------- */
 static char Vector_zero_doc[] =
 ".. method:: zero()\n"
@@ -107,7 +109,7 @@ static PyObject *Vector_normalize(VectorObject *self)
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	for(i = 0; i < self->size; i++) {
 		norm += self->vec[i] * self->vec[i];
 	}
@@ -115,7 +117,7 @@ static PyObject *Vector_normalize(VectorObject *self)
 	for(i = 0; i < self->size; i++) {
 		self->vec[i] /= norm;
 	}
-	
+
 	(void)BaseMath_WriteCallback(self);
 	Py_RETURN_NONE;
 }
@@ -129,7 +131,7 @@ static char Vector_normalized_doc[] =
 ;
 static PyObject *Vector_normalized(VectorObject *self)
 {
-	VEC_APPLY_TO_COPY(Vector_normalize, self);
+	return vec__apply_to_copy((PyNoArgsFunction)Vector_normalize, self);
 }
 
 static char Vector_resize_2d_doc[] =
@@ -150,13 +152,13 @@ static PyObject *Vector_resize_2d(VectorObject *self)
 		PyErr_SetString(PyExc_TypeError, "vector.resize_2d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
-	
+
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 2));
 	if(self->vec == NULL) {
 		PyErr_SetString(PyExc_MemoryError, "vector.resize_2d(): problem allocating pointer space");
 		return NULL;
 	}
-	
+
 	self->size = 2;
 	Py_RETURN_NONE;
 }
@@ -179,16 +181,16 @@ static PyObject *Vector_resize_3d(VectorObject *self)
 		PyErr_SetString(PyExc_TypeError, "vector.resize_3d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
-	
+
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 3));
 	if(self->vec == NULL) {
 		PyErr_SetString(PyExc_MemoryError, "vector.resize_3d(): problem allocating pointer space");
 		return NULL;
 	}
-	
+
 	if(self->size == 2)
 		self->vec[2] = 0.0f;
-	
+
 	self->size = 3;
 	Py_RETURN_NONE;
 }
@@ -211,7 +213,7 @@ static PyObject *Vector_resize_4d(VectorObject *self)
 		PyErr_SetString(PyExc_TypeError, "vector.resize_4d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
-	
+
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 4));
 	if(self->vec == NULL) {
 		PyErr_SetString(PyExc_MemoryError, "vector.resize_4d(): problem allocating pointer space");
@@ -356,7 +358,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args )
 		PyErr_SetString(PyExc_TypeError, "only for 3D vectors");
 		return NULL;
 	}
-	
+
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
@@ -435,7 +437,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args )
 	}
 
 	/*
-		flip vector around, since vectoquat expect a vector from target to tracking object 
+		flip vector around, since vectoquat expect a vector from target to tracking object
 		and the python function expects the inverse (a vector to the target).
 	*/
 	negate_v3_v3(vec, self->vec);
@@ -465,10 +467,10 @@ static PyObject *Vector_reflect(VectorObject *self, PyObject *value)
 	float mirror[3], vec[3];
 	float reflect[3] = {0.0f};
 	float tvec[MAX_DIMENSIONS];
-	
+
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	if((value_size= mathutils_array_parse(tvec, 2, 4, value, "vector.reflect(other), invalid 'other' arg")) == -1)
 		return NULL;
 
@@ -476,7 +478,7 @@ static PyObject *Vector_reflect(VectorObject *self, PyObject *value)
 	mirror[1] = tvec[1];
 	if (value_size > 2)		mirror[2] = tvec[2];
 	else					mirror[2] = 0.0;
-	
+
 	vec[0] = self->vec[0];
 	vec[1] = self->vec[1];
 	if (self->size > 2)		vec[2] = self->vec[2];
@@ -545,7 +547,7 @@ static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 	return PyFloat_FromDouble(dot);
 }
 
-static char Vector_angle_doc[] = 
+static char Vector_angle_doc[] =
 ".. function:: angle(other, fallback)\n"
 "\n"
 "   Return the angle between two vectors.\n"
@@ -567,7 +569,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 	double dot = 0.0f, test_v1 = 0.0f, test_v2 = 0.0f;
 	int x;
 	PyObject *fallback= NULL;
-	
+
 	if(!PyArg_ParseTuple(args, "O|O:angle", &value, &fallback))
 		return NULL;
 
@@ -757,7 +759,7 @@ static PyObject *Vector_copy(VectorObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	return newVectorObject(self->vec, self->size, Py_NEW, Py_TYPE(self));
 }
 
@@ -792,7 +794,7 @@ static PyObject *Vector_item(VectorObject *self, int i)
 
 	if(!BaseMath_ReadIndexCallback(self, i))
 		return NULL;
-	
+
 	return PyFloat_FromDouble(self->vec[i]);
 }
 /* sequence accessor (set): vector[index] = value */
@@ -811,7 +813,7 @@ static int Vector_ass_item(VectorObject *self, int i, PyObject * ob)
 		return -1;
 	}
 	self->vec[i] = scalar;
-	
+
 	if(!BaseMath_WriteIndexCallback(self, i))
 		return -1;
 	return 0;
@@ -825,7 +827,7 @@ static PyObject *Vector_slice(VectorObject *self, int begin, int end)
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	CLAMP(begin, 0, self->size);
 	if (end<0) end= self->size+end+1;
 	CLAMP(end, 0, self->size);
@@ -906,12 +908,12 @@ static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 	}
 	vec1 = (VectorObject*)v1;
 	vec2 = (VectorObject*)v2;
-	
+
 	if(vec1->size != vec2->size) {
 		PyErr_SetString(PyExc_AttributeError, "Vector addition: vectors must have the same dimensions for this operation");
 		return NULL;
 	}
-	
+
 	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
 		return NULL;
 
@@ -934,10 +936,10 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 	}
 	vec1 = (VectorObject*)v1;
 	vec2 = (VectorObject*)v2;
-	
+
 	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
 		return NULL;
-	
+
 	if(vec1->size != vec2->size) {
 		PyErr_SetString(PyExc_AttributeError, "Vector subtraction: vectors must have the same dimensions for this operation");
 		return NULL;
@@ -959,12 +961,12 @@ static PyObject *Vector_isub(PyObject * v1, PyObject * v2)
 	}
 	vec1 = (VectorObject*)v1;
 	vec2 = (VectorObject*)v2;
-	
+
 	if(vec1->size != vec2->size) {
 		PyErr_SetString(PyExc_AttributeError, "Vector subtraction: vectors must have the same dimensions for this operation");
 		return NULL;
 	}
-	
+
 	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
 		return NULL;
 
@@ -992,9 +994,9 @@ static int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject
 	float vec_cpy[MAX_DIMENSIONS];
 	double dot = 0.0f;
 	int x, y, z = 0;
-	
-	if(mat->rowSize != vec->size){
-		if(mat->rowSize == 4 && vec->size == 3) {
+
+	if(mat->row_size != vec->size){
+		if(mat->row_size == 4 && vec->size == 3) {
 			vec_cpy[3] = 1.0f;
 		}
 		else {
@@ -1007,14 +1009,14 @@ static int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject
 
 	rvec[3] = 1.0f;
 
-	for(x = 0; x < mat->colSize; x++) {
-		for(y = 0; y < mat->rowSize; y++) {
+	for(x = 0; x < mat->col_size; x++) {
+		for(y = 0; y < mat->row_size; y++) {
 			dot += mat->matrix[y][x] * vec_cpy[y];
 		}
 		rvec[z++] = (float)dot;
 		dot = 0.0f;
 	}
-	
+
 	return 0;
 }
 
@@ -1029,7 +1031,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 	float scalar;
-	
+
 	if VectorObject_Check(v1) {
 		vec1= (VectorObject *)v1;
 		if(!BaseMath_ReadCallback(vec1))
@@ -1040,18 +1042,18 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		if(!BaseMath_ReadCallback(vec2))
 			return NULL;
 	}
-	
-	
+
+
 	/* make sure v1 is always the vector */
 	if (vec1 && vec2 ) {
 		int i;
 		double dot = 0.0f;
-		
+
 		if(vec1->size != vec2->size) {
 			PyErr_SetString(PyExc_AttributeError, "Vector multiplication: vectors must have the same dimensions for this operation");
 			return NULL;
 		}
-		
+
 		/*dot product*/
 		for(i = 0; i < vec1->size; i++) {
 			dot += vec1->vec[i] * vec2->vec[i];
@@ -1108,17 +1110,17 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec = (VectorObject *)v1;
 	float scalar;
-	
+
 	if(!BaseMath_ReadCallback(vec))
 		return NULL;
-	
+
 	/* only support vec*=float and vec*=mat
 	   vec*=vec result is a float so that wont work */
 	if (MatrixObject_Check(v2)) {
 		float rvec[MAX_DIMENSIONS];
 		if(!BaseMath_ReadCallback((MatrixObject *)v2))
 			return NULL;
-		
+
 		if(column_vector_multiplication(rvec, vec, (MatrixObject*)v2) == -1)
 			return NULL;
 
@@ -1145,7 +1147,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		PyErr_SetString(PyExc_TypeError, "Vector multiplication: arguments not acceptable for this operation");
 		return NULL;
 	}
-	
+
 	(void)BaseMath_WriteCallback(vec);
 	Py_INCREF( v1 );
 	return v1;
@@ -1157,13 +1159,13 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 	int i;
 	float vec[4], scalar;
 	VectorObject *vec1 = NULL;
-	
+
 	if(!VectorObject_Check(v1)) { /* not a vector */
 		PyErr_SetString(PyExc_TypeError, "Vector division: Vector must be divided by a float");
 		return NULL;
 	}
 	vec1 = (VectorObject*)v1; /* vector */
-	
+
 	if(!BaseMath_ReadCallback(vec1))
 		return NULL;
 
@@ -1171,12 +1173,12 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 		PyErr_SetString(PyExc_TypeError, "Vector division: Vector must be divided by a float");
 		return NULL;
 	}
-	
+
 	if(scalar==0.0) {
 		PyErr_SetString(PyExc_ZeroDivisionError, "Vector division: divide by zero error");
 		return NULL;
 	}
-	
+
 	for(i = 0; i < vec1->size; i++) {
 		vec[i] = vec1->vec[i] /	scalar;
 	}
@@ -1189,7 +1191,7 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 	int i;
 	float scalar;
 	VectorObject *vec1 = (VectorObject*)v1;
-	
+
 	if(!BaseMath_ReadCallback(vec1))
 		return NULL;
 
@@ -1205,9 +1207,9 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 	for(i = 0; i < vec1->size; i++) {
 		vec1->vec[i] /=	scalar;
 	}
-	
+
 	(void)BaseMath_WriteCallback(vec1);
-	
+
 	Py_INCREF( v1 );
 	return v1;
 }
@@ -1217,10 +1219,10 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 static PyObject *Vector_neg(VectorObject *self)
 {
 	float tvec[MAX_DIMENSIONS];
-	
+
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	negate_vn_vn(tvec, self->vec, self->size);
 	return newVectorObject(tvec, self->size, Py_NEW, Py_TYPE(self));
 }
@@ -1263,7 +1265,7 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 
 	if(!BaseMath_ReadCallback(vecA) || !BaseMath_ReadCallback(vecB))
 		return NULL;
-	
+
 	if (vecA->size != vecB->size){
 		if (comparison_type == Py_NE){
 			Py_RETURN_TRUE;
@@ -1447,7 +1449,7 @@ static PyNumberMethods Vector_NumMethods = {
 /*
  * vector axis, vector.x/y/z/w
  */
-	
+
 static PyObject *Vector_getAxis(VectorObject *self, void *type)
 {
 	return Vector_item(self, GET_INT_FROM_POINTER(type));
@@ -1463,10 +1465,10 @@ static PyObject *Vector_getLength(VectorObject *self, void *UNUSED(closure))
 {
 	double dot = 0.0f;
 	int i;
-	
+
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	for(i = 0; i < self->size; i++){
 		dot += (self->vec[i] * self->vec[i]);
 	}
@@ -1477,7 +1479,7 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 {
 	double dot = 0.0f, param;
 	int i;
-	
+
 	if(!BaseMath_ReadCallback(self))
 		return -1;
 
@@ -1485,7 +1487,7 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 		PyErr_SetString(PyExc_TypeError, "length must be set to a number");
 		return -1;
 	}
-	
+
 	if (param < 0.0f) {
 		PyErr_SetString(PyExc_TypeError, "cannot set a vectors length to a negative value");
 		return -1;
@@ -1494,27 +1496,27 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 		fill_vn(self->vec, self->size, 0.0f);
 		return 0;
 	}
-	
+
 	for(i = 0; i < self->size; i++){
 		dot += (self->vec[i] * self->vec[i]);
 	}
 
 	if (!dot) /* cant sqrt zero */
 		return 0;
-	
+
 	dot = sqrt(dot);
-	
+
 	if (dot==param)
 		return 0;
-	
+
 	dot= dot/param;
-	
+
 	for(i = 0; i < self->size; i++){
 		self->vec[i]= self->vec[i] / (float)dot;
 	}
-	
+
 	(void)BaseMath_WriteCallback(self); /* checked already */
-	
+
 	return 0;
 }
 
@@ -1527,10 +1529,10 @@ static PyObject *Vector_getSwizzle(VectorObject *self, void *closure)
 	size_t axis_from;
 	float vec[MAX_DIMENSIONS];
 	unsigned int swizzleClosure;
-	
+
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
+
 	/* Unpack the axes from the closure into an array. */
 	axis_to = 0;
 	swizzleClosure = GET_INT_FROM_POINTER(closure);
@@ -1546,7 +1548,7 @@ static PyObject *Vector_getSwizzle(VectorObject *self, void *closure)
 		swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
 		axis_to++;
 	}
-	
+
 	return newVectorObject(vec, axis_to, Py_NEW, Py_TYPE(self));
 }
 
@@ -1569,13 +1571,13 @@ static int Vector_setSwizzle(VectorObject *self, PyObject * value, void *closure
 	size_t axis_to;
 
 	unsigned int swizzleClosure;
-	
+
 	float tvec[MAX_DIMENSIONS];
 	float vec_assign[MAX_DIMENSIONS];
-	
+
 	if(!BaseMath_ReadCallback(self))
 		return -1;
-	
+
 	/* Check that the closure can be used with this vector: even 2D vectors have
 	   swizzles defined for axes z and w, but they would be invalid. */
 	swizzleClosure = GET_INT_FROM_POINTER(closure);
@@ -1621,7 +1623,7 @@ static int Vector_setSwizzle(VectorObject *self, PyObject * value, void *closure
 
 	memcpy(self->vec, tvec, axis_from * sizeof(float));
 	/* continue with BaseMathObject_WriteCallback at the end */
-	
+
 	if(!BaseMath_WriteCallback(self))
 		return -1;
 	else
@@ -1640,7 +1642,7 @@ static PyGetSetDef Vector_getseters[] = {
 	{(char *)"magnitude", (getter)Vector_getLength, (setter)Vector_setLength, (char *)"Vector Length.\n\n:type: float", NULL},
 	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, (char *)BaseMathObject_Wrapped_doc, NULL},
 	{(char *)"owner", (getter)BaseMathObject_getOwner, (setter)NULL, (char *)BaseMathObject_Owner_doc, NULL},
-	
+
 	/* autogenerated swizzle attrs, see python script below */
 	{(char *)"xx",   (getter)Vector_getSwizzle, (setter)NULL, NULL, SET_INT_IN_POINTER(((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, // 36
 	{(char *)"xxx",  (getter)Vector_getSwizzle, (setter)NULL, NULL, SET_INT_IN_POINTER(((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, // 292

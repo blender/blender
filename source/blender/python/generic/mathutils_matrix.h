@@ -39,8 +39,8 @@ extern PyTypeObject matrix_Type;
 typedef struct {
 	BASE_MATH_MEMBERS(contigPtr)
 	float *matrix[MATRIX_MAX_DIM];		/* ptr to the contigPtr (accessor) */
-	unsigned short rowSize;
-	unsigned short colSize;
+	unsigned short row_size;
+	unsigned short col_size;
 } MatrixObject;
 
 /*struct data contains a pointer to the actual data that the
@@ -49,8 +49,8 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 /*prototypes*/
-PyObject *newMatrixObject(float *mat, const unsigned short rowSize, const unsigned short colSize, int type, PyTypeObject *base_type);
-PyObject *newMatrixObject_cb(PyObject *user, int rowSize, int colSize, int cb_type, int cb_subtype);
+PyObject *newMatrixObject(float *mat, const unsigned short row_size, const unsigned short col_size, int type, PyTypeObject *base_type);
+PyObject *newMatrixObject_cb(PyObject *user, int row_size, int col_size, int cb_type, int cb_subtype);
 
 extern int mathutils_matrix_vector_cb_index;
 extern struct Mathutils_Callback mathutils_matrix_vector_cb;
