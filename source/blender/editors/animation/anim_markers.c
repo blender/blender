@@ -264,6 +264,29 @@ TimeMarker *ED_markers_get_first_selected(ListBase *markers)
 	return NULL;
 }
 
+/* --------------------------------- */
+
+/* Print debugging prints of list of markers 
+ * BSI's: do NOT make static or put in if-defs as "unused code". That's too much trouble when we need to use for quick debuggging!
+ */
+void debug_markers_print_list(ListBase *markers)
+{
+	TimeMarker *marker;
+	
+	if (markers == NULL) {
+		printf("No markers list to print debug for\n");
+		return;
+	}
+	
+	printf("List of markers follows: -----\n");
+	
+	for (marker = markers->first; marker; marker = marker->next) {
+		printf("\t'%s' on %d at %p with %d\n", marker->name, marker->frame, marker, marker->flag);
+	}
+	
+	printf("End of list ------------------\n");
+}
+
 /* ************* Marker Drawing ************ */
 
 /* function to draw markers */
@@ -868,6 +891,7 @@ static void ed_marker_duplicate_apply(bContext *C)
 #endif
 
 			/* new marker is added to the begining of list */
+			// FIXME: bad ordering!
 			BLI_addhead(markers, newmarker);
 		}
 	}
@@ -996,8 +1020,8 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 
-	/* allowing tweaks */
-	return OPERATOR_PASS_THROUGH;
+	/* allowing tweaks, but needs OPERATOR_FINISHED, otherwise renaming fails... [#25987] */
+	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
 
 static int ed_marker_select_invoke(bContext *C, wmOperator *op, wmEvent *evt)
