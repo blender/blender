@@ -1377,6 +1377,11 @@ void single_object_users(Scene *scene, View3D *v3d, int flag)
 	for(base= FIRSTBASE; base; base= base->next) {
 		ob= base->object;
 		
+		/* newid may still have some trash from Outliner tree building,
+		 * so clear that first to avoid errors [#26002]
+		 */
+		ob->id.newid = NULL;
+		
 		if( (base->flag & flag)==flag ) {
 			if(ob->id.lib==NULL && ob->id.us>1) {
 				/* base gets copy of object */
