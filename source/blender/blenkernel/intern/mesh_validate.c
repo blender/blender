@@ -109,7 +109,7 @@ static int search_face_cmp(const void *v1, const void *v2)
 	return 0;
 }
 
-void BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge *medges, int totedge, MFace *mfaces, int totface, const short do_verbose, const short do_fixes)
+int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge *medges, int totedge, MFace *mfaces, int totface, const short do_verbose, const short do_fixes)
 {
 #	define PRINT if(do_verbose) printf
 #	define REMOVE_EDGE_TAG(_med) { _med->v2= _med->v1; do_edge_free= 1; }
@@ -169,17 +169,15 @@ void BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdg
 		}
 	}
 
-	for(i=0, mf=mfaces; i<totface; i++, mf++) {
-		unsigned int fverts[4];
-		// unsigned int fedges[4];
-		int fidx;
+	for(i=0, mf=mfaces, sf=sort_faces; i<totface; i++, mf++) {
 		int remove= FALSE;
+		int fidx;
 
 		fidx = mf->v4 ? 3:2;
 		do {
-			fverts[fidx]= *(&mf->v1 + fidx);
-			if(fverts[fidx] >= totvert) {
-				PRINT("    face %d: 'v%d' index out of range, %d\n", i, fidx + 1, fverts[fidx]);
+			sf->v[fidx]= *(&mf->v1 + fidx);
+			if(sf->v[fidx] >= totvert) {
+				PRINT("    face %d: 'v%d' index out of range, %d\n", i, fidx + 1, sf->v[fidx]);
 				remove= do_fixes;
 			}
 		} while (fidx--);
@@ -220,21 +218,15 @@ void BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdg
 				sort_faces[totsortface].index = i;
 
 				if(mf->v4) {
-					qsort(fverts, 4, sizeof(unsigned int), uint_cmp);
-					sort_faces[i].v[0] = fverts[0];
-					sort_faces[i].v[1] = fverts[1];
-					sort_faces[i].v[2] = fverts[2];
-					sort_faces[i].v[3] = fverts[3];
+					qsort(sf->v, 4, sizeof(unsigned int), uint_cmp);
 				}
 				else {
-					qsort(fverts, 3, sizeof(unsigned int), uint_cmp);
-					sort_faces[i].v[0] = fverts[0];
-					sort_faces[i].v[1] = fverts[1];
-					sort_faces[i].v[2] = fverts[2];
-					sort_faces[i].v[3] = UINT_MAX;
+					qsort(sf->v, 3, sizeof(unsigned int), uint_cmp);
+					sf->v[3] = UINT_MAX;
 				}
 
 				totsortface++;
+				sf++;
 			}
 		}
 		if(remove) {
@@ -322,17 +314,19 @@ void BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdg
 			BKE_mesh_calc_edges(me, TRUE);
 		}
 	}
+
+	return (do_face_free || do_edge_free || do_edge_recalc);
 }
 
-void BKE_mesh_validate(Mesh *me)
+int BKE_mesh_validate(Mesh *me, int do_verbose)
 {
 	printf("MESH: %s\n", me->id.name+2);
-	BKE_mesh_validate_arrays(me, me->mvert, me->totvert, me->medge, me->totedge, me->mface, me->totface, TRUE, TRUE);
+	return BKE_mesh_validate_arrays(me, me->mvert, me->totvert, me->medge, me->totedge, me->mface, me->totface, do_verbose, TRUE);
 }
 
-void BKE_mesh_validate_dm(DerivedMesh *dm)
+int BKE_mesh_validate_dm(DerivedMesh *dm)
 {
-	BKE_mesh_validate_arrays(NULL, dm->getVertArray(dm), dm->getNumVerts(dm), dm->getEdgeArray(dm), dm->getNumEdges(dm), dm->getFaceArray(dm), dm->getNumFaces(dm), TRUE, FALSE);
+	return BKE_mesh_validate_arrays(NULL, dm->getVertArray(dm), dm->getNumVerts(dm), dm->getEdgeArray(dm), dm->getNumEdges(dm), dm->getFaceArray(dm), dm->getNumFaces(dm), TRUE, FALSE);
 }
 
 void BKE_mesh_calc_edges(Mesh *mesh, int update)

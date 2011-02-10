@@ -709,7 +709,7 @@ void mesh_strip_loose_edges(Mesh *me)
 	int a,b;
 
 	for (a=b=0; a<me->totedge; a++) {
-		if (me->medge[a].v1==me->medge[a].v2) {
+		if (me->medge[a].v1!=me->medge[a].v2) {
 			if (a!=b) {
 				memcpy(&me->medge[b],&me->medge[a],sizeof(me->medge[b]));
 				CustomData_copy_data(&me->edata, &me->edata, a, b, 1);
