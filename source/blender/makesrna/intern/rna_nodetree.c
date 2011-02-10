@@ -1029,11 +1029,10 @@ static void def_cmp_blur(StructRNA *srna)
 		{R_FILTER_MITCH,      "MITCH",      0, "Mitch",         ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem size_type_items[] = {
-		{CMP_NODE_BLUR_SIZE_PIXEL,   "PIXEL",       0, "Pixel",          ""},
-		{CMP_NODE_BLUR_SIZE_WIDTH,   "WIDTH",       0, "Width",          ""},
-		{CMP_NODE_BLUR_SIZE_HEIGHT,  "HEIGHT",      0, "Height",         ""},
-		{CMP_NODE_BLUR_SIZE_BOTH,    "BOTH",        0, "Both",           ""},
+	static EnumPropertyItem aspect_correction_type_items[] = {
+		{CMP_NODE_BLUR_ASPECT_NONE,	"NONE",	0,	"None",	""},
+		{CMP_NODE_BLUR_ASPECT_Y,	"Y",	0,	"Y",	""},
+		{CMP_NODE_BLUR_ASPECT_X,	"X",	0,	"X",	""},
 		{0, NULL, 0, NULL, NULL}};
 
 	RNA_def_struct_sdna_from(srna, "NodeBlurData", "storage");
@@ -1050,12 +1049,17 @@ static void def_cmp_blur(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Size Y", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
-	prop = RNA_def_property(srna, "size_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "size_type");
-	RNA_def_property_enum_items(prop, size_type_items);
-	RNA_def_property_ui_text(prop, "Size Type", "Mode of filter size calculation");
+	prop = RNA_def_property(srna, "use_relative", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "relative", 1);
+	RNA_def_property_ui_text(prop, "Relative", "Use relative (percent) values to define blur radius");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
+	prop = RNA_def_property(srna, "aspect_correction", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "aspect");
+	RNA_def_property_enum_items(prop, aspect_correction_type_items);
+	RNA_def_property_ui_text(prop, "Aspect Correction", "Type of aspect correction to use");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
 	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fac");
 	RNA_def_property_range(prop, 0.0f, 2.0f);

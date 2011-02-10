@@ -577,17 +577,19 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	
 	if(out[0]->hasoutput==0) return;
 	
-	switch (nbd->size_type) {
-	case CMP_NODE_BLUR_SIZE_WIDTH:
-		nbd->sizex= nbd->sizey= (int)(nbd->percentx*0.01f*nbd->image_in_width);
-		break;
-	case CMP_NODE_BLUR_SIZE_HEIGHT:
-		nbd->sizex= nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_height);
-		break;
-	case CMP_NODE_BLUR_SIZE_BOTH:
-		nbd->sizex= (int)(nbd->percentx*0.01f*nbd->image_in_width);
-		nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_height);
-		break;
+	if(nbd->relative) {
+		if (nbd->aspect==CMP_NODE_BLUR_ASPECT_NONE) {
+			nbd->sizex= (int)(nbd->percentx*0.01f*nbd->image_in_width);
+			nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_height);
+		}
+		else if (nbd->aspect==CMP_NODE_BLUR_ASPECT_Y) {
+			nbd->sizex= (int)(nbd->percentx*0.01f*nbd->image_in_width);
+			nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_width);
+		}
+		else if (nbd->aspect==CMP_NODE_BLUR_ASPECT_X) {
+			nbd->sizex= (int)(nbd->percentx*0.01f*nbd->image_in_height);
+			nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_height);
+		}
 	}
 
 	if (nbd->sizex==0 && nbd->sizey==0) {
