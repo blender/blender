@@ -100,9 +100,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     import traceback
     import time
 
-    # must be set back to True on exits
-    _bpy_types._register_immediate = False
-
     t_main = time.time()
 
     loaded_modules = set()
@@ -112,7 +109,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     if reload_scripts:
         _bpy_types.TypeMap.clear()
-        _bpy_types.PropertiesMap.clear()
 
         # just unload, dont change user defaults, this means we can sync to reload.
         # note that they will only actually reload of the modification time changes.
@@ -121,7 +117,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             addon_disable(module_name, default_set=False)
 
     def register_module_call(mod):
-        _bpy_types._register_module(mod.__name__)
         register = getattr(mod, "register", None)
         if register:
             try:
@@ -132,7 +127,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
 
     def unregister_module_call(mod):
-        _bpy_types._unregister_module(mod.__name__)
         unregister = getattr(mod, "unregister", None)
         if unregister:
             try:
@@ -198,8 +192,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
-
-    _bpy_types._register_immediate = True
 
     # deal with addons seperately
     addon_reset_all(reload_scripts)
@@ -367,12 +359,9 @@ def addon_enable(module_name, default_set=True):
     import bpy_types as _bpy_types
     import imp
 
-    _bpy_types._register_immediate = False
-
     def handle_error():
         import traceback
         traceback.print_exc()
-        _bpy_types._register_immediate = True
 
     # reload if the mtime changes
     mod = sys.modules.get(module_name)
@@ -402,19 +391,13 @@ def addon_enable(module_name, default_set=True):
         return None
 
     # 2) try register collected modules
-    try:
-        _bpy_types._register_module(module_name)
-    except:
-        handle_error()
-        del sys.modules[module_name]
-        return None
+    # removed, addons need to handle own registration now.
 
     # 3) try run the modules register function
     try:
         mod.register()
     except:
         handle_error()
-        _bpy_types._unregister_module(module_name)
         del sys.modules[module_name]
         return None
 
@@ -425,8 +408,6 @@ def addon_enable(module_name, default_set=True):
         if not ext:
             ext = _bpy.context.user_preferences.addons.new()
             ext.module = module_name
-
-    _bpy_types._register_immediate = True
 
     mod.__addon_enabled__ = True
 
@@ -454,7 +435,6 @@ def addon_disable(module_name, default_set=True):
         mod.__addon_enabled__ = False
 
         try:
-            _bpy_types._unregister_module(module_name, free=False)  # dont free because we may want to enable again.
             mod.unregister()
         except:
             traceback.print_exc()
@@ -594,3 +574,42 @@ def user_resource(type, path="", create=False):
                 target_path = ""
 
     return target_path
+
+
+_register_types = _bpy.types.Panel, _bpy.types.Operator, _bpy.types.Menu, _bpy.types.Header, _bpy.types.RenderEngine
+
+
+def register_module(module):
+    import traceback
+    total = 0
+    register = _bpy.types.register
+    for cls, path, line in _bpy_types.TypeMap.get(module, ()):
+        if not "bl_rna" in cls.__dict__:
+            total += 1
+            try:
+                register(cls)
+            except:
+                print("bpy.utils.register_module(): failed to registering class '%s.%s'" % (cls.__module__, cls.__name__))
+                print("\t", path, "line", line)
+                traceback.print_exc()
+
+    if total == 0:
+        raise Exception("register_module(%r): defines no classes" % module)
+
+
+def unregister_module(module):
+    import traceback
+    unregister = _bpy.types.unregister
+    total = 0
+    for cls, path, line in _bpy_types.TypeMap.get(module, ()):
+        if "bl_rna" in cls.__dict__:
+            total += 1
+            try:
+                unregister(cls)
+            except:
+                print("bpy.utils.unregister_module(): failed to unregistering class '%s.%s'" % (cls.__module__, cls.__name__))
+                print("\t", path, "line", line)
+                traceback.print_exc()
+
+    if total == 0:
+        raise Exception("unregister_module(%r): defines no classes" % module)

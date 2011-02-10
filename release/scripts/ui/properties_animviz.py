@@ -94,12 +94,13 @@ class OnionSkinButtonsPanel():
 
 # NOTE:
 # The specialised panel types are derived in their respective UI modules
+# dont register these classes since they are only helpers.
 def register():
-    pass
+    pass  # bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    pass  # bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
