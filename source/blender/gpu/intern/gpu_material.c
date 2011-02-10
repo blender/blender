@@ -1130,8 +1130,10 @@ static void do_material_tex(GPUShadeInput *shi)
 						if( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
 							float ima_x= 512.0f, ima_y= 512.f;		// prevent calling textureSize, glsl 1.3 only
 							ImBuf *ibuf= BKE_image_get_ibuf(tex->ima, &tex->iuser);
-							if(ibuf) 
-								ima_x= ibuf->x; ima_y= ibuf->y;
+							if(ibuf) {
+								ima_x= ibuf->x;
+								ima_y= ibuf->y;
+							}
 							
 							GPU_link( mat, "mtex_bump_apply_texspace",
 							          fDet, dBs, dBt, vR1, vR2, 

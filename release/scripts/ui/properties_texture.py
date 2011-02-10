@@ -1007,7 +1007,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
 
             row = layout.row()
             # only show bump settings if activated but not for normalmap images
-            row.active = tex.use_map_normal and not( tex.texture.type == 'IMAGE' and tex.texture.use_normal_map )
+            row.active = tex.use_map_normal and not (tex.texture.type == 'IMAGE' and tex.texture.use_normal_map)
 
             col = row.column()
             col.prop(tex, "bump_method", text="Method")

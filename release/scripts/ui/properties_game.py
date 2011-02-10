@@ -163,7 +163,6 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             subsub.active = game.use_anisotropic_friction
             subsub.prop(game, "friction_coefficients", text="", slider=True)
 
-
         elif game.physics_type in ('SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'):
             layout.prop(ob, "hide_render", text="Invisible")
 
@@ -347,7 +346,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):
         row.prop(gs, "use_frame_rate")
         row.prop(gs, "use_display_lists")
 
-        
+
 class RENDER_PT_game_display(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
     COMPAT_ENGINES = {'BLENDER_GAME'}

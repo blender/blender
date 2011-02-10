@@ -166,7 +166,7 @@ class NODE_MT_node(bpy.types.Menu):
         layout.operator("node.read_fullsamplelayers")
 
 
-# Node Backdrop options 
+# Node Backdrop options
 class NODE_PT_properties(bpy.types.Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'

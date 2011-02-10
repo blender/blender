@@ -1169,7 +1169,6 @@ class WM_OT_addon_install(bpy.types.Operator):
                 else:
                     os.remove(f_full)
 
-
     def execute(self, context):
         import traceback
         import zipfile
@@ -1216,7 +1215,6 @@ class WM_OT_addon_install(bpy.types.Operator):
             elif os.path.exists(path_dest):
                 self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
                 return {'CANCELLED'}
-                
 
             #if not compressed file just copy into the addon path
             try:

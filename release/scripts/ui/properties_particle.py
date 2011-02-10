@@ -177,7 +177,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
         if part.type == 'HAIR' and not part.use_advanced_hair:
             row.prop(part, "hair_length")
             return
-            
+
         if part.type != 'HAIR':
             split = layout.split()
 
@@ -1034,7 +1034,7 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Field Weights"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-    
+
     @classmethod
     def poll(cls, context):
         return particle_panel_poll(cls, context)
@@ -1083,7 +1083,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Vertexgroups"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-    
+
     @classmethod
     def poll(cls, context):
         return particle_panel_poll(cls, context)
