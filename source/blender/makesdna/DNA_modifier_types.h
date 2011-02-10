@@ -235,7 +235,7 @@ typedef struct MirrorModifierData {
 #define MOD_MIR_AXIS_Y		(1<<4)
 #define MOD_MIR_AXIS_Z		(1<<5)
 #define MOD_MIR_VGROUP		(1<<6)
-#define MOD_MIR_MERGE		(1<<7)
+#define MOD_MIR_NO_MERGE	(1<<7)
 
 typedef struct EdgeSplitModifierData {
 	ModifierData modifier;
