@@ -577,9 +577,17 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	
 	if(out[0]->hasoutput==0) return;
 	
-	if(nbd->relative) {
-		nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
-		nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
+	switch (nbd->size_type) {
+	case CMP_NODE_BLUR_SIZE_WIDTH:
+		nbd->sizex= nbd->sizey= (int)(nbd->percentx*0.01f*nbd->image_in_width);
+		break;
+	case CMP_NODE_BLUR_SIZE_HEIGHT:
+		nbd->sizex= nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_height);
+		break;
+	case CMP_NODE_BLUR_SIZE_BOTH:
+		nbd->sizex= (int)(nbd->percentx*0.01f*nbd->image_in_width);
+		nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_height);
+		break;
 	}
 
 	if (nbd->sizex==0 && nbd->sizey==0) {

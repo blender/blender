@@ -216,7 +216,7 @@ typedef struct NodeImageAnim {
 
 typedef struct NodeBlurData {
 	short sizex, sizey;
-	short samples, maxspeed, minspeed, relative;
+	short samples, maxspeed, minspeed, size_type;
 	float fac, percentx, percenty;
 	short filtertype;
 	char bokeh, gamma;
@@ -335,5 +335,11 @@ typedef struct TexNodeOutput {
 #define CMP_NODE_CHANNEL_MATTE_CS_HSV	2
 #define CMP_NODE_CHANNEL_MATTE_CS_YUV	3
 #define CMP_NODE_CHANNEL_MATTE_CS_YCC	4
+
+/* comp blur relative filter size */
+#define CMP_NODE_BLUR_SIZE_PIXEL		0
+#define CMP_NODE_BLUR_SIZE_WIDTH		1
+#define CMP_NODE_BLUR_SIZE_HEIGHT		2
+#define CMP_NODE_BLUR_SIZE_BOTH			3
 
 #endif
