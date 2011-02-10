@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/cmake.mk
+
+SVN_URL := https://svn.blender.org/svnroot/bf-blender/trunk/blender
+REV := $(shell dpkg-parsechangelog | sed -rne 's,^Version: .*[+~]svn([0-9]+).*,\1,p')
+VER := $(shell dpkg-parsechangelog | sed -rne 's,^Version: ([^-]+).*,\1,p')
+TARBALL = blender_$(VER).orig.tar.gz
+
+get-orig-source:
+	rm -rf get-orig-source $(TARBALL)
+	mkdir get-orig-source
+	svn -q export -r $(REV) $(SVN_URL) get-orig-source/blender-$(VER)
+	GZIP='--best --no-name' tar czf $(TARBALL) -C get-orig-source blender-$(VER)
+	rm -rf get-orig-source
+	echo "  "$(TARBALL)" created; move it to the right destination to build the package"
