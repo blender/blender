@@ -1052,7 +1052,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 				// FIXME: actions should only be considered once!
 				if (adt->action)
 					rearrange_action_channels(&ac, adt->action, mode);
-				else
+				else if (G.f & G_DEBUG)
 					printf("animdata has no action\n");
 				break;
 		}
@@ -1082,7 +1082,7 @@ void ANIM_OT_channels_move (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_enum(ot->srna, "direction", prop_animchannel_rearrange_types, REARRANGE_ANIMCHAN_DOWN, "Direction", "");
+	ot->prop= RNA_def_enum(ot->srna, "direction", prop_animchannel_rearrange_types, REARRANGE_ANIMCHAN_DOWN, "Direction", "");
 }
 
 /* ******************** Delete Channel Operator *********************** */

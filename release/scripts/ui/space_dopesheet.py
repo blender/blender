@@ -243,6 +243,7 @@ class DOPESHEET_MT_channel(bpy.types.Menu):
 
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
+        layout.operator_menu_enum("action.extrapolation_type", "type", text="Extrapolation Mode")
 
         layout.separator()
         layout.operator("anim.channels_expand")
@@ -278,7 +279,6 @@ class DOPESHEET_MT_key(bpy.types.Menu):
         layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
         layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
         layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
-        layout.operator_menu_enum("action.extrapolation_type", "type", text="Extrapolation Mode")
 
         layout.separator()
         layout.operator("action.clean")
