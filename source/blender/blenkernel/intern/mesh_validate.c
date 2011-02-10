@@ -44,15 +44,16 @@
 
 #define SELECT 1
 
-typedef struct SortFace {
-	unsigned int v[4];
-	unsigned int index;
-} SortFace;
-
 typedef union {
 	uint32_t verts[2];
 	int64_t edval;
 } EdgeUUID;
+
+typedef struct SortFace {
+//	unsigned int	v[4];
+	EdgeUUID		es[4];
+	unsigned int	index;
+} SortFace;
 
 static void edge_store_assign(uint32_t verts[2],  const uint32_t v1, const uint32_t v2)
 {
@@ -79,12 +80,13 @@ static void edge_store_from_mface_tri(EdgeUUID es[3], MFace *mf)
 	edge_store_assign(es[0].verts, mf->v1, mf->v2);
 	edge_store_assign(es[1].verts, mf->v2, mf->v3);
 	edge_store_assign(es[2].verts, mf->v3, mf->v1);
+	es[3].verts[0] = es[3].verts[1] = UINT_MAX;
 }
 
-static int uint_cmp(const void *v1, const void *v2)
+static int int64_cmp(const void *v1, const void *v2)
 {
-	const unsigned int x1= *(const unsigned int *)v1;
-	const unsigned int x2= *(const unsigned int *)v2;
+	const int64_t x1= *(const int64_t *)v1;
+	const int64_t x2= *(const int64_t *)v2;
 
 	if( x1 > x2 ) return 1;
 	else if( x1 < x2 ) return -1;
@@ -95,21 +97,18 @@ static int search_face_cmp(const void *v1, const void *v2)
 {
 	const SortFace *sfa= v1, *sfb= v2;
 
-	if		(sfa->v[0] > sfb->v[0]) return 1;
-	else if	(sfa->v[0] < sfb->v[0]) return -1;
+	if	(sfa->es[0].edval > sfb->es[0].edval) return 1;
+	else if	(sfa->es[0].edval < sfb->es[0].edval) return -1;
 
-	else if	(sfa->v[1] > sfb->v[1]) return 1;
-	else if	(sfa->v[1] < sfb->v[1]) return -1;
+	else if	(sfa->es[1].edval > sfb->es[1].edval) return 1;
+	else if	(sfa->es[1].edval < sfb->es[1].edval) return -1;
 
-	else if	(sfa->v[2] > sfb->v[2]) return 1;
-	else if	(sfa->v[2] < sfb->v[2]) return -1;
+	else if	(sfa->es[2].edval > sfb->es[2].edval) return 1;
+	else if	(sfa->es[2].edval < sfb->es[2].edval) return -1;
 
-	else if	(sfa->v[3] > sfb->v[3]) return 1;
-	else if	(sfa->v[3] < sfb->v[3]) return -1;
-
-//	else if	(sfb->index > sfa->index) return 1;
-//	else if	(sfb->index < sfa->index) return -1;
-	else							  return 0;
+	else if	(sfa->es[3].edval > sfb->es[3].edval) return 1;
+	else if	(sfa->es[3].edval < sfb->es[3].edval) return -1;
+	else										  return 0;
 
 }
 
@@ -177,12 +176,13 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge
 	for(i=0, mf=mfaces, sf=sort_faces; i<totface; i++, mf++) {
 		int remove= FALSE;
 		int fidx;
+		unsigned int fv[4];
 
 		fidx = mf->v4 ? 3:2;
 		do {
-			sf->v[fidx]= *(&(mf->v1) + fidx);
-			if(sf->v[fidx] >= totvert) {
-				PRINT("    face %d: 'v%d' index out of range, %d\n", i, fidx + 1, sf->v[fidx]);
+			fv[fidx]= *(&(mf->v1) + fidx);
+			if(fv[fidx] >= totvert) {
+				PRINT("    face %d: 'v%d' index out of range, %d\n", i, fidx + 1, fv[fidx]);
 				remove= do_fixes;
 			}
 		} while (fidx--);
@@ -223,11 +223,13 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge
 				sf->index = i;
 
 				if(mf->v4) {
-					qsort(sf->v, 4, sizeof(unsigned int), uint_cmp);
+					edge_store_from_mface_quad(sf->es, mf);
+
+					qsort(sf->es, 4, sizeof(int64_t), int64_cmp);
 				}
 				else {
-					qsort(sf->v, 3, sizeof(unsigned int), uint_cmp);
-					sf->v[3] = UINT_MAX;
+					edge_store_from_mface_tri(sf->es, mf);
+					qsort(sf->es, 3, sizeof(int64_t), int64_cmp);
 				}
 
 				totsortface++;
@@ -248,52 +250,27 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge
 	for(i=1; i<totsortface; i++, sf++) {
 		int remove= FALSE;
 		/* on a valid mesh, code below will never run */
-		if(memcmp(sf->v, sf_prev->v, sizeof(sf_prev->v)) == 0) {
-			/* slow, could be smarter here */
-			EdgeUUID eu[4];
-			EdgeUUID eu_prev[4];
-
+		if(memcmp(sf->es, sf_prev->es, sizeof(sf_prev->es)) == 0) {
 			mf= mfaces + sf->index;
-			mf_prev= mfaces + sf_prev->index;
 
-			if(mf->v4) {
-				edge_store_from_mface_quad(eu, mf);
-				edge_store_from_mface_quad(eu_prev, mf_prev);
-
-				if(
-					ELEM4(eu[0].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval, eu_prev[3].edval) &&
-					ELEM4(eu[1].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval, eu_prev[3].edval) &&
-					ELEM4(eu[2].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval, eu_prev[3].edval) &&
-					ELEM4(eu[3].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval, eu_prev[3].edval)
-				) {
-					PRINT("    face %d & %d: are duplicates ", sf->index, sf_prev->index);
-					PRINT("(%d,%d,%d,%d) ", mf->v1, mf->v2, mf->v3, mf->v4);
-					PRINT("(%d,%d,%d,%d)\n", mf_prev->v1, mf_prev->v2, mf_prev->v3, mf_prev->v4);
-					remove= do_fixes;
+			if(do_verbose) {
+				mf_prev= mfaces + sf_prev->index;
+				if(mf->v4) {
+					PRINT("    face %d & %d: are duplicates (%d,%d,%d,%d) (%d,%d,%d,%d)\n", sf->index, sf_prev->index, mf->v1, mf->v2, mf->v3, mf->v4, mf_prev->v1, mf_prev->v2, mf_prev->v3, mf_prev->v4);
+				}
+				else {
+					PRINT("    face %d & %d: are duplicates (%d,%d,%d) (%d,%d,%d)\n", sf->index, sf_prev->index, mf->v1, mf->v2, mf->v3, mf_prev->v1, mf_prev->v2, mf_prev->v3);
 				}
 			}
-			else {
-				edge_store_from_mface_tri(eu, mf);
-				edge_store_from_mface_tri(eu_prev, mf_prev);
-				if(
-					ELEM3(eu[0].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval) &&
-					ELEM3(eu[1].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval) &&
-					ELEM3(eu[2].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval)
-				) {
-					PRINT("    face %d & %d: are duplicates ", sf->index, sf_prev->index);
-					PRINT("(%d,%d,%d) ", mf->v1, mf->v2, mf->v3);
-					PRINT("(%d,%d,%d)\n", mf_prev->v1, mf_prev->v2, mf_prev->v3);
-					remove= do_fixes;
-				}
-			}
+
+			remove= do_fixes;
+		}
+		else {
+			sf_prev= sf;
 		}
 
 		if(remove) {
 			REMOVE_FACE_TAG(mf);
-			/* keep sf_prev incase next face also matches*/
-		}
-		else {
-			sf_prev= sf;
 		}
 	}
 
