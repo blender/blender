@@ -98,6 +98,9 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 	snode= MEM_callocN(sizeof(SpaceNode), "initnode");
 	snode->spacetype= SPACE_NODE;	
 	
+	/* backdrop */
+	snode->zoom = 1.0f;
+	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for node");
 	

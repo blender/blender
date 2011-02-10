@@ -2325,6 +2325,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "backdrop_zoom", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "zoom");
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0.01f, FLT_MAX);
     RNA_def_property_ui_range(prop, 0.01, 100, 1, 2);
 	RNA_def_property_ui_text(prop, "Backdrop Zoom", "Backdrop zoom factor");
