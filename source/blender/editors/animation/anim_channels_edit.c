@@ -585,57 +585,46 @@ EnumPropertyItem prop_animchannel_rearrange_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* Rearrange Utilities --------------------------------------------- */
+/* Reordering "Islands" Defines ----------------------------------- */
 
-/* checks if a channel should be considered for moving */
-static short rearrange_animchannel_is_ok (Link *channel, short type)
-{
-	if (type == ANIMTYPE_GROUP) {
-		bActionGroup *agrp= (bActionGroup *)channel;
-		
-		if (SEL_AGRP(agrp) && !(agrp->flag & AGRP_MOVED))
-			return 1;
-	}
-	else if (type == ANIMTYPE_FCURVE) {
-		FCurve *fcu= (FCurve *)channel;
-		
-		// FIXME: F-Curve visibility is difficult... needs special filtering tests these days...
-		if (SEL_FCU(fcu) && !(fcu->flag & FCURVE_TAGGED))
-			return 1;
-	}
-	else if (type == ANIMTYPE_NLATRACK) {
-		NlaTrack *nlt = (NlaTrack *)channel;
-		
-		if (SEL_NLT(nlt) && !(nlt->flag & NLASTRIP_FLAG_EDIT_TOUCHED))
-			return 1;
-	}
+/* Island definition - just a listbase container */
+typedef struct tReorderChannelIsland {
+	struct tReorderChannelIsland *next, *prev;
 	
-	return 0;
-}
+	ListBase channels; 	/* channels within this region with the same state */
+	int flag;			/* eReorderIslandFlag */
+} tReorderChannelIsland;
 
-/* checks if another channel can be placed after the given one */
-static short rearrange_animchannel_after_ok (Link *channel, short type)
-{
-	if (type == ANIMTYPE_GROUP) {
-		bActionGroup *agrp= (bActionGroup *)channel;
-		
-		if (agrp->flag & AGRP_TEMP)
-			return 0;
-	}
-	
-	return 1;
-}
+/* flags for channel reordering islands */
+typedef enum eReorderIslandFlag {
+	REORDER_ISLAND_SELECTED 		= (1<<0),	/* island is selected */
+	REORDER_ISLAND_UNTOUCHABLE 		= (1<<1),	/* island should be ignored */
+	REORDER_ISLAND_MOVED			= (1<<2)	/* island has already been moved */
+} eReorderIslandFlag;
+
 
 /* Rearrange Methods --------------------------------------------- */
 
-static short rearrange_animchannel_top (ListBase *list, Link *channel, short type)
+static short rearrange_island_ok (tReorderChannelIsland *island)
 {
-	if (rearrange_animchannel_is_ok(channel, type)) {
-		/* take it out off the chain keep data */
-		BLI_remlink(list, channel);
+	/* island must not be untouchable */
+	if (island->flag & REORDER_ISLAND_UNTOUCHABLE)
+		return 0;
+	
+	/* island should be selected to be moved */
+	return (island->flag & REORDER_ISLAND_SELECTED) && !(island->flag & REORDER_ISLAND_MOVED);
+}
+
+/* ............................. */
+
+static short rearrange_island_top (ListBase *list, tReorderChannelIsland *island)
+{
+	if (rearrange_island_ok(island)) {
+		/* remove from current position */
+		BLI_remlink(list, island);
 		
 		/* make it first element */
-		BLI_insertlinkbefore(list, list->first, channel);
+		BLI_insertlinkbefore(list, list->first, island);
 		
 		return 1;
 	}
@@ -643,17 +632,18 @@ static short rearrange_animchannel_top (ListBase *list, Link *channel, short typ
 	return 0;
 }
 
-static short rearrange_animchannel_up (ListBase *list, Link *channel, short type)
+static short rearrange_island_up (ListBase *list, tReorderChannelIsland *island)
 {
-	if (rearrange_animchannel_is_ok(channel, type)) {
-		Link *prev= channel->prev;
+	if (rearrange_island_ok(island)) {
+		/* moving up = moving before the previous island, otherwise we're in the same place */
+		tReorderChannelIsland *prev= island->prev;
 		
 		if (prev) {
-			/* take it out off the chain keep data */
-			BLI_remlink(list, channel);
+			/* remove from current position */
+			BLI_remlink(list, island);
 			
 			/* push it up */
-			BLI_insertlinkbefore(list, prev, channel);
+			BLI_insertlinkbefore(list, prev, island);
 			
 			return 1;
 		}
@@ -662,110 +652,200 @@ static short rearrange_animchannel_up (ListBase *list, Link *channel, short type
 	return 0;
 }
 
-static short rearrange_animchannel_down (ListBase *list, Link *channel, short type)
+static short rearrange_island_down (ListBase *list, tReorderChannelIsland *island)
 {
-	if (rearrange_animchannel_is_ok(channel, type)) {
-		Link *next = (channel->next) ? channel->next->next : NULL;
+	if (rearrange_island_ok(island)) {
+		/* moving down = moving after the next island, otherwise we're in the same place */
+		tReorderChannelIsland *next = island->next;
 		
 		if (next) {
-			/* take it out off the chain keep data */
-			BLI_remlink(list, channel);
-			
-			/* move it down */
-			BLI_insertlinkbefore(list, next, channel);
-			
-			return 1;
+			/* can only move past if next is not untouchable (i.e. nothing can go after it) */
+			if ((next->flag & REORDER_ISLAND_UNTOUCHABLE)==0) {
+				/* remove from current position */
+				BLI_remlink(list, island);
+				
+				/* push it down */
+				BLI_insertlinkafter(list, next, island);
+				
+				return 1;
+			}
 		}
-		else if (rearrange_animchannel_after_ok(list->last, type)) {
-			/* take it out off the chain keep data */
-			BLI_remlink(list, channel);
-			
-			/* add at end */
-			BLI_addtail(list, channel);
-			
-			return 1;
+		/* else: no next channel, so we're at the bottom already, so can't move */
+	}
+	
+	return 0;
+}
+
+static short rearrange_island_bottom (ListBase *list, tReorderChannelIsland *island)
+{
+	if (rearrange_island_ok(island)) {
+		tReorderChannelIsland *last = list->last;
+		
+		/* remove island from current position */
+		BLI_remlink(list, island);
+		
+		/* add before or after the last channel? */
+		if ((last->flag & REORDER_ISLAND_UNTOUCHABLE)==0) {
+			/* can add after it */
+			BLI_addtail(list, island);
 		}
 		else {
-			/* take it out off the chain keep data */
-			BLI_remlink(list, channel);
+			/* can at most go just before it, since last cannot be moved */
+			BLI_insertlinkbefore(list, last, island);
 			
-			/* add just before end */
-			BLI_insertlinkbefore(list, list->last, channel);
-			
-			return 1;
 		}
+		
+		return 1;
 	}
 	
 	return 0;
 }
 
-static short rearrange_animchannel_bottom (ListBase *list, Link *channel, short type)
-{
-	if (rearrange_animchannel_is_ok(channel, type)) {
-		if (rearrange_animchannel_after_ok(list->last, type)) {
-			/* take it out off the chain keep data */
-			BLI_remlink(list, channel);
-			
-			/* add at end */
-			BLI_addtail(list, channel);
-			
-			return 1;
-		}
-	}
-	
-	return 0;
-}
-
-/* Generic Stuff ---------------------------------------------------------- */
+/* ............................. */
 
 /* typedef for channel rearranging function 
  * < list: list that channels belong to
- * < channel: channel to be moved
- * < type: type of channel (eAnim_ChannelType)
+ * < island: island to be moved
  * > return[0]: whether operation was a success
  */
-typedef short (*AnimChanRearrangeFp)(ListBase *list, Link *channel, short type);
+typedef short (*AnimChanRearrangeFp)(ListBase *list, tReorderChannelIsland *island);
 
 /* get rearranging function, given 'rearrange' mode */
 static AnimChanRearrangeFp rearrange_get_mode_func (short mode)
 {
 	switch (mode) {
 		case REARRANGE_ANIMCHAN_TOP:
-			return rearrange_animchannel_top;
+			return rearrange_island_top;
 		case REARRANGE_ANIMCHAN_UP:
-			return rearrange_animchannel_up;
+			return rearrange_island_up;
 		case REARRANGE_ANIMCHAN_DOWN:
-			return rearrange_animchannel_down;
+			return rearrange_island_down;
 		case REARRANGE_ANIMCHAN_BOTTOM:
-			return rearrange_animchannel_bottom;
+			return rearrange_island_bottom;
 		default:
 			return NULL;
 	}
 }
 
-/* ........ */
+/* Rearrange Islands Generics ------------------------------------- */
 
-/* These iteration helpers (ideally should be inlined, but probably not necessary) */
-
-static Link *rearrange_iter_first (ListBase *list, short mode)
+/* add channel into list of islands */
+static void rearrange_animchannel_add_to_islands (ListBase *islands, ListBase *srcList, Link *channel, short type)
 {
-	return (mode > 0) ? list->first : list->last;
-}
-
-static Link *rearrange_iter_next (Link *item, short mode)
-{
-	return (mode > 0) ? item->next : item->prev;
-}
-
-/* ........ */
-
-/* Clear 'tag' on all F-Curves */
-static void rearrange_clear_fcurve_tags (ListBase *list)
-{
-	FCurve *fcu;
+	tReorderChannelIsland *island = islands->last; 	/* always try to add to last island if possible */
+	short is_sel=0, is_untouchable=0;
 	
-	for (fcu = list->first; fcu; fcu = fcu->next)
-		fcu->flag &= ~FCURVE_TAGGED;
+	/* get flags - selected and untouchable from the channel */
+	switch (type) {
+		case ANIMTYPE_GROUP:
+		{
+			bActionGroup *agrp= (bActionGroup *)channel;
+			
+			is_sel= SEL_AGRP(agrp);
+			is_untouchable= (agrp->flag & AGRP_TEMP) != 0;
+		}
+			break;
+		case ANIMTYPE_FCURVE:
+		{
+			FCurve *fcu= (FCurve *)channel;
+			
+			is_sel= SEL_FCU(fcu);
+		}	
+			break;
+		case ANIMTYPE_NLATRACK:
+		{
+			NlaTrack *nlt= (NlaTrack *)channel;
+			
+			is_sel= SEL_NLT(nlt);
+		}
+			break;
+			
+		default:
+			printf("rearrange_animchannel_add_to_islands(): don't know how to handle channels of type %d\n", type);
+			return;
+	}
+	
+	/* do we need to add to a new island? */
+	if ((island == NULL) ||                                 /* 1) no islands yet */
+		((island->flag & REORDER_ISLAND_SELECTED) == 0) ||  /* 2) unselected islands have single channels only - to allow up/down movement */
+		(is_sel == 0))                                      /* 3) if channel is unselected, stop existing island (it was either wrong sel status, or full already) */
+	{
+		/* create a new island now */
+		island = MEM_callocN(sizeof(tReorderChannelIsland), "tReorderChannelIsland");
+		BLI_addtail(islands, island);
+		
+		if (is_sel)
+			island->flag |= REORDER_ISLAND_SELECTED;
+		if (is_untouchable)
+			island->flag |= REORDER_ISLAND_UNTOUCHABLE;
+	}
+
+	/* add channel to island - need to remove it from its existing list first though */
+	BLI_remlink(srcList, channel);
+	BLI_addtail(&island->channels, channel);
+}
+
+/* flatten islands out into a single list again */
+static void rearrange_animchannel_flatten_islands (ListBase *islands, ListBase *srcList)
+{
+	tReorderChannelIsland *island, *isn=NULL;
+	
+	/* make sure srcList is empty now */
+	BLI_assert(srcList->first == NULL);
+	
+	/* go through merging islands */
+	for (island = islands->first; island; island = isn) {
+		isn = island->next;
+		
+		/* merge island channels back to main list, then delete the island */
+		BLI_movelisttolist(srcList, &island->channels);
+		BLI_freelinkN(islands, island);
+	}
+}
+
+/* ............................. */
+
+/* performing rearranging of channels using islands */
+static short rearrange_animchannel_islands (ListBase *list, AnimChanRearrangeFp rearrange_func, short mode, short type)
+{
+	ListBase islands = {NULL, NULL};
+	Link *channel, *chanNext=NULL;
+	short done = 0;
+	
+	/* don't waste effort on an empty list */
+	if (list->first == NULL)
+		return 0;
+	
+	/* group channels into islands */
+	for (channel = list->first; channel; channel = chanNext) {
+		chanNext = channel->next;
+		rearrange_animchannel_add_to_islands(&islands, list, channel, type);
+	}
+	
+	/* perform moving of selected islands now, but only if there is more than one of 'em so that something will happen 
+	 *	- scanning of the list is performed in the opposite direction to the direction we're moving things, so that we 
+	 *	  shouldn't need to encounter items we've moved already
+	 */
+	if (islands.first != islands.last) {
+		tReorderChannelIsland *first = (mode > 0) ? islands.last : islands.first;
+		tReorderChannelIsland *island, *isn=NULL;
+		
+		for (island = first; island; island = isn) {
+			isn = (mode > 0) ? island->prev : island->next;
+			
+			/* perform rearranging */
+			if (rearrange_func(&islands, island)) {
+				island->flag |= REORDER_ISLAND_MOVED;
+				done = 1;
+			}
+		}
+	}
+	
+	/* ungroup islands */
+	rearrange_animchannel_flatten_islands(&islands, list);
+	
+	/* did we do anything? */
+	return done;
 }
 
 /* NLA Specific Stuff ----------------------------------------------------- */
@@ -776,8 +856,6 @@ static void rearrange_clear_fcurve_tags (ListBase *list)
  */
 static void rearrange_nla_channels (bAnimContext *UNUSED(ac), AnimData *adt, short mode)
 {
-	NlaTrack *nlt, *track;
-	
 	AnimChanRearrangeFp rearrange_func;
 	
 	/* hack: invert mode so that functions will work in right order */
@@ -792,23 +870,8 @@ static void rearrange_nla_channels (bAnimContext *UNUSED(ac), AnimData *adt, sho
 	//if (EXPANDED_DRVD(adt) == 0)
 	//	return;
 	
-	/* clear "moved" flag from all tracks */
-	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) 
-		nlt->flag &= ~NLASTRIP_FLAG_EDIT_TOUCHED;
-	
-	/* reorder all selected tracks */
-	for (nlt= (NlaTrack *)rearrange_iter_first(&adt->nla_tracks, mode); nlt; nlt= track) {
-		/* Get next channel to consider */
-		track= (NlaTrack *)rearrange_iter_next((Link *)nlt, mode);
-		
-		/* Try to do channel */
-		if (rearrange_func(&adt->nla_tracks, (Link *)nlt, ANIMTYPE_NLATRACK))
-			nlt->flag |= NLASTRIP_FLAG_EDIT_TOUCHED;
-	}
-	
-	/* clear "moved" flag from all tracks */
-	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) 
-		nlt->flag &= ~NLASTRIP_FLAG_EDIT_TOUCHED;
+	/* perform rearranging on tracks list */
+	rearrange_animchannel_islands(&adt->nla_tracks, rearrange_func, mode, ANIMTYPE_NLATRACK);
 }
 
 /* Drivers Specific Stuff ------------------------------------------------- */
@@ -818,8 +881,6 @@ static void rearrange_nla_channels (bAnimContext *UNUSED(ac), AnimData *adt, sho
  */
 static void rearrange_driver_channels (bAnimContext *UNUSED(ac), AnimData *adt, short mode)
 {
-	FCurve *fcu, *fcun;
-	
 	/* get rearranging function */
 	AnimChanRearrangeFp rearrange_func = rearrange_get_mode_func(mode);
 	
@@ -830,19 +891,8 @@ static void rearrange_driver_channels (bAnimContext *UNUSED(ac), AnimData *adt, 
 	if (EXPANDED_DRVD(adt) == 0)
 		return;
 	
-	rearrange_clear_fcurve_tags(&adt->drivers);
-	
-	/* reorder all selected driver F-Curves */
-	for (fcu= (FCurve *)rearrange_iter_first(&adt->drivers, mode); fcu; fcu= fcun) {
-		/* Get next channel to consider */
-		fcun= (FCurve *)rearrange_iter_next((Link *)fcu, mode);
-		
-		/* Try to do channel */
-		if (rearrange_func(&adt->drivers, (Link *)fcu, ANIMTYPE_FCURVE))
-			fcu->flag |= FCURVE_TAGGED;
-	}
-	
-	rearrange_clear_fcurve_tags(&adt->drivers);
+	/* perform rearranging on drivers list (drivers are really just F-Curves) */
+	rearrange_animchannel_islands(&adt->drivers, rearrange_func, mode, ANIMTYPE_FCURVE);
 }
 
 /* Action Specific Stuff ------------------------------------------------- */
@@ -855,9 +905,6 @@ static void split_groups_action_temp (bAction *act, bActionGroup *tgrp)
 	
 	if (act == NULL)
 		return;
-	
-	/* clear "moved" flag from all FCurves */
-	rearrange_clear_fcurve_tags(&act->curves);
 	
 	/* Separate F-Curves into lists per group */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
@@ -919,9 +966,6 @@ static void join_groups_action_temp (bAction *act)
 			break;
 		}
 	}
-	
-	/* clear "moved" flag from all fcurve's */
-	rearrange_clear_fcurve_tags(&act->curves);
 }
 
 /* Change the order of anim-channels within action 
@@ -929,10 +973,8 @@ static void join_groups_action_temp (bAction *act)
  */
 static void rearrange_action_channels (bAnimContext *ac, bAction *act, short mode)
 {
-	bActionGroup *agrp, *grp;
 	bActionGroup tgrp;
-	FCurve *fcu, *fcun;
-	short do_channels = 1;
+	short do_channels;
 	
 	/* get rearranging function */
 	AnimChanRearrangeFp rearrange_func = rearrange_get_mode_func(mode);
@@ -940,36 +982,22 @@ static void rearrange_action_channels (bAnimContext *ac, bAction *act, short mod
 	if (rearrange_func == NULL)
 		return;
 	
-	/* make sure we're only operating with groups */
+	/* make sure we're only operating with groups (vs a mixture of groups+curves) */
 	split_groups_action_temp(act, &tgrp);
 	
-	/* rearrange groups first (and then, only consider channels if the groups weren't moved) */
-	for (agrp= (bActionGroup *)rearrange_iter_first(&act->groups, mode); agrp; agrp= grp) {
-		/* Get next group to consider */
-		grp= (bActionGroup *)rearrange_iter_next((Link *)agrp, mode);
-		
-		/* try to do group first */
-		if (rearrange_func(&act->groups, (Link *)agrp, ANIMTYPE_GROUP)) {
-			do_channels= 0;
-			agrp->flag |= AGRP_MOVED;
-		}
-	}
+	/* rearrange groups first 
+	 *	- the group's channels will only get considered if nothing happened when rearranging the groups
+	 *	  i.e. the rearrange function returned 0
+	 */
+	do_channels = rearrange_animchannel_islands(&act->groups, rearrange_func, mode, ANIMTYPE_GROUP) == 0;
 	
 	if (do_channels) {
-		for (agrp= (bActionGroup *)rearrange_iter_first(&act->groups, mode); agrp; agrp= grp) {
-			/* Get next group to consider */
-			grp= (bActionGroup *)rearrange_iter_next((Link *)agrp, mode);
-			
+		bActionGroup *agrp;
+		
+		for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 			/* only consider F-Curves if they're visible (group expanded) */
 			if (EXPANDED_AGRP(agrp)) {
-				for (fcu= (FCurve *)rearrange_iter_first(&agrp->channels, mode); fcu; fcu= fcun) {
-					/* Get next channel to consider */
-					fcun= (FCurve *)rearrange_iter_next((Link *)fcu, mode);
-					
-					/* Try to do channel */
-					if (rearrange_func(&agrp->channels, (Link *)fcu, ANIMTYPE_FCURVE))
-						fcu->flag |= FCURVE_TAGGED;
-				}
+				rearrange_animchannel_islands(&agrp->channels, rearrange_func, mode, ANIMTYPE_FCURVE);
 			}
 		}
 	}
