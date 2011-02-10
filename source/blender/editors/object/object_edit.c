@@ -587,7 +587,7 @@ void OBJECT_OT_posemode_toggle(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active_editable;
 	
 	/* flag */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *********************** */
