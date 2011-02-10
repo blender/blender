@@ -142,7 +142,11 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		if (mmd->mirror_ob) {
 			mul_m4_v3(mtx, co);
 		}
-		isShared = ABS(co[axis])<=tolerance;
+		
+		if(mmd->flag & MOD_MIR_MERGE)
+			isShared = ABS(co[axis])<=tolerance;
+		else
+			isShared = 0;
 		
 		/* Because the topology result (# of vertices) must be the same if
 		* the mesh data is overridden by vertex cos, have to calc sharedness
@@ -154,8 +158,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		
 		indexMap[i][0] = numVerts - 1;
 		indexMap[i][1] = !isShared;
-		
-		if(isShared) {
+		//
+		if(isShared ) {
 			co[axis] = 0;
 			if (mmd->mirror_ob) {
 				mul_m4_v3(imtx, co);

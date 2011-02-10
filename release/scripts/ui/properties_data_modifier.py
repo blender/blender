@@ -363,7 +363,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             col.prop(md, "use_dynamic_bind")
 
     def MIRROR(self, layout, ob, md):
-        layout.prop(md, "merge_threshold")
         split = layout.split(percentage=0.25)
 
         col = split.column()
@@ -374,6 +373,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Options:")
+        col.prop(md, "use_mirror_merge", text="Merge")
         col.prop(md, "use_clip", text="Clipping")
         col.prop(md, "use_mirror_vertex_groups", text="Vertex Groups")
 
@@ -383,6 +383,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "use_mirror_v", text="V")
 
         col = layout.column()
+        
+        if md.use_mirror_merge == True:
+            col.prop(md, "merge_threshold")
         col.label(text="Mirror Object:")
         col.prop(md, "mirror_object", text="")
 
