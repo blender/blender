@@ -1,4 +1,4 @@
-blender (2.56+svn34749-bf) unstable; urgency=low
+blender (<VER>+svn<REV>-bf) unstable; urgency=low
 
   * New upstream SVN snapshot.
 
