@@ -66,12 +66,12 @@ static void edge_store_assign(uint32_t verts[2],  const uint32_t v1, const uint3
 	}
 }
 
-static void edge_store_from_mface_quad(EdgeUUID es[3], MFace *mf)
+static void edge_store_from_mface_quad(EdgeUUID es[4], MFace *mf)
 {
 	edge_store_assign(es[0].verts, mf->v1, mf->v2);
 	edge_store_assign(es[1].verts, mf->v2, mf->v3);
 	edge_store_assign(es[2].verts, mf->v3, mf->v4);
-	edge_store_assign(es[2].verts, mf->v4, mf->v1);
+	edge_store_assign(es[3].verts, mf->v4, mf->v1);
 }
 
 static void edge_store_from_mface_tri(EdgeUUID es[3], MFace *mf)
@@ -83,7 +83,8 @@ static void edge_store_from_mface_tri(EdgeUUID es[3], MFace *mf)
 
 static int uint_cmp(const void *v1, const void *v2)
 {
-	const unsigned int x1= GET_INT_FROM_POINTER(v1), x2= GET_INT_FROM_POINTER(v2);
+	const unsigned int x1= *(const unsigned int *)v1;
+	const unsigned int x2= *(const unsigned int *)v2;
 
 	if( x1 > x2 ) return 1;
 	else if( x1 < x2 ) return -1;
@@ -97,16 +98,19 @@ static int search_face_cmp(const void *v1, const void *v2)
 	if		(sfa->v[0] > sfb->v[0]) return 1;
 	else if	(sfa->v[0] < sfb->v[0]) return -1;
 
-	if		(sfa->v[1] > sfb->v[1]) return 1;
+	else if	(sfa->v[1] > sfb->v[1]) return 1;
 	else if	(sfa->v[1] < sfb->v[1]) return -1;
 
-	if		(sfa->v[2] > sfb->v[2]) return 1;
+	else if	(sfa->v[2] > sfb->v[2]) return 1;
 	else if	(sfa->v[2] < sfb->v[2]) return -1;
 
-	if		(sfa->v[3] > sfb->v[3]) return 1;
+	else if	(sfa->v[3] > sfb->v[3]) return 1;
 	else if	(sfa->v[3] < sfb->v[3]) return -1;
 
-	return 0;
+//	else if	(sfb->index > sfa->index) return 1;
+//	else if	(sfb->index < sfa->index) return -1;
+	else							  return 0;
+
 }
 
 int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge *medges, int totedge, MFace *mfaces, int totface, const short do_verbose, const short do_fixes)
@@ -118,6 +122,7 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge
 //	MVert *mv;
 	MEdge *med;
 	MFace *mf;
+	MFace *mf_prev;
 	int i;
 
 	int do_face_free= FALSE;
@@ -175,7 +180,7 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge
 
 		fidx = mf->v4 ? 3:2;
 		do {
-			sf->v[fidx]= *(&mf->v1 + fidx);
+			sf->v[fidx]= *(&(mf->v1) + fidx);
 			if(sf->v[fidx] >= totvert) {
 				PRINT("    face %d: 'v%d' index out of range, %d\n", i, fidx + 1, sf->v[fidx]);
 				remove= do_fixes;
@@ -215,7 +220,7 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge
 					}
 				}
 
-				sort_faces[totsortface].index = i;
+				sf->index = i;
 
 				if(mf->v4) {
 					qsort(sf->v, 4, sizeof(unsigned int), uint_cmp);
@@ -245,11 +250,11 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge
 		/* on a valid mesh, code below will never run */
 		if(memcmp(sf->v, sf_prev->v, sizeof(sf_prev->v)) == 0) {
 			/* slow, could be smarter here */
-			MFace *mf= mfaces + sf->index;
-			MFace *mf_prev= mfaces + sf_prev->index;
-
 			EdgeUUID eu[4];
 			EdgeUUID eu_prev[4];
+
+			mf= mfaces + sf->index;
+			mf_prev= mfaces + sf_prev->index;
 
 			if(mf->v4) {
 				edge_store_from_mface_quad(eu, mf);
@@ -269,7 +274,7 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdge
 			}
 			else {
 				edge_store_from_mface_tri(eu, mf);
-				edge_store_from_mface_tri(eu_prev, mf);
+				edge_store_from_mface_tri(eu_prev, mf_prev);
 				if(
 					ELEM3(eu[0].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval) &&
 					ELEM3(eu[1].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval) &&
