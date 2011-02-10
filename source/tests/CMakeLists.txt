@@ -221,7 +221,7 @@ add_test(export_3ds_all_objects ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/export_3ds_all_objects.3ds',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_3ds_all_objects.3ds
-	--md5=1523ca2e31cf7d781c7de1e17bd14520   --md5_method=FILE
+	--md5=87349a4699f1006e8194fb0ac05ac9c8 --md5_method=FILE
 )
 
 
@@ -249,5 +249,5 @@ add_test(export_fbx_all_objects ${EXECUTABLE_OUTPUT_PATH}/blender ${GENERIC_ARGS
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_all_objects.fbx',use_selection=False,use_metadata=False\)
 	--md5_source=${TEST_OUT_DIR}/export_fbx_all_objects.fbx
-	--md5=1b829a528f9bdfc054f5d70f455855ad   --md5_method=FILE
+	--md5=be69cf0baf51dcf43f579183310cb383 --md5_method=FILE
 )

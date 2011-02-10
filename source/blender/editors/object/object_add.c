@@ -1116,6 +1116,15 @@ static int convert_exec(bContext *C, wmOperator *op)
 				base->flag &= ~SELECT;
 				ob->flag &= ~SELECT;
 			}
+
+			/* obdata already modified */
+			if(!IS_TAGGED(ob->data)) {
+				/* When 2 objects with linked data are selected, converting both
+				 * would keep modifiers on all but the converted object [#26003] */
+				if(ob->type == OB_MESH) {
+					object_free_modifiers(ob);	/* after derivedmesh calls! */
+				}
+			}
 		}
 		else if (ob->type==OB_MESH && target == OB_CURVE) {
 			ob->flag |= OB_DONE;

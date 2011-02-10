@@ -44,15 +44,15 @@
 
 #define SELECT 1
 
-typedef struct SearchFace {
+typedef struct SortFace {
 	unsigned int v[4];
 	unsigned int index;
-} SearchFace;
+} SortFace;
 
 typedef union {
 	uint32_t verts[2];
 	int64_t edval;
-} EdgeStore;
+} EdgeUUID;
 
 static void edge_store_assign(uint32_t verts[2],  const uint32_t v1, const uint32_t v2)
 {
@@ -66,7 +66,7 @@ static void edge_store_assign(uint32_t verts[2],  const uint32_t v1, const uint3
 	}
 }
 
-static void edge_store_from_mface_quad(EdgeStore es[3], MFace *mf)
+static void edge_store_from_mface_quad(EdgeUUID es[3], MFace *mf)
 {
 	edge_store_assign(es[0].verts, mf->v1, mf->v2);
 	edge_store_assign(es[1].verts, mf->v2, mf->v3);
@@ -74,7 +74,7 @@ static void edge_store_from_mface_quad(EdgeStore es[3], MFace *mf)
 	edge_store_assign(es[2].verts, mf->v4, mf->v1);
 }
 
-static void edge_store_from_mface_tri(EdgeStore es[3], MFace *mf)
+static void edge_store_from_mface_tri(EdgeUUID es[3], MFace *mf)
 {
 	edge_store_assign(es[0].verts, mf->v1, mf->v2);
 	edge_store_assign(es[1].verts, mf->v2, mf->v3);
@@ -92,7 +92,7 @@ static int uint_cmp(const void *v1, const void *v2)
 
 static int search_face_cmp(const void *v1, const void *v2)
 {
-	const SearchFace *sfa= v1, *sfb= v2;
+	const SortFace *sfa= v1, *sfb= v2;
 
 	if		(sfa->v[0] > sfb->v[0]) return 1;
 	else if	(sfa->v[0] < sfb->v[0]) return -1;
@@ -127,10 +127,10 @@ void BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdg
 
 	EdgeHash *edge_hash = BLI_edgehash_new();
 
-	SearchFace *search_faces= MEM_callocN(sizeof(SearchFace) * totface, "search faces");
-	SearchFace *sf;
-	SearchFace *sf_prev;
-	int totsearchface= 0;
+	SortFace *sort_faces= MEM_callocN(sizeof(SortFace) * totface, "search faces");
+	SortFace *sf;
+	SortFace *sf_prev;
+	int totsortface= 0;
 
 	BLI_assert(!(do_fixes && me == NULL));
 
@@ -217,24 +217,24 @@ void BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdg
 					}
 				}
 
-				search_faces[totsearchface].index = i;
+				sort_faces[totsortface].index = i;
 
 				if(mf->v4) {
 					qsort(fverts, 4, sizeof(unsigned int), uint_cmp);
-					search_faces[i].v[0] = fverts[0];
-					search_faces[i].v[1] = fverts[1];
-					search_faces[i].v[2] = fverts[2];
-					search_faces[i].v[3] = fverts[3];
+					sort_faces[i].v[0] = fverts[0];
+					sort_faces[i].v[1] = fverts[1];
+					sort_faces[i].v[2] = fverts[2];
+					sort_faces[i].v[3] = fverts[3];
 				}
 				else {
 					qsort(fverts, 3, sizeof(unsigned int), uint_cmp);
-					search_faces[i].v[0] = fverts[0];
-					search_faces[i].v[1] = fverts[1];
-					search_faces[i].v[2] = fverts[2];
-					search_faces[i].v[3] = UINT_MAX;
+					sort_faces[i].v[0] = fverts[0];
+					sort_faces[i].v[1] = fverts[1];
+					sort_faces[i].v[2] = fverts[2];
+					sort_faces[i].v[3] = UINT_MAX;
 				}
 
-				totsearchface++;
+				totsortface++;
 			}
 		}
 		if(remove) {
@@ -242,13 +242,13 @@ void BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdg
 		}
 	}
 
-	qsort(search_faces, totsearchface, sizeof(SearchFace), search_face_cmp);
+	qsort(sort_faces, totsortface, sizeof(SortFace), search_face_cmp);
 
-	sf= search_faces;
+	sf= sort_faces;
 	sf_prev= sf;
 	sf++;
 
-	for(i=1; i<totsearchface; i++, sf++) {
+	for(i=1; i<totsortface; i++, sf++) {
 		int remove= FALSE;
 		/* on a valid mesh, code below will never run */
 		if(memcmp(sf->v, sf_prev->v, sizeof(sf_prev->v)) == 0) {
@@ -256,18 +256,18 @@ void BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdg
 			MFace *mf= mfaces + sf->index;
 			MFace *mf_prev= mfaces + sf_prev->index;
 
-			EdgeStore es[4];
-			EdgeStore es_prev[4];
+			EdgeUUID eu[4];
+			EdgeUUID eu_prev[4];
 
 			if(mf->v4) {
-				edge_store_from_mface_quad(es, mf);
-				edge_store_from_mface_quad(es_prev, mf_prev);
+				edge_store_from_mface_quad(eu, mf);
+				edge_store_from_mface_quad(eu_prev, mf_prev);
 
 				if(
-					ELEM4(es[0].edval, es_prev[0].edval, es_prev[1].edval, es_prev[2].edval, es_prev[3].edval) &&
-					ELEM4(es[1].edval, es_prev[0].edval, es_prev[1].edval, es_prev[2].edval, es_prev[3].edval) &&
-					ELEM4(es[2].edval, es_prev[0].edval, es_prev[1].edval, es_prev[2].edval, es_prev[3].edval) &&
-					ELEM4(es[3].edval, es_prev[0].edval, es_prev[1].edval, es_prev[2].edval, es_prev[3].edval)
+					ELEM4(eu[0].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval, eu_prev[3].edval) &&
+					ELEM4(eu[1].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval, eu_prev[3].edval) &&
+					ELEM4(eu[2].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval, eu_prev[3].edval) &&
+					ELEM4(eu[3].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval, eu_prev[3].edval)
 				) {
 					PRINT("    face %d & %d: are duplicates ", sf->index, sf_prev->index);
 					PRINT("(%d,%d,%d,%d) ", mf->v1, mf->v2, mf->v3, mf->v4);
@@ -276,12 +276,12 @@ void BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdg
 				}
 			}
 			else {
-				edge_store_from_mface_tri(es, mf);
-				edge_store_from_mface_tri(es_prev, mf);
+				edge_store_from_mface_tri(eu, mf);
+				edge_store_from_mface_tri(eu_prev, mf);
 				if(
-					ELEM3(es[0].edval, es_prev[0].edval, es_prev[1].edval, es_prev[2].edval) &&
-					ELEM3(es[1].edval, es_prev[0].edval, es_prev[1].edval, es_prev[2].edval) &&
-					ELEM3(es[2].edval, es_prev[0].edval, es_prev[1].edval, es_prev[2].edval)
+					ELEM3(eu[0].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval) &&
+					ELEM3(eu[1].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval) &&
+					ELEM3(eu[2].edval, eu_prev[0].edval, eu_prev[1].edval, eu_prev[2].edval)
 				) {
 					PRINT("    face %d & %d: are duplicates ", sf->index, sf_prev->index);
 					PRINT("(%d,%d,%d) ", mf->v1, mf->v2, mf->v3);
@@ -293,7 +293,7 @@ void BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdg
 
 		if(remove) {
 			REMOVE_FACE_TAG(mf);
-			/* keep sf_prev */
+			/* keep sf_prev incase next face also matches*/
 		}
 		else {
 			sf_prev= sf;
@@ -301,7 +301,7 @@ void BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), int totvert, MEdg
 	}
 
 	BLI_edgehash_free(edge_hash, NULL);
-	MEM_freeN(search_faces);
+	MEM_freeN(sort_faces);
 
 	PRINT("BKE_mesh_validate: finished\n\n");
 
@@ -334,7 +334,6 @@ void BKE_mesh_validate_dm(DerivedMesh *dm)
 {
 	BKE_mesh_validate_arrays(NULL, dm->getVertArray(dm), dm->getNumVerts(dm), dm->getEdgeArray(dm), dm->getNumEdges(dm), dm->getFaceArray(dm), dm->getNumFaces(dm), TRUE, FALSE);
 }
-
 
 void BKE_mesh_calc_edges(Mesh *mesh, int update)
 {
