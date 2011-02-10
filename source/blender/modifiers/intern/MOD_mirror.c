@@ -49,7 +49,7 @@ static void initData(ModifierData *md)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
-	mmd->flag |= (MOD_MIR_AXIS_X | MOD_MIR_VGROUP);
+	mmd->flag |= (MOD_MIR_AXIS_X | MOD_MIR_VGROUP | MOD_MIR_MERGE);
 	mmd->tolerance = 0.001;
 	mmd->mirror_ob = NULL;
 }
