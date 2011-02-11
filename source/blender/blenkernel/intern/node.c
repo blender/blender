@@ -269,7 +269,7 @@ void ntreeVerifyTypes(bNodeTree *ntree)
 static bNodeType ntype_group;
 
 /* groups display their internal tree name as label */
-const char *group_label(bNode *node)
+static const char *group_label(bNode *node)
 {
 	return node->id->name+2;
 }
