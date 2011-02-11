@@ -136,7 +136,7 @@ void			ntreeInitTypes(struct bNodeTree *ntree);
 void			ntreeMakeOwnType(struct bNodeTree *ntree);
 void			ntreeUpdateType(struct bNodeTree *ntree, struct bNodeType *ntype);
 void			ntreeFreeTree(struct bNodeTree *ntree);
-struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree, int internal_select);
+struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree);
 void			ntreeSwitchID(struct bNodeTree *ntree, struct ID *sce_from, struct ID *sce_to);
 void			ntreeMakeLocal(struct bNodeTree *ntree);
 

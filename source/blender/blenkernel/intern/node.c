@@ -826,7 +826,7 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	 *	- all of wgroup's nodes are transferred across to their new home
 	 *	- ngroup (i.e. the source NodeTree) is left unscathed
 	 */
-	wgroup= ntreeCopyTree(ngroup, 0);
+	wgroup= ntreeCopyTree(ngroup);
 	
 	/* add the nodes into the ntree */
 	for(node= wgroup->nodes.first; node; node= nextn) {
@@ -926,7 +926,7 @@ void nodeCopyGroup(bNode *gnode)
 	bNodeSocket *sock;
 
 	gnode->id->us--;
-	gnode->id= (ID *)ntreeCopyTree((bNodeTree *)gnode->id, 0);
+	gnode->id= (ID *)ntreeCopyTree((bNodeTree *)gnode->id);
 
 	/* new_sock was set in nodeCopyNode */
 	for(sock=gnode->inputs.first; sock; sock=sock->next)
@@ -1191,12 +1191,11 @@ bNodeTree *ntreeAddTree(const char *name, int type, const short is_group)
 }
 
 /* Warning: this function gets called during some rather unexpected times
- *	- internal_select is only 1 when used for duplicating selected nodes (i.e. Shift-D duplicate operator)
  *	- this gets called when executing compositing updates (for threaded previews)
  *	- when the nodetree datablock needs to be copied (i.e. when users get copied)
  *	- for scene duplication use ntreeSwapID() after so we dont have stale pointers.
  */
-bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
+bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 {
 	bNodeTree *newtree;
 	bNode *node, *nnode, *last;
@@ -1206,34 +1205,26 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 	
 	if(ntree==NULL) return NULL;
 	
-	if(internal_select==0) {
-		/* is ntree part of library? */
-		for(newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
-			if(newtree==ntree) break;
-		if(newtree) {
-			newtree= copy_libblock(ntree);
-		} else {
-			newtree= MEM_dupallocN(ntree);
-			copy_libblock_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
-		}
-		newtree->nodes.first= newtree->nodes.last= NULL;
-		newtree->links.first= newtree->links.last= NULL;
+	/* is ntree part of library? */
+	for(newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
+		if(newtree==ntree) break;
+	if(newtree) {
+		newtree= copy_libblock(ntree);
+	} else {
+		newtree= MEM_dupallocN(ntree);
+		copy_libblock_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
 	}
-	else
-		newtree= ntree;
+	newtree->nodes.first= newtree->nodes.last= NULL;
+	newtree->links.first= newtree->links.last= NULL;
 	
-	last= ntree->nodes.last;
+	last = ntree->nodes.last;
 	for(node= ntree->nodes.first; node; node= node->next) {
-		
 		node->new_node= NULL;
-		if(internal_select==0 || (node->flag & NODE_SELECT)) {
-			nnode= nodeCopyNode(newtree, node, internal_select);	/* sets node->new */
-			if(internal_select) {
-				node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
-				nnode->flag |= NODE_SELECT;
-			}
-		}
-		if(node==last) break;
+		nnode= nodeCopyNode(newtree, node, 0);	/* sets node->new */
+		
+		/* make sure we don't copy new nodes again! */
+		if (node==last)
+			break;
 	}
 	
 	/* check for copying links */
@@ -1257,15 +1248,14 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 	}
 	
 	/* own type definition for group usage */
-	if(internal_select==0) {
-		if(ntree->owntype) {
-			newtree->owntype= MEM_dupallocN(ntree->owntype);
-			if(ntree->owntype->inputs)
-				newtree->owntype->inputs= MEM_dupallocN(ntree->owntype->inputs);
-			if(ntree->owntype->outputs)
-				newtree->owntype->outputs= MEM_dupallocN(ntree->owntype->outputs);
-		}
+	if(ntree->owntype) {
+		newtree->owntype= MEM_dupallocN(ntree->owntype);
+		if(ntree->owntype->inputs)
+			newtree->owntype->inputs= MEM_dupallocN(ntree->owntype->inputs);
+		if(ntree->owntype->outputs)
+			newtree->owntype->outputs= MEM_dupallocN(ntree->owntype->outputs);
 	}
+	
 	/* weird this is required... there seem to be link pointers wrong still? */
 	/* anyhoo, doing this solves crashes on copying entire tree (copy scene) and delete nodes */
 	ntreeSolveOrder(newtree);
@@ -1573,7 +1563,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	}
 	else if(local && lib) {
 		/* this is the mixed case, we copy the tree and assign it to local users */
-		bNodeTree *newtree= ntreeCopyTree(ntree, 0);
+		bNodeTree *newtree= ntreeCopyTree(ntree);
 		
 		newtree->id.us= 0;
 		
@@ -2741,7 +2731,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	}
 
 	/* node copy func */
-	ltree= ntreeCopyTree(ntree, 0);
+	ltree= ntreeCopyTree(ntree);
 
 	if(adt) {
 		AnimData *ladt= BKE_animdata_from_id(&ltree->id);

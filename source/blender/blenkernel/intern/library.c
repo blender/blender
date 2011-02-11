@@ -310,7 +310,7 @@ int id_copy(ID *id, ID **newid, int test)
 			if(!test) *newid= (ID*)copy_action((bAction*)id);
 			return 1;
 		case ID_NT:
-			if(!test) *newid= (ID*)ntreeCopyTree((bNodeTree*)id, 0);
+			if(!test) *newid= (ID*)ntreeCopyTree((bNodeTree*)id);
 			return 1;
 		case ID_BR:
 			if(!test) *newid= (ID*)copy_brush((Brush*)id);

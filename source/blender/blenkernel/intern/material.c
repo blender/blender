@@ -223,7 +223,7 @@ Material *copy_material(Material *ma)
 	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
 
 	if(ma->nodetree) {
-		man->nodetree= ntreeCopyTree(ma->nodetree, 0);	/* 0 == full new tree */
+		man->nodetree= ntreeCopyTree(ma->nodetree);	/* 0 == full new tree */
 	}
 
 	man->gpumaterial.first= man->gpumaterial.last= NULL;
@@ -1401,7 +1401,7 @@ void copy_matcopybuf(Material *ma)
 			matcopybuf.mtex[a]= MEM_dupallocN(mtex);
 		}
 	}
-	matcopybuf.nodetree= ntreeCopyTree(ma->nodetree, 0);
+	matcopybuf.nodetree= ntreeCopyTree(ma->nodetree);
 	matcopybuf.preview= NULL;
 	matcopybuf.gpumaterial.first= matcopybuf.gpumaterial.last= NULL;
 	matcopied= 1;
@@ -1446,5 +1446,5 @@ void paste_matcopybuf(Material *ma)
 		}
 	}
 
-	ma->nodetree= ntreeCopyTree(matcopybuf.nodetree, 0);
+	ma->nodetree= ntreeCopyTree(matcopybuf.nodetree);
 }

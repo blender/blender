@@ -1693,27 +1693,36 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
-	bNode *node;
+	bNodeTree *ntree= snode->edittree;
+	bNode *node, *newnode, *last;
 	
 	ED_preview_kill_jobs(C);
-
-	/* simple id user adjustment, node internal functions dont touch this
-	 * but operators and readfile.c do. */
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
+	
+	last = ntree->nodes.last;
+	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
-			id_us_plus(node->id);
+			newnode = nodeCopyNode(ntree, node, 1);
+			
+			/* deselect old node, select the copy instead */
+			node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
+			newnode->flag |= NODE_SELECT;
+			
+			if(newnode->id) {
+				/* simple id user adjustment, node internal functions dont touch this
+				 * but operators and readfile.c do. */
+				id_us_plus(newnode->id);
+				/* to ensure redraws or rerenders happen */
+				ED_node_changed_update(snode->id, newnode);
+			}
 		}
+		
+		/* make sure we don't copy new nodes again! */
+		if (node==last)
+			break;
 	}
-
-	ntreeCopyTree(snode->edittree, 1);	/* 1 == internally selected nodes */
 	
-	/* to ensure redraws or rerenders happen */
-	for(node= snode->edittree->nodes.first; node; node= node->next)
-		if(node->flag & SELECT)
-			if(node->id)
-				ED_node_changed_update(snode->id, node);
+	ntreeSolveOrder(ntree);
 	
-	ntreeSolveOrder(snode->edittree);
 	node_tree_verify_groups(snode->nodetree);
 	snode_notify(C, snode);
 

@@ -171,7 +171,7 @@ Scene *copy_scene(Scene *sce, int type)
 		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
 
 		if(sce->nodetree) {
-			scen->nodetree= ntreeCopyTree(sce->nodetree, 0); /* copies actions */
+			scen->nodetree= ntreeCopyTree(sce->nodetree); /* copies actions */
 			ntreeSwitchID(scen->nodetree, &sce->id, &scen->id);
 		}
 
