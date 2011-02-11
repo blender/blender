@@ -2,15 +2,16 @@ Source: blender
 Section: graphics
 Priority: extra
 Maintainer: Dan Eicher <dan@trollwerks.org>
-Build-Depends: debhelper (>= 7.0.50~), cdbs, cmake, python-support, libfreetype6-dev, libglu1-mesa-dev, libilmbase-dev, libopenexr-dev, libjpeg62-dev, libopenal-dev, libpng12-dev, libsamplerate0-dev, libsdl-dev, libtiff4-dev, libx11-dev, libxi-dev, zlib1g-dev, python3.1-dev [!hurd-i386 !kfreebsd-amd64 !kfreebsd-i386]
+Build-Depends: debhelper (>= 7.0.50~), cmake, python3, python, libfreetype6-dev, libglu1-mesa-dev, libilmbase-dev, libopenexr-dev, libjpeg62-dev, libopenal-dev, libpng12-dev, libsamplerate0-dev, libsdl-dev, libtiff4-dev, libx11-dev, libxi-dev, zlib1g-dev, python3.1-dev [!hurd-i386 !kfreebsd-amd64 !kfreebsd-i386]
 Standards-Version: 3.9.1
 Homepage: http://blender.org/
 Vcs-Browser: http://github.com/eponymous/blender
 Vcs-Git: git://github.com/eponymous/blender.git
+X-Python3-Version: >= 3.1, << 3.2
 
 Package: blender
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${python3:Depends}, ${misc:Depends}
 Description: Very fast and versatile 3D modeller/renderer
  Blender is an integrated 3d suite for modelling, animation, rendering,
  post-production, interactive creation and playback (games). Blender has its
