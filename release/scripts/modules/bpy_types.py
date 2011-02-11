@@ -641,6 +641,10 @@ class RenderEngine(StructRNA, metaclass=RNAMeta):
     __slots__ = ()
 
 
+class KeyingSetInfo(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
+
+
 class _GenericUI:
     __slots__ = ()
 

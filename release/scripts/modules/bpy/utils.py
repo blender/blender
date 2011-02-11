@@ -23,6 +23,9 @@ This module contains utility functions specific to blender but
 not assosiated with blenders internal data.
 """
 
+from _bpy import register_class
+from _bpy import unregister_class
+
 from _bpy import blend_paths
 from _bpy import script_paths as _bpy_script_paths
 from _bpy import user_resource as _user_resource
@@ -576,18 +579,14 @@ def user_resource(type, path="", create=False):
     return target_path
 
 
-_register_types = _bpy.types.Panel, _bpy.types.Operator, _bpy.types.Menu, _bpy.types.Header, _bpy.types.RenderEngine
-
-
 def register_module(module):
     import traceback
     total = 0
-    register = _bpy.types.register
     for cls, path, line in _bpy_types.TypeMap.get(module, ()):
         if not "bl_rna" in cls.__dict__:
             total += 1
             try:
-                register(cls)
+                register_class(cls)
             except:
                 print("bpy.utils.register_module(): failed to registering class '%s.%s'" % (cls.__module__, cls.__name__))
                 print("\t", path, "line", line)
@@ -599,13 +598,12 @@ def register_module(module):
 
 def unregister_module(module):
     import traceback
-    unregister = _bpy.types.unregister
     total = 0
     for cls, path, line in _bpy_types.TypeMap.get(module, ()):
         if "bl_rna" in cls.__dict__:
             total += 1
             try:
-                unregister(cls)
+                unregister_class(cls)
             except:
                 print("bpy.utils.unregister_module(): failed to unregistering class '%s.%s'" % (cls.__module__, cls.__name__))
                 print("\t", path, "line", line)

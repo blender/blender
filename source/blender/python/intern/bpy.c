@@ -227,6 +227,10 @@ void BPy_init_modules( void )
 	PyModule_AddObject(mod, meth_bpy_blend_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_blend_paths, NULL));
 	PyModule_AddObject(mod, meth_bpy_user_resource.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_user_resource, NULL));
 
+	/* register funcs (bpy_rna.c) */
+	PyModule_AddObject(mod, meth_bpy_register_class.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_register_class, NULL));
+	PyModule_AddObject(mod, meth_bpy_unregister_class.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_unregister_class, NULL));
+
 	/* add our own modules dir, this is a python package */
 	bpy_import_test("bpy");
 }

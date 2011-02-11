@@ -26,4 +26,4 @@ class BUILTIN_KSI_hello(bpy.types.KeyingSetInfo):
         ks.paths.add(id_block, "show_x_ray", group_method='NONE')
 
 # manually register
-bpy.types.register(BUILTIN_KSI_hello)
+bpy.utils.register_class(BUILTIN_KSI_hello)

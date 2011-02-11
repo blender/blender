@@ -374,9 +374,9 @@ def addProperties():
     class NetRenderJob(bpy.types.IDPropertyGroup):
         pass
 
-    bpy.types.register(NetRenderSettings)
-    bpy.types.register(NetRenderSlave)
-    bpy.types.register(NetRenderJob)
+    bpy.utils.register_class(NetRenderSettings)
+    bpy.utils.register_class(NetRenderSlave)
+    bpy.utils.register_class(NetRenderJob)
 
     from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
     bpy.types.Scene.network_render = PointerProperty(type=NetRenderSettings, name="Network Render", description="Network Render Settings")

@@ -352,38 +352,14 @@ class BUILTIN_KSI_WholeCharacter(bpy.types.KeyingSetInfo):
             # for now, just add all of 'em
             ksi.addProp(ks, bone, '["%s"]' % (prop))
 
-###############################
-
-classes = [
-    BUILTIN_KSI_Location,
-    BUILTIN_KSI_Rotation,
-    BUILTIN_KSI_Scaling,
-
-    BUILTIN_KSI_LocRot,
-    BUILTIN_KSI_LocScale,
-    BUILTIN_KSI_LocRotScale,
-    BUILTIN_KSI_RotScale,
-
-    BUILTIN_KSI_WholeCharacter,
-
-    BUILTIN_KSI_VisualLoc,
-    BUILTIN_KSI_VisualRot,
-    BUILTIN_KSI_VisualLocRot,
-
-    BUILTIN_KSI_Available,
-]
-
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    bpy.utils.unregister_module(__name__)
+
 
 if __name__ == "__main__":
     register()
