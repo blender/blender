@@ -587,15 +587,15 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Property", "Use this property to define the Action position");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "sta");
-	RNA_def_property_range(prop, 0, MAXFRAME);
+	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sta");
+	RNA_def_property_ui_range(prop, 0.0, MAXFRAME, 100, 2);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "end");
-	RNA_def_property_range(prop, 0, MAXFRAME);
+	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "end");
+	RNA_def_property_ui_range(prop, 0.0, MAXFRAME, 100, 2);
 	RNA_def_property_ui_text(prop, "End Frame", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
@@ -834,15 +834,15 @@ static void rna_def_fcurve_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "F-Curve Type", "Specify the way you want to play the animation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
-	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "sta");
-	RNA_def_property_ui_range(prop, 1, MAXFRAME, 1, 1);
+	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sta");
+	RNA_def_property_ui_range(prop, 1.0, MAXFRAME, 100, 2);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "end");
-	RNA_def_property_ui_range(prop, 1, MAXFRAME, 1, 1);
+	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "end");
+	RNA_def_property_ui_range(prop, 1.0, MAXFRAME, 100, 2);
 	RNA_def_property_ui_text(prop, "End Frame", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
@@ -1816,15 +1816,15 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Property", "Use this property to define the Action position");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "sta");
-	RNA_def_property_range(prop, 0, MAXFRAME);
+	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sta");
+	RNA_def_property_ui_range(prop, 0.0, MAXFRAME, 100, 2);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "end");
-	RNA_def_property_range(prop, 0, MAXFRAME);
+	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "end");
+	RNA_def_property_ui_range(prop, 0.0, MAXFRAME, 100, 2);
 	RNA_def_property_ui_text(prop, "End Frame", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 

@@ -2030,8 +2030,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			}
 			else
 			{
-				uiDefButI(block, NUM, 0, "Sta: ",xco+10, yco-44, (width-20)/2, 19, &aa->sta, 1.0, MAXFRAMEF, 0, 0, "Start frame");
-				uiDefButI(block, NUM, 0, "End: ",xco+10+(width-20)/2, yco-44, (width-20)/2, 19, &aa->end, 1.0, MAXFRAMEF, 0, 0, "End frame");
+				uiDefButF(block, NUM, 0, "Sta: ",xco+10, yco-44, (width-20)/2, 19, &aa->sta, 1.0, MAXFRAMEF, 0, 0, "Start frame");
+				uiDefButF(block, NUM, 0, "End: ",xco+10+(width-20)/2, yco-44, (width-20)/2, 19, &aa->end, 1.0, MAXFRAMEF, 0, 0, "End frame");
 			}
 						
 			uiDefButS(block, NUM, 0, "Blendin: ", xco+10, yco-64, (width-20)/2, 19, &aa->blendin, 0.0, 32767, 0.0, 0.0, "Number of frames of motion blending");
@@ -2092,11 +2092,11 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					"Use this property to define the Ipo position");
 			}
 			else {
-				uiDefButI(block, NUM, 0, 
+				uiDefButF(block, NUM, 0, 
 					"Sta",		xco+10, yco-44, (width-80)/2, 19, 
 					&ia->sta, 1.0, MAXFRAMEF, 0, 0, 
 					"Start frame");
-				uiDefButI(block, NUM, 0, 
+				uiDefButF(block, NUM, 0, 
 					"End",		xco+10+(width-80)/2, yco-44, (width-80)/2, 19, 
 					&ia->end, 1.0, MAXFRAMEF, 0, 0, 
 					"End frame");
