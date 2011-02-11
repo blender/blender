@@ -432,7 +432,7 @@ void DM_swap_face_data(DerivedMesh *dm, int index, const int *corner_indices)
 
 ///
 
-static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3])
+DerivedMesh *mesh_create_derived(Mesh *me, Object *ob, float (*vertCos)[3])
 {
 	DerivedMesh *dm = CDDM_from_mesh(me, ob);
 	
@@ -1330,7 +1330,7 @@ static void emDM_release(DerivedMesh *dm)
 	}
 }
 
-static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, float (*vertexCos)[3])
+DerivedMesh *editmesh_get_derived(EditMesh *em, float (*vertexCos)[3])
 {
 	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "emdm");
 
@@ -1447,11 +1447,11 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, Modifier
 		float (*deformedVerts)[3] = mesh_getVertexCos(me, &numVerts);
 
 		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, 0, 0);
-		dm = getMeshDerivedMesh(me, ob, deformedVerts);
+		dm = mesh_create_derived(me, ob, deformedVerts);
 
 		MEM_freeN(deformedVerts);
 	} else {
-		DerivedMesh *tdm = getMeshDerivedMesh(me, ob, NULL);
+		DerivedMesh *tdm = mesh_create_derived(me, ob, NULL);
 		dm = mti->applyModifier(md, ob, tdm, 0, 0);
 
 		if(tdm != dm) tdm->release(tdm);
@@ -2003,7 +2003,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	BLI_linklist_free(datamasks, NULL);
 }
 
-static float (*editmesh_getVertexCos(EditMesh *em, int *numVerts_r))[3]
+float (*editmesh_get_vertex_cos(EditMesh *em, int *numVerts_r))[3]
 {
 	int i, numVerts = *numVerts_r = BLI_countlist(&em->verts);
 	float (*cos)[3];
@@ -2017,7 +2017,7 @@ static float (*editmesh_getVertexCos(EditMesh *em, int *numVerts_r))[3]
 	return cos;
 }
 
-static int editmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedMesh *dm)
+int editmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedMesh *dm)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
@@ -2046,7 +2046,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 	modifiers_clearErrors(ob);
 
 	if(cage_r && cageIndex == -1) {
-		*cage_r = getEditMeshDerivedMesh(em, NULL);
+		*cage_r = editmesh_get_derived(em, NULL);
 	}
 
 	dm = NULL;
@@ -2088,7 +2088,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 						MEM_mallocN(sizeof(*deformedVerts) * numVerts, "dfmv");
 					dm->getVertCos(dm, deformedVerts);
 				} else {
-					deformedVerts = editmesh_getVertexCos(em, &numVerts);
+					deformedVerts = editmesh_get_vertex_cos(em, &numVerts);
 				}
 			}
 
@@ -2178,7 +2178,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 				*cage_r = dm;
 			} else {
 				*cage_r =
-					getEditMeshDerivedMesh(em,
+					editmesh_get_derived(em,
 						deformedVerts ? MEM_dupallocN(deformedVerts) : NULL);
 			}
 		}
@@ -2202,7 +2202,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 	} else if (!deformedVerts && cage_r && *cage_r) {
 		*final_r = *cage_r;
 	} else {
-		*final_r = getEditMeshDerivedMesh(em, deformedVerts);
+		*final_r = editmesh_get_derived(em, deformedVerts);
 		deformedVerts = NULL;
 	}
 
@@ -2425,7 +2425,7 @@ DerivedMesh *editmesh_get_derived_cage(Scene *scene, Object *obedit, EditMesh *e
 
 DerivedMesh *editmesh_get_derived_base(Object *UNUSED(obedit), EditMesh *em)
 {
-	return getEditMeshDerivedMesh(em, NULL);
+	return editmesh_get_derived(em, NULL);
 }
 
 
@@ -2511,8 +2511,8 @@ int editmesh_get_first_deform_matrices(Scene *scene, Object *ob, EditMesh *em, f
 
 		if(mti->type==eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
 			if(!defmats) {
-				dm= getEditMeshDerivedMesh(em, NULL);
-				deformedVerts= editmesh_getVertexCos(em, &numVerts);
+				dm= editmesh_get_derived(em, NULL);
+				deformedVerts= editmesh_get_vertex_cos(em, &numVerts);
 				defmats= MEM_callocN(sizeof(*defmats)*numVerts, "defmats");
 
 				for(a=0; a<numVerts; a++)
@@ -2565,7 +2565,7 @@ void sculpt_get_deform_matrices(Scene *scene, Object *ob, float (**deformmats)[3
 		if(mti->type==eModifierTypeType_OnlyDeform && mti->deformMatrices) {
 			if(!defmats) {
 				Mesh *me= (Mesh*)ob->data;
-				dm= getMeshDerivedMesh(me, ob, NULL);
+				dm= mesh_create_derived(me, ob, NULL);
 				deformedVerts= mesh_getVertexCos(me, &numVerts);
 				defmats= MEM_callocN(sizeof(*defmats)*numVerts, "defmats");
 
