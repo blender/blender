@@ -588,8 +588,9 @@ def _bpy_module_classes(module, is_registered=False):
 
         if cls is None:
             del typemap_list[i]
-        elif is_registered == ("bl_rna" in cls.__dict__):
-            yield (cls, path, line)
+        else:
+            if is_registered == ("bl_rna" in cls.__dict__):
+                yield (cls, path, line)
             i += 1
 
 
