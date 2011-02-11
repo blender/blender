@@ -579,35 +579,40 @@ def user_resource(type, path="", create=False):
     return target_path
 
 
+def _bpy_module_classes(module, is_registered=False):
+    typemap_list = _bpy_types.TypeMap.get(module, ())
+    i = 0
+    while i < len(typemap_list):
+        cls_weakref, path, line = typemap_list[i]
+        cls = cls_weakref()
+
+        if cls is None:
+            del typemap_list[i]
+        elif is_registered == ("bl_rna" in cls.__dict__):
+            yield (cls, path, line)
+            i += 1
+
+
 def register_module(module):
     import traceback
-    total = 0
-    for cls, path, line in _bpy_types.TypeMap.get(module, ()):
-        if not "bl_rna" in cls.__dict__:
-            total += 1
-            try:
-                register_class(cls)
-            except:
-                print("bpy.utils.register_module(): failed to registering class '%s.%s'" % (cls.__module__, cls.__name__))
-                print("\t", path, "line", line)
-                traceback.print_exc()
+    for cls, path, line in _bpy_module_classes(module, is_registered=False):
+        try:
+            register_class(cls)
+        except:
+            print("bpy.utils.register_module(): failed to registering class '%s.%s'" % (cls.__module__, cls.__name__))
+            print("\t", path, "line", line)
+            traceback.print_exc()
 
-    if total == 0:
+    if "cls" not in locals():
         raise Exception("register_module(%r): defines no classes" % module)
 
 
 def unregister_module(module):
     import traceback
-    total = 0
-    for cls, path, line in _bpy_types.TypeMap.get(module, ()):
-        if "bl_rna" in cls.__dict__:
-            total += 1
-            try:
-                unregister_class(cls)
-            except:
-                print("bpy.utils.unregister_module(): failed to unregistering class '%s.%s'" % (cls.__module__, cls.__name__))
-                print("\t", path, "line", line)
-                traceback.print_exc()
-
-    if total == 0:
-        raise Exception("unregister_module(%r): defines no classes" % module)
+    for cls, path, line in _bpy_module_classes(module, is_registered=True):
+        try:
+            unregister_class(cls)
+        except:
+            print("bpy.utils.unregister_module(): failed to unregistering class '%s.%s'" % (cls.__module__, cls.__name__))
+            print("\t", path, "line", line)
+            traceback.print_exc()

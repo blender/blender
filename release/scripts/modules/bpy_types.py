@@ -556,9 +556,10 @@ TypeMap = {}
 
 class RNAMeta(type):
     def __new__(cls, name, bases, classdict, **args):
-        import traceback
         result = type.__new__(cls, name, bases, classdict)
         if bases and bases[0] != StructRNA:
+            import traceback
+            import weakref
             module = result.__module__
 
             # first part of packages only
@@ -567,7 +568,7 @@ class RNAMeta(type):
 
             sf = traceback.extract_stack(limit=2)[0]
 
-            TypeMap.setdefault(module, []).append((result, sf[0], sf[1]))
+            TypeMap.setdefault(module, []).append((weakref.ref(result), sf[0], sf[1]))
 
         return result
 
