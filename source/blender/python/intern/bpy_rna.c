@@ -3607,6 +3607,11 @@ PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self)
 	return iter;
 }
 
+static PyObject *pyrna_struct_is_registered(PyObject *cls)
+{
+	return PyBool_FromLong(PyDict_GetItemString((((PyTypeObject *)cls)->tp_dict), "bl_rna") != NULL);
+}
+
 static struct PyMethodDef pyrna_struct_methods[] = {
 
 	/* only for PointerRNA's with ID'props */
@@ -3632,6 +3637,9 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	/* experemental */
 	{"callback_add", (PyCFunction)pyrna_callback_add, METH_VARARGS, NULL},
 	{"callback_remove", (PyCFunction)pyrna_callback_remove, METH_VARARGS, NULL},
+
+	/* class method */
+	{"is_registered", (PyCFunction) pyrna_struct_is_registered, METH_NOARGS | METH_CLASS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 
