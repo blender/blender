@@ -4684,19 +4684,21 @@ static void button_timers_tooltip_remove(bContext *C, uiBut *but)
 	uiHandleButtonData *data;
 
 	data= but->active;
+	if(data) {
 
-	if(data->tooltiptimer) {
-		WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
-		data->tooltiptimer= NULL;
-	}
-	if(data->tooltip) {
-		ui_tooltip_free(C, data->tooltip);
-		data->tooltip= NULL;
-	}
+		if(data->tooltiptimer) {
+			WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
+			data->tooltiptimer= NULL;
+		}
+		if(data->tooltip) {
+			ui_tooltip_free(C, data->tooltip);
+			data->tooltip= NULL;
+		}
 
-	if(data->autoopentimer) {
-		WM_event_remove_timer(data->wm, data->window, data->autoopentimer);
-		data->autoopentimer= NULL;
+		if(data->autoopentimer) {
+			WM_event_remove_timer(data->wm, data->window, data->autoopentimer);
+			data->autoopentimer= NULL;
+		}
 	}
 }
 
