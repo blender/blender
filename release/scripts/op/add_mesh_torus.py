@@ -142,10 +142,12 @@ def menu_func(self, context):
 
 
 def register():
+    bpy.utils.register_class(AddTorus)
     bpy.types.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
+    bpy.utils.unregister_class(AddTorus)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":
