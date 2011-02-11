@@ -657,7 +657,12 @@ class _GenericUI:
 
             def draw_ls(self, context):
                 for func in draw_ls._draw_funcs:
-                    func(self, context)
+                    # so bad menu functions dont stop the entire menu from drawing.
+                    try:
+                        func(self, context)
+                    except:
+                        import traceback
+                        traceback.print_exc()
 
             draw_funcs = draw_ls._draw_funcs = [cls.draw]
             cls.draw = draw_ls

@@ -593,26 +593,37 @@ def _bpy_module_classes(module, is_registered=False):
             i += 1
 
 
-def register_module(module):
+def register_module(module, verbose=False):
     import traceback
+    if verbose:
+        print("bpy.utils.register_module(%r): ..." % module)
     for cls, path, line in _bpy_module_classes(module, is_registered=False):
+        if verbose:
+            print("    %s of %s:%s" % (cls, path, line))
         try:
             register_class(cls)
         except:
             print("bpy.utils.register_module(): failed to registering class '%s.%s'" % (cls.__module__, cls.__name__))
             print("\t", path, "line", line)
             traceback.print_exc()
-
+    if verbose:
+        print("done.\n")
     if "cls" not in locals():
         raise Exception("register_module(%r): defines no classes" % module)
 
 
-def unregister_module(module):
+def unregister_module(module, verbose=False):
     import traceback
+    if verbose:
+        print("bpy.utils.unregister_module(%r): ..." % module)
     for cls, path, line in _bpy_module_classes(module, is_registered=True):
+        if verbose:
+            print("    %s of %s:%s" % (cls, path, line))
         try:
             unregister_class(cls)
         except:
             print("bpy.utils.unregister_module(): failed to unregistering class '%s.%s'" % (cls.__module__, cls.__name__))
             print("\t", path, "line", line)
             traceback.print_exc()
+    if verbose:
+        print("done.\n")
