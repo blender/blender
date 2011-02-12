@@ -149,6 +149,7 @@ typedef struct ParticleBillboardData
 	int uv[3];
 	int lock, num;
 	int totnum;
+	int lifetime;
 	short align, uv_split, anim, split_offset;
 } ParticleBillboardData;
 

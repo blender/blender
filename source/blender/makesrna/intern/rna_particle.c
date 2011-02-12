@@ -1450,10 +1450,9 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem bb_anim_items[] = {
 		{PART_BB_ANIM_NONE, "NONE", 0, "None", ""},
-		{PART_BB_ANIM_TIME, "TIME", 0, "Time", ""},
+		{PART_BB_ANIM_AGE, "AGE", 0, "Age", ""},
+		{PART_BB_ANIM_FRAME, "FRAME", 0, "Frame", ""},
 		{PART_BB_ANIM_ANGLE, "ANGLE", 0, "Angle", ""},
-		//{PART_BB_ANIM_OFF_TIME, "OFF_TIME", 0, "off_time", ""},
-		//{PART_BB_ANIM_OFF_ANGLE, "OFF_ANGLE", 0, "off_angle", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

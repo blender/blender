@@ -821,6 +821,8 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
                     row.prop(weight, "count")
 
         elif part.render_type == 'BILLBOARD':
+            ob = context.object
+            
             sub.label(text="Align:")
 
             row = layout.row()
@@ -833,21 +835,22 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
             col = row.column(align=True)
             col.label(text="Tilt:")
             col.prop(part, "billboard_tilt", text="Angle", slider=True)
-            col.prop(part, "billboard_tilt_random", slider=True)
+            col.prop(part, "billboard_tilt_random", text="Random", slider=True)
             col = row.column()
             col.prop(part, "billboard_offset")
 
-            row = layout.row()
-            row.prop(psys, "billboard_normal_uv")
-            row = layout.row()
-            row.prop(psys, "billboard_time_index_uv")
+            col = layout.column()
+            col.prop_search(psys, "billboard_normal_uv", ob.data, "uv_textures")
+            col.prop_search(psys, "billboard_time_index_uv", ob.data, "uv_textures")
 
-            row = layout.row()
-            row.label(text="Split uv's:")
-            row.prop(part, "billboard_uv_split", text="Number of splits")
-            row = layout.row()
-            row.prop(psys, "billboard_split_uv")
-            row = layout.row()
+            split = layout.split(percentage=0.33)
+            split.label(text="Split uv's:")
+            split.prop(part, "billboard_uv_split", text="Number of splits")
+            col = layout.column()
+            col.active = part.billboard_uv_split > 1
+            col.prop_search(psys, "billboard_split_uv", ob.data, "uv_textures")
+            
+            row = col.row()
             row.label(text="Animate:")
             row.prop(part, "billboard_animation", text="")
             row.label(text="Offset:")

@@ -390,10 +390,9 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 /* part->bb_anim */
 #define PART_BB_ANIM_NONE	0
-#define PART_BB_ANIM_TIME	1
+#define PART_BB_ANIM_AGE	1
 #define PART_BB_ANIM_ANGLE	2
-#define PART_BB_ANIM_OFF_TIME	3
-#define PART_BB_ANIM_OFF_ANGLE	4
+#define PART_BB_ANIM_FRAME	3
 
 /* part->bb_split_offset */
 #define PART_BB_OFF_NONE	0
