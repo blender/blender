@@ -28,6 +28,9 @@
 #include <iostream>
 #endif
 
+/* COLLADABU_ASSERT, may be able to remove later */
+#include "COLLADABUPlatform.h"
+
 #include "COLLADAFWMeshPrimitive.h"
 #include "COLLADAFWMeshVertexData.h"
 #include "COLLADAFWPolygons.h"

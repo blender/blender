@@ -28,6 +28,9 @@
 #include <stdint.h>
 #endif
 
+/* COLLADABU_ASSERT, may be able to remove later */
+#include "COLLADABUPlatform.h"
+
 #include "BKE_object.h"
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"

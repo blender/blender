@@ -22,6 +22,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/* COLLADABU_ASSERT, may be able to remove later */
+#include "COLLADABUPlatform.h"
+
 #include "DNA_armature_types.h"
 
 #include "ED_keyframing.h"

@@ -21,6 +21,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+/* COLLADABU_ASSERT, may be able to remove later */
+#include "COLLADABUPlatform.h"
 
 #include "TransformReader.h"
 

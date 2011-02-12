@@ -319,7 +319,7 @@ set(SRC
 	src/btBulletDynamicsCommon.h
 )
 
-if(CMAKE_COMPILER_IS_GNUCC)
+if(CMAKE_COMPILER_IS_GNUCXX)
 	# needed for gcc 4.6+
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
