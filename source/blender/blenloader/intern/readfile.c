@@ -2981,9 +2981,8 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 
 static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointCache **ocache, int force_disk)
 {
-	PointCache *cache= NULL;
-
 	if(ptcaches->first) {
+		PointCache *cache= NULL;
 		link_list(fd, ptcaches);
 		for(cache=ptcaches->first; cache; cache=cache->next) {
 			direct_link_pointcache(fd, cache);
@@ -3001,7 +3000,7 @@ static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointC
 		direct_link_pointcache(fd, *ocache);
 		if(force_disk) {
 			(*ocache)->flag |= PTCACHE_DISK_CACHE;
-			cache->step = 1;
+			(*ocache)->step = 1;
 		}
 
 		ptcaches->first = ptcaches->last = *ocache;

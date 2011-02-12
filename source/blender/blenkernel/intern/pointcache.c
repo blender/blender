@@ -2863,6 +2863,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, char *from, char *to)
 			}
 		}
 	}
+	closedir(dir);
 
 	strcpy(pid->cache->name, old_name);
 }

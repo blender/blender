@@ -2799,6 +2799,7 @@ void filterNDOFvalues(float *sbval)
 			sbval[i]=0.0;
 }
 
+#if 0
 // statics for controlling rv3d->dist corrections.
 // viewmoveNDOF zeros and adjusts rv3d->ofs.
 // viewmove restores based on dz_flag state.
@@ -3139,6 +3140,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int UNUSED(mode))
 	 */
 // XXX    scrarea_do_windraw(curarea);
 }
+#endif // if 0, unused NDof code
 
 /* give a 4x4 matrix from a perspective view, only needs viewquat, ofs and dist
  * basically the same as...
