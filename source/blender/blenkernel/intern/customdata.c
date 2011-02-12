@@ -524,8 +524,8 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 		mdisp_apply_weight(S, dst_corners, side-1, 0, st, crn_weight, &axis_x[0], &axis_x[1]);
 		mdisp_apply_weight(S, dst_corners, 0, side-1, st, crn_weight, &axis_y[0], &axis_y[1]);
 
-		sub_v3_v3(axis_x, base);
-		sub_v3_v3(axis_y, base);
+		sub_v2_v2(axis_x, base);
+		sub_v2_v2(axis_y, base);
 		normalize_v2(axis_x);
 		normalize_v2(axis_y);
 

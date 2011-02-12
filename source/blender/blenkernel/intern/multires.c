@@ -962,7 +962,7 @@ DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int loca
 ***************************/
 
 /* Adapted from sculptmode.c */
-void old_mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, float v)
+void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u, float v)
 {
 	int x, y, x2, y2;
 	const int st_max = st - 1;
@@ -1965,7 +1965,7 @@ static void face_to_crn_interp(float u, float v, float v1[2], float v2[2], float
 	*x = maxf(x1, x2);
 }
 
-void mdisp_rot_crn_to_face(int S, int corners, int face_side, float x, float y, float *u, float *v)
+void mdisp_rot_crn_to_face(const int S, const int corners, const int face_side, const float x, const float y, float *u, float *v)
 {
 	float offset = face_side*0.5f - 0.5f;
 
@@ -1992,9 +1992,9 @@ void mdisp_rot_crn_to_face(int S, int corners, int face_side, float x, float y, 
 	}
 }
 
-int mdisp_rot_face_to_crn(int corners, int face_side, float u, float v, float *x, float *y)
+int mdisp_rot_face_to_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y)
 {
-	float offset = face_side*0.5f - 0.5f;
+	const float offset = face_side*0.5f - 0.5f;
 	int S = 0;
 
 	if (corners == 4) {
@@ -2037,7 +2037,7 @@ int mdisp_rot_face_to_crn(int corners, int face_side, float u, float v, float *x
 	return S;
 }
 
-void mdisp_apply_weight(int S, int corners, int x, int y, int face_side,
+void mdisp_apply_weight(const int S, const int corners, int x, int y, const int face_side,
 	float crn_weight[4][2], float *u_r, float *v_r)
 {
 	float u, v, xl, yl;
@@ -2071,7 +2071,7 @@ void mdisp_apply_weight(int S, int corners, int x, int y, int face_side,
 	*v_r = mid3[1];
 }
 
-void mdisp_flip_disp(int S, int corners, float axis_x[2], float axis_y[2], float disp[3])
+void mdisp_flip_disp(const int S, const int corners, const float axis_x[2], const float axis_y[2], float disp[3])
 {
 	float crn_x[2], crn_y[2];
 	float vx[2], vy[2], coord[2];
