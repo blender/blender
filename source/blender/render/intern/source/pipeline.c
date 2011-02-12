@@ -139,7 +139,6 @@ static int default_break(void *UNUSED(arg)) {return G.afbreek == 1;}
 
 static void stats_background(void *UNUSED(arg), RenderStats *rs)
 {
-	char str[400], *spos= str;
 	uintptr_t mem_in_use, mmap_in_use, peak_memory;
 	float megs_used_memory, mmap_used_memory, megs_peak_memory;
 
@@ -151,24 +150,24 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
 	megs_peak_memory = (peak_memory)/(1024.0*1024.0);
 
-	spos+= sprintf(spos, "Fra:%d Mem:%.2fM (%.2fM, peak %.2fM) ", rs->cfra,
+	fprintf(stdout, "Fra:%d Mem:%.2fM (%.2fM, peak %.2fM) ", rs->cfra,
 				   megs_used_memory, mmap_used_memory, megs_peak_memory);
-	
+
 	if(rs->curfield)
-		spos+= sprintf(spos, "Field %d ", rs->curfield);
+		fprintf(stdout, "Field %d ", rs->curfield);
 	if(rs->curblur)
-		spos+= sprintf(spos, "Blur %d ", rs->curblur);
-	
+		fprintf(stdout, "Blur %d ", rs->curblur);
+
 	if(rs->infostr) {
-		spos+= sprintf(spos, "| %s", rs->infostr);
+		fprintf(stdout, "| %s", rs->infostr);
 	}
 	else {
 		if(rs->tothalo)
-			spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
-		else 
-			spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->totlamp);
+			fprintf(stdout, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
+		else
+			fprintf(stdout, "Sce: %s Ve:%d Fa:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->totlamp);
 	}
-	printf("%s\n", str);
+	fflush(stdout);
 }
 
 void RE_FreeRenderResult(RenderResult *res)
