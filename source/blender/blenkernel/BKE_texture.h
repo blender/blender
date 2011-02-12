@@ -44,6 +44,7 @@ struct Lamp;
 struct LampRen;
 struct Material;
 struct MTex;
+struct ParticleSettings;
 struct PluginTex;
 struct PointDensity;
 struct Tex;
