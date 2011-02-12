@@ -1256,7 +1256,7 @@ static void do_pinch_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 
 				if(vd.mvert)
 					vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-				}
+			}
 		}
 		BLI_pbvh_vertex_iter_end;
 	}
@@ -2353,6 +2353,25 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, Brush *brush)
 	}
 }
 
+/* flush displacement from deformed PBVH vertex to original mesh */
+static void sculpt_flush_pbvhvert_deform(SculptSession *ss, PBVHVertexIter *vd)
+{
+	Object *ob= ss->ob;
+	Mesh *me= ob->data;
+	float disp[3], newco[3];
+	int index= vd->vert_indices[vd->i];
+
+	sub_v3_v3v3(disp, vd->co, ss->deform_cos[index]);
+	mul_m3_v3(ss->deform_imats[index], disp);
+	add_v3_v3v3(newco, disp, ss->orig_cos[index]);
+
+	copy_v3_v3(ss->deform_cos[index], vd->co);
+	copy_v3_v3(ss->orig_cos[index], newco);
+
+	if(!ss->kb)
+		copy_v3_v3(me->mvert[index].co, newco);
+}
+
 static void sculpt_combine_proxies(Sculpt *sd, SculptSession *ss)
 {
 	Brush *brush= paint_brush(&sd->paint);
@@ -2391,6 +2410,9 @@ static void sculpt_combine_proxies(Sculpt *sd, SculptSession *ss)
 					add_v3_v3(val, proxies[p].co[vd.i]);
 
 				sculpt_clip(sd, ss, vd.co, val);
+
+				if(ss->modifiers_active)
+					sculpt_flush_pbvhvert_deform(ss, &vd);
 			}
 			BLI_pbvh_vertex_iter_end;
 
@@ -2421,38 +2443,17 @@ static void sculpt_update_keyblock(SculptSession *ss)
 }
 
 /* flush displacement from deformed PBVH to original layer */
-static void sculpt_flush_deformation(SculptSession *ss)
+static void sculpt_flush_stroke_deform(SculptSession *ss)
 {
-	float (*vertCos)[3];
-
-	vertCos= BLI_pbvh_get_vertCos(ss->pbvh);
-
-	if (vertCos) {
+	if(!ss->kb) {
 		Object *ob= ss->ob;
 		Mesh *me= (Mesh*)ob->data;
-		MVert *mvert= me->mvert;
-		int a;
 
-		for(a = 0; a < me->totvert; ++a, ++mvert) {
-			float disp[3], newco[3];
-			sub_v3_v3v3(disp, vertCos[a], ss->deform_cos[a]);
-			mul_m3_v3(ss->deform_imats[a], disp);
-			add_v3_v3v3(newco, disp, ss->orig_cos[a]);
-
-			copy_v3_v3(ss->deform_cos[a], vertCos[a]);
-			copy_v3_v3(ss->orig_cos[a], newco);
-
-			if(!ss->kb)
-				copy_v3_v3(mvert->co, newco);
-		}
-
-		if(ss->kb)
-			sculpt_update_keyblock(ss);
-
+		/* Modifiers could depend on mesh normals, so we should update them/
+		   Note, then if sculpting happens on locked key, normals should be re-calculated
+		   after applying coords from keyblock on base mesh */
 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
-
-		MEM_freeN(vertCos);
-	}
+	} else sculpt_update_keyblock(ss);
 }
 
 //static int max_overlap_count(Sculpt *sd)
@@ -2564,7 +2565,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd, SculptSession *ss)
 	sculpt_fix_noise_tear(sd, ss);
 
 	if (ss->modifiers_active)
-		sculpt_flush_deformation(ss);
+		sculpt_flush_stroke_deform(ss);
 
 	cache->first_time= 0;
 }
