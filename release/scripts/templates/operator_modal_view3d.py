@@ -54,3 +54,15 @@ class ViewOperator(bpy.types.Operator):
         else:
             self.report({'WARNING'}, "Active space must be a View3d")
             return {'CANCELLED'}
+
+
+def register():
+    bpy.utils.register_class(ViewOperator)
+
+
+def unregister():
+    bpy.utils.unregister_class(ViewOperator)
+
+
+if __name__ == "__main__":
+    register()

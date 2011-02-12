@@ -65,3 +65,14 @@ class ModalDrawOperator(bpy.types.Operator):
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
+
+
+def register():
+    bpy.utils.register_class(ModalDrawOperator)
+
+
+def unregister():
+    bpy.utils.unregister_class(ModalDrawOperator)
+
+if __name__ == "__main__":
+    register()

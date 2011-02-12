@@ -65,10 +65,12 @@ def add_object_button(self, context):
 
 
 def register():
+    bpy.utils.register_class(OBJECT_OT_add_object)
     bpy.types.INFO_MT_mesh_add.append(add_object_button)
 
 
 def unregister():
+    bpy.utils.unregister_class(OBJECT_OT_add_object)
     bpy.types.INFO_MT_mesh_add.remove(add_object_button)
 
 
