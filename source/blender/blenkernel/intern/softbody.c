@@ -1647,9 +1647,7 @@ static void scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow)
   ListBase *do_effector = NULL;
 
   do_effector = pdInitEffectors(scene, ob, NULL, sb->effector_weights);
-  if (sb){
-	  _scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, do_effector);
-  }
+  _scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, do_effector);
   pdEndEffectors(&do_effector);
 }
 

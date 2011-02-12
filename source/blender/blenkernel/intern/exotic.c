@@ -364,10 +364,16 @@ static void read_stl_mesh_ascii(Scene *scene, const char *str)
 		 * sure we have enough storage for some more faces
 		 */
 		if ( (totface) && ( (totface % 10000) == 0 ) ) {
+			float  *vertdata_old= vertdata;
 			++numtenthousand;
 			vertdata = realloc(vertdata, 
 							   numtenthousand*3*30000*sizeof(float));
-			if (!vertdata) { STLALLOCERROR; }
+			if (!vertdata) {
+				if(vertdata_old) {
+					free(vertdata_old);
+				}
+				STLALLOCERROR;
+			}
 		}
 		
 		/* Don't read normal, but check line for proper syntax anyway

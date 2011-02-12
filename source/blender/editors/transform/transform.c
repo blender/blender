@@ -2525,6 +2525,7 @@ void initResize(TransInfo *t)
 
 static void headerResize(TransInfo *t, float vec[3], char *str) {
 	char tvec[60];
+	char *spos= str;
 	if (hasNumInput(&t->num)) {
 		outputNumInput(&(t->num), tvec);
 	}
@@ -2537,24 +2538,27 @@ static void headerResize(TransInfo *t, float vec[3], char *str) {
 	if (t->con.mode & CON_APPLY) {
 		switch(t->num.idx_max) {
 		case 0:
-			sprintf(str, "Scale: %s%s %s", &tvec[0], t->con.text, t->proptext);
+			spos += sprintf(spos, "Scale: %s%s %s", &tvec[0], t->con.text, t->proptext);
 			break;
 		case 1:
-			sprintf(str, "Scale: %s : %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
+			spos += sprintf(spos, "Scale: %s : %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
 			break;
 		case 2:
-			sprintf(str, "Scale: %s : %s : %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+			spos += sprintf(spos, "Scale: %s : %s : %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
 		}
 	}
 	else {
 		if (t->flag & T_2D_EDIT)
-			sprintf(str, "Scale X: %s   Y: %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
+			spos += sprintf(spos, "Scale X: %s   Y: %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
 		else
-			sprintf(str, "Scale X: %s   Y: %s  Z: %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+			spos += sprintf(spos, "Scale X: %s   Y: %s  Z: %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
 	}
 	
-	if (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
-		sprintf(str, "%s Proportional size: %.2f", str, t->prop_size);
+	if (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED)) {
+		spos += sprintf(spos, " Proportional size: %.2f", t->prop_size);
+	}
+
+	(void)spos;
 }
 
 #define SIGN(a)		(a<-FLT_EPSILON?1:a>FLT_EPSILON?2:3)
