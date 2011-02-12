@@ -169,14 +169,14 @@ typedef struct ParticleSettings {
 	/* general values */
 	float sta, end, lifetime, randlife;
 	float timetweak, jitfac, eff_hair, grid_rand;
-	int totpart, userjit, grid_res;
+	int totpart, userjit, grid_res, effector_amount;
 
 	/* initial velocity factors */
 	float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
 	float ob_vel[3];
 	float avefac, phasefac, randrotfac, randphasefac;
 	/* physical properties */
-	float mass, size, randsize, reactshape;
+	float mass, size, randsize;
 	/* global physical properties */
 	float acc[3], dragfac, brownfac, dampfac;
 	/* length */

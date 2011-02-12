@@ -1965,6 +1965,13 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Grid Randomness", "Add random offset to the grid locations");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
+	prop= RNA_def_property(srna, "effector_amount", PROP_INT, PROP_UNSIGNED);
+	/* in theory PROP_ANIMATABLE perhaps should be cleared, but animating this can give some interesting results! */
+	RNA_def_property_range(prop, 0, 10000); /* 10000 effectors will bel SLOW, but who knows */
+	RNA_def_property_ui_range(prop, 0, 100, 1, 0);
+	RNA_def_property_ui_text(prop, "Effector Amount", "How many particles are effectors (0 is all particles)");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
 	/* initial velocity factors */
 	prop= RNA_def_property(srna, "normal_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "normfac");//optional if prop names are the same
@@ -2071,12 +2078,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "randsize");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Random Size", "Give the particle size a random variation");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "reaction_shape", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "reactshape");
-	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Shape", "Power of reaction strength dependence on distance to target");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 

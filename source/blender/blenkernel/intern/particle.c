@@ -3498,8 +3498,6 @@ static void default_particle_settings(ParticleSettings *part)
 
 	part->normfac= 1.0f;
 
-	part->reactshape=1.0f;
-
 	part->mass=1.0;
 	part->size=0.05;
 	part->childsize=1.0;

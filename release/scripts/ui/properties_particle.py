@@ -1061,12 +1061,16 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel, bpy.types.Panel):
 
         part = context.particle_system.settings
 
-        layout.prop(part, "use_self_effect")
+        row = layout.row()
+        row.prop(part, "use_self_effect")
+        row.prop(part, "effector_amount", text="Amount")
 
         split = layout.split(percentage=0.2)
         split.label(text="Type 1:")
         split.prop(part.force_field_1, "type", text="")
         basic_force_field_settings_ui(self, context, part.force_field_1)
+        if part.force_field_1.type != 'NONE':
+            layout.label(text="Falloff:")
         basic_force_field_falloff_ui(self, context, part.force_field_1)
 
         if part.force_field_1.type != 'NONE':
@@ -1076,6 +1080,8 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel, bpy.types.Panel):
         split.label(text="Type 2:")
         split.prop(part.force_field_2, "type", text="")
         basic_force_field_settings_ui(self, context, part.force_field_2)
+        if part.force_field_2.type != 'NONE':
+            layout.label(text="Falloff:")
         basic_force_field_falloff_ui(self, context, part.force_field_2)
 
 
