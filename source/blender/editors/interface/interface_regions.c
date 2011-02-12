@@ -2295,7 +2295,8 @@ static void vconfirm_opname(bContext *C, const char *opname, const char *title, 
 
 	s= buf;
 	if (title) s+= sprintf(s, "%s%%t|", title);
-	vsprintf(s, itemfmt, ap);
+	vsnprintf(s, sizeof(buf) - (s - buf), itemfmt, ap);
+	buf[sizeof(buf) - 1]= '\0';
 
 	handle= ui_popup_menu_create(C, NULL, NULL, NULL, NULL, buf);
 

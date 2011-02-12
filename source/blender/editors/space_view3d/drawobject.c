@@ -4070,8 +4070,14 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		psys->lattice= NULL;
 	}
 
-	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) )
+	if(pdd) {
+		/* drop references to stack memory */
+		pdd->ma_r= pdd->ma_g= pdd->ma_b= NULL;
+	}
+
+	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
 		glLoadMatrixf(rv3d->viewmat);
+	}
 }
 
 static void draw_update_ptcache_edit(Scene *scene, Object *ob, PTCacheEdit *edit)

@@ -932,9 +932,10 @@ static int set_addons(int argc, char **argv, void *data)
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
 #ifdef WITH_PYTHON
-		char *str= malloc(strlen(argv[1]) + 100);
+		const int slen= strlen(argv[1]) + 10;
+		char *str= malloc(slen);
 		bContext *C= data;
-		sprintf(str, "[__import__('bpy').utils.addon_enable(i) for i in '%s'.split(',')]", argv[1]);
+		BLI_snprintf(str, slen, "[__import__('bpy').utils.addon_enable(i) for i in '%s'.split(',')]", argv[1]);
 		BPY_CTX_SETUP(BPY_string_exec(C, str));
 		free(str);
 #else

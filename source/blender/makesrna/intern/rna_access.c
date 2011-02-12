@@ -3245,7 +3245,7 @@ char *RNA_path_append(const char *path, PointerRNA *ptr, PropertyRNA *prop, int 
 			BLI_dynstr_append(dynstr, "\"");
 		}
 		else {
-			sprintf(appendstr, "%d", intkey);
+			BLI_snprintf(appendstr, sizeof(appendstr), "%d", intkey);
 			BLI_dynstr_append(dynstr, appendstr);
 		}
 

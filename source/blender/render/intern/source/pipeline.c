@@ -457,9 +457,9 @@ static void scene_unique_exr_name(Scene *scene, char *str, int sample)
 	BLI_splitdirstring(di, fi);
 	
 	if(sample==0)
-		sprintf(name, "%s_%s.exr", fi, scene->id.name+2);
+		BLI_snprintf(name, sizeof(name), "%s_%s.exr", fi, scene->id.name+2);
 	else
-		sprintf(name, "%s_%s%d.exr", fi, scene->id.name+2, sample);
+		BLI_snprintf(name, sizeof(name), "%s_%s%d.exr", fi, scene->id.name+2, sample);
 
 	BLI_make_file_string("/", str, btempdir, name);
 }
@@ -1597,7 +1597,7 @@ static void print_part_stats(Render *re, RenderPart *pa)
 {
 	char str[64];
 	
-	sprintf(str, "%s, Part %d-%d", re->scene->id.name+2, pa->nr, re->i.totpart);
+	BLI_snprintf(str, sizeof(str), "%s, Part %d-%d", re->scene->id.name+2, pa->nr, re->i.totpart);
 	re->i.infostr= str;
 	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr= NULL;

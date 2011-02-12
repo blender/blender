@@ -124,9 +124,9 @@ void initglobals(void)
 	ENDIAN_ORDER= (((char*)&ENDIAN_ORDER)[0])? L_ENDIAN: B_ENDIAN;
 
 	if(BLENDER_SUBVERSION)
-		sprintf(versionstr, "www.blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "www.blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
 	else
-		sprintf(versionstr, "www.blender.org %d", BLENDER_VERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "www.blender.org %d", BLENDER_VERSION);
 
 #ifdef _WIN32	// FULLSCREEN
 	G.windowstate = G_WINDOWSTATE_USERDEF;
@@ -314,7 +314,7 @@ static int handle_subversion_warning(Main *main)
 		
 		char str[128];
 		
-		sprintf(str, "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
+		BLI_snprintf(str, sizeof(str), "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
 // XXX		error(str);
 	}
 	return 1;
@@ -520,7 +520,7 @@ void BKE_write_undo(bContext *C, const char *name)
 		counter++;
 		counter= counter % U.undosteps;	
 	
-		sprintf(numstr, "%d.blend", counter);
+		BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
 		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
 		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, NULL, NULL);

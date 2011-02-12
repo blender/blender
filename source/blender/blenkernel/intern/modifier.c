@@ -57,7 +57,7 @@
 
 ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 {
-	static ModifierTypeInfo *types[NUM_MODIFIER_TYPES];
+	static ModifierTypeInfo *types[NUM_MODIFIER_TYPES]= {0};
 	static int types_init = 1;
 
 	if (types_init) {
@@ -220,12 +220,13 @@ int modifier_sameTopology(ModifierData *md)
 
 void modifier_setError(ModifierData *md, const char *format, ...)
 {
-	char buffer[2048];
+	char buffer[512];
 	va_list ap;
 
 	va_start(ap, format);
-	vsprintf(buffer, format, ap);
+	vsnprintf(buffer, sizeof(buffer), format, ap);
 	va_end(ap);
+	buffer[sizeof(buffer) - 1]= '\0';
 
 	if (md->error)
 		MEM_freeN(md->error);

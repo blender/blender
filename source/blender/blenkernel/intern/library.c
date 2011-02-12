@@ -920,7 +920,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 				
 			BLI_dynstr_append(pupds, buf);
 			BLI_dynstr_append(pupds, id->name+2);
-			sprintf(buf, "%%x%d", i+1);
+			BLI_snprintf(buf, sizeof(buf), "%%x%d", i+1);
 			BLI_dynstr_append(pupds, buf);
 			
 			/* icon */
@@ -931,7 +931,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			case ID_IM: /* fall through */
 			case ID_WO: /* fall through */
 			case ID_LA: /* fall through */
-				sprintf(buf, "%%i%d", BKE_icon_getid(id) );
+				BLI_snprintf(buf, sizeof(buf), "%%i%d", BKE_icon_getid(id) );
 				BLI_dynstr_append(pupds, buf);
 				break;
 			default:
@@ -1128,7 +1128,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 			continue;
 		}
 		/* this format specifier is from hell... */
-		sprintf(name, "%s.%.3d", left, nr);
+		BLI_snprintf(name, sizeof(id->name) - 2,"%s.%.3d", left, nr);
 
 		return 1;
 	}
