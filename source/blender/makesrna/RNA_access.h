@@ -354,6 +354,7 @@ extern StructRNA RNA_ParticleHairKey;
 extern StructRNA RNA_ParticleInstanceModifier;
 extern StructRNA RNA_ParticleKey;
 extern StructRNA RNA_ParticleSettings;
+extern StructRNA RNA_ParticleSettingsTextureSlot;
 extern StructRNA RNA_SPHFluidSettings;
 extern StructRNA RNA_ParticleSystem;
 extern StructRNA RNA_ParticleSystemModifier;

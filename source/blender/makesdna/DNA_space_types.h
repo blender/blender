@@ -636,6 +636,7 @@ typedef struct SpaceSound {
 #define SB_TEXC_MAT_OR_LAMP	0
 #define SB_TEXC_WORLD		1
 #define SB_TEXC_BRUSH		2
+#define SB_TEXC_PARTICLES	3
 
 /* sbuts->align */
 #define BUT_FREE  		0

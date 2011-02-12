@@ -66,6 +66,9 @@ static void set_texture_context(bContext *C, SpaceButs *sbuts)
 		case BCONTEXT_WORLD:
 			sbuts->texture_context = SB_TEXC_WORLD;
 			break;
+		case BCONTEXT_PARTICLE:
+			sbuts->texture_context = SB_TEXC_PARTICLES;
+			break;
 	}
 }
 

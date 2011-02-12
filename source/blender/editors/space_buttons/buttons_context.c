@@ -360,6 +360,7 @@ static int buttons_context_path_texture(ButsContextPath *path)
 	Lamp *la;
 	Brush *br;
 	World *wo;
+	ParticleSystem *psys;
 	Tex *tex;
 	PointerRNA *ptr= &path->ptr[path->len-1];
 	int orig_len = path->len;
@@ -386,6 +387,18 @@ static int buttons_context_path_texture(ButsContextPath *path)
 
 		if(wo && GS(wo->id.name)==ID_WO) {
 			tex= give_current_world_texture(wo);
+
+			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+			path->len++;
+			return 1;
+		}
+	}
+	/* try particles */
+	if((path->tex_ctx == SB_TEXC_PARTICLES) && buttons_context_path_particle(path)) {
+		psys= path->ptr[path->len-1].data;
+
+		if(psys && psys->part && GS(psys->part->id.name)==ID_PA) {
+			tex= give_current_particle_texture(psys->part);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
@@ -732,6 +745,12 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 			if(br)
 				CTX_data_pointer_set(result, &br->id, &RNA_BrushTextureSlot, &br->mtex);
+		}
+		else if((ptr=get_pointer_type(path, &RNA_ParticleSystem))) {
+			ParticleSettings *part= ((ParticleSystem *)ptr->data)->part;
+
+			if(part)
+				CTX_data_pointer_set(result, &part->id, &RNA_ParticleSettingsTextureSlot, part->mtex[(int)part->texact]);
 		}
 
 		return 1;

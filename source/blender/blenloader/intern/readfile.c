@@ -3017,6 +3017,8 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 {
 	ParticleSettings *part;
 	ParticleDupliWeight *dw;
+	MTex *mtex;
+	int a;
 
 	part= main->particle.first;
 	while(part) {
@@ -3062,6 +3064,15 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 					}
 				}
 			}
+			
+			for(a=0; a<MAX_MTEX; a++) {
+				mtex= part->mtex[a];
+				if(mtex) {
+					mtex->tex = newlibadr_us(fd, part->id.lib, mtex->tex);
+					mtex->object = newlibadr(fd, part->id.lib, mtex->object);
+				}
+			}
+
 			part->id.flag -= LIB_NEEDLINK;
 		}
 		part= part->id.next;
@@ -3075,6 +3086,7 @@ static void direct_link_partdeflect(PartDeflect *pd)
 
 static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 {
+	int a;
 	part->adt= newdataadr(fd, part->adt);
 	part->pd= newdataadr(fd, part->pd);
 	part->pd2= newdataadr(fd, part->pd2);
@@ -3101,6 +3113,9 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 			link_list(fd, &state->conditions);
 			link_list(fd, &state->actions);
 		}
+	}
+	for(a=0; a<MAX_MTEX; a++) {
+		part->mtex[a]= newdataadr(fd, part->mtex[a]);
 	}
 }
 
@@ -6576,7 +6591,6 @@ static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
 			mtex->lifefac= (neg & MAP_PA_LIFE)? -varfac: varfac;
 			mtex->sizefac= (neg & MAP_PA_SIZE)? -varfac: varfac;
 			mtex->ivelfac= (neg & MAP_PA_IVEL)? -varfac: varfac;
-			mtex->pvelfac= (neg & MAP_PA_PVEL)? -varfac: varfac;
 
 			mtex->shadowfac= (neg & LAMAP_SHAD)? -colfac: colfac;
 

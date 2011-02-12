@@ -40,6 +40,7 @@
 #include "DNA_group_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_key_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
@@ -2375,6 +2376,29 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 				modifiers_foreachIDLink(obt, dag_id_flush_update__isDependentTexture, &data);
 				if (data.is_dependent)
 					obt->recalc |= OB_RECALC_DATA;
+
+				/* particle settings can use the texture as well */
+				if(obt->particlesystem.first) {
+					ParticleSystem *psys = obt->particlesystem.first;
+					MTex **mtexp, *mtex;
+					int a;
+					for(; psys; psys=psys->next) {
+						mtexp = psys->part->mtex;
+						for(a=0; a<MAX_MTEX; a++, mtexp++) {
+							mtex = *mtexp;
+							if(mtex && mtex->tex == (Tex*)id) {
+								obt->recalc |= OB_RECALC_DATA;
+								
+								if(mtex->mapto & PAMAP_INIT)
+									psys->recalc |= PSYS_RECALC_RESET;
+								if(mtex->mapto & PAMAP_CHILD)
+									psys->recalc |= PSYS_RECALC_CHILD;
+
+								BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
+							}
+						}
+					}
+				}
 			}
 		}
 		

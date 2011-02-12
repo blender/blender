@@ -823,6 +823,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 {
 	ParticleSettings *part;
 	ParticleDupliWeight *dw;
+	int a;
 
 	part= idbase->first;
 	while(part) {
@@ -849,6 +850,10 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			}
 			if(part->fluid && part->phystype == PART_PHYS_FLUID){
 				writestruct(wd, DATA, "SPHFluidSettings", 1, part->fluid); 
+			}
+
+			for(a=0; a<MAX_MTEX; a++) {
+				if(part->mtex[a]) writestruct(wd, DATA, "MTex", 1, part->mtex[a]);
 			}
 		}
 		part= part->id.next;

@@ -80,20 +80,10 @@ typedef struct ParticleSimulationData {
 	struct ListBase *colliders;
 } ParticleSimulationData;
 
-//typedef struct ParticleReactEvent {
-//	struct ParticleReactEvent *next, *prev;
-//	int event, pa_num;
-//	Object *ob;
-//	struct ParticleSystem *psys;
-//	struct ParticleKey state;
-//
-//	float time, size;
-//}ParticleReactEvent;
-
 typedef struct ParticleTexture{
 	float ivel;							/* used in reset */
 	float time, life, exist, size;		/* used in init */
-	float pvel[3];						/* used in physics */
+	float damp, gravity, field;			/* used in physics */
 	float length, clump, kink, effector;/* used in path caching */
 	float rough1, rough2, roughe;		/* used in path caching */
 } ParticleTexture;
@@ -291,7 +281,7 @@ float psys_get_dietime_from_cache(struct PointCache *cache, int index);
 void psys_free_pdd(struct ParticleSystem *psys);
 
 float *psys_cache_vgroup(struct DerivedMesh *dm, struct ParticleSystem *psys, int vgroup);
-void psys_get_texture(struct ParticleSimulationData *sim, struct Material *ma, struct ParticleData *pa, struct ParticleTexture *ptex, int event);
+void psys_get_texture(struct ParticleSimulationData *sim, struct ParticleData *pa, struct ParticleTexture *ptex, int event, float cfra);
 void psys_interpolate_face(struct MVert *mvert, struct MFace *mface, struct MTFace *tface, float (*orcodata)[3], float *uv, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
 float psys_particle_value_from_verts(struct DerivedMesh *dm, short from, struct ParticleData *pa, float *values);
 void psys_get_from_key(struct ParticleKey *key, float *loc, float *vel, float *rot, float *time);

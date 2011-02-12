@@ -765,6 +765,14 @@ static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, 
 			tmp.icon = ICON_MATERIAL;
 			RNA_enum_item_add(&item, &totitem, &tmp);
 		}
+
+		if(ob->particlesystem.first) {
+			tmp.value = SB_TEXC_PARTICLES;
+			tmp.description = "Show Particle Textures";
+			tmp.identifier = "PARTICLE";
+			tmp.icon = ICON_PARTICLES;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+		}
 	}
 
 	if(scene && scene->world) {

@@ -84,6 +84,7 @@ struct Tex *give_current_material_texture(struct Material *ma);
 struct Tex *give_current_lamp_texture(struct Lamp *la);
 struct Tex *give_current_world_texture(struct World *world);
 struct Tex *give_current_brush_texture(struct Brush *br);
+struct Tex *give_current_particle_texture(struct ParticleSettings *part);
 
 struct bNode *give_current_material_texture_node(struct Material *ma);
 
@@ -94,6 +95,7 @@ void set_current_brush_texture(struct Brush *br, struct Tex *tex);
 void set_current_world_texture(struct World *wo, struct Tex *tex);
 void set_current_material_texture(struct Material *ma, struct Tex *tex);
 void set_current_lamp_texture(struct Lamp *la, struct Tex *tex);
+void set_current_particle_texture(struct ParticleSettings *part, struct Tex *tex);
 
 struct TexMapping *add_mapping(void);
 void init_mapping(struct TexMapping *texmap);

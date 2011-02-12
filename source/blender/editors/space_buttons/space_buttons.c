@@ -281,6 +281,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_PARTICLE:
 					if (wmn->action == NA_EDITED)
 						buttons_area_redraw(sa, BCONTEXT_PARTICLE);
+					sbuts->preview= 1;
 					break;
 				case ND_DRAW:
 					buttons_area_redraw(sa, BCONTEXT_OBJECT);

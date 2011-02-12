@@ -51,6 +51,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_node_types.h"
 #include "DNA_color_types.h"
+#include "DNA_particle_types.h"
 
 #include "IMB_imbuf.h"
 
@@ -671,7 +672,9 @@ void default_mtex(MTex *mtex)
 	mtex->lifefac= 1.0f;
 	mtex->sizefac= 1.0f;
 	mtex->ivelfac= 1.0f;
-	mtex->pvelfac= 1.0f;
+	mtex->dampfac= 1.0f;
+	mtex->gravityfac= 1.0f;
+	mtex->fieldfac= 1.0f;
 	mtex->normapspace= MTEX_NSPACE_TANGENT;
 }
 
@@ -1164,6 +1167,42 @@ void set_current_brush_texture(Brush *br, Tex *newtex)
 	if(newtex) {
 		br->mtex.tex= newtex;
 		id_us_plus(&newtex->id);
+	}
+}
+
+Tex *give_current_particle_texture(ParticleSettings *part)
+{
+	MTex *mtex= NULL;
+	Tex *tex= NULL;
+	
+	if(!part) return 0;
+	
+	mtex= part->mtex[(int)(part->texact)];
+	if(mtex) tex= mtex->tex;
+	
+	return tex;
+}
+
+void set_current_particle_texture(ParticleSettings *part, Tex *newtex)
+{
+	int act= part->texact;
+
+	if(part->mtex[act] && part->mtex[act]->tex)
+		id_us_min(&part->mtex[act]->tex->id);
+
+	if(newtex) {
+		if(!part->mtex[act]) {
+			part->mtex[act]= add_mtex();
+			part->mtex[act]->texco= TEXCO_ORCO;
+			part->mtex[act]->blendtype= MTEX_MUL;
+		}
+		
+		part->mtex[act]->tex= newtex;
+		id_us_plus(&newtex->id);
+	}
+	else if(part->mtex[act]) {
+		MEM_freeN(part->mtex[act]);
+		part->mtex[act]= NULL;
 	}
 }
 
