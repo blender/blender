@@ -1,9 +1,39 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+
 # This file defines a set of methods that are useful for various
 # Relative Keying Set (RKS) related operations, such as: callbacks
 # for polling, iterator callbacks, and also generate callbacks.
 # All of these can be used in conjunction with the others.
 
-# <pep8 compliant>
+__all__ = [
+    "path_add_property",
+    "RKS_POLL_selected_objects",
+    "RKS_POLL_selected_bones",
+    "RKS_POLL_selected_items",
+    "RKS_ITER_selected_item",
+    "RKS_GEN_available",
+    "RKS_GEN_location",
+    "RKS_GEN_rotation",
+    "RKS_GEN_scaling",
+]
 
 import bpy
 
@@ -91,6 +121,7 @@ def RKS_GEN_available(ksi, context, ks, data):
 
 
 # get ID block and based ID path for transform generators
+# private function
 def get_transform_generators_base_info(data):
     # ID-block for the data
     id_block = data.id_data
@@ -163,21 +194,3 @@ def RKS_GEN_scaling(ksi, context, ks, data):
         ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
     else:
         ks.paths.add(id_block, path)
-
-###########################
-# Un-needed stuff which is here to just shut up the warnings...
-
-classes = []
-
-
-def register():
-    pass
-
-
-def unregister():
-    pass
-
-if __name__ == "__main__":
-    register()
-
-###########################
