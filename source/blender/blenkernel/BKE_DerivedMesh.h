@@ -512,8 +512,9 @@ void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct EditMesh *em
 int editmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct EditMesh *em,
 									   float (**deformmats)[3][3], float (**deformcos)[3]);
 
-/* returns an array of deform matrices for crazyspace correction when sculpting */
-void sculpt_get_deform_matrices(struct Scene *scene, struct Object *ob,
+/* returns an array of deform matrices for crazyspace correction when sculpting,
+   and the number of modifiers left */
+int sculpt_get_deform_matrices(struct Scene *scene, struct Object *ob,
 								float (**deformmats)[3][3], float (**deformcos)[3]);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);

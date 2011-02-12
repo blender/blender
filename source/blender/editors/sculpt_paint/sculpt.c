@@ -66,6 +66,7 @@
 #include "WM_types.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_util.h" /* for crazyspace correction */
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
@@ -169,7 +170,7 @@ int sculpt_modifiers_active(Scene *scene, Object *ob)
 		if(!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
 		if(md->type==eModifierType_ShapeKey) continue;
 
-		if(mti->type==eModifierTypeType_OnlyDeform && mti->deformMatrices)
+		if(mti->type==eModifierTypeType_OnlyDeform)
 			return 1;
 	}
 
@@ -2642,7 +2643,7 @@ void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
 			if(ss->kb) ss->orig_cos = key_to_vertcos(ob, ss->kb);
 			else ss->orig_cos = mesh_getVertexCos(ob->data, NULL);
 
-			sculpt_get_deform_matrices(scene, ob, &ss->deform_imats, &ss->deform_cos);
+			crazyspace_build_sculpt(scene, ob, &ss->deform_imats, &ss->deform_cos);
 			BLI_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos);
 
 			for(a = 0; a < ((Mesh*)ob->data)->totvert; ++a)
