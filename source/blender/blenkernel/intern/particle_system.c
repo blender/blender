@@ -3744,8 +3744,6 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			FluidsimSettings *fss= fluidmd->fss;
 			ParticleSettings *part = psys->part;
 			ParticleData *pa=NULL;
-			const char *suffix  = "fluidsurface_particles_####";
-			const char *suffix2 = ".gz";
 			char filename[256];
 			char debugStrBuffer[256];
 			int  curFrame = sim->scene->r.cfra -1; // warning - sync with derived mesh fsmesh loading
@@ -3755,14 +3753,13 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 	
 // XXX			if(ob==G.obedit) // off...
 //				return;
-	
+
 			// ok, start loading
-			strcpy(filename, fss->surfdataPath);
-			strcat(filename, suffix);
+			BLI_snprintf(filename, sizeof(filename), "%sfluidsurface_particles_####.gz", fss->surfdataPath);
+			
 			BLI_path_abs(filename, G.main->name);
 			BLI_path_frame(filename, curFrame, 0); // fixed #frame-no 
-			strcat(filename, suffix2);
-	
+
 			gzf = gzopen(filename, "rb");
 			if (!gzf) {
 				snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 

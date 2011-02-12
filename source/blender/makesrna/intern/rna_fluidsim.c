@@ -85,14 +85,12 @@ static int fluidsim_find_lastframe(FluidsimSettings *fss)
 	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
 	int curFrame = 1;
 
-	strncpy(targetDir, fss->surfdataPath, FILE_MAXDIR);
-	strcat(targetDir,"fluidsurface_final_####");
+	BLI_snprintf(targetDir, sizeof(targetDir), "%sfluidsurface_final_####.bobj.gz", fss->surfdataPath);
 	BLI_path_abs(targetDir, G.main->name);
 
 	do {
-		strcpy(targetFile,targetDir);
+		BLI_strncpy(targetFile, targetDir, sizeof(targetFile));
 		BLI_path_frame(targetFile, curFrame++, 0);
-		strcat(targetFile, ".bobj.gz");
 	} while(BLI_exist(targetFile));
 
 	return curFrame - 1;
