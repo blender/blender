@@ -1173,6 +1173,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	int a, b, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
 
+	int no_draw_flag = PARS_UNEXIST;
+
 	if(psys==0) return;
 	
 	/* simple preventing of too deep nested groups */
@@ -1185,6 +1187,9 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 	if(!psys_check_enabled(par, psys))
 		return;
+
+	if(G.rendering == 0)
+		no_draw_flag |= PARS_NO_DISP;
 	
 	ctime = bsystem_time(scene, par, (float)scene->r.cfra, 0.0);
 
@@ -1280,7 +1285,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		for(pa=psys->particles,counter=0; a<totpart+totchild; a++,pa++,counter++) {
 			if(a<totpart) {
 				/* handle parent particle */
-				if(pa->flag & (PARS_UNEXIST+PARS_NO_DISP))
+				if(pa->flag & no_draw_flag)
 					continue;
 
 				pa_num = pa->num;
