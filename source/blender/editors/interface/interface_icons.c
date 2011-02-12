@@ -614,7 +614,7 @@ static void init_iconfile_list(struct ListBase *list)
 	
 	/* since BLI_getdir changes the current working directory, restore it 
 	   back to old value afterwards */
-	if(!BLI_getwdN(olddir)) 
+	if(!BLI_getwdN(olddir, sizeof(olddir))) 
 		restoredir = 0;
 	totfile = BLI_getdir(icondirstr, &dir);
 	if (restoredir && !chdir(olddir)) {} /* fix warning about checking return value */

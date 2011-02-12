@@ -833,13 +833,13 @@ void filelist_setfiletypes(struct FileList* filelist)
 
 static void filelist_read_dir(struct FileList* filelist)
 {
-	char wdir[FILE_MAX];
+	char wdir[FILE_MAX]= "";
 	if (!filelist) return;
 
 	filelist->fidx = 0;
 	filelist->filelist = 0;
 
-	BLI_getwdN(wdir);	 
+	BLI_getwdN(wdir, sizeof(wdir));	 /* backup cwd to restore after */
 
 	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist->numfiles = BLI_getdir(filelist->dir, &(filelist->filelist));

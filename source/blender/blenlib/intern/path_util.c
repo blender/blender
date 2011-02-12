@@ -752,8 +752,8 @@ int BLI_path_cwd(char *path)
 #endif
 	
 	if (wasrelative==1) {
-		char cwd[FILE_MAXDIR + FILE_MAXFILE];
-		BLI_getwdN(cwd); /* incase the full path to the blend isnt used */
+		char cwd[FILE_MAXDIR + FILE_MAXFILE]= "";
+		BLI_getwdN(cwd, sizeof(cwd)); /* incase the full path to the blend isnt used */
 		
 		if (cwd[0] == '\0') {
 			printf( "Could not get the current working directory - $PWD for an unknown reason.");
@@ -979,7 +979,7 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 	}
 
 	/* try CWD/release/folder_name */
-	if(test_path(targetpath, BLI_getwdN(cwd), "release", relfolder))
+	if(test_path(targetpath, BLI_getwdN(cwd, sizeof(cwd)), "release", relfolder))
 		return 1;
 	
 	/* try EXECUTABLE_DIR/release/folder_name */
@@ -1645,6 +1645,7 @@ static int add_win32_extension(char *name)
 	return (retval);
 }
 
+/* filename must be FILE_MAX length minimum */
 void BLI_where_am_i(char *fullname, const char *name)
 {
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
@@ -1681,7 +1682,7 @@ void BLI_where_am_i(char *fullname, const char *name)
 		strcpy(fullname, name);
 		if (name[0] == '.') {
 			// relative path, prepend cwd
-			BLI_getwdN(fullname);
+			BLI_getwdN(fullname, FILE_MAX);
 			
 			// not needed but avoids annoying /./ in name
 			if(name && name[0]=='.' && name[1]==slash)
