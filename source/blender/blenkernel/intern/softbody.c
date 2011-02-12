@@ -698,12 +698,12 @@ static void add_2nd_order_roller(Object *ob,float UNUSED(stiffness), int *counte
 			bs = sb->bspring + bp->springs[b-1];
 			/*nasty thing here that springs have two ends
 			so here we have to make sure we examine the other */
-			if (( v0 == bs->v1) ){
+			if (v0 == bs->v1){
 				bpo =sb->bpoint+bs->v2;
 				notthis = bs->v2;
 			}
 			else {
-			if (( v0 == bs->v2) ){
+			if (v0 == bs->v2){
 				bpo =sb->bpoint+bs->v1;
 				notthis = bs->v1;
 			}

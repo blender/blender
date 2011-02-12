@@ -1079,7 +1079,7 @@ void graph_bfs(void)
 			minheight = pos[node->BFS_dist];
 			itA = node->child;
 			while(itA != NULL) {
-				if((itA->node->color == DAG_WHITE) ) {
+				if(itA->node->color == DAG_WHITE) {
 					itA->node->color = DAG_GRAY;
 					itA->node->BFS_dist = node->BFS_dist + 1;
 					itA->node->k = (float) minheight;
@@ -1226,7 +1226,7 @@ DagNodeQueue * graph_dfs(void)
 
 			itA = node->child;
 			while(itA != NULL) {
-				if((itA->node->color == DAG_WHITE) ) {
+				if(itA->node->color == DAG_WHITE) {
 					itA->node->DFS_dvtm = time;
 					itA->node->color = DAG_GRAY;
 
@@ -1480,7 +1480,7 @@ struct DagNodeQueue *get_all_childs(struct DagForest	*dag, void *ob)
 					
 			itA = node->child;
 			while(itA != NULL) {
-				if((itA->node->color == DAG_WHITE) ) {
+				if(itA->node->color == DAG_WHITE) {
 					itA->node->DFS_dvtm = time;
 					itA->node->color = DAG_GRAY;
 					
@@ -1514,7 +1514,7 @@ short	are_obs_related(struct DagForest	*dag, void *ob1, void *ob2) {
 	
 	itA = node->child;
 	while(itA != NULL) {
-		if((itA->node->ob == ob2) ) {
+		if(itA->node->ob == ob2) {
 			return itA->node->type;
 		} 
 		itA = itA->next;
@@ -1686,7 +1686,7 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 		
 		itA = node->child;
 		while(itA != NULL) {
-			if((itA->node->color == DAG_WHITE) ) {
+			if(itA->node->color == DAG_WHITE) {
 				itA->node->DFS_dvtm = time;
 				itA->node->color = DAG_GRAY;
 				
@@ -2622,7 +2622,7 @@ void DAG_pose_sort(Object *ob)
 		
 		itA = node->child;
 		while(itA != NULL) {
-			if((itA->node->color == DAG_WHITE) ) {
+			if(itA->node->color == DAG_WHITE) {
 				itA->node->color = DAG_GRAY;
 				push_stack(nqueue,itA->node);
 				skip = 1;

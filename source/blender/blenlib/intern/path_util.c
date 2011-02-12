@@ -459,7 +459,7 @@ void BLI_path_rel(char *file, const char *relfile)
 		char *p= temp;
 		char *q= file;
 
-		while ((*p == *q)) {
+		while (*p == *q) {
 			++p; ++q;
 			/* dont search beyond the end of the string
 			 * in the rare case they match */

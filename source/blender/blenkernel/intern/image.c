@@ -1262,7 +1262,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, const char *name, int imtype, int 
 		ibuf->ftype= IMAGIC;
 	}
 #ifdef WITH_HDR
-	else if ((imtype==R_RADHDR)) {
+	else if (imtype==R_RADHDR) {
 		ibuf->ftype= RADHDR;
 	}
 #endif
@@ -1274,11 +1274,11 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, const char *name, int imtype, int 
 
 	}
 #ifdef WITH_DDS
-	else if ((imtype==R_DDS)) {
+	else if (imtype==R_DDS) {
 		ibuf->ftype= DDS;
 	}
 #endif
-	else if ((imtype==R_BMP)) {
+	else if (imtype==R_BMP) {
 		ibuf->ftype= BMP;
 	}
 #ifdef WITH_TIFF
