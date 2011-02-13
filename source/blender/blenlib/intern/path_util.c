@@ -1751,7 +1751,7 @@ void BLI_where_is_temp(char *fullname, int maxlen, int usertemp)
 	if (fullname[0] == '\0') {
 		char *tmp = getenv("TEMP"); /* Windows */
 		if (tmp && BLI_is_dir(tmp)) {
-			BLI_strncpy((fullname, tmp, maxlen);
+			BLI_strncpy(fullname, tmp, maxlen);
 		}
 	}
 #else
