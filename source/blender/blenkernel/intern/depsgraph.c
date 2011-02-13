@@ -278,7 +278,7 @@ int		queue_count(struct DagNodeQueue *queue){
 }
 
 
-DagForest * dag_init()
+DagForest *dag_init(void)
 {
 	DagForest *forest;
 	/* use callocN to init all zero */

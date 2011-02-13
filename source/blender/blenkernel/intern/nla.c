@@ -1320,7 +1320,7 @@ static void nlastrip_get_endpoint_overlaps (NlaStrip *strip, NlaTrack *track, fl
 }
 
 /* Determine auto-blending for the given strip */
-void BKE_nlastrip_validate_autoblends (NlaTrack *nlt, NlaStrip *nls)
+static void BKE_nlastrip_validate_autoblends (NlaTrack *nlt, NlaStrip *nls)
 {
 	float *ps=NULL, *pe=NULL;
 	float *ns=NULL, *ne=NULL;
@@ -1576,7 +1576,7 @@ void BKE_nla_tweakmode_exit (AnimData *adt)
 
 /* Baking Tools ------------------------------------------- */
 
-void BKE_nla_bake (Scene *scene, ID *UNUSED(id), AnimData *adt, int UNUSED(flag))
+static void BKE_nla_bake (Scene *scene, ID *UNUSED(id), AnimData *adt, int UNUSED(flag))
 {
 
 	/* verify that data is valid 

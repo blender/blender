@@ -228,7 +228,7 @@ BM_INLINE int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, 
 {
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
 	Entry *e;
-	Entry *p = 0;
+	Entry *p = NULL;
 
 	for (e= gh->buckets[hash]; e; e= e->next) {
 		if (gh->cmpfp(key, e->key)==0) {

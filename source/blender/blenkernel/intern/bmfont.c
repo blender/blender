@@ -54,6 +54,7 @@
 #include "BKE_global.h"
 #include "IMB_imbuf_types.h"
 
+#include "BKE_bmfont.h"
 #include "BKE_bmfont_types.h"
 
 void printfGlyph(bmGlyph * glyph)

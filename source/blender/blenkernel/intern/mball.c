@@ -77,7 +77,7 @@ void unlink_mball(MetaBall *mb)
 	
 	for(a=0; a<mb->totcol; a++) {
 		if(mb->mat[a]) mb->mat[a]->id.us--;
-		mb->mat[a]= 0;
+		mb->mat[a]= NULL;
 	}
 }
 
@@ -142,9 +142,9 @@ void make_local_mball(MetaBall *mb)
 	 * - mixed: make copy
 	 */
 	
-	if(mb->id.lib==0) return;
+	if(mb->id.lib==NULL) return;
 	if(mb->id.us==1) {
-		mb->id.lib= 0;
+		mb->id.lib= NULL;
 		mb->id.flag= LIB_LOCAL;
 		return;
 	}
@@ -159,7 +159,7 @@ void make_local_mball(MetaBall *mb)
 	}
 	
 	if(local && lib==0) {
-		mb->id.lib= 0;
+		mb->id.lib= NULL;
 		mb->id.flag= LIB_LOCAL;
 	}
 	else if(local && lib) {
@@ -170,7 +170,7 @@ void make_local_mball(MetaBall *mb)
 		while(ob) {
 			if(ob->data==mb) {
 				
-				if(ob->id.lib==0) {
+				if(ob->id.lib==NULL) {
 					ob->data= mbn;
 					mbn->id.us++;
 					mb->id.us--;
@@ -242,7 +242,7 @@ void tex_space_mball(Object *ob)
 	float *data, min[3], max[3], loc[3], size[3];
 	int tot, doit=0;
 
-	if(ob->bb==0) ob->bb= MEM_callocN(sizeof(BoundBox), "mb boundbox");
+	if(ob->bb==NULL) ob->bb= MEM_callocN(sizeof(BoundBox), "mb boundbox");
 	bb= ob->bb;
 	
 	/* Weird one, this. */
@@ -372,7 +372,7 @@ void copy_mball_properties(Scene *scene, Object *active_object)
 	BLI_split_name_num(basisname, &basisnr, active_object->id.name+2, '.');
 
 	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if(F_ERROR==next_object(&sce_iter, 0, 0, 0))
+	if(F_ERROR==next_object(&sce_iter, 0, NULL, NULL))
 		return;
 	
 	while(next_object(&sce_iter, 1, &base, &ob)) {
@@ -418,7 +418,7 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 	totelem= 0;
 
 	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if(F_ERROR==next_object(&sce_iter, 0, 0, 0))
+	if(F_ERROR==next_object(&sce_iter, 0, NULL, NULL))
 		return NULL;
 	
 	while(next_object(&sce_iter, 1, &base, &ob)) {
@@ -698,8 +698,8 @@ float metaball(float x, float y, float z)
 
 /* ******************************************** */
 
-int *indices=NULL;
-int totindex, curindex;
+static int *indices=NULL;
+static int totindex, curindex;
 
 
 void accum_mballfaces(int i1, int i2, int i3, int i4)
@@ -742,8 +742,8 @@ void *new_pgn_element(int size)
 	 */
 	int blocksize= 16384;
 	static int offs= 0;		/* the current free address */
-	static struct pgn_elements *cur= 0;
-	static ListBase lb= {0, 0};
+	static struct pgn_elements *cur= NULL;
+	static ListBase lb= {NULL, NULL};
 	void *adr;
 	
 	if(size>10000 || size==0) {
@@ -925,14 +925,14 @@ void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, i
 	newc.corners[FLIP(c3, bit)] = corn3;
 	newc.corners[FLIP(c4, bit)] = corn4;
 
-	if(newc.corners[0]==0) newc.corners[0] = setcorner(p, i, j, k);
-	if(newc.corners[1]==0) newc.corners[1] = setcorner(p, i, j, k+1);
-	if(newc.corners[2]==0) newc.corners[2] = setcorner(p, i, j+1, k);
-	if(newc.corners[3]==0) newc.corners[3] = setcorner(p, i, j+1, k+1);
-	if(newc.corners[4]==0) newc.corners[4] = setcorner(p, i+1, j, k);
-	if(newc.corners[5]==0) newc.corners[5] = setcorner(p, i+1, j, k+1);
-	if(newc.corners[6]==0) newc.corners[6] = setcorner(p, i+1, j+1, k);
-	if(newc.corners[7]==0) newc.corners[7] = setcorner(p, i+1, j+1, k+1);
+	if(newc.corners[0]==NULL) newc.corners[0] = setcorner(p, i, j, k);
+	if(newc.corners[1]==NULL) newc.corners[1] = setcorner(p, i, j, k+1);
+	if(newc.corners[2]==NULL) newc.corners[2] = setcorner(p, i, j+1, k);
+	if(newc.corners[3]==NULL) newc.corners[3] = setcorner(p, i, j+1, k+1);
+	if(newc.corners[4]==NULL) newc.corners[4] = setcorner(p, i+1, j, k);
+	if(newc.corners[5]==NULL) newc.corners[5] = setcorner(p, i+1, j, k+1);
+	if(newc.corners[6]==NULL) newc.corners[6] = setcorner(p, i+1, j+1, k);
+	if(newc.corners[7]==NULL) newc.corners[7] = setcorner(p, i+1, j+1, k+1);
 
 	p->cubes->cube= newc;	
 }
@@ -1031,7 +1031,7 @@ void makecubetable (void)
 		for (c = 0; c < 8; c++) pos[c] = MB_BIT(i, c);
 		for (e = 0; e < 12; e++)
 			if (!done[e] && (pos[corner1[e]] != pos[corner2[e]])) {
-				INTLIST *ints = 0;
+				INTLIST *ints = NULL;
 				INTLISTS *lists = (INTLISTS *) MEM_callocN(sizeof(INTLISTS), "mball_intlist");
 				int start = e, edge = e;
 				
@@ -1080,7 +1080,7 @@ void BKE_freecubetable(void)
 			MEM_freeN(lists);
 			lists= nlists;
 		}
-		cubetable[i]= 0;
+		cubetable[i]= NULL;
 	}
 }
 
@@ -1594,7 +1594,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 	BLI_split_name_num(obname, &obnr, ob->id.name+2, '.');
 	
 	/* make main array */
-	next_object(&sce_iter, 0, 0, 0);
+	next_object(&sce_iter, 0, NULL, NULL);
 	while(next_object(&sce_iter, 1, &base, &bob)) {
 
 		if(bob->type==OB_MBALL) {
@@ -2174,7 +2174,7 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
 	curindex= totindex= 0;
-	indices= 0;
+	indices= NULL;
 	thresh= mb->thresh;
 
 	/* total number of MetaElems (totelem) is precomputed in find_basis_mball() function */
@@ -2229,7 +2229,7 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	mbproc.function = metaball;
 	mbproc.size = width;
 	mbproc.bounds = nr_cubes;
-	mbproc.cubes= 0;
+	mbproc.cubes= NULL;
 	mbproc.delta = width/(float)(RES*RES);
 
 	polygonize(&mbproc, mb);
@@ -2251,7 +2251,7 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 		dl->parts= curindex;
 
 		dl->index= indices;
-		indices= 0;
+		indices= NULL;
 		
 		a= mbproc.vertices.count;
 		dl->verts= ve= MEM_mallocN(sizeof(float)*3*a, "mballverts");

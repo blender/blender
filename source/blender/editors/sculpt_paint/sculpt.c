@@ -64,6 +64,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "ED_sculpt.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_util.h" /* for crazyspace correction */
@@ -2377,13 +2379,13 @@ static void sculpt_combine_proxies(Sculpt *sd, SculptSession *ss)
 {
 	Brush *brush= paint_brush(&sd->paint);
 	PBVHNode** nodes;
-	int use_orco, totnode, n;
+	int totnode, n;
 
 	BLI_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
 
 	if(!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER)) {
 		/* these brushes start from original coordinates */
-		use_orco = (ELEM3(brush->sculpt_tool, SCULPT_TOOL_GRAB,
+		const int use_orco = (ELEM3(brush->sculpt_tool, SCULPT_TOOL_GRAB,
 				  SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB));
 
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)

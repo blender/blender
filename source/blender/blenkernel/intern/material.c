@@ -278,11 +278,11 @@ void make_local_material(Material *ma)
 		* - mixed: make copy
 		*/
 	
-	if(ma->id.lib==0) return;
+	if(ma->id.lib==NULL) return;
 	if(ma->id.us==1) {
-		ma->id.lib= 0;
+		ma->id.lib= NULL;
 		ma->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)ma, 0);
+		new_id(NULL, (ID *)ma, NULL);
 		for(a=0; a<MAX_MTEX; a++) {
 			if(ma->mtex[a]) id_lib_extern((ID *)ma->mtex[a]->tex);
 		}
@@ -344,14 +344,14 @@ void make_local_material(Material *ma)
 	}
 	
 	if(local && lib==0) {
-		ma->id.lib= 0;
+		ma->id.lib= NULL;
 		ma->id.flag= LIB_LOCAL;
 		
 		for(a=0; a<MAX_MTEX; a++) {
 			if(ma->mtex[a]) id_lib_extern((ID *)ma->mtex[a]->tex);
 		}
 		
-		new_id(0, (ID *)ma, 0);
+		new_id(NULL, (ID *)ma, NULL);
 	}
 	else if(local && lib) {
 		
@@ -364,7 +364,7 @@ void make_local_material(Material *ma)
 			if(ob->mat) {
 				for(a=0; a<ob->totcol; a++) {
 					if(ob->mat[a]==ma) {
-						if(ob->id.lib==0) {
+						if(ob->id.lib==NULL) {
 							ob->mat[a]= man;
 							man->id.us++;
 							ma->id.us--;
@@ -380,7 +380,7 @@ void make_local_material(Material *ma)
 			if(me->mat) {
 				for(a=0; a<me->totcol; a++) {
 					if(me->mat[a]==ma) {
-						if(me->id.lib==0) {
+						if(me->id.lib==NULL) {
 							me->mat[a]= man;
 							man->id.us++;
 							ma->id.us--;
@@ -396,7 +396,7 @@ void make_local_material(Material *ma)
 			if(cu->mat) {
 				for(a=0; a<cu->totcol; a++) {
 					if(cu->mat[a]==ma) {
-						if(cu->id.lib==0) {
+						if(cu->id.lib==NULL) {
 							cu->mat[a]= man;
 							man->id.us++;
 							ma->id.us--;
@@ -412,7 +412,7 @@ void make_local_material(Material *ma)
 			if(mb->mat) {
 				for(a=0; a<mb->totcol; a++) {
 					if(mb->mat[a]==ma) {
-						if(mb->id.lib==0) {
+						if(mb->id.lib==NULL) {
 							mb->mat[a]= man;
 							man->id.us++;
 							ma->id.us--;
@@ -583,7 +583,7 @@ Material *give_current_material(Object *ob, int act)
 		matarar= give_matarar(ob);
 		
 		if(matarar && *matarar) ma= (*matarar)[act-1];
-		else ma= 0;
+		else ma= NULL;
 		
 	}
 	
@@ -593,7 +593,7 @@ Material *give_current_material(Object *ob, int act)
 ID *material_from(Object *ob, int act)
 {
 
-	if(ob==0) return 0;
+	if(ob==NULL) return NULL;
 
 	if(ob->totcol==0) return ob->data;
 	if(act==0) act= 1;
@@ -688,7 +688,7 @@ void assign_material(Object *ob, Material *ma, int act)
 	totcolp= give_totcolp(ob);
 	matarar= give_matarar(ob);
 	
-	if(totcolp==0 || matarar==0) return;
+	if(totcolp==NULL || matarar==NULL) return;
 	
 	if(act > *totcolp) {
 		matar= MEM_callocN(sizeof(void *)*act, "matarray1");
@@ -782,7 +782,7 @@ int object_add_material_slot(Object *ob)
 {
 	Material *ma;
 	
-	if(ob==0) return FALSE;
+	if(ob==NULL) return FALSE;
 	if(ob->totcol>=MAXMAT) return FALSE;
 	
 	ma= give_current_material(ob, ob->actcol);
@@ -964,7 +964,7 @@ int material_in_material(Material *parmat, Material *mat)
 	
 /* ****************** */
 
-char colname_array[125][20]= {
+static char colname_array[125][20]= {
 "Black","DarkRed","HalfRed","Red","Red",
 "DarkGreen","DarkOlive","Brown","Chocolate","OrangeRed",
 "HalfGreen","GreenOlive","DryOlive","Goldenrod","DarkOrange",
@@ -997,7 +997,7 @@ void automatname(Material *ma)
 	int nr, r, g, b;
 	float ref;
 	
-	if(ma==0) return;
+	if(ma==NULL) return;
 	if(ma->mode & MA_SHLESS) ref= 1.0;
 	else ref= ma->ref;
 	
@@ -1045,7 +1045,7 @@ int object_remove_material_slot(Object *ob)
 	
 	if(*totcolp==0) {
 		MEM_freeN(*matarar);
-		*matarar= 0;
+		*matarar= NULL;
 	}
 	
 	actcol= ob->actcol;
@@ -1068,7 +1068,7 @@ int object_remove_material_slot(Object *ob)
 			if(obt->totcol==0) {
 				MEM_freeN(obt->mat);
 				MEM_freeN(obt->matbits);
-				obt->mat= 0;
+				obt->mat= NULL;
 				obt->matbits= NULL;
 			}
 		}
@@ -1349,7 +1349,7 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 
 /* copy/paste buffer, if we had a propper py api that would be better */
 Material matcopybuf;
-static short matcopied=0;
+static short matcopied= 0;
 
 void clear_matcopybuf(void)
 {

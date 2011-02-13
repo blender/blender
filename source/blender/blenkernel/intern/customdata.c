@@ -469,19 +469,19 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 							vindex[x] = y;
 
 			for(i = 0; i < 2; i++) {
-				float sw[4][4] = {{0}};
+				float sw_m4[4][4] = {{0}};
 				int a = 7 & ~(1 << vindex[i*2] | 1 << vindex[i*2+1]);
 
-				sw[0][vindex[i*2+1]] = 1;
-				sw[1][vindex[i*2]] = 1;
+				sw_m4[0][vindex[i*2+1]] = 1;
+				sw_m4[1][vindex[i*2]] = 1;
 
 				for(x = 0; x < 3; x++)
 					if(a & (1 << x))
-						sw[2][x] = 1;
+						sw_m4[2][x] = 1;
 
 				tris[i] = *((MDisps*)sources[i]);
 				tris[i].disps = MEM_dupallocN(tris[i].disps);
-				layerInterp_mdisps(&sources[i], NULL, (float*)sw, 1, &tris[i]);
+				layerInterp_mdisps(&sources[i], NULL, (float*)sw_m4, 1, &tris[i]);
 			}
 
 			mdisp_join_tris(d, &tris[0], &tris[1]);
@@ -803,7 +803,7 @@ static void layerDefault_mcol(void *data, int count)
 
 
 
-const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
+static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MSticky), "MSticky", 1, NULL, NULL, NULL, layerInterp_msticky, NULL,
 	 NULL},
@@ -842,7 +842,7 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
-const char *LAYERTYPENAMES[CD_NUMTYPES] = {
+static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	/*   0-4 */ "CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace",
 	/*   5-9 */ "CDMTFace", "CDMCol", "CDOrigIndex", "CDNormal", "CDFlags",
 	/* 10-14 */ "CDMFloatProperty", "CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco",

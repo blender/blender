@@ -457,51 +457,51 @@ static char color_doc[] =
 ;
 PyTypeObject color_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"mathutils.Color",						//tp_name
+	"mathutils.Color",				//tp_name
 	sizeof(ColorObject),			//tp_basicsize
 	0,								//tp_itemsize
 	(destructor)BaseMathObject_dealloc,		//tp_dealloc
-	0,								//tp_print
-	0,								//tp_getattr
-	0,								//tp_setattr
-	0,								//tp_compare
+	NULL,							//tp_print
+	NULL,							//tp_getattr
+	NULL,							//tp_setattr
+	NULL,							//tp_compare
 	(reprfunc) Color_repr,			//tp_repr
-	0,				//tp_as_number
+	NULL,			//tp_as_number
 	&Color_SeqMethods,				//tp_as_sequence
 	&Color_AsMapping,				//tp_as_mapping
-	0,								//tp_hash
-	0,								//tp_call
-	0,								//tp_str
-	0,								//tp_getattro
-	0,								//tp_setattro
-	0,								//tp_as_buffer
+	NULL,							//tp_hash
+	NULL,							//tp_call
+	NULL,							//tp_str
+	NULL,							//tp_getattro
+	NULL,							//tp_setattro
+	NULL,							//tp_as_buffer
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, //tp_flags
 	color_doc, //tp_doc
-	0,								//tp_traverse
-	0,								//tp_clear
+	NULL,							//tp_traverse
+	NULL,							//tp_clear
 	(richcmpfunc)Color_richcmpr,	//tp_richcompare
 	0,								//tp_weaklistoffset
-	0,								//tp_iter
-	0,								//tp_iternext
+	NULL,							//tp_iter
+	NULL,							//tp_iternext
 	Color_methods,					//tp_methods
-	0,								//tp_members
+	NULL,							//tp_members
 	Color_getseters,				//tp_getset
-	0,								//tp_base
-	0,								//tp_dict
-	0,								//tp_descr_get
-	0,								//tp_descr_set
+	NULL,							//tp_base
+	NULL,							//tp_dict
+	NULL,							//tp_descr_get
+	NULL,							//tp_descr_set
 	0,								//tp_dictoffset
-	0,								//tp_init
-	0,								//tp_alloc
+	NULL,							//tp_init
+	NULL,							//tp_alloc
 	Color_new,						//tp_new
-	0,								//tp_free
-	0,								//tp_is_gc
-	0,								//tp_bases
-	0,								//tp_mro
-	0,								//tp_cache
-	0,								//tp_subclasses
-	0,								//tp_weaklist
-	0								//tp_del
+	NULL,							//tp_free
+	NULL,							//tp_is_gc
+	NULL,							//tp_bases
+	NULL,							//tp_mro
+	NULL,							//tp_cache
+	NULL,							//tp_subclasses
+	NULL,							//tp_weaklist
+	NULL							//tp_del
 };
 //------------------------newColorObject (internal)-------------
 //creates a new color object

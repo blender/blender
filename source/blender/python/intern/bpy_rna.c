@@ -228,7 +228,7 @@ static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int UNUSED(subtyp
 	return 1;
 }
 
-Mathutils_Callback mathutils_rna_array_cb = {
+static Mathutils_Callback mathutils_rna_array_cb = {
 	(BaseMathCheckFunc)		mathutils_rna_generic_check,
 	(BaseMathGetFunc)		mathutils_rna_vector_get,
 	(BaseMathSetFunc)		mathutils_rna_vector_set,
@@ -278,7 +278,7 @@ static int mathutils_rna_matrix_set(BaseMathObject *bmo, int UNUSED(subtype))
 	return 1;
 }
 
-Mathutils_Callback mathutils_rna_matrix_cb = {
+static Mathutils_Callback mathutils_rna_matrix_cb = {
 	mathutils_rna_generic_check,
 	mathutils_rna_matrix_get,
 	mathutils_rna_matrix_set,
@@ -1221,7 +1221,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				else {
 					/* data==NULL, assign to RNA */
 					if(value == Py_None) {
-						PointerRNA valueptr= {{0}};
+						PointerRNA valueptr= {{NULL}};
 						RNA_property_pointer_set(ptr, prop, valueptr);
 					}
 					else if(RNA_struct_is_a(param->ptr.type, ptype)) {
@@ -3572,7 +3572,7 @@ static  PyObject *pyrna_prop_collection_foreach_set(BPy_PropertyRNA *self, PyObj
 
 /* A bit of a kludge, make a list out of a collection or array,
  * then return the lists iter function, not especially fast but convenient for now */
-PyObject *pyrna_prop_array_iter(BPy_PropertyArrayRNA *self)
+static PyObject *pyrna_prop_array_iter(BPy_PropertyArrayRNA *self)
 {
 	/* Try get values from a collection */
 	PyObject *ret;
@@ -3590,7 +3590,7 @@ PyObject *pyrna_prop_array_iter(BPy_PropertyArrayRNA *self)
 	return iter;
 }
 
-PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self)
+static PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self)
 {
 	/* Try get values from a collection */
 	PyObject *ret;
@@ -3719,7 +3719,7 @@ static PyObject * pyrna_prop_new(PyTypeObject *type, PyObject *args, PyObject *U
 	}
 }
 
-PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
+static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 {
 	PyObject *ret;
 	int type = RNA_property_type(prop);
@@ -4475,7 +4475,7 @@ PyTypeObject pyrna_prop_collection_Type = {
 };
 
 /* only for add/remove/move methods */
-PyTypeObject pyrna_prop_collection_idprop_Type = {
+static PyTypeObject pyrna_prop_collection_idprop_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"bpy_prop_collection_idprop",		/* tp_name */
 	sizeof( BPy_PropertyRNA ),			/* tp_basicsize */
@@ -4941,7 +4941,7 @@ static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
 	return list;
 }
 
-PyTypeObject pyrna_basetype_Type = BLANK_PYTHON_TYPE;
+static PyTypeObject pyrna_basetype_Type = BLANK_PYTHON_TYPE;
 
 PyObject *BPY_rna_types(void)
 {

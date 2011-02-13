@@ -25,6 +25,8 @@
 
 #include <math.h>
 #include <stdlib.h>
+
+#include "BKE_image.h"
 #include "BLI_math_color.h"
 #include "BLF_api.h"
 

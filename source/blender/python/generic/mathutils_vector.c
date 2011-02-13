@@ -1327,8 +1327,8 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 /*-----------------PROTCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Vector_SeqMethods = {
 	(lenfunc) Vector_len,				/* sq_length */
-	(binaryfunc) 0,						/* sq_concat */
-	(ssizeargfunc) 0,					/* sq_repeat */
+	(binaryfunc) NULL,					/* sq_concat */
+	(ssizeargfunc) NULL,				/* sq_repeat */
 	(ssizeargfunc) Vector_item,			/* sq_item */
 	NULL,								/* py3 deprecated slice func */
 	(ssizeobjargproc) Vector_ass_item,	/* sq_ass_item */
@@ -1408,40 +1408,40 @@ static PyMappingMethods Vector_AsMapping = {
 
 
 static PyNumberMethods Vector_NumMethods = {
-		(binaryfunc)	Vector_add,	/*nb_add*/
-		(binaryfunc)	Vector_sub,	/*nb_subtract*/
-		(binaryfunc)	Vector_mul,	/*nb_multiply*/
-		0,							/*nb_remainder*/
-		0,							/*nb_divmod*/
-		0,							/*nb_power*/
-		(unaryfunc) 	Vector_neg,	/*nb_negative*/
-		(unaryfunc) 	0,	/*tp_positive*/
-		(unaryfunc) 	0,	/*tp_absolute*/
-		(inquiry)	0,	/*tp_bool*/
-		(unaryfunc)	0,	/*nb_invert*/
-		0,				/*nb_lshift*/
-		(binaryfunc)0,	/*nb_rshift*/
-		0,				/*nb_and*/
-		0,				/*nb_xor*/
-		0,				/*nb_or*/
-		0,				/*nb_int*/
-		0,				/*nb_reserved*/
-		0,				/*nb_float*/
-		Vector_iadd,	/* nb_inplace_add */
-		Vector_isub,	/* nb_inplace_subtract */
-		Vector_imul,	/* nb_inplace_multiply */
-		0,				/* nb_inplace_remainder */
-		0,				/* nb_inplace_power */
-		0,				/* nb_inplace_lshift */
-		0,				/* nb_inplace_rshift */
-		0,				/* nb_inplace_and */
-		0,				/* nb_inplace_xor */
-		0,				/* nb_inplace_or */
-		0,				/* nb_floor_divide */
-		Vector_div,		/* nb_true_divide */
-		0,				/* nb_inplace_floor_divide */
-		Vector_idiv,	/* nb_inplace_true_divide */
-		0,			/* nb_index */
+	(binaryfunc)	Vector_add,	/*nb_add*/
+	(binaryfunc)	Vector_sub,	/*nb_subtract*/
+	(binaryfunc)	Vector_mul,	/*nb_multiply*/
+	NULL,							/*nb_remainder*/
+	NULL,							/*nb_divmod*/
+	NULL,							/*nb_power*/
+	(unaryfunc) 	Vector_neg,	/*nb_negative*/
+	(unaryfunc) 	NULL,	/*tp_positive*/
+	(unaryfunc) 	NULL,	/*tp_absolute*/
+	(inquiry)	NULL,	/*tp_bool*/
+	(unaryfunc)	NULL,	/*nb_invert*/
+	NULL,				/*nb_lshift*/
+	(binaryfunc)NULL,	/*nb_rshift*/
+	NULL,				/*nb_and*/
+	NULL,				/*nb_xor*/
+	NULL,				/*nb_or*/
+	NULL,				/*nb_int*/
+	NULL,				/*nb_reserved*/
+	NULL,				/*nb_float*/
+	Vector_iadd,	/* nb_inplace_add */
+	Vector_isub,	/* nb_inplace_subtract */
+	Vector_imul,	/* nb_inplace_multiply */
+	NULL,				/* nb_inplace_remainder */
+	NULL,				/* nb_inplace_power */
+	NULL,				/* nb_inplace_lshift */
+	NULL,				/* nb_inplace_rshift */
+	NULL,				/* nb_inplace_and */
+	NULL,				/* nb_inplace_xor */
+	NULL,				/* nb_inplace_or */
+	NULL,				/* nb_floor_divide */
+	Vector_div,		/* nb_true_divide */
+	NULL,				/* nb_inplace_floor_divide */
+	Vector_idiv,	/* nb_inplace_true_divide */
+	NULL,			/* nb_index */
 };
 
 /*------------------PY_OBECT DEFINITION--------------------------*/

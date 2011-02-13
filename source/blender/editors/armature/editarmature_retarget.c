@@ -112,7 +112,7 @@ float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float qrot[4]);
 
 /*********************************** EDITBONE UTILS ****************************************************/
 
-int countEditBoneChildren(ListBase *list, EditBone *parent)
+static int countEditBoneChildren(ListBase *list, EditBone *parent)
 {
 	EditBone *ebone;
 	int count = 0;
@@ -128,7 +128,7 @@ int countEditBoneChildren(ListBase *list, EditBone *parent)
 	return count;
 }
 
-EditBone* nextEditBoneChild(ListBase *list, EditBone *parent, int n)
+static EditBone* nextEditBoneChild(ListBase *list, EditBone *parent, int n)
 {
 	EditBone *ebone;
 	
@@ -147,7 +147,7 @@ EditBone* nextEditBoneChild(ListBase *list, EditBone *parent, int n)
 	return NULL;
 }
 
-void getEditBoneRollUpAxis(EditBone *bone, float roll, float up_axis[3])
+static void getEditBoneRollUpAxis(EditBone *bone, float roll, float up_axis[3])
 {
 	float mat[3][3], nor[3];
 
@@ -195,7 +195,7 @@ float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4],
 	}
 }
 
-float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float qroll[4], float up_axis[3])
+static float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float qroll[4], float up_axis[3])
 {
 	if (previous == NULL)
 	{
@@ -257,7 +257,7 @@ float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float qrot[4])
 
 /************************************ DESTRUCTORS ******************************************************/
 
-void RIG_freeRigArc(BArc *arc)
+static void RIG_freeRigArc(BArc *arc)
 {
 	BLI_freelistN(&((RigArc*)arc)->edges);
 }

@@ -57,7 +57,7 @@
 
 ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 {
-	static ModifierTypeInfo *types[NUM_MODIFIER_TYPES]= {0};
+	static ModifierTypeInfo *types[NUM_MODIFIER_TYPES]= {NULL};
 	static int types_init = 1;
 
 	if (types_init) {

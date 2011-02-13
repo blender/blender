@@ -27,6 +27,7 @@
  
 #define WITH_PYTHON /* for AUD_PyInit.h, possibly others */
 
+#include "bpy.h" 
 #include "bpy_util.h" 
 #include "bpy_rna.h"
 #include "bpy_app.h"
@@ -58,7 +59,7 @@ static char bpy_script_paths_doc[] =
 "   :return: (system, user) strings will be empty when not found.\n"
 "   :rtype: tuple of strigs\n";
 
-PyObject *bpy_script_paths(PyObject *UNUSED(self))
+static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 {
 	PyObject *ret= PyTuple_New(2);
 	char *path;

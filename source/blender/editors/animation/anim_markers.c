@@ -205,7 +205,7 @@ void ED_markers_get_minmax (ListBase *markers, short sel, float *first, float *l
 /* --------------------------------- */
 
 /* Adds a marker to list of cfra elems */
-void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only_sel)
+static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only_sel)
 {
 	CfraElem *ce, *cen;
 	
@@ -269,7 +269,7 @@ TimeMarker *ED_markers_get_first_selected(ListBase *markers)
 /* Print debugging prints of list of markers 
  * BSI's: do NOT make static or put in if-defs as "unused code". That's too much trouble when we need to use for quick debuggging!
  */
-void debug_markers_print_list(ListBase *markers)
+static void debug_markers_print_list(ListBase *markers)
 {
 	TimeMarker *marker;
 	

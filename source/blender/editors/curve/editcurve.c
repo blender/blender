@@ -1122,7 +1122,6 @@ static void curve_rename_fcurves(Object *obedit, ListBase *orig_curves)
 	/* remove pathes for removed control points
 	   need this to make further step with copying non-cv related curves copying
 	   not touching cv's f-cruves */
-	fcu= orig_curves->first;
 	for(fcu= orig_curves->first; fcu; fcu= next) {
 		next= fcu->next;
 

@@ -649,12 +649,12 @@ static struct PyModuleDef noise_module_def = {
 	PyModuleDef_HEAD_INIT,
 	"noise",  /* m_name */
 	Noise__doc__,  /* m_doc */
-	0,  /* m_size */
+	0,     /* m_size */
 	NoiseMethods,  /* m_methods */
-	0,  /* m_reload */
-	0,  /* m_traverse */
-	0,  /* m_clear */
-	0,  /* m_free */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
 };
 
 PyObject *BPyInit_noise(void)
@@ -677,7 +677,7 @@ PyObject *BPyInit_noise(void)
 			{(char *)"VORONOI_F2F1", NULL},
 			{(char *)"VORONOI_CRACKLE", NULL},
 			{(char *)"CELLNOISE", NULL},
-			{0}
+			{NULL}
 		};
 
 		static PyStructSequence_Desc noise_types_info_desc = {
@@ -723,7 +723,7 @@ PyObject *BPyInit_noise(void)
 			{(char *)"MINKOVSKY_HALF", NULL},
 			{(char *)"MINKOVSKY_FOUR", NULL},
 			{(char *)"MINKOVSKY", NULL},
-			{0}
+			{NULL}
 		};
 
 		static PyStructSequence_Desc noise_types_info_desc = {

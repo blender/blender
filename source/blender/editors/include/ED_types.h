@@ -40,8 +40,8 @@
 #define YIC 20
 
 /* proposal = put scene pointers on function calls? */
-#define BASACT                    (scene->basact)
-#define OBACT                     (BASACT? BASACT->object: 0)
+// #define BASACT                    (scene->basact)
+// #define OBACT                     (BASACT? BASACT->object: NULL)
 
 
 

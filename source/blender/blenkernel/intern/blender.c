@@ -88,10 +88,10 @@
 
 Global G;
 UserDef U;
-ListBase WMlist= {NULL, NULL};
+/* ListBase = {NULL, NULL}; */
 short ENDIAN_ORDER;
 
-char versionstr[48]= "";
+static char versionstr[48]= "";
 
 /* ********** free ********** */
 
@@ -350,7 +350,7 @@ int BKE_read_file(bContext *C, const char *dir, ReportList *reports)
 	BlendFileData *bfd;
 	int retval= 1;
 
-	if(strstr(dir, BLENDER_STARTUP_FILE)==0) /* dont print user-pref loading */
+	if(strstr(dir, BLENDER_STARTUP_FILE)==NULL) /* dont print user-pref loading */
 		printf("read blend: %s\n", dir);
 
 	bfd= BLO_read_from_file(dir, reports);

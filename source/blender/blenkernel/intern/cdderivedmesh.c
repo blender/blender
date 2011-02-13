@@ -729,7 +729,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		GPU_vertex_setup( dm );
 		GPU_normal_setup( dm );
 		GPU_uv_setup( dm );
-		if( col != 0 ) {
+		if( col != NULL ) {
 			/*if( realcol && dm->drawObject->colType == CD_TEXTURE_MCOL )  {
 				col = 0;
 			} else if( mcol && dm->drawObject->colType == CD_MCOL ) {
@@ -983,7 +983,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 
 	glShadeModel(GL_SMOOTH);
 
-	if( GPU_buffer_legacy(dm) || setDrawOptions != 0 ) {
+	if( GPU_buffer_legacy(dm) || setDrawOptions != NULL ) {
 		DEBUG_VBO( "Using legacy code. cdDM_drawMappedFacesGLSL\n" );
 		memset(&attribs, 0, sizeof(attribs));
 
@@ -1086,8 +1086,8 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 		glEnd();
 	}
 	else {
-		GPUBuffer *buffer = 0;
-		char *varray = 0;
+		GPUBuffer *buffer = NULL;
+		char *varray = NULL;
 		int numdata = 0, elementsize = 0, offset;
 		int start = 0, numfaces = 0, prevdraw = 0, curface = 0;
 		int i;
@@ -1124,9 +1124,9 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 
 							if( numdata != 0 ) {
 
-								GPU_buffer_free(buffer,0);
+								GPU_buffer_free(buffer, NULL);
 
-								buffer = 0;
+								buffer = NULL;
 							}
 
 						}
@@ -1164,16 +1164,16 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 						}
 						if( numdata != 0 ) {
 							elementsize = GPU_attrib_element_size( datatypes, numdata );
-							buffer = GPU_buffer_alloc( elementsize*dm->drawObject->nelements, 0 );
-							if( buffer == 0 ) {
+							buffer = GPU_buffer_alloc( elementsize*dm->drawObject->nelements, NULL );
+							if( buffer == NULL ) {
 								GPU_buffer_unbind();
 								dm->drawObject->legacy = 1;
 								return;
 							}
 							varray = GPU_buffer_lock_stream(buffer);
-							if( varray == 0 ) {
+							if( varray == NULL ) {
 								GPU_buffer_unbind();
-								GPU_buffer_free(buffer, 0);
+								GPU_buffer_free(buffer, NULL);
 								dm->drawObject->legacy = 1;
 								return;
 							}
@@ -1312,7 +1312,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 			}
 			GPU_buffer_unbind();
 		}
-		GPU_buffer_free( buffer, 0 );
+		GPU_buffer_free( buffer, NULL );
 	}
 
 	glShadeModel(GL_FLAT);

@@ -2080,7 +2080,7 @@ pointers may be NULL if not needed
 
 */
 /* can't believe there is none in math utils */
-float _det_m3(float m2[3][3])
+static float _det_m3(float m2[3][3])
 {
 	float det = 0.f;
 	if (m2){

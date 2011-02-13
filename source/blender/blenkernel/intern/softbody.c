@@ -161,7 +161,7 @@ typedef struct  SB_thread_context {
 #define BFF_CLOSEVERT   2 /* collider vertex repulses face */
 
 
-float SoftHeunTol = 1.0f; /* humm .. this should be calculated from sb parameters and sizes */
+static float SoftHeunTol = 1.0f; /* humm .. this should be calculated from sb parameters and sizes */
 
 /* local prototypes */
 static void free_softbody_intern(SoftBody *sb);
@@ -261,7 +261,7 @@ float operations still
 /* just an ID here to reduce the prob for killing objects
 ** ob->sumohandle points to we should not kill :)
 */
-const int CCD_SAVETY = 190561;
+static const int CCD_SAVETY = 190561;
 
 typedef struct ccdf_minmax{
 float minx,miny,minz,maxx,maxy,maxz;
@@ -549,7 +549,7 @@ static void ccd_build_deflector_hash(Scene *scene, Object *vertexowner, GHash *h
 			}
 
 			/*+++ only with deflecting set */
-			if(ob->pd && ob->pd->deflect && BLI_ghash_lookup(hash, ob) == 0) {
+			if(ob->pd && ob->pd->deflect && BLI_ghash_lookup(hash, ob) == NULL) {
 				DerivedMesh *dm= NULL;
 
 				if(ob->softflag & OB_SB_COLLFINAL) /* so maybe someone wants overkill to collide with subsurfed */
@@ -1655,7 +1655,7 @@ static void *exec_scan_for_ext_spring_forces(void *data)
 {
 	SB_thread_context *pctx = (SB_thread_context*)data;
 	_scan_for_ext_spring_forces(pctx->scene, pctx->ob, pctx->timenow, pctx->ifirst, pctx->ilast, pctx->do_effector);
-	return 0;
+	return NULL;
 }
 
 static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,int totsprings,int *UNUSED(ptr_to_break_func(void)))
@@ -2382,7 +2382,7 @@ static void *exec_softbody_calc_forces(void *data)
 {
 	SB_thread_context *pctx = (SB_thread_context*)data;
 	_softbody_calc_forces_slice_in_a_thread(pctx->scene, pctx->ob, pctx->forcetime, pctx->timenow, pctx->ifirst, pctx->ilast, NULL, pctx->do_effector,pctx->do_deflector,pctx->fieldfactor,pctx->windfactor);
-	return 0;
+	return NULL;
 }
 
 static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float timenow,int totpoint,int *UNUSED(ptr_to_break_func(void)),struct ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
@@ -3822,7 +3822,7 @@ void SB_estimate_transform(Object *ob,float lloc[3],float lrot[3][3],float lscal
 {
 	BodyPoint *bp;
 	ReferenceVert *rp;
-	SoftBody *sb = 0;
+	SoftBody *sb = NULL;
 	float (*opos)[3];
 	float (*rpos)[3];
 	float com[3],rcom[3];

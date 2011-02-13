@@ -79,9 +79,11 @@ float (*key_to_vertcos(struct Object *ob, struct KeyBlock *kb))[3];
 void vertcos_to_key(struct Object *ob, struct KeyBlock *kb, float (*vertCos)[3]);
 void offset_to_key(struct Object *ob, struct KeyBlock *kb, float (*ofs)[3]);
 
+/* key.c */
+extern int slurph_opt;
+
 #ifdef __cplusplus
 };
 #endif
 
-#endif
-
+#endif // BKE_KEY_H

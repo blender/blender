@@ -166,7 +166,7 @@ PartEff *give_parteff(Object *ob)
 		if(paf->type==EFF_PARTICLE) return paf;
 		paf= paf->next;
 	}
-	return 0;
+	return NULL;
 }
 
 void free_effect(Effect *eff)
@@ -636,7 +636,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		if(eff->psys == point->psys && *efd->index == point->index)
 			;
 		else {
-			ParticleSimulationData sim= {0};
+			ParticleSimulationData sim= {NULL};
 			sim.scene= eff->scene;
 			sim.ob= eff->ob;
 			sim.psys= eff->psys;
@@ -781,7 +781,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 	if(!eff->pd->tex)
 		return;
 
-	result[0].nor = result[1].nor = result[2].nor = result[3].nor = 0;
+	result[0].nor = result[1].nor = result[2].nor = result[3].nor = NULL;
 
 	strength= eff->pd->f_strength * efd->falloff;
 
@@ -845,7 +845,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 
 	add_v3_v3(total_force, force);
 }
-void do_physical_effector(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, float *total_force)
+static void do_physical_effector(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, float *total_force)
 {
 	PartDeflect *pd = eff->pd;
 	RNG *rng = pd->rng;

@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "BLF_api.h"
+
 #ifdef INTERNATIONAL
 
 #include <locale.h>
@@ -54,9 +56,9 @@
 #define FONT_SIZE_DEFAULT 12
 
 /* locale options. */
-char global_messagepath[1024];
-char global_language[32];
-char global_encoding_name[32];
+static char global_messagepath[1024];
+static char global_language[32];
+static char global_encoding_name[32];
 
 
 void BLF_lang_init(void)
@@ -97,7 +99,7 @@ void BLF_lang_set(const char *str)
 	BLI_strncpy(global_language, str, sizeof(global_language));
 }
 
-void BLF_lang_encoding(const char *str)
+static void BLF_lang_encoding(const char *str)
 {
 	BLI_strncpy(global_encoding_name, str, sizeof(global_encoding_name));
 	/* bind_textdomain_codeset(DOMAIN_NAME, encoding_name); */
@@ -110,7 +112,7 @@ void BLF_lang_init(void)
 	return;
 }
 
-void BLF_lang_encoding(const char *str)
+static void BLF_lang_encoding(const char *str)
 {
 	(void)str;
 	return;

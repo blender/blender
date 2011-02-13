@@ -264,10 +264,10 @@ static struct bUnitCollection buNaturalRotCollection = {buNaturalRotDef, 0, 0, s
 
 #define UNIT_SYSTEM_TOT (((sizeof(bUnitSystems) / 9) / sizeof(void *)) - 1)
 static struct bUnitCollection *bUnitSystems[][9] = {
-	{0, 0, 0, 0, 0, &buNaturalRotCollection, &buNaturalTimeCollecton, 0, 0},
-	{0, &buMetricLenCollecton, &buMetricAreaCollecton, &buMetricVolCollecton, &buMetricMassCollecton, &buNaturalRotCollection, &buNaturalTimeCollecton, &buMetricVelCollecton, &buMetricAclCollecton}, /* metric */
-	{0, &buImperialLenCollecton, &buImperialAreaCollecton, &buImperialVolCollecton, &buImperialMassCollecton, &buNaturalRotCollection, &buNaturalTimeCollecton, &buImperialVelCollecton, &buImperialAclCollecton}, /* imperial */
-	{0, 0, 0, 0, 0, 0, 0, 0, 0}
+	{NULL, NULL, NULL, NULL, NULL, &buNaturalRotCollection, &buNaturalTimeCollecton, NULL, NULL},
+	{NULL, &buMetricLenCollecton, &buMetricAreaCollecton, &buMetricVolCollecton, &buMetricMassCollecton, &buNaturalRotCollection, &buNaturalTimeCollecton, &buMetricVelCollecton, &buMetricAclCollecton}, /* metric */
+	{NULL, &buImperialLenCollecton, &buImperialAreaCollecton, &buImperialVolCollecton, &buImperialMassCollecton, &buNaturalRotCollection, &buNaturalTimeCollecton, &buImperialVelCollecton, &buImperialAclCollecton}, /* imperial */
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 

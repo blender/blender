@@ -1499,9 +1499,9 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	
 	if(ntree->id.lib==NULL) return;
 	if(ntree->id.us==1) {
-		ntree->id.lib= 0;
+		ntree->id.lib= NULL;
 		ntree->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)ntree, 0);
+		new_id(NULL, (ID *)ntree, NULL);
 		return;
 	}
 	
@@ -1559,7 +1559,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	if(local && lib==0) {
 		ntree->id.lib= NULL;
 		ntree->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)ntree, 0);
+		new_id(NULL, (ID *)ntree, NULL);
 	}
 	else if(local && lib) {
 		/* this is the mixed case, we copy the tree and assign it to local users */
@@ -2437,7 +2437,7 @@ static void *exec_composite_node(void *node_v)
 	}
 	
 	node->exec |= NODE_READY;
-	return 0;
+	return NULL;
 }
 
 /* return total of executable nodes, for timecursor */

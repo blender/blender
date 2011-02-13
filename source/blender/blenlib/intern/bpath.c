@@ -141,7 +141,7 @@ void BLI_bpathIterator_init(struct BPathIterator **bpi_pt, Main *bmain, const ch
 	BLI_bpathIterator_step(bpi);
 }
 
-void BLI_bpathIterator_alloc(struct BPathIterator **bpi) {
+static void BLI_bpathIterator_alloc(struct BPathIterator **bpi) {
 	*bpi= MEM_mallocN(sizeof(BPathIterator), "BLI_bpathIterator_alloc");
 }
 
@@ -797,7 +797,7 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 	
 	dir= opendir(dirname);
 	
-	if (dir==0)
+	if (dir==NULL)
 		return 0;
 	
 	if (*filesize == -1)

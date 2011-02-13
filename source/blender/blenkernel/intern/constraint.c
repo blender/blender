@@ -3469,7 +3469,7 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		BVHTreeRayHit hit;
 		BVHTreeNearest nearest;
 		
-		BVHTreeFromMesh treeData= {0};
+		BVHTreeFromMesh treeData= {NULL};
 		
 		nearest.index = -1;
 		nearest.dist = FLT_MAX;

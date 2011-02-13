@@ -844,7 +844,7 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 	return newVectorObject(vec, 3, Py_NEW, NULL);
 }
 
-struct PyMethodDef M_Geometry_methods[]= {
+static PyMethodDef M_Geometry_methods[]= {
 	{"intersect_ray_tri", (PyCFunction) M_Geometry_intersect_ray_tri, METH_VARARGS, M_Geometry_intersect_ray_tri_doc},
 	{"intersect_point_line", (PyCFunction) M_Geometry_intersect_point_line, METH_VARARGS, M_Geometry_intersect_point_line_doc},
 	{"intersect_point_tri_2d", (PyCFunction) M_Geometry_intersect_point_tri_2d, METH_VARARGS, M_Geometry_intersect_point_tri_2d_doc},
@@ -866,10 +866,10 @@ static struct PyModuleDef M_Geometry_module_def= {
 	M_Geometry_doc,  /* m_doc */
 	0,  /* m_size */
 	M_Geometry_methods,  /* m_methods */
-	0,  /* m_reload */
-	0,  /* m_traverse */
-	0,  /* m_clear */
-	0,  /* m_free */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
 };
 
 /*----------------------------MODULE INIT-------------------------*/

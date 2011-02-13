@@ -1213,7 +1213,7 @@ static PyObject *Matrix_copy(MatrixObject *self)
 static PyObject *Matrix_repr(MatrixObject *self)
 {
 	int x, y;
-	PyObject *rows[MATRIX_MAX_DIM]= {0};
+	PyObject *rows[MATRIX_MAX_DIM]= {NULL};
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -1617,37 +1617,37 @@ static PyNumberMethods Matrix_NumMethods = {
 		(binaryfunc)	Matrix_add,	/*nb_add*/
 		(binaryfunc)	Matrix_sub,	/*nb_subtract*/
 		(binaryfunc)	Matrix_mul,	/*nb_multiply*/
-		0,							/*nb_remainder*/
-		0,							/*nb_divmod*/
-		0,							/*nb_power*/
+		NULL,							/*nb_remainder*/
+		NULL,							/*nb_divmod*/
+		NULL,							/*nb_power*/
 		(unaryfunc) 	0,	/*nb_negative*/
 		(unaryfunc) 	0,	/*tp_positive*/
 		(unaryfunc) 	0,	/*tp_absolute*/
 		(inquiry)	0,	/*tp_bool*/
 		(unaryfunc)	Matrix_inv,	/*nb_invert*/
-		0,				/*nb_lshift*/
+		NULL,				/*nb_lshift*/
 		(binaryfunc)0,	/*nb_rshift*/
-		0,				/*nb_and*/
-		0,				/*nb_xor*/
-		0,				/*nb_or*/
-		0,				/*nb_int*/
-		0,				/*nb_reserved*/
-		0,				/*nb_float*/
-		0,				/* nb_inplace_add */
-		0,				/* nb_inplace_subtract */
-		0,				/* nb_inplace_multiply */
-		0,				/* nb_inplace_remainder */
-		0,				/* nb_inplace_power */
-		0,				/* nb_inplace_lshift */
-		0,				/* nb_inplace_rshift */
-		0,				/* nb_inplace_and */
-		0,				/* nb_inplace_xor */
-		0,				/* nb_inplace_or */
-		0,				/* nb_floor_divide */
-		0,				/* nb_true_divide */
-		0,				/* nb_inplace_floor_divide */
-		0,				/* nb_inplace_true_divide */
-		0,				/* nb_index */
+		NULL,				/*nb_and*/
+		NULL,				/*nb_xor*/
+		NULL,				/*nb_or*/
+		NULL,				/*nb_int*/
+		NULL,				/*nb_reserved*/
+		NULL,				/*nb_float*/
+		NULL,				/* nb_inplace_add */
+		NULL,				/* nb_inplace_subtract */
+		NULL,				/* nb_inplace_multiply */
+		NULL,				/* nb_inplace_remainder */
+		NULL,				/* nb_inplace_power */
+		NULL,				/* nb_inplace_lshift */
+		NULL,				/* nb_inplace_rshift */
+		NULL,				/* nb_inplace_and */
+		NULL,				/* nb_inplace_xor */
+		NULL,				/* nb_inplace_or */
+		NULL,				/* nb_floor_divide */
+		NULL,				/* nb_true_divide */
+		NULL,				/* nb_inplace_floor_divide */
+		NULL,				/* nb_inplace_true_divide */
+		NULL,				/* nb_index */
 };
 
 static PyObject *Matrix_getRowSize(MatrixObject *self, void *UNUSED(closure))
@@ -1755,51 +1755,51 @@ static char matrix_doc[] =
 ;
 PyTypeObject matrix_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"mathutils.Matrix",						/*tp_name*/
-	sizeof(MatrixObject),			/*tp_basicsize*/
-	0,								/*tp_itemsize*/
-	(destructor)BaseMathObject_dealloc,		/*tp_dealloc*/
-	0,								/*tp_print*/
-	0,								/*tp_getattr*/
-	0,								/*tp_setattr*/
-	0,								/*tp_compare*/
-	(reprfunc) Matrix_repr,			/*tp_repr*/
-	&Matrix_NumMethods,				/*tp_as_number*/
-	&Matrix_SeqMethods,				/*tp_as_sequence*/
-	&Matrix_AsMapping,				/*tp_as_mapping*/
-	0,								/*tp_hash*/
-	0,								/*tp_call*/
-	0,								/*tp_str*/
-	0,								/*tp_getattro*/
-	0,								/*tp_setattro*/
-	0,								/*tp_as_buffer*/
+	"mathutils.Matrix",					/*tp_name*/
+	sizeof(MatrixObject),				/*tp_basicsize*/
+	0,									/*tp_itemsize*/
+	(destructor)BaseMathObject_dealloc,	/*tp_dealloc*/
+	NULL,								/*tp_print*/
+	NULL,								/*tp_getattr*/
+	NULL,								/*tp_setattr*/
+	NULL,								/*tp_compare*/
+	(reprfunc) Matrix_repr,				/*tp_repr*/
+	&Matrix_NumMethods,					/*tp_as_number*/
+	&Matrix_SeqMethods,					/*tp_as_sequence*/
+	&Matrix_AsMapping,					/*tp_as_mapping*/
+	NULL,								/*tp_hash*/
+	NULL,								/*tp_call*/
+	NULL,								/*tp_str*/
+	NULL,								/*tp_getattro*/
+	NULL,								/*tp_setattro*/
+	NULL,								/*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-	matrix_doc,						/*tp_doc*/
-	0,								/*tp_traverse*/
-	0,								/*tp_clear*/
-	(richcmpfunc)Matrix_richcmpr,	/*tp_richcompare*/
-	0,								/*tp_weaklistoffset*/
-	0,								/*tp_iter*/
-	0,								/*tp_iternext*/
-	Matrix_methods,					/*tp_methods*/
-	0,								/*tp_members*/
-	Matrix_getseters,				/*tp_getset*/
-	0,								/*tp_base*/
-	0,								/*tp_dict*/
-	0,								/*tp_descr_get*/
-	0,								/*tp_descr_set*/
-	0,								/*tp_dictoffset*/
-	0,								/*tp_init*/
-	0,								/*tp_alloc*/
-	Matrix_new,						/*tp_new*/
-	0,								/*tp_free*/
-	0,								/*tp_is_gc*/
-	0,								/*tp_bases*/
-	0,								/*tp_mro*/
-	0,								/*tp_cache*/
-	0,								/*tp_subclasses*/
-	0,								/*tp_weaklist*/
-	0								/*tp_del*/
+	matrix_doc,							/*tp_doc*/
+	NULL,								/*tp_traverse*/
+	NULL,								/*tp_clear*/
+	(richcmpfunc)Matrix_richcmpr,		/*tp_richcompare*/
+	0,									/*tp_weaklistoffset*/
+	NULL,								/*tp_iter*/
+	NULL,								/*tp_iternext*/
+	Matrix_methods,						/*tp_methods*/
+	NULL,								/*tp_members*/
+	Matrix_getseters,					/*tp_getset*/
+	NULL,								/*tp_base*/
+	NULL,								/*tp_dict*/
+	NULL,								/*tp_descr_get*/
+	NULL,								/*tp_descr_set*/
+	0,									/*tp_dictoffset*/
+	NULL,								/*tp_init*/
+	NULL,								/*tp_alloc*/
+	Matrix_new,							/*tp_new*/
+	NULL,								/*tp_free*/
+	NULL,								/*tp_is_gc*/
+	NULL,								/*tp_bases*/
+	NULL,								/*tp_mro*/
+	NULL,								/*tp_cache*/
+	NULL,								/*tp_subclasses*/
+	NULL,								/*tp_weaklist*/
+	NULL								/*tp_del*/
 };
 
 /*------------------------newMatrixObject (internal)-------------

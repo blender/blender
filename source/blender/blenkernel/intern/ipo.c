@@ -62,7 +62,7 @@
 #include "BLI_utildefines.h"
 
 
-
+#include "BKE_ipo.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"

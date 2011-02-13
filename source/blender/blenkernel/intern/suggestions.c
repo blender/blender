@@ -77,7 +77,7 @@ static void txttl_free_docs(void) {
 /* General tool functions */
 /**************************/
 
-void free_texttools() {
+void free_texttools(void) {
 	txttl_free_suggest();
 	txttl_free_docs();
 }
@@ -191,15 +191,15 @@ void texttool_suggest_prefix(const char *prefix) {
 	}
 }
 
-void texttool_suggest_clear() {
+void texttool_suggest_clear(void) {
 	txttl_free_suggest();
 }
 
-SuggItem *texttool_suggest_first() {
+SuggItem *texttool_suggest_first(void) {
 	return suggestions.firstmatch;
 }
 
-SuggItem *texttool_suggest_last() {
+SuggItem *texttool_suggest_last(void) {
 	return suggestions.lastmatch;
 }
 
@@ -207,11 +207,11 @@ void texttool_suggest_select(SuggItem *sel) {
 	suggestions.selected = sel;
 }
 
-SuggItem *texttool_suggest_selected() {
+SuggItem *texttool_suggest_selected(void) {
 	return suggestions.selected;
 }
 
-int *texttool_suggest_top() {
+int *texttool_suggest_top(void) {
 	return &suggestions.top;
 }
 
@@ -243,10 +243,10 @@ void texttool_docs_show(const char *docs) {
 	documentation[len] = '\0';
 }
 
-char *texttool_docs_get() {
+char *texttool_docs_get(void) {
 	return documentation;
 }
 
-void texttool_docs_clear() {
+void texttool_docs_clear(void) {
 	txttl_free_docs();
 }

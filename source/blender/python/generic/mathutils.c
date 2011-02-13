@@ -247,7 +247,7 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps)
 /* Mathutils Callbacks */
 
 /* for mathutils internal use only, eventually should re-alloc but to start with we only have a few users */
-Mathutils_Callback *mathutils_callbacks[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static Mathutils_Callback *mathutils_callbacks[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 
 int Mathutils_RegisterCallback(Mathutils_Callback *cb)
 {
@@ -334,7 +334,7 @@ void BaseMathObject_dealloc(BaseMathObject * self)
 }
 
 /*----------------------------MODULE INIT-------------------------*/
-struct PyMethodDef M_Mathutils_methods[] = {
+static struct PyMethodDef M_Mathutils_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
@@ -344,10 +344,10 @@ static struct PyModuleDef M_Mathutils_module_def = {
 	M_Mathutils_doc,  /* m_doc */
 	0,  /* m_size */
 	M_Mathutils_methods,  /* m_methods */
-	0,  /* m_reload */
-	0,  /* m_traverse */
-	0,  /* m_clear */
-	0,  /* m_free */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
 };
 
 PyMODINIT_FUNC BPyInit_mathutils(void)

@@ -120,7 +120,8 @@ static int particles_are_dynamic(ParticleSystem *psys) {
 	else
 		return ELEM3(psys->part->phystype, PART_PHYS_NEWTON, PART_PHYS_BOIDS, PART_PHYS_FLUID);
 }
-int psys_get_current_display_percentage(ParticleSystem *psys)
+
+static int psys_get_current_display_percentage(ParticleSystem *psys)
 {
 	ParticleSettings *part=psys->part;
 
@@ -173,7 +174,7 @@ void psys_reset(ParticleSystem *psys, int mode)
 	/* reset children */
 	if(psys->child) {
 		MEM_freeN(psys->child);
-		psys->child= 0;
+		psys->child= NULL;
 	}
 
 	psys->totchild= 0;
@@ -277,7 +278,7 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 
 	if(psys->child) {
 		MEM_freeN(psys->child);
-		psys->child=0;
+		psys->child=NULL;
 		psys->totchild=0;
 	}
 }
@@ -312,7 +313,7 @@ static void alloc_child_particles(ParticleSystem *psys, int tot)
 		}
 
 		MEM_freeN(psys->child);
-		psys->child=0;
+		psys->child=NULL;
 		psys->totchild=0;
 	}
 
@@ -401,7 +402,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 
 static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 {
-	ParticleData *pa=0;
+	ParticleData *pa=NULL;
 	float min[3], max[3], delta[3], d;
 	MVert *mv, *mvert = dm->getVertDataArray(dm,0);
 	int totvert=dm->getNumVerts(dm), from=psys->part->from;

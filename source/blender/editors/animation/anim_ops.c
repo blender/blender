@@ -47,6 +47,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_anim_api.h"
 #include "ED_screen.h"
 
 #include "anim_intern.h"
@@ -153,7 +154,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void ANIM_OT_change_frame(wmOperatorType *ot)
+static void ANIM_OT_change_frame(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Change frame";
@@ -208,7 +209,7 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void ANIM_OT_previewrange_set(wmOperatorType *ot)
+static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Preview Range";
@@ -255,7 +256,7 @@ static int previewrange_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 } 
 
-void ANIM_OT_previewrange_clear(wmOperatorType *ot)
+static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Preview Range";
@@ -323,7 +324,7 @@ static int toggle_time_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_time_toggle(wmOperatorType *ot)
+static void ANIM_OT_time_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Frames/Seconds";

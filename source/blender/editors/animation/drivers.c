@@ -60,6 +60,11 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "anim_intern.h"
+
+/* called by WM */
+void free_anim_drivers_copybuf (void);
+
 /* ************************************************** */
 /* Animation Data Validation */
 
@@ -475,7 +480,7 @@ static char *get_driver_path_hack (bContext *C, PointerRNA *ptr, PropertyRNA *pr
 
 static int add_driver_button_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ptr= {{0}};
+	PointerRNA ptr= {{NULL}};
 	PropertyRNA *prop= NULL;
 	short success= 0;
 	int index, all= RNA_boolean_get(op->ptr, "all");
@@ -531,7 +536,7 @@ void ANIM_OT_driver_button_add (wmOperatorType *ot)
 
 static int remove_driver_button_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ptr= {{0}};
+	PointerRNA ptr= {{NULL}};
 	PropertyRNA *prop= NULL;
 	short success= 0;
 	int index, all= RNA_boolean_get(op->ptr, "all");
@@ -583,7 +588,7 @@ void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 
 static int copy_driver_button_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ptr= {{0}};
+	PointerRNA ptr= {{NULL}};
 	PropertyRNA *prop= NULL;
 	short success= 0;
 	int index;
@@ -627,7 +632,7 @@ void ANIM_OT_copy_driver_button (wmOperatorType *ot)
 
 static int paste_driver_button_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ptr= {{0}};
+	PointerRNA ptr= {{NULL}};
 	PropertyRNA *prop= NULL;
 	short success= 0;
 	int index;

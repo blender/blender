@@ -64,6 +64,7 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
+#include "BKE_anim.h"
 
 
 // XXX bad level call...
@@ -1159,12 +1160,12 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], ParticleSystem *psys, int level, int animated)
 {
 	GroupObject *go;
-	Object *ob=0, **oblist=0, obcopy, *obcopylist=0;
+	Object *ob=NULL, **oblist=NULL, obcopy, *obcopylist=NULL;
 	DupliObject *dob;
 	ParticleDupliWeight *dw;
 	ParticleSettings *part;
 	ParticleData *pa;
-	ChildParticle *cpa=0;
+	ChildParticle *cpa=NULL;
 	ParticleKey state;
 	ParticleCacheKey *cache;
 	float ctime, pa_time, scale = 1.0f;
@@ -1175,14 +1176,14 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 	int no_draw_flag = PARS_UNEXIST;
 
-	if(psys==0) return;
+	if(psys==NULL) return;
 	
 	/* simple preventing of too deep nested groups */
 	if(level>MAX_DUPLI_RECUR) return;
 	
 	part=psys->part;
 
-	if(part==0)
+	if(part==NULL)
 		return;
 
 	if(!psys_check_enabled(par, psys))
@@ -1199,7 +1200,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	BLI_srandom(31415926 + psys->seed);
 
 	if((psys->renderdata || part->draw_as==PART_DRAW_REND) && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
-		ParticleSimulationData sim= {0};
+		ParticleSimulationData sim= {NULL};
 		sim.scene= scene;
 		sim.ob= par;
 		sim.psys= psys;
@@ -1298,7 +1299,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 				pa_num = a;
 				pa_time = psys->particles[cpa->parent].time;
-				size = psys_get_child_size(psys, cpa, ctime, 0);
+				size = psys_get_child_size(psys, cpa, ctime, NULL);
 			}
 
 			/* some hair paths might be non-existent so they can't be used for duplication */
@@ -1329,11 +1330,11 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				/* hair we handle separate and compute transform based on hair keys */
 				if(a < totpart) {
 					cache = psys->pathcache[a];
-					psys_get_dupli_path_transform(&sim, pa, 0, cache, pamat, &scale);
+					psys_get_dupli_path_transform(&sim, pa, NULL, cache, pamat, &scale);
 				}
 				else {
 					cache = psys->childcache[a-totpart];
-					psys_get_dupli_path_transform(&sim, 0, cpa, cache, pamat, &scale);
+					psys_get_dupli_path_transform(&sim, NULL, cpa, cache, pamat, &scale);
 				}
 
 				VECCOPY(pamat[3], cache->co);
@@ -1449,7 +1450,7 @@ static Object *find_family_object(Object **obar, char *family, char ch)
 
 static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int level, int animated)
 {
-	Object *ob, *obar[256]= {0};
+	Object *ob, *obar[256]= {NULL};
 	Curve *cu;
 	struct chartrans *ct, *chartransdata;
 	float vec[3], obmat[4][4], pmat[4][4], fsize, xof, yof;
@@ -1463,7 +1464,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int level, i
 	/* in par the family name is stored, use this to find the other objects */
 	
 	chartransdata= BKE_text_to_curve(scene, par, FO_DUPLI);
-	if(chartransdata==0) return;
+	if(chartransdata==NULL) return;
 
 	cu= par->data;
 	slen= strlen(cu->str);

@@ -449,7 +449,7 @@ void multiresModifier_del_levels(MultiresModifierData *mmd, Object *ob, int dire
 
 static DerivedMesh *multires_dm_create_local(Object *ob, DerivedMesh *dm, int lvl, int totlvl, int simple)
 {
-	MultiresModifierData mmd= {{0}};
+	MultiresModifierData mmd= {{NULL}};
 
 	mmd.lvl = lvl;
 	mmd.sculptlvl = lvl;
@@ -462,7 +462,7 @@ static DerivedMesh *multires_dm_create_local(Object *ob, DerivedMesh *dm, int lv
 
 static DerivedMesh *subsurf_dm_create_local(Object *UNUSED(ob), DerivedMesh *dm, int lvl, int simple, int optimal)
 {
-	SubsurfModifierData smd= {{0}};
+	SubsurfModifierData smd= {{NULL}};
 
 	smd.levels = smd.renderLevels = lvl;
 	smd.flags |= eSubsurfModifierFlag_SubsurfUv;
@@ -596,7 +596,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 	dispdm->release(dispdm);
 }
 
-void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl, int updateblock, int simple)
+static void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl, int updateblock, int simple)
 {
 	Mesh *me = ob->data;
 	MDisps *mdisps;
@@ -1591,7 +1591,7 @@ static void multires_sync_levels(Scene *scene, Object *ob, Object *to_ob)
 	else multires_subdivide(mmd, ob, to_mmd->totlvl, 0, mmd->simple);
 }
 
-void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
+static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 {
 	DerivedMesh *dm= NULL, *cddm= NULL, *subdm= NULL;
 	DMGridData **gridData, **subGridData;

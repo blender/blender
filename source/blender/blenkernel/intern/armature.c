@@ -136,19 +136,19 @@ void make_local_armature(bArmature *arm)
 	Object *ob;
 	bArmature *newArm;
 	
-	if (arm->id.lib==0)
+	if (arm->id.lib==NULL)
 		return;
 	if (arm->id.us==1) {
-		arm->id.lib= 0;
+		arm->id.lib= NULL;
 		arm->id.flag= LIB_LOCAL;
-		new_id(0, (ID*)arm, 0);
+		new_id(NULL, (ID*)arm, NULL);
 		return;
 	}
 	
 	if(local && lib==0) {
-		arm->id.lib= 0;
+		arm->id.lib= NULL;
 		arm->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)arm, 0);
+		new_id(NULL, (ID *)arm, NULL);
 	}
 	else if(local && lib) {
 		newArm= copy_armature(arm);
@@ -158,7 +158,7 @@ void make_local_armature(bArmature *arm)
 		while(ob) {
 			if(ob->data==arm) {
 				
-				if(ob->id.lib==0) {
+				if(ob->id.lib==NULL) {
 					ob->data= newArm;
 					newArm->id.us++;
 					arm->id.us--;

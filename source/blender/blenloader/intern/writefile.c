@@ -214,8 +214,6 @@ static void writedata_free(WriteData *wd)
 
 /***/
 
-int mywfile;
-
 /**
  * Low level WRITE(2) wrapper that buffers data
  * @param adr Pointer to new chunk of data
@@ -343,7 +341,7 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 {
 	BHead bh;
 
-	if(adr==0) return;
+	if(adr==NULL) return;
 	if(len==0) return;
 
 	len+= 3;

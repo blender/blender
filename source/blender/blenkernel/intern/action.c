@@ -93,11 +93,11 @@ void make_local_action(bAction *act)
 	bAction *actn;
 	int local=0, lib=0;
 	
-	if (act->id.lib==0) return;
+	if (act->id.lib==NULL) return;
 	if (act->id.us==1) {
-		act->id.lib= 0;
+		act->id.lib= NULL;
 		act->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)act, 0);
+		new_id(NULL, (ID *)act, NULL);
 		return;
 	}
 	
@@ -113,10 +113,10 @@ void make_local_action(bAction *act)
 #endif
 	
 	if(local && lib==0) {
-		act->id.lib= 0;
+		act->id.lib= NULL;
 		act->id.flag= LIB_LOCAL;
 		//make_local_action_channels(act);
-		new_id(0, (ID *)act, 0);
+		new_id(NULL, (ID *)act, NULL);
 	}
 	else if(local && lib) {
 		actn= copy_action(act);
@@ -1144,7 +1144,7 @@ void what_does_obaction (Scene *UNUSED(scene), Object *ob, Object *workob, bPose
 		animsys_evaluate_action_group(&id_ptr, act, agrp, NULL, cframe);
 	}
 	else {
-		AnimData adt= {0};
+		AnimData adt= {NULL};
 		
 		/* init animdata, and attach to workob */
 		workob->adt= &adt;

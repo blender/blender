@@ -100,7 +100,7 @@ static void de_interlace_ng(struct ImBuf *ibuf)	/* neogeo fields */
 {
 	struct ImBuf * tbuf1, * tbuf2;
 	
-	if (ibuf == 0) return;
+	if (ibuf == NULL) return;
 	if (ibuf->flags & IB_fields) return;
 	ibuf->flags |= IB_fields;
 	
@@ -128,7 +128,7 @@ static void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
 {
 	struct ImBuf * tbuf1, * tbuf2;
 	
-	if (ibuf == 0) return;
+	if (ibuf == NULL) return;
 	if (ibuf->flags & IB_fields) return;
 	ibuf->flags |= IB_fields;
 	
@@ -514,7 +514,7 @@ static void tag_all_images_time()
 }
 #endif
 
-void free_old_images()
+void free_old_images(void)
 {
 	Image *ima;
 	static int lasttime = 0;
@@ -1359,7 +1359,7 @@ struct anim *openanim(char *name, int flags)
 	struct ImBuf *ibuf;
 	
 	anim = IMB_open_anim(name, flags);
-	if (anim == NULL) return(0);
+	if (anim == NULL) return NULL;
 
 	ibuf = IMB_anim_absolute(anim, 0);
 	if (ibuf == NULL) {
@@ -1368,7 +1368,7 @@ struct anim *openanim(char *name, int flags)
 		else
 			printf("anim file doesn't exist: %s\n", name);
 		IMB_free_anim(anim);
-		return(0);
+		return NULL;
 	}
 	IMB_freeImBuf(ibuf);
 	

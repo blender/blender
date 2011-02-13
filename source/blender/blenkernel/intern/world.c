@@ -38,6 +38,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
+#include "BKE_world.h"
 #include "BKE_library.h"
 #include "BKE_animsys.h"
 #include "BKE_global.h"
@@ -136,11 +137,11 @@ void make_local_world(World *wrld)
 		* - mixed: make copy
 		*/
 	
-	if(wrld->id.lib==0) return;
+	if(wrld->id.lib==NULL) return;
 	if(wrld->id.us==1) {
-		wrld->id.lib= 0;
+		wrld->id.lib= NULL;
 		wrld->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)wrld, 0);
+		new_id(NULL, (ID *)wrld, NULL);
 		return;
 	}
 	
@@ -156,7 +157,7 @@ void make_local_world(World *wrld)
 	if(local && lib==0) {
 		wrld->id.lib= 0;
 		wrld->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)wrld, 0);
+		new_id(NULL, (ID *)wrld, NULL);
 	}
 	else if(local && lib) {
 		wrldn= copy_world(wrld);
@@ -165,7 +166,7 @@ void make_local_world(World *wrld)
 		sce= bmain->scene.first;
 		while(sce) {
 			if(sce->world==wrld) {
-				if(sce->id.lib==0) {
+				if(sce->id.lib==NULL) {
 					sce->world= wrldn;
 					wrldn->id.us++;
 					wrld->id.us--;

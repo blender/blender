@@ -574,16 +574,16 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, bmat, pmat, omat, cmat, 0,0,0,0);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, pmat, omat, cmat, NULL,NULL,NULL,NULL);    // dang mulserie swaps args
 		}
 		else
-			mul_serie_m3(td->mtx, bmat, pmat, omat, 0,0,0,0,0);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, pmat, omat, NULL,NULL,NULL,NULL,NULL);    // dang mulserie swaps args
 	}
 	else {
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
-			mul_serie_m3(td->mtx, bmat, omat, cmat, 0,0,0,0,0);    // dang mulserie swaps args
+			mul_serie_m3(td->mtx, bmat, omat, cmat, NULL,NULL,NULL,NULL,NULL);    // dang mulserie swaps args
 		}
 		else
 			mul_m3_m3m3(td->mtx, omat, bmat);  // Mat3MulMat3 has swapped args!

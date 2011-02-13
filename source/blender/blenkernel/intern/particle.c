@@ -157,21 +157,21 @@ static void psys_free_path_cache_buffers(ParticleCacheKey **cache, ListBase *buf
 ParticleSystem *psys_get_current(Object *ob)
 {
 	ParticleSystem *psys;
-	if(ob==0) return 0;
+	if(ob==NULL) return NULL;
 
 	for(psys=ob->particlesystem.first; psys; psys=psys->next){
 		if(psys->flag & PSYS_CURRENT)
 			return psys;
 	}
 	
-	return 0;
+	return NULL;
 }
 short psys_get_current_num(Object *ob)
 {
 	ParticleSystem *psys;
 	short i;
 
-	if(ob==0) return 0;
+	if(ob==NULL) return 0;
 
 	for(psys=ob->particlesystem.first, i=0; psys; psys=psys->next, i++)
 		if(psys->flag & PSYS_CURRENT)
@@ -184,7 +184,7 @@ void psys_set_current_num(Object *ob, int index)
 	ParticleSystem *psys;
 	short i;
 
-	if(ob==0) return;
+	if(ob==NULL) return;
 
 	for(psys=ob->particlesystem.first, i=0; psys; psys=psys->next, i++) {
 		if(i == index)
@@ -209,7 +209,7 @@ Object *psys_find_object(Scene *scene, ParticleSystem *psys)
 }
 Object *psys_get_lattice(ParticleSimulationData *sim)
 {
-	Object *lattice=0;
+	Object *lattice=NULL;
 	
 	if(psys_in_edit_mode(sim->scene, sim->psys)==0){
 
@@ -223,7 +223,7 @@ Object *psys_get_lattice(ParticleSimulationData *sim)
 			}
 		}
 		if(lattice)
-			init_latt_deform(lattice,0);
+			init_latt_deform(lattice, NULL);
 	}
 
 	return lattice;
@@ -358,7 +358,7 @@ int psys_uses_gravity(ParticleSimulationData *sim)
 /************************************************/
 /*			Freeing stuff						*/
 /************************************************/
-void fluid_free_settings(SPHFluidSettings *fluid)
+static void fluid_free_settings(SPHFluidSettings *fluid)
 {
 	if(fluid)
 		MEM_freeN(fluid); 
@@ -459,7 +459,7 @@ void psys_free_children(ParticleSystem *psys)
 {
 	if(psys->child) {
 		MEM_freeN(psys->child);
-		psys->child=0;
+		psys->child= NULL;
 		psys->totchild=0;
 	}
 
@@ -529,7 +529,7 @@ void psys_free(Object *ob, ParticleSystem * psys)
 
 		if(psys->child){
 			MEM_freeN(psys->child);
-			psys->child = 0;
+			psys->child = NULL;
 			psys->totchild = 0;
 		}
 		
@@ -550,7 +550,7 @@ void psys_free(Object *ob, ParticleSystem * psys)
 
 		if(psys->part){
 			psys->part->id.us--;		
-			psys->part=0;
+			psys->part=NULL;
 		}
 
 		BKE_ptcache_free_list(&psys->ptcaches);

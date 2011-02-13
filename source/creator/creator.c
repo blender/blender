@@ -1008,7 +1008,7 @@ static int load_file(int UNUSED(argc), char **argv, void *data)
 	return 0;
 }
 
-void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
+static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 {
 	static char output_doc[] = "<path>"
 		"\n\tSet the render path and file name."

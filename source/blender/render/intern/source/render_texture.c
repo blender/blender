@@ -83,7 +83,7 @@ extern struct Render R;
 
 
 
-void init_render_texture(Render *re, Tex *tex)
+static void init_render_texture(Render *re, Tex *tex)
 {
 	int cfra= re->scene->r.cfra;
 	
@@ -137,7 +137,7 @@ void init_render_textures(Render *re)
 	}
 }
 
-void end_render_texture(Tex *tex)
+static void end_render_texture(Tex *tex)
 {
 	if(tex && tex->use_nodes && tex->nodetree)
 		ntreeEndExecTree(tex->nodetree);
@@ -759,12 +759,12 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 			if(osatex) rgbnor= ((TexDoitold)pit->doit)(tex->stype, 
 				pit->data, texvec, dxt, dyt);
 			else rgbnor= ((TexDoitold)pit->doit)(tex->stype, 
-				pit->data, texvec, 0, 0);
+				pit->data, texvec, NULL, NULL);
 		} else {
 			if(osatex) rgbnor= ((TexDoit)pit->doit)(tex->stype, 
 				pit->data, texvec, dxt, dyt, result);
 			else rgbnor= ((TexDoit)pit->doit)(tex->stype, 
-				pit->data, texvec, 0, 0, result);
+				pit->data, texvec, NULL, NULL, result);
 		}
 
 		if (pit->version < 6) {

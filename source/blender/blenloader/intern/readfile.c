@@ -422,7 +422,7 @@ static void split_libdata(ListBase *lb, Main *first)
 				}
 				mainvar= mainvar->next;
 			}
-			if(mainvar==0) printf("error split_libdata\n");
+			if(mainvar==NULL) printf("error split_libdata\n");
 		}
 		id= idnext;
 	}
@@ -589,7 +589,7 @@ static void bh8_from_bh4(BHead *bhead, BHead4 *bhead4)
 
 static BHeadN *get_bhead(FileData *fd)
 {
-	BHeadN *new_bhead = 0;
+	BHeadN *new_bhead = NULL;
 	int readsize;
 	
 	if (fd) {
@@ -654,7 +654,7 @@ static BHeadN *get_bhead(FileData *fd)
 			if ( ! fd->eof) {
 				new_bhead = MEM_mallocN(sizeof(BHeadN) + bhead.len, "new_bhead");
 				if (new_bhead) {
-					new_bhead->next = new_bhead->prev = 0;
+					new_bhead->next = new_bhead->prev = NULL;
 					new_bhead->bhead = bhead;
 
 					readsize = fd->read(fd, new_bhead + 1, bhead.len);
@@ -662,7 +662,7 @@ static BHeadN *get_bhead(FileData *fd)
 					if (readsize != bhead.len) {
 						fd->eof = 1;
 						MEM_freeN(new_bhead);
-						new_bhead = 0;
+						new_bhead = NULL;
 					}
 				} else {
 					fd->eof = 1;
@@ -684,13 +684,13 @@ static BHeadN *get_bhead(FileData *fd)
 BHead *blo_firstbhead(FileData *fd)
 {
 	BHeadN *new_bhead;
-	BHead *bhead = 0;
+	BHead *bhead = NULL;
 
 	// Rewind the file
 	// Read in a new block if necessary
 
 	new_bhead = fd->listbase.first;
-	if (new_bhead == 0) {
+	if (new_bhead == NULL) {
 		new_bhead = get_bhead(fd);
 	}
 
@@ -721,7 +721,7 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 
 		// get the next BHeadN. If it doesn't exist we read in the next one
 		new_bhead = new_bhead->next;
-		if (new_bhead == 0) {
+		if (new_bhead == NULL) {
 			new_bhead = get_bhead(fd);
 		}
 	}
@@ -944,7 +944,7 @@ FileData *blo_openblenderfile(const char *name, ReportList *reports)
 	errno= 0;
 	gzfile= gzopen(name, "rb");
 
-	if (gzfile == Z_NULL) {
+	if (gzfile == (gzFile)Z_NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", name, errno ? strerror(errno) : "Unknown erro reading file");
 		return NULL;
 	} else {
@@ -1007,7 +1007,7 @@ void blo_freefiledata(FileData *fd)
 
 		if (fd->buffer && !(fd->flags & FD_FLAGS_NOT_MY_BUFFER)) {
 			MEM_freeN(fd->buffer);
-			fd->buffer = 0;
+			fd->buffer = NULL;
 		}
 
 		// Free all BHeadN data blocks
@@ -1061,7 +1061,7 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 	/* Find the last slash */
 	fd= BLI_last_slash(dir);
 
-	if(fd==0) return 0;
+	if(fd==NULL) return 0;
 	*fd= 0;
 	if(BLO_has_bfile_extension(fd+1)) {
 		/* the last part of the dir is a .blend file, no group follows */
@@ -1310,7 +1310,7 @@ static void link_glob_list(FileData *fd, ListBase *lb)		/* for glob data */
 	Link *ln, *prev;
 	void *poin;
 
-	if(lb->first==0) return;
+	if(lb->first==NULL) return;
 	poin= newdataadr(fd, lb->first);
 	if(lb->first) {
 		oldnewmap_insert(fd->globmap, lb->first, poin, 0);
@@ -1318,7 +1318,7 @@ static void link_glob_list(FileData *fd, ListBase *lb)		/* for glob data */
 	lb->first= poin;
 
 	ln= lb->first;
-	prev= 0;
+	prev= NULL;
 	while(ln) {
 		poin= newdataadr(fd, ln->next);
 		if(ln->next) {
@@ -1459,7 +1459,7 @@ static void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, FileData *f
 	}
 }
 
-void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd)
+static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd)
 {
 	switch (prop->type) {
 		case IDP_GROUP:
@@ -1496,7 +1496,7 @@ void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd)
 }
 
 /*stub function*/
-void IDP_LibLinkProperty(IDProperty *UNUSED(prop), int UNUSED(switch_endian), FileData *UNUSED(fd))
+static void IDP_LibLinkProperty(IDProperty *UNUSED(prop), int UNUSED(switch_endian), FileData *UNUSED(fd))
 {
 }
 
@@ -2755,7 +2755,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 
 	if(cu->vfont == NULL) link_list(fd, &(cu->nurb));
 	else {
-		cu->nurb.first=cu->nurb.last= 0;
+		cu->nurb.first=cu->nurb.last= NULL;
 
 		tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "TextBoxread");
 		if (cu->tb) {
@@ -2829,7 +2829,7 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	
 	tex->plugin= newdataadr(fd, tex->plugin);
 	if(tex->plugin) {
-		tex->plugin->handle= 0;
+		tex->plugin->handle= NULL;
 		open_plugin_tex(tex->plugin);
 		/* initialize data for this instance, if an initialization
 		 * function exists.
@@ -3007,7 +3007,7 @@ static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointC
 	}
 }
 
-void lib_link_partdeflect(FileData *fd, ID *id, PartDeflect *pd)
+static void lib_link_partdeflect(FileData *fd, ID *id, PartDeflect *pd)
 {
 	if(pd && pd->tex)
 		pd->tex=newlibadr_us(fd, id->lib, pd->tex);
@@ -3813,7 +3813,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		if (md->type==eModifierType_Subsurf) {
 			SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
-			smd->emCache = smd->mCache = 0;
+			smd->emCache = smd->mCache = NULL;
 		}
 		else if (md->type==eModifierType_Armature) {
 			ArmatureModifierData *amd = (ArmatureModifierData*) md;
@@ -3848,7 +3848,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			
 			fluidmd->fss= newdataadr(fd, fluidmd->fss);
 			fluidmd->fss->fmd= fluidmd;
-			fluidmd->fss->meshSurfNormals = 0;
+			fluidmd->fss->meshSurfNormals = NULL;
 		}
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
@@ -3959,7 +3959,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		} else if (md->type==eModifierType_Explode) {
 			ExplodeModifierData *psmd = (ExplodeModifierData*) md;
 
-			psmd->facepa=0;
+			psmd->facepa=NULL;
 		}
 		else if (md->type==eModifierType_MeshDeform) {
 			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
@@ -4126,7 +4126,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	prop= ob->prop.first;
 	while(prop) {
 		prop->poin= newdataadr(fd, prop->poin);
-		if(prop->poin==0) prop->poin= &prop->data;
+		if(prop->poin==NULL) prop->poin= &prop->data;
 		prop= prop->next;
 	}
 
@@ -4273,7 +4273,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 					BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: Object lost from scene:'%s\'\n", sce->id.name+2);
 					if(G.background==0) printf("LIB ERROR: base removed from scene:'%s\'\n", sce->id.name+2);
 					BLI_remlink(&sce->base, base);
-					if(base==sce->basact) sce->basact= 0;
+					if(base==sce->basact) sce->basact= NULL;
 					MEM_freeN(base);
 				}
 			}
@@ -4296,7 +4296,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 						seq->scene_sound = sound_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 					}
 				}
-				seq->anim= 0;
+				seq->anim= NULL;
 			}
 			SEQ_END
 
@@ -4356,7 +4356,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
 	sce->obedit= NULL;
-	sce->stats= 0;
+	sce->stats= NULL;
 	sce->fps_info= NULL;
 
 	sound_create_scene(sce);
@@ -4399,7 +4399,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->seq2= newdataadr(fd, seq->seq2);
 			seq->seq3= newdataadr(fd, seq->seq3);
 			/* a patch: after introduction of effects with 3 input strips */
-			if(seq->seq3==0) seq->seq3= seq->seq2;
+			if(seq->seq3==NULL) seq->seq3= seq->seq2;
 
 			seq->plugin= newdataadr(fd, seq->plugin);
 			seq->effectdata= newdataadr(fd, seq->effectdata);
@@ -4423,32 +4423,32 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 					seq->strip->stripdata = newdataadr(
 						fd, seq->strip->stripdata);
 				} else {
-					seq->strip->stripdata = 0;
+					seq->strip->stripdata = NULL;
 				}
 				if (seq->flag & SEQ_USE_CROP) {
 					seq->strip->crop = newdataadr(
 						fd, seq->strip->crop);
 				} else {
-					seq->strip->crop = 0;
+					seq->strip->crop = NULL;
 				}
 				if (seq->flag & SEQ_USE_TRANSFORM) {
 					seq->strip->transform = newdataadr(
 						fd, seq->strip->transform);
 				} else {
-					seq->strip->transform = 0;
+					seq->strip->transform = NULL;
 				}
 				if (seq->flag & SEQ_USE_PROXY) {
 					seq->strip->proxy = newdataadr(
 						fd, seq->strip->proxy);
-					seq->strip->proxy->anim = 0;
+					seq->strip->proxy->anim = NULL;
 				} else {
-					seq->strip->proxy = 0;
+					seq->strip->proxy = NULL;
 				}
 				if (seq->flag & SEQ_USE_COLOR_BALANCE) {
 					seq->strip->color_balance = newdataadr(
 						fd, seq->strip->color_balance);
 				} else {
-					seq->strip->color_balance = 0;
+					seq->strip->color_balance = NULL;
 				}
 				if (seq->strip->color_balance) {
 					// seq->strip->color_balance->gui = 0; // XXX - peter, is this relevant in 2.5?

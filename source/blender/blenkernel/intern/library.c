@@ -419,7 +419,7 @@ ListBase *which_libbase(Main *mainlib, short type)
 		case ID_GD:
 			return &(mainlib->gpencil);
 	}
-	return 0;
+	return NULL;
 }
 
 /* Flag all ids in listbase */
@@ -688,7 +688,7 @@ void set_free_windowmanager_cb(void (*func)(bContext *C, wmWindowManager *) )
 	free_windowmanager_cb= func;
 }
 
-void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata)
+static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata)
 {
 	ChannelDriver *driver;
 	FCurve *fcu;
@@ -1007,7 +1007,7 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 			idtest= idtest->next;
 		}
 		/* as last */
-		if(idtest==0) {
+		if(idtest==NULL) {
 			BLI_addtail(lb, id);
 		}
 	}
@@ -1189,7 +1189,7 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 }
 
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
-void clear_id_newpoins()
+void clear_id_newpoins(void)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id;
@@ -1199,7 +1199,7 @@ void clear_id_newpoins()
 	while(a--) {
 		id= lbarray[a]->first;
 		while(id) {
-			id->newid= 0;
+			id->newid= NULL;
 			id->flag &= ~LIB_NEW;
 			id= id->next;
 		}
@@ -1293,7 +1293,7 @@ void tag_main(struct Main *mainvar, const short tag)
 /* if lib!=NULL, only all from lib local */
 void all_local(Library *lib, int untagged_only)
 {
-	ListBase *lbarray[MAX_LIBARRAY], tempbase={0, 0};
+	ListBase *lbarray[MAX_LIBARRAY], tempbase={NULL, NULL};
 	ID *id, *idn;
 	int a;
 
@@ -1322,7 +1322,7 @@ void all_local(Library *lib, int untagged_only)
 							image_fix_relative_path((Image *)id);
 						
 						id->lib= NULL;
-						new_id(lbarray[a], id, 0);	/* new_id only does it with double names */
+						new_id(lbarray[a], id, NULL);	/* new_id only does it with double names */
 						sort_alpha_id(lbarray[a], id);
 					}
 				}
@@ -1334,7 +1334,7 @@ void all_local(Library *lib, int untagged_only)
 		while( (id=tempbase.first) ) {
 			BLI_remlink(&tempbase, id);
 			BLI_addtail(lbarray[a], id);
-			new_id(lbarray[a], id, 0);
+			new_id(lbarray[a], id, NULL);
 		}
 	}
 
@@ -1355,7 +1355,7 @@ void test_idbutton(char *name)
 	
 
 	lb= which_libbase(G.main, GS(name-2) );
-	if(lb==0) return;
+	if(lb==NULL) return;
 	
 	/* search for id */
 	idtest= BLI_findstring(lb, name, offsetof(ID, name) + 2);

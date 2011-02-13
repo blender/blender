@@ -464,7 +464,7 @@ static void *acf_summary_setting_ptr(bAnimListElem *ale, int setting, short *typ
 	else {
 		/* can't return anything useful - unsupported */
 		*type= 0;
-		return 0;
+		return NULL;
 	}
 }
 
@@ -565,7 +565,7 @@ static void *acf_scene_setting_ptr(bAnimListElem *ale, int setting, short *type)
 				return NULL;
 			
 		default: /* unsupported */
-			return 0;
+			return NULL;
 	}
 }
 
@@ -709,7 +709,7 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, int setting, short *type
 				return NULL;
 			
 		default: /* unsupported */
-			return 0;
+			return NULL;
 	}
 }
 
@@ -990,13 +990,13 @@ static void *acf_fillactd_setting_ptr(bAnimListElem *ale, int setting, short *ty
 				GET_ACF_FLAG_PTR(adt->flag);
 			}
 			else
-				return 0;
+				return NULL;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(act->flag);
 		
 		default: /* unsupported */
-			return 0;
+			return NULL;
 	}
 }
 
@@ -1074,7 +1074,7 @@ static void *acf_filldrivers_setting_ptr(bAnimListElem *ale, int setting, short 
 			GET_ACF_FLAG_PTR(adt->flag);
 		
 		default: /* unsupported */
-			return 0;
+			return NULL;
 	}
 }
 
@@ -2564,7 +2564,7 @@ static bAnimChannelType *animchannelTypeInfo[ANIMTYPE_NUM_TYPES];
 static short ACF_INIT= 1; /* when non-zero, the list needs to be updated */
 
 /* Initialise type info definitions */
-void ANIM_init_channel_typeinfo_data (void)
+static void ANIM_init_channel_typeinfo_data (void)
 {
 	int type= 0;
 	
