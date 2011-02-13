@@ -915,7 +915,7 @@ static void def_sh_mapping(StructRNA *srna)
 	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_mapping_update");
 	
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_XYZ); /* Not PROP_EUL, this is already in degrees, not radians */
 	RNA_def_property_float_sdna(prop, NULL, "rot");
 	RNA_def_property_ui_text(prop, "Rotation", "Rotation offset for the input coordinate");
 	RNA_def_property_ui_range(prop, -360.f, 360.f, 1.f, 2);
