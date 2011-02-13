@@ -1129,7 +1129,7 @@ static void curve_rename_fcurves(Object *obedit, ListBase *orig_curves)
 		if(!strncmp(fcu->rna_path, "splines", 7)) {
 			char *ch= strchr(fcu->rna_path, '.');
 
-			if (ch && (!strncmp(ch, ".bezier_points", 14) || !strncmp(ch, ".points", 8)))
+			if (ch && (!strncmp(ch, ".bezier_points", 14) || !strncmp(ch, ".points", 7)))
 				fcurve_remove(ad, orig_curves, fcu);
 		}
 	}
