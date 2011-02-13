@@ -65,7 +65,7 @@ static GPUBufferPool *globalPool = 0;
 static int GLStates = 0;
 static GPUAttrib attribData[MAX_GPU_ATTRIB_DATA] = { { -1, 0, 0 } };
 
-GPUBufferPool *GPU_buffer_pool_new()
+GPUBufferPool *GPU_buffer_pool_new(void)
 {
 	GPUBufferPool *pool;
 
@@ -1514,7 +1514,7 @@ void GPU_interleaved_attrib_setup( GPUBuffer *buffer, GPUAttrib data[], int numd
 }
 
 
-void GPU_buffer_unbind()
+void GPU_buffer_unbind(void)
 {
 	int i;
 	DEBUG_VBO("GPU_buffer_unbind\n");

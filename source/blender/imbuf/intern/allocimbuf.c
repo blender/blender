@@ -458,7 +458,7 @@ static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
 	return &c;
 }
 
-void IMB_free_cache_limiter()
+void IMB_free_cache_limiter(void)
 {
 	delete_MEM_CacheLimiter(*get_imbuf_cache_limiter());
 	*get_imbuf_cache_limiter() = 0;

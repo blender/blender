@@ -1679,7 +1679,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	dfunc->gencall= funcname;
 }
 
-static void rna_auto_types()
+static void rna_auto_types(void)
 {
 	StructDefRNA *ds;
 	PropertyDefRNA *dp;

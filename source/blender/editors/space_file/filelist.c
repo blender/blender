@@ -395,7 +395,7 @@ void filelist_free_icons(void)
 }
 
 //-----------------FOLDERLIST (previous/next) --------------//
-struct ListBase* folderlist_new()
+struct ListBase* folderlist_new(void)
 {
 	ListBase* p = MEM_callocN( sizeof(ListBase), "folderlist" );
 	return p;

@@ -54,7 +54,7 @@ static RenderEngineType internal_game_type = {
 
 ListBase R_engines = {NULL, NULL};
 
-void RE_engines_init()
+void RE_engines_init(void)
 {
 	BLI_addtail(&R_engines, &internal_render_type);
 #ifdef WITH_GAMEENGINE
@@ -62,7 +62,7 @@ void RE_engines_init()
 #endif
 }
 
-void RE_engines_exit()
+void RE_engines_exit(void)
 {
 	RenderEngineType *type, *next;
 

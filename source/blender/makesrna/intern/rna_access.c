@@ -61,7 +61,7 @@ const PointerRNA PointerRNA_NULL= {{0}};
 
 /* Init/Exit */
 
-void RNA_init()
+void RNA_init(void)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -77,7 +77,7 @@ void RNA_init()
 	}
 }
 
-void RNA_exit()
+void RNA_exit(void)
 {
 	StructRNA *srna;
 

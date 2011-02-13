@@ -705,7 +705,7 @@ ListBase *UI_iconfile_list(void)
 }
 
 
-void UI_icons_free()
+void UI_icons_free(void)
 {
 	if(icongltex.id) {
 		glDeleteTextures(1, &icongltex.id);

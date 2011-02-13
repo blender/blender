@@ -4042,7 +4042,7 @@ static void p_smooth(PChart *chart)
 
 /* Exported */
 
-ParamHandle *param_construct_begin()
+ParamHandle *param_construct_begin(void)
 {
 	PHandle *handle = MEM_callocN(sizeof*handle, "PHandle");
 	handle->construction_chart = p_chart_new(handle);

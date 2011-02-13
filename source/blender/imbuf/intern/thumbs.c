@@ -228,7 +228,7 @@ static int thumbpath_from_uri(const char* uri, char* path, const int path_len, T
 	return rv;
 }
 
-void IMB_thumb_makedirs()
+void IMB_thumb_makedirs(void)
 {
 	char tpath[FILE_MAX];
 	if (get_thumb_dir(tpath, THB_NORMAL)) {

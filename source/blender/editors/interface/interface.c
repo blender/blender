@@ -80,17 +80,17 @@ static void ui_free_but(const bContext *C, uiBut *but);
 
 /* ************* translation ************** */
 
-int ui_translate_buttons()
+int ui_translate_buttons(void)
 {
 	return (U.transopts & USER_TR_BUTTONS);
 }
 
-int ui_translate_menus()
+int ui_translate_menus(void)
 {
 	return (U.transopts & USER_TR_MENUS);
 }
 
-int ui_translate_tooltips()
+int ui_translate_tooltips(void)
 {
 	return (U.transopts & USER_TR_TOOLTIPS);
 }

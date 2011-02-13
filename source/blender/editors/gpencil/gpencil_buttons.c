@@ -141,7 +141,7 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		uiItemL(subrow, name, ICON_NULL);
 			
 		/* delete button (only if hidden but not locked!) */
-		if ((gpl->flag & GP_LAYER_HIDE) & !(gpl->flag & GP_LAYER_LOCKED)) {
+		if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED)) {
 			/* right-align ............................... */
 			subrow= uiLayoutRow(row, 1);
 			uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);

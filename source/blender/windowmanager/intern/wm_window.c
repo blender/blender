@@ -1155,12 +1155,12 @@ void WM_setprefsize(int stax, int stay, int sizx, int sizy)
 }
 
 /* for borderless and border windows set from command-line */
-void WM_setinitialstate_fullscreen()
+void WM_setinitialstate_fullscreen(void)
 {
 	initialstate= GHOST_kWindowStateFullScreen;
 }
 
-void WM_setinitialstate_normal()
+void WM_setinitialstate_normal(void)
 {
 	initialstate= GHOST_kWindowStateNormal;
 }

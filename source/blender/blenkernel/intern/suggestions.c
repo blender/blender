@@ -88,7 +88,7 @@ void texttool_text_set_active(Text *text) {
 	activeToolText = text;
 }
 
-void texttool_text_clear() {
+void texttool_text_clear(void) {
 	free_texttools();
 	activeToolText = NULL;
 }

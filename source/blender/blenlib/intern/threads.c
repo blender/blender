@@ -520,7 +520,7 @@ struct ThreadQueue {
 	int nowait;
 };
 
-ThreadQueue *BLI_thread_queue_init()
+ThreadQueue *BLI_thread_queue_init(void)
 {
 	ThreadQueue *queue;
 

@@ -2390,7 +2390,7 @@ void BKE_ptcache_set_continue_physics(Main *bmain, Scene *scene, int enable)
 	}
 }
 
-int  BKE_ptcache_get_continue_physics()
+int  BKE_ptcache_get_continue_physics(void)
 {
 	return CONTINUE_PHYSICS;
 }
