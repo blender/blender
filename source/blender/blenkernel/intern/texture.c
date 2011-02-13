@@ -1051,6 +1051,10 @@ int give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 		*mtex_ar=		((Lamp *)id)->mtex;
 		if(act) *act=	(((Lamp *)id)->texact);
 		break;
+	case ID_PA:
+		*mtex_ar=		((ParticleSettings *)id)->mtex;
+		if(act) *act=	(((ParticleSettings *)id)->texact);
+		break;
 	default:
 		*mtex_ar = NULL;
 		if(act) *act=	0;
