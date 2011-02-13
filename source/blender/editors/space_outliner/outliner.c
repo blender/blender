@@ -2109,6 +2109,16 @@ static int tree_element_active_lamp(bContext *UNUSED(C), Scene *scene, SpaceOops
 	return 0;
 }
 
+static int tree_element_active_camera(bContext *UNUSED(C), Scene *scene, SpaceOops *soops, TreeElement *te, int set)
+{
+	Object *ob= (Object *)outliner_search_back(soops, te, ID_OB);
+
+	if(set)
+		return 0;
+
+	return scene->camera == ob;
+}
+
 static int tree_element_active_world(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, int set)
 {
 	TreeElement *tep;
@@ -2343,6 +2353,8 @@ static int tree_element_active(bContext *C, Scene *scene, SpaceOops *soops, Tree
 			return tree_element_active_texture(C, scene, soops, te, set);
 		case ID_TXT:
 			return tree_element_active_text(C, scene, soops, te, set);
+		case ID_CA:
+			return tree_element_active_camera(C, scene, soops, te, set);
 	}
 	return 0;
 }
