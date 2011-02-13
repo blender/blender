@@ -348,20 +348,20 @@ void flip_side_name (char *name, const char *from_name, int strip_number)
 	len= strlen(from_name);
 	if(len<3) return; // we don't do names like .R or .L
 
-	BLI_strncpy(name, from_name, sizeof(name));
+	strcpy(name, from_name);
 
 	/* We first check the case with a .### extension, let's find the last period */
 	if(isdigit(name[len-1])) {
 		index= strrchr(name, '.'); // last occurrence
 		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
 			if(strip_number==0)
-				BLI_strncpy(number, index, sizeof(number));
+				 strcpy(number, index);
 			*index= 0;
 			len= strlen(name);
 		}
 	}
 
-	BLI_strncpy(prefix, name, sizeof(prefix));
+	strcpy(prefix, name);
 
 #define IS_SEPARATOR(a) ((a)=='.' || (a)==' ' || (a)=='-' || (a)=='_')
 
