@@ -411,8 +411,8 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 	mv=mvert;
 
 	/* find bounding box of dm */
-	VECCOPY(min,mv->co);
-	VECCOPY(max,mv->co);
+	copy_v3_v3(min, mv->co);
+	copy_v3_v3(max, mv->co);
 	mv++;
 
 	for(i=1; i<totvert; i++, mv++){
@@ -428,13 +428,13 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 	VECSUB(delta,max,min);
 
 	/* determine major axis */
-	axis = (delta[0]>=delta[1])?0:((delta[1]>=delta[2])?1:2);
-
+	axis = (delta[0]>=delta[1]) ? 0 : ((delta[1]>=delta[2]) ? 1 : 2);
+	 
 	d = delta[axis]/(float)res;
 
-	size[axis]=res;
-	size[(axis+1)%3]=(int)ceil(delta[(axis+1)%3]/d);
-	size[(axis+2)%3]=(int)ceil(delta[(axis+2)%3]/d);
+	size[axis] = res;
+	size[(axis+1)%3] = (int)ceil(delta[(axis+1)%3]/d);
+	size[(axis+2)%3] = (int)ceil(delta[(axis+2)%3]/d);
 
 	/* float errors grrr.. */
 	size[(axis+1)%3] = MIN2(size[(axis+1)%3],res);
@@ -452,11 +452,11 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 	for(i=0,p=0,pa=psys->particles; i<res; i++){
 		for(j=0; j<res; j++){
 			for(k=0; k<res; k++,p++,pa++){
-				pa->fuv[0]=min[0]+(float)i*d;
-				pa->fuv[1]=min[1]+(float)j*d;
-				pa->fuv[2]=min[2]+(float)k*d;
+				pa->fuv[0] = min[0] + (float)i*d;
+				pa->fuv[1] = min[1] + (float)j*d;
+				pa->fuv[2] = min[2] + (float)k*d;
 				pa->flag |= PARS_UNEXIST;
-				pa->hair_index=0; /* abused in volume calculation */
+				pa->hair_index = 0; /* abused in volume calculation */
 			}
 		}
 	}
@@ -467,9 +467,9 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 
 		pa=psys->particles;
 
-		min[0]-=d/2.0f;
-		min[1]-=d/2.0f;
-		min[2]-=d/2.0f;
+		min[0] -= d/2.0f;
+		min[1] -= d/2.0f;
+		min[2] -= d/2.0f;
 
 		for(i=0,mv=mvert; i<totvert; i++,mv++){
 			sub_v3_v3v3(vec,mv->co,min);
@@ -501,20 +501,20 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 				for(a2=0; a2<size[(a+2)%3]; a2++){
 					mface= mface_array;
 
-					pa=psys->particles + a1*a1mul + a2*a2mul;
-					VECCOPY(co1,pa->fuv);
-					co1[a]-= d < delta[a] ? d/2.f : delta[a]/2.f;
-					VECCOPY(co2,co1);
-					co2[a]+=delta[a] + 0.001f*d;
-					co1[a]-=0.001f*d;
+					pa = psys->particles + a1*a1mul + a2*a2mul;
+					copy_v3_v3(co1, pa->fuv);
+					co1[a] -= d < delta[a] ? d/2.f : delta[a]/2.f;
+					copy_v3_v3(co2, co1);
+					co2[a] += delta[a] + 0.001f*d;
+					co1[a] -= 0.001f*d;
 					
 					/* lets intersect the faces */
 					for(i=0; i<totface; i++,mface++){
-						VECCOPY(v1,mvert[mface->v1].co);
-						VECCOPY(v2,mvert[mface->v2].co);
-						VECCOPY(v3,mvert[mface->v3].co);
+						copy_v3_v3(v1, mvert[mface->v1].co);
+						copy_v3_v3(v2, mvert[mface->v2].co);
+						copy_v3_v3(v3, mvert[mface->v3].co);
 
-						if(isect_axial_line_tri_v3(a,co1, co2, v2, v3, v1, &lambda)){
+						if(isect_axial_line_tri_v3(a, co1, co2, v2, v3, v1, &lambda)){
 							if(from==PART_FROM_FACE)
 								(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
 							else /* store number of intersections */
@@ -522,9 +522,9 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 						}
 						
 						if(mface->v4){
-							VECCOPY(v4,mvert[mface->v4].co);
+							copy_v3_v3(v4, mvert[mface->v4].co);
 
-							if(isect_axial_line_tri_v3(a,co1, co2, v4, v1, v3, &lambda)){
+							if(isect_axial_line_tri_v3(a, co1, co2, v4, v1, v3, &lambda)){
 								if(from==PART_FROM_FACE)
 									(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
 								else
@@ -543,6 +543,22 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 							/* even intersections -> in stays same */
 							in=(in + (pa+i*a0mul)->hair_index) % 2;
 						}
+					}
+				}
+			}
+		}
+	}
+
+	if(psys->part->flag & PART_GRID_HEXAGONAL) {
+		for(i=0,p=0,pa=psys->particles; i<res; i++){
+			for(j=0; j<res; j++){
+				for(k=0; k<res; k++,p++,pa++){
+					if(j%2)
+						pa->fuv[0] += d/2.f;
+
+					if(k%2) {
+						pa->fuv[0] += d/2.f;
+						pa->fuv[1] += d/2.f;
 					}
 				}
 			}

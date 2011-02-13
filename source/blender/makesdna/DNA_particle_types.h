@@ -315,10 +315,10 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 //#define PART_BRANCHING		(1<<20)
 //#define PART_ANIM_BRANCHING	(1<<21)
-//#define PART_SYMM_BRANCHING	(1<<24)
 
 #define PART_HAIR_BSPLINE	1024
 
+#define PART_GRID_HEXAGONAL	(1<<24)
 #define PART_GRID_INVERT	(1<<26)
 
 #define PART_CHILD_EFFECT		(1<<27)

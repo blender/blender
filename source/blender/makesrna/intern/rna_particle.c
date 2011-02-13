@@ -1561,6 +1561,11 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Invert Grid", "Invert what is considered object and what is not");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
+	prop= RNA_def_property(srna, "hexagonal_grid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_GRID_HEXAGONAL);
+	RNA_def_property_ui_text(prop, "Hexagonal Grid", "Create the grid in a hexagonal pattern");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
 	prop= RNA_def_property(srna, "apply_effector_to_children", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_EFFECT);
 	RNA_def_property_ui_text(prop, "Effect Children", "Apply effectors to children");

@@ -197,6 +197,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
         row = layout.row()
         if part.distribution == 'GRID':
             row.prop(part, "invert_grid")
+            row.prop(part, "hexagonal_grid")
         else:
             row.prop(part, "use_emit_random")
             row.prop(part, "use_even_distribution")
