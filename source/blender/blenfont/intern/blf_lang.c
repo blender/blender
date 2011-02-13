@@ -118,7 +118,7 @@ static void BLF_lang_encoding(const char *str)
 	return;
 }
 
-void BLF_lang_set(char *str)
+void BLF_lang_set(const char *str)
 {
 	(void)str;
 	return;
