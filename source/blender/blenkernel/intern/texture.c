@@ -779,6 +779,7 @@ void make_local_texture(Tex *tex)
 	World *wrld;
 	Lamp *la;
 	Brush *br;
+	ParticleSettings *pa;
 	int a, local=0, lib=0;
 
 	/* - only lib users: do nothing
@@ -841,6 +842,16 @@ void make_local_texture(Tex *tex)
 		}
 		br= br->id.next;
 	}
+	pa= bmain->particle.first;
+	while(pa) {
+		for(a=0; a<MAX_MTEX; a++) {
+			if(pa->mtex[a] && pa->mtex[a]->tex==tex) {
+				if(pa->id.lib) lib= 1;
+				else local= 1;
+			}
+		}
+		pa= pa->id.next;
+	}
 	
 	if(local && lib==0) {
 		tex->id.lib= NULL;
@@ -900,6 +911,19 @@ void make_local_texture(Tex *tex)
 				}
 			}
 			br= br->id.next;
+		}
+		pa= bmain->particle.first;
+		while(pa) {
+			for(a=0; a<MAX_MTEX; a++) {
+				if(pa->mtex[a] && pa->mtex[a]->tex==tex) {
+					if(pa->id.lib==NULL) {
+						pa->mtex[a]->tex= texn;
+						texn->id.us++;
+						tex->id.us--;
+					}
+				}
+			}
+			pa= pa->id.next;
 		}
 	}
 }
@@ -1078,6 +1102,9 @@ void set_active_mtex(ID *id, short act)
 		break;
 	case ID_LA:
 		((Lamp *)id)->texact= act;
+		break;
+	case ID_PA:
+		((ParticleSettings *)id)->texact= act;
 		break;
 	}
 }

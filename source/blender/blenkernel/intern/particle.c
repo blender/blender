@@ -366,6 +366,8 @@ static void fluid_free_settings(SPHFluidSettings *fluid)
 
 void psys_free_settings(ParticleSettings *part)
 {
+	MTex *mtex;
+	int a;
 	BKE_free_animdata(&part->id);
 	free_partdeflect(part->pd);
 	free_partdeflect(part->pd2);
@@ -377,6 +379,12 @@ void psys_free_settings(ParticleSettings *part)
 
 	boid_free_settings(part->boids);
 	fluid_free_settings(part->fluid);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		mtex= part->mtex[a];
+		if(mtex && mtex->tex) mtex->tex->id.us--;
+		if(mtex) MEM_freeN(mtex);
+	}
 }
 
 void free_hair(Object *UNUSED(ob), ParticleSystem *psys, int dynamics)

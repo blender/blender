@@ -34,6 +34,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
@@ -1110,6 +1111,9 @@ void copy_mtex_copybuf(ID *id)
 			mtex= &(((World *)id)->mtex[(int)((World *)id)->texact]);
 			// mtex= wrld->mtex[(int)wrld->texact]; // TODO
 			break;
+		case ID_PA:
+			mtex= &(((ParticleSettings *)id)->mtex[(int)((ParticleSettings *)id)->texact]);
+			break;
 	}
 	
 	if(mtex && *mtex) {
@@ -1139,6 +1143,9 @@ void paste_mtex_copybuf(ID *id)
 		case ID_WO:
 			mtex= &(((World *)id)->mtex[(int)((World *)id)->texact]);
 			// mtex= wrld->mtex[(int)wrld->texact]; // TODO
+			break;
+		case ID_PA:
+			mtex= &(((ParticleSettings *)id)->mtex[(int)((ParticleSettings *)id)->texact]);
 			break;
 	}
 	
@@ -1204,6 +1211,7 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 		Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 		Lamp *la= CTX_data_pointer_get_type(C, "lamp", &RNA_Lamp).data;
 		World *wo= CTX_data_pointer_get_type(C, "world", &RNA_World).data;
+		ParticleSystem *psys= CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data;
 		
 		if (ma)
 			id = &ma->id;
@@ -1211,6 +1219,8 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 			id = &la->id;
 		else if (wo)
 			id = &wo->id;
+		else if (psys)
+			id = &psys->part->id;
 		
 		if (id==NULL)
 			return OPERATOR_CANCELLED;
