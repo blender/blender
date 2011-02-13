@@ -108,7 +108,7 @@ extern char datatoc_bfont_ttf[];
 const int kMinWindowWidth = 100;
 const int kMinWindowHeight = 100;
 
-char bprogname[FILE_MAXDIR+FILE_MAXFILE];
+char bprogname[FILE_MAX];
 
 #ifdef WIN32
 typedef enum 
@@ -362,7 +362,7 @@ int main(int argc, char** argv)
 	signal (SIGFPE, SIG_IGN);
 #endif /* __alpha__ */
 #endif /* __linux__ */
-	BLI_where_am_i(bprogname, argv[0]);
+	BLI_where_am_i(bprogname, sizeof(bprogname), argv[0]);
 #ifdef __APPLE__
     // Can't use Carbon right now because of double defined type ID (In Carbon.h and DNA_ID.h, sigh)
     /*
