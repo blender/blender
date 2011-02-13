@@ -711,9 +711,9 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name)
 				prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
 			} else {
 				int stlen = strlen(st) + 1;
-				prop->data.pointer = MEM_callocN(stlen, "id property string 2");
+				prop->data.pointer = MEM_mallocN(stlen, "id property string 2");
 				prop->len = prop->totallen = stlen;
-				strcpy(prop->data.pointer, st);
+				memcpy(prop->data.pointer, st, stlen);
 			}
 			break;
 		}

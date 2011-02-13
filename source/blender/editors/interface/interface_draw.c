@@ -553,8 +553,6 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	/* Set the font, in case it is not FO_BUILTIN_NAME font */
 	if(G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME))
 	{
-		char tmpStr[256];
-
 		// Is the font file packed, if so then use the packed file
 		if(G.selfont->packedfile)
 		{
@@ -563,9 +561,10 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 		}
 		else
 		{
+			char tmpStr[256];
 			int err;
 
-			strcpy(tmpStr, G.selfont->name);
+			BLI_strncpy(tmpStr, G.selfont->name, sizeof(tmpStr));
 			BLI_path_abs(tmpStr, G.main->name);
 			err = FTF_SetFont((unsigned char *)tmpStr, 0, 14.0);
 		}

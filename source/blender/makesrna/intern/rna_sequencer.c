@@ -446,7 +446,7 @@ static void rna_Sequence_filepath_get(PointerRNA *ptr, char *value)
 	Sequence *seq= (Sequence*)(ptr->data);
 	char path[FILE_MAX];
 
-	BLI_join_dirfile(path, seq->strip->dir, seq->strip->stripdata->name);
+	BLI_join_dirfile(path, sizeof(path), seq->strip->dir, seq->strip->stripdata->name);
 	BLI_strncpy(value, path, strlen(path)+1);
 }
 
@@ -455,7 +455,7 @@ static int rna_Sequence_filepath_length(PointerRNA *ptr)
 	Sequence *seq= (Sequence*)(ptr->data);
 	char path[FILE_MAX];
 
-	BLI_join_dirfile(path, seq->strip->dir, seq->strip->stripdata->name);
+	BLI_join_dirfile(path, sizeof(path), seq->strip->dir, seq->strip->stripdata->name);
 	return strlen(path)+1;
 }
 
@@ -474,7 +474,7 @@ static void rna_Sequence_proxy_filepath_get(PointerRNA *ptr, char *value)
 	StripProxy *proxy= (StripProxy*)(ptr->data);
 	char path[FILE_MAX];
 
-	BLI_join_dirfile(path, proxy->dir, proxy->file);
+	BLI_join_dirfile(path, sizeof(path), proxy->dir, proxy->file);
 	BLI_strncpy(value, path, strlen(path)+1);
 }
 
@@ -483,7 +483,7 @@ static int rna_Sequence_proxy_filepath_length(PointerRNA *ptr)
 	StripProxy *proxy= (StripProxy*)(ptr->data);
 	char path[FILE_MAX];
 
-	BLI_join_dirfile(path, proxy->dir, proxy->file);
+	BLI_join_dirfile(path, sizeof(path), proxy->dir, proxy->file);
 	return strlen(path)+1;
 }
 

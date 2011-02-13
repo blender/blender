@@ -555,7 +555,7 @@ void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 					char path[FILE_MAX];
 					struct stat status;
 					
-					BLI_join_dirfile(path, dirname, de->d_name);
+					BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 
 					if (stat(path, &status) == 0) {
 						if (S_ISDIR(status.st_mode)) { /* is subdir */

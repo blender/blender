@@ -103,7 +103,7 @@ static struct ListBase dirbase_={
 	0,0};
 static struct ListBase *dirbase = &dirbase_;
 
-
+/* can return NULL when the size is not big enough */
 char *BLI_getwdN(char *dir, const int maxncpy)
 {
 	const char *pwd= getenv("PWD");

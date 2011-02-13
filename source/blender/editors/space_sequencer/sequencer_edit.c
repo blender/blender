@@ -1060,8 +1060,7 @@ void seq_remap_paths(Scene *scene)
 				BLI_strncpy(stripped, seq->strip->dir + strlen(from), FILE_MAX);
 				
 				/* new path */
-				BLI_strncpy(seq->strip->dir, to, FILE_MAX);
-				strcat(seq->strip->dir, stripped);
+				BLI_snprintf(seq->strip->dir, sizeof(seq->strip->dir), "%s%s", to, stripped);
 				printf("new %s\n", seq->strip->dir);
 			}
 		}

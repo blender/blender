@@ -1296,7 +1296,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			if (ob->type == OB_ARMATURE) {
 				bArmature *arm = ob->data;
 				if (arm && ob->pose && arm->act_bone) {
-					strcpy(ob->pose->proxy_act_bone, arm->act_bone->name);
+					BLI_strncpy(ob->pose->proxy_act_bone, arm->act_bone->name, sizeof(ob->pose->proxy_act_bone));
 				}
 			}
 
@@ -2606,28 +2606,19 @@ int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int wr
 
 	/* Runtime writing */
 
-#ifdef WIN32
-#define PATHSEPERATOR		"\\"
-#else
-#define PATHSEPERATOR		"/"
-#endif
-
 static char *get_runtime_path(char *exename) {
 	char *installpath= get_install_dir();
 
 	if (!installpath) {
 		return NULL;
-	} else {
-		char *path= MEM_mallocN(strlen(installpath)+strlen(PATHSEPERATOR)+strlen(exename)+1, "runtimepath");
+	}
+	else {
+		char *path= BLI_sprintfN("%s%c%s", installpath, SEP, exename);
 
 		if (path == NULL) {
 			MEM_freeN(installpath);
 			return NULL;
 		}
-
-		strcpy(path, installpath);
-		strcat(path, PATHSEPERATOR);
-		strcat(path, exename);
 
 		MEM_freeN(installpath);
 
@@ -2637,7 +2628,7 @@ static char *get_runtime_path(char *exename) {
 
 #ifdef __APPLE__
 
-static int recursive_copy_runtime(char *outname, char *exename, ReportList *reports)
+static int recursive_copy_runtime(const char *outname, char *exename, ReportList *reports)
 {
 	char *runtime = get_runtime_path(exename);
 	char command[2 * (FILE_MAXDIR+FILE_MAXFILE) + 32];
@@ -2673,7 +2664,7 @@ cleanup:
 	return !error;
 }
 
-int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *reports) 
+int BLO_write_runtime(Main *mainvar, const char *file, char *exename, ReportList *reports) 
 {
 	char gamename[FILE_MAXDIR+FILE_MAXFILE];
 	int outfd = -1, error= 0;
@@ -2687,8 +2678,7 @@ int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *repo
 		goto cleanup;
 	}
 
-	strcpy(gamename, file);
-	strcat(gamename, "/Contents/Resources/game.blend");
+	BLI_snprintf(gamename, sizeof(gamename), "%s/Contents/Resources/game.blend", file);
 	//printf("gamename %s\n", gamename);
 	outfd= open(gamename, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
 	if (outfd != -1) {
@@ -2762,7 +2752,7 @@ static int handle_write_msb_int(int handle, int i)
 	return (write(handle, buf, 4)==4);
 }
 
-int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *reports)
+int BLO_write_runtime(Main *mainvar, const char *file, char *exename, ReportList *reports)
 {
 	int outfd= open(file, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
 	int datastart, error= 0;

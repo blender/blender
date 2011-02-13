@@ -32,8 +32,8 @@
 
 #include <string.h>
 
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
-
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
@@ -65,7 +65,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tsmd->target	= smd->target;
 	tsmd->auxTarget = smd->auxTarget;
 
-	strcpy(tsmd->vgroup_name, smd->vgroup_name);
+	BLI_strncpy(tsmd->vgroup_name, smd->vgroup_name, sizeof(tsmd->vgroup_name));
 
 	tsmd->keepDist	= smd->keepDist;
 	tsmd->shrinkType= smd->shrinkType;

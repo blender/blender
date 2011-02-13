@@ -541,7 +541,7 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 
 void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 {
-	BLI_join_dirfile(filepath, sfile->params->dir, sfile->params->file);
+	BLI_join_dirfile(filepath, FILE_MAX, sfile->params->dir, sfile->params->file); /* XXX, not real length */
 	if(RNA_struct_find_property(op->ptr, "relative_path")) {
 		if(RNA_boolean_get(op->ptr, "relative_path")) {
 			BLI_path_rel(filepath, G.main->name);
@@ -639,7 +639,7 @@ int file_draw_check_exists(SpaceFile *sfile)
 		if(RNA_struct_find_property(sfile->op->ptr, "check_existing")) {
 			if(RNA_boolean_get(sfile->op->ptr, "check_existing")) {
 				char filepath[FILE_MAX];
-				BLI_join_dirfile(filepath, sfile->params->dir, sfile->params->file);
+				BLI_join_dirfile(filepath, sizeof(filepath), sfile->params->dir, sfile->params->file);
 				if(BLI_exists(filepath) && !BLI_is_dir(filepath)) {
 					return TRUE;
 				}
@@ -929,13 +929,13 @@ static int new_folder_path(const char* parent, char *folder, char *name)
 	int len = 0;
 
 	BLI_strncpy(name, "New Folder", FILE_MAXFILE);
-	BLI_join_dirfile(folder, parent, name);
+	BLI_join_dirfile(folder, FILE_MAX, parent, name); /* XXX, not real length */
 	/* check whether folder with the name already exists, in this case
 	   add number to the name. Check length of generated name to avoid
 	   crazy case of huge number of folders each named 'New Folder (x)' */
 	while (BLI_exists(folder) && (len<FILE_MAXFILE)) {
 		len = BLI_snprintf(name, FILE_MAXFILE, "New Folder(%d)", i);
-		BLI_join_dirfile(folder, parent, name);
+		BLI_join_dirfile(folder, FILE_MAX, parent, name); /* XXX, not real length */
 		i++;
 	}
 
@@ -1017,8 +1017,8 @@ static void file_expand_directory(bContext *C)
 	if(sfile->params) {
 		if ( sfile->params->dir[0] == '~' ) {
 			char tmpstr[sizeof(sfile->params->dir)-1];
-			strncpy(tmpstr, sfile->params->dir+1, sizeof(tmpstr));
-			BLI_join_dirfile(sfile->params->dir, BLI_getDefaultDocumentFolder(), tmpstr);
+			BLI_strncpy(tmpstr, sfile->params->dir+1, sizeof(tmpstr));
+			BLI_join_dirfile(sfile->params->dir, sizeof(sfile->params->dir), BLI_getDefaultDocumentFolder(), tmpstr);
 		}
 
 #ifdef WIN32

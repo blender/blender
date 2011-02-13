@@ -433,15 +433,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			/* find the first vert */
 			vc= vert_connect;
 			for (i=0; i < totvert; i++, vc++) {
-				int v_best=-1, ed_loop_closed=0; /* vert and vert new */
-				int ed_loop_flip= 0; /* compiler complains if not initialized, but it should be initialized below */
-				float fl= -1.0f;
-				ScrewVertIter lt_iter;
-
 				/* Now do search for connected verts, order all edges and flip them
 				 * so resulting faces are flipped the right way */
 				vc_tot_linked= 0; /* count the number of linked verts for this loop */
 				if (vc->flag == 0) {
+					int v_best=-1, ed_loop_closed=0; /* vert and vert new */
+					ScrewVertIter lt_iter;
+					int ed_loop_flip= 0; /* compiler complains if not initialized, but it should be initialized below */
+					float fl= -1.0f;
+
 					/*printf("Loop on connected vert: %i\n", i);*/
 
 					for(j=0; j<2; j++) {

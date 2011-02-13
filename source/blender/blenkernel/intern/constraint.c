@@ -752,7 +752,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 			bConstraintTarget *ctn = ct->next; \
 			if (nocopy == 0) { \
 				datatar= ct->tar; \
-				strcpy(datasubtarget, ct->subtarget); \
+				BLI_strncpy(datasubtarget, ct->subtarget, sizeof(datasubtarget)); \
 				con->tarspace= (char)ct->space; \
 			} \
 			 \

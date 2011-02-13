@@ -201,7 +201,7 @@ static int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *UNUS
 		return -1;
 	}
 
-	strcpy(self->prop->name, st);
+	BLI_strncpy(self->prop->name, st, sizeof(self->prop->name));
 	return 0;
 }
 

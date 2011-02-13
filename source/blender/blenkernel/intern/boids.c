@@ -1470,7 +1470,7 @@ BoidRule *boid_new_rule(int type)
 
 	rule->type = type;
 	rule->flag |= BOIDRULE_IN_AIR|BOIDRULE_ON_LAND;
-	strcpy(rule->name, boidrule_type_items[type-1].name);
+	BLI_strncpy(rule->name, boidrule_type_items[type-1].name, sizeof(rule->name));
 
 	return rule;
 }

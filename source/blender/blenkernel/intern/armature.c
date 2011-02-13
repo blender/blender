@@ -248,16 +248,15 @@ Bone *get_named_bone (bArmature *arm, const char *name)
 }
 
 /* Finds the best possible extension to the name on a particular axis. (For renaming, check for unique names afterwards)
- * This assumes that bone names are at most 32 chars long!
  * 	strip_number: removes number extensions  (TODO: not used)
  *	axis: the axis to name on
  *	head/tail: the head/tail co-ordinate of the bone on the specified axis
  */
-int bone_autoside_name (char *name, int UNUSED(strip_number), short axis, float head, float tail)
+int bone_autoside_name (char name[MAXBONENAME], int UNUSED(strip_number), short axis, float head, float tail)
 {
 	unsigned int len;
-	char	basename[32]={""};
-	char 	extension[5]={""};
+	char	basename[MAXBONENAME]= "";
+	char 	extension[5]= "";
 
 	len= strlen(name);
 	if (len == 0) return 0;
@@ -350,13 +349,13 @@ int bone_autoside_name (char *name, int UNUSED(strip_number), short axis, float 
 				}
 			}
 		}
-		
-		if ((32 - len) < strlen(extension) + 1) { /* add 1 for the '.' */
+
+		if ((MAXBONENAME - len) < strlen(extension) + 1) { /* add 1 for the '.' */
 			strncpy(name, basename, len-strlen(extension));
 		}
-		
-		sprintf(name, "%s.%s", basename, extension);
-		
+
+		BLI_snprintf(name, MAXBONENAME, "%s.%s", basename, extension);
+
 		return 1;
 	}
 

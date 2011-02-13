@@ -128,11 +128,10 @@ static void createFacepa(ExplodeModifierData *emd,
 	/* set protected verts */
 	if(emd->vgroup){
 		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-		float val;
 		if(dvert){
-			int defgrp_index= emd->vgroup-1;
+			const int defgrp_index= emd->vgroup-1;
 			for(i=0; i<totvert; i++, dvert++){
-				val = BLI_frand();
+				float val = BLI_frand();
 				val = (1.0f-emd->protect)*val + emd->protect*0.5f;
 				if(val < defvert_find_weight(dvert, defgrp_index))
 					vertpa[i] = -1;

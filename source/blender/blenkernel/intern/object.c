@@ -1078,7 +1078,7 @@ Object *add_object(struct Scene *scene, int type)
 	Base *base;
 	char name[32];
 
-	strcpy(name, get_obdata_defname(type));
+	BLI_strncpy(name, get_obdata_defname(type), sizeof(name));
 	ob = add_only_object(type, name);
 
 	ob->data= add_obdata_from_type(type);

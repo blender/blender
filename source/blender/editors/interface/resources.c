@@ -1004,10 +1004,8 @@ void init_userdef_do_versions(void)
 		U.tb_rightmouse= 5;
 	}
 	if(U.mixbufsize==0) U.mixbufsize= 2048;
-	if (BLI_streq(U.tempdir, "/")) {
-		char *tmp= getenv("TEMP");
-		
-		strcpy(U.tempdir, tmp?tmp:"/tmp/");
+	if (strcmp(U.tempdir, "/") == 0) {
+		BLI_where_is_temp(U.tempdir, sizeof(U.tempdir), FALSE);
 	}
 	if (U.autokey_mode == 0) {
 		/* 'add/replace' but not on */

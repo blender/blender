@@ -53,7 +53,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	MaskModifierData *mmd = (MaskModifierData*) md;
 	MaskModifierData *tmmd = (MaskModifierData*) target;
 	
-	strcpy(tmmd->vgroup, mmd->vgroup);
+	BLI_strncpy(tmmd->vgroup, mmd->vgroup, sizeof(tmmd->vgroup));
 	tmmd->flag = mmd->flag;
 }
 

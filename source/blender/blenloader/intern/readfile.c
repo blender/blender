@@ -9860,7 +9860,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if(seq->type == SEQ_HD_SOUND)
 					{
 						char str[FILE_MAX];
-						BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
+						BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
 						BLI_path_abs(str, G.main->name);
 						seq->sound = sound_new_file(main, str);
 					}

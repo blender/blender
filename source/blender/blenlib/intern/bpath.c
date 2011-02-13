@@ -808,7 +808,7 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 		if (strcmp(".", de->d_name)==0 || strcmp("..", de->d_name)==0)
 			continue;
 		
-		BLI_join_dirfile(path, dirname, de->d_name);
+		BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 		
 		if (stat(path, &status) != 0)
 			continue; /* cant stat, dont bother with this file, could print debug info here */

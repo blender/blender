@@ -664,7 +664,7 @@ void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
 	IDProperty *prop;
-	char buf[512], *butstr;
+	char buf[512];
 
 	/* only do it before bounding */
 	if(block->minx != block->maxx)
@@ -675,15 +675,10 @@ void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 			prop= (but->opptr)? but->opptr->data: NULL;
 
 			if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
-				butstr= MEM_mallocN(strlen(but->str)+strlen(buf)+2, "menu_block_set_keymaps");
-				strcpy(butstr, but->str);
-				strcat(butstr, "|");
-				strcat(butstr, buf);
-
+				char *butstr_orig= BLI_strdup(but->str);
+				BLI_snprintf(but->strdata, sizeof(but->strdata), "%s|%s", butstr_orig, buf);
+				MEM_freeN(butstr_orig);
 				but->str= but->strdata;
-				BLI_strncpy(but->str, butstr, sizeof(but->strdata));
-				MEM_freeN(butstr);
-
 				ui_check_but(but);
 			}
 		}
@@ -2162,8 +2157,7 @@ void ui_check_but(uiBut *but)
 
 			ui_get_but_string(but, str, UI_MAX_DRAW_STR-strlen(but->str));
 
-			strcpy(but->drawstr, but->str);
-			strcat(but->drawstr, str);
+			BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, str);
 		}
 		break;
 	

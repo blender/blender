@@ -110,8 +110,6 @@ static void deformVerts(ModifierData *md, Object *ob,
 {
 	CollisionModifierData *collmd = (CollisionModifierData*) md;
 	DerivedMesh *dm = NULL;
-	float current_time = 0;
-	unsigned int numverts = 0, i = 0;
 	MVert *tempVert = NULL;
 	
 	/* if possible use/create DerivedMesh */
@@ -126,6 +124,9 @@ static void deformVerts(ModifierData *md, Object *ob,
 	
 	if(dm)
 	{
+		float current_time = 0;
+		unsigned int numverts = 0;
+
 		CDDM_apply_vert_coords(dm, vertexCos);
 		CDDM_calc_normals(dm);
 		
@@ -137,7 +138,9 @@ static void deformVerts(ModifierData *md, Object *ob,
 		numverts = dm->getNumVerts ( dm );
 		
 		if((current_time > collmd->time)|| (BKE_ptcache_get_continue_physics()))
-		{	
+		{
+			unsigned int i;
+
 			// check if mesh has changed
 			if(collmd->x && (numverts != collmd->numverts))
 				freeData((ModifierData *)collmd);

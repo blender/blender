@@ -457,7 +457,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 		success= BKE_read_file_from_memfile(C, &uel->memfile, NULL);
 
 	/* restore */
-	strcpy(G.main->name, mainstr); /* restore */
+	BLI_strncpy(G.main->name, mainstr, sizeof(G.main->name)); /* restore */
 	G.fileflags= fileflags;
 
 	if(success) {
@@ -525,7 +525,7 @@ void BKE_write_undo(bContext *C, const char *name)
 	
 		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, NULL, NULL);
 		
-		strcpy(curundo->str, tstr);
+		BLI_strncpy(curundo->str, tstr, sizeof(curundo->str));
 	}
 	else {
 		MemFile *prevfile=NULL;

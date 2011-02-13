@@ -96,13 +96,14 @@ chtoutf8(unsigned long c, char *o)
 void
 wcs2utf8s(char *dst, wchar_t *src)
 {
-	char ch[5];
+	/* NULL terminator not needed */
+	char ch[4];
 
 	while(*src)
 	{
-		memset(ch, 0, 5);
+		memset(ch, 0, sizeof(ch));
 		chtoutf8(*src++, ch);
-		strcat(dst, ch);
+		dst= strncat(dst, ch, sizeof(ch));
 	}
 }
 
@@ -363,14 +364,14 @@ VFont *load_vfont(const char *name)
 	struct TmpFont *tmpfnt;
 	
 	if (strcmp(name, FO_BUILTIN_NAME)==0) {
-		strcpy(filename, name);
+		BLI_strncpy(filename, name, sizeof(filename));
 		
 		pf= get_builtin_packedfile();
 		is_builtin= 1;
 	} else {
 		char dir[FILE_MAXDIR];
 		
-		strcpy(dir, name);
+		BLI_strncpy(dir, name, sizeof(dir));
 		BLI_splitdirstring(dir, filename);
 
 		pf= newPackedFile(NULL, name);

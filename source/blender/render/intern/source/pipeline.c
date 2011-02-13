@@ -574,7 +574,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		rl= MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
-		strcpy(rl->name, srl->name);
+		BLI_strncpy(rl->name, srl->name, sizeof(rl->name));
 		rl->lay= srl->lay;
 		rl->lay_zmask= srl->lay_zmask;
 		rl->layflag= srl->layflag;
@@ -921,7 +921,7 @@ static void renderresult_add_names(RenderResult *rr)
 	
 	for(rl= rr->layers.first; rl; rl= rl->next)
 		for(rpass= rl->passes.first; rpass; rpass= rpass->next)
-			strcpy(rpass->name, get_pass_name(rpass->passtype, -1));
+			BLI_strncpy(rpass->name, get_pass_name(rpass->passtype, -1), sizeof(rpass->name));
 }
 
 /* called for reading temp files, and for external engines */
@@ -2049,7 +2049,7 @@ static void load_backbuffer(Render *re)
 		ImBuf *ibuf;
 		char name[256];
 		
-		strcpy(name, re->r.backbuf);
+		BLI_strncpy(name, re->r.backbuf, sizeof(name));
 		BLI_path_abs(name, re->main->name);
 		BLI_path_frame(name, re->r.cfra, 0);
 		

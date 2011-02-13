@@ -1652,7 +1652,7 @@ static void dxf_read_arc(Scene *scene, int noob)
 	cent[2]= center[2];
 
 	dxf_get_mesh(scene, &me, &ob, noob);
-	strcpy(oldllay, layname);		
+	BLI_strncpy(oldllay, layname, sizeof(oldllay));
 	if(ob) VECCOPY(ob->loc, cent);
 	dxf_add_mat (ob, me, color, layname);
 

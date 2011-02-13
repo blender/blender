@@ -664,7 +664,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 	new_tstripdata(seq);
 
 	if (ELEM3(seq->type, SEQ_SCENE, SEQ_META, SEQ_IMAGE)==0) {
-		BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
+		BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
 		BLI_path_abs(str, G.main->name);
 	}
 
@@ -1134,7 +1134,7 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 	}
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-		BLI_join_dirfile(name, dir, seq->strip->proxy->file);
+		BLI_join_dirfile(name, FILE_MAX, dir, seq->strip->proxy->file); /* XXX, not real length */
 		BLI_path_abs(name, G.main->name);
 
 		return TRUE;
@@ -2043,7 +2043,7 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 			StripElem * s_elem = give_stripelem(seq, cfra);
 
 			if (s_elem) {
-				BLI_join_dirfile(name, seq->strip->dir, s_elem->name);
+				BLI_join_dirfile(name, sizeof(name), seq->strip->dir, s_elem->name);
 				BLI_path_abs(name, G.main->name);
 			}
 
@@ -2066,7 +2066,7 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 		case SEQ_MOVIE:
 		{
 			if(seq->anim==0) {
-				BLI_join_dirfile(name, seq->strip->dir, seq->strip->stripdata->name);
+				BLI_join_dirfile(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
 				BLI_path_abs(name, G.main->name);
 					
 				seq->anim = openanim(name, IB_rect |

@@ -459,7 +459,7 @@ DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData *fluid
 		displaymode = fss->renderDisplayMode;
 	}
 
-	strncpy(targetDir, fss->surfdataPath, FILE_MAXDIR);
+	BLI_strncpy(targetDir, fss->surfdataPath, sizeof(targetDir));
 
 	// use preview or final mesh?
 	if(displaymode==1)
@@ -479,8 +479,7 @@ DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData *fluid
 	BLI_path_abs(targetDir, G.main->name);
 	BLI_path_frame(targetDir, curFrame, 0); // fixed #frame-no
 
-	strcpy(targetFile,targetDir);
-	strcat(targetFile, ".bobj.gz");
+	BLI_snprintf(targetFile, sizeof(targetFile), "%s.bobj.gz", targetDir);
 
 	dm = fluidsim_read_obj(targetFile);
 

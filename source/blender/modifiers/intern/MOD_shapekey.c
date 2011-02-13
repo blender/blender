@@ -70,11 +70,12 @@ static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedDat
 	Key *key= ob_get_key(ob);
 	KeyBlock *kb= ob_get_keyblock(ob);
 	float scale[3][3];
-	int a;
 
 	(void)vertexCos; /* unused */
 
 	if(kb && kb->totelem==numVerts && kb!=key->refkey) {
+		int a;
+
 		if(ob->shapeflag & OB_SHAPE_LOCK) scale_m3_fl(scale, 1);
 		else scale_m3_fl(scale, kb->curval);
 
@@ -107,11 +108,11 @@ static void deformMatricesEM(ModifierData *UNUSED(md), Object *ob,
 	Key *key= ob_get_key(ob);
 	KeyBlock *kb= ob_get_keyblock(ob);
 	float scale[3][3];
-	int a;
 
 	(void)vertexCos; /* unused */
 
 	if(kb && kb->totelem==numVerts && kb!=key->refkey) {
+		int a;
 		scale_m3_fl(scale, kb->curval);
 
 		for(a=0; a<numVerts; a++)

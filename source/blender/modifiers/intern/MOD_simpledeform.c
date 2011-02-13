@@ -34,6 +34,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -288,7 +289,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tsmd->originOpts= smd->originOpts;
 	tsmd->factor= smd->factor;
 	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
-	strcpy(tsmd->vgroup_name, smd->vgroup_name);
+	BLI_strncpy(tsmd->vgroup_name, smd->vgroup_name, sizeof(tsmd->vgroup_name));
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

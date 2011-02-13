@@ -103,7 +103,7 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 void BLI_make_exist(char *dir);
 void BLI_make_existing_file(const char *name);
 void BLI_split_dirfile(const char *string, char *dir, char *file);
-void BLI_join_dirfile(char *string, const char *dir, const char *file);
+void BLI_join_dirfile(char *string, const int maxlen, const char *dir, const char *file);
 char *BLI_path_basename(char *path);
 int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char *base_dir, const char *src_dir, const char *dest_dir);
 char *BLI_last_slash(const char *string);
@@ -181,7 +181,7 @@ void BLI_char_switch(char *string, char from, char to);
 	 * @param fullname The full path and full name of the executable
 	 * @param name The name of the executable (usually argv[0]) to be checked
 	 */
-void BLI_where_am_i(char *fullname, const char *name);
+void BLI_where_am_i(char *fullname, const int maxlen, const char *name);
 
 char *get_install_dir(void);
 	/**
@@ -192,7 +192,7 @@ char *get_install_dir(void);
 	 *
 	 * @param fullname The full path to the temp directory
 	 */
-void BLI_where_is_temp(char *fullname, int usertemp);
+void BLI_where_is_temp(char *fullname, const int maxlen, int usertemp);
 
 
 #ifdef WITH_ICONV

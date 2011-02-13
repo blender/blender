@@ -125,20 +125,16 @@ char *blf_dir_search(const char *file)
 {
 	DirBLF *dir;
 	char full_path[FILE_MAXDIR+FILE_MAXFILE];
-	char *s;
-	
-	dir= global_font_dir.first;
-	s= NULL;
-	while (dir) {
-		BLI_join_dirfile(full_path, dir->path, file);
+	char *s= NULL;
+
+	for(dir=global_font_dir.first; dir; dir= dir->next) {
+		BLI_join_dirfile(full_path, sizeof(full_path), dir->path, file);
 		if (BLI_exist(full_path)) {
-			s= (char *)MEM_mallocN(strlen(full_path)+1,"blf_dir_search");
-			strcpy(s, full_path);
+			s= BLI_strdup(full_path);
 			break;
 		}
-		dir= dir->next;
 	}
-	
+
 	if (!s) {
 		/* check the current directory, why not ? */
 		if (BLI_exist(file))
