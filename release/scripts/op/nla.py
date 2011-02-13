@@ -175,13 +175,11 @@ class BakeAction(bpy.types.Operator):
 
 
 def register():
-    pass
-    # bpy.types.INFO_MT_mesh_add.append(menu_func)
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
-    # bpy.types.INFO_MT_mesh_add.remove(menu_func)
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

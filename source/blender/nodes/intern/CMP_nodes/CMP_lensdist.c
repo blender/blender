@@ -174,19 +174,17 @@ static void node_composit_init_lensdist(bNode* node)
 }
 
 
-bNodeType cmp_node_lensdist = {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_LENSDIST,
-	/* name        */	"Lens Distortion",
-	/* width+range */	150, 120, 200,
-	/* class+opts  */	NODE_CLASS_DISTORT, NODE_OPTIONS,
-	/* input sock  */	cmp_node_lensdist_in,
-	/* output sock */	cmp_node_lensdist_out,
-	/* storage     */	"NodeLensDist",
-	/* execfunc    */	node_composit_exec_lensdist,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_lensdist,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_lensdist(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_LENSDIST, "Lens Distortion", NODE_CLASS_DISTORT, NODE_OPTIONS,
+		cmp_node_lensdist_in, cmp_node_lensdist_out);
+	node_type_size(&ntype, 150, 120, 200);
+	node_type_init(&ntype, node_composit_init_lensdist);
+	node_type_storage(&ntype, "NodeLensDist", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_lensdist);
+
+	nodeRegisterType(lb, &ntype);
+}
+

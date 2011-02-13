@@ -744,7 +744,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					total++;
 					add_v3_v3(cent, eve->co);
 				}
-				mul_v3_fl(cent, 1.0f/(float)total);
+				if(total) {
+					mul_v3_fl(cent, 1.0f/(float)total);
+				}
 			}
 			else {
 				for(eve= em->verts.first; eve; eve= eve->next) {
@@ -753,13 +755,15 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				mid_v3_v3v3(cent, min, max);
 			}
 
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				sub_v3_v3(eve->co, cent);
-			}
+			if(!is_zero_v3(cent)) {
+				for(eve= em->verts.first; eve; eve= eve->next) {
+					sub_v3_v3(eve->co, cent);
+				}
 
-			recalc_editnormals(em);
-			tot_change++;
-			DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+				recalc_editnormals(em);
+				tot_change++;
+				DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+			}
 			BKE_mesh_end_editmesh(me, em);
 		}
 	}

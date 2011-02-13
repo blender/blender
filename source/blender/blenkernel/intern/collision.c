@@ -164,8 +164,8 @@ Collision modifier code end
 */
 
 #define mySWAP(a,b) do { double tmp = b ; b = a ; a = tmp ; } while(0)
-
-int 
+#if 0 /* UNUSED */
+static int 
 gsl_poly_solve_cubic (double a, double b, double c, 
 					  double *x0, double *x1, double *x2)
 {
@@ -255,7 +255,7 @@ gsl_poly_solve_cubic (double a, double b, double c,
 *
 * copied from GSL
 */
-int 
+static int 
 gsl_poly_solve_quadratic (double a, double b, double c, 
 						  double *x0, double *x1)
 {
@@ -313,7 +313,7 @@ gsl_poly_solve_quadratic (double a, double b, double c,
 		return 0;
 	}
 }
-
+#endif /* UNUSED */
 
 
 

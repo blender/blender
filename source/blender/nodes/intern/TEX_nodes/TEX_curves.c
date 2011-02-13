@@ -61,22 +61,19 @@ static void time_init(bNode* node)
    node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-bNodeType tex_node_curve_time= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	TEX_NODE_CURVE_TIME,
-	/* name        */	"Time",
-	/* width+range */	140, 100, 320,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	time_outputs,
-	/* storage     */	"CurveMapping",
-	/* execfunc    */	time_exec,
-	/* butfunc     */	NULL,
-	/* initfunc    */	time_init,
-	/* freestoragefunc    */	node_free_curves,
-	/* copystoragefunc    */	node_copy_curves,
-	/* id          */	NULL
-};
+void register_node_type_tex_curve_time(ListBase *lb)
+{
+	static bNodeType ntype;
+	
+	node_type_base(&ntype, TEX_NODE_CURVE_TIME, "Time", NODE_CLASS_INPUT, NODE_OPTIONS,
+				   NULL, time_outputs);
+	node_type_size(&ntype, 140, 100, 320);
+	node_type_init(&ntype, time_init);
+	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+	node_type_exec(&ntype, time_exec);
+	
+	nodeRegisterType(lb, &ntype);
+}
 
 /* **************** CURVE RGB  ******************** */
 static bNodeSocketType rgb_inputs[]= {
@@ -108,20 +105,17 @@ static void rgb_init(bNode *node)
 	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-bNodeType tex_node_curve_rgb= {
-	/* *next,*prev */    NULL, NULL,
-	/* type code   */    TEX_NODE_CURVE_RGB,
-	/* name        */    "RGB Curves",
-	/* width+range */    200, 140, 320,
-	/* class+opts  */    NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */    rgb_inputs,
-	/* output sock */    rgb_outputs,
-	/* storage     */    "CurveMapping",
-	/* execfunc    */    rgb_exec,
-	/* butfunc     */    NULL,      
-	/* initfunc    */     rgb_init,
-	/* freestoragefunc */ node_free_curves,
-	/* copystoragefunc */ node_copy_curves,
-	/* id          */     NULL
-};
+void register_node_type_tex_curve_rgb(ListBase *lb)
+{
+	static bNodeType ntype;
+	
+	node_type_base(&ntype, TEX_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+				   rgb_inputs, rgb_outputs);
+	node_type_size(&ntype, 200, 140, 320);
+	node_type_init(&ntype, rgb_init);
+	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+	node_type_exec(&ntype, rgb_exec);
+	
+	nodeRegisterType(lb, &ntype);
+}
 

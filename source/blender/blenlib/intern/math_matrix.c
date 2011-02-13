@@ -242,7 +242,7 @@ void mul_serie_m3(float answ[][3],
 {
 	float temp[3][3];
 	
-	if(m1==0 || m2==0) return;
+	if(m1==NULL || m2==NULL) return;
 	
 	mul_m3_m3m3(answ, m2, m1);
 	if(m3) {
@@ -275,7 +275,7 @@ void mul_serie_m4(float answ[][4], float m1[][4],
 {
 	float temp[4][4];
 	
-	if(m1==0 || m2==0) return;
+	if(m1==NULL || m2==NULL) return;
 	
 	mul_m4_m4m4(answ, m2, m1);
 	if(m3) {
@@ -1708,5 +1708,5 @@ void pseudoinverse_m4_m4(float Ainv[4][4], float A[4][4], float epsilon)
 
 	transpose_m4(V);
 
-	mul_serie_m4(Ainv, U, Wm, V, 0, 0, 0, 0, 0);
+	mul_serie_m4(Ainv, U, Wm, V, NULL, NULL, NULL, NULL, NULL);
 }

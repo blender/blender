@@ -1698,7 +1698,7 @@ void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float
 	*valrad= atan2(mx, my)/(2.0f*M_PI) + 0.5f;
 }
 
-void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
+static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {
 	/* gouraud triangle fan */
 	float radstep, ang= 0.0f;
@@ -3080,7 +3080,7 @@ void ui_draw_search_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 
 /* helper call to draw a menu item without button */
 /* state: UI_ACTIVE or 0 */
-void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state)
+void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
 {
 	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
 	rcti _rect= *rect;
@@ -3126,7 +3126,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, 
 	}
 }
 
-void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state)
+void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
 {
 	rcti trect = *rect;
 	

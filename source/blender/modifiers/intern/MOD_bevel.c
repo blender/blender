@@ -38,6 +38,8 @@
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 
+#include "MOD_util.h"
+
 
 static void initData(ModifierData *md)
 {

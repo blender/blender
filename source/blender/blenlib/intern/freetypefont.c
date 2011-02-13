@@ -367,7 +367,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	// No charmap found from the ttf so we need to figure it out
 	if(glyph_index == 0)
 	{
-		FT_CharMap  found = 0;
+		FT_CharMap  found = NULL;
 		FT_CharMap  charmap;
 		int n;
 
@@ -477,7 +477,7 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	err = FT_Init_FreeType( &library);
 	if(err) {
 		//XXX error("Failed to load the Freetype font library");
-		return 0;
+		return NULL;
 	}
 
 	success = check_freetypefont(pf);

@@ -34,6 +34,7 @@ set(SRC
 	editmode_undo.c
 	numinput.c
 	undo.c
+	crazyspace.c
 
 	util_intern.h
 	# general includes

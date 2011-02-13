@@ -24,27 +24,49 @@
 Thumbnailer runs with python 2.6 and 3.x.
 To run automatically with nautilus:
    gconftool --type boolean --set /desktop/gnome/thumbnailers/application@x-blender/enable true
-   gconftool --type string --set /desktop/gnome/thumbnailers/application@x-blender/command "blender-thumbnailer.py %i %o"
+   gconftool --type string --set /desktop/gnome/thumbnailers/application@x-blender/command "blender-thumbnailer.py %u %o"
 """
 
 import struct
 
 
+def open_wrapper_get():
+    """ wrap OS spesific read functionality here, fallback to 'open()'
+    """
+
+    def open_gio(path, mode):
+        g_file = gio.File(path).read()
+        g_file.orig_seek = g_file.seek
+
+        def new_seek(offset, whence=0):
+            return g_file.orig_seek(offset, [1, 0, 2][whence])
+
+        g_file.seek = new_seek
+        return g_file
+
+    try:
+        import gio
+        return open_gio
+    except ImportError:
+        return open
+
+
 def blend_extract_thumb(path):
     import os
+    open_wrapper = open_wrapper_get()
 
     # def MAKE_ID(tag): ord(tag[0])<<24 | ord(tag[1])<<16 | ord(tag[2])<<8 | ord(tag[3])
     REND = 1145980242  # MAKE_ID(b'REND')
     TEST = 1414743380  # MAKE_ID(b'TEST')
 
-    blendfile = open(path, 'rb')
+    blendfile = open_wrapper(path, 'rb')
 
     head = blendfile.read(12)
 
     if head[0:2] == b'\x1f\x8b':  # gzip magic
         import gzip
         blendfile.close()
-        blendfile = gzip.open(path, 'rb')
+        blendfile = gzip.GzipFile('', 'rb', 0, open_wrapper(path, 'rb'))
         head = blendfile.read(12)
 
     if not head.startswith(b'BLENDER'):

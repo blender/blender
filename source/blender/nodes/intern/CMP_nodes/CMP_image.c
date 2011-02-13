@@ -177,7 +177,7 @@ static CompBuf *compbuf_multilayer_get(RenderData *rd, RenderLayer *rl, Image *i
 	return NULL;
 };
 
-void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, Image *ima, ImageUser *iuser)
+static void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, Image *ima, ImageUser *iuser)
 {
 	if(out[RRES_OUT_Z]->hasoutput)
 		out[RRES_OUT_Z]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_Z);
@@ -297,22 +297,20 @@ static void node_composit_init_image(bNode* node)
    iuser->ok= 1;
 }
 
-bNodeType cmp_node_image= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_IMAGE,
-	/* name        */	"Image",
-	/* width+range */	120, 80, 300,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	cmp_node_rlayers_out,
-	/* storage     */	"ImageUser",
-	/* execfunc    */	node_composit_exec_image,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_image,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_image(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_IMAGE, "Image", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
+		NULL, cmp_node_rlayers_out);
+	node_type_size(&ntype, 120, 80, 300);
+	node_type_init(&ntype, node_composit_init_image);
+	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_image);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 /* **************** RENDER RESULT ******************** */
 
@@ -428,22 +426,17 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNU
 };
 
 
-bNodeType cmp_node_rlayers= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_R_LAYERS,
-	/* name        */	"Render Layers",
-	/* width+range */	150, 100, 300,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	cmp_node_rlayers_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_rlayers,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+void register_node_type_cmp_rlayers(ListBase *lb)
+{
+	static bNodeType ntype;
 
-};
+	node_type_base(&ntype, CMP_NODE_R_LAYERS, "Render Layers", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
+		NULL, cmp_node_rlayers_out);
+	node_type_size(&ntype, 150, 100, 300);
+	node_type_exec(&ntype, node_composit_exec_rlayers);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

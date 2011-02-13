@@ -55,7 +55,6 @@ void		wm_window_set_size		(wmWindow *win, int width, int height);
 void		wm_window_get_size		(wmWindow *win, int *width_r, int *height_r);
 void		wm_window_get_size_ghost	(wmWindow *win, int *width_r, int *height_r);
 void		wm_window_get_position	(wmWindow *win, int *posx_r, int *posy_r);
-void		wm_window_set_title		(wmWindow *win, char *title);
 void		wm_window_swap_buffers	(wmWindow *win);
 
 void		wm_get_cursor_position	(wmWindow *win, int *x, int *y);

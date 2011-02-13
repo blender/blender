@@ -189,4 +189,6 @@ typedef enum eBone_Flag {
 	BONE_NO_LOCAL_LOCATION		= (1<<22)	/* bone location is in armature space */
 } eBone_Flag;
 
+#define MAXBONENAME 32
+
 #endif

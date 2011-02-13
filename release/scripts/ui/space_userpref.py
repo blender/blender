@@ -310,7 +310,6 @@ class USERPREF_PT_edit(bpy.types.Panel):
         sub = col.column()
 
         # sub.active = edit.use_keyframe_insert_auto # incorrect, timeline can enable
-        sub.prop(edit, "use_keyframe_insert_keyingset", text="Only Insert for Keying Set")
         sub.prop(edit, "use_keyframe_insert_available", text="Only Insert Available")
 
         col.separator()
@@ -1177,7 +1176,6 @@ class WM_OT_addon_install(bpy.types.Operator):
                 else:
                     os.remove(f_full)
 
-
     def execute(self, context):
         import traceback
         import zipfile
@@ -1224,7 +1222,6 @@ class WM_OT_addon_install(bpy.types.Operator):
             elif os.path.exists(path_dest):
                 self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
                 return {'CANCELLED'}
-                
 
             #if not compressed file just copy into the addon path
             try:
@@ -1286,11 +1283,11 @@ class WM_OT_addon_expand(bpy.types.Operator):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

@@ -49,7 +49,7 @@ extern PyTypeObject IDGroup_Iter_Type;
 
 /*********************** ID Property Main Wrapper Stuff ***************/
 
-PyObject *IDGroup_repr( BPy_IDProperty *self )
+static PyObject *IDGroup_repr( BPy_IDProperty *self )
 {
 	return PyUnicode_FromFormat( "<bpy ID property from \"%s\">", self->id->name);
 }
@@ -113,7 +113,7 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 	Py_RETURN_NONE;
 }
 
-int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
+static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
 {
 	switch (prop->type) {
 		case IDP_STRING:
@@ -182,7 +182,7 @@ int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
 	return 0;
 }
 
-PyObject *BPy_IDGroup_GetName(BPy_IDProperty *self, void *UNUSED(closure))
+static PyObject *BPy_IDGroup_GetName(BPy_IDProperty *self, void *UNUSED(closure))
 {
 	return PyUnicode_FromString(self->prop->name);
 }
@@ -201,7 +201,7 @@ static int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *UNUS
 		return -1;
 	}
 
-	strcpy(self->prop->name, st);
+	BLI_strncpy(self->prop->name, st, sizeof(self->prop->name));
 	return 0;
 }
 
@@ -726,7 +726,7 @@ static PyObject *BPy_IDGroup_ConvertToPy(BPy_IDProperty *self)
 
 
 /* Matches python dict.get(key, [default]) */
-PyObject* BPy_IDGroup_Get(BPy_IDProperty *self, PyObject *args)
+static PyObject* BPy_IDGroup_Get(BPy_IDProperty *self, PyObject *args)
 {
 	IDProperty *idprop;
 	char *key;
@@ -763,23 +763,23 @@ static struct PyMethodDef BPy_IDGroup_methods[] = {
 		"idprop.get(k[,d]) -> idprop[k] if k in idprop, else d.  d defaults to None"},
 	{"convert_to_pyobject", (PyCFunction)BPy_IDGroup_ConvertToPy, METH_NOARGS,
 		"return a purely python version of the group"},
-	{0, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL}
 };
 
 static PySequenceMethods BPy_IDGroup_Seq = {
-	(lenfunc) BPy_IDGroup_Map_Len,			/* lenfunc sq_length */
-	0,									/* binaryfunc sq_concat */
-	0,									/* ssizeargfunc sq_repeat */
-	0,									/* ssizeargfunc sq_item */ /* TODO - setting this will allow PySequence_Check to return True */
-	0,									/* intintargfunc ***was_sq_slice*** */
-	0,									/* intobjargproc sq_ass_item */
-	0,									/* ssizeobjargproc ***was_sq_ass_slice*** */
+	(lenfunc) BPy_IDGroup_Map_Len,		/* lenfunc sq_length */
+	NULL,								/* binaryfunc sq_concat */
+	NULL,								/* ssizeargfunc sq_repeat */
+	NULL,								/* ssizeargfunc sq_item */ /* TODO - setting this will allow PySequence_Check to return True */
+	NULL,								/* intintargfunc ***was_sq_slice*** */
+	NULL,								/* intobjargproc sq_ass_item */
+	NULL,								/* ssizeobjargproc ***was_sq_ass_slice*** */
 	(objobjproc) BPy_IDGroup_Contains,	/* objobjproc sq_contains */
-	0,									/* binaryfunc sq_inplace_concat */
-	0,									/* ssizeargfunc sq_inplace_repeat */
+	NULL,								/* binaryfunc sq_inplace_concat */
+	NULL,								/* ssizeargfunc sq_inplace_repeat */
 };
 
-PyMappingMethods BPy_IDGroup_Mapping = {
+static PyMappingMethods BPy_IDGroup_Mapping = {
 	(lenfunc)BPy_IDGroup_Map_Len, 			/*inquiry mp_length */
 	(binaryfunc)BPy_IDGroup_Map_GetItem,		/*binaryfunc mp_subscript */
 	(objobjargproc)BPy_IDGroup_Map_SetItem,	/*objobjargproc mp_ass_subscript */
@@ -890,7 +890,7 @@ static PyObject *BPy_IDArray_ConvertToPy(BPy_IDArray *self)
 static PyMethodDef BPy_IDArray_methods[] = {
 	{"convert_to_pyobject", (PyCFunction)BPy_IDArray_ConvertToPy, METH_NOARGS,
 		"return a purely python version of the group"},
-	{0, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL}
 };
 
 static int BPy_IDArray_Len(BPy_IDArray *self)
@@ -964,16 +964,16 @@ static int BPy_IDArray_SetItem(BPy_IDArray *self, int index, PyObject *value)
 
 static PySequenceMethods BPy_IDArray_Seq = {
 	(lenfunc) BPy_IDArray_Len,			/* inquiry sq_length */
-	0,									/* binaryfunc sq_concat */
-	0,									/* intargfunc sq_repeat */
+	NULL,								/* binaryfunc sq_concat */
+	NULL,								/* intargfunc sq_repeat */
 	(ssizeargfunc)BPy_IDArray_GetItem,	/* intargfunc sq_item */
-	0,									/* intintargfunc sq_slice */
-	(ssizeobjargproc)BPy_IDArray_SetItem,	/* intobjargproc sq_ass_item */
-	0,									/* intintobjargproc sq_ass_slice */
-	0,									/* objobjproc sq_contains */
+	NULL,								/* intintargfunc sq_slice */
+	(ssizeobjargproc)BPy_IDArray_SetItem,/* intobjargproc sq_ass_item */
+	NULL,								/* intintobjargproc sq_ass_slice */
+	NULL,								/* objobjproc sq_contains */
 				/* Added in release 2.0 */
-	0,									/* binaryfunc sq_inplace_concat */
-	0,									/* intargfunc sq_inplace_repeat */
+	NULL,								/* binaryfunc sq_inplace_concat */
+	NULL,								/* intargfunc sq_inplace_repeat */
 };
 
 PyTypeObject IDArray_Type = {

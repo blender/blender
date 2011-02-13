@@ -1202,7 +1202,7 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 /* ......... */
 
 /* Table of Driver Varaiable Type Info Data */
-DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
+static DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
 	BEGIN_DVAR_TYPEDEF(DVAR_TYPE_SINGLE_PROP)
 		dvar_eval_singleProp, /* eval callback */
 		1, /* number of targets used */
@@ -1233,7 +1233,7 @@ DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
 };
 
 /* Get driver variable typeinfo */
-DriverVarTypeInfo *get_dvar_typeinfo (int type)
+static DriverVarTypeInfo *get_dvar_typeinfo (int type)
 {
 	/* check if valid type */
 	if ((type >= 0) && (type < MAX_DVAR_TYPES))

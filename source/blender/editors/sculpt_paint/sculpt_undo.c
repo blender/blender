@@ -49,6 +49,7 @@
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_key.h"
+#include "BKE_mesh.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -184,6 +185,9 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		tag_update= ((Mesh*)ob->data)->id.us > 1;
 
 		if(ss->modifiers_active) {
+			Mesh *me= ob->data;
+			mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+
 			sculpt_free_deformMats(ss);
 			tag_update|= 1;
 		}

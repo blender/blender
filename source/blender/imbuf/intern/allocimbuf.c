@@ -299,8 +299,12 @@ short imb_addrectImBuf(ImBuf *ibuf)
 	int size;
 
 	if(ibuf==NULL) return FALSE;
-	imb_freerectImBuf(ibuf);
-
+	
+	/* don't call imb_freerectImBuf, it frees mipmaps, this call is used only too give float buffers display */
+	if(ibuf->rect && (ibuf->mall & IB_rect))
+		MEM_freeN(ibuf->rect);
+	ibuf->rect= NULL;
+	
 	size = ibuf->x*ibuf->y;
 	size = size*sizeof(unsigned int);
 
@@ -454,7 +458,7 @@ static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
 	return &c;
 }
 
-void IMB_free_cache_limiter()
+void IMB_free_cache_limiter(void)
 {
 	delete_MEM_CacheLimiter(*get_imbuf_cache_limiter());
 	*get_imbuf_cache_limiter() = 0;

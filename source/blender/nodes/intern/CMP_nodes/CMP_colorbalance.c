@@ -179,20 +179,18 @@ static void node_composit_init_colorbalance(bNode *node)
 	n->gain[0] = n->gain[1] = n->gain[2] = 1.0f;
 }
 
-bNodeType cmp_node_colorbalance={
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_COLORBALANCE,
-	/* name        */	"Color Balance",
-	/* width+range */	400, 200, 400,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_colorbalance_in,
-	/* output sock */	cmp_node_colorbalance_out,
-	/* storage     */	"NodeColorBalance",
-	/* execfunc    */	node_composit_exec_colorbalance,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_colorbalance,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_colorbalance(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_COLORBALANCE, "Color Balance", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+		cmp_node_colorbalance_in, cmp_node_colorbalance_out);
+	node_type_size(&ntype, 400, 200, 400);
+	node_type_init(&ntype, node_composit_init_colorbalance);
+	node_type_storage(&ntype, "NodeColorBalance", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_colorbalance);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

@@ -259,7 +259,7 @@ static void wm_init_userdef(bContext *C)
 	/* set the python auto-execute setting from user prefs */
 	/* disabled by default, unless explicitly enabled in the command line */
 	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
-	if(U.tempdir[0]) BLI_where_is_temp(btempdir, 1);
+	if(U.tempdir[0]) BLI_where_is_temp(btempdir, FILE_MAX, 1);
 }
 
 void WM_read_file(bContext *C, const char *name, ReportList *reports)
@@ -469,10 +469,7 @@ void read_history(void)
 		if (line[0] && BLI_exists(line)) {
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
 			BLI_addtail(&(G.recent_files), recent);
-			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(line)+1), "name of file");
-			recent->filepath[0] = '\0';
-			
-			strcpy(recent->filepath, line);
+			recent->filepath = BLI_strdup(line);
 			num++;
 		}
 	}
@@ -505,7 +502,7 @@ static void write_history(void)
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
 			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(G.main->name)+1), "name of file");
 			recent->filepath[0] = '\0';
-			strcpy(recent->filepath, G.main->name);
+			BLI_strncpy(recent->filepath, G.main->name, sizeof(recent->filepath));
 			BLI_addhead(&(G.recent_files), recent);
 			/* write current file to recent-files.txt */
 			fprintf(fp, "%s\n", recent->filepath);
@@ -543,18 +540,18 @@ static void do_history(char *name, ReportList *reports)
 	if(strlen(name)<2) return;
 		
 	while(hisnr > 1) {
-		sprintf(tempname1, "%s%d", name, hisnr-1);
-		sprintf(tempname2, "%s%d", name, hisnr);
+		BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr-1);
+		BLI_snprintf(tempname2, sizeof(tempname2), "%s%d", name, hisnr);
 	
 		if(BLI_rename(tempname1, tempname2))
 			BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 			
 		hisnr--;
 	}
-		
+
 	/* is needed when hisnr==1 */
-	sprintf(tempname1, "%s%d", name, hisnr);
-	
+	BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr);
+
 	if(BLI_rename(name, tempname1))
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
@@ -671,7 +668,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
 		if(!copy) {
 			G.relbase_valid = 1;
-			strcpy(G.main->name, di);	/* is guaranteed current file */
+			BLI_strncpy(G.main->name, di, sizeof(G.main->name));	/* is guaranteed current file */
 	
 			G.save_over = 1; /* disable untitled.blend convention */
 		}
@@ -744,8 +741,8 @@ void wm_autosave_location(char *filename)
 	char *savedir;
 #endif
 
-	sprintf(pidstr, "%d.blend", abs(getpid()));
-	
+	BLI_snprintf(pidstr, sizeof(pidstr), "%d.blend", abs(getpid()));
+
 #ifdef WIN32
 	/* XXX Need to investigate how to handle default location of '/tmp/'
 	 * This is a relative directory on Windows, and it may be

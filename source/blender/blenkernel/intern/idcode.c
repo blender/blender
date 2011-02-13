@@ -33,6 +33,8 @@
 
 #include "DNA_ID.h"
 
+#include "BKE_idcode.h"
+
 typedef struct {
 	unsigned short code;
 	const char *name, *plural;

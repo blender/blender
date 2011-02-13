@@ -550,85 +550,34 @@ class Text(bpy_types.ID):
         import bpy
         return tuple(obj for obj in bpy.data.objects if self in [cont.text for cont in obj.game.controllers if cont.type == 'PYTHON'])
 
-import collections
-
+# values are module: [(cls, path, line), ...]
 TypeMap = {}
-# Properties (IDPropertyGroup) are different from types because they need to be registered
-# before adding sub properties to them, so they are registered on definition
-# and unregistered on unload
-PropertiesMap = {}
-
-# Using our own loading function we set this to false
-# so when running a script directly in the text editor
-# registers moduals instantly.
-_register_immediate = True
-
-
-def _unregister_module(module, free=True):
-    for t in TypeMap.get(module, ()):
-        try:
-            bpy_types.unregister(t)
-        except:
-            import traceback
-            print("bpy.utils._unregister_module(): Module '%s' failed to unregister class '%s.%s'" % (module, t.__module__, t.__name__))
-            traceback.print_exc()
-
-    if free == True and module in TypeMap:
-        del TypeMap[module]
-
-    for t in PropertiesMap.get(module, ()):
-        try:
-            bpy_types.unregister(t)
-        except:
-            import traceback
-            print("bpy.utils._unload_module(): Module '%s' failed to unregister class '%s.%s'" % (module, t.__module__, t.__name__))
-            traceback.print_exc()
-
-    if free == True and module in PropertiesMap:
-        del PropertiesMap[module]
-
-
-def _register_module(module):
-    for t in TypeMap.get(module, ()):
-        try:
-            bpy_types.register(t)
-        except:
-            import traceback
-            import sys
-            print("bpy.utils._register_module(): '%s' failed to register class '%s.%s'" % (sys.modules[module].__file__, t.__module__, t.__name__))
-            traceback.print_exc()
 
 
 class RNAMeta(type):
-    @classmethod
-    def _register_immediate(cls):
-        return _register_immediate
-
     def __new__(cls, name, bases, classdict, **args):
         result = type.__new__(cls, name, bases, classdict)
         if bases and bases[0] != StructRNA:
+            import traceback
+            import weakref
             module = result.__module__
-
-            ClassMap = TypeMap
-
-            # Register right away if needed
-            if cls._register_immediate():
-                bpy_types.register(result)
-                ClassMap = PropertiesMap
 
             # first part of packages only
             if "." in module:
                 module = module[:module.index(".")]
 
-            ClassMap.setdefault(module, []).append(result)
+            sf = traceback.extract_stack(limit=2)[0]
+
+            TypeMap.setdefault(module, []).append((weakref.ref(result), sf[0], sf[1]))
 
         return result
 
 
-class RNAMetaRegister(RNAMeta, StructMetaIDProp):
-    @classmethod
-    def _register_immediate(cls):
-        return True
+import collections
+
+
+class RNAMetaIDProp(RNAMeta, StructMetaIDProp):
+    pass
 
 
 class OrderedMeta(RNAMeta):
@@ -685,11 +634,15 @@ class Macro(StructRNA, metaclass=OrderedMeta):
         return ops.macro_define(self, opname)
 
 
-class IDPropertyGroup(StructRNA, metaclass=RNAMetaRegister):
+class IDPropertyGroup(StructRNA, metaclass=RNAMetaIDProp):
         __slots__ = ()
 
 
 class RenderEngine(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
+
+
+class KeyingSetInfo(StructRNA, metaclass=RNAMeta):
     __slots__ = ()
 
 
@@ -704,7 +657,12 @@ class _GenericUI:
 
             def draw_ls(self, context):
                 for func in draw_ls._draw_funcs:
-                    func(self, context)
+                    # so bad menu functions dont stop the entire menu from drawing.
+                    try:
+                        func(self, context)
+                    except:
+                        import traceback
+                        traceback.print_exc()
 
             draw_funcs = draw_ls._draw_funcs = [cls.draw]
             cls.draw = draw_ls

@@ -765,7 +765,7 @@ void bglBegin(int mode)
 	}
 }
 
-int bglPointHack() {
+int bglPointHack(void) {
 	float value[4];
 	int pointhack_px;
 	glGetFloatv(GL_POINT_SIZE_RANGE, value);

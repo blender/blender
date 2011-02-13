@@ -77,23 +77,18 @@ static int gpu_shader_hue_sat(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStac
 	return GPU_stack_link(mat, "hue_sat", in, out);
 }
 
-bNodeType sh_node_hue_sat= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_HUE_SAT,
-	/* name        */	"Hue Saturation Value",
-	/* width+range */	150, 80, 250,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */	sh_node_hue_sat_in,
-	/* output sock */	sh_node_hue_sat_out,
-	/* storage     */	"", 
-	/* execfunc    */	node_shader_exec_hue_sat,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_hue_sat
-	
-};
+void register_node_type_sh_hue_sat(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+		sh_node_hue_sat_in, sh_node_hue_sat_out);
+	node_type_size(&ntype, 150, 80, 250);
+	node_type_exec(&ntype, node_shader_exec_hue_sat);
+	node_type_gpu(&ntype, gpu_shader_hue_sat);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

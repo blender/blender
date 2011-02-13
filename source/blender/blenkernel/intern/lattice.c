@@ -251,11 +251,11 @@ void make_local_lattice(Lattice *lt)
 	 * - mixed: make copy
 	 */
 	
-	if(lt->id.lib==0) return;
+	if(lt->id.lib==NULL) return;
 	if(lt->id.us==1) {
-		lt->id.lib= 0;
+		lt->id.lib= NULL;
 		lt->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)lt, 0);
+		new_id(NULL, (ID *)lt, NULL);
 		return;
 	}
 	
@@ -269,9 +269,9 @@ void make_local_lattice(Lattice *lt)
 	}
 	
 	if(local && lib==0) {
-		lt->id.lib= 0;
+		lt->id.lib= NULL;
 		lt->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)lt, 0);
+		new_id(NULL, (ID *)lt, NULL);
 	}
 	else if(local && lib) {
 		ltn= copy_lattice(lt);
@@ -281,7 +281,7 @@ void make_local_lattice(Lattice *lt)
 		while(ob) {
 			if(ob->data==lt) {
 				
-				if(ob->id.lib==0) {
+				if(ob->id.lib==NULL) {
 					ob->data= ltn;
 					ltn->id.us++;
 					lt->id.us--;

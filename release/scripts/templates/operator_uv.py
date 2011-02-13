@@ -41,5 +41,16 @@ class UvOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+def register():
+    bpy.utils.register_class(UvOperator)
+
+
+def unregister():
+    bpy.utils.unregister_class(UvOperator)
+
+
 if __name__ == "__main__":
+    register()
+
+    # test call
     bpy.ops.uv.simple_operator()

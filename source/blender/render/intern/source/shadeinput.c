@@ -430,10 +430,10 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			mul_m4_v3(R.viewinv, shi->gl);
 			
 			if(shi->osatex) {
-				VECCOPY(shi->dxgl, shi->dxco);
-				mul_m3_v3(R.imat, shi->dxco);
-				VECCOPY(shi->dygl, shi->dyco);
-				mul_m3_v3(R.imat, shi->dyco);
+				VECCOPY(shi->dxgl, shi->dxco); 
+				mul_mat3_m4_v3(R.viewinv, shi->dxgl); 
+				VECCOPY(shi->dygl, shi->dyco); 
+				mul_mat3_m4_v3(R.viewinv, shi->dygl);
 			}
 		}
 
@@ -1012,13 +1012,10 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			VECCOPY(shi->gl, shi->co);
 			mul_m4_v3(R.viewinv, shi->gl);
 			if(shi->osatex) {
-				VECCOPY(shi->dxgl, shi->dxco);
-				// TXF: bug was here, but probably should be in convertblender.c, R.imat only valid if there is a world
-				//mul_m3_v3(R.imat, shi->dxco);
-				mul_mat3_m4_v3(R.viewinv, shi->dxco);
-				VECCOPY(shi->dygl, shi->dyco);
-				//mul_m3_v3(R.imat, shi->dyco);
-				mul_mat3_m4_v3(R.viewinv, shi->dyco);
+				VECCOPY(shi->dxgl, shi->dxco); 
+				mul_mat3_m4_v3(R.viewinv, shi->dxgl); 
+				VECCOPY(shi->dygl, shi->dyco); 
+				mul_mat3_m4_v3(R.viewinv, shi->dygl);
 			}
 		}
 		

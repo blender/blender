@@ -43,6 +43,8 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_property.h"
+
 void free_property(bProperty *prop)
 {
 	
@@ -93,7 +95,7 @@ void init_property(bProperty *prop)
 	/* also use when property changes type */
 	
 	if(prop->poin && prop->poin != &prop->data) MEM_freeN(prop->poin);
-	prop->poin= 0;
+	prop->poin= NULL;
 	
 	prop->data= 0;
 	

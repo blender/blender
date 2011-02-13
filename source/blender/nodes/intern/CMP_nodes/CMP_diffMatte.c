@@ -128,21 +128,19 @@ static void node_composit_init_diff_matte(bNode *node)
    c->t2= 0.1f;
 }
 
-bNodeType cmp_node_diff_matte={
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_DIFF_MATTE,
-	/* name        */	"Difference Key",
-	/* width+range */	200, 80, 250,
-	/* class+opts  */	NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	cmp_node_diff_matte_in,
-	/* output sock */	cmp_node_diff_matte_out,
-	/* storage     */	"NodeChroma",
-	/* execfunc    */	node_composit_exec_diff_matte,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_diff_matte,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_diff_matte(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_DIFF_MATTE, "Difference Key", NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+		cmp_node_diff_matte_in, cmp_node_diff_matte_out);
+	node_type_size(&ntype, 200, 80, 250);
+	node_type_init(&ntype, node_composit_init_diff_matte);
+	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_diff_matte);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

@@ -75,6 +75,9 @@ void IMB_thumb_makedirs(void);
 ImBuf *IMB_loadblend_thumb(const char *path);
 void IMB_overlayblend_thumb(unsigned int *thumb, int width, int height, float aspect);
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* _IMB_THUMBS_H */
 

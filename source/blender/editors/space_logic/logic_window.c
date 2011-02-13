@@ -47,6 +47,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -1079,6 +1080,20 @@ static void draw_default_sensor_header(bSensor *sens,
 			 "Invert the level (output) of this sensor");
 }
 
+static void get_armature_bone_constraint(Object *ob, const char *posechannel, const char *constraint_name, bConstraint **constraint)
+{
+	/* check that bone exist in the active object */
+	if (ob->type == OB_ARMATURE && ob->pose) {
+		bPoseChannel *pchan= get_pose_channel(ob->pose, posechannel);
+		if(pchan) {
+			bConstraint *con= BLI_findstring(&pchan->constraints, constraint_name, offsetof(bConstraint, name));
+			if(con) {
+				*constraint= con;
+			}
+		}
+	}
+	/* didn't find any */
+}
 static void check_armature_bone_constraint(Object *ob, char *posechannel, char *constraint)
 {
 	/* check that bone exist in the active object */
@@ -2015,8 +2030,8 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			}
 			else
 			{
-				uiDefButI(block, NUM, 0, "Sta: ",xco+10, yco-44, (width-20)/2, 19, &aa->sta, 1.0, MAXFRAMEF, 0, 0, "Start frame");
-				uiDefButI(block, NUM, 0, "End: ",xco+10+(width-20)/2, yco-44, (width-20)/2, 19, &aa->end, 1.0, MAXFRAMEF, 0, 0, "End frame");
+				uiDefButF(block, NUM, 0, "Sta: ",xco+10, yco-44, (width-20)/2, 19, &aa->sta, 1.0, MAXFRAMEF, 0, 0, "Start frame");
+				uiDefButF(block, NUM, 0, "End: ",xco+10+(width-20)/2, yco-44, (width-20)/2, 19, &aa->end, 1.0, MAXFRAMEF, 0, 0, "End frame");
 			}
 						
 			uiDefButS(block, NUM, 0, "Blendin: ", xco+10, yco-64, (width-20)/2, 19, &aa->blendin, 0.0, 32767, 0.0, 0.0, "Number of frames of motion blending");
@@ -2077,11 +2092,11 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					"Use this property to define the Ipo position");
 			}
 			else {
-				uiDefButI(block, NUM, 0, 
+				uiDefButF(block, NUM, 0, 
 					"Sta",		xco+10, yco-44, (width-80)/2, 19, 
 					&ia->sta, 1.0, MAXFRAMEF, 0, 0, 
 					"Start frame");
-				uiDefButI(block, NUM, 0, 
+				uiDefButF(block, NUM, 0, 
 					"End",		xco+10+(width-80)/2, yco-44, (width-80)/2, 19, 
 					&ia->end, 1.0, MAXFRAMEF, 0, 0, 
 					"End frame");
@@ -3692,6 +3707,7 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 	bActuator *act = (bActuator*)ptr->data;
 	bArmatureActuator *aa = (bArmatureActuator *) act->data;
 	Object *ob = (Object *)ptr->id.data;
+	bConstraint *constraint = NULL;
 	PointerRNA pose_ptr, pchan_ptr;
 	PropertyRNA *bones_prop = NULL;
 
@@ -3729,7 +3745,12 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 			}
 
 			uiItemR(layout, ptr, "target", 0, NULL, ICON_NULL);
-			uiItemR(layout, ptr, "secondary_target", 0, NULL, ICON_NULL);
+
+			/* show second target only if the constraint supports it */
+			get_armature_bone_constraint(ob, aa->posechannel, aa->constraint, &constraint);
+			if (constraint && constraint->type == CONSTRAINT_TYPE_KINEMATIC) {
+				uiItemR(layout, ptr, "secondary_target", 0, NULL, ICON_NULL);
+			}
 			break;
 		case ACT_ARM_SETWEIGHT:
 			if (ob->pose) {

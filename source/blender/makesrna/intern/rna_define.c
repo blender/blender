@@ -412,7 +412,7 @@ static int rna_validate_identifier(const char *identifier, char *error, int prop
 
 /* Blender Data Definition */
 
-BlenderRNA *RNA_create()
+BlenderRNA *RNA_create(void)
 {
 	BlenderRNA *brna;
 

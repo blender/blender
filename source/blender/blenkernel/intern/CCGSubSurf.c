@@ -397,7 +397,7 @@ static CCGEdge *_vert_findEdgeTo(CCGVert *v, CCGVert *vQ) {
 				(e->v1==v && e->v0==vQ))
 			return e;
 	}
-	return 0;
+	return NULL;
 }
 static int _vert_isBoundary(CCGVert *v) {
 	int i;
@@ -599,7 +599,7 @@ static CCG_INLINE void *_face_getIFCoEdge(CCGFace *f, CCGEdge *e, int lvl, int e
 static float *_face_getIFNoEdge(CCGFace *f, CCGEdge *e, int lvl, int eX, int eY, int levels, int dataSize, int normalDataOffset) {
 	return (float*) ((byte*) _face_getIFCoEdge(f, e, lvl, eX, eY, levels, dataSize) + normalDataOffset);
 }
-void _face_calcIFNo(CCGFace *f, int lvl, int S, int x, int y, float *no, int levels, int dataSize) {
+static void _face_calcIFNo(CCGFace *f, int lvl, int S, int x, int y, float *no, int levels, int dataSize) {
 	float *a = _face_getIFCo(f, lvl, S, x+0, y+0, levels, dataSize);
 	float *b = _face_getIFCo(f, lvl, S, x+1, y+0, levels, dataSize);
 	float *c = _face_getIFCo(f, lvl, S, x+1, y+1, levels, dataSize);

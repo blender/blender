@@ -2119,8 +2119,7 @@ PyObject* KX_Scene::pyattr_get_drawing_callback_pre(void *self_v, const KX_PYATT
 
 	if(self->m_draw_call_pre==NULL)
 		self->m_draw_call_pre= PyList_New(0);
-	else
-		Py_INCREF(self->m_draw_call_pre);
+	Py_INCREF(self->m_draw_call_pre);
 	return self->m_draw_call_pre;
 }
 
@@ -2130,8 +2129,7 @@ PyObject* KX_Scene::pyattr_get_drawing_callback_post(void *self_v, const KX_PYAT
 
 	if(self->m_draw_call_post==NULL)
 		self->m_draw_call_post= PyList_New(0);
-	else
-		Py_INCREF(self->m_draw_call_post);
+	Py_INCREF(self->m_draw_call_post);
 	return self->m_draw_call_post;
 }
 

@@ -47,6 +47,66 @@
 
 #include "MEM_guardedalloc.h"
 
+EnumPropertyItem node_blend_type_items[] = {
+{ 0, "MIX",          0, "Mix",         ""},
+{ 1, "ADD",          0, "Add",         ""},
+{ 3, "SUBTRACT",     0, "Subtract",    ""},
+{ 2, "MULTIPLY",     0, "Multiply",    ""},
+{ 4, "SCREEN",       0, "Screen",      ""},
+{ 9, "OVERLAY",      0, "Overlay",     ""},
+{ 5, "DIVIDE",       0, "Divide",      ""},
+{ 6, "DIFFERENCE",   0, "Difference",  ""},
+{ 7, "DARKEN",       0, "Darken",      ""},
+{ 8, "LIGHTEN",      0, "Lighten",     ""},
+{10, "DODGE",        0, "Dodge",       ""},
+{11, "BURN",         0, "Burn",        ""},
+{15, "COLOR",        0, "Color",       ""},
+{14, "VALUE",        0, "Value",       ""},
+{13, "SATURATION",   0, "Saturation",  ""},
+{12, "HUE",          0, "Hue",         ""},
+{16, "SOFT_LIGHT",   0, "Soft Light",  ""},
+{17, "LINEAR_LIGHT", 0, "Linear Light",""},
+{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem node_math_items[] = {
+{ 0, "ADD",          0, "Add",          ""},
+{ 1, "SUBTRACT",     0, "Subtract",     ""},
+{ 2, "MULTIPLY",     0, "Multiply",     ""},
+{ 3, "DIVIDE",       0, "Divide",       ""},
+{ 4, "SINE",         0, "Sine",         ""},
+{ 5, "COSINE",       0, "Cosine",       ""},
+{ 6, "TANGENT",      0, "Tangent",      ""},
+{ 7, "ARCSINE",      0, "Arcsine",      ""},
+{ 8, "ARCCOSINE",    0, "Arccosine",    ""},
+{ 9, "ARCTANGENT",   0, "Arctangent",   ""},
+{10, "POWER",        0, "Power",        ""},
+{11, "LOGARITHM",    0, "Logarithm",    ""},
+{12, "MINIMUM",      0, "Minimum",      ""},
+{13, "MAXIMUM",      0, "Maximum",      ""},
+{14, "ROUND",        0, "Round",        ""},
+{15, "LESS_THAN",    0, "Less Than",    ""},
+{16, "GREATER_THAN", 0, "Greater Than", ""},
+{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem node_vec_math_items[] = {
+{0, "ADD",           0, "Add",           ""},
+{1, "SUBTRACT",      0, "Subtract",      ""},
+{2, "AVERAGE",       0, "Average",       ""},
+{3, "DOT_PRODUCT",   0, "Dot Product",   ""},
+{4, "CROSS_PRODUCT", 0, "Cross Product", ""},
+{5, "NORMALIZE",     0, "Normalize",     ""},
+{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem node_filter_items[] = {
+{0, "SOFTEN",  0, "Soften",  ""},
+{1, "SHARPEN", 0, "Sharpen", ""},
+{2, "LAPLACE", 0, "Laplace", ""},
+{3, "SOBEL",   0, "Sobel",   ""},
+{4, "PREWITT", 0, "Prewitt", ""},
+{5, "KIRSCH",  0, "Kirsch",  ""},
+{6, "SHADOW",  0, "Shadow",  ""},
+{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "BLI_linklist.h"
@@ -230,7 +290,6 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(node->name, value, sizeof(node->name));
 	
 	nodeUniqueName(ntree, node);
-	node->flag |= NODE_CUSTOM_NAME;
 	
 	/* fix all the animation data which may link to this */
 	BKE_all_animdata_fix_paths_rename("nodes", oldname, node->name);
@@ -567,70 +626,10 @@ static EnumPropertyItem prop_tri_channel_items[] = {
 { 3, "B", 0, "B", ""},
 {0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem node_blend_type_items[] = {
-{ 0, "MIX",          0, "Mix",         ""},
-{ 1, "ADD",          0, "Add",         ""},
-{ 3, "SUBTRACT",     0, "Subtract",    ""},
-{ 2, "MULTIPLY",     0, "Multiply",    ""},
-{ 4, "SCREEN",       0, "Screen",      ""},
-{ 9, "OVERLAY",      0, "Overlay",     ""},
-{ 5, "DIVIDE",       0, "Divide",      ""},
-{ 6, "DIFFERENCE",   0, "Difference",  ""},
-{ 7, "DARKEN",       0, "Darken",      ""},
-{ 8, "LIGHTEN",      0, "Lighten",     ""},
-{10, "DODGE",        0, "Dodge",       ""},
-{11, "BURN",         0, "Burn",        ""},
-{15, "COLOR",        0, "Color",       ""},
-{14, "VALUE",        0, "Value",       ""},
-{13, "SATURATION",   0, "Saturation",  ""},
-{12, "HUE",          0, "Hue",         ""},
-{16, "SOFT_LIGHT",   0, "Soft Light",  ""},
-{17, "LINEAR_LIGHT", 0, "Linear Light",""},
-{0, NULL, 0, NULL, NULL}};
-
 static EnumPropertyItem node_flip_items[] = {
 {0, "X",  0, "Flip X",     ""},
 {1, "Y",  0, "Flip Y",     ""},
 {2, "XY", 0, "Flip X & Y", ""},
-{0, NULL, 0, NULL, NULL}};
-
-static EnumPropertyItem node_math_items[] = {
-{ 0, "ADD",          0, "Add",          ""},
-{ 1, "SUBTRACT",     0, "Subtract",     ""},
-{ 2, "MULTIPLY",     0, "Multiply",     ""},
-{ 3, "DIVIDE",       0, "Divide",       ""},
-{ 4, "SINE",         0, "Sine",         ""},
-{ 5, "COSINE",       0, "Cosine",       ""},
-{ 6, "TANGENT",      0, "Tangent",      ""},
-{ 7, "ARCSINE",      0, "Arcsine",      ""},
-{ 8, "ARCCOSINE",    0, "Arccosine",    ""},
-{ 9, "ARCTANGENT",   0, "Arctangent",   ""},
-{10, "POWER",        0, "Power",        ""},
-{11, "LOGARITHM",    0, "Logarithm",    ""},
-{12, "MINIMUM",      0, "Minimum",      ""},
-{13, "MAXIMUM",      0, "Maximum",      ""},
-{14, "ROUND",        0, "Round",        ""},
-{15, "LESS_THAN",    0, "Less Than",    ""},
-{16, "GREATER_THAN", 0, "Greater Than", ""},
-{0, NULL, 0, NULL, NULL}};
-
-static EnumPropertyItem node_vec_math_items[] = {
-{0, "ADD",           0, "Add",           ""},
-{1, "SUBTRACT",      0, "Subtract",      ""},
-{2, "AVERAGE",       0, "Average",       ""},
-{3, "DOT_PRODUCT",   0, "Dot Product",   ""},
-{4, "CROSS_PRODUCT", 0, "Cross Product", ""},
-{5, "NORMALIZE",     0, "Normalize",     ""},
-{0, NULL, 0, NULL, NULL}};
-
-static EnumPropertyItem node_filter_items[] = {
-{0, "SOFTEN",  0, "Soften",  ""},
-{1, "SHARPEN", 0, "Sharpen", ""},
-{2, "LAPLACE", 0, "Laplace", ""},
-{3, "SOBEL",   0, "Sobel",   ""},
-{4, "PREWITT", 0, "Prewitt", ""},
-{5, "KIRSCH",  0, "Kirsch",  ""},
-{6, "SHADOW",  0, "Shadow",  ""},
 {0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem node_ycc_items[] = {
@@ -916,7 +915,7 @@ static void def_sh_mapping(StructRNA *srna)
 	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_mapping_update");
 	
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_XYZ); /* Not PROP_EUL, this is already in degrees, not radians */
 	RNA_def_property_float_sdna(prop, NULL, "rot");
 	RNA_def_property_ui_text(prop, "Rotation", "Rotation offset for the input coordinate");
 	RNA_def_property_ui_range(prop, -360.f, 360.f, 1.f, 2);
@@ -1030,6 +1029,12 @@ static void def_cmp_blur(StructRNA *srna)
 		{R_FILTER_MITCH,      "MITCH",      0, "Mitch",         ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem aspect_correction_type_items[] = {
+		{CMP_NODE_BLUR_ASPECT_NONE,	"NONE",	0,	"None",	""},
+		{CMP_NODE_BLUR_ASPECT_Y,	"Y",	0,	"Y",	""},
+		{CMP_NODE_BLUR_ASPECT_X,	"X",	0,	"X",	""},
+		{0, NULL, 0, NULL, NULL}};
+
 	RNA_def_struct_sdna_from(srna, "NodeBlurData", "storage");
 	
 	prop = RNA_def_property(srna, "size_x", PROP_INT, PROP_NONE);
@@ -1049,21 +1054,27 @@ static void def_cmp_blur(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Relative", "Use relative (percent) values to define blur radius");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
+	prop = RNA_def_property(srna, "aspect_correction", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "aspect");
+	RNA_def_property_enum_items(prop, aspect_correction_type_items);
+	RNA_def_property_ui_text(prop, "Aspect Correction", "Type of aspect correction to use");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
 	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fac");
 	RNA_def_property_range(prop, 0.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "Factor", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
-	prop = RNA_def_property(srna, "factor_x", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "factor_x", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "percentx");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Relative Size X", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
-	prop = RNA_def_property(srna, "factor_y", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "factor_y", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "percenty");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Relative Size Y", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	

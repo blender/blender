@@ -456,16 +456,16 @@ PyAttributeDef KX_IpoActuator::Attributes[] = {
 PyObject* KX_IpoActuator::pyattr_get_frame_start(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_IpoActuator* self= static_cast<KX_IpoActuator*>(self_v);
-	return PyLong_FromDouble(self->m_startframe);
+	return PyFloat_FromDouble(self->m_startframe);
 }
 
 int KX_IpoActuator::pyattr_set_frame_start(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_IpoActuator* self= static_cast<KX_IpoActuator*>(self_v);
-	float param = PyLong_AsDouble(value);
+	float param = PyFloat_AsDouble(value);
 
 	if (PyErr_Occurred()) {
-		PyErr_SetString(PyExc_AttributeError, "frameStart = integer: KX_IpoActuator, expected an integer value");
+		PyErr_SetString(PyExc_AttributeError, "frameStart = float: KX_IpoActuator, expected a float value");
 		return PY_SET_ATTR_FAIL;
 	}
 
@@ -477,16 +477,16 @@ int KX_IpoActuator::pyattr_set_frame_start(void *self_v, const KX_PYATTRIBUTE_DE
 PyObject* KX_IpoActuator::pyattr_get_frame_end(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_IpoActuator* self= static_cast<KX_IpoActuator*>(self_v);
-	return PyLong_FromDouble(self->m_endframe);
+	return PyFloat_FromDouble(self->m_endframe);
 }
 
 int KX_IpoActuator::pyattr_set_frame_end(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_IpoActuator* self= static_cast<KX_IpoActuator*>(self_v);
-	float param = PyLong_AsDouble(value);
+	float param = PyFloat_AsDouble(value);
 
 	if (PyErr_Occurred()) {
-		PyErr_SetString(PyExc_AttributeError, "frameEnd = integer: KX_IpoActuator, expected an integer value");
+		PyErr_SetString(PyExc_AttributeError, "frameEnd = float: KX_IpoActuator, expected a float value");
 		return PY_SET_ATTR_FAIL;
 	}
 

@@ -164,27 +164,22 @@ void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 
 static void area_draw_azone(short x1, short y1, short x2, short y2)
 {
-	float xmin = x1;
-	float xmax = x2-2;
-	float ymin = y1-1;
-	float ymax = y2-3;
-	
-	float dx= 0.3f*(xmax-xmin);
-	float dy= 0.3f*(ymax-ymin);
+	int dx= floor(0.3f*(x2-x1));
+	int dy= floor(0.3f*(y2-y1));
 	
 	glColor4ub(255, 255, 255, 180);
-	fdrawline(xmin, ymax, xmax, ymin);
+	fdrawline(x1, y2, x2, y1);
 	glColor4ub(255, 255, 255, 130);
-	fdrawline(xmin, ymax-dy, xmax-dx, ymin);
+	fdrawline(x1, y2-dy, x2-dx, y1);
 	glColor4ub(255, 255, 255, 80);
-	fdrawline(xmin, ymax-2*dy, xmax-2*dx, ymin);
+	fdrawline(x1, y2-2*dy, x2-2*dx, y1);
 	
 	glColor4ub(0, 0, 0, 210);
-	fdrawline(xmin, ymax+1, xmax+1, ymin);
+	fdrawline(x1, y2+1, x2+1, y1);
 	glColor4ub(0, 0, 0, 180);
-	fdrawline(xmin, ymax-dy+1, xmax-dx+1, ymin);
+	fdrawline(x1, y2-dy+1, x2-dx+1, y1);
 	glColor4ub(0, 0, 0, 150);
-	fdrawline(xmin, ymax-2*dy+1, xmax-2*dx+1, ymin);
+	fdrawline(x1, y2-2*dy+1, x2-2*dx+1, y1);
 }
 
 
@@ -451,7 +446,6 @@ void ED_area_headerprint(ScrArea *sa, const char *str)
 /* ************************************************************ */
 
 
-#define AZONESPOT		12
 static void area_azone_initialize(ScrArea *sa) 
 {
 	AZone *az;
@@ -465,8 +459,8 @@ static void area_azone_initialize(ScrArea *sa)
 	az->type= AZONE_AREA;
 	az->x1= sa->totrct.xmin;
 	az->y1= sa->totrct.ymin;
-	az->x2= sa->totrct.xmin + AZONESPOT-1;
-	az->y2= sa->totrct.ymin + AZONESPOT-1;
+	az->x2= sa->totrct.xmin + AZONESPOT;
+	az->y2= sa->totrct.ymin + AZONESPOT;
 	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
 	
 	az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
@@ -474,13 +468,13 @@ static void area_azone_initialize(ScrArea *sa)
 	az->type= AZONE_AREA;
 	az->x1= sa->totrct.xmax+1;
 	az->y1= sa->totrct.ymax+1;
-	az->x2= sa->totrct.xmax-AZONESPOT+1;
-	az->y2= sa->totrct.ymax-AZONESPOT+1;
+	az->x2= sa->totrct.xmax-AZONESPOT;
+	az->y2= sa->totrct.ymax-AZONESPOT;
 	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
 #define AZONEPAD_EDGE	4
-#define AZONEPAD_ICON	8
+#define AZONEPAD_ICON	9
 static void region_azone_edge(AZone *az, ARegion *ar)
 {
 	switch(az->edge) {

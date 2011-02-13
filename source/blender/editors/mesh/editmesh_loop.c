@@ -220,9 +220,8 @@ void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 			dist= 50;
 			nearest = findnearestedge(&vc, &dist);	// returns actual distance in dist
 //			scrarea_do_windraw(curarea);	// after findnearestedge, backbuf!
-			
-			sprintf(msg,"Number of Cuts: %d (S)mooth: ",numcuts);
-			strcat(msg, smooth ? "on":"off");
+
+			BLI_snprintf(msg, sizeof(msg),"Number of Cuts: %d (S)mooth: %s", numcuts, smooth ? "on":"off");
 			
 //			headerprint(msg);
 			/* Need to figure preview */

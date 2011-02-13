@@ -50,21 +50,16 @@ static int gpu_shader_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNo
 	return GPU_stack_link(mat, "set_rgba", in, out, vec);
 }
 
-bNodeType sh_node_rgb= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_RGB,
-	/* name        */	"RGB",
-	/* width+range */	140, 80, 140,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	sh_node_rgb_out,
-	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_rgb,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_rgb
-	
-};
+void register_node_type_sh_rgb(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_RGB, "RGB", NODE_CLASS_INPUT, NODE_OPTIONS,
+		NULL, sh_node_rgb_out);
+	node_type_size(&ntype, 140, 80, 140);
+	node_type_exec(&ntype, node_shader_exec_rgb);
+	node_type_gpu(&ntype, gpu_shader_rgb);
+
+	nodeRegisterType(lb, &ntype);
+}
+

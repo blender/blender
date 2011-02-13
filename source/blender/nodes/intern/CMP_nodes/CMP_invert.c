@@ -115,20 +115,16 @@ static void node_composit_init_invert(bNode *node)
 }
 
 /* custom1 = mix type */
-bNodeType cmp_node_invert= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_INVERT,
-	/* name        */	"Invert",
-	/* width+range */	120, 120, 140,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_invert_in,
-	/* output sock */	cmp_node_invert_out,
-	/* storage     */	"", 
-	/* execfunc    */	node_composit_exec_invert,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_invert,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_invert(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+		cmp_node_invert_in, cmp_node_invert_out);
+	node_type_size(&ntype, 120, 120, 140);
+	node_type_init(&ntype, node_composit_init_invert);
+	node_type_exec(&ntype, node_composit_exec_invert);
+
+	nodeRegisterType(lb, &ntype);
+}
+

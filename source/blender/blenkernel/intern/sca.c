@@ -86,7 +86,7 @@ void copy_sensors(ListBase *lbn, ListBase *lbo)
 {
 	bSensor *sens, *sensn;
 	
-	lbn->first= lbn->last= 0;
+	lbn->first= lbn->last= NULL;
 	sens= lbo->first;
 	while(sens) {
 		sensn= copy_sensor(sens);
@@ -253,7 +253,7 @@ void copy_controllers(ListBase *lbn, ListBase *lbo)
 {
 	bController *cont, *contn;
 	
-	lbn->first= lbn->last= 0;
+	lbn->first= lbn->last= NULL;
 	cont= lbo->first;
 	while(cont) {
 		contn= copy_controller(cont);
@@ -267,7 +267,7 @@ void init_controller(bController *cont)
 	/* also use when controller changes type, leave actuators... */
 	
 	if(cont->data) MEM_freeN(cont->data);
-	cont->data= 0;
+	cont->data= NULL;
 	
 	switch(cont->type) {
 	case CONT_EXPRESSION:
@@ -375,7 +375,7 @@ void copy_actuators(ListBase *lbn, ListBase *lbo)
 {
 	bActuator *act, *actn;
 	
-	lbn->first= lbn->last= 0;
+	lbn->first= lbn->last= NULL;
 	act= lbo->first;
 	while(act) {
 		actn= copy_actuator(act);
@@ -393,7 +393,7 @@ void init_actuator(bActuator *act)
 	bSoundActuator *sa;
 	
 	if(act->data) MEM_freeN(act->data);
-	act->data= 0;
+	act->data= NULL;
 	
 	switch(act->type) {
 	case ACT_ACTION:
@@ -512,7 +512,7 @@ void clear_sca_new_poins_ob(Object *ob)
 	}
 }
 
-void clear_sca_new_poins()
+void clear_sca_new_poins(void)
 {
 	Object *ob;
 	
@@ -595,7 +595,7 @@ void set_sca_new_poins_ob(Object *ob)
 }
 
 
-void set_sca_new_poins()
+void set_sca_new_poins(void)
 {
 	Object *ob;
 	

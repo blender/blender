@@ -42,7 +42,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
 
         if md:
             fluid = md.settings
-            
+
             row = layout.row()
             if fluid is None:
                 row.label("built without fluids")
@@ -282,11 +282,11 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

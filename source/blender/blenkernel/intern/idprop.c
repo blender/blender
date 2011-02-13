@@ -266,7 +266,7 @@ void IDP_FreeArray(IDProperty *prop)
 	return newp;
  }
 
-IDProperty *IDP_CopyArray(IDProperty *prop)
+static IDProperty *IDP_CopyArray(IDProperty *prop)
 {
 	IDProperty *newp = idp_generic_copy(prop);
 
@@ -328,7 +328,7 @@ IDProperty *IDP_NewString(const char *st, const char *name, int maxlen)
 	return prop;
 }
 
-IDProperty *IDP_CopyString(IDProperty *prop)
+static IDProperty *IDP_CopyString(IDProperty *prop)
 {
 	IDProperty *newp = idp_generic_copy(prop);
 
@@ -402,7 +402,7 @@ void IDP_UnlinkID(IDProperty *prop)
 /*-------- Group Functions -------*/
 
 /*checks if a property with the same name as prop exists, and if so replaces it.*/
-IDProperty *IDP_CopyGroup(IDProperty *prop)
+static IDProperty *IDP_CopyGroup(IDProperty *prop)
 {
 	IDProperty *newp = idp_generic_copy(prop), *link;
 	newp->len = prop->len;
@@ -533,6 +533,12 @@ void IDP_RemFromGroup(IDProperty *group, IDProperty *prop)
 IDProperty *IDP_GetPropertyFromGroup(IDProperty *prop, const char *name)
 {
 	return (IDProperty *)BLI_findstring(&prop->data.group, name, offsetof(IDProperty, name));
+}
+
+IDProperty *IDP_GetPropertyTypeFromGroup(IDProperty *prop, const char *name, const char type)
+{
+	IDProperty *idprop= IDP_GetPropertyFromGroup(prop, name);
+	return (idprop && idprop->type == type) ? idprop : NULL;
 }
 
 typedef struct IDPIter {
@@ -705,9 +711,9 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name)
 				prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
 			} else {
 				int stlen = strlen(st) + 1;
-				prop->data.pointer = MEM_callocN(stlen, "id property string 2");
+				prop->data.pointer = MEM_mallocN(stlen, "id property string 2");
 				prop->len = prop->totallen = stlen;
-				strcpy(prop->data.pointer, st);
+				memcpy(prop->data.pointer, st, stlen);
 			}
 			break;
 		}

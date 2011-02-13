@@ -578,8 +578,18 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	if(out[0]->hasoutput==0) return;
 	
 	if(nbd->relative) {
-		nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
-		nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
+		if (nbd->aspect==CMP_NODE_BLUR_ASPECT_NONE) {
+			nbd->sizex= (int)(nbd->percentx*0.01f*nbd->image_in_width);
+			nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_height);
+		}
+		else if (nbd->aspect==CMP_NODE_BLUR_ASPECT_Y) {
+			nbd->sizex= (int)(nbd->percentx*0.01f*nbd->image_in_width);
+			nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_width);
+		}
+		else if (nbd->aspect==CMP_NODE_BLUR_ASPECT_X) {
+			nbd->sizex= (int)(nbd->percentx*0.01f*nbd->image_in_height);
+			nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_height);
+		}
 	}
 
 	if (nbd->sizex==0 && nbd->sizey==0) {
@@ -588,9 +598,8 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	}
 	else if (nbd->filtertype == R_FILTER_FAST_GAUSS) {
 		CompBuf *new, *img = in[0]->data;
-		/*from eeshlo's original patch, removed to fit in with the existing blur node */
-		/*const float sx = in[1]->vec[0], sy = in[2]->vec[0];*/
-		const float sx = ((float)nbd->sizex)/2.0f, sy = ((float)nbd->sizey)/2.0f;
+		// TODO: can this be mapped with reference, too?
+		const float sx = ((float)nbd->sizex*in[1]->vec[0])/2.0f, sy = ((float)nbd->sizey*in[1]->vec[0])/2.0f;
 		int c;
 
 		if ((img==NULL) || (out[0]->hasoutput==0)) return;
@@ -704,21 +713,19 @@ static void node_composit_init_blur(bNode* node)
    node->storage= MEM_callocN(sizeof(NodeBlurData), "node blur data");
 }
 
-bNodeType cmp_node_blur= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_BLUR,
-	/* name        */	"Blur",
-	/* width+range */	120, 80, 200,
-	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	cmp_node_blur_in,
-	/* output sock */	cmp_node_blur_out,
-	/* storage     */	"NodeBlurData",
-	/* execfunc    */	node_composit_exec_blur,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_blur,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_blur(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_BLUR, "Blur", NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
+		cmp_node_blur_in, cmp_node_blur_out);
+	node_type_size(&ntype, 120, 80, 200);
+	node_type_init(&ntype, node_composit_init_blur);
+	node_type_storage(&ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_blur);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

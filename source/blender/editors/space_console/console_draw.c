@@ -188,7 +188,7 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 
 static int console_textview_main__internal(struct SpaceConsole *sc, struct ARegion *ar, int draw, int mval[2], void **mouse_pick, int *pos_pick)
 {
-	ConsoleLine cl_dummy= {0};
+	ConsoleLine cl_dummy= {NULL};
 	int ret= 0;
 	
 	View2D *v2d= &ar->v2d;

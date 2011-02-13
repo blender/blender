@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "BLF_api.h"
+
 #ifdef INTERNATIONAL
 
 #include <locale.h>
@@ -38,11 +40,11 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
+#include "MEM_guardedalloc.h"
 
-
-#include "BLI_blenlib.h"
 #include "BLI_linklist.h"	/* linknode */
 #include "BLI_string.h"
+#include "BLI_path_util.h"
 
 
 #ifdef __APPLE__
@@ -54,9 +56,9 @@
 #define FONT_SIZE_DEFAULT 12
 
 /* locale options. */
-char global_messagepath[1024];
-char global_language[32];
-char global_encoding_name[32];
+static char global_messagepath[1024];
+static char global_language[32];
+static char global_encoding_name[32];
 
 
 void BLF_lang_init(void)
@@ -79,20 +81,14 @@ void BLF_lang_set(const char *str)
 #else
 	char *locreturn= setlocale(LC_ALL, str);
 	if (locreturn == NULL) {
-		char *lang;
-
-		lang= (char*)malloc(sizeof(char)*(strlen(str)+7));
-
-		lang[0]= '\0';
-		strcat(lang, str);
-		strcat(lang, ".UTF-8");
+		char *lang= BLI_sprintfN("%s.UTF-8", str);
 
 		locreturn= setlocale(LC_ALL, lang);
 		if (locreturn == NULL) {
 			printf("could not change language to %s nor %s\n", str, lang);
 		}
 
-		free(lang);
+		MEM_freeN(lang);
 	}
 
 	setlocale(LC_NUMERIC, "C");
@@ -100,12 +96,12 @@ void BLF_lang_set(const char *str)
 	textdomain(DOMAIN_NAME);
 	bindtextdomain(DOMAIN_NAME, global_messagepath);
 	/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */
-	strcpy(global_language, str);
+	BLI_strncpy(global_language, str, sizeof(global_language));
 }
 
-void BLF_lang_encoding(const char *str)
+static void BLF_lang_encoding(const char *str)
 {
-	strcpy(global_encoding_name, str);
+	BLI_strncpy(global_encoding_name, str, sizeof(global_encoding_name));
 	/* bind_textdomain_codeset(DOMAIN_NAME, encoding_name); */
 }
 
@@ -116,13 +112,13 @@ void BLF_lang_init(void)
 	return;
 }
 
-void BLF_lang_encoding(char *str)
+static void BLF_lang_encoding(const char *str)
 {
 	(void)str;
 	return;
 }
 
-void BLF_lang_set(char *str)
+void BLF_lang_set(const char *str)
 {
 	(void)str;
 	return;

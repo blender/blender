@@ -78,6 +78,7 @@ void node_operatortypes(void)
 	
 	WM_operatortype_append(NODE_OT_read_renderlayers);
 	WM_operatortype_append(NODE_OT_read_fullsamplelayers);
+	WM_operatortype_append(NODE_OT_render_changed);
 	
 	WM_operatortype_append(NODE_OT_backimage_move);
 	WM_operatortype_append(NODE_OT_backimage_zoom);
@@ -170,6 +171,8 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "NODE_OT_read_renderlayers", RKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_read_fullsamplelayers", RKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_render_changed", ZKEY, KM_PRESS, 0, 0);
+	
 	
 	transform_keymap_for_space(keyconf, keymap, SPACE_NODE);
 }

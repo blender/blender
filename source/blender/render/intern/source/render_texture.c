@@ -83,7 +83,7 @@ extern struct Render R;
 
 
 
-void init_render_texture(Render *re, Tex *tex)
+static void init_render_texture(Render *re, Tex *tex)
 {
 	int cfra= re->scene->r.cfra;
 	
@@ -137,7 +137,7 @@ void init_render_textures(Render *re)
 	}
 }
 
-void end_render_texture(Tex *tex)
+static void end_render_texture(Tex *tex)
 {
 	if(tex && tex->use_nodes && tex->nodetree)
 		ntreeEndExecTree(tex->nodetree);
@@ -759,12 +759,12 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 			if(osatex) rgbnor= ((TexDoitold)pit->doit)(tex->stype, 
 				pit->data, texvec, dxt, dyt);
 			else rgbnor= ((TexDoitold)pit->doit)(tex->stype, 
-				pit->data, texvec, 0, 0);
+				pit->data, texvec, NULL, NULL);
 		} else {
 			if(osatex) rgbnor= ((TexDoit)pit->doit)(tex->stype, 
 				pit->data, texvec, dxt, dyt, result);
 			else rgbnor= ((TexDoit)pit->doit)(tex->stype, 
-				pit->data, texvec, 0, 0, result);
+				pit->data, texvec, NULL, NULL, result);
 		}
 
 		if (pit->version < 6) {
@@ -1879,12 +1879,14 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 /* Improved bump code from later in 2.5 development cycle */
 
 typedef struct NTapBump {
-	int nunvdone;
-
+	int init_done;
+	int iPrevBumpSpace;	// 0: uninitialized, 1: objectspace, 2: texturespace, 4: viewspace
 	// bumpmapping
+	float vNorg[3]; // backup copy of shi->vn
 	float vNacc[3]; // original surface normal minus the surface gradient of every bump map which is encountered
 	float vR1[3], vR2[3]; // cross products (sigma_y, original_normal), (original_normal, sigma_x)
 	float sgn_det; // sign of the determinant of the matrix {sigma_x, sigma_y, original_normal}
+	float fPrevMagnitude; // copy of previous magnitude, used for multiple bumps in different spaces
 } NTapBump;
 
 static void ntap_bump_init(NTapBump *ntap_bump)
@@ -1897,22 +1899,32 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	TexResult ttexr = {0, 0, 0, 0, 0, texres->talpha, NULL};	// temp TexResult
 
 	const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
-	float Hscale = 0.1f * Tnor*mtex->norfac; // factor 0.1 proved to look like the previous bump code
+	float Hscale = Tnor*mtex->norfac;
 
 	// 2 channels for 2D texture and 3 for 3D textures.
 	const int nr_channels = (mtex->texco == TEXCO_UV)? 2 : 3;
-	int c, rgbnor;
+	int c, rgbnor, iBumpSpace;
 	float dHdx, dHdy;
 
 	// disable internal bump eval in sampler, save pointer
 	float *nvec = texres->nor;
 	texres->nor = NULL;
 
-	// TODO: solve this Hscale issue more elegantly.
-	if( mtex->texflag & MTEX_BUMP_TEXTURESPACE )
+	if( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
 		if(tex->ima)
-			Hscale *= 130.0f;
+			Hscale *= 13.0f; // appears to be a sensible default value
+	} else
+		Hscale *= 0.1f; // factor 0.1 proved to look like the previous bump code
 
+	if( !ntap_bump->init_done ) {
+		VECCOPY(ntap_bump->vNacc, shi->vn);
+		VECCOPY(ntap_bump->vNorg, shi->vn);
+		ntap_bump->fPrevMagnitude = 1.0f;
+		ntap_bump->iPrevBumpSpace = 0;
+		
+		ntap_bump->init_done = 1;
+	}
+	
 	if(!(mtex->texflag & MTEX_5TAP_BUMP)) {
 		// compute height derivatives with respect to output image pixel coordinates x and y
 		float STll[3], STlr[3], STul[3];
@@ -1998,17 +2010,25 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		[Mik10] Mikkelsen M. S.: Bump Mapping Unparametrized Surfaces on the GPU.
 		-> http://jbit.net/~sparky/sfgrad_bump/mm_sfgrad_bump.pdf */
 
-	if(!ntap_bump->nunvdone) {
+	if( mtex->texflag & MTEX_BUMP_OBJECTSPACE )
+		iBumpSpace = 1;
+	else if( mtex->texflag & MTEX_BUMP_TEXTURESPACE )
+		iBumpSpace = 2;
+	else
+		iBumpSpace = 4; // ViewSpace
+	
+	if( ntap_bump->iPrevBumpSpace != iBumpSpace ) {
+		
 		// initialize normal perturbation vectors
 		int xyz;
-		float fDet, abs_fDet;
+		float fDet, abs_fDet, fMagnitude;
 		// object2view and inverted matrix
 		float obj2view[3][3], view2obj[3][3], tmp[4][4];
 		// local copies of derivatives and normal
 		float dPdx[3], dPdy[3], vN[3];
 		VECCOPY(dPdx, shi->dxco);
 		VECCOPY(dPdy, shi->dyco);
-		VECCOPY(vN, shi->vn);
+		VECCOPY(vN, ntap_bump->vNorg);
 		
 		if( mtex->texflag & MTEX_BUMP_OBJECTSPACE ) {
 			// TODO: these calculations happen for every pixel!
@@ -2040,17 +2060,21 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 			}
 		}
 		
-		for(xyz=0; xyz<3; xyz++)
-				ntap_bump->vNacc[xyz] = abs_fDet * vN[xyz];
-	
+		fMagnitude = abs_fDet;
 		if( mtex->texflag & MTEX_BUMP_OBJECTSPACE ) {
 			// pre do transform of texres->nor by the inverse transposed of obj2view
-			mul_transposed_m3_v3( view2obj, ntap_bump->vNacc );
+			mul_transposed_m3_v3( view2obj, vN );
 			mul_transposed_m3_v3( view2obj, ntap_bump->vR1 );
 			mul_transposed_m3_v3( view2obj, ntap_bump->vR2 );
+			
+			fMagnitude *= len_v3(vN);
 		}
-
-		ntap_bump->nunvdone= 1;
+		
+		for(xyz=0; xyz<3; xyz++)
+				ntap_bump->vNacc[xyz] *= fMagnitude / ntap_bump->fPrevMagnitude;
+		
+		ntap_bump->fPrevMagnitude = fMagnitude;
+		ntap_bump->iPrevBumpSpace = iBumpSpace;
 	}
 
 	if( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
@@ -2080,6 +2104,8 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 void do_material_tex(ShadeInput *shi)
 {
+	CompatibleBump compat_bump;
+	NTapBump ntap_bump;
 	MTex *mtex;
 	Tex *tex;
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
@@ -2087,9 +2113,6 @@ void do_material_tex(ShadeInput *shi)
 	float fact, facm, factt, facmm, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3]={0.0f, 0.0f, 0.0f}, Tnor=1.0;
 	int tex_nr, rgbnor= 0, warpdone=0;
-
-	CompatibleBump compat_bump;
-	NTapBump ntap_bump;
 	int use_compat_bump, use_ntap_bump;
 
 	compatible_bump_init(&compat_bump);
@@ -2113,10 +2136,15 @@ void do_material_tex(ShadeInput *shi)
 			use_ntap_bump= (mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP));
 
 			/* XXX texture node trees don't work for this yet */
-			/* it also needs derivatives */
-			if((tex->nodetree && tex->use_nodes) || shi->osatex==0) {
+			if(tex->nodetree && tex->use_nodes) {
 				use_compat_bump = 0;
 				use_ntap_bump = 0;
+			}
+			
+			/* case displacement mapping */
+			if(shi->osatex==0 && use_ntap_bump) {
+				use_ntap_bump = 0;
+				use_compat_bump = 1;
 			}
 
 			/* which coords */

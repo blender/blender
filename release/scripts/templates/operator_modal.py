@@ -35,5 +35,16 @@ class ModalOperator(bpy.types.Operator):
             return {'CANCELLED'}
 
 
+def register():
+    bpy.utils.register_class(ModalOperator)
+
+
+def unregister():
+    bpy.utils.unregister_class(ModalOperator)
+
+
 if __name__ == "__main__":
+    register()
+
+    # test call
     bpy.ops.object.modal_operator()

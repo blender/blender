@@ -322,19 +322,16 @@ static void node_composit_init_color_spill(bNode *node)
    ncs->unspill=0;   /* do not use unspill */
 }
 
-bNodeType cmp_node_color_spill={
-   /* *next,*prev */	NULL, NULL,
-   /* type code   */	CMP_NODE_COLOR_SPILL,
-   /* name        */	"Color Spill",
-   /* width+range */	140, 80, 200,
-   /* class+opts  */	NODE_CLASS_MATTE, NODE_OPTIONS,
-   /* input sock  */	cmp_node_color_spill_in,
-   /* output sock */	cmp_node_color_spill_out,
-   /* storage     */	"NodeColorspill",
-   /* execfunc    */	node_composit_exec_color_spill,
-   /* butfunc     */	NULL,
-   /* initfunc    */	node_composit_init_color_spill,
-   /* freestoragefunc    */	node_free_standard_storage,
-   /* copystoragefunc    */	node_copy_standard_storage,
-};
-
+void register_node_type_cmp_color_spill(ListBase *lb)
+{
+	static bNodeType ntype;
+	
+	node_type_base(&ntype, CMP_NODE_COLOR_SPILL, "Color Spill", NODE_CLASS_MATTE, NODE_OPTIONS,
+				   cmp_node_color_spill_in, cmp_node_color_spill_out);
+	node_type_size(&ntype, 140, 80, 200);
+	node_type_init(&ntype, node_composit_init_color_spill);
+	node_type_storage(&ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_color_spill);
+	
+	nodeRegisterType(lb, &ntype);
+}

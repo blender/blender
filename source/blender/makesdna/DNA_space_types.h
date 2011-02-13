@@ -135,7 +135,8 @@ typedef struct SpaceButs {
 	short mainb, mainbo, mainbuser;	/* context tabs */
 	short re_align, align;			/* align for panels */
 	short preview;					/* preview is signal to refresh */
-	char flag, pad[3];
+	short texture_context;			/* texture context selector (material, world, brush)*/
+	char flag, pad;
 	
 	void *path;						/* runtime */
 	int pathflag, dataicon;			/* runtime */
@@ -396,8 +397,9 @@ typedef struct SpaceNode {
 	float mx, my;		/* mousepos for drawing socketless link */
 	
 	struct bNodeTree *nodetree, *edittree;
-	int treetype;			/* treetype: as same nodetree->type */
-	short texfrom, pad;		/* texfrom object, world or brush */
+	int treetype;		/* treetype: as same nodetree->type */
+	short texfrom;		/* texfrom object, world or brush */
+	short recalc;		/* currently on 0/1, for auto compo */
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceNode;
@@ -407,6 +409,7 @@ typedef struct SpaceNode {
 #define SNODE_DISPGP		4
 #define SNODE_USE_ALPHA		8
 #define SNODE_SHOW_ALPHA	16
+#define SNODE_AUTO_RENDER	32
 
 /* snode->texfrom */
 #define SNODE_TEX_OBJECT	0
@@ -625,9 +628,15 @@ typedef struct SpaceSound {
 /* sbuts->flag */
 #define SB_PRV_OSA			1
 #define SB_PIN_CONTEXT		2
-#define SB_WORLD_TEX		4
-#define SB_BRUSH_TEX		8
+//#define SB_WORLD_TEX		4	//not used anymore
+//#define SB_BRUSH_TEX		8	//not used anymore	
 #define SB_SHADING_CONTEXT	16
+
+/* sbuts->texture_context */
+#define SB_TEXC_MAT_OR_LAMP	0
+#define SB_TEXC_WORLD		1
+#define SB_TEXC_BRUSH		2
+#define SB_TEXC_PARTICLES	3
 
 /* sbuts->align */
 #define BUT_FREE  		0
@@ -787,6 +796,8 @@ enum FileSortTypeE {
 #define SIPO_TEMP_NEEDCHANSYNC	(1<<10)
 	/* don't perform realtime updates */
 #define SIPO_NOREALTIMEUPDATES	(1<<11)
+	/* don't draw curves with AA ("beauty-draw") for performance */
+#define SIPO_BEAUTYDRAW_OFF		(1<<12)
 
 /* SpaceIpo->mode (Graph Editor Mode) */
 enum {

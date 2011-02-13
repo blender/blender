@@ -59,22 +59,20 @@ static void node_composit_init_curves_time(bNode* node)
    node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-bNodeType cmp_node_curve_time= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_TIME,
-	/* name        */	"Time",
-	/* width+range */	140, 100, 320,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	cmp_node_time_out,
-	/* storage     */	"CurveMapping",
-	/* execfunc    */	node_composit_exec_curves_time,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_curves_time,
-	/* freestoragefunc    */	node_free_curves,
-	/* copystoragefunc    */	node_copy_curves,
-	/* id          */	NULL
-};
+void register_node_type_cmp_curve_time(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_TIME, "Time", NODE_CLASS_INPUT, NODE_OPTIONS,
+		NULL, cmp_node_time_out);
+	node_type_size(&ntype, 140, 100, 320);
+	node_type_init(&ntype, node_composit_init_curves_time);
+	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+	node_type_exec(&ntype, node_composit_exec_curves_time);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 
 
@@ -102,23 +100,20 @@ static void node_composit_init_curve_vec(bNode* node)
    node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 };
 
-bNodeType cmp_node_curve_vec= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_CURVE_VEC,
-	/* name        */	"Vector Curves",
-	/* width+range */	200, 140, 320,
-	/* class+opts  */	NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_curve_vec_in,
-	/* output sock */	cmp_node_curve_vec_out,
-	/* storage     */	"CurveMapping",
-	/* execfunc    */	node_composit_exec_curve_vec,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_curve_vec,
-	/* freestoragefunc    */	node_free_curves,
-	/* copystoragefunc    */	node_copy_curves,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_curve_vec(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
+		cmp_node_curve_vec_in, cmp_node_curve_vec_out);
+	node_type_size(&ntype, 200, 140, 320);
+	node_type_init(&ntype, node_composit_init_curve_vec);
+	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+	node_type_exec(&ntype, node_composit_exec_curve_vec);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 /* **************** CURVE RGB  ******************** */
 static bNodeSocketType cmp_node_curve_rgb_in[]= {
@@ -192,20 +187,18 @@ static void node_composit_init_curve_rgb(bNode* node)
    node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 };
 
-bNodeType cmp_node_curve_rgb= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_CURVE_RGB,
-	/* name        */	"RGB Curves",
-	/* width+range */	200, 140, 320,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_curve_rgb_in,
-	/* output sock */	cmp_node_curve_rgb_out,
-	/* storage     */	"CurveMapping",
-	/* execfunc    */	node_composit_exec_curve_rgb,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_curve_rgb,
-	/* freestoragefunc    */	node_free_curves,
-	/* copystoragefunc    */	node_copy_curves,
-	/* id          */	NULL
-};
+void register_node_type_cmp_curve_rgb(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+		cmp_node_curve_rgb_in, cmp_node_curve_rgb_out);
+	node_type_size(&ntype, 200, 140, 320);
+	node_type_init(&ntype, node_composit_init_curve_rgb);
+	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+	node_type_exec(&ntype, node_composit_exec_curve_rgb);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

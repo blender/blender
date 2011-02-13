@@ -59,7 +59,7 @@
 
 #include "BLF_api.h"
 
-void ui_template_fix_linking(void)
+void UI_template_fix_linking(void)
 {
 }
 
@@ -876,7 +876,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 #define REMAKEIPO					8
 #define B_DIFF						9
 
-void do_constraint_panels(bContext *C, void *ob_pt, int event)
+static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);

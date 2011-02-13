@@ -40,6 +40,8 @@
 
 #include "DNA_mesh_types.h"
 
+#include "MOD_util.h"
+
 static void initData(ModifierData *md)
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)md;

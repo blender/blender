@@ -280,7 +280,7 @@ static int view_pan_cancel(bContext *UNUSED(C), wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void VIEW2D_OT_pan(wmOperatorType *ot)
+static void VIEW2D_OT_pan(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Pan View";
@@ -330,7 +330,7 @@ static int view_scrollright_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void VIEW2D_OT_scroll_right(wmOperatorType *ot)
+static void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Right";
@@ -374,7 +374,7 @@ static int view_scrollleft_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void VIEW2D_OT_scroll_left(wmOperatorType *ot)
+static void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Left";
@@ -422,7 +422,7 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void VIEW2D_OT_scroll_down(wmOperatorType *ot)
+static void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Down";
@@ -472,7 +472,7 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void VIEW2D_OT_scroll_up(wmOperatorType *ot)
+static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Up";
@@ -699,7 +699,7 @@ static int view_zoomin_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return view_zoomin_exec(C, op);
 }
 
-void VIEW2D_OT_zoom_in(wmOperatorType *ot)
+static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom In";
@@ -756,7 +756,7 @@ static int view_zoomout_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return view_zoomout_exec(C, op);
 }
 
-void VIEW2D_OT_zoom_out(wmOperatorType *ot)
+static void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom Out";
@@ -1040,7 +1040,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void VIEW2D_OT_zoom(wmOperatorType *ot)
+static void VIEW2D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom View";
@@ -1140,7 +1140,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void VIEW2D_OT_zoom_border(wmOperatorType *ot)
+static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom to Border";
@@ -1537,7 +1537,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* LMB-Drag in Scrollers - not repeatable operator! */
-void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
+static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroller Activate";
@@ -1603,7 +1603,7 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
  
-void VIEW2D_OT_reset(wmOperatorType *ot)
+static void VIEW2D_OT_reset(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reset View";

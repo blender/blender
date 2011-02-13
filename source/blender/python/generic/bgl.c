@@ -94,9 +94,9 @@ PyTypeObject BGL_bufferType = {
 	( printfunc ) 0,	/*tp_print */
 	( getattrfunc ) Buffer_getattr,	/*tp_getattr */
 	( setattrfunc ) 0,	/*tp_setattr */
-	0,		/*tp_compare */
+	NULL,		/*tp_compare */
 	( reprfunc ) Buffer_repr,	/*tp_repr */
-	0,			/*tp_as_number */
+	NULL,			/*tp_as_number */
 	&Buffer_SeqMethods,	/*tp_as_sequence */
 };
 
@@ -1124,13 +1124,13 @@ static struct PyMethodDef BGL_methods[] = {
 static struct PyModuleDef BGL_module_def = {
 	PyModuleDef_HEAD_INIT,
 	"bgl",  /* m_name */
-	0,  /* m_doc */
+	NULL,  /* m_doc */
 	0,  /* m_size */
 	BGL_methods,  /* m_methods */
-	0,  /* m_reload */
-	0,  /* m_traverse */
-	0,  /* m_clear */
-	0,  /* m_free */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
 };
 
 

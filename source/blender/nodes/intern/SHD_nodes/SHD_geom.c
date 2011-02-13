@@ -131,21 +131,18 @@ static int gpu_shader_geom(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUN
 }
 
 /* node type definition */
-bNodeType sh_node_geom= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_GEOMETRY,
-	/* name        */	"Geometry",
-	/* width+range */	120, 80, 160,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	sh_node_geom_out,
-	/* storage     */	"NodeGeometry",
-	/* execfunc    */	node_shader_exec_geom,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_shader_init_geometry,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_geom
-	
-};
+void register_node_type_sh_geom(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_GEOMETRY, "Geometry", NODE_CLASS_INPUT, NODE_OPTIONS,
+		NULL, sh_node_geom_out);
+	node_type_size(&ntype, 120, 80, 160);
+	node_type_init(&ntype, node_shader_init_geometry);
+	node_type_storage(&ntype, "NodeGeometry", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_shader_exec_geom);
+	node_type_gpu(&ntype, gpu_shader_geom);
+
+	nodeRegisterType(lb, &ntype);
+}
+

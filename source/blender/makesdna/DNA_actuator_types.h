@@ -48,7 +48,7 @@ typedef struct bAddObjectActuator {
 typedef struct bActionActuator {								
 	struct bAction *act;	/* Pointer to action */				
 	short	type, flag;		/* Playback type */  // not in use
-	int	sta, end;		/* Start & End frames */			
+	float	sta, end;		/* Start & End frames */			
 	char	name[32];		/* For property-driven playback */	
 	char	frameProp[32];	/* Set this property to the actions current frame */
 	short	blendin;		/* Number of frames of blending */
@@ -119,7 +119,7 @@ typedef struct bObjectActuator {
 
 typedef struct bIpoActuator {
 	short flag, type;
-	int sta, end;
+	float sta, end;
 	char name[32];
 	char frameProp[32];	/* Set this property to the actions current frame */
 	

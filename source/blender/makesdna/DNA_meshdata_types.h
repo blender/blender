@@ -61,8 +61,7 @@ typedef struct MDeformVert {
 typedef struct MVert {
 	float	co[3];
 	short	no[3];
-	short	mat_nr;
-	char flag, bweight, pad[2];
+	char flag, bweight;
 } MVert;
 
 /* at the moment alpha is abused for vertex painting

@@ -3968,35 +3968,31 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 	uiBut *but = (uiBut *)arg1;
 
 	if (but->optype) {
-		char buf[512], *butstr, *cpoin;
+		char buf[512], *cpoin;
 
 		IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 		
 		/* complex code to change name of button */
 		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
 			wmKeyMap *km= NULL;
+			char *butstr_orig;
 
-			butstr= MEM_mallocN(strlen(but->str)+strlen(buf)+2, "menu_block_set_keymaps");
-			
 			// XXX but->str changed... should not, remove the hotkey from it
 			cpoin= strchr(but->str, '|');
 			if(cpoin) *cpoin= 0;		
-			
-			strcpy(butstr, but->str);
-			strcat(butstr, "|");
-			strcat(butstr, buf);
-			
+
+			butstr_orig= BLI_strdup(but->str);
+			BLI_snprintf(but->strdata, sizeof(but->strdata), "%s|%s", butstr_orig, buf);
+			MEM_freeN(butstr_orig);
 			but->str= but->strdata;
-			BLI_strncpy(but->str, butstr, sizeof(but->strdata));
-			MEM_freeN(butstr);
-			
+
 			ui_check_but(but);
-			
+
 			/* set the keymap editable else the key wont save */
 			WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, 1, &km);
 			WM_keymap_copy_to_user(km);
-				
-		} else {
+		}
+		else {
 			/* shortcut was removed */
 			cpoin= strchr(but->str, '|');
 			if(cpoin) *cpoin= 0;
@@ -4684,19 +4680,21 @@ static void button_timers_tooltip_remove(bContext *C, uiBut *but)
 	uiHandleButtonData *data;
 
 	data= but->active;
+	if(data) {
 
-	if(data->tooltiptimer) {
-		WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
-		data->tooltiptimer= NULL;
-	}
-	if(data->tooltip) {
-		ui_tooltip_free(C, data->tooltip);
-		data->tooltip= NULL;
-	}
+		if(data->tooltiptimer) {
+			WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
+			data->tooltiptimer= NULL;
+		}
+		if(data->tooltip) {
+			ui_tooltip_free(C, data->tooltip);
+			data->tooltip= NULL;
+		}
 
-	if(data->autoopentimer) {
-		WM_event_remove_timer(data->wm, data->window, data->autoopentimer);
-		data->autoopentimer= NULL;
+		if(data->autoopentimer) {
+			WM_event_remove_timer(data->wm, data->window, data->autoopentimer);
+			data->autoopentimer= NULL;
+		}
 	}
 }
 
@@ -5469,7 +5467,7 @@ static int ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *men
 	return menu->dotowards;
 }
 
-int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, int UNUSED(topmenu))
+static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, int UNUSED(topmenu))
 {
 	ARegion *ar;
 	uiBlock *block;

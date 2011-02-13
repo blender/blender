@@ -39,7 +39,7 @@
 #include "BLI_args.h"
 #include "BLI_ghash.h"
 
-char NO_DOCS[] = "NO DOCUMENTATION SPECIFIED";
+static char NO_DOCS[] = "NO DOCUMENTATION SPECIFIED";
 
 struct bArgDoc;
 typedef struct bArgDoc {

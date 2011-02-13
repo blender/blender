@@ -481,6 +481,7 @@ DerivedMesh *mesh_create_derived_render(struct Scene *scene, struct Object *ob,
 DerivedMesh *mesh_create_derived_index_render(struct Scene *scene, struct Object *ob, CustomDataMask dataMask, int index);
 
 		/* same as above but wont use render settings */
+DerivedMesh *mesh_create_derived(struct Mesh *me, struct Object *ob, float (*vertCos)[3]);
 DerivedMesh *mesh_create_derived_view(struct Scene *scene, struct Object *ob,
 									  CustomDataMask dataMask);
 DerivedMesh *mesh_create_derived_no_deform(struct Scene *scene, struct Object *ob,
@@ -495,12 +496,15 @@ DerivedMesh *mesh_create_derived_no_virtual(struct Scene *scene, struct Object *
 DerivedMesh *mesh_create_derived_physics(struct Scene *scene, struct Object *ob, float (*vertCos)[3],
 											CustomDataMask dataMask);
 
+DerivedMesh *editmesh_get_derived(struct EditMesh *em, float (*vertexCos)[3]);
 DerivedMesh *editmesh_get_derived_base(struct Object *, struct EditMesh *em);
 DerivedMesh *editmesh_get_derived_cage(struct Scene *scene, struct Object *, 
 									   struct EditMesh *em, CustomDataMask dataMask);
 DerivedMesh *editmesh_get_derived_cage_and_final(struct Scene *scene, struct Object *, 
 												 struct EditMesh *em, DerivedMesh **final_r,
 												 CustomDataMask dataMask);
+float (*editmesh_get_vertex_cos(struct EditMesh *em, int *numVerts_r))[3];
+int editmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, DerivedMesh *dm);
 void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct EditMesh *em, CustomDataMask dataMask);
 
 /* returns an array of deform matrices for crazyspace correction, and the
@@ -508,8 +512,9 @@ void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct EditMesh *em
 int editmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct EditMesh *em,
 									   float (**deformmats)[3][3], float (**deformcos)[3]);
 
-/* returns an array of deform matrices for crazyspace correction when sculpting */
-void sculpt_get_deform_matrices(struct Scene *scene, struct Object *ob,
+/* returns an array of deform matrices for crazyspace correction when sculpting,
+   and the number of modifiers left */
+int sculpt_get_deform_matrices(struct Scene *scene, struct Object *ob,
 								float (**deformmats)[3][3], float (**deformcos)[3]);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);

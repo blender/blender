@@ -41,5 +41,5 @@ typedef struct boxPack {
 	struct boxVert *v[4];
 } boxPack;
 
-void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height); 
+void boxPack2D(boxPack *boxarray, const int len, float *tot_width, float *tot_height);
 

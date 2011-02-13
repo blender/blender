@@ -362,7 +362,7 @@ static PyObject *py_blf_load(PyObject *UNUSED(self), PyObject *args)
 }
 
 /*----------------------------MODULE INIT-------------------------*/
-struct PyMethodDef BLF_methods[] = {
+static PyMethodDef BLF_methods[] = {
 	{"aspect", (PyCFunction) py_blf_aspect, METH_VARARGS, py_blf_aspect_doc},
 	{"blur", (PyCFunction) py_blf_blur, METH_VARARGS, py_blf_blur_doc},
 	{"clipping", (PyCFunction) py_blf_clipping, METH_VARARGS, py_blf_clipping_doc},
@@ -388,10 +388,10 @@ static struct PyModuleDef BLF_module_def = {
 	BLF_doc,  /* m_doc */
 	0,  /* m_size */
 	BLF_methods,  /* m_methods */
-	0,  /* m_reload */
-	0,  /* m_traverse */
-	0,  /* m_clear */
-	0,  /* m_free */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
 };
 
 PyObject *BPyInit_blf(void)

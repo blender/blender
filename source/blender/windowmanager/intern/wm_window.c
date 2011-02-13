@@ -69,7 +69,7 @@
 #include "GPU_extensions.h"
 
 /* the global to talk to ghost */
-GHOST_SystemHandle g_system= NULL;
+static GHOST_SystemHandle g_system= NULL;
 
 /* set by commandline */
 static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, initialstate= GHOST_kWindowStateNormal;
@@ -273,12 +273,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 		/* this is set to 1 if you don't have startup.blend open */
 		if(G.save_over && G.main->name[0]) {
 			char str[sizeof(G.main->name) + 12];
-			
-			if(wm->file_saved)
-				sprintf(str, "Blender [%s]", G.main->name);
-			else
-				sprintf(str, "Blender* [%s]", G.main->name);
-			
+			BLI_snprintf(str, sizeof(str), "Blender%s [%s]", wm->file_saved ? "":"*", G.main->name);
 			GHOST_SetTitle(win->ghostwin, str);
 		}
 		else
@@ -1160,12 +1155,12 @@ void WM_setprefsize(int stax, int stay, int sizx, int sizy)
 }
 
 /* for borderless and border windows set from command-line */
-void WM_setinitialstate_fullscreen()
+void WM_setinitialstate_fullscreen(void)
 {
 	initialstate= GHOST_kWindowStateFullScreen;
 }
 
-void WM_setinitialstate_normal()
+void WM_setinitialstate_normal(void)
 {
 	initialstate= GHOST_kWindowStateNormal;
 }

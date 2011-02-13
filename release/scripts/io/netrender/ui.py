@@ -363,16 +363,21 @@ class RENDER_PT_network_output(NeedValidAddress, NetRenderButtonsPanel, bpy.type
     
     draw = properties_render.RENDER_PT_output.draw
 
-class NetRenderSettings(bpy.types.IDPropertyGroup):
-    pass
-
-class NetRenderSlave(bpy.types.IDPropertyGroup):
-    pass
-
-class NetRenderJob(bpy.types.IDPropertyGroup):
-    pass
 
 def addProperties():
+    class NetRenderSettings(bpy.types.IDPropertyGroup):
+        pass
+
+    class NetRenderSlave(bpy.types.IDPropertyGroup):
+        pass
+
+    class NetRenderJob(bpy.types.IDPropertyGroup):
+        pass
+
+    bpy.utils.register_class(NetRenderSettings)
+    bpy.utils.register_class(NetRenderSlave)
+    bpy.utils.register_class(NetRenderJob)
+
     from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
     bpy.types.Scene.network_render = PointerProperty(type=NetRenderSettings, name="Network Render", description="Network Render Settings")
     

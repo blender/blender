@@ -41,9 +41,9 @@
 
 #include "DNA_anim_types.h"
 
-
-
 #include "RNA_access.h"
+
+#include "ED_anim_api.h"
 
 /* ----------------------- Getter functions ----------------------- */
 

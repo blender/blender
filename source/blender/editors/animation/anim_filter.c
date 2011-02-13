@@ -428,7 +428,7 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 /* this function allocates memory for a new bAnimListElem struct for the 
  * provided animation channel-data. 
  */
-bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, short ownertype, ID *owner_id)
+static bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, short ownertype, ID *owner_id)
 {
 	bAnimListElem *ale= NULL;
 	

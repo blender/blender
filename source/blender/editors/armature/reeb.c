@@ -205,7 +205,7 @@ void REEB_freeGraph(ReebGraph *rg)
 	MEM_freeN(rg);
 }
 
-ReebGraph * newReebGraph()
+ReebGraph * newReebGraph(void)
 {
 	ReebGraph *rg;
 	rg = MEM_callocN(sizeof(ReebGraph), "reeb graph");

@@ -263,27 +263,32 @@ def basic_force_field_falloff_ui(self, context, field):
 
     col = split.column()
     col.prop(field, "z_direction", text="")
-    col.prop(field, "use_min_distance", text="Use Minimum")
-    col.prop(field, "use_max_distance", text="Use Maximum")
 
     col = split.column()
     col.prop(field, "falloff_power", text="Power")
 
-    sub = col.column()
+    split = layout.split()
+    col = split.column()
+    row = col.row(align=True)
+    row.prop(field, "use_min_distance", text="")
+    sub = row.row()
     sub.active = field.use_min_distance
-    sub.prop(field, "distance_min", text="Distance")
-
-    sub = col.column()
+    sub.prop(field, "distance_min", text="Minimum")
+    
+    col = split.column()
+    row = col.row(align=True)
+    row.prop(field, "use_max_distance", text="")
+    sub = row.row()
     sub.active = field.use_max_distance
-    sub.prop(field, "distance_max", text="Distance")
+    sub.prop(field, "distance_max", text="Maximum")
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

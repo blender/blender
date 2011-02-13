@@ -59,20 +59,14 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	tex_output(node, in, out[0], &colorfn, data);
 }
 
-bNodeType tex_node_translate = {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	TEX_NODE_TRANSLATE, 
-	/* name        */	"Translate", 
-	/* width+range */	90, 80, 100, 
-	/* class+opts  */	NODE_CLASS_DISTORT, NODE_OPTIONS, 
-	/* input sock  */	inputs, 
-	/* output sock */	outputs, 
-	/* storage     */	"", 
-	/* execfunc    */	exec,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
-
+void register_node_type_tex_translate(ListBase *lb)
+{
+	static bNodeType ntype;
+	
+	node_type_base(&ntype, TEX_NODE_TRANSLATE, "Translate", NODE_CLASS_DISTORT, NODE_OPTIONS,
+				   inputs, outputs);
+	node_type_size(&ntype, 90, 80, 100);
+	node_type_exec(&ntype, exec);
+	
+	nodeRegisterType(lb, &ntype);
+}

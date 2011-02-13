@@ -43,6 +43,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_object.h"
 
@@ -910,7 +911,7 @@ static void view3d_props_area_listener(ARegion *ar, wmNotifier *wmn)
 }
 
 /*area (not region) level listener*/
-void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
+static void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
 {
 	View3D *v3d = sa->spacedata.first;
 

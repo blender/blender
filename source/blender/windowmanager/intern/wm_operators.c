@@ -83,6 +83,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -219,7 +220,7 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
 	return wm_macro_end(op, retval);
 }
 
-int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event, wmOperator *opm)
+static int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event, wmOperator *opm)
 {
 	int retval= OPERATOR_FINISHED;
 
@@ -914,7 +915,7 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 	uiPupBlockClose(C, block);
 }
 
-void dialog_check_cb(bContext *C, void *op_ptr, void *UNUSED(arg))
+static void dialog_check_cb(bContext *C, void *op_ptr, void *UNUSED(arg))
 {
 	wmOperator *op= op_ptr;
 	if(op->type->check) {
@@ -1076,7 +1077,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 
 /* XXX: hack to refresh splash screen with updated prest menu name,
  * since popup blocks don't get regenerated like panels do */
-void wm_block_splash_refreshmenu (bContext *UNUSED(C), void *UNUSED(arg_block), void *UNUSED(arg))
+static void wm_block_splash_refreshmenu (bContext *UNUSED(C), void *UNUSED(arg_block), void *UNUSED(arg))
 {
 	/* ugh, causes crashes in other buttons, disabling for now until 
 	 * a better fix
@@ -2620,7 +2621,7 @@ void WM_OT_straightline_gesture(wmOperatorType *ot)
 
 /* *********************** radial control ****************** */
 
-const int WM_RADIAL_CONTROL_DISPLAY_SIZE = 200;
+static const int WM_RADIAL_CONTROL_DISPLAY_SIZE = 200;
 
 typedef struct wmRadialControl {
 	int mode;

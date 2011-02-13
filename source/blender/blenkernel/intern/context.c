@@ -85,7 +85,7 @@ struct bContext {
 
 /* context */
 
-bContext *CTX_create()
+bContext *CTX_create(void)
 {
 	bContext *C;
 	
@@ -788,7 +788,7 @@ static const char *data_mode_strings[] = {
 	"texturepaint",
 	"particlemode",
 	"objectmode",
-	0
+	NULL
 };
 const char *CTX_data_mode_string(const bContext *C)
 {

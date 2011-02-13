@@ -102,7 +102,7 @@ void space_transform_from_matrixs(SpaceTransform *data, float local[4][4], float
 {
 	float itarget[4][4];
 	invert_m4_m4(itarget, target);
-	mul_serie_m4(data->local2target, itarget, local, 0, 0, 0, 0, 0, 0);
+	mul_serie_m4(data->local2target, itarget, local, NULL, NULL, NULL, NULL, NULL, NULL);
 	invert_m4_m4(data->target2local, data->local2target);
 }
 
@@ -378,13 +378,10 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 					normal_projection_project_vertex(0, tmp_co, tmp_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
 
 				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
-
-				if(hit.index != -1)
-					madd_v3_v3v3fl(hit.co, hit.co, tmp_no, -calc->keepDist);
 			}
 
 			//Project over negative direction of axis
-			if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)
+			if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR && hit.index == -1)
 			{
 				float inv_no[3];
 				negate_v3_v3(inv_no, tmp_no);
@@ -393,14 +390,12 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 					normal_projection_project_vertex(0, tmp_co, inv_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
 
 				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
-
-				if(hit.index != -1)
-					madd_v3_v3v3fl(hit.co, hit.co, tmp_no, calc->keepDist);
 			}
 
 
 			if(hit.index != -1)
 			{
+				madd_v3_v3v3fl(hit.co, hit.co, tmp_no, calc->keepDist);
 				interp_v3_v3v3(co, co, hit.co, weight);
 			}
 		}

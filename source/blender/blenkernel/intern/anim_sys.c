@@ -816,7 +816,7 @@ KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[]
 			eq_id= 0;
 		
 		/* path */
-		if ((ksp->rna_path==0) || strcmp(rna_path, ksp->rna_path))
+		if ((ksp->rna_path==NULL) || strcmp(rna_path, ksp->rna_path))
 			eq_path= 0;
 			
 		/* index - need to compare whole-array setting too... */
@@ -1863,7 +1863,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 		/* if there are strips, evaluate action as per NLA rules */
 		if ((has_strips) || (adt->actstrip)) {
 			/* make dummy NLA strip, and add that to the stack */
-			NlaStrip dummy_strip= {0};
+			NlaStrip dummy_strip= {NULL};
 			ListBase dummy_trackslist;
 			
 			dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
@@ -1922,11 +1922,13 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 /* Clear all overides */
 
 /* Add or get existing Override for given setting */
+#if 0
 AnimOverride *BKE_animsys_validate_override (PointerRNA *UNUSED(ptr), char *UNUSED(path), int UNUSED(array_index))
 {
 	// FIXME: need to define how to get overrides
 	return NULL;
 } 
+#endif
 
 /* -------------------- */
 

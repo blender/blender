@@ -112,4 +112,8 @@ int pyrna_write_check(void);
 
 void BPY_modules_update(struct bContext *C); //XXX temp solution
 
+/* bpy.utils.(un)register_class */
+extern PyMethodDef meth_bpy_register_class;
+extern PyMethodDef meth_bpy_unregister_class;
+
 #endif

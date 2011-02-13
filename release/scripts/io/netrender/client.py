@@ -261,7 +261,7 @@ def requestResult(conn, job_id, frame):
 class NetworkRenderEngine(bpy.types.RenderEngine):
     bl_idname = 'NET_RENDER'
     bl_label = "Network Render"
-    bl_postprocess = False
+    bl_use_postprocess = False
     def render(self, scene):
         if scene.network_render.mode == "RENDER_CLIENT":
             self.render_client(scene)

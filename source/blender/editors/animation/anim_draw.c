@@ -232,7 +232,7 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 	
 	/* Draw dark green line if slow-parenting/time-offset is enabled */
 	if (flag & DRAWCFRA_SHOW_TIMEOFS) {
-		Object *ob= (scene->basact) ? (scene->basact->object) : 0;
+		Object *ob= OBACT;
 		if(ob) {
 			float timeoffset= give_timeoffset(ob);
 			// XXX ob->ipoflag is depreceated!
@@ -352,7 +352,7 @@ static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
  */
 void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, short only_keys)
 {
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc map_cb;
 	
 	/* init edit data 

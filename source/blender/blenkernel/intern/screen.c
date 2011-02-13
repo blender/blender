@@ -109,7 +109,7 @@ ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
 }
 
 
-const ListBase *BKE_spacetypes_list()
+const ListBase *BKE_spacetypes_list(void)
 {
 	return &spacetypes;
 }

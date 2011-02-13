@@ -151,7 +151,7 @@ void BPY_modules_update(bContext *C)
 }
 
 /* must be called before Py_Initialize */
-void BPY_python_start_path(void)
+static void bpy_python_start_path(void)
 {
 	char *py_path_bundle= BLI_get_folder(BLENDER_PYTHON, NULL);
 
@@ -228,7 +228,12 @@ void BPY_python_start( int argc, char **argv )
 	/* builtin modules */
 	PyImport_ExtendInittab(bpy_internal_modules);
 
-	BPY_python_start_path(); /* allow to use our own included python */
+	bpy_python_start_path(); /* allow to use our own included python */
+
+	/* Python 3.2 now looks for '2.56/python/include/python3.2d/pyconfig.h' to parse
+	 * from the 'sysconfig' module which is used by 'site', so for now disable site.
+	 * alternatively we could copy the file. */
+	Py_NoSiteFlag= 1;
 
 	Py_Initialize(  );
 	

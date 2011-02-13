@@ -716,7 +716,6 @@ void POSE_OT_armature_apply (wmOperatorType *ot)
 /* set the current pose as the restpose */
 static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C)); // must be active object, not edit-object
 
 	/* don't check if editmode (should be done by caller) */
@@ -729,24 +728,18 @@ static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op)
 	 * at once are to be predictable*/
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones)
 	{
-		float delta_mat[4][4], imat[4][4], mat[4][4];
-
-		where_is_pose_bone(scene, ob, pchan, CFRA, 1);
-
-		copy_m4_m4(mat, pchan->pose_mat);
-
-		/* calculate pchan->pose_mat without loc/size/rot & constraints applied */
-		where_is_pose_bone(scene, ob, pchan, CFRA, 0);
-		invert_m4_m4(imat, pchan->pose_mat);
-		mul_m4_m4m4(delta_mat, mat, imat);
-
+		float delta_mat[4][4];
+		
+		/* chan_mat already contains the delta transform from rest pose to pose-mode pose
+		 * as that is baked into there so that B-Bones will work. Once we've set this as the
+		 * new raw-transform components, don't recalc the poses yet, otherwise IK result will 
+		 * change, thus changing the result we may be trying to record.
+		 */
+		copy_m4_m4(delta_mat, pchan->chan_mat);
 		pchan_apply_mat4(pchan, delta_mat, TRUE);
-
-		where_is_pose_bone(scene, ob, pchan, CFRA, 1);
 	}
 	CTX_DATA_END;
-
-	// ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
+	
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
@@ -2205,10 +2198,8 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 			mul_m3_v3(imat, vec);
 		}
 		else if (type==5) {
-			bArmature *arm= ob->data;
-			EditBone *ebone= (EditBone *)arm->act_edbone;
 			float mat[3][3], nor[3];
-
+			ebone= (EditBone *)arm->act_edbone;
 			if(ebone==NULL) {
 				BKE_report(op->reports, RPT_ERROR, "No active bone set");
 				return OPERATOR_CANCELLED;
@@ -4721,7 +4712,7 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 	}
 }
 
-void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, Object *par, int heat, int mirror)
+static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, Object *par, int heat, int mirror)
 {
 	/* This functions implements the automatic computation of vertex group
 	 * weights, either through envelopes or using a heat equilibrium.
@@ -5441,13 +5432,11 @@ static int bone_unique_check(void *arg, const char *name)
 	return get_named_bone((bArmature *)arg, name) != NULL;
 }
 
-void unique_bone_name(bArmature *arm, char *name)
+static void unique_bone_name(bArmature *arm, char *name)
 {
 	BLI_uniquename_cb(bone_unique_check, (void *)arm, "Bone", '.', name, sizeof(((Bone *)NULL)->name));
 }
 
-
-#define MAXBONENAME 32
 /* helper call for armature_bone_rename */
 static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldname, char *newname)
 {

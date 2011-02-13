@@ -2777,7 +2777,7 @@ int view_autodist_depth_segment(struct ARegion *ar, short mval_sta[2], short mva
 // those are still not ok
 
 
-float ndof_axis_scale[6] = {
+static float ndof_axis_scale[6] = {
 	+0.01,	// Tx
 	+0.01,	// Tz
 	+0.01,	// Ty
@@ -2786,7 +2786,7 @@ float ndof_axis_scale[6] = {
 	+0.0015	// Ry
 };
 
-void filterNDOFvalues(float *sbval)
+static void filterNDOFvalues(float *sbval)
 {
 	int i=0;
 	float max  = 0.0;
@@ -2799,6 +2799,7 @@ void filterNDOFvalues(float *sbval)
 			sbval[i]=0.0;
 }
 
+#if 0
 // statics for controlling rv3d->dist corrections.
 // viewmoveNDOF zeros and adjusts rv3d->ofs.
 // viewmove restores based on dz_flag state.
@@ -3139,6 +3140,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int UNUSED(mode))
 	 */
 // XXX    scrarea_do_windraw(curarea);
 }
+#endif // if 0, unused NDof code
 
 /* give a 4x4 matrix from a perspective view, only needs viewquat, ofs and dist
  * basically the same as...

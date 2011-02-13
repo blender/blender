@@ -166,7 +166,7 @@ PartEff *give_parteff(Object *ob)
 		if(paf->type==EFF_PARTICLE) return paf;
 		paf= paf->next;
 	}
-	return 0;
+	return NULL;
 }
 
 void free_effect(Effect *eff)
@@ -636,7 +636,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		if(eff->psys == point->psys && *efd->index == point->index)
 			;
 		else {
-			ParticleSimulationData sim= {0};
+			ParticleSimulationData sim= {NULL};
 			sim.scene= eff->scene;
 			sim.ob= eff->ob;
 			sim.psys= eff->psys;
@@ -651,11 +651,15 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 			//		eff->flag |= PE_VELOCITY_TO_IMPULSE;
 			//}
 
-			VECCOPY(efd->loc, state.co);
-			VECCOPY(efd->nor, state.vel);
-			if(real_velocity) {
-				VECCOPY(efd->vel, state.vel);
-			}
+			copy_v3_v3(efd->loc, state.co);
+
+			/* rather than use the velocity use rotated x-axis (defaults to velocity) */
+			efd->nor[0] = 1.f;
+			efd->nor[1] = efd->nor[2] = 0.f;
+			mul_qt_v3(state.rot, efd->nor);
+		
+			if(real_velocity)
+				copy_v3_v3(efd->vel, state.vel);
 
 			efd->size = pa->size;
 		}
@@ -720,7 +724,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 
 	return ret;
 }
-static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, int *tot, int *p)
+static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, int *tot, int *p, int *step)
 {
 	if(eff->pd->shape == PFIELD_SHAPE_POINTS) {
 		efd->index = p;
@@ -753,6 +757,13 @@ static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoin
 			*p= point->index % eff->psys->totpart;
 			*tot= *p + 1;
 		}
+
+		if(eff->psys->part->effector_amount) {
+			int totpart = eff->psys->totpart;
+			int amount = eff->psys->part->effector_amount;
+
+			*step = (totpart > amount) ? totpart/amount : 1;
+		}
 	}
 	else {
 		*p = 0;
@@ -770,7 +781,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 	if(!eff->pd->tex)
 		return;
 
-	result[0].nor = result[1].nor = result[2].nor = result[3].nor = 0;
+	result[0].nor = result[1].nor = result[2].nor = result[3].nor = NULL;
 
 	strength= eff->pd->f_strength * efd->falloff;
 
@@ -834,7 +845,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 
 	add_v3_v3(total_force, force);
 }
-void do_physical_effector(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, float *total_force)
+static void do_physical_effector(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, float *total_force)
 {
 	PartDeflect *pd = eff->pd;
 	RNG *rng = pd->rng;
@@ -990,7 +1001,7 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 */
 	EffectorCache *eff;
 	EffectorData efd;
-	int p=0, tot = 1;
+	int p=0, tot = 1, step = 1;
 
 	/* Cycle through collected objects, get total of (1/(gravity_strength * dist^gravity_power)) */
 	/* Check for min distance here? (yes would be cool to add that, ton) */
@@ -998,9 +1009,9 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 	if(effectors) for(eff = effectors->first; eff; eff=eff->next) {
 		/* object effectors were fully checked to be OK to evaluate! */
 
-		get_effector_tot(eff, &efd, point, &tot, &p);
+		get_effector_tot(eff, &efd, point, &tot, &p, &step);
 
-		for(; p<tot; p++) {
+		for(; p<tot; p+=step) {
 			if(get_effector_data(eff, &efd, point, 0)) {
 				efd.falloff= effector_falloff(eff, &efd, point, weights);
 				

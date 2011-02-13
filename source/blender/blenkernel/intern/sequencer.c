@@ -135,7 +135,7 @@ static void free_proxy_seq(Sequence *seq)
 {
 	if (seq->strip && seq->strip->proxy && seq->strip->proxy->anim) {
 		IMB_free_anim(seq->strip->proxy->anim);
-		seq->strip->proxy->anim = 0;
+		seq->strip->proxy->anim = NULL;
 	}
 }
 
@@ -429,7 +429,7 @@ void seq_end(SeqIterator *iter)
   * in metastrips!)
   **********************************************************************
 */
-
+#if 0 /* UNUSED */
 static void do_seq_count(ListBase *seqbase, int *totseq)
 {
 	Sequence *seq;
@@ -456,7 +456,7 @@ static void do_build_seqar(ListBase *seqbase, Sequence ***seqar, int depth)
 	}
 }
 
-void build_seqar(ListBase *seqbase, Sequence  ***seqar, int *totseq)
+static void build_seqar(ListBase *seqbase, Sequence  ***seqar, int *totseq)
 {
 	Sequence **tseqar;
 
@@ -473,6 +473,7 @@ void build_seqar(ListBase *seqbase, Sequence  ***seqar, int *totseq)
 	do_build_seqar(seqbase, seqar, 0);
 	*seqar= tseqar;
 }
+#endif /* UNUSED */
 
 static void do_seq_count_cb(ListBase *seqbase, int *totseq,
 				int (*test_func)(Sequence * seq))
@@ -664,7 +665,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 	new_tstripdata(seq);
 
 	if (ELEM3(seq->type, SEQ_SCENE, SEQ_META, SEQ_IMAGE)==0) {
-		BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
+		BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
 		BLI_path_abs(str, G.main->name);
 	}
 
@@ -762,8 +763,8 @@ void sort_seq(Scene *scene)
 	
 	if(ed==NULL) return;
 
-	seqbase.first= seqbase.last= 0;
-	effbase.first= effbase.last= 0;
+	seqbase.first= seqbase.last= NULL;
+	effbase.first= effbase.last= NULL;
 
 	while( (seq= ed->seqbasep->first) ) {
 		BLI_remlink(ed->seqbasep, seq);
@@ -777,7 +778,7 @@ void sort_seq(Scene *scene)
 				}
 				seqt= seqt->next;
 			}
-			if(seqt==0) BLI_addtail(&effbase, seq);
+			if(seqt==NULL) BLI_addtail(&effbase, seq);
 		}
 		else {
 			seqt= seqbase.first;
@@ -788,7 +789,7 @@ void sort_seq(Scene *scene)
 				}
 				seqt= seqt->next;
 			}
-			if(seqt==0) BLI_addtail(&seqbase, seq);
+			if(seqt==NULL) BLI_addtail(&seqbase, seq);
 		}
 	}
 
@@ -933,7 +934,7 @@ static void make_black_ibuf(ImBuf *ibuf)
 	float *rect_float;
 	int tot;
 
-	if(ibuf==0 || (ibuf->rect==0 && ibuf->rect_float==0)) return;
+	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) return;
 
 	tot= ibuf->x*ibuf->y;
 
@@ -1024,7 +1025,7 @@ StripElem *give_stripelem(Sequence *seq, int cfra)
 	if(seq->type != SEQ_MOVIE) { /* movie use the first */
 		int nr = (int) give_stripelem_index(seq, cfra);
 
-		if (nr == -1 || se == 0) return 0;
+		if (nr == -1 || se == NULL) return NULL;
 	
 		se += nr + seq->anim_startofs;
 	}
@@ -1076,7 +1077,7 @@ static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Se
 
 	if(evaluate_seq_frame_gen(seq_arr, seqbasep, cfra)) {
 		if (b > 0) {
-			if (seq_arr[b] == 0) {
+			if (seq_arr[b] == NULL) {
 				return 0;
 			}
 		} else {
@@ -1134,7 +1135,7 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 	}
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-		BLI_join_dirfile(name, dir, seq->strip->proxy->file);
+		BLI_join_dirfile(name, FILE_MAX, dir, seq->strip->proxy->file); /* XXX, not real length */
 		BLI_path_abs(name, G.main->name);
 
 		return TRUE;
@@ -1173,38 +1174,38 @@ static struct ImBuf * seq_proxy_fetch(SeqRenderData context, Sequence * seq, int
 	char name[PROXY_MAXFILE];
 
 	if (!(seq->flag & SEQ_USE_PROXY)) {
-		return 0;
+		return NULL;
 	}
 
 	/* rendering at 100% ? No real sense in proxy-ing, right? */
 	if (context.preview_render_size == 100) {
-		return 0;
+		return NULL;
 	}
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
 		int frameno = (int) give_stripelem_index(seq, cfra) + seq->anim_startofs;
 		if (seq->strip->proxy->anim == NULL) {
 			if (seq_proxy_get_fname(context, seq, cfra, name)==0) {
-				return 0;
+				return NULL;
 			}
  
 			seq->strip->proxy->anim = openanim(name, IB_rect);
 		}
 		if (seq->strip->proxy->anim==NULL) {
-			return 0;
+			return NULL;
 		}
  
 		return IMB_anim_absolute(seq->strip->proxy->anim, frameno);
 	}
  
 	if (seq_proxy_get_fname(context, seq, cfra, name) == 0) {
-		return 0;
+		return NULL;
 	}
 
 	if (BLI_exists(name)) {
 		return IMB_loadiffname(name, IB_rect);
 	} else {
-		return 0;
+		return NULL;
 	}
 }
 
@@ -1659,7 +1660,7 @@ static ImBuf * input_preprocess(
 	}
 
 	if(seq->flag & SEQ_MAKE_PREMUL) {
-		if(ibuf->depth == 32 && ibuf->zbuf == 0) {
+		if(ibuf->depth == 32 && ibuf->zbuf == NULL) {
 			IMB_premultiply_alpha(ibuf);
 		}
 	}
@@ -1678,8 +1679,8 @@ static ImBuf * input_preprocess(
 static ImBuf * copy_from_ibuf_still(SeqRenderData context, Sequence * seq, 
 				    float nr)
 {
-	ImBuf * rval = 0;
-	ImBuf * ibuf = 0;
+	ImBuf * rval = NULL;
+	ImBuf * ibuf = NULL;
 
 	if (nr == 0) {
 		ibuf = seq_stripelem_cache_get(
@@ -1828,7 +1829,7 @@ static ImBuf* seq_render_effect_strip_impl(
 static ImBuf * seq_render_scene_strip_impl(
 	SeqRenderData context, Sequence * seq, float nr)
 {
-	ImBuf * ibuf = 0;
+	ImBuf * ibuf = NULL;
 	float frame= seq->sfra + nr + seq->anim_startofs;
 	float oldcfra;
 	Object *oldcamera;
@@ -2043,7 +2044,7 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 			StripElem * s_elem = give_stripelem(seq, cfra);
 
 			if (s_elem) {
-				BLI_join_dirfile(name, seq->strip->dir, s_elem->name);
+				BLI_join_dirfile(name, sizeof(name), seq->strip->dir, s_elem->name);
 				BLI_path_abs(name, G.main->name);
 			}
 
@@ -2065,8 +2066,8 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 		}
 		case SEQ_MOVIE:
 		{
-			if(seq->anim==0) {
-				BLI_join_dirfile(name, seq->strip->dir, seq->strip->stripdata->name);
+			if(seq->anim==NULL) {
+				BLI_join_dirfile(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
 				BLI_path_abs(name, G.main->name);
 					
 				seq->anim = openanim(name, IB_rect |
@@ -2248,11 +2249,11 @@ static ImBuf* seq_render_strip_stack(
 			if (swap_input) {
 				out = sh.execute(context, seq, cfra, 
 						 facf, facf, 
-						 ibuf2, ibuf1, 0);
+						 ibuf2, ibuf1, NULL);
 			} else {
 				out = sh.execute(context, seq, cfra, 
 						 facf, facf, 
-						 ibuf1, ibuf2, 0);
+						 ibuf1, ibuf2, NULL);
 			}
 		
 			IMB_freeImBuf(ibuf1);
@@ -2641,7 +2642,7 @@ ImBuf *give_ibuf_seq_threaded(SeqRenderData context, float cfra, int chanshown)
 		}
 	}
 	
-	return e ? e->ibuf : 0;
+	return e ? e->ibuf : NULL;
 }
 
 /* Functions to free imbuf and anim data on changes */
@@ -2650,7 +2651,7 @@ static void free_anim_seq(Sequence *seq)
 {
 	if(seq->anim) {
 		IMB_free_anim(seq->anim);
-		seq->anim = 0;
+		seq->anim = NULL;
 	}
 }
 
@@ -3541,7 +3542,7 @@ static Sequence *seq_dupli(struct Scene *scene, struct Scene *scene_to, Sequence
 
 	if (seq->strip->proxy) {
 		seqn->strip->proxy = MEM_dupallocN(seq->strip->proxy);
-		seqn->strip->proxy->anim = 0;
+		seqn->strip->proxy->anim = NULL;
 	}
 
 	if (seq->strip->color_balance) {
@@ -3550,19 +3551,19 @@ static Sequence *seq_dupli(struct Scene *scene, struct Scene *scene_to, Sequence
 	}
 
 	if(seq->type==SEQ_META) {
-		seqn->strip->stripdata = 0;
+		seqn->strip->stripdata = NULL;
 
-		seqn->seqbase.first= seqn->seqbase.last= 0;
+		seqn->seqbase.first= seqn->seqbase.last= NULL;
 		/* WATCH OUT!!! - This metastrip is not recursively duplicated here - do this after!!! */
 		/* - seq_dupli_recursive(&seq->seqbase,&seqn->seqbase);*/
 	} else if(seq->type == SEQ_SCENE) {
-		seqn->strip->stripdata = 0;
+		seqn->strip->stripdata = NULL;
 		if(seq->scene_sound)
 			seqn->scene_sound = sound_scene_add_scene_sound(sce_audio, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 	} else if(seq->type == SEQ_MOVIE) {
 		seqn->strip->stripdata =
 				MEM_dupallocN(seq->strip->stripdata);
-		seqn->anim= 0;
+		seqn->anim= NULL;
 	} else if(seq->type == SEQ_SOUND) {
 		seqn->strip->stripdata =
 				MEM_dupallocN(seq->strip->stripdata);
@@ -3585,7 +3586,7 @@ static Sequence *seq_dupli(struct Scene *scene, struct Scene *scene_to, Sequence
 				sh.copy(seq, seqn);
 		}
 
-		seqn->strip->stripdata = 0;
+		seqn->strip->stripdata = NULL;
 
 	} else {
 		fprintf(stderr, "Aiiiiekkk! sequence type not "
@@ -3620,7 +3621,7 @@ Sequence * seq_dupli_recursive(struct Scene *scene, struct Scene *scene_to, Sequ
 void seqbase_dupli_recursive(Scene *scene, Scene *scene_to, ListBase *nseqbase, ListBase *seqbase, int dupe_flag)
 {
 	Sequence *seq;
-	Sequence *seqn = 0;
+	Sequence *seqn = NULL;
 	Sequence *last_seq = seq_active_get(scene);
 
 	for(seq= seqbase->first; seq; seq= seq->next) {

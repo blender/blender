@@ -42,6 +42,6 @@ void fluidsim_free(struct FluidsimModifierData *fluidmd);
 struct DerivedMesh *fluidsimModifier_do(struct FluidsimModifierData *fluidmd,
 	struct Scene *scene, struct Object *ob, struct DerivedMesh *dm,
 	int useRenderParams, int isFinalCalc);
-	
+
 #endif
 

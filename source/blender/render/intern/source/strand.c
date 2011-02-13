@@ -314,7 +314,7 @@ struct StrandShadeCache {
 	MemArena *memarena;
 };
 
-StrandShadeCache *strand_shade_cache_create()
+StrandShadeCache *strand_shade_cache_create(void)
 {
 	StrandShadeCache *cache;
 

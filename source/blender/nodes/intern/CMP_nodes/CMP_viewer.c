@@ -128,21 +128,18 @@ static void node_composit_init_viewer(bNode* node)
    iuser->ok= 1;
 }
 
-bNodeType cmp_node_viewer= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_VIEWER,
-	/* name        */	"Viewer",
-	/* width+range */	80, 60, 200,
-	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW,
-	/* input sock  */	cmp_node_viewer_in,
-	/* output sock */	NULL,
-	/* storage     */	"ImageUser",
-	/* execfunc    */	node_composit_exec_viewer,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_viewer,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_viewer(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW,
+		cmp_node_viewer_in, NULL);
+	node_type_size(&ntype, 80, 60, 200);
+	node_type_init(&ntype, node_composit_init_viewer);
+	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_viewer);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

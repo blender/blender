@@ -288,7 +288,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	PropertyRNA *prop= NULL;
-	PointerRNA ptr= {{0}};
+	PointerRNA ptr= {{NULL}};
 	char *path = NULL;
 	short success= 0;
 	int index=0, pflag=0;
@@ -388,7 +388,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	PropertyRNA *prop= NULL;
-	PointerRNA ptr= {{0}};
+	PointerRNA ptr= {{NULL}};
 	char *path = NULL;
 	short success= 0;
 	int index=0;

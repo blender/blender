@@ -37,19 +37,19 @@
 
 #include "../generic/py_capi_utils.h"
 
-EnumPropertyItem property_flag_items[] = {
+static EnumPropertyItem property_flag_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem property_flag_enum_items[] = {
+static EnumPropertyItem property_flag_enum_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
 	{PROP_ENUM_FLAG, "ENUM_FLAG", 0, "Enum Flag", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 /* subtypes */
-EnumPropertyItem property_subtype_string_items[] = {
+static EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 	{PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
 	{PROP_FILENAME, "FILENAME", 0, "Filename", ""},
@@ -57,7 +57,7 @@ EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem property_subtype_number_items[] = {
+static EnumPropertyItem property_subtype_number_items[] = {
 	{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""},
 	{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
 	{PROP_FACTOR, "FACTOR", 0, "Factor", ""},
@@ -68,7 +68,7 @@ EnumPropertyItem property_subtype_number_items[] = {
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem property_subtype_array_items[] = {
+static EnumPropertyItem property_subtype_array_items[] = {
 	{PROP_COLOR, "COLOR", 0, "Color", ""},
 	{PROP_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
 	{PROP_DIRECTION, "DIRECTION", 0, "Direction", ""},
@@ -639,7 +639,7 @@ static char BPy_EnumProperty_doc[] =
 "   :type default: string or set\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE', 'ENUM_FLAG'].\n"
 "   :type options: set\n"
-"   :arg items: The items that make up this enumerator.\n"
+"   :arg items: sequence of enum items formatted: [(identifier, name, description), ...] where the identifier is used for python access and other values are used for the interface.\n"
 "   :type items: sequence of string triplets";
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {

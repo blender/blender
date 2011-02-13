@@ -121,7 +121,7 @@ DispList *find_displist(ListBase *lb, int type)
 		dl= dl->next;
 	}
 
-	return 0;
+	return NULL;
 }
 
 int displist_has_faces(ListBase *lb)
@@ -930,13 +930,13 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 {
 	EditVert *eve, *v1, *vlast;
 	EditFace *efa;
-	DispList *dlnew=0, *dl;
+	DispList *dlnew=NULL, *dl;
 	float *f1;
 	int colnr=0, charidx=0, cont=1, tot, a, *index, nextcol= 0;
 	intptr_t totvert;
 	
-	if(dispbase==0) return;
-	if(dispbase->first==0) return;
+	if(dispbase==NULL) return;
+	if(dispbase->first==NULL) return;
 
 	while(cont) {
 		cont= 0;
@@ -953,7 +953,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 						/* make editverts and edges */
 						f1= dl->verts;
 						a= dl->nr;
-						eve= v1= 0;
+						eve= v1= NULL;
 						
 						while(a--) {
 							vlast= eve;
@@ -961,14 +961,14 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 							eve= BLI_addfillvert(f1);
 							totvert++;
 
-							if(vlast==0) v1= eve;
+							if(vlast==NULL) v1= eve;
 							else {
 								BLI_addfilledge(vlast, eve);
 							}
 							f1+=3;
 						}
 
-						if(eve!=0 && v1!=0) {
+						if(eve!=NULL && v1!=NULL) {
 							BLI_addfilledge(eve, v1);
 						}
 					} else if (colnr<dl->col) {
@@ -1058,7 +1058,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 	float *fp, *fp1;
 	int a, dpoly;
 	
-	front.first= front.last= back.first= back.last= 0;
+	front.first= front.last= back.first= back.last= NULL;
 	
 	dl= dispbase->first;
 	while(dl) {
@@ -1944,7 +1944,7 @@ void imagestodisplist(void)
 /* this is confusing, there's also min_max_object, appplying the obmat... */
 static void boundbox_displist(Object *ob)
 {
-	BoundBox *bb=0;
+	BoundBox *bb=NULL;
 	float min[3], max[3];
 	DispList *dl;
 	float *vert;
@@ -1956,7 +1956,7 @@ static void boundbox_displist(Object *ob)
 		Curve *cu= ob->data;
 		int doit= 0;
 
-		if(cu->bb==0) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
+		if(cu->bb==NULL) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
 		bb= cu->bb;
 		
 		dl= ob->disp.first;

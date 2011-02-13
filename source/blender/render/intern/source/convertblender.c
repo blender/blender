@@ -1269,6 +1269,7 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 	VlakRen *vlr;
 	MTFace *mtf;
 	float xvec[3], yvec[3], zvec[3], bb_center[3];
+	int totsplit = bb->uv_split * bb->uv_split;
 	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
 
 	vlr= RE_findOrAddVlak(obr, obr->totvlak++);
@@ -1306,49 +1307,46 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 
 	if(bb->uv_split > 1){
 		uvdx = uvdy = 1.0f / (float)bb->uv_split;
-		if(bb->anim == PART_BB_ANIM_TIME) {
-			if(bb->split_offset == PART_BB_OFF_NONE)
-				time = bb->time;
-			else if(bb->split_offset == PART_BB_OFF_LINEAR)
-				time = (float)fmod(bb->time + (float)bb->num / (float)(bb->uv_split * bb->uv_split), 1.0f);
-			else /* split_offset==PART_BB_OFF_RANDOM */
-				time = (float)fmod(bb->time + bb->random, 1.0f);
 
+		if(ELEM(bb->anim, PART_BB_ANIM_AGE, PART_BB_ANIM_FRAME)) {
+			if(bb->anim == PART_BB_ANIM_FRAME)
+				time = ((int)(bb->time * bb->lifetime) % totsplit)/(float)totsplit;
+			else
+				time = bb->time;
 		}
 		else if(bb->anim == PART_BB_ANIM_ANGLE) {
 			if(bb->align == PART_BB_VIEW) {
 				time = (float)fmod((bb->tilt + 1.0f) / 2.0f, 1.0);
 			}
-			else{
+			else {
 				float axis1[3] = {0.0f,0.0f,0.0f};
 				float axis2[3] = {0.0f,0.0f,0.0f};
+
 				axis1[(bb->align + 1) % 3] = 1.0f;
 				axis2[(bb->align + 2) % 3] = 1.0f;
+
 				if(bb->lock == 0) {
 					zvec[bb->align] = 0.0f;
 					normalize_v3(zvec);
 				}
+				
 				time = saacos(dot_v3v3(zvec, axis1)) / (float)M_PI;
+				
 				if(dot_v3v3(zvec, axis2) < 0.0f)
 					time = 1.0f - time / 2.0f;
 				else
-					time = time / 2.0f;
+					time /= 2.0f;
 			}
-			if(bb->split_offset == PART_BB_OFF_LINEAR)
-				time = (float)fmod(bb->time + (float)bb->num / (float)(bb->uv_split * bb->uv_split), 1.0f);
-			else if(bb->split_offset == PART_BB_OFF_RANDOM)
-				time = (float)fmod(bb->time + bb->random, 1.0f);
 		}
-		else{
-			if(bb->split_offset == PART_BB_OFF_NONE)
-				time = 0.0f;
-			else if(bb->split_offset == PART_BB_OFF_LINEAR)
-				time = (float)fmod((float)bb->num /(float)(bb->uv_split * bb->uv_split) , 1.0f);
-			else /* split_offset==PART_BB_OFF_RANDOM */
-				time = bb->random;
-		}
+
+		if(bb->split_offset == PART_BB_OFF_LINEAR)
+			time = (float)fmod(time + (float)bb->num / (float)totsplit, 1.0f);
+		else if(bb->split_offset==PART_BB_OFF_RANDOM)
+			time = (float)fmod(time + bb->random, 1.0f);
+
 		uvx = uvdx * floor((float)(bb->uv_split * bb->uv_split) * (float)fmod((double)time, (double)uvdx));
 		uvy = uvdy * floor((1.0f - time) * (float)bb->uv_split);
+
 		if(fmod(time, 1.0f / bb->uv_split) == 0.0f)
 			uvy -= uvdy;
 	}
@@ -1989,6 +1987,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
 					bb.time = pa_time;
 					bb.num = a;
+					bb.lifetime = pa_dietime-pa_birthtime;
 				}
 
 				particle_normal_ren(part->ren_as, part, re, obr, psmd->dm, ma, &sd, &bb, &state, seed, hasize, pa_co);
@@ -4882,7 +4881,6 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 /* used to be 'rotate scene' */
 void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int lay, int use_camera_view)
 {
-	extern int slurph_opt;	/* key.c */
 	Scene *sce;
 	float mat[4][4];
 	float amb[3];
@@ -4911,7 +4909,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		lay &= 0xFF000000;
 	
 	/* applies changes fully */
-	if((re->r.scemode & R_PREVIEWBUTS)==0)
+	if((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
 		scene_update_for_newframe(re->main, re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
@@ -5045,7 +5043,6 @@ void RE_DataBase_GetView(Render *re, float mat[][4])
 
 static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int lay, int timeoffset)
 {
-	extern int slurph_opt;	/* key.c */
 	float mat[4][4];
 	
 	re->scene= scene;

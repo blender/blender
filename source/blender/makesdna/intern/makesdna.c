@@ -271,7 +271,7 @@ int add_name(char *str)
 
 	additional_slen_offset = 0;
 	
-	if((str[0]==0) /*  || (str[1]==0) */) return -1;
+	if(str[0]==0 /*  || (str[1]==0) */) return -1;
 
 	if (str[0] == '(' && str[1] == '*') {
 		/* we handle function pointer and special array cases here, e.g.
@@ -283,7 +283,6 @@ int add_name(char *str)
 		if (debugSDNA > 3) printf("\t\t\t\t*** Function pointer or multidim array pointer found\n");
 		/* functionpointer: transform the type (sometimes) */
 		i = 0;
-		j = 0;
 
 		while (str[i] != ')') {
 			buf[i] = str[i];

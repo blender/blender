@@ -125,12 +125,12 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 	char *cp;
 
 	/* to be sure: (is tested for) */
-	pis->doit= 0;
-	pis->pname= 0;
-	pis->varstr= 0;
-	pis->cfra= 0;
+	pis->doit= NULL;
+	pis->pname= NULL;
+	pis->varstr= NULL;
+	pis->cfra= NULL;
 	pis->version= 0;
-	pis->instance_private_data = 0;
+	pis->instance_private_data = NULL;
 
 	/* clear the error list */
 	PIL_dynlib_get_error_as_string(NULL);
@@ -142,12 +142,12 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 	pis->handle= PIL_dynlib_open(pis->name);
 	if(test_dlerr(pis->name, pis->name)) return;
 
-	if (pis->handle != 0) {
+	if (pis->handle != NULL) {
 		/* find the address of the version function */
 		version= (int (*)(void))PIL_dynlib_find_symbol(pis->handle, "plugin_seq_getversion");
 		if (test_dlerr(pis->name, "plugin_seq_getversion")) return;
 
-		if (version != 0) {
+		if (version != NULL) {
 			pis->version= version();
 			if (pis->version >= 2 && pis->version <= 6) {
 				int (*info_func)(PluginInfo *);
@@ -201,11 +201,11 @@ static PluginSeq *add_plugin_seq(const char *str, const char *seqname)
 	strncpy(pis->name, str, FILE_MAXDIR+FILE_MAXFILE);
 	open_plugin_seq(pis, seqname);
 
-	if(pis->doit==0) {
-		if(pis->handle==0) error("no plugin: %s", str);
+	if(pis->doit==NULL) {
+		if(pis->handle==NULL) error("no plugin: %s", str);
 		else error("in plugin: %s", str);
 		MEM_freeN(pis);
-		return 0;
+		return NULL;
 	}
 
 	/* default values */
@@ -222,7 +222,7 @@ static PluginSeq *add_plugin_seq(const char *str, const char *seqname)
 
 static void free_plugin_seq(PluginSeq *pis)
 {
-	if(pis==0) return;
+	if(pis==NULL) return;
 
 	/* no PIL_dynlib_close: same plugin can be opened multiple times with 1 handle */
 
@@ -270,7 +270,7 @@ static void copy_plugin(Sequence * dst, Sequence * src)
 static ImBuf * IMB_cast_away_list(ImBuf * i)
 {
 	if (!i) {
-		return 0;
+		return NULL;
 	}
 	return (ImBuf*) (((void**) i) + 2);
 }
@@ -383,7 +383,7 @@ static int do_plugin_early_out(struct Sequence *UNUSED(seq),
 static void free_plugin(struct Sequence * seq)
 {
 	free_plugin_seq(seq->plugin);
-	seq->plugin = 0;
+	seq->plugin = NULL;
 }
 
 /* **********************************************************************
@@ -554,7 +554,7 @@ static struct ImBuf * do_alphaover_effect(
    ALPHA UNDER
    ********************************************************************** */
 
-void do_alphaunder_effect_byte(
+static void do_alphaunder_effect_byte(
 	float facf0, float facf1, int x, int y, char *rect1, 
 	char *rect2, char *out)
 {
@@ -726,7 +726,7 @@ static struct ImBuf* do_alphaunder_effect(
    CROSS
    ********************************************************************** */
 
-void do_cross_effect_byte(float facf0, float facf1, int x, int y, 
+static void do_cross_effect_byte(float facf0, float facf1, int x, int y, 
 			  char *rect1, char *rect2, 
 			  char *out)
 {
@@ -774,7 +774,7 @@ void do_cross_effect_byte(float facf0, float facf1, int x, int y,
 	}
 }
 
-void do_cross_effect_float(float facf0, float facf1, int x, int y, 
+static void do_cross_effect_float(float facf0, float facf1, int x, int y, 
 			   float *rect1, float *rect2, float *out)
 {
 	float fac1, fac2, fac3, fac4;
@@ -1864,7 +1864,7 @@ static int num_inputs_wipe(void)
 static void free_wipe_effect(Sequence *seq)
 {
 	if(seq->effectdata)MEM_freeN(seq->effectdata);
-	seq->effectdata = 0;
+	seq->effectdata = NULL;
 }
 
 static void copy_wipe_effect(Sequence *dst, Sequence *src)
@@ -2048,7 +2048,7 @@ static int num_inputs_transform(void)
 static void free_transform_effect(Sequence *seq)
 {
 	if(seq->effectdata)MEM_freeN(seq->effectdata);
-	seq->effectdata = 0;
+	seq->effectdata = NULL;
 }
 
 static void copy_transform_effect(Sequence *dst, Sequence *src)
@@ -2617,7 +2617,7 @@ static int num_inputs_glow(void)
 static void free_glow_effect(Sequence *seq)
 {
 	if(seq->effectdata)MEM_freeN(seq->effectdata);
-	seq->effectdata = 0;
+	seq->effectdata = NULL;
 }
 
 static void copy_glow_effect(Sequence *dst, Sequence *src)
@@ -2704,7 +2704,7 @@ static int num_inputs_color(void)
 static void free_solid_color(Sequence *seq)
 {
 	if(seq->effectdata)MEM_freeN(seq->effectdata);
-	seq->effectdata = 0;
+	seq->effectdata = NULL;
 }
 
 static void copy_solid_color(Sequence *dst, Sequence *src)
@@ -2827,21 +2827,21 @@ static struct ImBuf * do_multicam(
 	ListBase * seqbasep;
 
 	if (seq->multicam_source == 0 || seq->multicam_source >= seq->machine) {
-		return 0;
+		return NULL;
 	}
 
 	ed = context.scene->ed;
 	if (!ed) {
-		return 0;
+		return NULL;
 	}
 	seqbasep = seq_seqbase(&ed->seqbase, seq);
 	if (!seqbasep) {
-		return 0;
+		return NULL;
 	}
 
 	i = give_ibuf_seqbase(context, cfra, seq->multicam_source, seqbasep);
 	if (!i) {
-		return 0;
+		return NULL;
 	}
 
 	if (input_have_to_preprocess(context, seq, cfra)) {
@@ -2867,7 +2867,7 @@ static void init_speed_effect(Sequence *seq)
 
 	v = (SpeedControlVars *)seq->effectdata;
 	v->globalSpeed = 1.0;
-	v->frameMap = 0;
+	v->frameMap = NULL;
 	v->flags |= SEQ_SPEED_INTEGRATE; /* should be default behavior */
 	v->length = 0;
 }
@@ -2876,7 +2876,7 @@ static void load_speed_effect(Sequence * seq)
 {
 	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
 
-	v->frameMap = 0;
+	v->frameMap = NULL;
 	v->length = 0;
 }
 
@@ -2890,7 +2890,7 @@ static void free_speed_effect(Sequence *seq)
 	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
 	if(v->frameMap) MEM_freeN(v->frameMap);
 	if(seq->effectdata) MEM_freeN(seq->effectdata);
-	seq->effectdata = 0;
+	seq->effectdata = NULL;
 }
 
 static void copy_speed_effect(Sequence *dst, Sequence *src)
@@ -2898,7 +2898,7 @@ static void copy_speed_effect(Sequence *dst, Sequence *src)
 	SpeedControlVars * v;
 	dst->effectdata = MEM_dupallocN(src->effectdata);
 	v = (SpeedControlVars *)dst->effectdata;
-	v->frameMap = 0;
+	v->frameMap = NULL;
 	v->length = 0;
 }
 
@@ -3260,7 +3260,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 
 struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 {
-	struct SeqEffectHandle rval= {0};
+	struct SeqEffectHandle rval= {NULL};
 
 	if (seq->type & SEQ_EFFECT) {
 		rval = get_sequence_effect_impl(seq->type);
@@ -3275,7 +3275,7 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 
 struct SeqEffectHandle get_sequence_blend(Sequence * seq)
 {
-	struct SeqEffectHandle rval= {0};
+	struct SeqEffectHandle rval= {NULL};
 
 	if (seq->blend_mode != 0) {
 		rval = get_sequence_effect_impl(seq->blend_mode);

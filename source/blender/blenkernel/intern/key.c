@@ -150,7 +150,7 @@ Key *copy_key(Key *key)
 	Key *keyn;
 	KeyBlock *kbn, *kb;
 	
-	if(key==0) return 0;
+	if(key==NULL) return NULL;
 	
 	keyn= copy_libblock(key);
 	
@@ -177,10 +177,10 @@ void make_local_key(Key *key)
 	* - only local users: set flag
 	* - mixed: make copy
 	*/
-	if(key==0) return;
+	if(key==NULL) return;
 	
-	key->id.lib= 0;
-	new_id(0, (ID *)key, 0);
+	key->id.lib= NULL;
+	new_id(NULL, (ID *)key, NULL);
 }
 
 /* Sort shape keys and Ipo curves after a change.  This assumes that at most
@@ -365,14 +365,14 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 
 	/* if(fac<0.0 || fac>1.0) return 1; */
 
-	if(k1->next==0) return 1;
+	if(k1->next==NULL) return 1;
 
 	if(cycl) {	/* pre-sort */
 		k[2]= k1->next;
 		k[3]= k[2]->next;
-		if(k[3]==0) k[3]=k1;
+		if(k[3]==NULL) k[3]=k1;
 		while(k1) {
-			if(k1->next==0) k[0]=k1;
+			if(k1->next==NULL) k[0]=k1;
 			k1=k1->next;
 		}
 		k1= k[1];
@@ -393,13 +393,13 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 		k[2]= k1->next;
 		t[2]= k[2]->pos;
 		k[3]= k[2]->next;
-		if(k[3]==0) k[3]= k[2];
+		if(k[3]==NULL) k[3]= k[2];
 		t[3]= k[3]->pos;
 		k1= k[3];
 	}
 	
 	while( t[2]<fac ) {	/* find correct location */
-		if(k1->next==0) {
+		if(k1->next==NULL) {
 			if(cycl) {
 				k1= firstkey;
 				ofs+= dpos;
@@ -1081,7 +1081,7 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int
 		
 		for(a=0; a<tot; a+=step, cfra+= delta) {
 			
-			ctime= bsystem_time(scene, 0, cfra, 0.0); // xxx  ugly cruft!
+			ctime= bsystem_time(scene, NULL, cfra, 0.0); // xxx  ugly cruft!
 #if 0 // XXX old animation system
 			if(calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
@@ -1213,7 +1213,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 			while (a < estep) {
 				if (remain <= 0) {
 					cfra+= delta;
-					ctime= bsystem_time(scene, 0, cfra, 0.0f); // XXX old cruft
+					ctime= bsystem_time(scene, NULL, cfra, 0.0f); // XXX old cruft
 
 					ctime /= 100.0f;
 					CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
@@ -1276,7 +1276,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 		
 		for(a=0; a<tot; a++, cfra+= delta) {
 			
-			ctime= bsystem_time(scene, 0, cfra, 0.0); // XXX old cruft
+			ctime= bsystem_time(scene, NULL, cfra, 0.0); // XXX old cruft
 #if 0 // XXX old animation system
 			if(calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;

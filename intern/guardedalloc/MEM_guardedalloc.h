@@ -59,12 +59,13 @@
 #include "stdio.h" /* needed for FILE* */
 #include "BLO_sys_types.h" /* needed for uintptr_t */
 
-#ifdef __GNUC__
-#  define WARN_UNUSED  __attribute__((warn_unused_result))
-#else
-#  define WARN_UNUSED
+#ifndef WARN_UNUSED
+#  ifdef __GNUC__
+#    define WARN_UNUSED  __attribute__((warn_unused_result))
+#  else
+#    define WARN_UNUSED
+#  endif
 #endif
-
 
 #ifdef __cplusplus
 extern "C" {

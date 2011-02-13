@@ -674,7 +674,7 @@ setTitle(
 	XChangeProperty(m_display, m_window,
 	                name, utf8str, 8, PropModeReplace,
 	                (const unsigned char*) title.ReadPtr(),
-	                strlen(title.ReadPtr()));
+	                title.Length());
 
 // This should convert to valid x11 string
 //  and getTitle would need matching change

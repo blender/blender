@@ -33,7 +33,7 @@ class MESH_MT_vertex_group_specials(bpy.types.Menu):
         layout.operator("object.vertex_group_copy_to_linked", icon='LINK_AREA')
         layout.operator("object.vertex_group_copy_to_selected", icon='LINK_AREA')
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT')
-        layout.operator("object.vertex_group_remove", icon='X', text="Delete All").all=True
+        layout.operator("object.vertex_group_remove", icon='X', text="Delete All").all = True
 
 
 class MESH_MT_shape_key_specials(bpy.types.Menu):
@@ -355,11 +355,11 @@ class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, bpy.types.Panel
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

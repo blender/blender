@@ -71,6 +71,7 @@ class NODE_HT_header(bpy.types.Header):
             if snode.show_backdrop:
                 row = layout.row(align=True)
                 row.prop(snode, "backdrop_channels", text="", expand=True)
+            layout.prop(snode, "use_auto_render")
 
         layout.separator()
 
@@ -165,7 +166,7 @@ class NODE_MT_node(bpy.types.Menu):
         layout.operator("node.read_fullsamplelayers")
 
 
-# Node Backdrop options 
+# Node Backdrop options
 class NODE_PT_properties(bpy.types.Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -196,11 +197,11 @@ class NODE_PT_properties(bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

@@ -60,6 +60,12 @@ def context_tex_datablock(context):
         return idblock
 
     idblock = context.brush
+    if idblock:
+        return idblock
+    
+    if context.particle_system:
+        idblock = context.particle_system.settings
+        
     return idblock
 
 
@@ -84,7 +90,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
         engine = context.scene.render.engine
         if not hasattr(context, "texture_slot"):
             return False
-        return ((context.material or context.world or context.lamp or context.brush or context.texture)
+        return ((context.material or context.world or context.lamp or context.brush or context.texture or context.particle_system)
             and (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
@@ -99,7 +105,10 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
         if not isinstance(pin_id, bpy.types.Material):
             pin_id = None
 
-        tex_collection = (pin_id is None) and (node is None) and (not isinstance(idblock, bpy.types.Brush))
+        if not space.use_pin_id:
+            layout.prop(space, "texture_context", expand=True)
+
+        tex_collection = (not space.use_pin_id) and (node is None) and (not isinstance(idblock, bpy.types.Brush))
 
         if tex_collection:
             row = layout.row()
@@ -125,9 +134,6 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
             col.template_ID(space, "pin_id")
 
         col = split.column()
-
-        if not space.pin_id:
-            col.prop(space, "show_brush_texture", text="Brush", toggle=True)
 
         if tex:
             split = layout.split(percentage=0.2)
@@ -983,20 +989,49 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             col = split.column()
             factor_but(col, "use_map_zenith_up", "zenith_up_factor", "Zenith Up")
             factor_but(col, "use_map_zenith_down", "zenith_down_factor", "Zenith Down")
+        elif isinstance(idblock, bpy.types.ParticleSettings):
+            split = layout.split()
+            
+            col = split.column()
+            col.label(text="General:")
+            factor_but(col, "use_map_time", "time_factor", "Time")
+            factor_but(col, "use_map_life", "life_factor", "Lifetime")
+            factor_but(col, "use_map_density", "density_factor", "Density")
+            factor_but(col, "use_map_size", "size_factor", "Size")
+
+            col = split.column()
+            col.label(text="Physics:")
+            factor_but(col, "use_map_velocity", "velocity_factor", "Velocity")
+            factor_but(col, "use_map_damp", "damp_factor", "Damp")
+            factor_but(col, "use_map_gravity", "gravity_factor", "Gravity")
+            factor_but(col, "use_map_field", "field_factor", "Force Fields")
+            
+            layout.label(text="Hair:")
+            
+            split = layout.split()
+            
+            col = split.column()
+            factor_but(col, "use_map_length", "length_factor", "Length")
+            factor_but(col, "use_map_clump", "clump_factor", "Clump")
+            
+            col = split.column()
+            factor_but(col, "use_map_kink", "kink_factor", "Kink")
+            factor_but(col, "use_map_rough", "rough_factor", "Rough")
 
         layout.separator()
+        
+        if not isinstance(idblock, bpy.types.ParticleSettings):
+            split = layout.split()
 
-        split = layout.split()
+            col = split.column()
+            col.prop(tex, "blend_type", text="Blend")
+            col.prop(tex, "use_rgb_to_intensity")
+            # color is used on grayscale textures even when use_rgb_to_intensity is disabled.
+            col.prop(tex, "color", text="")
 
-        col = split.column()
-        col.prop(tex, "blend_type", text="Blend")
-        col.prop(tex, "use_rgb_to_intensity")
-        # color is used on grayscale textures even when use_rgb_to_intensity is disabled.
-        col.prop(tex, "color", text="")
-
-        col = split.column()
-        col.prop(tex, "invert", text="Negative")
-        col.prop(tex, "use_stencil")
+            col = split.column()
+            col.prop(tex, "invert", text="Negative")
+            col.prop(tex, "use_stencil")
 
         if isinstance(idblock, bpy.types.Material) or isinstance(idblock, bpy.types.World):
             col.prop(tex, "default_value", text="DVar", slider=True)
@@ -1007,7 +1042,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
 
             row = layout.row()
             # only show bump settings if activated but not for normalmap images
-            row.active = tex.use_map_normal and not( tex.texture.type == 'IMAGE' and tex.texture.use_normal_map )
+            row.active = tex.use_map_normal and not (tex.texture.type == 'IMAGE' and tex.texture.use_normal_map)
 
             col = row.column()
             col.prop(tex, "bump_method", text="Method")
@@ -1024,11 +1059,11 @@ class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, bpy.types.Pane
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

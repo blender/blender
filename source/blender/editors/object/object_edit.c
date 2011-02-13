@@ -587,7 +587,7 @@ void OBJECT_OT_posemode_toggle(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active_editable;
 	
 	/* flag */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *********************** */
@@ -744,9 +744,9 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			MTFace *tface;
 			MFace *mface;
 			int a;
-			
-			if(me==0 || me->mtface==0) return;
-			
+
+			if(me==NULL || me->mtface==NULL) return;
+
 			nr= pupmenu("Specials%t|Set     Tex%x1|         Shared%x2|         Light%x3|         Invisible%x4|         Collision%x5|         TwoSide%x6|Clr     Tex%x7|         Shared%x8|         Light%x9|         Invisible%x10|         Collision%x11|         TwoSide%x12");
 			
 			tface= me->mtface;
@@ -768,7 +768,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 						tface->mode |= TF_TWOSIDE; break;
 					case 7:
 						tface->mode &= ~TF_TEX;
-						tface->tpage= 0;
+						tface->tpage= NULL;
 						break;
 					case 8:
 						tface->mode &= ~TF_SHAREDCOL; break;
@@ -788,7 +788,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		else if(ob->mode & OB_MODE_VERTEX_PAINT) {
 			Mesh *me= get_mesh(ob);
 			
-			if(me==0 || (me->mcol==NULL && me->mtface==NULL) ) return;
+			if(me==NULL || (me->mcol==NULL && me->mtface==NULL) ) return;
 			
 			nr= pupmenu("Specials%t|Shared VertexCol%x1");
 			if(nr==1) {

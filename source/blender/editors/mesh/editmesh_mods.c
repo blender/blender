@@ -4435,6 +4435,7 @@ static int mesh_noise_exec(bContext *C, wmOperator *op)
 
 	ma= give_current_material(obedit, obedit->actcol);
 	if(ma==0 || ma->mtex[0]==0 || ma->mtex[0]->tex==0) {
+		BKE_report(op->reports, RPT_WARNING, "Mesh has no material or texture assigned.");
 		return OPERATOR_FINISHED;
 	}
 	tex= give_current_material_texture(ma);

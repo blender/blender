@@ -100,12 +100,10 @@ typedef struct boxVert {
 /* qsort function - sort largest to smallest */
 static int box_areasort(const void *p1, const void *p2)
 {
-	const boxPack *b1=p1, *b2=p2;
-	float a1, a2;
+	const boxPack *b1= p1, *b2= p2;
+	const float a1= BOXAREA(b1);
+	const float a2= BOXAREA(b2);
 
-	a1 = BOXAREA(b1);
-	a2 = BOXAREA(b2);
-	
 	if		( a1 < a2 ) return  1;
 	else if	( a1 > a2 ) return -1;
 	return 0;
@@ -149,7 +147,7 @@ static int vertex_sort(const void *p1, const void *p2)
  * 	len - the number of boxes in the array.
  *	tot_width and tot_height are set so you can normalize the data.
  *  */
-void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
+void boxPack2D(boxPack *boxarray, const int len, float *tot_width, float *tot_height)
 {
 	boxVert *vert; /* the current vert */
 	int box_index, verts_pack_len, i, j, k, isect;

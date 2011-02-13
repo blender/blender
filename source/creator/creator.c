@@ -140,8 +140,8 @@ static int print_version(int argc, char **argv, void *data);
 
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 
-char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
-char btempdir[FILE_MAXDIR+FILE_MAXFILE];
+char bprogname[FILE_MAX]; /* from blenpluginapi:pluginapi.c */
+char btempdir[FILE_MAX];
 
 #define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
 
@@ -934,9 +934,10 @@ static int set_addons(int argc, char **argv, void *data)
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
 #ifdef WITH_PYTHON
-		char *str= malloc(strlen(argv[1]) + 100);
+		const int slen= strlen(argv[1]) + 10;
+		char *str= malloc(slen);
 		bContext *C= data;
-		sprintf(str, "[__import__('bpy').utils.addon_enable(i) for i in '%s'.split(',')]", argv[1]);
+		BLI_snprintf(str, slen, "[__import__('bpy').utils.addon_enable(i) for i in '%s'.split(',')]", argv[1]);
 		BPY_CTX_SETUP(BPY_string_exec(C, str));
 		free(str);
 #else
@@ -1009,7 +1010,7 @@ static int load_file(int UNUSED(argc), char **argv, void *data)
 	return 0;
 }
 
-void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
+static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 {
 	static char output_doc[] = "<path>"
 		"\n\tSet the render path and file name."
@@ -1146,7 +1147,7 @@ int main(int argc, char **argv)
 	// copy path to executable in bprogname. playanim and creting runtimes
 	// need this.
 
-	BLI_where_am_i(bprogname, argv[0]);
+	BLI_where_am_i(bprogname, sizeof(bprogname), argv[0]);
 	
 #ifdef BUILD_DATE	
 	strip_quotes(build_date);
@@ -1213,7 +1214,7 @@ int main(int argc, char **argv)
 		WM_init(C, argc, argv);
 
 		/* this is properly initialized with user defs, but this is default */
-		BLI_where_is_temp( btempdir, 1 ); /* call after loading the startup.blend so we can read U.tempdir */
+		BLI_where_is_temp(btempdir, FILE_MAX, 1); /* call after loading the startup.blend so we can read U.tempdir */
 
 #ifndef DISABLE_SDL
 	BLI_setenv("SDL_VIDEODRIVER", "dummy");
@@ -1224,7 +1225,7 @@ int main(int argc, char **argv)
 
 		WM_init(C, argc, argv);
 
-		BLI_where_is_temp( btempdir, 0 ); /* call after loading the startup.blend so we can read U.tempdir */
+		BLI_where_is_temp(btempdir, FILE_MAX, 0); /* call after loading the startup.blend so we can read U.tempdir */
 	}
 #ifdef WITH_PYTHON
 	/**

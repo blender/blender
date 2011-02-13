@@ -929,7 +929,7 @@ typedef struct Scene {
 #define R_COMP_FREE			0x0800
 #define R_NO_IMAGE_LOAD		0x1000
 #define R_NO_TEX			0x2000
-/*#define R_STAMP_INFO		0x4000	deprecated */
+#define R_NO_FRAME_UPDATE	0x4000
 #define R_FULL_SAMPLE		0x8000
 /* #define R_DEPRECATED		0x10000 */
 /* #define R_RECURS_PROTECTION	0x20000 */
@@ -1048,7 +1048,7 @@ typedef struct Scene {
 #define FIRSTBASE		scene->base.first
 #define LASTBASE		scene->base.last
 #define BASACT			(scene->basact)
-#define OBACT			(BASACT? BASACT->object: 0)
+#define OBACT			(BASACT? BASACT->object: NULL)
 
 #define ID_NEW(a)		if( (a) && (a)->id.newid ) (a)= (void *)(a)->id.newid
 #define ID_NEW_US(a)	if( (a)->id.newid) {(a)= (void *)(a)->id.newid; (a)->id.us++;}

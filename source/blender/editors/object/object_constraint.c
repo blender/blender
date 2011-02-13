@@ -405,11 +405,26 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 				for (ct= targets.first; ct; ct= ct->next) {
 					/* general validity checks (for those constraints that need this) */
 					if (exist_object(ct->tar) == 0) {
+						/* object doesn't exist, but constraint requires target */
 						ct->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 					}
 					else if (ct->tar == owner) {
-						if (!get_named_bone(get_armature(owner), ct->subtarget)) {
+						if (type == CONSTRAINT_OBTYPE_BONE) {
+							if (!get_named_bone(get_armature(owner), ct->subtarget)) {
+								/* bone must exist in armature... */
+								// TODO: clear subtarget?
+								curcon->flag |= CONSTRAINT_DISABLE;
+							}
+							else if (strcmp(pchan->name, ct->subtarget) == 0) {
+								/* cannot target self */
+								ct->subtarget[0] = '\0';
+								curcon->flag |= CONSTRAINT_DISABLE;
+							}
+						}
+						else {
+							/* cannot use self as target */
+							ct->tar = NULL;
 							curcon->flag |= CONSTRAINT_DISABLE;
 						}
 					}
@@ -1257,12 +1272,12 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	bPoseChannel *pchan;
 	bConstraint *con;
 	
-	if(list == &ob->constraints) {
+	if (list == &ob->constraints) {
 		pchan= NULL;
 	}
 	else {
 		pchan= get_active_posechannel(ob);
-
+		
 		/* ensure not to confuse object/pose adding */
 		if (pchan == NULL) {
 			BKE_report(op->reports, RPT_ERROR, "No active pose bone to add a constraint to.");
@@ -1312,19 +1327,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	}
 	
 	/* do type-specific tweaking to the constraint settings  */
-	// TODO: does action constraint need anything here - i.e. spaceonce?
 	switch (type) {
-		case CONSTRAINT_TYPE_CHILDOF:
-		{
-			/* if this constraint is being added to a posechannel, make sure
-			 * the constraint gets evaluated in pose-space */
-			if (pchan) {
-				con->ownspace = CONSTRAINT_SPACE_POSE;
-				con->flag |= CONSTRAINT_SPACEONCE;
-			}
-		}
-			break;
-			
 		case CONSTRAINT_TYPE_PYTHON: // FIXME: this code is not really valid anymore
 		{
 #ifdef WITH_PYTHON

@@ -94,19 +94,15 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 		generate_preview(data, node, in[0]->data);
 }
 
-bNodeType cmp_node_composite= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_COMPOSITE,
-	/* name        */	"Composite",
-	/* width+range */	80, 60, 200,
-	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW,
-	/* input sock  */	cmp_node_composite_in,
-	/* output sock */	NULL,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_composite,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_composite(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_COMPOSITE, "Composite", NODE_CLASS_OUTPUT, NODE_PREVIEW,
+		cmp_node_composite_in, NULL);
+	node_type_size(&ntype, 80, 60, 200);
+	node_type_exec(&ntype, node_composit_exec_composite);
+
+	nodeRegisterType(lb, &ntype);
+}
+

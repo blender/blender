@@ -83,21 +83,14 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	tex_output(node, in, out[0], &colorfn, data);
 }
 
-bNodeType tex_node_texture= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	TEX_NODE_TEXTURE,
-	/* name        */	"Texture",
-	/* width+range */	120, 80, 240,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW,
-	/* input sock  */	inputs,
-	/* output sock */	outputs,
-	/* storage     */	"",
-	/* execfunc    */	exec,
-	/* butfunc     */	NULL,
-	/* initfunc        */   NULL,
-	/* freestoragefunc */   NULL,
-	/* copystoragefunc */   NULL, 
-	/* id          */	NULL
+void register_node_type_tex_texture(ListBase *lb)
+{
+	static bNodeType ntype;
 	
-};
-
+	node_type_base(&ntype, TEX_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
+				   inputs, outputs);
+	node_type_size(&ntype, 120, 80, 240);
+	node_type_exec(&ntype, exec);
+	
+	nodeRegisterType(lb, &ntype);
+}

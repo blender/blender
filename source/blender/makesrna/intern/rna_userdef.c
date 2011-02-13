@@ -255,7 +255,7 @@ static void rna_userdef_addon_remove(bAddon *bext)
 static void rna_userdef_temp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	extern char btempdir[];
-	BLI_where_is_temp(btempdir, 1);
+	BLI_where_is_temp(btempdir, FILE_MAX, 1);
 }
 
 static void rna_userdef_text_update(Main *bmain, Scene *scene, PointerRNA *ptr)

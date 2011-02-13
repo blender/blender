@@ -275,7 +275,7 @@ void free_object(Object *ob)
 			else if(ob->type==OB_CURVE) unlink_curve(ob->data);
 			else if(ob->type==OB_MBALL) unlink_mball(ob->data);
 		}
-		ob->data= 0;
+		ob->data= NULL;
 	}
 	
 	for(a=0; a<ob->totcol; a++) {
@@ -283,12 +283,12 @@ void free_object(Object *ob)
 	}
 	if(ob->mat) MEM_freeN(ob->mat);
 	if(ob->matbits) MEM_freeN(ob->matbits);
-	ob->mat= 0;
-	ob->matbits= 0;
+	ob->mat= NULL;
+	ob->matbits= NULL;
 	if(ob->bb) MEM_freeN(ob->bb); 
-	ob->bb= 0;
+	ob->bb= NULL;
 	if(ob->path) free_path(ob->path); 
-	ob->path= 0;
+	ob->path= NULL;
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
 	if(ob->gpd) ((ID *)ob->gpd)->us--;
@@ -749,11 +749,11 @@ void make_local_camera(Camera *cam)
 		* - mixed: make copy
 		*/
 	
-	if(cam->id.lib==0) return;
+	if(cam->id.lib==NULL) return;
 	if(cam->id.us==1) {
-		cam->id.lib= 0;
+		cam->id.lib= NULL;
 		cam->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)cam, 0);
+		new_id(NULL, (ID *)cam, NULL);
 		return;
 	}
 	
@@ -767,9 +767,9 @@ void make_local_camera(Camera *cam)
 	}
 	
 	if(local && lib==0) {
-		cam->id.lib= 0;
+		cam->id.lib= NULL;
 		cam->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)cam, 0);
+		new_id(NULL, (ID *)cam, NULL);
 	}
 	else if(local && lib) {
 		camn= copy_camera(cam);
@@ -779,7 +779,7 @@ void make_local_camera(Camera *cam)
 		while(ob) {
 			if(ob->data==cam) {
 				
-				if(ob->id.lib==0) {
+				if(ob->id.lib==NULL) {
 					ob->data= camn;
 					camn->id.us++;
 					cam->id.us--;
@@ -898,11 +898,11 @@ void make_local_lamp(Lamp *la)
 		* - mixed: make copy
 		*/
 	
-	if(la->id.lib==0) return;
+	if(la->id.lib==NULL) return;
 	if(la->id.us==1) {
-		la->id.lib= 0;
+		la->id.lib= NULL;
 		la->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)la, 0);
+		new_id(NULL, (ID *)la, NULL);
 		return;
 	}
 	
@@ -916,9 +916,9 @@ void make_local_lamp(Lamp *la)
 	}
 	
 	if(local && lib==0) {
-		la->id.lib= 0;
+		la->id.lib= NULL;
 		la->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)la, 0);
+		new_id(NULL, (ID *)la, NULL);
 	}
 	else if(local && lib) {
 		lan= copy_lamp(la);
@@ -928,7 +928,7 @@ void make_local_lamp(Lamp *la)
 		while(ob) {
 			if(ob->data==la) {
 				
-				if(ob->id.lib==0) {
+				if(ob->id.lib==NULL) {
 					ob->data= lan;
 					lan->id.us++;
 					la->id.us--;
@@ -1088,7 +1088,7 @@ Object *add_object(struct Scene *scene, int type)
 	Base *base;
 	char name[32];
 
-	strcpy(name, get_obdata_defname(type));
+	BLI_strncpy(name, get_obdata_defname(type), sizeof(name));
 	ob = add_only_object(type, name);
 
 	ob->data= add_obdata_from_type(type);
@@ -1137,7 +1137,7 @@ BulletSoftBody *copy_bulletsoftbody(BulletSoftBody *bsb)
 	return bsbn;
 }
 
-ParticleSystem *copy_particlesystem(ParticleSystem *psys)
+static ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 {
 	ParticleSystem *psysn;
 	ParticleData *pa;
@@ -2272,7 +2272,7 @@ void what_does_parent(Scene *scene, Object *ob, Object *workob)
 	where_is_object(scene, workob);
 }
 
-BoundBox *unit_boundbox()
+BoundBox *unit_boundbox(void)
 {
 	BoundBox *bb;
 	float min[3] = {-1.0f,-1.0f,-1.0f}, max[3] = {-1.0f,-1.0f,-1.0f};

@@ -82,12 +82,12 @@ int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
 
 /* GPU Extensions */
 
-void GPU_extensions_disable()
+void GPU_extensions_disable(void)
 {
 	GG.extdisabled = 1;
 }
 
-void GPU_extensions_init()
+void GPU_extensions_init(void)
 {
 	GLint r, g, b;
 	const char *vendor, *renderer;
@@ -183,12 +183,12 @@ void GPU_extensions_init()
 #endif
 }
 
-int GPU_glsl_support()
+int GPU_glsl_support(void)
 {
 	return !GG.extdisabled && GG.glslsupport;
 }
 
-int GPU_non_power_of_two_support()
+int GPU_non_power_of_two_support(void)
 {
 	/* Exception for buggy ATI/Apple driver in Mac OS X 10.5/10.6,
 	 * they claim to support this but can cause system freeze */
@@ -201,7 +201,7 @@ int GPU_non_power_of_two_support()
 	return GLEW_ARB_texture_non_power_of_two;
 }
 
-int GPU_color_depth()
+int GPU_color_depth(void)
 {
     return GG.colordepth;
 }
@@ -680,7 +680,7 @@ struct GPUFrameBuffer {
 	GPUTexture *depthtex;
 };
 
-GPUFrameBuffer *GPU_framebuffer_create()
+GPUFrameBuffer *GPU_framebuffer_create(void)
 {
 	GPUFrameBuffer *fb;
 
@@ -825,7 +825,7 @@ void GPU_framebuffer_free(GPUFrameBuffer *fb)
 	MEM_freeN(fb);
 }
 
-void GPU_framebuffer_restore()
+void GPU_framebuffer_restore(void)
 {
 	if (GG.currentfb != 0) {
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);

@@ -209,7 +209,7 @@ void SOUND_OT_pack(wmOperatorType *ot)
 static int sound_unpack_exec(bContext *C, wmOperator *op)
 {
 	int method= RNA_enum_get(op->ptr, "method");
-	bSound* sound;
+	bSound* sound= NULL;
 
 	/* find the suppplied image by name */
 	if (RNA_property_is_set(op->ptr, "id")) {

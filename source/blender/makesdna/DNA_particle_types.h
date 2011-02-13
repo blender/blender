@@ -142,7 +142,7 @@ typedef struct ParticleSettings {
 	struct EffectorWeights *effector_weights;
 
 	int flag;
-	short type, from, distr;
+	short type, from, distr, texact;
 	/* physics modes */
 	short phystype, rotmode, avemode, reactevent;
 	short draw, draw_as, draw_size, childtype;
@@ -155,7 +155,7 @@ typedef struct ParticleSettings {
 	short adapt_angle, adapt_pix;
 
 	short disp, omat, interpolation, rotfrom, integrator;
-	short kink, kink_axis;
+	short kink, kink_axis, rt2;
 
 	/* billboards */
 	short bb_align, bb_uv_split, bb_anim, bb_split_offset;
@@ -169,14 +169,14 @@ typedef struct ParticleSettings {
 	/* general values */
 	float sta, end, lifetime, randlife;
 	float timetweak, jitfac, eff_hair, grid_rand;
-	int totpart, userjit, grid_res, rt;
+	int totpart, userjit, grid_res, effector_amount;
 
 	/* initial velocity factors */
 	float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
 	float ob_vel[3];
 	float avefac, phasefac, randrotfac, randphasefac;
 	/* physical properties */
-	float mass, size, randsize, reactshape;
+	float mass, size, randsize;
 	/* global physical properties */
 	float acc[3], dragfac, brownfac, dampfac;
 	/* length */
@@ -207,6 +207,8 @@ typedef struct ParticleSettings {
 	int trail_count;
 	/* keyed particles */
 	int keyed_loops;
+
+	struct MTex *mtex[18];		/* MAX_MTEX */
 
 	struct Group *dup_group;
 	struct ListBase dupliweights;
@@ -304,7 +306,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_ROT_DYN		(1<<14)	/* dynamic rotation */
 #define PART_SIZEMASS		(1<<16)
 
-//#define PART_HAIR_GRAVITY	(1<<15)
+#define PART_HIDE_ADVANCED_HAIR	(1<<15)
 
 //#define PART_ABS_TIME		(1<<17)
 //#define PART_GLOB_TIME		(1<<18)
@@ -313,10 +315,10 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 //#define PART_BRANCHING		(1<<20)
 //#define PART_ANIM_BRANCHING	(1<<21)
-//#define PART_SYMM_BRANCHING	(1<<24)
 
 #define PART_HAIR_BSPLINE	1024
 
+#define PART_GRID_HEXAGONAL	(1<<24)
 #define PART_GRID_INVERT	(1<<26)
 
 #define PART_CHILD_EFFECT		(1<<27)
@@ -388,10 +390,9 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 /* part->bb_anim */
 #define PART_BB_ANIM_NONE	0
-#define PART_BB_ANIM_TIME	1
+#define PART_BB_ANIM_AGE	1
 #define PART_BB_ANIM_ANGLE	2
-#define PART_BB_ANIM_OFF_TIME	3
-#define PART_BB_ANIM_OFF_ANGLE	4
+#define PART_BB_ANIM_FRAME	3
 
 /* part->bb_split_offset */
 #define PART_BB_OFF_NONE	0
@@ -507,5 +508,26 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PTARGET_MODE_NEUTRAL	0
 #define PTARGET_MODE_FRIEND		1
 #define PTARGET_MODE_ENEMY		2
+
+/* mapto */
+/* init */
+#define PAMAP_INIT		15
+#define PAMAP_TIME		(1<<0)	/* emission time */
+#define PAMAP_LIFE		(1<<1)	/* life time */
+#define PAMAP_DENS		(1<<2)	/* density */
+#define PAMAP_SIZE		(1<<3)	/* physical size */
+/* reset */
+#define PAMAP_IVEL		(1<<5)	/* initial velocity */
+/* physics */
+#define PAMAP_PHYSICS	3136
+#define PAMAP_FIELD		(1<<6)	/* force fields */
+#define PAMAP_GRAVITY	(1<<10)
+#define PAMAP_DAMP		(1<<11)
+/* children */
+#define PAMAP_CHILD		912
+#define PAMAP_CLUMP		(1<<7)
+#define PAMAP_KINK		(1<<8)
+#define PAMAP_ROUGH		(1<<9)
+#define PAMAP_LENGTH	(1<<4)
 
 #endif

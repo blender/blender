@@ -1130,10 +1130,12 @@ menu_func = (lambda self, context: self.layout.operator(SmartProject.bl_idname,
 
 
 def register():
+    bpy.utils.register_module(__name__)
     bpy.types.VIEW3D_MT_uv_map.append(menu_func)
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
     bpy.types.VIEW3D_MT_uv_map.remove(menu_func)
 
 if __name__ == "__main__":

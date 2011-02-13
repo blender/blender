@@ -137,7 +137,7 @@ static void handle_view3d_lock(bContext *C)
 	}
 }
 
-static int layers_exec(bContext *C, wmOperator *op)
+static int view3d_layers_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -210,7 +210,7 @@ static int layers_exec(bContext *C, wmOperator *op)
 
 /* applies shift and alt, lazy coding or ok? :) */
 /* the local per-keymap-entry keymap will solve it */
-static int layers_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_layers_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if(event->ctrl || event->oskey)
 		return OPERATOR_PASS_THROUGH;
@@ -222,12 +222,12 @@ static int layers_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		int nr= RNA_int_get(op->ptr, "nr") + 10;
 		RNA_int_set(op->ptr, "nr", nr);
 	}
-	layers_exec(C, op);
+	view3d_layers_exec(C, op);
 	
 	return OPERATOR_FINISHED;
 }
 
-int layers_poll(bContext *C)
+static int view3d_layers_poll(bContext *C)
 {
 	return (ED_operator_view3d_active(C) && CTX_wm_view3d(C)->localvd==NULL);
 }
@@ -240,9 +240,9 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_layers";
 	
 	/* api callbacks */
-	ot->invoke= layers_invoke;
-	ot->exec= layers_exec;
-	ot->poll= layers_poll;
+	ot->invoke= view3d_layers_invoke;
+	ot->exec= view3d_layers_exec;
+	ot->poll= view3d_layers_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

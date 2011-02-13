@@ -25,5 +25,5 @@
 struct BPy_StructRNA;
 struct PyObject;
 
-struct PyObject *pyrna_callback_add(struct BPy_StructRNA *self, struct PyObject *args);
-struct PyObject *pyrna_callback_remove(struct BPy_StructRNA *self, struct PyObject *args);
+PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args);
+PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args);

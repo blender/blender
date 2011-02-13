@@ -48,6 +48,8 @@
 
 #include "CSG_BooleanOps.h"
 
+#include "MOD_boolean_util.h"
+
 /**
  * Here's the vertex iterator structure used to walk through
  * the blender vertex structure.
@@ -451,7 +453,7 @@ static void FreeMeshDescriptors(
 	FaceIt_Destruct(face_it);
 }
 
-DerivedMesh *NewBooleanDerivedMesh_intern(
+static DerivedMesh *NewBooleanDerivedMesh_intern(
 	DerivedMesh *dm, struct Object *ob, DerivedMesh *dm_select, struct Object *ob_select,
 	int int_op_type, Material **mat, int *totmat)
 {

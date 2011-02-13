@@ -22,6 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/* COLLADABU_ASSERT, may be able to remove later */
 #include "collada_internal.h"
 
 UnitConverter::UnitConverter() : unit(), up_axis(COLLADAFW::FileInfo::Z_UP) {}

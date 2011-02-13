@@ -340,7 +340,7 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 
 /* Icky globals, fix with userdata parameter */
 
-struct TextureDrawState {
+static struct TextureDrawState {
 	Object *ob;
 	int islit, istex;
 	int color_profile;
