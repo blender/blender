@@ -4403,8 +4403,20 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	findselectedNurbvert(&editnurb->nurbs, &nu, &bezt, &bp);
 
 	if ((nu == NULL) || (nu->type==CU_BEZIER && bezt==NULL) || (nu->type!=CU_BEZIER && bp==NULL)) {
-		if(cu->actnu >= 0 && mode!='e') {
-			nu= BLI_findlink(&editnurb->nurbs, cu->actnu);
+		if(mode!='e') {
+			if(cu->actnu >= 0) nu= BLI_findlink(&editnurb->nurbs, cu->actnu);
+			else {
+				/* no selected sement -- create new one which is BEZIER tpye
+				   type couldn't be determined from Curve bt could be changed
+				   in the future, so shouldn't make much headache */
+
+				nu= MEM_callocN(sizeof(Nurb), "addvert_Nurb nu");
+				nu->type= CU_BEZIER;
+				nu->resolu= cu->resolu;
+				nu->flag |= CU_SMOOTH;
+
+				BLI_addtail(&editnurb->nurbs, nu);
+			}
 
 			if(nu->type==CU_BEZIER) {
 				newbezt= (BezTriple*)MEM_callocN(sizeof(BezTriple), "addvert_Nurb");
@@ -5615,6 +5627,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 	BezTriple *bezt, *bezt1, *bezt2;
 	BPoint *bp, *bp1, *bp2;
 	int a, cut= 0, type= RNA_enum_get(op->ptr, "type");
+	int nuindex= 0;
 
 	if(obedit->type==OB_SURF) {
 		if(type==0) {
@@ -5649,6 +5662,9 @@ static int delete_exec(bContext *C, wmOperator *op)
 						bezt++;
 					}
 					if(a==0) {
+						if(cu->actnu == nuindex)
+							cu->actnu= -1;
+
 						BLI_remlink(nubase, nu);
 						keyIndex_delNurb(editnurb, nu);
 						freeNurb(nu); nu= NULL;
@@ -5666,6 +5682,9 @@ static int delete_exec(bContext *C, wmOperator *op)
 						bp++;
 					}
 					if(a==0) {
+						if(cu->actnu == nuindex)
+							cu->actnu= -1;
+
 						BLI_remlink(nubase, nu);
 						keyIndex_delNurb(editnurb, nu);
 						freeNurb(nu); nu= NULL;
@@ -5681,6 +5700,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 			}
 			*/
 			nu= next;
+			nuindex++;
 		}
 		/* 2nd loop, delete small pieces: just for curves */
 		nu= nubase->first;
@@ -5754,6 +5774,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		bezt1= bezt2= NULL;
 		bp1= bp2= NULL;
 		nu1= NULL;
+		nuindex= 0;
 		for(nu= nubase->first; nu; nu= nu->next) {
 			next= nu->next;
 			if(nu->type == CU_BEZIER) {
@@ -5810,10 +5831,14 @@ static int delete_exec(bContext *C, wmOperator *op)
 				}
 			}
 			if(nu1) break;
+			nuindex++;
 		}
 		if(nu1) {
 			if(bezt1) {
 				if(nu1->pntsu==2) {	/* remove completely */
+					if(cu->actnu == nuindex)
+						cu->actnu= -1;
+
 					BLI_remlink(nubase, nu);
 					freeNurb(nu); nu = NULL;
 				}
@@ -5857,6 +5882,9 @@ static int delete_exec(bContext *C, wmOperator *op)
 			}
 			else if(bp1) {
 				if(nu1->pntsu==2) {	/* remove completely */
+					if(cu->actnu == nuindex)
+						cu->actnu= -1;
+
 					BLI_remlink(nubase, nu);
 					freeNurb(nu); nu= NULL;
 				}
@@ -5891,6 +5919,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if(type==2) {
+		cu->actnu= -1;
 		keyIndex_delNurbList(editnurb, nubase);
 		freeNurblist(nubase);
 	}
