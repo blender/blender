@@ -3678,7 +3678,7 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, fl
 static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSettings *part, ParticleData *par, int child_index, int face_index, float *fw, float *orco, ParticleTexture *ptex, int event, float cfra)
 {
 	MTex *mtex, **mtexp = part->mtex;
-	int m,setvars=0;
+	int m;
 	float value, rgba[4], texvec[3];
 
 	ptex->ivel = ptex->life = ptex->exist = ptex->size = ptex->damp =
