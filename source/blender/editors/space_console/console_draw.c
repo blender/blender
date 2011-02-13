@@ -193,7 +193,7 @@ static int console_textview_main__internal(struct SpaceConsole *sc, struct ARegi
 	
 	View2D *v2d= &ar->v2d;
 
-	TextViewContext tvc= {NULL};
+	TextViewContext tvc= {0};
 
 	tvc.begin= console_textview_begin;
 	tvc.end= console_textview_end;
