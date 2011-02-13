@@ -930,7 +930,7 @@ static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, 
 	}
 }
 
-Material *gpu_active_node_material(Material *ma)
+static Material *gpu_active_node_material(Material *ma)
 {
 	if(ma && ma->use_nodes && ma->nodetree) {
 		bNode *node= nodeGetActiveID(ma->nodetree, ID_MA);

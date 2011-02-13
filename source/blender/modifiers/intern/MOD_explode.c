@@ -51,6 +51,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {

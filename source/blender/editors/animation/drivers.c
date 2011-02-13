@@ -75,7 +75,7 @@ void free_anim_drivers_copybuf (void);
  *			1 - add new Driver FCurve, 
  *			-1 - add new Driver FCurve without driver stuff (for pasting)
  */
-FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_index, short add)
+static FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_index, short add)
 {
 	AnimData *adt;
 	FCurve *fcu;

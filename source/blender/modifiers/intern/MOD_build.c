@@ -46,6 +46,7 @@
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 
+#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {

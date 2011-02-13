@@ -137,7 +137,7 @@ void view3d_get_transformation(ARegion *ar, RegionView3D *rv3d, Object *ob, bglM
 
 /* local prototypes */
 
-void EM_backbuf_checkAndSelectVerts(EditMesh *em, int select)
+static void EM_backbuf_checkAndSelectVerts(EditMesh *em, int select)
 {
 	EditVert *eve;
 	int index= em_wireoffs;
@@ -151,7 +151,7 @@ void EM_backbuf_checkAndSelectVerts(EditMesh *em, int select)
 	}
 }
 
-void EM_backbuf_checkAndSelectEdges(EditMesh *em, int select)
+static void EM_backbuf_checkAndSelectEdges(EditMesh *em, int select)
 {
 	EditEdge *eed;
 	int index= em_solidoffs;
@@ -165,7 +165,7 @@ void EM_backbuf_checkAndSelectEdges(EditMesh *em, int select)
 	}
 }
 
-void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
+static void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
 {
 	EditFace *efa;
 	int index= 1;
@@ -179,7 +179,7 @@ void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
 	}
 }
 
-void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
+static void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 {
 	MFace *mface = me->mface;
 	int a;

@@ -427,7 +427,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 
 }
 
-int view3d_setcameratoview_poll(bContext *C)
+static int view3d_setcameratoview_poll(bContext *C)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
@@ -1734,7 +1734,7 @@ extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *cam_f
 
 #endif // WITH_GAMEENGINE
 
-int game_engine_poll(bContext *C)
+static int game_engine_poll(bContext *C)
 {
 	/* we need a context and area to launch BGE
 	it's a temporary solution to avoid crash at load time

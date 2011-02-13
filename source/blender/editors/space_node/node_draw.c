@@ -69,7 +69,6 @@
 
 // XXX interface.h
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
-extern void ui_draw_tria_icon(float x, float y, char dir);
 
 void ED_node_changed_update(ID *id, bNode *node)
 {
@@ -710,7 +709,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColorBlendShade(TH_TEXT, color_id, 0.4f, 10);
 	
 	/* open/close entirely? */
-	ui_draw_tria_icon(rct->xmin+10.0f, rct->ymax-NODE_DY/2.0f, 'v');
+	UI_DrawTriIcon(rct->xmin+10.0f, rct->ymax-NODE_DY/2.0f, 'v');
 	
 	/* this isn't doing anything for the label, so commenting out
 	if(node->flag & SELECT) 
@@ -878,7 +877,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		UI_ThemeColorBlendShade(TH_TEXT, color_id, 0.4f, 10);
 	
 	/* open entirely icon */
-	ui_draw_tria_icon(rct->xmin+10.0f, centy, 'h');	
+	UI_DrawTriIcon(rct->xmin+10.0f, centy, 'h');	
 	
 	/* disable lines */
 	if(node->flag & NODE_MUTED)

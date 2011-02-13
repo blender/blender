@@ -660,7 +660,7 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 }
 
 
-void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
+static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
 	IDProperty *prop;
@@ -919,7 +919,7 @@ static int uibut_contains_pt(uiBut *UNUSED(but), short *UNUSED(mval))
 
 }
 
-uiBut *ui_get_valid_link_button(uiBlock *block, uiBut *but, short *mval)
+static uiBut *ui_get_valid_link_button(uiBlock *block, uiBut *but, short *mval)
 {
 	uiBut *bt;
 	

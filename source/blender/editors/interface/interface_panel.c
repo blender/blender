@@ -309,7 +309,7 @@ static void ui_offset_panel_block(uiBlock *block)
 /**************************** drawing *******************************/
 
 /* extern used by previewrender */
-void uiPanelPush(uiBlock *block)
+static void uiPanelPush(uiBlock *block)
 {
 	glPushMatrix(); 
 
@@ -317,14 +317,14 @@ void uiPanelPush(uiBlock *block)
 		glTranslatef((float)block->panel->ofsx, (float)block->panel->ofsy, 0.0);
 }
 
-void uiPanelPop(uiBlock *UNUSED(block))
+static void uiPanelPop(uiBlock *UNUSED(block))
 {
 	glPopMatrix();
 }
 
 /* triangle 'icon' for panel header */
 /* NOTE - this seems to be only used for hiding nodes now */
-void ui_draw_tria_icon(float x, float y, char dir)
+void UI_DrawTriIcon(float x, float y, char dir)
 {
 	if(dir=='h') {
 		ui_draw_anti_tria( x-3,y-5, x-3,y+5, x+7,y );
@@ -335,7 +335,7 @@ void ui_draw_tria_icon(float x, float y, char dir)
 }
 
 /* triangle 'icon' inside rect */
-void ui_draw_tria_rect(rctf *rect, char dir)
+static void ui_draw_tria_rect(rctf *rect, char dir)
 {
 	if(dir=='h') {
 		float half= 0.5f*(rect->ymax - rect->ymin);
@@ -347,7 +347,7 @@ void ui_draw_tria_rect(rctf *rect, char dir)
 	}
 }
 
-void ui_draw_anti_x(float x1, float y1, float x2, float y2)
+static void ui_draw_anti_x(float x1, float y1, float x2, float y2)
 {
 
 	/* set antialias line */
@@ -655,7 +655,7 @@ static int compare_panel(const void *a1, const void *a2)
 
 /* this doesnt draw */
 /* returns 1 when it did something */
-int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
+static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 {
 	uiStyle *style= U.uistyles.first;
 	Panel *pa;

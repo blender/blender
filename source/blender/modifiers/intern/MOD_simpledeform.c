@@ -148,7 +148,7 @@ static void simpleDeform_bend(const float factor, const float dcut[3], float *co
 
 
 /* simple deform modifier */
-void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
+static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
 	static const float lock_axis[2] = {0.0f, 0.0f};
 

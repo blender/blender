@@ -917,7 +917,7 @@ void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, Vi
 	}
 }
 
-void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
+static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float size[2];

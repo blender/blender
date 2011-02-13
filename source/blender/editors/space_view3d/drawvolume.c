@@ -126,7 +126,7 @@ static double tval()
 
 struct GPUTexture;
 
-int intersect_edges(float *points, float a, float b, float c, float d, float edges[12][2][3])
+static int intersect_edges(float *points, float a, float b, float c, float d, float edges[12][2][3])
 {
 	int i;
 	float t;

@@ -5558,8 +5558,7 @@ static void draw_hooks(Object *ob)
 	}
 }
 
-//<rcruiz>
-void drawRBpivot(bRigidBodyJointConstraint *data)
+static void drawRBpivot(bRigidBodyJointConstraint *data)
 {
 	int axis;
 	float mat[4][4];

@@ -122,7 +122,7 @@ static const char hex[17] = "0123456789abcdef";
 
 /* Note: This escape function works on file: URIs, but if you want to
  * escape something else, please read RFC-2396 */
-void escape_uri_string (const char *string, char* escaped_string, int len,UnsafeCharacterSet mask)
+static void escape_uri_string (const char *string, char* escaped_string, int len,UnsafeCharacterSet mask)
 {
 #define ACCEPTABLE(a) ((a)>=32 && (a)<128 && (acceptable[(a)-32] & use_mask))
 
@@ -148,7 +148,7 @@ void escape_uri_string (const char *string, char* escaped_string, int len,Unsafe
 	*q = '\0';
 }
 
-void to_hex_char(char* hexbytes, const unsigned char* bytes, int len)
+static void to_hex_char(char* hexbytes, const unsigned char* bytes, int len)
 {
 	const unsigned char *p;
 	char *q;

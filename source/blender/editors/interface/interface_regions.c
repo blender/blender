@@ -130,7 +130,7 @@ static void menudata_add_item(MenuData *md, const char *str, int retval, int ico
 	md->nitems++;
 }
 
-void menudata_free(MenuData *md)
+static void menudata_free(MenuData *md)
 {
 	MEM_freeN(md->instr);
 	if (md->items)
@@ -151,7 +151,7 @@ void menudata_free(MenuData *md)
 	 * @param str String to be parsed.
 	 * @retval new menudata structure, free with menudata_free()
 	 */
-MenuData *decompose_menu_string(char *str) 
+static MenuData *decompose_menu_string(char *str) 
 {
 	char *instr= BLI_strdup(str);
 	MenuData *md= menudata_new(instr);
@@ -272,7 +272,7 @@ int ui_step_name_menu(uiBut *but, int step)
 
 /******************** Creating Temporary regions ******************/
 
-ARegion *ui_add_temporary_region(bScreen *sc)
+static ARegion *ui_add_temporary_region(bScreen *sc)
 {
 	ARegion *ar;
 
@@ -285,7 +285,7 @@ ARegion *ui_add_temporary_region(bScreen *sc)
 	return ar;
 }
 
-void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
+static void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
 {
 	if(CTX_wm_window(C))
 		wm_draw_region_clear(CTX_wm_window(C), ar);
@@ -1620,7 +1620,7 @@ void ui_set_but_hsv(uiBut *but)
 }
 
 /* also used by small picker, be careful with name checks below... */
-void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
+static void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 {
 	uiBut *bt;
 	float *hsv= ui_block_hsv_get(block);

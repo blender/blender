@@ -69,7 +69,7 @@
 #include "GPU_extensions.h"
 
 /* the global to talk to ghost */
-GHOST_SystemHandle g_system= NULL;
+static GHOST_SystemHandle g_system= NULL;
 
 /* set by commandline */
 static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, initialstate= GHOST_kWindowStateNormal;

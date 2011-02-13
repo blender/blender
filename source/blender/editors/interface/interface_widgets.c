@@ -1698,7 +1698,7 @@ void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float
 	*valrad= atan2(mx, my)/(2.0f*M_PI) + 0.5f;
 }
 
-void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
+static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {
 	/* gouraud triangle fan */
 	float radstep, ang= 0.0f;

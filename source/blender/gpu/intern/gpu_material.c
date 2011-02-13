@@ -596,7 +596,7 @@ static void do_specular_ramp(GPUShadeInput *shi, GPUNodeLink *is, GPUNodeLink *t
 	}
 }
 
-void add_user_list(ListBase *list, void *data)
+static void add_user_list(ListBase *list, void *data)
 {
 	LinkData *link = MEM_callocN(sizeof(LinkData), "GPULinkData");
 	link->data = data;
@@ -1348,7 +1348,7 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		GPU_link(mat, "linearrgb_to_srgb", shr->combined, &shr->combined);
 }
 
-GPUNodeLink *GPU_blender_material(GPUMaterial *mat, Material *ma)
+static GPUNodeLink *GPU_blender_material(GPUMaterial *mat, Material *ma)
 {
 	GPUShadeInput shi;
 	GPUShadeResult shr;

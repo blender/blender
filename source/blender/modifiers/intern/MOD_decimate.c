@@ -47,6 +47,8 @@
 #include "LOD_decimation.h"
 #endif
 
+#include "MOD_util.h"
+
 static void initData(ModifierData *md)
 {
 	DecimateModifierData *dmd = (DecimateModifierData*) md;

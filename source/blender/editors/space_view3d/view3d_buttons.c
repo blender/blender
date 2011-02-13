@@ -709,7 +709,7 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 }
 
-int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
+static int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= OBACT;
@@ -925,7 +925,7 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
 }
 
 /* assumes armature editmode */
-void validate_editbonebutton_cb(bContext *C, void *bonev, void *namev)
+static void validate_editbonebutton_cb(bContext *C, void *bonev, void *namev)
 {
 	EditBone *eBone= bonev;
 	char oldname[sizeof(eBone->name)], newname[sizeof(eBone->name)];
@@ -1199,12 +1199,12 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, ob);
 }
 
-void removeTransformOrientation_func(bContext *C, void *target, void *UNUSED(arg))
+static void removeTransformOrientation_func(bContext *C, void *target, void *UNUSED(arg))
 {
 	BIF_removeTransformOrientation(C, (TransformOrientation *) target);
 }
 
-void selectTransformOrientation_func(bContext *C, void *target, void *UNUSED(arg))
+static void selectTransformOrientation_func(bContext *C, void *target, void *UNUSED(arg))
 {
 	BIF_selectTransformOrientation(C, (TransformOrientation *) target);
 }

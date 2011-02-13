@@ -48,6 +48,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "MOD_util.h"
 
 #if 0
 #define EDGESPLIT_DEBUG_3

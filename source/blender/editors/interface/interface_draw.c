@@ -381,7 +381,7 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 }
 
 /* plain fake antialiased unfilled round rectangle */
-void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, float rad, float asp)
+static void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, float rad, float asp)
 {
 	float color[4], alpha;
 	float raddiff;
@@ -715,7 +715,7 @@ static void draw_scope_end(rctf *rect, GLint *scissor)
 	uiDrawBox(GL_LINE_LOOP, rect->xmin-1, rect->ymin, rect->xmax+1, rect->ymax+1, 3.0f);
 }
 
-void histogram_draw_one(float r, float g, float b, float alpha, float x, float y, float w, float h, float *data, int res)
+static void histogram_draw_one(float r, float g, float b, float alpha, float x, float y, float w, float h, float *data, int res)
 {
 	int i;
 	
@@ -961,17 +961,17 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	draw_scope_end(&rect, scissor);
 }
 
-float polar_to_x(float center, float diam, float ampli, float angle)
+static float polar_to_x(float center, float diam, float ampli, float angle)
 {
 	return center + diam * ampli * cosf(angle);
 }
 
-float polar_to_y(float center, float diam, float ampli, float angle)
+static float polar_to_y(float center, float diam, float ampli, float angle)
 {
 	return center + diam * ampli * sinf(angle);
 }
 
-void vectorscope_draw_target(float centerx, float centery, float diam, float r, float g, float b)
+static void vectorscope_draw_target(float centerx, float centery, float diam, float r, float g, float b)
 {
 	float y,u,v;
 	float tangle=0.f, tampli;

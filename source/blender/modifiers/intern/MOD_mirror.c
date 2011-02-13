@@ -45,6 +45,8 @@
 #include "MEM_guardedalloc.h"
 #include "depsgraph_private.h"
 
+#include "MOD_util.h"
+
 static void initData(ModifierData *md)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;

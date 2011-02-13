@@ -60,10 +60,10 @@
 #define MAX_GPU_ATTRIB_DATA 32
 
 /* -1 - undefined, 0 - vertex arrays, 1 - VBOs */
-int useVBOs = -1;
-GPUBufferPool *globalPool = 0;
-int GLStates = 0;
-GPUAttrib attribData[MAX_GPU_ATTRIB_DATA] = { { -1, 0, 0 } };
+static int useVBOs = -1;
+static GPUBufferPool *globalPool = 0;
+static int GLStates = 0;
+static GPUAttrib attribData[MAX_GPU_ATTRIB_DATA] = { { -1, 0, 0 } };
 
 GPUBufferPool *GPU_buffer_pool_new()
 {
@@ -89,7 +89,7 @@ GPUBufferPool *GPU_buffer_pool_new()
 	return pool;
 }
 
-void GPU_buffer_pool_remove( int index, GPUBufferPool *pool )
+static void GPU_buffer_pool_remove( int index, GPUBufferPool *pool )
 {
 	int i;
 
@@ -108,7 +108,7 @@ void GPU_buffer_pool_remove( int index, GPUBufferPool *pool )
 	pool->size--;
 }
 
-void GPU_buffer_pool_delete_last( GPUBufferPool *pool )
+static void GPU_buffer_pool_delete_last( GPUBufferPool *pool )
 {
 	int last;
 
@@ -773,7 +773,7 @@ void GPU_free_buffers(void *buffers_v)
 	}
 }
 
-GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int size, GLenum target, void *user, void (*copy_f)(DerivedMesh *, float *, int *, int *, void *) )
+static GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int size, GLenum target, void *user, void (*copy_f)(DerivedMesh *, float *, int *, int *, void *) )
 {
 	GPUBuffer *buffer;
 	float *varray;
@@ -855,7 +855,7 @@ GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int size, G
 	return buffer;
 }
 
-void GPU_buffer_copy_vertex(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
+static void GPU_buffer_copy_vertex(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
 {
 	int start;
 	int i, j, numfaces;
@@ -897,14 +897,14 @@ void GPU_buffer_copy_vertex(DerivedMesh *dm, float *varray, int *index, int *red
 	}
 }
 
-GPUBuffer *GPU_buffer_vertex( DerivedMesh *dm )
+static GPUBuffer *GPU_buffer_vertex( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_vertex\n");
 
 	return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*3*(dm->drawObject->nelements+dm->drawObject->nlooseverts), GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_vertex);
 }
 
-void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
+static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
 {
 	int i, numfaces;
 	int start;
@@ -963,14 +963,14 @@ void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, int *red
 	}
 }
 
-GPUBuffer *GPU_buffer_normal( DerivedMesh *dm )
+static GPUBuffer *GPU_buffer_normal( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_normal\n");
 
 	return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_normal);
 }
 
-void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
+static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
 {
 	int start;
 	int i, numfaces;
@@ -1010,7 +1010,7 @@ void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *redir, 
 	}
 }
 
-GPUBuffer *GPU_buffer_uv( DerivedMesh *dm )
+static GPUBuffer *GPU_buffer_uv( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_uv\n");
 	if( DM_get_face_data_layer(dm, CD_MTFACE) != 0 ) /* was sizeof(float)*2 but caused buffer overrun  */
@@ -1019,7 +1019,7 @@ GPUBuffer *GPU_buffer_uv( DerivedMesh *dm )
 		return 0;
 }
 
-void GPU_buffer_copy_color3( DerivedMesh *dm, float *varray_, int *index, int *redir, void *user )
+static void GPU_buffer_copy_color3( DerivedMesh *dm, float *varray_, int *index, int *redir, void *user )
 {
 	int i, numfaces;
 	unsigned char *varray = (unsigned char *)varray_;
@@ -1049,7 +1049,7 @@ void GPU_buffer_copy_color3( DerivedMesh *dm, float *varray_, int *index, int *r
 	}
 }
 
-void GPU_buffer_copy_color4( DerivedMesh *dm, float *varray_, int *index, int *redir, void *user )
+static void GPU_buffer_copy_color4( DerivedMesh *dm, float *varray_, int *index, int *redir, void *user )
 {
 	int i, numfaces;
 	unsigned char *varray = (unsigned char *)varray_;
@@ -1079,7 +1079,7 @@ void GPU_buffer_copy_color4( DerivedMesh *dm, float *varray_, int *index, int *r
 	}
 }
 
-GPUBuffer *GPU_buffer_color( DerivedMesh *dm )
+static GPUBuffer *GPU_buffer_color( DerivedMesh *dm )
 {
 	unsigned char *colors;
 	int i, numfaces;
@@ -1112,7 +1112,7 @@ GPUBuffer *GPU_buffer_color( DerivedMesh *dm )
 	return result;
 }
 
-void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(redir), void *UNUSED(user))
+static void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(redir), void *UNUSED(user))
 {
 	int i;
 
@@ -1131,14 +1131,14 @@ void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray, int *UNUSED(index), in
 	}
 }
 
-GPUBuffer *GPU_buffer_edge( DerivedMesh *dm )
+static GPUBuffer *GPU_buffer_edge( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_edge\n");
 
 	return GPU_buffer_setup( dm, dm->drawObject, sizeof(int)*2*dm->drawObject->nedges, GL_ELEMENT_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_edge);
 }
 
-void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(redir), void *UNUSED(user))
+static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(redir), void *UNUSED(user))
 {
 	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
 	int i, j=0;
@@ -1175,7 +1175,7 @@ void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), 
 	}
 }
 
-GPUBuffer *GPU_buffer_uvedge( DerivedMesh *dm )
+static GPUBuffer *GPU_buffer_uvedge( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_uvedge\n");
 	/* logic here:
