@@ -24,8 +24,10 @@
  */
 
 /* Note, this module is not to be used directly by the user.
- * its accessed from blender with bpy.__ops__
+ * Internally its exposed as '_bpy.ops', which provides functions for 'bpy.ops', a python package.
  * */
+
+#include <Python.h>
 
 #include "bpy_operator.h"
 #include "bpy_operator_wrap.h"
@@ -41,6 +43,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BKE_report.h"
+#include "BKE_context.h"
 
 static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 {
@@ -255,7 +258,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 	char *buf = NULL;
 	PyObject *pybuf;
 
-	bContext *C = (bContext *)BPy_GetContext();
+	bContext *C= (bContext *)BPy_GetContext();
 
 	if(C==NULL) {
 		PyErr_SetString(PyExc_SystemError, "Context is None, cant get the string representation of this object.");

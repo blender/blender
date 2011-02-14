@@ -27,6 +27,8 @@
  
 #define WITH_PYTHON /* for AUD_PyInit.h, possibly others */
 
+#include <Python.h>
+
 #include "bpy.h" 
 #include "bpy_util.h" 
 #include "bpy_rna.h"

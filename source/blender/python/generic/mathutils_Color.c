@@ -22,12 +22,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "mathutils.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-
-
 
 #define COLOR_SIZE 3
 

@@ -31,12 +31,13 @@
  * The BGL submodule "wraps" OpenGL functions and constants,
  * allowing script writers to make OpenGL calls in their Python scripts. */
 
+#include <Python.h>
+
 #include "bgl.h" /*This must come first */
 #include <GL/glew.h>
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-
 
 
 static char Method_Buffer_doc[] =

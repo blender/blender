@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: bpy_app.h 33348 2010-11-27 02:39:51Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,12 +21,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef BPY_DRIVER_H
+#define BPY_DRIVER_H
 
-#ifndef BPY_PROPS_H
-#define BPY_PROPS_H
+int bpy_pydriver_create_dict(void);
+extern PyObject *bpy_pydriver_Dict;
 
-PyObject *BPY_rna_props( void );
-
-#define PYRNA_STACK_ARRAY 32
-
-#endif
+#endif // BPY_DRIVER_H

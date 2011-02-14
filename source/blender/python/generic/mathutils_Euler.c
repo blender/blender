@@ -26,12 +26,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "mathutils.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-
-
 
 #ifndef int32_t
 #include "BLO_sys_types.h"

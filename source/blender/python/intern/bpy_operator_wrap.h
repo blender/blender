@@ -25,8 +25,6 @@
 #ifndef BPY_OPERATOR_WRAP_H
 #define BPY_OPERATOR_WRAP_H
 
-#include <Python.h>
-
 /* these are used for operator methods, used by bpy_operator.c */
 PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args);
 #endif

@@ -31,8 +31,6 @@
 #ifndef MATHUTILS_H
 #define MATHUTILS_H
 
-#include <Python.h>
-
 /* Can cast different mathutils types to this, use for generic funcs */
 
 extern char BaseMathObject_Wrapped_doc[];
@@ -50,11 +48,11 @@ typedef struct {
 	BASE_MATH_MEMBERS(data)
 } BaseMathObject;
 
-#include "mathutils_vector.h"
-#include "mathutils_matrix.h"
-#include "mathutils_quat.h"
-#include "mathutils_euler.h"
-#include "mathutils_color.h"
+#include "mathutils_Vector.h"
+#include "mathutils_Matrix.h"
+#include "mathutils_Quaternion.h"
+#include "mathutils_Euler.h"
+#include "mathutils_Color.h"
 #include "mathutils_geometry.h"
 
 PyObject *BaseMathObject_getOwner( BaseMathObject * self, void * );

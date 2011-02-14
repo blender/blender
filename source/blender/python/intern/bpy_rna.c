@@ -21,6 +21,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+#include <Python.h>
+
 #include <float.h> /* FLT_MIN/MAX */
 
 #include "bpy_rna.h"

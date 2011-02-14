@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "mathutils.h"
 
 #include "BLI_math.h"

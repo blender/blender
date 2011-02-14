@@ -56,6 +56,12 @@
 #include "../generic/bpy_internal_import.h" // our own imports
 #include "../generic/py_capi_utils.h"
 
+/* inittab initialization functions */
+#include "../generic/noise_py_api.h"
+#include "../generic/mathutils.h"
+#include "../generic/bgl.h"
+#include "../generic/blf_py_api.h"
+
 /* for internal use, when starting and ending python scripts */
 
 /* incase a python script triggers another python call, stop bpy_context_clear from invalidating */
@@ -197,12 +203,7 @@ void BPY_context_set(bContext *C)
 	BPy_SetContext(C);
 }
 
-/* init-tab */
-extern PyObject *BPyInit_noise(void);
-extern PyObject *BPyInit_mathutils(void);
-// extern PyObject *BPyInit_mathutils_geometry(void); // BPyInit_mathutils calls, py doesnt work with thos :S
-extern PyObject *BPyInit_bgl(void);
-extern PyObject *BPyInit_blf(void);
+/* defined in AUD_C-API.cpp */
 extern PyObject *AUD_initPython(void);
 
 static struct _inittab bpy_internal_modules[]= {

@@ -22,6 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "bpy_util.h"
 #include "BLI_dynstr.h"
 #include "MEM_guardedalloc.h"

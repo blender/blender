@@ -22,13 +22,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "bpy_props.h"
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
 #include "BLI_utildefines.h"
-
-
 
 #include "RNA_define.h" /* for defining our own rna */
 #include "RNA_enum_types.h"

@@ -23,6 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "bpy_operator_wrap.h"
 #include "WM_api.h"
 #include "WM_types.h"

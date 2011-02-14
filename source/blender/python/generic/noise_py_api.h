@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id:
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,12 +21,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef NOISE_PY_API_H
+#define NOISE_PY_API_H
 
-#ifndef BPY_PROPS_H
-#define BPY_PROPS_H
+PyObject *BPyInit_noise(void);
 
-PyObject *BPY_rna_props( void );
-
-#define PYRNA_STACK_ARRAY 32
-
-#endif
+#endif // NOISE_PY_API_H

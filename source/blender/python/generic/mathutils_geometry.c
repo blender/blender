@@ -27,6 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "mathutils_geometry.h"
 
 /* Used for PolyFill */
