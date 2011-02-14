@@ -2864,6 +2864,7 @@ static int pyrna_is_deferred_prop(PyObject *value)
 	return PyTuple_CheckExact(value) && PyTuple_GET_SIZE(value)==2 && PyCallable_Check(PyTuple_GET_ITEM(value, 0)) && PyDict_CheckExact(PyTuple_GET_ITEM(value, 1));
 }
 
+#if 0
 static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr)
 {
 	PyObject *ret= PyType_Type.tp_getattro(cls, attr);
@@ -2892,6 +2893,7 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
 
 	return ret;
 }
+#endif
 
 static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyObject *value)
 {
@@ -3616,11 +3618,6 @@ static PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self)
 	return iter;
 }
 
-static PyObject *pyrna_struct_is_registered(PyObject *cls)
-{
-	return PyBool_FromLong(PyDict_GetItemString((((PyTypeObject *)cls)->tp_dict), "bl_rna") != NULL);
-}
-
 static struct PyMethodDef pyrna_struct_methods[] = {
 
 	/* only for PointerRNA's with ID'props */
@@ -3646,9 +3643,6 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	/* experemental */
 	{"callback_add", (PyCFunction)pyrna_callback_add, METH_VARARGS, NULL},
 	{"callback_remove", (PyCFunction)pyrna_callback_remove, METH_VARARGS, NULL},
-
-	/* class method */
-	{"is_registered", (PyCFunction) pyrna_struct_is_registered, METH_NOARGS | METH_CLASS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -4152,7 +4146,7 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
 	NULL,						/* hashfunc tp_hash; */
 	NULL,						/* ternaryfunc tp_call; */
 	NULL,						/* reprfunc tp_str; */
-	(getattrofunc) pyrna_struct_meta_idprop_getattro,	/* getattrofunc tp_getattro; */
+	NULL /*(getattrofunc) pyrna_struct_meta_idprop_getattro*/,	/* getattrofunc tp_getattro; */
 	(setattrofunc) pyrna_struct_meta_idprop_setattro,	/* setattrofunc tp_setattro; */
 
 	/* Functions to access object as input/output buffer */
@@ -4160,6 +4154,50 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
 
   /*** Flags to define presence of optional/expanded features ***/
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,         /* long tp_flags; */
+
+	NULL,						/*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,	/* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	NULL,						/* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	NULL,						/* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,						/* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
 };
 
 

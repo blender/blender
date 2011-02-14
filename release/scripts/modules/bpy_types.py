@@ -572,6 +572,9 @@ class RNAMeta(type):
 
         return result
 
+    @property
+    def is_registered(cls):
+        return "bl_rna" in cls.__dict__
 
 import collections
 
