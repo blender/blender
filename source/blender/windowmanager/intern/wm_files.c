@@ -500,9 +500,7 @@ static void write_history(void)
 		if (fp) {
 			/* add current file to the beginning of list */
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
-			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(G.main->name)+1), "name of file");
-			recent->filepath[0] = '\0';
-			BLI_strncpy(recent->filepath, G.main->name, sizeof(recent->filepath));
+			recent->filepath = BLI_strdup(G.main->name);
 			BLI_addhead(&(G.recent_files), recent);
 			/* write current file to recent-files.txt */
 			fprintf(fp, "%s\n", recent->filepath);
