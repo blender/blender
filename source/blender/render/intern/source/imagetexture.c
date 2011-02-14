@@ -53,12 +53,13 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"
 #include "BKE_library.h"
+
+#include "RE_render_ext.h"
 
 #include "renderpipeline.h"
 #include "render_types.h"

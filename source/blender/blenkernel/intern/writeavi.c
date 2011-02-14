@@ -214,7 +214,7 @@ static int append_avi(RenderData *UNUSED(rd), int frame, int *pixels, int rectx,
 	return 1;
 }
 
-void end_avi(void)
+static void end_avi(void)
 {
 	if (avi == NULL) return;
 

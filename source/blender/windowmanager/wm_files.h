@@ -28,7 +28,7 @@
 #ifndef WM_FILES_H
 #define WM_FILES_H
 
-extern void WM_read_history(void);
+void WM_read_history(void);
 
 #endif /* WM_FILES_H */
 
