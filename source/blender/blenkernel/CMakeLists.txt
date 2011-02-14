@@ -106,6 +106,7 @@ set(SRC
 	intern/mball.c
 	intern/mesh.c
 	intern/mesh_validate.c
+	intern/mikktspace.c
 	intern/modifier.c
 	intern/multires.c
 	intern/nla.c
@@ -222,6 +223,7 @@ set(SRC
 	BKE_writeffmpeg.h
 	BKE_writeframeserver.h
 	depsgraph_private.h
+	mikktspace.h
 	intern/CCGSubSurf.h
 	intern/bmesh_private.h
 	nla_private.h

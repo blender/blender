@@ -894,6 +894,7 @@ static void do_material_tex(GPUShadeInput *shi)
 	int tex_nr, rgbnor, talpha;
 	int init_done = 0, iBumpSpacePrev;
 	GPUNodeLink *vNorg, *vNacc, *fPrevMagnitude;
+	int iFirstTimeNMap=1;
 
 	GPU_link(mat, "set_value", GPU_uniform(&one), &stencil);
 
@@ -902,7 +903,7 @@ static void do_material_tex(GPUShadeInput *shi)
 	GPU_link(mat, "texco_object", GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
 		GPU_builtin(GPU_INVERSE_OBJECT_MATRIX),
 		GPU_builtin(GPU_VIEW_POSITION), &texco_object);
-	GPU_link(mat, "texco_tangent", GPU_attribute(CD_TANGENT, ""), &texco_tangent);
+	//GPU_link(mat, "texco_tangent", GPU_attribute(CD_TANGENT, ""), &texco_tangent);
 	GPU_link(mat, "texco_global", GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
 		GPU_builtin(GPU_VIEW_POSITION), &texco_global);
 
@@ -1037,7 +1038,20 @@ static void do_material_tex(GPUShadeInput *shi)
 							GPU_link(mat, "mtex_negate_texnormal", tnor, &tnor);
 
 						if(mtex->normapspace == MTEX_NSPACE_TANGENT)
-							GPU_link(mat, "mtex_nspace_tangent", GPU_attribute(CD_TANGENT, ""), shi->vn, tnor, &newnor);
+						{
+							if(iFirstTimeNMap!=0)
+							{
+								// use unnormalized normal (this is how we bake it - closer to gamedev)
+								GPUNodeLink *vNegNorm;
+								GPU_link(mat, "vec_math_negate", GPU_builtin(GPU_VIEW_NORMAL), &vNegNorm);
+								GPU_link(mat, "mtex_nspace_tangent", GPU_attribute(CD_TANGENT, ""), vNegNorm, tnor, &newnor);
+								iFirstTimeNMap = 0;
+							}
+							else	// otherwise use accumulated perturbations
+							{
+								GPU_link(mat, "mtex_nspace_tangent", GPU_attribute(CD_TANGENT, ""), shi->vn, tnor, &newnor);
+							}
+						}
 						else
 							newnor = tnor;
 						

@@ -533,7 +533,7 @@ typedef struct DMVertexAttribs {
 	} mcol[MAX_MCOL];
 
 	struct {
-		float (*array)[3];
+		float (*array)[4];
 		int emOffset, glIndex;
 	} tang;
 

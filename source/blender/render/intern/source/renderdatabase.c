@@ -109,7 +109,7 @@
 #define RE_RADFACE_ELEMS	1
 #define RE_SIMPLIFY_ELEMS	2
 #define RE_FACE_ELEMS		1
-#define RE_NMAP_TANGENT_ELEMS	12
+#define RE_NMAP_TANGENT_ELEMS	16
 
 float *RE_vertren_get_sticky(ObjectRen *obr, VertRen *ver, int verify)
 {
