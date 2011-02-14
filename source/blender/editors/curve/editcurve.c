@@ -4405,29 +4405,26 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 
 	if ((nu == NULL) || (nu->type==CU_BEZIER && bezt==NULL) || (nu->type!=CU_BEZIER && bp==NULL)) {
 		if(mode!='e') {
-			if(cu->actnu >= 0) nu= BLI_findlink(&editnurb->nurbs, cu->actnu);
-			else {
-				/* no selected sement -- create new one which is BEZIER tpye
-				   type couldn't be determined from Curve bt could be changed
-				   in the future, so shouldn't make much headache */
+			if(cu->actnu >= 0)
+				nu= BLI_findlink(&editnurb->nurbs, cu->actnu);
 
-				nu= MEM_callocN(sizeof(Nurb), "addvert_Nurb nu");
-				nu->type= CU_BEZIER;
-				nu->resolu= cu->resolu;
-				nu->flag |= CU_SMOOTH;
-
-				BLI_addtail(&editnurb->nurbs, nu);
-			}
-
-			if(nu->type==CU_BEZIER) {
+			if(!nu || nu->type==CU_BEZIER) {
 				newbezt= (BezTriple*)MEM_callocN(sizeof(BezTriple), "addvert_Nurb");
 				newbezt->radius= 1;
 				newbezt->alfa= 0;
 				BEZ_SEL(newbezt);
 				newbezt->h2= newbezt->h1= HD_AUTO;
 
-				newnu= (Nurb*)MEM_mallocN(sizeof(Nurb), "addvert_Nurb newnu");
-				memcpy(newnu, nu, sizeof(Nurb));
+				newnu= (Nurb*)MEM_callocN(sizeof(Nurb), "addvert_Nurb newnu");
+				if(!nu) {
+					/* no selected sement -- create new one which is BEZIER tpye
+					   type couldn't be determined from Curve bt could be changed
+					   in the future, so shouldn't make much headache */
+					newnu->type= CU_BEZIER;
+					newnu->resolu= cu->resolu;
+					newnu->flag |= CU_SMOOTH;
+				} else memcpy(newnu, nu, sizeof(Nurb));
+
 				BLI_addtail(&editnurb->nurbs, newnu);
 				set_actNurb(obedit, newnu);
 				newnu->bezt= newbezt;
@@ -4442,6 +4439,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				add_v3_v3v3(newbezt->vec[2], newbezt->vec[1],temp);
 
 				ok= 1;
+				nu= newnu;
 			} else if(nu->pntsv == 1) {
 				newbp= (BPoint*)MEM_callocN(sizeof(BPoint), "addvert_Nurb5");
 				newbp->radius= 1;
@@ -4466,6 +4464,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				nurbs_knot_calc_u(newnu);
 
 				ok= 1;
+				nu= newnu;
 			}
 
 		}
