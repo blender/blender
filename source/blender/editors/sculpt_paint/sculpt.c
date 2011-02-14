@@ -2446,11 +2446,34 @@ static void sculpt_update_keyblock(SculptSession *ss)
 }
 
 /* flush displacement from deformed PBVH to original layer */
-static void sculpt_flush_stroke_deform(SculptSession *ss)
+static void sculpt_flush_stroke_deform(Sculpt *sd, SculptSession *ss)
 {
 	if(!ss->kb) {
 		Object *ob= ss->ob;
 		Mesh *me= (Mesh*)ob->data;
+		Brush *brush= paint_brush(&sd->paint);
+
+		if(ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER)) {
+			/* this brushes aren't using proxies, so sculpt_combine_proxies() wouldn't
+			   propagate needed deformation to original base */
+
+			int n, totnode;
+			PBVHNode** nodes;
+			PBVHVertexIter vd;
+
+			BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+
+			#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+			for (n= 0; n < totnode; n++) {
+
+				BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+					sculpt_flush_pbvhvert_deform(ss, &vd);
+				}
+				BLI_pbvh_vertex_iter_end;
+			}
+
+			MEM_freeN(nodes);
+		}
 
 		/* Modifiers could depend on mesh normals, so we should update them/
 		   Note, then if sculpting happens on locked key, normals should be re-calculated
@@ -2568,7 +2591,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd, SculptSession *ss)
 	sculpt_fix_noise_tear(sd, ss);
 
 	if (ss->modifiers_active)
-		sculpt_flush_stroke_deform(ss);
+		sculpt_flush_stroke_deform(sd, ss);
 
 	cache->first_time= 0;
 }
