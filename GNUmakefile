@@ -71,4 +71,18 @@ all:
 	@echo run blender from "$(BUILD_DIR)/bin/blender"
 	@echo 
 
+# package types
+package_debian:
+	cd build_files/package_spec ; sh ./build_debian.sh
+
+package_pacman:
+	cd build_files/package_spec/pacman ; makepkg --asroot
+
+# forward build targets
+test:
+	cd $(BUILD_DIR) ; ctest . --output-on-failure
+
+clean:
+	cd $(BUILD_DIR) ; make clean
+
 .PHONY: all
