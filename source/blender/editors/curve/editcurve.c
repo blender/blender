@@ -86,6 +86,7 @@ typedef struct {
 	void *lastsel;
 	GHash *undoIndex;
 	ListBase fcurves, drivers;
+	int actnu;
 } UndoCurve;
 
 /* Definitions needed for shape keys */
@@ -6961,6 +6962,7 @@ static void undoCurve_to_editCurve(void *ucu, void *obe)
 	}
 
 	cu->lastsel= lastsel;
+	cu->actnu= undoCurve->actnu;
 
 	ED_curve_updateAnimPaths(obedit);
 }
@@ -7006,6 +7008,7 @@ static void *editCurve_to_undoCurve(void *obe)
 	}
 
 	undoCurve->lastsel= lastsel;
+	undoCurve->actnu= cu->actnu;
 
 	return undoCurve;
 }
