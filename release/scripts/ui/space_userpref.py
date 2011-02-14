@@ -635,7 +635,29 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             layout.separator()
             layout.separator()
+        elif theme.theme_area == 'COLOR_SETS':
+            col = split.column()
 
+            for i,ui in enumerate(theme.bone_color_sets):
+                col.label(text="Color Set %d:" % (i+1)) # i starts from 0
+                
+                row = col.row()
+                
+                subsplit = row.split(percentage=0.95)
+
+                padding = subsplit.split(percentage=0.15)
+                colsub = padding.column()
+                colsub = padding.column()
+                colsub.row().prop(ui, "normal")
+                colsub.row().prop(ui, "select")
+                colsub.row().prop(ui, "active")
+                
+                subsplit = row.split(percentage=0.85)
+
+                padding = subsplit.split(percentage=0.15)
+                colsub = padding.column()
+                colsub = padding.column()
+                colsub.row().prop(ui, "show_colored_constraints")
         else:
             self._theme_generic(split, getattr(theme, theme.theme_area.lower()))
 
