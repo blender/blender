@@ -1,5 +1,5 @@
 /**
- * $Id: bpy_app.h 33348 2010-11-27 02:39:51Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
