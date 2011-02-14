@@ -400,7 +400,7 @@ void GRAPH_OT_ghost_curves_clear (wmOperatorType *ot)
 /* ******************** Insert Keyframes Operator ************************* */
 
 /* defines for insert keyframes tool */
-EnumPropertyItem prop_graphkeys_insertkey_types[] = {
+static EnumPropertyItem prop_graphkeys_insertkey_types[] = {
 	{1, "ALL", 0, "All Channels", ""},
 	{2, "SEL", 0, "Only Selected Channels", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -1224,7 +1224,7 @@ void GRAPH_OT_sample (wmOperatorType *ot)
 /* ******************** Set Extrapolation-Type Operator *********************** */
 
 /* defines for set extrapolation-type for selected keyframes tool */
-EnumPropertyItem prop_graphkeys_expo_types[] = {
+static EnumPropertyItem prop_graphkeys_expo_types[] = {
 	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", ""},
 	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -1637,7 +1637,7 @@ void GRAPH_OT_frame_jump (wmOperatorType *ot)
 /* ******************** Snap Keyframes Operator *********************** */
 
 /* defines for snap keyframes tool */
-EnumPropertyItem prop_graphkeys_snap_types[] = {
+static EnumPropertyItem prop_graphkeys_snap_types[] = {
 	{GRAPHKEYS_SNAP_CFRA, "CFRA", 0, "Current Frame", ""},
 	{GRAPHKEYS_SNAP_VALUE, "VALUE", 0, "Cursor Value", ""},
 	{GRAPHKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
@@ -1745,7 +1745,7 @@ void GRAPH_OT_snap (wmOperatorType *ot)
 /* ******************** Mirror Keyframes Operator *********************** */
 
 /* defines for mirror keyframes tool */
-EnumPropertyItem prop_graphkeys_mirror_types[] = {
+static EnumPropertyItem prop_graphkeys_mirror_types[] = {
 	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current Frame", ""},
 	{GRAPHKEYS_MIRROR_VALUE, "VALUE", 0, "By Values over Cursor Value", ""},
 	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0", ""},

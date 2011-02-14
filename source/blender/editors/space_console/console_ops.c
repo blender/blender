@@ -75,7 +75,7 @@ void console_scrollback_free(SpaceConsole *sc, ConsoleLine *cl)
 	MEM_freeN(cl);
 }
 
-void console_scrollback_limit(SpaceConsole *sc)
+static void console_scrollback_limit(SpaceConsole *sc)
 {
 	int tot;
 	

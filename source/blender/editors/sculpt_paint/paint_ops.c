@@ -28,6 +28,7 @@
 #include "BKE_context.h"
 #include "BKE_paint.h"
 
+#include "ED_sculpt.h"
 #include "ED_screen.h"
 #include "UI_resources.h"
 
@@ -60,7 +61,7 @@ static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void BRUSH_OT_add(wmOperatorType *ot)
+static void BRUSH_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Brush";
@@ -115,7 +116,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void BRUSH_OT_scale_size(wmOperatorType *ot)
+static void BRUSH_OT_scale_size(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scale Sculpt/Paint Brush Size";
@@ -142,7 +143,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void PAINT_OT_vertex_color_set(wmOperatorType *ot)
+static void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Vertex Colors";
@@ -171,7 +172,7 @@ static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void BRUSH_OT_reset(wmOperatorType *ot)
+static void BRUSH_OT_reset(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reset Brush";

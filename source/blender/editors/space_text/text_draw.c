@@ -250,7 +250,7 @@ static int find_bool(char *string)
 
 /* Ensures the format string for the given line is long enough, reallocating
  as needed. Allocation is done here, alone, to ensure consistency. */
-int text_check_format_len(TextLine *line, unsigned int len)
+static int text_check_format_len(TextLine *line, unsigned int len)
 {
 	if(line->format) {
 		if(strlen(line->format) < len) {
@@ -954,7 +954,7 @@ void text_free_caches(SpaceText *st)
 /************************ word-wrap utilities *****************************/
 
 /* cache should be updated in caller */
-int text_get_visible_lines_no(SpaceText *st, int lineno)
+static int text_get_visible_lines_no(SpaceText *st, int lineno)
 {
 	DrawCache *drawcache= (DrawCache *)st->drawcache;
 

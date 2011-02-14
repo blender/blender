@@ -76,7 +76,7 @@
 #define TILE_BORDER_Y 8
 
 /* button events */
-enum {
+static enum {
 	B_FS_DIRNAME,
 	B_FS_FILENAME
 } eFile_ButEvents;

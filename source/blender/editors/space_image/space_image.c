@@ -49,6 +49,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -458,7 +459,7 @@ static SpaceLink *image_duplicate(SpaceLink *sl)
 	return (SpaceLink *)simagen;
 }
 
-void image_operatortypes(void)
+static void image_operatortypes(void)
 {
 	WM_operatortype_append(IMAGE_OT_view_all);
 	WM_operatortype_append(IMAGE_OT_view_pan);
@@ -491,7 +492,7 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_scopes);
 }
 
-void image_keymap(struct wmKeyConfig *keyconf)
+static void image_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Image Generic", SPACE_IMAGE, 0);
 	wmKeyMapItem *kmi;

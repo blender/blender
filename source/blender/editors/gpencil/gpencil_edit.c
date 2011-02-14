@@ -64,6 +64,7 @@
 
 #include "UI_view2d.h"
 
+#include "ED_gpencil.h"
 #include "ED_view3d.h"
 
 #include "gpencil_intern.h"

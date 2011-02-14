@@ -61,7 +61,7 @@ void BLI_end_edgefill(void);
  * @param f The function to use as callback
  * @attention used in creator.c
  */
-void BLI_setErrorCallBack(void (*f)(char*));
+void BLI_setErrorCallBack(void (*f)(const char*));
 
 /**
  * Set a function to be able to interrupt the execution of processing

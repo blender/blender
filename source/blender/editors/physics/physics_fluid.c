@@ -1050,27 +1050,27 @@ void fluidsimFreeBake(Object *UNUSED(ob))
 
 /* compile dummy functions for disabled fluid sim */
 
-FluidsimSettings *fluidsimSettingsNew(Object *UNUSED(srcob))
+static FluidsimSettings *fluidsimSettingsNew(Object *UNUSED(srcob))
 {
 	return NULL;
 }
 
-void fluidsimSettingsFree(FluidsimSettings *UNUSED(fss))
+static void fluidsimSettingsFree(FluidsimSettings *UNUSED(fss))
 {
 }
 
-FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
+static FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
 {
 	return NULL;
 }
 
 /* only compile dummy functions */
-int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object *UNUSED(ob))
+static int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object *UNUSED(ob))
 {
 	return 0;
 }
 
-void fluidsimFreeBake(Object *UNUSED(ob))
+static void fluidsimFreeBake(Object *UNUSED(ob))
 {
 }
 

@@ -57,6 +57,7 @@
 #include "BLO_sys_types.h" // for intptr_t support
 
 #include "ED_mesh.h"
+#include "ED_armature.h"
 
 #include "meshlaplacian.h"
 
@@ -237,7 +238,7 @@ static void laplacian_triangle_weights(LaplacianSystem *sys, int f, int i1, int 
 	}
 }
 
-LaplacianSystem *laplacian_system_construct_begin(int totvert, int totface, int lsq)
+static LaplacianSystem *laplacian_system_construct_begin(int totvert, int totface, int lsq)
 {
 	LaplacianSystem *sys;
 
@@ -279,7 +280,7 @@ void laplacian_add_triangle(LaplacianSystem *sys, int v1, int v2, int v3)
 	sys->totface++;
 }
 
-void laplacian_system_construct_end(LaplacianSystem *sys)
+static void laplacian_system_construct_end(LaplacianSystem *sys)
 {
 	int (*face)[3];
 	int a, totvert=sys->totvert, totface=sys->totface;
@@ -330,7 +331,7 @@ void laplacian_system_construct_end(LaplacianSystem *sys)
 	sys->edgehash= NULL;
 }
 
-void laplacian_system_delete(LaplacianSystem *sys)
+static void laplacian_system_delete(LaplacianSystem *sys)
 {
 	if(sys->verts) MEM_freeN(sys->verts);
 	if(sys->varea) MEM_freeN(sys->varea);
@@ -565,7 +566,7 @@ static void heat_set_H(LaplacianSystem *sys, int vertex)
 	sys->heat.H[vertex]= h;
 }
 
-void heat_calc_vnormals(LaplacianSystem *sys)
+static void heat_calc_vnormals(LaplacianSystem *sys)
 {
 	float fnor[3];
 	int a, v1, v2, v3, (*face)[3];

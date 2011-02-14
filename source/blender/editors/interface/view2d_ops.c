@@ -1203,7 +1203,7 @@ struct View2DScrollers {
 };
 
 /* quick enum for vsm->zone (scroller handles) */
-enum {
+static enum {
 	SCROLLHANDLE_MIN= -1,
 	SCROLLHANDLE_BAR,
 	SCROLLHANDLE_MAX,

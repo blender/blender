@@ -39,6 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -177,13 +178,13 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	sbuts->mainbo= sbuts->mainb;
 }
 
-void buttons_operatortypes(void)
+static void buttons_operatortypes(void)
 {
 	WM_operatortype_append(BUTTONS_OT_toolbox);
 	WM_operatortype_append(BUTTONS_OT_file_browse);
 }
 
-void buttons_keymap(struct wmKeyConfig *keyconf)
+static void buttons_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Property Editor", SPACE_BUTS, 0);
 	

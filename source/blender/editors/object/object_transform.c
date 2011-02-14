@@ -650,7 +650,7 @@ void OBJECT_OT_rotation_apply(wmOperatorType *ot)
 
 /************************ Texture Space Transform ****************************/
 
-void texspace_edit(Scene *scene, View3D *v3d)
+static void texspace_edit(Scene *scene, View3D *v3d)
 {
 	Base *base;
 	int nr=0;

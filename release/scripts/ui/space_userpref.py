@@ -891,7 +891,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         # fake module importing
         def fake_module(mod_name, mod_path, speedy=True):
             if bpy.app.debug:
-                print("fake_module", mod_name, mod_path)
+                print("fake_module", mod_path, mod_name)
             import ast
             ModuleType = type(ast)
             file_mod = open(mod_path, "r", encoding='UTF-8')

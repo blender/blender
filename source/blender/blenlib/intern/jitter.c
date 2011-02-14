@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_rand.h"
+#include "BLI_jitter.h"
 
 
 void BLI_jitterate1(float *jit1, float *jit2, int num, float rad1)

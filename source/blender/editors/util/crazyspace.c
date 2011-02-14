@@ -43,6 +43,8 @@
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 
+#include "ED_util.h"
+
 #define TAN_MAKE_VEC(a, b, c)	a[0]= b[0] + 0.2f*(b[0]-c[0]); a[1]= b[1] + 0.2f*(b[1]-c[1]); a[2]= b[2] + 0.2f*(b[2]-c[2])
 static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, float *def1, float *def2, float *def3)
 {

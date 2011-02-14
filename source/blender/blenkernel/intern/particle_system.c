@@ -2217,7 +2217,7 @@ static void psys_update_effectors(ParticleSimulationData *sim)
 
 ***********************************************************************************************************/
 #define PSYS_FLUID_SPRINGS_INITIAL_SIZE 256
-ParticleSpring *add_fluid_spring(ParticleSystem *psys, ParticleSpring *spring)
+static ParticleSpring *add_fluid_spring(ParticleSystem *psys, ParticleSpring *spring)
 {
 	/* Are more refs required? */
 	if(psys->alloc_fluidsprings == 0 || psys->fluid_springs == NULL) {
@@ -2236,7 +2236,7 @@ ParticleSpring *add_fluid_spring(ParticleSystem *psys, ParticleSpring *spring)
 	return psys->fluid_springs + psys->tot_fluidsprings - 1;
 }
 
-void  delete_fluid_spring(ParticleSystem *psys, int j)
+static void  delete_fluid_spring(ParticleSystem *psys, int j)
 {
 	if (j != psys->tot_fluidsprings - 1)
 		psys->fluid_springs[j] = psys->fluid_springs[psys->tot_fluidsprings - 1];
@@ -2249,7 +2249,7 @@ void  delete_fluid_spring(ParticleSystem *psys, int j)
 	}
 }
 
-EdgeHash *build_fluid_springhash(ParticleSystem *psys)
+static EdgeHash *build_fluid_springhash(ParticleSystem *psys)
 {
 	EdgeHash *springhash = NULL;
 	ParticleSpring *spring;

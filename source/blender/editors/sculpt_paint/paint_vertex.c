@@ -157,7 +157,7 @@ static int *get_indexarray(Mesh *me)
 /* in contradiction to cpack drawing colors, the MCOL colors (vpaint colors) are per byte! 
    so not endian sensitive. Mcol = ABGR!!! so be cautious with cpack calls */
 
-unsigned int rgba_to_mcol(float r, float g, float b, float a)
+static unsigned int rgba_to_mcol(float r, float g, float b, float a)
 {
 	int ir, ig, ib, ia;
 	unsigned int col;
@@ -853,7 +853,7 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 /* else */
 /*     sets wp->weight to the closest weight value to vertex */
 /*     note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
-void sample_wpaint(Scene *scene, ARegion *ar, View3D *UNUSED(v3d), int mode)
+static void sample_wpaint(Scene *scene, ARegion *ar, View3D *UNUSED(v3d), int mode)
 {
 	ViewContext vc;
 	ToolSettings *ts= scene->toolsettings;

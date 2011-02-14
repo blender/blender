@@ -2202,7 +2202,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 
 /* ************************** WARP *************************** */
 
-void postInputWarp(TransInfo *t, float values[3])
+static void postInputWarp(TransInfo *t, float values[3])
 {
 	mul_v3_fl(values, (float)(M_PI * 2));
 
@@ -2371,7 +2371,7 @@ int Warp(TransInfo *t, short UNUSED(mval[2]))
 
 /* ************************** SHEAR *************************** */
 
-void postInputShear(TransInfo *UNUSED(t), float values[3])
+static void postInputShear(TransInfo *UNUSED(t), float values[3])
 {
 	mul_v3_fl(values, 0.05f);
 }
@@ -2857,7 +2857,7 @@ int ToSphere(TransInfo *t, short UNUSED(mval[2]))
 /* ************************** ROTATION *************************** */
 
 
-void postInputRotation(TransInfo *t, float values[3])
+static void postInputRotation(TransInfo *t, float values[3])
 {
 	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
 		t->con.applyRot(t, NULL, t->axis, values);
@@ -5890,7 +5890,7 @@ void BIF_TransformSetUndo(char *UNUSED(str))
 }
 
 
-void NDofTransform(void)
+static void NDofTransform(void)
 {
 #if 0 // TRANSFORM_FIX_ME
 	float fval[7];

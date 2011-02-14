@@ -53,6 +53,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_node.h"
 #include "ED_gpencil.h"
 
 #include "UI_interface.h"

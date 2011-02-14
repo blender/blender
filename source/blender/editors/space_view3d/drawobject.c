@@ -5306,7 +5306,7 @@ static void draw_box(float vec[8][3])
 }
 
 /* uses boundbox, function used by Ketsji */
-void get_local_bounds(Object *ob, float *center, float *size)
+static void get_local_bounds(Object *ob, float *center, float *size)
 {
 	BoundBox *bb= object_get_boundbox(ob);
 	

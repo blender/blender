@@ -243,9 +243,6 @@ static char Euler_make_compatible_doc[] =
 "\n"
 "   Make this euler compatible with another, so interpolating between them works as intended.\n"
 "\n"
-"   :arg other: make compatible with this rotation.\n"
-"   :type other: :class:`Euler`\n"
-"\n"
 "   .. note:: the rotation order is not taken into account for this function.\n"
 ;
 static PyObject *Euler_make_compatible(EulerObject * self, PyObject *value)

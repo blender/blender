@@ -52,6 +52,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "ED_space_api.h"
 #include "ED_anim_api.h"
 #include "ED_markers.h"
 

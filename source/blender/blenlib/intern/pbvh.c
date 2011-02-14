@@ -44,22 +44,22 @@
 /* Bitmap */
 typedef char* BLI_bitmap;
 
-BLI_bitmap BLI_bitmap_new(int tot)
+static BLI_bitmap BLI_bitmap_new(int tot)
 {
 	return MEM_callocN((tot >> 3) + 1, "BLI bitmap");
 }
 
-int BLI_bitmap_get(BLI_bitmap b, int index)
+static int BLI_bitmap_get(BLI_bitmap b, int index)
 {
 	return b[index >> 3] & (1 << (index & 7));
 }
 
-void BLI_bitmap_set(BLI_bitmap b, int index)
+static void BLI_bitmap_set(BLI_bitmap b, int index)
 {
 	b[index >> 3] |= (1 << (index & 7));
 }
 
-void BLI_bitmap_clear(BLI_bitmap b, int index)
+static void BLI_bitmap_clear(BLI_bitmap b, int index)
 {
 	b[index >> 3] &= ~(1 << (index & 7));
 }
@@ -264,7 +264,7 @@ static int partition_indices(int *prim_indices, int lo, int hi, int axis,
 	}
 }
 
-void check_partitioning(int *prim_indices, int lo, int hi, int axis,
+static void check_partitioning(int *prim_indices, int lo, int hi, int axis,
 				   float mid, BBC *prim_bbc, int index_of_2nd_partition)
 {
 	int i;
@@ -405,7 +405,7 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
    offset and start indicate a range in the array of primitive indices
 */
 
-void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
+static void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
 		   int offset, int count)
 {
 	int i, axis, end;
@@ -841,7 +841,7 @@ float BLI_pbvh_node_get_tmin(PBVHNode* node)
     return node->tmin;
 }
 
-void BLI_pbvh_search_callback_occluded(PBVH *bvh,
+static void BLI_pbvh_search_callback_occluded(PBVH *bvh,
 	BLI_pbvh_SearchCallback scb, void *search_data,
 	BLI_pbvh_HitOccludedCallback hcb, void *hit_data)
 {

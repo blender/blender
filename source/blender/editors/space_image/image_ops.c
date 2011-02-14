@@ -1858,7 +1858,7 @@ typedef struct RecordCompositeData {
 	int sfra, efra;
 } RecordCompositeData;
 
-int record_composite_apply(bContext *C, wmOperator *op)
+static int record_composite_apply(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	RecordCompositeData *rcd= op->customdata;

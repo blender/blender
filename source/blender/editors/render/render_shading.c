@@ -71,6 +71,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_render.h"
 #include "ED_curve.h"
 #include "ED_mesh.h"
 
@@ -1095,7 +1096,7 @@ void ED_render_clear_mtex_copybuf(void)
 	mtexcopied= 0;
 }
 
-void copy_mtex_copybuf(ID *id)
+static void copy_mtex_copybuf(ID *id)
 {
 	MTex **mtex= NULL;
 	
@@ -1125,7 +1126,7 @@ void copy_mtex_copybuf(ID *id)
 	}
 }
 
-void paste_mtex_copybuf(ID *id)
+static void paste_mtex_copybuf(ID *id)
 {
 	MTex **mtex= NULL;
 	

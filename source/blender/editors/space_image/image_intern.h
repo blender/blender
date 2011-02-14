@@ -85,9 +85,6 @@ void IMAGE_OT_curves_point_set(struct wmOperatorType *ot);
 
 void IMAGE_OT_record_composite(struct wmOperatorType *ot);
 
-/* uvedit_draw.c */
-void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene, struct Object *obedit);
-
 /* image_panels.c */
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_register(struct ARegionType *art);

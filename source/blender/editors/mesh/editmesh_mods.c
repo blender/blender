@@ -1353,7 +1353,7 @@ int mesh_layers_menu(CustomData *data, int type) {
 	return ret;
 }
 
-void EM_mesh_copy_edge(EditMesh *em, short type) 
+static void EM_mesh_copy_edge(EditMesh *em, short type) 
 {
 	EditSelection *ese;
 	short change=0;
@@ -1432,7 +1432,7 @@ void EM_mesh_copy_edge(EditMesh *em, short type)
 	}
 }
 
-void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
+static void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 {
 	short change=0;
 	
@@ -1561,7 +1561,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 }
 
 
-void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type) 
+static void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type) 
 {
 	short change=0;
 	
@@ -1692,7 +1692,7 @@ void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type)
 
 
 /* ctrl+c in mesh editmode */
-void mesh_copy_menu(EditMesh *em, wmOperator *op)
+static void mesh_copy_menu(EditMesh *em, wmOperator *op)
 {
 	EditSelection *ese;
 	int ret;
@@ -2840,7 +2840,7 @@ void MESH_OT_reveal(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-int select_by_number_vertices_exec(bContext *C, wmOperator *op)
+static int select_by_number_vertices_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
@@ -2902,7 +2902,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 }
 
 
-int select_mirror_exec(bContext *C, wmOperator *op)
+static int select_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
@@ -3223,7 +3223,7 @@ void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "sharpness", 135.0f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
 }
 
-void select_non_manifold(EditMesh *em, wmOperator *op )
+static void select_non_manifold(EditMesh *em, wmOperator *op )
 {
 	EditVert *eve;
 	EditEdge *eed;
@@ -3520,7 +3520,7 @@ void MESH_OT_select_more(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void EM_select_less(EditMesh *em)
+static void EM_select_less(EditMesh *em)
 {
 	EditEdge *eed;
 	EditFace *efa;
@@ -4101,7 +4101,7 @@ static int mface_is_selected(MFace *mf)
 	 * which would use same as vertices method), then added
 	 * to interface! Hoera! - zr
 	 */
-void faceselect_align_view_to_selected(View3D *v3d, RegionView3D *rv3d, Mesh *me, wmOperator *op,  int axis)
+static void faceselect_align_view_to_selected(View3D *v3d, RegionView3D *rv3d, Mesh *me, wmOperator *op,  int axis)
 {
 	float norm[3];
 	int i, totselected = 0;
@@ -4158,7 +4158,7 @@ static void face_getnormal_obspace(Object *obedit, EditFace *efa, float *fno)
 }
 
 
-void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, wmOperator *op, View3D *v3d, RegionView3D *rv3d, int axis)
+static void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, wmOperator *op, View3D *v3d, RegionView3D *rv3d, int axis)
 {
 	int nselverts= EM_nvertices_selected(em);
 	float norm[3]={0.0, 0.0, 0.0}; /* used for storing the mesh normal */

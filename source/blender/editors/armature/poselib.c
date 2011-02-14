@@ -96,7 +96,7 @@ static void action_set_activemarker(void *UNUSED(a), void *UNUSED(b), void *UNUS
 /* ************************************************************* */
 
 /* gets list of poses in poselib as a string usable for pupmenu() */
-char *poselib_build_poses_menu (bAction *act, char title[])
+static char *poselib_build_poses_menu (bAction *act, char title[])
 {
 	DynStr *pupds= BLI_dynstr_new();
 	TimeMarker *marker;
@@ -129,7 +129,7 @@ char *poselib_build_poses_menu (bAction *act, char title[])
 /* gets the first available frame in poselib to store a pose on 
  *	- frames start from 1, and a pose should occur on every frame... 0 is error!
  */
-int poselib_get_free_index (bAction *act)
+static int poselib_get_free_index (bAction *act)
 {
 	TimeMarker *marker;
 	int low=0, high=0;
@@ -160,7 +160,7 @@ int poselib_get_free_index (bAction *act)
 }
 
 /* returns the active pose for a poselib */
-TimeMarker *poselib_get_active_pose (bAction *act)
+static TimeMarker *poselib_get_active_pose (bAction *act)
 {	
 	if ((act) && (act->active_marker))
 		return BLI_findlink(&act->markers, act->active_marker-1);
@@ -171,7 +171,7 @@ TimeMarker *poselib_get_active_pose (bAction *act)
 /* ************************************************************* */
 
 /* Initialise a new poselib (whether it is needed or not) */
-bAction *poselib_init_new (Object *ob)
+static bAction *poselib_init_new (Object *ob)
 {
 	/* sanity checks - only for armatures */
 	if (ELEM(NULL, ob, ob->pose))
@@ -186,7 +186,7 @@ bAction *poselib_init_new (Object *ob)
 }
 
 /* Initialise a new poselib (checks if that needs to happen) */
-bAction *poselib_validate (Object *ob)
+static bAction *poselib_validate (Object *ob)
 {
 	if (ELEM(NULL, ob, ob->pose))
 		return NULL;
@@ -201,7 +201,7 @@ bAction *poselib_validate (Object *ob)
  * in the action. This is for use in making existing actions usable as poselibs.
  */
 // TODO: operatorfy me!
-void poselib_validate_act (bAction *act)
+static void poselib_validate_act (bAction *act)
 {
 	DLRBT_Tree keys = {NULL, NULL};
 	ActKeyColumn *ak;

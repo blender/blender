@@ -93,7 +93,7 @@ void paintface_flush_flags(Object *ob)
 }
 
 /* returns 0 if not found, otherwise 1 */
-int facesel_face_pick(struct bContext *C, Mesh *me, short *mval, unsigned int *index, short rect)
+static int facesel_face_pick(struct bContext *C, Mesh *me, short *mval, unsigned int *index, short rect)
 {
 	ViewContext vc;
 	view3d_set_viewcontext(C, &vc);
@@ -152,7 +152,7 @@ MTFace *EM_get_active_mtface(EditMesh *em, EditFace **act_efa, MCol **mcol, int 
 	return NULL;
 }
 
-void paintface_unhide(Scene *scene)
+static void paintface_unhide(Scene *scene)
 {
 	Mesh *me;
 	MFace *mface;
@@ -174,7 +174,7 @@ void paintface_unhide(Scene *scene)
 	paintface_flush_flags(OBACT);
 }
 
-void paintface_hide(Scene *scene)
+static void paintface_hide(Scene *scene)
 {
 	Mesh *me;
 	MFace *mface;
@@ -397,7 +397,7 @@ void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 	}
 }
 
-void paintface_select_swap(Scene *scene)
+static void paintface_select_swap(Scene *scene)
 {
 	Mesh *me;
 	MFace *mface;

@@ -69,7 +69,7 @@
 static void drawObjectConstraint(TransInfo *t);
 
 /* ************************** CONSTRAINTS ************************* */
-void constraintAutoValues(TransInfo *t, float vec[3])
+static void constraintAutoValues(TransInfo *t, float vec[3])
 {
 	int mode = t->con.mode;
 	if (mode & CON_APPLY)

@@ -46,6 +46,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "ED_util.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_uvedit.h"

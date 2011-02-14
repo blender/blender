@@ -52,6 +52,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_text.h"
 #include "ED_curve.h"
 #include "ED_screen.h"
 #include "UI_interface.h"
@@ -2008,7 +2009,7 @@ static void screen_skip(SpaceText *st, ARegion *ar, int lines)
 }
 
 /* quick enum for tsc->zone (scroller handles) */
-enum {
+static enum {
 	SCROLLHANDLE_BAR,
 	SCROLLHANDLE_MIN_OUTSIDE,
 	SCROLLHANDLE_MAX_OUTSIDE

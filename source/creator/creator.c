@@ -1275,7 +1275,7 @@ int main(int argc, char **argv)
 	return 0;
 } /* end of int main(argc,argv)	*/
 
-static void error_cb(char *err)
+static void error_cb(const char *err)
 {
 	
 	printf("%s\n", err);	/* XXX do this in WM too */

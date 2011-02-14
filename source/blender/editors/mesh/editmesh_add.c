@@ -288,7 +288,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 /* ********************** */
 
 /* selected faces get hidden edges */
-int make_fgon(EditMesh *em, wmOperator *op, int make)
+static int make_fgon(EditMesh *em, wmOperator *op, int make)
 {
 	EditFace *efa;
 	EditEdge *eed;
@@ -667,7 +667,7 @@ static void fix_new_face(EditMesh *em, EditFace *eface)
 }
 
 /* only adds quads or trias when there's edges already */
-void addfaces_from_edgenet(EditMesh *em)
+static void addfaces_from_edgenet(EditMesh *em)
 {
 	EditVert *eve1, *eve2, *eve3, *eve4;
 	
@@ -868,10 +868,10 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 // this hack is only used so that scons+mingw + split-sources hack works
 	// ------------------------------- start copied code
 /* these are not the monkeys you are looking for */
-int monkeyo= 4;
-int monkeynv= 271;
-int monkeynf= 250;
-signed char monkeyv[271][3]= {
+static int monkeyo= 4;
+static int monkeynv= 271;
+static int monkeynf= 250;
+static signed char monkeyv[271][3]= {
 {-71,21,98},{-63,12,88},{-57,7,74},{-82,-3,79},{-82,4,92},
 {-82,17,100},{-92,21,102},{-101,12,95},{-107,7,83},
 {-117,31,84},{-109,31,95},{-96,31,102},{-92,42,102},
@@ -942,7 +942,7 @@ signed char monkeyv[271][3]= {
 {-26,-16,-42},{-17,49,-49},
 };
 
-signed char monkeyf[250][4]= {
+static signed char monkeyf[250][4]= {
 {27,4,5,26}, {25,4,5,24}, {3,6,5,4}, {1,6,5,2}, {5,6,7,4}, 
 {3,6,7,2}, {5,8,7,6}, {3,8,7,4}, {7,8,9,6}, 
 {5,8,9,4}, {7,10,9,8}, {5,10,9,6}, {9,10,11,8}, 

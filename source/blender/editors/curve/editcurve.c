@@ -75,6 +75,8 @@
 #include "ED_view3d.h"
 #include "ED_curve.h"
 
+#include "curve_intern.h"
+
 #include "UI_interface.h"
 
 #include "RNA_access.h"
@@ -103,7 +105,7 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
 /* still need to eradicate a few :( */
 #define callocstructN(x,y,name) (x*)MEM_callocN((y)* sizeof(x),name)
 
-float nurbcircle[8][2]= {
+static float nurbcircle[8][2]= {
 	{0.0, -1.0}, {-1.0, -1.0}, {-1.0, 0.0}, {-1.0,  1.0},
 	{0.0,  1.0}, { 1.0,  1.0}, { 1.0, 0.0}, { 1.0, -1.0}
 };
@@ -118,7 +120,7 @@ ListBase *curve_get_editcurve(Object *ob)
 }
 
 /* this replaces the active flag used in uv/face mode */
-void set_actNurb(Object *obedit, Nurb *nu)
+static void set_actNurb(Object *obedit, Nurb *nu)
 {
 	Curve *cu= obedit->data;
 	
@@ -130,7 +132,7 @@ void set_actNurb(Object *obedit, Nurb *nu)
 	}
 }
 
-Nurb *get_actNurb(Object *obedit)
+static Nurb *get_actNurb(Object *obedit)
 {
 	Curve *cu= obedit->data;
 	ListBase *nurbs= ED_curve_editnurbs(cu);
@@ -230,7 +232,7 @@ int isNurbsel(Nurb *nu)
 	return 0;
 }
 
-int isNurbsel_count(Curve *cu, Nurb *nu)
+static int isNurbsel_count(Curve *cu, Nurb *nu)
 {
 	BezTriple *bezt;
 	BPoint *bp;

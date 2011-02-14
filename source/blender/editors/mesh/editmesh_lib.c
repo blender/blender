@@ -2551,7 +2551,7 @@ static int tag_face_edges_test(EditFace *efa)
 		return (efa->e1->tmp.l || efa->e2->tmp.l || efa->e3->tmp.l) ? 1:0;
 }
 
-void em_deselect_nth_face(EditMesh *em, int nth, EditFace *efa_act)
+static void em_deselect_nth_face(EditMesh *em, int nth, EditFace *efa_act)
 {
 	EditFace *efa;
 	EditEdge *eed;
@@ -2623,7 +2623,7 @@ static int tag_edge_verts_test(EditEdge *eed)
 	return (eed->v1->tmp.l || eed->v2->tmp.l) ? 1:0;
 }
 
-void em_deselect_nth_edge(EditMesh *em, int nth, EditEdge *eed_act)
+static void em_deselect_nth_edge(EditMesh *em, int nth, EditEdge *eed_act)
 {
 	EditEdge *eed;
 	EditVert *eve;
@@ -2699,7 +2699,7 @@ void em_deselect_nth_edge(EditMesh *em, int nth, EditEdge *eed_act)
 	EM_nfaces_selected(em);
 }
 
-void em_deselect_nth_vert(EditMesh *em, int nth, EditVert *eve_act)
+static void em_deselect_nth_vert(EditMesh *em, int nth, EditVert *eve_act)
 {
 	EditVert *eve;
 	EditEdge *eed;

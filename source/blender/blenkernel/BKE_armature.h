@@ -108,6 +108,7 @@ void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float
 void pchan_mat3_to_rot(struct bPoseChannel *pchan, float mat[][3], short use_compat);
 void pchan_apply_mat4(struct bPoseChannel *pchan, float mat[][4], short use_comat);
 void pchan_to_mat4(struct bPoseChannel *pchan, float chan_mat[4][4]);
+void pchan_calc_mat(struct bPoseChannel *pchan);
 
 /* Rotation Mode Conversions - Used for PoseChannels + Objects... */
 void BKE_rotMode_change_values(float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode);

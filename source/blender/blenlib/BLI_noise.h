@@ -57,7 +57,6 @@ void voronoi(float x, float y, float z, float* da, float* pa, float me, int dtyp
 float cellNoise(float x, float y, float z);
 void cellNoiseV(float x, float y, float z, float *ca);
 
-
 #ifdef __cplusplus
 }
 #endif

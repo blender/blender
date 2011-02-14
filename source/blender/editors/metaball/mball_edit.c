@@ -48,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_mball.h"
 
+#include "ED_mball.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_transform.h"
@@ -55,6 +56,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "mball_intern.h"
 
 /* This function is used to free all MetaElems from MetaBall */
 void free_editMball(Object *obedit)
@@ -605,7 +608,7 @@ static void free_undoMball(void *lbv)
 	MEM_freeN(lb);
 }
 
-ListBase *metaball_get_editelems(Object *ob)
+static ListBase *metaball_get_editelems(Object *ob)
 {
 	if(ob && ob->type==OB_MBALL) {
 		struct MetaBall *mb= (struct MetaBall*)ob->data;

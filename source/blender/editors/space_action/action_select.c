@@ -182,7 +182,7 @@ void ACTION_OT_select_all_toggle (wmOperatorType *ot)
  */
 
 /* defines for borderselect mode */
-enum {
+static enum {
 	ACTKEYS_BORDERSEL_ALLKEYS	= 0,
 	ACTKEYS_BORDERSEL_FRAMERANGE,
 	ACTKEYS_BORDERSEL_CHANNELS,

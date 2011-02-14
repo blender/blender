@@ -1626,7 +1626,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 
 /* there is also a timing calculation in drawobject() */
 
-int no_speed_curve= 0;
+static int no_speed_curve= 0;
 
 void disable_speed_curve(int val)
 {
@@ -1775,6 +1775,7 @@ void object_to_mat4(Object *ob, float mat[][4])
 	add_v3_v3v3(mat[3], ob->loc, ob->dloc);
 }
 
+/* extern */
 int enable_cu_speed= 1;
 
 static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])

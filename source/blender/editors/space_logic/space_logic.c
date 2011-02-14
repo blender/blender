@@ -39,6 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -169,13 +170,13 @@ static SpaceLink *logic_duplicate(SpaceLink *sl)
 	return (SpaceLink *)slogicn;
 }
 
-void logic_operatortypes(void)
+static void logic_operatortypes(void)
 {
 	WM_operatortype_append(LOGIC_OT_properties);
 	WM_operatortype_append(LOGIC_OT_links_cut);
 }
 
-void logic_keymap(struct wmKeyConfig *keyconf)
+static void logic_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Logic Editor", SPACE_LOGIC, 0);
 	

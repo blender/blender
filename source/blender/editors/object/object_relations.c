@@ -1156,7 +1156,7 @@ void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 
 /************************** Link to Scene Operator *****************************/
 
-void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
+static void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
 {
 #if 0
 	Scene *sce= (Scene*) BLI_findlink(&bmain->scene, G.curscreen->scenenr-1);
@@ -1366,7 +1366,7 @@ static void single_object_users__forwardModifierLinks(void *UNUSED(userData), Ob
 	ID_NEW(*obpoin);
 }
 
-void single_object_users(Scene *scene, View3D *v3d, int flag)	
+static void single_object_users(Scene *scene, View3D *v3d, int flag)	
 {
 	Base *base;
 	Object *ob, *obn;
@@ -1415,7 +1415,7 @@ void single_object_users(Scene *scene, View3D *v3d, int flag)
 	set_sca_new_poins();
 }
 
-void new_id_matar(Material **matar, int totcol)
+static void new_id_matar(Material **matar, int totcol)
 {
 	ID *id;
 	int a;
@@ -1437,7 +1437,7 @@ void new_id_matar(Material **matar, int totcol)
 	}
 }
 
-void single_obdata_users(Main *bmain, Scene *scene, int flag)
+static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 {
 	Object *ob;
 	Lamp *la;
@@ -1571,7 +1571,7 @@ static void single_mat_users(Scene *scene, int flag, int do_textures)
 	}
 }
 
-void do_single_tex_user(Tex **from)
+static void do_single_tex_user(Tex **from)
 {
 	Tex *tex, *texn;
 	
@@ -1592,7 +1592,7 @@ void do_single_tex_user(Tex **from)
 	}
 }
 
-void single_tex_users_expand(Main *bmain)
+static void single_tex_users_expand(Main *bmain)
 {
 	/* only when 'parent' blocks are LIB_NEW */
 	Material *ma;

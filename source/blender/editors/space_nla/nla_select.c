@@ -86,7 +86,7 @@ static short selmodes_to_flagmodes (short sel)
  *	3) (de)select all - no testing is done; only for use internal tools as normal function...
  */
 
-enum {
+static enum {
 	DESELECT_STRIPS_NOTEST = 0,
 	DESELECT_STRIPS_TEST,
 	DESELECT_STRIPS_CLEARACTIVE,
@@ -206,7 +206,7 @@ void NLA_OT_select_all_toggle (wmOperatorType *ot)
  */
 
 /* defines for borderselect mode */
-enum {
+static enum {
 	NLA_BORDERSEL_ALLSTRIPS	= 0,
 	NLA_BORDERSEL_FRAMERANGE,
 	NLA_BORDERSEL_CHANNELS,

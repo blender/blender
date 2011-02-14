@@ -70,7 +70,7 @@
 
 /************************** properties ******************************/
 
-ARegion *text_has_properties_region(ScrArea *sa)
+static ARegion *text_has_properties_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
 	

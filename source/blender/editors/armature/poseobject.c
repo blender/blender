@@ -110,7 +110,7 @@ Object *ED_object_pose_armature(Object *ob)
 
 
 /* This function is used to indicate that a bone is selected and needs keyframes inserted */
-void set_pose_keys (Object *ob)
+static void set_pose_keys (Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *chan;
@@ -295,7 +295,7 @@ void POSE_OT_paths_calculate (wmOperatorType *ot)
 /* --------- */
 
 /* for the object with pose/action: clear path curves for selected bones only */
-void ED_pose_clear_paths(Object *ob)
+static void ED_pose_clear_paths(Object *ob)
 {
 	bPoseChannel *pchan;
 	short skipped = 0;
@@ -663,7 +663,7 @@ void POSE_OT_select_grouped (wmOperatorType *ot)
 
 /* ********************************************** */
 
-void pose_copy_menu(Scene *scene)
+static void pose_copy_menu(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX context
 	Object *ob= OBACT;
@@ -1567,7 +1567,7 @@ void POSE_OT_autoside_names (wmOperatorType *ot)
 /* ********************************************** */
 
 /* context active object, or weightpainted object with armature in posemode */
-void pose_activate_flipped_bone(Scene *scene)
+static void pose_activate_flipped_bone(Scene *scene)
 {
 	Object *ob= OBACT;
 

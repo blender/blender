@@ -159,7 +159,7 @@ static int graphview_cursor_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void GRAPH_OT_cursor_set(wmOperatorType *ot)
+static void GRAPH_OT_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Cursor";
@@ -199,7 +199,7 @@ static int view_toggle_handles_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void GRAPH_OT_view_togglehandles (wmOperatorType *ot)
+static void GRAPH_OT_view_togglehandles (wmOperatorType *ot)
 {
 	/* identification */
 	ot->name= "Show/Hide All Handles";

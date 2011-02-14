@@ -140,7 +140,7 @@ struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 }
 
 /* Check if there are any active modifiers in stack (used for flushing updates at enter/exit sculpt mode) */
-int sculpt_has_active_modifiers(Scene *scene, Object *ob)
+static int sculpt_has_active_modifiers(Scene *scene, Object *ob)
 {
 	ModifierData *md;
 
@@ -252,7 +252,7 @@ typedef struct StrokeCache {
 /*** BVH Tree ***/
 
 /* Get a screen-space rectangle of the modified area */
-int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
+static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 				Object *ob, rcti *rect)
 {
 	PBVH *pbvh= ob->sculpt->pbvh;
@@ -504,7 +504,7 @@ static void flip_coord(float out[3], float in[3], const char symm)
 		out[2]= in[2];
 }
 
-float calc_overlap(StrokeCache *cache, const char symm, const char axis, const float angle)
+static float calc_overlap(StrokeCache *cache, const char symm, const char axis, const float angle)
 {
 	float mirror[3];
 	float distsq;
@@ -3186,7 +3186,7 @@ typedef struct {
 	int original;
 } SculptRaycastData;
 
-void sculpt_raycast_cb(PBVHNode *node, void *data_v, float* tmin)
+static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float* tmin)
 {
 	if (BLI_pbvh_node_get_tmin(node) < *tmin) {
 		SculptRaycastData *srd = data_v;

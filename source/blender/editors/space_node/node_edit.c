@@ -210,7 +210,7 @@ static int composite_node_active(bContext *C)
 }
 
 /* also checks for edited groups */
-bNode *editnode_get_active(bNodeTree *ntree)
+static bNode *editnode_get_active(bNodeTree *ntree)
 {
 	bNode *node;
 	
@@ -1352,7 +1352,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 
 
 /* return 0, nothing done */
-/*static*/ int node_mouse_groupheader(SpaceNode *snode)
+static int node_mouse_groupheader(SpaceNode *snode)
 {
 	bNode *gnode;
 	float mx=0, my=0;
@@ -1481,7 +1481,7 @@ typedef struct bNodeListItem {
 	struct bNode *node;	
 } bNodeListItem;
 
-int sort_nodes_locx(void *a, void *b)
+static int sort_nodes_locx(void *a, void *b)
 {
 	bNodeListItem *nli1 = (bNodeListItem *)a;
 	bNodeListItem *nli2 = (bNodeListItem *)b;

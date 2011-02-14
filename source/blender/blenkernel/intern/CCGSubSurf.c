@@ -239,15 +239,15 @@ static int _edge_isBoundary(CCGEdge *e);
 
 /***/
 
-enum {
+static enum {
 	Vert_eEffected=		(1<<0),
 	Vert_eChanged=		(1<<1),
 	Vert_eSeam=			(1<<2),
 } VertFlags;
-enum {
+static enum {
 	Edge_eEffected=		(1<<0),
 } CCGEdgeFlags;
-enum {
+static enum {
 	Face_eEffected=		(1<<0),
 } FaceFlags;
 

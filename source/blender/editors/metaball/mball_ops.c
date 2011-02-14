@@ -31,7 +31,7 @@
 
 #include "RNA_access.h"
 
-
+#include "ED_mball.h"
 #include "ED_screen.h"
 
 #include "mball_intern.h"

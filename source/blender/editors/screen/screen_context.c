@@ -47,6 +47,8 @@
 #include "ED_object.h"
 #include "ED_armature.h"
 
+#include "screen_intern.h"
+
 int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	bScreen *sc= CTX_wm_screen(C);

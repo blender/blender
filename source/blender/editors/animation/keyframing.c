@@ -349,7 +349,7 @@ int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 
 /* -------------- 'Smarter' Keyframing Functions -------------------- */
 /* return codes for new_key_needed */
-enum {
+static enum {
 	KEYNEEDED_DONTADD = 0,
 	KEYNEEDED_JUSTADD,
 	KEYNEEDED_DELPREV,
@@ -1034,7 +1034,7 @@ short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 /* KEYFRAME MODIFICATION */
 
 /* mode for commonkey_modifykey */
-enum {
+static enum {
 	COMMONKEY_MODE_INSERT = 0,
 	COMMONKEY_MODE_DELETE,
 } eCommonModifyKey_Modes;
@@ -1578,7 +1578,7 @@ short fcurve_frame_has_keyframe (FCurve *fcu, float frame, short filter)
 /* Checks whether an Action has a keyframe for a given frame 
  * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
  */
-short action_frame_has_keyframe (bAction *act, float frame, short filter)
+static short action_frame_has_keyframe (bAction *act, float frame, short filter)
 {
 	FCurve *fcu;
 	
@@ -1606,7 +1606,7 @@ short action_frame_has_keyframe (bAction *act, float frame, short filter)
 }
 
 /* Checks whether an Object has a keyframe for a given frame */
-short object_frame_has_keyframe (Object *ob, float frame, short filter)
+static short object_frame_has_keyframe (Object *ob, float frame, short filter)
 {
 	/* error checking */
 	if (ob == NULL)

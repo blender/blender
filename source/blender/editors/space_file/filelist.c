@@ -27,7 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-
 /* global includes */
 
 #include <stdlib.h>
@@ -62,6 +61,7 @@
 
 #include "DNA_space_types.h"
 
+#include "ED_fileselect.h"
 #include "ED_datafiles.h"
 
 #include "IMB_imbuf.h"
@@ -562,7 +562,7 @@ void filelist_freelib(struct FileList* filelist)
 	filelist->libfiledata= 0;
 }
 
-struct BlendHandle *filelist_lib(struct FileList* filelist)
+static struct BlendHandle *filelist_lib(struct FileList* filelist)
 {
 	return filelist->libfiledata;
 }
@@ -593,7 +593,7 @@ short filelist_changed(struct FileList* filelist)
 	return filelist->changed;
 }
 
-struct ImBuf * filelist_loadimage(struct FileList* filelist, int index)
+static struct ImBuf * filelist_loadimage(struct FileList* filelist, int index)
 {
 	ImBuf *imb = NULL;
 	int fidx = 0;
@@ -807,7 +807,7 @@ int ED_file_extension_icon(char *relname)
 	return ICON_FILE_BLANK;
 }
 
-void filelist_setfiletypes(struct FileList* filelist)
+static void filelist_setfiletypes(struct FileList* filelist)
 {
 	struct direntry *file;
 	int num;

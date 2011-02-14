@@ -150,7 +150,7 @@ void ED_vgroup_data_create(ID *id)
 	}
 }
 
-int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
+static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
 {
 	if(id) {
 		switch(GS(id->name)) {
@@ -304,7 +304,7 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 
 /* for mesh in object mode
    lattice can be in editmode */
-void ED_vgroup_nr_vert_remove(Object *ob, int def_nr, int vertnum)
+static void ED_vgroup_nr_vert_remove(Object *ob, int def_nr, int vertnum)
 {
 	/* This routine removes the vertex from the deform
 	 * group with number def_nr.
@@ -372,7 +372,7 @@ void ED_vgroup_nr_vert_remove(Object *ob, int def_nr, int vertnum)
 
 /* for Mesh in Object mode */
 /* allows editmode for Lattice */
-void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float weight, int assignmode)
+static void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float weight, int assignmode)
 {
 	/* add the vert to the deform group with the
 	 * specified number
