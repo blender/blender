@@ -741,15 +741,12 @@ static void actkeys_select_leftright (bAnimContext *ac, short leftright, short s
 	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
 	select_cb= ANIM_editkeyframes_select(select_mode);
 	
-	/* NOTE: we used to include FRAME_CLICK_THRESH in the tolerance for the current frame, 
-	 * but this has now been remove, since it is not so relevant anymore
-	 */
 	if (leftright == ACTKEYS_LRSEL_LEFT) {
 		ked.f1 = MINAFRAMEF;
-		ked.f2 = (float)(CFRA);
+		ked.f2 = (float)(CFRA + 0.1f);
 	} 
 	else {
-		ked.f1 = (float)(CFRA);
+		ked.f1 = (float)(CFRA - 0.1f);
 		ked.f2 = MAXFRAMEF;
 	}
 	
