@@ -3677,23 +3677,42 @@ static struct PyMethodDef pyrna_prop_collection_idprop_methods[] = {
 
 /* only needed for subtyping, so a new class gets a valid BPy_StructRNA
  * todo - also accept useful args */
-static PyObject * pyrna_struct_new(PyTypeObject *type, PyObject *args, PyObject *UNUSED(kwds)) {
+static PyObject * pyrna_struct_new(PyTypeObject *type, PyObject *args, PyObject *UNUSED(kwds))
+{
+	if(PyTuple_GET_SIZE(args) == 1) {
+		BPy_StructRNA *base= (BPy_StructRNA *)PyTuple_GET_ITEM(args, 0);
+		if (type == Py_TYPE(base)) {
+			Py_INCREF(base);
+			return (PyObject *)base;
+		}
+		else if (PyType_IsSubtype(type, &pyrna_struct_Type)) {
+			/* this almost never runs, only when using user defined subclasses of built-in object.
+			 * this isnt common since its NOT related to registerable subclasses. eg:
 
-	BPy_StructRNA *base;
+				>>> class MyObSubclass(bpy.types.Object):
+				...     def test_func(self):
+				...         print(100)
+				... 
+				>>> myob = MyObSubclass(bpy.context.object)
+				>>> myob.test_func()
+				100
+			 * 
+			 * Keep this since it could be useful.
+			 */
+			BPy_StructRNA *ret;
+			if((ret= (BPy_StructRNA *)type->tp_alloc(type, 0))) {
+				ret->ptr = base->ptr;
+			}
+			/* pass on exception & NULL if tp_alloc fails */
+			return (PyObject *)ret;
+		}
 
-	if (!PyArg_ParseTuple(args, "O!:bpy_struct.__new__", &pyrna_struct_Type, &base))
+		/* error, invalid type given */
+		PyErr_Format(PyExc_TypeError, "bpy_struct.__new__(type): type '%.200s' is not a subtype of bpy_struct", type->tp_name);
 		return NULL;
-
-	if (type == Py_TYPE(base)) {
-		Py_INCREF(base);
-		return (PyObject *)base;
-	} else if (PyType_IsSubtype(type, &pyrna_struct_Type)) {
-		BPy_StructRNA *ret = (BPy_StructRNA *) type->tp_alloc(type, 0);
-		ret->ptr = base->ptr;
-		return (PyObject *)ret;
 	}
 	else {
-		PyErr_Format(PyExc_TypeError, "bpy_struct.__new__(type): type '%.200s' is not a subtype of bpy_struct", type->tp_name);
+		PyErr_Format(PyExc_TypeError, "bpy_struct.__new__(type): expected a single argument");
 		return NULL;
 	}
 }
@@ -5310,7 +5329,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 					func_arg_count++;
 
 				if (arg_count != func_arg_count) {
-					PyErr_Format(PyExc_AttributeError, "expected %.200s, %.200s class \"%.200s\" function to have %d args, found %d", class_type, py_class_name, RNA_function_identifier(func), func_arg_count, arg_count);
+					PyErr_Format(PyExc_ValueError, "expected %.200s, %.200s class \"%.200s\" function to have %d args, found %d", class_type, py_class_name, RNA_function_identifier(func), func_arg_count, arg_count);
 					return -1;
 				}
 			}
@@ -5438,6 +5457,14 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			py_class_instance = NULL;
 		}
 		else {
+			/* 'almost' all the time calling the class isnt needed.
+			 * We could just do...
+			py_class_instance = py_srna;
+			Py_INCREF(py_class_instance);
+			 * This would work fine but means __init__ functions wouldnt run.
+			 * none of blenders default scripts use __init__ but its nice to call it
+			 * for general correctness. just to note why this is here when it could be safely removed.
+			 */
 			args = PyTuple_New(1);
 			PyTuple_SET_ITEM(args, 0, py_srna);
 			py_class_instance= PyObject_Call(py_class, args, NULL);
