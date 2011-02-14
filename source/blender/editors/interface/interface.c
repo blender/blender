@@ -501,10 +501,10 @@ static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 	return 1;
 }
 
-static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut *but)
+static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut **butpp)
 {
 	uiBlock *oldblock;
-	uiBut *oldbut;
+	uiBut *oldbut, *but= *butpp;
 	int found= 0;
 
 	oldblock= block->oldblock;
@@ -515,35 +515,51 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 		if(ui_but_equals_old(oldbut, but)) {
 			if(oldbut->active) {
 #if 0
-				but->flag= oldbut->flag;
+//				but->flag= oldbut->flag;
 #else
 				/* exception! redalert flag can't be update from old button. 
 				 * perhaps it should only copy spesific flags rather then all. */
-				but->flag= (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
+//				but->flag= (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
 #endif
-				but->active= oldbut->active;
-				but->pos= oldbut->pos;
-				but->ofs= oldbut->ofs;
-				but->editstr= oldbut->editstr;
-				but->editval= oldbut->editval;
-				but->editvec= oldbut->editvec;
-				but->editcoba= oldbut->editcoba;
-				but->editcumap= oldbut->editcumap;
-				but->selsta= oldbut->selsta;
-				but->selend= oldbut->selend;
-				but->softmin= oldbut->softmin;
-				but->softmax= oldbut->softmax;
-				but->linkto[0]= oldbut->linkto[0];
-				but->linkto[1]= oldbut->linkto[1];
+//				but->active= oldbut->active;
+//				but->pos= oldbut->pos;
+//				but->ofs= oldbut->ofs;
+//				but->editstr= oldbut->editstr;
+//				but->editval= oldbut->editval;
+//				but->editvec= oldbut->editvec;
+//				but->editcoba= oldbut->editcoba;
+//				but->editcumap= oldbut->editcumap;
+//				but->selsta= oldbut->selsta;
+//				but->selend= oldbut->selend;
+//				but->softmin= oldbut->softmin;
+//				but->softmax= oldbut->softmax;
+//				but->linkto[0]= oldbut->linkto[0];
+//				but->linkto[1]= oldbut->linkto[1];
 				found= 1;
-
-				oldbut->active= NULL;
+//				oldbut->active= NULL;
+			
+				/* move button over from oldblock to new block */
+				BLI_remlink(&oldblock->buttons, oldbut);
+				BLI_insertlink(&block->buttons, but, oldbut);
+				oldbut->block= block;
+				*butpp= oldbut;
+				
+				/* still stuff needs to be copied */
+				oldbut->x1= but->x1; oldbut->y1= but->y1;
+				oldbut->x2= but->x2; oldbut->y2= but->y2;
+				oldbut->context= but->context; /* set by Layout */
+				
+				BLI_remlink(&block->buttons, but);
+				ui_free_but(C, but);
+				
+				/* note: if layout hasn't been applied yet, it uses old button pointers... */
 			}
-
-			/* ensures one button can get activated, and in case the buttons
-			 * draw are the same this gives O(1) lookup for each button */
-			BLI_remlink(&oldblock->buttons, oldbut);
-			ui_free_but(C, oldbut);
+			else {
+				/* ensures one button can get activated, and in case the buttons
+				 * draw are the same this gives O(1) lookup for each button */
+				BLI_remlink(&oldblock->buttons, oldbut);
+				ui_free_but(C, oldbut);
+			}
 			
 			break;
 		}
@@ -695,7 +711,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	 * blocking, while still alowing buttons to be remade each redraw as it
 	 * is expected by blender code */
 	for(but=block->buttons.first; but; but=but->next) {
-		if(ui_but_update_from_old_block(C, block, but))
+		if(ui_but_update_from_old_block(C, block, &but))
 			ui_check_but(but);
 		
 		/* temp? Proper check for greying out */
@@ -912,7 +928,7 @@ static void ui_is_but_sel(uiBut *but)
 }
 
 /* XXX 2.50 no links supported yet */
-
+#if 0
 static int uibut_contains_pt(uiBut *UNUSED(but), short *UNUSED(mval))
 {
 	return 0;
@@ -943,7 +959,7 @@ static uiBut *ui_get_valid_link_button(uiBlock *block, uiBut *but, short *mval)
 
 	return NULL;
 }
-
+#endif
 
 static uiBut *ui_find_inlink(uiBlock *block, void *poin)
 {
