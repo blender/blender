@@ -28,9 +28,7 @@
 #ifndef WM_FILES_H
 #define WM_FILES_H
 
-extern void read_history(void);
-extern void delete_autosave(void);
-
+extern void WM_read_history(void);
 
 #endif /* WM_FILES_H */
 

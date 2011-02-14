@@ -175,7 +175,7 @@ void WM_init(bContext *C, int argc, char **argv)
 	
 	G.ndofdevice = -1;	/* XXX bad initializer, needs set otherwise buttons show! */
 	
-	read_history();
+	WM_read_history();
 
 	/* allow a path of "", this is what happens when making a new file */
 	/*

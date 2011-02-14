@@ -595,6 +595,12 @@ static PyObject *pyrna_prop_str( BPy_PropertyRNA *self )
 			return ret;
 		}
 	}
+	if(RNA_property_type(self->prop) == PROP_COLLECTION) {
+		PointerRNA r_ptr;
+		if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
+			return PyUnicode_FromFormat( "<bpy_%.200s, %.200s>", type_fmt, RNA_struct_identifier(r_ptr.type));
+		}
+	}
 
 	return PyUnicode_FromFormat( "<bpy_%.200s, %.200s.%.200s>", type_fmt, RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
 }
@@ -802,14 +808,14 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 		if (RNA_property_enum_identifier(BPy_GetContext(), ptr, prop, val, &identifier)) {
 			ret = PyUnicode_FromString(identifier);
 		} else {
-			EnumPropertyItem *item;
+			EnumPropertyItem *enum_item;
 			int free= FALSE;
 
 			/* don't throw error here, can't trust blender 100% to give the
 			 * right values, python code should not generate error for that */
-			RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
-			if(item && item->identifier) {
-				ret= PyUnicode_FromString(item->identifier);
+			RNA_property_enum_items(BPy_GetContext(), ptr, prop, &enum_item, NULL, &free);
+			if(enum_item && enum_item->identifier) {
+				ret= PyUnicode_FromString(enum_item->identifier);
 			}
 			else {
 				const char *ptr_name= RNA_struct_name_get_alloc(ptr, NULL, FALSE);
@@ -830,7 +836,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 			}
 
 			if(free)
-				MEM_freeN(item);
+				MEM_freeN(enum_item);
 
 			/*PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
 			ret = NULL;*/
@@ -1145,7 +1151,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 		{
 			PyObject *value_new= NULL;
 
-			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
+			StructRNA *ptr_type= RNA_property_pointer_type(ptr, prop);
 			int flag = RNA_property_flag(prop);
 
 			/* this is really nasty!, so we can fake the operator having direct properties eg:
@@ -1159,7 +1165,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 			 * this is so bad that its almost a good reason to do away with fake 'self.properties -> self' class mixing
 			 * if this causes problems in the future it should be removed.
 			 */
-			if(	(ptype == &RNA_AnyType) &&
+			if(	(ptr_type == &RNA_AnyType) &&
 				(BPy_StructRNA_Check(value)) &&
 				(RNA_struct_is_a(((BPy_StructRNA *)value)->ptr.type, &RNA_Operator))
 			) {
@@ -1169,7 +1175,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 
 
 			/* if property is an OperatorProperties pointer and value is a map, forward back to pyrna_pydict_to_props */
-			if (RNA_struct_is_a(ptype, &RNA_OperatorProperties) && PyDict_Check(value)) {
+			if (RNA_struct_is_a(ptr_type, &RNA_OperatorProperties) && PyDict_Check(value)) {
 				PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
 				return pyrna_pydict_to_props(&opptr, value, 0, error_prefix);
 			}
@@ -1183,16 +1189,16 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 					value_new= value;
 				}
 				else {
-					PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s collection has no type, cant be used as a %.200s type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), RNA_struct_identifier(ptype));
+					PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s collection has no type, cant be used as a %.200s type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), RNA_struct_identifier(ptr_type));
 					return -1;
 				}
 			}
 
 			if(!BPy_StructRNA_Check(value) && value != Py_None) {
-				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), RNA_struct_identifier(ptype));
+				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), RNA_struct_identifier(ptr_type));
 				Py_XDECREF(value_new); return -1;
 			} else if((flag & PROP_NEVER_NULL) && value == Py_None) {
-				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s does not support a 'None' assignment %.200s type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), RNA_struct_identifier(ptype));
+				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s does not support a 'None' assignment %.200s type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), RNA_struct_identifier(ptr_type));
 				Py_XDECREF(value_new); return -1;
 			} else if(value != Py_None && ((flag & PROP_ID_SELF_CHECK) && ptr->id.data == ((BPy_StructRNA*)value)->ptr.id.data)) {
 				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s ID type does not support assignment to its self", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
@@ -1211,7 +1217,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 					else if(value == Py_None) {
 						*((void**)data)= NULL;
 					}
-					else if(RNA_struct_is_a(param->ptr.type, ptype)) {
+					else if(RNA_struct_is_a(param->ptr.type, ptr_type)) {
 						*((void**)data)= param->ptr.data;
 					}
 					else {
@@ -1224,12 +1230,12 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 						PointerRNA valueptr= {{NULL}};
 						RNA_property_pointer_set(ptr, prop, valueptr);
 					}
-					else if(RNA_struct_is_a(param->ptr.type, ptype)) {
+					else if(RNA_struct_is_a(param->ptr.type, ptr_type)) {
 						RNA_property_pointer_set(ptr, prop, param->ptr);
 					}
 					else {
 						PointerRNA tmp;
-						RNA_pointer_create(NULL, ptype, NULL, &tmp);
+						RNA_pointer_create(NULL, ptr_type, NULL, &tmp);
 						PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), RNA_struct_identifier(tmp.type));
 						Py_XDECREF(value_new); return -1;
 					}
@@ -1237,7 +1243,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 
 				if(raise_error) {
 					PointerRNA tmp;
-					RNA_pointer_create(NULL, ptype, NULL, &tmp);
+					RNA_pointer_create(NULL, ptr_type, NULL, &tmp);
 					PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), RNA_struct_identifier(tmp.type));
 					Py_XDECREF(value_new); return -1;
 				}
@@ -3829,21 +3835,21 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 		case PROP_POINTER:
 		{
 			PointerRNA newptr;
-			StructRNA *type= RNA_property_pointer_type(ptr, prop);
+			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
 
 			if(flag & PROP_RNAPTR) {
 				/* in this case we get the full ptr */
 				newptr= *(PointerRNA*)data;
 			}
 			else {
-				if(RNA_struct_is_ID(type)) {
+				if(RNA_struct_is_ID(ptype)) {
 					RNA_id_pointer_create(*(void**)data, &newptr);
 				} else {
 					/* note: this is taken from the function's ID pointer
 					 * and will break if a function returns a pointer from
 					 * another ID block, watch this! - it should at least be
 					 * easy to debug since they are all ID's */
-					RNA_pointer_create(ptr->id.data, type, *(void**)data, &newptr);
+					RNA_pointer_create(ptr->id.data, ptype, *(void**)data, &newptr);
 				}
 			}
 

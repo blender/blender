@@ -530,8 +530,8 @@ void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainCameras");
-	srna= RNA_def_struct(brna, "MainCameras", NULL);
+	RNA_def_property_srna(cprop, "BlendDataCameras");
+	srna= RNA_def_struct(brna, "BlendDataCameras", NULL);
 	RNA_def_struct_ui_text(srna, "Main Cameras", "Collection of cameras");
 
 	func= RNA_def_function(srna, "new", "rna_Main_cameras_new");
@@ -559,8 +559,8 @@ void RNA_def_main_scenes(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainScenes");
-	srna= RNA_def_struct(brna, "MainScenes", NULL);
+	RNA_def_property_srna(cprop, "BlendDataScenes");
+	srna= RNA_def_struct(brna, "BlendDataScenes", NULL);
 	RNA_def_struct_ui_text(srna, "Main Scenes", "Collection of scenes");
 
 	func= RNA_def_function(srna, "new", "rna_Main_scenes_new");
@@ -584,8 +584,8 @@ void RNA_def_main_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainObjects");
-	srna= RNA_def_struct(brna, "MainObjects", NULL);
+	RNA_def_property_srna(cprop, "BlendDataObjects");
+	srna= RNA_def_struct(brna, "BlendDataObjects", NULL);
 	RNA_def_struct_ui_text(srna, "Main Objects", "Collection of objects");
 
 	func= RNA_def_function(srna, "new", "rna_Main_objects_new");
@@ -617,8 +617,8 @@ void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainMaterials");
-	srna= RNA_def_struct(brna, "MainMaterials", NULL);
+	RNA_def_property_srna(cprop, "BlendDataMaterials");
+	srna= RNA_def_struct(brna, "BlendDataMaterials", NULL);
 	RNA_def_struct_ui_text(srna, "Main Material", "Collection of materials");
 
 	func= RNA_def_function(srna, "new", "rna_Main_materials_new");
@@ -651,8 +651,8 @@ void RNA_def_main_node_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	{2, "TEXTURE",      0,    "Texture",      ""},
 	{0, NULL, 0, NULL, NULL}};
 
-	RNA_def_property_srna(cprop, "MainNodeTrees");
-	srna= RNA_def_struct(brna, "MainNodeTrees", NULL);
+	RNA_def_property_srna(cprop, "BlendDataNodeTrees");
+	srna= RNA_def_struct(brna, "BlendDataNodeTrees", NULL);
 	RNA_def_struct_ui_text(srna, "Main Node Trees", "Collection of node trees");
 
 	func= RNA_def_function(srna, "new", "rna_Main_nodetree_new");
@@ -681,8 +681,8 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainMeshes");
-	srna= RNA_def_struct(brna, "MainMeshes", NULL);
+	RNA_def_property_srna(cprop, "BlendDataMeshes");
+	srna= RNA_def_struct(brna, "BlendDataMeshes", NULL);
 	RNA_def_struct_ui_text(srna, "Main Meshes", "Collection of meshes");
 
 	func= RNA_def_function(srna, "new", "rna_Main_meshes_new");
@@ -709,8 +709,8 @@ void RNA_def_main_lamps(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainLamps");
-	srna= RNA_def_struct(brna, "MainLamps", NULL);
+	RNA_def_property_srna(cprop, "BlendDataLamps");
+	srna= RNA_def_struct(brna, "BlendDataLamps", NULL);
 	RNA_def_struct_ui_text(srna, "Main Lamps", "Collection of lamps");
 
 	func= RNA_def_function(srna, "new", "rna_Main_lamps_new");
@@ -740,8 +740,8 @@ void RNA_def_main_libraries(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainLibraries");
-	srna= RNA_def_struct(brna, "MainLibraries", NULL);
+	RNA_def_property_srna(cprop, "BlendDataLibraries");
+	srna= RNA_def_struct(brna, "BlendDataLibraries", NULL);
 	RNA_def_struct_ui_text(srna, "Main Libraries", "Collection of libraries");
 
 	func= RNA_def_function(srna, "tag", "rna_Main_libraries_tag");
@@ -755,8 +755,8 @@ void RNA_def_main_screens(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainScreens");
-	srna= RNA_def_struct(brna, "MainScreens", NULL);
+	RNA_def_property_srna(cprop, "BlendDataScreens");
+	srna= RNA_def_struct(brna, "BlendDataScreens", NULL);
 	RNA_def_struct_ui_text(srna, "Main Screens", "Collection of screens");
 
 	func= RNA_def_function(srna, "tag", "rna_Main_screens_tag");
@@ -770,8 +770,8 @@ void RNA_def_main_window_managers(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainWindowManagers");
-	srna= RNA_def_struct(brna, "MainWindowManagers", NULL);
+	RNA_def_property_srna(cprop, "BlendDataWindowManagers");
+	srna= RNA_def_struct(brna, "BlendDataWindowManagers", NULL);
 	RNA_def_struct_ui_text(srna, "Main Window Managers", "Collection of window managers");
 
 	func= RNA_def_function(srna, "tag", "rna_Main_window_managers_tag");
@@ -784,8 +784,8 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainImages");
-	srna= RNA_def_struct(brna, "MainImages", NULL);
+	RNA_def_property_srna(cprop, "BlendDataImages");
+	srna= RNA_def_struct(brna, "BlendDataImages", NULL);
 	RNA_def_struct_ui_text(srna, "Main Images", "Collection of images");
 
 	func= RNA_def_function(srna, "new", "rna_Main_images_new");
@@ -828,8 +828,8 @@ void RNA_def_main_lattices(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainLattices");
-	srna= RNA_def_struct(brna, "MainLattices", NULL);
+	RNA_def_property_srna(cprop, "BlendDataLattices");
+	srna= RNA_def_struct(brna, "BlendDataLattices", NULL);
 	RNA_def_struct_ui_text(srna, "Main Lattices", "Collection of lattices");
 
 	func= RNA_def_function(srna, "new", "rna_Main_lattices_new");
@@ -856,8 +856,8 @@ void RNA_def_main_curves(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainCurves");
-	srna= RNA_def_struct(brna, "MainCurves", NULL);
+	RNA_def_property_srna(cprop, "BlendDataCurves");
+	srna= RNA_def_struct(brna, "BlendDataCurves", NULL);
 	RNA_def_struct_ui_text(srna, "Main Curves", "Collection of curves");
 
 	func= RNA_def_function(srna, "new", "rna_Main_curves_new");
@@ -886,8 +886,8 @@ void RNA_def_main_metaballs(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainMetaBalls");
-	srna= RNA_def_struct(brna, "MainMetaBalls", NULL);
+	RNA_def_property_srna(cprop, "BlendDataMetaBalls");
+	srna= RNA_def_struct(brna, "BlendDataMetaBalls", NULL);
 	RNA_def_struct_ui_text(srna, "Main MetaBall", "Collection of metaballs");
 
 	func= RNA_def_function(srna, "new", "rna_Main_metaballs_new");
@@ -914,8 +914,8 @@ void RNA_def_main_fonts(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainFonts");
-	srna= RNA_def_struct(brna, "MainFonts", NULL);
+	RNA_def_property_srna(cprop, "BlendDataFonts");
+	srna= RNA_def_struct(brna, "BlendDataFonts", NULL);
 	RNA_def_struct_ui_text(srna, "Main Fonts", "Collection of fonts");
 
 	func= RNA_def_function(srna, "load", "rna_Main_fonts_load");
@@ -943,8 +943,8 @@ void RNA_def_main_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainTextures");
-	srna= RNA_def_struct(brna, "MainTextures", NULL);
+	RNA_def_property_srna(cprop, "BlendDataTextures");
+	srna= RNA_def_struct(brna, "BlendDataTextures", NULL);
 	RNA_def_struct_ui_text(srna, "Main Textures", "Collection of groups");
 
 	func= RNA_def_function(srna, "new", "rna_Main_textures_new");
@@ -973,8 +973,8 @@ void RNA_def_main_brushes(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainBrushes");
-	srna= RNA_def_struct(brna, "MainBrushes", NULL);
+	RNA_def_property_srna(cprop, "BlendDataBrushes");
+	srna= RNA_def_struct(brna, "BlendDataBrushes", NULL);
 	RNA_def_struct_ui_text(srna, "Main Brushes", "Collection of brushes");
 
 	func= RNA_def_function(srna, "new", "rna_Main_brushes_new");
@@ -1002,8 +1002,8 @@ void RNA_def_main_worlds(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainWorlds");
-	srna= RNA_def_struct(brna, "MainWorlds", NULL);
+	RNA_def_property_srna(cprop, "BlendDataWorlds");
+	srna= RNA_def_struct(brna, "BlendDataWorlds", NULL);
 	RNA_def_struct_ui_text(srna, "Main Worlds", "Collection of worlds");
 
 	func= RNA_def_function(srna, "new", "rna_Main_worlds_new");
@@ -1031,8 +1031,8 @@ void RNA_def_main_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainGroups");
-	srna= RNA_def_struct(brna, "MainGroups", NULL);
+	RNA_def_property_srna(cprop, "BlendDataGroups");
+	srna= RNA_def_struct(brna, "BlendDataGroups", NULL);
 	RNA_def_struct_ui_text(srna, "Main Groups", "Collection of groups");
 
 	func= RNA_def_function(srna, "new", "rna_Main_groups_new");
@@ -1059,8 +1059,8 @@ void RNA_def_main_texts(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainTexts");
-	srna= RNA_def_struct(brna, "MainTexts", NULL);
+	RNA_def_property_srna(cprop, "BlendDataTexts");
+	srna= RNA_def_struct(brna, "BlendDataTexts", NULL);
 	RNA_def_struct_ui_text(srna, "Main Texts", "Collection of texts");
 
 	func= RNA_def_function(srna, "new", "rna_Main_texts_new");
@@ -1098,8 +1098,8 @@ void RNA_def_main_sounds(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainSounds");
-	srna= RNA_def_struct(brna, "MainSounds", NULL);
+	RNA_def_property_srna(cprop, "BlendDataSounds");
+	srna= RNA_def_struct(brna, "BlendDataSounds", NULL);
 	RNA_def_struct_ui_text(srna, "Main Sounds", "Collection of sounds");
 
 	/* TODO, 'load' */
@@ -1115,8 +1115,8 @@ void RNA_def_main_armatures(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainArmatures");
-	srna= RNA_def_struct(brna, "MainArmatures", NULL);
+	RNA_def_property_srna(cprop, "BlendDataArmatures");
+	srna= RNA_def_struct(brna, "BlendDataArmatures", NULL);
 	RNA_def_struct_ui_text(srna, "Main Armatures", "Collection of armatures");
 
 	func= RNA_def_function(srna, "new", "rna_Main_armatures_new");
@@ -1143,8 +1143,8 @@ void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainActions");
-	srna= RNA_def_struct(brna, "MainActions", NULL);
+	RNA_def_property_srna(cprop, "BlendDataActions");
+	srna= RNA_def_struct(brna, "BlendDataActions", NULL);
 	RNA_def_struct_ui_text(srna, "Main Actions", "Collection of actions");
 
 	func= RNA_def_function(srna, "new", "rna_Main_actions_new");
@@ -1171,8 +1171,8 @@ void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainParticles");
-	srna= RNA_def_struct(brna, "MainParticles", NULL);
+	RNA_def_property_srna(cprop, "BlendDataParticles");
+	srna= RNA_def_struct(brna, "BlendDataParticles", NULL);
 	RNA_def_struct_ui_text(srna, "Main Particle Settings", "Collection of particle settings");
 
 	func= RNA_def_function(srna, "new", "rna_Main_particles_new");
@@ -1200,8 +1200,8 @@ void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainGreasePencils");
-	srna= RNA_def_struct(brna, "MainGreasePencils", NULL);
+	RNA_def_property_srna(cprop, "BlendDataGreasePencils");
+	srna= RNA_def_struct(brna, "BlendDataGreasePencils", NULL);
 	RNA_def_struct_ui_text(srna, "Main Grease Pencils", "Collection of grease pencils");
 
 	func= RNA_def_function(srna, "tag", "rna_Main_gpencil_tag");

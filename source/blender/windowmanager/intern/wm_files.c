@@ -446,7 +446,7 @@ int WM_read_homefile_exec(bContext *C, wmOperator *op)
 	return WM_read_homefile(C, op->reports, from_memory) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-void read_history(void)
+void WM_read_history(void)
 {
 	char name[FILE_MAX];
 	LinkNode *l, *lines;

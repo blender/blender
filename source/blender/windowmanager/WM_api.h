@@ -351,6 +351,9 @@ void		WM_progress_clear(struct wmWindow *win);
 void		WM_toggle_console(struct bContext *C, short show);
 #endif
 
+/* debugging only, convenience function to write on crash */
+int write_crash_blend(void);
+
 #ifdef __cplusplus
 }
 #endif

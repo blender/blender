@@ -2776,7 +2776,7 @@ int view_autodist_depth_segment(struct ARegion *ar, short mval_sta[2], short mva
 // speed and os, i changed the scaling values, but
 // those are still not ok
 
-
+#if 0
 static float ndof_axis_scale[6] = {
 	+0.01,	// Tx
 	+0.01,	// Tz
@@ -2799,7 +2799,6 @@ static void filterNDOFvalues(float *sbval)
 			sbval[i]=0.0;
 }
 
-#if 0
 // statics for controlling rv3d->dist corrections.
 // viewmoveNDOF zeros and adjusts rv3d->ofs.
 // viewmove restores based on dz_flag state.
