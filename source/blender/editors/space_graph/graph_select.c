@@ -840,7 +840,7 @@ void GRAPH_OT_select_leftright (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Left/Right";
 	ot->idname= "GRAPH_OT_select_leftright";
-	ot->description= "Select keyframes to the left or the right of the current keyframe ";
+	ot->description= "Select keyframes to the left or the right of the current frame";
 	
 	/* api callbacks  */
 	ot->invoke=	graphkeys_select_leftright_invoke;

@@ -843,7 +843,7 @@ static int actkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent
 		ARegion *ar= ac.ar;
 		View2D *v2d= &ar->v2d;
 		
-		short mval[2];
+		int mval[2];
 		float x;
 		
 		/* get mouse coordinates (in region coordinates) */
@@ -867,7 +867,7 @@ void ACTION_OT_select_leftright (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Left/Right";
 	ot->idname= "ACTION_OT_select_leftright";
-	ot->description= "Select keyframes to the left or the right of the current keyframe ";
+	ot->description= "Select keyframes to the left or the right of the current frame";
 	
 	/* api callbacks  */
 	ot->invoke= actkeys_select_leftright_invoke;
