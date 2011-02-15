@@ -38,6 +38,7 @@ set(INC
 	../imbuf
 	../../kernel/gen_messaging
 	../../../intern/smoke/extern
+	../../../intern/mikktspace
 	../../../intern/guardedalloc
 )
 

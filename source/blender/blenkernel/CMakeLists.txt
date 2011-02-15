@@ -48,6 +48,7 @@ set(INC
 	../../../intern/memutil
 	../../../intern/opennl/extern
 	../../../intern/smoke/extern
+	../../../intern/mikktspace
     ../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
 	${ZLIB_INCLUDE_DIRS}
 )
@@ -106,7 +107,6 @@ set(SRC
 	intern/mball.c
 	intern/mesh.c
 	intern/mesh_validate.c
-	intern/mikktspace.c
 	intern/modifier.c
 	intern/multires.c
 	intern/nla.c
@@ -223,7 +223,6 @@ set(SRC
 	BKE_writeffmpeg.h
 	BKE_writeframeserver.h
 	depsgraph_private.h
-	mikktspace.h
 	intern/CCGSubSurf.h
 	intern/bmesh_private.h
 	nla_private.h

@@ -20,35 +20,17 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Jacques Beaurain.
+# Contributor(s): Daniel Genrich
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(audaspace)
-add_subdirectory(string)
-add_subdirectory(ghost)
-add_subdirectory(guardedalloc)
-add_subdirectory(moto)
-add_subdirectory(memutil)
-add_subdirectory(iksolver)
-add_subdirectory(opennl)
-add_subdirectory(smoke)
-add_subdirectory(mikktspace)
+set(INC
+	.
+)
 
-if(WITH_MOD_FLUID)
-	add_subdirectory(elbeem)
-endif()
+set(SRC
+	mikktspace.c
+)
 
-if(WITH_MOD_DECIMATE)
-	add_subdirectory(container)
-	add_subdirectory(decimation)
-endif()
+blender_add_lib(bf_intern_mikktspace "${SRC}" "${INC}")
 
-if(WITH_MOD_BOOLEAN)
-	add_subdirectory(boolop)
-	add_subdirectory(bsp)
-endif()
-
-if(WITH_IK_ITASC)
-	add_subdirectory(itasc)
-endif()
