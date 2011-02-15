@@ -49,6 +49,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
+#include "BKE_idprop.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -264,11 +265,6 @@ static void poselib_validate_act (bAction *act)
 
 /* ************************************************************* */
 
-/* Pointers to the builtin KeyingSets that we want to use */
-static KeyingSet *poselib_ks_locrotscale = NULL;		/* the only keyingset we'll need */
-
-/* ----- */
-
 static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
@@ -335,6 +331,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	bArmature *arm= (ob) ? ob->data : NULL;
 	bPose *pose= (ob) ? ob->pose : NULL;
 	TimeMarker *marker;
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Whole Character"); /* this includes custom props :)*/
 	int frame= RNA_int_get(op->ptr, "frame");
 	char name[64];
 	
@@ -367,12 +364,10 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	/* validate name */
 	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), sizeof(marker->name));
 	
-	/* KeyingSet to use depends on rotation mode (but that's handled by the templates code)  */
-	if (poselib_ks_locrotscale == NULL)
-		poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-		
-	/* make the keyingset use context info to determine where to add keyframes */
-	ANIM_apply_keyingset(C, NULL, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
+	/* use Keying Set to determine what to store for the pose */
+	// FIXME: in the past, the Keying Set respected selections (LocRotScale), but the current one doesn't (Whole Character)
+	// so perhaps we need either a new Keying Set, or just to add overrides here...
+	ANIM_apply_keyingset(C, NULL, act, ks, MODIFYKEY_MODE_INSERT, (float)frame);
 	
 	/* store new 'active' pose number */
 	act->active_marker= BLI_countlist(&act->markers);
@@ -646,8 +641,10 @@ enum {
 typedef struct tPoseLib_Backup {
 	struct tPoseLib_Backup *next, *prev;
 	
-	bPoseChannel *pchan;
-	bPoseChannel olddata;
+	bPoseChannel *pchan;		/* pose channel backups are for */
+	
+	bPoseChannel olddata;		/* copy of pose channel's old data (at start) */
+	IDProperty *oldprops;		/* copy (needs freeing) of pose channel's properties (at start) */
 } tPoseLib_Backup;
 
 /* Makes a copy of the current pose for restoration purposes - doesn't do constraints currently */
@@ -671,6 +668,9 @@ static void poselib_backup_posecopy (tPoseLib_PreviewData *pld)
 			plb->pchan= pchan;
 			memcpy(&plb->olddata, plb->pchan, sizeof(bPoseChannel));
 			
+			if (pchan->prop)
+				plb->oldprops= IDP_CopyProperty(pchan->prop);
+			
 			BLI_addtail(&pld->backups, plb);
 			
 			/* mark as being affected */
@@ -681,13 +681,39 @@ static void poselib_backup_posecopy (tPoseLib_PreviewData *pld)
 	}
 }
 
-/* Restores original pose - doesn't do constraints currently */
+/* Restores original pose */
 static void poselib_backup_restore (tPoseLib_PreviewData *pld)
 {
 	tPoseLib_Backup *plb;
 	
 	for (plb= pld->backups.first; plb; plb= plb->next) {
+		/* copy most of data straight back */
 		memcpy(plb->pchan, &plb->olddata, sizeof(bPoseChannel));
+		
+		/* just overwrite values of properties from the stored copies (there should be some) */
+		if (plb->oldprops)
+			IDP_SyncGroupValues(plb->pchan->prop, plb->oldprops);
+			
+		// TODO: constraints settings aren't restored yet, even though these could change (though not that likely)
+	}
+}
+
+/* Free list of backups, including any side data it may use */
+static void poselib_backup_free_data (tPoseLib_PreviewData *pld)
+{
+	tPoseLib_Backup *plb, *plbn;
+	
+	for (plb= pld->backups.first; plb; plb= plbn) {
+		plbn= plb->next;
+		
+		/* free custom data */
+		if (plb->oldprops) {
+			IDP_FreeProperty(plb->oldprops);
+			MEM_freeN(plb->oldprops);
+		}
+		
+		/* free backup element now */
+		BLI_freelinkN(&pld->backups, plb);
 	}
 }
 
@@ -762,6 +788,10 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 	bAction *act= pld->act;
 	bActionGroup *agrp;
 	
+	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Whole Character");
+	ListBase dsources = {NULL, NULL};
+	short autokey = autokeyframe_cfra_can_key(scene, &pld->ob->id);
+	
 	/* start tagging/keying */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* only for selected action channels */
@@ -769,20 +799,9 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 			pchan= get_pose_channel(pose, agrp->name);
 			
 			if (pchan) {
-				if (autokeyframe_cfra_can_key(scene, &pld->ob->id)) {
-					ListBase dsources = {NULL, NULL};
-					
-					/* get KeyingSet to use */
-					KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "LocRotScale");
-					
-					/* now insert the keyframe(s) using the Keying Set
-					 *	1) add datasource override for the PoseChannel
-					 *	2) insert keyframes
-					 *	3) free the extra info 
-					 */
+				if (autokey) {
+					/* add datasource override for the PoseChannel, to be used later */
 					ANIM_relative_keyingset_add_source(&dsources, &pld->ob->id, &RNA_PoseBone, pchan); 
-					ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-					BLI_freelistN(&dsources);
 					
 					/* clear any unkeyed tags */
 					if (pchan->bone)
@@ -795,6 +814,13 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 				}
 			}
 		}
+	}
+	
+	/* perform actual auto-keying now */
+	if (autokey) {
+		/* insert keyframes for all relevant bones in one go */
+		ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		BLI_freelistN(&dsources);
 	}
 	
 	/* send notifiers for this */
@@ -1358,8 +1384,8 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 		}
 	}
 	
-	/* free memory used for backups */
-	BLI_freelistN(&pld->backups);
+	/* free memory used for backups and searching */
+	poselib_backup_free_data(pld);
 	BLI_freelistN(&pld->searchp);
 	
 	/* free temp data for operator */
