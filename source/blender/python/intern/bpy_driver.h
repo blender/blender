@@ -24,6 +24,8 @@
 #ifndef BPY_DRIVER_H
 #define BPY_DRIVER_H
 
+struct ChannelDriver;
+
 int bpy_pydriver_create_dict(void);
 extern PyObject *bpy_pydriver_Dict;
 
