@@ -434,7 +434,12 @@ static const int g_iCells = 2048;
 // it is IMPORTANT that this function is called to evaluate the hash since
 // inlining could potentially reorder instructions and generate different
 // results for the same effective input value fVal.
-static volatile int FindGridCell(const float fMin, const float fMax, const float fVal)
+#if defined(_MSC_VER) && !defined(FREE_WINDOWS)
+	#define NOINLINE __declspec(noinline)
+#else
+	#define NOINLINE __attribute__((noinline))
+#endif
+static NOINLINE int FindGridCell(const float fMin, const float fMax, const float fVal)
 {
 	const float fIndex = (g_iCells-1) * ((fVal-fMin)/(fMax-fMin));
 	const int iIndex = fIndex<0?0:((int) (fIndex+0.5f));
