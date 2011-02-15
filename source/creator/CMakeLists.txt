@@ -571,6 +571,7 @@ endif()
 		bf_dna
 		bf_blenfont
 		bf_intern_audaspace
+		bf_intern_mikktspace
 	)
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
