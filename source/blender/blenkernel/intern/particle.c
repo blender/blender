@@ -3566,13 +3566,22 @@ ParticleSettings *psys_new_settings(const char *name, Main *main)
 ParticleSettings *psys_copy_settings(ParticleSettings *part)
 {
 	ParticleSettings *partn;
-	
+	int a;
+
 	partn= copy_libblock(part);
 	if(partn->pd) partn->pd= MEM_dupallocN(part->pd);
 	if(partn->pd2) partn->pd2= MEM_dupallocN(part->pd2);
 	partn->effector_weights = MEM_dupallocN(part->effector_weights);
 
 	partn->boids = boid_copy_settings(part->boids);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		if(part->mtex[a]) {
+			partn->mtex[a]= MEM_mallocN(sizeof(MTex), "psys_copy_tex");
+			memcpy(partn->mtex[a], part->mtex[a], sizeof(MTex));
+			id_us_plus((ID *)partn->mtex[a]->tex);
+		}
+	}
 	
 	return partn;
 }
