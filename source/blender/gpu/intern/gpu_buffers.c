@@ -773,7 +773,7 @@ void GPU_free_buffers(void *buffers_v)
 	}
 }
 
-static GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int size, GLenum target, void *user, void (*copy_f)(DerivedMesh *, float *, int *, int *, void *) )
+static GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int vector_size, int size, GLenum target, void *user, void (*copy_f)(DerivedMesh *, float *, int *, int *, void *) )
 {
 	GPUBuffer *buffer;
 	float *varray;
@@ -798,7 +798,7 @@ static GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int 
 
 	index = MEM_mallocN(sizeof(int)*object->nmaterials,"GPU_buffer_setup");
 	for( i = 0; i < object->nmaterials; i++ ) {
-		index[i] = object->materials[i].start*3;
+		index[i] = object->materials[i].start*vector_size;
 		redir[object->materials[i].mat_nr+16383] = i;
 	}
 
@@ -901,7 +901,7 @@ static GPUBuffer *GPU_buffer_vertex( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_vertex\n");
 
-	return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*3*(dm->drawObject->nelements+dm->drawObject->nlooseverts), GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_vertex);
+	return GPU_buffer_setup( dm, dm->drawObject, 3, sizeof(float)*3*(dm->drawObject->nelements+dm->drawObject->nlooseverts), GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_vertex);
 }
 
 static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
@@ -967,7 +967,7 @@ static GPUBuffer *GPU_buffer_normal( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_normal\n");
 
-	return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_normal);
+	return GPU_buffer_setup( dm, dm->drawObject, 3, sizeof(float)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_normal);
 }
 
 static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
@@ -1013,8 +1013,8 @@ static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *
 static GPUBuffer *GPU_buffer_uv( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_uv\n");
-	if( DM_get_face_data_layer(dm, CD_MTFACE) != 0 ) /* was sizeof(float)*2 but caused buffer overrun  */
-		return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uv);
+	if( DM_get_face_data_layer(dm, CD_MTFACE) != 0 )
+		return GPU_buffer_setup( dm, dm->drawObject, 2, sizeof(float)*2*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uv);
 	else
 		return 0;
 }
@@ -1106,7 +1106,7 @@ static GPUBuffer *GPU_buffer_color( DerivedMesh *dm )
 		colors[i*3+2] = mcol[i].r;
 	}
 
-	result = GPU_buffer_setup( dm, dm->drawObject, sizeof(char)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, colors, GPU_buffer_copy_color3 );
+	result = GPU_buffer_setup( dm, dm->drawObject, 3, sizeof(char)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, colors, GPU_buffer_copy_color3 );
 
 	MEM_freeN(colors);
 	return result;
@@ -1135,7 +1135,7 @@ static GPUBuffer *GPU_buffer_edge( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_edge\n");
 
-	return GPU_buffer_setup( dm, dm->drawObject, sizeof(int)*2*dm->drawObject->nedges, GL_ELEMENT_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_edge);
+	return GPU_buffer_setup( dm, dm->drawObject, 2, sizeof(int)*2*dm->drawObject->nedges, GL_ELEMENT_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_edge);
 }
 
 static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(redir), void *UNUSED(user))
@@ -1184,7 +1184,7 @@ static GPUBuffer *GPU_buffer_uvedge( DerivedMesh *dm )
 	 * ...each edge has its own, non-shared coords.
 	 * so each tri corner needs minimum of 4 floats, quads used less so here we can over allocate and assume all tris.
 	 * */
-	return GPU_buffer_setup( dm, dm->drawObject, 4 * sizeof(float) * dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uvedge);
+	return GPU_buffer_setup( dm, dm->drawObject, 4, 4 * sizeof(float) * dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uvedge);
 }
 
 
@@ -1553,14 +1553,14 @@ void GPU_color3_upload( DerivedMesh *dm, unsigned char *data )
 	if( dm->drawObject == 0 )
 		dm->drawObject = GPU_drawobject_new(dm);
 	GPU_buffer_free(dm->drawObject->colors,globalPool);
-	dm->drawObject->colors = GPU_buffer_setup( dm, dm->drawObject, sizeof(char)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, data, GPU_buffer_copy_color3 );
+	dm->drawObject->colors = GPU_buffer_setup( dm, dm->drawObject, 3, sizeof(char)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, data, GPU_buffer_copy_color3 );
 }
 void GPU_color4_upload( DerivedMesh *dm, unsigned char *data )
 {
 	if( dm->drawObject == 0 )
 		dm->drawObject = GPU_drawobject_new(dm);
 	GPU_buffer_free(dm->drawObject->colors,globalPool);
-	dm->drawObject->colors = GPU_buffer_setup( dm, dm->drawObject, sizeof(char)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, data, GPU_buffer_copy_color4 );
+	dm->drawObject->colors = GPU_buffer_setup( dm, dm->drawObject, 3, sizeof(char)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, data, GPU_buffer_copy_color4 );
 }
 
 void GPU_color_switch( int mode )
