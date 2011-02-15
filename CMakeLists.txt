@@ -1061,3 +1061,7 @@ add_subdirectory(source/creator)
 if(WITH_PLAYER)
 	add_subdirectory(source/blenderplayer)
 endif()
+
+#-----------------------------------------------------------------------------
+# CPack for generating packages
+include(build_files/cmake/packaging.cmake)
