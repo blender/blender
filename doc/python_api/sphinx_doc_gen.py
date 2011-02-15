@@ -314,6 +314,118 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     file.close()
 
 
+def pycontext2sphinx(BASEPATH):
+    # Only use once. very irregular
+
+    filepath = os.path.join(BASEPATH, "bpy.context.rst")
+    file = open(filepath, "w")
+    fw = file.write
+    fw("Context Access (bpy.context)\n")
+    fw("============================\n\n")
+    fw(".. module:: bpy.context\n")
+    fw("\n")
+    fw("The context members available depend on the area of blender which is currently being accessed.\n")
+    fw("\n")
+    fw("Note that all context values are readonly, but may be modified through the data api or by running operators\n\n")
+
+    # nasty, get strings directly from blender because there is no other way to get it
+    import ctypes
+
+    context_strings = (
+        "screen_context_dir",
+        "view3d_context_dir",
+        "buttons_context_dir",
+        "image_context_dir",
+        "node_context_dir",
+        "text_context_dir",
+    )
+
+    # Changes in blender will force errors here
+    type_map = {
+        "active_base": ("ObjectBase", False),
+        "active_bone": ("Bone", False),
+        "active_object": ("Object", False),
+        "active_pose_bone": ("PoseBone", False),
+        "armature": ("Armature", False),
+        "bone": ("Bone", False),
+        "brush": ("Brush", False),
+        "camera": ("Camera", False),
+        "cloth": ("ClothModifier", False),
+        "collision": ("CollisionModifier", False),
+        "curve": ("Curve", False),
+        "edit_bone": ("EditBone", False),
+        "edit_image": ("Image", False),
+        "edit_object": ("Object", False),
+        "edit_text": ("Text", False),
+        "editable_bones": ("EditBone", True),
+        "fluid": ("FluidSimulationModifier", False),
+        "lamp": ("Lamp", False),
+        "lattice": ("Lattice", False),
+        "material": ("Material", False),
+        "material_slot": ("MaterialSlot", False),
+        "mesh": ("Mesh", False),
+        "meta_ball": ("MetaBall", False),
+        "object": ("Object", False),
+        "particle_edit_object": ("Object", False),
+        "particle_system": ("ParticleSystem", False),
+        "particle_system_editable": ("ParticleSystem", False),
+        "pose_bone": ("PoseBone", False),
+        "scene": ("Scene", False),
+        "sculpt_object": ("Object", False),
+        "selectable_bases": ("ObjectBase", True),
+        "selectable_objects": ("Object", True),
+        "selected_bases": ("ObjectBase", True),
+        "selected_bones": ("Bone", True),
+        "selected_editable_bases": ("ObjectBase", True),
+        "selected_editable_bones": ("Bone", True),
+        "selected_editable_objects": ("Object", True),
+        "selected_editable_sequences": ("Sequence", True),
+        "selected_nodes": ("Node", True),
+        "selected_objects": ("Object", True),
+        "selected_pose_bones": ("PoseBone", True),
+        "selected_sequences": ("Sequence", True),
+        "sequences": ("Sequence", True),
+        "smoke": ("SmokeModifier", False),
+        "soft_body": ("SoftBodyModifier", False),
+        "texture": ("Texture", False),
+        "texture_paint_object": ("Object", False),
+        "texture_slot": ("MaterialTextureSlot", False),
+        "vertex_paint_object": ("Object", False),
+        "visible_bases": ("ObjectBase", True),
+        "visible_bones": ("Object", True),
+        "visible_objects": ("Object", True),
+        "visible_pose_bones": ("PoseBone", True),
+        "weight_paint_object": ("Object", False),
+        "world": ("World", False),
+    }
+
+    unique = set()
+    blend_cdll = ctypes.CDLL("")
+    for ctx_str in context_strings:
+        subsection = "%s Context" % ctx_str.split("_")[0].title()
+        fw("\n%s\n%s\n\n" % (subsection, (len(subsection) * '-')))
+
+        attr = ctypes.addressof(getattr(blend_cdll, ctx_str))
+        c_char_p_p = ctypes.POINTER(ctypes.c_char_p)
+        char_array = c_char_p_p.from_address(attr)
+        i = 0
+        while char_array[i] is not None:
+            member = ctypes.string_at(char_array[i]).decode()
+            fw(".. data:: %s\n\n" % member)
+            member_type, is_seq = type_map[member]
+            fw("   :type: %s :class:`bpy.types.%s`\n\n" % ("sequence of " if is_seq else "", member_type))
+            unique.add(member)
+            i += 1
+
+    # generate typemap...
+    # for member in sorted(unique):
+    #     print('        "%s": ("", False),' % member)
+    if len(type_map) > len(unique):
+        raise Exception("Some types are not used: %s" % str([member for member in type_map if member not in unique]))
+    else:
+        pass # will have raised an error above
+
+
 def rna2sphinx(BASEPATH):
 
     structs, funcs, ops, props = rna_info.BuildRNAInfo()
@@ -390,6 +502,7 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
+    fw("   bpy.context.rst\n\n")  # note: not actually a module
     fw("   bpy.data.rst\n\n")  # note: not actually a module
     fw("   bpy.ops.rst\n\n")
     fw("   bpy.types.rst\n\n")
@@ -472,6 +585,9 @@ def rna2sphinx(BASEPATH):
     file.close()
 
     EXAMPLE_SET_USED.add("bpy.data")
+
+    # one of a kind, context doc (uses ctypes to extract info!)
+    pycontext2sphinx(BASEPATH)
 
     # python modules
     from bpy import utils as module
