@@ -4113,16 +4113,20 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 				}
 				freeNurb(nu2); nu2= NULL;
 			}
+
+			set_actNurb(obedit, nu1);	/* for selected */
+			ok= 1;
 		}
-		
-		set_actNurb(obedit, NULL);	/* for selected */
-		ok= 1;
-	} else if(nu1 && !nu2 && nu1->type == CU_BEZIER) {
-		if(!(nu1->flagu & CU_NURB_CYCLIC)) {
-			if(nu1->pntsu>1 && BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt) &&
+	} else if(nu1 && !nu2) {
+		if(!(nu1->flagu & CU_NURB_CYCLIC) && nu1->pntsu>1) {
+			if (nu1->type == CU_BEZIER && BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt) &&
 				BEZSELECTED_HIDDENHANDLES(cu, nu1->bezt+(nu1->pntsu-1))) {
 				nu1->flagu|= CU_NURB_CYCLIC;
 				calchandlesNurb(nu1);
+				ok= 1;
+			} else if (nu1->type == CU_NURBS && nu1->bp->f1&SELECT && (nu1->bp+(nu1->pntsu-1))->f1&SELECT) {
+				nu1->flagu|= CU_NURB_CYCLIC;
+				nurbs_knot_calc_u(nu1);
 				ok= 1;
 			}
 		}
@@ -4836,18 +4840,20 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	uiLayout *layout;
 	Nurb *nu;
 
-	for(nu= editnurb->first; nu; nu= nu->next) {
-		if(nu->pntsu>1 || nu->pntsv>1) {
-			if(nu->type==CU_NURBS) {
-				pup= uiPupMenuBegin(C, "Direction", ICON_NULL);
-				layout= uiPupMenuLayout(pup);
-				uiItemsEnumO(layout, op->type->idname, "direction");
-				uiPupMenuEnd(C, pup);
-				return OPERATOR_CANCELLED;
+	if(obedit->type == OB_SURF) {
+		for(nu= editnurb->first; nu; nu= nu->next) {
+			if(nu->pntsu>1 || nu->pntsv>1) {
+				if(nu->type==CU_NURBS) {
+					pup= uiPupMenuBegin(C, "Direction", ICON_NULL);
+					layout= uiPupMenuLayout(pup);
+					uiItemsEnumO(layout, op->type->idname, "direction");
+					uiPupMenuEnd(C, pup);
+					return OPERATOR_CANCELLED;
+				}
 			}
 		}
 	}
-	
+
 	return toggle_cyclic_exec(C, op);
 }
 
