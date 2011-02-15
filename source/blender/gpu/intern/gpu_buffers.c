@@ -59,6 +59,9 @@
 
 #define MAX_GPU_ATTRIB_DATA 32
 
+/* material number is an 16-bit short and the range of short is from -16383 to 16383 (assume material number is non-negative) */
+#define MAX_MATERIALS 16384
+
 /* -1 - undefined, 0 - vertex arrays, 1 - VBOs */
 static int useVBOs = -1;
 static GPUBufferPool *globalPool = 0;
@@ -270,8 +273,8 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 {
 	GPUDrawObject *object;
 	MFace *mface;
-	int numverts[32768];	/* material number is an 16-bit short so there's at most 32768 materials */
-	int redir[32768];		/* material number is an 16-bit short so there's at most 32768 materials */
+	int numverts[MAX_MATERIALS];
+	int redir[MAX_MATERIALS];
 	int *index;
 	int i;
 	int curmat, curverts, numfaces;
@@ -288,19 +291,19 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 		object->indices[i].next = 0;
 	}
 	/*object->legacy = 1;*/
-	memset(numverts,0,sizeof(int)*32768);
+	memset(numverts,0,sizeof(int)*MAX_MATERIALS);
 
 	mface = dm->getFaceArray(dm);
 
 	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		if( mface[i].v4 )
-			numverts[mface[i].mat_nr+16383] += 6;	/* split every quad into two triangles */
+			numverts[mface[i].mat_nr] += 6;	/* split every quad into two triangles */
 		else
-			numverts[mface[i].mat_nr+16383] += 3;
+			numverts[mface[i].mat_nr] += 3;
 	}
 
-	for( i = 0; i < 32768; i++ ) {
+	for( i = 0; i < MAX_MATERIALS; i++ ) {
 		if( numverts[i] > 0 ) {
 			object->nmaterials++;
 			object->nelements += numverts[i];
@@ -310,9 +313,9 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 	index = MEM_mallocN(sizeof(int)*object->nmaterials,"GPU_drawobject_new_index");
 
 	curmat = curverts = 0;
-	for( i = 0; i < 32768; i++ ) {
+	for( i = 0; i < MAX_MATERIALS; i++ ) {
 		if( numverts[i] > 0 ) {
-			object->materials[curmat].mat_nr = i-16383;
+			object->materials[curmat].mat_nr = i;
 			object->materials[curmat].start = curverts;
 			index[curmat] = curverts/3;
 			object->materials[curmat].end = curverts+numverts[i];
@@ -322,7 +325,7 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 	}
 	object->faceRemap = MEM_mallocN(sizeof(int)*object->nelements/3,"GPU_drawobject_new_faceRemap");
 	for( i = 0; i < object->nmaterials; i++ ) {
-		redir[object->materials[i].mat_nr+16383] = i;	/* material number -> material index */
+		redir[object->materials[i].mat_nr] = i;	/* material number -> material index */
 	}
 
 	object->indexMem = MEM_callocN(sizeof(IndexLink)*object->nelements,"GPU_drawobject_new_indexMem");
@@ -340,7 +343,7 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 		}
 
 	for( i=0; i < numfaces; i++ ) {
-		int curInd = index[redir[mface[i].mat_nr+16383]];
+		int curInd = index[redir[mface[i].mat_nr]];
 		object->faceRemap[curInd] = i; 
 		ADDLINK( mface[i].v1, curInd*3 );
 		ADDLINK( mface[i].v2, curInd*3+1 );
@@ -351,10 +354,10 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 			ADDLINK( mface[i].v4, curInd*3+4 );
 			ADDLINK( mface[i].v1, curInd*3+5 );
 
-			index[redir[mface[i].mat_nr+16383]]+=2;
+			index[redir[mface[i].mat_nr]]+=2;
 		}
 		else {
-			index[redir[mface[i].mat_nr+16383]]++;
+			index[redir[mface[i].mat_nr]]++;
 		}
 	}
 
