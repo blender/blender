@@ -1070,10 +1070,7 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
         sculpt_tool = brush.sculpt_tool
 
         if sculpt_tool != 'GRAB':
-            layout.prop(brush, "use_airbrush")
-
-            if sculpt_tool != 'LAYER':
-                layout.prop(brush, "use_anchor")
+            layout.prop_menu_enum(brush, "stroke_method")
 
             if sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
                 layout.prop_menu_enum(brush, "direction")
