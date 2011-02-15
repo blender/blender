@@ -3510,6 +3510,22 @@ void uiButSetSearchFunc(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandl
 	}
 }
 
+/* push a new event onto event queue to activate the given button 
+ * (usually a text-field) upon entering a popup
+ */
+void uiButSetFocusOnEnter(wmWindow *win, uiBut *but)
+{
+	wmEvent event;
+	
+	event= *(win->eventstate);
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	
+	wm_event_add(win, &event);
+}
+
 /* Program Init/Exit */
 
 void UI_init(void)

@@ -144,7 +144,6 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	static char search[256];
 	static TemplateID template;
 	PointerRNA idptr;
-	wmEvent event;
 	wmWindow *win= CTX_wm_window(C);
 	uiBlock *block;
 	uiBut *but;
@@ -185,12 +184,8 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	uiBlockSetDirection(block, UI_DOWN);	
 	uiEndBlock(C, block);
 	
-	event= *(win->eventstate);	/* XXX huh huh? make api call */
-	event.type= EVT_BUT_OPEN;
-	event.val= KM_PRESS;
-	event.customdata= but;
-	event.customdatafree= FALSE;
-	wm_event_add(win, &event);
+	/* give search-field focus */
+	uiButSetFocusOnEnter(win, but);
 	
 	return block;
 }
