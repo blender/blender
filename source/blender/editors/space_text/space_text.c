@@ -351,13 +351,14 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 }
 
+const char *text_context_dir[] = {"edit_text", NULL};
+
 static int text_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceText *st= CTX_wm_space_text(C);
 
 	if(CTX_data_dir(member)) {
-		static const char *dir[] = {"edit_text", NULL};
-		CTX_data_dir_set(result, dir);
+		CTX_data_dir_set(result, text_context_dir);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "edit_text")) {

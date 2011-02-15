@@ -617,6 +617,12 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 
 /************************* Context Callback ************************/
 
+const char *buttons_context_dir[] = {
+	"world", "object", "mesh", "armature", "lattice", "curve",
+	"meta_ball", "lamp", "camera", "material", "material_slot",
+	"texture", "texture_slot", "bone", "edit_bone", "pose_bone", "particle_system", "particle_system_editable",
+	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
+
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
@@ -627,13 +633,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 	/* here we handle context, getting data from precomputed path */
 	if(CTX_data_dir(member)) {
-		static const char *dir[] = {
-			"world", "object", "mesh", "armature", "lattice", "curve",
-			"meta_ball", "lamp", "camera", "material", "material_slot",
-			"texture", "texture_slot", "bone", "edit_bone", "pose_bone", "particle_system", "particle_system_editable",
-			"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
-
-		CTX_data_dir_set(result, dir);
+		CTX_data_dir_set(result, buttons_context_dir);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "world")) {

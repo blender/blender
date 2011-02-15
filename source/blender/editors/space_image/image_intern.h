@@ -46,6 +46,8 @@ struct bNodeTree;
 struct ARegion *image_has_buttons_region(struct ScrArea *sa);
 struct ARegion *image_has_scope_region(struct ScrArea *sa);
 
+extern const char *image_context_dir[]; /* doc access */
+
 /* image_header.c */
 void image_header_buttons(const struct bContext *C, struct ARegion *ar);
 

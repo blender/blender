@@ -49,6 +49,18 @@
 
 #include "screen_intern.h"
 
+const char *screen_context_dir[] = {
+	"scene", "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
+	"selected_objects", "selected_bases",
+	"selected_editable_objects", "selected_editable_bases",
+	"visible_bones", "editable_bones", "selected_bones", "selected_editable_bones",
+	"visible_pose_bones", "selected_pose_bones", "active_bone", "active_pose_bone",
+	"active_base", "active_object", "object", "edit_object",
+	"sculpt_object", "vertex_paint_object", "weight_paint_object",
+	"texture_paint_object", "particle_edit_object",
+	"sequences", "selected_sequences", "selected_editable_sequences", /* sequencer */
+	NULL};
+
 int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	bScreen *sc= CTX_wm_screen(C);
@@ -67,19 +79,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 #endif
 
 	if(CTX_data_dir(member)) {
-		static const char *dir[] = {
-			"scene", "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
-			"selected_objects", "selected_bases",
-			"selected_editable_objects", "selected_editable_bases",
-			"visible_bones", "editable_bones", "selected_bones", "selected_editable_bones",
-			"visible_pose_bones", "selected_pose_bones", "active_bone", "active_pose_bone",
-			"active_base", "active_object", "object", "edit_object",
-			"sculpt_object", "vertex_paint_object", "weight_paint_object",
-			"texture_paint_object", "particle_edit_object",
-			"sequences", "selected_sequences", "selected_editable_sequences", /* sequencer */
-			NULL};
-
-		CTX_data_dir_set(result, dir);
+		CTX_data_dir_set(result, screen_context_dir);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "scene")) {

@@ -121,6 +121,8 @@ void NODE_OT_backimage_sample(wmOperatorType *ot);
 
 void NODE_OT_add_file(struct wmOperatorType *ot);
 
+extern const char *node_context_dir[];
+
 // XXXXXX
 
 // XXX from BSE_node.h

@@ -665,13 +665,14 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
+const char *image_context_dir[] = {"edit_image", NULL};
+
 static int image_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 
 	if(CTX_data_dir(member)) {
-		static const char *dir[] = {"edit_image", NULL};
-		CTX_data_dir_set(result, dir);
+		CTX_data_dir_set(result, image_context_dir);
 	}
 	else if(CTX_data_equals(member, "edit_image")) {
 		CTX_data_id_pointer_set(result, (ID*)ED_space_image(sima));
