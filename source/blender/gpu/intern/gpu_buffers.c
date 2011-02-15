@@ -780,7 +780,7 @@ static GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int 
 {
 	GPUBuffer *buffer;
 	float *varray;
-	int redir[32768];
+	int redir[MAX_MATERIALS];
 	int *index;
 	int i;
 	int success;
@@ -802,7 +802,7 @@ static GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int 
 	index = MEM_mallocN(sizeof(int)*object->nmaterials,"GPU_buffer_setup");
 	for( i = 0; i < object->nmaterials; i++ ) {
 		index[i] = object->materials[i].start*vector_size;
-		redir[object->materials[i].mat_nr+16383] = i;
+		redir[object->materials[i].mat_nr] = i;
 	}
 
 	if( useVBOs ) {
@@ -873,11 +873,11 @@ static void GPU_buffer_copy_vertex(DerivedMesh *dm, float *varray, int *index, i
 
 	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
-		start = index[redir[mface[i].mat_nr+16383]];
+		start = index[redir[mface[i].mat_nr]];
 		if( mface[i].v4 )
-			index[redir[mface[i].mat_nr+16383]] += 18;
+			index[redir[mface[i].mat_nr]] += 18;
 		else
-			index[redir[mface[i].mat_nr+16383]] += 9;
+			index[redir[mface[i].mat_nr]] += 9;
 
 		/* v1 v2 v3 */
 		VECCOPY(&varray[start],mvert[mface[i].v1].co);
@@ -923,11 +923,11 @@ static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, i
 	for( i=0; i < numfaces; i++ ) {
 		const int smoothnormal = (mface[i].flag & ME_SMOOTH);
 
-		start = index[redir[mface[i].mat_nr+16383]];
+		start = index[redir[mface[i].mat_nr]];
 		if( mface[i].v4 )
-			index[redir[mface[i].mat_nr+16383]] += 18;
+			index[redir[mface[i].mat_nr]] += 18;
 		else
-			index[redir[mface[i].mat_nr+16383]] += 9;
+			index[redir[mface[i].mat_nr]] += 9;
 
 		/* v1 v2 v3 */
 		if(smoothnormal) {
@@ -993,11 +993,11 @@ static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *
 		
 	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
-		start = index[redir[mface[i].mat_nr+16383]];
+		start = index[redir[mface[i].mat_nr]];
 		if( mface[i].v4 )
-			index[redir[mface[i].mat_nr+16383]] += 12;
+			index[redir[mface[i].mat_nr]] += 12;
 		else
-			index[redir[mface[i].mat_nr+16383]] += 6;
+			index[redir[mface[i].mat_nr]] += 6;
 
 		/* v1 v2 v3 */
 		VECCOPY2D(&varray[start],mtface[i].uv[0]);
@@ -1033,11 +1033,11 @@ static void GPU_buffer_copy_color3( DerivedMesh *dm, float *varray_, int *index,
 
 	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
-		int start = index[redir[mface[i].mat_nr+16383]];
+		int start = index[redir[mface[i].mat_nr]];
 		if( mface[i].v4 )
-			index[redir[mface[i].mat_nr+16383]] += 18;
+			index[redir[mface[i].mat_nr]] += 18;
 		else
-			index[redir[mface[i].mat_nr+16383]] += 9;
+			index[redir[mface[i].mat_nr]] += 9;
 
 		/* v1 v2 v3 */
 		VECCOPY(&varray[start],&mcol[i*12]);
@@ -1063,11 +1063,11 @@ static void GPU_buffer_copy_color4( DerivedMesh *dm, float *varray_, int *index,
 
 	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
-		int start = index[redir[mface[i].mat_nr+16383]];
+		int start = index[redir[mface[i].mat_nr]];
 		if( mface[i].v4 )
-			index[redir[mface[i].mat_nr+16383]] += 18;
+			index[redir[mface[i].mat_nr]] += 18;
 		else
-			index[redir[mface[i].mat_nr+16383]] += 9;
+			index[redir[mface[i].mat_nr]] += 9;
 
 		/* v1 v2 v3 */
 		VECCOPY(&varray[start],&mcol[i*16]);
