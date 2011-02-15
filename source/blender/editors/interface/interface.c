@@ -1773,11 +1773,13 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 	return 0;
 }
 
-void ui_set_but_default(bContext *C, uiBut *but)
+void ui_set_but_default(bContext *C, uiBut *but, short all)
 {
 	/* if there is a valid property that is editable... */
 	if (but->rnapoin.data && but->rnaprop && RNA_property_editable(&but->rnapoin, but->rnaprop)) {
-		if(RNA_property_reset(&but->rnapoin, but->rnaprop, -1)) {
+		int index = (all)? -1 : but->rnaindex;
+		
+		if(RNA_property_reset(&but->rnapoin, but->rnaprop, index)) {
 			/* perform updates required for this property */
 			RNA_property_update(C, &but->rnapoin, but->rnaprop);
 		}
