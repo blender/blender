@@ -62,6 +62,9 @@ struct DerivedMesh *CDDM_from_editmesh(struct EditMesh *em, struct Mesh *me);
 /* creates a CDDerivedMesh from the given BMEditMesh */
 DerivedMesh *CDDM_from_BMEditMesh(struct BMEditMesh *em, struct Mesh *me);
 
+/* merge verts  */
+DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap);
+
 /* creates a CDDerivedMesh from the given curve object */
 struct DerivedMesh *CDDM_from_curve(struct Object *ob);
 

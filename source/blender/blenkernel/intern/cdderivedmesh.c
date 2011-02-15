@@ -51,6 +51,8 @@
 #include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_pbvh.h"
+#include "BLI_array.h"
+#include "BLI_smallhash.h"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -2218,6 +2220,279 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN, 
 		face_nors, dm->numFaceData);
 }
+
+#if 0
+/*merge verts
+ 
+  vtargetmap is a table that maps vertices to target vertices.  a value of -1
+  indicates a vertex is a target, and is to be kept.
+  
+  this is a really horribly written function.  ger. - joeedh
+
+ */
+DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+	CDDerivedMesh *cddm2 = NULL;
+	MVert *mv, *mvert = NULL;
+	BLI_array_declare(mvert);
+	MEdge *me, *medge = NULL;
+	BLI_array_declare(medge);
+	MPoly *mp, *mpoly = NULL;
+	BLI_array_declare(mpoly);
+	MLoop *ml, *mloop = NULL;
+	BLI_array_declare(mloop);
+	SmallHash _hash, *hash=&_hash;
+	SmallHash _hash2, *hash2=&_hash2;
+	int *newv = NULL, *newe = NULL, *newl = NULL;
+	int *oldv = NULL, *olde = NULL, *oldl = NULL, *oldp = NULL;
+	BLI_array_declare(oldv); BLI_array_declare(olde); BLI_array_declare(oldl); BLI_array_declare(oldp);
+	int i, j, c, totloop, totpoly;
+	
+	BLI_smallhash_init(hash);
+	BLI_smallhash_init(hash2);
+
+#if 0
+	/*split off ngon faces with merges in them*/
+	mp = cddm->mpoly;
+	for (i=0; i<dm->numPolyData; i++, mp++) {
+		ml = cddm->mloop + mp->loopstart;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			MLoop *ml2 = NULL;
+			int k, k1, a;
+			
+			if (ml->v == -1)
+				continue;
+			
+			for (k1=0; k1<mp->totloop; k1++) {
+				k = (j + k1) % mp->totloop;
+				ml2 = cddm->mloop + mp->loopstart + k;
+				
+				if (ml == ml2 || ml2->v == -1)
+					continue;
+				
+				if (vtargetmap[ml->v] == ml2->v || vtargetmap[ml2->v] == ml->v) {
+					MLoop *ml3;
+					MPoly *mp2;
+					int s, e, l, tot;
+					
+					if (k < j) 
+						SWAP(int, k, j);
+					
+					s = j; e = k; tot = 0;
+					l = BLI_array_count(mloop);
+					ml3 = cddm->mloop + mp->loopstart + s;
+					for (a=s; a<e; a++, ml3++) {
+						if (ml3->v == -1)
+							continue;
+						
+						BLI_smallhash_insert(hash, dm->numLoopData + BLI_array_count(mloop), SET_INT_IN_POINTER(mp->loopstart + a - s));
+						BLI_array_append(mloop, *ml3);
+						
+						ml3->v = -1;
+						ml3->e = -1;
+						tot++;
+					}
+					
+					if (!tot)
+						continue;
+					
+					BLI_smallhash_insert(hash2, dm->numPolyData + BLI_array_count(mpoly), SET_INT_IN_POINTER(i));
+	
+					mp2 = BLI_array_append(mpoly, *mp);
+					mp2->loopstart = l + dm->numLoopData;
+					mp2->totloop = tot;
+				}
+			}
+		}
+	}
+
+	ml = MEM_callocN(sizeof(MLoop)*(dm->numLoopData + BLI_array_count(mloop)), "merge mloop");
+	mp = MEM_callocN(sizeof(MPoly)*(dm->numPolyData + BLI_array_count(mloop)), "merge mpoly");
+	
+	memcpy(ml, cddm->mloop, sizeof(MLoop)*dm->numLoopData);
+	memcpy(mp, cddm->mpoly, sizeof(MPoly)*dm->numPolyData);
+	
+	cddm->mloop = ml; cddm->mpoly = mp;
+	
+	memcpy(cddm->mloop+dm->numLoopData, mloop, sizeof(MLoop)*BLI_array_count(mloop));
+	memcpy(cddm->mpoly+dm->numPolyData, mpoly, sizeof(MPoly)*BLI_array_count(mpoly));
+	
+	totloop = dm->numLoopData + BLI_array_count(mloop);
+	totpoly = dm->numPolyData + BLI_array_count(mpoly);
+	
+	BLI_array_empty(mloop);
+	BLI_array_empty(mpoly);
+#else
+	totloop = dm->numLoopData;
+	totpoly = dm->numPolyData;
+#endif
+	
+	newv = MEM_callocN(sizeof(int)*dm->numVertData, "newv vtable CDDM_merge_verts");
+	newe = MEM_callocN(sizeof(int)*dm->numEdgeData, "newv etable CDDM_merge_verts");
+	newl = MEM_callocN(sizeof(int)*totloop, "newv ltable CDDM_merge_verts");
+		
+	mv = cddm->mvert;
+	c = 0;
+	for (i=0; i<dm->numVertData; i++, mv++) {
+		if (vtargetmap[i] == -1) {
+			BLI_array_append(oldv, i);
+			newv[i] = c++;
+			BLI_array_append(mvert, *mv);
+		}
+	}
+	
+	/*find-replace merged vertices with target vertices*/	
+	ml = cddm->mloop;
+	c = 0;
+	for (i=0; i<totloop; i++, ml++) {
+		if (ml->v == -1)
+			continue;
+		
+		if (vtargetmap[ml->v] != -1) {
+			me = &cddm->medge[ml->e];
+			if (me->v1 == ml->v)
+				me->v1 = vtargetmap[ml->v];
+			else
+				me->v2 = vtargetmap[ml->v];
+			
+			ml->v = vtargetmap[ml->v];
+		}
+	}
+	
+	/*now go through and fix edges and faces*/
+	me = cddm->medge;
+	c = 0;
+	for (i=0; i<dm->numEdgeData; i++, me++) {
+		if (me->v1 == me->v2)
+			continue;
+		
+		BLI_array_append(olde, i);
+		newe[i] = c++;
+		BLI_array_append(medge, *me);
+	}
+	
+	mp = cddm->mpoly;
+	for (i=0; i<totpoly; i++, mp++) {
+		MPoly *mp2;
+		
+		ml = cddm->mloop + mp->loopstart;
+		
+		c = 0;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			if (ml->v == -1)
+				continue;
+			
+			me = cddm->medge + ml->e;
+			if (me->v1 != me->v2) {
+				BLI_array_append(oldl, j);
+				BLI_array_append(mloop, *ml);
+				newl[c] = BLI_array_count(mloop)-1;
+				c++;
+			}
+		}
+		
+		if (!c)
+			continue;
+		
+		mp2 = BLI_array_append(mpoly, *mp);
+		mp2->totloop = c;
+		mp2->loopstart = BLI_array_count(mloop) - c;
+		
+		BLI_array_append(oldp, i);
+	}
+	
+	/*create new cddm*/	
+	cddm2 = (CDDerivedMesh*) CDDM_new(BLI_array_count(mvert), BLI_array_count(medge), 0, BLI_array_count(mloop), BLI_array_count(mpoly));
+	
+	/*copy over data.  CustomData_add_layer can do this, need to look it up.*/
+	memcpy(cddm2->mvert, mvert, sizeof(MVert)*BLI_array_count(mvert));
+	memcpy(cddm2->medge, medge, sizeof(MEdge)*BLI_array_count(medge));
+	memcpy(cddm2->mloop, mloop, sizeof(MLoop)*BLI_array_count(mloop));
+	memcpy(cddm2->mpoly, mpoly, sizeof(MPoly)*BLI_array_count(mpoly));
+	
+	BLI_array_free(mvert); BLI_array_free(medge); BLI_array_free(mloop); BLI_array_free(mpoly);
+	mvert = cddm2->mvert; medge = cddm2->medge; mloop = cddm2->mloop; mpoly = cddm2->mpoly;
+	
+	/*update edge indices and copy customdata*/
+	me = cddm2->medge;
+	for (i=0; i<cddm2->dm.numEdgeData; i++, me++) {
+		MEdge cpy;
+		
+		me->v1 = newv[me->v1];
+		me->v2 = newv[me->v2];
+		
+		cpy = *me;
+		CustomData_copy_data(&dm->edgeData, &cddm2->dm.edgeData, olde[i], i, 1);
+		*me = cpy;
+	}
+	
+	/*update loop indices and copy customdata*/
+	ml = cddm2->mloop;
+	for (i=0; i<cddm2->dm.numLoopData; i++, ml++) {
+		MLoop cpy;
+		
+		ml->e = newe[ml->e];
+		ml->v = newv[ml->v];
+			
+		cpy = *ml;
+		
+		if (oldl[i] >= dm->numLoopData)
+			oldl[i] = GET_INT_FROM_POINTER(BLI_smallhash_lookup(hash, (intptr_t)oldl[i]));
+
+		CustomData_copy_data(&dm->loopData, &cddm2->dm.loopData, oldl[i], i, 1);
+		*ml = cpy;
+	}
+	
+	/*copy vertex customdata*/	
+	mv = cddm2->mvert;
+	for (i=0; i<cddm2->dm.numVertData; i++, mv++) {
+		MVert cpy = *mv;
+		
+		CustomData_copy_data(&dm->vertData, &cddm2->dm.vertData, oldv[i], i, 1);
+		*mv = cpy;
+	}
+	
+	/*copy poly customdata*/
+	mp = cddm2->mpoly;
+	for (i=0; i<cddm2->dm.numPolyData; i++, mp++) {
+		MPoly cpy = *mp;
+		
+		if (oldl[i] >= dm->numPolyData)
+			oldl[i] = GET_INT_FROM_POINTER(BLI_smallhash_lookup(hash, (intptr_t)oldl[i]));
+
+		CustomData_copy_data(&dm->polyData, &cddm2->dm.polyData, oldp[i], i, 1);
+		*mp = cpy;
+	}
+	
+	/*eek! not sure what to do with ORIGINDEX stuff here!!*/	
+	cddm2->dm.numFaceData = mesh_recalcTesselation(&cddm2->dm.faceData, &cddm2->dm.loopData, &cddm2->dm.polyData, cddm2->mvert, 0, cddm2->dm.numLoopData, cddm2->dm.numPolyData, 1, 0);
+	cddm2->mface = CustomData_get_layer(&cddm->dm.faceData, CD_MFACE);
+	
+	if (newv) 
+		MEM_freeN(newv); 
+	if (newe)
+		MEM_freeN(newe); 
+	if (newl)
+		MEM_freeN(newl);
+	if (oldv) 
+		MEM_freeN(oldv); 
+	if (olde) 
+		MEM_freeN(olde); 
+	if (oldl) 
+		MEM_freeN(oldl); 
+	if (oldp) 
+		MEM_freeN(oldp);
+	
+	BLI_smallhash_release(hash);
+	BLI_smallhash_release(hash2);
+	
+	dm->needsFree = 1;
+	dm->release(dm);
+	
+	return (DerivedMesh*)cddm2;
+}
+#endif
 
 void CDDM_calc_edges(DerivedMesh *dm)
 {

@@ -2415,7 +2415,7 @@ static int draw_em_fancy__setFaceOpts(void *userData, int index, int *drawSmooth
 {
 	BMFace *efa = EDBM_get_face_for_index(userData, index);
 
-	if (!BM_TestHFlag(efa, BM_HIDDEN)) {
+	if (efa && !BM_TestHFlag(efa, BM_HIDDEN)) {
 		GPU_enable_material(efa->mat_nr+1, NULL);
 		return 1;
 	}

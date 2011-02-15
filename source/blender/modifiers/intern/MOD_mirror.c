@@ -106,11 +106,12 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	BMOIter siter1;
 	BMOperator op;
 	BMVert *v1;
-	int vector_size=0, a, b;
+	BMIter iter;
 	bDeformGroup *def, *defb;
 	bDeformGroup **vector_def = NULL;
 	float mtx[4][4], imtx[4][4];
 	int j;
+	int vector_size=0, a, b;
 
 	cddm = dm; //copying shouldn't be necassary here, as all modifiers return CDDM's
 	em = CDDM_To_BMesh(dm, NULL);
@@ -133,7 +134,7 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	}
 
 	if (mmd->mirror_ob) {
-		float mtx2[4][4], vec[3];
+		float mtx2[4][4];
 
 		invert_m4_m4(mtx2, mmd->mirror_ob->obmat);
 		mul_m4_m4m4(mtx, ob->obmat, mtx2);
@@ -147,7 +148,7 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	BMO_Exec_Op(bm, &op);
 
 	BMO_CallOpf(bm, "reversefaces faces=%s", &op, "newout");
-
+	
 	/*handle vgroup stuff*/
 	if (mmd->flag & MOD_MIR_VGROUP) {
 		BMO_ITER(v1, &siter1, bm, &op, "newout", BM_VERT) {
@@ -181,14 +182,14 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 	BMO_Finish_Op(bm, &op);
 
+	if (vector_def) MEM_freeN(vector_def);
+	
 	BMEdit_RecalcTesselation(em);
-	result = CDDM_from_BMEditMesh(em, NULL); //CDDM_copy(getEditDerivedBMesh(em, ob, NULL), 0);
+	result = CDDM_from_BMEditMesh(em, NULL);
 
 	BMEdit_Free(em);
 	MEM_freeN(em);
-
-	if (vector_def) MEM_freeN(vector_def);
-
+		
 	return result;
 }
 

@@ -370,7 +370,7 @@ BMEdge *EDBM_get_edge_for_index(BMEditMesh *tm, int index)
 
 BMFace *EDBM_get_face_for_index(BMEditMesh *tm, int index)
 {
-	return tm->face_index?tm->face_index[index]:NULL;
+	return (tm->face_index && index<tm->bm->totface && index>=0) ? tm->face_index[index] : NULL;
 }
 
 /* this replaces the active flag used in uv/face mode */

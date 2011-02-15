@@ -652,6 +652,13 @@ static BMFace *edge_ray_cast(BMBVHTree *tree, float *co, float *dir, float *hito
 	return f;
 }
 
+void scale_point(float *c1, float *p, float s)
+{
+	sub_v3_v3(c1, p);
+	mul_v3_fl(c1, s);
+	add_v3_v3(c1, p);
+}
+
 int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d, Object *obedit)
 {
 	BMFace *f;
@@ -667,6 +674,9 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d, Object *obe
 	add_v3_v3v3(co2, e->v1->co, e->v2->co);
 	mul_v3_fl(co2, 0.5f);
 	VECCOPY(co3, e->v2->co);
+	
+	scale_point(co1, co2, 0.99);
+	scale_point(co3, co2, 0.99);
 	
 	/*ok, idea is to generate rays going from the camera origin to the 
 	  three points on the edge (v1, mid, v2)*/
