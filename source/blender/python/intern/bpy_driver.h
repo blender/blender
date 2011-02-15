@@ -27,4 +27,8 @@
 int bpy_pydriver_create_dict(void);
 extern PyObject *bpy_pydriver_Dict;
 
+/* externals */
+float BPY_driver_exec(struct ChannelDriver *driver);
+void BPY_driver_reset(void);
+
 #endif // BPY_DRIVER_H

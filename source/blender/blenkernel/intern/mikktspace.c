@@ -41,12 +41,12 @@ typedef struct
 	float x, y, z;
 } SVec3;
 
-tbool			veq( const SVec3 v1, const SVec3 v2 )
+static tbool			veq( const SVec3 v1, const SVec3 v2 )
 {
 	return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z);
 }
 
-const SVec3		vadd( const SVec3 v1, const SVec3 v2 )
+static const SVec3		vadd( const SVec3 v1, const SVec3 v2 )
 {
 	SVec3 vRes;
 
@@ -58,7 +58,7 @@ const SVec3		vadd( const SVec3 v1, const SVec3 v2 )
 }
 
 
-const SVec3		vsub( const SVec3 v1, const SVec3 v2 )
+static const SVec3		vsub( const SVec3 v1, const SVec3 v2 )
 {
 	SVec3 vRes;
 
@@ -69,7 +69,7 @@ const SVec3		vsub( const SVec3 v1, const SVec3 v2 )
 	return vRes;
 }
 
-const SVec3		vscale(const float fS, const SVec3 v)
+static const SVec3		vscale(const float fS, const SVec3 v)
 {
 	SVec3 vRes;
 
@@ -80,34 +80,34 @@ const SVec3		vscale(const float fS, const SVec3 v)
 	return vRes;
 }
 
-float			LengthSquared( const SVec3 v )
+static float			LengthSquared( const SVec3 v )
 {
 	return v.x*v.x + v.y*v.y + v.z*v.z;
 }
 
-float			Length( const SVec3 v )
+static float			Length( const SVec3 v )
 {
 	return sqrtf(LengthSquared(v));
 }
 
-const SVec3		Normalize( const SVec3 v )
+static const SVec3		Normalize( const SVec3 v )
 {
 	return vscale(1 / Length(v), v);
 }
 
-const float		vdot( const SVec3 v1, const SVec3 v2)
+static const float		vdot( const SVec3 v1, const SVec3 v2)
 {
 	return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
 }
 
 
-tbool NotZero(const float fX)
+static tbool NotZero(const float fX)
 {
 	// could possibly use FLT_EPSILON instead
 	return fabsf(fX) > FLT_MIN;
 }
 
-tbool VNotZero(const SVec3 v)
+static tbool VNotZero(const SVec3 v)
 {
 	// might change this to an epsilon based test
 	return NotZero(v.x) || NotZero(v.y) || NotZero(v.z);
@@ -170,19 +170,19 @@ tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], const SGro
 					 const int iNrActiveGroups, const int piTriListIn[], const float fThresCos,
 					 const SMikkTSpaceContext * pContext);
 
-int MakeIndex(const int iFace, const int iVert)
+static int MakeIndex(const int iFace, const int iVert)
 {
 	assert(iVert>=0 && iVert<4 && iFace>=0);
 	return (iFace<<2) | (iVert&0x3);
 }
 
-void IndexToData(int * piFace, int * piVert, const int iIndexIn)
+static void IndexToData(int * piFace, int * piVert, const int iIndexIn)
 {
 	piVert[0] = iIndexIn&0x3;
 	piFace[0] = iIndexIn>>2;
 }
 
-const STSpace AvgTSpace(const STSpace * pTS0, const STSpace * pTS1)
+static const STSpace AvgTSpace(const STSpace * pTS0, const STSpace * pTS1)
 {
 	STSpace ts_res;
 
@@ -429,12 +429,12 @@ typedef struct
 	int index;
 } STmpVert;
 
-const int g_iCells = 2048;
+static const int g_iCells = 2048;
 
 // it is IMPORTANT that this function is called to evaluate the hash since
 // inlining could potentially reorder instructions and generate different
 // results for the same effective input value fVal.
-volatile int FindGridCell(const float fMin, const float fMax, const float fVal)
+static volatile int FindGridCell(const float fMin, const float fMax, const float fVal)
 {
 	const float fIndex = (g_iCells-1) * ((fVal-fMin)/(fMax-fMin));
 	const int iIndex = fIndex<0?0:((int) (fIndex+0.5f));
@@ -915,7 +915,7 @@ void BuildNeighborsFast(STriInfo pTriInfos[], SEdge * pEdges, const int piTriLis
 void BuildNeighborsSlow(STriInfo pTriInfos[], const int piTriListIn[], const int iNrTrianglesIn);
 
 // returns the texture area times 2
-float CalcTexArea(const SMikkTSpaceContext * pContext, const int indices[])
+static float CalcTexArea(const SMikkTSpaceContext * pContext, const int indices[])
 {
 	const SVec3 t1 = GetTexCoord(pContext, indices[0]);
 	const SVec3 t2 = GetTexCoord(pContext, indices[1]);
@@ -1455,7 +1455,7 @@ void QuickSort(int* pSortBuffer, int iLeft, int iRight, unsigned int uSeed)
 	index = (int) (uSeed%n);
 
 	iMid=pSortBuffer[index + iL];
-	iTmp;
+
 
 	do
 	{
