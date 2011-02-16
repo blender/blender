@@ -1809,12 +1809,17 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 		 * we divide the curvetime calculated in the previous step by the length of the path, to get a time
 		 * factor, which then gets clamped to lie within 0.0 - 1.0 range
 		 */
-		ctime= cu->ctime / cu->pathlen;
+		if (IS_EQ(cu->pathlen, 0.0f) == 0)
+			ctime= cu->ctime / cu->pathlen;
+		else
+			ctime= cu->ctime;
+		
 		CLAMP(ctime, 0.0, 1.0);
 	}
 	else {
 		ctime= scene->r.cfra - give_timeoffset(ob);
-		ctime /= cu->pathlen;
+		if (IS_EQ(cu->pathlen, 0.0f) == 0)
+			ctime /= cu->pathlen;
 		
 		CLAMP(ctime, 0.0, 1.0);
 	}

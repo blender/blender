@@ -743,8 +743,8 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, i
 static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, int animated)
 {
 	extern int enable_cu_speed;	/* object.c */
+	Object copyob = {{NULL}};
 	int cfrao = scene->r.cfra;
-	float omat[4][4];
 	
 	/* simple prevention of too deep nested groups */
 	if (level > MAX_DUPLI_RECUR) return;
@@ -754,11 +754,13 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	 */
 	if (ob->parent==NULL && ob->constraints.first==NULL && ob->adt==NULL) 
 		return;
-	if (ob->adt->action==NULL && ob->adt->nla_tracks.first==NULL && ob->adt->drivers.first==NULL)
-		return;
 	
-	/* make a copy of the object's original transform matrix */
-	copy_m4_m4(omat, ob->obmat);
+	/* make a copy of the object's original data (before any dupli-data overwrites it) 
+	 * as we'll need this to keep track of unkeyed data
+	 *	- this doesn't take into account other data that can be reached from the object,
+	 *	  for example it's shapekeys or bones, hence the need for an update flush at the end
+	 */
+	copyob = *ob;
 	
 	/* duplicate over the required range */
 	if (ob->transflag & OB_DUPLINOSPEED) enable_cu_speed= 0;
@@ -786,7 +788,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 			where_is_object_time(scene, ob, (float)scene->r.cfra);
 			
 			dob= new_dupli_object(lb, ob, ob->obmat, ob->lay, scene->r.cfra, OB_DUPLIFRAMES, animated);
-			copy_m4_m4(dob->omat, omat);
+			copy_m4_m4(dob->omat, copyob.obmat);
 		}
 	}
 
@@ -799,6 +801,11 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	
 	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
 	where_is_object_time(scene, ob, (float)scene->r.cfra);
+	
+	/* but, to make sure unkeyed object transforms are still sane, 
+	 * let's copy object's original data back over
+	 */
+	*ob = copyob;
 }
 
 typedef struct vertexDupliData {
