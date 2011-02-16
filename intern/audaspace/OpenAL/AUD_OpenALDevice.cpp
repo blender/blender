@@ -128,16 +128,21 @@ void AUD_OpenALDevice::updateStreams()
 
 	ALint info;
 	AUD_DeviceSpecs specs = m_specs;
+	ALCenum cerr;
+	std::list<AUD_OpenALHandle*> stopSounds;
+	std::list<AUD_OpenALHandle*> pauseSounds;
+	AUD_HandleIterator it;
 
 	while(1)
 	{
 		lock();
 
 		alcSuspendContext(m_context);
-
+		cerr = alcGetError(m_device);
+		if(cerr == ALC_NO_ERROR)
 		{
 			// for all sounds
-			for(AUD_HandleIterator it = m_playingSounds->begin(); it != m_playingSounds->end(); it++)
+			for(it = m_playingSounds->begin(); it != m_playingSounds->end(); it++)
 			{
 				sound = *it;
 
@@ -232,33 +237,33 @@ void AUD_OpenALDevice::updateStreams()
 						if(sound->stop)
 							sound->stop(sound->stop_data);
 
-						// increment the iterator to the next value,
-						// because the sound gets deleted in the list here.
-						++it;
 						// pause or
 						if(sound->keep)
-							pause(sound);
+							pauseSounds.push_back(sound);
 						// stop
 						else
-							stop(sound);
-						// decrement again, so that we get the next sound in the
-						// next loop run
-						if(m_playingSounds->empty())
-							break;
-						else
-							--it;
+							stopSounds.push_back(sound);
 					}
 					// continue playing
 					else
 						alSourcePlay(sound->source);
 				}
 			}
+
+			for(it = pauseSounds.begin(); it != pauseSounds.end(); it++)
+				pause(*it);
+
+			for(it = stopSounds.begin(); it != stopSounds.end(); it++)
+				stop(*it);
+
+			pauseSounds.clear();
+			stopSounds.clear();
+
+			alcProcessContext(m_context);
 		}
 
-		alcProcessContext(m_context);
-
 		// stop thread
-		if(m_playingSounds->empty())
+		if(m_playingSounds->empty() || (cerr != ALC_NO_ERROR))
 		{
 			unlock();
 			m_playing = false;
@@ -338,6 +343,7 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 	m_useMC = alIsExtensionPresent("AL_EXT_MCFORMATS") == AL_TRUE;
 
 	alGetError();
+	alcGetError(m_device);
 
 	m_specs = specs;
 	m_buffersize = buffersize;

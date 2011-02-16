@@ -12,6 +12,9 @@
 
 /* debugging outputs , debug level 0 (off) to 10 (max) */
 #ifdef ELBEEM_PLUGIN
+#ifdef DEBUG
+#undef DEBUG
+#endif
 #define DEBUG 0
 #else // ELBEEM_PLUGIN
 #define DEBUG 10

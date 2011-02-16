@@ -45,6 +45,7 @@ public:
 	std::list<IK_QTask*> tasks;
 };
 
+// FIXME: locks still result in small "residual" changes to the locked axes...
 IK_QSegment *CreateSegment(int flag, bool translate)
 {
 	int ndof = 0;

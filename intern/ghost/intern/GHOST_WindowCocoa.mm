@@ -143,12 +143,17 @@ extern "C" {
 	GHOST_TDragnDropTypes m_draggedObjectType;
 }
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
+- (GHOST_SystemCocoa*)systemCocoa;
 @end
 @implementation CocoaWindow
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa
 {
 	systemCocoa = sysCocoa;
 	associatedWindow = winCocoa;
+}
+- (GHOST_SystemCocoa*)systemCocoa
+{
+	return systemCocoa;
 }
 
 -(BOOL)canBecomeKeyWindow
@@ -278,6 +283,18 @@ extern "C" {
 - (BOOL)isOpaque
 {
     return YES;
+}
+
+- (void) drawRect:(NSRect)rect
+{
+    if ([self inLiveResize])
+    {
+        //Don't redraw while in live resize
+    }
+    else
+    {
+        [super drawRect:rect];
+    }
 }
 
 @end
@@ -481,10 +498,10 @@ void GHOST_WindowCocoa::setTitle(const STR_String& title)
     GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setTitle(): window invalid")
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-	NSString *windowTitle = [[NSString alloc] initWithUTF8String:title];
+	NSString *windowTitle = [[NSString alloc] initWithCString:title encoding:NSUTF8StringEncoding];
 	
 	//Set associated file if applicable
-	if ([windowTitle hasPrefix:@"Blender"])
+	if (windowTitle && [windowTitle hasPrefix:@"Blender"])
 	{
 		NSRange fileStrRange;
 		NSString *associatedFileName;
@@ -497,13 +514,16 @@ void GHOST_WindowCocoa::setTitle(const STR_String& title)
 		{
 			fileStrRange.length = len;
 			associatedFileName = [windowTitle substringWithRange:fileStrRange];
+			[m_window setTitle:[associatedFileName lastPathComponent]];
+
+			//Blender used file open/save functions converte file names into legal URL ones
+			associatedFileName = [associatedFileName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
 			@try {
 				[m_window setRepresentedFilename:associatedFileName];
 			}
 			@catch (NSException * e) {
 				printf("\nInvalid file path given in window title");
 			}
-			[m_window setTitle:[associatedFileName lastPathComponent]];
 		}
 		else {
 			[m_window setTitle:windowTitle];
@@ -762,12 +782,15 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[tmpWindow setReleasedWhenClosed:NO];
 				[tmpWindow setAcceptsMouseMovedEvents:YES];
 				[tmpWindow setDelegate:[m_window delegate]];
+				[tmpWindow setSystemAndWindowCocoa:[m_window systemCocoa] windowCocoa:this];
+				[tmpWindow registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
+												   NSStringPboardType, NSTIFFPboardType, nil]];
 				
 				//Assign the openGL view to the new window
 				[tmpWindow setContentView:m_openGLView];
 				
 				//Show the new window
-				[tmpWindow makeKeyAndOrderFront:nil];
+				[tmpWindow makeKeyAndOrderFront:m_openGLView];
 				//Close and release old window
 				[m_window setDelegate:nil]; // To avoid the notification of "window closed" event
 				[m_window close];
@@ -820,6 +843,11 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[tmpWindow setReleasedWhenClosed:NO];
 				[tmpWindow setAcceptsMouseMovedEvents:YES];
 				[tmpWindow setDelegate:[m_window delegate]];
+				[tmpWindow setSystemAndWindowCocoa:[m_window systemCocoa] windowCocoa:this];
+				[tmpWindow registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
+												   NSStringPboardType, NSTIFFPboardType, nil]];
+				//Forbid to resize the window below the blender defined minimum one
+				[tmpWindow setContentMinSize:NSMakeSize(320, 240)];
 				
 				//Assign the openGL view to the new window
 				[tmpWindow setContentView:m_openGLView];

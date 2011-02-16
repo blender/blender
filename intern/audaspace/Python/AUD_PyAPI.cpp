@@ -851,7 +851,7 @@ Factory_filter(Factory* self, PyObject* args)
 		return NULL;
 	}
 
-	if(!PySequence_Length(py_b) || (py_a != NULL && !PySequence_Length(py_a)))
+	if(!PySequence_Size(py_b) || (py_a != NULL && !PySequence_Size(py_a)))
 	{
 		PyErr_SetString(PyExc_ValueError, "The sequence has to contain at least one value!");
 		return NULL;
@@ -862,7 +862,7 @@ Factory_filter(Factory* self, PyObject* args)
 	float value;
 	int result;
 
-	for(int i = 0; i < PySequence_Length(py_b); i++)
+	for(int i = 0; i < PySequence_Size(py_b); i++)
 	{
 		py_value = PySequence_GetItem(py_b, i);
 		result = PyArg_Parse(py_value, "f:filter", &value);
@@ -876,7 +876,7 @@ Factory_filter(Factory* self, PyObject* args)
 
 	if(py_a)
 	{
-		for(int i = 0; i < PySequence_Length(py_a); i++)
+		for(int i = 0; i < PySequence_Size(py_a); i++)
 		{
 			py_value = PySequence_GetItem(py_a, i);
 			result = PyArg_Parse(py_value, "f:filter", &value);
@@ -1044,18 +1044,13 @@ Handle_pause(Handle *self)
 
 	try
 	{
-		if(device->device->pause(self->handle))
-		{
-			Py_RETURN_TRUE;
-		}
+		return PyBool_FromLong((long)device->device->pause(self->handle));
 	}
 	catch(AUD_Exception& e)
 	{
 		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
-
-	Py_RETURN_FALSE;
 }
 
 PyDoc_STRVAR(M_aud_Handle_resume_doc,
@@ -1071,18 +1066,13 @@ Handle_resume(Handle *self)
 
 	try
 	{
-		if(device->device->resume(self->handle))
-		{
-			Py_RETURN_TRUE;
-		}
+		return PyBool_FromLong((long)device->device->resume(self->handle));
 	}
 	catch(AUD_Exception& e)
 	{
 		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
-
-	Py_RETURN_FALSE;
 }
 
 PyDoc_STRVAR(M_aud_Handle_stop_doc,
@@ -1099,18 +1089,13 @@ Handle_stop(Handle *self)
 
 	try
 	{
-		if(device->device->stop(self->handle))
-		{
-			Py_RETURN_TRUE;
-		}
+		return PyBool_FromLong((long)device->device->stop(self->handle));
 	}
 	catch(AUD_Exception& e)
 	{
 		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
-
-	Py_RETURN_FALSE;
 }
 
 static PyMethodDef Handle_methods[] = {
@@ -1185,14 +1170,7 @@ Handle_get_keep(Handle *self, void* nothing)
 
 	try
 	{
-		if(device->device->getKeep(self->handle))
-		{
-			Py_RETURN_TRUE;
-		}
-		else
-		{
-			Py_RETURN_FALSE;
-		}
+		return PyBool_FromLong((long)device->device->getKeep(self->handle));
 	}
 	catch(AUD_Exception& e)
 	{
@@ -1237,7 +1215,7 @@ Handle_get_status(Handle *self, void* nothing)
 
 	try
 	{
-		return Py_BuildValue("i", device->device->getStatus(self->handle));
+		return PyBool_FromLong((long)device->device->getStatus(self->handle));
 	}
 	catch(AUD_Exception& e)
 	{
@@ -1568,14 +1546,7 @@ Handle_get_relative(Handle *self, void* nothing)
 		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
 		if(device)
 		{
-			if(device->isRelative(self->handle))
-			{
-				Py_RETURN_TRUE;
-			}
-			else
-			{
-				Py_RETURN_FALSE;
-			}
+			return PyBool_FromLong((long)device->isRelative(self->handle));
 		}
 		else
 		{

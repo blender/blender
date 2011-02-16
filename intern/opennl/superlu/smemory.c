@@ -621,7 +621,7 @@ sStackCompress(GlobalLU_t *Glu)
     Glu->usub = usub;
     
 #ifdef DEBUG
-    printf("sStackCompress: fragment %d\n", fragment);
+    printf("sStackCompress: fragment %d\n", (int)*fragment);
     /* for (last = 0; last < ndim; ++last)
 	print_lu_col("After compress:", last, 0);*/
 #endif    

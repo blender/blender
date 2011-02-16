@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC	
+set(INC	
 	.
 	./intern
 	./extern
@@ -36,6 +36,43 @@ SET(INC
 	../../source/blender/makesdna
 )
 
-FILE(GLOB SRC intern/*.cpp)
+set(SRC
+	intern/BOP_BBox.cpp
+	intern/BOP_BSPNode.cpp
+	intern/BOP_BSPTree.cpp
+	intern/BOP_Edge.cpp
+	intern/BOP_Face.cpp
+	intern/BOP_Face2Face.cpp
+	intern/BOP_Interface.cpp
+	intern/BOP_MathUtils.cpp
+	intern/BOP_Merge.cpp
+	intern/BOP_Merge2.cpp
+	intern/BOP_Mesh.cpp
+	intern/BOP_Segment.cpp
+	intern/BOP_Splitter.cpp
+	intern/BOP_Tag.cpp
+	intern/BOP_Triangulator.cpp
+	intern/BOP_Vertex.cpp
 
-BLENDERLIB(bf_intern_bop "${SRC}" "${INC}")
+	extern/BOP_Interface.h
+	intern/BOP_BBox.h
+	intern/BOP_BSPNode.h
+	intern/BOP_BSPTree.h
+	intern/BOP_Chrono.h
+	intern/BOP_Edge.h
+	intern/BOP_Face.h
+	intern/BOP_Face2Face.h
+	intern/BOP_Indexs.h
+	intern/BOP_MathUtils.h
+	intern/BOP_Merge.h
+	intern/BOP_Merge2.h
+	intern/BOP_Mesh.h
+	intern/BOP_Misc.h
+	intern/BOP_Segment.h
+	intern/BOP_Splitter.h
+	intern/BOP_Tag.h
+	intern/BOP_Triangulator.h
+	intern/BOP_Vertex.h
+)
+
+blender_add_lib(bf_intern_bop "${SRC}" "${INC}")

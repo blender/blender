@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../string
 	../../extern/glew/include
@@ -32,63 +32,130 @@ SET(INC
 	../../source/blender/makesdna
 )
 
-SET(SRC
-	./intern/GHOST_Buttons.cpp
-	./intern/GHOST_CallbackEventConsumer.cpp
-	./intern/GHOST_C-api.cpp
-	./intern/GHOST_DisplayManager.cpp
-	./intern/GHOST_EventManager.cpp
-	./intern/GHOST_EventPrinter.cpp
-	./intern/GHOST_ISystem.cpp
-	./intern/GHOST_ModifierKeys.cpp
-	./intern/GHOST_NDOFManager.cpp
-	./intern/GHOST_Path-api.cpp
-	./intern/GHOST_Rect.cpp
-	./intern/GHOST_System.cpp
-	./intern/GHOST_TimerManager.cpp
-	./intern/GHOST_Window.cpp
-	./intern/GHOST_WindowManager.cpp
+set(SRC
+	intern/GHOST_Buttons.cpp
+	intern/GHOST_CallbackEventConsumer.cpp
+	intern/GHOST_C-api.cpp
+	intern/GHOST_Path-api.cpp
+	intern/GHOST_DisplayManager.cpp
+	intern/GHOST_EventManager.cpp
+	intern/GHOST_EventPrinter.cpp
+	intern/GHOST_ISystem.cpp
+	intern/GHOST_ISystemPaths.cpp
+	intern/GHOST_ModifierKeys.cpp
+	intern/GHOST_NDOFManager.cpp
+	intern/GHOST_Path-api.cpp
+	intern/GHOST_Rect.cpp
+	intern/GHOST_System.cpp
+	intern/GHOST_TimerManager.cpp
+	intern/GHOST_Window.cpp
+	intern/GHOST_WindowManager.cpp
+
+	GHOST_C-api.h
+	GHOST_IEvent.h
+	GHOST_IEventConsumer.h
+	GHOST_ISystem.h
+	GHOST_ISystemPaths.h
+	GHOST_ITimerTask.h
+	GHOST_IWindow.h
+	GHOST_Path-api.h
+	GHOST_Rect.h
+	GHOST_Types.h
+	intern/GHOST_Buttons.h
+	intern/GHOST_CallbackEventConsumer.h
+	intern/GHOST_Debug.h
+	intern/GHOST_DisplayManager.h
+	intern/GHOST_Event.h
+	intern/GHOST_EventButton.h
+	intern/GHOST_EventCursor.h
+	intern/GHOST_EventDragnDrop.h
+	intern/GHOST_EventKey.h
+	intern/GHOST_EventManager.h
+	intern/GHOST_EventNDOF.h
+	intern/GHOST_EventPrinter.h
+	intern/GHOST_EventString.h
+	intern/GHOST_EventTrackpad.h
+	intern/GHOST_EventWheel.h
+	intern/GHOST_ModifierKeys.h
+	intern/GHOST_NDOFManager.h
+	intern/GHOST_System.h
+	intern/GHOST_SystemPaths.h
+	intern/GHOST_TimerManager.h
+	intern/GHOST_TimerTask.h
+	intern/GHOST_Window.h
+	intern/GHOST_WindowManager.h
 )
 
-IF(APPLE)
-	IF(WITH_COCOA)
-		LIST(APPEND SRC
-			./intern/GHOST_DisplayManagerCocoa.mm
-			./intern/GHOST_SystemCocoa.mm
-			./intern/GHOST_WindowCocoa.mm
+if(APPLE)
+	if(WITH_COCOA)
+		list(APPEND SRC
+			intern/GHOST_DisplayManagerCocoa.mm
+			intern/GHOST_SystemCocoa.mm
+			intern/GHOST_SystemPathsCocoa.mm
+			intern/GHOST_WindowCocoa.mm
+			
+			intern/GHOST_DisplayManagerCocoa.h
+			intern/GHOST_SystemCocoa.h
+			intern/GHOST_SystemPathsCocoa.h
+			intern/GHOST_WindowCocoa.h
 		)
-	ELSE(WITH_COCOA)
-		LIST(APPEND SRC
-			./intern/GHOST_DisplayManagerCarbon.cpp
-			./intern/GHOST_SystemCarbon.cpp
-			./intern/GHOST_WindowCarbon.cpp
+	else()
+		list(APPEND SRC
+			intern/GHOST_DisplayManagerCarbon.cpp
+			intern/GHOST_SystemCarbon.cpp
+			intern/GHOST_SystemPathsCarbon.cpp
+			intern/GHOST_WindowCarbon.cpp
+
+			intern/GHOST_DisplayManagerCarbon.h
+			intern/GHOST_SystemCarbon.h
+			intern/GHOST_SystemPathsCarbon.h
+			intern/GHOST_WindowCarbon.h
 		)
-	ENDIF(WITH_COCOA)
+	endif()
 
-	IF(WITH_QUICKTIME)
-		ADD_DEFINITIONS(-DWITH_QUICKTIME)
-	ENDIF(WITH_QUICKTIME)
-ELSEIF(WIN32)
-	LIST(APPEND INC ${WINTAB_INC})
+	if(WITH_CODEC_QUICKTIME)
+		add_definitions(-DWITH_QUICKTIME)
+	endif()
 
-	LIST(APPEND SRC
-		./intern/GHOST_DisplayManagerWin32.cpp
-		./intern/GHOST_SystemWin32.cpp
-		./intern/GHOST_WindowWin32.cpp
-		./intern/GHOST_DropTargetWin32.cpp
-	)
-ELSEIF(UNIX)
-	LIST(APPEND INC ${X11_X11_INCLUDE_PATH})
+elseif(UNIX)
+	list(APPEND INC ${X11_X11_INCLUDE_PATH})
 
-	LIST(APPEND SRC
-		./intern/GHOST_DisplayManagerX11.cpp
-		./intern/GHOST_SystemX11.cpp
-		./intern/GHOST_WindowX11.cpp
+	list(APPEND SRC
+		intern/GHOST_DisplayManagerX11.cpp
+		intern/GHOST_SystemX11.cpp
+		intern/GHOST_SystemPathsX11.cpp
+		intern/GHOST_WindowX11.cpp
+
+		intern/GHOST_DisplayManagerX11.h
+		intern/GHOST_SystemX11.h
+		intern/GHOST_SystemPathsX11.h
+		intern/GHOST_WindowX11.h
 	)
 
-	ADD_DEFINITIONS(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
+	add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
 
-ENDIF(APPLE)
+elseif(WIN32)
+	if(MSVC)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
+	endif()
 
-BLENDERLIB(bf_intern_ghost "${SRC}" "${INC}")
+	list(APPEND INC ${WINTAB_INC})
+
+	list(APPEND SRC
+		intern/GHOST_DisplayManagerWin32.cpp
+		intern/GHOST_SystemWin32.cpp
+		intern/GHOST_SystemPathsWin32.cpp
+		intern/GHOST_WindowWin32.cpp
+		intern/GHOST_DropTargetWin32.cpp
+
+		intern/GHOST_DisplayManagerWin32.h
+		intern/GHOST_DropTargetWin32.h
+		intern/GHOST_SystemWin32.h
+		intern/GHOST_SystemPathsWin32.h
+		intern/GHOST_WindowWin32.h
+		intern/GHOST_TaskbarWin32.h
+	)
+endif()
+
+blender_add_lib(bf_intern_ghost "${SRC}" "${INC}")
 

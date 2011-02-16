@@ -24,12 +24,50 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	intern
 	../memutil
 	../moto/include
 )
 
-FILE(GLOB SRC intern/*.cpp)
+set(SRC
+	intern/IK_QJacobian.cpp
+	intern/IK_QJacobianSolver.cpp
+	intern/IK_QSegment.cpp
+	intern/IK_QTask.cpp
+	intern/IK_Solver.cpp
+	intern/MT_ExpMap.cpp
 
-BLENDERLIB(bf_intern_ik "${SRC}" "${INC}")
+	extern/IK_solver.h
+	intern/IK_QJacobian.h
+	intern/IK_QJacobianSolver.h
+	intern/IK_QSegment.h
+	intern/IK_QTask.h
+	intern/MT_ExpMap.h
+	intern/TNT/cholesky.h
+	intern/TNT/cmat.h
+	intern/TNT/fcscmat.h
+	intern/TNT/fmat.h
+	intern/TNT/fortran.h
+	intern/TNT/fspvec.h
+	intern/TNT/index.h
+	intern/TNT/lapack.h
+	intern/TNT/lu.h
+	intern/TNT/qr.h
+	intern/TNT/region1d.h
+	intern/TNT/region2d.h
+	intern/TNT/stopwatch.h
+	intern/TNT/subscript.h
+	intern/TNT/svd.h
+	intern/TNT/tnt.h
+	intern/TNT/tntmath.h
+	intern/TNT/tntreqs.h
+	intern/TNT/transv.h
+	intern/TNT/triang.h
+	intern/TNT/trisolve.h
+	intern/TNT/vec.h
+	intern/TNT/vecadaptor.h
+	intern/TNT/version.h
+)
+
+blender_add_lib(bf_intern_ik "${SRC}" "${INC}")

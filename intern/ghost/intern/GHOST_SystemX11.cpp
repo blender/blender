@@ -68,7 +68,7 @@
 #include <cstdlib> // for exit
 
 #ifndef PREFIX
-#  define PREFIX "/usr/local"
+#error "PREFIX not defined"
 #endif
 
 typedef struct NDOFPlatformInfo {
@@ -891,13 +891,13 @@ getModifierKeys(
 		keys.set(GHOST_kModifierKeyRightAlt,false);
 	}
 
-	// Super (Windows) - only one GHOST-kModifierKeyCommand, so mapping
+	// Super (Windows) - only one GHOST-kModifierKeyOS, so mapping
 	// to either
 	if ( ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) || 
 	     ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) ) {
-		keys.set(GHOST_kModifierKeyCommand,true);
+		keys.set(GHOST_kModifierKeyOS,true);
 	} else {
-		keys.set(GHOST_kModifierKeyCommand,false);
+		keys.set(GHOST_kModifierKeyOS,false);
 	}
 	return GHOST_kSuccess;
 }
@@ -1106,8 +1106,8 @@ convertXKey(
 			GXMAP(type,XK_Control_R,	GHOST_kKeyRightControl);
 			GXMAP(type,XK_Alt_L,	 	GHOST_kKeyLeftAlt);
 			GXMAP(type,XK_Alt_R,	 	GHOST_kKeyRightAlt);
-			GXMAP(type,XK_Super_L,		GHOST_kKeyCommand);
-			GXMAP(type,XK_Super_R,		GHOST_kKeyCommand);
+			GXMAP(type,XK_Super_L,		GHOST_kKeyOS);
+			GXMAP(type,XK_Super_R,		GHOST_kKeyOS);
 
 			GXMAP(type,XK_Insert,	 	GHOST_kKeyInsert);
 			GXMAP(type,XK_Delete,	 	GHOST_kKeyDelete);
@@ -1476,23 +1476,4 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	}
 }
 
-const GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
-{
-	return (GHOST_TUns8*) PREFIX "/share";
-}
-
-const GHOST_TUns8* GHOST_SystemX11::getUserDir() const
-{
-	char* env = getenv("HOME");
-	if(env) {
-		return (GHOST_TUns8*) env;
-	} else {
-		return NULL;
-	}
-}
-
-const GHOST_TUns8* GHOST_SystemX11::getBinaryDir() const
-{
-	return NULL;
-}
 

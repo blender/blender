@@ -57,7 +57,7 @@
 
 /* Only for debugging:
  * lets you count the allocations so as to find the allocator of unfreed memory
- * in situations where the leak is pradictable */
+ * in situations where the leak is predictable */
 
 // #define DEBUG_MEMCOUNTER
 
@@ -177,13 +177,13 @@ static void print_error(const char *str, ...)
 	if (error_callback) error_callback(buf);
 }
 
-static void mem_lock_thread()
+static void mem_lock_thread(void)
 {
 	if (thread_lock_callback)
 		thread_lock_callback();
 }
 
-static void mem_unlock_thread()
+static void mem_unlock_thread(void)
 {
 	if (thread_unlock_callback)
 		thread_unlock_callback();
@@ -502,7 +502,7 @@ static void MEM_printmemlist_internal( int pydict )
 	}
 	while(membl) {
 		if (pydict) {
-			fprintf(stderr, "{'len':" SIZET_FORMAT ", 'name':'''%s''', 'pointer':'%p'},\\\n", SIZET_ARG(membl->len), membl->name, membl+1);
+			fprintf(stderr, "{'len':" SIZET_FORMAT ", 'name':'''%s''', 'pointer':'%p'},\\\n", SIZET_ARG(membl->len), membl->name, (void *)(membl+1));
 		} else {
 #ifdef DEBUG_MEMCOUNTER
 			print_error("%s len: " SIZET_FORMAT " %p, count: %d\n", membl->name, SIZET_ARG(membl->len), membl+1, membl->_count);
@@ -855,5 +855,19 @@ int MEM_get_memory_blocks_in_use(void)
 
 	return _totblock;
 }
+
+#ifndef NDEBUG
+const char *MEM_name_ptr(void *vmemh)
+{
+	if (vmemh) {
+		MemHead *memh= vmemh;
+		memh--;
+		return memh->name;
+	}
+	else {
+		return "MEM_name_ptr(NULL)";
+	}
+}
+#endif
 
 /* eof */

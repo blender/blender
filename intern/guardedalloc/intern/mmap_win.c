@@ -42,6 +42,13 @@
 #define FILE_MAP_EXECUTE 0x0020
 #endif
 
+/* copied from BKE_utildefines.h ugh */
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#  define UNUSED(x) x
+#endif
+
 /* --------------------------------------------------------------------- */
 /* local storage definitions                                                    */
 /* --------------------------------------------------------------------- */
@@ -86,7 +93,7 @@ volatile static struct mmapListBase *mmapbase = &_mmapbase;
 /* --------------------------------------------------------------------- */
 
 /* mmap for windows */
-void *mmap(void *start, size_t len, int prot, int flags, int fd, off_t offset)
+void *mmap(void *UNUSED(start), size_t len, int prot, int flags, int fd, off_t offset)
 {
 	HANDLE fhandle = INVALID_HANDLE_VALUE;
 	HANDLE maphandle;
@@ -151,7 +158,7 @@ void *mmap(void *start, size_t len, int prot, int flags, int fd, off_t offset)
 }
 
 /* munmap for windows */
-intptr_t munmap(void *ptr, intptr_t size)
+intptr_t munmap(void *ptr, intptr_t UNUSED(size))
 {
 	MemMap *mm = mmap_findlink(mmapbase, ptr);
 	if (!mm) {

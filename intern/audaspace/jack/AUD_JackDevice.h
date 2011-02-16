@@ -87,9 +87,14 @@ private:
 	static int jack_sync(jack_transport_state_t state, jack_position_t* pos, void* data);
 
 	/**
-	 * Last Jack Transport playing state.
+	 * Next Jack Transport state (-1 if not expected to change).
 	 */
-	bool m_playing;
+	jack_transport_state_t m_nextState;
+
+	/**
+	 * Current jack transport status.
+	 */
+	jack_transport_state_t m_state;
 
 	/**
 	 * Syncronisation state.

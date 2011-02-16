@@ -70,7 +70,7 @@ void dumpmesh ( BOP_Mesh *m, bool force )
 	}
 	if( nonmanifold )
 		cout << nonmanifold << " edges detected" << endl;
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 	cout << "---------------------------" << endl;
 
 	BOP_Edges edges = m->getEdges();
@@ -130,7 +130,7 @@ void BOP_Merge2::mergeFaces(BOP_Mesh *m, BOP_Index v)
 {
 	m_mesh = m;
 
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 	cout << "##############################" << endl;
 #endif
 	cleanup( );
@@ -147,7 +147,7 @@ void BOP_Merge2::mergeFaces(BOP_Mesh *m, BOP_Index v)
 		// ... and merge new faces
 		if( cont ) cont = mergeFaces();
 
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 		cout << "called mergeFaces " << cont << endl;
 #endif
 		// ... until the merge is not succesful
@@ -186,7 +186,7 @@ void clean_nonmanifold( BOP_Mesh *m )
 		unsigned short facecount = 0;
 		bool found = false;
 		BOP_Indexs vertList;
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 		cout << "  first edge is " << (*it) << endl;
 #endif
 		vertList.push_back(first);
@@ -214,7 +214,7 @@ void clean_nonmanifold( BOP_Mesh *m )
 				edge = NULL;
 			}
 			if( !edge ) break;
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 			cout << "   next edge is " << edge << endl;
 #endif
 			tmpface = m->getFace(edge->getFaces().front());
@@ -231,7 +231,7 @@ void clean_nonmanifold( BOP_Mesh *m )
 		}
 		if(found) {
 			edge = *it;
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 			cout << "   --> found a loop" << endl;
 #endif
 			if( vertList.size() == 3 ) {
@@ -241,7 +241,7 @@ void clean_nonmanifold( BOP_Mesh *m )
 				BOP_Face4 *face = (BOP_Face4 *)m->getFace(edge->getFaces().front());
 				face->getNeighbours(first,last,next,last);
 			} else {
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 				cout << "loop has " << vertList.size() << "verts"; 
 #endif
 				continue;
@@ -253,7 +253,7 @@ void clean_nonmanifold( BOP_Mesh *m )
 				BOP_Face3 *f = new BOP_Face3(next,first,last,
 					oface1->getPlane(),oface1->getOriginalFace());
 				m->addFace( f );
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 				cout << "   face is backward: " << f << endl;
 #endif
 				
@@ -261,7 +261,7 @@ void clean_nonmanifold( BOP_Mesh *m )
 				BOP_Face3 *f = new BOP_Face3(last,first,next,
 					oface1->getPlane(),oface1->getOriginalFace());
 				m->addFace( f );
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 				cout << "   face is forward: " << f << endl;
 #endif
 			}
@@ -366,7 +366,7 @@ bool BOP_Merge2::mergeFaces(BOP_Indexs &mergeVertices)
 		BOP_LFaces facesByOriginalFace;
 		BOP_Index v = mergeVertices[i];
 		BOP_Vertex *vert = m_mesh->getVertex(v);
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 		cout << "i = " << i << ", v = " << v << ", vert = " << vert << endl;
 		if (v==48)
 			cout << "found vert 48" << endl;
@@ -381,7 +381,7 @@ bool BOP_Merge2::mergeFaces(BOP_Indexs &mergeVertices)
 				vert->setTAG(BROKEN);
 				break;
 			case 2: {
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 				cout << "size of fBOF = " << facesByOriginalFace.size() << endl;
 #endif
 				BOP_Faces ff = facesByOriginalFace.front();
@@ -391,7 +391,7 @@ bool BOP_Merge2::mergeFaces(BOP_Indexs &mergeVertices)
 
 				// look for two edges adjacent to v which contain both ofaces
 				BOP_Indexs edges = vert->getEdges();
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 				cout << "   ff has " << ff.size() << " faces" << endl;
 				cout << "   fb has " << fb.size() << " faces" << endl;
 				cout << "   v  has " << edges.size() << " edges" << endl;
@@ -400,14 +400,14 @@ bool BOP_Merge2::mergeFaces(BOP_Indexs &mergeVertices)
 						++it ) {
 					BOP_Edge *edge = m_mesh->getEdge(*it);
 					BOP_Indexs faces = edge->getFaces();
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 					cout << "  " << edge << " has " << edge->getFaces().size() << " faces" << endl;
 #endif
 					if( faces.size() == 2 ) {
 						BOP_Face *f0 = m_mesh->getFace(faces[0]);
 						BOP_Face *f1 = m_mesh->getFace(faces[1]);
 						if( f0->getOriginalFace() != f1->getOriginalFace() ) {
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 							cout << "   " << f0 << endl;
 							cout << "   " << f1 << endl;
 #endif
@@ -416,14 +416,14 @@ bool BOP_Merge2::mergeFaces(BOP_Indexs &mergeVertices)
 					}
 				}
 				if(ecount == 2) {
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 					cout << "   edge indexes are " << eindexs[0];
 					cout << " and " << eindexs[1] << endl;
 #endif
 					BOP_Edge *edge = m_mesh->getEdge(eindexs[0]);
 					BOP_Index N = edge->getVertex1();
 					if(N == v) N = edge->getVertex2();
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 					cout << "    ## OK, replace "<<v<<" with "<<N << endl;
 #endif
 					mergeVertex(ff , v, N );
@@ -437,7 +437,7 @@ bool BOP_Merge2::mergeFaces(BOP_Indexs &mergeVertices)
 					}
 					didMerge = true;
 				}	
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 				else {
 					cout << "   HUH: ecount was " << ecount << endl;
 				}
@@ -461,7 +461,7 @@ void BOP_Merge2::mergeVertex(BOP_Faces &faces, BOP_Index v1, BOP_Index v2)
 		else
 			mergeVertex((BOP_Face4 *) *face, v1, v2);
 		(*face)->setTAG(BROKEN);
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 		cout << "  breaking " << (*face) << endl;
 #endif
 	}
@@ -506,7 +506,7 @@ void BOP_Merge2::mergeVertex(BOP_Face3 *face, BOP_Index v1, BOP_Index v2)
 	if( prev != v2 && next != v2 ) {
 		m_mesh->addFace( new BOP_Face3(prev,v2,next,
 					face->getPlane(),face->getOriginalFace()) );
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 		cout << "mv3: add " << prev << "," << v2 << "," << next << endl;
 	} else {
 		cout << "mv3: vertex already in tri: doing nothing" << endl;
@@ -524,7 +524,7 @@ void BOP_Merge2::mergeVertex(BOP_Face4 *face, BOP_Index v1, BOP_Index v2)
 	if( prev == v2 || next == v2 ) {
 		m_mesh->addFace( new BOP_Face3(prev,next,opp,
 					face->getPlane(),face->getOriginalFace()) );
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 		cout << "mv4a: add " << prev << "," << next << "," << opp << endl;
 #endif
 	}
@@ -532,7 +532,7 @@ void BOP_Merge2::mergeVertex(BOP_Face4 *face, BOP_Index v1, BOP_Index v2)
 	else {
 		m_mesh->addFace( new BOP_Face4(prev,v2,next,opp,
 					face->getPlane(),face->getOriginalFace()) );
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 		cout << "mv4b: add "<<prev<<","<<v2<<","<<next<<","<<opp<<endl;
 #endif
 	}
@@ -570,7 +570,7 @@ bool BOP_Merge2::createQuads()
 				// Set triangles to BROKEN
 				deleteFace(m_mesh, *faceI);
 				deleteFace(m_mesh, *faceJ);
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 			cout << "createQuad: del " << *faceI << endl;
 			cout << "createQuad: del " << *faceJ << endl;
 			cout << "createQuad: add " << faceK << endl;
@@ -602,7 +602,7 @@ bool BOP_Merge2::createQuads()
 				// Set triangles to BROKEN
 				deleteFace(m_mesh, *faceI);
 				deleteFace(m_mesh, *faceJ);
-#ifdef DEBUG
+#ifdef BOP_DEBUG
 			cout << "createQuad: del " << *faceI << endl;
 			cout << "createQuad: del " << *faceJ << endl;
 			cout << "createQuad: add " << faceK << endl;

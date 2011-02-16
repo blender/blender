@@ -29,6 +29,12 @@
 #ifndef _GHOST_TYPES_H_
 #define _GHOST_TYPES_H_
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
+#define GHOST_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
+
 typedef	char				GHOST_TInt8;
 typedef	unsigned char		GHOST_TUns8;
 typedef short				GHOST_TInt16;
@@ -96,7 +102,7 @@ typedef enum {
     GHOST_kModifierKeyRightAlt,
     GHOST_kModifierKeyLeftControl,
     GHOST_kModifierKeyRightControl,
-    GHOST_kModifierKeyCommand,		// APPLE only
+    GHOST_kModifierKeyOS,
     GHOST_kModifierKeyNumMasks
 } GHOST_TModifierKeyMask;
 
@@ -283,7 +289,7 @@ typedef enum {
 	GHOST_kKeyRightControl,
 	GHOST_kKeyLeftAlt,
 	GHOST_kKeyRightAlt,
-	GHOST_kKeyCommand,		// Command key on Apple, Windows key(s) on Windows
+	GHOST_kKeyOS,		// Command key on Apple, Windows key(s) on Windows
 	GHOST_kKeyGrLess ,		// German PC only!
 
 	GHOST_kKeyCapsLock,
@@ -444,7 +450,7 @@ typedef struct {
    GHOST_TUns64 delta;
 } GHOST_TEventNDOFData;
 
-typedef int     (*GHOST_NDOFLibraryInit_fp)();
+typedef int     (*GHOST_NDOFLibraryInit_fp)(void);
 typedef void    (*GHOST_NDOFLibraryShutdown_fp)(void* deviceHandle);
 typedef void*   (*GHOST_NDOFDeviceOpen_fp)(void* platformData);
 

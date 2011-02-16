@@ -11,7 +11,7 @@ if window_system == 'darwin':
     sources += env.Glob('intern/*.mm')
 
 
-pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_Window', 'GHOST_DropTarget']
+pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_SystemPaths', 'GHOST_Window', 'GHOST_DropTarget']
 defs=['_USE_MATH_DEFINES']
 
 if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'freebsd9', 'irix6', 'aix4', 'aix5'):
@@ -21,6 +21,8 @@ if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'fr
             sources.remove('intern' + os.sep + f + 'Carbon.cpp')
         except ValueError:
             pass
+    defs += ['PREFIX=\\"/usr/local/\\"']
+
 elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
     for f in pf:
         try:
@@ -60,4 +62,8 @@ if env['BF_GHOST_DEBUG']:
 incs = '. ../string #extern/glew/include #source/blender/imbuf #source/blender/makesdna ' + env['BF_OPENGL_INC']
 if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
     incs = env['BF_WINTAB_INC'] + ' ' + incs
-env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15] ) 
+
+if window_system in ('win32-vc', 'win64-vc'):
+    env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15]) #, cc_compileflags=env['CCFLAGS'].append('/WX') ) 
+else:
+    env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15] ) 

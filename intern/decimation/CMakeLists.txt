@@ -24,13 +24,36 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	.
 	../container
 	../memutil
 	../moto/include
 )
 
-FILE(GLOB SRC intern/*.cpp)
+set(SRC
+	intern/LOD_EdgeCollapser.cpp
+	intern/LOD_ExternNormalEditor.cpp
+	intern/LOD_FaceNormalEditor.cpp
+	intern/LOD_ManMesh2.cpp
+	intern/LOD_MeshPrimitives.cpp
+	intern/LOD_QSDecimator.cpp
+	intern/LOD_QuadricEditor.cpp
+	intern/LOD_decimation.cpp
 
-BLENDERLIB(bf_intern_decimate "${SRC}" "${INC}")
+	extern/LOD_decimation.h
+	intern/LOD_DecimationClass.h
+	intern/LOD_EdgeCollapser.h
+	intern/LOD_ExternBufferEditor.h
+	intern/LOD_ExternNormalEditor.h
+	intern/LOD_FaceNormalEditor.h
+	intern/LOD_ManMesh2.h
+	intern/LOD_MeshBounds.h
+	intern/LOD_MeshException.h
+	intern/LOD_MeshPrimitives.h
+	intern/LOD_QSDecimator.h
+	intern/LOD_Quadric.h
+	intern/LOD_QuadricEditor.h
+)
+
+blender_add_lib(bf_intern_decimate "${SRC}" "${INC}")

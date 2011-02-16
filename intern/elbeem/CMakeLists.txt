@@ -24,17 +24,75 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC ${PNG_INC} ${ZLIB_INC} extern)
+set(INC
+	extern
+	${PNG_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
+)
 
-FILE(GLOB SRC intern/*.cpp)
+set(SRC
+	intern/attributes.cpp
+	intern/controlparticles.cpp
+	intern/elbeem.cpp
+	intern/elbeem_control.cpp
+	intern/isosurface.cpp
+	intern/mvmcoords.cpp
+	intern/ntl_blenderdumper.cpp
+	intern/ntl_bsptree.cpp
+	intern/ntl_geometrymodel.cpp
+	intern/ntl_geometryobject.cpp
+	intern/ntl_lighting.cpp
+	intern/ntl_ray.cpp
+	intern/ntl_world.cpp
+	intern/parametrizer.cpp
+	intern/particletracer.cpp
+	intern/simulation_object.cpp
+	intern/solver_adap.cpp
+	intern/solver_control.cpp
+	intern/solver_init.cpp
+	intern/solver_interface.cpp
+	intern/solver_main.cpp
+	intern/solver_util.cpp
+	intern/utilities.cpp
 
-ADD_DEFINITIONS(-DNOGUI -DELBEEM_BLENDER=1)
-IF(WINDOWS)
-		ADD_DEFINITIONS(-DUSE_MSVC6FIXES)
-ENDIF(WINDOWS)
+	extern/LBM_fluidsim.h
+	extern/elbeem.h
+	intern/attributes.h
+	intern/controlparticles.h
+	intern/elbeem_control.h
+	intern/isosurface.h
+	intern/loop_tools.h
+	intern/mcubes_tables.h
+	intern/mvmcoords.h
+	intern/ntl_blenderdumper.h
+	intern/ntl_bsptree.h
+	intern/ntl_geometryclass.h
+	intern/ntl_geometrymodel.h
+	intern/ntl_geometryobject.h
+	intern/ntl_geometryshader.h
+	intern/ntl_lighting.h
+	intern/ntl_matrices.h
+	intern/ntl_ray.h
+	intern/ntl_vector3dim.h
+	intern/ntl_world.h
+	intern/paraloopend.h
+	intern/parametrizer.h
+	intern/particletracer.h
+	intern/simulation_object.h
+	intern/solver_class.h
+	intern/solver_control.h
+	intern/solver_interface.h
+	intern/solver_relax.h
+	intern/utilities.h
+)
 
-IF(WITH_OPENMP)
-		ADD_DEFINITIONS(-DPARALLEL=1)
-ENDIF(WITH_OPENMP)
+add_definitions(-DNOGUI -DELBEEM_BLENDER=1)
+if(WINDOWS)
+		add_definitions(-DUSE_MSVC6FIXES)
+endif()
 
-BLENDERLIB_NOLIST(bf_intern_elbeem "${SRC}" "${INC}")
+if(WITH_OPENMP)
+		add_definitions(-DPARALLEL=1)
+endif()
+
+blender_add_lib_nolist(bf_intern_elbeem "${SRC}" "${INC}")

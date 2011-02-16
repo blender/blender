@@ -59,7 +59,7 @@ BOP_BSPNode::~BOP_BSPNode()
  * @param plane face plane.
  */
 
-unsigned int BOP_BSPNode::addFace(BOP_BSPPoints pts,
+unsigned int BOP_BSPNode::addFace(const BOP_BSPPoints& pts,
 								  const MT_Plane3& plane )
 {
 	unsigned int newDeep = 0;

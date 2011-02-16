@@ -24,13 +24,23 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	./intern
 	../container
 	../moto/include
 	../memutil
 )
 
-FILE(GLOB SRC intern/*.cpp)
+set(SRC
+	intern/BSP_CSGMesh.cpp
+	intern/BSP_MeshPrimitives.cpp
+	intern/CSG_BooleanOps.cpp
 
-BLENDERLIB(bf_intern_bsp "${SRC}" "${INC}")
+	extern/CSG_BooleanOps.h
+	intern/BSP_CSGException.h
+	intern/BSP_CSGMesh.h
+	intern/BSP_CSGMesh_CFIterator.h
+	intern/BSP_MeshPrimitives.h
+)
+
+blender_add_lib(bf_intern_bsp "${SRC}" "${INC}")

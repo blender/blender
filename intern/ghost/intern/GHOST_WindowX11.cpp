@@ -177,9 +177,20 @@ GHOST_WindowX11(
 	Atom atoms[2];
 	int natom;
 	int glxVersionMajor, glxVersionMinor; // As in GLX major.minor
+	
+	/* initialize incase X11 fails to load */
+	memset(&m_xtablet, 0, sizeof(m_xtablet));
+	m_visual= NULL;
 
 	if (!glXQueryVersion(m_display, &glxVersionMajor, &glxVersionMinor)) {
 		printf("%s:%d: X11 glXQueryVersion() failed, verify working openGL system!\n", __FILE__, __LINE__);
+		
+		/* exit if this is the first window */
+		if(s_firstContext==NULL) {
+			printf("initial window could not find the GLX extension, exit!\n");
+			exit(1);
+		}
+
 		return;
 	}
 
@@ -211,6 +222,12 @@ GHOST_WindowX11(
 			if (samples == 0) {
 				/* All options exhausted, cannot continue */
 				printf("%s:%d: X11 glXChooseVisual() failed, verify working openGL system!\n", __FILE__, __LINE__);
+				
+				if(s_firstContext==NULL) {
+					printf("initial window could not find the GLX extension, exit!\n");
+					exit(1);
+				}
+				
 				return;
 			}
 		} else {
@@ -220,8 +237,6 @@ GHOST_WindowX11(
 			break;
 		}
 	}
-
-	memset(&m_xtablet, 0, sizeof(m_xtablet));
 
 	// Create a bunch of attributes needed to create an X window.
 
@@ -327,13 +342,15 @@ GHOST_WindowX11(
 	// we want this window treated.
 
 	XSizeHints * xsizehints = XAllocSizeHints();
-	xsizehints->flags = PPosition | PSize | PMinSize;
+	xsizehints->flags = PPosition | PSize | PMinSize | PMaxSize;
 	xsizehints->x = left;
 	xsizehints->y = top;
 	xsizehints->width = width;
 	xsizehints->height = height;
 	xsizehints->min_width= 320;  	// size hints, could be made apart of the ghost api
 	xsizehints->min_height= 240;	// limits are also arbitrary, but should not allow 1x1 window
+	xsizehints->max_width= 65535;
+	xsizehints->max_height= 65535;
 	XSetWMNormalHints(m_display, m_window, xsizehints);
 	XFree(xsizehints);
 
@@ -657,7 +674,7 @@ setTitle(
 	XChangeProperty(m_display, m_window,
 	                name, utf8str, 8, PropModeReplace,
 	                (const unsigned char*) title.ReadPtr(),
-	                strlen(title.ReadPtr()));
+	                title.Length());
 
 // This should convert to valid x11 string
 //  and getTitle would need matching change

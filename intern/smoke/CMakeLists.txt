@@ -24,25 +24,70 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC
+set(INC
 	intern
 	../memutil
-	../guardealloc
 	../../extern/bullet2/src
-	${PNG_INC}
-	${ZLIB_INC}
+	${PNG_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
 )
 
-FILE(GLOB SRC intern/*.cpp)
+set(SRC
+	intern/EIGENVALUE_HELPER.cpp
+	intern/FLUID_3D.cpp
+	intern/FLUID_3D_SOLVERS.cpp
+	intern/FLUID_3D_STATIC.cpp
+	intern/LU_HELPER.cpp
+	intern/SPHERE.cpp
+	intern/WTURBULENCE.cpp
+	intern/smoke_API.cpp
 
-IF(WITH_OPENMP)
-		ADD_DEFINITIONS(-DPARALLEL=1)
-ENDIF(WITH_OPENMP)
+	extern/smoke_API.h
+	intern/EIGENVALUE_HELPER.h
+	intern/FFT_NOISE.h
+	intern/FLUID_3D.h
+	intern/IMAGE.h
+	intern/INTERPOLATE.h
+	intern/LU_HELPER.h
+	intern/MERSENNETWISTER.h
+	intern/OBSTACLE.h
+	intern/SPHERE.h
+	intern/VEC3.h
+	intern/WAVELET_NOISE.h
+	intern/WTURBULENCE.h
+	intern/tnt/jama_eig.h
+	intern/tnt/jama_lu.h
+	intern/tnt/tnt.h
+	intern/tnt/tnt_array1d.h
+	intern/tnt/tnt_array1d_utils.h
+	intern/tnt/tnt_array2d.h
+	intern/tnt/tnt_array2d_utils.h
+	intern/tnt/tnt_array3d.h
+	intern/tnt/tnt_array3d_utils.h
+	intern/tnt/tnt_cmat.h
+	intern/tnt/tnt_fortran_array1d.h
+	intern/tnt/tnt_fortran_array1d_utils.h
+	intern/tnt/tnt_fortran_array2d.h
+	intern/tnt/tnt_fortran_array2d_utils.h
+	intern/tnt/tnt_fortran_array3d.h
+	intern/tnt/tnt_fortran_array3d_utils.h
+	intern/tnt/tnt_i_refvec.h
+	intern/tnt/tnt_math_utils.h
+	intern/tnt/tnt_sparse_matrix_csr.h
+	intern/tnt/tnt_stopwatch.h
+	intern/tnt/tnt_subscript.h
+	intern/tnt/tnt_vec.h
+	intern/tnt/tnt_version.h
+)
 
-IF(WITH_FFTW3)
-	ADD_DEFINITIONS(-DFFTW3=1)
-	LIST(APPEND INC ${FFTW3_INC})
-ENDIF(WITH_FFTW3)
+if(WITH_OPENMP)
+		add_definitions(-DPARALLEL=1)
+endif()
 
-BLENDERLIB(bf_intern_smoke "${SRC}" "${INC}")
+if(WITH_FFTW3)
+	add_definitions(-DFFTW3=1)
+	list(APPEND INC ${FFTW3_INC})
+endif()
+
+blender_add_lib(bf_intern_smoke "${SRC}" "${INC}")
 
