@@ -1477,11 +1477,8 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 		if (IS_AUTOKEY_MODE(scene, NORMAL)) {
 			//remake_action_ipos(ob->action);
 		}
-		else {
-			/* need to trick depgraph, action is not allowed to execute on pose */
+		else
 			where_is_pose(scene, ob);
-			ob->recalc= 0;
-		}
 	}
 	
 	/* free memory used for backups and searching */
@@ -1497,11 +1494,12 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 static int poselib_preview_exit (bContext *C, wmOperator *op)
 {
 	tPoseLib_PreviewData *pld= op->customdata;
+	int exit_state = pld->state;
 	
 	/* finish up */
 	poselib_preview_cleanup(C, op);
 	
-	if (ELEM(pld->state, PL_PREVIEW_CANCEL, PL_PREVIEW_ERROR))
+	if (ELEM(exit_state, PL_PREVIEW_CANCEL, PL_PREVIEW_ERROR))
 		return OPERATOR_CANCELLED;
 	else
 		return OPERATOR_FINISHED;

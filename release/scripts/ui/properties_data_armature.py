@@ -193,11 +193,11 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, bpy.types.Panel):
             col.operator_context = 'EXEC_DEFAULT' # exec not invoke, so that menu doesn't need showing
             col.operator("poselib.pose_remove", icon='ZOOMOUT', text="").pose = activePoseName
             
-            # TODO:
-            # - show selected pose in 3d-view using browse op...
-            # - rename selected pose...
+            #col.operator_context = 'EXEC_DEFAULT' # exec not invoke, so modal preview loop doesn't run
+            col.operator("poselib.browse_interactive", icon='ZOOM_SELECTED', text="").pose_index = activePoseIndex
             
             # TODO: "validate action" operator to be restored
+
 
 # TODO: this panel will soon be depreceated too
 class DATA_PT_ghost(ArmatureButtonsPanel, bpy.types.Panel):
