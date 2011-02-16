@@ -49,6 +49,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
@@ -742,41 +743,62 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, i
 static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, int animated)
 {
 	extern int enable_cu_speed;	/* object.c */
-	Object copyob;
-	DupliObject *dob;
-	int cfrao, ok;
+	int cfrao = scene->r.cfra;
+	float omat[4][4];
 	
-	/* simple preventing of too deep nested groups */
-	if(level>MAX_DUPLI_RECUR) return;
+	/* simple prevention of too deep nested groups */
+	if (level > MAX_DUPLI_RECUR) return;
 	
-	cfrao= scene->r.cfra;
-	if(ob->parent==NULL && ob->constraints.first==NULL) return;
-
-	if(ob->transflag & OB_DUPLINOSPEED) enable_cu_speed= 0;
-	copyob= *ob;	/* store transform info */
-
-	for(scene->r.cfra= ob->dupsta; scene->r.cfra<=ob->dupend; scene->r.cfra++) {
-
-		ok= 1;
-		if(ob->dupoff) {
+	/* if we don't have any data/settings which will lead to object movement,
+	 * don't waste time trying, as it will all look the same...
+	 */
+	if (ob->parent==NULL && ob->constraints.first==NULL && ob->adt==NULL) 
+		return;
+	if (ob->adt->action==NULL && ob->adt->nla_tracks.first==NULL && ob->adt->drivers.first==NULL)
+		return;
+	
+	/* make a copy of the object's original transform matrix */
+	copy_m4_m4(omat, ob->obmat);
+	
+	/* duplicate over the required range */
+	if (ob->transflag & OB_DUPLINOSPEED) enable_cu_speed= 0;
+	
+	for (scene->r.cfra= ob->dupsta; scene->r.cfra<=ob->dupend; scene->r.cfra++) {
+		short ok= 1;
+		
+		/* - dupoff = how often a frames within the range shouldn't be made into duplis
+		 * - dupon = the length of each "skipping" block in frames
+		 */
+		if (ob->dupoff) {
 			ok= scene->r.cfra - ob->dupsta;
 			ok= ok % (ob->dupon+ob->dupoff);
-			if(ok < ob->dupon) ok= 1;
-			else ok= 0;
+			ok= (ok < ob->dupon);
 		}
-		if(ok) {
-#if 0 // XXX old animation system
-			do_ob_ipo(scene, ob);
-#endif // XXX old animation system
+		
+		if (ok) {	
+			DupliObject *dob;
+			
+			/* WARNING: doing animation updates in this way is not terribly accurate, as the dependencies
+			 * and/or other objects which may affect this object's transforms are not updated either.
+			 * However, this has always been the way that this worked (i.e. pre 2.5), so I guess that it'll be fine!
+			 */
+			BKE_animsys_evaluate_animdata(&ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
 			where_is_object_time(scene, ob, (float)scene->r.cfra);
+			
 			dob= new_dupli_object(lb, ob, ob->obmat, ob->lay, scene->r.cfra, OB_DUPLIFRAMES, animated);
-			copy_m4_m4(dob->omat, copyob.obmat);
+			copy_m4_m4(dob->omat, omat);
 		}
 	}
 
-	*ob= copyob;	/* restore transform info */
-	scene->r.cfra= cfrao;
 	enable_cu_speed= 1;
+	
+	/* reset frame to original frame, then re-evaluate animation as above 
+	 * as 2.5 animation data may have far-reaching consequences
+	 */
+	scene->r.cfra= cfrao;
+	
+	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
+	where_is_object_time(scene, ob, (float)scene->r.cfra);
 }
 
 typedef struct vertexDupliData {
