@@ -231,21 +231,13 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
         elif mat.diffuse_shader == 'MINNAERT':
             col.prop(mat, "darkness")
         elif mat.diffuse_shader == 'TOON':
-            split = col.split()
-
-            col = split.column()
-            col.prop(mat, "diffuse_toon_size", text="Size")
-
-            col = split.column()
-            col.prop(mat, "diffuse_toon_smooth", text="Smooth")
+            row = col.row()
+            row.prop(mat, "diffuse_toon_size", text="Size")
+            row.prop(mat, "diffuse_toon_smooth", text="Smooth")
         elif mat.diffuse_shader == 'FRESNEL':
-            split = col.split()
-
-            col = split.column()
-            col.prop(mat, "diffuse_fresnel", text="Fresnel")
-
-            col = split.column()
-            col.prop(mat, "diffuse_fresnel_factor", text="Factor")
+            row = col.row()
+            row.prop(mat, "diffuse_fresnel", text="Fresnel")
+            row.prop(mat, "diffuse_fresnel_factor", text="Factor")
 
         if mat.use_diffuse_ramp:
             layout.separator()
@@ -294,23 +286,15 @@ class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):
         if mat.specular_shader in ('COOKTORR', 'PHONG'):
             col.prop(mat, "specular_hardness", text="Hardness")
         elif mat.specular_shader == 'BLINN':
-            split = layout.split()
-
-            col = split.column()
-            col.prop(mat, "specular_hardness", text="Hardness")
-
-            col = split.column()
-            col.prop(mat, "specular_ior", text="IOR")
+            row = col.row()
+            row.prop(mat, "specular_hardness", text="Hardness")
+            row.prop(mat, "specular_ior", text="IOR")
         elif mat.specular_shader == 'WARDISO':
             col.prop(mat, "specular_slope", text="Slope")
         elif mat.specular_shader == 'TOON':
-            split = layout.split()
-
-            col = split.column()
-            col.prop(mat, "specular_toon_size", text="Size")
-
-            col = split.column()
-            col.prop(mat, "specular_toon_smooth", text="Smooth")
+            row = col.row()
+            row.prop(mat, "specular_toon_size", text="Size")
+            row.prop(mat, "specular_toon_smooth", text="Smooth")
 
         if mat.use_specular_ramp:
             layout.separator()
