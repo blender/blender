@@ -34,20 +34,28 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
+
+#ifdef _POSIX_C_SOURCE
+#undef _POSIX_C_SOURCE
+#endif
+
+#ifdef _XOPEN_SOURCE
+#undef _XOPEN_SOURCE
+#endif
+
+#include <Python.h>
 
 extern "C" {
 	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
 	#include "py_capi_utils.h"
 	#include "mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
-	#include "geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
 	#include "bgl.h"
-	#include "blf_api.h"
+	#include "blf_py_api.h"
 
 	#include "marshal.h" /* python header for loading/saving dicts */
 }
 
-#define WITH_PYTHON
 #include "AUD_PyInit.h"
 
 #endif
@@ -132,17 +140,20 @@ extern "C" {
 
 // 'local' copy of canvas ptr, for window height/width python scripts
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 static RAS_ICanvas* gp_Canvas = NULL;
 static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
 static char gp_GamePythonPathOrig[FILE_MAXDIR + FILE_MAXFILE] = ""; // not super happy about this, but we need to remember the first loaded file for the global/dict load save
 
-#endif // DISABLE_PYTHON
+static SCA_PythonKeyboard* gp_PythonKeyboard = NULL;
+static SCA_PythonMouse* gp_PythonMouse = NULL;
+#endif // WITH_PYTHON
 
 static KX_Scene*	gp_KetsjiScene = NULL;
 static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
+
 
 void KX_SetActiveScene(class KX_Scene* scene)
 {
@@ -167,13 +178,13 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 }
 
 void	KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
-								   const MT_Vector3& normal, int nsector)
+									 const MT_Vector3& normal, int nsector)
 {
 	if (gp_Rasterizer)
 		gp_Rasterizer->DrawDebugCircle(center, radius, color, normal, nsector);
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 static PyObject *gp_OrigPythonSysPath= NULL;
 static PyObject *gp_OrigPythonSysModules= NULL;
@@ -230,7 +241,7 @@ static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 
 	BLI_strncpy(expanded, filename, FILE_MAXDIR + FILE_MAXFILE);
 	BLI_path_abs(expanded, gp_GamePythonPath);
-	return PyUnicode_FromString(expanded);
+	return PyUnicode_DecodeFSDefault(expanded);
 }
 
 static char gPyStartGame_doc[] =
@@ -496,7 +507,7 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 	
     while ((dirp = readdir(dp)) != NULL) {
 		if (BLI_testextensie(dirp->d_name, ".blend")) {
-			value = PyUnicode_FromString(dirp->d_name);
+			value= PyUnicode_DecodeFSDefault(dirp->d_name);
 			PyList_Append(list, value);
 			Py_DECREF(value);
 		}
@@ -921,6 +932,11 @@ static PyObject* gPySetBackgroundColor(PyObject*, PyObject* value)
 	{
 		gp_Rasterizer->SetBackColor(vec[0], vec[1], vec[2], vec[3]);
 	}
+
+	KX_WorldInfo *wi = gp_KetsjiScene->GetWorldInfo();
+	if (wi->hasWorld())
+		wi->setBackColor(vec[0], vec[1], vec[2]);
+
 	Py_RETURN_NONE;
 }
 
@@ -1305,11 +1321,13 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	PyDict_SetItemString(d, "globalDict", item=PyDict_New()); Py_DECREF(item);
 
 	// Add keyboard and mouse attributes to this module
-	SCA_PythonKeyboard* pykeyb = new SCA_PythonKeyboard(gp_KetsjiEngine->GetKeyboardDevice());
-	PyDict_SetItemString(d, "keyboard", pykeyb->NewProxy(true));
+	MT_assert(!gp_PythonKeyboard);
+	gp_PythonKeyboard = new SCA_PythonKeyboard(gp_KetsjiEngine->GetKeyboardDevice());
+	PyDict_SetItemString(d, "keyboard", gp_PythonKeyboard->NewProxy(true));
 
-	SCA_PythonMouse* pymouse = new SCA_PythonMouse(gp_KetsjiEngine->GetMouseDevice(), gp_Canvas);
-	PyDict_SetItemString(d, "mouse", pymouse->NewProxy(true));
+	MT_assert(!gp_PythonMouse);
+	gp_PythonMouse = new SCA_PythonMouse(gp_KetsjiEngine->GetMouseDevice(), gp_Canvas);
+	PyDict_SetItemString(d, "mouse", gp_PythonMouse->NewProxy(true));
 
 	ErrorObject = PyUnicode_FromString("GameLogic.error");
 	PyDict_SetItemString(d, "error", ErrorObject);
@@ -1605,7 +1623,6 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, RM_WALLS, KX_NavMeshObject::RM_WALLS);
 	KX_MACRO_addTypesToDict(d, RM_POLYS, KX_NavMeshObject::RM_POLYS);
 	KX_MACRO_addTypesToDict(d, RM_TRIS, KX_NavMeshObject::RM_TRIS);
-	
 
 	// Check for errors
 	if (PyErr_Occurred())
@@ -1780,8 +1797,8 @@ static void setSandbox(TPythonSecurityLevel level)
 	*/
 	default:
 			/* Allow importing internal text, from bpy_internal_import.py */
-			PyDict_SetItemString(d, "reload", item=PyCFunction_New(bpy_reload_meth, NULL));		Py_DECREF(item);
-			PyDict_SetItemString(d, "__import__", item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
+			PyDict_SetItemString(d, "reload", item=PyCFunction_New(&bpy_reload_meth, NULL));		Py_DECREF(item);
+			PyDict_SetItemString(d, "__import__", item=PyCFunction_New(&bpy_import_meth, NULL));	Py_DECREF(item);
 		break;
 	}
 }
@@ -1833,7 +1850,7 @@ static void initPySysObjects__append(PyObject *sys_path, char *filename)
 	BLI_split_dirfile(filename, expanded, NULL); /* get the dir part of filename only */
 	BLI_path_abs(expanded, gp_GamePythonPath); /* filename from lib->filename is (always?) absolute, so this may not be needed but it wont hurt */
 	BLI_cleanup_file(gp_GamePythonPath, expanded); /* Dont use BLI_cleanup_dir because it adds a slash - BREAKS WIN32 ONLY */
-	item= PyUnicode_FromString(expanded);
+	item= PyUnicode_DecodeFSDefault(expanded);
 	
 //	printf("SysPath - '%s', '%s', '%s'\n", expanded, filename, gp_GamePythonPath);
 	
@@ -1924,7 +1941,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 		PyObject *py_argv= PyList_New(argc);
 
 		for (i=0; i<argc; i++)
-			PyList_SET_ITEM(py_argv, i, PyUnicode_FromString(argv[i]));
+			PyList_SET_ITEM(py_argv, i, PyC_UnicodeFromByte(argv[i]));
 
 		PySys_SetObject("argv", py_argv);
 		Py_DECREF(py_argv);
@@ -1946,6 +1963,13 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 
 void exitGamePlayerPythonScripting()
 {	
+	/* Clean up the Python mouse and keyboard */
+	delete gp_PythonKeyboard;
+	gp_PythonKeyboard = NULL;
+
+	delete gp_PythonMouse;
+	gp_PythonMouse = NULL;
+
 	/* since python restarts we cant let the python backup of the sys.path hang around in a global pointer */
 	restorePySysObjects(); /* get back the original sys.path and clear the backup */
 	
@@ -1982,6 +2006,13 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 
 void exitGamePythonScripting()
 {
+	/* Clean up the Python mouse and keyboard */
+	delete gp_PythonKeyboard;
+	gp_PythonKeyboard = NULL;
+
+	delete gp_PythonMouse;
+	gp_PythonMouse = NULL;
+
 	restorePySysObjects(); /* get back the original sys.path and clear the backup */
 	bpy_import_main_set(NULL);
 	PyObjectPlus::ClearDeprecationWarning();
@@ -2234,6 +2265,7 @@ PyObject* initGameKeys()
 	KX_MACRO_addTypesToDict(d, ESCKEY, SCA_IInputDevice::KX_ESCKEY);
 	KX_MACRO_addTypesToDict(d, TABKEY, SCA_IInputDevice::KX_TABKEY);
 	KX_MACRO_addTypesToDict(d, RETKEY, SCA_IInputDevice::KX_RETKEY);
+	KX_MACRO_addTypesToDict(d, ENTERKEY, SCA_IInputDevice::KX_RETKEY);
 	KX_MACRO_addTypesToDict(d, SPACEKEY, SCA_IInputDevice::KX_SPACEKEY);
 	KX_MACRO_addTypesToDict(d, LINEFEEDKEY, SCA_IInputDevice::KX_LINEFEEDKEY);		
 	KX_MACRO_addTypesToDict(d, BACKSPACEKEY, SCA_IInputDevice::KX_BACKSPACEKEY);
@@ -2324,22 +2356,22 @@ PyObject* initGameKeys()
 
 PyObject* initMathutils()
 {
-	return Mathutils_Init();
+	return BPyInit_mathutils();
 }
 
 PyObject* initGeometry()
 {
-	return Geometry_Init();
+	return BPyInit_mathutils_geometry();
 }
 
 PyObject* initBGL()
 {
-	return BGL_Init();
+	return BPyInit_bgl();
 }
 
 PyObject* initBLF()
 {
-	return BLF_Init();
+	return BPyInit_blf();
 }
 
 // utility function for loading and saving the globalDict
@@ -2443,4 +2475,4 @@ void resetGamePythonPath()
 	gp_GamePythonPathOrig[0] = '\0';
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

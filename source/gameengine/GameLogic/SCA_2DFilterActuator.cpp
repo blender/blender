@@ -23,6 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include "SCA_IActuator.h"
 #include "SCA_2DFilterActuator.h"
 
@@ -96,7 +98,7 @@ void SCA_2DFilterActuator::SetShaderText(const char *text)
 	m_shaderText = text;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

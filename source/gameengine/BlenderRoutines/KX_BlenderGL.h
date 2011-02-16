@@ -41,12 +41,13 @@ void	BL_SwapBuffers(struct wmWindow *win);
 
 void	BL_warp_pointer(struct wmWindow *win,int x,int y);
 
-void	BL_MakeScreenShot(struct ARegion *ar, const char* filename);
+void	BL_MakeScreenShot(struct ScrArea *curarea, const char* filename);
 
 void	BL_HideMouse(struct wmWindow *win);
 void	BL_NormalMouse(struct wmWindow *win);
 void	BL_WaitMouse(struct wmWindow *win);
 
+void BL_print_game_line(int fontid, const char* text, int size, int dpi, float* color, double* mat, float aspect);
 void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int height);
 void BL_print_gamedebug_line_padded(const char* text, int xco, int yco, int width, int height);
 

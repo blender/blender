@@ -56,7 +56,7 @@ typedef struct bMotionPathVert {
 /* bMotionPathVert->flag */
 typedef enum eMotionPathVert_Flag {
 		/* vert is selected */
-	MOTIONPATH_VERT_SEL		= (1<<0),
+	MOTIONPATH_VERT_SEL		= (1<<0)
 } eMotionPathVert_Flag;
 
 /* ........ */
@@ -79,7 +79,7 @@ typedef enum eMotionPath_Flag {
 		/* (for bones) path represents the head of the bone */
 	MOTIONPATH_FLAG_BHEAD		= (1<<0),
 		/* motion path is being edited */
-	MOTIONPATH_FLAG_EDIT		= (1<<1),
+	MOTIONPATH_FLAG_EDIT		= (1<<1)
 } eMotionPath_Flag;
 
 /* Visualisation General --------------------------- */
@@ -114,7 +114,7 @@ typedef struct bAnimVizSettings {
 /* bAnimVizSettings->recalc */
 typedef enum eAnimViz_RecalcFlags {
 		/* motionpaths need recalculating */
-	ANIMVIZ_RECALC_PATHS	= (1<<0),
+	ANIMVIZ_RECALC_PATHS	= (1<<0)
 } eAnimViz_RecalcFlags;
 
 
@@ -127,13 +127,13 @@ typedef enum eOnionSkin_Types {
 		/* show ghosts within the specified frame range */
 	GHOST_TYPE_RANGE,
 		/* show ghosts on keyframes within the specified range only */
-	GHOST_TYPE_KEYS,
+	GHOST_TYPE_KEYS
 } eOnionSkin_Types;
 
 /* bAnimVizSettings->ghost_flag */
 typedef enum eOnionSkin_Flag {
 		/* only show selected bones in ghosts */
-	GHOST_FLAG_ONLYSEL 	= (1<<0),
+	GHOST_FLAG_ONLYSEL 	= (1<<0)
 } eOnionSkin_Flag;
 
 
@@ -142,7 +142,7 @@ typedef enum eMotionPaths_Types {
 		/* show the paths along their entire ranges */
 	MOTIONPATH_TYPE_RANGE = 0,
 		/* only show the parts of the paths around the current frame */
-	MOTIONPATH_TYPE_ACFRA,
+	MOTIONPATH_TYPE_ACFRA
 } eMotionPath_Types;
 
 /* bAnimVizSettings->path_viewflag */
@@ -154,7 +154,7 @@ typedef enum eMotionPaths_ViewFlag {
 		/* show keyframe/frame numbers */
 	MOTIONPATH_VIEW_KFNOS		= (1<<2),
 		/* find keyframes in whole action (instead of just in matching group name) */
-	MOTIONPATH_VIEW_KFACT		= (1<<3),
+	MOTIONPATH_VIEW_KFACT		= (1<<3)
 } eMotionPath_ViewFlag;
 
 /* bAnimVizSettings->path_bakeflag */
@@ -164,7 +164,7 @@ typedef enum eMotionPaths_BakeFlag {
 		/* for bones - calculate head-points for curves instead of tips */
 	MOTIONPATH_BAKE_HEADS			= (1<<1),
 		/* motion paths exist for AnimVizSettings instance - set when calc for first time, and unset when clearing */
-	MOTIONPATH_BAKE_HAS_PATHS		= (1<<2),
+	MOTIONPATH_BAKE_HAS_PATHS		= (1<<2)
 } eMotionPath_BakeFlag;
 
 /* ************************************************ */
@@ -188,7 +188,7 @@ typedef struct bPoseChannel {
 	short				flag;		/* dynamic, for detecting transform changes */
 	short				constflag;  /* for quick detecting which constraints affect this channel */
 	short				ikflag;		/* settings for IK bones */
-	short               selectflag;	/* copy of bone flag, so you can work with library armatures */
+	short               selectflag;	/* copy of bone flag, so you can work with library armatures, not for runtime use */
 	short				protectflag; /* protect channels from being transformed */
 	short				agrp_index; /* index of action-group this bone belongs to (0 = default/no group) */
 	
@@ -203,12 +203,10 @@ typedef struct bPoseChannel {
 	struct bPoseChannel *child;		/* set on read file or rebuild pose, the 'ik' child, for b-bones */
 	struct ListBase		 iktree;		/* only while evaluating pose */
 	
-	/* only while deform, stores precalculated b_bone deform mats,
-	   dual quaternions */
-	void				*b_bone_mats;	
-	void				*dual_quat;
-	void				*b_bone_dual_quats;
-	
+	bMotionPath *mpath;				/* motion path cache for this bone */
+	struct Object *custom;			/* draws custom object instead of default bone shape */
+	struct bPoseChannel *custom_tx;	/* odd feature, display with another bones transform. needed in rare cases for advanced rigs, since the alternative is highly complicated - campbell */
+
 		/* transforms - written in by actions or transform */
 	float		loc[3];				
 	float		size[3];
@@ -234,9 +232,6 @@ typedef struct bPoseChannel {
 	float		iklinweight;		/* weight of joint stretch constraint */
 
 	float		*path;				/* totpath x 3 x float */		// XXX depreceated... old animation system (armature only viz)
-	bMotionPath *mpath;				/* motion path cache for this bone */
-	struct Object *custom;			/* draws custom object instead of default bone shape */
-	struct bPoseChannel *custom_tx;	/* odd feature, display with another bones transform. needed in rare cases for advanced rigs, since the alternative is highly complicated - campbell */
 } bPoseChannel;
 
 
@@ -265,7 +260,7 @@ typedef enum ePchan_Flag {
 		/* has Spline IK */
 	POSE_HAS_IKS	= 	(1<<14),
 		/* spline IK solving */
-	POSE_IKSPLINE	= 	(1<<15),
+	POSE_IKSPLINE	= 	(1<<15)
 } ePchan_Flag;
 
 /* PoseChannel constflag (constraint detection) */
@@ -278,7 +273,7 @@ typedef enum ePchan_ConstFlag {
 		/* only for drawing Posemode too */
 	PCHAN_HAS_STRIDE	= (1<<4),
 		/* spline IK */
-	PCHAN_HAS_SPLINEIK	= (1<<5),
+	PCHAN_HAS_SPLINEIK	= (1<<5)
 } ePchan_ConstFlag;
 
 /* PoseChannel->ikflag */
@@ -296,7 +291,7 @@ typedef enum ePchan_IkFlag {
 
 	BONE_IK_NO_XDOF_TEMP = (1<<10),
 	BONE_IK_NO_YDOF_TEMP = (1<<11),
-	BONE_IK_NO_ZDOF_TEMP = (1<<12),
+	BONE_IK_NO_ZDOF_TEMP = (1<<12)
 } ePchan_IkFlag;
 
 /* PoseChannel->rotmode and Object->rotmode */
@@ -314,9 +309,11 @@ typedef enum eRotationModes {
 	/* NOTE: space is reserved here for 18 other possible 
 	 * euler rotation orders not implemented 
 	 */
-	ROT_MODE_MAX,	/* sentinel for Py API */
 		/* axis angle rotations */
-	ROT_MODE_AXISANGLE = -1
+	ROT_MODE_AXISANGLE = -1,
+
+	ROT_MODE_MIN = ROT_MODE_AXISANGLE,	/* sentinel for Py API */
+	ROT_MODE_MAX = ROT_MODE_ZYX
 } eRotationModes;
 
 /* Pose ------------------------------------ */
@@ -330,7 +327,9 @@ typedef struct bPose {
 	ListBase chanbase; 			/* list of pose channels, PoseBones in RNA */
 	struct GHash *chanhash;		/* ghash for quicker string lookups */
 	
-	short flag, proxy_layer;	/* proxy layer: copy from armature, gets synced */
+	short flag, pad;
+	unsigned int proxy_layer;	/* proxy layer: copy from armature, gets synced */
+	int pad1;
 	
 	float ctime;				/* local action time of this pose */
 	float stride_offset[3];		/* applied to object */
@@ -364,7 +363,7 @@ typedef enum ePose_Flags {
 		/* set by armature_rebuild_pose to give a chance to the IK solver to rebuild IK tree */
 	POSE_WAS_REBUILT = (1<<5),
 		/* set by game_copy_pose to indicate that this pose is used in the game engine */
-	POSE_GAME_ENGINE = (1<<6),
+	POSE_GAME_ENGINE = (1<<6)
 } ePose_Flags;
 
 /* IK Solvers ------------------------------------ */
@@ -372,7 +371,7 @@ typedef enum ePose_Flags {
 /* bPose->iksolver and bPose->ikparam->iksolver */
 typedef enum ePose_IKSolverType {
 	IKSOLVER_LEGACY = 0,
-	IKSOLVER_ITASC,
+	IKSOLVER_ITASC
 } ePose_IKSolverType;
 
 /* header for all bPose->ikparam structures */
@@ -401,7 +400,7 @@ typedef enum eItasc_Flags {
 	ITASC_AUTO_STEP = (1<<0),
 	ITASC_INITIAL_REITERATION = (1<<1),
 	ITASC_REITERATION = (1<<2),
-	ITASC_SIMULATION = (1<<3),
+	ITASC_SIMULATION = (1<<3)
 } eItasc_Flags;
 
 /* bItasc->solver */
@@ -425,7 +424,7 @@ typedef enum eItasc_Solver {
  * ensure that action-groups never end up being the sole 'owner' of a channel.
  * 
  * This is also exploited for bone-groups. Bone-Groups are stored per bPose, and are used 
- * primarily to colour bones in the 3d-view. There are other benefits too, but those are mostly related
+ * primarily to color bones in the 3d-view. There are other benefits too, but those are mostly related
  * to Action-Groups.
  */
 typedef struct bActionGroup {
@@ -496,7 +495,7 @@ typedef enum eAction_Flags {
 		/* flags for evaluation/editing */
 	ACT_MUTED		= (1<<9),
 	ACT_PROTECTED	= (1<<10),
-	ACT_DISABLED	= (1<<11),
+	ACT_DISABLED	= (1<<11)
 } eAction_Flags;
 
 
@@ -533,7 +532,7 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
 	ADS_FILTER_NOMESH			= (1<<7),
 	ADS_FILTER_NOOBJ			= (1<<8),	/* for animdata on object level, if we only want to concentrate on materials/etc. */
-	// NOTE: there are a few more spaces for datablock filtering here...
+	ADS_FILTER_NOLAT			= (1<<9),
 	ADS_FILTER_NOCAM			= (1<<10),
 	ADS_FILTER_NOMAT			= (1<<11),
 	ADS_FILTER_NOLAM			= (1<<12),
@@ -553,12 +552,12 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_INCL_HIDDEN		= (1<<26),	/* include 'hidden' channels too (i.e. those from hidden Objects/Bones) */
 	
 		/* combination filters (some only used at runtime) */
-	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART|ADS_FILTER_NOARM),
+	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART|ADS_FILTER_NOARM)
 } eDopeSheet_FilterFlag;	
 
 /* DopeSheet general flags */
 typedef enum eDopeSheet_Flag {
-	ADS_FLAG_SUMMARY_COLLAPSED	= (1<<0),	/* when summary is shown, it is collapsed, so all other channels get hidden */
+	ADS_FLAG_SUMMARY_COLLAPSED	= (1<<0)	/* when summary is shown, it is collapsed, so all other channels get hidden */
 } eDopeSheet_Flag;
 
 
@@ -596,9 +595,9 @@ typedef enum eSAction_Flag {
 	SACTION_NOTRANSKEYCULL = (1<<4),
 		/* don't include keyframes that are out of view */
 	//SACTION_HORIZOPTIMISEON = (1<<5), // XXX depreceated... old irrelevant trick
-		/* hack for moving pose-markers (temp flag)  */
-	SACTION_POSEMARKERS_MOVE = (1<<6),
-		/* don't draw action channels using group colours (where applicable) */
+		/* show pose-markers (local to action) in Action Editor mode  */
+	SACTION_POSEMARKERS_SHOW = (1<<6),
+		/* don't draw action channels using group colors (where applicable) */
 	SACTION_NODRAWGCOLORS = (1<<7), // XXX depreceated... irrelevant for current groups implementation
 		/* don't draw current frame number beside frame indicator */
 	SACTION_NODRAWCFRANUM = (1<<8),
@@ -607,7 +606,7 @@ typedef enum eSAction_Flag {
 		/* don't perform realtime updates */
 	SACTION_NOREALTIMEUPDATES =	(1<<10),
 		/* move markers as well as keyframes */
-	SACTION_MARKERS_MOVE = (1<<11),
+	SACTION_MARKERS_MOVE = (1<<11)
 } eSAction_Flag;	
 
 /* SpaceAction Mode Settings */
@@ -619,7 +618,7 @@ typedef enum eAnimEdit_Context {
 		/* editing of gpencil data */
 	SACTCONT_GPENCIL,
 		/* dopesheet (default) */
-	SACTCONT_DOPESHEET,
+	SACTCONT_DOPESHEET
 } eAnimEdit_Context;
 
 /* SpaceAction AutoSnap Settings (also used by other Animation Editors) */
@@ -631,7 +630,7 @@ typedef enum eAnimEdit_AutoSnap {
 		/* snap to actual frames/seconds (nla-action time) */
 	SACTSNAP_FRAME,
 		/* snap to nearest marker */
-	SACTSNAP_MARKER,
+	SACTSNAP_MARKER
 } eAnimEdit_AutoSnap;
 
 
@@ -670,7 +669,7 @@ typedef enum ACHAN_FLAG {
 	ACHAN_EXPANDED 	= (1<<4),
 	ACHAN_SHOWIPO	= (1<<5),
 	ACHAN_SHOWCONS 	= (1<<6),
-	ACHAN_MOVED     = (1<<31),
+	ACHAN_MOVED     = (1<<31)
 } ACHAN_FLAG; 
 
 #endif

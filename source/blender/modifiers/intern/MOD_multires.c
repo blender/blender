@@ -59,6 +59,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tmmd->sculptlvl = mmd->sculptlvl;
 	tmmd->renderlvl = mmd->renderlvl;
 	tmmd->totlvl = mmd->totlvl;
+	tmmd->simple = mmd->simple;
+	tmmd->flags = mmd->flags;
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
@@ -74,7 +76,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 		if(!CustomData_get_layer(&me->fdata, CD_MDISPS)) {
 			/* multires always needs a displacement layer */
 			CustomData_add_layer(&me->fdata, CD_MDISPS, CD_CALLOC, NULL, me->totface);
-			return dm;
 		}
 	}
 
@@ -108,6 +109,7 @@ ModifierTypeInfo modifierType_Multires = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
@@ -118,6 +120,7 @@ ModifierTypeInfo modifierType_Multires = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    0,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

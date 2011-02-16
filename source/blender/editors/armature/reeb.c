@@ -40,6 +40,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
@@ -442,7 +443,7 @@ void flipArc(ReebArc *arc)
 }
 
 #ifdef DEBUG_REEB_NODE
-void NodeDegreeDecrement(ReebGraph *rg, ReebNode *node)
+void NodeDegreeDecrement(ReebGraph *UNUSED(rg), ReebNode *node)
 {
 	node->degree--;
 
@@ -452,7 +453,7 @@ void NodeDegreeDecrement(ReebGraph *rg, ReebNode *node)
 //	}
 }
 
-void NodeDegreeIncrement(ReebGraph *rg, ReebNode *node)
+void NodeDegreeIncrement(ReebGraph *UNUSED(rg), ReebNode *node)
 {
 //	if (node->degree == 0)
 //	{
@@ -523,7 +524,7 @@ void verifyNodeDegree(ReebGraph *rg)
 #endif
 }
 
-void verifyBucketsArc(ReebGraph *rg, ReebArc *arc)
+void verifyBucketsArc(ReebGraph *UNUSED(rg), ReebArc *arc)
 {
 	ReebNode *head = (ReebNode*)arc->head;
 	ReebNode *tail = (ReebNode*)arc->tail;
@@ -603,7 +604,7 @@ void verifyMultiResolutionLinks(ReebGraph *rg, int level)
 		{
 			if (BLI_findindex(&lower_rg->arcs, arc->link_up) == -1)
 			{
-				printf("missing arc %p for level %i\n", arc->link_up, level);
+				printf("missing arc %p for level %i\n", (void *)arc->link_up, level);
 				printf("Source arc was ---\n");
 				printArc(arc);
 
@@ -1692,7 +1693,7 @@ int filterInternalExternalReebGraph(ReebGraph *rg, float threshold_internal, flo
 	return value;
 }
 
-int filterCyclesReebGraph(ReebGraph *rg, float distance_threshold)
+int filterCyclesReebGraph(ReebGraph *rg, float UNUSED(distance_threshold))
 {
 	ReebArc *arc1, *arc2;
 	ReebArc *next2;
@@ -1723,7 +1724,7 @@ int filterCyclesReebGraph(ReebGraph *rg, float distance_threshold)
 	return filtered;
 }
 
-int filterSmartReebGraph(ReebGraph *rg, float threshold)
+int filterSmartReebGraph(ReebGraph *UNUSED(rg), float UNUSED(threshold))
 {
 	int value = 0;
 #if 0 //XXX
@@ -2018,7 +2019,7 @@ void spreadWeight(EditMesh *em)
 
 /******************************************** EXPORT ***************************************************/
 
-void exportNode(FILE *f, char *text, ReebNode *node)
+void exportNode(FILE *f, const char *text, ReebNode *node)
 {
 	fprintf(f, "%s i:%i w:%f d:%i %f %f %f\n", text, node->index, node->weight, node->degree, node->p[0], node->p[1], node->p[2]);
 }
@@ -2180,7 +2181,7 @@ void addFacetoArc(ReebArc *arc, EditFace *efa)
 	BLI_ghash_insert(arc->faces, efa, efa);
 }
 
-void mergeArcFaces(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc)
+void mergeArcFaces(ReebGraph *UNUSED(rg), ReebArc *aDst, ReebArc *aSrc)
 {
 	GHashIterator ghi;
 	
@@ -2204,7 +2205,7 @@ void mergeArcEdges(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc, MergeDirection d
 			e->arc = aDst; // Edge is stolen by new arc
 		}
 		
-		addlisttolist(&aDst->edges , &aSrc->edges);
+		BLI_movelisttolist(&aDst->edges , &aSrc->edges);
 	}
 	else
 	{
@@ -2557,10 +2558,10 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	EditVert *eve;
 	EditFace *efa;
 	int index;
-	int totvert;
-	int totfaces;
+	/*int totvert;*/
 	
 #ifdef DEBUG_REEB
+	int totfaces;
 	int countfaces = 0;
 #endif
  	
@@ -2568,8 +2569,10 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	
 	rg->resolution = subdivisions;
 	
-	totvert = BLI_countlist(&em->verts);
+	/*totvert = BLI_countlist(&em->verts);*/ /*UNUSED*/
+#ifdef DEBUG_REEB
 	totfaces = BLI_countlist(&em->faces);
+#endif
 	
 	renormalizeWeight(em, 1.0f);
 	
@@ -2640,7 +2643,7 @@ void renormalizeWeight(EditMesh *em, float newmax)
 	eve = em->verts.first;
 	minimum = weightData(eve);
 	maximum = minimum;
-	for(eve = em->verts.first; eve; eve = eve->next)
+	for(; eve; eve = eve->next)
 	{
 		maximum = MAX2(maximum, weightData(eve));
 		minimum = MIN2(minimum, weightData(eve));

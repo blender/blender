@@ -95,7 +95,8 @@ public:
 	{
 		return m_dm;
 	}
-
+	// The derived mesh returned by this function must be released!
+	virtual struct DerivedMesh* GetPhysicsMesh();
 
 protected:
 	double					 m_lastModifierUpdate;

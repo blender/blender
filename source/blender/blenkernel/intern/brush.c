@@ -45,6 +45,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -67,7 +68,7 @@ static void brush_set_defaults(Brush *brush)
 	brush->blend = 0;
 	brush->flag = 0;
 
-	brush->ob_mode = (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT);
+	brush->ob_mode = OB_MODE_ALL_PAINT;
 
 	/* BRUSH SCULPT TOOL SETTINGS */
 	brush->size= 35; /* radius of the brush in pixels */
@@ -228,10 +229,8 @@ void make_local_brush(Brush *brush)
 
 void brush_debug_print_state(Brush *br)
 {
-	Brush def;
-
 	/* create a fake brush and set it to the defaults */
-	memset(&def, 0, sizeof(Brush));
+	Brush def= {{0}};
 	brush_set_defaults(&def);
 	
 #define BR_TEST(field, t)					\
@@ -530,7 +529,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 	if (*outbuf)
 		ibuf= *outbuf;
 	else
-		ibuf= IMB_allocImBuf(bufsize, bufsize, 32, imbflag, 0);
+		ibuf= IMB_allocImBuf(bufsize, bufsize, 32, imbflag);
 
 	if (flt) {
 		for (y=0; y < ibuf->y; y++) {
@@ -796,11 +795,11 @@ static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, float 
 
 	imbflag= (cache->flt)? IB_rectfloat: IB_rect;
 	if (!cache->ibuf)
-		cache->ibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag, 0);
+		cache->ibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag);
 	ibuf= cache->ibuf;
 
 	oldtexibuf= cache->texibuf;
-	cache->texibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag, 0);
+	cache->texibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag);
 
 	if (oldtexibuf) {
 		srcx= srcy= 0;
@@ -908,7 +907,13 @@ static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pres
 
 void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
 {
-	if(brush->jitter){
+	int use_jitter= brush->jitter != 0;
+
+	/* jitter-ed brush gives wierd and unpredictable result for this
+	   kinds of stroke, so manyally disable jitter usage (sergey) */
+	use_jitter&= (brush->flag & (BRUSH_RESTORE_MESH|BRUSH_ANCHORED)) == 0;
+
+	if(use_jitter){
 		float rand_pos[2];
 		const int radius= brush_size(brush);
 		const int diameter= 2*radius;
@@ -1098,11 +1103,9 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 {
 	unsigned int *texcache = NULL;
 	MTex *mtex = &br->mtex;
-	TexResult texres;
+	TexResult texres= {0};
 	int hasrgb, ix, iy;
 	int side = half_side * 2;
-
-	memset(&texres, 0, sizeof(TexResult));
 	
 	if(mtex->tex) {
 		float x, y, step = 2.0 / side, co[3];

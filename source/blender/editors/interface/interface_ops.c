@@ -29,16 +29,20 @@
 #include <math.h>
 #include <string.h>
 
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_text_types.h" /* for UI_OT_reports_to_text */
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
+#include "BKE_text.h" /* for UI_OT_reports_to_text */
+#include "BKE_report.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -134,7 +138,7 @@ static int eyedropper_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* Modal Operator init */
-static int eyedropper_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int eyedropper_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	/* init */
 	if (eyedropper_init(C, op)) {
@@ -195,7 +199,7 @@ void UI_OT_eyedropper(wmOperatorType *ot)
 
 /* Reset Default Theme ------------------------ */
 
-static int reset_default_theme_exec(bContext *C, wmOperator *op)
+static int reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ui_theme_init_default();
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -219,7 +223,7 @@ void UI_OT_reset_default_theme(wmOperatorType *ot)
 
 /* Copy Data Path Operator ------------------------ */
 
-static int copy_data_path_button_exec(bContext *C, wmOperator *op)
+static int copy_data_path_button_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -402,7 +406,51 @@ void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array.");
 }
- 
+
+/* Reports to Textblock Operator ------------------------ */
+
+/* FIXME: this is just a temporary operator so that we can see all the reports somewhere 
+ * when there are too many to display...
+ */
+
+static int reports_to_text_poll(bContext *C)
+{
+	return CTX_wm_reports(C) != NULL;
+}
+
+static int reports_to_text_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ReportList *reports = CTX_wm_reports(C);
+	Text *txt;
+	char *str;
+	
+	/* create new text-block to write to */
+	txt = add_empty_text("Recent Reports");
+	
+	/* convert entire list to a display string, and add this to the text-block
+	 *	- if commandline debug option enabled, show debug reports too
+	 *	- otherwise, up to info (which is what users normally see)
+	 */
+	str = BKE_reports_string(reports, (G.f & G_DEBUG)? RPT_DEBUG : RPT_INFO);
+	
+	write_text(txt, str);
+	MEM_freeN(str);
+	
+	return OPERATOR_FINISHED;
+}
+
+void UI_OT_reports_to_textblock(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reports to Text Block";
+	ot->idname= "UI_OT_reports_to_textblock";
+	ot->description= "Write the reports ";
+	
+	/* callbacks */
+	ot->poll= reports_to_text_poll;
+	ot->exec= reports_to_text_exec;
+}
+
 /* ********************************************************* */
 /* Registration */
 
@@ -413,5 +461,6 @@ void UI_buttons_operatortypes(void)
 	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
 	WM_operatortype_append(UI_OT_copy_to_selected_button);
+	WM_operatortype_append(UI_OT_reports_to_textblock); // XXX: temp?
 }
 

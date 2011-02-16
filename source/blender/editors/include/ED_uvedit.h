@@ -41,16 +41,24 @@ void ED_operatortypes_uvedit(void);
 void ED_keymap_uvedit(struct wmKeyConfig *keyconf);
 
 void ED_uvedit_assign_image(struct Scene *scene, struct Object *obedit, struct Image *ima, struct Image *previma);
-void ED_uvedit_set_tile(struct bContext *C, struct Scene *scene, struct Object *obedit, struct Image *ima, int curtile, int dotile);
 int ED_uvedit_minmax(struct Scene *scene, struct Image *ima, struct Object *obedit, float *min, float *max);
 
 int ED_uvedit_test_silent(struct Object *obedit);
 int ED_uvedit_test(struct Object *obedit);
 
-int uvedit_face_visible(struct Scene *scene, struct Image *ima, struct EditFace *efa, struct MTFace *tf);
-int uvedit_face_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
+/* visibility and selection */
 int uvedit_edge_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+int uvedit_face_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
+int uvedit_face_visible_nolocal(struct Scene *scene, struct EditFace *efa);
+int uvedit_face_visible(struct Scene *scene, struct Image *ima, struct EditFace *efa, struct MTFace *tf);
 int uvedit_uv_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+void uvedit_edge_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+void uvedit_edge_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+void uvedit_face_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
+void uvedit_face_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
+void uvedit_uv_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+void uvedit_uv_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+
 
 int ED_uvedit_nearest_uv(struct Scene *scene, struct Object *obedit, struct Image *ima, float co[2], float uv[2]);
 

@@ -40,7 +40,7 @@ static bNodeSocketType cmp_node_normalize_out[]= {
 	{   -1, 0, ""   }
 };
 
-static void do_normalize(bNode *node, float *out, float *src, float *min, float *mult)
+static void do_normalize(bNode *UNUSED(node), float *out, float *src, float *min, float *mult)
 {
 	float res;
 	res = (src[0] - min[0]) * mult[0];
@@ -58,7 +58,7 @@ static void do_normalize(bNode *node, float *out, float *src, float *min, float 
 /* The code below assumes all data is inside range +- this, and that input buffer is single channel */
 #define BLENDER_ZMAX 10000.0f
 
-static void node_composit_exec_normalize(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_normalize(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: valbuf */
 	/* stack order out: valbuf */
@@ -98,19 +98,15 @@ static void node_composit_exec_normalize(void *data, bNode *node, bNodeStack **i
 	}
 }
 
-bNodeType cmp_node_normalize= {
-	/* *next, *prev*/   NULL, NULL,
-	/* type code   */   CMP_NODE_NORMALIZE,
-	/* name        */   "Normalize",
-	/* width+range */   100, 60, 150,
-	/* class+opts  */   NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
-	/* input sock  */   cmp_node_normalize_in,
-	/* output sock */   cmp_node_normalize_out,
-	/* storage     */   "TexMapping",
-	/* execfunc    */   node_composit_exec_normalize, 
-	/* butfunc     */   NULL, 
-	/* initfunc    */   NULL, 
-	/* freestoragefunc	*/ NULL, 
-	/* copystoragefunc	*/ NULL, 
-	/* id		*/	NULL
-};
+void register_node_type_cmp_normalize(ListBase *lb)
+{
+	static bNodeType ntype;
+	
+	node_type_base(&ntype, CMP_NODE_NORMALIZE, "Normalize", NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
+				   cmp_node_normalize_in, cmp_node_normalize_out);
+	node_type_size(&ntype, 100, 60, 150);
+	node_type_exec(&ntype, node_composit_exec_normalize);
+	node_type_storage(&ntype, "TexMapping", NULL, NULL);
+	
+	nodeRegisterType(lb, &ntype);
+}

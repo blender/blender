@@ -32,7 +32,6 @@
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
-#include "BKE_utildefines.h"
 #include "RNA_types.h"
 
 struct bNodeTree;
@@ -145,7 +144,8 @@ typedef struct RenderStats {
 	int totface, totvert, totstrand, tothalo, totlamp, totpart;
 	short curfield, curblur, curpart, partsdone, convertdone;
 	double starttime, lastframetime;
-	char *infostr, *statstr, scenename[32];
+	const char *infostr, *statstr;
+	char scenename[32];
 	
 } RenderStats;
 
@@ -158,6 +158,9 @@ struct Render *RE_GetRender(const char *name);
 
 /* returns 1 while render is working (or renders called from within render) */
 int RE_RenderInProgress(struct Render *re);
+
+/* assign default dummy callbacks */
+void RE_InitRenderCB(struct Render *re);
 
 /* use free render as signal to do everything over (previews) */
 void RE_FreeRender (struct Render *re);
@@ -209,18 +212,18 @@ void RE_init_threadcount(Render *re);
 void RE_TileProcessor(struct Render *re);
 
 /* only RE_NewRender() needed, main Blender render calls */
-void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, unsigned int lay, int frame);
+void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, unsigned int lay, int frame, const short write_still);
 void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, int sfra, int efra, int tfra, struct ReportList *reports);
 
 /* main preview render call */
 void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene);
 
 void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
-void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress);
+void RE_WriteRenderResult(RenderResult *rr, const char *filename, int compress);
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
 
 /* do a full sample buffer compo */
-void RE_MergeFullSample(struct Render *re, struct Scene *sce, struct bNodeTree *ntree);
+void RE_MergeFullSample(struct Render *re, struct Main *bmain, struct Scene *sce, struct bNodeTree *ntree);
 
 /* ancient stars function... go away! */
 void RE_make_stars(struct Render *re, struct Scene *scenev3d, void (*initfunc)(void),
@@ -233,7 +236,7 @@ void RE_display_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle
 void RE_stats_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderStats *rs));
 void RE_progress_cb	(struct Render *re, void *handle, void (*f)(void *handle, float));
 void RE_test_break_cb	(struct Render *re, void *handle, int (*f)(void *handle));
-void RE_error_cb		(struct Render *re, void *handle, void (*f)(void *handle, char *str));
+void RE_error_cb		(struct Render *re, void *handle, void (*f)(void *handle, const char *str));
 
 /* should move to kernel once... still unsure on how/where */
 float RE_filter_value(int type, float x);
@@ -284,18 +287,20 @@ typedef struct RenderEngine {
 	ListBase fullresult;
 } RenderEngine;
 
-void RE_layer_load_from_file(RenderLayer *layer, struct ReportList *reports, char *filename);
-void RE_result_load_from_file(RenderResult *result, struct ReportList *reports, char *filename);
+void RE_layer_load_from_file(RenderLayer *layer, struct ReportList *reports, const char *filename, int x, int y);
+void RE_result_load_from_file(RenderResult *result, struct ReportList *reports, const char *filename);
 
 struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
 void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
 void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
 
 int RE_engine_test_break(RenderEngine *engine);
-void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info);
+void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
 
 void RE_engines_init(void);
 void RE_engines_exit(void);
+
+int RE_is_rendering_allowed(struct Scene *scene, void *erh, void (*error)(void *handle, const char *str));
 
 #endif /* RE_PIPELINE_H */
 

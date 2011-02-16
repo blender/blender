@@ -45,7 +45,7 @@ KX_ConstraintWrapper::~KX_ConstraintWrapper()
 {
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 PyObject* KX_ConstraintWrapper::PyGetConstraintId()
 {
@@ -120,4 +120,4 @@ PyObject* KX_ConstraintWrapper::pyattr_get_constraintId(void *self_v, const KX_P
 	return self->PyGetConstraintId();
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

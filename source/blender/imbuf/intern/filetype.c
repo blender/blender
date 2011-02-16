@@ -45,7 +45,7 @@ static int imb_ftype_default(ImFileType *type, ImBuf *ibuf) { return (ibuf->ftyp
 #if defined(__APPLE__) && defined(IMBUF_COCOA)
 static int imb_ftype_cocoa(ImFileType *type, ImBuf *ibuf) { return (ibuf->ftype & TIF); }
 #endif
-static int imb_ftype_iris(ImFileType *type, ImBuf *ibuf) { return (ibuf->ftype == IMAGIC); }
+static int imb_ftype_iris(ImFileType *type, ImBuf *ibuf) { (void)type; return (ibuf->ftype == IMAGIC); }
 #ifdef WITH_QUICKTIME
 static int imb_ftype_quicktime(ImFileType *type, ImBuf *ibuf) { return 0; } // XXX
 #endif

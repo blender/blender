@@ -28,6 +28,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <string>
 
 
@@ -187,7 +188,7 @@ static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
 		header->insert(info->key, StringAttribute(info->value));
 }
 
-static int imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
+static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags)
 {
 	int channels = ibuf->channels;
 	int width = ibuf->x;
@@ -314,7 +315,7 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 	return (1);
 }
 
-static int imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
+static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flags)
 {
 	int channels = ibuf->channels;
 	int width = ibuf->x;
@@ -342,6 +343,7 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 		int ystride = - xstride*width;
 		float *rect[4] = {NULL, NULL, NULL, NULL};
 
+		/* last scanline, stride negative */
 		rect[0]= ibuf->rect_float + channels*(height-1)*width;
 		rect[1]= rect[0]+1;
 		rect[2]= rect[0]+2;
@@ -372,7 +374,7 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 }
 
 
-int imb_save_openexr(struct ImBuf *ibuf, char *name, int flags)
+int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 {
 	if (flags & IB_mem) 
 	{
@@ -482,7 +484,7 @@ void IMB_exr_add_channel(void *handle, const char *layname, const char *passname
 }
 
 /* only used for writing temp. render results (not image files) */
-void IMB_exr_begin_write(void *handle, char *filename, int width, int height, int compress)
+void IMB_exr_begin_write(void *handle, const char *filename, int width, int height, int compress)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	Header header (width, height);
@@ -498,12 +500,12 @@ void IMB_exr_begin_write(void *handle, char *filename, int width, int height, in
 	// openexr_header_metadata(&header, ibuf); // no imbuf. cant write
 	/* header.lineOrder() = DECREASING_Y; this crashes in windows for file read! */
 	
-	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43 and newer"));
+	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.55.1 and newer"));
 	
 	data->ofile = new OutputFile(filename, header);
 }
 
-void IMB_exrtile_begin_write(void *handle, char *filename, int mipmap, int width, int height, int tilex, int tiley)
+void IMB_exrtile_begin_write(void *handle, const char *filename, int mipmap, int width, int height, int tilex, int tiley)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	Header header (width, height);
@@ -528,7 +530,7 @@ void IMB_exrtile_begin_write(void *handle, char *filename, int mipmap, int width
 }
 
 /* read from file */
-int IMB_exr_begin_read(void *handle, char *filename, int *width, int *height)
+int IMB_exr_begin_read(void *handle, const char *filename, int *width, int *height)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	
@@ -551,7 +553,7 @@ int IMB_exr_begin_read(void *handle, char *filename, int *width, int *height)
 }
 
 /* still clumsy name handling, layers/channels can be ordered as list in list later */
-void IMB_exr_set_channel(void *handle, char *layname, char *passname, int xstride, int ystride, float *rect)
+void IMB_exr_set_channel(void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	ExrChannel *echan;
@@ -615,9 +617,13 @@ void IMB_exr_write_channels(void *handle)
 	ExrChannel *echan;
 	
 	if(data->channels.first) {
-		for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
-			frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)echan->rect, 
-													echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
+		for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next) {
+			/* last scanline, stride negative */
+			float *rect = echan->rect + echan->xstride*(data->height-1)*data->width;
+			
+			frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)rect, 
+													echan->xstride*sizeof(float), -echan->ystride*sizeof(float)));
+		}
 		
 		data->ofile->setFrameBuffer (frameBuffer);
 		try {
@@ -638,11 +644,20 @@ void IMB_exr_read_channels(void *handle)
 	FrameBuffer frameBuffer;
 	ExrChannel *echan;
 	
+	/* check if exr was saved with previous versions of blender which flipped images */
+	const StringAttribute *ta = data->ifile->header().findTypedAttribute <StringAttribute> ("BlenderMultiChannel");
+	short flip = (ta && strncmp(ta->value().c_str(), "Blender V2.43", 13)==0); /* 'previous multilayer attribute, flipped */
+	
 	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next) {
-		/* no datawindow correction needed */
-		if(echan->rect)
-			frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)echan->rect, 
-												echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
+		
+		if(echan->rect) {
+			if(flip)
+				frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)echan->rect, 
+											echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
+			else
+				frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)(echan->rect + echan->xstride*(data->height-1)*data->width), 
+											echan->xstride*sizeof(float), -echan->ystride*sizeof(float)));
+		}
 		else 
 			printf("warning, channel with no rect set %s\n", echan->name);
 	}
@@ -975,7 +990,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 		}
 		else {
 		
-			ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
+			ibuf = IMB_allocImBuf(width, height, 32, 0);
 			ibuf->ftype = OPENEXR;
 
 			/* openEXR is linear as per EXR spec */

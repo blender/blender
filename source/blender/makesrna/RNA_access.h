@@ -22,8 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef RNA_ACCESS
-#define RNA_ACCESS
+#ifndef RNA_ACCESS_H
+#define RNA_ACCESS_H
 
 #include <stdarg.h>
 
@@ -157,6 +157,7 @@ extern StructRNA RNA_CompositorNodeTexture;
 extern StructRNA RNA_CompositorNodeTime;
 extern StructRNA RNA_CompositorNodeTonemap;
 extern StructRNA RNA_CompositorNodeTranslate;
+extern StructRNA RNA_CompositorNodeTree;
 extern StructRNA RNA_CompositorNodeValToRGB;
 extern StructRNA RNA_CompositorNodeValue;
 extern StructRNA RNA_CompositorNodeVecBlur;
@@ -325,6 +326,7 @@ extern StructRNA RNA_NlaStrip;
 extern StructRNA RNA_NlaTrack;
 extern StructRNA RNA_Node;
 extern StructRNA RNA_NodeGroup;
+extern StructRNA RNA_NodeLink;
 extern StructRNA RNA_NodeSocket;
 extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_NoiseTexture;
@@ -416,6 +418,7 @@ extern StructRNA RNA_ShaderNodeRGBToBW;
 extern StructRNA RNA_ShaderNodeSeparateRGB;
 extern StructRNA RNA_ShaderNodeSqueeze;
 extern StructRNA RNA_ShaderNodeTexture;
+extern StructRNA RNA_ShaderNodeTree;
 extern StructRNA RNA_ShaderNodeValToRGB;
 extern StructRNA RNA_ShaderNodeValue;
 extern StructRNA RNA_ShaderNodeVectorCurve;
@@ -495,6 +498,7 @@ extern StructRNA RNA_TextureNodeRotate;
 extern StructRNA RNA_TextureNodeScale;
 extern StructRNA RNA_TextureNodeTexture;
 extern StructRNA RNA_TextureNodeTranslate;
+extern StructRNA RNA_TextureNodeTree;
 extern StructRNA RNA_TextureNodeValToNor;
 extern StructRNA RNA_TextureNodeValToRGB;
 extern StructRNA RNA_TextureNodeViewer;
@@ -582,7 +586,7 @@ void RNA_pointer_create(struct ID *id, StructRNA *type, void *data, PointerRNA *
 void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
 void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr);
 
-extern PointerRNA PointerRNA_NULL;
+extern const PointerRNA PointerRNA_NULL;
 
 /* Structs */
 
@@ -613,10 +617,13 @@ int RNA_struct_idprops_register_check(StructRNA *type);
 
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
-const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
+
+/* lower level functions for access to type properties */
+const struct ListBase *RNA_struct_type_properties(StructRNA *srna);
+PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier);
 
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier);
-const struct ListBase *RNA_struct_defined_functions(StructRNA *srna);
+const struct ListBase *RNA_struct_type_functions(StructRNA *srna);
 
 char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen);
 
@@ -678,9 +685,11 @@ int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 int RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop); /* without lib check, only checks the flag */
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_path_from_ID_check(PointerRNA *ptr, PropertyRNA *prop); /* slow, use with care */
 
 void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_update_main(struct Main *bmain, struct Scene *scene, PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_update_check(struct PropertyRNA *prop);
 
 /* Property Data */
 
@@ -728,7 +737,7 @@ int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop);
 
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value);
-// TODO: get default pointers...
+PointerRNA RNA_property_pointer_get_default(PointerRNA *ptr, PropertyRNA *prop);
 
 void RNA_property_collection_begin(PointerRNA *ptr, PropertyRNA *prop, CollectionPropertyIterator *iter);
 void RNA_property_collection_next(CollectionPropertyIterator *iter);
@@ -741,8 +750,8 @@ int RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, Pointer
 
 /* efficient functions to set properties for arrays */
 int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array);
-int RNA_property_collection_raw_get(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
-int RNA_property_collection_raw_set(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
+int RNA_property_collection_raw_get(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, const char *propname, void *array, RawPropertyType type, int len);
+int RNA_property_collection_raw_set(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, const char *propname, void *array, RawPropertyType type, int len);
 int RNA_raw_type_sizeof(RawPropertyType type);
 RawPropertyType RNA_property_raw_type(PropertyRNA *prop);
 
@@ -834,7 +843,11 @@ char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, in
 int RNA_string_length(PointerRNA *ptr, const char *name);
 void RNA_string_set(PointerRNA *ptr, const char *name, const char *value);
 
+/**
+ * Retrieve the named property from PointerRNA.
+ */
 PointerRNA RNA_pointer_get(PointerRNA *ptr, const char *name);
+/* Set the property name of PointerRNA ptr to ptr_value */
 void RNA_pointer_set(PointerRNA *ptr, const char *name, PointerRNA ptr_value);
 void RNA_pointer_add(PointerRNA *ptr, const char *name);
 
@@ -909,8 +922,8 @@ void RNA_parameter_list_end(ParameterIterator *iter);
 
 void RNA_parameter_get(ParameterList *parms, PropertyRNA *parm, void **value);
 void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void **value);
-void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, void *value);
-void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void *value);
+void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, const void *value);
+void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, const void *value);
 int RNA_parameter_length_get(ParameterList *parms, PropertyRNA *parm);
 int RNA_parameter_length_get_data(ParameterList *parms, PropertyRNA *parm, void *data);
 void RNA_parameter_length_set(ParameterList *parms, PropertyRNA *parm, int length);
@@ -919,8 +932,16 @@ void RNA_parameter_length_set_data(ParameterList *parms, PropertyRNA *parm, void
 int RNA_function_call(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
 int RNA_function_call_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, ParameterList *parms);
 
-int RNA_function_call_direct(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, ...);
-int RNA_function_call_direct_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, ...);
+int RNA_function_call_direct(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, ...)
+#ifdef __GNUC__
+__attribute__ ((format (printf, 5, 6)));
+#endif
+;
+int RNA_function_call_direct_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, ...)
+#ifdef __GNUC__
+__attribute__ ((format (printf, 5, 6)));
+#endif
+;
 int RNA_function_call_direct_va(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args);
 int RNA_function_call_direct_va_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, va_list args);
 
@@ -933,5 +954,4 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 }
 #endif
 
-#endif /* RNA_ACCESS */
-
+#endif /* RNA_ACCESS_H */

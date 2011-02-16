@@ -36,6 +36,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -236,7 +237,7 @@ static SpaceLink *sequencer_new(const bContext *C)
 }
 
 /* not spacelink itself */
-static void sequencer_free(SpaceLink *sl)
+static void sequencer_free(SpaceLink *UNUSED(sl))
 {	
 //	SpaceSeq *sseq= (SpaceSequencer*) sl;
 	
@@ -246,7 +247,7 @@ static void sequencer_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void sequencer_init(struct wmWindowManager *wm, ScrArea *sa)
+static void sequencer_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 	
 }
@@ -296,7 +297,7 @@ static void sequencer_main_area_draw(const bContext *C, ARegion *ar)
 
 /* ************* dropboxes ************* */
 
-static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int image_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_PATH)
 		if(ELEM(drag->icon, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
@@ -304,7 +305,7 @@ static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	return 0;
 }
 
-static int movie_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int movie_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_PATH)
 		if(ELEM3(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK))	/* rule might not work? */
@@ -312,7 +313,7 @@ static int movie_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	return 0;
 }
 
-static int sound_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int sound_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_PATH)
 		if(ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK))	/* rule might not work? */
@@ -334,6 +335,7 @@ static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 		
 		RNA_string_set(drop->ptr, "directory", dir);
 
+		RNA_collection_clear(drop->ptr, "files");
 		RNA_collection_add(drop->ptr, "files", &itemptr);
 		RNA_string_set(&itemptr, "name", file);
 	}
@@ -352,7 +354,7 @@ static void sequencer_dropboxes(void)
 /* ************* end drop *********** */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void sequencer_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void sequencer_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
@@ -371,6 +373,7 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_FRAME_RANGE:
 				case ND_MARKERS:
+				case ND_RENDER_OPTIONS: /* for FPS and FPS Base */
 				case ND_SEQUENCER:
 					ED_region_tag_redraw(ar);
 					break;
@@ -516,7 +519,7 @@ void ED_spacetype_sequencer(void)
 	art->init= sequencer_main_area_init;
 	art->draw= sequencer_main_area_draw;
 	art->listener= sequencer_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_ANIMATION;
+	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS|ED_KEYMAP_FRAMES|ED_KEYMAP_ANIMATION;
 
 	BLI_addhead(&st->regiontypes, art);
 

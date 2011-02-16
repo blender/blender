@@ -45,7 +45,7 @@ void NLA_OT_properties(wmOperatorType *ot);
 /* nla_draw.c */
 
 void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar);
-void draw_nla_channel_list(bContext *C, bAnimContext *ac, SpaceNla *snla, ARegion *ar);
+void draw_nla_channel_list(bContext *C, bAnimContext *ac, ARegion *ar);
 
 /* **************************************** */
 /* nla_header.c */
@@ -60,7 +60,7 @@ enum {
 	NLAEDIT_LRSEL_TEST	= -1,
 	NLAEDIT_LRSEL_NONE,
 	NLAEDIT_LRSEL_LEFT,
-	NLAEDIT_LRSEL_RIGHT,
+	NLAEDIT_LRSEL_RIGHT
 } eNlaEdit_LeftRightSelect_Mode;
 
 /* --- */
@@ -78,7 +78,7 @@ enum {
 	NLAEDIT_SNAP_CFRA = 1,
 	NLAEDIT_SNAP_NEAREST_FRAME,
 	NLAEDIT_SNAP_NEAREST_SECOND,
-	NLAEDIT_SNAP_NEAREST_MARKER,	
+	NLAEDIT_SNAP_NEAREST_MARKER
 } eNlaEdit_Snap_Mode;
 
 /* --- */
@@ -100,6 +100,7 @@ void NLA_OT_split(wmOperatorType *ot);
 
 void NLA_OT_mute_toggle(wmOperatorType *ot);
 
+void NLA_OT_swap(wmOperatorType *ot);
 void NLA_OT_move_up(wmOperatorType *ot);
 void NLA_OT_move_down(wmOperatorType *ot);
 

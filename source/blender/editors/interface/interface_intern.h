@@ -96,7 +96,6 @@ typedef enum {
 
 #define UI_MAX_DRAW_STR	400
 #define UI_MAX_NAME_STR	128
-#define UI_ARRAY	29
 
 /* panel limits */
 #define UI_PANEL_MINX	100
@@ -104,7 +103,7 @@ typedef enum {
 
 /* uiBut->flag */
 #define UI_SELECT		1 /* use when the button is pressed */
-#define UI_MOUSE_OVER	2
+/*#define UI_MOUSE_OVER	2*/  /*UNUSED, free flag*/
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
 #define UI_TEXTINPUT	16
@@ -120,7 +119,7 @@ typedef enum {
 #define PNL_CLOSEDX	2
 #define PNL_CLOSEDY	4
 #define PNL_CLOSED	6
-#define PNL_TABBED	8
+/*#define PNL_TABBED	8*/ /*UNUSED*/
 #define PNL_OVERLAP	16
 
 /* Button text selection:
@@ -171,8 +170,9 @@ struct uiBut {
 
 	char *poin;
 	float hardmin, hardmax, softmin, softmax;
-	float a1, a2, hsv[3];	// hsv is temp memory for hsv buttons
+	float a1, a2;
 	float aspect;
+	char col[4];
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -203,13 +203,15 @@ struct uiBut {
 	uiLink *link;
 	short linkto[2];
 	
-	char *tip, *lockstr;
+	const char *tip, *lockstr;
 
 	BIFIconID icon;
-	short but_align;	/* aligning buttons, horiz/vertical */
-	short lock;
+	char lock;
+	char dt;
+	char changed; /* could be made into a single flag */
+	unsigned char unit_type; /* so buttons can support unit systems which are not RNA */
 	short modifier_key;
-	short iconadd, dt;
+	short iconadd;
 
 	/* IDPOIN data */
 	uiIDPoinFuncFP idpoin_func;
@@ -234,9 +236,10 @@ struct uiBut {
 	struct IDProperty *opproperties;
 	struct PointerRNA *opptr;
 	short opcontext;
-	
+	unsigned char menu_key; /* 'a'-'z', always lower case */
+
 	/* Draggable data, type is WM_DRAG_... */
-	short dragtype;
+	char dragtype;
 	void *dragpoin;
 	struct ImBuf *imb;
 	float imb_scale;
@@ -296,32 +299,33 @@ struct uiBlock {
 	void *drawextra_arg1;
 	void *drawextra_arg2;
 
-	int afterval, flag;
-	
-	short direction, dt;
-	short auto_open, in_use;
+	int flag;
+	char direction, dt;
+	short auto_open;
 	double auto_open_last;
 
-	int lock;
-	char *lockstr;
+	const char *lockstr;
+
+	char lock;
+	char active;					// to keep blocks while drawing and free them afterwards
+	char tooltipdisabled;			// to avoid tooltip after click
+	char endblock;					// uiEndBlock done?
 	
 	float xofs, yofs;				// offset to parent button
 	int dobounds, mx, my;			// for doing delayed
 	int bounds, minbounds;			// for doing delayed
-	int endblock;					// uiEndBlock done?
 
 	rctf safety;				// pulldowns, to detect outside, can differ per case how it is created
 	ListBase saferct;			// uiSafetyRct list
 
 	uiPopupBlockHandle *handle;	// handle
-	int tooltipdisabled;		// to avoid tooltip after click
 
-	int active;					// to keep blocks while drawing and free them afterwards
 	int puphash;				// popup menu hash for memory
 	
-	int color_profile;				// color profile for correcting linear colors for display
-
 	void *evil_C;				// XXX hack for dynamic operator enums
+
+	float _hsv[3];				// XXX, only access via ui_block_hsv_get()
+	char color_profile;				// color profile for correcting linear colors for display
 };
 
 typedef struct uiSafetyRct {
@@ -408,6 +412,8 @@ void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
 uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but);
 
+float *ui_block_hsv_get(uiBlock *block);
+
 /* searchbox for string button */
 ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 int ui_searchbox_inside(struct ARegion *ar, int x, int y);
@@ -416,6 +422,7 @@ void ui_searchbox_autocomplete(struct bContext *C, struct ARegion *ar, uiBut *bu
 void ui_searchbox_event(struct bContext *C, struct ARegion *ar, uiBut *but, struct wmEvent *event);
 void ui_searchbox_apply(uiBut *but, struct ARegion *ar);
 void ui_searchbox_free(struct bContext *C, struct ARegion *ar);
+void ui_but_search_test(uiBut *but);
 
 typedef uiBlock* (*uiBlockHandleCreateFunc)(struct bContext *C, struct uiPopupBlockHandle *handle, void *arg1);
 
@@ -430,18 +437,15 @@ void ui_set_name_menu(uiBut *but, int value);
 int ui_step_name_menu(uiBut *but, int step);
 
 struct AutoComplete;
-struct AutoComplete *autocomplete_begin(char *startname, int maxlen);
-void autocomplete_do_name(struct AutoComplete *autocpl, const char *name);
-void autocomplete_end(struct AutoComplete *autocpl, char *autoname);
 
 /* interface_panel.c */
 extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
-extern void ui_draw_aligned_panel(struct ARegion *ar, struct uiStyle *style, uiBlock *block, rcti *rect);
+extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, rcti *rect);
 
 /* interface_draw.c */
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 
-void ui_draw_gradient(rcti *rect, float *rgb, int type, float alpha);
+void ui_draw_gradient(rcti *rect, float *hsv, int type, float alpha);
 
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
@@ -468,14 +472,13 @@ extern void ui_draw_but(const struct bContext *C, ARegion *ar, struct uiStyle *s
 struct ThemeUI;
 void ui_widget_color_init(struct ThemeUI *tui);
 
-void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state);
-void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state);
+void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
+void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 
 /* interface_style.c */
 void uiStyleInit(void);
 
 /* interface_icons.c */
-void ui_id_icon_render(struct bContext *C, struct ID *id, int preview);
 int ui_id_icon_get(struct bContext *C, struct ID *id, int preview);
 
 /* resources.c */

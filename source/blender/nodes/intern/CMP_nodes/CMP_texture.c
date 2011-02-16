@@ -79,7 +79,7 @@ static void texture_procedural(CompBuf *cbuf, float *out, float xco, float yco)
 	else { 
 		VECCOPY(col, nor);
 	}
-
+	
 	typecheck_compbuf_color(out, col, cbuf->type, cbuf->procedural_type);
 }
 
@@ -96,18 +96,19 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 		/* first make the preview image */
 		CompBuf *prevbuf= alloc_compbuf(140, 140, CB_RGBA, 1); /* alloc */
 
-		/* Also take care about the render size! */
-		sizex = (rd->size*rd->xsch)/100;
-		sizey = (rd->size*rd->ysch)/100;
-
 		prevbuf->rect_procedural= texture_procedural;
 		prevbuf->node= node;
 		VECCOPY(prevbuf->procedural_offset, in[0]->vec);
 		VECCOPY(prevbuf->procedural_size, in[1]->vec);
 		prevbuf->procedural_type= CB_RGBA;
 		composit1_pixel_processor(node, prevbuf, prevbuf, out[0]->vec, do_copy_rgba, CB_RGBA);
+		
 		generate_preview(data, node, prevbuf);
 		free_compbuf(prevbuf);
+		
+		/* texture procedural buffer type doesnt work well, we now render a buffer in scene size */
+		sizex = (rd->size*rd->xsch)/100;
+		sizey = (rd->size*rd->ysch)/100;
 		
 		if(out[0]->hasoutput) {
 			CompBuf *stackbuf= alloc_compbuf(sizex, sizey, CB_VAL, 1); /* alloc */
@@ -117,6 +118,8 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			VECCOPY(stackbuf->procedural_offset, in[0]->vec);
 			VECCOPY(stackbuf->procedural_size, in[1]->vec);
 			stackbuf->procedural_type= CB_VAL;
+			composit1_pixel_processor(node, stackbuf, stackbuf, out[0]->vec, do_copy_value, CB_VAL);
+			stackbuf->rect_procedural= NULL;
 			
 			out[0]->data= stackbuf; 
 		}
@@ -128,28 +131,25 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			VECCOPY(stackbuf->procedural_offset, in[0]->vec);
 			VECCOPY(stackbuf->procedural_size, in[1]->vec);
 			stackbuf->procedural_type= CB_RGBA;
+			composit1_pixel_processor(node, stackbuf, stackbuf, out[0]->vec, do_copy_rgba, CB_RGBA);
+			stackbuf->rect_procedural= NULL;
 			
 			out[1]->data= stackbuf;
 		}
 	}
 }
 
-bNodeType cmp_node_texture= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_TEXTURE,
-	/* name        */	"Texture",
-	/* width+range */	120, 80, 240,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW,
-	/* input sock  */	cmp_node_texture_in,
-	/* output sock */	cmp_node_texture_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_texture,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_texture(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW,
+		cmp_node_texture_in, cmp_node_texture_out);
+	node_type_size(&ntype, 120, 80, 240);
+	node_type_exec(&ntype, node_composit_exec_texture);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

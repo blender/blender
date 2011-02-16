@@ -34,7 +34,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_group_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_smoke_types.h"
+
+#include "BLI_utildefines.h"
+
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
@@ -71,29 +77,34 @@ static void freeData(ModifierData *md)
 	smokeModifier_free (smd);
 }
 
-static void deformVerts(
-					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int UNUSED(numVerts),
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	SmokeModifierData *smd = (SmokeModifierData*) md;
-	DerivedMesh *dm = dm= get_cddm(md->scene, ob, NULL, derivedData, vertexCos);
+	DerivedMesh *dm = get_cddm(ob, NULL, derivedData, vertexCos);
 
-	smokeModifier_do(smd, md->scene, ob, dm, useRenderParams, isFinalCalc);
+	smokeModifier_do(smd, md->scene, ob, dm);
 
 	if(dm != derivedData)
 		dm->release(dm);
 }
 
-static int dependsOnTime(ModifierData *md)
+static int dependsOnTime(ModifierData *UNUSED(md))
 {
 	return 1;
 }
 
-static void updateDepgraph(
-					 ModifierData *md, DagForest *forest, struct Scene *scene, Object *ob,
-	  DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *scene,
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
-	/*SmokeModifierData *smd = (SmokeModifierData *) md;
+	SmokeModifierData *smd = (SmokeModifierData *) md;
+
 	if(smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 	{
 		if(smd->domain->fluid_group)
@@ -107,7 +118,7 @@ static void updateDepgraph(
 					SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
 					
 					// check for initialized smoke object
-					if(smd2 && (smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow)
+					if(smd2 && (((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) || ((smd->type & MOD_SMOKE_TYPE_COLL) && smd2->coll)))
 					{
 						DagNode *curNode = dag_get_node(forest, go->ob);
 						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Flow");
@@ -115,8 +126,20 @@ static void updateDepgraph(
 				}
 			}
 		}
+		else {
+			Base *base = scene->base.first;
+
+			for(; base; base = base->next) {
+				SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(base->object, eModifierType_Smoke);
+
+				if(smd2 && (((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) || ((smd->type & MOD_SMOKE_TYPE_COLL) && smd2->coll)))
+				{
+					DagNode *curNode = dag_get_node(forest, base->object);
+					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Flow");
+				}
+			}
+		}
 	}
-	*/
 }
 
 
@@ -131,6 +154,7 @@ ModifierTypeInfo modifierType_Smoke = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     0,
@@ -141,6 +165,7 @@ ModifierTypeInfo modifierType_Smoke = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

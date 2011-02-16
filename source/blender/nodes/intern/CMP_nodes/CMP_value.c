@@ -35,27 +35,23 @@ static bNodeSocketType cmp_node_value_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_exec_value(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_value(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	bNodeSocket *sock= node->outputs.first;
 	
 	out[0]->vec[0]= sock->ns.vec[0];
 }
 
-bNodeType cmp_node_value= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_VALUE,
-	/* name        */	"Value",
-	/* width+range */	80, 40, 120,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	cmp_node_value_out,
-	/* storage     */	"", 
-	/* execfunc    */	node_composit_exec_value, 
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_value(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_VALUE, "Value", NODE_CLASS_INPUT, NODE_OPTIONS,
+		NULL, cmp_node_value_out);
+	node_type_size(&ntype, 80, 40, 120);
+	node_type_exec(&ntype, node_composit_exec_value);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

@@ -36,10 +36,11 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
+
 
 #include "WM_api.h"
 
@@ -56,6 +57,9 @@
 #include "interface_intern.h"
 
 /* *********************************************************************** */
+
+/* XXX still unresolved: scrolls hide/unhide vs region mask handling */
+/* XXX there's V2D_SCROLL_HORIZONTAL_HIDE and V2D_SCROLL_HORIZONTAL_FULLR ... */
 
 /* helper to allow scrollbars to dynamically hide
  * 	- returns a copy of the scrollbar settings with the flags to display 
@@ -83,6 +87,7 @@ static void view2d_masks(View2D *v2d)
 	v2d->mask.ymax= v2d->winy - 1;
 
 #if 0
+	// XXX see above
 	v2d->scroll &= ~(V2D_SCROLL_HORIZONTAL_HIDE|V2D_SCROLL_VERTICAL_HIDE);
 	/* check size if: */
 	if (v2d->scroll & V2D_SCROLL_HORIZONTAL)
@@ -250,8 +255,6 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				/* absolutely no scrollers allowed */
 				v2d->scroll= 0;
 				
-				/* pixel offsets need to be applied for smooth UI controls */
-				v2d->flag |= (V2D_PIXELOFS_X|V2D_PIXELOFS_Y);
 			}
 				break;
 			
@@ -845,7 +848,7 @@ void UI_view2d_totRect_set_resize (View2D *v2d, int width, int height, int resiz
 	
 	if (ELEM3(0, v2d, width, height)) {
 		if (G.f & G_DEBUG)
-			printf("Error: View2D totRect set exiting: v2d=%p width=%d height=%d \n", v2d, width, height); // XXX temp debug info
+			printf("Error: View2D totRect set exiting: v2d=%p width=%d height=%d \n", (void *)v2d, width, height); // XXX temp debug info
 		return;
 	}
 	
@@ -967,7 +970,7 @@ static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
 }
 
 /* Set view matrices to use 'cur' rect as viewing frame for View2D drawing */
-void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
+void UI_view2d_view_ortho(View2D *v2d)
 {
 	rctf curmasked;
 	float xofs, yofs;
@@ -975,10 +978,6 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 	/* pixel offsets (-0.375f) are needed to get 1:1 correspondance with pixels for smooth UI drawing, 
 	 * but only applied where requsted
 	 */
-	/* XXX ton: fix this! */
-	xofs= 0.0; // (v2d->flag & V2D_PIXELOFS_X) ? 0.375f : 0.0f;
-	yofs= 0.0; // (v2d->flag & V2D_PIXELOFS_Y) ? 0.375f : 0.0f;
-
 	/* XXX brecht: instead of zero at least use a tiny offset, otherwise
 	 * pixel rounding is effectively random due to float inaccuracy */
 	xofs= 0.001f*(v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);
@@ -986,6 +985,19 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 	
 	/* apply mask-based adjustments to cur rect (due to scrollers), to eliminate scaling artifacts */
 	view2d_map_cur_using_mask(v2d, &curmasked);
+	
+	curmasked.xmin-= xofs; curmasked.xmax-=xofs;
+	curmasked.ymin-= yofs; curmasked.ymax-=yofs;
+	
+	/* XXX ton: this flag set by outliner, for icons */
+	if(v2d->flag & V2D_PIXELOFS_X) {
+		curmasked.xmin= floor(curmasked.xmin) - 0.001f;
+		curmasked.xmax= floor(curmasked.xmax) - 0.001f;
+	}
+	if(v2d->flag & V2D_PIXELOFS_Y) {
+		curmasked.ymin= floor(curmasked.ymin) - 0.001f;
+		curmasked.ymax= floor(curmasked.ymax) - 0.001f;
+	}
 	
 	/* set matrix on all appropriate axes */
 	wmOrtho2(curmasked.xmin-xofs, curmasked.xmax-xofs, curmasked.ymin-yofs, curmasked.ymax-yofs);
@@ -997,9 +1009,8 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 /* Set view matrices to only use one axis of 'cur' only
  *	- xaxis 	= if non-zero, only use cur x-axis, otherwise use cur-yaxis (mostly this will be used for x)
  */
-void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
+void UI_view2d_view_orthoSpecial(ARegion *ar, View2D *v2d, short xaxis)
 {
-	ARegion *ar= CTX_wm_region(C);
 	rctf curmasked;
 	float xofs, yofs;
 	
@@ -1070,7 +1081,7 @@ static void step_to_grid(float *step, int *power, int unit)
 		/* for frames, we want 1.0 frame intervals only */
 		if (unit == V2D_UNIT_FRAMES) {
 			rem = 1.0f;
-			*step = 1.0f;
+			*step = 2.0f; /* use 2 since there are grid lines drawn in between, this way to get 1 line per frane */
 		}
 		
 		/* prevents printing 1.0 2.0 3.0 etc */
@@ -1098,15 +1109,14 @@ static void step_to_grid(float *step, int *power, int unit)
  *	
  *	- xunits,yunits	= V2D_UNIT_*  grid steps in seconds or frames 
  *	- xclamp,yclamp	= V2D_CLAMP_* only show whole-number intervals
- *	- winx			= width of region we're drawing to
+ *	- winx			= width of region we're drawing to, note: not used but keeping for completeness.
  *	- winy			= height of region we're drawing into
  */
-View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp, int winx, int winy)
+View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp, int UNUSED(winx), int winy)
 {
-	Scene *scene= CTX_data_scene(C);
+
 	View2DGrid *grid;
 	float space, pixels, seconddiv;
-	int secondgrid;
 	
 	/* check that there are at least some workable args */
 	if (ELEM(V2D_ARG_DUMMY, xunits, xclamp) && ELEM(V2D_ARG_DUMMY, yunits, yclamp))
@@ -1117,11 +1127,9 @@ View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, sh
 	
 	/* rule: gridstep is minimal GRIDSTEP pixels */
 	if (xunits == V2D_UNIT_SECONDS) {
-		secondgrid= 1;
 		seconddiv= (float)(0.01 * FPS);
 	}
 	else {
-		secondgrid= 0;
 		seconddiv= 1.0f;
 	}
 	
@@ -1130,9 +1138,11 @@ View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, sh
 		space= v2d->cur.xmax - v2d->cur.xmin;
 		pixels= (float)(v2d->mask.xmax - v2d->mask.xmin);
 		
-		grid->dx= (U.v2d_min_gridsize * space) / (seconddiv * pixels);
-		step_to_grid(&grid->dx, &grid->powerx, xunits);
-		grid->dx *= seconddiv;
+		if(pixels!=0.0f) {
+			grid->dx= (U.v2d_min_gridsize * space) / (seconddiv * pixels);
+			step_to_grid(&grid->dx, &grid->powerx, xunits);
+			grid->dx *= seconddiv;
+		}
 		
 		if (xclamp == V2D_GRID_CLAMP) {
 			if (grid->dx < 0.1f) grid->dx= 0.1f;
@@ -1174,7 +1184,7 @@ View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, sh
 }
 
 /* Draw gridlines in the given 2d-region */
-void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int flag)
+void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 {
 	float vec1[2], vec2[2];
 	int a, step;
@@ -1283,7 +1293,7 @@ void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 }
 
 /* Draw a constant grid in given 2d-region */
-void UI_view2d_constant_grid_draw(const bContext *C, View2D *v2d)
+void UI_view2d_constant_grid_draw(View2D *v2d)
 {
 	float start, step= 25.0f;
 
@@ -1481,7 +1491,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		scrollers->yclamp= yclamp;
 		scrollers->yunits= yunits;
 		
-		scrollers->grid= UI_view2d_grid_calc(C, v2d, xunits, xclamp, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
+		scrollers->grid= UI_view2d_grid_calc(CTX_data_scene(C), v2d, xunits, xclamp, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
 	}
 	
 	/* return scrollers */
@@ -1489,7 +1499,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 }
 
 /* Print scale marking along a time scrollbar */
-static void scroll_printstr(View2DScrollers *scrollers, Scene *scene, float x, float y, float val, int power, short unit, char dir)
+static void scroll_printstr(Scene *scene, float x, float y, float val, int power, short unit, char dir)
 {
 	int len;
 	char str[32];
@@ -1526,7 +1536,7 @@ static void scroll_printstr(View2DScrollers *scrollers, Scene *scene, float x, f
 	}
 	
 	/* draw it */
-	BLF_draw_default(x, y, 0.0f, str);
+	BLF_draw_default(x, y, 0.0f, str, sizeof(str)-1);
 }
 
 /* Draw scrollbars in the given 2d-region */
@@ -1569,6 +1579,9 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			{
 				state |= UI_SCROLL_ARROWS;
 			}
+			
+			UI_ThemeColor(TH_BACK);
+			glRecti(v2d->hor.xmin, v2d->hor.ymin, v2d->hor.xmax, v2d->hor.ymax);
 			
 			uiWidgetScrollDraw(&wcol, &hor, &slider, state);
 		}
@@ -1614,16 +1627,16 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 					
 					switch (vs->xunits) {							
 						case V2D_UNIT_FRAMES:		/* frames (as whole numbers)*/
-							scroll_printstr(vs, scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMES, 'h');
+							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMES, 'h');
 							break;
 							
 						case V2D_UNIT_FRAMESCALE:	/* frames (not always as whole numbers) */
-							scroll_printstr(vs, scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMESCALE, 'h');
+							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMESCALE, 'h');
 							break;
 						
 						case V2D_UNIT_SECONDS:		/* seconds */
 							fac2= val/(float)FPS;
-							scroll_printstr(vs, scene, fac, h, fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
+							scroll_printstr(scene, fac, h, fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
 							break;
 							
 						case V2D_UNIT_SECONDSSEQ:	/* seconds with special calculations (only used for sequencer only) */
@@ -1634,13 +1647,13 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 							time= (float)floor(fac2);
 							fac2= fac2-time;
 							
-							scroll_printstr(vs, scene, fac, h, time+(float)FPS*fac2/100.0f, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
+							scroll_printstr(scene, fac, h, time+(float)FPS*fac2/100.0f, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
 						}
 							break;
 							
 						case V2D_UNIT_DEGREES:		/* Graph Editor for rotation Drivers */
 							/* HACK: although we're drawing horizontal, we make this draw as 'vertical', just to get degree signs */
-							scroll_printstr(vs, scene, fac, h, val, grid->powerx, V2D_UNIT_DEGREES, 'v');
+							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_DEGREES, 'v');
 							break;
 					}
 				}
@@ -1678,6 +1691,9 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				state |= UI_SCROLL_ARROWS;
 			}
 				
+			UI_ThemeColor(TH_BACK);
+			glRecti(v2d->vert.xmin, v2d->vert.ymin, v2d->vert.xmax, v2d->vert.ymax);
+			
 			uiWidgetScrollDraw(&wcol, &vert, &slider, state);
 		}
 		
@@ -1694,10 +1710,10 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			 *	  NOTE: it's assumed that that scrollbar is there if this is involved!
 			 */
 			fac= (grid->starty- v2d->cur.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
-			fac= (vert.ymin + V2D_SCROLL_HEIGHT) + fac*(vert.ymax - vert.ymin - V2D_SCROLL_HEIGHT);
+			fac= vert.ymin + fac*(vert.ymax - vert.ymin);
 			
 			dfac= (grid->dy) / (v2d->cur.ymax - v2d->cur.ymin);
-			dfac= dfac * (vert.ymax - vert.ymin - V2D_SCROLL_HEIGHT);
+			dfac= dfac * (vert.ymax - vert.ymin);
 			
 			/* set starting value, and text color */
 			UI_ThemeColor(TH_TEXT);
@@ -1719,7 +1735,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 					if(fac < vert.ymin+10)
 						continue;
 					
-					scroll_printstr(vs, scene, (float)(vert.xmax)-2.0f, fac, val, grid->powery, vs->yunits, 'v');
+					scroll_printstr(scene, (float)(vert.xmax)-2.0f, fac, val, grid->powery, vs->yunits, 'v');
 				}
 				
 				BLF_disable_default(BLF_ROTATION);
@@ -2003,48 +2019,58 @@ static ListBase strings= {NULL, NULL};
 
 typedef struct View2DString {
 	struct View2DString *next, *prev;
-	float col[4];
-	char str[128]; 
+	union {
+		unsigned char ub[4];
+		int pack;
+	} col;
 	short mval[2];
 	rcti rect;
 } View2DString;
 
 
-void UI_view2d_text_cache_add(View2D *v2d, float x, float y, char *str)
+void UI_view2d_text_cache_add(View2D *v2d, float x, float y, const char *str, const char col[4])
 {
 	int mval[2];
 	
 	UI_view2d_view_to_region(v2d, x, y, mval, mval+1);
 	
 	if(mval[0]!=V2D_IS_CLIPPED && mval[1]!=V2D_IS_CLIPPED) {
+		int len= strlen(str)+1;
 		/* use calloc, rect has to be zeroe'd */
-		View2DString *v2s= MEM_callocN(sizeof(View2DString), "View2DString");
-		
+		View2DString *v2s= MEM_callocN(sizeof(View2DString)+len, "View2DString");
+		char *v2s_str= (char *)(v2s+1);
+		memcpy(v2s_str, str, len);
+
 		BLI_addtail(&strings, v2s);
-		BLI_strncpy(v2s->str, str, 128);
+		v2s->col.pack= *((int *)col);
 		v2s->mval[0]= mval[0];
 		v2s->mval[1]= mval[1];
-		glGetFloatv(GL_CURRENT_COLOR, v2s->col);
 	}
 }
 
 /* no clip (yet) */
-void UI_view2d_text_cache_rectf(View2D *v2d, rctf *rect, char *str)
+void UI_view2d_text_cache_rectf(View2D *v2d, rctf *rect, const char *str, const char col[4])
 {
-	View2DString *v2s= MEM_callocN(sizeof(View2DString), "View2DString");
-	
+	int len= strlen(str)+1;
+	View2DString *v2s= MEM_callocN(sizeof(View2DString)+len, "View2DString");
+	char *v2s_str= (char *)(v2s+1);
+	memcpy(v2s_str, str, len);
+
 	UI_view2d_to_region_no_clip(v2d, rect->xmin, rect->ymin, &v2s->rect.xmin, &v2s->rect.ymin);
 	UI_view2d_to_region_no_clip(v2d, rect->xmax, rect->ymax, &v2s->rect.xmax, &v2s->rect.ymax);
-	
+
+	v2s->col.pack= *((int *)col);
+	v2s->mval[0]= v2s->rect.xmin;
+	v2s->mval[1]= v2s->rect.ymin;
+
 	BLI_addtail(&strings, v2s);
-	BLI_strncpy(v2s->str, str, 128);
-	glGetFloatv(GL_CURRENT_COLOR, v2s->col);
 }
 
 
 void UI_view2d_text_cache_draw(ARegion *ar)
 {
 	View2DString *v2s;
+	int col_pack_prev= 0;
 	
 	// glMatrixMode(GL_PROJECTION);
 	// glPushMatrix();
@@ -2053,18 +2079,23 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 	ED_region_pixelspace(ar);
 	
 	for(v2s= strings.first; v2s; v2s= v2s->next) {
-		glColor3fv(v2s->col);
-		if(v2s->rect.xmin==v2s->rect.xmax)
-			BLF_draw_default((float)v2s->mval[0], (float)v2s->mval[1], 0.0, v2s->str);
+		const char *str= (const char *)(v2s+1);
+		int xofs=0, yofs;
+
+		yofs= ceil( 0.5f*(v2s->rect.ymax - v2s->rect.ymin - BLF_height_default("28")));
+		if(yofs<1) yofs= 1;
+
+		if(col_pack_prev != v2s->col.pack) {
+			glColor3ubv(v2s->col.ub);
+			col_pack_prev= v2s->col.pack;
+		}
+
+		if(v2s->rect.xmin >= v2s->rect.xmax)
+			BLF_draw_default((float)v2s->mval[0]+xofs, (float)v2s->mval[1]+yofs, 0.0, str, 65535);
 		else {
-			int xofs=0, yofs;
-			
-			yofs= ceil( 0.5f*(v2s->rect.ymax - v2s->rect.ymin - BLF_height_default("28")));
-			if(yofs<1) yofs= 1;
-			
 			BLF_clipping_default(v2s->rect.xmin-4, v2s->rect.ymin-4, v2s->rect.xmax+4, v2s->rect.ymax+4);
 			BLF_enable_default(BLF_CLIPPING);
-			BLF_draw_default(v2s->rect.xmin+xofs, v2s->rect.ymin+yofs, 0.0f, v2s->str);
+			BLF_draw_default(v2s->rect.xmin+xofs, v2s->rect.ymin+yofs, 0.0f, str, 65535);
 			BLF_disable_default(BLF_CLIPPING);
 		}
 	}

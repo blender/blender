@@ -43,7 +43,7 @@
  * Python defines
 ------------------------------*/
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #ifdef USE_MATHUTILS
 extern "C" {
 #include "../../blender/python/generic/mathutils.h" /* so we can have mathutils callbacks */
@@ -459,8 +459,9 @@ typedef struct KX_PYATTRIBUTE_DEF {
 ------------------------------*/
 typedef PyTypeObject * PyParentObject;				// Define the PyParent Object
 
-#else // DISABLE_PYTHON
+#else // WITH_PYTHON
 
+#ifdef WITH_CXX_GUARDEDALLOC
 #define Py_Header \
  public: \
 	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:PyObjectPlus"); } \
@@ -470,6 +471,16 @@ typedef PyTypeObject * PyParentObject;				// Define the PyParent Object
  public: \
 	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:PyObjectPlusPtr"); } \
 	void operator delete( void *mem ) { MEM_freeN(mem); } \
+
+#else // WITH_CXX_GUARDEDALLOC
+
+#define Py_Header \
+ public: \
+
+#define Py_HeaderPtr \
+ public: \
+
+#endif // WITH_CXX_GUARDEDALLOC
 
 #endif
 
@@ -494,7 +505,7 @@ public:
 	
 	virtual ~PyObjectPlus();					// destructor
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	PyObject *m_proxy; /* actually a PyObjectPlus_Proxy */
 
 	/* These static functions are referenced by ALL PyObjectPlus_Proxy types
@@ -550,7 +561,7 @@ public:
 	static bool			m_ignore_deprecation_warnings;
 };
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict);
 #endif
 

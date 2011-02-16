@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_GEOM
-#define BLI_MATH_GEOM
+#ifndef BLI_MATH_GEOM_H
+#define BLI_MATH_GEOM_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +34,7 @@ extern "C" {
 
 #include "BLI_math_inline.h"
 
-#ifdef BLI_MATH_INLINE
+#ifdef BLI_MATH_INLINE_H
 #include "intern/math_geom_inline.c"
 #endif
 
@@ -58,7 +58,8 @@ float dist_to_line_v2(float p[2], float l1[2], float l2[2]);
 float dist_to_line_segment_v2(float p[2], float l1[2], float l2[2]);
 
 float dist_to_line_segment_v3(float p[3], float l1[3], float l2[3]);
-float closest_to_line_v3(float r[3], float p[3], float l1[3], float l2[3]);
+float closest_to_line_v3(float r[3], const float p[3], const float l1[3], const float l2[3]);
+float closest_to_line_v2(float r[2], const float p[2], const float l1[2], const float l2[2]);
 void closest_to_line_segment_v3(float r[3], float p[3], float l1[3], float l2[3]);
 
 /******************************* Intersection ********************************/
@@ -71,8 +72,9 @@ void closest_to_line_segment_v3(float r[3], float p[3], float l1[3], float l2[3]
 #define ISECT_LINE_LINE_EXACT		 1
 #define ISECT_LINE_LINE_CROSS		 2
 
-int isect_line_line_v2(float a1[2], float a2[2], float b1[2], float b2[2]);
-int isect_line_line_v2_short(short a1[2], short a2[2], short b1[2], short b2[2]);
+int isect_line_line_v2(const float a1[2], const float a2[2], const float b1[2], const float b2[2]);
+int isect_line_line_v2_short(const short a1[2], const short a2[2], const short b1[2], const short b2[2]);
+int isect_seg_seg_v2_point(const float *v1, const float *v2, const float *v3, const float *v4, float vi[2]);
 
 /* Returns the number of point of interests
  * 0 - lines are colinear
@@ -96,7 +98,6 @@ int isect_ray_tri_epsilon_v3(float p1[3], float d[3],
 	float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float epsilon);
 
 /* point in polygon */
-int isect_point_tri_v2(float p[2], float a[2], float b[2], float c[2]);
 int isect_point_quad_v2(float p[2], float a[2], float b[2], float c[2], float d[2]);
 
 int isect_point_tri_v2(float v1[2], float v2[2], float v3[2], float pt[2]);
@@ -118,6 +119,8 @@ int isect_axial_line_tri_v3(int axis, float co1[3], float co2[3],
 int isect_aabb_aabb_v3(float min1[3], float max1[3], float min2[3], float max2[3]);
 
 int clip_line_plane(float clipco[3], float plane[4], float co[3]);
+
+void plot_line_v2v2i(int p1[2], int p2[2], int (*callback)(int, int, void *), void *userData);
 
 /****************************** Interpolation ********************************/
 
@@ -149,6 +152,8 @@ void perspective_m4(float mat[4][4], float left, float right,
 	float bottom, float top, float nearClip, float farClip);
 void orthographic_m4(float mat[4][4], float left, float right,
 	float bottom, float top, float nearClip, float farClip);
+void window_translate_m4(float winmat[][4], float perspmat[][4],
+	float x, float y);
 
 int box_clip_bounds_m4(float boundbox[2][3],
 	float bounds[4], float winmat[4][4]);
@@ -163,8 +168,8 @@ void map_to_sphere(float *u, float *v, float x, float y, float z);
 /********************************* Tangents **********************************/
 
 typedef struct VertexTangent {
-	float tang[3], uv[2];
 	struct VertexTangent *next;
+	float tang[3], uv[2];
 } VertexTangent;
 
 float *find_vertex_tangent(VertexTangent *vtang, float *uv);
@@ -205,5 +210,5 @@ float form_factor_hemi_poly(float p[3], float n[3],
 }
 #endif
 
-#endif /* BLI_MATH_GEOM */
+#endif /* BLI_MATH_GEOM_H */
 

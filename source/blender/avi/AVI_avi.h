@@ -232,7 +232,7 @@ typedef enum {
 /**
  * Test whether this is an avi-format.
  */
-int AVI_is_avi (char *name);
+int AVI_is_avi (const char *name);
 
 
 /**
@@ -277,7 +277,7 @@ int AVI_get_stream (AviMovie *movie, int avist_type, int stream_num);
 /**
  * Open a movie stream from file.
  */
-AviError AVI_open_movie (char *name, AviMovie *movie);
+AviError AVI_open_movie (const char *name, AviMovie *movie);
 
 /**
  * Read a frame from a movie stream.

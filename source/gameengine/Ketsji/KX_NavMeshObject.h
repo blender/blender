@@ -26,8 +26,8 @@
 *
 * ***** END GPL LICENSE BLOCK *****
 */
-#ifndef __KX_PATHFINDER
-#define __KX_PATHFINDER
+#ifndef __KX_NAVMESHOBJECT
+#define __KX_NAVMESHOBJECT
 #include "DetourStatNavMesh.h"
 #include "KX_GameObject.h"
 #include "PyObjectPlus.h"
@@ -79,5 +79,5 @@ public:
 #endif
 };
 
-#endif //__KX_PATHFINDER
+#endif //__KX_NAVMESHOBJECT
 

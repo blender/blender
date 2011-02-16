@@ -39,29 +39,24 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_graph.h"
+#include "BLI_utildefines.h"
  
-#include "BKE_utildefines.h"
+
 
 #include "ED_armature.h"
 #include "armature_intern.h"
 #include "BIF_generate.h"
 
-void setBoneRollFromNormal(EditBone *bone, float *no, float invmat[][4], float tmat[][3])
+void setBoneRollFromNormal(EditBone *bone, float *no, float UNUSED(invmat[][4]), float tmat[][3])
 {
 	if (no != NULL && !is_zero_v3(no))
 	{
-		float tangent[3], vec[3], normal[3];
+		float normal[3];
 
-		VECCOPY(normal, no);	
+		copy_v3_v3(normal, no);	
 		mul_m3_v3(tmat, normal);
-
-		sub_v3_v3v3(tangent, bone->tail, bone->head);
-		project_v3_v3v3(vec, tangent, normal);
-		sub_v3_v3(normal, vec);
 		
-		normalize_v3(normal);
-		
-		bone->roll = ED_rollBoneToVector(bone, normal);
+		bone->roll = ED_rollBoneToVector(bone, normal, FALSE);
 	}
 }
 
@@ -118,7 +113,7 @@ float calcArcCorrelation(BArcIterator *iter, int start, int end, float v0[3], fl
 	}
 }
 
-int nextFixedSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int start, int end, float head[3], float p[3])
+int nextFixedSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int start, int end, float UNUSED(head[3]), float p[3])
 {
 	static float stroke_length = 0;
 	static float current_length;
@@ -277,7 +272,7 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 	return -1;
 }
 
-EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *editbones, BArcIterator *iter, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion)
+EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *UNUSED(editbones), BArcIterator *iter, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion)
 {
 	EditBone *lastBone = NULL;
 	EditBone *child = NULL;

@@ -36,6 +36,8 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 
 #include "BKE_cdderivedmesh.h"
 
@@ -128,8 +130,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-										DerivedMesh *derivedData,
-										int useRenderParams, int isFinalCalc)
+						DerivedMesh *derivedData,
+						int useRenderParams,
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm= derivedData;
 	DerivedMesh *result;
@@ -140,7 +143,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int step;
 	int i, j;
 	int i1,i2;
-	int step_tot= ltmd->steps;
+	int step_tot= useRenderParams ? ltmd->render_steps : ltmd->steps;
 	const int do_flip = ltmd->flag & MOD_SCREW_NORMAL_FLIP ? 1 : 0;
 	int maxVerts=0, maxEdges=0, maxFaces=0;
 	int totvert= dm->getNumVerts(dm);
@@ -166,16 +169,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	ScrewVertConnect *vc, *vc_tmp, *vert_connect= NULL;
 
-	float mat[4][4] =	{{0.0f, 0.0f, 0.0f, 0.0f},
-						 {0.0f, 0.0f, 0.0f, 0.0f},
-						 {0.0f, 0.0f, 0.0f, 0.0f},
-						 {0.0f, 0.0f, 0.0f, 1.0f}};
-
 	/* dont do anything? */
 	if (!totvert)
 		return CDDM_from_template(dm, 0, 0, 0);
-
-	step_tot= useRenderParams ? ltmd->render_steps : ltmd->steps;
 
 	switch(ltmd->axis) {
 	case 0:
@@ -221,7 +217,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		/* angle */
 
-#if 0	// cant incluide this, not pradictable enough, though quite fun,.
+#if 0	// cant incluide this, not predictable enough, though quite fun,.
 		if(ltmd->flag & MOD_SCREW_OBJECT_ANGLE) {
 			float mtx3_tx[3][3];
 			copy_m3_m4(mtx3_tx, mtx_tx);
@@ -270,7 +266,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	step_tot = ((step_tot + 1) * ltmd->iter) - (ltmd->iter - 1);
 
 	/* will the screw be closed?
-	 * Note! smaller then FLT_EPSILON*100 gives problems with float precission so its never closed. */
+	 * Note! smaller then FLT_EPSILON*100 gives problems with float precision so its never closed. */
 	if (fabs(screw_ofs) <= (FLT_EPSILON*100) && fabs(fabs(angle) - (M_PI * 2)) <= (FLT_EPSILON*100)) {
 		close= 1;
 		step_tot--;
@@ -304,6 +300,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	medge_new =		result->getEdgeArray(result);
 	
 	origindex= result->getFaceDataArray(result, CD_ORIGINDEX);
+
+	DM_copy_vert_data(dm, result, 0, 0, totvert); /* copy first otherwise this overwrites our own vertex normals */
 	
 	/* Set the locations of the first set of verts */
 	
@@ -665,13 +663,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 	/* done with edge connectivity based normal flipping */
 	
-	DM_copy_vert_data(dm, result, 0, 0, totvert);
-	
 	/* Add Faces */
 	for (step=1; step < step_tot; step++) {
 		const int varray_stride= totvert * step;
 		float step_angle;
 		float nor_tx[3];
+		float mat[4][4];
 		/* Rotation Matrix */
 		step_angle= (angle / (step_tot - (!close))) * step;
 
@@ -832,9 +829,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 }
 
 
-static void updateDepgraph(
-									ModifierData *md, DagForest *forest,
-									struct Scene *scene, Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	ScrewModifierData *ltmd= (ScrewModifierData*) md;
 
@@ -859,13 +857,15 @@ static void foreachObjectLink(
 
 /* This dosnt work with material*/
 static DerivedMesh *applyModifierEM(
-						ModifierData *md, Object *ob, struct EditMesh *editData,
+						ModifierData *md,
+						Object *ob,
+						struct EditMesh *UNUSED(editData),
 						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }
 
-static int dependsOnTime(ModifierData *md)
+static int dependsOnTime(ModifierData *UNUSED(md))
 {
 	return 0;
 }
@@ -884,6 +884,7 @@ ModifierTypeInfo modifierType_Screw = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
@@ -894,6 +895,7 @@ ModifierTypeInfo modifierType_Screw = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     0,
 };

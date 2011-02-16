@@ -32,6 +32,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
@@ -40,7 +41,7 @@
 #include "DNA_material_types.h"
 
 #include "BKE_colortools.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_node.h"
 
 /* local include */
@@ -141,7 +142,12 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 		if((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP))
 			if((shi->layflag & SCE_LAY_SKY) && (R.r.alphamode==R_ADDSKY))
 				shr->alpha= 1.0f;
-	}	
+	}
+	
+	if(R.r.mode & R_RAYTRACE) {
+		if (R.render_volumes_inside.first)
+			shade_volume_inside(shi, shr);
+	}
 }
 
 
@@ -163,11 +169,8 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		shade_input_init_material(shi);
 		
 		if (shi->mat->material_type == MA_TYPE_VOLUME) {
-			if(R.r.mode & R_RAYTRACE) {			
-				if (R.render_volumes_inside.first)
-					shade_volume_inside(shi, shr);
-				else
-					shade_volume_outside(shi, shr);
+			if(R.r.mode & R_RAYTRACE) {
+				shade_volume_outside(shi, shr);
 			}
 		} else { /* MA_TYPE_SURFACE, MA_TYPE_WIRE */
 			shade_material_loop(shi, shr);
@@ -427,10 +430,10 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			mul_m4_v3(R.viewinv, shi->gl);
 			
 			if(shi->osatex) {
-				VECCOPY(shi->dxgl, shi->dxco);
-				mul_m3_v3(R.imat, shi->dxco);
-				VECCOPY(shi->dygl, shi->dyco);
-				mul_m3_v3(R.imat, shi->dyco);
+				VECCOPY(shi->dxgl, shi->dxco); 
+				mul_mat3_m4_v3(R.viewinv, shi->dxgl); 
+				VECCOPY(shi->dygl, shi->dyco); 
+				mul_mat3_m4_v3(R.viewinv, shi->dygl);
 			}
 		}
 
@@ -1009,13 +1012,10 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			VECCOPY(shi->gl, shi->co);
 			mul_m4_v3(R.viewinv, shi->gl);
 			if(shi->osatex) {
-				VECCOPY(shi->dxgl, shi->dxco);
-				// TXF: bug was here, but probably should be in convertblender.c, R.imat only valid if there is a world
-				//mul_m3_v3(R.imat, shi->dxco);
-				mul_mat3_m4_v3(R.viewinv, shi->dxco);
-				VECCOPY(shi->dygl, shi->dyco);
-				//mul_m3_v3(R.imat, shi->dyco);
-				mul_mat3_m4_v3(R.viewinv, shi->dyco);
+				VECCOPY(shi->dxgl, shi->dxco); 
+				mul_mat3_m4_v3(R.viewinv, shi->dxgl); 
+				VECCOPY(shi->dygl, shi->dyco); 
+				mul_mat3_m4_v3(R.viewinv, shi->dygl);
 			}
 		}
 		

@@ -33,6 +33,10 @@
 #ifndef BKE_LIBRARY_TYPES_H
 #define BKE_LIBRARY_TYPES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ListBase;
 struct ID;
 struct Main;
@@ -42,7 +46,7 @@ struct bContext;
 
 void *alloc_libblock(struct ListBase *lb, short type, const char *name);
 void *copy_libblock(void *rt);
-void copy_libblock_data(struct ID *id, const struct ID *id_from);
+void copy_libblock_data(struct ID *id, const struct ID *id_from, const short do_action);
 
 void id_lib_extern(struct ID *id);
 void id_us_plus(struct ID *id);
@@ -61,20 +65,22 @@ int set_listbasepointers(struct Main *main, struct ListBase **lb);
 void free_libblock(struct ListBase *lb, void *idv);
 void free_libblock_us(struct ListBase *lb, void *idv);
 void free_main(struct Main *mainvar);
-void tag_main(struct Main *mainvar, int tag);
 
-int splitIDname(char *name, char *left, int *nr);
-void rename_id(struct ID *id, char *name);
+void tag_main_idcode(struct Main *mainvar, const short type, const short tag);
+void tag_main_lb(struct ListBase *lb, const short tag);
+void tag_main(struct Main *mainvar, const short tag);
+
+void rename_id(struct ID *id, const char *name);
 void name_uiprefix_id(char *name, struct ID *id);
 void test_idbutton(char *name);
 void text_idbutton(struct ID *id, char *text);
 void all_local(struct Library *lib, int untagged_only);
-struct ID *find_id(char *type, char *name);
+struct ID *find_id(const char *type, const char *name);
 void clear_id_newpoins(void);
 
-void IDnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb,struct ID* link, short *nr);
-void IMAnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb, struct ID *link, short *nr);
-void IPOnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb, struct ID* link, short *nr, int blocktype);
+void IDnames_to_pupstring(const char **str, const char *title, const char *extraops, struct ListBase *lb,struct ID* link, short *nr);
+void IMAnames_to_pupstring(const char **str, const char *title, const char *extraops, struct ListBase *lb, struct ID *link, short *nr);
+void IPOnames_to_pupstring(const char **str, const char *title, const char *extraops, struct ListBase *lb, struct ID* link, short *nr, int blocktype);
 
 void flag_listbase_ids(ListBase *lb, short flag, short value);
 void flag_all_listbases_ids(short flag, short value);
@@ -84,5 +90,11 @@ void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowMa
 
 /* use when "" is given to new_id() */
 #define ID_FALLBACK_NAME "Untitled"
+
+#define IS_TAGGED(_id) ((_id) && (((ID *)_id)->flag & LIB_DOIT))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

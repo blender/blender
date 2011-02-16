@@ -59,7 +59,7 @@ static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 	iter->valid= (internal->link != NULL);
 }
 
-static bActionGroup *rna_Action_groups_new(bAction *act, char name[])
+static bActionGroup *rna_Action_groups_new(bAction *act, const char name[])
 {
 	return action_groups_add_new(act, name);
 }
@@ -89,7 +89,7 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionG
 	MEM_freeN(agrp); 
 }
 
-static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, char *data_path, int index, char *group)
+static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, const char *data_path, int index, const char *group)
 {
 	if(group && group[0]=='\0') group= NULL;
 
@@ -128,7 +128,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *
 	}
 }
 
-static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports, char name[])
+static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports, const char name[])
 {
 	TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
 	marker->flag= 1;
@@ -233,6 +233,12 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOMESH);
 	RNA_def_property_ui_text(prop, "Display Meshes", "Include visualization of Mesh related Animation data");
 	RNA_def_property_ui_icon(prop, ICON_MESH_DATA, 0);
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
+	
+	prop= RNA_def_property(srna, "show_lattices", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOLAT);
+	RNA_def_property_ui_text(prop, "Display Lattices", "Include visualization of Lattice related Animation data");
+	RNA_def_property_ui_icon(prop, ICON_LATTICE_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	prop= RNA_def_property(srna, "show_cameras", PROP_BOOLEAN, PROP_NONE);
@@ -399,8 +405,8 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "data_path", "", 0, "Data Path", "FCurve data path to use.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_int(func, "array_index", 0, 0, INT_MAX, "Index", "Array index.", 0, INT_MAX);
-	parm= RNA_def_string(func, "action_group", "", 0, "Action Group", "Acton group to add this fcurve into.");
+	RNA_def_int(func, "array_index", 0, 0, INT_MAX, "Index", "Array index.", 0, INT_MAX);
+	RNA_def_string(func, "action_group", "", 0, "Action Group", "Acton group to add this fcurve into.");
 
 	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created fcurve");
 	RNA_def_function_return(func, parm);

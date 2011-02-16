@@ -29,10 +29,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-
 #include "DNA_scene_types.h"
+#include "DNA_anim_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_sound.h"
@@ -169,7 +170,7 @@ void GRAPH_OT_cursor_set(wmOperatorType *ot)
 	ot->exec= graphview_cursor_exec;
 	ot->invoke= graphview_cursor_invoke;
 	ot->modal= graphview_cursor_modal;
-	ot->poll= ED_operator_ipo_active;
+	ot->poll= ED_operator_graphedit_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_UNDO;
@@ -181,7 +182,7 @@ void GRAPH_OT_cursor_set(wmOperatorType *ot)
 
 /* Toggle Handles ----------------------------------------------------------------- */
 
-static int view_toggle_handles_exec (bContext *C, wmOperator *op)
+static int view_toggle_handles_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -203,10 +204,11 @@ void GRAPH_OT_view_togglehandles (wmOperatorType *ot)
 	/* identification */
 	ot->name= "Show/Hide All Handles";
 	ot->idname= "GRAPH_OT_handles_view_toggle";
+	ot->description= "Toggle whether handles are drawn on all keyframes that need them";
 	
 	/* callbacks */
 	ot->exec= view_toggle_handles_exec;
-	ot->poll= ED_operator_ipo_active;
+	ot->poll= ED_operator_graphedit_active;
 }
 
 /* ************************** registration - operator types **********************************/
@@ -298,7 +300,7 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPH_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
 	
 		/* borderselect */
-	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0);
 		RNA_boolean_set(kmi->ptr, "axis_range", 1);
 		
@@ -331,10 +333,9 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "GRAPH_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_mirror", MKEY, KM_PRESS, KM_SHIFT, 0);
 	
-	WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", VKEY, KM_PRESS, 0, 0);
+
 	WM_keymap_add_item(keymap, "GRAPH_OT_interpolation_type", TKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "GRAPH_OT_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0);
-	
 	
 		/* destructive */
 	WM_keymap_add_item(keymap, "GRAPH_OT_clean", OKEY, KM_PRESS, 0, 0);
@@ -350,7 +351,7 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 		/* insertkey */
 	WM_keymap_add_item(keymap, "GRAPH_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "GRAPH_OT_click_insert", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_click_insert", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 	
 		/* copy/paste */
 	WM_keymap_add_item(keymap, "GRAPH_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
@@ -382,6 +383,8 @@ void graphedit_keymap(wmKeyConfig *keyconf)
 	/* keymap for all regions */
 	keymap= WM_keymap_find(keyconf, "Graph Editor Generic", SPACE_IPO, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_properties", NKEY, KM_PRESS, 0, 0);
+		/* extrapolation works on channels, not keys */
+	WM_keymap_add_item(keymap, "GRAPH_OT_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* channels */
 	/* Channels are not directly handled by the Graph Editor module, but are inherited from the Animation module. 

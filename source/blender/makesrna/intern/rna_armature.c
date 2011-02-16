@@ -51,7 +51,7 @@ static void rna_Armature_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
-	DAG_id_flush_update(id, OB_RECALC_DATA);
+	DAG_id_tag_update(id, 0);
 	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 	//WM_main_add_notifier(NC_OBJECT|ND_POSE, NULL);
 }
@@ -66,12 +66,16 @@ static void rna_Armature_act_bone_set(PointerRNA *ptr, PointerRNA value)
 	}
 	else {
 		if(value.id.data != arm) {
-			/* raise an error! */
+			Object *ob = (Object *)value.id.data;
+			
+			if(GS(ob->id.name)!=ID_OB || (ob->data != arm)) {
+				printf("ERROR: armature set active bone - new active doesn't come from this armature\n");
+				return;
+			}
 		}
-		else {
-			arm->act_bone= value.data;
-			arm->act_bone->flag |= BONE_SELECTED;
-		}
+		
+		arm->act_bone= value.data;
+		arm->act_bone->flag |= BONE_SELECTED;
 	}
 }
 
@@ -93,7 +97,7 @@ static void rna_Armature_act_edit_bone_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, char *name)
+EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, const char *name)
 {
 	if(arm->edbo==NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant add an editbone.", arm->id.name+2);
@@ -115,6 +119,20 @@ void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, EditBone
 	}
 
 	ED_armature_edit_bone_remove(arm, ebone);
+}
+
+static void rna_Armature_update_layers(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bArmature *arm= ptr->id.data;
+	Object *ob;
+
+	/* proxy lib exception, store it here so we can restore layers on file
+	   load, since it would otherwise get lost due to being linked data */
+	for(ob = bmain->object.first; ob; ob=ob->id.next)
+		if(ob->data == arm && ob->pose)
+			ob->pose->proxy_layer = arm->layer;
+
+	WM_main_add_notifier(NC_GEOM|ND_DATA, arm);
 }
 
 static void rna_Armature_redraw_data(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -385,6 +403,9 @@ static void rna_Armature_bones_next(CollectionPropertyIterator *iter)
 
 #else
 
+static int rna_matrix_dimsize_4x4[]= {4, 4};
+static int rna_matrix_dimsize_3x3[]= {3, 3};
+
 static void rna_def_bone_common(StructRNA *srna, int editbone)
 {
 	PropertyRNA *prop;
@@ -414,7 +435,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_text(prop, "Connected", "When bone has a parent, bone's head is struck to the parent's tail");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "use_hinge", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_inherit_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_HINGE);
 	RNA_def_property_ui_text(prop, "Inherit Rotation", "Bone inherits rotation or scale from parent bone");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
@@ -500,6 +521,18 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_range(prop, 0.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "B-Bone Ease Out", "Length of second Bezier Handle (for B-Bones only)");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+
+	prop= RNA_def_property(srna, "bbone_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "xwidth");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
+	RNA_def_property_ui_text(prop, "B-Bone Display X Width", "B-Bone X size");
+	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+	
+	prop= RNA_def_property(srna, "bbone_z", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "zwidth");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
+	RNA_def_property_ui_text(prop, "B-Bone Display Z Width", "B-Bone Z size");
+	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 }
 
 // err... bones should not be directly edited (only editbones should be...)
@@ -539,47 +572,56 @@ static void rna_def_bone(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);
 	RNA_def_property_ui_text(prop, "Select", "");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	prop= RNA_def_property(srna, "select_head", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ROOTSEL);
 	RNA_def_property_ui_text(prop, "Select Head", "");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	prop= RNA_def_property(srna, "select_tail", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_TIPSEL);
 	RNA_def_property_ui_text(prop, "Select Tail", "");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	/* XXX better matrix descriptions possible (Arystan) */
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "bone_mat");
-	RNA_def_property_array(prop, 9);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_3x3);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Bone Matrix", "3x3 bone matrix");
 
 	prop= RNA_def_property(srna, "matrix_local", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "arm_mat");
-	RNA_def_property_array(prop, 16);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Bone Armature-Relative Matrix", "4x4 bone matrix relative to armature");
 
 	prop= RNA_def_property(srna, "tail", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "tail");
 	RNA_def_property_array(prop, 3);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Tail", "Location of tail end of the bone");
 
 	prop= RNA_def_property(srna, "tail_local", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "arm_tail");
 	RNA_def_property_array(prop, 3);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Armature-Relative Tail", "Location of tail end of the bone relative to armature");
 
 	prop= RNA_def_property(srna, "head", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "head");
 	RNA_def_property_array(prop, 3);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Head", "Location of head end of the bone relative to its parent");
 
 	prop= RNA_def_property(srna, "head_local", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "arm_head");
 	RNA_def_property_array(prop, 3);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Armature-Relative Head", "Location of head end of the bone relative to armature");
 
 	RNA_api_bone(srna);
@@ -609,18 +651,21 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "roll");
 	RNA_def_property_ui_range(prop, -M_PI * 2, M_PI * 2, 0.1, 2);
 	RNA_def_property_ui_text(prop, "Roll", "Bone rotation around head-tail axis");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 
 	prop= RNA_def_property(srna, "head", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "head");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Head", "Location of head end of the bone");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 
 	prop= RNA_def_property(srna, "tail", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "tail");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Tail", "Location of tail end of the bone");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 
 	rna_def_bone_common(srna, 1);
@@ -628,32 +673,37 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_HIDDEN_A);
 	RNA_def_property_ui_text(prop, "Hide", "Bone is not visible when in Edit Mode");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	prop= RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_EDITMODE_LOCKED);
 	RNA_def_property_ui_text(prop, "Lock", "Bone is not able to be transformed when in Edit Mode");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);
 	RNA_def_property_ui_text(prop, "Select", "");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	prop= RNA_def_property(srna, "select_head", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ROOTSEL);
 	RNA_def_property_ui_text(prop, "Head Select", "");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 	prop= RNA_def_property(srna, "select_tail", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_TIPSEL);
 	RNA_def_property_ui_text(prop, "Tail Select", "");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	/* calculated and read only, not actual data access */
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	//RNA_def_property_float_sdna(prop, NULL, ""); // doesnt access any real data
-	RNA_def_property_array(prop, 16);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_THICK_WRAP); /* no reference to original data */
 	RNA_def_property_ui_text(prop, "Editbone Matrix", "Read-only matrix calculated from the roll (armature space)");
@@ -785,6 +835,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_pose_position_items);
 	RNA_def_property_ui_text(prop, "Pose Position", "Show armature in binding pose or final posed state");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 	prop= RNA_def_property(srna, "draw_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
@@ -809,7 +860,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_array(prop, 32);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Armature layer visibility");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Armature_layer_set");
-	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Armature_redraw_data");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Armature_update_layers");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 		/* layer protection */

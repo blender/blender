@@ -42,7 +42,7 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void do_hue_sat_fac(bNode *node, float *out, float hue, float sat, float val, float *in, float fac)
+static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float hue, float sat, float val, float *in, float fac)
 {
 	if(fac != 0 && (hue != 0.5f || sat != 1 || val != 1)) {
 		float col[3], hsv[3], mfac= 1.0f - fac;
@@ -87,22 +87,14 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	tex_output(node, in, out[0], &colorfn, data);
 }
 
-bNodeType tex_node_hue_sat= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	TEX_NODE_HUE_SAT,
-	/* name        */	"Hue Saturation Value",
-	/* width+range */	150, 80, 250,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */	inputs,
-	/* output sock */	outputs,
-	/* storage     */	"", 
-	/* execfunc    */	exec,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+void register_node_type_tex_hue_sat(ListBase *lb)
+{
+	static bNodeType ntype;
 	
-};
-
-
+	node_type_base(&ntype, TEX_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+				   inputs, outputs);
+	node_type_size(&ntype, 150, 80, 250);
+	node_type_exec(&ntype, exec);
+	
+	nodeRegisterType(lb, &ntype);
+}

@@ -43,7 +43,7 @@ static bNodeSocketType sh_node_invert_out[]= {
 	{ -1, 0, "" } 
 };
 
-static void node_shader_exec_invert(void *data, bNode *node, bNodeStack **in, 
+static void node_shader_exec_invert(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **in, 
 bNodeStack **out) 
 {
 	float col[3], facm;
@@ -64,26 +64,22 @@ bNodeStack **out)
 	VECCOPY(out[0]->vec, col);
 }
 
-static int gpu_shader_invert(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_invert(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "invert", in, out);
 }
 
-bNodeType sh_node_invert= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_INVERT, 
-	/* name        */	"Invert", 
-	/* width+range */	90, 80, 100, 
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS, 
-	/* input sock  */	sh_node_invert_in, 
-	/* output sock */	sh_node_invert_out, 
-	/* storage     */	"", 
-	/* execfunc    */	node_shader_exec_invert,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_invert
-};
+void register_node_type_sh_invert(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+		sh_node_invert_in, sh_node_invert_out);
+	node_type_size(&ntype, 90, 80, 100);
+	node_type_exec(&ntype, node_shader_exec_invert);
+	node_type_gpu(&ntype, gpu_shader_invert);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

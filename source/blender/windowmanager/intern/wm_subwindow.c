@@ -39,6 +39,8 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -73,7 +75,7 @@ typedef struct wmSubWindow {
 /* ******************* open, free, set, get data ******************** */
 
 /* not subwindow itself */
-static void wm_subwindow_free(wmSubWindow *swin)
+static void wm_subwindow_free(wmSubWindow *UNUSED(swin))
 {
 	/* future fancy stuff */
 }

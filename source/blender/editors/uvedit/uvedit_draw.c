@@ -35,18 +35,20 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_mesh.h"
-#include "BKE_utildefines.h"
-
 #include "BLI_math.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
+
+#include "BKE_DerivedMesh.h"
+#include "BKE_mesh.h"
+
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "ED_image.h"
 #include "ED_mesh.h"
+#include "ED_uvedit.h"
 
 #include "UI_resources.h"
 
@@ -113,7 +115,7 @@ static int draw_uvs_face_check(Scene *scene)
 		return (ts->uv_selectmode == UV_SELECT_FACE);
 }
 
-static void draw_uvs_shadow(SpaceImage *sima, Object *obedit)
+static void draw_uvs_shadow(Object *obedit)
 {
 	EditMesh *em;
 	EditFace *efa;
@@ -374,7 +376,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 	}
 }
 
-static void draw_uvs_other(SpaceImage *sima, Scene *scene, Object *obedit, MTFace *activetf)
+static void draw_uvs_other(Scene *scene, Object *obedit, MTFace *activetf)
 {
 	Base *base;
 	Image *curimage;
@@ -422,9 +424,9 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	EditFace *efa, *efa_act;
 	MTFace *tf, *activetf = NULL;
 	DerivedMesh *finaldm, *cagedm;
-	char col1[4], col2[4];
+	unsigned char col1[4], col2[4];
 	float pointsize;
-	int drawfaces, interpedges, lastsel, sel;
+	int drawfaces, interpedges;
 	Image *ima= sima->image;
  	
 	em= BKE_mesh_get_editmesh(me);
@@ -440,7 +442,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	
 	/* draw other uvs */
 	if(sima->flag & SI_DRAW_OTHER)
-		draw_uvs_other(sima, scene, obedit, activetf);
+		draw_uvs_other(scene, obedit, activetf);
 
 	/* 1. draw shadow mesh */
 	
@@ -625,8 +627,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			glColor4ubv((unsigned char *)col2); 
 			
 			if(me->drawflag & ME_DRAWEDGES) {
+				int lastsel= 0, sel;
 				UI_GetThemeColor4ubv(TH_VERTEX_SELECT, col1);
-				lastsel = sel = 0;
 
 				if(interpedges) {
 					glShadeModel(GL_SMOOTH);
@@ -838,7 +840,7 @@ void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedi
 
 	if(show_uvedit || show_uvshadow) {
 		if(show_uvshadow)
-			draw_uvs_shadow(sima, obedit);
+			draw_uvs_shadow(obedit);
 		else
 			draw_uvs(sima, scene, obedit);
 

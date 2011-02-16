@@ -30,6 +30,9 @@
 #include "CMP_util.h"
 #include "SHD_util.h"
 
+#include "RNA_access.h"
+#include "RNA_enum_types.h"
+
 void node_free_curves(bNode *node)
 {
 	curvemapping_free(node->storage);
@@ -50,3 +53,30 @@ void node_copy_standard_storage(bNode *orig_node, bNode *new_node)
 	new_node->storage= MEM_dupallocN(orig_node->storage);
 }
 
+const char *node_blend_label(bNode *node)
+{
+	const char *name;
+	RNA_enum_name(node_blend_type_items, node->custom1, &name);
+	return name;
+}
+
+const char *node_math_label(bNode *node)
+{
+	const char *name;
+	RNA_enum_name(node_math_items, node->custom1, &name);
+	return name;
+}
+
+const char *node_vect_math_label(bNode *node)
+{
+	const char *name;
+	RNA_enum_name(node_vec_math_items, node->custom1, &name);
+	return name;
+}
+
+const char *node_filter_label(bNode *node)
+{
+	const char *name;
+	RNA_enum_name(node_filter_items, node->custom1, &name);
+	return name;
+}

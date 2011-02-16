@@ -37,11 +37,11 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_dlrbTree.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
@@ -141,7 +141,7 @@ static void nla_action_draw_keyframes (AnimData *adt, bAction *act, View2D *v2d,
 	 *	- size is 3.0f which is smaller than the editable keyframes, so that there is a distinction
 	 */
 	for (ak= keys.first; ak; ak= ak->next)
-		draw_keyframe_shape(ak->cfra, y, xscale, 3.0f, 0, ak->key_type, KEYFRAME_SHAPE_FRAME);
+		draw_keyframe_shape(ak->cfra, y, xscale, 3.0f, 0, ak->key_type, KEYFRAME_SHAPE_FRAME, 1.0f);
 	
 	/* free icons */
 	BLI_dlrbTree_free(&keys);
@@ -171,7 +171,7 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 	}	
 	else if (strip->type == NLASTRIP_TYPE_META) {
 		/* Meta Clip */
-		// TODO: should temporary metas get different colours too?
+		// TODO: should temporary metas get different colors too?
 		if (strip->flag & NLASTRIP_FLAG_SELECT) {
 			/* selected - use a bold purple color */
 			// FIXME: hardcoded temp-hack colors
@@ -219,7 +219,7 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 }
 
 /* helper call for drawing influence/time control curves for a given NLA-strip */
-static void nla_draw_strip_curves (NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip_curves (NlaStrip *strip, float yminc, float ymaxc)
 {
 	const float yheight = ymaxc - yminc;
 	
@@ -272,7 +272,7 @@ static void nla_draw_strip_curves (NlaStrip *strip, View2D *v2d, float yminc, fl
 	}
 	
 	/* time -------------------------- */
-	// XXX do we want to draw this curve? in a different colour too?
+	// XXX do we want to draw this curve? in a different color too?
 	
 	/* turn off AA'd lines */
 	glDisable(GL_LINE_SMOOTH);
@@ -280,7 +280,7 @@ static void nla_draw_strip_curves (NlaStrip *strip, View2D *v2d, float yminc, fl
 }
 
 /* main call for drawing a single NLA-strip */
-static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt), NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
 {
 	float color[3];
 	
@@ -351,7 +351,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStr
 	 *	- only if user hasn't hidden them...
 	 */
 	if ((snla->flag & SNLA_NOSTRIPCURVES) == 0)
-		nla_draw_strip_curves(strip, v2d, yminc, ymaxc);
+		nla_draw_strip_curves(strip, yminc, ymaxc);
 	
 	/* draw strip outline 
 	 *	- color used here is to indicate active vs non-active
@@ -414,9 +414,10 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStr
 } 
 
 /* add the relevant text to the cache of text-strings to draw in pixelspace */
-static void nla_draw_strip_text (NlaTrack *nlt, NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int UNUSED(index), View2D *v2d, float yminc, float ymaxc)
 {
 	char str[256], dir[3];
+	char col[4];
 	rctf rect;
 	
 	/* 'dir' - direction that strip is played in */
@@ -431,12 +432,15 @@ static void nla_draw_strip_text (NlaTrack *nlt, NlaStrip *strip, int index, View
 	else
 		sprintf(str, "%s | %.2f %s %.2f", strip->name, strip->start, dir, strip->end);
 	
-	/* set text colour - if colours (see above) are light, draw black text, otherwise draw white */
-	if (strip->flag & (NLASTRIP_FLAG_ACTIVE|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_TWEAKUSER))
-		glColor3f(0.0f, 0.0f, 0.0f);
-	else
-		glColor3f(1.0f, 1.0f, 1.0f);
-	
+	/* set text color - if colors (see above) are light, draw black text, otherwise draw white */
+	if (strip->flag & (NLASTRIP_FLAG_ACTIVE|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_TWEAKUSER)) {
+		col[0]= col[1]= col[2]= 0;
+	}
+	else {
+		col[0]= col[1]= col[2]= 255;
+	}
+	col[3]= 1.0;
+
 	/* set bounding-box for text 
 	 *	- padding of 2 'units' on either side
 	 */
@@ -447,7 +451,8 @@ static void nla_draw_strip_text (NlaTrack *nlt, NlaStrip *strip, int index, View
 	rect.ymax= ymaxc;
 	
 	/* add this string to the cache of texts to draw*/
-	UI_view2d_text_cache_rectf(v2d, &rect, str);
+
+	UI_view2d_text_cache_rectf(v2d, &rect, str, col);
 }
 
 /* ---------------------- */
@@ -477,8 +482,6 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */
 	v2d->tot.ymin= (float)(-height);
-	/* need to do a view-sync here, so that the strips area doesn't jump around */
-	UI_view2d_sync(NULL, ac->sa, v2d, V2D_VIEWSYNC_AREA_VERTICAL);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
 	y= (float)(-NLACHANNEL_HEIGHT);
@@ -812,7 +815,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 	}
 }
 
-void draw_nla_channel_list (bContext *C, bAnimContext *ac, SpaceNla *snla, ARegion *ar)
+void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -837,6 +840,8 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, SpaceNla *snla, ARegi
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */
 	v2d->tot.ymin= (float)(-height);
+	/* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
+	UI_view2d_sync(NULL, ac->sa, v2d, V2D_LOCK_COPY);
 	
 	/* draw channels */
 	{	/* first pass: backdrops + oldstyle drawing */

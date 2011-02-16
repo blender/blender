@@ -38,8 +38,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_threads.h"
 
 #include "DNA_meshdata_types.h"
@@ -241,7 +242,7 @@ void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool )
 	if( pool == 0 )
 		pool = globalPool;
 	if( pool == 0 )
-		globalPool = GPU_buffer_pool_new();
+		pool = globalPool = GPU_buffer_pool_new();
 
 	/* free the last used buffer in the queue if no more space, but only
 	   if we are in the main thread. for e.g. rendering or baking it can
@@ -268,7 +269,6 @@ void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool )
 GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 {
 	GPUDrawObject *object;
-	MVert *mvert;
 	MFace *mface;
 	int numverts[32768];	/* material number is an 16-bit short so there's at most 32768 materials */
 	int redir[32768];		/* material number is an 16-bit short so there's at most 32768 materials */
@@ -290,7 +290,6 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 	/*object->legacy = 1;*/
 	memset(numverts,0,sizeof(int)*32768);
 
-	mvert = dm->getVertArray(dm);
 	mface = dm->getFaceArray(dm);
 
 	numfaces= dm->getNumFaces(dm);
@@ -491,7 +490,11 @@ void *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 		if(tri_data) {
 			for(i = 0; i < totface; ++i) {
 				MFace *f = mface + face_indices[i];
-				int v[3] = {f->v1, f->v2, f->v3};
+				int v[3];
+
+				v[0]= f->v1;
+				v[1]= f->v2;
+				v[2]= f->v3;
 
 				for(j = 0; j < (f->v4 ? 2 : 1); ++j) {
 					for(k = 0; k < 3; ++k) {
@@ -592,8 +595,8 @@ void GPU_update_grid_buffers(void *buffers_v, DMGridData **grids,
 	//printf("node updated %p\n", buffers_v);
 }
 
-void *GPU_build_grid_buffers(DMGridData **grids,
-	int *grid_indices, int totgrid, int gridsize)
+void *GPU_build_grid_buffers(DMGridData **UNUSED(grids), int *UNUSED(grid_indices),
+				int totgrid, int gridsize)
 {
 	GPU_Buffers *buffers;
 	int i, j, k, totquad, offset= 0;
@@ -852,7 +855,7 @@ GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int size, G
 	return buffer;
 }
 
-void GPU_buffer_copy_vertex( DerivedMesh *dm, float *varray, int *index, int *redir, void *user )
+void GPU_buffer_copy_vertex(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
 {
 	int start;
 	int i, j, numfaces;
@@ -901,7 +904,7 @@ GPUBuffer *GPU_buffer_vertex( DerivedMesh *dm )
 	return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*3*(dm->drawObject->nelements+dm->drawObject->nlooseverts), GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_vertex);
 }
 
-void GPU_buffer_copy_normal( DerivedMesh *dm, float *varray, int *index, int *redir, void *user )
+void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
 {
 	int i, numfaces;
 	int start;
@@ -915,6 +918,8 @@ void GPU_buffer_copy_normal( DerivedMesh *dm, float *varray, int *index, int *re
 
 	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
+		const int smoothnormal = (mface[i].flag & ME_SMOOTH);
+
 		start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
 			index[redir[mface[i].mat_nr+16383]] += 18;
@@ -922,7 +927,7 @@ void GPU_buffer_copy_normal( DerivedMesh *dm, float *varray, int *index, int *re
 			index[redir[mface[i].mat_nr+16383]] += 9;
 
 		/* v1 v2 v3 */
-		if( mface[i].flag & ME_SMOOTH ) {
+		if(smoothnormal) {
 			VECCOPY(&varray[start],mvert[mface[i].v1].no);
 			VECCOPY(&varray[start+3],mvert[mface[i].v2].no);
 			VECCOPY(&varray[start+6],mvert[mface[i].v3].no);
@@ -944,7 +949,7 @@ void GPU_buffer_copy_normal( DerivedMesh *dm, float *varray, int *index, int *re
 
 		if( mface[i].v4 ) {
 			/* v3 v4 v1 */
-			if( mface[i].flag & ME_SMOOTH ) {
+			if(smoothnormal) {
 				VECCOPY(&varray[start+9],mvert[mface[i].v3].no);
 				VECCOPY(&varray[start+12],mvert[mface[i].v4].no);
 				VECCOPY(&varray[start+15],mvert[mface[i].v1].no);
@@ -965,7 +970,7 @@ GPUBuffer *GPU_buffer_normal( DerivedMesh *dm )
 	return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_normal);
 }
 
-void GPU_buffer_copy_uv( DerivedMesh *dm, float *varray, int *index, int *redir, void *user )
+void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
 {
 	int start;
 	int i, numfaces;
@@ -1107,18 +1112,16 @@ GPUBuffer *GPU_buffer_color( DerivedMesh *dm )
 	return result;
 }
 
-void GPU_buffer_copy_edge( DerivedMesh *dm, float *varray, int *index, int *redir, void *user )
+void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(redir), void *UNUSED(user))
 {
 	int i;
 
-	MVert *mvert;
 	MEdge *medge;
 	unsigned int *varray_ = (unsigned int *)varray;
 	int numedges;
  
 	DEBUG_VBO("GPU_buffer_copy_edge\n");
 
-	mvert = dm->getVertArray(dm);
 	medge = dm->getEdgeArray(dm);
 
 	numedges= dm->getNumEdges(dm);
@@ -1135,7 +1138,7 @@ GPUBuffer *GPU_buffer_edge( DerivedMesh *dm )
 	return GPU_buffer_setup( dm, dm->drawObject, sizeof(int)*2*dm->drawObject->nedges, GL_ELEMENT_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_edge);
 }
 
-void GPU_buffer_copy_uvedge( DerivedMesh *dm, float *varray, int *index, int *redir, void *user )
+void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(redir), void *UNUSED(user))
 {
 	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
 	int i, j=0;
@@ -1175,8 +1178,13 @@ void GPU_buffer_copy_uvedge( DerivedMesh *dm, float *varray, int *index, int *re
 GPUBuffer *GPU_buffer_uvedge( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_uvedge\n");
-
-	return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*2*(dm->drawObject->nelements/3)*2, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uvedge);
+	/* logic here:
+	 * ...each face gets 3 'nelements'
+	 * ...3 edges per triangle
+	 * ...each edge has its own, non-shared coords.
+	 * so each tri corner needs minimum of 4 floats, quads used less so here we can over allocate and assume all tris.
+	 * */
+	return GPU_buffer_setup( dm, dm->drawObject, 4 * sizeof(float) * dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uvedge);
 }
 
 
@@ -1487,7 +1495,7 @@ void GPU_interleaved_attrib_setup( GPUBuffer *buffer, GPUAttrib data[], int numd
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, buffer->id );
 		for( i = 0; i < numdata; i++ ) {
 			glEnableVertexAttribArrayARB( data[i].index );
-			glVertexAttribPointerARB( data[i].index, data[i].size, data[i].type, GL_TRUE, elementsize, (void *)offset );
+			glVertexAttribPointerARB( data[i].index, data[i].size, data[i].type, GL_FALSE, elementsize, (void *)offset );
 			offset += data[i].size*GPU_typesize(data[i].type);
 
 			attribData[i].index = data[i].index;
@@ -1499,7 +1507,7 @@ void GPU_interleaved_attrib_setup( GPUBuffer *buffer, GPUAttrib data[], int numd
 	else {
 		for( i = 0; i < numdata; i++ ) {
 			glEnableVertexAttribArrayARB( data[i].index );
-			glVertexAttribPointerARB( data[i].index, data[i].size, data[i].type, GL_TRUE, elementsize, (char *)buffer->pointer + offset );
+			glVertexAttribPointerARB( data[i].index, data[i].size, data[i].type, GL_FALSE, elementsize, (char *)buffer->pointer + offset );
 			offset += data[i].size*GPU_typesize(data[i].type);
 		}
 	}

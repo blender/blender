@@ -49,7 +49,7 @@ typedef struct TreeElement {
 	short index;		// index for data arrays
 	short idcode;		// from TreeStore id
 	short xend;			// width of item display, for select
-	char *name;
+	const char *name;
 	void *directdata;	// Armature Bones, Base, Sequence, Strip...
 	PointerRNA rnaptr;	// RNA Pointer
 }  TreeElement;
@@ -130,6 +130,8 @@ void OUTLINER_OT_show_hierarchy(struct wmOperatorType *ot);
 
 void OUTLINER_OT_selected_toggle(struct wmOperatorType *ot);
 void OUTLINER_OT_expanded_toggle(struct wmOperatorType *ot);
+
+void OUTLINER_OT_scroll_page(struct wmOperatorType *ot);
 
 void OUTLINER_OT_renderability_toggle(struct wmOperatorType *ot);
 void OUTLINER_OT_selectability_toggle(struct wmOperatorType *ot);

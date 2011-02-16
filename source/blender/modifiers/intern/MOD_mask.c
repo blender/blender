@@ -32,6 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "DNA_armature_types.h"
@@ -53,11 +54,12 @@ static void copyData(ModifierData *md, ModifierData *target)
 	MaskModifierData *tmmd = (MaskModifierData*) target;
 	
 	strcpy(tmmd->vgroup, mmd->vgroup);
+	tmmd->flag = mmd->flag;
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
 {
-	return (1 << CD_MDEFORMVERT);
+	return CD_MASK_MDEFORMVERT;
 }
 
 static void foreachObjectLink(
@@ -69,8 +71,10 @@ static void foreachObjectLink(
 	walk(userData, ob, &mmd->ob_arm);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
-					   Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	MaskModifierData *mmd = (MaskModifierData *)md;
 
@@ -84,8 +88,9 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *sc
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-		DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	MaskModifierData *mmd= (MaskModifierData *)md;
 	DerivedMesh *dm= derivedData, *result= NULL;
@@ -129,7 +134,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			return derivedData;		
 		
 		/* hashes for finding mapping of:
-		 * 	- vgroups to indicies -> vgroupHash  (string, int)
+		 * 	- vgroups to indices -> vgroupHash  (string, int)
 		 *	- bones to vgroup indices -> boneHash (index of vgroup, dummy)
 		 */
 		vgroupHash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "mask vgroup gh");
@@ -394,6 +399,7 @@ ModifierTypeInfo modifierType_Mask = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
@@ -404,6 +410,7 @@ ModifierTypeInfo modifierType_Mask = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     0,
 };

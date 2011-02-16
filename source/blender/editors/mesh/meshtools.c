@@ -33,7 +33,6 @@
 
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include <float.h>
 
@@ -47,6 +46,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_rand.h" /* for randome face sorting */
@@ -63,6 +63,7 @@
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_report.h"
+#include "BKE_multires.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -91,9 +92,9 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	Material **matar, *ma;
 	Mesh *me;
-	MVert *mvert, *mv, *mvertmain;
-	MEdge *medge = NULL, *medgemain;
-	MFace *mface = NULL, *mfacemain;
+	MVert *mvert, *mv;
+	MEdge *medge = NULL;
+	MFace *mface = NULL;
 	Key *key, *nkey=NULL;
 	KeyBlock *kb, *okb, *kbn;
 	float imat[4][4], cmat[4][4], *fp1, *fp2, curpos;
@@ -104,12 +105,16 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	MDeformVert *dvert;
 	CustomData vdata, edata, fdata;
 
-	if(scene->obedit)
+	if(scene->obedit) {
+		BKE_report(op->reports, RPT_WARNING, "Cant join while in editmode");
 		return OPERATOR_CANCELLED;
+	}
 	
 	/* ob is the object we are adding geometry to */
-	if(!ob || ob->type!=OB_MESH)
+	if(!ob || ob->type!=OB_MESH) {
+		BKE_report(op->reports, RPT_WARNING, "Active object is not a mesh");
 		return OPERATOR_CANCELLED;
+	}
 	
 	/* count & check */
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
@@ -132,15 +137,25 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* that way the active object is always selected */ 
-	if(ok==0)
+	if(ok==0) {
+		BKE_report(op->reports, RPT_WARNING, "Active object is not a selected mesh");
 		return OPERATOR_CANCELLED;
+	}
 	
 	/* only join meshes if there are verts to join, there aren't too many, and we only had one mesh selected */
 	me= (Mesh *)ob->data;
 	key= me->key;
-	if(totvert==0 || totvert>MESH_MAX_VERTS || totvert==me->totvert) 
+
+	if(totvert==0 || totvert==me->totvert) {
+		BKE_report(op->reports, RPT_WARNING, "No mesh data to join");
 		return OPERATOR_CANCELLED;
+	}
 	
+	if(totvert > MESH_MAX_VERTS) {
+		BKE_reportf(op->reports, RPT_WARNING, "Joining results in %d vertices, limit is " STRINGIFY(MESH_MAX_VERTS), totvert);
+		return OPERATOR_CANCELLED;		
+	}
+
 	/* new material indices and material array */
 	matar= MEM_callocN(sizeof(void*)*totmat, "join_mesh matar");
 	if (totmat) matmap= MEM_callocN(sizeof(int)*totmat, "join_mesh matmap");
@@ -265,11 +280,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	mvert= CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
 	medge= CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
 	mface= CustomData_add_layer(&fdata, CD_MFACE, CD_CALLOC, NULL, totface);
-	
-	mvertmain= mvert;
-	medgemain= medge;
-	mfacemain= mface;
-	
+
 	vertofs= 0;
 	edgeofs= 0;
 	faceofs= 0;
@@ -396,6 +407,9 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 					}
 				}
 				
+				if(base->object!=ob)
+					multiresModifier_prepare_join(scene, base->object, ob);
+
 				CustomData_merge(&me->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface);
 				CustomData_copy_data(&me->fdata, &fdata, 0, faceofs, me->totface);
 				
@@ -504,10 +518,19 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 	
 	DAG_scene_sort(bmain, scene);	// removed objects, need to rebuild dag before editmode call
-	
+
+#if 0
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
 	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR|EM_DO_UNDO);
-
+#else
+	/* toggle editmode using lower level functions so this can be called from python */
+	make_editMesh(scene, ob);
+	load_editMesh(scene, ob);
+	free_editMesh(me->edit_mesh);
+	MEM_freeN(me->edit_mesh);
+	me->edit_mesh= NULL;
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
+#endif
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;
@@ -545,9 +568,9 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	
 	if (!ok) {
 		if (nonequal_verts)
-			BKE_report(op->reports, RPT_ERROR, "Selected meshes must have equal numbers of vertices.");
+			BKE_report(op->reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices.");
 		else
-			BKE_report(op->reports, RPT_ERROR, "No additional selected meshes with equal vertex count to join.");
+			BKE_report(op->reports, RPT_WARNING, "No additional selected meshes with equal vertex count to join.");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -867,6 +890,7 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		Mesh *me= ob->data;
 		MEdge *medge;
 		EditMesh *em= me->edit_mesh;
+		void **eve_tmp_back= NULL; /* some of the callers are using eve->tmp so restore after */
 
 
 		/* editmode*/
@@ -889,10 +913,13 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		if(em) {
 			EditVert *eve;
 			totvert= 0;
+			eve_tmp_back=  MEM_callocN( em->totvert * sizeof(void *), "TopoMirr" );
 			for(eve= em->verts.first; eve; eve= eve->next) {
-				eve->hash = totvert++;
+				eve_tmp_back[totvert]= eve->tmp.p;
+				eve->tmp.l = totvert++;
 			}
-		} else {
+		}
+		else {
 			totvert = me->totvert;
 		}
 
@@ -901,8 +928,8 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		/* Initialize the vert-edge-user counts used to detect unique topology */
 		if(em) {
 			for(eed=em->edges.first; eed; eed= eed->next) {
-				MirrTopoHash[eed->v1->hash]++;
-				MirrTopoHash[eed->v2->hash]++;
+				MirrTopoHash[eed->v1->tmp.l]++;
+				MirrTopoHash[eed->v2->tmp.l]++;
 			}
 		} else {
 			for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {
@@ -919,8 +946,8 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 
 			if(em) {
 				for(eed=em->edges.first; eed; eed= eed->next) {
-					MirrTopoHash[eed->v1->hash] += MirrTopoHash_Prev[eed->v2->hash];
-					MirrTopoHash[eed->v2->hash] += MirrTopoHash_Prev[eed->v1->hash];
+					MirrTopoHash[eed->v1->tmp.l] += MirrTopoHash_Prev[eed->v2->tmp.l];
+					MirrTopoHash[eed->v2->tmp.l] += MirrTopoHash_Prev[eed->v1->tmp.l];
 				}
 			} else {
 				for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {
@@ -952,6 +979,19 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 			memcpy(MirrTopoHash_Prev, MirrTopoHash, sizeof(MIRRHASH_TYPE) * totvert);
 		}
 
+		/* restore eve->tmp.* */
+		if(eve_tmp_back) {
+			EditVert *eve;
+			totvert= 0;
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				eve->tmp.p= eve_tmp_back[totvert++];
+			}
+
+			MEM_freeN(eve_tmp_back);
+			eve_tmp_back= NULL;
+		}
+		
+		
 		/* Hash/Index pairs are needed for sorting to find index pairs */
 		MirrTopoPairs= MEM_callocN( sizeof(MirrTopoPair) * totvert, "MirrTopoPairs");
 
@@ -1074,26 +1114,27 @@ static EditVert *editmesh_get_x_mirror_vert_topo(Object *ob, struct EditMesh *em
 	if (mesh_mirrtopo_table(ob, 'u')==-1)
 		return NULL;
 
-	if (index!=-1) {
+	if (index == -1) {
 		index = BLI_findindex(&em->verts, eve);
-	}
 
-	if (index==-1)
-		return NULL;
+		if (index == -1) {
+			return NULL;
+		}
+	}
 
 	poinval= mesh_topo_lookup[ index ];
 
 	if(poinval != -1)
 		return (EditVert *)(poinval);
 	return NULL;
-}
+}	
 
 EditVert *editmesh_get_x_mirror_vert(Object *ob, struct EditMesh *em, EditVert *eve, float *co, int index)
 {
 	if (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_TOPO) {
 		return editmesh_get_x_mirror_vert_topo(ob, em, eve, index);
 	} else {
-		return editmesh_get_x_mirror_vert_spacial(ob, em, eve->co);
+		return editmesh_get_x_mirror_vert_spacial(ob, em, co);
 	}
 }
 
@@ -1148,9 +1189,9 @@ float *editmesh_get_mirror_uv(int axis, float *uv, float *mirrCent, float *face_
 }
 #endif
 
-static unsigned int mirror_facehash(void *ptr)
+static unsigned int mirror_facehash(const void *ptr)
 {
-	MFace *mf= ptr;
+	const MFace *mf= ptr;
 	int v0, v1;
 
 	if(mf->v4) {
@@ -1189,7 +1230,7 @@ static int mirror_facerotation(MFace *a, MFace *b)
 	return -1;
 }
 
-static int mirror_facecmp(void *a, void *b)
+static int mirror_facecmp(const void *a, const void *b)
 {
 	return (mirror_facerotation((MFace*)a, (MFace*)b) == -1);
 }

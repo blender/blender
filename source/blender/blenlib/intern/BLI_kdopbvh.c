@@ -30,7 +30,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_utildefines.h"
+#include "BLI_utildefines.h"
+
+
 
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
@@ -1126,9 +1128,10 @@ static void traverse(BVHOverlapData *data, BVHNode *node1, BVHNode *node2)
 	return;
 }
 
-BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
+BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int *result)
 {
-	int j, total = 0;
+	int j;
+	unsigned int total = 0;
 	BVHTreeOverlap *overlap = NULL, *to = NULL;
 	BVHOverlapData **data;
 	

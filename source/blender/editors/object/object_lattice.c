@@ -31,6 +31,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -45,8 +48,6 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
-
-#include "BLI_listbase.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -84,8 +85,6 @@ void make_editLatt(Object *obedit)
 	KeyBlock *actkey;
 
 	free_editLatt(obedit);
-
-	lt= obedit->data;
 
 	actkey= ob_get_keyblock(obedit);
 	if(actkey)
@@ -155,7 +154,7 @@ void load_editLatt(Object *obedit)
 	}
 
 	if(editlt->dvert) {
-		int tot= lt->pntsu*lt->pntsv*lt->pntsw;
+		tot= lt->pntsu*lt->pntsv*lt->pntsw;
 
 		lt->dvert = MEM_mallocN (sizeof (MDeformVert)*tot, "Lattice MDeformVert");
 		copy_dverts(lt->dvert, editlt->dvert, tot);
@@ -259,7 +258,7 @@ int make_regular_poll(bContext *C)
 	return (ob && ob->type==OB_LATTICE);
 }
 
-int make_regular_exec(bContext *C, wmOperator *op)
+int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_edit_object(C);
 	Lattice *lt;
@@ -274,7 +273,7 @@ int make_regular_exec(bContext *C, wmOperator *op)
 		resizelattice(lt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
 	}
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 
 	return OPERATOR_FINISHED;
@@ -414,7 +413,7 @@ static void *get_editlatt(bContext *C)
 }
 
 /* and this is all the undo system needs to know */
-void undo_push_lattice(bContext *C, char *name)
+void undo_push_lattice(bContext *C, const char *name)
 {
 	undo_editmode_push(C, name, get_editlatt, free_undoLatt, undoLatt_to_editLatt, editLatt_to_undoLatt, validate_undoLatt);
 }

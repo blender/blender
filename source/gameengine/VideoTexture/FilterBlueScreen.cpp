@@ -80,7 +80,7 @@ static PyObject * getColor (PyFilter * self, void * closure)
 static int setColor (PyFilter * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 3
+	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 3
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1))
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2)))
@@ -107,7 +107,7 @@ static PyObject * getLimits (PyFilter * self, void * closure)
 static int setLimits (PyFilter * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 2
+	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{

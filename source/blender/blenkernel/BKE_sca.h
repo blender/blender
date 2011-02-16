@@ -1,7 +1,5 @@
 /**
- * blenlib/BKE_sca.h (mar-2001 nzc)
- *	
- * $Id$ 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -68,7 +66,7 @@ void clear_sca_new_poins_ob(struct Object *ob);
 void clear_sca_new_poins(void);
 void set_sca_new_poins_ob(struct Object *ob);
 void set_sca_new_poins(void);
-void sca_remove_ob_poin(struct Object *obt, struct Object *ob);                    
+void sca_remove_ob_poin(struct Object *obt, struct Object *ob);
 
 void sca_move_sensor(struct bSensor *sens_to_move, struct Object *ob, int move_up);
 void sca_move_controller(struct bController *cont_to_move, struct Object *ob, int move_up);

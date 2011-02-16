@@ -129,6 +129,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_bpath.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
@@ -140,9 +141,10 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h" // for defines
+#include "BKE_utildefines.h"
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"
+#include "BKE_pointcache.h"
 
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
@@ -310,7 +312,7 @@ static int endwrite(WriteData *wd)
 
 /* ********** WRITE FILE ****************** */
 
-static void writestruct(WriteData *wd, int filecode, char *structname, int nr, void *adr)
+static void writestruct(WriteData *wd, int filecode, const char *structname, int nr, void *adr)
 {
 	BHead bh;
 	short *sp;
@@ -362,7 +364,6 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 /*These functions are used by blender's .blend system for file saving/loading.*/
 void IDP_WriteProperty_OnlyData(IDProperty *prop, void *wd);
 void IDP_WriteProperty(IDProperty *prop, void *wd);
-static void write_animdata(WriteData *wd, AnimData *adt); // XXX code needs reshuffling, but not before NLA SoC is merged back into 2.5
 
 static void IDP_WriteArray(IDProperty *prop, void *wd)
 {
@@ -432,421 +433,6 @@ void IDP_WriteProperty(IDProperty *prop, void *wd)
 {
 	writestruct(wd, DATA, "IDProperty", 1, prop);
 	IDP_WriteProperty_OnlyData(prop, wd);
-}
-
-static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
-{
-	int a;
-	
-	writestruct(wd, DATA, "CurveMapping", 1, cumap);
-	for(a=0; a<CM_TOT; a++)
-		writestruct(wd, DATA, "CurveMapPoint", cumap->cm[a].totpoint, cumap->cm[a].curve);
-}
-
-/* this is only direct data, tree itself should have been written */
-static void write_nodetree(WriteData *wd, bNodeTree *ntree)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	bNodeLink *link;
-	
-	/* for link_list() speed, we write per list */
-	
-	if(ntree->adt) write_animdata(wd, ntree->adt);
-	
-	for(node= ntree->nodes.first; node; node= node->next)
-		writestruct(wd, DATA, "bNode", 1, node);
-
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->storage && node->type!=NODE_DYNAMIC) {
-			/* could be handlerized at some point, now only 1 exception still */
-			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
-				write_curvemapping(wd, node->storage);
-			else if(ntree->type==NTREE_COMPOSIT && ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
-				write_curvemapping(wd, node->storage);
-			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
-				write_curvemapping(wd, node->storage);
-			else 
-				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
-		}
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			writestruct(wd, DATA, "bNodeSocket", 1, sock);
-		for(sock= node->outputs.first; sock; sock= sock->next)
-			writestruct(wd, DATA, "bNodeSocket", 1, sock);
-	}
-	
-	for(link= ntree->links.first; link; link= link->next)
-		writestruct(wd, DATA, "bNodeLink", 1, link);
-}
-
-static void current_screen_compat(Main *mainvar, bScreen **screen)
-{
-	wmWindowManager *wm;
-	wmWindow *window;
-
-	/* find a global current screen in the first open window, to have
-	 * a reasonable default for reading in older versions */
-	wm= mainvar->wm.first;
-	window= (wm)? wm->windows.first: NULL;
-	*screen= (window)? window->screen: NULL;
-}
-
-static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon */
-{
-	bScreen *curscreen;
-	Scene *sce;
-	int data[8];
-
-	/* XXX in future, handle multiple windows with multiple screnes? */
-	current_screen_compat(mainvar, &curscreen);
-
-	for(sce= mainvar->scene.first; sce; sce= sce->id.next) {
-		if(sce->id.lib==NULL  && ( sce==curscreen->scene || (sce->r.scemode & R_BG_RENDER)) ) {
-			data[0]= sce->r.sfra;
-			data[1]= sce->r.efra;
-
-			memset(data+2, 0, sizeof(int)*6);
-			strncpy((char *)(data+2), sce->id.name+2, 21);
-
-			writedata(wd, REND, 32, data);
-		}
-	}
-}
-
-static void write_userdef(WriteData *wd)
-{
-	bTheme *btheme;
-	wmKeyMap *keymap;
-	wmKeyMapItem *kmi;
-	bAddon *bext;
-
-	writestruct(wd, USER, "UserDef", 1, &U);
-
-	for(btheme= U.themes.first; btheme; btheme=btheme->next)
-		writestruct(wd, DATA, "bTheme", 1, btheme);
-
-	for(keymap= U.keymaps.first; keymap; keymap=keymap->next) {
-		writestruct(wd, DATA, "wmKeyMap", 1, keymap);
-
-		for(kmi=keymap->items.first; kmi; kmi=kmi->next) {
-			writestruct(wd, DATA, "wmKeyMapItem", 1, kmi);
-
-			if(kmi->properties)
-				IDP_WriteProperty(kmi->properties, wd);
-		}
-	}
-
-	for(bext= U.addons.first; bext; bext=bext->next)
-		writestruct(wd, DATA, "bAddon", 1, bext);
-}
-
-static void write_boid_state(WriteData *wd, BoidState *state)
-{
-	BoidRule *rule = state->rules.first;
-	//BoidCondition *cond = state->conditions.first;
-
-	writestruct(wd, DATA, "BoidState", 1, state);
-
-	for(; rule; rule=rule->next) {
-		switch(rule->type) {
-			case eBoidRuleType_Goal:
-			case eBoidRuleType_Avoid:
-				writestruct(wd, DATA, "BoidRuleGoalAvoid", 1, rule);
-				break;
-			case eBoidRuleType_AvoidCollision:
-				writestruct(wd, DATA, "BoidRuleAvoidCollision", 1, rule);
-				break;
-			case eBoidRuleType_FollowLeader:
-				writestruct(wd, DATA, "BoidRuleFollowLeader", 1, rule);
-				break;
-			case eBoidRuleType_AverageSpeed:
-				writestruct(wd, DATA, "BoidRuleAverageSpeed", 1, rule);
-				break;
-			case eBoidRuleType_Fight:
-				writestruct(wd, DATA, "BoidRuleFight", 1, rule);
-				break;
-			default:
-				writestruct(wd, DATA, "BoidRule", 1, rule);
-				break;
-		}
-	}
-	//for(; cond; cond=cond->next)
-	//	writestruct(wd, DATA, "BoidCondition", 1, cond);
-}
-/* TODO: replace *cache with *cachelist once it's coded */
-#define PTCACHE_WRITE_PSYS	0
-#define PTCACHE_WRITE_CLOTH	1
-static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
-{
-	PointCache *cache = ptcaches->first;
-	int i;
-
-	for(; cache; cache=cache->next) {
-		writestruct(wd, DATA, "PointCache", 1, cache);
-
-		if((cache->flag & PTCACHE_DISK_CACHE)==0) {
-			PTCacheMem *pm = cache->mem_cache.first;
-
-			for(; pm; pm=pm->next) {
-				writestruct(wd, DATA, "PTCacheMem", 1, pm);
-				if(pm->index_array)
-					writedata(wd, DATA, MEM_allocN_len(pm->index_array), pm->index_array);
-				
-				for(i=0; i<BPHYS_TOT_DATA; i++) {
-					if(pm->data[i] && pm->data_types & (1<<i))
-						writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
-				}
-			}
-		}
-	}
-}
-static void write_particlesettings(WriteData *wd, ListBase *idbase)
-{
-	ParticleSettings *part;
-	ParticleDupliWeight *dw;
-
-	part= idbase->first;
-	while(part) {
-		if(part->id.us>0 || wd->current) {
-			/* write LibData */
-			writestruct(wd, ID_PA, "ParticleSettings", 1, part);
-			if (part->id.properties) IDP_WriteProperty(part->id.properties, wd);
-			if (part->adt) write_animdata(wd, part->adt);
-			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
-			writestruct(wd, DATA, "PartDeflect", 1, part->pd2);
-			writestruct(wd, DATA, "EffectorWeights", 1, part->effector_weights);
-
-			dw = part->dupliweights.first;
-			for(; dw; dw=dw->next)
-				writestruct(wd, DATA, "ParticleDupliWeight", 1, dw);
-
-			if(part->boids && part->phystype == PART_PHYS_BOIDS) {
-				BoidState *state = part->boids->states.first;
-
-				writestruct(wd, DATA, "BoidSettings", 1, part->boids);
-
-				for(; state; state=state->next)
-					write_boid_state(wd, state);
-			}
-			if(part->fluid && part->phystype == PART_PHYS_FLUID){
-				writestruct(wd, DATA, "SPHFluidSettings", 1, part->fluid); 
-			}
-		}
-		part= part->id.next;
-	}
-}
-static void write_particlesystems(WriteData *wd, ListBase *particles)
-{
-	ParticleSystem *psys= particles->first;
-	ParticleTarget *pt;
-	int a;
-
-	for(; psys; psys=psys->next) {
-		writestruct(wd, DATA, "ParticleSystem", 1, psys);
-
-		if(psys->particles) {
-			writestruct(wd, DATA, "ParticleData", psys->totpart ,psys->particles);
-
-			if(psys->particles->hair) {
-				ParticleData *pa = psys->particles;
-
-				for(a=0; a<psys->totpart; a++, pa++)
-					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
-			}
-
-			if(psys->particles->boid && psys->part->phystype == PART_PHYS_BOIDS)
-				writestruct(wd, DATA, "BoidParticle", psys->totpart, psys->particles->boid);
-		}
-		pt = psys->targets.first;
-		for(; pt; pt=pt->next)
-			writestruct(wd, DATA, "ParticleTarget", 1, pt);
-
-		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
-
-		if(psys->clmd) {
-			writestruct(wd, DATA, "ClothModifierData", 1, psys->clmd);
-			writestruct(wd, DATA, "ClothSimSettings", 1, psys->clmd->sim_parms);
-			writestruct(wd, DATA, "ClothCollSettings", 1, psys->clmd->coll_parms);
-		}
-		
-		write_pointcaches(wd, &psys->ptcaches);
-	}
-}
-
-static void write_properties(WriteData *wd, ListBase *lb)
-{
-	bProperty *prop;
-
-	prop= lb->first;
-	while(prop) {
-		writestruct(wd, DATA, "bProperty", 1, prop);
-
-		if(prop->poin && prop->poin != &prop->data)
-			writedata(wd, DATA, MEM_allocN_len(prop->poin), prop->poin);
-
-		prop= prop->next;
-	}
-}
-
-static void write_sensors(WriteData *wd, ListBase *lb)
-{
-	bSensor *sens;
-
-	sens= lb->first;
-	while(sens) {
-		writestruct(wd, DATA, "bSensor", 1, sens);
-
-		writedata(wd, DATA, sizeof(void *)*sens->totlinks, sens->links);
-
-		switch(sens->type) {
-		case SENS_NEAR:
-			writestruct(wd, DATA, "bNearSensor", 1, sens->data);
-			break;
-		case SENS_MOUSE:
-			writestruct(wd, DATA, "bMouseSensor", 1, sens->data);
-			break;
-		case SENS_TOUCH:
-			writestruct(wd, DATA, "bTouchSensor", 1, sens->data);
-			break;
-		case SENS_KEYBOARD:
-			writestruct(wd, DATA, "bKeyboardSensor", 1, sens->data);
-			break;
-		case SENS_PROPERTY:
-			writestruct(wd, DATA, "bPropertySensor", 1, sens->data);
-			break;
-		case SENS_ARMATURE:
-			writestruct(wd, DATA, "bArmatureSensor", 1, sens->data);
-			break;
-		case SENS_ACTUATOR:
-			writestruct(wd, DATA, "bActuatorSensor", 1, sens->data);
-			break;
-		case SENS_DELAY:
-			writestruct(wd, DATA, "bDelaySensor", 1, sens->data);
-			break;
-		case SENS_COLLISION:
-			writestruct(wd, DATA, "bCollisionSensor", 1, sens->data);
-			break;
-		case SENS_RADAR:
-			writestruct(wd, DATA, "bRadarSensor", 1, sens->data);
-			break;
-		case SENS_RANDOM:
-			writestruct(wd, DATA, "bRandomSensor", 1, sens->data);
-			break;
-		case SENS_RAY:
-			writestruct(wd, DATA, "bRaySensor", 1, sens->data);
-			break;
-		case SENS_MESSAGE:
-			writestruct(wd, DATA, "bMessageSensor", 1, sens->data);
-			break;
-		case SENS_JOYSTICK:
-			writestruct(wd, DATA, "bJoystickSensor", 1, sens->data);
-			break;
-		default:
-			; /* error: don't know how to write this file */
-		}
-
-		sens= sens->next;
-	}
-}
-
-static void write_controllers(WriteData *wd, ListBase *lb)
-{
-	bController *cont;
-
-	cont= lb->first;
-	while(cont) {
-		writestruct(wd, DATA, "bController", 1, cont);
-
-		writedata(wd, DATA, sizeof(void *)*cont->totlinks, cont->links);
-
-		switch(cont->type) {
-		case CONT_EXPRESSION:
-			writestruct(wd, DATA, "bExpressionCont", 1, cont->data);
-			break;
-		case CONT_PYTHON:
-			writestruct(wd, DATA, "bPythonCont", 1, cont->data);
-			break;
-		default:
-			; /* error: don't know how to write this file */
-		}
-
-		cont= cont->next;
-	}
-}
-
-static void write_actuators(WriteData *wd, ListBase *lb)
-{
-	bActuator *act;
-
-	act= lb->first;
-	while(act) {
-		writestruct(wd, DATA, "bActuator", 1, act);
-
-		switch(act->type) {
-		case ACT_ACTION:
-		case ACT_SHAPEACTION:
-			writestruct(wd, DATA, "bActionActuator", 1, act->data);
-			break;
-		case ACT_SOUND:
-			writestruct(wd, DATA, "bSoundActuator", 1, act->data);
-			break;
-		case ACT_OBJECT:
-			writestruct(wd, DATA, "bObjectActuator", 1, act->data);
-			break;
-		case ACT_IPO:
-			writestruct(wd, DATA, "bIpoActuator", 1, act->data);
-			break;
-		case ACT_PROPERTY:
-			writestruct(wd, DATA, "bPropertyActuator", 1, act->data);
-			break;
-		case ACT_CAMERA:
-			writestruct(wd, DATA, "bCameraActuator", 1, act->data);
-			break;
-		case ACT_CONSTRAINT:
-			writestruct(wd, DATA, "bConstraintActuator", 1, act->data);
-			break;
-		case ACT_EDIT_OBJECT:
-			writestruct(wd, DATA, "bEditObjectActuator", 1, act->data);
-			break;
-		case ACT_SCENE:
-			writestruct(wd, DATA, "bSceneActuator", 1, act->data);
-			break;
-		case ACT_GROUP:
-			writestruct(wd, DATA, "bGroupActuator", 1, act->data);
-			break;
-		case ACT_RANDOM:
-			writestruct(wd, DATA, "bRandomActuator", 1, act->data);
-			break;
-		case ACT_MESSAGE:
-			writestruct(wd, DATA, "bMessageActuator", 1, act->data);
-			break;
-		case ACT_GAME:
-			writestruct(wd, DATA, "bGameActuator", 1, act->data);
-			break;
-		case ACT_VISIBILITY:
-			writestruct(wd, DATA, "bVisibilityActuator", 1, act->data);
-			break;
-		case ACT_2DFILTER:
-			writestruct(wd, DATA, "bTwoDFilterActuator", 1, act->data);
-			break;
-		case ACT_PARENT:
-			writestruct(wd, DATA, "bParentActuator", 1, act->data);
-			break;
-		case ACT_STATE:
-			writestruct(wd, DATA, "bStateActuator", 1, act->data);
-			break;
-		case ACT_ARMATURE:
-			writestruct(wd, DATA, "bArmatureActuator", 1, act->data);
-			break;
-		case ACT_STEERING:
-			writestruct(wd, DATA, "bSteeringActuator", 1, act->data);
-			break;
-		default:
-			; /* error: don't know how to write this file */
-		}
-
-		act= act->next;
-	}
 }
 
 static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
@@ -1043,6 +629,448 @@ static void write_animdata(WriteData *wd, AnimData *adt)
 	write_nladata(wd, &adt->nla_tracks);
 }
 
+static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
+{
+	int a;
+	
+	writestruct(wd, DATA, "CurveMapping", 1, cumap);
+	for(a=0; a<CM_TOT; a++)
+		writestruct(wd, DATA, "CurveMapPoint", cumap->cm[a].totpoint, cumap->cm[a].curve);
+}
+
+/* this is only direct data, tree itself should have been written */
+static void write_nodetree(WriteData *wd, bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	bNodeLink *link;
+	
+	/* for link_list() speed, we write per list */
+	
+	if(ntree->adt) write_animdata(wd, ntree->adt);
+	
+	for(node= ntree->nodes.first; node; node= node->next)
+		writestruct(wd, DATA, "bNode", 1, node);
+
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->storage && node->type!=NODE_DYNAMIC) {
+			/* could be handlerized at some point, now only 1 exception still */
+			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
+				write_curvemapping(wd, node->storage);
+			else if(ntree->type==NTREE_COMPOSIT && ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
+				write_curvemapping(wd, node->storage);
+			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
+				write_curvemapping(wd, node->storage);
+			else 
+				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+		}
+		for(sock= node->inputs.first; sock; sock= sock->next)
+			writestruct(wd, DATA, "bNodeSocket", 1, sock);
+		for(sock= node->outputs.first; sock; sock= sock->next)
+			writestruct(wd, DATA, "bNodeSocket", 1, sock);
+	}
+	
+	for(link= ntree->links.first; link; link= link->next)
+		writestruct(wd, DATA, "bNodeLink", 1, link);
+}
+
+static void current_screen_compat(Main *mainvar, bScreen **screen)
+{
+	wmWindowManager *wm;
+	wmWindow *window;
+
+	/* find a global current screen in the first open window, to have
+	 * a reasonable default for reading in older versions */
+	wm= mainvar->wm.first;
+	window= (wm)? wm->windows.first: NULL;
+	*screen= (window)? window->screen: NULL;
+}
+
+static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon */
+{
+	bScreen *curscreen;
+	Scene *sce;
+	int data[8];
+
+	/* XXX in future, handle multiple windows with multiple screnes? */
+	current_screen_compat(mainvar, &curscreen);
+
+	for(sce= mainvar->scene.first; sce; sce= sce->id.next) {
+		if(sce->id.lib==NULL  && ( sce==curscreen->scene || (sce->r.scemode & R_BG_RENDER)) ) {
+			data[0]= sce->r.sfra;
+			data[1]= sce->r.efra;
+
+			memset(data+2, 0, sizeof(int)*6);
+			BLI_strncpy((char *)(data+2), sce->id.name+2, sizeof(sce->id.name)-2);
+
+			writedata(wd, REND, 32, data);
+		}
+	}
+}
+
+static void write_userdef(WriteData *wd)
+{
+	bTheme *btheme;
+	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
+	bAddon *bext;
+
+	writestruct(wd, USER, "UserDef", 1, &U);
+
+	for(btheme= U.themes.first; btheme; btheme=btheme->next)
+		writestruct(wd, DATA, "bTheme", 1, btheme);
+
+	for(keymap= U.keymaps.first; keymap; keymap=keymap->next) {
+		writestruct(wd, DATA, "wmKeyMap", 1, keymap);
+
+		for(kmi=keymap->items.first; kmi; kmi=kmi->next) {
+			writestruct(wd, DATA, "wmKeyMapItem", 1, kmi);
+
+			if(kmi->properties)
+				IDP_WriteProperty(kmi->properties, wd);
+		}
+	}
+
+	for(bext= U.addons.first; bext; bext=bext->next)
+		writestruct(wd, DATA, "bAddon", 1, bext);
+}
+
+static void write_boid_state(WriteData *wd, BoidState *state)
+{
+	BoidRule *rule = state->rules.first;
+	//BoidCondition *cond = state->conditions.first;
+
+	writestruct(wd, DATA, "BoidState", 1, state);
+
+	for(; rule; rule=rule->next) {
+		switch(rule->type) {
+			case eBoidRuleType_Goal:
+			case eBoidRuleType_Avoid:
+				writestruct(wd, DATA, "BoidRuleGoalAvoid", 1, rule);
+				break;
+			case eBoidRuleType_AvoidCollision:
+				writestruct(wd, DATA, "BoidRuleAvoidCollision", 1, rule);
+				break;
+			case eBoidRuleType_FollowLeader:
+				writestruct(wd, DATA, "BoidRuleFollowLeader", 1, rule);
+				break;
+			case eBoidRuleType_AverageSpeed:
+				writestruct(wd, DATA, "BoidRuleAverageSpeed", 1, rule);
+				break;
+			case eBoidRuleType_Fight:
+				writestruct(wd, DATA, "BoidRuleFight", 1, rule);
+				break;
+			default:
+				writestruct(wd, DATA, "BoidRule", 1, rule);
+				break;
+		}
+	}
+	//for(; cond; cond=cond->next)
+	//	writestruct(wd, DATA, "BoidCondition", 1, cond);
+}
+
+/* update this also to readfile.c */
+static const char *ptcache_data_struct[] = {
+	"", // BPHYS_DATA_INDEX
+	"", // BPHYS_DATA_LOCATION
+	"", // BPHYS_DATA_VELOCITY
+	"", // BPHYS_DATA_ROTATION
+	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
+	"", // BPHYS_DATA_SIZE:
+	"", // BPHYS_DATA_TIMES:	
+	"BoidData" // case BPHYS_DATA_BOIDS:
+};
+static const char *ptcache_extra_struct[] = {
+	"",
+	"ParticleSpring"
+};
+static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
+{
+	PointCache *cache = ptcaches->first;
+	int i;
+
+	for(; cache; cache=cache->next) {
+		writestruct(wd, DATA, "PointCache", 1, cache);
+
+		if((cache->flag & PTCACHE_DISK_CACHE)==0) {
+			PTCacheMem *pm = cache->mem_cache.first;
+
+			for(; pm; pm=pm->next) {
+				PTCacheExtra *extra = pm->extradata.first;
+
+				writestruct(wd, DATA, "PTCacheMem", 1, pm);
+				
+				for(i=0; i<BPHYS_TOT_DATA; i++) {
+					if(pm->data[i] && pm->data_types & (1<<i)) {
+						if(strcmp(ptcache_data_struct[i], "")==0)
+							writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
+						else
+							writestruct(wd, DATA, ptcache_data_struct[i], pm->totpoint, pm->data[i]);
+					}
+				}
+
+				for(; extra; extra=extra->next) {
+					if(strcmp(ptcache_extra_struct[extra->type], "")==0)
+						continue;
+					writestruct(wd, DATA, "PTCacheExtra", 1, extra);
+					writestruct(wd, DATA, ptcache_extra_struct[extra->type], extra->totdata, extra->data);
+				}
+			}
+		}
+	}
+}
+static void write_particlesettings(WriteData *wd, ListBase *idbase)
+{
+	ParticleSettings *part;
+	ParticleDupliWeight *dw;
+
+	part= idbase->first;
+	while(part) {
+		if(part->id.us>0 || wd->current) {
+			/* write LibData */
+			writestruct(wd, ID_PA, "ParticleSettings", 1, part);
+			if (part->id.properties) IDP_WriteProperty(part->id.properties, wd);
+			if (part->adt) write_animdata(wd, part->adt);
+			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
+			writestruct(wd, DATA, "PartDeflect", 1, part->pd2);
+			writestruct(wd, DATA, "EffectorWeights", 1, part->effector_weights);
+
+			dw = part->dupliweights.first;
+			for(; dw; dw=dw->next)
+				writestruct(wd, DATA, "ParticleDupliWeight", 1, dw);
+
+			if(part->boids && part->phystype == PART_PHYS_BOIDS) {
+				BoidState *state = part->boids->states.first;
+
+				writestruct(wd, DATA, "BoidSettings", 1, part->boids);
+
+				for(; state; state=state->next)
+					write_boid_state(wd, state);
+			}
+			if(part->fluid && part->phystype == PART_PHYS_FLUID){
+				writestruct(wd, DATA, "SPHFluidSettings", 1, part->fluid); 
+			}
+		}
+		part= part->id.next;
+	}
+}
+static void write_particlesystems(WriteData *wd, ListBase *particles)
+{
+	ParticleSystem *psys= particles->first;
+	ParticleTarget *pt;
+	int a;
+
+	for(; psys; psys=psys->next) {
+		writestruct(wd, DATA, "ParticleSystem", 1, psys);
+
+		if(psys->particles) {
+			writestruct(wd, DATA, "ParticleData", psys->totpart ,psys->particles);
+
+			if(psys->particles->hair) {
+				ParticleData *pa = psys->particles;
+
+				for(a=0; a<psys->totpart; a++, pa++)
+					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
+			}
+
+			if(psys->particles->boid && psys->part->phystype == PART_PHYS_BOIDS)
+				writestruct(wd, DATA, "BoidParticle", psys->totpart, psys->particles->boid);
+
+			if(psys->part->fluid && psys->part->phystype == PART_PHYS_FLUID && (psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS))
+				writestruct(wd, DATA, "ParticleSpring", psys->tot_fluidsprings, psys->fluid_springs);
+		}
+		pt = psys->targets.first;
+		for(; pt; pt=pt->next)
+			writestruct(wd, DATA, "ParticleTarget", 1, pt);
+
+		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
+
+		if(psys->clmd) {
+			writestruct(wd, DATA, "ClothModifierData", 1, psys->clmd);
+			writestruct(wd, DATA, "ClothSimSettings", 1, psys->clmd->sim_parms);
+			writestruct(wd, DATA, "ClothCollSettings", 1, psys->clmd->coll_parms);
+		}
+		
+		write_pointcaches(wd, &psys->ptcaches);
+	}
+}
+
+static void write_properties(WriteData *wd, ListBase *lb)
+{
+	bProperty *prop;
+
+	prop= lb->first;
+	while(prop) {
+		writestruct(wd, DATA, "bProperty", 1, prop);
+
+		if(prop->poin && prop->poin != &prop->data)
+			writedata(wd, DATA, MEM_allocN_len(prop->poin), prop->poin);
+
+		prop= prop->next;
+	}
+}
+
+static void write_sensors(WriteData *wd, ListBase *lb)
+{
+	bSensor *sens;
+
+	sens= lb->first;
+	while(sens) {
+		writestruct(wd, DATA, "bSensor", 1, sens);
+
+		writedata(wd, DATA, sizeof(void *)*sens->totlinks, sens->links);
+
+		switch(sens->type) {
+		case SENS_NEAR:
+			writestruct(wd, DATA, "bNearSensor", 1, sens->data);
+			break;
+		case SENS_MOUSE:
+			writestruct(wd, DATA, "bMouseSensor", 1, sens->data);
+			break;
+		case SENS_TOUCH:
+			writestruct(wd, DATA, "bTouchSensor", 1, sens->data);
+			break;
+		case SENS_KEYBOARD:
+			writestruct(wd, DATA, "bKeyboardSensor", 1, sens->data);
+			break;
+		case SENS_PROPERTY:
+			writestruct(wd, DATA, "bPropertySensor", 1, sens->data);
+			break;
+		case SENS_ARMATURE:
+			writestruct(wd, DATA, "bArmatureSensor", 1, sens->data);
+			break;
+		case SENS_ACTUATOR:
+			writestruct(wd, DATA, "bActuatorSensor", 1, sens->data);
+			break;
+		case SENS_DELAY:
+			writestruct(wd, DATA, "bDelaySensor", 1, sens->data);
+			break;
+		case SENS_COLLISION:
+			writestruct(wd, DATA, "bCollisionSensor", 1, sens->data);
+			break;
+		case SENS_RADAR:
+			writestruct(wd, DATA, "bRadarSensor", 1, sens->data);
+			break;
+		case SENS_RANDOM:
+			writestruct(wd, DATA, "bRandomSensor", 1, sens->data);
+			break;
+		case SENS_RAY:
+			writestruct(wd, DATA, "bRaySensor", 1, sens->data);
+			break;
+		case SENS_MESSAGE:
+			writestruct(wd, DATA, "bMessageSensor", 1, sens->data);
+			break;
+		case SENS_JOYSTICK:
+			writestruct(wd, DATA, "bJoystickSensor", 1, sens->data);
+			break;
+		default:
+			; /* error: don't know how to write this file */
+		}
+
+		sens= sens->next;
+	}
+}
+
+static void write_controllers(WriteData *wd, ListBase *lb)
+{
+	bController *cont;
+
+	cont= lb->first;
+	while(cont) {
+		writestruct(wd, DATA, "bController", 1, cont);
+
+		writedata(wd, DATA, sizeof(void *)*cont->totlinks, cont->links);
+
+		switch(cont->type) {
+		case CONT_EXPRESSION:
+			writestruct(wd, DATA, "bExpressionCont", 1, cont->data);
+			break;
+		case CONT_PYTHON:
+			writestruct(wd, DATA, "bPythonCont", 1, cont->data);
+			break;
+		default:
+			; /* error: don't know how to write this file */
+		}
+
+		cont= cont->next;
+	}
+}
+
+static void write_actuators(WriteData *wd, ListBase *lb)
+{
+	bActuator *act;
+
+	act= lb->first;
+	while(act) {
+		writestruct(wd, DATA, "bActuator", 1, act);
+
+		switch(act->type) {
+		case ACT_ACTION:
+		case ACT_SHAPEACTION:
+			writestruct(wd, DATA, "bActionActuator", 1, act->data);
+			break;
+		case ACT_SOUND:
+			writestruct(wd, DATA, "bSoundActuator", 1, act->data);
+			break;
+		case ACT_OBJECT:
+			writestruct(wd, DATA, "bObjectActuator", 1, act->data);
+			break;
+		case ACT_IPO:
+			writestruct(wd, DATA, "bIpoActuator", 1, act->data);
+			break;
+		case ACT_PROPERTY:
+			writestruct(wd, DATA, "bPropertyActuator", 1, act->data);
+			break;
+		case ACT_CAMERA:
+			writestruct(wd, DATA, "bCameraActuator", 1, act->data);
+			break;
+		case ACT_CONSTRAINT:
+			writestruct(wd, DATA, "bConstraintActuator", 1, act->data);
+			break;
+		case ACT_EDIT_OBJECT:
+			writestruct(wd, DATA, "bEditObjectActuator", 1, act->data);
+			break;
+		case ACT_SCENE:
+			writestruct(wd, DATA, "bSceneActuator", 1, act->data);
+			break;
+		case ACT_GROUP:
+			writestruct(wd, DATA, "bGroupActuator", 1, act->data);
+			break;
+		case ACT_RANDOM:
+			writestruct(wd, DATA, "bRandomActuator", 1, act->data);
+			break;
+		case ACT_MESSAGE:
+			writestruct(wd, DATA, "bMessageActuator", 1, act->data);
+			break;
+		case ACT_GAME:
+			writestruct(wd, DATA, "bGameActuator", 1, act->data);
+			break;
+		case ACT_VISIBILITY:
+			writestruct(wd, DATA, "bVisibilityActuator", 1, act->data);
+			break;
+		case ACT_2DFILTER:
+			writestruct(wd, DATA, "bTwoDFilterActuator", 1, act->data);
+			break;
+		case ACT_PARENT:
+			writestruct(wd, DATA, "bParentActuator", 1, act->data);
+			break;
+		case ACT_STATE:
+			writestruct(wd, DATA, "bStateActuator", 1, act->data);
+			break;
+		case ACT_ARMATURE:
+			writestruct(wd, DATA, "bArmatureActuator", 1, act->data);
+			break;
+		case ACT_STEERING:
+			writestruct(wd, DATA, "bSteeringActuator", 1, act->data);
+			break;
+		default:
+			; /* error: don't know how to write this file */
+		}
+
+		act= act->next;
+	}
+}
+
 static void write_motionpath(WriteData *wd, bMotionPath *mpath)
 {
 	/* sanity checks */
@@ -1180,19 +1208,32 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			
 			if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
 			{
+				if(smd->domain)
+				{
+					write_pointcaches(wd, &(smd->domain->ptcaches[0]));
+
+					/* create fake pointcache so that old blender versions can read it */
+					smd->domain->point_cache[1] = BKE_ptcache_add(&smd->domain->ptcaches[1]);
+					smd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE;
+					smd->domain->point_cache[1]->step = 1;
+
+					write_pointcaches(wd, &(smd->domain->ptcaches[1]));
+				}
+				
 				writestruct(wd, DATA, "SmokeDomainSettings", 1, smd->domain);
-				writestruct(wd, DATA, "EffectorWeights", 1, smd->domain->effector_weights);
+
+				if(smd->domain) {
+					/* cleanup the fake pointcache */
+					BKE_ptcache_free_list(&smd->domain->ptcaches[1]);
+					smd->domain->point_cache[1] = NULL;
+					
+					writestruct(wd, DATA, "EffectorWeights", 1, smd->domain->effector_weights);
+				}
 			}
 			else if(smd->type & MOD_SMOKE_TYPE_FLOW)
 				writestruct(wd, DATA, "SmokeFlowSettings", 1, smd->flow);
 			else if(smd->type & MOD_SMOKE_TYPE_COLL)
 				writestruct(wd, DATA, "SmokeCollSettings", 1, smd->coll);
-
-			if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
-			{
-				write_pointcaches(wd, &(smd->domain->ptcaches[0]));
-				write_pointcaches(wd, &(smd->domain->ptcaches[1]));
-			}
 		} 
 		else if(md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
@@ -1478,7 +1519,7 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 
 	for (i=0; i<data->totlayer; i++) {
 		CustomDataLayer *layer= &data->layers[i];
-		char *structname;
+		const char *structname;
 		int structnum, datasize;
 
 		if (layer->type == CD_MDEFORMVERT) {
@@ -1560,7 +1601,10 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_LT, "Lattice", 1, lt);
 			if (lt->id.properties) IDP_WriteProperty(lt->id.properties, wd);
-
+			
+			/* write animdata */
+			if (lt->adt) write_animdata(wd, lt->adt);
+			
 			/* direct data */
 			writestruct(wd, DATA, "BPoint", lt->pntsu*lt->pntsv*lt->pntsw, lt->def);
 			
@@ -1907,21 +1951,23 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 	bGPDstroke *gps;
 	
 	for (gpd= lb->first; gpd; gpd= gpd->id.next) {
-		/* write gpd data block to file */
-		writestruct(wd, ID_GD, "bGPdata", 1, gpd);
-		
-		/* write grease-pencil layers to file */
-		for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-			writestruct(wd, DATA, "bGPDlayer", 1, gpl);
+		if (gpd->id.us>0 || wd->current) {
+			/* write gpd data block to file */
+			writestruct(wd, ID_GD, "bGPdata", 1, gpd);
 			
-			/* write this layer's frames to file */
-			for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
-				writestruct(wd, DATA, "bGPDframe", 1, gpf);
+			/* write grease-pencil layers to file */
+			for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+				writestruct(wd, DATA, "bGPDlayer", 1, gpl);
 				
-				/* write strokes */
-				for (gps= gpf->strokes.first; gps; gps= gps->next) {
-					writestruct(wd, DATA, "bGPDstroke", 1, gps);
-					writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);				
+				/* write this layer's frames to file */
+				for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+					writestruct(wd, DATA, "bGPDframe", 1, gpf);
+					
+					/* write strokes */
+					for (gps= gpf->strokes.first; gps; gps= gps->next) {
+						writestruct(wd, DATA, "bGPDstroke", 1, gps);
+						writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);				
+					}
 				}
 			}
 		}
@@ -2096,6 +2142,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					ConsoleLine *cl;
 
 					for (cl=con->history.first; cl; cl=cl->next) {
+						/* 'len_alloc' is invalid on write, set from 'len' on read */
 						writestruct(wd, DATA, "ConsoleLine", 1, cl);
 						writedata(wd, DATA, cl->len+1, cl->line);
 					}
@@ -2345,6 +2392,10 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	bScreen *screen;
 	char subvstr[8];
 	
+	/* prevent mem checkers from complaining */
+	fg.pads= fg.pad= 0;
+	memset(fg.filename, 0, sizeof(fg.filename));
+
 	current_screen_compat(mainvar, &screen);
 
 	/* XXX still remap G */
@@ -2362,7 +2413,14 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	fg.subversion= BLENDER_SUBVERSION;
 	fg.minversion= BLENDER_MINVERSION;
 	fg.minsubversion= BLENDER_MINSUBVERSION;
-	fg.pads= 0; /* prevent mem checkers from complaining */
+#ifdef NAN_BUILDINFO
+	{
+		extern char build_rev[];
+		fg.revision= atoi(build_rev);
+	}
+#else
+	fg.revision= 0;
+#endif
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }
 
@@ -2474,14 +2532,14 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 		if(strcmp(dir1, dir2)==0)
 			write_flags &= ~G_FILE_RELATIVE_REMAP;
 		else
-			makeFilesAbsolute(G.sce, NULL);
+			makeFilesAbsolute(mainvar, G.main->name, NULL);
 	}
 
-	BLI_make_file_string(G.sce, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
+	BLI_make_file_string(G.main->name, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	write_user_block= BLI_streq(dir, userfilename);
 
 	if(write_flags & G_FILE_RELATIVE_REMAP)
-		makeFilesRelative(dir, NULL); /* note, making relative to something OTHER then G.sce */
+		makeFilesRelative(mainvar, dir, NULL); /* note, making relative to something OTHER then G.main->name */
 
 	/* actual file writing */
 	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags, thumb);
@@ -2533,7 +2591,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 }
 
 /* return: success (1) */
-int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags, ReportList *reports)
+int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags)
 {
 	int err;
 

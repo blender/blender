@@ -100,7 +100,7 @@ class KX_Scene : public PyObjectPlus, public SCA_IScene
 {
 	Py_Header;
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	PyObject*	m_attr_dict;
 	PyObject*	m_draw_call_pre;
 	PyObject*	m_draw_call_post;
@@ -137,6 +137,13 @@ protected:
 	 * The set of cameras for this scene
 	 */
 	list<class KX_Camera*>       m_cameras;
+
+	/**
+	 * The set of fonts for this scene
+	 */
+	list<class KX_FontObject*>       m_fonts;
+
+
 	/**
 	 * Various SCA managers used by the scene
 	 */
@@ -365,6 +372,27 @@ public:
 	GetTimeEventManager(
 	);
 
+	/** Font Routines */
+		
+		list<class KX_FontObject*>*
+	GetFonts(
+	);
+
+	/** Find a font in the scene by pointer. */
+		KX_FontObject*              
+	FindFont(
+		KX_FontObject*
+	);
+
+	/** Add a camera to this scene. */
+		void                    
+	AddFont(
+		KX_FontObject*
+	);
+
+
+	/** Camera Routines */
+
 		list<class KX_Camera*>*
 	GetCameras(
 	);
@@ -550,7 +578,7 @@ public:
 
 	KX_ObstacleSimulation* GetObstacleSimulation() {return m_obstacleSimulation;};
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
@@ -563,6 +591,7 @@ public:
 	KX_PYMETHOD_DOC(KX_Scene, resume);
 	KX_PYMETHOD_DOC(KX_Scene, get);
 	KX_PYMETHOD_DOC(KX_Scene, drawObstacleSimulation);
+
 
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
@@ -621,7 +650,6 @@ public:
 	//void PrintStats(int verbose_level) {
 	//	m_bucketmanager->PrintStats(verbose_level)
 	//}
-
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

@@ -147,10 +147,10 @@ void ImageBuff::plot (unsigned char * img, short width, short height, short x, s
 
 	if (!m_imbuf) {
 		// allocate most basic imbuf, we will assign the rect buffer on the fly
-		m_imbuf = IMB_allocImBuf(m_size[0], m_size[1], 0, 0, 0);
+		m_imbuf = IMB_allocImBuf(m_size[0], m_size[1], 0, 0);
 	}
 
-	tmpbuf = IMB_allocImBuf(width, height, 0, 0, 0);
+	tmpbuf = IMB_allocImBuf(width, height, 0, 0);
 
 	// assign temporarily our buffer to the ImBuf buffer, we use the same format
 	tmpbuf->rect = (unsigned int*)img;
@@ -169,11 +169,11 @@ void ImageBuff::plot (ImageBuff* img, short x, short y, short mode)
 
 	if (!m_imbuf) {
 		// allocate most basic imbuf, we will assign the rect buffer on the fly
-		m_imbuf = IMB_allocImBuf(m_size[0], m_size[1], 0, 0, 0);
+		m_imbuf = IMB_allocImBuf(m_size[0], m_size[1], 0, 0);
 	}
 	if (!img->m_imbuf) {
 		// allocate most basic imbuf, we will assign the rect buffer on the fly
-		img->m_imbuf = IMB_allocImBuf(img->m_size[0], img->m_size[1], 0, 0, 0);
+		img->m_imbuf = IMB_allocImBuf(img->m_size[0], img->m_size[1], 0, 0);
 	}
 	// assign temporarily our buffer to the ImBuf buffer, we use the same format
 	img->m_imbuf->rect = img->m_image;

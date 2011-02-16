@@ -42,6 +42,7 @@ struct bSound;
 
 typedef struct StripElem {
 	char name[80];
+	int orig_width, orig_height;
 } StripElem;
 
 typedef struct StripCrop {
@@ -81,7 +82,6 @@ typedef struct Strip {
 	int startstill, endstill;
 	StripElem *stripdata;
 	char dir[160];
-	int orx, ory;
 	StripProxy *proxy;
 	StripCrop *crop;
 	StripTransform *transform;
@@ -231,6 +231,8 @@ typedef struct SpeedControlVars {
 	int length;
 	int lastValidFrame;
 } SpeedControlVars;
+
+#define SELECT 1
 
 /* Editor->over_flag */
 #define SEQ_EDIT_OVERLAY_SHOW			1

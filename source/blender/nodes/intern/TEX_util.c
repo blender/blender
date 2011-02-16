@@ -29,11 +29,11 @@
 /*
 	HOW TEXTURE NODES WORK
 
-	In contrast to Shader nodes, which place a colour into the output
+	In contrast to Shader nodes, which place a color into the output
 	stack when executed, Texture nodes place a TexDelegate* there. To
-	obtain a colour value from this, a node further up the chain reads
+	obtain a color value from this, a node further up the chain reads
 	the TexDelegate* from its input stack, and uses tex_call_delegate to
-	retrieve the colour from the delegate.
+	retrieve the color from the delegate.
  
 	comments: (ton)
     
@@ -173,7 +173,7 @@ int ntreeTexExecTree(
 	float *dxt, float *dyt,
 	int osatex,
 	short thread, 
-	Tex *tex, 
+	Tex *UNUSED(tex), 
 	short which_output, 
 	int cfra,
 	int preview,
@@ -181,6 +181,7 @@ int ntreeTexExecTree(
 	MTex *mtex
 ){
 	TexCallData data;
+	float *nor= texres->nor;
 	int retval = TEX_INT;
 
 	data.co = co;
@@ -199,6 +200,9 @@ int ntreeTexExecTree(
 
 	if(texres->nor) retval |= TEX_NOR;
 	retval |= TEX_RGB;
+	/* confusing stuff; the texture output node sets this to NULL to indicate no normal socket was set
+	   however, the texture code checks this for other reasons (namely, a normal is required for material) */
+	texres->nor= nor;
 
 	return retval;
 }

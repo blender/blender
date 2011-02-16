@@ -34,6 +34,9 @@
 
 #include "DNA_material_types.h"
 
+#include "BLI_utildefines.h"
+
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
@@ -94,24 +97,24 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 			mtex=ma->mtex[i];
 			if(mtex && (ma->septex & (1<<i))==0)
 				if(mtex->pmapto && (mtex->texco & TEXCO_UV))
-					dataMask |= (1 << CD_MTFACE);
+					dataMask |= CD_MASK_MTFACE;
 		}
 	}
 
 	if(psmd->psys->part->tanfac!=0.0)
-		dataMask |= (1 << CD_MTFACE);
+		dataMask |= CD_MASK_MTFACE;
 
 	/* ask for vertexgroups if we need them */
 	for(i=0; i<PSYS_TOT_VG; i++){
 		if(psmd->psys->vgroup[i]){
-			dataMask |= (1 << CD_MDEFORMVERT);
+			dataMask |= CD_MASK_MDEFORMVERT;
 			break;
 		}
 	}
 	
 	/* particles only need this if they are after a non deform modifier, and
 	* the modifier stack will only create them in that case. */
-	dataMask |= CD_MASK_ORIGSPACE;
+	dataMask |= CD_MASK_ORIGSPACE|CD_MASK_ORIGINDEX;
 
 	dataMask |= CD_MASK_ORCO;
 	
@@ -119,9 +122,12 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 }
 
 /* saves the current emitter state for a particle system and calculates particles */
-static void deformVerts(
-						   ModifierData *md, Object *ob, DerivedMesh *derivedData,
-		float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int UNUSED(numVerts),
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
@@ -137,7 +143,7 @@ static void deformVerts(
 		return;
 
 	if(dm==0) {
-		dm= get_dm(md->scene, ob, NULL, NULL, vertexCos, 1);
+		dm= get_dm(ob, NULL, NULL, vertexCos, 1);
 
 		if(!dm)
 			return;
@@ -149,6 +155,14 @@ static void deformVerts(
 	if(psmd->dm){
 		psmd->dm->needsFree = 1;
 		psmd->dm->release(psmd->dm);
+	}
+	else if(psmd->flag & eParticleSystemFlag_file_loaded) {
+		/* in file read dm just wasn't saved in file so no need to reset everything */
+		psmd->flag &= ~eParticleSystemFlag_file_loaded;
+	}
+	else {
+		/* no dm before, so recalc particles fully */
+		psys->recalc |= PSYS_RECALC_RESET;
 	}
 
 	/* make new dm */
@@ -168,10 +182,8 @@ static void deformVerts(
 	if(psmd->dm->getNumVerts(psmd->dm)!=psmd->totdmvert ||
 		  psmd->dm->getNumEdges(psmd->dm)!=psmd->totdmedge ||
 		  psmd->dm->getNumFaces(psmd->dm)!=psmd->totdmface){
-		/* in file read dm hasn't really changed but just wasn't saved in file */
 
 		psys->recalc |= PSYS_RECALC_RESET;
-		psmd->flag |= eParticleSystemFlag_DM_changed;
 
 		psmd->totdmvert= psmd->dm->getNumVerts(psmd->dm);
 		psmd->totdmedge= psmd->dm->getNumEdges(psmd->dm);
@@ -182,7 +194,6 @@ static void deformVerts(
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
 		particle_system_update(md->scene, ob, psys);
 		psmd->flag |= eParticleSystemFlag_psys_updated;
-		psmd->flag &= ~eParticleSystemFlag_DM_changed;
 	}
 }
 
@@ -218,6 +229,7 @@ ModifierTypeInfo modifierType_ParticleSystem = {
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
 	/* deformVertsEM */     0 /* deformVertsEM */ ,
+	/* deformMatrices */    0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     0,
 	/* applyModifierEM */   0,
@@ -227,6 +239,7 @@ ModifierTypeInfo modifierType_ParticleSystem = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    0,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

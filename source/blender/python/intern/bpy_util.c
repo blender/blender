@@ -31,8 +31,8 @@
 #include "../generic/py_capi_utils.h"
 
 bContext*	__py_context = NULL;
-bContext*	BPy_GetContext(void) { return __py_context; };
-void		BPy_SetContext(bContext *C) { __py_context= C; };
+bContext*	BPy_GetContext(void) { return __py_context; }
+void		BPy_SetContext(bContext *C) { __py_context= C; }
 
 int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_class, BPY_class_attr_check* class_attrs, PyObject **py_class_attrs)
 {
@@ -43,7 +43,7 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 	if (base_class) {
 		if (!PyObject_IsSubclass(class, base_class)) {
 			PyObject *name= PyObject_GetAttrString(base_class, "__name__");
-			PyErr_Format( PyExc_AttributeError, "expected %s subclass of class \"%s\"", class_type, name ? _PyUnicode_AsString(name):"<UNKNOWN>");
+			PyErr_Format(PyExc_AttributeError, "expected %s subclass of class \"%s\"", class_type, name ? _PyUnicode_AsString(name):"<UNKNOWN>");
 			Py_XDECREF(name);
 			return -1;
 		}
@@ -57,7 +57,7 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 		
 		if (item==NULL) {
 			if ((class_attrs->flag & BPY_CLASS_ATTR_OPTIONAL)==0) {
-				PyErr_Format( PyExc_AttributeError, "expected %s class to have an \"%s\" attribute", class_type, class_attrs->name);
+				PyErr_Format(PyExc_AttributeError, "expected %s class to have an \"%s\" attribute", class_type, class_attrs->name);
 				return -1;
 			}
 
@@ -73,22 +73,22 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 				switch(class_attrs->type) {
 				case 's':
 					if (PyUnicode_Check(item)==0) {
-						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute to be a string", class_type, class_attrs->name);
+						PyErr_Format(PyExc_AttributeError, "expected %s class \"%s\" attribute to be a string", class_type, class_attrs->name);
 						return -1;
 					}
 					if(class_attrs->len != -1 && class_attrs->len < PyUnicode_GetSize(item)) {
-						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute string to be shorter then %d", class_type, class_attrs->name, class_attrs->len);
+						PyErr_Format(PyExc_AttributeError, "expected %s class \"%s\" attribute string to be shorter then %d", class_type, class_attrs->name, class_attrs->len);
 						return -1;
 					}
 
 					break;
 				case 'l':
 					if (PyList_Check(item)==0) {
-						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute to be a list", class_type, class_attrs->name);
+						PyErr_Format(PyExc_AttributeError, "expected %s class \"%s\" attribute to be a list", class_type, class_attrs->name);
 						return -1;
 					}
 					if(class_attrs->len != -1 && class_attrs->len < PyList_GET_SIZE(item)) {
-						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute list to be shorter then %d", class_type, class_attrs->name, class_attrs->len);
+						PyErr_Format(PyExc_AttributeError, "expected %s class \"%s\" attribute list to be shorter then %d", class_type, class_attrs->name, class_attrs->len);
 						return -1;
 					}
 					break;
@@ -99,7 +99,7 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 						fitem= item; /* py 3.x */
 
 					if (PyFunction_Check(fitem)==0) {
-						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute to be a function", class_type, class_attrs->name);
+						PyErr_Format(PyExc_AttributeError, "expected %s class \"%s\" attribute to be a function", class_type, class_attrs->name);
 						return -1;
 					}
 					if (class_attrs->arg_count >= 0) { /* -1 if we dont care*/
@@ -108,7 +108,7 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 						Py_DECREF(py_arg_count);
 
 						if (arg_count != class_attrs->arg_count) {
-							PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" function to have %d args", class_type, class_attrs->name, class_attrs->arg_count);
+							PyErr_Format(PyExc_AttributeError, "expected %s class \"%s\" function to have %d args", class_type, class_attrs->name, class_attrs->arg_count);
 							return -1;
 						}
 					}
@@ -138,11 +138,15 @@ char *BPy_enum_as_string(EnumPropertyItem *item)
 	return cstring;
 }
 
-int BPy_reports_to_error(ReportList *reports)
+short BPy_reports_to_error(ReportList *reports, const short clear)
 {
 	char *report_str;
 
 	report_str= BKE_reports_string(reports, RPT_ERROR);
+
+	if(clear) {
+		BKE_reports_clear(reports);
+	}
 
 	if(report_str) {
 		PyErr_SetString(PyExc_SystemError, report_str);
@@ -153,7 +157,7 @@ int BPy_reports_to_error(ReportList *reports)
 }
 
 
-int BPy_errors_to_report(ReportList *reports)
+short BPy_errors_to_report(ReportList *reports)
 {
 	PyObject *pystring;
 	PyObject *pystring_format= NULL; // workaround, see below
@@ -201,7 +205,7 @@ int BPy_errors_to_report(ReportList *reports)
 }
 
 /* array utility function */
-int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, char *error_prefix)
+int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, const char *error_prefix)
 {
 	PyObject *value_fast;
 	int value_len;
@@ -215,7 +219,7 @@ int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, ch
 
 	if(value_len != length) {
 		Py_DECREF(value);
-		PyErr_Format(PyExc_TypeError, "%s: invalid sequence length. expected %d, got %d.", error_prefix, length, value_len);
+		PyErr_Format(PyExc_TypeError, "%.200s: invalid sequence length. expected %d, got %d", error_prefix, length, value_len);
 		return -1;
 	}
 
@@ -240,14 +244,14 @@ int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, ch
 	}
 	else {
 		Py_DECREF(value_fast);
-		PyErr_Format(PyExc_TypeError, "%s: internal error %s is invalid.", error_prefix, type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s: internal error %s is invalid", error_prefix, type->tp_name);
 		return -1;
 	}
 
 	Py_DECREF(value_fast);
 
 	if(PyErr_Occurred()) {
-		PyErr_Format(PyExc_TypeError, "%s: one or more items could not be used as a %s.", error_prefix, type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s: one or more items could not be used as a %s", error_prefix, type->tp_name);
 		return -1;
 	}
 

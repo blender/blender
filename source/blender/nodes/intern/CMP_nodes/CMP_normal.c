@@ -52,7 +52,7 @@ static void do_normal(bNode *node, float *out, float *in)
 }
 
 /* generates normal, does dot product */
-static void node_composit_exec_normal(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_normal(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	bNodeSocket *sock= node->outputs.first;
 	/* stack order input:  normal */
@@ -77,21 +77,16 @@ static void node_composit_exec_normal(void *data, bNode *node, bNodeStack **in, 
 	
 }
 
-bNodeType cmp_node_normal= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_NORMAL,
-	/* name        */	"Normal",
-	/* width+range */	100, 60, 200,
-	/* class+opts  */	NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_normal_in,
-	/* output sock */	cmp_node_normal_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_normal,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_normal(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
+		cmp_node_normal_in, cmp_node_normal_out);
+	node_type_size(&ntype, 100, 60, 200);
+	node_type_exec(&ntype, node_composit_exec_normal);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

@@ -43,8 +43,6 @@ void ED_render_id_flush_update(struct Main *bmain, struct ID *id);
 
 /* render_preview.c */
 
-#define _RENDERSIZE 140
-
 /* stores rendered preview  - is also used for icons */
 typedef struct RenderInfo {
 	int pr_rectx;

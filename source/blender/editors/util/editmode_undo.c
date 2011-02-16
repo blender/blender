@@ -37,13 +37,14 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
+
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
-
 
 #include "ED_mesh.h"
 
@@ -55,7 +56,7 @@
 
 Add this in your local code:
 
-void undo_editmode_push(bContext *C, char *name, 
+void undo_editmode_push(bContext *C, const char *name, 
 		void * (*getdata)(bContext *C),     // use context to retrieve current editdata
 		void (*freedata)(void *), 			// pointer to function freeing data
 		void (*to_editmode)(void *, void *),        // data to editmode conversion
@@ -74,7 +75,7 @@ void undo_editmode_menu(void)				// history menu
 /* ********************************************************************* */
 
 /* ****** XXX ***** */
-void error(const char *dummy) {}
+void error(const char *UNUSED(arg)) {}
 /* ****** XXX ***** */
 
 
@@ -108,7 +109,7 @@ static void undo_restore(UndoElem *undo, void *editdata)
 }
 
 /* name can be a dynamic string */
-void undo_editmode_push(bContext *C, char *name, 
+void undo_editmode_push(bContext *C, const char *name, 
 						void * (*getdata)(bContext *C),
 						void (*freedata)(void *), 
 						void (*to_editmode)(void *, void *),  
@@ -268,7 +269,7 @@ void undo_editmode_step(bContext *C, int step)
 		EM_selectmode_to_scene(CTX_data_scene(C), obedit);
 	}
 
-	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 
 	/* XXX notifiers */
 }
@@ -313,6 +314,20 @@ void undo_editmode_name(bContext *C, const char *undoname)
 	}
 }
 
+/* undoname optionally, if NULL it just checks for existing undo steps */
+int undo_editmode_valid(const char *undoname)
+{
+	if(undoname) {
+		UndoElem *uel;
+		
+		for(uel= undobase.last; uel; uel= uel->prev) {
+			if(strcmp(undoname, uel->name)==0)
+				break;
+		}
+		return uel != NULL;
+	}
+	return undobase.last != undobase.first;
+}
 
 /* ************** for interaction with menu/pullown */
 
@@ -341,7 +356,7 @@ void undo_editmode_menu(bContext *C)
 	if(event>0) undo_number(C, event);
 }
 
-static void do_editmode_undohistorymenu(bContext *C, void *arg, int event)
+static void do_editmode_undohistorymenu(bContext *C, void *UNUSED(arg), int event)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	
@@ -351,7 +366,7 @@ static void do_editmode_undohistorymenu(bContext *C, void *arg, int event)
 	
 }
 
-uiBlock *editmode_undohistorymenu(bContext *C, ARegion *ar, void *arg_unused)
+uiBlock *editmode_undohistorymenu(bContext *C, ARegion *ar, void *UNUSED(arg))
 {
 	uiBlock *block;
 	UndoElem *uel;

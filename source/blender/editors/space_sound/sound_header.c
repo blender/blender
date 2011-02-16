@@ -33,13 +33,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
 
 #include "BKE_context.h"
 
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
-
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -53,12 +54,12 @@
 
 /* ************************ header area region *********************** */
 
-static void do_viewmenu(bContext *C, void *arg, int event)
+static void do_viewmenu(bContext *UNUSED(C), void *UNUSED(arg), int UNUSED(event))
 {
 	
 }
 
-static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
+static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *UNUSED(arg))
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	uiBlock *block;
@@ -84,7 +85,7 @@ static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static void do_sound_buttons(bContext *C, void *arg, int event)
+static void do_sound_buttons(bContext *UNUSED(C), void *UNUSED(arg), int event)
 {
 	switch(event) {
 	}

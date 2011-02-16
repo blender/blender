@@ -87,7 +87,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
-
+#include "BLI_utildefines.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -269,7 +269,7 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 	 *	- we're not only keying for available channels
 	 *	- the option to add new actions for each round is not enabled
 	 */
-	if (IS_AUTOKEY_FLAG(INSERTAVAIL)==0 && (scene->toolsettings->autokey_flag & ANIMRECORD_FLAG_WITHNLA)) {
+	if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL)==0 && (scene->toolsettings->autokey_flag & ANIMRECORD_FLAG_WITHNLA)) {
 		/* if playback has just looped around, we need to add a new NLA track+strip to allow a clean pass to occur */
 		if ((sad) && (sad->flag & ANIMPLAY_FLAG_JUMPED)) {
 			AnimData *adt= BKE_animdata_from_id(id);
@@ -321,8 +321,7 @@ static int fcu_test_selected(FCurve *fcu)
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
-	Scene *scene = t->scene;
-	Base *base = scene->basact;
+	Base *base = t->scene->basact;
 
 	if (t->spacetype==SPACE_NODE) {
 		flushTransNodes(t);
@@ -334,15 +333,13 @@ void recalcData(TransInfo *t)
 		Scene *scene= t->scene;
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		
-		bAnimContext ac;
+		bAnimContext ac= {0};
 		ListBase anim_data = {NULL, NULL};
 		bAnimListElem *ale;
 		int filter;
 		
 		/* initialise relevant anim-context 'context' data from TransInfo data */
 			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
-		memset(&ac, 0, sizeof(bAnimContext));
-		
 		ac.scene= t->scene;
 		ac.obact= OBACT;
 		ac.sa= t->sa;
@@ -352,22 +349,29 @@ void recalcData(TransInfo *t)
 		
 		ANIM_animdata_context_getdata(&ac);
 		
-		/* get animdata blocks visible in editor, assuming that these will be the ones where things changed */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
-		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-		
-		/* just tag these animdata-blocks to recalc, assuming that some data there changed 
-		 * BUT only do this if realtime updates are enabled
-		 */
-		if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
-			for (ale= anim_data.first; ale; ale= ale->next) {
-				/* set refresh tags for objects using this animation */
-				ANIM_list_elem_update(t->scene, ale);
-			}
+		/* perform flush */
+		if (ac.datatype == ANIMCONT_GPENCIL) {
+			/* flush transform values back to actual coordinates */
+			flushTransGPactionData(t);
 		}
-		
-		/* now free temp channels */
-		BLI_freelistN(&anim_data);
+		else {
+			/* get animdata blocks visible in editor, assuming that these will be the ones where things changed */
+			filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
+			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+			
+			/* just tag these animdata-blocks to recalc, assuming that some data there changed 
+			 * BUT only do this if realtime updates are enabled
+			 */
+			if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
+				for (ale= anim_data.first; ale; ale= ale->next) {
+					/* set refresh tags for objects using this animation */
+					ANIM_list_elem_update(t->scene, ale);
+				}
+			}
+			
+			/* now free temp channels */
+			BLI_freelistN(&anim_data);
+		}
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		Scene *scene;
@@ -584,7 +588,7 @@ void recalcData(TransInfo *t)
 							BKE_nlatrack_add_strip(track, strip);
 							
 							tdn->nlt= track;
-							tdn->trackIndex += (n + 1); /* + 1, since n==0 would mean that we didn't change track */
+							tdn->trackIndex++;
 						}
 						else /* can't move any further */
 							break;
@@ -602,7 +606,7 @@ void recalcData(TransInfo *t)
 							BKE_nlatrack_add_strip(track, strip);
 							
 							tdn->nlt= track;
-							tdn->trackIndex -= (n - 1); /* - 1, since n==0 would mean that we didn't change track */
+							tdn->trackIndex--;
 						}
 						else /* can't move any further */
 							break;
@@ -619,15 +623,10 @@ void recalcData(TransInfo *t)
 			if(sima->flag & SI_LIVE_UNWRAP)
 				ED_uvedit_live_unwrap_re_solve();
 			
-			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);
+			DAG_id_tag_update(t->obedit->data, 0);
 		}
 	}
 	else if (t->spacetype == SPACE_VIEW3D) {
-		
-		/* project */
-		if(t->state != TRANS_CANCEL) {
-			applyProject(t);
-		}
 		
 		if (t->obedit) {
 			if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
@@ -637,9 +636,10 @@ void recalcData(TransInfo *t)
 
 				if(t->state != TRANS_CANCEL) {
 					clipMirrorModifier(t, t->obedit);
+					applyProject(t);
 				}
 
-				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 
 				if (t->state == TRANS_CANCEL) {
 					while(nu) {
@@ -657,7 +657,12 @@ void recalcData(TransInfo *t)
 			}
 			else if(t->obedit->type==OB_LATTICE) {
 				Lattice *la= t->obedit->data;
-				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+
+				if(t->state != TRANS_CANCEL) {
+					applyProject(t);
+				}
+
+				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 	
 				if(la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
 			}
@@ -666,11 +671,12 @@ void recalcData(TransInfo *t)
 				/* mirror modifier clipping? */
 				if(t->state != TRANS_CANCEL) {
 					clipMirrorModifier(t, t->obedit);
+					applyProject(t);
 				}
 				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
 					editmesh_apply_to_mirror(t);
 					
-				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 				
 				recalc_editnormals(em);
 			}
@@ -681,6 +687,10 @@ void recalcData(TransInfo *t)
 				TransData *td = t->data;
 				int i;
 				
+				if(t->state != TRANS_CANCEL) {
+					applyProject(t);
+				}
+
 				/* Ensure all bones are correctly adjusted */
 				for (ebo = edbo->first; ebo; ebo = ebo->next){
 					
@@ -743,7 +753,7 @@ void recalcData(TransInfo *t)
 								mul_m3_v3(t->mat, up_axis);
 							}
 							
-							ebo->roll = ED_rollBoneToVector(ebo, up_axis);
+							ebo->roll = ED_rollBoneToVector(ebo, up_axis, FALSE);
 						}
 					}
 				}
@@ -753,7 +763,12 @@ void recalcData(TransInfo *t)
 				
 			}
 			else
-				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+			{
+				if(t->state != TRANS_CANCEL) {
+					applyProject(t);
+				}
+				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
+			}
 		}
 		else if( (t->flag & T_POSE) && t->poseobj) {
 			Object *ob= t->poseobj;
@@ -762,28 +777,37 @@ void recalcData(TransInfo *t)
 			/* if animtimer is running, and the object already has animation data,
 			 * check if the auto-record feature means that we should record 'samples'
 			 * (i.e. uneditable animation values)
+			 *
+			 * context is needed for keying set poll() functions.
 			 */
 			// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-			if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+			if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
 				int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
 				
 				animrecord_check_state(t->scene, &ob->id, t->animtimer);
-				autokeyframe_pose_cb_func(NULL, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
+				autokeyframe_pose_cb_func(t->context, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
 			}
 			
 			/* old optimize trick... this enforces to bypass the depgraph */
 			if (!(arm->flag & ARM_DELAYDEFORM)) {
-				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 			}
 			else
-				where_is_pose(scene, ob);
+				where_is_pose(t->scene, ob);
 		}
-		else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(scene, base->object)) {
+		else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, base->object)) {
+			if(t->state != TRANS_CANCEL) {
+				applyProject(t);
+			}
 			flushTransParticles(t);
 		}
 		else {
 			int i;
 			
+			if(t->state != TRANS_CANCEL) {
+				applyProject(t);
+			}
+
 			for (i = 0; i < t->total; i++) {
 				TransData *td = t->data + i;
 				Object *ob = td->ob;
@@ -801,13 +825,13 @@ void recalcData(TransInfo *t)
 				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
 				if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
 					animrecord_check_state(t->scene, &ob->id, t->animtimer);
-					autokeyframe_ob_cb_func(NULL, t->scene, (View3D *)t->view, ob, t->mode);
+					autokeyframe_ob_cb_func(t->context, t->scene, (View3D *)t->view, ob, t->mode);
 				}
 				
 				/* sets recalc flags fully, instead of flushing existing ones 
 				 * otherwise proxies don't function correctly
 				 */
-				DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+				DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 		}
 		
@@ -819,7 +843,7 @@ void recalcData(TransInfo *t)
 void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
 {
 	float v1[3], v2[3], v3[3];
-	char col[3], col2[3];
+	unsigned char col[3], col2[3];
 
 	if (t->spacetype == SPACE_VIEW3D)
 	{
@@ -843,7 +867,7 @@ void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
 			UI_GetThemeColor3ubv(TH_GRID, col);
 		}
 		UI_make_axis_color(col, col2, axis);
-		glColor3ubv((GLubyte *)col2);
+		glColor3ubv(col2);
 		
 		setlinestyle(0);
 		glBegin(GL_LINE_STRIP);
@@ -966,6 +990,13 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		{
 			t->current_orientation = v3d->twmode;
 		}
+
+		/* exceptional case */
+		if(t->around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
+			if(ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL)) {
+				t->options |= CTX_NO_PET;
+			}
+		}
 	}
 	else if(t->spacetype==SPACE_IMAGE || t->spacetype==SPACE_NODE)
 	{
@@ -1068,8 +1099,9 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		
 		
 		/* TRANSFORM_FIX_ME rna restrictions */
-		if (t->prop_size <= 0)
+		if (t->prop_size <= 0.00001f)
 		{
+			printf("Proportional size (%f) under 0.00001, reseting to 1!\n", t->prop_size);
 			t->prop_size = 1.0f;
 		}
 		
@@ -1141,6 +1173,13 @@ void postTrans (bContext *C, TransInfo *t)
 		if(sima->flag & SI_LIVE_UNWRAP)
 			ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
 	}
+	else if(t->spacetype==SPACE_VIEW3D) {
+		View3D *v3d = t->sa->spacedata.first;
+		/* restore manipulator */
+		if (t->flag & T_MODAL) {
+			v3d->twtype = t->twtype;
+		}
+	}
 	
 	if (t->mouse.data)
 	{
@@ -1177,6 +1216,13 @@ static void restoreElement(TransData *td) {
 		if (td->ext->rot) {
 			VECCOPY(td->ext->rot, td->ext->irot);
 		}
+		if(td->ext->rotAngle) {
+			*td->ext->rotAngle= td->ext->irotAngle;
+		}
+		if(td->ext->rotAxis) {
+			VECCOPY(td->ext->rotAxis, td->ext->irotAxis);
+		}
+		/* XXX, drotAngle & drotAxis not used yet */
 		if (td->ext->size) {
 			VECCOPY(td->ext->size, td->ext->isize);
 		}
@@ -1322,7 +1368,7 @@ void calculateCenterBound(TransInfo *t)
 		if (i) {
 			if (t->data[i].flag & TD_SELECTED) {
 				if (!(t->data[i].flag & TD_NOCENTER))
-					minmax_v3_v3v3(min, max, t->data[i].center);
+					minmax_v3v3_v3(min, max, t->data[i].center);
 			}
 			else {
 				/*
@@ -1562,26 +1608,4 @@ void calculatePropRatio(TransInfo *t)
 		}
 		strcpy(t->proptext, "");
 	}
-}
-
-float get_drawsize(ARegion *ar, float *co)
-{
-	RegionView3D *rv3d= ar->regiondata;
-	float size, vec[3], len1, len2;
-	
-	/* size calculus, depending ortho/persp settings, like initgrabz() */
-	size= rv3d->persmat[0][3]*co[0]+ rv3d->persmat[1][3]*co[1]+ rv3d->persmat[2][3]*co[2]+ rv3d->persmat[3][3];
-	
-	VECCOPY(vec, rv3d->persinv[0]);
-	len1= normalize_v3(vec);
-	VECCOPY(vec, rv3d->persinv[1]);
-	len2= normalize_v3(vec);
-	
-	size*= 0.01f*(len1>len2?len1:len2);
-	
-	/* correct for window size to make widgets appear fixed size */
-	if(ar->winx > ar->winy) size*= 1000.0f/(float)ar->winx;
-	else size*= 1000.0f/(float)ar->winy;
-	
-	return size;
 }

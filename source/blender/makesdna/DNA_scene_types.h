@@ -221,8 +221,8 @@ typedef struct RenderData {
 	float edgeR, edgeG, edgeB;
 	
 	short fullscreen, xplay, yplay, freqplay;	/* standalone player */  //  XXX deprecated since 2.5
-	short depth, attrib, rt2;			/* standalone player */  //  XXX deprecated since 2.5
-	short frame_step;		/* frames to jump during render/playback */
+	short depth, attrib;			/* standalone player */  //  XXX deprecated since 2.5
+	int frame_step;		/* frames to jump during render/playback */
 
 	short stereomode;	/* standalone player stereo settings */  //  XXX deprecated since 2.5
 	
@@ -458,12 +458,13 @@ typedef struct GameData {
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
 	*/
-	short mode, flag, matmode/*, pad[2]*/;
+	short mode, flag, matmode, pad[2];
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
 	short physicsEngine;
 	short ticrate, maxlogicstep, physubstep, maxphystep;
 	short obstacleSimulation;
 	float levelHeight;
+
 
 	/*  standalone player */
 	struct GameFraming framing;
@@ -472,8 +473,8 @@ typedef struct GameData {
 
 	/* stereo/dome mode */
 	struct GameDome dome;
-	short stereoflag, stereomode, xsch, ysch; //xsch and ysch can be deleted !!!
-	float eyeseparation;
+	short stereoflag, stereomode, xsch, ysch; //xsch and ysch used for backwards compat.
+	float eyeseparation, pad1;
 	RecastData recastData;
 } GameData;
 
@@ -517,7 +518,8 @@ typedef struct GameData {
 #define GAME_GLSL_NO_EXTRA_TEX				(1 << 11)
 #define GAME_IGNORE_DEPRECATION_WARNINGS	(1 << 12)
 #define GAME_ENABLE_ANIMATION_RECORD		(1 << 13)
-#define GAME_SHOW_OBSTACLE_SIMULATION		(1 << 14)
+#define GAME_SHOW_MOUSE						(1 << 14)
+#define GAME_SHOW_OBSTACLE_SIMULATION		(1 << 15)
 
 /* GameData.matmode */
 #define GAME_MAT_TEXFACE	0
@@ -683,8 +685,11 @@ typedef struct ToolSettings {
 	short uvcalc_mapalign;
 	short uvcalc_flag;
 	short uv_flag, uv_selectmode;
-	short uv_pad[2];
-
+	short uv_pad;
+	
+	/* Grease Pencil */
+	short gpencil_flags;
+	
 	/* Auto-IK */
 	short autoik_chainlen;
 
@@ -769,8 +774,10 @@ typedef struct bStats {
 typedef struct UnitSettings {
 	/* Display/Editing unit options for each scene */
 	float scale_length; /* maybe have other unit conversions? */
-	short system;
-	short flag; /* imperial, metric etc */
+	char system; /* imperial, metric etc */
+	char system_rotation; /* not implimented as a propper unit system yet */
+	short flag;
+	
 } UnitSettings;
 
 typedef struct PhysicsSettings {
@@ -786,7 +793,6 @@ typedef struct Scene {
 	struct World *world;
 	
 	struct Scene *set;
-	struct Image *ima;
 	
 	ListBase base;
 	struct Base *basact;		/* active base */
@@ -798,7 +804,7 @@ typedef struct Scene {
 	
 	unsigned int lay;			/* bitflags for layer visibility */
 	int layact;		/* active layer */
-	int pad1;
+	unsigned int customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by object_handle_update() */
 	
 	short flag;								/* various settings */
 	
@@ -830,7 +836,7 @@ typedef struct Scene {
 	short dagisvalid, dagflags;
 	short recalc;				/* recalc = counterpart of ob->recalc */
 
-	short jumpframe;
+	short pad6;
 	int pad5;
 
 	/* User-Defined KeyingSets */
@@ -854,12 +860,6 @@ typedef struct Scene {
 
 /* **************** RENDERDATA ********************* */
 
-/* bufflag */
-#define R_BACKBUF		1
-#define R_BACKBUFANIM	2
-#define R_FRONTBUF		4
-#define R_FRONTBUFANIM	8
-
 /* flag */
 	/* use preview range */
 #define SCER_PRV_RANGE	(1<<0)
@@ -877,7 +877,7 @@ typedef struct Scene {
 #define R_BORDER		0x0200
 #define R_PANORAMA		0x0400	/* deprecated as scene option, still used in renderer */
 #define R_CROP			0x0800
-#define R_COSMO			0x1000
+/*#define R_COSMO			0x1000 deprecated */
 #define R_ODDFIELD		0x2000
 #define R_MBLUR			0x4000
 		/* unified was here */
@@ -885,7 +885,7 @@ typedef struct Scene {
 		/* R_GAUSS is obsolete, but used to retrieve setting from old files */
 #define R_GAUSS      	0x20000
 		/* fbuf obsolete... */
-#define R_FBUF			0x40000
+/*#define R_FBUF			0x40000*/
 		/* threads obsolete... is there for old files, now use for autodetect threads */
 #define R_THREADS		0x80000
 		/* Use the same flag for autothreads */
@@ -906,7 +906,7 @@ typedef struct Scene {
 #define R_OUTPUT_SCREEN	0
 #define R_OUTPUT_AREA	1
 #define R_OUTPUT_WINDOW	2
-#define R_OUTPUT_FORKED	3
+/*#define R_OUTPUT_FORKED	3*/
 
 /* filtertype */
 #define R_FILTER_BOX	0
@@ -950,10 +950,10 @@ typedef struct Scene {
 #define R_COMP_FREE			0x0800
 #define R_NO_IMAGE_LOAD		0x1000
 #define R_NO_TEX			0x2000
-#define R_STAMP_INFO		0x4000	/* deprecated */
+#define R_NO_FRAME_UPDATE	0x4000
 #define R_FULL_SAMPLE		0x8000
-#define R_DEPRECATED		0x10000
-#define R_RECURS_PROTECTION	0x20000
+/* #define R_DEPRECATED		0x10000 */
+/* #define R_RECURS_PROTECTION	0x20000 */
 #define R_TEXNODE_PREVIEW	0x40000
 
 /* r->stamp */
@@ -968,7 +968,8 @@ typedef struct Scene {
 #define R_STAMP_FILENAME	0x0100
 #define R_STAMP_SEQSTRIP	0x0200
 #define R_STAMP_RENDERTIME	0x0400
-#define R_STAMP_ALL		(R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE|R_STAMP_NOTE|R_STAMP_MARKER|R_STAMP_FILENAME|R_STAMP_SEQSTRIP|R_STAMP_RENDERTIME)
+#define R_STAMP_CAMERALENS	0x0800
+#define R_STAMP_ALL		(R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE|R_STAMP_NOTE|R_STAMP_MARKER|R_STAMP_FILENAME|R_STAMP_SEQSTRIP|R_STAMP_RENDERTIME|R_STAMP_CAMERALENS)
 
 /* alphamode */
 #define R_ADDSKY		0
@@ -989,7 +990,7 @@ typedef struct Scene {
 /* #define R_HAMX		2 */ /* hamx is nomore */
 /* #define R_FTYPE		3 */ /* ftype is nomore */
 #define R_JPEG90	4
-#define R_MOVIE		5
+/*#define R_MOVIE		5*/ /* movie is nomore */
 #define R_IRIZ		7
 #define R_RAWTGA	14
 #define R_AVIRAW	15
@@ -1064,6 +1065,7 @@ typedef struct Scene {
 #define TESTBASELIB_BGMODE(v3d, scene, base)   ( ((base)->flag & SELECT) && ((base)->lay & (v3d ? v3d->lay : scene->lay)) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
 #define BASE_EDITABLE_BGMODE(v3d, scene, base)   (((base)->lay & (v3d ? v3d->lay : scene->lay)) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
 #define BASE_SELECTABLE(v3d, base)	 ((base->lay & v3d->lay) && (base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0)
+#define BASE_VISIBLE(v3d, base)	 ((base->lay & v3d->lay) && (base->object->restrictflag & OB_RESTRICT_VIEW)==0)
 #define FIRSTBASE		scene->base.first
 #define LASTBASE		scene->base.last
 #define BASACT			(scene->basact)
@@ -1074,7 +1076,6 @@ typedef struct Scene {
 #define ID_NEW_US2(a)	if( ((ID *)a)->newid) {(a)= ((ID *)a)->newid; ((ID *)a)->us++;}
 #define	CFRA			(scene->r.cfra)
 #define SUBFRA			(scene->r.subframe)
-#define	F_CFRA			((float)(scene->r.cfra))
 #define	SFRA			(scene->r.sfra)
 #define	EFRA			(scene->r.efra)
 #define PRVRANGEON		(scene->r.flag & SCER_PRV_RANGE)
@@ -1183,8 +1184,9 @@ typedef enum SculptFlags {
 
 /* ImagePaintSettings.flag */
 #define IMAGEPAINT_DRAWING				1
-#define IMAGEPAINT_DRAW_TOOL			2
-#define IMAGEPAINT_DRAW_TOOL_DRAWING	4
+// #define IMAGEPAINT_DRAW_TOOL			2 // deprecated
+// #define IMAGEPAINT_DRAW_TOOL_DRAWING	4 // deprecated
+
 /* projection painting only */
 #define IMAGEPAINT_PROJECT_DISABLE		8	/* Non projection 3D painting */
 #define IMAGEPAINT_PROJECT_XRAY			16
@@ -1196,7 +1198,7 @@ typedef enum SculptFlags {
 
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1
-#define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
+/*#define UVCALC_NO_ASPECT_CORRECT	2*/	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
 #define UVCALC_TRANSFORM_CORRECT	4	/* adjust UV's while transforming to avoid distortion */
 
 /* toolsettings->uv_flag */
@@ -1216,13 +1218,16 @@ typedef enum SculptFlags {
 #define EDGE_MODE_TAG_CREASE			3
 #define EDGE_MODE_TAG_BEVEL				4
 
+/* toolsettings->gpencil_flags */
+#define GP_TOOL_FLAG_PAINTSESSIONS_ON	(1<<0)
+
 /* toolsettings->particle flag */
 #define PE_KEEP_LENGTHS			1
 #define PE_LOCK_FIRST			2
 #define PE_DEFLECT_EMITTER		4
 #define PE_INTERPOLATE_ADDED	8
 #define PE_DRAW_PART			16
-#define PE_X_MIRROR				64		/* deprecated */
+/* #define PE_X_MIRROR			64 */	/* deprecated */
 #define PE_FADE_TIME			128
 #define PE_AUTO_VELOCITY		256
 
@@ -1251,10 +1256,10 @@ typedef enum SculptFlags {
 #define RETOPO 1
 #define RETOPO_PAINT 2
 
-/* toolsettings->retopo_paint_tool */
-#define RETOPO_PEN 1
-#define RETOPO_LINE 2
-#define RETOPO_ELLIPSE 4
+/* toolsettings->retopo_paint_tool */ /*UNUSED*/
+/* #define RETOPO_PEN 1 */
+/* #define RETOPO_LINE 2 */
+/* #define RETOPO_ELLIPSE 4 */
 
 /* toolsettings->skgen_options */
 #define SKGEN_FILTER_INTERNAL	(1 << 0)

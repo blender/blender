@@ -40,7 +40,7 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 {TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates"},
 {TEXCO_UV, "UV", 0, "UV", "Uses UV coordinates for texture coordinates"},
 {TEXCO_ORCO, "ORCO", 0, "Generated", "Uses the original undeformed coordinates of the object"},
-{TEXCO_STRAND, "STRAND", 0, "Strand", "Uses normalized strand texture coordinate (1D)"},
+{TEXCO_STRAND, "STRAND", 0, "Strand / Particle", "Uses normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"},
 {TEXCO_STICKY, "STICKY", 0, "Sticky", "Uses mesh's sticky coordinates for the texture coordinates"},
 {TEXCO_WINDOW, "WINDOW", 0, "Window", "Uses screen coordinates as texture coordinates"},
 {TEXCO_NORM, "NORMAL", 0, "Normal", "Uses normal vector as texture coordinates"},
@@ -67,7 +67,7 @@ static void rna_Material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
-	DAG_id_flush_update(&ma->id, 0);
+	DAG_id_tag_update(&ma->id, 0);
 	if(scene->gm.matmode == GAME_MAT_GLSL)
 		WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
 	else
@@ -78,7 +78,7 @@ static void rna_Material_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
-	DAG_id_flush_update(&ma->id, 0);
+	DAG_id_tag_update(&ma->id, 0);
 	WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
 }
 
@@ -276,7 +276,7 @@ static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, Poi
 	return item;
 }
 
-MTex *rna_mtex_texture_slots_add(ID *self_id, ReportList *reports)
+MTex *rna_mtex_texture_slots_add(ID *self_id, struct bContext *C, ReportList *reports)
 {
 	MTex *mtex= add_mtex_id(self_id, -1);
 	if (mtex == NULL) {
@@ -284,10 +284,13 @@ MTex *rna_mtex_texture_slots_add(ID *self_id, ReportList *reports)
 		return NULL;
 	}
 
+	/* for redraw only */
+	WM_event_add_notifier(C, NC_TEXTURE, CTX_data_scene(C));
+
 	return mtex;
 }
 
-MTex *rna_mtex_texture_slots_create(ID *self_id, ReportList *reports, int index)
+MTex *rna_mtex_texture_slots_create(ID *self_id, struct bContext *C, ReportList *reports, int index)
 {
 	MTex *mtex;
 
@@ -298,10 +301,13 @@ MTex *rna_mtex_texture_slots_create(ID *self_id, ReportList *reports, int index)
 
 	mtex= add_mtex_id(self_id, index);
 
+	/* for redraw only */
+	WM_event_add_notifier(C, NC_TEXTURE, CTX_data_scene(C));
+
 	return mtex;
 }
 
-void rna_mtex_texture_slots_clear(ID *self_id, ReportList *reports, int index)
+void rna_mtex_texture_slots_clear(ID *self_id, struct bContext *C, ReportList *reports, int index)
 {
 	MTex **mtex_ar;
 	short act;
@@ -323,6 +329,9 @@ void rna_mtex_texture_slots_clear(ID *self_id, ReportList *reports, int index)
 		MEM_freeN(mtex_ar[index]);
 		mtex_ar[index]= NULL;
 	}
+
+	/* for redraw only */
+	WM_event_add_notifier(C, NC_TEXTURE, CTX_data_scene(C));
 }
 
 #else
@@ -367,6 +376,19 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{MTEX_NSPACE_TANGENT, "TANGENT", 0, "Tangent", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem prop_bump_method_items[] = {
+		{0, "BUMP_ORIGINAL", 0, "Original", ""},
+		{MTEX_COMPAT_BUMP, "BUMP_COMPATIBLE", 0, "Compatible", ""},
+		{MTEX_3TAP_BUMP, "BUMP_DEFAULT", 0, "Default", ""},
+		{MTEX_5TAP_BUMP, "BUMP_BEST_QUALITY", 0, "Best Quality", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_bump_space_items[] = {
+		{0, "BUMP_VIEWSPACE", 0, "ViewSpace", ""},
+		{MTEX_BUMP_OBJECTSPACE, "BUMP_OBJECTSPACE", 0, "ObjectSpace", ""},
+		{MTEX_BUMP_TEXTURESPACE, "BUMP_TEXTURESPACE", 0, "TextureSpace", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
 	srna= RNA_def_struct(brna, "MaterialTextureSlot", "TextureSlot");
 	RNA_def_struct_sdna(srna, "MTex");
 	RNA_def_struct_ui_text(srna, "Material Texture Slot", "Texture slot for textures in a Material datablock");
@@ -496,7 +518,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "normal_map_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "normapspace");
 	RNA_def_property_enum_items(prop, prop_normal_map_space_items);
-	RNA_def_property_ui_text(prop, "Normal Map Space", "");
+	RNA_def_property_ui_text(prop, "Normal Map Space", "Sets space of normal map image");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "normal_factor", PROP_FLOAT, PROP_NONE);
@@ -668,9 +690,16 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this material texture slot");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
-	prop= RNA_def_property(srna, "use_old_bump", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "texflag", MTEX_NEW_BUMP);
-	RNA_def_property_ui_text(prop, "Old Bump", "Use old bump mapping (backwards compatibility option)");
+	prop= RNA_def_property(srna, "bump_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "texflag");
+	RNA_def_property_enum_items(prop, prop_bump_method_items);
+	RNA_def_property_ui_text(prop, "Bump Method", "Method to use for bump mapping");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+	
+	prop= RNA_def_property(srna, "bump_objectspace", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "texflag");
+	RNA_def_property_enum_items(prop, prop_bump_space_items);
+	RNA_def_property_ui_text(prop, "Bump Space", "Space to apply bump mapping in");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
@@ -695,8 +724,8 @@ static void rna_def_material_colors(StructRNA *srna)
 		{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
 		{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
 		{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
-		{MA_RAMP_SOFT, "SOFT LIGHT", 0, "Soft Light", ""}, 
-		{MA_RAMP_LINEAR, "LINEAR LIGHT", 0, "Linear Light", ""}, 
+		{MA_RAMP_SOFT, "SOFT_LIGHT", 0, "Soft Light", ""}, 
+		{MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""}, 
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_ramp_input_items[] = {
@@ -949,7 +978,7 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "ior", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ang");
-	RNA_def_property_range(prop, 1.0f, 3.0f);
+	RNA_def_property_range(prop, 0.25f, 4.0f);
 	RNA_def_property_ui_text(prop, "IOR", "Sets angular index of refraction for raytraced refraction");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
@@ -1063,7 +1092,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "cache_resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "precache_resolution");
-	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_ui_text(prop, "Resolution", "Resolution of the voxel grid, low resolutions are faster, high resolutions use more memory");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
@@ -1121,7 +1150,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "reflection_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "reflection_col");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Reflection Color", "Colour of light scattered out of the volume (does not affect transmission)");
+	RNA_def_property_ui_text(prop, "Reflection Color", "Color of light scattered out of the volume (does not affect transmission)");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 	
 	prop= RNA_def_property(srna, "reflection", PROP_FLOAT, PROP_NONE);
@@ -1372,7 +1401,7 @@ static void rna_def_material_specularity(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "spec");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Specular Intensity", "");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	/* NOTE: "har", "param", etc are used for multiple purposes depending on
 	 * settings. This should be fixed in DNA once, for RNA we just expose them
@@ -1383,7 +1412,7 @@ static void rna_def_material_specularity(StructRNA *srna)
 	RNA_def_property_int_sdna(prop, NULL, "har");
 	RNA_def_property_range(prop, 1, 511);
 	RNA_def_property_ui_text(prop, "Specular Hardness", "");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	prop= RNA_def_property(srna, "specular_ior", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "refrac");
@@ -1403,7 +1432,7 @@ static void rna_def_material_specularity(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Specular Toon Smooth", "Smoothness of specular toon area");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
-	prop= RNA_def_property(srna, "specular_slope", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "specular_slope", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "rms");
 	RNA_def_property_range(prop, 0, 0.4);
 	RNA_def_property_ui_text(prop, "Specular Slope", "The standard deviation of surface slope");
@@ -1425,8 +1454,10 @@ static void rna_def_material_strand(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tangent Shading", "Uses direction of strands as normal for tangent-shading");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
+	/* this flag is only set when rendering, not to be edited manually */
 	prop= RNA_def_property(srna, "use_surface_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_STR_SURFDIFF);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Surface Diffuse", "Make diffuse shading more similar to shading the surface");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
@@ -1584,7 +1615,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 2.0f, 1, 2);
 	RNA_def_property_ui_text(prop, "Emit", "Amount of light to emit");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	prop= RNA_def_property(srna, "translucency", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0, 1);
@@ -1599,7 +1630,7 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_object_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shade_flag", MA_OBCOLOR);
 	RNA_def_property_ui_text(prop, "Object Color", "Modulate the result with a per-object color");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	prop= RNA_def_property(srna, "shadow_ray_bias", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sbias");
@@ -1644,7 +1675,7 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_shadeless", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_SHLESS);
 	RNA_def_property_ui_text(prop, "Shadeless", "Makes this material insensitive to light or shadow");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 	
 	prop= RNA_def_property(srna, "use_vertex_color_light", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_VERTEXCOL);
@@ -1817,7 +1848,6 @@ void RNA_def_material(BlenderRNA *brna)
 }
 
 
-/* curve.splines */
 static void rna_def_texture_slots(BlenderRNA *brna, PropertyRNA *cprop, const char *structname, const char *structname_slots)
 {
 	StructRNA *srna;
@@ -1832,22 +1862,19 @@ static void rna_def_texture_slots(BlenderRNA *brna, PropertyRNA *cprop, const ch
 
 	/* functions */
 	func= RNA_def_function(srna, "add", "rna_mtex_texture_slots_add");
-	RNA_def_function_ui_description(func, "Add a number of points to this spline.");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "mtex", structname, "", "The newly initialized mtex.");
 	RNA_def_function_return(func, parm);
 	
 	func= RNA_def_function(srna, "create", "rna_mtex_texture_slots_create");
-	RNA_def_function_ui_description(func, "Add a number of points to this spline.");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Slot index to initialize.", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "mtex", structname, "", "The newly initialized mtex.");
 	RNA_def_function_return(func, parm);
 	
 	func= RNA_def_function(srna, "clear", "rna_mtex_texture_slots_clear");
-	RNA_def_function_ui_description(func, "Add a number of points to this spline.");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Slot index to clar.", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }

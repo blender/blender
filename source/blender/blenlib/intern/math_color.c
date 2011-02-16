@@ -25,6 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
+#include <assert.h>
 
 #include "BLI_math.h"
 
@@ -111,7 +112,7 @@ void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb)
 void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, int colorspace)
 {
 	float sr,sg, sb;
-	float y, cr, cb;
+	float y = 128.f, cr = 128.f, cb = 128.f;
 	
 	sr=255.0f*r;
 	sg=255.0f*g;
@@ -133,6 +134,8 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, in
 		cb=(-0.16874f*sr)-(0.33126f*sg)+(0.5f*sb)+128.0f;
 		cr=(0.5f*sr)-(0.41869f*sg)-(0.08131f*sb)+128.0f;
 		break;
+	default:
+		assert(!"invalid colorspace");
 	}
 	
 	*ly=y;
@@ -141,11 +144,12 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, in
 }
 
 
-/* YCC input have a range of 16-235 and 16-240 exepect with JFIF_0_255 where the range is 0-255 */
+/* YCC input have a range of 16-235 and 16-240 except with JFIF_0_255 where the range is 0-255 */
 /* RGB outputs are in the range 0 - 1.0f */
+/* FIXME comment above must be wrong because BLI_YCC_ITU_BT601 y 16.0 cr 16.0 -> r -0.7009 */
 void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, int colorspace)
 {
-	float r,g,b;
+	float r = 128.f, g = 128.f, b = 128.f;
 	
 	switch (colorspace) {
 	case BLI_YCC_ITU_BT601 :
@@ -163,6 +167,8 @@ void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, in
 		g=y-0.34414f*cb - 0.71414f*cr + 135.45984f;
 		b=y+1.772f*cb - 226.816f;
 		break;
+	default:
+		assert(!"invalid colorspace");
 	}
 	*lr=r/255.0f;
 	*lg=g/255.0f;
@@ -172,13 +178,16 @@ void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, in
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 {
 	unsigned int ri, gi, bi;
-	
+
 	if (hexcol[0] == '#') hexcol++;
-	
-	if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi)) {
+
+	if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi)==3) {
 		*r = ri / 255.0f;
-		*g = gi / 255.0f;		
+		*g = gi / 255.0f;
 		*b = bi / 255.0f;
+		CLAMP(*r, 0.0f, 1.0f);
+		CLAMP(*g, 0.0f, 1.0f);
+		CLAMP(*b, 0.0f, 1.0f);
 	}
 }
 
@@ -200,7 +209,6 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 		s = (cmax - cmin)/cmax;
 	else {
 		s = 0.0f;
-		h = 0.0f;
 	}
 	if (s == 0.0f)
 		h = -1.0f;
@@ -225,6 +233,26 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	*lh = h / 360.0f;
 	if(*lh < 0.0f) *lh= 0.0f;
 	*lv = v;
+}
+
+void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *lv)
+{
+	float orig_h= *lh;
+	float orig_s= *ls;
+
+	rgb_to_hsv(r, g, b, lh, ls, lv);
+
+	if(*lv <= 0.0f) {
+		*lh= orig_h;
+		*ls= orig_s;
+	}
+	else if (*ls <= 0.0f) {
+		*lh= orig_h;
+	}
+
+	if(*lh==0.0f && orig_h >= 1.0f) {
+		*lh= 1.0f;
+	}
 }
 
 /*http://brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html */
@@ -298,14 +326,14 @@ void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 	*b /= 255.0f;
 }
 
-void rgb_byte_to_float(char *in, float *out)
+void rgb_byte_to_float(const unsigned char *in, float *out)
 {
 	out[0]= ((float)in[0]) / 255.0f;
 	out[1]= ((float)in[1]) / 255.0f;
 	out[2]= ((float)in[2]) / 255.0f;
 }
 
-void rgb_float_to_byte(float *in, char *out)
+void rgb_float_to_byte(const float *in, unsigned char *out)
 {
 	int r, g, b;
 	
@@ -420,7 +448,7 @@ void minmax_rgb(short c[])
 }
 
 /*If the requested RGB shade contains a negative weight for
-  one of the primaries, it lies outside the colour gamut 
+  one of the primaries, it lies outside the color gamut 
   accessible from the given triple of primaries.  Desaturate
   it by adding white, equal quantities of R, G, and B, enough
   to make RGB all positive.  The function returns 1 if the
@@ -483,7 +511,7 @@ void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)
 }
 
 /* Applies an hue offset to a byte rgb color */
-void rgb_byte_set_hue_float_offset(char rgb[3], float hue_offset)
+void rgb_byte_set_hue_float_offset(unsigned char rgb[3], float hue_offset)
 {
 	float rgb_float[3];
 	

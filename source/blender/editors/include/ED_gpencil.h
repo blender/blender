@@ -29,6 +29,7 @@
 #define ED_GPENCIL_H
 
 struct ListBase;
+struct bContext;
 struct bScreen;
 struct ScrArea;
 struct ARegion;
@@ -55,6 +56,10 @@ typedef struct tGPspoint {
 	float pressure;			/* pressure of tablet at this point */
 } tGPspoint;
 
+
+/* Check if 'sketching sessions' are enabled */
+#define GPENCIL_SKETCH_SESSIONS_ON(scene) ((scene)->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINTSESSIONS_ON)
+
 /* ----------- Grease Pencil Tools/Context ------------- */
 
 struct bGPdata **gpencil_data_get_pointers(struct bContext *C, struct PointerRNA *ptr);
@@ -76,5 +81,27 @@ void draw_gpencil_view3d_ext(struct Scene *scene, struct View3D *v3d, struct ARe
 
 void gpencil_panel_standard(const struct bContext *C, struct Panel *pa);
 
+/* ----------- Grease-Pencil AnimEdit API ------------------ */
+
+void gplayer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, short onlysel);
+
+void deselect_gpencil_layers(void *data, short select_mode);
+
+short is_gplayer_frame_selected(struct bGPDlayer *gpl);
+void set_gplayer_frame_selection(struct bGPDlayer *gpl, short mode);
+void select_gpencil_frames(struct bGPDlayer *gpl, short select_mode);
+void select_gpencil_frame(struct bGPDlayer *gpl, int selx, short select_mode);
+void borderselect_gplayer_frames(struct bGPDlayer *gpl, float min, float max, short select_mode);
+
+void delete_gpencil_layers(void);
+void delete_gplayer_frames(struct bGPDlayer *gpl);
+void duplicate_gplayer_frames(struct bGPDlayer *gpd);
+
+void free_gpcopybuf(void);
+void copy_gpdata(void);
+void paste_gpdata(void);
+
+void snap_gplayer_frames(struct bGPDlayer *gpl, short mode);
+void mirror_gplayer_frames(struct bGPDlayer *gpl, short mode);
 
 #endif /*  ED_GPENCIL_H */

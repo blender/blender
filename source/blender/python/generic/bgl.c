@@ -35,6 +35,10 @@
 #include <GL/glew.h>
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
+
+
+
 static char Method_Buffer_doc[] =
 	"(type, dimensions, [template]) - Create a new Buffer object\n\n\
 (type) - The format to store data in\n\
@@ -51,7 +55,7 @@ For example, passing [100, 100] will create a 2 dimensional\n\
 square buffer. Passing [16, 16, 32] will create a 3 dimensional\n\
 buffer which is twice as deep as it is wide or high.";
 
-static PyObject *Method_Buffer( PyObject * self, PyObject * args );
+static PyObject *Method_Buffer( PyObject * self, PyObject *args );
 
 /* Buffer sequence methods */
 
@@ -99,7 +103,7 @@ PyTypeObject BGL_bufferType = {
 /* #ifndef __APPLE__ */
 
 #define BGL_Wrap(nargs, funcname, ret, arg_list) \
-static PyObject *Method_##funcname (PyObject *self, PyObject *args) {\
+static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args) {\
 	arg_def##nargs arg_list; \
 	ret_def_##ret; \
 	if(!PyArg_ParseTuple(args, arg_str##nargs arg_list, arg_ref##nargs arg_list)) return NULL;\
@@ -108,7 +112,7 @@ static PyObject *Method_##funcname (PyObject *self, PyObject *args) {\
 }
 
 #define BGLU_Wrap(nargs, funcname, ret, arg_list) \
-static PyObject *Method_##funcname (PyObject *self, PyObject *args) {\
+static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args) {\
 	arg_def##nargs arg_list; \
 	ret_def_##ret; \
 	if(!PyArg_ParseTuple(args, arg_str##nargs arg_list, arg_ref##nargs arg_list)) return NULL;\
@@ -181,45 +185,62 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
 }
 
 #define MAX_DIMENSIONS	256
-static PyObject *Method_Buffer (PyObject *self, PyObject *args)
+static PyObject *Method_Buffer (PyObject *UNUSED(self), PyObject *args)
 {
-	PyObject *length_ob= NULL, *template= NULL;
+	PyObject *length_ob= NULL, *init= NULL;
 	Buffer *buffer;
 	int dimensions[MAX_DIMENSIONS];
 	
 	int i, type;
 	int ndimensions = 0;
 	
-	if (!PyArg_ParseTuple(args, "iO|O", &type, &length_ob, &template)) {
+	if (!PyArg_ParseTuple(args, "iO|O", &type, &length_ob, &init)) {
 		PyErr_SetString(PyExc_AttributeError, "expected an int and one or two PyObjects");
 		return NULL;
 	}
-	if (type!=GL_BYTE && type!=GL_SHORT && type!=GL_INT && type!=GL_FLOAT && type!=GL_DOUBLE) {
+	if (!ELEM5(type, GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT, GL_DOUBLE)) {
 		PyErr_SetString(PyExc_AttributeError, "invalid first argument type, should be one of GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT or GL_DOUBLE");
 		return NULL;
 	}
 
-	if (PyNumber_Check(length_ob)) {
+	if (PyLong_Check(length_ob)) {
 		ndimensions= 1;
-		dimensions[0]= PyLong_AsLong(length_ob);
-	} else if (PySequence_Check(length_ob)) {
-		ndimensions= PySequence_Length(length_ob);
+		if(((dimensions[0]= PyLong_AsLong(length_ob)) < 1)) {
+			PyErr_SetString(PyExc_AttributeError, "dimensions must be between 1 and "STRINGIFY(MAX_DIMENSIONS));
+			return NULL;
+		}
+	}
+	else if (PySequence_Check(length_ob)) {
+		ndimensions= PySequence_Size(length_ob);
 		if (ndimensions > MAX_DIMENSIONS) {
-			PyErr_SetString(PyExc_AttributeError, "too many dimensions, max is 256");
+			PyErr_SetString(PyExc_AttributeError, "too many dimensions, max is "STRINGIFY(MAX_DIMENSIONS));
+			return NULL;
+		}
+		else if (ndimensions < 1) {
+			PyErr_SetString(PyExc_AttributeError, "sequence must have at least one dimension");
 			return NULL;
 		}
 		for (i=0; i<ndimensions; i++) {
 			PyObject *ob= PySequence_GetItem(length_ob, i);
 
-			if (!PyNumber_Check(ob)) dimensions[i]= 1;
+			if (!PyLong_Check(ob)) dimensions[i]= 1;
 			else dimensions[i]= PyLong_AsLong(ob);
 			Py_DECREF(ob);
+
+			if(dimensions[i] < 1) {
+				PyErr_SetString(PyExc_AttributeError, "dimensions must be between 1 and "STRINGIFY(MAX_DIMENSIONS));
+				return NULL;
+			}
 		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError, "invalid second argument argument expected a sequence or an int, not a %.200s", Py_TYPE(length_ob)->tp_name);
+		return NULL;
 	}
 	
 	buffer= BGL_MakeBuffer(type, ndimensions, dimensions, NULL);
-	if (template && ndimensions) {
-		if (Buffer_ass_slice((PyObject *) buffer, 0, dimensions[0], template)) {
+	if (init && ndimensions) {
+		if (Buffer_ass_slice((PyObject *) buffer, 0, dimensions[0], init)) {
 			Py_DECREF(buffer);
 			return NULL;
 		}
@@ -295,9 +316,9 @@ static PyObject *Buffer_slice(PyObject *self, int begin, int end)
 	  
 	list= PyList_New(end-begin);
 
-	for (count= begin; count<end; count++)
-		PyList_SetItem(list, count-begin, Buffer_item(self, count));
-	
+	for (count= begin; count<end; count++) {
+		PyList_SET_ITEM(list, count-begin, Buffer_item(self, count));
+	}
 	return list;
 }
 
@@ -356,8 +377,8 @@ static int Buffer_ass_slice(PyObject *self, int begin, int end, PyObject *seq)
 		return -1;
 	}
 
-	if (PySequence_Length(seq)!=(end-begin)) {
-		int seq_len = PySequence_Length(seq);
+	if (PySequence_Size(seq)!=(end-begin)) {
+		int seq_len = PySequence_Size(seq);
 		char err_str[128];
 		sprintf(err_str, "size mismatch in assignment. Expected size: %d (size provided: %d)", seq_len, (end-begin));
 		PyErr_SetString(PyExc_TypeError, err_str);
@@ -389,11 +410,11 @@ static PyObject *Buffer_tolist(PyObject *self)
 {
 	int i, len= ((Buffer *)self)->dimensions[0];
 	PyObject *list= PyList_New(len);
-	
+
 	for (i=0; i<len; i++) {
-	  PyList_SetItem(list, i, Buffer_item(self, i));
+		PyList_SET_ITEM(list, i, Buffer_item(self, i));
 	}
-	
+
 	return list;
 }
 
@@ -402,11 +423,11 @@ static PyObject *Buffer_dimensions(PyObject *self)
 	Buffer *buffer= (Buffer *) self;
 	PyObject *list= PyList_New(buffer->ndimensions);
 	int i;
-	  
+  
 	for (i= 0; i<buffer->ndimensions; i++) {
-	  PyList_SetItem(list, i, PyLong_FromLong(buffer->dimensions[i]));
+		PyList_SET_ITEM(list, i, PyLong_FromLong(buffer->dimensions[i]));
 	}
-	
+
 	return list;
 }
 
@@ -1113,12 +1134,11 @@ static struct PyModuleDef BGL_module_def = {
 };
 
 
-PyObject *BGL_Init(void)
+PyObject *BPyInit_bgl(void)
 {
-	PyObject *mod, *dict, *item;
-	mod = PyModule_Create(&BGL_module_def);
-	PyDict_SetItemString(PyImport_GetModuleDict(), BGL_module_def.m_name, mod);
-	dict= PyModule_GetDict(mod);
+	PyObject *submodule, *dict, *item;
+	submodule= PyModule_Create(&BGL_module_def);
+	dict= PyModule_GetDict(submodule);
 	
 	if( PyType_Ready( &BGL_bufferType) < 0)
 		return NULL; /* should never happen */
@@ -1610,6 +1630,6 @@ PyObject *BGL_Init(void)
 	EXPP_ADDCONST(GL_TEXTURE_BINDING_1D);
 	EXPP_ADDCONST(GL_TEXTURE_BINDING_2D);
       
-	return mod;
+	return submodule;
 }
 

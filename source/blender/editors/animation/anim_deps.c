@@ -38,6 +38,7 @@
 #include "DNA_sequence_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -90,13 +91,13 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 	else {
 		/* in other case we do standard depsgaph update, ideally
 		   we'd be calling property update functions here too ... */
-		DAG_id_flush_update(id, OB_RECALC_ALL); // XXX or do we want something more restrictive?
+		DAG_id_tag_update(id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME); // XXX or do we want something more restrictive?
 	}
 }
 
 /* tags the given ID block for refreshes (if applicable) due to 
  * Animation Editor editing */
-void ANIM_id_update(Scene *scene, ID *id)
+void ANIM_id_update(Scene *UNUSED(scene), ID *id)
 {
 	if (id) {
 		AnimData *adt= BKE_animdata_from_id(id);
@@ -106,7 +107,7 @@ void ANIM_id_update(Scene *scene, ID *id)
 			adt->recalc |= ADT_RECALC_ANIM;
 			
 		/* set recalc flags */
-		DAG_id_flush_update(id, OB_RECALC_ALL); // XXX or do we want something more restrictive?
+		DAG_id_tag_update(id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME); // XXX or do we want something more restrictive?
 	}
 }
 
@@ -121,7 +122,7 @@ void ANIM_id_update(Scene *scene, ID *id)
  */
 
 /* perform syncing updates for Action Groups */
-static void animchan_sync_group (bAnimContext *ac, bAnimListElem *ale)
+static void animchan_sync_group (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 {
 	bActionGroup *agrp= (bActionGroup *)ale->data;
 	ID *owner_id= ale->id;
@@ -154,7 +155,7 @@ static void animchan_sync_group (bAnimContext *ac, bAnimListElem *ale)
 }
  
 /* perform syncing updates for F-Curves */
-static void animchan_sync_fcurve (bAnimContext *ac, bAnimListElem *ale)
+static void animchan_sync_fcurve (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 {
 	FCurve *fcu= (FCurve *)ale->data;
 	ID *owner_id= ale->id;

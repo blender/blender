@@ -42,7 +42,7 @@ static bNodeSocketType cmp_node_chroma_out[]={
 	{-1,0,""}
 };
 
-static void do_rgba_to_ycca_normalized(bNode *node, float *out, float *in)
+static void do_rgba_to_ycca_normalized(bNode *UNUSED(node), float *out, float *in)
 {
    rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 
@@ -62,7 +62,7 @@ static void do_rgba_to_ycca_normalized(bNode *node, float *out, float *in)
 	out[3]=in[3];
 }
 
-static void do_ycca_to_rgba_normalized(bNode *node, float *out, float *in)
+static void do_ycca_to_rgba_normalized(bNode *UNUSED(node), float *out, float *in)
 {
    /*un-normalize the normalize from above */
    in[0]=(in[0]+1.0)/2.0;
@@ -184,21 +184,19 @@ static void node_composit_init_chroma_matte(bNode *node)
    c->fstrength= 1.0f;
 };
 
-bNodeType cmp_node_chroma_matte={
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_CHROMA_MATTE,
-	/* name        */	"Chroma Key",
-	/* width+range */	200, 80, 300,
-	/* class+opts  */	NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	cmp_node_chroma_in,
-	/* output sock */	cmp_node_chroma_out,
-	/* storage     */	"NodeChroma",
-	/* execfunc    */	node_composit_exec_chroma_matte,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_chroma_matte,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_chroma_matte(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_CHROMA_MATTE, "Chroma Key", NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+		cmp_node_chroma_in, cmp_node_chroma_out);
+	node_type_size(&ntype, 200, 80, 300);
+	node_type_init(&ntype, node_composit_init_chroma_matte);
+	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_chroma_matte);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

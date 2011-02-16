@@ -36,6 +36,7 @@
 #include "BLI_heap.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -51,12 +52,6 @@
 
 #include "BIF_gl.h"
 
-
-#ifndef DISABLE_PYTHON
-//#include "BPY_extern.h"
-//#include "BPY_menus.h"
-#endif
-
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -67,14 +62,9 @@
 /* own include */
 #include "mesh_intern.h"
 
-/* ***************** XXX **************** */
-static int pupmenu(const char *dummy) {return 0;}
-/* ***************** XXX **************** */
-
-
 /* copy the face flags, most importantly selection from the mesh to the final derived mesh,
  * use in object mode when selecting faces (while painting) */
-void object_facesel_flush_dm(Object *ob)
+void paintface_flush_flags(Object *ob)
 {
 	Mesh *me= get_mesh(ob);
 	DerivedMesh *dm= ob->derivedFinal;
@@ -98,7 +88,7 @@ void object_facesel_flush_dm(Object *ob)
 	
 	for (i= 0; i<totface; i++, mf++) { /* loop over derived mesh faces */
 		mf_orig= me->mface + index_array[i];
-		mf->flag= mf_orig->flag;;
+		mf->flag= mf_orig->flag;
 	}
 }
 
@@ -162,7 +152,7 @@ MTFace *EM_get_active_mtface(EditMesh *em, EditFace **act_efa, MCol **mcol, int 
 	return NULL;
 }
 
-void reveal_tface(Scene *scene)
+void paintface_unhide(Scene *scene)
 {
 	Mesh *me;
 	MFace *mface;
@@ -181,11 +171,10 @@ void reveal_tface(Scene *scene)
 		mface++;
 	}
 
-	object_facesel_flush_dm(OBACT);
-// XXX notifier!	object_tface_flags_changed(OBACT, 0);
+	paintface_flush_flags(OBACT);
 }
 
-void hide_tface(Scene *scene)
+void paintface_hide(Scene *scene)
 {
 	Mesh *me;
 	MFace *mface;
@@ -196,7 +185,7 @@ void hide_tface(Scene *scene)
 	if(me==0 || me->totface==0) return;
 	
 	if(alt) {
-		reveal_tface(scene);
+		paintface_unhide(scene);
 		return;
 	}
 	
@@ -217,8 +206,7 @@ void hide_tface(Scene *scene)
 		mface++;
 	}
 	
-	object_facesel_flush_dm(OBACT);
-// XXX notifier!		object_tface_flags_changed(OBACT, 0);
+	paintface_flush_flags(OBACT);
 }
 
 /* Set tface seams based on edge data, uses hash table to find seam edges. */
@@ -236,7 +224,7 @@ static void hash_add_face(EdgeHash *ehash, MFace *mf)
 }
 
 
-void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
+static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 {
 	MFace *mf;
 	int a, doit=1, mark=0;
@@ -338,12 +326,9 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 	}
 
 	MEM_freeN(linkflag);
-
-	// BIF_undo_push("Select linked UV face");
-	// object_tface_flags_changed(OBACT, 0);
 }
 
-void select_linked_tfaces(bContext *C, Object *ob, short mval[2], int mode)
+void paintface_select_linked(bContext *UNUSED(C), Object *ob, short UNUSED(mval[2]), int mode)
 {
 	Mesh *me;
 	unsigned int index=0;
@@ -361,10 +346,11 @@ void select_linked_tfaces(bContext *C, Object *ob, short mval[2], int mode)
 
 	select_linked_tfaces_with_seams(mode, me, index);
 
-	object_facesel_flush_dm(ob);
+	paintface_flush_flags(ob);
 }
 
-void selectall_tface(Object *ob, int action)
+/* note: caller needs to run paintface_flush_flags(ob) after this */
+void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 {
 	Mesh *me;
 	MFace *mface;
@@ -406,11 +392,12 @@ void selectall_tface(Object *ob, int action)
 		mface++;
 	}
 
-	object_facesel_flush_dm(ob);
-// XXX notifier!		object_tface_flags_changed(OBACT, 0);
+	if(flush_flags) {
+		paintface_flush_flags(ob);
+	}
 }
 
-void selectswap_tface(Scene *scene)
+void paintface_select_swap(Scene *scene)
 {
 	Mesh *me;
 	MFace *mface;
@@ -430,11 +417,10 @@ void selectswap_tface(Scene *scene)
 		mface++;
 	}
 	
-	object_facesel_flush_dm(OBACT);
-// XXX notifier!		object_tface_flags_changed(OBACT, 0);
+	paintface_flush_flags(OBACT);
 }
 
-int minmax_tface(Object *ob, float *min, float *max)
+int paintface_minmax(Object *ob, float *min, float *max)
 {
 	Mesh *me= get_mesh(ob);
 	MFace *mf;
@@ -464,7 +450,7 @@ int minmax_tface(Object *ob, float *min, float *max)
 
 #define ME_SEAM_DONE 2		/* reuse this flag */
 
-static float edgetag_cut_cost(EditMesh *em, int e1, int e2, int vert)
+static float edgetag_cut_cost(int e1, int e2, int vert)
 {
 	EditVert *v = EM_get_vert_for_index(vert);
 	EditEdge *eed1 = EM_get_edge_for_index(e1), *eed2 = EM_get_edge_for_index(e2);
@@ -483,7 +469,7 @@ static float edgetag_cut_cost(EditMesh *em, int e1, int e2, int vert)
 	return cost;
 }
 
-static void edgetag_add_adjacent(EditMesh *em, Heap *heap, int mednum, int vertnum, int *nedges, int *edges, int *prevedge, float *cost)
+static void edgetag_add_adjacent(Heap *heap, int mednum, int vertnum, int *nedges, int *edges, int *prevedge, float *cost)
 {
 	int startadj, endadj = nedges[vertnum+1];
 
@@ -495,7 +481,7 @@ static void edgetag_add_adjacent(EditMesh *em, Heap *heap, int mednum, int vertn
 		if (eedadj->f2 & ME_SEAM_DONE)
 			continue;
 
-		newcost = cost[mednum] + edgetag_cut_cost(em, mednum, adjnum, vertnum);
+		newcost = cost[mednum] + edgetag_cut_cost(mednum, adjnum, vertnum);
 
 		if (cost[adjnum] > newcost) {
 			cost[adjnum] = newcost;
@@ -621,8 +607,8 @@ int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge
 
 		eed->f2 |= ME_SEAM_DONE;
 
-		edgetag_add_adjacent(em, heap, mednum, eed->v1->tmp.l, nedges, edges, prevedge, cost);
-		edgetag_add_adjacent(em, heap, mednum, eed->v2->tmp.l, nedges, edges, prevedge, cost);
+		edgetag_add_adjacent(heap, mednum, eed->v1->tmp.l, nedges, edges, prevedge, cost);
+		edgetag_add_adjacent(heap, mednum, eed->v2->tmp.l, nedges, edges, prevedge, cost);
 	}
 	
 	
@@ -672,7 +658,7 @@ int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge
 }
 
 /* *************************************** */
-
+#if 0
 static void seam_edgehash_insert_face(EdgeHash *ehash, MFace *mf)
 {
 	BLI_edgehash_insert(ehash, mf->v1, mf->v2, NULL);
@@ -739,11 +725,10 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 //		unwrap_lscm(1);
 
 	me->drawflag |= ME_DRAWSEAMS;
-
-// XXX notifier!		object_tface_flags_changed(OBACT, 1);
 }
+#endif
 
-int face_select(struct bContext *C, Object *ob, short mval[2], int extend)
+int paintface_mouse_select(struct bContext *C, Object *ob, short mval[2], int extend)
 {
 	Mesh *me;
 	MFace *mface, *msel;
@@ -780,48 +765,38 @@ int face_select(struct bContext *C, Object *ob, short mval[2], int extend)
 	
 	/* image window redraw */
 	
-	object_facesel_flush_dm(ob);
-// XXX notifier!		object_tface_flags_changed(OBACT, 1);
+	paintface_flush_flags(ob);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 	ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
 	return 1;
 }
 
-void face_borderselect(struct bContext *C, Object *ob, rcti *rect, int select, int extend)
+int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
 	Mesh *me;
 	MFace *mface;
 	struct ImBuf *ibuf;
 	unsigned int *rt;
-	int a, sx, sy, index;
+	int a, index;
 	char *selar;
-	
-	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
+	int sx= rect->xmax-rect->xmin+1;
+	int sy= rect->ymax-rect->ymin+1;
 
-	me= get_mesh(ob);
-	if(me==0) return;
-	if(me->totface==0) return;
+	me= get_mesh(vc->obact);
+
+	if(me==NULL || me->totface==0 || sx*sy <= 0)
+		return OPERATOR_CANCELLED;
 
 	selar= MEM_callocN(me->totface+1, "selar");
 
-	sx= (rect->xmax-rect->xmin+1);
-	sy= (rect->ymax-rect->ymin+1);
-	if(sx*sy<=0) return;
+	if (extend == 0 && select)
+		paintface_deselect_all_visible(vc->obact, SEL_DESELECT, FALSE);
 
-	if (extend == 0 && select) {
-		mface= me->mface;
-		for(a=1; a<=me->totface; a++, mface++) {
-			if((mface->flag & ME_HIDE) == 0)
-				mface->flag &= ~ME_FACE_SEL;
-		}
-	}
+	view3d_validate_backbuf(vc);
 
-	view3d_validate_backbuf(&vc);
-
-	ibuf = IMB_allocImBuf(sx,sy,32,IB_rect,0);
+	ibuf = IMB_allocImBuf(sx,sy,32,IB_rect);
 	rt = ibuf->rect;
-	glReadPixels(rect->xmin+vc.ar->winrct.xmin,  rect->ymin+vc.ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
+	glReadPixels(rect->xmin+vc->ar->winrct.xmin,  rect->ymin+vc->ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
 	if(ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 
 	a= sx*sy;
@@ -847,11 +822,11 @@ void face_borderselect(struct bContext *C, Object *ob, rcti *rect, int select, i
 	IMB_freeImBuf(ibuf);
 	MEM_freeN(selar);
 
-
-// XXX notifier!			object_tface_flags_changed(OBACT, 0);
 #ifdef __APPLE__	
 	glReadBuffer(GL_BACK);
 #endif
-	
-	object_facesel_flush_dm(ob);
+
+	paintface_flush_flags(vc->obact);
+
+	return OPERATOR_FINISHED;
 }

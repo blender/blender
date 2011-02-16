@@ -38,6 +38,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -59,6 +60,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "anim_intern.h"
 
@@ -107,7 +109,7 @@ static int keyingset_poll_activePath_edit (bContext *C)
  
 /* Add a Default (Empty) Keying Set ------------------------- */
 
-static int add_default_keyingset_exec (bContext *C, wmOperator *op)
+static int add_default_keyingset_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	short flag=0, keyingflag=0;
@@ -286,7 +288,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	PropertyRNA *prop= NULL;
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	char *path = NULL;
 	short success= 0;
 	int index=0, pflag=0;
@@ -306,7 +308,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 		
 		keyingflag |= ANIM_get_keyframing_flags(scene, 0);
 		
-		if (IS_AUTOKEY_FLAG(XYZ2RGB)) 
+		if (IS_AUTOKEY_FLAG(scene, XYZ2RGB)) 
 			keyingflag |= INSERTKEY_XYZ2RGB;
 			
 		/* call the API func, and set the active keyingset index */
@@ -322,7 +324,6 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
 	
 	/* try to add to keyingset using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	/* check if property is able to be added */
@@ -387,7 +388,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	PropertyRNA *prop= NULL;
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	char *path = NULL;
 	short success= 0;
 	int index=0;
@@ -408,7 +409,6 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
 	
 	/* try to add to keyingset using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 
 	if (ptr.id.data && ptr.data && prop) {
@@ -419,12 +419,9 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 			
 			/* try to find a path matching this description */
 			ksp= BKE_keyingset_find_path(ks, ptr.id.data, ks->name, path, index, KSP_GROUP_KSNAME);
-			
+
 			if (ksp) {
-				/* just free it... */
-				MEM_freeN(ksp->rna_path);
-				BLI_freelinkN(&ks->paths, ksp);
-				
+				BKE_keyingset_free_path(ks, ksp);
 				success= 1;
 			}
 			
@@ -464,7 +461,7 @@ void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 /* Change Active KeyingSet Operator ------------------------ */
 /* This operator checks if a menu should be shown for choosing the KeyingSet to make the active one */
 
-static int keyingset_active_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
+static int keyingset_active_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	/* call the menu, which will call this operator again, hence the cancelled */
 	ANIM_keying_sets_menu_setup(C, op->type->name, "ANIM_OT_keying_set_active_set");
@@ -503,7 +500,7 @@ void ANIM_OT_keying_set_active_set (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* keyingset to use
-	 *	- here the type is int not enum, since many of the indicies here are determined dynamically
+	 *	- here the type is int not enum, since many of the indices here are determined dynamically
 	 */
 	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
 }
@@ -558,7 +555,7 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, const char name[
 /* --------------- */
 
 /* Add the given KeyingSetInfo to the list of type infos, and create an appropriate builtin set too */
-void ANIM_keyingset_info_register (const bContext *C, KeyingSetInfo *ksi)
+void ANIM_keyingset_info_register (KeyingSetInfo *ksi)
 {
 	KeyingSet *ks;
 	
@@ -605,7 +602,7 @@ void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
 
 /* --------------- */
 
-void ANIM_keyingset_infos_exit ()
+void ANIM_keyingset_infos_exit (void)
 {
 	KeyingSetInfo *ksi, *next;
 	
@@ -676,10 +673,86 @@ int ANIM_scene_get_keyingset_index (Scene *scene, KeyingSet *ks)
 		return 0;
 }
 
+/* Get Keying Set to use for Auto-Keyframing some transforms */
+KeyingSet *ANIM_get_keyingset_for_autokeying(Scene *scene, const char *tranformKSName)
+{
+	/* get KeyingSet to use 
+	 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
+	 * 	  or otherwise key transforms only
+	 */
+	if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (scene->active_keyingset))
+		return ANIM_scene_get_active_keyingset(scene);
+	else if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL))
+		return ANIM_builtin_keyingset_get_named(NULL, "Available");
+	else 
+		return ANIM_builtin_keyingset_get_named(NULL, tranformKSName);
+}
+
 /* Menu of All Keying Sets ----------------------------- */
 
+/* Dynamically populate an enum of Keying Sets */
+EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(ptr), int *free)
+{
+	Scene *scene = CTX_data_scene(C);
+	KeyingSet *ks;
+	EnumPropertyItem *item= NULL, item_tmp= {0};
+	int totitem= 0;
+	int i= 0;
+
+	if (C == NULL) {
+		return DummyRNA_DEFAULT_items;
+	}
+	
+	/* active Keying Set 
+	 *	- only include entry if it exists
+	 */
+	if (scene->active_keyingset) {
+		/* active Keying Set */
+		item_tmp.identifier= item_tmp.name= "Active Keying Set";
+		item_tmp.value= i++;
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+		
+		/* separator */
+		RNA_enum_item_add_separator(&item, &totitem);
+	}
+	else
+		i++;
+		
+	/* user-defined Keying Sets 
+	 *	- these are listed in the order in which they were defined for the active scene
+	 */
+	if (scene->keyingsets.first) {
+		for (ks= scene->keyingsets.first; ks; ks= ks->next) {
+			if (ANIM_keyingset_context_ok_poll(C, ks)) {
+				item_tmp.identifier= item_tmp.name= ks->name;
+				item_tmp.value= i++;
+				RNA_enum_item_add(&item, &totitem, &item_tmp);
+			}
+		}
+		
+		/* separator */
+		RNA_enum_item_add_separator(&item, &totitem);
+	}
+	
+	/* builtin Keying Sets */
+	i= -1;
+	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
+		/* only show KeyingSet if context is suitable */
+		if (ANIM_keyingset_context_ok_poll(C, ks)) {
+			item_tmp.identifier= item_tmp.name= ks->name;
+			item_tmp.value= i--;
+			RNA_enum_item_add(&item, &totitem, &item_tmp);
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
 /* Create (and show) a menu containing all the Keying Sets which can be used in the current context */
-void ANIM_keying_sets_menu_setup (bContext *C, char title[], char op_name[])
+void ANIM_keying_sets_menu_setup (bContext *C, const char title[], const char op_name[])
 {
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks;
@@ -687,14 +760,14 @@ void ANIM_keying_sets_menu_setup (bContext *C, char title[], char op_name[])
 	uiLayout *layout;
 	int i = 0;
 	
-	pup= uiPupMenuBegin(C, title, 0);
+	pup= uiPupMenuBegin(C, title, ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 	
 	/* active Keying Set 
 	 *	- only include entry if it exists
 	 */
 	if (scene->active_keyingset) {
-		uiItemIntO(layout, "Active Keying Set", 0, op_name, "type", i++);
+		uiItemIntO(layout, "Active Keying Set", ICON_NULL, op_name, "type", i++);
 		uiItemS(layout);
 	}
 	else
@@ -706,7 +779,7 @@ void ANIM_keying_sets_menu_setup (bContext *C, char title[], char op_name[])
 	if (scene->keyingsets.first) {
 		for (ks= scene->keyingsets.first; ks; ks= ks->next) {
 			if (ANIM_keyingset_context_ok_poll(C, ks))
-				uiItemIntO(layout, ks->name, 0, op_name, "type", i++);
+				uiItemIntO(layout, ks->name, ICON_NULL, op_name, "type", i++);
 		}
 		uiItemS(layout);
 	}
@@ -716,7 +789,7 @@ void ANIM_keying_sets_menu_setup (bContext *C, char title[], char op_name[])
 	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
 		/* only show KeyingSet if context is suitable */
 		if (ANIM_keyingset_context_ok_poll(C, ks))
-			uiItemIntO(layout, ks->name, 0, op_name, "type", i--);
+			uiItemIntO(layout, ks->name, ICON_NULL, op_name, "type", i--);
 	}
 	
 	uiPupMenuEnd(C, pup);
@@ -805,6 +878,7 @@ void ANIM_relative_keyingset_add_source (ListBase *dsources, ID *id, StructRNA *
 int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
 	Scene *scene= CTX_data_scene(C);
+	ReportList *reports = CTX_wm_reports(C);
 	KS_Path *ksp;
 	int kflag=0, success= 0;
 	char *groupname= NULL;
@@ -900,9 +974,9 @@ int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingS
 		for (; i < arraylen; i++) {
 			/* action to take depends on mode */
 			if (mode == MODIFYKEY_MODE_INSERT)
-				success += insert_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
+				success += insert_keyframe(reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
 			else if (mode == MODIFYKEY_MODE_DELETE)
-				success += delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
+				success += delete_keyframe(reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
 		}
 		
 		/* set recalc-flags */
@@ -912,7 +986,7 @@ int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingS
 				{
 					Object *ob= (Object *)ksp->id;
 					
-					ob->recalc |= OB_RECALC_ALL; // XXX: only object transforms only?
+					ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME; // XXX: only object transforms only?
 				}
 					break;
 			}

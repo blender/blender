@@ -26,7 +26,10 @@
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
+#include "BLI_utildefines.h"
+
 #include "DNA_screen_types.h"
+
 #include "BKE_context.h"
 #include "ED_space_api.h"
 
@@ -34,7 +37,7 @@
 #define RNA_CAPSULE_ID "RNA_HANDLE"
 #define RNA_CAPSULE_ID_INVALID "RNA_HANDLE_REMOVED"
 
-void cb_region_draw(const bContext *C, ARegion *ar, void *customdata)
+void cb_region_draw(const bContext *C, ARegion *UNUSED(ar), void *customdata)
 {
 	PyObject *cb_func, *cb_args, *result;
 	PyGILState_STATE gilstate;
@@ -110,7 +113,7 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
 	handle= PyCapsule_GetPointer(py_handle, RNA_CAPSULE_ID);
 
 	if(handle==NULL) {
-		PyErr_SetString(PyExc_ValueError, "callback_remove(handle): NULL handle given, invalid or already removed.");
+		PyErr_SetString(PyExc_ValueError, "callback_remove(handle): NULL handle given, invalid or already removed");
 		return NULL;
 	}
 

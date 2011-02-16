@@ -129,7 +129,9 @@ typedef struct EffectorWeights {
 */
 #define BPHYS_DATA_INDEX		0
 #define BPHYS_DATA_LOCATION		1
+#define BPHYS_DATA_SMOKE_LOW	1
 #define BPHYS_DATA_VELOCITY		2
+#define BPHYS_DATA_SMOKE_HIGH	2
 #define BPHYS_DATA_ROTATION		3
 #define BPHYS_DATA_AVELOCITY	4	/* used for particles */
 #define BPHYS_DATA_XCONST		4	/* used for cloth */
@@ -139,20 +141,41 @@ typedef struct EffectorWeights {
 
 #define BPHYS_TOT_DATA			8
 
+#define BPHYS_EXTRA_FLUID_SPRINGS	1
+
+typedef struct PTCacheExtra {
+	struct PTCacheExtra *next, *prev;
+	unsigned int type, totdata;
+	void *data;
+} PTCacheExtra;
+
 typedef struct PTCacheMem {
 	struct PTCacheMem *next, *prev;
-	int frame, totpoint;
+	unsigned int frame, totpoint;
 	unsigned int data_types, flag;
-	int *index_array; /* quick access to stored points with index */
 
 	void *data[8]; /* BPHYS_TOT_DATA */
 	void *cur[8]; /* BPHYS_TOT_DATA */
+
+	struct ListBase extradata;
 } PTCacheMem;
 
 typedef struct PointCache {
 	struct PointCache *next, *prev;
 	int flag;		/* generic flag */
-	int step;		/* frames between cached frames */
+	
+	int step;		/* The number of frames between cached frames.
+					 * This should probably be an upper bound for a per point adaptive step in the future,
+					 * buf for now it's the same for all points. Without adaptivity this can effect the perceived
+					 * simulation quite a bit though. If for example particles are colliding with a horizontal
+					 * plane (with high damping) they quickly come to a stop on the plane, however there are still
+					 * forces acting on the particle (gravity and collisions), so the particle velocity isn't necessarily
+					 * zero for the whole duration of the frame even if the particle seems stationary. If all simulation
+					 * frames aren't cached (step > 1) these velocities are interpolated into movement for the non-cached
+					 * frames. The result will look like the point is oscillating around the collision location. So for
+					 * now cache step should be set to 1 for accurate reproduction of collisions.
+					 */
+
 	int simframe;	/* current frame of simulation (only if SIMULATION_VALID) */
 	int startframe;	/* simulation start frame */
 	int endframe;	/* simulation end frame */
@@ -161,12 +184,15 @@ typedef struct PointCache {
 
 	/* for external cache files */
 	int totpoint;   /* number of cached points */
-	int index, rt;	/* modifier stack index */
+	int index;	/* modifier stack index */
+	short compression, rt;
 	
 	char name[64];
 	char prev_name[64];
 	char info[64];
 	char path[240]; /* file path */
+	char *cached_frames;	/* array of length endframe-startframe+1 with flags to indicate cached frames */
+							/* can be later used for other per frame flags too if needed */
 	struct ListBase mem_cache;
 
 	struct PTCacheEdit *edit;
@@ -313,7 +339,7 @@ typedef struct SoftBody {
 
 /* pd->flag: various settings */
 #define PFIELD_USEMAX			1
-#define PDEFLE_DEFORM			2
+/*#define PDEFLE_DEFORM			2*/			/*UNUSED*/
 #define PFIELD_GUIDE_PATH_ADD	4			/* TODO: do_versions for below */
 #define PFIELD_PLANAR			8			/* used for do_versions */
 #define PDEFLE_KILL_PART		16
@@ -370,6 +396,10 @@ typedef struct SoftBody {
 
 /* PTCACHE_OUTDATED + PTCACHE_FRAMES_SKIPPED */
 #define PTCACHE_REDO_NEEDED			258
+
+#define PTCACHE_COMPRESS_NO			0
+#define PTCACHE_COMPRESS_LZO		1
+#define PTCACHE_COMPRESS_LZMA		2
 
 /* ob->softflag */
 #define OB_SB_ENABLE	1		/* deprecated, use modifier */

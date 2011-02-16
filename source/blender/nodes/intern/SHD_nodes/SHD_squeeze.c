@@ -42,7 +42,7 @@ static bNodeSocketType sh_node_squeeze_out[]= {
 	{ -1, 0, "" } 
 };
 
-static void node_shader_exec_squeeze(void *data, bNode *node, bNodeStack **in, 
+static void node_shader_exec_squeeze(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **in, 
 bNodeStack **out) 
 {
 	float vec[3];
@@ -54,26 +54,23 @@ bNodeStack **out)
 	out[0]->vec[0] = 1.0f / (1.0f + pow(2.71828183,-((vec[0]-vec[2])*vec[1]))) ;
 }
 
-static int gpu_shader_squeeze(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_squeeze(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "squeeze", in, out);
 }
 
-bNodeType sh_node_squeeze= { 
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_SQUEEZE, 
-	/* name        */	"Squeeze Value", 
-	/* width+range */	120, 110, 160, 
-	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS, 
-	/* input sock  */	sh_node_squeeze_in, 
-	/* output sock */	sh_node_squeeze_out, 
-	/* storage     */	"node_squeeze", 
-	/* execfunc    */	node_shader_exec_squeeze,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_squeeze
-};
+void register_node_type_sh_squeeze(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_SQUEEZE, "Squeeze Value", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		sh_node_squeeze_in, sh_node_squeeze_out);
+	node_type_size(&ntype, 120, 110, 160);
+	node_type_storage(&ntype, "node_squeeze", NULL, NULL);
+	node_type_exec(&ntype, node_shader_exec_squeeze);
+	node_type_gpu(&ntype, gpu_shader_squeeze);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

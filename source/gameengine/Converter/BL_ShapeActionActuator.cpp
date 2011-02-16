@@ -48,7 +48,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "MT_Matrix4x4.h"
-#include "BKE_utildefines.h"
+
 #include "FloatValue.h"
 #include "PyObjectPlus.h"
 
@@ -408,7 +408,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 	return keepgoing;
 };
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -491,4 +491,4 @@ int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE
 
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

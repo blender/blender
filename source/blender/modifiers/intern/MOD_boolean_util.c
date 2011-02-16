@@ -37,6 +37,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -577,7 +578,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 	MEM_freeN(mat);
 
 	/* update dag */
-	DAG_id_flush_update(&ob_new->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob_new->id, OB_RECALC_DATA);
 
 	return 1;
 }

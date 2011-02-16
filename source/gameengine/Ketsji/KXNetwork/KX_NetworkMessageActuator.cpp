@@ -28,6 +28,8 @@
  * Ketsji Logic Extenstion: Network Message Actuator generic implementation
  */
 
+#include <stddef.h>
+
 #include "NG_NetworkScene.h"
 #include "KX_NetworkMessageActuator.h"
 
@@ -91,7 +93,7 @@ CValue* KX_NetworkMessageActuator::GetReplica()
 	return replica;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* -------------------------------------------------------------------- */
 /* Python interface --------------------------------------------------- */
@@ -132,4 +134,4 @@ PyAttributeDef KX_NetworkMessageActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

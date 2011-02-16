@@ -382,7 +382,7 @@ void RAS_OpenGLRasterizer::FlushDebugShapes()
 			continue;
 		glBegin(GL_LINE_LOOP);
 		glColor4f(m_debugShapes[i].m_color[0],m_debugShapes[i].m_color[1],m_debugShapes[i].m_color[2],1.f);
-		
+
 		static const MT_Vector3 worldUp(0.,0.,1.);
 		MT_Vector3 norm = m_debugShapes[i].m_param;
 		MT_Matrix3x3 tr;
@@ -396,8 +396,8 @@ void RAS_OpenGLRasterizer::FlushDebugShapes()
 			xaxis = MT_cross(norm, worldUp);
 			yaxis = MT_cross(xaxis, norm);
 			tr.setValue(xaxis.x(), xaxis.y(), xaxis.z(),
-						yaxis.x(), yaxis.y(), yaxis.z(),
-						norm.x(), norm.y(), norm.z());
+				yaxis.x(), yaxis.y(), yaxis.z(),
+				norm.x(), norm.y(), norm.z());
 		}
 		MT_Scalar rad = m_debugShapes[i].m_param2.x();
 		int n = (int) m_debugShapes[i].m_param2.y();
@@ -413,40 +413,14 @@ void RAS_OpenGLRasterizer::FlushDebugShapes()
 		glEnd();
 	}
 
-
 	if(light) glEnable(GL_LIGHTING);
 	if(tex) glEnable(GL_TEXTURE_2D);
 
 	m_debugShapes.clear();
 }
 
-void RAS_OpenGLRasterizer::DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
-{
-	OglDebugShape line;
-	line.m_type = OglDebugShape::LINE;
-	line.m_pos= from;
-	line.m_param = to;
-	line.m_color = color;
-	m_debugShapes.push_back(line);
-}
-
-void RAS_OpenGLRasterizer::DrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
-											const MT_Vector3& normal, int nsector)
-{
-	OglDebugShape line;
-	line.m_type = OglDebugShape::CIRCLE;
-	line.m_pos= center;
-	line.m_param = normal;
-	line.m_color = color;	
-	line.m_param2.x() = radius;
-	line.m_param2.y() = (float) nsector;
-	m_debugShapes.push_back(line);
-}
-
 void RAS_OpenGLRasterizer::EndFrame()
 {
-	
-
 	FlushDebugShapes();
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -799,6 +773,7 @@ static RAS_MeshSlot *current_ms;
 static RAS_MeshObject *current_mesh;
 static int current_blmat_nr;
 static GPUVertexAttribs current_gpu_attribs;
+static Image *current_image;
 static int CheckMaterialDM(int matnr, void *attribs)
 {
 	// only draw the current material
@@ -809,6 +784,8 @@ static int CheckMaterialDM(int matnr, void *attribs)
 		memcpy(gattribs, &current_gpu_attribs, sizeof(GPUVertexAttribs));
 	return 1;
 }
+
+/*
 static int CheckTexfaceDM(void *mcol, int index)
 {
 
@@ -816,6 +793,34 @@ static int CheckTexfaceDM(void *mcol, int index)
 	RAS_Polygon* polygon = (index >= 0 && index < current_mesh->NumPolygons()) ?
 		current_mesh->GetPolygon(index) : NULL;
 	if (polygon && polygon->GetMaterial() == current_bucket) {
+		// must handle color.
+		if (current_wireframe)
+			return 2;
+		if (current_ms->m_bObjectColor) {
+			MT_Vector4& rgba = current_ms->m_RGBAcolor;
+			glColor4d(rgba[0], rgba[1], rgba[2], rgba[3]);
+			// don't use mcol
+			return 2;
+		}
+		if (!mcol) {
+			// we have to set the color from the material
+			unsigned char rgba[4];
+			current_polymat->GetMaterialRGBAColor(rgba);
+			glColor4ubv((const GLubyte *)rgba);
+			return 2;
+		}
+		return 1;
+	}
+	return 0;
+}
+*/
+
+static int CheckTexDM(MTFace *tface, MCol *mcol, int matnr)
+{
+
+	// index is the original face index, retrieve the polygon
+	if (matnr == current_blmat_nr &&
+		(tface == NULL || tface->tpage == current_image)) {
 		// must handle color.
 		if (current_wireframe)
 			return 2;
@@ -851,7 +856,14 @@ void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 		current_ms = &ms;
 		current_mesh = ms.m_mesh;
 		current_wireframe = wireframe;
-		MCol *mcol = (MCol*)ms.m_pDerivedMesh->getFaceDataArray(ms.m_pDerivedMesh, CD_MCOL);
+		// MCol *mcol = (MCol*)ms.m_pDerivedMesh->getFaceDataArray(ms.m_pDerivedMesh, CD_MCOL); /* UNUSED */
+
+		// handle two-side
+		if (current_polymat->GetDrawingMode() & RAS_IRasterizer::KX_TWOSIDE)
+			this->SetCullFace(false);
+		else
+			this->SetCullFace(true);
+
 		if (current_polymat->GetFlag() & RAS_BLENDERGLSL) {
 			// GetMaterialIndex return the original mface material index, 
 			// increment by 1 to match what derived mesh is doing
@@ -868,7 +880,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 			ms.m_pDerivedMesh->drawFacesGLSL(ms.m_pDerivedMesh, CheckMaterialDM);
 			GPU_set_material_blend_mode(current_blend_mode);
 		} else {
-			ms.m_pDerivedMesh->drawMappedFacesTex(ms.m_pDerivedMesh, CheckTexfaceDM, mcol);
+			//ms.m_pDerivedMesh->drawMappedFacesTex(ms.m_pDerivedMesh, CheckTexfaceDM, mcol);
+			current_blmat_nr = current_polymat->GetMaterialIndex();
+			current_image = current_polymat->GetBlenderImage();
+			ms.m_pDerivedMesh->drawFacesTex(ms.m_pDerivedMesh, CheckTexDM);
 		}
 		return;
 	}

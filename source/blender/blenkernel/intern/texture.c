@@ -38,11 +38,10 @@
 
 #include "PIL_dynlib.h"
 
-
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
@@ -573,6 +572,7 @@ void default_tex(Tex *tex)
 	tex->iuser.fie_ima= 2;
 	tex->iuser.ok= 1;
 	tex->iuser.frames= 100;
+	tex->iuser.sfra= 1;
 	
 	tex->preview = NULL;
 }
@@ -630,7 +630,7 @@ void default_mtex(MTex *mtex)
 	mtex->size[1]= 1.0;
 	mtex->size[2]= 1.0;
 	mtex->tex= 0;
-	mtex->texflag= MTEX_NEW_BUMP;
+	mtex->texflag= MTEX_3TAP_BUMP | MTEX_BUMP_OBJECTSPACE;
 	mtex->colormodel= 0;
 	mtex->r= 1.0;
 	mtex->g= 0.0;
@@ -760,7 +760,7 @@ Tex *copy_texture(Tex *tex)
 
 	if(tex->nodetree) {
 		ntreeEndExecTree(tex->nodetree);
-		texn->nodetree= ntreeCopyTree(tex->nodetree, 0); /* 0 == full new tree */
+		texn->nodetree= ntreeCopyTree(tex->nodetree); /* 0 == full new tree */
 	}
 	
 	return texn;
@@ -1285,8 +1285,7 @@ void BKE_free_pointdensity(PointDensity *pd)
 void BKE_free_voxeldatadata(struct VoxelData *vd)
 {
 	if (vd->dataset) {
-		if(vd->file_format != TEX_VD_SMOKE)
-			MEM_freeN(vd->dataset);
+		MEM_freeN(vd->dataset);
 		vd->dataset = NULL;
 	}
 
@@ -1337,13 +1336,11 @@ int BKE_texture_dependsOnTime(const struct Tex *texture)
 	else if(	texture->ima && 
 			ELEM(texture->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
 		return 1;
-	} 
-#if 0 // XXX old animation system
-	else if(texture->ipo) {
-		// assume any ipo means the texture is animated
+	}
+	else if(texture->adt) {
+		// assume anything in adt means the texture is animated
 		return 1;
 	}
-#endif // XXX old animation system
 	return 0;
 }
 

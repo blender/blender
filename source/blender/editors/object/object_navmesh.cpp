@@ -26,6 +26,7 @@
 *
 * ***** END GPL LICENSE BLOCK *****
 */
+
 #include <math.h>
 #include "Recast.h"
 
@@ -49,6 +50,7 @@ extern "C"
 #include "BKE_cdderivedmesh.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 #include "ED_object.h"
 #include "BLI_math_vector.h"
 
@@ -411,7 +413,7 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 
 	BKE_mesh_end_editmesh((Mesh*)obedit->data, em);
 	
-	DAG_id_flush_update((ID*)obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update((ID*)obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 
@@ -445,7 +447,14 @@ static int create_navmesh_exec(bContext *C, wmOperator *op)
 	rcPolyMeshDetail* dmesh;
 	LinkNode* obs = NULL;
 	Base* navmeshBase = NULL;
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases)
+	//CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) //expand macros to avoid error in convertion from void*
+	{
+		ListBase ctx_data_list;
+		CollectionPointerLink *ctx_link;
+		CTX_data_selected_editable_bases(C, &ctx_data_list);
+		for(ctx_link = (CollectionPointerLink *)ctx_data_list.first; 
+				ctx_link; ctx_link = (CollectionPointerLink *)ctx_link->next) {
+		Base* base= (Base*)ctx_link->ptr.data;
 	{
 		if (base->object->body_type==OB_BODY_TYPE_NAVMESH)
 		{
@@ -454,7 +463,7 @@ static int create_navmesh_exec(bContext *C, wmOperator *op)
 		}
 		else
 			BLI_linklist_append(&obs, (void*)base->object);
-	}		
+	}
 	CTX_DATA_END;
 	createVertsTrisData(C, obs, nverts, verts, ntris, tris);
 	BLI_linklist_free(obs, NULL);
@@ -518,7 +527,7 @@ static int assign_navpolygon_exec(bContext *C, wmOperator *op)
 		}		
 	}
 	
-	DAG_id_flush_update((ID*)obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update((ID*)obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh((Mesh*)obedit->data, em);
@@ -596,7 +605,7 @@ static int assign_new_navpolygon_exec(bContext *C, wmOperator *op)
 		}
 	}		
 
-	DAG_id_flush_update((ID*)obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update((ID*)obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh((Mesh*)obedit->data, em);

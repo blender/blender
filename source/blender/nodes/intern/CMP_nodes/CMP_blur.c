@@ -93,109 +93,119 @@ static void blur_single_image(bNode *node, CompBuf *new, CompBuf *img, float sca
 	int x, y, pix= img->type;
 	int i, bigstep;
 	float *src, *dest;
-
+	
 	/* helper image */
 	work= alloc_compbuf(imgx, imgy, img->type, 1); /* allocs */
-	
+
 	/* horizontal */
-	rad = scale*(float)nbd->sizex;
-	if(rad>imgx/2)
-		rad= imgx/2;
-	else if(rad<1) 
-		rad= 1;
-
-	gausstab= make_gausstab(nbd->filtertype, rad);
-	gausstabcent= gausstab+rad;
-	
-	for (y = 0; y < imgy; y++) {
-		float *srcd= img->rect + pix*(y*img->x);
+	if(nbd->sizex == 0) {
+		memcpy(work->rect, img->rect, sizeof(float) * img->type * imgx * imgy);
+	}
+	else {
+		rad = scale*(float)nbd->sizex;
+		if(rad>imgx/2)
+			rad= imgx/2;
+		else if(rad<1) 
+			rad= 1;
 		
-		dest = work->rect + pix*(y * img->x);
+		gausstab= make_gausstab(nbd->filtertype, rad);
+		gausstabcent= gausstab+rad;
 		
-		for (x = 0; x < imgx ; x++) {
-			int minr= x-rad<0?-x:-rad;
-			int maxr= x+rad>imgx?imgx-x:rad;
+		for (y = 0; y < imgy; y++) {
+			float *srcd= img->rect + pix*(y*img->x);
 			
-			src= srcd + pix*(x+minr);
+			dest = work->rect + pix*(y * img->x);
 			
-			sum= gval = rval= bval= aval= 0.0f;
-			for (i= minr; i < maxr; i++) {
-				val= gausstabcent[i];
-				sum+= val;
-				rval += val * (*src++);
+			for (x = 0; x < imgx ; x++) {
+				int minr= x-rad<0?-x:-rad;
+				int maxr= x+rad>imgx?imgx-x:rad;
+				
+				src= srcd + pix*(x+minr);
+				
+				sum= gval = rval= bval= aval= 0.0f;
+				for (i= minr; i < maxr; i++) {
+					val= gausstabcent[i];
+					sum+= val;
+					rval += val * (*src++);
+					if(pix==4) {
+						gval += val * (*src++);
+						bval += val * (*src++);
+						aval += val * (*src++);
+					}
+				}
+				sum= 1.0f/sum;
+				*dest++ = rval*sum;
 				if(pix==4) {
-					gval += val * (*src++);
-					bval += val * (*src++);
-					aval += val * (*src++);
+					*dest++ = gval*sum;
+					*dest++ = bval*sum;
+					*dest++ = aval*sum;
 				}
 			}
-			sum= 1.0f/sum;
-			*dest++ = rval*sum;
-			if(pix==4) {
-				*dest++ = gval*sum;
-				*dest++ = bval*sum;
-				*dest++ = aval*sum;
-			}
+			if(node->exec & NODE_BREAK)
+				break;
 		}
-		if(node->exec & NODE_BREAK)
-			break;
+		
+		/* vertical */
+		MEM_freeN(gausstab);
 	}
 	
-	/* vertical */
-	MEM_freeN(gausstab);
+	if(nbd->sizey == 0) {
+		memcpy(new->rect, work->rect, sizeof(float) * img->type * imgx * imgy);
+	}
+	else {
+		rad = scale*(float)nbd->sizey;
+		if(rad>imgy/2)
+			rad= imgy/2;
+		else if(rad<1) 
+			rad= 1;
 	
-	rad = scale*(float)nbd->sizey;
-	if(rad>imgy/2)
-		rad= imgy/2;
-	else if(rad<1) 
-		rad= 1;
-
-	gausstab= make_gausstab(nbd->filtertype, rad);
-	gausstabcent= gausstab+rad;
-	
-	bigstep = pix*imgx;
-	for (x = 0; x < imgx; x++) {
-		float *srcd= work->rect + pix*x;
+		gausstab= make_gausstab(nbd->filtertype, rad);
+		gausstabcent= gausstab+rad;
 		
-		dest = new->rect + pix*x;
-		
-		for (y = 0; y < imgy ; y++) {
-			int minr= y-rad<0?-y:-rad;
-			int maxr= y+rad>imgy?imgy-y:rad;
+		bigstep = pix*imgx;
+		for (x = 0; x < imgx; x++) {
+			float *srcd= work->rect + pix*x;
 			
-			src= srcd + bigstep*(y+minr);
+			dest = new->rect + pix*x;
 			
-			sum= gval = rval= bval= aval= 0.0f;
-			for (i= minr; i < maxr; i++) {
-				val= gausstabcent[i];
-				sum+= val;
-				rval += val * src[0];
-				if(pix==4) {
-					gval += val * src[1];
-					bval += val * src[2];
-					aval += val * src[3];
+			for (y = 0; y < imgy ; y++) {
+				int minr= y-rad<0?-y:-rad;
+				int maxr= y+rad>imgy?imgy-y:rad;
+				
+				src= srcd + bigstep*(y+minr);
+				
+				sum= gval = rval= bval= aval= 0.0f;
+				for (i= minr; i < maxr; i++) {
+					val= gausstabcent[i];
+					sum+= val;
+					rval += val * src[0];
+					if(pix==4) {
+						gval += val * src[1];
+						bval += val * src[2];
+						aval += val * src[3];
+					}
+					src += bigstep;
 				}
-				src += bigstep;
+				sum= 1.0f/sum;
+				dest[0] = rval*sum;
+				if(pix==4) {
+					dest[1] = gval*sum;
+					dest[2] = bval*sum;
+					dest[3] = aval*sum;
+				}
+				dest+= bigstep;
 			}
-			sum= 1.0f/sum;
-			dest[0] = rval*sum;
-			if(pix==4) {
-				dest[1] = gval*sum;
-				dest[2] = bval*sum;
-				dest[3] = aval*sum;
-			}
-			dest+= bigstep;
+			if(node->exec & NODE_BREAK)
+				break;
 		}
-		if(node->exec & NODE_BREAK)
-			break;
+		MEM_freeN(gausstab);
 	}
-	
+
 	free_compbuf(work);
-	MEM_freeN(gausstab);
 }
 
 /* reference has to be mapped 0-1, and equal in size */
-static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float fac, NodeBlurData *nbd)
+static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *UNUSED(ref), float UNUSED(fac), NodeBlurData *nbd)
 {
 	CompBuf *wbuf;
 	register float val;
@@ -568,11 +578,25 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	if(out[0]->hasoutput==0) return;
 	
 	if(nbd->relative) {
-		nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
-		nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
+		if (nbd->aspect==CMP_NODE_BLUR_ASPECT_NONE) {
+			nbd->sizex= (int)(nbd->percentx*0.01f*nbd->image_in_width);
+			nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_height);
+		}
+		else if (nbd->aspect==CMP_NODE_BLUR_ASPECT_Y) {
+			nbd->sizex= (int)(nbd->percentx*0.01f*nbd->image_in_width);
+			nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_width);
+		}
+		else if (nbd->aspect==CMP_NODE_BLUR_ASPECT_X) {
+			nbd->sizex= (int)(nbd->percentx*0.01f*nbd->image_in_height);
+			nbd->sizey= (int)(nbd->percenty*0.01f*nbd->image_in_height);
+		}
 	}
 
-	if (((NodeBlurData *)node->storage)->filtertype == R_FILTER_FAST_GAUSS) {
+	if (nbd->sizex==0 && nbd->sizey==0) {
+		new= pass_on_compbuf(img);
+		out[0]->data= new;
+	}
+	else if (nbd->filtertype == R_FILTER_FAST_GAUSS) {
 		CompBuf *new, *img = in[0]->data;
 		/*from eeshlo's original patch, removed to fit in with the existing blur node */
 		/*const float sx = in[1]->vec[0], sy = in[2]->vec[0];*/
@@ -612,6 +636,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		
 		/* if fac input, we do it different */
 		if(in[1]->data) {
+			CompBuf *gammabuf;
 			
 			/* make output size of input image */
 			new= alloc_compbuf(img->x, img->y, img->type, 1); /* allocs */
@@ -620,7 +645,18 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 			new->xof = img->xof;
 			new->yof = img->yof;
 			
-			blur_with_reference(node, new, img, in[1]->data);
+			if(nbd->gamma) {
+				gammabuf= dupalloc_compbuf(img);
+				gamma_correct_compbuf(gammabuf, 0);
+			}
+			else gammabuf= img;
+			
+			blur_with_reference(node, new, gammabuf, in[1]->data);
+			
+			if(nbd->gamma) {
+				gamma_correct_compbuf(new, 1);
+				free_compbuf(gammabuf);
+			}
 			if(node->exec & NODE_BREAK) {
 				free_compbuf(new);
 				new= NULL;
@@ -633,7 +669,6 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 				new= pass_on_compbuf(img);
 			}
 			else {
-				NodeBlurData *nbd= node->storage;
 				CompBuf *gammabuf;
 				
 				/* make output size of input image */
@@ -679,21 +714,19 @@ static void node_composit_init_blur(bNode* node)
    node->storage= MEM_callocN(sizeof(NodeBlurData), "node blur data");
 }
 
-bNodeType cmp_node_blur= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_BLUR,
-	/* name        */	"Blur",
-	/* width+range */	120, 80, 200,
-	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	cmp_node_blur_in,
-	/* output sock */	cmp_node_blur_out,
-	/* storage     */	"NodeBlurData",
-	/* execfunc    */	node_composit_exec_blur,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_blur,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_blur(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_BLUR, "Blur", NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
+		cmp_node_blur_in, cmp_node_blur_out);
+	node_type_size(&ntype, 120, 80, 200);
+	node_type_init(&ntype, node_composit_init_blur);
+	node_type_storage(&ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_blur);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

@@ -26,6 +26,7 @@ incs = ['.',
         '#source/blender/imbuf',
         '#source/gameengine/Ketsji',
         '#source/blender/blenlib',
+        '#source/blender/blenfont',
         '#source/blender/blenkernel',
         '#source/blender',
         '#source/blender/include',
@@ -44,28 +45,13 @@ incs = ['.',
         '#source/blender/gpu',
         '#extern/glew/include']
 
-#This is all plugin stuff!
-#if sys.platform=='win32':
-#   source_files += ['windows/GPW_Canvas.cpp',
-#                    'windows/GPW_Engine.cpp',
-#                    'windows/GPW_KeyboardDevice.cpp',
-#                    'windows/GPW_System.cpp']
-#   gp_common_env.Append ( CPPPATH = ['windows'])
-#elif sys.platform=='linux2' or sys.platform=='linux-i386':
-#   source_files += ['unix/GPU_Canvas.cpp',
-#                    'unix/GPU_Engine.cpp',
-#                    'unix/GPU_KeyboardDevice.cpp',
-#                    'unix/GPU_System.cpp']
-#   gp_common_env.Append ( CPPPATH = ['unix'])
-
 defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_PYTHON']:
     incs += Split(env['BF_PYTHON_INC'])
-else:
-    defs.append('DISABLE_PYTHON')
+    defs.append('WITH_PYTHON')
 
 incs += Split(env['BF_PNG_INC'])
 incs += Split(env['BF_ZLIB_INC'])
 
-env.BlenderLib (libname='gp_common', sources=source_files, includes=incs, defines = defs, libtype=['player'], priority=[5], cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib (libname='ge_player_common', sources=source_files, includes=incs, defines = defs, libtype=['player'], priority=[5], cxx_compileflags=env['BGE_CXXFLAGS'])

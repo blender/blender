@@ -44,15 +44,14 @@ static bNodeSocketType cmp_node_brightcontrast_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_brightnesscontrast(bNode *node, float *out, float *in)
+static void do_brightnesscontrast(bNode *UNUSED(node), float *out, float *in, float *in_brightness, float *in_contrast)
 {
 	float i;
 	int c;
-	float a, b, contrast, brightness, delta, v;
-	contrast = node->custom2;
-	brightness = (float)(node->custom1);
-	brightness = (brightness) / 100.0f;
-	delta = contrast / 200.0f;
+	float a, b, v;
+	float brightness = (*in_brightness) / 100.0f;
+	float contrast = *in_contrast;
+	float delta = contrast / 200.0f;
 	a = 1.0f - delta * 2.0f;
 	/*
 	* The algorithm is by Werner D. Streidt
@@ -77,37 +76,30 @@ static void do_brightnesscontrast(bNode *node, float *out, float *in)
 	}
 }
 
-static void node_composit_exec_brightcontrast(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_brightcontrast(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if(out[0]->hasoutput==0)
 		return;
 	
 	if(in[0]->data) {
 		CompBuf *stackbuf, *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
-		node->custom1 = in[1]->vec[0];
-		node->custom2 = in[2]->vec[0];
 		stackbuf= dupalloc_compbuf(cbuf);
-		composit1_pixel_processor(node, stackbuf, cbuf, in[0]->vec, do_brightnesscontrast, CB_RGBA);
+		composit3_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, do_brightnesscontrast, CB_RGBA, CB_VAL, CB_VAL);
 		out[0]->data = stackbuf;
 		if(cbuf != in[0]->data)
 			free_compbuf(cbuf);
 	}
 }
 
-bNodeType cmp_node_brightcontrast= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_BRIGHTCONTRAST,
-	/* name        */	"Bright/Contrast",
-	/* width+range */	140, 100, 320,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_brightcontrast_in,
-	/* output sock */	cmp_node_brightcontrast_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_brightcontrast,
-	/* butfunc     */	NULL, 
-	/* initfunc    */	NULL, 
-	/* freestoragefunc	*/ NULL, 
-	/* copysotragefunc	*/ NULL, 
-	/* id          */	NULL
-};
+void register_node_type_cmp_brightcontrast(ListBase *lb)
+{
+	static bNodeType ntype;
+	
+	node_type_base(&ntype, CMP_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+				   cmp_node_brightcontrast_in, cmp_node_brightcontrast_out);
+	node_type_size(&ntype, 140, 100, 320);
+	node_type_exec(&ntype, node_composit_exec_brightcontrast);
+	
+	nodeRegisterType(lb, &ntype);
+}
 

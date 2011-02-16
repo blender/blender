@@ -36,28 +36,32 @@
 #ifndef BLI_FILEOPS_H
 #define BLI_FILEOPS_H
 
-void  BLI_recurdir_fileops(char *dirname);
-int BLI_link(char *file, char *to);
-int BLI_is_writable(char *filename);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void  BLI_recurdir_fileops(const char *dirname);
+int BLI_link(const char *file, const char *to);
+int BLI_is_writable(const char *filename);
 
 /**
  * @attention Do not confuse with BLI_exist
  */
-int   BLI_exists(char *file);
-int   BLI_copy_fileops(char *file, char *to);
-int   BLI_rename(char *from, char *to);
-int   BLI_gzip(char *from, char *to);
-int   BLI_delete(char *file, int dir, int recursive);
-int   BLI_move(char *file, char *to);
+int   BLI_exists(const char *file);
+int   BLI_copy_fileops(const char *file, const char *to);
+int   BLI_rename(const char *from, const char *to);
+int   BLI_gzip(const char *from, const char *to);
+int   BLI_delete(const char *file, int dir, int recursive);
+int   BLI_move(const char *file, const char *to);
 int   BLI_touch(const char *file);
-char *BLI_last_slash(const char *string);
-int	  BLI_add_slash(char *string);
-void  BLI_del_slash(char *string);
-char *first_slash(char *string);
 
 /* only for the sane unix world: direct calls to system functions :( */
 #ifndef WIN32
 void BLI_setCmdCallBack(int (*f)(char*));
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

@@ -24,9 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.cpp Joystick/*.cpp)
-
-SET(INC
+set(INC
 	. 
 	../../../source/kernel/gen_system 
 	../../../intern/string
@@ -36,16 +34,99 @@ SET(INC
 	../../../source/gameengine/Rasterizer
 )
 
-IF(WITH_SDL)
-	SET(INC ${INC} ${SDL_INCLUDE_DIR})
-ELSE(WITH_SDL)
-	ADD_DEFINITIONS(-DDISABLE_SDL)
-ENDIF(WITH_SDL)
+set(SRC
+	Joystick/SCA_Joystick.cpp
+	Joystick/SCA_JoystickEvents.cpp
+	SCA_2DFilterActuator.cpp
+	SCA_ANDController.cpp
+	SCA_ActuatorEventManager.cpp
+	SCA_ActuatorSensor.cpp
+	SCA_AlwaysEventManager.cpp
+	SCA_AlwaysSensor.cpp
+	SCA_BasicEventManager.cpp
+	SCA_DelaySensor.cpp
+	SCA_EventManager.cpp
+	SCA_ExpressionController.cpp
+	SCA_IActuator.cpp
+	SCA_IController.cpp
+	SCA_IInputDevice.cpp
+	SCA_ILogicBrick.cpp
+	SCA_IObject.cpp
+	SCA_IScene.cpp
+	SCA_ISensor.cpp
+	SCA_JoystickManager.cpp
+	SCA_JoystickSensor.cpp
+	SCA_KeyboardManager.cpp
+	SCA_KeyboardSensor.cpp
+	SCA_LogicManager.cpp
+	SCA_MouseManager.cpp
+	SCA_MouseSensor.cpp
+	SCA_NANDController.cpp
+	SCA_NORController.cpp
+	SCA_ORController.cpp
+	SCA_PropertyActuator.cpp
+	SCA_PropertyEventManager.cpp
+	SCA_PropertySensor.cpp
+	SCA_PythonController.cpp
+	SCA_PythonKeyboard.cpp
+	SCA_PythonMouse.cpp
+	SCA_RandomActuator.cpp
+	SCA_RandomEventManager.cpp
+	SCA_RandomNumberGenerator.cpp
+	SCA_RandomSensor.cpp
+	SCA_TimeEventManager.cpp
+	SCA_XNORController.cpp
+	SCA_XORController.cpp
 
-IF(WITH_PYTHON)
-	LIST(APPEND INC ${PYTHON_INC})
-ELSE(WITH_PYTHON)
-	ADD_DEFINITIONS(-DDISABLE_PYTHON)
-ENDIF(WITH_PYTHON)
+	Joystick/SCA_Joystick.h
+	Joystick/SCA_JoystickDefines.h
+	Joystick/SCA_JoystickPrivate.h
+	SCA_2DFilterActuator.h
+	SCA_ANDController.h
+	SCA_ActuatorEventManager.h
+	SCA_ActuatorSensor.h
+	SCA_AlwaysEventManager.h
+	SCA_AlwaysSensor.h
+	SCA_BasicEventManager.h
+	SCA_DelaySensor.h
+	SCA_EventManager.h
+	SCA_ExpressionController.h
+	SCA_IActuator.h
+	SCA_IController.h
+	SCA_IInputDevice.h
+	SCA_ILogicBrick.h
+	SCA_IObject.h
+	SCA_IScene.h
+	SCA_ISensor.h
+	SCA_JoystickManager.h
+	SCA_JoystickSensor.h
+	SCA_KeyboardManager.h
+	SCA_KeyboardSensor.h
+	SCA_LogicManager.h
+	SCA_MouseManager.h
+	SCA_MouseSensor.h
+	SCA_NANDController.h
+	SCA_NORController.h
+	SCA_ORController.h
+	SCA_PropertyActuator.h
+	SCA_PropertyEventManager.h
+	SCA_PropertySensor.h
+	SCA_PythonController.h
+	SCA_PythonKeyboard.h
+	SCA_PythonMouse.h
+	SCA_RandomActuator.h
+	SCA_RandomEventManager.h
+	SCA_RandomNumberGenerator.h
+	SCA_RandomSensor.h
+	SCA_TimeEventManager.h
+	SCA_XNORController.h
+	SCA_XORController.h
+)
 
-BLENDERLIB(bf_logic "${SRC}" "${INC}")
+if(WITH_SDL)
+	set(INC ${INC} ${SDL_INCLUDE_DIR})
+else()
+	add_definitions(-DDISABLE_SDL)
+endif()
+
+blender_add_lib(ge_logic "${SRC}" "${INC}")

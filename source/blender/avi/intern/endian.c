@@ -206,6 +206,8 @@ void awrite (AviMovie *movie, void *datain, int block, int size, FILE *fp, int t
 
 	MEM_freeN (data);
 #else /* WORDS_BIGENDIAN */
+	(void)movie; /* unused */
+	(void)type; /* unused */
 	fwrite (datain, block, size, fp);
 #endif /* WORDS_BIGENDIAN */
 }

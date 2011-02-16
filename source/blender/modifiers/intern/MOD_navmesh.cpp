@@ -41,7 +41,7 @@ extern "C"{
 #include "BKE_customdata.h"
 #include "MEM_guardedalloc.h"
 #include "BIF_gl.h"
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "UI_resources.h"
 
@@ -251,6 +251,7 @@ ModifierTypeInfo modifierType_NavMesh = {
 							| eModifierTypeFlag_Single),
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,

@@ -31,6 +31,10 @@
 #ifndef BKE_TEXTURE_H
 #define BKE_TEXTURE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bNode;
 struct Brush;
 struct ColorBand;
@@ -111,6 +115,10 @@ struct VoxelData *BKE_add_voxeldata(void);
 struct VoxelData *BKE_copy_voxeldata(struct VoxelData *vd);
 
 int     BKE_texture_dependsOnTime(const struct Tex *texture);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

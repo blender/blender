@@ -59,14 +59,14 @@ void key_curve_normal_weights(float t, float *data, int type);
 float *do_ob_key(struct Scene *scene, struct Object *ob);
 
 struct Key *ob_get_key(struct Object *ob);
-struct KeyBlock *add_keyblock(struct Key *key, char *name);
+struct KeyBlock *add_keyblock(struct Key *key, const char *name);
 struct KeyBlock *ob_get_keyblock(struct Object *ob);
 struct KeyBlock *ob_get_reference_keyblock(struct Object *ob);
 struct KeyBlock *key_get_keyblock(struct Key *key, int index);
 struct KeyBlock *key_get_named_keyblock(struct Key *key, const char name[]);
 char *key_get_curValue_rnaPath(struct Key *key, struct KeyBlock *kb);
 // needed for the GE
-void do_rel_key(int start, int end, int tot, char *basispoin, struct Key *key, struct KeyBlock *actkb, int mode);
+void do_rel_key(const int start, int end, const int tot, char *basispoin, struct Key *key, struct KeyBlock *actkb, const int mode);
 
 /* conversion functions */
 void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);

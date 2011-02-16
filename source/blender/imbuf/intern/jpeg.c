@@ -132,6 +132,7 @@ typedef my_source_mgr * my_src_ptr;
 
 static void init_source(j_decompress_ptr cinfo)
 {
+	(void)cinfo; /* unused */
 }
 
 
@@ -165,6 +166,7 @@ static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 
 static void term_source(j_decompress_ptr cinfo)
 {
+	(void)cinfo; /* unused */
 }
 
 static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t size)
@@ -297,10 +299,12 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 
 		if (flags & IB_test) {
 			jpeg_abort_decompress(cinfo);
-			ibuf = IMB_allocImBuf(x, y, 8 * depth, 0, 0);
-		} else {
-			ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect, 0);
-
+			ibuf = IMB_allocImBuf(x, y, 8 * depth, 0);
+		}
+		else if ((ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect)) == NULL) {
+			jpeg_abort_decompress(cinfo);
+		}
+		else {
 			row_stride = cinfo->output_width * depth;
 
 			row_pointer = (*cinfo->mem->alloc_sarray) ((j_common_ptr) cinfo, JPOOL_IMAGE, row_stride, 1);
@@ -421,10 +425,12 @@ next_stamp_marker:
 		}
 		
 		jpeg_destroy((j_common_ptr) cinfo);
-		ibuf->ftype = ibuf_ftype;
-		ibuf->profile = IB_PROFILE_SRGB;
+		if(ibuf) {
+			ibuf->ftype = ibuf_ftype;
+			ibuf->profile = IB_PROFILE_SRGB;
+		}
 	}
-	
+
 	return(ibuf);
 }
 
@@ -616,7 +622,7 @@ static int init_jpeg(FILE * outfile, struct jpeg_compress_struct * cinfo, struct
 }
 
 
-static int save_stdjpeg(char * name, struct ImBuf * ibuf)
+static int save_stdjpeg(const char *name, struct ImBuf *ibuf)
 {
 	FILE * outfile;
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
@@ -650,7 +656,7 @@ static int save_stdjpeg(char * name, struct ImBuf * ibuf)
 }
 
 
-static int save_vidjpeg(char * name, struct ImBuf * ibuf)
+static int save_vidjpeg(const char *name, struct ImBuf *ibuf)
 {
 	FILE * outfile;
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
@@ -689,13 +695,13 @@ static int save_vidjpeg(char * name, struct ImBuf * ibuf)
 	return 1;
 }
 
-static int save_jstjpeg(char * name, struct ImBuf * ibuf)
+static int save_jstjpeg(const char *name, struct ImBuf *ibuf)
 {
 	char fieldname[1024];
 	struct ImBuf * tbuf;
 	int oldy, returnval;
 
-	tbuf = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 24, IB_rect, 0);
+	tbuf = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 24, IB_rect);
 	tbuf->ftype = ibuf->ftype;
 	tbuf->flags = ibuf->flags;
 	
@@ -720,7 +726,7 @@ static int save_jstjpeg(char * name, struct ImBuf * ibuf)
 	return returnval;
 }
 
-static int save_maxjpeg(char * name, struct ImBuf * ibuf)
+static int save_maxjpeg(const char *name, struct ImBuf *ibuf)
 {
 	FILE * outfile;
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
@@ -759,7 +765,7 @@ static int save_maxjpeg(char * name, struct ImBuf * ibuf)
 	return 1;
 }
 
-int imb_savejpeg(struct ImBuf * ibuf, char * name, int flags)
+int imb_savejpeg(struct ImBuf *ibuf, const char *name, int flags)
 {
 	
 	ibuf->flags = flags;

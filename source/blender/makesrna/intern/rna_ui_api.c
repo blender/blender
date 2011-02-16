@@ -35,7 +35,7 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, char *name, int icon, int expand, int slider, int toggle, int icon_only, int event, int full_event, int emboss, int index)
+static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, int icon, int expand, int slider, int toggle, int icon_only, int event, int full_event, int emboss, int index)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	int flag= 0;
@@ -56,7 +56,7 @@ static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, char 
 	uiItemFullR(layout, ptr, prop, index, 0, flag, name, icon);
 }
 
-static PointerRNA rna_uiItemO(uiLayout *layout, char *opname, char *name, int icon, int emboss)
+static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *name, int icon, int emboss)
 {
 	int flag= UI_ITEM_O_RETURN_PROPS;
 	flag |= (emboss)? 0: UI_ITEM_R_NO_BG;
@@ -65,11 +65,15 @@ static PointerRNA rna_uiItemO(uiLayout *layout, char *opname, char *name, int ic
 
 #else
 
-#define DEF_ICON(name) {name, (#name)+5, 0, (#name)+5, ""},
+#define DEF_ICON_BLANK_SKIP
+#define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
+#define DEF_VICO(name) {VICO_##name, (#name), 0, (#name), ""},
 static EnumPropertyItem icon_items[] = {
 #include "UI_icons.h"
 		{0, NULL, 0, NULL, NULL}};
+#undef DEF_ICON_BLANK_SKIP
 #undef DEF_ICON
+#undef DEF_VICO
 
 static void api_ui_item_common(FunctionRNA *func)
 {
@@ -137,7 +141,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other.");
 
 	func= RNA_def_function(srna, "column_flow", "uiLayoutColumnFlow");
-	parm= RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns, 0 is automatic.", 0, INT_MAX);
+	RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns, 0 is automatic.", 0, INT_MAX);
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
 	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other.");
@@ -287,24 +291,22 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_int(func, "cols", 0, 0, INT_MAX, "Number of thumbnail preview columns to display", "", 0, INT_MAX);
 	
 	func= RNA_def_function(srna, "template_any_ID", "uiTemplateAnyID");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in data.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "type_property", "", 0, "", "Identifier of property in data giving the type of the ID-blocks to use.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_string(func, "text", "", 0, "", "Custom label to display in UI.");
+	RNA_def_string(func, "text", "", 0, "", "Custom label to display in UI.");
 	
 	func= RNA_def_function(srna, "template_path_builder", "uiTemplatePathBuilder");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in data.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "root", "ID", "", "ID-block from which path is evaluated from.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
-	parm= RNA_def_string(func, "text", "", 0, "", "Custom label to display in UI.");
+	RNA_def_string(func, "text", "", 0, "", "Custom label to display in UI.");
 	
 	func= RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
@@ -325,6 +327,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lamps, etc.");
 	parm= RNA_def_pointer(func, "id", "ID", "", "ID datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "show_buttons", 1, "", "Show preview buttons?");
 	RNA_def_pointer(func, "parent", "ID", "", "ID datablock.");
 	RNA_def_pointer(func, "slot", "TextureSlot", "", "Texture slot.");
 
@@ -343,17 +346,14 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "template_histogram", "uiTemplateHistogram");
 	RNA_def_function_ui_description(func, "Item. A histogramm widget to analyze imaga data.");
 	api_ui_item_rna_common(func);
-	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 	
 	func= RNA_def_function(srna, "template_waveform", "uiTemplateWaveform");
 	RNA_def_function_ui_description(func, "Item. A waveform widget to analyze imaga data.");
 	api_ui_item_rna_common(func);
-	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 	
 	func= RNA_def_function(srna, "template_vectorscope", "uiTemplateVectorscope");
 	RNA_def_function_ui_description(func, "Item. A vectorscope widget to analyze imaga data.");
 	api_ui_item_rna_common(func);
-	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 	
 	func= RNA_def_function(srna, "template_layers", "uiTemplateLayers");
 	api_ui_item_rna_common(func);
@@ -398,14 +398,14 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_string(func, "active_property", "", 0, "", "Identifier of property in data, for the active element.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display.", 0, INT_MAX);
-	parm= RNA_def_int(func, "maxrows", 5, 0, INT_MAX, "", "Maximum number of rows to display.", 0, INT_MAX);
-	parm= RNA_def_enum(func, "type", list_type_items, 0, "Type", "Type of list to use.");
+	RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display.", 0, INT_MAX);
+	RNA_def_int(func, "maxrows", 5, 0, INT_MAX, "", "Maximum number of rows to display.", 0, INT_MAX);
+	RNA_def_enum(func, "type", list_type_items, 0, "Type", "Type of list to use.");
 
 	func= RNA_def_function(srna, "template_running_jobs", "uiTemplateRunningJobs");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
-	func= RNA_def_function(srna, "template_operator_search", "uiTemplateOperatorSearch");
+	RNA_def_function(srna, "template_operator_search", "uiTemplateOperatorSearch");
 
 	func= RNA_def_function(srna, "template_header_3D", "uiTemplateHeader3D");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

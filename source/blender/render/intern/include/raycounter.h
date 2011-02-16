@@ -26,16 +26,27 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #ifndef RE_RAYCOUNTER_H
 #define RE_RAYCOUNTER_H
 
-#include "RE_raytrace.h"
+//#define RE_RAYCOUNTER			/* enable counters per ray, usefull for measuring raytrace structures performance */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifdef RE_RAYCOUNTER
 
-/* #define RE_RC_INIT(isec, shi) (isec).count = re_rc_counter+(shi).thread */
-#define RE_RC_INIT(isec, shi) (isec).raycounter = &((shi).raycounter)
+/* ray counter functions */
+
+typedef struct RayCounter {
+	struct {
+		unsigned long long test, hit;
+	} faces, bb, simd_bb, raycast, raytrace_hint, rayshadow_last_hit;
+} RayCounter;
+
+#define RE_RC_INIT(isec, shi) (isec).raycounter = &((shi).shading.raycounter)
 void RE_RC_INFO (RayCounter *rc);
 void RE_RC_MERGE(RayCounter *rc, RayCounter *tmp);
 #define RE_RC_COUNT(var) (var)++
@@ -44,12 +55,17 @@ extern RayCounter re_rc_counter[];
 
 #else
 
-#	define RE_RC_INIT(isec,shi)
-#	define RE_RC_INFO(rc)
-#	define RE_RC_MERGE(dest,src)
-#	define	RE_RC_COUNT(var)
+/* ray counter stubs */
+
+#define RE_RC_INIT(isec,shi)
+#define RE_RC_INFO(rc)
+#define RE_RC_MERGE(dest,src)
+#define	RE_RC_COUNT(var)
 		
 #endif
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

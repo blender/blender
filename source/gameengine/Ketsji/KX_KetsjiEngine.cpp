@@ -55,6 +55,7 @@
 #include "KX_Scene.h"
 #include "MT_CmMatrix4x4.h"
 #include "KX_Camera.h"
+#include "KX_FontObject.h"
 #include "KX_Dome.h"
 #include "KX_Light.h"
 #include "KX_PythonInit.h"
@@ -114,7 +115,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_rendertools(NULL),
 	m_sceneconverter(NULL),
 	m_networkdevice(NULL),
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	m_pythondictionary(NULL),
 #endif
 	m_keyboarddevice(NULL),
@@ -235,7 +236,7 @@ void KX_KetsjiEngine::SetRasterizer(RAS_IRasterizer* rasterizer)
 	m_rasterizer = rasterizer;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 /*
  * At the moment the bge.logic module is imported into 'pythondictionary' after this function is called.
  * if this function ever changes to assign a copy, make sure the game logic module is imported into this dictionary before hand.
@@ -341,7 +342,7 @@ void KX_KetsjiEngine::RenderDome()
 			m_rendertools->MotionBlur(m_rasterizer);
 			scene->Render2DFilters(m_canvas);
 			// no RunDrawingCallBacks
-			// no FlushDebugShapes
+			// no FlushDebugLines
 		}
 		m_dome->BindImages(i);
 	}	
@@ -372,7 +373,7 @@ void KX_KetsjiEngine::RenderDome()
 	}
 	m_dome->Draw();
 	// Draw Callback for the last scene
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());
 #endif	
 	EndFrame();
@@ -614,7 +615,7 @@ else
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_PHYSICS1);
 				// set Python hooks for each scene
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
 #endif
 				KX_SetActiveScene(scene);
@@ -718,7 +719,7 @@ else
 				m_suspendeddelta = scene->getSuspendedDelta();
 				
 				// set Python hooks for each scene
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
 #endif
 				KX_SetActiveScene(scene);
@@ -947,6 +948,14 @@ int KX_KetsjiEngine::GetExitCode()
 	{
 		if (m_scenes.begin()==m_scenes.end())
 			m_exitcode = KX_EXIT_REQUEST_NO_SCENES_LEFT;
+	}
+	
+	// check if the window has been closed.
+	if(!m_exitcode)
+	{
+		//if(!m_canvas->Check()) {
+		//	m_exitcode = KX_EXIT_REQUEST_OUTSIDE;
+		//}
 	}
 
 	return m_exitcode;
@@ -1289,16 +1298,32 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	m_logger->StartLog(tc_rasterizer, m_kxsystem->GetTimeInSeconds(), true);
 	SG_SetActiveStage(SG_STAGE_RENDER);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	// Run any pre-drawing python callbacks
 	scene->RunDrawingCallbacks(scene->GetPreDrawCB());
 #endif
 
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
+
+	//render all the font objects for this scene
+	RenderFonts(scene);
 	
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
 }
+
+void KX_KetsjiEngine::RenderFonts(KX_Scene* scene)
+{
+	list<class KX_FontObject*>* fonts = scene->GetFonts();
+	
+	list<KX_FontObject*>::iterator it = fonts->begin();
+	while(it != fonts->end())
+	{
+		(*it)->DrawText();
+		++it;
+	}
+}
+
 /*
 To run once per scene
 */
@@ -1306,7 +1331,7 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 {
 	m_rendertools->MotionBlur(m_rasterizer);
 	scene->Render2DFilters(m_canvas);
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
 #endif
 	m_rasterizer->FlushDebugShapes();

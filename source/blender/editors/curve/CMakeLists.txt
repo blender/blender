@@ -19,9 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -31,4 +29,13 @@ SET(INC
 	../../../../intern/guardedalloc
 )
 
-BLENDERLIB(bf_editor_curve "${SRC}" "${INC}")
+set(SRC
+	curve_ops.c
+	editcurve.c
+	editfont.c
+	lorem.c
+
+	curve_intern.h
+)
+
+blender_add_lib(bf_editor_curve "${SRC}" "${INC}")

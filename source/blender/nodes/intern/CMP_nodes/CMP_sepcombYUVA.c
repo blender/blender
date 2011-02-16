@@ -43,7 +43,7 @@ static bNodeSocketType cmp_node_sepyuva_out[]= {
 	{  -1, 0, ""   }
 };
 
-static void do_sepyuva(bNode *node, float *out, float *in)
+static void do_sepyuva(bNode *UNUSED(node), float *out, float *in)
 {
 	float y, u, v;
 	
@@ -55,7 +55,7 @@ static void do_sepyuva(bNode *node, float *out, float *in)
 	out[3]= in[3];
 }
 
-static void node_composit_exec_sepyuva(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_sepyuva(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order out: bw channels */
 	/* stack order in: col */
@@ -96,22 +96,18 @@ static void node_composit_exec_sepyuva(void *data, bNode *node, bNodeStack **in,
 	}
 }
 
-bNodeType cmp_node_sepyuva= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_SEPYUVA,
-	/* name        */	"Separate YUVA",
-	/* width+range */	80, 40, 140,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, 0,
-	/* input sock  */	cmp_node_sepyuva_in,
-	/* output sock */	cmp_node_sepyuva_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_sepyuva,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_sepyuva(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_SEPYUVA, "Separate YUVA", NODE_CLASS_CONVERTOR, 0,
+		cmp_node_sepyuva_in, cmp_node_sepyuva_out);
+	node_type_size(&ntype, 80, 40, 140);
+	node_type_exec(&ntype, node_composit_exec_sepyuva);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 
 /* **************** COMBINE YUVA ******************** */
@@ -127,7 +123,7 @@ static bNodeSocketType cmp_node_combyuva_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_comb_yuva(bNode *node, float *out, float *in1, float *in2, float *in3, float *in4)
+static void do_comb_yuva(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
 {
 	float r,g,b;
 	yuv_to_rgb(in1[0], in2[0], in3[0], &r, &g, &b);
@@ -138,7 +134,7 @@ static void do_comb_yuva(bNode *node, float *out, float *in1, float *in2, float 
 	out[3] = in4[0];
 }
 
-static void node_composit_exec_combyuva(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_combyuva(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order out: 1 rgba channels */
 	/* stack order in: 4 value channels */
@@ -171,20 +167,16 @@ static void node_composit_exec_combyuva(void *data, bNode *node, bNodeStack **in
 	}	
 }
 
-bNodeType cmp_node_combyuva= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_COMBYUVA,
-	/* name        */	"Combine YUVA",
-	/* width+range */	80, 40, 140,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_combyuva_in,
-	/* output sock */	cmp_node_combyuva_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_combyuva,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_combyuva(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_COMBYUVA, "Combine YUVA", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		cmp_node_combyuva_in, cmp_node_combyuva_out);
+	node_type_size(&ntype, 80, 40, 140);
+	node_type_exec(&ntype, node_composit_exec_combyuva);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

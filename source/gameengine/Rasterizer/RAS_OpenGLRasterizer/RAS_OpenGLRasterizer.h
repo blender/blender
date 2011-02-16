@@ -255,10 +255,29 @@ public:
 	virtual void	SetPolygonOffset(float mult, float add);
 
 	virtual	void	FlushDebugShapes();
-	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color);
-	virtual	void	DrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
-									const MT_Vector3& normal, int nsector);
 
+	virtual	void DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
+	{
+		OglDebugShape line;
+		line.m_type = OglDebugShape::LINE;
+		line.m_pos= from;
+		line.m_param = to;
+		line.m_color = color;
+		m_debugShapes.push_back(line);
+	}
+
+	virtual	void DrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
+									const MT_Vector3& normal, int nsector)
+	{
+		OglDebugShape line;
+		line.m_type = OglDebugShape::CIRCLE;
+		line.m_pos= center;
+		line.m_param = normal;
+		line.m_color = color;	
+		line.m_param2.x() = radius;
+		line.m_param2.y() = (float) nsector;
+		m_debugShapes.push_back(line);
+	}
 
 	std::vector <OglDebugShape>	m_debugShapes;
 

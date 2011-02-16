@@ -24,7 +24,7 @@
 #include "py_capi_utils.h"
 
 /* for debugging */
-void PyC_ObSpit(char *name, PyObject *var) {
+void PyC_ObSpit(const char *name, PyObject *var) {
 	fprintf(stderr, "<%s> : ", name);
 	if (var==NULL) {
 		fprintf(stderr, "<NIL>");
@@ -75,7 +75,7 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 	
 	/* when executing a script */
 	if (filename) {
-		co_filename= PyC_Object_GetAttrStringArgs(frame, 1, "f_code", "co_filename");
+		co_filename= PyC_Object_GetAttrStringArgs(frame, 2, "f_code", "co_filename");
 		if (co_filename==NULL) {
 			PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_code.co_filename");
 			Py_DECREF(frame);
@@ -171,7 +171,7 @@ PyObject *PyC_ExceptionBuffer(void)
 	
 	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
 		goto error_cleanup;
-	} else if (! (string_io = PyObject_CallMethod(string_io_mod, "StringIO", NULL))) {
+	} else if (! (string_io = PyObject_CallMethod(string_io_mod, (char *)"StringIO", NULL))) {
 		goto error_cleanup;
 	} else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
 		goto error_cleanup;
@@ -217,7 +217,7 @@ error_cleanup:
 
 
 /* string conversion, escape non-unicode chars, coerce must be set to NULL */
-const char *PuC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
+const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 {
 	char *result;
 
@@ -227,6 +227,10 @@ const char *PuC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 		/* 99% of the time this is enough but we better support non unicode
 		 * chars since blender doesnt limit this */
 		return result;
+	}
+	else if(PyBytes_Check(py_str)) {
+		PyErr_Clear();
+		return PyBytes_AS_STRING(py_str);
 	}
 	else {
 		/* mostly copied from fileio.c's, fileio_init */
@@ -265,7 +269,8 @@ PyObject *PyC_UnicodeFromByte(const char *str)
 	}
 	else {
 		PyErr_Clear();
-		result= PyUnicode_DecodeUTF8(str, strlen(str), "surrogateescape");
+		/* this means paths will always be accessible once converted, on all OS's */
+		result= PyUnicode_DecodeFSDefault(str);
 		return result;
 	}
 }
@@ -277,6 +282,10 @@ PyObject *PyC_UnicodeFromByte(const char *str)
   for 'pickle' to work as well as strings like this...
  >> foo = 10
  >> print(__import__("__main__").foo)
+*
+* note: this overwrites __main__ which gives problems with nested calles.
+* be sure to run PyC_MainModule_Backup & PyC_MainModule_Restore if there is
+* any chance that python is in the call stack.
 *****************************************************************************/
 PyObject *PyC_DefaultNameSpace(const char *filename)
 {
@@ -292,6 +301,20 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
 	return PyModule_GetDict(mod_main);
 }
 
+/* restore MUST be called after this */
+void PyC_MainModule_Backup(PyObject **main_mod)
+{
+	PyInterpreterState *interp= PyThreadState_GET()->interp;
+	*main_mod= PyDict_GetItemString(interp->modules, "__main__");
+	Py_XINCREF(*main_mod); /* dont free */
+}
+
+void PyC_MainModule_Restore(PyObject *main_mod)
+{
+	PyInterpreterState *interp= PyThreadState_GET()->interp;
+	PyDict_SetItemString(interp->modules, "__main__", main_mod);
+	Py_XDECREF(main_mod);
+}
 
 /* Would be nice if python had this built in */
 void PyC_RunQuicky(const char *filepath, int n, ...)
@@ -323,12 +346,12 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 			char *format = va_arg(vargs, char *);
 			void *ptr = va_arg(vargs, void *);
 
-			ret= PyObject_CallFunction(calcsize, "s", format);
+			ret= PyObject_CallFunction(calcsize, (char *)"s", format);
 
 			if(ret) {
 				sizes[i]= PyLong_AsSsize_t(ret);
 				Py_DECREF(ret);
-				ret = PyObject_CallFunction(unpack, "sy#", format, (char *)ptr, sizes[i]);
+				ret = PyObject_CallFunction(unpack, (char *)"sy#", format, (char *)ptr, sizes[i]);
 			}
 
 			if(ret == NULL) {

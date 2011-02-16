@@ -30,7 +30,6 @@
 #ifndef RE_SHADER_EXT_H
 #define RE_SHADER_EXT_H
 
-#include "RE_raytrace.h" /* For RE_RAYCOUNTER */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is for shading and texture exports            */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -52,7 +51,7 @@ typedef struct ShadeResult
 	float emit[3];
 	float diff[3];		/* no ramps, shadow, etc */
 	float spec[3];
-	float shad[3];
+	float shad[4];		/* shad[3] is shadow intensity */
 	float ao[3];
 	float env[3];
 	float indirect[3];
@@ -189,7 +188,11 @@ typedef struct ShadeInput
 /* node shaders... */
 struct Tex;
 struct MTex;
+/* this one uses nodes */
 int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
+/* nodes disabled */
+int multitex_ext_safe(struct Tex *tex, float *texvec, struct TexResult *texres);
+/* only for internal node usage */
 int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres,
 	short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex);
 

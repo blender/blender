@@ -34,6 +34,7 @@
 #include "BKE_context.h"
 
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "ED_screen.h"
 #include "ED_types.h"
@@ -108,13 +109,6 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	
 	/* perform the select */
 	node= node_mouse_select(snode, ar, mval, extend);
-
-	/* WATCH THIS, there are a few other ways to change the active material */
-	if(node) {
-		if (node->id && ELEM(GS(node->id->name), ID_MA, ID_TE)) {
-			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, node->id);
-		}
-	}
 	
 	/* send notifiers */
 	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
@@ -143,6 +137,7 @@ void NODE_OT_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select";
 	ot->idname= "NODE_OT_select";
+	ot->description= "Select node under cursor";
 	
 	/* api callbacks */
 	ot->invoke= node_select_invoke;
@@ -223,6 +218,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->idname= "NODE_OT_select_border";
+	ot->description= "Use box selection to select nodes";
 	
 	/* api callbacks */
 	ot->invoke= node_border_select_invoke;
@@ -241,7 +237,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 
 /* ****** Select/Deselect All ****** */
 
-static int node_select_all_exec(bContext *C, wmOperator *op)
+static int node_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *first = snode->edittree->nodes.first;
@@ -282,7 +278,7 @@ void NODE_OT_select_all(wmOperatorType *ot)
 
 /* ****** Select Linked To ****** */
 
-static int node_select_linked_to_exec(bContext *C, wmOperator *op)
+static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeLink *link;
@@ -322,7 +318,7 @@ void NODE_OT_select_linked_to(wmOperatorType *ot)
 
 /* ****** Select Linked From ****** */
 
-static int node_select_linked_from_exec(bContext *C, wmOperator *op)
+static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeLink *link;
@@ -362,7 +358,7 @@ void NODE_OT_select_linked_from(wmOperatorType *ot)
 
 /* ****** Select Same Type ****** */
 
-static int node_select_same_type_exec(bContext *C, wmOperator *op)
+static int node_select_same_type_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -388,7 +384,7 @@ void NODE_OT_select_same_type(wmOperatorType *ot)
 
 /* ****** Select The Next/Prev Node Of The Same Type ****** */
 
-static int node_select_same_type_next_exec(bContext *C, wmOperator *op)
+static int node_select_same_type_next_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -412,7 +408,7 @@ void NODE_OT_select_same_type_next(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int node_select_same_type_prev_exec(bContext *C, wmOperator *op)
+static int node_select_same_type_prev_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 

@@ -131,8 +131,8 @@ typedef struct TransCon {
 
 typedef struct TransDataExtension {
 	float drot[3];		 /* Initial object drot */
-	float drotAngle;	 /* Initial object drotAngle */
-	float drotAxis[3];	 /* Initial object drotAxis */
+	// float drotAngle;	 /* Initial object drotAngle,    TODO: not yet implimented */
+	// float drotAxis[3];	 /* Initial object drotAxis, TODO: not yet implimented */
 	float dquat[4];		 /* Initial object dquat */
 	float dsize[3];		 /* Initial object dsize */
 	float *rot;          /* Rotation of the data to transform (Faculative)                                 */
@@ -146,6 +146,8 @@ typedef struct TransDataExtension {
 	float *size;         /* Size of the data to transform (Faculative)                                     */
 	float  isize[3];	 /* Initial size                                                                   */
 	float  obmat[4][4];	 /* Object matrix */
+	float  l_smtx[3][3]; /* use instead of td->smtx, It is the same but without the 'bone->bone_mat', see TD_PBONE_LOCAL_MTX_C */
+	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
 } TransDataExtension;
 
 typedef struct TransData2D {
@@ -232,7 +234,6 @@ typedef struct TransData {
 	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
 	int  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
-	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
 } TransData;
 
 typedef struct MouseInput {
@@ -313,8 +314,10 @@ typedef struct TransInfo {
 	float		values[4];
 	float		auto_values[4];
 	float		axis[3];
+	float		axis_orig[3];	/* TransCon can change 'axis', store the original value here */
 
 	void		*view;
+	struct bContext *context; /* Only valid (non null) during an operator called function. */
 	struct ScrArea	*sa;
 	struct ARegion	*ar;
 	struct Scene	*scene;
@@ -421,7 +424,7 @@ typedef struct TransInfo {
 #define	TD_USEQUAT			(1 << 3)
 #define TD_NOTCONNECTED		(1 << 4)
 #define TD_SINGLESIZE		(1 << 5)	/* used for scaling of MetaElem->rad */
-#define TD_TIMEONLY			(1 << 8)
+/*#define TD_TIMEONLY			(1 << 8) */ /*UNUSED*/
 #define TD_NOCENTER			(1 << 9)
 #define TD_NO_EXT			(1 << 10)	/* ext abused for particle key timing */
 #define TD_SKIP				(1 << 11)	/* don't transform this data */
@@ -432,6 +435,8 @@ typedef struct TransInfo {
 #define TD_MIRROR_EDGE	 	(1 << 16) 	/* For editmode mirror, clamp to x = 0 */
 #define TD_MOVEHANDLE1		(1 << 17)	/* For fcurve handles, move them along with their keyframes */
 #define TD_MOVEHANDLE2		(1 << 18)
+#define TD_PBONE_LOCAL_MTX_P (1 << 19)	/* exceptional case with pose bone rotating when a parent bone has 'Local Location' option enabled and rotating also transforms it. */
+#define TD_PBONE_LOCAL_MTX_C (1 << 20)	/* same as above but for a child bone */
 
 /* transsnap->status */
 #define SNAP_FORCED		1
@@ -444,7 +449,7 @@ void TRANSFORM_OT_transform(struct wmOperatorType *ot);
 int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
 int  transformEvent(TransInfo *t, struct wmEvent *event);
-void transformApply(const struct bContext *C, TransInfo *t);
+void transformApply(struct bContext *C, TransInfo *t);
 int  transformEnd(struct bContext *C, TransInfo *t);
 
 void setTransformViewMatrices(TransInfo *t);
@@ -553,7 +558,6 @@ void flushTransSeq(TransInfo *t);
 /*********************** exported from transform_manipulator.c ********** */
 int gimbal_axis(struct Object *ob, float gmat[][3]); /* return 0 when no gimbal for selection */
 int calc_manipulator_stats(const struct bContext *C);
-float get_drawsize(struct ARegion *ar, float *co);
 
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(struct bContext *C, TransInfo *t);
@@ -571,7 +575,7 @@ void autokeyframe_pose_cb_func(struct bContext *C, struct Scene *scene, struct V
 
 /*********************** Constraints *****************************/
 
-void drawConstraint(const struct bContext *C, TransInfo *t);
+void drawConstraint(TransInfo *t);
 
 void getConstraintMatrix(TransInfo *t);
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);
@@ -580,7 +584,6 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char tex
 
 void constraintNumInput(TransInfo *t, float vec[3]);
 
-void getConstraintMatrix(TransInfo *t);
 int isLockConstraint(TransInfo *t);
 int getConstraintSpaceDimension(TransInfo *t);
 char constraintModeToChar(TransInfo *t);
@@ -657,8 +660,6 @@ TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTri
 
 /* DRAWLINE options flags */
 #define DRAWLIGHT	1
-#define DRAWDASHED	2
-#define DRAWBOLD	4
 
 void applyTransObjects(TransInfo *t);
 void restoreTransObjects(TransInfo *t);
@@ -713,9 +714,6 @@ void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *
 #define ORIENTATION_FACE	4
 
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
-
-int createSpaceNormal(float mat[3][3], float normal[3]);
-int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
 
 void freeSlideVerts(TransInfo *t);
 

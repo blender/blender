@@ -9,7 +9,9 @@ defs = []
 
 if env['WITH_BF_PYTHON']:
     incs += ' ' + env['BF_PYTHON_INC']
-else:
-    defs.append('DISABLE_PYTHON')
+    defs.append('WITH_PYTHON')
 
-env.BlenderLib ( 'bf_expressions', sources, Split(incs), defs, libtype=['core','player'], priority = [360,80], cxx_compileflags=env['BGE_CXXFLAGS'])
+if env['WITH_BF_CXX_GUARDEDALLOC']:
+    defs.append('WITH_CXX_GUARDEDALLOC')
+
+env.BlenderLib ( 'ge_logic_expressions', sources, Split(incs), defs, libtype=['core','player'], priority = [360,80], cxx_compileflags=env['BGE_CXXFLAGS'])

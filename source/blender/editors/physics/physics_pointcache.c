@@ -31,6 +31,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
@@ -41,12 +44,9 @@
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h" 
-
-#include "BLI_blenlib.h"
+ 
 
 #include "ED_particle.h"
-
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -56,7 +56,7 @@
 
 #include "physics_intern.h"
 
-static int cache_break_test(void *cbd) {
+static int cache_break_test(void *UNUSED(cbd)) {
 	return G.afbreek==1;
 }
 static int ptcache_bake_all_poll(bContext *C)
@@ -75,15 +75,15 @@ static int ptcache_poll(bContext *C)
 	return (ptr.data && ptr.id.data);
 }
 
-void bake_console_progress(void *arg, int nr)
+void bake_console_progress(void *UNUSED(arg), int nr)
 {
 	printf("\rbake: %3i%%", nr);
 	fflush(stdout);
 }
 
-void bake_console_progress_end(void *arg)
+void bake_console_progress_end(void *UNUSED(arg))
 {
-	printf("\n");
+	printf("\rbake: done!\n");
 }
 
 static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
@@ -103,6 +103,9 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
 
+	/* Disabled for now as this doesn't work properly,
+	 * and pointcache baking will be reimplemented with
+	 * the job system soon anyways. */
 	if (win) {
 		baker.progressbar = (void (*)(void *, int))WM_timecursor;
 		baker.progressend = (void (*)(void *))WM_cursor_restore;
@@ -113,14 +116,14 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 		baker.progresscontext = NULL;
 	}
 
-	BKE_ptcache_make_cache(&baker);
+	BKE_ptcache_bake(&baker);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, NULL);
 
 	return OPERATOR_FINISHED;
 }
-static int ptcache_free_bake_all_exec(bContext *C, wmOperator *op)
+static int ptcache_free_bake_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
@@ -201,6 +204,9 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
 
+	/* Disabled for now as this doesn't work properly,
+	 * and pointcache baking will be reimplemented with
+	 * the job system soon anyways. */
 	if (win) {
 		baker.progressbar = (void (*)(void *, int))WM_timecursor;
 		baker.progressend = (void (*)(void *))WM_cursor_restore;
@@ -212,7 +218,7 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 		baker.progresscontext = NULL;
 	}
 
-	BKE_ptcache_make_cache(&baker);
+	BKE_ptcache_bake(&baker);
 
 	BLI_freelistN(&pidlist);
 
@@ -221,7 +227,7 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
-static int ptcache_free_bake_exec(bContext *C, wmOperator *op)
+static int ptcache_free_bake_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	PointCache *cache= ptr.data;
@@ -241,7 +247,7 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
-static int ptcache_bake_from_cache_exec(bContext *C, wmOperator *op)
+static int ptcache_bake_from_cache_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	PointCache *cache= ptr.data;
@@ -295,7 +301,7 @@ void PTCACHE_OT_bake_from_cache(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int ptcache_add_new_exec(bContext *C, wmOperator *op)
+static int ptcache_add_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
@@ -320,7 +326,7 @@ static int ptcache_add_new_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
-static int ptcache_remove_exec(bContext *C, wmOperator *op)
+static int ptcache_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	Scene *scene= CTX_data_scene(C);

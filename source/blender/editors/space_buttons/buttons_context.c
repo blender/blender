@@ -30,6 +30,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -37,8 +40,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
-
-#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_action.h"
@@ -48,7 +49,7 @@
 #include "BKE_particle.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "RNA_access.h"
 
@@ -65,6 +66,7 @@ typedef struct ButsContextPath {
 	PointerRNA ptr[8];
 	int len;
 	int flag;
+	int tex_ctx;
 } ButsContextPath;
 
 static int set_pointer_type(ButsContextPath *path, bContextDataResult *result, StructRNA *type)
@@ -323,7 +325,7 @@ static int buttons_context_path_particle(ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
+static int buttons_context_path_brush(ButsContextPath *path)
 {
 	Scene *scene;
 	Brush *br= NULL;
@@ -352,7 +354,7 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_texture(const bContext *C, ButsContextPath *path)
+static int buttons_context_path_texture(ButsContextPath *path)
 {
 	Material *ma;
 	Lamp *la;
@@ -367,7 +369,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		return 1;
 	}
 	/* try brush */
-	if((path->flag & SB_BRUSH_TEX) && buttons_context_path_brush(C, path)) {
+	if((path->tex_ctx == SB_TEXC_BRUSH) && buttons_context_path_brush(path)) {
 		br= path->ptr[path->len-1].data;
 		
 		if(br) {
@@ -379,7 +381,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		}
 	}
 	/* try world */
-	if((path->flag & SB_WORLD_TEX) && buttons_context_path_world(path)) {
+	if((path->tex_ctx == SB_TEXC_WORLD) && buttons_context_path_world(path)) {
 		wo= path->ptr[path->len-1].data;
 
 		if(wo && GS(wo->id.name)==ID_WO) {
@@ -416,7 +418,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 	}
 	/* try brushes again in case of no material, lamp, etc */
 	path->len = orig_len;
-	if(buttons_context_path_brush(C, path)) {
+	if(buttons_context_path_brush(path)) {
 		br= path->ptr[path->len-1].data;
 		
 		if(br) {
@@ -441,6 +443,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 
 	memset(path, 0, sizeof(*path));
 	path->flag= flag;
+	path->tex_ctx = sbuts->texture_context;
 
 	/* if some ID datablock is pinned, set the root pointer */
 	if(sbuts->pinid) {
@@ -485,7 +488,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found= buttons_context_path_material(path);
 			break;
 		case BCONTEXT_TEXTURE:
-			found= buttons_context_path_texture(C, path);
+			found= buttons_context_path_texture(path);
 			break;
 		case BCONTEXT_BONE:
 			found= buttons_context_path_bone(path);
@@ -515,7 +518,7 @@ static int buttons_shading_context(const bContext *C, int mainb)
 	return 0;
 }
 
-static int buttons_shading_new_context(const bContext *C, int flag, int mainb)
+static int buttons_shading_new_context(const bContext *C, int flag)
 {
 	Object *ob= CTX_data_active_object(C);
 
@@ -533,13 +536,12 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 {
 	ButsContextPath *path;
 	PointerRNA *ptr;
-	int a, pflag, flag= 0;
+	int a, pflag= 0, flag= 0;
 
 	if(!sbuts->path)
 		sbuts->path= MEM_callocN(sizeof(ButsContextPath), "ButsContextPath");
 	
 	path= sbuts->path;
-	pflag= (sbuts->flag & (SB_WORLD_TEX|SB_BRUSH_TEX));
 	
 	/* for each context, see if we can compute a valid path to it, if
 	 * this is the case, we know we have to display the button */
@@ -568,7 +570,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 	if((flag & (1 << sbuts->mainb)) == 0) {
 		if(sbuts->flag & SB_SHADING_CONTEXT) {
 			/* try to keep showing shading related buttons */
-			sbuts->mainb= buttons_shading_new_context(C, flag, sbuts->mainb);
+			sbuts->mainb= buttons_shading_new_context(C, flag);
 		}
 		else if(flag & BCONTEXT_OBJECT) {
 			sbuts->mainb= BCONTEXT_OBJECT;
@@ -821,7 +823,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 /************************* Drawing the Path ************************/
 
-static void pin_cb(bContext *C, void *arg1, void *arg2)
+static void pin_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 {
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
 

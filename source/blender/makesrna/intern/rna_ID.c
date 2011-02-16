@@ -29,6 +29,8 @@
 #include "RNA_define.h"
 
 #include "DNA_ID.h"
+#include "DNA_vfont_types.h"
+#include "DNA_object_types.h"
 
 #include "WM_types.h"
 
@@ -72,6 +74,7 @@ EnumPropertyItem id_type_items[] = {
 #include "BKE_library.h"
 #include "BKE_animsys.h"
 #include "BKE_material.h"
+#include "BKE_depsgraph.h"
 
 /* name functions that ignore the first two ID characters */
 void rna_ID_name_get(PointerRNA *ptr, char *value)
@@ -98,7 +101,8 @@ static int rna_ID_name_editable(PointerRNA *ptr)
 	ID *id= (ID*)ptr->data;
 	
 	if (GS(id->name) == ID_VF) {
-		if (strcmp(id->name+2, "<builtin>")==0)
+		VFont *vf= (VFont *)id;
+		if (strcmp(vf->name, FO_BUILTIN_NAME)==0)
 			return 0;
 	}
 	
@@ -188,11 +192,11 @@ void rna_ID_fake_user_set(PointerRNA *ptr, int value)
 
 	if(value && !(id->flag & LIB_FAKEUSER)) {
 		id->flag |= LIB_FAKEUSER;
-		id->us++;
+		id_us_plus(id);
 	}
 	else if(!value && (id->flag & LIB_FAKEUSER)) {
 		id->flag &= ~LIB_FAKEUSER;
-		id->us--;
+		id_us_min(id);
 	}
 }
 
@@ -206,7 +210,7 @@ void rna_IDPropertyGroup_unregister(const bContext *C, StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 }
 
-StructRNA *rna_IDPropertyGroup_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+StructRNA *rna_IDPropertyGroup_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	PointerRNA dummyptr;
 
@@ -221,8 +225,8 @@ StructRNA *rna_IDPropertyGroup_register(const bContext *C, ReportList *reports, 
 	 * just a char pointer, but take care here, also be careful that python
 	 * owns the string pointer which it could potentually free while blender
 	 * is running. */
-	if(strlen(identifier) >= sizeof(((IDProperty *)NULL)->name)) {
-		BKE_reportf(reports, RPT_ERROR, "registering id property class: '%s' is too long, maximum length is %d.", identifier, sizeof(((IDProperty *)NULL)->name));
+	if(BLI_strnlen(identifier, MAX_IDPROP_NAME) == MAX_IDPROP_NAME) {
+		BKE_reportf(reports, RPT_ERROR, "registering id property class: '%s' is too long, maximum length is " STRINGIFY(MAX_IDPROP_NAME) ".", identifier);
 		return NULL;
 	}
 
@@ -239,11 +243,48 @@ ID *rna_ID_copy(ID *id)
 	ID *newid;
 
 	if(id_copy(id, &newid, 0)) {
-		if(newid) newid->us--;
+		if(newid) id_us_min(newid);
 		return newid;
 	}
 	
 	return NULL;
+}
+
+static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
+{
+	/* XXX, new function for this! */
+	/*if (ob->type == OB_FONT) {
+		Curve *cu = ob->data;
+		freedisplist(&cu->disp);
+		BKE_text_to_curve(sce, ob, CU_LEFT);
+	}*/
+
+	if(flag == 0) {
+		/* pass */
+	}
+	else {
+		/* ensure flag us correct for the type */
+		switch(GS(id->name)) {
+		case ID_OB:
+			if(flag & ~(OB_RECALC_ALL)) {
+				BKE_report(reports, RPT_ERROR, "'refresh' incompatible with Object ID type");
+				return;
+			}
+			break;
+		/* Could add particle updates later */
+/*		case ID_PA:
+			if(flag & ~(OB_RECALC_ALL|PSYS_RECALC)) {
+				BKE_report(reports, RPT_ERROR, "'refresh' incompatible with ParticleSettings ID type");
+				return;
+			}
+			break; */
+		default:
+			BKE_report(reports, RPT_ERROR, "This ID type is not compatible with any 'refresh' options");
+			return;
+		}
+	}
+
+	DAG_id_tag_update(id, flag);
 }
 
 void rna_ID_user_clear(ID *id)
@@ -380,6 +421,12 @@ static void rna_def_ID(BlenderRNA *brna)
 	FunctionRNA *func;
 	PropertyRNA *prop, *parm;
 
+	static EnumPropertyItem update_flag_items[] = {
+		{OB_RECALC_OB, "OBJECT", 0, "Object", ""},
+		{OB_RECALC_DATA, "DATA", 0, "Data", ""},
+		{OB_RECALC_TIME, "TIME", 0, "Time", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "ID", NULL);
 	RNA_def_struct_ui_text(srna, "ID", "Base type for datablocks, defining a unique name, linking from other libraries and garbage collection");
 	RNA_def_struct_flag(srna, STRUCT_ID|STRUCT_ID_REFCOUNT);
@@ -431,6 +478,10 @@ static void rna_def_ID(BlenderRNA *brna)
 	func= RNA_def_function(srna, "animation_data_clear", "BKE_free_animdata");
 	RNA_def_function_ui_description(func, "Clear animation on this this ID.");
 
+	func= RNA_def_function(srna, "update_tag", "rna_ID_update_tag");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Tag the id to update its display data.");
+	RNA_def_enum_flag(func, "refresh", update_flag_items, 0, "", "Type of updates to perform.");
 }
 
 static void rna_def_library(BlenderRNA *brna)

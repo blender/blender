@@ -43,6 +43,12 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_ipo_types.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_editVert.h"
+#include "BLI_math.h"
+#include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_animsys.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
@@ -58,12 +64,6 @@
 #include "BKE_curve.h"
 /* -- */
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_editVert.h"
-#include "BLI_math.h"
-#include "BLI_edgehash.h"
 
 
 EditMesh *BKE_mesh_get_editmesh(Mesh *me)
@@ -71,7 +71,7 @@ EditMesh *BKE_mesh_get_editmesh(Mesh *me)
 	return me->edit_mesh;
 }
 
-void BKE_mesh_end_editmesh(Mesh *me, EditMesh *em)
+void BKE_mesh_end_editmesh(Mesh *UNUSED(me), EditMesh *UNUSED(em))
 {
 }
 
@@ -184,7 +184,7 @@ void free_dverts(MDeformVert *dvert, int totvert)
 	MEM_freeN (dvert);
 }
 
-Mesh *add_mesh(char *name)
+Mesh *add_mesh(const char *name)
 {
 	Mesh *me;
 	
@@ -444,7 +444,7 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 		mface->v4= 0;
 		nr--;
 	}
-	if(mface->v2 && mface->v2==mface->v3) {
+	if((mface->v2 || mface->v4) && mface->v2==mface->v3) {
 		mface->v3= mface->v4;
 		mface->v4= 0;
 		nr--;
@@ -454,6 +454,32 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 		mface->v3= mface->v4;
 		mface->v4= 0;
 		nr--;
+	}
+
+	/* check corrupt cases, bowtie geometry, cant handle these because edge data wont exist so just return 0 */
+	if(nr==3) {
+		if(
+		/* real edges */
+			mface->v1==mface->v2 ||
+			mface->v2==mface->v3 ||
+			mface->v3==mface->v1
+		) {
+			return 0;
+		}
+	}
+	else if(nr==4) {
+		if(
+		/* real edges */
+			mface->v1==mface->v2 ||
+			mface->v2==mface->v3 ||
+			mface->v3==mface->v4 ||
+			mface->v4==mface->v1 ||
+		/* across the face */
+			mface->v1==mface->v3 ||
+			mface->v2==mface->v4
+		) {
+			return 0;
+		}
 	}
 
 	/* prevent a zero at wrong index location */
@@ -561,7 +587,7 @@ static void mfaces_strip_loose(MFace *mface, int *totface)
 }
 
 /* Create edges based on known verts and faces */
-static void make_edges_mdata(MVert *allvert, MFace *allface, int totvert, int totface,
+static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, int UNUSED(totvert), int totface,
 	int old, MEdge **alledge, int *_totedge)
 {
 	MFace *mface;
@@ -678,6 +704,23 @@ void mesh_strip_loose_faces(Mesh *me)
 	me->totface = b;
 }
 
+void mesh_strip_loose_edges(Mesh *me)
+{
+	int a,b;
+
+	for (a=b=0; a<me->totedge; a++) {
+		if (me->medge[a].v1!=me->medge[a].v2) {
+			if (a!=b) {
+				memcpy(&me->medge[b],&me->medge[a],sizeof(me->medge[b]));
+				CustomData_copy_data(&me->edata, &me->edata, a, b, 1);
+				CustomData_free_elem(&me->edata, a, 1);
+			}
+			b++;
+		}
+	}
+	me->totedge = b;
+}
+
 void mball_to_mesh(ListBase *lb, Mesh *me)
 {
 	DispList *dl;
@@ -735,7 +778,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 int nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
 	MEdge **alledge, int *totedge, MFace **allface, int *totface)
 {
-	return nurbs_to_mdata_customdb(ob, &((Curve *)ob->data)->disp,
+	return nurbs_to_mdata_customdb(ob, &ob->disp,
 		allvert, totvert, alledge, totedge, allface, totface);
 }
 
@@ -751,8 +794,12 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 	float *data;
 	int a, b, ofs, vertcount, startvert, totvert=0, totvlak=0;
 	int p1, p2, p3, p4, *index;
+	int conv_polys= 0;
 
 	cu= ob->data;
+
+	conv_polys|= cu->flag & CU_3D;		/* 2d polys are filled with DL_INDEX3 displists */
+	conv_polys|= ob->type == OB_SURF;	/* surf polys are never filled */
 
 	/* count */
 	dl= dispbase->first;
@@ -762,8 +809,10 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 			totvlak+= dl->parts*(dl->nr-1);
 		}
 		else if(dl->type==DL_POLY) {
-			totvert+= dl->parts*dl->nr;
-			totvlak+= dl->parts*dl->nr;
+			if(conv_polys) {
+				totvert+= dl->parts*dl->nr;
+				totvlak+= dl->parts*dl->nr;
+			}
 		}
 		else if(dl->type==DL_SURF) {
 			totvert+= dl->parts*dl->nr;
@@ -783,7 +832,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 	}
 
 	*allvert= mvert= MEM_callocN(sizeof (MVert) * totvert, "nurbs_init mvert");
-	*allface= mface= MEM_callocN(sizeof (MVert) * totvert, "nurbs_init mface");
+	*allface= mface= MEM_callocN(sizeof (MVert) * totvlak, "nurbs_init mface");
 
 	/* verts and faces */
 	vertcount= 0;
@@ -815,24 +864,26 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 
 		}
 		else if(dl->type==DL_POLY) {
-			startvert= vertcount;
-			a= dl->parts*dl->nr;
-			data= dl->verts;
-			while(a--) {
-				VECCOPY(mvert->co, data);
-				data+=3;
-				vertcount++;
-				mvert++;
-			}
+			if(conv_polys) {
+				startvert= vertcount;
+				a= dl->parts*dl->nr;
+				data= dl->verts;
+				while(a--) {
+					VECCOPY(mvert->co, data);
+					data+=3;
+					vertcount++;
+					mvert++;
+				}
 
-			for(a=0; a<dl->parts; a++) {
-				ofs= a*dl->nr;
-				for(b=0; b<dl->nr; b++) {
-					mface->v1= startvert+ofs+b;
-					if(b==dl->nr-1) mface->v2= startvert+ofs;
-					else mface->v2= startvert+ofs+b+1;
-					if(smooth) mface->flag |= ME_SMOOTH;
-					mface++;
+				for(a=0; a<dl->parts; a++) {
+					ofs= a*dl->nr;
+					for(b=0; b<dl->nr; b++) {
+						mface->v1= startvert+ofs+b;
+						if(b==dl->nr-1) mface->v2= startvert+ofs;
+						else mface->v2= startvert+ofs+b+1;
+						if(smooth) mface->flag |= ME_SMOOTH;
+						mface++;
+					}
 				}
 			}
 		}
@@ -1214,14 +1265,12 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 			mf->flag &= ~ME_SMOOTH;
 		}
 	}
-
-// XXX do this in caller	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 }
 
 void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float **faceNors_r) 
 {
 	float (*tnorms)[3]= MEM_callocN(numVerts*sizeof(*tnorms), "tnorms");
-	float *fnors= MEM_mallocN(sizeof(*fnors)*3*numFaces, "meshnormals");
+	float *fnors= MEM_callocN(sizeof(*fnors)*3*numFaces, "meshnormals");
 	int i;
 
 	for (i=0; i<numFaces; i++) {
@@ -1441,7 +1490,7 @@ void mesh_pmv_free(PartialVisibility *pv)
 	MEM_freeN(pv);
 }
 
-void mesh_pmv_revert(Object *ob, Mesh *me)
+void mesh_pmv_revert(Mesh *me)
 {
 	if(me->pv) {
 		unsigned i;
@@ -1475,15 +1524,13 @@ void mesh_pmv_revert(Object *ob, Mesh *me)
 		me->pv->edge_map= NULL;
 		MEM_freeN(me->pv->vert_map);
 		me->pv->vert_map= NULL;
-
-// XXX do this in caller		DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	}
 }
 
-void mesh_pmv_off(Object *ob, Mesh *me)
+void mesh_pmv_off(Mesh *me)
 {
-	if(ob && me->pv) {
-		mesh_pmv_revert(ob, me);
+	if(me->pv) {
+		mesh_pmv_revert(me);
 		MEM_freeN(me->pv);
 		me->pv= NULL;
 	}
@@ -1509,7 +1556,10 @@ int mesh_center_median(Mesh *me, float cent[3])
 	for(mvert= me->mvert; i--; mvert++) {
 		add_v3_v3(cent, mvert->co);
 	}
-	mul_v3_fl(cent, 1.0f/(float)me->totvert);
+	/* otherwise we get NAN for 0 verts */
+	if(me->totvert) {
+		mul_v3_fl(cent, 1.0f/(float)me->totvert);
+	}
 
 	return (me->totvert != 0);
 }

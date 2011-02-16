@@ -41,6 +41,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_vfontdata.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
@@ -49,9 +50,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_utildefines.h"
-
 #include "BKE_packedFile.h"
-
 #include "BKE_library.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -124,31 +123,27 @@ wcsleninu8(wchar_t *src)
 }
 
 static int
-utf8slen(char *src)
+utf8slen(const char *strc)
 {
-	int size = 0, index = 0;
-	unsigned char c;
-	
-	c = src[index++];
-	while(c)
-	{    
-		if((c & 0x80) == 0)
-		{
-			index += 0;
+	int len=0;
+
+	while(*strc) {
+		if ((*strc & 0xe0) == 0xc0) {
+			if((strc[1] & 0x80) && (strc[1] & 0x40) == 0x00)
+				strc++;
+		} else if ((*strc & 0xf0) == 0xe0) {
+			if((strc[1] & strc[2] & 0x80) && ((strc[1] | strc[2]) & 0x40) == 0x00)
+				strc += 2;
+		} else if ((*strc & 0xf8) == 0xf0) {
+			if((strc[1] & strc[2] & strc[3] & 0x80) && ((strc[1] | strc[2] | strc[3]) & 0x40) == 0x00)
+				strc += 3;
 		}
-		else if((c & 0xe0) == 0xe0)
-		{
-			index += 2;
-		}
-		else
-		{
-			index += 1;
-		}
-		size += 1;
-		c = src[index++];		
+
+		strc++;
+		len++;
 	}
-	
-	return size;
+
+	return len;
 }
 
 
@@ -305,7 +300,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 	if (!vfont->data) {
 		PackedFile *pf;
 		
-		if (BLI_streq(vfont->name, "<builtin>")) {
+		if (strcmp(vfont->name, FO_BUILTIN_NAME)==0) {
 			pf= get_builtin_packedfile();
 		} else {
 			if (vfont->packedfile) {
@@ -342,7 +337,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 			if(!pf) {
 				printf("Font file doesn't exist: %s\n", vfont->name);
 
-				strcpy(vfont->name, "<builtin>");
+				strcpy(vfont->name, FO_BUILTIN_NAME);
 				pf= get_builtin_packedfile();
 			}
 		}
@@ -358,7 +353,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 	return vfont->data;	
 }
 
-VFont *load_vfont(char *name)
+VFont *load_vfont(const char *name)
 {
 	char filename[FILE_MAXFILE];
 	VFont *vfont= NULL;
@@ -367,7 +362,7 @@ VFont *load_vfont(char *name)
 	int is_builtin;
 	struct TmpFont *tmpfnt;
 	
-	if (BLI_streq(name, "<builtin>")) {
+	if (strcmp(name, FO_BUILTIN_NAME)==0) {
 		strcpy(filename, name);
 		
 		pf= get_builtin_packedfile();
@@ -394,7 +389,7 @@ VFont *load_vfont(char *name)
 
 			/* if there's a font name, use it for the ID name */
 			if (strcmp(vfd->name, "")!=0) {
-				BLI_strncpy(vfont->id.name+2, vfd->name, 21);
+				BLI_strncpy(vfont->id.name+2, vfd->name, sizeof(vfont->id.name)-2);
 			}
 			BLI_strncpy(vfont->name, name, sizeof(vfont->name));
 
@@ -403,8 +398,8 @@ VFont *load_vfont(char *name)
 				vfont->packedfile = pf;
 			}
 			
-			// Do not add <builtin> to temporary listbase
-			if(strcmp(filename, "<builtin>"))
+			// Do not add FO_BUILTIN_NAME to temporary listbase
+			if(strcmp(filename, FO_BUILTIN_NAME))
 			{
 				tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
 				tmpfnt->pf= tpf;
@@ -443,10 +438,10 @@ VFont *get_builtin_font(void)
 	VFont *vf;
 	
 	for (vf= G.main->vfont.first; vf; vf= vf->id.next)
-		if (BLI_streq(vf->name, "<builtin>"))
+		if (strcmp(vf->name, FO_BUILTIN_NAME)==0)
 			return vf;
 	
-	return load_vfont("<builtin>");
+	return load_vfont(FO_BUILTIN_NAME);
 }
 
 static VChar *find_vfont_char(VFontData *vfd, intptr_t character)
@@ -514,11 +509,12 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 	float *fp, fsize, shear, x, si, co;
 	VFontData *vfd = NULL;
 	VChar *che = NULL;
-	int i, sel=0;
+	int i;
 
 	vfd= vfont_get_data(which_vfont(cu, info));	
 	if (!vfd) return;
 
+	/*
 	if (cu->selend < cu->selstart) {
 		if ((charidx >= (cu->selend)) && (charidx <= (cu->selstart-2)))
 			sel= 1;
@@ -527,6 +523,7 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 		if ((charidx >= (cu->selstart-1)) && (charidx <= (cu->selend-1)))
 			sel= 1;
 	}
+	*/
 
 	/* make a copy at distance ofsx,ofsy with shear*/
 	fsize= cu->fsize;
@@ -672,7 +669,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 	VFont *vfont, *oldvfont;
 	VFontData *vfd= NULL;
 	Curve *cu;
-	CharInfo *info, *custrinfo;
+	CharInfo *info = NULL, *custrinfo;
 	TextBox *tb;
 	VChar *che;
 	struct chartrans *chartransdata=NULL, *ct;
@@ -699,7 +696,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 	// Create unicode string
 	utf8len = utf8slen(cu->str);
-	tmp = mem = MEM_callocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
+	mem = MEM_callocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
 	
 	utf8towchar(mem, cu->str);
 
@@ -760,7 +757,6 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 	for (i = 0 ; i<=slen ; i++) {
 	makebreak:
 		// Characters in the list
-		che = vfd->characters.first;
 		info = &(custrinfo[i]);
 		ascii = mem[i];
 		if(info->flag & CU_CHINFO_SMALLCAPS) {
@@ -779,10 +775,10 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 		/*
 		 * The character wasn't in the current curve base so load it
-		 * But if the font is <builtin> then do not try loading since
+		 * But if the font is FO_BUILTIN_NAME then do not try loading since
 		 * whole font is in the memory already
 		 */
-		if(che == NULL && strcmp(vfont->name, "<builtin>"))	{
+		if(che == NULL && strcmp(vfont->name, FO_BUILTIN_NAME))	{
 			BLI_vfontchar_from_freetypefont(vfont, ascii);
 		}
 
@@ -862,12 +858,15 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				yof= cu->yof + tb->y/cu->fsize;
 			}
 
+			/* XXX, has been unused for years, need to check if this is useful, r4613 r5282 - campbell */
+#if 0
 			if(ascii == '\n' || ascii == '\r')
 				xof = cu->xof;
 			else
 				xof= cu->xof + (tb->x/cu->fsize);
-
+#else
 			xof= cu->xof + (tb->x/cu->fsize);
+#endif
 			lnr++;
 			cnr= 0;
 			wsnr= 0;
@@ -1042,10 +1041,9 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				che= find_vfont_char(vfd, ascii);
 	
 				twidth = char_width(cu, che, info);
-				
-				dtime= distfac*0.35f*twidth;	/* why not 0.5? */
-				dtime= distfac*0.5f*twidth;	/* why not 0.5? */
-				
+
+				dtime= distfac*0.5f*twidth;
+
 				ctime= timeofs + distfac*( ct->xof - minx);
 				CLAMP(ctime, 0.0, 1.0);
 
@@ -1148,14 +1146,12 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 	if(mode == FO_EDIT) {
 		/* make nurbdata */
-		unsigned long cha;
-		
 		freeNurblist(&cu->nurb);
 		
 		ct= chartransdata;
 		if (cu->sepchar==0) {
 			for (i= 0; i<slen; i++) {
-				cha = (uintptr_t) mem[i];
+				unsigned long cha = (uintptr_t) mem[i];
 				info = &(custrinfo[i]);
 				if (info->mat_nr > (ob->totcol)) {
 					/* printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr); */
@@ -1193,8 +1189,12 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				ascii = mem[i];
 				info = &(custrinfo[i]);
 				if (cu->sepchar == (i+1)) {
-					float vecyo[3]= {ct->xof, ct->yof, 0.0f};
-					
+					float vecyo[3];
+
+					vecyo[0]= ct->xof;
+					vecyo[1]= ct->yof;
+					vecyo[2]= 0.0f;
+
 					mem[0] = ascii;
 					mem[1] = 0;
 					custrinfo[0]= *info;

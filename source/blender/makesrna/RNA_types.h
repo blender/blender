@@ -24,8 +24,8 @@
 
 #include "BLO_sys_types.h"
 
-#ifndef RNA_TYPES
-#define RNA_TYPES
+#ifndef RNA_TYPES_H
+#define RNA_TYPES_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -167,6 +167,10 @@ typedef enum PropertyFlag {
 	 * only apply this to types that are derived from an ID ()*/
 	PROP_ID_SELF_CHECK = 1<<20,
 	PROP_NEVER_NULL = 1<<18,
+	/* currently only used for UI, this is similar to PROP_NEVER_NULL
+	 * except that the value may be NULL at times, used for ObData, where an Empty's will be NULL
+	 * but setting NULL on a mesh object is not possible. So, if its not NULL, setting NULL cant be done! */
+	PROP_NEVER_UNLINK = 1<<25,
 
 	/* flag contains multiple enums.
 	 * note: not to be confused with prop->enumbitflags
@@ -183,6 +187,12 @@ typedef enum PropertyFlag {
 	 * most common case is functions that return arrays where the array */
 	PROP_THICK_WRAP = 1<<23,
 
+	/* Reject values outside limits, use for python api only so far
+	 * this is for use when silently clamping string length will give
+	 * bad behavior later. Could also enforce this for INT's and other types.
+	 * note: currently no support for function arguments or non utf8 paths (filepaths) */
+	PROP_NEVER_CLAMP = 1<<26,
+
 	/* internal flags */
 	PROP_BUILTIN = 1<<7,
 	PROP_EXPORT = 1<<8,
@@ -192,7 +202,7 @@ typedef enum PropertyFlag {
 	PROP_RAW_ARRAY = 1<<14,
 	PROP_FREE_POINTERS = 1<<15,
 	PROP_DYNAMIC = 1<<17, /* for dynamic arrays, and retvals of type string */
-	PROP_ENUM_NO_CONTEXT = 1<<18 /* for enum that shouldn't be contextual */
+	PROP_ENUM_NO_CONTEXT = 1<<24 /* for enum that shouldn't be contextual */
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
@@ -307,13 +317,13 @@ typedef enum StructFlag {
 	STRUCT_RUNTIME = 4,
 	STRUCT_GENERATED = 8,
 	STRUCT_FREE_POINTERS = 16,
-	STRUCT_NO_IDPROPERTIES = 32, /* Menu's and Panels don't need properties */
+	STRUCT_NO_IDPROPERTIES = 32 /* Menu's and Panels don't need properties */
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
-typedef int (*StructCallbackFunc)(struct PointerRNA *ptr, struct FunctionRNA *func, ParameterList *list);
+typedef int (*StructCallbackFunc)(struct bContext *C, struct PointerRNA *ptr, struct FunctionRNA *func, ParameterList *list);
 typedef void (*StructFreeFunc)(void *data);
-typedef struct StructRNA *(*StructRegisterFunc)(const struct bContext *C, struct ReportList *reports, void *data,
+typedef struct StructRNA *(*StructRegisterFunc)(struct bContext *C, struct ReportList *reports, void *data,
 	const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
 typedef void (*StructUnregisterFunc)(const struct bContext *C, struct StructRNA *type);
 
@@ -333,9 +343,9 @@ typedef struct BlenderRNA BlenderRNA;
 typedef struct ExtensionRNA {
 	void *data;
 	StructRNA *srna;
-
-	int (*call)(PointerRNA *, FunctionRNA *, ParameterList *);
-	void (*free)(void *data);
+	StructCallbackFunc call;
+	StructFreeFunc free;
+	
 } ExtensionRNA;
 
 /* fake struct definitions, needed otherwise collections end up owning the C
@@ -370,6 +380,4 @@ typedef struct ExtensionRNA {
 }
 #endif
 
-#endif /* RNA_TYPES */
-
-
+#endif /* RNA_TYPES_H */

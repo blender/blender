@@ -19,6 +19,7 @@ incs = ['.',
         '#source/gameengine/Converter',
         '#source/blender/imbuf',
         '#source/gameengine/Ketsji',
+        '#source/blender/blenfont',
         '#source/blender/blenlib',
         '#source/blender/blenkernel',
         '#source/blender/readblenfile',
@@ -44,10 +45,9 @@ defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_PYTHON']:
     incs += Split(env['BF_PYTHON_INC'])
-else:
-    defs.append('DISABLE_PYTHON')
+    defs.append('WITH_PYTHON')
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
 
-env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = defs, libtype=['player'],priority=[0], cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib (libname='ge_player_ghost', sources=source_files, includes = incs, defines = defs, libtype=['player'],priority=[0], cxx_compileflags=env['BGE_CXXFLAGS'])

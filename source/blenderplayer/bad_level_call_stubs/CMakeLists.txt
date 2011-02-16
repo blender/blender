@@ -24,27 +24,35 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC stubs.c)
+# this warning on generated files gets annoying
+remove_strict_flags()
 
-IF(WITH_BUILDINFO)
-	ADD_DEFINITIONS(-DBUILD_DATE)
-	FILE(GLOB SRC ${SRC} ../../creator/buildinfo.c)
-ENDIF(WITH_BUILDINFO)
-
-SET(INC 
+set(INC 
 	.
 	.. 
 	../../../intern/guardedalloc
 	../../../source/blender/makesdna
 	../../../source/blender/makesrna
+	../../../source/blender/blenkernel
 )
 
-IF(WITH_GAMEENGINE)
-	ADD_DEFINITIONS(-DGAMEBLENDER)
-ENDIF(WITH_GAMEENGINE)
+set(SRC
+	stubs.c
+)
 
-IF(WITH_INTERNATIONAL)
-	ADD_DEFINITIONS(-DWITH_FREETYPE2)
-ENDIF(WITH_INTERNATIONAL)
+if(WITH_BUILDINFO)
+	add_definitions(-DBUILD_DATE)
+	list(APPEND SRC
+		../../creator/buildinfo.c
+	)
+endif()
 
-BLENDERLIB_NOLIST(blenkernel_blc "${SRC}" "${INC}")
+if(WITH_GAMEENGINE)
+	add_definitions(-DWITH_GAMEENGINE)
+endif()
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_FREETYPE2)
+endif()
+
+blender_add_lib_nolist(blenkernel_blc "${SRC}" "${INC}")

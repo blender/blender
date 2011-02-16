@@ -38,6 +38,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 
@@ -49,6 +50,7 @@
 #include "BKE_library.h" // for free_main
 #include "BKE_idcode.h"
 #include "BKE_report.h"
+#include "BKE_utildefines.h"
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
@@ -169,11 +171,11 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 					memcpy(new_prv, prv, sizeof(PreviewImage));
 					if (prv->rect[0]) {
 						unsigned int *rect = NULL;
-						int rectlen = 0;
+						// int rectlen = 0;
 						new_prv->rect[0] = MEM_callocN(new_prv->w[0]*new_prv->h[0]*sizeof(unsigned int), "prvrect");
 						bhead= blo_nextbhead(fd, bhead);
 						rect = (unsigned int*)(bhead+1);
-						rectlen = new_prv->w[0]*new_prv->h[0]*sizeof(unsigned int);
+						// rectlen = new_prv->w[0]*new_prv->h[0]*sizeof(unsigned int);
 						memcpy(new_prv->rect[0], rect, bhead->len);					
 					} else {
 						new_prv->rect[0] = NULL;
@@ -181,11 +183,11 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 					
 					if (prv->rect[1]) {
 						unsigned int *rect = NULL;
-						int rectlen = 0;
+						// int rectlen = 0;
 						new_prv->rect[1] = MEM_callocN(new_prv->w[1]*new_prv->h[1]*sizeof(unsigned int), "prvrect");
 						bhead= blo_nextbhead(fd, bhead);
 						rect = (unsigned int*)(bhead+1);
-						rectlen = new_prv->w[1]*new_prv->h[1]*sizeof(unsigned int);					
+						// rectlen = new_prv->w[1]*new_prv->h[1]*sizeof(unsigned int);
 						memcpy(new_prv->rect[1], rect, bhead->len);							
 					} else {
 						new_prv->rect[1] = NULL;
@@ -242,7 +244,7 @@ void BLO_blendhandle_close(BlendHandle *bh) {
 
 	/**********/
 
-BlendFileData *BLO_read_from_file(char *file, ReportList *reports)
+BlendFileData *BLO_read_from_file(const char *file, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
@@ -284,7 +286,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 		strcpy(fd->relabase, filename);
 		
 		/* clear ob->proxy_from pointers in old main */
-		blo_clear_proxy_pointers_from_lib(fd, oldmain);
+		blo_clear_proxy_pointers_from_lib(oldmain);
 
 		/* separate libraries from old main */
 		blo_split_main(&mainlist, oldmain);

@@ -34,6 +34,7 @@
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
@@ -447,7 +448,7 @@ static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *o
 	hmd->indexar= indexar;
 	copy_v3_v3(hmd->cent, cent);
 	hmd->totindex= tot;
-	BLI_strncpy(hmd->name, name, 32);
+	BLI_strncpy(hmd->name, name, sizeof(hmd->name));
 	
 	/* matrix calculus */
 	/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
@@ -504,7 +505,7 @@ void OBJECT_OT_hook_add_selobj(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
+static int object_add_hook_newob_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -551,13 +552,13 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
 	BLI_remlink(&ob->modifiers, (ModifierData *)hmd);
 	modifier_free((ModifierData *)hmd);
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
 }
 
-static EnumPropertyItem *hook_mod_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *hook_mod_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {	
 	Object *ob = CTX_data_edit_object(C);
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -646,7 +647,7 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -702,7 +703,7 @@ static int object_hook_recenter_exec(bContext *C, wmOperator *op)
 	sub_v3_v3v3(hmd->cent, scene->cursor, ob->obmat[3]);
 	mul_m3_v3(imat, hmd->cent);
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -765,7 +766,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	hmd->indexar= indexar;
 	hmd->totindex= tot;
 	
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;

@@ -27,8 +27,9 @@
  */
 
 #include "BLI_voxel.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 BM_INLINE float D(float *data,  int *res, int x, int y, int z)
 {

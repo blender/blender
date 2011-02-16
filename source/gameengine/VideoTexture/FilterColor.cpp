@@ -129,14 +129,14 @@ static int setMatrix (PyFilter * self, PyObject * value, void * closure)
 	ColorMatrix mat;
 	// check validity of parameter
 	bool valid = value != NULL && PySequence_Check(value)
-		&& PySequence_Length(value) == 4;
+		&& PySequence_Size(value) == 4;
 	// check rows
 	for (int r = 0; valid && r < 4; ++r)
 	{
 		// get row object
 		PyObject * row = PySequence_Fast_GET_ITEM(value, r);
 		// check sequence
-		valid = PySequence_Check(row) && PySequence_Length(row) == 5;
+		valid = PySequence_Check(row) && PySequence_Size(row) == 5;
 		// check items
 		for (int c = 0; valid && c < 5; ++c)
 		{
@@ -262,14 +262,14 @@ static int setLevels (PyFilter * self, PyObject * value, void * closure)
 	ColorLevel lev;
 	// check validity of parameter
 	bool valid = value != NULL && PySequence_Check(value)
-		&& PySequence_Length(value) == 4;
+		&& PySequence_Size(value) == 4;
 	// check rows
 	for (int r = 0; valid && r < 4; ++r)
 	{
 		// get row object
 		PyObject * row = PySequence_Fast_GET_ITEM(value, r);
 		// check sequence
-		valid = PySequence_Check(row) && PySequence_Length(row) == 2;
+		valid = PySequence_Check(row) && PySequence_Size(row) == 2;
 		// check items
 		for (int c = 0; valid && c < 2; ++c)
 		{

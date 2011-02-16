@@ -31,13 +31,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-
 #include "ED_screen.h"
-
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -47,13 +46,13 @@
 #include "sequencer_intern.h"
 
 
-static void do_sequencer_panel_events(bContext *C, void *arg, int event)
+static void do_sequencer_panel_events(bContext *UNUSED(C), void *UNUSED(arg), int UNUSED(event))
 {
 
 }
 
 
-static void sequencer_panel_view_properties(const bContext *C, Panel *pa)
+static void sequencer_panel_view_properties(const bContext *UNUSED(C), Panel *pa)
 {
 	uiBlock *block;
 
@@ -63,7 +62,7 @@ static void sequencer_panel_view_properties(const bContext *C, Panel *pa)
 }
 
 
-static void sequencer_panel_properties(const bContext *C, Panel *pa)
+static void sequencer_panel_properties(const bContext *UNUSED(C), Panel *pa)
 {
 	uiBlock *block;
 	
@@ -92,7 +91,7 @@ void sequencer_buttons_register(ARegionType *art)
 
 /* **************** operator to open/close properties view ************* */
 
-static int sequencer_properties(bContext *C, wmOperator *op)
+static int sequencer_properties(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= sequencer_has_buttons_region(sa);

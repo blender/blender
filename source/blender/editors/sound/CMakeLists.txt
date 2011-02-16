@@ -19,9 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
-SET(INC
+set(INC
 	../include
 	../../blenkernel
 	../../blenlib
@@ -32,4 +30,10 @@ SET(INC
 	../../../../intern/audaspace/intern
 )
 
-BLENDERLIB(bf_editor_sound "${SRC}" "${INC}")
+set(SRC
+	sound_ops.c
+
+	sound_intern.h
+)
+
+blender_add_lib(bf_editor_sound "${SRC}" "${INC}")

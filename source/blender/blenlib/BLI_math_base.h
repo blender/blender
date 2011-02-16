@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_BASE
-#define BLI_MATH_BASE
+#ifndef BLI_MATH_BASE_H
+#define BLI_MATH_BASE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,6 +68,11 @@ extern "C" {
 #endif
 #ifndef M_LN10
 #define M_LN10          2.30258509299404568402
+#endif
+
+/* non-standard defines, used in some places */
+#ifndef MAXFLOAT
+#define MAXFLOAT  ((float)3.40282347e+38)
 #endif
 
 #ifndef sqrtf
@@ -123,6 +128,7 @@ extern "C" {
 #ifndef FREE_WINDOWS
 #define isnan(n) _isnan(n)
 #define finite _finite
+#define hypot _hypot
 #endif
 #endif
 
@@ -134,7 +140,7 @@ extern "C" {
 #define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
 #endif
 
-#ifdef BLI_MATH_INLINE
+#ifdef BLI_MATH_INLINE_H
 #include "intern/math_base_inline.c"
 #endif
 
@@ -167,5 +173,5 @@ double double_round(double x, int ndigits);
 }
 #endif
 
-#endif /* BLI_MATH_BASE */
+#endif /* BLI_MATH_BASE_H */
 

@@ -36,7 +36,7 @@
 
 /*
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h" // Blender Python library
 #endif
 */

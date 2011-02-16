@@ -36,7 +36,7 @@ static bNodeSocketType inputs[]= {
 };
 
 /* applies to render pipeline */
-static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
 	TexCallData *cdata = (TexCallData *)data;
 	TexResult *target = cdata->target;
@@ -45,7 +45,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 		TexParams params;
 		params_from_cdata(&params, cdata);
 
-		if(in[1]->hasinput && !in[0]->hasinput)
+		if(in[1] && in[1]->hasinput && !in[0]->hasinput)
 			tex_input_rgba(&target->tr, in[1], &params, cdata->thread);
 		else
 			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
@@ -63,7 +63,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 			target->talpha = 1.0f;
 		
 			if(target->nor) {
-				if(in[1]->hasinput)
+				if(in[1] && in[1]->hasinput)
 					tex_input_vec(target->nor, in[1], &params, cdata->thread);
 				else
 					target->nor = 0;
@@ -152,20 +152,16 @@ static void copy(bNode *orig, bNode *new)
 	assign_index(new);
 }
 
-bNodeType tex_node_output= {
-	/* *next,*prev     */  NULL, NULL,
-	/* type code       */  TEX_NODE_OUTPUT,
-	/* name            */  "Output",
-	/* width+range     */  150, 60, 200,
-	/* class+opts      */  NODE_CLASS_OUTPUT, NODE_PREVIEW | NODE_OPTIONS, 
-	/* input sock      */  inputs,
-	/* output sock     */  NULL,
-	/* storage         */  "TexNodeOutput",
-	/* execfunc        */  exec,
-	/* butfunc         */  NULL,
-	/* initfunc        */  init,
-	/* freestoragefunc */  node_free_standard_storage,
-	/* copystoragefunc */  copy,  
-	/* id              */  NULL
-};
-
+void register_node_type_tex_output(ListBase *lb)
+{
+	static bNodeType ntype;
+	
+	node_type_base(&ntype, TEX_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS,
+				   inputs, NULL);
+	node_type_size(&ntype, 150, 60, 200);
+	node_type_init(&ntype, init);
+	node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
+	node_type_exec(&ntype, exec);
+	
+	nodeRegisterType(lb, &ntype);
+}

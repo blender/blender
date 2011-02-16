@@ -42,6 +42,7 @@
 
 #include "BKE_depsgraph.h"
 #include "BKE_fluidsim.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
@@ -75,8 +76,38 @@ static void rna_fluid_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
+}
+
+static int fluidsim_find_lastframe(FluidsimSettings *fss)
+{
+	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
+	int curFrame = 1;
+
+	BLI_snprintf(targetDir, sizeof(targetDir), "%sfluidsurface_final_####.bobj.gz", fss->surfdataPath);
+	BLI_path_abs(targetDir, G.main->name);
+
+	do {
+		BLI_strncpy(targetFile, targetDir, sizeof(targetFile));
+		BLI_path_frame(targetFile, curFrame++, 0);
+	} while(BLI_exist(targetFile));
+
+	return curFrame - 1;
+}
+
+static void rna_fluid_find_enframe(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Object *ob= ptr->id.data;
+	FluidsimModifierData *fluidmd= (FluidsimModifierData*)modifiers_findByType(ob, eModifierType_Fluidsim);
+
+	if(fluidmd->fss->flag & OB_FLUIDSIM_REVERSE) {
+		fluidmd->fss->lastgoodframe = fluidsim_find_lastframe(fluidmd->fss);
+	}
+	else {
+		fluidmd->fss->lastgoodframe = -1;
+	}
+	rna_fluid_update(bmain, scene, ptr);
 }
 
 static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -231,8 +262,9 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_reverse_frames", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_REVERSE);
 	RNA_def_property_ui_text(prop, "Reverse Frames", "Reverse fluid frames");
+	RNA_def_property_update(prop, 0, "rna_fluid_find_enframe");
 
-	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_DIRPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_maxlength(prop, 240);
 	RNA_def_property_string_sdna(prop, NULL, "surfdataPath");
 	RNA_def_property_ui_text(prop, "Path", "Directory (and/or filename prefix) to store baked fluid simulation files in");
@@ -469,7 +501,7 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 2.0);
 	RNA_def_property_ui_text(prop, "Alpha Influence", "Amount of particle alpha change, inverse of size influence: 0=off (all same alpha), 1=full. (large particles get lower alphas, smaller ones higher values)");
 
-	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_DIRPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_maxlength(prop, 240);
 	RNA_def_property_string_sdna(prop, NULL, "surfdataPath");
 	RNA_def_property_ui_text(prop, "Path", "Directory (and/or filename prefix) to store and load particles from");
@@ -527,6 +559,7 @@ static void rna_def_fluidsim_control(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_REVERSE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Reverse Frames", "Reverse control object movement");
+	RNA_def_property_update(prop, 0, "rna_fluid_find_enframe");
 }
 
 void RNA_def_fluidsim(BlenderRNA *brna)

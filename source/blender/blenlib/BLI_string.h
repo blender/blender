@@ -57,6 +57,14 @@ char *BLI_strdup(const char *str);
 char *BLI_strdupn(const char *str, int len);
 
 	/**
+	 * Appends the two strings, and returns new mallocN'ed string
+	 * @param str1 first string for copy
+	 * @param str2 second string for append
+	 * @retval Returns dst
+	 */
+char *BLI_strdupcat(const char *str1, const char *str2);
+
+	/** 
 	 * Like strncpy but ensures dst is always
 	 * '\0' terminated.
 	 * 
@@ -64,14 +72,6 @@ char *BLI_strdupn(const char *str, int len);
 	 * @param src Source string to copy
 	 * @param maxncpy Maximum number of characters to copy (generally
 	 *   the size of dst)
-	 * @retval Returns dst
-	 */
-char *BLI_strdupcat(const char *str1, const char *str2);
-
-	/**
-	 * Appends the two strings, and returns new mallocN'ed string
-	 * @param str1 first string for copy
-	 * @param str2 second string for append
 	 * @retval Returns dst
 	 */
 char *BLI_strncpy(char *dst, const char *src, int maxncpy);
@@ -102,13 +102,21 @@ char *BLI_replacestr(char *str, const char *oldText, const char *newText);
 	/* 
 	 * Replacement for snprintf
 	 */
-int BLI_snprintf(char *buffer, size_t count, const char *format, ...);
+int BLI_snprintf(char *buffer, size_t count, const char *format, ...)
+#ifdef __GNUC__
+__attribute__ ((format (printf, 3, 4)));
+#endif
+;
 
 	/* 
 	 * Print formatted string into a newly mallocN'd string
 	 * and return it.
 	 */
-char *BLI_sprintfN(const char *format, ...);
+char *BLI_sprintfN(const char *format, ...)
+#ifdef __GNUC__
+__attribute__ ((format (printf, 1, 2)));
+#endif
+;
 
 	/**
 	 * Compare two strings

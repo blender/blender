@@ -41,7 +41,7 @@ int BLO_read_runtime( char *file);
 BLO_readblenfilememory(
 	char *fromBuffer, int fromBufferSize)
 {
-#ifndef NDEBUG
+#if defined(DEBUG)
 	fprintf(GEN_errorstream,
 			"Error BLO_readblenfilename is a stub\n");
 #endif
@@ -52,7 +52,7 @@ BLO_readblenfilememory(
 BLO_readblenfilename(
 	char *fileName)
 {
-#ifndef NDEBUG
+#if defined(DEBUG)
 	fprintf(GEN_errorstream,
 			"Error BLO_readblenfilename is a stub\n");
 #endif
@@ -63,7 +63,7 @@ BLO_readblenfilename(
 BLO_readblenfilehandle(
 	int fileHandle)
 {
-#ifndef NDEBUG
+#if defined(DEBUG)
 	fprintf(GEN_errorstream,
 			"Error BLO_readblenfilehandle is a stub\n");
 #endif
@@ -74,7 +74,7 @@ BLO_readblenfilehandle(
 BLO_is_a_runtime(
 	char *file)
 {
-#ifndef NDEBUG
+#if defined(DEBUG)
 	fprintf(GEN_errorstream,
 			"Error BLO_is_a_runtime is a stub\n");
 #endif
@@ -85,7 +85,7 @@ BLO_is_a_runtime(
 BLO_read_runtime(
 	char *file) 
 {
-#ifndef NDEBUG
+#if defined(DEBUG)
 	fprintf(GEN_errorstream,
 			"Error BLO_read_runtime is a stub\n");
 #endif

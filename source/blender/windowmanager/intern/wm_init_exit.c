@@ -52,7 +52,7 @@
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_packedFile.h"
 #include "BKE_sequencer.h" /* free seq clipboard */
 #include "BKE_material.h" /* clear_matcopybuf */
@@ -61,11 +61,14 @@
 
 #include "RE_pipeline.h"		/* RE_ free stuff */
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
+#ifdef WITH_GAMEENGINE
 #include "SYS_System.h"
+#endif
+#include "GHOST_Path-api.h"
 
 #include "RNA_define.h"
 
@@ -116,6 +119,8 @@ void WM_init(bContext *C, int argc, char **argv)
 		wm_ghost_init(C);	/* note: it assigns C to ghost! */
 		wm_init_cursor_data();
 	}
+	GHOST_CreateSystemPaths();
+
 	wm_operatortype_init();
 	
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
@@ -127,24 +132,29 @@ void WM_init(bContext *C, int argc, char **argv)
 	ED_file_init();			/* for fsmenu */
 	ED_init_node_butfuncs();	
 	
-	BLF_init(11, U.dpi);
+	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLF_lang_init();
 	
 	/* get the default database, plus a wm */
-	WM_read_homefile(C, NULL);
+	WM_read_homefile(C, NULL, G.factory_startup);
 
 	/* note: there is a bug where python needs initializing before loading the
-	 * .B25.blend because it may contain PyDrivers. It also needs to be after
+	 * startup.blend because it may contain PyDrivers. It also needs to be after
 	 * initializing space types and other internal data.
 	 *
 	 * However cant redo this at the moment. Solution is to load python
 	 * before WM_read_homefile() or make py-drivers check if python is running.
 	 * Will try fix when the crash can be repeated. - campbell. */
 
-#ifndef DISABLE_PYTHON
-	BPY_set_context(C); /* necessary evil */
-	BPY_start_python(argc, argv);
-	BPY_load_user_modules(C);
+#ifdef WITH_PYTHON
+	BPY_context_set(C); /* necessary evil */
+	BPY_python_start(argc, argv);
+
+	BPY_driver_reset();
+	BPY_modules_load_user(C);
+#else
+	(void)argc; /* unused */
+	(void)argv; /* unused */
 #endif
 
 	wm_init_reports(C); /* reports cant be initialized before the wm */
@@ -167,10 +177,13 @@ void WM_init(bContext *C, int argc, char **argv)
 	
 	read_history();
 
-	if(G.sce[0] == 0)
-		BLI_make_file_string("/", G.sce, BLI_getDefaultDocumentFolder(), "untitled.blend");
+	/* allow a path of "", this is what happens when making a new file */
+	/*
+	if(G.main->name[0] == 0)
+		BLI_make_file_string("/", G.main->name, BLI_getDefaultDocumentFolder(), "untitled.blend");
+	*/
 
-	BLI_strncpy(G.lib, G.sce, FILE_MAX);
+	BLI_strncpy(G.lib, G.main->name, FILE_MAX);
 
 }
 
@@ -212,7 +225,7 @@ int WM_init_game(bContext *C)
 	wmWindow* win;
 
 	ScrArea *sa;
-	ARegion *ar;
+	ARegion *ar= NULL;
 
 	Scene *scene= CTX_data_scene(C);
 
@@ -268,12 +281,16 @@ int WM_init_game(bContext *C)
 		if(scene->gm.fullscreen) {
 			WM_operator_name_call(C, "WM_OT_window_fullscreen_toggle", WM_OP_EXEC_DEFAULT, NULL);
 			wm_get_screensize(&ar->winrct.xmax, &ar->winrct.ymax);
+			ar->winx = ar->winrct.xmax + 1;
+			ar->winy = ar->winrct.ymax + 1;
 		}
 		else
 		{
 			GHOST_RectangleHandle rect = GHOST_GetClientBounds(win->ghostwin);
 			ar->winrct.ymax = GHOST_GetHeightRectangle(rect);
 			ar->winrct.xmax = GHOST_GetWidthRectangle(rect);
+			ar->winx = ar->winrct.xmax + 1;
+			ar->winy = ar->winrct.ymax + 1;
 			GHOST_DisposeRectangle(rect);
 		}
 
@@ -318,10 +335,10 @@ extern wchar_t *copybuf;
 extern wchar_t *copybufinfo;
 
 	// XXX copy/paste buffer stuff...
-extern void free_anim_copybuf(); 
-extern void free_anim_drivers_copybuf(); 
-extern void free_fmodifiers_copybuf(); 
-extern void free_posebuf(); 
+extern void free_anim_copybuf(void); 
+extern void free_anim_drivers_copybuf(void); 
+extern void free_fmodifiers_copybuf(void); 
+extern void free_posebuf(void); 
 
 /* called in creator.c even... tsk, split this! */
 void WM_exit(bContext *C)
@@ -393,7 +410,7 @@ void WM_exit(bContext *C)
 //	free_txt_data();
 	
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* XXX - old note */
 	/* before free_blender so py's gc happens while library still exists */
 	/* needed at least for a rare sigsegv that can happen in pydrivers */
@@ -401,7 +418,7 @@ void WM_exit(bContext *C)
 	/* Update for blender 2.5, move after free_blender because blender now holds references to PyObject's
 	 * so decref'ing them after python ends causes bad problems every time
 	 * the pyDriver bug can be fixed if it happens again we can deal with it then */
-	BPY_end_python();
+	BPY_python_end();
 #endif
 
 	if (!G.background) {
@@ -424,13 +441,16 @@ void WM_exit(bContext *C)
 	UI_exit();
 	BKE_userdef_free();
 
-	RNA_exit(); /* should be after BPY_end_python so struct python slots are cleared */
+	RNA_exit(); /* should be after BPY_python_end so struct python slots are cleared */
 	
 	wm_ghost_exit();
 
 	CTX_free(C);
-	
+#ifdef WITH_GAMEENGINE
 	SYS_DeleteSystem(SYS_GetSystem());
+#endif
+	
+	GHOST_DisposeSystemPaths();
 
 	if(MEM_get_memory_blocks_in_use()!=0) {
 		printf("Error Totblock: %d\n", MEM_get_memory_blocks_in_use());

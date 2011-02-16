@@ -25,10 +25,13 @@
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
+
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -224,19 +227,19 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *ar, int type)
 /* ********************* space template *********************** */
 
 /* allocate and init some vars */
-static SpaceLink *xxx_new(const bContext *C)
+static SpaceLink *xxx_new(const bContext *UNUSED(C))
 {
 	return NULL;
 }
 
 /* not spacelink itself */
-static void xxx_free(SpaceLink *sl)
+static void xxx_free(SpaceLink *UNUSED(sl))
 {
 
 }
 
 /* spacetype; init callback for usage, should be redoable */
-static void xxx_init(wmWindowManager *wm, ScrArea *sa)
+static void xxx_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 	
 	/* link area to SpaceXXX struct */
@@ -246,7 +249,7 @@ static void xxx_init(wmWindowManager *wm, ScrArea *sa)
 	/* add types to regions */
 }
 
-static SpaceLink *xxx_duplicate(SpaceLink *sl)
+static SpaceLink *xxx_duplicate(SpaceLink *UNUSED(sl))
 {
 	
 	return NULL;
@@ -257,7 +260,7 @@ static void xxx_operatortypes(void)
 	/* register operator types for this space */
 }
 
-static void xxx_keymap(wmKeyConfig *keyconf)
+static void xxx_keymap(wmKeyConfig *UNUSED(keyconf))
 {
 	/* add default items to keymap */
 }

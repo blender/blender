@@ -46,6 +46,7 @@
 #include "BLI_linklist.h"
 #include "BLI_storage_types.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #ifdef WIN32
 #include "BLI_winstuff.h"
@@ -69,9 +70,10 @@
 
 #include "PIL_time.h"
 
-
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "UI_resources.h"
 
 #include "filelist.h"
 
@@ -238,8 +240,8 @@ static int compare_size(const void *a1, const void *a2)
 
 static int compare_extension(const void *a1, const void *a2) {
 	const struct direntry *entry1=a1, *entry2=a2;
-	char *sufix1, *sufix2;
-	char *nil="";
+	const char *sufix1, *sufix2;
+	const char *nil="";
 
 	if (!(sufix1= strstr (entry1->relname, ".blend.gz"))) 
 		sufix1= strrchr (entry1->relname, '.');
@@ -295,7 +297,7 @@ static int is_hidden_file(const char* filename, short hide_dot)
 	return is_hidden;
 }
 
-static int is_filtered_file(struct direntry* file, const char* dir, unsigned int filter, short hide_dot)
+static int is_filtered_file(struct direntry* file, const char* UNUSED(dir), unsigned int filter, short hide_dot)
 {
 	int is_filtered=0;
 	if (filter) {
@@ -324,7 +326,7 @@ static int is_filtered_lib(struct direntry* file, const char* dir, unsigned int 
 	return is_filtered;
 }
 
-static int is_filtered_main(struct direntry* file, const char* dir, unsigned int filter, short hide_dot)
+static int is_filtered_main(struct direntry* file, const char* UNUSED(dir), unsigned int UNUSED(filter), short hide_dot)
 {
 	return !is_hidden_file(file->relname, hide_dot);
 }
@@ -360,7 +362,7 @@ void filelist_filter(FileList* filelist)
 	}
 }
 
-void filelist_init_icons()
+void filelist_init_icons(void)
 {
 	short x, y, k;
 	ImBuf *bbuf;
@@ -371,7 +373,7 @@ void filelist_init_icons()
 			for (x=0; x<SPECIAL_IMG_COLS; x++) {
 				int tile = SPECIAL_IMG_COLS*y + x; 
 				if (tile < SPECIAL_IMG_MAX) {
-					ibuf = IMB_allocImBuf(SPECIAL_IMG_SIZE, SPECIAL_IMG_SIZE, 32, IB_rect, 0);
+					ibuf = IMB_allocImBuf(SPECIAL_IMG_SIZE, SPECIAL_IMG_SIZE, 32, IB_rect);
 					for (k=0; k<SPECIAL_IMG_SIZE; k++) {
 						memcpy(&ibuf->rect[k*SPECIAL_IMG_SIZE], &bbuf->rect[(k+y*SPECIAL_IMG_SIZE)*SPECIAL_IMG_SIZE*SPECIAL_IMG_COLS+x*SPECIAL_IMG_SIZE], SPECIAL_IMG_SIZE*sizeof(int));
 					}
@@ -383,7 +385,7 @@ void filelist_init_icons()
 	}
 }
 
-void filelist_free_icons()
+void filelist_free_icons(void)
 {
 	int i;
 	for (i=0; i < SPECIAL_IMG_MAX; ++i) {
@@ -720,6 +722,115 @@ void filelist_setfilter_types(struct FileList* filelist, const char *filter_glob
 	BLI_strncpy(filelist->filter_glob, filter_glob, sizeof(filelist->filter_glob));
 }
 
+static int file_is_blend_backup(const char *str)
+{
+	short a, b;
+	int retval= 0;
+	
+	a= strlen(str);
+	b= 7;
+	
+	if(a==0 || b>=a);
+	else {
+		char *loc;
+		
+		if(a > b+1)
+			b++;
+		
+		/* allow .blend1 .blend2 .blend32 */
+		loc= BLI_strcasestr(str+a-b, ".blend");
+		
+		if(loc)
+			retval= 1;
+	}
+	
+	return (retval);
+}
+
+
+static int file_extension_type(char *relname)
+{
+	if(BLO_has_bfile_extension(relname)) {
+		return BLENDERFILE;
+	} else if(file_is_blend_backup(relname)) {
+		return BLENDERFILE_BACKUP;
+	} else if(BLI_testextensie(relname, ".py")) {
+		return PYSCRIPTFILE;
+	} else if(BLI_testextensie(relname, ".txt")
+			  || BLI_testextensie(relname, ".glsl")
+			  || BLI_testextensie(relname, ".data")) {
+		return TEXTFILE;
+	} else if( BLI_testextensie(relname, ".ttf")
+			  || BLI_testextensie(relname, ".ttc")
+			  || BLI_testextensie(relname, ".pfb")
+			  || BLI_testextensie(relname, ".otf")
+			  || BLI_testextensie(relname, ".otc")) {
+		return FTFONTFILE;			
+	} else if(BLI_testextensie(relname, ".btx")) {
+		return BTXFILE;
+	} else if(BLI_testextensie(relname, ".dae")) {
+		return COLLADAFILE;
+	} else if(BLI_testextensie_array(relname, imb_ext_image)
+			  || (G.have_quicktime && BLI_testextensie_array(relname, imb_ext_image_qt))) {
+		return IMAGEFILE;			
+	} else if(BLI_testextensie_array(relname, imb_ext_movie)) {
+		return MOVIEFILE;			
+	} else if(BLI_testextensie_array(relname, imb_ext_audio)) {
+		return SOUNDFILE;
+	} 
+	return 0;
+}
+
+int ED_file_extension_icon(char *relname)
+{
+	int type= file_extension_type(relname);
+	
+	if (type == BLENDERFILE || type==BLENDERFILE_BACKUP)
+		return ICON_FILE_BLEND;
+	else if (type ==  IMAGEFILE)
+		return ICON_FILE_IMAGE;
+	else if (type ==  MOVIEFILE)
+		return ICON_FILE_MOVIE;
+	else if (type ==  PYSCRIPTFILE)
+		return ICON_FILE_SCRIPT;
+	else if (type ==  PYSCRIPTFILE)
+		return ICON_FILE_SCRIPT;
+	else if (type ==  SOUNDFILE) 
+		return ICON_FILE_SOUND;
+	else if (type ==  FTFONTFILE) 
+		return ICON_FILE_FONT;
+	else if (type ==  BTXFILE) 
+		return ICON_FILE_BLANK;
+	else if (type ==  COLLADAFILE) 
+		return ICON_FILE_BLANK;
+	
+	return ICON_FILE_BLANK;
+}
+
+void filelist_setfiletypes(struct FileList* filelist)
+{
+	struct direntry *file;
+	int num;
+	
+	file= filelist->filelist;
+	
+	for(num=0; num<filelist->numfiles; num++, file++) {
+		file->type= file->s.st_mode;	/* restore the mess below */ 
+		
+		/* Don't check extensions for directories */ 
+		if (file->type & S_IFDIR) {
+			continue;
+		}
+		file->flags = file_extension_type(file->relname);
+		
+		if(filelist->filter_glob
+		   && BLI_testextensie_glob(file->relname, filelist->filter_glob)) {
+			file->flags= OPERATORFILE;
+		}
+		
+	}
+}
+
 static void filelist_read_dir(struct FileList* filelist)
 {
 	char wdir[FILE_MAX];
@@ -730,11 +841,11 @@ static void filelist_read_dir(struct FileList* filelist)
 
 	BLI_getwdN(wdir);	 
 
-	BLI_cleanup_dir(G.sce, filelist->dir);
+	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist->numfiles = BLI_getdir(filelist->dir, &(filelist->filelist));
 
 	if(!chdir(wdir)) {} /* fix warning about not checking return value */
-	filelist_setfiletypes(filelist, G.have_quicktime);
+	filelist_setfiletypes(filelist);
 	filelist_filter(filelist);
 }
 
@@ -747,7 +858,7 @@ static void filelist_read_main(struct FileList* filelist)
 static void filelist_read_library(struct FileList* filelist)
 {
 	if (!filelist) return;
-	BLI_cleanup_dir(G.sce, filelist->dir);
+	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist_from_library(filelist);
 	if(!filelist->libfiledata) {
 		int num;
@@ -790,53 +901,6 @@ void filelist_parent(struct FileList* filelist)
 	filelist_readdir(filelist);
 }
 
-void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
-{
-	struct direntry *file;
-	int num;
-
-	file= filelist->filelist;
-
-	for(num=0; num<filelist->numfiles; num++, file++) {
-		file->flags= 0;
-		file->type= file->s.st_mode;	/* restore the mess below */ 
-
-			/* Don't check extensions for directories */ 
-		if (file->type & S_IFDIR) {
-			continue;
-		}
-
-		if(BLO_has_bfile_extension(file->relname)) {
-			file->flags |= BLENDERFILE;
-		} else if(BLI_testextensie(file->relname, ".py")) {
-				file->flags |= PYSCRIPTFILE;
-		} else if(BLI_testextensie(file->relname, ".txt")
-					|| BLI_testextensie(file->relname, ".glsl")
-					|| BLI_testextensie(file->relname, ".data")) {
-				file->flags |= TEXTFILE;
-		} else if( BLI_testextensie(file->relname, ".ttf")
-					|| BLI_testextensie(file->relname, ".ttc")
-					|| BLI_testextensie(file->relname, ".pfb")
-					|| BLI_testextensie(file->relname, ".otf")
-					|| BLI_testextensie(file->relname, ".otc")) {
-				file->flags |= FTFONTFILE;			
-		} else if(BLI_testextensie(file->relname, ".btx")) {
-				file->flags |= BTXFILE;
-		} else if(BLI_testextensie(file->relname, ".dae")) {
-			file->flags |= COLLADAFILE;
-		} else if(BLI_testextensie_array(file->relname, imb_ext_image)
-					|| (has_quicktime && BLI_testextensie_array(file->relname, imb_ext_image_qt))) {
-				file->flags |= IMAGEFILE;			
-		} else if(BLI_testextensie_array(file->relname, imb_ext_movie)) {
-			file->flags |= MOVIEFILE;			
-		} else if(BLI_testextensie_array(file->relname, imb_ext_audio)) {
-			file->flags |= SOUNDFILE;
-		} else if(filelist->filter_glob
-					&& BLI_testextensie_glob(file->relname, filelist->filter_glob)) {
-			file->flags |= OPERATORFILE;
-		}
-	}
-}
 
 void filelist_swapselect(struct FileList* filelist)
 {
@@ -887,7 +951,7 @@ static int groupname_to_code(char *group)
 	char buf[32];
 	char *lslash;
 	
-	BLI_strncpy(buf, group, 31);
+	BLI_strncpy(buf, group, sizeof(buf));
 	lslash= BLI_last_slash(buf);
 	if (lslash)
 		lslash[0]= '\0';
@@ -912,7 +976,7 @@ void filelist_from_library(struct FileList* filelist)
 		return;
 	}
 	
-	BLI_strncpy(filename, G.sce, sizeof(filename));	// G.sce = last file loaded, for UI
+	BLI_strncpy(filename, G.main->name, sizeof(filename));
 
 	/* there we go */
 	/* for the time being only read filedata when libfiledata==0 */
@@ -965,7 +1029,7 @@ void filelist_from_library(struct FileList* filelist)
 
 				/* first allocate imbuf for copying preview into it */
 				if (w > 0 && h > 0 && rect) {
-					ima = IMB_allocImBuf(w, h, 32, IB_rect, 0);
+					ima = IMB_allocImBuf(w, h, 32, IB_rect);
 					memcpy(ima->rect, rect, w*h*sizeof(unsigned int));
 					filelist->filelist[i + 1].image = ima;
 					filelist->filelist[i + 1].flags = IMAGEFILE;
@@ -979,7 +1043,7 @@ void filelist_from_library(struct FileList* filelist)
 
 	filelist_sort(filelist, FILE_SORT_ALPHA);
 
-	BLI_strncpy(G.sce, filename, sizeof(filename));	// prevent G.sce to change
+	BLI_strncpy(G.main->name, filename, sizeof(filename));	// prevent G.main->name to change
 
 	filelist->filter = 0;
 	filelist_filter(filelist);
@@ -1136,16 +1200,15 @@ static void thumbnail_joblist_free(ThumbnailJob *tj)
 	FileImage* limg = tj->loadimages.first;
 	
 	/* free the images not yet copied to the filelist -> these will get freed with the filelist */
-	while (limg != tj->loadimages.last) {
+	for( ; limg; limg= limg->next) {
 		if ((limg->img) && (!limg->done)) {
 			IMB_freeImBuf(limg->img);
 		}
-		limg = limg->next;
 	}
 	BLI_freelistN(&tj->loadimages);
 }
 
-static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float *progress)
+static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float *UNUSED(progress))
 {
 	ThumbnailJob *tj= tjv;
 	FileImage* limg = tj->loadimages.first;

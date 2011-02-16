@@ -29,12 +29,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 
@@ -77,6 +77,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_shade_flat);
 	WM_operatortype_append(OBJECT_OT_paths_calculate);
 	WM_operatortype_append(OBJECT_OT_paths_clear);
+	WM_operatortype_append(OBJECT_OT_forcefield_toggle);
 
 	WM_operatortype_append(OBJECT_OT_parent_set);
 	WM_operatortype_append(OBJECT_OT_parent_no_inverse_set);
@@ -134,6 +135,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_multires_subdivide);
 	WM_operatortype_append(OBJECT_OT_multires_reshape);
 	WM_operatortype_append(OBJECT_OT_multires_higher_levels_delete);
+	WM_operatortype_append(OBJECT_OT_multires_base_apply);
 	WM_operatortype_append(OBJECT_OT_multires_external_save);
 	WM_operatortype_append(OBJECT_OT_multires_external_pack);
 	WM_operatortype_append(OBJECT_OT_meshdeform_bind);
@@ -382,7 +384,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	ED_object_generic_keymap(keyconf, keymap, 2);
 }
 
-void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet)
+void ED_object_generic_keymap(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap, int do_pet)
 {
 	wmKeyMapItem *kmi;
 

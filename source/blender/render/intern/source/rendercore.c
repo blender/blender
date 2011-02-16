@@ -41,8 +41,9 @@
 #include "BLI_jitter.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
@@ -60,6 +61,8 @@
 #include "IMB_imbuf.h"
 
 /* local include */
+#include "rayintersection.h"
+#include "rayobject.h"
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "renderdatabase.h"
@@ -70,7 +73,6 @@
 #include "shading.h"
 #include "sss.h"
 #include "zbuf.h"
-#include "RE_raytrace.h"
 
 #include "PIL_time.h"
 
@@ -96,8 +98,9 @@ void calc_view_vector(float *view, float x, float y)
 	}
 	else {
 		
-		if(R.r.mode & R_PANORAMA)
+		if(R.r.mode & R_PANORAMA) {
 			x-= R.panodxp;
+		}
 		
 		/* move x and y to real viewplane coords */
 		x= (x/(float)R.winx);
@@ -2079,24 +2082,10 @@ static void bake_mask_clear( ImBuf *ibuf, char *mask, char val )
 
 static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInput *shi, int quad, int isect, int x, int y, float u, float v)
 {
-	if(isect) {
-		/* raytrace intersection with different u,v than scanconvert */
-		if(vlr->v4) {
-			if(quad)
-				shade_input_set_triangle_i(shi, obi, vlr, 2, 1, 3);
-			else
-				shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 3);
-		}
-		else
-			shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
-	}
-	else {
-		/* regular scanconvert */
-		if(quad) 
-			shade_input_set_triangle_i(shi, obi, vlr, 0, 2, 3);
-		else
-			shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
-	}
+	if(quad) 
+		shade_input_set_triangle_i(shi, obi, vlr, 0, 2, 3);
+	else
+		shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
 		
 	/* cache for shadow */
 	shi->samplenr= R.shadowsamplenr[shi->thread]++;
@@ -2285,19 +2274,19 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 	/* 'dir' is always normalized */
 	VECADDFAC(isect->start, start, dir, -R.r.bake_biasdist);					
 
-	isect->vec[0] = dir[0]*maxdist*sign;
-	isect->vec[1] = dir[1]*maxdist*sign;
-	isect->vec[2] = dir[2]*maxdist*sign;
+	isect->dir[0] = dir[0]*sign;
+	isect->dir[1] = dir[1]*sign;
+	isect->dir[2] = dir[2]*sign;
 
-	isect->labda = maxdist;
+	isect->dist = maxdist;
 
 	hit = RE_rayobject_raycast(raytree, isect);
 	if(hit) {
-		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
-		hitco[1] = isect->start[1] + isect->labda*isect->vec[1];
-		hitco[2] = isect->start[2] + isect->labda*isect->vec[2];
+		hitco[0] = isect->start[0] + isect->dist*isect->dir[0];
+		hitco[1] = isect->start[1] + isect->dist*isect->dir[1];
+		hitco[2] = isect->start[2] + isect->dist*isect->dir[2];
 
-		*dist= len_v3v3(start, hitco);
+		*dist= isect->dist;
 	}
 
 	return hit;
@@ -2421,7 +2410,8 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			isec.orig.ob   = obi;
 			isec.orig.face = vlr;
 			isec.userdata= bs->actob;
-			isec.skip = RE_SKIP_VLR_NEIGHBOUR|RE_SKIP_VLR_BAKE_CHECK;
+			isec.check = RE_CHECK_VLR_BAKE;
+			isec.skip = RE_SKIP_VLR_NEIGHBOUR;
 			
 			if(bake_intersect_tree(R.raytree, &isec, shi->co, shi->vn, sign, co, &dist)) {
 				if(!hit || len_v3v3(shi->co, co) < len_v3v3(shi->co, minco)) {
@@ -2574,7 +2564,7 @@ static void shade_tface(BakeShade *bs)
 	/* get pixel level vertex coordinates */
 	for(a=0; a<4; a++) {
 		/* Note, workaround for pixel aligned UVs which are common and can screw up our intersection tests
-		 * where a pixel gets inbetween 2 faces or the middle of a quad,
+		 * where a pixel gets in between 2 faces or the middle of a quad,
 		 * camera aligned quads also have this problem but they are less common.
 		 * Add a small offset to the UVs, fixes bug #18685 - Campbell */
 		vec[a][0]= tface->uv[a][0]*(float)bs->rectx - (0.5f + 0.001);

@@ -32,13 +32,15 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_boids.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_particle.h"
 
-#include "BLI_listbase.h"
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 #include "RNA_define.h"
@@ -76,7 +78,7 @@ static int rule_add_exec(bContext *C, wmOperator *op)
 
 	BLI_addtail(&state->rules, rule);
 
-	DAG_id_flush_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
@@ -98,7 +100,7 @@ void BOID_OT_rule_add(wmOperatorType *ot)
 	
 	ot->prop= RNA_def_enum(ot->srna, "type", boidrule_type_items, 0, "Type", "");
 }
-static int rule_del_exec(bContext *C, wmOperator *op)
+static int rule_del_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -128,7 +130,7 @@ static int rule_del_exec(bContext *C, wmOperator *op)
 		rule->flag |= BOIDRULE_CURRENT;
 
 	DAG_scene_sort(bmain, scene);
-	DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DAG_id_tag_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
@@ -149,7 +151,7 @@ void BOID_OT_rule_del(wmOperatorType *ot)
 }
 
 /************************ move up/down boid rule operators *********************/
-static int rule_move_up_exec(bContext *C, wmOperator *op)
+static int rule_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -166,7 +168,7 @@ static int rule_move_up_exec(bContext *C, wmOperator *op)
 			BLI_remlink(&state->rules, rule);
 			BLI_insertlink(&state->rules, rule->prev->prev, rule);
 
-			DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+			DAG_id_tag_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 			break;
 		}
@@ -187,7 +189,7 @@ void BOID_OT_rule_move_up(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int rule_move_down_exec(bContext *C, wmOperator *op)
+static int rule_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -204,7 +206,7 @@ static int rule_move_down_exec(bContext *C, wmOperator *op)
 			BLI_remlink(&state->rules, rule);
 			BLI_insertlink(&state->rules, rule->next, rule);
 
-			DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+			DAG_id_tag_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 			break;
 		}
@@ -227,7 +229,7 @@ void BOID_OT_rule_move_down(wmOperatorType *ot)
 
 
 /************************ add/del boid state operators *********************/
-static int state_add_exec(bContext *C, wmOperator *op)
+static int state_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -266,7 +268,7 @@ void BOID_OT_state_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-static int state_del_exec(bContext *C, wmOperator *op)
+static int state_del_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -301,7 +303,7 @@ static int state_del_exec(bContext *C, wmOperator *op)
 	state->flag |= BOIDSTATE_CURRENT;
 
 	DAG_scene_sort(bmain, scene);
-	DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DAG_id_tag_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
@@ -322,7 +324,7 @@ void BOID_OT_state_del(wmOperatorType *ot)
 }
 
 /************************ move up/down boid state operators *********************/
-static int state_move_up_exec(bContext *C, wmOperator *op)
+static int state_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -359,7 +361,7 @@ void BOID_OT_state_move_up(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int state_move_down_exec(bContext *C, wmOperator *op)
+static int state_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -375,7 +377,7 @@ static int state_move_down_exec(bContext *C, wmOperator *op)
 		if(state->flag & BOIDSTATE_CURRENT && state->next) {
 			BLI_remlink(&boids->states, state);
 			BLI_insertlink(&boids->states, state->next, state);
-			DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
+			DAG_id_tag_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			break;
 		}
 	}

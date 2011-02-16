@@ -233,18 +233,13 @@ static int dumptarga(struct ImBuf * ibuf, FILE * file)
 }
 
 
-int imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
+int imb_savetarga(struct ImBuf * ibuf, const char *name, int flags)
 {
-	char buf[20];
+	char buf[20]= {0};
 	FILE *fildes;
 	short ok = 0;
-
-	if (ibuf == 0) return (0);
-	if (ibuf->rect == 0) return (0);
-
-	memset(buf,0,sizeof(buf));
-
-	/* buf[0] = 0;  length string */
+	
+	(void)flags; /* unused */
 
 	buf[16] = (ibuf->depth + 0x7 ) & ~0x7;
 	if (ibuf->depth > 8 ){
@@ -537,8 +532,8 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags)
 	
 	if (checktarga(&tga,mem) == 0) return(0);
 
-	if (flags & IB_test) ibuf = IMB_allocImBuf(tga.xsize,tga.ysize,tga.pixsize, 0, 0);
-	else ibuf = IMB_allocImBuf(tga.xsize,tga.ysize,(tga.pixsize + 0x7) & ~0x7, IB_rect, 0);
+	if (flags & IB_test) ibuf = IMB_allocImBuf(tga.xsize,tga.ysize,tga.pixsize, 0);
+	else ibuf = IMB_allocImBuf(tga.xsize,tga.ysize,(tga.pixsize + 0x7) & ~0x7, IB_rect);
 
 	if (ibuf == 0) return(0);
 	ibuf->ftype = TGA;

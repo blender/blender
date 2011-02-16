@@ -35,6 +35,10 @@
 #include "DNA_listBase.h"
 #include "DNA_texture_types.h" /* ColorBand */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* themes; defines in BIF_resource.h */
 struct ColorBand;
 
@@ -45,7 +49,7 @@ struct ColorBand;
 
 /* default uifont_id offered by Blender */
 #define UIFONT_DEFAULT	0
-#define UIFONT_BITMAP	1
+/*#define UIFONT_BITMAP	1*/ /*UNUSED*/
 /* free slots */
 #define UIFONT_CUSTOM1	2
 #define UIFONT_CUSTOM2	3
@@ -84,6 +88,7 @@ typedef struct uiFontStyle {
 
 
 /* this is fed to the layout engine and widget code */
+
 typedef struct uiStyle {
 	struct uiStyle *next, *prev;
 	
@@ -154,13 +159,13 @@ typedef struct ThemeSpace {
 	/* main window colors */
 	char back[4];
 	char title[4];
-	char text[4];	
+	char text[4];
 	char text_hi[4];
 	
 	/* header colors */
 	char header[4];
 	char header_title[4];
-	char header_text[4];	
+	char header_text[4];
 	char header_text_hi[4];
 
 	/* button/tool regions */
@@ -172,7 +177,7 @@ typedef struct ThemeSpace {
 	/* listview regions */
 	char list[4];
 	char list_title[4];
-	char list_text[4];	
+	char list_text[4];
 	char list_text_hi[4];
 	
 	/* float panel */
@@ -195,6 +200,7 @@ typedef struct ThemeSpace {
 	char edge_seam[4], edge_sharp[4], edge_facesel[4], edge_crease[4];
 	char face[4], face_select[4];	// solid faces
 	char face_dot[4];				// selected color
+	char extra_edge_len[4], extra_face_angle[4], extra_face_area[4], pad3[4];
 	char normal[4];
 	char vertex_normal[4];
 	char bone_solid[4], bone_pose[4];
@@ -344,7 +350,7 @@ typedef struct UserDef {
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
 	short textimeout,texcollectrate;
 	short wmdrawmethod; /* removed wmpad */
-	short pad2;
+	short dragthreshold;
 	int memcachelimit;
 	int prefetchframes;
 	short frameserverport;
@@ -372,6 +378,9 @@ typedef struct UserDef {
 	
 	short autokey_mode;		/* autokeying mode */
 	short autokey_flag;		/* flags for autokeying */
+	
+	short text_render, pad9;		/*options for text rendering*/
+	float pad10;
 
 	struct ColorBand coba_weight;	/* from texture.h */
 
@@ -396,16 +405,16 @@ extern UserDef U; /* from blenkernel blender.c */
 
 /* flag */
 #define USER_AUTOSAVE			(1 << 0)
-#define USER_AUTOGRABGRID		(1 << 1)	/* deprecated */
-#define USER_AUTOROTGRID		(1 << 2)	/* deprecated */
-#define USER_AUTOSIZEGRID		(1 << 3)	/* deprecated */
+/*#define USER_AUTOGRABGRID		(1 << 1)	deprecated */
+/*#define USER_AUTOROTGRID		(1 << 2)	deprecated */
+/*#define USER_AUTOSIZEGRID		(1 << 3)	deprecated */
 #define USER_SCENEGLOBAL		(1 << 4)
 #define USER_TRACKBALL			(1 << 5)
-#define USER_DUPLILINK			(1 << 6)
-#define USER_FSCOLLUM			(1 << 7)
+/*#define USER_DUPLILINK		(1 << 6)	deprecated */
+/*#define USER_FSCOLLUM			(1 << 7)	deprecated */
 #define USER_MAT_ON_OB			(1 << 8)
 /*#define USER_NO_CAPSLOCK		(1 << 9)*/ /* not used anywhere */
-#define USER_VIEWMOVE			(1 << 10)
+/*#define USER_VIEWMOVE			(1 << 10)*/ /* not used anywhere */
 #define USER_TOOLTIPS			(1 << 11)
 #define USER_TWOBUTTONMOUSE		(1 << 12)
 #define USER_NONUMPAD			(1 << 13)
@@ -421,6 +430,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_FILENOUI			(1 << 23)
 #define USER_NONEGFRAMES		(1 << 24)
 #define USER_TXT_TABSTOSPACES_DISABLE	(1 << 25)
+#define USER_TOOLTIPS_PYTHON    (1 << 26)
 
 /* helper macro for checking frame clamping */
 #define FRAMENUMBER_MIN_CLAMP(cfra) \
@@ -442,10 +452,10 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_DRAWVIEWINFO		(1 << 4)
 #define USER_PLAINMENUS			(1 << 5)		// old EVTTOCONSOLE print ghost events, here for tuhopuu compat. --phase
 								// old flag for hide pulldown was here 
-#define USER_FLIPFULLSCREEN		(1 << 7)
+/*#define USER_FLIPFULLSCREEN		(1 << 7)*/ /* deprecated */
 #define USER_ALLWINCODECS		(1 << 8)
 #define USER_MENUOPENAUTO		(1 << 9)
-#define USER_PANELPINNED		(1 << 10)		/* deprecated */
+/*#define USER_PANELPINNED		(1 << 10)		deprecated */
 #define USER_AUTOPERSP     		(1 << 11)
 #define USER_LOCKAROUND     	(1 << 12)
 #define USER_GLOBALUNDO     	(1 << 13)
@@ -464,6 +474,8 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_ZOOM_INVERT		(1 << 25)
 #define USER_ZOOM_DOLLY_HORIZ	(1 << 26)
 #define USER_SPLASH_DISABLE		(1 << 27)
+#define USER_HIDE_RECENT		(1 << 28)
+#define USER_SHOW_THUMBNAILS	(1 << 29)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */
@@ -480,20 +492,20 @@ extern UserDef U; /* from blenkernel blender.c */
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
 #define		AUTOKEY_FLAG_XYZ2RGB		(1<<3)
-	/* U.autokey_flag (strictly autokeying only) */
+
+/* toolsettings->autokey_flag */
 #define 	AUTOKEY_FLAG_ONLYKEYINGSET	(1<<6)
-	/* toolsettings->autokey_flag */
 #define 	ANIMRECORD_FLAG_WITHNLA		(1<<10)
 
 /* transopts */
 #define	USER_TR_TOOLTIPS		(1 << 0)
 #define	USER_TR_BUTTONS			(1 << 1)
 #define USER_TR_MENUS			(1 << 2)
-#define USER_TR_FILESELECT		(1 << 3)
-#define USER_TR_TEXTEDIT		(1 << 4)
+/*#define USER_TR_FILESELECT	(1 << 3)	deprecated*/
+/*#define USER_TR_TEXTEDIT		(1 << 4)	deprecated*/
 #define USER_DOTRANSLATE		(1 << 5)
 #define USER_USETEXTUREFONT		(1 << 6)
-#define CONVERT_TO_UTF8			(1 << 7)
+/*#define CONVERT_TO_UTF8			(1 << 7)	deprecated*/
 
 /* dupflag */
 #define USER_DUP_MESH			(1 << 0)
@@ -510,7 +522,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define	USER_DUP_PSYS			(1 << 11)
 
 /* gameflags */
-#define USER_DEPRECATED_FLAG	1
+// #define USER_DEPRECATED_FLAG	1
 // #define USER_DISABLE_SOUND		2 deprecated, don't use without checking for
 // backwards compatibilty in do_versions!
 #define USER_DISABLE_MIPMAP		4
@@ -523,6 +535,9 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_DRAW_FULL			2
 #define USER_DRAW_AUTOMATIC		3
 #define USER_DRAW_OVERLAP_FLIP	4
+
+/* text draw options*/
+#define USER_TEXT_DISABLE_AA	(1 << 0)
 
 /* tw_flag (transform widget) */
 
@@ -557,5 +572,9 @@ extern UserDef U; /* from blenkernel blender.c */
 #define TH_ROUNDED  	2
 #define TH_OLDSKOOL 	3
 #define TH_SHADED   	4
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

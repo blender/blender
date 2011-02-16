@@ -51,7 +51,7 @@ typedef struct DagAdjList
 	short type;
 	int count;			// number of identical arcs
 	unsigned int lay;   // for flushing redraw/rebuild events
-	char *name;
+	const char *name;
 	struct DagAdjList *next;
 } DagAdjList;
 
@@ -64,8 +64,8 @@ typedef struct DagNode
 	void * ob;
 	void * first_ancestor;
 	int ancestor_count;
-	int lay;			// accumulated layers of its relations + itself
-	int scelay;			// layers due to being in scene
+	unsigned int lay;			// accumulated layers of its relations + itself
+	unsigned int scelay;			// layers due to being in scene
 	int lasttime;		// if lasttime != DagForest->time, this node was not evaluated yet for flushing
 	int BFS_dist;		// BFS distance
 	int DFS_dist;		// DFS distance
@@ -117,7 +117,7 @@ DagNode * dag_find_node (DagForest *forest,void * fob);
 DagNode * dag_add_node (DagForest *forest,void * fob);
 DagNode * dag_get_node (DagForest *forest,void * fob);
 DagNode * dag_get_sub_node (DagForest *forest,void * fob);
-void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, char *name);
+void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, const char *name);
 
 void graph_bfs(void);
 

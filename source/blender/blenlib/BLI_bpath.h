@@ -32,48 +32,31 @@
 #ifndef BLI_BPATH_H
 #define BLI_BPATH_H
 
-struct BPathIteratorSeqData {
-	int totseq;
-	int seq;
-	struct Sequence **seqar; /* Sequence */
-	struct Scene *scene;			/* Current scene */
-};
+struct BPathIterator;
+struct ReportList;
+struct Main;
 
-struct BPathIterator {
-	char*	path;
-	char*	lib;
-	char*	name;
-	void*	data;
-	int		len;
-	int		type;
-	
-	void (*setpath_callback)(struct BPathIterator *, char *);
-	void (*getpath_callback)(struct BPathIterator *, char *);
-	
-	char*	base_path; /* base path, the directry the blend file is in - normally G.sce */
-
-	/* only for seq data */
-	struct BPathIteratorSeqData seqdata;
-};
-
-void			BLI_bpathIterator_init				(struct BPathIterator *bpi, char *base_path);
+void			BLI_bpathIterator_init				(struct BPathIterator **bpi, struct Main *bmain, const char *basedir, const int flag);
 void			BLI_bpathIterator_free				(struct BPathIterator *bpi);
-char*			BLI_bpathIterator_getLib			(struct BPathIterator *bpi);
-char*			BLI_bpathIterator_getName			(struct BPathIterator *bpi);
+const char*		BLI_bpathIterator_getLib			(struct BPathIterator *bpi);
+const char*		BLI_bpathIterator_getName			(struct BPathIterator *bpi);
 int				BLI_bpathIterator_getType			(struct BPathIterator *bpi);
 int				BLI_bpathIterator_getPathMaxLen		(struct BPathIterator *bpi);
+const char*		BLI_bpathIterator_getBasePath		(struct BPathIterator *bpi);
 void			BLI_bpathIterator_step				(struct BPathIterator *bpi);
 int				BLI_bpathIterator_isDone			(struct BPathIterator *bpi);
 void			BLI_bpathIterator_getPath			(struct BPathIterator *bpi, char *path);
 void			BLI_bpathIterator_getPathExpanded	(struct BPathIterator *bpi, char *path_expanded);
-void			BLI_bpathIterator_setPath			(struct BPathIterator *bpi, char *path);
+void			BLI_bpathIterator_setPath			(struct BPathIterator *bpi, const char *path);
 
 /* high level funcs */
 
 /* creates a text file with missing files if there are any */
-void checkMissingFiles(char *basepath, ReportList *reports);
-void makeFilesRelative(char *basepath, ReportList *reports);
-void makeFilesAbsolute(char *basepath, ReportList *reports);
-void findMissingFiles(char *basepath, char *str);
+void checkMissingFiles(struct Main *bmain, struct ReportList *reports);
+void makeFilesRelative(struct Main *bmain, const char *basedir, struct ReportList *reports);
+void makeFilesAbsolute(struct Main *bmain, const char *basedir, struct ReportList *reports);
+void findMissingFiles(struct Main *bmain, const char *str);
+
+#define BPATH_USE_PACKED 1
 
 #endif // BLI_BPATH_H

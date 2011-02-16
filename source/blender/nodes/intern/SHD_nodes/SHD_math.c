@@ -30,7 +30,6 @@
 #include "../SHD_util.h"
 
 
-
 /* **************** SCALAR MATH ******************** */ 
 static bNodeSocketType sh_node_math_in[]= { 
 	{ SOCK_VALUE, 1, "Value", 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f}, 
@@ -43,7 +42,7 @@ static bNodeSocketType sh_node_math_out[]= {
 	{ -1, 0, "" } 
 };
 
-static void node_shader_exec_math(void *data, bNode *node, bNodeStack **in, 
+static void node_shader_exec_math(void *UNUSED(data), bNode *node, bNodeStack **in, 
 bNodeStack **out) 
 {
 	switch(node->custom1){ 
@@ -196,7 +195,7 @@ bNodeStack **out)
 
 static int gpu_shader_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
-	static char *names[] = {"math_add", "math_subtract", "math_multiply",
+	static const char *names[] = {"math_add", "math_subtract", "math_multiply",
 		"math_divide", "math_sine", "math_cosine", "math_tangent", "math_asin",
 		"math_acos", "math_atan", "math_pow", "math_log", "math_min", "math_max",
 		"math_round", "math_less_than", "math_greater_than"};
@@ -234,21 +233,19 @@ static int gpu_shader_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUN
 	return 1;
 }
 
-bNodeType sh_node_math= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_MATH, 
-	/* name        */	"Math", 
-	/* width+range */	120, 110, 160, 
-	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS, 
-	/* input sock  */	sh_node_math_in, 
-	/* output sock */	sh_node_math_out, 
-	/* storage     */	"node_math", 
-	/* execfunc    */	node_shader_exec_math,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_math
-};
+void register_node_type_sh_math(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		sh_node_math_in, sh_node_math_out);
+	node_type_size(&ntype, 120, 110, 160);
+	node_type_label(&ntype, node_math_label);
+	node_type_storage(&ntype, "node_math", NULL, NULL);
+	node_type_exec(&ntype, node_shader_exec_math);
+	node_type_gpu(&ntype, gpu_shader_math);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

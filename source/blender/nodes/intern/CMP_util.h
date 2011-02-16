@@ -46,24 +46,27 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_math.h"
+#include "BLI_blenlib.h"
+#include "BLI_rand.h"
+#include "BLI_threads.h"
+#include "BLI_utildefines.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_library.h"
 #include "BKE_object.h"
 
 #include "../CMP_node.h"
 #include "node_util.h"
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_rand.h"
-#include "BLI_threads.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -117,7 +120,6 @@ CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, in
 CompBuf *scalefast_compbuf(CompBuf *inbuf, int newx, int newy);
 CompBuf *typecheck_compbuf(CompBuf *inbuf, int type);
 void typecheck_compbuf_color(float *out, float *in, int outtype, int intype);
-float *compbuf_get_pixel(CompBuf *cbuf, float *rectf, int x, int y, int xrad, int yrad);
 
 /* **************************************************** */
 
@@ -163,7 +165,7 @@ void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2);
 extern void node_ID_title_cb(void *node_v, void *unused_v);
 
 
-/* utility functions used by glare, tonemap and lense distortion */
+/* utility functions used by glare, tonemap and lens distortion */
 /* soms macros for color handling */
 typedef float fRGB[4];
 /* clear color */

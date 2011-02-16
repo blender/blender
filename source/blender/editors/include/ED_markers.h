@@ -30,6 +30,7 @@
 
 struct wmKeyConfig;
 struct bContext;
+struct bAnimContext;
 struct TimeMarker;
 
 /* Drawing API ------------------------------ */
@@ -44,12 +45,17 @@ void draw_markers_time(const struct bContext *C, int flag);
 
 /* Backend API ----------------------------- */
 
+ListBase *ED_context_get_markers(const struct bContext *C);
+ListBase *ED_animcontext_get_markers(const struct bAnimContext *ac);
+
 struct TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, float x);
 int ED_markers_find_nearest_marker_time(ListBase *markers, float x);
 
 void ED_markers_get_minmax(ListBase *markers, short sel, float *first, float *last);
 
 void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short sel);
+
+struct TimeMarker *ED_markers_get_first_selected(ListBase *markers);
 
 /* Operators ------------------------------ */
 

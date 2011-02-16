@@ -126,6 +126,7 @@ const char *imb_ext_movie[] = {
 	".flv",
 	".divx",
 	".xvid",
+	".mxf",
 	NULL};
 
 /* sort of wrong being here... */
@@ -142,7 +143,7 @@ const char *imb_ext_audio[] = {
 	".eac3",
 	NULL};
 
-static int IMB_ispic_name(char *name)
+static int IMB_ispic_name(const char *name)
 {
 	ImFileType *type;
 	struct stat st;
@@ -176,7 +177,7 @@ static int IMB_ispic_name(char *name)
 	return FALSE;
 }
 
-int IMB_ispic(char *filename)
+int IMB_ispic(const char *filename)
 {
 	if(U.uiflag & USER_FILTERFILEEXTS) {
 		if(	(BLI_testextensie_array(filename, imb_ext_image)) ||
@@ -195,12 +196,12 @@ int IMB_ispic(char *filename)
 
 
 
-static int isavi (char *name) {
+static int isavi (const char *name) {
 	return AVI_is_avi (name);
 }
 
 #ifdef WITH_QUICKTIME
-static int isqtime (char *name) {
+static int isqtime (const char *name) {
 	return anim_is_quicktime (name);
 }
 #endif
@@ -219,8 +220,8 @@ void silence_log_ffmpeg(int quiet)
 	}
 }
 
-extern void do_init_ffmpeg();
-void do_init_ffmpeg()
+extern void do_init_ffmpeg(void);
+void do_init_ffmpeg(void)
 {
 	static int ffmpeg_init = 0;
 	if (!ffmpeg_init) {
@@ -248,7 +249,7 @@ static AVCodecContext* get_codec_from_stream(AVStream* stream)
 #endif
 
 
-static int isffmpeg (char *filename) {
+static int isffmpeg (const char *filename) {
 	AVFormatContext *pFormatCtx;
 	unsigned int i;
 	int videoStream;
@@ -319,7 +320,7 @@ static int isffmpeg (char *filename) {
 #endif
 
 #ifdef WITH_REDCODE
-static int isredcode(char * filename)
+static int isredcode(const char * filename)
 {
 	struct redcode_handle * h = redcode_open(filename);
 	if (!h) {
@@ -331,7 +332,7 @@ static int isredcode(char * filename)
 
 #endif
 
-int imb_get_anim_type(char * name) {
+int imb_get_anim_type(const char * name) {
 	int type;
 	struct stat st;
 
@@ -372,7 +373,7 @@ int imb_get_anim_type(char * name) {
 	return(0);
 }
  
-int IMB_isanim(char *filename) {
+int IMB_isanim(const char *filename) {
 	int type;
 	
 	if(U.uiflag & USER_FILTERFILEEXTS) {

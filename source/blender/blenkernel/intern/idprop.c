@@ -341,7 +341,7 @@ IDProperty *IDP_CopyString(IDProperty *prop)
 }
 
 
-void IDP_AssignString(IDProperty *prop, char *st, int maxlen)
+void IDP_AssignString(IDProperty *prop, const char *st, int maxlen)
 {
 	int stlen;
 
@@ -356,7 +356,7 @@ void IDP_AssignString(IDProperty *prop, char *st, int maxlen)
 	BLI_strncpy(prop->data.pointer, st, stlen);
 }
 
-void IDP_ConcatStringC(IDProperty *prop, char *st)
+void IDP_ConcatStringC(IDProperty *prop, const char *st)
 {
 	int newlen;
 
@@ -421,9 +421,7 @@ void IDP_SyncGroupValues(IDProperty *dest, IDProperty *src)
 	IDProperty *loop, *prop;
 	for (prop=src->data.group.first; prop; prop=prop->next) {
 		for (loop=dest->data.group.first; loop; loop=loop->next) {
-			if (BSTR_EQ(loop->name, prop->name)) {
-				int copy_done= 0;
-
+			if (strcmp(loop->name, prop->name)==0) {
 				if(prop->type==loop->type) {
 
 					switch (prop->type) {
@@ -431,11 +429,9 @@ void IDP_SyncGroupValues(IDProperty *dest, IDProperty *src)
 						case IDP_FLOAT:
 						case IDP_DOUBLE:
 							loop->data= prop->data;
-							copy_done= 1;
 							break;
 						case IDP_GROUP:
 							IDP_SyncGroupValues(loop, prop);
-							copy_done= 1;
 							break;
 						default:
 						{
@@ -444,7 +440,6 @@ void IDP_SyncGroupValues(IDProperty *dest, IDProperty *src)
 
 							BLI_insertlinkafter(&dest->data.group, loop, copy);
 							BLI_remlink(&dest->data.group, tmp);
-							loop = copy;
 
 							IDP_FreeProperty(tmp);
 							MEM_freeN(tmp);
@@ -538,6 +533,12 @@ void IDP_RemFromGroup(IDProperty *group, IDProperty *prop)
 IDProperty *IDP_GetPropertyFromGroup(IDProperty *prop, const char *name)
 {
 	return (IDProperty *)BLI_findstring(&prop->data.group, name, offsetof(IDProperty, name));
+}
+
+IDProperty *IDP_GetPropertyTypeFromGroup(IDProperty *prop, const char *name, const char type)
+{
+	IDProperty *idprop= IDP_GetPropertyFromGroup(prop, name);
+	return (idprop && idprop->type == type) ? idprop : NULL;
 }
 
 typedef struct IDPIter {
@@ -702,7 +703,6 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name)
 		case IDP_STRING:
 		{
 			char *st = val.str;
-			int stlen;
 
 			prop = MEM_callocN(sizeof(IDProperty), "IDProperty string");
 			if (st == NULL) {
@@ -710,7 +710,7 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name)
 				prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
 				prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
 			} else {
-				stlen = strlen(st) + 1;
+				int stlen = strlen(st) + 1;
 				prop->data.pointer = MEM_callocN(stlen, "id property string 2");
 				prop->len = prop->totallen = stlen;
 				strcpy(prop->data.pointer, st);

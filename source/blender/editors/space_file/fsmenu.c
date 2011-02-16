@@ -157,7 +157,7 @@ short fsmenu_can_save (struct FSMenu* fsmenu, FSMenuCategory category, int idx)
 	return fsme?fsme->save:0;
 }
 
-void fsmenu_insert_entry(struct FSMenu* fsmenu, FSMenuCategory category, char *path, int sorted, short save)
+void fsmenu_insert_entry(struct FSMenu* fsmenu, FSMenuCategory category, const char *path, int sorted, short save)
 {
 	FSMenuEntry *prev;
 	FSMenuEntry *fsme;

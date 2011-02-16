@@ -28,12 +28,12 @@
 #ifndef BKE_CONTEXT_H
 #define BKE_CONTEXT_H
 
+#include "DNA_listBase.h"
+#include "RNA_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DNA_listBase.h"
-#include "RNA_types.h"
 
 struct ARegion;
 struct bScreen;
@@ -114,7 +114,7 @@ bContext *CTX_copy(const bContext *C);
 
 /* Stored Context */
 
-bContextStore *CTX_store_add(ListBase *contexts, char *name, PointerRNA *ptr);
+bContextStore *CTX_store_add(ListBase *contexts, const char *name, PointerRNA *ptr);
 void CTX_store_set(bContext *C, bContextStore *store);
 bContextStore *CTX_store_copy(bContextStore *store);
 void CTX_store_free(bContextStore *store);
@@ -124,7 +124,7 @@ void CTX_store_free_list(ListBase *contexts);
 int CTX_py_init_get(bContext *C);
 void CTX_py_init_set(bContext *C, int value);
 
-void *CTX_py_dict_get(bContext *C);
+void *CTX_py_dict_get(const bContext *C);
 void CTX_py_dict_set(bContext *C, void *value);
 
 /* Window Manager Context */
@@ -163,6 +163,8 @@ void CTX_wm_screen_set(bContext *C, struct bScreen *screen); /* to be removed */
 void CTX_wm_area_set(bContext *C, struct ScrArea *sa);
 void CTX_wm_region_set(bContext *C, struct ARegion *region);
 void CTX_wm_menu_set(bContext *C, struct ARegion *menu);
+const char *CTX_wm_operator_poll_msg_get(struct bContext *C);
+void CTX_wm_operator_poll_msg_set(struct bContext *C, const char *msg);
 
 /* Data Context
 
@@ -204,9 +206,8 @@ void CTX_data_list_add(bContextDataResult *result, void *data);*/
 		ListBase ctx_data_list; \
 		CollectionPointerLink *ctx_link; \
 		CTX_data_##member(C, &ctx_data_list); \
-		for(ctx_link= (CollectionPointerLink*)ctx_data_list.first; ctx_link; \
-							ctx_link=(CollectionPointerLink*)ctx_link->next) { \
-			Type instance= (Type) ctx_link->ptr.data;
+		for(ctx_link=ctx_data_list.first; ctx_link; ctx_link=ctx_link->next) { \
+			Type instance= ctx_link->ptr.data;
 
 #define CTX_DATA_END \
 		} \
@@ -224,7 +225,7 @@ struct Main *CTX_data_main(const bContext *C);
 struct Scene *CTX_data_scene(const bContext *C);
 struct ToolSettings *CTX_data_tool_settings(const bContext *C);
 
-char *CTX_data_mode_string(const bContext *C);
+const char *CTX_data_mode_string(const bContext *C);
 int CTX_data_mode_enum(const bContext *C);
 
 void CTX_data_main_set(bContext *C, struct Main *bmain);

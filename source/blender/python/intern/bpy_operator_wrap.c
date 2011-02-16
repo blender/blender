@@ -27,6 +27,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 
 #include "bpy_rna.h"
@@ -84,7 +86,7 @@ void macro_wrapper(wmOperatorType *ot, void *userdata)
 	operator_properties_init(ot);
 }
 
-PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args)
+PyObject *PYOP_wrap_macro_define(PyObject *UNUSED(self), PyObject *args)
 {
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;

@@ -34,11 +34,13 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"
-#include "BKE_utildefines.h"
+
 
 #include "depsgraph_private.h"
 
@@ -73,7 +75,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strncpy(tcmd->defgrp_name, cmd->defgrp_name, 32);
 }
 
-static int isDisabled(ModifierData *md, int useRenderParams)
+static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	CastModifierData *cmd = (CastModifierData*) md;
 	short flag;
@@ -85,13 +87,13 @@ static int isDisabled(ModifierData *md, int useRenderParams)
 	return 0;
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	CastModifierData *cmd = (CastModifierData *)md;
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(cmd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+	if(cmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
@@ -106,9 +108,10 @@ static void foreachObjectLink(
 	walk (userData, ob, &cmd->object);
 }
 
-static void updateDepgraph(
-					ModifierData *md, DagForest *forest, struct Scene *scene, Object *ob,
-	 DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	CastModifierData *cmd = (CastModifierData*) md;
 
@@ -566,14 +569,17 @@ static void cuboid_do(
 	}
 }
 
-static void deformVerts(
-					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int numVerts,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm = NULL;
 	CastModifierData *cmd = (CastModifierData *)md;
 
-	dm = get_dm(md->scene, ob, NULL, derivedData, NULL, 0);
+	dm = get_dm(ob, NULL, derivedData, NULL, 0);
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
 		cuboid_do(cmd, ob, dm, vertexCos, numVerts);
@@ -589,7 +595,7 @@ static void deformVertsEM(
 					   ModifierData *md, Object *ob, struct EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_dm(md->scene, ob, editData, derivedData, NULL, 0);
+	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, 0);
 	CastModifierData *cmd = (CastModifierData *)md;
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
@@ -613,6 +619,7 @@ ModifierTypeInfo modifierType_Cast = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     0,
@@ -623,6 +630,7 @@ ModifierTypeInfo modifierType_Cast = {
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     0,
 };

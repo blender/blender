@@ -29,12 +29,12 @@
 #include <string.h>
 #include <stdio.h>
 
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -49,7 +49,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -61,7 +61,7 @@
 
 /* ******************** default callbacks for script space ***************** */
 
-static SpaceLink *script_new(const bContext *C)
+static SpaceLink *script_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceScript *sscript;
@@ -94,7 +94,7 @@ static void script_free(SpaceLink *sl)
 {	
 	SpaceScript *sscript= (SpaceScript*) sl;
 
-#ifndef DISABLE_PYTHON	
+#ifdef WITH_PYTHON
 	/*free buttons references*/
 	if (sscript->but_refs) {
 // XXX		BPy_Set_DrawButtonsList(sscript->but_refs);
@@ -107,7 +107,7 @@ static void script_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void script_init(struct wmWindowManager *wm, ScrArea *sa)
+static void script_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -145,16 +145,17 @@ static void script_main_area_draw(const bContext *C, ARegion *ar)
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 		
 	/* data... */
-	// BPY_run_python_script(C, "/root/blender-svn/blender25/test.py", NULL);
+	// BPY_script_exec(C, "/root/blender-svn/blender25/test.py", NULL);
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if (sscript->script) {
-		//BPY_run_python_script_space(scpt->script.filename, NULL);
-		BPY_run_script_space_draw(C, sscript);
+		// BPY_run_script_space_draw(C, sscript);
 	}
+#else
+	(void)sscript;
 #endif
 	
 	/* reset view matrix */
@@ -164,7 +165,7 @@ static void script_main_area_draw(const bContext *C, ARegion *ar)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void script_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void script_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
@@ -174,7 +175,7 @@ static void script_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void script_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void script_main_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 	/* context changes */
 	// XXX - Todo, need the ScriptSpace accessible to get the python script to run.

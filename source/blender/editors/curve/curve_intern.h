@@ -33,7 +33,7 @@
 struct wmOperatorType;
 
 /* lorem.c */
-extern char *ED_lorem;
+extern const char ED_lorem[];
 
 /* editfont.c */
 enum { DEL_ALL, DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };
@@ -106,6 +106,7 @@ void CURVE_OT_de_select_last(struct wmOperatorType *ot);
 void CURVE_OT_select_all(struct wmOperatorType *ot);
 void CURVE_OT_select_inverse(struct wmOperatorType *ot);
 void CURVE_OT_select_linked(struct wmOperatorType *ot);
+void CURVE_OT_select_linked_pick(struct wmOperatorType *ot);
 void CURVE_OT_select_row(struct wmOperatorType *ot);
 void CURVE_OT_select_next(struct wmOperatorType *ot);
 void CURVE_OT_select_previous(struct wmOperatorType *ot);

@@ -29,7 +29,6 @@
 
 #include "../SHD_util.h"
 
-
 /* **************** MIX RGB ******************** */
 static bNodeSocketType sh_node_mix_rgb_in[]= {
 	{	SOCK_VALUE, 1, "Fac",			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -42,7 +41,7 @@ static bNodeSocketType sh_node_mix_rgb_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_mix_rgb(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: fac, col1, col2 */
 	/* stack order out: col */
@@ -62,7 +61,7 @@ static void node_shader_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, b
 
 static int gpu_shader_mix_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
-	static char *names[] = {"mix_blend", "mix_add", "mix_mult", "mix_sub",
+	static const char *names[] = {"mix_blend", "mix_add", "mix_mult", "mix_sub",
 		"mix_screen", "mix_div", "mix_diff", "mix_dark", "mix_light",
 		"mix_overlay", "mix_dodge", "mix_burn", "mix_hue", "mix_sat",
 		"mix_val", "mix_color", "mix_soft", "mix_linear"};
@@ -71,21 +70,17 @@ static int gpu_shader_mix_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, G
 }
 
 
-bNodeType sh_node_mix_rgb= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	SH_NODE_MIX_RGB,
-	/* name        */	"Mix",
-	/* width+range */	100, 60, 150,
-	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */	sh_node_mix_rgb_in,
-	/* output sock */	sh_node_mix_rgb_out,
-	/* storage     */	"", 
-	/* execfunc    */	node_shader_exec_mix_rgb,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_mix_rgb
-	
-};
+void register_node_type_sh_mix_rgb(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, SH_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+		sh_node_mix_rgb_in, sh_node_mix_rgb_out);
+	node_type_size(&ntype, 100, 60, 150);
+	node_type_label(&ntype, node_blend_label);
+	node_type_exec(&ntype, node_shader_exec_mix_rgb);
+	node_type_gpu(&ntype, gpu_shader_mix_rgb);
+
+	nodeRegisterType(lb, &ntype);
+}
+

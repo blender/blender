@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "BLI_utildefines.h"
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
@@ -149,7 +151,7 @@ void imagewindow_toggle_render(bContext *C)
 }
 
 /* NOTE: called while render, so no malloc allowed! */
-static void imagewindow_renderinfo_cb(void *handle, RenderStats *rs)
+static void imagewindow_renderinfo_cb(void *UNUSED(handle), RenderStats *UNUSED(rs))
 {
 	if(image_area) {
 		// XXX BIF_make_render_text(rs);

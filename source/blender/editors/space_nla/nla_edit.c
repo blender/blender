@@ -38,6 +38,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
@@ -457,7 +458,7 @@ void NLA_OT_transition_add (wmOperatorType *ot)
 /* Add new meta-strips incorporating the selected strips */
 
 /* add the specified action as new strip */
-static int nlaedit_add_meta_exec (bContext *C, wmOperator *op)
+static int nlaedit_add_meta_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -518,7 +519,7 @@ void NLA_OT_meta_add (wmOperatorType *ot)
 /* ******************** Remove Meta-Strip Operator ***************************** */
 /* Separate out the strips held by the selected meta-strips */
 
-static int nlaedit_remove_meta_exec (bContext *C, wmOperator *op)
+static int nlaedit_remove_meta_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -572,7 +573,7 @@ void NLA_OT_meta_remove (wmOperatorType *ot)
  * the originals were housed in.
  */
  
-static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
+static int nlaedit_duplicate_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -620,8 +621,8 @@ static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
 				/* deselect the original and the active flag */
 				strip->flag &= ~(NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_ACTIVE);
 				
-				/* auto-name it */
-				BKE_nlastrip_validate_name(adt, strip);
+				/* auto-name newly created strip */
+				BKE_nlastrip_validate_name(adt, nstrip);
 				
 				done++;
 			}
@@ -645,11 +646,11 @@ static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 }
 
-static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	nlaedit_duplicate_exec(C, op);
 	
-	RNA_int_set(op->ptr, "mode", TFM_TIME_TRANSLATE); // XXX
+	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
 	WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
@@ -677,7 +678,7 @@ void NLA_OT_duplicate (wmOperatorType *ot)
 /* ******************** Delete Strips Operator ***************************** */
 /* Deletes the selected NLA-Strips */
 
-static int nlaedit_delete_exec (bContext *C, wmOperator *op)
+static int nlaedit_delete_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -810,7 +811,7 @@ static void nlaedit_split_strip_actclip (AnimData *adt, NlaTrack *nlt, NlaStrip 
 }
 
 /* split a given Meta strip */
-static void nlaedit_split_strip_meta (AnimData *adt, NlaTrack *nlt, NlaStrip *strip)
+static void nlaedit_split_strip_meta (NlaTrack *nlt, NlaStrip *strip)
 {
 	/* simply ungroup it for now...  */
 	BKE_nlastrips_clear_metastrip(&nlt->strips, strip);
@@ -818,7 +819,7 @@ static void nlaedit_split_strip_meta (AnimData *adt, NlaTrack *nlt, NlaStrip *st
 
 /* ----- */
 
-static int nlaedit_split_exec (bContext *C, wmOperator *op)
+static int nlaedit_split_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -852,7 +853,7 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 						break;
 						
 					case NLASTRIP_TYPE_META: /* meta-strips need special handling */
-						nlaedit_split_strip_meta(adt, nlt, strip);
+						nlaedit_split_strip_meta(nlt, strip);
 						break;
 					
 					default: /* for things like Transitions, do not split! */
@@ -893,7 +894,7 @@ void NLA_OT_split (wmOperatorType *ot)
 /* ******************** Bake Strips Operator ***************************** */
 /* Bakes the NLA Strips for the active AnimData blocks */
 
-static int nlaedit_bake_exec (bContext *C, wmOperator *op)
+static int nlaedit_bake_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -949,7 +950,7 @@ void NLA_OT_bake (wmOperatorType *ot)
 /* ******************** Toggle Muting Operator ************************** */
 /* Toggles whether strips are muted or not */
 
-static int nlaedit_toggle_mute_exec (bContext *C, wmOperator *op)
+static int nlaedit_toggle_mute_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1005,10 +1006,168 @@ void NLA_OT_mute_toggle (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ******************** Swap Strips Operator ************************** */
+/* Tries to exchange strips within their owner tracks */
+
+static int nlaedit_swap_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* consider each track in turn */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		
+		NlaStrip *strip, *stripN=NULL;
+		NlaStrip *sa=NULL, *sb=NULL;
+		
+		/* make temporary metastrips so that entire islands of selections can be moved around */
+		BKE_nlastrips_make_metas(&nlt->strips, 1);
+		
+		/* special case: if there is only 1 island (i.e. temp meta BUT NOT unselected/normal/normal-meta strips) left after this, 
+		 * and this island has two strips inside it, then we should be able to just swap these still...
+		 */
+		if ((nlt->strips.first == nlt->strips.last) && (nlt->strips.first != NULL)) {
+			NlaStrip *mstrip = (NlaStrip *)nlt->strips.first;
+			
+			if ((mstrip->flag & NLASTRIP_FLAG_TEMP_META) && (BLI_countlist(&mstrip->strips) == 2)) 
+			{
+				/* remove this temp meta, so that we can see the strips inside */
+				BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+			}
+		}
+		
+		/* get two selected strips only (these will be metas due to prev step) to operate on
+		 * 	- only allow swapping 2, as with more the context becomes unclear
+		 */
+		for (strip = nlt->strips.first; strip; strip = stripN) {
+			stripN = strip->next;
+			
+			if (strip->flag & NLASTRIP_FLAG_SELECT) {
+				/* first or second strip? */
+				if (sa == NULL) {
+					/* store as first */
+					sa = strip;
+				}
+				else if (sb == NULL) {
+					/* store as second */
+					sb = strip;
+				}
+				else {
+					/* too many selected */
+					break;
+				}
+			}
+		}
+		
+		if (strip) {
+			/* too many selected warning */
+			BKE_reportf(op->reports, RPT_WARNING, 
+				"Too many clusters of strips selected in NLA Track (%s). Needs exactly 2 to be selected.",
+				nlt->name);
+		}
+		else if (sa == NULL) {
+			/* no warning as this is just a common case, and it may get annoying when doing multiple tracks */
+		}
+		else if (sb == NULL) {
+			/* too few selected warning */
+			BKE_reportf(op->reports, RPT_WARNING,
+				"Too few clusters of strips selected in NLA Track (%s). Needs exactly 2 to be selected.",
+				nlt->name);
+		}
+		else {
+			float nsa[2], nsb[2];
+			
+			/* remove these strips from the track, so that we can test if they can fit in the proposed places */
+			BLI_remlink(&nlt->strips, sa);
+			BLI_remlink(&nlt->strips, sb);
+			
+			/* calculate new extents for strips */
+				/* a --> b */
+			nsa[0] = sb->start;
+			nsa[1] = sb->start + (sa->end - sa->start);
+				/* b --> a */
+			nsb[0] = sa->start;
+			nsb[1] = sa->start + (sb->end - sb->start);
+			
+			/* check if the track has room for the strips to be swapped */
+			if (BKE_nlastrips_has_space(&nlt->strips, nsa[0], nsa[1]) && 
+				BKE_nlastrips_has_space(&nlt->strips, nsb[0], nsb[1]))
+			{
+				/* set new extents for strips then */
+				sa->start = nsa[0];
+				sa->end   = nsa[1];
+				BKE_nlameta_flush_transforms(sa);
+				
+				sb->start = nsb[0];
+				sb->end   = nsb[1];
+				BKE_nlameta_flush_transforms(sb);
+			}
+			else {
+				/* not enough room to swap, so show message */
+				if ((sa->flag & NLASTRIP_FLAG_TEMP_META) || (sb->flag & NLASTRIP_FLAG_TEMP_META)) {
+					BKE_report(op->reports, RPT_WARNING,
+						"Cannot swap selected strips as they will not be able to fit in their new places");
+				}
+				else {
+					BKE_reportf(op->reports, RPT_WARNING, 	
+						"Cannot swap '%s' and '%s' as one or both will not be able to fit in their new places",
+						sa->name, sb->name);
+				}
+			}
+			
+			/* add strips back to track now */
+			BKE_nlatrack_add_strip(nlt, sa);
+			BKE_nlatrack_add_strip(nlt, sb);
+		}
+		
+		/* clear (temp) metastrips */
+		BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* refresh auto strip properties */
+	ED_nla_postop_refresh(&ac);
+	
+	/* set notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_swap (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Swap Strips";
+	ot->idname= "NLA_OT_swap";
+	ot->description= "Swap order of selected strips within tracks";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_swap_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* ******************** Move Strips Up Operator ************************** */
 /* Tries to move the selected strips into the track above if possible. */
 
-static int nlaedit_move_up_exec (bContext *C, wmOperator *op)
+static int nlaedit_move_up_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1082,7 +1241,7 @@ void NLA_OT_move_up (wmOperatorType *ot)
 /* ******************** Move Strips Down Operator ************************** */
 /* Tries to move the selected strips into the track above if possible. */
 
-static int nlaedit_move_down_exec (bContext *C, wmOperator *op)
+static int nlaedit_move_down_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1250,7 +1409,7 @@ static short bezt_apply_nlamapping (KeyframeEditData *ked, BezTriple *bezt)
 	return 0;
 }
 
-static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
+static int nlaedit_apply_scale_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1258,7 +1417,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1269,7 +1428,6 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* init the editing data */
-	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* for each NLA-Track, apply scale of all selected strips */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1333,7 +1491,7 @@ void NLA_OT_apply_scale (wmOperatorType *ot)
 /* ******************** Clear Scale Operator ***************************** */
 /* Reset the scaling of the selected strips to 1.0f */
 
-static int nlaedit_clear_scale_exec (bContext *C, wmOperator *op)
+static int nlaedit_clear_scale_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1544,13 +1702,13 @@ void NLA_OT_snap (wmOperatorType *ot)
 /* ******************** Add F-Modifier Operator *********************** */
 
 /* present a special customised popup menu for this, with some filtering */
-static int nla_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *event)
+static int nla_fmodifier_add_invoke (bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	int i;
 	
-	pup= uiPupMenuBegin(C, "Add F-Modifier", 0);
+	pup= uiPupMenuBegin(C, "Add F-Modifier", ICON_NULL);
 	layout= uiPupMenuLayout(pup);
 	
 	/* start from 1 to skip the 'Invalid' modifier type */
@@ -1639,6 +1797,7 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add F-Modifier";
 	ot->idname= "NLA_OT_fmodifier_add";
+	ot->description= "Add F-Modifier of the secified type to the selected NLA-Strips";
 	
 	/* api callbacks */
 	ot->invoke= nla_fmodifier_add_invoke;
@@ -1702,7 +1861,7 @@ void NLA_OT_fmodifier_copy (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy F-Modifiers";
 	ot->idname= "NLA_OT_fmodifier_copy";
-	ot->description= "Copy the F-Modifier(s) of the active NLA-Strip.";
+	ot->description= "Copy the F-Modifier(s) of the active NLA-Strip";
 	
 	/* api callbacks */
 	ot->exec= nla_fmodifier_copy_exec;

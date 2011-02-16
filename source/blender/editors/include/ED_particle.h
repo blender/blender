@@ -59,14 +59,16 @@ void PE_update_object(struct Scene *scene, struct Object *ob, int useflag);
 int PE_mouse_particles(struct bContext *C, short *mval, int extend);
 int PE_border_select(struct bContext *C, struct rcti *rect, int select, int extend);
 int PE_circle_select(struct bContext *C, int selecting, short *mval, float rad);
-int PE_lasso_select(struct bContext *C, short mcords[][2], short moves, short select);
+int PE_lasso_select(struct bContext *C, short mcords[][2], short moves, short extend, short select);
+void PE_deselect_all_visible(struct PTCacheEdit *edit);
 
 /* undo */
-void PE_undo_push(struct Scene *scene, char *str);
+void PE_undo_push(struct Scene *scene, const char *str);
 void PE_undo_step(struct Scene *scene, int step);
 void PE_undo(struct Scene *scene);
 void PE_redo(struct Scene *scene);
 void PE_undo_menu(struct Scene *scene, struct Object *ob);
+int PE_undo_valid(struct Scene *scene);
 
 #endif /* ED_PARTICLE_H */
 

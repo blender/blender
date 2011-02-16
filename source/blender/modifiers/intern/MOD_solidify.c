@@ -34,12 +34,13 @@
 
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
 #include "BKE_deform.h"
-#include "BKE_utildefines.h"
+
 
 #include "MOD_modifiertypes.h"
 
@@ -126,7 +127,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 		}
 
 		for(edge_iter = BLI_edgehashIterator_new(edge_hash); !BLI_edgehashIterator_isDone(edge_iter); BLI_edgehashIterator_step(edge_iter)) {
-			/* Get the edge vert indicies, and edge value (the face indicies that use it)*/
+			/* Get the edge vert indices, and edge value (the face indices that use it)*/
 			BLI_edgehashIterator_getKey(edge_iter, (int*)&ed_v1, (int*)&ed_v2);
 			edge_ref = BLI_edgehashIterator_getValue(edge_iter);
 
@@ -179,35 +180,34 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strcpy(tsmd->defgrp_name, smd->defgrp_name);
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData*) md;
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(smd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+	if(smd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
 
 
-static DerivedMesh *applyModifier(ModifierData *md,
-						   Object *ob, 
-						   DerivedMesh *dm,
-						   int useRenderParams,
-						   int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
+						DerivedMesh *dm,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	int i;
 	DerivedMesh *result;
-	SolidifyModifierData *smd = (SolidifyModifierData*) md;
+	const SolidifyModifierData *smd = (SolidifyModifierData*) md;
 
 	MFace *mf, *mface, *orig_mface;
 	MEdge *ed, *medge, *orig_medge;
 	MVert *mv, *mvert, *orig_mvert;
 
-	int numVerts = dm->getNumVerts(dm);
-	int numEdges = dm->getNumEdges(dm);
-	int numFaces = dm->getNumFaces(dm);
+	const int numVerts = dm->getNumVerts(dm);
+	const int numEdges = dm->getNumEdges(dm);
+	const int numFaces = dm->getNumFaces(dm);
 
 	/* use for edges */
 	int *new_vert_arr= NULL;
@@ -221,13 +221,13 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 	float (*vert_nors)[3]= NULL;
 
-	float ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
-	float ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	float const ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	float const ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
 
 	/* weights */
 	MDeformVert *dvert= NULL, *dv= NULL;
-	int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
-	int defgrp_index= defgroup_name_index(ob, smd->defgrp_name);
+	const int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
+	const int defgrp_index= defgroup_name_index(ob, smd->defgrp_name);
 
 	if (defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -322,7 +322,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 		dm_calc_normal(dm, vert_nors);
 	}
 
-	result = CDDM_from_template(dm, numVerts * 2, (numEdges * 2) + newEdges, (numFaces * 2) + newFaces);
+	result = CDDM_from_template(dm, numVerts * 2, (numEdges * 2) + newEdges, (numFaces * 2) + newFaces);	
 
 	mface = result->getFaceArray(result);
 	medge = result->getEdgeArray(result);
@@ -630,7 +630,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 static DerivedMesh *applyModifierEM(ModifierData *md,
 							 Object *ob,
-							 struct EditMesh *editData,
+							 struct EditMesh *UNUSED(editData),
 							 DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
@@ -651,6 +651,7 @@ ModifierTypeInfo modifierType_Solidify = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
@@ -661,6 +662,7 @@ ModifierTypeInfo modifierType_Solidify = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    0,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

@@ -99,11 +99,12 @@ void RNA_def_camera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lens", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lens");
 	RNA_def_property_range(prop, 1.0f, 5000.0f);
-	RNA_def_property_ui_text(prop, "Lens", "Perspective Camera lens value in millimeters");
+	RNA_def_property_ui_text(prop, "Focal Length", "Perspective Camera lens value in millimeters");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_range(prop, M_PI * (0.367/180.0), M_PI * (172.847/180.0));
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Angle", "Perspective Camera lens field of view in degrees");
 	RNA_def_property_float_funcs(prop, "rna_Camera_angle_get", "rna_Camera_angle_set", NULL); /* only for deg/rad conversion */
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
@@ -116,8 +117,8 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "draw_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "drawsize");
-	RNA_def_property_range(prop, 0.1f, 1000.0f);
-	RNA_def_property_ui_range(prop, 0.01, 100, 1, 1);
+	RNA_def_property_range(prop, 0.01f, 1000.0f);
+	RNA_def_property_ui_range(prop, 0.01, 100, 1, 2);
 	RNA_def_property_ui_text(prop, "Draw Size", "Apparent size of the Camera object in the 3D View");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 

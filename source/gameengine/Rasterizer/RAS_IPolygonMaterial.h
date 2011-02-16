@@ -45,6 +45,7 @@
 class RAS_IRasterizer;
 struct MTFace;
 struct Material;
+struct Image;
 struct Scene;
 class SCA_IScene;
 
@@ -160,6 +161,7 @@ public:
 	int					GetMaterialIndex() const;
 
 	virtual Material*   GetBlenderMaterial() const;
+	virtual Image*      GetBlenderImage() const;
 	virtual Scene*		GetBlenderScene() const;
 	virtual void		ReleaseMaterial();
 	virtual void		GetMaterialRGBAColor(unsigned char *rgba) const;

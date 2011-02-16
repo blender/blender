@@ -44,6 +44,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#if 0
 static void cineon_conversion_parameters(LogImageByteConversionParameters *params)
 {
 //	params->blackPoint = scene?scene->r.cineonblack:95;
@@ -55,8 +56,8 @@ static void cineon_conversion_parameters(LogImageByteConversionParameters *param
 	params->whitePoint = 685;
 	params->gamma = 1.0f;
 	params->doLogarithm = 0;
-	
 }
+#endif
 
 static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, int flags)
 {
@@ -88,7 +89,7 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 		return NULL;
 	}
 	
-	ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat | flags, 0);
+	ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat | flags);
 
 	row = MEM_mallocN(sizeof(unsigned short)*width*depth, "row in cineon_dpx.c");
 	frow = ibuf->rect_float+width*height*4;
@@ -116,32 +117,32 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 	return ibuf;
 }
 
-static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int flags)
+static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon, int flags)
 {
 	LogImageByteConversionParameters conversion;
-	int width, height, depth;
+	const int width= ibuf->x;
+	const int height= ibuf->y;
+	const int depth= 3;
 	LogImageFile* logImage;
 	unsigned short* line, *pixel;
 	int i, j;
-	int index;
 	float *fline;
+	float *fbuf;
+	int is_alloc= 0;
+	
+	(void)flags; /* unused */
 
-	cineon_conversion_parameters(&conversion);
+	// cineon_conversion_parameters(&conversion);
+	logImageGetByteConversionDefaults(&conversion);
 
 	/*
 	 * Get the drawable for the current image...
 	 */
 
-	width = buf->x;
-	height = buf->y;
-	depth = 3;
-	
-	
-	if (!buf->rect_float) {
-		IMB_float_from_rect(buf);
-		if (!buf->rect_float) { /* in the unlikely event that converting to a float buffer fails */
-			return 0;
-		}
+	fbuf= IMB_float_profile_ensure(ibuf, conversion.doLogarithm ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_NONE, &is_alloc);
+
+	if (fbuf == NULL) { /* in the unlikely event that converting to a float buffer fails */
+		return 0;
 	}
 	
 	logImageSetVerbose((G.f & G_DEBUG) ? 1:0);
@@ -149,14 +150,15 @@ static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int f
 
 	if (!logImage) return 0;
 	
-	logImageSetByteConversion(logImage, &conversion);
+	if(logImageSetByteConversion(logImage, &conversion)==0) {
+		printf("error setting args\n");
+	}
 
-	index = 0;
 	line = MEM_mallocN(sizeof(unsigned short)*depth*width, "line");
 	
 	/*note that image is flipped when sent to logImageSetRowBytes (see last passed parameter).*/
 	for (j = 0; j < height; ++j) {
-		fline = &buf->rect_float[width*j*4];
+		fline = &fbuf[width*j*4];
 		for (i=0; i<width; i++) {
 			float *fpix, fpix2[3];
 			/*we have to convert to cinepaint's 16-bit-per-channel here*/
@@ -177,10 +179,15 @@ static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int f
 	logImageClose(logImage);
 
 	MEM_freeN(line);
+	
+	if(is_alloc) {
+		MEM_freeN(fbuf);
+	}
+	
 	return 1;
 }
 
-short imb_savecineon(struct ImBuf *buf, char *myfile, int flags)
+short imb_savecineon(struct ImBuf *buf, const char *myfile, int flags)
 {
 	return imb_save_dpx_cineon(buf, myfile, 1, flags);
 }
@@ -198,7 +205,7 @@ ImBuf *imb_loadcineon(unsigned char *mem, int size, int flags)
 	return NULL;
 }
 
-short imb_save_dpx(struct ImBuf *buf, char *myfile, int flags)
+short imb_save_dpx(struct ImBuf *buf, const char *myfile, int flags)
 {
 	return imb_save_dpx_cineon(buf, myfile, 0, flags);
 }

@@ -26,6 +26,8 @@
 
 #include "zlib.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 
@@ -102,7 +104,7 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 			return NULL;
 	
 		/* finally malloc and read the data */
-		img= IMB_allocImBuf(size[0], size[1], 32, IB_rect | IB_metadata, 0);
+		img= IMB_allocImBuf(size[0], size[1], 32, IB_rect | IB_metadata);
 	
 		if(gzread(gzfile, img->rect, bhead[1]) != bhead[1]) {
 			IMB_freeImBuf(img);
@@ -161,11 +163,11 @@ void IMB_overlayblend_thumb(unsigned int *thumb, int width, int height, float as
 
 	{	
 		int x, y;
-		int hline, vline;
 		int stride_x= (margin_r - margin_l) - 2;
 		
 		for(y=0; y < height; y++) {
 			for(x=0; x < width; x++, px+=4) {
+				int hline= 0, vline= 0;
 				if((x > margin_l && x < margin_r) && (y > margin_b && y < margin_t)) {
 					/* interior. skip */
 					x  += stride_x;

@@ -17,10 +17,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- *
- * 
  * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -36,16 +32,19 @@ struct ReportList;
 struct bContext;
 
 /* console_draw.c */
-void console_text_main(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports);
-int console_text_height(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports); /* needed to calculate the scrollbar */
-void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports, int mouse_y); /* needed for selection */
-int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int mval[2]);
+void console_textview_main(struct SpaceConsole *sc, struct ARegion *ar);
+int console_textview_height(struct SpaceConsole *sc, struct ARegion *ar); /* needed to calculate the scrollbar */
+void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, int mouse_y); /* needed for selection */
+int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, int mval[2]);
+
+void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_dummy);
+void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dummy);
 
 /* console_ops.c */
 void console_history_free(SpaceConsole *sc, ConsoleLine *cl);
 void console_scrollback_free(SpaceConsole *sc, ConsoleLine *cl);
-ConsoleLine *console_history_add_str(const struct bContext *C, char *str, int own);
-ConsoleLine *console_scrollback_add_str(const struct bContext *C, char *str, int own);
+ConsoleLine *console_history_add_str(struct SpaceConsole *sc, char *str, int own);
+ConsoleLine *console_scrollback_add_str(struct SpaceConsole *sc, char *str, int own);
 
 ConsoleLine *console_history_verify(const struct bContext *C);
 
@@ -64,19 +63,6 @@ void CONSOLE_OT_history_cycle(struct wmOperatorType *ot);
 void CONSOLE_OT_copy(struct wmOperatorType *ot);
 void CONSOLE_OT_paste(struct wmOperatorType *ot);
 void CONSOLE_OT_select_set(struct wmOperatorType *ot);
-
-
-
-/* console_report.c */
-void CONSOLE_OT_select_pick(struct wmOperatorType *ot); /* report selection */
-void CONSOLE_OT_select_all_toggle(struct wmOperatorType *ot);
-void CONSOLE_OT_select_border(struct wmOperatorType *ot);
-
-void CONSOLE_OT_report_replay(struct wmOperatorType *ot);
-void CONSOLE_OT_report_delete(struct wmOperatorType *ot);
-void CONSOLE_OT_report_copy(struct wmOperatorType *ot);
-
-
 
 enum { LINE_BEGIN, LINE_END, PREV_CHAR, NEXT_CHAR, PREV_WORD, NEXT_WORD };
 enum { DEL_ALL, DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };

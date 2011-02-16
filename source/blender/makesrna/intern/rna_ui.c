@@ -101,7 +101,7 @@ static int panel_poll(const bContext *C, PanelType *pt)
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	pt->ext.call(&ptr, func, &list);
+	pt->ext.call((bContext *)C, &ptr, func, &list);
 
 	RNA_parameter_get_lookup(&list, "visible", &ret);
 	visible= *(int*)ret;
@@ -122,7 +122,7 @@ static void panel_draw(const bContext *C, Panel *pnl)
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	pnl->type->ext.call(&ptr, func, &list);
+	pnl->type->ext.call((bContext *)C, &ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
@@ -138,7 +138,7 @@ static void panel_draw_header(const bContext *C, Panel *pnl)
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	pnl->type->ext.call(&ptr, func, &list);
+	pnl->type->ext.call((bContext *)C, &ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
@@ -163,7 +163,7 @@ static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Panel_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	PanelType *pt, dummypt = {0};
@@ -180,7 +180,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 		return NULL;
 		
 	if(strlen(identifier) >= sizeof(dummypt.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering panel class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummypt.idname));
+		BKE_reportf(reports, RPT_ERROR, "registering panel class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummypt.idname));
 		return NULL;
 	}
 	
@@ -213,7 +213,19 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 	pt->draw= (have_function[1])? panel_draw: NULL;
 	pt->draw_header= (have_function[2])? panel_draw_header: NULL;
 
-	BLI_addtail(&art->paneltypes, pt);
+	/* XXX use "no header" flag for some ordering of panels until we have real panel ordering */
+	if(pt->flag & PNL_NO_HEADER) {
+		PanelType *pth = art->paneltypes.first;
+		while(pth && pth->flag & PNL_NO_HEADER)
+			pth=pth->next;
+
+		if(pth)
+			BLI_insertlinkbefore(&art->paneltypes, pth, pt);
+		else
+			BLI_addtail(&art->paneltypes, pt);
+	}
+	else
+		BLI_addtail(&art->paneltypes, pt);
 
 	/* update while blender is running */
 	if(C)
@@ -241,7 +253,7 @@ static void header_draw(const bContext *C, Header *hdr)
 
 	RNA_parameter_list_create(&list, &htr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	hdr->type->ext.call(&htr, func, &list);
+	hdr->type->ext.call((bContext *)C, &htr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
@@ -266,7 +278,7 @@ static void rna_Header_unregister(const bContext *C, StructRNA *type)
 		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Header_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	HeaderType *ht, dummyht = {0};
@@ -283,7 +295,7 @@ static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, vo
 		return NULL;
 
 	if(strlen(identifier) >= sizeof(dummyht.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering header class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummyht.idname));
+		BKE_reportf(reports, RPT_ERROR, "registering header class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummyht.idname));
 		return NULL;
 	}
 
@@ -341,7 +353,7 @@ static int menu_poll(const bContext *C, MenuType *pt)
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	pt->ext.call(&ptr, func, &list);
+	pt->ext.call((bContext *)C, &ptr, func, &list);
 
 	RNA_parameter_get_lookup(&list, "visible", &ret);
 	visible= *(int*)ret;
@@ -362,7 +374,7 @@ static void menu_draw(const bContext *C, Menu *hdr)
 
 	RNA_parameter_list_create(&list, &mtr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	hdr->type->ext.call(&mtr, func, &list);
+	hdr->type->ext.call((bContext *)C, &mtr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
@@ -385,7 +397,7 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Menu_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	MenuType *mt, dummymt = {0};
 	Menu dummymenu= {0};
@@ -401,7 +413,7 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 		return NULL;
 	
 	if(strlen(identifier) >= sizeof(dummymt.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering menu class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummymt.idname));
+		BKE_reportf(reports, RPT_ERROR, "registering menu class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummymt.idname));
 		return NULL;
 	}
 
@@ -447,6 +459,16 @@ static int rna_UILayout_active_get(PointerRNA *ptr)
 static void rna_UILayout_active_set(PointerRNA *ptr, int value)
 {
 	uiLayoutSetActive(ptr->data, value);
+}
+
+static int rna_UILayout_alert_get(PointerRNA *ptr)
+{
+	return uiLayoutGetRedAlert(ptr->data);
+}
+
+static void rna_UILayout_alert_set(PointerRNA *ptr, int value)
+{
+	uiLayoutSetRedAlert(ptr->data, value);
 }
 
 static void rna_UILayout_op_context_set(PointerRNA *ptr, int value)
@@ -552,10 +574,8 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");
 	RNA_def_property_ui_text(prop, "Enabled", "When false, this (sub)layout is greyed out.");
 	
-#if 0
-	prop= RNA_def_property(srna, "red_alert", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_UILayout_red_alert_get", "rna_UILayout_red_alert_set");
-#endif
+	prop= RNA_def_property(srna, "alert", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_UILayout_alert_get", "rna_UILayout_alert_set");
 
 	prop= RNA_def_property(srna, "alignment", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, alignment_items);
@@ -626,7 +646,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	/* registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name", "If this is set, the panel gets a custom ID, otherwise it takes the name of the class used to define the panel. For example, if the class name is \"OBJECT_PT_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_PT_hello\"");
 	
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
@@ -688,7 +708,7 @@ static void rna_def_header(BlenderRNA *brna)
 	/* registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name", "If this is set, the header gets a custom ID, otherwise it takes the name of the class used to define the panel. For example, if the class name is \"OBJECT_HT_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_HT_hello\"");
 
 	prop= RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
@@ -738,7 +758,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	/* registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name", "If this is set, the menu gets a custom ID, otherwise it takes the name of the class used to define the panel. For example, if the class name is \"OBJECT_MT_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_MT_hello\"");
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);

@@ -29,12 +29,12 @@
 #include <string.h>
 #include <stdio.h>
 
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -60,7 +60,8 @@ static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	/* own keymap */
 	keymap= WM_keymap_find(wm->defaultconf, "Outliner", SPACE_OUTLINER, 0);
-	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	/* don't pass on view2d mask, it's always set with scrollbar space, hide fails */
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, NULL, &ar->winrct);
 }
 
 static void outliner_main_area_draw(const bContext *C, ARegion *ar)
@@ -84,10 +85,10 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 }
 
 
-static void outliner_main_area_free(ARegion *ar)
+static void outliner_main_area_free(ARegion *UNUSED(ar))
 {
+	
 }
-
 
 static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
@@ -97,11 +98,14 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
+				case ND_OB_VISIBLE:
+				case ND_OB_RENDER:
 				case ND_MODE:
 				case ND_KEYINGSET:
 				case ND_FRAME:
 				case ND_RENDER_OPTIONS:
 				case ND_LAYER:
+				case ND_WORLD:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -113,7 +117,9 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
+				case ND_DRAW:
 				case ND_PARENT:
+				case ND_OB_SHADING:
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_CONSTRAINT:
@@ -148,6 +154,25 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_MATERIAL:
+			switch(wmn->data) {
+				case ND_SHADING:
+				case ND_SHADING_DRAW:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_TEXTURE:
+			ED_region_tag_redraw(ar);
+			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_DATA:
+					/* needed for vertex groups only, no special notifier atm so use NC_GEOM|ND_DATA */
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 	}
 	
 }
@@ -156,7 +181,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 /* ************************ header outliner area region *********************** */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void outliner_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void outliner_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
@@ -166,7 +191,7 @@ static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void outliner_header_area_free(ARegion *ar)
+static void outliner_header_area_free(ARegion *UNUSED(ar))
 {
 }
 
@@ -187,7 +212,7 @@ static void outliner_header_area_listener(ARegion *ar, wmNotifier *wmn)
 
 /* ******************** default callbacks for outliner space ***************** */
 
-static SpaceLink *outliner_new(const bContext *C)
+static SpaceLink *outliner_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceOops *soutliner;
@@ -231,7 +256,7 @@ static void outliner_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void outliner_init(wmWindowManager *wm, ScrArea *sa)
+static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 	
 }

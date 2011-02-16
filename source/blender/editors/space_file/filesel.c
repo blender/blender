@@ -59,11 +59,14 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
+#include "BLI_path_util.h"
 #include "BLI_storage_types.h"
 #include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "BLF_api.h"
 
@@ -77,6 +80,7 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 
 #include "file_intern.h"
 #include "filelist.h"
@@ -104,7 +108,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	if (!sfile->params) {
 		sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
 		/* set path to most recently opened .blend */
-		BLI_split_dirfile(G.sce, sfile->params->dir, sfile->params->file);
+		BLI_split_dirfile(G.main->name, sfile->params->dir, sfile->params->file);
 		sfile->params->filter_glob[0] = '\0';
 	}
 
@@ -142,8 +146,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		}
 
 		if(params->dir[0]) {
-			BLI_cleanup_dir(G.sce, params->dir);
-			BLI_path_abs(params->dir, G.sce);
+			BLI_cleanup_dir(G.main->name, params->dir);
+			BLI_path_abs(params->dir, G.main->name);
 		}
 
 		params->filter = 0;
@@ -197,12 +201,16 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->flag |= RNA_boolean_get(op->ptr, "autoselect") ? FILE_AUTOSELECT : 0;
 			params->flag |= RNA_boolean_get(op->ptr, "active_layer") ? FILE_ACTIVELAY : 0;
 		}
-
-		if(params->filter & (IMAGEFILE|MOVIEFILE))
-			params->display= FILE_IMGDISPLAY;
-		else
-			params->display= FILE_SHORTDISPLAY;
 		
+		if (U.uiflag & USER_SHOW_THUMBNAILS) {
+			if(params->filter & (IMAGEFILE|MOVIEFILE))
+				params->display= FILE_IMGDISPLAY;
+			else
+				params->display= FILE_SHORTDISPLAY;
+		} else {
+			params->display= FILE_SHORTDISPLAY;
+		}
+
 	} else {
 		/* default values, if no operator */
 		params->type = FILE_UNIX;
@@ -281,21 +289,78 @@ void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, int *x, int *y)
 	}
 }
 
+/* Shorten a string to a given width w. 
+   If front is set, shorten from the front,
+   otherwise shorten from the end. */
+float file_shorten_string(char* string, float w, int front)
+{	
+	char temp[FILE_MAX];
+	short shortened = 0;
+	float sw = 0;
+	float pad = 0;
+
+	if (w <= 0) {
+		*string = '\0';
+		return 0.0;
+	}
+
+	sw = file_string_width(string);
+	if (front == 1) {
+		char *s = string;
+		BLI_strncpy(temp, "...", 4);
+		pad = file_string_width(temp);
+		while ((*s) && (sw+pad>w)) {
+			s++;
+			sw = file_string_width(s);
+			shortened = 1;
+		}
+		if (shortened) {
+			int slen = strlen(s);			
+			BLI_strncpy(temp+3, s, slen+1);
+			temp[slen+4] = '\0';
+			BLI_strncpy(string, temp, slen+4);
+		}
+	} else {
+		char *s = string;
+		while (sw>w) {
+			int slen = strlen(string);
+			string[slen-1] = '\0';
+			sw = file_string_width(s);
+			shortened = 1;
+		}
+
+		if (shortened) {
+			int slen = strlen(string);
+			if (slen > 3) {
+				BLI_strncpy(string+slen-3, "...", 4);				
+			}
+		}
+	}
+	
+	return sw;
+}
+
 float file_string_width(const char* str)
 {
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	return BLF_width(style->widget.uifont_id, (char *)str);
+	return BLF_width(style->widget.uifont_id, str);
 }
 
 float file_font_pointsize()
 {
+#if 0
 	float s;
 	char tmp[2] = "X";
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
 	s = BLF_height(style->widget.uifont_id, tmp);
 	return style->widget.points;
+#else
+	uiStyle *style= U.uistyles.first;
+	uiStyleFontSet(&style->widget);
+	return style->widget.points;
+#endif
 }
 
 static void column_widths(struct FileList* files, struct FileLayout* layout)
@@ -313,7 +378,7 @@ static void column_widths(struct FileList* files, struct FileLayout* layout)
 		if (file) {
 			int len;
 			len = file_string_width(file->relname);
-			if (len > layout->column_widths[COLUMN_NAME]) layout->column_widths[COLUMN_NAME] = len + 20;
+			if (len > layout->column_widths[COLUMN_NAME]) layout->column_widths[COLUMN_NAME] = len;
 			len = file_string_width(file->date);
 			if (len > layout->column_widths[COLUMN_DATE]) layout->column_widths[COLUMN_DATE] = len;
 			len = file_string_width(file->time);
@@ -385,11 +450,12 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		column_widths(sfile->files, layout);
 
 		if (params->display == FILE_SHORTDISPLAY) {
-			maxlen = layout->column_widths[COLUMN_NAME] + 12 +
-					 layout->column_widths[COLUMN_SIZE];
-			maxlen += 20; // for icon
+			maxlen = ICON_DEFAULT_WIDTH + 4 +
+					 layout->column_widths[COLUMN_NAME] + 12 +
+					 layout->column_widths[COLUMN_SIZE] + 12;
 		} else {
-			maxlen = layout->column_widths[COLUMN_NAME] + 12 +
+			maxlen = ICON_DEFAULT_WIDTH + 4 +
+					 layout->column_widths[COLUMN_NAME] + 12 +
 #ifndef WIN32
 					 layout->column_widths[COLUMN_MODE1] + 12 +
 					 layout->column_widths[COLUMN_MODE2] + 12 +
@@ -398,8 +464,8 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 #endif
 					 layout->column_widths[COLUMN_DATE] + 12 +
 					 layout->column_widths[COLUMN_TIME] + 12 +
-					 layout->column_widths[COLUMN_SIZE];
-			maxlen += 20; // for icon
+					 layout->column_widths[COLUMN_SIZE] + 12;
+
 		}
 		layout->tile_w = maxlen;
 		if(layout->rows > 0)
@@ -463,7 +529,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 	return match;
 }
 
-void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
+void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
@@ -510,7 +576,7 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 	}
 }
 
-void autocomplete_file(struct bContext *C, char *str, void *arg_v)
+void autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 

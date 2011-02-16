@@ -36,6 +36,7 @@
 #pragma warning (disable : 4355) 
 #endif 
 
+#include <stddef.h>
 
 #include "ListValue.h"
 #include "SCA_IObject.h"
@@ -61,7 +62,7 @@ class PHY_IPhysicsEnvironment;
 struct Object;
 class KX_ObstacleSimulation;
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 /* utility conversion function */
 bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok, const char *error_prefix);
 #endif
@@ -110,7 +111,7 @@ protected:
 	MT_CmMatrix4x4						m_OpenGL_4x4Matrix;
 
 	KX_ObstacleSimulation*				m_pObstacleSimulation;
-	
+
 public:
 	bool								m_isDeformable;
 
@@ -119,7 +120,7 @@ public:
 	 */
 	static KX_GameObject* GetClientObject(KX_ClientObjectInfo* info);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	// Python attributes that wont convert into CValue
 	// 
 	// there are 2 places attributes can be stored, in the CValue,
@@ -798,20 +799,18 @@ public:
 	{
 		m_pObstacleSimulation = obstacleSimulation;
 	}
-	
+
 	void UnregisterObstacle()
 	{
 		m_pObstacleSimulation = NULL;
 	}
-		
-
+	
 	KX_ClientObjectInfo* getClientInfo() { return m_pClient_info; }
 	
 	CListValue* GetChildren();
 	CListValue* GetChildrenRecursive();
 
-	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/**
 	 * @section Python interface functions.
 	 */
@@ -871,6 +870,7 @@ public:
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
+	static PyObject*	pyattr_get_life(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

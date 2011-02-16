@@ -42,7 +42,7 @@ static bNodeSocketType cmp_node_channel_matte_out[]={
 	{-1,0,""}
 };
 
-static void do_normalized_rgba_to_ycca2(bNode *node, float *out, float *in)
+static void do_normalized_rgba_to_ycca2(bNode *UNUSED(node), float *out, float *in)
 {
 	/*normalize to the range 0.0 to 1.0) */
 	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
@@ -52,7 +52,7 @@ static void do_normalized_rgba_to_ycca2(bNode *node, float *out, float *in)
 	out[3]=in[3];
 }
 
-static void do_normalized_ycca_to_rgba2(bNode *node, float *out, float *in)
+static void do_normalized_ycca_to_rgba2(bNode *UNUSED(node), float *out, float *in)
 {
 	/*un-normalize the normalize from above */
 	in[0]=in[0]*255.0;
@@ -197,19 +197,17 @@ static void node_composit_init_channel_matte(bNode *node)
    node->custom2= 2; /* Green Channel */
 }
 
-bNodeType cmp_node_channel_matte={
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_CHANNEL_MATTE,
-	/* name        */	"Channel Key",
-	/* width+range */	200, 80, 250,
-	/* class+opts  */	NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	cmp_node_channel_matte_in,
-	/* output sock */	cmp_node_channel_matte_out,
-	/* storage     */	"NodeChroma",
-	/* execfunc    */	node_composit_exec_channel_matte,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_channel_matte,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_channel_matte(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_CHANNEL_MATTE, "Channel Key", NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+		cmp_node_channel_matte_in, cmp_node_channel_matte_out);
+	node_type_size(&ntype, 200, 80, 250);
+	node_type_init(&ntype, node_composit_init_channel_matte);
+	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_channel_matte);
+
+	nodeRegisterType(lb, &ntype);
+}
+

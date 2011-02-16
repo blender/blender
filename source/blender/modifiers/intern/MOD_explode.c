@@ -37,6 +37,7 @@
 #include "BLI_rand.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
@@ -46,7 +47,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
+
 
 #include "MEM_guardedalloc.h"
 
@@ -74,24 +75,24 @@ static void copyData(ModifierData *md, ModifierData *target)
 	temd->protect = emd->protect;
 	temd->vgroup = emd->vgroup;
 }
-static int dependsOnTime(ModifierData *md) 
+static int dependsOnTime(ModifierData *UNUSED(md)) 
 {
 	return 1;
 }
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	ExplodeModifierData *emd= (ExplodeModifierData*) md;
 	CustomDataMask dataMask = 0;
 
 	if(emd->vgroup)
-		dataMask |= (1 << CD_MDEFORMVERT);
+		dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
 
 static void createFacepa(ExplodeModifierData *emd,
-					 ParticleSystemModifierData *psmd,
-	  Object *ob, DerivedMesh *dm)
+						ParticleSystemModifierData *psmd,
+						DerivedMesh *dm)
 {
 	ParticleSystem *psys=psmd->psys;
 	MFace *fa=0, *mface=0;
@@ -197,7 +198,7 @@ static DerivedMesh * splitEdges(ExplodeModifierData *emd, DerivedMesh *dm){
 	int *facesplit = MEM_callocN(sizeof(int)*totface,"explode_facesplit");
 	int *vertpa = MEM_callocN(sizeof(int)*totvert,"explode_vertpa2");
 	int *facepa = emd->facepa;
-	int *fs, totesplit=0,totfsplit=0,totin=0,curdupvert=0,curdupface=0,curdupin=0;
+	int *fs, totesplit=0,totfsplit=0,totin=0,curdupface=0,curdupin=0;
 	int i,j,v1,v2,v3,v4,esplit;
 
 	edgehash= BLI_edgehash_new();
@@ -313,7 +314,6 @@ static DerivedMesh * splitEdges(ExplodeModifierData *emd, DerivedMesh *dm){
 	emd->facepa=facepa;
 
 	/* create new verts */
-	curdupvert=totvert;
 	ehi= BLI_edgehashIterator_new(edgehash);
 	for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
 		BLI_edgehashIterator_getKey(ehi, &i, &j);
@@ -663,14 +663,15 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 	DerivedMesh *explode, *dm=to_explode;
 	MFace *mf=0, *mface;
 	ParticleSettings *part=psmd->psys->part;
-	ParticleSimulationData sim = {scene, ob, psmd->psys, psmd};
+	ParticleSimulationData sim= {0};
 	ParticleData *pa=NULL, *pars=psmd->psys->particles;
 	ParticleKey state;
 	EdgeHash *vertpahash;
 	EdgeHashIterator *ehi;
 	float *vertco=0, imat[4][4];
 	float loc0[3], nor[3];
-	float timestep, cfra;
+	float cfra;
+	/* float timestep; */
 	int *facepa=emd->facepa;
 	int totdup=0,totvert=0,totface=0,totpart=0;
 	int i, j, v, mindex=0;
@@ -680,7 +681,12 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 	mface= dm->getFaceArray(dm);
 	totpart= psmd->psys->totpart;
 
-	timestep= psys_get_timestep(&sim);
+	sim.scene= scene;
+	sim.ob= ob;
+	sim.psys= psmd->psys;
+	sim.psmd= psmd;
+
+	/* timestep= psys_get_timestep(&sim); */
 
 	//if(part->flag & PART_GLOB_TIME)
 		cfra= BKE_curframe(scene);
@@ -833,9 +839,10 @@ static ParticleSystemModifierData * findPrecedingParticlesystem(Object *ob, Modi
 	}
 	return psmd;
 }
-static DerivedMesh * applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm = derivedData;
 	ExplodeModifierData *emd= (ExplodeModifierData*) md;
@@ -852,16 +859,16 @@ static DerivedMesh * applyModifier(
 		if(emd->facepa==0
 				 || psmd->flag&eParticleSystemFlag_Pars
 				 || emd->flag&eExplodeFlag_CalcFaces
-				 || MEM_allocN_len(emd->facepa)/sizeof(int) != dm->getNumFaces(dm)){
+				 || MEM_allocN_len(emd->facepa)/sizeof(int) != dm->getNumFaces(dm))
+		{
 			if(psmd->flag & eParticleSystemFlag_Pars)
 				psmd->flag &= ~eParticleSystemFlag_Pars;
 			
 			if(emd->flag & eExplodeFlag_CalcFaces)
 				emd->flag &= ~eExplodeFlag_CalcFaces;
 
-			createFacepa(emd,psmd,ob,derivedData);
-				 }
-
+			createFacepa(emd,psmd,derivedData);
+		}
 				 /* 2. create new mesh */
 				 if(emd->flag & eExplodeFlag_EdgeSplit){
 					 int *facepa = emd->facepa;
@@ -888,6 +895,7 @@ ModifierTypeInfo modifierType_Explode = {
 	/* flags */             eModifierTypeFlag_AcceptsMesh,
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
@@ -898,6 +906,7 @@ ModifierTypeInfo modifierType_Explode = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    0,
 	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

@@ -32,6 +32,9 @@
 
 #include "DNA_object_types.h"
 
+#include "BLI_utildefines.h"
+
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 
@@ -49,7 +52,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tbmd->operation = bmd->operation;
 }
 
-static int isDisabled(ModifierData *md, int useRenderParams)
+static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 
@@ -66,9 +69,10 @@ static void foreachObjectLink(
 	walk(userData, ob, &bmd->object);
 }
 
-static void updateDepgraph(
-					   ModifierData *md, DagForest *forest, struct Scene *scene, Object *ob,
-	DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 
@@ -80,10 +84,11 @@ static void updateDepgraph(
 	}
 }
 
-
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+#ifdef WITH_MOD_BOOLEAN
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 	DerivedMesh *dm = bmd->object->derivedFinal;
@@ -104,12 +109,21 @@ static DerivedMesh *applyModifier(
 	
 	return derivedData;
 }
-
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+#else // WITH_MOD_BOOLEAN
+static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
-	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
+	return derivedData;
+}
+#endif // WITH_MOD_BOOLEAN
 
-	dataMask |= (1 << CD_MDEFORMVERT);
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
+{
+	CustomDataMask dataMask = CD_MASK_MTFACE | CD_MASK_MEDGE;
+
+	dataMask |= CD_MASK_MDEFORMVERT;
 	
 	return dataMask;
 }
@@ -125,6 +139,7 @@ ModifierTypeInfo modifierType_Boolean = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
@@ -135,6 +150,7 @@ ModifierTypeInfo modifierType_Boolean = {
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     0,
 };

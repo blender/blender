@@ -39,16 +39,17 @@
 #include "BL_SkinDeformer.h"
 #include "KX_GameObject.h"
 #include "STR_HashedString.h"
+#include "MEM_guardedalloc.h"
 #include "DNA_nla_types.h"
-#include "BKE_action.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_scene_types.h"
-#include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 #include "MT_Matrix4x4.h"
-#include "BKE_utildefines.h"
+
+#include "BKE_action.h"
 #include "FloatValue.h"
 #include "PyObjectPlus.h"
 #include "KX_PyMath.h"
@@ -428,7 +429,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	return keepgoing;
 };
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -674,4 +675,4 @@ PyObject* BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYA
 	return ret;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

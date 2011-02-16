@@ -41,6 +41,14 @@
 #endif
 #endif
 
+#ifndef va_copy
+# ifdef __va_copy
+#  define va_copy(a,b) __va_copy(a,b)
+# else /* !__va_copy */
+#  define va_copy(a,b) ((a)=(b))
+# endif /* __va_copy */
+#endif /* va_copy */
+
 /***/
 
 typedef struct DynStrElem DynStrElem;
@@ -101,15 +109,21 @@ void BLI_dynstr_nappend(DynStr *ds, const char *cstr, int len) {
 void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
 {
 	char *message, fixedmessage[256];
-	int len= 256, maxlen= 65536, retval;
+	int len= sizeof(fixedmessage);
+	const int maxlen= 65536;
+	int retval;
 
 	while(1) {
+		va_list args_cpy;
 		if(len == sizeof(fixedmessage))
 			message= fixedmessage;
 		else
-			message= MEM_callocN(sizeof(char)*(len+1), "BLI_dynstr_appendf");
+			message= MEM_callocN(sizeof(char) * len, "BLI_dynstr_appendf");
 
-		retval= vsnprintf(message, len, format, args);
+		/* cant reuse the same args, so work on a copy */
+		va_copy(args_cpy, args);
+		retval= vsnprintf(message, len, format, args_cpy);
+		va_end(args_cpy);
 
 		if(retval == -1) {
 			/* -1 means not enough space, but on windows it may also mean
@@ -124,13 +138,14 @@ void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
 				break;
 			}
 		}
-		else if(retval > len) {
+		else if(retval >= len) {
 			/* in C99 the actual length required is returned */
 			if(message != fixedmessage)
 				MEM_freeN(message);
 			message= NULL;
 
-			len= retval;
+			/* retval doesnt include \0 terminator */
+			len= retval + 1;
 		}
 		else
 			break;
@@ -148,7 +163,9 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 {
 	va_list args;
 	char *message, fixedmessage[256];
-	int len= 256, maxlen= 65536, retval;
+	int len= sizeof(fixedmessage);
+	const int maxlen= 65536;
+	int retval;
 
 	/* note that it's tempting to just call BLI_dynstr_vappendf here
 	 * and avoid code duplication, that crashes on some system because
@@ -158,7 +175,7 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 		if(len == sizeof(fixedmessage))
 			message= fixedmessage;
 		else
-			message= MEM_callocN(sizeof(char)*(len+1), "BLI_dynstr_appendf");
+			message= MEM_callocN(sizeof(char)*(len), "BLI_dynstr_appendf");
 
 		va_start(args, format);
 		retval= vsnprintf(message, len, format, args);
@@ -177,13 +194,14 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 				break;
 			}
 		}
-		else if(retval > len) {
+		else if(retval >= len) {
 			/* in C99 the actual length required is returned */
 			if(message != fixedmessage)
 				MEM_freeN(message);
 			message= NULL;
 
-			len= retval;
+			/* retval doesnt include \0 terminator */
+			len= retval + 1;
 		}
 		else
 			break;

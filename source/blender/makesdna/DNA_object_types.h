@@ -200,7 +200,7 @@ typedef struct Object {
 	float bbsize[3];
 	short index;			/* custom index, for renderpasses */
 	unsigned short actdef;	/* current deformation group, note: index starts at 1 */
-	float col[4];			/* object color, adjusted via IPO's only */
+	float col[4];			/* object color */
 	/**
 	 * Settings for game objects
 	 * bit 0: Object has dynamic behaviour
@@ -322,16 +322,15 @@ extern Object workob;
 #define PARSLOW			16
 
 /* (short) transflag */
-#define OB_OFFS_LOCAL		1
-	// XXX OB_QUAT was never used, but is now depreceated in favour of standard rotation handling...
-#define OB_QUAT				2
+/*#define OB_OFFS_LOCAL		1*/ /*UNUSED*/
+/* #define OB_QUAT				2 */ /* never used, free flag */
 #define OB_NEG_SCALE		4
 #define OB_DUPLI			(8+16+256+512+2048)
 #define OB_DUPLIFRAMES		8
 #define OB_DUPLIVERTS		16
 #define OB_DUPLIROT			32
 #define OB_DUPLINOSPEED		64
-#define OB_POWERTRACK		128
+/*#define OB_POWERTRACK		128*/ /*UNUSED*/
 #define OB_DUPLIGROUP		256
 #define OB_DUPLIFACES		512
 #define OB_DUPLIFACES_SCALE	1024
@@ -344,9 +343,9 @@ extern Object workob;
 #define OB_DRAWKEY			1
 #define OB_DRAWKEYSEL		2
 #define OB_OFFS_OB			4
-#define OB_OFFS_MAT			8
-#define OB_OFFS_VKEY		16
-#define OB_OFFS_PATH		32
+/* #define OB_OFFS_MAT		8 */ /*UNUSED*/
+/* #define OB_OFFS_VKEY		16 */ /*UNUSED*/
+/* #define OB_OFFS_PATH		32 */ /*UNUSED*/
 #define OB_OFFS_PARENT		64
 #define OB_OFFS_PARTICLE	128
 	/* get ipo from from action or not? */
@@ -403,7 +402,7 @@ extern Object workob;
 #define OB_BOUND_CONE		3
 #define OB_BOUND_POLYH		4
 #define OB_BOUND_POLYT		5
-#define OB_BOUND_DYN_MESH   6
+/* #define OB_BOUND_DYN_MESH   6 */ /*UNUSED*/
 #define OB_BOUND_CAPSULE	7
 
 
@@ -418,7 +417,7 @@ extern Object workob;
 	/* NOTE: this was used as a proper setting in past, so nullify before using */
 #define BA_TEMP_TAG			32
 
-#define BA_FROMSET			128
+/* #define BA_FROMSET			128 */ /*UNUSED*/
 
 #define BA_TRANSFORM_CHILD	256 /* child of a transformed object */
 #define BA_TRANSFORM_PARENT	8192 /* parent of a transformed object */
@@ -439,7 +438,8 @@ extern Object workob;
 #define OB_RECALC_DATA		2
 		/* time flag is set when time changes need recalc, so baked systems can ignore it */
 #define OB_RECALC_TIME		4
-#define OB_RECALC_ALL		7
+		/* only use for matching any flag, NOT as an argument since more flags may be added. */
+#define OB_RECALC_ALL		(OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME)
 
 /* controller state */
 #define OB_MAX_STATES		30
@@ -479,7 +479,7 @@ extern Object workob;
 #define OB_LOCK_RIGID_BODY_Y_ROT_AXIS	64
 #define OB_LOCK_RIGID_BODY_Z_ROT_AXIS	128
 
-#define OB_LIFE			(OB_PROP|OB_DYNAMIC|OB_ACTOR|OB_MAINACTOR|OB_CHILD)
+/* #define OB_LIFE			(OB_PROP|OB_DYNAMIC|OB_ACTOR|OB_MAINACTOR|OB_CHILD) */
 
 /* ob->body_type */
 #define OB_BODY_TYPE_NO_COLLISION	0
@@ -561,6 +561,9 @@ typedef enum ObjectMode {
 	OB_MODE_PARTICLE_EDIT = 32,
 	OB_MODE_POSE = 64
 } ObjectMode;
+
+/* any mode where the brush system is used */
+#define OB_MODE_ALL_PAINT (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)
 
 #define MAX_DUPLI_RECUR 8
 

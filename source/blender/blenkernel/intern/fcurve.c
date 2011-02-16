@@ -41,6 +41,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
@@ -53,7 +54,7 @@
 
 #include "RNA_access.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h" 
 #endif
 
@@ -163,10 +164,10 @@ void copy_fcurves (ListBase *dst, ListBase *src)
 	}
 }
 
-/* --------------------- Finding -------------------------- */
+/* ----------------- Finding F-Curves -------------------------- */
 
 /* high level function to get an fcurve from C without having the rna */
-FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, char *prop_name, int index)
+FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *prop_name, int index)
 {
 	/* anim vars */
 	AnimData *adt= BKE_animdata_from_id(id);
@@ -220,7 +221,7 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	for (fcu= list->first; fcu; fcu= fcu->next) {
 		/* simple string-compare (this assumes that they have the same root...) */
 		if (fcu->rna_path && !strcmp(fcu->rna_path, rna_path)) {
-			/* now check indicies */
+			/* now check indices */
 			if (fcu->array_index == array_index)
 				return fcu;
 		}
@@ -298,36 +299,36 @@ int list_find_data_fcurves (ListBase *dst, ListBase *src, const char *dataPrefix
 	return matches;
 }
 
-FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction **action, int *driven)
+FCurve *rna_get_fcurve (PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction **action, int *driven)
 {
 	FCurve *fcu= NULL;
 	
 	*driven= 0;
 	
 	/* there must be some RNA-pointer + property combon */
-	if(prop && ptr->id.data && RNA_property_animateable(ptr, prop)) {
+	if (prop && ptr->id.data && RNA_property_animateable(ptr, prop)) {
 		AnimData *adt= BKE_animdata_from_id(ptr->id.data);
 		char *path;
 		
-		if(adt) {
-			if((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
+		if (adt) {
+			if ((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
 				/* XXX this function call can become a performance bottleneck */
 				path= RNA_path_from_ID_to_property(ptr, prop);
 				
-				if(path) {
+				if (path) {
 					/* animation takes priority over drivers */
-					if(adt->action && adt->action->curves.first)
+					if (adt->action && adt->action->curves.first)
 						fcu= list_find_fcurve(&adt->action->curves, path, rnaindex);
 					
 					/* if not animated, check if driven */
-					if(!fcu && (adt->drivers.first)) {
+					if (!fcu && (adt->drivers.first)) {
 						fcu= list_find_fcurve(&adt->drivers, path, rnaindex);
 						
-						if(fcu)
+						if (fcu)
 							*driven= 1;
 					}
 					
-					if(fcu && action)
+					if (fcu && action)
 						*action= adt->action;
 					
 					MEM_freeN(path);
@@ -338,6 +339,8 @@ FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction
 	
 	return fcu;
 }
+
+/* ----------------- Finding Keyframes/Extents -------------------------- */
 
 /* threshold for binary-searching keyframes - threshold here should be good enough for now, but should become userpref */
 #define BEZT_BINARYSEARCH_THRESH 	0.01f /* was 0.00001, but giving errors */
@@ -469,11 +472,7 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 		foundvert=1;
 	}
 	
-	/* minimum sizes are 1.0f */
 	if (foundvert) {
-		if (xminv == xmaxv) xmaxv += 1.0f;
-		if (yminv == ymaxv) ymaxv += 1.0f;
-		
 		if (xmin) *xmin= xminv;
 		if (xmax) *xmax= xmaxv;
 		
@@ -481,10 +480,13 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 		if (ymax) *ymax= ymaxv;
 	}
 	else {
+		if (G.f & G_DEBUG)
+			printf("F-Curve calc bounds didn't find anything, so assuming minimum bounds of 1.0\n");
+			
 		if (xmin) *xmin= 0.0f;
-		if (xmax) *xmax= 0.0f;
+		if (xmax) *xmax= 1.0f;
 		
-		if (ymin) *ymin= 1.0f;
+		if (ymin) *ymin= 0.0f;
 		if (ymax) *ymax= 1.0f;
 	}
 }
@@ -518,6 +520,87 @@ void calc_fcurve_range (FCurve *fcu, float *start, float *end)
 		*start= 0.0f;
 		*end= 1.0f;
 	}
+}
+
+/* ----------------- Status Checks -------------------------- */
+
+/* Are keyframes on F-Curve of any use? 
+ * Usability of keyframes refers to whether they should be displayed,
+ * and also whether they will have any influence on the final result.
+ */
+short fcurve_are_keyframes_usable (FCurve *fcu)
+{
+	/* F-Curve must exist */
+	if (fcu == NULL)
+		return 0;
+		
+	/* F-Curve must not have samples - samples are mutually exclusive of keyframes */
+	if (fcu->fpt)
+		return 0;
+	
+	/* if it has modifiers, none of these should "drastically" alter the curve */
+	if (fcu->modifiers.first) {
+		FModifier *fcm;
+		
+		/* check modifiers from last to first, as last will be more influential */
+		// TODO: optionally, only check modifier if it is the active one...
+		for (fcm = fcu->modifiers.last; fcm; fcm = fcm->prev) {
+			/* ignore if muted/disabled */
+			if (fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED))
+				continue;
+				
+			/* type checks */
+			switch (fcm->type) {
+				/* clearly harmless - do nothing */
+				case FMODIFIER_TYPE_CYCLES:
+				case FMODIFIER_TYPE_STEPPED:
+				case FMODIFIER_TYPE_NOISE:
+					break;
+					
+				/* sometimes harmful - depending on whether they're "additive" or not */
+				case FMODIFIER_TYPE_GENERATOR:
+				{
+					FMod_Generator *data = (FMod_Generator *)fcm->data;
+					
+					if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+						return 0;
+				}
+					break;
+				case FMODIFIER_TYPE_FN_GENERATOR:
+				{
+					FMod_FunctionGenerator *data = (FMod_FunctionGenerator *)fcm->data;
+					
+					if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+						return 0;
+				}
+					break;
+					
+				/* always harmful - cannot allow */
+				default:
+					return 0;
+			}
+		}
+	}
+	
+	/* keyframes are usable */
+	return 1;
+}
+
+/* Can keyframes be added to F-Curve? 
+ * Keyframes can only be added if they are already visible
+ */
+short fcurve_is_keyframable (FCurve *fcu)
+{
+	/* F-Curve's keyframes must be "usable" (i.e. visible + have an effect on final result) */
+	if (fcurve_are_keyframes_usable(fcu) == 0)
+		return 0;
+		
+	/* F-Curve must currently be editable too */
+	if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) )
+		return 0;
+	
+	/* F-Curve is keyframable */
+	return 1;
 }
 
 /* ***************************** Keyframe Column Tools ********************************* */
@@ -556,7 +639,7 @@ void bezt_add_to_cfra_elem (ListBase *lb, BezTriple *bezt)
 /* Basic sampling callback which acts as a wrapper for evaluate_fcurve() 
  *	'data' arg here is unneeded here...
  */
-float fcurve_samplingcb_evalcurve (FCurve *fcu, void *data, float evaltime)
+float fcurve_samplingcb_evalcurve (FCurve *fcu, void *UNUSED(data), float evaltime)
 {
 	/* assume any interference from drivers on the curve is intended... */
 	return evaluate_fcurve(fcu, evaltime);
@@ -801,7 +884,7 @@ typedef struct DriverVarTypeInfo {
 	
 	/* allocation of target slots */
 	int num_targets; 						/* number of target slots required */
-	char *target_names[MAX_DRIVER_TARGETS];	/* UI names that should be given to the slots */
+	const char *target_names[MAX_DRIVER_TARGETS];	/* UI names that should be given to the slots */
 	int target_flags[MAX_DRIVER_TARGETS];	/* flags defining the requirements for each slot */
 } DriverVarTypeInfo;
 
@@ -851,31 +934,44 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	
 	/* get property to read from, and get value as appropriate */
 	if (RNA_path_resolve_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
-		switch (RNA_property_type(prop)) {
-			case PROP_BOOLEAN:
-				if (RNA_property_array_length(&ptr, prop))
+		if(RNA_property_array_check(&ptr, prop)) {
+			/* array */
+			if (index < RNA_property_array_length(&ptr, prop)) {	
+				switch (RNA_property_type(prop)) {
+				case PROP_BOOLEAN:
 					value= (float)RNA_property_boolean_get_index(&ptr, prop, index);
-				else
-					value= (float)RNA_property_boolean_get(&ptr, prop);
+					break;
+				case PROP_INT:
+					value= (float)RNA_property_int_get_index(&ptr, prop, index);
+					break;
+				case PROP_FLOAT:
+					value= RNA_property_float_get_index(&ptr, prop, index);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		else {
+			/* not an array */
+			switch (RNA_property_type(prop)) {
+			case PROP_BOOLEAN:
+				value= (float)RNA_property_boolean_get(&ptr, prop);
 				break;
 			case PROP_INT:
-				if (RNA_property_array_length(&ptr, prop))
-					value= (float)RNA_property_int_get_index(&ptr, prop, index);
-				else
-					value= (float)RNA_property_int_get(&ptr, prop);
+				value= (float)RNA_property_int_get(&ptr, prop);
 				break;
 			case PROP_FLOAT:
-				if (RNA_property_array_length(&ptr, prop))
-					value= RNA_property_float_get_index(&ptr, prop, index);
-				else
-					value= RNA_property_float_get(&ptr, prop);
+				value= RNA_property_float_get(&ptr, prop);
 				break;
 			case PROP_ENUM:
 				value= (float)RNA_property_enum_get(&ptr, prop);
 				break;
 			default:
 				break;
+			}
 		}
+
 	}
 	else {
 		if (G.f & G_DEBUG)
@@ -1174,7 +1270,7 @@ void driver_free_variable (ChannelDriver *driver, DriverVar *dvar)
 	else
 		MEM_freeN(dvar);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* since driver variables are cached, the expression needs re-compiling too */
 	if(driver->type==DRIVER_TYPE_PYTHON)
 		driver->flag |= DRIVER_FLAG_RENAMEVAR;
@@ -1231,9 +1327,9 @@ DriverVar *driver_add_new_variable (ChannelDriver *driver)
 	/* set the default type to 'single prop' */
 	driver_change_variable_type(dvar, DVAR_TYPE_SINGLE_PROP);
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* since driver variables are cached, the expression needs re-compiling too */
-	if(driver->type==DRIVER_TYPE_PYTHON)
+	if (driver->type==DRIVER_TYPE_PYTHON)
 		driver->flag |= DRIVER_FLAG_RENAMEVAR;
 #endif
 
@@ -1258,7 +1354,7 @@ void fcurve_free_driver(FCurve *fcu)
 		driver_free_variable(driver, dvar);
 	}
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* free compiled driver expression */
 	if (driver->expr_comp)
 		BPY_DECREF(driver->expr_comp);
@@ -1331,7 +1427,7 @@ float driver_get_variable_value (ChannelDriver *driver, DriverVar *dvar)
  *	- "evaltime" is the frame at which F-Curve is being evaluated
  * 	- has to return a float value 
  */
-static float evaluate_driver (ChannelDriver *driver, float evaltime)
+static float evaluate_driver (ChannelDriver *driver, float UNUSED(evaltime))
 {
 	DriverVar *dvar;
 	
@@ -1406,7 +1502,7 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			
 		case DRIVER_TYPE_PYTHON: /* expression */
 		{
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 			/* check for empty or invalid expression */
 			if ( (driver->expression[0] == '\0') ||
 				 (driver->flag & DRIVER_FLAG_INVALID) )
@@ -1418,9 +1514,9 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 				/* this evaluates the expression using Python,and returns its result:
 				 * 	- on errors it reports, then returns 0.0f
 				 */
-				driver->curval= BPY_eval_driver(driver);
+				driver->curval= BPY_driver_exec(driver);
 			}
-#endif /* DISABLE_PYTHON*/
+#endif /* WITH_PYTHON*/
 		}
 			break;
 		

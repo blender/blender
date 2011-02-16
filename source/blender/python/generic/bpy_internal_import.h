@@ -28,8 +28,8 @@
 
 /* Note, the BGE needs to use this too, keep it minimal */
 
-#ifndef EXPP_bpy_import_h
-#define EXPP_bpy_import_h
+#ifndef BPY_INTERNAL_IMPORT_H
+#define BPY_INTERNAL_IMPORT_H
 
 /* python redefines :/ */
 #ifdef _POSIX_C_SOURCE
@@ -40,24 +40,20 @@
 #undef _XOPEN_SOURCE
 #endif
 
-#include <Python.h>
-#include "compile.h"		/* for the PyCodeObject */
-#include "eval.h"		/* for PyEval_EvalCode */
-
 struct Text;
 
-PyObject*	bpy_text_import( struct Text *text );
-PyObject*	bpy_text_import_name( char *name, int *found );
-PyObject*	bpy_text_reimport( PyObject *module, int *found );
-/* void		bpy_text_clear_modules( int clear_all );*/ /* Clear user modules */ 
+PyObject*	bpy_text_import(struct Text *text);
+PyObject*	bpy_text_import_name(char *name, int *found);
+PyObject*	bpy_text_reimport(PyObject *module, int *found);
+/* void		bpy_text_clear_modules(int clear_all);*/ /* Clear user modules */ 
 
 void bpy_text_filename_get(char *fn, struct Text *text);
 
-extern PyMethodDef bpy_import_meth[];
-extern PyMethodDef bpy_reload_meth[];
+extern PyMethodDef bpy_import_meth;
+extern PyMethodDef bpy_reload_meth;
 
 /* The game engine has its own Main struct, if this is set search this rather then G.main */
 struct Main *bpy_import_main_get(void);
 void bpy_import_main_set(struct Main *maggie);
 
-#endif				/* EXPP_bpy_import_h */
+#endif				/* BPY_INTERNAL_IMPORT_H */

@@ -40,6 +40,10 @@
 
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Library;
 
 typedef struct Main {
@@ -47,6 +51,7 @@ typedef struct Main {
 	char name[240];
 	short versionfile, subversionfile;
 	short minversionfile, minsubversionfile;
+	int revision;	/* svn revision of binary that saved file */
 	
 	struct Library *curlib;
 	ListBase scene;
@@ -77,8 +82,14 @@ typedef struct Main {
 	ListBase particle;
 	ListBase wm;
 	ListBase gpencil;
+
+	char id_tag_update[256];
 } Main;
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

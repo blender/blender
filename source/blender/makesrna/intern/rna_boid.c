@@ -78,10 +78,10 @@ static void rna_Boids_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 		
 		psys->recalc = PSYS_RECALC_RESET;
 
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	}
 	else
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
@@ -92,10 +92,10 @@ static void rna_Boids_reset_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 		
 		psys->recalc = PSYS_RECALC_RESET;
 
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	}
 	else
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	DAG_scene_sort(bmain, scene);
 
@@ -173,6 +173,26 @@ static void rna_BoidState_active_boid_rule_index_set(struct PointerRNA *ptr, int
 		else
 			rule->flag &= ~BOIDRULE_CURRENT;
 	}
+}
+
+static int particle_id_check(PointerRNA *ptr)
+{
+	ID *id= ptr->id.data;
+
+	return (GS(id->name) == ID_PA);
+}
+
+static char *rna_BoidSettings_path(PointerRNA *ptr)
+{
+	BoidSettings *boids = (BoidSettings *)ptr->data;
+	
+	if(particle_id_check(ptr)) {
+		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
+		
+		if (part->boids == boids)
+			return BLI_sprintfN("boids");
+	}
+	return NULL;
 }
 
 static PointerRNA rna_BoidSettings_active_boid_state_get(PointerRNA *ptr)
@@ -466,6 +486,7 @@ static void rna_def_boid_settings(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "BoidSettings", NULL);
+	RNA_def_struct_path_func(srna, "rna_BoidSettings_path");
 	RNA_def_struct_ui_text(srna, "Boid Settings", "Settings for boid physics");
 
 	prop= RNA_def_property(srna, "land_smooth", PROP_FLOAT, PROP_NONE);

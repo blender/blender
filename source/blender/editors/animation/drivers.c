@@ -27,18 +27,30 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
+#include <stdio.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
+#include "DNA_material_types.h"
+#include "DNA_texture_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_context.h"
+#include "BKE_report.h"
+#include "BKE_material.h"
+#include "BKE_texture.h"
+
+#include "ED_keyframing.h"
 
 #include "UI_interface.h"
 
@@ -115,7 +127,7 @@ FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_ind
 /* Main Driver Management API calls:
  * 	Add a new driver for the specified property on the given ID block
  */
-short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short flag, int type)
+short ANIM_add_driver (ReportList *reports, ID *id, const char rna_path[], int array_index, short flag, int type)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -126,7 +138,9 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
-		printf("Add Driver: Could not add Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
+		BKE_reportf(reports, RPT_ERROR, 
+			"Could not add Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", 
+			id->name, rna_path);
 		return 0;
 	}
 	
@@ -153,7 +167,10 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 			/* set the type of the driver */
 			driver->type= type;
 			
-			/* fill in current value for python */
+			/* creating drivers for buttons will create the driver(s) with type 
+			 * "scripted expression" so that their values won't be lost immediately,
+			 * so here we copy those values over to the driver's expression
+			 */
 			if (type == DRIVER_TYPE_PYTHON) {
 				PropertyType proptype= RNA_property_type(prop);
 				int array= RNA_property_array_length(&ptr, prop);
@@ -180,6 +197,17 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 					BLI_snprintf(expression, maxlen, "%.3f", fval);
 				}
 			}
+			
+			/* for easier setup of drivers from UI, a driver variable should be 
+			 * added if flag is set (UI calls only)
+			 */
+			if (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) {
+				/* assume that users will mostly want this to be of type "Transform Channel" too,
+				 * since this allows the easiest setting up of common rig components
+				 */
+				DriverVar *dvar = driver_add_new_variable(driver);
+				driver_change_variable_type(dvar, DVAR_TYPE_TRANSFORM_CHAN);
+			}
 		}
 		
 		/* set the done status */
@@ -193,23 +221,21 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 /* Main Driver Management API calls:
  * 	Remove the driver for the specified property on the given ID block (if available)
  */
-short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short flag)
+short ANIM_remove_driver (ReportList *UNUSED(reports), ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {
 	AnimData *adt;
 	FCurve *fcu;
 	int success= 0;
 	
-	/* get F-Curve
-	 * Note: here is one of the places where we don't want new F-Curve + Driver added!
-	 * 		so 'add' var must be 0
-	 */
 	/* we don't check the validity of the path here yet, but it should be ok... */
 	adt= BKE_animdata_from_id(id);
 	
-	if(adt) {
-		if(array_index == -1) {
+	if (adt) {
+		if (array_index == -1) {
+			/* step through all drivers, removing all of those with the same base path */
 			FCurve *fcu_iter= adt->drivers.first;
-			while((fcu= iter_step_fcurve(fcu_iter, rna_path))) {
+			
+			while ((fcu = iter_step_fcurve(fcu_iter, rna_path)) != NULL) {
 				/* store the next fcurve for looping  */
 				fcu_iter= fcu->next;
 				
@@ -222,8 +248,12 @@ short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index,
 			}
 		}
 		else {
+			/* find the matching driver and remove it only 
+			 * Note: here is one of the places where we don't want new F-Curve + Driver added!
+			 * 		so 'add' var must be 0
+			 */
 			fcu= verify_driver_fcurve(id, rna_path, array_index, 0);
-			if(fcu) {
+			if (fcu) {
 				BLI_remlink(&adt->drivers, fcu);
 				free_fcurve(fcu);
 				
@@ -262,7 +292,7 @@ short ANIM_driver_can_paste (void)
 /* Main Driver Management API calls:
  * 	Make a copy of the driver for the specified property on the given ID block
  */
-short ANIM_copy_driver (ID *id, const char rna_path[], int array_index, short flag)
+short ANIM_copy_driver (ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -271,7 +301,9 @@ short ANIM_copy_driver (ID *id, const char rna_path[], int array_index, short fl
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
-		printf("Copy Driver: Could not find Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
+		BKE_reportf(reports, RPT_ERROR,
+			"Could not find Driver to copy, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", 
+			id->name, rna_path);
 		return 0;
 	}
 	
@@ -307,7 +339,7 @@ short ANIM_copy_driver (ID *id, const char rna_path[], int array_index, short fl
  * 	Add a new driver for the specified property on the given ID block or replace an existing one
  *	with the driver + driver-curve data from the buffer 
  */
-short ANIM_paste_driver (ID *id, const char rna_path[], int array_index, short flag)
+short ANIM_paste_driver (ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -316,13 +348,15 @@ short ANIM_paste_driver (ID *id, const char rna_path[], int array_index, short f
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
-		printf("Paste Driver: Could not add Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
+		BKE_reportf(reports, RPT_ERROR,
+			"Could not paste Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", 
+			id->name, rna_path);
 		return 0;
 	}
 	
 	/* if the buffer is empty, cannot paste... */
 	if (channeldriver_copypaste_buf == NULL) {
-		printf("Paste Driver: No Driver to paste. \n");
+		BKE_report(reports, RPT_ERROR, "Paste Driver: No Driver to paste.");
 		return 0;
 	}
 	
@@ -360,28 +394,104 @@ short ANIM_paste_driver (ID *id, const char rna_path[], int array_index, short f
 /* ************************************************** */
 /* UI-Button Interface */
 
+/* Temporary wrapper for driver operators for buttons to make it easier to create
+ * such drivers by rerouting all paths through the active object instead so that
+ * they will get picked up by the dependency system.
+ *
+ * < C: context pointer - for getting active data 
+ * <> ptr: RNA pointer for property's datablock. May be modified as result of path remapping.
+ * < prop: RNA definition of property to add for
+ *
+ * > returns: MEM_alloc'd string representing the path to the property from the given PointerRNA
+ */
+static char *get_driver_path_hack (bContext *C, PointerRNA *ptr, PropertyRNA *prop)
+{
+	ID *id = (ID *)ptr->id.data;
+	ScrArea *sa = CTX_wm_area(C);
+	
+	/* get standard path which may be extended */
+	char *basepath = RNA_path_from_ID_to_property(ptr, prop);
+	char *path = basepath; /* in case no remapping is needed */
+	
+	/* Remapping will only be performed in the Properties Editor, as only this 
+	 * restricts the subspace of options to the 'active' data (a manageable state)
+	 */
+	// TODO: watch out for pinned context?
+	if ((sa) && (sa->spacetype == SPACE_BUTS)) {
+		Object *ob = CTX_data_active_object(C);
+		
+		if (ob && id) {
+			/* only id-types which can be remapped to go through objects should be considered */
+			switch (GS(id->name)) {
+				case ID_MA: /* materials */
+				{
+					Material *ma = give_current_material(ob, ob->actcol);
+					
+					/* assumes: material will only be shown if it is active objects's active material it's ok */
+					if ((ID*)ma == id) {
+						/* create new path */
+						// TODO: use RNA path functions to construct instead?
+						path = BLI_sprintfN("material_slots[\"%s\"].material.%s",
+							ma->id.name+2, basepath);
+							
+						/* free old one */
+						MEM_freeN(basepath);
+					}
+				}
+					break;
+					
+				case ID_TE: /* textures */
+				{
+					Material *ma = give_current_material(ob, ob->actcol);
+					Tex *tex = give_current_material_texture(ma);
+					
+					/* assumes: texture will only be shown if it is active material's active texture it's ok */
+					if ((ID*)tex == id) {
+						/* create new path */
+						// TODO: use RNA path functions to construct step by step instead?
+						path = BLI_sprintfN("material_slots[\"%s\"].material.texture_slots[\"%s\"].texture.%s", 
+							ma->id.name+2, tex->id.name+2, basepath);
+							
+						/* free old one */
+						MEM_freeN(basepath);
+					}
+				}
+					break;
+			}
+			
+			/* fix RNA pointer, as we've now changed the ID root by changing the paths */
+			if (basepath != path) {
+				/* rebase provided pointer so that it starts from object... */
+				RNA_pointer_create(&ob->id, ptr->type, ptr->data, ptr);
+			}
+		}
+	}
+	
+	/* the path should now have been corrected for use */
+	return path;
+}
+
 /* Add Driver Button Operator ------------------------ */
 
 static int add_driver_button_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	PropertyRNA *prop= NULL;
-	char *path;
 	short success= 0;
 	int index, all= RNA_boolean_get(op->ptr, "all");
 	
 	/* try to create driver using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
-
+	
 	if (all)
 		index= -1;
-
+	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-		path= RNA_path_from_ID_to_property(&ptr, prop);
+		char *path= get_driver_path_hack(C, &ptr, prop);
+		short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
 		
 		if (path) {			
-			success+= ANIM_add_driver(ptr.id.data, path, index, 0, DRIVER_TYPE_PYTHON);
+			success+= ANIM_add_driver(op->reports, ptr.id.data, path, index, flags, DRIVER_TYPE_PYTHON);
 			
 			MEM_freeN(path);
 		}
@@ -390,7 +500,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	if (success) {
 		/* send updates */
 		uiContextAnimUpdate(C);
-
+		
 		DAG_ids_flush_update(CTX_data_main(C), 0);
 		
 		WM_event_add_notifier(C, NC_ANIMATION|ND_FCURVES_ORDER, NULL); // XXX
@@ -421,29 +531,28 @@ void ANIM_OT_driver_button_add (wmOperatorType *ot)
 
 static int remove_driver_button_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	PropertyRNA *prop= NULL;
-	char *path;
 	short success= 0;
 	int index, all= RNA_boolean_get(op->ptr, "all");
 	
 	/* try to find driver using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	if (all)
 		index= -1;
-
+	
 	if (ptr.id.data && ptr.data && prop) {
-		path= RNA_path_from_ID_to_property(&ptr, prop);
-		success= ANIM_remove_driver(ptr.id.data, path, index, 0);
+		char *path= get_driver_path_hack(C, &ptr, prop);
+		
+		success= ANIM_remove_driver(op->reports, ptr.id.data, path, index, 0);
 		MEM_freeN(path);
 	}
 	
 	if (success) {
 		/* send updates */
 		uiContextAnimUpdate(C);
-
+		
 		DAG_ids_flush_update(CTX_data_main(C), 0);
 		
 		WM_event_add_notifier(C, NC_ANIMATION|ND_FCURVES_ORDER, NULL);  // XXX
@@ -474,23 +583,21 @@ void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 
 static int copy_driver_button_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	PropertyRNA *prop= NULL;
-	char *path;
 	short success= 0;
 	int index;
 	
 	/* try to create driver using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-		path= RNA_path_from_ID_to_property(&ptr, prop);
+		char *path= get_driver_path_hack(C, &ptr, prop);
 		
 		if (path) {
 			/* only copy the driver for the button that this was involved for */
-			success= ANIM_copy_driver(ptr.id.data, path, index, 0);
-
+			success= ANIM_copy_driver(op->reports, ptr.id.data, path, index, 0);
+			
 			uiContextAnimUpdate(C);
 			
 			MEM_freeN(path);
@@ -520,23 +627,21 @@ void ANIM_OT_copy_driver_button (wmOperatorType *ot)
 
 static int paste_driver_button_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	PropertyRNA *prop= NULL;
-	char *path;
 	short success= 0;
 	int index;
 	
 	/* try to create driver using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-		path= RNA_path_from_ID_to_property(&ptr, prop);
+		char *path= get_driver_path_hack(C, &ptr, prop);
 		
 		if (path) {
 			/* only copy the driver for the button that this was involved for */
-			success= ANIM_paste_driver(ptr.id.data, path, index, 0);
-
+			success= ANIM_paste_driver(op->reports, ptr.id.data, path, index, 0);
+			
 			uiContextAnimUpdate(C);
 			
 			MEM_freeN(path);

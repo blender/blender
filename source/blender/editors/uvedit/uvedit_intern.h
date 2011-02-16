@@ -37,28 +37,10 @@ struct Image;
 struct Object;
 struct wmOperatorType;
 
-#define UV_SELECT_ALL       1
-#define UV_SELECT_PINNED    2
-
 /* id can be from 0 to 3 */
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
 
-/* visibility and selection */
-int uvedit_face_visible_nolocal(struct Scene *scene, struct EditFace *efa);
-int uvedit_face_visible(struct Scene *scene, struct Image *ima, struct EditFace *efa, struct MTFace *tf);
-
-int uvedit_face_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
-void uvedit_face_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
-void uvedit_face_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
-
-int uvedit_edge_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
-void uvedit_edge_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
-void uvedit_edge_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
-
-int uvedit_uv_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
-void uvedit_uv_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
-void uvedit_uv_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
 
 /* geometric utilities */
 void uv_center(float uv[][2], float cent[2], int quad);

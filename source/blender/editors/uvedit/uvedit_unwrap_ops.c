@@ -38,16 +38,17 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_math.h"
+#include "BLI_edgehash.h"
+#include "BLI_editVert.h"
+#include "BLI_uvproject.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_mesh.h"
-
-#include "BLI_math.h"
-#include "BLI_edgehash.h"
-#include "BLI_editVert.h"
-#include "BLI_uvproject.h"
 
 #include "PIL_time.h"
 
@@ -143,8 +144,8 @@ ParamHandle *construct_param_handle(Scene *scene, EditMesh *em, short implicit, 
 		efa = EM_get_actFace(em, 1);
 
 		if(efa) {
-			MTFace *tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			float aspx, aspy;
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
 			ED_image_uv_aspect(tf->tpage, &aspx, &aspy);
 		
@@ -153,7 +154,7 @@ ParamHandle *construct_param_handle(Scene *scene, EditMesh *em, short implicit, 
 		}
 	}
 	
-	/* we need the vert indicies */
+	/* we need the vert indices */
 	for(ev= em->verts.first, a=0; ev; ev= ev->next, a++)
 		ev->tmp.l = a;
 	
@@ -286,7 +287,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, int interact
 
 		ms->lasttime = PIL_check_seconds_timer();
 
-		DAG_id_flush_update(ms->obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(ms->obedit->data, 0);
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, ms->obedit->data);
 	}
 }
@@ -309,7 +310,7 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, int cancel)
 	param_stretch_end(ms->handle);
 	param_delete(ms->handle);
 
-	DAG_id_flush_update(ms->obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(ms->obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ms->obedit->data);
 
 	MEM_freeN(ms);
@@ -330,7 +331,7 @@ static int minimize_stretch_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int minimize_stretch_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int minimize_stretch_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	MinStretch *ms;
 
@@ -425,7 +426,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 
 /* ******************** Pack Islands operator **************** */
 
-static int pack_islands_exec(bContext *C, wmOperator *op)
+static int pack_islands_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -437,7 +438,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	param_flush(handle);
 	param_delete(handle);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -458,7 +459,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 
 /* ******************** Average Islands Scale operator **************** */
 
-static int average_islands_scale_exec(bContext *C, wmOperator *op)
+static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -470,7 +471,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *op)
 	param_flush(handle);
 	param_delete(handle);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -496,7 +497,7 @@ static ParamHandle *liveHandle = NULL;
 void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 {
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
-	short abf = scene->toolsettings->unwrapper == 1;
+	short abf = scene->toolsettings->unwrapper == 0;
 	short fillholes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 
 	if(!ED_uvedit_test(obedit)) {
@@ -822,6 +823,9 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	/* remember last method for live unwrap */
+	scene->toolsettings->unwrapper = method;
+
 	handle= construct_param_handle(scene, em, 0, fill_holes, 1, correct_aspect);
 
 	param_lscm_begin(handle, PARAM_FALSE, method == 0);
@@ -834,7 +838,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
 	param_delete(handle);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -940,7 +944,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -975,7 +979,7 @@ void UV_OT_from_view(wmOperatorType *ot)
 
 /********************** Reset operator ********************/
 
-static int reset_exec(bContext *C, wmOperator *op)
+static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -1007,7 +1011,7 @@ static int reset_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -1095,7 +1099,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -1167,7 +1171,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -1254,7 +1258,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);

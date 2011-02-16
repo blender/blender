@@ -27,6 +27,10 @@
 #ifndef ED_ARMATURE_H
 #define ED_ARMATURE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bArmature;
 struct Base;
 struct bContext;
@@ -38,6 +42,7 @@ struct ListBase;
 struct MeshDeformModifierData;
 struct Object;
 struct RegionView3D;
+struct ReportList;
 struct Scene;
 struct SK_Sketch;
 struct View3D;
@@ -86,8 +91,8 @@ typedef struct EditBone
 #define BONESEL_NOSEL	(1<<31)	/* Indicates a negative number */
 
 /* useful macros */
-#define EBONE_VISIBLE(arm, ebone) ((arm->layer & ebone->layer) && !(ebone->flag & BONE_HIDDEN_A))
-#define EBONE_EDITABLE(ebone) ((ebone->flag & BONE_SELECTED) && !(ebone->flag & BONE_EDITMODE_LOCKED)) 
+#define EBONE_VISIBLE(arm, ebone) (((arm)->layer & (ebone)->layer) && !((ebone)->flag & BONE_HIDDEN_A))
+#define EBONE_EDITABLE(ebone) (((ebone)->flag & BONE_SELECTED) && !((ebone)->flag & BONE_EDITMODE_LOCKED)) 
 
 /* used in bone_select_hierachy() */
 #define BONE_SELECT_PARENT	0
@@ -102,20 +107,21 @@ void ED_keymap_armature(struct wmKeyConfig *keyconf);
 void ED_armature_from_edit(struct Object *obedit);
 void ED_armature_to_edit(struct Object *ob);
 void ED_armature_edit_free(struct Object *ob);
-void ED_armature_deselectall(struct Object *obedit, int toggle);
+void ED_armature_deselect_all(struct Object *obedit, int toggle);
+void ED_armature_deselect_all_visible(struct Object *obedit);
 
 int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
 							short hits, short extend);
 int mouse_armature(struct bContext *C, short mval[2], int extend);
 int join_armature_exec(struct bContext *C, struct wmOperator *op);
 struct Bone *get_indexed_bone (struct Object *ob, int index);
-float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3]);
+float ED_rollBoneToVector(EditBone *bone, const float new_up_axis[3], const short axis_only);
 EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, EditBone *ebo); // XXX this is needed for populating the context iterators
 void ED_armature_sync_selection(struct ListBase *edbo);
 void ED_armature_validate_active(struct bArmature *arm);
 
 void add_primitive_bone(struct Scene *scene, struct View3D *v3d, struct RegionView3D *rv3d);
-struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name);
+struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *name);
 void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
 
 void transform_armature_mirror_update(struct Object *obedit);
@@ -128,20 +134,21 @@ void ED_armature_apply_transform(struct Object *ob, float mat[4][4]);
 #define ARM_GROUPS_ENVELOPE	2
 #define ARM_GROUPS_AUTO		3
 
-void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct Object *par, int mode, int mirror);
+void create_vgroups_from_armature(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct Object *par, int mode, int mirror);
 
 void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
 void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */
 void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep);
 
-void undo_push_armature(struct bContext *C, char *name);
+void undo_push_armature(struct bContext *C, const char *name);
 
 /* poseobject.c */
+struct Object *ED_object_pose_armature(struct Object *ob);
 void ED_armature_exit_posemode(struct bContext *C, struct Base *base);
 void ED_armature_enter_posemode(struct bContext *C, struct Base *base);
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);
 void ED_pose_deselectall(struct Object *ob, int test);
-void ED_pose_recalculate_paths(struct bContext *C, struct Scene *scene, struct Object *ob);
+void ED_pose_recalculate_paths(struct Scene *scene, struct Object *ob);
 
 /* sketch */
 
@@ -159,7 +166,7 @@ int   BIF_currentTemplate(const struct bContext *C);
 void  BIF_freeTemplates(struct bContext *C);
 void  BIF_setTemplate(struct bContext *C, int index);
 int   BIF_nbJointsTemplate(const struct bContext *C);
-char * BIF_nameBoneTemplate(const struct bContext *C);
+const char * BIF_nameBoneTemplate(const struct bContext *C);
 
 void BDR_drawSketch(const struct bContext *vc);
 int BDR_drawSketchNames(struct ViewContext *vc);
@@ -168,6 +175,10 @@ int BDR_drawSketchNames(struct ViewContext *vc);
 void mesh_deform_bind(struct Scene *scene,
 	struct MeshDeformModifierData *mmd,
 	float *vertexcos, int totvert, float cagemat[][4]);
+	
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ED_ARMATURE_H */
 

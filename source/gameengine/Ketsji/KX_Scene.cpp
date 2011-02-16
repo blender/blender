@@ -82,18 +82,17 @@
 #include "BL_ModifierDeformer.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
-#include "KX_SoftBodyDeformer.h"
-
 #include "KX_ObstacleSimulation.h"
-// to get USE_BULLET!
-#include "KX_ConvertPhysicsObject.h"
 
 #ifdef USE_BULLET
+#include "KX_SoftBodyDeformer.h"
+#include "KX_ConvertPhysicsObject.h"
 #include "CcdPhysicsEnvironment.h"
 #include "CcdPhysicsController.h"
 #endif
 
 #include "KX_Light.h"
+
 #include <stdio.h>
 
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
@@ -209,6 +208,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_rootnode = NULL;
 
 	m_bucketmanager=new RAS_BucketManager();
+	
 	bool showObstacleSimulation = scene->gm.flag & GAME_SHOW_OBSTACLE_SIMULATION;
 	switch (scene->gm.obstacleSimulation)
 	{
@@ -222,8 +222,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		m_obstacleSimulation = NULL;
 	}
 	
-
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	m_attr_dict = PyDict_New(); /* new ref */
 	m_draw_call_pre = NULL;
 	m_draw_call_post = NULL;
@@ -280,7 +279,7 @@ KX_Scene::~KX_Scene()
 		delete m_bucketmanager;
 	}
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	PyDict_Clear(m_attr_dict);
 	Py_DECREF(m_attr_dict);
 
@@ -341,7 +340,10 @@ list<class KX_Camera*>* KX_Scene::GetCameras()
 	return &m_cameras;
 }
 
-
+list<class KX_FontObject*>* KX_Scene::GetFonts()
+{
+	return &m_fonts;
+}
 
 void KX_Scene::SetFramingType(RAS_FrameSettings & frame_settings)
 {
@@ -830,6 +832,8 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		// add a timebomb to this object
 		// for now, convert between so called frames and realtime
 		m_tempObjectList->Add(replica->AddRef());
+		// this convert the life from frames to sort-of seconds, hard coded 0.02 that assumes we have 50 frames per second
+		// if you change this value, make sure you change it in KX_GameObject::pyattr_get_life property too
 		CValue *fval = new CFloatValue(lifespan*0.02);
 		replica->SetProperty("::timebomb",fval);
 		fval->Release();
@@ -1030,6 +1034,9 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	// in case this is a camera
 	m_cameras.remove((KX_Camera*)newobj);
 
+	// in case this is a font
+	m_fonts.remove((KX_FontObject*)newobj);
+
 	/* currently does nothing, keep incase we need to Unregister something */
 #if 0
 	if (m_sceneConverter)
@@ -1089,8 +1096,9 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 				blendobj->parent &&							// original object had armature (not sure this test is needed)
 				blendobj->parent->type == OB_ARMATURE &&
 				blendmesh->dvert!=NULL;						// mesh has vertex group
+#ifdef USE_BULLET
 			bool bHasSoftBody = (!parentobj && (blendobj->gameflag & OB_SOFT_BODY));
-
+#endif
 			bool releaseParent = true;
 
 			
@@ -1179,11 +1187,13 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 				);
 				newobj->SetDeformer(meshdeformer);
 			}
+#ifdef USE_BULLET
 			else if (bHasSoftBody)
 			{
 				KX_SoftBodyDeformer *softdeformer = new KX_SoftBodyDeformer(mesh, newobj);
 				newobj->SetDeformer(softdeformer);
 			}
+#endif
 
 			// release parent reference if its not being used 
 			if( releaseParent && parentobj)
@@ -1193,12 +1203,35 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 
 	gameobj->AddMeshUser();
 	}
-	
+
+#ifdef USE_BULLET
 	if(use_phys) { /* update the new assigned mesh with the physics mesh */
 		KX_ReInstanceBulletShapeFromMesh(gameobj, NULL, use_gfx?NULL:mesh);
 	}
+#endif
 }
 
+/* Font Object routines */
+void KX_Scene::AddFont(KX_FontObject* font)
+{
+	if (!FindFont(font))
+		m_fonts.push_back(font);
+}
+
+KX_FontObject* KX_Scene::FindFont(KX_FontObject* font)
+{
+	list<KX_FontObject*>::iterator it = m_fonts.begin();
+
+	while ( (it != m_fonts.end()) 
+			&& ((*it) != font) ) {
+	  ++it;
+	}
+
+	return ((it == m_fonts.end()) ? NULL : (*it));
+}
+
+
+/* Camera Object routines */
 KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
 {
 	list<KX_Camera*>::iterator it = m_cameras.begin();
@@ -1476,7 +1509,6 @@ void KX_Scene::LogicBeginFrame(double curtime)
 			// all object is the tempObjectList should have a clock
 		}
 	}
-
 	m_logicmgr->BeginFrame(curtime, 1.0/KX_KetsjiEngine::GetTicRate());
 }
 
@@ -1650,7 +1682,9 @@ double KX_Scene::getSuspendedDelta()
 	return m_suspendeddelta;
 }
 
+#ifdef USE_BULLET
 #include "KX_BulletPhysicsController.h"
+#endif
 
 static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 {
@@ -1665,16 +1699,19 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 	}
 
 	/* near sensors have physics controllers */
+#ifdef USE_BULLET
 	KX_TouchSensor *touch_sensor = dynamic_cast<class KX_TouchSensor *>(brick);
 	if(touch_sensor) {
 		touch_sensor->GetPhysicsController()->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 	}
+#endif
 }
 
+#ifdef USE_BULLET
 #include "CcdGraphicController.h" // XXX  ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 #include "CcdPhysicsEnvironment.h" // XXX  ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 #include "KX_BulletPhysicsController.h"
-
+#endif
 
 static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene *from)
 {
@@ -1733,8 +1770,13 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 	if(sg) {
 		if(sg->GetSGClientInfo() == from) {
 			sg->SetSGClientInfo(to);
-		}
 
+			/* Make sure to grab the children too since they might not be tied to a game object */
+			NodeList children = sg->GetSGChildren();
+			for (int i=0; i<children.size(); i++)
+					children[i]->SetSGClientInfo(to);
+		}
+#ifdef USE_BULLET
 		SGControllerList::iterator contit;
 		SGControllerList& controllers = sg->GetSGControllerList();
 		for (contit = controllers.begin();contit!=controllers.end();++contit)
@@ -1743,6 +1785,7 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 			if (phys_ctrl)
 				phys_ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 		}
+#endif // USE_BULLET
 	}
 	/* If the object is a light, update it's scene */
 	if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)
@@ -1758,6 +1801,7 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 
 bool KX_Scene::MergeScene(KX_Scene *other)
 {
+#ifdef USE_BULLET
 	CcdPhysicsEnvironment *env=			dynamic_cast<CcdPhysicsEnvironment *>(this->GetPhysicsEnvironment());
 	CcdPhysicsEnvironment *env_other=	dynamic_cast<CcdPhysicsEnvironment *>(other->GetPhysicsEnvironment());
 
@@ -1767,6 +1811,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 		printf("\tsource %d, terget %d\n", (int)(env!=NULL), (int)(env_other!=NULL));
 		return false;
 	}
+#endif // USE_BULLET
 
 	if(GetSceneConverter() != other->GetSceneConverter()) {
 		printf("KX_Scene::MergeScene: converters differ, aborting\n");
@@ -1809,9 +1854,11 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	GetLightList()->MergeList(other->GetLightList());
 	other->GetLightList()->ReleaseAndRemoveAll();
 
+#ifdef USE_BULLET
 	if(env) /* bullet scene? - dummy scenes dont need touching */
 		env->MergeEnvironment(env_other);
-
+#endif
+	
 	/* merge logic */
 	{
 		SCA_LogicManager *logicmgr=			GetLogicManager();
@@ -1845,7 +1892,7 @@ void KX_Scene::Render2DFilters(RAS_ICanvas* canvas)
 	m_filtermanager.RenderFilters(canvas);
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
 {
@@ -1911,10 +1958,10 @@ PyMethodDef KX_Scene::Methods[] = {
 	KX_PYMETHODTABLE(KX_Scene, suspend),
 	KX_PYMETHODTABLE(KX_Scene, resume),
 	KX_PYMETHODTABLE(KX_Scene, drawObstacleSimulation),
+
 	
 	/* dict style access */
 	KX_PYMETHODTABLE(KX_Scene, get),
-
 	
 	{NULL,NULL} //Sentinel
 };
@@ -2267,4 +2314,4 @@ KX_PYMETHODDEF_DOC(KX_Scene, get, "")
 	return def;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

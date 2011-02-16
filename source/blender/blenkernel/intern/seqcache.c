@@ -32,6 +32,7 @@
 
 #include "DNA_sequence_types.h"
 #include "BKE_sequencer.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
 #include <pthread.h>
@@ -42,8 +43,7 @@
 typedef struct seqCacheKey 
 {
 	struct Sequence * seq;
-	int rectx;
-	int recty;
+	SeqRenderData context;
 	float cfra;
 	seq_stripelem_ibuf_t type;
 } seqCacheKey;
@@ -61,10 +61,10 @@ static struct BLI_mempool * keypool = 0;
 static int ibufs_in  = 0;
 static int ibufs_rem = 0;
 
-static unsigned int HashHash(void *key_)
+static unsigned int HashHash(const void *key_)
 {
-	seqCacheKey * key = (seqCacheKey*) key_;
-	unsigned int rval = key->rectx + key->recty;
+	const seqCacheKey *key = (seqCacheKey*) key_;
+	unsigned int rval = seq_hash_render_data(&key->context);
 
 	rval ^= *(unsigned int*) &key->cfra;
 	rval += key->type;
@@ -73,10 +73,10 @@ static unsigned int HashHash(void *key_)
 	return rval;
 }
 
-static int HashCmp(void *a_, void *b_)
+static int HashCmp(const void *a_, const void *b_)
 {
-	seqCacheKey * a = (seqCacheKey*) a_;
-	seqCacheKey * b = (seqCacheKey*) b_;
+	const seqCacheKey * a = (seqCacheKey*) a_;
+	const seqCacheKey * b = (seqCacheKey*) b_;
 
 	if (a->seq < b->seq) {
 		return -1;		
@@ -99,21 +99,7 @@ static int HashCmp(void *a_, void *b_)
 		return 1;
 	}
 
-	if (a->rectx < b->rectx) {
-		return -1;
-	}
-	if (a->rectx > b->rectx) {
-		return 1;
-	}
-
-	if (a->recty < b->recty) {
-		return -1;
-	}
-	if (a->recty > b->recty) {
-		return 1;
-	}
-
-	return 0;
+	return seq_cmp_render_data(&a->context, &b->context);
 }
 
 static void HashKeyFree(void *key)
@@ -192,7 +178,7 @@ void seq_stripelem_cache_cleanup()
 }
 
 struct ImBuf * seq_stripelem_cache_get(
-	struct Sequence * seq, int rectx, int recty, 
+	SeqRenderData context, struct Sequence * seq, 
 	float cfra, seq_stripelem_ibuf_t type)
 {
 	seqCacheKey key;
@@ -207,8 +193,7 @@ struct ImBuf * seq_stripelem_cache_get(
 	}
 
 	key.seq = seq;
-	key.rectx = rectx;
-	key.recty = recty;
+	key.context = context;
 	key.cfra = cfra - seq->start;
 	key.type = type;
 	
@@ -224,7 +209,7 @@ struct ImBuf * seq_stripelem_cache_get(
 }
 
 void seq_stripelem_cache_put(
-	struct Sequence * seq, int rectx, int recty, 
+	SeqRenderData context, struct Sequence * seq, 
 	float cfra, seq_stripelem_ibuf_t type, struct ImBuf * i)
 {
 	seqCacheKey * key;
@@ -243,13 +228,13 @@ void seq_stripelem_cache_put(
 	key = (seqCacheKey*) BLI_mempool_alloc(keypool);
 
 	key->seq = seq;
-	key->rectx = rectx;
-	key->recty = recty;
+	key->context = context;
 	key->cfra = cfra - seq->start;
 	key->type = type;
 
-	/* we want our own version */
-	IMB_refImBuf(i);
+	/* Normally we want our own version, but start and end stills are duplicates of the original. */
+	if(ELEM(type, SEQ_STRIPELEM_IBUF_STARTSTILL, SEQ_STRIPELEM_IBUF_ENDSTILL)==0)
+		IMB_refImBuf(i);
 
 	e = (seqCacheEntry*) BLI_mempool_alloc(entrypool);
 

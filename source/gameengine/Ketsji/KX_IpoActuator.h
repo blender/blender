@@ -86,6 +86,9 @@ protected:
 
 	bool	m_bIpoPlaying;
 
+	/** Reset/Update the start time*/
+	void	ResetStartTime();
+
 public:
 	enum IpoActType
 	{
@@ -100,6 +103,12 @@ public:
 		KX_ACT_IPO_MAX
 	};
 
+#ifdef WITH_PYTHON
+	static PyObject*	pyattr_get_frame_start(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_frame_start(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_frame_end(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_frame_end(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+#endif
 	static const char *S_KX_ACT_IPO_PLAY_STRING;
 	static const char *S_KX_ACT_IPO_PINGPONG_STRING;
 	static const char *S_KX_ACT_IPO_FLIPPER_STRING;

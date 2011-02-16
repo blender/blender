@@ -33,6 +33,8 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
@@ -41,8 +43,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#ifdef WITH_MOD_DECIMATE
 #include "LOD_decimation.h"
-
+#endif
 
 static void initData(ModifierData *md)
 {
@@ -59,9 +62,11 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tdmd->percent = dmd->percent;
 }
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+#ifdef WITH_MOD_DECIMATE
+static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DecimateModifierData *dmd = (DecimateModifierData*) md;
 	DerivedMesh *dm = derivedData, *result = NULL;
@@ -174,7 +179,15 @@ static DerivedMesh *applyModifier(
 exit:
 		return result;
 }
-
+#else // WITH_MOD_DECIMATE
+static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
+{
+	return derivedData;
+}
+#endif // WITH_MOD_DECIMATE
 
 ModifierTypeInfo modifierType_Decimate = {
 	/* name */              "Decimate",
@@ -184,6 +197,7 @@ ModifierTypeInfo modifierType_Decimate = {
 	/* flags */             eModifierTypeFlag_AcceptsMesh,
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
@@ -194,6 +208,7 @@ ModifierTypeInfo modifierType_Decimate = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    0,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

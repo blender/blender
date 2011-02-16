@@ -311,8 +311,13 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 			c1 = tolower(s1[d1]);
 			c2 = tolower(s2[d2]);
 		}
-		
-		if (c1<c2) {
+	
+		/* first check for '.' so "foo.bar" comes before "foo 1.bar" */	
+		if(c1=='.' && c2!='.')
+			return -1;
+		if(c1!='.' && c2=='.')
+			return 1;
+		else if (c1<c2) {
 			return -1;
 		} else if (c1>c2) {
 			return 1;

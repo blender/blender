@@ -34,7 +34,7 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(in), short UNUSED(thread))
 {
 	float x = p->co[0];
 	float y = p->co[1];
@@ -58,7 +58,13 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			py = (int)( (y-yoff) * ysize );
 		
 			if( (!xsize) || (!ysize) ) return;
-			if( !ibuf->rect_float ) IMB_float_from_rect(ibuf);
+			
+			if( !ibuf->rect_float ) {
+				BLI_lock_thread(LOCK_IMAGE);
+				if( !ibuf->rect_float )
+					IMB_float_from_rect(ibuf);
+				BLI_unlock_thread(LOCK_IMAGE);
+			}
 			
 			while( px < 0 ) px += ibuf->x;
 			while( py < 0 ) py += ibuf->y;
@@ -85,20 +91,16 @@ static void init(bNode* node)
    iuser->ok= 1;
 }
 
-bNodeType tex_node_image= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	TEX_NODE_IMAGE,
-	/* name        */	"Image",
-	/* width+range */	120, 80, 300,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	outputs,
-	/* storage     */	"ImageUser",
-	/* execfunc    */	exec,
-	/* butfunc     */	NULL,
-	/* initfunc    */	init,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
-
+void register_node_type_tex_image(ListBase *lb)
+{
+	static bNodeType ntype;
+	
+	node_type_base(&ntype, TEX_NODE_IMAGE, "Image", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
+				   NULL, outputs);
+	node_type_size(&ntype, 120, 80, 300);
+	node_type_init(&ntype, init);
+	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, exec);
+	
+	nodeRegisterType(lb, &ntype);
+}

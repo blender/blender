@@ -90,12 +90,12 @@ public:
 		KX_RAY_AXIS_NEG_Z
 	};
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* Attributes */
 	static PyObject* pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 };
 

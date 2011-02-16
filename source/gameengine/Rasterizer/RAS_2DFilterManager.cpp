@@ -431,6 +431,8 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	glViewport(0,0, texturewidth, textureheight);
 
 	glDisable(GL_DEPTH_TEST);
+	// if the last rendered face had alpha add it would messes with the color of the plane we apply 2DFilter to
+	glDisable(GL_BLEND); 
 	glPushMatrix();		//GL_MODELVIEW
 	glLoadIdentity();	// GL_MODELVIEW
 	glMatrixMode(GL_TEXTURE);
@@ -510,11 +512,11 @@ void RAS_2DFilterManager::EnableFilter(vector<STR_String>& propNames, void* game
 		return;
 	}
 
-	if(mode>=RAS_2DFILTER_MOTIONBLUR && mode<=RAS_2DFILTER_INVERT)
-	{
-		if(m_filters[pass])
-			glDeleteObjectARB(m_filters[pass]);
-		m_filters[pass] = CreateShaderProgram(mode);
-		m_enabled[pass] = 1;
-	}
+	// We've checked all other cases, which means we must be dealing with a builtin filter
+	if(m_filters[pass])
+		glDeleteObjectARB(m_filters[pass]);
+	m_filters[pass] = CreateShaderProgram(mode);
+	m_gameObjects[pass] = NULL;
+	AnalyseShader(pass, propNames);
+	m_enabled[pass] = 1;
 }

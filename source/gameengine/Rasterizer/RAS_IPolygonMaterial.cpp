@@ -208,6 +208,11 @@ Material *RAS_IPolyMaterial::GetBlenderMaterial() const
 	return NULL;
 }
 
+Image *RAS_IPolyMaterial::GetBlenderImage() const
+{
+	return NULL;
+}
+
 Scene* RAS_IPolyMaterial::GetBlenderScene() const
 {
 	return NULL;

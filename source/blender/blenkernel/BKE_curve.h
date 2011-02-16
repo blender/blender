@@ -54,7 +54,7 @@ struct BevList;
 void unlink_curve( struct Curve *cu);
 void free_curve( struct Curve *cu);
 void BKE_free_editfont(struct Curve *cu);
-struct Curve *add_curve(char *name, int type);
+struct Curve *add_curve(const char *name, int type);
 struct Curve *copy_curve( struct Curve *cu);
 void make_local_curve( struct Curve *cu);
 short curve_type( struct Curve *cu);
@@ -69,9 +69,10 @@ void duplicateNurblist( struct ListBase *lb1,  struct ListBase *lb2);
 void test2DNurb( struct Nurb *nu);
 void minmaxNurb( struct Nurb *nu, float *min, float *max);
 
-void makeknots( struct Nurb *nu, short uv);
+void nurbs_knot_calc_u(struct Nurb *nu);
+void nurbs_knot_calc_v(struct Nurb *nu);
 
-void makeNurbfaces(struct Nurb *nu, float *coord_array, int rowstride);
+void makeNurbfaces(struct Nurb *nu, float *coord_array, int rowstride, int resolu, int resolv);
 void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, float *weight_array, int resolu, int stride);
 void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
 float *make_orco_curve(struct Scene *scene, struct Object *ob);

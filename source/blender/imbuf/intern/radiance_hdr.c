@@ -202,8 +202,8 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags)
 			ptr = (unsigned char *)strchr((char*)&mem[x+1], '\n');
 			ptr++;
 
-			if (flags & IB_test) ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
-			else ibuf = IMB_allocImBuf(width, height, 32, (flags & IB_rect)|IB_rectfloat, 0);
+			if (flags & IB_test) ibuf = IMB_allocImBuf(width, height, 32, 0);
+			else ibuf = IMB_allocImBuf(width, height, 32, (flags & IB_rect)|IB_rectfloat);
 
 			if (ibuf==NULL) return NULL;
 			ibuf->ftype = RADHDR;
@@ -333,12 +333,14 @@ static void writeHeader(FILE *file, int width, int height)
 	fputc(10, file);
 }
 
-int imb_savehdr(struct ImBuf *ibuf, char *name, int flags)
+int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 {
 	FILE* file = fopen(name, "wb");
 	float *fp= NULL;
 	int y, width=ibuf->x, height=ibuf->y;
 	unsigned char *cp= NULL;
+	
+	(void)flags; /* unused */
 	
 	if (file==NULL) return 0;
 

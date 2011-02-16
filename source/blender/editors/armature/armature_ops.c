@@ -57,9 +57,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_align);
 	WM_operatortype_append(ARMATURE_OT_calculate_roll);
 	WM_operatortype_append(ARMATURE_OT_switch_direction);
-	WM_operatortype_append(ARMATURE_OT_subdivs);
-	WM_operatortype_append(ARMATURE_OT_subdivide_simple);
-	WM_operatortype_append(ARMATURE_OT_subdivide_multi);
+	WM_operatortype_append(ARMATURE_OT_subdivide);
 	
 	WM_operatortype_append(ARMATURE_OT_parent_set);
 	WM_operatortype_append(ARMATURE_OT_parent_clear);
@@ -84,6 +82,7 @@ void ED_operatortypes_armature(void)
 	
 	WM_operatortype_append(ARMATURE_OT_flags_set);
 	
+	WM_operatortype_append(ARMATURE_OT_layers_show_all);
 	WM_operatortype_append(ARMATURE_OT_armature_layers);
 	WM_operatortype_append(ARMATURE_OT_bone_layers);
 
@@ -107,6 +106,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_rot_clear);
 	WM_operatortype_append(POSE_OT_loc_clear);
 	WM_operatortype_append(POSE_OT_scale_clear);
+	WM_operatortype_append(POSE_OT_transforms_clear);
 	
 	WM_operatortype_append(POSE_OT_copy);
 	WM_operatortype_append(POSE_OT_paste);
@@ -254,6 +254,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 		RNA_enum_set(kmi->ptr, "mode", 0); // clear
 		
 		/* armature/bone layers */
+	WM_keymap_add_item(keymap, "ARMATURE_OT_layers_show_all", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_bone_layers", MKEY, KM_PRESS, 0, 0);
 	
@@ -273,8 +274,10 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Pose", 0, 0);
 	keymap->poll= ED_operator_posemode;
 	
-	// XXX: set parent is object-based operator, but it should also be available here...
+	/* set parent and add object are object-based operators, but we make them
+	   available here because it's useful to do in pose mode too */
 	WM_keymap_add_item(keymap, "OBJECT_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "INFO_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, 0, 0);
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
@@ -331,6 +334,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 		RNA_enum_set(kmi->ptr, "mode", 0); // clear
 		
 		/* armature/bone layers */
+	WM_keymap_add_item(keymap, "ARMATURE_OT_layers_show_all", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_bone_layers", MKEY, KM_PRESS, 0, 0);
 	

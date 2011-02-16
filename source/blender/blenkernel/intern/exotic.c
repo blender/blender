@@ -61,9 +61,11 @@
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_storage.h"
+#include "BLI_utildefines.h"
+
 
 #include "BKE_blender.h"
 #include "BKE_global.h"
@@ -73,22 +75,22 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_report.h"
-
+#include "BKE_exotic.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_curve.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
 #include "zlib.h"
 
-static int is_dxf(char *str);
-static void dxf_read(Scene *scene, char *filename);
-static int is_stl(char *str);
+static int is_dxf(const char *str);
+static void dxf_read(Scene *scene, const char *filename);
+static int is_stl(const char *str);
 
-static int is_stl_ascii(char *str)
+static int is_stl_ascii(const char *str)
 {	
 	FILE *fpSTL;
 	char buffer[1000];
@@ -113,7 +115,7 @@ static int is_stl_ascii(char *str)
 	return 1;
 }
 
-static int is_stl(char *str)
+static int is_stl(const char *str)
 {
 	int i;
 	i = strlen(str) - 3;
@@ -189,7 +191,7 @@ static void mesh_add_normals_flags(Mesh *me)
 	}	
 }
 
-static void read_stl_mesh_binary(Scene *scene, char *str)
+static void read_stl_mesh_binary(Scene *scene, const char *str)
 {
 	FILE   *fpSTL;
 	Object *ob;
@@ -313,7 +315,7 @@ static void read_stl_mesh_binary(Scene *scene, char *str)
 		STLBAILOUT("Bad vertex!"); \
 	++totvert; \
 }
-static void read_stl_mesh_ascii(Scene *scene, char *str)
+static void read_stl_mesh_ascii(Scene *scene, const char *str)
 {
 	FILE   *fpSTL;
 	char   buffer[2048], *cp;
@@ -453,58 +455,53 @@ static void read_stl_mesh_ascii(Scene *scene, char *str)
 
 /* ************************************************************ */
 
-int BKE_read_exotic(Scene *scene, char *name)
+int BKE_read_exotic(Scene *scene, const char *name)
 {
 	int len;
 	gzFile gzfile;
-	char str[32];
-	int *s0 = (int*) str;
-	int retval = 0;
+	char header[7];
+	int retval;
 
 	// make sure we're not trying to read a directory....
 
 	len= strlen(name);
-	if (name[len-1] !='/' && name[len-1] != '\\') {
+	if (ELEM(name[len-1], '/', '\\')) {
+		retval= BKE_READ_EXOTIC_FAIL_PATH;
+	}
+	else {
 		gzfile = gzopen(name,"rb");
 
-		if (NULL == gzfile ) {
-			//XXX error("Can't open file: %s", name);
-			retval= -1;
-		} else {
-			gzread(gzfile, str, 31);
+		if (gzfile == NULL) {
+			retval= BKE_READ_EXOTIC_FAIL_OPEN;
+		}
+		else {
+			len= gzread(gzfile, header, sizeof(header));
 			gzclose(gzfile);
-
-			if ((*s0 != FORM) && (strncmp(str, "BLEN", 4) != 0) && !BLI_testextensie(name,".blend.gz")) {
-
+			if (len == sizeof(header) && strncmp(header, "BLENDER", 7) == 0) {
+				retval= BKE_READ_EXOTIC_OK_BLEND;
+			}
+			else {
 				//XXX waitcursor(1);
 				if(is_dxf(name)) {
 					dxf_read(scene, name);
-					retval = 1;
+					retval= BKE_READ_EXOTIC_OK_OTHER;
 				}
 				else if(is_stl(name)) {
 					if (is_stl_ascii(name))
 						read_stl_mesh_ascii(scene, name);
 					else
 						read_stl_mesh_binary(scene, name);
-					retval = 1;
+					retval= BKE_READ_EXOTIC_OK_OTHER;
 				}
-#ifndef DISABLE_PYTHON
-				// TODO: this should not be in the kernel...
-				else { // unknown format, call Python importloader 
-					if (BPY_call_importloader(name)) {
-						retval = 1;
-					} else {	
-						//XXX error("Unknown file type or error, check console");
-					}	
-				
+				else {
+					retval= BKE_READ_EXOTIC_FAIL_FORMAT;
 				}
-#endif /* DISABLE_PYTHON */
 				//XXX waitcursor(0);
 			}
 		}
 	}
 	
-	return (retval);
+	return retval;
 }
 
 
@@ -557,7 +554,7 @@ static int write_derivedmesh_stl(FILE *fpSTL, Object *ob, DerivedMesh *dm)
 	return numfacets;
 }
 
-static int write_object_stl(FILE *fpSTL, Scene *scene, Object *ob, Mesh *me)
+static int write_object_stl(FILE *fpSTL, Scene *scene, Object *ob)
 {
 	int  numfacets = 0;
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
@@ -572,7 +569,6 @@ static int write_object_stl(FILE *fpSTL, Scene *scene, Object *ob, Mesh *me)
 void write_stl(Scene *scene, char *str)
 {
 	Object *ob;
-	Mesh   *me;
 	Base   *base;
 	FILE   *fpSTL;
 	int    numfacets = 0;
@@ -605,9 +601,8 @@ void write_stl(Scene *scene, char *str)
 		if (base->flag & SELECT) {
 			ob = base->object;
 			if (ob->type == OB_MESH) {
-				me = ob->data;
-				if (me)
-					numfacets += write_object_stl(fpSTL, scene, ob, me);
+				if(ob->data)
+					numfacets += write_object_stl(fpSTL, scene, ob);
 			}
 		}
 		base= base->next;
@@ -978,7 +973,7 @@ static int all_digits(char *str)
 	return 1;
 }
 
-static int dxf_get_layer_col(char *layer) 
+static int dxf_get_layer_col(char *UNUSED(layer)) 
 {
 	return 1;
 }
@@ -1016,8 +1011,8 @@ static void myfgets(char *str, int len, FILE *fp)
 		/* three types of enters, \n \r and \r\n  */
 		if(c == '\n') break;
 		if(c=='\r') {
-			c= getc(dxf_fp);				// read the linefeed from stream
-			if(c != 10) ungetc(c, dxf_fp);	// put back, if it's not one...
+			c= getc(fp);				// read the linefeed from stream
+			if(c != 10) ungetc(c, fp);	// put back, if it's not one...
 			break;
 		}
 	}
@@ -1070,7 +1065,7 @@ static char val[256];
 static short error_exit=0;
 static short hasbumped=0;
 
-static int is_dxf(char *str)
+static int is_dxf(const char *str)
 {	
 	dxf_line=0;
 	
@@ -1172,10 +1167,10 @@ static void dxf_get_mesh(Scene *scene, Mesh** m, Object** o, int noob)
 		*o = add_object(scene, OB_MESH);
 		ob = *o;
 		
-		if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
-		else if (strlen(layname)) new_id(&G.main->object, (ID *)ob,  layname);
+		if (entname[0]) new_id(&G.main->object, (ID *)ob, entname);
+		else if (layname[0]) new_id(&G.main->object, (ID *)ob,  layname);
 
-		if (strlen(layname)) ob->lay= dxf_get_layer_num(scene, layname);
+		if (layname[0]) ob->lay= dxf_get_layer_num(scene, layname);
 		else ob->lay= scene->lay;
 		// not nice i know... but add_object() sets active base, which needs layer setting too (ton)
 		scene->basact->lay= ob->lay;
@@ -1194,8 +1189,8 @@ static void dxf_get_mesh(Scene *scene, Mesh** m, Object** o, int noob)
 		
 		((ID *)me)->us=0;
 
-		if (strlen(entname)) new_id(&G.main->mesh, (ID *)me, entname);
-		else if (strlen(layname)) new_id(&G.main->mesh, (ID *)me, layname);
+		if (entname[0]) new_id(&G.main->mesh, (ID *)me, entname);
+		else if (layname[0]) new_id(&G.main->mesh, (ID *)me, layname);
 
 		vcenter = zerovec;
 	}
@@ -2208,7 +2203,7 @@ static void dxf_read_3dface(Scene *scene, int noob)
 	hasbumped=1;
 }
 
-static void dxf_read(Scene *scene, char *filename)
+static void dxf_read(Scene *scene, const char *filename)
 {
 	Mesh *lastMe = G.main->mesh.last;
 
@@ -2377,7 +2372,7 @@ static void dxf_read(Scene *scene, char *filename)
 	
 						ob->dupon= 1; ob->dupoff= 0;
 						ob->dupsta= 1; ob->dupend= 100;
-						ob->recalc= OB_RECALC_ALL;	/* needed because of weird way of adding libdata directly */
+						ob->recalc= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;	/* needed because of weird way of adding libdata directly */
 						
 						ob->data= obdata;
 						((ID*)ob->data)->us++;
@@ -2396,7 +2391,7 @@ static void dxf_read(Scene *scene, char *filename)
 							I leave it commented out here as warning (ton) */
 						//for (i=0; i<ob->totcol; i++) ob->mat[i]= ((Mesh*)ob->data)->mat[i];
 						
-						if (strlen(layname)) ob->lay= dxf_get_layer_num(scene, layname);
+						if (layname[0]) ob->lay= dxf_get_layer_num(scene, layname);
 						else ob->lay= scene->lay;
 	
 						/* link to scene */

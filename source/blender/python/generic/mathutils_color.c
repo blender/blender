@@ -25,15 +25,22 @@
 #include "mathutils.h"
 
 #include "BLI_math.h"
-#include "BKE_utildefines.h"
+#include "BLI_utildefines.h"
+
+
 
 #define COLOR_SIZE 3
 
 //----------------------------------mathutils.Color() -------------------
 //makes a new color for you to play with
-static PyObject *Color_new(PyTypeObject * type, PyObject * args, PyObject * kwargs)
+static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	float col[3]= {0.0f, 0.0f, 0.0f};
+
+	if(kwds && PyDict_Size(kwds)) {
+		PyErr_SetString(PyExc_TypeError, "mathutils.Color(): takes no keyword args");
+		return NULL;
+	}
 
 	switch(PyTuple_GET_SIZE(args)) {
 	case 0:
@@ -81,9 +88,9 @@ static char Color_copy_doc[] =
 "   :return: A copy of the color.\n"
 "   :rtype: :class:`Color`\n"
 "\n"
-"   .. note:: use this to get a copy of a wrapped color with no reference to the original data.\n";
-
-static PyObject *Color_copy(ColorObject * self, PyObject *args)
+"   .. note:: use this to get a copy of a wrapped color with no reference to the original data.\n"
+;
+static PyObject *Color_copy(ColorObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -111,54 +118,46 @@ static PyObject *Color_repr(ColorObject * self)
 
 //------------------------tp_richcmpr
 //returns -1 execption, 0 false, 1 true
-static PyObject* Color_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+static PyObject* Color_richcmpr(PyObject *a, PyObject *b, int op)
 {
-	ColorObject *colA = NULL, *colB = NULL;
-	int result = 0;
+	PyObject *res;
+	int ok= -1; /* zero is true */
 
-	if(ColorObject_Check(objectA)) {
-		colA = (ColorObject*)objectA;
-		if(!BaseMath_ReadCallback(colA))
+	if (ColorObject_Check(a) && ColorObject_Check(b)) {
+		ColorObject *colA= (ColorObject*)a;
+		ColorObject *colB= (ColorObject*)b;
+
+		if(!BaseMath_ReadCallback(colA) || !BaseMath_ReadCallback(colB))
 			return NULL;
-	}
-	if(ColorObject_Check(objectB)) {
-		colB = (ColorObject*)objectB;
-		if(!BaseMath_ReadCallback(colB))
-			return NULL;
+
+		ok= EXPP_VectorsAreEqual(colA->col, colB->col, COLOR_SIZE, 1) ? 0 : -1;
 	}
 
-	if (!colA || !colB){
-		if (comparison_type == Py_NE){
-			Py_RETURN_TRUE;
-		}else{
-			Py_RETURN_FALSE;
-		}
-	}
-	colA = (ColorObject*)objectA;
-	colB = (ColorObject*)objectB;
+	switch (op) {
+	case Py_NE:
+		ok = !ok; /* pass through */
+	case Py_EQ:
+		res = ok ? Py_False : Py_True;
+		break;
 
-	switch (comparison_type){
-		case Py_EQ:
-			result = EXPP_VectorsAreEqual(colA->col, colB->col, COLOR_SIZE, 1);
-			break;
-		case Py_NE:
-			result = !EXPP_VectorsAreEqual(colA->col, colB->col, COLOR_SIZE, 1);
-			break;
-		default:
-			printf("The result of the comparison could not be evaluated");
-			break;
+	case Py_LT:
+	case Py_LE:
+	case Py_GT:
+	case Py_GE:
+		res = Py_NotImplemented;
+		break;
+	default:
+		PyErr_BadArgument();
+		return NULL;
 	}
-	if (result == 1){
-		Py_RETURN_TRUE;
-	}else{
-		Py_RETURN_FALSE;
-	}
+
+	return Py_INCREF(res), res;
 }
 
 //---------------------SEQUENCE PROTOCOLS------------------------
 //----------------------------len(object)------------------------
 //sequence length
-static int Color_len(ColorObject * self)
+static int Color_len(ColorObject *UNUSED(self))
 {
 	return COLOR_SIZE;
 }
@@ -193,7 +192,7 @@ static int Color_ass_item(ColorObject * self, int i, PyObject * value)
 	if(i<0) i= COLOR_SIZE-i;
 
 	if(i < 0 || i >= COLOR_SIZE){
-		PyErr_SetString(PyExc_IndexError, "color[attribute] = x: array assignment index out of range\n");
+		PyErr_SetString(PyExc_IndexError, "color[attribute] = x: array assignment index out of range");
 		return -1;
 	}
 
@@ -208,7 +207,7 @@ static int Color_ass_item(ColorObject * self, int i, PyObject * value)
 //sequence slice (get)
 static PyObject *Color_slice(ColorObject * self, int begin, int end)
 {
-	PyObject *list = NULL;
+	PyObject *tuple;
 	int count;
 
 	if(!BaseMath_ReadCallback(self))
@@ -217,15 +216,14 @@ static PyObject *Color_slice(ColorObject * self, int begin, int end)
 	CLAMP(begin, 0, COLOR_SIZE);
 	if (end<0) end= (COLOR_SIZE + 1) + end;
 	CLAMP(end, 0, COLOR_SIZE);
-	begin = MIN2(begin,end);
+	begin= MIN2(begin, end);
 
-	list = PyList_New(end - begin);
-	for(count = begin; count < end; count++) {
-		PyList_SetItem(list, count - begin,
-				PyFloat_FromDouble(self->col[count]));
+	tuple= PyTuple_New(end - begin);
+	for(count= begin; count < end; count++) {
+		PyTuple_SET_ITEM(tuple, count - begin, PyFloat_FromDouble(self->col[count]));
 	}
 
-	return list;
+	return tuple;
 }
 //----------------------------object[z:y]------------------------
 //sequence slice (set)
@@ -253,7 +251,7 @@ static int Color_ass_slice(ColorObject * self, int begin, int end, PyObject * se
 	for(i= 0; i < COLOR_SIZE; i++)
 		self->col[begin + i] = col[i];
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	return 0;
 }
 
@@ -270,11 +268,11 @@ static PyObject *Color_subscript(ColorObject *self, PyObject *item)
 	} else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((PySliceObject*)item, COLOR_SIZE, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx((void *)item, COLOR_SIZE, &start, &stop, &step, &slicelength) < 0)
 			return NULL;
 
 		if (slicelength <= 0) {
-			return PyList_New(0);
+			return PyTuple_New(0);
 		}
 		else if (step == 1) {
 			return Color_slice(self, start, stop);
@@ -285,9 +283,7 @@ static PyObject *Color_subscript(ColorObject *self, PyObject *item)
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "color indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return NULL;
 	}
 }
@@ -305,7 +301,7 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((PySliceObject*)item, COLOR_SIZE, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx((void *)item, COLOR_SIZE, &start, &stop, &step, &slicelength) < 0)
 			return -1;
 
 		if (step == 1)
@@ -316,9 +312,7 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
-				 "color indices must be integers, not %.200s",
-				 item->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
 		return -1;
 	}
 }
@@ -329,9 +323,9 @@ static PySequenceMethods Color_SeqMethods = {
 	(binaryfunc) NULL,						/* sq_concat */
 	(ssizeargfunc) NULL,					/* sq_repeat */
 	(ssizeargfunc) Color_item,				/* sq_item */
-	(ssizessizeargfunc) NULL,				/* sq_slice, deprecated */
+	NULL,									/* sq_slice, deprecated */
 	(ssizeobjargproc) Color_ass_item,		/* sq_ass_item */
-	(ssizessizeobjargproc) NULL,			/* sq_ass_slice, deprecated */
+	NULL,									/* sq_ass_slice, deprecated */
 	(objobjproc) NULL,						/* sq_contains */
 	(binaryfunc) NULL,						/* sq_inplace_concat */
 	(ssizeargfunc) NULL,					/* sq_inplace_repeat */
@@ -394,7 +388,7 @@ static int Color_setChannelHSV(ColorObject * self, PyObject * value, void * type
 }
 
 /* color channel (HSV), color.h/s/v */
-static PyObject *Color_getHSV(ColorObject * self, void *type)
+static PyObject *Color_getHSV(ColorObject * self, void *UNUSED(closure))
 {
 	float hsv[3];
 	PyObject *ret;
@@ -411,7 +405,7 @@ static PyObject *Color_getHSV(ColorObject * self, void *type)
 	return ret;
 }
 
-static int Color_setHSV(ColorObject * self, PyObject * value, void * type)
+static int Color_setHSV(ColorObject * self, PyObject * value, void *UNUSED(closure))
 {
 	float hsv[3];
 
@@ -434,36 +428,36 @@ static int Color_setHSV(ColorObject * self, PyObject * value, void * type)
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Color_getseters[] = {
-	{"r", (getter)Color_getChannel, (setter)Color_setChannel, "Red color channel.\n\n:type: float", (void *)0},
-	{"g", (getter)Color_getChannel, (setter)Color_setChannel, "Green color channel.\n\n:type: float", (void *)1},
-	{"b", (getter)Color_getChannel, (setter)Color_setChannel, "Blue color channel.\n\n:type: float", (void *)2},
+	{(char *)"r", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Red color channel.\n\n:type: float", (void *)0},
+	{(char *)"g", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Green color channel.\n\n:type: float", (void *)1},
+	{(char *)"b", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Blue color channel.\n\n:type: float", (void *)2},
 
-	{"h", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Hue component in [0, 1].\n\n:type: float", (void *)0},
-	{"s", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Saturation component in [0, 1].\n\n:type: float", (void *)1},
-	{"v", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Value component in [0, 1].\n\n:type: float", (void *)2},
+	{(char *)"h", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Hue component in [0, 1].\n\n:type: float", (void *)0},
+	{(char *)"s", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Saturation component in [0, 1].\n\n:type: float", (void *)1},
+	{(char *)"v", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Value component in [0, 1].\n\n:type: float", (void *)2},
 
-	{"hsv", (getter)Color_getHSV, (setter)Color_setHSV, "HSV Values in [0, 1].\n\n:type: float triplet", (void *)0},
+	{(char *)"hsv", (getter)Color_getHSV, (setter)Color_setHSV, (char *)"HSV Values in [0, 1].\n\n:type: float triplet", (void *)0},
 
-	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
-	{"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
+	{(char *)"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
 
 //-----------------------METHOD DEFINITIONS ----------------------
 static struct PyMethodDef Color_methods[] = {
-	{"__copy__", (PyCFunction) Color_copy, METH_VARARGS, Color_copy_doc},
-	{"copy", (PyCFunction) Color_copy, METH_VARARGS, Color_copy_doc},
+	{"__copy__", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
+	{"copy", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 
 //------------------PY_OBECT DEFINITION--------------------------
 static char color_doc[] =
-"This object gives access to Colors in Blender.";
-
+"This object gives access to Colors in Blender."
+;
 PyTypeObject color_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"color",						//tp_name
+	"mathutils.Color",						//tp_name
 	sizeof(ColorObject),			//tp_basicsize
 	0,								//tp_itemsize
 	(destructor)BaseMathObject_dealloc,		//tp_dealloc

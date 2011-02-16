@@ -105,7 +105,7 @@ static void rna_Lamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Lamp *la= ptr->id.data;
 
-	DAG_id_flush_update(&la->id, 0);
+	DAG_id_tag_update(&la->id, 0);
 	if(scene->gm.matmode == GAME_MAT_GLSL)
 		WM_main_add_notifier(NC_LAMP|ND_LIGHTING_DRAW, la);
 	else
@@ -116,7 +116,7 @@ static void rna_Lamp_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Lamp *la= ptr->id.data;
 
-	DAG_id_flush_update(&la->id, 0);
+	DAG_id_tag_update(&la->id, 0);
 	WM_main_add_notifier(NC_LAMP|ND_LIGHTING_DRAW, la);
 }
 
@@ -124,7 +124,7 @@ static void rna_Lamp_sky_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Lamp *la= ptr->id.data;
 
-	DAG_id_flush_update(&la->id, 0);
+	DAG_id_tag_update(&la->id, 0);
 	WM_main_add_notifier(NC_LAMP|ND_SKY, la);
 }
 
@@ -143,6 +143,14 @@ static void rna_Lamp_spot_size_set(PointerRNA *ptr, float value)
 
 
 #else
+
+EnumPropertyItem lamp_type_items[] = {
+	{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
+	{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},
+	{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source"},
+	{LA_HEMI, "HEMI", 0, "Hemi", "180 degree constant light source"},
+	{LA_AREA, "AREA", 0, "Area", "Directional area light source"},
+	{0, NULL, 0, NULL, NULL}};
 
 static void rna_def_lamp_mtex(BlenderRNA *brna)
 {
@@ -326,21 +334,13 @@ static void rna_def_lamp(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
-		{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
-		{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},
-		{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source"},
-		{LA_HEMI, "HEMI", 0, "Hemi", "180 degree constant light source"},
-		{LA_AREA, "AREA", 0, "Area", "Directional area light source"},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "Lamp", "ID");
 	RNA_def_struct_refine_func(srna, "rna_Lamp_refine");
 	RNA_def_struct_ui_text(srna, "Lamp", "Lamp datablock for lighting a scene");
 	RNA_def_struct_ui_icon(srna, ICON_LAMP_DATA);
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_enum_items(prop, lamp_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of Lamp");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 

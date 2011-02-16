@@ -76,6 +76,10 @@ public:
 	{
 		return NULL;
 	}
+	virtual struct DerivedMesh* GetPhysicsMesh()
+	{
+		return NULL;
+	}
 	virtual class RAS_MeshObject* GetRasMesh()
 	{
 		/* m_pMesh does not seem to be being used?? */

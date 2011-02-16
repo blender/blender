@@ -28,6 +28,8 @@
  * Ketsji Logic Extenstion: Network Message Sensor generic implementation
  */
 
+#include <stddef.h>
+
 #include "KX_NetworkMessageSensor.h"
 #include "KX_NetworkEventManager.h"
 #include "NG_NetworkMessage.h"
@@ -154,7 +156,7 @@ bool KX_NetworkMessageSensor::IsPositiveTrigger()
 	return m_IsUp;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* --------------------------------------------------------------------- */
 /* Python interface ---------------------------------------------------- */
@@ -215,4 +217,4 @@ PyObject* KX_NetworkMessageSensor::pyattr_get_subjects(void *self_v, const KX_PY
 	}
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

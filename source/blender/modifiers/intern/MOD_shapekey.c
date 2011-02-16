@@ -34,6 +34,9 @@
 
 #include "DNA_key_types.h"
 
+#include "BLI_utildefines.h"
+
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_key.h"
 #include "BKE_particle.h"
@@ -42,9 +45,12 @@
 
 #include "MEM_guardedalloc.h"
 
-static void deformVerts(
-					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *UNUSED(derivedData),
+						float (*vertexCos)[3],
+						int numVerts,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	KeyBlock *kb= ob_get_keyblock(ob);
 	float (*deformedVerts)[3];
@@ -58,9 +64,32 @@ static void deformVerts(
 	}
 }
 
-static void deformVertsEM(
-					   ModifierData *md, Object *ob, struct EditMesh *editData,
-	DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedData,
+						   float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
+{
+	Key *key= ob_get_key(ob);
+	KeyBlock *kb= ob_get_keyblock(ob);
+	float scale[3][3];
+	int a;
+
+	(void)vertexCos; /* unused */
+
+	if(kb && kb->totelem==numVerts && kb!=key->refkey) {
+		if(ob->shapeflag & OB_SHAPE_LOCK) scale_m3_fl(scale, 1);
+		else scale_m3_fl(scale, kb->curval);
+
+		for(a=0; a<numVerts; a++)
+			copy_m3_m3(defMats[a], scale);
+	}
+
+	deformVerts(md, ob, derivedData, vertexCos, numVerts, 0, 0);
+}
+
+static void deformVertsEM(ModifierData *md, Object *ob,
+						struct EditMesh *UNUSED(editData),
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int numVerts)
 {
 	Key *key= ob_get_key(ob);
 
@@ -68,15 +97,19 @@ static void deformVertsEM(
 		deformVerts(md, ob, derivedData, vertexCos, numVerts, 0, 0);
 }
 
-static void deformMatricesEM(
-						  ModifierData *md, Object *ob, struct EditMesh *editData,
-	   DerivedMesh *derivedData, float (*vertexCos)[3],
-						 float (*defMats)[3][3], int numVerts)
+static void deformMatricesEM(ModifierData *UNUSED(md), Object *ob,
+						struct EditMesh *UNUSED(editData),
+						DerivedMesh *UNUSED(derivedData),
+						float (*vertexCos)[3],
+						float (*defMats)[3][3],
+						int numVerts)
 {
 	Key *key= ob_get_key(ob);
 	KeyBlock *kb= ob_get_keyblock(ob);
 	float scale[3][3];
 	int a;
+
+	(void)vertexCos; /* unused */
 
 	if(kb && kb->totelem==numVerts && kb!=key->refkey) {
 		scale_m3_fl(scale, kb->curval);
@@ -85,7 +118,6 @@ static void deformMatricesEM(
 			copy_m3_m3(defMats[a], scale);
 	}
 }
-
 
 ModifierTypeInfo modifierType_ShapeKey = {
 	/* name */              "ShapeKey",
@@ -97,6 +129,7 @@ ModifierTypeInfo modifierType_ShapeKey = {
 
 	/* copyData */          0,
 	/* deformVerts */       deformVerts,
+	/* deformMatrices */    deformMatrices,
 	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  deformMatricesEM,
 	/* applyModifier */     0,
@@ -107,6 +140,7 @@ ModifierTypeInfo modifierType_ShapeKey = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    0,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

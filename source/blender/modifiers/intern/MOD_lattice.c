@@ -34,6 +34,9 @@
 
 #include "DNA_object_types.h"
 
+#include "BLI_utildefines.h"
+
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_modifier.h"
@@ -52,18 +55,18 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strncpy(tlmd->name, lmd->name, 32);
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	LatticeModifierData *lmd = (LatticeModifierData *)md;
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(lmd->name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+	if(lmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
 
-static int isDisabled(ModifierData *md, int userRenderParams)
+static int isDisabled(ModifierData *md, int UNUSED(userRenderParams))
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
@@ -80,8 +83,10 @@ static void foreachObjectLink(
 	walk(userData, ob, &lmd->object);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
-					   Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
@@ -93,9 +98,12 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *sc
 	}
 }
 
-static void deformVerts(
-					ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int numVerts,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
@@ -129,6 +137,7 @@ ModifierTypeInfo modifierType_Lattice = {
 							| eModifierTypeFlag_SupportsEditmode,
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     0,
@@ -139,6 +148,7 @@ ModifierTypeInfo modifierType_Lattice = {
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     0,
 };

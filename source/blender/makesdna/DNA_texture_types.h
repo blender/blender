@@ -34,6 +34,10 @@
 #include "DNA_ID.h"
 #include "DNA_image_types.h" /* ImageUser */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AnimData;
 struct Ipo;
 struct PluginTex;
@@ -220,7 +224,7 @@ typedef struct Tex {
 	float vn_mexp;
 	short vn_distm, vn_coltype;
 
-	short noisedepth, noisetype;
+	short noisedepth, noisetype; /* noisedepth MUST be <= 30 else we get floating point exceptions */
 
 	/* newnoise: noisebasis type for clouds/marble/etc, noisebasis2 only used for distorted noise */
 	short noisebasis, noisebasis2;
@@ -450,7 +454,11 @@ typedef struct TexMapping {
 #define MTEX_VIEWSPACE		16
 #define MTEX_DUPLI_MAPTO	32
 #define MTEX_OB_DUPLI_ORIG	64
-#define MTEX_NEW_BUMP		128
+#define MTEX_COMPAT_BUMP	128
+#define MTEX_3TAP_BUMP		256
+#define MTEX_5TAP_BUMP		512
+#define MTEX_BUMP_OBJECTSPACE	1024
+#define MTEX_BUMP_TEXTURESPACE	2048
 
 /* blendtype */
 #define MTEX_BLEND		0
@@ -548,11 +556,17 @@ typedef struct TexMapping {
 #define TEX_VD_RAW_16BIT		2
 #define TEX_VD_IMAGE_SEQUENCE	3
 #define TEX_VD_SMOKE			4
+/* for voxels which use VoxelData->source_path */
+#define TEX_VD_IS_SOURCE_PATH(_format) (ELEM3(_format, TEX_VD_BLENDERVOXEL, TEX_VD_RAW_8BIT, TEX_VD_RAW_16BIT))
 
 /* smoke data types */
 #define TEX_VD_SMOKEDENSITY		0
 #define TEX_VD_SMOKEHEAT		1
 #define TEX_VD_SMOKEVEL			2
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

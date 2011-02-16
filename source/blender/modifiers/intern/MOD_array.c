@@ -35,6 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_edgehash.h"
 
@@ -101,8 +102,8 @@ static void foreachObjectLink(
 	walk(userData, ob, &amd->offset_ob);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
-					 Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+	struct Scene *UNUSED(scene), Object *UNUSED(ob), DagNode *obNode)
 {
 	ArrayModifierData *amd = (ArrayModifierData*) md;
 
@@ -149,6 +150,30 @@ static float vertarray_size(MVert *mvert, int numVerts, int axis)
 	}
 
 	return max_co - min_co;
+}
+
+/* XXX This function fixes bad merging code, in some cases removing vertices creates indices > maxvert */
+
+static int test_index_face_maxvert(MFace *mface, CustomData *fdata, int mfindex, int nr, int maxvert)
+{
+	if(mface->v1 >= maxvert) {
+		// printf("bad index in array\n");
+		mface->v1= maxvert - 1;
+	}
+	if(mface->v2 >= maxvert) {
+		// printf("bad index in array\n");
+		mface->v2= maxvert - 1;
+	}
+	if(mface->v3 >= maxvert) {
+		// printf("bad index in array\n");
+		mface->v3= maxvert - 1;
+	}
+	if(mface->v4 >= maxvert) {
+		// printf("bad index in array\n");
+		mface->v4= maxvert - 1;
+	}
+	
+	return test_index_face(mface, fdata, mfindex, nr);
 }
 
 typedef struct IndexMapEntry {
@@ -419,7 +444,13 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  }
 
 			  if(med.v1 == med.v2) continue;
-
+			  
+			  /* XXX Unfortunately the calc_mapping returns sometimes numVerts... leads to bad crashes */
+			  if(med.v1 >= numVerts)
+				  med.v1= numVerts-1;
+			  if(med.v2 >= numVerts)
+				  med.v2= numVerts-1;
+			  
 			  if (initFlags) {
 				  med.flag |= ME_EDGEDRAW | ME_EDGERENDER;
 			  }
@@ -436,6 +467,16 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  {
 				  vert1 = calc_mapping(indexMap, inMED.v1, j);
 				  vert2 = calc_mapping(indexMap, inMED.v2, j);
+				  
+				  /* edge could collapse to single point after mapping */
+				  if(vert1 == vert2) continue;
+				  
+				  /* XXX Unfortunately the calc_mapping returns sometimes numVerts... leads to bad crashes */
+				  if(vert1 >= numVerts)
+					  vert1= numVerts-1;
+				  if(vert2 >= numVerts)
+					  vert2= numVerts-1;
+
 				  /* avoid duplicate edges */
 				  if(!BLI_edgehash_haskey(edges, vert1, vert2)) {
 					  med2 = &medge[numEdges];
@@ -481,7 +522,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  if(inMF.v4 && indexMap[inMF.v4].merge_final)
 				  mf->v4 = calc_mapping(indexMap, indexMap[inMF.v4].merge, count-1);
 
-			  if(test_index_face(mf, &result->faceData, numFaces, inMF.v4?4:3) < 3)
+			  if(test_index_face_maxvert(mf, &result->faceData, numFaces, inMF.v4?4:3, numVerts) < 3)
 				  continue;
 
 			  numFaces++;
@@ -505,12 +546,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  if (inMF.v4)
 					  mf2->v4 = calc_mapping(indexMap, inMF.v4, j);
 
-				  test_index_face(mf2, &result->faceData, numFaces, inMF.v4?4:3);
 				  numFaces++;
 
 				  /* if the face has fewer than 3 vertices, don't create it */
-				  if(mf2->v3 == 0 || (mf2->v1 && (mf2->v1 == mf2->v3 || mf2->v1 ==
-								 mf2->v4))) {
+				  if(test_index_face_maxvert(mf2, &result->faceData, numFaces-1, inMF.v4?4:3, numVerts) < 3) {
 					  numFaces--;
 					  DM_free_face_data(result, numFaces, 1);
 								 }
@@ -601,8 +640,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  if(mface[numFaces].v4) {
 					  mface[numFaces].v4 = vert_map[mface[numFaces].v4];
 
-					  test_index_face(&mface[numFaces], &result->faceData,
-									  numFaces, 4);
+					  test_index_face_maxvert(&mface[numFaces], &result->faceData,
+									  numFaces, 4, numVerts);
 				  }
 				  else
 				  {
@@ -729,26 +768,27 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		  return result;
 }
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *dm,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	ArrayModifierData *amd = (ArrayModifierData*) md;
 
-	result = arrayModifier_doArray(amd, md->scene, ob, derivedData, 0);
+	result = arrayModifier_doArray(amd, md->scene, ob, dm, 0);
 
-	if(result != derivedData)
+	if(result != dm)
 		CDDM_calc_normals(result);
 
 	return result;
 }
 
-static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct EditMesh *editData,
-  DerivedMesh *derivedData)
+static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
+						struct EditMesh *UNUSED(editData),
+						DerivedMesh *dm)
 {
-	return applyModifier(md, ob, derivedData, 0, 1);
+	return applyModifier(md, ob, dm, 0, 1);
 }
 
 
@@ -765,6 +805,7 @@ ModifierTypeInfo modifierType_Array = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
@@ -775,6 +816,7 @@ ModifierTypeInfo modifierType_Array = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     0,
 };

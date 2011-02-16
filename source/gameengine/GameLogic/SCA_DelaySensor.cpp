@@ -35,6 +35,8 @@
 #pragma warning( disable : 4786 )     
 #endif
 
+#include <stddef.h>
+
 #include "SCA_DelaySensor.h"
 #include "SCA_LogicManager.h"
 #include "SCA_EventManager.h"
@@ -120,7 +122,7 @@ bool SCA_DelaySensor::Evaluate()
 	return trigger;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -160,6 +162,6 @@ PyAttributeDef SCA_DelaySensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

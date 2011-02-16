@@ -24,13 +24,15 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-ADD_SUBDIRECTORY(blender)
-ADD_SUBDIRECTORY(kernel)
+add_subdirectory(blender)
 
-IF(WITH_GAMEENGINE)
-	ADD_SUBDIRECTORY(gameengine)
-ENDIF(WITH_GAMEENGINE)
+if(WITH_GAMEENGINE)
+	add_subdirectory(kernel)
+	add_subdirectory(gameengine)
+endif()
 	
-IF(WINDOWS)
-	ADD_SUBDIRECTORY(icons)
-ENDIF(WINDOWS)
+if(WINDOWS)
+	add_subdirectory(icons)
+endif()
+
+add_subdirectory(tests)

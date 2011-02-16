@@ -40,11 +40,13 @@
 #include <math.h>
 #include <float.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "MEM_guardedalloc.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_bmesh.h"
 #include "BKE_cloth.h"
@@ -59,12 +61,12 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 	static int types_init = 1;
 
 	if (types_init) {
-		modifier_type_init(types, type); /* MOD_utils.c */
+		modifier_type_init(types); /* MOD_utils.c */
 		types_init= 0;
 	}
 
-	if(type >= 0 && type < NUM_MODIFIER_TYPES &&
-	   types[type]->name[0] != '\0') {
+	/* type unsigned, no need to chech < 0 */
+	if(type < NUM_MODIFIER_TYPES && types[type]->name[0] != '\0') {
 		return types[type];
 	}
 	else {
@@ -147,14 +149,14 @@ ModifierData *modifiers_findByName(Object *ob, const char *name)
 void modifiers_clearErrors(Object *ob)
 {
 	ModifierData *md = ob->modifiers.first;
-	int qRedraw = 0;
+	/* int qRedraw = 0; */
 
 	for (; md; md=md->next) {
 		if (md->error) {
 			MEM_freeN(md->error);
 			md->error = NULL;
 
-			qRedraw = 1;
+			/* qRedraw = 1; */
 		}
 	}
 }
@@ -216,7 +218,7 @@ int modifier_sameTopology(ModifierData *md)
 	return ( mti->type == eModifierTypeType_OnlyDeform || mti->type == eModifierTypeType_Nonconstructive);
 }
 
-void modifier_setError(ModifierData *md, char *format, ...)
+void modifier_setError(ModifierData *md, const char *format, ...)
 {
 	char buffer[2048];
 	va_list ap;
@@ -236,7 +238,8 @@ void modifier_setError(ModifierData *md, char *format, ...)
  * there
  * 
  * also used in transform_conversion.c, to detect CrazySpace [tm] (2nd arg
- * then is NULL)
+ * then is NULL) 
+ * also used for some mesh tools to give warnings
  */
 int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *lastPossibleCageIndex_r, int virtual_)
 {
@@ -492,7 +495,7 @@ int modifier_isCorrectableDeformed(ModifierData *md)
 	return 0;
 }
 
-int modifiers_isCorrectableDeformed(struct Scene *scene, Object *ob)
+int modifiers_isCorrectableDeformed(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	

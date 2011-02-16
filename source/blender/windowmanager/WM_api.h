@@ -31,6 +31,10 @@
 /* dna-savable wmStructs here */
 #include "DNA_windowmanager_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bContext;
 struct IDProperty;
 struct wmEvent;
@@ -52,8 +56,8 @@ typedef struct wmJob wmJob;
 
 /* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
-void		WM_setinitialstate_fullscreen();
-void		WM_setinitialstate_normal();
+void		WM_setinitialstate_fullscreen(void);
+void		WM_setinitialstate_normal(void);
 
 void		WM_init				(struct bContext *C, int argc, char **argv);
 void		WM_exit				(struct bContext *C);
@@ -77,9 +81,10 @@ void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
 
 
 			/* files */
-int			WM_read_homefile	(struct bContext *C, struct wmOperator *op);
+int			WM_read_homefile_exec(struct bContext *C, struct wmOperator *op);
+int			WM_read_homefile	(struct bContext *C, struct ReportList *reports, short from_memory);
 int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
-void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
+void		WM_read_file		(struct bContext *C, const char *name, struct ReportList *reports);
 int			WM_write_file		(struct bContext *C, const char *target, int fileflags, struct ReportList *reports, int copy);
 void		WM_read_autosavefile(struct bContext *C);
 void		WM_autosave_init	(struct wmWindowManager *wm);
@@ -99,44 +104,44 @@ void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
 
 			/* keyconfig and keymap */
-wmKeyConfig *WM_keyconfig_new	(struct wmWindowManager *wm, char *idname);
-wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, char *idname);
+wmKeyConfig *WM_keyconfig_new	(struct wmWindowManager *wm, const char *idname);
+wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, const char *idname);
 void 		WM_keyconfig_remove	(struct wmWindowManager *wm, struct wmKeyConfig *keyconf);
 void 		WM_keyconfig_free	(struct wmKeyConfig *keyconf);
-void		WM_keyconfig_userdef(struct wmWindowManager *wm);
+void		WM_keyconfig_userdef(void);
 
 void		WM_keymap_init		(struct bContext *C);
 void		WM_keymap_free		(struct wmKeyMap *keymap);
 
-wmKeyMapItem *WM_keymap_verify_item(struct wmKeyMap *keymap, char *idname, int type, 
+wmKeyMapItem *WM_keymap_verify_item(struct wmKeyMap *keymap, const char *idname, int type, 
 								 int val, int modifier, int keymodifier);
-wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, char *idname, int type, 
+wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, const char *idname, int type, 
 								 int val, int modifier, int keymodifier);
-wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, char *idname, int type,
+wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, const char *idname, int type,
 								 int val, int modifier, int keymodifier);
 
-void         WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
+void		WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
 char		 *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len);
 
-wmKeyMap	*WM_keymap_list_find(ListBase *lb, char *idname, int spaceid, int regionid);
-wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, char *idname, int spaceid, int regionid);
-wmKeyMap	*WM_keymap_find_all(const struct bContext *C, char *idname, int spaceid, int regionid);
+wmKeyMap	*WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid);
+wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid);
+wmKeyMap	*WM_keymap_find_all(const struct bContext *C, const char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
-wmKeyMap	*WM_keymap_guess_opname(const struct bContext *C, char *opname);
+wmKeyMap	*WM_keymap_guess_opname(const struct bContext *C, const char *opname);
 int			 WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
 void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
-void		WM_keymap_properties_reset(struct wmKeyMapItem *kmi);
+void		WM_keymap_properties_reset(struct wmKeyMapItem *kmi, struct IDProperty *properties);
 void		WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
 
 wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id);
 int			WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2);
 int			WM_userdef_event_map(int kmitype);
 
-wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, struct EnumPropertyItem *items);
-wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, char *idname);
+wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, const char *idname, struct EnumPropertyItem *items);
+wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, const char *idname);
 wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value);
-void		WM_modalkeymap_assign(struct wmKeyMap *km, char *opname);
+void		WM_modalkeymap_assign(struct wmKeyMap *km, const char *opname);
 
 const char	*WM_key_event_string(short type);
 int			WM_key_event_operator_id(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, int hotkey, struct wmKeyMap **keymap_r);
@@ -196,7 +201,7 @@ int 		WM_operator_props_dialog_popup (struct bContext *C, struct wmOperator *op,
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
 int			WM_operator_ui_popup	(struct bContext *C, struct wmOperator *op, int width, int height);
 
-int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, char *message);
+int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, const char *message);
 
 		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);
@@ -209,18 +214,20 @@ void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *)
 void		WM_operatortype_append_macro_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
 int			WM_operatortype_remove(const char *idname);
 
-struct wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag);
+struct wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, int flag);
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname);
 
 
 int			WM_operator_poll		(struct bContext *C, struct wmOperatorType *ot);
+int			WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, int context);
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
 int			WM_operator_repeat		(struct bContext *C, struct wmOperator *op);
-int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties);
+int			WM_operator_repeat_check(const struct bContext *C, struct wmOperator *op);
+int			WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties);
 int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports);
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
-void		WM_operator_properties_sanitize(struct PointerRNA *ptr, int val); /* make props context sensitive or not */
+void		WM_operator_properties_sanitize(struct PointerRNA *ptr, const short no_context); /* make props context sensitive or not */
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
@@ -291,7 +298,7 @@ void				WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx
 
 struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(struct bContext *, struct wmDrag *, struct wmEvent *event),
 						  void (*copy)(struct wmDrag *, struct wmDropBox *));
-ListBase	*WM_dropboxmap_find(char *idname, int spaceid, int regionid);
+ListBase	*WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
 			/* Set a subwindow active in pixelspace view, with optional scissor subset */
 void		wmSubWindowSet			(struct wmWindow *win, int swinid);
@@ -310,8 +317,9 @@ int			WM_framebuffer_to_index(unsigned int col);
 #define WM_JOB_PRIORITY		1
 #define WM_JOB_EXCL_RENDER	2
 #define WM_JOB_PROGRESS		4
+#define WM_JOB_SUSPEND		8
 
-struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, char *name, int flag);
+struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, const char *name, int flag);
 
 int			WM_jobs_test(struct wmWindowManager *wm, void *owner);
 float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
@@ -327,7 +335,7 @@ void		WM_jobs_callbacks(struct wmJob *,
 
 void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner, void *startjob);
-void		WM_jobs_kill(struct wmWindowManager *wm, void *owner, void *startjob);
+void		WM_jobs_kill(struct wmWindowManager *wm, void *owner, void (*)(void *, short int *, short int *, float *));
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
 			/* clipboard */
@@ -337,6 +345,15 @@ void		WM_clipboard_text_set(char *buf, int selection);
 			/* progress */
 void		WM_progress_set(struct wmWindow *win, float progress);
 void		WM_progress_clear(struct wmWindow *win);
+
+#ifdef WIN32
+			/* Windows System Console */
+void		WM_toggle_console(struct bContext *C, short show);
+#endif
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* WM_API_H */
 

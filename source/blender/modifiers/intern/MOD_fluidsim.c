@@ -34,6 +34,9 @@
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_types.h"
 
+#include "BLI_utildefines.h"
+
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 
@@ -69,9 +72,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 
 
-static DerivedMesh * applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *dm,
+						int useRenderParams,
+						int isFinalCalc)
 {
 	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
 	DerivedMesh *result = NULL;
@@ -82,17 +86,12 @@ static DerivedMesh * applyModifier(
 		initData(md);
 		
 		if(!fluidmd->fss)
-			return derivedData;
+			return dm;
 	}
 
-	result = fluidsimModifier_do(fluidmd, md->scene, ob, derivedData, useRenderParams, isFinalCalc);
+	result= fluidsimModifier_do(fluidmd, md->scene, ob, dm, useRenderParams, isFinalCalc);
 
-	if(result) 
-	{ 
-		return result; 
-	}
-	
-	return derivedData;
+	return result ? result : dm;
 }
 
 static void updateDepgraph(
@@ -125,7 +124,7 @@ static void updateDepgraph(
 	}
 }
 
-static int dependsOnTime(ModifierData *md) 
+static int dependsOnTime(ModifierData *UNUSED(md)) 
 {
 	return 1;
 }
@@ -143,6 +142,7 @@ ModifierTypeInfo modifierType_Fluidsim = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
@@ -153,6 +153,7 @@ ModifierTypeInfo modifierType_Fluidsim = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

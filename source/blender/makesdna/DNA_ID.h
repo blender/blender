@@ -127,8 +127,9 @@ typedef struct Library {
 #define PREVIEW_MIPMAP_LARGE 1
 
 typedef struct PreviewImage {
+	/* All values of 2 are really PREVIEW_MIPMAPS */
 	unsigned int w[2];
-	unsigned int h[2];	
+	unsigned int h[2];
 	short changed[2];
 	short changed_timestamp[2];
 	unsigned int * rect[2];
@@ -199,6 +200,11 @@ typedef struct PreviewImage {
 
 #define ID_REAL_USERS(id) (((ID *)id)->us - ((((ID *)id)->flag & LIB_FAKEUSER) ? 1:0))
 
+#ifdef GS
+#undef GS
+#endif
+#define GS(a)	(*((short *)(a)))
+
 /* id->flag: set frist 8 bits always at zero while reading */
 #define LIB_LOCAL		0
 #define LIB_EXTERN		1
@@ -215,6 +221,8 @@ typedef struct PreviewImage {
 #define LIB_DOIT		1024
 /* tag existing data before linking so we know what is new */
 #define LIB_PRE_EXISTING	2048
+/* runtime */
+#define LIB_ID_RECALC		4096
 
 #ifdef __cplusplus
 }

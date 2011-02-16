@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include "BoolValue.h"
 #include "IntValue.h"
 #include "FloatValue.h"
@@ -305,7 +307,7 @@ void SCA_RandomActuator::enforceConstraints() {
 	}
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

@@ -35,10 +35,12 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_voxel.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
@@ -46,6 +48,7 @@
 #include "smoke_API.h"
 
 #include "DNA_texture_types.h"
+#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_smoke_types.h"
@@ -178,7 +181,7 @@ static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 	return 1;
 }
 
-static void init_frame_smoke(VoxelData *vd, Tex *tex)
+static void init_frame_smoke(VoxelData *vd, float cfra)
 {
 	Object *ob;
 	ModifierData *md;
@@ -194,8 +197,9 @@ static void init_frame_smoke(VoxelData *vd, Tex *tex)
 
 		
 		if(smd->domain && smd->domain->fluid) {
-			
-			if (vd->smoked_type == TEX_VD_SMOKEHEAT) {
+			if(cfra < smd->domain->point_cache[0]->startframe)
+				; /* don't show smoke before simulation starts, this could be made an option in the future */
+			else if (vd->smoked_type == TEX_VD_SMOKEHEAT) {
 				int totRes;
 				float *heat;
 				int i;
@@ -238,13 +242,22 @@ static void init_frame_smoke(VoxelData *vd, Tex *tex)
 
 			}
 			else {
+				int totRes;
+				float *density;
+
 				if (smd->domain->flags & MOD_SMOKE_HIGHRES) {
 					smoke_turbulence_get_res(smd->domain->wt, vd->resol);
-					vd->dataset = smoke_turbulence_get_density(smd->domain->wt);
+					density = smoke_turbulence_get_density(smd->domain->wt);
 				} else {
 					VECCOPY(vd->resol, smd->domain->res);
-					vd->dataset = smoke_get_density(smd->domain->fluid);
+					density = smoke_get_density(smd->domain->fluid);
 				}
+
+				totRes = (vd->resol[0])*(vd->resol[1])*(vd->resol[2]);
+
+				/* always store copy, as smoke internal data can change */
+				vd->dataset = MEM_mapallocN(sizeof(float)*(totRes), "smoke data");
+				memcpy(vd->dataset, density, sizeof(float)*totRes);
 			} // end of fluid condition
 		}
 	}
@@ -253,13 +266,12 @@ static void init_frame_smoke(VoxelData *vd, Tex *tex)
 	return;
 }
 
-static void cache_voxeldata(struct Render *re,Tex *tex)
+static void cache_voxeldata(struct Render *re, Tex *tex)
 {	
 	VoxelData *vd = tex->vd;
 	FILE *fp;
 	int curframe;
-	
-	if (!vd) return;
+	char path[sizeof(vd->source_path)];
 	
 	/* only re-cache if dataset needs updating */
 	if ((vd->flag & TEX_VD_STILL) || (vd->cachedframe == re->r.cfra))
@@ -267,8 +279,7 @@ static void cache_voxeldata(struct Render *re,Tex *tex)
 	
 	/* clear out old cache, ready for new */
 	if (vd->dataset) {
-		if(vd->file_format != TEX_VD_SMOKE)
-			MEM_freeN(vd->dataset);
+		MEM_freeN(vd->dataset);
 		vd->dataset = NULL;
 	}
 
@@ -277,16 +288,19 @@ static void cache_voxeldata(struct Render *re,Tex *tex)
 	else
 		curframe = re->r.cfra;
 	
+	BLI_strncpy(path, vd->source_path, sizeof(path));
+	
 	switch(vd->file_format) {
 		case TEX_VD_IMAGE_SEQUENCE:
 			load_frame_image_sequence(vd, tex);
 			return;
 		case TEX_VD_SMOKE:
-			init_frame_smoke(vd, tex);
+			init_frame_smoke(vd, re->r.cfra);
 			return;
 		case TEX_VD_BLENDERVOXEL:
-			if (!BLI_exists(vd->source_path)) return;
-			fp = fopen(vd->source_path,"rb");
+			BLI_path_abs(path, G.main->name);
+			if (!BLI_exists(path)) return;
+			fp = fopen(path,"rb");
 			if (!fp) return;
 			
 			if(read_voxeldata_header(fp, vd))
@@ -296,8 +310,9 @@ static void cache_voxeldata(struct Render *re,Tex *tex)
 			
 			return;
 		case TEX_VD_RAW_8BIT:
-			if (!BLI_exists(vd->source_path)) return;
-			fp = fopen(vd->source_path,"rb");
+			BLI_path_abs(path, G.main->name);
+			if (!BLI_exists(path)) return;
+			fp = fopen(path,"rb");
 			if (!fp) return;
 			
 			if (load_frame_raw8(vd, fp, curframe))
@@ -347,7 +362,7 @@ int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 	add_v3_v3(co, offset);
 
 	/* co is now in the range 0.0, 1.0 */
-	switch (tex->extend) {
+	switch (vd->extend) {
 		case TEX_CLIP:
 		{
 			if ((co[0] < 0.f || co[0] > 1.f) || (co[1] < 0.f || co[1] > 1.f) || (co[2] < 0.f || co[2] > 1.f)) {

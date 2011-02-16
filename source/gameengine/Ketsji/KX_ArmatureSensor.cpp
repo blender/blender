@@ -149,7 +149,7 @@ bool KX_ArmatureSensor::Evaluate()
 	return (reset) ? true : false;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -201,4 +201,4 @@ PyObject* KX_ArmatureSensor::pyattr_get_constraint(void *self, const struct KX_P
 	Py_RETURN_NONE;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

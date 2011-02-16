@@ -33,7 +33,7 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 PyTypeObject BL_ArmatureChannel::Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -72,7 +72,7 @@ PyObject *BL_ArmatureChannel::NewProxy(bool py_owns)
 	return NewProxyPlus_Ext(this, &Type, m_posechannel, py_owns);
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 BL_ArmatureChannel::BL_ArmatureChannel(
 	BL_ArmatureObject *armature, 
@@ -85,7 +85,7 @@ BL_ArmatureChannel::~BL_ArmatureChannel()
 {
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 // PYTHON
 
@@ -121,7 +121,7 @@ PyAttributeDef BL_ArmatureChannel::AttributesPtr[] = {
 	KX_PYATTRIBUTE_FLOAT_VECTOR_RW("scale",-FLT_MAX,FLT_MAX,bPoseChannel,size,3),
 	KX_PYATTRIBUTE_FLOAT_VECTOR_RW("rotation_quaternion",-1.0f,1.0f,bPoseChannel,quat,4),
 	KX_PYATTRIBUTE_FLOAT_VECTOR_RW("rotation_euler",-10.f,10.f,bPoseChannel,eul,3),
-	KX_PYATTRIBUTE_SHORT_RW("rotation_mode",0,ROT_MODE_MAX-1,false,bPoseChannel,rotmode),
+	KX_PYATTRIBUTE_SHORT_RW("rotation_mode",ROT_MODE_MIN,ROT_MODE_MAX,false,bPoseChannel,rotmode),
 	KX_PYATTRIBUTE_FLOAT_MATRIX_RO("channel_matrix",bPoseChannel,chan_mat,4),
 	KX_PYATTRIBUTE_FLOAT_MATRIX_RO("pose_matrix",bPoseChannel,pose_mat,4),
 	KX_PYATTRIBUTE_FLOAT_VECTOR_RO("pose_head",bPoseChannel,pose_head,3),
@@ -461,4 +461,4 @@ PyObject *BL_ArmatureBone::py_bone_get_children(void *self, const struct KX_PYAT
 	return childrenlist;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

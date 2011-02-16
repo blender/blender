@@ -110,19 +110,14 @@
 #define LITTLE_LONG ENDIAN_NOP
 #endif
 
-/****/
-
-#define ANIM_NONE		(0)
-#define ANIM_SEQUENCE		(1 << 0)
-#define ANIM_DIR		(1 << 1)
-#define ANIM_DEPRECATED	(1 << 2)
-#define ANIM_TGA		(1 << 3)
+/* anim.curtype, runtime only */
+#define ANIM_NONE		0
+#define ANIM_SEQUENCE	(1 << 0)
 #define ANIM_MOVIE		(1 << 4)
-#define ANIM_MDEC		(1 << 5)
 #define ANIM_AVI		(1 << 6)
 #define ANIM_QTIME		(1 << 7)
-#define ANIM_FFMPEG             (1 << 8)
-#define ANIM_REDCODE            (1 << 9)
+#define ANIM_FFMPEG     (1 << 8)
+#define ANIM_REDCODE    (1 << 9)
 
 #define MAXNUMSTREAMS		50
 

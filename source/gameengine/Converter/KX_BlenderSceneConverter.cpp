@@ -40,6 +40,7 @@
 #include "KX_KetsjiEngine.h"
 #include "KX_IPhysicsController.h"
 #include "BL_Material.h"
+#include "BL_ActionActuator.h"
 #include "KX_BlenderMaterial.h"
 #include "KX_PolygonMaterial.h"
 
@@ -622,12 +623,6 @@ void KX_BlenderSceneConverter::RegisterWorldInfo(
 	m_worldinfos.push_back(pair<KX_Scene*,KX_WorldInfo*>(m_currentScene,worldinfo));
 }
 
-//quick hack
-extern "C"
-{
-	void mat3_to_compatible_eul( float *eul, float *oldrot,float mat[][3]);
-}
-
 void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 {
 
@@ -782,8 +777,8 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 
 					mat3_to_compatible_eul(blenderObject->rot, blenderObject->rot, tmat);
 
-					insert_keyframe(&blenderObject->id, NULL, NULL, "location", -1, frameNumber, INSERTKEY_FAST);
-					insert_keyframe(&blenderObject->id, NULL, NULL, "rotation_euler", -1, frameNumber, INSERTKEY_FAST);
+					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "location", -1, frameNumber, INSERTKEY_FAST);
+					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "rotation_euler", -1, frameNumber, INSERTKEY_FAST);
 
 #if 0
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
@@ -911,7 +906,7 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 PyObject *KX_BlenderSceneConverter::GetPyNamespace()
 {
 	return m_ketsjiEngine->GetPyNamespace();
@@ -960,7 +955,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 	static char err_local[255];
 	
 	/* only scene and mesh supported right now */
-	if(idcode!=ID_SCE && idcode!=ID_ME) {
+	if(idcode!=ID_SCE && idcode!=ID_ME &&idcode!=ID_AC) {
 		snprintf(err_local, sizeof(err_local), "invalid ID type given \"%s\"\n", group);
 		return false;
 	}
@@ -1016,6 +1011,16 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 		for(mesh= (ID *)main_newlib->mesh.first; mesh; mesh= (ID *)mesh->next ) {
 			RAS_MeshObject *meshobj = BL_ConvertMesh((Mesh *)mesh, NULL, scene_merge, this);
 			kx_scene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
+		}
+	}
+	else if(idcode==ID_AC) {
+		/* Convert all actions */
+		ID *action;
+		KX_Scene *kx_scene= m_currentScene;
+
+		for(action= (ID *)main_newlib->action.first; action; action= (ID *)action->next) {
+			printf("ActionName: %s\n", action->name);
+			kx_scene->GetLogicManager()->RegisterActionName(action->name+2, action);
 		}
 	}
 	else if(idcode==ID_SCE) {		
@@ -1092,6 +1097,23 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 					}
 				}
 			}
+
+			/* Now unregister actions */
+			{
+				GEN_Map<STR_HashedString,void*> &mapStringToActions = scene->GetLogicManager()->GetActionMap();
+
+				for(int i=0; i<mapStringToActions.size(); i++)
+				{
+					ID *action= (ID*) *mapStringToActions.at(i);
+
+					if(IS_TAGGED(action))
+					{
+						STR_HashedString an = action->name+2;
+						mapStringToActions.remove(an);
+						i--;
+					}
+				}
+			}
 			
 			//scene->FreeTagged(); /* removed tagged objects and meshes*/
 			CListValue *obj_lists[] = {scene->GetObjectList(), scene->GetInactiveList(), NULL};
@@ -1126,6 +1148,17 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 							if(IS_TAGGED(mesh->GetMesh())) {
 								gameobj->RemoveMeshes(); /* XXX - slack, should only remove meshes that are library items but mostly objects only have 1 mesh */
 								break;
+							}
+						}
+
+						/* make sure action actuators are not referencing tagged actions */
+						for (int act_idx=0; act_idx<gameobj->GetActuators().size(); act_idx++)
+						{
+							if (gameobj->GetActuators()[act_idx]->IsType(SCA_IActuator::KX_ACT_ACTION))
+							{
+								BL_ActionActuator *act = (BL_ActionActuator*)gameobj->GetActuators()[act_idx];
+								if(IS_TAGGED(act->GetAction()))
+									act->SetAction(NULL);
 							}
 						}
 					}

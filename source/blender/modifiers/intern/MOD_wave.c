@@ -36,6 +36,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_utildefines.h"
+
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_deform.h"
@@ -93,7 +96,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strncpy(twmd->defgrp_name, wmd->defgrp_name, 32);
 }
 
-static int dependsOnTime(ModifierData *md)
+static int dependsOnTime(ModifierData *UNUSED(md))
 {
 	return 1;
 }
@@ -118,9 +121,10 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
-static void updateDepgraph(
-					ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
-	 DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
 
@@ -139,7 +143,7 @@ static void updateDepgraph(
 	}
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	WaveModifierData *wmd = (WaveModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -147,11 +151,11 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 
 	/* ask for UV coordinates if we need them */
 	if(wmd->texture && wmd->texmapping == MOD_WAV_MAP_UV)
-		dataMask |= (1 << CD_MTFACE);
+		dataMask |= CD_MASK_MTFACE;
 
 	/* ask for vertexgroups if we need them */
 	if(wmd->defgrp_name[0])
-		dataMask |= (1 << CD_MDEFORMVERT);
+		dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
@@ -399,17 +403,20 @@ static void waveModifier_do(WaveModifierData *md,
 	if(wmd->texture) MEM_freeN(tex_co);
 }
 
-static void deformVerts(
-					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int numVerts,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm= derivedData;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
 	if(wmd->flag & MOD_WAVE_NORM)
-		dm= get_cddm(md->scene, ob, NULL, dm, vertexCos);
+		dm= get_cddm(ob, NULL, dm, vertexCos);
 	else if(wmd->texture || wmd->defgrp_name[0])
-		dm= get_dm(md->scene, ob, NULL, dm, NULL, 0);
+		dm= get_dm(ob, NULL, dm, NULL, 0);
 
 	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 
@@ -425,9 +432,9 @@ static void deformVertsEM(
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
 	if(wmd->flag & MOD_WAVE_NORM)
-		dm= get_cddm(md->scene, ob, editData, dm, vertexCos);
+		dm= get_cddm(ob, editData, dm, vertexCos);
 	else if(wmd->texture || wmd->defgrp_name[0])
-		dm= get_dm(md->scene, ob, editData, dm, NULL, 0);
+		dm= get_dm(ob, editData, dm, NULL, 0);
 
 	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 
@@ -445,6 +452,7 @@ ModifierTypeInfo modifierType_Wave = {
 							| eModifierTypeFlag_SupportsEditmode,
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     0,
@@ -455,6 +463,7 @@ ModifierTypeInfo modifierType_Wave = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
 };

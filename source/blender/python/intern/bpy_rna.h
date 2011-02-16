@@ -99,7 +99,7 @@ void pyrna_alloc_types(void);
 void pyrna_free_types(void);
 
 /* primitive type conversion */
-int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, char *param_data, PyObject *py, const char *error_prefix);
+int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data, PyObject *py, const char *error_prefix);
 int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, int arrayoffset, int index, PyObject *py, const char *error_prefix);
 PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 
@@ -107,5 +107,13 @@ PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop);
 PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr, PropertyRNA *prop, int index);
 PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
+
+int pyrna_write_check(void);
+
+void BPY_modules_update(struct bContext *C); //XXX temp solution
+
+/* bpy.utils.(un)register_class */
+extern PyMethodDef meth_bpy_register_class;
+extern PyMethodDef meth_bpy_unregister_class;
 
 #endif

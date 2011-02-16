@@ -65,6 +65,7 @@ typedef struct BVHTreeFromMesh
 
 	/* Private data */
 	int cached;
+	void *em_evil;	/* var only for snapping */
 
 } BVHTreeFromMesh;
 

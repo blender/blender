@@ -328,21 +328,18 @@ static void node_composit_init_view_levels(bNode* node)
    node->custom1=1; /*All channels*/
 }
 
-bNodeType cmp_node_view_levels= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_VIEW_LEVELS,
-	/* name        */	"Levels",
-	/* widthrange */	140, 100, 320,
-	/* classopts  */	NODE_CLASS_OUTPUT, NODE_OPTIONS|NODE_PREVIEW,
-	/* input sock  */	cmp_node_view_levels_in,
-	/* output sock */	cmp_node_view_levels_out,
-	/* storage     */	"ImageUser",
-	/* execfunc    */	node_composit_exec_view_levels,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_view_levels,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-	
-};
+void register_node_type_cmp_view_levels(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_VIEW_LEVELS, "Levels", NODE_CLASS_OUTPUT, NODE_OPTIONS|NODE_PREVIEW,
+		cmp_node_view_levels_in, cmp_node_view_levels_out);
+	node_type_size(&ntype, 140, 100, 320);
+	node_type_init(&ntype, node_composit_init_view_levels);
+	node_type_storage(&ntype, "ImageUser", NULL, NULL);
+	node_type_exec(&ntype, node_composit_exec_view_levels);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

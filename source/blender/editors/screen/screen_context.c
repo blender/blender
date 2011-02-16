@@ -33,9 +33,13 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BLI_utildefines.h"
+
+
 #include "BKE_context.h"
-#include "BKE_utildefines.h"
+#include "BKE_object.h"
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_sequencer.h"
 
 #include "RNA_access.h"
@@ -48,6 +52,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	bScreen *sc= CTX_wm_screen(C);
 	Scene *scene= sc->scene;
 	Base *base;
+	unsigned int lay = scene->lay;
 
 #if 0	/* Using the context breaks adding objects in the UI. Need to find out why - campbell */
 	Object *obact= CTX_data_active_object(C);
@@ -61,7 +66,8 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
-			"scene", "visible_objects", "visible_bases", "selected_objects", "selected_bases",
+			"scene", "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
+			"selected_objects", "selected_bases",
 			"selected_editable_objects", "selected_editable_bases",
 			"visible_bones", "editable_bones", "selected_bones", "selected_editable_bones",
 			"visible_pose_bones", "selected_pose_bones", "active_bone", "active_pose_bone",
@@ -87,6 +93,22 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					CTX_data_id_list_add(result, &base->object->id);
 				else
 					CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
+			}
+		}
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "selectable_objects") || CTX_data_equals(member, "selectable_bases")) {
+		int selectable_objects= CTX_data_equals(member, "selectable_objects");
+
+		for(base=scene->base.first; base; base=base->next) {
+			if(base->lay & lay) {
+				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0 && (base->object->restrictflag & OB_RESTRICT_SELECT)==0) {
+					if(selectable_objects)
+						CTX_data_id_list_add(result, &base->object->id);
+					else
+						CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
+				}
 			}
 		}
 		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
@@ -209,14 +231,15 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "visible_pose_bones")) {
-		bArmature *arm= (obact) ? obact->data : NULL;
+		Object *obpose= ED_object_pose_armature(obact);
+		bArmature *arm= (obpose) ? obpose->data : NULL;
 		bPoseChannel *pchan;
 		
-		if (obact && obact->pose && arm) {
-			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (obpose && obpose->pose && arm) {
+			for (pchan= obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-					CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
+				if (PBONE_VISIBLE(arm, pchan->bone)) {
+					CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
 				}
 			}
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
@@ -224,15 +247,16 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "selected_pose_bones")) {
-		bArmature *arm= (obact) ? obact->data : NULL;
+		Object *obpose= ED_object_pose_armature(obact);
+		bArmature *arm= (obpose) ? obpose->data : NULL;
 		bPoseChannel *pchan;
 		
-		if (obact && obact->pose && arm) {
-			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (obpose && obpose->pose && arm) {
+			for (pchan= obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-					if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone)
-						CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
+				if (PBONE_VISIBLE(arm, pchan->bone)) {
+					if (pchan->bone->flag & BONE_SELECTED)
+						CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
 				}
 			}
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
@@ -258,10 +282,11 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if(CTX_data_equals(member, "active_pose_bone")) {
 		bPoseChannel *pchan;
+		Object *obpose= ED_object_pose_armature(obact);
 		
-		pchan= get_active_posechannel(obact);
+		pchan= get_active_posechannel(obpose);
 		if (pchan) {
-			CTX_data_pointer_set(result, &obact->id, &RNA_PoseBone, pchan);
+			CTX_data_pointer_set(result, &obpose->id, &RNA_PoseBone, pchan);
 			return 1;
 		}
 	}

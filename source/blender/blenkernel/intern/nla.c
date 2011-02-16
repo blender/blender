@@ -36,6 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "DNA_anim_types.h"
@@ -46,7 +47,7 @@
 #include "BKE_nla.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
-#include "BKE_utildefines.h"
+
 
 #include "RNA_access.h"
 #include "nla_private.h"
@@ -77,7 +78,7 @@ void free_nlastrip (ListBase *strips, NlaStrip *strip)
 		
 	/* remove reference to action */
 	if (strip->act)
-		strip->act->id.us--;
+		id_us_min(&strip->act->id);
 		
 	/* free remapping info */
 	//if (strip->remap)
@@ -159,7 +160,7 @@ NlaStrip *copy_nlastrip (NlaStrip *strip)
 	
 	/* increase user-count of action */
 	if (strip_d->act)
-		strip_d->act->id.us++;
+		id_us_plus(&strip_d->act->id);
 		
 	/* copy F-Curves and modifiers */
 	copy_fcurves(&strip_d->fcurves, &strip->fcurves);
@@ -362,7 +363,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 			return strip->end - scale*(cframe - strip->actstart);
 		}
 		else if (mode == NLATIME_CONVERT_UNMAP) {
-			return strip->actend - (strip->end - cframe) / scale;	
+			return (strip->end + (strip->actstart * scale - cframe)) / scale;
 		}
 		else /* if (mode == NLATIME_CONVERT_EVAL) */{
 			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
@@ -513,7 +514,7 @@ short BKE_nlastrips_has_space (ListBase *strips, float start, float end)
 		/* if start frame of strip is past the target end-frame, that means that
 		 * we've gone past the window we need to check for, so things are fine
 		 */
-		if (strip->start > end)
+		if (strip->start >= end)
 			return 1;
 		
 		/* if the end of the strip is greater than either of the boundaries, the range
@@ -590,7 +591,7 @@ short BKE_nlastrips_add_strip (ListBase *strips, NlaStrip *strip)
 	/* find the right place to add the strip to the nominated track */
 	for (ns= strips->first; ns; ns= ns->next) {
 		/* if current strip occurs after the new strip, add it before */
-		if (ns->start > strip->end) {
+		if (ns->start >= strip->end) {
 			BLI_insertlinkbefore(strips, ns, strip);
 			not_added= 0;
 			break;
@@ -682,7 +683,7 @@ void BKE_nlastrips_clear_metastrip (ListBase *strips, NlaStrip *strip)
 	}
 	
 	/* free the meta-strip now */
-	BLI_freelinkN(strips, strip);
+	free_nlastrip(strips, strip);
 }
 
 /* Remove meta-strips (i.e. flatten the list of strips) from the top-level of the list of strips
@@ -916,9 +917,14 @@ void BKE_nlatrack_set_active (ListBase *tracks, NlaTrack *nlt_a)
 /* Check if there is any space in the given track to add a strip of the given length */
 short BKE_nlatrack_has_space (NlaTrack *nlt, float start, float end)
 {
-	/* sanity checks */
-	if ((nlt == NULL) || IS_EQ(start, end))
+	/* sanity checks 
+	 * 	- track must exist
+	 * 	- track must be editable
+	 * 	- bounds cannot be equal (0-length is nasty) 
+	 */
+	if ((nlt == NULL) || (nlt->flag & NLATRACK_PROTECTED) || IS_EQ(start, end))
 		return 0;
+	
 	if (start > end) {
 		puts("BKE_nlatrack_has_space() error... start and end arguments swapped");
 		SWAP(float, start, end);
@@ -1206,6 +1212,11 @@ void BKE_nlastrip_validate_fcurves (NlaStrip *strip)
 
 /* Sanity Validation ------------------------------------ */
 
+static int nla_editbone_name_check(void *arg, const char *name)
+{
+	return BLI_ghash_haskey((GHash *)arg, (void *)name);
+}
+
 /* Find (and set) a unique name for a strip from the whole AnimData block 
  * Uses a similar method to the BLI method, but is implemented differently
  * as we need to ensure that the name is unique over several lists of tracks,
@@ -1259,28 +1270,8 @@ void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
 	/* if the hash-table has a match for this name, try other names... 
 	 *	- in an extreme case, it might not be able to find a name, but then everything else in Blender would fail too :)
 	 */
-	if (BLI_ghash_haskey(gh, strip->name)) {
-		char tempname[128];
-		int	number = 1;
-		char *dot;
-		
-		/* Strip off the suffix */
-		dot = strrchr(strip->name, '.');
-		if (dot) *dot=0;
-		
-		/* Try different possibilities */
-		for (number = 1; number <= 999; number++) {
-			/* assemble alternative name */
-			BLI_snprintf(tempname, 128, "%s.%03d", strip->name, number);
-			
-			/* if hash doesn't have this, set it */
-			if (BLI_ghash_haskey(gh, tempname) == 0) {
-				BLI_strncpy(strip->name, tempname, sizeof(strip->name));
-				break;
-			}
-		}
-	}
-	
+	BLI_uniquename_cb(nla_editbone_name_check, (void *)gh, "NlaStrip", '.', strip->name, sizeof(strip->name));
+
 	/* free the hash... */
 	BLI_ghash_free(gh, NULL, NULL);
 }
@@ -1447,7 +1438,7 @@ void BKE_nla_action_pushdown (AnimData *adt)
 	/* do other necessary work on strip */	
 	if (strip) {
 		/* clear reference to action now that we've pushed it onto the stack */
-		adt->action->id.us--;
+		id_us_min(&adt->action->id);
 		adt->action= NULL;
 		
 		/* if the strip is the first one in the track it lives in, check if there
@@ -1585,7 +1576,7 @@ void BKE_nla_tweakmode_exit (AnimData *adt)
 
 /* Baking Tools ------------------------------------------- */
 
-void BKE_nla_bake (Scene *scene, ID *id, AnimData *adt, int flag)
+void BKE_nla_bake (Scene *scene, ID *UNUSED(id), AnimData *adt, int UNUSED(flag))
 {
 
 	/* verify that data is valid 

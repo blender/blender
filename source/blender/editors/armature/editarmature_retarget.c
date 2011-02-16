@@ -41,6 +41,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_graph.h"
 #include "BLI_rand.h"
@@ -185,12 +186,12 @@ float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4],
 	if (angle_normalized_v3v3(x_axis, new_up_axis) < angle_normalized_v3v3(z_axis, new_up_axis))
 	{
 		rotation_between_vecs_to_quat(qroll, new_up_axis, x_axis); /* set roll rotation quat */
-		return ED_rollBoneToVector(bone, x_axis);
+		return ED_rollBoneToVector(bone, x_axis, FALSE);
 	}
 	else
 	{
 		rotation_between_vecs_to_quat(qroll, new_up_axis, z_axis); /* set roll rotation quat */
-		return ED_rollBoneToVector(bone, z_axis);
+		return ED_rollBoneToVector(bone, z_axis, FALSE);
 	}
 }
 
@@ -240,7 +241,7 @@ float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float
 		/* real qroll between normal and up_axis */
 		rotation_between_vecs_to_quat(qroll, new_up_axis, normal);
 
-		return ED_rollBoneToVector(edge->bone, normal);
+		return ED_rollBoneToVector(edge->bone, normal, FALSE);
 	}
 }
 
@@ -251,9 +252,7 @@ float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float qrot[4])
 	VECCOPY(new_up_axis, old_up_axis);
 	mul_qt_v3(qrot, new_up_axis);
 	
-	normalize_v3(new_up_axis);
-	
-	return ED_rollBoneToVector(bone, new_up_axis);
+	return ED_rollBoneToVector(bone, new_up_axis, FALSE);
 }
 
 /************************************ DESTRUCTORS ******************************************************/
@@ -306,7 +305,7 @@ void RIG_freeRigGraph(BGraph *rg)
 
 /************************************* ALLOCATORS ******************************************************/
 
-static RigGraph *newRigGraph()
+static RigGraph *newRigGraph(void)
 {
 	RigGraph *rg;
 	int totthread;
@@ -374,7 +373,7 @@ static RigNode *newRigNodeHead(RigGraph *rg, RigArc *arc, float p[3])
 	return node;
 }
 
-static void addRigNodeHead(RigGraph *rg, RigArc *arc, RigNode *node)
+static void addRigNodeHead(RigGraph *UNUSED(rg), RigArc *arc, RigNode *node)
 {
 	node->degree++;
 
@@ -1415,9 +1414,9 @@ static void RIG_findHead(RigGraph *rg)
 
 /*******************************************************************************************************/
 
-void RIG_printNode(RigNode *node, char name[])
+void RIG_printNode(RigNode *node, const char name[])
 {
-	printf("%s %p %i <%0.3f, %0.3f, %0.3f>\n", name, node, node->degree, node->p[0], node->p[1], node->p[2]);
+	printf("%s %p %i <%0.3f, %0.3f, %0.3f>\n", name, (void *)node, node->degree, node->p[0], node->p[1], node->p[2]);
 	
 	if (node->symmetry_flag & SYM_TOPOLOGICAL)
 	{
@@ -1537,8 +1536,7 @@ RigGraph *RIG_graphFromArmature(const bContext *C, Object *ob, bArmature *arm)
 	
 	if (obedit == ob)
 	{
-		bArmature *arm = obedit->data;
-		rg->editbones = arm->edbo;
+		rg->editbones = ((bArmature *)obedit->data)->edbo;
 	}
 	else
 	{
@@ -1637,7 +1635,7 @@ static EditBone *add_editbonetolist(char *name, ListBase *list)
 {
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
-	BLI_strncpy(bone->name, name, 32);
+	BLI_strncpy(bone->name, name, sizeof(bone->name));
 	unique_editbone_name(list, bone->name, NULL);
 	
 	BLI_addtail(list, bone);
@@ -1693,7 +1691,7 @@ void generateMissingArcsFromNode(RigGraph *rigg, ReebNode *node, int multi_level
 
 void generateMissingArcs(RigGraph *rigg)
 {
-	ReebGraph *reebg = rigg->link_mesh;
+	ReebGraph *reebg;
 	int multi_level_limit = 5;
 	
 	for (reebg = rigg->link_mesh; reebg; reebg = reebg->link_up)
@@ -1784,7 +1782,7 @@ static void repositionTailControl(RigGraph *rigg, RigControl *ctrl)
 	finalizeControl(rigg, ctrl, 1); /* resize will be recalculated anyway so we don't need it */
 }
 
-static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], float tail[3], float qrot[4], float resize)
+static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], float UNUSED(tail[3]), float qrot[4], float resize)
 {
 	float parent_offset[3], tail_offset[3];
 	
@@ -1925,8 +1923,6 @@ static RetargetMode detectArcRetargetMode(RigArc *iarc)
 		mode = RETARGET_LENGTH;
 	}
 	
-	mode = RETARGET_AGGRESSIVE;
-	
 	return mode;
 }
 
@@ -2051,7 +2047,7 @@ static float calcCostLengthDistance(BArcIterator *iter, float **vec_cache, RigEd
 }
 #endif
 
-static float calcCostAngleLengthDistance(BArcIterator *iter, float **vec_cache, RigEdge *edge, float *vec0, float *vec1, float *vec2, int i1, int i2, float angle_weight, float length_weight, float distance_weight)
+static float calcCostAngleLengthDistance(BArcIterator *iter, float **UNUSED(vec_cache), RigEdge *edge, float *vec0, float *vec1, float *vec2, int i1, int i2, float angle_weight, float length_weight, float distance_weight)
 {
 	float vec_second[3], vec_first[3];
 	float length2;
@@ -2734,8 +2730,6 @@ static void retargetGraphs(bContext *C, RigGraph *rigg)
 	BIF_flagMultiArcs(reebg, ARC_FREE);
 	
 	/* return to first level */
-	reebg = rigg->link_mesh;
-	
 	inode = rigg->head;
 	
 	matchMultiResolutionStartingNode(rigg, reebg, inode);
@@ -2751,7 +2745,7 @@ static void retargetGraphs(bContext *C, RigGraph *rigg)
 	ED_armature_from_edit(rigg->ob);
 }
 
-char *RIG_nameBone(RigGraph *rg, int arc_index, int bone_index)
+const char *RIG_nameBone(RigGraph *rg, int arc_index, int bone_index)
 {
 	RigArc *arc = BLI_findlink(&rg->arcs, arc_index);
 	RigEdge *iedge;
@@ -2796,7 +2790,7 @@ int RIG_nbJoints(RigGraph *rg)
 	return total;
 }
 
-void BIF_freeRetarget()
+void BIF_freeRetarget(void)
 {
 	if (GLOBAL_RIGG)
 	{
@@ -2891,7 +2885,6 @@ void BIF_retargetArc(bContext *C, ReebArc *earc, RigGraph *template_rigg)
 	Object *ob;
 	RigGraph *rigg;
 	RigArc *iarc;
-	bArmature *arm;
 	char *side_string = scene->toolsettings->skgen_side_string;
 	char *num_string = scene->toolsettings->skgen_num_string;
 	int free_template = 0;
@@ -2899,14 +2892,12 @@ void BIF_retargetArc(bContext *C, ReebArc *earc, RigGraph *template_rigg)
 	if (template_rigg)
 	{
 		ob = template_rigg->ob; 	
-		arm = ob->data;
 	}
 	else
 	{
 		free_template = 1;
-		ob = obedit; 	
-		arm = ob->data;
-		template_rigg = armatureSelectedToGraph(C, ob, arm);
+		ob = obedit;
+		template_rigg = armatureSelectedToGraph(C, ob, ob->data);
 	}
 	
 	if (template_rigg->arcs.first == NULL)

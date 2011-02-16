@@ -34,12 +34,13 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
-#include "BKE_utildefines.h"
+
 
 #include "MEM_guardedalloc.h"
 #include "depsgraph_private.h"
@@ -61,7 +62,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tmmd->axis = mmd->axis;
 	tmmd->flag = mmd->flag;
 	tmmd->tolerance = mmd->tolerance;
-	tmmd->mirror_ob = mmd->mirror_ob;;
+	tmmd->mirror_ob = mmd->mirror_ob;
 }
 
 static void foreachObjectLink(
@@ -74,8 +75,10 @@ static void foreachObjectLink(
 	walk(userData, ob, &mmd->mirror_ob);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
-					  Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
@@ -139,7 +142,11 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		if (mmd->mirror_ob) {
 			mul_m4_v3(mtx, co);
 		}
-		isShared = ABS(co[axis])<=tolerance;
+		
+		if(mmd->flag & MOD_MIR_NO_MERGE)
+			isShared = 0;
+		else
+			isShared = ABS(co[axis])<=tolerance;
 		
 		/* Because the topology result (# of vertices) must be the same if
 		* the mesh data is overridden by vertex cos, have to calc sharedness
@@ -151,8 +158,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		
 		indexMap[i][0] = numVerts - 1;
 		indexMap[i][1] = !isShared;
-		
-		if(isShared) {
+		//
+		if(isShared ) {
 			co[axis] = 0;
 			if (mmd->mirror_ob) {
 				mul_m4_v3(imtx, co);
@@ -298,9 +305,10 @@ static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 	return result;
 }
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
@@ -313,9 +321,9 @@ static DerivedMesh *applyModifier(
 	return result;
 }
 
-static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct EditMesh *editData,
-  DerivedMesh *derivedData)
+static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
+						struct EditMesh *UNUSED(editData),
+						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }
@@ -334,6 +342,7 @@ ModifierTypeInfo modifierType_Mirror = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
@@ -344,6 +353,7 @@ ModifierTypeInfo modifierType_Mirror = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     0,
 };

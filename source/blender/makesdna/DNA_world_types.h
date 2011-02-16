@@ -140,7 +140,7 @@ typedef struct World {
 /* mode */
 #define WO_MIST	               1
 #define WO_STARS               2
-#define WO_DOF                 4
+/*#define WO_DOF                 4*/
 #define WO_ACTIVITY_CULLING	   8
 #define WO_ENV_LIGHT   		  16
 #define WO_DBVT_CULLING		  32

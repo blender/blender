@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include "SCA_ISensor.h"
 #include "SCA_EventManager.h"
 #include "SCA_LogicManager.h"
@@ -300,7 +302,7 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 	} 
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ----------------------------------------------- */
 /* Python Functions						           */
@@ -427,6 +429,6 @@ int SCA_ISensor::pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrde
 		self->m_level = false;
 	return 0;
 }
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

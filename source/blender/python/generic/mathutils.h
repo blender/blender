@@ -28,8 +28,8 @@
 */
 //Include this file for access to vector, quat, matrix, euler, etc...
 
-#ifndef EXPP_Mathutils_H
-#define EXPP_Mathutils_H
+#ifndef MATHUTILS_H
+#define MATHUTILS_H
 
 #include <Python.h>
 
@@ -55,19 +55,16 @@ typedef struct {
 #include "mathutils_quat.h"
 #include "mathutils_euler.h"
 #include "mathutils_color.h"
+#include "mathutils_geometry.h"
 
 PyObject *BaseMathObject_getOwner( BaseMathObject * self, void * );
 PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void * );
 void BaseMathObject_dealloc(BaseMathObject * self);
 
-PyObject *Mathutils_Init(void);
-PyObject *Noise_Init(void); /* lazy, saves having own header */
+PyMODINIT_FUNC BPyInit_mathutils(void);
 
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
-
-
-#define Py_PI  3.14159265358979323846
 
 #define Py_NEW  1
 #define Py_WRAP 2
@@ -103,5 +100,6 @@ int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
 
 /* utility func */
 int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix);
+int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix);
 
-#endif				/* EXPP_Mathutils_H */
+#endif /* MATHUTILS_H */

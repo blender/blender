@@ -117,6 +117,8 @@ void action_groups_remove_channel(struct bAction *act, struct FCurve *fcu);
 /* Find a group with the given name */
 struct bActionGroup *action_groups_find_named(struct bAction *act, const char name[]);
 
+/* Clear all 'temp' flags on all groups */
+void action_groups_clear_tempflags(struct bAction *act);
 
 /* Pose API ----------------- */	
 	

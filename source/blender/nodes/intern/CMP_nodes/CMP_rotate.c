@@ -42,7 +42,7 @@ static bNodeSocketType cmp_node_rotate_out[]= {
 };
 
 /* only supports RGBA nodes now */
-static void node_composit_exec_rotate(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	
 	if(out[0]->hasoutput==0)
@@ -68,8 +68,8 @@ static void node_composit_exec_rotate(void *data, bNode *node, bNodeStack **in, 
 		maxy= -centy + (float)cbuf->y;
 		
 
-	  ibuf=IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
-	  obuf=IMB_allocImBuf(stackbuf->x, stackbuf->y, 32, 0, 0);
+	  ibuf=IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
+	  obuf=IMB_allocImBuf(stackbuf->x, stackbuf->y, 32, 0);
 
 	  if(ibuf && obuf){
 		 ibuf->rect_float=cbuf->rect;
@@ -120,19 +120,16 @@ static void node_composit_init_rotate(bNode *node)
    node->custom1= 1; /* Bilinear Filter*/
 }
 
-bNodeType cmp_node_rotate= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_ROTATE,
-	/* name        */	"Rotate",
-	/* width+range */	140, 100, 320,
-	/* class+opts  */	NODE_CLASS_DISTORT, NODE_OPTIONS,
-	/* input sock  */	cmp_node_rotate_in,
-	/* output sock */	cmp_node_rotate_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_rotate,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_rotate,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_rotate(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_ROTATE, "Rotate", NODE_CLASS_DISTORT, NODE_OPTIONS,
+		cmp_node_rotate_in, cmp_node_rotate_out);
+	node_type_size(&ntype, 140, 100, 320);
+	node_type_init(&ntype, node_composit_init_rotate);
+	node_type_exec(&ntype, node_composit_exec_rotate);
+
+	nodeRegisterType(lb, &ntype);
+}
+

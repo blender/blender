@@ -62,7 +62,7 @@
 
 /* Included the path relative from /source/blender/ here, so we can move     */
 /* headers around with more freedom.                                         */
-char *includefiles[] = {
+const char *includefiles[] = {
 
 	// if you add files here, please add them at the end
 	// of makesdna.c (this file) as well
@@ -162,7 +162,7 @@ int additional_slen_offset;
 /**
  * Add type <str> to struct indexed by <len>, if it was not yet found.
  */
-int add_type(char *str, int len);
+int add_type(const char *str, int len);
 
 /**
  * Add variable <str> to 
@@ -214,7 +214,7 @@ void printStructLenghts(void);
 
 /* ************************* MAKEN DNA ********************** */
 
-int add_type(char *str, int len)
+int add_type(const char *str, int len)
 {
 	int nr;
 	char *cp;
@@ -244,7 +244,7 @@ int add_type(char *str, int len)
 	
 	if(nr_types>=maxnr) {
 		printf("too many types\n");
-		return nr_types-1;;
+		return nr_types-1;
 	}
 	nr_types++;
 	
@@ -269,7 +269,7 @@ int add_name(char *str)
 
 	additional_slen_offset = 0;
 	
-	if((str[0]==0) /*  || (str[1]==0) */) return -1;
+	if(str[0]==0 /*  || (str[1]==0) */) return -1;
 
 	if (str[0] == '(' && str[1] == '*') {
 		/* we handle function pointer and special array cases here, e.g.
@@ -281,7 +281,6 @@ int add_name(char *str)
 		if (debugSDNA > 3) printf("\t\t\t\t*** Function pointer or multidim array pointer found\n");
 		/* functionpointer: transform the type (sometimes) */
 		i = 0;
-		j = 0;
 
 		while (str[i] != ')') {
 			buf[i] = str[i];

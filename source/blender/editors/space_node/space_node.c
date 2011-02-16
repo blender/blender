@@ -39,6 +39,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -89,13 +90,16 @@ ARegion *node_has_buttons_region(ScrArea *sa)
 
 /* ******************** default callbacks for node space ***************** */
 
-static SpaceLink *node_new(const bContext *C)
+static SpaceLink *node_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceNode *snode;
 	
 	snode= MEM_callocN(sizeof(SpaceNode), "initnode");
 	snode->spacetype= SPACE_NODE;	
+	
+	/* backdrop */
+	snode->zoom = 1.0f;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for node");
@@ -118,15 +122,15 @@ static SpaceLink *node_new(const bContext *C)
 	BLI_addtail(&snode->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin=  -10.0f;
-	ar->v2d.tot.ymin=  -10.0f;
-	ar->v2d.tot.xmax= 512.0f;
-	ar->v2d.tot.ymax= 512.0f;
+	ar->v2d.tot.xmin=  -256.0f;
+	ar->v2d.tot.ymin=  -256.0f;
+	ar->v2d.tot.xmax= 768.0f;
+	ar->v2d.tot.ymax= 768.0f;
 	
-	ar->v2d.cur.xmin=  0.0f;
-	ar->v2d.cur.ymin=  0.0f;
-	ar->v2d.cur.xmax= 512.0f;
-	ar->v2d.cur.ymax= 512.0f;
+	ar->v2d.cur.xmin=  -256.0f;
+	ar->v2d.cur.ymin=  -256.0f;
+	ar->v2d.cur.xmax= 768.0f;
+	ar->v2d.cur.ymax= 768.0f;
 	
 	ar->v2d.min[0]= 1.0f;
 	ar->v2d.min[1]= 1.0f;
@@ -145,14 +149,14 @@ static SpaceLink *node_new(const bContext *C)
 }
 
 /* not spacelink itself */
-static void node_free(SpaceLink *sl)
+static void node_free(SpaceLink *UNUSED(sl))
 {	
 	
 }
 
 
 /* spacetype; init callback */
-static void node_init(struct wmWindowManager *wm, ScrArea *sa)
+static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -160,9 +164,9 @@ static void node_init(struct wmWindowManager *wm, ScrArea *sa)
 static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 {
 	/* note, ED_area_tag_refresh will re-execute compositor */
-	/* XXX, should edit some to check for the nodeTree type, especially  NC_NODE|NA_EDITED which refreshes all types */
 	SpaceNode *snode= sa->spacedata.first;
-
+	int type= snode->treetype;
+	
 	/* preview renders */
 	switch(wmn->category) {
 		case NC_SCENE:
@@ -171,23 +175,35 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_FRAME:
 					ED_area_tag_refresh(sa);
 					break;
+				case ND_TRANSFORM_DONE:
+					if(type==NTREE_COMPOSIT) {
+						if(snode->flag & SNODE_AUTO_RENDER) {
+							snode->recalc= 1;
+							ED_area_tag_refresh(sa);
+						}
+					}
+					break;
 			}
 			break;
 		case NC_WM:
 			if(wmn->data==ND_FILEREAD)
 				ED_area_tag_refresh(sa);
 			break;
-			
+		
 		/* future: add ID checks? */
 		case NC_MATERIAL:
-			if(wmn->data==ND_SHADING)
-				ED_area_tag_refresh(sa);
-			else if(wmn->data==ND_SHADING_DRAW)
-				ED_area_tag_refresh(sa);
+			if(type==NTREE_SHADER) {
+				if(wmn->data==ND_SHADING)
+					ED_area_tag_refresh(sa);
+				else if(wmn->data==ND_SHADING_DRAW)
+					ED_area_tag_refresh(sa);
+			}
 			break;
 		case NC_TEXTURE:
-			if(wmn->data==ND_NODES)
-				ED_area_tag_refresh(sa);
+			if(type==NTREE_SHADER || type==NTREE_TEXTURE) {
+				if(wmn->data==ND_NODES)
+					ED_area_tag_refresh(sa);
+			}
 			break;
 		case NC_TEXT:
 			/* pynodes */
@@ -207,7 +223,7 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 
 		case NC_IMAGE:
 			if (wmn->action == NA_EDITED) {
-				if(snode->treetype==NTREE_COMPOSIT) {
+				if(type==NTREE_COMPOSIT) {
 					Scene *scene= wmn->window->screen->scene;
 					
 					/* note that NodeTagIDChanged is alredy called by BKE_image_signal() on all
@@ -236,8 +252,15 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			Scene *scene= (Scene *)snode->id;
-			if(scene->use_nodes)
-				snode_composite_job(C, sa);
+			if(scene->use_nodes) {
+				/* recalc is set on 3d view changes for auto compo */
+				if(snode->recalc) {
+					snode->recalc= 0;
+					node_render_changed_exec((struct bContext*)C, NULL);
+				}
+				else 
+					snode_composite_job(C, sa);
+			}
 		}
 		else if(snode->treetype==NTREE_TEXTURE) {
 			Tex *tex= (Tex *)snode->id;
@@ -306,7 +329,7 @@ static void node_main_area_draw(const bContext *C, ARegion *ar)
 
 /* ************* dropboxes ************* */
 
-static int node_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int node_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
@@ -345,7 +368,7 @@ static void node_dropboxes(void)
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void node_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void node_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
@@ -452,7 +475,7 @@ void ED_spacetype_node(void)
 	
 	BLI_addhead(&st->regiontypes, art);
 
-	node_menus_register(art);
+	node_menus_register();
 	
 	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");

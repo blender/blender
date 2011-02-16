@@ -35,8 +35,10 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -53,10 +55,12 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
+#include "ED_gpencil.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
+#include "ED_markers.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -70,28 +74,44 @@
 
 /* ******************** New Action Operator *********************** */
 
-static int act_new_exec(bContext *C, wmOperator *op)
+static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	bAction *action;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 
-	// XXX need to restore behaviour to copy old actions...
-	action= add_empty_action("Action");
-
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
-
-	if(prop) {
-		/* when creating new ID blocks, use is already 1, but RNA
-		 * pointer se also increases user, so this compensates it */
+	
+	if (prop) {
+		bAction *action=NULL, *oldact=NULL;
+		PointerRNA oldptr;
+		
+		/* create action - the way to do this depends on whether we've got an
+		 * existing one there already, in which case we make a copy of it
+		 * (which is useful for "versioning" actions within the same file)
+		 */
+		oldptr = RNA_property_pointer_get(&ptr, prop);
+		oldact = (bAction *)oldptr.id.data;
+		
+		if (oldact && GS(oldact->id.name)==ID_AC) {
+			/* make a copy of the existing action */
+			action= copy_action(oldact);
+		}
+		else {
+			/* just make a new (empty) action */
+			action= add_empty_action("Action");
+		}
+		
+		/* when creating new ID blocks, use is already 1 (fake user), 
+		 * but RNA pointer use also increases user, so this compensates it 
+		 */
 		action->id.us--;
-
+		
 		RNA_id_pointer_create(&action->id, &idptr);
 		RNA_property_pointer_set(&ptr, prop, idptr);
 		RNA_property_update(C, &ptr, prop);
 	}
-
+	
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
@@ -173,7 +193,7 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 
 /* ****************** Automatic Preview-Range Operator ****************** */
 
-static int actkeys_previewrange_exec(bContext *C, wmOperator *op)
+static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	Scene *scene;
@@ -217,7 +237,7 @@ void ACTION_OT_previewrange_set (wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-static int actkeys_viewall_exec(bContext *C, wmOperator *op)
+static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	View2D *v2d;
@@ -291,7 +311,8 @@ static short copy_action_keys (bAnimContext *ac)
 }
 
 
-static short paste_action_keys (bAnimContext *ac)
+static short paste_action_keys (bAnimContext *ac,
+	const eKeyPasteOffset offset_mode, const eKeyMergeMode merge_mode)
 {	
 	ListBase anim_data = {NULL, NULL};
 	int filter, ok=0;
@@ -301,7 +322,7 @@ static short paste_action_keys (bAnimContext *ac)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* paste keyframes */
-	ok= paste_animedit_keys(ac, &anim_data);
+	ok= paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode);
 	
 	/* clean up */
 	BLI_freelistN(&anim_data);
@@ -341,29 +362,35 @@ void ACTION_OT_copy (wmOperatorType *ot)
 	ot->description= "Copy selected keyframes to the copy/paste buffer";
 	
 	/* api callbacks */
+//	ot->invoke= WM_operator_props_popup; // better wait for graph redo panel
 	ot->exec= actkeys_copy_exec;
 	ot->poll= ED_operator_action_active;
-	
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-
-
 static int actkeys_paste_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
+
+	const eKeyPasteOffset offset_mode= RNA_enum_get(op->ptr, "offset");
+	const eKeyMergeMode merge_mode= RNA_enum_get(op->ptr, "merge");
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
+	
+	if(ac.reports==NULL) {
+		ac.reports= op->reports;
+	}
 	
 	/* paste keyframes */
 	if (ac.datatype == ANIMCONT_GPENCIL) {
 		// FIXME...
 	}
 	else {
-		if (paste_action_keys(&ac)) {
+		if (paste_action_keys(&ac, offset_mode, merge_mode)) {
 			BKE_report(op->reports, RPT_ERROR, "No keyframes to paste");
 			return OPERATOR_CANCELLED;
 		}
@@ -391,6 +418,9 @@ void ACTION_OT_paste (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
+	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merking pasted keys and existing");
 }
 
 /* ******************** Insert Keyframes Operator ************************* */
@@ -410,8 +440,8 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
+	ReportList *reports = ac->reports;
 	Scene *scene= ac->scene;
-	float cfra= (float)CFRA;
 	short flag = 0;
 	
 	/* filter data */
@@ -428,7 +458,8 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
-		
+		float cfra;
+
 		/* adjust current frame for NLA-scaling */
 		if (adt)
 			cfra= BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
@@ -437,7 +468,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 			
 		/* if there's an id */
 		if (ale->id)
-			insert_keyframe(ale->id, NULL, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+			insert_keyframe(reports, ale->id, NULL, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 		else
 			insert_vert_fcurve(fcu, cfra, fcu->curval, 0);
 	}
@@ -509,10 +540,10 @@ static void duplicate_action_keys (bAnimContext *ac)
 	
 	/* loop through filtered data and delete selected keys */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		//if (ale->type == ANIMTYPE_GPLAYER)
-		//	delete_gplayer_frames((bGPDlayer *)ale->data);
-		//else
+		if (ale->type == ANIMTYPE_FCURVE)
 			duplicate_fcurve_keys((FCurve *)ale->key_data);
+		else
+			duplicate_gplayer_frames((bGPDlayer *)ale->data);
 	}
 	
 	/* free filtered list */
@@ -521,7 +552,7 @@ static void duplicate_action_keys (bAnimContext *ac)
 
 /* ------------------- */
 
-static int actkeys_duplicate_exec(bContext *C, wmOperator *op)
+static int actkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -541,7 +572,7 @@ static int actkeys_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED; // xxx - start transform
 }
 
-static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	actkeys_duplicate_exec(C, op);
 	
@@ -598,8 +629,8 @@ static void delete_action_keys (bAnimContext *ac)
 			if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
 				ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
 		}
-		//else
-		//	delete_gplayer_frames((bGPDlayer *)ale->data);
+		else
+			delete_gplayer_frames((bGPDlayer *)ale->data);
 	}
 	
 	/* free filtered list */
@@ -608,7 +639,7 @@ static void delete_action_keys (bAnimContext *ac)
 
 /* ------------------- */
 
-static int actkeys_delete_exec(bContext *C, wmOperator *op)
+static int actkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -734,7 +765,7 @@ static void sample_action_keys (bAnimContext *ac)
 
 /* ------------------- */
 
-static int actkeys_sample_exec(bContext *C, wmOperator *op)
+static int actkeys_sample_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -791,7 +822,7 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through setting mode per F-Curve */
@@ -1096,21 +1127,19 @@ void ACTION_OT_keyframe_type (wmOperatorType *ot)
 /* ***************** Jump to Selected Frames Operator *********************** */
 
 /* snap current-frame indicator to 'average time' of selected keyframe */
-static int actkeys_framejump_exec(bContext *C, wmOperator *op)
+static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	ListBase anim_data= {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
-	/* init edit data */
-	memset(&ked, 0, sizeof(KeyframeEditData));
-	
+	/* init edit data */	
 	/* loop over action data, averaging values */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -1174,7 +1203,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	KeyframeEditFunc edit_cb;
 	
 	/* filter data */
@@ -1186,8 +1215,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	
 	/* get beztriple editing callbacks */
 	edit_cb= ANIM_editkeyframes_snap(mode);
-	
-	memset(&ked, 0, sizeof(KeyframeEditData)); 
+
 	ked.scene= ac->scene;
 	if (mode == ACTKEYS_SNAP_NEAREST_MARKER) {
 		ked.list.first= (ac->markers) ? ac->markers->first : NULL;
@@ -1274,13 +1302,12 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	KeyframeEditFunc edit_cb;
 	
 	/* get beztriple editing callbacks */
 	edit_cb= ANIM_editkeyframes_mirror(mode);
-	
-	memset(&ked, 0, sizeof(KeyframeEditData)); 
+
 	ked.scene= ac->scene;
 	
 	/* for 'first selected marker' mode, need to find first selected marker first! */
@@ -1289,13 +1316,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 		TimeMarker *marker= NULL;
 		
 		/* find first selected marker */
-		if (ac->markers) {
-			for (marker= ac->markers->first; marker; marker=marker->next) {
-				if (marker->flag & SELECT) {
-					break;
-				}
-			}
-		}
+		marker= ED_markers_get_first_selected(ac->markers);
 		
 		/* store marker's time (if available) */
 		if (marker)

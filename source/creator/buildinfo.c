@@ -27,13 +27,28 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#define STRINGIFY(x) XSTRINGIFY(x)
-#define XSTRINGIFY(x) #x
-
 #ifdef BUILD_DATE
+
+/* copied from BLI_utildefines.h */
+#define STRINGIFY_ARG(x) #x
+#define STRINGIFY(x) STRINGIFY_ARG(x)
+
 char build_date[]= STRINGIFY(BUILD_DATE);
 char build_time[]= STRINGIFY(BUILD_TIME);
 char build_rev[]= STRINGIFY(BUILD_REV);
 char build_platform[]= STRINGIFY(BUILD_PLATFORM);
 char build_type[]= STRINGIFY(BUILD_TYPE);
+
+#ifdef BUILD_CFLAGS
+char build_cflags[]= STRINGIFY(BUILD_CFLAGS);
+char build_cxxflags[]= STRINGIFY(BUILD_CXXFLAGS);
+char build_linkflags[]= STRINGIFY(BUILD_LINKFLAGS);
+char build_system[]= STRINGIFY(BUILD_SYSTEM);
+#else
+char build_cflags[]= "unmaintained buildsystem alert!";
+char build_cxxflags[]= "unmaintained buildsystem alert!";
+char build_linkflags[]= "unmaintained buildsystem alert!";
+char build_system[]= "unmaintained buildsystem alert!";
 #endif
+
+#endif // BUILD_DATE

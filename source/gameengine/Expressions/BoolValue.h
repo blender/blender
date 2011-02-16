@@ -45,7 +45,7 @@ public:
 	
 	void				Configure(CValue* menuvalue);
 	virtual CValue*		GetReplica();
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	virtual PyObject*	ConvertValueToPython();
 #endif
 

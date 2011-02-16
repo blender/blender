@@ -30,13 +30,13 @@
 #include <math.h>
 #include <string.h>
 
-
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
@@ -154,8 +154,8 @@ float mistfactor(float zcor, float *co)
 static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 {
 	double a, b, c, disc, nray[3], npos[3];
-	float t0, t1 = 0.0f, t2= 0.0f, t3, haint;
-	float p1[3], p2[3], ladist, maxz = 0.0f, maxy = 0.0f;
+	double t0, t1 = 0.0f, t2= 0.0f, t3;
+	float p1[3], p2[3], ladist, maxz = 0.0f, maxy = 0.0f, haint;
 	int snijp, doclip=1, use_yco=0;
 	int ok1=0, ok2=0;
 	
@@ -202,7 +202,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		maxz*= lar->sh_zfac;
 		maxy= lar->imat[0][1]*p1[0]+lar->imat[1][1]*p1[1]+lar->imat[2][1]*p1[2];
 
-		if( fabs(nray[2]) < DBL_EPSILON ) use_yco= 1;
+		if( fabs(nray[2]) < FLT_EPSILON ) use_yco= 1;
 	}
 	
 	/* scale z to make sure volume is normalized */	
@@ -1141,6 +1141,11 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 					visifac = lar->dist/(lar->dist + dist[0]);
 					break;
 				case LA_FALLOFF_INVSQUARE:
+					/* NOTE: This seems to be a hack since commit r12045 says this
+					 * option is similar to old Quad, but with slight changes.
+					 * Correct inv square would be (which would be old Quad):
+					 * visifac = lar->distkw / (lar->distkw + dist[0]*dist[0]);
+					 */
 					visifac = lar->dist / (lar->dist + dist[0]*dist[0]);
 					break;
 				case LA_FALLOFF_SLIDERS:
@@ -1391,6 +1396,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 					}
 					
 					i*= shadfac[3];
+					shr->shad[3] = shadfac[3]; /* store this for possible check in troublesome cases */
 				}
 			}
 		}
@@ -1409,10 +1415,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 			}
 			if(i_noshad>0.0f) {
 				if(passflag & (SCE_PASS_DIFFUSE|SCE_PASS_SHADOW)) {
-					if(ma->mode & MA_SHADOW_TRA)
-						add_to_diffuse(shr->diff, shi, is, i_noshad*shadfac[0]*lacol[0], i_noshad*shadfac[1]*lacol[1], i_noshad*shadfac[2]*lacol[2]);
-					else
-						add_to_diffuse(shr->diff, shi, is, i_noshad*lacol[0], i_noshad*lacol[1], i_noshad*lacol[2]);
+					add_to_diffuse(shr->diff, shi, is, i_noshad*lacol[0], i_noshad*lacol[1], i_noshad*lacol[2]);
 				}
 				else
 					VECCOPY(shr->diff, shr->shad);
@@ -1643,12 +1646,14 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	if(R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) {
 		if(((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
 			|| (passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) {
-			/* AO was calculated for scanline already */
-			if(shi->depth || shi->volume_depth)
-				ambient_occlusion(shi);
-			VECCOPY(shr->ao, shi->ao);
-			VECCOPY(shr->env, shi->env); // XXX multiply
-			VECCOPY(shr->indirect, shi->indirect); // XXX multiply
+			if(R.r.mode & R_SHADOW) {
+				/* AO was calculated for scanline already */
+				if(shi->depth || shi->volume_depth)
+					ambient_occlusion(shi);
+				VECCOPY(shr->ao, shi->ao);
+				VECCOPY(shr->env, shi->env); // XXX multiply
+				VECCOPY(shr->indirect, shi->indirect); // XXX multiply
+			}
 		}
 	}
 	
@@ -1725,10 +1730,17 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			VECCOPY(shr->combined, shr->diff);
 			
 		/* calculate shadow pass, we use a multiplication mask */
-		if(passflag & SCE_PASS_SHADOW) {
+		/* if diff = 0,0,0 it doesn't matter what the shadow pass is, so leave it as is */
+		if(passflag & SCE_PASS_SHADOW && !(shr->diff[0]==0.0f && shr->diff[1]==0.0f && shr->diff[2]==0.0f)) {
 			if(shr->diff[0]!=0.0f) shr->shad[0]= shr->shad[0]/shr->diff[0];
+			/* can't determine proper shadow from shad/diff (0/0), so use shadow intensity */
+			else if(shr->shad[0]==0.0f) shr->shad[0]= shr->shad[3];
+
 			if(shr->diff[1]!=0.0f) shr->shad[1]= shr->shad[1]/shr->diff[1];
+			else if(shr->shad[1]==0.0f) shr->shad[1]= shr->shad[3];
+
 			if(shr->diff[2]!=0.0f) shr->shad[2]= shr->shad[2]/shr->diff[2];
+			else if(shr->shad[2]==0.0f) shr->shad[2]= shr->shad[3];
 		}
 		
 		/* exposure correction */
@@ -1757,18 +1769,20 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	/* from now stuff everything in shr->combined: ambient, AO, radio, ramps, exposure */
 	if(!(ma->sss_flag & MA_DIFF_SSS) || !sss_pass_done(&R, ma)) {
-		/* add AO in combined? */
-		if(R.wrld.mode & WO_AMB_OCC)
-			if(shi->combinedflag & SCE_PASS_AO)
-				ambient_occlusion_apply(shi, shr);
+		if(R.r.mode & R_SHADOW) {
+			/* add AO in combined? */
+			if(R.wrld.mode & WO_AMB_OCC)
+				if(shi->combinedflag & SCE_PASS_AO)
+					ambient_occlusion_apply(shi, shr);
 
-		if(R.wrld.mode & WO_ENV_LIGHT)
-			if(shi->combinedflag & SCE_PASS_ENVIRONMENT)
-				environment_lighting_apply(shi, shr);
+			if(R.wrld.mode & WO_ENV_LIGHT)
+				if(shi->combinedflag & SCE_PASS_ENVIRONMENT)
+					environment_lighting_apply(shi, shr);
 
-		if(R.wrld.mode & WO_INDIRECT_LIGHT)
-			if(shi->combinedflag & SCE_PASS_INDIRECT)
-				indirect_lighting_apply(shi, shr);
+			if(R.wrld.mode & WO_INDIRECT_LIGHT)
+				if(shi->combinedflag & SCE_PASS_INDIRECT)
+					indirect_lighting_apply(shi, shr);
+		}
 		
 		shr->combined[0]+= shi->ambr;
 		shr->combined[1]+= shi->ambg;

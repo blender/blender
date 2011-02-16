@@ -33,8 +33,9 @@
  */
 
 #include <limits.h>
-#include "MEM_guardedalloc.h"
 
+#include "MEM_guardedalloc.h"
+#include "BLI_utildefines.h"
 #include "BKE_bmesh.h"
 /**
  *	MISC utility functions.

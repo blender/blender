@@ -34,13 +34,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+
+
+#include "BLI_utildefines.h"
+
 #include "MOD_modifiertypes.h"
 
 /* We only need to define isDisabled; because it always returns 1,
  * no other functions will be called
  */
 
-static int isDisabled(ModifierData *md, int userRenderParams)
+static int isDisabled(ModifierData *UNUSED(md), int UNUSED(userRenderParams))
 {
 	return 1;
 }
@@ -55,6 +59,7 @@ ModifierTypeInfo modifierType_None = {
 
 	/* copyData */          0,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     0,
@@ -65,6 +70,7 @@ ModifierTypeInfo modifierType_None = {
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    0,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

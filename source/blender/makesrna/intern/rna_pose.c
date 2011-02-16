@@ -70,7 +70,7 @@ static void rna_Pose_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	// XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 
-	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
+	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 }
 
 static void rna_Pose_IK_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -78,7 +78,7 @@ static void rna_Pose_IK_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	// XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 	Object *ob= ptr->id.data;
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	BIK_clear_data(ob->pose);
 }
 
@@ -91,13 +91,13 @@ static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
 {
 	bActionGroup *grp= ptr->data;
 	
-	/* if valid value, set the new enum value, then copy the relevant colours? */
+	/* if valid value, set the new enum value, then copy the relevant colors? */
 	if ((value >= -1) && (value < 21))
 		grp->customCol= value;
 	else
 		return;
 	
-	/* only do color copying if using a custom color (i.e. not default colour)  */
+	/* only do color copying if using a custom color (i.e. not default color)  */
 	if (grp->customCol) {
 		if (grp->customCol > 0) {
 			/* copy theme colors on-to group's custom color in case user tries to edit color */
@@ -162,7 +162,7 @@ static void rna_Pose_ik_solver_update(Main *bmain, Scene *scene, PointerRNA *ptr
 	
 	object_test_constraints(ob);
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
 }
 
 /* rotation - axis-angle */
@@ -271,7 +271,7 @@ static void rna_Itasc_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		itasc->maxvel = 100.f;
 	BIK_update_param(ob->pose);
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 
 static void rna_Itasc_update_rebuild(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -281,6 +281,21 @@ static void rna_Itasc_update_rebuild(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	pose->flag |= POSE_RECALC;	// checks & sorts pose channels
 	rna_Itasc_update(bmain, scene, ptr);
+}
+
+static void rna_PoseChannel_bone_custom_set(PointerRNA *ptr, PointerRNA value)
+{
+	bPoseChannel *pchan = (bPoseChannel*)ptr->data;
+
+
+	if (pchan->custom) {
+		id_us_min(&pchan->custom->id);
+		pchan->custom = NULL;
+	}
+
+	pchan->custom = value.data;
+
+	id_us_plus(&pchan->custom->id);
 }
 
 static PointerRNA rna_PoseChannel_bone_group_get(PointerRNA *ptr)
@@ -532,25 +547,29 @@ static int rna_PoseChannel_rotation_4d_editable(PointerRNA *ptr, int index)
 }
 
 /* not essential, but much faster then the default lookup function */
-PointerRNA rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key)
+int rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
-	PointerRNA rptr;
 	bPose *pose= (bPose*)ptr->data;
 	bPoseChannel *pchan= get_pose_channel(pose, key);
-	RNA_pointer_create(ptr->id.data, &RNA_PoseBone, pchan, &rptr);
-	return rptr;
+	if(pchan) {
+		RNA_pointer_create(ptr->id.data, &RNA_PoseBone, pchan, r_ptr);
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
 }
 
-static void rna_PoseChannel_matrix_local_get(PointerRNA *ptr, float *values)
+static void rna_PoseChannel_matrix_basis_get(PointerRNA *ptr, float *values)
 {
 	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
 	pchan_to_mat4(pchan, (float (*)[4])values);
 }
 
-static void rna_PoseChannel_matrix_local_set(PointerRNA *ptr, const float *values)
+static void rna_PoseChannel_matrix_basis_set(PointerRNA *ptr, const float *values)
 {
 	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
-	pchan_apply_mat4(pchan, (float (*)[4])values);
+	pchan_apply_mat4(pchan, (float (*)[4])values, FALSE); /* no compat for predictable result */
 }
 
 #else
@@ -683,6 +702,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	static float default_axisAngle[4] = {0,0,1,0};	/* default axis-angle rotation values */
 	static float default_scale[3] = {1,1,1}; /* default scale values */
 	
+	const int matrix_dimsize[]= {4, 4};
+	
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -705,10 +726,6 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_struct_name_property(srna, prop);
-
-	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selectflag", BONE_SELECTED);
-	RNA_def_property_ui_text(prop, "Select", "");
 
 	/* Baked Bone Path cache data */
 	rna_def_motionpath_common(srna);
@@ -784,18 +801,22 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	/* transform matrices - should be read-only since these are set directly by AnimSys evaluation */
 	prop= RNA_def_property(srna, "matrix_channel", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "chan_mat");
-	RNA_def_property_array(prop, 16);
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints");
 
-	prop= RNA_def_property(srna, "matrix_local", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_array(prop, 16);
-	RNA_def_property_ui_text(prop, "Local Matrix", "Matrix representing the parent relative location, scale and rotation. Provides an alternative access to these properties.");
-	RNA_def_property_float_funcs(prop, "rna_PoseChannel_matrix_local_get", "rna_PoseChannel_matrix_local_set", NULL);
+	/* writable because it touches loc/scale/rot directly */
+	prop= RNA_def_property(srna, "matrix_basis", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_ui_text(prop, "Basis Matrix", "Provides an alternative access to loc/scale/rotation relative to the parent and own rest bone.");
+	RNA_def_property_float_funcs(prop, "rna_PoseChannel_matrix_basis_get", "rna_PoseChannel_matrix_basis_set", NULL);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
+	/* final matrix */
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
-	RNA_def_property_array(prop, 16);
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
 	RNA_def_property_ui_text(prop, "Pose Matrix", "Final 4x4 matrix for this channel");
 
@@ -954,6 +975,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "custom");
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_PoseChannel_bone_custom_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Custom Object", "Object that defines custom draw type for this bone");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
@@ -970,6 +992,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bone_group_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "agrp_index");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_funcs(prop, "rna_PoseChannel_bone_group_index_get", "rna_PoseChannel_bone_group_index_set", "rna_PoseChannel_bone_group_index_range");
 	RNA_def_property_ui_text(prop, "Bone Group Index", "Bone Group this pose channel belongs to (0=no group)");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");

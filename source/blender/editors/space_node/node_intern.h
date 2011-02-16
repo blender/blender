@@ -41,7 +41,7 @@ ARegion *node_has_buttons_region(ScrArea *sa);
 
 /* node_header.c */
 void node_header_buttons(const bContext *C, ARegion *ar);
-void node_menus_register(struct ARegionType *art);
+void node_menus_register(void);
 
 /* node_draw.c */
 void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d);
@@ -68,11 +68,10 @@ void NODE_OT_select_same_type_prev(wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
-void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int th_col2, int do_shaded);
+void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 );
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
 void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage);
-
-void node_buts_group(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
+void draw_nodespace_color_info(ARegion *ar, int channels, int x, int y, char *cp, float *fp);
 
 /* node_edit.c */
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype);
@@ -91,7 +90,7 @@ void node_tree_verify_groups(bNodeTree *nodetree);
 void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace);
 int node_has_hidden_sockets(bNode *node);
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
-
+int node_render_changed_exec(bContext *, wmOperator *);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
@@ -114,8 +113,11 @@ void NODE_OT_show_cyclic_dependencies(struct wmOperatorType *ot);
 void NODE_OT_link_viewer(struct wmOperatorType *ot);
 void NODE_OT_read_fullsamplelayers(struct wmOperatorType *ot);
 void NODE_OT_read_renderlayers(struct wmOperatorType *ot);
+void NODE_OT_render_changed(struct wmOperatorType *ot);
+
 void NODE_OT_backimage_move(struct wmOperatorType *ot);
 void NODE_OT_backimage_zoom(struct wmOperatorType *ot);
+void NODE_OT_backimage_sample(wmOperatorType *ot);
 
 void NODE_OT_add_file(struct wmOperatorType *ot);
 

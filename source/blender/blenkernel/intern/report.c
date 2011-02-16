@@ -29,10 +29,11 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_report.h"
 #include "BKE_global.h" /* G.background only */
-#include "BKE_utildefines.h"
+
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -44,7 +45,7 @@
 #endif
 #endif
 
-static char *report_type_str(int type)
+static const char *report_type_str(int type)
 {
 	switch(type) {
 		case RPT_DEBUG: return "Debug";
@@ -82,7 +83,7 @@ void BKE_reports_clear(ReportList *reports)
 
 	while (report) {
 		report_next= report->next;
-		MEM_freeN(report->message);
+		MEM_freeN((void *)report->message);
 		MEM_freeN(report);
 		report= report_next;
 	}
@@ -95,23 +96,23 @@ void BKE_report(ReportList *reports, ReportType type, const char *message)
 	Report *report;
 	int len;
 
-    /* exception, print and return in background, no reason to store a list */
-    if(G.background)
-        reports= NULL;
-
-	if(!reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
+    /* in background mode always print otherwise there are cases the errors wont be displayed,
+	 * but still add to the report list since this is used for python exception handling */
+	if(G.background || !reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
 		printf("%s: %s\n", report_type_str(type), message);
 		fflush(stdout); /* this ensures the message is printed before a crash */
 	}
 
 	if(reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
+		char *message_alloc;
 		report= MEM_callocN(sizeof(Report), "Report");
 		report->type= type;
 		report->typestr= report_type_str(type);
 
 		len= strlen(message);
-		report->message= MEM_callocN(sizeof(char)*(len+1), "ReportMessage");
-		memcpy(report->message, message, sizeof(char)*(len+1));
+		message_alloc= MEM_callocN(sizeof(char)*(len+1), "ReportMessage");
+		memcpy(message_alloc, message, sizeof(char)*(len+1));
+		report->message= message_alloc;
 		report->len= len;
 		BLI_addtail(&reports->list, report);
 	}
@@ -123,10 +124,11 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
 	Report *report;
 	va_list args;
 
-	if(!reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
+	if(G.background || !reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
 		va_start(args, format);
 		vprintf(format, args);
 		va_end(args);
+		fprintf(stdout, "\n"); /* otherise each report needs to include a \n */
 		fflush(stdout); /* this ensures the message is printed before a crash */
 	}
 
@@ -162,7 +164,7 @@ void BKE_reports_prepend(ReportList *reports, const char *prepend)
 
 		BLI_dynstr_append(ds, prepend);
 		BLI_dynstr_append(ds, report->message);
-		MEM_freeN(report->message);
+		MEM_freeN((void *)report->message);
 
 		report->message= BLI_dynstr_get_cstring(ds);
 		report->len= BLI_dynstr_get_len(ds);
@@ -187,7 +189,7 @@ void BKE_reports_prependf(ReportList *reports, const char *prepend, ...)
 		va_end(args);
 
 		BLI_dynstr_append(ds, report->message);
-		MEM_freeN(report->message);
+		MEM_freeN((void *)report->message);
 
 		report->message= BLI_dynstr_get_cstring(ds);
 		report->len= BLI_dynstr_get_len(ds);

@@ -62,7 +62,7 @@ struct ImBuf *IMB_half_x(struct ImBuf *ibuf1)
 	
 	if (ibuf1->x <= 1) return(IMB_dupImBuf(ibuf1));
 	
-	ibuf2 = IMB_allocImBuf((ibuf1->x)/2, ibuf1->y, ibuf1->depth, ibuf1->flags, 0);
+	ibuf2 = IMB_allocImBuf((ibuf1->x)/2, ibuf1->y, ibuf1->depth, ibuf1->flags);
 	if (ibuf2==NULL) return (0);
 
 	_p1 = (uchar *) ibuf1->rect;
@@ -123,7 +123,7 @@ struct ImBuf *IMB_double_fast_x(struct ImBuf *ibuf1)
 	do_rect= (ibuf1->rect != NULL);
 	do_float= (ibuf1->rect_float != NULL);
 	
-	ibuf2 = IMB_allocImBuf(2 * ibuf1->x , ibuf1->y , ibuf1->depth, ibuf1->flags, 0);
+	ibuf2 = IMB_allocImBuf(2 * ibuf1->x , ibuf1->y , ibuf1->depth, ibuf1->flags);
 	if (ibuf2==NULL) return (0);
 
 	p1 = (int *) ibuf1->rect;
@@ -181,7 +181,7 @@ struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
 	do_rect= (ibuf1->rect != NULL);
 	do_float= (ibuf1->rect_float != NULL);
 
-	ibuf2 = IMB_allocImBuf(ibuf1->x , (ibuf1->y) / 2 , ibuf1->depth, ibuf1->flags, 0);
+	ibuf2 = IMB_allocImBuf(ibuf1->x , (ibuf1->y) / 2 , ibuf1->depth, ibuf1->flags);
 	if (ibuf2==NULL) return (0);
 
 	_p1 = (uchar *) ibuf1->rect;
@@ -249,7 +249,7 @@ struct ImBuf *IMB_double_fast_y(struct ImBuf *ibuf1)
 	do_rect= (ibuf1->rect != NULL);
 	do_float= (ibuf1->rect_float != NULL);
 
-	ibuf2 = IMB_allocImBuf(ibuf1->x , 2 * ibuf1->y , ibuf1->depth, ibuf1->flags, 0);
+	ibuf2 = IMB_allocImBuf(ibuf1->x , 2 * ibuf1->y , ibuf1->depth, ibuf1->flags);
 	if (ibuf2==NULL) return (0);
 
 	p1 = (int *) ibuf1->rect;
@@ -286,26 +286,16 @@ struct ImBuf *IMB_double_y(struct ImBuf *ibuf1)
 	return (ibuf2);
 }
 
-
-struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
+/* result in ibuf2, scaling should be done correctly */
+void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 {
-	struct ImBuf *ibuf2;
 	uchar *p1, *p2 = NULL, *dest;
 	float *p1f, *destf, *p2f = NULL;
 	int x,y;
 	int do_rect, do_float;
 
-	if (ibuf1==NULL) return (0);
-	if (ibuf1->rect==NULL && ibuf1->rect_float==NULL) return (0);
-
 	do_rect= (ibuf1->rect != NULL);
-
-	if (ibuf1->x <= 1) return(IMB_half_y(ibuf1));
-	if (ibuf1->y <= 1) return(IMB_half_x(ibuf1));
 	
-	ibuf2=IMB_allocImBuf((ibuf1->x)/2, (ibuf1->y)/2, ibuf1->depth, ibuf1->flags, 0);
-	if (ibuf2==NULL) return (0);
-
 	p1f = ibuf1->rect_float;
 	destf=ibuf2->rect_float;
 	p1 = (uchar *) ibuf1->rect;
@@ -343,9 +333,26 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
 			if (do_float) p1f+=4;
 		}
 	}
-	return (ibuf2);
+	
 }
 
+struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
+{
+	struct ImBuf *ibuf2;
+
+	if (ibuf1==NULL) return (0);
+	if (ibuf1->rect==NULL && ibuf1->rect_float==NULL) return (0);
+	
+	if (ibuf1->x <= 1) return(IMB_half_y(ibuf1));
+	if (ibuf1->y <= 1) return(IMB_half_x(ibuf1));
+	
+	ibuf2=IMB_allocImBuf((ibuf1->x)/2, (ibuf1->y)/2, ibuf1->depth, ibuf1->flags);
+	if (ibuf2==NULL) return (0);
+	
+	imb_onehalf_no_alloc(ibuf2, ibuf1);
+	
+	return (ibuf2);
+}
 
 /* q_scale_linear_interpolation helper functions */
 
@@ -1439,7 +1446,7 @@ static void scalefast_Z_ImBuf(ImBuf *ibuf, short newx, short newy)
 	}
 }
 
-struct ImBuf *IMB_scaleImBuf(struct ImBuf * ibuf, short newx, short newy)
+struct ImBuf *IMB_scaleImBuf(struct ImBuf * ibuf, unsigned int newx, unsigned int newy)
 {
 	if (ibuf==NULL) return (0);
 	if (ibuf->rect==NULL && ibuf->rect_float==NULL) return (ibuf);
@@ -1468,7 +1475,7 @@ struct imbufRGBA {
 	float r, g, b, a;
 };
 
-struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, short newx, short newy)
+struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
 	unsigned int *rect,*_newrect,*newrect;
 	struct imbufRGBA *rectf, *_newrectf, *newrectf;

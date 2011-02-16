@@ -421,10 +421,10 @@ typedef struct Ipo {
 #define PART_TOTNAM		25
 
 #define PART_EMIT_FREQ	1
-#define PART_EMIT_LIFE	2
+/* #define PART_EMIT_LIFE	2 */ /*UNUSED*/
 #define PART_EMIT_VEL	3
 #define PART_EMIT_AVE	4
-#define PART_EMIT_SIZE	5
+/* #define PART_EMIT_SIZE	5 */ /*UNUSED*/
 
 #define PART_AVE		6
 #define PART_SIZE		7

@@ -34,6 +34,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -309,7 +310,7 @@ static void screen_delarea(bContext *C, bScreen *sc, ScrArea *sa)
 
 /* return 0: no split possible */
 /* else return (integer) screencoordinate split point */
-static short testsplitpoint(wmWindow *win, ScrArea *sa, char dir, float fac)
+static short testsplitpoint(ScrArea *sa, char dir, float fac)
 {
 	short x, y;
 	
@@ -345,7 +346,7 @@ static short testsplitpoint(wmWindow *win, ScrArea *sa, char dir, float fac)
 	}
 }
 
-ScrArea *area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac)
+ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 {
 	ScrArea *newa=NULL;
 	ScrVert *sv1, *sv2;
@@ -353,7 +354,7 @@ ScrArea *area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac
 	
 	if(sa==NULL) return NULL;
 	
-	split= testsplitpoint(win, sa, dir, fac);
+	split= testsplitpoint(sa, dir, fac);
 	if(split==0) return NULL;
 	
 	if(dir=='h') {
@@ -399,7 +400,8 @@ ScrArea *area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac
 	}
 	
 	/* remove double vertices en edges */
-	removedouble_scrverts(sc);
+	if(merge)
+		removedouble_scrverts(sc);
 	removedouble_scredges(sc);
 	removenotused_scredges(sc);
 	
@@ -408,7 +410,7 @@ ScrArea *area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac
 
 /* empty screen, with 1 dummy area without spacedata */
 /* uses window size */
-bScreen *ED_screen_add(wmWindow *win, Scene *scene, char *name)
+bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 {
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
@@ -416,6 +418,7 @@ bScreen *ED_screen_add(wmWindow *win, Scene *scene, char *name)
 	sc= alloc_libblock(&G.main->screen, ID_SCR, name);
 	sc->scene= scene;
 	sc->do_refresh= 1;
+	sc->redraws_flag= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 	sc->winid= win->winid;
 	
 	sv1= screen_addvert(sc, 0, 0);
@@ -484,7 +487,7 @@ static void screen_copy(bScreen *to, bScreen *from)
 /* with sa as center, sb is located at: 0=W, 1=N, 2=E, 3=S */
 /* -1 = not valid check */
 /* used with join operator */
-int area_getorientation(bScreen *screen, ScrArea *sa, ScrArea *sb)
+int area_getorientation(ScrArea *sa, ScrArea *sb)
 {
 	ScrVert *sav1, *sav2, *sav3, *sav4;
 	ScrVert *sbv1, *sbv2, *sbv3, *sbv4;
@@ -523,7 +526,7 @@ int screen_area_join(bContext *C, bScreen* scr, ScrArea *sa1, ScrArea *sa2)
 {
 	int dir;
 	
-	dir = area_getorientation(scr, sa1, sa2);
+	dir = area_getorientation(sa1, sa2);
 	/*printf("dir is : %i \n", dir);*/
 	
 	if (dir < 0)
@@ -643,18 +646,20 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 		
 		/* make sure it fits! */
 		for(sv= sc->vertbase.first; sv; sv= sv->next) {
+			/* FIXME, this resizing logic is no good when resizing the window + redrawing [#24428]
+			 * need some way to store these as floats internally and re-apply from there. */
 			tempf= ((float)sv->vec.x)*facx;
 			sv->vec.x= (short)(tempf+0.5);
 			sv->vec.x+= AREAGRID-1;
 			sv->vec.x-=  (sv->vec.x % AREAGRID); 
-			
+
 			CLAMP(sv->vec.x, 0, winsizex);
 			
-			tempf= ((float)sv->vec.y )*facy;
+			tempf= ((float)sv->vec.y)*facy;
 			sv->vec.y= (short)(tempf+0.5);
 			sv->vec.y+= AREAGRID-1;
 			sv->vec.y-=  (sv->vec.y % AREAGRID); 
-			
+
 			CLAMP(sv->vec.y, 0, winsizey);
 		}
 	}
@@ -861,7 +866,7 @@ static void scrarea_draw_shape_dark(ScrArea *sa, char dir)
 }
 
 /* draw screen area ligher with arrow shape ("eraser" of previous dark shape) */
-static void scrarea_draw_shape_light(ScrArea *sa, char dir)
+static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir))
 {
 	glBlendFunc(GL_DST_COLOR, GL_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -993,7 +998,7 @@ void ED_screen_draw(wmWindow *win)
 	
 	/* blended join arrow */
 	if (sa1 && sa2) {
-		dir = area_getorientation(win->screen, sa1, sa2);
+		dir = area_getorientation(sa1, sa2);
 		if (dir >= 0) {
 			switch(dir) {
 				case 0: /* W */
@@ -1025,27 +1030,35 @@ void ED_screen_draw(wmWindow *win)
 /* make this screen usable */
 /* for file read and first use, for scaling window, area moves */
 void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
-{
-	ScrArea *sa;
-	rcti winrct= {0, win->sizex-1, 0, win->sizey-1};
+{	
+	/* exception for bg mode, we only need the screen context */
+	if (!G.background) {
+		ScrArea *sa;
+		rcti winrct;
 	
-	screen_test_scale(win->screen, win->sizex, win->sizey);
+		winrct.xmin= 0;
+		winrct.xmax= win->sizex-1;
+		winrct.ymin= 0;
+		winrct.ymax= win->sizey-1;
+		
+		screen_test_scale(win->screen, win->sizex, win->sizey);
+		
+		if(win->screen->mainwin==0)
+			win->screen->mainwin= wm_subwindow_open(win, &winrct);
+		else
+			wm_subwindow_position(win, win->screen->mainwin, &winrct);
+		
+		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+			/* set spacetype and region callbacks, calls init() */
+			/* sets subwindows for regions, adds handlers */
+			ED_area_initialize(wm, win, sa);
+		}
 	
-	if(win->screen->mainwin==0)
-		win->screen->mainwin= wm_subwindow_open(win, &winrct);
-	else
-		wm_subwindow_position(win, win->screen->mainwin, &winrct);
-	
-	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-		/* set spacetype and region callbacks, calls init() */
-		/* sets subwindows for regions, adds handlers */
-		ED_area_initialize(wm, win, sa);
+		/* wake up animtimer */
+		if(win->screen->animtimer)
+			WM_event_timer_sleep(wm, win, win->screen->animtimer, 0);
 	}
 
-	/* wake up animtimer */
-	if(win->screen->animtimer)
-		WM_event_timer_sleep(wm, win, win->screen->animtimer, 0);
-	
 	if(G.f & G_DEBUG) printf("set screen\n");
 	win->screen->do_refresh= 0;
 
@@ -1130,8 +1143,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	/* mark it available for use for other windows */
 	screen->winid= 0;
 	
-	/* before deleting the temp screen or we get invalid access */
-	if (prevwin->screen->full != SCREENTEMP) {
+	if (prevwin->screen->temp == 0) {
 		/* use previous window if possible */
 		CTX_wm_window_set(C, prevwin);
 	} else {
@@ -1139,11 +1151,6 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 		CTX_wm_window_set(C, NULL);
 	}
 	
-	/* if temp screen, delete it */
-	if(screen->full == SCREENTEMP) {
-		Main *bmain= CTX_data_main(C);
-		free_libblock(&bmain->screen, screen);
-	}
 }
 
 /* *********************************** */
@@ -1312,6 +1319,7 @@ void ED_screen_set(bContext *C, bScreen *sc)
 		
 		ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
+		WM_event_add_notifier(C, NC_SCREEN|ND_SCREENSET, sc);
 		
 		/* makes button hilites work */
 		WM_event_add_mousemove(C);
@@ -1431,7 +1439,7 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	CTX_data_scene_set(C, scene);
 	set_scene_bg(CTX_data_main(C), scene);
 	
-	ED_update_for_newframe(C, 1);
+	ED_update_for_newframe(CTX_data_main(C), scene, curscreen, 1);
 	
 	/* complete redraw */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -1549,46 +1557,39 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 	}
 
 	if(sa && sa->full) {
+		ScrArea *old;
 		short fulltype;
 
 		sc= sa->full;		/* the old screen to restore */
 		oldscreen= win->screen;	/* the one disappearing */
 
 		fulltype = sc->full;
+		sc->full= 0;
 
-		/* refuse to go out of SCREENAUTOPLAY as long as G_FLAGS_AUTOPLAY
-		   is set */
-
-		if (fulltype != SCREENAUTOPLAY || (G.flags & G_FILE_AUTOPLAY) == 0) {
-			ScrArea *old;
-
-			sc->full= 0;
-
-			/* find old area */
-			for(old= sc->areabase.first; old; old= old->next)
-				if(old->full) break;
-			if(old==NULL) {
-				if (G.f & G_DEBUG)
-					printf("something wrong in areafullscreen\n");
-				return NULL;
-			}
-				// old feature described below (ton)
-				// in autoplay screens the headers are disabled by
-				// default. So use the old headertype instead
-
-			area_copy_data(old, sa, 1);	/*  1 = swap spacelist */
-			if (sa->flag & AREA_TEMP_INFO) sa->flag &= ~AREA_TEMP_INFO;
-			old->full= NULL;
-
-			/* animtimer back */
-			sc->animtimer= oldscreen->animtimer;
-			oldscreen->animtimer= NULL;
-
-			ED_screen_set(C, sc);
-
-			free_screen(oldscreen);
-			free_libblock(&CTX_data_main(C)->screen, oldscreen);
+		/* removed: SCREENAUTOPLAY exception here */
+	
+		/* find old area */
+		for(old= sc->areabase.first; old; old= old->next)
+			if(old->full) break;
+		if(old==NULL) {
+			if (G.f & G_DEBUG)
+				printf("something wrong in areafullscreen\n");
+			return NULL;
 		}
+
+		area_copy_data(old, sa, 1);	/*  1 = swap spacelist */
+		if (sa->flag & AREA_TEMP_INFO) sa->flag &= ~AREA_TEMP_INFO;
+		old->full= NULL;
+
+		/* animtimer back */
+		sc->animtimer= oldscreen->animtimer;
+		oldscreen->animtimer= NULL;
+
+		ED_screen_set(C, sc);
+
+		free_screen(oldscreen);
+		free_libblock(&CTX_data_main(C)->screen, oldscreen);
+
 	}
 	else {
 		ScrArea *newa;
@@ -1603,7 +1604,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 		*/
 
 		oldscreen->full = SCREENFULL;
-		BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name+2, "temp");
+		BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name+2, "full");
 		sc= ED_screen_add(win, oldscreen->scene, newname);
 		sc->full = SCREENFULL; // XXX
 
@@ -1612,7 +1613,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 		oldscreen->animtimer= NULL;
 
 		/* returns the top small area */
-		newa= area_split(win, sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
+		newa= area_split(sc, (ScrArea *)sc->areabase.first, 'h', 0.99f, 1);
 		ED_area_newspace(C, newa, SPACE_INFO);
 
 		/* use random area when we have no active one, e.g. when the
@@ -1737,20 +1738,17 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
 	}
 }
 
-/* results in fully updated anim system */
-void ED_update_for_newframe(const bContext *C, int mute)
-{
-	Main *bmain= CTX_data_main(C);
-	bScreen *screen= CTX_wm_screen(C);
-	Scene *scene= CTX_data_scene(C);
-	
+/* results in fully updated anim system
+ * screen can be NULL */
+void ED_update_for_newframe(Main *bmain, Scene *scene, bScreen *screen, int UNUSED(mute))
+{	
 #ifdef DURIAN_CAMERA_SWITCH
 	void *camera= scene_camera_switch_find(scene);
 	if(camera && scene->camera != camera) {
 		bScreen *sc;
 		scene->camera= camera;
 		/* are there cameras in the views that are not in the scene? */
-		for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
+		for(sc= bmain->screen.first; sc; sc= sc->id.next) {
 			BKE_screen_view3d_scene_sync(sc);
 		}
 	}
@@ -1760,7 +1758,7 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	
 	/* update animated image textures for gpu, etc,
 	 * call before scene_update_for_newframe so modifiers with textuers dont lag 1 frame */
-	ED_image_update_frame(C);
+	ED_image_update_frame(bmain, scene->r.cfra);
 
 	/* this function applies the changes too */
 	/* XXX future: do all windows */
@@ -1782,7 +1780,7 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	/* update animated texture nodes */
 	{
 		Tex *tex;
-		for(tex= CTX_data_main(C)->tex.first; tex; tex= tex->id.next)
+		for(tex= bmain->tex.first; tex; tex= tex->id.next)
 			if( tex->use_nodes && tex->nodetree ) {
 				ntreeTexTagAnimated( tex->nodetree );
 			}

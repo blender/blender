@@ -35,9 +35,9 @@
 #endif
 #include <sys/types.h>
 
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
 
@@ -58,7 +58,7 @@
 
 /* own include */
 #include "sequencer_intern.h"
-static void *find_nearest_marker(int d1, int d2) {return NULL;}
+static void *find_nearest_marker(int UNUSED(d1), int UNUSED(d2)) {return NULL;}
 	
 void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK */
 {
@@ -209,7 +209,7 @@ void select_neighbor_from_last(Scene *scene, int lr)
 
 
 /* (de)select operator */
-static int sequencer_deselect_exec(bContext *C, wmOperator *op)
+static int sequencer_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -255,7 +255,7 @@ void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot)
 
 
 /* (de)select operator */
-static int sequencer_select_inverse_exec(bContext *C, wmOperator *op)
+static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -363,16 +363,16 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		{
 			SpaceSeq *sseq= CTX_wm_space_seq(C);
 			if (sseq && sseq->flag & SEQ_MARKER_TRANS) {
-				TimeMarker *marker;
+				TimeMarker *tmarker;
 
-				for (marker= scene->markers.first; marker; marker= marker->next) {
-					if(	((x < CFRA) && marker->frame < CFRA) ||
-						((x >= CFRA) && marker->frame >= CFRA)
+				for (tmarker= scene->markers.first; tmarker; tmarker= tmarker->next) {
+					if(	((x < CFRA) && tmarker->frame < CFRA) ||
+						((x >= CFRA) && tmarker->frame >= CFRA)
 					) {
-						marker->flag |= SELECT;
+						tmarker->flag |= SELECT;
 					}
 					else {
-						marker->flag &= ~SELECT;
+						tmarker->flag &= ~SELECT;
 					}
 				}
 			}
@@ -582,7 +582,7 @@ static int select_more_less_seq__internal(Scene *scene, int sel, int linked) {
 
 
 /* select more operator */
-static int sequencer_select_more_exec(bContext *C, wmOperator *op)
+static int sequencer_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	
@@ -613,7 +613,7 @@ void SEQUENCER_OT_select_more(wmOperatorType *ot)
 
 
 /* select less operator */
-static int sequencer_select_less_exec(bContext *C, wmOperator *op)
+static int sequencer_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	
@@ -700,7 +700,7 @@ void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 
 
 /* select linked operator */
-static int sequencer_select_linked_exec(bContext *C, wmOperator *op)
+static int sequencer_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	int selected;

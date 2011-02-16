@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef EXPP_color_h
-#define EXPP_color_h
+#ifndef MATHUTILS_COLOR_H
+#define MATHUTILS_COLOR_H
 
 #include <Python.h>
 
@@ -49,4 +49,4 @@ blender (stored in blend_data). This is an either/or struct not both*/
 PyObject *newColorObject( float *col, int type, PyTypeObject *base_type);
 PyObject *newColorObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
-#endif				/* EXPP_color_h */
+#endif /* MATHUTILS_COLOR_H */

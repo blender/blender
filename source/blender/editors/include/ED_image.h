@@ -29,10 +29,13 @@
 #define ED_IMAGE_H
 
 struct SpaceImage;
+struct Main;
 struct bContext;
 struct Image;
 struct ImageUser;
+struct ToolSettings;
 struct uiBlock;
+struct wmWindowManager;
 
 /* space_image.c, exported for transform */
 struct Image *ED_space_image(struct SpaceImage *sima);
@@ -47,6 +50,8 @@ void ED_space_image_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
 void ED_space_image_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy);
 void ED_space_image_uv_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
 
+void ED_space_image_paint_update(struct wmWindowManager *wm, struct ToolSettings *settings);
+
 void ED_image_size(struct Image *ima, int *width, int *height);
 void ED_image_aspect(struct Image *ima, float *aspx, float *aspy);
 void ED_image_uv_aspect(struct Image *ima, float *aspx, float *aspy);
@@ -57,7 +62,7 @@ int ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit);
 int ED_space_image_show_uvshadow(struct SpaceImage *sima, struct Object *obedit);
 
 /* UI level image (texture) updating... render calls own stuff (too) */
-void ED_image_update_frame(const struct bContext *C);
+void ED_image_update_frame(const struct Main *mainp, int cfra);
 
 /* image_render.c, export for screen_ops.c, render operator */
 void ED_space_image_output(struct bContext *C);

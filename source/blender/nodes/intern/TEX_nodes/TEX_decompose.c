@@ -41,25 +41,25 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void valuefn_r(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+static void valuefn_r(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	tex_input_rgba(out, in[0], p, thread);
 	*out = out[0];
 }
 
-static void valuefn_g(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+static void valuefn_g(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	tex_input_rgba(out, in[0], p, thread);
 	*out = out[1];
 }
 
-static void valuefn_b(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+static void valuefn_b(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	tex_input_rgba(out, in[0], p, thread);
 	*out = out[2];
 }
 
-static void valuefn_a(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+static void valuefn_a(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	tex_input_rgba(out, in[0], p, thread);
 	*out = out[3];
@@ -73,20 +73,14 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	tex_output(node, in, out[3], &valuefn_a, data);
 }
 
-bNodeType tex_node_decompose= {
-	/* *next,*prev     */  NULL, NULL,
-	/* type code       */  TEX_NODE_DECOMPOSE,
-	/* name            */  "Decompose RGBA",
-	/* width+range     */  100, 60, 150,
-	/* class+opts      */  NODE_CLASS_OP_COLOR, 0,
-	/* input sock      */  inputs,
-	/* output sock     */  outputs,
-	/* storage         */  "", 
-	/* execfunc        */  exec,
-	/* butfunc         */  NULL,
-	/* initfunc        */  NULL,
-	/* freestoragefunc */  NULL,
-	/* copystoragefunc */  NULL,
-	/* id              */  NULL   
+void register_node_type_tex_decompose(ListBase *lb)
+{
+	static bNodeType ntype;
 	
-};
+	node_type_base(&ntype, TEX_NODE_DECOMPOSE, "Decompose RGBA", NODE_CLASS_OP_COLOR, 0,
+				   inputs, outputs);
+	node_type_size(&ntype, 100, 60, 150);
+	node_type_exec(&ntype, exec);
+	
+	nodeRegisterType(lb, &ntype);
+}

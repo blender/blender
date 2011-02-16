@@ -84,10 +84,19 @@ typedef struct SpaceInfo {
 
 	short blockhandler[8];		/* XXX depricate this */
 	
-	struct bScreen *screen;		/* browse screen */
-	struct Scene *scene;		/* browse scene */
+	char rpt_mask;
+	char pad[7];
 	
 } SpaceInfo;
+
+/* SpaceInfo.rpt_mask */
+enum {
+	INFO_RPT_DEBUG	= 1<<0,
+	INFO_RPT_INFO	= 1<<1,
+	INFO_RPT_OP		= 1<<2,
+	INFO_RPT_WARN	= 1<<3,
+	INFO_RPT_ERR		= 1<<4,
+};
 
 /* 'Graph' Editor (formerly known as the IPO Editor) */
 typedef struct SpaceIpo {
@@ -126,7 +135,8 @@ typedef struct SpaceButs {
 	short mainb, mainbo, mainbuser;	/* context tabs */
 	short re_align, align;			/* align for panels */
 	short preview;					/* preview is signal to refresh */
-	char flag, pad[3];
+	short texture_context;			/* texture context selector (material, world, brush)*/
+	char flag, pad;
 	
 	void *path;						/* runtime */
 	int pathflag, dataicon;			/* runtime */
@@ -157,7 +167,7 @@ typedef struct SpaceSeq {
 } SpaceSeq;
 
 typedef struct FileSelectParams {
-	char title[24]; /* title, also used for the text of the execute button */
+	char title[32]; /* title, also used for the text of the execute button */
 	char dir[240]; /* directory */
 	char file[80]; /* file */
 	char renamefile[80];
@@ -231,9 +241,8 @@ typedef struct SpaceOops {
 	/* search stuff */
 	char search_string[32];
 	struct TreeStoreElem search_tse;
-	int search_flags, do_;
-	
-	short flag, outlinevis, storeflag, pad;
+
+	short flag, outlinevis, storeflag, search_flags;
 } SpaceOops;
 
 typedef struct SpaceImage {
@@ -241,34 +250,30 @@ typedef struct SpaceImage {
 	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 
-	float blockscale;
-	short blockhandler[8];
-	
+	int flag;
+
 	struct Image *image;
 	struct ImageUser iuser;
+	struct CurveMapping *cumap;		
 	
-	struct CurveMapping *cumap;
-	short menunr, imanr, pad2;
+	struct Scopes scopes;			/* histogram waveform and vectorscope */
+	struct Histogram sample_line_hist;	/* sample line histogram */
+
+	struct bGPdata *gpd;			/* grease pencil data */
+
+	float cursor[2];				/* UV editor 2d cursor */
+	float xof, yof;					/* user defined offset, image is centered */
+	float zoom;						/* user defined zoom level */
+	float centx, centy;				/* storage for offset while render drawing */
+
 	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
-	int flag;
-	short imtypenr, lock;
-	short pin, pad3;
+	short imtypenr;
+	short lock;
+	short pin;
 	char dt_uv; /* UV draw type */
 	char sticky; /* sticky selection type */
 	char dt_uvstretch;
 	char around;
-	float cursor[2];				/* UV editor 2d cursor */
-	
-	float xof, yof;					/* user defined offset, image is centered */
-	float zoom, pad4;				/* user defined zoom level */
-	float centx, centy;				/* storage for offset while render drawing */
-	
-	struct bGPdata *gpd;			/* grease pencil data */
-	
-	struct Scopes scopes;			/* histogram waveform and vectorscope */
-
-	struct Histogram sample_line_hist;	/* sample line histogram */
-	
 } SpaceImage;
 
 typedef struct SpaceNla {
@@ -318,6 +323,8 @@ typedef struct SpaceText {
 
 	char findstr[256];		/* ST_MAX_FIND_STR */
 	char replacestr[256];	/* ST_MAX_FIND_STR */
+
+	void *drawcache; /* cache for faster drawing */
 } SpaceText;
 
 typedef struct Script {
@@ -334,9 +341,6 @@ typedef struct Script {
 	char scriptarg[256];
 } Script;
 #define SCRIPT_SET_NULL(_script) _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = _script->py_globaldict = NULL; _script->flags = 0;
-#define SCRIPT_RUNNING	0x01
-#define SCRIPT_GUI		0x02
-#define SCRIPT_FILESEL	0x04
 
 typedef struct SpaceScript {
 	SpaceLink *next, *prev;
@@ -351,15 +355,11 @@ typedef struct SpaceScript {
 	void *but_refs;
 } SpaceScript;
 
+# /* Only store the data array in the cache to avoid constant reallocation. */
+# /* No need to store when saved. */
 typedef struct SpaceTimeCache {
 	struct SpaceTimeCache *next, *prev;
-	int type;
-	int flag;
-	
 	float *array;
-	int len;
-	int startframe, endframe;
-	int ok;
 } SpaceTimeCache;
 
 typedef struct SpaceTime {
@@ -373,7 +373,7 @@ typedef struct SpaceTime {
 	ListBase caches;
 	int cache_display, pad;
 	
-	int flag, redraws;
+	int flag, redraws; /* redraws is deprecated... moved to screen */
 	
 } SpaceTime;
 
@@ -397,8 +397,9 @@ typedef struct SpaceNode {
 	float mx, my;		/* mousepos for drawing socketless link */
 	
 	struct bNodeTree *nodetree, *edittree;
-	int treetype;			/* treetype: as same nodetree->type */
-	short texfrom, pad;		/* texfrom object, world or brush */
+	int treetype;		/* treetype: as same nodetree->type */
+	short texfrom;		/* texfrom object, world or brush */
+	short recalc;		/* currently on 0/1, for auto compo */
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceNode;
@@ -406,6 +407,9 @@ typedef struct SpaceNode {
 /* snode->flag */
 #define SNODE_BACKDRAW		2
 #define SNODE_DISPGP		4
+#define SNODE_USE_ALPHA		8
+#define SNODE_SHOW_ALPHA	16
+#define SNODE_AUTO_RENDER	32
 
 /* snode->texfrom */
 #define SNODE_TEX_OBJECT	0
@@ -507,21 +511,6 @@ enum {
 	CONSOLE_LINE_ERROR
 };
 
-/* SpaceConsole.rpt_mask */
-enum {
-	CONSOLE_TYPE_PYTHON=0,
-	CONSOLE_TYPE_REPORT,
-};
-
-/* SpaceConsole.type see BKE_report.h */
-enum {
-	CONSOLE_RPT_DEBUG	= 1<<0,
-	CONSOLE_RPT_INFO	= 1<<1,
-	CONSOLE_RPT_OP		= 1<<2,
-	CONSOLE_RPT_WARN	= 1<<3,
-	CONSOLE_RPT_ERR		= 1<<4,
-};
-
 typedef struct SpaceConsole {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -531,9 +520,7 @@ typedef struct SpaceConsole {
 	short blockhandler[8];		// XXX are these needed?
 	
 	/* space vars */
-	int type; /* console/report/..? */
-	int rpt_mask; /* which reports to display */
-	int flag, lheight;
+	int lheight, pad;
 
 	ListBase scrollback; /* ConsoleLine; output */
 	ListBase history; /* ConsoleLine; command history, current edited line is the first */
@@ -641,9 +628,14 @@ typedef struct SpaceSound {
 /* sbuts->flag */
 #define SB_PRV_OSA			1
 #define SB_PIN_CONTEXT		2
-#define SB_WORLD_TEX		4
-#define SB_BRUSH_TEX		8
+//#define SB_WORLD_TEX		4	//not used anymore
+//#define SB_BRUSH_TEX		8	//not used anymore	
 #define SB_SHADING_CONTEXT	16
+
+/* sbuts->texture_context */
+#define SB_TEXC_MAT_OR_LAMP	0
+#define SB_TEXC_WORLD		1
+#define SB_TEXC_BRUSH		2
 
 /* sbuts->align */
 #define BUT_FREE  		0
@@ -716,7 +708,7 @@ enum FileSortTypeE {
 #define EDITING				(1<<0)
 #define ACTIVEFILE			(1<<1)
 #define BLENDERFILE			(1<<2)
-#define PSXFILE				(1<<3)
+#define BLENDERFILE_BACKUP	(1<<3)
 #define IMAGEFILE			(1<<4)
 #define MOVIEFILE			(1<<5)
 #define PYSCRIPTFILE		(1<<6)
@@ -747,35 +739,35 @@ enum FileSortTypeE {
 #define SI_STICKY_VERTEX	2
 
 /* SpaceImage->flag */
-#define SI_BE_SQUARE	1<<0
-#define SI_EDITTILE		1<<1
-#define SI_CLIP_UV		1<<2
-#define SI_DRAWTOOL		1<<3
-#define SI_DEPRECATED1  1<<4	/* stick UVs to others in the same location */
-#define SI_DRAWSHADOW   1<<5
-#define SI_SELACTFACE   1<<6	/* deprecated */
-#define SI_DEPRECATED2	1<<7
-#define SI_DEPRECATED3  1<<8	/* stick UV selection to mesh vertex (UVs wont always be touching) */
-#define SI_COORDFLOATS  1<<9
-#define SI_PIXELSNAP	1<<10
-#define SI_LIVE_UNWRAP	1<<11
-#define SI_USE_ALPHA	1<<12
-#define SI_SHOW_ALPHA	1<<13
-#define SI_SHOW_ZBUF	1<<14
+#define SI_BE_SQUARE	(1<<0)
+#define SI_EDITTILE		(1<<1)
+#define SI_CLIP_UV		(1<<2)
+#define SI_DRAWTOOL		(1<<3)
+#define SI_DEPRECATED1  (1<<4)	/* stick UVs to others in the same location */
+#define SI_DRAWSHADOW   (1<<5)
+#define SI_SELACTFACE   (1<<6)	/* deprecated */
+#define SI_DEPRECATED2	(1<<7)
+#define SI_DEPRECATED3  (1<<8)	/* stick UV selection to mesh vertex (UVs wont always be touching) */
+#define SI_COORDFLOATS  (1<<9)
+#define SI_PIXELSNAP	(1<<10)
+#define SI_LIVE_UNWRAP	(1<<11)
+#define SI_USE_ALPHA	(1<<12)
+#define SI_SHOW_ALPHA	(1<<13)
+#define SI_SHOW_ZBUF	(1<<14)
 		/* next two for render window dislay */
-#define SI_PREVSPACE	1<<15
-#define SI_FULLWINDOW	1<<16
-#define SI_DEPRECATED4	1<<17
-#define SI_DEPRECATED5	1<<18
+#define SI_PREVSPACE	(1<<15)
+#define SI_FULLWINDOW	(1<<16)
+#define SI_DEPRECATED4	(1<<17)
+#define SI_DEPRECATED5	(1<<18)
 		/* this means that the image is drawn until it reaches the view edge,
 		 * in the image view, its unrelated to the 'tile' mode for texface */
-#define SI_DRAW_TILE	1<<19 
-#define SI_SMOOTH_UV	1<<20
-#define SI_DRAW_STRETCH	1<<21
-#define SI_DISPGP		1<<22
-#define SI_DRAW_OTHER	1<<23
+#define SI_DRAW_TILE	(1<<19)
+#define SI_SMOOTH_UV	(1<<20)
+#define SI_DRAW_STRETCH	(1<<21)
+#define SI_DISPGP		(1<<22)
+#define SI_DRAW_OTHER	(1<<23)
 
-#define SI_COLOR_CORRECTION	1<<24
+#define SI_COLOR_CORRECTION	(1<<24)
 
 /* SpaceIpo->flag (Graph Editor Settings) */
 	/* OLD DEPRECEATED SETTING */
@@ -803,6 +795,8 @@ enum FileSortTypeE {
 #define SIPO_TEMP_NEEDCHANSYNC	(1<<10)
 	/* don't perform realtime updates */
 #define SIPO_NOREALTIMEUPDATES	(1<<11)
+	/* don't draw curves with AA ("beauty-draw") for performance */
+#define SIPO_BEAUTYDRAW_OFF		(1<<12)
 
 /* SpaceIpo->mode (Graph Editor Mode) */
 enum {
@@ -860,12 +854,6 @@ enum {
 #define B_IMASELHOME		451
 #define B_IMASELREMOVEBIP	452
 
-#define C_BACK  0xBAAAAA
-#define C_DARK  0x665656
-#define C_DERK  0x766666
-#define C_HI	0xCBBBBB
-#define C_LO	0x544444
-
 /* nla->flag */
 /* flags (1<<0), (1<<1), and (1<<3) are depreceated flags from old blenders */
 	/* draw timing in seconds instead of frames */
@@ -885,7 +873,7 @@ enum {
 	/* only keyframes from active/selected channels get shown */
 #define TIME_ONLYACTSEL		4
 
-/* time->redraws */
+/* time->redraws (now screen->redraws_flag) */
 #define TIME_REGION				1
 #define TIME_ALL_3D_WIN			2
 #define TIME_ALL_ANIM_WIN		4
@@ -933,6 +921,7 @@ enum {
 
 
 /* space types, moved from DNA_screen_types.h */
+/* Do NOT change order, append on end. types are hardcoded needed */
 enum {
 	SPACE_EMPTY,
 	SPACE_VIEW3D,

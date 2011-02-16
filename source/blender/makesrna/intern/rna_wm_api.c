@@ -34,6 +34,7 @@
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
 
 #ifdef RNA_RUNTIME
 
@@ -50,7 +51,7 @@ static void rna_keymap_restore_item_to_default(wmKeyMap *km, bContext *C, wmKeyM
 	WM_keymap_restore_item_to_default(C, km, kmi);
 }
 
-static void rna_Operator_report(wmOperator *op, int type, char *msg)
+static void rna_Operator_report(wmOperator *op, int type, const char *msg)
 {
 	BKE_report(op->reports, type, msg);
 }
@@ -62,7 +63,7 @@ static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
 	
 }
 
-static int rna_event_add_modal_handler(struct bContext *C, struct wmOperator *operator)
+static int rna_event_modal_handler_add(struct bContext *C, struct wmOperator *operator)
 {
 	return WM_event_add_modal_handler(C, operator) != NULL;
 }
@@ -87,13 +88,12 @@ static void rna_generic_op_invoke(FunctionRNA *func, int flag)
 	}
 
 	if(flag & WM_GEN_INVOKE_SIZE) {
-		parm= RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
-		parm= RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
+		RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
+		RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
 	}
 
 	if(flag & WM_GEN_INVOKE_RETURN) {
-		parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", "");
-		RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+		parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
 		RNA_def_function_return(func, parm);
 	}
 }
@@ -103,11 +103,11 @@ void RNA_api_wm(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "add_fileselect", "WM_event_add_fileselect");
+	func= RNA_def_function(srna, "fileselect_add", "WM_event_add_fileselect");
 	RNA_def_function_ui_description(func, "Show up the file selector.");
 	rna_generic_op_invoke(func, 0);
 
-	func= RNA_def_function(srna, "add_modal_handler", "rna_event_add_modal_handler");
+	func= RNA_def_function(srna, "modal_handler_add", "rna_event_modal_handler_add");
 	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "operator", "Operator", "", "Operator to call.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -131,6 +131,11 @@ void RNA_api_wm(StructRNA *srna)
 	func= RNA_def_function(srna, "invoke_popup", "WM_operator_ui_popup");
 	RNA_def_function_ui_description(func, "Operator popup invoke.");
 	rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE|WM_GEN_INVOKE_RETURN);
+
+	func= RNA_def_function(srna, "invoke_confirm", "WM_operator_confirm");
+	RNA_def_function_ui_description(func, "Operator confirmation.");
+	rna_generic_op_invoke(func, WM_GEN_INVOKE_EVENT|WM_GEN_INVOKE_RETURN);
+	
 }
 
 void RNA_api_operator(StructRNA *srna)
@@ -140,8 +145,8 @@ void RNA_api_operator(StructRNA *srna)
 
 	/* utility, not for registering */
 	func= RNA_def_function(srna, "report", "rna_Operator_report");
-	parm= RNA_def_enum(func, "type", wm_report_items, 0, "Type", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_ENUM_FLAG);
+	parm= RNA_def_enum_flag(func, "type", wm_report_items, 0, "Type", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "message", "", 0, "Report Message", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
@@ -161,8 +166,7 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
-	parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", ""); // better name?
-	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
 	RNA_def_function_return(func, parm);
 
 	/* check */
@@ -181,8 +185,7 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_pointer(func, "event", "Event", "", "");
 
-	parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", ""); // better name?
-	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "modal", NULL); /* same as invoke */
@@ -191,8 +194,7 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_pointer(func, "event", "Event", "", "");
 
-	parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", ""); // better name?
-	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
 	RNA_def_function_return(func, parm);
 
 	/* draw */
@@ -209,8 +211,8 @@ void RNA_api_macro(StructRNA *srna)
 
 	/* utility, not for registering */
 	func= RNA_def_function(srna, "report", "rna_Operator_report");
-	parm= RNA_def_enum(func, "type", wm_report_items, 0, "Type", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_ENUM_FLAG);
+	parm= RNA_def_enum_flag(func, "type", wm_report_items, 0, "Type", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "message", "", 0, "Report Message", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
@@ -251,7 +253,7 @@ void RNA_api_keymap(StructRNA *srna)
 	parm= RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "User editable key map.");
 	RNA_def_function_return(func, parm);
 
-	func= RNA_def_function(srna, "restore_to_default", "WM_keymap_restore_to_default");
+	RNA_def_function(srna, "restore_to_default", "WM_keymap_restore_to_default");
 
 	func= RNA_def_function(srna, "restore_item_to_default", "rna_keymap_restore_item_to_default");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

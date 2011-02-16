@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef EXPP_quat_h
-#define EXPP_quat_h
+#ifndef MATHUTILS_QUAT_H
+#define MATHUTILS_QUAT_H
 
 #include <Python.h>
 
@@ -49,4 +49,4 @@ blender (stored in blend_data). This is an either/or struct not both*/
 PyObject *newQuaternionObject( float *quat, int type, PyTypeObject *base_type);
 PyObject *newQuaternionObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
-#endif				/* EXPP_quat_h */
+#endif /* MATHUTILS_QUAT_H */

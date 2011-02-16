@@ -27,9 +27,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_userdef_types.h"
 
-#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -62,13 +64,13 @@ static UndoStack MeshUndoStack = {UNDO_PAINT_MESH, {NULL, NULL}, NULL};
 
 /* Generic */
 
-static void undo_restore(bContext *C, UndoStack *stack, UndoElem *uel)
+static void undo_restore(bContext *C, UndoStack *UNUSED(stack), UndoElem *uel)
 {
 	if(uel && uel->restore)
 		uel->restore(C, &uel->elems);
 }
 
-static void undo_elem_free(UndoStack *stack, UndoElem *uel)
+static void undo_elem_free(UndoStack *UNUSED(stack), UndoElem *uel)
 {
 	if(uel && uel->free) {
 		uel->free(&uel->elems);
@@ -234,6 +236,27 @@ int ED_undo_paint_step(bContext *C, int type, int step, const char *name)
 	else if(type == UNDO_PAINT_MESH)
 		return undo_stack_step(C, &MeshUndoStack, step, name);
 	
+	return 0;
+}
+
+int ED_undo_paint_valid(int type, const char *name)
+{
+	UndoStack *stack;
+	
+	if(type == UNDO_PAINT_IMAGE)
+		stack= &ImageUndoStack;
+	else if(type == UNDO_PAINT_MESH)
+		stack= &MeshUndoStack;
+	else 
+		return 0;
+	
+	if(stack->current==NULL);
+	else {
+		if(name && strcmp(stack->current->name, name) == 0)
+			return 1;
+		else
+			return stack->elems.first != stack->elems.last;
+	}
 	return 0;
 }
 

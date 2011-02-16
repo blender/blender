@@ -33,6 +33,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -85,7 +86,7 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 	int filter;
 	
 	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	KeyframeEditFunc test_cb, sel_cb;
 	
 	/* determine type-based settings */
@@ -95,7 +96,6 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* init BezTriple looping data */
-	memset(&ked, 0, sizeof(KeyframeEditData));
 	test_cb= ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
 	
 	/* See if we should be selecting or deselecting */
@@ -539,7 +539,7 @@ void GRAPH_OT_select_column (wmOperatorType *ot)
 
 /* ******************** Select Linked Operator *********************** */
 
-static int graphkeys_select_linked_exec (bContext *C, wmOperator *op)
+static int graphkeys_select_linked_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -638,7 +638,7 @@ static void select_moreless_graph_keys (bAnimContext *ac, short mode)
 
 /* ----------------- */
 
-static int graphkeys_select_more_exec (bContext *C, wmOperator *op)
+static int graphkeys_select_more_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -672,7 +672,7 @@ void GRAPH_OT_select_more (wmOperatorType *ot)
 
 /* ----------------- */
 
-static int graphkeys_select_less_exec (bContext *C, wmOperator *op)
+static int graphkeys_select_less_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -886,7 +886,7 @@ static void get_nearest_fcurve_verts_list (bAnimContext *ac, int mval[2], ListBa
 }
 
 /* helper for find_nearest_fcurve_vert() - get the best match to use */
-static tNearestVertInfo *get_best_nearest_fcurve_vert (bAnimContext *ac, ListBase *matches)
+static tNearestVertInfo *get_best_nearest_fcurve_vert (ListBase *matches)
 {
 	tNearestVertInfo *nvi = NULL;
 	short found = 0;
@@ -941,7 +941,7 @@ static tNearestVertInfo *find_nearest_fcurve_vert (bAnimContext *ac, int mval[2]
 	get_nearest_fcurve_verts_list(ac, mval, &matches);
 	
 	/* step 2: find the best vert */
-	nvi= get_best_nearest_fcurve_vert(ac, &matches);
+	nvi= get_best_nearest_fcurve_vert(&matches);
 	
 	BLI_freelistN(&matches);
 	
@@ -956,6 +956,7 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 {
 	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
 	tNearestVertInfo *nvi;
+	BezTriple *bezt= NULL;
 	
 	/* find the beztriple that we're selecting, and the handle that was clicked on */
 	nvi = find_nearest_fcurve_vert(ac, mval);
@@ -985,8 +986,7 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 	if ((curves_only == 0) && ((nvi->fcu->flag & FCURVE_PROTECTED)==0)) {
 		/* only if there's keyframe */
 		if (nvi->bezt) {
-			BezTriple *bezt= nvi->bezt;
-			
+			bezt= nvi->bezt; /* used to check bezt seletion is set */
 			/* depends on selection mode */
 			if (select_mode == SELECT_INVERT) {
 				/* keyframe - invert select of all */
@@ -1042,11 +1042,23 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 	/* only change selection of channel when the visibility of keyframes doesn't depend on this */
 	if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
 		/* select or deselect curve? */
-		if (select_mode == SELECT_INVERT)
-			nvi->fcu->flag ^= FCURVE_SELECTED;
-		else if (select_mode == SELECT_ADD)
-			nvi->fcu->flag |= FCURVE_SELECTED;
-			
+
+		/* when a single point is selected then dont toggle channel selection */
+		if(bezt) {
+			if((bezt->f2|bezt->f1|bezt->f3) & SELECT) {
+				nvi->fcu->flag |= FCURVE_SELECTED;
+			}
+			else {
+				nvi->fcu->flag &= ~FCURVE_SELECTED;
+			}
+		}
+		else {
+			if (select_mode == SELECT_INVERT)
+				nvi->fcu->flag ^= FCURVE_SELECTED;
+			else if (select_mode == SELECT_ADD)
+				nvi->fcu->flag |= FCURVE_SELECTED;
+		}
+
 		/* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
 		if (nvi->fcu->flag & FCURVE_SELECTED) {
 			int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);

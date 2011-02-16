@@ -25,18 +25,21 @@
 #ifndef PY_CAPI_UTILS_H
 #define PY_CAPI_UTILS_H
 
-void			PyC_ObSpit(char *name, PyObject *var);
+void			PyC_ObSpit(const char *name, PyObject *var);
 void			PyC_LineSpit(void);
 PyObject *		PyC_ExceptionBuffer(void);
 PyObject *		PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 void			PyC_FileAndNum(const char **filename, int *lineno);
-int				PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, char *error_prefix);
+int				PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, const char *error_prefix);
 
 /* follow http://www.python.org/dev/peps/pep-0383/ */
 PyObject *		PyC_UnicodeFromByte(const char *str);
-const char *	PuC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
+const char *	PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
 
 /* name namespace function for bpy & bge */
 PyObject *		PyC_DefaultNameSpace(const char *filename);
 void			PyC_RunQuicky(const char *filepath, int n, ...);
+
+void PyC_MainModule_Backup(PyObject **main_mod);
+void PyC_MainModule_Restore(PyObject *main_mod);
 #endif // PY_CAPI_UTILS_H

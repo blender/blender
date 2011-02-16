@@ -80,7 +80,7 @@ typedef struct BlendFileData {
 	 * indicating the cause of the failure.
 	 * @return The data of the file.
 	 */
-BlendFileData*	BLO_read_from_file		(char *file, struct ReportList *reports);
+BlendFileData*	BLO_read_from_file(const char *file, struct ReportList *reports);
 
 	/**
 	 * Open a blender file from memory. The function
@@ -200,7 +200,7 @@ int BLO_has_bfile_extension(char *str);
 int BLO_is_a_library(const char *path, char *dir, char *group);
 
 struct Main* BLO_library_append_begin(const struct bContext *C, BlendHandle** bh, char *dir);
-void BLO_library_append_named_part(const struct bContext *C, struct Main *mainl, BlendHandle** bh, char *name, int idcode, short flag);
+void BLO_library_append_named_part(const struct bContext *C, struct Main *mainl, BlendHandle** bh, const char *name, int idcode, short flag);
 void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag);
 
 /* deprecated */

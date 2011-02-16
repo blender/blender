@@ -7,7 +7,7 @@ o = SConscript('intern/SConscript')
 objs += o
 
 incs = '#/intern/guardedalloc #/intern/memutil #/intern/audaspace/intern ../blenkernel ../blenlib ../makesdna intern .'
-incs += ' ../windowmanager ../editors/include ../gpu ../imbuf ../ikplugin'
+incs += ' ../windowmanager ../editors/include ../gpu ../imbuf ../ikplugin ../blenfont'
 incs += ' ../render/extern/include'
 
 defs = []
@@ -46,13 +46,13 @@ if env['WITH_BF_LCMS']:
     incs += ' ' + env['BF_LCMS_INC']
     
 if env['WITH_BF_GAMEENGINE']:
-    defs.append('GAMEBLENDER=1')
+    defs.append('WITH_GAMEENGINE')
 
 if env['BF_UNIT_TEST']:
     defs.append('UNIT_TEST')
 
-if not env['WITH_BF_PYTHON']:
-    defs.append('DISABLE_PYTHON')
+if env['WITH_BF_PYTHON']:
+    defs.append('WITH_PYTHON')
 
 if env['OURPLATFORM'] == 'linux2':
     cflags='-pthread'

@@ -23,7 +23,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): André Pinto.
+ * Contributor(s): Andr Pinto.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -34,15 +34,18 @@
 
 #include "DNA_meshdata_types.h"
 
+#include "BLI_editVert.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_DerivedMesh.h"
-#include "BKE_utildefines.h"
+
 
 #include "BLI_math.h"
 #include "MEM_guardedalloc.h"
 
 /* Math stuff for ray casting on mesh faces and for nearest surface */
 
-static float ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, const float *v0, const float *v1, const float *v2)
+static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), const float *v0, const float *v1, const float *v2)
 {
 	float dist;
 
@@ -577,16 +580,34 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 			tree = BLI_bvhtree_new(numFaces, epsilon, tree_type, axis);
 			if(tree != NULL)
 			{
-				for(i = 0; i < numFaces; i++)
-				{
-					float co[4][3];
-					VECCOPY(co[0], vert[ face[i].v1 ].co);
-					VECCOPY(co[1], vert[ face[i].v2 ].co);
-					VECCOPY(co[2], vert[ face[i].v3 ].co);
-					if(face[i].v4)
-						VECCOPY(co[3], vert[ face[i].v4 ].co);
-			
-					BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
+				/* XXX, for snap only, em & dm are assumed to be aligned, since dm is the em's cage */
+				EditMesh *em= data->em_evil;
+				if(em) {
+					EditFace *efa= em->faces.first;
+					for(i = 0; i < numFaces; i++, efa= efa->next) {
+						if(!(efa->f & 1) && efa->h==0 && !((efa->v1->f&1)+(efa->v2->f&1)+(efa->v3->f&1)+(efa->v4?efa->v4->f&1:0))) {
+							float co[4][3];
+							VECCOPY(co[0], vert[ face[i].v1 ].co);
+							VECCOPY(co[1], vert[ face[i].v2 ].co);
+							VECCOPY(co[2], vert[ face[i].v3 ].co);
+							if(face[i].v4)
+								VECCOPY(co[3], vert[ face[i].v4 ].co);
+					
+							BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
+						}
+					}
+				}
+				else {
+					for(i = 0; i < numFaces; i++) {
+						float co[4][3];
+						VECCOPY(co[0], vert[ face[i].v1 ].co);
+						VECCOPY(co[1], vert[ face[i].v2 ].co);
+						VECCOPY(co[2], vert[ face[i].v3 ].co);
+						if(face[i].v4)
+							VECCOPY(co[3], vert[ face[i].v4 ].co);
+				
+						BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
+					}
 				}
 				BLI_bvhtree_balance(tree);
 

@@ -40,6 +40,7 @@
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "BKE_icons.h"
@@ -76,7 +77,7 @@ static void icon_free(void *val)
 
 /* create an id for a new icon and make sure that ids from deleted icons get reused
    after the integer number range is used up */
-static int get_next_free_id()
+static int get_next_free_id(void)
 {
 	int startId = gFirstIconId;
 

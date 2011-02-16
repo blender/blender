@@ -41,6 +41,7 @@
 #include "GHOST_C-api.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -50,12 +51,13 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_sound.h"
 
 #include "ED_fileselect.h"
 #include "ED_info.h"
 #include "ED_screen.h"
+#include "ED_view3d.h"
 #include "ED_util.h"
 
 #include "RNA_access.h"
@@ -71,6 +73,8 @@
 #include "wm_event_system.h"
 #include "wm_event_types.h"
 #include "wm_draw.h"
+
+static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports, short context, short poll_only);
 
 /* ************ event management ************** */
 
@@ -241,15 +245,13 @@ void wm_event_do_notifiers(bContext *C)
 			if(!G.rendering) {
 
 				/* depsgraph gets called, might send more notifiers */
-				ED_update_for_newframe(C, 1);
+				ED_update_for_newframe(CTX_data_main(C), win->screen->scene, win->screen, 1);
 			}
 		}
 	}
 	
 	/* the notifiers are sent without context, to keep it clean */
 	while( (note=wm_notifier_next(wm)) ) {
-		wmWindow *win;
-		
 		for(win= wm->windows.first; win; win= win->next) {
 			
 			/* filter out notifiers */
@@ -294,12 +296,23 @@ void wm_event_do_notifiers(bContext *C)
 		}
 		
 		/* XXX make lock in future, or separated derivedmesh users in scene */
-		if(!G.rendering)
+		if(!G.rendering) {
 			/* depsgraph & animation: update tagged datablocks */
+
+			/* copied to set's in scene_update_tagged_recursive() */
+			win->screen->scene->customdata_mask= ED_viewedit_datamask(win->screen);
+
 			scene_update_tagged(CTX_data_main(C), win->screen->scene);
+		}
 	}
 
 	CTX_wm_window_set(C, NULL);
+}
+
+static int wm_event_always_pass(wmEvent *event)
+{
+	/* some events we always pass on, to ensure proper communication */
+	return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
 }
 
 /* ********************* ui handler ******************* */
@@ -309,8 +322,19 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	ScrArea *area= CTX_wm_area(C);
 	ARegion *region= CTX_wm_region(C);
 	ARegion *menu= CTX_wm_menu(C);
+	static int do_wheel_ui= 1;
+	int is_wheel= ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE);
 	int retval;
-			
+	
+	/* UI is quite agressive with swallowing events, like scrollwheel */
+	/* I realize this is not extremely nice code... when UI gets keymaps it can be maybe smarter */
+	if(do_wheel_ui==0) {
+		if(is_wheel)
+			return WM_HANDLER_CONTINUE;
+		else if(wm_event_always_pass(event)==0)
+			do_wheel_ui= 1;
+	}
+	
 	/* we set context to where ui handler came from */
 	if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
 	if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
@@ -330,10 +354,14 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 		CTX_wm_region_set(C, NULL);
 		CTX_wm_menu_set(C, NULL);
 	}
-
+	
 	if(retval == WM_UI_HANDLER_BREAK)
 		return WM_HANDLER_BREAK;
-
+	
+	/* event not handled in UI, if wheel then we temporarily disable it */
+	if(is_wheel)
+		do_wheel_ui= 0;
+	
 	return WM_HANDLER_CONTINUE;
 }
 
@@ -364,9 +392,9 @@ int WM_operator_poll(bContext *C, wmOperatorType *ot)
 	wmOperatorTypeMacro *otmacro;
 	
 	for(otmacro= ot->macro.first; otmacro; otmacro= otmacro->next) {
-		wmOperatorType *ot= WM_operatortype_find(otmacro->idname, 0);
+		wmOperatorType *ot_macro= WM_operatortype_find(otmacro->idname, 0);
 		
-		if(0==WM_operator_poll(C, ot))
+		if(0==WM_operator_poll(C, ot_macro))
 			return 0;
 	}
 	
@@ -379,49 +407,55 @@ int WM_operator_poll(bContext *C, wmOperatorType *ot)
 	return 1;
 }
 
-static void wm_operator_print(wmOperator *op)
+/* sets up the new context and calls 'wm_operator_invoke()' with poll_only */
+int WM_operator_poll_context(bContext *C, wmOperatorType *ot, int context)
 {
-	char *buf = WM_operator_pystring(NULL, op->type, op->ptr, 1);
+	return wm_operator_call_internal(C, ot, NULL, NULL, context, TRUE);
+}
+
+static void wm_operator_print(bContext *C, wmOperator *op)
+{
+	/* context is needed for enum function */
+	char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
 	printf("%s\n", buf);
 	MEM_freeN(buf);
 }
 
 static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int popup)
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
-	ReportList *reports = CTX_wm_reports(C);
-	char *buf;
-	
 	if(popup)
 		if(op->reports->list.first)
 			uiPupMenuReports(C, op->reports);
 	
 	if(retval & OPERATOR_FINISHED) {
 		if(G.f & G_DEBUG)
-			wm_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
+			wm_operator_print(C, op); /* todo - this print may double up, might want to check more flags then the FINISHED */
 		
 		if (op->type->flag & OPTYPE_REGISTER) {
 			/* Report the python string representation of the operator */
-			buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+			char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
 			BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
 			MEM_freeN(buf);
 		}
 	}
 
 	if (op->reports->list.first) {
+
+		wmWindowManager *wm = CTX_wm_manager(C);
+		ReportList *wm_reports= CTX_wm_reports(C);
 		ReportTimerInfo *rti;
-		
+
 		/* add reports to the global list, otherwise they are not seen */
-		addlisttolist(&CTX_wm_reports(C)->list, &op->reports->list);
+		BLI_movelisttolist(&wm_reports->list, &op->reports->list);
 		
 		/* After adding reports to the global list, reset the report timer. */
-		WM_event_remove_timer(wm, NULL, reports->reporttimer);
+		WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
 		
 		/* Records time since last report was added */
-		reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMER, 0.02);
+		wm_reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMER, 0.05);
 		
 		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
-		reports->reporttimer->customdata = rti;
+		wm_reports->reporttimer->customdata = rti;
 	}
 }
 
@@ -430,7 +464,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
  */
 static int wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
 {
-	return (wm->op_undo_depth == 0) && (ot->flag & OPTYPE_REGISTER);
+	return wm && (wm->op_undo_depth == 0) && (ot->flag & OPTYPE_REGISTER);
 }
 
 static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
@@ -465,6 +499,8 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_CANCELLED;
+	
+	CTX_wm_operator_poll_msg_set(C, NULL);
 	
 	if(op==NULL || op->type==NULL)
 		return retval;
@@ -504,6 +540,14 @@ int WM_operator_call(bContext *C, wmOperator *op)
 int WM_operator_repeat(bContext *C, wmOperator *op)
 {
 	return wm_operator_exec(C, op, 1);
+}
+/* TRUE if WM_operator_repeat can run
+ * simple check for now but may become more involved.
+ * To be sure the operator can run call WM_operator_poll(C, op->type) also, since this call
+ * checks if WM_operator_repeat() can run at all, not that it WILL run at any time. */
+int WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
+{
+	return op->type->exec != NULL;
 }
 
 static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, PointerRNA *properties, ReportList *reports)
@@ -601,10 +645,14 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
-int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports)
+int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_PASS_THROUGH;
+
+	/* this is done because complicated setup is done to call this function that is better not duplicated */
+	if(poll_only)
+		return WM_operator_poll(C, ot);
 
 	if(WM_operator_poll(C, ot)) {
 		wmOperator *op= wm_operator_create(wm, ot, properties, reports); /* if reports==NULL, theyll be initialized */
@@ -662,12 +710,22 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
 				}
 
 				if(wrap) {
+					rcti *winrect= NULL;
 					ARegion *ar= CTX_wm_region(C);
-					if(ar) {
-						bounds[0]= ar->winrct.xmin;
-						bounds[1]= ar->winrct.ymax;
-						bounds[2]= ar->winrct.xmax;
-						bounds[3]= ar->winrct.ymin;
+					ScrArea *sa= CTX_wm_area(C);
+
+					if(ar && ar->regiontype == RGN_TYPE_WINDOW && event && BLI_in_rcti(&ar->winrct, event->x, event->y)) {
+						winrect= &ar->winrct;
+					}
+					else if(sa) {
+						winrect= &sa->totrct;
+					}
+
+					if(winrect) {
+						bounds[0]= winrect->xmin;
+						bounds[1]= winrect->ymax;
+						bounds[2]= winrect->xmax;
+						bounds[3]= winrect->ymin;
 					}
 				}
 
@@ -691,12 +749,14 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
  * this is for python to access since its done the operator lookup
  * 
  * invokes operator in context */
-static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int context, PointerRNA *properties, ReportList *reports)
+static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports, short context, short poll_only)
 {
 	wmWindow *window= CTX_wm_window(C);
 	wmEvent *event;
 	
 	int retval;
+
+	CTX_wm_operator_poll_msg_set(C, NULL);
 
 	/* dummie test */
 	if(ot && C) {
@@ -735,6 +795,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 					case WM_OP_EXEC_REGION_CHANNELS:
 					case WM_OP_INVOKE_REGION_CHANNELS:
 						type = RGN_TYPE_CHANNELS;
+						break;
 					
 					case WM_OP_EXEC_REGION_PREVIEW:
 					case WM_OP_INVOKE_REGION_PREVIEW:
@@ -754,7 +815,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 						CTX_wm_region_set(C, ar1);
 				}
 				
-				retval= wm_operator_invoke(C, ot, event, properties, reports);
+				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
 				
 				/* set region back */
 				CTX_wm_region_set(C, ar);
@@ -768,7 +829,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 				ARegion *ar= CTX_wm_region(C);
 
 				CTX_wm_region_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, event, properties, reports);
+				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
 				CTX_wm_region_set(C, ar);
 
 				return retval;
@@ -782,7 +843,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 
 				CTX_wm_region_set(C, NULL);
 				CTX_wm_area_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, event, properties, reports);
+				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
 				CTX_wm_region_set(C, ar);
 				CTX_wm_area_set(C, area);
 
@@ -790,7 +851,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 			}
 			case WM_OP_EXEC_DEFAULT:
 			case WM_OP_INVOKE_DEFAULT:
-				return wm_operator_invoke(C, ot, event, properties, reports);
+				return wm_operator_invoke(C, ot, event, properties, reports, poll_only);
 		}
 	}
 	
@@ -803,7 +864,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
 	if(ot)
-		return wm_operator_call_internal(C, ot, context, properties, NULL);
+		return wm_operator_call_internal(C, ot, properties, NULL, context, FALSE);
 
 	return 0;
 }
@@ -815,7 +876,6 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 */
 int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA *properties, ReportList *reports)
 {
-	wmWindowManager *wm=	CTX_wm_manager(C);
 	int retval= OPERATOR_CANCELLED;
 
 #if 0
@@ -835,11 +895,11 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 		printf("error \"%s\" operator has no exec function, python cannot call it\n", op->type->name);
 #endif
 
-	retval= wm_operator_call_internal(C, ot, context, properties, reports);
+	retval= wm_operator_call_internal(C, ot, properties, reports, context, FALSE);
 	
 	/* keep the reports around if needed later */
 	if (	(retval & OPERATOR_RUNNING_MODAL) ||
-			((retval & OPERATOR_FINISHED) && wm_operator_register_check(wm, ot))
+			((retval & OPERATOR_FINISHED) && wm_operator_register_check(CTX_wm_manager(C), ot))
 	) {
 		reports->flag |= RPT_FREE; /* let blender manage freeing */
 	}
@@ -1067,11 +1127,6 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 	return 1;
 }
 
-static int wm_event_always_pass(wmEvent *event)
-{
-	/* some events we always pass on, to ensure proper communication */
-	return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
-}
 
 /* operator exists */
 static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *event)
@@ -1164,7 +1219,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname, 0);
 
 		if(ot)
-			retval= wm_operator_invoke(C, ot, event, properties, NULL);
+			retval= wm_operator_invoke(C, ot, event, properties, NULL, FALSE);
 	}
 
 	/* Finished and pass through flag as handled */
@@ -1269,14 +1324,16 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 
 						retval= handler->op->type->exec(C, handler->op);
 
+						/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
 						if(handler->op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 							wm->op_undo_depth--;
 						
 						if (retval & OPERATOR_FINISHED)
 							if(G.f & G_DEBUG)
-								wm_operator_print(handler->op);
+								wm_operator_print(C, handler->op);
 						
-						if(wm->op_undo_depth == 0)
+						/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
+						if(CTX_wm_manager(C) == wm && wm->op_undo_depth == 0)
 							if(handler->op->type->flag & OPTYPE_UNDO)
 								ED_undo_push_op(C, handler->op);
 
@@ -1294,7 +1351,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 
 							/* XXX - copied from 'wm_operator_finished()' */
 							/* add reports to the global list, otherwise they are not seen */
-							addlisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
+							BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
 
 							CTX_wm_window_set(C, win_prev);
 						}
@@ -1413,12 +1470,26 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 						if(event->custom==EVT_DATA_LISTBASE) {
 							ListBase *lb= (ListBase *)event->customdata;
 							wmDrag *drag;
+							
 							for(drag= lb->first; drag; drag= drag->next) {
 								if(drop->poll(C, drag, event)) {
+									
 									drop->copy(drag, drop);
 									
-									wm_operator_invoke(C, drop->ot, event, drop->ptr, NULL);
+									/* free the drags before calling operator */
+									BLI_freelistN(event->customdata);
+									event->customdata= NULL;
+									event->custom= 0;
+									
+									WM_operator_name_call(C, drop->ot->idname, drop->opcontext, drop->ptr);
 									action |= WM_HANDLER_BREAK;
+									
+									/* XXX fileread case */
+									if(CTX_wm_window(C)==NULL)
+										return action;
+									
+									/* escape from drag loop, got freed */
+									break;
 								}
 							}
 						}
@@ -1438,7 +1509,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 		}
 		
-		/* fileread case */
+		/* XXX fileread case */
 		if(CTX_wm_window(C)==NULL)
 			return action;
 	}
@@ -1448,11 +1519,24 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		wmWindow *win = CTX_wm_window(C);
 
 		if (win && win->eventstate->prevtype == event->type && win->eventstate->prevval == KM_PRESS) {
-			/* test for double click first */
-			if ((PIL_check_seconds_timer() - win->eventstate->prevclicktime) * 1000 < U.dbl_click_time) {
+			/* test for double click first,
+			 * note1: this can be problematic because single click operators can get the
+			 *   double click event but then with old mouse coords which is highly confusing,
+			 *   so check for mouse moves too.
+			 * note2: the first click event will be handled but still used to create a
+			 *   double click event if clicking again quickly.
+			 *   If no double click events are found itwill fallback to a single click.
+			 *   So a double click event can result in 2 successive single click calls
+			 *   if its not handled by the keymap - campbell */
+			if (	(ABS(event->x - win->eventstate->prevclickx)) <= 2 &&
+					(ABS(event->y - win->eventstate->prevclicky)) <= 2 &&
+					((PIL_check_seconds_timer() - win->eventstate->prevclicktime) * 1000 < U.dbl_click_time)
+			) {
 				event->val = KM_DBL_CLICK;
-				event->x = win->eventstate->prevclickx;
-				event->y = win->eventstate->prevclicky;
+				/* removed this because in cases where we're this is used as a single click
+				 * event, this will give old coords, since the distance is checked above, using new coords should be ok. */
+				//   event->x = win->eventstate->prevclickx;
+				//   event->y = win->eventstate->prevclicky;
 				action |= wm_handlers_do(C, event, handlers);
 			}
 
@@ -1619,7 +1703,7 @@ void wm_event_do_handlers(bContext *C)
 						int ncfra = sound_sync_scene(scene) * FPS + 0.5;
 						if(ncfra != scene->r.cfra)	{
 							scene->r.cfra = ncfra;
-							ED_update_for_newframe(C, 1);
+							ED_update_for_newframe(CTX_data_main(C), scene, win->screen, 1);
 							WM_event_add_notifier(C, NC_WINDOW, NULL);
 						}
 					}
@@ -1691,7 +1775,11 @@ void wm_event_do_handlers(bContext *C)
 									}
 									
 									action |= wm_handlers_do(C, event, &ar->handlers);
-									
+
+									/* fileread case (python), [#29489] */
+									if(CTX_wm_window(C)==NULL)
+										return;
+
 									doit |= (BLI_in_rcti(&ar->winrct, event->x, event->y));
 									
 									if(action & WM_HANDLER_BREAK)
@@ -1770,11 +1858,11 @@ void wm_event_do_handlers(bContext *C)
 		
 		/* only add mousemove when queue was read entirely */
 		if(win->addmousemove && win->eventstate) {
-			wmEvent event= *(win->eventstate);
-			event.type= MOUSEMOVE;
-			event.prevx= event.x;
-			event.prevy= event.y;
-			wm_event_add(win, &event);
+			wmEvent tevent= *(win->eventstate);
+			tevent.type= MOUSEMOVE;
+			tevent.prevx= tevent.x;
+			tevent.prevy= tevent.y;
+			wm_event_add(win, &tevent);
 			win->addmousemove= 0;
 		}
 		
@@ -1810,14 +1898,20 @@ void WM_event_fileselect_event(bContext *C, void *ophandle, int eventval)
 
 void WM_event_add_fileselect(bContext *C, wmOperator *op)
 {
-	wmEventHandler *handler;
+	wmEventHandler *handler, *handlernext;
 	wmWindow *win= CTX_wm_window(C);
 	int full= 1;	// XXX preset?
 
-	/* only allow file selector open per window bug [#23553] */
-	for(handler= win->modalhandlers.first; handler; handler=handler->next) {
-		if(handler->type == WM_HANDLER_FILESELECT)
-			return;
+	/* only allow 1 file selector open per window */
+	for(handler= win->modalhandlers.first; handler; handler=handlernext) {
+		handlernext= handler->next;
+		
+		if(handler->type == WM_HANDLER_FILESELECT) {
+			if(handler->op)
+				WM_operator_free(handler->op);
+			BLI_remlink(&win->modalhandlers, handler);
+			wm_event_free_handler(handler);
+		}
 	}
 	
 	handler = MEM_callocN(sizeof(wmEventHandler), "fileselect handler");
@@ -1890,7 +1984,7 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap
 }
 
 /* priorities not implemented yet, for time being just insert in begin of list */
-wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, wmKeyMap *keymap, int priority)
+wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, wmKeyMap *keymap, int UNUSED(priority))
 {
 	wmEventHandler *handler;
 	
@@ -2063,7 +2157,7 @@ static int convert_key(GHOST_TKey key)
 			case GHOST_kKeyRightShift:		return RIGHTSHIFTKEY;
 			case GHOST_kKeyLeftControl:		return LEFTCTRLKEY;
 			case GHOST_kKeyRightControl:	return RIGHTCTRLKEY;
-			case GHOST_kKeyCommand:			return COMMANDKEY;
+			case GHOST_kKeyOS:				return OSKEY;
 			case GHOST_kKeyLeftAlt:			return LEFTALTKEY;
 			case GHOST_kKeyRightAlt:		return RIGHTALTKEY;
 				
@@ -2163,7 +2257,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 
 /* windows store own event queues, no bContext here */
 /* time is in 1000s of seconds, from ghost */
-void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int time, void *customdata)
+void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int UNUSED(time), void *customdata)
 {
 	wmWindow *owin;
 	wmEvent event, *evt= win->eventstate;
@@ -2196,7 +2290,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 				event.type= MOUSEMOVE;
 
 				/* some painting operators want accurate mouse events, they can
-				   handle inbetween mouse move moves, others can happily ignore
+				   handle in between mouse move moves, others can happily ignore
 				   them for better performance */
 				if(lastevent && lastevent->type == MOUSEMOVE)
 					lastevent->type = INBETWEEN_MOUSEMOVE;
@@ -2320,7 +2414,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 				if(event.val==KM_PRESS && (evt->ctrl || evt->shift || evt->oskey))
 				   event.alt= evt->alt = 3;		// define?
 			} 
-			else if (event.type==COMMANDKEY) {
+			else if (event.type==OSKEY) {
 				event.oskey= evt->oskey= (event.val==KM_PRESS);
 				if(event.val==KM_PRESS && (evt->ctrl || evt->alt || evt->shift))
 				   event.oskey= evt->oskey = 3;		// define?

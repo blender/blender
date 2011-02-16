@@ -123,7 +123,8 @@ static int file_offset;
 static unsigned short getshort(FILE *inf)
 {
 	unsigned char * buf;
-	
+	(void)inf; /* unused */
+
 	buf = file_data + file_offset;
 	file_offset += 2;
 	
@@ -133,6 +134,7 @@ static unsigned short getshort(FILE *inf)
 static unsigned int getlong(FILE *inf)
 {
 	unsigned char * buf;
+	(void)inf; /* unused */
 	
 	buf = file_data + file_offset;
 	file_offset += 4;
@@ -173,9 +175,8 @@ static void readheader(FILE *inf, IMAGE *image)
 
 static int writeheader(FILE *outf, IMAGE *image)
 {
-	IMAGE t;
+	IMAGE t= {0};
 
-	memset(&t, 0, sizeof(IMAGE));
 	fwrite(&t,sizeof(IMAGE),1,outf);
 	fseek(outf,0,SEEK_SET);
 	putshort(outf,image->imagic);
@@ -258,6 +259,8 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 	int bpp, rle, cur, badorder;
 	ImBuf * ibuf;
 
+	(void)size; /* unused */
+	
 	if(!imb_is_a_iris(mem)) return NULL;
 
 	/*printf("new iris\n");*/
@@ -283,7 +286,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 	zsize = image.zsize;
 	
 	if (flags & IB_test) {
-		ibuf = IMB_allocImBuf(image.xsize, image.ysize, 8 * image.zsize, 0, 0);
+		ibuf = IMB_allocImBuf(image.xsize, image.ysize, 8 * image.zsize, 0);
 		if (ibuf) ibuf->ftype = IMAGIC;
 		return(ibuf);
 	}
@@ -315,7 +318,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 	
 		if (bpp == 1) {
 			
-			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect, 0);
+			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect);
 			if (ibuf->depth > 32) ibuf->depth = 32;
 			base = ibuf->rect;
 			zbase = (unsigned int *)ibuf->zbuf;
@@ -356,7 +359,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 
 		} else {	/* bpp == 2 */
 			
-			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect)|IB_rectfloat, 0);
+			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect)|IB_rectfloat);
 			
 			fbase = ibuf->rect_float;
 			
@@ -399,7 +402,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 	} else {
 		if (bpp == 1) {
 			
-			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect, 0);
+			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect);
 			if (ibuf->depth > 32) ibuf->depth = 32;
 
 			base = ibuf->rect;
@@ -424,7 +427,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 			
 		} else {	/* bpp == 2 */
 			
-			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect)|IB_rectfloat, 0);
+			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect)|IB_rectfloat);
 
 			fbase = ibuf->rect_float;
 
@@ -658,7 +661,7 @@ static void expandrow(unsigned char *optr, unsigned char *iptr, int z)
  *  Added: zbuf write
  */
 
-static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, char *name, int *zptr)
+static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, const char *name, int *zptr)
 {
 	FILE *outf;
 	IMAGE *image;
@@ -812,7 +815,7 @@ static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cn
 	return optr - (unsigned char *)rlebuf;
 }
 
-int imb_saveiris(struct ImBuf * ibuf, char *name, int flags)
+int imb_saveiris(struct ImBuf * ibuf, const char *name, int flags)
 {
 	short zsize;
 	int ret;

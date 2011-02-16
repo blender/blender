@@ -61,6 +61,11 @@ typedef struct BoidParticle {
 	float rt;
 } BoidParticle;
 
+typedef struct ParticleSpring {
+	float rest_length;
+	unsigned int particle_index[2], delete_flag;
+}ParticleSpring;
+
 /* Child particles are created around or between parent particles */
 typedef struct ChildParticle {
 	int num, parent;	/* num is face index on the final derived mesh */
@@ -116,11 +121,16 @@ typedef struct ParticleData {
 
 typedef struct SPHFluidSettings {
 	/*Particle Fluid*/
-	float spring_k, radius, rest_length;
+	float spring_k, radius, rest_length, plasticity_constant, yield_ratio;
 	float viscosity_omega, viscosity_beta;
 	float stiffness_k, stiffness_knear, rest_density;
 	float buoyancy;
+	int flag, pad;
 } SPHFluidSettings;
+
+/* fluid->flag */
+#define SPH_VISCOELASTIC_SPRINGS	1
+#define SPH_CURRENT_REST_LENGTH		2
 
 typedef struct ParticleSettings {
 	ID id;
@@ -158,12 +168,12 @@ typedef struct ParticleSettings {
 
 	/* general values */
 	float sta, end, lifetime, randlife;
-	float timetweak, jitfac, eff_hair;
-	int totpart, userjit, grid_res;
+	float timetweak, jitfac, eff_hair, grid_rand;
+	int totpart, userjit, grid_res, rt;
 
 	/* initial velocity factors */
 	float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
-	float ob_vel[3], rt;
+	float ob_vel[3];
 	float avefac, phasefac, randrotfac, randphasefac;
 	/* physical properties */
 	float mass, size, randsize, reactshape;
@@ -178,13 +188,17 @@ typedef struct ParticleSettings {
 	/* clumping */
 	float clumpfac, clumppow;
 	/* kink */
-	float kink_amp, kink_freq, kink_shape;
+	float kink_amp, kink_freq, kink_shape, kink_flat;
+	float kink_amp_clump;
 	/* rough */
 	float rough1, rough1_size;
 	float rough2, rough2_size, rough2_thres;
 	float rough_end, rough_end_shape;
 	/* length */
 	float clength, clength_thres;
+	/* parting */
+	float parting_fac;
+	float parting_min, parting_max;
 	/* branching */
 	float branch_thres;
 	/* drawing stuff */
@@ -232,8 +246,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	
 	float imat[4][4];	/* used for duplicators */
 	float cfra, tree_frame;
-	int seed, rt;
-	int flag, totpart, totchild, totcached, totchildcache;
+	int seed, child_seed;
+	int flag, totpart, totunexist, totchild, totcached, totchildcache, rt;
 	short recalc, target_psys, totkeyed, bakespace;
 
 	char bb_uvname[3][32];					/* billboard uv name */
@@ -249,6 +263,9 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	struct ListBase ptcaches;
 
 	struct ListBase *effectors;
+
+	ParticleSpring *fluid_springs;
+	int tot_fluidsprings, alloc_fluidsprings;
 
 	struct KDTree *tree;					/* used for interactions with self and other systems */
 
@@ -273,7 +290,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 		/* for dopesheet */
 #define PART_DS_EXPAND		8
 
-#define PART_HAIR_GEOMETRY	16
+#define PART_HAIR_REGROW	16	/* regrow hair for each frame */
 
 #define PART_UNBORN			32	/*show unborn particles*/
 #define PART_DIED			64	/*show died particles*/
@@ -287,25 +304,25 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_ROT_DYN		(1<<14)	/* dynamic rotation */
 #define PART_SIZEMASS		(1<<16)
 
-//#define PART_HAIR_GRAVITY	(1<<15)
+#define PART_HIDE_ADVANCED_HAIR	(1<<15)
 
 //#define PART_ABS_TIME		(1<<17)
 //#define PART_GLOB_TIME		(1<<18)
 
 #define PART_BOIDS_2D		(1<<19)
 
-#define PART_BRANCHING		(1<<20)
-#define PART_ANIM_BRANCHING	(1<<21)
-#define PART_SYMM_BRANCHING	(1<<24)
+//#define PART_BRANCHING		(1<<20)
+//#define PART_ANIM_BRANCHING	(1<<21)
+//#define PART_SYMM_BRANCHING	(1<<24)
 
 #define PART_HAIR_BSPLINE	1024
 
 #define PART_GRID_INVERT	(1<<26)
 
-#define PART_CHILD_EFFECT	(1<<27)
-#define PART_CHILD_SEAMS	(1<<28)
-#define PART_CHILD_RENDER	(1<<29)
-#define PART_CHILD_GUIDE	(1<<30)
+#define PART_CHILD_EFFECT		(1<<27)
+#define PART_CHILD_LONG_HAIR	(1<<28)
+/* #define PART_CHILD_RENDER		(1<<29) */ /*UNUSED*/
+#define PART_CHILD_GUIDE		(1<<30)
 
 #define PART_SELF_EFFECT	(1<<22)
 
@@ -442,7 +459,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PSYS_ENABLED		16	/* deprecated */
 #define PSYS_HAIR_UPDATED	32  /* signal for updating hair particle mode */
 #define PSYS_DRAWING		64
-//#define PSYS_SOFT_BAKE		128
+#define PSYS_USE_IMAT		128
 #define PSYS_DELETE			256	/* remove particlesystem as soon as possible */
 #define PSYS_HAIR_DONE		512
 #define PSYS_KEYED			1024

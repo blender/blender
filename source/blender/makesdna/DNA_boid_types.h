@@ -104,6 +104,8 @@ typedef enum BoidMode {
 	eBoidMode_Liftoff,
 	NUM_BOID_MODES
 } BoidMode;
+
+
 typedef struct BoidData {
 	float health, acc[3];
 	short state_id, mode;

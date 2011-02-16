@@ -36,9 +36,6 @@ struct bContext;
 struct wmOperatorType;
 struct wmOperator;
 
-
-#define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
-
 /* ******************** editface.c */
 
 int edgetag_context_check(Scene *scene, EditEdge *eed);
@@ -49,8 +46,7 @@ int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge
 
 extern void free_editvert(EditMesh *em, EditVert *eve);
 extern void free_editedge(EditMesh *em, EditEdge *eed);
-extern void free_editface(EditMesh *em, EditFace *efa);
-void free_editMesh(EditMesh *em);
+extern void free_editface(EditMesh *em, EditFace *efa);;
 
 extern void free_vertlist(EditMesh *em, ListBase *edve);
 extern void free_edgelist(EditMesh *em, ListBase *lb);
@@ -137,9 +133,6 @@ extern int EM_view3d_poll(struct bContext *C);
 
 /* ******************* editmesh_loop.c */
 
-#define LOOP_SELECT	1
-#define LOOP_CUT	2
-
 void MESH_OT_knife_cut(struct wmOperatorType *ot);
 
 /* ******************* editmesh_mods.c */
@@ -165,13 +158,13 @@ void MESH_OT_loop_multi_select(struct wmOperatorType *ot);
 void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
+void MESH_OT_noise(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
 void MESH_OT_solidify(struct wmOperatorType *ot);
 void MESH_OT_select_nth(struct wmOperatorType *ot);
 
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
-extern void EM_automerge(Scene *scene, Object *obedit, int update);
 void editmesh_select_by_material(EditMesh *em, int index);
 void EM_recalc_normal_direction(EditMesh *em, int inside, int select);	/* makes faces righthand turning */
 void EM_select_more(EditMesh *em);

@@ -38,6 +38,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
@@ -48,7 +49,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_utildefines.h"
+
 
 
 #include "WM_api.h"
@@ -199,7 +200,7 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 }
 
 /* draw a given stroke in 3d (i.e. in 3d-space), using simple ogl lines */
-static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, short debug, int winx, int winy)
+static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thickness, short debug)
 {
 	bGPDspoint *pt;
 	float oldpressure = 0.0f;
@@ -244,9 +245,12 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 /* ----- Fancy 2D-Stroke Drawing ------ */
 
 /* draw a given stroke in 2d */
-static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, 
+static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness_s, short dflag, short sflag, 
 							short debug, int offsx, int offsy, int winx, int winy)
 {
+	/* otherwise thickness is twice that of the 3D view */
+	float thickness= (float)thickness_s * 0.5f;
+
 	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better
 	 * 	- 'smooth' opengl lines are also required if Image Editor 'image-based' stroke
 	 */
@@ -498,7 +502,7 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 		if (gps->totpoints == 1)
 			gp_draw_stroke_point(gps->points, lthick, gps->flag, offsx, offsy, winx, winy);
 		else if (dflag & GP_DRAWDATA_ONLY3D)
-			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
+			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, debug);
 		else if (gps->totpoints > 1)	
 			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, offsx, offsy, winx, winy);
 	}
@@ -751,7 +755,7 @@ void draw_gpencil_view3d_ext (Scene *scene, View3D *v3d, ARegion *ar, short only
 	 * deal with the camera border, otherwise map the coords to the camera border. */
 	if(rv3d->persp == RV3D_CAMOB && !(G.f & G_RENDER_OGL)) {
 		rctf rectf;
-		view3d_calc_camera_border(scene, ar, rv3d, v3d, &rectf);
+		view3d_calc_camera_border(scene, ar, rv3d, v3d, &rectf, -1); /* negative shift */
 		BLI_copy_rcti_rctf(&rect, &rectf);
 	}
 	else {

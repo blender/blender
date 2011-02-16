@@ -24,9 +24,10 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(SRC CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp CcdGraphicController.cpp)
+# since this includes bullet we get errors from the headers too
+remove_strict_flags()
 
-SET(INC
+set(INC
 	.
 	../common
 	../../../../extern/bullet2/src
@@ -43,7 +44,21 @@ SET(INC
 	../../../../source/blender/makesdna
 	../../../../source/blender/blenlib
 	../../../../source/blender/blenkernel
-	${PYTHON_INC}
+	${PYTHON_INCLUDE_DIRS}
 )
 
-BLENDERLIB(bf_bullet "${SRC}" "${INC}")
+set(SRC
+	CcdPhysicsEnvironment.cpp
+	CcdPhysicsController.cpp
+	CcdGraphicController.cpp
+
+	CcdGraphicController.h
+	CcdPhysicsController.h
+	CcdPhysicsEnvironment.h
+)
+
+if(WITH_BULLET)
+	add_definitions(-DUSE_BULLET)
+endif()
+
+blender_add_lib(ge_phys_bullet "${SRC}" "${INC}")

@@ -35,10 +35,10 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
 #include "BKE_nla.h"
@@ -173,6 +173,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		case ANIMTYPE_DSARM:
 		case ANIMTYPE_DSMESH:
 		case ANIMTYPE_DSTEX:
+		case ANIMTYPE_DSLAT:
 		{
 			/* sanity checking... */
 			if (ale->adt) {
@@ -295,7 +296,6 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
-	Scene *scene;
 	ARegion *ar;
 	View2D *v2d;
 	int mval[2], channel_index;
@@ -308,7 +308,6 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
 		return OPERATOR_CANCELLED;
 		
 	/* get useful pointers from animation context data */
-	scene= ac.scene;
 	ar= ac.ar;
 	v2d= &ar->v2d;
 	
@@ -342,8 +341,9 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
 void NLA_OT_channels_click (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mouse Click on Channels";
+	ot->name= "Mouse Click on NLA Channels";
 	ot->idname= "NLA_OT_channels_click";
+	ot->description= "Handle clicks to select NLA channels";
 	
 	/* api callbacks */
 	ot->invoke= nlachannels_mouseclick_invoke;
@@ -433,7 +433,7 @@ void NLA_OT_tracks_add (wmOperatorType *ot)
 /* ******************** Delete Tracks Operator ***************************** */
 /* Delete selected NLA Tracks */
 
-static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *op)
+static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -454,6 +454,12 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *op)
 		if(ale->type == ANIMTYPE_NLATRACK) {
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			AnimData *adt= ale->adt;
+			
+			/* if track is currently 'solo', then AnimData should have its
+			 * 'has solo' flag disabled
+			 */
+			if (nlt->flag & NLATRACK_SOLO)
+				adt->flag &= ~ADT_NLA_SOLO_TRACK;
 			
 			/* call delete on this track - deletes all strips too */
 			free_nlatrack(&adt->nla_tracks, nlt);

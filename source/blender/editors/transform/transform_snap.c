@@ -48,6 +48,7 @@
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 //#include "BDR_drawobject.h"
 //
@@ -105,17 +106,19 @@ float ResizeBetween(TransInfo *t, float p1[3], float p2[3]);
 
 /****************** IMPLEMENTATIONS *********************/
 
+#if 0
 int BIF_snappingSupported(Object *obedit)
 {
 	int status = 0;
 	
-	if (obedit == NULL || ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) /* only support object mesh, armature, curves */
+	if (obedit == NULL || ELEM4(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE)) /* only support object mesh, armature, curves */
 	{
 		status = 1;
 	}
 	
 	return status;
 }
+#endif
 
 int validSnap(TransInfo *t)
 {
@@ -133,30 +136,30 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	if (validSnap(t) && activeSnap(t))
 		{
 		
-		char col[4] = {1, 0, 1};
+		unsigned char col[4];
 		UI_GetThemeColor3ubv(TH_TRANSFORM, col);
-		glColor4ub(col[0], col[1], col[2], 128);
+		col[3]= 128;
+		glColor4ubv(col);
 		
 		if (t->spacetype == SPACE_VIEW3D) {
 			TransSnapPoint *p;
 			View3D *v3d = CTX_wm_view3d(C);
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
-			float tmat[4][4], imat[4][4];
+			float imat[4][4];
 			float size;
 			
 			glDisable(GL_DEPTH_TEST);
 	
-			size = 0.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
-			
-			copy_m4_m4(tmat, rv3d->viewmat);
-			invert_m4_m4(imat, tmat);
+			size = 2.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
+
+			invert_m4_m4(imat, rv3d->viewmat);
 
 			for (p = t->tsnap.points.first; p; p = p->next) {
-				drawcircball(GL_LINE_LOOP, p->co, size * get_drawsize(t->ar, p->co), imat);
+				drawcircball(GL_LINE_LOOP, p->co, view3d_pixel_size(rv3d, p->co) * size, imat);
 			}
 
 			if (t->tsnap.status & POINT_INIT) {
-				drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, size * get_drawsize(t->ar, t->tsnap.snapPoint), imat);
+				drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, view3d_pixel_size(rv3d, t->tsnap.snapPoint) * size, imat);
 			}
 			
 			/* draw normal if needed */
@@ -211,7 +214,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	}
 }
 
-int  handleSnapping(TransInfo *t, wmEvent *event)
+int  handleSnapping(TransInfo *UNUSED(t), wmEvent *UNUSED(event))
 {
 	int status = 0;
 
@@ -262,6 +265,8 @@ void applyProject(TransInfo *t)
 			}
 			else if (t->flag & T_OBJECT)
 			{
+				td->ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
+				object_handle_update(t->scene, td->ob);
 				VECCOPY(iloc, td->ob->obmat[3]);
 			}
 			
@@ -371,9 +376,10 @@ void initSnappingMode(TransInfo *t)
 
 		/* Edit mode */
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-			(obedit != NULL && ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) ) // Temporary limited to edit mode meshes, armature, curves
+			(obedit != NULL && ELEM4(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE)) ) // Temporary limited to edit mode meshes, armature, curves
 		{
-			if ((t->flag & T_PROP_EDIT) || t->tsnap.project) /* also exclude edit for project, for now */
+			/* editmode meshes now supported */
+			if ((obedit->type != OB_MESH) && ((t->flag & T_PROP_EDIT) || t->tsnap.project)) /* also exclude edit for project, for now */
 			{
 				t->tsnap.modeSelect = SNAP_NOT_OBEDIT;
 			}
@@ -597,7 +603,7 @@ void ApplySnapResize(TransInfo *t, float vec[3])
 
 /********************** DISTANCE **************************/
 
-float TranslationBetween(TransInfo *t, float p1[3], float p2[3])
+float TranslationBetween(TransInfo *UNUSED(t), float p1[3], float p2[3])
 {
 	return len_v3v3(p1, p2);
 }
@@ -681,12 +687,12 @@ float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 
 /********************** CALC **************************/
 
-void CalcSnapGrid(TransInfo *t, float *vec)
+void CalcSnapGrid(TransInfo *t, float *UNUSED(vec))
 {
 	snapGridAction(t, t->tsnap.snapPoint, BIG_GEARS);
 }
 
-void CalcSnapGeometry(TransInfo *t, float *vec)
+void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 {
 	if (t->spacetype == SPACE_VIEW3D)
 	{
@@ -704,7 +710,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			ListBase depth_peels;
 			DepthPeel *p1, *p2;
 			float *last_p = NULL;
-			float dist = FLT_MAX;
+			float max_dist = FLT_MAX;
 			float p[3] = {0.0f, 0.0f, 0.0f};
 			
 			depth_peels.first = depth_peels.last = NULL;
@@ -768,23 +774,27 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 					if (last_p == NULL)
 					{
 						VECCOPY(p, vec);
-						dist = 0;
+						max_dist = 0;
 						break;
 					}
 					
 					new_dist = len_v3v3(last_p, vec);
 					
-					if (new_dist < dist)
+					if (new_dist < max_dist)
 					{
 						VECCOPY(p, vec);
-						dist = new_dist;
+						max_dist = new_dist;
 					}
 				}
 			}
 			
-			if (dist != FLT_MAX)
+			if (max_dist != FLT_MAX)
 			{
 				VECCOPY(loc, p);
+				/* XXX, is there a correct normal in this case ???, for now just z up */
+				no[0]= 0.0;
+				no[1]= 0.0;
+				no[2]= 1.0;
 				found = 1;
 			}
 			
@@ -1191,7 +1201,7 @@ int snapVertex(ARegion *ar, float vco[3], short vno[3], float mval[2], float ray
 	return retval;
 }
 
-int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm, float obmat[][4], float ray_start[3], float ray_normal[3], float mval[2], float *loc, float *no, int *dist, float *depth)
+int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm, float obmat[][4], float ray_start[3], float ray_normal[3], float mval[2], float *loc, float *UNUSED(no), int *dist, float *depth)
 {
 	float imat[4][4];
 	float ray_start_local[3], ray_normal_local[3];
@@ -1261,7 +1271,7 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, E
 	int retval = 0;
 	int totvert = dm->getNumVerts(dm);
 	int totface = dm->getNumFaces(dm);
-	
+
 	if (totvert > 0) {
 		float imat[4][4];
 		float timat[3][3]; /* transpose inverse matrix for normals */
@@ -1298,15 +1308,19 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, E
 					BVHTreeRayHit hit;
 					BVHTreeFromMesh treeData;
 
+					/* local scale in normal direction */
+					float local_scale = len_v3(ray_normal_local);
+
+					treeData.em_evil= em;
 					bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6);
 
 					hit.index = -1;
-					hit.dist = *depth;
+					hit.dist = *depth * (*depth == FLT_MAX ? 1.0f : local_scale);
 
 					if(treeData.tree && BLI_bvhtree_ray_cast(treeData.tree, ray_start_local, ray_normal_local, 0.0f, &hit, treeData.raycast_callback, &treeData) != -1)
 					{
-						if(hit.dist<=*depth) {
-							*depth= hit.dist;
+						if(hit.dist/local_scale <= *depth) {
+							*depth= hit.dist/local_scale;
 							copy_v3_v3(loc, hit.co);
 							copy_v3_v3(no, hit.no);
 
@@ -1532,7 +1546,8 @@ int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, float obma
 		if (editobject)
 		{
 			em = ((Mesh *)ob->data)->edit_mesh;
-			dm = editmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH);
+			/* dm = editmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH); */
+			dm = editmesh_get_derived_base(ob, em); /* limitation, em & dm MUST have the same number of faces */
 		}
 		else
 		{
@@ -1578,10 +1593,9 @@ int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, float mv
 		Object *ob = base->object;
 		retval |= snapObject(scene, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
 	}
-	
-	base= FIRSTBASE;
+
 	for ( base = FIRSTBASE; base != NULL; base = base->next ) {
-		if ( BASE_SELECTABLE(v3d, base) && (base->flag & (BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA)) == 0 && ((mode == SNAP_NOT_SELECTED && (base->flag & (SELECT|BA_WAS_SEL)) == 0) || (ELEM(mode, SNAP_ALL, SNAP_NOT_OBEDIT) && base != BASACT)) ) {
+		if ( BASE_VISIBLE(v3d, base) && (base->flag & (BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA)) == 0 && ((mode == SNAP_NOT_SELECTED && (base->flag & (SELECT|BA_WAS_SEL)) == 0) || (ELEM(mode, SNAP_ALL, SNAP_NOT_OBEDIT) && base != BASACT)) ) {
 			Object *ob = base->object;
 			
 			if (ob->transflag & OB_DUPLI)
@@ -1676,7 +1690,7 @@ void addDepthPeel(ListBase *depth_peels, float depth, float p[3], float no[3], O
 	peel->flag = 0;
 }
 
-int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_start[3], float ray_normal[3], float mval[2], ListBase *depth_peels)
+int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_start[3], float ray_normal[3], float UNUSED(mval[2]), ListBase *depth_peels)
 {
 	int retval = 0;
 	int totvert = dm->getNumVerts(dm);
@@ -1803,25 +1817,25 @@ int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, ListBase
 				
 				for(dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next)
 				{
-					Object *ob = dupli_ob->ob;
+					Object *dob = dupli_ob->ob;
 					
-					if (ob->type == OB_MESH) {
+					if (dob->type == OB_MESH) {
 						EditMesh *em;
 						DerivedMesh *dm = NULL;
 						int val;
 
-						if (ob != obedit)
+						if (dob != obedit)
 						{
-							dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+							dm = mesh_get_derived_final(scene, dob, CD_MASK_BAREMESH);
 							
-							val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
+							val = peelDerivedMesh(dob, dm, dob->obmat, ray_start, ray_normal, mval, depth_peels);
 						}
 						else
 						{
-							em = ((Mesh *)ob->data)->edit_mesh;
+							em = ((Mesh *)dob->data)->edit_mesh;
 							dm = editmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
 							
-							val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
+							val = peelDerivedMesh(dob, dm, dob->obmat, ray_start, ray_normal, mval, depth_peels);
 						}
 
 						retval = retval || val;

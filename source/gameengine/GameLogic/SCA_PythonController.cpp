@@ -29,16 +29,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
+
 #include "SCA_PythonController.h"
 #include "SCA_LogicManager.h"
 #include "SCA_ISensor.h"
 #include "SCA_IActuator.h"
 #include "PyObjectPlus.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "compile.h"
 #include "eval.h"
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 #include <algorithm>
 
@@ -49,7 +51,7 @@ SCA_PythonController* SCA_PythonController::m_sCurrentController = NULL;
 
 SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj, int mode)
 	: SCA_IController(gameobj),
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	m_bytecode(NULL),
 	m_function(NULL),
 #endif
@@ -57,7 +59,7 @@ SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj, int mode)
 	m_bModified(true),
 	m_debug(false),
 	m_mode(mode)
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	, m_pythondictionary(NULL)
 #endif
 
@@ -84,7 +86,7 @@ int			SCA_PythonController::Release()
 SCA_PythonController::~SCA_PythonController()
 {
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	//printf("released python byte script\n");
 	
 	Py_XDECREF(m_bytecode);
@@ -104,7 +106,7 @@ CValue* SCA_PythonController::GetReplica()
 {
 	SCA_PythonController* replica = new SCA_PythonController(*this);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* why is this needed at all??? - m_bytecode is NULL'd below so this doesnt make sense
 	 * but removing it crashes blender (with YoFrankie). so leave in for now - Campbell */
 	Py_XINCREF(replica->m_bytecode);
@@ -146,7 +148,7 @@ void SCA_PythonController::SetScriptName(const STR_String& name)
 }
 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 void SCA_PythonController::SetNamespace(PyObject*	pythondictionary)
 {
 	if (m_pythondictionary)
@@ -171,7 +173,7 @@ int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
 	return 0;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
 PyObject* SCA_PythonController::sPyGetCurrentController(PyObject *self)
@@ -214,7 +216,7 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 	PyErr_Format(PyExc_ValueError, "'%s' not in this python controllers actuator list", _PyUnicode_AsString(value_str));
 	Py_DECREF(value_str);
 	
-	return false;
+	return NULL;
 }
 
 const char* SCA_PythonController::sPyGetCurrentController__doc__ = "getCurrentController()";
@@ -408,7 +410,13 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		 */
 
 		excdict= PyDict_Copy(m_pythondictionary);
-		resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode, excdict, excdict);
+
+#if PY_VERSION_HEX >=  0x03020000
+		resultobj = PyEval_EvalCode((PyObject *)m_bytecode, excdict, excdict);
+#else
+		resultobj = PyEval_EvalCode((PyCodeObject *)m_bytecode, excdict, excdict);
+#endif
+
 		/* PyRun_SimpleString(m_scriptText.Ptr()); */
 		break;
 	}
@@ -527,13 +535,13 @@ int SCA_PythonController::pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_D
 	return PY_SET_ATTR_SUCCESS;
 }
 
-#else // DISABLE_PYTHON
+#else // WITH_PYTHON
 
 void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 {
 	/* intentionally blank */
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

@@ -43,6 +43,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
@@ -51,7 +52,7 @@
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
-#include "BKE_utildefines.h"
+
 
 // headers for fluidsim bobj meshes
 #include <stdlib.h>

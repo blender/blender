@@ -33,7 +33,7 @@
 struct IDProperty;
 struct ID;
 
-typedef union {
+typedef union IDPropertyTemplate {
 	int i;
 	float f;
 	double d;
@@ -72,8 +72,8 @@ void IDP_UnlinkArray(struct IDProperty *prop);
 
 /* ---------- String Type ------------ */
 IDProperty *IDP_NewString(const char *st, const char *name, int maxlen);/* maxlen excludes '\0' */
-void IDP_AssignString(struct IDProperty *prop, char *st, int maxlen);	/* maxlen excludes '\0' */
-void IDP_ConcatStringC(struct IDProperty *prop, char *st);
+void IDP_AssignString(struct IDProperty *prop, const char *st, int maxlen);	/* maxlen excludes '\0' */
+void IDP_ConcatStringC(struct IDProperty *prop, const char *st);
 void IDP_ConcatString(struct IDProperty *str1, struct IDProperty *append);
 void IDP_FreeString(struct IDProperty *prop);
 
@@ -127,6 +127,8 @@ int IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous,
 void IDP_RemFromGroup(struct IDProperty *group, struct IDProperty *prop);
 
 IDProperty *IDP_GetPropertyFromGroup(struct IDProperty *prop, const char *name);
+/* same as above but ensure type match */
+IDProperty *IDP_GetPropertyTypeFromGroup(struct IDProperty *prop, const char *name, const char type);
 
 /*Get an iterator to iterate over the members of an id property group.
  Note that this will automatically free the iterator once iteration is complete;

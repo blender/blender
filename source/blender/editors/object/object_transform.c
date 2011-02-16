@@ -39,6 +39,7 @@
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -47,6 +48,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_multires.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -64,38 +66,171 @@
 
 /*************************** Clear Transformation ****************************/
 
-static int object_location_clear_exec(bContext *C, wmOperator *op)
+/* clear location of object */
+static void object_clear_loc(Object *ob)
+{
+	/* clear location if not locked */
+	if ((ob->protectflag & OB_LOCK_LOCX)==0)
+		ob->loc[0]= ob->dloc[0]= 0.0f;
+	if ((ob->protectflag & OB_LOCK_LOCY)==0)
+		ob->loc[1]= ob->dloc[1]= 0.0f;
+	if ((ob->protectflag & OB_LOCK_LOCZ)==0)
+		ob->loc[2]= ob->dloc[2]= 0.0f;
+}
+
+/* clear rotation of object */
+static void object_clear_rot(Object *ob)
+{
+	/* clear rotations that aren't locked */
+	if (ob->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
+		if (ob->protectflag & OB_LOCK_ROT4D) {
+			/* perform clamping on a component by component basis */
+			if (ob->rotmode == ROT_MODE_AXISANGLE) {
+				if ((ob->protectflag & OB_LOCK_ROTW) == 0)
+					ob->rotAngle= ob->drotAngle= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTX) == 0)
+					ob->rotAxis[0]= ob->drotAxis[0]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTY) == 0)
+					ob->rotAxis[1]= ob->drotAxis[1]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
+					ob->rotAxis[2]= ob->drotAxis[2]= 0.0f;
+					
+				/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
+				if (IS_EQ(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQ(ob->rotAxis[1], ob->rotAxis[2]))
+					ob->rotAxis[1] = 1.0f;
+				if (IS_EQ(ob->drotAxis[0], ob->drotAxis[1]) && IS_EQ(ob->drotAxis[1], ob->drotAxis[2]))
+					ob->drotAxis[1]= 1.0f;
+			}
+			else if (ob->rotmode == ROT_MODE_QUAT) {
+				if ((ob->protectflag & OB_LOCK_ROTW) == 0)
+					ob->quat[0]= ob->dquat[0]= 1.0f;
+				if ((ob->protectflag & OB_LOCK_ROTX) == 0)
+					ob->quat[1]= ob->dquat[1]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTY) == 0)
+					ob->quat[2]= ob->dquat[2]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
+					ob->quat[3]= ob->dquat[3]= 0.0f;
+					
+				// TODO: does this quat need normalising now?
+			}
+			else {
+				/* the flag may have been set for the other modes, so just ignore the extra flag... */
+				if ((ob->protectflag & OB_LOCK_ROTX) == 0)
+					ob->rot[0]= ob->drot[0]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTY) == 0)
+					ob->rot[1]= ob->drot[1]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
+					ob->rot[2]= ob->drot[2]= 0.0f;
+			}
+		}
+		else {
+			/* perform clamping using euler form (3-components) */
+			// FIXME: deltas are not handled for these cases yet...
+			float eul[3], oldeul[3], quat1[4] = {0};
+			
+			if (ob->rotmode == ROT_MODE_QUAT) {
+				QUATCOPY(quat1, ob->quat);
+				quat_to_eul(oldeul, ob->quat);
+			}
+			else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+				axis_angle_to_eulO(oldeul, EULER_ORDER_DEFAULT, ob->rotAxis, ob->rotAngle);
+			}
+			else {
+				copy_v3_v3(oldeul, ob->rot);
+			}
+			
+			eul[0]= eul[1]= eul[2]= 0.0f;
+			
+			if (ob->protectflag & OB_LOCK_ROTX)
+				eul[0]= oldeul[0];
+			if (ob->protectflag & OB_LOCK_ROTY)
+				eul[1]= oldeul[1];
+			if (ob->protectflag & OB_LOCK_ROTZ)
+				eul[2]= oldeul[2];
+			
+			if (ob->rotmode == ROT_MODE_QUAT) {
+				eul_to_quat(ob->quat, eul);
+				/* quaternions flip w sign to accumulate rotations correctly */
+				if ((quat1[0]<0.0f && ob->quat[0]>0.0f) || (quat1[0]>0.0f && ob->quat[0]<0.0f)) {
+					mul_qt_fl(ob->quat, -1.0f);
+				}
+			}
+			else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+				eulO_to_axis_angle(ob->rotAxis, &ob->rotAngle,eul, EULER_ORDER_DEFAULT);
+			}
+			else {
+				copy_v3_v3(ob->rot, eul);
+			}
+		}
+	}						 // Duplicated in source/blender/editors/armature/editarmature.c
+	else { 
+		if (ob->rotmode == ROT_MODE_QUAT) {
+			unit_qt(ob->quat);
+			unit_qt(ob->dquat);
+		}
+		else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+			unit_axis_angle(ob->rotAxis, &ob->rotAngle);
+			unit_axis_angle(ob->drotAxis, &ob->drotAngle);
+		}
+		else {
+			zero_v3(ob->rot);
+			zero_v3(ob->drot);
+		}
+	}
+}
+
+/* clear scale of object */
+static void object_clear_scale(Object *ob)
+{
+	/* clear scale factors which are not locked */
+	if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
+		ob->dsize[0]= 0.0f;
+		ob->size[0]= 1.0f;
+	}
+	if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
+		ob->dsize[1]= 0.0f;
+		ob->size[1]= 1.0f;
+	}
+	if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
+		ob->dsize[2]= 0.0f;
+		ob->size[2]= 1.0f;
+	}
+}
+
+/* --------------- */
+
+/* generic exec for clear-transform operators */
+static int object_clear_transform_generic_exec(bContext *C, wmOperator *op, 
+		void (*clear_func)(Object*), const char default_ksName[])
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
+	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks;
 	
-	/* get KeyingSet to use 
-	 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
-	 * 	  or otherwise key transforms only
-	 */
-	if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
-		ks = ANIM_scene_get_active_keyingset(scene);
-	else 
-		ks = ANIM_builtin_keyingset_get_named(NULL, "Location");
+	/* sanity checks */
+	if ELEM(NULL, clear_func, default_ksName) {
+		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform func or Keying Set Name");
+		return OPERATOR_CANCELLED;
+	}
 	
-	/* clear location of selected objects if not in weight-paint mode */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	/* get KeyingSet to use */
+	ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
+	
+	/* operate on selected objects only if they aren't in weight-paint mode 
+	 * (so that object-transform clearing won't be applied at same time as bone-clearing)
+	 */
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	{
 		if (!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-			/* clear location if not locked */
-			if ((ob->protectflag & OB_LOCK_LOCX)==0)
-				ob->loc[0]= ob->dloc[0]= 0.0f;
-			if ((ob->protectflag & OB_LOCK_LOCY)==0)
-				ob->loc[1]= ob->dloc[1]= 0.0f;
-			if ((ob->protectflag & OB_LOCK_LOCZ)==0)
-				ob->loc[2]= ob->dloc[2]= 0.0f;
-				
+			/* run provided clearing function */
+			clear_func(ob);
+			
 			/* auto keyframing */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
 				ListBase dsources = {NULL, NULL};
 				
 				/* now insert the keyframe(s) using the Keying Set
-				 *	1) add datasource override for the PoseChannel
+				 *	1) add datasource override for the Object
 				 *	2) insert keyframes
 				 *	3) free the extra info 
 				 */
@@ -103,9 +238,10 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 				BLI_freelistN(&dsources);
 			}
+			
+			/* tag for updates */
+			ob->recalc |= OB_RECALC_OB;
 		}
-		
-		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
 	
@@ -115,6 +251,14 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
+}
+
+/* --------------- */
+
+
+static int object_location_clear_exec(bContext *C, wmOperator *op)
+{
+	return object_clear_transform_generic_exec(C, op, object_clear_loc, "Location");
 }
 
 void OBJECT_OT_location_clear(wmOperatorType *ot)
@@ -126,7 +270,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_location_clear_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -134,139 +278,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 
 static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
-	KeyingSet *ks;
-	
-	/* get KeyingSet to use 
-	 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
-	 * 	  or otherwise key transforms only
-	 */
-	if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
-		ks = ANIM_scene_get_active_keyingset(scene);
-	else 
-		ks = ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-	
-	/* clear rotation of selected objects if not in weight-paint mode */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-			/* clear rotations that aren't locked */
-			if (ob->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
-				if (ob->protectflag & OB_LOCK_ROT4D) {
-					/* perform clamping on a component by component basis */
-					if (ob->rotmode == ROT_MODE_AXISANGLE) {
-						if ((ob->protectflag & OB_LOCK_ROTW) == 0)
-							ob->rotAngle= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTX) == 0)
-							ob->rotAxis[0]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTY) == 0)
-							ob->rotAxis[1]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
-							ob->rotAxis[2]= 0.0f;
-							
-						/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
-						if (IS_EQ(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQ(ob->rotAxis[1], ob->rotAxis[2]))
-							ob->rotAxis[1] = 1.0f;
-					}
-					else if (ob->rotmode == ROT_MODE_QUAT) {
-						if ((ob->protectflag & OB_LOCK_ROTW) == 0)
-							ob->quat[0]= 1.0f;
-						if ((ob->protectflag & OB_LOCK_ROTX) == 0)
-							ob->quat[1]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTY) == 0)
-							ob->quat[2]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
-							ob->quat[3]= 0.0f;
-					}
-					else {
-						/* the flag may have been set for the other modes, so just ignore the extra flag... */
-						if ((ob->protectflag & OB_LOCK_ROTX) == 0)
-							ob->rot[0]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTY) == 0)
-							ob->rot[1]= 0.0f;
-						if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
-							ob->rot[2]= 0.0f;
-					}
-				}
-				else {
-					/* perform clamping using euler form (3-components) */
-					float eul[3], oldeul[3], quat1[4] = {0};
-					
-					if (ob->rotmode == ROT_MODE_QUAT) {
-						QUATCOPY(quat1, ob->quat);
-						quat_to_eul( oldeul,ob->quat);
-					}
-					else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-						axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,ob->rotAxis, ob->rotAngle);
-					}
-					else {
-						copy_v3_v3(oldeul, ob->rot);
-					}
-					
-					eul[0]= eul[1]= eul[2]= 0.0f;
-					
-					if (ob->protectflag & OB_LOCK_ROTX)
-						eul[0]= oldeul[0];
-					if (ob->protectflag & OB_LOCK_ROTY)
-						eul[1]= oldeul[1];
-					if (ob->protectflag & OB_LOCK_ROTZ)
-						eul[2]= oldeul[2];
-					
-					if (ob->rotmode == ROT_MODE_QUAT) {
-						eul_to_quat( ob->quat,eul);
-						/* quaternions flip w sign to accumulate rotations correctly */
-						if ((quat1[0]<0.0f && ob->quat[0]>0.0f) || (quat1[0]>0.0f && ob->quat[0]<0.0f)) {
-							mul_qt_fl(ob->quat, -1.0f);
-						}
-					}
-					else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-						eulO_to_axis_angle( ob->rotAxis, &ob->rotAngle,eul, EULER_ORDER_DEFAULT);
-					}
-					else {
-						copy_v3_v3(ob->rot, eul);
-					}
-				}
-			}						 // Duplicated in source/blender/editors/armature/editarmature.c
-			else { 
-				if (ob->rotmode == ROT_MODE_QUAT) {
-					ob->quat[1]=ob->quat[2]=ob->quat[3]= 0.0f; 
-					ob->quat[0]= 1.0f;
-				}
-				else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-					/* by default, make rotation of 0 radians around y-axis (roll) */
-					ob->rotAxis[0]=ob->rotAxis[2]=ob->rotAngle= 0.0f;
-					ob->rotAxis[1]= 1.0f;
-				}
-				else {
-					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
-				}
-			}
-			
-			/* auto keyframing */
-			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				ListBase dsources = {NULL, NULL};
-				
-				/* now insert the keyframe(s) using the Keying Set
-				 *	1) add datasource override for the PoseChannel
-				 *	2) insert keyframes
-				 *	3) free the extra info 
-				 */
-				ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL); 
-				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-				BLI_freelistN(&dsources);
-			}
-		}
-		
-		ob->recalc |= OB_RECALC_OB;
-	}
-	CTX_DATA_END;
-	
-	/* this is needed so children are also updated */
-	DAG_ids_flush_update(bmain, 0);
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
-	
-	return OPERATOR_FINISHED;
+	return object_clear_transform_generic_exec(C, op, object_clear_rot, "Rotation");
 }
 
 void OBJECT_OT_rotation_clear(wmOperatorType *ot)
@@ -278,7 +290,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_rotation_clear_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -286,60 +298,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 
 static int object_scale_clear_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
-	KeyingSet *ks;
-	
-	/* get KeyingSet to use 
-	 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
-	 * 	  or otherwise key transforms only
-	 */
-	if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
-		ks = ANIM_scene_get_active_keyingset(scene);
-	else 
-		ks = ANIM_builtin_keyingset_get_named(NULL, "Scaling");
-	
-	/* clear scales of selected objects if not in weight-paint mode */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-			/* clear scale factors which are not locked */
-			if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
-				ob->dsize[0]= 0.0f;
-				ob->size[0]= 1.0f;
-			}
-			if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
-				ob->dsize[1]= 0.0f;
-				ob->size[1]= 1.0f;
-			}
-			if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
-				ob->dsize[2]= 0.0f;
-				ob->size[2]= 1.0f;
-			}
-			
-			/* auto keyframing */
-			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				ListBase dsources = {NULL, NULL};
-				
-				/* now insert the keyframe(s) using the Keying Set
-				 *	1) add datasource override for the PoseChannel
-				 *	2) insert keyframes
-				 *	3) free the extra info 
-				 */
-				ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL); 
-				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-				BLI_freelistN(&dsources);
-			}
-		}
-		ob->recalc |= OB_RECALC_OB;
-	}
-	CTX_DATA_END;
-	
-	/* this is needed so children are also updated */
-	DAG_ids_flush_update(bmain, 0);
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
-	
-	return OPERATOR_FINISHED;
+	return object_clear_transform_generic_exec(C, op, object_clear_scale, "Scaling");
 }
 
 void OBJECT_OT_scale_clear(wmOperatorType *ot)
@@ -351,20 +310,24 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_scale_clear_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_origin_clear_exec(bContext *C, wmOperator *op)
+/* --------------- */
+
+static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
-	float *v1, *v3, mat[3][3];
-	int armature_clear= 0;
+	float *v1, *v3;
+	float mat[3][3];
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if(ob->parent) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	{
+		if (ob->parent) {
+			/* vectors pointed to by v1 and v3 will get modified */
 			v1= ob->loc;
 			v3= ob->parentinv[3];
 			
@@ -376,8 +339,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	if(armature_clear==0) /* in this case flush was done */
-		DAG_ids_flush_update(bmain, 0);
+	DAG_ids_flush_update(bmain, 0);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -393,7 +355,7 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_origin_clear_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -411,7 +373,7 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob )
 	/* a change was made, adjust the children to compensate */
 	for(ob_child=bmain->object.first; ob_child; ob_child=ob_child->id.next) {
 		if(ob_child->parent == ob) {
-			object_apply_mat4(ob_child, ob_child->obmat);
+			object_apply_mat4(ob_child, ob_child->obmat, TRUE, FALSE);
 			what_does_parent(scene, ob_child, &workob);
 			invert_m4_m4(ob_child->parentinv, workob.obmat);
 		}
@@ -478,8 +440,18 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			object_to_mat3(ob, rsmat);
 		else if(apply_scale)
 			object_scale_to_mat3(ob, rsmat);
-		else if(apply_rot)
+		else if(apply_rot) {
+			float tmat[3][3], timat[3][3];
+
+			/* simple rotation matrix */
 			object_rot_to_mat3(ob, rsmat);
+
+			/* correct for scale, note mul_m3_m3m3 has swapped args! */
+			object_scale_to_mat3(ob, tmat);
+			invert_m3_m3(timat, tmat);
+			mul_m3_m3m3(rsmat, timat, rsmat);
+			mul_m3_m3m3(rsmat, rsmat, tmat);
+		}
 		else
 			unit_m3(rsmat);
 
@@ -501,6 +473,8 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		/* apply to object data */
 		if(ob->type==OB_MESH) {
 			me= ob->data;
+			
+			multiresModifier_scale_disp(scene, ob);
 			
 			/* adjust data */
 			mvert= me->mvert;
@@ -550,22 +524,19 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			continue;
 
 		if(apply_loc)
-			ob->loc[0]= ob->loc[1]= ob->loc[2]= 0.0f;
+			zero_v3(ob->loc);
 		if(apply_scale)
 			ob->size[0]= ob->size[1]= ob->size[2]= 1.0f;
 		if(apply_rot) {
-			ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
-			ob->quat[1]= ob->quat[2]= ob->quat[3]= 0.0f;
-			ob->rotAxis[0]= ob->rotAxis[2]= 0.0f;
-			ob->rotAngle= 0.0f;
-			
-			ob->quat[0]= ob->rotAxis[1]= 1.0f;
+			zero_v3(ob->rot);
+			unit_qt(ob->quat);
+			unit_axis_angle(ob->rotAxis, &ob->rotAngle);
 		}
 
 		where_is_object(scene, ob);
 		ignore_parent_tx(bmain, scene, ob);
 
-		DAG_id_flush_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
 
 		change = 1;
 	}
@@ -578,16 +549,19 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	return OPERATOR_FINISHED;
 }
 
-static int visual_transform_apply_exec(bContext *C, wmOperator *op)
+static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	int change = 0;
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		where_is_object(scene, ob);
-		object_apply_mat4(ob, ob->obmat);
+		object_apply_mat4(ob, ob->obmat, TRUE, TRUE);
 		where_is_object(scene, ob);
-		
+
+		/* update for any children that may get moved */
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+	
 		change = 1;
 	}
 	CTX_DATA_END;
@@ -608,7 +582,7 @@ void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= visual_transform_apply_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -628,7 +602,7 @@ void OBJECT_OT_location_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= location_apply_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -648,7 +622,7 @@ void OBJECT_OT_scale_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= scale_apply_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -668,7 +642,7 @@ void OBJECT_OT_rotation_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= rotation_apply_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -770,7 +744,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					total++;
 					add_v3_v3(cent, eve->co);
 				}
-				mul_v3_fl(cent, 1.0f/(float)total);
+				if(total) {
+					mul_v3_fl(cent, 1.0f/(float)total);
+				}
 			}
 			else {
 				for(eve= em->verts.first; eve; eve= eve->next) {
@@ -779,13 +755,15 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				mid_v3_v3v3(cent, min, max);
 			}
 
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				sub_v3_v3(eve->co, cent);
-			}
+			if(!is_zero_v3(cent)) {
+				for(eve= em->verts.first; eve; eve= eve->next) {
+					sub_v3_v3(eve->co, cent);
+				}
 
-			recalc_editnormals(em);
-			tot_change++;
-			DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+				recalc_editnormals(em);
+				tot_change++;
+				DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+			}
 			BKE_mesh_end_editmesh(me, em);
 		}
 	}
@@ -877,7 +855,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				if(obedit) {
 					if (centermode == GEOMETRY_TO_ORIGIN) {
-						DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+						DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 					}
 					break;
 				}

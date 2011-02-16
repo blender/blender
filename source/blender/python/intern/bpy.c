@@ -25,6 +25,7 @@
 /* This file defines the '_bpy' module which is used by python's 'bpy' package.
  * a script writer should never directly access this module */
  
+#define WITH_PYTHON /* for AUD_PyInit.h, possibly others */
 
 #include "bpy_util.h" 
 #include "bpy_rna.h"
@@ -34,11 +35,17 @@
 
 #include "BLI_path_util.h"
 #include "BLI_bpath.h"
- 
+#include "BLI_utildefines.h"
+
+
+#include "BKE_global.h" /* XXX, G.main only */
+
+#include "MEM_guardedalloc.h"
+
  /* external util modules */
-#include "../generic/geometry.h"
+#include "../generic/mathutils.h"
 #include "../generic/bgl.h"
-#include "../generic/blf_api.h"
+#include "../generic/blf_py_api.h"
 #include "../generic/IDProp.h"
 
 #include "AUD_PyInit.h"
@@ -51,7 +58,7 @@ static char bpy_script_paths_doc[] =
 "   :return: (system, user) strings will be empty when not found.\n"
 "   :rtype: tuple of strigs\n";
 
-PyObject *bpy_script_paths(PyObject *self)
+PyObject *bpy_script_paths(PyObject *UNUSED(self))
 {
 	PyObject *ret= PyTuple_New(2);
 	char *path;
@@ -73,51 +80,87 @@ static char bpy_blend_paths_doc[] =
 "   :type absolute: boolean\n"
 "   :return: path list.\n"
 "   :rtype: list of strigs\n";
-static PyObject *bpy_blend_paths(PyObject * self, PyObject *args, PyObject *kw)
+static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-	struct BPathIterator bpi;
-	PyObject *list = PyList_New(0), *st; /* stupidly big string to be safe */
+	struct BPathIterator *bpi;
+	PyObject *list, *st; /* stupidly big string to be safe */
 	/* be sure there is low chance of the path being too short */
 	char filepath_expanded[1024];
-	char *lib;
+	const char *lib;
 
 	int absolute = 0;
-	static char *kwlist[] = {"absolute", NULL};
+	static const char *kwlist[] = {"absolute", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", kwlist, &absolute))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", (char **)kwlist, &absolute))
 		return NULL;
 
-	for(BLI_bpathIterator_init(&bpi, NULL); !BLI_bpathIterator_isDone(&bpi); BLI_bpathIterator_step(&bpi)) {
+	list= PyList_New(0);
+
+	for(BLI_bpathIterator_init(&bpi, G.main, NULL, 0); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
 		/* build the list */
 		if (absolute) {
-			BLI_bpathIterator_getPathExpanded(&bpi, filepath_expanded);
+			BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
 		}
 		else {
-			lib = BLI_bpathIterator_getLib(&bpi);
-			if (lib && (strcmp(lib, bpi.base_path))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
-				BLI_bpathIterator_getPathExpanded(&bpi, filepath_expanded);
+			lib = BLI_bpathIterator_getLib(bpi);
+			if (lib && (strcmp(lib, BLI_bpathIterator_getBasePath(bpi)))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
+				BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
 			}
 			else {
-				BLI_bpathIterator_getPath(&bpi, filepath_expanded);
+				BLI_bpathIterator_getPath(bpi, filepath_expanded);
 			}
 		}
-		st = PyUnicode_FromString(filepath_expanded);
+		st= PyUnicode_DecodeFSDefault(filepath_expanded);
 
 		PyList_Append(list, st);
 		Py_DECREF(st);
 	}
 
-	BLI_bpathIterator_free(&bpi);
+	BLI_bpathIterator_free(bpi);
 
 	return list;
 }
 
-static PyMethodDef meth_bpy_script_paths[] = {{ "script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc}};
-static PyMethodDef meth_bpy_blend_paths[] = {{ "blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc}};
 
-static void bpy_import_test(char *modname)
+// static char bpy_user_resource_doc[] = // now in bpy/utils.py
+static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-	PyObject *mod= PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
+	char *type;
+	char *subdir= NULL;
+	int folder_id;
+	static const char *kwlist[] = {"type", "subdir", NULL};
+
+	char *path;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|s:user_resource", (char **)kwlist, &type, &subdir))
+		return NULL;
+	
+	/* stupid string compare */
+	if     (!strcmp(type, "DATAFILES"))	folder_id= BLENDER_USER_DATAFILES;
+	else if(!strcmp(type, "CONFIG"))	folder_id= BLENDER_USER_CONFIG;
+	else if(!strcmp(type, "SCRIPTS"))	folder_id= BLENDER_USER_SCRIPTS;
+	else if(!strcmp(type, "AUTOSAVE"))	folder_id= BLENDER_USER_AUTOSAVE;
+	else {
+		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
+		return NULL;
+	}
+	
+	/* same logic as BLI_get_folder_create(), but best leave it up to the script author to create */
+	path= BLI_get_folder(folder_id, subdir);
+
+	if (!path)
+		path = BLI_get_user_folder_notest(folder_id, subdir);
+
+	return PyUnicode_FromString(path ? path : "");
+}
+
+static PyMethodDef meth_bpy_script_paths = {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
+static PyMethodDef meth_bpy_blend_paths = {"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
+static PyMethodDef meth_bpy_user_resource = {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, NULL};
+
+static void bpy_import_test(const char *modname)
+{
+	PyObject *mod= PyImport_ImportModuleLevel((char *)modname, NULL, NULL, NULL, 0);
 	if(mod) {
 		Py_DECREF(mod);
 	}
@@ -149,13 +192,7 @@ void BPy_init_modules( void )
 		printf("bpy: couldnt find 'scripts/modules', blender probably wont start.\n");
 	}
 	/* stand alone utility modules not related to blender directly */
-	Geometry_Init();
-	Mathutils_Init();
-	Noise_Init();
-	BGL_Init();
-	BLF_Init();
-	IDProp_Init_Types();
-	AUD_initPython();
+	IDProp_Init_Types(); /* not actually a submodule, just types */
 
 	mod = PyModule_New("_bpy");
 
@@ -177,7 +214,7 @@ void BPy_init_modules( void )
 	PyModule_AddObject( mod, "app", BPY_app_struct() );
 
 	/* bpy context */
-	RNA_pointer_create(NULL, &RNA_Context, BPy_GetContext(), &ctx_ptr);
+	RNA_pointer_create(NULL, &RNA_Context, (void *)BPy_GetContext(), &ctx_ptr);
 	bpy_context_module= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ctx_ptr);
 	/* odd that this is needed, 1 ref on creation and another for the module
 	 * but without we get a crash on exit */
@@ -186,8 +223,13 @@ void BPy_init_modules( void )
 	PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 
 	/* utility func's that have nowhere else to go */
-	PyModule_AddObject(mod, meth_bpy_script_paths->ml_name, (PyObject *)PyCFunction_New(meth_bpy_script_paths, NULL));
-	PyModule_AddObject(mod, meth_bpy_blend_paths->ml_name, (PyObject *)PyCFunction_New(meth_bpy_blend_paths, NULL));
+	PyModule_AddObject(mod, meth_bpy_script_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_script_paths, NULL));
+	PyModule_AddObject(mod, meth_bpy_blend_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_blend_paths, NULL));
+	PyModule_AddObject(mod, meth_bpy_user_resource.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_user_resource, NULL));
+
+	/* register funcs (bpy_rna.c) */
+	PyModule_AddObject(mod, meth_bpy_register_class.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_register_class, NULL));
+	PyModule_AddObject(mod, meth_bpy_unregister_class.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_unregister_class, NULL));
 
 	/* add our own modules dir, this is a python package */
 	bpy_import_test("bpy");

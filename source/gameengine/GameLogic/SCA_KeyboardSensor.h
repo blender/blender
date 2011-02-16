@@ -103,7 +103,7 @@ public:
 	virtual bool IsPositiveTrigger();
 	bool	TriggerOnAllKeys();
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */

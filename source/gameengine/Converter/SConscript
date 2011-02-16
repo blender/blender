@@ -30,7 +30,12 @@ if env['BF_DEBUG']:
         
 if env['WITH_BF_PYTHON']:
     incs += ' ' + env['BF_PYTHON_INC']
-else:
-    defs.append('DISABLE_PYTHON')
+    defs.append('WITH_PYTHON')
 
-env.BlenderLib ( 'bf_converter', sources, Split(incs), defs, libtype=['core','player'], priority=[305,40], cxx_compileflags=env['BGE_CXXFLAGS'])
+if env['WITH_BF_CXX_GUARDEDALLOC']:
+    defs.append('WITH_CXX_GUARDEDALLOC')
+
+if env['WITH_BF_BULLET']:
+    defs.append('USE_BULLET')
+
+env.BlenderLib ( 'ge_converter', sources, Split(incs), defs, libtype=['core','player'], priority=[305,40], cxx_compileflags=env['BGE_CXXFLAGS'])

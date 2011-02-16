@@ -40,6 +40,7 @@ void ED_operatortypes_sculpt(void);
 void sculpt_get_redraw_planes(float planes[4][4], struct ARegion *ar,
 				   struct RegionView3D *rv3d, struct Object *ob);
 void ED_sculpt_force_update(struct bContext *C);
+void ED_sculpt_modifiers_changed(struct Object *ob);
 
 /* paint_ops.c */
 void ED_operatortypes_paint(void);
@@ -51,5 +52,6 @@ void ED_keymap_paint(struct wmKeyConfig *keyconf);
 
 int ED_undo_paint_step(struct bContext *C, int type, int step, const char *name);
 void ED_undo_paint_free(void);
+int ED_undo_paint_valid(int type, const char *name);
 
 #endif

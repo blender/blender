@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -97,9 +98,16 @@ static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 			if(ob->data == mb)
 				copy_mball_properties(scene, ob);
 	
-		DAG_id_flush_update(&mb->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&mb->id, 0);
 		WM_main_add_notifier(NC_GEOM|ND_DATA, mb);
 	}
+}
+
+static void rna_MetaBall_update_rotation(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	MetaElem *ml= ptr->data;
+	normalize_qt(ml->quat);
+	rna_MetaBall_update_data(bmain, scene, ptr);
 }
 
 static MetaElem *rna_MetaBall_elements_new(MetaBall *mb, int type)
@@ -108,7 +116,7 @@ static MetaElem *rna_MetaBall_elements_new(MetaBall *mb, int type)
 
 	/* cheating way for importers to avoid slow updates */
 	if(mb->id.us > 0) {
-		DAG_id_flush_update(&mb->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&mb->id, 0);
 		WM_main_add_notifier(NC_GEOM|ND_DATA, &mb->id);
 	}
 
@@ -131,20 +139,12 @@ static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, Meta
 
 	/* cheating way for importers to avoid slow updates */
 	if(mb->id.us > 0) {
-		DAG_id_flush_update(&mb->id, OB_RECALC_DATA);
+		DAG_id_tag_update(&mb->id, 0);
 		WM_main_add_notifier(NC_GEOM|ND_DATA, &mb->id);
 	}
 }
 
 #else
-
-static EnumPropertyItem metaelem_type_items[] = {
-	{MB_BALL, "BALL", ICON_META_BALL, "Ball", ""},
-	{MB_TUBE, "CAPSULE", ICON_META_CAPSULE, "Capsule", ""},
-	{MB_PLANE, "PLANE", ICON_META_PLANE, "Plane", ""},
-	{MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""}, // NOTE: typo at original definition!
-	{MB_CUBE, "CUBE", ICON_META_CUBE, "Cube", ""},
-	{0, NULL, 0, NULL, NULL}};
 
 static void rna_def_metaelement(BlenderRNA *brna)
 {
@@ -155,7 +155,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "MetaElem");
 	RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a MetaBall datablock");
 	RNA_def_struct_ui_icon(srna, ICON_OUTLINER_DATA_META);
-	
+
 	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, metaelem_type_items);
@@ -171,8 +171,8 @@ static void rna_def_metaelement(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
-	RNA_def_property_ui_text(prop, "Rotation", "");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_ui_text(prop, "Rotation", "Normalized quaternion rotation");
+	RNA_def_property_update(prop, 0, "rna_MetaBall_update_rotation");
 
 	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_UNSIGNED|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "rad");
@@ -232,7 +232,7 @@ static void rna_def_metaball_elements(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "new", "rna_MetaBall_elements_new");
 	RNA_def_function_ui_description(func, "Add a new spline to the curve.");
-	parm= RNA_def_enum(func, "type", metaelem_type_items, MB_BALL, "", "type for the new meta element.");
+	RNA_def_enum(func, "type", metaelem_type_items, MB_BALL, "", "type for the new meta element.");
 	parm= RNA_def_pointer(func, "element", "MetaElement", "", "The newly created metaelement.");
 	RNA_def_function_return(func, parm);
 

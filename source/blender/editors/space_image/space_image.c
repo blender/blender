@@ -39,6 +39,7 @@
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -225,9 +226,18 @@ void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
 	
 	ED_space_image_aspect(sima, aspx, aspy);
 	ED_space_image_size(sima, &w, &h);
+
+	*aspx *= (float)w;
+	*aspy *= (float)h;
 	
-	*aspx *= (float)w/256.0f;
-	*aspy *= (float)h/256.0f;
+	if(*aspx < *aspy) {
+		*aspy= *aspy / *aspx;
+		*aspx= 1.0f;
+	}
+	else {
+		*aspx= *aspx / *aspy;
+		*aspy= 1.0f;		
+	}
 }
 
 void ED_image_uv_aspect(Image *ima, float *aspx, float *aspy)
@@ -256,11 +266,9 @@ int ED_space_image_show_paint(SpaceImage *sima)
 
 int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 {
-	if(ED_space_image_show_render(sima))
+	if(sima && (ED_space_image_show_render(sima) || ED_space_image_show_paint(sima)))
 		return 0;
-	if(ED_space_image_show_paint(sima))
-		return 0;
-	
+
 	if(obedit && obedit->type == OB_MESH) {
 		EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
 		int ret;
@@ -369,7 +377,7 @@ ARegion *image_has_scope_region(ScrArea *sa)
 
 /* ******************** default callbacks for image space ***************** */
 
-static SpaceLink *image_new(const bContext *C)
+static SpaceLink *image_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceImage *simage;
@@ -384,6 +392,7 @@ static SpaceLink *image_new(const bContext *C)
 	simage->iuser.frames= 100;
 	
 	scopes_new(&simage->scopes);
+	simage->sample_line_hist.height= 100;
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for image");
@@ -429,7 +438,7 @@ static void image_free(SpaceLink *sl)
 
 
 /* spacetype; init callback, add handlers */
-static void image_init(struct wmWindowManager *wm, ScrArea *sa)
+static void image_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	ListBase *lb= WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
 
@@ -485,6 +494,7 @@ void image_operatortypes(void)
 void image_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Image Generic", SPACE_IMAGE, 0);
+	wmKeyMapItem *kmi;
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
@@ -495,12 +505,14 @@ void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_scopes", PKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, KM_ALT, 0)->ptr, "reverse", TRUE);
 	
 	keymap= WM_keymap_find(keyconf, "Image", SPACE_IMAGE, 0);
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_view_pan", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_pan", MOUSEPAN, 0, 0, 0);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_in", WHEELINMOUSE, KM_PRESS, 0, 0);
@@ -523,10 +535,15 @@ void image_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_curves_point_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "point", 1);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
+
+	/* toggle editmode is handy to have while UV unwrapping */
+	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
+	RNA_boolean_set(kmi->ptr, "toggle", 1);
 }
 
 /* dropboxes */
-static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int image_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_PATH)
 		if(ELEM3(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
@@ -550,7 +567,7 @@ static void image_dropboxes(void)
 
 
 
-static void image_refresh(const bContext *C, ScrArea *sa)
+static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -569,13 +586,13 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 		MTFace *tf;
 		
 		if(em && EM_texFaceCheck(em)) {
-			sima->image= ima= NULL;
+			sima->image= NULL;
 			
 			tf = EM_get_active_mtface(em, NULL, NULL, 1); /* partially selected face is ok */
 			
 			if(tf && (tf->mode & TF_TEX)) {
 				/* don't need to check for pin here, see above */
-				sima->image= ima= tf->tpage;
+				sima->image= tf->tpage;
 				
 				if(sima->flag & SI_EDITTILE);
 				else sima->curtile= tf->tile;
@@ -626,19 +643,24 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_DATA:
 				case ND_SELECT:
+					image_scopes_tag_refresh(sa);
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
 			}
 		case NC_OBJECT:
+		{
+			Object *ob= (Object *)wmn->reference;
 			switch(wmn->data) {
 				case ND_TRANSFORM:
-					if(sima->lock && (sima->flag & SI_DRAWSHADOW)) {
+				case ND_MODIFIER:
+					if(ob && (ob->mode & OB_MODE_EDIT) && sima->lock && (sima->flag & SI_DRAWSHADOW)) {
 						ED_area_tag_refresh(sa);
 						ED_area_tag_redraw(sa);
 					}
 					break;
 			}
+		}
 	}
 }
 
@@ -746,6 +768,9 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	//View2DScrollers *scrollers;
 	float col[3];
 	
+	/* XXX not supported yet, disabling for now */
+	scene->r.scemode &= ~R_COMP_CROP;
+	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
@@ -761,7 +786,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	draw_image_main(sima, ar, scene);
 
 	/* and uvs in 0.0-1.0 space */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	draw_uvedit_main(sima, ar, scene, obedit);
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
@@ -877,7 +902,7 @@ static void image_scope_area_listener(ARegion *ar, wmNotifier *wmn)
 /************************* header region **************************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void image_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void image_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }

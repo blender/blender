@@ -277,7 +277,8 @@ short imb_addrectfloatImBuf(ImBuf *ibuf)
 	
 	if(ibuf==NULL) return FALSE;
 	
-	imb_freerectfloatImBuf(ibuf);
+	if(ibuf->rect_float)
+		imb_freerectfloatImBuf(ibuf); /* frees mipmap too, hrm */
 	
 	size = ibuf->x *ibuf->y;
 	size = size *4 *sizeof(float);
@@ -298,8 +299,12 @@ short imb_addrectImBuf(ImBuf *ibuf)
 	int size;
 
 	if(ibuf==NULL) return FALSE;
-	imb_freerectImBuf(ibuf);
-
+	
+	/* don't call imb_freerectImBuf, it frees mipmaps, this call is used only too give float buffers display */
+	if(ibuf->rect && (ibuf->mall & IB_rect))
+		MEM_freeN(ibuf->rect);
+	ibuf->rect= NULL;
+	
 	size = ibuf->x*ibuf->y;
 	size = size*sizeof(unsigned int);
 
@@ -324,7 +329,7 @@ short imb_addtilesImBuf(ImBuf *ibuf)
 	return (ibuf->tiles != NULL);
 }
 
-ImBuf *IMB_allocImBuf(short x, short y, uchar d, unsigned int flags, uchar bitmap) /* XXX bitmap argument is deprecated */
+ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar d, unsigned int flags)
 {
 	ImBuf *ibuf;
 
@@ -384,7 +389,7 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	y = ibuf1->y;
 	if(ibuf1->flags & IB_fields) y *= 2;
 	
-	ibuf2 = IMB_allocImBuf(x, y, ibuf1->depth, flags, 0);
+	ibuf2 = IMB_allocImBuf(x, y, ibuf1->depth, flags);
 	if(ibuf2 == NULL) return NULL;
 
 	if(flags & IB_rect)
@@ -443,7 +448,7 @@ static void imbuf_cache_destructor(void *data)
 	ibuf->c_handle = 0;
 }
 
-static MEM_CacheLimiterC **get_imbuf_cache_limiter()
+static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
 {
 	static MEM_CacheLimiterC *c = 0;
 

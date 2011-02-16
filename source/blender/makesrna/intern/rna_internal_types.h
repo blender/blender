@@ -22,8 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef RNA_INTERNAL_TYPES
-#define RNA_INTERNAL_TYPES
+#ifndef RNA_INTERNAL_TYPES_H
+#define RNA_INTERNAL_TYPES_H
 
 #include "DNA_listBase.h"
 
@@ -93,8 +93,8 @@ typedef void (*PropCollectionNextFunc)(struct CollectionPropertyIterator *iter);
 typedef void (*PropCollectionEndFunc)(struct CollectionPropertyIterator *iter);
 typedef PointerRNA (*PropCollectionGetFunc)(struct CollectionPropertyIterator *iter);
 typedef int (*PropCollectionLengthFunc)(struct PointerRNA *ptr);
-typedef PointerRNA (*PropCollectionLookupIntFunc)(struct PointerRNA *ptr, int key);
-typedef PointerRNA (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, const char *key);
+typedef int (*PropCollectionLookupIntFunc)(struct PointerRNA *ptr, int key, struct PointerRNA *r_ptr);
+typedef int (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr);
 
 /* Container - generic abstracted container of RNA properties */
 typedef struct ContainerRNA {
@@ -108,7 +108,7 @@ struct FunctionRNA {
 	/* structs are containers of properties */
 	ContainerRNA cont;
 
-	/* unique identifier */
+	/* unique identifier, keep after 'cont' */
 	const char *identifier;
 	/* various options */
 	int flag;
@@ -283,13 +283,14 @@ struct StructRNA {
 	/* structs are containers of properties */
 	ContainerRNA cont;
 
+	/* unique identifier, keep after 'cont' */
+	const char *identifier;
+
 	/* python type, this is a subtype of pyrna_struct_Type but used so each struct can have its own type
 	 * which is useful for subclassing RNA */
 	void *py_type;
 	void *blender_type;
 	
-	/* unique identifier */
-	const char *identifier;
 	/* various options */
 	int flag;
 
@@ -340,5 +341,6 @@ struct BlenderRNA {
 	ListBase structs;
 };
 
-#endif /* RNA_INTERNAL_TYPES */
+#define CONTAINER_RNA_ID(cont) (const char *)(((ContainerRNA *)(cont))+1)
 
+#endif /* RNA_INTERNAL_TYPES_H */

@@ -18,17 +18,43 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
-SET(INC 
+set(INC 
 	.
 	../../blenlib
 	../../makesdna
 	../../blenkernel
-	../../editors/include
 	../../../../intern/guardedalloc
 	../../../../extern/glew/include
-	${PYTHON_INC}
+	${PYTHON_INCLUDE_DIRS}
 )
 
-BLENDERLIB(bf_python_ext "${SRC}" "${INC}")
+set(SRC
+	IDProp.c
+	bgl.c
+	blf_py_api.c
+	bpy_internal_import.c
+	mathutils.c
+	mathutils_color.c
+	mathutils_euler.c
+	mathutils_geometry.c
+	mathutils_matrix.c
+	mathutils_quat.c
+	mathutils_vector.c
+	noise.c
+	py_capi_utils.c
+
+	IDProp.h
+	bgl.h
+	blf_py_api.h
+	bpy_internal_import.h
+	mathutils.h
+	mathutils_color.h
+	mathutils_euler.h
+	mathutils_geometry.h
+	mathutils_matrix.h
+	mathutils_quat.h
+	mathutils_vector.h
+	py_capi_utils.h
+)
+
+blender_add_lib(bf_python_ext "${SRC}" "${INC}")

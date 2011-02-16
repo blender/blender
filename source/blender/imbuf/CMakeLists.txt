@@ -24,10 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
-
-
-SET(INC 
+set(INC 
 	.
 	../avi
 	../blenlib
@@ -35,49 +32,112 @@ SET(INC
 	../makesdna
 	../../../intern/memutil
 	../../../intern/guardedalloc
-	${JPEG_INC}
-	${PNG_INC}
-	${ZLIB_INC}
+	${JPEG_INCLUDE_DIR}
+	${PNG_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
 )
 
-IF(WIN32)
-	LIST(APPEND INC ${PTHREADS_INC})
-ENDIF(WIN32)
+set(SRC
+	intern/allocimbuf.c
+	intern/anim_movie.c
+	intern/bmp.c
+	intern/cache.c
+	intern/divers.c
+	intern/filetype.c
+	intern/filter.c
+	intern/imageprocess.c
+	intern/iris.c
+	intern/jp2.c
+	intern/jpeg.c
+	intern/md5.c
+	intern/metadata.c
+	intern/module.c
+	intern/png.c
+	intern/radiance_hdr.c
+	intern/readimage.c
+	intern/rectop.c
+	intern/rotate.c
+	intern/scaling.c
+	intern/targa.c
+	intern/thumbs.c
+	intern/thumbs_blend.c
+	intern/tiff.c
+	intern/util.c
+	intern/writeimage.c
 
-IF(WITH_IMAGE_OPENEXR)
-	ADD_DEFINITIONS(-DWITH_OPENEXR)
-ENDIF(WITH_IMAGE_OPENEXR)
+	IMB_imbuf.h
+	IMB_imbuf_types.h
+	IMB_thumbs.h
+	intern/IMB_allocimbuf.h
+	intern/IMB_anim.h
+	intern/IMB_filetype.h
+	intern/IMB_filter.h
+	intern/IMB_metadata.h
+	intern/cineon/cin_debug_stuff.h
+	intern/cineon/cineonfile.h
+	intern/cineon/cineonlib.h
+	intern/cineon/dpxfile.h
+	intern/cineon/dpxlib.h
+	intern/cineon/logImageCore.h
+	intern/cineon/logImageLib.h
+	intern/cineon/logmemfile.h
+	intern/dds/BlockDXT.h
+	intern/dds/Color.h
+	intern/dds/ColorBlock.h
+	intern/dds/Common.h
+	intern/dds/DirectDrawSurface.h
+	intern/dds/Image.h
+	intern/dds/PixelFormat.h
+	intern/dds/Stream.h
+	intern/dds/dds_api.h
+	intern/imbuf.h
+	intern/md5.h
+	intern/openexr/openexr_api.h
+	intern/openexr/openexr_multi.h
+)
 
-IF(WITH_IMAGE_TIFF)
-	SET(INC ${INC} ${TIFF_INCLUDE_DIR})
-	ADD_DEFINITIONS(-DWITH_TIFF)
-ENDIF(WITH_IMAGE_TIFF)
+if(WITH_IMAGE_OPENEXR)
+	add_definitions(-DWITH_OPENEXR)
+endif()
 
-IF(WITH_IMAGE_OPENJPEG)
-	SET(INC ${INC} ${OPENJPEG_INC})
-	ADD_DEFINITIONS(-DWITH_OPENJPEG)
-ENDIF(WITH_IMAGE_OPENJPEG)
+if(WITH_IMAGE_TIFF)
+	list(APPEND INC ${TIFF_INCLUDE_DIR})
+	add_definitions(-DWITH_TIFF)
+endif()
 
-IF(WITH_QUICKTIME)
-	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
-	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
+if(WITH_IMAGE_OPENJPEG)
+	list(APPEND INC ${OPENJPEG_INC})
+	add_definitions(-DWITH_OPENJPEG)
+endif()
 
-IF(WITH_FFMPEG)
-	SET(INC ${INC} ${FFMPEG_INC})
-	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_FFMPEG)
+if(WITH_IMAGE_REDCODE)
+	list(APPEND INC ${REDCODE_INC})
+	add_definitions(-DWITH_REDCODE)
+endif()
 
-IF(WITH_IMAGE_DDS)
-	ADD_DEFINITIONS(-DWITH_DDS)
-ENDIF(WITH_IMAGE_DDS)
+if(WITH_CODEC_QUICKTIME)
+	list(APPEND INC
+		../quicktime
+		${QUICKTIME_INC}
+	)
+	add_definitions(-DWITH_QUICKTIME)
+endif()
 
-IF(WITH_IMAGE_CINEON)
-	ADD_DEFINITIONS(-DWITH_CINEON)
-ENDIF(WITH_IMAGE_CINEON)
+if(WITH_CODEC_FFMPEG)
+	list(APPEND INC ${FFMPEG_INC})
+	add_definitions(-DWITH_FFMPEG)
+endif()
 
-IF(WITH_IMAGE_HDR)
-	ADD_DEFINITIONS(-DWITH_HDR)
-ENDIF(WITH_IMAGE_HDR)
+if(WITH_IMAGE_DDS)
+	add_definitions(-DWITH_DDS)
+endif()
 
-BLENDERLIB(bf_imbuf "${SRC}" "${INC}")
+if(WITH_IMAGE_CINEON)
+	add_definitions(-DWITH_CINEON)
+endif()
+
+if(WITH_IMAGE_HDR)
+	add_definitions(-DWITH_HDR)
+endif()
+
+blender_add_lib(bf_imbuf "${SRC}" "${INC}")
