@@ -24,9 +24,40 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC Recast/Include Detour/Include)
+set(INC 
+		Recast/Include 
+		Detour/Include
+)
 
-FILE(GLOB SRC Recast/Source/*.cpp Detour/Source/*.cpp)
+set(SRC 
+		Detour/Source/DetourCommon.cpp
+		Detour/Source/DetourNode.cpp
+		Detour/Source/DetourStatNavMesh.cpp
+		Detour/Source/DetourStatNavMeshBuilder.cpp
+		Detour/Source/DetourTileNavMesh.cpp
+		Detour/Source/DetourTileNavMeshBuilder.cpp
 
-BLENDERLIB(extern_recastnavigation "${SRC}" "${INC}")
-#, libtype='blender', priority = 0 )
+		Detour/Include/DetourCommon.h
+		Detour/Include/DetourNode.h
+		Detour/Include/DetourStatNavMesh.h
+		Detour/Include/DetourStatNavMeshBuilder.h
+		Detour/Include/DetourTileNavMesh.h
+		Detour/Include/DetourTileNavMeshBuilder.h
+			
+		Recast/Source/Recast.cpp
+		Recast/Source/RecastContour.cpp
+		Recast/Source/RecastFilter.cpp
+		Recast/Source/RecastLog.cpp
+		Recast/Source/RecastMesh.cpp
+		Recast/Source/RecastMeshDetail.cpp
+		Recast/Source/RecastRasterization.cpp
+		Recast/Source/RecastRegion.cpp
+		Recast/Source/RecastTimer.cpp
+		
+		Recast/Include/Recast.h
+		Recast/Include/RecastLog.h
+		Recast/Include/RecastTimer.h	
+)
+
+blender_add_lib(extern_recastnavigation "${SRC}" "${INC}")
+

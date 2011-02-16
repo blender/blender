@@ -1,6 +1,4 @@
-#
-# $Id$
-#
+# $Id: CMakeLists.txt 33864 2010-12-22 23:09:30Z campbellbarton $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -17,24 +15,28 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2009 Blender Foundation
+# The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
 #
-# Contributor(s): none yet.
+# The Original Code is: all of this file.
+#
+# Contributor(s): Jacques Beaurain.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-LIBNAME = minilzo
-DIR = $(OCGDIR)/extern/$(LIBNAME)
+set(INC
+	.
+	../libopenjpeg
+)
 
-include nan_compile.mk
+set(SRC
+	codec.c
+	debayer.c
+	format.c
 
-install: $(ALL_OR_DEBUG)
-	@[ -d $(NAN_LZO) ] || mkdir -p $(NAN_LZO)
-	@[ -d $(NAN_LZO)/minilzo ] || mkdir -p $(NAN_LZO)/minilzo
-	@[ -d $(NAN_LZO)/lib/$(DEBUG_DIR) ] || mkdir -p $(NAN_LZO)/lib/$(DEBUG_DIR)
-	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)lib$(LIBNAME).a $(NAN_LZO)/lib/$(DEBUG_DIR)
-ifeq ($(OS),darwin)
-	ranlib $(NAN_LZO)/lib/$(DEBUG_DIR)lib$(LIBNAME).a
-endif
-	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh *.h $(NAN_LZO)/minilzo
+	codec.h
+	debayer.h
+	format.h
+)
+
+blender_add_lib(extern_redcode "${SRC}" "${INC}")
