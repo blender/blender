@@ -730,13 +730,13 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 	MFace *mface = dm->getFaceArray(dm);
 	MTFace *tface = static_cast<MTFace*>(dm->getFaceDataArray(dm, CD_MTFACE));
 	MCol *mcol = static_cast<MCol*>(dm->getFaceDataArray(dm, CD_MCOL));
-	float (*tangent)[3] = NULL;
+	float (*tangent)[4] = NULL;
 	int totface = dm->getNumFaces(dm);
 	const char *tfaceName = "";
 
 	if(tface) {
 		DM_add_tangent_layer(dm);
-		tangent = (float(*)[3])dm->getFaceDataArray(dm, CD_TANGENT);
+		tangent = (float(*)[4])dm->getFaceDataArray(dm, CD_TANGENT);
 	}
 
 	meshobj = new RAS_MeshObject(mesh);
