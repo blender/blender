@@ -23,9 +23,11 @@ WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
 BF_LIBSAMPLERATE = '/usr'
+WITH_BF_STATICLIBSAMPLERATE = False
 BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
 BF_LIBSAMPLERATE_LIB = 'samplerate'
 BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+BF_LIBSAMPLERATE_LIB_STATIC = '${BF_LIBSAMPLERATE}/lib/libsamplerate.a'
 
 WITH_BF_JACK = False
 BF_JACK = '/usr'
@@ -34,10 +36,12 @@ BF_JACK_LIB = 'jack'
 BF_JACK_LIBPATH = '${BF_JACK}/lib'
 
 WITH_BF_SNDFILE = False
+WITH_BF_STATICSNDFILE = False
 BF_SNDFILE = '/usr'
 BF_SNDFILE_INC = '${BF_SNDFILE}/include/sndfile'
 BF_SNDFILE_LIB = 'sndfile'
 BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
+BF_SNDFILE_LIB_STATIC = '${BF_SNDFILE}/lib/libsndfile.a ${BF_OGG}/lib/libvorbis.a ${BF_OGG}/lib/libFLAC.a ${BF_OGG}/lib/libvorbisenc.a ${BF_OGG}/lib/libogg.a'
 
 WITH_BF_SDL = True
 BF_SDL = '/usr' #$(shell sdl-config --prefix)
@@ -136,10 +140,12 @@ BF_OPENJPEG_INC = '${BF_OPENJPEG}'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
 
 WITH_BF_FFTW3 = False
-BF_FFTW3 = LIBDIR + '/usr'
+WITH_BF_STATICFFTW3 = False
+BF_FFTW3 = '/usr'
 BF_FFTW3_INC = '${BF_FFTW3}/include'
 BF_FFTW3_LIB = 'fftw3'
 BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
+BF_FFTW3_LIB_STATIC = '${BF_FFTW3_LIBPATH}/libfftw3.a'
 
 WITH_BF_REDCODE = False  
 BF_REDCODE = '#extern/libredcode'
@@ -183,10 +189,12 @@ CXX = 'g++'
 ##ifeq ($CPU),alpha)
 ##   CFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing -mieee
 
-CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64']
+CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64','-D_LARGEFILE64_SOURCE']
 
 CPPFLAGS = []
-CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64']
+CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64','-D_LARGEFILE64_SOURCE']
+# g++ 4.6, only needed for bullet
+CXXFLAGS += ['-fpermissive']
 if WITH_BF_FFMPEG:
   # libavutil needs UINT64_C()
   CXXFLAGS += ['-D__STDC_CONSTANT_MACROS', ]
@@ -198,7 +206,7 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGS = ruv
 ##ARFLAGSQUIET = ru
 ##
-C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement']
+C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wunused-parameter', '-Wstrict-prototypes', '-Werror=declaration-after-statement', '-Werror=implicit-function-declaration', '-Werror=return-type']
 CC_WARN = ['-Wall']
 CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 
@@ -214,7 +222,7 @@ BF_PROFILE_CCFLAGS = ['-pg','-g']
 BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = ['-g']
+BF_DEBUG_CCFLAGS = ['-g', '-DDEBUG']
 
 BF_BUILDDIR = '../build/linux2'
 BF_INSTALLDIR='../install/linux2'

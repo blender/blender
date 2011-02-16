@@ -1,10 +1,11 @@
 # Maintainer: Campbell Barton <ideasman42 at gmail dot com>
 
 # custom blender vars
-blender_srcdir=$srcdir/../../../..
+blender_srcdir=$(dirname $srcdir)"/../../.."
+blender_revision=$(svnversion $blender_srcdir)
 blender_version=$(grep BLENDER_VERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
-blender_subversion=$(grep BLENDER_SUBVERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
-blender_ver_string=$(expr $blender_version / 100).$(expr $blender_version % 100).$blender_subversion
+# blender_subversion=$(grep BLENDER_SUBVERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
+blender_ver_string=$(expr $blender_version / 100).$(expr $blender_version % 100)+svn$blender_revision
 
 pkgname=blender-beta
 pkgver=$blender_ver_string
@@ -14,7 +15,7 @@ arch=('i686' 'x86_64')
 url="www.blender.org"
 license=('GPL')
 groups=()
-depends=('libjpeg' 'libpng' 'openexr'  'python3>=3.1' 'gettext' 'libxi' 'libxmu' 'mesa' 'freetype2' 'openal' 'sdl' 'libsndfile' 'libsamplerate' 'ffmpeg')
+depends=('libjpeg' 'libpng' 'openexr'  'python>=3.1' 'gettext' 'libxi' 'libxmu' 'mesa' 'freetype2' 'openal' 'sdl' 'libsndfile' 'libsamplerate' 'ffmpeg')
 makedepends=('cmake' 'svn')
 optdepends=()
 provides=('blender')
@@ -45,4 +46,5 @@ build() {
 package() {
   cd $srcdir/build
   make DESTDIR="$pkgdir" install
+  python -m compileall $pkgdir/usr/share/blender
 }
