@@ -997,7 +997,7 @@ static struct PyMethodDef Quaternion_methods[] = {
 	{"dot", (PyCFunction) Quaternion_dot, METH_O, Quaternion_dot_doc},
 	{"difference", (PyCFunction) Quaternion_difference, METH_O, Quaternion_difference_doc},
 	{"slerp", (PyCFunction) Quaternion_slerp, METH_VARARGS, Quaternion_slerp_doc},
-	{"rotate", (PyCFunction) Quaternion_rotate, METH_VARARGS, Quaternion_rotate_doc},
+	{"rotate", (PyCFunction) Quaternion_rotate, METH_O, Quaternion_rotate_doc},
 
 	{"__copy__", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
 	{"copy", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
