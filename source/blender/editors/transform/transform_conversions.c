@@ -1941,6 +1941,7 @@ static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert
 	}
 }
 
+#if 0
 static void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
 	BME_Vert *v;
 	BME_TransData *vtd;
@@ -1965,6 +1966,7 @@ static void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head
 	 * (i.e. we can't depend on td->len to determine the number of actual elements) */
 	t->total = i;
 }
+#endif
 
 static void createTransEditVerts(bContext *C, TransInfo *t)
 {
