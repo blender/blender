@@ -60,9 +60,7 @@ class SelectPattern(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        # return wm.invoke_props_popup(self, event)
-        wm.invoke_props_popup(self, event)
-        return {'RUNNING_MODAL'}
+        return wm.invoke_props_popup(self, event)
 
     def draw(self, context):
         layout = self.layout
@@ -209,9 +207,12 @@ class SubdivisionSet(bpy.types.Operator):
 
                     return
 
-            # adda new modifier
-            mod = obj.modifiers.new("Subsurf", 'SUBSURF')
-            mod.levels = level
+            # add a new modifier
+            try:
+                mod = obj.modifiers.new("Subsurf", 'SUBSURF')
+                mod.levels = level
+            except:
+                self.report({'WARNING'}, "Modifiers cannot be added to object: " + obj.name)
 
         for obj in context.selected_editable_objects:
             set_object_subd(obj)
@@ -248,15 +249,15 @@ class ShapeTransfer(bpy.types.Operator):
 
         def ob_add_shape(ob, name):
             me = ob.data
-            key = ob.add_shape_key(from_mix=False)
+            key = ob.shape_key_add(from_mix=False)
             if len(me.shape_keys.keys) == 1:
                 key.name = "Basis"
-                key = ob.add_shape_key(from_mix=False)  # we need a rest
+                key = ob.shape_key_add(from_mix=False)  # we need a rest
             key.name = name
             ob.active_shape_key_index = len(me.shape_keys.keys) - 1
-            ob.show_shape_key = True
+            ob.show_only_shape_key = True
 
-        from geometry import BarycentricTransform
+        from mathutils.geometry import barycentric_transform
         from mathutils import Vector
 
         if use_clamp and mode == 'OFFSET':
@@ -299,38 +300,38 @@ class ShapeTransfer(bpy.types.Operator):
                 for face in me.faces:
                     i1, i2, i3, i4 = face.vertices_raw
                     if i4 != 0:
-                        pt = BarycentricTransform(orig_shape_coords[i1],
+                        pt = barycentric_transform(orig_shape_coords[i1],
                             orig_coords[i4], orig_coords[i1], orig_coords[i2],
                             target_coords[i4], target_coords[i1], target_coords[i2])
                         median_coords[i1].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i2],
+                        pt = barycentric_transform(orig_shape_coords[i2],
                             orig_coords[i1], orig_coords[i2], orig_coords[i3],
                             target_coords[i1], target_coords[i2], target_coords[i3])
                         median_coords[i2].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i3],
+                        pt = barycentric_transform(orig_shape_coords[i3],
                             orig_coords[i2], orig_coords[i3], orig_coords[i4],
                             target_coords[i2], target_coords[i3], target_coords[i4])
                         median_coords[i3].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i4],
+                        pt = barycentric_transform(orig_shape_coords[i4],
                             orig_coords[i3], orig_coords[i4], orig_coords[i1],
                             target_coords[i3], target_coords[i4], target_coords[i1])
                         median_coords[i4].append(pt)
 
                     else:
-                        pt = BarycentricTransform(orig_shape_coords[i1],
+                        pt = barycentric_transform(orig_shape_coords[i1],
                             orig_coords[i3], orig_coords[i1], orig_coords[i2],
                             target_coords[i3], target_coords[i1], target_coords[i2])
                         median_coords[i1].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i2],
+                        pt = barycentric_transform(orig_shape_coords[i2],
                             orig_coords[i1], orig_coords[i2], orig_coords[i3],
                             target_coords[i1], target_coords[i2], target_coords[i3])
                         median_coords[i2].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i3],
+                        pt = barycentric_transform(orig_shape_coords[i3],
                             orig_coords[i2], orig_coords[i3], orig_coords[i1],
                             target_coords[i2], target_coords[i3], target_coords[i1])
                         median_coords[i3].append(pt)
@@ -349,12 +350,12 @@ class ShapeTransfer(bpy.types.Operator):
                     n1loc_to = v1_to + target_normals[i1] * edlen_to
                     n2loc_to = v2_to + target_normals[i2] * edlen_to
 
-                    pt = BarycentricTransform(orig_shape_coords[i1],
+                    pt = barycentric_transform(orig_shape_coords[i1],
                         v2, v1, n1loc,
                         v2_to, v1_to, n1loc_to)
                     median_coords[i1].append(pt)
 
-                    pt = BarycentricTransform(orig_shape_coords[i2],
+                    pt = barycentric_transform(orig_shape_coords[i2],
                         v1, v2, n2loc,
                         v1_to, v2_to, n2loc_to)
                     median_coords[i2].append(pt)
@@ -466,7 +467,7 @@ class JoinUVs(bpy.types.Operator):
 class MakeDupliFace(bpy.types.Operator):
     '''Make linked objects into dupli-faces'''
     bl_idname = "object.make_dupli_face"
-    bl_label = "Make DupliFace"
+    bl_label = "Make Dupli-Face"
 
     @classmethod
     def poll(cls, context):
@@ -483,10 +484,10 @@ class MakeDupliFace(bpy.types.Operator):
 
         def matrix_to_quat(matrix):
             # scale = matrix.median_scale
-            trans = matrix.translation_part()
-            rot = matrix.rotation_part()  # also contains scale
+            trans = matrix.to_translation()
+            rot = matrix.to_3x3()  # also contains scale
 
-            return [(rot * b) + trans for b in base_tri]
+            return [(b * rot) + trans for b in base_tri]
         scene = bpy.context.scene
         linked = {}
         for obj in bpy.context.selected_objects:
@@ -551,7 +552,6 @@ class IsolateTypeRender(bpy.types.Operator):
         return {'FINISHED'}
 
 
-
 class ClearAllRestrictRender(bpy.types.Operator):
     '''Reveal all render objects by setting the hide render flag'''
     bl_idname = "object.hide_render_clear_all"
@@ -565,11 +565,11 @@ class ClearAllRestrictRender(bpy.types.Operator):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

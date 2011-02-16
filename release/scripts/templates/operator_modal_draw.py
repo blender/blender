@@ -2,10 +2,11 @@ import bpy
 import bgl
 import blf
 
+
 def draw_callback_px(self, context):
     print("mouse points", len(self.mouse_path))
 
-    font_id = 0 # XXX, need to find out how best to get this.
+    font_id = 0  # XXX, need to find out how best to get this.
 
     # draw some text
     blf.position(font_id, 15, 30, 0)
@@ -52,7 +53,7 @@ class ModalDrawOperator(bpy.types.Operator):
 
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
-            context.window_manager.add_modal_handler(self)
+            context.window_manager.modal_handler_add(self)
 
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
@@ -64,3 +65,14 @@ class ModalDrawOperator(bpy.types.Operator):
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
+
+
+def register():
+    bpy.utils.register_class(ModalDrawOperator)
+
+
+def unregister():
+    bpy.utils.unregister_class(ModalDrawOperator)
+
+if __name__ == "__main__":
+    register()

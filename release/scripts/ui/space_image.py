@@ -252,6 +252,48 @@ class IMAGE_MT_uvs(bpy.types.Menu):
         layout.menu("IMAGE_MT_uvs_showhide")
 
 
+class IMAGE_MT_uvs_select_mode(bpy.types.Menu):
+    bl_label = "UV Select Mode"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        toolsettings = context.tool_settings
+
+        # do smart things depending on whether uv_select_sync is on
+
+        if toolsettings.use_uv_select_sync:
+            prop = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
+            prop.value = "(True, False, False)"
+            prop.data_path = "tool_settings.mesh_select_mode"
+
+            prop = layout.operator("wm.context_set_value", text="Edge", icon='EDGESEL')
+            prop.value = "(False, True, False)"
+            prop.data_path = "tool_settings.mesh_select_mode"
+
+            prop = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
+            prop.value = "(False, False, True)"
+            prop.data_path = "tool_settings.mesh_select_mode"
+
+        else:
+            prop = layout.operator("wm.context_set_string", text="Vertex", icon='UV_VERTEXSEL')
+            prop.value = "VERTEX"
+            prop.data_path = "tool_settings.uv_select_mode"
+
+            prop = layout.operator("wm.context_set_string", text="Edge", icon='UV_EDGESEL')
+            prop.value = "EDGE"
+            prop.data_path = "tool_settings.uv_select_mode"
+
+            prop = layout.operator("wm.context_set_string", text="Face", icon='UV_FACESEL')
+            prop.value = "FACE"
+            prop.data_path = "tool_settings.uv_select_mode"
+
+            prop = layout.operator("wm.context_set_string", text="Island", icon='UV_ISLANDSEL')
+            prop.value = "ISLAND"
+            prop.data_path = "tool_settings.uv_select_mode"
+
+
 class IMAGE_HT_header(bpy.types.Header):
     bl_space_type = 'IMAGE_EDITOR'
 
@@ -391,7 +433,7 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 
         col.prop(ima, "use_tiles")
         sub = col.column(align=True)
-        sub.active = ima.tiles or ima.use_animation
+        sub.active = ima.use_tiles or ima.use_animation
         sub.prop(ima, "tiles_x", text="X")
         sub.prop(ima, "tiles_y", text="Y")
 
@@ -619,6 +661,26 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, bpy.types.Panel):
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
 
 
+class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, bpy.types.Panel):
+    bl_label = "Tool"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        col = layout.column(align=True)
+
+        col.prop(brush, "imagepaint_tool", expand=False, text="")
+
+        row = layout.row(align=True)
+        row.prop(brush, "use_paint_sculpt", text="", icon='SCULPTMODE_HLT')
+        row.prop(brush, "use_paint_vertex", text="", icon='VPAINT_HLT')
+        row.prop(brush, "use_paint_weight", text="", icon='WPAINT_HLT')
+        row.prop(brush, "use_paint_texture", text="", icon='TPAINT_HLT')
+
+
 class IMAGE_PT_paint_stroke(BrushButtonsPanel, bpy.types.Panel):
     bl_label = "Paint Stroke"
     bl_options = {'DEFAULT_CLOSED'}
@@ -665,11 +727,11 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

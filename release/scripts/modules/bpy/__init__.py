@@ -26,9 +26,8 @@ data = _bpy.data
 context = _bpy.context
 
 # python modules
-from bpy import utils, path
-
-from bpy import ops as _ops_module
+from . import utils, path
+from . import ops as _ops_module
 
 # fake operator module
 ops = _ops_module.ops_fake_module
@@ -49,6 +48,10 @@ def _main():
     pydoc.getpager = lambda: pydoc.plainpager
     pydoc.Helper.getline = lambda self, prompt: None
     pydoc.TextDoc.use_bold = lambda self, text: text
+
+    # Possibly temp. addons path
+    from os.path import join, dirname, normpath
+    _sys.path.append(normpath(join(dirname(__file__), "..", "..", "addons", "modules")))
 
     # if "-d" in sys.argv: # Enable this to measure startup speed
     if 0:

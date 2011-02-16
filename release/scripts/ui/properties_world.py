@@ -139,11 +139,6 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Indirect Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    @classmethod
-    def poll(cls, context):
-        light = getattr(context.world, "light_settings", None)
-        return light and light.gather_method == 'APPROXIMATE'
-
     def draw_header(self, context):
         light = context.world.light_settings
         self.layout.prop(light, "use_indirect_light", text="")
@@ -152,11 +147,14 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
         layout = self.layout
         light = context.world.light_settings
 
-        layout.active = light.use_indirect_light
+        layout.active = light.use_indirect_light and light.gather_method == 'APPROXIMATE'
 
         split = layout.split()
         split.prop(light, "indirect_factor", text="Factor")
         split.prop(light, "indirect_bounces", text="Bounces")
+
+        if light.gather_method == 'RAYTRACE':
+            layout.label(text="Only works with Approximate gather method")
 
 
 class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
@@ -266,14 +264,15 @@ class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "world"
+    _property_type = bpy.types.World
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

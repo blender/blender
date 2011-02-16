@@ -33,7 +33,7 @@ class PhysicButtonsPanel():
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+        return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.smoke)
 
 
 class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
@@ -45,22 +45,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
         md = context.smoke
         ob = context.object
 
-        split = layout.split()
-
-        if md:
-            # remove modifier + settings
-            split.context_pointer_set("modifier", md)
-            split.operator("object.modifier_remove", text="Remove")
-
-            row = split.row(align=True)
-            row.prop(md, "show_render", text="")
-            row.prop(md, "show_viewport", text="")
-
-        else:
-            # add modifier
-            split.operator("object.modifier_add", text="Add").type = 'SMOKE'
-            split.label()
-
         if md:
             layout.prop(md, "smoke_type", expand=True)
 
@@ -68,6 +52,8 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 domain = md.domain_settings
 
                 split = layout.split()
+
+                split.enabled = not domain.point_cache.is_baked
 
                 col = split.column()
                 col.label(text="Resolution:")
@@ -80,7 +66,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.label(text="Behavior:")
                 col.prop(domain, "alpha")
-                col.prop(domain, "beta")
+                col.prop(domain, "beta", text="Temp. Diff.")
                 col.prop(domain, "vorticity")
                 col.prop(domain, "use_dissolve_smoke", text="Dissolve")
                 sub = col.column()
@@ -109,10 +95,10 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
 
                 sub = split.column()
                 sub.active = not md.flow_settings.use_outflow
-                sub.label(text="Behavior:")
-                sub.prop(flow, "temperature")
-                sub.prop(flow, "density")
+                sub.label(text="Initial Values:")
                 sub.prop(flow, "use_absolute")
+                sub.prop(flow, "density")
+                sub.prop(flow, "temperature")
 
             #elif md.smoke_type == 'COLLISION':
             #	layout.separator()
@@ -146,27 +132,6 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(group, "collision_group", text="")
 
 
-class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Smoke Cache"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        md = context.smoke
-        return md and (md.smoke_type == 'DOMAIN')
-
-    def draw(self, context):
-        layout = self.layout
-
-        md = context.smoke.domain_settings
-        cache = md.point_cache_low
-
-        layout.label(text="Compression:")
-        layout.prop(md, "point_cache_compress_type", expand=True)
-
-        point_cache_ui(self, context, cache, (cache.is_baked is False), 'SMOKE')
-
-
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke High Resolution"
     bl_options = {'DEFAULT_CLOSED'}
@@ -189,36 +154,38 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
         layout.active = md.use_high_resolution
 
         split = layout.split()
+        split.enabled = not md.point_cache.is_baked
 
         col = split.column()
         col.label(text="Resolution:")
         col.prop(md, "amplify", text="Divisions")
         col.prop(md, "smooth_emitter")
-        col.prop(md, "show_high_resolution")
 
         col = split.column()
         col.label(text="Noise Method:")
         col.row().prop(md, "noise_type", text="")
         col.prop(md, "strength")
 
+        layout.prop(md, "show_high_resolution")
 
-class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Smoke High Resolution Cache"
+
+class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
+    bl_label = "Smoke Cache"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
         md = context.smoke
-        return md and (md.smoke_type == 'DOMAIN') and md.domain_settings.use_high_resolution
+        return md and (md.smoke_type == 'DOMAIN')
 
     def draw(self, context):
         layout = self.layout
 
         md = context.smoke.domain_settings
-        cache = md.point_cache_high
+        cache = md.point_cache
 
         layout.label(text="Compression:")
-        layout.prop(md, "point_cache_compress_high_type", expand=True)
+        layout.prop(md, "point_cache_compress_type", expand=True)
 
         point_cache_ui(self, context, cache, (cache.is_baked is False), 'SMOKE')
 
@@ -238,11 +205,11 @@ class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

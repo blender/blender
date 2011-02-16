@@ -115,14 +115,44 @@ class bpy_ops_submodule_op(object):
     def _get_doc(self):
         return op_as_string(self.idname())
 
+    @staticmethod
+    def _parse_args(args):
+        C_dict = None
+        C_exec = 'EXEC_DEFAULT'
+
+        if len(args) == 0:
+            pass
+        elif len(args) == 1:
+            if type(args[0]) != str:
+                C_dict = args[0]
+            else:
+                C_exec = args[0]
+        elif len(args) == 2:
+            C_exec, C_dict = args
+        else:
+            raise ValueError("1 or 2 args execution context is supported")
+
+        return C_dict, C_exec
+
+    @staticmethod
+    def _scene_update(context):
+        scene = context.scene
+        if scene:  # None in backgroud mode
+            scene.update()
+        else:
+            import bpy
+            for scene in bpy.data.scenes:
+                scene.update()
+
     __doc__ = property(_get_doc)
 
     def __init__(self, module, func):
         self.module = module
         self.func = func
 
-    def poll(self, context=None):
-        return op_poll(self.idname_py(), context)
+    def poll(self, *args):
+        C_dict, C_exec = __class__._parse_args(args)
+        return op_poll(self.idname_py(), C_dict, C_exec)
 
     def idname(self):
         # submod.foo -> SUBMOD_OT_foo
@@ -133,42 +163,23 @@ class bpy_ops_submodule_op(object):
         return self.module + "." + self.func
 
     def __call__(self, *args, **kw):
+        import bpy
+        context = bpy.context
 
         # Get the operator from blender
-        if len(args) > 2:
-            raise ValueError("1 or 2 args execution context is supported")
+        wm = context.window_manager
 
-        C_dict = None
+        # run to account for any rna values the user changes.
+        __class__._scene_update(context)
 
         if args:
-
-            C_exec = 'EXEC_DEFAULT'
-
-            if len(args) == 2:
-                C_exec = args[0]
-                C_dict = args[1]
-            else:
-                if type(args[0]) != str:
-                    C_dict = args[0]
-                else:
-                    C_exec = args[0]
-
-            if len(args) == 2:
-                C_dict = args[1]
-
+            C_dict, C_exec = __class__._parse_args(args)
             ret = op_call(self.idname_py(), C_dict, kw, C_exec)
-
         else:
-            ret = op_call(self.idname_py(), C_dict, kw)
+            ret = op_call(self.idname_py(), None, kw)
 
-        if 'FINISHED' in ret:
-            import bpy
-            scene = bpy.context.scene
-            if scene:  # None in backgroud mode
-                scene.update()
-            else:
-                for scene in bpy.data.scenes:
-                    scene.update()
+        if 'FINISHED' in ret and context.window_manager == wm:
+            __class__._scene_update(context)
 
         return ret
 
@@ -182,8 +193,16 @@ class bpy_ops_submodule_op(object):
         import bpy
         idname = self.idname()
         as_string = op_as_string(idname)
-        descr = getattr(bpy.types, idname).bl_rna.description
-        return as_string + "\n" + descr
+        op_class = getattr(bpy.types, idname)
+        descr = op_class.bl_rna.description
+        # XXX, workaround for not registering
+        # every __doc__ to save time on load.
+        if not descr:
+            descr = op_class.__doc__
+            if not descr:
+                descr = ""
+
+        return "# %s\n%s" % (descr, as_string)
 
     def __str__(self):  # used for print(...)
         return "<function bpy.ops.%s.%s at 0x%x'>" % \

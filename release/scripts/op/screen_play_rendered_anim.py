@@ -30,14 +30,18 @@ import os
 
 def guess_player_path(preset):
     import platform
-    system = platform.system()
+    try:
+        system = platform.system()
+    except UnicodeDecodeError:
+        import sys
+        system = sys.platform
 
     if preset == 'BLENDER24':
         player_path = "blender"
 
         if system == 'Darwin':
             test_path = "/Applications/blender 2.49.app/Contents/MacOS/blender"
-        elif system == 'Windows':
+        elif system in ('Windows', 'win32'):
             test_path = "/Program Files/Blender Foundation/Blender/blender.exe"
 
             if os.path.exists(test_path):
@@ -143,11 +147,11 @@ class PlayRenderedAnim(bpy.types.Operator):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

@@ -28,7 +28,7 @@ try:
 except:
   bpy = None
 
-VERSION = bytes("0.9", encoding='utf8')
+VERSION = bytes("1.3", encoding='utf8')
 
 # Jobs status
 JOB_WAITING = 0 # before all data has been entered
@@ -56,6 +56,39 @@ FRAME_STATUS_TEXT = {
         DONE: "Done",
         ERROR: "Error"
         }
+
+class DirectoryContext:
+    def __init__(self, path):
+        self.path = path
+        
+    def __enter__(self):
+        self.curdir = os.path.abspath(os.curdir)
+        os.chdir(self.path)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.curdir)
+
+class BreakableIncrementedSleep:
+    def __init__(self, increment, default_timeout, max_timeout, break_fct):
+        self.increment = increment
+        self.default = default_timeout
+        self.max = max_timeout
+        self.current = self.default
+        self.break_fct = break_fct
+        
+    def reset(self):
+        self.current = self.default
+
+    def increase(self):
+        self.current = min(self.current + self.increment, self.max)
+        
+    def sleep(self):
+        for i in range(self.current):
+            time.sleep(1)
+            if self.break_fct():
+                break
+            
+        self.increase()
 
 def responseStatus(conn):
     response = conn.getresponse()
@@ -97,7 +130,7 @@ def clientScan(report = None):
 
         return ("", 8000) # return default values
 
-def clientConnection(address, port, report = None, scan = True):
+def clientConnection(address, port, report = None, scan = True, timeout = 5):
     if address == "[default]":
 #            calling operator from python is fucked, scene isn't in context
 #			if bpy:
@@ -111,7 +144,7 @@ def clientConnection(address, port, report = None, scan = True):
             return None
 
     try:
-        conn = http.client.HTTPConnection(address, port, timeout = 5)
+        conn = http.client.HTTPConnection(address, port, timeout = timeout)
 
         if conn:
             if clientVerifyVersion(conn):
@@ -119,12 +152,13 @@ def clientConnection(address, port, report = None, scan = True):
             else:
                 conn.close()
                 reporting(report, "Incorrect master version", ValueError)
-    except Exception as err:
+    except BaseException as err:
         if report:
             report('ERROR', str(err))
             return None
         else:
-            raise
+            print(err)
+            return None
 
 def clientVerifyVersion(conn):
     conn.request("GET", "/version")
@@ -168,7 +202,10 @@ def hashData(data):
     
 
 def prefixPath(prefix_directory, file_path, prefix_path, force = False):
-    if os.path.isabs(file_path):
+    if (os.path.isabs(file_path) or
+        len(file_path) >= 3 and (file_path[1:3] == ":/" or file_path[1:3] == ":\\") or # Windows absolute path don't count as absolute on unix, have to handle them myself
+        file_path[0] == "/" or file_path[0] == "\\"): # and vice versa
+
         # if an absolute path, make sure path exists, if it doesn't, use relative local path
         full_path = file_path
         if force or not os.path.exists(full_path):
@@ -185,12 +222,69 @@ def prefixPath(prefix_directory, file_path, prefix_path, force = False):
             else:
                 full_path = os.path.join(prefix_directory, n)
     else:
-        full_path = (prefix_directory, file_path)
+        full_path = os.path.join(prefix_directory, file_path)
 
     return full_path
 
+def getResults(server_address, server_port, job_id, resolution_x, resolution_y, resolution_percentage, frame_ranges):
+    if bpy.app.debug:
+        print("=============================================")
+        print("============= FETCHING RESULTS ==============")
+
+    frame_arguments = []
+    for r in frame_ranges:
+        if len(r) == 2:
+            frame_arguments.extend(["-s", str(r[0]), "-e", str(r[1]), "-a"])
+        else:
+            frame_arguments.extend(["-f", str(r[0])])
+            
+    filepath = os.path.join(bpy.app.tempdir, "netrender_temp.blend")
+    bpy.ops.wm.save_as_mainfile(filepath=filepath, copy=True, check_existing=False)
+
+    arguments = [sys.argv[0], "-b", "-noaudio", filepath, "-o", bpy.path.abspath(bpy.context.scene.render.filepath), "-P", __file__] + frame_arguments + ["--", "GetResults", server_address, str(server_port), job_id, str(resolution_x), str(resolution_y), str(resolution_percentage)]
+    if bpy.app.debug:
+        print("Starting subprocess:")
+        print(" ".join(arguments))
+
+    process = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    while process.poll() is None:
+        stdout = process.stdout.read(1024)
+        if bpy.app.debug:
+            print(str(stdout, encoding='utf-8'), end="")
+        
+
+    # read leftovers if needed
+    stdout = process.stdout.read()
+    if bpy.app.debug:
+        print(str(stdout, encoding='utf-8'))
+    
+    os.remove(filepath)
+    
+    if bpy.app.debug:
+        print("=============================================")
+    return
+
+def _getResults(server_address, server_port, job_id, resolution_x, resolution_y, resolution_percentage):
+    render = bpy.context.scene.render
+    
+    netsettings = bpy.context.scene.network_render
+
+    netsettings.server_address = server_address
+    netsettings.server_port = int(server_port)
+    netsettings.job_id = job_id
+
+    render.engine = 'NET_RENDER'
+    render.resolution_x = int(resolution_x)
+    render.resolution_y = int(resolution_y)
+    render.resolution_percentage = int(resolution_percentage)
+
+    render.use_full_sample = False
+    render.use_compositing = False
+    render.use_border = False
+    
+
 def getFileInfo(filepath, infos):
-    process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", filepath, "-P", __file__, "--"] + infos, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", filepath, "-P", __file__, "--", "FileInfo"] + infos, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout = bytes()
     while process.poll() is None:
         stdout += process.stdout.read(1024)
@@ -203,33 +297,17 @@ def getFileInfo(filepath, infos):
     values = [eval(v[1:].strip()) for v in stdout.split("\n") if v.startswith("$")]
 
     return values
-
-def thumbnail(filename):
-    root = os.path.splitext(filename)[0]
-    imagename = os.path.split(filename)[1]
-    thumbname = root + ".jpg"
-
-    if os.path.exists(thumbname):
-        return thumbname
-
-    if bpy:
-        scene = bpy.data.scenes[0] # FIXME, this is dodgy!
-        scene.render.file_format = "JPEG"
-        scene.render.file_quality = 90
-        bpy.ops.image.open(filepath=filename)
-        img = bpy.data.images[imagename]
-        img.save_render(thumbname, scene=scene)
-
-        try:
-            process = subprocess.Popen(["convert", thumbname, "-resize", "300x300", thumbname])
-            process.wait()
-            return thumbname
-        except:
-            pass
-
-    return None
+  
 
 if __name__ == "__main__":
-    import bpy
-    for info in sys.argv[7:]:
-        print("$", eval(info))
+    try:
+        start = sys.argv.index("--") + 1
+    except ValueError:
+        start = 0
+    action, *args = sys.argv[start:]
+    
+    if action == "FileInfo": 
+        for info in args:
+            print("$", eval(info))
+    elif action == "GetResults":
+        _getResults(args[0], args[1], args[2], args[3], args[4], args[5])

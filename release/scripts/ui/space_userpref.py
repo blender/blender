@@ -92,6 +92,7 @@ class USERPREF_HT_header(bpy.types.Header):
             layout.operator("wm.keyconfig_import")
         elif userpref.active_section == 'ADDONS':
             layout.operator("wm.addon_install")
+            layout.menu("USERPREF_MT_addons_dev_guides", text="  Addons Developer Guides", icon='INFO')
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
 
@@ -127,7 +128,11 @@ class USERPREF_MT_splash(bpy.types.Menu):
         row.label("")
         row = split.row()
         row.label("Interaction:")
-        row.menu("USERPREF_MT_interaction_presets", text=bpy.types.USERPREF_MT_interaction_presets.bl_label)
+        # XXX, no redraws
+        # text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
+        # if not text:
+        #     text = "Blender (default)"
+        row.menu("USERPREF_MT_keyconfigs", text="Preset")
 
 
 class USERPREF_PT_interface(bpy.types.Panel):
@@ -152,6 +157,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col = row.column()
         col.label(text="Display:")
         col.prop(view, "show_tooltips")
+        col.prop(view, "show_tooltips_python")
         col.prop(view, "show_object_info", text="Object Info")
         col.prop(view, "show_large_cursors")
         col.prop(view, "show_view_name", text="View Name")
@@ -297,7 +303,6 @@ class USERPREF_PT_edit(bpy.types.Panel):
         sub = col.column()
 
         # sub.active = edit.use_keyframe_insert_auto # incorrect, timeline can enable
-        sub.prop(edit, "use_keyframe_insert_keyingset", text="Only Insert for Keying Set")
         sub.prop(edit, "use_keyframe_insert_available", text="Only Insert Available")
 
         col.separator()
@@ -318,8 +323,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         row.separator()
 
         col = row.column()
-        row = col.row(align=True)
-        row.prop(edit, "sculpt_paint_overlay_color", text="Sculpt Overlay Color")
+        col.prop(edit, "sculpt_paint_overlay_color", text="Sculpt Overlay Color")
 
         col.separator()
         col.separator()
@@ -424,6 +428,8 @@ class USERPREF_PT_system(bpy.types.Panel):
         #col.prop(system, "use_antialiasing")
         col.label(text="Window Draw Method:")
         col.prop(system, "window_draw_method", text="")
+        col.label(text="Text Draw Options:")
+        col.prop(system, "use_text_antialiasing")
         col.label(text="Textures:")
         col.prop(system, "gl_texture_limit", text="Limit Size")
         col.prop(system, "texture_time_out", text="Time Out")
@@ -692,14 +698,16 @@ class USERPREF_PT_file(bpy.types.Panel):
         col.prop(paths, "use_load_ui")
         col.prop(paths, "use_filter_files")
         col.prop(paths, "show_hidden_files_datablocks")
+        col.prop(paths, "hide_recent_locations")
+        col.prop(paths, "show_thumbnails")
 
         col.separator()
         col.separator()
 
-        col.label(text="Auto Save:")
         col.prop(paths, "save_version")
         col.prop(paths, "recent_files")
         col.prop(paths, "use_save_preview_images")
+        col.label(text="Auto Save:")
         col.prop(paths, "use_auto_save_temporary_files")
         sub = col.column()
         sub.active = paths.use_auto_save_temporary_files
@@ -736,6 +744,7 @@ class USERPREF_PT_input(InputKeyMapPanel):
         sub1.active = (inputs.select_mouse == 'RIGHT')
         sub1.prop(inputs, "use_mouse_emulate_3_button")
         sub.prop(inputs, "use_mouse_continuous")
+        sub.prop(inputs, "drag_threshold")
 
         sub.label(text="Select With:")
         sub.row().prop(inputs, "select_mouse", expand=True)
@@ -801,6 +810,20 @@ class USERPREF_PT_input(InputKeyMapPanel):
         #print("runtime", time.time() - start)
 
 
+class USERPREF_MT_addons_dev_guides(bpy.types.Menu):
+    bl_label = "Addons develoment guides"
+
+    # menu to open webpages with addons development guides
+    def draw(self, context):
+        layout = self.layout
+        layout.operator('wm.url_open', text='API Concepts'
+            ).url = 'http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro'
+        layout.operator('wm.url_open', text='Addons guidelines',
+            ).url = 'http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons'
+        layout.operator('wm.url_open', text='How to share your addon',
+            ).url = 'http://wiki.blender.org/index.php/Dev:Py/Sharing'
+
+
 class USERPREF_PT_addons(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Addons"
@@ -808,6 +831,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_options = {'HIDE_HEADER'}
 
     _addons_cats = None
+    _addons_sups = None
     _addons_fake_modules = {}
 
     @classmethod
@@ -827,9 +851,17 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         modules = []
         loaded_modules = set()
+
+        # RELEASE SCRIPTS: official scripts distributed in Blender releases
         paths = bpy.utils.script_paths("addons")
-        # if folder addons_contrib/ exists, scripts in there will be loaded
+
+        # CONTRIB SCRIPTS: good for testing but not official scripts yet
+        # if folder addons_contrib/ exists, scripts in there will be loaded too
         paths += bpy.utils.script_paths("addons_contrib")
+
+        # EXTERN SCRIPTS: external projects scripts
+        # if folder addons_extern/ exists, scripts in there will be loaded too
+        paths += bpy.utils.script_paths("addons_extern")
 
         if bpy.app.debug:
             t_main = time.time()
@@ -840,35 +872,46 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 print("fake_module", mod_name, mod_path)
             import ast
             ModuleType = type(ast)
+            file_mod = open(mod_path, "r", encoding='UTF-8')
             if speedy:
                 lines = []
-                line_iter = iter(open(mod_path, "r", encoding='UTF-8'))
+                line_iter = iter(file_mod)
                 l = ""
-                while not l.startswith("bl_addon_info"):
+                while not l.startswith("bl_info"):
                     l = line_iter.readline()
                     if len(l) == 0:
                         break
                 while l.rstrip():
                     lines.append(l)
                     l = line_iter.readline()
-                del line_iter
                 data = "".join(lines)
 
             else:
-                data = open(mod_path, "r").read()
+                data = file_mod.read()
 
-            ast_data = ast.parse(data, filename=mod_path)
+            file_mod.close()
+
+            try:
+                ast_data = ast.parse(data, filename=mod_path)
+            except:
+                print("Syntax error 'ast.parse' can't read %r" % mod_path)
+                import traceback
+                traceback.print_exc()
+                ast_data = None
+
             body_info = None
-            for body in ast_data.body:
-                if body.__class__ == ast.Assign:
-                    if len(body.targets) == 1:
-                        if getattr(body.targets[0], "id", "") == "bl_addon_info":
-                            body_info = body
-                            break
+
+            if ast_data:
+                for body in ast_data.body:
+                    if body.__class__ == ast.Assign:
+                        if len(body.targets) == 1:
+                            if getattr(body.targets[0], "id", "") == "bl_info":
+                                body_info = body
+                                break
 
             if body_info:
                 mod = ModuleType(mod_name)
-                mod.bl_addon_info = ast.literal_eval(body.value)
+                mod.bl_info = ast.literal_eval(body.value)
                 mod.__file__ = mod_path
                 mod.__time__ = os.path.getmtime(mod_path)
                 return mod
@@ -898,7 +941,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         del modules_stale
 
         mod_list = list(USERPREF_PT_addons._addons_fake_modules.values())
-        mod_list.sort(key=lambda mod: (mod.bl_addon_info['category'], mod.bl_addon_info['name']))
+        mod_list.sort(key=lambda mod: (mod.bl_info['category'], mod.bl_info['name']))
         return mod_list
 
     def draw(self, context):
@@ -918,20 +961,34 @@ class USERPREF_PT_addons(bpy.types.Panel):
             bpy.types.WindowManager.addon_search = bpy.props.StringProperty(name="Search", description="Search within the selected filter")
             USERPREF_PT_addons._addons_cats = cats
 
+        sups = {info["support"] for mod, info in addons}
+        sups.discard("")
+
+        if USERPREF_PT_addons._addons_sups != sups:
+            bpy.types.WindowManager.addon_support = bpy.props.EnumProperty(items=[(sup, sup.title(), "") for  sup in reversed(sorted(sups))], name="Support", description="Display support level", default={'OFFICIAL', 'COMMUNITY'}, options={'ENUM_FLAG'})
+            USERPREF_PT_addons._addons_sups = sups
+
         split = layout.split(percentage=0.2)
         col = split.column()
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
-        col.prop(context.window_manager, "addon_filter", text="Filter", expand=True)
+        col.prop(context.window_manager, "addon_filter", expand=True)
+
+        col.label(text="Supported Level")
+        col.prop(context.window_manager, "addon_support", expand=True)
 
         col = split.column()
 
         filter = context.window_manager.addon_filter
         search = context.window_manager.addon_search.lower()
+        support = context.window_manager.addon_support
 
         for mod, info in addons:
             module_name = mod.__name__
 
             is_enabled = module_name in used_ext
+
+            if info["support"] not in support:
+                continue
 
             # check if add-on should be visible with current filters
             if (filter == "All") or \
@@ -958,6 +1015,14 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 rowsub.label(text='%s: %s' % (info['category'], info["name"]))
                 if info["warning"]:
                     rowsub.label(icon='ERROR')
+
+                # icon showing support level.
+                if info["support"] == 'OFFICIAL':
+                    rowsub.label(icon='FILE_BLEND')
+                elif info["support"] == 'COMMUNITY':
+                    rowsub.label(icon='POSE_DATA')
+                else:
+                    rowsub.label(icon='QUESTION')
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
@@ -1026,15 +1091,15 @@ class USERPREF_PT_addons(bpy.types.Panel):
 from bpy.props import *
 
 
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": (), "blender": (), "api": 0, "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "show_expanded": False}):
-    addon_info = getattr(mod, "bl_addon_info", {})
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": (), "blender": (), "api": 0, "location": "", "description": "", "wiki_url": "", "tracker_url": "", "support": 'COMMUNITY', "category": "", "warning": "", "show_expanded": False}):
+    addon_info = getattr(mod, "bl_info", {})
 
     # avoid re-initializing
     if "_init" in addon_info:
         return addon_info
 
     if not addon_info:
-        mod.bl_addon_info = addon_info
+        mod.bl_info = addon_info
 
     for key, value in info_basis.items():
         addon_info.setdefault(key, value)
@@ -1084,29 +1149,60 @@ class WM_OT_addon_install(bpy.types.Operator):
     bl_idname = "wm.addon_install"
     bl_label = "Install Add-On..."
 
-    module = StringProperty(name="Module", description="Module name of the addon to disable")
+    overwrite = BoolProperty(name="Overwrite", description="Remove existing addons with the same ID", default=True)
 
     filepath = StringProperty(name="File Path", description="File path to write file to")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
     filter_glob = StringProperty(default="*.py;*.zip", options={'HIDDEN'})
 
+    @staticmethod
+    def _module_remove(path_addons, module):
+        module = os.path.splitext(module)[0]
+        for f in os.listdir(path_addons):
+            f_base = os.path.splitext(f)[0]
+            if f_base == module:
+                f_full = os.path.join(path_addons, f)
+
+                if os.path.isdir(f_full):
+                    os.rmdir(f_full)
+                else:
+                    os.remove(f_full)
+
     def execute(self, context):
         import traceback
         import zipfile
         pyfile = self.filepath
 
-        path_addons = bpy.utils.script_paths("addons")[-1]
+        # dont use bpy.utils.script_paths("addons") because we may not be able to write to it.
+        path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
+
+        if not path_addons:
+            self.report({'WARNING'}, "Failed to get addons path\n")
+            return {'CANCELLED'}
+
         contents = set(os.listdir(path_addons))
 
         #check to see if the file is in compressed format (.zip)
         if zipfile.is_zipfile(pyfile):
             try:
                 file_to_extract = zipfile.ZipFile(pyfile, 'r')
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
 
-                #extract the file to "addons"
+            if self.overwrite:
+                for f in file_to_extract.namelist():
+                    __class__._module_remove(path_addons, f)
+            else:
+                for f in file_to_extract.namelist():
+                    path_dest = os.path.join(path_addons, os.path.basename(f))
+                    if os.path.exists(path_dest):
+                        self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
+                        return {'CANCELLED'}
+
+            try:  # extract the file to "addons"
                 file_to_extract.extractall(path_addons)
-
             except:
                 traceback.print_exc()
                 return {'CANCELLED'}
@@ -1114,8 +1210,10 @@ class WM_OT_addon_install(bpy.types.Operator):
         else:
             path_dest = os.path.join(path_addons, os.path.basename(pyfile))
 
-            if os.path.exists(path_dest):
-                self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
+            if self.overwrite:
+                __class__._module_remove(path_addons, os.path.basename(pyfile))
+            elif os.path.exists(path_dest):
+                self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
                 return {'CANCELLED'}
 
             #if not compressed file just copy into the addon path
@@ -1148,13 +1246,8 @@ class WM_OT_addon_install(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        paths = bpy.utils.script_paths("addons")
-        if not paths:
-            self.report({'ERROR'}, "No 'addons' path could be found in " + str(bpy.utils.script_paths()))
-            return {'CANCELLED'}
-
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
@@ -1183,11 +1276,11 @@ class WM_OT_addon_expand(bpy.types.Operator):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

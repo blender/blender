@@ -42,8 +42,6 @@ class SEQUENCER_HT_header(bpy.types.Header):
             sub = row.row(align=True)
             sub.menu("SEQUENCER_MT_view")
 
-            row.separator()
-
             if (st.view_type == 'SEQUENCER') or (st.view_type == 'SEQUENCER_PREVIEW'):
                 sub.menu("SEQUENCER_MT_select")
                 sub.menu("SEQUENCER_MT_marker")
@@ -136,6 +134,7 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text='Fit preview in window')
+            layout.operator("sequencer.view_zoom_ratio", text='Show preview 1:1').ratio = 1.0
             layout.operator_context = 'INVOKE_DEFAULT'
 
             # # XXX, invokes in the header view
@@ -183,13 +182,17 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
+        #layout.operator_context = 'EXEC_REGION_WIN'
+
         layout.column()
-        layout.operator("marker.add", text="Add Marker")
+        layout.operator("marker.add", "Add Marker")
         layout.operator("marker.duplicate", text="Duplicate Marker")
-        layout.operator("marker.move", text="Grab/Move Marker")
         layout.operator("marker.delete", text="Delete Marker")
+
         layout.separator()
-        layout.label(text="ToDo: Name Marker")
+
+        layout.operator("marker.rename", text="Rename Marker")
+        layout.operator("marker.move", text="Grab/Move Marker")
 
         #layout.operator("sequencer.sound_strip_add", text="Transform Markers") # toggle, will be rna - (sseq->flag & SEQ_MARKER_TRANS)
 
@@ -202,7 +205,12 @@ class SEQUENCER_MT_add(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator_menu_enum("sequencer.scene_strip_add", "scene", text="Scene...")
+        if len(bpy.data.scenes) > 10:
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("sequencer.scene_strip_add", text="Scene...")
+        else:
+            layout.operator_menu_enum("sequencer.scene_strip_add", "scene", text="Scene...")
+
         layout.operator("sequencer.movie_strip_add", text="Movie")
         layout.operator("sequencer.image_strip_add", text="Image")
         layout.operator("sequencer.sound_strip_add", text="Sound")
@@ -295,6 +303,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.separator()
         layout.operator("sequencer.reload")
         layout.operator("sequencer.reassign_inputs")
+        layout.operator("sequencer.swap_inputs")
         layout.separator()
         layout.operator("sequencer.lock")
         layout.operator("sequencer.unlock")
@@ -384,6 +393,16 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
         col.label(text="Frame Offset %d:%d" % (strip.frame_offset_start, strip.frame_offset_end))
         col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
 
+        elem = False
+
+        if strip.type == 'IMAGE':
+            elem = strip.getStripElem(frame_current)
+        elif strip.type == 'MOVIE':
+            elem = strip.elements[0]
+
+        if elem and elem.orig_width > 0 and elem.orig_height > 0:
+            col.label(text="Orig Dim: %dx%d" % (elem.orig_width, elem.orig_height))
+
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Effect Strip"
@@ -407,6 +426,13 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         strip = act_strip(context)
+        if strip.input_count > 0:
+            col = layout.column()
+            col.prop(strip, "input_1")
+            if strip.input_count > 1:
+                col.prop(strip, "input_2")
+            if strip.input_count > 2:
+                col.prop(strip, "input_3")
 
         if strip.type == 'COLOR':
             layout.prop(strip, "color")
@@ -435,12 +461,17 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
             row.prop(strip, "use_only_boost")
 
         elif strip.type == 'SPEED':
-            layout.prop(strip, "global_speed")
+            layout.prop(strip, "use_default_fade", "Stretch to input strip length")
+            if not strip.use_default_fade:
+                layout.prop(strip, "use_as_speed")
+                if strip.use_as_speed:
+                    layout.prop(strip, "speed_factor")
+                else:
+                    layout.prop(strip, "speed_factor", text="Frame number")
+                    layout.prop(strip, "scale_to_length")
 
-            flow = layout.column_flow()
-            flow.prop(strip, "use_curve_velocity")
-            flow.prop(strip, "use_curve_compress_y")
-            flow.prop(strip, "use_frame_blend")
+            #doesn't work currently
+            #layout.prop(strip, "use_frame_blend")
 
         elif strip.type == 'TRANSFORM':
             self.draw_panel_transform(strip)
@@ -460,7 +491,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
 
         col = layout.column(align=True)
         if strip.type == 'SPEED':
-            col.prop(strip, "speed_fader", text="Speed fader")
+            col.prop(strip, "multiply_speed")
         elif strip.type in ('CROSS', 'GAMMA_CROSS', 'PLUGIN', 'WIPE'):
                 col.prop(strip, "use_default_fade", "Default fade")
                 if not strip.use_default_fade:
@@ -562,6 +593,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(strip, "filepath", text="")
             col.prop(strip, "mpeg_preseek", text="MPEG Preseek")
+
         # TODO, sound???
         # end drawing filename
 
@@ -579,8 +611,14 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
             col.prop(strip.crop, "min_y")
             col.prop(strip.crop, "max_x")
 
+        if not isinstance(strip, bpy.types.EffectSequence):
+            col = layout.column(align=True)
+            col.label(text="Trim Duration (hard):")
+            col.prop(strip, "animation_offset_start", text="Start")
+            col.prop(strip, "animation_offset_end", text="End")
+
         col = layout.column(align=True)
-        col.label(text="Trim Duration:")
+        col.label(text="Trim Duration (soft):")
         col.prop(strip, "frame_offset_start", text="Start")
         col.prop(strip, "frame_offset_end", text="End")
 
@@ -649,6 +687,9 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
 
         layout.label(text="Camera Override")
         layout.template_ID(strip, "scene_camera")
+
+        sce = strip.scene
+        layout.label(text="Original frame range: %d-%d (%d)" % (sce.frame_start, sce.frame_end, sce.frame_end - sce.frame_start + 1))
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
@@ -757,9 +798,10 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, bpy.types.Panel):
         render = context.scene.render
 
         col = layout.column()
+        col.active = False  # Currently only opengl preview works!
         col.prop(render, "use_sequencer_gl_preview", text="Open GL Preview")
         col = layout.column()
-        col.active = render.use_sequencer_gl_preview
+        #col.active = render.use_sequencer_gl_preview
         col.prop(render, "sequencer_gl_preview", text="")
 
         '''
@@ -789,11 +831,11 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

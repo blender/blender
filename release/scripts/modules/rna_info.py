@@ -152,7 +152,7 @@ class InfoStructRNA:
                 functions.append((identifier, attr))
         return functions
 
-    def __repr__(self):
+    def __str__(self):
 
         txt = ""
         txt += self.identifier
@@ -285,7 +285,7 @@ class InfoPropertyRNA:
 
         return type_str
 
-    def __repr__(self):
+    def __str__(self):
         txt = ''
         txt += ' * ' + self.identifier + ': ' + self.description
 
@@ -319,7 +319,7 @@ class InfoFunctionRNA:
 
         self.return_values = tuple(self.return_values)
 
-    def __repr__(self):
+    def __str__(self):
         txt = ''
         txt += ' * ' + self.identifier + '('
 

@@ -61,7 +61,7 @@ class ConstraintButtonsPanel():
             if con.target.type == 'ARMATURE':
                 layout.prop_search(con, "subtarget", con.target.data, "bones", text="Bone")
 
-                if con.type in ('COPY_LOCATION', 'STRETCH_TO', 'TRACK_TO', 'PIVOT'):
+                if hasattr(con, "head_tail"):
                     row = layout.row()
                     row.label(text="Head/Tail:")
                     row.prop(con, "head_tail", text="")
@@ -551,7 +551,36 @@ class ConstraintButtonsPanel():
         col.prop(con, "axis_y", text="Y")
         col.prop(con, "axis_z", text="Z")
 
-        #Missing: Limit arrays (not wrapped in RNA yet)
+        if con.pivot_type == 'CONE_TWIST':
+            layout.label(text="Limits:")
+            split = layout.split()
+
+            col = split.column(align=True)
+            col.prop(con, "use_angular_limit_x", text="Angular X")
+            col.prop(con, "use_angular_limit_y", text="Angular Y")
+            col.prop(con, "use_angular_limit_z", text="Angular Z")
+
+            col = split.column()
+            col.prop(con, "limit_cone_min", text="")
+            col = split.column()
+            col.prop(con, "limit_cone_max", text="")
+
+        elif con.pivot_type == 'GENERIC_6_DOF':
+            layout.label(text="Limits:")
+            split = layout.split()
+
+            col = split.column(align=True)
+            col.prop(con, "use_limit_x", text="X")
+            col.prop(con, "use_limit_y", text="Y")
+            col.prop(con, "use_limit_z", text="Z")
+            col.prop(con, "use_angular_limit_x", text="Angular X")
+            col.prop(con, "use_angular_limit_y", text="Angular Y")
+            col.prop(con, "use_angular_limit_z", text="Angular Z")
+
+            col = split.column()
+            col.prop(con, "limit_generic_min", text="")
+            col = split.column()
+            col.prop(con, "limit_generic_max", text="")
 
     def CLAMP_TO(self, context, layout, con):
         self.target_template(layout, con)
@@ -624,7 +653,7 @@ class ConstraintButtonsPanel():
         self.space_template(layout, con)
 
     def SHRINKWRAP(self, context, layout, con):
-        self.target_template(layout, con)
+        self.target_template(layout, con, False)
 
         layout.prop(con, "distance")
         layout.prop(con, "shrinkwrap_type")
@@ -675,7 +704,7 @@ class ConstraintButtonsPanel():
         col.prop(con, "rotation_range", text="Pivot When")
 
     def SCRIPT(self, context, layout, con):
-        layout.label("blender 2.5 has no py-constraints")
+        layout.label("Blender 2.5 has no py-constraints")
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
@@ -691,7 +720,12 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
 
         ob = context.object
 
-        layout.operator_menu_enum("object.constraint_add", "type")
+        if ob.mode == 'POSE':
+            box = layout.box()
+            box.alert = True
+            box.label(icon='INFO', text="See Bone Constraints tab to Add Constraints to active bone")
+        else:
+            layout.operator_menu_enum("object.constraint_add", "type")
 
         for con in ob.constraints:
             self.draw_constraint(context, con)
@@ -715,11 +749,11 @@ class BONE_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

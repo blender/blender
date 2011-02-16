@@ -36,11 +36,11 @@ class OBJECT_PT_context_object(ObjectButtonsPanel, bpy.types.Panel):
         space = context.space_data
         ob = context.object
 
-        row = layout.row()
-        row.label(text="", icon='OBJECT_DATA')
         if space.use_pin_id:
-            row.template_ID(space, "pin_id")
+            layout.template_ID(space, "pin_id")
         else:
+            row = layout.row()
+            row.label(text="", icon='OBJECT_DATA')
             row.prop(ob, "name", text="")
 
 
@@ -68,6 +68,32 @@ class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
         row.column().prop(ob, "scale")
 
         layout.prop(ob, "rotation_mode")
+
+
+class OBJECT_PT_delta_transform(ObjectButtonsPanel, bpy.types.Panel):
+    bl_label = "Delta Transform"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+
+        row = layout.row()
+
+        row.column().prop(ob, "delta_location")
+        if ob.rotation_mode == 'QUATERNION':
+            row.column().prop(ob, "delta_rotation_quaternion", text="Rotation")
+        elif ob.rotation_mode == 'AXIS_ANGLE':
+            #row.column().label(text="Rotation")
+            #row.column().prop(pchan, "delta_rotation_angle", text="Angle")
+            #row.column().prop(pchan, "delta_rotation_axis", text="Axis")
+            #row.column().prop(ob, "delta_rotation_axis_angle", text="Rotation")
+            row.column().label(text="Not for Axis-Angle")
+        else:
+            row.column().prop(ob, "delta_rotation_euler", text="Rotation")
+
+        row.column().prop(ob, "delta_scale")
 
 
 class OBJECT_PT_transform_locks(ObjectButtonsPanel, bpy.types.Panel):
@@ -192,7 +218,8 @@ class OBJECT_PT_display(ObjectButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(ob, "show_texture_space", text="Texture Space")
         col.prop(ob, "show_x_ray", text="X-Ray")
-        col.prop(ob, "show_transparent", text="Transparency")
+        if ob.type == 'MESH':
+            col.prop(ob, "show_transparent", text="Transparency")
 
 
 class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):
@@ -250,9 +277,6 @@ class OBJECT_PT_animation(ObjectButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.label(text="Time Offset:")
         col.prop(ob, "use_time_offset_edit", text="Edit")
-        row = col.row()
-        row.prop(ob, "use_time_offset_particle", text="Particle")
-        row.active = bool(ob.particle_systems)
         row = col.row()
         row.prop(ob, "use_time_offset_parent", text="Parent")
         row.active = (ob.parent is not None)
@@ -312,17 +336,18 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # 
         self.draw_settings(context, ob.animation_visualisation)
 
 
-class OBJECT_PT_custom_props(bpy.types.Panel, PropertyPanel, ObjectButtonsPanel):
+class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object"
+    _property_type = bpy.types.Object
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

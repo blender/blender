@@ -39,6 +39,7 @@ class NLA_HT_header(bpy.types.Header):
 
             sub.menu("NLA_MT_view")
             sub.menu("NLA_MT_select")
+            sub.menu("NLA_MT_marker")
             sub.menu("NLA_MT_edit")
             sub.menu("NLA_MT_add")
 
@@ -93,6 +94,25 @@ class NLA_MT_select(bpy.types.Menu):
         layout.operator("nla.select_border", text="Border Axis Range").axis_range = True
 
 
+class NLA_MT_marker(bpy.types.Menu):
+    bl_label = "Marker"
+
+    def draw(self, context):
+        layout = self.layout
+
+        #layout.operator_context = 'EXEC_REGION_WIN'
+
+        layout.column()
+        layout.operator("marker.add", "Add Marker")
+        layout.operator("marker.duplicate", text="Duplicate Marker")
+        layout.operator("marker.delete", text="Delete Marker")
+
+        layout.separator()
+
+        layout.operator("marker.rename", text="Rename Marker")
+        layout.operator("marker.move", text="Grab/Move Marker")
+
+
 class NLA_MT_edit(bpy.types.Menu):
     bl_label = "Edit"
 
@@ -117,10 +137,16 @@ class NLA_MT_edit(bpy.types.Menu):
         layout.separator()
         layout.operator("nla.apply_scale")
         layout.operator("nla.clear_scale")
+        layout.operator("nla.action_sync_length").active = False
 
         layout.separator()
+        layout.operator("nla.swap")
         layout.operator("nla.move_up")
         layout.operator("nla.move_down")
+
+        # TODO: this really belongs more in a "channel" (or better, "track") menu
+        layout.separator()
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Track Ordering...")
 
         layout.separator()
         # TODO: names of these tools for 'tweakmode' need changing?
@@ -162,11 +188,11 @@ class NLA_MT_edit_transform(bpy.types.Menu):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

@@ -174,7 +174,7 @@ class TEXT_MT_text(bpy.types.Menu):
             layout.column()
             layout.operator("text.run_script")
 
-            #ifndef DISABLE_PYTHON
+            #ifdef WITH_PYTHON
             # XXX if(BPY_is_pyconstraint(text))
             # XXX   uiMenuItemO(head, 0, "text.refresh_pyconstraints");
             #endif
@@ -295,11 +295,11 @@ class TEXT_MT_toolbox(bpy.types.Menu):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

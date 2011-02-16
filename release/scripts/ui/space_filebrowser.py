@@ -57,9 +57,9 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 
             row = layout.row(align=True)
             row.active = params.use_filter
-            
+
             row.prop(params, "use_filter_folder", text="")
-            
+
             if params.filter_glob:
                 #if st.operator and hasattr(st.operator, "filter_glob"):
                 #    row.prop(params, "filter_glob", text="")
@@ -75,11 +75,11 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

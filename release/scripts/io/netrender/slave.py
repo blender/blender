@@ -21,17 +21,26 @@ import http, http.client, http.server, urllib
 import subprocess, time
 import json
 
+import bpy
+
 from netrender.utils import *
 import netrender.model
 import netrender.repath
+import netrender.thumbnail as thumbnail
 
 BLENDER_PATH = sys.argv[0]
 
 CANCEL_POLL_SPEED = 2
 MAX_TIMEOUT = 10
 INCREMENT_TIMEOUT = 1
+MAX_CONNECT_TRY = 10
+try:
+    system = platform.system()
+except UnicodeDecodeError:
+    import sys
+    system = sys.platform
 
-if platform.system() == 'Windows' and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
+if system in ('Windows', 'win32') and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
     import ctypes
     def SetErrorMode():
         val = ctypes.windll.kernel32.SetErrorMode(0x0002)
@@ -71,7 +80,7 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path = None):
     
     found = os.path.exists(job_full_path)
     
-    if found:
+    if found and rfile.signature != None:
         found_signature = hashFile(job_full_path)
         found = found_signature == rfile.signature
         
@@ -104,13 +113,36 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path = None):
 
     return job_full_path
 
+def breakable_timeout(timeout):
+    for i in range(timeout):
+        time.sleep(1)
+        if engine.test_break():
+            break
+
 def render_slave(engine, netsettings, threads):
     timeout = 1
+    
+    bisleep = BreakableIncrementedSleep(INCREMENT_TIMEOUT, 1, MAX_TIMEOUT, engine.test_break)
 
     engine.update_stats("", "Network render node initiation")
 
     conn = clientConnection(netsettings.server_address, netsettings.server_port)
-
+    
+    if not conn:
+        timeout = 1
+        print("Connection failed, will try connecting again at most %i times" % MAX_CONNECT_TRY)
+        bisleep.reset()
+        
+        for i in range(MAX_CONNECT_TRY):
+            bisleep.sleep()
+            
+            conn = clientConnection(netsettings.server_address, netsettings.server_port)
+            
+            if conn or engine.test_break():
+                break
+            
+            print("Retry %i failed, waiting %is before retrying" % (i + 1, bisleep.current))
+    
     if conn:
         conn.request("POST", "/slave", json.dumps(slave_Info().serialize()))
         response = conn.getresponse()
@@ -118,7 +150,7 @@ def render_slave(engine, netsettings, threads):
 
         slave_id = response.getheader("slave-id")
 
-        NODE_PREFIX = os.path.join(netsettings.path, "slave_" + slave_id)
+        NODE_PREFIX = os.path.join(bpy.path.abspath(netsettings.path), "slave_" + slave_id)
         if not os.path.exists(NODE_PREFIX):
             os.mkdir(NODE_PREFIX)
 
@@ -129,7 +161,7 @@ def render_slave(engine, netsettings, threads):
             response = conn.getresponse()
 
             if response.status == http.client.OK:
-                timeout = 1 # reset timeout on new job
+                bisleep.reset()
 
                 job = netrender.model.RenderJob.materialize(json.loads(str(response.read(), encoding='utf8')))
                 engine.update_stats("", "Network render processing job from master")
@@ -137,6 +169,10 @@ def render_slave(engine, netsettings, threads):
                 JOB_PREFIX = os.path.join(NODE_PREFIX, "job_" + job.id)
                 if not os.path.exists(JOB_PREFIX):
                     os.mkdir(JOB_PREFIX)
+
+                # set tempdir for fsaa temp files
+                # have to set environ var because render is done in a subprocess and that's the easiest way to propagate the setting
+                os.environ["TMP"] = JOB_PREFIX
 
 
                 if job.type == netrender.model.JOB_BLENDER:
@@ -154,6 +190,20 @@ def render_slave(engine, netsettings, threads):
                     netrender.repath.update(job)
 
                     engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
+                elif job.type == netrender.model.JOB_VCS:
+                    if not job.version_info:
+                        # Need to return an error to server, incorrect job type
+                        pass
+                        
+                    job_path = job.files[0].filepath # path of main file
+                    main_path, main_file = os.path.split(job_path)
+                    
+                    job.version_info.update()
+                    
+                    # For VCS jobs, file path is relative to the working copy path
+                    job_full_path = os.path.join(job.version_info.wpath, job_path)
+                    
+                    engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
 
                 # announce log to master
                 logfile = netrender.model.LogFile(job.id, slave_id, [frame.number for frame in job.frames])
@@ -167,7 +217,7 @@ def render_slave(engine, netsettings, threads):
                 # start render
                 start_t = time.time()
 
-                if job.type == netrender.model.JOB_BLENDER:
+                if job.rendersWithBlender():
                     frame_args = []
 
                     for frame in job.frames:
@@ -252,20 +302,20 @@ def render_slave(engine, netsettings, threads):
                     headers["job-result"] = str(DONE)
                     for frame in job.frames:
                         headers["job-frame"] = str(frame.number)
-                        if job.type == netrender.model.JOB_BLENDER:
+                        if job.hasRenderResult():
                             # send image back to server
 
                             filename = os.path.join(JOB_PREFIX, "%06d.exr" % frame.number)
 
                             # thumbnail first
                             if netsettings.use_slave_thumb:
-                                thumbname = thumbnail(filename)
-
-                                f = open(thumbname, 'rb')
-                                conn.request("PUT", "/thumb", f, headers=headers)
-                                f.close()
-                                responseStatus(conn)
+                                thumbname = thumbnail.generate(filename)
                                 
+                                if thumbname:
+                                    f = open(thumbname, 'rb')
+                                    conn.request("PUT", "/thumb", f, headers=headers)
+                                    f.close()
+                                    responseStatus(conn)
 
                             f = open(filename, 'rb')
                             conn.request("PUT", "/render", f, headers=headers)
@@ -288,13 +338,7 @@ def render_slave(engine, netsettings, threads):
 
                 engine.update_stats("", "Network render connected to master, waiting for jobs")
             else:
-                if timeout < MAX_TIMEOUT:
-                    timeout += INCREMENT_TIMEOUT
-
-                for i in range(timeout):
-                    time.sleep(1)
-                    if engine.test_break():
-                        break
+                bisleep.sleep()
 
         conn.close()
 

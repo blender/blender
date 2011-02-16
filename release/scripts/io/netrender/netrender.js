@@ -20,9 +20,9 @@ function clear_jobs()
 	var r=confirm("Also delete files on master?");
 	
 	if (r==true) {
-		request('/clear', "{'clear':True}");
+		request('/clear', '{"clear":true}');
 	} else {
-		request('/clear', "{'clear':False}");
+		request('/clear', '{"clear":false}');
 	}
 }
 
@@ -31,9 +31,9 @@ function cancel_job(id)
 	var r=confirm("Also delete files on master?");
 	
 	if (r==true) {
-		request('/cancel_' + id, "{'clear':True}");
+		request('/cancel_' + id, '{"clear":true}');
 	} else {
-		request('/cancel_' + id, "{'clear':False}");
+		request('/cancel_' + id, '{"clear":false}');
 	}
 }
 
@@ -41,13 +41,13 @@ function balance_edit(id, old_value)
 {
 	var new_value = prompt("New limit", old_value);
 	if (new_value != null && new_value != "") {
-		request("/balance_limit", "{" + id + ":'" + new_value + "'}");
+		request("/balance_limit", '{"' + id + '":"' + new_value + '"}');
 	}
 }
 
 function balance_enable(id, value)
 {
-	request("/balance_enable", "{" + id + ":" + value + "}");
+	request("/balance_enable", '{"' + id + '":' + value + "}");
 }
 
 function showThumb(job, frame)

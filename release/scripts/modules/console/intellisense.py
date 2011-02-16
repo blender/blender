@@ -1,17 +1,22 @@
 # Copyright (c) 2009 www.stani.be (GPL license)
 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
 
 # <pep8-80 compliant>
 
@@ -75,10 +80,10 @@ def complete(line, cursor, namespace, private=True):
         # unquoted word -> module or attribute completion
         word = re_unquoted_word.group(1)
         if RE_MODULE.match(line):
-            import complete_import
+            from . import complete_import
             matches = complete_import.complete(line)
         else:
-            import complete_namespace
+            from . import complete_namespace
             matches = complete_namespace.complete(word, namespace, private)
     else:
         # for now we don't have completers for strings
@@ -112,7 +117,7 @@ def expand(line, cursor, namespace, private=True):
     'abs(number) -> number\\nReturn the absolute value of the argument.'
     """
     if line[:cursor].strip().endswith('('):
-        import complete_calltip
+        from . import complete_calltip
         matches, word, scrollback = complete_calltip.complete(line,
             cursor, namespace)
         no_calltip = False

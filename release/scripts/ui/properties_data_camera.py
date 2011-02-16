@@ -69,7 +69,7 @@ class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
         col = split.column()
         if cam.type == 'PERSP':
             if cam.lens_unit == 'MILLIMETERS':
-                col.prop(cam, "lens", text="Angle")
+                col.prop(cam, "lens")
             elif cam.lens_unit == 'DEGREES':
                 col.prop(cam, "angle")
             col = split.column()
@@ -135,14 +135,15 @@ class DATA_PT_camera_display(CameraButtonsPanel, bpy.types.Panel):
 class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
+    _property_type = bpy.types.Camera
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

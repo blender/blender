@@ -29,7 +29,7 @@ class PhysicButtonsPanel():
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+        return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.fluid)
 
 
 class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
@@ -40,36 +40,20 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
 
         md = context.fluid
 
-        split = layout.split()
-
         if md:
-            # remove modifier + settings
-            split.context_pointer_set("modifier", md)
-            split.operator("object.modifier_remove", text="Remove")
-
-            row = split.row(align=True)
-            row.prop(md, "show_render", text="")
-            row.prop(md, "show_viewport", text="")
-
             fluid = md.settings
 
-        else:
-            # add modifier
-            split.operator("object.modifier_add", text="Add").type = 'FLUID_SIMULATION'
-            split.label()
-
-        if md:
             row = layout.row()
             if fluid is None:
                 row.label("built without fluids")
                 return
 
             row.prop(fluid, "type")
-            if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
+            if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE', 'FLUID'):
                 row.prop(fluid, "use", text="")
 
             layout = layout.column()
-            if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
+            if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE', 'FLUID'):
                 layout.active = fluid.use
 
             if fluid.type == 'DOMAIN':
@@ -298,11 +282,11 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

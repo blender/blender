@@ -20,8 +20,62 @@
 
 import bpy
 
-#cachetype can be 'PSYS' 'HAIR' 'SMOKE' etc
 
+class PhysicButtonsPanel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "physics"
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        return (context.object) and (not rd.use_game_engine)
+
+
+def physics_add(self, layout, md, name, type, typeicon, toggles):
+    sub = layout.row(align=True)
+    if md:
+        sub.context_pointer_set("modifier", md)
+        sub.operator("object.modifier_remove", text=name, icon='X')
+        if(toggles):
+            sub.prop(md, "show_render", text="")
+            sub.prop(md, "show_viewport", text="")
+    else:
+        sub.operator("object.modifier_add", text=name, icon=typeicon).type = type
+
+
+class PHYSICS_PT_add(PhysicButtonsPanel, bpy.types.Panel):
+    bl_label = ""
+    bl_options = {'HIDE_HEADER'}
+
+    def draw(self, context):
+        ob = context.object
+
+        layout = self.layout
+        layout.label("Enable physics for:")
+        split = layout.split()
+        col = split.column()
+
+        if(context.object.field.type == 'NONE'):
+            col.operator("object.forcefield_toggle", text="Force Field", icon='FORCE_FORCE')
+        else:
+            col.operator("object.forcefield_toggle", text="Force Field", icon='X')
+
+        if(ob.type == 'MESH'):
+            physics_add(self, col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
+            physics_add(self, col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True)
+
+        col = split.column()
+
+        if(ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE'):
+            physics_add(self, col, context.soft_body, "Soft Body", 'SOFT_BODY', 'MOD_SOFT', True)
+
+        if(ob.type == 'MESH'):
+            physics_add(self, col, context.fluid, "Fluid", 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True)
+            physics_add(self, col, context.smoke, "Smoke", 'SMOKE', 'MOD_SMOKE', True)
+
+
+#cachetype can be 'PSYS' 'HAIR' 'SMOKE' etc
 
 def point_cache_ui(self, context, cache, enabled, cachetype):
     layout = self.layout
@@ -51,32 +105,44 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
         layout.label(text=cache.info)
     else:
-        layout.prop(cache, "name", text="File Name")
+        if cachetype == 'SMOKE':
+            if bpy.data.is_dirty:
+                layout.label(text="Cache is disabled until the file is saved")
+                layout.enabled = False
 
-        split = layout.split()
-        col = split.column(align=True)
+        if cache.use_disk_cache:
+            layout.prop(cache, "name", text="File Name")
+        else:
+            layout.prop(cache, "name", text="Cache Name")
+
+        row = layout.row(align=True)
 
         if cachetype != 'PSYS':
-            col.enabled = enabled
-            col.prop(cache, "frame_start")
-            col.prop(cache, "frame_end")
+            row.enabled = enabled
+            row.prop(cache, "frame_start")
+            row.prop(cache, "frame_end")
         if cachetype not in ('SMOKE', 'CLOTH'):
-            col.prop(cache, "frame_step")
-
-        col = split.column()
+            row.prop(cache, "frame_step")
+            row.prop(cache, "use_quick_cache")
+        if cachetype != 'SMOKE':
+            layout.label(text=cache.info)
 
         if cachetype != 'SMOKE':
-            sub = col.column()
-            sub.enabled = enabled
-            sub.prop(cache, "use_quick_cache")
+            split = layout.split()
+            split.enabled = enabled and (not bpy.data.is_dirty)
 
-            sub = col.column()
-            sub.enabled = (not bpy.data.is_dirty)
-            sub.prop(cache, "use_disk_cache")
-            col.label(text=cache.info)
+            col = split.column()
+            col.prop(cache, "use_disk_cache")
 
-            sub = col.column()
-            sub.prop(cache, "use_library_path", "Use Lib Path")
+            col = split.column()
+            col.active = cache.use_disk_cache
+            col.prop(cache, "use_library_path", "Use Lib Path")
+
+            row = layout.row()
+            row.enabled = enabled and (not bpy.data.is_dirty)
+            row.active = cache.use_disk_cache
+            row.label(text="Compression:")
+            row.prop(cache, "compression", expand=True)
 
         layout.separator()
 
@@ -213,11 +279,11 @@ def basic_force_field_falloff_ui(self, context, field):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

@@ -29,6 +29,7 @@ class AddPresetBase():
      - preset_subdir '''
     # bl_idname = "script.preset_base_add"
     # bl_label = "Add a Python Preset"
+    bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
 
     name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen=64, default="")
     remove_active = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
@@ -41,36 +42,52 @@ class AddPresetBase():
 
     def execute(self, context):
         import os
-        
+
         if hasattr(self, "pre_cb"):
             self.pre_cb(context)
-        
+
         preset_menu_class = getattr(bpy.types, self.preset_menu)
 
-        if not self.remove_active:        
-            
+        if not self.remove_active:
+
             if not self.name:
                 return {'FINISHED'}
 
             filename = self.as_filename(self.name)
-            
-            target_path = bpy.utils.preset_paths(self.preset_subdir)[0]  # we need some way to tell the user and system preset path
+
+            target_path = bpy.utils.user_resource('SCRIPTS', os.path.join("presets", self.preset_subdir), create=True)
+
+            if not target_path:
+                self.report({'WARNING'}, "Failed to create presets path")
+                return {'CANCELLED'}
 
             filepath = os.path.join(target_path, filename) + ".py"
-            
+
             if hasattr(self, "add"):
                 self.add(context, filepath)
             else:
                 file_preset = open(filepath, 'w')
                 file_preset.write("import bpy\n")
 
+                if hasattr(self, "preset_defines"):
+                    for rna_path in self.preset_defines:
+                        exec(rna_path)
+                        file_preset.write("%s\n" % rna_path)
+                    file_preset.write("\n")
+
                 for rna_path in self.preset_values:
                     value = eval(rna_path)
-                    file_preset.write("%s = %s\n" % (rna_path, repr(value)))
+                    # convert thin wrapped sequences to simple lists to repr()
+                    try:
+                        value = value[:]
+                    except:
+                        pass
+
+                    file_preset.write("%s = %r\n" % (rna_path, value))
 
                 file_preset.close()
-            
-            preset_menu_class.bl_label = bpy.path.display_name(self.name)
+
+            preset_menu_class.bl_label = bpy.path.display_name(filename)
 
         else:
             preset_active = preset_menu_class.bl_label
@@ -101,14 +118,13 @@ class AddPresetBase():
 
         return {'FINISHED'}
 
+    def check(self, context):
+        self.name = self.as_filename(self.name)
+
     def invoke(self, context, event):
         if not self.remove_active:
             wm = context.window_manager
-            #crashes, TODO - fix
-            #return wm.invoke_props_popup(self, event)
-
-            wm.invoke_props_popup(self, event)
-            return {'RUNNING_MODAL'}
+            return wm.invoke_props_dialog(self)
         else:
             return self.execute(context)
 
@@ -140,17 +156,21 @@ class AddPresetRender(AddPresetBase, bpy.types.Operator):
     bl_label = "Add Render Preset"
     preset_menu = "RENDER_MT_presets"
 
+    preset_defines = [
+        "scene = bpy.context.scene"
+    ]
+
     preset_values = [
-        "bpy.context.scene.render.field_order",
-        "bpy.context.scene.render.fps",
-        "bpy.context.scene.render.fps_base",
-        "bpy.context.scene.render.pixel_aspect_x",
-        "bpy.context.scene.render.pixel_aspect_y",
-        "bpy.context.scene.render.resolution_percentage",
-        "bpy.context.scene.render.resolution_x",
-        "bpy.context.scene.render.resolution_y",
-        "bpy.context.scene.render.use_fields",
-        "bpy.context.scene.render.use_fields_still",
+        "scene.render.field_order",
+        "scene.render.fps",
+        "scene.render.fps_base",
+        "scene.render.pixel_aspect_x",
+        "scene.render.pixel_aspect_y",
+        "scene.render.resolution_percentage",
+        "scene.render.resolution_x",
+        "scene.render.resolution_y",
+        "scene.render.use_fields",
+        "scene.render.use_fields_still",
     ]
 
     preset_subdir = "render"
@@ -162,20 +182,20 @@ class AddPresetSSS(AddPresetBase, bpy.types.Operator):
     bl_label = "Add SSS Preset"
     preset_menu = "MATERIAL_MT_sss_presets"
 
+    preset_defines = [
+        "material = (bpy.context.material.active_node_material if bpy.context.material.active_node_material else bpy.context.material)"
+    ]
+
     preset_values = [
-        "bpy.context.material.subsurface_scattering.back",
-        "bpy.context.material.subsurface_scattering.color[0]",
-        "bpy.context.material.subsurface_scattering.color[1]",
-        "bpy.context.material.subsurface_scattering.color[2]",
-        "bpy.context.material.subsurface_scattering.color_factor",
-        "bpy.context.material.subsurface_scattering.error_threshold",
-        "bpy.context.material.subsurface_scattering.front",
-        "bpy.context.material.subsurface_scattering.ior",
-        "bpy.context.material.subsurface_scattering.radius[0]",
-        "bpy.context.material.subsurface_scattering.radius[1]",
-        "bpy.context.material.subsurface_scattering.radius[2]",
-        "bpy.context.material.subsurface_scattering.scale",
-        "bpy.context.material.subsurface_scattering.texture_factor",
+        "material.subsurface_scattering.back",
+        "material.subsurface_scattering.color",
+        "material.subsurface_scattering.color_factor",
+        "material.subsurface_scattering.error_threshold",
+        "material.subsurface_scattering.front",
+        "material.subsurface_scattering.ior",
+        "material.subsurface_scattering.radius",
+        "material.subsurface_scattering.scale",
+        "material.subsurface_scattering.texture_factor",
     ]
 
     preset_subdir = "sss"
@@ -187,13 +207,17 @@ class AddPresetCloth(AddPresetBase, bpy.types.Operator):
     bl_label = "Add Cloth Preset"
     preset_menu = "CLOTH_MT_presets"
 
+    preset_defines = [
+        "cloth = bpy.context.cloth"
+    ]
+
     preset_values = [
-        "bpy.context.cloth.settings.air_damping",
-        "bpy.context.cloth.settings.bending_stiffness",
-        "bpy.context.cloth.settings.mass",
-        "bpy.context.cloth.settings.quality",
-        "bpy.context.cloth.settings.spring_damping",
-        "bpy.context.cloth.settings.structural_stiffness",
+        "cloth.settings.air_damping",
+        "cloth.settings.bending_stiffness",
+        "cloth.settings.mass",
+        "cloth.settings.quality",
+        "cloth.settings.spring_damping",
+        "cloth.settings.structural_stiffness",
     ]
 
     preset_subdir = "cloth"
@@ -205,20 +229,24 @@ class AddPresetSunSky(AddPresetBase, bpy.types.Operator):
     bl_label = "Add Sunsky Preset"
     preset_menu = "LAMP_MT_sunsky_presets"
 
+    preset_defines = [
+        "sky = bpy.context.object.data.sky"
+    ]
+
     preset_values = [
-        "bpy.context.object.data.sky.atmosphere_extinction",
-        "bpy.context.object.data.sky.atmosphere_inscattering",
-        "bpy.context.object.data.sky.atmosphere_turbidity",
-        "bpy.context.object.data.sky.backscattered_light",
-        "bpy.context.object.data.sky.horizon_brightness",
-        "bpy.context.object.data.sky.spread",
-        "bpy.context.object.data.sky.sun_brightness",
-        "bpy.context.object.data.sky.sun_intensity",
-        "bpy.context.object.data.sky.sun_size",
-        "bpy.context.object.data.sky.use_sky_blend",
-        "bpy.context.object.data.sky.use_sky_blend_type",
-        "bpy.context.object.data.sky.use_sky_color_space",
-        "bpy.context.object.data.sky.use_sky_exposure",
+        "sky.atmosphere_extinction",
+        "sky.atmosphere_inscattering",
+        "sky.atmosphere_turbidity",
+        "sky.backscattered_light",
+        "sky.horizon_brightness",
+        "sky.spread",
+        "sky.sun_brightness",
+        "sky.sun_intensity",
+        "sky.sun_size",
+        "sky.use_sky_blend",
+        "sky.use_sky_blend_type",
+        "sky.use_sky_color_space",
+        "sky.use_sky_exposure",
     ]
 
     preset_subdir = "sunsky"
@@ -230,17 +258,21 @@ class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
     bl_label = "Add Interaction Preset"
     preset_menu = "USERPREF_MT_interaction_presets"
 
+    preset_defines = [
+        "user_preferences = bpy.context.user_preferences"
+    ]
+
     preset_values = [
-        "bpy.context.user_preferences.edit.use_drag_immediately",
-        "bpy.context.user_preferences.edit.use_insertkey_xyz_to_rgb",
-        "bpy.context.user_preferences.inputs.invert_mouse_wheel_zoom",
-        "bpy.context.user_preferences.inputs.select_mouse",
-        "bpy.context.user_preferences.inputs.use_emulate_numpad",
-        "bpy.context.user_preferences.inputs.use_mouse_continuous",
-        "bpy.context.user_preferences.inputs.use_mouse_emulate_3_button",
-        "bpy.context.user_preferences.inputs.view_rotate_method",
-        "bpy.context.user_preferences.inputs.view_zoom_axis",
-        "bpy.context.user_preferences.inputs.view_zoom_method",
+        "user_preferences.edit.use_drag_immediately",
+        "user_preferences.edit.use_insertkey_xyz_to_rgb",
+        "user_preferences.inputs.invert_mouse_wheel_zoom",
+        "user_preferences.inputs.select_mouse",
+        "user_preferences.inputs.use_emulate_numpad",
+        "user_preferences.inputs.use_mouse_continuous",
+        "user_preferences.inputs.use_mouse_emulate_3_button",
+        "user_preferences.inputs.view_rotate_method",
+        "user_preferences.inputs.view_zoom_axis",
+        "user_preferences.inputs.view_zoom_method",
     ]
 
     preset_subdir = "interaction"
@@ -250,7 +282,7 @@ class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
     '''Add a Keyconfig Preset'''
     bl_idname = "wm.keyconfig_preset_add"
     bl_label = "Add Keyconfig Preset"
-    preset_menu = "PREFS_MT_keyconfigs"
+    preset_menu = "USERPREF_MT_keyconfigs"
     preset_subdir = "keyconfig"
 
     def add(self, context, filepath):
@@ -269,12 +301,64 @@ class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
             keyconfigs.remove(keyconfigs.active)
 
 
+class AddPresetOperator(AddPresetBase, bpy.types.Operator):
+    '''Add an Application Interaction Preset'''
+    bl_idname = "wm.operator_preset_add"
+    bl_label = "Operator Preset"
+    preset_menu = "WM_MT_operator_presets"
+
+    operator = bpy.props.StringProperty(name="Operator", maxlen=64, options={'HIDDEN'})
+
+    # XXX, not ideal
+    preset_defines = [
+        "op = bpy.context.space_data.operator",
+    ]
+
+    @property
+    def preset_subdir(self):
+        return __class__.operator_path(self.operator)
+
+    @property
+    def preset_values(self):
+        properties_blacklist = bpy.types.Operator.bl_rna.properties.keys()
+
+        prefix, suffix = self.operator.split("_OT_", 1)
+        operator_rna = getattr(getattr(bpy.ops, prefix.lower()), suffix).get_rna().bl_rna
+
+        ret = []
+        for prop_id, prop in operator_rna.properties.items():
+            if (not prop.is_hidden) and prop_id not in properties_blacklist:
+                    ret.append("op.%s" % prop_id)
+
+        return ret
+
+    @staticmethod
+    def operator_path(operator):
+        import os
+        prefix, suffix = operator.split("_OT_", 1)
+        return os.path.join("operator", "%s.%s" % (prefix.lower(), suffix))
+
+
+class WM_MT_operator_presets(bpy.types.Menu):
+    bl_label = "Operator Presets"
+
+    def draw(self, context):
+        self.operator = context.space_data.operator.bl_idname
+        bpy.types.Menu.draw_preset(self, context)
+
+    @property
+    def preset_subdir(self):
+        return AddPresetOperator.operator_path(self.operator)
+
+    preset_operator = "script.execute_preset"
+
+
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

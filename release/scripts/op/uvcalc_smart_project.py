@@ -22,9 +22,8 @@
 
 # <pep8 compliant>
 
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Vector, geometry
 import time
-import geometry
 import bpy
 from math import cos, radians
 
@@ -79,11 +78,7 @@ def pointInTri2D(v, v1, v2, v3):
 
         nor = side1.cross(side2)
 
-        l1 = [side1[0], side1[1], side1[2]]
-        l2 = [side2[0], side2[1], side2[2]]
-        l3 = [nor[0], nor[1], nor[2]]
-
-        mtx = Matrix(l1, l2, l3)
+        mtx = Matrix((side1, side2, nor))
 
         # Zero area 2d tri, even tho we throw away zerop area faces
         # the projection UV can result in a zero area UV.
@@ -173,7 +168,7 @@ def island2Edge(island):
     #	e.pop(2)
 
     # return edges and unique points
-    return length_sorted_edges, [v.__copy__().resize3D() for v in unique_points.values()]
+    return length_sorted_edges, [v.to_3d() for v in unique_points.values()]
 
 # ========================= NOT WORKING????
 # Find if a points inside an edge loop, un-orderd.
@@ -226,13 +221,13 @@ def islandIntersectUvIsland(source, target, SourceOffset):
     # Edge intersect test
     for ed in edgeLoopsSource:
         for seg in edgeLoopsTarget:
-            i = geometry.LineIntersect2D(\
+            i = geometry.intersect_line_line_2d(\
             seg[0], seg[1], SourceOffset+ed[0], SourceOffset+ed[1])
             if i:
                 return 1 # LINE INTERSECTION
 
     # 1 test for source being totally inside target
-    SourceOffset.resize3D()
+    SourceOffset.resize_3d()
     for pv in source[7]:
         if pointInIsland(pv+SourceOffset, target[0]):
             return 2 # SOURCE INSIDE TARGET
@@ -740,7 +735,7 @@ def packIslands(islandList):
 #XXX	Window.DrawProgressBar(0.7, 'Packing %i UV Islands...' % len(packBoxes) )
 
     time1 = time.time()
-    packWidth, packHeight = geometry.BoxPack2D(packBoxes)
+    packWidth, packHeight = geometry.box_pack_2d(packBoxes)
 
     # print 'Box Packing Time:', time.time() - time1
 
@@ -777,16 +772,12 @@ def packIslands(islandList):
 
 
 
-def VectoMat(vec):
-    a3 = vec.__copy__().normalize()
-
-    up = Vector((0.0, 0.0, 1.0))
-    if abs(a3.dot(up)) == 1.0:
-        up = Vector((0.0, 1.0, 0.0))
-
-    a1 = a3.cross(up).normalize()
-    a2 = a3.cross(a1)
-    return Matrix([a1[0], a1[1], a1[2]], [a2[0], a2[1], a2[2]], [a3[0], a3[1], a3[2]])
+def VectoQuat(vec):
+    vec = vec.normalized()
+    if abs(vec.x) > 0.5:
+        return vec.to_track_quat('Z', 'X')
+    else:
+        return vec.to_track_quat('Z', 'Y')
 
 
 class thickface(object):
@@ -935,7 +926,7 @@ def main(context, island_margin, projection_limit):
         # Initialize projectVecs
         if USER_VIEW_INIT:
             # Generate Projection
-            projectVecs = [Vector(Window.GetViewVector()) * ob.matrix_world.copy().invert().rotation_part()] # We add to this allong the way
+            projectVecs = [Vector(Window.GetViewVector()) * ob.matrix_world.inverted().to_3x3()] # We add to this allong the way
         else:
             projectVecs = []
 
@@ -972,7 +963,7 @@ def main(context, island_margin, projection_limit):
                     averageVec += fprop.no
 
             if averageVec.x != 0 or averageVec.y != 0 or averageVec.z != 0: # Avoid NAN
-                projectVecs.append(averageVec.normalize())
+                projectVecs.append(averageVec.normalized())
 
 
             # Get the next vec!
@@ -1049,14 +1040,14 @@ def main(context, island_margin, projection_limit):
                 continue
 
             # Make a projection matrix from a unit length vector.
-            MatProj = VectoMat(projectVecs[i])
+            MatQuat = VectoQuat(projectVecs[i])
 
             # Get the faces UV's from the projected vertex.
             for f in faceProjectionGroupList[i]:
                 f_uv = f.uv
                 for j, v in enumerate(f.v):
                     # XXX - note, between mathutils in 2.4 and 2.5 the order changed.
-                    f_uv[j][:] = (v.co * MatProj)[:2]
+                    f_uv[j][:] = (v.co * MatQuat)[:2]
 
 
         if USER_SHARE_SPACE:
@@ -1139,10 +1130,12 @@ menu_func = (lambda self, context: self.layout.operator(SmartProject.bl_idname,
 
 
 def register():
+    bpy.utils.register_module(__name__)
     bpy.types.VIEW3D_MT_uv_map.append(menu_func)
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
     bpy.types.VIEW3D_MT_uv_map.remove(menu_func)
 
 if __name__ == "__main__":

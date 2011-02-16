@@ -53,6 +53,7 @@ class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
 
         col = layout.column()
         col.row().prop(unit, "system", expand=True)
+        col.row().prop(unit, "system_rotation", expand=True)
 
         split = layout.split()
         split.active = (unit.system != 'NONE')
@@ -62,8 +63,6 @@ class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(unit, "use_separate")
-
-        layout.column().prop(unit, "rotation_units")
 
 
 class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
@@ -198,6 +197,7 @@ class SCENE_PT_simplify(SceneButtonsPanel, bpy.types.Panel):
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "scene"
+    _property_type = bpy.types.Scene
 
 
 from bpy.props import *
@@ -229,7 +229,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         f.write("# Keying Set: %s\n" % ks.name)
 
         f.write("import bpy\n\n")
-        f.write("scene= bpy.data.scenes[0]\n\n") # XXX, why not use the current scene?
+        f.write("scene= bpy.data.scenes[0]\n\n")  # XXX, why not use the current scene?
 
         # Add KeyingSet and set general settings
         f.write("# Keying Set Level declarations\n")
@@ -238,7 +238,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         if not ks.is_path_absolute:
             f.write("ks.is_path_absolute = False\n")
         f.write("\n")
-    
+
         f.write("ks.bl_options = %r\n" % ks.bl_options)
         f.write("\n")
 
@@ -306,13 +306,13 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 class SCENE_PT_navmesh(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Navmesh"
     bl_default_closed = True
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -382,11 +382,11 @@ class SCENE_PT_navmesh(SceneButtonsPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

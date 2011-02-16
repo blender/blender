@@ -40,14 +40,14 @@ def pose_info():
         binfo["pbone"] = pbone
         binfo["matrix_local"] = bone.matrix_local.copy()
         try:
-            binfo["matrix_local_inv"] = binfo["matrix_local"].copy().invert()
+            binfo["matrix_local_inv"] = binfo["matrix_local"].inverted()
         except:
             binfo["matrix_local_inv"] = Matrix()
 
         binfo["matrix"] = bone.matrix.copy()
         binfo["matrix_pose"] = pbone.matrix.copy()
         try:
-            binfo["matrix_pose_inv"] = binfo["matrix_pose"].copy().invert()
+            binfo["matrix_pose_inv"] = binfo["matrix_pose"].inverted()
         except:
             binfo["matrix_pose_inv"] = Matrix()
 
@@ -67,7 +67,7 @@ def pose_info():
             matrix = binfo_parent["matrix_pose_inv"] * matrix
             rest_matrix = binfo_parent["matrix_local_inv"] * rest_matrix
 
-        matrix = rest_matrix.copy().invert() * matrix
+        matrix = rest_matrix.inverted() * matrix
 
         binfo["matrix_key"] = matrix.copy()
 
@@ -75,8 +75,6 @@ def pose_info():
 
 
 def bake(frame_start, frame_end, step=1, only_selected=False):
-    # import nla; reload(nla); nla.bake()
-
     scene = bpy.context.scene
     obj = bpy.context.object
     pose = obj.pose
@@ -106,9 +104,9 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
         for f in frame_range:
             matrix = info_ls[int((f - frame_start) / step)][name]["matrix_key"]
 
-            #pbone.location = matrix.translation_part()
-            #pbone.rotation_quaternion = matrix.to_quat()
-            pbone.matrix_local = [f for v in matrix for f in v]
+            #pbone.location = matrix.to_translation()
+            #pbone.rotation_quaternion = matrix.to_quaternion()
+            pbone.matrix_basis = matrix
 
             pbone.keyframe_insert("location", -1, f, name)
 
@@ -149,7 +147,7 @@ class BakeAction(bpy.types.Operator):
 
     def execute(self, context):
 
-        action = bake(self.frame_start, self.frame_end, self.step, self.show_only_selected)
+        action = bake(self.frame_start, self.frame_end, self.step, self.only_selected)
 
         # basic cleanup, could move elsewhere
         for fcu in action.fcurves:
@@ -177,13 +175,11 @@ class BakeAction(bpy.types.Operator):
 
 
 def register():
-    pass
-    # bpy.types.INFO_MT_mesh_add.append(menu_func)
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
-    # bpy.types.INFO_MT_mesh_add.remove(menu_func)
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

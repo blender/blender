@@ -33,6 +33,7 @@ class MESH_MT_vertex_group_specials(bpy.types.Menu):
         layout.operator("object.vertex_group_copy_to_linked", icon='LINK_AREA')
         layout.operator("object.vertex_group_copy_to_selected", icon='LINK_AREA')
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT')
+        layout.operator("object.vertex_group_remove", icon='X', text="Delete All").all = True
 
 
 class MESH_MT_shape_key_specials(bpy.types.Menu):
@@ -70,13 +71,10 @@ class DATA_PT_context_mesh(MeshButtonsPanel, bpy.types.Panel):
         mesh = context.mesh
         space = context.space_data
 
-        split = layout.split(percentage=0.65)
         if ob:
-            split.template_ID(ob, "data")
-            split.separator()
+            layout.template_ID(ob, "data")
         elif mesh:
-            split.template_ID(space, "pin_id")
-            split.separator()
+            layout.template_ID(space, "pin_id")
 
 
 class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):
@@ -111,6 +109,7 @@ class DATA_PT_settings(MeshButtonsPanel, bpy.types.Panel):
         mesh = context.mesh
 
         layout.prop(mesh, "texture_mesh")
+        layout.prop(mesh, "use_auto_texspace")
 
 
 class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
@@ -182,7 +181,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
         enable_edit = ob.mode != 'EDIT'
         enable_edit_value = False
 
-        if ob.show_shape_key is False:
+        if ob.show_only_shape_key is False:
             if enable_edit or (ob.type == 'MESH' and ob.use_shape_key_edit_mode):
                 enable_edit_value = True
 
@@ -218,7 +217,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
             sub = row.row(align=True)
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value
-            subsub.prop(ob, "show_shape_key", text="")
+            subsub.prop(ob, "show_only_shape_key", text="")
             subsub.prop(kb, "mute", text="")
             sub.prop(ob, "use_shape_key_edit_mode", text="")
 
@@ -286,7 +285,7 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
         ob = context.active_object
         rd = context.scene.render
 
-        return (context.mode == 'EDIT_MESH') and (rd.engine == 'BLENDER_GAME') and ob and ob.type == 'MESH'
+        return (context.mode == 'EDIT_MESH') and ob and ob.type == 'MESH'
 
     def draw(self, context):
         layout = self.layout
@@ -297,6 +296,9 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
         tf = me.faces.active_tface
 
         if tf:
+            if context.scene.render.engine != 'BLENDER_GAME':
+                col.label(text="Options only supported in Game Engine")
+
             split = layout.split()
             col = split.column()
 
@@ -349,14 +351,15 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, bpy.types.Panel):
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
+    _property_type = bpy.types.Mesh
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

@@ -30,11 +30,12 @@ class MESH_OT_delete_edgeloop(bpy.types.Operator):
     bl_label = "Delete Edge Loop"
 
     def execute(self, context):
-        bpy.ops.transform.edge_slide(value=1.0)
-        bpy.ops.mesh.select_more()
-        bpy.ops.mesh.remove_doubles()
+        if 'FINISHED' in bpy.ops.transform.edge_slide(value=1.0):
+            bpy.ops.mesh.select_more()
+            bpy.ops.mesh.remove_doubles()
+            return {'FINISHED'}
 
-        return {'FINISHED'}
+        return {'CANCELLED'}
 
 rna_path_prop = StringProperty(name="Context Attributes",
         description="rna context string", maxlen=1024, default="")
@@ -72,6 +73,34 @@ def execute_context_assign(self, context):
         exec("context.%s=self.value" % self.data_path)
 
     return {'FINISHED'}
+
+
+class BRUSH_OT_set_active_number(bpy.types.Operator):
+    '''Set active sculpt/paint brush from it's number'''
+    bl_idname = "brush.set_active_number"
+    bl_label = "Set Brush Number"
+
+    mode = StringProperty(name="mode",
+            description="Paint mode to set brush for", maxlen=1024)
+    number = IntProperty(name="number",
+            description="Brush number")
+
+    _attr_dict = {"sculpt": "use_paint_sculpt",
+                  "vertex_paint": "use_paint_vertex",
+                  "weight_paint": "use_paint_weight",
+                  "image_paint": "use_paint_texture"}
+
+    def execute(self, context):
+        attr = self._attr_dict.get(self.mode)
+        if attr is None:
+            return {'CANCELLED'}
+
+        for i, brush in enumerate((cur for cur in bpy.data.brushes if getattr(cur, attr))):
+            if i == self.number:
+                getattr(context.tool_settings, self.mode).brush = brush
+                return {'FINISHED'}
+
+        return {'CANCELLED'}
 
 
 class WM_OT_context_set_boolean(bpy.types.Operator):
@@ -241,8 +270,8 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
 
 
 class WM_OT_context_cycle_int(bpy.types.Operator):
-    '''Set a context value. Useful for cycling active material,
-    vertex keys, groups' etc.'''
+    '''Set a context value. Useful for cycling active material, '''
+    '''vertex keys, groups' etc.'''
     bl_idname = "wm.context_cycle_int"
     bl_label = "Context Int Cycle"
     bl_options = {'UNDO'}
@@ -266,9 +295,9 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
         if value != eval("context.%s" % data_path):
             # relies on rna clamping int's out of the range
             if self.reverse:
-                value = (1 << 32)
+                value = (1 << 31) - 1
             else:
-                value = - (1 << 32)
+                value = -1 << 31
 
             exec("context.%s=value" % data_path)
 
@@ -478,7 +507,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
         else:
             self.initial_x = event.mouse_x
 
-            context.window_manager.add_modal_handler(self)
+            context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
 
 
@@ -500,7 +529,7 @@ class WM_OT_path_open(bpy.types.Operator):
     bl_idname = "wm.path_open"
     bl_label = ""
 
-    filepath = StringProperty(name="File Path", maxlen=1024)
+    filepath = StringProperty(name="File Path", maxlen=1024, subtype='FILE_PATH')
 
     def execute(self, context):
         import sys
@@ -632,14 +661,12 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        props = self.properties # XXX, this should not be needed, api problem!
-        layout.label(text="Descriptor ID: '%s'" % props.doc_id)
-        layout.prop(props, "doc_new", text="")
+        layout.label(text="Descriptor ID: '%s'" % self.doc_id)
+        layout.prop(self, "doc_new", text="")
 
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
-
 
 
 from bpy.props import *
@@ -662,6 +689,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_edit"
     bl_label = "Edit Property"
+    bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
 
     data_path = rna_path
     property = rna_property
@@ -722,11 +750,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
             self.description = prop_ui.get("description", "")
 
         wm = context.window_manager
-        # This crashes, TODO - fix
-        #return wm.invoke_props_popup(self, event)
-
-        wm.invoke_props_popup(self, event)
-        return {'RUNNING_MODAL'}
+        return wm.invoke_props_dialog(self)
 
 
 class WM_OT_properties_add(bpy.types.Operator):
@@ -780,12 +804,23 @@ class WM_OT_keyconfig_activate(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class WM_OT_sysinfo(bpy.types.Operator):
+    '''Generate System Info'''
+    bl_idname = "wm.sysinfo"
+    bl_label = "System Info"
+
+    def execute(self, context):
+        import sys_info
+        sys_info.write_sysinfo(self)
+        return {'FINISHED'}
+
+
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

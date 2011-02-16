@@ -28,6 +28,7 @@ class INFO_HT_header(bpy.types.Header):
 
         wm = context.window_manager
         window = context.window
+        sinfo = context.space_data
         scene = context.scene
         rd = scene.render
 
@@ -49,8 +50,7 @@ class INFO_HT_header(bpy.types.Header):
             layout.separator()
         else:
             layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
-
-        layout.template_ID(context.screen, "scene", new="scene.new", unlink="scene.delete")
+            layout.template_ID(context.screen, "scene", new="scene.new", unlink="scene.delete")
 
         layout.separator()
 
@@ -67,6 +67,34 @@ class INFO_HT_header(bpy.types.Header):
 
         # XXX: this should be right-aligned to the RHS of the region
         layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER', text="")
+
+        # XXX: BEFORE RELEASE, MOVE FILE MENU OUT OF INFO!!!
+        """
+        row = layout.row(align=True)
+        row.prop(sinfo, "show_report_debug", text="Debug")
+        row.prop(sinfo, "show_report_info", text="Info")
+        row.prop(sinfo, "show_report_operator", text="Operators")
+        row.prop(sinfo, "show_report_warning", text="Warnings")
+        row.prop(sinfo, "show_report_error", text="Errors")
+
+        row = layout.row()
+        row.enabled = sinfo.show_report_operator
+        row.operator("info.report_replay")
+
+        row.menu("INFO_MT_report")
+        """
+
+
+class INFO_MT_report(bpy.types.Menu):
+    bl_label = "Report"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.column()
+        layout.operator("console.select_all_toggle")
+        layout.operator("console.select_border")
+        layout.operator("console.report_delete")
+        layout.operator("console.report_copy")
 
 
 class INFO_MT_file(bpy.types.Menu):
@@ -97,7 +125,8 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
 
         layout.operator_context = 'EXEC_AREA'
-        layout.operator("wm.read_homefile", text="Load Factory Settings").factory = True
+        layout.operator("wm.save_homefile")
+        layout.operator("wm.read_factory_settings")
 
         layout.separator()
 
@@ -119,7 +148,7 @@ class INFO_MT_file(bpy.types.Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_AREA'
-        layout.operator("wm.exit_blender", text="Quit", icon='QUIT')
+        layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
 
 
 class INFO_MT_file_import(bpy.types.Menu):
@@ -190,6 +219,22 @@ class INFO_MT_curve_add(bpy.types.Menu):
         layout.operator("curve.primitive_nurbs_path_add", icon='CURVE_PATH', text="Path")
 
 
+class INFO_MT_edit_curve_add(bpy.types.Menu):
+    bl_idname = "INFO_MT_edit_curve_add"
+    bl_label = "Add"
+
+    def draw(self, context):
+        is_surf = context.active_object.type == 'SURFACE'
+
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        if is_surf:
+            INFO_MT_surface_add.draw(self, context)
+        else:
+            INFO_MT_curve_add.draw(self, context)
+
+
 class INFO_MT_surface_add(bpy.types.Menu):
     bl_idname = "INFO_MT_surface_add"
     bl_label = "Surface"
@@ -231,10 +276,10 @@ class INFO_MT_add(bpy.types.Menu):
         #layout.operator_menu_enum("object.surface_add", "type", text="Surface", icon='OUTLINER_OB_SURFACE')
         layout.menu("INFO_MT_surface_add", icon='OUTLINER_OB_SURFACE')
         layout.operator_menu_enum("object.metaball_add", "type", text="Metaball", icon='OUTLINER_OB_META')
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
         layout.separator()
 
-        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.menu("INFO_MT_armature_add", icon='OUTLINER_OB_ARMATURE')
         layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
         layout.operator("object.add", text="Empty", icon='OUTLINER_OB_EMPTY').type = 'EMPTY'
@@ -302,10 +347,12 @@ class INFO_MT_help(bpy.types.Menu):
     bl_label = "Help"
 
     def draw(self, context):
+        import sys
+
         layout = self.layout
 
         layout.operator("wm.url_open", text="Manual", icon='HELP').url = 'http://wiki.blender.org/index.php/Doc:Manual'
-        layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-250/'
+        layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-256-beta/'
 
         layout.separator()
 
@@ -318,7 +365,11 @@ class INFO_MT_help(bpy.types.Menu):
         layout.separator()
         layout.operator("wm.url_open", text="Python API Reference", icon='URL').url = "http://www.blender.org/documentation/blender_python_api_%s/contents.html" % "_".join(str(v) for v in bpy.app.version)
         layout.operator("help.operator_cheat_sheet", icon='TEXT')
+        layout.operator("wm.sysinfo", icon='TEXT')
         layout.separator()
+        if sys.platform == "win32":
+            layout.operator("wm.toggle_console", icon='CONSOLE')
+            layout.separator()
         layout.operator("anim.update_data_paths", text="FCurve/Driver 2.54 fix", icon='HELP')
         layout.separator()
         layout.operator("wm.splash")
@@ -339,7 +390,7 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
             for op_submodule_name in dir(op_module):
                 op = getattr(op_module, op_submodule_name)
                 text = repr(op)
-                if text.startswith('bpy.ops.'):
+                if text.split("\n")[-1].startswith('bpy.ops.'):
                     op_strings.append(text)
                     tot += 1
 
@@ -353,11 +404,11 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

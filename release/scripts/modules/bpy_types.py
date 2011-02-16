@@ -142,19 +142,19 @@ class _GenericBone:
     def x_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector((1.0, 0.0, 0.0))
+        return Vector((1.0, 0.0, 0.0)) * self.matrix.to_3x3()
 
     @property
     def y_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector((0.0, 1.0, 0.0))
+        return Vector((0.0, 1.0, 0.0)) * self.matrix.to_3x3()
 
     @property
     def z_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector((0.0, 0.0, 1.0))
+        return Vector((0.0, 0.0, 1.0)) * self.matrix.to_3x3()
 
     @property
     def basename(self):
@@ -258,15 +258,15 @@ class _GenericBone:
         return bones
 
 
-class PoseBone(StructRNA, _GenericBone):
+class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
     __slots__ = ()
 
 
-class Bone(StructRNA, _GenericBone):
+class Bone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
     __slots__ = ()
 
 
-class EditBone(StructRNA, _GenericBone):
+class EditBone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
     __slots__ = ()
 
     def align_orientation(self, other):
@@ -284,13 +284,13 @@ class EditBone(StructRNA, _GenericBone):
         Expects a 4x4 or 3x3 matrix.
         """
         from mathutils import Vector
-        z_vec = self.matrix.rotation_part() * Vector((0.0, 0.0, 1.0))
-        self.tail = matrix * self.tail
-        self.head = matrix * self.head
+        z_vec = Vector((0.0, 0.0, 1.0)) * self.matrix.to_3x3()
+        self.tail = self.tail * matrix
+        self.head = self.head * matrix
         scalar = matrix.median_scale
         self.head_radius *= scalar
         self.tail_radius *= scalar
-        self.align_roll(matrix * z_vec)
+        self.align_roll(z_vec * matrix)
 
 
 def ord_ind(i1, i2):
@@ -302,18 +302,25 @@ def ord_ind(i1, i2):
 class Mesh(bpy_types.ID):
     __slots__ = ()
 
-    def from_pydata(self, verts, edges, faces):
+    def from_pydata(self, vertices, edges, faces):
         """
         Make a mesh from a list of verts/edges/faces
         Until we have a nicer way to make geometry, use this.
+
+        :arg vertices: float triplets each representing (X, Y, Z) eg: [(0.0, 1.0, 0.5), ...].
+        :type vertices: iterable object
+        :arg edges: int pairs, each pair contains two indices to the *vertices* argument. eg: [(1, 2), ...]
+        :type edges: iterable object
+        :arg faces: iterator of faces, each faces contains three or four indices to the *vertices* argument. eg: [(5, 6, 8, 9), (1, 2, 3), ...]
+        :type faces: iterable object
         """
-        self.vertices.add(len(verts))
+        self.vertices.add(len(vertices))
         self.edges.add(len(edges))
         self.faces.add(len(faces))
 
-        verts_flat = [f for v in verts for f in v]
-        self.vertices.foreach_set("co", verts_flat)
-        del verts_flat
+        vertices_flat = [f for v in vertices for f in v]
+        self.vertices.foreach_set("co", vertices_flat)
+        del vertices_flat
 
         edges_flat = [i for e in edges for i in e]
         self.edges.foreach_set("vertices", edges_flat)
@@ -326,7 +333,7 @@ class Mesh(bpy_types.ID):
                 else:
                     return f[0], f[1], f[2], 0
             elif f[2] == 0 or f[3] == 0:
-                return f[3], f[0], f[1], f[2]
+                return f[2], f[3], f[0], f[1]
             return f
 
         faces_flat = [v for f in faces for v in treat_face(f)]
@@ -543,85 +550,34 @@ class Text(bpy_types.ID):
         import bpy
         return tuple(obj for obj in bpy.data.objects if self in [cont.text for cont in obj.game.controllers if cont.type == 'PYTHON'])
 
-import collections
-
+# values are module: [(cls, path, line), ...]
 TypeMap = {}
-# Properties (IDPropertyGroup) are different from types because they need to be registered
-# before adding sub properties to them, so they are registered on definition
-# and unregistered on unload
-PropertiesMap = {}
-
-# Using our own loading function we set this to false
-# so when running a script directly in the text editor
-# registers moduals instantly.
-_register_immediate = True
-
-
-def _unregister_module(module, free=True):
-    for t in TypeMap.get(module, ()):
-        try:
-            bpy_types.unregister(t)
-        except:
-            import traceback
-            print("bpy.utils._unregister_module(): Module '%s' failed to unregister class '%s.%s'" % (module, t.__module__, t.__name__))
-            traceback.print_exc()
-
-    if free == True and module in TypeMap:
-        del TypeMap[module]
-
-    for t in PropertiesMap.get(module, ()):
-        try:
-            bpy_types.unregister(t)
-        except:
-            import traceback
-            print("bpy.utils._unload_module(): Module '%s' failed to unregister class '%s.%s'" % (module, t.__module__, t.__name__))
-            traceback.print_exc()
-
-    if free == True and module in PropertiesMap:
-        del PropertiesMap[module]
-
-
-def _register_module(module):
-    for t in TypeMap.get(module, ()):
-        try:
-            bpy_types.register(t)
-        except:
-            import traceback
-            import sys
-            print("bpy.utils._register_module(): '%s' failed to register class '%s.%s'" % (sys.modules[module].__file__, t.__module__, t.__name__))
-            traceback.print_exc()
 
 
 class RNAMeta(type):
-    @classmethod
-    def _register_immediate(cls):
-        return _register_immediate
-
     def __new__(cls, name, bases, classdict, **args):
         result = type.__new__(cls, name, bases, classdict)
         if bases and bases[0] != StructRNA:
+            import traceback
+            import weakref
             module = result.__module__
-
-            ClassMap = TypeMap
-
-            # Register right away if needed
-            if cls._register_immediate():
-                bpy_types.register(result)
-                ClassMap = PropertiesMap
 
             # first part of packages only
             if "." in module:
                 module = module[:module.index(".")]
 
-            ClassMap.setdefault(module, []).append(result)
+            sf = traceback.extract_stack(limit=2)[0]
+
+            TypeMap.setdefault(module, []).append((weakref.ref(result), sf[0], sf[1]))
 
         return result
 
 
-class RNAMetaRegister(RNAMeta, StructMetaIDProp):
-    @classmethod
-    def _register_immediate(cls):
-        return True
+import collections
+
+
+class RNAMetaIDProp(RNAMeta, StructMetaIDProp):
+    pass
 
 
 class OrderedMeta(RNAMeta):
@@ -638,7 +594,7 @@ class OrderedMeta(RNAMeta):
 # with doc generation 'self.properties.bl_rna.properties' can fail
 class Operator(StructRNA, metaclass=OrderedMeta):
     __slots__ = ()
-    
+
     def __getattribute__(self, attr):
         properties = StructRNA.path_resolve(self, "properties")
         bl_rna = getattr(properties, "bl_rna", None)
@@ -650,15 +606,21 @@ class Operator(StructRNA, metaclass=OrderedMeta):
         properties = StructRNA.path_resolve(self, "properties")
         bl_rna = getattr(properties, "bl_rna", None)
         if bl_rna and attr in bl_rna.properties:
-            setattr(properties, attr, value)
+            return setattr(properties, attr, value)
         return super().__setattr__(attr, value)
 
     def __delattr__(self, attr):
         properties = StructRNA.path_resolve(self, "properties")
         bl_rna = getattr(properties, "bl_rna", None)
         if bl_rna and attr in bl_rna.properties:
-            delattr(properties, attr)
+            return delattr(properties, attr)
         return super().__delattr__(attr)
+
+    def as_keywords(self, ignore=()):
+        """ Return a copy of the properties as a dictionary.
+        """
+        ignore = ignore + ("rna_type",)
+        return {attr: getattr(self, attr) for attr in self.properties.rna_type.properties.keys() if attr not in ignore}
 
 
 class Macro(StructRNA, metaclass=OrderedMeta):
@@ -672,11 +634,15 @@ class Macro(StructRNA, metaclass=OrderedMeta):
         return ops.macro_define(self, opname)
 
 
-class IDPropertyGroup(StructRNA, metaclass=RNAMetaRegister):
+class IDPropertyGroup(StructRNA, metaclass=RNAMetaIDProp):
         __slots__ = ()
 
 
 class RenderEngine(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
+
+
+class KeyingSetInfo(StructRNA, metaclass=RNAMeta):
     __slots__ = ()
 
 
@@ -691,7 +657,12 @@ class _GenericUI:
 
             def draw_ls(self, context):
                 for func in draw_ls._draw_funcs:
-                    func(self, context)
+                    # so bad menu functions dont stop the entire menu from drawing.
+                    try:
+                        func(self, context)
+                    except:
+                        import traceback
+                        traceback.print_exc()
 
             draw_funcs = draw_ls._draw_funcs = [cls.draw]
             cls.draw = draw_ls
@@ -739,7 +710,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         import bpy.utils
 
         layout = self.layout
-        
+
         if not searchpaths:
             layout.label("* Missing Paths *")
 

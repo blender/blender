@@ -39,6 +39,7 @@ class GRAPH_HT_header(bpy.types.Header):
 
             sub.menu("GRAPH_MT_view")
             sub.menu("GRAPH_MT_select")
+            sub.menu("GRAPH_MT_marker")
             sub.menu("GRAPH_MT_channel")
             sub.menu("GRAPH_MT_key")
 
@@ -78,6 +79,9 @@ class GRAPH_MT_view(bpy.types.Menu):
         layout.prop(st, "show_cursor")
         layout.prop(st, "show_sliders")
         layout.prop(st, "use_auto_merge_keyframes")
+
+        layout.separator()
+        layout.prop(st, "use_fancy_drawing")
 
         layout.separator()
         if st.show_handles:
@@ -133,6 +137,27 @@ class GRAPH_MT_select(bpy.types.Menu):
         layout.operator("graph.select_linked")
 
 
+class GRAPH_MT_marker(bpy.types.Menu):
+    bl_label = "Marker"
+
+    def draw(self, context):
+        layout = self.layout
+
+        #layout.operator_context = 'EXEC_REGION_WIN'
+
+        layout.column()
+        layout.operator("marker.add", "Add Marker")
+        layout.operator("marker.duplicate", text="Duplicate Marker")
+        layout.operator("marker.delete", text="Delete Marker")
+
+        layout.separator()
+
+        layout.operator("marker.rename", text="Rename Marker")
+        layout.operator("marker.move", text="Grab/Move Marker")
+
+        # TODO: pose markers for action edit mode only?
+
+
 class GRAPH_MT_channel(bpy.types.Menu):
     bl_label = "Channel"
 
@@ -152,13 +177,17 @@ class GRAPH_MT_channel(bpy.types.Menu):
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
         layout.operator("anim.channels_visibility_set")
+        layout.operator_menu_enum("graph.extrapolation_type", "type", text="Extrapolation Mode")
 
         layout.separator()
         layout.operator("anim.channels_expand")
         layout.operator("anim.channels_collapse")
 
         layout.separator()
-        layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
+
+        layout.separator()
+        layout.operator("anim.channels_fcurves_enable")
 
 
 class GRAPH_MT_key(bpy.types.Menu):
@@ -184,16 +213,19 @@ class GRAPH_MT_key(bpy.types.Menu):
         layout.separator()
         layout.operator_menu_enum("graph.handle_type", "type", text="Handle Type")
         layout.operator_menu_enum("graph.interpolation_type", "type", text="Interpolation Mode")
-        layout.operator_menu_enum("graph.extrapolation_type", "type", text="Extrapolation Mode")
 
         layout.separator()
         layout.operator("graph.clean")
+        layout.operator("graph.smooth")
         layout.operator("graph.sample")
         layout.operator("graph.bake")
 
         layout.separator()
         layout.operator("graph.copy")
         layout.operator("graph.paste")
+
+        layout.separator()
+        layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
 
 
 class GRAPH_MT_key_transform(bpy.types.Menu):
@@ -210,11 +242,11 @@ class GRAPH_MT_key_transform(bpy.types.Menu):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

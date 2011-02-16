@@ -52,24 +52,22 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.label(text="Object:")
         col.prop(md, "object", text="")
-
-        col = split.column()
-        col.label(text="Vertex Group::")
-        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        sub = col.column()
-        sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert_vertex_group")
-
-        split = layout.split()
+        col.prop(md, "use_deform_preserve_volume")
 
         col = split.column()
         col.label(text="Bind To:")
         col.prop(md, "use_vertex_groups", text="Vertex Groups")
         col.prop(md, "use_bone_envelopes", text="Bone Envelopes")
 
-        col = split.column()
-        col.label(text="Deformation:")
-        col.prop(md, "use_deform_preserve_volume")
+        split = layout.split()
+
+        col = split.split()
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = col.column()
+        sub.active = bool(md.vertex_group)
+        sub.prop(md, "invert_vertex_group")
+
+        col = layout.column()
         col.prop(md, "use_multi_modifier")
 
     def ARRAY(self, layout, ob, md):
@@ -365,7 +363,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             col.prop(md, "use_dynamic_bind")
 
     def MIRROR(self, layout, ob, md):
-        layout.prop(md, "merge_threshold")
         split = layout.split(percentage=0.25)
 
         col = split.column()
@@ -376,6 +373,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Options:")
+        col.prop(md, "use_mirror_merge", text="Merge")
         col.prop(md, "use_clip", text="Clipping")
         col.prop(md, "use_mirror_vertex_groups", text="Vertex Groups")
 
@@ -385,6 +383,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "use_mirror_v", text="V")
 
         col = layout.column()
+        
+        if md.use_mirror_merge == True:
+            col.prop(md, "merge_threshold")
         col.label(text="Mirror Object:")
         col.prop(md, "mirror_object", text="")
 
@@ -411,6 +412,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.operator("object.multires_subdivide", text="Subdivide")
         col.operator("object.multires_higher_levels_delete", text="Delete Higher")
         col.operator("object.multires_reshape", text="Reshape")
+        col.operator("object.multires_base_apply", text="Apply Base")
         col.prop(md, "show_only_control_edges")
 
         layout.separator()
@@ -707,11 +709,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
