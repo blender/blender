@@ -23,7 +23,13 @@
 #include <math.h>
 #include <string.h>
 #include <float.h>
-#include <malloc.h>
+
+#ifdef __APPLE__
+#include <stdlib.h>  /* OSX gets its malloc stuff through here */
+#else
+#include <malloc.h> 
+#endif
+
 #include "mikktspace.h"
 
 #define TFALSE		0
