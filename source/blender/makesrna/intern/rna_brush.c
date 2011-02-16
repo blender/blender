@@ -764,7 +764,7 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "OperatorStrokeElement", "IDPropertyGroup");
+	srna= RNA_def_struct(brna, "OperatorStrokeElement", "PropertyGroup");
 	RNA_def_struct_ui_text(srna, "Operator Stroke Element", "");
 
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);

@@ -360,20 +360,20 @@ static int rna_idproperty_verify_valid(PointerRNA *ptr, PropertyRNA *prop, IDPro
 }
 
 static PropertyRNA *typemap[IDP_NUMTYPES] =
-	{(PropertyRNA*)&rna_IDProperty_string,
-	 (PropertyRNA*)&rna_IDProperty_int,
-	 (PropertyRNA*)&rna_IDProperty_float,
+	{(PropertyRNA*)&rna_PropertyGroupItem_string,
+	 (PropertyRNA*)&rna_PropertyGroupItem_int,
+	 (PropertyRNA*)&rna_PropertyGroupItem_float,
 	 NULL, NULL, NULL,
-	 (PropertyRNA*)&rna_IDProperty_group, NULL,
-	 (PropertyRNA*)&rna_IDProperty_double,
-	 (PropertyRNA*)&rna_IDProperty_idp_array};
+	 (PropertyRNA*)&rna_PropertyGroupItem_group, NULL,
+	 (PropertyRNA*)&rna_PropertyGroupItem_double,
+	 (PropertyRNA*)&rna_PropertyGroupItem_idp_array};
 
 static PropertyRNA *arraytypemap[IDP_NUMTYPES] =
-	{NULL, (PropertyRNA*)&rna_IDProperty_int_array,
-	 (PropertyRNA*)&rna_IDProperty_float_array,
+	{NULL, (PropertyRNA*)&rna_PropertyGroupItem_int_array,
+	 (PropertyRNA*)&rna_PropertyGroupItem_float_array,
 	 NULL, NULL, NULL,
-	 (PropertyRNA*)&rna_IDProperty_collection, NULL,
-	 (PropertyRNA*)&rna_IDProperty_double_array};
+	 (PropertyRNA*)&rna_PropertyGroupItem_collection, NULL,
+	 (PropertyRNA*)&rna_PropertyGroupItem_double_array};
 
 IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 {
@@ -3469,7 +3469,7 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 			else
 				return NULL; // can't do anything about this case yet...
 		}
-		else if (RNA_struct_is_a(ptr->type, &RNA_IDPropertyGroup)) {
+		else if (RNA_struct_is_a(ptr->type, &RNA_PropertyGroup)) {
 			/* special case, easier to deal with here then in ptr->type->path() */
 			return rna_path_from_ID_to_idpgroup(ptr);
 		}

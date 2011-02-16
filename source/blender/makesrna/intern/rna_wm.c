@@ -1268,7 +1268,7 @@ static void rna_def_operator_utils(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "OperatorMousePath", "IDPropertyGroup");
+	srna= RNA_def_struct(brna, "OperatorMousePath", "PropertyGroup");
 	RNA_def_struct_ui_text(srna, "Operator Mouse Path", "Mouse path values for operators that record such paths");
 
 	prop= RNA_def_property(srna, "loc", PROP_FLOAT, PROP_XYZ);
@@ -1286,7 +1286,7 @@ static void rna_def_operator_filelist_element(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "OperatorFileListElement", "IDPropertyGroup");
+	srna= RNA_def_struct(brna, "OperatorFileListElement", "PropertyGroup");
 	RNA_def_struct_ui_text(srna, "Operator File List Element", "");
 	
 	

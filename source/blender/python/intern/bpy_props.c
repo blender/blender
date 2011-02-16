@@ -742,17 +742,17 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 		if(PyErr_Occurred()) {
 			PyObject *msg= PyC_ExceptionBuffer();
 			char *msg_char= _PyUnicode_AsString(msg);
-			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with: %s", error_prefix, msg_char);
+			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from PropertyGroup, failed with: %s", error_prefix, msg_char);
 			Py_DECREF(msg);
 		}
 		else {
-			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with type '%s'", error_prefix, Py_TYPE(value)->tp_name);
+			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from PropertyGroup, failed with type '%s'", error_prefix, Py_TYPE(value)->tp_name);
 		}
 		return NULL;
 	}
 
-	if(!RNA_struct_is_a(srna, &RNA_IDPropertyGroup)) {
-		 PyErr_Format(PyExc_SystemError, "%.200s expected an RNA type derived from IDPropertyGroup", error_prefix);
+	if(!RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
+		 PyErr_Format(PyExc_SystemError, "%.200s expected an RNA type derived from PropertyGroup", error_prefix);
 		return NULL;
 	}
 
@@ -764,7 +764,7 @@ static char BPy_PointerProperty_doc[] =
 "\n"
 "   Returns a new pointer property definition.\n"
 "\n"
-"   :arg type: A subclass of :class:`bpy.types.IDPropertyGroup`.\n"
+"   :arg type: A subclass of :class:`bpy.types.PropertyGroup`.\n"
 "   :type type: class\n"
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
@@ -811,7 +811,7 @@ static char BPy_CollectionProperty_doc[] =
 "\n"
 "   Returns a new collection property definition.\n"
 "\n"
-"   :arg type: A subclass of :class:`bpy.types.IDPropertyGroup`.\n"
+"   :arg type: A subclass of :class:`bpy.types.PropertyGroup`.\n"
 "   :type type: class\n"
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
