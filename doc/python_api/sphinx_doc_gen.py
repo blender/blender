@@ -73,7 +73,7 @@ else:
         "mathutils.geometry",
     )
 
-    FILTER_BPY_TYPES = ("Mesh", )  # allow 
+    FILTER_BPY_TYPES = ("Operator", )  # allow 
     FILTER_BPY_OPS = ("import_scene", )  # allow 
 
     # for quick rebuilds
@@ -131,13 +131,59 @@ def range_str(val):
         return str(val)
 
 
+def example_extract_docstring(filepath):
+    file = open(filepath, 'r')
+    line = file.readline()
+    line_no = 0
+    text = []
+    if line.startswith('"""'):  # assume nothing here
+        line_no += 1
+    else:
+        file.close()
+        return "", 0
+
+    for line in file.readlines():
+        line_no += 1
+        if line.startswith('"""'):
+            break
+        else:
+            text.append(line.rstrip())
+
+    line_no += 1
+    file.close()
+    return "\n".join(text), line_no
+
+
 def write_example_ref(ident, fw, example_id, ext="py"):
     if example_id in EXAMPLE_SET:
-        fw("%s.. literalinclude:: ../examples/%s.%s\n\n" % (ident, example_id, ext))
+        
+        # extract the comment
+        filepath = "../examples/%s.%s" % (example_id, ext)
+        filepath_full = os.path.join(os.path.dirname(fw.__self__.name), filepath)
+        
+        text, line_no = example_extract_docstring(filepath_full)
+        
+        for line in text.split("\n"):
+            fw("%s\n" % (ident + line).rstrip())
+        fw("\n")
+
+        fw("%s.. literalinclude:: %s\n" % (ident, filepath))
+        fw("%s   :lines: %d-\n" % (ident, line_no))
+        fw("\n")
         EXAMPLE_SET_USED.add(example_id)
     else:
         if bpy.app.debug:
             print("\tskipping example:", example_id)
+
+    # Support for numbered files bpy.types.Operator -> bpy.types.Operator.1.py
+    i = 1
+    while True:
+        example_id_num = "%s.%d" % (example_id, i)
+        if example_id_num in EXAMPLE_SET:
+            write_example_ref(ident, fw, example_id_num, ext)
+            i += 1
+        else:
+            break
 
 
 def write_indented_lines(ident, fn, text, strip=True):
@@ -516,6 +562,8 @@ def pyrna2sphinx(BASEPATH):
         fw("%s\n%s\n\n" % (title, "=" * len(title)))
 
         fw(".. module:: bpy.types\n\n")
+
+        write_example_ref("", fw, "bpy.types.%s" % struct.identifier)
 
         base_ids = [base.identifier for base in struct.get_bases()]
 

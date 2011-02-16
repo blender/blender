@@ -189,7 +189,7 @@ static bAction *poselib_validate (Object *ob)
 /* ************************************************************* */
 /* Pose Lib UI Operators */
 
-static int poselib_new_exec (bContext *C, wmOperator *op)
+static int poselib_new_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = get_poselib_object(C);
 	
@@ -223,7 +223,7 @@ void POSELIB_OT_new (wmOperatorType *ot)
 
 /* ------------------------------------------------ */
 
-static int poselib_unlink_exec (bContext *C, wmOperator *op)
+static int poselib_unlink_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = get_poselib_object(C);
 	

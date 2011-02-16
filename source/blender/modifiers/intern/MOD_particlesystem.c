@@ -80,11 +80,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tpsmd->psys = psmd->psys;
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	CustomDataMask dataMask = 0;
-	Material *ma;
 	MTex *mtex;
 	int i;
 
