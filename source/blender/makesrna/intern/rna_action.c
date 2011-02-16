@@ -141,7 +141,7 @@ static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports
 static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, TimeMarker *marker)
 {
 	if (!BLI_remlink_safe(&act->markers, marker)) {
-		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in action '%s'", marker->name, act->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in Action '%s'", marker->name, act->id.name+2);
 		return;
 	}
 
@@ -149,14 +149,40 @@ static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, Ti
 	MEM_freeN(marker);
 }
 
+static PointerRNA rna_Action_active_pose_marker_get(PointerRNA *ptr)
+{
+	bAction *act= (bAction*)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_TimelineMarker, BLI_findlink(&act->markers, act->active_marker-1));
+}
+
+static void rna_Action_active_pose_marker_set(PointerRNA *ptr, PointerRNA value)
+{
+	bAction *act= (bAction*)ptr->data;
+	act->active_marker= BLI_findindex(&act->markers, value.data) + 1;
+}
+
+static int rna_Action_active_pose_marker_index_get(PointerRNA *ptr)
+{
+	bAction *act= (bAction*)ptr->data;
+	return MAX2(act->active_marker-1, 0);
+}
+
+static void rna_Action_active_pose_marker_index_set(PointerRNA *ptr, int value)
+{
+	bAction *act= (bAction*)ptr->data;
+	act->active_marker= value+1;
+}
+
 static void rna_Action_active_pose_marker_index_range(PointerRNA *ptr, int *min, int *max)
 {
-	bAction *act= (bAction *)ptr->data;
+	bAction *act= (bAction*)ptr->data;
 
 	*min= 0;
 	*max= BLI_countlist(&act->markers)-1;
 	*max= MAX2(0, *max);
 }
+
+
 
 static void rna_Action_frame_range_get(PointerRNA *ptr,float *values)
 {
@@ -456,9 +482,15 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "TimelineMarker");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_Action_active_pose_marker_get", "rna_Action_active_pose_marker_set", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Pose Marker", "Active pose marker for this Action");
+	
 	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "active_marker");
-	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Action_active_pose_marker_index_range");
+	RNA_def_property_int_funcs(prop, "rna_Action_active_pose_marker_index_get", "rna_Action_active_pose_marker_index_set", "rna_Action_active_pose_marker_index_range");
 	RNA_def_property_ui_text(prop, "Active Pose Marker Index", "Index of active pose marker");
 }
 

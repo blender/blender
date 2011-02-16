@@ -97,36 +97,6 @@ static void action_set_activemarker(void *UNUSED(a), void *UNUSED(b), void *UNUS
  */
 /* ************************************************************* */
 
-/* gets list of poses in poselib as a string usable for pupmenu() */
-static char *poselib_build_poses_menu (bAction *act, char title[])
-{
-	DynStr *pupds= BLI_dynstr_new();
-	TimeMarker *marker;
-	char *str;
-	char buf[64];
-	int i;
-	
-	/* add title first */
-	sprintf(buf, "%s%%t|", title);
-	BLI_dynstr_append(pupds, buf);
-	
-	/* loop through markers, adding them */
-	for (marker=act->markers.first, i=1; marker; marker=marker->next, i++) {
-		BLI_dynstr_append(pupds, marker->name);
-		
-		sprintf(buf, "%%x%d", i);
-		BLI_dynstr_append(pupds, buf);
-		
-		if (marker->next)
-			BLI_dynstr_append(pupds, "|");
-	}
-	
-	/* convert to normal MEM_malloc'd string */
-	str= BLI_dynstr_get_cstring(pupds);
-	BLI_dynstr_free(pupds);
-	
-	return str;
-}
 
 /* gets the first available frame in poselib to store a pose on 
  *	- frames start from 1, and a pose should occur on every frame... 0 is error!
@@ -170,7 +140,25 @@ static TimeMarker *poselib_get_active_pose (bAction *act)
 		return NULL;
 }
 
-/* ************************************************************* */
+/* Get object that Pose Lib should be found on */
+static Object *get_poselib_object (bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	
+	if (sa->spacetype == SPACE_BUTS) 
+		return CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		return ED_object_pose_armature(CTX_data_active_object(C));
+}
+
+/* Poll callback for operators that require existing PoseLib data (with poses) to work */
+static int has_poselib_pose_data_poll (bContext *C)
+{
+	Object *ob = get_poselib_object(C);
+	return (ob && ob->poselib);
+}
+
+/* ----------------------------------- */
 
 /* Initialise a new poselib (whether it is needed or not) */
 static bAction *poselib_init_new (Object *ob)
@@ -198,29 +186,102 @@ static bAction *poselib_validate (Object *ob)
 		return ob->poselib;
 }
 
+/* ************************************************************* */
+/* Pose Lib UI Operators */
+
+static int poselib_new_exec (bContext *C, wmOperator *op)
+{
+	Object *ob = get_poselib_object(C);
+	
+	/* sanity checks */
+	if (ob == NULL)
+		return OPERATOR_CANCELLED;
+		
+	/* new method here deals with the rest... */
+	poselib_init_new(ob);
+	
+	/* notifier here might evolve? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSELIB_OT_new (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "New Pose Library";
+	ot->idname = "POSELIB_OT_new";
+	ot->description = "Add New Pose Library to active Object";
+	
+	/* callbacks */
+	ot->exec = poselib_new_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ------------------------------------------------ */
+
+static int poselib_unlink_exec (bContext *C, wmOperator *op)
+{
+	Object *ob = get_poselib_object(C);
+	
+	/* sanity checks */
+	if (ELEM(NULL, ob, ob->poselib))
+		return OPERATOR_CANCELLED;
+		
+	/* there should be a poselib (we just checked above!), so just lower its user count and remove */
+	id_us_min(&ob->poselib->id);
+	ob->poselib = NULL;
+	
+	/* notifier here might evolve? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSELIB_OT_unlink (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unlink Pose Library";
+	ot->idname = "POSELIB_OT_unlink";
+	ot->description = "Remove Pose Library from active Object";
+	
+	/* callbacks */
+	ot->exec = poselib_unlink_exec;
+	ot->poll= has_poselib_pose_data_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ************************************************************* */
+/* Pose Editing Operators */
 
 /* This tool automagically generates/validates poselib data so that it corresponds to the data 
  * in the action. This is for use in making existing actions usable as poselibs.
  */
-// TODO: operatorfy me!
-static void poselib_validate_act (bAction *act)
+static int poselib_sanitise_exec (bContext *C, wmOperator *op)
 {
-	DLRBT_Tree keys = {NULL, NULL};
+	Object *ob = get_poselib_object(C);
+	bAction *act = (ob)? ob->poselib : NULL;
+	DLRBT_Tree keys;
 	ActKeyColumn *ak;
 	TimeMarker *marker, *markern;
 	
-	/* validate action and poselib */
+	/* validate action */
 	if (act == NULL)  {
-		//error("No Action to validate");
-		return;
+		BKE_report(op->reports, RPT_WARNING, "No Action to validate");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* determine which frames have keys */
 	BLI_dlrbTree_init(&keys);
-	action_to_keylist(NULL, act, &keys, NULL);
+		action_to_keylist(NULL, act, &keys, NULL);
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	
-	/* for each key, make sure there is a correspnding pose */
+	/* for each key, make sure there is a corresponding pose */
 	for (ak= keys.first; ak; ak= ak->next) {
 		/* check if any pose matches this */
 		// TODO: don't go looking through the list like this every time...
@@ -256,117 +317,31 @@ static void poselib_validate_act (bAction *act)
 	}
 	
 	/* free temp memory */
-	BLI_freelistN((ListBase *)&keys);
-	
-	//BIF_undo_push("PoseLib Validate Action");
-}
-
-/* ************************************************************* */
-/* Pose Lib UI Operators */
-
-static int poselib_new_exec (bContext *C, wmOperator *op)
-{
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
-	
-	/* get object to add Pose Lib to */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	else
-		ob= ED_object_pose_armature(CTX_data_active_object(C));
-		
-	/* sanity checks */
-	if (ob == NULL)
-		return OPERATOR_CANCELLED;
-		
-	/* new method here deals with the rest... */
-	poselib_init_new(ob);
-	
-	/* notifier here might evolve? */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+	BLI_dlrbTree_free(&keys);
 	
 	return OPERATOR_FINISHED;
 }
 
-void POSELIB_OT_new (wmOperatorType *ot)
+void POSELIB_OT_action_sanitise (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "New Pose Library";
-	ot->idname = "POSELIB_OT_new";
-	ot->description = "Add New Pose Library to active Object";
+	ot->name = "Sanitise Pose Library Action";
+	ot->idname = "POSELIB_OT_action_sanitise";
+	ot->description = "Make action suitable for use as a Pose Library";
 	
 	/* callbacks */
-	ot->exec = poselib_new_exec;
-	ot->poll= ED_operator_posemode;
+	ot->exec = poselib_sanitise_exec;
+	ot->poll = has_poselib_pose_data_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/* ------------------------------------------------ */
-
-static int poselib_unlink_poll (bContext *C)
-{
-	/* object must exist, and so must a poselib */
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
-	
-	/* get object to add Pose Lib to */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	else
-		ob= ED_object_pose_armature(CTX_data_active_object(C));
-		
-	/* sanity checks */
-	return (ob && ob->poselib);
-}
-
-static int poselib_unlink_exec (bContext *C, wmOperator *op)
-{
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
-	
-	/* get object to add Pose Lib to */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	else
-		ob= ED_object_pose_armature(CTX_data_active_object(C));
-		
-	/* sanity checks */
-	if (ELEM(NULL, ob, ob->poselib))
-		return OPERATOR_CANCELLED;
-		
-	/* there should be a poselib (we just checked above!), so just lower its user count and remove */
-	id_us_min(&ob->poselib->id);
-	ob->poselib = NULL;
-	
-	/* notifier here might evolve? */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
-	
-	return OPERATOR_FINISHED;
-}
-
-void POSELIB_OT_unlink (wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Unlink Pose Library";
-	ot->idname = "POSELIB_OT_unlink";
-	ot->description = "Remove Pose Library from active Object";
-	
-	/* callbacks */
-	ot->exec = poselib_unlink_exec;
-	ot->poll= poselib_unlink_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-/* ************************************************************* */
-/* Pose Editing Operators */
+/* ------------------------------------------ */
 
 static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= get_poselib_object(C);
 	bAction *act= ob->poselib;
 	TimeMarker *marker;
 	
@@ -389,14 +364,13 @@ static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout,
 static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
-	bArmature *arm= (ob) ? ob->data : NULL;
+	Object *ob= get_poselib_object(C);
 	bPose *pose= (ob) ? ob->pose : NULL;
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	
 	/* sanity check */
-	if (ELEM3(NULL, ob, arm, pose)) 
+	if (ELEM(NULL, ob, pose)) 
 		return OPERATOR_CANCELLED;
 	
 	/* start building */
@@ -425,9 +399,8 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED
 
 static int poselib_add_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= get_poselib_object(C);
 	bAction *act = poselib_validate(ob);
-	bArmature *arm= (ob) ? ob->data : NULL;
 	bPose *pose= (ob) ? ob->pose : NULL;
 	TimeMarker *marker;
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Whole Character"); /* this includes custom props :)*/
@@ -435,7 +408,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	char name[64];
 	
 	/* sanity check (invoke should have checked this anyway) */
-	if (ELEM3(NULL, ob, arm, pose)) 
+	if (ELEM(NULL, ob, pose)) 
 		return OPERATOR_CANCELLED;
 	
 	/* get name to give to pose */
@@ -469,7 +442,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	ANIM_apply_keyingset(C, NULL, act, ks, MODIFYKEY_MODE_INSERT, (float)frame);
 	
 	/* store new 'active' pose number */
-	act->active_marker= BLI_countlist(&act->markers) - 1;
+	act->active_marker= BLI_countlist(&act->markers);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -499,14 +472,14 @@ void POSELIB_OT_pose_add (wmOperatorType *ot)
 
 static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= get_poselib_object(C);
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
 	EnumPropertyItem *item= NULL, item_tmp= {0};
 	int totitem= 0;
 	int i= 0;
 
-	if (C==NULL) {
+	if (C == NULL) {
 		return DummyRNA_DEFAULT_items;
 	}
 	
@@ -529,7 +502,7 @@ static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUS
 
 static int poselib_remove_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= get_poselib_object(C);
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
 	FCurve *fcu;
@@ -585,20 +558,20 @@ void POSELIB_OT_pose_remove (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= poselib_remove_exec;
-	ot->poll= ED_operator_posemode;
+	ot->poll= has_poselib_pose_data_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "pose", DummyRNA_DEFAULT_items, 0, "Pose", "The pose to remove");
-	RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
+		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
 	ot->prop= prop;
 }
 
 static int poselib_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= get_poselib_object(C);
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
 	
@@ -665,20 +638,21 @@ void POSELIB_OT_pose_rename (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "PoseLib Rename Pose";
 	ot->idname= "POSELIB_OT_pose_rename";
-	ot->description= "Rename nth pose from the active Pose Library";
+	ot->description= "Rename specified pose from the active Pose Library";
 	
 	/* api callbacks */
 	ot->invoke= poselib_rename_invoke;
 	ot->exec= poselib_rename_exec;
-	ot->poll= ED_operator_posemode;
+	ot->poll= has_poselib_pose_data_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
+		/* NOTE: name not pose is the operator's "main" property, so that it will get activated in the popup for easy renaming */
+	ot->prop= RNA_def_string(ot->srna, "name", "RenamedPose", 64, "New Pose Name", "New name for pose");
 	prop= RNA_def_enum(ot->srna, "pose", prop_poses_dummy_types, 0, "Pose", "The pose to rename");
 		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
-	RNA_def_string(ot->srna, "name", "RenamedPose", 64, "New Pose Name", "New name for pose");
 }
 
 /* ************************************************************* */
@@ -1361,7 +1335,7 @@ static int poselib_preview_handle_event (bContext *UNUSED(C), wmOperator *op, wm
 static void poselib_preview_init_data (bContext *C, wmOperator *op)
 {
 	tPoseLib_PreviewData *pld;
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= get_poselib_object(C);
 	int pose_index = RNA_int_get(op->ptr, "pose_index");
 	
 	/* set up preview state info */
@@ -1593,12 +1567,12 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	ot->idname= "POSELIB_OT_browse_interactive";
 	ot->description= "Interactively browse poses in 3D-View";
 	
-	/* api callbacks */
+	/* callbacks */
 	ot->invoke= poselib_preview_invoke;
 	ot->modal= poselib_preview_modal;
 	ot->cancel= poselib_preview_cancel;
 	ot->exec= poselib_preview_exec;
-	ot->poll= ED_operator_posemode;
+	ot->poll= has_poselib_pose_data_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -1610,4 +1584,23 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	// XXX: percentage vs factor?
 	/* not used yet */
 	/* RNA_def_float_factor(ot->srna, "blend_factor", 1.0f, 0.0f, 1.0f, "Blend Factor", "Amount that the pose is applied on top of the existing poses", 0.0f, 1.0f); */
+}
+
+void POSELIB_OT_apply_pose (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Apply Pose Library Pose";
+	ot->idname = "POSELIB_OT_apply_pose";
+	ot->description = "Apply specified Pose Library pose to the rig";
+	
+	/* callbacks */
+	ot->exec= poselib_preview_exec;
+	ot->poll= has_poselib_pose_data_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */	
+		// TODO: make the pose_index into a proper enum instead of a cryptic int...
+	ot->prop= RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
 }
