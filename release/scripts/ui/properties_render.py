@@ -62,13 +62,9 @@ class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
 
         rd = context.scene.render
 
-        split = layout.split()
-
-        col = split.column()
-        col.operator("render.render", text="Image", icon='RENDER_STILL')
-
-        col = split.column()
-        col.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
+        row = layout.row()
+        row.operator("render.render", text="Image", icon='RENDER_STILL')
+        row.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
 
         layout.prop(rd, "display_mode", text="Display")
 
@@ -293,6 +289,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
         layout.prop(rd, "filepath", text="")
 
         split = layout.split()
+
         col = split.column()
         col.prop(rd, "file_format", text="")
         col.row().prop(rd, "color_mode", text="Color", expand=True)
@@ -303,35 +300,21 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "use_placeholder")
 
         if file_format in ('AVI_JPEG', 'JPEG'):
-            split = layout.split()
-            split.prop(rd, "file_quality", slider=True)
+            layout.prop(rd, "file_quality", slider=True)
 
         if file_format == 'PNG':
-            split = layout.split()
-            split.prop(rd, "file_quality", slider=True, text="Compression")
+            layout.prop(rd, "file_quality", slider=True, text="Compression")
+            
+        if file_format in ('OPEN_EXR', 'MULTILAYER'):
+            row = layout.row()
+            row.prop(rd, "exr_codec", text="Codec")
+            
+            if file_format == 'OPEN_EXR':
+                row = layout.row()
+                row.prop(rd, "use_exr_half")
+                row.prop(rd, "exr_zbuf")
+                row.prop(rd, "exr_preview")
 
-        elif file_format == 'MULTILAYER':
-            split = layout.split()
-
-            col = split.column()
-            col.label(text="Codec:")
-            col.prop(rd, "exr_codec", text="")
-            col = split.column()
-
-        elif file_format == 'OPEN_EXR':
-            split = layout.split()
-
-            col = split.column()
-            col.label(text="Codec:")
-            col.prop(rd, "exr_codec", text="")
-
-            subsplit = split.split()
-            col = subsplit.column()
-            col.prop(rd, "use_exr_half")
-            col.prop(rd, "exr_zbuf")
-
-            col = subsplit.column()
-            col.prop(rd, "exr_preview")
 
         elif file_format == 'JPEG2000':
             split = layout.split()
@@ -359,12 +342,10 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
             '''
 
         elif file_format == 'TIFF':
-            split = layout.split()
-            split.prop(rd, "use_tiff_16bit")
+            layout.prop(rd, "use_tiff_16bit")
 
         elif file_format == 'QUICKTIME_CARBON':
-            split = layout.split()
-            split.operator("scene.render_data_set_quicktime_codec")
+            layout.operator("scene.render_data_set_quicktime_codec")
 
         elif file_format == 'QUICKTIME_QTKIT':
             split = layout.split()
@@ -376,12 +357,10 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
             col.prop(rd, "quicktime_audiocodec_type", text="Audio Codec")
             if rd.quicktime_audiocodec_type != 'No audio':
                 split = layout.split()
-                col = split.column()
                 if rd.quicktime_audiocodec_type == 'LPCM':
-                    col.prop(rd, "quicktime_audio_bitdepth", text="")
+                    split.prop(rd, "quicktime_audio_bitdepth", text="")
 
-                col = split.column()
-                col.prop(rd, "quicktime_audio_samplerate", text="")
+                split.prop(rd, "quicktime_audio_samplerate", text="")
 
                 split = layout.split()
                 col = split.column()
@@ -416,22 +395,15 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
         layout.menu("RENDER_MT_ffmpeg_presets", text="Presets")
 
         split = layout.split()
-
-        col = split.column()
-        col.prop(rd, "ffmpeg_format")
+        split.prop(rd, "ffmpeg_format")
         if rd.ffmpeg_format in ('AVI', 'QUICKTIME', 'MKV', 'OGG'):
-            col = split.column()
-            col.prop(rd, "ffmpeg_codec")
+            split.prop(rd, "ffmpeg_codec")
         else:
             split.label()
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(rd, "ffmpeg_video_bitrate")
-
-        col = split.column()
-        col.prop(rd, "ffmpeg_gopsize")
+        row = layout.row()
+        row.prop(rd, "ffmpeg_video_bitrate")
+        row.prop(rd, "ffmpeg_gopsize")
 
         split = layout.split()
 
@@ -442,28 +414,24 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "ffmpeg_buffersize", text="Buffer")
 
         col = split.column()
-
         col.prop(rd, "ffmpeg_autosplit")
         col.label(text="Mux:")
         col.prop(rd, "ffmpeg_muxrate", text="Rate")
         col.prop(rd, "ffmpeg_packetsize", text="Packet Size")
+        
+        layout.separator()
 
         # Audio:
-        sub = layout.column()
-
         if rd.ffmpeg_format not in ('MP3', ):
-            sub.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
+            layout.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
 
-        sub.separator()
-
-        split = sub.split()
+        split = layout.split()
 
         col = split.column()
         col.prop(rd, "ffmpeg_audio_bitrate")
         col.prop(rd, "ffmpeg_audio_mixrate")
 
-        col = split.column()
-        col.prop(rd, "ffmpeg_audio_volume", slider=True)
+        split.prop(rd, "ffmpeg_audio_volume", slider=True)
 
 
 class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
