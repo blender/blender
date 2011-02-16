@@ -214,7 +214,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Texture:")
-        col.prop(md, "texture", text="")
+        col.template_ID(md, "texture", new="texture.new")
         col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
@@ -680,7 +680,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         layout.prop(md, "start_position_object")
         layout.prop_search(md, "vertex_group", ob, "vertex_groups")
-        layout.prop(md, "texture")
+        split = layout.split(percentage=0.33)
+        col = split.column()
+        col.label(text="Texture")
+        col = split.column()
+        col.template_ID(md, "texture", new="texture.new")
         layout.prop(md, "texture_coords")
         if md.texture_coords == 'MAP_UV' and ob.type == 'MESH':
             layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
