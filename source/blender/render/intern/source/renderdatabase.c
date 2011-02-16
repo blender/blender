@@ -1000,6 +1000,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 	if(ma->mtex[0]) {
 
 		if( (ma->mode & MA_HALOTEX) ) har->tex= 1;
+		else if(har->mat->septex & (1<<0));	/* only 1 level textures */
 		else {
 
 			mtex= ma->mtex[0];
