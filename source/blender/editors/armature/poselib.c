@@ -355,7 +355,7 @@ void POSELIB_OT_unlink (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = poselib_unlink_exec;
-	ot->poll= ED_operator_posemode; // TODO: this here should require that a poselib exists!
+	ot->poll= poselib_unlink_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
