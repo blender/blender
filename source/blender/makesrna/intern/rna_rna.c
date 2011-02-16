@@ -488,6 +488,12 @@ static int rna_Property_is_hidden_get(PointerRNA *ptr)
 	return prop->flag & PROP_HIDDEN ? 1:0;
 }
 
+static int rna_Property_is_enum_flag_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return prop->flag & PROP_ENUM_FLAG ? 1:0;
+}
+
 static int rna_Property_array_length_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -1044,6 +1050,11 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_runtime_get", NULL);
 	RNA_def_property_ui_text(prop, "Read Only", "Property is editable through RNA");
+
+	prop= RNA_def_property(srna, "is_enum_flag", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_enum_flag_get", NULL);
+	RNA_def_property_ui_text(prop, "Enum Flag", "True when multiple enums ");
 }
 
 static void rna_def_function(BlenderRNA *brna)
@@ -1205,6 +1216,14 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 
 	prop= RNA_def_property(srna, "default", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_items(prop, default_dummy_items);
+	RNA_def_property_enum_funcs(prop, "rna_EnumProperty_default_get", NULL, "rna_EnumProperty_default_itemf");
+	RNA_def_property_ui_text(prop, "Default", "Default value for this enum");
+
+	/* same 'default' but uses 'PROP_ENUM_FLAG' */
+	prop= RNA_def_property(srna, "default_flag", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
 	RNA_def_property_enum_items(prop, default_dummy_items);
 	RNA_def_property_enum_funcs(prop, "rna_EnumProperty_default_get", NULL, "rna_EnumProperty_default_itemf");
 	RNA_def_property_ui_text(prop, "Default", "Default value for this enum");

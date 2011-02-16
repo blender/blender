@@ -158,13 +158,15 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Test if the operator can be called or not.");
 	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	/* exec */
 	func= RNA_def_function(srna, "execute", NULL);
 	RNA_def_function_ui_description(func, "Execute the operator.");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
 	RNA_def_function_return(func, parm);
@@ -173,7 +175,8 @@ void RNA_api_operator(StructRNA *srna)
 	func= RNA_def_function(srna, "check", NULL);
 	RNA_def_function_ui_description(func, "Check the operator settings.");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	parm= RNA_def_boolean(func, "result", 0, "result", ""); // better name?
 	RNA_def_function_return(func, parm);
@@ -182,8 +185,10 @@ void RNA_api_operator(StructRNA *srna)
 	func= RNA_def_function(srna, "invoke", NULL);
 	RNA_def_function_ui_description(func, "Invoke the operator.");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
-	RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_pointer(func, "event", "Event", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	parm= RNA_def_pointer(func, "event", "Event", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
 	RNA_def_function_return(func, parm);
@@ -191,8 +196,10 @@ void RNA_api_operator(StructRNA *srna)
 	func= RNA_def_function(srna, "modal", NULL); /* same as invoke */
 	RNA_def_function_ui_description(func, "Modal operator function.");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
-	RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_pointer(func, "event", "Event", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	parm= RNA_def_pointer(func, "event", "Event", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	parm= RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", ""); // better name?
 	RNA_def_function_return(func, parm);
@@ -201,7 +208,8 @@ void RNA_api_operator(StructRNA *srna)
 	func= RNA_def_function(srna, "draw", NULL);
 	RNA_def_function_ui_description(func, "Draw function for the operator.");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 void RNA_api_macro(StructRNA *srna)
@@ -224,13 +232,15 @@ void RNA_api_macro(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Test if the operator can be called or not.");
 	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	/* draw */
 	func= RNA_def_function(srna, "draw", NULL);
 	RNA_def_function_ui_description(func, "Draw function for the operator.");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
-	RNA_def_pointer(func, "context", "Context", "", "");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 void RNA_api_keyconfig(StructRNA *srna)
