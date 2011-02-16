@@ -149,6 +149,15 @@ static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, Ti
 	MEM_freeN(marker);
 }
 
+static void rna_Action_active_pose_marker_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	bAction *act= (bAction *)ptr->data;
+
+	*min= 0;
+	*max= BLI_countlist(&act->markers)-1;
+	*max= MAX2(0, *max);
+}
+
 static void rna_Action_frame_range_get(PointerRNA *ptr,float *values)
 {
 	calc_action_range(ptr->id.data, values, values+1, 1);
@@ -422,6 +431,7 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	FunctionRNA *func;
 	PropertyRNA *parm;
@@ -445,6 +455,11 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	
+	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "active_marker");
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Action_active_pose_marker_index_range");
+	RNA_def_property_ui_text(prop, "Active Pose Marker Index", "Index of active pose marker");
 }
 
 static void rna_def_action(BlenderRNA *brna)

@@ -50,6 +50,7 @@
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
+#include "BKE_library.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -180,7 +181,7 @@ static bAction *poselib_init_new (Object *ob)
 	
 	/* init object's poselib action (unlink old one if there) */
 	if (ob->poselib)
-		ob->poselib->id.us--;
+		id_us_min(&ob->poselib->id);
 	ob->poselib= add_empty_action("PoseLib");
 	
 	return ob->poselib;
@@ -232,13 +233,10 @@ static void poselib_validate_act (bAction *act)
 		
 		/* add new if none found */
 		if (marker == NULL) {
-			char name[64];
-			
 			/* add pose to poselib */
 			marker= MEM_callocN(sizeof(TimeMarker), "ActionMarker");
 			
-			strcpy(name, "Pose");
-			BLI_strncpy(marker->name, name, sizeof(marker->name));
+			BLI_strncpy(marker->name, "Pose", sizeof(marker->name));
 			
 			marker->frame= (int)ak->cfra;
 			marker->flag= -1;
@@ -264,6 +262,107 @@ static void poselib_validate_act (bAction *act)
 }
 
 /* ************************************************************* */
+/* Pose Lib UI Operators */
+
+static int poselib_new_exec (bContext *C, wmOperator *op)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	Object *ob;
+	
+	/* get object to add Pose Lib to */
+	if (sa->spacetype == SPACE_BUTS) 
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		ob= ED_object_pose_armature(CTX_data_active_object(C));
+		
+	/* sanity checks */
+	if (ob == NULL)
+		return OPERATOR_CANCELLED;
+		
+	/* new method here deals with the rest... */
+	poselib_init_new(ob);
+	
+	/* notifier here might evolve? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSELIB_OT_new (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "New Pose Library";
+	ot->idname = "POSELIB_OT_new";
+	ot->description = "Add New Pose Library to active Object";
+	
+	/* callbacks */
+	ot->exec = poselib_new_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ------------------------------------------------ */
+
+static int poselib_unlink_poll (bContext *C)
+{
+	/* object must exist, and so must a poselib */
+	ScrArea *sa = CTX_wm_area(C);
+	Object *ob;
+	
+	/* get object to add Pose Lib to */
+	if (sa->spacetype == SPACE_BUTS) 
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		ob= ED_object_pose_armature(CTX_data_active_object(C));
+		
+	/* sanity checks */
+	return (ob && ob->poselib);
+}
+
+static int poselib_unlink_exec (bContext *C, wmOperator *op)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	Object *ob;
+	
+	/* get object to add Pose Lib to */
+	if (sa->spacetype == SPACE_BUTS) 
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		ob= ED_object_pose_armature(CTX_data_active_object(C));
+		
+	/* sanity checks */
+	if (ELEM(NULL, ob, ob->poselib))
+		return OPERATOR_CANCELLED;
+		
+	/* there should be a poselib (we just checked above!), so just lower its user count and remove */
+	id_us_min(&ob->poselib->id);
+	ob->poselib = NULL;
+	
+	/* notifier here might evolve? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSELIB_OT_unlink (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unlink Pose Library";
+	ot->idname = "POSELIB_OT_unlink";
+	ot->description = "Remove Pose Library from active Object";
+	
+	/* callbacks */
+	ot->exec = poselib_unlink_exec;
+	ot->poll= ED_operator_posemode; // TODO: this here should require that a poselib exists!
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ************************************************************* */
+/* Pose Editing Operators */
 
 static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
@@ -370,7 +469,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	ANIM_apply_keyingset(C, NULL, act, ks, MODIFYKEY_MODE_INSERT, (float)frame);
 	
 	/* store new 'active' pose number */
-	act->active_marker= BLI_countlist(&act->markers);
+	act->active_marker= BLI_countlist(&act->markers) - 1;
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -444,7 +543,7 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	/* get index (and pointer) of pose to remove */
 	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "pose"));
 	if (marker == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		BKE_reportf(op->reports, RPT_ERROR, "Invalid Pose specified %d", RNA_int_get(op->ptr, "pose"));
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -583,6 +682,7 @@ void POSELIB_OT_pose_rename (wmOperatorType *ot)
 }
 
 /* ************************************************************* */
+/* Pose-Lib Browsing/Previewing Operator */
 
 /* Simple struct for storing settings/data for use during PoseLib preview */
 typedef struct tPoseLib_PreviewData {
