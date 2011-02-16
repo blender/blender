@@ -383,7 +383,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "use_mirror_v", text="V")
 
         col = layout.column()
-        
+
         if md.use_mirror_merge == True:
             col.prop(md, "merge_threshold")
         col.label(text="Mirror Object:")

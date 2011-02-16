@@ -387,6 +387,7 @@ class WM_OT_context_cycle_array(bpy.types.Operator):
 class WM_MT_context_menu_enum(bpy.types.Menu):
     bl_label = ""
     data_path = ""  # BAD DESIGN, set from operator below.
+
     def draw(self, context):
         data_path = self.data_path
         value = context_path_validate(bpy.context, data_path)
@@ -394,7 +395,7 @@ class WM_MT_context_menu_enum(bpy.types.Menu):
             return {'PASS_THROUGH'}
         base_path, prop_string = data_path.rsplit(".", 1)
         value_base = context_path_validate(context, base_path)
-        
+
         values = [(i.name, i.identifier) for i in value_base.bl_rna.properties[prop_string].items]
 
         for name, identifier in values:
@@ -408,7 +409,7 @@ class WM_OT_context_menu_enum(bpy.types.Operator):
     bl_label = "Context Enum Menu"
     bl_options = {'UNDO'}
     data_path = rna_path_prop
-    
+
     def execute(self, context):
         data_path = self.data_path
         WM_MT_context_menu_enum.data_path = data_path

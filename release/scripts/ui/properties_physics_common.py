@@ -274,7 +274,7 @@ def basic_force_field_falloff_ui(self, context, field):
     sub = row.row()
     sub.active = field.use_min_distance
     sub.prop(field, "distance_min", text="Minimum")
-    
+
     col = split.column()
     row = col.row(align=True)
     row.prop(field, "use_max_distance", text="")

@@ -823,7 +823,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
 
         elif part.render_type == 'BILLBOARD':
             ob = context.object
-            
+
             sub.label(text="Align:")
 
             row = layout.row()
@@ -850,7 +850,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
             col = layout.column()
             col.active = part.billboard_uv_split > 1
             col.prop_search(psys, "billboard_split_uv", ob.data, "uv_textures")
-            
+
             row = col.row()
             row.label(text="Animate:")
             row.prop(part, "billboard_animation", text="")

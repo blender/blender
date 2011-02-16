@@ -62,10 +62,10 @@ def context_tex_datablock(context):
     idblock = context.brush
     if idblock:
         return idblock
-    
+
     if context.particle_system:
         idblock = context.particle_system.settings
-        
+
     return idblock
 
 
@@ -991,7 +991,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             factor_but(col, "use_map_zenith_down", "zenith_down_factor", "Zenith Down")
         elif isinstance(idblock, bpy.types.ParticleSettings):
             split = layout.split()
-            
+
             col = split.column()
             col.label(text="General:")
             factor_but(col, "use_map_time", "time_factor", "Time")
@@ -1005,21 +1005,21 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             factor_but(col, "use_map_damp", "damp_factor", "Damp")
             factor_but(col, "use_map_gravity", "gravity_factor", "Gravity")
             factor_but(col, "use_map_field", "field_factor", "Force Fields")
-            
+
             layout.label(text="Hair:")
-            
+
             split = layout.split()
-            
+
             col = split.column()
             factor_but(col, "use_map_length", "length_factor", "Length")
             factor_but(col, "use_map_clump", "clump_factor", "Clump")
-            
+
             col = split.column()
             factor_but(col, "use_map_kink", "kink_factor", "Kink")
             factor_but(col, "use_map_rough", "rough_factor", "Rough")
 
         layout.separator()
-        
+
         if not isinstance(idblock, bpy.types.ParticleSettings):
             split = layout.split()
 

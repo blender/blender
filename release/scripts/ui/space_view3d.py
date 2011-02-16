@@ -1935,8 +1935,7 @@ class VIEW3D_MT_edit_armature_roll(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("armature.calculate_roll", text="Recalculate with Z-Axis Up").type = 'GLOBALUP'
-        layout.operator("armature.calculate_roll", text="Recalculate with Z-Axis to Cursor").type = 'CURSOR'
+        layout.operator_menu_enum("armature.calculate_roll", "type")
 
         layout.separator()
 

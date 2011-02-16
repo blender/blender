@@ -78,6 +78,7 @@ class DiscontFilterOp(bpy.types.Operator):
         main(context)
         return {'FINISHED'}
 
+
 def register():
     bpy.utils.register_module(__name__)
 

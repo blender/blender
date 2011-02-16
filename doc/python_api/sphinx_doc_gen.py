@@ -423,7 +423,7 @@ def pycontext2sphinx(BASEPATH):
     if len(type_map) > len(unique):
         raise Exception("Some types are not used: %s" % str([member for member in type_map if member not in unique]))
     else:
-        pass # will have raised an error above
+        pass  # will have raised an error above
 
 
 def rna2sphinx(BASEPATH):
