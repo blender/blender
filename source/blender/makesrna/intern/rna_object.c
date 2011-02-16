@@ -2254,6 +2254,7 @@ static void rna_def_object(BlenderRNA *brna)
 	/* pose */
 	prop= RNA_def_property(srna, "pose_library", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "poselib");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Action");
 	RNA_def_property_ui_text(prop, "Pose Library", "Action used as a pose library for armatures");
 
