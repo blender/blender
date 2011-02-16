@@ -52,7 +52,7 @@ static tbool			veq( const SVec3 v1, const SVec3 v2 )
 	return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z);
 }
 
-static const SVec3		vadd( const SVec3 v1, const SVec3 v2 )
+static SVec3		vadd( const SVec3 v1, const SVec3 v2 )
 {
 	SVec3 vRes;
 
@@ -64,7 +64,7 @@ static const SVec3		vadd( const SVec3 v1, const SVec3 v2 )
 }
 
 
-static const SVec3		vsub( const SVec3 v1, const SVec3 v2 )
+static SVec3		vsub( const SVec3 v1, const SVec3 v2 )
 {
 	SVec3 vRes;
 
@@ -75,7 +75,7 @@ static const SVec3		vsub( const SVec3 v1, const SVec3 v2 )
 	return vRes;
 }
 
-static const SVec3		vscale(const float fS, const SVec3 v)
+static SVec3		vscale(const float fS, const SVec3 v)
 {
 	SVec3 vRes;
 
@@ -96,12 +96,12 @@ static float			Length( const SVec3 v )
 	return sqrtf(LengthSquared(v));
 }
 
-static const SVec3		Normalize( const SVec3 v )
+static SVec3		Normalize( const SVec3 v )
 {
 	return vscale(1 / Length(v), v);
 }
 
-static const float		vdot( const SVec3 v1, const SVec3 v2)
+static float		vdot( const SVec3 v1, const SVec3 v2)
 {
 	return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
 }
@@ -188,7 +188,7 @@ static void IndexToData(int * piFace, int * piVert, const int iIndexIn)
 	piFace[0] = iIndexIn>>2;
 }
 
-static const STSpace AvgTSpace(const STSpace * pTS0, const STSpace * pTS1)
+static STSpace AvgTSpace(const STSpace * pTS0, const STSpace * pTS1)
 {
 	STSpace ts_res;
 
@@ -218,9 +218,9 @@ static const STSpace AvgTSpace(const STSpace * pTS0, const STSpace * pTS1)
 
 
 
-const SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index);
-const SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index);
-const SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index);
+SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index);
+SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index);
+SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index);
 
 
 // degen triangles
@@ -435,21 +435,22 @@ typedef struct
 	int index;
 } STmpVert;
 
-static const int g_iCells = 2048;
+const int g_iCells = 2048;
+
+#ifdef _MSC_VER
+#define NOINLINE __declspec(noinline)
+#else
+#define NOINLINE __attribute__ ((noinline))
+#endif
 
 // it is IMPORTANT that this function is called to evaluate the hash since
 // inlining could potentially reorder instructions and generate different
 // results for the same effective input value fVal.
-#if defined(_MSC_VER) && !defined(FREE_WINDOWS)
-	#define NOINLINE __declspec(noinline)
-#else
-	#define NOINLINE __attribute__((noinline))
-#endif
-static NOINLINE int FindGridCell(const float fMin, const float fMax, const float fVal)
+NOINLINE int FindGridCell(const float fMin, const float fMax, const float fVal)
 {
-	const float fIndex = (g_iCells-1) * ((fVal-fMin)/(fMax-fMin));
-	const int iIndex = fIndex<0?0:((int) (fIndex+0.5f));
-	return iIndex<g_iCells?iIndex:(g_iCells-1);
+const float fIndex = g_iCells * ((fVal-fMin)/(fMax-fMin));
+const int iIndex = fIndex<0?0:((int)fIndex);
+return iIndex<g_iCells?iIndex:(g_iCells-1);
 }
 
 void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikkTSpaceContext * pContext, const int iL_in, const int iR_in);
@@ -880,7 +881,7 @@ int GenerateInitialVerticesIndexList(STriInfo pTriInfos[], int piTriList_out[], 
 	return iTSpacesOffs;
 }
 
-const SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index)
+SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index)
 {
 	int iF, iI;
 	SVec3 res; float pos[3];
@@ -890,7 +891,7 @@ const SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index)
 	return res;
 }
 
-const SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index)
+SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index)
 {
 	int iF, iI;
 	SVec3 res; float norm[3];
@@ -900,7 +901,7 @@ const SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index)
 	return res;
 }
 
-const SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index)
+SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index)
 {
 	int iF, iI;
 	SVec3 res; float texc[2];
