@@ -341,7 +341,6 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	
 	UI_icon_draw(xpos*xscale-5.0f, 16.0f, icon_id);
 	
-	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 	
 	/* and the marker name too, shifted slightly to the top-right */
