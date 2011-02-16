@@ -174,6 +174,8 @@ LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, cha
 void POSELIB_OT_new(struct wmOperatorType *ot);
 void POSELIB_OT_unlink(struct wmOperatorType *ot);
 
+void POSELIB_OT_action_sanitise(struct wmOperatorType *ot);
+
 void POSELIB_OT_pose_add(struct wmOperatorType *ot);
 void POSELIB_OT_pose_remove(struct wmOperatorType *ot);
 void POSELIB_OT_pose_rename(struct wmOperatorType *ot);
