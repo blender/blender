@@ -91,14 +91,10 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 	if(!psmd->psys->part)
 		return 0;
 
-	ma= give_current_material(ob, psmd->psys->part->omat);
-	if(ma) {
-		for(i=0; i<MAX_MTEX; i++) {
-			mtex=ma->mtex[i];
-			if(mtex && (ma->septex & (1<<i))==0)
-				if(mtex->pmapto && (mtex->texco & TEXCO_UV))
-					dataMask |= CD_MASK_MTFACE;
-		}
+	for(i=0; i<MAX_MTEX; i++) {
+		mtex = psmd->psys->part->mtex[i];
+		if(mtex && mtex->mapto && (mtex->texco & TEXCO_UV))
+			dataMask |= CD_MASK_MTFACE;
 	}
 
 	if(psmd->psys->part->tanfac!=0.0)
