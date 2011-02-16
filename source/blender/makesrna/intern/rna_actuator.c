@@ -549,6 +549,7 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_type_items[] ={
 		{ACT_ACTION_PLAY, "PLAY", 0, "Play", ""},
+		{ACT_ACTION_PINGPONG, "PINGPONG", 0, "Ping Pong", ""},
 		{ACT_ACTION_FLIPPER, "FLIPPER", 0, "Flipper", ""},
 		{ACT_ACTION_LOOP_STOP, "LOOPSTOP", 0, "Loop Stop", ""},
 		{ACT_ACTION_LOOP_END, "LOOPEND", 0, "Loop End", ""},
@@ -1778,6 +1779,7 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_type_items[] ={
 		{ACT_ACTION_PLAY, "PLAY", 0, "Play", ""},
+		{ACT_ACTION_PINGPONG, "PINGPONG", 0, "Ping Pong", ""},
 		{ACT_ACTION_FLIPPER, "FLIPPER", 0, "Flipper", ""},
 		{ACT_ACTION_LOOP_STOP, "LOOPSTOP", 0, "Loop Stop", ""},
 		{ACT_ACTION_LOOP_END, "LOOPEND", 0, "Loop End", ""},
