@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,9 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_ISystem.h
- * Main interface file for C++ Api with declaration of GHOST_ISystem interface
+/*! \ingroup GHOST
+ * \file	GHOST_ISystem.h
+ * %Main interface file for C++ Api with declaration of GHOST_ISystem interface
  * class.
  * Contains the doxygen documentation main page.
  */
@@ -42,7 +42,7 @@
 class GHOST_IEventConsumer;
 
 /**
- *! \mainpage GHOST Main Page
+ * \page GHOST GHOST
  *
  * \section intro Introduction
  *
@@ -115,7 +115,7 @@ class GHOST_IEventConsumer;
  * setting to turn menu functionality on or off.
  */
  
-/**
+/** \interface GHOST_ISystem
  * Interface for classes that provide access to the operating system.
  * There should be only one system class in an application.
  * Therefore, the routines to create and dispose the system are static.

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,10 +25,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_C-api.h
+/*! \ingroup GHOST
+ *
+ * \file	GHOST_C-api.h
  * GHOST C-API function and type declarations.
- * The C-API wraps the C++ objects with the 
  */
 
 #ifndef	GHOST_C_API_H
@@ -44,7 +44,7 @@ extern "C" {
  * Creates a &quot;handle&quot; for a C++ GHOST object.
  * A handle is just an opaque pointer to an empty struct.
  * In the API the pointer is casted to the actual C++ class.
- * @param	name	Name of the handle to create.
+ * \param	name	Name of the handle to create.
  */
 
 GHOST_DECLARE_HANDLE(GHOST_SystemHandle);

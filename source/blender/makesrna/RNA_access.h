@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,10 @@
 
 #ifndef RNA_ACCESS_H
 #define RNA_ACCESS_H
+
+/** \file RNA_access.h
+ *  \ingroup RNA
+ */
 
 #include <stdarg.h>
 

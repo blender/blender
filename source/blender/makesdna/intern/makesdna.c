@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,8 +25,9 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- *
- * Struct muncher for making SDNA
+ */
+
+/** Struct muncher for making SDNA
  *
  * Originally by Ton, some mods by Frank, and some cleaning and
  * extension by Nzc.
@@ -160,12 +161,15 @@ int additional_slen_offset;
 /* ************************************************************************** */
 
 /**
- * Add type <str> to struct indexed by <len>, if it was not yet found.
+ * Add type \c str to struct indexed by \c len, if it was not yet found.
+ * \param str char
+ * \param len int
  */
 int add_type(const char *str, int len);
 
 /**
- * Add variable <str> to 
+ * Add variable \c str to 
+ * \param str
  */
 int add_name(char *str);
 

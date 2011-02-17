@@ -25,15 +25,17 @@
  *  - \ref compositor
  *  - \ref scripts
  *  - \ref gameengine
+ *  - \ref data
  *
  * \section GUI
  *  - \ref gui
- *  - \ref hotkeys
- *  - \ref toolbox
  *
- * \section Libraries and Wrappers
- *  - GHOST API: \ref GHOST_C-api.h
+ * \section libraries Libraries and Wrappers
+ *  - \ref GHOST
  *  - \ref imbuf
+ *  - \ref audaspace
+ *  - \ref DNA
+ *  - \ref RNA
  *
  * \section Miscellaneous
  *  - \ref undoc
@@ -46,16 +48,30 @@
 
 /** \defgroup render Rendering Module */
 /** \defgroup meshedit Mesh Editing Module */
-/** \defgroup texture Textureing */
+/** \defgroup texture Texturing */
 /** \defgroup compositor Compositing */
 /** \defgroup scripts Scripting */
 /** \defgroup gameengine Game Engine */
+/** \defgroup audaspace Audaspace */
+
+/** \defgroup data DNA and RNA */
+
+/** \defgroup GHOST GHOST API */
+/** \defgroup DNA sDNA
+ *  \ingroup data
+ */
+/** \defgroup RNA RNA
+ *  \ingroup data
+ */
 
 /** \defgroup gui GUI */
 /** \defgroup hotkeys Hotkeys
  *  \ingroup gui
  */
 /** \defgroup toolbox Toolbox
+ *  \ingroup gui
+ */
+/** \defgroup wm windowmanager
  *  \ingroup gui
  */
 
