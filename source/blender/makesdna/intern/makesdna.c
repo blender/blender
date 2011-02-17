@@ -27,8 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** Struct muncher for making SDNA
+/**  \file makesdna.c
+ *   \brief Struct muncher for making SDNA.
+ *   \ingroup DNA
  *
+ * \section aboutmakesdnac About makesdna tool
  * Originally by Ton, some mods by Frank, and some cleaning and
  * extension by Nzc.
  *
@@ -43,7 +46,7 @@
  * and the offsets for reaching a particular one.
  *
  * There is a facility to get verbose output from sdna. Search for
- * debugSDNA. This int can be set to 0 (no output) to some int. Higher
+ * \ref debugSDNA. This int can be set to 0 (no output) to some int. Higher
  * numbers give more output.
  * */
 
@@ -146,7 +149,8 @@ short **structs, *structdata;	/* at sp= structs[a] is the first address of a str
 								   sp[0] is type number
 								   sp[1] is amount of elements
 								   sp[2] sp[3] is typenr,  namenr (etc) */
-/*
+/**
+ * Variable to control debug output of makesdna.
  * debugSDNA:
  *  - 0 = no output, except errors
  *  - 1 = detail actions

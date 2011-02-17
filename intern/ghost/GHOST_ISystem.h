@@ -25,6 +25,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 /*! \ingroup GHOST
  * \file	GHOST_ISystem.h
  * %Main interface file for C++ Api with declaration of GHOST_ISystem interface
@@ -88,8 +89,6 @@ class GHOST_IEventConsumer;
  * <ul>
  * <li>GHOST_IEvent.h</li>
  * <li>GHOST_IEventConsumer.h</li>
- * <li>GHOST_IMenu.h (in progress)</li>
- * <li>GHOST_IMenuBar.h (in progress)</li>
  * <li>GHOST_ISystem.h</li>
  * <li>GHOST_ITimerTask.h</li>
  * <li>GHOST_IWindow.h</li>
@@ -108,11 +107,7 @@ class GHOST_IEventConsumer;
  * in the ?/ghost/test/gears/ directory.
  *
  * \section work Work in progress
- *
- * \subsection menus Menu functionality
- * Menu bars with pull-down menu's for windows are in development in the 
- * current version of GHOST. The file GHOST_MenuDependKludge.h contains a 
- * setting to turn menu functionality on or off.
+ * \todo write WIP section
  */
  
 /** \interface GHOST_ISystem

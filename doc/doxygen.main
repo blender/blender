@@ -2,23 +2,17 @@
  *
  * \section intro Introduction
  *
- * Blender is an integrated 3d package, which features:
- *  - modeling
- *  - animation
- *  - texturing
- *  - compositing
- *  - rendering
- *  - scripting
- *  - game creation
+ * Blender is an integrated 3d package.
  *
  * These pages document the source code of blender.
+ *
+ * For more information on using Blender browse to http://www.blender.org
  *
  * \section sects Main sections of the blender code
  *
  *  The following sections are the broad categories into which the various modules
  *  belong.
  *
- *  - \ref mainmodule
  *  - \ref render
  *  - \ref meshedit
  *  - \ref texture
@@ -41,22 +35,47 @@
  *  - \ref undoc
  */
 
-/** \defgroup mainmodule Main Module */
-/** \defgroup defaultconfig Default and Configuration
- *  \ingroup mainmodule
+/** \defgroup intern Internal libraries
+ *  \section internabout Internal libraries
+ *  Blender comes with some of its dependencies
+ *  directly included in the codebase. Libraries
+ *  that are in the \c intern/ folder are maintained
+ *  as part of the normal development process.
  */
+
+/** \defgroup extern External libraries
+ *  \section externabout External libraries
+ *  As with \ref intern these libraries are
+ *  provided in the Blender codebase. This is
+ *  to make building Blender easier. The main
+ *  development of these libraries is \b not part
+ *  of the normal Blender development process, but
+ *  each of the library is developed separately.
+ *  Whenever deemed necessary libraries in \c extern/
+ *  folder are updated.
+ *
+ */
+/** \defgroup editors Editor modules */
+/** \defgroup blenderplayer Blender Player */
 
 /** \defgroup render Rendering Module */
 /** \defgroup meshedit Mesh Editing Module */
 /** \defgroup texture Texturing */
 /** \defgroup compositor Compositing */
+
 /** \defgroup scripts Scripting */
+
 /** \defgroup gameengine Game Engine */
-/** \defgroup audaspace Audaspace */
+
+/** \defgroup audaspace Audaspace
+ *  \ingroup intern undoc
+ *  \todo add to doxygen
+ */
 
 /** \defgroup data DNA and RNA */
 
 /** \defgroup GHOST GHOST API */
+
 /** \defgroup DNA sDNA
  *  \ingroup data
  */
@@ -65,15 +84,12 @@
  */
 
 /** \defgroup gui GUI */
-/** \defgroup hotkeys Hotkeys
- *  \ingroup gui
- */
-/** \defgroup toolbox Toolbox
- *  \ingroup gui
- */
+
 /** \defgroup wm windowmanager
  *  \ingroup gui
  */
 
 /** \defgroup imbuf IMage Buffer */
-/** \defgroup undoc Undocumented */
+
+/** \defgroup undoc Undocumented
+ *  \brief Modules and libraries that are still undocumented, or lacking proper integration into the doxygen system, are marked in this group. */

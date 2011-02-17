@@ -27,11 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/*!
- *  \ingroup DNA
+/**
  *  \page makesdna makesdna
+ *  \ingroup DNA
  *
- * @section aboutdna About the DNA module
+ * \section aboutdna About the DNA module
  *
  * The DNA module holds all type definitions that are serialized in a
  * blender file. There is an executable that scans all files, looking
@@ -39,7 +39,7 @@
  * information, it builds a file with numbers that encode the format,
  * the names of variables, and the plce to look for them.
  *
- * @section dnaissues Known issues with DNA
+ * \section dnaissues Known issues with DNA
  *
  * - Function pointers:
  *
@@ -58,19 +58,19 @@
  *   have to change this (Not very flexible, but it is hardly ever
  *   changed. Sorry.).
  *
- * @section dnadependencies Dependencies
+ * \section dnadependencies Dependencies
  *
  * DNA has no external dependencies (except for a few system
  * includes).
 
- * @section dnanote NOTE
+ * \section dnanote NOTE
 
   PLEASE READ INSTRUCTIONS ABOUT ADDING VARIABLES IN 'DNA' STRUCTS IN
 
   intern/dna_genfile.c
   (ton)
 
- **/
+ */
 
 
 
