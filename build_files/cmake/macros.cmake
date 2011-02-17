@@ -299,32 +299,14 @@ macro(remove_strict_flags)
 
 endmacro()
 
-
-# XXX, until cmake 2.8.4 is released.
-INCLUDE(CheckCSourceCompiles)
-MACRO (CHECK_C_COMPILER_FLAG__INTERNAL _FLAG _RESULT)
-   SET(SAFE_CMAKE_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS}")
-   SET(CMAKE_REQUIRED_DEFINITIONS "${_FLAG}")
-   CHECK_C_SOURCE_COMPILES("int main(void) { return 0;}" ${_RESULT}
-     # Some compilers do not fail with a bad flag
-     FAIL_REGEX "unrecognized .*option"                     # GNU
-     FAIL_REGEX "ignoring unknown option"                   # MSVC
-     FAIL_REGEX "[Uu]nknown option"                         # HP
-     FAIL_REGEX "[Ww]arning: [Oo]ption"                     # SunPro
-     FAIL_REGEX "command option .* is not recognized"       # XL
-     )
-   SET (CMAKE_REQUIRED_DEFINITIONS "${SAFE_CMAKE_REQUIRED_DEFINITIONS}")
-ENDMACRO (CHECK_C_COMPILER_FLAG__INTERNAL)
-# XXX, end duplicate code.
-
 macro(ADD_CHECK_C_COMPILER_FLAG
 	_CFLAGS
 	_CACHE_VAR
 	_FLAG)
 
-	# include(CheckCCompilerFlag)
+	include(CheckCCompilerFlag)
 
-	CHECK_C_COMPILER_FLAG__INTERNAL("${_FLAG}" "${_CACHE_VAR}")
+	CHECK_C_COMPILER_FLAG("${_FLAG}" "${_CACHE_VAR}")
 	if(${_CACHE_VAR})
 		# message(STATUS "Using CFLAG: ${_FLAG}")
 		set(${_CFLAGS} "${${_CFLAGS}} ${_FLAG}")
