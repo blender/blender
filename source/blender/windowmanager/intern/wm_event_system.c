@@ -2099,21 +2099,29 @@ void WM_event_add_mousemove(bContext *C)
 /* for modal callbacks, check configuration for how to interpret exit with tweaks  */
 int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 {
-	/* user preset or keymap? dunno... */
-	// XXX WTH is this?
-	int tweak_modal= (U.flag & USER_RELEASECONFIRM)==0;
-	
-	switch(tweak_event) {
-		case EVT_TWEAK_L:
-		case EVT_TWEAK_M:
-		case EVT_TWEAK_R:
-			if(evt->val==tweak_modal)
-				return 1;
-		default:
-			/* this case is when modal callcback didnt get started with a tweak */
-			if(evt->val)
-				return 1;
+	/* if the release-confirm userpref setting is enabled, 
+	 * tweak events can be cancelled when mouse is released
+	 */
+	if (U.flag & USER_RELEASECONFIRM) {
+		/* option on, so can exit with km-release */
+		if (evt->val == KM_RELEASE) {
+			switch (tweak_event) {
+				case EVT_TWEAK_L:
+				case EVT_TWEAK_M:
+				case EVT_TWEAK_R:
+					return 1;
+			}
+		}
 	}
+	else {
+		/* this is fine as long as not doing km-release, otherwise
+		 * some items (i.e. markers) being tweaked may end up getting
+		 * dropped all over
+		 */
+		if (evt->val != KM_RELEASE)
+			return 1;
+	}
+	
 	return 0;
 }
 
