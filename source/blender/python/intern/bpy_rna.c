@@ -5484,7 +5484,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 		}
 	}
 
-	if (is_static || py_class_instance) { /* Initializing the class worked, now run its invoke function */
+	if (err != -1 && (is_static || py_class_instance)) { /* Initializing the class worked, now run its invoke function */
 		PyObject *item= PyObject_GetAttrString(py_class, RNA_function_identifier(func));
 //		flag= RNA_function_flag(func);
 
