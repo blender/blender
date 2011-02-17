@@ -976,11 +976,12 @@ class USERPREF_PT_addons(bpy.types.Panel):
             bpy.types.WindowManager.addon_search = bpy.props.StringProperty(name="Search", description="Search within the selected filter")
             USERPREF_PT_addons._addons_cats = cats
 
-        sups = {info["support"] for mod, info in addons}
+        sups_default = {'OFFICIAL', 'COMMUNITY'}
+        sups = sups_default | {info["support"] for mod, info in addons}
         sups.discard("")
 
         if USERPREF_PT_addons._addons_sups != sups:
-            bpy.types.WindowManager.addon_support = bpy.props.EnumProperty(items=[(sup, sup.title(), "") for  sup in reversed(sorted(sups))], name="Support", description="Display support level", default={'OFFICIAL', 'COMMUNITY'}, options={'ENUM_FLAG'})
+            bpy.types.WindowManager.addon_support = bpy.props.EnumProperty(items=[(sup, sup.title(), "") for  sup in reversed(sorted(sups))], name="Support", description="Display support level", default=sups_default, options={'ENUM_FLAG'})
             USERPREF_PT_addons._addons_sups = sups
 
         split = layout.split(percentage=0.2)
