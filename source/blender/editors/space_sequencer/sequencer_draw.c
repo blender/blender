@@ -70,8 +70,6 @@
 
 
 /* Note, Dont use WHILE_SEQ while drawing! - it messes up transform, - Campbell */
-
-static int no_rightbox=0, no_leftbox= 0;
 static void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, float y1, float x2, float y2);
 
 static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[3])

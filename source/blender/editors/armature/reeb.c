@@ -59,9 +59,10 @@
 
 #include "reeb.h"
 
-
+#if 0 /* UNUSED 2.5 */
 static ReebGraph *GLOBAL_RG = NULL;
 static ReebGraph *FILTERED_RG = NULL;
+#endif
 
 /*
  * Skeleton generation algorithm based on: 
@@ -496,7 +497,7 @@ void repositionNodes(ReebGraph *rg)
 	}
 }
 
-static void verifyNodeDegree(ReebGraph *rg)
+void verifyNodeDegree(ReebGraph *rg)
 {
 #ifdef DEBUG_REEB
 	ReebNode *node = NULL;
@@ -578,7 +579,7 @@ void verifyFaces(ReebGraph *rg)
 #endif
 }
 
-static void verifyArcs(ReebGraph *rg)
+void verifyArcs(ReebGraph *rg)
 {
 	ReebArc *arc;
 	
@@ -625,6 +626,7 @@ static void addVertToBucket(EmbedBucket *b, float co[3])
 	interp_v3_v3v3(b->p, b->p, co, 1.0f / b->nv);
 }
 
+#if 0 /* UNUSED 2.5 */
 static void removeVertFromBucket(EmbedBucket *b, float co[3])
 {
 	mul_v3_fl(b->p, (float)b->nv);
@@ -632,6 +634,7 @@ static void removeVertFromBucket(EmbedBucket *b, float co[3])
 	b->nv--;
 	mul_v3_fl(b->p, 1.0f / (float)b->nv);
 }
+#endif
 
 static void mergeBuckets(EmbedBucket *bDst, EmbedBucket *bSrc)
 {

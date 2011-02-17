@@ -562,7 +562,7 @@ void filelist_freelib(struct FileList* filelist)
 	filelist->libfiledata= 0;
 }
 
-static struct BlendHandle *filelist_lib(struct FileList* filelist)
+struct BlendHandle *filelist_lib(struct FileList* filelist)
 {
 	return filelist->libfiledata;
 }

@@ -886,7 +886,7 @@ static void do_material_tex(GPUShadeInput *shi)
 	MTex *mtex;
 	Tex *tex;
 	GPUNodeLink *texco, *tin, *trgb, *tnor, *tcol, *stencil, *tnorfac;
-	GPUNodeLink *texco_norm, *texco_orco, *texco_object, *texco_tangent;
+	GPUNodeLink *texco_norm, *texco_orco, *texco_object;
 	GPUNodeLink *texco_global, *texco_uv = NULL;
 	GPUNodeLink *newnor, *orn;
 	char *lastuvname = NULL;

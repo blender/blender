@@ -3962,10 +3962,10 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 /* These operators are only available in databrowser mode for now, as
  * they depend on having RNA paths and/or hierarchies available.
  */
-static enum {
+enum {
 	DRIVERS_EDITMODE_ADD	= 0,
 	DRIVERS_EDITMODE_REMOVE,
-} eDrivers_EditModes;
+} /*eDrivers_EditModes*/;
 
 /* Utilities ---------------------------------- */ 
 
@@ -4116,10 +4116,10 @@ void OUTLINER_OT_drivers_delete_selected(wmOperatorType *ot)
 /* These operators are only available in databrowser mode for now, as
  * they depend on having RNA paths and/or hierarchies available.
  */
-static enum {
+enum {
 	KEYINGSET_EDITMODE_ADD	= 0,
 	KEYINGSET_EDITMODE_REMOVE,
-} eKeyingSet_EditModes;
+} /*eKeyingSet_EditModes*/;
 
 /* Utilities ---------------------------------- */ 
  

@@ -70,7 +70,7 @@ void				filelist_readdir(struct FileList* filelist);
 int					filelist_empty(struct FileList* filelist);
 void				filelist_parent(struct FileList* filelist);
 
-
+struct BlendHandle *filelist_lib(struct FileList* filelist);
 int					filelist_islibrary (struct FileList* filelist, char* dir, char* group);
 void				filelist_from_main(struct FileList* filelist);
 void				filelist_from_library(struct FileList* filelist);

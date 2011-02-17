@@ -78,8 +78,8 @@
 
 #include "LBM_fluidsim.h"
 
-
 #include "ED_screen.h"
+#include "ED_fluidsim.h"
 
 #include "WM_types.h"
 
@@ -1050,16 +1050,16 @@ void fluidsimFreeBake(Object *UNUSED(ob))
 
 /* compile dummy functions for disabled fluid sim */
 
-static FluidsimSettings *fluidsimSettingsNew(Object *UNUSED(srcob))
+FluidsimSettings *fluidsimSettingsNew(Object *UNUSED(srcob))
 {
 	return NULL;
 }
 
-static void fluidsimSettingsFree(FluidsimSettings *UNUSED(fss))
+void fluidsimSettingsFree(FluidsimSettings *UNUSED(fss))
 {
 }
 
-static FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
+FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
 {
 	return NULL;
 }

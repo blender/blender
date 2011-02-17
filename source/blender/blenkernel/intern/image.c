@@ -72,9 +72,8 @@
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 #include "BKE_node.h"
+#include "BKE_sequencer.h" /* seq_foreground_frame_get() */
 #include "BKE_utildefines.h"
-
-//XXX #include "BIF_editseq.h"
 
 #include "BLF_api.h"
 
@@ -968,7 +967,7 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 	
 	if (scene->r.stamp & R_STAMP_SEQSTRIP) {
-		Sequence *seq= NULL; //XXX = get_foreground_frame_seq(scene->r.cfra);
+		Sequence *seq= seq_foreground_frame_get(scene, scene->r.cfra);
 	
 		if (seq) strcpy(text, seq->name+2);
 		else 		strcpy(text, "<none>");

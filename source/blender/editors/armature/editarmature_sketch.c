@@ -76,7 +76,10 @@ typedef struct SK_GestureAction {
 	GestureApplyFct		apply;
 } SK_GestureAction;
 
+#if 0 /* UNUSED 2.5 */
 static SK_Point boneSnap;
+#endif
+
 static int    LAST_SNAP_POINT_VALID = 0;
 static float  LAST_SNAP_POINT[3];
 
@@ -727,6 +730,7 @@ static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, short mval[2], 
 	return pt;
 }
 
+#if 0 /* UNUSED 2.5 */
 static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones, short mval[2], int *dist)
 {
 	ARegion *ar = CTX_wm_region(C);
@@ -774,6 +778,7 @@ static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones,
 
 	return pt;
 }
+#endif
 
 void sk_resetOverdraw(SK_Sketch *sketch)
 {
@@ -2198,6 +2203,7 @@ static int sk_selectStroke(bContext *C, SK_Sketch *sketch, short mval[2], int ex
 	return 0;
 }
 
+#if 0 /* UNUSED 2.5 */
 static void sk_queueRedrawSketch(SK_Sketch *sketch)
 {
 	if (sketch->active_stroke != NULL)
@@ -2211,6 +2217,7 @@ static void sk_queueRedrawSketch(SK_Sketch *sketch)
 		}
 	}
 }
+#endif
 
 static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, int with_names)
 {

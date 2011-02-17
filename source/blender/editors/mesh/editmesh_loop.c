@@ -71,14 +71,10 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "mesh_intern.h"
 
 /* **** XXX ******** */
-static void BIF_undo_push(const char *UNUSED(arg)) {}
-static void BIF_undo(void) {}
 static void error(const char *UNUSED(arg)) {}
-static int qtest(void) {return 0;}
 /* **** XXX ******** */
 
-
-/* New LoopCut */
+#if 0 /* UNUSED 2.5 */
 static void edgering_sel(EditMesh *em, EditEdge *startedge, int select, int previewlines)
 {
 	EditEdge *eed;
@@ -380,7 +376,7 @@ static void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcut
 //	DAG_id_tag_update(obedit->data, 0);
 	return;
 }
-
+#endif
 
 /* *************** LOOP SELECT ************* */
 #if 0

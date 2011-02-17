@@ -86,11 +86,11 @@ static short selmodes_to_flagmodes (short sel)
  *	3) (de)select all - no testing is done; only for use internal tools as normal function...
  */
 
-static enum {
+enum {
 	DESELECT_STRIPS_NOTEST = 0,
 	DESELECT_STRIPS_TEST,
 	DESELECT_STRIPS_CLEARACTIVE,
-} eDeselectNlaStrips;
+} /*eDeselectNlaStrips*/;
  
 /* Deselects strips in the NLA Editor
  *	- This is called by the deselect all operator, as well as other ones!

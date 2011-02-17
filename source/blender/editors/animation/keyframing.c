@@ -349,12 +349,12 @@ int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 
 /* -------------- 'Smarter' Keyframing Functions -------------------- */
 /* return codes for new_key_needed */
-static enum {
+enum {
 	KEYNEEDED_DONTADD = 0,
 	KEYNEEDED_JUSTADD,
 	KEYNEEDED_DELPREV,
 	KEYNEEDED_DELNEXT
-} eKeyNeededStatus;
+} /*eKeyNeededStatus*/;
 
 /* This helper function determines whether a new keyframe is needed */
 /* Cases where keyframes should not be added:
@@ -1034,10 +1034,10 @@ short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 /* KEYFRAME MODIFICATION */
 
 /* mode for commonkey_modifykey */
-static enum {
+enum {
 	COMMONKEY_MODE_INSERT = 0,
 	COMMONKEY_MODE_DELETE,
-} eCommonModifyKey_Modes;
+} /*eCommonModifyKey_Modes*/;
 
 /* Polling callback for use with ANIM_*_keyframe() operators
  * This is based on the standard ED_operator_areaactive callback,

@@ -381,6 +381,7 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 }
 
 /* plain fake antialiased unfilled round rectangle */
+#if 0 /* UNUSED 2.5 */
 static void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, float rad, float asp)
 {
 	float color[4], alpha;
@@ -408,6 +409,7 @@ static void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, fl
 	color[3] = alpha;
 	glColor4fv(color);
 }
+#endif
 
 /* (old, used in outliner) plain antialiased filled box */
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)

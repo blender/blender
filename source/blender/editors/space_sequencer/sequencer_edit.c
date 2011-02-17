@@ -121,28 +121,6 @@ typedef struct TransSeq {
 	int len;
 } TransSeq;
 
-static Sequence *get_foreground_frame_seq(Scene *scene, int frame)
-{
-	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *seq, *best_seq=NULL;
-	int best_machine = -1;
-	
-	if(!ed) return NULL;
-	
-	for (seq=ed->seqbasep->first; seq; seq= seq->next) {
-		if(seq->flag & SEQ_MUTE || seq->startdisp > frame || seq->enddisp <= frame)
-			continue;
-		/* only use elements you can see - not */
-		if (ELEM5(seq->type, SEQ_IMAGE, SEQ_META, SEQ_SCENE, SEQ_MOVIE, SEQ_COLOR)) {
-			if (seq->machine > best_machine) {
-				best_seq = seq;
-				best_machine = seq->machine;
-			}
-		}
-	}
-	return best_seq;
-}
-
 void seq_rectf(Sequence *seq, rctf *rectf)
 {
 	if(seq->startstill) rectf->xmin= seq->start;

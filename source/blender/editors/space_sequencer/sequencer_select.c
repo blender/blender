@@ -176,7 +176,7 @@ static void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* 
 
 // remove this function, replace with invert operator
 //void swap_select_seq(Scene *scene)
-
+#if 0
 static void select_neighbor_from_last(Scene *scene, int lr)
 {
 	Sequence *seq= seq_active_get(scene);
@@ -206,7 +206,7 @@ static void select_neighbor_from_last(Scene *scene, int lr)
 	if (change) {
 	}
 }
-
+#endif
 
 /* (de)select operator */
 static int sequencer_deselect_exec(bContext *C, wmOperator *UNUSED(op))

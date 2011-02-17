@@ -1156,9 +1156,9 @@ void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 
 /************************** Link to Scene Operator *****************************/
 
+#if 0
 static void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
 {
-#if 0
 	Scene *sce= (Scene*) BLI_findlink(&bmain->scene, G.curscreen->scenenr-1);
 	Base *base, *nbase;
 	
@@ -1174,8 +1174,8 @@ static void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
 			id_us_plus((ID *)base->object);
 		}
 	}
-#endif
 }
+#endif
 
 static int make_links_scene_exec(bContext *C, wmOperator *op)
 {

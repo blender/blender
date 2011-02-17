@@ -71,13 +71,6 @@
 
 #include "armature_intern.h"
 
-/* ************* XXX *************** */
-static int pupmenu(const char *UNUSED(dummy)) {return 0;}
-static void error(const char *UNUSED(dummy)) {}
-static void BIF_undo_push(const char *UNUSED(dummy)) {}
-/* ************* XXX *************** */
-
-
 static int object_pose_context(Object *ob)
 {
 	if(	(ob) && 
@@ -167,6 +160,7 @@ void ED_armature_exit_posemode(bContext *C, Base *base)
 
 /* if a selected or active bone is protected, throw error (oonly if warn==1) and return 1 */
 /* only_selected==1 : the active bone is allowed to be protected */
+#if 0 /* UNUSED 2.5 */
 static short pose_has_protected_selected(Object *ob, short warn)
 {
 	/* check protection */
@@ -189,6 +183,7 @@ static short pose_has_protected_selected(Object *ob, short warn)
 	}
 	return 0;
 }
+#endif
 
 /* only for real IK, not for auto-IK */
 static int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan, int level)
@@ -662,7 +657,7 @@ void POSE_OT_select_grouped (wmOperatorType *ot)
 }
 
 /* ********************************************** */
-
+#if 0 /* UNUSED 2.5 */
 static void pose_copy_menu(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX context
@@ -860,6 +855,7 @@ static void pose_copy_menu(Scene *scene)
 	BIF_undo_push("Copy Pose Attributes");
 	
 }
+#endif
 
 /* ******************** copy/paste pose ********************** */
 

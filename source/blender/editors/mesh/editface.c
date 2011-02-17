@@ -152,7 +152,7 @@ MTFace *EM_get_active_mtface(EditMesh *em, EditFace **act_efa, MCol **mcol, int 
 	return NULL;
 }
 
-static void paintface_unhide(Scene *scene)
+void paintface_unhide(Scene *scene)
 {
 	Mesh *me;
 	MFace *mface;
@@ -174,7 +174,7 @@ static void paintface_unhide(Scene *scene)
 	paintface_flush_flags(OBACT);
 }
 
-static void paintface_hide(Scene *scene)
+void paintface_hide(Scene *scene)
 {
 	Mesh *me;
 	MFace *mface;
@@ -397,7 +397,7 @@ void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 	}
 }
 
-static void paintface_select_swap(Scene *scene)
+void paintface_select_swap(Scene *scene)
 {
 	Mesh *me;
 	MFace *mface;

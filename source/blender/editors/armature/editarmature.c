@@ -3392,8 +3392,9 @@ void ARMATURE_OT_reveal(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
 
+}
+#if 0 // remove this?
 static void hide_selected_armature_bones(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX get from context
@@ -3412,8 +3413,6 @@ static void hide_selected_armature_bones(Scene *scene)
 	ED_armature_sync_selection(arm->edbo);
 }
 
-
-#if 0 // remove this?
 static void hide_unselected_armature_bones(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX get from context
@@ -3433,9 +3432,7 @@ static void hide_unselected_armature_bones(Scene *scene)
 	ED_armature_validate_active(arm);
 	ED_armature_sync_selection(arm->edbo);
 }
-#endif
 
-#if 0 // remove this?
 void show_all_armature_bones(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX get from context

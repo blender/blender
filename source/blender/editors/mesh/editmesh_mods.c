@@ -1561,7 +1561,7 @@ static void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 }
 
 
-static void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type) 
+void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type) 
 {
 	short change=0;
 	
@@ -1730,7 +1730,6 @@ static void mesh_copy_menu(EditMesh *em, wmOperator *op)
 		}
 	}
 }
-
 
 /* ****************  LOOP SELECTS *************** */
 
@@ -4066,7 +4065,6 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 }
 
 /* ********** ALIGN WITH VIEW **************** */
-
 
 static void editmesh_calc_selvert_center(EditMesh *em, float cent_r[3])
 {

@@ -917,6 +917,7 @@ void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, Vi
 	}
 }
 
+/* sets the view to 1:1 camera/render-pixel */
 static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
 {
 	RegionView3D *rv3d= ar->regiondata;

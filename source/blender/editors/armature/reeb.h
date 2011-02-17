@@ -172,6 +172,8 @@ void sortArcs(ReebGraph *rg);
 /*------------ Sanity check ------------*/
 void verifyBuckets(ReebGraph *rg);
 void verifyFaces(ReebGraph *rg);
+void verifyArcs(ReebGraph *rg);
+void verifyNodeDegree(ReebGraph *rg);
 
 /*********************** PUBLIC *********************************/
 

@@ -182,11 +182,11 @@ void ACTION_OT_select_all_toggle (wmOperatorType *ot)
  */
 
 /* defines for borderselect mode */
-static enum {
+enum {
 	ACTKEYS_BORDERSEL_ALLKEYS	= 0,
 	ACTKEYS_BORDERSEL_FRAMERANGE,
 	ACTKEYS_BORDERSEL_CHANNELS,
-} eActKeys_BorderSelect_Mode;
+} /*eActKeys_BorderSelect_Mode*/;
 
 
 static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short selectmode)

@@ -592,15 +592,6 @@ void OBJECT_OT_posemode_toggle(wmOperatorType *ot)
 
 /* *********************** */
 
-static void check_editmode(int type)
-{
-	Object *obedit= NULL; // XXX
-	
-	if (obedit==NULL || obedit->type==type) return;
-
-// XXX	ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO); /* freedata, and undo */
-}
-
 #if 0
 // XXX should be in view3d?
 

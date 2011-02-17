@@ -1656,6 +1656,7 @@ static EditBone *add_editbonetolist(char *name, ListBase *list)
 }
 #endif
 
+#if 0 /* UNUSED */
 static void generateMissingArcsFromNode(RigGraph *rigg, ReebNode *node, int multi_level_limit)
 {
 	while (node->multi_level > multi_level_limit && node->link_up)
@@ -1708,6 +1709,7 @@ static void generateMissingArcs(RigGraph *rigg)
 		}
 	}
 }
+#endif
 
 /************************************ RETARGETTING *****************************************************/
 
@@ -2799,7 +2801,7 @@ static void BIF_freeRetarget(void)
 	}
 }
 
-static void BIF_retargetArmature(bContext *C)
+void BIF_retargetArmature(bContext *C)
 {
 	ReebGraph *reebg;
 	double start_time, end_time;
@@ -2932,7 +2934,7 @@ void BIF_retargetArc(bContext *C, ReebArc *earc, RigGraph *template_rigg)
 //	allqueue(REDRAWVIEW3D, 0);
 }
 
-static void BIF_adjustRetarget(bContext *C)
+void BIF_adjustRetarget(bContext *C)
 {
 	if (GLOBAL_RIGG)
 	{
