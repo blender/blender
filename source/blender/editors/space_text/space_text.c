@@ -186,6 +186,7 @@ static void text_operatortypes(void)
 
 	WM_operatortype_append(TEXT_OT_select_line);
 	WM_operatortype_append(TEXT_OT_select_all);
+	WM_operatortype_append(TEXT_OT_select_word);
 
 	WM_operatortype_append(TEXT_OT_jump);
 	WM_operatortype_append(TEXT_OT_move);
@@ -296,6 +297,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "TEXT_OT_select_all", AKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_select_line", AKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_select_word", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
 	
 
 	WM_keymap_add_item(keymap, "TEXT_OT_indent", TABKEY, KM_PRESS, 0, 0);
@@ -343,7 +345,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll", MOUSEPAN, 0, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll_bar", EVT_TWEAK_L, KM_ANY, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_selection_set", EVT_TWEAK_L, KM_ANY, 0, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_CLICK, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_selection_set", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELUPMOUSE, KM_PRESS, 0, 0)->ptr, "lines", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELDOWNMOUSE, KM_PRESS, 0, 0)->ptr, "lines", 1);

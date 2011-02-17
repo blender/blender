@@ -1229,8 +1229,35 @@ void TEXT_OT_select_line(wmOperatorType *ot)
 	ot->idname= "TEXT_OT_select_line";
 	ot->description= "Select text by line";
 	
-	/* api clinebacks */
+	/* api callbacks */
 	ot->exec= select_line_exec;
+	ot->poll= text_edit_poll;
+}
+
+/******************* select word operator *********************/
+
+static int select_word_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Text *text= CTX_data_edit_text(C);
+
+	txt_jump_left(text, 0);
+	txt_jump_right(text, 1);
+
+	text_update_cursor_moved(C);
+	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+
+	return OPERATOR_FINISHED;
+}
+
+void TEXT_OT_select_word(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Word";
+	ot->idname= "TEXT_OT_select_word";
+	ot->description= "Select word under cursor";
+
+	/* api callbacks */
+	ot->exec= select_word_exec;
 	ot->poll= text_edit_poll;
 }
 
