@@ -142,6 +142,7 @@ void TEXT_OT_overwrite_toggle(struct wmOperatorType *ot);
 
 void TEXT_OT_scroll(struct wmOperatorType *ot);
 void TEXT_OT_scroll_bar(struct wmOperatorType *ot);
+void TEXT_OT_selection_set(struct wmOperatorType *ot);
 void TEXT_OT_cursor_set(struct wmOperatorType *ot);
 void TEXT_OT_line_number(struct wmOperatorType *ot);
 
