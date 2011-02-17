@@ -973,7 +973,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		basen->object= ob;
 		
 		/* make sure apply works */
-		BKE_free_animdata(ob->adt);	
+		BKE_free_animdata(&ob->id);	
 		ob->adt = NULL;
 		
 		ob->parent= NULL;
