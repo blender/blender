@@ -5396,7 +5396,8 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
 {
 	PyObject *args;
-	PyObject *ret= NULL, *py_srna= NULL, *py_class, *py_class_instance= NULL, *parmitem;
+	PyObject *ret= NULL, *py_srna= NULL, *py_class_instance= NULL, *parmitem;
+	PyTypeObject *py_class;
 	void **py_class_instance_store= NULL;
 	PropertyRNA *parm;
 	ParameterIterator iter;
@@ -5461,6 +5462,25 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			py_class_instance = NULL;
 		}
 		else {
+#if 1
+			/* Skip the code below and call init directly on the allocated 'py_srna'
+			 * otherwise __init__() always needs to take a second self argument, see pyrna_struct_new().
+			 * Although this is annoying to have to impliment a part of pythons typeobject.c:type_call().
+			 */
+			if(py_class->tp_init) {
+				/* true in most cases even when the class its self doesnt define an __init__ function. */
+				args = PyTuple_New(0);
+		        if (py_class->tp_init(py_srna, args, NULL) < 0) {
+		            Py_DECREF(py_srna);
+		            py_srna= NULL;
+					/* err set below */
+				}
+				Py_DECREF(args);
+			}
+
+			py_class_instance= py_srna;
+
+#else
 			/* 'almost' all the time calling the class isnt needed.
 			 * We could just do...
 			py_class_instance = py_srna;
@@ -5473,7 +5493,8 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			PyTuple_SET_ITEM(args, 0, py_srna);
 			py_class_instance= PyObject_Call(py_class, args, NULL);
 			Py_DECREF(args);
-			
+
+#endif		
 			if(py_class_instance == NULL) {
 				err= -1; /* so the error is not overridden below */
 			}
@@ -5485,7 +5506,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	}
 
 	if (err != -1 && (is_static || py_class_instance)) { /* Initializing the class worked, now run its invoke function */
-		PyObject *item= PyObject_GetAttrString(py_class, RNA_function_identifier(func));
+		PyObject *item= PyObject_GetAttrString((PyObject *)py_class, RNA_function_identifier(func));
 //		flag= RNA_function_flag(func);
 
 		if(item) {
