@@ -24,8 +24,8 @@
 #include <string.h>
 #include <float.h>
 
-#ifdef __APPLE__
-#include <stdlib.h>  /* OSX gets its malloc stuff through here */
+#if defined (__APPLE__) || defined (__FreeBSD__) || defined (__NetBSD__)
+#include <stdlib.h>  /* OSX & BSD's get its malloc stuff through here */
 #else
 #include <malloc.h> 
 #endif
