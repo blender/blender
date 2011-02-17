@@ -21,8 +21,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BLENDER_COLLADA_H
-#define BLENDER_COLLADA_H
+#ifndef COLLADA_INTERNAL_H
+#define COLLADA_INTERNAL_H
 
 #include <string>
 #include <vector>
@@ -89,4 +89,4 @@ extern std::string get_joint_id(Bone *bone, Object *ob_arm);
 
 extern std::string get_camera_id(Object *ob);
 
-#endif
+#endif /* COLLADA_INTERNAL_H */
