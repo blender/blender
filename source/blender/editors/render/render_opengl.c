@@ -353,8 +353,8 @@ static int screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
 	}
 
 	oglrender->cfrao= scene->r.cfra;
-	oglrender->nfra= SFRA;
-	scene->r.cfra= SFRA;
+	oglrender->nfra= PSFRA;
+	scene->r.cfra= PSFRA;
 
 	return 1;
 }
@@ -437,7 +437,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	scene->r.cfra++;
 
 	/* stop at the end or on error */
-	if(scene->r.cfra > EFRA || !ok) {
+	if(scene->r.cfra > PEFRA || !ok) {
 		screen_opengl_render_end(C, op->customdata);
 		return 0;
 	}
