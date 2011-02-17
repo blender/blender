@@ -23,6 +23,7 @@ dch -b -v $DEB_VERSION "New upstream SVN snapshot."
 
 
 # run the rules makefile
+rm -rf get-orig-source
 debian/rules get-orig-source SVN_URL=.
 mv *.gz ../
 
