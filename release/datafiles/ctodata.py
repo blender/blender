@@ -28,7 +28,6 @@
 # <pep8 compliant>
 
 import sys
-import os
 
 if len(sys.argv) < 2:
     sys.stdout.write("Usage: ctodata <c_file>\n")

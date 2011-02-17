@@ -34,7 +34,7 @@ IGNORE = \
     "/ik_glut_test/"
 
 import os
-from os.path import join, dirname, normpath, abspath
+from os.path import join, dirname, normpath, abspath, splitext
 
 base = join(os.path.dirname(__file__), "..", "..")
 base = normpath(base)
@@ -44,9 +44,6 @@ print("Scanning:", base)
 
 global_h = set()
 global_c = set()
-
-import os
-from os.path import  splitext
 
 
 def source_list(path, filename_check=None):

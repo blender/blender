@@ -782,8 +782,9 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
 
         settings = __class__.paint_settings(context)
         brush = settings.brush
-        texture_paint = context.texture_paint_object
-        sculpt = context.sculpt_object
+        ## Unused
+        # texture_paint = context.texture_paint_object
+        # sculpt = context.sculpt_object
 
         col = layout.column(align=True)
 
@@ -941,7 +942,6 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
         settings = __class__.paint_settings(context)
-        brush = settings.brush
 
         split = layout.split()
 
@@ -978,7 +978,6 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
 
         sculpt = context.tool_settings.sculpt
         settings = __class__.paint_settings(context)
-        brush = settings.brush
 
         split = layout.split()
 
@@ -1011,7 +1010,6 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        sculpt = context.tool_settings.sculpt
         settings = __class__.paint_settings(context)
         brush = settings.brush
 

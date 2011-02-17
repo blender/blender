@@ -157,42 +157,42 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
 class DATA_PT_pose_library(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Pose Library"
     bl_options = {'DEFAULT_CLOSED'}
-    
+
     @classmethod
     def poll(cls, context):
         return (context.object and context.object.type == 'ARMATURE' and context.object.pose)
-        
+
     def draw(self, context):
         layout = self.layout
-        
+
         ob = context.object
         poselib = ob.pose_library
-        
+
         row = layout.row()
         row.template_ID(ob, "pose_library", new="poselib.new", unlink="poselib.unlink")
-        
+
         if poselib:
             activePoseIndex = poselib.pose_markers.active_index
             if poselib.pose_markers.active:
                 activePoseName = poselib.pose_markers.active.name
             else:
                 activePoseName = ""
-            
+
             row = layout.row()
             row.template_list(poselib, "pose_markers", poselib.pose_markers, "active_index", rows=5)
-            
+
             col = row.column(align=True)
             col.active = (poselib.library is None)
-            
-            # invoke should still be used for 'add', as it is needed to allow 
+
+            # invoke should still be used for 'add', as it is needed to allow
             # add/replace options to be used properly
             col.operator("poselib.pose_add", icon='ZOOMIN', text="")
-            
-            col.operator_context = 'EXEC_DEFAULT' # exec not invoke, so that menu doesn't need showing
+
+            col.operator_context = 'EXEC_DEFAULT'  # exec not invoke, so that menu doesn't need showing
             col.operator("poselib.pose_remove", icon='ZOOMOUT', text="").pose = activePoseName
 
             col.operator("poselib.apply_pose", icon='ZOOM_SELECTED', text="").pose_index = activePoseIndex
-            
+
             row = layout.row()
             row.operator("poselib.action_sanitise")
 

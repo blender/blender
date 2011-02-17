@@ -817,7 +817,6 @@ class USERPREF_PT_input(InputKeyMapPanel):
         #start = time.time()
 
         userpref = context.user_preferences
-        wm = context.window_manager
 
         inputs = userpref.inputs
 
@@ -871,9 +870,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
         import sys
         import time
 
-        modules = []
-        loaded_modules = set()
-
         # RELEASE SCRIPTS: official scripts distributed in Blender releases
         paths = bpy.utils.script_paths("addons")
 
@@ -884,9 +880,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
         # EXTERN SCRIPTS: external projects scripts
         # if folder addons_extern/ exists, scripts in there will be loaded too
         paths += bpy.utils.script_paths("addons_extern")
-
-        if bpy.app.debug:
-            t_main = time.time()
 
         # fake module importing
         def fake_module(mod_name, mod_path, speedy=True):

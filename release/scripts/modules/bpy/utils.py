@@ -74,9 +74,6 @@ def modules_from_path(path, loaded_modules):
     :return: all loaded modules.
     :rtype: list
     """
-    import traceback
-    import time
-
     modules = []
 
     for mod_name, mod_path in _bpy.path.module_names(path):

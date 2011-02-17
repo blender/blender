@@ -283,7 +283,6 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         ob = context.active_object
-        rd = context.scene.render
 
         return (context.mode == 'EDIT_MESH') and ob and ob.type == 'MESH'
 

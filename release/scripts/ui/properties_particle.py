@@ -40,17 +40,18 @@ def particle_panel_poll(cls, context):
     psys = context.particle_system
     engine = context.scene.render.engine
     settings = 0
-    
+
     if psys:
         settings = psys.settings
     elif isinstance(context.space_data.pin_id, bpy.types.ParticleSettings):
         settings = context.space_data.pin_id
-    
+
     if not settings:
         return False
 
     return settings.is_fluid == False and (engine in cls.COMPAT_ENGINES)
-    
+
+
 def particle_get_settings(context):
     if context.particle_system:
         return context.particle_system.settings
@@ -97,18 +98,18 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
 
         if psys == None:
             part = particle_get_settings(context)
-            
+
             if part == None:
                 return
-                
+
             layout.template_ID(context.space_data, "pin_id")
-            
+
             if part.is_fluid:
                 layout.label(text="Settings used for fluid.")
                 return
-                
+
             layout.prop(part, "type", text="Type")
-        
+
         elif not psys.settings:
             split = layout.split(percentage=0.32)
 
@@ -392,7 +393,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, bpy.types.Panel):
         if particle_panel_poll(PARTICLE_PT_rotation, context):
             psys = context.particle_system
             settings = particle_get_settings(context)
-            
+
             if settings.type == 'HAIR' and not settings.use_advanced_hair:
                 return False
             return settings.physics_type != 'BOIDS' and (psys == None or not psys.point_cache.use_external)

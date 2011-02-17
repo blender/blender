@@ -647,10 +647,11 @@ class VIEW3D_MT_select_face(bpy.types.Menu):  # XXX no matching enum
     bl_label = "Select"
 
     def draw(self, context):
-        layout = self.layout
+        # layout = self.layout
 
         # TODO
         # see view3d_select_faceselmenu
+        pass
 
 # ********** Object menu **********
 
@@ -1151,8 +1152,6 @@ class VIEW3D_MT_pose(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        arm = context.active_object.data
-
         layout.operator("ed.undo")
         layout.operator("ed.redo")
 
@@ -1447,7 +1446,7 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(bpy.types.Operator):
 
         totface = mesh.total_face_sel
         totedge = mesh.total_edge_sel
-        totvert = mesh.total_vert_sel
+        # totvert = mesh.total_vert_sel
 
         if select_mode[2] and totface == 1:
             bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": 'NORMAL', "constraint_axis": (False, False, True)})
@@ -1475,7 +1474,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(bpy.types.Operator):
 
         totface = mesh.total_face_sel
         totedge = mesh.total_edge_sel
-        totvert = mesh.total_vert_sel
+        # totvert = mesh.total_vert_sel
 
         if totface >= 1:
             bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": 'NORMAL', "constraint_axis": (False, False, True)})
@@ -1958,7 +1957,6 @@ class VIEW3D_PT_view3d_properties(bpy.types.Panel):
         layout = self.layout
 
         view = context.space_data
-        scene = context.scene
 
         col = layout.column()
         col.active = view.region_3d.view_perspective != 'CAMERA'

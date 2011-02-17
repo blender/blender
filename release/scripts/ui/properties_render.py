@@ -304,17 +304,16 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
 
         if file_format == 'PNG':
             layout.prop(rd, "file_quality", slider=True, text="Compression")
-            
+
         if file_format in ('OPEN_EXR', 'MULTILAYER'):
             row = layout.row()
             row.prop(rd, "exr_codec", text="Codec")
-            
+
             if file_format == 'OPEN_EXR':
                 row = layout.row()
                 row.prop(rd, "use_exr_half")
                 row.prop(rd, "exr_zbuf")
                 row.prop(rd, "exr_preview")
-
 
         elif file_format == 'JPEG2000':
             split = layout.split()
@@ -418,7 +417,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
         col.label(text="Mux:")
         col.prop(rd, "ffmpeg_muxrate", text="Rate")
         col.prop(rd, "ffmpeg_packetsize", text="Packet Size")
-        
+
         layout.separator()
 
         # Audio:
