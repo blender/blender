@@ -72,7 +72,7 @@
  *  \todo add to doxygen
  */
 
-/** \defgroup data DNA and RNA */
+/** \defgroup data DNA, RNA and .blend access*/
 
 /** \defgroup GHOST GHOST API */
 
@@ -80,6 +80,10 @@
  *  \ingroup data
  */
 /** \defgroup RNA RNA
+ *  \ingroup data
+ */
+
+/** \defgroup readwrite .blend read and write functions
  *  \ingroup data
  */
 

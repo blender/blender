@@ -25,11 +25,15 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * external writefile function prototypes
  */
 
 #ifndef BLO_WRITEFILE_H
 #define BLO_WRITEFILE_H
+
+/** \file BLO_writefile.h
+ *  \ingroup readwrite
+ *  \brief external writefile function prototypes.
+ */
 
 struct MemFile;
 struct Main;

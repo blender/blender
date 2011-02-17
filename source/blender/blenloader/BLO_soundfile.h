@@ -29,6 +29,10 @@
 #ifndef BLO_SOUNDFILE_H
 #define BLO_SOUNDFILE_H
 
+/** \file BLO_soundfile.h
+ *  \ingroup readwrite
+ */
+
 #include "DNA_sound_types.h"
 #include "DNA_packedFile_types.h"
 
