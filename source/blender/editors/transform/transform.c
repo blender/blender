@@ -1382,12 +1382,14 @@ static void drawTransformView(const struct bContext *C, struct ARegion *UNUSED(a
 	drawSnapping(C, t);
 }
 
+#if 0
 static void drawTransformPixel(const struct bContext *UNUSED(C), struct ARegion *UNUSED(ar), void *UNUSED(arg))
 {
 //	TransInfo *t = arg;
 //
 //	drawHelpline(C, t->mval[0], t->mval[1], t);
 }
+#endif
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
@@ -5890,9 +5892,9 @@ void BIF_TransformSetUndo(char *UNUSED(str))
 }
 
 
+#if 0 // TRANSFORM_FIX_ME
 static void NDofTransform(void)
 {
-#if 0 // TRANSFORM_FIX_ME
 	float fval[7];
 	float maxval = 50.0f; // also serves as threshold
 	int axis = -1;
@@ -5937,5 +5939,5 @@ static void NDofTransform(void)
 		initTransform(mode, CTX_NDOF);
 		Transform();
 	}
-#endif
 }
+#endif

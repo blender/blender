@@ -150,10 +150,12 @@ static void node_buts_curvevec(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 }
 
 static float *_sample_col= NULL;	// bad bad, 2.5 will do better?
+#if 0
 static void node_curvemap_sample(float *col)
 {
 	_sample_col= col;
 }
+#endif
 
 static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {

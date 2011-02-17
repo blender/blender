@@ -177,6 +177,8 @@ void BLF_lang_set(const char *);
 /* Set the current encoding name. */
 void BLF_lang_encoding_name(const char *str);
 
+void BLF_lang_encoding(const char *str);
+
 /* Add a path to the font dir paths. */
 void BLF_dir_add(const char *path);
 

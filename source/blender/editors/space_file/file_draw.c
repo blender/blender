@@ -79,7 +79,7 @@
 static enum {
 	B_FS_DIRNAME,
 	B_FS_FILENAME
-} eFile_ButEvents;
+} /*eFile_ButEvents*/;
 
 
 static void do_file_buttons(bContext *C, void *UNUSED(arg), int event)

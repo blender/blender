@@ -83,6 +83,8 @@
 
 //#include "blendef.h" /* for selection modes */
 
+#define USE_BVH_FACE_PROJECT
+
 /********************* PROTOTYPES ***********************/
 
 void setSnappingCallback(TransInfo *t);
@@ -1020,7 +1022,7 @@ void TargetSnapClosest(TransInfo *t)
 	}
 }
 /*================================================================*/
-
+#ifndef USE_BVH_FACE_SNAP
 static int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], float *v4co, float mval[2], float ray_start[3], float ray_start_local[3], float ray_normal_local[3], float obmat[][4], float timat[][3], float *loc, float *no, int *dist, float *depth)
 {
 	float lambda;
@@ -1071,6 +1073,7 @@ static int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], fl
 	
 	return retval;
 }
+#endif
 
 static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], short v2no[3], float mval[2], float ray_start[3], float ray_start_local[3], float ray_normal_local[3], float obmat[][4], float timat[][3], float *loc, float *no, int *dist, float *depth)
 {
@@ -1304,7 +1307,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 			{
 				case SCE_SNAP_MODE_FACE:
 				{ 
-#if 1				// Added for durian
+#ifdef USE_BVH_FACE_SNAP				// Added for durian
 					BVHTreeRayHit hit;
 					BVHTreeFromMesh treeData;
 

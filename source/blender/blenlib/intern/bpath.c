@@ -141,9 +141,11 @@ void BLI_bpathIterator_init(struct BPathIterator **bpi_pt, Main *bmain, const ch
 	BLI_bpathIterator_step(bpi);
 }
 
+#if 0
 static void BLI_bpathIterator_alloc(struct BPathIterator **bpi) {
 	*bpi= MEM_mallocN(sizeof(BPathIterator), "BLI_bpathIterator_alloc");
 }
+#endif
 
 void BLI_bpathIterator_free(struct BPathIterator *bpi) {
 	if (bpi->seqdata.seqar)

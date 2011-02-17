@@ -925,6 +925,7 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
 }
 
 /* assumes armature editmode */
+#if 0
 static void validate_editbonebutton_cb(bContext *C, void *bonev, void *namev)
 {
 	EditBone *eBone= bonev;
@@ -939,6 +940,7 @@ static void validate_editbonebutton_cb(bContext *C, void *bonev, void *namev)
 	ED_armature_bone_rename(CTX_data_edit_object(C)->data, oldname, newname); // editarmature.c
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, CTX_data_edit_object(C)); // XXX fix
 }
+#endif
 
 static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 {
@@ -1197,16 +1199,6 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 
 	/* default for now */
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, ob);
-}
-
-static void removeTransformOrientation_func(bContext *C, void *target, void *UNUSED(arg))
-{
-	BIF_removeTransformOrientation(C, (TransformOrientation *) target);
-}
-
-static void selectTransformOrientation_func(bContext *C, void *target, void *UNUSED(arg))
-{
-	BIF_selectTransformOrientation(C, (TransformOrientation *) target);
 }
 
 static void view3d_panel_object(const bContext *C, Panel *pa)

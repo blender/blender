@@ -5306,6 +5306,7 @@ static void draw_box(float vec[8][3])
 }
 
 /* uses boundbox, function used by Ketsji */
+#if 0
 static void get_local_bounds(Object *ob, float *center, float *size)
 {
 	BoundBox *bb= object_get_boundbox(ob);
@@ -5324,8 +5325,7 @@ static void get_local_bounds(Object *ob, float *center, float *size)
 		center[2]= (bb->vec[0][2] + bb->vec[1][2])/2.0;
 	}
 }
-
-
+#endif
 
 static void draw_bb_quadric(BoundBox *bb, short type)
 {

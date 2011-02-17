@@ -99,7 +99,7 @@ void BLF_lang_set(const char *str)
 	BLI_strncpy(global_language, str, sizeof(global_language));
 }
 
-static void BLF_lang_encoding(const char *str)
+void BLF_lang_encoding(const char *str)
 {
 	BLI_strncpy(global_encoding_name, str, sizeof(global_encoding_name));
 	/* bind_textdomain_codeset(DOMAIN_NAME, encoding_name); */
@@ -112,7 +112,7 @@ void BLF_lang_init(void)
 	return;
 }
 
-static void BLF_lang_encoding(const char *str)
+void BLF_lang_encoding(const char *str)
 {
 	(void)str;
 	return;
