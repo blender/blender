@@ -23,12 +23,7 @@
 #include <math.h>
 #include <string.h>
 #include <float.h>
-
-#if defined (__APPLE__) || defined (__FreeBSD__) || defined (__NetBSD__)
-#include <stdlib.h>  /* OSX & BSD's get its malloc stuff through here */
-#else
-#include <malloc.h> 
-#endif
+#include <stdlib.h>
 
 #include "mikktspace.h"
 
