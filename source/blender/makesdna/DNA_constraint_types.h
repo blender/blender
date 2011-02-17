@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +30,10 @@
 
 #ifndef DNA_CONSTRAINT_TYPES_H
 #define DNA_CONSTRAINT_TYPES_H
+
+/** \file DNA_constraint_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_ID.h"
 #include "DNA_listBase.h"

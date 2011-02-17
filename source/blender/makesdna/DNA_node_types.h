@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +29,10 @@
 
 #ifndef DNA_NODE_TYPES_H
 #define DNA_NODE_TYPES_H
+
+/** \file DNA_node_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_ID.h"
 #include "DNA_vec_types.h"

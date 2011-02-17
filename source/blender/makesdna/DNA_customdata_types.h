@@ -27,7 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** @file DNA_customdata_types.h
+/** \file DNA_customdata_types.h
  *  \ingroup DNA
  */
 

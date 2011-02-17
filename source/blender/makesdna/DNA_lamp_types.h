@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_lamp_types.h (mar-2001 nzc)
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,10 @@
  */
 #ifndef DNA_LAMP_TYPES_H
 #define DNA_LAMP_TYPES_H
+
+/** \file DNA_lamp_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_ID.h"
 

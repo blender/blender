@@ -1,5 +1,4 @@
-/**
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,10 +20,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "DNA_listBase.h"
-
 #ifndef DNA_MODIFIER_TYPES_H
 #define DNA_MODIFIER_TYPES_H
+
+/** \file DNA_modifier_types.h
+ *  \ingroup DNA
+ */
+
+#include "DNA_listBase.h"
+
 
 #define MODSTACK_DEBUG 1
 

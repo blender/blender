@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  */
 #ifndef DNA_MESH_TYPES_H
 #define DNA_MESH_TYPES_H
+
+/** \file DNA_mesh_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"

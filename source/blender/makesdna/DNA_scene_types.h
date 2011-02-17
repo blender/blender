@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  */
 #ifndef DNA_SCENE_TYPES_H
 #define DNA_SCENE_TYPES_H
+
+/** \file DNA_scene_types.h
+ *  \ingroup DNA
+ */
 
 // XXX, temp feature
 #define DURIAN_CAMERA_SWITCH

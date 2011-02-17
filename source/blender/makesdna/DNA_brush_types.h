@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +29,11 @@
 
 #ifndef DNA_BRUSH_TYPES_H
 #define DNA_BRUSH_TYPES_H
+
+/** \file DNA_brush_types.h
+ *  \ingroup DNA
+ */
+
 
 #include "DNA_ID.h"
 #include "DNA_texture_types.h" /* for MTex */
