@@ -207,6 +207,12 @@
 #define OSKEY		172
 #define GRLESSKEY	173
 
+// XXX: are these codes ok?
+#define MEDIAPLAY	174
+#define MEDIASTOP	175
+#define MEDIAFIRST	176
+#define MEDIALAST	177
+
 /* for event checks */
 	/* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
 #define ISTEXTINPUT(event)	(event >=' ' && event <=255)

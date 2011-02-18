@@ -136,6 +136,19 @@
 #define VK_GR_LESS 0xE2
 #endif // VK_GR_LESS
 
+#ifndef VK_MEDIA_NEXT_TRACK
+#define VK_MEDIA_NEXT_TRACK	0xB0
+#endif // VK_MEDIA_NEXT_TRACK
+#ifndef VK_MEDIA_PREV_TRACK
+#define VK_MEDIA_PREV_TRACK	0xB1
+#endif // VK_MEDIA_PREV_TRACK
+#ifndef VK_MEDIA_STOP
+#define VK_MEDIA_STOP	0xB2
+#endif // VK_MEDIA_STOP
+#ifndef VK_MEDIA_PLAY_PAUSE
+#define VK_MEDIA_PLAY_PAUSE	0xB3
+#endif // VK_MEDIA_PLAY_PAUSE
+
 
 GHOST_SystemWin32::GHOST_SystemWin32()
 : m_hasPerformanceCounter(false), m_freq(0), m_start(0)
@@ -640,6 +653,10 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, L
 		case VK_OEM_8:
 			key = ((GHOST_SystemWin32*)getSystem())->processSpecialKey(window, wParam, lParam);
 			break;
+		case VK_MEDIA_PLAY_PAUSE: key = GHOST_kKeyMediaPlay; break;
+		case VK_MEDIA_STOP: key = GHOST_kKeyMediaStop; break;
+		case VK_MEDIA_PREV_TRACK: key = GHOST_kKeyMediaFirst; break;
+		case VK_MEDIA_NEXT_TRACK: key = GHOST_kKeyMediaLast; break;
 		default:
 			key = GHOST_kKeyUnknown;
 			break;

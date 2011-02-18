@@ -2196,7 +2196,12 @@ static int convert_key(GHOST_TKey key)
 			case GHOST_kKeyNumpadSlash:		return PADSLASHKEY;
 				
 			case GHOST_kKeyGrLess:		    return GRLESSKEY; 
-				
+			
+			case GHOST_kKeyMediaPlay:		return MEDIAPLAY;
+			case GHOST_kKeyMediaStop:		return MEDIASTOP;
+			case GHOST_kKeyMediaFirst:		return MEDIAFIRST;
+			case GHOST_kKeyMediaLast:		return MEDIALAST;
+			
 			default:
 				return UNKNOWNKEY;	/* GHOST_kKeyUnknown */
 		}

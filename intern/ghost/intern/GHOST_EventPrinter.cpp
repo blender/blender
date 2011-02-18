@@ -325,6 +325,18 @@ void GHOST_EventPrinter::getKeyString(GHOST_TKey key, STR_String& str) const
 		case GHOST_kKeyNumpadSlash:
 			str = "NumpadSlash";
 			break;
+		case GHOST_kKeyMediaPlay:
+			str = "MediaPlayPause";
+			break;
+		case GHOST_kKeyMediaStop:
+			str = "MediaStop";
+			break;
+		case GHOST_kKeyMediaFirst:
+			str = "MediaFirst";
+			break;
+		case GHOST_kKeyMediaLast:
+			str = "MediaLast";
+			break;
 		default:
 			str = "unknown";
 			break;
