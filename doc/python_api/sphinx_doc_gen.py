@@ -61,7 +61,7 @@ else:
         "bpy.app",
         "bpy.path",
         "bpy.data",
-        # "bpy.props",
+        #"bpy.props",
         "bpy.utils",
         "bpy.context",
         # "bpy.types",  # supports filtering
@@ -74,7 +74,7 @@ else:
         "mathutils.geometry",
     )
 
-    FILTER_BPY_TYPES = ("PropertyGroup", "Panel", "Menu", "Operator")  # allow
+    FILTER_BPY_TYPES = ("PropertyGroup", "Panel", "Menu", "Operator", "RenderEngine")  # allow
     FILTER_BPY_OPS = ("import.scene", )  # allow
 
     # for quick rebuilds

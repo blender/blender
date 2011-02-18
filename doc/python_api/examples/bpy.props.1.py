@@ -1,23 +1,23 @@
 """
-Dialog Box
-++++++++++
-This operator uses its :class:`Operator.invoke` function to call a popup.
+Operator Example
+++++++++++++++++
+
+A common use of custom properties is for python based :class:`Operator` classes.
 """
+
 import bpy
 
 
 class DialogOperator(bpy.types.Operator):
     bl_idname = "object.dialog_operator"
-    bl_label = "Simple Dialog Operator"
+    bl_label = "Property Example"
 
     my_float = bpy.props.FloatProperty(name="Some Floating Point")
     my_bool = bpy.props.BoolProperty(name="Toggle Option")
     my_string = bpy.props.StringProperty(name="String Value")
 
     def execute(self, context):
-        message = "Popup Values: %f, %d, '%s'" % \
-            (self.my_float, self.my_bool, self.my_string)
-        self.report({'INFO'}, message)
+        print("Dialog Runs")
         return {'FINISHED'}
 
     def invoke(self, context, event):
