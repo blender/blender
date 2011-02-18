@@ -2546,7 +2546,6 @@ static void set_cursor_exit(bContext *C, wmOperator *op)
 static int set_selection_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceText *st= CTX_wm_space_text(C);
-	ARegion *ar= CTX_wm_region(C);
 	SetSelection *ssel;
 
 	op->customdata= MEM_callocN(sizeof(SetSelection), "SetCursor");
@@ -2555,20 +2554,6 @@ static int set_selection_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	ssel->old[0]= event->mval[0];
 	ssel->old[1]= event->mval[1];
-
-	if(!ssel->selecting) {
-		int curl= txt_get_span(st->text->lines.first, st->text->curl);
-		int curc= st->text->curc;			
-		int linep2, charp2;
-					
-		set_cursor_to_pos(st, ar, event->mval[0], event->mval[1], 0);
-
-		linep2= txt_get_span(st->text->lines.first, st->text->curl);
-		charp2= st->text->selc;
-				
-		if(curl!=linep2 || curc!=charp2)
-			txt_undo_add_toop(st->text, UNDO_CTO, curl, curc, linep2, charp2);
-	}
 
 	ssel->sell= txt_get_span(st->text->lines.first, st->text->sell);
 	ssel->selc= st->text->selc;
@@ -2624,20 +2609,32 @@ void TEXT_OT_selection_set(wmOperatorType *ot)
 static int set_cursor_exec(bContext *C, wmOperator *op)
 {
 	SpaceText *st= CTX_wm_space_text(C);
+	Text *text= st->text;
 	ARegion *ar= CTX_wm_region(C);
 	int x= RNA_int_get(op->ptr, "x");
 	int y= RNA_int_get(op->ptr, "y");
+	int oldl, oldc;
+
+	oldl= txt_get_span(text->lines.first, text->curl);
+	oldc= text->curc;
 
 	set_cursor_to_pos(st, ar, x, y, 0);
+
+	txt_undo_add_toop(text, UNDO_CTO, oldl, oldc, txt_get_span(text->lines.first, text->curl), text->curc);
 
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
 
-	return OPERATOR_FINISHED;
+	return OPERATOR_PASS_THROUGH;
 }
 
 static int set_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	SpaceText *st= CTX_wm_space_text(C);
+
+	if(event->mval[0]>=st->txtbar.xmin)
+		return OPERATOR_PASS_THROUGH;
+
 	RNA_int_set(op->ptr, "x", event->mval[0]);
 	RNA_int_set(op->ptr, "y", event->mval[1]);
 
