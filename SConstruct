@@ -60,6 +60,10 @@ import bcolors
 
 EnsureSConsVersion(1,0,0)
 
+# Before we do anything, let's check if we have a sane os.environ
+if not btools.check_environ():
+    Exit()
+
 BlenderEnvironment = Blender.BlenderEnvironment
 B = Blender
 
