@@ -1879,7 +1879,7 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 			float twmat[3][3];
 
 			/* same as transform manipulator when normal is set */
-			ED_getTransformOrientationMatrix(C, twmat, TRUE);
+			ED_getTransformOrientationMatrix(C, twmat, FALSE);
 
 			mat3_to_quat( obact_quat,twmat);
 			invert_qt(obact_quat);
