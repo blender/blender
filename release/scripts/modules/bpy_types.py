@@ -674,7 +674,7 @@ class _GenericUI:
 
     @classmethod
     def append(cls, draw_func):
-        """Prepend an draw function to this menu, takes the same arguments as the menus draw function."""
+        """Append a draw function to this menu, takes the same arguments as the menus draw function."""
         draw_funcs = cls._dyn_ui_initialize()
         draw_funcs.append(draw_func)
 

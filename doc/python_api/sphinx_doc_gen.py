@@ -61,9 +61,10 @@ else:
         "bpy.app",
         "bpy.path",
         "bpy.data",
-        "bpy.props",
+        # "bpy.props",
         "bpy.utils",
-        #"bpy.types",  # supports filtering
+        "bpy.context",
+        # "bpy.types",  # supports filtering
         "bpy.ops",  # supports filtering
         "bge",
         "aud",
@@ -73,8 +74,8 @@ else:
         "mathutils.geometry",
     )
 
-    FILTER_BPY_TYPES = ("Operator", )  # allow 
-    FILTER_BPY_OPS = ("import_scene", )  # allow 
+    FILTER_BPY_TYPES = ("PropertyGroup", "Panel", "Menu", "Operator")  # allow
+    FILTER_BPY_OPS = ("import.scene", )  # allow
 
     # for quick rebuilds
     """
@@ -156,19 +157,20 @@ def example_extract_docstring(filepath):
 
 def write_example_ref(ident, fw, example_id, ext="py"):
     if example_id in EXAMPLE_SET:
-        
+
         # extract the comment
         filepath = "../examples/%s.%s" % (example_id, ext)
         filepath_full = os.path.join(os.path.dirname(fw.__self__.name), filepath)
-        
+
         text, line_no = example_extract_docstring(filepath_full)
-        
+
         for line in text.split("\n"):
             fw("%s\n" % (ident + line).rstrip())
         fw("\n")
 
         fw("%s.. literalinclude:: %s\n" % (ident, filepath))
-        fw("%s   :lines: %d-\n" % (ident, line_no))
+        if line_no > 0:
+            fw("%s   :lines: %d-\n" % (ident, line_no))
         fw("\n")
         EXAMPLE_SET_USED.add(example_id)
     else:
@@ -563,6 +565,7 @@ def pyrna2sphinx(BASEPATH):
 
         fw(".. module:: bpy.types\n\n")
 
+        # docs first?, ok
         write_example_ref("", fw, "bpy.types.%s" % struct.identifier)
 
         base_ids = [base.identifier for base in struct.get_bases()]
@@ -726,6 +729,9 @@ def pyrna2sphinx(BASEPATH):
                 fw("   * :class:`%s`\n" % ref)
             fw("\n")
 
+        # docs last?, disable for now
+        # write_example_ref("", fw, "bpy.types.%s" % struct.identifier)
+
     if "bpy.types" not in EXCLUDE_MODULES:
         for struct in structs.values():
             # TODO, rna_info should filter these out!
@@ -854,9 +860,10 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("This document is an API reference for Blender %s. built %s.\n" % (version_string, bpy.app.build_date))
     fw("\n")
-    fw("An introduction to Blender and Python can be found at <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>\n")
+    fw("| An introduction to Blender and Python can be found at `Quickstart Intro <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>`_,\n")
+    fw("| For a more general explanation of blender/python see the `API Overview <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Overview>`_\n")
     fw("\n")
-    fw("`A PDF version of this document is also available <blender_python_reference_%s.pdf>`__\n" % version_string_fp)
+    fw("`A PDF version of this document is also available <blender_python_reference_%s.pdf>`_\n" % version_string_fp)
     fw("\n")
     fw(".. warning:: The Python API in Blender is **UNSTABLE**, It should only be used for testing, any script written now may break in future releases.\n")
     fw("   \n")
@@ -943,6 +950,7 @@ def rna2sphinx(BASEPATH):
         fw = file.write
         fw("Operators (bpy.ops)\n")
         fw("===================\n\n")
+        write_example_ref("", fw, "bpy.ops")
         fw(".. toctree::\n")
         fw("   :glob:\n\n")
         fw("   bpy.ops.*\n\n")
@@ -1009,7 +1017,6 @@ def rna2sphinx(BASEPATH):
     if "mathutils" not in EXCLUDE_MODULES:
         import mathutils as module
         pymodule2sphinx(BASEPATH, "mathutils", module, "Math Types & Utilities (mathutils)")
-
 
     if "mathutils.geometry" not in EXCLUDE_MODULES:
         import mathutils.geometry as module

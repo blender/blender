@@ -348,7 +348,7 @@ class MATERIAL_PT_shading(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Transparency"
-    bl_options = {'DEFAULT_CLOSED'}
+    # bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod

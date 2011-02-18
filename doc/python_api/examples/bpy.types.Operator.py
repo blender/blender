@@ -1,7 +1,14 @@
 """
 Basic Operator Example
 ++++++++++++++++++++++
-This script is the most simple operator you can write that does something.
+This script shows simple operator which prints a message.
+
+Since the operator only has an :class:`Operator.execute` function it takes no
+user input.
+
+.. note::
+
+   Operator subclasses must be registered before accessing them from blender.
 """
 import bpy
 

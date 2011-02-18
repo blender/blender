@@ -1,6 +1,13 @@
 """
 Invoke Function
 +++++++++++++++
+:class:`Operator.invoke` is used to initialize the operator from the context
+at the moment the operator is called.
+invoke() is typically used to assign properties which are then used by
+execute().
+Some operators don't have an execute() function, removing the ability to be
+repeated from a script or macro.
+
 This example shows how to define an operator which gets mouse input to
 execute a function and that this operator can be invoked or executed from
 the python api.
@@ -14,7 +21,9 @@ import bpy
 
 
 class SimpleMouseOperator(bpy.types.Operator):
-    """This operator shows the mouse location, this string is used for the tooltip and API docs"""
+    """ This operator shows the mouse location,
+        this string is used for the tooltip and API docs
+    """
     bl_idname = "wm.mouse_position"
     bl_label = "Invoke Mouse Operator"
 
