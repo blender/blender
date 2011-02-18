@@ -1382,7 +1382,7 @@ int BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
 
 int BLI_replace_extension(char *path, int maxlen, const char *ext)
 {
-	int a;
+	unsigned int a;
 
 	for(a=strlen(path)-1; a>=0; a--)
 		if(path[a] == '.' || path[a] == '/' || path[a] == '\\')
@@ -1738,7 +1738,7 @@ void BLI_where_am_i(char *fullname, const int maxlen, const char *name)
 	}
 }
 
-void BLI_where_is_temp(char *fullname, int maxlen, int usertemp)
+void BLI_where_is_temp(char *fullname, const int maxlen, int usertemp)
 {
 	fullname[0] = '\0';
 	

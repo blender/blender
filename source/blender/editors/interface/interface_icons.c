@@ -972,7 +972,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	if(di->type == ICON_TYPE_VECTOR) {
 		/* vector icons use the uiBlock transformation, they are not drawn
 		with untransformed coordinates like the other icons */
-		di->data.vector.func(x, y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
+		di->data.vector.func((int)x, (int)y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
 	} 
 	else if(di->type == ICON_TYPE_TEXTURE) {
 		icon_draw_texture(x, y, w, h, di->data.texture.x, di->data.texture.y,

@@ -317,11 +317,11 @@ class VIEW3D_MT_view_navigation(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_enums("view3d.view_orbit", "type")
+        layout.operator_enum("view3d.view_orbit", "type")
 
         layout.separator()
 
-        layout.operator_enums("view3d.view_pan", "type")
+        layout.operator_enum("view3d.view_pan", "type")
 
         layout.separator()
 
@@ -933,7 +933,7 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
             layout.operator_menu_enum("object.make_links_scene", "scene", text="Objects to Scene...")
             layout.operator_menu_enum("marker.make_links_scene", "scene", text="Markers to Scene...")
 
-        layout.operator_enums("object.make_links_data", "type")  # inline
+        layout.operator_enum("object.make_links_data", "type")  # inline
 
 
 class VIEW3D_MT_object_game(bpy.types.Menu):

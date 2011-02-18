@@ -2202,7 +2202,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	
 	float tf_uv_pxoffset[4][2]; /* bucket bounds in UV space so we can init pixels only for this face,  */
 	float xhalfpx, yhalfpx;
-	const float ibuf_xf = ibuf->x, ibuf_yf = ibuf->y;
+	const float ibuf_xf = (float)ibuf->x, ibuf_yf = (float)ibuf->y;
 	
 	int has_x_isect = 0, has_isect = 0; /* for early loop exit */
 	
