@@ -87,6 +87,10 @@
  *  \ingroup data
  */
 
+/** \defgroup readblenfile readblenfile
+ *  \ingroup data
+ */
+
 /** \defgroup gui GUI */
 
 /** \defgroup wm windowmanager
