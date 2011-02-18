@@ -208,10 +208,8 @@ AUD_DeviceSpecs AUD_SoftwareDevice::getSpecs() const
 	return m_specs;
 }
 
-AUD_Handle* AUD_SoftwareDevice::play(AUD_IFactory* factory, bool keep)
+AUD_Handle* AUD_SoftwareDevice::play(AUD_IReader* reader, bool keep)
 {
-	AUD_IReader* reader = factory->createReader();
-
 	// prepare the reader
 	reader = m_mixer->prepare(reader);
 	if(reader == NULL)
@@ -234,6 +232,11 @@ AUD_Handle* AUD_SoftwareDevice::play(AUD_IFactory* factory, bool keep)
 	unlock();
 
 	return sound;
+}
+
+AUD_Handle* AUD_SoftwareDevice::play(AUD_IFactory* factory, bool keep)
+{
+	return play(factory->createReader(), keep);
 }
 
 bool AUD_SoftwareDevice::pause(AUD_Handle* handle)

@@ -534,80 +534,9 @@ static const char* queue_error = "AUD_OpenALDevice: Buffer couldn't be "
 static const char* bufferdata_error = "AUD_OpenALDevice: Buffer couldn't be "
 									  "filled with data.";
 
-AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
+AUD_Handle* AUD_OpenALDevice::play(AUD_IReader* reader, bool keep)
 {
-	lock();
-
 	AUD_OpenALHandle* sound = NULL;
-
-	try
-	{
-		// check if it is a buffered factory
-		for(AUD_BFIterator i = m_bufferedFactories->begin();
-			i != m_bufferedFactories->end(); i++)
-		{
-			if((*i)->factory == factory)
-			{
-				// create the handle
-				sound = new AUD_OpenALHandle;
-				sound->keep = keep;
-				sound->current = -1;
-				sound->isBuffered = true;
-				sound->data_end = true;
-				sound->loopcount = 0;
-				sound->stop = NULL;
-				sound->stop_data = NULL;
-
-				alcSuspendContext(m_context);
-
-				// OpenAL playback code
-				try
-				{
-					alGenSources(1, &sound->source);
-					if(alGetError() != AL_NO_ERROR)
-						AUD_THROW(AUD_ERROR_OPENAL, gensource_error);
-
-					try
-					{
-						alSourcei(sound->source, AL_BUFFER, (*i)->buffer);
-						if(alGetError() != AL_NO_ERROR)
-							AUD_THROW(AUD_ERROR_OPENAL, queue_error);
-					}
-					catch(AUD_Exception&)
-					{
-						alDeleteSources(1, &sound->source);
-						throw;
-					}
-				}
-				catch(AUD_Exception&)
-				{
-					delete sound;
-					alcProcessContext(m_context);
-					throw;
-				}
-
-				// play sound
-				m_playingSounds->push_back(sound);
-
-				alSourcei(sound->source, AL_SOURCE_RELATIVE, 1);
-				start();
-
-				alcProcessContext(m_context);
-			}
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		unlock();
-		throw;
-	}
-
-	unlock();
-
-	if(sound)
-		return sound;
-
-	AUD_IReader* reader = factory->createReader();
 
 	AUD_DeviceSpecs specs = m_specs;
 	specs.specs = reader->getSpecs();
@@ -706,6 +635,82 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 	unlock();
 
 	return sound;
+}
+
+AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
+{
+	AUD_OpenALHandle* sound = NULL;
+
+	lock();
+
+	try
+	{
+		// check if it is a buffered factory
+		for(AUD_BFIterator i = m_bufferedFactories->begin();
+			i != m_bufferedFactories->end(); i++)
+		{
+			if((*i)->factory == factory)
+			{
+				// create the handle
+				sound = new AUD_OpenALHandle;
+				sound->keep = keep;
+				sound->current = -1;
+				sound->isBuffered = true;
+				sound->data_end = true;
+				sound->loopcount = 0;
+				sound->stop = NULL;
+				sound->stop_data = NULL;
+
+				alcSuspendContext(m_context);
+
+				// OpenAL playback code
+				try
+				{
+					alGenSources(1, &sound->source);
+					if(alGetError() != AL_NO_ERROR)
+						AUD_THROW(AUD_ERROR_OPENAL, gensource_error);
+
+					try
+					{
+						alSourcei(sound->source, AL_BUFFER, (*i)->buffer);
+						if(alGetError() != AL_NO_ERROR)
+							AUD_THROW(AUD_ERROR_OPENAL, queue_error);
+					}
+					catch(AUD_Exception&)
+					{
+						alDeleteSources(1, &sound->source);
+						throw;
+					}
+				}
+				catch(AUD_Exception&)
+				{
+					delete sound;
+					alcProcessContext(m_context);
+					throw;
+				}
+
+				// play sound
+				m_playingSounds->push_back(sound);
+
+				alSourcei(sound->source, AL_SOURCE_RELATIVE, 1);
+				start();
+
+				alcProcessContext(m_context);
+			}
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		unlock();
+		throw;
+	}
+
+	unlock();
+
+	if(sound)
+		return sound;
+
+	return play(factory->createReader(), keep);
 }
 
 bool AUD_OpenALDevice::pause(AUD_Handle* handle)

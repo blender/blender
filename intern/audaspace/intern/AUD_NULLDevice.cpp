@@ -43,6 +43,11 @@ AUD_DeviceSpecs AUD_NULLDevice::getSpecs() const
 	return specs;
 }
 
+AUD_Handle* AUD_NULLDevice::play(AUD_IReader* reader, bool keep)
+{
+	return 0;
+}
+
 AUD_Handle* AUD_NULLDevice::play(AUD_IFactory* factory, bool keep)
 {
 	return 0;

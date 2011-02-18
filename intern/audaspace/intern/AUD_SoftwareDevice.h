@@ -114,6 +114,7 @@ private:
 
 public:
 	virtual AUD_DeviceSpecs getSpecs() const;
+	virtual AUD_Handle* play(AUD_IReader* reader, bool keep = false);
 	virtual AUD_Handle* play(AUD_IFactory* factory, bool keep = false);
 	virtual bool pause(AUD_Handle* handle);
 	virtual bool resume(AUD_Handle* handle);

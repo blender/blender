@@ -27,6 +27,8 @@
 #include "AUD_DefaultMixer.h"
 #ifdef WITH_SAMPLERATE
 #include "AUD_SRCResampleReader.h"
+#else
+#include "AUD_LinearResampleReader.h"
 #endif
 #include "AUD_ChannelMapperReader.h"
 #include "AUD_ChannelMapperFactory.h"
@@ -53,10 +55,12 @@ AUD_IReader* AUD_DefaultMixer::prepare(AUD_IReader* reader)
 		specs.channels = m_specs.channels;
 	}
 
-#ifdef WITH_SAMPLERATE
 	// resample
 	if(specs.rate != m_specs.rate)
+#ifdef WITH_SAMPLERATE
 		reader = new AUD_SRCResampleReader(reader, m_specs.specs);
+#else
+		reader = new AUD_LinearResampleReader(reader, m_specs.specs);
 #endif
 	
 	// rechannel
