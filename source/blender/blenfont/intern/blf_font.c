@@ -53,7 +53,7 @@
 
 
 /* freetype2 handle. */
-static FT_Library global_ft_lib;
+FT_Library global_ft_lib;
 
 int blf_font_init(void)
 {

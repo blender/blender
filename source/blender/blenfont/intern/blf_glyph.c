@@ -51,7 +51,8 @@
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
-static FT_Library global_ft_lib;
+/* XXX copied from blf_font.c */
+extern FT_Library global_ft_lib;
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 {
