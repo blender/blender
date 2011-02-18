@@ -1578,7 +1578,7 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 	if(scene->unit.scale_length<0.0001) scene->unit.scale_length= 1.0; // XXX do_versions
 
 	/* Sanity checks */
-	if(precision>4)		precision= 4;
+	if(precision>7)		precision= 7;
 	else if(precision==0)	precision= 2;
 
 	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precision, scene->unit.system, unit_type>>16, do_split, pad);
@@ -1666,6 +1666,10 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 				if(but->a2==1) BLI_snprintf(str, maxlen, "%.1f", value);
 				else if(but->a2==2) BLI_snprintf(str, maxlen, "%.2f", value);
 				else if(but->a2==3) BLI_snprintf(str, maxlen, "%.3f", value);
+				else if(but->a2==4) BLI_snprintf(str, maxlen, "%.4f", value);
+				else if(but->a2==5) BLI_snprintf(str, maxlen, "%.5f", value);
+				else if(but->a2==6) BLI_snprintf(str, maxlen, "%.6f", value);
+				else if(but->a2==7) BLI_snprintf(str, maxlen, "%.7f", value);
 				else BLI_snprintf(str, maxlen, "%.4f", value);
 			}
 			else
@@ -2131,6 +2135,10 @@ void ui_check_but(uiBut *but)
 				if(but->a2==1) sprintf(but->drawstr, "%s%.1f", but->str, value);
 				else if(but->a2==2) sprintf(but->drawstr, "%s%.2f", but->str, value);
 				else if(but->a2==3) sprintf(but->drawstr, "%s%.3f", but->str, value);
+				else if(but->a2==4) sprintf(but->drawstr, "%s%.4f", but->str, value);
+				else if(but->a2==5) sprintf(but->drawstr, "%s%.5f", but->str, value);
+				else if(but->a2==6) sprintf(but->drawstr, "%s%.6f", but->str, value);
+				else if(but->a2==7) sprintf(but->drawstr, "%s%.7f", but->str, value);
 				else sprintf(but->drawstr, "%s%.4f", but->str, value);
 			}
 			else {
@@ -2157,6 +2165,10 @@ void ui_check_but(uiBut *but)
 				if(but->a2==1) sprintf(but->drawstr, "%s%.1f", but->str, value);
 				else if(but->a2==2) sprintf(but->drawstr, "%s%.2f", but->str, value);
 				else if(but->a2==3) sprintf(but->drawstr, "%s%.3f", but->str, value);
+				else if(but->a2==4) sprintf(but->drawstr, "%s%.4f", but->str, value);
+				else if(but->a2==5) sprintf(but->drawstr, "%s%.5f", but->str, value);
+				else if(but->a2==6) sprintf(but->drawstr, "%s%.6f", but->str, value);
+				else if(but->a2==7) sprintf(but->drawstr, "%s%.7f", but->str, value);
 				else sprintf(but->drawstr, "%s%.4f", but->str, value);
 			}
 			else {
