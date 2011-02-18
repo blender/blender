@@ -665,8 +665,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	uiSetRoundBox(3);
 	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);
 	
-	/* show/hide icons, note this sequence is copied in editnode.c */
-	iconofs= rct->xmax;
+	/* show/hide icons, note this sequence is copied in do_header_node() node_state.c */
+	iconofs= rct->xmax - 7.0f;
 	
 	if(node->typeinfo->flag & NODE_PREVIEW) {
 		int icon_id;
@@ -675,7 +675,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			icon_id= ICON_MATERIAL;
 		else
 			icon_id= ICON_MATERIAL_DATA;
-		iconofs-=22.0f;
+		iconofs-=15.0f;
 		uiDefIconBut(node->block, LABEL, B_REDR, icon_id, iconofs, rct->ymax-NODE_DY,
 					 UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, 0.5, "");
 	}
