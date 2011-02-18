@@ -32,10 +32,6 @@
  *  \ingroup bli
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifdef WIN32
 #define _USE_MATH_DEFINES
 #endif
@@ -172,15 +168,11 @@ MINLINE float power_of_2(float f);
 MINLINE float shell_angle_to_dist(float angle);
 
 #if (defined(WIN32) || defined(WIN64)) && !defined(FREE_WINDOWS)
-double copysign(double x, double y);
-double round(double x);
+extern double copysign(double x, double y);
+extern double round(double x);
 #endif
 
 double double_round(double x, int ndigits);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BLI_MATH_BASE_H */
 
