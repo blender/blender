@@ -171,6 +171,11 @@ MINLINE float power_of_2(float f);
 
 MINLINE float shell_angle_to_dist(float angle);
 
+#if (defined(WIN32) || defined(WIN64)) && !defined(FREE_WINDOWS)
+double copysign(double x, double y);
+double round(double x);
+#endif
+
 double double_round(double x, int ndigits);
 
 #ifdef __cplusplus
