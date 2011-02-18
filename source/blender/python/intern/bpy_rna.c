@@ -567,7 +567,7 @@ static PyObject *pyrna_prop_str( BPy_PropertyRNA *self )
 	int type= RNA_property_type(self->prop);
 
 	if(RNA_enum_id_from_value(property_type_items, type, &type_id)==0) {
-		PyErr_SetString(PyExc_SystemError, "could not use property type, internal error"); /* should never happen */
+		PyErr_SetString(PyExc_RuntimeError, "could not use property type, internal error"); /* should never happen */
 		return NULL;
 	}
 	else {
@@ -3538,11 +3538,11 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 	if(PyErr_Occurred()) {
 		/* Maybe we could make our own error */
 		PyErr_Print();
-		PyErr_SetString(PyExc_SystemError, "could not access the py sequence");
+		PyErr_SetString(PyExc_TypeError, "could not access the py sequence");
 		return NULL;
 	}
 	if (!ok) {
-		PyErr_SetString(PyExc_SystemError, "internal error setting the array");
+		PyErr_SetString(PyExc_RuntimeError, "internal error setting the array");
 		return NULL;
 	}
 
@@ -4967,7 +4967,7 @@ static PyObject *pyrna_basetype_getattro( BPy_BaseTypeRNA *self, PyObject *pynam
 	else if (RNA_property_collection_lookup_string(&self->ptr, self->prop, name, &newptr)) {
 		ret= pyrna_struct_Subtype(&newptr);
 		if (ret==NULL) {
-			PyErr_Format(PyExc_SystemError, "bpy.types.%.200s subtype could not be generated, this is a bug!", _PyUnicode_AsString(pyname));
+			PyErr_Format(PyExc_RuntimeError, "bpy.types.%.200s subtype could not be generated, this is a bug!", _PyUnicode_AsString(pyname));
 		}
 	}
 	else {
@@ -5056,18 +5056,18 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, int parent, const char *error_pr
 	}
 
 	if(py_srna==NULL) {
-		 PyErr_Format(PyExc_SystemError, "%.200s, missing bl_rna attribute from '%.200s' instance (may not be registered)", error_prefix, Py_TYPE(self)->tp_name);
+		 PyErr_Format(PyExc_RuntimeError, "%.200s, missing bl_rna attribute from '%.200s' instance (may not be registered)", error_prefix, Py_TYPE(self)->tp_name);
 		return NULL;
 	}
 
 	if(!BPy_StructRNA_Check(py_srna)) {
-		 PyErr_Format(PyExc_SystemError, "%.200s, bl_rna attribute wrong type '%.200s' on '%.200s'' instance", error_prefix, Py_TYPE(py_srna)->tp_name, Py_TYPE(self)->tp_name);
+		 PyErr_Format(PyExc_TypeError, "%.200s, bl_rna attribute wrong type '%.200s' on '%.200s'' instance", error_prefix, Py_TYPE(py_srna)->tp_name, Py_TYPE(self)->tp_name);
 		 Py_DECREF(py_srna);
 		return NULL;
 	}
 
 	if(py_srna->ptr.type != &RNA_Struct) {
-		PyErr_Format(PyExc_SystemError, "%.200s, bl_rna attribute not a RNA_Struct, on '%.200s'' instance", error_prefix, Py_TYPE(self)->tp_name);
+		PyErr_Format(PyExc_TypeError, "%.200s, bl_rna attribute not a RNA_Struct, on '%.200s'' instance", error_prefix, Py_TYPE(self)->tp_name);
 		 Py_DECREF(py_srna);
 		return NULL;
 	}
@@ -5895,7 +5895,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 		RNA_PROP_END;
 		
 		if(prop_identifier) {
-			PyErr_Format(PyExc_SystemError, "unregister_class(...): Cant unregister %s because %s.%s pointer property is using this", RNA_struct_identifier(srna), RNA_struct_identifier(srna_iter), prop_identifier);
+			PyErr_Format(PyExc_RuntimeError, "unregister_class(...): can't unregister %s because %s.%s pointer property is using this", RNA_struct_identifier(srna), RNA_struct_identifier(srna_iter), prop_identifier);
 			return NULL;
 		}		
 	}

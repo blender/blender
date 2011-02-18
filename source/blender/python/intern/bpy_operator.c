@@ -60,7 +60,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 	bContext *C= (bContext *)BPy_GetContext();
 	
 	if(C==NULL) {
-		PyErr_SetString(PyExc_SystemError, "Context is None, cant poll any operators");
+		PyErr_SetString(PyExc_RuntimeError, "Context is None, cant poll any operators");
 		return NULL;
 	}
 
@@ -70,7 +70,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 	ot= WM_operatortype_find(opname, TRUE);
 
 	if (ot == NULL) {
-		PyErr_Format(PyExc_SystemError, "Polling operator \"bpy.ops.%s\" error, could not be found", opname);
+		PyErr_Format(PyExc_AttributeError, "Polling operator \"bpy.ops.%s\" error, could not be found", opname);
 		return NULL;
 	}
 
@@ -127,7 +127,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	bContext *C = (bContext *)BPy_GetContext();
 	
 	if(C==NULL) {
-		PyErr_SetString(PyExc_SystemError, "Context is None, cant poll any operators");
+		PyErr_SetString(PyExc_RuntimeError, "Context is None, cant poll any operators");
 		return NULL;
 	}
 	
@@ -137,12 +137,12 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	ot= WM_operatortype_find(opname, TRUE);
 
 	if (ot == NULL) {
-		PyErr_Format(PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, could not be found", opname);
+		PyErr_Format(PyExc_LookupError, "Calling operator \"bpy.ops.%s\" error, could not be found", opname);
 		return NULL;
 	}
 	
 	if(!pyrna_write_check()) {
-		PyErr_Format(PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, can't modify blend data in this state (drawing/rendering)", opname);
+		PyErr_Format(PyExc_RuntimeError, "Calling operator \"bpy.ops.%s\" error, can't modify blend data in this state (drawing/rendering)", opname);
 		return NULL;
 	}
 
@@ -170,7 +170,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 
 	if(WM_operator_poll_context((bContext*)C, ot, context) == FALSE) {
 		const char *msg= CTX_wm_operator_poll_msg_get(C);
-		PyErr_Format(PyExc_SystemError, "Operator bpy.ops.%.200s.poll() %.200s", opname, msg ? msg : "failed, context is incorrect");
+		PyErr_Format(PyExc_RuntimeError, "Operator bpy.ops.%.200s.poll() %.200s", opname, msg ? msg : "failed, context is incorrect");
 		CTX_wm_operator_poll_msg_set(C, NULL); /* better set to NULL else it could be used again */
 		error_val= -1;
 	}
@@ -261,7 +261,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 	bContext *C= (bContext *)BPy_GetContext();
 
 	if(C==NULL) {
-		PyErr_SetString(PyExc_SystemError, "Context is None, cant get the string representation of this object.");
+		PyErr_SetString(PyExc_RuntimeError, "Context is None, cant get the string representation of this object.");
 		return NULL;
 	}
 	
@@ -271,7 +271,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 	ot= WM_operatortype_find(opname, TRUE);
 
 	if (ot == NULL) {
-		PyErr_Format(PyExc_SystemError, "_bpy.ops.as_string: operator \"%.200s\"could not be found", opname);
+		PyErr_Format(PyExc_AttributeError, "_bpy.ops.as_string: operator \"%.200s\"could not be found", opname);
 		return NULL;
 	}
 

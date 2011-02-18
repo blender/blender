@@ -400,7 +400,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 #endif
 		}
 		else {
-			PyErr_Format(PyExc_SystemError, "Python file \"%s\" could not be opened: %s", fn, strerror(errno));
+			PyErr_Format(PyExc_IOError, "Python file \"%s\" could not be opened: %s", fn, strerror(errno));
 			py_result= NULL;
 		}
 	}

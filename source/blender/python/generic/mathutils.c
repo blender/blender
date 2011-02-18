@@ -273,7 +273,7 @@ int _BaseMathObject_ReadCallback(BaseMathObject *self)
 		return 1;
 
 	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+		PyErr_Format(PyExc_RuntimeError, "%s user has become invalid", Py_TYPE(self)->tp_name);
 	return 0;
 }
 
@@ -284,7 +284,7 @@ int _BaseMathObject_WriteCallback(BaseMathObject *self)
 		return 1;
 
 	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+		PyErr_Format(PyExc_RuntimeError, "%s user has become invalid", Py_TYPE(self)->tp_name);
 	return 0;
 }
 
@@ -295,7 +295,7 @@ int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 		return 1;
 
 	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+		PyErr_Format(PyExc_RuntimeError, "%s user has become invalid", Py_TYPE(self)->tp_name);
 	return 0;
 }
 
@@ -306,7 +306,7 @@ int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
 		return 1;
 
 	if(!PyErr_Occurred())
-		PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+		PyErr_Format(PyExc_RuntimeError, "%s user has become invalid", Py_TYPE(self)->tp_name);
 	return 0;
 }
 

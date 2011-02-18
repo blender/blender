@@ -752,7 +752,7 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 	}
 
 	if(!RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
-		 PyErr_Format(PyExc_SystemError, "%.200s expected an RNA type derived from PropertyGroup", error_prefix);
+		 PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from PropertyGroup", error_prefix);
 		return NULL;
 	}
 

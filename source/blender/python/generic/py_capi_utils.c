@@ -78,7 +78,7 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 	if (filename) {
 		co_filename= PyC_Object_GetAttrStringArgs(frame, 2, "f_code", "co_filename");
 		if (co_filename==NULL) {
-			PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_code.co_filename");
+			PyErr_SetString(PyExc_RuntimeError, "Could not access sys._getframe().f_code.co_filename");
 			Py_DECREF(frame);
 			return;
 		}
@@ -109,7 +109,7 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 	if (lineno) {
 		f_lineno= PyObject_GetAttrString(frame, "f_lineno");
 		if (f_lineno==NULL) {
-			PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_lineno");
+			PyErr_SetString(PyExc_RuntimeError, "Could not access sys._getframe().f_lineno");
 			Py_DECREF(frame);
 			return;
 		}
