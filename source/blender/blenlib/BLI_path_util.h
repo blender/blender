@@ -1,8 +1,4 @@
-/**
- * blenlib/BLI_storage_types.h
- *
- * Some types for dealing with directories
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,6 +28,10 @@
  */
 #ifndef BLI_PATH_UTIL_H
 #define BLI_PATH_UTIL_H
+
+/** \file BLI_path_util.h
+ *  \ingroup bli
+ */
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,9 +1,4 @@
-/**
- * blenlib/BLI_editVert.h    mar 2001 Nzc
- *
- * Some editing types needed in the lib (unfortunately) for
- * scanfill.c
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -34,6 +29,14 @@
 
 #ifndef BLI_EDITVERT_H
 #define BLI_EDITVERT_H
+
+/** \file BLI_editVert.h
+ *  \ingroup bli
+ *  \since March 2001
+ *  \author nzc
+ *  \brief Some editing types needed in the lib (unfortunately) for
+ *   scanfill.c
+ */
 
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"

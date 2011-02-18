@@ -31,6 +31,10 @@
 #ifndef BLI_THREADS_H
 #define BLI_THREADS_H 
 
+/** \file BLI_threads.h
+ *  \ingroup bli
+ */
+
 #include <pthread.h>
 
 /* for tables, button in UI, etc */

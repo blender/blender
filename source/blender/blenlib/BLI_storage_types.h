@@ -1,8 +1,4 @@
-/**
- * blenlib/BLI_storage_types.h
- *
- * Some types for dealing with directories
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,6 +28,11 @@
  */
 #ifndef BLI_STORAGE_TYPES_H
 #define BLI_STORAGE_TYPES_H
+
+/** \file BLI_storage_types.h
+ *  \ingroup bli
+ *  \brief Some types for dealing with directories.
+ */
 
 #include <sys/stat.h>
 

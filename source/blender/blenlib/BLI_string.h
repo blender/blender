@@ -32,6 +32,10 @@
 #ifndef BLI_STRING_H
 #define BLI_STRING_H
 
+/** \file BLI_string.h
+ *  \ingroup bli
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

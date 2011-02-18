@@ -29,6 +29,10 @@
 #ifndef BLI_STORAGE_H
 #define BLI_STORAGE_H
 
+/** \file BLI_storage.h
+ *  \ingroup bli
+ */
+
 #ifdef WIN32
 /* for size_t, only needed on win32 for some reason */
 #include <stddef.h>

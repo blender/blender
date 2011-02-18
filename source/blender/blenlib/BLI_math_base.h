@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
 
 #ifndef BLI_MATH_BASE_H
 #define BLI_MATH_BASE_H
+
+/** \file BLI_math_base.h
+ *  \ingroup bli
+ */
 
 #ifdef __cplusplus
 extern "C" {

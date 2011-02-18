@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
 
 #ifndef BLI_DLRB_TREE_H
 #define BLI_DLRB_TREE_H
+
+/** \file BLI_dlrbTree.h
+ *  \ingroup bli
+ *  \author Joshua Leung
+ */
 
 /* Double-Linked Red-Black Tree Implementation:
  * 

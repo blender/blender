@@ -1,7 +1,4 @@
 /*
- * A generic structure queue (a queue for fixed length
- * (generally small) structures.
- * 
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,6 +29,12 @@
 
 #ifndef BLI_GSQUEUE_H
 #define BLI_GSQUEUE_H
+
+/** \file BLI_gsqueue.h
+ *  \ingroup bli
+ *  \brief A generic structure queue (a queue for fixed length
+ *   (generally small) structures.
+ */
 
 typedef struct _GSQueue GSQueue;
 

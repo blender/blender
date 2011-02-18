@@ -1,8 +1,4 @@
-/**
- * blenlib/BLI_scanfill.h    mar 2001 Nzc
- *
- * Filling meshes.
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,6 +29,13 @@
 
 #ifndef BLI_SCANFILL_H
 #define BLI_SCANFILL_H
+
+/** \file BLI_storage.h
+ *  \ingroup bli
+ *  \since March 2001
+ *  \author nzc
+ *  \brief Filling meshes.
+ */
 
 /**
  * @attention Defined in scanfill.c

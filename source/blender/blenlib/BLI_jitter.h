@@ -1,6 +1,4 @@
 /*
- * jitter.h
- *
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,10 @@
 
 #ifndef BLI_JITTER_H
 #define BLI_JITTER_H 
+
+/** \file BLI_jitter.h
+ *  \ingroup bli
+ */
 
 void	BLI_initjit(float *jitarr, int num);
 void    BLI_jitterate1(float *jit1, float *jit2, int num, float rad1);

@@ -25,12 +25,14 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * 
- * $Id$ 
 */
 
 #ifndef BLI_LISTBASE_H
 #define BLI_LISTBASE_H
+
+/** \file BLI_listbase.h
+ *  \ingroup bli
+ */
 
 #include "DNA_listBase.h"
 //struct ListBase;

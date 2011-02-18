@@ -31,6 +31,10 @@
 #ifndef BLI_NOISE_H
 #define BLI_NOISE_H
 
+/** \file BLI_noise.h
+ *  \ingroup bli
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

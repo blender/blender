@@ -1,6 +1,4 @@
-/**
- * A general argument parsing module
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,11 @@
 
 #ifndef BLI_ARGS_H
 #define BLI_ARGS_H
+
+/** \file BLI_args.h
+ *  \ingroup bli
+ *  \brief A general argument parsing module.
+ */
 
 struct bArgs;
 typedef struct bArgs bArgs;
