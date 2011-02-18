@@ -112,7 +112,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
             } else {
                 float y_mod_1 = fmod(in1, 1);
                 if (y_mod_1 > 0.999 || y_mod_1 < 0.001) {
-                    *out = pow(in0, round(in1));
+                    *out = pow(in0, floor(in1 + 0.5));
                 } else {
                     *out = 0.0;
                 }
