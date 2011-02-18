@@ -29,6 +29,10 @@
 #ifndef BKE_POINTCACHE_H
 #define BKE_POINTCACHE_H
 
+/** \file BKE_pointcache.h
+ *  \ingroup bke
+ */
+
 #include "DNA_ID.h"
 #include "DNA_object_force.h"
 #include "DNA_boid_types.h"

@@ -1,4 +1,4 @@
-/**
+/*
  * blenlib/BKE_mesh.h (mar-2001 nzc)
  *	
  * $Id$ 
@@ -30,6 +30,10 @@
  */
 #ifndef BKE_MESH_H
 #define BKE_MESH_H
+
+/** \file BKE_mesh.h
+ *  \ingroup bke
+ */
 
 /***/
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,12 +25,15 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * General operations, lookup, etc. for materials.
  */
 
 #ifndef BKE_MATERIAL_H
 #define BKE_MATERIAL_H
 
+/** \file BKE_material.h
+ *  \ingroup bke
+ *  \brief General operations, lookup, etc. for materials.
+ */
 #ifdef __cplusplus
 extern "C" {
 #endif

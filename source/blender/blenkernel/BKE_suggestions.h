@@ -1,4 +1,4 @@
-/**	
+/*	
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  */
 #ifndef BKE_SUGGESTIONS_H
 #define BKE_SUGGESTIONS_H
+
+/** \file BKE_suggestions.h
+ *  \ingroup bke
+ */
 
 #ifdef __cplusplus
 extern "C" {

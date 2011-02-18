@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,6 +27,10 @@
 
 #ifndef BKE_WRITEFRAMESERVER_H
 #define BKE_WRITEFRAMESERVER_H
+
+/** \file BKE_writeframeserver.h
+ *  \ingroup bke
+ */
 
 #ifdef __cplusplus
 extern "C" {

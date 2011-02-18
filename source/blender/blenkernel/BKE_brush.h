@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +30,10 @@
 
 #ifndef BKE_BRUSH_H
 #define BKE_BRUSH_H
+
+/** \file BKE_brush.h
+ *  \ingroup bke
+ */
 
 struct ID;
 struct Brush;

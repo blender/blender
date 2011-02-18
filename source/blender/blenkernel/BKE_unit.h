@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -23,6 +23,10 @@
 
 #ifndef BKE_UNIT_H
 #define BKE_UNIT_H
+
+/** \file BKE_unit.h
+ *  \ingroup bke
+ */
 
 #ifdef __cplusplus
 extern "C" {

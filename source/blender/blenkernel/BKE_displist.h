@@ -1,4 +1,3 @@
-/* display list (or rather multi purpose list) stuff */
 /* 
 	$Id$
  *
@@ -32,6 +31,10 @@
 #ifndef BKE_DISPLIST_H
 #define BKE_DISPLIST_H
 
+/** \file BKE_displist.h
+ *  \ingroup bke
+ *  \brief display list (or rather multi purpose list) stuff.
+ */
 #include "DNA_customdata_types.h"
 #include "BKE_customdata.h"
 

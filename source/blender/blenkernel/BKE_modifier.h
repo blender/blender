@@ -1,5 +1,4 @@
-/**
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +28,10 @@
  */
 #ifndef BKE_MODIFIER_H
 #define BKE_MODIFIER_H
+
+/** \file BKE_modifier.h
+ *  \ingroup bke
+ */
 
 #include "DNA_modifier_types.h"		/* needed for all enum typdefs */
 #include "BKE_customdata.h"

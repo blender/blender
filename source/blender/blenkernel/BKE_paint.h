@@ -28,6 +28,10 @@
 #ifndef BKE_PAINT_H
 #define BKE_PAINT_H
 
+/** \file BKE_paint.h
+ *  \ingroup bke
+ */
+
 #include "DNA_vec_types.h"
 
 struct Brush;

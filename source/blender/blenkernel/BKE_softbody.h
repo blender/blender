@@ -1,6 +1,4 @@
-/**
- * BKE_softbody.h
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,10 @@
  */
 #ifndef BKE_SOFTBODY_H
 #define BKE_SOFTBODY_H
+
+/** \file BKE_softbody.h
+ *  \ingroup bke
+ */
 
 struct Object;
 struct Scene;

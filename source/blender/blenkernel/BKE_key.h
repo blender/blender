@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_key.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,11 @@
 #ifndef BKE_KEY_H
 #define BKE_KEY_H
 
+/** \file BKE_key.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
 struct Key;
 struct KeyBlock;
 struct ID;

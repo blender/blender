@@ -1,9 +1,4 @@
-/*  BKE_deform.h   June 2001
- *  
- *  support for deformation groups and hooks
- * 
- *	Reevan McKay et al
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -34,6 +29,13 @@
 
 #ifndef BKE_DEFORM_H
 #define BKE_DEFORM_H
+
+/** \file BKE_deform.h
+ *  \ingroup bke
+ *  \since June 2001
+ *  \author Reevan McKay et al
+ *  \brief support for deformation groups and hooks.
+ */
 
 struct Object;
 struct ListBase;

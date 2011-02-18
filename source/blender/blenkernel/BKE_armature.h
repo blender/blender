@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_armature.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,12 @@
  */
 #ifndef BKE_ARMATURE_H
 #define BKE_ARMATURE_H
+
+/** \file BKE_armature.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
 
 struct Bone;
 struct Main;

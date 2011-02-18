@@ -1,9 +1,4 @@
-/*  BKE_action.h   May 2001
- *  
- *  Blender kernel action and pose functionality
- *
- *	Reevan McKay
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,6 +28,14 @@
 
 #ifndef BKE_ACTION_H
 #define BKE_ACTION_H
+/** \file BKE_action.h
+ *  \ingroup bke
+ *  \brief Blender kernel action and pose functionality.
+ *  \author Reevan McKay
+ *  \author Ton Roosendaal (full recode 2005)
+ *  \author Joshua Leung (full recode 2009)
+ *  \since may 2001
+ */
 
 #include "DNA_listBase.h"
 

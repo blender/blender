@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_mball.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,11 @@
 #ifndef BKE_MBALL_H
 #define BKE_MBALL_H
 
+/** \file BKE_mball.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
 struct MetaBall;
 struct Object;
 struct Scene;

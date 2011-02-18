@@ -1,8 +1,4 @@
-/**
- * blenlib/BKE_blender.h (mar-2001 nzc)
- *	
- * Blender util stuff?
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,6 +28,13 @@
  */
 #ifndef BKE_BLENDER_H
 #define BKE_BLENDER_H
+
+/** \file BKE_blender.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ *  \brief Blender util stuff
+ */
 
 #ifdef __cplusplus
 extern "C" {

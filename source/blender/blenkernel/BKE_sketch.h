@@ -1,5 +1,4 @@
-/**
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +23,10 @@
  */
 #ifndef BKE_SKETCH_H
 #define BKE_SKETCH_H
+
+/** \file BKE_sketch.h
+ *  \ingroup bke
+ */
 
 typedef enum SK_PType
 {

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
 
 #ifndef DEPSGRAPH_API
 #define DEPSGRAPH_API
+
+/** \file BKE_depsgraph.h
+ *  \ingroup bke
+ */
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,6 +1,4 @@
-/**
- * sound.h (mar-2001 nzc)
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,12 @@
  */
 #ifndef BKE_SOUND_H
 #define BKE_SOUND_H
+
+/** \file BKE_sound.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
 
 struct PackedFile;
 struct bSound;

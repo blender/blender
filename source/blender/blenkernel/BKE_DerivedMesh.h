@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,15 +30,17 @@
 #ifndef BKE_DERIVEDMESH_H
 #define BKE_DERIVEDMESH_H
 
-/* TODO (Probably)
+/** \file BKE_DerivedMesh.h
+ *  \ingroup bke
  *
- *  o Make drawMapped* functions take a predicate function that
+ *  \todo
+ *  - Make drawMapped* functions take a predicate function that
  *    determines whether to draw the edge (this predicate can
  *    also set color, etc). This will be slightly more general 
  *    and allow some of the functions to be collapsed.
- *  o Once accessor functions are added then single element draw
+ *  - Once accessor functions are added then single element draw
  *    functions can be implemented using primitive accessors.
- *  o Add function to dispatch to renderer instead of using
+ *  - Add function to dispatch to renderer instead of using
  *    conversion to DLM.
  */
 

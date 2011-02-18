@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +30,10 @@
 
 #ifndef BKE_SEQUENCER_H
 #define BKE_SEQUENCER_H
+
+/** \file BKE_sequencer.h
+ *  \ingroup bke
+ */
 
 struct bContext;
 struct Editing;

@@ -30,7 +30,12 @@
 #ifndef BKE_ARRAY_MALLOCN_H
 #define BKE_ARRAY_MALLOCN_H
 
-/*little array macro library.  example of usage:
+/** \file BKE_array_mallocn.h
+ *  \ingroup bke
+ *  \brief little array macro library.
+ */
+
+/* example of usage:
 
 int *arr = NULL;
 V_DECLARE(arr);

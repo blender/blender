@@ -1,6 +1,4 @@
-/**
- * BKE_smoke.h
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,11 @@
 
 #ifndef BKE_SMOKE_H_
 #define BKE_SMOKE_H_
+
+/** \file BKE_smoke.h
+ *  \ingroup bke
+ *  \author Daniel Genrich
+ */
 
 typedef float (*bresenham_callback) (float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 

@@ -1,6 +1,4 @@
-/**
- * BKE_shrinkwrap.h
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +26,10 @@
  */
 #ifndef BKE_SHRINKWRAP_H
 #define BKE_SHRINKWRAP_H
+
+/** \file BKE_shrinkwrap.h
+ *  \ingroup bke
+ */
 
 /* mesh util */
 

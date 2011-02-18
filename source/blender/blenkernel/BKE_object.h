@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,12 +25,15 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * General operations, lookup, etc. for blender objects.
  */
 
 #ifndef BKE_OBJECT_H
 #define BKE_OBJECT_H
 
+/** \file BKE_object.h
+ *  \ingroup bke
+ *  \brief General operations, lookup, etc. for blender objects.
+ */
 #ifdef __cplusplus
 extern "C" {
 #endif

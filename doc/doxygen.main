@@ -72,6 +72,16 @@
  *  \todo add to doxygen
  */
 
+/** \defgroup core core */
+
+/** \defgroup bke blenkernel
+ *  \ingroup core
+ */
+
+/** \defgroup bli blenlib
+ *  \ingroup core
+ */
+
 /** \defgroup data DNA, RNA and .blend access*/
 
 /** \defgroup GHOST GHOST API */
