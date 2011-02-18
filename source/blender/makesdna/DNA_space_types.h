@@ -327,6 +327,9 @@ typedef struct SpaceText {
 	char findstr[256];		/* ST_MAX_FIND_STR */
 	char replacestr[256];	/* ST_MAX_FIND_STR */
 
+	short margin_column; /* column number to show right margin at */
+	char pad[6];
+
 	void *drawcache; /* cache for faster drawing */
 } SpaceText;
 
@@ -817,6 +820,7 @@ enum {
 									   // execution (see BPY_main.c)
 #define	ST_FIND_WRAP			0x0020
 #define	ST_FIND_ALL				0x0040
+#define	ST_SHOW_MARGIN			0x0080
 
 
 /* stext->findstr/replacestr */

@@ -1779,6 +1779,15 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		wrap_skip= 0;
 	}
 	
+	if(st->flags&ST_SHOW_MARGIN) {
+		UI_ThemeColor(TH_HILITE);
+
+		glBegin(GL_LINES);
+		glVertex2i(x+st->cwidth*st->margin_column, 0);
+		glVertex2i(x+st->cwidth*st->margin_column, ar->winy - 2);
+		glEnd();
+	}
+
 	/* draw other stuff */
 	draw_brackets(st, ar);
 	draw_markers(st, ar);

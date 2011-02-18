@@ -71,6 +71,7 @@ static SpaceLink *text_new(const bContext *UNUSED(C))
 
 	stext->lheight= 12;
 	stext->tabnumber= 4;
+	stext->margin_column= 80;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for text");
