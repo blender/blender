@@ -3571,9 +3571,10 @@ ParticleSettings *psys_copy_settings(ParticleSettings *part)
 	int a;
 
 	partn= copy_libblock(part);
-	if(partn->pd) partn->pd= MEM_dupallocN(part->pd);
-	if(partn->pd2) partn->pd2= MEM_dupallocN(part->pd2);
-	partn->effector_weights = MEM_dupallocN(part->effector_weights);
+	partn->pd= MEM_dupallocN(part->pd);
+	partn->pd2= MEM_dupallocN(part->pd2);
+	partn->effector_weights= MEM_dupallocN(part->effector_weights);
+	partn->fluid= MEM_dupallocN(part->fluid);
 
 	partn->boids = boid_copy_settings(part->boids);
 
