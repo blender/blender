@@ -197,6 +197,9 @@ void screen_set_image_output(bContext *C, int mx, int my)
 	SpaceImage *sima;
 	int area_was_image=0;
 
+	if(scene->r.displaymode==R_OUTPUT_NONE)
+		return;
+	
 	if(scene->r.displaymode==R_OUTPUT_WINDOW) {
 		rcti rect;
 		int sizex, sizey;

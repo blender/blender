@@ -883,7 +883,8 @@ typedef struct Scene {
 #define R_OUTPUT_SCREEN	0
 #define R_OUTPUT_AREA	1
 #define R_OUTPUT_WINDOW	2
-/*#define R_OUTPUT_FORKED	3*/
+#define R_OUTPUT_NONE	3
+/*#define R_OUTPUT_FORKED	4*/
 
 /* filtertype */
 #define R_FILTER_BOX	0
