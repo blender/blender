@@ -560,7 +560,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	bScreen *screen= win->screen;
 	ScrArea *sa;
 	ARegion *ar;
-	int copytex= 0;
+	int copytex= 0, paintcursor= 1;
 
 	if(win->drawdata) {
 		glClearColor(0, 0, 0, 0);
@@ -616,6 +616,8 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 			CTX_wm_menu_set(C, ar);
 			ED_region_do_draw(C, ar);
 			CTX_wm_menu_set(C, NULL);
+			/* when a menu is being drawn, don't do the paint cursors */
+			paintcursor= 0;
 		}
 	}
 
@@ -623,7 +625,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	if(win->gesture.first)
 		wm_gesture_draw(win);
 
-	if(wm->paintcursors.first) {
+	if(paintcursor && wm->paintcursors.first) {
 		for(sa= screen->areabase.first; sa; sa= sa->next) {
 			for(ar=sa->regionbase.first; ar; ar= ar->next) {
 				if(ar->swinid == screen->subwinactive) {
