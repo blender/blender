@@ -49,7 +49,7 @@ void sound_init(struct Main *main);
 void sound_exit(void);
 
 void sound_force_device(int device);
-int sound_define_from_str(char *str);
+int sound_define_from_str(const char *str);
 
 struct bSound* sound_new_file(struct Main *main, const char *filename);
 

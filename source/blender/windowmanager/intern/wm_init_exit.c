@@ -112,7 +112,7 @@ static void wm_free_reports(bContext *C)
 
 
 /* only called once, for startup */
-void WM_init(bContext *C, int argc, char **argv)
+void WM_init(bContext *C, int argc, const char **argv)
 {
 
 	if (!G.background) {

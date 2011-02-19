@@ -131,8 +131,8 @@ extern char build_system[];
 #endif
 
 /*	Local Function prototypes */
-static int print_help(int argc, char **argv, void *data);
-static int print_version(int argc, char **argv, void *data);
+static int print_help(int argc, const char **argv, void *data);
+static int print_version(int argc, const char **argv, void *data);
 
 /* for the callbacks: */
 
@@ -185,7 +185,7 @@ static void strip_quotes(char *str)
 }
 #endif
 
-static int print_version(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int print_version(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	printf (BLEND_VERSION_STRING_FMT);
 #ifdef BUILD_DATE
@@ -204,7 +204,7 @@ static int print_version(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(dat
 	return 0;
 }
 
-static int print_help(int UNUSED(argc), char **UNUSED(argv), void *data)
+static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
 	bArgs *ba = (bArgs*)data;
 
@@ -338,30 +338,30 @@ double PIL_check_seconds_timer(void);
 	}
 }*/
 
-static int end_arguments(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int end_arguments(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	return -1;
 }
 
-static int enable_python(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int enable_python(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	G.f |= G_SCRIPT_AUTOEXEC;
 	return 0;
 }
 
-static int disable_python(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int disable_python(int UNUSED(argc), const const char **UNUSED(argv), void *UNUSED(data))
 {
 	G.f &= ~G_SCRIPT_AUTOEXEC;
 	return 0;
 }
 
-static int background_mode(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int background_mode(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	G.background = 1;
 	return 0;
 }
 
-static int debug_mode(int UNUSED(argc), char **UNUSED(argv), void *data)
+static int debug_mode(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
 	G.f |= G_DEBUG;		/* std output printf's */
 	printf(BLEND_VERSION_STRING_FMT);
@@ -375,7 +375,7 @@ static int debug_mode(int UNUSED(argc), char **UNUSED(argv), void *data)
 	return 0;
 }
 
-static int set_fpe(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 #if defined(__sgi) || defined(__linux__) || defined(_WIN32) || OSX_SSE_FPE
 	/* zealous but makes float issues a heck of a lot easier to find!
@@ -400,19 +400,19 @@ static int set_fpe(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
 	return 0;
 }
 
-static int set_factory_startup(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int set_factory_startup(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	G.factory_startup= 1;
 	return 0;
 }
 
-static int set_env(int argc, char **argv, void *UNUSED(data))
+static int set_env(int argc, const char **argv, void *UNUSED(data))
 {
 	/* "--env-system-scripts" --> "BLENDER_SYSTEM_SCRIPTS" */
 
 	char env[64]= "BLENDER";
 	char *ch_dst= env + 7; /* skip BLENDER */
-	char *ch_src= argv[0] + 5; /* skip --env */
+	const char *ch_src= argv[0] + 5; /* skip --env */
 
 	if (argc < 2) {
 		printf("%s requires one argument\n", argv[0]);
@@ -428,7 +428,7 @@ static int set_env(int argc, char **argv, void *UNUSED(data))
 	return 1;
 }
 
-static int playback_mode(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int playback_mode(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	/* not if -b was given first */
 	if (G.background == 0) {
@@ -440,7 +440,7 @@ static int playback_mode(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(dat
 	return -2;
 }
 
-static int prefsize(int argc, char **argv, void *UNUSED(data))
+static int prefsize(int argc, const char **argv, void *UNUSED(data))
 {
 	int stax, stay, sizx, sizy;
 
@@ -459,19 +459,19 @@ static int prefsize(int argc, char **argv, void *UNUSED(data))
 	return 4;
 }
 
-static int with_borders(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int with_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	WM_setinitialstate_normal();
 	return 0;
 }
 
-static int without_borders(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int without_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	WM_setinitialstate_fullscreen();
 	return 0;
 }
 
-static int register_extension(int UNUSED(argc), char **UNUSED(argv), void *data)
+static int register_extension(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
 #ifdef WIN32
 	char *path = BLI_argsArgv(data)[0];
@@ -483,7 +483,7 @@ static int register_extension(int UNUSED(argc), char **UNUSED(argv), void *data)
 	return 0;
 }
 
-static int no_joystick(int UNUSED(argc), char **UNUSED(argv), void *data)
+static int no_joystick(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
 #ifndef WITH_GAMEENGINE
 	(void)data;
@@ -501,19 +501,19 @@ static int no_joystick(int UNUSED(argc), char **UNUSED(argv), void *data)
 	return 0;
 }
 
-static int no_glsl(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int no_glsl(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	GPU_extensions_disable();
 	return 0;
 }
 
-static int no_audio(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int no_audio(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	sound_force_device(0);
 	return 0;
 }
 
-static int set_audio(int argc, char **argv, void *UNUSED(data))
+static int set_audio(int argc, const char **argv, void *UNUSED(data))
 {
 	if (argc < 1) {
 		printf("-setaudio require one argument\n");
@@ -524,7 +524,7 @@ static int set_audio(int argc, char **argv, void *UNUSED(data))
 	return 1;
 }
 
-static int set_output(int argc, char **argv, void *data)
+static int set_output(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
 	if (argc >= 1){
@@ -541,7 +541,7 @@ static int set_output(int argc, char **argv, void *data)
 	}
 }
 
-static int set_engine(int argc, char **argv, void *data)
+static int set_engine(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
 	if (argc >= 1)
@@ -587,11 +587,11 @@ static int set_engine(int argc, char **argv, void *data)
 	}
 }
 
-static int set_image_type(int argc, char **argv, void *data)
+static int set_image_type(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
 	if (argc >= 1){
-		char *imtype = argv[1];
+		const char *imtype = argv[1];
 		if (CTX_data_scene(C)==NULL) {
 			printf("\nError: no blend loaded. order the arguments so '-F  / --render-format' is after the blend is loaded.\n");
 		} else {
@@ -638,7 +638,7 @@ static int set_image_type(int argc, char **argv, void *data)
 	}
 }
 
-static int set_threads(int argc, char **argv, void *UNUSED(data))
+static int set_threads(int argc, const char **argv, void *UNUSED(data))
 {
 	if (argc >= 1) {
 		if(G.background) {
@@ -653,7 +653,7 @@ static int set_threads(int argc, char **argv, void *UNUSED(data))
 	}
 }
 
-static int set_extension(int argc, char **argv, void *data)
+static int set_extension(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
 	if (argc >= 1) {
@@ -676,7 +676,7 @@ static int set_extension(int argc, char **argv, void *data)
 	}
 }
 
-static int set_ge_parameters(int argc, char **argv, void *data)
+static int set_ge_parameters(int argc, const char **argv, void *data)
 {
 	int a = 0;
 #ifdef WITH_GAMEENGINE
@@ -696,7 +696,7 @@ example:
 
 	if(argc >= 1)
 	{
-		char* paramname = argv[a];
+		const char *paramname = argv[a];
 		/* check for single value versus assignment */
 		if (a+1 < argc && (*(argv[a+1]) == '='))
 		{
@@ -737,7 +737,7 @@ example:
 	return a;
 }
 
-static int render_frame(int argc, char **argv, void *data)
+static int render_frame(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
 	if (CTX_data_scene(C)) {
@@ -777,7 +777,7 @@ static int render_frame(int argc, char **argv, void *data)
 	}
 }
 
-static int render_animation(int UNUSED(argc), char **UNUSED(argv), void *data)
+static int render_animation(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
 	bContext *C = data;
 	if (CTX_data_scene(C)) {
@@ -793,7 +793,7 @@ static int render_animation(int UNUSED(argc), char **UNUSED(argv), void *data)
 	return 0;
 }
 
-static int set_scene(int argc, char **argv, void *data)
+static int set_scene(int argc, const char **argv, void *data)
 {
 	if(argc > 1) {
 		bContext *C= data;
@@ -808,7 +808,7 @@ static int set_scene(int argc, char **argv, void *data)
 	}
 }
 
-static int set_start_frame(int argc, char **argv, void *data)
+static int set_start_frame(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
 	if (CTX_data_scene(C)) {
@@ -827,7 +827,7 @@ static int set_start_frame(int argc, char **argv, void *data)
 	}
 }
 
-static int set_end_frame(int argc, char **argv, void *data)
+static int set_end_frame(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
 	if (CTX_data_scene(C)) {
@@ -846,7 +846,7 @@ static int set_end_frame(int argc, char **argv, void *data)
 	}
 }
 
-static int set_skip_frame(int argc, char **argv, void *data)
+static int set_skip_frame(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
 	if (CTX_data_scene(C)) {
@@ -886,7 +886,7 @@ static int set_skip_frame(int argc, char **argv, void *data)
 
 #endif /* WITH_PYTHON */
 
-static int run_python(int argc, char **argv, void *data)
+static int run_python(int argc, const char **argv, void *data)
 {
 #ifdef WITH_PYTHON
 	bContext *C = data;
@@ -912,7 +912,7 @@ static int run_python(int argc, char **argv, void *data)
 #endif /* WITH_PYTHON */
 }
 
-static int run_python_console(int UNUSED(argc), char **argv, void *data)
+static int run_python_console(int UNUSED(argc), const char **argv, void *data)
 {
 #ifdef WITH_PYTHON
 	bContext *C = data;
@@ -927,7 +927,7 @@ static int run_python_console(int UNUSED(argc), char **argv, void *data)
 #endif /* WITH_PYTHON */
 }
 
-static int set_addons(int argc, char **argv, void *data)
+static int set_addons(int argc, const char **argv, void *data)
 {
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
@@ -950,7 +950,7 @@ static int set_addons(int argc, char **argv, void *data)
 }
 
 
-static int load_file(int UNUSED(argc), char **argv, void *data)
+static int load_file(int UNUSED(argc), const char **argv, void *data)
 {
 	bContext *C = data;
 

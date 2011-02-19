@@ -28,8 +28,7 @@
 #-----------------------------------------------------------------------------
 # We don't allow in-source builds. This causes no end of troubles because 
 # all out-of-source builds will use the CMakeCache.txt file there and even 
-# build the libs and objects in it. It will also conflict with the current 
-# Makefile system for Blender
+# build the libs and objects in it.
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 message(FATAL_ERROR "CMake generation for blender is not allowed within the source directory! 
@@ -39,11 +38,11 @@ Remove the CMakeCache.txt file and try again from another folder, e.g.:
 	cd ..
 	mkdir cmake-make 
 	cd cmake-make
-	cmake -G \"Unix Makefiles\" ../blender
+	cmake ../blender
 ")
 endif()
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)

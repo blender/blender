@@ -217,7 +217,7 @@ static struct _inittab bpy_internal_modules[]= {
 };
 
 /* call BPY_context_set first */
-void BPY_python_start( int argc, char **argv )
+void BPY_python_start(int argc, const char **argv)
 {
 	PyThreadState *py_tstate = NULL;
 	

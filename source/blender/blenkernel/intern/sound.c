@@ -55,7 +55,7 @@ static void sound_sync_callback(void* data, int mode, float time)
 }
 #endif
 
-int sound_define_from_str(char *str)
+int sound_define_from_str(const char *str)
 {
 	if (BLI_strcaseeq(str, "NULL"))
 		return AUD_NULL_DEVICE;

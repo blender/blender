@@ -67,7 +67,7 @@ struct bArgs {
 	ListBase docs;
 	GHash  *items;
 	int 	argc;
-	char  **argv;
+	const char  **argv;
 	int	  *passes;
 };
 
@@ -113,7 +113,7 @@ static bArgument *lookUp(struct bArgs *ba, const char *arg, int pass, int case_s
 	return BLI_ghash_lookup(ba->items, &key);
 }
 
-bArgs *BLI_argsInit(int argc, char **argv)
+bArgs *BLI_argsInit(int argc, const char **argv)
 {
 	bArgs *ba = MEM_callocN(sizeof(bArgs), "bArgs");
 	ba->passes = MEM_callocN(sizeof(int) * argc, "bArgs passes");
@@ -146,7 +146,7 @@ void BLI_argsPrint(struct bArgs *ba)
 	}
 }
 
-char **BLI_argsArgv(struct bArgs *ba)
+const char **BLI_argsArgv(struct bArgs *ba)
 {
 	return ba->argv;
 }

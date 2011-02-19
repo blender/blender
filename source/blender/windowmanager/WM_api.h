@@ -70,7 +70,7 @@ void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
 void		WM_setinitialstate_fullscreen(void);
 void		WM_setinitialstate_normal(void);
 
-void		WM_init				(struct bContext *C, int argc, char **argv);
+void		WM_init				(struct bContext *C, int argc, const char **argv);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
