@@ -37,6 +37,15 @@ BLENDER_DIR:=$(shell pwd -P)
 BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS_NCASE)
 
 
+# support 'make debug'
+ifneq "$(findstring debug, $(MAKECMDGOALS))" ""
+	BUILD_DIR:=$(BUILD_DIR)_debug
+	BUILD_TYPE:=Debug
+else
+	BUILD_TYPE:=Release
+endif
+
+
 # Get the number of cores for threaded build
 NPROCS:=1
 ifeq ($(OS), Linux)
@@ -61,7 +70,7 @@ all:
 	if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
 		mkdir -p $(BUILD_DIR) ; \
 		cd $(BUILD_DIR) ; \
-		cmake $(BLENDER_DIR) -DCMAKE_BUILD_TYPE:STRING=Release ; \
+		cmake $(BLENDER_DIR) -DCMAKE_BUILD_TYPE:STRING=$(BUILD_TYPE) ; \
 	fi
 
 	@echo 
@@ -70,6 +79,9 @@ all:
 	@echo 
 	@echo run blender from "$(BUILD_DIR)/bin/blender"
 	@echo 
+
+debug: all
+	# pass
 
 # package types
 package_debian:
