@@ -470,10 +470,11 @@ void POSELIB_OT_pose_add (wmOperatorType *ot)
 
 /* ----- */
 
+/* can be called with C == NULL */
 static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
-	Object *ob= get_poselib_object(C);
-	bAction *act= (ob) ? ob->poselib : NULL;
+	Object *ob;
+	bAction *act;
 	TimeMarker *marker;
 	EnumPropertyItem *item= NULL, item_tmp= {0};
 	int totitem= 0;
@@ -482,6 +483,9 @@ static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUS
 	if (C == NULL) {
 		return DummyRNA_DEFAULT_items;
 	}
+	
+	ob= get_poselib_object(C);
+	act= (ob) ? ob->poselib : NULL;
 	
 	/* check that the action exists */
 	if (act) {
