@@ -512,8 +512,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             col = split.column()
 
             col.label(text="Cull Faces:")
-            col.prop(md, "use_cull_front_faces", text="Front")
-            col.prop(md, "use_cull_back_faces", text="Back")
+            col.prop(md, "cull_face", expand=True)
 
             layout.label(text="Auxiliary Target:")
             layout.prop(md, "auxiliary_target", text="")
