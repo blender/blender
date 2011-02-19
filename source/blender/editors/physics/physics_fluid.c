@@ -78,8 +78,8 @@
 
 #include "LBM_fluidsim.h"
 
-
 #include "ED_screen.h"
+#include "ED_fluidsim.h"
 
 #include "WM_types.h"
 
@@ -1065,12 +1065,12 @@ FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
 }
 
 /* only compile dummy functions */
-int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object *UNUSED(ob))
+static int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object *UNUSED(ob))
 {
 	return 0;
 }
 
-void fluidsimFreeBake(Object *UNUSED(ob))
+static void fluidsimFreeBake(Object *UNUSED(ob))
 {
 }
 

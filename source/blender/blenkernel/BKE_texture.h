@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_texture.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,12 @@
  */
 #ifndef BKE_TEXTURE_H
 #define BKE_TEXTURE_H
+
+/** \file BKE_texture.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
 
 #ifdef __cplusplus
 extern "C" {

@@ -203,22 +203,22 @@ void rna_ID_fake_user_set(PointerRNA *ptr, int value)
 	}
 }
 
-IDProperty *rna_IDPropertyGroup_idprops(PointerRNA *ptr, int create)
+IDProperty *rna_PropertyGroup_idprops(PointerRNA *ptr, int create)
 {
 	return ptr->data;
 }
 
-void rna_IDPropertyGroup_unregister(const bContext *C, StructRNA *type)
+void rna_PropertyGroup_unregister(const bContext *C, StructRNA *type)
 {
 	RNA_struct_free(&BLENDER_RNA, type);
 }
 
-StructRNA *rna_IDPropertyGroup_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+StructRNA *rna_PropertyGroup_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	PointerRNA dummyptr;
 
 	/* create dummy pointer */
-	RNA_pointer_create(NULL, &RNA_IDPropertyGroup, NULL, &dummyptr);
+	RNA_pointer_create(NULL, &RNA_PropertyGroup, NULL, &dummyptr);
 
 	/* validate the python class */
 	if(validate(&dummyptr, data, NULL) != 0)
@@ -233,10 +233,10 @@ StructRNA *rna_IDPropertyGroup_register(bContext *C, ReportList *reports, void *
 		return NULL;
 	}
 
-	return RNA_def_struct(&BLENDER_RNA, identifier, "IDPropertyGroup");  // XXX
+	return RNA_def_struct(&BLENDER_RNA, identifier, "PropertyGroup");  // XXX
 }
 
-StructRNA* rna_IDPropertyGroup_refine(PointerRNA *ptr)
+StructRNA* rna_PropertyGroup_refine(PointerRNA *ptr)
 {
 	return ptr->type;
 }
@@ -317,7 +317,8 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 
 	/* this is struct is used for holding the virtual
 	 * PropertyRNA's for ID properties */
-	srna= RNA_def_struct(brna, "IDProperty", NULL);
+	srna= RNA_def_struct(brna, "PropertyGroupItem", NULL);
+	RNA_def_struct_sdna(srna, "IDProperty");
 	RNA_def_struct_ui_text(srna, "ID Property", "Property that stores arbitrary, user defined properties");
 	
 	/* IDP_STRING */
@@ -352,14 +353,14 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_struct_type(prop, "IDPropertyGroup");
+	RNA_def_property_struct_type(prop, "PropertyGroup");
 
 	prop= RNA_def_property(srna, "collection", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
-	RNA_def_property_struct_type(prop, "IDPropertyGroup");
+	RNA_def_property_struct_type(prop, "PropertyGroup");
 
 	prop= RNA_def_property(srna, "idp_array", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_type(prop, "IDPropertyGroup");
+	RNA_def_property_struct_type(prop, "PropertyGroup");
 	RNA_def_property_collection_funcs(prop, "rna_IDPArray_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_IDPArray_length", 0, 0);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 
@@ -377,11 +378,12 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	/* ID property groups > level 0, since level 0 group is merged
 	 * with native RNA properties. the builtin_properties will take
 	 * care of the properties here */
-	srna= RNA_def_struct(brna, "IDPropertyGroup", NULL);
+	srna= RNA_def_struct(brna, "PropertyGroup", NULL);
+	RNA_def_struct_sdna(srna, "IDPropertyGroup");
 	RNA_def_struct_ui_text(srna, "ID Property Group", "Group of ID properties");
-	RNA_def_struct_idprops_func(srna, "rna_IDPropertyGroup_idprops");
-	RNA_def_struct_register_funcs(srna, "rna_IDPropertyGroup_register", "rna_IDPropertyGroup_unregister");
-	RNA_def_struct_refine_func(srna, "rna_IDPropertyGroup_refine");
+	RNA_def_struct_idprops_func(srna, "rna_PropertyGroup_idprops");
+	RNA_def_struct_register_funcs(srna, "rna_PropertyGroup_register", "rna_PropertyGroup_unregister");
+	RNA_def_struct_refine_func(srna, "rna_PropertyGroup_refine");
 
 	/* important so python types can have their name used in list views
 	 * however this isnt prefect because it overrides how python would set the name

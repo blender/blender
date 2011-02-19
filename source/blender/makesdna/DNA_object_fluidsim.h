@@ -1,4 +1,4 @@
-/**
+/*
  *
  * $Id$
  *
@@ -29,6 +29,10 @@
  */
 #ifndef DNA_OBJECT_FLUIDSIM_H
 #define DNA_OBJECT_FLUIDSIM_H
+
+/** \file DNA_object_fluidsim.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_ID.h"
 

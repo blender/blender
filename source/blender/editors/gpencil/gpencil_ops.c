@@ -38,6 +38,8 @@
 
 #include "RNA_access.h"
 
+#include "ED_gpencil.h"
+
 #include "gpencil_intern.h"
 
 /* ****************************************** */

@@ -34,6 +34,16 @@ def active_node_mat(mat):
     return None
 
 
+def check_material(mat):
+    if mat is not None:
+        if mat.use_nodes:
+            if mat.active_node_material is not None:
+                return True
+            return False
+        return True
+    return False
+
+
 class MATERIAL_MT_sss_presets(bpy.types.Menu):
     bl_label = "SSS Presets"
     preset_subdir = "sss"
@@ -119,6 +129,13 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, bpy.types.Panel):
 
         if mat:
             layout.prop(mat, "type", expand=True)
+            if mat.use_nodes:
+                row = layout.row()
+                row.label(text="", icon='NODETREE')
+                if mat.active_node_material:
+                    row.prop(mat.active_node_material, "name", text="")
+                else:
+                    row.label(text="No material node selected")
 
 
 class MATERIAL_PT_preview(MaterialButtonsPanel, bpy.types.Panel):
@@ -129,15 +146,65 @@ class MATERIAL_PT_preview(MaterialButtonsPanel, bpy.types.Panel):
         self.layout.template_preview(context.material)
 
 
+class MATERIAL_PT_pipeline(MaterialButtonsPanel, bpy.types.Panel):
+    bl_label = "Render Pipeline Options"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    @classmethod
+    def poll(cls, context):
+        mat = context.material
+        engine = context.scene.render.engine
+        return mat and (mat.type in ('SURFACE', 'WIRE', 'VOLUME')) and (engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self. layout
+
+        mat = context.material
+        #split = layout.split()
+        mat_type = mat.type in ('SURFACE', 'WIRE')
+
+        row = layout.row()
+        row.active = mat_type
+        row.prop(mat, "use_transparency")
+        sub = row.column()
+        sub.prop(mat, "offset_z")
+        sub.active = mat_type and mat.use_transparency and mat.transparency_method == 'Z_TRANSPARENCY'
+
+        row = layout.row()
+        row.active = mat.use_transparency or not mat_type
+        row.prop(mat, "transparency_method", expand=True)
+
+        layout.separator()
+
+        split = layout.split()
+        col = split.column()
+
+        col.prop(mat, "use_raytrace")
+        col.prop(mat, "use_full_oversampling")
+        sub = col.column()
+        sub.active = mat_type
+        sub.prop(mat, "use_sky")
+        sub.prop(mat, "invert_z")
+
+        col = split.column()
+        col.active = mat_type
+
+        col.prop(mat, "use_cast_shadows_only", text="Cast Only")
+        col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
+        col.prop(mat, "use_cast_buffer_shadows")
+        col.prop(mat, "use_cast_approximate")
+
+
 class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Diffuse"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
     def poll(cls, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -164,21 +231,13 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
         elif mat.diffuse_shader == 'MINNAERT':
             col.prop(mat, "darkness")
         elif mat.diffuse_shader == 'TOON':
-            split = col.split()
-
-            col = split.column()
-            col.prop(mat, "diffuse_toon_size", text="Size")
-
-            col = split.column()
-            col.prop(mat, "diffuse_toon_smooth", text="Smooth")
+            row = col.row()
+            row.prop(mat, "diffuse_toon_size", text="Size")
+            row.prop(mat, "diffuse_toon_smooth", text="Smooth")
         elif mat.diffuse_shader == 'FRESNEL':
-            split = col.split()
-
-            col = split.column()
-            col.prop(mat, "diffuse_fresnel", text="Fresnel")
-
-            col = split.column()
-            col.prop(mat, "diffuse_fresnel_factor", text="Factor")
+            row = col.row()
+            row.prop(mat, "diffuse_fresnel", text="Fresnel")
+            row.prop(mat, "diffuse_fresnel_factor", text="Factor")
 
         if mat.use_diffuse_ramp:
             layout.separator()
@@ -202,9 +261,9 @@ class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -227,23 +286,15 @@ class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):
         if mat.specular_shader in ('COOKTORR', 'PHONG'):
             col.prop(mat, "specular_hardness", text="Hardness")
         elif mat.specular_shader == 'BLINN':
-            split = layout.split()
-
-            col = split.column()
-            col.prop(mat, "specular_hardness", text="Hardness")
-
-            col = split.column()
-            col.prop(mat, "specular_ior", text="IOR")
+            row = col.row()
+            row.prop(mat, "specular_hardness", text="Hardness")
+            row.prop(mat, "specular_ior", text="IOR")
         elif mat.specular_shader == 'WARDISO':
             col.prop(mat, "specular_slope", text="Slope")
         elif mat.specular_shader == 'TOON':
-            split = layout.split()
-
-            col = split.column()
-            col.prop(mat, "specular_toon_size", text="Size")
-
-            col = split.column()
-            col.prop(mat, "specular_toon_smooth", text="Smooth")
+            row = col.row()
+            row.prop(mat, "specular_toon_size", text="Size")
+            row.prop(mat, "specular_toon_smooth", text="Smooth")
 
         if mat.use_specular_ramp:
             layout.separator()
@@ -267,9 +318,9 @@ class MATERIAL_PT_shading(MaterialButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -297,36 +348,28 @@ class MATERIAL_PT_shading(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Transparency"
-    bl_options = {'DEFAULT_CLOSED'}
+    # bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
-
-    def draw_header(self, context):
-        mat = active_node_mat(context.material)
-
-        self.layout.prop(mat, "use_transparency", text="")
+        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
+        base_mat = context.material
         mat = active_node_mat(context.material)
         rayt = mat.raytrace_transparency
-
-        row = layout.row()
-        row.active = mat.use_transparency and (not mat.use_shadeless)
-        row.prop(mat, "transparency_method", expand=True)
 
         split = layout.split()
 
         col = split.column()
         col.prop(mat, "alpha")
         row = col.row()
-        row.active = mat.use_transparency and (not mat.use_shadeless)
+        row.active = base_mat.use_transparency and (not mat.use_shadeless)
         row.prop(mat, "specular_alpha", text="Specular")
 
         col = split.column()
@@ -336,10 +379,10 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
         sub.active = rayt.fresnel > 0
         sub.prop(rayt, "fresnel_factor", text="Blend")
 
-        if mat.transparency_method == 'RAYTRACE':
+        if base_mat.transparency_method == 'RAYTRACE':
             layout.separator()
             split = layout.split()
-            split.active = mat.use_transparency
+            split.active = base_mat.use_transparency
 
             col = split.column()
             col.prop(rayt, "ior")
@@ -364,9 +407,9 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         raym = active_node_mat(context.material).raytrace_mirror
@@ -422,9 +465,9 @@ class MATERIAL_PT_sss(MaterialButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         mat = active_node_mat(context.material)
@@ -633,9 +676,9 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -645,14 +688,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(mat, "use_raytrace")
-        col.prop(mat, "use_full_oversampling")
-        col.prop(mat, "use_sky")
         col.prop(mat, "use_mist")
-        col.prop(mat, "invert_z")
-        sub = col.row()
-        sub.prop(mat, "offset_z")
-        sub.active = mat.use_transparency and mat.transparency_method == 'Z_TRANSPARENCY'
         sub = col.column(align=True)
         sub.label(text="Light Group:")
         sub.prop(mat, "light_group", text="")
@@ -678,9 +714,9 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -693,11 +729,8 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat, "use_shadows", text="Receive")
         col.prop(mat, "use_transparent_shadows", text="Receive Transparent")
         col.prop(mat, "use_only_shadow", text="Shadows Only")
-        col.prop(mat, "use_cast_shadows_only", text="Cast Only")
-        col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
 
         col = split.column()
-        col.prop(mat, "use_cast_buffer_shadows")
         sub = col.column()
         sub.active = mat.use_cast_buffer_shadows
         sub.prop(mat, "shadow_buffer_bias", text="Buffer Bias")
@@ -705,7 +738,6 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = (not mat.use_ray_shadow_bias)
         sub.prop(mat, "shadow_ray_bias", text="Ray Bias")
-        col.prop(mat, "use_cast_approximate")
 
 
 class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):
@@ -715,29 +747,15 @@ class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
-        return mat  and (engine in cls.COMPAT_ENGINES)
-
-    def draw_header(self, context):
-        mat = active_node_mat(context.material)
-
-        self.layout.prop(mat, "use_transparency", text="")
+        return check_material(mat) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
         mat = active_node_mat(context.material)
-        rayt = mat.raytrace_transparency
-
-        row = layout.row()
-        row.active = mat.use_transparency and (not mat.use_shadeless)
-        row.prop(mat, "transparency_method", expand=True)
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(mat, "alpha")
+        layout.prop(mat, "alpha")
 
 
 class VolumeButtonsPanel():
@@ -830,18 +848,6 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
             sub.prop(vol, "ms_intensity")
 
 
-class MATERIAL_PT_volume_transp(VolumeButtonsPanel, bpy.types.Panel):
-    bl_label = "Transparency"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        mat = context.material  # dont use node material
-
-        layout.prop(mat, "transparency_method", expand=True)
-
-
 class MATERIAL_PT_volume_integration(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Integration"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -869,6 +875,12 @@ class MATERIAL_PT_volume_options(VolumeButtonsPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     bl_options = {'DEFAULT_CLOSED'}
 
+    @classmethod
+    def poll(cls, context):
+        mat = context.material
+        engine = context.scene.render.engine
+        return check_material(mat) and (mat.type == 'VOLUME') and (engine in cls.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
@@ -877,8 +889,6 @@ class MATERIAL_PT_volume_options(VolumeButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(mat, "use_raytrace")
-        col.prop(mat, "use_full_oversampling")
         col.prop(mat, "use_mist")
 
         col = split.column()

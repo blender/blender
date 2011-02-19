@@ -676,7 +676,6 @@ class WM_OT_keymap_edit(bpy.types.Operator):
     bl_label = "Edit Key Map"
 
     def execute(self, context):
-        wm = context.window_manager
         km = context.keymap
         km.copy_to_user()
         return {'FINISHED'}
@@ -715,7 +714,6 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
         return km.is_user_defined
 
     def execute(self, context):
-        wm = context.window_manager
         km = context.keymap
         kmi = km.items.from_id(self.item_id)
 
@@ -779,7 +777,6 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
         return wm.keyconfigs.active.is_user_defined
 
     def execute(self, context):
-        import sys
         wm = context.window_manager
         keyconfig = wm.keyconfigs.active
         wm.keyconfigs.remove(keyconfig)

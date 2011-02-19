@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -192,10 +192,10 @@ void rna_ID_name_set(struct PointerRNA *ptr, const char *value);
 struct StructRNA *rna_ID_refine(struct PointerRNA *ptr);
 struct IDProperty *rna_ID_idprops(struct PointerRNA *ptr, int create);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, int value);
-struct IDProperty *rna_IDPropertyGroup_idprops(struct PointerRNA *ptr, int create);
-void rna_IDPropertyGroup_unregister(const struct bContext *C, struct StructRNA *type);
-struct StructRNA *rna_IDPropertyGroup_register(struct bContext *C, struct ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
-struct StructRNA* rna_IDPropertyGroup_refine(struct PointerRNA *ptr);
+struct IDProperty *rna_PropertyGroup_idprops(struct PointerRNA *ptr, int create);
+void rna_PropertyGroup_unregister(const struct bContext *C, struct StructRNA *type);
+struct StructRNA *rna_PropertyGroup_register(struct bContext *C, struct ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
+struct StructRNA* rna_PropertyGroup_refine(struct PointerRNA *ptr);
 
 void rna_object_vgroup_name_index_get(struct PointerRNA *ptr, char *value, int index);
 int rna_object_vgroup_name_index_length(struct PointerRNA *ptr, int index);
@@ -281,19 +281,19 @@ void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop);
 
 /* ID Properties */
 
-extern StringPropertyRNA rna_IDProperty_string;
-extern IntPropertyRNA rna_IDProperty_int;
-extern IntPropertyRNA rna_IDProperty_int_array;
-extern FloatPropertyRNA rna_IDProperty_float;
-extern FloatPropertyRNA rna_IDProperty_float_array;
-extern PointerPropertyRNA rna_IDProperty_group;
-extern CollectionPropertyRNA rna_IDProperty_collection;
-extern CollectionPropertyRNA rna_IDProperty_idp_array;
-extern FloatPropertyRNA rna_IDProperty_double;
-extern FloatPropertyRNA rna_IDProperty_double_array;
+extern StringPropertyRNA rna_PropertyGroupItem_string;
+extern IntPropertyRNA rna_PropertyGroupItem_int;
+extern IntPropertyRNA rna_PropertyGroupItem_int_array;
+extern FloatPropertyRNA rna_PropertyGroupItem_float;
+extern FloatPropertyRNA rna_PropertyGroupItem_float_array;
+extern PointerPropertyRNA rna_PropertyGroupItem_group;
+extern CollectionPropertyRNA rna_PropertyGroupItem_collection;
+extern CollectionPropertyRNA rna_PropertyGroupItem_idp_array;
+extern FloatPropertyRNA rna_PropertyGroupItem_double;
+extern FloatPropertyRNA rna_PropertyGroupItem_double_array;
 
-extern StructRNA RNA_IDProperty;
-extern StructRNA RNA_IDPropertyGroup;
+extern StructRNA RNA_PropertyGroupItem;
+extern StructRNA RNA_PropertyGroup;
 
 struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop, struct PointerRNA *ptr);
 

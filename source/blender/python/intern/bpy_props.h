@@ -25,8 +25,6 @@
 #ifndef BPY_PROPS_H
 #define BPY_PROPS_H
 
-#include <Python.h>
-
 PyObject *BPY_rna_props( void );
 
 #define PYRNA_STACK_ARRAY 32

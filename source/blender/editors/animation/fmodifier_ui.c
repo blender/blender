@@ -53,9 +53,10 @@
 
 #include "RNA_access.h"
 
-
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "ED_anim_api.h"
 
 /* ********************************************** */
 /* UI STUFF */

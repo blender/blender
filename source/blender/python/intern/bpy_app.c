@@ -22,7 +22,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "bpy_app.h"
+#include "bpy_driver.h"
 
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"

@@ -25,13 +25,6 @@
 #ifndef BPY_OPERATOR_H
 #define BPY_OPERATOR_H
 
-#include <Python.h>
-
-#include "RNA_access.h"
-#include "RNA_types.h"
-#include "DNA_windowmanager_types.h"
-#include "BKE_context.h"
-
 extern PyTypeObject pyop_base_Type;
 
 #define BPy_OperatorBase_Check(v)	(PyObject_TypeCheck(v, &pyop_base_Type))

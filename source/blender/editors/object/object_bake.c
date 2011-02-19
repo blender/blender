@@ -67,6 +67,8 @@
 
 #include "ED_object.h"
 
+#include "object_intern.h"
+
 /* ****************** render BAKING ********************** */
 
 /* threaded break test */
@@ -117,7 +119,7 @@ typedef struct BakeRender {
 } BakeRender;
 
 /* use by exec and invoke */
-int test_bake_internal(bContext *C, ReportList *reports)
+static int test_bake_internal(bContext *C, ReportList *reports)
 {
 	Scene *scene= CTX_data_scene(C);
 

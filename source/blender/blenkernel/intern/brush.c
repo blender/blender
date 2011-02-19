@@ -227,7 +227,7 @@ void make_local_brush(Brush *brush)
 	}
 }
 
-static void brush_debug_print_state(Brush *br)
+void brush_debug_print_state(Brush *br)
 {
 	/* create a fake brush and set it to the defaults */
 	Brush def= {{NULL}};

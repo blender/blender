@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
 
 #ifndef BLI_MATH_ROTATION_H
 #define BLI_MATH_ROTATION_H
+
+/** \file BLI_math_rotation.h
+ *  \ingroup bli
+ */
 
 #ifdef __cplusplus
 extern "C" {

@@ -64,6 +64,8 @@ void ED_operatortypes_marker(void);
 /* called in screen_ops.c:ED_keymap_screen() */
 void ED_marker_keymap(struct wmKeyConfig *keyconf);
 
+/* debugging only */
+void debug_markers_print_list(struct ListBase *markers);
 
 #endif /* ED_MARKERS_H */
 

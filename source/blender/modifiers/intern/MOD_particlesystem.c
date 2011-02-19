@@ -80,25 +80,20 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tpsmd->psys = psmd->psys;
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	CustomDataMask dataMask = 0;
-	Material *ma;
 	MTex *mtex;
 	int i;
 
 	if(!psmd->psys->part)
 		return 0;
 
-	ma= give_current_material(ob, psmd->psys->part->omat);
-	if(ma) {
-		for(i=0; i<MAX_MTEX; i++) {
-			mtex=ma->mtex[i];
-			if(mtex && (ma->septex & (1<<i))==0)
-				if(mtex->pmapto && (mtex->texco & TEXCO_UV))
-					dataMask |= CD_MASK_MTFACE;
-		}
+	for(i=0; i<MAX_MTEX; i++) {
+		mtex = psmd->psys->part->mtex[i];
+		if(mtex && mtex->mapto && (mtex->texco & TEXCO_UV))
+			dataMask |= CD_MASK_MTFACE;
 	}
 
 	if(psmd->psys->part->tanfac!=0.0)

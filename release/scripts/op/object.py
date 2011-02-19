@@ -476,7 +476,6 @@ class MakeDupliFace(bpy.types.Operator):
 
     def _main(self, context):
         from mathutils import Vector
-        from math import sqrt
 
         SCALE_FAC = 0.01
         offset = 0.5 * SCALE_FAC

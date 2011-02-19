@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
 
 #ifndef BKE_ANIM_SYS_H
 #define BKE_ANIM_SYS_H
+
+/** \file BKE_animsys.h
+ *  \ingroup bke
+ *  \author Joshua Leung
+ */
 
 struct ID;
 struct ListBase;

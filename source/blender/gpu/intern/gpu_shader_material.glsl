@@ -746,9 +746,9 @@ void texco_norm(vec3 normal, out vec3 outnormal)
 	outnormal = normalize(normal);
 }
 
-void texco_tangent(vec3 tangent, out vec3 outtangent)
+void texco_tangent(vec4 tangent, out vec3 outtangent)
 {
-	outtangent = normalize(tangent);
+	outtangent = normalize(tangent.xyz);
 }
 
 void texco_global(mat4 viewinvmat, vec3 co, out vec3 global)
@@ -1250,12 +1250,11 @@ void mtex_negate_texnormal(vec3 normal, out vec3 outnormal)
 	outnormal = vec3(-normal.x, -normal.y, normal.z);
 }
 
-void mtex_nspace_tangent(vec3 tangent, vec3 normal, vec3 texnormal, out vec3 outnormal)
+void mtex_nspace_tangent(vec4 tangent, vec3 normal, vec3 texnormal, out vec3 outnormal)
 {
-	tangent = normalize(tangent);
-	vec3 B = cross(normal, tangent);
+	vec3 B = tangent.w * cross(normal, tangent.xyz);
 
-	outnormal = texnormal.x*tangent + texnormal.y*B + texnormal.z*normal;
+	outnormal = texnormal.x*tangent.xyz + texnormal.y*B + texnormal.z*normal;
 	outnormal = normalize(outnormal);
 }
 

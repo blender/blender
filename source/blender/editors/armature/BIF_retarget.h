@@ -157,4 +157,8 @@ int RIG_nbJoints(RigGraph *rg);
 const char *RIG_nameBone(RigGraph *rg, int arc_index, int bone_index);
 void RIG_freeRigGraph(BGraph *rg);
 
+/* UNUSED */
+void BIF_retargetArmature(bContext *C);
+void BIF_adjustRetarget(bContext *C);
+
 #endif /* BIF_RETARGET_H */

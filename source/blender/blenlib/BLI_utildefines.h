@@ -30,6 +30,10 @@
 #ifndef BLI_UTILDEFINES_H
 #define BLI_UTILDEFINES_H
 
+/** \file BLI_utildefines.h
+ *  \ingroup bli
+ */
+
 #ifndef FALSE
 #define FALSE 0
 #endif

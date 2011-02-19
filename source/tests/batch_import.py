@@ -39,6 +39,7 @@ Example Usage:
 import os
 import sys
 
+
 def clear_scene():
     import bpy
     unique_obs = set()

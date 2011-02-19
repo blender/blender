@@ -26,12 +26,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "mathutils.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-
-
 
 #ifndef int32_t
 #include "BLO_sys_types.h"
@@ -242,9 +242,6 @@ static char Euler_make_compatible_doc[] =
 ".. method:: make_compatible(other)\n"
 "\n"
 "   Make this euler compatible with another, so interpolating between them works as intended.\n"
-"\n"
-"   :arg other: make compatible with this rotation.\n"
-"   :type other: :class:`Euler`\n"
 "\n"
 "   .. note:: the rotation order is not taken into account for this function.\n"
 ;

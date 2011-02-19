@@ -1,13 +1,13 @@
 # Maintainer: Campbell Barton <ideasman42 at gmail dot com>
 
 # custom blender vars
-blender_srcdir=$(dirname $srcdir)"/../../.."
+blender_srcdir=$(dirname $startdir)"/../.."
 blender_revision=$(svnversion $blender_srcdir)
 blender_version=$(grep BLENDER_VERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
 # blender_subversion=$(grep BLENDER_SUBVERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
 blender_ver_string=$(expr $blender_version / 100).$(expr $blender_version % 100)+svn$blender_revision
 
-pkgname=blender-beta
+pkgname=blender-snapshort
 pkgver=$blender_ver_string
 pkgrel=1
 pkgdesc="A fully integrated 3D graphics creation suite"
@@ -18,9 +18,9 @@ groups=()
 depends=('libjpeg' 'libpng' 'openexr'  'python>=3.1' 'gettext' 'libxi' 'libxmu' 'mesa' 'freetype2' 'openal' 'sdl' 'libsndfile' 'libsamplerate' 'ffmpeg')
 makedepends=('cmake' 'svn')
 optdepends=()
-provides=('blender')
+provides=()
 conflicts=('blender')
-replaces=()
+replaces=('blender')
 backup=()
 options=()
 install=blender.install

@@ -1,4 +1,4 @@
-/*
+/* 
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,17 +28,15 @@
  *
  */
 
-#ifndef MATHUTILS_COLOR_H
-#define MATHUTILS_COLOR_H
+#ifndef MATHUTILS_QUAT_H
+#define MATHUTILS_QUAT_H
 
-#include <Python.h>
-
-extern PyTypeObject color_Type;
-#define ColorObject_Check(_v) PyObject_TypeCheck((_v), &color_Type)
+extern PyTypeObject quaternion_Type;
+#define QuaternionObject_Check(_v) PyObject_TypeCheck((_v), &quaternion_Type)
 
 typedef struct {
-	BASE_MATH_MEMBERS(col)
-} ColorObject;
+	BASE_MATH_MEMBERS(quat)
+} QuaternionObject;
 
 /*struct data contains a pointer to the actual data that the
 object uses. It can use either PyMem allocated data (which will
@@ -46,7 +44,7 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *newColorObject( float *col, int type, PyTypeObject *base_type);
-PyObject *newColorObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
+PyObject *newQuaternionObject( float *quat, int type, PyTypeObject *base_type);
+PyObject *newQuaternionObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
-#endif /* MATHUTILS_COLOR_H */
+#endif /* MATHUTILS_QUAT_H */

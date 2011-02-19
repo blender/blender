@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
 
 #ifndef DNA_ANIM_TYPES_H
 #define DNA_ANIM_TYPES_H
+
+/** \file DNA_anim_types.h
+ *  \ingroup DNA
+ */
 
 #ifdef __cplusplus
 extern "C" {

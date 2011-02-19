@@ -30,6 +30,8 @@
 
 #include "WM_api.h"
 
+#include "ED_render.h"
+
 #include "render_intern.h" // own include
 
 #if (defined(WITH_QUICKTIME) && !defined(USE_QTKIT))

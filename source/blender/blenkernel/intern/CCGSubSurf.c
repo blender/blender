@@ -243,13 +243,13 @@ enum {
 	Vert_eEffected=		(1<<0),
 	Vert_eChanged=		(1<<1),
 	Vert_eSeam=			(1<<2),
-} VertFlags;
+} /*VertFlags*/;
 enum {
 	Edge_eEffected=		(1<<0),
-} CCGEdgeFlags;
+} /*CCGEdgeFlags*/;
 enum {
 	Face_eEffected=		(1<<0),
-} FaceFlags;
+} /*FaceFlags*/;
 
 struct _CCGVert {
 	CCGVert		*next;	/* EHData.next */

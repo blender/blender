@@ -25,10 +25,14 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * external readfile function prototypes
  */
 #ifndef BLO_READFILE_H
 #define BLO_READFILE_H
+
+/** \file BLO_readfile.h
+ *  \ingroup readwrite
+ *  \brief external readfile function prototypes.
+ */
 
 #ifdef __cplusplus
 extern "C" {

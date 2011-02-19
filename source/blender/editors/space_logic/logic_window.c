@@ -356,7 +356,7 @@ static void old_sca_move_actuator(bContext *C, void *datav, void *move_up)
 	}
 }
 
-void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
+static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 {
 	Main *bmain= CTX_data_main(C);
 	bSensor *sens;
@@ -1786,13 +1786,13 @@ static void change_ipo_actuator(bContext *UNUSED(C), void *arg1_but, void *arg2_
 	but->retval = B_REDR;
 }
 
-void update_object_actuator_PID(bContext *UNUSED(C), void *act, void *UNUSED(arg))
+static void update_object_actuator_PID(bContext *UNUSED(C), void *act, void *UNUSED(arg))
 {
 	bObjectActuator *oa = act;
 	oa->forcerot[0] = 60.0f*oa->forcerot[1];
 }
 
-char *get_state_name(Object *ob, short bit)
+static char *get_state_name(Object *ob, short bit)
 {
 	bController *cont;
 	unsigned int mask;
@@ -3480,7 +3480,7 @@ static void draw_sensor_touch(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(layout, ptr, "material", 0, NULL, ICON_NULL);
 }
 
-void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr, bContext *C)
+static void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *box;
 	
@@ -3600,7 +3600,7 @@ static void draw_controller_state(uiLayout *UNUSED(layout), PointerRNA *UNUSED(p
 
 }
 
-void draw_brick_controller(uiLayout *layout, PointerRNA *ptr)
+static void draw_brick_controller(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *box;
 	
@@ -4355,7 +4355,7 @@ static void draw_actuator_visibility(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "apply_to_children", 0, NULL, ICON_NULL);
 }
 
-void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
+static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *box;
 	

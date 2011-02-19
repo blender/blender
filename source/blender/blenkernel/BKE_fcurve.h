@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,12 @@
 
 #ifndef BKE_FCURVE_H
 #define BKE_FCURVE_H
+
+/** \file BKE_fcurve.h
+ *  \ingroup bke
+ *  \author Joshua Leung
+ *  \since 2009
+ */
 
 #ifdef __cplusplus
 extern "C" {

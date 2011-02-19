@@ -187,7 +187,7 @@ static void confirm_suggestion(Text *text, int skipleft)
 // XXX
 static int doc_scroll= 0;
 
-short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val)
+static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val)
 {
 	ARegion *ar= NULL; // XXX
 	int qual= 0; // XXX
@@ -370,7 +370,7 @@ short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val)
 		; // XXX redraw_alltext();
 #endif
 
-short do_textmarkers(SpaceText *st, char ascii, unsigned short evnt, short val)
+static short do_textmarkers(SpaceText *st, char ascii, unsigned short evnt, short val)
 {
 	Text *text;
 	TextMarker *marker, *mrk, *nxt;

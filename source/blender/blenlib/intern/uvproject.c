@@ -28,6 +28,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_uvproject.h"
 
 typedef struct UvCameraInfo {
 	float camangle;

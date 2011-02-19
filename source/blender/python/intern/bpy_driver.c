@@ -34,6 +34,8 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 
+#include "bpy_driver.h"
+
 /* for pydrivers (drivers using one-line Python expressions to express relationships between targets) */
 PyObject *bpy_pydriver_Dict = NULL;
 

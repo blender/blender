@@ -189,6 +189,10 @@ class DOPESHEET_MT_select(bpy.types.Menu):
         layout.operator("action.select_column", text="Columns on Selected Markers").mode = 'MARKERS_COLUMN'
         layout.operator("action.select_column", text="Between Selected Markers").mode = 'MARKERS_BETWEEN'
 
+        layout.separator()
+        layout.operator("action.select_leftright", text="Before Current Frame").mode = 'LEFT'
+        layout.operator("action.select_leftright", text="After Current Frame").mode = 'RIGHT'
+
         # FIXME: grease pencil mode isn't supported for these yet, so skip for that mode only
         if context.space_data.mode != 'GPENCIL':
             layout.separator()

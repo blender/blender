@@ -66,14 +66,14 @@ void GRAPH_OT_select_column(struct wmOperatorType *ot);
 void GRAPH_OT_select_linked(struct wmOperatorType *ot);
 void GRAPH_OT_select_more(struct wmOperatorType *ot);
 void GRAPH_OT_select_less(struct wmOperatorType *ot);
+void GRAPH_OT_select_leftright(struct wmOperatorType *ot);
 void GRAPH_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
 enum {
-	GRAPHKEYS_LRSEL_TEST	= -1,
-	GRAPHKEYS_LRSEL_NONE,
+	GRAPHKEYS_LRSEL_TEST	= 0,
 	GRAPHKEYS_LRSEL_LEFT,
-	GRAPHKEYS_LRSEL_RIGHT,
+	GRAPHKEYS_LRSEL_RIGHT
 } eGraphKeys_LeftRightSelect_Mode;
 
 /* defines for column-select mode */

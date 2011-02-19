@@ -1,8 +1,4 @@
-/**
- * BKE_bmesh.h    jan 2007
- *
- *	BMesh modeler structure and functions.
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -36,6 +32,13 @@
 
 #ifndef BKE_BMESH_H
 #define BKE_BMESH_H
+
+/** \file BKE_bmesh.h
+ *  \ingroup bke
+ *  \since January 2007
+ *  \brief BMesh modeler structure and functions.
+ *
+ */
 
 #include "DNA_listBase.h"
 #include "BLI_utildefines.h"

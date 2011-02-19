@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,10 @@
 
 #ifndef RNA_ENUM_TYPES_H
 #define RNA_ENUM_TYPES_H
+
+/** \file RNA_enum_types.h
+ *  \ingroup RNA
+ */
 
 #include "RNA_types.h"
 

@@ -25,5 +25,3 @@ for image in bpy.data.images:
     file.write("%s %dx%d\n" % (image.filepath, image.size[0], image.size[1]))
 
 file.close()
-
-

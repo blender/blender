@@ -21,15 +21,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BPY_APP_H__
-#define BPY_APP_H__
-
-#include <Python.h>
+#ifndef BPY_APP_H
+#define BPY_APP_H
 
 PyObject *BPY_app_struct( void );
 
-/* bpy_driver.c */
-int bpy_pydriver_create_dict(void);
-extern PyObject *bpy_pydriver_Dict;
-
-#endif
+#endif // BPY_APP_H

@@ -1,6 +1,4 @@
-/* BKE_particle.h
- *
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,10 @@
 
 #ifndef BKE_PARTICLE_H
 #define BKE_PARTICLE_H
+
+/** \file BKE_particle.h
+ *  \ingroup bke
+ */
 
 #include "DNA_particle_types.h"
 #include "DNA_object_types.h"

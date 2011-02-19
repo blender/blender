@@ -35,6 +35,7 @@
 /************************/
 
 #include <Python.h>
+
 #include "structseq.h"
 
 #include "BLI_blenlib.h"
@@ -42,6 +43,7 @@
 
 #include "DNA_texture_types.h"
 
+#include "noise_py_api.h"
 
 /*-----------------------------------------*/
 /* 'mersenne twister' random number generator */

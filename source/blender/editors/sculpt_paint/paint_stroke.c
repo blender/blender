@@ -362,7 +362,7 @@ static int project_brush_radius(RegionView3D* rv3d, float radius, float location
 	return len_v2v2(p1, p2);
 }
 
-int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius,
+static int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radius,
 			      float location[3])
 {
 	struct PaintStroke *stroke;

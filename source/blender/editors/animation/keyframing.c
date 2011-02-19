@@ -354,7 +354,7 @@ enum {
 	KEYNEEDED_JUSTADD,
 	KEYNEEDED_DELPREV,
 	KEYNEEDED_DELNEXT
-} eKeyNeededStatus;
+} /*eKeyNeededStatus*/;
 
 /* This helper function determines whether a new keyframe is needed */
 /* Cases where keyframes should not be added:
@@ -1037,7 +1037,7 @@ short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 enum {
 	COMMONKEY_MODE_INSERT = 0,
 	COMMONKEY_MODE_DELETE,
-} eCommonModifyKey_Modes;
+} /*eCommonModifyKey_Modes*/;
 
 /* Polling callback for use with ANIM_*_keyframe() operators
  * This is based on the standard ED_operator_areaactive callback,
@@ -1578,7 +1578,7 @@ short fcurve_frame_has_keyframe (FCurve *fcu, float frame, short filter)
 /* Checks whether an Action has a keyframe for a given frame 
  * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
  */
-short action_frame_has_keyframe (bAction *act, float frame, short filter)
+static short action_frame_has_keyframe (bAction *act, float frame, short filter)
 {
 	FCurve *fcu;
 	
@@ -1606,7 +1606,7 @@ short action_frame_has_keyframe (bAction *act, float frame, short filter)
 }
 
 /* Checks whether an Object has a keyframe for a given frame */
-short object_frame_has_keyframe (Object *ob, float frame, short filter)
+static short object_frame_has_keyframe (Object *ob, float frame, short filter)
 {
 	/* error checking */
 	if (ob == NULL)

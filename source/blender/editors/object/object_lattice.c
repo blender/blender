@@ -49,6 +49,8 @@
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 
+#include "ED_lattice.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
@@ -181,7 +183,7 @@ void ED_setflagsLatt(Object *obedit, int flag)
 	}
 }
 
-int select_all_exec(bContext *C, wmOperator *op)
+static int select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Lattice *lt= obedit->data;
@@ -248,7 +250,7 @@ void LATTICE_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
-int make_regular_poll(bContext *C)
+static int make_regular_poll(bContext *C)
 {
 	Object *ob;
 
@@ -258,7 +260,7 @@ int make_regular_poll(bContext *C)
 	return (ob && ob->type==OB_LATTICE);
 }
 
-int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
+static int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_edit_object(C);
 	Lattice *lt;

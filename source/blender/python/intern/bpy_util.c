@@ -22,6 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "bpy_util.h"
 #include "BLI_dynstr.h"
 #include "MEM_guardedalloc.h"
@@ -149,7 +151,7 @@ short BPy_reports_to_error(ReportList *reports, const short clear)
 	}
 
 	if(report_str) {
-		PyErr_SetString(PyExc_SystemError, report_str);
+		PyErr_SetString(PyExc_RuntimeError, report_str);
 		MEM_freeN(report_str);
 	}
 

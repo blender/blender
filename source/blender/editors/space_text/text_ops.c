@@ -52,6 +52,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_text.h"
 #include "ED_curve.h"
 #include "ED_screen.h"
 #include "UI_interface.h"
@@ -1228,8 +1229,35 @@ void TEXT_OT_select_line(wmOperatorType *ot)
 	ot->idname= "TEXT_OT_select_line";
 	ot->description= "Select text by line";
 	
-	/* api clinebacks */
+	/* api callbacks */
 	ot->exec= select_line_exec;
+	ot->poll= text_edit_poll;
+}
+
+/******************* select word operator *********************/
+
+static int select_word_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Text *text= CTX_data_edit_text(C);
+
+	txt_jump_left(text, 0);
+	txt_jump_right(text, 1);
+
+	text_update_cursor_moved(C);
+	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+
+	return OPERATOR_FINISHED;
+}
+
+void TEXT_OT_select_word(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Word";
+	ot->idname= "TEXT_OT_select_word";
+	ot->description= "Select word under cursor";
+
+	/* api callbacks */
+	ot->exec= select_word_exec;
 	ot->poll= text_edit_poll;
 }
 
@@ -2012,7 +2040,7 @@ enum {
 	SCROLLHANDLE_BAR,
 	SCROLLHANDLE_MIN_OUTSIDE,
 	SCROLLHANDLE_MAX_OUTSIDE
-} TextScrollerHandle_Zone;
+};
 
 typedef struct TextScroll {
 	short old[2];
@@ -2285,13 +2313,13 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
 
-/******************* set cursor operator **********************/
+/******************* set selection operator **********************/
 
-typedef struct SetCursor {
+typedef struct SetSelection {
 	int selecting;
 	int selc, sell;
 	short old[2];
-} SetCursor;
+} SetSelection;
 
 static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel) 
 {
@@ -2457,10 +2485,10 @@ static void set_cursor_apply(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceText *st= CTX_wm_space_text(C);
 	ARegion *ar= CTX_wm_region(C);
-	SetCursor *scu= op->customdata;
+	SetSelection *ssel= op->customdata;
 
 	if(event->mval[1]<0 || event->mval[1]>ar->winy) {
-		int d= (scu->old[1]-event->mval[1])*st->pix_per_line;
+		int d= (ssel->old[1]-event->mval[1])*st->pix_per_line;
 		if(d) screen_skip(st, ar, d);
 
 		set_cursor_to_pos(st, ar, event->mval[0], event->mval[1]<0?0:ar->winy, 1);
@@ -2484,8 +2512,8 @@ static void set_cursor_apply(bContext *C, wmOperator *op, wmEvent *event)
 		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
 
-		scu->old[0]= event->mval[0];
-		scu->old[1]= event->mval[1];
+		ssel->old[0]= event->mval[0];
+		ssel->old[1]= event->mval[1];
 	} 
 }
 
@@ -2493,7 +2521,7 @@ static void set_cursor_exit(bContext *C, wmOperator *op)
 {
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= st->text;
-	SetCursor *scu= op->customdata;
+	SetSelection *ssel= op->customdata;
 	int linep2, charp2;
 	char *buffer;
 
@@ -2506,44 +2534,29 @@ static void set_cursor_exit(bContext *C, wmOperator *op)
 	linep2= txt_get_span(st->text->lines.first, st->text->sell);
 	charp2= st->text->selc;
 		
-	if(scu->sell!=linep2 || scu->selc!=charp2)
-		txt_undo_add_toop(st->text, UNDO_STO, scu->sell, scu->selc, linep2, charp2);
+	if(ssel->sell!=linep2 || ssel->selc!=charp2)
+		txt_undo_add_toop(st->text, UNDO_STO, ssel->sell, ssel->selc, linep2, charp2);
 
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
 
-	MEM_freeN(scu);
+	MEM_freeN(ssel);
 }
 
-static int set_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int set_selection_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceText *st= CTX_wm_space_text(C);
-	ARegion *ar= CTX_wm_region(C);
-	SetCursor *scu;
+	SetSelection *ssel;
 
-	op->customdata= MEM_callocN(sizeof(SetCursor), "SetCursor");
-	scu= op->customdata;
-	scu->selecting= RNA_boolean_get(op->ptr, "select");
+	op->customdata= MEM_callocN(sizeof(SetSelection), "SetCursor");
+	ssel= op->customdata;
+	ssel->selecting= RNA_boolean_get(op->ptr, "select");
 
-	scu->old[0]= event->mval[0];
-	scu->old[1]= event->mval[1];
+	ssel->old[0]= event->mval[0];
+	ssel->old[1]= event->mval[1];
 
-	if(!scu->selecting) {
-		int curl= txt_get_span(st->text->lines.first, st->text->curl);
-		int curc= st->text->curc;			
-		int linep2, charp2;
-					
-		set_cursor_to_pos(st, ar, event->mval[0], event->mval[1], 0);
-
-		linep2= txt_get_span(st->text->lines.first, st->text->curl);
-		charp2= st->text->selc;
-				
-		if(curl!=linep2 || curc!=charp2)
-			txt_undo_add_toop(st->text, UNDO_CTO, curl, curc, linep2, charp2);
-	}
-
-	scu->sell= txt_get_span(st->text->lines.first, st->text->sell);
-	scu->selc= st->text->selc;
+	ssel->sell= txt_get_span(st->text->lines.first, st->text->sell);
+	ssel->selc= st->text->selc;
 
 	WM_event_add_modal_handler(C, op);
 
@@ -2552,7 +2565,7 @@ static int set_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int set_cursor_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int set_selection_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	switch(event->type) {
 		case LEFTMOUSE:
@@ -2568,10 +2581,64 @@ static int set_cursor_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int set_cursor_cancel(bContext *C, wmOperator *op)
+static int set_selection_cancel(bContext *C, wmOperator *op)
 {
 	set_cursor_exit(C, op);
 	return OPERATOR_FINISHED;
+}
+
+void TEXT_OT_selection_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Selection";
+	ot->idname= "TEXT_OT_selection_set";
+	ot->description= "Set cursor selection";
+
+	/* api callbacks */
+	ot->invoke= set_selection_invoke;
+	ot->modal= set_selection_modal;
+	ot->cancel= set_selection_cancel;
+	ot->poll= text_region_edit_poll;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "select", 0, "Select", "Set selection end rather than cursor.");
+}
+
+/******************* set cursor operator **********************/
+
+static int set_cursor_exec(bContext *C, wmOperator *op)
+{
+	SpaceText *st= CTX_wm_space_text(C);
+	Text *text= st->text;
+	ARegion *ar= CTX_wm_region(C);
+	int x= RNA_int_get(op->ptr, "x");
+	int y= RNA_int_get(op->ptr, "y");
+	int oldl, oldc;
+
+	oldl= txt_get_span(text->lines.first, text->curl);
+	oldc= text->curc;
+
+	set_cursor_to_pos(st, ar, x, y, 0);
+
+	txt_undo_add_toop(text, UNDO_CTO, oldl, oldc, txt_get_span(text->lines.first, text->curl), text->curc);
+
+	text_update_cursor_moved(C);
+	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+
+	return OPERATOR_PASS_THROUGH;
+}
+
+static int set_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceText *st= CTX_wm_space_text(C);
+
+	if(event->mval[0]>=st->txtbar.xmin)
+		return OPERATOR_PASS_THROUGH;
+
+	RNA_int_set(op->ptr, "x", event->mval[0]);
+	RNA_int_set(op->ptr, "y", event->mval[1]);
+
+	return set_cursor_exec(C, op);
 }
 
 void TEXT_OT_cursor_set(wmOperatorType *ot)
@@ -2579,16 +2646,16 @@ void TEXT_OT_cursor_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Cursor";
 	ot->idname= "TEXT_OT_cursor_set";
-	ot->description= "Set cursor selection";
-	
+	ot->description= "Set cursor position";
+
 	/* api callbacks */
 	ot->invoke= set_cursor_invoke;
-	ot->modal= set_cursor_modal;
-	ot->cancel= set_cursor_cancel;
+	ot->exec= set_cursor_exec;
 	ot->poll= text_region_edit_poll;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "select", 0, "Select", "Set selection end rather than cursor.");
+	RNA_def_boolean(ot->srna, "x", 0, "X", "X-coordinate to set cursor to.");
+	RNA_def_boolean(ot->srna, "y", 0, "Y", "X-coordinate to set cursor to.");
 }
 
 /******************* line number operator **********************/

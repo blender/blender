@@ -57,7 +57,7 @@ void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thr
 	}
 }
 
-void tex_input(float *out, int sz, bNodeStack *in, TexParams *params, short thread)
+static void tex_input(float *out, int sz, bNodeStack *in, TexParams *params, short thread)
 {
 	TexDelegate *dg = in->data;
 	if(dg) {

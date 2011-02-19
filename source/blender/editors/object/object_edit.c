@@ -592,15 +592,6 @@ void OBJECT_OT_posemode_toggle(wmOperatorType *ot)
 
 /* *********************** */
 
-void check_editmode(int type)
-{
-	Object *obedit= NULL; // XXX
-	
-	if (obedit==NULL || obedit->type==type) return;
-
-// XXX	ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO); /* freedata, and undo */
-}
-
 #if 0
 // XXX should be in view3d?
 
@@ -725,7 +716,7 @@ static void spot_interactive(Object *ob, int mode)
 }
 #endif
 
-void special_editmenu(Scene *scene, View3D *v3d)
+static void special_editmenu(Scene *scene, View3D *v3d)
 {
 // XXX	static short numcuts= 2;
 	Object *ob= OBACT;
@@ -1200,7 +1191,7 @@ static void copy_texture_space(Object *to, Object *ob)
 	
 }
 
-void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
+static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 {
 	Object *ob;
 	Base *base;
@@ -1448,7 +1439,7 @@ void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 	DAG_ids_flush_update(bmain, 0);
 }
 
-void copy_attr_menu(Main *bmain, Scene *scene, View3D *v3d)
+static void copy_attr_menu(Main *bmain, Scene *scene, View3D *v3d)
 {
 	Object *ob;
 	short event;
@@ -1719,7 +1710,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 
 /* ********************** */
 
-void image_aspect(Scene *scene, View3D *v3d)
+static void image_aspect(Scene *scene, View3D *v3d)
 {
 	/* all selected objects with an image map: scale in image aspect */
 	Base *base;
@@ -1778,7 +1769,7 @@ void image_aspect(Scene *scene, View3D *v3d)
 	
 }
 
-int vergbaseco(const void *a1, const void *a2)
+static int vergbaseco(const void *a1, const void *a2)
 {
 	Base **x1, **x2;
 	
@@ -1794,7 +1785,7 @@ int vergbaseco(const void *a1, const void *a2)
 }
 
 
-void auto_timeoffs(Scene *scene, View3D *v3d)
+static void auto_timeoffs(Scene *scene, View3D *v3d)
 {
 	Base *base, **basesort, **bs;
 	float start, delta;
@@ -1835,7 +1826,7 @@ void auto_timeoffs(Scene *scene, View3D *v3d)
 
 }
 
-void ofs_timeoffs(Scene *scene, View3D *v3d)
+static void ofs_timeoffs(Scene *scene, View3D *v3d)
 {
 	float offset=0.0f;
 
@@ -1854,7 +1845,7 @@ void ofs_timeoffs(Scene *scene, View3D *v3d)
 }
 
 
-void rand_timeoffs(Scene *scene, View3D *v3d)
+static void rand_timeoffs(Scene *scene, View3D *v3d)
 {
 	Base *base;
 	float rand_ofs=0.0f;

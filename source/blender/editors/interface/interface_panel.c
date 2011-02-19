@@ -309,6 +309,7 @@ static void ui_offset_panel_block(uiBlock *block)
 /**************************** drawing *******************************/
 
 /* extern used by previewrender */
+#if 0 /*UNUSED 2.5*/
 static void uiPanelPush(uiBlock *block)
 {
 	glPushMatrix(); 
@@ -321,6 +322,7 @@ static void uiPanelPop(uiBlock *UNUSED(block))
 {
 	glPopMatrix();
 }
+#endif
 
 /* triangle 'icon' for panel header */
 /* NOTE - this seems to be only used for hiding nodes now */

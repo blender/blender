@@ -1,4 +1,4 @@
-/* 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,19 +28,15 @@
  *
  */
 
-#ifndef MATHUTILS_EULER_H
-#define MATHUTILS_EULER_H
+#ifndef MATHUTILS_COLOR_H
+#define MATHUTILS_COLOR_H
 
-#include <Python.h>
-
-extern PyTypeObject euler_Type;
-#define EulerObject_Check(_v) PyObject_TypeCheck((_v), &euler_Type)
+extern PyTypeObject color_Type;
+#define ColorObject_Check(_v) PyObject_TypeCheck((_v), &color_Type)
 
 typedef struct {
-	BASE_MATH_MEMBERS(eul)
-	unsigned char order;		/* rotation order */
-
-} EulerObject;
+	BASE_MATH_MEMBERS(col)
+} ColorObject;
 
 /*struct data contains a pointer to the actual data that the
 object uses. It can use either PyMem allocated data (which will
@@ -48,10 +44,7 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *newEulerObject( float *eul, short order, int type, PyTypeObject *base_type);
-PyObject *newEulerObject_cb(PyObject *cb_user, short order, int cb_type, int cb_subtype);
+PyObject *newColorObject( float *col, int type, PyTypeObject *base_type);
+PyObject *newColorObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
-short euler_order_from_string(const char *str, const char *error_prefix);
-
-
-#endif /* MATHUTILS_EULER_H */
+#endif /* MATHUTILS_COLOR_H */

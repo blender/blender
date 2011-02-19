@@ -21,8 +21,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
- #include <string.h>
+#include <string.h>
 #include <stdio.h>
 
 #ifdef WIN32
@@ -39,6 +38,7 @@
 #include "BKE_screen.h"
 #include "BKE_idcode.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -225,7 +225,7 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_scrollers_free(scrollers);
 }
 
-void console_operatortypes(void)
+static void console_operatortypes(void)
 {
 	/* console_ops.c */
 	WM_operatortype_append(CONSOLE_OT_move);
@@ -243,7 +243,7 @@ void console_operatortypes(void)
 	WM_operatortype_append(CONSOLE_OT_select_set);
 }
 
-void console_keymap(struct wmKeyConfig *keyconf)
+static void console_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Console", SPACE_CONSOLE, 0);
 	wmKeyMapItem *kmi;

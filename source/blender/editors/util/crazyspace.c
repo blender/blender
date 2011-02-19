@@ -43,6 +43,8 @@
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 
+#include "ED_util.h"
+
 #define TAN_MAKE_VEC(a, b, c)	a[0]= b[0] + 0.2f*(b[0]-c[0]); a[1]= b[1] + 0.2f*(b[1]-c[1]); a[2]= b[2] + 0.2f*(b[2]-c[2])
 static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, float *def1, float *def2, float *def3)
 {
@@ -363,7 +365,7 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 		float (*deformedVerts)[3]= *deformcos;
 		float (*origVerts)[3]= MEM_dupallocN(deformedVerts);
 		float *quats= NULL;
-		int i;
+		int i, deformed= 0;
 		ModifierData *md= modifiers_getVirtualModifierList(ob);
 		Mesh *me= (Mesh*)ob->data;
 
@@ -372,8 +374,15 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 
 			if(!modifier_isEnabled(scene, md, eModifierMode_Realtime)) continue;
 
-			if(mti->type==eModifierTypeType_OnlyDeform)
+			if(mti->type==eModifierTypeType_OnlyDeform) {
+				/* skip leading modifiers which have been alredy
+				   handled in sculpt_get_first_deform_matrices */
+				if(mti->deformMatrices && !deformed)
+					continue;
+
 				mti->deformVerts(md, ob, NULL, deformedVerts, me->totvert, 0, 0);
+				deformed= 1;
+			}
 		}
 
 		quats= MEM_mallocN(me->totvert*sizeof(float)*4, "crazy quats");

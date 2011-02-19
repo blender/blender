@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,12 +25,16 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * dxf/vrml/stl external file io function prototypes
  */
 
 #ifndef BKE_EXOTIC_H
 #define BKE_EXOTIC_H
 
+/** \file BKE_exotic.h
+ *  \ingroup bke
+ *  \brief dxf/vrml/stl external file io function prototypes.
+ *  \attention is this used still? Candidate for removal?
+ */
 struct Mesh;
 struct Scene;
 

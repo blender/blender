@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_view3d_types.h (mar-2001 nzc)
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,10 @@
  */
 #ifndef DNA_VIEW3D_TYPES_H
 #define DNA_VIEW3D_TYPES_H
+
+/** \file DNA_view3d_types.h
+ *  \ingroup DNA
+ */
 
 struct ViewDepths;
 struct Object;

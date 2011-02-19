@@ -929,7 +929,7 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_bake (wmOperatorType *ot)
+static void NLA_OT_bake (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Bake Strips";
@@ -1555,7 +1555,7 @@ void NLA_OT_clear_scale (wmOperatorType *ot)
 /* Moves the start-point of the selected strips to the specified places */
 
 /* defines for snap keyframes tool */
-EnumPropertyItem prop_nlaedit_snap_types[] = {
+static EnumPropertyItem prop_nlaedit_snap_types[] = {
 	{NLAEDIT_SNAP_CFRA, "CFRA", 0, "Current frame", ""},
 	{NLAEDIT_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
 	{NLAEDIT_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?

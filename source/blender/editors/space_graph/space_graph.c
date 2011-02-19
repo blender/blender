@@ -45,6 +45,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_anim_api.h"
 #include "ED_markers.h"

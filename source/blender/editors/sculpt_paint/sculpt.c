@@ -140,7 +140,7 @@ struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 }
 
 /* Check if there are any active modifiers in stack (used for flushing updates at enter/exit sculpt mode) */
-int sculpt_has_active_modifiers(Scene *scene, Object *ob)
+static int sculpt_has_active_modifiers(Scene *scene, Object *ob)
 {
 	ModifierData *md;
 
@@ -252,7 +252,7 @@ typedef struct StrokeCache {
 /*** BVH Tree ***/
 
 /* Get a screen-space rectangle of the modified area */
-int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
+static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 				Object *ob, rcti *rect)
 {
 	PBVH *pbvh= ob->sculpt->pbvh;
@@ -504,7 +504,7 @@ static void flip_coord(float out[3], float in[3], const char symm)
 		out[2]= in[2];
 }
 
-float calc_overlap(StrokeCache *cache, const char symm, const char axis, const float angle)
+static float calc_overlap(StrokeCache *cache, const char symm, const char axis, const float angle)
 {
 	float mirror[3];
 	float distsq;
@@ -2446,11 +2446,34 @@ static void sculpt_update_keyblock(SculptSession *ss)
 }
 
 /* flush displacement from deformed PBVH to original layer */
-static void sculpt_flush_stroke_deform(SculptSession *ss)
+static void sculpt_flush_stroke_deform(Sculpt *sd, SculptSession *ss)
 {
 	if(!ss->kb) {
 		Object *ob= ss->ob;
 		Mesh *me= (Mesh*)ob->data;
+		Brush *brush= paint_brush(&sd->paint);
+
+		if(ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER)) {
+			/* this brushes aren't using proxies, so sculpt_combine_proxies() wouldn't
+			   propagate needed deformation to original base */
+
+			int n, totnode;
+			PBVHNode** nodes;
+			PBVHVertexIter vd;
+
+			BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+
+			#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+			for (n= 0; n < totnode; n++) {
+
+				BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+					sculpt_flush_pbvhvert_deform(ss, &vd);
+				}
+				BLI_pbvh_vertex_iter_end;
+			}
+
+			MEM_freeN(nodes);
+		}
 
 		/* Modifiers could depend on mesh normals, so we should update them/
 		   Note, then if sculpting happens on locked key, normals should be re-calculated
@@ -2568,7 +2591,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd, SculptSession *ss)
 	sculpt_fix_noise_tear(sd, ss);
 
 	if (ss->modifiers_active)
-		sculpt_flush_stroke_deform(ss);
+		sculpt_flush_stroke_deform(sd, ss);
 
 	cache->first_time= 0;
 }
@@ -3163,7 +3186,7 @@ typedef struct {
 	int original;
 } SculptRaycastData;
 
-void sculpt_raycast_cb(PBVHNode *node, void *data_v, float* tmin)
+static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float* tmin)
 {
 	if (BLI_pbvh_node_get_tmin(node) < *tmin) {
 		SculptRaycastData *srd = data_v;

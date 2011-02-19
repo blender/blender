@@ -43,6 +43,7 @@
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
 
+#include "ED_info.h"
 #include "ED_armature.h"
 #include "ED_mesh.h"
 #include "ED_curve.h" /* for ED_curve_editnurbs */
@@ -418,7 +419,7 @@ void ED_info_stats_clear(Scene *scene)
 	}
 }
 
-char *ED_info_stats_string(Scene *scene)
+const char *ED_info_stats_string(Scene *scene)
 {
 	if(!scene->stats)
 		stats_update(scene);

@@ -1,6 +1,4 @@
-/**
- * BKE_cloth.h
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,11 @@
  */
 #ifndef BKE_CLOTH_H
 #define BKE_CLOTH_H
+
+/** \file BKE_cloth.h
+ *  \ingroup bke
+ *  \author Daniel Genrich
+ */
 
 #include <float.h>
 

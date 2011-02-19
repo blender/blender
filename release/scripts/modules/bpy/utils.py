@@ -74,9 +74,6 @@ def modules_from_path(path, loaded_modules):
     :return: all loaded modules.
     :rtype: list
     """
-    import traceback
-    import time
-
     modules = []
 
     for mod_name, mod_path in _bpy.path.module_names(path):
@@ -589,7 +586,7 @@ def _bpy_module_classes(module, is_registered=False):
         if cls is None:
             del typemap_list[i]
         else:
-            if is_registered == ("bl_rna" in cls.__dict__):
+            if is_registered == cls.is_registered:
                 yield (cls, path, line)
             i += 1
 

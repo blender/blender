@@ -48,6 +48,7 @@
 #include "BKE_global.h"
 
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
@@ -452,7 +453,7 @@ void sample_fcurve (FCurve *fcu)
  */
 
 /* globals for copy/paste data (like for other copy/paste buffers) */
-ListBase animcopybuf = {NULL, NULL};
+static ListBase animcopybuf = {NULL, NULL};
 static float animcopy_firstframe= 999999999.0f;
 static float animcopy_lastframe= -999999999.0f;
 static float animcopy_cfra= 0.0;

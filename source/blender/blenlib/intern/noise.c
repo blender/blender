@@ -36,6 +36,8 @@
 
 #include <math.h>
 
+#include "BLI_noise.h"
+
 /* local */
 static float noise3_perlin(float vec[3]);
 //static float turbulence_perlin(float *point, float lofreq, float hifreq);
@@ -388,7 +390,7 @@ static char p[512+2]= {
 0xA2,0xA0};
 
 
-float g[512+2][3]= {
+static float g[512+2][3]= {
 	{0.33783, 0.715698, -0.611206},
 	{-0.944031, -0.326599, -0.045624},
 	{-0.101074, -0.416443, -0.903503},

@@ -51,7 +51,7 @@ rna_relative_prop = BoolProperty(name="Relative",
 def context_path_validate(context, data_path):
     import sys
     try:
-        value = eval("context.%s" % data_path)
+        value = eval("context.%s" % data_path) if data_path else Ellipsis
     except AttributeError:
         if "'NoneType'" in str(sys.exc_info()[1]):
             # One of the items in the rna path is None, just ignore this
@@ -382,6 +382,39 @@ class WM_OT_context_cycle_array(bpy.types.Operator):
         exec("context.%s=cycle(context.%s[:])" % (data_path, data_path))
 
         return {'FINISHED'}
+
+
+class WM_MT_context_menu_enum(bpy.types.Menu):
+    bl_label = ""
+    data_path = ""  # BAD DESIGN, set from operator below.
+
+    def draw(self, context):
+        data_path = self.data_path
+        value = context_path_validate(bpy.context, data_path)
+        if value is Ellipsis:
+            return {'PASS_THROUGH'}
+        base_path, prop_string = data_path.rsplit(".", 1)
+        value_base = context_path_validate(context, base_path)
+
+        values = [(i.name, i.identifier) for i in value_base.bl_rna.properties[prop_string].items]
+
+        for name, identifier in values:
+            prop = self.layout.operator("wm.context_set_enum", text=name)
+            prop.data_path = data_path
+            prop.value = identifier
+
+
+class WM_OT_context_menu_enum(bpy.types.Operator):
+    bl_idname = "wm.context_menu_enum"
+    bl_label = "Context Enum Menu"
+    bl_options = {'UNDO'}
+    data_path = rna_path_prop
+
+    def execute(self, context):
+        data_path = self.data_path
+        WM_MT_context_menu_enum.data_path = data_path
+        bpy.ops.wm.call_menu(name="WM_MT_context_menu_enum")
+        return {'PASS_THROUGH'}
 
 
 class WM_OT_context_set_id(bpy.types.Operator):

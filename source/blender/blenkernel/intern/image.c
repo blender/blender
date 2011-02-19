@@ -72,9 +72,8 @@
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 #include "BKE_node.h"
+#include "BKE_sequencer.h" /* seq_foreground_frame_get() */
 #include "BKE_utildefines.h"
-
-//XXX #include "BIF_editseq.h"
 
 #include "BLF_api.h"
 
@@ -527,6 +526,10 @@ void free_old_images(void)
 	if (U.textimeout == 0 || ctime % U.texcollectrate || ctime == lasttime)
 		return;
 
+	/* of course not! */
+	if (G.rendering)
+		return;
+	
 	lasttime = ctime;
 
 	ima= G.main->image.first;
@@ -968,7 +971,7 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 	
 	if (scene->r.stamp & R_STAMP_SEQSTRIP) {
-		Sequence *seq= NULL; //XXX = get_foreground_frame_seq(scene->r.cfra);
+		Sequence *seq= seq_foreground_frame_get(scene, scene->r.cfra);
 	
 		if (seq) strcpy(text, seq->name+2);
 		else 		strcpy(text, "<none>");
@@ -2183,10 +2186,7 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 		BLI_unlock_thread(LOCK_IMAGE);
 	}
 
-	/* we assuming that if it is not rendering, it's also not multithreaded
-	 * (a somewhat weak assumption) */
-	if(G.rendering==0)
-		tag_image_time(ima);
+	tag_image_time(ima);
 
 	return ibuf;
 }

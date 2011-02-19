@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_world.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,12 @@
  */
 #ifndef BKE_WORLD_H
 #define BKE_WORLD_H
+
+/** \file BKE_world.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
 
 struct World;
 

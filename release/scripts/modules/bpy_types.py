@@ -23,7 +23,7 @@ import _bpy
 from mathutils import Vector
 
 StructRNA = bpy_types.Struct.__bases__[0]
-StructMetaIDProp = _bpy.StructMetaIDProp
+StructMetaPropGroup = _bpy.StructMetaPropGroup
 # StructRNA = bpy_types.Struct
 
 
@@ -258,15 +258,15 @@ class _GenericBone:
         return bones
 
 
-class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
+class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
 
 
-class Bone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
+class Bone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
 
 
-class EditBone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
+class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
 
     def align_orientation(self, other):
@@ -572,11 +572,14 @@ class RNAMeta(type):
 
         return result
 
+    @property
+    def is_registered(cls):
+        return "bl_rna" in cls.__dict__
 
 import collections
 
 
-class RNAMetaIDProp(RNAMeta, StructMetaIDProp):
+class RNAMetaPropGroup(RNAMeta, StructMetaPropGroup):
     pass
 
 
@@ -634,7 +637,7 @@ class Macro(StructRNA, metaclass=OrderedMeta):
         return ops.macro_define(self, opname)
 
 
-class IDPropertyGroup(StructRNA, metaclass=RNAMetaIDProp):
+class PropertyGroup(StructRNA, metaclass=RNAMetaPropGroup):
         __slots__ = ()
 
 
@@ -671,7 +674,7 @@ class _GenericUI:
 
     @classmethod
     def append(cls, draw_func):
-        """Prepend an draw function to this menu, takes the same arguments as the menus draw function."""
+        """Append a draw function to this menu, takes the same arguments as the menus draw function."""
         draw_funcs = cls._dyn_ui_initialize()
         draw_funcs.append(draw_func)
 

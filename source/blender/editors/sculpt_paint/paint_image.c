@@ -1238,7 +1238,7 @@ static void project_face_pixel(const MTFace *tf_other, ImBuf *ibuf_other, const 
 }
 
 /* run this outside project_paint_uvpixel_init since pixels with mask 0 dont need init */
-float project_paint_uvpixel_mask(
+static float project_paint_uvpixel_mask(
 		const ProjPaintState *ps,
 		const int face_index,
 		const int side,
@@ -2141,7 +2141,7 @@ if __name__ == '__main__':
 	
 /* checks if pt is inside a convex 2D polyline, the polyline must be ordered rotating clockwise
  * otherwise it would have to test for mixed (line_point_side_v2 > 0.0f) cases */
-int IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
+static int IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
 {
 	int i;
 	if (line_point_side_v2(uv[tot-1], uv[0], pt) < 0.0f)
@@ -2202,7 +2202,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	
 	float tf_uv_pxoffset[4][2]; /* bucket bounds in UV space so we can init pixels only for this face,  */
 	float xhalfpx, yhalfpx;
-	const float ibuf_xf = ibuf->x, ibuf_yf = ibuf->y;
+	const float ibuf_xf = (float)ibuf->x, ibuf_yf = (float)ibuf->y;
 	
 	int has_x_isect = 0, has_isect = 0; /* for early loop exit */
 	

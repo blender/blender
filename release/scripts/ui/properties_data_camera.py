@@ -95,9 +95,7 @@ class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
         layout.label(text="Depth of Field:")
 
         split = layout.split()
-
-        col = split.column()
-        col.prop(cam, "dof_object", text="")
+        split.prop(cam, "dof_object", text="")
 
         col = split.column()
 

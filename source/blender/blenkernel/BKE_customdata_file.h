@@ -23,6 +23,10 @@
 #ifndef BKE_CUSTOMDATA_FILE_H
 #define BKE_CUSTOMDATA_FILE_H
 
+/** \file BKE_customdata_file.h
+ *  \ingroup bke
+ */
+
 #define CDF_TYPE_IMAGE	0
 #define CDF_TYPE_MESH	1
 

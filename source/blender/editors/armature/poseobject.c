@@ -71,13 +71,6 @@
 
 #include "armature_intern.h"
 
-/* ************* XXX *************** */
-static int pupmenu(const char *UNUSED(dummy)) {return 0;}
-static void error(const char *UNUSED(dummy)) {}
-static void BIF_undo_push(const char *UNUSED(dummy)) {}
-/* ************* XXX *************** */
-
-
 static int object_pose_context(Object *ob)
 {
 	if(	(ob) && 
@@ -110,7 +103,7 @@ Object *ED_object_pose_armature(Object *ob)
 
 
 /* This function is used to indicate that a bone is selected and needs keyframes inserted */
-void set_pose_keys (Object *ob)
+static void set_pose_keys (Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *chan;
@@ -167,6 +160,7 @@ void ED_armature_exit_posemode(bContext *C, Base *base)
 
 /* if a selected or active bone is protected, throw error (oonly if warn==1) and return 1 */
 /* only_selected==1 : the active bone is allowed to be protected */
+#if 0 /* UNUSED 2.5 */
 static short pose_has_protected_selected(Object *ob, short warn)
 {
 	/* check protection */
@@ -189,6 +183,7 @@ static short pose_has_protected_selected(Object *ob, short warn)
 	}
 	return 0;
 }
+#endif
 
 /* only for real IK, not for auto-IK */
 static int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan, int level)
@@ -295,7 +290,7 @@ void POSE_OT_paths_calculate (wmOperatorType *ot)
 /* --------- */
 
 /* for the object with pose/action: clear path curves for selected bones only */
-void ED_pose_clear_paths(Object *ob)
+static void ED_pose_clear_paths(Object *ob)
 {
 	bPoseChannel *pchan;
 	short skipped = 0;
@@ -662,8 +657,8 @@ void POSE_OT_select_grouped (wmOperatorType *ot)
 }
 
 /* ********************************************** */
-
-void pose_copy_menu(Scene *scene)
+#if 0 /* UNUSED 2.5 */
+static void pose_copy_menu(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX context
 	Object *ob= OBACT;
@@ -860,6 +855,7 @@ void pose_copy_menu(Scene *scene)
 	BIF_undo_push("Copy Pose Attributes");
 	
 }
+#endif
 
 /* ******************** copy/paste pose ********************** */
 
@@ -1567,7 +1563,7 @@ void POSE_OT_autoside_names (wmOperatorType *ot)
 /* ********************************************** */
 
 /* context active object, or weightpainted object with armature in posemode */
-void pose_activate_flipped_bone(Scene *scene)
+static void pose_activate_flipped_bone(Scene *scene)
 {
 	Object *ob= OBACT;
 

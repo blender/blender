@@ -37,7 +37,7 @@ endif()
 
 add_subdirectory(glew)
 
-if(WITH_IMAGE_OPENJPEG)
+if(WITH_IMAGE_OPENJPEG AND (NOT UNIX OR APPLE))
 	add_subdirectory(libopenjpeg)
 endif()
 

@@ -2470,7 +2470,7 @@ static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *U
 	return OPERATOR_CANCELLED;
 }
 
-void SCREEN_OT_header_toolbox(wmOperatorType *ot)
+static void SCREEN_OT_header_toolbox(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Header Toolbox";
@@ -2917,7 +2917,7 @@ static int screen_new_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_new(wmOperatorType *ot)
+static void SCREEN_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "New Screen";
@@ -2942,7 +2942,7 @@ static int screen_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_delete(wmOperatorType *ot)
+static void SCREEN_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Screen"; //was scene
@@ -2977,7 +2977,7 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void SCENE_OT_new(wmOperatorType *ot)
+static void SCENE_OT_new(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
 		{SCE_COPY_EMPTY, "EMPTY", 0, "Empty", "Add empty scene"},
@@ -3013,7 +3013,7 @@ static int scene_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void SCENE_OT_delete(wmOperatorType *ot)
+static void SCENE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Scene";

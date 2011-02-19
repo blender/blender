@@ -642,7 +642,29 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             layout.separator()
             layout.separator()
+        elif theme.theme_area == 'COLOR_SETS':
+            col = split.column()
 
+            for i, ui in enumerate(theme.bone_color_sets):
+                col.label(text="Color Set %d:" % (i + 1))  # i starts from 0
+
+                row = col.row()
+
+                subsplit = row.split(percentage=0.95)
+
+                padding = subsplit.split(percentage=0.15)
+                colsub = padding.column()
+                colsub = padding.column()
+                colsub.row().prop(ui, "normal")
+                colsub.row().prop(ui, "select")
+                colsub.row().prop(ui, "active")
+
+                subsplit = row.split(percentage=0.85)
+
+                padding = subsplit.split(percentage=0.15)
+                colsub = padding.column()
+                colsub = padding.column()
+                colsub.row().prop(ui, "show_colored_constraints")
         else:
             self._theme_generic(split, getattr(theme, theme.theme_area.lower()))
 
@@ -802,7 +824,6 @@ class USERPREF_PT_input(InputKeyMapPanel):
         #start = time.time()
 
         userpref = context.user_preferences
-        wm = context.window_manager
 
         inputs = userpref.inputs
 
@@ -856,9 +877,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
         import sys
         import time
 
-        modules = []
-        loaded_modules = set()
-
         # RELEASE SCRIPTS: official scripts distributed in Blender releases
         paths = bpy.utils.script_paths("addons")
 
@@ -870,13 +888,10 @@ class USERPREF_PT_addons(bpy.types.Panel):
         # if folder addons_extern/ exists, scripts in there will be loaded too
         paths += bpy.utils.script_paths("addons_extern")
 
-        if bpy.app.debug:
-            t_main = time.time()
-
         # fake module importing
         def fake_module(mod_name, mod_path, speedy=True):
             if bpy.app.debug:
-                print("fake_module", mod_name, mod_path)
+                print("fake_module", mod_path, mod_name)
             import ast
             ModuleType = type(ast)
             file_mod = open(mod_path, "r", encoding='UTF-8')
@@ -968,11 +983,12 @@ class USERPREF_PT_addons(bpy.types.Panel):
             bpy.types.WindowManager.addon_search = bpy.props.StringProperty(name="Search", description="Search within the selected filter")
             USERPREF_PT_addons._addons_cats = cats
 
-        sups = {info["support"] for mod, info in addons}
+        sups_default = {'OFFICIAL', 'COMMUNITY'}
+        sups = sups_default | {info["support"] for mod, info in addons}
         sups.discard("")
 
         if USERPREF_PT_addons._addons_sups != sups:
-            bpy.types.WindowManager.addon_support = bpy.props.EnumProperty(items=[(sup, sup.title(), "") for  sup in reversed(sorted(sups))], name="Support", description="Display support level", default={'OFFICIAL', 'COMMUNITY'}, options={'ENUM_FLAG'})
+            bpy.types.WindowManager.addon_support = bpy.props.EnumProperty(items=[(sup, sup.title(), "") for  sup in reversed(sorted(sups))], name="Support", description="Display support level", default=sups_default, options={'ENUM_FLAG'})
             USERPREF_PT_addons._addons_sups = sups
 
         split = layout.split(percentage=0.2)

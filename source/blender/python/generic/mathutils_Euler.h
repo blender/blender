@@ -1,4 +1,4 @@
-/*
+/* 
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,28 +22,34 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Willian P. Germano & Joseph Gilbert
+ * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#ifndef MATHUTILS_VECTOR_H
-#define MATHUTILS_VECTOR_H
+#ifndef MATHUTILS_EULER_H
+#define MATHUTILS_EULER_H
 
-#include <Python.h>
-
-extern PyTypeObject vector_Type;
-#define VectorObject_Check(_v) PyObject_TypeCheck((_v), &vector_Type)
+extern PyTypeObject euler_Type;
+#define EulerObject_Check(_v) PyObject_TypeCheck((_v), &euler_Type)
 
 typedef struct {
-	BASE_MATH_MEMBERS(vec)
+	BASE_MATH_MEMBERS(eul)
+	unsigned char order;		/* rotation order */
 
-	unsigned char size;			/* vec size 2,3 or 4 */
-} VectorObject;
+} EulerObject;
 
-/*prototypes*/
-PyObject *newVectorObject(float *vec, const int size, const int type, PyTypeObject *base_type);
-PyObject *newVectorObject_cb(PyObject *user, int size, int callback_type, int subtype);
+/*struct data contains a pointer to the actual data that the
+object uses. It can use either PyMem allocated data (which will
+be stored in py_data) or be a wrapper for data allocated through
+blender (stored in blend_data). This is an either/or struct not both*/
 
-#endif				/* MATHUTILS_VECTOR_H */
+//prototypes
+PyObject *newEulerObject( float *eul, short order, int type, PyTypeObject *base_type);
+PyObject *newEulerObject_cb(PyObject *cb_user, short order, int cb_type, int cb_subtype);
+
+short euler_order_from_string(const char *str, const char *error_prefix);
+
+
+#endif /* MATHUTILS_EULER_H */

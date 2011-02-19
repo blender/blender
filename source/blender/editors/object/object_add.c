@@ -971,8 +971,13 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		basen->lay= base->lay;
 		BLI_addhead(&scene->base, basen);	/* addhead: othwise eternal loop */
 		basen->object= ob;
-		ob->ipo= NULL;		/* make sure apply works */
-		ob->parent= ob->track= NULL;
+		
+		/* make sure apply works */
+		BKE_free_animdata(&ob->id);	
+		ob->adt = NULL;
+		
+		ob->parent= NULL;
+		ob->constraints.first= ob->constraints.last= NULL;
 		ob->disp.first= ob->disp.last= NULL;
 		ob->transflag &= ~OB_DUPLI;	
 		ob->lay= base->lay;

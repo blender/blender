@@ -51,7 +51,6 @@
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
-FT_Library global_ft_lib;
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 {
@@ -235,9 +234,9 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 		/* Convert result from 1 bit per pixel to 8 bit per pixel */
 		/* Accum errors for later, fine if not interested beyond "ok vs any error" */
 		FT_Bitmap_New(&tempbitmap);
-		err += FT_Bitmap_Convert(global_ft_lib, &slot->bitmap, &tempbitmap, 1); /* Does Blender use Pitch 1 always? It works so far */
-		err += FT_Bitmap_Copy(global_ft_lib, &tempbitmap, &slot->bitmap);
-		err += FT_Bitmap_Done(global_ft_lib, &tempbitmap);
+		err += FT_Bitmap_Convert(font->ft_lib, &slot->bitmap, &tempbitmap, 1); /* Does Blender use Pitch 1 always? It works so far */
+		err += FT_Bitmap_Copy(font->ft_lib, &tempbitmap, &slot->bitmap);
+		err += FT_Bitmap_Done(font->ft_lib, &tempbitmap);
 	} else {
 		err = FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL);
 	}

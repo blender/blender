@@ -266,7 +266,7 @@ static void xxx_keymap(wmKeyConfig *UNUSED(keyconf))
 }
 
 /* only called once, from screen/spacetypes.c */
-void ED_spacetype_xxx(void)
+static void ED_spacetype_xxx(void)
 {
 	static SpaceType st;
 	

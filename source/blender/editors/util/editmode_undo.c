@@ -46,10 +46,13 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 
+#include "ED_util.h"
 #include "ED_mesh.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "util_intern.h"
 
 /* ***************** generic editmode undo system ********************* */
 /*
@@ -75,7 +78,7 @@ void undo_editmode_menu(void)				// history menu
 /* ********************************************************************* */
 
 /* ****** XXX ***** */
-void error(const char *UNUSED(arg)) {}
+static void error(const char *UNUSED(arg)) {}
 /* ****** XXX ***** */
 
 

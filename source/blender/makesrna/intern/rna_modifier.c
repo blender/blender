@@ -477,6 +477,19 @@ static void rna_ShrinkwrapModifier_target_set(PointerRNA *ptr, PointerRNA value)
 	modifier_object_set(ptr->id.data, &((ShrinkwrapModifierData*)ptr->data)->target, OB_MESH, value);
 }
 
+static int rna_ShrinkwrapModifier_face_cull_get(PointerRNA *ptr)
+{
+	ShrinkwrapModifierData *swm= (ShrinkwrapModifierData*)ptr->data;
+	return swm->shrinkOpts & (MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE|MOD_SHRINKWRAP_CULL_TARGET_BACKFACE);
+}
+
+static void rna_ShrinkwrapModifier_face_cull_set(struct PointerRNA *ptr, int value)
+{
+	ShrinkwrapModifierData *swm= (ShrinkwrapModifierData*)ptr->data;
+	
+	swm->shrinkOpts= (swm->shrinkOpts & ~(MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE|MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)) | value;
+}
+
 static void rna_MeshDeformModifier_object_set(PointerRNA *ptr, PointerRNA value)
 {
 	modifier_object_set(ptr->id.data, &((MeshDeformModifierData*)ptr->data)->object, OB_MESH, value);
@@ -1875,6 +1888,12 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 		{MOD_SHRINKWRAP_PROJECT, "PROJECT", 0, "Project", ""},
 		{MOD_SHRINKWRAP_NEAREST_VERTEX, "NEAREST_VERTEX", 0, "Nearest Vertex", ""},
 		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem shrink_face_cull_items[] = {
+		{0, "OFF", 0, "Off", ""},
+		{MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE, "FRONT", 0, "Front", ""},
+		{MOD_SHRINKWRAP_CULL_TARGET_BACKFACE, "BACK", 0, "Back", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ShrinkwrapModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Shrinkwrap Modifier", "Shrink wrapping modifier to shrink wrap and object to a target");
@@ -1885,6 +1904,13 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "shrinkType");
 	RNA_def_property_enum_items(prop, shrink_type_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "cull_face", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "shrinkOpts");
+	RNA_def_property_enum_items(prop, shrink_face_cull_items);
+	RNA_def_property_enum_funcs(prop, "rna_ShrinkwrapModifier_face_cull_get", "rna_ShrinkwrapModifier_face_cull_set", NULL);
+	RNA_def_property_ui_text(prop, "Face Cull", "Stop vertices from projecting to a the face on the target when facing towards/away");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
@@ -1943,16 +1969,6 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_positive_direction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shrinkOpts", MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR);
 	RNA_def_property_ui_text(prop, "Positive", "Allow vertices to move in the positive direction of axis");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop= RNA_def_property(srna, "use_cull_front_faces", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "shrinkOpts", MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE);
-	RNA_def_property_ui_text(prop, "Cull Front Faces", "Stop vertices from projecting to a front face on the target");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop= RNA_def_property(srna, "use_cull_back_faces", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "shrinkOpts", MOD_SHRINKWRAP_CULL_TARGET_BACKFACE);
-	RNA_def_property_ui_text(prop, "Cull Back Faces", "Stop vertices from projecting to a back face on the target");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "use_keep_above_surface", PROP_BOOLEAN, PROP_NONE);

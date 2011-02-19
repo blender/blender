@@ -255,22 +255,26 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 
 	BLI_bvhtree_ray_cast(tree, co, no, 0.0f, &hit_tmp, callback, userdata);
 
-	if(hit_tmp.index != -1)
-	{
-		float dot = INPR( dir, hit_tmp.no);
+	if(hit_tmp.index != -1) {
+		/* invert the normal first so face culling works on rotated objects */
+		if(transf) {
+			space_transform_invert_normal(transf, hit_tmp.no);
+		}
 
-		if(((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot <= 0.0f)
-		|| ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot >= 0.0f))
-			return FALSE; //Ignore hit
+		if (options & (MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE|MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)) {
+			/* apply backface */
+			const float dot= dot_v3v3(dir, hit_tmp.no);
+			if(	((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot <= 0.0f) ||
+				((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot >= 0.0f)
+			) {
+				return FALSE; /* Ignore hit */
+			}
+		}
 
-
-		//Inverting space transform (TODO make coeherent with the initial dist readjust)
-		if(transf)
-		{
-			space_transform_invert( transf, hit_tmp.co );
-			space_transform_invert_normal( transf, hit_tmp.no );
-
-			hit_tmp.dist = len_v3v3( (float*)vert, hit_tmp.co );
+		if(transf) {
+			/* Inverting space transform (TODO make coeherent with the initial dist readjust) */
+			space_transform_invert(transf, hit_tmp.co);
+			hit_tmp.dist = len_v3v3((float *)vert, hit_tmp.co);
 		}
 
 		memcpy(hit, &hit_tmp, sizeof(hit_tmp) );

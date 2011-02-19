@@ -1,6 +1,4 @@
-/**
- * A general (pointer -> pointer) hash table ADT
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,11 @@
  
 #ifndef BLI_GHASH_H
 #define BLI_GHASH_H
+
+/** \file BLI_ghash.h
+ *  \ingroup bli
+ *  \brief A general (pointer -> pointer) hash table ADT
+ */
 
 #ifdef __cplusplus
 extern "C" {

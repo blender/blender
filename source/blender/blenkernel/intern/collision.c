@@ -482,7 +482,7 @@ DO_INLINE void collision_interpolateOnTriangle ( float to[3], float v1[3], float
 }
 
 
-int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, CollPair *collision_end )
+static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, CollPair *collision_end )
 {
 	int result = 0;
 	Cloth *cloth1;
@@ -598,7 +598,7 @@ int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifier
 }
 
 //Determines collisions on overlap, collisions are written to collpair[i] and collision+number_collision_found is returned
-CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap *overlap, CollPair *collpair )
+static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap *overlap, CollPair *collpair )
 {
 	ClothModifierData *clmd = ( ClothModifierData * ) md1;
 	CollisionModifierData *collmd = ( CollisionModifierData * ) md2;

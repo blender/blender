@@ -1,7 +1,5 @@
-/**
- * Simple fast memory allocator
- * 
- *
+/*
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -31,14 +29,18 @@
 #ifndef BLI_MEMPOOL_H
 #define BLI_MEMPOOL_H
 
+/** \file BLI_storage.h
+ *  \ingroup bli
+ *  \author Geoffrey Bantle
+ *  \brief Simple fast memory allocator.
+ */
+
 struct BLI_mempool;
-typedef struct BLI_mempool BLI_mempool;
 
-BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk, int use_sysmalloc);
-void *BLI_mempool_alloc(BLI_mempool *pool);
-void *BLI_mempool_calloc(BLI_mempool *pool);
-void BLI_mempool_free(BLI_mempool *pool, void *addr);
-void BLI_mempool_destroy(BLI_mempool *pool);
-
+struct BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk, int use_sysmalloc);
+void *BLI_mempool_alloc(struct BLI_mempool *pool);
+void *BLI_mempool_calloc(struct BLI_mempool *pool);
+void BLI_mempool_free(struct BLI_mempool *pool, void *addr);
+void BLI_mempool_destroy(struct BLI_mempool *pool);
 
 #endif

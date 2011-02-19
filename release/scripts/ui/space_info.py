@@ -26,9 +26,7 @@ class INFO_HT_header(bpy.types.Header):
     def draw(self, context):
         layout = self.layout
 
-        wm = context.window_manager
         window = context.window
-        sinfo = context.space_data
         scene = context.scene
         rd = scene.render
 
@@ -70,6 +68,7 @@ class INFO_HT_header(bpy.types.Header):
 
         # XXX: BEFORE RELEASE, MOVE FILE MENU OUT OF INFO!!!
         """
+        sinfo = context.space_data
         row = layout.row(align=True)
         row.prop(sinfo, "show_report_debug", text="Debug")
         row.prop(sinfo, "show_report_info", text="Info")

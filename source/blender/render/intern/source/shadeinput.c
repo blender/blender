@@ -286,9 +286,9 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 		VECCOPY(shi->n3, shi->v3->n);
 
 		if(obi->flag & R_TRANSFORMED) {
-			mul_m3_v3(obi->nmat, shi->n1);
-			mul_m3_v3(obi->nmat, shi->n2);
-			mul_m3_v3(obi->nmat, shi->n3);
+			mul_m3_v3(obi->nmat, shi->n1); normalize_v3(shi->n1);
+			mul_m3_v3(obi->nmat, shi->n2); normalize_v3(shi->n2);
+			mul_m3_v3(obi->nmat, shi->n3); normalize_v3(shi->n3);
 		}
 	}
 }
@@ -819,11 +819,17 @@ void shade_input_set_normals(ShadeInput *shi)
 		shi->vn[0]= l*n3[0]-u*n1[0]-v*n2[0];
 		shi->vn[1]= l*n3[1]-u*n1[1]-v*n2[1];
 		shi->vn[2]= l*n3[2]-u*n1[2]-v*n2[2];
+
+		// use unnormalized normal (closer to games)
+		VECCOPY(shi->nmapnorm, shi->vn);
 		
 		normalize_v3(shi->vn);
 	}
 	else
+	{
 		VECCOPY(shi->vn, shi->facenor);
+		VECCOPY(shi->nmapnorm, shi->vn);
+	}
 	
 	/* used in nodes */
 	VECCOPY(shi->vno, shi->vn);
@@ -833,6 +839,36 @@ void shade_input_set_normals(ShadeInput *shi)
 		if(dot_v3v3(shi->facenor, shi->view) < 0.0f)
 			shade_input_flip_normals(shi);
 }
+
+/* XXX shi->flippednor messes up otherwise */
+static void shade_input_set_vertex_normals(ShadeInput *shi)
+{
+	float u= shi->u, v= shi->v;
+	float l= 1.0f+u+v;
+	
+	/* calculate vertexnormals */
+	if(shi->vlr->flag & R_SMOOTH) {
+		float *n1= shi->n1, *n2= shi->n2, *n3= shi->n3;
+		
+		shi->vn[0]= l*n3[0]-u*n1[0]-v*n2[0];
+		shi->vn[1]= l*n3[1]-u*n1[1]-v*n2[1];
+		shi->vn[2]= l*n3[2]-u*n1[2]-v*n2[2];
+		
+		// use unnormalized normal (closer to games)
+		VECCOPY(shi->nmapnorm, shi->vn);
+		
+		normalize_v3(shi->vn);
+	}
+	else
+	{
+		VECCOPY(shi->vn, shi->facenor);
+		VECCOPY(shi->nmapnorm, shi->vn);
+	}
+	
+	/* used in nodes */
+	VECCOPY(shi->vno, shi->vn);
+}
+
 
 /* use by raytrace, sss, bake to flip into the right direction */
 void shade_input_flip_normals(ShadeInput *shi)
@@ -848,6 +884,10 @@ void shade_input_flip_normals(ShadeInput *shi)
 	shi->vno[0]= -shi->vno[0];
 	shi->vno[1]= -shi->vno[1];
 	shi->vno[2]= -shi->vno[2];
+
+	shi->nmapnorm[0] = -shi->nmapnorm[0];
+	shi->nmapnorm[1] = -shi->nmapnorm[1];
+	shi->nmapnorm[2] = -shi->nmapnorm[2];
 
 	shi->flippednor= !shi->flippednor;
 }
@@ -924,21 +964,32 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 			if(tangent) {
 				int j1= shi->i1, j2= shi->i2, j3= shi->i3;
+				float c0[3], c1[3], c2[3];
 
 				vlr_set_uv_indices(shi->vlr, &j1, &j2, &j3);
 
-				s1= &tangent[j1*3];
-				s2= &tangent[j2*3];
-				s3= &tangent[j3*3];
+				VECCOPY(c0, &tangent[j1*4]);
+				VECCOPY(c1, &tangent[j2*4]);
+				VECCOPY(c2, &tangent[j3*4]);
 
-				shi->nmaptang[0]= (tl*s3[0] - tu*s1[0] - tv*s2[0]);
-				shi->nmaptang[1]= (tl*s3[1] - tu*s1[1] - tv*s2[1]);
-				shi->nmaptang[2]= (tl*s3[2] - tu*s1[2] - tv*s2[2]);
-
+				// keeping tangents normalized at vertex level
+				// corresponds better to how it's done in game engines
 				if(obi->flag & R_TRANSFORMED)
-					mul_m3_v3(obi->nmat, shi->nmaptang);
+				{
+					mul_mat3_m4_v3(obi->mat, c0); normalize_v3(c0);
+					mul_mat3_m4_v3(obi->mat, c1); normalize_v3(c1);
+					mul_mat3_m4_v3(obi->mat, c2); normalize_v3(c2);
+				}
+				
+				// we don't normalize the interpolated TBN tangent
+				// corresponds better to how it's done in game engines
+				shi->nmaptang[0]= (tl*c2[0] - tu*c0[0] - tv*c1[0]);
+				shi->nmaptang[1]= (tl*c2[1] - tu*c0[1] - tv*c1[1]);
+				shi->nmaptang[2]= (tl*c2[2] - tu*c0[2] - tv*c1[2]);
 
-				normalize_v3(shi->nmaptang);
+				// the sign is the same for all 3 vertices of any
+				// non degenerate triangle.
+				shi->nmaptang[3]= tangent[j1*4+3];
 			}
 		}
 	}
@@ -1361,7 +1412,10 @@ void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 						shi->samplenr= R.shadowsamplenr[shi->thread]++;	/* this counter is not being reset per pixel */
 						shade_input_set_viewco(shi, x, y, xs, ys, (float)ps->z);
 						shade_input_set_uv(shi);
-						shade_input_set_normals(shi);
+						if(shi_cp==0)
+							shade_input_set_normals(shi);
+						else  /* XXX shi->flippednor messes up otherwise */
+							shade_input_set_vertex_normals(shi);
 						
 						shi_cp= 1;
 						shi++;

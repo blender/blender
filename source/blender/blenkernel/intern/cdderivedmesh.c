@@ -1066,7 +1066,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 		}																			\
 		if(attribs.tottang) {														\
 			float *tang = attribs.tang.array[a*4 + vert];							\
-			glVertexAttrib3fvARB(attribs.tang.glIndex, tang);						\
+			glVertexAttrib4fvARB(attribs.tang.glIndex, tang);						\
 		}																			\
 		if(smoothnormal)															\
 			glNormal3sv(mvert[index].no);											\
@@ -1158,7 +1158,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 						}	
 						if(attribs.tottang) {
 							datatypes[numdata].index = attribs.tang.glIndex;
-							datatypes[numdata].size = 3;
+							datatypes[numdata].size = 4;
 							datatypes[numdata].type = GL_FLOAT;
 							numdata++;
 						}
@@ -1248,12 +1248,12 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 					}	
 					if(attribs.tottang) {
 						float *tang = attribs.tang.array[a*4 + 0];
-						VECCOPY((float *)&varray[elementsize*curface*3+offset], tang);
+						QUATCOPY((float *)&varray[elementsize*curface*3+offset], tang);
 						tang = attribs.tang.array[a*4 + 1];
-						VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
+						QUATCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
 						tang = attribs.tang.array[a*4 + 2];
-						VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2], tang);
-						offset += sizeof(float)*3;
+						QUATCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2], tang);
+						offset += sizeof(float)*4;
 					}
 				}
 				curface++;
@@ -1288,12 +1288,12 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 						}	
 						if(attribs.tottang) {
 							float *tang = attribs.tang.array[a*4 + 2];
-							VECCOPY((float *)&varray[elementsize*curface*3+offset], tang);
+							QUATCOPY((float *)&varray[elementsize*curface*3+offset], tang);
 							tang = attribs.tang.array[a*4 + 3];
-							VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
+							QUATCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
 							tang = attribs.tang.array[a*4 + 0];
-							VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2], tang);
-							offset += sizeof(float)*3;
+							QUATCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2], tang);
+							offset += sizeof(float)*4;
 						}
 					}
 					curface++;

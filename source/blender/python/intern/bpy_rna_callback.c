@@ -22,6 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
 
 #include "bpy_rna.h"
 #include "bpy_rna_callback.h"

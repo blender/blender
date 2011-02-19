@@ -140,7 +140,7 @@ bConstraint *get_active_constraint (Object *ob)
 /* ------------- PyConstraints ------------------ */
 
 /* this callback sets the text-file to be used for selected menu item */
-void validate_pyconstraint_cb (void *arg1, void *arg2)
+static void validate_pyconstraint_cb (void *arg1, void *arg2)
 {
 	bPythonConstraint *data = arg1;
 	Text *text= NULL;
@@ -157,7 +157,7 @@ void validate_pyconstraint_cb (void *arg1, void *arg2)
 
 #ifdef WITH_PYTHON
 /* this returns a string for the list of usable pyconstraint script names */
-char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
+static char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 {
 	DynStr *pupds= BLI_dynstr_new();
 	Text *text;
@@ -199,7 +199,7 @@ char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 #endif /* WITH_PYTHON */
 
 /* this callback gets called when the 'refresh' button of a pyconstraint gets pressed */
-void update_pyconstraint_cb (void *arg1, void *arg2)
+static void update_pyconstraint_cb (void *arg1, void *arg2)
 {
 #ifndef WITH_PYTHON
 	(void)arg1; /* unused */

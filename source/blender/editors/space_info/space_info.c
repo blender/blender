@@ -40,6 +40,7 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -50,7 +51,6 @@
 #include "UI_resources.h"
 #include "UI_interface.h"
 #include "UI_view2d.h"
-
 
 #include "info_intern.h"	// own include
 
@@ -169,7 +169,7 @@ static void info_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_scrollers_free(scrollers);
 }
 
-void info_operatortypes(void)
+static void info_operatortypes(void)
 {
 	WM_operatortype_append(FILE_OT_pack_all);
 	WM_operatortype_append(FILE_OT_unpack_all);
@@ -189,7 +189,7 @@ void info_operatortypes(void)
 	WM_operatortype_append(INFO_OT_report_copy);
 }
 
-void info_keymap(struct wmKeyConfig *keyconf)
+static void info_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
 	
@@ -277,7 +277,7 @@ static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 	}
 }
 
-void recent_files_menu_register(void)
+static void recent_files_menu_register(void)
 {
 	MenuType *mt;
 

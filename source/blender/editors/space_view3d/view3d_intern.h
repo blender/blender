@@ -187,6 +187,8 @@ void VIEW3D_OT_snap_cursor_to_active(struct wmOperatorType *ot);
 ARegion *view3d_has_buttons_region(ScrArea *sa);
 ARegion *view3d_has_tools_region(ScrArea *sa);
 
+extern const char *view3d_context_dir[]; /* doc access */
+
 /* draw_volume.c */
 void draw_volume(struct ARegion *ar, struct GPUTexture *tex, float *min, float *max, int res[3], float dx, struct GPUTexture *tex_shadow);
 

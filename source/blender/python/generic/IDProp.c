@@ -23,6 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "IDProp.h"
 #include "MEM_guardedalloc.h"
 

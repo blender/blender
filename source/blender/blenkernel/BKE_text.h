@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_text.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,12 @@
  */
 #ifndef BKE_TEXT_H
 #define BKE_TEXT_H
+
+/** \file BKE_text.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
 
 #ifdef __cplusplus
 extern "C" {

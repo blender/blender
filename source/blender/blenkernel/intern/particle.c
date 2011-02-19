@@ -1831,9 +1831,11 @@ static void psys_particle_on_shape(int UNUSED(distr), int UNUSED(index), float *
 void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int index, int index_dmcache, float *fuv, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor){
 	if(psmd){
 		if(psmd->psys->part->distr==PART_DISTR_GRID && psmd->psys->part->from != PART_FROM_VERT){
-			if(vec){
-				VECCOPY(vec,fuv);
-			}
+			if(vec)
+				copy_v3_v3(vec,fuv);
+
+			if(orco)
+				copy_v3_v3(orco, fuv);
 			return;
 		}
 		/* we cant use the num_dmcache */
@@ -3566,13 +3568,23 @@ ParticleSettings *psys_new_settings(const char *name, Main *main)
 ParticleSettings *psys_copy_settings(ParticleSettings *part)
 {
 	ParticleSettings *partn;
-	
+	int a;
+
 	partn= copy_libblock(part);
-	if(partn->pd) partn->pd= MEM_dupallocN(part->pd);
-	if(partn->pd2) partn->pd2= MEM_dupallocN(part->pd2);
-	partn->effector_weights = MEM_dupallocN(part->effector_weights);
+	partn->pd= MEM_dupallocN(part->pd);
+	partn->pd2= MEM_dupallocN(part->pd2);
+	partn->effector_weights= MEM_dupallocN(part->effector_weights);
+	partn->fluid= MEM_dupallocN(part->fluid);
 
 	partn->boids = boid_copy_settings(part->boids);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		if(part->mtex[a]) {
+			partn->mtex[a]= MEM_mallocN(sizeof(MTex), "psys_copy_tex");
+			memcpy(partn->mtex[a], part->mtex[a], sizeof(MTex));
+			id_us_plus((ID *)partn->mtex[a]->tex);
+		}
+	}
 	
 	return partn;
 }
@@ -3771,7 +3783,7 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 			short blend=mtex->blendtype;
 			short texco = mtex->texco;
 
-			if(ELEM(texco, TEXCO_UV, TEXCO_ORCO) && (ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME) == 0 || part->distr == PART_DISTR_GRID))
+			if(texco == TEXCO_UV && (ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME) == 0 || part->distr == PART_DISTR_GRID))
 				texco = TEXCO_GLOB;
 
 			switch(texco) {

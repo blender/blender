@@ -98,7 +98,7 @@ typedef enum
 	ARC_USED = 2
 } ArcUsageFlags;
 
-RigGraph *GLOBAL_RIGG = NULL;
+static RigGraph *GLOBAL_RIGG = NULL;
 
 /*******************************************************************************************************/
 
@@ -157,7 +157,7 @@ static void getEditBoneRollUpAxis(EditBone *bone, float roll, float up_axis[3])
 	VECCOPY(up_axis, mat[2]);
 }
 
-float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4], float qroll[4], float aligned_axis[3])
+static float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4], float qroll[4], float aligned_axis[3])
 {
 	float nor[3], new_up_axis[3], x_axis[3], z_axis[3];
 	
@@ -1414,7 +1414,7 @@ static void RIG_findHead(RigGraph *rg)
 
 /*******************************************************************************************************/
 
-void RIG_printNode(RigNode *node, const char name[])
+static void RIG_printNode(RigNode *node, const char name[])
 {
 	printf("%s %p %i <%0.3f, %0.3f, %0.3f>\n", name, (void *)node, node->degree, node->p[0], node->p[1], node->p[2]);
 	
@@ -1429,7 +1429,7 @@ void RIG_printNode(RigNode *node, const char name[])
 	}
 }
 
-void RIG_printArcBones(RigArc *arc)
+static void RIG_printArcBones(RigArc *arc)
 {
 	RigEdge *edge;
 
@@ -1443,7 +1443,7 @@ void RIG_printArcBones(RigArc *arc)
 	printf("\n");
 }
 
-void RIG_printCtrl(RigControl *ctrl, char *indent)
+static void RIG_printCtrl(RigControl *ctrl, char *indent)
 {
 	char text[128];
 	
@@ -1456,7 +1456,7 @@ void RIG_printCtrl(RigControl *ctrl, char *indent)
 	printf("%sFlag: %i\n", indent, ctrl->flag);
 }
 
-void RIG_printLinkedCtrl(RigGraph *rg, EditBone *bone, int tabs)
+static void RIG_printLinkedCtrl(RigGraph *rg, EditBone *bone, int tabs)
 {
 	RigControl *ctrl;
 	char indent[64];
@@ -1480,7 +1480,7 @@ void RIG_printLinkedCtrl(RigGraph *rg, EditBone *bone, int tabs)
 	}
 }
 
-void RIG_printArc(RigGraph *rg, RigArc *arc)
+static void RIG_printArc(RigGraph *rg, RigArc *arc)
 {
 	RigEdge *edge;
 
@@ -1502,7 +1502,7 @@ void RIG_printArc(RigGraph *rg, RigArc *arc)
 	RIG_printNode((RigNode*)arc->tail, "tail");
 }
 
-void RIG_printGraph(RigGraph *rg)
+static void RIG_printGraph(RigGraph *rg)
 {
 	RigArc *arc;
 
@@ -1577,7 +1577,7 @@ RigGraph *RIG_graphFromArmature(const bContext *C, Object *ob, bArmature *arm)
 	return rg;
 }
 
-RigGraph *armatureSelectedToGraph(bContext *C, Object *ob, bArmature *arm)
+static RigGraph *armatureSelectedToGraph(bContext *C, Object *ob, bArmature *arm)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -1656,7 +1656,8 @@ static EditBone *add_editbonetolist(char *name, ListBase *list)
 }
 #endif
 
-void generateMissingArcsFromNode(RigGraph *rigg, ReebNode *node, int multi_level_limit)
+#if 0 /* UNUSED */
+static void generateMissingArcsFromNode(RigGraph *rigg, ReebNode *node, int multi_level_limit)
 {
 	while (node->multi_level > multi_level_limit && node->link_up)
 	{
@@ -1689,7 +1690,7 @@ void generateMissingArcsFromNode(RigGraph *rigg, ReebNode *node, int multi_level
 	}
 }
 
-void generateMissingArcs(RigGraph *rigg)
+static void generateMissingArcs(RigGraph *rigg)
 {
 	ReebGraph *reebg;
 	int multi_level_limit = 5;
@@ -1708,6 +1709,7 @@ void generateMissingArcs(RigGraph *rigg)
 		}
 	}
 }
+#endif
 
 /************************************ RETARGETTING *****************************************************/
 
@@ -2790,7 +2792,7 @@ int RIG_nbJoints(RigGraph *rg)
 	return total;
 }
 
-void BIF_freeRetarget(void)
+static void BIF_freeRetarget(void)
 {
 	if (GLOBAL_RIGG)
 	{

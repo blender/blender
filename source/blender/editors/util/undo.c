@@ -257,6 +257,7 @@ static int ed_redo_exec(bContext *C, wmOperator *UNUSED(op))
 	return ed_undo_step(C, -1, NULL);
 }
 
+#if 0 /* UNUSED */
 void ED_undo_menu(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -281,6 +282,7 @@ void ED_undo_menu(bContext *C)
 		}
 	}
 }
+#endif
 
 /* ********************** */
 

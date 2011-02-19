@@ -45,11 +45,6 @@ def source_list(path, filename_check=None):
 
 
 # extension checking
-def is_c_header(filename):
-    ext = splitext(filename)[1]
-    return (ext in (".h", ".hpp", ".hxx"))
-
-
 def is_cmake(filename):
     ext = splitext(filename)[1]
     return (ext == ".cmake") or (filename == "CMakeLists.txt")

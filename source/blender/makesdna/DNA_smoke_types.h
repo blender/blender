@@ -1,4 +1,4 @@
-/**
+/*
 * $Id$
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
 */
 #ifndef DNA_SMOKE_TYPES_H
 #define DNA_SMOKE_TYPES_H
+
+/** \file DNA_smoke_types.h
+ *  \ingroup DNA
+ */
 
 /* flags */
 #define MOD_SMOKE_HIGHRES (1<<1) /* enable high resolution */

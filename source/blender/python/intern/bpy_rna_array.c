@@ -21,6 +21,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#include <Python.h>
 
 #include "bpy_rna.h"
 #include "BKE_global.h"

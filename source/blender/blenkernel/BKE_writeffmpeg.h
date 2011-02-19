@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,6 +27,10 @@
 
 #ifndef BKE_WRITEFFMPEG_H
 #define BKE_WRITEFFMPEG_H
+
+/** \file BKE_writeffmpeg.h
+ *  \ingroup bke
+ */
 
 #ifdef WITH_FFMPEG
 

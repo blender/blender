@@ -214,7 +214,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Texture:")
-        col.prop(md, "texture", text="")
+        col.template_ID(md, "texture", new="texture.new")
         col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
@@ -383,7 +383,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "use_mirror_v", text="V")
 
         col = layout.column()
-        
+
         if md.use_mirror_merge == True:
             col.prop(md, "merge_threshold")
         col.label(text="Mirror Object:")
@@ -512,8 +512,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             col = split.column()
 
             col.label(text="Cull Faces:")
-            col.prop(md, "use_cull_front_faces", text="Front")
-            col.prop(md, "use_cull_back_faces", text="Back")
+            col.prop(md, "cull_face", expand=True)
 
             layout.label(text="Auxiliary Target:")
             layout.prop(md, "auxiliary_target", text="")
@@ -680,7 +679,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         layout.prop(md, "start_position_object")
         layout.prop_search(md, "vertex_group", ob, "vertex_groups")
-        layout.prop(md, "texture")
+        split = layout.split(percentage=0.33)
+        col = split.column()
+        col.label(text="Texture")
+        col = split.column()
+        col.template_ID(md, "texture", new="texture.new")
         layout.prop(md, "texture_coords")
         if md.texture_coords == 'MAP_UV' and ob.type == 'MESH':
             layout.prop_search(md, "uv_layer", ob.data, "uv_textures")

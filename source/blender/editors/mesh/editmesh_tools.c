@@ -525,7 +525,7 @@ static void xsortvert_flag__doSetX(void *userData, EditVert *UNUSED(eve), int x,
 }
 
 /* all verts with (flag & 'flag') are sorted */
-void xsortvert_flag(bContext *C, int flag)
+static void xsortvert_flag(bContext *C, int flag)
 {
 	ViewContext vc;
 	EditVert *eve;
@@ -564,7 +564,7 @@ void xsortvert_flag(bContext *C, int flag)
 }
 
 /* called from buttons */
-void hashvert_flag(EditMesh *em, int flag)
+static void hashvert_flag(EditMesh *em, int flag)
 {
 	/* switch vertex order using hash table */
 	EditVert *eve;
@@ -700,7 +700,7 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-EnumPropertyItem extrude_items[] = {
+static EnumPropertyItem extrude_items[] = {
 		{1, "REGION", 0, "Region", ""},
 		{2, "FACES", 0, "Individual Faces", ""},
 		{3, "EDGES", 0, "Only Edges", ""},
@@ -3459,7 +3459,7 @@ void join_triangles(EditMesh *em)
 #define FACE_MARKCLEAR(f) (f->f1 = 1)
 
 /* quick hack, basically a copy of beautify_fill */
-void edge_flip(EditMesh *em)
+static void edge_flip(EditMesh *em)
 {
 	EditVert *v1, *v2, *v3, *v4;
 	EditEdge *eed, *nexted;
@@ -3834,7 +3834,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 
   /* XXX old bevel not ported yet */
 
-void bevel_menu(EditMesh *em)
+static void bevel_menu(EditMesh *em)
 {
 	BME_Mesh *bm;
 	BME_TransData_Head *td;

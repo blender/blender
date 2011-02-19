@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  */
 #ifndef BKE_SCA_H
 #define BKE_SCA_H
+
+/** \file BKE_sca.h
+ *  \ingroup bke
+ */
 
 struct Text;
 struct bSensor;

@@ -130,6 +130,10 @@ class GRAPH_MT_select(bpy.types.Menu):
         layout.operator("graph.select_column", text="Between Selected Markers").mode = 'MARKERS_BETWEEN'
 
         layout.separator()
+        layout.operator("graph.select_leftright", text="Before Current Frame").mode = 'LEFT'
+        layout.operator("graph.select_leftright", text="After Current Frame").mode = 'RIGHT'
+
+        layout.separator()
         layout.operator("graph.select_more")
         layout.operator("graph.select_less")
 

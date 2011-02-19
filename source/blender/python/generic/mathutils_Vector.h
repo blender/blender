@@ -1,4 +1,4 @@
-/* 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,31 +22,26 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Joseph Gilbert
+ * Contributor(s): Willian P. Germano & Joseph Gilbert
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#ifndef MATHUTILS_QUAT_H
-#define MATHUTILS_QUAT_H
+#ifndef MATHUTILS_VECTOR_H
+#define MATHUTILS_VECTOR_H
 
-#include <Python.h>
-
-extern PyTypeObject quaternion_Type;
-#define QuaternionObject_Check(_v) PyObject_TypeCheck((_v), &quaternion_Type)
+extern PyTypeObject vector_Type;
+#define VectorObject_Check(_v) PyObject_TypeCheck((_v), &vector_Type)
 
 typedef struct {
-	BASE_MATH_MEMBERS(quat)
-} QuaternionObject;
+	BASE_MATH_MEMBERS(vec)
 
-/*struct data contains a pointer to the actual data that the
-object uses. It can use either PyMem allocated data (which will
-be stored in py_data) or be a wrapper for data allocated through
-blender (stored in blend_data). This is an either/or struct not both*/
+	unsigned char size;			/* vec size 2,3 or 4 */
+} VectorObject;
 
-//prototypes
-PyObject *newQuaternionObject( float *quat, int type, PyTypeObject *base_type);
-PyObject *newQuaternionObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
+/*prototypes*/
+PyObject *newVectorObject(float *vec, const int size, const int type, PyTypeObject *base_type);
+PyObject *newVectorObject_cb(PyObject *user, int size, int callback_type, int subtype);
 
-#endif /* MATHUTILS_QUAT_H */
+#endif				/* MATHUTILS_VECTOR_H */

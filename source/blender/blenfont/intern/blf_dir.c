@@ -44,6 +44,7 @@
 
 #include "BIF_gl.h"
 
+#include "BLF_api.h"
 #include "blf_internal_types.h"
 
 static ListBase global_font_dir= { NULL, NULL };

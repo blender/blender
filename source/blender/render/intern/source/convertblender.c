@@ -494,11 +494,82 @@ static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemAr
 }
 
 
+typedef struct
+{
+	ObjectRen *obr;
+
+} SRenderMeshToTangent;
+
+// interface
+#include "mikktspace.h"
+
+static int GetNumFaces(const SMikkTSpaceContext * pContext)
+{
+	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
+	return pMesh->obr->totvlak;
+}
+
+static int GetNumVertsOfFace(const SMikkTSpaceContext * pContext, const int face_num)
+{
+	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
+	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
+	return vlr->v4!=NULL ? 4 : 3;
+}
+
+static void GetPosition(const SMikkTSpaceContext * pContext, float fPos[], const int face_num, const int vert_index)
+{
+	//assert(vert_index>=0 && vert_index<4);
+	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
+	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
+	VertRen * pVerts[] = {vlr->v1, vlr->v2, vlr->v3, vlr->v4};
+	VECCOPY(fPos, pVerts[vert_index]->co);
+}
+
+static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[], const int face_num, const int vert_index)
+{
+	//assert(vert_index>=0 && vert_index<4);
+	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
+	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
+	MTFace *tface= RE_vlakren_get_tface(pMesh->obr, vlr, pMesh->obr->actmtface, NULL, 0);
+	
+	if(tface!=NULL)
+	{
+		float * pTexCo = tface->uv[vert_index];
+		fUV[0]=pTexCo[0]; fUV[1]=pTexCo[1];
+	}
+	else
+	{
+		VertRen * pVerts[] = {vlr->v1, vlr->v2, vlr->v3, vlr->v4};
+		map_to_sphere(&fUV[0], &fUV[1], pVerts[vert_index]->orco[0], pVerts[vert_index]->orco[1], pVerts[vert_index]->orco[2]);
+	}
+}
+
+static void GetNormal(const SMikkTSpaceContext * pContext, float fNorm[], const int face_num, const int vert_index)
+{
+	//assert(vert_index>=0 && vert_index<4);
+	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
+	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
+	VertRen * pVerts[] = {vlr->v1, vlr->v2, vlr->v3, vlr->v4};
+	VECCOPY(fNorm, pVerts[vert_index]->n);
+}
+static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent[], const float fSign, const int face_num, const int iVert)
+{
+	//assert(vert_index>=0 && vert_index<4);
+	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
+	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
+	float * ftang= RE_vlakren_get_nmap_tangent(pMesh->obr, vlr, 1);
+	if(ftang!=NULL)
+	{
+		VECCOPY(&ftang[iVert*4+0], fvTangent);
+		ftang[iVert*4+3]=fSign;
+	}
+}
+
 static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int do_nmap_tangent)
 {
 	MemArena *arena= NULL;
 	VertexTangent **vtangents= NULL;
-	int a;
+	int a, iCalcNewMethod;
 
 	if(do_nmap_tangent) {
 		arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "nmap tangent arena");
@@ -594,22 +665,24 @@ static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int d
 			MTFace *tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
 
 			if(tface) {
+				int k=0;
 				float *vtang, *ftang= RE_vlakren_get_nmap_tangent(obr, vlr, 1);
 
 				vtang= find_vertex_tangent(vtangents[v1->index], tface->uv[0]);
 				VECCOPY(ftang, vtang);
 				normalize_v3(ftang);
 				vtang= find_vertex_tangent(vtangents[v2->index], tface->uv[1]);
-				VECCOPY(ftang+3, vtang);
-				normalize_v3(ftang+3);
+				VECCOPY(ftang+4, vtang);
+				normalize_v3(ftang+4);
 				vtang= find_vertex_tangent(vtangents[v3->index], tface->uv[2]);
-				VECCOPY(ftang+6, vtang);
-				normalize_v3(ftang+6);
+				VECCOPY(ftang+8, vtang);
+				normalize_v3(ftang+8);
 				if(v4) {
 					vtang= find_vertex_tangent(vtangents[v4->index], tface->uv[3]);
-					VECCOPY(ftang+9, vtang);
-					normalize_v3(ftang+9);
+					VECCOPY(ftang+12, vtang);
+					normalize_v3(ftang+12);
 				}
+				for(k=0; k<4; k++) ftang[4*k+3]=1;
 			}
 		}
 	}
@@ -629,6 +702,31 @@ static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int d
 				normalize_v3(tav);
 			}
 		}
+	}
+
+	iCalcNewMethod = 1;
+	if(iCalcNewMethod!=0 && do_nmap_tangent!=0)
+	{
+		SRenderMeshToTangent mesh2tangent;
+		SMikkTSpaceContext sContext;
+		SMikkTSpaceInterface sInterface;
+		memset(&mesh2tangent, 0, sizeof(SRenderMeshToTangent));
+		memset(&sContext, 0, sizeof(SMikkTSpaceContext));
+		memset(&sInterface, 0, sizeof(SMikkTSpaceInterface));
+
+		mesh2tangent.obr = obr;
+
+		sContext.m_pUserData = &mesh2tangent;
+		sContext.m_pInterface = &sInterface;
+		sInterface.m_getNumFaces = GetNumFaces;
+		sInterface.m_getNumVerticesOfFace = GetNumVertsOfFace;
+		sInterface.m_getPosition = GetPosition;
+		sInterface.m_getTexCoord = GetTextureCoordinate;
+		sInterface.m_getNormal = GetNormal;
+		sInterface.m_setTSpaceBasic = SetTSpace;
+
+		// 0 if failed
+		iCalcNewMethod = genTangSpaceDefault(&sContext);
 	}
 
 

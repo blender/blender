@@ -951,6 +951,11 @@ static void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
 #endif
 }
 
+const char *view3d_context_dir[] = {
+	"selected_objects", "selected_bases", "selected_editable_objects",
+	"selected_editable_bases", "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
+	"active_base", "active_object", NULL};
+
 static int view3d_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	View3D *v3d= CTX_wm_view3d(C);
@@ -959,12 +964,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	unsigned int lay = v3d ? v3d->lay:scene->lay; /* fallback to the scene layer, allows duplicate and other oject operators to run outside the 3d view */
 
 	if(CTX_data_dir(member)) {
-		static const char *dir[] = {
-			"selected_objects", "selected_bases", "selected_editable_objects",
-			"selected_editable_bases", "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
-			"active_base", "active_object", NULL};
-
-		CTX_data_dir_set(result, dir);
+		CTX_data_dir_set(result, view3d_context_dir);
 	}
 	else if(CTX_data_equals(member, "selected_objects") || CTX_data_equals(member, "selected_bases")) {
 		int selected_objects= CTX_data_equals(member, "selected_objects");

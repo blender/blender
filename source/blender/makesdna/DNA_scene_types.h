@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  */
 #ifndef DNA_SCENE_TYPES_H
 #define DNA_SCENE_TYPES_H
+
+/** \file DNA_scene_types.h
+ *  \ingroup DNA
+ */
 
 // XXX, temp feature
 #define DURIAN_CAMERA_SWITCH
@@ -885,7 +889,8 @@ typedef struct Scene {
 #define R_OUTPUT_SCREEN	0
 #define R_OUTPUT_AREA	1
 #define R_OUTPUT_WINDOW	2
-/*#define R_OUTPUT_FORKED	3*/
+#define R_OUTPUT_NONE	3
+/*#define R_OUTPUT_FORKED	4*/
 
 /* filtertype */
 #define R_FILTER_BOX	0

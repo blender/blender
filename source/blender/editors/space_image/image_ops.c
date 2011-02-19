@@ -1529,9 +1529,9 @@ typedef struct ImageSampleInfo {
 static void sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_info)
 {
 	ImageSampleInfo *info= arg_info;
-
-	draw_image_info(ar, info->channels, info->x, info->y, info->colp,
-		info->colfp, info->zp, info->zfp);
+	if(info->draw) {
+		draw_image_info(ar, info->channels, info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
+	}
 }
 
 static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
@@ -1858,7 +1858,7 @@ typedef struct RecordCompositeData {
 	int sfra, efra;
 } RecordCompositeData;
 
-int record_composite_apply(bContext *C, wmOperator *op)
+static int record_composite_apply(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	RecordCompositeData *rcd= op->customdata;

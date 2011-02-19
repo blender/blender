@@ -28,8 +28,7 @@
 #-----------------------------------------------------------------------------
 # We don't allow in-source builds. This causes no end of troubles because 
 # all out-of-source builds will use the CMakeCache.txt file there and even 
-# build the libs and objects in it. It will also conflict with the current 
-# Makefile system for Blender
+# build the libs and objects in it.
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 message(FATAL_ERROR "CMake generation for blender is not allowed within the source directory! 
@@ -39,11 +38,11 @@ Remove the CMakeCache.txt file and try again from another folder, e.g.:
 	cd ..
 	mkdir cmake-make 
 	cd cmake-make
-	cmake -G \"Unix Makefiles\" ../blender
+	cmake ../blender
 ")
 endif()
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
@@ -227,6 +226,7 @@ if(UNIX AND NOT APPLE)
 		# find_package(PythonLibs)
 		set(PYTHON /usr)
 		set(PYTHON_VERSION 3.1 CACHE STRING "")
+		mark_as_advanced(PYTHON_VERSION)
 		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
 		mark_as_advanced(PYTHON_INCLUDE_DIRS)
 		# set(PYTHON_BINARY python) # not used yet
@@ -932,8 +932,15 @@ if(WITH_RAYOPTIMIZATION)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
-	set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
-	set(OPENJPEG_INC ${OPENJPEG})
+	if(UNIX AND NOT APPLE)
+		set(OPENJPEG /usr)
+		set(OPENJPEG_INC ${OPENJPEG}/include)
+		set(OPENJPEG_LIB openjpeg)
+		set(OPENJPEG_LIBPATH ${OPENJPEG}/lib)
+	else()
+		set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
+		set(OPENJPEG_INC ${OPENJPEG})
+	endif()
 endif()
 
 if(WITH_IMAGE_REDCODE)
@@ -1060,3 +1067,7 @@ add_subdirectory(source/creator)
 if(WITH_PLAYER)
 	add_subdirectory(source/blenderplayer)
 endif()
+
+#-----------------------------------------------------------------------------
+# CPack for generating packages
+include(build_files/cmake/packaging.cmake)

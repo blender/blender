@@ -2149,7 +2149,6 @@ static void actcon_flush_tars (bConstraint *con, ListBase *list, short nocopy)
 
 static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
-	extern void chan_calc_mat(bPoseChannel *chan);
 	bActionConstraint *data = con->data;
 	
 	if (VALID_CONS_TARGET(ct)) {
@@ -2217,7 +2216,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			what_does_obaction(cob->scene, cob->ob, &workob, pose, data->act, pchan->name, t);
 			
 			/* convert animation to matrices for use here */
-			chan_calc_mat(tchan);
+			pchan_calc_mat(tchan);
 			copy_m4_m4(ct->matrix, tchan->chan_mat);
 			
 			/* Clean up */

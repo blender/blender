@@ -142,10 +142,16 @@ void ED_operatortypes_armature(void)
 	
 	/* POSELIB */
 	WM_operatortype_append(POSELIB_OT_browse_interactive);
+	WM_operatortype_append(POSELIB_OT_apply_pose);
 	
 	WM_operatortype_append(POSELIB_OT_pose_add);
 	WM_operatortype_append(POSELIB_OT_pose_remove);
 	WM_operatortype_append(POSELIB_OT_pose_rename);
+	
+	WM_operatortype_append(POSELIB_OT_new);
+	WM_operatortype_append(POSELIB_OT_unlink);
+	
+	WM_operatortype_append(POSELIB_OT_action_sanitise);
 	
 	/* POSE SLIDING */
 	WM_operatortype_append(POSE_OT_push);

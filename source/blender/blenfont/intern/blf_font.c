@@ -52,17 +52,17 @@
 #include "blf_internal.h"
 
 
-/* freetype2 handle. */
-FT_Library global_ft_lib;
+/* freetype2 handle ONLY for this file!. */
+static FT_Library ft_lib;
 
 int blf_font_init(void)
 {
-	return(FT_Init_FreeType(&global_ft_lib));
+	return(FT_Init_FreeType(&ft_lib));
 }
 
 void blf_font_exit(void)
 {
-	FT_Done_FreeType(global_ft_lib);
+	FT_Done_FreeType(ft_lib);
 }
 
 void blf_font_size(FontBLF *font, int size, int dpi)
@@ -547,6 +547,7 @@ static void blf_font_fill(FontBLF *font)
 	font->b_col[1]= 0;
 	font->b_col[2]= 0;
 	font->b_col[3]= 0;
+	font->ft_lib= ft_lib;
 
 	memset(font->glyph_ascii_table, 0, sizeof(font->glyph_ascii_table));
 }
@@ -558,7 +559,7 @@ FontBLF *blf_font_new(const char *name, const char *filename)
 	char *mfile;
 
 	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new");
-	err= FT_New_Face(global_ft_lib, filename, 0, &font->face);
+	err= FT_New_Face(ft_lib, filename, 0, &font->face);
 	if (err) {
 		MEM_freeN(font);
 		return(NULL);
@@ -600,7 +601,7 @@ FontBLF *blf_font_new_from_mem(const char *name, unsigned char *mem, int mem_siz
 	FT_Error err;
 
 	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new_from_mem");
-	err= FT_New_Memory_Face(global_ft_lib, mem, mem_size, 0, &font->face);
+	err= FT_New_Memory_Face(ft_lib, mem, mem_size, 0, &font->face);
 	if (err) {
 		MEM_freeN(font);
 		return(NULL);

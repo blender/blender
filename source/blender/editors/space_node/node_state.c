@@ -117,21 +117,21 @@ static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 			node->flag ^= NODE_PREVIEW;
 			return 1;
 		}
-		totr.xmin-=18.0f;
+		totr.xmin-=15.0f;
 	}
 	if(node->type == NODE_GROUP) {
 		if(BLI_in_rctf(&totr, mx, my)) {
 			snode_make_group_editable(snode, node);
 			return 1;
 		}
-		totr.xmin-=18.0f;
+		totr.xmin-=15.0f;
 	}
 	if(node->typeinfo->flag & NODE_OPTIONS) {
 		if(BLI_in_rctf(&totr, mx, my)) {
 			node->flag ^= NODE_OPTIONS;
 			return 1;
 		}
-		totr.xmin-=18.0f;
+		totr.xmin-=15.0f;
 	}
 	/* hide unused sockets */
 	if(BLI_in_rctf(&totr, mx, my)) {

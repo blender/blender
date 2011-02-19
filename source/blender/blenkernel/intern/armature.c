@@ -2100,7 +2100,7 @@ void pchan_to_mat4(bPoseChannel *pchan, float chan_mat[4][4])
 
 /* loc/rot/size to mat4 */
 /* used in constraint.c too */
-void chan_calc_mat(bPoseChannel *pchan)
+void pchan_calc_mat(bPoseChannel *pchan)
 {
 	/* this is just a wrapper around the copy of this function which calculates the matrix 
 	 * and stores the result in any given channel
@@ -2256,7 +2256,7 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 	parchan= pchan->parent;
 	
 	/* this gives a chan_mat with actions (ipos) results */
-	if(do_extra)	chan_calc_mat(pchan);
+	if(do_extra)	pchan_calc_mat(pchan);
 	else			unit_m4(pchan->chan_mat);
 
 	/* construct the posemat based on PoseChannels, that we do before applying constraints */

@@ -365,13 +365,13 @@ class RENDER_PT_network_output(NeedValidAddress, NetRenderButtonsPanel, bpy.type
 
 
 def addProperties():
-    class NetRenderSettings(bpy.types.IDPropertyGroup):
+    class NetRenderSettings(bpy.types.PropertyGroup):
         pass
 
-    class NetRenderSlave(bpy.types.IDPropertyGroup):
+    class NetRenderSlave(bpy.types.PropertyGroup):
         pass
 
-    class NetRenderJob(bpy.types.IDPropertyGroup):
+    class NetRenderJob(bpy.types.PropertyGroup):
         pass
 
     bpy.utils.register_class(NetRenderSettings)

@@ -54,20 +54,20 @@ typedef struct TransformModeItem
 
 static float VecOne[3] = {1, 1, 1};
 
-char OP_TRANSLATION[] = "TRANSFORM_OT_translate";
-char OP_ROTATION[] = "TRANSFORM_OT_rotate";
-char OP_TOSPHERE[] = "TRANSFORM_OT_tosphere";
-char OP_RESIZE[] = "TRANSFORM_OT_resize";
-char OP_SHEAR[] = "TRANSFORM_OT_shear";
-char OP_WARP[] = "TRANSFORM_OT_warp";
-char OP_SHRINK_FATTEN[] = "TRANSFORM_OT_shrink_fatten";
-char OP_PUSH_PULL[] = "TRANSFORM_OT_push_pull";
-char OP_TILT[] = "TRANSFORM_OT_tilt";
-char OP_TRACKBALL[] = "TRANSFORM_OT_trackball";
-char OP_MIRROR[] = "TRANSFORM_OT_mirror";
-char OP_EDGE_SLIDE[] = "TRANSFORM_OT_edge_slide";
-char OP_EDGE_CREASE[] = "TRANSFORM_OT_edge_crease";
-char OP_SEQ_SLIDE[] = "TRANSFORM_OT_seq_slide";
+static char OP_TRANSLATION[] = "TRANSFORM_OT_translate";
+static char OP_ROTATION[] = "TRANSFORM_OT_rotate";
+static char OP_TOSPHERE[] = "TRANSFORM_OT_tosphere";
+static char OP_RESIZE[] = "TRANSFORM_OT_resize";
+static char OP_SHEAR[] = "TRANSFORM_OT_shear";
+static char OP_WARP[] = "TRANSFORM_OT_warp";
+static char OP_SHRINK_FATTEN[] = "TRANSFORM_OT_shrink_fatten";
+static char OP_PUSH_PULL[] = "TRANSFORM_OT_push_pull";
+static char OP_TILT[] = "TRANSFORM_OT_tilt";
+static char OP_TRACKBALL[] = "TRANSFORM_OT_trackball";
+static char OP_MIRROR[] = "TRANSFORM_OT_mirror";
+static char OP_EDGE_SLIDE[] = "TRANSFORM_OT_edge_slide";
+static char OP_EDGE_CREASE[] = "TRANSFORM_OT_edge_crease";
+static char OP_SEQ_SLIDE[] = "TRANSFORM_OT_seq_slide";
 
 void TRANSFORM_OT_translate(struct wmOperatorType *ot);
 void TRANSFORM_OT_rotate(struct wmOperatorType *ot);
@@ -84,7 +84,7 @@ void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot);
 void TRANSFORM_OT_edge_crease(struct wmOperatorType *ot);
 void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot);
 
-TransformModeItem transform_modes[] =
+static TransformModeItem transform_modes[] =
 {
 	{OP_TRANSLATION, TFM_TRANSLATION, TRANSFORM_OT_translate},
 	{OP_ROTATION, TFM_ROTATION, TRANSFORM_OT_rotate},
@@ -114,7 +114,7 @@ static int snap_type_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void TRANSFORM_OT_snap_type(wmOperatorType *ot)
+static void TRANSFORM_OT_snap_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Snap Type";
@@ -159,7 +159,7 @@ static int select_orientation_invoke(bContext *C, wmOperator *UNUSED(op), wmEven
 	return OPERATOR_CANCELLED;
 }
 
-void TRANSFORM_OT_select_orientation(struct wmOperatorType *ot)
+static void TRANSFORM_OT_select_orientation(struct wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
@@ -214,7 +214,7 @@ static int delete_orientation_poll(bContext *C)
 	return selected_index >= 0;
 }
 
-void TRANSFORM_OT_delete_orientation(struct wmOperatorType *ot)
+static void TRANSFORM_OT_delete_orientation(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Delete Orientation";
@@ -249,7 +249,7 @@ static int create_orientation_invoke(bContext *C, wmOperator *op, wmEvent *UNUSE
 	return create_orientation_exec(C, op);
 }
 
-void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
+static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Create Orientation";

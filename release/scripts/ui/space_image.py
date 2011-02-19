@@ -204,7 +204,7 @@ class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("uv.weld")  # W, 1
-        layout.operator_enums("uv.align", "axis")  # W, 2/3/4
+        layout.operator_enum("uv.align", "axis")  # W, 2/3/4
 
 
 class IMAGE_MT_uvs(bpy.types.Menu):

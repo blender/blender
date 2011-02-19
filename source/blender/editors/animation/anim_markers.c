@@ -269,7 +269,7 @@ TimeMarker *ED_markers_get_first_selected(ListBase *markers)
 /* Print debugging prints of list of markers 
  * BSI's: do NOT make static or put in if-defs as "unused code". That's too much trouble when we need to use for quick debuggging!
  */
-static void debug_markers_print_list(ListBase *markers)
+void debug_markers_print_list(ListBase *markers)
 {
 	TimeMarker *marker;
 	
@@ -341,7 +341,6 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	
 	UI_icon_draw(xpos*xscale-5.0f, 16.0f, icon_id);
 	
-	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 	
 	/* and the marker name too, shifted slightly to the top-right */

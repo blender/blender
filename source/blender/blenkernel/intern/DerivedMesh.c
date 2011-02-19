@@ -948,7 +948,7 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	}																			\
 	if(attribs.tottang) {														\
 		float *tang = attribs.tang.array[i*4 + vert];							\
-		glVertexAttrib3fvARB(attribs.tang.glIndex, tang);						\
+		glVertexAttrib4fvARB(attribs.tang.glIndex, tang);						\
 	}																			\
 }
 
@@ -2481,6 +2481,111 @@ float *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 
 /* ******************* GLSL ******************** */
 
+typedef struct
+{
+	float * precomputedFaceNormals;
+	MTFace * mtface;	// texture coordinates
+	MFace * mface;		// indices
+	MVert * mvert;		// vertices & normals
+	float (*orco)[3];
+	float (*tangent)[4];	// destination
+	int numFaces;
+
+} SGLSLMeshToTangent;
+
+// interface
+#include "mikktspace.h"
+
+static int GetNumFaces(const SMikkTSpaceContext * pContext)
+{
+	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	return pMesh->numFaces;
+}
+
+static int GetNumVertsOfFace(const SMikkTSpaceContext * pContext, const int face_num)
+{
+	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	return pMesh->mface[face_num].v4!=0 ? 4 : 3;
+}
+
+static void GetPosition(const SMikkTSpaceContext * pContext, float fPos[], const int face_num, const int vert_index)
+{
+	//assert(vert_index>=0 && vert_index<4);
+	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	unsigned int indices[] = {	pMesh->mface[face_num].v1, pMesh->mface[face_num].v2,
+								pMesh->mface[face_num].v3, pMesh->mface[face_num].v4 };
+	VECCOPY(fPos, pMesh->mvert[indices[vert_index]].co);
+}
+
+static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[], const int face_num, const int vert_index)
+{
+	//assert(vert_index>=0 && vert_index<4);
+	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+
+	if(pMesh->mtface!=NULL)
+	{
+		float * uv = pMesh->mtface[face_num].uv[vert_index];
+		fUV[0]=uv[0]; fUV[1]=uv[1];
+	}
+	else
+	{
+		unsigned int indices[] = {	pMesh->mface[face_num].v1, pMesh->mface[face_num].v2,
+									pMesh->mface[face_num].v3, pMesh->mface[face_num].v4 };
+
+		map_to_sphere( &fUV[0], &fUV[1],pMesh->orco[indices[vert_index]][0], pMesh->orco[indices[vert_index]][1], pMesh->orco[indices[vert_index]][2]);
+	}
+}
+
+static void GetNormal(const SMikkTSpaceContext * pContext, float fNorm[], const int face_num, const int vert_index)
+{
+	//assert(vert_index>=0 && vert_index<4);
+	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	unsigned int indices[] = {	pMesh->mface[face_num].v1, pMesh->mface[face_num].v2,
+								pMesh->mface[face_num].v3, pMesh->mface[face_num].v4 };
+
+	const int smoothnormal = (pMesh->mface[face_num].flag & ME_SMOOTH);
+	if(!smoothnormal)	// flat
+	{
+		if(pMesh->precomputedFaceNormals)
+		{
+			VECCOPY(fNorm, &pMesh->precomputedFaceNormals[3*face_num]);
+		}
+		else
+		{
+			float nor[3];
+			float * p0, * p1, * p2;
+			const int iGetNrVerts = pMesh->mface[face_num].v4!=0 ? 4 : 3;
+			p0 = pMesh->mvert[indices[0]].co; p1 = pMesh->mvert[indices[1]].co; p2 = pMesh->mvert[indices[2]].co;
+			if(iGetNrVerts==4)
+			{
+				float * p3 = pMesh->mvert[indices[3]].co;
+				normal_quad_v3( nor, p0, p1, p2, p3);
+			}
+			else {
+				normal_tri_v3(nor, p0, p1, p2);
+			}
+			VECCOPY(fNorm, nor);
+		}
+	}
+	else
+	{
+		int i=0;
+		short * no = pMesh->mvert[indices[vert_index]].no;
+		for(i=0; i<3; i++)
+			fNorm[i]=no[i]/32767.0f;
+		normalize_v3(fNorm);
+	}
+}
+static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent[], const float fSign, const int face_num, const int iVert)
+{
+	//assert(vert_index>=0 && vert_index<4);
+	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	float * pRes = pMesh->tangent[4*face_num+iVert];
+	VECCOPY(pRes, fvTangent);
+	pRes[3]=fSign;
+}
+
+
 void DM_add_tangent_layer(DerivedMesh *dm)
 {
 	/* mesh vars */
@@ -2489,13 +2594,16 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	MVert *mvert, *v1, *v2, *v3, *v4;
 	MemArena *arena= NULL;
 	VertexTangent **vtangents= NULL;
-	float (*orco)[3]= NULL, (*tangent)[3];
+	float (*orco)[3]= NULL, (*tangent)[4];
 	float *uv1, *uv2, *uv3, *uv4, *vtang;
 	float fno[3], tang[3], uv[4][2];
-	int i, j, len, mf_vi[4], totvert, totface;
+	int i, j, len, mf_vi[4], totvert, totface, iCalcNewMethod;
+	float *nors;
 
 	if(CustomData_get_layer_index(&dm->faceData, CD_TANGENT) != -1)
 		return;
+
+	nors = dm->getFaceDataArray(dm, CD_NORMAL);
 
 	/* check we have all the needed layers */
 	totvert= dm->getNumVerts(dm);
@@ -2519,72 +2627,108 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "tangent layer arena");
 	BLI_memarena_use_calloc(arena);
 	vtangents= MEM_callocN(sizeof(VertexTangent*)*totvert, "VertexTangent");
-	
-	/* sum tangents at connected vertices */
-	for(i=0, tf=mtface, mf=mface; i < totface; mf++, tf++, i++) {
-		v1= &mvert[mf->v1];
-		v2= &mvert[mf->v2];
-		v3= &mvert[mf->v3];
 
-		if (mf->v4) {
-			v4= &mvert[mf->v4];
-			normal_quad_v3( fno,v4->co, v3->co, v2->co, v1->co);
-		}
-		else {
-			v4= NULL;
-			normal_tri_v3( fno,v3->co, v2->co, v1->co);
-		}
-		
-		if(mtface) {
-			uv1= tf->uv[0];
-			uv2= tf->uv[1];
-			uv3= tf->uv[2];
-			uv4= tf->uv[3];
-		}
-		else {
-			uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
-			map_to_sphere( &uv[0][0], &uv[0][1],orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
-			map_to_sphere( &uv[1][0], &uv[1][1],orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
-			map_to_sphere( &uv[2][0], &uv[2][1],orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);
-			if(v4)
-				map_to_sphere( &uv[3][0], &uv[3][1],orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2]);
-		}
-		
-		tangent_from_uv(uv1, uv2, uv3, v1->co, v2->co, v3->co, fno, tang);
-		sum_or_add_vertex_tangent(arena, &vtangents[mf->v1], tang, uv1);
-		sum_or_add_vertex_tangent(arena, &vtangents[mf->v2], tang, uv2);
-		sum_or_add_vertex_tangent(arena, &vtangents[mf->v3], tang, uv3);
-		
-		if(mf->v4) {
-			v4= &mvert[mf->v4];
-			
-			tangent_from_uv(uv1, uv3, uv4, v1->co, v3->co, v4->co, fno, tang);
-			sum_or_add_vertex_tangent(arena, &vtangents[mf->v1], tang, uv1);
-			sum_or_add_vertex_tangent(arena, &vtangents[mf->v3], tang, uv3);
-			sum_or_add_vertex_tangent(arena, &vtangents[mf->v4], tang, uv4);
-		}
+	// new computation method
+	iCalcNewMethod = 1;
+	if(iCalcNewMethod!=0)
+	{
+		SGLSLMeshToTangent mesh2tangent;
+		SMikkTSpaceContext sContext;
+		SMikkTSpaceInterface sInterface;
+		memset(&mesh2tangent, 0, sizeof(SGLSLMeshToTangent));
+		memset(&sContext, 0, sizeof(SMikkTSpaceContext));
+		memset(&sInterface, 0, sizeof(SMikkTSpaceInterface));
+
+		mesh2tangent.precomputedFaceNormals = nors;
+		mesh2tangent.mtface = mtface;
+		mesh2tangent.mface = mface;
+		mesh2tangent.mvert = mvert;
+		mesh2tangent.orco = orco;
+		mesh2tangent.tangent = tangent;
+		mesh2tangent.numFaces = totface;
+
+		sContext.m_pUserData = &mesh2tangent;
+		sContext.m_pInterface = &sInterface;
+		sInterface.m_getNumFaces = GetNumFaces;
+		sInterface.m_getNumVerticesOfFace = GetNumVertsOfFace;
+		sInterface.m_getPosition = GetPosition;
+		sInterface.m_getTexCoord = GetTextureCoordinate;
+		sInterface.m_getNormal = GetNormal;
+		sInterface.m_setTSpaceBasic = SetTSpace;
+
+		// 0 if failed
+		iCalcNewMethod = genTangSpaceDefault(&sContext);
 	}
-	
-	/* write tangent to layer */
-	for(i=0, tf=mtface, mf=mface; i < totface; mf++, tf++, i++, tangent+=4) {
-		len= (mf->v4)? 4 : 3; 
 
-		if(mtface == NULL) {
-			map_to_sphere( &uv[0][0], &uv[0][1],orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
-			map_to_sphere( &uv[1][0], &uv[1][1],orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
-			map_to_sphere( &uv[2][0], &uv[2][1],orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);
-			if(len==4)
-				map_to_sphere( &uv[3][0], &uv[3][1],orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2]);
+	if(!iCalcNewMethod)
+	{
+		/* sum tangents at connected vertices */
+		for(i=0, tf=mtface, mf=mface; i < totface; mf++, tf++, i++) {
+			v1= &mvert[mf->v1];
+			v2= &mvert[mf->v2];
+			v3= &mvert[mf->v3];
+
+			if (mf->v4) {
+				v4= &mvert[mf->v4];
+				normal_quad_v3( fno,v4->co, v3->co, v2->co, v1->co);
+			}
+			else {
+				v4= NULL;
+				normal_tri_v3( fno,v3->co, v2->co, v1->co);
+			}
+		
+			if(mtface) {
+				uv1= tf->uv[0];
+				uv2= tf->uv[1];
+				uv3= tf->uv[2];
+				uv4= tf->uv[3];
+			}
+			else {
+				uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
+				map_to_sphere( &uv[0][0], &uv[0][1],orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
+				map_to_sphere( &uv[1][0], &uv[1][1],orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
+				map_to_sphere( &uv[2][0], &uv[2][1],orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);
+				if(v4)
+					map_to_sphere( &uv[3][0], &uv[3][1],orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2]);
+			}
+		
+			tangent_from_uv(uv1, uv2, uv3, v1->co, v2->co, v3->co, fno, tang);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v1], tang, uv1);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v2], tang, uv2);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v3], tang, uv3);
+		
+			if(mf->v4) {
+				v4= &mvert[mf->v4];
+			
+				tangent_from_uv(uv1, uv3, uv4, v1->co, v3->co, v4->co, fno, tang);
+				sum_or_add_vertex_tangent(arena, &vtangents[mf->v1], tang, uv1);
+				sum_or_add_vertex_tangent(arena, &vtangents[mf->v3], tang, uv3);
+				sum_or_add_vertex_tangent(arena, &vtangents[mf->v4], tang, uv4);
+			}
 		}
+	
+		/* write tangent to layer */
+		for(i=0, tf=mtface, mf=mface; i < totface; mf++, tf++, i++, tangent+=4) {
+			len= (mf->v4)? 4 : 3; 
+
+			if(mtface == NULL) {
+				map_to_sphere( &uv[0][0], &uv[0][1],orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2]);
+				map_to_sphere( &uv[1][0], &uv[1][1],orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2]);
+				map_to_sphere( &uv[2][0], &uv[2][1],orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2]);
+				if(len==4)
+					map_to_sphere( &uv[3][0], &uv[3][1],orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2]);
+			}
 		
-		mf_vi[0]= mf->v1;
-		mf_vi[1]= mf->v2;
-		mf_vi[2]= mf->v3;
-		mf_vi[3]= mf->v4;
+			mf_vi[0]= mf->v1;
+			mf_vi[1]= mf->v2;
+			mf_vi[2]= mf->v3;
+			mf_vi[3]= mf->v4;
 		
-		for(j=0; j<len; j++) {
-			vtang= find_vertex_tangent(vtangents[mf_vi[j]], mtface ? tf->uv[j] : uv[j]);
-			normalize_v3_v3(tangent[j], vtang);
+			for(j=0; j<len; j++) {
+				vtang= find_vertex_tangent(vtangents[mf_vi[j]], mtface ? tf->uv[j] : uv[j]);
+				normalize_v3_v3(tangent[j], vtang);
+				((float *) tangent[j])[3]=1.0f;
+			}
 		}
 	}
 	

@@ -27,6 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file DNA_action_types.h
+ *  \ingroup DNA
+ */
+
 
 #ifndef DNA_ACTION_TYPES_H
 #define DNA_ACTION_TYPES_H

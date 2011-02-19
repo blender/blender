@@ -66,7 +66,7 @@
 /* These are just 'dummy wrappers' around gpencil api calls */
 
 /* make layer active one after being clicked on */
-void gp_ui_activelayer_cb (bContext *C, void *gpd, void *gpl)
+static void gp_ui_activelayer_cb (bContext *C, void *gpd, void *gpl)
 {
 	gpencil_layer_setactive(gpd, gpl);
 	
@@ -74,7 +74,7 @@ void gp_ui_activelayer_cb (bContext *C, void *gpd, void *gpl)
 }
 
 /* delete 'active' layer */
-void gp_ui_dellayer_cb (bContext *C, void *gpd, void *gpl)
+static void gp_ui_dellayer_cb (bContext *C, void *gpd, void *gpl)
 {
 	/* make sure the layer we want to remove is the active one */
 	gpencil_layer_setactive(gpd, gpl); 

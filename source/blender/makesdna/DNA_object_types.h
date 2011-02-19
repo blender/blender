@@ -1,8 +1,4 @@
-/**
- * blenlib/DNA_object_types.h (mar-2001 nzc)
- *	
- * Object is a sort of wrapper for general info.
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,6 +28,11 @@
  */
 #ifndef DNA_OBJECT_TYPES_H
 #define DNA_OBJECT_TYPES_H
+
+/** \file DNA_object_types.h
+ *  \ingroup DNA
+ *  \brief Object is a sort of wrapper for general info.
+ */
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"

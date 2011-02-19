@@ -568,3 +568,24 @@ def NSIS_Installer(target=None, source=None, env=None):
         print data.strip().split("\n")[-1]
     return rv
 
+def check_environ():
+    problematic_envvars = ""
+    for i in os.environ:
+        try:
+            os.environ[i].decode('ascii')
+        except UnicodeDecodeError:
+            problematic_envvars = problematic_envvars + "%s = %s\n" % (i, os.environ[i])
+    if len(problematic_envvars)>0:
+        print("================\n\n")
+        print("@@ ABORTING BUILD @@\n")
+        print("PROBLEM DETECTED WITH ENVIRONMENT")
+        print("---------------------------------\n\n")
+        print("A problem with one or more environment variable was found")
+        print("Their value contain non-ascii characters. Check the below")
+        print("list and override them locally to be ASCII-clean by doing")
+        print("'set VARNAME=cleanvalue' on the command-line prior to")
+        print("starting the build process:\n")
+        print(problematic_envvars)
+        return False
+    else:
+        return True

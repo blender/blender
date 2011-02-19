@@ -350,32 +350,32 @@ typedef struct ExtensionRNA {
 
 /* fake struct definitions, needed otherwise collections end up owning the C
  * structs like 'Object' when defined first */
-#define MainActions		Main
-#define MainArmatures		Main
-#define MainBrushes		Main
-#define MainCameras		Main
-#define MainCurves		Main
-#define MainFonts		Main
-#define MainGreasePencils	Main
-#define MainGroups		Main
-#define MainImages		Main
-#define MainLamps		Main
-#define MainLattices		Main
-#define MainLibraries		Main
-#define MainLineStyles		Main
-#define MainMaterials		Main
-#define MainMeshes		Main
-#define MainMetaBalls		Main
-#define MainNodeTrees		Main
-#define MainObjects		Main
-#define MainParticles		Main
-#define MainScenes		Main
-#define MainScreens		Main
-#define MainSounds		Main
-#define MainTexts		Main
-#define MainTextures		Main
-#define MainWindowManagers	Main
-#define MainWorlds		Main
+#define BlendDataActions		Main
+#define BlendDataArmatures		Main
+#define BlendDataBrushes		Main
+#define BlendDataCameras		Main
+#define BlendDataCurves		Main
+#define BlendDataFonts		Main
+#define BlendDataGreasePencils	Main
+#define BlendDataGroups		Main
+#define BlendDataImages		Main
+#define BlendDataLamps		Main
+#define BlendDataLattices		Main
+#define BlendDataLibraries		Main
+#define BlendDataLineStyles		Main
+#define BlendDataMaterials		Main
+#define BlendDataMeshes		Main
+#define BlendDataMetaBalls		Main
+#define BlendDataNodeTrees		Main
+#define BlendDataObjects		Main
+#define BlendDataParticles		Main
+#define BlendDataScenes		Main
+#define BlendDataScreens		Main
+#define BlendDataSounds		Main
+#define BlendDataTexts		Main
+#define BlendDataTextures		Main
+#define BlendDataWindowManagers	Main
+#define BlendDataWorlds		Main
 
 #ifdef __cplusplus
 }

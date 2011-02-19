@@ -65,6 +65,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "ED_physics.h"
 #include "ED_mesh.h"
 #include "ED_particle.h"
 #include "ED_view3d.h"
@@ -939,7 +940,7 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 	}
 }
 /* force set distances between neighbouring keys */
-void PE_apply_lengths(Scene *scene, PTCacheEdit *edit)
+static void PE_apply_lengths(Scene *scene, PTCacheEdit *edit)
 {
 	
 	ParticleEditSettings *pset=PE_settings(scene);

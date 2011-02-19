@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
 
 #ifndef BKE_CONTEXT_H
 #define BKE_CONTEXT_H
+
+/** \file BKE_context.h
+ *  \ingroup bke
+ */
 
 #include "DNA_listBase.h"
 #include "RNA_types.h"

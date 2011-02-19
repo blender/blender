@@ -1,5 +1,4 @@
-/**
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +30,12 @@
 
 #ifndef BLI_KDOPBVH_H
 #define BLI_KDOPBVH_H
+
+/** \file BLI_kdopbvh.h
+ *  \ingroup bli
+ *  \author Daniel Genrich
+ *  \author Andre Pinto
+ */
 
 #ifdef __cplusplus
 extern "C" { 

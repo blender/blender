@@ -24,8 +24,6 @@
 #ifndef BPY_RNA_H
 #define BPY_RNA_H
 
-#include <Python.h>
-
 #include "RNA_access.h"
 #include "RNA_types.h"
 #include "BKE_idprop.h"

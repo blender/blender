@@ -30,10 +30,11 @@
 
 #include "MEM_guardedalloc.h"
 
-
+#include "BLI_callbacks.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_scanfill.h"
 
 /* callbacks for errors and interrupts and some goo */
 static void (*BLI_localErrorCallBack)(const char*) = NULL;

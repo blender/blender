@@ -171,10 +171,17 @@ LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, cha
 /* PoseLib */
 /* poselib.c */
 
+void POSELIB_OT_new(struct wmOperatorType *ot);
+void POSELIB_OT_unlink(struct wmOperatorType *ot);
+
+void POSELIB_OT_action_sanitise(struct wmOperatorType *ot);
+
 void POSELIB_OT_pose_add(struct wmOperatorType *ot);
 void POSELIB_OT_pose_remove(struct wmOperatorType *ot);
 void POSELIB_OT_pose_rename(struct wmOperatorType *ot);
+
 void POSELIB_OT_browse_interactive(struct wmOperatorType *ot);
+void POSELIB_OT_apply_pose(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* Pose Sliding Tools */

@@ -45,6 +45,7 @@
 #include "BKE_screen.h"
 #include "BKE_node.h"
 
+#include "ED_space_api.h"
 #include "ED_render.h"
 #include "ED_screen.h"
 
@@ -410,13 +411,14 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
+const char *node_context_dir[] = {"selected_nodes", NULL};
+
 static int node_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
 	if(CTX_data_dir(member)) {
-		static const char *dir[] = {"selected_nodes", NULL};
-		CTX_data_dir_set(result, dir);
+		CTX_data_dir_set(result, node_context_dir);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "selected_nodes")) {

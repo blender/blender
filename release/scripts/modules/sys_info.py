@@ -50,8 +50,6 @@ def textWrap(text, length=70):
 
 def write_sysinfo(op):
     output_filename = "system-info.txt"
-    warnings = 0
-    notices = 0
 
     if output_filename in bpy.data.texts.keys():
         output = bpy.data.texts[output_filename]

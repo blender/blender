@@ -329,8 +329,6 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # 
         return (context.object)
 
     def draw(self, context):
-        layout = self.layout
-
         ob = context.object
 
         self.draw_settings(context, ob.animation_visualisation)

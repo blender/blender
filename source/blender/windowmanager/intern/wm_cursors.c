@@ -70,7 +70,7 @@ static GHOST_TStandardCursor convert_cursor(int curs)
 	}
 }
 
-void window_set_custom_cursor(wmWindow *win, unsigned char mask[16][2], 
+static void window_set_custom_cursor(wmWindow *win, unsigned char mask[16][2], 
 							  unsigned char bitmap[16][2], int hotx, int hoty) 
 {
 	GHOST_SetCustomCursorShape(win->ghostwin, bitmap, mask, hotx, hoty);

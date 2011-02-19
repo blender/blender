@@ -1,6 +1,4 @@
-/**
- * Compatibility-like things for windows.
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,11 @@
  
 #ifndef __WINSTUFF_H__
 #define __WINSTUFF_H__
+
+/** \file BLI_winstuff.h
+ *  \ingroup bli
+ *  \brief Compatibility-like things for windows.
+ */
 
 #ifdef _WIN32
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  */
 #ifndef BKE_COLORTOOLS_H
 #define BKE_COLORTOOLS_H
+
+/** \file BKE_colortools.h
+ *  \ingroup bke
+ */
 
 struct CurveMapping;
 struct CurveMap;

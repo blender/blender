@@ -61,6 +61,7 @@
 
 #include "AUD_C-API.h"
 
+#include "ED_sound.h"
 #include "ED_util.h"
 
 #include "sound_intern.h"
@@ -189,7 +190,7 @@ static int pack_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void SOUND_OT_pack(wmOperatorType *ot)
+static void SOUND_OT_pack(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Pack Sound";
@@ -253,7 +254,7 @@ static int sound_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	return OPERATOR_FINISHED;
 }
 
-void SOUND_OT_unpack(wmOperatorType *ot)
+static void SOUND_OT_unpack(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Unpack Sound";

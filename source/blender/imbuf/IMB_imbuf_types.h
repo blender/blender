@@ -1,4 +1,4 @@
-/**
+/*
  * IMB_imbuf_types.h (mar-2001 nzc)
  *
  * Types needed for using the image buffer.
@@ -54,7 +54,6 @@ struct ImMetaData;
 #define IB_FILENAME_SIZE	1023
 
 /**
- * \brief The basic imbuf type
  * \ingroup imbuf
  * This is the abstraction of an image.  ImBuf is the basic type used for all
  * imbuf operations.

@@ -15,8 +15,7 @@ BLENDER_REVISION=$(svnversion)
 
 blender_srcdir=$PWD
 blender_version=$(grep BLENDER_VERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
-blender_subversion=$(grep BLENDER_SUBVERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
-BLENDER_VERSION=$(expr $blender_version / 100).$(expr $blender_version % 100).${blender_subversion}
+BLENDER_VERSION=$(expr $blender_version / 100).$(expr $blender_version % 100)
 DEB_VERSION=${BLENDER_VERSION}+svn${BLENDER_REVISION}-bf
 
 # update debian/changelog
@@ -24,6 +23,7 @@ dch -b -v $DEB_VERSION "New upstream SVN snapshot."
 
 
 # run the rules makefile
+rm -rf get-orig-source
 debian/rules get-orig-source SVN_URL=.
 mv *.gz ../
 

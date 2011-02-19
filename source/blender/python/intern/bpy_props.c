@@ -22,13 +22,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
+
 #include "bpy_props.h"
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
 #include "BLI_utildefines.h"
-
-
 
 #include "RNA_define.h" /* for defining our own rna */
 #include "RNA_enum_types.h"
@@ -162,6 +162,16 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 	} \
 
 
+#define BPY_PROPDEF_NAME_DOC \
+"   :arg name: Name used in the user interface.\n" \
+"   :type name: string\n" \
+
+
+#define BPY_PROPDEF_DESC_DOC \
+"   :arg description: Text used for the tooltip and api documentation.\n" \
+"   :type description: string\n" \
+
+
 #if 0
 static int bpy_struct_id_used(StructRNA *srna, char *identifier)
 {
@@ -179,11 +189,13 @@ static char BPy_BoolProperty_doc[] =
 "\n"
 "   Returns a new boolean property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
-"   :type subtype: string";
-
+"   :type subtype: string\n"
+;
 static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -225,10 +237,17 @@ static char BPy_BoolVectorProperty_doc[] =
 "\n"
 "   Returns a new vector boolean property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
+"   :arg default: sequence of booleans the length of *size*.\n"
+"   :type default: sequence\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
-"   :type subtype: string";
+"   :type subtype: string\n"
+"   :arg size: Vector dimensions in [1,  and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
+"   :type size: int\n"
+;
 static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -282,10 +301,13 @@ static char BPy_IntProperty_doc[] =
 "\n"
 "   Returns a new int property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
-"   :type subtype: string";
+"   :type subtype: string\n"
+;
 static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -328,10 +350,17 @@ static char BPy_IntVectorProperty_doc[] =
 "\n"
 "   Returns a new vector int property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
+"   :arg default: sequence of ints the length of *size*.\n"
+"   :type default: sequence\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
-"   :type subtype: string";
+"   :type subtype: string\n"
+"   :arg size: Vector dimensions in [1,  and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
+"   :type size: int\n"
+;
 static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -386,12 +415,15 @@ static char BPy_FloatProperty_doc[] =
 "\n"
 "   Returns a new float property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string\n"
 "   :arg unit: Enumerator in ['NONE', 'LENGTH', 'AREA', 'VOLUME', 'ROTATION', 'TIME', 'VELOCITY', 'ACCELERATION'].\n"
-"   :type unit: string\n";
+"   :type unit: string\n"
+;
 static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -442,10 +474,17 @@ static char BPy_FloatVectorProperty_doc[] =
 "\n"
 "   Returns a new vector float property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
+"   :arg default: sequence of floats the length of *size*.\n"
+"   :type default: sequence\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
-"   :type subtype: string";
+"   :type subtype: string\n"
+"   :arg size: Vector dimensions in [1,  and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
+"   :type size: int\n"
+;
 static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -499,10 +538,13 @@ static char BPy_StringProperty_doc[] =
 "\n"
 "   Returns a new string property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILENAME', 'NONE'].\n"
-"   :type subtype: string";
+"   :type subtype: string\n"
+;
 static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -635,12 +677,15 @@ static char BPy_EnumProperty_doc[] =
 "\n"
 "   Returns a new enumerator property definition.\n"
 "\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg default: The default value for this enum, A string when *ENUM_FLAG* is disabled otherwise a set which may only contain string identifiers used in *items*.\n"
 "   :type default: string or set\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE', 'ENUM_FLAG'].\n"
 "   :type options: set\n"
 "   :arg items: sequence of enum items formatted: [(identifier, name, description), ...] where the identifier is used for python access and other values are used for the interface.\n"
-"   :type items: sequence of string triplets";
+"   :type items: sequence of string triplets\n"
+;
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -697,17 +742,17 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 		if(PyErr_Occurred()) {
 			PyObject *msg= PyC_ExceptionBuffer();
 			char *msg_char= _PyUnicode_AsString(msg);
-			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with: %s", error_prefix, msg_char);
+			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from PropertyGroup, failed with: %s", error_prefix, msg_char);
 			Py_DECREF(msg);
 		}
 		else {
-			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with type '%s'", error_prefix, Py_TYPE(value)->tp_name);
+			PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from PropertyGroup, failed with type '%s'", error_prefix, Py_TYPE(value)->tp_name);
 		}
 		return NULL;
 	}
 
-	if(!RNA_struct_is_a(srna, &RNA_IDPropertyGroup)) {
-		 PyErr_Format(PyExc_SystemError, "%.200s expected an RNA type derived from IDPropertyGroup", error_prefix);
+	if(!RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
+		 PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from PropertyGroup", error_prefix);
 		return NULL;
 	}
 
@@ -715,14 +760,17 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 }
 
 static char BPy_PointerProperty_doc[] =
-".. function:: PointerProperty(items, type=\"\", description=\"\", default=\"\", options={'ANIMATABLE'})\n"
+".. function:: PointerProperty(type=\"\", description=\"\", options={'ANIMATABLE'})\n"
 "\n"
 "   Returns a new pointer property definition.\n"
 "\n"
+"   :arg type: A subclass of :class:`bpy.types.PropertyGroup`.\n"
+"   :type type: class\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
-"   :arg type: Dynamic type from :mod:`bpy.types`.\n"
-"   :type type: class";
+;
 static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -763,10 +811,13 @@ static char BPy_CollectionProperty_doc[] =
 "\n"
 "   Returns a new collection property definition.\n"
 "\n"
+"   :arg type: A subclass of :class:`bpy.types.PropertyGroup`.\n"
+"   :type type: class\n"
+BPY_PROPDEF_NAME_DOC
+BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
-"   :arg type: Dynamic type from :mod:`bpy.types`.\n"
-"   :type type: class";
+;
 static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -808,7 +859,8 @@ static char BPy_RemoveProperty_doc[] =
 "   Removes a dynamically defined property.\n"
 "\n"
 "   :arg attr: Property name.\n"
-"   :type attr: string";
+"   :type attr: string\n"
+;
 static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;

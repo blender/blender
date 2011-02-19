@@ -161,6 +161,7 @@ static float KDOP_AXES[13][3] =
 	heap[parent] = element;							\
 }
 
+#if 0
 static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, int *max_size, int size_per_item)
 {
 	int   new_max_size = *max_size * 2;
@@ -186,7 +187,7 @@ static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, in
 	else
 		return FALSE;
 }
-
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Introsort 

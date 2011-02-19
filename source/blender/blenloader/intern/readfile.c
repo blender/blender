@@ -8754,7 +8754,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						ima->flag |= IMA_STD_FIELD;
 				}
 				tex->iuser.frames= tex->frames;
-				tex->iuser.fie_ima= tex->fie_ima;
+				tex->iuser.fie_ima= (char)tex->fie_ima;
 				tex->iuser.offset= tex->offset;
 				tex->iuser.sfra= tex->sfra;
 				tex->iuser.cycl= (tex->imaflag & TEX_ANIMCYCLIC_)!=0;

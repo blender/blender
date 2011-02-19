@@ -93,6 +93,7 @@ private:
 	void DigRep();
 	void CharRep();
 	void GrabString(int start);
+	void GrabRealString(int start);
 	void NextSym();
 #if 0	/* not used yet */
 	int MakeInt();

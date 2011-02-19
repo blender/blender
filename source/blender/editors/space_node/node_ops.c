@@ -31,6 +31,7 @@
 
 #include "BKE_context.h"
 
+#include "ED_node.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 

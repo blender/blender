@@ -22,8 +22,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <Python.h>
-
 #ifndef BPY_UTIL_H
 #define BPY_UTIL_H
 

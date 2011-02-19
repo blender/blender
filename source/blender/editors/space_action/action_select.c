@@ -186,7 +186,7 @@ enum {
 	ACTKEYS_BORDERSEL_ALLKEYS	= 0,
 	ACTKEYS_BORDERSEL_FRAMERANGE,
 	ACTKEYS_BORDERSEL_CHANNELS,
-} eActKeys_BorderSelect_Mode;
+} /*eActKeys_BorderSelect_Mode*/;
 
 
 static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short selectmode)
@@ -705,6 +705,183 @@ void ACTION_OT_select_less (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
+/* ******************** Select Left/Right Operator ************************* */
+/* Select keyframes left/right of the current frame indicator */
+
+/* defines for left-right select tool */
+static EnumPropertyItem prop_actkeys_leftright_select_types[] = {
+	{ACTKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
+	{ACTKEYS_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
+	{ACTKEYS_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* --------------------------------- */
+
+static void actkeys_select_leftright (bAnimContext *ac, short leftright, short select_mode)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	KeyframeEditFunc ok_cb, select_cb;
+	KeyframeEditData ked= {{0}};
+	Scene *scene= ac->scene;
+	
+	/* if select mode is replace, deselect all keyframes (and channels) first */
+	if (select_mode==SELECT_REPLACE) {
+		select_mode= SELECT_ADD;
+		
+		/* deselect all other channels and keyframes */
+		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
+	}
+	
+	/* set callbacks and editing data */
+	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
+	select_cb= ANIM_editkeyframes_select(select_mode);
+	
+	if (leftright == ACTKEYS_LRSEL_LEFT) {
+		ked.f1 = MINAFRAMEF;
+		ked.f2 = (float)(CFRA + 0.1f);
+	} 
+	else {
+		ked.f1 = (float)(CFRA - 0.1f);
+		ked.f2 = MAXFRAMEF;
+	}
+	
+	/* filter data */
+	if (ac->datatype == ANIMCONT_GPENCIL)
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NODUPLIS);
+	else
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+		
+	/* select keys */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
+		
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+		}
+		else if (ale->type == ANIMTYPE_GPLAYER)	
+			borderselect_gplayer_frames(ale->data, ked.f1, ked.f2, select_mode);
+		else
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
+	}
+	
+	/* Sync marker support */
+	if (select_mode==SELECT_ADD) {
+		SpaceAction *saction= ac->sa->spacedata.first;
+		
+		if ((saction) && (saction->flag & SACTION_MARKERS_MOVE)) {
+			ListBase *markers = ED_animcontext_get_markers(ac);
+			TimeMarker *marker;
+			
+			for (marker= markers->first; marker; marker= marker->next) {
+				if(	((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < CFRA)) ||
+					((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= CFRA)) ) 
+				{
+					marker->flag |= SELECT;
+				}
+				else {
+					marker->flag &= ~SELECT;
+				}
+			}
+		}
+	}
+
+	/* Cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ----------------- */
+
+static int actkeys_select_leftright_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short leftright = RNA_enum_get(op->ptr, "mode");
+	short selectmode;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* select mode is either replace (deselect all, then add) or add/extend */
+	if (RNA_boolean_get(op->ptr, "extend"))
+		selectmode= SELECT_INVERT;
+	else
+		selectmode= SELECT_REPLACE;
+		
+	/* if "test" mode is set, we don't have any info to set this with */
+	if (leftright == ACTKEYS_LRSEL_TEST)
+		return OPERATOR_CANCELLED;
+	
+	/* do the selecting now */
+	actkeys_select_leftright(&ac, leftright, selectmode);
+	
+	/* set notifier that keyframe selection (and channels too) have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|ND_ANIMCHAN|NA_SELECTED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int actkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	bAnimContext ac;
+	short leftright = RNA_enum_get(op->ptr, "mode");
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* handle mode-based testing */
+	if (leftright == ACTKEYS_LRSEL_TEST) {
+		Scene *scene= ac.scene;
+		ARegion *ar= ac.ar;
+		View2D *v2d= &ar->v2d;
+		
+		int mval[2];
+		float x;
+		
+		/* get mouse coordinates (in region coordinates) */
+		mval[0]= (event->x - ar->winrct.xmin);
+		mval[1]= (event->y - ar->winrct.ymin);
+		
+		/* determine which side of the current frame mouse is on */
+		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
+		if (x < CFRA)
+			RNA_int_set(op->ptr, "mode", ACTKEYS_LRSEL_LEFT);
+		else 	
+			RNA_int_set(op->ptr, "mode", ACTKEYS_LRSEL_RIGHT);
+	}
+	
+	/* perform selection */
+	return actkeys_select_leftright_exec(C, op);
+}
+
+void ACTION_OT_select_leftright (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Left/Right";
+	ot->idname= "ACTION_OT_select_leftright";
+	ot->description= "Select keyframes to the left or the right of the current frame";
+	
+	/* api callbacks  */
+	ot->invoke= actkeys_select_leftright_invoke;
+	ot->exec= actkeys_select_leftright_exec;
+	ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* id-props */
+	ot->prop= RNA_def_enum(ot->srna, "mode", prop_actkeys_leftright_select_types, ACTKEYS_LRSEL_TEST, "Mode", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+}
+
 /* ******************** Mouse-Click Select Operator *********************** */
 /* This operator works in one of three ways:
  *	- 1) keyframe under mouse - no special modifiers
@@ -714,15 +891,6 @@ void ACTION_OT_select_less (wmOperatorType *ot)
  * In addition to these basic options, the SHIFT modifier can be used to toggle the 
  * selection mode between replacing the selection (without) and inverting the selection (with).
  */
-
-/* defines for left-right select tool */
-static EnumPropertyItem prop_actkeys_leftright_select_types[] = {
-	{ACTKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
-	{ACTKEYS_LRSEL_NONE, "OFF", 0, "Don't select", ""},
-	{ACTKEYS_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
-	{ACTKEYS_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
-	{0, NULL, 0, NULL, NULL}
-};
 
 /* sensitivity factor for frame-selections */
 #define FRAME_CLICK_THRESH 		0.1f
@@ -751,84 +919,7 @@ static void actkeys_mselect_single (bAnimContext *ac, bAnimListElem *ale, short 
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
-static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short select_mode)
-{
-	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-	
-	KeyframeEditFunc ok_cb, select_cb;
-	KeyframeEditData ked= {{0}};
-	Scene *scene= ac->scene;
-	
-	/* if select mode is replace, deselect all keyframes (and channels) first */
-	if (select_mode==SELECT_REPLACE) {
-		select_mode= SELECT_ADD;
-		
-		/* deselect all other channels and keyframes */
-		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
-	}
-	
-	/* set callbacks and editing data */
-	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
-	select_cb= ANIM_editkeyframes_select(select_mode);
-
-	if (leftright == ACTKEYS_LRSEL_LEFT) {
-		ked.f1 = MINAFRAMEF;
-		ked.f2 = (float)(CFRA + FRAME_CLICK_THRESH);
-	} 
-	else {
-		ked.f1 = (float)(CFRA - FRAME_CLICK_THRESH);
-		ked.f2 = MAXFRAMEF;
-	}
-	
-	/* filter data */
-	if (ac->datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NODUPLIS);
-	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
-	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-		
-	/* select keys on the side where most data occurs */
-	for (ale= anim_data.first; ale; ale= ale->next) {
-		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
-		
-		if (adt) {
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
-			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
-		}
-		else if (ale->type == ANIMTYPE_GPLAYER)	
-			borderselect_gplayer_frames(ale->data, ked.f1, ked.f2, select_mode);
-		else
-			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
-	}
-	
-	/* Sync marker support */
-	if ((select_mode==SELECT_ADD) && ELEM(leftright, ACTKEYS_LRSEL_LEFT, ACTKEYS_LRSEL_RIGHT)) {
-		SpaceAction *saction= ac->sa->spacedata.first;
-		
-		if ((saction) && (saction->flag & SACTION_MARKERS_MOVE)) {
-			ListBase *markers = ED_animcontext_get_markers(ac);
-			TimeMarker *marker;
-			
-			for (marker= markers->first; marker; marker= marker->next) {
-				if(	((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < CFRA)) ||
-					((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= CFRA)) ) 
-				{
-					marker->flag |= SELECT;
-				}
-				else {
-					marker->flag &= ~SELECT;
-				}
-			}
-		}
-	}
-
-	/* Cleanup */
-	BLI_freelistN(&anim_data);
-}
+/* (see actkeys_select_leftright) */
 
 /* Option 3) Selects all visible keyframes in the same frame as the mouse click */
 static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float selx)
@@ -1089,23 +1180,8 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	/* column selection */
 	column= RNA_boolean_get(op->ptr, "column");
 	
-	/* figure out action to take */
-	if (RNA_enum_get(op->ptr, "left_right")) {
-		/* select all keys on same side of current frame as mouse */
-		float x;
-		
-		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
-		if (x < CFRA)
-			RNA_int_set(op->ptr, "left_right", ACTKEYS_LRSEL_LEFT);
-		else 	
-			RNA_int_set(op->ptr, "left_right", ACTKEYS_LRSEL_RIGHT);
-		
-		actkeys_mselect_leftright(&ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
-	}
-	else {
-		/* select keyframe(s) based upon mouse position*/
-		mouse_action_keys(&ac, mval, selectmode, column);
-	}
+	/* select keyframe(s) based upon mouse position*/
+	mouse_action_keys(&ac, mval, selectmode, column);
 	
 	/* set notifier that keyframe selection (and channels too) have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|ND_ANIMCHAN|NA_SELECTED, NULL);
@@ -1129,8 +1205,6 @@ void ACTION_OT_clickselect (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	// XXX should we make this into separate operators?
-	RNA_def_enum(ot->srna, "left_right", prop_actkeys_leftright_select_types, 0, "Left Right", ""); // CTRLKEY
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
 	RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // ALTKEY
 }
