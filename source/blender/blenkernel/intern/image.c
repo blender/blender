@@ -526,6 +526,10 @@ void free_old_images(void)
 	if (U.textimeout == 0 || ctime % U.texcollectrate || ctime == lasttime)
 		return;
 
+	/* of course not! */
+	if (G.rendering)
+		return;
+	
 	lasttime = ctime;
 
 	ima= G.main->image.first;
@@ -2182,10 +2186,7 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 		BLI_unlock_thread(LOCK_IMAGE);
 	}
 
-	/* we assuming that if it is not rendering, it's also not multithreaded
-	 * (a somewhat weak assumption) */
-	if(G.rendering==0)
-		tag_image_time(ima);
+	tag_image_time(ima);
 
 	return ibuf;
 }
