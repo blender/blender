@@ -840,6 +840,36 @@ void shade_input_set_normals(ShadeInput *shi)
 			shade_input_flip_normals(shi);
 }
 
+/* XXX shi->flippednor messes up otherwise */
+static void shade_input_set_vertex_normals(ShadeInput *shi)
+{
+	float u= shi->u, v= shi->v;
+	float l= 1.0f+u+v;
+	
+	/* calculate vertexnormals */
+	if(shi->vlr->flag & R_SMOOTH) {
+		float *n1= shi->n1, *n2= shi->n2, *n3= shi->n3;
+		
+		shi->vn[0]= l*n3[0]-u*n1[0]-v*n2[0];
+		shi->vn[1]= l*n3[1]-u*n1[1]-v*n2[1];
+		shi->vn[2]= l*n3[2]-u*n1[2]-v*n2[2];
+		
+		// use unnormalized normal (closer to games)
+		VECCOPY(shi->nmapnorm, shi->vn);
+		
+		normalize_v3(shi->vn);
+	}
+	else
+	{
+		VECCOPY(shi->vn, shi->facenor);
+		VECCOPY(shi->nmapnorm, shi->vn);
+	}
+	
+	/* used in nodes */
+	VECCOPY(shi->vno, shi->vn);
+}
+
+
 /* use by raytrace, sss, bake to flip into the right direction */
 void shade_input_flip_normals(ShadeInput *shi)
 {
@@ -1379,7 +1409,10 @@ void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 						shi->samplenr= R.shadowsamplenr[shi->thread]++;	/* this counter is not being reset per pixel */
 						shade_input_set_viewco(shi, x, y, xs, ys, (float)ps->z);
 						shade_input_set_uv(shi);
-						shade_input_set_normals(shi);
+						if(shi_cp==0)
+							shade_input_set_normals(shi);
+						else  /* XXX shi->flippednor messes up otherwise */
+							shade_input_set_vertex_normals(shi);
 						
 						shi_cp= 1;
 						shi++;
