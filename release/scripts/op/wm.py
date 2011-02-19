@@ -51,7 +51,7 @@ rna_relative_prop = BoolProperty(name="Relative",
 def context_path_validate(context, data_path):
     import sys
     try:
-        value = eval("context.%s" % data_path)
+        value = eval("context.%s" % data_path) if data_path else Ellipsis
     except AttributeError:
         if "'NoneType'" in str(sys.exc_info()[1]):
             # One of the items in the rna path is None, just ignore this
