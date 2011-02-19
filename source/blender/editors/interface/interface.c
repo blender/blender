@@ -2581,8 +2581,11 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 					else
 						BLI_dynstr_appendf(dynstr, "|%s %%x%d", item[i].name, item[i].value);
 
-					if(value == item[i].value)
+					if(value == item[i].value) {
 						icon= item[i].icon;
+						if(!tip)
+							tip= item[i].description;
+					}
 				}
 				str= BLI_dynstr_get_cstring(dynstr);
 				BLI_dynstr_free(dynstr);
