@@ -183,6 +183,9 @@ typedef struct FontBLF {
 	/* fast ascii lookip */
 	GlyphBLF *glyph_ascii_table[256];
 
+	/* freetype2 lib handle. */
+	FT_Library ft_lib;
+
 	/* freetype2 face. */
 	FT_Face face;
 
