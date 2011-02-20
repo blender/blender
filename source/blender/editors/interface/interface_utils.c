@@ -99,7 +99,6 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			break;
 		case PROP_POINTER: {
 			PointerRNA pptr;
-			int icon;
 
 			pptr= RNA_property_pointer_get(ptr, prop);
 			if(!pptr.type)

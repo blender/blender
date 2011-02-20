@@ -244,7 +244,6 @@ static void deformVerts(ModifierData *md, Object *ob,
 		}
 	}
 	else if(dvert) {	/* vertex group hook */
-		int i;
 		const float fac_orig= hmd->force;
 
 		for(i = 0; i < max_dvert; i++, dvert++) {

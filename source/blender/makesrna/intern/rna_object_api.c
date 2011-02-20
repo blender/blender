@@ -302,7 +302,7 @@ static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *
 	/* ob->duplilist should now be freed with Object.free_duplilist */
 }
 
-static void rna_Object_free_duplilist(Object *ob, ReportList *reports)
+static void rna_Object_free_duplilist(Object *ob)
 {
 	if (ob->duplilist) {
 		free_object_duplilist(ob->duplilist);
@@ -451,7 +451,6 @@ void RNA_api_object(StructRNA *srna)
 
 	func= RNA_def_function(srna, "free_dupli_list", "rna_Object_free_duplilist");
 	RNA_def_function_ui_description(func, "Free the list of dupli objects.");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	/* Armature */
 	func= RNA_def_function(srna, "find_armature", "modifiers_isDeformedByArmature");

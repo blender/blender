@@ -737,8 +737,6 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 
 		/* tesselation point for curve-typed objects */
 		if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
 			/* some modifiers could work with pre-tesselated curves only */
 			if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 				/* add disabled pre-tesselated button, so users could have

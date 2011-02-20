@@ -776,12 +776,12 @@ static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
 			ListBase *lb = object_duplilist(shi->gpumat->scene, ob);
 			
 			for(dob=lb->first; dob; dob=dob->next) {
-				Object *ob = dob->ob;
-				
-				if(ob->type==OB_LAMP) {
-					copy_m4_m4(ob->obmat, dob->mat);
+				Object *ob_iter = dob->ob;
 
-					lamp = GPU_lamp_from_blender(shi->gpumat->scene, ob, base->object);
+				if(ob_iter->type==OB_LAMP) {
+					copy_m4_m4(ob_iter->obmat, dob->mat);
+
+					lamp = GPU_lamp_from_blender(shi->gpumat->scene, ob_iter, ob);
 					if(lamp)
 						shade_one_light(shi, shr, lamp);
 				}
