@@ -1475,6 +1475,13 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smo
 	}
 }
 
+void BLI_pbvh_grids_update(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridadj, void **gridfaces)
+{
+	bvh->grids= grids;
+	bvh->gridadj= gridadj;
+	bvh->gridfaces= gridfaces;
+}
+
 float (*BLI_pbvh_get_vertCos(PBVH *pbvh))[3]
 {
 	int a;

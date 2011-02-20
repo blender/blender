@@ -2251,8 +2251,16 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	if(!ob->sculpt)
 		return NULL;
 
-	if(ob->sculpt->pbvh)
+	if(ob->sculpt->pbvh) {
+	   /* pbvh's grids, gridadj and gridfaces points to data inside ccgdm
+		  but this can be freed on ccgdm release, this updates the pointers
+		  when the ccgdm gets remade, the assumption is that the topology
+		  does not change. */
+		ccgdm_create_grids(dm);
+		BLI_pbvh_grids_update(ob->sculpt->pbvh, ccgdm->gridData, ccgdm->gridAdjacency, (void**)ccgdm->gridFaces);
+
 		ccgdm->pbvh = ob->sculpt->pbvh;
+	}
 
 	if(ccgdm->pbvh)
 		return ccgdm->pbvh;
