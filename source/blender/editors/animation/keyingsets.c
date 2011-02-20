@@ -937,6 +937,14 @@ int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingS
 		int arraylen, i;
 		short kflag2;
 		
+		/* skip path if no ID pointer is specified */
+		if (ksp->id == NULL) {
+			BKE_reportf(reports, RPT_WARNING,
+				"Skipping path in Keying Set, as it has no ID (KS = '%s', Path = '%s'[%d])",
+				ks->name, ksp->rna_path, ksp->array_index);
+			continue;
+		}
+		
 		/* since keying settings can be defined on the paths too, extend the path before using it */
 		kflag2 = (kflag | ksp->keyingflag);
 		
@@ -980,20 +988,18 @@ int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingS
 		}
 		
 		/* set recalc-flags */
-		if (ksp->id) {
-			switch (GS(ksp->id->name)) {
-				case ID_OB: /* Object (or Object-Related) Keyframes */
-				{
-					Object *ob= (Object *)ksp->id;
-					
-					ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME; // XXX: only object transforms only?
-				}
-					break;
+		switch (GS(ksp->id->name)) {
+			case ID_OB: /* Object (or Object-Related) Keyframes */
+			{
+				Object *ob= (Object *)ksp->id;
+				
+				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME; // XXX: only object transforms only?
 			}
-			
-			/* send notifiers for updates (this doesn't require context to work!) */
-			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
+				break;
 		}
+		
+		/* send notifiers for updates (this doesn't require context to work!) */
+		WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	}
 	
 	/* return the number of channels successfully affected */

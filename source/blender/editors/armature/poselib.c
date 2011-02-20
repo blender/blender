@@ -145,7 +145,11 @@ static Object *get_poselib_object (bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	
-	if (sa->spacetype == SPACE_BUTS) 
+	/* sanity check */
+	if (C == NULL)
+		return NULL;
+	
+	if (sa && (sa->spacetype == SPACE_BUTS)) 
 		return CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	else
 		return ED_object_pose_armature(CTX_data_active_object(C));
@@ -342,7 +346,7 @@ void POSELIB_OT_action_sanitise (wmOperatorType *ot)
 static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	Object *ob= get_poselib_object(C);
-	bAction *act= ob->poselib;
+	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
 	
 	/* set the operator execution context correctly */
@@ -473,8 +477,8 @@ void POSELIB_OT_pose_add (wmOperatorType *ot)
 /* can be called with C == NULL */
 static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
-	Object *ob;
-	bAction *act;
+	Object *ob = get_poselib_object(C);
+	bAction *act = (ob) ? ob->poselib : NULL;;
 	TimeMarker *marker;
 	EnumPropertyItem *item= NULL, item_tmp= {0};
 	int totitem= 0;
@@ -483,9 +487,6 @@ static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUS
 	if (C == NULL) {
 		return DummyRNA_DEFAULT_items;
 	}
-	
-	ob= get_poselib_object(C);
-	act= (ob) ? ob->poselib : NULL;
 	
 	/* check that the action exists */
 	if (act) {
