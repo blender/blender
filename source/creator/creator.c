@@ -154,6 +154,7 @@ static void fpe_handler(int UNUSED(sig))
 }
 #endif
 
+#ifdef WITH_PYTHON_MODULE
 /* handling ctrl-c event in console */
 static void blender_esc(int sig)
 {
@@ -170,6 +171,7 @@ static void blender_esc(int sig)
 		count++;
 	}
 }
+#endif
 
 /* buildinfo can have quotes */
 #ifdef BUILD_DATE
@@ -1111,11 +1113,20 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 }
 
-int main(int argc, char **argv)
+#ifdef WITH_PYTHON_MODULE
+/* allow python module to call main */
+#define main main_python
+#endif
+
+int main(int argc, const char **argv)
 {
 	SYS_SystemHandle syshandle;
 	bContext *C= CTX_create();
 	bArgs *ba;
+
+#ifdef WITH_PYTHON_MODULE
+#undef main
+#endif
 
 #ifdef WITH_BINRELOC
 	br_init( NULL );
@@ -1192,10 +1203,13 @@ int main(int argc, char **argv)
 	setuid(getuid()); /* end superuser */
 #endif
 
-
+#ifdef WITH_PYTHON_MODULE
+	G.background= 1; /* python module mode ALWAYS runs in background mode (for now) */
+#else
 	/* for all platforms, even windos has it! */
 	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
-	
+#endif
+
 	/* background render uses this font too */
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
 
@@ -1247,6 +1261,10 @@ int main(int argc, char **argv)
 	BLI_argsParse(ba, 4, load_file, C);
 
 	BLI_argsFree(ba);
+
+#ifdef WITH_PYTHON_MODULE
+	return 0; /* keep blender in background mode running */
+#endif
 
 	if(G.background) {
 		/* actually incorrect, but works for now (ton) */

@@ -127,8 +127,21 @@ if(WITH_BUILDINFO)
 endif()
 
 # message(STATUS "Configuring blender")
+if(WITH_PYTHON_MODULE)
+	add_definitions(-DWITH_PYTHON_MODULE)
 
-add_executable(blender ${EXETYPE} ${SRC})
+	# creates ./bin/bpy.so which can be imported as a python module.
+	add_library(blender SHARED ${SRC})
+	set_target_properties(
+		blender
+		PROPERTIES
+			 PREFIX ""
+			 OUTPUT_NAME bpy
+			 LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/
+	)
+else()
+	add_executable(blender ${EXETYPE} ${SRC})
+endif()
 
 # Post build steps for bundling/packaging.
 

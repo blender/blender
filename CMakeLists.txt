@@ -69,6 +69,7 @@ get_blender_version()
 # Blender internal features
 option(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
 option(WITH_PYTHON        "Enable Embedded Python API" ON)
+option(WITH_PYTHON_MODULE "Enable building as a python module (experemental)" OFF)
 option(WITH_BUILDINFO     "Include extra build details" ON)
 option(WITH_IK_ITASC      "Enable ITASC IK solver" ON)
 option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" OFF)
@@ -1037,6 +1038,9 @@ endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
+
+#-------------------------------------------------------------------------------
+# Global Defines
 
 # better not define flags here but this is a debugging option thats off by default.
 if(WITH_CXX_GUARDEDALLOC)

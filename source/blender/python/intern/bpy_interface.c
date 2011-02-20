@@ -157,6 +157,7 @@ void BPY_modules_update(bContext *C)
 }
 
 /* must be called before Py_Initialize */
+#ifndef WITH_PYTHON_MODULE
 static void bpy_python_start_path(void)
 {
 	char *py_path_bundle= BLI_get_folder(BLENDER_PYTHON, NULL);
@@ -195,8 +196,7 @@ static void bpy_python_start_path(void)
 		// printf("found python (wchar_t) '%ls'\n", py_path_bundle_wchar);
 	}
 }
-
-
+#endif
 
 void BPY_context_set(bContext *C)
 {
@@ -219,8 +219,9 @@ static struct _inittab bpy_internal_modules[]= {
 /* call BPY_context_set first */
 void BPY_python_start(int argc, const char **argv)
 {
+#ifndef WITH_PYTHON_MODULE
 	PyThreadState *py_tstate = NULL;
-	
+
 	/* not essential but nice to set our name */
 	static wchar_t bprogname_wchar[FILE_MAXDIR+FILE_MAXFILE]; /* python holds a reference */
 	utf8towchar(bprogname_wchar, bprogname);
@@ -252,8 +253,13 @@ void BPY_python_start(int argc, const char **argv)
 	
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
+#else
+	(void)argc;
+	(void)argv;
 	
-	
+	PyImport_ExtendInittab(bpy_internal_modules);
+#endif
+
 	/* bpy.* and lets us import it */
 	BPy_init_modules();
 
@@ -281,8 +287,10 @@ void BPY_python_start(int argc, const char **argv)
 	
 	pyrna_alloc_types();
 
+#ifndef WITH_PYTHON_MODULE
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
+#endif
 }
 
 void BPY_python_end(void)
@@ -659,3 +667,51 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 	return done;
 }
 
+
+#ifdef WITH_PYTHON_MODULE
+/* TODO, reloading the module isnt functional at the moment. */
+
+extern int main_python(int argc, const char **argv);
+static struct PyModuleDef bpy_proxy_def = {
+	PyModuleDef_HEAD_INIT,
+	"bpy",  /* m_name */
+	NULL,  /* m_doc */
+	0,  /* m_size */
+	NULL,  /* m_methods */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
+};	
+
+PyMODINIT_FUNC
+PyInit_bpy(void)
+{
+	int argc= 0;
+	const char *argv[]={NULL};
+	
+	main_python(argc, argv);
+
+	/* initialized in BPy_init_modules() */
+	if(bpy_package_py) {
+		/* Problem:
+		 * 1) this init function is expected to have a private member defined - 'md_def'
+		 *    but this is only set for C defined modules (not py packages)
+		 *    so we cant return 'bpy_package_py' as is.
+		 *
+		 * 2) there is a 'bpy' C module for python to load which is basically all of blender,
+		 *    and there is scripts/bpy/__init__.py, 
+		 *    we may end up having to rename this module so there is no naming conflict here eg:
+		 *    'from blender import bpy' */
+		PyObject *bpy_proxy= PyModule_Create(&bpy_proxy_def);
+		PyDict_Update(PyModule_GetDict(bpy_proxy), PyModule_GetDict(bpy_package_py));
+		return bpy_proxy;
+	}
+	else {
+		PyErr_SetString(PyExc_RuntimeError, "could not import internal bpy package");
+		return NULL;
+	}
+	
+	
+}
+#endif
