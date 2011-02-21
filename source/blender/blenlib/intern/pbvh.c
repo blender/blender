@@ -59,10 +59,12 @@ static void BLI_bitmap_set(BLI_bitmap b, int index)
 	b[index >> 3] |= (1 << (index & 7));
 }
 
+#if 0 /* UNUSED */
 static void BLI_bitmap_clear(BLI_bitmap b, int index)
 {
 	b[index >> 3] &= ~(1 << (index & 7));
 }
+#endif
 
 /* Axis-aligned bounding box */
 typedef struct {
