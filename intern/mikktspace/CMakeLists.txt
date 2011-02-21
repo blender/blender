@@ -30,6 +30,8 @@ set(INC
 
 set(SRC
 	mikktspace.c
+
+	mikktspace.h
 )
 
 blender_add_lib(bf_intern_mikktspace "${SRC}" "${INC}")

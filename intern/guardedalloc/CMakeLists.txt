@@ -29,8 +29,8 @@ set(INC .)
 set(SRC
 	./intern/mallocn.c
 
-	BLO_sys_types.h
 	MEM_guardedalloc.h
+	MEM_sys_types.h
 )
 
 if(WIN32 AND NOT UNIX)
