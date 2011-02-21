@@ -25,7 +25,7 @@
 #define MEM_ALLOCATOR_H
 
 #include "guardedalloc/MEM_guardedalloc.h"
-#include "guardedalloc/BLO_sys_types.h"
+#include "guardedalloc/MEM_sys_types.h"
 
 template<typename _Tp>
 struct MEM_Allocator

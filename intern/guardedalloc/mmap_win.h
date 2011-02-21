@@ -50,7 +50,7 @@
 
 #define MAP_FAILED ((void *)-1)
 
-#include "BLO_sys_types.h" // needed for intptr_t
+#include "MEM_sys_types.h" // needed for intptr_t
 
 void *mmap(void *start, size_t len, int prot, int flags, int fd, off_t offset);
 intptr_t munmap(void *ptr, intptr_t size);

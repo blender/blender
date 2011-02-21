@@ -27,6 +27,7 @@
  */
 
 /** \file MEM_guardedalloc.h
+ *  \ingroup MEM
  *
  *  \author Copyright (C) 2001 NaN Technologies B.V.
  *  \brief Guarded memory (de)allocation
@@ -55,7 +56,7 @@
 #define MEM_MALLOCN_H
 
 #include "stdio.h" /* needed for FILE* */
-#include "BLO_sys_types.h" /* needed for uintptr_t */
+#include "MEM_sys_types.h" /* needed for uintptr_t */
 
 #ifndef WARN_UNUSED
 #  ifdef __GNUC__
