@@ -81,7 +81,7 @@ typedef struct bNodeSocket {
 	 */
 	struct bNodeStack *stack_ptr;	/* constant input value */
 	short stack_index;			/* local stack index or external input number */
-	short pad;
+	short pad1;
 	
 	float locx, locy;
 	
@@ -89,6 +89,8 @@ typedef struct bNodeSocket {
 	
 	int own_index;				/* group socket identifiers, to find matching pairs after reading files */
 	struct bNodeSocket *groupsock;
+	int to_index;				/* XXX deprecated, only used for restoring old group node links */
+	int pad2;
 	
 	struct bNodeLink *link;		/* a link pointer, set in nodeSolveOrder() */
 } bNodeSocket;
@@ -218,8 +220,11 @@ typedef struct bNodeTree {
 #define NTREE_EXEC_INIT	2
 
 /* ntree->flag */
-#define NTREE_DS_EXPAND	1	/* for animation editors */
-#define NTREE_AUTO_EXPOSE	2	/* automatically make unhidden, unlinked group sockets external */
+#define NTREE_DS_EXPAND		1	/* for animation editors */
+/* XXX not nice, but needed as a temporary flag
+ * for group updates after library linking.
+ */
+#define NTREE_DO_VERSIONS	1024
 
 /* data structs, for node->storage */
 

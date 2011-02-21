@@ -878,14 +878,23 @@ void nodeAddAllGroupSockets(bNodeTree *ngroup)
 	bNode *node;
 	bNodeSocket *sock, *gsock;
 	
+	printf("Verifying group '%s':\n", ngroup->id.name+2);
 	for (node=ngroup->nodes.first; node; node=node->next) {
+		printf("\tNode '%s':\n", node->name);
 		for (sock=node->inputs.first; sock; sock=sock->next) {
+			printf("\t\tInput '%s': link=%p, hidden=%d\n", sock->name, sock->link, (sock->flag & SOCK_HIDDEN));
+//			if (sock->link) {
+//				if (sock->link->fromnode)
+//					printf("fromnode=%s ", sock->link->fromnode->name);
+//				printf("fromsock=%s")
+//			}
 			if (!sock->link && !(sock->flag & SOCK_HIDDEN)) {
 				gsock = nodeAddGroupSocketCopy(ngroup, sock, SOCK_IN);
 				sock->link = nodeAddLink(ngroup, NULL, gsock, node, sock);
 			}
 		}
 		for (sock=node->outputs.first; sock; sock=sock->next) {
+			printf("\t\tOutput '%s': #links=%d, hidden=%d\n", sock->name, nodeCountSocketLinks(ngroup, sock), (sock->flag & SOCK_HIDDEN));
 			if (nodeCountSocketLinks(ngroup, sock)==0 && !(sock->flag & SOCK_HIDDEN)) {
 				gsock = nodeAddGroupSocketCopy(ngroup, sock, SOCK_OUT);
 				gsock->link = nodeAddLink(ngroup, node, sock, NULL, gsock);
