@@ -33,17 +33,17 @@ if "init_data" in locals():
     imp.reload(repath)
     imp.reload(versioning)
 else:
-    from netrender import model
-    from netrender import operators
-    from netrender import client
-    from netrender import slave
-    from netrender import master
-    from netrender import master_html
-    from netrender import utils
-    from netrender import balancing
-    from netrender import ui
-    from netrender import repath
-    from netrender import versioning
+    from . import model
+    from . import operators
+    from . import client
+    from . import slave
+    from . import master
+    from . import master_html
+    from . import utils
+    from . import balancing
+    from . import ui
+    from . import repath
+    from . import versioning
 
 jobs = []
 slaves = []
@@ -62,8 +62,12 @@ def register():
     if scene:
         netsettings = scene.network_render
         ui.init_data(netsettings)
+
+    bpy.utils.register_module(__name__)
     
 
 def unregister():
     import bpy
     del bpy.types.Scene.network_render
+
+    bpy.utils.unregister_module(__name__)
