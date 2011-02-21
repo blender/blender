@@ -20,6 +20,7 @@
 import bpy
 import os
 import shutil
+import addon_utils
 
 
 def ui_items_general(col, context):
@@ -864,101 +865,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
     def module_get(mod_name):
         return USERPREF_PT_addons._addons_fake_modules[mod_name]
 
-    @staticmethod
-    def _addon_list():
-        import os
-        import sys
-        import time
-
-        # RELEASE SCRIPTS: official scripts distributed in Blender releases
-        paths = bpy.utils.script_paths("addons")
-
-        # CONTRIB SCRIPTS: good for testing but not official scripts yet
-        # if folder addons_contrib/ exists, scripts in there will be loaded too
-        paths += bpy.utils.script_paths("addons_contrib")
-
-        # EXTERN SCRIPTS: external projects scripts
-        # if folder addons_extern/ exists, scripts in there will be loaded too
-        paths += bpy.utils.script_paths("addons_extern")
-
-        # fake module importing
-        def fake_module(mod_name, mod_path, speedy=True):
-            if bpy.app.debug:
-                print("fake_module", mod_path, mod_name)
-            import ast
-            ModuleType = type(ast)
-            file_mod = open(mod_path, "r", encoding='UTF-8')
-            if speedy:
-                lines = []
-                line_iter = iter(file_mod)
-                l = ""
-                while not l.startswith("bl_info"):
-                    l = line_iter.readline()
-                    if len(l) == 0:
-                        break
-                while l.rstrip():
-                    lines.append(l)
-                    l = line_iter.readline()
-                data = "".join(lines)
-
-            else:
-                data = file_mod.read()
-
-            file_mod.close()
-
-            try:
-                ast_data = ast.parse(data, filename=mod_path)
-            except:
-                print("Syntax error 'ast.parse' can't read %r" % mod_path)
-                import traceback
-                traceback.print_exc()
-                ast_data = None
-
-            body_info = None
-
-            if ast_data:
-                for body in ast_data.body:
-                    if body.__class__ == ast.Assign:
-                        if len(body.targets) == 1:
-                            if getattr(body.targets[0], "id", "") == "bl_info":
-                                body_info = body
-                                break
-
-            if body_info:
-                mod = ModuleType(mod_name)
-                mod.bl_info = ast.literal_eval(body.value)
-                mod.__file__ = mod_path
-                mod.__time__ = os.path.getmtime(mod_path)
-                return mod
-            else:
-                return None
-
-        modules_stale = set(USERPREF_PT_addons._addons_fake_modules.keys())
-
-        for path in paths:
-            for mod_name, mod_path in bpy.path.module_names(path):
-                modules_stale -= {mod_name}
-                mod = USERPREF_PT_addons._addons_fake_modules.get(mod_name)
-                if mod:
-                    if mod.__time__ != os.path.getmtime(mod_path):
-                        print("reloading addon:", mod_name, mod.__time__, os.path.getmtime(mod_path), mod_path)
-                        del USERPREF_PT_addons._addons_fake_modules[mod_name]
-                        mod = None
-
-                if mod is None:
-                    mod = fake_module(mod_name, mod_path)
-                    if mod:
-                        USERPREF_PT_addons._addons_fake_modules[mod_name] = mod
-
-        # just incase we get stale modules, not likely
-        for mod_stale in modules_stale:
-            del USERPREF_PT_addons._addons_fake_modules[mod_stale]
-        del modules_stale
-
-        mod_list = list(USERPREF_PT_addons._addons_fake_modules.values())
-        mod_list.sort(key=lambda mod: (mod.bl_info['category'], mod.bl_info['name']))
-        return mod_list
-
     def draw(self, context):
         layout = self.layout
 
@@ -966,7 +872,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         used_ext = {ext.module for ext in userpref.addons}
 
         # collect the categories that can be filtered on
-        addons = [(mod, addon_info_get(mod)) for mod in self._addon_list()]
+        addons = [(mod, addon_utils.module_bl_info(mod)) for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)]
 
         cats = {info["category"] for mod, info in addons}
         cats.discard("")
@@ -1106,27 +1012,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
 from bpy.props import *
 
-
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": (), "blender": (), "api": 0, "location": "", "description": "", "wiki_url": "", "tracker_url": "", "support": 'COMMUNITY', "category": "", "warning": "", "show_expanded": False}):
-    addon_info = getattr(mod, "bl_info", {})
-
-    # avoid re-initializing
-    if "_init" in addon_info:
-        return addon_info
-
-    if not addon_info:
-        mod.bl_info = addon_info
-
-    for key, value in info_basis.items():
-        addon_info.setdefault(key, value)
-
-    if not addon_info["name"]:
-        addon_info["name"] = mod.__name__
-
-    addon_info["_init"] = None
-    return addon_info
-
-
 class WM_OT_addon_enable(bpy.types.Operator):
     "Enable an addon"
     bl_idname = "wm.addon_enable"
@@ -1135,11 +1020,11 @@ class WM_OT_addon_enable(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to enable")
 
     def execute(self, context):
-        mod = bpy.utils.addon_enable(self.module)
+        mod = addon_utils.enable(self.module)
 
         if mod:
             # check if add-on is written for current blender version, or raise a warning
-            info = addon_info_get(mod)
+            info = addon_utils.module_bl_info(mod)
 
             if info.get("blender", (0, 0, 0)) > bpy.app.version:
                 self.report("WARNING','This script was written for a newer version of Blender and might not function (correctly).\nThe script is enabled though.")
@@ -1156,7 +1041,7 @@ class WM_OT_addon_disable(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to disable")
 
     def execute(self, context):
-        bpy.utils.addon_disable(self.module)
+        addon_utils.disable(self.module)
         return {'FINISHED'}
 
 
@@ -1194,7 +1079,7 @@ class WM_OT_addon_install(bpy.types.Operator):
         path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
 
         if not path_addons:
-            self.report({'WARNING'}, "Failed to get addons path\n")
+            self.report({'WARNING'}, "Failed to get addons path")
             return {'CANCELLED'}
 
         contents = set(os.listdir(path_addons))
@@ -1223,7 +1108,7 @@ class WM_OT_addon_install(bpy.types.Operator):
                 traceback.print_exc()
                 return {'CANCELLED'}
 
-        else:
+        else:            
             path_dest = os.path.join(path_addons, os.path.basename(pyfile))
 
             if self.overwrite:
@@ -1244,13 +1129,13 @@ class WM_OT_addon_install(bpy.types.Operator):
         # this is unlikely but do just incase. bug [#23978]
         addons_new = set(os.listdir(path_addons)) - contents
         for new_addon in addons_new:
-            bpy.utils.addon_disable(os.path.splitext(new_addon)[0])
+            addon_utils.disable(os.path.splitext(new_addon)[0])
 
         # possible the zip contains multiple addons, we could disallow this
         # but for now just use the first
-        for mod in USERPREF_PT_addons._addon_list():
+        for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules):
             if mod.__name__ in addons_new:
-                info = addon_info_get(mod)
+                info = addon_utils.module_bl_info(mod)
 
                 # show the newly installed addon.
                 context.window_manager.addon_filter = 'All'
@@ -1286,7 +1171,7 @@ class WM_OT_addon_expand(bpy.types.Operator):
             traceback.print_exc()
             return {'CANCELLED'}
 
-        info = addon_info_get(mod)
+        info = addon_utils.module_bl_info(mod)
         info["show_expanded"] = not info["show_expanded"]
         return {'FINISHED'}
 

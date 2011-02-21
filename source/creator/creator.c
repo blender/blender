@@ -937,7 +937,7 @@ static int set_addons(int argc, const char **argv, void *data)
 		const int slen= strlen(argv[1]) + 10;
 		char *str= malloc(slen);
 		bContext *C= data;
-		BLI_snprintf(str, slen, "[__import__('bpy').utils.addon_enable(i) for i in '%s'.split(',')]", argv[1]);
+		BLI_snprintf(str, slen, "[__import__('addon_utils').enable(i) for i in '%s'.split(',')]", argv[1]);
 		BPY_CTX_SETUP(BPY_string_exec(C, str));
 		free(str);
 #else

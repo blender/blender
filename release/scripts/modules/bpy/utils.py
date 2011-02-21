@@ -34,6 +34,7 @@ import bpy as _bpy
 import os as _os
 import sys as _sys
 
+import addon_utils
 
 def _test_import(module_name, loaded_modules):
     import traceback
@@ -114,7 +115,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         # note that they will only actually reload of the modification time changes.
         # this `wont` work for packages so... its not perfect.
         for module_name in [ext.module for ext in _bpy.context.user_preferences.addons]:
-            addon_disable(module_name, default_set=False)
+            addon_utils.disable(module_name, default_set=False)
 
     def register_module_call(mod):
         register = getattr(mod, "register", None)
@@ -194,7 +195,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     test_register(mod)
 
     # deal with addons seperately
-    addon_reset_all(reload_scripts)
+    addon_utils.reset_all(reload_scripts)
 
     # run the active integration preset
     filepath = preset_find(_bpy.context.user_preferences.inputs.active_keyconfig, "keyconfig")
@@ -317,176 +318,6 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
         fps_base = _bpy.context.scene.render.fps_base
 
     return smpte_from_seconds((frame * fps_base) / fps, fps)
-
-
-def addon_check(module_name):
-    """
-    Returns the loaded state of the addon.
-
-    :arg module_name: The name of the addon and module.
-    :type module_name: string
-    :return: (loaded_default, loaded_state)
-    :rtype: tuple of booleans
-    """
-    loaded_default = module_name in _bpy.context.user_preferences.addons
-
-    mod = _sys.modules.get(module_name)
-    loaded_state = mod and getattr(mod, "__addon_enabled__", Ellipsis)
-
-    if loaded_state is Ellipsis:
-        print("Warning: addon-module %r found module but without"
-               " __addon_enabled__ field, possible name collision from file: %r" %
-               (module_name, getattr(mod, "__file__", "<unknown>")))
-
-        loaded_state = False
-
-    return loaded_default, loaded_state
-
-
-def addon_enable(module_name, default_set=True):
-    """
-    Enables an addon by name.
-
-    :arg module_name: The name of the addon and module.
-    :type module_name: string
-    :return: the loaded module or None on failier.
-    :rtype: module
-    """
-    # note, this still gets added to _bpy_types.TypeMap
-
-    import os
-    import sys
-    import bpy_types as _bpy_types
-    import imp
-
-    def handle_error():
-        import traceback
-        traceback.print_exc()
-
-    # reload if the mtime changes
-    mod = sys.modules.get(module_name)
-    if mod:
-        mod.__addon_enabled__ = False
-        mtime_orig = getattr(mod, "__time__", 0)
-        mtime_new = os.path.getmtime(mod.__file__)
-        if mtime_orig != mtime_new:
-            print("module changed on disk:", mod.__file__, "reloading...")
-
-            try:
-                imp.reload(mod)
-            except:
-                handle_error()
-                del sys.modules[module_name]
-                return None
-            mod.__addon_enabled__ = False
-
-    # Split registering up into 3 steps so we can undo if it fails par way through
-    # 1) try import
-    try:
-        mod = __import__(module_name)
-        mod.__time__ = os.path.getmtime(mod.__file__)
-        mod.__addon_enabled__ = False
-    except:
-        handle_error()
-        return None
-
-    # 2) try register collected modules
-    # removed, addons need to handle own registration now.
-
-    # 3) try run the modules register function
-    try:
-        mod.register()
-    except:
-        handle_error()
-        del sys.modules[module_name]
-        return None
-
-    # * OK loaded successfully! *
-    if default_set:
-        # just incase its enabled alredy
-        ext = _bpy.context.user_preferences.addons.get(module_name)
-        if not ext:
-            ext = _bpy.context.user_preferences.addons.new()
-            ext.module = module_name
-
-    mod.__addon_enabled__ = True
-
-    if _bpy.app.debug:
-        print("\tbpy.utils.addon_enable", mod.__name__)
-
-    return mod
-
-
-def addon_disable(module_name, default_set=True):
-    """
-    Disables an addon by name.
-
-    :arg module_name: The name of the addon and module.
-    :type module_name: string
-    """
-    import traceback
-    import bpy_types as _bpy_types
-
-    mod = _sys.modules.get(module_name)
-
-    # possible this addon is from a previous session and didnt load a module this time.
-    # so even if the module is not found, still disable the addon in the user prefs.
-    if mod:
-        mod.__addon_enabled__ = False
-
-        try:
-            mod.unregister()
-        except:
-            traceback.print_exc()
-    else:
-        print("addon_disable", module_name, "not loaded")
-
-    # could be in more then once, unlikely but better do this just incase.
-    addons = _bpy.context.user_preferences.addons
-
-    if default_set:
-        while module_name in addons:
-            addon = addons.get(module_name)
-            if addon:
-                addons.remove(addon)
-
-    if _bpy.app.debug:
-        print("\tbpy.utils.addon_disable", module_name)
-
-
-def addon_reset_all(reload_scripts=False):
-    """
-    Sets the addon state based on the user preferences.
-    """
-    import imp
-
-    # RELEASE SCRIPTS: official scripts distributed in Blender releases
-    paths = script_paths("addons")
-
-    # CONTRIB SCRIPTS: good for testing but not official scripts yet
-    paths += script_paths("addons_contrib")
-
-    # EXTERN SCRIPTS: external projects scripts
-    paths += script_paths("addons_extern")
-
-    for path in paths:
-        _sys_path_ensure(path)
-        for mod_name, mod_path in _bpy.path.module_names(path):
-            is_enabled, is_loaded = addon_check(mod_name)
-
-            # first check if reload is needed before changing state.
-            if reload_scripts:
-                mod = _sys.modules.get(mod_name)
-                if mod:
-                    imp.reload(mod)
-
-            if is_enabled == is_loaded:
-                pass
-            elif is_enabled:
-                addon_enable(mod_name)
-            elif is_loaded:
-                print("\taddon_reset_all unloading", mod_name)
-                addon_disable(mod_name)
 
 
 def preset_find(name, preset_path, display_name=False):
