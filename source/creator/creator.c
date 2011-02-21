@@ -154,7 +154,7 @@ static void fpe_handler(int UNUSED(sig))
 }
 #endif
 
-#ifdef WITH_PYTHON_MODULE
+#ifndef WITH_PYTHON_MODULE
 /* handling ctrl-c event in console */
 static void blender_esc(int sig)
 {
