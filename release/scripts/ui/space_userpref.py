@@ -22,6 +22,8 @@ import os
 import shutil
 import addon_utils
 
+from bpy.props import StringProperty, BoolProperty, EnumProperty
+
 
 def ui_items_general(col, context):
     """ General UI Theme Settings (User Interface)
@@ -878,8 +880,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
         cats.discard("")
 
         if USERPREF_PT_addons._addons_cats != cats:
-            bpy.types.WindowManager.addon_filter = bpy.props.EnumProperty(items=[(cat, cat, "") for cat in ["All", "Enabled", "Disabled"] + sorted(cats)], name="Category", description="Filter add-ons by category")
-            bpy.types.WindowManager.addon_search = bpy.props.StringProperty(name="Search", description="Search within the selected filter")
+            bpy.types.WindowManager.addon_filter = EnumProperty(items=[(cat, cat, "") for cat in ["All", "Enabled", "Disabled"] + sorted(cats)], name="Category", description="Filter add-ons by category")
+            bpy.types.WindowManager.addon_search = StringProperty(name="Search", description="Search within the selected filter")
             USERPREF_PT_addons._addons_cats = cats
 
         sups_default = {'OFFICIAL', 'COMMUNITY'}
@@ -887,7 +889,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         sups.discard("")
 
         if USERPREF_PT_addons._addons_sups != sups:
-            bpy.types.WindowManager.addon_support = bpy.props.EnumProperty(items=[(sup, sup.title(), "") for  sup in reversed(sorted(sups))], name="Support", description="Display support level", default=sups_default, options={'ENUM_FLAG'})
+            bpy.types.WindowManager.addon_support = EnumProperty(items=[(sup, sup.title(), "") for  sup in reversed(sorted(sups))], name="Support", description="Display support level", default=sups_default, options={'ENUM_FLAG'})
             USERPREF_PT_addons._addons_sups = sups
 
         split = layout.split(percentage=0.2)
@@ -1010,8 +1012,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
 
 
-from bpy.props import *
-
 class WM_OT_addon_enable(bpy.types.Operator):
     "Enable an addon"
     bl_idname = "wm.addon_enable"
@@ -1079,8 +1079,21 @@ class WM_OT_addon_install(bpy.types.Operator):
         path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
 
         if not path_addons:
-            self.report({'WARNING'}, "Failed to get addons path")
+            self.report({'ERROR'}, "Failed to get addons path")
             return {'CANCELLED'}
+
+        # Check if we are installing from a target path,
+        # doing so causes 2+ addons of same name or when the same from/to
+        # location is used, removal of the file!
+        addon_path = ""
+        pyfile_dir = os.path.dirname(pyfile)
+        for addon_path in addon_utils.paths():
+            if os.path.samefile(pyfile_dir, addon_path):
+                self.report({'ERROR'}, "Source file is in the addon search path: %r" % addon_path)
+                return {'CANCELLED'}
+        del addon_path
+        del pyfile_dir
+        # done checking for exceptional case
 
         contents = set(os.listdir(path_addons))
 
@@ -1108,7 +1121,7 @@ class WM_OT_addon_install(bpy.types.Operator):
                 traceback.print_exc()
                 return {'CANCELLED'}
 
-        else:            
+        else:
             path_dest = os.path.join(path_addons, os.path.basename(pyfile))
 
             if self.overwrite:
