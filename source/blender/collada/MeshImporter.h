@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -20,6 +20,10 @@
  * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file MeshImporter.h
+ *  \ingroup collada
  */
 
 #ifndef __BC__MESHIMPORTER_H__
