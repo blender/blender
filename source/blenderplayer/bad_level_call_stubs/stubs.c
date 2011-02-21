@@ -383,47 +383,6 @@ char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return (struct wmKeyMapItem *)NULL;}
 struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return (struct wmKeyMap *) NULL;}
 
-/* intern/decimation */
-#if 1
-int LOD_FreeDecimationData(struct LOD_Decimation_Info *info){return 0;}
-int LOD_CollapseEdge(struct LOD_Decimation_Info *info){return 0;}
-int LOD_PreprocessMesh(struct LOD_Decimation_Info *info){return 0;}
-int LOD_LoadMesh(struct LOD_Decimation_Info *info){return 0;}
-#endif
-
-/* smoke */
-void LzmaCompress(void) { return; }
-void LzmaUncompress(void) {return;}
-/* smoke is included anyway
-void smoke_export(void) {return;}
-void smoke_init(void) {return;}
-void smoke_turbulence_init(void) {return;}
-void smoke_turbulence_initBlenderRNA(void) {return;}
-void smoke_initBlenderRNA(void) {return;}
-void smoke_free(void) {return;}
-void smoke_turbulence_free(void) {return;}
-void smoke_turbulence_step(void) {return;}
-void smoke_dissolve(void) {return;}
-void smoke_get_density(void) {return;}
-void smoke_get_heat(void) {return;}
-void smoke_get_velocity_x(void) {return;}
-void smoke_get_velocity_y(void) {return;}
-void smoke_get_velocity_z(void) {return;}
-void smoke_get_obstacle(void) {return;}
-void smoke_get_index(void) {return;}
-void smoke_step(void) {return;}
-*/
-
-/* sculpt */
-/*
- void ED_sculpt_force_update(struct bContext *C) {}
-struct SculptUndoNode *sculpt_undo_push_node(struct SculptSession *ss, struct PBVHNode *node) {return (struct SculptUndoNode *)NULL;}
-void sculpt_undo_push_end(void) {}
-void sculpt_undo_push_begin(char *name) {}
-struct SculptUndoNode *sculpt_undo_get_node(struct PBVHNode *node) {return (struct SculptUndoNode *) NULL;}
-struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob) {return (struct MultiresModifierData *) NULL;}
-int sculpt_modifiers_active(struct Scene *scene, struct Object *ob) {return 0;}
-*/
 int sculpt_get_brush_size(struct Brush *brush) {return 0;}
 void sculpt_set_brush_size(struct Brush *brush, int size) {}
 int sculpt_get_lock_brush_size(struct Brush *brush){ return 0;}
@@ -435,27 +394,4 @@ void ED_sculpt_modifiers_changed(struct Object *ob){};
 
 char blender_path[] = "";
 
-/* CSG */
-#if 1
-struct CSG_BooleanOperation * CSG_NewBooleanFunction( void ){return (struct CSG_BooleanOperation *) NULL;}
-void CSG_FreeBooleanOperation(struct CSG_BooleanOperation *operation){return;}
-void CSG_FreeFaceDescriptor(struct CSG_FaceIteratorDescriptor * f_descriptor){return;}
-void CSG_FreeVertexDescriptor(struct CSG_VertexIteratorDescriptor * v_descriptor){return;}	
-int CSG_OutputFaceDescriptor(struct CSG_BooleanOperation * operation, struct CSG_FaceIteratorDescriptor * output){return 0;}
-int CSG_OutputVertexDescriptor(struct CSG_BooleanOperation * operation, struct CSG_VertexIteratorDescriptor *output){return 0;}
-
-typedef struct CSG_VertexIteratorDescriptor {int a;} CSG_VertexIteratorDescriptor; //workaround to build CSG_PerformanceBoolean Operation
-typedef struct CSG_FaceIteratorDescriptor {int a;} CSG_FaceIteratorDescriptor; //workaround to build CSG_PerformanceBoolean Operation
-typedef struct CSG_OperationType {int a;} CSG_OperationType; //workaround to build CSG_PerformanceBoolean Operation
-
-int CSG_PerformBooleanOperation(
-	struct CSG_BooleanOperation			*operation,
-	CSG_OperationType				op_type,
-	CSG_FaceIteratorDescriptor		obAFaces,
-	CSG_VertexIteratorDescriptor	obAVertices,
-	CSG_FaceIteratorDescriptor		obBFaces,
-	CSG_VertexIteratorDescriptor	obBVertices)
-	{ return 0;}
-
-#endif
 #endif // WITH_GAMEENGINE
