@@ -68,6 +68,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_idprop.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -1078,12 +1079,19 @@ static void shader_preview_free(void *customdata)
 	ShaderPreview *sp= customdata;
 	
 	if(sp->matcopy) {
+		struct IDProperty *properties;
 		/* node previews */
 		shader_preview_updatejob(sp);
 		
 		/* get rid of copied material */
 		BLI_remlink(&pr_main->mat, sp->matcopy);
 		free_material(sp->matcopy);
+
+		properties= IDP_GetProperties((ID *)sp->matcopy, FALSE);
+		if (properties) {
+			IDP_FreeProperty(properties);
+			MEM_freeN(properties);
+		}
 		MEM_freeN(sp->matcopy);
 	}
 	
