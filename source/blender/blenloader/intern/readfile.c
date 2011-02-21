@@ -2046,8 +2046,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 	/* now create the own typeinfo structs an verify nodes */
 	/* here we still assume no groups in groups */
 	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
-		ntreeVerifyTypes(ntree);	/* internal nodes, no groups! */
-		ntreeMakeOwnType(ntree);	/* for group usage */
+		ntreeVerifyTypes(ntree);		/* internal nodes, no groups! */
 	}
 	
 	/* now verify all types in material trees, groups are set OK now */
@@ -2078,7 +2077,6 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	bNodeLink *link;
 	
 	ntree->init= 0;		/* to set callbacks and force setting types */
-	ntree->owntype= NULL;
 	ntree->progress= NULL;
 	
 	ntree->adt= newdataadr(fd, ntree->adt);
@@ -2116,6 +2114,10 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	}
 	link_list(fd, &ntree->links);
 	
+	/* external sockets */
+	link_list(fd, &ntree->inputs);
+	link_list(fd, &ntree->outputs);
+	
 	/* and we connect the rest */
 	for(node= ntree->nodes.first; node; node= node->next) {
 		node->preview= newimaadr(fd, node->preview);
@@ -2125,13 +2127,16 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		for(sock= node->outputs.first; sock; sock= sock->next)
 			sock->ns.data= NULL;
 	}
+	for(sock= ntree->outputs.first; sock; sock= sock->next)
+		sock->link= newdataadr(fd, sock->link);
+	
 	for(link= ntree->links.first; link; link= link->next) {
 		link->fromnode= newdataadr(fd, link->fromnode);
 		link->tonode= newdataadr(fd, link->tonode);
 		link->fromsock= newdataadr(fd, link->fromsock);
 		link->tosock= newdataadr(fd, link->tosock);
 	}
-		
+	
 	/* type verification is in lib-link */
 }
 
@@ -11363,8 +11368,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile < 2)) {
+		bNodeTree *ntree;
+		
+		/* node sockets are not exposed automatically any more,
+		 * this mimics the old behaviour by adding all unlinked sockets to groups.
+		 */
+		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next) {
+			nodeAddAllGroupSockets(ntree);
+		}
+	}
+
 	/* put compatibility code here until next subversion bump */
-	
+
 	{
 		bScreen *sc;
 		
@@ -11377,7 +11393,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

@@ -1604,11 +1604,11 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 	int do_shaded= 0, th_col1= TH_HEADER, th_col2= TH_HEADER;
 	int do_triple= 0, th_col3= TH_WIRE;
 	
-	if(link->fromnode==NULL && link->tonode==NULL)
+	if(link->fromsock==NULL && link->tosock==NULL)
 		return;
 	
 	/* new connection */
-	if(link->fromnode==NULL || link->tonode==NULL) {
+	if(!link->fromsock || !link->tosock) {
 		th_col1 = TH_ACTIVE;
 		do_triple = 1;
 	}
@@ -1620,8 +1620,9 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 			return;
 		
 		/* a bit ugly... but thats how we detect the internal group links */
-		if(link->fromnode==link->tonode) {
-			th_col1 = TH_GRID;
+		if(!link->fromnode || !link->tonode) {
+			UI_ThemeColorBlend(TH_BACK, TH_WIRE, 0.5f);
+			do_shaded= 0;
 		}
 		else {
 			/* check cyclic */

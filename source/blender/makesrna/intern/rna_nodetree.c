@@ -47,6 +47,13 @@
 
 #include "MEM_guardedalloc.h"
 
+
+EnumPropertyItem node_socket_type_items[] = {
+	{SOCK_VALUE,  "VALUE",     0,    "Value",     ""},
+	{SOCK_VECTOR, "VECTOR",    0,    "Vector",    ""},
+	{SOCK_RGBA,   "RGBA",      0,    "RGBA",      ""},
+	{0, NULL, 0, NULL, NULL}};
+
 EnumPropertyItem node_blend_type_items[] = {
 { 0, "MIX",          0, "Mix",         ""},
 { 1, "ADD",          0, "Add",         ""},
@@ -185,12 +192,22 @@ static char *rna_NodeSocket_path(PointerRNA *ptr)
 	bNode *node;
 	int socketindex;
 	
+	/* group sockets */
+	socketindex = BLI_findindex(&ntree->inputs, sock);
+	if (socketindex != -1)
+		return BLI_sprintfN("inputs[%d]", socketindex);
+	
+	socketindex = BLI_findindex(&ntree->outputs, sock);
+	if (socketindex != -1)
+		return BLI_sprintfN("outputs[%d]", socketindex);
+	
+	/* node sockets */
 	if (!nodeFindNode(ntree, sock, &node, NULL)) return NULL;
-
+	
 	socketindex = BLI_findindex(&node->inputs, sock);
 	if (socketindex != -1)
 		return BLI_sprintfN("nodes[\"%s\"].inputs[%d]", node->name, socketindex);
-
+	
 	socketindex = BLI_findindex(&node->outputs, sock);
 	if (socketindex != -1)
 		return BLI_sprintfN("nodes[\"%s\"].outputs[%d]", node->name, socketindex);
@@ -349,6 +366,18 @@ static void rna_NodeSocket_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
 	bNodeSocket *sock= (bNodeSocket*)ptr->data;
 	bNode *node;
+	
+	if (nodeFindNode(ntree, sock, &node, NULL))
+		node_update(bmain, scene, ntree, node);
+}
+
+static void rna_NodeGroupSocket_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
+	bNodeSocket *sock= (bNodeSocket*)ptr->data;
+	bNode *node;
+	
+	nodeVerifyGroup(ntree);
 	
 	if (nodeFindNode(ntree, sock, &node, NULL))
 		node_update(bmain, scene, ntree, node);
@@ -2473,12 +2502,6 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem node_socket_type_items[] = {
-		{SOCK_VALUE,  "VALUE",     0,    "Value",     ""},
-		{SOCK_VECTOR, "VECTOR",    0,    "Vector",    ""},
-		{SOCK_RGBA,   "RGBA",      0,    "RGBA",      ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna = RNA_def_struct(brna, "NodeSocket", NULL);
 	RNA_def_struct_ui_text(srna, "Node Socket", "Input or output socket of a node");
 	RNA_def_struct_refine_func(srna, "rna_NodeSocketType_refine");
@@ -2487,9 +2510,11 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	/* XXX must be editable for group sockets. if necessary use a special rna definition for these */
+//	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Name", "Socket name");
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeGroupSocket_update");
 
 	/* can add back if there is any use in reading them */
 #if 0
@@ -2671,29 +2696,22 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
-
-	/* these are too much like operators, better to have data level access 
-	 * ngroup = bpy.data.node_groups.new() 
-	 * ngroup.nodes.new(....) etc. */
-#if 0
-	func= RNA_def_function(srna, "group_add", "nodeMakeGroupFromSelected");
-	RNA_def_function_ui_description(func, "Make a group from the active nodes.");
-	/* return */
-	parm= RNA_def_pointer(func, "group", "Node", "", "New group.");
-	RNA_def_function_return(func, parm);
-
-	func= RNA_def_function(srna, "ungroup", "nodeGroupUnGroup");
-	RNA_def_function_ui_description(func, "Ungroup node group");
-	parm= RNA_def_pointer(func, "group", "Node", "", "The group to ungroup.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_int(func, "bool", 0, 0, 1, "Bool", "", 0, 1);
-	RNA_def_function_return(func, parm);
-#endif
 	
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, nodetree_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Node Tree type");
+
+	/* group sockets */
+	prop = RNA_def_property(srna, "inputs", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "inputs", NULL);
+	RNA_def_property_struct_type(prop, "NodeSocket");
+	RNA_def_property_ui_text(prop, "Inputs", "");
+	
+	prop = RNA_def_property(srna, "outputs", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "outputs", NULL);
+	RNA_def_property_struct_type(prop, "NodeSocket");
+	RNA_def_property_ui_text(prop, "Outputs", "");
 }
 
 static void rna_def_composite_nodetree(BlenderRNA *brna)

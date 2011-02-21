@@ -77,10 +77,15 @@
 
 #include "IMB_imbuf.h"
 
+#include "RNA_enum_types.h"
+
 #include "node_intern.h"
 
-#define SOCK_IN		1
-#define SOCK_OUT	2
+static EnumPropertyItem socket_in_out_items[] = {
+	{ SOCK_IN, "IN", 0, "In", "" },
+	{ SOCK_OUT, "OUT", 0, "Out", "" },
+	{ 0, NULL, 0, NULL, NULL}
+};
 
 /* ***************** composite job manager ********************** */
 
@@ -632,6 +637,241 @@ void NODE_OT_group_edit(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ***************** Add Group Socket operator ************* */
+
+static int node_group_socket_add_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	int in_out= -1;
+	char name[32]= "";
+	int type= SOCK_VALUE;
+	bNodeTree *ngroup= snode->edittree;
+	bNodeSocket *sock;
+	
+	ED_preview_kill_jobs(C);
+	
+	if (RNA_property_is_set(op->ptr, "name"))
+		RNA_string_get(op->ptr, "name", name);
+	
+	if (RNA_property_is_set(op->ptr, "type"))
+		type = RNA_enum_get(op->ptr, "type");
+	
+	if (RNA_property_is_set(op->ptr, "in_out"))
+		in_out = RNA_enum_get(op->ptr, "in_out");
+	else
+		return OPERATOR_CANCELLED;
+	
+	sock = nodeAddGroupSocket(ngroup, name, type, in_out);
+	
+	node_tree_verify_groups(snode->nodetree);
+	
+	snode_notify(C, snode);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_group_socket_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Group Socket";
+	ot->description = "Add node group socket";
+	ot->idname = "NODE_OT_group_socket_add";
+	
+	/* api callbacks */
+	ot->exec = node_group_socket_add_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
+	RNA_def_string(ot->srna, "name", "", 32, "Name", "Group socket name");
+	RNA_def_enum(ot->srna, "type", node_socket_type_items, SOCK_VALUE, "Type", "Type of the group socket");
+}
+
+/* ***************** Remove Group Socket operator ************* */
+
+static int node_group_socket_remove_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	int index= -1;
+	int in_out= -1;
+	bNodeTree *ngroup= snode->edittree;
+	bNodeSocket *sock;
+	
+	ED_preview_kill_jobs(C);
+	
+	if (RNA_property_is_set(op->ptr, "index"))
+		index = RNA_int_get(op->ptr, "index");
+	else
+		return OPERATOR_CANCELLED;
+	
+	if (RNA_property_is_set(op->ptr, "in_out"))
+		in_out = RNA_enum_get(op->ptr, "in_out");
+	else
+		return OPERATOR_CANCELLED;
+	
+	sock = (bNodeSocket*)BLI_findlink(in_out==SOCK_IN ? &ngroup->inputs : &ngroup->outputs, index);
+	if (sock) {
+		nodeRemGroupSocket(ngroup, sock, in_out);
+		node_tree_verify_groups(snode->nodetree);
+		
+		snode_notify(C, snode);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_group_socket_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Remove Group Socket";
+	ot->description = "Removed node group socket";
+	ot->idname = "NODE_OT_group_socket_remove";
+	
+	/* api callbacks */
+	ot->exec = node_group_socket_remove_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
+}
+
+/* ***************** Move Group Socket Up operator ************* */
+
+static int node_group_socket_move_up_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	int index= -1;
+	int in_out= -1;
+	bNodeTree *ngroup= snode->edittree;
+	bNodeSocket *sock, *prev;
+	
+	ED_preview_kill_jobs(C);
+	
+	if (RNA_property_is_set(op->ptr, "index"))
+		index = RNA_int_get(op->ptr, "index");
+	else
+		return OPERATOR_CANCELLED;
+	
+	if (RNA_property_is_set(op->ptr, "in_out"))
+		in_out = RNA_enum_get(op->ptr, "in_out");
+	else
+		return OPERATOR_CANCELLED;
+	
+	/* swap */
+	if (in_out==SOCK_IN) {
+		sock = (bNodeSocket*)BLI_findlink(&ngroup->inputs, index);
+		prev = sock->prev;
+		/* can't move up the first socket */
+		if (!prev)
+			return OPERATOR_CANCELLED;
+		BLI_remlink(&ngroup->inputs, sock);
+		BLI_insertlinkbefore(&ngroup->inputs, prev, sock);
+	}
+	else if (in_out==SOCK_OUT) {
+		sock = (bNodeSocket*)BLI_findlink(&ngroup->outputs, index);
+		prev = sock->prev;
+		/* can't move up the first socket */
+		if (!prev)
+			return OPERATOR_CANCELLED;
+		BLI_remlink(&ngroup->outputs, sock);
+		BLI_insertlinkbefore(&ngroup->outputs, prev, sock);
+	}
+	node_tree_verify_groups(snode->nodetree);
+	
+	snode_notify(C, snode);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_group_socket_move_up(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Move Group Socket Up";
+	ot->description = "Move up node group socket";
+	ot->idname = "NODE_OT_group_socket_move_up";
+	
+	/* api callbacks */
+	ot->exec = node_group_socket_move_up_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
+}
+
+/* ***************** Move Group Socket Up operator ************* */
+
+static int node_group_socket_move_down_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	int index= -1;
+	int in_out= -1;
+	bNodeTree *ngroup= snode->edittree;
+	bNodeSocket *sock, *next;
+	
+	ED_preview_kill_jobs(C);
+	
+	if (RNA_property_is_set(op->ptr, "index"))
+		index = RNA_int_get(op->ptr, "index");
+	else
+		return OPERATOR_CANCELLED;
+	
+	if (RNA_property_is_set(op->ptr, "in_out"))
+		in_out = RNA_enum_get(op->ptr, "in_out");
+	else
+		return OPERATOR_CANCELLED;
+	
+	/* swap */
+	if (in_out==SOCK_IN) {
+		sock = (bNodeSocket*)BLI_findlink(&ngroup->inputs, index);
+		next = sock->next;
+		/* can't move down the last socket */
+		if (!next)
+			return OPERATOR_CANCELLED;
+		BLI_remlink(&ngroup->inputs, sock);
+		BLI_insertlinkafter(&ngroup->inputs, next, sock);
+	}
+	else if (in_out==SOCK_OUT) {
+		sock = (bNodeSocket*)BLI_findlink(&ngroup->outputs, index);
+		next = sock->next;
+		/* can't move down the last socket */
+		if (!next)
+			return OPERATOR_CANCELLED;
+		BLI_remlink(&ngroup->outputs, sock);
+		BLI_insertlinkafter(&ngroup->outputs, next, sock);
+	}
+	node_tree_verify_groups(snode->nodetree);
+	
+	snode_notify(C, snode);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_group_socket_move_down(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Move Group Socket Down";
+	ot->description = "Move down node group socket";
+	ot->idname = "NODE_OT_group_socket_move_down";
+	
+	/* api callbacks */
+	ot->exec = node_group_socket_move_down_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
+	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
 }
 
 /* ******************** Ungroup operator ********************** */
@@ -1433,6 +1673,33 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 			}
 		}
 	}
+	
+	/* check group sockets
+	 * NB: using ngroup->outputs as input sockets and vice versa here!
+	 */
+	if(in_out & SOCK_IN) {
+		for(sock= snode->edittree->outputs.first; sock; sock= sock->next) {
+			if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+					*nodep= NULL;	/* NULL node pointer indicates group socket */
+					*sockp= sock;
+					return 1;
+				}
+			}
+		}
+	}
+	if(in_out & SOCK_OUT) {
+		for(sock= snode->edittree->inputs.first; sock; sock= sock->next) {
+			if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+					*nodep= NULL;	/* NULL node pointer indicates group socket */
+					*sockp= sock;
+					return 1;
+				}
+			}
+		}
+	}
+	
 	return 0;
 }
 
@@ -1471,6 +1738,16 @@ static int node_socket_hilights(SpaceNode *snode, int in_out)
 	}
 	
 	return redraw;
+}
+
+static int outside_group_rect(SpaceNode *snode)
+{
+	bNode *gnode= node_tree_get_editgroup(snode->nodetree);
+	if (gnode) {
+		return (snode->mx < gnode->totr.xmin || snode->mx >= gnode->totr.xmax
+				|| snode->my < gnode->totr.ymin || snode->my >= gnode->totr.ymax);
+	}
+	return 0;
 }
 
 /* ****************** Add *********************** */
@@ -1701,7 +1978,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	last = ntree->nodes.last;
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
-			newnode = nodeCopyNode(ntree, node, 1);
+			newnode = nodeCopyNode(ntree, node);
 			
 			/* deselect old node, select the copy instead */
 			node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
@@ -1767,19 +2044,24 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeL
 				break;
 		}
 		if(tlink) {
-			/* is there a free input socket with same type? */
-			for(sock= tlink->tonode->inputs.first; sock; sock= sock->next) {
-				if(sock->type==tlink->fromsock->type)
-					if(nodeCountSocketLinks(snode->edittree, sock) < sock->limit)
-						break;
+			/* try to move the existing link to the next available socket */
+			if (tlink->tonode) {
+				/* is there a free input socket with same type? */
+				for(sock= tlink->tonode->inputs.first; sock; sock= sock->next) {
+					if(sock->type==tlink->fromsock->type)
+						if(nodeCountSocketLinks(snode->edittree, sock) < sock->limit)
+							break;
+				}
+				if(sock) {
+					tlink->tosock= sock;
+					sock->flag &= ~SOCK_HIDDEN;
+				}
+				else {
+					nodeRemLink(snode->edittree, tlink);
+				}
 			}
-			if(sock) {
-				tlink->tosock= sock;
-				sock->flag &= ~SOCK_HIDDEN;
-			}
-			else {
+			else
 				nodeRemLink(snode->edittree, tlink);
-			}
 		}
 	}
 }
@@ -1810,7 +2092,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(in_out==SOCK_OUT) {
 				if(find_indicated_socket(snode, &tnode, &tsock, SOCK_IN)) {
 					if(nodeFindLink(snode->edittree, sock, tsock)==NULL) {
-						if(tnode!=node  && link->tonode!=tnode && link->tosock!= tsock) {
+						if( link->tosock!= tsock && (!tnode || (tnode!=node && link->tonode!=tnode)) ) {
 							link->tonode= tnode;
 							link->tosock= tsock;
 							ntreeSolveOrder(snode->edittree);	/* for interactive red line warning */
@@ -1826,7 +2108,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if(find_indicated_socket(snode, &tnode, &tsock, SOCK_OUT)) {
 					if(nodeFindLink(snode->edittree, sock, tsock)==NULL) {
 						if(nodeCountSocketLinks(snode->edittree, tsock) < tsock->limit) {
-							if(tnode!=node && link->fromnode!=tnode && link->fromsock!= tsock) {
+							if( link->fromsock!= tsock && (!tnode || (tnode!=node && link->fromnode!=tnode)) ) {
 								link->fromnode= tnode;
 								link->fromsock= tsock;
 								ntreeSolveOrder(snode->edittree);	/* for interactive red line warning */
@@ -1847,19 +2129,28 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
-	
-			/* remove link? */
-			if(link->tonode==NULL || link->fromnode==NULL) {
-				nodeRemLink(snode->edittree, link);
-			}
-			else {
+			if(link->tosock && link->fromsock) {
 				/* send changed events for original tonode and new */
-				if(link->tonode) 
+				if(link->tonode)
 					NodeTagChanged(snode->edittree, link->tonode);
 				
 				/* we might need to remove a link */
-				if(in_out==SOCK_OUT) node_remove_extra_links(snode, link->tosock, link);
+				if(in_out==SOCK_OUT)
+					node_remove_extra_links(snode, link->tosock, link);
 			}
+			else if (outside_group_rect(snode) && (link->tonode || link->fromnode)) {
+				/* automatically add new group socket */
+				if (link->tonode && link->tosock) {
+					link->fromsock = nodeAddGroupSocketCopy(snode->edittree, link->tosock, SOCK_IN);
+					link->fromnode = NULL;
+				}
+				else if (link->fromnode && link->fromsock) {
+					link->tosock = nodeAddGroupSocketCopy(snode->edittree, link->fromsock, SOCK_OUT);
+					link->tonode = NULL;
+				}
+			}
+			else
+				nodeRemLink(snode->edittree, link);
 			
 			ntreeSolveOrder(snode->edittree);
 			node_tree_verify_groups(snode->nodetree);

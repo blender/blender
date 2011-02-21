@@ -670,6 +670,12 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 	
 	for(link= ntree->links.first; link; link= link->next)
 		writestruct(wd, DATA, "bNodeLink", 1, link);
+	
+	/* external sockets */
+	for(sock= ntree->inputs.first; sock; sock= sock->next)
+		writestruct(wd, DATA, "bNodeSocket", 1, sock);
+	for(sock= ntree->outputs.first; sock; sock= sock->next)
+		writestruct(wd, DATA, "bNodeSocket", 1, sock);
 }
 
 static void current_screen_compat(Main *mainvar, bScreen **screen)

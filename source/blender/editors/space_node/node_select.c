@@ -288,7 +288,7 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
 		node->flag &= ~NODE_TEST;
 
 	for (link=snode->edittree->links.first; link; link=link->next) {
-		if (link->fromnode->flag & NODE_SELECT)
+		if (link->fromnode && link->tonode && (link->fromnode->flag & NODE_SELECT))
 			link->tonode->flag |= NODE_TEST;
 	}
 	
@@ -328,7 +328,7 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 		node->flag &= ~NODE_TEST;
 
 	for(link=snode->edittree->links.first; link; link=link->next) {
-		if(link->tonode->flag & NODE_SELECT)
+		if(link->fromnode && link->tonode && (link->tonode->flag & NODE_SELECT))
 			link->fromnode->flag |= NODE_TEST;
 	}
 	

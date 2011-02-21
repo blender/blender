@@ -100,6 +100,8 @@ extern EnumPropertyItem property_unit_items[];
 
 extern EnumPropertyItem viewport_shade_items[];
 
+extern EnumPropertyItem node_socket_type_items[];
+
 extern EnumPropertyItem node_blend_type_items[];
 extern EnumPropertyItem node_math_items[];
 extern EnumPropertyItem node_vec_math_items[];

@@ -205,7 +205,7 @@ struct bNodeTree *rna_Main_nodetree_new(Main *bmain, const char *name, int type)
 {
 	bNodeTree *tree = ntreeAddTree(name, type, TRUE);
 
-	ntreeMakeOwnType(tree);
+//	ntreeMakeGroupSockets(tree);
 
 	id_us_min(&tree->id);
 	return tree;
