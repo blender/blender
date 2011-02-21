@@ -20,15 +20,6 @@ Game Engine  bge.types Module
 
       :type: boolean
 
-   .. method:: isA(game_type)
-
-      Check if this is a type or a subtype game_type.
-
-      :arg game_type: the name of the type or the type its self from the :mod:`bge.types` module.
-      :type game_type: string or type
-      :return: True if this object is a type or a subtype of game_type.
-      :rtype: boolean
-
 .. class:: CValue(PyObjectPlus)
 
    This class is a basis for other classes.
