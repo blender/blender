@@ -29,6 +29,7 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../blenkernel
+	../../blenloader
 	../../windowmanager
 	../../editors/include
 	../../../../intern/guardedalloc
