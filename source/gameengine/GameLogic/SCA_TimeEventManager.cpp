@@ -109,3 +109,9 @@ void SCA_TimeEventManager::RemoveTimeProperty(CValue* timeval)
 		}
 	}
 }
+
+vector<CValue*> SCA_TimeEventManager::GetTimeValues()
+{
+	return m_timevalues;
+}
+

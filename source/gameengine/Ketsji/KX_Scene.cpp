@@ -1857,6 +1857,16 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 
 			/* when merging objects sensors are moved across into the new manager, dont need to do this here */
 		}
+
+		/* grab any timer properties from the other scene */
+		SCA_TimeEventManager *timemgr=		GetTimeEventManager();
+		SCA_TimeEventManager *timemgr_other=	other->GetTimeEventManager();
+		vector<CValue*> times = timemgr_other->GetTimeValues();
+
+		for(unsigned int i= 0; i < times.size(); i++) {
+			timemgr->AddTimeProperty(times[i]);
+		}
+		
 	}
 	return true;
 }

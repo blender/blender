@@ -49,6 +49,7 @@ public:
 	void			AddTimeProperty(CValue* timeval);
 	void			RemoveTimeProperty(CValue* timeval);
 
+	vector<CValue*>	GetTimeValues();
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
