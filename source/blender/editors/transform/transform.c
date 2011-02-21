@@ -3143,7 +3143,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 
 int Rotation(TransInfo *t, short UNUSED(mval[2]))
 {
-	char str[64];
+	char str[128];
 	
 	float final;
 
