@@ -669,6 +669,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 
 #ifdef WITH_PYTHON_MODULE
+#include "BLI_storage.h"
 /* TODO, reloading the module isnt functional at the moment. */
 
 extern int main_python(int argc, const char **argv);
@@ -687,9 +688,16 @@ static struct PyModuleDef bpy_proxy_def = {
 PyMODINIT_FUNC
 PyInit_bpy(void)
 {
-	int argc= 0;
-	const char *argv[]={NULL};
-	
+	int argc= 1;
+	char *argv[2]={NULL, NULL};
+
+	/* give the CWD as the first arg, blender uses */
+	char path[240]= "";
+	BLI_getwdN(path, sizeof(path));
+	BLI_join_dirfile(path, sizeof(path), path, "bpy");
+	argv[0]= path;
+	/* done with cwd */
+
 	main_python(argc, argv);
 
 	/* initialized in BPy_init_modules() */

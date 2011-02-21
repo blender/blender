@@ -161,6 +161,9 @@ endif()
 
 TEST_SSE_SUPPORT()
 
+# linux only, not cached
+set(WITH_BINRELOC OFF)
+
 # disabled for now, not supported
 # option(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
 
@@ -346,12 +349,15 @@ if(UNIX AND NOT APPLE)
 	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB} ${X11_Xinput_LIB}")
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-		# BSD's dont use libdl.so
-		list(APPEND LLIBS -ldl)
+		if(NOT WITH_PYTHON_MODULE)
+			# BSD's dont use libdl.so
+			list(APPEND LLIBS -ldl)
 
-		# binreloc is linux only
-		set(BINRELOC ${CMAKE_SOURCE_DIR}/extern/binreloc)
-		set(BINRELOC_INC ${BINRELOC}/include)
+			# binreloc is linux only
+			set(BINRELOC ${CMAKE_SOURCE_DIR}/extern/binreloc)
+			set(BINRELOC_INC ${BINRELOC}/include)
+			set(WITH_BINRELOC ON)
+		endif()
 	endif()
 
 	set(PLATFORM_LINKFLAGS "-pthread")

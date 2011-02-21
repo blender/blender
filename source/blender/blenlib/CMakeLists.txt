@@ -133,7 +133,8 @@ set(SRC
 	intern/dynamiclist.h
 )
 
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(WITH_BINRELOC)
+	add_definitions(-DWITH_BINRELOC)
 	list(APPEND INC "${BINRELOC_INC}")
 endif()
 

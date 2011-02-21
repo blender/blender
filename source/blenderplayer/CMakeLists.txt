@@ -33,7 +33,7 @@ if(WITH_CODEC_QUICKTIME)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(WITH_BINRELOC)
 	add_definitions(-DWITH_BINRELOC)
 	blender_include_dirs(${BINRELOC_INC})
 endif()

@@ -71,7 +71,7 @@
 
 #else /* non windows */
 
-#ifdef __linux__
+#ifdef WITH_BINRELOC
 #include "binreloc.h"
 #endif
 
@@ -1661,7 +1661,7 @@ void BLI_where_am_i(char *fullname, const int maxlen, const char *name)
 #endif
 
 	
-#ifdef __linux__
+#ifdef WITH_BINRELOC
 	/* linux uses binreloc since argv[0] is not relyable, call br_init( NULL ) first */
 	path = br_find_exe( NULL );
 	if (path) {
