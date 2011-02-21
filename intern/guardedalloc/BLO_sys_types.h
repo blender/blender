@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -41,6 +41,11 @@
 // DG: original BLO_sys_types.h is in source/blender/blenkernel 
 // but is not allowed be accessed here because of bad-level-call
 */
+
+/** \file BLO_sys_types.h
+ *  \ingroup MEM
+ *  \todo solve naming issue BLO -> MEM
+ */
 
 #ifndef BLO_SYS_TYPES_H
 #define BLO_SYS_TYPES_H

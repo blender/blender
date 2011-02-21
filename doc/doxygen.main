@@ -18,6 +18,10 @@
  *  as part of the normal development process.
  */
 
+/** \defgroup MEM Guarded memory (de)allocation
+ *  \ingroup intern
+ */
+
 /** \defgroup extern External libraries
  *  \section externabout External libraries
  *  As with \ref intern these libraries are

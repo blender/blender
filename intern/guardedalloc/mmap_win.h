@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  * Contributor(s): Andrea Weikert.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file mmap_win.h
+ *  \ingroup MEM
+ *  \author Andrea Weikert
  */
  
 #ifndef MMAP_WIN_H
