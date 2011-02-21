@@ -278,19 +278,29 @@ class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
         self.tail = self.head + vec
         self.roll = other.roll
 
-    def transform(self, matrix):
+    def transform(self, matrix, scale=True, roll=True):
         """
         Transform the the bones head, tail, roll and envalope (when the matrix has a scale component).
-        Expects a 4x4 or 3x3 matrix.
+
+        :arg matrix: 3x3 or 4x4 transformation matrix.
+        :type matrix: :class:`Matrix`
+        :arg scale: Scale the bone envalope by the matrix.
+        :type scale: bool
+        :arg roll: Correct the roll to point in the same relative direction to the head and tail.
+        :type roll: bool
         """
         from mathutils import Vector
         z_vec = Vector((0.0, 0.0, 1.0)) * self.matrix.to_3x3()
         self.tail = self.tail * matrix
         self.head = self.head * matrix
-        scalar = matrix.median_scale
-        self.head_radius *= scalar
-        self.tail_radius *= scalar
-        self.align_roll(z_vec * matrix)
+
+        if scale:
+            scalar = matrix.median_scale
+            self.head_radius *= scalar
+            self.tail_radius *= scalar
+
+        if roll:
+            self.align_roll(z_vec * matrix)
 
 
 def ord_ind(i1, i2):
