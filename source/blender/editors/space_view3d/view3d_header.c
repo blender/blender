@@ -206,8 +206,6 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 	for (base= scene->base.first; base; base= base->next) {
 		if(base->lay & oldlay)
 			base->object->recalc= OB_RECALC_OB|OB_RECALC_DATA;
-		if(base->lay & oldlay)
-			printf("recalc %s\n", base->object->id.name+2);
 	}
 
 	ED_area_tag_redraw(sa);
