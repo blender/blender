@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_markers.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_MARKERS_H
 #define ED_MARKERS_H
 

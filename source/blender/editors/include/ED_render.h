@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +19,10 @@
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_render.h
+ *  \ingroup editors
  */
 
 #ifndef ED_RENDER_H

@@ -617,8 +617,7 @@ INPUT                  = doxygen.main \
                          ../source/blender/imbuf \
                          ../source/blender/blenkernel \
                          ../source/blender/collada \
-                         ../source/blender/editors/interface \
-                         ../source/blender/editors/include \
+                         ../source/blender/editors \
                          ../source/blender/windowmanager \
                          ../source/blender/makesdna \
                          ../source/blender/makesrna \

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file ED_mball.h
+ *  \ingroup editors
+ */
+
+#ifndef _ED_MBALL_H_
+#define _ED_MBALL_H_
+
 struct bContext;
 struct Object;
 struct wmKeyConfig;
@@ -42,4 +49,6 @@ void make_editMball(struct Object *obedit);
 void load_editMball(struct Object *obedit);
 
 void undo_push_mball(struct bContext *C, const char *name);
+
+#endif
 

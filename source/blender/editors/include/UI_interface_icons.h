@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,10 @@
  * Contributor(s): none yet.
  * 
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file UI_interface_icons.h
+ *  \ingroup editorui
  */
 
 #ifndef UI_INTERFACE_ICONS_H

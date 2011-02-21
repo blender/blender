@@ -30,11 +30,10 @@
  *  folder are updated.
  *
  */
-/** \defgroup editors Editor modules */
 /** \defgroup blenderplayer Blender Player */
 
-/** \defgroup render Rendering Module */
-/** \defgroup meshedit Mesh Editing Module */
+/** \defgroup render Rendering */
+/** \defgroup meshedit Mesh Editing */
 /** \defgroup texture Texturing */
 /** \defgroup compositor Compositing */
 
@@ -93,6 +92,12 @@
 /** \defgroup gui GUI */
 
 /** \defgroup wm windowmanager
+ *  \ingroup gui
+ */
+
+/** \defgroup editors Editors */
+
+/** \defgroup editorui Interface and Widgets
  *  \ingroup gui
  */
 

@@ -27,6 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file ED_particle.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_PARTICLE_H
 #define ED_PARTICLE_H
 
