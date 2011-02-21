@@ -188,7 +188,7 @@ class _GenericBone:
 
     @length.setter
     def length(self, value):
-        self.tail = self.head + ((self.tail - self.head).normalize() * value)
+        self.tail = self.head + ((self.tail - self.head).normalized() * value)
 
     @property
     def vector(self):
