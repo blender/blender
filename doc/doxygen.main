@@ -101,6 +101,16 @@
  *  \ingroup gui
  */
 
+/** \defgroup externformats external formats */
+
+/** \defgroup collada COLLADA
+ *  \ingroup externformats
+ */
+
+/** \defgroup avi AVI
+ *  \ingroup externformats
+ */
+
 /** \defgroup imbuf IMage Buffer */
 
 /** \defgroup undoc Undocumented
