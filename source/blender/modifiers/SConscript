@@ -5,7 +5,7 @@ sources = env.Glob('intern/*.c')
 
 incs = '. ./intern'
 incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern'
-incs += ' ../render/extern/include'
+incs += ' ../render/extern/include ../blenloader'
 incs += ' ../include ../blenlib ../makesdna ../blenkernel ../blenkernel/intern'
 
 incs += ' ' + env['BF_ZLIB_INC']

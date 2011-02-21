@@ -22,6 +22,7 @@
 set(INC
 	../include
 	../../blenkernel
+	../../blenloader
 	../../imbuf
 	../../gpu
 	../../blenlib

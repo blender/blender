@@ -29,6 +29,7 @@
 
 blender_include_dirs(
 	../../../../intern/guardedalloc
+	../../blenloader
 	..
 )
 

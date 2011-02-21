@@ -30,6 +30,7 @@ set(INC
 	.
 	../blenlib
 	../blenkernel
+	../blenloader
 	../windowmanager
 	../makesdna
 	../makesrna

@@ -27,6 +27,7 @@
 set(INC 
 	. ./intern
 	../blenlib
+	../blenloader
 	../makesdna
 	../blenkernel
 	../blenkernel/intern
