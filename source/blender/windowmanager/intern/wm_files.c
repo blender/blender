@@ -257,6 +257,10 @@ static void wm_init_userdef(bContext *C)
 	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
 	sound_init(CTX_data_main(C));
 
+	/* needed so loading a file from the command line respects user-pref [#26156] */
+	if(U.flag & USER_FILENOUI)	G.fileflags |= G_FILE_NO_UI;
+	else						G.fileflags &= ~G_FILE_NO_UI;
+
 	/* set the python auto-execute setting from user prefs */
 	/* disabled by default, unless explicitly enabled in the command line */
 	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;

@@ -287,6 +287,7 @@ void ED_preview_init_dbase(void)
 	BlendFileData *bfd;
 	extern int datatoc_preview_blend_size;
 	extern char datatoc_preview_blend[];
+	const int fileflags= G.fileflags;
 	
 	G.fileflags |= G_FILE_NO_UI;
 	bfd= BLO_read_from_memory(datatoc_preview_blend, datatoc_preview_blend_size, NULL);
@@ -295,7 +296,7 @@ void ED_preview_init_dbase(void)
 		
 		MEM_freeN(bfd);
 	}
-	G.fileflags &= ~G_FILE_NO_UI;
+	G.fileflags= fileflags;
 }
 
 void ED_preview_free_dbase(void)
