@@ -133,13 +133,13 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 	/* depth >= 1 when ray-shading */
 	if(shi->depth==0 || shi->volume_depth > 0) {
 		if(R.r.mode & R_RAYTRACE) {
-			if(shi->ray_mirror!=0.0f || ((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f)) {
+		    if(shi->ray_mirror!=0.0f || ((shi->mode & MA_TRANSP) && (shi->mode & MA_RAYTRANSP) && shr->alpha!=1.0f)) {
 				/* ray trace works on combined, but gives pass info */
 				ray_trace(shi, shr);
 			}
 		}
 		/* disable adding of sky for raytransp */
-		if((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP))
+		if((shi->mode & MA_TRANSP) && (shi->mode & MA_RAYTRANSP))
 			if((shi->layflag & SCE_LAY_SKY) && (R.r.alphamode==R_ADDSKY))
 				shr->alpha= 1.0f;
 	}

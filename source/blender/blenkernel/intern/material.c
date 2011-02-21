@@ -872,7 +872,7 @@ static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode
 				if(ma!=basemat) {
 					do_init_render_material(ma, r_mode, amb);
 					basemat->texco |= ma->texco;
-					basemat->mode_l |= ma->mode_l;
+					basemat->mode_l |= ma->mode_l & ~(MA_TRANSP|MA_ZTRANSP|MA_RAYTRANSP); 
 				}
 			}
 			else if(node->type==NODE_GROUP)
