@@ -626,7 +626,11 @@ INPUT                  = doxygen.main \
                          ../source/blender/blenloader \
                          ../source/blender/readblenfile \
                          ../source/blender/blenkernel \
-                         ../source/blender/blenlib
+                         ../source/blender/blenlib \
+                         ../source/blender/render \
+                         ../source/blender/nodes \
+                         ../source/blender/modifiers \
+                         ../source/blender/gpu
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 

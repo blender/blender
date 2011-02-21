@@ -27,6 +27,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file BPY_extern.h
+ *  \ingroup python
+ */
+
+
+
 #ifndef BPY_EXTERN_H
 #define BPY_EXTERN_H
 
