@@ -16,14 +16,50 @@ Variables = SCons.Variables
 BoolVariable = SCons.Variables.BoolVariable
 
 def get_version():
+    import re
+
     fname = os.path.join(os.path.dirname(__file__), "..", "..", "..", "source", "blender", "blenkernel", "BKE_blender.h")
+    ver_base = None
+    ver_char = None
+    ver_cycle = None
+
+    re_ver = re.compile("^#\s*define\s+BLENDER_VERSION\s+([0-9]+)")
+    re_ver_char = re.compile("^#\s*define\s+BLENDER_VERSION_CHAR\s*(\S*)") # optional arg
+    re_ver_cycle = re.compile("^#\s*define\s+BLENDER_VERSION_CYCLE\s*(\S*)") # optional arg
+
     for l in open(fname, "r"):
-        if "BLENDER_VERSION" in l:
-            ver = int(l.split()[-1])
-            return "%d.%d" % (ver / 100, ver % 100)
+        match = re_ver.match(l)
+        if match:
+            ver = int(match.group(1))
+            ver_base = "%d.%d" % (ver / 100, ver % 100)
+
+        match = re_ver_char.match(l)
+        if match:
+            ver_char = match.group(1)
+            if ver_char == "BLENDER_CHAR_VERSION":
+                ver_char = ""
+
+        match = re_ver_cycle.match(l)
+        if match:
+            ver_cycle = match.group(1)
+            if ver_cycle == "BLENDER_CYCLE_VERSION":
+                ver_cycle = ""
+
+        if (ver_base is not None) and (ver_char is not None) and (ver_cycle is not None):
+            # eg '2.56a-beta'
+            if ver_cycle:
+                ver_display = "%s%s-%s" % (ver_base, ver_char, ver_cycle)
+            else:
+                ver_display = "%s%s" % (ver_base, ver_char)  # assume release
+
+            return ver_base, ver_display
+
     raise Exception("%s: missing version string" % fname)
 
-VERSION = get_version() # This is used in creating the local config directories
+
+# This is used in creating the local config directories
+VERSION, VERSION_DISPLAY = get_version()
+
 
 def print_arguments(args, bc):
     if len(args):
@@ -92,7 +128,7 @@ def validate_arguments(args, bc):
             'WITH_BF_RAYOPTIMIZATION',
             'BF_RAYOPTIMIZATION_SSE_FLAGS',
             'BF_NO_ELBEEM',
-	    'WITH_BF_CXX_GUARDEDALLOC'
+            'WITH_BF_CXX_GUARDEDALLOC'
             ]
     
     # Have options here that scons expects to be lists
@@ -502,11 +538,6 @@ def NSIS_Installer(target=None, source=None, env=None):
                 for f in df:
                     outfile = os.path.join(dp,f)
                     datafiles += '  File '+outfile + "\n"
-    
-    os.chdir("release")
-    v = open("VERSION")
-    version = v.read()[:-1]    
-    v.close()
 
     #### change to suit install dir ####
     inst_dir = install_base_dir + env['BF_INSTALLDIR']
@@ -520,7 +551,7 @@ def NSIS_Installer(target=None, source=None, env=None):
 
     # var replacements
     ns_cnt = string.replace(ns_cnt, "[DISTDIR]", os.path.normpath(inst_dir+os.sep))
-    ns_cnt = string.replace(ns_cnt, "[VERSION]", version)
+    ns_cnt = string.replace(ns_cnt, "[VERSION]", VERSION_DISPLAY)
     ns_cnt = string.replace(ns_cnt, "[SHORTVERSION]", VERSION)
     ns_cnt = string.replace(ns_cnt, "[RELDIR]", os.path.normpath(rel_dir))
     ns_cnt = string.replace(ns_cnt, "[BITNESS]", bitness)

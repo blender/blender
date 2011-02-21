@@ -40,18 +40,27 @@
 extern "C" {
 #endif
 
+/* these lines are grep'd, watch out for our not-so-awesome regex
+ * and keep comment above the defines.
+ * Use STRINGIFY() rather then defining with quotes */
+#define BLENDER_VERSION			256
+#define BLENDER_SUBVERSION		1
+
+#define BLENDER_MINVERSION		250
+#define BLENDER_MINSUBVERSION	0
+
+/* used by packaging tools */
+		/* can be left blank, otherwise a,b,c... etc with no quotes */
+#define BLENDER_VERSION_CHAR	a
+		/* alpha/beta/rc/releases */
+#define BLENDER_VERSION_CYCLE	beta	
+
 struct ListBase;
 struct MemFile;
 struct bContext;
 struct ReportList;
 struct Scene;
 struct Main;
-
-#define BLENDER_VERSION			256
-#define BLENDER_SUBVERSION		1
-
-#define BLENDER_MINVERSION		250
-#define BLENDER_MINSUBVERSION	0
 
 int BKE_read_file(struct bContext *C, const char *filepath, struct ReportList *reports);
 
