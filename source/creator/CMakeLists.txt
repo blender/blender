@@ -34,6 +34,7 @@ blender_include_dirs(
 	../../intern/guardedalloc
 	../blender/blenlib
 	../blender/blenkernel
+	../blender/blenloader
 	../blender/editors/include
 	../blender/makesrna
 	../blender/imbuf
