@@ -440,7 +440,7 @@ if(WITH_INSTALL)
 			COMMAND cp -Rf ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
 			COMMAND cp -Rf ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
 			COMMAND cp -Rf ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
-			COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
+			COMMAND cat ${SOURCEINFO} | sed s/VERSION/${BLENDER_VERSION}${BLENDER_VERSION_CHAR}/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
 			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}
 			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}
 			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
