@@ -643,7 +643,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	BLI_path_abs(targetDir, G.main->name); // fixed #frame-no 
 
 	// .tmp: dont overwrite/delete original file
-	BLI_snprintf(targetFile, sizeof(targetFile), "%s%s.tmp", targetDir, suffixConfig);
+	BLI_snprintf(targetFile, FILE_MAXDIR+FILE_MAXFILE, "%s%s.tmp", targetDir, suffixConfig);
 
 	// make sure all directories exist
 	// as the bobjs use the same dir, this only needs to be checked
@@ -664,13 +664,13 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 		char blendFile[FILE_MAXDIR+FILE_MAXFILE];
 		
 		// invalid dir, reset to current/previous
-		BLI_strncpy(blendDir, G.main->name, sizeof(blendDir));
+		BLI_strncpy(blendDir, G.main->name, FILE_MAXDIR+FILE_MAXFILE);
 		BLI_splitdirstring(blendDir, blendFile);
-		BLI_replace_extension(blendFile, sizeof(blendFile), ""); /* strip .blend */
+		BLI_replace_extension(blendFile, FILE_MAXDIR+FILE_MAXFILE, ""); /* strip .blend */
 
-		BLI_snprintf(newSurfdataPath, sizeof(newSurfdataPath) ,"//fluidsimdata/%s_%s_", blendFile, fsDomain->id.name);
+		BLI_snprintf(newSurfdataPath, FILE_MAXDIR+FILE_MAXFILE ,"//fluidsimdata/%s_%s_", blendFile, fsDomain->id.name);
 		
-		BLI_snprintf(debugStrBuffer, sizeof(debugStrBuffer), "fluidsimBake::error - warning resetting output dir to '%s'\n", newSurfdataPath);
+		BLI_snprintf(debugStrBuffer, 256, "fluidsimBake::error - warning resetting output dir to '%s'\n", newSurfdataPath);
 		elbeemDebugOut(debugStrBuffer);
 		outStringsChanged=1;
 	}
@@ -952,7 +952,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 
 	/* ********  start writing / exporting ******** */
 	// use .tmp, dont overwrite/delete original file
-	BLI_snprintf(targetFile, sizeof(targetFile), "%s%s.tmp", targetDir, suffixConfig);
+	BLI_snprintf(targetFile, 240, "%s%s.tmp", targetDir, suffixConfig);
 	
 	// make sure these directories exist as well
 	if(outStringsChanged) {
@@ -980,7 +980,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	fsset->aniFrameTime = channels->aniFrameTime;
 	fsset->noOfFrames = noFrames; // is otherwise subtracted in parser
 
-	BLI_snprintf(targetFile, sizeof(targetFile), "%s%s", targetDir, suffixSurface);
+	BLI_snprintf(targetFile, 240, "%s%s", targetDir, suffixSurface);
 
 	// defaults for compressibility and adaptive grids
 	fsset->gstar = domainSettings->gstar;
@@ -990,7 +990,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	fsset->surfaceSmoothing = domainSettings->surfaceSmoothing; 
 	fsset->surfaceSubdivs = domainSettings->surfaceSubdivs; 
 	fsset->farFieldSize = domainSettings->farFieldSize; 
-	BLI_strncpy(fsset->outputPath, targetFile, sizeof(fsset->outputPath));
+	BLI_strncpy(fsset->outputPath, targetFile, 240);
 
 	// domain channels
 	fsset->channelSizeFrameTime = 
