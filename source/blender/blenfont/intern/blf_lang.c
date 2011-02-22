@@ -77,30 +77,34 @@ void BLF_lang_init(void)
 /* XXX WARNING!!! IN osx somehow the previous function call jumps in this one??? (ton, ppc) */
 void BLF_lang_set(const char *str)
 {
-	if(str==NULL)
+	if(str==NULL) {
 		return;
+	}
+	else {
 	
 #if defined (_WIN32) || defined(__APPLE__)
-	BLI_setenv("LANG", str);
+		BLI_setenv("LANG", str);
 #else
-	char *locreturn= setlocale(LC_ALL, str);
-	if (locreturn == NULL) {
-		char *lang= BLI_sprintfN("%s.UTF-8", str);
-
-		locreturn= setlocale(LC_ALL, lang);
+		char *locreturn= setlocale(LC_ALL, str);
 		if (locreturn == NULL) {
-			printf("could not change language to %s nor %s\n", str, lang);
+			char *lang= BLI_sprintfN("%s.UTF-8", str);
+
+			locreturn= setlocale(LC_ALL, lang);
+			if (locreturn == NULL) {
+				printf("could not change language to %s nor %s\n", str, lang);
+			}
+
+			MEM_freeN(lang);
 		}
 
-		MEM_freeN(lang);
-	}
-
-	setlocale(LC_NUMERIC, "C");
+		setlocale(LC_NUMERIC, "C");
 #endif
-	textdomain(DOMAIN_NAME);
-	bindtextdomain(DOMAIN_NAME, global_messagepath);
-	/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */
-	BLI_strncpy(global_language, str, sizeof(global_language));
+		textdomain(DOMAIN_NAME);
+		bindtextdomain(DOMAIN_NAME, global_messagepath);
+		/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */
+		BLI_strncpy(global_language, str, sizeof(global_language));
+		
+	}
 }
 
 void BLF_lang_encoding(const char *str)
