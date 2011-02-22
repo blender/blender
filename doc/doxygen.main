@@ -6,6 +6,7 @@
  *
  * These pages document the source code of blender.
  *
+ *
  * For more information on using Blender browse to http://www.blender.org
  *
  */
@@ -69,6 +70,30 @@
  */
 /** \defgroup ketsjinet Ketsji Network
  *  \ingroup ketsji
+ */
+/** \defgroup bgenet Network
+ *  \ingroup bge
+ */
+/** \defgroup bgenetlb Loopback Network
+ *  \ingroup bgenet
+ */
+/** \defgroup phys Physics
+ *  \ingroup bge
+ */
+/** \defgroup physbullet Bullet Physics
+ *  \ingroup phys
+ */
+/** \defgroup physdummy Dummy Physics (none)
+ *  \ingroup phys
+ */
+/** \defgroup bgerast Rasterizer
+ *  \ingroup bge
+ */
+/** \defgroup bgerastoglfilters OpenGL Filters
+ *  \ingroup bgerast
+ */
+/** \defgroup bgerastogl OpenGL Rasterizer
+ *  \ingroup bgerast
  */
 
 /** \defgroup audaspace Audaspace

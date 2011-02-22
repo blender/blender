@@ -47,7 +47,7 @@ public:
 
 private:
 	T_InterpolatorList	m_interpolators;
-	unsigned short	    m_modify_mist_color  : 1;
+	unsigned short		m_modify_mist_color  : 1;
 	unsigned short		m_modify_mist_start	 : 1;
 	unsigned short  	m_modify_mist_dist 	 : 1;
 	bool				m_modified;

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file RAS_MaterialBucket.h
+ *  \ingroup bgerast
+ */
+
 #ifndef __RAS_MATERIALBUCKET
 #define __RAS_MATERIALBUCKET
 

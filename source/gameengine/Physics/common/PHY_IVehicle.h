@@ -1,3 +1,8 @@
+
+/** \file PHY_IVehicle.h
+ *  \ingroup phys
+ */
+
 #ifndef PHY_IVEHICLE_H
 #define PHY_IVEHICLE_H
 

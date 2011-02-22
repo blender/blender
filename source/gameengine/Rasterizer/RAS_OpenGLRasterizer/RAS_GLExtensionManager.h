@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -24,6 +24,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file RAS_GLExtensionManager.h
+ *  \ingroup bgerastogl
  */
 
 #ifndef __RAS_GLEXTENSIONMANAGER_H__

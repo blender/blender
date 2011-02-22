@@ -13,6 +13,10 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+/** \file CcdPhysicsEnvironment.h
+ *  \ingroup physbullet
+ */
+
 #ifndef CCDPHYSICSENVIRONMENT
 #define CCDPHYSICSENVIRONMENT
 
@@ -47,10 +51,11 @@ class btIDebugDraw;
 class PHY_IVehicle;
 class CcdOverlapFilterCallBack;
 
-/// CcdPhysicsEnvironment is an experimental mainloop for physics simulation using optional continuous collision detection.
-/// Physics Environment takes care of stepping the simulation and is a container for physics entities.
-/// It stores rigidbodies,constraints, materials etc.
-/// A derived class may be able to 'construct' entities by loading and/or converting
+/** CcdPhysicsEnvironment is an experimental mainloop for physics simulation using optional continuous collision detection.
+ * Physics Environment takes care of stepping the simulation and is a container for physics entities.
+ * It stores rigidbodies,constraints, materials etc.
+ * A derived class may be able to 'construct' entities by loading and/or converting
+ */
 class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
 	friend class CcdOverlapFilterCallBack;
