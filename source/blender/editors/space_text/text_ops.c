@@ -577,13 +577,22 @@ static int run_script_exec(bContext *C, wmOperator *op)
 	Text *text= CTX_data_edit_text(C);
 	SpaceText *st= CTX_wm_space_text(C);
 
+	/* only for comparison */
+	void *curl_prev= text->curl;
+	int curc_prev= text->curc;
+
 	if (BPY_text_exec(C, text, op->reports))
 		return OPERATOR_FINISHED;
-	
+
 	/* Dont report error messages while live editing */
-	if(!(st && st->live_edit))
+	if(!(st && st->live_edit)) {
+		if(text->curl != curl_prev || curc_prev != text->curc) {
+			text_update_cursor_moved(C);
+			WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+		}
+		
 		BKE_report(op->reports, RPT_ERROR, "Python script fail, look in the console for now...");
-	
+	}
 	return OPERATOR_CANCELLED;
 #endif
 }

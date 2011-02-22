@@ -35,6 +35,7 @@
 #include "bpy.h"
 #include "bpy_rna.h"
 #include "bpy_util.h"
+#include "bpy_traceback.h"
 
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
@@ -327,6 +328,18 @@ void BPY_python_end(void)
 
 }
 
+static void python_script_error_jump_text(struct Text *text)
+{
+	int lineno;
+	int offset;
+	python_script_error_jump(text->id.name+2, &lineno, &offset);
+	if(lineno != -1) {
+		/* select the line with the error */
+		txt_move_to(text, lineno - 1, INT_MAX, FALSE);
+		txt_move_to(text, lineno - 1, offset, TRUE);
+	}
+}
+
 /* super annoying, undo _PyModule_Clear(), bug [#23871] */
 #define PYMODULE_CLEAR_WORKAROUND
 
@@ -369,6 +382,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 			MEM_freeN( buf );
 
 			if(PyErr_Occurred()) {
+				python_script_error_jump_text(text);
 				BPY_text_free_code(text);
 			}
 		}
@@ -414,6 +428,9 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 	}
 
 	if (!py_result) {
+		if(text) {
+			python_script_error_jump_text(text);
+		}
 		BPy_errors_to_report(reports);
 	} else {
 		Py_DECREF( py_result );
