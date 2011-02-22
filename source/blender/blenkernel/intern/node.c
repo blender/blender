@@ -476,7 +476,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 			BLI_addtail(&ngroup->links, link);
 		}
 		else if(link->tonode && (link->tonode->flag & NODE_SELECT)) {
-			gsock = nodeGroupAddSocket(ngroup, link->tosock->name, link->tosock->type, SOCK_IN);
+			gsock = nodeGroupExposeSocket(ngroup, link->tosock, SOCK_IN);
 			link->tosock->link = nodeAddLink(ngroup, NULL, gsock, link->tonode, link->tosock);
 			link->tosock = node_add_group_socket(&gnode->inputs, gsock);
 			link->tonode = gnode;
@@ -487,7 +487,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 				if (gsock->link && gsock->link->fromsock==link->fromsock)
 					break;
 			if (!gsock) {
-				gsock = nodeGroupAddSocket(ngroup, link->fromsock->name, link->fromsock->type, SOCK_OUT);
+				gsock = nodeGroupExposeSocket(ngroup, link->fromsock, SOCK_OUT);
 				gsock->link = nodeAddLink(ngroup, link->fromnode, link->fromsock, NULL, gsock);
 				link->fromsock = node_add_group_socket(&gnode->outputs, gsock);
 			}
@@ -836,6 +836,7 @@ bNodeSocket *nodeGroupAddSocket(bNodeTree *ngroup, const char *name, int type, i
 	
 	strncpy(gsock->name, name, sizeof(gsock->name));
 	gsock->type = type;
+	gsock->ns.sockettype = type;
 	gsock->ns.min = INT_MIN;
 	gsock->ns.max = INT_MAX;
 	zero_v4(gsock->ns.vec);
@@ -855,6 +856,14 @@ bNodeSocket *nodeGroupAddSocket(bNodeTree *ngroup, const char *name, int type, i
 	return gsock;
 }
 
+bNodeSocket *nodeGroupExposeSocket(bNodeTree *ngroup, bNodeSocket *sock, int in_out)
+{
+	bNodeSocket *gsock= nodeGroupAddSocket(ngroup, sock->name, sock->type, in_out);
+	/* initialize the default socket value */
+	QUATCOPY(gsock->ns.vec, sock->ns.vec);
+	return gsock;
+}
+
 void nodeGroupExposeAllSockets(bNodeTree *ngroup)
 {
 	bNode *node;
@@ -864,13 +873,16 @@ void nodeGroupExposeAllSockets(bNodeTree *ngroup)
 		for (sock=node->inputs.first; sock; sock=sock->next) {
 			if (!sock->link && !(sock->flag & SOCK_HIDDEN)) {
 				gsock = nodeGroupAddSocket(ngroup, sock->name, sock->type, SOCK_IN);
+				/* initialize the default socket value */
+				QUATCOPY(gsock->ns.vec, sock->ns.vec);
 				sock->link = nodeAddLink(ngroup, NULL, gsock, node, sock);
 			}
 		}
 		for (sock=node->outputs.first; sock; sock=sock->next) {
-			printf("\t\tOutput '%s': #links=%d, hidden=%d\n", sock->name, nodeCountSocketLinks(ngroup, sock), (sock->flag & SOCK_HIDDEN));
 			if (nodeCountSocketLinks(ngroup, sock)==0 && !(sock->flag & SOCK_HIDDEN)) {
 				gsock = nodeGroupAddSocket(ngroup, sock->name, sock->type, SOCK_OUT);
+				/* initialize the default socket value */
+				QUATCOPY(gsock->ns.vec, sock->ns.vec);
 				gsock->link = nodeAddLink(ngroup, node, sock, NULL, gsock);
 			}
 		}

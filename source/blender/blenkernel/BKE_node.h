@@ -212,6 +212,7 @@ void			nodeGroupSocketUseFlags(struct bNodeTree *ngroup);
 void			nodeGroupCopy(struct bNode *gnode);
 
 struct bNodeSocket *nodeGroupAddSocket(struct bNodeTree *ngroup, const char *name, int type, int in_out);
+struct bNodeSocket *nodeGroupExposeSocket(struct bNodeTree *ngroup, struct bNodeSocket *sock, int in_out);
 void			nodeGroupExposeAllSockets(struct bNodeTree *ngroup);
 void			nodeGroupRemoveSocket(struct bNodeTree *ngroup, struct bNodeSocket *gsock, int in_out);
 

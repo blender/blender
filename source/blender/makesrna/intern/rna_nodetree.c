@@ -659,7 +659,7 @@ static bNodeSocket *rna_NodeTree_output_new(bNodeTree *ntree, ReportList *UNUSED
 	return gsock;
 }
 
-static bNodeSocket *rna_NodeTree_input_expose(bNodeTree *ntree, ReportList *reports, bNodeSocket *sock)
+static bNodeSocket *rna_NodeTree_input_expose(bNodeTree *ntree, ReportList *reports, bNodeSocket *sock, int add_link)
 {
 	bNode *node;
 	bNodeSocket *gsock;
@@ -672,7 +672,8 @@ static bNodeSocket *rna_NodeTree_input_expose(bNodeTree *ntree, ReportList *repo
 	else {
 		/* XXX should check if tree is a group here! no good way to do this currently. */
 		gsock = nodeGroupAddSocket(ntree, sock->name, sock->type, SOCK_IN);
-		nodeAddLink(ntree, NULL, gsock, node, sock);
+		if (add_link)
+			nodeAddLink(ntree, NULL, gsock, node, sock);
 		
 		nodeGroupVerify(ntree); /* update group node socket links*/
 		WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
@@ -681,7 +682,7 @@ static bNodeSocket *rna_NodeTree_input_expose(bNodeTree *ntree, ReportList *repo
 	return NULL;
 }
 
-static bNodeSocket *rna_NodeTree_output_expose(bNodeTree *ntree, ReportList *reports, bNodeSocket *sock)
+static bNodeSocket *rna_NodeTree_output_expose(bNodeTree *ntree, ReportList *reports, bNodeSocket *sock, int add_link)
 {
 	bNode *node;
 	bNodeSocket *gsock;
@@ -694,7 +695,8 @@ static bNodeSocket *rna_NodeTree_output_expose(bNodeTree *ntree, ReportList *rep
 	else {
 		/* XXX should check if tree is a group here! no good way to do this currently. */
 		gsock = nodeGroupAddSocket(ntree, sock->name, sock->type, SOCK_OUT);
-		nodeAddLink(ntree, node, sock, NULL, gsock);
+		if (add_link)
+			nodeAddLink(ntree, node, sock, NULL, gsock);
 		
 		nodeGroupVerify(ntree); /* update group node socket links*/
 		WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
@@ -2749,6 +2751,8 @@ static void rna_def_group_sockets_api(BlenderRNA *brna, PropertyRNA *cprop, int 
 	RNA_def_function_ui_description(func, "Expose an internal socket in the group tree.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_pointer(func, "sock", "NodeSocket", "Socket", "Internal node socket to expose");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "add_link", TRUE, "Add Link", "If TRUE, adds a link to the internal socket");
 	/* return value */
 	parm= RNA_def_pointer(func, "socket", "NodeSocket", "", "New socket.");
 	RNA_def_function_return(func, parm);

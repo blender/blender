@@ -2141,11 +2141,11 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 			else if (outside_group_rect(snode) && (link->tonode || link->fromnode)) {
 				/* automatically add new group socket */
 				if (link->tonode && link->tosock) {
-					link->fromsock = nodeGroupAddSocket(snode->edittree, link->tosock->name, link->tosock->type, SOCK_IN);
+					link->fromsock = nodeGroupExposeSocket(snode->edittree, link->tosock, SOCK_IN);
 					link->fromnode = NULL;
 				}
 				else if (link->fromnode && link->fromsock) {
-					link->tosock = nodeGroupAddSocket(snode->edittree, link->fromsock->name, link->fromsock->type, SOCK_OUT);
+					link->tosock = nodeGroupExposeSocket(snode->edittree, link->fromsock, SOCK_OUT);
 					link->tonode = NULL;
 				}
 			}
