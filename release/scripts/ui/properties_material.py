@@ -44,6 +44,12 @@ def check_material(mat):
     return False
 
 
+def simple_material(mat):
+    if (mat is not None) and (not mat.use_nodes):
+        return True
+    return False
+
+
 class MATERIAL_MT_sss_presets(bpy.types.Menu):
     bl_label = "SSS Presets"
     preset_subdir = "sss"
@@ -155,13 +161,12 @@ class MATERIAL_PT_pipeline(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE', 'VOLUME')) and (engine in cls.COMPAT_ENGINES)
+        return mat and (not simple_material(mat)) and (mat.type in ('SURFACE', 'WIRE', 'VOLUME')) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self. layout
 
         mat = context.material
-        #split = layout.split()
         mat_type = mat.type in ('SURFACE', 'WIRE')
 
         row = layout.row()
@@ -356,6 +361,12 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
         mat = context.material
         engine = context.scene.render.engine
         return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+    
+    def draw_header(self, context):
+        mat = context.material
+        
+        if simple_material(mat):
+            self.layout.prop(mat, "use_transparency", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -363,9 +374,14 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
         base_mat = context.material
         mat = active_node_mat(context.material)
         rayt = mat.raytrace_transparency
+        
+        if simple_material(base_mat):
+            row = layout.row()
+            row.active = mat.use_transparency
+            row.prop(mat, "transparency_method", expand=True)
 
         split = layout.split()
-
+        
         col = split.column()
         col.prop(mat, "alpha")
         row = col.row()
@@ -682,13 +698,23 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-
-        mat = active_node_mat(context.material)
+        
+        base_mat = context.material
+        mat = active_node_mat(base_mat)
 
         split = layout.split()
 
         col = split.column()
+        if simple_material(base_mat):
+            col.prop(mat, "use_raytrace")
+            col.prop(mat, "use_full_oversampling")
+            col.prop(mat, "use_sky")
         col.prop(mat, "use_mist")
+        if simple_material(base_mat):
+            col.prop(mat, "invert_z")
+            sub = col.row()
+            sub.prop(mat, "offset_z")
+            sub.active = mat.use_transparency and mat.transparency_method == 'Z_TRANSPARENCY'
         sub = col.column(align=True)
         sub.label(text="Light Group:")
         sub.prop(mat, "light_group", text="")
@@ -720,8 +746,9 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-
-        mat = active_node_mat(context.material)
+        
+        base_mat = context.material
+        mat = active_node_mat(base_mat)
 
         split = layout.split()
 
@@ -729,8 +756,13 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat, "use_shadows", text="Receive")
         col.prop(mat, "use_transparent_shadows", text="Receive Transparent")
         col.prop(mat, "use_only_shadow", text="Shadows Only")
+        if simple_material(base_mat):
+            col.prop(mat, "use_cast_shadows_only", text="Cast Only")
+            col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
 
         col = split.column()
+        if simple_material(base_mat):
+            col.prop(mat, "use_cast_buffer_shadows")
         sub = col.column()
         sub.active = mat.use_cast_buffer_shadows
         sub.prop(mat, "shadow_buffer_bias", text="Buffer Bias")
@@ -738,6 +770,8 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = (not mat.use_ray_shadow_bias)
         sub.prop(mat, "shadow_ray_bias", text="Ray Bias")
+        if simple_material(base_mat):
+            col.prop(mat, "use_cast_approximate")
 
 
 class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):
@@ -751,10 +785,22 @@ class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):
         engine = context.scene.render.engine
         return check_material(mat) and (engine in cls.COMPAT_ENGINES)
 
+    def draw_header(self, context):
+        mat = context.material
+
+        if simple_material(mat):
+            self.layout.prop(mat, "use_transparency", text="")
+
     def draw(self, context):
         layout = self.layout
+        base_mat = context.material
+        mat = active_node_mat(base_mat)
 
-        mat = active_node_mat(context.material)
+        if simple_material(base_mat):
+            row = layout.row()
+            row.active = mat.use_transparency
+            row.prop(mat, "transparency_method", expand=True)
+            
         layout.prop(mat, "alpha")
 
 
@@ -848,6 +894,24 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
             sub.prop(vol, "ms_intensity")
 
 
+class MATERIAL_PT_volume_transp(VolumeButtonsPanel, bpy.types.Panel):
+    bl_label = "Transparency"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    
+    @classmethod
+    def poll(cls, context):
+        mat = context.material
+        engine = context.scene.render.engine
+        return mat and simple_material(mat) and (mat.type == 'VOLUME') and (engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+
+        mat = context.material  # dont use node material
+
+        layout.prop(mat, "transparency_method", expand=True)
+
+
 class MATERIAL_PT_volume_integration(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Integration"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -889,6 +953,9 @@ class MATERIAL_PT_volume_options(VolumeButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
+        if simple_material(context.material):
+            col.prop(mat, "use_raytrace")
+            col.prop(mat, "use_full_oversampling")
         col.prop(mat, "use_mist")
 
         col = split.column()
