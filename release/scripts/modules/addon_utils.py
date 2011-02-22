@@ -28,20 +28,20 @@ __all__ = (
 	"module_bl_info",
 )
 
-import bpy
+import bpy as _bpy
 
 
 def paths():
 	# RELEASE SCRIPTS: official scripts distributed in Blender releases
-	paths = bpy.utils.script_paths("addons")
+	paths = _bpy.utils.script_paths("addons")
 
 	# CONTRIB SCRIPTS: good for testing but not official scripts yet
 	# if folder addons_contrib/ exists, scripts in there will be loaded too
-	paths += bpy.utils.script_paths("addons_contrib")
+	paths += _bpy.utils.script_paths("addons_contrib")
 
 	# EXTERN SCRIPTS: external projects scripts
 	# if folder addons_extern/ exists, scripts in there will be loaded too
-	paths += bpy.utils.script_paths("addons_extern")
+	paths += _bpy.utils.script_paths("addons_extern")
 	
 	return paths
 
@@ -55,7 +55,7 @@ def modules(module_cache):
 
 	# fake module importing
 	def fake_module(mod_name, mod_path, speedy=True):
-		if bpy.app.debug:
+		if _bpy.app.debug:
 			print("fake_module", mod_path, mod_name)
 		import ast
 		ModuleType = type(ast)
@@ -108,7 +108,7 @@ def modules(module_cache):
 	modules_stale = set(module_cache.keys())
 
 	for path in path_list:
-		for mod_name, mod_path in bpy.path.module_names(path):
+		for mod_name, mod_path in _bpy.path.module_names(path):
 			modules_stale -= {mod_name}
 			mod = module_cache.get(mod_name)
 			if mod:
@@ -142,7 +142,7 @@ def check(module_name):
     :rtype: tuple of booleans
     """
     import sys
-    loaded_default = module_name in bpy.context.user_preferences.addons
+    loaded_default = module_name in _bpy.context.user_preferences.addons
 
     mod = sys.modules.get(module_name)
     loaded_state = mod and getattr(mod, "__addon_enabled__", Ellipsis)
@@ -218,14 +218,14 @@ def enable(module_name, default_set=True):
     # * OK loaded successfully! *
     if default_set:
         # just incase its enabled alredy
-        ext = bpy.context.user_preferences.addons.get(module_name)
+        ext = _bpy.context.user_preferences.addons.get(module_name)
         if not ext:
-            ext = bpy.context.user_preferences.addons.new()
+            ext = _bpy.context.user_preferences.addons.new()
             ext.module = module_name
 
     mod.__addon_enabled__ = True
 
-    if bpy.app.debug:
+    if _bpy.app.debug:
         print("\taddon_utils.enable", mod.__name__)
 
     return mod
@@ -257,7 +257,7 @@ def disable(module_name, default_set=True):
         print("addon_utils.disable", module_name, "not loaded")
 
     # could be in more then once, unlikely but better do this just incase.
-    addons = bpy.context.user_preferences.addons
+    addons = _bpy.context.user_preferences.addons
 
     if default_set:
         while module_name in addons:
@@ -265,7 +265,7 @@ def disable(module_name, default_set=True):
             if addon:
                 addons.remove(addon)
 
-    if bpy.app.debug:
+    if _bpy.app.debug:
         print("\taddon_utils.disable", module_name)
 
 
@@ -280,8 +280,8 @@ def reset_all(reload_scripts=False):
     paths_list = paths()
 
     for path in paths_list:
-        bpy.utils._sys_path_ensure(path)
-        for mod_name, mod_path in bpy.path.module_names(path):
+        _bpy.utils._sys_path_ensure(path)
+        for mod_name, mod_path in _bpy.path.module_names(path):
             is_enabled, is_loaded = check(mod_name)
 
             # first check if reload is needed before changing state.
@@ -296,7 +296,7 @@ def reset_all(reload_scripts=False):
                 enable(mod_name)
             elif is_loaded:
                 print("\taddon_utils.reset_all unloading", mod_name)
-                addon_disable(mod_name)
+                disable(mod_name)
 
 
 def module_bl_info(mod, info_basis={"name": "", "author": "", "version": (), "blender": (), "api": 0, "location": "", "description": "", "wiki_url": "", "tracker_url": "", "support": 'COMMUNITY', "category": "", "warning": "", "show_expanded": False}):
