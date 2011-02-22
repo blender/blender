@@ -702,41 +702,84 @@ static struct PyModuleDef bpy_proxy_def = {
 	NULL,  /* m_free */
 };	
 
-PyMODINIT_FUNC
-PyInit_bpy(void)
-{
-	int argc= 1;
-	char *argv[2]={NULL, NULL};
+typedef struct {
+    PyObject_HEAD
+    /* Type-specific fields go here. */
+	PyObject *mod;
+} dealloc_obj;
 
-	/* give the CWD as the first arg, blender uses */
-	char path[240]= "";
-	BLI_getwdN(path, sizeof(path));
-	BLI_join_dirfile(path, sizeof(path), path, "bpy");
-	argv[0]= path;
-	/* done with cwd */
+/* call once __file__ is set */
+void bpy_module_delay_init(PyObject *bpy_proxy)
+{
+	const int argc= 1;
+	const char *argv[2];
+
+	const char *filename_rel= PyModule_GetFilename(bpy_proxy); /* can be relative */
+	char filename_abs[1024];
+
+	BLI_strncpy(filename_abs, filename_rel, sizeof(filename_abs));
+	BLI_path_cwd(filename_abs);
+	
+	argv[0]= filename_abs;
+	argv[1]= NULL;
+	
+	// printf("module found %s\n", argv[0]);
 
 	main_python(argc, argv);
 
 	/* initialized in BPy_init_modules() */
-	if(bpy_package_py) {
-		/* Problem:
-		 * 1) this init function is expected to have a private member defined - 'md_def'
-		 *    but this is only set for C defined modules (not py packages)
-		 *    so we cant return 'bpy_package_py' as is.
-		 *
-		 * 2) there is a 'bpy' C module for python to load which is basically all of blender,
-		 *    and there is scripts/bpy/__init__.py, 
-		 *    we may end up having to rename this module so there is no naming conflict here eg:
-		 *    'from blender import bpy' */
-		PyObject *bpy_proxy= PyModule_Create(&bpy_proxy_def);
-		PyDict_Update(PyModule_GetDict(bpy_proxy), PyModule_GetDict(bpy_package_py));
-		return bpy_proxy;
-	}
-	else {
-		PyErr_SetString(PyExc_RuntimeError, "could not import internal bpy package");
-		return NULL;
-	}
-	
-	
+	PyDict_Update(PyModule_GetDict(bpy_proxy), PyModule_GetDict(bpy_package_py));
 }
+
+static void dealloc_obj_dealloc(PyObject *self);
+
+static PyTypeObject dealloc_obj_Type = {{{0}}};
+
+/* use our own dealloc so we can free a property if we use one */
+static void dealloc_obj_dealloc(PyObject *self)
+{
+	bpy_module_delay_init(((dealloc_obj *)self)->mod);
+
+	/* Note, for subclassed PyObjects we cant just call PyObject_DEL() directly or it will crash */
+	dealloc_obj_Type.tp_free(self);
+}
+
+PyMODINIT_FUNC
+PyInit_bpy(void)
+{
+	PyObject *bpy_proxy= PyModule_Create(&bpy_proxy_def);
+	
+	/* Problem:
+	 * 1) this init function is expected to have a private member defined - 'md_def'
+	 *    but this is only set for C defined modules (not py packages)
+	 *    so we cant return 'bpy_package_py' as is.
+	 *
+	 * 2) there is a 'bpy' C module for python to load which is basically all of blender,
+	 *    and there is scripts/bpy/__init__.py, 
+	 *    we may end up having to rename this module so there is no naming conflict here eg:
+	 *    'from blender import bpy'
+	 *
+	 * 3) we dont know the filename at this point, workaround by assigning a dummy value
+	 *    which calls back when its freed so the real loading can take place.
+	 */
+
+	/* assign an object which is freed after __file__ is assigned */
+	dealloc_obj *dob;
+	
+	/* assign dummy type */
+	dealloc_obj_Type.tp_name = "dealloc_obj";
+	dealloc_obj_Type.tp_basicsize = sizeof(dealloc_obj);
+	dealloc_obj_Type.tp_dealloc = dealloc_obj_dealloc;
+	dealloc_obj_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+	
+	if(PyType_Ready(&dealloc_obj_Type) < 0)
+		return NULL;
+
+	dob= (dealloc_obj *) dealloc_obj_Type.tp_alloc(&dealloc_obj_Type, 0);
+	dob->mod= bpy_proxy; /* borrow */
+	PyModule_AddObject(bpy_proxy, "__file__", (PyObject *)dob); /* borrow */
+
+	return bpy_proxy;
+}
+
 #endif
