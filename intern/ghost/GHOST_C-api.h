@@ -25,10 +25,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/*! \ingroup GHOST
+/** \ingroup GHOST
  *
  * \file	GHOST_C-api.h
- * GHOST C-API function and type declarations.
+ * \brief GHOST C-API function and type declarations.
  */
 
 #ifndef	GHOST_C_API_H
