@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_ConvertSensors.h
+ *  \ingroup bgeconv
+ */
+
 #ifndef __KX_CONVERTSENSOR_H
 #define __KX_CONVERTSENSOR_H
 

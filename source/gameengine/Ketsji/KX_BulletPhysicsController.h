@@ -1,3 +1,8 @@
+
+/** \file KX_BulletPhysicsController.h
+ *  \ingroup ketsji
+ */
+
 #ifndef KX_BULLET2PHYSICS_CONTROLLER
 #define KX_BULLET2PHYSICS_CONTROLLER
 

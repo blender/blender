@@ -1,6 +1,3 @@
-//
-// Add object to the game world on action of this actuator
-//
 // $Id$
 //
 // ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +25,10 @@
 //
 // ***** END GPL LICENSE BLOCK *****
 //
+
+/** \file KX_TrackToActuator.h
+ *  \ingroup ketsji
+ */
 
 #ifndef __KX_TrackToActuator
 #define __KX_TrackToActuator

@@ -1,8 +1,3 @@
-//
-// Add object to the game world on action of this actuator. A copy is made
-// of a referenced object. The copy inherits some properties from the owner
-// of this actuator.
-//
 // $Id$
 //
 // ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,10 +24,12 @@
 // Contributor(s): none yet.
 //
 // ***** END GPL LICENSE BLOCK *****
-//
-// Previously existed as:
-// \source\gameengine\GameLogic\SCA_AddObjectActuator.h
-// Please look here for revision history.
+
+/** \file KX_SCA_AddObjectActuator.h
+ *  \ingroup ketsji
+ *  \attention Previously existed as: \source\gameengine\GameLogic\SCA_AddObjectActuator.h
+ * Please look here for revision history.
+ */
 
 #ifndef __KX_SCA_AddObjectActuator
 #define __KX_SCA_AddObjectActuator

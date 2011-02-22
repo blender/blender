@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_OrientationInterpolator.h
+ *  \ingroup ketsji
+ */
+
 #ifndef KX_ORIENTATIONINTERPOLATOR
 #define KX_ORIENTATIONINTERPOLATOR
 

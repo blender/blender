@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_FontObject.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_FONTOBJECT
 #define  __KX_FONTOBJECT
 #include "KX_GameObject.h"

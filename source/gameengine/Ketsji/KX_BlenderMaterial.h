@@ -1,3 +1,8 @@
+
+/** \file KX_BlenderMaterial.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_BLENDER_MATERIAL_H__
 #define __KX_BLENDER_MATERIAL_H__
 

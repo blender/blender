@@ -1,3 +1,8 @@
+
+/** \file BL_Texture.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __BL_TEXTURE_H__
 #define __BL_TEXTURE_H__
 

@@ -14,6 +14,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+
+/** \file InputParser.h
+ *  \ingroup expressions
+ */
+
 #ifndef __INPUTPARSER_H__
 #define __INPUTPARSER_H__
 

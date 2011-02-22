@@ -1,6 +1,4 @@
-/**
- * Cast a ray and feel for objects
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_RaySensor.h
+ *  \ingroup ketsji
+ *  \brief Cast a ray and feel for objects
  */
 
 #ifndef __KX_RAYSENSOR_H

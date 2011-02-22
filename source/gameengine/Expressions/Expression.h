@@ -13,6 +13,10 @@
  *
  */
 
+/** \file Expression.h
+ *  \ingroup expressions
+ */
+
 #if !defined _EXPRESSION_H
 #define _EXPRESSION_H
 

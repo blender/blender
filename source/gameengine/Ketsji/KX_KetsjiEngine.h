@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  *
  */
+
+/** \file KX_KetsjiEngine.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_KETSJI_ENGINE
 #define __KX_KETSJI_ENGINE
 

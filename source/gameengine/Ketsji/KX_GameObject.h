@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * General KX game object.
+ */
+
+/** \file KX_GameObject.h
+ *  \ingroup ketsji
+ *  \brief General KX game object.
  */
 
 #ifndef __KX_GAMEOBJECT

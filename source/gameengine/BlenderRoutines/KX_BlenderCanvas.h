@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_BlenderCanvas.h
+ *  \ingroup blroutines
+ */
+
 #ifndef __KX_BLENDERCANVAS
 #define __KX_BLENDERCANVAS
 

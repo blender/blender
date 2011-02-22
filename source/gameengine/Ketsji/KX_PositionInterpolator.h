@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_PositionInterpolator.h
+ *  \ingroup ketsji
+ */
+
 #ifndef KX_POSITIONINTERPOLATOR
 #define KX_POSITIONINTERPOLATOR
 

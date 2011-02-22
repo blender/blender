@@ -1,4 +1,4 @@
-/**
+/*
  * KX_EXPRESSIONController.h
  *
  * $Id$
@@ -27,6 +27,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_ExpressionController.h
+ *  \ingroup gamelogic
  */
 
 #ifndef __KX_EXPRESSIONCONTROLLER

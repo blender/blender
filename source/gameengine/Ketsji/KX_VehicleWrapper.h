@@ -1,3 +1,8 @@
+
+/** \file KX_VehicleWrapper.h
+ *  \ingroup ketsji
+ */
+
 #ifndef KX_VEHICLE_WRAPPER
 #define KX_VEHICLE_WRAPPER
 

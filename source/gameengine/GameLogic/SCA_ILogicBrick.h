@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file SCA_ILogicBrick.h
+ *  \ingroup gamelogic
+ */
+
 #ifndef __KX_ILOGICBRICK
 #define __KX_ILOGICBRICK
 

@@ -1,7 +1,4 @@
-/**
- * Set or remove an objects parent
- *
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +28,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_ParentActuator.h
+ *  \ingroup ketsji
+ *  \brief Set or remove an objects parent
  */
 
 #ifndef __KX_PARENTACTUATOR

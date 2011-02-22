@@ -47,7 +47,29 @@
  *  \ingroup scripts
  */
 
-/** \defgroup gameengine Game Engine */
+/** \defgroup bge Game Engine */
+/** \defgroup gamelogic Game Logic
+ *  \ingroup bge
+ */
+/** \defgroup bgeconv Converter
+ *  \ingroup bge
+ */
+/** \defgroup blroutines Blender Routines
+ *  \ingroup bge
+ */
+/** \defgroup expressions Expressions
+ *  \ingroup bge
+ */
+/** \defgroup player Game Player
+ *  \ingroup bge
+ */
+/** \defgroup ketsji Ketsji
+ *  \ingroup bge
+ *  \todo check all headers and code files for proper licenses
+ */
+/** \defgroup ketsjinet Ketsji Network
+ *  \ingroup ketsji
+ */
 
 /** \defgroup audaspace Audaspace
  *  \ingroup intern undoc

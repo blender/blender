@@ -1,4 +1,4 @@
-/**
+/*
  * KX_CameraActuator.h
  *
  * $Id$
@@ -27,6 +27,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_CameraActuator.h
+ *  \ingroup ketsji
  */
 
 #ifndef __KX_CAMERAACTUATOR

@@ -1,7 +1,3 @@
- 
-//
-// Add object to the game world on action of this actuator
-//
 // $Id$
 //
 // ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +25,10 @@
 //
 // ***** END GPL LICENSE BLOCK *****
 //
+
+/** \file KX_SceneActuator.h
+ *  \ingroup ketsji
+ */
 
 #ifndef __KX_SCENEACTUATOR
 #define __KX_SCENEACTUATOR

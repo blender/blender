@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Camera in the gameengine. Cameras are also used for views.
+ */
+
+/** \file KX_Camera.h
+ *  \ingroup ketsji
+ *  \brief Camera in the gameengine. Cameras are also used for views.
  */
 
 #ifndef __KX_CAMERA

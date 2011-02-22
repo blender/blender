@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,8 +25,13 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Ketsji Logic Extenstion: Network Event Manager class
  */
+
+/** \file KX_NetworkEventManager.h
+ *  \ingroup ketsjinet
+ *  \brief Ketsji Logic Extenstion: Network Event Manager class
+ */
+
 #ifndef KX_NETWORK_EVENTMANAGER_H
 #define KX_NETWORK_EVENTMANAGER_H
 

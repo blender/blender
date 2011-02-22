@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file BL_ArmatureActuator.h
+ *  \ingroup bgeconv
+ */
+
 #ifndef BL_ARMATUREACTUATOR
 #define BL_ARMATUREACTUATOR
 

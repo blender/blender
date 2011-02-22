@@ -1,6 +1,4 @@
-/**
- * Do translation/rotation actions
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_ObjectActuator.h
+ *  \ingroup ketsji
+ *  \brief Do translation/rotation actions
  */
 
 #ifndef __KX_OBJECTACTUATOR

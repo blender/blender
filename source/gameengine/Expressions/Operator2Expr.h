@@ -13,6 +13,10 @@
  *
  */
 
+/** \file Operator2Expr.h
+ *  \ingroup expressions
+ */
+
 #if !defined _OPERATOR2EXPR_H
 #define _OPERATOR2EXPR_H
 

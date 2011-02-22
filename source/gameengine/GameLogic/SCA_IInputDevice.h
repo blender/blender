@@ -1,7 +1,4 @@
-/**
- * Interface for input devices. The defines for keyboard/system/mouse events
- * here are for internal use in the KX module.
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +25,13 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_IController.h
+ *  \ingroup gamelogic
+ *  \brief Interface for input devices. The defines for keyboard/system/mouse events
+ *   here are for internal use in the KX module.
+ *
  */
 
 #ifndef KX_INPUTDEVICE_H
