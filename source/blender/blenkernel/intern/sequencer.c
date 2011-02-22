@@ -193,7 +193,7 @@ void seq_free_sequence(Scene *scene, Sequence *seq)
 		if (ed->act_seq==seq)
 			ed->act_seq= NULL;
 
-		if(seq->scene_sound)
+		if(seq->scene_sound && ELEM(seq->type, SEQ_SOUND, SEQ_SCENE))
 			sound_remove_scene_sound(scene, seq->scene_sound);
 
 		seq_free_animdata(scene, seq);
@@ -3399,6 +3399,7 @@ Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 	seq->mul= 1.0;
 	seq->blend_opacity = 100.0;
 	seq->volume = 1.0f;
+	seq->scene_sound = NULL;
 
 	return seq;
 }
