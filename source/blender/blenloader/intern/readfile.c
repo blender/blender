@@ -2120,12 +2120,12 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 		/* and scene trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree)
-				lib_nodetree_do_versions_group(ma->nodetree);
+				lib_nodetree_do_versions_group(sce->nodetree);
 		}
 		/* and texture trees */
 		for(tx= main->tex.first; tx; tx= tx->id.next) {
 			if(tx->nodetree)
-				lib_nodetree_do_versions_group(ma->nodetree);
+				lib_nodetree_do_versions_group(tx->nodetree);
 		}
 	}
 
