@@ -11,7 +11,8 @@ cp -a build_files/package_spec/debian .
 
 
 # Get values from blender to use in debian/changelog.
-BLENDER_REVISION=$(svnversion)
+# value may be formatted: 35042:35051M
+BLENDER_REVISION=$(svnversion | cut -d: -f2 | tr -dc 0-9)
 
 blender_srcdir=$PWD
 blender_version=$(grep BLENDER_VERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
