@@ -33,8 +33,8 @@ class MyPropertyGroup(bpy.types.PropertyGroup):
 
 bpy.utils.register_class(MyPropertyGroup)
 
-bpy.types.Object.my_properties = MyPropertyGroup
+bpy.types.Object.my_prop_grp = bpy.props.PointerProperty(type=MyPropertyGroup)
 
 
 # test this worked
-bpy.data.objects[0].my_properties.custom_1 = 22.0
+bpy.data.objects[0].my_prop_grp.custom_1 = 22.0
