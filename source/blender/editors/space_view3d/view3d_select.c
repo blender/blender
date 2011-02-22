@@ -1787,7 +1787,10 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			}
 			break;
 		case OB_LATTICE:
-			ret= do_lattice_box_select(&vc, &rect, select, extend);			
+			ret= do_lattice_box_select(&vc, &rect, select, extend);		
+			if(ret & OPERATOR_FINISHED) {
+				WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
+			}
 			break;			
 		default:
 			assert(!"border select on incorrect object type");
