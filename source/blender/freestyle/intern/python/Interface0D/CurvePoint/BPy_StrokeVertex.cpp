@@ -241,7 +241,7 @@ static char StrokeVertex_setPoint___doc__[] =
 "   :arg y: The Y coordinate.\n"
 "   :type y: float\n"
 "\n"
-".. method:: SetPoint(p)\n"
+".. method:: setPoint(p)\n"
 "\n"
 "   Sets the 2D point X and Y coordinates.\n"
 "\n"

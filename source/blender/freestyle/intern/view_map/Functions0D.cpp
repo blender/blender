@@ -289,13 +289,8 @@ namespace Functions0D {
   int MaterialF0D::operator()(Interface0DIterator& iter) {
     FEdge *fe1, *fe2;
     getFEdges(iter,fe1,fe2);
-
-    if(fe1 == 0) {
-      // DEBUG
-      getFEdges(iter, fe1, fe2);
-      return 1;
-    }
-
+    if(fe1 == 0)
+      return -1;
     if(fe1->isSmooth())
       result = ((FEdgeSmooth*)fe1)->frs_material();
     else
