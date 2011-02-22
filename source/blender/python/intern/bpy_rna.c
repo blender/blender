@@ -3937,6 +3937,16 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
+	/* for testing */
+	/*
+	{
+		const char *fn;
+		int lineno;
+		PyC_FileAndNum(&fn, &lineno);
+		printf("pyrna_func_call > %.200s.%.200s : %.200s:%d\n", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), fn, lineno);
+	}
+	*/
+
 	/* include the ID pointer for pyrna_param_to_py() so we can include the
 	 * ID pointer on return values, this only works when returned values have
 	 * the same ID as the functions. */
@@ -5415,7 +5425,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	/* testing, for correctness, not operator and not draw function */
 	const short is_readonly= strstr("draw", func_id) || /*strstr("render", func_id) ||*/ !RNA_struct_is_a(ptr->type, &RNA_Operator);
 #endif
-
+	
 	py_class= RNA_struct_py_type_get(ptr->type);
 	
 	/* rare case. can happen when registering subclasses */
