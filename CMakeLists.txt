@@ -161,8 +161,16 @@ endif()
 
 TEST_SSE_SUPPORT()
 
+#-----------------------------------------------------------------------------
+# Initialize un-cached vars, avoid unused warning
+
 # linux only, not cached
 set(WITH_BINRELOC OFF)
+
+# these are added to later on.
+set(C_WARNINGS "")
+set(CXX_WARNINGS "")
+
 
 # disabled for now, not supported
 # option(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
