@@ -35,7 +35,7 @@
 
 #include "GL/glew.h"
 
-/* Note: this used to have a lot more code, but now extension handling
+/** Note: this used to have a lot more code, but now extension handling
  * is done by GLEW, so it does mostly debug stuff */
 
 namespace bgl

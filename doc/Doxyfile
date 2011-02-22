@@ -640,7 +640,8 @@ INPUT                  = doxygen.main \
                          ../source/gameengine/Ketsji \
                          ../source/gameengine/Rasterizer \
                          ../source/gameengine/Network \
-                         ../source/gameengine/Physics
+                         ../source/gameengine/Physics \
+                         ../extern/bullet2
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 

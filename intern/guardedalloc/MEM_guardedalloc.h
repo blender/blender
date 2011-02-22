@@ -30,26 +30,32 @@
  *  \ingroup MEM
  *
  *  \author Copyright (C) 2001 NaN Technologies B.V.
- *  \brief Guarded memory (de)allocation
- *
+ *  \brief Read \ref MEMPage
+ */
+
+/** 
+ * \page MEMPage Guarded memory(de)allocation
  *
  * \section aboutmem c-style guarded memory allocation
  *
- * \subsection about About the MEM module
+ * \subsection memabout About the MEM module
  *
  * MEM provides guarded malloc/calloc calls. All memory is enclosed by
  * pads, to detect out-of-bound writes. All blocks are placed in a
  * linked list, so they remain reachable at all times. There is no
  * back-up in case the linked-list related data is lost.
  *
- * \subsection issues Known issues with MEM
+ * \subsection memissues Known issues with MEM
  *
  * There are currently no known issues with MEM. Note that there is a
  * second intern/ module with MEM_ prefix, for use in c++.
  * 
- * \subsection dependencies Dependencies
+ * \subsection memdependencies Dependencies
  * - stdlib
  * - stdio
+ * 
+ * \subsection memdocs API Documentation
+ * See \ref MEM_guardedalloc.h
  */
 
 #ifndef MEM_MALLOCN_H

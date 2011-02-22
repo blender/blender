@@ -43,7 +43,7 @@
 class GHOST_IEventConsumer;
 
 /**
- * \page GHOST GHOST
+ * \page GHOSTPage GHOST
  *
  * \section intro Introduction
  *
