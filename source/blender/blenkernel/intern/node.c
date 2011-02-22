@@ -476,7 +476,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 			BLI_addtail(&ngroup->links, link);
 		}
 		else if(link->tonode && (link->tonode->flag & NODE_SELECT)) {
-			gsock = nodeAddGroupSocketCopy(ngroup, link->tosock, SOCK_IN);
+			gsock = nodeGroupAddSocket(ngroup, link->tosock->name, link->tosock->type, SOCK_IN);
 			link->tosock->link = nodeAddLink(ngroup, NULL, gsock, link->tonode, link->tosock);
 			link->tosock = node_add_group_socket(&gnode->inputs, gsock);
 			link->tonode = gnode;
@@ -487,7 +487,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 				if (gsock->link && gsock->link->fromsock==link->fromsock)
 					break;
 			if (!gsock) {
-				gsock = nodeAddGroupSocketCopy(ngroup, link->fromsock, SOCK_OUT);
+				gsock = nodeGroupAddSocket(ngroup, link->fromsock->name, link->fromsock->type, SOCK_OUT);
 				gsock->link = nodeAddLink(ngroup, link->fromnode, link->fromsock, NULL, gsock);
 				link->fromsock = node_add_group_socket(&gnode->outputs, gsock);
 			}
@@ -505,7 +505,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 
 /* here's a nasty little one, need to check users... */
 /* should become callbackable... */
-void nodeVerifyGroup(bNodeTree *ngroup)
+void nodeGroupVerify(bNodeTree *ngroup)
 {
 	/* group changed, so we rebuild the type definition */
 //	ntreeMakeGroupSockets(ngroup);
@@ -627,21 +627,27 @@ bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
 }
 
 /* finds a node based on given socket */
-int nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **nodep, int *sockindex)
+int nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **nodep, int *sockindex, int *in_out)
 {
 	bNode *node;
 	bNodeSocket *tsock;
 	int index= 0;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
-		for(index=0, tsock= node->inputs.first; tsock; tsock= tsock->next, index++)
-			if(tsock==sock)
+		for(index=0, tsock= node->inputs.first; tsock; tsock= tsock->next, index++) {
+			if(tsock==sock) {
+				if (in_out) *in_out= SOCK_IN;
 				break;
+			}
+		}
 		if(tsock)
 			break;
-		for(index=0, tsock= node->outputs.first; tsock; tsock= tsock->next, index++)
-			if(tsock==sock)
+		for(index=0, tsock= node->outputs.first; tsock; tsock= tsock->next, index++) {
+			if(tsock==sock) {
+				if (in_out) *in_out= SOCK_OUT;
 				break;
+			}
+		}
 		if(tsock)
 			break;
 	}
@@ -807,7 +813,7 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	return 1;
 }
 
-void nodeCopyGroup(bNode *gnode)
+void nodeGroupCopy(bNode *gnode)
 {
 	bNodeSocket *sock;
 
@@ -824,7 +830,7 @@ void nodeCopyGroup(bNode *gnode)
 			sock->groupsock= sock->groupsock->new_sock;
 }
 
-bNodeSocket *nodeAddGroupSocket(bNodeTree *ngroup, const char *name, int type, int in_out)
+bNodeSocket *nodeGroupAddSocket(bNodeTree *ngroup, const char *name, int type, int in_out)
 {
 	bNodeSocket *gsock = MEM_callocN(sizeof(bNodeSocket), "bNodeSocket");
 	
@@ -849,61 +855,29 @@ bNodeSocket *nodeAddGroupSocket(bNodeTree *ngroup, const char *name, int type, i
 	return gsock;
 }
 
-bNodeSocket *nodeAddGroupSocketCopy(bNodeTree *ngroup, bNodeSocket *copy, int in_out)
-{
-	bNodeSocket *gsock = MEM_callocN(sizeof(bNodeSocket), "bNodeSocket");
-	
-	/* copy name type and data */
-	strcpy(gsock->name, copy->name);
-	gsock->type = copy->type;
-	gsock->ns = copy->ns;
-	gsock->ns.data = NULL;
-	gsock->flag = copy->flag;
-	
-	gsock->next = gsock->prev = NULL;
-	gsock->new_sock = NULL;
-	gsock->groupsock = NULL;
-	gsock->link = NULL;
-	/* assign new unique index */
-	gsock->own_index = ngroup->cur_index++;
-	gsock->limit = (in_out==SOCK_IN ? 0xFFF : 1);
-	
-	BLI_addtail(in_out==SOCK_IN ? &ngroup->inputs : &ngroup->outputs, gsock);
-	
-	return gsock;
-}
-
-void nodeAddAllGroupSockets(bNodeTree *ngroup)
+void nodeGroupExposeAllSockets(bNodeTree *ngroup)
 {
 	bNode *node;
 	bNodeSocket *sock, *gsock;
 	
-	printf("Verifying group '%s':\n", ngroup->id.name+2);
 	for (node=ngroup->nodes.first; node; node=node->next) {
-		printf("\tNode '%s':\n", node->name);
 		for (sock=node->inputs.first; sock; sock=sock->next) {
-			printf("\t\tInput '%s': link=%p, hidden=%d\n", sock->name, sock->link, (sock->flag & SOCK_HIDDEN));
-//			if (sock->link) {
-//				if (sock->link->fromnode)
-//					printf("fromnode=%s ", sock->link->fromnode->name);
-//				printf("fromsock=%s")
-//			}
 			if (!sock->link && !(sock->flag & SOCK_HIDDEN)) {
-				gsock = nodeAddGroupSocketCopy(ngroup, sock, SOCK_IN);
+				gsock = nodeGroupAddSocket(ngroup, sock->name, sock->type, SOCK_IN);
 				sock->link = nodeAddLink(ngroup, NULL, gsock, node, sock);
 			}
 		}
 		for (sock=node->outputs.first; sock; sock=sock->next) {
 			printf("\t\tOutput '%s': #links=%d, hidden=%d\n", sock->name, nodeCountSocketLinks(ngroup, sock), (sock->flag & SOCK_HIDDEN));
 			if (nodeCountSocketLinks(ngroup, sock)==0 && !(sock->flag & SOCK_HIDDEN)) {
-				gsock = nodeAddGroupSocketCopy(ngroup, sock, SOCK_OUT);
+				gsock = nodeGroupAddSocket(ngroup, sock->name, sock->type, SOCK_OUT);
 				gsock->link = nodeAddLink(ngroup, node, sock, NULL, gsock);
 			}
 		}
 	}
 }
 
-void nodeRemGroupSocket(bNodeTree *ngroup, bNodeSocket *gsock, int in_out)
+void nodeGroupRemoveSocket(bNodeTree *ngroup, bNodeSocket *gsock, int in_out)
 {
 	nodeRemSocketLinks(ngroup, gsock);
 	switch (in_out) {

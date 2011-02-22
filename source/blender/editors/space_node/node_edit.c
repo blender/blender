@@ -555,7 +555,7 @@ void node_tree_verify_groups(bNodeTree *nodetree)
 	
 	/* does all materials */
 	if(gnode)
-		nodeVerifyGroup((bNodeTree *)gnode->id);
+		nodeGroupVerify((bNodeTree *)gnode->id);
 	
 }
 
@@ -663,7 +663,7 @@ static int node_group_socket_add_exec(bContext *C, wmOperator *op)
 	else
 		return OPERATOR_CANCELLED;
 	
-	sock = nodeAddGroupSocket(ngroup, name, type, in_out);
+	sock = nodeGroupAddSocket(ngroup, name, type, in_out);
 	
 	node_tree_verify_groups(snode->nodetree);
 	
@@ -715,7 +715,7 @@ static int node_group_socket_remove_exec(bContext *C, wmOperator *op)
 	
 	sock = (bNodeSocket*)BLI_findlink(in_out==SOCK_IN ? &ngroup->inputs : &ngroup->outputs, index);
 	if (sock) {
-		nodeRemGroupSocket(ngroup, sock, in_out);
+		nodeGroupRemoveSocket(ngroup, sock, in_out);
 		node_tree_verify_groups(snode->nodetree);
 		
 		snode_notify(C, snode);
@@ -2141,11 +2141,11 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 			else if (outside_group_rect(snode) && (link->tonode || link->fromnode)) {
 				/* automatically add new group socket */
 				if (link->tonode && link->tosock) {
-					link->fromsock = nodeAddGroupSocketCopy(snode->edittree, link->tosock, SOCK_IN);
+					link->fromsock = nodeGroupAddSocket(snode->edittree, link->tosock->name, link->tosock->type, SOCK_IN);
 					link->fromnode = NULL;
 				}
 				else if (link->fromnode && link->fromsock) {
-					link->tosock = nodeAddGroupSocketCopy(snode->edittree, link->fromsock, SOCK_OUT);
+					link->tosock = nodeGroupAddSocket(snode->edittree, link->fromsock->name, link->fromsock->type, SOCK_OUT);
 					link->tonode = NULL;
 				}
 			}

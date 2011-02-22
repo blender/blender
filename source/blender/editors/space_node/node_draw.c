@@ -1014,7 +1014,7 @@ static void group_verify_cb(bContext *UNUSED(C), void *UNUSED(snode_v), void *ng
 {
 	bNodeTree *ngroup= (bNodeTree*)ngroup_v;
 	
-	nodeVerifyGroup(ngroup);
+	nodeGroupVerify(ngroup);
 }
 
 /* groups are, on creation, centered around 0,0 */

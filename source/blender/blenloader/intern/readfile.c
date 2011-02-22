@@ -2108,7 +2108,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 		for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
 			if (ntree->flag & NTREE_DO_VERSIONS) {
 				/* this adds copies and links from all unlinked internal sockets to group inputs/outputs. */
-				nodeAddAllGroupSockets(ntree);
+				nodeGroupExposeAllSockets(ntree);
 				has_old_groups = 1;
 			}
 		}
