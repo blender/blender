@@ -1353,6 +1353,10 @@ void ViewShape::SplitEdge(FEdge *fe,
       
       // a new edge, A'B is created.
       FEdge *newEdge = shape->SplitEdgeIn2(fe, sv);
+	  /*
+	   * One of the two FEdges (fe and newEdge) may have a 2D length less than M_EPSILON.
+	   * (22 Feb 2011, T.K.)
+	   */
 
       ioNewEdges.push_back(newEdge);
       ViewEdge *newVEdge;

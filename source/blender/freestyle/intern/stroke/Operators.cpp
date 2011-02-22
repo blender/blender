@@ -464,7 +464,19 @@ int Operators::sequentialSplit(UnaryPredicate0D& pred,
     delete (*cit);
   }
   _current_chains_set.clear();
+#if 0
   _current_chains_set = splitted_chains;
+#else
+  for (cit = splitted_chains.begin(), citend = splitted_chains.end();
+	   cit != citend;
+	   ++cit) {
+	if ((*cit)->getLength2D() < M_EPSILON) {
+	  delete (*cit);
+	  continue;
+	}
+    _current_chains_set.push_back(*cit);
+  }
+#endif
   splitted_chains.clear();
 
   if (!_current_chains_set.empty())
@@ -554,7 +566,19 @@ int Operators::sequentialSplit(UnaryPredicate0D& startingPred, UnaryPredicate0D&
     delete (*cit);
   }
   _current_chains_set.clear();
+#if 0
   _current_chains_set = splitted_chains;
+#else
+  for (cit = splitted_chains.begin(), citend = splitted_chains.end();
+	   cit != citend;
+	   ++cit) {
+	if ((*cit)->getLength2D() < M_EPSILON) {
+	  delete (*cit);
+	  continue;
+	}
+    _current_chains_set.push_back(*cit);
+  }
+#endif
   splitted_chains.clear();
   
   if (!_current_chains_set.empty())
@@ -711,7 +735,19 @@ int Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate1D& p
   } 
   
   _current_chains_set.clear();
+#if 0
   _current_chains_set = newChains;
+#else
+  for (cit = newChains.begin(), citend = newChains.end();
+	   cit != citend;
+	   ++cit) {
+	if ((*cit)->getLength2D() < M_EPSILON) {
+	  delete (*cit);
+	  continue;
+	}
+    _current_chains_set.push_back(*cit);
+  }
+#endif
   newChains.clear();
 
   if (!_current_chains_set.empty())
@@ -868,7 +904,19 @@ int Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate0D& p
   } 
   
   _current_chains_set.clear();
+#if 0
   _current_chains_set = newChains;
+#else
+  for (cit = newChains.begin(), citend = newChains.end();
+	   cit != citend;
+	   ++cit) {
+	if ((*cit)->getLength2D() < M_EPSILON) {
+	  delete (*cit);
+	  continue;
+	}
+    _current_chains_set.push_back(*cit);
+  }
+#endif
   newChains.clear();
 
   if (!_current_chains_set.empty())
@@ -944,6 +992,13 @@ Stroke* createStroke(Interface1D& inter) {
       // previous one. We remove it to avoid having to deal
       // with this kind of singularities in the strip creation
       delete stroke_vertex;
+	  /*
+	   * This seems a wrong place to clean stroke topology, since just
+	   * deleting this `stroke_vertex' possibly breaks the continuity of
+	   * the underlying series of FEdges on top of which the stroke has
+	   * been built.  Such a break of linked FEdges will cause a failure
+	   * of CurvePoint::getFEdge(). (22 Feb 2011, T.K.)
+	   */
     }else{
       currentCurvilignAbscissa += vec_tmp.norm();
       stroke_vertex->setCurvilinearAbscissa(currentCurvilignAbscissa);
@@ -1037,9 +1092,19 @@ void Operators::reset() {
        ++it)
     delete *it;
   _current_chains_set.clear();
+#if 0
   _current_view_edges_set.insert(_current_view_edges_set.begin(),
 				 vm->ViewEdges().begin(),
 				 vm->ViewEdges().end());
+#else
+  ViewMap::viewedges_container& vedges = vm->ViewEdges();
+  ViewMap::viewedges_container::iterator ve=vedges.begin(), veend=vedges.end();
+  for (; ve != veend; ++ve) {
+    if ((*ve)->getLength2D() < M_EPSILON)
+      continue;
+    _current_view_edges_set.push_back(*ve);
+  }
+#endif
   _current_set = &_current_view_edges_set;
   _current_strokes_set.clear();
 }
