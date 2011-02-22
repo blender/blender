@@ -71,11 +71,15 @@ void BLF_lang_init(void)
 		BLI_strncpy(global_messagepath, messagepath, sizeof(global_messagepath));
 	else
 		global_messagepath[0]= '\0';
+	
 }
 
-
+/* XXX WARNING!!! IN osx somehow the previous function call jumps in this one??? (ton, ppc) */
 void BLF_lang_set(const char *str)
 {
+	if(str==NULL)
+		return;
+	
 #if defined (_WIN32) || defined(__APPLE__)
 	BLI_setenv("LANG", str);
 #else
