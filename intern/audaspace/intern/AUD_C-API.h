@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file AUD_-API.h
+/** \file AUD_C-API.h
  *  \ingroup audaspace
  */
  
