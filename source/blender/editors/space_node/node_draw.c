@@ -390,6 +390,9 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 	int counter;
 	int dy;
 	
+	rect->xmin = rect->xmax = gnode->locx;
+	rect->ymin = rect->ymax = gnode->locy;
+	
 	/* center them, is a bit of abuse of locx and locy though */
 	for(node= ngroup->nodes.first; node; node= node->next) {
 		node->locx+= gnode->locx;
@@ -413,14 +416,9 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 	}
 	
 	/* add some room for links to group sockets */
-	rect->xmin -= 3*NODE_DY;
-	rect->xmax += 3*NODE_DY;
-	
-	if(counter==1) return;	/* should be prevented? */
-	
-	rect->xmin-= NODE_DY;
+	rect->xmin -= 4*NODE_DY;
+	rect->xmax += 4*NODE_DY;
 	rect->ymin-= NODE_DY;
-	rect->xmax+= NODE_DY;
 	rect->ymax+= NODE_DY;
 	
 	/* input sockets */
@@ -429,6 +427,13 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		gsock->locx = rect->xmin;
 		sock->locx = rect->xmin - NODE_GROUP_FRAME;
 		sock->locy = gsock->locy = dy;
+		
+		/* prevent long socket lists from growing out of the group box */
+		if (dy-3*NODE_DYS < rect->ymin)
+			rect->ymin = dy-3*NODE_DYS;
+		if (dy+3*NODE_DYS > rect->ymax)
+			rect->ymax = dy+3*NODE_DYS;
+		
 		dy -= 2*NODE_DY;
 	}
 	
@@ -438,6 +443,13 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		gsock->locx = rect->xmax;
 		sock->locx = rect->xmax + NODE_GROUP_FRAME;
 		sock->locy = gsock->locy = dy - NODE_DYS;
+		
+		/* prevent long socket lists from growing out of the group box */
+		if (dy-3*NODE_DYS < rect->ymin)
+			rect->ymin = dy-3*NODE_DYS;
+		if (dy+3*NODE_DYS > rect->ymax)
+			rect->ymax = dy+3*NODE_DYS;
+		
 		dy -= 2*NODE_DY;
 	}
 }
