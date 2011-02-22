@@ -2469,12 +2469,12 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, SculptSession *ss)
 
 			int n, totnode;
 			PBVHNode** nodes;
-			PBVHVertexIter vd;
 
 			BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
 			#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 			for (n= 0; n < totnode; n++) {
+				PBVHVertexIter vd;
 
 				BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 					sculpt_flush_pbvhvert_deform(ss, &vd);
