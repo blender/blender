@@ -15,6 +15,7 @@ subject to the following restrictions:
 
 /** \file CcdPhysicsEnvironment.h
  *  \ingroup physbullet
+ *  See also \ref bulletdoc
  */
 
 #ifndef CCDPHYSICSENVIRONMENT

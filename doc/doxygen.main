@@ -42,6 +42,7 @@
 
 /** \defgroup bullet Bullet Physics Library
  *  \ingroup extern
+ *  \see \ref bulletdoc
  */
 
 /** \defgroup blenderplayer Blender Player */
@@ -103,6 +104,12 @@
  */
 /** \defgroup bgerastogl OpenGL Rasterizer
  *  \ingroup bgerast
+ */
+/** \defgroup bgesg BGE SceneGraph
+ *  \ingroup bge
+ */
+/** \defgroup bgevideotex BGE Video Texture
+ *  \ingroup bge
  */
 
 /** \defgroup audaspace Audaspace

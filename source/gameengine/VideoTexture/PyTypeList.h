@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file PyTypeList.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined PYTYPELIST_H
 #define PYTYPELIST_H
 

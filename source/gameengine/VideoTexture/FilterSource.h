@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file FilterSource.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined FILTERSOURCE_H
 #define FILTERSOURCE_H
 
