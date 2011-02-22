@@ -1403,7 +1403,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, buttons_texture_context_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceProperties_texture_context_itemf");
 	RNA_def_property_ui_text(prop, "Texture Context", "Type of texture data to display and edit");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_PROPERTIES, NULL);
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	/* pinned data */
 	prop= RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);
