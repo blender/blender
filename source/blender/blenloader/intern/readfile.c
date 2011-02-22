@@ -2127,6 +2127,9 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 			if(tx->nodetree)
 				lib_nodetree_do_versions_group(tx->nodetree);
 		}
+		
+		for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
+			ntree->flag &= ~NTREE_DO_VERSIONS;
 	}
 
 	/* now verify all types in material trees, groups are set OK now */
