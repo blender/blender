@@ -57,6 +57,7 @@ void	ED_undo_pop_op			(struct bContext *C, struct wmOperator *op);
 void	ED_undo_pop				(struct bContext *C);
 void	ED_undo_redo			(struct bContext *C);
 void	ED_OT_undo				(struct wmOperatorType *ot);
+void	ED_OT_undo_push			(struct wmOperatorType *ot);
 void	ED_OT_redo				(struct wmOperatorType *ot);
 
 int		ED_undo_operator_repeat(struct bContext *C, struct wmOperator *op);

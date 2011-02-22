@@ -60,8 +60,12 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "util_intern.h"
+
+#define MAXUNDONAME 64 /* XXX, make common define */
 
 /* ***************** generic undo system ********************* */
 
@@ -252,6 +256,14 @@ static int ed_undo_exec(bContext *C, wmOperator *UNUSED(op))
 	return ed_undo_step(C, 1, NULL);
 }
 
+static int ed_undo_push_exec(bContext *C, wmOperator *op)
+{
+	char str[MAXUNDONAME];
+	RNA_string_get(op->ptr, "message", str);
+	ED_undo_push(C, str);
+	return OPERATOR_FINISHED;
+}
+
 static int ed_redo_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	return ed_undo_step(C, -1, NULL);
@@ -296,6 +308,19 @@ void ED_OT_undo(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= ed_undo_exec;
 	ot->poll= ED_operator_screenactive;
+}
+
+void ED_OT_undo_push(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Undo Push";
+	ot->description= "Add an undo state (internal use only)";
+	ot->idname= "ED_OT_undo_push";
+	
+	/* api callbacks */
+	ot->exec= ed_undo_push_exec;
+
+	RNA_def_string(ot->srna, "message", "Add an undo step *function may be moved*", MAXUNDONAME, "Undo Message", "");
 }
 
 void ED_OT_redo(wmOperatorType *ot)

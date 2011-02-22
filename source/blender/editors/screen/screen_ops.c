@@ -3075,6 +3075,7 @@ void ED_operatortypes_screen(void)
 	
 	/* tools shared by more space types */
 	WM_operatortype_append(ED_OT_undo);
+	WM_operatortype_append(ED_OT_undo_push);
 	WM_operatortype_append(ED_OT_redo);	
 	
 }
