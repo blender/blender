@@ -2195,17 +2195,23 @@ static void group_tag_used_outputs(bNode *gnode, bNodeStack *stack, bNodeStack *
 {
 	bNodeTree *ntree= (bNodeTree *)gnode->id;
 	bNode *node;
+	bNodeSocket *sock;
 	
 	stack+= gnode->stack_index;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->execfunc) {
-			bNodeSocket *sock;
-			
 			for(sock= node->inputs.first; sock; sock= sock->next) {
 				bNodeStack *ns = get_socket_stack(stack, sock, gin);
 				ns->hasoutput= 1;
 			}
+		}
+		
+		/* set stack types (for local stack entries) */
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			bNodeStack *ns = get_socket_stack(stack, sock, NULL);
+			if (ns)
+				ns->sockettype = sock->type;
 		}
 	}
 }
@@ -2311,6 +2317,13 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 						}
 					}
 				}
+			}
+			
+			/* set stack types (for local stack entries) */
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				ns = get_socket_stack(ntree->stack, sock, NULL);
+				if (ns)
+					ns->sockettype = sock->type;
 			}
 			
 			if(node->type==NODE_GROUP && node->id) {
