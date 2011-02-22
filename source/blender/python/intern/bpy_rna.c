@@ -2246,8 +2246,8 @@ static char pyrna_struct_keyframe_insert_doc[] =
 "   :arg group: The name of the group the F-Curve should be added to if it doesn't exist yet.\n"
 "   :type group: str\n"
 "   :return: Success of keyframe insertion.\n"
-"   :rtype: boolean";
-
+"   :rtype: boolean\n"
+;
 static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
 	/* args, pyrna_struct_keyframe_parse handles these */
@@ -2289,8 +2289,8 @@ static char pyrna_struct_keyframe_delete_doc[] =
 "   :arg group: The name of the group the F-Curve should be added to if it doesn't exist yet.\n"
 "   :type group: str\n"
 "   :return: Success of keyframe deleation.\n"
-"   :rtype: boolean";
-
+"   :rtype: boolean\n"
+;
 static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
 	/* args, pyrna_struct_keyframe_parse handles these */
@@ -2329,8 +2329,8 @@ static char pyrna_struct_driver_add_doc[] =
 "   :arg index: array index of the property drive. Defaults to -1 for all indices or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :return: The driver(s) added.\n"
-"   :rtype: :class:`FCurve` or list if index is -1 with an array property.";
-
+"   :rtype: :class:`FCurve` or list if index is -1 with an array property.\n"
+;
 static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 {
 	const char *path, *path_full;
@@ -2401,8 +2401,8 @@ static char pyrna_struct_driver_remove_doc[] =
 "   :arg index: array index of the property drive. Defaults to -1 for all indices or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :return: Success of driver removal.\n"
-"   :rtype: boolean";
-
+"   :rtype: boolean\n"
+;
 static PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 {
 	const char *path, *path_full;
@@ -2438,8 +2438,8 @@ static char pyrna_struct_is_property_set_doc[] =
 "   Check if a property is set, use for testing operator properties.\n"
 "\n"
 "   :return: True when the property has been set.\n"
-"   :rtype: boolean";
-
+"   :rtype: boolean\n"
+;
 static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *args)
 {
 	PropertyRNA *prop;
@@ -2478,8 +2478,8 @@ static char pyrna_struct_is_property_hidden_doc[] =
 "   Check if a property is hidden.\n"
 "\n"
 "   :return: True when the property is hidden.\n"
-"   :rtype: boolean";
-
+"   :rtype: boolean\n"
+;
 static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *args)
 {
 	PropertyRNA *prop;
@@ -2504,8 +2504,8 @@ static char pyrna_struct_path_resolve_doc[] =
 "   :arg path: path which this property resolves.\n"
 "   :type path: string\n"
 "   :arg coerce: optional argument, when True, the property will be converted into its python representation.\n"
-"   :type coerce: boolean\n";
-
+"   :type coerce: boolean\n"
+;
 static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 {
 	const char *path;
@@ -2555,8 +2555,8 @@ static char pyrna_struct_path_from_id_doc[] =
 "   :arg property: Optional property name which can be used if the path is to a property of this object.\n"
 "   :type property: string\n"
 "   :return: The path from :class:`bpy_struct.id_data` to this struct and property (when given).\n"
-"   :rtype: str";
-
+"   :rtype: str\n"
+;
 static PyObject *pyrna_struct_path_from_id(BPy_StructRNA *self, PyObject *args)
 {
 	const char *name= NULL;
@@ -2598,8 +2598,8 @@ static char pyrna_prop_path_from_id_doc[] =
 "   Returns the data path from the ID to this property (string).\n"
 "\n"
 "   :return: The path from :class:`bpy_struct.id_data` to this property.\n"
-"   :rtype: str";
-
+"   :rtype: str\n"
+;
 static PyObject *pyrna_prop_path_from_id(BPy_PropertyRNA *self)
 {
 	const char *path;
@@ -2625,8 +2625,8 @@ static char pyrna_struct_type_recast_doc[] =
 "   Return a new instance, this is needed because types such as textures can be changed at runtime.\n"
 "\n"
 "   :return: a new instance of this object with the type initialized again.\n"
-"   :rtype: subclass of :class:`bpy_struct`";
-
+"   :rtype: subclass of :class:`bpy_struct`\n"
+;
 static PyObject *pyrna_struct_type_recast(BPy_StructRNA *self)
 {
 	PointerRNA r_ptr;
@@ -3244,10 +3244,10 @@ static char pyrna_struct_get_doc[] =
 "   :arg key: The key assosiated with the custom property.\n"
 "   :type key: string\n"
 "   :arg default: Optional argument for the value to return if *key* is not found.\n"
-// "   :type default: Undefined\n"
+"   :type default: Undefined\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n";
-
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n"
+;
 static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 {
 	IDProperty *group, *idprop;
@@ -3283,8 +3283,8 @@ static char pyrna_struct_as_pointer_doc[] =
 "   :return: int (memory address).\n"
 "   :rtype: int\n"
 "\n"
-"   .. note:: This is intended only for advanced script writers who need to pass blender data to their own C/Python modules.\n";
-
+"   .. note:: This is intended only for advanced script writers who need to pass blender data to their own C/Python modules.\n"
+;
 static PyObject *pyrna_struct_as_pointer(BPy_StructRNA *self)
 {
 	return PyLong_FromVoidPtr(self->ptr.data);
