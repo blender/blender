@@ -1284,6 +1284,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 				panel->labelofs= xco - triangle;
 				panel->layout= NULL;
 			}
+			else {
+				panel->labelofs= 0;
+			}
 
 			if(open) {
 				short panelContext;
