@@ -62,6 +62,7 @@ void shade_input_calc_viewco(struct ShadeInput *shi, float x, float y, float z, 
 void shade_input_set_viewco(struct ShadeInput *shi, float x, float y, float sx, float sy, float z);
 void shade_input_set_uv(struct ShadeInput *shi);
 void shade_input_set_normals(struct ShadeInput *shi);
+void shade_input_set_vertex_normals(struct ShadeInput *shi);
 void shade_input_flip_normals(struct ShadeInput *shi);
 void shade_input_set_shade_texco(struct ShadeInput *shi);
 void shade_input_set_strand(struct ShadeInput *shi, struct StrandRen *strand, struct StrandPoint *spoint);

@@ -841,7 +841,7 @@ void shade_input_set_normals(ShadeInput *shi)
 }
 
 /* XXX shi->flippednor messes up otherwise */
-static void shade_input_set_vertex_normals(ShadeInput *shi)
+void shade_input_set_vertex_normals(ShadeInput *shi)
 {
 	float u= shi->u, v= shi->v;
 	float l= 1.0f+u+v;
