@@ -428,7 +428,7 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 #ifdef WITH_PYTHON
 	if(CTX_py_init_get(C)) {
 		/* sync addons, these may have changed from the defaults */
-		BPY_string_exec(C, "__import__('bpy').utils.addon_reset_all()");
+		BPY_string_exec(C, "__import__('addon_utils').reset_all()");
 
 		BPY_driver_reset();
 		BPY_modules_load_user(C);
