@@ -1,5 +1,5 @@
 /**
- * $Id: bpy_interface.c 35032 2011-02-21 13:13:08Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
