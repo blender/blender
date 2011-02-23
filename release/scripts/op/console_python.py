@@ -83,10 +83,10 @@ def get_console(console_id):
         namespace["bpy"] = bpy
         namespace["C"] = bpy.context
 
-        namespace.update(__import__("mathutils").__dict__)  # from mathutils import *
-        namespace.update(__import__("math").__dict__)  # from math import *
-
         console = InteractiveConsole(locals=namespace, filename="<blender_console>")
+
+        console.push("from mathutils import *")
+        console.push("from math import *")
 
         if _BPY_MAIN_OWN:
             console._bpy_main_mod = bpy_main_mod
