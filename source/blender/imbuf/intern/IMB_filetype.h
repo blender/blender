@@ -81,7 +81,6 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags);
 /* jpeg */
 int imb_is_a_jpeg(unsigned char *mem);
 int imb_savejpeg(struct ImBuf *ibuf, const char *name, int flags);
-struct ImBuf * imb_ibJpegImageFromFilename (const char * filename, int flags);
 struct ImBuf * imb_load_jpeg (unsigned char * buffer, size_t size, int flags);
 
 /* bmp */

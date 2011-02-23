@@ -434,37 +434,6 @@ next_stamp_marker:
 	return(ibuf);
 }
 
-ImBuf * imb_ibJpegImageFromFilename (const char * filename, int flags)
-{
-	struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
-	struct my_error_mgr jerr;
-	FILE * infile;
-	ImBuf * ibuf;
-	
-	if ((infile = fopen(filename, "rb")) == NULL) return 0;
-
-	cinfo->err = jpeg_std_error(&jerr.pub);
-	jerr.pub.error_exit = jpeg_error;
-
-	/* Establish the setjmp return context for my_error_exit to use. */
-	if (setjmp(jerr.setjmp_buffer)) {
-		/* If we get here, the JPEG code has signaled an error.
-		 * We need to clean up the JPEG object, close the input file, and return.
-		 */
-		jpeg_destroy_decompress(cinfo);
-		fclose(infile);
-		return NULL;
-	}
-
-	jpeg_create_decompress(cinfo);
-	jpeg_stdio_src(cinfo, infile);
-
-	ibuf = ibJpegImageFromCinfo(cinfo, flags);
-	
-	fclose(infile);
-	return(ibuf);
-}
-
 ImBuf * imb_load_jpeg (unsigned char * buffer, size_t size, int flags)
 {
 	struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
