@@ -657,7 +657,7 @@ void bmesh_clear_systag_elements(BMesh *bm, void *veles, int tot, int flag)
 static int count_flagged_radial(BMLoop *l, int flag)
 {
 	BMLoop *l2 = l;
-	int i = 0;
+	int i = 0, c=0;
 
 	do {
 		if (!l2) {
@@ -667,10 +667,11 @@ static int count_flagged_radial(BMLoop *l, int flag)
 		
 		i += bmesh_api_getflag(l2->f, flag) ? 1 : 0;
 		l2 = bmesh_radial_nextloop(l2);
-		if (i >= 800000) {
+		if (c >= 800000) {
 			bmesh_error();
 			return 0;
 		}
+		c++;
 	} while (l2 != l);
 
 	return i;

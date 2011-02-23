@@ -189,7 +189,7 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 	BMEdit_Free(em);
 	MEM_freeN(em);
-		
+	
 	return result;
 }
 

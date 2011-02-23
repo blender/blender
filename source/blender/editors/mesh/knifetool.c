@@ -1583,7 +1583,11 @@ static int knifetool_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
 	knifetool_opdata *kcd= op->customdata;
-
+	
+	if (!C) {
+		return OPERATOR_FINISHED;
+	}
+	
 	view3d_operator_needs_opengl(C);
 
 	switch (event->type) {

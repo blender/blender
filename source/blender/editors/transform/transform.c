@@ -4460,37 +4460,43 @@ static int createSlideVerts(TransInfo *t)
 			TransDataSlideVert *sv1, *sv2;
 			float vec1[3], dis2, ec2[3], vec[3], mval[2] = {t->mval[0], t->mval[1]}, d, z2;
 						
-			/*search cross edges for magnitude of transform vector*/
+			/*search cross edges for visible edge to the mouse cursor,
+              then use the shared vertex to calculate screen vector*/
 			dis2 = -1.0f;
 			for (i=0; i<2; i++) {
-				BM_ITER(e2, &iter2, em->bm, BM_EDGES_OF_VERT, i?e->v1:e->v2) {
+				v = i?e->v1:e->v2;
+				BM_ITER(e2, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
 					if (BM_TestHFlag(e2, BM_SELECT))
 						continue;
 					
 					if (!BMBVH_EdgeVisible(btree, e2, v3d, t->obedit))
 						continue;
 					
-					view3d_project_float_v3(ar, e2->v1->co, vec1, projectMat);
-					view3d_project_float_v3(ar, e2->v2->co, vec2, projectMat);
 					
+					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (intptr_t)v));
+
+					if (tempsv[j].down) {
+						view3d_project_float_v3(ar, tempsv[j].down->co, vec1, projectMat);
+					} else {
+						add_v3_v3v3(vec1, v->co, tempsv[j].downvec);
+						view3d_project_float_v3(ar, vec1, vec1, projectMat);
+					}
+					
+					if (tempsv[j].up) {
+						view3d_project_float_v3(ar, tempsv[j].up->co, vec2, projectMat);
+					} else {
+						add_v3_v3v3(vec1, v->co, tempsv[j].upvec);
+						view3d_project_float_v3(ar, vec2, vec2, projectMat);
+					}
+
 					d = dist_to_line_segment_v2(mval, vec1, vec2);
 					if (dis2 == -1.0f || d < dis2) {
 						dis2 = d;
 						ee = e2;
 						size = len_v3v3(vec1, vec2);
+						sub_v3_v3v3(dir, vec1, vec2);
 					}
 				}
-			}
-			
-			view3d_project_float_v3(ar, e->v1->co, vec1, projectMat);
-			view3d_project_float_v3(ar, e->v2->co, vec2, projectMat);
-			
-			d = dist_to_line_segment_v2(mval, vec1, vec2);
-			if ((d < dis || dis == -1.0) && (!le || BMBVH_EdgeVisible(btree, e, v3d, t->obedit))) {
-				le = e;
-				dis = d;
-				sub_v3_v3v3(dir, vec1, vec2);
-				normalize_v3(dir);
 			}
 		}
 	}
@@ -4500,23 +4506,7 @@ static int createSlideVerts(TransInfo *t)
 	
 	/*dir holds a vector along edge loop*/
 	copy_v3_v3(end, dir);
-
-	/*find perpindicular 2d line*/
-	SWAP(float, end[0], end[1]);
-
-	if (le) {	
-		j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (intptr_t)le->v1));
-		sv = tempsv + j;
-		copy_v3_v3(vec, sv->upvec);
-		normalize_v3(vec);
-
-		if (dot_v2v2(vec, end) > 0.0) {
-			mul_v3_fl(end, -1.0);
-		}
-	}
-			
-	size *= 0.5;
-	mul_v3_fl(end, size);
+	mul_v3_fl(end, 0.5);
 	
 	sld->start[0] = t->mval[0] + start[0];
 	sld->start[1] = t->mval[1] + start[1];

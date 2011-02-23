@@ -1923,38 +1923,14 @@ int mesh_recalcTesselation(CustomData *fdata,
 	mp = mpoly;
 	polyorigIndex = use_poly_origindex? CustomData_get_layer(pdata, CD_ORIGINDEX) : NULL;
 	for (i=0; i<totpoly; i++, mp++) {
-		ml = mloop + mp->loopstart;
-		
-		if (mp->totloop < 5) {
-			BLI_array_growone(mf);
-			BLI_array_growone(origIndex);
+		if (mp->totloop > 2) {		
+			ml = mloop + mp->loopstart;
 
-			origIndex[k] = use_face_origindex ? k : i;
-			
-			for (j=0; j<mp->totloop; j++, ml++) {
-				switch (j) {
-					case 0:
-						mf[k].v1 = mp->loopstart + j;
-					case 1:
-						mf[k].v2 = mp->loopstart + j;
-					case 2:
-						mf[k].v3 = mp->loopstart + j;
-					case 3:
-						mf[k].v4 = mp->loopstart + j;
-				}
-			}
-			if (mp->totloop == 4 && !mf->v4) {
-				SWAP(int, mf[k].v1, mf[k].v4);
-				SWAP(int, mf[k].v2, mf[k].v3);
-			}
-
-			k++;
-		} else {		
 			firstv = NULL;
 			lastv = NULL;
 			for (j=0; j<mp->totloop; j++, ml++) {
 				v = BLI_addfillvert(mvert[ml->v].co);
-				if (polyorigIndex)
+				if (polyorigIndex && use_poly_origindex)
 					v->tmp.l = polyorigIndex[i];
 				else
 					v->tmp.l = i;
@@ -1980,6 +1956,8 @@ int mesh_recalcTesselation(CustomData *fdata,
 				mf[k].v1 = f->v1->keyindex;
 				mf[k].v2 = f->v2->keyindex;
 				mf[k].v3 = f->v3->keyindex;
+				
+				/*put poly index in mf->v4*/
 				mf[k].v4 = f->v1->tmp.l;
 				
 				mf[k].mat_nr = mp->mat_nr;
@@ -2003,28 +1981,28 @@ int mesh_recalcTesselation(CustomData *fdata,
 
 	mface = mf;
 	for (i=0; i<totface; i++, mf++) {
-		/*ensure winding is correct*/
-		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
-		if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
-		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
-		if (mf->v4 && mf->v1 > mf->v4) SWAP(int, mf->v1, mf->v4);
+		/*sort loop indices to ensure winding is correct*/
 		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
 		if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
 		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
 
+		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
+		if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
+		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
+	
 		lindex[0] = mf->v1;
 		lindex[1] = mf->v2;
 		lindex[2] = mf->v3;
-		lindex[4] = mf->v4;
 
 		/*transform loop indices to vert indices*/
 		mf->v1 = mloop[mf->v1].v;
 		mf->v2 = mloop[mf->v2].v;
 		mf->v3 = mloop[mf->v3].v;
-		mf->v4 = mf->v4 ? mloop[mf->v4].v : 0;
 
 		mesh_loops_to_corners(fdata, ldata, pdata,
-			lindex, i, mf->v4, numTex, numCol, mf->v4 ? 4 : 3);
+			lindex, i, mf->v4, numTex, numCol, 3);
+		
+		mf->v4 = 0;
 	}
 
 	return totface;

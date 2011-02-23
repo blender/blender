@@ -1992,6 +1992,9 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *dra
 	int vcount, pin=0;
 	int opac = UI_GetThemeValue(TH_PIN_OPAC);
 	
+	if (!efa)
+		return 0;
+	
 	if (!BM_TestHFlag(efa, BM_HIDDEN)) {
 
 		/* Check if all verts of a face are pinned. If so, then display it in a darker shade. */

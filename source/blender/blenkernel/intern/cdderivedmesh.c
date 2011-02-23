@@ -1794,8 +1794,6 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 	                 CD_CALLOC, dm->numVertData);
 	CustomData_merge(&em->bm->edata, &dm->edgeData, CD_MASK_DERIVEDMESH,
 	                 CD_CALLOC, dm->numEdgeData);
-	CustomData_merge(&em->bm->pdata, &dm->faceData, CD_MASK_DERIVEDMESH,
-	                 CD_CALLOC, dm->numFaceData);
 	CustomData_merge(&em->bm->ldata, &dm->loopData, CD_MASK_DERIVEDMESH,
 	                 CD_CALLOC, dm->numLoopData);
 	CustomData_merge(&em->bm->pdata, &dm->polyData, CD_MASK_DERIVEDMESH,

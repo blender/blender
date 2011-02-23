@@ -435,8 +435,6 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 					medge->v1+= vertofs;
 					medge->v2+= vertofs;
 				}
-				
-				edgeofs += me->totedge;
 			}
 
 			if (me->totloop) {
@@ -447,8 +445,6 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 					mloop->v += vertofs;
 					mloop->e += edgeofs;
 				}
-				
-				loopofs += me->totloop;
 			}
 			
 			if(me->totpoly) {
@@ -472,13 +468,15 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 					mpoly->mat_nr= matmap[(int)mpoly->mat_nr];
 				}
 				
-				polyofs += me->totface;
+				polyofs += me->totpoly;
 			}
 
-			/* vertofs is used to help newly added verts be reattached to their edge/face 
-			 * (cannot be set earlier, or else reattaching goes wrong)
+			/* these are used for relinking (cannot be set earlier, 
+			 * or else reattaching goes wrong)
 			 */
 			vertofs += me->totvert;
+			edgeofs += me->totedge;
+			loopofs += me->totloop;
 			
 			/* free base, now that data is merged */
 			if(base->object != ob)
