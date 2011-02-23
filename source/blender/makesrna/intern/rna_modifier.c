@@ -1720,9 +1720,9 @@ static void rna_def_modifier_explode(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Protect", "Clean vertex group edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "use_edge_split", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_EdgeSplit);
-	RNA_def_property_ui_text(prop, "Split Edges", "Split face edges for nicer shrapnel");
+	prop= RNA_def_property(srna, "use_edge_cut", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_EdgeCut);
+	RNA_def_property_ui_text(prop, "Cut Edges", "Cut face edges for nicer shrapnel");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "show_unborn", PROP_BOOLEAN, PROP_NONE);
@@ -1743,6 +1743,12 @@ static void rna_def_modifier_explode(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_size", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_PaSize);
 	RNA_def_property_ui_text(prop, "Size", "Use particle size for the shrapnel");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "particle_uv", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "uvname");
+	RNA_def_property_string_maxlength(prop, 32);
+	RNA_def_property_ui_text(prop, "Particle UV", "UV Layer to change with particle age");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 

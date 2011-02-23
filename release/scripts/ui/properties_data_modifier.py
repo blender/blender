@@ -259,9 +259,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = bool(md.vertex_group)
         sub.prop(md, "protect")
+        col.label(text="Particle UV")
+        col.prop_search(md, "particle_uv", ob.data, "uv_textures", text="")
 
         col = split.column()
-        col.prop(md, "use_edge_split")
+        col.prop(md, "use_edge_cut")
         col.prop(md, "show_unborn")
         col.prop(md, "show_alive")
         col.prop(md, "show_dead")
