@@ -563,6 +563,29 @@ static void xsortvert_flag(bContext *C, int flag)
 
 }
 
+static int mesh_vertices_sort_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	xsortvert_flag(C, SELECT);
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_vertices_sort(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Vertex Sort";
+	ot->description= "Sort vertex order";
+	ot->idname= "MESH_OT_vertices_sort";
+
+	/* api callbacks */
+	ot->exec= mesh_vertices_sort_exec;
+
+	ot->poll= EM_view3d_poll; /* uses view relative X axis to sort verts */
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 /* called from buttons */
 static void hashvert_flag(EditMesh *em, int flag)
 {
@@ -620,6 +643,31 @@ static void hashvert_flag(EditMesh *em, int flag)
 	MEM_freeN(sortblock);
 
 }
+
+static int mesh_vertices_randomize_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	hashvert_flag(em, SELECT);
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_vertices_randomize(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Vertex Randomize";
+	ot->description= "Randomize vertex order";
+	ot->idname= "MESH_OT_vertices_randomize";
+
+	/* api callbacks */
+	ot->exec= mesh_vertices_randomize_exec;
+
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 
 /* generic extern called extruder */
 static void extrude_mesh(Object *obedit, EditMesh *em, wmOperator *op, short type)

@@ -86,6 +86,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_fgon_make);
 	WM_operatortype_append(MESH_OT_duplicate);
 	WM_operatortype_append(MESH_OT_remove_doubles);
+	WM_operatortype_append(MESH_OT_vertices_sort);
+	WM_operatortype_append(MESH_OT_vertices_randomize);
 	WM_operatortype_append(MESH_OT_extrude);
 	WM_operatortype_append(MESH_OT_spin);
 	WM_operatortype_append(MESH_OT_screw);
@@ -146,6 +148,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_nth);
 }
 
+#if 0 /* UNUSED, remove? */
 static int ED_operator_editmesh_face_select(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -157,6 +160,7 @@ static int ED_operator_editmesh_face_select(bContext *C)
 	}
 	return 0;
 }
+#endif
 
 void ED_operatormacros_mesh(void)
 {

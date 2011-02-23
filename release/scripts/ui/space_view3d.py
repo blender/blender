@@ -1507,6 +1507,8 @@ class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
 
         layout.operator("mesh.vertices_smooth")
         layout.operator("mesh.remove_doubles")
+        layout.operator("mesh.vertices_sort")
+        layout.operator("mesh.vertices_randomize")
 
         layout.operator("mesh.select_vertex_path")
 
