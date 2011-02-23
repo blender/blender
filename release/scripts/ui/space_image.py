@@ -158,23 +158,23 @@ class IMAGE_MT_image_invert(bpy.types.Menu):
         layout = self.layout
 
         op = layout.operator("image.invert", text="Invert Image Colors");
-        op.inv_r = True;
-        op.inv_g = True;
-        op.inv_b = True;
+        op.invert_r = True;
+        op.invert_g = True;
+        op.invert_b = True;
 
         layout.separator()
 
         op = layout.operator("image.invert", text="Invert Red Channel");
-        op.inv_r = True;
+        op.invert_r = True;
 
         op = layout.operator("image.invert", text="Invert Green Channel");
-        op.inv_g = True;
+        op.invert_g = True;
 
         op = layout.operator("image.invert", text="Invert Blue Channel");
-        op.inv_b = True;
+        op.invert_b = True;
 
         op = layout.operator("image.invert", text="Invert Alpha Channel");
-        op.inv_a = True;
+        op.invert_a = True;
 
 
 class IMAGE_MT_uvs_showhide(bpy.types.Menu):

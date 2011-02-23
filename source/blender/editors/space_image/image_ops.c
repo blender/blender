@@ -1353,12 +1353,12 @@ static int image_invert_exec(bContext *C, wmOperator *op) {
 	
 	// flags indicate if this channel should be inverted
 	short r,g,b,a;
-	int i;
+	int i, dirty = 0;
 	
-	r = RNA_boolean_get(op->ptr, "inv_r");
-	g = RNA_boolean_get(op->ptr, "inv_g");
-	b = RNA_boolean_get(op->ptr, "inv_b");
-	a = RNA_boolean_get(op->ptr, "inv_a");
+	r = RNA_boolean_get(op->ptr, "invert_r");
+	g = RNA_boolean_get(op->ptr, "invert_g");
+	b = RNA_boolean_get(op->ptr, "invert_b");
+	a = RNA_boolean_get(op->ptr, "invert_a");
 	
 	/* TODO: make this into an IMB_invert_channels(ibuf,r,g,b,a) method!? */
 	if (ibuf->rect_float) {
@@ -1370,6 +1370,7 @@ static int image_invert_exec(bContext *C, wmOperator *op) {
 			if( b ) fp[2] = 1.0f - fp[2];
 			if( a ) fp[3] = 1.0f - fp[3];
 		}
+		dirty = 1;
 		IMB_rect_from_float(ibuf);
 	}
 	else if(ibuf->rect) {
@@ -1381,10 +1382,12 @@ static int image_invert_exec(bContext *C, wmOperator *op) {
 			if( b ) cp[2] = 255 - cp[2];
 			if( a ) cp[3] = 255 - cp[3];
 		}
+		dirty = 1;
 	}
 	else
 		return OPERATOR_CANCELLED;
 
+	ibuf->userflags |= IB_BITMAPDIRTY; // mark as modified
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
 	
 	return OPERATOR_FINISHED;
@@ -1400,10 +1403,10 @@ void IMAGE_OT_invert(wmOperatorType *ot) {
 	ot->exec= image_invert_exec;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "inv_r", 0, "Red", "Invert Red Channel");
-	RNA_def_boolean(ot->srna, "inv_g", 0, "Green", "Invert Green Channel");
-	RNA_def_boolean(ot->srna, "inv_b", 0, "Blue", "Invert Blue Channel");
-	RNA_def_boolean(ot->srna, "inv_a", 0, "Alpha", "Invert Alpha Channel");
+	RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
+	RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert Green Channel");
+	RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert Blue Channel");
+	RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert Alpha Channel");
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1563,6 +1566,10 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack.");
+	RNA_def_string(ot->srna, "id", "", 21, "Image Name", "Image datablock name to unpack."); /* XXX, weark!, will fail with library, name collisions */
 }
 
 /******************** sample image operator ********************/
