@@ -4898,6 +4898,14 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		arm= ob->data;
 		pose= ob->pose;
 
+		if((t->flag & T_AUTOIK) && (t->options & CTX_AUTOCONFIRM)) {
+			/* when running transform non-interactively (operator exec),
+			 * we need to update the pose otherwise no updates get called during
+			 * transform and the auto-ik is not applied. see [#26164] */
+			struct Object *ob=t->poseobj;
+			where_is_pose(t->scene, ob);
+		}
+
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
 		if (!cancelled && t->mode==TFM_TRANSLATION)
 			targetless_ik= apply_targetless_ik(ob);
