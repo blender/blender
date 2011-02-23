@@ -1,4 +1,4 @@
-/**
+/*
  * Assign, change, copy properties
  *
  * $Id$

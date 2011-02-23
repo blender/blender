@@ -1,4 +1,4 @@
-/**
+/*
  * endian.h
  *
  * This is external code. Streams bytes to output depending on the

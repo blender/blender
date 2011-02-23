@@ -1,4 +1,4 @@
-/**
+/*
  * BME_structure.c    jan 2007
  *
  *	Low level routines for manipulating the BMesh structure.

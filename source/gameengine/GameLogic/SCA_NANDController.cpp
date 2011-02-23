@@ -1,4 +1,4 @@
-/**
+/*
  * 'Nand' together all inputs
  *
  * $Id$

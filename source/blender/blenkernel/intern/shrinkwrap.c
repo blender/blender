@@ -1,4 +1,4 @@
-/**
+/*
  * shrinkwrap.c
  *
  * ***** BEGIN GPL LICENSE BLOCK *****

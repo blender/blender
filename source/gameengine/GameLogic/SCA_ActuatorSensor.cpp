@@ -1,4 +1,4 @@
-/**
+/*
  * Actuator sensor
  *
  * $Id$

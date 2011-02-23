@@ -1,4 +1,4 @@
-/**
+/*
  * KX_SoundActuator.cpp
  *
  * $Id$

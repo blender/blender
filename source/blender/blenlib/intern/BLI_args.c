@@ -1,4 +1,4 @@
-/**
+/*
  * A general argument parsing module
  *
  * $Id$

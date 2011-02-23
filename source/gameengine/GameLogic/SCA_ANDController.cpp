@@ -1,4 +1,4 @@
-/**
+/*
  * 'And' together all inputs
  *
  * $Id$

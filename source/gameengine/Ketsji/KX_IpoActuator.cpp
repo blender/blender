@@ -1,4 +1,4 @@
-/**
+/*
  * Do Ipo stuff
  *
  * $Id$

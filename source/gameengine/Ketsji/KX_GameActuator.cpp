@@ -1,4 +1,4 @@
-/**
+/*
 * global game stuff
 *
 * $Id$

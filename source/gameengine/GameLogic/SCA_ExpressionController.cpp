@@ -1,4 +1,4 @@
-/**
+/*
  * 'Expression Controller enables to calculate an expression that wires inputs to output
  *
  * $Id$

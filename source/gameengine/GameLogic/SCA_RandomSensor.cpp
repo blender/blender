@@ -1,4 +1,4 @@
-/**
+/*
  * Generate random pulses
  *
  * $Id$

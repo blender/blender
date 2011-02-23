@@ -1,4 +1,4 @@
-/**
+/*
  * Execute Python scripts
  *
  * $Id$

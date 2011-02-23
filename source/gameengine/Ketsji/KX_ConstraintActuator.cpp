@@ -1,4 +1,4 @@
-/**
+/*
  * Apply a constraint to a position or rotation value
  *
  * $Id$

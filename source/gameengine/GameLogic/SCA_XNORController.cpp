@@ -1,4 +1,4 @@
-/**
+/*
  * 'Xnor' together all inputs
  *
  * $Id$

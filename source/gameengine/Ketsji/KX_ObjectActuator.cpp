@@ -1,4 +1,4 @@
-/**
+/*
  * Do translation/rotation actions
  *
  * $Id$

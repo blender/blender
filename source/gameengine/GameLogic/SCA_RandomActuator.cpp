@@ -1,4 +1,4 @@
-/**
+/*
  * Set random/camera stuff
  *
  * $Id$

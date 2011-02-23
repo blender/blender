@@ -1,4 +1,4 @@
-/**
+/*
  * Quicktime_import.h
  *
  * $Id$

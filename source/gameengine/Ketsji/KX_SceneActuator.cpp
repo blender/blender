@@ -1,4 +1,4 @@
-/**
+/*
 * Set scene/camera stuff
 *
 * $Id$

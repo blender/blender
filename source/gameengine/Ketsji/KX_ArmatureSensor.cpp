@@ -1,4 +1,4 @@
-/**
+/*
  * Armature sensor
  *
  * $Id$

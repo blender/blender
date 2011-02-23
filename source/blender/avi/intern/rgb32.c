@@ -1,4 +1,4 @@
-/**
+/*
  * rgb32.c
  *
  * This is external code. Converts between rgb32 and avi.

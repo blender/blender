@@ -1,4 +1,4 @@
-/**
+/*
  * Manager for ray events
  *
  * $Id$

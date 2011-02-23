@@ -1,4 +1,4 @@
-/**
+/*
  * SCA_2DFilterActuator.cpp
  *
  * $Id$

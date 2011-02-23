@@ -1,4 +1,4 @@
-/**
+/*
  * 'Or' together all inputs
  *
  * $Id$

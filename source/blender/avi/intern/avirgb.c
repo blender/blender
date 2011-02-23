@@ -1,4 +1,4 @@
-/**
+/*
  * avirgb.c
  *
  * This is external code. Converts rgb-type avi-s.

@@ -1,4 +1,4 @@
-/**
+/*
  * Manager for keyboard events
  *
  * $Id$

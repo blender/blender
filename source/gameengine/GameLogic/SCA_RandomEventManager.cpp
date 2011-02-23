@@ -1,4 +1,4 @@
-/**
+/*
  * Manager for random events
  *
  * $Id$

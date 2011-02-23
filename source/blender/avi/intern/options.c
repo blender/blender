@@ -1,4 +1,4 @@
-/**
+/*
  * options.h
  *
  * This is external code. Sets some compression related options

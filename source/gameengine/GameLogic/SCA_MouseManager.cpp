@@ -1,4 +1,4 @@
-/**
+/*
  * Manager for mouse events
  *
  *

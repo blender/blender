@@ -1,4 +1,4 @@
-/**
+/*
  * 'Xor' together all inputs
  *
  * $Id$

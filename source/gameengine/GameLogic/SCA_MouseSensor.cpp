@@ -1,4 +1,4 @@
-/**
+/*
  * Sensor for mouse input
  *
  *

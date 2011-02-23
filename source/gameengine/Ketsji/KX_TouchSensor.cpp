@@ -1,4 +1,4 @@
-/**
+/*
  * Senses touch and collision events
  *
  * $Id$

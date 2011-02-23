@@ -1,4 +1,4 @@
-/**
+/*
  * @file SG_Controller.cpp
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****

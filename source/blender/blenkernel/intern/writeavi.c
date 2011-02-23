@@ -1,4 +1,4 @@
-/**
+/*
  * Functions for writing avi-format files.
  * Added interface for generic movie support (ton)
  *

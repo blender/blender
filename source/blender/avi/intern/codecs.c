@@ -1,4 +1,4 @@
-/**
+/*
  * codecs.c
  *
  * This is external code. Identify and convert different avi-files.

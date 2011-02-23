@@ -1,4 +1,4 @@
-/**
+/*
  * KX_CameraActuator.cpp
  *
  * $Id$

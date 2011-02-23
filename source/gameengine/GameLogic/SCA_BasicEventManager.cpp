@@ -1,4 +1,4 @@
-/**
+/*
  * Manager for 'always' events. Since always sensors can operate in pulse
  * mode, they need to be activated.
  *

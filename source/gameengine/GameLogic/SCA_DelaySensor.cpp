@@ -1,4 +1,4 @@
-/**
+/*
  * Delay trigger
  *
  * $Id$

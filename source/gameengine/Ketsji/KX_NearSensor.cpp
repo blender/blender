@@ -1,4 +1,4 @@
-/**
+/*
  * Sense if other objects are near
  *
  * $Id$

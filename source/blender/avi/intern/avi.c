@@ -1,4 +1,4 @@
-/**
+/*
  * avi.c
  *
  * This is external code.

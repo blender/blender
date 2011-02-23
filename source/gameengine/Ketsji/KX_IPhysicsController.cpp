@@ -1,4 +1,4 @@
-/**
+/*
  * @file KX_IPhysicsController.cpp
  * $Id$
  *

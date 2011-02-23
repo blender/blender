@@ -1,4 +1,4 @@
-/**
+/*
  * Cast a ray and feel for objects
  *
  * $Id$

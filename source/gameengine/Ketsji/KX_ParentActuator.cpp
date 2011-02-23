@@ -1,4 +1,4 @@
-/**
+/*
  * Set or remove an objects parent
  *
  * $Id$

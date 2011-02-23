@@ -1,4 +1,4 @@
-/**
+/*
  * 'Nor' together all inputs
  *
  * $Id$
