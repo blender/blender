@@ -173,13 +173,13 @@ static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)
 	if(gridsize<=0.0f) return;
 	
 	if(gridsize<1.0f) {
-		while(gridsize<1.0f) {
+		while(gridsize<1.0f && gridsize<1000000.0f	) {
 			gridsize*= 4.0;
 			gridstep*= 4.0;
 		}
 	}
 	else {
-		while(gridsize>=4.0f) {
+		while(gridsize>=4.0f && gridsize<1000000.0f) {
 			gridsize/= 4.0;
 			gridstep/= 4.0;
 		}

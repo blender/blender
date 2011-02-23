@@ -85,7 +85,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 		return 1;
 	}
 
-	if(em && em->bm->totface) {// && !CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
+	if(em && em->bm->totface && !CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
 		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MTEXPOLY);
 		BM_add_data_layer(em->bm, &em->bm->ldata, CD_MLOOPUV);
 	}

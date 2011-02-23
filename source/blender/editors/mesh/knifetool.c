@@ -1582,12 +1582,17 @@ static int knifetool_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
+	Object *obedit;
 	knifetool_opdata *kcd= op->customdata;
 	
 	if (!C) {
 		return OPERATOR_FINISHED;
 	}
 	
+	obedit = CTX_data_edit_object(C);
+	if (!obedit || obedit->type != OB_MESH || ((Mesh*)obedit->data)->edit_btmesh != kcd->em)
+		return OPERATOR_FINISHED;
+
 	view3d_operator_needs_opengl(C);
 
 	switch (event->type) {

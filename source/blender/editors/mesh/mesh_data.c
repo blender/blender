@@ -67,19 +67,26 @@
 
 #include "mesh_intern.h"
 
+#define GET_CD_DATA(me, data) (me->edit_btmesh ? &me->edit_btmesh->bm->data : &me->data)
+
 static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *layer)
 {
 	Mesh *me = ob->data;
-	CustomData *data= (me->edit_btmesh)? &me->edit_btmesh->bm->pdata: &me->pdata;
+	CustomData *data;
 	void *actlayerdata, *rndlayerdata, *clonelayerdata, *stencillayerdata, *layerdata=layer->data;
 	int type= layer->type;
-	int index= CustomData_get_layer_index(data, type);
-	int i, actindex, rndindex, cloneindex, stencilindex, tot = me->totpoly;
+	int index;
+	int i, actindex, rndindex, cloneindex, stencilindex, tot;
 	
-	if (layer->type == CD_MLOOPCOL) {
+	if (layer->type == CD_MLOOPCOL || layer->type == CD_MLOOPUV) {
 		data = (me->edit_btmesh)? &me->edit_btmesh->bm->ldata: &me->ldata;
 		tot = me->totloop;
+	} else {
+		data = (me->edit_btmesh)? &me->edit_btmesh->bm->pdata: &me->pdata;
+		tot = me->totpoly;
 	}
+	
+	index = CustomData_get_layer_index(data, type);
 
 	/* ok, deleting a non-active layer needs to preserve the active layer indices.
 	  to do this, we store a pointer to the .data member of both layer and the active layer,
@@ -179,20 +186,31 @@ int ED_mesh_uv_texture_add(bContext *C, Scene *scene, Object *ob, Mesh *me, cons
 		CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
 		if(active_set || layernum==0)
 			CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
+
+		BM_add_data_layer(em->bm, &em->bm->ldata, CD_MLOOPUV);
+		CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPUV, layernum);
+		if(active_set || layernum==0)
+			CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPUV, layernum);
+
 	}
 	else {
-		layernum= CustomData_number_of_layers(&me->pdata, MAX_MTFACE);
+		layernum= CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
 		if(layernum >= MAX_MTFACE)
 			return 0;
 
-		if(me->mtface)
+		if(me->mtpoly) {
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DUPLICATE, me->mtpoly, me->totpoly, name);
-		else
+			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DUPLICATE, me->mloopuv, me->totloop, name);
+		} else {
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, name);
-
-		if(active_set || layernum==0)
+			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, me->totloop, name);
+		}
+		
+		if(active_set || layernum==0) {
 			CustomData_set_layer_active(&me->pdata, CD_MTEXPOLY, layernum);
-
+			CustomData_set_layer_active(&me->ldata, CD_MLOOPUV, layernum);
+		}
+		
 		mesh_update_customdata_pointers(me);
 	}
 
@@ -204,16 +222,22 @@ int ED_mesh_uv_texture_add(bContext *C, Scene *scene, Object *ob, Mesh *me, cons
 
 int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 {
-	CustomDataLayer *cdl;
+	CustomData *pdata = GET_CD_DATA(me, pdata), *ldata = GET_CD_DATA(me, ldata);
+	CustomDataLayer *cdlp, *cdlu;
 	int index;
 
- 	index= CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
-	cdl= (index == -1)? NULL: &me->pdata.layers[index];
+ 	index= CustomData_get_active_layer_index(pdata, CD_MTEXPOLY);
+	cdlp= (index == -1)? NULL: &pdata->layers[index];
 
-	if(!cdl)
+ 	index= CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
+	cdlu= (index == -1)? NULL: &ldata->layers[index];
+	
+	if (!cdlp || !cdlu)
 		return 0;
 
-	delete_customdata_layer(C, ob, cdl);
+	delete_customdata_layer(C, ob, cdlp);
+	delete_customdata_layer(C, ob, cdlu);
+	
 	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 
@@ -274,8 +298,8 @@ int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 	CustomDataLayer *cdl;
 	int index;
 
- 	index= CustomData_get_active_layer_index(&me->pdata, CD_MLOOPCOL);
-	cdl= (index == -1)? NULL: &me->pdata.layers[index];
+ 	index= CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL);
+	cdl= (index == -1)? NULL: &me->ldata.layers[index];
 
 	if(!cdl)
 		return 0;
@@ -554,6 +578,7 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 
 static void mesh_calc_edges(Mesh *mesh, int update)
 {
+#if 0
 	CustomData edata;
 	EdgeHashIterator *ehi;
 	MFace *mf = mesh->mface;
@@ -617,6 +642,7 @@ static void mesh_calc_edges(Mesh *mesh, int update)
 	mesh->medge = CustomData_get_layer(&mesh->edata, CD_MEDGE);
 
 	BLI_edgehash_free(eh, NULL);
+#endif
 }
 
 void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)

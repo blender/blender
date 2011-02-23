@@ -127,9 +127,10 @@ void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *op)
 	BMLoop *l, *startl;
 	BMEdge *e;
 	BMVert *v;
-	int i;
-
-	while (1) {
+	int i, ok;
+	
+	ok=0;
+	while (ok++ < 100000) {		
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (!BMO_TestFlag(bm, e, EDGE_SEAM))
 				continue;
