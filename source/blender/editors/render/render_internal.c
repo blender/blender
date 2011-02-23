@@ -68,7 +68,7 @@
 
 static ScrArea *biggest_area(bContext *C);
 static ScrArea *biggest_non_image_area(bContext *C);
-static ScrArea *find_area_showing_r_result(bContext *C);
+static ScrArea *find_area_showing_r_result(bContext *C, wmWindow **win);
 static ScrArea *find_area_image_empty(bContext *C);
 
 /* called inside thread! */
@@ -232,9 +232,13 @@ void screen_set_image_output(bContext *C, int mx, int my)
 	}
 
 	if(!sa) {
-		sa= find_area_showing_r_result(C);
+		sa= find_area_showing_r_result(C, &win); 
 		if(sa==NULL)
 			sa= find_area_image_empty(C);
+		
+		/* if area found in other window, we make that one show in front */
+		if(win && win!=CTX_wm_window(C))
+			wm_window_raise(win);
 
 		if(sa==NULL) {
 			/* find largest open non-image area */
@@ -336,16 +340,15 @@ static ScrArea *biggest_area(bContext *C)
 }
 
 
-static ScrArea *find_area_showing_r_result(bContext *C)
+static ScrArea *find_area_showing_r_result(bContext *C, wmWindow **win)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
-	wmWindow *win;
 	ScrArea *sa = NULL;
 	SpaceImage *sima;
 
 	/* find an imagewindow showing render result */
-	for(win=wm->windows.first; win; win=win->next) {
-		for(sa=win->screen->areabase.first; sa; sa= sa->next) {
+	for(*win=wm->windows.first; *win; *win= (*win)->next) {
+		for(sa= (*win)->screen->areabase.first; sa; sa= sa->next) {
 			if(sa->spacetype==SPACE_IMAGE) {
 				sima= sa->spacedata.first;
 				if(sima->image && sima->image->type==IMA_TYPE_R_RESULT)
@@ -355,7 +358,7 @@ static ScrArea *find_area_showing_r_result(bContext *C)
 		if(sa)
 			break;
 	}
-
+	
 	return sa;
 }
 
@@ -862,18 +865,19 @@ void RENDER_OT_view_cancel(struct wmOperatorType *ot)
 
 static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(unused), wmEvent *event)
 {
-	ScrArea *sa= find_area_showing_r_result(C);
-
-	/* test if we have a temp screen active */
-	if(CTX_wm_window(C)->screen->temp) {
-		wm_window_lower(CTX_wm_window(C));
+	wmWindow *wincur = CTX_wm_window(C);
+	
+	/* test if we have currently a temp screen active */
+	if(wincur->screen->temp) {
+		wm_window_lower(wincur);
 	}
 	else { 
-		/* is there another window? */
-		wmWindow *win;
+		wmWindow *win, *winshow;
+		ScrArea *sa= find_area_showing_r_result(C, &winshow);
 		
+		/* is there another window showing result? */
 		for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
-			if(win->screen->temp) {
+			if(win->screen->temp || (win==winshow && winshow!=wincur)) {
 				wm_window_raise(win);
 				return OPERATOR_FINISHED;
 			}
