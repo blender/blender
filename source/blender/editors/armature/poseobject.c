@@ -656,6 +656,62 @@ void POSE_OT_select_grouped (wmOperatorType *ot)
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 
+
+/* ********************************************** */
+
+/* context active object, or weightpainted object with armature in posemode */
+static int pose_bone_flip_active_exec (bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob_act= CTX_data_active_object(C);
+	Object *ob= ED_object_pose_armature(ob_act);
+
+	if(ob && (ob->mode & OB_MODE_POSE)) {
+		bArmature *arm= ob->data;
+
+		if(arm->act_bone) {
+			bPoseChannel *pchanf;
+			char name[MAXBONENAME];
+			flip_side_name(name, arm->act_bone->name, TRUE);
+
+			pchanf= get_pose_channel(ob->pose, name);
+			if(pchanf && pchanf->bone != arm->act_bone) {
+				arm->act_bone->flag &= ~BONE_SELECTED;
+				pchanf->bone->flag |= BONE_SELECTED;
+
+				arm->act_bone= pchanf->bone;
+
+				/* in weightpaint we select the associated vertex group too */
+				if(ob_act->mode & OB_MODE_WEIGHT_PAINT) {
+					ED_vgroup_select_by_name(ob_act, name);
+					DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
+				}
+
+				WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
+
+				return OPERATOR_FINISHED;
+			}
+		}
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void POSE_OT_select_flip_active(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Flip Selected Active Bone";
+	ot->idname= "POSE_OT_select_flip_active";
+	ot->description= "Activate the bone with a flipped name.";
+	
+	/* api callbacks */
+	ot->exec= pose_bone_flip_active_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 /* ********************************************** */
 #if 0 /* UNUSED 2.5 */
 static void pose_copy_menu(Scene *scene)
@@ -1559,48 +1615,6 @@ void POSE_OT_autoside_names (wmOperatorType *ot)
 	/* settings */
 	ot->prop= RNA_def_enum(ot->srna, "axis", axis_items, 0, "Axis", "Axis tag names with.");
 }
-
-/* ********************************************** */
-
-/* context active object, or weightpainted object with armature in posemode */
-static void pose_activate_flipped_bone(Scene *scene)
-{
-	Object *ob= OBACT;
-
-	if(ob==NULL) return;
-
-	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
-		ob= modifiers_isDeformedByArmature(ob);
-	}
-
-	if(ob && (ob->mode & OB_MODE_POSE)) {
-		bPoseChannel *pchanf;
-		bArmature *arm= ob->data;
-
-		if(arm->act_bone) {
-			char name[32];
-			flip_side_name(name, arm->act_bone->name, TRUE);
-			
-			pchanf= get_pose_channel(ob->pose, name);
-			if(pchanf && pchanf->bone != arm->act_bone) {
-				arm->act_bone->flag &= ~BONE_SELECTED;
-				pchanf->bone->flag |= BONE_SELECTED;
-				
-				arm->act_bone= pchanf->bone;
-				
-				/* in weightpaint we select the associated vertex group too */
-				if(ob->mode & OB_MODE_WEIGHT_PAINT) {
-					ED_vgroup_select_by_name(OBACT, name);
-					DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
-				}
-				
-				// XXX notifiers need to be sent to other editors to update
-				
-			}			
-		}
-	}
-}
-
 
 /* ********************************************** */
 

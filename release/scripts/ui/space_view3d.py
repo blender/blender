@@ -425,6 +425,7 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
 
         layout.operator("pose.select_all", text="Select/Deselect All")
         layout.operator("pose.select_inverse", text="Inverse")
+        layout.operator("pose.select_flip_active", text="Flip Active")
         layout.operator("pose.select_constraint_target", text="Constraint Target")
         layout.operator("pose.select_linked", text="Linked")
 
