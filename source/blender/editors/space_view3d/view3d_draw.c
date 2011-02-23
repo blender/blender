@@ -850,7 +850,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 	BLF_draw_default(offset,  10, 0.0f, info, sizeof(info)-1);
 }
 
-static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2])
+void view3d_viewborder_size_get(Scene *scene, ARegion *ar, float size_r[2])
 {
 	float winmax= MAX2(ar->winx, ar->winy);
 	float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
@@ -869,7 +869,7 @@ void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, Vi
 	float zoomfac, size[2];
 	float dx= 0.0f, dy= 0.0f;
 	
-	view3d_get_viewborder_size(scene, ar, size);
+	view3d_viewborder_size_get(scene, ar, size);
 	
 	if (rv3d == NULL)
 		rv3d = ar->regiondata;
@@ -915,19 +915,6 @@ void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, Vi
 		viewborder_r->ymin+= cam->shifty*side;
 		viewborder_r->ymax+= cam->shifty*side;
 	}
-}
-
-/* sets the view to 1:1 camera/render-pixel */
-static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
-{
-	RegionView3D *rv3d= ar->regiondata;
-	float size[2];
-	int im_width= (scene->r.size*scene->r.xsch)/100;
-	
-	view3d_get_viewborder_size(scene, ar, size);
-	
-	rv3d->camzoom= (sqrt(4.0*im_width/size[0]) - M_SQRT2)*50.0;
-	rv3d->camzoom= CLAMPIS(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 }
 
 static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)

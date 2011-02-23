@@ -63,6 +63,7 @@ void view3d_operatortypes(void);
 
 /* view3d_edit.c */
 void VIEW3D_OT_zoom(struct wmOperatorType *ot);
+void VIEW3D_OT_zoom_camera_1_to_1(struct wmOperatorType *ot);
 void VIEW3D_OT_move(struct wmOperatorType *ot);
 void VIEW3D_OT_rotate(struct wmOperatorType *ot);
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
@@ -126,6 +127,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
 void view3d_clr_clipping(void);
 void view3d_set_clipping(RegionView3D *rv3d);
 void add_view3d_after(ListBase *lb, Base *base, int flag);
+void view3d_viewborder_size_get(struct Scene *scene, struct ARegion *ar, float size_r[2]);
 
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);

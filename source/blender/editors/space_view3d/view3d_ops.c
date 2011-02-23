@@ -57,6 +57,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_rotate);
 	WM_operatortype_append(VIEW3D_OT_move);
 	WM_operatortype_append(VIEW3D_OT_zoom);
+	WM_operatortype_append(VIEW3D_OT_zoom_camera_1_to_1);
 	WM_operatortype_append(VIEW3D_OT_view_all);
 	WM_operatortype_append(VIEW3D_OT_viewnumpad);
 	WM_operatortype_append(VIEW3D_OT_view_orbit);
@@ -146,6 +147,8 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	/*wheel mouse forward/back*/
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", WHEELINMOUSE, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", WHEELOUTMOUSE, KM_PRESS, 0, 0)->ptr, "delta", -1);
+
+	WM_keymap_add_item(keymap, "VIEW3D_OT_zoom_camera_1_to_1", PADENTER, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_camera", HOMEKEY, KM_PRESS, 0, 0); /* only with camera view */
 	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, 0, 0)->ptr, "center", 0); /* only without camera view */

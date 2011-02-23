@@ -198,6 +198,7 @@ static char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 }
 #endif /* WITH_PYTHON */
 
+#if 0 // UNUSED, until pyconstraints are added back.
 /* this callback gets called when the 'refresh' button of a pyconstraint gets pressed */
 static void update_pyconstraint_cb (void *arg1, void *arg2)
 {
@@ -211,6 +212,7 @@ static void update_pyconstraint_cb (void *arg1, void *arg2)
 		BPY_pyconstraint_update(owner, con);
 #endif
 }
+#endif // UNUSED
 
 /* helper function for add_constriant - sets the last target for the active constraint */
 static void set_constraint_nth_target (bConstraint *con, Object *target, const char subtarget[], int index)
