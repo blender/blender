@@ -210,8 +210,14 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 	if(texres->nor) {
 		if(tex->imaflag & TEX_NORMALMAP) {
 			// qdn: normal from color
-			texres->nor[0] = 2.f*(texres->tr - 0.5f);
-			texres->nor[1] = 2.f*(0.5f - texres->tg);
+			// The invert of the red channel is to make
+			// the normal map compliant with the outside world.
+			// It needs to be done because in Blender
+			// the normal used in the renderer points inward. It is generated
+			// this way in calc_vertexnormals(). Should this ever change
+			// this negate must be removed.
+			texres->nor[0] = -2.f*(texres->tr - 0.5f);
+			texres->nor[1] = 2.f*(texres->tg - 0.5f);
 			texres->nor[2] = 2.f*(texres->tb - 0.5f);
 		}
 		else {
@@ -1348,8 +1354,14 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, 
 		ibuf->rect -= ibuf->x*ibuf->y;
 
 	if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) {	// normal from color
-		texres->nor[0] = 2.f*(texres->tr - 0.5f);
-		texres->nor[1] = 2.f*(0.5f - texres->tg);
+		// The invert of the red channel is to make
+		// the normal map compliant with the outside world.
+		// It needs to be done because in Blender
+		// the normal used in the renderer points inward. It is generated
+		// this way in calc_vertexnormals(). Should this ever change
+		// this negate must be removed.
+		texres->nor[0] = -2.f*(texres->tr - 0.5f);
+		texres->nor[1] = 2.f*(texres->tg - 0.5f);
 		texres->nor[2] = 2.f*(texres->tb - 0.5f);
 	}
 	
@@ -1728,8 +1740,14 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 
 	if(texres->nor && (tex->imaflag & TEX_NORMALMAP)) {
 		// qdn: normal from color
-		texres->nor[0] = 2.f*(texres->tr - 0.5f);
-		texres->nor[1] = 2.f*(0.5f - texres->tg);
+		// The invert of the red channel is to make
+		// the normal map compliant with the outside world.
+		// It needs to be done because in Blender
+		// the normal used in the renderer points inward. It is generated
+		// this way in calc_vertexnormals(). Should this ever change
+		// this negate must be removed.
+		texres->nor[0] = -2.f*(texres->tr - 0.5f);
+		texres->nor[1] = 2.f*(texres->tg - 0.5f);
 		texres->nor[2] = 2.f*(texres->tb - 0.5f);
 	}
 	

@@ -1098,8 +1098,13 @@ void mtex_image(vec3 texco, sampler2D ima, out float value, out vec4 color)
 
 void mtex_normal(vec3 texco, sampler2D ima, out vec3 normal)
 {
+	// The invert of the red channel is to make
+	// the normal map compliant with the outside world.
+	// It needs to be done because in Blender
+	// the normal used points inward.
+	// Should this ever change this negate must be removed.
     vec4 color = texture2D(ima, texco.xy);
-	normal = 2.0*(vec3(color.r, -color.g, color.b) - vec3(0.5, -0.5, 0.5));
+	normal = 2.0*(vec3(-color.r, color.g, color.b) - vec3(-0.5, 0.5, 0.5));
 }
 
 void mtex_bump_normals_init( vec3 vN, out vec3 vNorg, out vec3 vNacc, out float fPrevMagnitude )
