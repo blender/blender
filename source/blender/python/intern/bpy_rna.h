@@ -39,21 +39,33 @@ extern PyTypeObject pyrna_prop_collection_Type;
 #define BPy_PropertyRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_prop_Type))
 #define BPy_PropertyRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_prop_Type)
 
+/* play it safe and keep optional for now, need to test further now this affects looping on 10000's of verts for eg. */
+// #define USE_WEAKREFS
+
 typedef struct {
 	PyObject_HEAD /* required python macro   */
-	PointerRNA ptr;
+	PointerRNA	ptr;
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist;
+#endif
 } BPy_DummyPointerRNA;
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
 	PointerRNA ptr;
 	int freeptr; /* needed in some cases if ptr.data is created on the fly, free when deallocing */
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist;
+#endif
 } BPy_StructRNA;
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
 	PointerRNA ptr;
 	PropertyRNA *prop;
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist;
+#endif
 } BPy_PropertyRNA;
 
 typedef struct {
@@ -64,6 +76,9 @@ typedef struct {
 	/* Arystan: this is a hack to allow sub-item r/w access like: face.uv[n][m] */
 	int arraydim; /* array dimension, e.g: 0 for face.uv, 2 for face.uv[n][m], etc. */
 	int arrayoffset; /* array first item offset, e.g. if face.uv is [4][2], arrayoffset for face.uv[n] is 2n */
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist;
+#endif
 } BPy_PropertyArrayRNA;
 
 /* cheap trick */

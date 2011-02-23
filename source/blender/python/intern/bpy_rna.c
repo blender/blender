@@ -24,6 +24,7 @@
 
 #include <Python.h>
 
+#include <stddef.h>
 #include <float.h> /* FLT_MIN/MAX */
 
 #include "bpy_rna.h"
@@ -655,7 +656,7 @@ static long pyrna_prop_hash(BPy_PropertyRNA *self)
 }
 
 /* use our own dealloc so we can free a property if we use one */
-static void pyrna_struct_dealloc( BPy_StructRNA *self )
+static void pyrna_struct_dealloc(BPy_StructRNA *self)
 {
 	if (self->freeptr && self->ptr.data) {
 		IDP_FreeProperty(self->ptr.data);
@@ -663,9 +664,37 @@ static void pyrna_struct_dealloc( BPy_StructRNA *self )
 		self->ptr.data= NULL;
 	}
 
+#ifdef USE_WEAKREFS
+    if (self->in_weakreflist != NULL) {
+        PyObject_ClearWeakRefs((PyObject *)self);
+	}
+#endif
+
 	/* Note, for subclassed PyObjects we cant just call PyObject_DEL() directly or it will crash */
 	Py_TYPE(self)->tp_free(self);
-	return;
+}
+
+/* use our own dealloc so we can free a property if we use one */
+static void pyrna_prop_dealloc(BPy_PropertyRNA *self)
+{
+#ifdef USE_WEAKREFS
+    if (self->in_weakreflist != NULL) {
+        PyObject_ClearWeakRefs((PyObject *)self);
+	}
+#endif
+	/* Note, for subclassed PyObjects we cant just call PyObject_DEL() directly or it will crash */
+	Py_TYPE(self)->tp_free(self);
+}
+
+static void pyrna_prop_array_dealloc(BPy_PropertyRNA *self)
+{
+#ifdef USE_WEAKREFS
+    if (self->in_weakreflist != NULL) {
+        PyObject_ClearWeakRefs((PyObject *)self);
+	}
+#endif
+	/* Note, for subclassed PyObjects we cant just call PyObject_DEL() directly or it will crash */
+	Py_TYPE(self)->tp_free(self);
 }
 
 static const char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
@@ -4238,10 +4267,10 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
 PyTypeObject pyrna_struct_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"bpy_struct",			/* tp_name */
-	sizeof( BPy_StructRNA ),	/* tp_basicsize */
+	sizeof(BPy_StructRNA),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor ) pyrna_struct_dealloc,/* tp_dealloc */
+	(destructor) pyrna_struct_dealloc,/* tp_dealloc */
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,						/* setattrfunc tp_setattr; */
@@ -4281,8 +4310,11 @@ PyTypeObject pyrna_struct_Type = {
 	(richcmpfunc)pyrna_struct_richcmp,	/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
-	0,                          /* long tp_weaklistoffset; */
-
+#ifdef USE_WEAKREFS
+	offsetof(BPy_StructRNA, in_weakreflist),	/* long tp_weaklistoffset; */
+#else
+	0,
+#endif
   /*** Added in release 2.2 ***/
 	/*   Iterators */
 	NULL,                       /* getiterfunc tp_iter; */
@@ -4317,11 +4349,11 @@ PyTypeObject pyrna_struct_Type = {
 PyTypeObject pyrna_prop_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"bpy_prop",		/* tp_name */
-	sizeof( BPy_PropertyRNA ),			/* tp_basicsize */
+	sizeof(BPy_PropertyRNA),			/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	NULL,						/* tp_dealloc */
-	NULL,                   /* printfunc tp_print; */
+	(destructor) pyrna_prop_dealloc, /* tp_dealloc */
+	NULL,						/* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
 	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
@@ -4362,7 +4394,11 @@ PyTypeObject pyrna_prop_Type = {
 	(richcmpfunc)pyrna_prop_richcmp,	/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
-	0,                          /* long tp_weaklistoffset; */
+#ifdef USE_WEAKREFS
+	offsetof(BPy_PropertyRNA, in_weakreflist),	/* long tp_weaklistoffset; */
+#else
+	0,
+#endif
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
@@ -4397,10 +4433,10 @@ PyTypeObject pyrna_prop_Type = {
 PyTypeObject pyrna_prop_array_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"bpy_prop_array",		/* tp_name */
-	sizeof( BPy_PropertyArrayRNA ),			/* tp_basicsize */
-	0,			/* tp_itemsize */
+	sizeof(BPy_PropertyArrayRNA),			/* tp_basicsize */
+	0,							/* tp_itemsize */
 	/* methods */
-	NULL,						/* tp_dealloc */
+	(destructor)pyrna_prop_array_dealloc, /* tp_dealloc */
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -4442,8 +4478,11 @@ PyTypeObject pyrna_prop_array_Type = {
 	NULL, /* subclassed */		/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
-	0,                          /* long tp_weaklistoffset; */
-
+#ifdef USE_WEAKREFS
+	offsetof(BPy_PropertyArrayRNA, in_weakreflist),	/* long tp_weaklistoffset; */
+#else
+	0,
+#endif
   /*** Added in release 2.2 ***/
 	/*   Iterators */
 	(getiterfunc)pyrna_prop_array_iter,	/* getiterfunc tp_iter; */
@@ -4477,10 +4516,10 @@ PyTypeObject pyrna_prop_array_Type = {
 PyTypeObject pyrna_prop_collection_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"bpy_prop_collection",		/* tp_name */
-	sizeof( BPy_PropertyRNA ),			/* tp_basicsize */
+	sizeof(BPy_PropertyRNA),			/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	NULL,						/* tp_dealloc */
+	(destructor)pyrna_prop_dealloc, /* tp_dealloc */
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -4522,7 +4561,11 @@ PyTypeObject pyrna_prop_collection_Type = {
 	NULL, /* subclassed */		/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
-	0,                          /* long tp_weaklistoffset; */
+#ifdef USE_WEAKREFS
+	offsetof(BPy_PropertyRNA, in_weakreflist),	/* long tp_weaklistoffset; */
+#else
+	0,
+#endif
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
@@ -4558,10 +4601,10 @@ PyTypeObject pyrna_prop_collection_Type = {
 static PyTypeObject pyrna_prop_collection_idprop_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"bpy_prop_collection_idprop",		/* tp_name */
-	sizeof( BPy_PropertyRNA ),			/* tp_basicsize */
-	0,			/* tp_itemsize */
+	sizeof(BPy_PropertyRNA),			/* tp_basicsize */
+	0,							/* tp_itemsize */
 	/* methods */
-	NULL,						/* tp_dealloc */
+	(destructor)pyrna_prop_dealloc, /* tp_dealloc */
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -4603,7 +4646,11 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
 	NULL, /* subclassed */		/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
-	0,                          /* long tp_weaklistoffset; */
+#ifdef USE_WEAKREFS
+	offsetof(BPy_PropertyRNA, in_weakreflist),	/* long tp_weaklistoffset; */
+#else
+	0,
+#endif
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
@@ -4844,6 +4891,9 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 		else {
 			fprintf(stderr, "Could not make type\n");
 			pyrna = ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
+#ifdef USE_WEAKREFS
+			pyrna->in_weakreflist= NULL;
+#endif
 		}
 	}
 
@@ -4880,11 +4930,17 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop )
 		}
 
 		pyrna = (BPy_PropertyRNA *) PyObject_NEW(BPy_PropertyRNA, type);
+#ifdef USE_WEAKREFS
+		pyrna->in_weakreflist= NULL;
+#endif
 	}
 	else {
 		pyrna = (BPy_PropertyRNA *) PyObject_NEW(BPy_PropertyArrayRNA, &pyrna_prop_array_Type);
 		((BPy_PropertyArrayRNA *)pyrna)->arraydim= 0;
 		((BPy_PropertyArrayRNA *)pyrna)->arrayoffset= 0;
+#ifdef USE_WEAKREFS
+		((BPy_PropertyArrayRNA *)pyrna)->in_weakreflist= NULL;
+#endif
 	}
 
 	if( !pyrna ) {
@@ -5029,7 +5085,7 @@ PyObject *BPY_rna_types(void)
 
 	if ((pyrna_basetype_Type.tp_flags & Py_TPFLAGS_READY)==0)  {
 		pyrna_basetype_Type.tp_name = "RNA_Types";
-		pyrna_basetype_Type.tp_basicsize = sizeof( BPy_BaseTypeRNA );
+		pyrna_basetype_Type.tp_basicsize = sizeof(BPy_BaseTypeRNA);
 		pyrna_basetype_Type.tp_getattro = ( getattrofunc )pyrna_basetype_getattro;
 		pyrna_basetype_Type.tp_flags = Py_TPFLAGS_DEFAULT;
 		pyrna_basetype_Type.tp_methods = pyrna_basetype_methods;
@@ -5043,7 +5099,9 @@ PyObject *BPY_rna_types(void)
 	/* avoid doing this lookup for every getattr */
 	RNA_blender_rna_pointer_create(&self->ptr);
 	self->prop = RNA_struct_find_property(&self->ptr, "structs");
-
+#ifdef USE_WEAKREFS
+	self->in_weakreflist= NULL;
+#endif
 	return (PyObject *)self;
 }
 
