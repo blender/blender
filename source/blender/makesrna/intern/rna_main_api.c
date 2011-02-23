@@ -1232,8 +1232,8 @@ void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainLineStyles");
-	srna= RNA_def_struct(brna, "MainLineStyles", NULL);
+	RNA_def_property_srna(cprop, "BlendDataLineStyles");
+	srna= RNA_def_struct(brna, "BlendDataLineStyles", NULL);
 	RNA_def_struct_ui_text(srna, "Main Line Styles", "Collection of line styles");
 
 	func= RNA_def_function(srna, "new", "rna_Main_linestyles_new");
