@@ -1,9 +1,7 @@
 /*
- * rgb32.c
+ * $Id$
  *
  * This is external code. Converts between rgb32 and avi.
- *
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,7 +27,8 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- *  */
+ *
+ */
 
 #include "AVI_avi.h"
 #include <stdlib.h>

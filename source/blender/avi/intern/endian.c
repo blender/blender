@@ -1,10 +1,8 @@
 /*
- * endian.h
+ * $Id$
  *
  * This is external code. Streams bytes to output depending on the
  * endianness of the system.
- *
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -30,7 +28,8 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- *  */
+ *
+ */
 
 #include <stdlib.h>
 #include <string.h>

@@ -1,4 +1,5 @@
-/*  exotic.c   
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -20,14 +21,15 @@
  * All rights reserved.
  *
  *
- * Contributor(s): 
+ * Contributor(s):
  * - Martin DeMello
  *   Added dxf_read_arc, dxf_read_ellipse and dxf_read_lwpolyline
  *   Copyright (C) 2004 by Etheract Software Labs
  *
  * - Blender Foundation
  *
- * ***** END GPL LICENSE BLOCK *****/
+ * ***** END GPL LICENSE BLOCK ****
+ */
 
 #include <stddef.h>
 #include "BLI_storage.h"

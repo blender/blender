@@ -1,9 +1,7 @@
 /*
- * avi.c
+ * $Id$
  *
  * This is external code.
- *
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

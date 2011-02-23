@@ -1,9 +1,7 @@
 /*
- * avirgb.c
+ * $Id$
  *
  * This is external code. Converts rgb-type avi-s.
- *
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

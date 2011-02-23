@@ -1,9 +1,7 @@
 /*
- * codecs.c
+ * $Id$
  *
  * This is external code. Identify and convert different avi-files.
- *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

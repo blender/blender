@@ -1,10 +1,8 @@
 /*
- * options.h
+ * $Id$
  *
  * This is external code. Sets some compression related options
  * (width, height quality, framerate).
- *
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -30,7 +28,8 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- *  */
+ *
+ */
 
 #include "AVI_avi.h"
 #include "avi_intern.h"

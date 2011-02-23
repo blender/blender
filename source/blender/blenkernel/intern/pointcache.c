@@ -1,4 +1,5 @@
 /*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -19,7 +20,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
-* Contributor(s): Campbell Barton <ideasman42@gmail.com>
+ * Contributor(s): Campbell Barton <ideasman42@gmail.com>
  *
  * ***** END GPL LICENSE BLOCK *****
  */
