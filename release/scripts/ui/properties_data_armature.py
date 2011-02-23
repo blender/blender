@@ -172,12 +172,6 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, bpy.types.Panel):
         row.template_ID(ob, "pose_library", new="poselib.new", unlink="poselib.unlink")
 
         if poselib:
-            activePoseIndex = poselib.pose_markers.active_index
-            if poselib.pose_markers.active:
-                activePoseName = poselib.pose_markers.active.name
-            else:
-                activePoseName = ""
-
             row = layout.row()
             row.template_list(poselib, "pose_markers", poselib.pose_markers, "active_index", rows=5)
 
@@ -189,9 +183,12 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, bpy.types.Panel):
             col.operator("poselib.pose_add", icon='ZOOMIN', text="")
 
             col.operator_context = 'EXEC_DEFAULT'  # exec not invoke, so that menu doesn't need showing
-            col.operator("poselib.pose_remove", icon='ZOOMOUT', text="").pose = activePoseName
 
-            col.operator("poselib.apply_pose", icon='ZOOM_SELECTED', text="").pose_index = activePoseIndex
+            pose_marker_active = poselib.pose_markers.active
+
+            if pose_marker_active is not None:
+                col.operator("poselib.pose_remove", icon='ZOOMOUT', text="").pose = pose_marker_active.name
+                col.operator("poselib.apply_pose", icon='ZOOM_SELECTED', text="").pose_index = poselib.pose_markers.active_index
 
             row = layout.row()
             row.operator("poselib.action_sanitise")

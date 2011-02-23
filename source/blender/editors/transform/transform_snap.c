@@ -83,7 +83,7 @@
 
 //#include "blendef.h" /* for selection modes */
 
-#define USE_BVH_FACE_PROJECT
+#define USE_BVH_FACE_SNAP
 
 /********************* PROTOTYPES ***********************/
 
