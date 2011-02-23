@@ -3436,7 +3436,7 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_sh_value(ntypelist);
 	register_node_type_sh_rgb(ntypelist);
 	register_node_type_sh_texture(ntypelist);
-	register_node_type_sh_dynamic(ntypelist);
+//	register_node_type_sh_dynamic(ntypelist);
 	register_node_type_sh_invert(ntypelist);
 	register_node_type_sh_seprgb(ntypelist);
 	register_node_type_sh_combrgb(ntypelist);
