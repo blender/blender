@@ -128,6 +128,10 @@ class IMAGE_MT_image(bpy.types.Menu):
 
             layout.operator("image.external_edit", "Edit Externally")
 
+            layout.separator()
+
+            layout.menu("IMAGE_MT_image_invert")
+
             if not show_render:
                 layout.separator()
 
@@ -145,6 +149,32 @@ class IMAGE_MT_image(bpy.types.Menu):
             layout.separator()
 
             layout.prop(sima, "use_image_paint")
+
+
+class IMAGE_MT_image_invert(bpy.types.Menu):
+    bl_label = "Invert"
+
+    def draw(self, context):
+        layout = self.layout
+
+        op = layout.operator("image.invert", text="Invert Image Colors");
+        op.inv_r = True;
+        op.inv_g = True;
+        op.inv_b = True;
+
+        layout.separator()
+
+        op = layout.operator("image.invert", text="Invert Red Channel");
+        op.inv_r = True;
+
+        op = layout.operator("image.invert", text="Invert Green Channel");
+        op.inv_g = True;
+
+        op = layout.operator("image.invert", text="Invert Blue Channel");
+        op.inv_b = True;
+
+        op = layout.operator("image.invert", text="Invert Alpha Channel");
+        op.inv_a = True;
 
 
 class IMAGE_MT_uvs_showhide(bpy.types.Menu):

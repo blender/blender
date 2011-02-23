@@ -79,6 +79,8 @@ void IMAGE_OT_save_sequence(struct wmOperatorType *ot);
 void IMAGE_OT_pack(struct wmOperatorType *ot);
 void IMAGE_OT_unpack(struct wmOperatorType *ot);
 
+void IMAGE_OT_invert(struct wmOperatorType *ot);
+
 void IMAGE_OT_cycle_render_slot(struct wmOperatorType *ot);
 
 void IMAGE_OT_sample(struct wmOperatorType *ot);
