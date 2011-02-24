@@ -2215,75 +2215,59 @@ PyTypeObject vector_Type = {
  (i.e. it was allocated elsewhere by MEM_mallocN())
   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  (i.e. it must be created here with PyMEM_malloc())*/
-static int newVectorObject_init(VectorObject *self, float *vec, const int size, const short type)
-{
-	if(size > 4 || size < 2) {
-		PyErr_SetString(PyExc_RuntimeError, "invalid size");
-		return -1;
-	}
-
-	self->size = size;
-
-	if(type == Py_WRAP) {
-		self->vec = vec;
-		self->wrapped = Py_WRAP;
-	}
-	else if (type == Py_NEW) {
-		self->vec= PyMem_Malloc(size * sizeof(float));
-		if(vec) {
-			memcpy(self->vec, vec, size * sizeof(float));
-		}
-		else { /* new empty */
-			fill_vn(self->vec, size, 0.0f);
-			if(size == 4) { /* do the homogenous thing */
-				self->vec[3] = 1.0f;
-			}
-		}
-		self->wrapped = Py_NEW;
-	}
-	else {
-		PyErr_SetString(PyExc_RuntimeError, "invalid type");
-		return -1;
-	}
-
-	return 0;
-}
-
-
-PyObject *newVectorObject(float *vec, const int size, const short type, PyTypeObject *base_type)
+PyObject *newVectorObject(float *vec, const int size, const int type, PyTypeObject *base_type)
 {
 	VectorObject *self;
+
+	if(size > 4 || size < 2) {
+		PyErr_SetString(PyExc_RuntimeError, "Vector(): invalid size");
+		return NULL;
+	}
 
 	self= base_type ?	(VectorObject *)base_type->tp_alloc(base_type, 0) :
 						(VectorObject *)PyObject_GC_New(VectorObject, &vector_Type);
 
-	self->cb_user= NULL;
-	self->cb_type= self->cb_subtype= 0;
-	((BaseMathObject *)self)->data= NULL; /* incase of error */
+	if(self) {
+		self->size = size;
 
-	if(newVectorObject_init(self, vec, size, type) == -1) {
-		Py_DECREF(self);
-		return NULL;
+		/* init callbacks as NULL */
+		self->cb_user= NULL;
+		self->cb_type= self->cb_subtype= 0;
+
+		if(type == Py_WRAP) {
+			self->vec = vec;
+			self->wrapped = Py_WRAP;
+		}
+		else if (type == Py_NEW) {
+			self->vec= PyMem_Malloc(size * sizeof(float));
+			if(vec) {
+				memcpy(self->vec, vec, size * sizeof(float));
+			}
+			else { /* new empty */
+				fill_vn(self->vec, size, 0.0f);
+				if(size == 4) { /* do the homogenous thing */
+					self->vec[3] = 1.0f;
+				}
+			}
+			self->wrapped = Py_NEW;
+		}
+		else {
+			PyErr_SetString(PyExc_RuntimeError, "Vector(): invalid type");
+			return NULL;
+		}
 	}
-
-	return (PyObject *)self;
+	return (PyObject *) self;
 }
 
 PyObject *newVectorObject_cb(PyObject *cb_user, int size, int cb_type, int cb_subtype)
 {
-	VectorObject *self;
-
-	self= PyObject_GC_New(VectorObject, &vector_Type);
-
-	Py_INCREF(cb_user);
-	self->cb_user=			cb_user;
-	self->cb_type=			(unsigned char)cb_type;
-	self->cb_subtype=		(unsigned char)cb_subtype;
-	((BaseMathObject *)self)->data= NULL; /* incase of error */
-
-	if(newVectorObject_init(self, NULL, size, Py_NEW) == -1) {
-		Py_DECREF(self);
-		return NULL;
+	float dummy[4] = {0.0, 0.0, 0.0, 0.0}; /* dummy init vector, callbacks will be used on access */
+	VectorObject *self= (VectorObject *)newVectorObject(dummy, size, Py_NEW, NULL);
+	if(self) {
+		Py_INCREF(cb_user);
+		self->cb_user=			cb_user;
+		self->cb_type=			(unsigned char)cb_type;
+		self->cb_subtype=		(unsigned char)cb_subtype;
 	}
 
 	return (PyObject *)self;

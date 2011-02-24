@@ -509,31 +509,6 @@ PyTypeObject color_Type = {
  (i.e. it was allocated elsewhere by MEM_mallocN())
   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  (i.e. it must be created here with PyMEM_malloc())*/
-static int newColorObject_init(ColorObject *self, float *col, int type)
-{
-	if(type == Py_WRAP) {
-		self->col = col;
-		self->wrapped = Py_WRAP;
-	}
-	else if (type == Py_NEW) {
-		self->col = PyMem_Malloc(COLOR_SIZE * sizeof(float));
-		if(col) {
-			copy_v3_v3(self->col, col);
-		}
-		else {
-			zero_v3(self->col);
-		}
-
-		self->wrapped = Py_NEW;
-	}
-	else {
-		return -1;
-	}
-
-	return 0;
-}
-
-
 PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 {
 	ColorObject *self;
@@ -541,14 +516,28 @@ PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 	self= base_type ?	(ColorObject *)base_type->tp_alloc(base_type, 0) :
 						(ColorObject *)PyObject_GC_New(ColorObject, &color_Type);
 
-	/* init callbacks as NULL */
-	self->cb_user= NULL;
-	self->cb_type= self->cb_subtype= 0;
-	((BaseMathObject *)self)->data= NULL; /* incase of error */
+	if(self) {
+		/* init callbacks as NULL */
+		self->cb_user= NULL;
+		self->cb_type= self->cb_subtype= 0;
 
-	if(newColorObject_init(self, col, type) == -1) {
-		Py_DECREF(self);
-		return NULL;
+		if(type == Py_WRAP){
+			self->col = col;
+			self->wrapped = Py_WRAP;
+		}
+		else if (type == Py_NEW){
+			self->col = PyMem_Malloc(COLOR_SIZE * sizeof(float));
+			if(col)
+				copy_v3_v3(self->col, col);
+			else
+				zero_v3(self->col);
+
+			self->wrapped = Py_NEW;
+		}
+		else {
+			PyErr_SetString(PyExc_RuntimeError, "Color(): invalid type");
+			return NULL;
+		}
 	}
 
 	return (PyObject *)self;
@@ -556,19 +545,12 @@ PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 
 PyObject *newColorObject_cb(PyObject *cb_user, int cb_type, int cb_subtype)
 {
-	ColorObject *self;
-
-	self= (ColorObject *)PyObject_GC_New(ColorObject, &color_Type);
-
-	Py_INCREF(cb_user);
-	self->cb_user=			cb_user;
-	self->cb_type=			(unsigned char)cb_type;
-	self->cb_subtype=		(unsigned char)cb_subtype;
-	((BaseMathObject *)self)->data= NULL; /* incase of error */
-
-	if(newColorObject_init(self, NULL, Py_NEW) == -1) {
-		Py_DECREF(self);
-		return NULL;
+	ColorObject *self= (ColorObject *)newColorObject(NULL, Py_NEW, NULL);
+	if(self) {
+		Py_INCREF(cb_user);
+		self->cb_user=			cb_user;
+		self->cb_type=			(unsigned char)cb_type;
+		self->cb_subtype=		(unsigned char)cb_subtype;
 	}
 
 	return (PyObject *)self;

@@ -341,10 +341,7 @@ void BaseMathObject_dealloc(BaseMathObject *self)
 {
 	/* only free non wrapped */
 	if(self->wrapped != Py_WRAP) {
-		/* the ONLY time this should be NULL is when the value failed to initialize */
-		if(self->data) {
-			PyMem_Free(self->data);
-		}
+		PyMem_Free(self->data);
 	}
 
 	BaseMathObject_clear(self);
