@@ -1983,6 +1983,33 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 				node->typeinfo->execfunc(data, node, nsin, nsout);
 		}
 	}
+	
+	/* free internal buffers */
+	if (ntree->type==NTREE_COMPOSIT) {
+		bNodeSocket *sock;
+		bNodeStack *ns;
+		for (sock=ntree->outputs.first; sock; sock=sock->next) {
+			/* use the hasoutput flag to tag external sockets */
+			if (sock->stack_type==SOCK_STACK_LOCAL) {
+				ns= get_socket_stack(stack, sock, in);
+				ns->hasoutput = 0;
+			}
+		}
+		/* now free all stacks that are not used from outside */
+		for (node=ntree->nodes.first; node; node=node->next) {
+			for (sock=node->outputs.first; sock; sock=sock->next) {
+				if (sock->stack_type==SOCK_STACK_LOCAL ) {
+					ns= get_socket_stack(stack, sock, in);
+					if (ns->hasoutput!=0 && ns->data) {
+						free_compbuf(ns->data);
+						ns->data = NULL;
+						/* reset the flag */
+						ns->hasoutput = 1;
+					}
+				}
+			}
+		}
+	}
 }
 
 static int set_stack_indexes_default(bNode *node, int index)
