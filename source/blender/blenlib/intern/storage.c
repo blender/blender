@@ -71,10 +71,6 @@
 #include <pwd.h>
 #endif
 
-#if !defined(__FreeBSD__) && !defined(__APPLE__)
-#include <malloc.h>
-#endif
-
 #ifdef WIN32
 #include <io.h>
 #include <direct.h>
