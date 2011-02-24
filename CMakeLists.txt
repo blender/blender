@@ -916,28 +916,6 @@ elseif(APPLE)
 	endif()
 endif()
 
-
-# buildinfo
-if(WITH_BUILDINFO)
-	# BUILD_PLATFORM and BUILD_PLATFORM are taken from CMake
-	if(UNIX)
-		execute_process(COMMAND date "+%Y-%m-%d" OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process(COMMAND date "+%H:%M:%S" OUTPUT_VARIABLE BUILD_TIME OUTPUT_STRIP_TRAILING_WHITESPACE)  
-		execute_process(COMMAND svnversion ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE BUILD_REV RESULT_VARIABLE BUILD_REV_RETURN OUTPUT_STRIP_TRAILING_WHITESPACE)
-		if(BUILD_REV_RETURN)
-			set(BUILD_REV "unknown")
-		endif()
-	endif()
-	
-	if(WIN32)
-		execute_process(COMMAND cmd /c date /t OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process(COMMAND cmd /c time /t OUTPUT_VARIABLE BUILD_TIME OUTPUT_STRIP_TRAILING_WHITESPACE)  
-		execute_process(COMMAND svnversion ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE BUILD_REV RESULT_VARIABLE BUILD_REV_RETURN OUTPUT_STRIP_TRAILING_WHITESPACE)
-		if(BUILD_REV_RETURN)
-			set(BUILD_REV "unknown")
-		endif()
-	endif()
-endif()
 #-----------------------------------------------------------------------------
 # Common.
 

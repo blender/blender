@@ -107,13 +107,17 @@ if(WIN32 AND NOT UNIX)
 endif()
 
 if(WITH_BUILDINFO)
+	# --------------------------------------------------------------------------
+	# These defines could all be moved into the header below
 	string(REPLACE " " "\ " BUILDINFO_CFLAGS "${CMAKE_C_FLAGS}")
 	string(REPLACE " " "\ " BUILDINFO_CXXFLAGS "${CMAKE_CXX_FLAGS}")
 	string(REPLACE " " "\ " BUILDINFO_LINKFLAGS "${PLATFORM_LINKFLAGS}")
 	add_definitions(
-		-DBUILD_DATE="${BUILD_DATE}"
-		-DBUILD_TIME="${BUILD_TIME}"
-		-DBUILD_REV="${BUILD_REV}"
+		# # define in header now, else these get out of date on rebuilds.
+		# -DBUILD_DATE="${BUILD_DATE}"
+		# -DBUILD_TIME="${BUILD_TIME}"
+		# -DBUILD_REV="${BUILD_REV}"
+		-DWITH_BUILDINFO_HEADER # alternative to lines above
 		-DBUILD_PLATFORM="${CMAKE_SYSTEM_NAME}"
 		-DBUILD_TYPE="${CMAKE_BUILD_TYPE}"
 		-DBUILD_CFLAGS="${BUILDINFO_CFLAGS}"
@@ -121,6 +125,32 @@ if(WITH_BUILDINFO)
 		-DBUILD_LINKFLAGS="${BUILDINFO_LINKFLAGS}"
 		-DBUILD_SYSTEM="CMake"
 	)
+
+	# --------------------------------------------------------------------------
+	# write header for values that change each build
+	# note, generaed file is in build dir's source/creator
+	#       except when used as an include path.
+
+	# include the output directory, where the buildinfo.h file is generated
+	include_directories(${CMAKE_BINARY_DIR}/source/creator)
+	message(WARNING "${CMAKE_CURRENT_SOURCE_DIR}")
+	# a custom target that is always built
+	add_custom_target(buildinfo ALL
+		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/buildinfo.h)
+
+	# creates svnheader.h using cmake script
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/buildinfo.h
+		COMMAND ${CMAKE_COMMAND}
+		-DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+		-P ${CMAKE_SOURCE_DIR}/build_files/cmake/buildinfo.cmake)
+
+	# buildinfo.h is a generated file
+	set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/buildinfo.h
+		PROPERTIES GENERATED TRUE
+		HEADER_FILE_ONLY TRUE)
+		
+	# add deps below
+	# -------------- done with header values.
 
 	list(APPEND SRC
 		buildinfo.c
@@ -142,6 +172,11 @@ if(WITH_PYTHON_MODULE)
 	)
 else()
 	add_executable(blender ${EXETYPE} ${SRC})
+endif()
+
+if(WITH_BUILDINFO)
+	# explicitly say that the executable depends on the buildinfo
+	add_dependencies(blender buildinfo)
 endif()
 
 # Post build steps for bundling/packaging.

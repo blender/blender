@@ -395,7 +395,7 @@ void PAINT_OT_face_select_hide(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
 }
 
-static int face_select_reveal_exec(bContext *C, wmOperator *op)
+static int face_select_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_active_object(C);
 	paintface_reveal(ob);

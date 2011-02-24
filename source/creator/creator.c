@@ -97,6 +97,10 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
+#ifdef WITH_BUILDINFO_HEADER
+#define BUILD_DATE
+#endif
+
 /* for passing information between creator and gameengine */
 #ifdef WITH_GAMEENGINE
 #include "GEN_messaging.h"
@@ -141,7 +145,7 @@ extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 char bprogname[FILE_MAX]; /* from blenpluginapi:pluginapi.c */
 char btempdir[FILE_MAX];
 
-#define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
+#define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d)\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
 
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
