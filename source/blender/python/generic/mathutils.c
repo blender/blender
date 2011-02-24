@@ -325,13 +325,30 @@ PyObject *BaseMathObject_getWrapped(BaseMathObject *self, void *UNUSED(closure))
 	return PyBool_FromLong((self->wrapped == Py_WRAP) ? 1:0);
 }
 
-void BaseMathObject_dealloc(BaseMathObject * self)
+int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg)
+{
+	Py_VISIT(self->cb_user);
+	return 0;
+}
+
+int BaseMathObject_clear(BaseMathObject *self)
+{
+	Py_CLEAR(self->cb_user);
+	return 0;
+}
+
+void BaseMathObject_dealloc(BaseMathObject *self)
 {
 	/* only free non wrapped */
-	if(self->wrapped != Py_WRAP)
-		PyMem_Free(self->data);
+	if(self->wrapped != Py_WRAP) {
+		/* the ONLY time this should be NULL is when the value failed to initialize */
+		if(self->data) {
+			PyMem_Free(self->data);
+		}
+	}
 
-	Py_XDECREF(self->cb_user);
+	BaseMathObject_clear(self);
+
 	Py_TYPE(self)->tp_free(self); // PyObject_DEL(self); // breaks subtypes
 }
 

@@ -57,6 +57,10 @@ typedef struct {
 
 PyObject *BaseMathObject_getOwner( BaseMathObject * self, void * );
 PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void * );
+
+
+int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg);
+int BaseMathObject_clear(BaseMathObject *self);
 void BaseMathObject_dealloc(BaseMathObject * self);
 
 PyMODINIT_FUNC BPyInit_mathutils(void);

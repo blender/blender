@@ -2162,14 +2162,15 @@ PyTypeObject vector_Type = {
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
 
   /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, 
 	vector_doc,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
+
 	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
+	(traverseproc)BaseMathObject_traverse,	//tp_traverse
 
 	/* delete references to contained objects */
-	NULL,                       /* inquiry tp_clear; */
+	(inquiry)BaseMathObject_clear,	//tp_clear
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/
@@ -2214,26 +2215,20 @@ PyTypeObject vector_Type = {
  (i.e. it was allocated elsewhere by MEM_mallocN())
   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *newVectorObject(float *vec, const int size, const int type, PyTypeObject *base_type)
+static int newVectorObject_init(VectorObject *self, float *vec, const int size, const short type)
 {
-	VectorObject *self;
-
-	if(size > 4 || size < 2)
-		return NULL;
-
-	if(base_type)	self = (VectorObject *)base_type->tp_alloc(base_type, 0);
-	else			self = PyObject_NEW(VectorObject, &vector_Type);
+	if(size > 4 || size < 2) {
+		PyErr_SetString(PyExc_RuntimeError, "invalid size");
+		return -1;
+	}
 
 	self->size = size;
-	
-	/* init callbacks as NULL */
-	self->cb_user= NULL;
-	self->cb_type= self->cb_subtype= 0;
 
 	if(type == Py_WRAP) {
 		self->vec = vec;
 		self->wrapped = Py_WRAP;
-	} else if (type == Py_NEW) {
+	}
+	else if (type == Py_NEW) {
 		self->vec= PyMem_Malloc(size * sizeof(float));
 		if(vec) {
 			memcpy(self->vec, vec, size * sizeof(float));
@@ -2245,21 +2240,50 @@ PyObject *newVectorObject(float *vec, const int size, const int type, PyTypeObje
 			}
 		}
 		self->wrapped = Py_NEW;
-	}else{ /*bad type*/
+	}
+	else {
+		PyErr_SetString(PyExc_RuntimeError, "invalid type");
+		return -1;
+	}
+
+	return 0;
+}
+
+
+PyObject *newVectorObject(float *vec, const int size, const short type, PyTypeObject *base_type)
+{
+	VectorObject *self;
+
+	self= base_type ?	(VectorObject *)base_type->tp_alloc(base_type, 0) :
+						(VectorObject *)PyObject_GC_New(VectorObject, &vector_Type);
+
+	self->cb_user= NULL;
+	self->cb_type= self->cb_subtype= 0;
+	((BaseMathObject *)self)->data= NULL; /* incase of error */
+
+	if(newVectorObject_init(self, vec, size, type) == -1) {
+		Py_DECREF(self);
 		return NULL;
 	}
-	return (PyObject *) self;
+
+	return (PyObject *)self;
 }
 
 PyObject *newVectorObject_cb(PyObject *cb_user, int size, int cb_type, int cb_subtype)
 {
-	float dummy[4] = {0.0, 0.0, 0.0, 0.0}; /* dummy init vector, callbacks will be used on access */
-	VectorObject *self= (VectorObject *)newVectorObject(dummy, size, Py_NEW, NULL);
-	if(self) {
-		Py_INCREF(cb_user);
-		self->cb_user=			cb_user;
-		self->cb_type=			(unsigned char)cb_type;
-		self->cb_subtype=		(unsigned char)cb_subtype;
+	VectorObject *self;
+
+	self= PyObject_GC_New(VectorObject, &vector_Type);
+
+	Py_INCREF(cb_user);
+	self->cb_user=			cb_user;
+	self->cb_type=			(unsigned char)cb_type;
+	self->cb_subtype=		(unsigned char)cb_subtype;
+	((BaseMathObject *)self)->data= NULL; /* incase of error */
+
+	if(newVectorObject_init(self, NULL, size, Py_NEW) == -1) {
+		Py_DECREF(self);
+		return NULL;
 	}
 
 	return (PyObject *)self;

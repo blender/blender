@@ -1775,10 +1775,10 @@ PyTypeObject matrix_Type = {
 	NULL,								/*tp_getattro*/
 	NULL,								/*tp_setattro*/
 	NULL,								/*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
 	matrix_doc,							/*tp_doc*/
-	NULL,								/*tp_traverse*/
-	NULL,								/*tp_clear*/
+	(traverseproc)BaseMathObject_traverse,	//tp_traverse
+	(inquiry)BaseMathObject_clear,	//tp_clear
 	(richcmpfunc)Matrix_richcmpr,		/*tp_richcompare*/
 	0,									/*tp_weaklistoffset*/
 	NULL,								/*tp_iter*/
@@ -1820,26 +1820,18 @@ self->matrix[1][1] = self->contigPtr[4] */
  (i.e. it was allocated elsewhere by MEM_mallocN())
   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *newMatrixObject(float *mat, const unsigned short rowSize, const unsigned short colSize, int type, PyTypeObject *base_type)
+static int newMatrixObject_init(MatrixObject *self, float *mat, const unsigned short rowSize, const unsigned short colSize, int type)
 {
-	MatrixObject *self;
 	int x, row, col;
 
 	/*matrix objects can be any 2-4row x 2-4col matrix*/
-	if(rowSize < 2 || rowSize > 4 || colSize < 2 || colSize > 4){
+	if(rowSize < 2 || rowSize > 4 || colSize < 2 || colSize > 4) {
 		PyErr_SetString(PyExc_RuntimeError, "matrix(): row and column sizes must be between 2 and 4");
-		return NULL;
+		return -1;
 	}
-
-	if(base_type)	self = (MatrixObject *)base_type->tp_alloc(base_type, 0);
-	else			self = PyObject_NEW(MatrixObject, &matrix_Type);
 
 	self->row_size = rowSize;
 	self->col_size = colSize;
-
-	/* init callbacks as NULL */
-	self->cb_user= NULL;
-	self->cb_type= self->cb_subtype= 0;
 
 	if(type == Py_WRAP){
 		self->contigPtr = mat;
@@ -1848,11 +1840,12 @@ PyObject *newMatrixObject(float *mat, const unsigned short rowSize, const unsign
 			self->matrix[x] = self->contigPtr + (x * colSize);
 		}
 		self->wrapped = Py_WRAP;
-	}else if (type == Py_NEW){
+	}
+	else if (type == Py_NEW){
 		self->contigPtr = PyMem_Malloc(rowSize * colSize * sizeof(float));
 		if(self->contigPtr == NULL) { /*allocation failure*/
 			PyErr_SetString(PyExc_MemoryError, "matrix(): problem allocating pointer space");
-			return NULL;
+			return -1;
 		}
 		/*pointer array points to contigous memory*/
 		for(x = 0; x < rowSize; x++) {
@@ -1865,25 +1858,58 @@ PyObject *newMatrixObject(float *mat, const unsigned short rowSize, const unsign
 					self->matrix[row][col] = mat[(row * colSize) + col];
 				}
 			}
-		} else if (rowSize == colSize ) { /*or if no arguments are passed return identity matrix for square matrices */
+		}
+		else if (rowSize == colSize ) { /*or if no arguments are passed return identity matrix for square matrices */
 			PyObject *ret_dummy= Matrix_identity(self);
 			Py_DECREF(ret_dummy);
 		}
 		self->wrapped = Py_NEW;
-	}else{ /*bad type*/
+	}
+	else {
+		PyErr_SetString(PyExc_RuntimeError, "invalid type");
+		return -1;
+	}
+
+	return 0;
+}
+
+
+PyObject *newMatrixObject(float *mat, const unsigned short rowSize, const unsigned short colSize, int type, PyTypeObject *base_type)
+{
+	MatrixObject *self;
+
+	self= base_type ?	(MatrixObject *)base_type->tp_alloc(base_type, 0) :
+						(MatrixObject *)PyObject_GC_New(MatrixObject, &matrix_Type);
+
+	/* init callbacks as NULL */
+	self->cb_user= NULL;
+	self->cb_type= self->cb_subtype= 0;
+	((BaseMathObject *)self)->data= NULL; /* incase of error */
+
+	if(newMatrixObject_init(self, mat, rowSize, colSize, type) == -1) {
+		Py_DECREF(self);
 		return NULL;
 	}
-	return (PyObject *) self;
+
+	return (PyObject *)self;
 }
 
 PyObject *newMatrixObject_cb(PyObject *cb_user, int rowSize, int colSize, int cb_type, int cb_subtype)
 {
-	MatrixObject *self= (MatrixObject *)newMatrixObject(NULL, rowSize, colSize, Py_NEW, NULL);
-	if(self) {
-		Py_INCREF(cb_user);
-		self->cb_user=			cb_user;
-		self->cb_type=			(unsigned char)cb_type;
-		self->cb_subtype=		(unsigned char)cb_subtype;
+	MatrixObject *self;
+
+	self= PyObject_GC_New(MatrixObject, &matrix_Type);
+
+	Py_INCREF(cb_user);
+	self->cb_user=			cb_user;
+	self->cb_type=			(unsigned char)cb_type;
+	self->cb_subtype=		(unsigned char)cb_subtype;
+	((BaseMathObject *)self)->data= NULL; /* incase of error */
+
+	if(newMatrixObject_init(self, NULL, rowSize, colSize, Py_NEW) == -1) {
+		Py_DECREF(self);
+		return NULL;
 	}
+
 	return (PyObject *) self;
 }
