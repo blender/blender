@@ -541,9 +541,8 @@ static void remap_uvs_23(DerivedMesh *dm, DerivedMesh *split, int numlayer, int 
 
 static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm){
 	DerivedMesh *splitdm;
-	MFace *mf=NULL,*df1=NULL,*df2=NULL,*df3=NULL,*df4=NULL;
+	MFace *mf=NULL,*df1=NULL;
 	MFace *mface=dm->getFaceArray(dm);
-	MTFace *mtf = NULL, *dtf1=NULL, *dtf2=NULL, *dtf3=NULL, *dtf4=NULL;
 	MVert *dupve, *mv;
 	EdgeHash *edgehash;
 	EdgeHashIterator *ehi;
@@ -553,7 +552,7 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm){
 	int *facesplit = MEM_callocN(sizeof(int)*totface,"explode_facesplit");
 	int *vertpa = MEM_callocN(sizeof(int)*totvert,"explode_vertpa2");
 	int *facepa = emd->facepa;
-	int *fs, totesplit=0,totfsplit=0,totin=0,curdupface=0,curdupin=0;
+	int *fs, totesplit=0,totfsplit=0,curdupface=0;
 	int i,j,v1,v2,v3,v4,esplit, v[4], uv[4];
 	int numlayer;
 
