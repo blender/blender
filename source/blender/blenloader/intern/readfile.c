@@ -3963,7 +3963,14 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 				/* Smoke uses only one cache from now on, so store pointer convert */
 				if(smd->domain->ptcaches[1].first || smd->domain->point_cache[1]) {
-					printf("High resolution smoke cache not available due to pointcache update. Please reset the simulation.\n");
+					if(smd->domain->point_cache[1]) {
+						PointCache *cache = newdataadr(fd, smd->domain->point_cache[1]);
+						if(cache->flag & PTCACHE_FAKE_SMOKE)
+							; /* Smoke was already saved in "new format" and this cache is a fake one. */
+						else
+							printf("High resolution smoke cache not available due to pointcache update. Please reset the simulation.\n");
+						BKE_ptcache_free(cache);
+					}
 					smd->domain->ptcaches[1].first = NULL;
 					smd->domain->ptcaches[1].last = NULL;
 					smd->domain->point_cache[1] = NULL;
