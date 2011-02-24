@@ -110,21 +110,22 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 }
 
 /* Returns the number of items in a single- or multi-dimensional sequence. */
-static int count_items(PyObject *seq)
+static int count_items(PyObject *seq, int dim)
 {
 	int totitem= 0;
 
-	if (PySequence_Check(seq)) {
+	if(dim > 1) {
 		const int seq_size= PySequence_Size(seq);
 		int i;
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item= PySequence_GetItem(seq, i);
-			totitem += count_items(item);
+			totitem += count_items(item, dim - 1);
 			Py_DECREF(item);
 		}
 	}
-	else
-		totitem= 1;
+	else {
+		totitem= PySequence_Size(seq);
+	}
 
 	return totitem;
 }
@@ -135,8 +136,8 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 	int dimsize[MAX_ARRAY_DIMENSION];
 	int tot, totdim, len;
 
-	tot= count_items(rvalue);
 	totdim= RNA_property_array_dimension(ptr, prop, dimsize);
+	tot= count_items(rvalue, totdim);
 
 	if ((RNA_property_flag(prop) & PROP_DYNAMIC) && lvalue_dim == 0) {
 		if (RNA_property_array_length(ptr, prop) != tot) {

@@ -1042,20 +1042,12 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 
 
 	if (RNA_property_array_check(ptr, prop)) {
-
-		/* char error_str[512]; */
 		int ok= 1;
-
-//		if (!PySequence_Check(value)) {
-//			PyErr_Format(PyExc_TypeError, "%.200s RNA array assignment to %.200s.%.200s expected a sequence, not %.200s", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), Py_TYPE(value)->tp_name);
-//			return -1;
-//		}
 
 		/* done getting the length */
 		ok= pyrna_py_to_array(ptr, prop, data, value, error_prefix);
 
 		if (!ok) {
-			/* PyErr_Format(PyExc_AttributeError, "%.200s %s", error_prefix, error_str); */
 			return -1;
 		}
 	}
