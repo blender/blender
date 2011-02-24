@@ -170,7 +170,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	short changed = 0;
-	int unselected= RNA_boolean_get(op->ptr, "unselected");
+	const int unselected= RNA_boolean_get(op->ptr, "unselected");
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(!unselected) {
@@ -259,7 +259,7 @@ void OBJECT_OT_hide_render_clear(wmOperatorType *ot)
 
 static int object_hide_render_set_exec(bContext *C, wmOperator *op)
 {
-	int unselected= RNA_boolean_get(op->ptr, "unselected");
+	const int unselected= RNA_boolean_get(op->ptr, "unselected");
 
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(!unselected) {

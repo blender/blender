@@ -193,10 +193,8 @@ void paintface_deselect_all_visible(struct Object *ob, int action, short flush_f
 void paintface_select_linked(struct bContext *C, struct Object *ob, short mval[2], int mode);
 int paintface_minmax(struct Object *ob, float *min, float *max);
 
-/* TODO, 2.5x */
-void paintface_unhide(struct Scene *scene);
-void paintface_hide(struct Scene *scene);
-void paintface_select_swap(struct Scene *scene);
+void paintface_hide(struct Object *ob, const int unselected);
+void paintface_reveal(struct Object *ob);
 
 /* object_vgroup.c */
 

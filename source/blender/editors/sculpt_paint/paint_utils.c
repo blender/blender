@@ -350,3 +350,69 @@ void PAINT_OT_face_select_all(wmOperatorType *ot)
 
 	WM_operator_properties_select_all(ot);
 }
+
+static int face_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob= CTX_data_active_object(C);
+	paintface_deselect_all_visible(ob, SEL_INVERT, TRUE);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+
+void PAINT_OT_face_select_inverse(wmOperatorType *ot)
+{
+	ot->name= "Face Select Invert";
+	ot->description= "Invert selection of faces";
+	ot->idname= "PAINT_OT_face_select_inverse";
+
+	ot->exec= face_select_inverse_exec;
+	ot->poll= facemask_paint_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int face_select_hide_exec(bContext *C, wmOperator *op)
+{
+	const int unselected= RNA_boolean_get(op->ptr, "unselected");
+	Object *ob= CTX_data_active_object(C);
+	paintface_hide(ob, unselected);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_face_select_hide(wmOperatorType *ot)
+{
+	ot->name= "Face Select Hide";
+	ot->description= "Hide selected faces";
+	ot->idname= "PAINT_OT_face_select_hide";
+
+	ot->exec= face_select_hide_exec;
+	ot->poll= facemask_paint_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
+}
+
+static int face_select_reveal_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	paintface_reveal(ob);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_face_select_reveal(wmOperatorType *ot)
+{
+	ot->name= "Face Select Reveal";
+	ot->description= "Reveal hidden faces";
+	ot->idname= "PAINT_OT_face_select_reveal";
+
+	ot->exec= face_select_reveal_exec;
+	ot->poll= facemask_paint_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
+}
