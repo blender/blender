@@ -28,6 +28,11 @@
  * A message and error sink for c and c++
  */
 
+/** \file kernel/gen_messaging/intern/messaging.c
+ *  \ingroup genmess
+ */
+
+
 
 #include "GEN_messaging.h"
 
