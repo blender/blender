@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/BlenderRoutines/KX_BlenderSystem.cpp
+ *  \ingroup blroutines
+ */
+
+
 #include "KX_ISystem.h"
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)

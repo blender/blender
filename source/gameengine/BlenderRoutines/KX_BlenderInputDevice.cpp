@@ -26,5 +26,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/BlenderRoutines/KX_BlenderInputDevice.cpp
+ *  \ingroup blroutines
+ */
+
 #include "KX_BlenderInputDevice.h"
 

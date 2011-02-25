@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/BlenderRoutines/KX_BlenderRenderTools.cpp
+ *  \ingroup blroutines
+ */
+
+
 #include "GL/glew.h"
 
 #include "RAS_IRenderTools.h"

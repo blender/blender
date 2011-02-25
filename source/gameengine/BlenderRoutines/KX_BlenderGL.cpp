@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/BlenderRoutines/KX_BlenderGL.cpp
+ *  \ingroup blroutines
+ */
+
+
 #include "KX_BlenderGL.h"
 
 /* 

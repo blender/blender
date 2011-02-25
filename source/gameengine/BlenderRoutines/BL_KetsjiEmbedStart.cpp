@@ -28,6 +28,11 @@
  * Blender's Ketsji startpoint
  */
 
+/** \file gameengine/BlenderRoutines/BL_KetsjiEmbedStart.cpp
+ *  \ingroup blroutines
+ */
+
+
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
