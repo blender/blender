@@ -19,117 +19,117 @@
 # <pep8 compliant>
 
 __all__ = (
-	"paths",
-	"modules",
-	"check",
-	"enable",
-	"disable",
-	"reset_all",
-	"module_bl_info",
+    "paths",
+    "modules",
+    "check",
+    "enable",
+    "disable",
+    "reset_all",
+    "module_bl_info",
 )
 
 import bpy as _bpy
 
 
 def paths():
-	# RELEASE SCRIPTS: official scripts distributed in Blender releases
-	paths = _bpy.utils.script_paths("addons")
+    # RELEASE SCRIPTS: official scripts distributed in Blender releases
+    paths = _bpy.utils.script_paths("addons")
 
-	# CONTRIB SCRIPTS: good for testing but not official scripts yet
-	# if folder addons_contrib/ exists, scripts in there will be loaded too
-	paths += _bpy.utils.script_paths("addons_contrib")
+    # CONTRIB SCRIPTS: good for testing but not official scripts yet
+    # if folder addons_contrib/ exists, scripts in there will be loaded too
+    paths += _bpy.utils.script_paths("addons_contrib")
 
-	# EXTERN SCRIPTS: external projects scripts
-	# if folder addons_extern/ exists, scripts in there will be loaded too
-	paths += _bpy.utils.script_paths("addons_extern")
-	
-	return paths
+    # EXTERN SCRIPTS: external projects scripts
+    # if folder addons_extern/ exists, scripts in there will be loaded too
+    paths += _bpy.utils.script_paths("addons_extern")
+
+    return paths
 
 
 def modules(module_cache):
-	import os
-	import sys
-	import time
+    import os
+    import sys
+    import time
 
-	path_list = paths()
+    path_list = paths()
 
-	# fake module importing
-	def fake_module(mod_name, mod_path, speedy=True):
-		if _bpy.app.debug:
-			print("fake_module", mod_path, mod_name)
-		import ast
-		ModuleType = type(ast)
-		file_mod = open(mod_path, "r", encoding='UTF-8')
-		if speedy:
-			lines = []
-			line_iter = iter(file_mod)
-			l = ""
-			while not l.startswith("bl_info"):
-				l = line_iter.readline()
-				if len(l) == 0:
-					break
-			while l.rstrip():
-				lines.append(l)
-				l = line_iter.readline()
-			data = "".join(lines)
+    # fake module importing
+    def fake_module(mod_name, mod_path, speedy=True):
+        if _bpy.app.debug:
+            print("fake_module", mod_path, mod_name)
+        import ast
+        ModuleType = type(ast)
+        file_mod = open(mod_path, "r", encoding='UTF-8')
+        if speedy:
+            lines = []
+            line_iter = iter(file_mod)
+            l = ""
+            while not l.startswith("bl_info"):
+                l = line_iter.readline()
+                if len(l) == 0:
+                    break
+            while l.rstrip():
+                lines.append(l)
+                l = line_iter.readline()
+            data = "".join(lines)
 
-		else:
-			data = file_mod.read()
+        else:
+            data = file_mod.read()
 
-		file_mod.close()
+        file_mod.close()
 
-		try:
-			ast_data = ast.parse(data, filename=mod_path)
-		except:
-			print("Syntax error 'ast.parse' can't read %r" % mod_path)
-			import traceback
-			traceback.print_exc()
-			ast_data = None
+        try:
+            ast_data = ast.parse(data, filename=mod_path)
+        except:
+            print("Syntax error 'ast.parse' can't read %r" % mod_path)
+            import traceback
+            traceback.print_exc()
+            ast_data = None
 
-		body_info = None
+        body_info = None
 
-		if ast_data:
-			for body in ast_data.body:
-				if body.__class__ == ast.Assign:
-					if len(body.targets) == 1:
-						if getattr(body.targets[0], "id", "") == "bl_info":
-							body_info = body
-							break
+        if ast_data:
+            for body in ast_data.body:
+                if body.__class__ == ast.Assign:
+                    if len(body.targets) == 1:
+                        if getattr(body.targets[0], "id", "") == "bl_info":
+                            body_info = body
+                            break
 
-		if body_info:
-			mod = ModuleType(mod_name)
-			mod.bl_info = ast.literal_eval(body.value)
-			mod.__file__ = mod_path
-			mod.__time__ = os.path.getmtime(mod_path)
-			return mod
-		else:
-			return None
+        if body_info:
+            mod = ModuleType(mod_name)
+            mod.bl_info = ast.literal_eval(body.value)
+            mod.__file__ = mod_path
+            mod.__time__ = os.path.getmtime(mod_path)
+            return mod
+        else:
+            return None
 
-	modules_stale = set(module_cache.keys())
+    modules_stale = set(module_cache.keys())
 
-	for path in path_list:
-		for mod_name, mod_path in _bpy.path.module_names(path):
-			modules_stale -= {mod_name}
-			mod = module_cache.get(mod_name)
-			if mod:
-				if mod.__time__ != os.path.getmtime(mod_path):
-					print("reloading addon:", mod_name, mod.__time__, os.path.getmtime(mod_path), mod_path)
-					del module_cache[mod_name]
-					mod = None
+    for path in path_list:
+        for mod_name, mod_path in _bpy.path.module_names(path):
+            modules_stale -= {mod_name}
+            mod = module_cache.get(mod_name)
+            if mod:
+                if mod.__time__ != os.path.getmtime(mod_path):
+                    print("reloading addon:", mod_name, mod.__time__, os.path.getmtime(mod_path), mod_path)
+                    del module_cache[mod_name]
+                    mod = None
 
-			if mod is None:
-				mod = fake_module(mod_name, mod_path)
-				if mod:
-					module_cache[mod_name] = mod
+            if mod is None:
+                mod = fake_module(mod_name, mod_path)
+                if mod:
+                    module_cache[mod_name] = mod
 
-	# just incase we get stale modules, not likely
-	for mod_stale in modules_stale:
-		del module_cache[mod_stale]
-	del modules_stale
+    # just incase we get stale modules, not likely
+    for mod_stale in modules_stale:
+        del module_cache[mod_stale]
+    del modules_stale
 
-	mod_list = list(module_cache.values())
-	mod_list.sort(key=lambda mod: (mod.bl_info['category'], mod.bl_info['name']))
-	return mod_list
+    mod_list = list(module_cache.values())
+    mod_list.sort(key=lambda mod: (mod.bl_info['category'], mod.bl_info['name']))
+    return mod_list
 
 
 def check(module_name):

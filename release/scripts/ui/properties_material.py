@@ -361,10 +361,10 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
         mat = context.material
         engine = context.scene.render.engine
         return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
-    
+
     def draw_header(self, context):
         mat = context.material
-        
+
         if simple_material(mat):
             self.layout.prop(mat, "use_transparency", text="")
 
@@ -374,14 +374,14 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
         base_mat = context.material
         mat = active_node_mat(context.material)
         rayt = mat.raytrace_transparency
-        
+
         if simple_material(base_mat):
             row = layout.row()
             row.active = mat.use_transparency
             row.prop(mat, "transparency_method", expand=True)
 
         split = layout.split()
-        
+
         col = split.column()
         col.prop(mat, "alpha")
         row = col.row()
@@ -698,7 +698,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         base_mat = context.material
         mat = active_node_mat(base_mat)
 
@@ -746,7 +746,7 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         base_mat = context.material
         mat = active_node_mat(base_mat)
 
@@ -800,7 +800,7 @@ class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):
             row = layout.row()
             row.active = mat.use_transparency
             row.prop(mat, "transparency_method", expand=True)
-            
+
         layout.prop(mat, "alpha")
 
 
@@ -897,7 +897,7 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
 class MATERIAL_PT_volume_transp(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Transparency"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-    
+
     @classmethod
     def poll(cls, context):
         mat = context.material

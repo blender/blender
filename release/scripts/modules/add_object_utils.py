@@ -82,7 +82,7 @@ def object_data_add(context, obdata, operator=None):
     obj_new.matrix_world = add_object_align_init(context, operator)
 
     obj_act = scene.objects.active
-    
+
     # XXX
     # caused because entering editmodedoes not add a empty undo slot!
     if context.user_preferences.edit.use_enter_edit_mode:
