@@ -13,7 +13,7 @@ if env['WITH_BF_OPENJPEG'] and env['BF_OPENJPEG_LIB'] == '':
 if env['WITH_BF_REDCODE'] and env['BF_REDCODE_LIB'] == '':
     SConscript(['libredcode/SConscript'])
 
-if env['OURPLATFORM'] == 'linux2':
+if env['WITH_BF_BINRELOC']:
     SConscript(['binreloc/SConscript']);
 
 if env['WITH_BF_LZO']:

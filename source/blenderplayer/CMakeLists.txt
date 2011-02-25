@@ -33,11 +33,6 @@ if(WITH_CODEC_QUICKTIME)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
-if(WITH_BINRELOC)
-	add_definitions(-DWITH_BINRELOC)
-	blender_include_dirs(${BINRELOC_INC})
-endif()
-
 add_custom_command(
 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
 	COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/

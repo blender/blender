@@ -94,6 +94,8 @@ qtc_cfg = join(base, "%s.config" % PROJECT_NAME)
 if not exists(qtc_cfg):
     f = open(qtc_cfg, 'w')
     f.write("// ADD PREDEFINED MACROS HERE!\n")
+    # todo, include real defines.
+    f.write("#define WITH_PYTHON\n")
 
 print("Project file written to: %s" % qtc_prj)
 # --- end
