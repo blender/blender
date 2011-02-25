@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file smoke/intern/smoke_API.cpp
+ *  \ingroup smoke
+ */
+
 
 #include "FLUID_3D.h"
 #include "WTURBULENCE.h"

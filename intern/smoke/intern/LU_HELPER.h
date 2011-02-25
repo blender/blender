@@ -1,3 +1,6 @@
+/** \file smoke/intern/LU_HELPER.h
+ *  \ingroup smoke
+ */
 //////////////////////////////////////////////////////////////////////
 // This file is part of Wavelet Turbulence.
 // 

@@ -1,3 +1,6 @@
+/** \file smoke/intern/tnt/tnt_math_utils.h
+ *  \ingroup smoke
+ */
 #ifndef MATH_UTILS_H
 #define MATH_UTILS_H
 
