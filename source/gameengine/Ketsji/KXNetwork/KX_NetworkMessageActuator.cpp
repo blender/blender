@@ -28,6 +28,11 @@
  * Ketsji Logic Extenstion: Network Message Actuator generic implementation
  */
 
+/** \file gameengine/Ketsji/KXNetwork/KX_NetworkMessageActuator.cpp
+ *  \ingroup ketsjinet
+ */
+
+
 #include <stddef.h>
 
 #include "NG_NetworkScene.h"

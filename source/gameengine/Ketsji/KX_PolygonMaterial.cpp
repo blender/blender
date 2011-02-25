@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_PolygonMaterial.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include <stddef.h>
 
 #include "KX_PolygonMaterial.h"

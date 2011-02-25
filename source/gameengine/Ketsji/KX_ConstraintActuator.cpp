@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_ConstraintActuator.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "SCA_IActuator.h"
 #include "KX_ConstraintActuator.h"
 #include "SCA_IObject.h"

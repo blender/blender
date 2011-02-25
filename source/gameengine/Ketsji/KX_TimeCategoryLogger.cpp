@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_TimeCategoryLogger.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_TimeCategoryLogger.h"
 
 KX_TimeCategoryLogger::KX_TimeCategoryLogger(unsigned int maxNumMeasurements)

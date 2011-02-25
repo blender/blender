@@ -32,6 +32,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_ParentActuator.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_ParentActuator.h"
 #include "KX_GameObject.h"
 #include "KX_PythonInit.h"

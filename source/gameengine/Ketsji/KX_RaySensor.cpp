@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_RaySensor.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_RaySensor.h"
 #include "SCA_EventManager.h"
 #include "SCA_RandomEventManager.h"

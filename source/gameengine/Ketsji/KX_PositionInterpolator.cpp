@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_PositionInterpolator.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_PositionInterpolator.h"
 #include "MT_Point3.h"
 #include "KX_IScalarInterpolator.h"

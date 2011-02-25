@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_PolyProxy.cpp
+ *  \ingroup ketsji
+ */
+
+
 #ifdef WITH_PYTHON
 
 #include "KX_PolyProxy.h"

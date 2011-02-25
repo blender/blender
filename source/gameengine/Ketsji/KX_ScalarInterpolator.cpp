@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_ScalarInterpolator.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_ScalarInterpolator.h"
 #include "KX_IScalarInterpolator.h"
 

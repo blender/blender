@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_TouchEventManager.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_TouchEventManager.h"
 #include "SCA_ISensor.h"
 #include "KX_TouchSensor.h"

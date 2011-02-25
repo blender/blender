@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_PythonInitTypes.cpp
+ *  \ingroup ketsji
+ */
+
+
 
 
 #ifndef _adr_py_init_types_h_				// only process once,

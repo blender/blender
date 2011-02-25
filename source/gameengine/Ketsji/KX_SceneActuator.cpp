@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
+/** \file gameengine/Ketsji/KX_SceneActuator.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "SCA_IActuator.h"
 #include "KX_SceneActuator.h"
 #include <iostream>

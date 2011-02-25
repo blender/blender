@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_SCA_EndObjectActuator.cpp
+ *  \ingroup ketsji
+ */
+
+
 //
 
 // Remove the actuator's parent when triggered

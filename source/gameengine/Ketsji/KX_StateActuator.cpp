@@ -28,6 +28,11 @@
  * Actuator to toggle visibility/invisibility of objects
  */
 
+/** \file gameengine/Ketsji/KX_StateActuator.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_StateActuator.h"
 #include "KX_GameObject.h"
 

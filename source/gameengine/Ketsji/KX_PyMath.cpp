@@ -28,6 +28,11 @@
  * Initialize Python thingies.
  */
 
+/** \file gameengine/Ketsji/KX_PyMath.cpp
+ *  \ingroup ketsji
+ */
+
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif //WIN32

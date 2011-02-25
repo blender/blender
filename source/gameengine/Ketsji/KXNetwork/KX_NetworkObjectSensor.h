@@ -27,3 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KXNetwork/KX_NetworkObjectSensor.h
+ *  \ingroup ketsjinet
+ */
+
+

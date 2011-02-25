@@ -28,6 +28,11 @@
  * Ketsji Logic Extenstion: Network Event Manager generic implementation
  */
 
+/** \file gameengine/Ketsji/KXNetwork/KX_NetworkEventManager.cpp
+ *  \ingroup ketsjinet
+ */
+
+
 // Ketsji specific sensor part
 #include "SCA_ISensor.h"
 

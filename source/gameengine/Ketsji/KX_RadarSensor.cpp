@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_RadarSensor.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_RadarSensor.h"
 #include "KX_GameObject.h"
 #include "KX_PyMath.h"

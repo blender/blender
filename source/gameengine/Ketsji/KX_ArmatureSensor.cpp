@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_ArmatureSensor.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
 #include "BKE_constraint.h"

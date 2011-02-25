@@ -28,6 +28,11 @@
  * Ketsji scene. Holds references to all scene data.
  */
 
+/** \file gameengine/Ketsji/KX_Scene.cpp
+ *  \ingroup ketsji
+ */
+
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif //WIN32

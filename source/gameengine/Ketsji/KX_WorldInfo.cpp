@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_WorldInfo.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_WorldInfo.h"
 
 KX_WorldInfo::~KX_WorldInfo()

@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_EmptyObject.cpp
+ *  \ingroup ketsji
+ */
+
 #include "KX_EmptyObject.h"
 
 KX_EmptyObject::~KX_EmptyObject()

@@ -28,6 +28,11 @@
  * KX_MouseFocusSensor determines mouse in/out/over events.
  */
 
+/** \file gameengine/Ketsji/KX_MouseFocusSensor.cpp
+ *  \ingroup ketsji
+ */
+
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 // This warning tells us about truncation of __long__ stl-generated names.
 // It can occasionally cause DevStudio to have internal compiler warnings.

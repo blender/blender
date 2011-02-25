@@ -27,6 +27,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_IPhysicsController.cpp
+ *  \ingroup ketsji
+ */
+
 #include "KX_IPhysicsController.h"
 
 #include "PHY_DynamicTypes.h"

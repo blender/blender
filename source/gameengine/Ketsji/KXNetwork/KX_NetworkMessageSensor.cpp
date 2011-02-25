@@ -28,6 +28,11 @@
  * Ketsji Logic Extenstion: Network Message Sensor generic implementation
  */
 
+/** \file gameengine/Ketsji/KXNetwork/KX_NetworkMessageSensor.cpp
+ *  \ingroup ketsjinet
+ */
+
+
 #include <stddef.h>
 
 #include "KX_NetworkMessageSensor.h"

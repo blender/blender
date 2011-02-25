@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_IpoActuator.cpp
+ *  \ingroup ketsji
+ */
+
+
 #if defined (__sgi)
 #include <math.h>
 #else

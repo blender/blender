@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_WorldIpoController.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_WorldIpoController.h"
 #include "KX_ScalarInterpolator.h"
 #include "KX_WorldInfo.h"

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_CameraIpoSGController.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_CameraIpoSGController.h"
 #include "KX_ScalarInterpolator.h"
 #include "KX_Camera.h"

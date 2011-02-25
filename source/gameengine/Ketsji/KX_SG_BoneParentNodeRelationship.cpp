@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_SG_BoneParentNodeRelationship.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include <iostream>
  
 #include "KX_SG_BoneParentNodeRelationship.h"

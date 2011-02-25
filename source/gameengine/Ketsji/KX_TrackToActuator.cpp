@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_TrackToActuator.cpp
+ *  \ingroup ketsji
+ */
 //
 // Replace the mesh for this actuator's parent
 //

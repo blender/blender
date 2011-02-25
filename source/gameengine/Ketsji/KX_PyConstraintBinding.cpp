@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_PyConstraintBinding.cpp
+ *  \ingroup ketsji
+ */
+
 #include "KX_PyConstraintBinding.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_ConstraintWrapper.h"

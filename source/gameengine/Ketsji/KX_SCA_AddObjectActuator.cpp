@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_SCA_AddObjectActuator.cpp
+ *  \ingroup ketsji
+ */
 //
 // Add an object when this actuator is triggered
 //

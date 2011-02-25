@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/BL_BlenderShader.cpp
+ *  \ingroup ketsji
+ */
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"

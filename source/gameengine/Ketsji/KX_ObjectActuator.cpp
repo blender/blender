@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_ObjectActuator.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_ObjectActuator.h"
 #include "KX_GameObject.h"
 #include "KX_PyMath.h" // For PyVecTo - should this include be put in PyObjectPlus?

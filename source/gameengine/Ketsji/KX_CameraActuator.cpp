@@ -30,6 +30,11 @@
  *
  */
 
+/** \file gameengine/Ketsji/KX_CameraActuator.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_CameraActuator.h"
 #include <iostream>
 #include <math.h>

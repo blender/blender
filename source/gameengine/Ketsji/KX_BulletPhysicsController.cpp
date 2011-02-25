@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_BulletPhysicsController.cpp
+ *  \ingroup ketsji
+ */
 //under visual studio the #define in KX_ConvertPhysicsObject.h is quicker for recompilation
 #include "KX_ConvertPhysicsObject.h"
 

@@ -28,6 +28,11 @@
  * Initialize Python thingies.
  */
 
+/** \file gameengine/Ketsji/KX_PythonInit.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "GL/glew.h"
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)

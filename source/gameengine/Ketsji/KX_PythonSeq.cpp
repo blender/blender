@@ -28,6 +28,11 @@
  * Readonly sequence wrapper for lookups on logic bricks
  */
 
+/** \file gameengine/Ketsji/KX_PythonSeq.cpp
+ *  \ingroup ketsji
+ */
+
+
 #ifdef WITH_PYTHON
 
 #include "KX_PythonSeq.h"

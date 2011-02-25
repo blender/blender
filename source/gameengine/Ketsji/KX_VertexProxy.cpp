@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_VertexProxy.cpp
+ *  \ingroup ketsji
+ */
+
+
 #ifdef WITH_PYTHON
 
 #include "KX_VertexProxy.h"
