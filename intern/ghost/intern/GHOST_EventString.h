@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_EventString.h
+
+/** \file ghost/intern/GHOST_EventString.h
+ *  \ingroup GHOST
  * Declaration of GHOST_EventString class.
  */
 

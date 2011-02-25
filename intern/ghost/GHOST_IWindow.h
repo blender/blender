@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_IWindow.h
+
+/** \file ghost/GHOST_IWindow.h
+ *  \ingroup GHOST
  * Declaration of GHOST_IWindow interface class.
  */
 

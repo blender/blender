@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_EventWheel.h
+
+/** \file ghost/intern/GHOST_EventWheel.h
+ *  \ingroup GHOSTeel.h
  * Declaration of GHOST_EventWheel class.
  */
 

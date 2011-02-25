@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file ghost/GHOST_Path-api.h
+ *  \ingroup GHOST
+ */
+
+
 #ifndef	GHOST_PATH_API_H
 #define GHOST_PATH_API_H
 

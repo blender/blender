@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_SystemPathsWin32.h
+ *  \ingroup GHOST
+ */
+
 
 #ifndef _GHOST_SYSTEM_PATHS_WIN32_H_
 #define _GHOST_SYSTEM_PATHS_WIN32_H_

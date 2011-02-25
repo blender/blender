@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_IEventConsumer.h
+
+/** \file ghost/GHOST_IEventConsumer.h
+ *  \ingroup GHOST
  * Declaration of GHOST_IEventConsumer interface class.
  */
 

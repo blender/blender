@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file ghost/GHOST_Types.h
+ *  \ingroup GHOST
+ */
+
+
 #ifndef _GHOST_TYPES_H_
 #define _GHOST_TYPES_H_
 

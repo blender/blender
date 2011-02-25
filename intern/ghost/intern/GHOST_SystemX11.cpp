@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_SystemX11.cpp
+ *  \ingroup GHOST
+ */
+
 
 #include "GHOST_SystemX11.h"
 #include "GHOST_WindowX11.h"

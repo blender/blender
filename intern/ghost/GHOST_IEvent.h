@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_IEvent.h
+
+/** \file ghost/GHOST_IEvent.h
+ *  \ingroup GHOST
  * Declaration of GHOST_IEvent interface class.
  */
 

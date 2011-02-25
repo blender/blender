@@ -20,6 +20,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file ghost/intern/GHOST_NDOFManager.cpp
+ *  \ingroup GHOST
+ */
+
+
 #include <stdio.h> /* just for printf */
 
 #include "GHOST_NDOFManager.h"
