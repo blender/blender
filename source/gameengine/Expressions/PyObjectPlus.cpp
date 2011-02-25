@@ -1122,7 +1122,9 @@ PyObject *PyObjectPlus::GetProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 		self->m_proxy = reinterpret_cast<PyObject *>PyObject_NEW( PyObjectPlus_Proxy, tp);
 		BGE_PROXY_PYOWNS(self->m_proxy) = false;
 		BGE_PROXY_PYREF(self->m_proxy) = true;
+#ifdef USE_WEAKREFS
 		BGE_PROXY_WKREF(self->m_proxy) = NULL;
+#endif
 	}
 	//PyObject_Print(self->m_proxy, stdout, 0);
 	//printf("ref %d\n", self->m_proxy->ob_refcnt);
@@ -1143,7 +1145,9 @@ PyObject *PyObjectPlus::NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 		BGE_PROXY_PYOWNS(proxy) = py_owns;
 		BGE_PROXY_REF(proxy) = NULL; 
 		BGE_PROXY_PTR(proxy) = ptr;
+#ifdef USE_WEAKREFS
 		BGE_PROXY_WKREF(self->m_proxy) = NULL;
+#endif
 		return proxy;
 	}
 	if (self->m_proxy)
