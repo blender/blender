@@ -31,6 +31,9 @@
  *  \ingroup expressions
  */
 
+/* for now keep weakrefs optional */
+#define USE_WEAKREFS
+
 #ifndef _adr_py_lib_h_				// only process once,
 #define _adr_py_lib_h_				// even if multiply included
 
@@ -95,6 +98,9 @@ typedef struct PyObjectPlus_Proxy {
 	void *ptr;					// optional pointer to generic structure, the structure holds no reference to this proxy
 	bool py_owns;		// true if the object pointed by ref should be deleted when the proxy is deleted
 	bool py_ref;		// true if proxy is connected to a GE object (ref is used)
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist; // weak reference enabler
+#endif
 } PyObjectPlus_Proxy;
 
 #define BGE_PROXY_ERROR_MSG "Blender Game Engine data has been freed, cannot use this python variable"
@@ -102,6 +108,7 @@ typedef struct PyObjectPlus_Proxy {
 #define BGE_PROXY_PTR(_self) (((PyObjectPlus_Proxy *)_self)->ptr)
 #define BGE_PROXY_PYOWNS(_self) (((PyObjectPlus_Proxy *)_self)->py_owns)
 #define BGE_PROXY_PYREF(_self) (((PyObjectPlus_Proxy *)_self)->py_ref)
+#define BGE_PROXY_WKREF(_self) (((PyObjectPlus_Proxy *)_self)->in_weakreflist)
 
 /* Note, sometimes we dont care what BGE type this is as long as its a proxy */
 #define BGE_PROXY_CHECK_TYPE(_type) ((_type)->tp_dealloc == PyObjectPlus::py_base_dealloc)
