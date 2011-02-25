@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Physics/Dummy/DummyPhysicsEnvironment.cpp
+ *  \ingroup physdummy
+ */
+
+
 #include <stddef.h>
 
 #include "DummyPhysicsEnvironment.h"

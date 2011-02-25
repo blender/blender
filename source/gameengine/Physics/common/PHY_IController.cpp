@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Physics/common/PHY_IController.cpp
+ *  \ingroup phys
+ */
+
 #include "PHY_IController.h"
 
 PHY_IController::~PHY_IController()

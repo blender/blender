@@ -27,7 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file PHY_IGraphicsController.h
+/** \file PHY_IGraphicController.h
  *  \ingroup phys
  */
 
