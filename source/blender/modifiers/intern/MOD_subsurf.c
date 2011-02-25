@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_subsurf.c
+ *  \ingroup modifiers
+ */
+
+
 #include "stddef.h"
 
 #include "DNA_scene_types.h"

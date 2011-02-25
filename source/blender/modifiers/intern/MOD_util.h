@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/modifiers/intern/MOD_util.h
+ *  \ingroup modifiers
+ */
+
+
 #ifndef MOD_UTIL_H
 #define MOD_UTIL_H
 

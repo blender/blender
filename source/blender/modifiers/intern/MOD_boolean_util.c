@@ -28,6 +28,11 @@
  * CSG operations. 
  */
 
+/** \file blender/modifiers/intern/MOD_boolean_util.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

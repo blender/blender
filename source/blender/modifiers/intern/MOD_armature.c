@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_armature.c
+ *  \ingroup modifiers
+ */
+
+
 #include <string.h>
 
 #include "DNA_armature_types.h"

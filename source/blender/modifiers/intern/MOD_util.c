@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/modifiers/intern/MOD_util.c
+ *  \ingroup modifiers
+ */
+
+
 #include <string.h>
 
 #include "DNA_modifier_types.h"

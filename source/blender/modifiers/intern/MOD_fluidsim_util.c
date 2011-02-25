@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_fluidsim_util.c
+ *  \ingroup modifiers
+ */
+
+
 #include <stddef.h>
 #include <zlib.h>
 

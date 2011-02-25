@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_smoke.c
+ *  \ingroup modifiers
+ */
+
+
 #include "stddef.h"
 
 #include "MEM_guardedalloc.h"

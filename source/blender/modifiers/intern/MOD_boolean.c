@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_boolean.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"

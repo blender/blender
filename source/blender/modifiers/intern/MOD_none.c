@@ -34,6 +34,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/modifiers/intern/MOD_none.c
+ *  \ingroup modifiers
+ */
+
+
 
 
 #include "BLI_utildefines.h"

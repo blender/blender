@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_multires.c
+ *  \ingroup modifiers
+ */
+
+
 #include <stddef.h>
 
 #include "BKE_cdderivedmesh.h"

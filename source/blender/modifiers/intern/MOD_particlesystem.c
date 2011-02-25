@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_particlesystem.c
+ *  \ingroup modifiers
+ */
+
+
 #include "stddef.h"
 
 #include "DNA_material_types.h"
