@@ -20,7 +20,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
-/** \file Texture.h
+/** \file VideoTexture/Texture.h
  *  \ingroup bgevideotex
  */
  
