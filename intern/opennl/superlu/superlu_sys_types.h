@@ -1,5 +1,5 @@
 /*
- * $Id: superlu_sys_types.h -1   $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
