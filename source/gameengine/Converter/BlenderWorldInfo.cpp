@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Converter/BlenderWorldInfo.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #include <stdio.h>  // printf()
 
 #include "BlenderWorldInfo.h"

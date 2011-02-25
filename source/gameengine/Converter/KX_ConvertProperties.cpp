@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Converter/KX_ConvertProperties.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #include "KX_ConvertProperties.h"
 
 

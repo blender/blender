@@ -27,7 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file BL_ActionChannel.h
+/** \file BL_ArmatureChannel.h
  *  \ingroup bgeconv
  */
 

@@ -28,6 +28,11 @@
  * Conversion of Blender data blocks to KX sensor system
  */
 
+/** \file gameengine/Converter/KX_ConvertSensors.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #include <stdio.h>
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)

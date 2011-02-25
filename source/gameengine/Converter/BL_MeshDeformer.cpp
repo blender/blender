@@ -28,6 +28,11 @@
  * Simple deformation controller that restores a mesh to its rest position
  */
 
+/** \file gameengine/Converter/BL_MeshDeformer.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 // This warning tells us about truncation of __long__ stl-generated names.
 // It can occasionally cause DevStudio to have internal compiler warnings.

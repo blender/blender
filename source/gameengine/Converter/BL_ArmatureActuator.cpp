@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Converter/BL_ArmatureActuator.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_actuator_types.h"

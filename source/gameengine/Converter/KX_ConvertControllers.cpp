@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Converter/KX_ConvertControllers.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "KX_BlenderSceneConverter.h"

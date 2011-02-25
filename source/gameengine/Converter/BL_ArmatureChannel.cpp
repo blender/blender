@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Converter/BL_ArmatureChannel.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #include "DNA_armature_types.h"
 #include "BL_ArmatureChannel.h"
 #include "BL_ArmatureObject.h"

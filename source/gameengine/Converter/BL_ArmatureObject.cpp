@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Converter/BL_ArmatureObject.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #include "BL_ArmatureObject.h"
 #include "BL_ActionActuator.h"
 #include "KX_BlenderSceneConverter.h"

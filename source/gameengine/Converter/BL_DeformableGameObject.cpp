@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Converter/BL_DeformableGameObject.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #include "BL_DeformableGameObject.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_ShapeActionActuator.h"

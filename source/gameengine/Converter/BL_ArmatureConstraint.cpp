@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Converter/BL_ArmatureConstraint.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #include "DNA_constraint_types.h"
 #include "DNA_action_types.h"
 #include "BL_ArmatureConstraint.h"
