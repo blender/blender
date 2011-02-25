@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file guardedalloc/intern/mmap_win.c
+ *  \ingroup MEM
+ */
+
  
 #if defined(WIN32)
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -20,6 +20,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file guardedalloc/cpp/mallocn.cpp
+ *  \ingroup MEM
+ */
+
 
 #include <new>
 #include "../MEM_guardedalloc.h"
