@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_CallbackIIRFilterReader.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_CALLBACKIIRFILTERREADER
 #define AUD_CALLBACKIIRFILTERREADER
 

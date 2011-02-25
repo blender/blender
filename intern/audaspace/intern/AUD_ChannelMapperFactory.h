@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_ChannelMapperFactory.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_CHANNELMAPPERFACTORY
 #define AUD_CHANNELMAPPERFACTORY
 

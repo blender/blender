@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_ChannelMapperReader.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #include "AUD_ChannelMapperReader.h"
 
 AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_IReader* reader,

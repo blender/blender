@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_DoubleFactory.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_DoubleFactory.h"
 #include "AUD_DoubleReader.h"
 

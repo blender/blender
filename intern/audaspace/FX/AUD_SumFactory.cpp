@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_SumFactory.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_SumFactory.h"
 #include "AUD_IIRFilterReader.h"
 

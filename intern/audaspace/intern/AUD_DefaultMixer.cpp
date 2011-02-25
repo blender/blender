@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_DefaultMixer.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #include "AUD_DefaultMixer.h"
 #ifdef WITH_SAMPLERATE
 #include "AUD_SRCResampleReader.h"

@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/SRC/AUD_SRCResampleFactory.h
+ *  \ingroup audsrc
+ */
+
+
 #ifndef AUD_SRCRESAMPLEFACTORY
 #define AUD_SRCRESAMPLEFACTORY
 

@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_EnvelopeFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_ENVELOPEFACTORY
 #define AUD_ENVELOPEFACTORY
 

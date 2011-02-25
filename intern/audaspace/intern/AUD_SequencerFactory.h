@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_SequencerFactory.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_SEQUENCERFACTORY
 #define AUD_SEQUENCERFACTORY
 

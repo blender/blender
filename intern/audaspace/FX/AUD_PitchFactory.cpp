@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_PitchFactory.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_PitchFactory.h"
 #include "AUD_PitchReader.h"
 #include "AUD_Space.h"

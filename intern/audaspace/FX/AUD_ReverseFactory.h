@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_ReverseFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_REVERSEFACTORY
 #define AUD_REVERSEFACTORY
 

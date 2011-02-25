@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_AccumulatorFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_ACCUMULATORFACTORY
 #define AUD_ACCUMULATORFACTORY
 

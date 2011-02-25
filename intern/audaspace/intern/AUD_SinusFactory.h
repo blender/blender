@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_SinusFactory.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_SINUSFACTORY
 #define AUD_SINUSFACTORY
 

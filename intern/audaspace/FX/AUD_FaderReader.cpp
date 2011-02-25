@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_FaderReader.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_FaderReader.h"
 
 #include <cstring>

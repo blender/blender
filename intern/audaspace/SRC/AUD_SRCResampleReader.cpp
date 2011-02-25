@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/SRC/AUD_SRCResampleReader.cpp
+ *  \ingroup audsrc
+ */
+
+
 #include "AUD_SRCResampleReader.h"
 
 #include <cmath>

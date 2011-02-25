@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_C-API.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 // needed for INT64_C
 #ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS

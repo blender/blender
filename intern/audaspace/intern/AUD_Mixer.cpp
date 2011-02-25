@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_Mixer.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #include "AUD_Mixer.h"
 #include "AUD_IReader.h"
 

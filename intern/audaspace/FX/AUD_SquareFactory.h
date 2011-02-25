@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_SquareFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_SQUAREFACTORY
 #define AUD_SQUAREFACTORY
 

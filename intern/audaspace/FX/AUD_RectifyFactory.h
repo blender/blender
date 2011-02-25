@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_RectifyFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_RECTIFYFACTORY
 #define AUD_RECTIFYFACTORY
 

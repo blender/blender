@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_LoopFactory.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_LoopFactory.h"
 #include "AUD_LoopReader.h"
 

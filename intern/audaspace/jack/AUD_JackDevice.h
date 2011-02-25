@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/jack/AUD_JackDevice.h
+ *  \ingroup audjack
+ */
+
+
 #ifndef AUD_JACKDEVICE
 #define AUD_JACKDEVICE
 

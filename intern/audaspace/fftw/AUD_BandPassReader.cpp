@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/fftw/AUD_BandPassReader.cpp
+ *  \ingroup audfftw
+ */
+
+
 #include "AUD_BandPassReader.h"
 #include "AUD_Buffer.h"
 

@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/ffmpeg/AUD_FFMPEGReader.h
+ *  \ingroup audffmpeg
+ */
+
+
 #ifndef AUD_FFMPEGREADER
 #define AUD_FFMPEGREADER
 

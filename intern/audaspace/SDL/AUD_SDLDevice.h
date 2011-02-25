@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/SDL/AUD_SDLDevice.h
+ *  \ingroup audsdl
+ */
+
+
 #ifndef AUD_SDLDEVICE
 #define AUD_SDLDEVICE
 

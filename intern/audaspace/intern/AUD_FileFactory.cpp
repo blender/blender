@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_FileFactory.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifdef WITH_FFMPEG
 // needed for INT64_C
 #ifndef __STDC_CONSTANT_MACROS

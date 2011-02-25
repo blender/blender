@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/Python/AUD_PyAPI.h
+ *  \ingroup audpython
+ */
+
+
 #ifndef AUD_PYAPI
 #define AUD_PYAPI
 

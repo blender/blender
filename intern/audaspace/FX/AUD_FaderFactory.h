@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_FaderFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_FADERFACTORY
 #define AUD_FADERFACTORY
 

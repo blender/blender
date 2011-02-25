@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_SoftwareDevice.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #include "AUD_SoftwareDevice.h"
 #include "AUD_IReader.h"
 #include "AUD_DefaultMixer.h"

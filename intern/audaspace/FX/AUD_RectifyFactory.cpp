@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_RectifyFactory.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_RectifyFactory.h"
 #include "AUD_CallbackIIRFilterReader.h"
 

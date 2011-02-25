@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_ResampleFactory.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_RESAMPLEFACTORY
 #define AUD_RESAMPLEFACTORY
 

@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_ButterworthFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_BUTTERWORTHFACTORY
 #define AUD_BUTTERWORTHFACTORY
 

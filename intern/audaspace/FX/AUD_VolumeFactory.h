@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_VolumeFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_VOLUMEFACTORY
 #define AUD_VOLUMEFACTORY
 
