@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file boolop/intern/BOP_Face2Face.h
+ *  \ingroup boolopintern
+ */
+
  
 #ifndef BOP_FACE2FACE_H
 #define BOP_FACE2FACE_H
