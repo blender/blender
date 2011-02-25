@@ -115,6 +115,7 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 	Py_RETURN_NONE;
 }
 
+#if 0 /* UNUSED, currenly assignment overwrites into new properties, rather then setting in-place */
 static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
 {
 	switch (prop->type) {
@@ -183,6 +184,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 	}
 	return 0;
 }
+#endif
 
 static PyObject *BPy_IDGroup_GetName(BPy_IDProperty *self, void *UNUSED(closure))
 {

@@ -133,7 +133,7 @@ if(WITH_BUILDINFO)
 
 	# include the output directory, where the buildinfo.h file is generated
 	include_directories(${CMAKE_BINARY_DIR}/source/creator)
-	message(WARNING "${CMAKE_CURRENT_SOURCE_DIR}")
+
 	# a custom target that is always built
 	add_custom_target(buildinfo ALL
 		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/buildinfo.h)
@@ -149,7 +149,7 @@ if(WITH_BUILDINFO)
 		PROPERTIES GENERATED TRUE
 		HEADER_FILE_ONLY TRUE)
 		
-	# add deps below
+	# add deps below, after adding blender
 	# -------------- done with header values.
 
 	list(APPEND SRC
