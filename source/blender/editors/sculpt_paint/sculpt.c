@@ -1519,7 +1519,7 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength= ss->cache->bstrength;
 	float area_normal[3], offset[3];
-	float lim= ss->cache->radius / 4;
+	float lim= brush->height;
 	int n;
 
 	if(bstrength < 0)
@@ -1552,15 +1552,15 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 		sculpt_brush_test_init(ss, &test);
 
 		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
-			if(sculpt_brush_test(&test, vd.co)) {
-				const float fade = bstrength*ss->cache->radius*tex_strength(ss, brush, vd.co, test.dist)*frontface(brush, area_normal, vd.no, vd.fno);
+			if(sculpt_brush_test(&test, origco[vd.i])) {
+				const float fade = bstrength*tex_strength(ss, brush, vd.co, test.dist)*frontface(brush, area_normal, vd.no, vd.fno);
 				float *disp= &layer_disp[vd.i];
 				float val[3];
 
 				*disp+= fade;
 
 				/* Don't let the displacement go past the limit */
-				if((lim < 0 && *disp < lim) || (lim > 0 && *disp > lim))
+				if((lim < 0 && *disp < lim) || (lim >= 0 && *disp > lim))
 					*disp = lim;
 
 				mul_v3_v3fl(val, offset, *disp);

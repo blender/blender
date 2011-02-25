@@ -11478,6 +11478,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	{
 		bScreen *sc;
+		Brush *brush;
 		
 		/* redraws flag in SpaceTime has been moved to Screen level */
 		for (sc = main->screen.first; sc; sc= sc->id.next) {
@@ -11486,6 +11487,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				// XXX: we could also have iterated through areas, and taken them from the first timeline available...
 				sc->redraws_flag = TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 			}
+		}
+
+		for (brush= main->brush.first; brush; brush= brush->id.next) {
+			if(brush->height == 0)
+				brush->height= 0.4;
 		}
 	}
 	

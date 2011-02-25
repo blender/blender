@@ -85,13 +85,14 @@ typedef struct Brush {
 	char sculpt_tool;		/* active sculpt tool */
 	char vertexpaint_tool;		/* active vertex/weight paint tool/blend mode */
 	char imagepaint_tool;		/* active image paint tool */
-	char pad3;
+	char pad3[5];
 
 	float autosmooth_factor;
 
 	float crease_pinch_factor;
 
 	float plane_trim;
+	float height;			/* affectable height of brush (layer height for layer tool, i.e.) */
 
 	float texture_sample_bias;
 	int   texture_overlay_alpha;
