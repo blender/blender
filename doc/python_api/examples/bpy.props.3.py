@@ -8,6 +8,7 @@ Custom properties can be added to any subclass of an :class:`ID`,
 
 import bpy
 
+
 # Assign a collection
 class SceneSettingItem(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty(name="Test Prop", default="Unknown")
@@ -30,4 +31,4 @@ my_item.name = "Eggs"
 my_item.value = 30
 
 for my_item in bpy.context.scene.my_settings:
-	print(my_item.name, my_item.value)
+    print(my_item.name, my_item.value)

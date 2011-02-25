@@ -163,8 +163,8 @@ CCFLAGS = ['-pipe','-fPIC', '-n32']
 
 CPPFLAGS = []
 CXXFLAGS = ['-pipe','-fPIC', '-n32']
-REL_CFLAGS = ['-O2']
-REL_CCFLAGS = ['-O2']
+REL_CFLAGS = ['-DNDEBUG', '-O2']
+REL_CCFLAGS = ['-DNDEBUG', '-O2']
 ##BF_DEPEND = 'true'
 ##
 ##AR = ar

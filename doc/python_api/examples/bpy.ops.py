@@ -27,4 +27,4 @@ bpy.ops.mesh.subdivide(number_cuts=3, smoothness=0.5)
 
 # check poll() to avoid exception.
 if bpy.ops.object.mode_set.poll():
-	bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode='EDIT')

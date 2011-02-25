@@ -782,7 +782,7 @@ def pyrna2sphinx(BASEPATH):
         for op in ops.values():
             op_modules.setdefault(op.module_name, []).append(op)
         del op
-        
+
         for op_module_name, ops_mod in op_modules.items():
             filepath = os.path.join(BASEPATH, "bpy.ops.%s.rst" % op_module_name)
             file = open(filepath, "w")

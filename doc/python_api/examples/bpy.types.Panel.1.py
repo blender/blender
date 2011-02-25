@@ -23,7 +23,6 @@ class ObjectSelectPanel(bpy.types.Panel):
         layout = self.layout
         obj = context.object
         layout.prop(obj, "select", text="")
-        
 
     def draw(self, context):
         layout = self.layout
