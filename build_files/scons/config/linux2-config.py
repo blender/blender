@@ -222,7 +222,7 @@ BF_PROFILE_CCFLAGS = ['-pg','-g']
 BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = ['-g', '-DDEBUG']
+BF_DEBUG_CCFLAGS = ['-g', '-D_DEBUG']
 
 BF_BUILDDIR = '../build/linux2'
 BF_INSTALLDIR='../install/linux2'
