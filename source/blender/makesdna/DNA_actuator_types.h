@@ -237,12 +237,12 @@ typedef struct bActuator {
 	char name[32];
 
 	/**
-	 * \var Data must point to an object actuator type struct.
+	 * data must point to an object actuator type struct.
 	 */
 	void *data;
 
 	/**
-	 * \var For ipo's and props: to find out which object the actuator
+	 * For ipo's and props: to find out which object the actuator
 	 * belongs to */
 	struct Object *ob;		
 	
