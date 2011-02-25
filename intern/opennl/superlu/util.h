@@ -1,3 +1,6 @@
+/** \file opennl/superlu/util.h
+ *  \ingroup opennl
+ */
 #ifndef __SUPERLU_UTIL /* allow multiple inclusions */
 #define __SUPERLU_UTIL
 

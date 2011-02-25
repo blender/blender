@@ -1,3 +1,6 @@
+/** \file opennl/superlu/sp_coletree.c
+ *  \ingroup opennl
+ */
 
 /*  Elimination tree computation and layout routines */
 

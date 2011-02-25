@@ -1,3 +1,6 @@
+/** \file opennl/superlu/supermatrix.h
+ *  \ingroup opennl
+ */
 #ifndef __SUPERLU_SUPERMATRIX /* allow multiple inclusions */
 #define __SUPERLU_SUPERMATRIX
 

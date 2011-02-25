@@ -67,7 +67,7 @@ set(SRC
 	superlu/xerbla.c
 
 	extern/ONL_opennl.h
-	superlu/BLO_sys_types.h
+	superlu/superlu_sys_types.h
 	superlu/Cnames.h
 	superlu/colamd.h
 	superlu/ssp_defs.h

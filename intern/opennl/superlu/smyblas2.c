@@ -1,3 +1,6 @@
+/** \file opennl/superlu/smyblas2.c
+ *  \ingroup opennl
+ */
 
 
 /*

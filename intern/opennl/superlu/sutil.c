@@ -1,3 +1,6 @@
+/** \file opennl/superlu/sutil.c
+ *  \ingroup opennl
+ */
 
 /*
  * -- SuperLU routine (version 3.0) --

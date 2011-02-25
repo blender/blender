@@ -1,3 +1,6 @@
+/** \file opennl/superlu/ssp_defs.h
+ *  \ingroup opennl
+ */
 
 /*
  * -- SuperLU routine (version 3.0) --
