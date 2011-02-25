@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_MouseSensor.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include <stddef.h>
 
 #include "SCA_MouseSensor.h"

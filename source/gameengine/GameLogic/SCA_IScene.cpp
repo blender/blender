@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_IScene.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include "SCA_IScene.h"
 #include "Value.h"
 

@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_NORController.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include "SCA_NORController.h"
 #include "SCA_ISensor.h"
 #include "SCA_LogicManager.h"

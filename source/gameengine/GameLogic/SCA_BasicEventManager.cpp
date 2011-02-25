@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_BasicEventManager.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include "SCA_BasicEventManager.h"
 #include "SCA_LogicManager.h"
 #include <vector>

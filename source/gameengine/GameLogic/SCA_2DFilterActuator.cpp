@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_2DFilterActuator.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include <stddef.h>
 
 #include "SCA_IActuator.h"

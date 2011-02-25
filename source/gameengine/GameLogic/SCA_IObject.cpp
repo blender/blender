@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_IObject.cpp
+ *  \ingroup gamelogic
+ */
+
 #include <iostream>
 #include <algorithm>
 

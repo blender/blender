@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/Joystick/SCA_Joystick.cpp
+ *  \ingroup gamelogic
+ */
+
 #ifndef DISABLE_SDL
 #include <SDL.h>
 #endif

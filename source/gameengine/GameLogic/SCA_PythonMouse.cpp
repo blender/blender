@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_PythonMouse.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include "SCA_PythonMouse.h"
 #include "SCA_IInputDevice.h"
 #include "RAS_ICanvas.h"

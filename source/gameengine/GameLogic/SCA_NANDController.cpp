@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_NANDController.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include "SCA_NANDController.h"
 #include "SCA_ISensor.h"
 #include "SCA_LogicManager.h"

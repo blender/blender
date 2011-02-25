@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_ILogicBrick.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include <stddef.h>
 
 #include "SCA_ILogicBrick.h"

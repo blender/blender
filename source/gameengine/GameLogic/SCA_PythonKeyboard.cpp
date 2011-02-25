@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_PythonKeyboard.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include "SCA_PythonKeyboard.h"
 #include "SCA_IInputDevice.h"
 

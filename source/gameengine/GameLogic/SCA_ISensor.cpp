@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_ISensor.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include <stddef.h>
 
 #include "SCA_ISensor.h"

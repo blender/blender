@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_JoystickManager.cpp
+ *  \ingroup gamelogic
+ */
+
 #include "SCA_JoystickSensor.h"
 #include "SCA_JoystickManager.h"
 #include "SCA_LogicManager.h"

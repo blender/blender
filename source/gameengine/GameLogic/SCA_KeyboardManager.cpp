@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_KeyboardManager.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include "BoolValue.h"
 #include "SCA_KeyboardManager.h"
 #include "SCA_KeyboardSensor.h"

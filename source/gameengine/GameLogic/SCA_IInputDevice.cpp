@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_IInputDevice.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include <assert.h>
 #include "SCA_IInputDevice.h"
 
