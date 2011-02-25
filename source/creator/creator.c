@@ -37,9 +37,8 @@
 #include <fenv.h>
 #endif
 
-#define OSX_SSE_FPE (defined(__APPLE__) && (defined(__i386__) || defined(__x86_64__)))
-
-#if defined(OSX_SSE_FPE)
+#if (defined(__APPLE__) && (defined(__i386__) || defined(__x86_64__)))
+#define OSX_SSE_FPE
 #include <xmmintrin.h>
 #endif
 
