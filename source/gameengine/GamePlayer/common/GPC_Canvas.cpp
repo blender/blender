@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GamePlayer/common/GPC_Canvas.cpp
+ *  \ingroup player
+ */
+
+
 #ifndef NOPNG
 #ifdef WIN32
 #include "png.h"

@@ -28,6 +28,11 @@
 * Start up of the Blender Player on GHOST.
 */
 
+/** \file gameengine/GamePlayer/ghost/GPG_ghost.cpp
+ *  \ingroup player
+ */
+
+
 #include <iostream>
 #include <math.h>
 

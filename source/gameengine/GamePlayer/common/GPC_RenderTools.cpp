@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GamePlayer/common/GPC_RenderTools.cpp
+ *  \ingroup player
+ */
+
+
 #include "GL/glew.h"
 
 #include "RAS_IRenderTools.h"

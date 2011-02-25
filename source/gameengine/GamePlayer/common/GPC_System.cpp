@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GamePlayer/common/GPC_System.cpp
+ *  \ingroup player
+ */
+
+
 #include "GPC_System.h"
 
 #include "GPC_KeyboardDevice.h"

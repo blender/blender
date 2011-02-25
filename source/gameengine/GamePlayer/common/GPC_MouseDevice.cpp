@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GamePlayer/common/GPC_MouseDevice.cpp
+ *  \ingroup player
+ */
+
+
 #include "GPC_MouseDevice.h"
 
 GPC_MouseDevice::GPC_MouseDevice()

@@ -28,6 +28,11 @@
  * GHOST Blender Player keyboard device implementation.
  */
 
+/** \file gameengine/GamePlayer/ghost/GPG_KeyboardDevice.cpp
+ *  \ingroup player
+ */
+
+
 #include "GPG_KeyboardDevice.h"
 
 GPG_KeyboardDevice::GPG_KeyboardDevice(void)

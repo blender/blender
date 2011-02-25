@@ -32,6 +32,11 @@
  *
  */
 
+/** \file gameengine/GamePlayer/common/bmfont.cpp
+ *  \ingroup player
+ */
+
+
 /**
  * Two external functions:
  *

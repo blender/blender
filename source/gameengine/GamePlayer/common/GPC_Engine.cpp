@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GamePlayer/common/GPC_Engine.cpp
+ *  \ingroup player
+ */
+
+
 #ifdef WIN32
 	#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 #endif // WIN32

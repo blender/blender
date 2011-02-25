@@ -28,6 +28,11 @@
  * Blender Player system on GHOST.
  */
 
+/** \file gameengine/GamePlayer/ghost/GPG_System.cpp
+ *  \ingroup player
+ */
+
+
 #include "GPG_System.h"
 #include <assert.h>
 #include "GHOST_ISystem.h"
