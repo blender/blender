@@ -1,3 +1,6 @@
+/** \file itasc/WorldObject.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * WorldObject.cpp
  *
