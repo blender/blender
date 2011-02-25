@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file bsp/intern/BSP_CSGException.h
+ *  \ingroup bsp
+ */
+
 
 #ifndef NAN_INCLUDED_CSGException_h
 #define NAN_INCLUDED_CSGException_h
