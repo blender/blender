@@ -1,0 +1,137 @@
+
+/** \defgroup blenderplayer Blender Player */
+
+/** \defgroup render Rendering */
+/** \defgroup meshedit Mesh Editing */
+/** \defgroup texture Texturing */
+/** \defgroup compositor Compositing */
+
+/** \defgroup scripts Scripting */
+
+/** \defgroup python Python
+ *  \ingroup scripts
+ */
+
+/* ================================ */
+
+/** \defgroup bge Game Engine */
+/** \defgroup gamelogic Game Logic
+ *  \ingroup bge
+ */
+/** \defgroup bgeconv Converter
+ *  \ingroup bge
+ */
+/** \defgroup blroutines Blender Routines
+ *  \ingroup bge
+ */
+/** \defgroup expressions Expressions
+ *  \ingroup bge
+ */
+/** \defgroup player Game Player
+ *  \ingroup bge
+ */
+/** \defgroup ketsji Ketsji
+ *  \ingroup bge
+ *  \todo check all headers and code files for proper licenses
+ */
+/** \defgroup ketsjinet Ketsji Network
+ *  \ingroup ketsji
+ */
+/** \defgroup bgenet Network
+ *  \ingroup bge
+ */
+/** \defgroup bgenetlb Loopback Network
+ *  \ingroup bgenet
+ */
+/** \defgroup phys Physics
+ *  \ingroup bge
+ */
+/** \defgroup physbullet Bullet Physics
+ *  \ingroup phys
+ */
+/** \defgroup physdummy Dummy Physics (none)
+ *  \ingroup phys
+ */
+/** \defgroup bgerast Rasterizer
+ *  \ingroup bge
+ */
+/** \defgroup bgerastoglfilters OpenGL Filters
+ *  \ingroup bgerast
+ */
+/** \defgroup bgerastogl OpenGL Rasterizer
+ *  \ingroup bgerast
+ */
+/** \defgroup bgesg BGE SceneGraph
+ *  \ingroup bge
+ */
+/** \defgroup bgevideotex BGE Video Texture
+ *  \ingroup bge
+ */
+
+/* ================================ */
+
+/** \defgroup blender blender */
+
+/** \defgroup bke blenkernel
+ *  \ingroup blender
+ */
+
+/** \defgroup bli blenlib
+ *  \ingroup blender
+ */
+
+/** \defgroup nodes nodes
+ *  \ingroup blender
+ */
+
+/** \defgroup modifiers modifiers
+ *  \ingroup blender
+ */
+
+/** \defgroup data DNA, RNA and .blend access*/
+
+/** \defgroup gpu GPU */
+
+/** \defgroup DNA sDNA
+ *  \ingroup data
+ */
+/** \defgroup RNA RNA
+ *  \ingroup data
+ */
+
+/** \defgroup readwrite .blend read and write functions
+ *  \ingroup data
+ */
+
+/** \defgroup readblenfile readblenfile
+ *  \ingroup data
+ */
+
+/** \defgroup gui GUI */
+
+/** \defgroup wm windowmanager
+ *  \ingroup gui
+ */
+
+/** \defgroup editors Editors
+ *  \ingroup blender
+ */
+
+/** \defgroup editorui Interface and Widgets
+ *  \ingroup gui
+ */
+
+/** \defgroup externformats external formats */
+
+/** \defgroup collada COLLADA
+ *  \ingroup externformats
+ */
+
+/** \defgroup avi AVI
+ *  \ingroup externformats
+ */
+
+/** \defgroup imbuf IMage Buffer */
+
+/** \defgroup undoc Undocumented
+ *  \brief Modules and libraries that are still undocumented, or lacking proper integration into the doxygen system, are marked in this group. */

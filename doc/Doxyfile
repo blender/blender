@@ -613,26 +613,11 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = doxygen.main \
-                         ../intern/mikktspace \
-                         ../source/blender/imbuf \
-                         ../source/blender/blenkernel \
-                         ../source/blender/collada \
-                         ../source/blender/editors \
-                         ../source/blender/windowmanager \
-                         ../source/blender/makesdna \
-                         ../source/blender/makesrna \
-                         ../intern/ghost \
-                         ../source/blender/blenloader \
-                         ../source/blender/readblenfile \
-                         ../source/blender/blenkernel \
-                         ../source/blender/blenlib \
-                         ../source/blender/render \
-                         ../source/blender/nodes \
-                         ../source/blender/modifiers \
-                         ../source/blender/gpu \
-                         ../source/blender/avi \
-                         ../intern/guardedalloc \
-                         ../source/gameengine \
+                         doxygen.source \
+                         doxygen.intern \
+                         doxygen.extern \
+                         ../source \
+                         ../intern \
                          ../extern/bullet2
 
 # This tag can be used to specify the character encoding of the source files 
@@ -889,7 +874,7 @@ HTML_COLORSTYLE_SAT    = 100
 # so 80 represents a gamma of 0.8, The value 220 represents a gamma of 2.2, 
 # and 100 does not change the gamma.
 
-HTML_COLORSTYLE_GAMMA  = 80
+HTML_COLORSTYLE_GAMMA  = 79
 
 # If the HTML_TIMESTAMP tag is set to YES then the footer of each generated HTML 
 # page will contain the date and time when the page was generated. Setting 
@@ -960,14 +945,14 @@ GENERATE_HTMLHELP      = YES
 # can add a path in front of the file if the result should not be 
 # written to the html output directory.
 
-CHM_FILE               = 
+CHM_FILE               = blender.chm
 
 # If the GENERATE_HTMLHELP tag is set to YES, the HHC_LOCATION tag can 
 # be used to specify the location (absolute path including file name) of 
 # the HTML help compiler (hhc.exe). If non-empty doxygen will try to run 
 # the HTML help compiler on the generated index.hhp.
 
-HHC_LOCATION           = 
+HHC_LOCATION           = "C:/Program Files (x86)/HTML Help Workshop/hhc.exe"
 
 # If the GENERATE_HTMLHELP tag is set to YES, the GENERATE_CHI flag 
 # controls if a separate .chi index file is generated (YES) or that 
@@ -1094,7 +1079,7 @@ USE_INLINE_TREES       = NO
 # used to set the initial width (in pixels) of the frame in which the tree 
 # is shown.
 
-TREEVIEW_WIDTH         = 250
+TREEVIEW_WIDTH         = 246
 
 # When the EXT_LINKS_IN_WINDOW option is set to YES doxygen will open 
 # links to external symbols imported via tag files in a separate window.
