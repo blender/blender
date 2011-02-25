@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file moto/include/MT_random.h
+ *  \ingroup moto
+ */
+
 
 #ifndef MT_RANDOM_H
 #define MT_RANDOM_H

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file moto/include/MT_CmMatrix4x4.h
+ *  \ingroup moto
+ */
+
 
 #ifndef INCLUDED_MT_CmMatrix4x4
 #define INCLUDED_MT_CmMatrix4x4
