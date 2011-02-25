@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/intern/wm_gesture.c
+ *  \ingroup wm
+ */
+
+
 #include "DNA_screen_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"

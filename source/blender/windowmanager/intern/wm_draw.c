@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/intern/wm_draw.c
+ *  \ingroup wm
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <GL/glew.h>

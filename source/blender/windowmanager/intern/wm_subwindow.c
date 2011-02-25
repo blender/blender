@@ -30,6 +30,11 @@
  * 
  */
 
+/** \file blender/windowmanager/intern/wm_subwindow.c
+ *  \ingroup wm
+ */
+
+
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

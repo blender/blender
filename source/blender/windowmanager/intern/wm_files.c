@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/intern/wm_files.c
+ *  \ingroup wm
+ */
+
+
 	/* placed up here because of crappy
 	 * winsock stuff.
 	 */

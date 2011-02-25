@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/intern/wm_keymap.c
+ *  \ingroup wm
+ */
+
+
 #include <string.h>
 
 #include "DNA_object_types.h"

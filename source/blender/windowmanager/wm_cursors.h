@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/wm_cursors.h
+ *  \ingroup wm
+ */
+
+
 
 
 #ifndef WM_CURSORS_H

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/wm_draw.h
+ *  \ingroup wm
+ */
+
+
 #ifndef WM_DRAW_H
 #define WM_DRAW_H
 

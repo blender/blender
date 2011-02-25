@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/intern/wm_operators.c
+ *  \ingroup wm
+ */
+
+
 #include <float.h>
 #include <string.h>
 #include <ctype.h>

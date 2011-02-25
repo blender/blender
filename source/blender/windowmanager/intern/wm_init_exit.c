@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/intern/wm_init_exit.c
+ *  \ingroup wm
+ */
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

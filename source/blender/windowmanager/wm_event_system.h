@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/windowmanager/wm_event_system.h
+ *  \ingroup wm
+ */
+
 #ifndef WM_EVENT_SYSTEM_H
 #define WM_EVENT_SYSTEM_H
 

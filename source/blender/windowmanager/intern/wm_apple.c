@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/intern/wm_apple.c
+ *  \ingroup wm
+ */
+
+
 #ifdef __APPLE__
 
 #include "BKE_context.h"

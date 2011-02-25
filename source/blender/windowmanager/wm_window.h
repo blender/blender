@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/wm_window.h
+ *  \ingroup wm
+ */
+
+
 #ifndef WM_WINDOW_H
 #define WM_WINDOW_H
 
