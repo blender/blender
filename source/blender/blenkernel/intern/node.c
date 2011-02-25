@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <limits.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
