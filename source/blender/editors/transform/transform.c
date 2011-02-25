@@ -3381,7 +3381,8 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 		
 		protectedTransBits(td->protectflag, tvec);
 		
-		add_v3_v3v3(td->loc, td->iloc, tvec);
+		if (td->loc)
+			add_v3_v3v3(td->loc, td->iloc, tvec);
 		
 		constraintTransLim(t, td);
 	}
