@@ -28,6 +28,11 @@
  * BKE_bad_level_calls function stubs
  */
 
+/** \file blenderplayer/bad_level_call_stubs/stubs.c
+ *  \ingroup blc
+ */
+
+
 #ifdef WITH_GAMEENGINE
 #include <stdlib.h>
 #include "DNA_listBase.h"
