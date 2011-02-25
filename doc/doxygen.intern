@@ -26,6 +26,10 @@
  *  \ingroup intern
  */
 
+/** \defgroup bsp bsp
+ *  \ingroup intern
+ */
+
 /** \defgroup iksolver iksolver
  *  \ingroup intern
  */
