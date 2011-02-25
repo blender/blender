@@ -1,7 +1,9 @@
 
 /** \defgroup blenderplayer Blender Player */
 
-/** \defgroup render Rendering */
+/** \defgroup render Rendering
+ *  \ingroup blender
+ */
 /** \defgroup meshedit Mesh Editing */
 /** \defgroup texture Texturing */
 /** \defgroup compositor Compositing */
@@ -9,7 +11,7 @@
 /** \defgroup scripts Scripting */
 
 /** \defgroup python Python
- *  \ingroup scripts
+ *  \ingroup blender scripts
  */
 
 /* ================================ */
@@ -90,32 +92,189 @@
 
 /** \defgroup data DNA, RNA and .blend access*/
 
-/** \defgroup gpu GPU */
+/** \defgroup gpu GPU
+ *  \ingroup blender
+ */
+
+/** \defgroup ikplugin ikplugin
+ *  \ingroup blender
+ */
 
 /** \defgroup DNA sDNA
- *  \ingroup data
+ *  \ingroup blender data
  */
 /** \defgroup RNA RNA
- *  \ingroup data
+ *  \ingroup blender data
  */
 
 /** \defgroup readwrite .blend read and write functions
- *  \ingroup data
+ *  \ingroup blender data
  */
 
 /** \defgroup readblenfile readblenfile
- *  \ingroup data
+ *  \ingroup blender data
  */
+
+/** \defgroup quicktime quicktime
+ *  \ingroup blender
 
 /** \defgroup gui GUI */
 
 /** \defgroup wm windowmanager
- *  \ingroup gui
+ *  \ingroup blender gui
  */
+
+/* ================================ */
 
 /** \defgroup editors Editors
  *  \ingroup blender
  */
+
+/** \defgroup edanimation animation
+ *  \ingroup editors
+ */
+
+/** \defgroup edarmature armature
+ *  \ingroup editors
+ */
+
+/** \defgroup edcurve curve
+ *  \ingroup editors
+ */
+
+/** \defgroup eddatafiles datafiles
+ *  \ingroup editors
+ */
+
+/** \defgroup edgpencil gpencil
+ *  \ingroup editors
+ */
+
+/** \defgroup edinterface interface
+ *  \ingroup editors
+ */
+
+/** \defgroup edmesh mesh
+ *  \ingroup editors
+ */
+
+/** \defgroup edmeta metaball
+ *  \ingroup editors
+ */
+
+/** \defgroup edobj object
+ *  \ingroup editors
+ */
+
+/** \defgroup edphys physics
+ *  \ingroup editors
+ */
+
+/** \defgroup edrend render
+ *  \ingroup editors
+ */
+
+/** \defgroup edscr screen
+ *  \ingroup editors
+ */
+
+/** \defgroup edsculpt sculpt and paint
+ *  \ingroup editors
+ */
+
+/** \defgroup edsnd sound
+ *  \ingroup editors
+ */
+
+/** \defgroup spaction action space
+ *  \ingroup editors
+ */
+
+/** \defgroup spapi space API
+ *  \ingroup editors
+ */
+
+/** \defgroup spbuttons buttons space
+ *  \ingroup editors
+ */
+
+/** \defgroup spconsole console space
+ *  \ingroup editors
+ */
+
+/** \defgroup spfile fileselector
+ *  \ingroup editors
+ */
+
+/** \defgroup spgraph graph editor
+ *  \ingroup editors
+ */
+
+/** \defgroup spimage image and UV editor
+ *  \ingroup editors
+ */
+
+/** \defgroup spinfo info space
+ *  \ingroup editors
+ */
+
+/** \defgroup splogic game logic editor
+ *  \ingroup editors
+ */
+
+/** \defgroup spnla NLA editor
+ *  \ingroup editors
+ */
+
+/** \defgroup spnode node editor
+ *  \ingroup editors
+ */
+
+/** \defgroup spoutliner outliner space
+ *  \ingroup editors
+ */
+
+/** \defgroup spscript script space
+ *  \ingroup editors
+ */
+
+/** \defgroup spseq sequencer
+ *  \ingroup editors
+ */
+
+/** \defgroup spsnd sound space
+ *  \ingroup editors
+ */
+
+/** \defgroup sptext text editor
+ *  \ingroup editors
+ */
+
+/** \defgroup sptime time line
+ *  \ingroup editors
+ */
+
+/** \defgroup spuserpref user preferences
+ *  \ingroup editors
+ */
+
+/** \defgroup spview3d 3D view
+ *  \ingroup editors
+ */
+
+/** \defgroup edtransform transform
+ *  \ingroup editors
+ */
+
+/** \defgroup edutil editor utilities
+ *  \ingroup editors
+ */
+
+/** \defgroup spuv UV editing
+ *  \ingroup editors
+ */
+
+/* ================================ */
 
 /** \defgroup editorui Interface and Widgets
  *  \ingroup gui
@@ -131,7 +290,9 @@
  *  \ingroup externformats
  */
 
-/** \defgroup imbuf IMage Buffer */
+/** \defgroup imbuf IMage Buffer
+ *  \ingroup blender
+ */
 
 /** \defgroup undoc Undocumented
  *  \brief Modules and libraries that are still undocumented, or lacking proper integration into the doxygen system, are marked in this group. */
