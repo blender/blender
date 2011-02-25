@@ -638,7 +638,7 @@ static SpaceLink *time_duplicate(SpaceLink *sl)
 	SpaceTime *stime= (SpaceTime *)sl;
 	SpaceTime *stimen= MEM_dupallocN(stime);
 	
-	time_cache_free(stimen);
+	stimen->caches.first = stimen->caches.last = NULL;
 	
 	return (SpaceLink *)stimen;
 }
