@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file creator/buildinfo.c
+ *  \ingroup creator
+ */
+
+
 #ifdef WITH_BUILDINFO_HEADER
 #include "buildinfo.h"
 #endif

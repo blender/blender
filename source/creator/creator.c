@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file creator/creator.c
+ *  \ingroup creator
+ */
+
+
 #if defined(__linux__) && defined(__GNUC__)
 #define _GNU_SOURCE
 #include <fenv.h>
@@ -34,7 +39,7 @@
 
 #define OSX_SSE_FPE (defined(__APPLE__) && (defined(__i386__) || defined(__x86_64__)))
 
-#if OSX_SSE_FPE
+#if defined(OSX_SSE_FPE)
 #include <xmmintrin.h>
 #endif
 
@@ -151,7 +156,7 @@ char btempdir[FILE_MAX];
 static void setCallbacks(void); 
 
 /* set breakpoints here when running in debug mode, useful to catch floating point errors */
-#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || OSX_SSE_FPE
+#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
 static void fpe_handler(int UNUSED(sig))
 {
 	// printf("SIGFPE trapped\n");
@@ -383,7 +388,7 @@ static int debug_mode(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || OSX_SSE_FPE
+#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
 	/* zealous but makes float issues a heck of a lot easier to find!
 	 * set breakpoints on fpe_handler */
 	signal(SIGFPE, fpe_handler);
@@ -391,7 +396,7 @@ static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(dat
 # if defined(__linux__) && defined(__GNUC__)
 	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 # endif	/* defined(__linux__) && defined(__GNUC__) */
-# if OSX_SSE_FPE
+# if defined(OSX_SSE_FPE)
 	/* OSX uses SSE for floating point by default, so here 
 	 * use SSE instructions to throw floating point exceptions */
 	_MM_SET_EXCEPTION_MASK(_MM_MASK_MASK &~
