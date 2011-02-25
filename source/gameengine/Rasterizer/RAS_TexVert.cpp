@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Rasterizer/RAS_TexVert.cpp
+ *  \ingroup bgerast
+ */
+
+
 #include "RAS_TexVert.h"
 #include "MT_Matrix4x4.h"
 

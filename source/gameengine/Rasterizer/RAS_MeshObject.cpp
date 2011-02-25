@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Rasterizer/RAS_MeshObject.cpp
+ *  \ingroup bgerast
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"

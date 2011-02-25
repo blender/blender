@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Rasterizer/RAS_MaterialBucket.cpp
+ *  \ingroup bgerast
+ */
+
+
 #include "RAS_MaterialBucket.h"
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)

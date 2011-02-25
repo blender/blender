@@ -27,6 +27,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Rasterizer/RAS_2DFilterManager.cpp
+ *  \ingroup bgerast
+ */
+
  
 #define STRINGIFY(A)  #A
 

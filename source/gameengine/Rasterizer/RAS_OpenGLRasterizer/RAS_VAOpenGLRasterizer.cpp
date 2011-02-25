@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Rasterizer/RAS_OpenGLRasterizer/RAS_VAOpenGLRasterizer.cpp
+ *  \ingroup bgerastogl
+ */
+
 #include "RAS_VAOpenGLRasterizer.h"
 #include <stdlib.h>
 

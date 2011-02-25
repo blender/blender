@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Rasterizer/RAS_IRenderTools.cpp
+ *  \ingroup bgerast
+ */
+
+
 #include "RAS_IRenderTools.h"
 
 void RAS_IRenderTools::SetClientObject(RAS_IRasterizer* rasty, void *obj)
