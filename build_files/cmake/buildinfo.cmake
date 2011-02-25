@@ -8,9 +8,9 @@ include(FindSubversion)
 # with a default in case anything fails, for examble when using git-svn
 set(MY_WC_REVISION "unknown")
 # Guess if this is a SVN working copy and then look up the revision
-if(EXISTS ${CMAKE_SOURCE_DIR}/.svn/)
+if(EXISTS ${SOURCE_DIR}/.svn/)
 	if(Subversion_FOUND)
-		bversion_WC_INFO(${SOURCE_DIR} MY)
+		Subversion_WC_INFO(${SOURCE_DIR} MY)
 	endif()
 endif()
 
@@ -34,5 +34,6 @@ file(WRITE buildinfo.h.txt
 
 # Copy the file to the final header only if the version changes
 # and avoid needless rebuilds
+# TODO: verify this comment is true, as BUILD_TIME probably changes
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different
                         buildinfo.h.txt buildinfo.h)
