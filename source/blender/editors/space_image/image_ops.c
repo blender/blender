@@ -1347,13 +1347,27 @@ void IMAGE_OT_new(wmOperatorType *ot)
 
 /********************* invert operators *********************/
 
-static int image_invert_exec(bContext *C, wmOperator *op) {
+static int image_invert_poll(bContext *C)
+{
+	Image *ima= CTX_data_edit_image(C);
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+	
+	if( ibuf != NULL )
+		return 1;
+	return 0;
+}
+
+static int image_invert_exec(bContext *C, wmOperator *op)
+{
 	Image *ima= CTX_data_edit_image(C);
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 	
 	// flags indicate if this channel should be inverted
 	short r,g,b,a;
 	int i, dirty = 0;
+	
+	if( ibuf == NULL) // TODO: this should actually never happen, but does for render-results -> cleanup
+		return OPERATOR_CANCELLED;
 	
 	r = RNA_boolean_get(op->ptr, "invert_r");
 	g = RNA_boolean_get(op->ptr, "invert_g");
@@ -1394,13 +1408,15 @@ static int image_invert_exec(bContext *C, wmOperator *op) {
 	
 }
 
-void IMAGE_OT_invert(wmOperatorType *ot) {
+void IMAGE_OT_invert(wmOperatorType *ot)
+{
 	/* identifiers */
 	ot->name= "Invert Channels";
 	ot->idname= "IMAGE_OT_invert";
 	
 	/* api callbacks */
 	ot->exec= image_invert_exec;
+	ot->poll= image_invert_poll;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
