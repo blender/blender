@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -20,6 +20,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file memutil/MEM_Allocator.h
+ *  \ingroup memutil
+ */
+
 
 #ifndef MEM_ALLOCATOR_H
 #define MEM_ALLOCATOR_H
