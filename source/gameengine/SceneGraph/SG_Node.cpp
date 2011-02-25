@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/SceneGraph/SG_Node.cpp
+ *  \ingroup bgesg
+ */
+
+
 #include "SG_Node.h"
 #include "SG_ParentRelation.h"
 #include <algorithm>

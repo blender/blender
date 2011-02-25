@@ -32,7 +32,7 @@
  *  \ingroup bgesg
  * @page SG_ParentRelationPage SG_ParentRelation   
 
- * @section 
+ * @section SG_ParentRelationSection SG_ParentRelation
  * 
  * This is an abstract interface class to the Scene Graph library. 
  * It allows you to specify how child nodes react to parent nodes.

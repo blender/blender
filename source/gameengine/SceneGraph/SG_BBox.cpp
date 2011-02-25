@@ -28,6 +28,11 @@
  * Bounding Box
  */
 
+/** \file gameengine/SceneGraph/SG_BBox.cpp
+ *  \ingroup bgesg
+ */
+
+
 #include <math.h>
  
  #include "SG_BBox.h"

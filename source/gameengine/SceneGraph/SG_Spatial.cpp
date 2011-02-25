@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/SceneGraph/SG_Spatial.cpp
+ *  \ingroup bgesg
+ */
+
+
 #include "SG_Node.h"
 #include "SG_Spatial.h"
 #include "SG_Controller.h"

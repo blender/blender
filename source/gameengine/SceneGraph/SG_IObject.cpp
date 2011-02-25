@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/SceneGraph/SG_IObject.cpp
+ *  \ingroup bgesg
+ */
+
+
 #include "SG_IObject.h"
 #include "SG_Controller.h"
 
