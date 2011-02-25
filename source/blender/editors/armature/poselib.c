@@ -141,13 +141,16 @@ static TimeMarker *poselib_get_active_pose (bAction *act)
 }
 
 /* Get object that Pose Lib should be found on */
+ /* XXX C can be zero */
 static Object *get_poselib_object (bContext *C)
 {
-	ScrArea *sa = CTX_wm_area(C);
+	ScrArea *sa;
 	
 	/* sanity check */
 	if (C == NULL)
 		return NULL;
+	
+	sa = CTX_wm_area(C);
 	
 	if (sa && (sa->spacetype == SPACE_BUTS)) 
 		return CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
