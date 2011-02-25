@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file container/CTR_Map.h
+ *  \ingroup ctr
+ */
+
 
 #ifndef CTR_MAP_H
 #define CTR_MAP_H
