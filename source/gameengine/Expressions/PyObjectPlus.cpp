@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Expressions/PyObjectPlus.cpp
+ *  \ingroup expressions
+ */
+
+
 /*------------------------------
  * PyObjectPlus cpp
  *

@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/BoolValue.cpp
+ *  \ingroup expressions
+ */
 
 // BoolValue.cpp: implementation of the CBoolValue class.
 /*

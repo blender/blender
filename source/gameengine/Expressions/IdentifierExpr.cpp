@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Expressions/IdentifierExpr.cpp
+ *  \ingroup expressions
+ */
+
+
 #include "IdentifierExpr.h"
 
 CIdentifierExpr::CIdentifierExpr(const STR_String& identifier,CValue* id_context)
