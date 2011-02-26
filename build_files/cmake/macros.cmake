@@ -366,5 +366,20 @@ macro(get_blender_version)
 	set(BLENDER_VERSION_CHAR ${_out_version_char})
 	set(BLENDER_VERSION_CYCLE ${_out_version_cycle})
 
+	# for packaging, alpha to numbers
+	if(${BLENDER_VERSION_CHAR})
+		set(BLENDER_VERSION_CHAR_INDEX "0")
+	else()
+		set(_char_ls a b c d e f g h i j k l m n o p q r s t u v w q y z)
+		list(FIND _char_ls ${BLENDER_VERSION_CHAR} _out_version_char_index)
+		MATH(EXPR BLENDER_VERSION_CHAR_INDEX "${_out_version_char_index} + 1")
+		unset(_char_ls)
+		unset(_out_version_char_index)
+	endif()
+
+	unset(_out_subversion)
+	unset(_out_version_char)
+	unset(_out_version_cycle)
+
 	# message(STATUS "Version (Internal): ${BLENDER_VERSION}.${BLENDER_SUBVERSION}, Version (external): ${BLENDER_VERSION}${BLENDER_VERSION_CHAR}-${BLENDER_VERSION_CYCLE}")
 endmacro()
