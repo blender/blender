@@ -353,7 +353,7 @@ typedef struct {
 } PyModuleObject;
 #endif
 
-static int python_script_exec(bContext *C, const char *fn, struct Text *text, struct ReportList *reports)
+static int python_script_exec(bContext *C, const char *fn, struct Text *text, struct ReportList *reports, const short do_jump)
 {
 	PyObject *main_mod= NULL;
 	PyObject *py_dict= NULL, *py_result= NULL;
@@ -382,7 +382,9 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 			MEM_freeN( buf );
 
 			if(PyErr_Occurred()) {
-				python_script_error_jump_text(text);
+				if(do_jump) {
+					python_script_error_jump_text(text);
+				}
 				BPY_text_free_code(text);
 			}
 		}
@@ -429,7 +431,9 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 
 	if (!py_result) {
 		if(text) {
-			python_script_error_jump_text(text);
+			if(do_jump) {
+				python_script_error_jump_text(text);
+			}
 		}
 		BPy_errors_to_report(reports);
 	} else {
@@ -459,13 +463,13 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 /* Can run a file or text block */
 int BPY_filepath_exec(bContext *C, const char *filepath, struct ReportList *reports)
 {
-	return python_script_exec(C, filepath, NULL, reports);
+	return python_script_exec(C, filepath, NULL, reports, FALSE);
 }
 
 
-int BPY_text_exec(bContext *C, struct Text *text, struct ReportList *reports)
+int BPY_text_exec(bContext *C, struct Text *text, struct ReportList *reports, const short do_jump)
 {
-	return python_script_exec(C, NULL, text, reports);
+	return python_script_exec(C, NULL, text, reports, do_jump);
 }
 
 void BPY_DECREF(void *pyob_ptr)

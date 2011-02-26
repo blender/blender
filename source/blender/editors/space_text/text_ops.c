@@ -565,6 +565,35 @@ static int run_script_poll(bContext *C)
 	return (CTX_data_edit_text(C) != NULL);
 }
 
+static int run_script(bContext *C, ReportList *reports)
+{
+	Text *text= CTX_data_edit_text(C);
+	const short is_live= (reports == NULL);
+
+	/* only for comparison */
+	void *curl_prev= text->curl;
+	int curc_prev= text->curc;
+
+	if (BPY_text_exec(C, text, reports, !is_live)) {
+		if(is_live) {
+			/* for nice live updates */
+			WM_event_add_notifier(C, NC_WINDOW|NA_EDITED, NULL);
+		}
+		return OPERATOR_FINISHED;
+	}
+
+	/* Dont report error messages while live editing */
+	if(!is_live) {
+		if(text->curl != curl_prev || curc_prev != text->curc) {
+			text_update_cursor_moved(C);
+			WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+		}
+
+		BKE_report(reports, RPT_ERROR, "Python script fail, look in the console for now...");
+	}
+	return OPERATOR_CANCELLED;
+}
+
 static int run_script_exec(bContext *C, wmOperator *op)
 {
 #ifndef WITH_PYTHON
@@ -574,26 +603,7 @@ static int run_script_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_CANCELLED;
 #else
-	Text *text= CTX_data_edit_text(C);
-	SpaceText *st= CTX_wm_space_text(C);
-
-	/* only for comparison */
-	void *curl_prev= text->curl;
-	int curc_prev= text->curc;
-
-	if (BPY_text_exec(C, text, op->reports))
-		return OPERATOR_FINISHED;
-
-	/* Dont report error messages while live editing */
-	if(!(st && st->live_edit)) {
-		if(text->curl != curl_prev || curc_prev != text->curc) {
-			text_update_cursor_moved(C);
-			WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
-		}
-		
-		BKE_report(op->reports, RPT_ERROR, "Python script fail, look in the console for now...");
-	}
-	return OPERATOR_CANCELLED;
+	return run_script(C, op->reports);
 #endif
 }
 
@@ -776,7 +786,7 @@ static int paste_exec(bContext *C, wmOperator *op)
 
 	/* run the script while editing, evil but useful */
 	if(CTX_wm_space_text(C)->live_edit)
-		run_script_exec(C, op);
+		run_script(C, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -833,7 +843,7 @@ void TEXT_OT_copy(wmOperatorType *ot)
 
 /******************* cut operator *********************/
 
-static int cut_exec(bContext *C, wmOperator *op)
+static int cut_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Text *text= CTX_data_edit_text(C);
 
@@ -847,7 +857,7 @@ static int cut_exec(bContext *C, wmOperator *op)
 
 	/* run the script while editing, evil but useful */
 	if(CTX_wm_space_text(C)->live_edit)
-		run_script_exec(C, op);
+		run_script(C, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1983,7 +1993,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 
 	/* run the script while editing, evil but useful */
 	if(CTX_wm_space_text(C)->live_edit)
-		run_script_exec(C, op);
+		run_script(C, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2776,7 +2786,7 @@ static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* run the script while editing, evil but useful */
 	if(ret==OPERATOR_FINISHED && CTX_wm_space_text(C)->live_edit)
-		run_script_exec(C, op);
+		run_script(C, NULL);
 
 	return ret;
 }

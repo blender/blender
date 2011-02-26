@@ -32,6 +32,7 @@ base = abspath(base)
 
 SIMPLE_PROJECTFILE = False
 
+
 def source_list(path, filename_check=None):
     for dirpath, dirnames, filenames in os.walk(path):
 
@@ -85,7 +86,7 @@ def cmake_advanced_info():
 
     includes = []
     defines = []
-    
+
     import os
     import sys
 
@@ -98,7 +99,7 @@ def cmake_advanced_info():
         sys.exit(1)
 
     # create_eclipse_project(cmake_dir)
-    
+
     from xml.dom.minidom import parse
     tree = parse(os.path.join(cmake_dir, ".cproject"))
     '''
@@ -106,12 +107,12 @@ def cmake_advanced_info():
     f.write(tree.toprettyxml(indent="    ", newl=""))
     '''
     ELEMENT_NODE = tree.ELEMENT_NODE
-    
+
     cproject, = tree.getElementsByTagName("cproject")
     for storage in cproject.childNodes:
         if storage.nodeType != ELEMENT_NODE:
             continue
-        
+
         if storage.attributes["moduleId"].value == "org.eclipse.cdt.core.settings":
             cconfig = storage.getElementsByTagName("cconfiguration")[0]
             for substorage in cconfig.childNodes:
@@ -139,7 +140,7 @@ def cmake_advanced_info():
                             # <pathentry include="/data/src/blender/blender/source/blender/editors/include" kind="inc" path="" system="true"/>
                             includes.append(path.attributes["include"].value)
                         else:
-                            print(kind)
+                            pass
 
     return includes, defines
 
@@ -169,7 +170,7 @@ def main():
             f.write("// ADD PREDEFINED MACROS HERE!\n")
     else:
         includes, defines = cmake_advanced_info()
-        
+
         PROJECT_NAME = "Blender"
         f = open(join(base, "%s.files" % PROJECT_NAME), 'w')
         f.write("\n".join(files_rel))
