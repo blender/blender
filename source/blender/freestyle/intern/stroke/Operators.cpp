@@ -78,13 +78,13 @@ int Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
 
   unsigned id = 0;
   ViewEdge* edge;
-  //soc unused - Chain* new_chain;
+  I1DContainer new_chains_set;
 
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
        ++it_edge) {
 	if (pred(**it_edge) < 0)
-	  return -1;
+	  goto error;
 	if (pred.result)
       continue;
 
@@ -97,25 +97,36 @@ int Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
       new_chain->push_viewedge_back(*it, it.getOrientation());
 	  if (modifier(**it) < 0) {
 		delete new_chain;
-		return -1;
+		goto error;
 	  }
       ++it;
 	  if (it.isEnd())
 		break;
 	  if (pred(**it) < 0) {
 		delete new_chain;
-		return -1;
+		goto error;
 	  }
 	  if (pred.result)
 	    break;
 	}
-
-    _current_chains_set.push_back(new_chain);
+    new_chains_set.push_back(new_chain);
   }
-
-  if (!_current_chains_set.empty())
+  
+  if (!new_chains_set.empty()) {
+	for (I1DContainer::iterator it = new_chains_set.begin(); it != new_chains_set.end(); ++it) {
+	  _current_chains_set.push_back(*it);
+	}
+	new_chains_set.clear();
     _current_set = &_current_chains_set;
+  }
   return 0;
+
+error:
+  for (I1DContainer::iterator it = new_chains_set.begin(); it != new_chains_set.end(); ++it) {
+	delete (*it);
+  }
+  new_chains_set.clear();
+  return -1;
 }
 
 
@@ -127,19 +138,18 @@ int Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
   unsigned id = 0;
   Functions1D::IncrementChainingTimeStampF1D ts;
   Predicates1D::EqualToChainingTimeStampUP1D pred_ts(TimeStamp::instance()->getTimeStamp()+1);
-
   ViewEdge* edge;
-  //soc Chain* new_chain;
+  I1DContainer new_chains_set;
 
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
        ++it_edge) {
 	if (pred(**it_edge) < 0)
-	  return -1;
+	  goto error;
     if (pred.result)
 	  continue;
 	if (pred_ts(**it_edge) < 0)
-	  return -1;
+	  goto error;
 	if (pred_ts.result)
       continue;
 
@@ -156,24 +166,35 @@ int Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
 		break;
 	  if (pred(**it) < 0) {
 		delete new_chain;
-		return -1;
+	    goto error;
 	  }
 	  if (pred.result)
 		break;
 	  if (pred_ts(**it) < 0) {
 		delete new_chain;
-		return -1;
+	    goto error;
 	  }
 	  if (pred_ts.result)
 		break;
 	}
-
-    _current_chains_set.push_back(new_chain);
+    new_chains_set.push_back(new_chain);
   }
-
-  if (!_current_chains_set.empty())
+  
+  if (!new_chains_set.empty()) {
+	for (I1DContainer::iterator it = new_chains_set.begin(); it != new_chains_set.end(); ++it) {
+	  _current_chains_set.push_back(*it);
+	}
+	new_chains_set.clear();
     _current_set = &_current_chains_set;
+  }
   return 0;
+
+error:
+  for (I1DContainer::iterator it = new_chains_set.begin(); it != new_chains_set.end(); ++it) {
+	delete (*it);
+  }
+  new_chains_set.clear();
+  return -1;
 }
 
 
@@ -272,19 +293,18 @@ int Operators::bidirectionalChain(ChainingIterator& it, UnaryPredicate1D& pred) 
   unsigned id = 0;
   Functions1D::IncrementChainingTimeStampF1D ts;
   Predicates1D::EqualToChainingTimeStampUP1D pred_ts(TimeStamp::instance()->getTimeStamp()+1);
-  
   ViewEdge* edge;
-  //soc unused - Chain* new_chain;
-  
+  I1DContainer new_chains_set;
+
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
   it_edge != _current_view_edges_set.end();
   ++it_edge) {
 	if (pred(**it_edge) < 0)
-	  return -1;
+	  goto error;
     if (pred.result)
       continue;
 	if (pred_ts(**it_edge) < 0)
-	  return -1;
+	  goto error;
     if (pred_ts.result)
       continue;
     
@@ -294,22 +314,22 @@ int Operators::bidirectionalChain(ChainingIterator& it, UnaryPredicate1D& pred) 
     it.setCurrentEdge(edge);
     it.setOrientation(true);
     if (it.init() < 0)
-	  return -1;
+	  goto error;
     
     Chain* new_chain = new Chain(id);++id;
     //ViewEdgeIterator it_back(it);--it_back;//FIXME
     for (;;) {
       new_chain->push_viewedge_back(*it, it.getOrientation());
       ts(**it);
-	  if (it.increment() < 0) { // FIXME
+	  if (it.increment() < 0) {
 	    delete new_chain;
-		return -1;
+	    goto error;
 	  }
 	  if (it.isEnd())
 		break;
 	  if (pred(**it) < 0) {
 	    delete new_chain;
-		return -1;
+	    goto error;
 	  }
 	  if (pred.result)
 		break;
@@ -317,30 +337,42 @@ int Operators::bidirectionalChain(ChainingIterator& it, UnaryPredicate1D& pred) 
     it.setBegin(edge);
     it.setCurrentEdge(edge);
     it.setOrientation(true);
-	if (it.decrement() < 0) { // FIXME
+	if (it.decrement() < 0) {
 	  delete new_chain;
-	  return -1;
+	  goto error;
 	}
     while (!it.isEnd()) {
 	  if (pred(**it) < 0) {
 	    delete new_chain;
-		return -1;
+	    goto error;
 	  }
 	  if (pred.result)
 		break;
       new_chain->push_viewedge_front(*it, it.getOrientation());
       ts(**it);
-	  if (it.decrement() < 0) { // FIXME
+	  if (it.decrement() < 0) {
 	    delete new_chain;
-		return -1;
+	    goto error;
 	  }
     }
-    _current_chains_set.push_back(new_chain);
+    new_chains_set.push_back(new_chain);
   }
   
-  if (!_current_chains_set.empty())
+  if (!new_chains_set.empty()) {
+	for (I1DContainer::iterator it = new_chains_set.begin(); it != new_chains_set.end(); ++it) {
+	  _current_chains_set.push_back(*it);
+	}
+	new_chains_set.clear();
     _current_set = &_current_chains_set;
+  }
   return 0;
+
+error:
+  for (I1DContainer::iterator it = new_chains_set.begin(); it != new_chains_set.end(); ++it) {
+	delete (*it);
+  }
+  new_chains_set.clear();
+  return -1;
 }
 
 int Operators::bidirectionalChain(ChainingIterator& it) {
@@ -350,15 +382,14 @@ int Operators::bidirectionalChain(ChainingIterator& it) {
   unsigned id = 0;
   Functions1D::IncrementChainingTimeStampF1D ts;
   Predicates1D::EqualToChainingTimeStampUP1D pred_ts(TimeStamp::instance()->getTimeStamp()+1);
-  
   ViewEdge* edge;
-  //soc unused - Chain* new_chain;
+  I1DContainer new_chains_set;
   
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
   it_edge != _current_view_edges_set.end();
   ++it_edge) {
     if (pred_ts(**it_edge) < 0)
-	  return -1;
+	  goto error;
 	if (pred_ts.result)
       continue;
     
@@ -368,7 +399,7 @@ int Operators::bidirectionalChain(ChainingIterator& it) {
     it.setCurrentEdge(edge);
     it.setOrientation(true);
     if (it.init() < 0)
-	  return -1;
+	  goto error;
     
     Chain* new_chain = new Chain(id);++id;
     //ViewEdgeIterator it_back(it);--it_back;//FIXME
@@ -377,7 +408,7 @@ int Operators::bidirectionalChain(ChainingIterator& it) {
       ts(**it);
 	  if (it.increment() < 0) { // FIXME
 		delete new_chain;
-		return -1;
+	    goto error;
 	  }
     } while (!it.isEnd());
     it.setBegin(edge);
@@ -385,22 +416,34 @@ int Operators::bidirectionalChain(ChainingIterator& it) {
     it.setOrientation(true);
 	if (it.decrement() < 0) { // FIXME
 	  delete new_chain;
-	  return -1;
+	  goto error;
 	}
     while (!it.isEnd()) {
       new_chain->push_viewedge_front(*it, it.getOrientation());
       ts(**it);
 	  if (it.decrement() < 0) { // FIXME
 		delete new_chain;
-		return -1;
+	    goto error;
 	  }
     }
-    _current_chains_set.push_back(new_chain);
+    new_chains_set.push_back(new_chain);
   }
   
-  if (!_current_chains_set.empty())
+  if (!new_chains_set.empty()) {
+	for (I1DContainer::iterator it = new_chains_set.begin(); it != new_chains_set.end(); ++it) {
+	  _current_chains_set.push_back(*it);
+	}
+	new_chains_set.clear();
     _current_set = &_current_chains_set;
+  }
   return 0;
+
+error:
+  for (I1DContainer::iterator it = new_chains_set.begin(); it != new_chains_set.end(); ++it) {
+	delete (*it);
+  }
+  new_chains_set.clear();
+  return -1;
 }
 
 int Operators::sequentialSplit(UnaryPredicate0D& pred, 
@@ -1060,23 +1103,38 @@ int Operators::create(UnaryPredicate1D& pred, vector<StrokeShader*> shaders) {
     cerr << "Warning: current set empty" << endl;
     return 0;
   }
+  StrokesContainer new_strokes_set;
   for (Operators::I1DContainer::iterator it = _current_set->begin();
        it != _current_set->end();
        ++it) {
 	if (pred(**it) < 0)
-	  return -1;
+	  goto error;
     if (!pred.result)
       continue;
 	
 	Stroke* stroke = createStroke(**it);
     if (stroke) {
-      if (applyShading(*stroke, shaders) < 0)
-		  return -1;
+	  if (applyShading(*stroke, shaders) < 0) {
+		  delete stroke;
+		  goto error;
+	  }
       //canvas->RenderStroke(stroke);
-      _current_strokes_set.push_back(stroke);
+      new_strokes_set.push_back(stroke);
     }
   }
+  
+  for (StrokesContainer::iterator it = new_strokes_set.begin(); it != new_strokes_set.end(); ++it) {
+    _current_strokes_set.push_back(*it);
+  }
+  new_strokes_set.clear();
   return 0;
+
+error:
+  for (StrokesContainer::iterator it = new_strokes_set.begin(); it != new_strokes_set.end(); ++it) {
+	delete (*it);
+  }
+  new_strokes_set.clear();
+  return -1;
 }
 
 
