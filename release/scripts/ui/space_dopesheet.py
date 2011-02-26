@@ -225,6 +225,9 @@ class DOPESHEET_MT_marker(bpy.types.Menu):
             layout.separator()
             layout.prop(st, "show_pose_markers")
 
+            if st.show_pose_markers is False:
+                layout.operator("action.markers_make_local")
+
 
 #######################################
 # Keyframe Editing

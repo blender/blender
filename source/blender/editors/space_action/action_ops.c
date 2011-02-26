@@ -79,6 +79,8 @@ void action_operatortypes(void)
 	
 	WM_operatortype_append(ACTION_OT_previewrange_set);
 	WM_operatortype_append(ACTION_OT_view_all);
+	
+	WM_operatortype_append(ACTION_OT_markers_make_local);
 }
 
 /* ************************** registration - keymaps **********************************/

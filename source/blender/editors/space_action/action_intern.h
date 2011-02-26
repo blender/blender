@@ -104,6 +104,8 @@ void ACTION_OT_mirror(struct wmOperatorType *ot);
 
 void ACTION_OT_new(struct wmOperatorType *ot);
 
+void ACTION_OT_markers_make_local(struct wmOperatorType *ot);
+
 /* defines for snap keyframes 
  * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)
  */

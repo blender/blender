@@ -121,7 +121,7 @@ static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_new (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New";
+	ot->name= "New Action";
 	ot->idname= "ACTION_OT_new";
 	ot->description= "Create new action";
 	
@@ -129,6 +129,88 @@ void ACTION_OT_new (wmOperatorType *ot)
 	ot->exec= act_new_exec;
 		// NOTE: this is used in the NLA too...
 	//ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ************************************************************************** */
+/* POSE MARKERS STUFF */
+
+/* *************************** Localise Markers ***************************** */
+
+/* ensure that there is:
+ *	1) an active action editor
+ * 	2) that the mode will have an active action available 
+ * 	3) that the set of markers being shown are the scene markers, not the list we're merging
+ *	4) that there are some selected markers
+ */
+static int act_markers_make_local_poll(bContext *C)
+{
+	SpaceAction *sact = CTX_wm_space_action(C);
+	
+	/* 1) */
+	if (sact == NULL)
+		return 0;
+	
+	/* 2) */
+	if (ELEM(sact->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) == 0)
+		return 0;
+	if (sact->action == NULL)
+		return 0;
+		
+	/* 3) */
+	if (sact->flag & SACTION_POSEMARKERS_SHOW)
+		return 0;
+		
+	/* 4) */
+	return ED_markers_get_first_selected(ED_context_get_markers(C)) != NULL;
+}
+
+static int act_markers_make_local_exec (bContext *C, wmOperator *op)
+{	
+	ListBase *markers = ED_context_get_markers(C);
+	
+	SpaceAction *sact = CTX_wm_space_action(C);
+	bAction *act = (sact)? sact->action : NULL;
+	
+	TimeMarker *marker, *markern=NULL;
+	
+	/* sanity checks */
+	if (ELEM(NULL, markers, act))
+		return OPERATOR_CANCELLED;
+		
+	/* migrate markers */
+	for (marker = markers->first; marker; marker = markern) {
+		markern = marker->next;
+		
+		/* move if marker is selected */
+		if (marker->flag & SELECT) {
+			BLI_remlink(markers, marker);
+			BLI_addtail(&act->markers, marker);
+		}
+	}
+	
+	/* now enable the "show posemarkers only" setting, so that we can see that something did happen */
+	sact->flag |= SACTION_POSEMARKERS_SHOW;
+	
+	/* notifiers - both sets, as this change affects both */
+	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_markers_make_local (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Markers Local";
+	ot->idname= "ACTION_OT_markers_make_local";
+	ot->description= "Move selected scene markers to the active Action as local 'pose' markers";
+	
+	/* callbacks */
+	ot->exec = act_markers_make_local_exec;
+	ot->poll = act_markers_make_local_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
