@@ -138,11 +138,11 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 
 	if(fp) {
 		if(channels==4)
-			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| R: %.3f G: %.3f B: %.3f A: %.3f ", fp[0], fp[1], fp[2], fp[3]);
+			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| R: %.4f G: %.4f B: %.4f A: %.4f ", fp[0], fp[1], fp[2], fp[3]);
 		else if(channels==1)
-			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Val: %.3f ", fp[0]);
+			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Val: %.4f ", fp[0]);
 		else if(channels==3)
-			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| R: %.3f G: %.3f B: %.3f ", fp[0], fp[1], fp[2]);
+			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| R: %.4f G: %.4f B: %.4f ", fp[0], fp[1], fp[2]);
 	}
 
 	if(zp)
