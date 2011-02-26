@@ -2318,8 +2318,15 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 
 			for(sock= node->inputs.first; sock; sock= sock->next) {
 				ns = get_socket_stack(ntree->stack, sock, NULL);
-				if (ns)
+				if (ns) {
 					ns->hasoutput = 1;
+					
+					/* sock type is needed to detect rgba or value or vector types */
+					if(sock->link)
+						ns->sockettype= sock->link->fromsock->type;
+					else
+						sock->ns.sockettype= sock->type;
+				}
 				
 				if(sock->link) {
 					bNodeLink *link= sock->link;
