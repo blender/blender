@@ -40,7 +40,7 @@ extern "C" {
 struct ListBase;
 struct direntry;
 
-char *BLI_getDefaultDocumentFolder(void);
+const char *BLI_getDefaultDocumentFolder(void);
 
 char *BLI_get_folder(int folder_id, const char *subfolder);
 char *BLI_get_folder_create(int folder_id, const char *subfolder);

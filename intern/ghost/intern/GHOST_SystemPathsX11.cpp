@@ -65,7 +65,7 @@ const GHOST_TUns8* GHOST_SystemPathsX11::getSystemDir() const
 
 const GHOST_TUns8* GHOST_SystemPathsX11::getUserDir() const
 {
-	char* env = getenv("HOME");
+	const char* env = getenv("HOME");
 	if(env) {
 		return (GHOST_TUns8*) env;
 	} else {

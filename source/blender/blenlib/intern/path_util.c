@@ -812,12 +812,12 @@ void BLI_getlastdir(const char* dir, char *last, int maxlen)
 /* This is now only used to really get the user's default document folder */
 /* On Windows I chose the 'Users/<MyUserName>/Documents' since it's used
    as default location to save documents */
-char *BLI_getDefaultDocumentFolder(void) {
+const char *BLI_getDefaultDocumentFolder(void) {
 	#if !defined(WIN32)
 		return getenv("HOME");
 
 	#else /* Windows */
-		char * ret;
+		const char * ret;
 		static char documentfolder[MAXPATHLEN];
 		HRESULT hResult;
 
@@ -883,7 +883,7 @@ static int test_path(char *targetpath, const char *path_base, const char *path_s
 
 static int test_env_path(char *path, const char *envvar)
 {
-	char *env = envvar?getenv(envvar):NULL;
+	const char *env = envvar?getenv(envvar):NULL;
 	if (!env) return 0;
 	
 	if (BLI_is_dir(env)) {
@@ -1617,7 +1617,7 @@ static int add_win32_extension(char *name)
 #ifdef _WIN32
 		char filename[FILE_MAXDIR+FILE_MAXFILE];
 		char ext[FILE_MAXDIR+FILE_MAXFILE];
-		char *extensions = getenv("PATHEXT");
+		const char *extensions = getenv("PATHEXT");
 		if (extensions) {
 			char *temp;
 			do {
@@ -1652,7 +1652,7 @@ static int add_win32_extension(char *name)
 void BLI_where_am_i(char *fullname, const int maxlen, const char *name)
 {
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
-	char *path = NULL, *temp;
+	const char *path = NULL, *temp;
 
 #ifdef _WIN32
 	const char *separator = ";";
@@ -1666,7 +1666,7 @@ void BLI_where_am_i(char *fullname, const int maxlen, const char *name)
 	path = br_find_exe( NULL );
 	if (path) {
 		BLI_strncpy(fullname, path, maxlen);
-		free(path);
+		free((void *)path);
 		return;
 	}
 #endif
@@ -1749,7 +1749,7 @@ void BLI_where_is_temp(char *fullname, const int maxlen, int usertemp)
 	
 #ifdef WIN32
 	if (fullname[0] == '\0') {
-		char *tmp = getenv("TEMP"); /* Windows */
+		const char *tmp = getenv("TEMP"); /* Windows */
 		if (tmp && BLI_is_dir(tmp)) {
 			BLI_strncpy(fullname, tmp, maxlen);
 		}
@@ -1757,14 +1757,14 @@ void BLI_where_is_temp(char *fullname, const int maxlen, int usertemp)
 #else
 	/* Other OS's - Try TMP and TMPDIR */
 	if (fullname[0] == '\0') {
-		char *tmp = getenv("TMP");
+		const char *tmp = getenv("TMP");
 		if (tmp && BLI_is_dir(tmp)) {
 			BLI_strncpy(fullname, tmp, maxlen);
 		}
 	}
 	
 	if (fullname[0] == '\0') {
-		char *tmp = getenv("TMPDIR");
+		const char *tmp = getenv("TMPDIR");
 		if (tmp && BLI_is_dir(tmp)) {
 			BLI_strncpy(fullname, tmp, maxlen);
 		}
