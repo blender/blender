@@ -137,7 +137,7 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 	int tot, totdim, len;
 
 	totdim= RNA_property_array_dimension(ptr, prop, dimsize);
-	tot= count_items(rvalue, totdim);
+	tot= count_items(rvalue, totdim - lvalue_dim);
 
 	if ((RNA_property_flag(prop) & PROP_DYNAMIC) && lvalue_dim == 0) {
 		if (RNA_property_array_length(ptr, prop) != tot) {
