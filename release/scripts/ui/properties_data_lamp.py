@@ -314,7 +314,7 @@ class DATA_PT_area(DataButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         lamp = context.lamp
 
         col = layout.column()

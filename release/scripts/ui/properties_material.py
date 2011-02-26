@@ -252,7 +252,7 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
             row = layout.row()
             row.prop(mat, "diffuse_ramp_input", text="Input")
             row.prop(mat, "diffuse_ramp_blend", text="Blend")
-            
+
             layout.prop(mat, "diffuse_ramp_factor", text="Factor")
 
 
@@ -817,7 +817,7 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         vol = context.material.volume  # dont use node material
-        
+
         row = layout.row()
         row.prop(vol, "density")
         row.prop(vol, "density_scale")

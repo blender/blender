@@ -1012,7 +1012,6 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
         if isinstance(idblock, bpy.types.Material):
             layout.label(text="Bump Mapping:")
 
-            
             # only show bump settings if activated but not for normalmap images
             row = layout.row()
             row.active = tex.use_map_normal and not (tex.texture.type == 'IMAGE' and tex.texture.use_normal_map)
@@ -1022,7 +1021,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             sub = row.row()
             sub.active = tex.bump_method in ('BUMP_DEFAULT', 'BUMP_BEST_QUALITY')
             sub.prop(tex, "bump_objectspace", text="Space")
-            
+
 
 class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}

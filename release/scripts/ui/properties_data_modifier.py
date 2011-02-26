@@ -58,9 +58,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.label(text="Bind To:")
         col.prop(md, "use_vertex_groups", text="Vertex Groups")
         col.prop(md, "use_bone_envelopes", text="Bone Envelopes")
-        
+
         layout.separator()
-        
+
         row = layout.row()
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         sub = row.row()
@@ -329,7 +329,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
     def MESH_DEFORM(self, layout, ob, md):
         split = layout.split()
-        
+
         col = split.column()
         sub = col.column()
         sub.label(text="Object:")
