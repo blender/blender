@@ -251,19 +251,14 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
 
             col.row().prop(lamp, "shadow_ray_sample_method", expand=True)
 
-            split = layout.split()
-            col = split.column()
-
             if lamp.shadow_ray_sample_method == 'ADAPTIVE_QMC':
-                col.prop(lamp, "shadow_adaptive_threshold", text="Threshold")
-                col = split.column()
+                layout.prop(lamp, "shadow_adaptive_threshold", text="Threshold")
 
             if lamp.type == 'AREA' and lamp.shadow_ray_sample_method == 'CONSTANT_JITTERED':
-                col = split.column()
-                col = split.column()
-                col.prop(lamp, "use_umbra")
-                col.prop(lamp, "use_dither")
-                col.prop(lamp, "use_jitter")
+                row = layout.row()
+                row.prop(lamp, "use_umbra")
+                row.prop(lamp, "use_dither")
+                row.prop(lamp, "use_jitter")
 
         elif lamp.shadow_method == 'BUFFER_SHADOW':
             col = layout.column()
@@ -318,13 +313,11 @@ class DATA_PT_area(DataButtonsPanel, bpy.types.Panel):
         return (lamp and lamp.type == 'AREA') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
+        layout = self.layout
+        
         lamp = context.lamp
 
-        layout = self.layout
-        split = layout.split()
-
-        col = split.column()
-
+        col = layout.column()
         col.row().prop(lamp, "shape", expand=True)
         sub = col.row(align=True)
 

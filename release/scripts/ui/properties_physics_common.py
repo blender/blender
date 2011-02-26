@@ -255,8 +255,6 @@ def basic_force_field_settings_ui(self, context, field):
 def basic_force_field_falloff_ui(self, context, field):
     layout = self.layout
 
-    # XXX: This doesn't update for some reason.
-    #split = layout.split()
     split = layout.split(percentage=0.35)
 
     if not field or field.type == 'NONE':

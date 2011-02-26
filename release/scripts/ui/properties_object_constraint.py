@@ -112,13 +112,9 @@ class ConstraintButtonsPanel():
         col.prop(con, "use_scale_y", text="Y")
         col.prop(con, "use_scale_z", text="Z")
 
-        split = layout.split()
-
-        col = split.column()
-        col.operator("constraint.childof_set_inverse")
-
-        col = split.column()
-        col.operator("constraint.childof_clear_inverse")
+        row = layout.row()
+        row.operator("constraint.childof_set_inverse")
+        row.operator("constraint.childof_clear_inverse")
 
     def TRACK_TO(self, context, layout, con):
         self.target_template(layout, con)
@@ -127,13 +123,9 @@ class ConstraintButtonsPanel():
         row.label(text="To:")
         row.prop(con, "track_axis", expand=True)
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(con, "up_axis", text="Up")
-
-        col = split.column()
-        col.prop(con, "use_target_z")
+        row = layout.row()
+        row.prop(con, "up_axis", text="Up")
+        row.prop(con, "use_target_z")
 
         self.space_template(layout, con)
 
@@ -212,6 +204,7 @@ class ConstraintButtonsPanel():
         self.ik_template(layout, con)
 
         layout.prop(con, "limit_mode")
+
         row = layout.row()
         row.prop(con, "weight", text="Weight", slider=True)
         row.prop(con, "distance", text="Distance", slider=True)
@@ -486,16 +479,11 @@ class ConstraintButtonsPanel():
     def STRETCH_TO(self, context, layout, con):
         self.target_template(layout, con)
 
-        split = layout.split()
+        row = layout.row()
+        row.prop(con, "rest_length", text="Rest Length")
+        row.operator("constraint.stretchto_reset", text="Reset")
 
-        col = split.column()
-        col.prop(con, "rest_length", text="Rest Length")
-
-        col = split.column()
-        col.operator("constraint.stretchto_reset", text="Reset")
-
-        col = layout.column()
-        col.prop(con, "bulge", text="Volume Variation")
+        layout.prop(con, "bulge", text="Volume Variation")
 
         row = layout.row()
         row.label(text="Volume:")
@@ -507,19 +495,15 @@ class ConstraintButtonsPanel():
     def FLOOR(self, context, layout, con):
         self.target_template(layout, con)
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(con, "use_sticky")
-
-        col = split.column()
-        col.prop(con, "use_rotation")
+        row = layout.row()
+        row.prop(con, "use_sticky")
+        row.prop(con, "use_rotation")
 
         layout.prop(con, "offset")
 
         row = layout.row()
-        row.label(text="Min/Max:")
-        row.prop(con, "floor_location", expand=True)
+        #row.label(text="Min/Max:")
+        row.prop(con, "floor_location", expand=True, text="Min/Max:")
 
         self.space_template(layout, con)
 
@@ -529,13 +513,9 @@ class ConstraintButtonsPanel():
         layout.prop(con, "pivot_type")
         layout.prop(con, "child")
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(con, "use_linked_collision", text="Linked Collision")
-
-        col = split.column()
-        col.prop(con, "show_pivot", text="Display Pivot")
+        row = layout.row()
+        row.prop(con, "use_linked_collision", text="Linked Collision")
+        row.prop(con, "show_pivot", text="Display Pivot")
 
         split = layout.split()
 

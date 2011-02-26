@@ -249,15 +249,11 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
             layout.template_color_ramp(mat, "diffuse_ramp", expand=True)
             layout.separator()
 
-            split = layout.split()
-
-            col = split.column()
-            col.prop(mat, "diffuse_ramp_input", text="Input")
-
-            col = split.column()
-            col.prop(mat, "diffuse_ramp_blend", text="Blend")
             row = layout.row()
-            row.prop(mat, "diffuse_ramp_factor", text="Factor")
+            row.prop(mat, "diffuse_ramp_input", text="Input")
+            row.prop(mat, "diffuse_ramp_blend", text="Blend")
+            
+            layout.prop(mat, "diffuse_ramp_factor", text="Factor")
 
 
 class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):
@@ -305,16 +301,12 @@ class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):
             layout.separator()
             layout.template_color_ramp(mat, "specular_ramp", expand=True)
             layout.separator()
-            split = layout.split()
-
-            col = split.column()
-            col.prop(mat, "specular_ramp_input", text="Input")
-
-            col = split.column()
-            col.prop(mat, "specular_ramp_blend", text="Blend")
 
             row = layout.row()
-            row.prop(mat, "specular_ramp_factor", text="Factor")
+            row.prop(mat, "specular_ramp_input", text="Input")
+            row.prop(mat, "specular_ramp_blend", text="Blend")
+
+            layout.prop(mat, "specular_ramp_factor", text="Factor")
 
 
 class MATERIAL_PT_shading(MaterialButtonsPanel, bpy.types.Panel):
@@ -825,13 +817,10 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         vol = context.material.volume  # dont use node material
-
-        split = layout.split()
-        col = split.column()
-        col.prop(vol, "density")
-
-        col = split.column()
-        col.prop(vol, "density_scale")
+        
+        row = layout.row()
+        row.prop(vol, "density")
+        row.prop(vol, "density_scale")
 
 
 class MATERIAL_PT_volume_shading(VolumeButtonsPanel, bpy.types.Panel):

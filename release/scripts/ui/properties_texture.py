@@ -244,8 +244,7 @@ class TEXTURE_PT_clouds(TextureTypePanel, bpy.types.Panel):
         col.prop(tex, "noise_scale", text="Size")
         col.prop(tex, "noise_depth", text="Depth")
 
-        col = split.column()
-        col.prop(tex, "nabla", text="Nabla")
+        split.prop(tex, "nabla", text="Nabla")
 
 
 class TEXTURE_PT_wood(TextureTypePanel, bpy.types.Panel):
@@ -274,8 +273,7 @@ class TEXTURE_PT_wood(TextureTypePanel, bpy.types.Panel):
         col.prop(tex, "noise_scale", text="Size")
         col.prop(tex, "turbulence")
 
-        col = split.column()
-        col.prop(tex, "nabla")
+        split.prop(tex, "nabla")
 
 
 class TEXTURE_PT_marble(TextureTypePanel, bpy.types.Panel):
@@ -315,13 +313,9 @@ class TEXTURE_PT_magic(TextureTypePanel, bpy.types.Panel):
 
         tex = context.texture
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(tex, "noise_depth", text="Depth")
-
-        col = split.column()
-        col.prop(tex, "turbulence")
+        row = layout.row()
+        row.prop(tex, "noise_depth", text="Depth")
+        row.prop(tex, "turbulence")
 
 
 class TEXTURE_PT_blend(TextureTypePanel, bpy.types.Panel):
@@ -357,13 +351,9 @@ class TEXTURE_PT_stucci(TextureTypePanel, bpy.types.Panel):
         layout.prop(tex, "noise_type", text="Type", expand=True)
         layout.prop(tex, "noise_basis", text="Basis")
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(tex, "noise_scale", text="Size")
-
-        col = split.column()
-        col.prop(tex, "turbulence")
+        row = layout.row()
+        row.prop(tex, "noise_scale", text="Size")
+        row.prop(tex, "turbulence")
 
 
 class TEXTURE_PT_image(TextureTypePanel, bpy.types.Panel):
@@ -573,13 +563,9 @@ class TEXTURE_PT_musgrave(TextureTypePanel, bpy.types.Panel):
 
         layout.prop(tex, "noise_basis", text="Basis")
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(tex, "noise_scale", text="Size")
-
-        col = split.column()
-        col.prop(tex, "nabla")
+        row = layout.row()
+        row.prop(tex, "noise_scale", text="Size")
+        row.prop(tex, "nabla")
 
 
 class TEXTURE_PT_voronoi(TextureTypePanel, bpy.types.Panel):
@@ -613,14 +599,9 @@ class TEXTURE_PT_voronoi(TextureTypePanel, bpy.types.Panel):
         sub.prop(tex, "weight_4", text="4", slider=True)
 
         layout.label(text="Noise:")
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(tex, "noise_scale", text="Size")
-
-        col = split.column()
-        col.prop(tex, "nabla")
+        row = layout.row()
+        row.prop(tex, "noise_scale", text="Size")
+        row.prop(tex, "nabla")
 
 
 class TEXTURE_PT_distortednoise(TextureTypePanel, bpy.types.Panel):
@@ -642,8 +623,7 @@ class TEXTURE_PT_distortednoise(TextureTypePanel, bpy.types.Panel):
         col.prop(tex, "distortion", text="Distortion")
         col.prop(tex, "noise_scale", text="Size")
 
-        col = split.column()
-        col.prop(tex, "nabla")
+        split.prop(tex, "nabla")
 
 
 class TEXTURE_PT_voxeldata(TextureButtonsPanel, bpy.types.Panel):
@@ -753,12 +733,9 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):
         return tex and (tex.type == 'POINT_DENSITY' and (engine in cls.COMPAT_ENGINES))
 
     def draw_header(self, context):
-        layout = self.layout
-
-        tex = context.texture
         pd = tex.point_density
 
-        layout.prop(pd, "use_turbulence", text="")
+        self.layout.prop(pd, "use_turbulence", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -865,14 +842,9 @@ class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
                 row.prop(tex, "mapping_y", text="")
                 row.prop(tex, "mapping_z", text="")
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(tex, "offset")
-
-        col = split.column()
-
-        col.prop(tex, "scale")
+        row = layout.row()
+        row.column().prop(tex, "offset")
+        row.column().prop(tex, "scale")
 
 
 class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
@@ -1038,20 +1010,19 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             col.prop(tex, "default_value", text="DVar", slider=True)
 
         if isinstance(idblock, bpy.types.Material):
-            row = layout.row()
-            row.label(text="Bump Mapping:")
+            layout.label(text="Bump Mapping:")
 
-            row = layout.row()
+            
             # only show bump settings if activated but not for normalmap images
+            row = layout.row()
             row.active = tex.use_map_normal and not (tex.texture.type == 'IMAGE' and tex.texture.use_normal_map)
 
-            col = row.column()
-            col.prop(tex, "bump_method", text="Method")
+            row.prop(tex, "bump_method", text="Method")
 
-            col = row.column()
-            col.prop(tex, "bump_objectspace", text="Space")
-            col.active = tex.bump_method in ('BUMP_DEFAULT', 'BUMP_BEST_QUALITY')
-
+            sub = row.row()
+            sub.active = tex.bump_method in ('BUMP_DEFAULT', 'BUMP_BEST_QUALITY')
+            sub.prop(tex, "bump_objectspace", text="Space")
+            
 
 class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}

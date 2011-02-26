@@ -297,12 +297,8 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
         layout.separator()
 
         split = layout.split()
-
-        col = split.column()
-        col.operator("pose.paths_calculate", text="Calculate Paths")
-
-        col = split.column()
-        col.operator("pose.paths_clear", text="Clear Paths")
+        split.operator("pose.paths_calculate", text="Calculate Paths")
+        split.operator("pose.paths_clear", text="Clear Paths")
 
 
 class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # inherit from panel when ready

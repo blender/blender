@@ -55,14 +55,10 @@ class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
         col.row().prop(unit, "system", expand=True)
         col.row().prop(unit, "system_rotation", expand=True)
 
-        split = layout.split()
-        split.active = (unit.system != 'NONE')
-
-        col = split.column()
-        col.prop(unit, "scale_length", text="Scale")
-
-        col = split.column()
-        col.prop(unit, "use_separate")
+        row = layout.row()
+        row.active = (unit.system != 'NONE')
+        row.prop(unit, "scale_length", text="Scale")
+        row.prop(unit, "use_separate")
 
 
 class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):

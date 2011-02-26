@@ -59,23 +59,17 @@ class DATA_PT_lattice(DataButtonsPanel, bpy.types.Panel):
 
         lat = context.lattice
 
-        split = layout.split()
-        col = split.column()
-        col.prop(lat, "points_u")
-        col = split.column()
-        col.prop(lat, "interpolation_type_u", text="")
+        row = layout.row()
+        row.prop(lat, "points_u")
+        row.prop(lat, "interpolation_type_u", text="")
 
-        split = layout.split()
-        col = split.column()
-        col.prop(lat, "points_v")
-        col = split.column()
-        col.prop(lat, "interpolation_type_v", text="")
+        row = layout.row()
+        row.prop(lat, "points_v")
+        row.prop(lat, "interpolation_type_v", text="")
 
-        split = layout.split()
-        col = split.column()
-        col.prop(lat, "points_w")
-        col = split.column()
-        col.prop(lat, "interpolation_type_w", text="")
+        row = layout.row()
+        row.prop(lat, "points_w")
+        row.prop(lat, "interpolation_type_w", text="")
 
         row = layout.row()
         row.prop(lat, "use_outside")

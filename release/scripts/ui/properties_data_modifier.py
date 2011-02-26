@@ -58,17 +58,16 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.label(text="Bind To:")
         col.prop(md, "use_vertex_groups", text="Vertex Groups")
         col.prop(md, "use_bone_envelopes", text="Bone Envelopes")
-
-        split = layout.split()
-
-        col = split.split()
-        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        sub = col.column()
+        
+        layout.separator()
+        
+        row = layout.row()
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = row.row()
         sub.active = bool(md.vertex_group)
         sub.prop(md, "invert_vertex_group")
 
-        col = layout.column()
-        col.prop(md, "use_multi_modifier")
+        layout.prop(md, "use_multi_modifier")
 
     def ARRAY(self, layout, ob, md):
         layout.prop(md, "fit_type")
@@ -113,9 +112,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         layout.separator()
 
-        col = layout.column()
-        col.prop(md, "start_cap")
-        col.prop(md, "end_cap")
+        layout.prop(md, "start_cap")
+        layout.prop(md, "end_cap")
 
     def BEVEL(self, layout, ob, md):
         split = layout.split()
@@ -230,13 +228,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         layout.separator()
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(md, "mid_level")
-
-        col = split.column()
-        col.prop(md, "strength")
+        row = layout.row()
+        row.prop(md, "mid_level")
+        row.prop(md, "strength")
 
     def EDGE_SPLIT(self, layout, ob, md):
         split = layout.split()
@@ -247,8 +241,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         sub.active = md.use_edge_angle
         sub.prop(md, "split_angle")
 
-        col = split.column()
-        col.prop(md, "use_edge_sharp", text="Sharp Edges")
+        split.prop(md, "use_edge_sharp", text="Sharp Edges")
 
     def EXPLODE(self, layout, ob, md):
         split = layout.split()
@@ -336,6 +329,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
     def MESH_DEFORM(self, layout, ob, md):
         split = layout.split()
+        
         col = split.column()
         sub = col.column()
         sub.label(text="Object:")
@@ -356,13 +350,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         else:
             layout.operator("object.meshdeform_bind", text="Bind")
 
-            split = layout.split()
-
-            col = split.column()
-            col.prop(md, "precision")
-
-            col = split.column()
-            col.prop(md, "use_dynamic_bind")
+            row = layout.row()
+            row.prop(md, "precision")
+            row.prop(md, "use_dynamic_bind")
 
     def MIRROR(self, layout, ob, md):
         split = layout.split(percentage=0.25)

@@ -100,9 +100,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 sub.prop(flow, "density")
                 sub.prop(flow, "temperature")
 
-            #elif md.smoke_type == 'COLLISION':
-            #	layout.separator()
-
 
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke Groups"

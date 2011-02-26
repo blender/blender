@@ -190,13 +190,9 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, bpy.types.Panel):
         layout.active = game.use_collision_bounds
         layout.prop(game, "collision_bounds_type", text="Bounds")
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(game, "collision_margin", text="Margin", slider=True)
-
-        col = split.column()
-        col.prop(game, "use_collision_compound", text="Compound")
+        row = layout.row()
+        row.prop(game, "collision_margin", text="Margin", slider=True)
+        row.prop(game, "use_collision_compound", text="Compound")
 
 
 class RenderButtonsPanel():
@@ -422,13 +418,9 @@ class WORLD_PT_game_world(WorldButtonsPanel, bpy.types.Panel):
 
         world = context.world
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(world, "horizon_color")
-
-        col = split.column()
-        col.prop(world, "ambient_color")
+        row = layout.row()
+        row.column().prop(world, "horizon_color")
+        row.column().prop(world, "ambient_color")
 
 
 class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
@@ -451,13 +443,10 @@ class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
         world = context.world
 
         layout.active = world.mist_settings.use_mist
-        split = layout.split()
 
-        col = split.column()
-        col.prop(world.mist_settings, "start")
-
-        col = split.column()
-        col.prop(world.mist_settings, "depth")
+        row = layout.row()
+        row.prop(world.mist_settings, "start")
+        row.prop(world.mist_settings, "depth")
 
 
 class WORLD_PT_game_physics(WorldButtonsPanel, bpy.types.Panel):
