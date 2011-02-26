@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_screw.c
+ *  \ingroup modifiers
+ */
+
+
 /* Screw modifier: revolves the edges about an axis */
 
 #include "DNA_meshdata_types.h"

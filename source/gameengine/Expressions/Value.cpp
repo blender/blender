@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/Value.cpp
+ *  \ingroup expressions
+ */
 // Value.cpp: implementation of the CValue class.
 // developed at Eindhoven University of Technology, 1997
 // by the OOPS team

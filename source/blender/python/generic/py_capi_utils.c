@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,7 @@
 */
 
 #include <Python.h>
+#include <frameobject.h>
 
 #include "py_capi_utils.h"
 
@@ -54,39 +55,34 @@ void PyC_LineSpit(void) {
 	fprintf(stderr, "%s:%d\n", filename, lineno);
 }
 
+/* python 3.2 only, copied from frameobjec.c */
+#if PY_VERSION_HEX <  0x03020000
+int
+PyFrame_GetLineNumber(PyFrameObject *f)
+{
+    if (f->f_trace)
+        return f->f_lineno;
+    else
+        return PyCode_Addr2Line(f->f_code, f->f_lasti);
+}
+#endif
+
 void PyC_FileAndNum(const char **filename, int *lineno)
 {
-	PyObject *getframe, *frame;
-	PyObject *f_lineno= NULL, *co_filename= NULL;
+	PyFrameObject *frame;
 	
 	if (filename)	*filename= NULL;
 	if (lineno)		*lineno = -1;
-	
-	getframe = PySys_GetObject("_getframe"); // borrowed
-	if (getframe==NULL) {
-		PyErr_Clear();
+
+	if (!(frame= PyThreadState_GET()->frame)) {
 		return;
 	}
-	
-	frame = PyObject_CallObject(getframe, NULL);
-	if (frame==NULL) {
-		PyErr_Clear();
-		return;
-	}
-	
+
 	/* when executing a script */
 	if (filename) {
-		co_filename= PyC_Object_GetAttrStringArgs(frame, 2, "f_code", "co_filename");
-		if (co_filename==NULL) {
-			PyErr_SetString(PyExc_RuntimeError, "Could not access sys._getframe().f_code.co_filename");
-			Py_DECREF(frame);
-			return;
-		}
-		
-		*filename = _PyUnicode_AsString(co_filename);
-		Py_DECREF(co_filename);
+		*filename = _PyUnicode_AsString(frame->f_code->co_filename);
 	}
-	
+
 	/* when executing a module */
 	if(filename && *filename == NULL) {
 		/* try an alternative method to get the filename - module based
@@ -104,21 +100,10 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 			}
 		}
 	}
-		
-	
-	if (lineno) {
-		f_lineno= PyObject_GetAttrString(frame, "f_lineno");
-		if (f_lineno==NULL) {
-			PyErr_SetString(PyExc_RuntimeError, "Could not access sys._getframe().f_lineno");
-			Py_DECREF(frame);
-			return;
-		}
-		
-		*lineno = (int)PyLong_AsSsize_t(f_lineno);
-		Py_DECREF(f_lineno);
-	}
 
-	Py_DECREF(frame);
+	if (lineno) {
+		*lineno = PyFrame_GetLineNumber(frame);
+	}
 }
 
 /* Would be nice if python had this built in */

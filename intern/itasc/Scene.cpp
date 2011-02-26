@@ -1,3 +1,6 @@
+/** \file itasc/Scene.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * Scene.cpp
  *

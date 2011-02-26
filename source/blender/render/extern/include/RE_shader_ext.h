@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,10 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+/** \file RE_shader_ext.h
+ *  \ingroup render
+ */
+
 
 #ifndef RE_SHADER_EXT_H
 #define RE_SHADER_EXT_H

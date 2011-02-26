@@ -13,6 +13,10 @@
  *
  */
 
+/** \file StringValue.h
+ *  \ingroup expressions
+ */
+
 #ifndef __STRINGVALUE_H__
 #define __STRINGVALUE_H__
 

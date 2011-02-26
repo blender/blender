@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file RAS_Rect.h
+ *  \ingroup bgerast
+ */
+
 #ifndef _RAS_RECT
 #define _RAS_RECT
 
@@ -35,11 +39,10 @@
 #endif
 
 /** 
- * @section interface class.
+ * \section interface class.
  * RAS_Rect just encodes a simple rectangle.
- * Should be part of a generic library
+ * \note Should be part of a generic library
  */
-
 class RAS_Rect
 {
 public:  // todo: make a decent class, and make private

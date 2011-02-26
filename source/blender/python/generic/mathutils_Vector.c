@@ -2162,14 +2162,15 @@ PyTypeObject vector_Type = {
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
 
   /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, 
 	vector_doc,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
+
 	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
+	(traverseproc)BaseMathObject_traverse,	//tp_traverse
 
 	/* delete references to contained objects */
-	NULL,                       /* inquiry tp_clear; */
+	(inquiry)BaseMathObject_clear,	//tp_clear
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/
@@ -2218,35 +2219,42 @@ PyObject *newVectorObject(float *vec, const int size, const int type, PyTypeObje
 {
 	VectorObject *self;
 
-	if(size > 4 || size < 2)
+	if(size > 4 || size < 2) {
+		PyErr_SetString(PyExc_RuntimeError, "Vector(): invalid size");
 		return NULL;
+	}
 
-	if(base_type)	self = (VectorObject *)base_type->tp_alloc(base_type, 0);
-	else			self = PyObject_NEW(VectorObject, &vector_Type);
+	self= base_type ?	(VectorObject *)base_type->tp_alloc(base_type, 0) :
+						(VectorObject *)PyObject_GC_New(VectorObject, &vector_Type);
 
-	self->size = size;
-	
-	/* init callbacks as NULL */
-	self->cb_user= NULL;
-	self->cb_type= self->cb_subtype= 0;
+	if(self) {
+		self->size = size;
 
-	if(type == Py_WRAP) {
-		self->vec = vec;
-		self->wrapped = Py_WRAP;
-	} else if (type == Py_NEW) {
-		self->vec= PyMem_Malloc(size * sizeof(float));
-		if(vec) {
-			memcpy(self->vec, vec, size * sizeof(float));
+		/* init callbacks as NULL */
+		self->cb_user= NULL;
+		self->cb_type= self->cb_subtype= 0;
+
+		if(type == Py_WRAP) {
+			self->vec = vec;
+			self->wrapped = Py_WRAP;
 		}
-		else { /* new empty */
-			fill_vn(self->vec, size, 0.0f);
-			if(size == 4) { /* do the homogenous thing */
-				self->vec[3] = 1.0f;
+		else if (type == Py_NEW) {
+			self->vec= PyMem_Malloc(size * sizeof(float));
+			if(vec) {
+				memcpy(self->vec, vec, size * sizeof(float));
 			}
+			else { /* new empty */
+				fill_vn(self->vec, size, 0.0f);
+				if(size == 4) { /* do the homogenous thing */
+					self->vec[3] = 1.0f;
+				}
+			}
+			self->wrapped = Py_NEW;
 		}
-		self->wrapped = Py_NEW;
-	}else{ /*bad type*/
-		return NULL;
+		else {
+			PyErr_SetString(PyExc_RuntimeError, "Vector(): invalid type");
+			return NULL;
+		}
 	}
 	return (PyObject *) self;
 }

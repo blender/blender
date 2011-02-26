@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file iksolver/intern/IK_QTask.h
+ *  \ingroup iksolver
+ */
+
 
 #ifndef NAN_INCLUDED_IK_QTask_h
 #define NAN_INCLUDED_IK_QTask_h

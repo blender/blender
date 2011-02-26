@@ -608,10 +608,10 @@ PyTypeObject euler_Type = {
 	NULL,							//tp_getattro
 	NULL,							//tp_setattro
 	NULL,							//tp_as_buffer
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, //tp_flags
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, //tp_flags
 	euler_doc, //tp_doc
-	NULL,							//tp_traverse
-	NULL,							//tp_clear
+	(traverseproc)BaseMathObject_traverse,	//tp_traverse
+	(inquiry)BaseMathObject_clear,	//tp_clear
 	(richcmpfunc)Euler_richcmpr,	//tp_richcompare
 	0,								//tp_weaklistoffset
 	NULL,							//tp_iter
@@ -646,31 +646,37 @@ PyObject *newEulerObject(float *eul, short order, int type, PyTypeObject *base_t
 {
 	EulerObject *self;
 
-	if(base_type)	self = (EulerObject *)base_type->tp_alloc(base_type, 0);
-	else			self = PyObject_NEW(EulerObject, &euler_Type);
+	self= base_type ?	(EulerObject *)base_type->tp_alloc(base_type, 0) :
+						(EulerObject *)PyObject_GC_New(EulerObject, &euler_Type);
 
-	/* init callbacks as NULL */
-	self->cb_user= NULL;
-	self->cb_type= self->cb_subtype= 0;
+	if(self) {
+		/* init callbacks as NULL */
+		self->cb_user= NULL;
+		self->cb_type= self->cb_subtype= 0;
 
-	if(type == Py_WRAP) {
-		self->eul = eul;
-		self->wrapped = Py_WRAP;
+		if(type == Py_WRAP) {
+			self->eul = eul;
+			self->wrapped = Py_WRAP;
+		}
+		else if (type == Py_NEW) {
+			self->eul = PyMem_Malloc(EULER_SIZE * sizeof(float));
+			if(eul) {
+				copy_v3_v3(self->eul, eul);
+			}
+			else {
+				zero_v3(self->eul);
+			}
+
+			self->wrapped = Py_NEW;
+		}
+		else {
+			PyErr_SetString(PyExc_RuntimeError, "Euler(): invalid type");
+			return NULL;
+		}
+
+		self->order= order;
 	}
-	else if (type == Py_NEW){
-		self->eul = PyMem_Malloc(EULER_SIZE * sizeof(float));
-		if(eul)
-			copy_v3_v3(self->eul, eul);
-		else
-			zero_v3(self->eul);
 
-		self->wrapped = Py_NEW;
-	}
-	else{
-		return NULL;
-	}
-
-	self->order= order;
 	return (PyObject *)self;
 }
 

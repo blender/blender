@@ -327,6 +327,7 @@ class VIEW3D_MT_view_navigation(bpy.types.Menu):
 
         layout.operator("view3d.zoom", text="Zoom In").delta = 1
         layout.operator("view3d.zoom", text="Zoom Out").delta = -1
+        layout.operator("view3d.zoom_camera_1_to_1", text="Zoom Camera 1:1")
 
         layout.separator()
 
@@ -425,6 +426,7 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
 
         layout.operator("pose.select_all", text="Select/Deselect All")
         layout.operator("pose.select_inverse", text="Inverse")
+        layout.operator("pose.select_flip_active", text="Flip Active")
         layout.operator("pose.select_constraint_target", text="Constraint Target")
         layout.operator("pose.select_linked", text="Linked")
 
@@ -1506,6 +1508,8 @@ class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
 
         layout.operator("mesh.vertices_smooth")
         layout.operator("mesh.remove_doubles")
+        layout.operator("mesh.vertices_sort")
+        layout.operator("mesh.vertices_randomize")
 
         layout.operator("mesh.select_vertex_path")
 

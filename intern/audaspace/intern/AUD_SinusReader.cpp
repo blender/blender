@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_SinusReader.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #include "AUD_SinusReader.h"
 
 #include <cmath>

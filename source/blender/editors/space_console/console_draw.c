@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -231,18 +231,6 @@ int console_textview_height(struct SpaceConsole *sc, struct ARegion *ar)
 {
 	int mval[2] = {INT_MAX, INT_MAX};
 	return console_textview_main__internal(sc, ar, 0,  mval, NULL, NULL);
-}
-
-void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, int mouse_y)
-{
-	void *mouse_pick= NULL;
-	int mval[2];
-
-	mval[0]= 0;
-	mval[1]= mouse_y;
-
-	console_textview_main__internal(sc, ar, 0, mval, &mouse_pick, NULL);
-	return (void *)mouse_pick;
 }
 
 int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, int mval[2])

@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_LinearResampleReader.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_LINEARRESAMPLEREADER
 #define AUD_LINEARRESAMPLEREADER
 

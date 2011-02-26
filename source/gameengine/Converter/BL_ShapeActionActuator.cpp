@@ -1,4 +1,4 @@
-/**
+/*
 * $Id$
 *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
 */
+
+/** \file gameengine/Converter/BL_ShapeActionActuator.cpp
+ *  \ingroup bgeconv
+ */
+
 
 #if defined (__sgi)
 #include <math.h>

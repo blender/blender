@@ -1,6 +1,4 @@
-/**
- * Generate random pulses
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_RandomSensor.h
+ *  \ingroup gamelogic
+ *  \brief Generate random pulses
  */
 
 #ifndef __KX_RANDOMSENSOR

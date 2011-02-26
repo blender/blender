@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_SystemPathsCarbon.cpp
+ *  \ingroup GHOST
+ */
+
 
 #include <Carbon/Carbon.h>
 #include <ApplicationServices/ApplicationServices.h>

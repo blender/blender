@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/BL_Shader.cpp
+ *  \ingroup ketsji
+ */
 
 #include "GL/glew.h"
 

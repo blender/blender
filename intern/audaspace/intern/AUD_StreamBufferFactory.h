@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_StreamBufferFactory.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_STREAMBUFFERFACTORY
 #define AUD_STREAMBUFFERFACTORY
 

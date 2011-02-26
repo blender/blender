@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_curve.c
+ *  \ingroup modifiers
+ */
+
+
 #include <string.h>
 
 #include "DNA_scene_types.h"

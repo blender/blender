@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * LoopbackNetworkDeviceInterface derived from NG_NetworkDeviceInterface
+ */
+
+/** \file NG_LoopBackNetworkDeviceInterface.h
+ *  \ingroup bgenetlb
+ *  \brief LoopbackNetworkDeviceInterface derived from NG_NetworkDeviceInterface
  */
 #ifndef NG_LOOPBACKNETWORKDEVICEINTERFACE_H
 #define NG_LOOPBACKNETWORKDEVICEINTERFACE_H

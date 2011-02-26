@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -205,6 +205,8 @@ int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc
 void MESH_OT_merge(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);
 void MESH_OT_remove_doubles(struct wmOperatorType *ot);
+void MESH_OT_vertices_randomize(struct wmOperatorType *ot);
+void MESH_OT_vertices_sort(struct wmOperatorType *ot);
 void MESH_OT_extrude(struct wmOperatorType *ot);
 void MESH_OT_spin(struct wmOperatorType *ot);
 void MESH_OT_screw(struct wmOperatorType *ot);

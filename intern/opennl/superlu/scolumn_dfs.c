@@ -1,3 +1,6 @@
+/** \file opennl/superlu/scolumn_dfs.c
+ *  \ingroup opennl
+ */
 
 
 /*

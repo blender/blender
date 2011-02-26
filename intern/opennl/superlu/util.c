@@ -1,3 +1,6 @@
+/** \file opennl/superlu/util.c
+ *  \ingroup opennl
+ */
 /*
  * -- SuperLU routine (version 3.0) --
  * Univ. of California Berkeley, Xerox Palo Alto Research Center,

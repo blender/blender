@@ -1,4 +1,4 @@
-/**
+/*
  * Set or remove an objects parent
  *
  * $Id$
@@ -31,6 +31,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_ParentActuator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_ParentActuator.h"
 #include "KX_GameObject.h"

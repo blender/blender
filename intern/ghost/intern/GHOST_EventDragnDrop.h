@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_EventDragnDrop.h
+ *  \ingroup GHOST
+ */
+
 
 #ifndef _GHOST_EVENT_DRAGNDROP_H_
 #define _GHOST_EVENT_DRAGNDROP_H_

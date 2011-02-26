@@ -29,6 +29,7 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../blenkernel
+	../../blenloader
 	../../windowmanager
 	../../editors/include
 	../../freestyle/intern/python
@@ -48,6 +49,7 @@ set(SRC
 	bpy_rna.c
 	bpy_rna_array.c
 	bpy_rna_callback.c
+	bpy_traceback.c
 	bpy_util.c
 	stubs.c
 
@@ -59,6 +61,7 @@ set(SRC
 	bpy_props.h
 	bpy_rna.h
 	bpy_rna_callback.h
+	bpy_traceback.h
 	bpy_util.h
 	../BPY_extern.h
 )
@@ -66,6 +69,10 @@ set(SRC
 # only to check if buildinfo is available
 if(WITH_BUILDINFO)
 	add_definitions(-DBUILD_DATE)
+endif()
+
+if(WITH_PYTHON_MODULE)
+	add_definitions(-DWITH_PYTHON_MODULE)
 endif()
 
 blender_add_lib(bf_python "${SRC}" "${INC}")

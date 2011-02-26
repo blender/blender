@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -40,7 +40,13 @@
 /* 
 // DG: original BLO_sys_types.h is in source/blender/blenkernel 
 // but is not allowed be accessed here because of bad-level-call
+// jesterKing: I've renamed this to MEM_sys_types.h, because otherwise
+// doxygen would get a conflict
 */
+
+/** \file MEM_sys_types.h
+ *  \ingroup MEM
+ */
 
 #ifndef BLO_SYS_TYPES_H
 #define BLO_SYS_TYPES_H

@@ -28,6 +28,11 @@
  * Unique instance of system class for system specific information / access
  * Used by SYS_System
  */
+
+/** \file kernel/gen_system/SYS_SingletonSystem.cpp
+ *  \ingroup gensys
+ */
+
 #include "SYS_SingletonSystem.h"
 // #include "GEN_DataCache.h"
 

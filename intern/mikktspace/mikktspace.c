@@ -1,3 +1,6 @@
+/** \file mikktspace/mikktspace.c
+ *  \ingroup mikktspace
+ */
 /**
  *  Copyright (C) 2011 by Morten S. Mikkelsen
  *

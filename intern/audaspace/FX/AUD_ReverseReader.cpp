@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_ReverseReader.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_ReverseReader.h"
 
 #include <cstring>

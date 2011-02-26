@@ -85,10 +85,10 @@ debug: all
 
 # package types
 package_debian:
-	cd build_files/package_spec ; sh ./build_debian.sh
+	cd build_files/package_spec ; DEB_BUILD_OPTIONS="parallel=$(NPROCS)" sh ./build_debian.sh
 
 package_pacman:
-	cd build_files/package_spec/pacman ; makepkg --asroot
+	cd build_files/package_spec/pacman ; MAKEFLAGS="-j$(NPROCS)" makepkg --asroot
 
 # forward build targets
 test:

@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_IReader.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_IREADER
 #define AUD_IREADER
 

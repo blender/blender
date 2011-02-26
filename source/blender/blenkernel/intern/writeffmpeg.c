@@ -1,4 +1,6 @@
 /*
+ * $Id$
+ *
  * ffmpeg-write support
  *
  * Partial Copyright (c) 2006 Peter Schlaile

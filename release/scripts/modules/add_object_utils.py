@@ -83,6 +83,19 @@ def object_data_add(context, obdata, operator=None):
 
     obj_act = scene.objects.active
 
+    # XXX
+    # caused because entering editmodedoes not add a empty undo slot!
+    if context.user_preferences.edit.use_enter_edit_mode:
+        if not (obj_act and obj_act.mode == 'EDIT' and obj_act.type == obj_new.type):
+            _obdata = bpy.data.meshes.new(obdata.name)
+            obj_act = bpy.data.objects.new(_obdata.name, _obdata)
+            obj_act.matrix_world = obj_new.matrix_world
+            scene.objects.link(obj_act)
+            scene.objects.active = obj_act
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.ed.undo_push(message="Enter Editmode")  # need empty undo step
+    # XXX
+
     if obj_act and obj_act.mode == 'EDIT' and obj_act.type == obj_new.type:
         bpy.ops.mesh.select_all(action='DESELECT')
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -92,6 +105,7 @@ def object_data_add(context, obdata, operator=None):
         #scene.objects.active = obj_new
 
         bpy.ops.object.join()  # join into the active.
+        bpy.data.meshes.remove(obdata)
 
         bpy.ops.object.mode_set(mode='EDIT')
     else:

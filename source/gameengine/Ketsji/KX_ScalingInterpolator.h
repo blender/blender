@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_ScalingInterpolator.h
+ *  \ingroup ketsji
+ */
+
 #ifndef KX_SCALINGINTERPOLATOR
 #define KX_SCALINGINTERPOLATOR
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * Conversion of Blender data blocks to KX sensor system
  */
+
+/** \file gameengine/Converter/KX_ConvertSensors.cpp
+ *  \ingroup bgeconv
+ */
+
 
 #include <stdio.h>
 

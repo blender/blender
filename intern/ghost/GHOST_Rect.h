@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,9 +25,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_Rect.h
- * Declaration of GHOST_Rect rectangle class.
+
+/** \file ghost/intern/GHOST_Debug.h
+ *  \ingroup GHOST
+ * Macro's used in GHOST debug target.
  */
 
 #ifndef _H_GHOST_Rect

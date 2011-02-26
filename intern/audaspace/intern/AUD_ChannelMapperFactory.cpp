@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_ChannelMapperFactory.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #include "AUD_ChannelMapperFactory.h"
 #include "AUD_ChannelMapperReader.h"
 

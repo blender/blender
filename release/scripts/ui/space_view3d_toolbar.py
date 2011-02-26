@@ -578,6 +578,10 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 row.active = brush.use_plane_trim
                 row.prop(brush, "plane_trim", slider=True, text="Distance")
 
+            if brush.sculpt_tool == 'LAYER':
+                row = col.row()
+                row.prop(brush, "height", slider=True, text="Height")
+
             col.separator()
 
             row = col.row()

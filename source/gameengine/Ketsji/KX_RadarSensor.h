@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_RadarSensor.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_RADAR_SENSOR_H
 #define __KX_RADAR_SENSOR_H
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Delay trigger
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_DelaySensor.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 // This warning tells us about truncation of __long__ stl-generated names.

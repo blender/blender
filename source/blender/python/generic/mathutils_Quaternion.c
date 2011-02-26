@@ -1044,10 +1044,10 @@ PyTypeObject quaternion_Type = {
 	NULL,								//tp_getattro
 	NULL,								//tp_setattro
 	NULL,								//tp_as_buffer
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, //tp_flags
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, //tp_flags
 	quaternion_doc, //tp_doc
-	NULL,								//tp_traverse
-	NULL,								//tp_clear
+	(traverseproc)BaseMathObject_traverse,	//tp_traverse
+	(inquiry)BaseMathObject_clear,	//tp_clear
 	(richcmpfunc)Quaternion_richcmpr,	//tp_richcompare
 	0,								//tp_weaklistoffset
 	NULL,								//tp_iter
@@ -1082,26 +1082,31 @@ PyObject *newQuaternionObject(float *quat, int type, PyTypeObject *base_type)
 {
 	QuaternionObject *self;
 
-	if(base_type)	self = (QuaternionObject *)base_type->tp_alloc(base_type, 0);
-	else			self = PyObject_NEW(QuaternionObject, &quaternion_Type);
+	self= base_type ?	(QuaternionObject *)base_type->tp_alloc(base_type, 0) :
+						(QuaternionObject *)PyObject_GC_New(QuaternionObject, &quaternion_Type);
 
-	/* init callbacks as NULL */
-	self->cb_user= NULL;
-	self->cb_type= self->cb_subtype= 0;
+	if(self) {
+		/* init callbacks as NULL */
+		self->cb_user= NULL;
+		self->cb_type= self->cb_subtype= 0;
 
-	if(type == Py_WRAP){
-		self->quat = quat;
-		self->wrapped = Py_WRAP;
-	}else if (type == Py_NEW){
-		self->quat = PyMem_Malloc(QUAT_SIZE * sizeof(float));
-		if(!quat) { //new empty
-			unit_qt(self->quat);
-		}else{
-			QUATCOPY(self->quat, quat);
+		if(type == Py_WRAP){
+			self->quat = quat;
+			self->wrapped = Py_WRAP;
 		}
-		self->wrapped = Py_NEW;
-	}else{ //bad type
-		return NULL;
+		else if (type == Py_NEW){
+			self->quat = PyMem_Malloc(QUAT_SIZE * sizeof(float));
+			if(!quat) { //new empty
+				unit_qt(self->quat);
+			}else{
+				QUATCOPY(self->quat, quat);
+			}
+			self->wrapped = Py_NEW;
+		}
+		else{
+			PyErr_SetString(PyExc_RuntimeError, "Quaternion(): invalid type");
+			return NULL;
+		}
 	}
 	return (PyObject *) self;
 }

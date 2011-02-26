@@ -28,6 +28,11 @@
  * Unique instance of system class for system specific information / access
  * Used by SYS_System
  */
+
+/** \file kernel/gen_system/SYS_SingletonSystem.h
+ *  \ingroup gensys
+ */
+
 #ifndef __SINGLETONSYSTEM_H
 #define __SINGLETONSYSTEM_H
 

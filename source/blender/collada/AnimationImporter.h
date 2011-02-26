@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,6 +22,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
+/** \file AnimationImporter.h
+ *  \ingroup collada
+ */
+
 #ifndef __BC_ANIMATIONIMPORTER_H__
 #define __BC_ANIMATIONIMPORTER_H__
 

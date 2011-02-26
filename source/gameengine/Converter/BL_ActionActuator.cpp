@@ -1,4 +1,4 @@
-/**
+/*
 * $Id$
 *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
 */
+
+/** \file gameengine/Converter/BL_ActionActuator.cpp
+ *  \ingroup bgeconv
+ */
+
 
 #include "SCA_LogicManager.h"
 #include "BL_ActionActuator.h"

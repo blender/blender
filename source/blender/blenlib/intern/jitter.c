@@ -1,4 +1,4 @@
-/**
+/*
  * Jitter offset table
  *
  * $Id$

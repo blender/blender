@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_SuperposeFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_SUPERPOSEFACTORY
 #define AUD_SUPERPOSEFACTORY
 

@@ -34,6 +34,7 @@ blender_include_dirs(
 	../../intern/guardedalloc
 	../blender/blenlib
 	../blender/blenkernel
+	../blender/blenloader
 	../blender/editors/include
 	../blender/makesrna
 	../blender/imbuf
@@ -50,6 +51,10 @@ endif()
 
 if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
+endif()
+
+if(WITH_IMAGE_OPENJPEG)
+	add_definitions(-DWITH_OPENJPEG)
 endif()
 
 if(WITH_IMAGE_TIFF)
@@ -86,7 +91,7 @@ if(NOT WITH_SDL)
 	add_definitions(-DDISABLE_SDL)
 endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(WITH_BINRELOC)
 	add_definitions(-DWITH_BINRELOC)
 	blender_include_dirs(${BINRELOC_INC})
 endif()
@@ -103,13 +108,17 @@ if(WIN32 AND NOT UNIX)
 endif()
 
 if(WITH_BUILDINFO)
+	# --------------------------------------------------------------------------
+	# These defines could all be moved into the header below
 	string(REPLACE " " "\ " BUILDINFO_CFLAGS "${CMAKE_C_FLAGS}")
 	string(REPLACE " " "\ " BUILDINFO_CXXFLAGS "${CMAKE_CXX_FLAGS}")
 	string(REPLACE " " "\ " BUILDINFO_LINKFLAGS "${PLATFORM_LINKFLAGS}")
 	add_definitions(
-		-DBUILD_DATE="${BUILD_DATE}"
-		-DBUILD_TIME="${BUILD_TIME}"
-		-DBUILD_REV="${BUILD_REV}"
+		# # define in header now, else these get out of date on rebuilds.
+		# -DBUILD_DATE="${BUILD_DATE}"
+		# -DBUILD_TIME="${BUILD_TIME}"
+		# -DBUILD_REV="${BUILD_REV}"
+		-DWITH_BUILDINFO_HEADER # alternative to lines above
 		-DBUILD_PLATFORM="${CMAKE_SYSTEM_NAME}"
 		-DBUILD_TYPE="${CMAKE_BUILD_TYPE}"
 		-DBUILD_CFLAGS="${BUILDINFO_CFLAGS}"
@@ -118,14 +127,58 @@ if(WITH_BUILDINFO)
 		-DBUILD_SYSTEM="CMake"
 	)
 
+	# --------------------------------------------------------------------------
+	# write header for values that change each build
+	# note, generaed file is in build dir's source/creator
+	#       except when used as an include path.
+
+	# include the output directory, where the buildinfo.h file is generated
+	include_directories(${CMAKE_BINARY_DIR}/source/creator)
+
+	# a custom target that is always built
+	add_custom_target(buildinfo ALL
+		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/buildinfo.h)
+
+	# creates svnheader.h using cmake script
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/buildinfo.h
+		COMMAND ${CMAKE_COMMAND}
+		-DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+		-P ${CMAKE_SOURCE_DIR}/build_files/cmake/buildinfo.cmake)
+
+	# buildinfo.h is a generated file
+	set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/buildinfo.h
+		PROPERTIES GENERATED TRUE
+		HEADER_FILE_ONLY TRUE)
+		
+	# add deps below, after adding blender
+	# -------------- done with header values.
+
 	list(APPEND SRC
 		buildinfo.c
 	)
 endif()
 
 # message(STATUS "Configuring blender")
+if(WITH_PYTHON_MODULE)
+	add_definitions(-DWITH_PYTHON_MODULE)
 
-add_executable(blender ${EXETYPE} ${SRC})
+	# creates ./bin/bpy.so which can be imported as a python module.
+	add_library(blender SHARED ${SRC})
+	set_target_properties(
+		blender
+		PROPERTIES
+			 PREFIX ""
+			 OUTPUT_NAME bpy
+			 LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/
+	)
+else()
+	add_executable(blender ${EXETYPE} ${SRC})
+endif()
+
+if(WITH_BUILDINFO)
+	# explicitly say that the executable depends on the buildinfo
+	add_dependencies(blender buildinfo)
+endif()
 
 # Post build steps for bundling/packaging.
 
@@ -423,7 +476,7 @@ if(WITH_INSTALL)
 			COMMAND cp -Rf ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
 			COMMAND cp -Rf ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
 			COMMAND cp -Rf ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
-			COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
+			COMMAND cat ${SOURCEINFO} | sed s/VERSION/${BLENDER_VERSION}${BLENDER_VERSION_CHAR}/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
 			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}
 			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}
 			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
@@ -576,7 +629,7 @@ endif()
 		bf_intern_mikktspace
 	)
 
-	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	if(WITH_BINRELOC)
 		list(APPEND BLENDER_SORTED_LIBS extern_binreloc)
 	endif()
 

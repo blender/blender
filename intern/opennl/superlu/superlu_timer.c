@@ -1,3 +1,6 @@
+/** \file opennl/superlu/superlu_timer.c
+ *  \ingroup opennl
+ */
 /* 
  * Purpose
  * ======= 

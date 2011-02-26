@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -59,10 +59,12 @@ static void BLI_bitmap_set(BLI_bitmap b, int index)
 	b[index >> 3] |= (1 << (index & 7));
 }
 
+#if 0 /* UNUSED */
 static void BLI_bitmap_clear(BLI_bitmap b, int index)
 {
 	b[index >> 3] &= ~(1 << (index & 7));
 }
+#endif
 
 /* Axis-aligned bounding box */
 typedef struct {
@@ -1473,6 +1475,13 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smo
 	else {
 		BLI_pbvh_search_callback(bvh, NULL, NULL, BLI_pbvh_node_draw, NULL);
 	}
+}
+
+void BLI_pbvh_grids_update(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridadj, void **gridfaces)
+{
+	bvh->grids= grids;
+	bvh->gridadj= gridadj;
+	bvh->gridfaces= gridfaces;
 }
 
 float (*BLI_pbvh_get_vertCos(PBVH *pbvh))[3]

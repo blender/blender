@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/OpenAL/AUD_OpenALDevice.cpp
+ *  \ingroup audopenal
+ */
+
+
 #include "AUD_OpenALDevice.h"
 #include "AUD_IFactory.h"
 #include "AUD_IReader.h"

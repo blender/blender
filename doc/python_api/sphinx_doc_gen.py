@@ -519,6 +519,8 @@ def pycontext2sphinx(BASEPATH):
     else:
         pass  # will have raised an error above
 
+    file.close()
+
 
 def pyrna2sphinx(BASEPATH):
     """ bpy.types and bpy.ops
@@ -739,6 +741,7 @@ def pyrna2sphinx(BASEPATH):
 
         # docs last?, disable for now
         # write_example_ref("", fw, "bpy.types.%s" % struct.identifier)
+        file.close()
 
     if "bpy.types" not in EXCLUDE_MODULES:
         for struct in structs.values():
@@ -777,46 +780,51 @@ def pyrna2sphinx(BASEPATH):
             for key, descr in descr_items:
                 if type(descr) == GetSetDescriptorType:
                     py_descr2sphinx("   ", fw, descr, "bpy.types", _BPY_STRUCT_FAKE, key)
+            file.close()
 
     # operators
     def write_ops():
         API_BASEURL = "https://svn.blender.org/svnroot/bf-blender/trunk/blender/release/scripts"
-        fw = None
-        last_mod = ''
 
-        for op_key in sorted(ops.keys()):
-            op = ops[op_key]
+        op_modules = {}
+        for op in ops.values():
+            op_modules.setdefault(op.module_name, []).append(op)
+        del op
 
-            if last_mod != op.module_name:
-                filepath = os.path.join(BASEPATH, "bpy.ops.%s.rst" % op.module_name)
-                file = open(filepath, "w")
-                fw = file.write
+        for op_module_name, ops_mod in op_modules.items():
+            filepath = os.path.join(BASEPATH, "bpy.ops.%s.rst" % op_module_name)
+            file = open(filepath, "w")
+            fw = file.write
 
-                title = "%s Operators" % (op.module_name[0].upper() + op.module_name[1:])
-                fw("%s\n%s\n\n" % (title, "=" * len(title)))
+            title = "%s Operators" % op_module_name.replace("_", " ").title()
+            fw("%s\n%s\n\n" % (title, "=" * len(title)))
 
-                fw(".. module:: bpy.ops.%s\n\n" % op.module_name)
-                last_mod = op.module_name
+            fw(".. module:: bpy.ops.%s\n\n" % op_module_name)
 
-            args_str = ", ".join(prop.get_arg_default(force=True) for prop in op.args)
-            fw(".. function:: %s(%s)\n\n" % (op.func_name, args_str))
+            ops_mod.sort(key=lambda op: op.func_name)
 
-            # if the description isn't valid, we output the standard warning
-            # with a link to the wiki so that people can help
-            if not op.description or op.description == "(undocumented operator)":
-                operator_description = undocumented_message('bpy.ops', op.module_name, op.func_name)
-            else:
-                operator_description = op.description
+            for op in ops_mod:
+                args_str = ", ".join(prop.get_arg_default(force=True) for prop in op.args)
+                fw(".. function:: %s(%s)\n\n" % (op.func_name, args_str))
 
-            fw("   %s\n\n" % operator_description)
-            for prop in op.args:
-                write_param("   ", fw, prop)
-            if op.args:
-                fw("\n")
+                # if the description isn't valid, we output the standard warning
+                # with a link to the wiki so that people can help
+                if not op.description or op.description == "(undocumented operator)":
+                    operator_description = undocumented_message('bpy.ops', op.module_name, op.func_name)
+                else:
+                    operator_description = op.description
 
-            location = op.get_location()
-            if location != (None, None):
-                fw("   :file: `%s <%s/%s>`_:%d\n\n" % (location[0], API_BASEURL, location[0], location[1]))
+                fw("   %s\n\n" % operator_description)
+                for prop in op.args:
+                    write_param("   ", fw, prop)
+                if op.args:
+                    fw("\n")
+
+                location = op.get_location()
+                if location != (None, None):
+                    fw("   :file: `%s <%s/%s>`_:%d\n\n" % (location[0], API_BASEURL, location[0], location[1]))
+
+            file.close()
 
     if "bpy.ops" not in EXCLUDE_MODULES:
         write_ops()

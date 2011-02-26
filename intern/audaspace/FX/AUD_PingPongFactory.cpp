@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_PingPongFactory.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_PingPongFactory.h"
 #include "AUD_DoubleReader.h"
 #include "AUD_ReverseFactory.h"

@@ -1,3 +1,6 @@
+/** \file gameengine/Rasterizer/RAS_OpenGLRasterizer/RAS_ListRasterizer.cpp
+ *  \ingroup bgerastogl
+ */
 //
 #include <iostream>
 

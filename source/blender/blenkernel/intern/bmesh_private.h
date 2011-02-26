@@ -1,4 +1,4 @@
-/**
+/*
  * BME_private.h    jan 2007
  *
  *	low level, 'private' function prototypes for bmesh kernel.

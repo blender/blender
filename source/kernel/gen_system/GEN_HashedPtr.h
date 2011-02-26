@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  *
  */
+
+/** \file kernel/gen_system/GEN_HashedPtr.h
+ *  \ingroup gensys
+ */
+
 #ifndef __GEN_HASHEDPTR
 #define __GEN_HASHEDPTR
 

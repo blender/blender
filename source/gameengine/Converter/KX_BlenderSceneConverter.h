@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_BlenderSceneConverter.h
+ *  \ingroup bgeconv
+ */
+
 #ifndef __KX_BLENDERSCENECONVERTER_H
 #define __KX_BLENDERSCENECONVERTER_H
 

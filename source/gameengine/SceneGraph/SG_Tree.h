@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Bounding Box
+ */
+ 
+/** \file SG_Tree.h
+ *  \ingroup bgesg
  */
  
 #ifndef __SG_TREE_H__

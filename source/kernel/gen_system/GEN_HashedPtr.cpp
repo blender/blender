@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  *
  */
+
+/** \file kernel/gen_system/GEN_HashedPtr.cpp
+ *  \ingroup gensys
+ */
+
 #include "GEN_HashedPtr.h"
 
 #include "BLO_sys_types.h" // for intptr_t support

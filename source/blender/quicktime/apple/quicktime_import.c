@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * quicktime_import.c

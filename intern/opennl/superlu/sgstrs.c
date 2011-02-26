@@ -1,3 +1,6 @@
+/** \file opennl/superlu/sgstrs.c
+ *  \ingroup opennl
+ */
 
 /*
  * -- SuperLU routine (version 3.0) --

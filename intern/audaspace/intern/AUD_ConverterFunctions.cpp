@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_ConverterFunctions.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #include "AUD_ConverterFunctions.h"
 #include "AUD_Buffer.h"
 

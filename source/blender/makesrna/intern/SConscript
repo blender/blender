@@ -29,7 +29,7 @@ makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" '
 
 defs = []
 
-incs = '#/intern/guardedalloc ../../blenlib ../../blenkernel'
+incs = '#/intern/guardedalloc ../../blenlib ../../blenkernel ../../blenloader'
 incs += ' ../../imbuf ../../makesdna ../../makesrna ../../ikplugin'
 incs += ' ../../windowmanager ../../editors/include ../../blenfont'
 incs += ' ../../render/extern/include'

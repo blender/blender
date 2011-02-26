@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,6 +33,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/modifiers/intern/MOD_none.c
+ *  \ingroup modifiers
+ */
+
 
 
 

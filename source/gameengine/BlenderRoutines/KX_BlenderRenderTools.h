@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_BlenderRenderTools.h
+ *  \ingroup blroutines
  */
 
 #ifndef __KX_BLENDERRENDERTOOLS

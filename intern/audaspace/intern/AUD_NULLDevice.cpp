@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_NULLDevice.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #include <limits>
 
 #include "AUD_NULLDevice.h"

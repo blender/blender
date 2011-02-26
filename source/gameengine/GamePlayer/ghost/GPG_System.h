@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Blender Player system on GHOST.
+ */
+
+/** \file GPG_System.h
+ *  \ingroup player
+ *  \brief Blender Player system on GHOST.
  */
 
 #ifndef _GPG_SYSTEM_H_

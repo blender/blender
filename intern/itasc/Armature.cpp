@@ -1,3 +1,6 @@
+/** \file itasc/Armature.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * Armature.cpp
  *

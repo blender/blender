@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/windowmanager/WM_types.h
+ *  \ingroup wm
+ */
+
 #ifndef WM_TYPES_H
 #define WM_TYPES_H
 

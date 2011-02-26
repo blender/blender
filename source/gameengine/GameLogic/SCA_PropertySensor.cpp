@@ -1,4 +1,4 @@
-/**
+/*
  * Property sensor
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_PropertySensor.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include <stddef.h>
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -69,10 +69,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h>			/*  */
 #include <pwd.h>
-#endif
-
-#if !defined(__FreeBSD__) && !defined(__APPLE__)
-#include <malloc.h>
 #endif
 
 #ifdef WIN32

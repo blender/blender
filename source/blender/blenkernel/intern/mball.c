@@ -1,4 +1,4 @@
-/** mball.c
+/* mball.c
  *  
  * MetaBalls are created from a single Object (with a name without number in it),
  * here the DispList and BoundBox also is located.

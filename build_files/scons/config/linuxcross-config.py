@@ -176,8 +176,8 @@ CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 
 CPPFLAGS = ['-DWIN32', '-DFREE_WINDOWS', '-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64', '-D_LARGEFILE64_SOURCE']
 CXXFLAGS = ['-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
-REL_CFLAGS = [ '-O2' ]
-REL_CCFLAGS = [ '-O2' ]
+REL_CFLAGS = ['-DNDEBUG',  '-O2']
+REL_CCFLAGS = ['-DNDEBUG',  '-O2']
 C_WARN = ['-Wall', '-Wstrict-prototypes', '-Wno-char-subscripts', '-Wdeclaration-after-statement']
 
 CC_WARN = [ '-Wall' ]
@@ -185,7 +185,7 @@ CC_WARN = [ '-Wall' ]
 LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++', '-luuid', '-lole32'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = ['-g', '-DDEBUG']
+BF_DEBUG_CCFLAGS = ['-g', '-D_DEBUG']
 
 BF_PROFILE = False
 BF_PROFILE_CCFLAGS = ['-pg','-g']

@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/sndfile/AUD_SndFileFactory.cpp
+ *  \ingroup audsndfile
+ */
+
+
 #include "AUD_SndFileFactory.h"
 #include "AUD_SndFileReader.h"
 #include "AUD_Buffer.h"

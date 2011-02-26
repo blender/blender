@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_PyInit.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_PYINIT
 #define AUD_PYINIT
 

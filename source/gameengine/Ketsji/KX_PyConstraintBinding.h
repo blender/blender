@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_PyConstraintBinding.h
+ *  \ingroup ketsji
+ */
+
 #ifndef PHY_PYTHON_CONSTRAINTBINDING
 #define PHY_PYTHON_CONSTRAINTBINDING
 

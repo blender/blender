@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * Readonly sequence wrapper for lookups on logic bricks
  */
+
+/** \file gameengine/Ketsji/KX_PythonSeq.cpp
+ *  \ingroup ketsji
+ */
+
 
 #ifdef WITH_PYTHON
 

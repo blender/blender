@@ -1,3 +1,6 @@
+/** \file itasc/eigen_types.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * eigen_types.cpp
  *

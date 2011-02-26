@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_types.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_TYPES_H
 #define ED_TYPES_H
 

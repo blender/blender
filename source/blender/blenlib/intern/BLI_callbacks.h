@@ -1,4 +1,4 @@
-/**
+/*
  * blenlib/BLI_editVert.h    mar 2001 Nzc
  *
  * These callbacks are needed in the lib

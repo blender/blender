@@ -1,4 +1,4 @@
-/**
+/*
  * imbuf.h (mar-2001 nzc)
  *
  * This header might have to become external...

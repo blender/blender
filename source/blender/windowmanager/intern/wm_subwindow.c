@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +29,11 @@
  * BTW: subwindows open/close in X11 are way too slow, tried it, and choose for my own system... (ton)
  * 
  */
+
+/** \file blender/windowmanager/intern/wm_subwindow.c
+ *  \ingroup wm
+ */
+
 
 #include <string.h>
 

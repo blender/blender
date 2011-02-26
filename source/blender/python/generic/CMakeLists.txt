@@ -23,6 +23,7 @@ set(INC
 	../../blenlib
 	../../makesdna
 	../../blenkernel
+	../../blenloader
 	../../../../intern/guardedalloc
 	../../../../extern/glew/include
 	${PYTHON_INCLUDE_DIRS}

@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_EnvelopeFactory.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_EnvelopeFactory.h"
 #include "AUD_CallbackIIRFilterReader.h"
 

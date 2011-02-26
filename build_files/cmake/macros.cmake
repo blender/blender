@@ -66,7 +66,7 @@ macro(SETUP_LIBDIRS)
 
 	link_directories(${JPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH} ${FREETYPE_LIBPATH})
 
-	if(WITH_PYTHON)
+	if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE)
 		link_directories(${PYTHON_LIBPATH})
 	endif()
 	if(WITH_INTERNATIONAL)
@@ -127,7 +127,7 @@ macro(setup_liblinks
 	target_link_libraries(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${LLIBS})
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
-	if(WITH_PYTHON)
+	if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE)
 		target_link_libraries(${target} ${PYTHON_LINKFLAGS})
 
 		if(WIN32 AND NOT UNIX)
@@ -332,35 +332,54 @@ macro(ADD_CHECK_CXX_COMPILER_FLAG
 endmacro()
 
 macro(get_blender_version)
-	file(READ ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender.h CONTENT)
-	string(REGEX REPLACE "\n" ";" CONTENT "${CONTENT}")
-	string(REGEX REPLACE "\t" ";" CONTENT "${CONTENT}")
-	string(REGEX REPLACE " " ";" CONTENT "${CONTENT}")
+	# So cmake depends on BKE_blender.h, beware of inf-loops!
+	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender.h ${CMAKE_BINARY_DIR}/source/blender/blenkernel/BKE_blender.h.done)
 
-	foreach(ITEM ${CONTENT})
-		if(LASTITEM MATCHES "BLENDER_VERSION")
-			MATH(EXPR BLENDER_VERSION_MAJOR "${ITEM} / 100")
-			MATH(EXPR BLENDER_VERSION_MINOR "${ITEM} % 100")
-			set(BLENDER_VERSION "${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}")
-		endif()
+	file(STRINGS ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender.h _contents REGEX "^#define[ \t]+BLENDER_.*$")
 
-		if(LASTITEM MATCHES "BLENDER_SUBVERSION")
-			set(BLENDER_SUBVERSION ${ITEM})
-		endif()
+	string(REGEX REPLACE ".*#define[ \t]+BLENDER_VERSION[ \t]+([0-9]+).*" "\\1" _out_version "${_contents}")
+	string(REGEX REPLACE ".*#define[ \t]+BLENDER_SUBVERSION[ \t]+([0-9]+).*" "\\1" _out_subversion "${_contents}")
+	string(REGEX REPLACE ".*#define[ \t]+BLENDER_VERSION_CHAR[ \t]+([a-z]+).*" "\\1" _out_version_char "${_contents}")
+	string(REGEX REPLACE ".*#define[ \t]+BLENDER_VERSION_CYCLE[ \t]+([a-z]+).*" "\\1" _out_version_cycle "${_contents}")
 
-		if(LASTITEM MATCHES "BLENDER_MINVERSION")
-			MATH(EXPR BLENDER_MINVERSION_MAJOR "${ITEM} / 100")
-			MATH(EXPR BLENDER_MINVERSION_MINOR "${ITEM} % 100")
-			set(BLENDER_MINVERSION "${BLENDER_MINVERSION_MAJOR}.${BLENDER_MINVERSION_MINOR}")
-		endif()
+	if(NOT ${_out_version} MATCHES "[0-9]+")
+		message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION")
+	endif()
 
-		if(LASTITEM MATCHES "BLENDER_MINSUBVERSION")
-			set(BLENDER_MINSUBVERSION ${ITEM})
-		endif()
+	if(NOT ${_out_subversion} MATCHES "[0-9]+")
+		message(FATAL_ERROR "Version parsing failed for BLENDER_SUBVERSION")
+	endif()
 
-		set(LASTITEM ${ITEM})
-	endforeach()
+	if(NOT ${_out_version_char} MATCHES "[a-z]+")
+		message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_CHAR")
+	endif()
 
-	# message(STATUS "Version major: ${BLENDER_VERSION_MAJOR}, Version minor: ${BLENDER_VERSION_MINOR}, Subversion: ${BLENDER_SUBVERSION}, Version: ${BLENDER_VERSION}")
-	# message(STATUS "Minversion major: ${BLENDER_MINVERSION_MAJOR}, Minversion minor: ${BLENDER_MINVERSION_MINOR}, MinSubversion: ${BLENDER_MINSUBVERSION}, Minversion: ${BLENDER_MINVERSION}")
+	if(NOT ${_out_version_cycle} MATCHES "[a-z]+")
+		message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_CYCLE")
+	endif()
+
+	MATH(EXPR BLENDER_VERSION_MAJOR "${_out_version} / 100")
+	MATH(EXPR BLENDER_VERSION_MINOR "${_out_version} % 100")
+	set(BLENDER_VERSION "${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}")
+
+	set(BLENDER_SUBVERSION ${_out_subversion})
+	set(BLENDER_VERSION_CHAR ${_out_version_char})
+	set(BLENDER_VERSION_CYCLE ${_out_version_cycle})
+
+	# for packaging, alpha to numbers
+	if(${BLENDER_VERSION_CHAR})
+		set(BLENDER_VERSION_CHAR_INDEX "0")
+	else()
+		set(_char_ls a b c d e f g h i j k l m n o p q r s t u v w q y z)
+		list(FIND _char_ls ${BLENDER_VERSION_CHAR} _out_version_char_index)
+		MATH(EXPR BLENDER_VERSION_CHAR_INDEX "${_out_version_char_index} + 1")
+		unset(_char_ls)
+		unset(_out_version_char_index)
+	endif()
+
+	unset(_out_subversion)
+	unset(_out_version_char)
+	unset(_out_version_cycle)
+
+	# message(STATUS "Version (Internal): ${BLENDER_VERSION}.${BLENDER_SUBVERSION}, Version (external): ${BLENDER_VERSION}${BLENDER_VERSION_CHAR}-${BLENDER_VERSION_CYCLE}")
 endmacro()

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,8 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/**
- * @file	GHOST_Debug.h
+/** \file ghost/intern/GHOST_Debug.h
+ *  \ingroup GHOST
  * Macro's used in GHOST debug target.
  */
 

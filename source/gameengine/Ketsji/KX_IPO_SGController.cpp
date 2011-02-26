@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * Scenegraph controller for ipos.
  */
+
+/** \file gameengine/Ketsji/KX_IPO_SGController.cpp
+ *  \ingroup ketsji
+ */
+
 
 #if defined(_WIN64)
 typedef unsigned __int64 uint_ptr;

@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_3DMath.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_3DMATH
 #define AUD_3DMATH
 

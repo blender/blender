@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_SequencerReader.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #include "AUD_SequencerReader.h"
 #include "AUD_DefaultMixer.h"
 

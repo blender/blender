@@ -1,3 +1,8 @@
+
+/** \file KX_BlenderMaterial.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_BLENDER_MATERIAL_H__
 #define __KX_BLENDER_MATERIAL_H__
 
@@ -91,9 +96,9 @@ public:
 	
 	virtual void Replace_IScene(SCA_IScene *val)
 	{
+		mScene= static_cast<KX_Scene *>(val);
 		if (mBlenderShader)
 		{
-			mScene= static_cast<KX_Scene *>(val);
 			mBlenderShader->SetScene(mScene);
 		}
 	};

@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_DelayFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_DELAYFACTORY
 #define AUD_DELAYFACTORY
 

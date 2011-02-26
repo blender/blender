@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,10 @@
  * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_PythonInitTypes.h
+ *  \ingroup ketsji
  */
 
 #ifndef _adr_py_init_types_h_				// only process once,

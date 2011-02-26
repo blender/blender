@@ -1,4 +1,4 @@
-/**
+/*
  * BKE_fluidsim.h 
  *	
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_fluidsim.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_FLUIDSIM_H
 #define ED_FLUIDSIM_H
 

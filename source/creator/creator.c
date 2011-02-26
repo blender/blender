@@ -27,14 +27,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file creator/creator.c
+ *  \ingroup creator
+ */
+
+
 #if defined(__linux__) && defined(__GNUC__)
 #define _GNU_SOURCE
 #include <fenv.h>
 #endif
 
-#define OSX_SSE_FPE (defined(__APPLE__) && (defined(__i386__) || defined(__x86_64__)))
-
-#if OSX_SSE_FPE
+#if (defined(__APPLE__) && (defined(__i386__) || defined(__x86_64__)))
+#define OSX_SSE_FPE
 #include <xmmintrin.h>
 #endif
 
@@ -99,6 +103,10 @@
 
 #include "FRS_freestyle.h"
 
+#ifdef WITH_BUILDINFO_HEADER
+#define BUILD_DATE
+#endif
+
 /* for passing information between creator and gameengine */
 #ifdef WITH_GAMEENGINE
 #include "GEN_messaging.h"
@@ -143,19 +151,20 @@ extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 char bprogname[FILE_MAX]; /* from blenpluginapi:pluginapi.c */
 char btempdir[FILE_MAX];
 
-#define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
+#define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d)\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
 
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
 
 /* set breakpoints here when running in debug mode, useful to catch floating point errors */
-#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || OSX_SSE_FPE
+#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
 static void fpe_handler(int UNUSED(sig))
 {
 	// printf("SIGFPE trapped\n");
 }
 #endif
 
+#ifndef WITH_PYTHON_MODULE
 /* handling ctrl-c event in console */
 static void blender_esc(int sig)
 {
@@ -172,6 +181,7 @@ static void blender_esc(int sig)
 		count++;
 	}
 }
+#endif
 
 /* buildinfo can have quotes */
 #ifdef BUILD_DATE
@@ -379,7 +389,7 @@ static int debug_mode(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || OSX_SSE_FPE
+#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
 	/* zealous but makes float issues a heck of a lot easier to find!
 	 * set breakpoints on fpe_handler */
 	signal(SIGFPE, fpe_handler);
@@ -387,7 +397,7 @@ static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(dat
 # if defined(__linux__) && defined(__GNUC__)
 	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 # endif	/* defined(__linux__) && defined(__GNUC__) */
-# if OSX_SSE_FPE
+# if defined(OSX_SSE_FPE)
 	/* OSX uses SSE for floating point by default, so here 
 	 * use SSE instructions to throw floating point exceptions */
 	_MM_SET_EXCEPTION_MASK(_MM_MASK_MASK &~
@@ -937,7 +947,7 @@ static int set_addons(int argc, const char **argv, void *data)
 		const int slen= strlen(argv[1]) + 10;
 		char *str= malloc(slen);
 		bContext *C= data;
-		BLI_snprintf(str, slen, "[__import__('bpy').utils.addon_enable(i) for i in '%s'.split(',')]", argv[1]);
+		BLI_snprintf(str, slen, "[__import__('addon_utils').enable(i) for i in '%s'.split(',')]", argv[1]);
 		BPY_CTX_SETUP(BPY_string_exec(C, str));
 		free(str);
 #else
@@ -1113,11 +1123,20 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 }
 
-int main(int argc, char **argv)
+#ifdef WITH_PYTHON_MODULE
+/* allow python module to call main */
+#define main main_python
+#endif
+
+int main(int argc, const char **argv)
 {
 	SYS_SystemHandle syshandle;
 	bContext *C= CTX_create();
 	bArgs *ba;
+
+#ifdef WITH_PYTHON_MODULE
+#undef main
+#endif
 
 #ifdef WITH_BINRELOC
 	br_init( NULL );
@@ -1194,9 +1213,12 @@ int main(int argc, char **argv)
 	setuid(getuid()); /* end superuser */
 #endif
 
-
+#ifdef WITH_PYTHON_MODULE
+	G.background= 1; /* python module mode ALWAYS runs in background mode (for now) */
+#else
 	/* for all platforms, even windos has it! */
 	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
+#endif
 	
 	/* background render uses this font too */
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
@@ -1253,6 +1275,10 @@ int main(int argc, char **argv)
 	BLI_argsParse(ba, 4, load_file, C);
 
 	BLI_argsFree(ba);
+
+#ifdef WITH_PYTHON_MODULE
+	return 0; /* keep blender in background mode running */
+#endif
 
 	if(G.background) {
 		/* actually incorrect, but works for now (ton) */

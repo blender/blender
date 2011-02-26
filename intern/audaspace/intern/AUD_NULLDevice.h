@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_NULLDevice.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_NULLDEVICE
 #define AUD_NULLDEVICE
 

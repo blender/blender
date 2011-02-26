@@ -165,8 +165,8 @@ CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 
 CPPFLAGS = [ '-DXP_UNIX', '-DWIN32', '-DFREE_WINDOWS' ]
 CXXFLAGS = ['-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
-REL_CFLAGS = [ '-O2' ]
-REL_CCFLAGS = [ '-O2' ]
+REL_CFLAGS = ['-DNDEBUG', '-O2' ]
+REL_CCFLAGS = ['-DNDEBUG', '-O2' ]
 C_WARN = [ '-Wall' , '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
 
 CC_WARN = [ '-Wall' ]

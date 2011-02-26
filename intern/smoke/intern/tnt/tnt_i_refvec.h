@@ -1,3 +1,6 @@
+/** \file smoke/intern/tnt/tnt_i_refvec.h
+ *  \ingroup smoke
+ */
 /*
 *
 * Template Numerical Toolkit (TNT)

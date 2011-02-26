@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_EffectFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_EFFECTFACTORY
 #define AUD_EFFECTFACTORY
 

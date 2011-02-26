@@ -12,6 +12,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+
+/** \file FloatValue.h
+ *  \ingroup expressions
+ */
+
 #if !defined _FLOATVALUE_H
 #define _FLOATVALUE_H
 

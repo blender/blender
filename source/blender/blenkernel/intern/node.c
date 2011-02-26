@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,12 +31,18 @@
 #include <Python.h>
 #endif
 
+#include "MEM_guardedalloc.h"
+
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <limits.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_node_types.h"
+
+#include "BLI_listbase.h"
 
 #include "RNA_access.h"
 
@@ -45,6 +51,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
+#include "BKE_node.h"
 
 #include "PIL_time.h"
 
@@ -64,22 +71,14 @@ ListBase node_all_textures = {NULL, NULL};
 
 /* ************** Type stuff **********  */
 
-static bNodeType *node_get_type(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
+static bNodeType *node_get_type(bNodeTree *ntree, int type, ID *id)
 {
-	if(type==NODE_GROUP) {
-		if(ngroup && GS(ngroup->id.name)==ID_NT) {
-			return ngroup->owntype;
-		}
-		return NULL;
-	}
-	else {
-		bNodeType *ntype = ntree->alltypes.first;
-		for(; ntype; ntype= ntype->next)
-			if(ntype->type==type && id==ntype->id )
-				return ntype;
-		
-		return NULL;
-	}
+	bNodeType *ntype = ntree->alltypes.first;
+	for(; ntype; ntype= ntype->next)
+		if(ntype->type==type && id==ntype->id )
+			return ntype;
+	
+	return NULL;
 }
 
 void ntreeInitTypes(bNodeTree *ntree)
@@ -102,11 +101,11 @@ void ntreeInitTypes(bNodeTree *ntree)
 		if(node->type==NODE_DYNAMIC) {
 			bNodeType *stype= NULL;
 			if(node->id==NULL) { /* empty script node */
-				stype= node_get_type(ntree, node->type, NULL, NULL);
+				stype= node_get_type(ntree, node->type, NULL);
 			} else { /* not an empty script node */
-				stype= node_get_type(ntree, node->type, NULL, node->id);
+				stype= node_get_type(ntree, node->type, node->id);
 				if(!stype) {
-					stype= node_get_type(ntree, node->type, NULL, NULL);
+					stype= node_get_type(ntree, node->type, NULL);
 					/* needed info if the pynode script fails now: */
 					if (node->id) node->storage= ntree;
 				} else {
@@ -118,7 +117,7 @@ void ntreeInitTypes(bNodeTree *ntree)
 			if(node->typeinfo)
 				node->typeinfo->initfunc(node);
 		} else {
-			node->typeinfo= node_get_type(ntree, node->type, (bNodeTree *)node->id, NULL);
+			node->typeinfo= node_get_type(ntree, node->type, NULL);
 		}
 
 		if(node->typeinfo==NULL) {
@@ -152,15 +151,36 @@ static bNodeSocket *node_add_socket_type(ListBase *lb, bNodeSocketType *stype)
 	else sock->limit= stype->limit;
 	sock->type= stype->type;
 	
-	sock->to_index= stype->own_index;
-	sock->tosock= stype->internsock;
-	
 	sock->ns.vec[0]= stype->val1;
 	sock->ns.vec[1]= stype->val2;
 	sock->ns.vec[2]= stype->val3;
 	sock->ns.vec[3]= stype->val4;
 	sock->ns.min= stype->min;
 	sock->ns.max= stype->max;
+	
+	if(lb)
+		BLI_addtail(lb, sock);
+
+	return sock;
+}
+
+static bNodeSocket *node_add_group_socket(ListBase *lb, bNodeSocket *gsock)
+{
+	bNodeSocket *sock= MEM_callocN(sizeof(bNodeSocket), "sock");
+	
+	/* make a copy of the group socket */
+	*sock = *gsock;
+	sock->link = NULL;
+	sock->next = sock->prev = NULL;
+	sock->new_sock = NULL;
+	sock->ns.data = NULL;
+	
+	sock->own_index = gsock->own_index;
+	sock->groupsock = gsock;
+	/* XXX hack: group socket input/output roles are inverted internally,
+	 * need to change the limit value when making actual node sockets from them.
+	 */
+	sock->limit = (gsock->limit==1 ? 0xFFF : 1);
 	
 	if(lb)
 		BLI_addtail(lb, sock);
@@ -188,18 +208,16 @@ static bNodeSocket *verify_socket(ListBase *lb, bNodeSocketType *stype)
 	bNodeSocket *sock;
 	
 	for(sock= lb->first; sock; sock= sock->next) {
-		/* both indices are zero for non-groups, otherwise it's a unique index */
-		if(sock->to_index==stype->own_index)
-			if(strncmp(sock->name, stype->name, NODE_MAXSTR)==0)
-				break;
+		if(strncmp(sock->name, stype->name, NODE_MAXSTR)==0)
+			break;
 	}
 	if(sock) {
 		sock->type= stype->type;		/* in future, read this from tydefs! */
 		if(stype->limit==0) sock->limit= 0xFFF;
 		else sock->limit= stype->limit;
+		
 		sock->ns.min= stype->min;
 		sock->ns.max= stype->max;
-		sock->tosock= stype->internsock;
 		
 		BLI_remlink(lb, sock);
 		
@@ -207,6 +225,37 @@ static bNodeSocket *verify_socket(ListBase *lb, bNodeSocketType *stype)
 	}
 	else {
 		return node_add_socket_type(NULL, stype);
+	}
+}
+
+static bNodeSocket *verify_group_socket(ListBase *lb, bNodeSocket *gsock)
+{
+	bNodeSocket *sock;
+	
+	for(sock= lb->first; sock; sock= sock->next) {
+		if(sock->own_index==gsock->own_index)
+				break;
+	}
+	if(sock) {
+		sock->groupsock = gsock;
+		
+		strcpy(sock->name, gsock->name);
+		sock->type= gsock->type;
+		
+		/* XXX hack: group socket input/output roles are inverted internally,
+		 * need to change the limit value when making actual node sockets from them.
+		 */
+		sock->limit = (gsock->limit==1 ? 0xFFF : 1);
+		
+		sock->ns.min= gsock->ns.min;
+		sock->ns.max= gsock->ns.max;
+		
+		BLI_remlink(lb, sock);
+		
+		return sock;
+	}
+	else {
+		return node_add_group_socket(NULL, gsock);
 	}
 }
 
@@ -238,15 +287,41 @@ static void verify_socket_list(bNodeTree *ntree, ListBase *lb, bNodeSocketType *
 	}
 }
 
+static void verify_group_socket_list(bNodeTree *ntree, ListBase *lb, ListBase *glb)
+{
+	bNodeSocket *gsock;
+	
+	/* step by step compare */
+	for (gsock= glb->first; gsock; gsock=gsock->next) {
+		/* abusing new_sock pointer for verification here! only used inside this function */
+		gsock->new_sock= verify_group_socket(lb, gsock);
+	}
+	/* leftovers are removed */
+	while(lb->first)
+		node_rem_socket(ntree, lb, lb->first);
+	/* and we put back the verified sockets */
+	for (gsock= glb->first; gsock; gsock=gsock->next) {
+		BLI_addtail(lb, gsock->new_sock);
+		gsock->new_sock = NULL;
+	}
+}
+
 void nodeVerifyType(bNodeTree *ntree, bNode *node)
 {
-	bNodeType *ntype= node->typeinfo;
-	
-	if(ntype) {
-		/* might add some other verify stuff here */
-		
-		verify_socket_list(ntree, &node->inputs, ntype->inputs);
-		verify_socket_list(ntree, &node->outputs, ntype->outputs);
+	/* node groups don't have static sock lists, but use external sockets from the tree instead */
+	if (node->type==NODE_GROUP) {
+		bNodeTree *ngroup= (bNodeTree*)node->id;
+		if (ngroup) {
+			verify_group_socket_list(ntree, &node->inputs, &ngroup->inputs);
+			verify_group_socket_list(ntree, &node->outputs, &ngroup->outputs);
+		}
+	}
+	else {
+		bNodeType *ntype= node->typeinfo;
+		if(ntype) {
+			verify_socket_list(ntree, &node->inputs, ntype->inputs);
+			verify_socket_list(ntree, &node->outputs, ntype->outputs);
+		}
 	}
 }
 
@@ -283,176 +358,20 @@ void register_node_type_group(ListBase *lb)
 	nodeRegisterType(lb, &ntype_group);
 }
 
-/* tag internal sockets */
-static void group_tag_internal_sockets(bNodeTree *ngroup)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	bNodeLink *link;
-	
-	/* clear intern tag, but check already for hidden sockets */
-	for(node= ngroup->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			sock->intern= sock->flag & SOCK_HIDDEN;
-		for(sock= node->outputs.first; sock; sock= sock->next)
-			sock->intern= sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL);
-	}
-	/* set tag */
-	for(link= ngroup->links.first; link; link= link->next) {
-		link->fromsock->intern= 1;
-		link->tosock->intern= 1;
-	}
-	
-	/* remove link pointer to external links (only happens on create group) */
-	for(node= ngroup->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			if(sock->intern==0)
-				sock->link= NULL;
-	}
-
-	/* set all intern sockets to own_index zero, makes sure that later use won't mixup */
-	for(node= ngroup->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			if(sock->intern)
-				sock->own_index= 0;
-		for(sock= node->outputs.first; sock; sock= sock->next)
-			if(sock->intern)
-				sock->own_index= 0;
-	}
-}
-
-/* after editing group, new sockets are zero */
-/* this routine ensures unique identifiers for zero sockets that are exposed */
-static void group_verify_own_indices(bNodeTree *ngroup)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	
-	for(node= ngroup->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			if(sock->own_index==0 && sock->intern==0)
-				sock->own_index= ++(ngroup->cur_index);
-		for(sock= node->outputs.first; sock; sock= sock->next)
-			if(sock->own_index==0 && sock->intern==0)
-				sock->own_index= ++(ngroup->cur_index);
-	}
-	//printf("internal index %d\n", ngroup->cur_index);
-}
-
-
-/* nodetrees can be used as groups, so we need typeinfo structs generated */
-void ntreeMakeOwnType(bNodeTree *ngroup)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	int totin= 0, totout=0, a;
-
-	/* tags socket when internal linked */
-	group_tag_internal_sockets(ngroup);
-	
-	/* ensure all sockets have own unique id */
-	group_verify_own_indices(ngroup);
-	
-	/* counting stats */
-	for(node= ngroup->nodes.first; node; node= node->next) {
-		if(node->type==NODE_GROUP)
-			break;
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			if(sock->intern==0) 
-				totin++;
-		for(sock= node->outputs.first; sock; sock= sock->next)
-			if(sock->intern==0) 
-				totout++;
-	}
-	/* debug: nodetrees in nodetrees not handled yet */
-	if(node) {
-		printf("group in group, not supported yet\n");
-		return;
-	}
-	
-	/* free own type struct */
-	if(ngroup->owntype) {
-		if(ngroup->owntype->inputs)
-			MEM_freeN(ngroup->owntype->inputs);
-		if(ngroup->owntype->outputs)
-			MEM_freeN(ngroup->owntype->outputs);
-		MEM_freeN(ngroup->owntype);
-	}
-	
-	/* make own type struct */
-	ngroup->owntype= MEM_callocN(sizeof(bNodeType), "group type");
-	*ngroup->owntype= ntype_group; /* copy data, for init */
-	
-	/* input type arrays */
-	if(totin) {
-		bNodeSocketType *stype;
-		bNodeSocketType *inputs= MEM_callocN(sizeof(bNodeSocketType)*(totin+1), "bNodeSocketType");
-		a= 0;
-		
-		for(node= ngroup->nodes.first; node; node= node->next) {
-			/* nodes are presumed fully verified, stype and socket list are in sync */
-			stype= node->typeinfo->inputs;
-			for(sock= node->inputs.first; sock; sock= sock->next, stype++) {
-				if(sock->intern==0) {
-					/* debug only print */
-					if(stype==NULL || stype->type==-1) printf("group verification error %s\n", ngroup->id.name);
-					
-					inputs[a]= *stype;
-					inputs[a].own_index= sock->own_index;
-					inputs[a].internsock= sock;	
-					a++;
-				}
-			}
-		}
-		inputs[a].type= -1;	/* terminator code */
-		ngroup->owntype->inputs= inputs;
-	}	
-	
-	/* output type arrays */
-	if(totout) {
-		bNodeSocketType *stype;
-		bNodeSocketType *outputs= MEM_callocN(sizeof(bNodeSocketType)*(totout+1), "bNodeSocketType");
-		a= 0;
-		
-		for(node= ngroup->nodes.first; node; node= node->next) {
-			/* nodes are presumed fully verified, stype and socket list are in sync */
-			stype= node->typeinfo->outputs;
-			for(sock= node->outputs.first; sock; sock= sock->next, stype++) {
-				if(sock->intern==0) {
-					/* debug only print */
-					if(stype==NULL || stype->type==-1) printf("group verification error %s\n", ngroup->id.name);
-					
-					outputs[a]= *stype;
-					outputs[a].own_index= sock->own_index;
-					outputs[a].internsock= sock;	
-					a++;
-				}
-			}
-		}
-		outputs[a].type= -1;	/* terminator code */
-		ngroup->owntype->outputs= outputs;
-	}
-	
-	/* voila, the nodetree has the full definition for generating group-node instances! */
-}
-
-
-static bNodeSocket *groupnode_find_tosock(bNode *gnode, int index)
+static bNodeSocket *find_group_node_input(bNode *gnode, bNodeSocket *gsock)
 {
 	bNodeSocket *sock;
-	
-	for(sock= gnode->inputs.first; sock; sock= sock->next)
-		if(sock->to_index==index)
+	for (sock=gnode->inputs.first; sock; sock=sock->next)
+		if (sock->groupsock == gsock)
 			return sock;
 	return NULL;
 }
 
-static bNodeSocket *groupnode_find_fromsock(bNode *gnode, int index)
+static bNodeSocket *find_group_node_output(bNode *gnode, bNodeSocket *gsock)
 {
 	bNodeSocket *sock;
-	
-	for(sock= gnode->outputs.first; sock; sock= sock->next)
-		if(sock->to_index==index)
+	for (sock=gnode->outputs.first; sock; sock=sock->next)
+		if (sock->groupsock == gsock)
 			return sock;
 	return NULL;
 }
@@ -461,8 +380,8 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 {
 	bNodeLink *link, *linkn;
 	bNode *node, *gnode, *nextn;
-	bNodeSocket *sock;
 	bNodeTree *ngroup;
+	bNodeSocket *gsock;
 	ListBase anim_basepaths = {NULL, NULL};
 	float min[2], max[2];
 	int totnode=0;
@@ -485,9 +404,9 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 	/* check if all connections are OK, no unselected node has both
 		inputs and outputs to a selection */
 	for(link= ntree->links.first; link; link= link->next) {
-		if(link->fromnode->flag & NODE_SELECT)
+		if(link->fromnode && link->tonode && link->fromnode->flag & NODE_SELECT)
 			link->tonode->done |= 1;
-		if(link->tonode->flag & NODE_SELECT)
+		if(link->fromnode && link->tonode && link->tonode->flag & NODE_SELECT)
 			link->fromnode->done |= 2;
 	}	
 	
@@ -526,26 +445,9 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 			
 			node->locx-= 0.5f*(min[0]+max[0]);
 			node->locy-= 0.5f*(min[1]+max[1]);
-			
-			/* set socket own_index to zero since it can still have a value
-			 * from being in a group before, otherwise it doesn't get a unique
-			 * index in group_verify_own_indices */
-			for(sock= node->inputs.first; sock; sock= sock->next)
-				sock->own_index= 0;
-			for(sock= node->outputs.first; sock; sock= sock->next)
-				sock->own_index= 0;
 		}
 	}
 
-	/* move links over */
-	for(link= ntree->links.first; link; link= linkn) {
-		linkn= link->next;
-		if(link->fromnode->flag & link->tonode->flag & NODE_SELECT) {
-			BLI_remlink(&ntree->links, link);
-			BLI_addtail(&ngroup->links, link);
-		}
-	}
-	
 	/* move animation data over */
 	if (ntree->adt) {
 		LinkData *ld, *ldn=NULL;
@@ -561,9 +463,6 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 		}
 	}
 	
-	/* now we can make own group typeinfo */
-	ntreeMakeOwnType(ngroup);
-	
 	/* make group node */
 	gnode= nodeAddNodeType(ntree, NODE_GROUP, ngroup, NULL);
 	gnode->locx= 0.5f*(min[0]+max[0]);
@@ -573,35 +472,29 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 	for(link= ntree->links.first; link; link= linkn) {
 		linkn= link->next;
 		
-		if(link->tonode->flag & NODE_SELECT) {
-			link->tonode= gnode;
-			sock= groupnode_find_tosock(gnode, link->tosock->own_index);
-			if(sock==NULL) {
-				nodeRemLink(ntree, link);	
-				printf("Removed link, cannot mix internal and external sockets in group\n");
-			}
-			else link->tosock= sock;
+		if(link->fromnode && link->tonode && (link->fromnode->flag & link->tonode->flag & NODE_SELECT)) {
+			BLI_remlink(&ntree->links, link);
+			BLI_addtail(&ngroup->links, link);
 		}
-		else if(link->fromnode->flag & NODE_SELECT) {
-			link->fromnode= gnode;
-			sock= groupnode_find_fromsock(gnode, link->fromsock->own_index);
-			if(sock==NULL) {
-				nodeRemLink(ntree, link);	
-				printf("Removed link, cannot mix internal and external sockets in group\n");
-			}
-			else link->fromsock= sock;
+		else if(link->tonode && (link->tonode->flag & NODE_SELECT)) {
+			gsock = nodeGroupExposeSocket(ngroup, link->tosock, SOCK_IN);
+			link->tosock->link = nodeAddLink(ngroup, NULL, gsock, link->tonode, link->tosock);
+			link->tosock = node_add_group_socket(&gnode->inputs, gsock);
+			link->tonode = gnode;
 		}
-	}
-	
-	/* initialize variables of unused input sockets */
-	for(node= ngroup->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next) {
-			if(sock->intern==0) {
-				bNodeSocket *nsock= groupnode_find_tosock(gnode, sock->own_index);
-				if(nsock) {
-					QUATCOPY(nsock->ns.vec, sock->ns.vec);
-				}
+		else if(link->fromnode && (link->fromnode->flag & NODE_SELECT)) {
+			/* search for existing group node socket */
+			for (gsock=ngroup->outputs.first; gsock; gsock=gsock->next)
+				if (gsock->link && gsock->link->fromsock==link->fromsock)
+					break;
+			if (!gsock) {
+				gsock = nodeGroupExposeSocket(ngroup, link->fromsock, SOCK_OUT);
+				gsock->link = nodeAddLink(ngroup, link->fromnode, link->fromsock, NULL, gsock);
+				link->fromsock = node_add_group_socket(&gnode->outputs, gsock);
 			}
+			else
+				link->fromsock = find_group_node_output(gnode, gsock);
+			link->fromnode = gnode;
 		}
 	}
 
@@ -611,41 +504,21 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 	return gnode;
 }
 
-/* note: ungroup: group_indices zero! */
-
 /* here's a nasty little one, need to check users... */
 /* should become callbackable... */
-void nodeVerifyGroup(bNodeTree *ngroup)
+void nodeGroupVerify(bNodeTree *ngroup)
 {
-	/* XXX nodeVerifyGroup is sometimes called for non-group trees.
-	 * This is not the best way to check if a tree is a group,
-	 * trees should get their own flag for this!
-	 */
-	if (!ngroup->owntype)
-		return;
-	
 	/* group changed, so we rebuild the type definition */
-	ntreeMakeOwnType(ngroup);
+//	ntreeMakeGroupSockets(ngroup);
 	
 	if(ngroup->type==NTREE_SHADER) {
 		Material *ma;
 		for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 			if(ma->nodetree) {
 				bNode *node;
-				
-				/* find if group is in tree */
 				for(node= ma->nodetree->nodes.first; node; node= node->next)
 					if(node->id == (ID *)ngroup)
-						break;
-				
-				if(node) {
-					/* set all type pointers OK */
-					ntreeInitTypes(ma->nodetree);
-					
-					for(node= ma->nodetree->nodes.first; node; node= node->next)
-						if(node->id == (ID *)ngroup)
-							nodeVerifyType(ma->nodetree, node);
-				}
+						nodeVerifyType(ma->nodetree, node);
 			}
 		}
 	}
@@ -654,20 +527,9 @@ void nodeVerifyGroup(bNodeTree *ngroup)
 		for(sce= G.main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree) {
 				bNode *node;
-				
-				/* find if group is in tree */
 				for(node= sce->nodetree->nodes.first; node; node= node->next)
 					if(node->id == (ID *)ngroup)
-						break;
-				
-				if(node) {
-					/* set all type pointers OK */
-					ntreeInitTypes(sce->nodetree);
-					
-					for(node= sce->nodetree->nodes.first; node; node= node->next)
-						if(node->id == (ID *)ngroup)
-							nodeVerifyType(sce->nodetree, node);
-				}
+						nodeVerifyType(sce->nodetree, node);
 			}
 		}
 	}
@@ -676,20 +538,9 @@ void nodeVerifyGroup(bNodeTree *ngroup)
 		for(tx= G.main->tex.first; tx; tx= tx->id.next) {
 			if(tx->nodetree) {
 				bNode *node;
-				
-				/* find if group is in tree */
 				for(node= tx->nodetree->nodes.first; node; node= node->next)
 					if(node->id == (ID *)ngroup)
-						break;
-				
-				if(node) {
-					/* set all type pointers OK */
-					ntreeInitTypes(tx->nodetree);
-					
-					for(node= tx->nodetree->nodes.first; node; node= node->next)
-						if(node->id == (ID *)ngroup)
-							nodeVerifyType(tx->nodetree, node);
-				}
+						nodeVerifyType(tx->nodetree, node);
 			}
 		}
 	}
@@ -716,15 +567,15 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 		for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 			if(ma->nodetree) {
 				for(node= ma->nodetree->nodes.first; node; node= node->next) {
-					if(node->id==(ID *)ngroup) {
+					if(node->id==&ngroup->id) {
 						for(sock= node->inputs.first; sock; sock= sock->next)
 							if(sock->link)
-								if(sock->tosock) 
-									sock->tosock->flag |= SOCK_IN_USE;
+								if(sock->groupsock) 
+									sock->groupsock->flag |= SOCK_IN_USE;
 						for(sock= node->outputs.first; sock; sock= sock->next)
 							if(nodeCountSocketLinks(ma->nodetree, sock))
-								if(sock->tosock) 
-									sock->tosock->flag |= SOCK_IN_USE;
+								if(sock->groupsock) 
+									sock->groupsock->flag |= SOCK_IN_USE;
 					}
 				}
 			}
@@ -738,12 +589,12 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 					if(node->id==(ID *)ngroup) {
 						for(sock= node->inputs.first; sock; sock= sock->next)
 							if(sock->link)
-								if(sock->tosock) 
-									sock->tosock->flag |= SOCK_IN_USE;
+								if(sock->groupsock) 
+									sock->groupsock->flag |= SOCK_IN_USE;
 						for(sock= node->outputs.first; sock; sock= sock->next)
 							if(nodeCountSocketLinks(sce->nodetree, sock))
-								if(sock->tosock) 
-									sock->tosock->flag |= SOCK_IN_USE;
+								if(sock->groupsock) 
+									sock->groupsock->flag |= SOCK_IN_USE;
 					}
 				}
 			}
@@ -757,12 +608,12 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 					if(node->id==(ID *)ngroup) {
 						for(sock= node->inputs.first; sock; sock= sock->next)
 							if(sock->link)
-								if(sock->tosock) 
-									sock->tosock->flag |= SOCK_IN_USE;
+								if(sock->groupsock) 
+									sock->groupsock->flag |= SOCK_IN_USE;
 						for(sock= node->outputs.first; sock; sock= sock->next)
 							if(nodeCountSocketLinks(tx->nodetree, sock))
-								if(sock->tosock) 
-									sock->tosock->flag |= SOCK_IN_USE;
+								if(sock->groupsock) 
+									sock->groupsock->flag |= SOCK_IN_USE;
 					}
 				}
 			}
@@ -777,21 +628,27 @@ bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
 }
 
 /* finds a node based on given socket */
-int nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **nodep, int *sockindex)
+int nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **nodep, int *sockindex, int *in_out)
 {
 	bNode *node;
 	bNodeSocket *tsock;
 	int index= 0;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
-		for(index=0, tsock= node->inputs.first; tsock; tsock= tsock->next, index++)
-			if(tsock==sock)
+		for(index=0, tsock= node->inputs.first; tsock; tsock= tsock->next, index++) {
+			if(tsock==sock) {
+				if (in_out) *in_out= SOCK_IN;
 				break;
+			}
+		}
 		if(tsock)
 			break;
-		for(index=0, tsock= node->outputs.first; tsock; tsock= tsock->next, index++)
-			if(tsock==sock)
+		for(index=0, tsock= node->outputs.first; tsock; tsock= tsock->next, index++) {
+			if(tsock==sock) {
+				if (in_out) *in_out= SOCK_OUT;
 				break;
+			}
+		}
 		if(tsock)
 			break;
 	}
@@ -813,7 +670,6 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	bNode *node, *nextn;
 	bNodeTree *ngroup, *wgroup;
 	ListBase anim_basepaths = {NULL, NULL};
-	int index;
 	
 	ngroup= (bNodeTree *)gnode->id;
 	if(ngroup==NULL) return 0;
@@ -855,7 +711,66 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 		
 		node->flag |= NODE_SELECT;
 	}
-	/* and the internal links */
+	
+	/* restore external links to and from the gnode */
+	for(link= ntree->links.first; link; link= link->next) {
+		if (link->fromnode==gnode) {
+			if (link->fromsock->groupsock) {
+				bNodeSocket *gsock= link->fromsock->groupsock;
+				if (gsock->link) {
+					if (gsock->link->fromnode) {
+						/* NB: using the new internal copies here! the groupsock pointer still maps to the old tree */
+						link->fromnode = (gsock->link->fromnode ? gsock->link->fromnode->new_node : NULL);
+						link->fromsock = gsock->link->fromsock->new_sock;
+					}
+					else {
+						/* group output directly maps to group input */
+						bNodeSocket *insock= find_group_node_input(gnode, gsock->link->fromsock);
+						if (insock->link) {
+							link->fromnode = insock->link->fromnode;
+							link->fromsock = insock->link->fromsock;
+						}
+					}
+				}
+				else {
+					/* constant group output: copy the stack value to the external socket.
+					 * the link is kept here until all possible external users have been fixed.
+					 */
+					QUATCOPY(link->tosock->ns.vec, gsock->ns.vec);
+				}
+			}
+		}
+	}
+	/* remove internal output links, these are not used anymore */
+	for(link=wgroup->links.first; link; link= linkn) {
+		linkn = link->next;
+		if (!link->tonode)
+			nodeRemLink(wgroup, link);
+	}
+	/* restore links from internal nodes */
+	for(link= wgroup->links.first; link; link= link->next) {
+		/* indicates link to group input */
+		if (!link->fromnode) {
+			/* NB: can't use find_group_node_input here,
+			 * because gnode sockets still point to the old tree!
+			 */
+			bNodeSocket *insock;
+			for (insock= gnode->inputs.first; insock; insock= insock->next)
+				if (insock->groupsock->new_sock == link->fromsock)
+					break;
+			if (insock->link) {
+				link->fromnode = insock->link->fromnode;
+				link->fromsock = insock->link->fromsock;
+			}
+			else {
+				/* uses group constant input. copy the input value and remove the dead link. */
+				QUATCOPY(link->tosock->ns.vec, insock->ns.vec);
+				nodeRemLink(wgroup, link);
+			}
+		}
+	}
+	
+	/* add internal links to the ntree */
 	for(link= wgroup->links.first; link; link= linkn) {
 		linkn= link->next;
 		BLI_remlink(&wgroup->links, link);
@@ -884,44 +799,22 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 		/* free temp action too */
 		free_libblock(&G.main->action, waction);
 	}
-
-	/* restore links to and from the gnode */
-	for(link= ntree->links.first; link; link= link->next) {
-		if(link->tonode==gnode) {
-			/* link->tosock->tosock is on the node we look for */
-			nodeFindNode(ngroup, link->tosock->tosock, &nextn, &index);
-			if(nextn==NULL) printf("wrong stuff!\n");
-			else if(nextn->new_node==NULL) printf("wrong stuff too!\n");
-			else {
-				link->tonode= nextn->new_node;
-				link->tosock= BLI_findlink(&link->tonode->inputs, index);
-			}
-		}
-		else if(link->fromnode==gnode) {
-			/* link->fromsock->tosock is on the node we look for */
-			nodeFindNode(ngroup, link->fromsock->tosock, &nextn, &index);
-			if(nextn==NULL) printf("1 wrong stuff!\n");
-			else if(nextn->new_node==NULL) printf("1 wrong stuff too!\n");
-			else {
-				link->fromnode= nextn->new_node;
-				link->fromsock= BLI_findlink(&link->fromnode->outputs, index);
-			}
-		}
-	}
 	
-	/* remove the gnode & work tree */
-	free_libblock(&G.main->nodetree, wgroup);
-	
+	/* delete the group instance. this also removes old input links! */
 	nodeFreeNode(ntree, gnode);
 	
+	/* free the group tree (takes care of user count) */
+	free_libblock(&G.main->nodetree, wgroup);
+	
 	/* solve order goes fine, but the level tags not... doing it twice works for now. solve this once */
+	/* XXX is this still necessary with new groups? it may have been caused by non-updated sock->link pointers. lukas */
 	ntreeSolveOrder(ntree);
 	ntreeSolveOrder(ntree);
 
 	return 1;
 }
 
-void nodeCopyGroup(bNode *gnode)
+void nodeGroupCopy(bNode *gnode)
 {
 	bNodeSocket *sock;
 
@@ -930,34 +823,115 @@ void nodeCopyGroup(bNode *gnode)
 
 	/* new_sock was set in nodeCopyNode */
 	for(sock=gnode->inputs.first; sock; sock=sock->next)
-		if(sock->tosock)
-			sock->tosock= sock->tosock->new_sock;
+		if(sock->groupsock)
+			sock->groupsock= sock->groupsock->new_sock;
 
 	for(sock=gnode->outputs.first; sock; sock=sock->next)
-		if(sock->tosock)
-			sock->tosock= sock->tosock->new_sock;
+		if(sock->groupsock)
+			sock->groupsock= sock->groupsock->new_sock;
+}
+
+bNodeSocket *nodeGroupAddSocket(bNodeTree *ngroup, const char *name, int type, int in_out)
+{
+	bNodeSocket *gsock = MEM_callocN(sizeof(bNodeSocket), "bNodeSocket");
+	
+	strncpy(gsock->name, name, sizeof(gsock->name));
+	gsock->type = type;
+	gsock->ns.sockettype = type;
+	gsock->ns.min = INT_MIN;
+	gsock->ns.max = INT_MAX;
+	zero_v4(gsock->ns.vec);
+	gsock->ns.data = NULL;
+	gsock->flag = 0;
+
+	gsock->next = gsock->prev = NULL;
+	gsock->new_sock = NULL;
+	gsock->link = NULL;
+	gsock->ns.data = NULL;
+	/* assign new unique index */
+	gsock->own_index = ngroup->cur_index++;
+	gsock->limit = (in_out==SOCK_IN ? 0xFFF : 1);
+	
+	BLI_addtail(in_out==SOCK_IN ? &ngroup->inputs : &ngroup->outputs, gsock);
+	
+	return gsock;
+}
+
+bNodeSocket *nodeGroupExposeSocket(bNodeTree *ngroup, bNodeSocket *sock, int in_out)
+{
+	bNodeSocket *gsock= nodeGroupAddSocket(ngroup, sock->name, sock->type, in_out);
+	/* initialize the default socket value */
+	QUATCOPY(gsock->ns.vec, sock->ns.vec);
+	return gsock;
+}
+
+void nodeGroupExposeAllSockets(bNodeTree *ngroup)
+{
+	bNode *node;
+	bNodeSocket *sock, *gsock;
+	
+	for (node=ngroup->nodes.first; node; node=node->next) {
+		for (sock=node->inputs.first; sock; sock=sock->next) {
+			if (!sock->link && !(sock->flag & SOCK_HIDDEN)) {
+				gsock = nodeGroupAddSocket(ngroup, sock->name, sock->type, SOCK_IN);
+				/* initialize the default socket value */
+				QUATCOPY(gsock->ns.vec, sock->ns.vec);
+				sock->link = nodeAddLink(ngroup, NULL, gsock, node, sock);
+			}
+		}
+		for (sock=node->outputs.first; sock; sock=sock->next) {
+			if (nodeCountSocketLinks(ngroup, sock)==0 && !(sock->flag & SOCK_HIDDEN)) {
+				gsock = nodeGroupAddSocket(ngroup, sock->name, sock->type, SOCK_OUT);
+				/* initialize the default socket value */
+				QUATCOPY(gsock->ns.vec, sock->ns.vec);
+				gsock->link = nodeAddLink(ngroup, node, sock, NULL, gsock);
+			}
+		}
+	}
+}
+
+void nodeGroupRemoveSocket(bNodeTree *ngroup, bNodeSocket *gsock, int in_out)
+{
+	nodeRemSocketLinks(ngroup, gsock);
+	switch (in_out) {
+	case SOCK_IN:	BLI_remlink(&ngroup->inputs, gsock);	break;
+	case SOCK_OUT:	BLI_remlink(&ngroup->outputs, gsock);	break;
+	}
 }
 
 /* ************** Add stuff ********** */
 void nodeAddSockets(bNode *node, bNodeType *ntype)
 {
-	bNodeSocketType *stype;
-
-	if(ntype->inputs) {
-		stype= ntype->inputs;
-		while(stype->type != -1) {
-			node_add_socket_type(&node->inputs, stype);
-			stype++;
+	if (node->type==NODE_GROUP) {
+		bNodeTree *ntree= (bNodeTree*)node->id;
+		if (ntree) {
+			bNodeSocket *gsock;
+			for (gsock=ntree->inputs.first; gsock; gsock=gsock->next)
+				node_add_group_socket(&node->inputs, gsock);
+			for (gsock=ntree->outputs.first; gsock; gsock=gsock->next)
+				node_add_group_socket(&node->outputs, gsock);
 		}
 	}
-	if(ntype->outputs) {
-		stype= ntype->outputs;
-		while(stype->type != -1) {
-			node_add_socket_type(&node->outputs, stype);
-			stype++;
+	else {
+		bNodeSocketType *stype;
+		
+		if(ntype->inputs) {
+			stype= ntype->inputs;
+			while(stype->type != -1) {
+				node_add_socket_type(&node->inputs, stype);
+				stype++;
+			}
+		}
+		if(ntype->outputs) {
+			stype= ntype->outputs;
+			while(stype->type != -1) {
+				node_add_socket_type(&node->outputs, stype);
+				stype++;
+			}
 		}
 	}
 }
+
 /* Find the first available, non-duplicate name for a given node */
 void nodeUniqueName(bNodeTree *ntree, bNode *node)
 {
@@ -986,7 +960,7 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 			ntype= ntype->next;
 		}
 	} else
-		ntype= node_get_type(ntree, type, ngroup, id);
+		ntype= node_get_type(ntree, type, id);
 
 	node= MEM_callocN(sizeof(bNode), "new node");
 	BLI_addtail(&ntree->nodes, node);
@@ -1050,7 +1024,7 @@ void nodeUpdateType(bNodeTree *ntree, bNode* node, bNodeType *ntype)
 
 /* keep socket listorder identical, for copying links */
 /* ntree is the target tree */
-bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
+bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 {
 	bNode *nnode= MEM_callocN(sizeof(bNode), "dupli node");
 	bNodeSocket *sock, *oldsock;
@@ -1064,15 +1038,11 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 	oldsock= node->inputs.first;
 	for(sock= nnode->inputs.first; sock; sock= sock->next, oldsock= oldsock->next) {
 		oldsock->new_sock= sock;
-		if(internal)
-			sock->own_index= 0;
 	}
 	
 	BLI_duplicatelist(&nnode->outputs, &node->outputs);
 	oldsock= node->outputs.first;
 	for(sock= nnode->outputs.first; sock; sock= sock->next, oldsock= oldsock->next) {
-		if(internal)
-			sock->own_index= 0;
 		sock->stack_index= 0;
 		sock->ns.data= NULL;
 		oldsock->new_sock= sock;
@@ -1098,7 +1068,7 @@ bNodeLink *nodeAddLink(bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock,
 	bNodeLink *link= NULL; 
 	int from= 0, to= 0;
 	
-	if(fromsock) {
+	if(fromnode) {
 		/* test valid input */
 		for(sock= fromnode->outputs.first; sock; sock= sock->next)
 			if(sock==fromsock)
@@ -1113,7 +1083,7 @@ bNodeLink *nodeAddLink(bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock,
 				from= -1; /* OK but flip */
 		}
 	}
-	if(tosock) {
+	if(tonode) {
 		for(sock= tonode->inputs.first; sock; sock= sock->next)
 			if(sock==tosock)
 				break;
@@ -1199,9 +1169,8 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 {
 	bNodeTree *newtree;
 	bNode *node, *nnode, *last;
-	bNodeLink *link, *nlink;
-	bNodeSocket *sock;
-	int a;
+	bNodeLink *link;
+	bNodeSocket *gsock, *oldgsock;
 	
 	if(ntree==NULL) return NULL;
 	
@@ -1220,45 +1189,34 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 	last = ntree->nodes.last;
 	for(node= ntree->nodes.first; node; node= node->next) {
 		node->new_node= NULL;
-		nnode= nodeCopyNode(newtree, node, 0);	/* sets node->new */
-		
-		/* make sure we don't copy new nodes again! */
-		if (node==last)
-			break;
+		nnode= nodeCopyNode(newtree, node);	/* sets node->new */
+		if(node==last) break;
 	}
 	
-	/* check for copying links */
-	for(link= ntree->links.first; link; link= link->next) {
-		if(link->fromnode==NULL || link->tonode==NULL);
-		else if(link->fromnode->new_node && link->tonode->new_node) {
-			nlink= nodeAddLink(newtree, link->fromnode->new_node, NULL, link->tonode->new_node, NULL);
-			/* sockets were copied in order */
-			for(a=0, sock= link->fromnode->outputs.first; sock; sock= sock->next, a++) {
-				if(sock==link->fromsock)
-					break;
-			}
-			nlink->fromsock= BLI_findlink(&link->fromnode->new_node->outputs, a);
-			
-			for(a=0, sock= link->tonode->inputs.first; sock; sock= sock->next, a++) {
-				if(sock==link->tosock)
-					break;
-			}
-			nlink->tosock= BLI_findlink(&link->tonode->new_node->inputs, a);
-		}
+	/* socket definition for group usage */
+	BLI_duplicatelist(&newtree->inputs, &ntree->inputs);
+	for(gsock= newtree->inputs.first, oldgsock= ntree->inputs.first; gsock; gsock=gsock->next, oldgsock=oldgsock->next) {
+		oldgsock->new_sock= gsock;
+		gsock->groupsock = (oldgsock->groupsock ? oldgsock->groupsock->new_sock : NULL);
 	}
 	
-	/* own type definition for group usage */
-	if(ntree->owntype) {
-		newtree->owntype= MEM_dupallocN(ntree->owntype);
-		if(ntree->owntype->inputs)
-			newtree->owntype->inputs= MEM_dupallocN(ntree->owntype->inputs);
-		if(ntree->owntype->outputs)
-			newtree->owntype->outputs= MEM_dupallocN(ntree->owntype->outputs);
+	BLI_duplicatelist(&newtree->outputs, &ntree->outputs);
+	for(gsock= newtree->outputs.first, oldgsock= ntree->outputs.first; gsock; gsock=gsock->next, oldgsock=oldgsock->next) {
+		oldgsock->new_sock= gsock;
+		gsock->groupsock = (oldgsock->groupsock ? oldgsock->groupsock->new_sock : NULL);
 	}
-	
-	/* weird this is required... there seem to be link pointers wrong still? */
-	/* anyhoo, doing this solves crashes on copying entire tree (copy scene) and delete nodes */
-	ntreeSolveOrder(newtree);
+
+	/* copy links */
+	BLI_duplicatelist(&newtree->links, &ntree->links);
+	for(link= newtree->links.first; link; link= link->next) {
+		link->fromnode = (link->fromnode ? link->fromnode->new_node : NULL);
+		link->fromsock = (link->fromsock ? link->fromsock->new_sock : NULL);
+		link->tonode = (link->tonode ? link->tonode->new_node : NULL);
+		link->tosock = (link->tosock ? link->tosock->new_sock : NULL);
+		/* update the link socket's pointer */
+		if (link->tosock)
+			link->tosock->link = link;
+	}
 
 	return newtree;
 }
@@ -1397,7 +1355,8 @@ void nodeUnlinkNode(bNodeTree *ntree, bNode *node)
 		
 		if(link->fromnode==node) {
 			lb= &node->outputs;
-			NodeTagChanged(ntree, link->tonode);
+			if (link->tonode)
+				NodeTagChanged(ntree, link->tonode);
 		}
 		else if(link->tonode==node)
 			lb= &node->inputs;
@@ -1467,13 +1426,8 @@ void ntreeFreeTree(bNodeTree *ntree)
 		nodeFreeNode(ntree, node);
 	}
 	
-	if(ntree->owntype) {
-		if(ntree->owntype->inputs)
-			MEM_freeN(ntree->owntype->inputs);
-		if(ntree->owntype->outputs)
-			MEM_freeN(ntree->owntype->outputs);
-		MEM_freeN(ntree->owntype);
-	}
+	BLI_freelistN(&ntree->inputs);
+	BLI_freelistN(&ntree->outputs);
 }
 
 void ntreeFreeCache(bNodeTree *ntree)
@@ -1807,7 +1761,7 @@ static int node_recurs_check(bNode *node, bNode ***nsort, int level)
 		if(sock->link) {
 			has_inputlinks= 1;
 			fromnode= sock->link->fromnode;
-			if(fromnode->done==0) {
+			if(fromnode && fromnode->done==0) {
 				fromnode->level= node_recurs_check(fromnode, nsort, level);
 			}
 		}
@@ -1893,6 +1847,9 @@ void ntreeSolveOrder(bNodeTree *ntree)
 		for(sock= node->inputs.first; sock; sock= sock->next)
 			sock->link= NULL;
 	}
+	/* clear group socket links */
+	for(sock= ntree->outputs.first; sock; sock= sock->next)
+		sock->link= NULL;
 	if(totnode==0)
 		return;
 	
@@ -1970,33 +1927,40 @@ int NodeTagIDChanged(bNodeTree *ntree, ID *id)
 
 /* ******************* executing ************* */
 
+/* for a given socket, find the actual stack entry */
+static bNodeStack *get_socket_stack(bNodeStack *stack, bNodeSocket *sock, bNodeStack **gin)
+{
+	switch (sock->stack_type) {
+	case SOCK_STACK_LOCAL:
+		return stack + sock->stack_index;
+	case SOCK_STACK_EXTERN:
+		return (gin ? gin[sock->stack_index] : NULL);
+	case SOCK_STACK_CONST:
+		return sock->stack_ptr;
+	}
+	return NULL;
+}
+
 /* see notes at ntreeBeginExecTree */
-static void group_node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack **out, bNodeStack **gin, bNodeStack **gout)
+static void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack **out, bNodeStack **gin)
 {
 	bNodeSocket *sock;
 	
 	/* build pointer stack */
-	for(sock= node->inputs.first; sock; sock= sock->next) {
-		if(sock->intern) {
-			/* yep, intern can have link or is hidden socket */
-			if(sock->link)
-				*(in++)= stack + sock->link->fromsock->stack_index;
-			else
-				*(in++)= &sock->ns;
+	if (in) {
+		for(sock= node->inputs.first; sock; sock= sock->next) {
+			*(in++) = get_socket_stack(stack, sock, gin);
 		}
-		else
-			*(in++)= gin[sock->stack_index_ext];
 	}
 	
-	for(sock= node->outputs.first; sock; sock= sock->next) {
-		if(sock->intern)
-			*(out++)= stack + sock->stack_index;
-		else
-			*(out++)= gout[sock->stack_index_ext];
+	if (out) {
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			*(out++) = get_socket_stack(stack, sock, gin);
+		}
 	}
 }
 
-static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNodeStack **in, bNodeStack **out)
+static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNodeStack **in)
 {
 	bNode *node;
 	bNodeTree *ntree= (bNodeTree *)gnode->id;
@@ -2009,7 +1973,7 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 		
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->execfunc) {
-			group_node_get_stack(node, stack, nsin, nsout, in, out);
+			node_get_stack(node, stack, nsin, nsout, in);
 			
 			/* for groups, only execute outputs for edited group */
 			if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
@@ -2021,24 +1985,118 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 		}
 	}
 	
-	/* free internal group output nodes */
-	if(ntree->type==NTREE_COMPOSIT) {
-		for(node= ntree->nodes.first; node; node= node->next) {
-			if(node->typeinfo->execfunc) {
-				bNodeSocket *sock;
-				
-				for(sock= node->outputs.first; sock; sock= sock->next) {
-					if(sock->intern) {
-						bNodeStack *ns= stack + sock->stack_index;
-						if(ns->data) {
-							free_compbuf(ns->data);
-							ns->data= NULL;
-						}
+	/* free internal buffers */
+	if (ntree->type==NTREE_COMPOSIT) {
+		bNodeSocket *sock;
+		bNodeStack *ns;
+		for (sock=ntree->outputs.first; sock; sock=sock->next) {
+			/* use the hasoutput flag to tag external sockets */
+			if (sock->stack_type==SOCK_STACK_LOCAL) {
+				ns= get_socket_stack(stack, sock, in);
+				ns->hasoutput = 0;
+			}
+		}
+		/* now free all stacks that are not used from outside */
+		for (node=ntree->nodes.first; node; node=node->next) {
+			for (sock=node->outputs.first; sock; sock=sock->next) {
+				if (sock->stack_type==SOCK_STACK_LOCAL ) {
+					ns= get_socket_stack(stack, sock, in);
+					if (ns->hasoutput!=0 && ns->data) {
+						free_compbuf(ns->data);
+						ns->data = NULL;
+						/* reset the flag */
+						ns->hasoutput = 1;
 					}
 				}
 			}
 		}
 	}
+}
+
+static int set_stack_indexes_default(bNode *node, int index)
+{
+	bNodeSocket *sock;
+	
+	for (sock=node->inputs.first; sock; sock=sock->next) {
+		if (sock->link && sock->link->fromsock) {
+			sock->stack_type = sock->link->fromsock->stack_type;
+			sock->stack_index = sock->link->fromsock->stack_index;
+			sock->stack_ptr = sock->link->fromsock->stack_ptr;
+		}
+		else {
+			sock->stack_type = SOCK_STACK_CONST;
+			sock->stack_index = -1;
+			sock->stack_ptr = &sock->ns;
+		}
+	}
+	
+	for (sock=node->outputs.first; sock; sock=sock->next) {
+		sock->stack_type = SOCK_STACK_LOCAL;
+		sock->stack_index = index++;
+		sock->stack_ptr = NULL;
+	}
+	
+	return index;
+}
+
+static int ntree_begin_exec_tree(bNodeTree *ntree);
+static int set_stack_indexes_group(bNode *node, int index)
+{
+	bNodeTree *ngroup= (bNodeTree*)node->id;
+	bNodeSocket *sock;
+	
+	if((ngroup->init & NTREE_TYPE_INIT)==0)
+		ntreeInitTypes(ngroup);
+	
+	node->stack_index = index;
+	index += ntree_begin_exec_tree(ngroup);
+	
+	for (sock=node->inputs.first; sock; sock=sock->next) {
+		if (sock->link && sock->link->fromsock) {
+			sock->stack_type = sock->link->fromsock->stack_type;
+			sock->stack_index = sock->link->fromsock->stack_index;
+			sock->stack_ptr = sock->link->fromsock->stack_ptr;
+		}
+		else {
+			sock->stack_type = SOCK_STACK_CONST;
+			sock->stack_index = -1;
+			sock->stack_ptr = &sock->ns;
+		}
+	}
+	
+	/* identify group node outputs from internal group sockets */
+	for(sock= node->outputs.first; sock; sock= sock->next) {
+		if (sock->groupsock) {
+			bNodeSocket *insock, *gsock = sock->groupsock;
+			switch (gsock->stack_type) {
+			case SOCK_STACK_EXTERN:
+				/* extern stack is resolved for this group node instance */
+				insock= find_group_node_input(node, gsock->link->fromsock);
+				sock->stack_type = insock->stack_type;
+				sock->stack_index = insock->stack_index;
+				sock->stack_ptr = insock->stack_ptr;
+				break;
+			case SOCK_STACK_LOCAL:
+				sock->stack_type = SOCK_STACK_LOCAL;
+				/* local stack index must be offset by group node instance */
+				sock->stack_index = gsock->stack_index + node->stack_index;
+				sock->stack_ptr = NULL;
+				break;
+			case SOCK_STACK_CONST:
+				sock->stack_type = SOCK_STACK_CONST;
+				sock->stack_index = -1;
+				sock->stack_ptr = gsock->stack_ptr;
+				break;
+			}
+		}
+		else {
+			sock->stack_type = SOCK_STACK_LOCAL;
+			sock->stack_index = index++;
+			sock->stack_ptr = NULL;
+		}
+	}
+	
+	return index;
 }
 
 /* recursively called for groups */
@@ -2047,31 +2105,42 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 static int ntree_begin_exec_tree(bNodeTree *ntree)
 {
 	bNode *node;
-	bNodeSocket *sock;
-	int index= 0, index_in= 0, index_out= 0;
+	bNodeSocket *gsock;
+	int index= 0, i;
 	
 	if((ntree->init & NTREE_TYPE_INIT)==0)
 		ntreeInitTypes(ntree);
 	
+	/* group inputs are numbered 0..totinputs, so external stack can easily be addressed */
+	i = 0;
+	for(gsock=ntree->inputs.first; gsock; gsock = gsock->next) {
+		gsock->stack_type = SOCK_STACK_EXTERN;
+		gsock->stack_index = i++;
+		gsock->stack_ptr = NULL;
+	}
+	
 	/* create indices for stack, check preview */
 	for(node= ntree->nodes.first; node; node= node->next) {
-		
-		for(sock= node->inputs.first; sock; sock= sock->next) {
-			if(sock->intern==0)
-				sock->stack_index_ext= index_in++;
+		/* XXX can this be done by a generic one-for-all function?
+		 * otherwise should use node-type callback.
+		 */
+		if(node->type==NODE_GROUP)
+			index = set_stack_indexes_group(node, index);
+		else
+			index = set_stack_indexes_default(node, index);
+	}
+	
+	/* group outputs */
+	for(gsock=ntree->outputs.first; gsock; gsock = gsock->next) {
+		if (gsock->link && gsock->link->fromsock) {
+			gsock->stack_type = gsock->link->fromsock->stack_type;
+			gsock->stack_index = gsock->link->fromsock->stack_index;
+			gsock->stack_ptr = gsock->link->fromsock->stack_ptr;
 		}
-		
-		for(sock= node->outputs.first; sock; sock= sock->next) {
-			sock->stack_index= index++;
-			if(sock->intern==0)
-				sock->stack_index_ext= index_out++;
-		}
-		
-		if(node->type==NODE_GROUP) {
-			if(node->id) {
-				node->stack_index= index;
-				index+= ntree_begin_exec_tree((bNodeTree *)node->id);
-			}
+		else {
+			gsock->stack_type = SOCK_STACK_CONST;
+			gsock->stack_index = -1;
+			gsock->stack_ptr = &gsock->ns;
 		}
 	}
 	
@@ -2079,7 +2148,7 @@ static int ntree_begin_exec_tree(bNodeTree *ntree)
 }
 
 /* copy socket compbufs to stack, initialize usage of curve nodes */
-static void composit_begin_exec(bNodeTree *ntree, int is_group)
+static void composit_begin_exec(bNodeTree *ntree, bNodeStack *stack)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -2089,16 +2158,14 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 		/* initialize needed for groups */
 		node->exec= 0;	
 		
-		if(is_group==0) {
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				bNodeStack *ns= ntree->stack + sock->stack_index;
-				
-				if(sock->ns.data) {
-					ns->data= sock->ns.data;
-					sock->ns.data= NULL;
-				}
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			bNodeStack *ns= get_socket_stack(stack, sock, NULL);
+			if(ns && sock->ns.data) {
+				ns->data= sock->ns.data;
+				sock->ns.data= NULL;
 			}
 		}
+		
 		/* cannot initialize them while using in threads */
 		if(ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT)) {
 			curvemapping_initialize(node->storage);
@@ -2106,73 +2173,59 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 				curvemapping_premultiply(node->storage, 0);
 		}
 		if(node->type==NODE_GROUP)
-			composit_begin_exec((bNodeTree *)node->id, 1);
+			composit_begin_exec((bNodeTree *)node->id, stack + node->stack_index);
 
 	}
 }
 
 /* copy stack compbufs to sockets */
-static void composit_end_exec(bNodeTree *ntree, int is_group)
+static void composit_end_exec(bNodeTree *ntree, bNodeStack *stack)
 {
 	bNode *node;
 	bNodeStack *ns;
-	int a;
 
 	for(node= ntree->nodes.first; node; node= node->next) {
-		if(is_group==0) {
-			bNodeSocket *sock;
+		bNodeSocket *sock;
 		
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				ns= ntree->stack + sock->stack_index;
-				if(ns->data) {
-					sock->ns.data= ns->data;
-					ns->data= NULL;
-				}
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			ns = get_socket_stack(stack, sock, NULL);
+			if(ns && ns->data) {
+				sock->ns.data= ns->data;
+				ns->data= NULL;
 			}
 		}
+		
 		if(node->type==CMP_NODE_CURVE_RGB)
 			curvemapping_premultiply(node->storage, 1);
 		
 		if(node->type==NODE_GROUP)
-			composit_end_exec((bNodeTree *)node->id, 1);
+			composit_end_exec((bNodeTree *)node->id, stack + node->stack_index);
 
 		node->need_exec= 0;
 	}
-	
-	if(is_group==0) {
-		/* internally, group buffers are not stored */
-		for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++) {
-			if(ns->data) {
-				printf("freed leftover buffer from stack\n");
-				free_compbuf(ns->data);
-				ns->data= NULL;
-			}
-		}
-	}
 }
 
-static void group_tag_used_outputs(bNode *gnode, bNodeStack *stack)
+static void group_tag_used_outputs(bNode *gnode, bNodeStack *stack, bNodeStack **gin)
 {
 	bNodeTree *ntree= (bNodeTree *)gnode->id;
 	bNode *node;
+	bNodeSocket *sock;
 	
 	stack+= gnode->stack_index;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->execfunc) {
-			bNodeSocket *sock;
-			
 			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(sock->intern) {
-					if(sock->link) {
-						bNodeStack *ns= stack + sock->link->fromsock->stack_index;
-						ns->hasoutput= 1;
-						ns->sockettype= sock->link->fromsock->type;
-					}
-					else
-						sock->ns.sockettype= sock->type;
-				}
+				bNodeStack *ns = get_socket_stack(stack, sock, gin);
+				ns->hasoutput= 1;
 			}
+		}
+		
+		/* set stack types (for local stack entries) */
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			bNodeStack *ns = get_socket_stack(stack, sock, NULL);
+			if (ns)
+				ns->sockettype = sock->type;
 		}
 	}
 }
@@ -2231,6 +2284,8 @@ static void tex_end_exec(bNodeTree *ntree)
 
 void ntreeBeginExecTree(bNodeTree *ntree)
 {
+	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
+	
 	/* let's make it sure */
 	if(ntree->init & NTREE_EXEC_INIT)
 		return;
@@ -2262,13 +2317,16 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 				node->need_exec= 1;
 
 			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(sock->link) {
-					ns= ntree->stack + sock->link->fromsock->stack_index;
-					ns->hasoutput= 1;
-					ns->sockettype= sock->link->fromsock->type;
+				ns = get_socket_stack(ntree->stack, sock, NULL);
+				if (ns) {
+					ns->hasoutput = 1;
+					
+					/* sock type is needed to detect rgba or value or vector types */
+					if(sock->link)
+						ns->sockettype= sock->link->fromsock->type;
+					else
+						sock->ns.sockettype= sock->type;
 				}
-				else
-					sock->ns.sockettype= sock->type;
 				
 				if(sock->link) {
 					bNodeLink *link= sock->link;
@@ -2282,13 +2340,21 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 				}
 			}
 			
-			if(node->type==NODE_GROUP && node->id)
-				group_tag_used_outputs(node, ntree->stack);
+			/* set stack types (for local stack entries) */
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				ns = get_socket_stack(ntree->stack, sock, NULL);
+				if (ns)
+					ns->sockettype = sock->type;
+			}
 			
+			if(node->type==NODE_GROUP && node->id) {
+				node_get_stack(node, ntree->stack, nsin, NULL, NULL);
+				group_tag_used_outputs(node, ntree->stack, nsin);
+			}
 		}
 		
 		if(ntree->type==NTREE_COMPOSIT)
-			composit_begin_exec(ntree, 0);
+			composit_begin_exec(ntree, ntree->stack);
 	}
 	
 	ntree->init |= NTREE_EXEC_INIT;
@@ -2296,14 +2362,24 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 
 void ntreeEndExecTree(bNodeTree *ntree)
 {
+	bNodeStack *ns;
 	
 	if(ntree->init & NTREE_EXEC_INIT) {
 		bNodeThreadStack *nts;
 		int a;
 		
 		/* another callback candidate! */
-		if(ntree->type==NTREE_COMPOSIT)
-			composit_end_exec(ntree, 0);
+		if(ntree->type==NTREE_COMPOSIT) {
+			composit_end_exec(ntree, ntree->stack);
+			
+			for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++) {
+				if(ns->data) {
+					printf("freed leftover buffer from stack\n");
+					free_compbuf(ns->data);
+					ns->data= NULL;
+				}
+			}
+		}
 		else if(ntree->type==NTREE_TEXTURE)
 			tex_end_exec(ntree);
 		
@@ -2327,23 +2403,6 @@ void ntreeEndExecTree(bNodeTree *ntree)
 	}
 }
 
-static void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack **out)
-{
-	bNodeSocket *sock;
-	
-	/* build pointer stack */
-	for(sock= node->inputs.first; sock; sock= sock->next) {
-		if(sock->link)
-			*(in++)= stack + sock->link->fromsock->stack_index;
-		else
-			*(in++)= &sock->ns;
-	}
-	
-	for(sock= node->outputs.first; sock; sock= sock->next) {
-		*(out++)= stack + sock->stack_index;
-	}
-}
-
 /* nodes are presorted, so exec is in order of list */
 void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 {
@@ -2356,7 +2415,7 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 	/* only when initialized */
 	if((ntree->init & NTREE_EXEC_INIT)==0)
 		ntreeBeginExecTree(ntree);
-		
+	
 	/* composite does 1 node per thread, so no multiple stacks needed */
 	if(ntree->type==NTREE_COMPOSIT) {
 		stack= ntree->stack;
@@ -2369,12 +2428,12 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->need_exec) {
 			if(node->typeinfo->execfunc) {
-				node_get_stack(node, stack, nsin, nsout);
+				node_get_stack(node, stack, nsin, nsout, NULL);
 				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
 			}
 			else if(node->type==NODE_GROUP && node->id) {
-				node_get_stack(node, stack, nsin, nsout);
-				node_group_execute(stack, callerdata, node, nsin, nsout); 
+				node_get_stack(node, stack, nsin, NULL, NULL);
+				node_group_execute(stack, callerdata, node, nsin);
 			}
 		}
 	}
@@ -2420,7 +2479,7 @@ static void *exec_composite_node(void *node_v)
 	bNode *node= node_v;
 	ThreadData *thd= (ThreadData *)node->threaddata;
 	
-	node_get_stack(node, thd->stack, nsin, nsout);
+	node_get_stack(node, thd->stack, nsin, nsout, NULL);
 	
 	if((node->flag & NODE_MUTED) && (!node_only_value(node))) {
 		/* viewers we execute, for feedback to user */
@@ -2433,7 +2492,7 @@ static void *exec_composite_node(void *node_v)
 		node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
 	}
 	else if(node->type==NODE_GROUP && node->id) {
-		node_group_execute(thd->stack, thd->rd, node, nsin, nsout); 
+		node_group_execute(thd->stack, thd->rd, node, nsin); 
 	}
 	
 	node->exec |= NODE_READY;
@@ -2461,7 +2520,7 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 	for(node= ntree->nodes.first; node; node= node->next) {
 		int a;
 		
-		node_get_stack(node, thd->stack, nsin, nsout);
+		node_get_stack(node, thd->stack, nsin, nsout, NULL);
 		
 		/* test the outputs */
 		/* skip value-only nodes (should be in type!) */
@@ -2526,7 +2585,7 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 		for(node= ntree->nodes.first; node; node= node->next) {
 			if(node->need_exec==0 && node_only_value(node)) {
 				if(node->typeinfo->execfunc) {
-					node_get_stack(node, thd->stack, nsin, nsout);
+					node_get_stack(node, thd->stack, nsin, nsout, NULL);
 					node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
 				}
 			}
@@ -2564,8 +2623,8 @@ static void freeExecutableNode(bNodeTree *ntree)
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->exec & NODE_FREEBUFS) {
 			for(sock= node->outputs.first; sock; sock= sock->next) {
-				bNodeStack *ns= ntree->stack + sock->stack_index;
-				if(ns->data) {
+				bNodeStack *ns= get_socket_stack(ntree->stack, sock, NULL);
+				if(ns && ns->data) {
 					free_compbuf(ns->data);
 					ns->data= NULL;
 					// printf("freed buf node %s \n", node->name);
@@ -2585,7 +2644,7 @@ static bNode *getExecutableNode(bNodeTree *ntree)
 			
 			/* input sockets should be ready */
 			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(sock->link)
+				if(sock->link && sock->link->fromnode)
 					if((sock->link->fromnode->exec & NODE_READY)==0)
 						break;
 			}
@@ -2656,7 +2715,6 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 		if(BLI_available_threads(&threads)) {
 			node= getExecutableNode(ntree);
 			if(node) {
-				
 				if(ntree->progress && totnode)
 					ntree->progress(ntree->prh, (1.0 - curnode/(float)totnode));
 				if(ntree->stats_draw) {
@@ -2923,7 +2981,7 @@ static void data_from_gpu_stack(ListBase *sockets, bNodeStack **ns, GPUNodeStack
 	}
 }
 
-static void gpu_node_group_execute(bNodeStack *stack, GPUMaterial *mat, bNode *gnode, bNodeStack **in, bNodeStack **out)
+static void gpu_node_group_execute(bNodeStack *stack, GPUMaterial *mat, bNode *gnode, bNodeStack **in)
 {
 	bNode *node;
 	bNodeTree *ntree= (bNodeTree *)gnode->id;
@@ -2938,7 +2996,7 @@ static void gpu_node_group_execute(bNodeStack *stack, GPUMaterial *mat, bNode *g
 		
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->gpufunc) {
-			group_node_get_stack(node, stack, nsin, nsout, in, out);
+			node_get_stack(node, stack, nsin, nsout, in);
 
 			doit = 0;
 			
@@ -2976,15 +3034,15 @@ void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat)
 
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->gpufunc) {
-			node_get_stack(node, stack, nsin, nsout);
+			node_get_stack(node, stack, nsin, nsout, NULL);
 			gpu_from_node_stack(&node->inputs, nsin, gpuin);
 			gpu_from_node_stack(&node->outputs, nsout, gpuout);
 			if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout))
 				data_from_gpu_stack(&node->outputs, nsout, gpuout);
 		}
 		else if(node->type==NODE_GROUP && node->id) {
-			node_get_stack(node, stack, nsin, nsout);
-			gpu_node_group_execute(stack, mat, node, nsin, nsout);
+			node_get_stack(node, stack, nsin, nsout, NULL);
+			gpu_node_group_execute(stack, mat, node, nsin);
 		}
 	}
 
@@ -3413,7 +3471,7 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_sh_value(ntypelist);
 	register_node_type_sh_rgb(ntypelist);
 	register_node_type_sh_texture(ntypelist);
-	register_node_type_sh_dynamic(ntypelist);
+//	register_node_type_sh_dynamic(ntypelist);
 	register_node_type_sh_invert(ntypelist);
 	register_node_type_sh_seprgb(ntypelist);
 	register_node_type_sh_combrgb(ntypelist);

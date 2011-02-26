@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_TimeEventManager.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 // This warning tells us about truncation of __long__ stl-generated names.
@@ -109,3 +114,9 @@ void SCA_TimeEventManager::RemoveTimeProperty(CValue* timeval)
 		}
 	}
 }
+
+vector<CValue*> SCA_TimeEventManager::GetTimeValues()
+{
+	return m_timevalues;
+}
+

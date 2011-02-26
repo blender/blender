@@ -1,6 +1,4 @@
-/**
- * An abstract object you can move around in a 3d world, and has some logic
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_IPOTransform.h
+ *  \ingroup ketsji
+ *  \brief An abstract object you can move around in a 3d world, and has some logic
  */
 
 #ifndef KX_IPOTRANSFORM_H

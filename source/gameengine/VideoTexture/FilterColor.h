@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file FilterColor.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined FILTERCOLOR_H
 #define FILTERCOLOR_H
 

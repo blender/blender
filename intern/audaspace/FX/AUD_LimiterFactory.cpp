@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_LimiterFactory.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_LimiterFactory.h"
 #include "AUD_LimiterReader.h"
 #include "AUD_Space.h"

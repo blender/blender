@@ -1936,11 +1936,6 @@ float *makeOrcoDispList(Scene *scene, Object *ob, DerivedMesh *derivedFinal, int
 	return orco;
 }
 
-void imagestodisplist(void)
-{
-	/* removed */
-}
-
 /* this is confusing, there's also min_max_object, appplying the obmat... */
 static void boundbox_displist(Object *ob)
 {

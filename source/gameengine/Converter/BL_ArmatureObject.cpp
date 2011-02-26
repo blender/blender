@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Converter/BL_ArmatureObject.cpp
+ *  \ingroup bgeconv
+ */
+
 
 #include "BL_ArmatureObject.h"
 #include "BL_ActionActuator.h"

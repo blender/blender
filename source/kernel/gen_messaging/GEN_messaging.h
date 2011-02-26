@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file kernel/gen_messaging/GEN_messaging.h
+ *  \ingroup genmess
+ */
+
 #ifndef GEN_MESSAGING_H
 #define GEN_MESSAGING_H
 

@@ -1,4 +1,4 @@
-/**
+/*
 * $Id$
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
 *
 * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+
+/** \file blender/windowmanager/intern/wm_cursors.c
+ *  \ingroup wm
+ */
+
 
 #include <stdio.h>
 #include <string.h>

@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * NetworkSceneManagement generic class
+ */
+
+/** \file NG_NetworkScene.h
+ *  \ingroup bgenet
+ *  \brief NetworkSceneManagement generic class
  */
 #ifndef __NG_NETWORKSCENE_H
 #define __NG_NETWORKSCENE_H

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file bsp/intern/BSP_CSGMesh.h
+ *  \ingroup bsp
+ */
+
 
 #ifndef NAN_INCLUDED_BSP_CSGMesh_h
 #define NAN_INCLUDED_BSP_CSGMesh_h

@@ -30,7 +30,11 @@ override_dh_python3:
 get-orig-source:
 	rm -rf get-orig-source $(TARBALL)
 	mkdir get-orig-source
-	svn -q export -r $(REV) $(SVN_URL) get-orig-source/blender-$(VER)
+	if [ "$(SVN_URL)" = . ] && [ `svnversion` = "$(REV)" ]; then \
+		svn -q export . get-orig-source/blender-$(VER); \
+	else \
+		svn -q export -r $(REV) $(SVN_URL) get-orig-source/blender-$(VER); \
+	fi
 	GZIP='--best --no-name' tar czf $(TARBALL) -C get-orig-source blender-$(VER)
 	rm -rf get-orig-source
 	@echo "$(TARBALL) created; move it to the right destination to build the package"

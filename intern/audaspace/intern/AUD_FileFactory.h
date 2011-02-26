@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_FileFactory.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_FILEFACTORY
 #define AUD_FILEFACTORY
 

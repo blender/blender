@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Initialize Python thingies.
+ */
+
+/** \file KX_PyMath.h
+ *  \ingroup ketsji
+ *  \brief Initialize Python thingies.
  */
 
 #ifndef __KX_PYMATH_H__

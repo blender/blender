@@ -1,3 +1,6 @@
+/** \file smoke/intern/tnt/tnt_fortran_array2d.h
+ *  \ingroup smoke
+ */
 /*
 *
 * Template Numerical Toolkit (TNT): Two-dimensional Fortran numerical array

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file SCA_ActuatorEventManager.h
+ *  \ingroup gamelogic
+ */
+
 #ifndef __KX_ACTUATOREVENTMANAGER
 #define __KX_ACTUATOREVENTMANAGER
 

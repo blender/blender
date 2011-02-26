@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,6 +22,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
+/** \file TransformReader.h
+ *  \ingroup collada
+ */
+
 #ifndef __BC_TRANSFORMREADER_H__
 #define __BC_TRANSFORMREADER_H__
 

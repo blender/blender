@@ -1,3 +1,6 @@
+/** \file itasc/FixedObject.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * FixedObject.cpp
  *

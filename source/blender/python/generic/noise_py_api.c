@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * Blender.Noise BPython module implementation.

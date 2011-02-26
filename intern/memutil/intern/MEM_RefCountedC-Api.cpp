@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file memutil/intern/MEM_RefCountedC-Api.cpp
+ *  \ingroup memutil
+ */
+
 
 #include "MEM_RefCountedC-Api.h"
 #include "MEM_RefCounted.h"

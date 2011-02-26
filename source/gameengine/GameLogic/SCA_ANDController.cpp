@@ -1,4 +1,4 @@
-/**
+/*
  * 'And' together all inputs
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_ANDController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_ANDController.h"
 #include "SCA_ISensor.h"

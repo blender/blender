@@ -22,6 +22,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file DocumentImporter.h
+ *  \ingroup collada
+ */
+
 #ifndef __DOCUMENTIMPORTER_H__
 #define __DOCUMENTIMPORTER_H__
 

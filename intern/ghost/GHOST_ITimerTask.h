@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_ITimerTask.h
+
+/** \file ghost/GHOST_ITimerTask.h
+ *  \ingroup GHOST
  * Declaration of GHOST_ITimerTask interface class.
  */
 

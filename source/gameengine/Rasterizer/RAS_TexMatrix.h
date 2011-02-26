@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file RAS_TexMatrix.h
+ *  \ingroup bgerast
+ */
+
 #ifndef __RASTEXMATRIX
 #define __RASTEXMATRIX
 

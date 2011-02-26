@@ -475,10 +475,10 @@ PyTypeObject color_Type = {
 	NULL,							//tp_getattro
 	NULL,							//tp_setattro
 	NULL,							//tp_as_buffer
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, //tp_flags
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, //tp_flags
 	color_doc, //tp_doc
-	NULL,							//tp_traverse
-	NULL,							//tp_clear
+	(traverseproc)BaseMathObject_traverse,	//tp_traverse
+	(inquiry)BaseMathObject_clear,	//tp_clear
 	(richcmpfunc)Color_richcmpr,	//tp_richcompare
 	0,								//tp_weaklistoffset
 	NULL,							//tp_iter
@@ -513,28 +513,31 @@ PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 {
 	ColorObject *self;
 
-	if(base_type)	self = (ColorObject *)base_type->tp_alloc(base_type, 0);
-	else			self = PyObject_NEW(ColorObject, &color_Type);
+	self= base_type ?	(ColorObject *)base_type->tp_alloc(base_type, 0) :
+						(ColorObject *)PyObject_GC_New(ColorObject, &color_Type);
 
-	/* init callbacks as NULL */
-	self->cb_user= NULL;
-	self->cb_type= self->cb_subtype= 0;
+	if(self) {
+		/* init callbacks as NULL */
+		self->cb_user= NULL;
+		self->cb_type= self->cb_subtype= 0;
 
-	if(type == Py_WRAP){
-		self->col = col;
-		self->wrapped = Py_WRAP;
-	}
-	else if (type == Py_NEW){
-		self->col = PyMem_Malloc(COLOR_SIZE * sizeof(float));
-		if(col)
-			copy_v3_v3(self->col, col);
-		else
-			zero_v3(self->col);
+		if(type == Py_WRAP){
+			self->col = col;
+			self->wrapped = Py_WRAP;
+		}
+		else if (type == Py_NEW){
+			self->col = PyMem_Malloc(COLOR_SIZE * sizeof(float));
+			if(col)
+				copy_v3_v3(self->col, col);
+			else
+				zero_v3(self->col);
 
-		self->wrapped = Py_NEW;
-	}
-	else {
-		return NULL;
+			self->wrapped = Py_NEW;
+		}
+		else {
+			PyErr_SetString(PyExc_RuntimeError, "Color(): invalid type");
+			return NULL;
+		}
 	}
 
 	return (PyObject *)self;

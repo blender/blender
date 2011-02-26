@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_cloth.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_cloth_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"

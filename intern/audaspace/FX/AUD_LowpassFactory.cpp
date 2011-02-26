@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_LowpassFactory.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_LowpassFactory.h"
 #include "AUD_IIRFilterReader.h"
 

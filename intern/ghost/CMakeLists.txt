@@ -134,6 +134,11 @@ elseif(UNIX)
 
 	add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
 
+	if(X11_XF86keysym_INCLUDE_PATH)
+		add_definitions(-DWITH_XF86KEYSYM)
+		list(APPEND INC ${X11_XF86keysym_INCLUDE_PATH})
+	endif()
+
 elseif(WIN32)
 	if(MSVC)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")

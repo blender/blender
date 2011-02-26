@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_SystemPathsX11.cpp
+ *  \ingroup GHOST
+ */
+
 
 #include "GHOST_SystemPathsX11.h"
 
@@ -60,7 +65,7 @@ const GHOST_TUns8* GHOST_SystemPathsX11::getSystemDir() const
 
 const GHOST_TUns8* GHOST_SystemPathsX11::getUserDir() const
 {
-	char* env = getenv("HOME");
+	const char* env = getenv("HOME");
 	if(env) {
 		return (GHOST_TUns8*) env;
 	} else {

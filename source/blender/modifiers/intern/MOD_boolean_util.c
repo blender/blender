@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * CSG operations. 
  */
+
+/** \file blender/modifiers/intern/MOD_boolean_util.c
+ *  \ingroup modifiers
+ */
+
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"

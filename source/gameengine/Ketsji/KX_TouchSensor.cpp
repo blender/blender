@@ -1,4 +1,4 @@
-/**
+/*
  * Senses touch and collision events
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_TouchSensor.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_TouchSensor.h"
 #include "SCA_EventManager.h"

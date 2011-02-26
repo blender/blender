@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_I3DDevice.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_I3DDEVICE
 #define AUD_I3DDEVICE
 

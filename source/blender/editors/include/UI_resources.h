@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  * Contributor(s): none yet.
  * 
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+
+/** \file UI_resources.h
+ *  \ingroup editorui
  */
 
 #ifndef UI_RESOURCES_H

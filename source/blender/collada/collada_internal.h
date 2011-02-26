@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file collada_internal.h
+ *  \ingroup collada
+ */
+
 #ifndef COLLADA_INTERNAL_H
 #define COLLADA_INTERNAL_H
 

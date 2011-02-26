@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_EffectReader.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_EffectReader.h"
 
 AUD_EffectReader::AUD_EffectReader(AUD_IReader* reader)

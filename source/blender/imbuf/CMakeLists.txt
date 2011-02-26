@@ -29,6 +29,7 @@ set(INC
 	../avi
 	../blenlib
 	../blenkernel
+	../blenloader
 	../makesdna
 	../../../intern/memutil
 	../../../intern/guardedalloc

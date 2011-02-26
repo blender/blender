@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_SilenceReader.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #include "AUD_SilenceReader.h"
 
 #include <cstring>

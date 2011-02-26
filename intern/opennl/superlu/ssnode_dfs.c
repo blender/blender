@@ -1,3 +1,6 @@
+/** \file opennl/superlu/ssnode_dfs.c
+ *  \ingroup opennl
+ */
 
 
 /*

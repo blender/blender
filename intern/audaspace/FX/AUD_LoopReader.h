@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_LoopReader.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_LOOPREADER
 #define AUD_LOOPREADER
 

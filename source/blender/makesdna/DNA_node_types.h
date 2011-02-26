@@ -70,21 +70,29 @@ typedef struct bNodeSocket {
 	char name[32];
 	bNodeStack ns;				/* custom data for inputs, only UI writes in this */
 	
-	short type, flag;			/* type is copy from socket type struct */
-	short limit, stack_index;	/* limit for dependency sort, stack_index for exec */
-	short intern;				/* intern = tag for group nodes */
-	short stack_index_ext;		/* for groups, to find the caller stack index */
-	int pad1;
+	short type, flag;
+	short limit;				/* max. number of links */
+	
+	/* stack data info (only during execution!) */
+	short stack_type;			/* type of stack reference */
+	/* XXX only one of stack_ptr or stack_index is used (depending on stack_type).
+	 * could store the index in the pointer with SET_INT_IN_POINTER (a bit ugly).
+	 * (union won't work here, not supported by DNA)
+	 */
+	struct bNodeStack *stack_ptr;	/* constant input value */
+	short stack_index;			/* local stack index or external input number */
+	short pad1;
 	
 	float locx, locy;
 	
 	/* internal data to retrieve relations and groups */
 	
-	int own_index, to_index;	/* group socket identifiers, to find matching pairs after reading files */
+	int own_index;				/* group socket identifiers, to find matching pairs after reading files */
+	struct bNodeSocket *groupsock;
+	int to_index;				/* XXX deprecated, only used for restoring old group node links */
+	int pad2;
 	
-	struct bNodeSocket *tosock;	/* group-node sockets point to the internal group counterpart sockets, set after read file  */
 	struct bNodeLink *link;		/* a link pointer, set in nodeSolveOrder() */
-	
 } bNodeSocket;
 
 /* sock->type */
@@ -99,11 +107,16 @@ typedef struct bNodeSocket {
 #define SOCK_IN_USE				4
 		/* unavailable is for dynamic sockets */
 #define SOCK_UNAVAIL			8
-#
-#
+
+/* sock->stack_type */
+#define SOCK_STACK_LOCAL		1	/* part of the local tree stack */
+#define SOCK_STACK_EXTERN		2	/* use input stack pointer */
+#define SOCK_STACK_CONST		3	/* use pointer to constant input value */
+
 typedef struct bNodePreview {
 	unsigned char *rect;
 	short xsize, ysize;
+	int pad;
 } bNodePreview;
 
 
@@ -185,7 +198,7 @@ typedef struct bNodeTree {
 	int flag, pad;					
 	
 	ListBase alltypes;				/* type definitions */
-	struct bNodeType *owntype;		/* for groups or dynamic trees, no read/write */
+	ListBase inputs, outputs;		/* external sockets for group nodes */
 
 	int pad2[2];
 	
@@ -207,7 +220,11 @@ typedef struct bNodeTree {
 #define NTREE_EXEC_INIT	2
 
 /* ntree->flag */
-#define NTREE_DS_EXPAND	1	/* for animation editors */
+#define NTREE_DS_EXPAND		1	/* for animation editors */
+/* XXX not nice, but needed as a temporary flag
+ * for group updates after library linking.
+ */
+#define NTREE_DO_VERSIONS	1024
 
 /* data structs, for node->storage */
 

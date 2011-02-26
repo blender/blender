@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_shrinkwrap.c
+ *  \ingroup modifiers
+ */
+
+
 #include <string.h>
 
 #include "BLI_string.h"

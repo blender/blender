@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -23,6 +23,10 @@
  * Contributor(s): Ben Batt
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file MOD_modifiertypes.h
+ *  \ingroup modifiers
  */
 
 #ifndef MOD_MODIFIERTYPES_H

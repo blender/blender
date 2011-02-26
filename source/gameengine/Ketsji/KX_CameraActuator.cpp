@@ -1,4 +1,4 @@
-/**
+/*
  * KX_CameraActuator.cpp
  *
  * $Id$
@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  *
  */
+
+/** \file gameengine/Ketsji/KX_CameraActuator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_CameraActuator.h"
 #include <iostream>

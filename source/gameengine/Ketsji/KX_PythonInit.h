@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_PythonInit.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_PYTHON_INIT
 #define __KX_PYTHON_INIT
 

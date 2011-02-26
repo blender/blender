@@ -1,4 +1,4 @@
-/**
+/*
  * allocimbuf.h
  *
  * $Id$

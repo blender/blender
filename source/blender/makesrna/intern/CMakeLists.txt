@@ -41,6 +41,7 @@ set_source_files_properties(GENSRC PROPERTIES GENERATED true)
 set(SRC_RNA_INC
 	../RNA_access.h
 	../RNA_define.h
+	../RNA_documentation.h
 	../RNA_enum_types.h
 	../RNA_types.h
 )
@@ -129,6 +130,7 @@ blender_include_dirs(
 	.
 	..
 	../../blenkernel
+	../../blenloader
 	../../blenlib
 	../../blenfont
 	../../gpu

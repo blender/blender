@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * GHOST Blender Player application implementation file.
  */
+
+/** \file gameengine/GamePlayer/ghost/GPG_Application.cpp
+ *  \ingroup player
+ */
+
 
 #ifdef WIN32
 	#pragma warning (disable:4786) // suppress stl-MSVC debug info warning

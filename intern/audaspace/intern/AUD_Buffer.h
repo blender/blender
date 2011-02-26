@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_Buffer.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_BUFFER
 #define AUD_BUFFER
 

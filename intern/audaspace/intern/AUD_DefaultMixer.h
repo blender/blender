@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_DefaultMixer.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_DEFAULTMIXER
 #define AUD_DEFAULTMIXER
 

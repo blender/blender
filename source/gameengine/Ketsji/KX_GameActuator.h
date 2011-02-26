@@ -1,7 +1,3 @@
- 
-//
-// actuator for global game stuff
-//
 // $Id$
 //
 // ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +25,11 @@
 //
 // ***** END GPL LICENSE BLOCK *****
 //
+
+/** \file KX_GameActuator.h
+ *  \ingroup ketsji
+ *  \brief actuator for global game stuff
+ */
 
 #ifndef __KX_GAMEACTUATOR
 #define __KX_GAMEACTUATOR

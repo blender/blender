@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/InputParser.cpp
+ *  \ingroup expressions
+ */
 // Parser.cpp: implementation of the CParser class.
 /*
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>

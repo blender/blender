@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -54,6 +54,8 @@
 #include "AUD_PyInit.h"
 
 #include "BPy_Freestyle.h"
+
+PyObject *bpy_package_py= NULL;
 
 static char bpy_script_paths_doc[] =
 ".. function:: script_paths()\n"
@@ -163,7 +165,7 @@ static PyMethodDef meth_bpy_script_paths = {"script_paths", (PyCFunction)bpy_scr
 static PyMethodDef meth_bpy_blend_paths = {"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
 static PyMethodDef meth_bpy_user_resource = {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, NULL};
 
-static void bpy_import_test(const char *modname)
+static PyObject *bpy_import_test(const char *modname)
 {
 	PyObject *mod= PyImport_ImportModuleLevel((char *)modname, NULL, NULL, NULL, 0);
 	if(mod) {
@@ -173,6 +175,8 @@ static void bpy_import_test(const char *modname)
 		PyErr_Print();
 		PyErr_Clear();
 	}	
+
+	return mod;
 }
 
 /*****************************************************************************
@@ -238,5 +242,5 @@ void BPy_init_modules( void )
 	PyModule_AddObject(mod, meth_bpy_unregister_class.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_unregister_class, NULL));
 
 	/* add our own modules dir, this is a python package */
-	bpy_import_test("bpy");
+	bpy_package_py= bpy_import_test("bpy");
 }

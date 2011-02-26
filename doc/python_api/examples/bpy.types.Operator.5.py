@@ -25,7 +25,7 @@ class ModalOperator(bpy.types.Operator):
 
     def __init__(self):
         print("Start")
-        
+
     def __del__(self):
         print("End")
 
@@ -33,7 +33,7 @@ class ModalOperator(bpy.types.Operator):
         context.object.location.x = self.value / 100.0
 
     def modal(self, context, event):
-        if event.type == 'MOUSEMOVE': # Apply
+        if event.type == 'MOUSEMOVE':  # Apply
             self.value = event.mouse_x
             self.execute(context)
         elif event.type == 'LEFTMOUSE':  # Confirm
@@ -49,7 +49,6 @@ class ModalOperator(bpy.types.Operator):
 
         print(context.window_manager.modal_handler_add(self))
         return {'RUNNING_MODAL'}
-
 
 
 bpy.utils.register_class(ModalOperator)

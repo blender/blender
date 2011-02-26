@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_PingPongFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_PINGPONGFACTORY
 #define AUD_PINGPONGFACTORY
 

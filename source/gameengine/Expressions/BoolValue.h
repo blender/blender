@@ -12,6 +12,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+
+/** \file BoolValue.h
+ *  \ingroup expressions
+ */
+
 #if !defined _BOOLVALUE_H
 #define _BOOLVALUE_H
 

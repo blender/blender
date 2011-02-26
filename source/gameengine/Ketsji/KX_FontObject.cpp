@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_FontObject.cpp
+ *  \ingroup ketsji
+ */
+
 #include "KX_FontObject.h"
 #include "DNA_curve_types.h"
 #include "KX_Scene.h"

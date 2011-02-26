@@ -31,6 +31,11 @@
  * DNA handling
  */
 
+/** \file blender/makesdna/intern/dna_genfile.c
+ *  \ingroup DNA
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

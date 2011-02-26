@@ -1,3 +1,8 @@
+
+/** \file RAS_ListRasterizer.h
+ *  \ingroup bgerastogl
+ */
+
 #ifndef __RAS_LISTRASTERIZER_H__
 #define __RAS_LISTRASTERIZER_H__
 

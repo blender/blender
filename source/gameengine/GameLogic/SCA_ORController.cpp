@@ -1,4 +1,4 @@
-/**
+/*
  * 'Or' together all inputs
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_ORController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_ORController.h"
 #include "SCA_ISensor.h"

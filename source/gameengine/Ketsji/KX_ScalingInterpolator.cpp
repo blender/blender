@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_ScalingInterpolator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_ScalingInterpolator.h"
 #include "MT_Vector3.h"

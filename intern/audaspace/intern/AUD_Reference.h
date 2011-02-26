@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_Reference.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_REFERENCE
 #define AUD_REFERENCE
 

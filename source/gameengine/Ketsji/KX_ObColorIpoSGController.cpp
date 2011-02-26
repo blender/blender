@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_ObColorIpoSGController.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_ObColorIpoSGController.h"
 #include "KX_ScalarInterpolator.h"

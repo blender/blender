@@ -1,4 +1,4 @@
-/**
+/*
  * Set random/camera stuff
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_RandomActuator.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include <stddef.h>
 

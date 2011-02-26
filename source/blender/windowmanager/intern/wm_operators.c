@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/windowmanager/intern/wm_operators.c
+ *  \ingroup wm
+ */
+
 
 #include <float.h>
 #include <string.h>
@@ -382,21 +387,24 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType*, void*), vo
 wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname)
 {
 	wmOperatorTypeMacro *otmacro= MEM_callocN(sizeof(wmOperatorTypeMacro), "wmOperatorTypeMacro");
-	
+
 	BLI_strncpy(otmacro->idname, idname, OP_MAX_TYPENAME);
 
 	/* do this on first use, since operatordefinitions might have been not done yet */
 	WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);
 	WM_operator_properties_sanitize(otmacro->ptr, 1);
-	
+
 	BLI_addtail(&ot->macro, otmacro);
 
 	{
+		/* operator should always be found but in the event its not. dont segfault */
 		wmOperatorType *otsub = WM_operatortype_find(idname, 0);
-		RNA_def_pointer_runtime(ot->srna, otsub->idname, otsub->srna,
-		otsub->name, otsub->description);
+		if(otsub) {
+			RNA_def_pointer_runtime(ot->srna, otsub->idname, otsub->srna,
+			otsub->name, otsub->description);
+		}
 	}
-	
+
 	return otmacro;
 }
 

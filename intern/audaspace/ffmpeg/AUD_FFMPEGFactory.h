@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/ffmpeg/AUD_FFMPEGFactory.h
+ *  \ingroup audffmpeg
+ */
+
+
 #ifndef AUD_FFMPEGFACTORY
 #define AUD_FFMPEGFACTORY
 

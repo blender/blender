@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_LinearResampleFactory.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
 #include "AUD_LinearResampleFactory.h"
 #include "AUD_LinearResampleReader.h"
 

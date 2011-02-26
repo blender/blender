@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * Initialize Python thingies.
  */
+
+/** \file gameengine/Ketsji/KX_PythonInit.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "GL/glew.h"
 

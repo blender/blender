@@ -1,24 +1,4 @@
-/**
- * @mainpage AVI - AVI module external interface
- *
- * @section about About the AVI module
- *
- * This is external code. It provides avi file import/export and
- * conversions. It has been adapted to make use of Blender memory
- * management functions, and because of this it needs module
- * blenlib. You need to provide this lib when linking with libavi.a .
- *
- * @section issues Known issues with AVI
- *
- * - avi uses mallocN, freeN from blenlib. 
- * - Not all functions that are used externally are properly
- *   prototyped.
- *
- * This header has not been split, since it interleaves type defines
- * and functions. You would need the types to be able to include the
- * function headers anyway. And, after all, it is someone else's
- * code. So we keep it like this.
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -45,6 +25,30 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+/** \file AVI_avi.h
+ *  \ingroup avi
+ * \section aviabout AVI module external interface
+ *
+ * \subsection about About the AVI module
+ *
+ * This is external code. It provides avi file import/export and
+ * conversions. It has been adapted to make use of Blender memory
+ * management functions, and because of this it needs module
+ * blenlib. You need to provide this lib when linking with libavi.a .
+ *
+ * \subsection issues Known issues with AVI
+ *
+ * - avi uses mallocN, freeN from blenlib. 
+ * - Not all functions that are used externally are properly
+ *   prototyped.
+ *
+ * This header has not been split, since it interleaves type defines
+ * and functions. You would need the types to be able to include the
+ * function headers anyway. And, after all, it is someone else's
+ * code. So we keep it like this.
  *
  */
 

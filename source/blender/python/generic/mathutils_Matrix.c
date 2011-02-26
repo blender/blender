@@ -1775,10 +1775,10 @@ PyTypeObject matrix_Type = {
 	NULL,								/*tp_getattro*/
 	NULL,								/*tp_setattro*/
 	NULL,								/*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
 	matrix_doc,							/*tp_doc*/
-	NULL,								/*tp_traverse*/
-	NULL,								/*tp_clear*/
+	(traverseproc)BaseMathObject_traverse,	//tp_traverse
+	(inquiry)BaseMathObject_clear,	//tp_clear
 	(richcmpfunc)Matrix_richcmpr,		/*tp_richcompare*/
 	0,									/*tp_weaklistoffset*/
 	NULL,								/*tp_iter*/
@@ -1826,52 +1826,58 @@ PyObject *newMatrixObject(float *mat, const unsigned short rowSize, const unsign
 	int x, row, col;
 
 	/*matrix objects can be any 2-4row x 2-4col matrix*/
-	if(rowSize < 2 || rowSize > 4 || colSize < 2 || colSize > 4){
+	if(rowSize < 2 || rowSize > 4 || colSize < 2 || colSize > 4) {
 		PyErr_SetString(PyExc_RuntimeError, "matrix(): row and column sizes must be between 2 and 4");
 		return NULL;
 	}
 
-	if(base_type)	self = (MatrixObject *)base_type->tp_alloc(base_type, 0);
-	else			self = PyObject_NEW(MatrixObject, &matrix_Type);
+	self= base_type ?	(MatrixObject *)base_type->tp_alloc(base_type, 0) :
+						(MatrixObject *)PyObject_GC_New(MatrixObject, &matrix_Type);
 
-	self->row_size = rowSize;
-	self->col_size = colSize;
+	if(self) {
+		self->row_size = rowSize;
+		self->col_size = colSize;
 
-	/* init callbacks as NULL */
-	self->cb_user= NULL;
-	self->cb_type= self->cb_subtype= 0;
+		/* init callbacks as NULL */
+		self->cb_user= NULL;
+		self->cb_type= self->cb_subtype= 0;
 
-	if(type == Py_WRAP){
-		self->contigPtr = mat;
-		/*pointer array points to contigous memory*/
-		for(x = 0; x < rowSize; x++) {
-			self->matrix[x] = self->contigPtr + (x * colSize);
+		if(type == Py_WRAP){
+			self->contigPtr = mat;
+			/*pointer array points to contigous memory*/
+			for(x = 0; x < rowSize; x++) {
+				self->matrix[x] = self->contigPtr + (x * colSize);
+			}
+			self->wrapped = Py_WRAP;
 		}
-		self->wrapped = Py_WRAP;
-	}else if (type == Py_NEW){
-		self->contigPtr = PyMem_Malloc(rowSize * colSize * sizeof(float));
-		if(self->contigPtr == NULL) { /*allocation failure*/
-			PyErr_SetString(PyExc_MemoryError, "matrix(): problem allocating pointer space");
-			return NULL;
-		}
-		/*pointer array points to contigous memory*/
-		for(x = 0; x < rowSize; x++) {
-			self->matrix[x] = self->contigPtr + (x * colSize);
-		}
-		/*parse*/
-		if(mat) {	/*if a float array passed*/
-			for(row = 0; row < rowSize; row++) {
-				for(col = 0; col < colSize; col++) {
-					self->matrix[row][col] = mat[(row * colSize) + col];
+		else if (type == Py_NEW){
+			self->contigPtr = PyMem_Malloc(rowSize * colSize * sizeof(float));
+			if(self->contigPtr == NULL) { /*allocation failure*/
+				PyErr_SetString(PyExc_MemoryError, "matrix(): problem allocating pointer space");
+				return NULL;
+			}
+			/*pointer array points to contigous memory*/
+			for(x = 0; x < rowSize; x++) {
+				self->matrix[x] = self->contigPtr + (x * colSize);
+			}
+			/*parse*/
+			if(mat) {	/*if a float array passed*/
+				for(row = 0; row < rowSize; row++) {
+					for(col = 0; col < colSize; col++) {
+						self->matrix[row][col] = mat[(row * colSize) + col];
+					}
 				}
 			}
-		} else if (rowSize == colSize ) { /*or if no arguments are passed return identity matrix for square matrices */
-			PyObject *ret_dummy= Matrix_identity(self);
-			Py_DECREF(ret_dummy);
+			else if (rowSize == colSize ) { /*or if no arguments are passed return identity matrix for square matrices */
+				PyObject *ret_dummy= Matrix_identity(self);
+				Py_DECREF(ret_dummy);
+			}
+			self->wrapped = Py_NEW;
 		}
-		self->wrapped = Py_NEW;
-	}else{ /*bad type*/
-		return NULL;
+		else {
+			PyErr_SetString(PyExc_RuntimeError, "Matrix(): invalid type");
+			return NULL;
+		}
 	}
 	return (PyObject *) self;
 }

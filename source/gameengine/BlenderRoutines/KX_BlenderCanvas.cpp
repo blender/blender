@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/BlenderRoutines/KX_BlenderCanvas.cpp
+ *  \ingroup blroutines
+ */
+
 
 #include "KX_BlenderCanvas.h"
 #include "DNA_screen_types.h"

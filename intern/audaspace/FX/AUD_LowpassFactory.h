@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_LowpassFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_LOWPASSFACTORY
 #define AUD_LOWPASSFACTORY
 

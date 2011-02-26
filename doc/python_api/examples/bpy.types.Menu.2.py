@@ -10,6 +10,7 @@ The function menu_draw acts like Menu.draw
 """
 import bpy
 
+
 def menu_draw(self, context):
     self.layout.operator("wm.save_homefile")
 

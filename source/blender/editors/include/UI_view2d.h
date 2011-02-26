@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
  * Generic 2d view with should allow drawing grids,
  * panning, zooming, scrolling, .. 
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file UI_view2d.h
+ *  \ingroup editorui
  */
 
 #ifndef UI_VIEW2D_H

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -37,9 +37,15 @@
  *
  */
 
+/** \file superlu_sys_types.h
+ *  \ingroup opennl
+ */
+
+
 /* 
 // DG: original BLO_sys_types.h is in source/blender/blenkernel 
 // but is not allowed be accessed here because of bad-level-call
+// jesterKing: renamed to superlu_sys_types.h
 */
 
 #ifndef BLO_SYS_TYPES_H

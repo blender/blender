@@ -1,3 +1,8 @@
+
+/** \file BL_Material.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __BL_MATERIAL_H__
 #define __BL_MATERIAL_H__
 

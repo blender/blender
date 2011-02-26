@@ -27,6 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file ED_physics.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_PHYSICS_H
 #define ED_PHYSICS_H
 

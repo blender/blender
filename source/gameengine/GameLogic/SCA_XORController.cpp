@@ -1,4 +1,4 @@
-/**
+/*
  * 'Xor' together all inputs
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_XORController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_XORController.h"
 #include "SCA_ISensor.h"

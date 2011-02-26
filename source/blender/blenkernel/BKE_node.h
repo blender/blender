@@ -71,9 +71,6 @@ typedef struct bNodeSocketType {
 	
 	/* after this line is used internal only */
 	struct bNodeSocket *sock;		/* used during verify_types */
-	struct bNodeSocket *internsock;	/* group nodes, the internal socket counterpart */
-	int own_index;					/* verify group nodes */
-	
 } bNodeSocketType;
 
 typedef struct bNodeType {
@@ -130,6 +127,10 @@ typedef struct bNodeType {
 #define NODE_CLASS_PATTERN 12
 #define NODE_CLASS_TEXTURE 13
 
+/* enum values for input/output */
+#define SOCK_IN		1
+#define SOCK_OUT	2
+
 /* ************** GENERIC API, TREES *************** */
 
 void			ntreeVerifyTypes(struct bNodeTree *ntree);
@@ -137,7 +138,7 @@ void			ntreeVerifyTypes(struct bNodeTree *ntree);
 struct bNodeTree *ntreeAddTree(const char *name, int type, const short is_group);
 void			ntreeInitTypes(struct bNodeTree *ntree);
 
-void			ntreeMakeOwnType(struct bNodeTree *ntree);
+//void			ntreeMakeGroupSockets(struct bNodeTree *ntree);
 void			ntreeUpdateType(struct bNodeTree *ntree, struct bNodeType *ntype);
 void			ntreeFreeTree(struct bNodeTree *ntree);
 struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree);
@@ -178,14 +179,14 @@ void			nodeUpdateType(struct bNodeTree *ntree, struct bNode* node, struct bNodeT
 void			nodeMakeDynamicType(struct bNode *node);
 int				nodeDynamicUnlinkText(struct ID *txtid);
 void			nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
-struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal);
+struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
 
 struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
 void			nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 void			nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
 
 struct bNode	*nodeFindNodebyName(struct bNodeTree *ntree, const char *name);
-int			nodeFindNode(struct bNodeTree *ntree, struct bNodeSocket *sock, struct bNode **nodep, int *sockindex);
+int				nodeFindNode(struct bNodeTree *ntree, struct bNodeSocket *sock, struct bNode **nodep, int *sockindex, int *in_out);
 
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree, struct bNodeSocket *from, struct bNodeSocket *to);
 int				nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
@@ -205,10 +206,15 @@ void			ntreeClearTags(struct bNodeTree *ntree);
 struct bNode	*nodeMakeGroupFromSelected(struct bNodeTree *ntree);
 int				nodeGroupUnGroup(struct bNodeTree *ntree, struct bNode *gnode);
 
-void			nodeVerifyGroup(struct bNodeTree *ngroup);
+void			nodeGroupVerify(struct bNodeTree *ngroup);
 void			nodeGroupSocketUseFlags(struct bNodeTree *ngroup);
 
-void			nodeCopyGroup(struct bNode *gnode);
+void			nodeGroupCopy(struct bNode *gnode);
+
+struct bNodeSocket *nodeGroupAddSocket(struct bNodeTree *ngroup, const char *name, int type, int in_out);
+struct bNodeSocket *nodeGroupExposeSocket(struct bNodeTree *ngroup, struct bNodeSocket *sock, int in_out);
+void			nodeGroupExposeAllSockets(struct bNodeTree *ngroup);
+void			nodeGroupRemoveSocket(struct bNodeTree *ngroup, struct bNodeSocket *gsock, int in_out);
 
 /* ************** COMMON NODES *************** */
 

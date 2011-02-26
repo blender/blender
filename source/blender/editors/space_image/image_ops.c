@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -1345,6 +1345,89 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth.");
 }
 
+/********************* invert operators *********************/
+
+static int image_invert_poll(bContext *C)
+{
+	Image *ima= CTX_data_edit_image(C);
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+	
+	if( ibuf != NULL )
+		return 1;
+	return 0;
+}
+
+static int image_invert_exec(bContext *C, wmOperator *op)
+{
+	Image *ima= CTX_data_edit_image(C);
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+	
+	// flags indicate if this channel should be inverted
+	short r,g,b,a;
+	int i, dirty = 0;
+	
+	if( ibuf == NULL) // TODO: this should actually never happen, but does for render-results -> cleanup
+		return OPERATOR_CANCELLED;
+	
+	r = RNA_boolean_get(op->ptr, "invert_r");
+	g = RNA_boolean_get(op->ptr, "invert_g");
+	b = RNA_boolean_get(op->ptr, "invert_b");
+	a = RNA_boolean_get(op->ptr, "invert_a");
+	
+	/* TODO: make this into an IMB_invert_channels(ibuf,r,g,b,a) method!? */
+	if (ibuf->rect_float) {
+		
+		float *fp = (float *) ibuf->rect_float;
+		for( i = ibuf->x * ibuf->y; i > 0; i--, fp+=4 ) {
+			if( r ) fp[0] = 1.0f - fp[0];
+			if( g ) fp[1] = 1.0f - fp[1];
+			if( b ) fp[2] = 1.0f - fp[2];
+			if( a ) fp[3] = 1.0f - fp[3];
+		}
+		dirty = 1;
+		IMB_rect_from_float(ibuf);
+	}
+	else if(ibuf->rect) {
+		
+		char *cp = (char *) ibuf->rect;
+		for( i = ibuf->x * ibuf->y; i > 0; i--, cp+=4 ) {
+			if( r ) cp[0] = 255 - cp[0];
+			if( g ) cp[1] = 255 - cp[1];
+			if( b ) cp[2] = 255 - cp[2];
+			if( a ) cp[3] = 255 - cp[3];
+		}
+		dirty = 1;
+	}
+	else
+		return OPERATOR_CANCELLED;
+
+	ibuf->userflags |= IB_BITMAPDIRTY; // mark as modified
+	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
+	
+	return OPERATOR_FINISHED;
+	
+}
+
+void IMAGE_OT_invert(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Invert Channels";
+	ot->idname= "IMAGE_OT_invert";
+	
+	/* api callbacks */
+	ot->exec= image_invert_exec;
+	ot->poll= image_invert_poll;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
+	RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert Green Channel");
+	RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert Blue Channel");
+	RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert Alpha Channel");
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /********************* pack operator *********************/
 
 static int pack_test(bContext *C, wmOperator *op)
@@ -1499,7 +1582,7 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
+	
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack.");
 	RNA_def_string(ot->srna, "id", "", 21, "Image Name", "Image datablock name to unpack."); /* XXX, weark!, will fail with library, name collisions */

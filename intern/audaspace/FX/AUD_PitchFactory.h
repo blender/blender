@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_PitchFactory.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_PITCHFACTORY
 #define AUD_PITCHFACTORY
 

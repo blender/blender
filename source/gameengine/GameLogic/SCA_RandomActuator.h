@@ -1,7 +1,4 @@
-/**
- * Draw a random number, and put it in a property
- *
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_RandomActuator.h
+ *  \ingroup gamelogic
+ *  \brief Draw a random number, and put it in a property
  */
 
 #ifndef __KX_RANDOMACTUATOR

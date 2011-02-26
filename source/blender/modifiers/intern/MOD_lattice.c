@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_lattice.c
+ *  \ingroup modifiers
+ */
+
+
 #include <string.h>
 
 #include "DNA_object_types.h"

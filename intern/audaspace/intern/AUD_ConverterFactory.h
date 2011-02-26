@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_ConverterFactory.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_CONVERTERFACTORY
 #define AUD_CONVERTERFACTORY
 

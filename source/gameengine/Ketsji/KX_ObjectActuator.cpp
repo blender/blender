@@ -1,4 +1,4 @@
-/**
+/*
  * Do translation/rotation actions
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_ObjectActuator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_ObjectActuator.h"
 #include "KX_GameObject.h"

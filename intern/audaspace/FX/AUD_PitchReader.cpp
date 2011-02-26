@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_PitchReader.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_PitchReader.h"
 
 AUD_PitchReader::AUD_PitchReader(AUD_IReader* reader, float pitch) :

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * Sensor for keyboard input
  */
+
+/** \file gameengine/GameLogic/SCA_KeyboardSensor.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include <stddef.h>
 

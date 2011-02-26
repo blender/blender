@@ -29,6 +29,11 @@
 * ***** END GPL LICENSE BLOCK *****
 *
 */
+
+/** \file blender/modifiers/intern/MOD_bevel.c
+ *  \ingroup modifiers
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"

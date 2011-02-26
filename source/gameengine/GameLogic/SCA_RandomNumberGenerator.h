@@ -1,8 +1,4 @@
-/**
- * Generate random numbers that can be used by other components. Each
- * generator needs its own generator, so that the seed can be set
- * on a per-generator basis.
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +25,13 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_RandomNumberGenerator.h
+ *  \ingroup gamelogic
+ *  \brief Generate random numbers that can be used by other components. Each
+ * generator needs its own generator, so that the seed can be set
+ * on a per-generator basis.
  */
 
 #ifndef __KX_RANDOMNUMBERGENERATOR

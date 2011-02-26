@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_view3d.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_VIEW3D_H
 #define ED_VIEW3D_H
 

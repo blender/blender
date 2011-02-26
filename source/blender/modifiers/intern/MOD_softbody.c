@@ -30,6 +30,11 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_softbody.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"

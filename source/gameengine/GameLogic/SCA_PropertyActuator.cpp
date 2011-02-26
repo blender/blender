@@ -1,4 +1,4 @@
-/**
+/*
  * Assign, change, copy properties
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_PropertyActuator.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include <stddef.h>
 

@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_PitchReader.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_PITCHREADER
 #define AUD_PITCHREADER
 

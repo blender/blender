@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Ketsji Logic Extenstion: Network Message Sensor class
+ */
+
+/** \file KX_NetworkMessageSensor.h
+ *  \ingroup ketsjinet
+ *  \brief Ketsji Logic Extenstion: Network Message Sensor class
  */
 #ifndef __KX_NETWORKMESSAGE_SENSOR_H
 #define __KX_NETWORKMESSAGE_SENSOR_H

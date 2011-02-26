@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_EffectReader.h
+ *  \ingroup audfx
+ */
+
+
 #ifndef AUD_EFFECTREADER
 #define AUD_EFFECTREADER
 

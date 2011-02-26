@@ -1,4 +1,4 @@
-/**
+/*
  * Abstract class for sensor logic bricks
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_ISensor.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include <stddef.h>
 

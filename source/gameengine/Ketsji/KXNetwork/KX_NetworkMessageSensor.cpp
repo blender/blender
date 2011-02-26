@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * Ketsji Logic Extenstion: Network Message Sensor generic implementation
  */
+
+/** \file gameengine/Ketsji/KXNetwork/KX_NetworkMessageSensor.cpp
+ *  \ingroup ketsjinet
+ */
+
 
 #include <stddef.h>
 

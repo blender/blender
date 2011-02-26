@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/intern/AUD_ChannelMapperReader.h
+ *  \ingroup audaspaceintern
+ */
+
+
 #ifndef AUD_CHANNELMAPPERREADER
 #define AUD_CHANNELMAPPERREADER
 

@@ -249,13 +249,10 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):
             layout.prop(ob, "use_dupli_vertices_rotation", text="Rotation")
 
         elif ob.dupli_type == 'FACES':
-            split = layout.split()
 
-            col = split.column()
-            col.prop(ob, "use_dupli_faces_scale", text="Scale")
-
-            col = split.column()
-            col.prop(ob, "dupli_faces_scale", text="Inherit Scale")
+            row = layout.row()
+            row.prop(ob, "use_dupli_faces_scale", text="Scale")
+            row.prop(ob, "dupli_faces_scale", text="Inherit Scale")
 
         elif ob.dupli_type == 'GROUP':
             layout.prop(ob, "dupli_group", text="Group")
@@ -311,13 +308,9 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
 
         layout.separator()
 
-        split = layout.split()
-
-        col = split.column()
-        col.operator("object.paths_calculate", text="Calculate Paths")
-
-        col = split.column()
-        col.operator("object.paths_clear", text="Clear Paths")
+        row = layout.row()
+        row.operator("object.paths_calculate", text="Calculate Paths")
+        row.operator("object.paths_clear", text="Clear Paths")
 
 
 class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # inherit from panel when ready

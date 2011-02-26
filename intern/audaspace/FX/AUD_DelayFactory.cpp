@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file audaspace/FX/AUD_DelayFactory.cpp
+ *  \ingroup audfx
+ */
+
+
 #include "AUD_DelayFactory.h"
 #include "AUD_DelayReader.h"
 #include "AUD_Space.h"

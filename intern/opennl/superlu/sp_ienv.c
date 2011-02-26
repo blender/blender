@@ -1,3 +1,6 @@
+/** \file opennl/superlu/sp_ienv.c
+ *  \ingroup opennl
+ */
 /*
  * File name:		sp_ienv.c
  * History:             Modified from lapack routine ILAENV

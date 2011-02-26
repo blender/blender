@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_SystemPathsCocoa.h
+ *  \ingroup GHOST
+ */
+
 
 #ifndef _GHOST_SYSTEM_PATHS_COCOA_H_
 #define _GHOST_SYSTEM_PATHS_COCOA_H_

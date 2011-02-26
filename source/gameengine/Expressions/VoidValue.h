@@ -1,4 +1,4 @@
-/**
+/*
  * VoidValue.h: interface for the CVoidValue class.
  * $Id$
  *
@@ -27,6 +27,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file VoidValue.h
+ *  \ingroup expressions
+ */
+
 #ifndef __VOIDVALUE_H__
 #define __VOIDVALUE_H__
 

@@ -79,7 +79,7 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 	int status;
 	Text *text = add_text(fn, G.main->name);
 	if (text) {
-		status = BPY_text_exec(_context, text, reports);
+		status = BPY_text_exec(_context, text, reports, false);
 		unlink_text(G.main, text);
 		free_libblock(&G.main->text, text);
 	} else {
@@ -110,7 +110,7 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 
 	BKE_reports_clear(reports);
 
-	if (!BPY_text_exec(_context, text, reports)) {
+	if (!BPY_text_exec(_context, text, reports, false)) {
 		cout << "\nError executing Python script from PythonInterpreter::interpretText" << endl;
 		cout << "Name: " << name << endl;
 		cout << "Errors: " << endl;
@@ -163,7 +163,7 @@ private:
 		}
 	}
 	
-	BPY_text_exec(_context, text, NULL);
+	BPY_text_exec(_context, text, NULL, false);
 	
 	// cleaning up
 	unlink_text(G.main, text);
