@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/ikplugin/intern/iksolver_plugin.c
+ *  \ingroup ikplugin
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BIK_api.h"

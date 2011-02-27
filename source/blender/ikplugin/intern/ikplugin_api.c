@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/ikplugin/intern/ikplugin_api.c
+ *  \ingroup ikplugin
+ */
+
+
 
 #include "BIK_api.h"
 #include "BLI_blenlib.h"

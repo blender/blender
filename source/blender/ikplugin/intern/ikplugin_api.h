@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/ikplugin/intern/ikplugin_api.h
+ *  \ingroup ikplugin
+ */
+
+
 #ifndef IKPLUGIN_API_H
 #define IKPLUGIN_API_H
 
