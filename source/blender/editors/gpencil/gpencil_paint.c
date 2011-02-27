@@ -379,10 +379,18 @@ static short gp_stroke_addpoint (tGPsdata *p, int mval[2], float pressure)
 	return GP_STROKEADD_INVALID;
 }
 
+
+/* temp struct for gp_stroke_smooth() */
+typedef struct tGpSmoothCo {
+	short x;
+	short y;
+} tGpSmoothCo;
+
 /* smooth a stroke (in buffer) before storing it */
 static void gp_stroke_smooth (tGPsdata *p)
 {
 	bGPdata *gpd= p->gpd;
+	tGpSmoothCo *smoothArray, *spc;
 	int i=0, cmx=gpd->sbuffer_size;
 	
 	/* only smooth if smoothing is enabled, and we're not doing a straight line */
@@ -393,17 +401,31 @@ static void gp_stroke_smooth (tGPsdata *p)
 	if ((cmx <= 2) || (gpd->sbuffer == NULL))
 		return;
 	
-	/* apply weighting-average (note doing this along path sequentially does introduce slight error) */
-	for (i=0; i < gpd->sbuffer_size; i++) {
-		tGPspoint *pc= (((tGPspoint *)gpd->sbuffer) + i);
-		tGPspoint *pb= (i-1 > 0)?(pc-1):(pc);
-		tGPspoint *pa= (i-2 > 0)?(pc-2):(pb);
-		tGPspoint *pd= (i+1 < cmx)?(pc+1):(pc);
-		tGPspoint *pe= (i+2 < cmx)?(pc+2):(pd);
+	/* create a temporary smoothing coordinates buffer, use to store calculated values to prevent sequential error */
+	smoothArray = MEM_callocN(sizeof(tGpSmoothCo)*cmx, "gp_stroke_smooth smoothArray");
+	
+	/* first pass: calculate smoothing coordinates using weighted-averages */
+	for (i=0, spc=smoothArray; i < gpd->sbuffer_size; i++, spc++) {
+		const tGPspoint *pc= (((tGPspoint *)gpd->sbuffer) + i);
+		const tGPspoint *pb= (i-1 > 0)?(pc-1):(pc);
+		const tGPspoint *pa= (i-2 > 0)?(pc-2):(pb);
+		const tGPspoint *pd= (i+1 < cmx)?(pc+1):(pc);
+		const tGPspoint *pe= (i+2 < cmx)?(pc+2):(pd);
 		
-		pc->x= (short)(0.1*pa->x + 0.2*pb->x + 0.4*pc->x + 0.2*pd->x + 0.1*pe->x);
-		pc->y= (short)(0.1*pa->y + 0.2*pb->y + 0.4*pc->y + 0.2*pd->y + 0.1*pe->y);
+		spc->x= (short)(0.1*pa->x + 0.2*pb->x + 0.4*pc->x + 0.2*pd->x + 0.1*pe->x);
+		spc->y= (short)(0.1*pa->y + 0.2*pb->y + 0.4*pc->y + 0.2*pd->y + 0.1*pe->y);
 	}
+	
+	/* second pass: apply smoothed coordinates */
+	for (i=0, spc=smoothArray; i < gpd->sbuffer_size; i++, spc++) {
+		tGPspoint *pc= (((tGPspoint *)gpd->sbuffer) + i);
+		
+		pc->x = spc->x;
+		pc->y = spc->y;
+	}
+	
+	/* free temp array */
+	MEM_freeN(smoothArray);
 }
 
 /* simplify a stroke (in buffer) before storing it 
