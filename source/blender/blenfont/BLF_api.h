@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenfont/BLF_api.h
+ *  \ingroup blf
+ */
+
+
 #ifndef BLF_API_H
 #define BLF_API_H
 
