@@ -31,6 +31,11 @@
  * 
  */
 
+/** \file blender/blenkernel/intern/writeavi.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

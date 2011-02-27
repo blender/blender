@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/constraint.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h> 
 #include <stddef.h>
 #include <string.h>

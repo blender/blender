@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/shrinkwrap.c
+ *  \ingroup bke
+ */
+
 #include <string.h>
 #include <float.h>
 #include <math.h>

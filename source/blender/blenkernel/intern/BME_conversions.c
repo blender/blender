@@ -32,6 +32,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/BME_conversions.c
+ *  \ingroup bke
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_meshdata_types.h"

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/multires.c
+ *  \ingroup bke
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"

@@ -1,3 +1,6 @@
+/** \file blender/blenkernel/intern/writeffmpeg.c
+ *  \ingroup bke
+ */
 /*
  * $Id$
  *

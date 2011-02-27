@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/node.c
+ *  \ingroup bke
+ */
+
+
 #ifdef WITH_PYTHON
 #include <Python.h>
 #endif

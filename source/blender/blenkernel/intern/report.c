@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/report.c
+ *  \ingroup bke
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"

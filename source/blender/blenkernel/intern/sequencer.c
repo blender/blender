@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/sequencer.c
+ *  \ingroup bke
+ */
+
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>

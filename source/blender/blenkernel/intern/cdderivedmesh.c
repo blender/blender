@@ -30,7 +30,12 @@
 *
 * BKE_cdderivedmesh.h contains the function prototypes for this file.
 *
-*/ 
+*/
+
+/** \file blender/blenkernel/intern/cdderivedmesh.c
+ *  \ingroup bke
+ */
+ 
 
 /* TODO maybe BIF_gl.h should include string.h? */
 #include <string.h>

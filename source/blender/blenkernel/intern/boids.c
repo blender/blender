@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/boids.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 #include <math.h>
 

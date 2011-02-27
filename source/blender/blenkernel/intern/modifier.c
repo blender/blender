@@ -34,6 +34,11 @@
 *
 */
 
+/** \file blender/blenkernel/intern/modifier.c
+ *  \ingroup bke
+ */
+
+
 #include <stddef.h>
 #include <string.h>
 #include <stdarg.h>

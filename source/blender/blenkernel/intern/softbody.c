@@ -28,6 +28,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/softbody.c
+ *  \ingroup bke
+ */
+
+
 /*
 ******
 variables on the UI for now

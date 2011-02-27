@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/particle_system.c
+ *  \ingroup bke
+ */
+
+
 #include <stddef.h>
 #include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 

@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/text.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h> /* strstr */
 #include <sys/types.h>
 #include <sys/stat.h>

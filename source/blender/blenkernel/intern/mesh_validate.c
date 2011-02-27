@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/mesh_validate.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

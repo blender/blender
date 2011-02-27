@@ -31,6 +31,11 @@
  * ***** END GPL LICENSE BLOCK ****
  */
 
+/** \file blender/blenkernel/intern/exotic.c
+ *  \ingroup bke
+ */
+
+
 #include <stddef.h>
 #include "BLI_storage.h"
 

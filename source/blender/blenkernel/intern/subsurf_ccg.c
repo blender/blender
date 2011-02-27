@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/subsurf_ccg.c
+ *  \ingroup bke
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

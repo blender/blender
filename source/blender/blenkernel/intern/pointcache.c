@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/pointcache.c
+ *  \ingroup bke
+ */
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/fmodifier.c
+ *  \ingroup bke
+ */
+
+
 
 #include <math.h>
 #include <stdio.h>

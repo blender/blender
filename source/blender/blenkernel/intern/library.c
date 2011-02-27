@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/library.c
+ *  \ingroup bke
+ */
+
+
 /*
  *  Contains management of ID's and libraries
  *  allocate and free of all library data
