@@ -230,7 +230,7 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
     return True
 
 
-from bpy.props import *
+from bpy.props import EnumProperty
 
 
 class AlignObjects(bpy.types.Operator):
@@ -239,7 +239,7 @@ class AlignObjects(bpy.types.Operator):
     bl_label = "Align Objects"
     bl_options = {'REGISTER', 'UNDO'}
 
-    align_mode = bpy.props.EnumProperty(items=(
+    align_mode = EnumProperty(items=(
             ('OPT_1', "Negative Sides", ""),
             ('OPT_2', "Centers", ""),
             ('OPT_3', "Positive Sides", "")),
@@ -247,7 +247,7 @@ class AlignObjects(bpy.types.Operator):
         description="",
         default='OPT_2')
 
-    relative_to = bpy.props.EnumProperty(items=(
+    relative_to = EnumProperty(items=(
             ('OPT_1', "Scene Origin", ""),
             ('OPT_2', "3D Cursor", ""),
             ('OPT_3', "Selection", ""),

@@ -1115,7 +1115,7 @@ def main(context, island_margin, projection_limit):
     ]
 """
 
-from bpy.props import *
+from bpy.props import FloatProperty
 
 
 class SmartProject(bpy.types.Operator):

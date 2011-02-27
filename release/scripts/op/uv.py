@@ -19,7 +19,6 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.props import *
 
 
 def write_svg(fw, mesh, image_width, image_height, face_iter):
@@ -237,6 +236,9 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
     bpy.data.materials.remove(material_wire)
     for mat_solid in material_solids:
         bpy.data.materials.remove(mat_solid)
+
+
+from bpy.props import StringProperty, BoolProperty, EnumProperty, IntVectorProperty
 
 
 class ExportUVLayout(bpy.types.Operator):

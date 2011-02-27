@@ -34,7 +34,7 @@ def add_box(width, height, depth):
     return vertices, faces
 
 
-from bpy.props import *
+from bpy.props import FloatProperty, BoolProperty, FloatVectorProperty
 
 
 class AddBox(bpy.types.Operator):

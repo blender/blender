@@ -124,7 +124,7 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
     return action
 
 
-from bpy.props import *
+from bpy.props import IntProperty, BoolProperty
 
 
 class BakeAction(bpy.types.Operator):

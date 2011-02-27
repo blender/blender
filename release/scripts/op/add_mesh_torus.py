@@ -72,7 +72,7 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
 
     return verts, faces
 
-from bpy.props import *
+from bpy.props import FloatProperty, IntProperty, BoolProperty, FloatVectorProperty
 
 
 class AddTorus(bpy.types.Operator):

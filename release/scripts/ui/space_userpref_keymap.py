@@ -404,7 +404,7 @@ class InputKeyMapPanel(bpy.types.Panel):
             self.draw_hierarchy(display_keymaps, col)
 
 
-from bpy.props import *
+from bpy.props import StringProperty, BoolProperty, IntProperty
 
 
 def export_properties(prefix, properties, lines=None):
