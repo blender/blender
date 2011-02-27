@@ -32,7 +32,7 @@
 #define BLO_READBLENFILE_H
 
 /** \file BLO_readblenfile.h
- *  \ingroup readblenfile
+ *  \ingroup blo
  */
 
 #ifdef __cplusplus

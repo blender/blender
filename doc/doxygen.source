@@ -1,6 +1,10 @@
 
 /** \defgroup blenderplayer Blender Player */
 
+/** \defgroup blc bad level calls
+ *  \ingroup blenderplayer
+ */
+
 /** \defgroup render Rendering
  *  \ingroup blender
  */
@@ -111,7 +115,7 @@
  *  \ingroup blender data
  */
 
-/** \defgroup readblenfile readblenfile
+/** \defgroup blo readblenfile
  *  \ingroup blender data
  */
 
