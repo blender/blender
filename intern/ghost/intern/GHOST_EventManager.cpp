@@ -156,7 +156,7 @@ GHOST_TSuccess GHOST_EventManager::pushEvent(GHOST_IEvent* event)
 			
 			/*write modifier key states*/
 			sys->getModifierKeys(keys);
-			fprintf(m_recfile, "lshift: %d rshift: %d lalt: %d ralt: %d lctrl: %d rctrl: %d command: %d\n", 
+			fprintf(m_recfile, "lshift: %d rshift: %d lalt: %d ralt: %d lctrl: %d rctrl: %d", 
 				(int)keys.get(GHOST_kModifierKeyLeftShift),
 				(int)keys.get(GHOST_kModifierKeyRightShift), 
 				(int)keys.get(GHOST_kModifierKeyLeftAlt), 

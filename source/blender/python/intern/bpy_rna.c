@@ -1116,8 +1116,6 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 			int subtype= RNA_property_subtype(prop);
 			if(ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
 				/* TODO, get size */
-				PyObject *PyC_UnicodeAsByte(PyObject *value, PyObject **value_coerce);
-
 				param= PyC_UnicodeAsByte(value, &value_coerce);
 			}
 			else {

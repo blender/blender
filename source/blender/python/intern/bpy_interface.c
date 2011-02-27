@@ -353,10 +353,6 @@ typedef struct {
 } PyModuleObject;
 #endif
 
-int PyC_MainModule_Backup(PyObject **main_mod);
-PyObject *PyC_DefaultNameSpace(const char *n);
-int PyC_MainModule_Restore(PyObject *main_mod);
-
 static int python_script_exec(bContext *C, const char *fn, struct Text *text, struct ReportList *reports)
 {
 	PyObject *main_mod= NULL;

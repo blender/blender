@@ -529,7 +529,7 @@ static DerivedMesh *applyModifier(
 }
 
 static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct EditMesh *editData,
+		ModifierData *md, Object *ob, struct BMEditMesh *editData,
   DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
@@ -560,6 +560,7 @@ ModifierTypeInfo modifierType_Array = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     0,
+	/* dependsOnNormal */   0,	
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     0,
 };

@@ -34,6 +34,8 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_smallhash.h"
+#include "BLI_array.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
@@ -76,8 +78,8 @@ static void foreachObjectLink(
 		walk(userData, ob, &mmd->mirror_ob);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
-					  Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UNUSED(scene),
+					  Object *UNUSED(ob), DagNode *obNode)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
@@ -97,29 +99,26 @@ void vertgroup_flip_name (char *name, int strip_number);
 DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		Object *ob,
 		DerivedMesh *dm,
-		int initFlags,
+		int UNUSED(initFlags),
 		int axis)
 {
 	float tolerance = mmd->tolerance;
-	DerivedMesh *result, *cddm;
-	BMEditMesh *em;
-	BMesh *bm;
-	BMOIter siter1;
-	BMOperator op;
-	BMVert *v1;
-	BMIter iter;
+	DerivedMesh *cddm, *origdm;
 	bDeformGroup *def, *defb;
 	bDeformGroup **vector_def = NULL;
+	MVert *mv;
+	MEdge *me;
+	MLoop *ml;
+	MPoly *mp;
 	float mtx[4][4], imtx[4][4];
-	int j;
+	int i, j, *vtargetmap = NULL;
+	BLI_array_declare(vtargetmap);
 	int vector_size=0, a, b;
-
-	cddm = dm; //copying shouldn't be necassary here, as all modifiers return CDDM's
-	em = CDDM_To_BMesh(dm, NULL);
-
-	/*convienence variable*/
-	bm = em->bm;
-
+	
+	origdm = dm;
+	if (!CDDM_Check(dm))
+		dm = CDDM_copy(dm, 0);
+	
 	if (mmd->flag & MOD_MIR_VGROUP) {
 		/* calculate the number of deformedGroups */
 		for(vector_size = 0, def = ob->defbase.first; def;
@@ -142,56 +141,100 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	} else {
 		unit_m4(mtx);
 	}
+	
+	cddm = CDDM_from_template(dm, dm->numVertData*2, dm->numEdgeData*2, 0, dm->numLoopData*2, dm->numPolyData*2);
+	
+	/*copy customdata to original geometry*/
+	CustomData_copy_data(&dm->vertData, &cddm->vertData, 0, 0, dm->numVertData);
+	CustomData_copy_data(&dm->edgeData, &cddm->edgeData, 0, 0, dm->numEdgeData);
+	CustomData_copy_data(&dm->loopData, &cddm->loopData, 0, 0, dm->numLoopData);
+	CustomData_copy_data(&dm->polyData, &cddm->polyData, 0, 0, dm->numPolyData);
 
-	BMO_InitOpf(bm, &op, "mirror geom=%avef mat=%m4 mergedist=%f axis=%d",
-				mtx, mmd->tolerance, axis);
+	/*copy customdata to new geometry*/
+	CustomData_copy_data(&dm->vertData, &cddm->vertData, 0, dm->numVertData, dm->numVertData);
+	CustomData_copy_data(&dm->edgeData, &cddm->edgeData, 0, dm->numEdgeData, dm->numEdgeData);
+	CustomData_copy_data(&dm->polyData, &cddm->polyData, 0, dm->numPolyData, dm->numPolyData);
+	
+	/*mirror vertex coordinates*/
+	mv = CDDM_get_verts(cddm) + dm->numVertData;
+	for (i=0; i<dm->numVertData; i++, mv++) {
+		mv->co[axis] = -mv->co[axis];
+		if (fabs(mv->co[axis]) < tolerance) {
+			BLI_array_append(vtargetmap, i+dm->numVertData);
+		} else BLI_array_append(vtargetmap, -1);
+	}
+	
+	for (i=0; i<dm->numVertData; i++) {
+		BLI_array_append(vtargetmap, -1);
+	}
+	
+	/*adjust mirrored edge vertex indices*/
+	me = CDDM_get_edges(cddm) + dm->numEdgeData;
+	for (i=0; i<dm->numEdgeData; i++, me++) {
+		me->v1 += dm->numVertData;
+		me->v2 += dm->numVertData;
+	}
+	
+	/*adjust mirrored poly loopstart indices, and reverse loop order (normals)*/	
+	mp = CDDM_get_polys(cddm) + dm->numPolyData;
+	for (i=0; i<dm->numPolyData; i++, mp++) {
+		for (j=0; j<mp->totloop; j++) {
+			CustomData_copy_data(&dm->loopData, &cddm->loopData, mp->loopstart+j,
+								 mp->loopstart+dm->numLoopData+mp->totloop-j-1, 1);
+		}
 
-	BMO_Exec_Op(bm, &op);
+		mp->loopstart += dm->numLoopData;
+	}
 
-	BMO_CallOpf(bm, "reversefaces faces=%s", &op, "newout");
+	/*adjust mirrored loop vertex and edge indices*/	
+	ml = CDDM_get_loops(cddm) + dm->numLoopData;
+	for (i=0; i<dm->numLoopData; i++, ml++) {
+		ml->v += dm->numVertData;
+		ml->e += dm->numEdgeData;
+	}
+
+	CDDM_recalc_tesselation(cddm);
 	
 	/*handle vgroup stuff*/
-	if (mmd->flag & MOD_MIR_VGROUP) {
-		BMO_ITER(v1, &siter1, bm, &op, "newout", BM_VERT) {
-			MDeformVert *dvert = CustomData_bmesh_get(&bm->vdata, v1->head.data, CD_MDEFORMVERT);
+	if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&cddm->vertData, CD_MDEFORMVERT)) {
+		MDeformVert *dvert = CustomData_get_layer(&cddm->vertData, CD_MDEFORMVERT);
+		
+		for (i=0; i<dm->numVertData; i++, dvert++) {
+			for(j = 0; j < dvert->totweight; ++j) {
+				char tmpname[32];
 
-			if (dvert) {
-				for(j = 0; j < dvert[0].totweight; ++j) {
-					char tmpname[32];
+				if(dvert->dw[j].def_nr < 0 ||
+				   dvert->dw[j].def_nr >= vector_size)
+					continue;
 
-					if(dvert->dw[j].def_nr < 0 ||
-					   dvert->dw[j].def_nr >= vector_size)
-						continue;
+				def = vector_def[dvert->dw[j].def_nr];
+				strcpy(tmpname, def->name);
+				vertgroup_flip_name(tmpname,0);
 
-					def = vector_def[dvert->dw[j].def_nr];
-					strcpy(tmpname, def->name);
-					vertgroup_flip_name(tmpname,0);
-
-					for(b = 0, defb = ob->defbase.first; defb;
-						defb = defb->next, b++)
+				for(b = 0, defb = ob->defbase.first; defb;
+					defb = defb->next, b++)
+				{
+					if(!strcmp(defb->name, tmpname))
 					{
-						if(!strcmp(defb->name, tmpname))
-						{
-							dvert->dw[j].def_nr = b;
-							break;
-						}
+						dvert->dw[j].def_nr = b;
+						break;
 					}
 				}
 			}
 		}
 	}
-
-	BMO_Finish_Op(bm, &op);
-
+	
+	cddm = CDDM_merge_verts(cddm, vtargetmap);
+	BLI_array_free(vtargetmap);
+	
 	if (vector_def) MEM_freeN(vector_def);
 	
-	BMEdit_RecalcTesselation(em);
-	result = CDDM_from_BMEditMesh(em, NULL);
-
-	BMEdit_Free(em);
-	MEM_freeN(em);
+	if (dm != origdm) {
+		dm->needsFree = 1;
+		dm->release(dm);
+	}
 	
-	return result;
+	return cddm;
 }
 
 static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
@@ -220,7 +263,7 @@ static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 
 static DerivedMesh *applyModifier(
 		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+  int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
@@ -234,7 +277,7 @@ static DerivedMesh *applyModifier(
 }
 
 static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct BMEditMesh *editData,
+		ModifierData *md, Object *ob, struct BMEditMesh *UNUSED(editData),
   DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
@@ -254,8 +297,8 @@ ModifierTypeInfo modifierType_Mirror = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,
-	/* deformVertsEM */     0,
 	/* deformMatrices */    0,
+	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   applyModifierEM,
@@ -265,6 +308,7 @@ ModifierTypeInfo modifierType_Mirror = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     0,
+	/* dependsOnNormal */     0,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     0,
 };
