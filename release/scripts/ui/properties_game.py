@@ -356,7 +356,7 @@ class RENDER_PT_game_display(RenderButtonsPanel, bpy.types.Panel):
         flow.prop(gs, "show_framerate_profile", text="Framerate and Profile")
         flow.prop(gs, "show_physics_visualization", text="Physics Visualization")
         flow.prop(gs, "use_deprecation_warnings")
-        flow.prop(gs, "show_mouse")
+        flow.prop(gs, "show_mouse", text="Mouse Cursor")
 
 
 class RENDER_PT_game_sound(RenderButtonsPanel, bpy.types.Panel):
