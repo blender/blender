@@ -1,6 +1,3 @@
-//
-// Add object to the game world on action of this actuator
-//
 // $Id$
 //
 // ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,10 +25,13 @@
 //
 // ***** END GPL LICENSE BLOCK *****
 //
-// Previously existed as:
-// \source\gameengine\GameLogic\SCA_ReplaceMeshActuator.h
-// Please look here for revision history.
-//
+
+/** \file KX_SCA_ReplaceMeshActuator.h
+ *  \ingroup ketsji
+ *  \brief Add object to the game world on action of this actuator
+ *  \attention Previously existed as: \source\gameengine\GameLogic\SCA_ReplaceMeshActuator.h
+ *  Please look here for revision history.
+ */
 
 #ifndef __KX_SCA_REPLACEMESHACTUATOR
 #define __KX_SCA_REPLACEMESHACTUATOR
@@ -74,7 +74,7 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 
 	void	InstantReplaceMesh();
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -90,7 +90,7 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 
 	KX_PYMETHOD_DOC(KX_SCA_ReplaceMeshActuator,instantReplaceMesh);
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 }; 
 

@@ -803,7 +803,7 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 	return edges;
 }
 
-knife_bgl_get_mats(knifetool_opdata *kcd, bglMats *mats)
+void knife_bgl_get_mats(knifetool_opdata *kcd, bglMats *mats)
 {
 	bgl_get_mats(mats);
 	//copy_m4_m4(mats->modelview, kcd->vc.rv3d->viewmat);

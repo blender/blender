@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -37,10 +37,12 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -59,7 +61,7 @@
 
 /* ******************** default callbacks for text space ***************** */
 
-static SpaceLink *text_new(const bContext *C)
+static SpaceLink *text_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceText *stext;
@@ -69,6 +71,7 @@ static SpaceLink *text_new(const bContext *C)
 
 	stext->lheight= 12;
 	stext->tabnumber= 4;
+	stext->margin_column= 80;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for text");
@@ -92,11 +95,12 @@ static void text_free(SpaceLink *sl)
 	SpaceText *stext= (SpaceText*) sl;
 	
 	stext->text= NULL;
+	text_free_caches(stext);
 }
 
 
 /* spacetype; init callback */
-static void text_init(struct wmWindowManager *wm, ScrArea *sa)
+static void text_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -104,9 +108,11 @@ static void text_init(struct wmWindowManager *wm, ScrArea *sa)
 static SpaceLink *text_duplicate(SpaceLink *sl)
 {
 	SpaceText *stextn= MEM_dupallocN(sl);
-	
+
 	/* clear or remove stuff from old */
-	
+
+	stextn->drawcache= NULL; /* space need it's own cache */
+
 	return (SpaceLink *)stextn;
 }
 
@@ -117,12 +123,32 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_TEXT:
-			if(!wmn->reference || wmn->reference == st->text || wmn->data == ND_DISPLAY || wmn->action == NA_EDITED) {
-				ED_area_tag_redraw(sa);
+			/* check if active text was changed, no need to redraw if text isn't active
+			   reference==NULL means text was unlinked, should update anyway for this
+			   case -- no way to know was text active before unlinking or not */
+			if(wmn->reference && wmn->reference != st->text)
+				break;
 
-				if(wmn->action == NA_EDITED)
-					if(st->text)
+			switch(wmn->data) {
+				case ND_DISPLAY:
+				case ND_CURSOR:
+					ED_area_tag_redraw(sa);
+					break;
+			}
+
+			switch(wmn->action) {
+				case NA_EDITED:
+					if(st->text) {
+						text_drawcache_tag_update(st, 1);
 						text_update_edited(st->text);
+					}
+
+					ED_area_tag_redraw(sa);
+					/* no break -- fall down to tag redraw */
+				case NA_ADDED:
+				case NA_REMOVED:
+					ED_area_tag_redraw(sa);
+					break;
 			}
 
 			break;
@@ -161,6 +187,7 @@ static void text_operatortypes(void)
 
 	WM_operatortype_append(TEXT_OT_select_line);
 	WM_operatortype_append(TEXT_OT_select_all);
+	WM_operatortype_append(TEXT_OT_select_word);
 
 	WM_operatortype_append(TEXT_OT_jump);
 	WM_operatortype_append(TEXT_OT_move);
@@ -168,6 +195,7 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_delete);
 	WM_operatortype_append(TEXT_OT_overwrite_toggle);
 
+	WM_operatortype_append(TEXT_OT_selection_set);
 	WM_operatortype_append(TEXT_OT_cursor_set);
 	WM_operatortype_append(TEXT_OT_scroll);
 	WM_operatortype_append(TEXT_OT_scroll_bar);
@@ -198,9 +226,21 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	
 	#ifdef __APPLE__
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_END);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "type", PREV_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "type", NEXT_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", UPARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", FILE_TOP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", DOWNARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", FILE_BOTTOM);
+	
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0)->ptr, "type", LINE_END);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0)->ptr, "type", PREV_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0)->ptr, "type", NEXT_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", UPARROWKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0)->ptr, "type", FILE_TOP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", DOWNARROWKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0)->ptr, "type", FILE_BOTTOM);
+	
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_ALT, 0)->ptr, "type", DEL_PREV_WORD);
+	
 	WM_keymap_add_item(keymap, "TEXT_OT_save", SKEY, KM_PRESS, KM_ALT|KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_save_as", SKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_cut", XKEY, KM_PRESS, KM_OSKEY, 0);
@@ -241,6 +281,10 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 
+	WM_keymap_add_item(keymap, "TEXT_OT_cut", DELKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_copy", INSERTKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_paste", INSERTKEY, KM_PRESS, KM_SHIFT, 0);
+
 	if(U.uiflag & USER_MMB_PASTE) // XXX not dynamic
 		RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_paste", MIDDLEMOUSE, KM_PRESS, 0, 0)->ptr, "selection", 1);
 
@@ -251,9 +295,11 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_replace", HKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_CTRL, 0)->ptr, "split_lines", 1);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_select_all", AKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_select_line", AKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_select_word", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
 	
 
 	WM_keymap_add_item(keymap, "TEXT_OT_indent", TABKEY, KM_PRESS, 0, 0);
@@ -294,14 +340,15 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_PREV_CHAR);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DELKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_WORD);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_PREV_WORD);
-
+	
 	WM_keymap_add_item(keymap, "TEXT_OT_overwrite_toggle", INSERTKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll", MOUSEPAN, 0, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll_bar", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_selection_set", EVT_TWEAK_L, KM_ANY, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_selection_set", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELUPMOUSE, KM_PRESS, 0, 0)->ptr, "lines", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELDOWNMOUSE, KM_PRESS, 0, 0)->ptr, "lines", 1);
 
@@ -314,13 +361,14 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TEXT_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 }
 
+const char *text_context_dir[] = {"edit_text", NULL};
+
 static int text_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceText *st= CTX_wm_space_text(C);
 
 	if(CTX_data_dir(member)) {
-		static const char *dir[] = {"edit_text", NULL};
-		CTX_data_dir_set(result, dir);
+		CTX_data_dir_set(result, text_context_dir);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "edit_text")) {
@@ -361,7 +409,7 @@ static void text_main_area_draw(const bContext *C, ARegion *ar)
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	// UI_view2d_view_ortho(C, v2d);
+	// UI_view2d_view_ortho(v2d);
 		
 	/* data... */
 	draw_text_main(st, ar);
@@ -372,7 +420,7 @@ static void text_main_area_draw(const bContext *C, ARegion *ar)
 	/* scrollers? */
 }
 
-static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
+static void text_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *UNUSED(ar))
 {
 	WM_cursor_set(win, BC_TEXTEDITCURSOR);
 }
@@ -381,10 +429,10 @@ static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 
 /* ************* dropboxes ************* */
 
-static int text_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int text_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_PATH)
-		if(ELEM(drag->icon, 0, ICON_FILE_BLANK))	/* rule might not work? */
+		if(ELEM(drag->icon, ICON_FILE_SCRIPT, ICON_FILE_BLANK))	/* rule might not work? */
 			return 1;
 	return 0;
 }
@@ -410,7 +458,7 @@ static void text_dropboxes(void)
 /****************** header region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void text_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void text_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }

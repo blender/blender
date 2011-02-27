@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +30,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file TEX_node.h
+ *  \ingroup nodes
+ */
+
 #ifndef TEX_NODE_H
 #define TEX_NODE_H
 
@@ -38,41 +42,41 @@
 
 /* ****************** types array for all texture nodes ****************** */
 
-extern bNodeType tex_node_math;
-extern bNodeType tex_node_mix_rgb;
-extern bNodeType tex_node_valtorgb;
-extern bNodeType tex_node_valtonor;
-extern bNodeType tex_node_rgbtobw;
-extern bNodeType tex_node_output;
-extern bNodeType tex_node_viewer;
-extern bNodeType tex_node_checker;
-extern bNodeType tex_node_texture;
-extern bNodeType tex_node_bricks;
-extern bNodeType tex_node_image;
-extern bNodeType tex_node_curve_rgb;
-extern bNodeType tex_node_curve_time;
-extern bNodeType tex_node_invert;
-extern bNodeType tex_node_hue_sat;
-extern bNodeType tex_node_coord;
-extern bNodeType tex_node_distance;
+void register_node_type_tex_math(ListBase *lb);
+void register_node_type_tex_mix_rgb(ListBase *lb);
+void register_node_type_tex_valtorgb(ListBase *lb);
+void register_node_type_tex_valtonor(ListBase *lb);
+void register_node_type_tex_rgbtobw(ListBase *lb);
+void register_node_type_tex_output(ListBase *lb);
+void register_node_type_tex_viewer(ListBase *lb);
+void register_node_type_tex_checker(ListBase *lb);
+void register_node_type_tex_texture(ListBase *lb);
+void register_node_type_tex_bricks(ListBase *lb);
+void register_node_type_tex_image(ListBase *lb);
+void register_node_type_tex_curve_rgb(ListBase *lb);
+void register_node_type_tex_curve_time(ListBase *lb);
+void register_node_type_tex_invert(ListBase *lb);
+void register_node_type_tex_hue_sat(ListBase *lb);
+void register_node_type_tex_coord(ListBase *lb);
+void register_node_type_tex_distance(ListBase *lb);
 
-extern bNodeType tex_node_rotate;
-extern bNodeType tex_node_translate;
-extern bNodeType tex_node_scale;
-extern bNodeType tex_node_at;
+void register_node_type_tex_rotate(ListBase *lb);
+void register_node_type_tex_translate(ListBase *lb);
+void register_node_type_tex_scale(ListBase *lb);
+void register_node_type_tex_at(ListBase *lb);
 
-extern bNodeType tex_node_compose;
-extern bNodeType tex_node_decompose;
+void register_node_type_tex_compose(ListBase *lb);
+void register_node_type_tex_decompose(ListBase *lb);
 
-extern bNodeType tex_node_proc_voronoi;
-extern bNodeType tex_node_proc_blend;
-extern bNodeType tex_node_proc_magic;
-extern bNodeType tex_node_proc_marble;
-extern bNodeType tex_node_proc_clouds;
-extern bNodeType tex_node_proc_wood;
-extern bNodeType tex_node_proc_musgrave;
-extern bNodeType tex_node_proc_noise;
-extern bNodeType tex_node_proc_stucci;
-extern bNodeType tex_node_proc_distnoise;
+void register_node_type_tex_proc_voronoi(ListBase *lb);
+void register_node_type_tex_proc_blend(ListBase *lb);
+void register_node_type_tex_proc_magic(ListBase *lb);
+void register_node_type_tex_proc_marble(ListBase *lb);
+void register_node_type_tex_proc_clouds(ListBase *lb);
+void register_node_type_tex_proc_wood(ListBase *lb);
+void register_node_type_tex_proc_musgrave(ListBase *lb);
+void register_node_type_tex_proc_noise(ListBase *lb);
+void register_node_type_tex_proc_stucci(ListBase *lb);
+void register_node_type_tex_proc_distnoise(ListBase *lb);
 
 #endif

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file BL_ActionActuator.h
+ *  \ingroup bgeconv
  */
 
 #ifndef BL_ACTIONACTUATOR
@@ -84,7 +88,7 @@ public:
 	bAction*	GetAction() { return m_action; }
 	void		SetAction(bAction* act) { m_action= act; }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	KX_PYMETHOD_O(BL_ActionActuator,GetChannel);
 	KX_PYMETHOD_DOC(BL_ActionActuator,setChannel);
@@ -121,6 +125,7 @@ public:
 
 		switch (act->m_playtype) {
 			case ACT_ACTION_PLAY:
+			case ACT_ACTION_PINGPONG:
 			case ACT_ACTION_FLIPPER:
 			case ACT_ACTION_LOOP_STOP:
 			case ACT_ACTION_LOOP_END:
@@ -131,7 +136,7 @@ public:
 				return 1;
 		}
 	}
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 	
 protected:
 

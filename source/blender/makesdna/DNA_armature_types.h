@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
 
 #ifndef DNA_ARMATURE_TYPES_H
 #define DNA_ARMATURE_TYPES_H
+
+/** \file DNA_armature_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
@@ -57,8 +61,9 @@ typedef struct Bone {
 	int				flag;
 	
 	float			arm_head[3];		
-	float			arm_tail[3];	/*	head/tail and roll in Armature Space (rest pos) */
+	float			arm_tail[3];	/*	head/tail in Armature Space (rest pos) */
 	float			arm_mat[4][4];  /*  matrix: (bonemat(b)+head(b))*arm_mat(b-1), rest pos*/
+	float           arm_roll;        /* roll in Armature Space (rest pos) */
 	
 	float			dist, weight;			/*  dist, weight: for non-deformgroup deforms */
 	float			xwidth, length, zwidth;	/*  width: for block bones. keep in this order, transform! */
@@ -68,7 +73,7 @@ typedef struct Bone {
 	float			size[3];		/*  patch for upward compat, UNUSED! */
 	int				layer;			/* layers that bone appears on */
 	short			segments;		/*  for B-bones */
-	short 			pad[3];
+	short 			pad[1];
 } Bone;
 
 typedef struct bArmature {
@@ -79,6 +84,12 @@ typedef struct bArmature {
 	ListBase	chainbase;
 	ListBase	*edbo;					/* editbone listbase, we use pointer so we can check state */
 	
+	/* active bones should work like active object where possible
+	 * - active and selection are unrelated
+	 * - active & hidden is not allowed 
+	 * - from the user perspective active == last selected
+	 * - active should be ignored when not visible (hidden layer) */
+
 	Bone		*act_bone;				/* active bone (when not in editmode) */
 	void		*act_edbone;			/* active editbone (in editmode) */
 
@@ -89,9 +100,8 @@ typedef struct bArmature {
 	short		deformflag; 
 	short		pathflag;
 	
-	int			pad;
-	
-	int			layer, layer_protected;		/* for buttons to work, both variables in this order together */
+	unsigned int layer_used;		/* for UI, to show which layers are there */
+	unsigned int layer, layer_protected;		/* for buttons to work, both variables in this order together */
 	
 // XXX depreceated... old animaton system (armature only viz) ---
 	short		ghostep, ghostsize;		/* number of frames to ghosts to show, and step between them  */
@@ -116,7 +126,7 @@ typedef enum eArmature_Flag {
 	ARM_MIRROR_EDIT		= (1<<8),
 	ARM_AUTO_IK			= (1<<9),
 	ARM_NO_CUSTOM		= (1<<10), 	/* made option negative, for backwards compat */
-	ARM_COL_CUSTOM		= (1<<11),	/* draw custom colours  */
+	ARM_COL_CUSTOM		= (1<<11),	/* draw custom colors  */
 	ARM_GHOST_ONLYSEL 	= (1<<12),	/* when ghosting, only show selected bones (this should belong to ghostflag instead) */ // XXX depreceated
 	ARM_DS_EXPAND 		= (1<<13)
 } eArmature_Flag;
@@ -180,7 +190,9 @@ typedef enum eBone_Flag {
 	BONE_EDITMODE_LOCKED		= (1<<19),	/* bone transforms are locked in EditMode */
 	BONE_TRANSFORM_CHILD		= (1<<20),	/* Indicates that a parent is also being transformed */
 	BONE_UNSELECTABLE			= (1<<21),	/* bone cannot be selected */
-	BONE_NO_LOCAL_LOCATION		= (1<<22),	/* bone location is in armature space */
+	BONE_NO_LOCAL_LOCATION		= (1<<22)	/* bone location is in armature space */
 } eBone_Flag;
+
+#define MAXBONENAME 32
 
 #endif

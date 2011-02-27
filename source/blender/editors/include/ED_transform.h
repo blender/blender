@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_transform.h
+ *  \ingroup editors
  */
 
 #ifndef ED_TRANSFORM_H
@@ -126,7 +130,7 @@ void BIF_selectTransformOrientationValue(struct bContext *C, int orientation);
 void ED_getTransformOrientationMatrix(const struct bContext *C, float orientation_mat[][3], int activeOnly);
 
 struct EnumPropertyItem *BIF_enumTransformOrientation(struct bContext *C);
-char * BIF_menustringTransformOrientation(const struct bContext *C, char *title); /* the returned value was allocated and needs to be freed after use */
+const char * BIF_menustringTransformOrientation(const struct bContext *C, const char *title); /* the returned value was allocated and needs to be freed after use */
 int BIF_countTransformOrientation(const struct bContext *C);
 
 void BIF_TransformSetUndo(char *str);
@@ -142,6 +146,7 @@ void BIF_selectOrientation(void);
 #define P_GEO_SNAP		(P_SNAP|(1 << 4))
 #define P_ALIGN_SNAP	(P_GEO_SNAP|(1 << 5))
 #define P_CONSTRAINT	(1 << 6)
+#define P_OPTIONS		(1 << 7)
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 

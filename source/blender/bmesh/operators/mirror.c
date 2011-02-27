@@ -1,17 +1,20 @@
 #include "MEM_guardedalloc.h"
-#include "BKE_customdata.h" 
+
 #include "DNA_listBase.h"
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+
 #include <string.h>
-#include "BKE_utildefines.h"
+
+#include "BKE_customdata.h" 
 #include "BKE_mesh.h"
 #include "BKE_global.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_editVert.h"
 #include "mesh_intern.h"
@@ -21,6 +24,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_array.h"
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
 

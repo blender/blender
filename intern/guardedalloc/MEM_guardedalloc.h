@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,38 +26,51 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/**
- * Copyright (C) 2001 NaN Technologies B.V.
- * Guarded memory (de)allocation
+/** \file MEM_guardedalloc.h
+ *  \ingroup MEM
  *
+ *  \author Copyright (C) 2001 NaN Technologies B.V.
+ *  \brief Read \ref MEMPage
+ */
+
+/** 
+ * \page MEMPage Guarded memory(de)allocation
  *
- * @mainpage MEM - c-style guarded memory allocation
+ * \section aboutmem c-style guarded memory allocation
  *
- * @section about About the MEM module
+ * \subsection memabout About the MEM module
  *
  * MEM provides guarded malloc/calloc calls. All memory is enclosed by
  * pads, to detect out-of-bound writes. All blocks are placed in a
  * linked list, so they remain reachable at all times. There is no
  * back-up in case the linked-list related data is lost.
  *
- * @section issues Known issues with MEM
+ * \subsection memissues Known issues with MEM
  *
  * There are currently no known issues with MEM. Note that there is a
  * second intern/ module with MEM_ prefix, for use in c++.
  * 
- * @section dependencies Dependencies
- *
+ * \subsection memdependencies Dependencies
  * - stdlib
- *
  * - stdio
- *
- * */
+ * 
+ * \subsection memdocs API Documentation
+ * See \ref MEM_guardedalloc.h
+ */
 
 #ifndef MEM_MALLOCN_H
 #define MEM_MALLOCN_H
 
 #include "stdio.h" /* needed for FILE* */
-#include "BLO_sys_types.h" /* needed for uintptr_t */
+#include "MEM_sys_types.h" /* needed for uintptr_t */
+
+#ifndef WARN_UNUSED
+#  ifdef __GNUC__
+#    define WARN_UNUSED  __attribute__((warn_unused_result))
+#  else
+#    define WARN_UNUSED
+#  endif
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,7 +79,7 @@ extern "C" {
 	/** Returns the length of the allocated memory segment pointed at
 	 * by vmemh. If the pointer was not previously allocated by this
 	 * module, the result is undefined.*/
-	size_t MEM_allocN_len(void *vmemh);
+	size_t MEM_allocN_len(void *vmemh) WARN_UNUSED;
 
 	/**
 	 * Release memory previously allocatred by this module. 
@@ -74,7 +87,7 @@ extern "C" {
 	short MEM_freeN(void *vmemh);
 	short WMEM_freeN(void *vmemh);
 	
-	short _MEM_freeN(void *vmemh, char *file, int line);
+	short _MEM_freeN(void *vmemh, const char *file, int line);
 	#define MEM_freeN(vmemh)	_MEM_freeN(vmemh, __FILE__, __LINE__)
 	
 
@@ -86,30 +99,30 @@ extern "C" {
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
-	void *MEM_dupallocN(void *vmemh);
+	void *MEM_dupallocN(void *vmemh) WARN_UNUSED;
 
 	/**
 	  * Reallocates a block of memory, and returns pointer to the newly
 	  * allocated block, the old one is freed. this is not as optimized
 	  * as a system realloc but just makes a new allocation and copies
 	  * over from existing memory. */
-	void *MEM_reallocN(void *vmemh, size_t len);
+	void *MEM_reallocN(void *vmemh, size_t len) WARN_UNUSED;
 
 	/**
 	 * Allocate a block of memory of size len, with tag name str. The
 	 * memory is cleared. The name must be static, because only a
 	 * pointer to it is stored ! */
-	void *MEM_callocN(size_t len, const char * str);
+	void *MEM_callocN(size_t len, const char * str) WARN_UNUSED;
 	
 	/** Allocate a block of memory of size len, with tag name str. The
 		* name must be a static, because only a pointer to it is stored !
 		* */
-	void *MEM_mallocN(size_t len, const char * str);
+	void *MEM_mallocN(size_t len, const char * str) WARN_UNUSED;
 	
 	/** Same as callocN, clears memory and uses mmap (disk cached) if supported.
 		Can be free'd with MEM_freeN as usual.
 		* */
-	void *MEM_mapallocN(size_t len, const char * str);
+	void *MEM_mapallocN(size_t len, const char * str) WARN_UNUSED;
 
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. as a python dict for easy investigation */ 
@@ -141,16 +154,20 @@ extern "C" {
 	/** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
 	void MEM_set_memory_debug(void);
 
-	/* Memory usage stats
+	/** Memory usage stats
 	 * - MEM_get_memory_in_use is all memory
 	 * - MEM_get_mapped_memory_in_use is a subset of all memory */
 	uintptr_t MEM_get_memory_in_use(void);
+	/** Get mapped memory usage. */
 	uintptr_t MEM_get_mapped_memory_in_use(void);
+	/** Get amount of memory blocks in use. */
 	int MEM_get_memory_blocks_in_use(void);
 
-/********* Internal structs.   They're only here for the MEM_OVERHEAD macro.*********/
+	/** Reset the peak memory statistic to zero. */
+	void MEM_reset_peak_memory(void);
 
-/*BMESH_TODO/XXX: note to self, don't merge this into trunk*/
+	/** Get the peak memory usage in bytes, including mmap allocations. */
+	uintptr_t MEM_get_peak_memory(void) WARN_UNUSED;
 
 /* all memory chunks are put in linked lists */
 typedef struct localLink
@@ -194,6 +211,10 @@ void MEM_reset_peak_memory(void);
 /*get the peak memory usage in bytes, including mmap allocations*/
 uintptr_t MEM_get_peak_memory(void);
 
+#ifndef NDEBUG
+const char *MEM_name_ptr(void *vmemh);
+#endif
+	
 #ifdef __cplusplus
 }
 #endif

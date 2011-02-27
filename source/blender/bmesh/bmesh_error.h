@@ -5,15 +5,15 @@
 
 /*pushes an error onto the bmesh error stack.
   if msg is null, then the default message for the errorcode is used.*/
-void BMO_RaiseError(BMesh *bm, BMOperator *owner, int errcode, char *msg);
+void BMO_RaiseError(BMesh *bm, BMOperator *owner, int errcode, const char *msg);
 
 /*gets the topmost error from the stack.
   returns error code or 0 if no error.*/
-int BMO_GetError(BMesh *bm, char **msg, BMOperator **op);
+int BMO_GetError(BMesh *bm, const char **msg, BMOperator **op);
 int BMO_HasError(BMesh *bm);
 
 /*same as geterror, only pops the error off the stack as well*/
-int BMO_PopError(BMesh *bm, char **msg, BMOperator **op);
+int BMO_PopError(BMesh *bm, const char **msg, BMOperator **op);
 void BMO_ClearStack(BMesh *bm);
 
 #if 0

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,8 +32,8 @@
 
 #include "BLI_math.h"
 
-#ifndef BLI_MATH_BASE_INLINE
-#define BLI_MATH_BASE_INLINE
+#ifndef BLI_MATH_BASE_INLINE_H
+#define BLI_MATH_BASE_INLINE_H
 
 /* A few small defines. Keep'em local! */
 #define SMALL_NUMBER	1.e-8
@@ -122,5 +122,10 @@ MINLINE float maxf(float a, float b)
 	return (a > b)? a: b;
 }
 
-#endif /* BLI_MATH_BASE_INLINE */
+MINLINE float signf(float f)
+{
+	return (f < 0.f)? -1.f: 1.f;
+}
+
+#endif /* BLI_MATH_BASE_INLINE_H */
 

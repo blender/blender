@@ -272,7 +272,7 @@ void BM_Compute_Normals(BMesh *bm)
 			continue;
 
 		if (normalize_v3(v->no)==0.0) {
-			VECCOPY(v->no, v->co);
+			copy_v3_v3(v->no, v->co);
 			normalize_v3(v->no);
 		}
 	}

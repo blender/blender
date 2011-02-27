@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,7 +26,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DISABLE_PYTHON
+/** \file gameengine/Ketsji/KX_VertexProxy.cpp
+ *  \ingroup ketsji
+ */
+
+
+#ifdef WITH_PYTHON
 
 #include "KX_VertexProxy.h"
 #include "KX_MeshProxy.h"
@@ -553,4 +558,4 @@ PyObject* KX_VertexProxy::PySetUV2(PyObject* args)
 	Py_RETURN_NONE;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

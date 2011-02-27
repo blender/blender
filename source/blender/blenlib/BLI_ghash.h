@@ -1,6 +1,4 @@
-/**
- * A general (pointer -> pointer) hash table ADT
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,13 +30,19 @@
 #ifndef BLI_GHASH_H
 #define BLI_GHASH_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+/** \file BLI_ghash.h
+ *  \ingroup bli
+ *  \brief A general (pointer -> pointer) hash table ADT
+ */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 #include "BKE_utildefines.h"
 #include "MEM_guardedalloc.h"
@@ -46,8 +50,8 @@ extern "C" {
 #include "BLI_mempool.h"
 #include "BLI_blenlib.h"
 
-typedef unsigned int	(*GHashHashFP)		(void *key);
-typedef int				(*GHashCmpFP)		(void *a, void *b);
+typedef unsigned int	(*GHashHashFP)		(const void *key);
+typedef int				(*GHashCmpFP)		(const void *a, const void *b);
 typedef	void			(*GHashKeyFreeFP)	(void *key);
 typedef void			(*GHashValFreeFP)	(void *val);
 
@@ -137,14 +141,14 @@ int				BLI_ghashIterator_isDone	(GHashIterator *ghi);
 
 /* *** */
 
-unsigned int	BLI_ghashutil_ptrhash	(void *key);
-int	BLI_ghashutil_ptrcmp	(void *a, void *b);
+unsigned int	BLI_ghashutil_ptrhash	(const void *key);
+int				BLI_ghashutil_ptrcmp	(const void *a, const void *b);
 
-unsigned int	BLI_ghashutil_strhash	(void *key);
-int				BLI_ghashutil_strcmp	(void *a, void *b);
+unsigned int	BLI_ghashutil_strhash	(const void *key);
+int				BLI_ghashutil_strcmp	(const void *a, const void *b);
 
-unsigned int	BLI_ghashutil_inthash	(void *ptr);
-int				BLI_ghashutil_intcmp(void *a, void *b);
+unsigned int	BLI_ghashutil_inthash	(const void *ptr);
+int				BLI_ghashutil_intcmp(const void *a, const void *b);
 
 /*begin of macro-inlined functions*/
 extern unsigned int hashsizes[];
@@ -160,7 +164,7 @@ BM_INLINE void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	gh->buckets[hash]= e;
 	
 	if (++gh->nentries>(float)gh->nbuckets/2) {
-		Entry *e, **old= gh->buckets;
+		Entry **old= gh->buckets;
 		int i, nold= gh->nbuckets;
 		
 		gh->nbuckets= hashsizes[++gh->cursize];
@@ -183,7 +187,7 @@ BM_INLINE void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	}
 }
 
-BM_INLINE void* BLI_ghash_lookup(GHash *gh, void *key) 
+BM_INLINE void* BLI_ghash_lookup(GHash *gh, const void *key) 
 {
 	if(gh) {
 		unsigned int hash= gh->hashfp(key)%gh->nbuckets;
@@ -200,7 +204,7 @@ BM_INLINE int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, 
 {
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
 	Entry *e;
-	Entry *p = 0;
+	Entry *p = NULL;
 
 	for (e= gh->buckets[hash]; e; e= e->next) {
 		if (gh->cmpfp(key, e->key)==0) {

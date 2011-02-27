@@ -5,6 +5,10 @@ sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
+<<<<<<< .working
 incs += ' ../../makesrna #/intern/opennl/extern ../../gpu ../../bmesh'
+=======
+incs += ' ../../makesrna #/intern/opennl/extern ../../gpu ../../blenloader'
+>>>>>>> .merge-right.r35190
 
 env.BlenderLib ( 'bf_editors_uvedit', sources, Split(incs), [], libtype=['core'], priority=[45] )

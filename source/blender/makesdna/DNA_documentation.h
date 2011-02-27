@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,29 +25,32 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/**
+ *  \page makesdna makesdna
+ *  \ingroup DNA
  *
- * @mainpage DNA- Makesdna modules 
- *
- * @section about About the DNA module
+ * \section aboutdna About the DNA module
  *
  * The DNA module holds all type definitions that are serialized in a
  * blender file. There is an executable that scans all files, looking
- * for struct-s to serialize (hence sdna: Struct DNA). From this
+ * for struct-s to serialize (hence sdna: Struct \ref DNA). From this
  * information, it builds a file with numbers that encode the format,
  * the names of variables, and the plce to look for them.
  *
- * @section issues Known issues with DNA
+ * \section dnaissues Known issues with DNA
  *
  * - Function pointers:
  *
  *   Because of historical reasons, some function pointers were
  *   untyped. The parser/dna generator has been modified to explicitly
  *   handle these special cases. Most pointers have been given proper
- *   proto's by now. DNA_space_types.h::Spacefile::returnfuncmay still
+ *   proto's by now. DNA_space_types.h::Spacefile::returnfunc may still
  *   be badly defined. The reason for this is that it is called with
  *   different types of arguments. It takes a char* at this moment...
  *
- * - Path to the header files
+ * - %Path to the header files
  *
  *   Also because of historical reasons, there is a path prefix to the
  *   headers that need to be scanned. This is the BASE_HEADER
@@ -55,15 +58,14 @@
  *   have to change this (Not very flexible, but it is hardly ever
  *   changed. Sorry.).
  *
- * @section dependencies Dependencies
+ * \section dnadependencies Dependencies
  *
  * DNA has no external dependencies (except for a few system
  * includes).
- *
- **/
 
+ * \section dnanote NOTE
 
-/* PLEASE READ INSTRUCTIONS ABOUT ADDING VARIABLES IN 'DNA' STRUCTS IN
+  PLEASE READ INSTRUCTIONS ABOUT ADDING VARIABLES IN 'DNA' STRUCTS IN
 
   intern/dna_genfile.c
   (ton)

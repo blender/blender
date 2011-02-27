@@ -22,17 +22,17 @@ import os
 
 
 KM_HIERARCHY = [
-    ('Window', 'EMPTY', 'WINDOW', []), # file save, window change, exit
-    ('Screen', 'EMPTY', 'WINDOW', [    # full screen, undo, screenshot
+    ('Window', 'EMPTY', 'WINDOW', []),  # file save, window change, exit
+    ('Screen', 'EMPTY', 'WINDOW', [     # full screen, undo, screenshot
         ('Screen Editing', 'EMPTY', 'WINDOW', []),    # resizing, action corners
         ]),
 
     ('View2D', 'EMPTY', 'WINDOW', []),    # view 2d navigation (per region)
-    ('View2D Buttons List', 'EMPTY', 'WINDOW', []), # view 2d with buttons navigation
+    ('View2D Buttons List', 'EMPTY', 'WINDOW', []),  # view 2d with buttons navigation
     ('Header', 'EMPTY', 'WINDOW', []),    # header stuff (per region)
-    ('Grease Pencil', 'EMPTY', 'WINDOW', []), # grease pencil stuff (per region)
+    ('Grease Pencil', 'EMPTY', 'WINDOW', []),  # grease pencil stuff (per region)
 
-    ('3D View', 'VIEW_3D', 'WINDOW', [ # view 3d navigation and generic stuff (select, transform)
+    ('3D View', 'VIEW_3D', 'WINDOW', [  # view 3d navigation and generic stuff (select, transform)
         ('Object Mode', 'EMPTY', 'WINDOW', []),
         ('Mesh', 'EMPTY', 'WINDOW', []),
         ('Curve', 'EMPTY', 'WINDOW', []),
@@ -46,13 +46,13 @@ KM_HIERARCHY = [
         ('Vertex Paint', 'EMPTY', 'WINDOW', []),
         ('Weight Paint', 'EMPTY', 'WINDOW', []),
         ('Face Mask', 'EMPTY', 'WINDOW', []),
-        ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
+        ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
         ('Sculpt', 'EMPTY', 'WINDOW', []),
 
         ('Armature Sketch', 'EMPTY', 'WINDOW', []),
         ('Particle', 'EMPTY', 'WINDOW', []),
 
-        ('Object Non-modal', 'EMPTY', 'WINDOW', []), # mode change
+        ('Object Non-modal', 'EMPTY', 'WINDOW', []),  # mode change
 
         ('3D View Generic', 'VIEW_3D', 'WINDOW', [])    # toolbar and properties
         ]),
@@ -71,8 +71,8 @@ KM_HIERARCHY = [
         ]),
 
     ('Image', 'IMAGE_EDITOR', 'WINDOW', [
-        ('UV Editor', 'EMPTY', 'WINDOW', []), # image (reverse order, UVEdit before Image
-        ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
+        ('UV Editor', 'EMPTY', 'WINDOW', []),  # image (reverse order, UVEdit before Image
+        ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
         ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [])
         ]),
 
@@ -90,7 +90,7 @@ KM_HIERARCHY = [
         ('File Browser Buttons', 'FILE_BROWSER', 'WINDOW', [])
         ]),
 
-    ('Property Editor', 'PROPERTIES', 'WINDOW', []), # align context menu
+    ('Property Editor', 'PROPERTIES', 'WINDOW', []),  # align context menu
 
     ('Script', 'SCRIPTS_WINDOW', 'WINDOW', []),
     ('Text', 'TEXT_EDITOR', 'WINDOW', []),
@@ -119,9 +119,23 @@ def _merge_keymaps(kc1, kc2):
     """
     merged_keymaps = [(km, kc1) for km in kc1.keymaps]
     if kc1 != kc2:
-        merged_keymaps.extend([(km, kc2) for km in kc2.keymaps if not _km_exists_in(km, merged_keymaps)])
+        merged_keymaps.extend((km, kc2) for km in kc2.keymaps if not _km_exists_in(km, merged_keymaps))
 
     return merged_keymaps
+
+
+class USERPREF_MT_keyconfigs(bpy.types.Menu):
+    bl_label = "KeyPresets"
+    preset_subdir = "keyconfig"
+    preset_operator = "wm.keyconfig_activate"
+
+    def draw(self, context):
+        props = self.layout.operator("wm.context_set_value", text="Blender (default)")
+        props.data_path = "window_manager.keyconfigs.active"
+        props.value = "context.window_manager.keyconfigs.default"
+
+        # now draw the presets
+        bpy.types.Menu.draw_preset(self, context)
 
 
 class InputKeyMapPanel(bpy.types.Panel):
@@ -211,6 +225,19 @@ class InputKeyMapPanel(bpy.types.Panel):
                 for entry in children:
                     self.draw_entry(display_keymaps, entry, col, level + 1)
 
+    @staticmethod
+    def draw_kmi_properties(box, properties, title=None):
+        box.separator()
+        if title:
+            box.label(text=title)
+        flow = box.column_flow(columns=2)
+        for pname, value in properties.bl_rna.properties.items():
+            if pname != "rna_type" and not properties.is_property_hidden(pname):
+                if isinstance(value, bpy.types.OperatorProperties):
+                    __class__.draw_kmi_properties(box, value, title=pname)
+                else:
+                    flow.prop(properties, pname)
+
     def draw_kmi(self, display_keymaps, kc, km, kmi, layout, level):
         map_type = kmi.map_type
 
@@ -253,7 +280,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         else:
             row.label()
 
-        if kmi.id:
+        if not kmi.is_user_defined:
             op = row.operator("wm.keyitem_restore", text="", icon='BACK')
             op.item_id = kmi.id
         op = row.operator("wm.keyitem_remove", text="", icon='X')
@@ -272,6 +299,8 @@ class InputKeyMapPanel(bpy.types.Panel):
                 if km.is_modal:
                     sub.prop(kmi, "propvalue", text="")
                 else:
+                    # One day...
+                    # sub.prop_search(kmi, "idname", bpy.context.window_manager, "operators_all", text="")
                     sub.prop(kmi, "idname", text="")
 
                 sub = split.column()
@@ -293,22 +322,10 @@ class InputKeyMapPanel(bpy.types.Panel):
                 subrow.prop(kmi, "oskey", text="Cmd")
                 subrow.prop(kmi, "key_modifier", text="", event=True)
 
-            def display_properties(properties, title=None):
-                box.separator()
-                if title:
-                    box.label(text=title)
-                flow = box.column_flow(columns=2)
-                for pname, value in properties.items():
-                    if not properties.is_property_hidden(pname):
-                        if isinstance(value, bpy.types.OperatorProperties):
-                            display_properties(value, title=pname)
-                        else:
-                            flow.prop(properties, pname)
-
             # Operator properties
             props = kmi.properties
             if props is not None:
-                display_properties(props)
+                __class__.draw_kmi_properties(box, props)
 
             # Modal key maps attached to this operator
             if not km.is_modal:
@@ -362,10 +379,18 @@ class InputKeyMapPanel(bpy.types.Panel):
         subsplit = sub.split()
         subcol = subsplit.column()
 
-        row = subcol.row()
-        row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config:")
-        layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
-        row.operator("wm.keyconfig_remove", text="", icon='X')
+        row = subcol.row(align=True)
+
+        #row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config:")
+        text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
+        if not text:
+            text = "Blender (default)"
+        row.menu("USERPREF_MT_keyconfigs", text=text)
+        row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMIN")
+        row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMOUT").remove_active = True
+
+#        layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
+#        row.operator("wm.keyconfig_remove", text="", icon='X')
 
         row.prop(context.space_data, "filter_text", icon="VIEWZOOM")
 
@@ -386,9 +411,9 @@ def export_properties(prefix, properties, lines=None):
     if lines is None:
         lines = []
 
-    for pname, value in properties.items():
-        print()
+    for pname in properties.keys():
         if not properties.is_property_hidden(pname):
+            value = getattr(properties, pname)
             if isinstance(value, bpy.types.OperatorProperties):
                 export_properties(prefix + "." + pname, value, lines)
             elif properties.is_property_set(pname):
@@ -499,7 +524,7 @@ def _string_value(value):
     if isinstance(value, str) or isinstance(value, bool) or isinstance(value, float) or isinstance(value, int):
         result = repr(value)
     elif getattr(value, '__len__', False):
-        repr(list(value))
+        return repr(list(value))
     else:
         print("Export key configuration: can't write ", value)
 
@@ -519,57 +544,39 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
     keep_original = BoolProperty(name="Keep original", description="Keep original file after copying to configuration folder", default=True)
 
     def execute(self, context):
+        from os.path import basename
         import shutil
-        if not self.properties.is_property_set("filepath"):
+        if not self.filepath:
             raise Exception("Filepath not set")
 
-        f = open(self.properties.filepath, "r")
+        f = open(self.filepath, "r")
         if not f:
             raise Exception("Could not open file")
 
-        config_name = None
-        for line in f:
-            if line.startswith("kc = wm.keyconfigs.new("):
-                config_name = line[24:-3]
-                break
+        config_name = basename(self.filepath)
 
-        if config_name is None:
-            raise Exception("config name not found")
-
-        path = os.path.join(__file__, "..", "..", "cfg") # remove ui/space_userpref.py
-        path = os.path.normpath(path)
+        path = bpy.utils.preset_paths("keyconfig")[0]  # we need some way to tell the user and system preset path
         print(path)
 
         # create config folder if needed
         if not os.path.exists(path):
             os.mkdir(path)
 
-        path = os.path.join(path, config_name + ".py")
+        path = os.path.join(path, config_name)
 
-        if self.properties.keep_original:
-            shutil.copy(self.properties.filepath, path)
+        if self.keep_original:
+            shutil.copy(self.filepath, path)
         else:
-            shutil.move(self.properties.filepath, path)
+            shutil.move(self.filepath, path)
 
         # sneaky way to check we're actually running the code.
-        wm = context.window_manager
-        while config_name in wm.keyconfigs:
-            wm.keyconfigs.remove(wm.keyconfigs[config_name])
-
-        wm = context.window_manager
-        totmap = len(wm.keyconfigs)
-        mod = __import__(config_name)
-        if totmap == len(wm.keyconfigs):
-            reload(mod)
-
-        wm = bpy.context.window_manager
-        wm.keyconfigs.active = wm.keyconfigs[config_name]
+        bpy.utils.keyconfig_set(path)
 
         return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 # This operator is also used by interaction presets saving - AddPresetBase
@@ -584,31 +591,22 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
-    kc_name = StringProperty(name="KeyConfig Name", description="Name to save the key config as")
 
     def execute(self, context):
-        if not self.properties.is_property_set("filepath"):
+        if not self.filepath:
             raise Exception("Filepath not set")
 
-        f = open(self.properties.filepath, "w")
+        f = open(self.filepath, "w")
         if not f:
             raise Exception("Could not open file")
 
         wm = context.window_manager
         kc = wm.keyconfigs.active
 
-        if self.properties.kc_name != '':
-            name = self.properties.kc_name
-        elif kc.name == 'Blender':
-            name = os.path.splitext(os.path.basename(self.properties.filepath))[0]
-        else:
-            name = kc.name
-
-        f.write("# Configuration %s\n" % name)
-
-        f.write("import bpy\n\n")
+        f.write("import bpy\n")
+        f.write("import os\n\n")
         f.write("wm = bpy.context.window_manager\n")
-        f.write("kc = wm.keyconfigs.new('%s')\n\n" % name)
+        f.write("kc = wm.keyconfigs.new(os.path.splitext(os.path.basename(__file__))[0])\n\n")  # keymap must be created by caller
 
         # Generate a list of keymaps to export:
         #
@@ -668,7 +666,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
@@ -678,7 +676,6 @@ class WM_OT_keymap_edit(bpy.types.Operator):
     bl_label = "Edit Key Map"
 
     def execute(self, context):
-        wm = context.window_manager
         km = context.keymap
         km.copy_to_user()
         return {'FINISHED'}
@@ -689,12 +686,12 @@ class WM_OT_keymap_restore(bpy.types.Operator):
     bl_idname = "wm.keymap_restore"
     bl_label = "Restore Key Map(s)"
 
-    all = BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default")
+    all = BoolProperty(name="All Keymaps", description="Restore all keymaps to default")
 
     def execute(self, context):
         wm = context.window_manager
 
-        if self.properties.all:
+        if self.all:
             for km in wm.keyconfigs.default.keymaps:
                 km.restore_to_default()
         else:
@@ -709,14 +706,19 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
     bl_idname = "wm.keyitem_restore"
     bl_label = "Restore Key Map Item"
 
-    item_id = IntProperty(attr="item_id", name="Item Identifier", description="Identifier of the item to remove")
+    item_id = IntProperty(name="Item Identifier", description="Identifier of the item to remove")
+
+    @classmethod
+    def poll(cls, context):
+        km = context.keymap
+        return km.is_user_defined
 
     def execute(self, context):
-        wm = context.window_manager
         km = context.keymap
-        kmi = km.items.from_id(self.properties.item_id)
+        kmi = km.items.from_id(self.item_id)
 
-        km.restore_item_to_default(kmi)
+        if not kmi.is_user_defined:
+            km.restore_item_to_default(kmi)
 
         return {'FINISHED'}
 
@@ -732,9 +734,9 @@ class WM_OT_keyitem_add(bpy.types.Operator):
         kc = wm.keyconfigs.default
 
         if km.is_modal:
-            km.items.new_modal("", 'A', 'PRESS') # kmi
+            km.items.new_modal("", 'A', 'PRESS')  # kmi
         else:
-            km.items.new("none", 'A', 'PRESS') # kmi
+            km.items.new("none", 'A', 'PRESS')  # kmi
 
         # clear filter and expand keymap so we can see the newly added item
         if context.space_data.filter_text != "":
@@ -750,12 +752,16 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
     bl_idname = "wm.keyitem_remove"
     bl_label = "Remove Key Map Item"
 
-    item_id = IntProperty(attr="item_id", name="Item Identifier", description="Identifier of the item to remove")
+    item_id = IntProperty(name="Item Identifier", description="Identifier of the item to remove")
+
+    @classmethod
+    def poll(cls, context):
+        km = context.keymap
+        return km.is_user_defined
 
     def execute(self, context):
-        wm = context.window_manager
         km = context.keymap
-        kmi = km.items.from_id(self.properties.item_id)
+        kmi = km.items.from_id(self.item_id)
         km.items.remove(kmi)
         return {'FINISHED'}
 
@@ -771,31 +777,18 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
         return wm.keyconfigs.active.is_user_defined
 
     def execute(self, context):
-        import sys
         wm = context.window_manager
-
         keyconfig = wm.keyconfigs.active
-
-        module = sys.modules.get(keyconfig.name)
-
-        if module:
-            path = module.__file__
-            if os.path.exists(path):
-                os.remove(path)
-
-            path = module.__file__ + "c" # for .pyc
-
-            if os.path.exists(path):
-                os.remove(path)
-
         wm.keyconfigs.remove(keyconfig)
         return {'FINISHED'}
 
+
 def register():
-    pass
+    bpy.utils.register_module(__name__)
+
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

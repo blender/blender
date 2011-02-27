@@ -14,6 +14,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+
+/** \file InputParser.h
+ *  \ingroup expressions
+ */
+
 #ifndef __INPUTPARSER_H__
 #define __INPUTPARSER_H__
 
@@ -93,6 +98,7 @@ private:
 	void DigRep();
 	void CharRep();
 	void GrabString(int start);
+	void GrabRealString(int start);
 	void NextSym();
 #if 0	/* not used yet */
 	int MakeInt();

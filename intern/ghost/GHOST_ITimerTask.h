@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_ITimerTask.h
+
+/** \file ghost/GHOST_ITimerTask.h
+ *  \ingroup GHOST
  * Declaration of GHOST_ITimerTask interface class.
  */
 
@@ -83,6 +84,12 @@ public:
 	 * @param data The timer user data.
 	 */
 	virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GHOST:GHOST_ITimerTask"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // _GHOST_ITIMER_TASK_H_

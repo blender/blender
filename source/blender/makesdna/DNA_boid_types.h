@@ -1,6 +1,4 @@
-/* DNA_particle_types.h
- *
- *
+/* 
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,10 @@
 
 #ifndef DNA_BOID_TYPES_H
 #define DNA_BOID_TYPES_H
+
+/** \file DNA_boid_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_listBase.h"
 
@@ -104,6 +106,8 @@ typedef enum BoidMode {
 	eBoidMode_Liftoff,
 	NUM_BOID_MODES
 } BoidMode;
+
+
 typedef struct BoidData {
 	float health, acc[3];
 	short state_id, mode;
@@ -187,8 +191,8 @@ typedef struct BoidState {
 typedef struct BoidSettings {
 	int options, last_state_id;
 
-	float landing_smoothness, rt;
-	float banking, height;
+	float landing_smoothness, height;
+	float banking, pitch;
 
 	float health, aggression;
 	float strength, accuracy, range;

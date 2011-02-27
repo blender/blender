@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ED_node.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_NODE_H
 #define ED_NODE_H
 
@@ -40,7 +45,7 @@ void ED_init_node_butfuncs(void);
 
 /* node_draw.c */
 void ED_node_changed_update(struct ID *id, struct bNode *node);
-void ED_node_generic_update(struct Main *bmain, struct Scene *scene, struct bNodeTree *ntree, struct bNode *node);
+void ED_node_generic_update(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
 
 /* node_edit.c */
 void ED_node_shader_default(struct Material *ma);

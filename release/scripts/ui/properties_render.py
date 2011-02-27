@@ -34,6 +34,13 @@ class RENDER_MT_ffmpeg_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
+class RENDER_MT_framerate_presets(bpy.types.Menu):
+    bl_label = "Frame Rate Presets"
+    preset_subdir = "framerate"
+    preset_operator = "script.execute_preset"
+    draw = bpy.types.Menu.draw_preset
+
+
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -55,13 +62,9 @@ class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
 
         rd = context.scene.render
 
-        split = layout.split()
-
-        col = split.column()
-        col.operator("render.render", text="Image", icon='RENDER_STILL')
-
-        col = split.column()
-        col.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
+        row = layout.row()
+        row.operator("render.render", text="Image", icon='RENDER_STILL')
+        row.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
 
         layout.prop(rd, "display_mode", text="Display")
 
@@ -84,10 +87,11 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
         col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
 
+        row = layout.row()
         rl = rd.layers.active
-
         if rl:
-            layout.prop(rl, "name")
+            row.prop(rl, "name")
+        row.prop(rd, "use_single_layer", text="", icon_only=True)
 
         split = layout.split()
 
@@ -101,7 +105,6 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rl, "layers", text="Layer")
         col.label(text="Mask Layers:")
         col.prop(rl, "layers_zmask", text="")
-
 
         layout.separator()
         layout.label(text="Include:")
@@ -223,6 +226,7 @@ class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = rd.use_compositing
         sub.prop(rd, "use_free_image_textures")
+        sub.prop(rd, "use_free_unused_nodes")
         sub = col.column()
         sub.active = rd.use_raytrace
         sub.label(text="Acceleration structure:")
@@ -264,7 +268,6 @@ class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
         sub.row().prop(rd, "field_order", expand=True)
         sub.prop(rd, "use_fields_still", text="Still")
 
-
         col = split.column()
         col.prop(rd, "use_edge_enhance")
         sub = col.column()
@@ -286,6 +289,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
         layout.prop(rd, "filepath", text="")
 
         split = layout.split()
+
         col = split.column()
         col.prop(rd, "file_format", text="")
         col.row().prop(rd, "color_mode", text="Color", expand=True)
@@ -296,35 +300,20 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "use_placeholder")
 
         if file_format in ('AVI_JPEG', 'JPEG'):
-            split = layout.split()
-            split.prop(rd, "file_quality", slider=True)
-        
+            layout.prop(rd, "file_quality", slider=True)
+
         if file_format == 'PNG':
-            split = layout.split()
-            split.prop(rd, "file_quality", slider=True, text="Compression")
+            layout.prop(rd, "file_quality", slider=True, text="Compression")
 
-        elif file_format == 'MULTILAYER':
-            split = layout.split()
+        if file_format in ('OPEN_EXR', 'MULTILAYER'):
+            row = layout.row()
+            row.prop(rd, "exr_codec", text="Codec")
 
-            col = split.column()
-            col.label(text="Codec:")
-            col.prop(rd, "exr_codec", text="")
-            col = split.column()
-
-        elif file_format == 'OPEN_EXR':
-            split = layout.split()
-
-            col = split.column()
-            col.label(text="Codec:")
-            col.prop(rd, "exr_codec", text="")
-
-            subsplit = split.split()
-            col = subsplit.column()
-            col.prop(rd, "use_exr_half")
-            col.prop(rd, "exr_zbuf")
-
-            col = subsplit.column()
-            col.prop(rd, "exr_preview")
+            if file_format == 'OPEN_EXR':
+                row = layout.row()
+                row.prop(rd, "use_exr_half")
+                row.prop(rd, "exr_zbuf")
+                row.prop(rd, "exr_preview")
 
         elif file_format == 'JPEG2000':
             split = layout.split()
@@ -337,7 +326,10 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
             col.prop(rd, "jpeg2k_ycc")
 
         elif file_format in ('CINEON', 'DPX'):
+
             split = layout.split()
+            split.label("FIXME: hard coded Non-Linear, Gamma:1.0")
+            '''
             col = split.column()
             col.prop(rd, "use_cineon_log", text="Convert to Log")
 
@@ -346,14 +338,13 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
             col.prop(rd, "cineon_black", text="Black")
             col.prop(rd, "cineon_white", text="White")
             col.prop(rd, "cineon_gamma", text="Gamma")
+            '''
 
         elif file_format == 'TIFF':
-            split = layout.split()
-            split.prop(rd, "use_tiff_16bit")
+            layout.prop(rd, "use_tiff_16bit")
 
         elif file_format == 'QUICKTIME_CARBON':
-            split = layout.split()
-            split.operator("scene.render_data_set_quicktime_codec")
+            layout.operator("scene.render_data_set_quicktime_codec")
 
         elif file_format == 'QUICKTIME_QTKIT':
             split = layout.split()
@@ -365,12 +356,10 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
             col.prop(rd, "quicktime_audiocodec_type", text="Audio Codec")
             if rd.quicktime_audiocodec_type != 'No audio':
                 split = layout.split()
-                col = split.column()
                 if rd.quicktime_audiocodec_type == 'LPCM':
-                    col.prop(rd, "quicktime_audio_bitdepth", text="")
+                    split.prop(rd, "quicktime_audio_bitdepth", text="")
 
-                col = split.column()
-                col.prop(rd, "quicktime_audio_samplerate", text="")
+                split.prop(rd, "quicktime_audio_samplerate", text="")
 
                 split = layout.split()
                 col = split.column()
@@ -382,7 +371,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
 
                 if rd.quicktime_audiocodec_type == 'AAC':
                     col.prop(rd, "quicktime_audio_codec_isvbr")
-                    
+
                 col = subsplit.column()
                 col.prop(rd, "quicktime_audio_resampling_hq")
 
@@ -405,22 +394,15 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
         layout.menu("RENDER_MT_ffmpeg_presets", text="Presets")
 
         split = layout.split()
-
-        col = split.column()
-        col.prop(rd, "ffmpeg_format")
+        split.prop(rd, "ffmpeg_format")
         if rd.ffmpeg_format in ('AVI', 'QUICKTIME', 'MKV', 'OGG'):
-            col = split.column()
-            col.prop(rd, "ffmpeg_codec")
+            split.prop(rd, "ffmpeg_codec")
         else:
             split.label()
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(rd, "ffmpeg_video_bitrate")
-
-        col = split.column()
-        col.prop(rd, "ffmpeg_gopsize")
+        row = layout.row()
+        row.prop(rd, "ffmpeg_video_bitrate")
+        row.prop(rd, "ffmpeg_gopsize")
 
         split = layout.split()
 
@@ -431,28 +413,24 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "ffmpeg_buffersize", text="Buffer")
 
         col = split.column()
-
         col.prop(rd, "ffmpeg_autosplit")
         col.label(text="Mux:")
         col.prop(rd, "ffmpeg_muxrate", text="Rate")
         col.prop(rd, "ffmpeg_packetsize", text="Packet Size")
 
+        layout.separator()
+
         # Audio:
-        sub = layout.column()
-
         if rd.ffmpeg_format not in ('MP3', ):
-            sub.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
+            layout.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
 
-        sub.separator()
-
-        split = sub.split()
+        split = layout.split()
 
         col = split.column()
         col.prop(rd, "ffmpeg_audio_bitrate")
         col.prop(rd, "ffmpeg_audio_mixrate")
 
-        col = split.column()
-        col.prop(rd, "ffmpeg_audio_volume", slider=True)
+        split.prop(rd, "ffmpeg_audio_volume", slider=True)
 
 
 class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
@@ -484,9 +462,14 @@ class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
 
 
 class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Full Sample Motion Blur"
+    bl_label = "Sampled Motion Blur"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        return not rd.use_full_sample and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         rd = context.scene.render
@@ -503,6 +486,7 @@ class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
         row.prop(rd, "motion_blur_samples")
         row.prop(rd, "motion_blur_shutter")
 
+
 class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Dimensions"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -516,6 +500,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
         row = layout.row(align=True)
         row.menu("RENDER_MT_presets", text=bpy.types.RENDER_MT_presets.bl_label)
         row.operator("render.preset_add", text="", icon="ZOOMIN")
+        row.operator("render.preset_add", text="", icon="ZOOMOUT").remove_active = True
 
         split = layout.split()
 
@@ -544,8 +529,32 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
         sub.prop(scene, "frame_step", text="Step")
 
         sub.label(text="Frame Rate:")
-        sub.prop(rd, "fps")
-        sub.prop(rd, "fps_base", text="/")
+        if rd.fps_base == 1:
+            fps_rate = round(rd.fps / rd.fps_base)
+        else:
+            fps_rate = round(rd.fps / rd.fps_base, 2)
+
+        # TODO: Change the following to iterate over existing presets
+        if (fps_rate in (23.98, 24, 25, 29.97, 30, 50, 59.94, 60)):
+            custom_framerate = False
+        else:
+            custom_framerate = True
+
+        if custom_framerate == True:
+            fps_label_text = "Custom (" + str(fps_rate) + " fps)"
+        else:
+            fps_label_text = str(fps_rate) + " fps"
+
+        sub.menu("RENDER_MT_framerate_presets", text=fps_label_text)
+
+        if (bpy.types.RENDER_MT_framerate_presets.bl_label == "Custom") or (custom_framerate == True):
+            sub.prop(rd, "fps")
+            sub.prop(rd, "fps_base", text="/")
+        subrow = sub.row(align=True)
+        subrow.label(text="Time Remapping:")
+        subrow = sub.row(align=True)
+        subrow.prop(rd, "frame_map_old", text="Old")
+        subrow.prop(rd, "frame_map_new", text="New")
 
 
 class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
@@ -574,6 +583,7 @@ class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "use_stamp_frame", text="Frame")
         col.prop(rd, "use_stamp_scene", text="Scene")
         col.prop(rd, "use_stamp_camera", text="Camera")
+        col.prop(rd, "use_stamp_lens", text="Lens")
         col.prop(rd, "use_stamp_filename", text="Filename")
         col.prop(rd, "use_stamp_marker", text="Marker")
         col.prop(rd, "use_stamp_sequencer_strip", text="Seq. Strip")
@@ -632,11 +642,11 @@ class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

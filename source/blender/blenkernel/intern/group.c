@@ -41,6 +41,8 @@
 #include "DNA_particle_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
 
 #include "BKE_global.h"
 #include "BKE_group.h"
@@ -127,7 +129,7 @@ void unlink_group(Group *group)
 	group->id.us= 0;
 }
 
-Group *add_group(char *name)
+Group *add_group(const char *name)
 {
 	Group *group;
 	
@@ -327,7 +329,7 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 you can draw everything, leaves tags in objects to signal it needs further updating */
 
 /* note: does not work for derivedmesh and render... it recreates all again in convertblender.c */
-void group_handle_recalc_and_update(Scene *scene, Object *parent, Group *group)
+void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group *group)
 {
 	GroupObject *go;
 	

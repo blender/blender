@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +29,8 @@
 
 
 #include "WM_api.h"
+
+#include "ED_render.h"
 
 #include "render_intern.h" // own include
 

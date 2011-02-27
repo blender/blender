@@ -11,10 +11,10 @@ incs += ' #intern/audaspace/intern ' + env['BF_PYTHON_INC']
 defs = []
 
 if env['BF_BUILDINFO']:
-	defs.append('BUILD_DATE')
+    defs.append('BUILD_DATE')
 
 if env['OURPLATFORM'] in ('win32-mingw', 'win32-vc','win64-vc') and env['BF_DEBUG']:
-	defs.append('_DEBUG')
+    defs.append('_DEBUG')
 
 env.BlenderLib( libname = 'bf_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [361,160])
 

@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_JoystickSensor.cpp
+ *  \ingroup gamelogic
+ */
+
 #include "SCA_JoystickManager.h"
 #include "SCA_JoystickSensor.h"
 
@@ -241,7 +246,7 @@ bool SCA_JoystickSensor::isValid(SCA_JoystickSensor::KX_JOYSENSORMODE m)
 	return res;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions 														 */
@@ -296,7 +301,7 @@ PyAttributeDef SCA_JoystickSensor::Attributes[] = {
 /* get button active list  -------------------------------------------------- */
 const char SCA_JoystickSensor::GetButtonActiveList_doc[] = 
 "getButtonActiveList\n"
-"\tReturns a list containing the indicies of the button currently pressed.\n";
+"\tReturns a list containing the indices of the button currently pressed.\n";
 PyObject* SCA_JoystickSensor::PyGetButtonActiveList( ) {
 	SCA_Joystick *joy = ((SCA_JoystickManager *)m_eventmgr)->GetJoystickDevice(m_joyindex);
 	PyObject *ls = PyList_New(0);

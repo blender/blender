@@ -1,27 +1,33 @@
 /*
  * $Id$
  *
- * ***** BEGIN LGPL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
- * Copyright 2009 Jörg Hermann Müller
+ * Copyright 2009-2011 Jörg Hermann Müller
  *
  * This file is part of AudaSpace.
  *
- * AudaSpace is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * Audaspace is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
  * AudaSpace is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with AudaSpace.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with Audaspace; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * ***** END LGPL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file audaspace/jack/AUD_JackDevice.cpp
+ *  \ingroup audjack
+ */
+
 
 #include "AUD_Mixer.h"
 #include "AUD_JackDevice.h"
@@ -236,9 +242,9 @@ AUD_JackDevice::AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buff
 	create();
 
 	m_valid = true;
-	m_playing = false;
 	m_sync = 0;
 	m_syncFunc = NULL;
+	m_nextState = m_state = jack_transport_query(m_client, NULL);
 
 	pthread_mutex_init(&m_mixingLock, NULL);
 	pthread_cond_init(&m_mixingCondition, NULL);
@@ -307,11 +313,13 @@ void AUD_JackDevice::playing(bool playing)
 void AUD_JackDevice::startPlayback()
 {
 	jack_transport_start(m_client);
+	m_nextState = JackTransportRolling;
 }
 
 void AUD_JackDevice::stopPlayback()
 {
 	jack_transport_stop(m_client);
+	m_nextState = JackTransportStopped;
 }
 
 void AUD_JackDevice::seekPlayback(float time)
@@ -335,5 +343,10 @@ float AUD_JackDevice::getPlaybackPosition()
 
 bool AUD_JackDevice::doesPlayback()
 {
-	return jack_transport_query(m_client, NULL) != JackTransportStopped;
+	jack_transport_state_t state = jack_transport_query(m_client, NULL);
+
+	if(state != m_state)
+		m_nextState = m_state = state;
+
+	return m_nextState != JackTransportStopped;
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -36,7 +36,6 @@
 #include "BLI_math.h"
 
 #include "IMB_imbuf.h"
-
 
 #include "WM_types.h"
 
@@ -93,12 +92,11 @@ EnumPropertyItem brush_imagepaint_tool_items[] = {
 #include "BKE_texture.h"
 #include "BKE_brush.h"
 #include "BKE_icons.h"
-
 #include "BKE_paint.h"
 
 #include "WM_api.h"
 
-static void rna_Brush_reset_icon(Brush *br, char *type)
+static void rna_Brush_reset_icon(Brush *br, const char *UNUSED(type))
 {
 	ID *id = &br->id;
 
@@ -495,6 +493,13 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Plane Trim", "If a vertex is further from offset plane than this then it is not affected");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+	prop= RNA_def_property(srna, "height", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "height");
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_range(prop, 0, 1.0f);
+	RNA_def_property_ui_text(prop, "Brush Height", "Affectable height of brush (layer height for layer tool, i.e.)");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
 	prop= RNA_def_property(srna, "texture_sample_bias", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "texture_sample_bias");
 	RNA_def_property_float_default(prop, 0);
@@ -766,7 +771,7 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "OperatorStrokeElement", "IDPropertyGroup");
+	srna= RNA_def_struct(brna, "OperatorStrokeElement", "PropertyGroup");
 	RNA_def_struct_ui_text(srna, "Operator Stroke Element", "");
 
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
@@ -792,6 +797,11 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "time", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_ui_text(prop, "Time", "");
+	
+	/* used for Grease Pencil sketching sessions */
+	prop= RNA_def_property(srna, "is_start", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_IDPROPERTY);
+	RNA_def_property_ui_text(prop, "Is Stroke Start", "");
 
 	/* XXX: Tool (this will be for pressing a modifier key for a different brush,
 			e.g. switching to a Smooth brush in the middle of the stroke */

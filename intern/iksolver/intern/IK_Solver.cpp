@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file iksolver/intern/IK_Solver.cpp
+ *  \ingroup iksolver
+ */
+
+
 #include "../extern/IK_solver.h"
 
 #include "IK_QJacobianSolver.h"
@@ -45,6 +50,7 @@ public:
 	std::list<IK_QTask*> tasks;
 };
 
+// FIXME: locks still result in small "residual" changes to the locked axes...
 IK_QSegment *CreateSegment(int flag, bool translate)
 {
 	int ndof = 0;

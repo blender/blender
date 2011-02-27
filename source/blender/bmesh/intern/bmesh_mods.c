@@ -8,6 +8,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
@@ -293,7 +294,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 	
 	if (nf) {
 		BM_Copy_Attributes(bm, bm, f, nf);
-		VECCOPY(nf->no, f->no);
+		copy_v3_v3(nf->no, f->no);
 	}
 
 	return nf;
@@ -449,7 +450,7 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 	nv = bmesh_semv(bm,v,e,ne);
 	if (nv == NULL) return NULL;
 
-	VECSUB(nv->co,v2->co,v->co);
+	sub_v3_v3v3(nv->co,v2->co,v->co);
 	VECADDFAC(nv->co,v->co,nv->co,percent);
 
 	if (ne) {

@@ -12,6 +12,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+
+/** \file EmptyValue.h
+ *  \ingroup expressions
+ */
+
 #if !defined _EMPTYVALUE_H
 #define _EMPTYVALUE_H
 

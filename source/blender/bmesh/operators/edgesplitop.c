@@ -273,7 +273,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 					if (!verts[j ? (i+1) % f->len : i]) {
 						/*make unique vert here for this face only*/
 						v2 = BM_Make_Vert(bm, v->co, NULL);
-						VECCOPY(v2->no, v->no);
+						copy_v3_v3(v2->no, v->no);
 						BM_Copy_Attributes(bm, bm, v, v2);
 
 						verts[j ? (i+1) % f->len : i] = v2;
@@ -303,7 +303,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 						et = etags + BMINDEX_GET(l2->e);
 						if (ETV(et, v, l2) == NULL) {
 							v2 = BM_Make_Vert(bm, v->co, NULL);
-							VECCOPY(v2->no, v->no);
+							copy_v3_v3(v2->no, v->no);
 							BM_Copy_Attributes(bm, bm, v, v2);
 							
 							l3 = l2;

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -41,7 +41,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
 #include "BLI_threads.h"
-
+#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -53,7 +53,7 @@
 
 #include "BKE_global.h"
 #include "BKE_material.h"
-#include "BKE_utildefines.h"
+
 
 #include "RE_render_ext.h"
 
@@ -243,14 +243,14 @@ int testclip(float *v)
 	   prevents issues with vertices lying exact on borders */
 	abs4= fabs(v[3]) + FLT_EPSILON;
 	
-	if(v[2]< -abs4) c=16;			/* this used to be " if(v[2]<0) ", see clippz() */
+	if( v[0] < -abs4) c+=1;
+	else if( v[0] > abs4) c+=2;
+	
+	if( v[1] > abs4) c+=4;
+	else if( v[1] < -abs4) c+=8;
+	
+	if(v[2] < -abs4) c+=16;			/* this used to be " if(v[2]<0) ", see clippz() */
 	else if(v[2]> abs4) c+= 32;
-	
-	if( v[0]>abs4) c+=2;
-	else if( v[0]< -abs4) c+=1;
-	
-	if( v[1]>abs4) c+=4;
-	else if( v[1]< -abs4) c+=8;
 	
 	return c;
 }
@@ -1782,10 +1782,10 @@ static int zbuf_part_project(ZbufProjectCache *cache, int index, float winmat[][
 		projectvert(co, winmat, ho);
 
 		wco= ho[3];
-		if(ho[0] > bounds[1]*wco) clipflag |= 1;
-		else if(ho[0]< bounds[0]*wco) clipflag |= 2;
+		if(ho[0] < bounds[0]*wco) clipflag |= 1;
+		else if(ho[0] > bounds[1]*wco) clipflag |= 2;
 		if(ho[1] > bounds[3]*wco) clipflag |= 4;
-		else if(ho[1]< bounds[2]*wco) clipflag |= 8;
+		else if(ho[1] < bounds[2]*wco) clipflag |= 8;
 
 		QUATCOPY(cache[cindex].ho, ho);
 		cache[cindex].clip= clipflag;
@@ -1805,10 +1805,9 @@ void zbuf_render_project(float winmat[][4], float *co, float *ho)
 
 void zbuf_make_winmat(Render *re, float winmat[][4])
 {
-	float panomat[4][4];
-
 	if(re->r.mode & R_PANORAMA) {
-		unit_m4(panomat);
+		float panomat[4][4]= MAT4_UNITY;
+
 		panomat[0][0]= re->panoco;
 		panomat[0][2]= re->panosi;
 		panomat[2][0]= -re->panosi;
@@ -3767,7 +3766,10 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 					shi->samplenr= R.shadowsamplenr[shi->thread]++;
 					shade_input_set_viewco(shi, x, y, xs, ys, (float)z);
 					shade_input_set_uv(shi);
-					shade_input_set_normals(shi);
+					if(shi_inc==0)
+						shade_input_set_normals(shi);
+					else /* XXX shi->flippednor messes up otherwise */
+						shade_input_set_vertex_normals(shi);
 					
 					shi_inc= 1;
 				}

@@ -853,7 +853,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(GHOST_TInt32 x, GHOST_T
 
 GHOST_TSuccess GHOST_SystemCocoa::getModifierKeys(GHOST_ModifierKeys& keys) const
 {
-	keys.set(GHOST_kModifierKeyCommand, (m_modifierMask & NSCommandKeyMask) ? true : false);
+	keys.set(GHOST_kModifierKeyOS, (m_modifierMask & NSCommandKeyMask) ? true : false);
 	keys.set(GHOST_kModifierKeyLeftAlt, (m_modifierMask & NSAlternateKeyMask) ? true : false);
 	keys.set(GHOST_kModifierKeyLeftShift, (m_modifierMask & NSShiftKeyMask) ? true : false);
 	keys.set(GHOST_kModifierKeyLeftControl, (m_modifierMask & NSControlKeyMask) ? true : false);
@@ -987,6 +987,8 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		return true;
 	}
 	
+	m_ignoreWindowSizedMessages = false;
+	
     return anyProcessed;
 }
 
@@ -1016,7 +1018,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSAlternateKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftAlt) );
 	}
 	if ((modifiers & NSCommandKeyMask) != (m_modifierMask & NSCommandKeyMask)) {
-		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSCommandKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyCommand) );
+		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSCommandKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyOS) );
 	}
 	
 	m_modifierMask = modifiers;
@@ -1054,8 +1056,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 			case GHOST_kEventWindowSize:
 				if (!m_ignoreWindowSizedMessages)
 				{
+					//Enforce only one resize message per event loop (coalescing all the live resize messages)					
 					window->updateDrawingContext();
 					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
+					//Mouse up event is trapped by the resizing event loop, so send it anyway to the window manager
+					pushEvent(new GHOST_EventButton(getMilliSeconds(), GHOST_kEventButtonUp, window, convertButton(0)));
+					m_ignoreWindowSizedMessages = true;
 				}
 				break;
 			default:
@@ -1157,7 +1163,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					NSEnumerator *enumerator;
 					NSImageRep *representation;
 					
-					ibuf = IMB_allocImBuf (imgSize.width , imgSize.height, 32, IB_rect, 0);
+					ibuf = IMB_allocImBuf (imgSize.width , imgSize.height, 32, IB_rect);
 					if (!ibuf) {
 						[droppedImg release];
 						return GHOST_kFailure;
@@ -1350,7 +1356,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 
 	if (confirmOpen == NSAlertAlternateReturn)
 	{
-		filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
+		filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 		
 		temp_buff = (char*) malloc(filenameTextSize+1); 
 		
@@ -1358,7 +1364,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 			return GHOST_kFailure;
 		}
 		
-		strncpy(temp_buff, [filepath cStringUsingEncoding:NSISOLatin1StringEncoding], filenameTextSize);
+		strncpy(temp_buff, [filepath cStringUsingEncoding:NSUTF8StringEncoding], filenameTextSize);
 		
 		temp_buff[filenameTextSize] = '\0';
 
@@ -1692,7 +1698,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				pushEvent( new GHOST_EventKey([event timestamp]*1000, (modifiers & NSAlternateKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftAlt) );
 			}
 			if ((modifiers & NSCommandKeyMask) != (m_modifierMask & NSCommandKeyMask)) {
-				pushEvent( new GHOST_EventKey([event timestamp]*1000, (modifiers & NSCommandKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyCommand) );
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, (modifiers & NSCommandKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyOS) );
 			}
 			
 			m_modifierMask = modifiers;
@@ -1790,67 +1796,3 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	[pool drain];
 }
 
-#pragma mark Base directories retrieval
-
-const GHOST_TUns8* GHOST_SystemCocoa::getSystemDir() const
-{
-	static GHOST_TUns8 tempPath[512] = "";
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSString *basePath;
-	NSArray *paths;
-	
-	paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSLocalDomainMask, YES);
-	
-	if ([paths count] > 0)
-		basePath = [paths objectAtIndex:0];
-	else { 
-		[pool drain];
-		return NULL;
-	}
-	
-	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
-	
-	[pool drain];
-	return tempPath;
-}
-
-const GHOST_TUns8* GHOST_SystemCocoa::getUserDir() const
-{
-	static GHOST_TUns8 tempPath[512] = "";
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSString *basePath;
-	NSArray *paths;
-
-	paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
-
-	if ([paths count] > 0)
-		basePath = [paths objectAtIndex:0];
-	else { 
-		[pool drain];
-		return NULL;
-	}
-
-	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
-	
-	[pool drain];
-	return tempPath;
-}
-
-const GHOST_TUns8* GHOST_SystemCocoa::getBinaryDir() const
-{
-	static GHOST_TUns8 tempPath[512] = "";
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSString *basePath;
-	
-	basePath = [[NSBundle mainBundle] bundlePath];
-	
-	if (basePath == nil) {
-		[pool drain];
-		return NULL;
-	}
-	
-	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
-	
-	[pool drain];
-	return tempPath;
-}

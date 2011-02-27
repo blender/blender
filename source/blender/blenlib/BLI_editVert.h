@@ -1,9 +1,4 @@
-/**
- * blenlib/BLI_editVert.h    mar 2001 Nzc
- *
- * Some editing types needed in the lib (unfortunately) for
- * scanfill.c
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -34,6 +29,14 @@
 
 #ifndef BLI_EDITVERT_H
 #define BLI_EDITVERT_H
+
+/** \file BLI_editVert.h
+ *  \ingroup bli
+ *  \since March 2001
+ *  \author nzc
+ *  \brief Some editing types needed in the lib (unfortunately) for
+ *   scanfill.c
+ */
 
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
@@ -69,7 +72,7 @@ typedef struct EditVert
 	unsigned char f, h, f1, f2; 
 	float bweight;
 	short fast;	/* only 0 or 1, for editmesh_fastmalloc, do not store temp data here! */
-	int hash;
+	int hash;     /* internal editmesh.c use only, don't touch! */
 	int keyindex; /* original index #, for restoring  key information */
 
 	void *data;		/* custom vertex data */

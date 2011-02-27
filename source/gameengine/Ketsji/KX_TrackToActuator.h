@@ -1,6 +1,3 @@
-//
-// Add object to the game world on action of this actuator
-//
 // $Id$
 //
 // ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +25,10 @@
 //
 // ***** END GPL LICENSE BLOCK *****
 //
+
+/** \file KX_TrackToActuator.h
+ *  \ingroup ketsji
+ */
 
 #ifndef __KX_TrackToActuator
 #define __KX_TrackToActuator
@@ -69,7 +70,7 @@ class KX_TrackToActuator : public SCA_IActuator
 	virtual void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 	virtual bool Update(double curtime, bool frame);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* Python part */
 
@@ -77,7 +78,7 @@ class KX_TrackToActuator : public SCA_IActuator
 	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 }; /* end of class KX_TrackToActuator : public KX_EditObjectActuator */
 

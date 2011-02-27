@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,9 +29,9 @@
 #include <string.h>
 #include <stdio.h>
 
-
-
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
 
 #include "BKE_context.h"
 
@@ -39,23 +39,20 @@
 #include "ED_types.h"
 #include "ED_util.h"
 
-
-
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "script_intern.h"
 
-
 /* ************************ header area region *********************** */
 
-static void do_viewmenu(bContext *C, void *arg, int event)
+static void do_viewmenu(bContext *UNUSED(C), void *UNUSED(arg), int UNUSED(event))
 {
 	
 }
 
-static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
+static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *UNUSED(arg))
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	uiBlock *block;
@@ -81,10 +78,10 @@ static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static void do_script_buttons(bContext *C, void *arg, int event)
+static void do_script_buttons(bContext *UNUSED(C), void *UNUSED(arg), int UNUSED(event))
 {
-	switch(event) {
-	}
+	//switch(event) {
+	//}
 }
 
 

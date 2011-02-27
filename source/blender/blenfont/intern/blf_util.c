@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "blf_internal.h"
 
 unsigned int blf_next_p2(unsigned int x)
 {

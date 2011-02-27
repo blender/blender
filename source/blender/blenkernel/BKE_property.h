@@ -1,6 +1,4 @@
-/**
- * blenkernel/BKE_property.h (mar-2001 nzc)
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,10 @@
 #ifndef BKE_PROPERTY_H
 #define BKE_PROPERTY_H
 
+/** \file BKE_property.h
+ *  \ingroup bke
+ */
+
 struct bProperty;
 struct ListBase;
 struct Object;
@@ -42,7 +44,7 @@ void copy_properties(struct ListBase *lbn, struct ListBase *lbo);
 void init_property(struct bProperty *prop);
 struct bProperty *new_property(int type);
 void unique_property(struct bProperty *first, struct  bProperty *prop, int force);
-struct bProperty *get_ob_property(struct Object *ob, char *name);
+struct bProperty *get_ob_property(struct Object *ob, const char *name);
 void set_ob_property(struct Object *ob, struct bProperty *propc);
 int compare_property(struct bProperty *prop, char *str);
 void set_property(struct bProperty *prop, char *str);

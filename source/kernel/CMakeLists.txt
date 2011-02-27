@@ -24,14 +24,25 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC gen_messaging gen_system ../../intern/string ../../intern/moto/include ../../source/blender/blenloader )
-
-FILE(GLOB SRC   
-	gen_messaging/intern/messaging.c
-	gen_system/GEN_HashedPtr.cpp
-	gen_system/GEN_Matrix4x4.cpp
-	gen_system/SYS_SingletonSystem.cpp
-	gen_system/SYS_System.cpp
+set(INC
+	gen_messaging
+	gen_system
+	../../intern/string
+	../../intern/moto/include
+	../../source/blender/blenloader
 )
 
-BLENDERLIB(bf_kernel "${SRC}" "${INC}")
+set(SRC
+	gen_messaging/intern/messaging.c
+	gen_system/GEN_HashedPtr.cpp
+	gen_system/SYS_SingletonSystem.cpp
+	gen_system/SYS_System.cpp
+
+	gen_messaging/GEN_messaging.h
+	gen_system/GEN_HashedPtr.h
+	gen_system/GEN_Map.h
+	gen_system/SYS_SingletonSystem.h
+	gen_system/SYS_System.h
+)
+
+blender_add_lib(bf_gen_system "${SRC}" "${INC}")

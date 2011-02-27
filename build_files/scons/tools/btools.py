@@ -15,7 +15,51 @@ import sys
 Variables = SCons.Variables
 BoolVariable = SCons.Variables.BoolVariable
 
-VERSION = '2.53' # This is used in creating the local config directories
+def get_version():
+    import re
+
+    fname = os.path.join(os.path.dirname(__file__), "..", "..", "..", "source", "blender", "blenkernel", "BKE_blender.h")
+    ver_base = None
+    ver_char = None
+    ver_cycle = None
+
+    re_ver = re.compile("^#\s*define\s+BLENDER_VERSION\s+([0-9]+)")
+    re_ver_char = re.compile("^#\s*define\s+BLENDER_VERSION_CHAR\s*(\S*)") # optional arg
+    re_ver_cycle = re.compile("^#\s*define\s+BLENDER_VERSION_CYCLE\s*(\S*)") # optional arg
+
+    for l in open(fname, "r"):
+        match = re_ver.match(l)
+        if match:
+            ver = int(match.group(1))
+            ver_base = "%d.%d" % (ver / 100, ver % 100)
+
+        match = re_ver_char.match(l)
+        if match:
+            ver_char = match.group(1)
+            if ver_char == "BLENDER_CHAR_VERSION":
+                ver_char = ""
+
+        match = re_ver_cycle.match(l)
+        if match:
+            ver_cycle = match.group(1)
+            if ver_cycle == "BLENDER_CYCLE_VERSION":
+                ver_cycle = ""
+
+        if (ver_base is not None) and (ver_char is not None) and (ver_cycle is not None):
+            # eg '2.56a-beta'
+            if ver_cycle:
+                ver_display = "%s%s-%s" % (ver_base, ver_char, ver_cycle)
+            else:
+                ver_display = "%s%s" % (ver_base, ver_char)  # assume release
+
+            return ver_base, ver_display
+
+    raise Exception("%s: missing version string" % fname)
+
+
+# This is used in creating the local config directories
+VERSION, VERSION_DISPLAY = get_version()
+
 
 def print_arguments(args, bc):
     if len(args):
@@ -31,9 +75,9 @@ def validate_arguments(args, bc):
             'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL',
             'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
             'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
-            'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH',
+            'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH', 'WITH_BF_STATICLIBSAMPLERATE', 'BF_LIBSAMPLERATE_LIB_STATIC',
             'WITH_BF_JACK', 'BF_JACK', 'BF_JACK_INC', 'BF_JACK_LIB', 'BF_JACK_LIBPATH',
-            'WITH_BF_SNDFILE', 'BF_SNDFILE', 'BF_SNDFILE_INC', 'BF_SNDFILE_LIB', 'BF_SNDFILE_LIBPATH',
+            'WITH_BF_SNDFILE', 'BF_SNDFILE', 'BF_SNDFILE_INC', 'BF_SNDFILE_LIB', 'BF_SNDFILE_LIBPATH', 'WITH_BF_STATICSNDFILE', 'BF_SNDFILE_LIB_STATIC',
             'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
             'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
             'WITH_BF_DDS', 'WITH_BF_CINEON', 'WITH_BF_HDR',
@@ -44,8 +88,8 @@ def validate_arguments(args, bc):
             'WITH_BF_OPENJPEG', 'BF_OPENJPEG', 'BF_OPENJPEG_INC', 'BF_OPENJPEG_LIB', 'BF_OPENJPEG_LIBPATH',
             'WITH_BF_REDCODE', 'BF_REDCODE', 'BF_REDCODE_INC', 'BF_REDCODE_LIB', 'BF_REDCODE_LIBPATH',
             'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH',
-            'WITH_BF_TIFF', 'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH',
-            'WITH_BF_ZLIB', 'BF_ZLIB', 'BF_ZLIB_INC', 'BF_ZLIB_LIB', 'BF_ZLIB_LIBPATH',
+            'WITH_BF_TIFF', 'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH', 'WITH_BF_STATICTIFF', 'BF_TIFF_LIB_STATIC',
+            'WITH_BF_ZLIB', 'BF_ZLIB', 'BF_ZLIB_INC', 'BF_ZLIB_LIB', 'BF_ZLIB_LIBPATH', 'WITH_BF_STATICZLIB', 'BF_ZLIB_LIB_STATIC',
             'WITH_BF_INTERNATIONAL',
             'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'WITH_BF_GETTEXT_STATIC', 'BF_GETTEXT_LIB_STATIC', 'BF_GETTEXT_LIBPATH',
             'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
@@ -53,7 +97,7 @@ def validate_arguments(args, bc):
             'BF_WINTAB', 'BF_WINTAB_INC',
             'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH', 'BF_FREETYPE_LIB_STATIC', 'WITH_BF_FREETYPE_STATIC',
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
-            'WITH_BF_FFTW3', 'BF_FFTW3', 'BF_FFTW3_INC', 'BF_FFTW3_LIB', 'BF_FFTW3_LIBPATH',
+            'WITH_BF_FFTW3', 'BF_FFTW3', 'BF_FFTW3_INC', 'BF_FFTW3_LIB', 'BF_FFTW3_LIBPATH', 'WITH_BF_STATICFFTW3', 'BF_FFTW3_LIB_STATIC',
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
             'WITH_BF_COLLADA', 'BF_COLLADA', 'BF_COLLADA_INC', 'BF_COLLADA_LIB', 'BF_OPENCOLLADA', 'BF_OPENCOLLADA_INC', 'BF_OPENCOLLADA_LIB', 'BF_OPENCOLLADA_LIBPATH', 'BF_PCRE', 'BF_PCRE_LIB', 'BF_PCRE_LIBPATH', 'BF_EXPAT', 'BF_EXPAT_LIB', 'BF_EXPAT_LIBPATH',
             'WITH_BF_PLAYER',
@@ -84,7 +128,7 @@ def validate_arguments(args, bc):
             'WITH_BF_RAYOPTIMIZATION',
             'BF_RAYOPTIMIZATION_SSE_FLAGS',
             'BF_NO_ELBEEM',
-            'BF_VCREDIST' # Windows-only, and useful only when creating installer
+            'WITH_BF_CXX_GUARDEDALLOC'
             ]
     
     # Have options here that scons expects to be lists
@@ -198,6 +242,8 @@ def read_opts(env, cfg, args):
         ('BF_LIBSAMPLERATE_INC', 'libsamplerate aka SRC include path', ''),
         ('BF_LIBSAMPLERATE_LIB', 'libsamplerate aka SRC library', ''),
         ('BF_LIBSAMPLERATE_LIBPATH', 'libsamplerate aka SRC library path', ''),
+        ('BF_LIBSAMPLERATE_LIB_STATIC', 'Path to libsamplerate static library', ''),
+        (BoolVariable('WITH_BF_STATICLIBSAMPLERATE', 'Staticly link to libsamplerate', False)),
 
         (BoolVariable('WITH_BF_JACK', 'Enable jack support if true', True)),
         ('BF_JACK', 'jack base path', ''),
@@ -209,7 +255,9 @@ def read_opts(env, cfg, args):
         ('BF_SNDFILE', 'sndfile base path', ''),
         ('BF_SNDFILE_INC', 'sndfile include path', ''),
         ('BF_SNDFILE_LIB', 'sndfile library', ''),
+        ('BF_SNDFILE_LIB_STATIC', 'Path to sndfile static library', ''),
         ('BF_SNDFILE_LIBPATH', 'sndfile library path', ''),
+        (BoolVariable('WITH_BF_STATICSNDFILE', 'Staticly link to sndfile', False)),
 
         ('BF_PTHREADS', 'Pthreads base path', ''),
         ('BF_PTHREADS_INC', 'Pthreads include path', ''),
@@ -270,10 +318,12 @@ def read_opts(env, cfg, args):
         ('BF_PNG_LIBPATH', 'PNG library path', ''),
 
         (BoolVariable('WITH_BF_TIFF', 'Use TIFF if true', True)),
+        (BoolVariable('WITH_BF_STATICTIFF', 'Staticly link to TIFF', False)),
         ('BF_TIFF', 'TIFF base path', ''),
         ('BF_TIFF_INC', 'TIFF include path', ''),
         ('BF_TIFF_LIB', 'TIFF library', ''),
         ('BF_TIFF_LIBPATH', 'TIFF library path', ''),
+        ('BF_TIFF_LIB_STATIC', 'TIFF static library', ''),
 
         (BoolVariable('WITH_BF_LCMS', 'Enable color correction with lcms', False)),
         ('BF_LCMS', 'LCMS base path', ''),
@@ -282,10 +332,12 @@ def read_opts(env, cfg, args):
         ('BF_LCMS_LIBPATH', 'LCMS library path', ''),
 
         (BoolVariable('WITH_BF_ZLIB', 'Use ZLib if true', True)),
+        (BoolVariable('WITH_BF_STATICZLIB', 'Staticly link to ZLib', False)),
         ('BF_ZLIB', 'ZLib base path', ''),
         ('BF_ZLIB_INC', 'ZLib include path', ''),
         ('BF_ZLIB_LIB', 'ZLib library', ''),
         ('BF_ZLIB_LIBPATH', 'ZLib library path', ''),
+        ('BF_ZLIB_LIB_STATIC', 'ZLib static library', ''),
 
         (BoolVariable('WITH_BF_INTERNATIONAL', 'Use Gettext if true', True)),
 
@@ -340,7 +392,9 @@ def read_opts(env, cfg, args):
         ('BF_FFTW3', 'FFTW3 base path', ''),
         ('BF_FFTW3_INC', 'FFTW3 include path', ''),
         ('BF_FFTW3_LIB', 'FFTW3 library', ''),
+        ('BF_FFTW3_LIB_STATIC', 'FFTW3 static libraries', ''),
         ('BF_FFTW3_LIBPATH', 'FFTW3 library path', ''),
+        (BoolVariable('WITH_BF_STATICFFTW3', 'Staticly link to FFTW3', False)),
 
         (BoolVariable('WITH_BF_STATICOPENGL', 'Use MESA if true', True)),
         ('BF_OPENGL', 'OpenGL base path', ''),
@@ -368,35 +422,35 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_PLAYER', 'Build blenderplayer if true', False)),
         (BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
 
-        ('CFLAGS', 'C only flags', ''),
-        ('CCFLAGS', 'Generic C and C++ flags', ''),
-        ('CXXFLAGS', 'C++ only flags', ''),
-        ('BGE_CXXFLAGS', 'C++ only flags for BGE', ''),
-        ('CPPFLAGS', 'Defines', ''),
-        ('REL_CFLAGS', 'C only release flags', ''),
-        ('REL_CCFLAGS', 'Generic C and C++ release flags', ''),
-        ('REL_CXXFLAGS', 'C++ only release flags', ''),
+        ('CFLAGS', 'C only flags', []),
+        ('CCFLAGS', 'Generic C and C++ flags', []),
+        ('CXXFLAGS', 'C++ only flags', []),
+        ('BGE_CXXFLAGS', 'C++ only flags for BGE', []),
+        ('CPPFLAGS', 'Defines', []),
+        ('REL_CFLAGS', 'C only release flags', []),
+        ('REL_CCFLAGS', 'Generic C and C++ release flags', []),
+        ('REL_CXXFLAGS', 'C++ only release flags', []),
 
-        ('C_WARN', 'C warning flags', ''),
-        ('CC_WARN', 'Generic C and C++ warning flags', ''),
-        ('CXX_WARN', 'C++ only warning flags', ''),
+        ('C_WARN', 'C warning flags', []),
+        ('CC_WARN', 'Generic C and C++ warning flags', []),
+        ('CXX_WARN', 'C++ only warning flags', []),
 
-        ('LLIBS', 'Platform libs', ''),
-        ('PLATFORM_LINKFLAGS', 'Platform linkflags', ''),
+        ('LLIBS', 'Platform libs', []),
+        ('PLATFORM_LINKFLAGS', 'Platform linkflags', []),
         ('MACOSX_ARCHITECTURE', 'python_arch.zip select', ''),
 
         (BoolVariable('BF_PROFILE', 'Add profiling information if true', False)),
-        ('BF_PROFILE_CFLAGS', 'C only profiling flags', ''),
-        ('BF_PROFILE_CCFLAGS', 'C and C++ profiling flags', ''),
-        ('BF_PROFILE_CXXFLAGS', 'C++ only profiling flags', ''),
-        ('BF_PROFILE_LINKFLAGS', 'Profile linkflags', ''),
+        ('BF_PROFILE_CFLAGS', 'C only profiling flags', []),
+        ('BF_PROFILE_CCFLAGS', 'C and C++ profiling flags', []),
+        ('BF_PROFILE_CXXFLAGS', 'C++ only profiling flags', []),
+        ('BF_PROFILE_LINKFLAGS', 'Profile linkflags', []),
 
         (BoolVariable('BF_DEBUG', 'Add debug flags if true', False)),
-        ('BF_DEBUG_CFLAGS', 'C only debug flags', ''),
-        ('BF_DEBUG_CCFLAGS', 'C and C++ debug flags', ''),
-        ('BF_DEBUG_CXXFLAGS', 'C++ only debug flags', ''),
+        ('BF_DEBUG_CFLAGS', 'C only debug flags', []),
+        ('BF_DEBUG_CCFLAGS', 'C and C++ debug flags', []),
+        ('BF_DEBUG_CXXFLAGS', 'C++ only debug flags', []),
 
-        (BoolVariable('BF_BSC', 'Create .bsc files (msvc only)', True)),
+        (BoolVariable('BF_BSC', 'Create .bsc files (msvc only)', False)),
 
         ('BF_BUILDDIR', 'Build dir', ''),
         ('BF_INSTALLDIR', 'Installation dir', ''),
@@ -435,7 +489,7 @@ def read_opts(env, cfg, args):
         
         (BoolVariable('WITH_BF_RAYOPTIMIZATION', 'Enable raytracer SSE/SIMD optimization.', False)),
         ('BF_RAYOPTIMIZATION_SSE_FLAGS', 'SSE flags', ''),
-        ('BF_VCREDIST', 'Full path to vcredist', '')
+        (BoolVariable('WITH_BF_CXX_GUARDEDALLOC', 'Enable GuardedAlloc for C++ memory allocation tracking.', False))
     ) # end of opts.AddOptions()
 
     return localopts
@@ -484,11 +538,6 @@ def NSIS_Installer(target=None, source=None, env=None):
                 for f in df:
                     outfile = os.path.join(dp,f)
                     datafiles += '  File '+outfile + "\n"
-    
-    os.chdir("release")
-    v = open("VERSION")
-    version = v.read()[:-1]    
-    v.close()
 
     #### change to suit install dir ####
     inst_dir = install_base_dir + env['BF_INSTALLDIR']
@@ -502,7 +551,7 @@ def NSIS_Installer(target=None, source=None, env=None):
 
     # var replacements
     ns_cnt = string.replace(ns_cnt, "[DISTDIR]", os.path.normpath(inst_dir+os.sep))
-    ns_cnt = string.replace(ns_cnt, "[VERSION]", version)
+    ns_cnt = string.replace(ns_cnt, "[VERSION]", VERSION_DISPLAY)
     ns_cnt = string.replace(ns_cnt, "[SHORTVERSION]", VERSION)
     ns_cnt = string.replace(ns_cnt, "[RELDIR]", os.path.normpath(rel_dir))
     ns_cnt = string.replace(ns_cnt, "[BITNESS]", bitness)
@@ -527,12 +576,6 @@ def NSIS_Installer(target=None, source=None, env=None):
 
     ns_cnt = string.replace(ns_cnt, "[DODATAFILES]", datafiles)
 
-    # Setup vcredist part
-    vcredist = "File \""+env['BF_VCREDIST'] + "\"\n"
-    vcredist += "  ExecWait '\"$TEMP\\" + os.path.basename(env['BF_VCREDIST']) + "\" /q'\n"
-    vcredist += "  Delete \"$TEMP\\" + os.path.basename(env['BF_VCREDIST'])+"\""
-    ns_cnt = string.replace(ns_cnt, "[VCREDIST]", vcredist)
-
     tmpnsi = os.path.normpath(install_base_dir+os.sep+env['BF_BUILDDIR']+os.sep+"00.blender_tmp.nsi")
     new_nsis = open(tmpnsi, 'w')
     new_nsis.write(ns_cnt)
@@ -556,3 +599,24 @@ def NSIS_Installer(target=None, source=None, env=None):
         print data.strip().split("\n")[-1]
     return rv
 
+def check_environ():
+    problematic_envvars = ""
+    for i in os.environ:
+        try:
+            os.environ[i].decode('ascii')
+        except UnicodeDecodeError:
+            problematic_envvars = problematic_envvars + "%s = %s\n" % (i, os.environ[i])
+    if len(problematic_envvars)>0:
+        print("================\n\n")
+        print("@@ ABORTING BUILD @@\n")
+        print("PROBLEM DETECTED WITH ENVIRONMENT")
+        print("---------------------------------\n\n")
+        print("A problem with one or more environment variable was found")
+        print("Their value contain non-ascii characters. Check the below")
+        print("list and override them locally to be ASCII-clean by doing")
+        print("'set VARNAME=cleanvalue' on the command-line prior to")
+        print("starting the build process:\n")
+        print(problematic_envvars)
+        return False
+    else:
+        return True

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -51,9 +51,6 @@ struct BMEdge;
 struct BMFace;
 struct wmOperator;
 
-
-#define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
-
 /* ******************** bmeshutils.c */
 
 /*
@@ -63,7 +60,7 @@ ok: the EDBM module is for editmode bmesh stuff.  in contrast, the
 */
 
 /*calls a bmesh op, reporting errors to the user, etc*/
-int EDBM_CallOpf(struct BMEditMesh *em, struct wmOperator *op, char *fmt, ...);
+int EDBM_CallOpf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt, ...);
 
 /*calls a bmesh op, reporting errors to the user, etc.
 
@@ -72,7 +69,7 @@ int EDBM_CallOpf(struct BMEditMesh *em, struct wmOperator *op, char *fmt, ...);
 //moved to ED_mesh.h
 
 /*same as above, but doesn't report errors.*/
-int EDBM_CallOpfSilent(struct BMEditMesh *em, char *fmt, ...);
+int EDBM_CallOpfSilent(struct BMEditMesh *em, const char *fmt, ...);
 
 /*these next two functions are the split version of EDBM_CallOpf, so you can
   do stuff with a bmesh operator, after initializing it but before executing
@@ -80,7 +77,7 @@ int EDBM_CallOpfSilent(struct BMEditMesh *em, char *fmt, ...);
   
   execute the operator with BM_Exec_Op*/
 int EDBM_InitOpf(struct BMEditMesh *em, struct BMOperator *bmop,
-		struct wmOperator *op, char *fmt, ...);
+		struct wmOperator *op, const char *fmt, ...);
 /*cleans up after a bmesh operator*/
 int EDBM_FinishOp(struct BMEditMesh *em, struct BMOperator *bmop,
 		struct wmOperator *op, int report);
@@ -101,8 +98,7 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 
 extern void free_editvert(EditMesh *em, EditVert *eve);
 extern void free_editedge(EditMesh *em, EditEdge *eed);
-extern void free_editface(EditMesh *em, EditFace *efa);
-void free_editMesh(EditMesh *em);
+extern void free_editface(EditMesh *em, EditFace *efa);;
 
 /*frees dst mesh, then copies the contents of 
   *src (the struct) to dst. */
@@ -193,9 +189,6 @@ extern int EM_view3d_poll(struct bContext *C);
 
 /* ******************* editmesh_loop.c */
 
-#define LOOP_SELECT	1
-#define LOOP_CUT	2
-
 void MESH_OT_knife_cut(struct wmOperatorType *ot);
 
 /* ******************* editmesh_mods.c */
@@ -224,10 +217,10 @@ void MESH_OT_loop_multi_select(struct wmOperatorType *ot);
 void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
+void MESH_OT_noise(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
 void MESH_OT_solidify(struct wmOperatorType *ot);
 void MESH_OT_select_nth(struct wmOperatorType *ot);
-
 
 #define SUBDIV_SELECT_ORIG      0
 #define SUBDIV_SELECT_INNER     1
@@ -249,6 +242,8 @@ int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc
 void MESH_OT_merge(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);
 void MESH_OT_remove_doubles(struct wmOperatorType *ot);
+void MESH_OT_vertices_randomize(struct wmOperatorType *ot);
+void MESH_OT_vertices_sort(struct wmOperatorType *ot);
 void MESH_OT_extrude(struct wmOperatorType *ot);
 void MESH_OT_spin(struct wmOperatorType *ot);
 void MESH_OT_screw(struct wmOperatorType *ot);

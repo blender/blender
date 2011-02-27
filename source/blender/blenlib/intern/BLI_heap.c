@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -64,7 +64,7 @@ struct Heap {
 
 /***/
 
-Heap *BLI_heap_new()
+Heap *BLI_heap_new(void)
 {
 	Heap *heap = (Heap*)MEM_callocN(sizeof(Heap), "BLIHeap");
 	heap->bufsize = 1;

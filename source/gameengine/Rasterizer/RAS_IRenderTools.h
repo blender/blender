@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file RAS_IRenderTools.h
+ *  \ingroup bgerast
+ */
+
 #ifndef __RAS_IRENDERTOOLS
 #define __RAS_IRENDERTOOLS
 
@@ -97,6 +102,28 @@ public:
 		double* oglmatrix,
 		int drawingmode
 	)=0;
+
+	/**
+	 * Renders 3D text string using BFL.
+	 * @param fontid	The id of the font.
+	 * @param text		The string to render.
+	 * @param size		The size of the text.
+	 * @param dpi		The resolution of the text.
+	 * @param color		The color of the object.
+	 * @param mat		The Matrix of the text object.
+	 * @param aspect	A scaling factor to compensate for the size.
+	 */
+	virtual 
+		void	
+	RenderText3D(int fontid,
+				 const char* text,
+				 int size,
+				 int dpi,
+				 float* color,
+				 double* mat,
+				 float aspect
+	) = 0;
+
 
 	/**
 	 * Renders 2D text string.

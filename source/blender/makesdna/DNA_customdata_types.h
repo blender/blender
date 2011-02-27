@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,10 +27,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file DNA_customdata_types.h
+ *  \ingroup DNA
+ */
+
 #ifndef DNA_CUSTOMDATA_TYPES_H
 #define DNA_CUSTOMDATA_TYPES_H
 
-/* descriptor and storage for a custom data layer */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/** descriptor and storage for a custom data layer */
 typedef struct CustomDataLayer {
 	int type;       /* type of data in layer */
 	int offset;     /* in editmode, offset of layer in block */
@@ -48,7 +56,7 @@ typedef struct CustomDataExternal {
 	char filename[240]; /* FILE_MAX */
 } CustomDataExternal;
 
-/* structure which stores custom element data associated with mesh elements
+/** structure which stores custom element data associated with mesh elements
  * (vertices, edges or faces). The custom data is organised into a series of
  * layers, each with a data type (e.g. MTFace, MDeformVert, etc.). */
 typedef struct CustomData {
@@ -145,5 +153,9 @@ typedef struct CustomData {
 /* Limits */
 #define MAX_MTFACE 8
 #define MAX_MCOL   8
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

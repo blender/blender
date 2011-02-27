@@ -1,3 +1,6 @@
+/** \file gameengine/Physics/Bullet/CcdPhysicsEnvironment.cpp
+ *  \ingroup physbullet
+ */
 /*
 Bullet Continuous Collision Detection and Physics Library
 Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
@@ -287,6 +290,7 @@ void CcdPhysicsEnvironment::setDebugDrawer(btIDebugDraw* debugDrawer)
 	m_debugDrawer = debugDrawer;
 }
 
+#if 0
 static void DrawAabb(btIDebugDraw* debugDrawer,const btVector3& from,const btVector3& to,const btVector3& color)
 {
 	btVector3 halfExtents = (to-from)* 0.5f;
@@ -314,10 +318,8 @@ static void DrawAabb(btIDebugDraw* debugDrawer,const btVector3& from,const btVec
 		if (i<3)
 			edgecoord[i]*=-1.f;
 	}
-
-
 }
-
+#endif
 
 
 

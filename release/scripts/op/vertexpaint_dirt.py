@@ -65,7 +65,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
         # get the direction of the vectors between the vertex and it's connected vertices
         for c in con[i]:
-            vec += (me.vertices[c].co - co).normalize()
+            vec += (me.vertices[c].co - co).normalized()
 
         # normalize the vector by dividing by the number of connected verts
         tot_con = len(con[i])
@@ -172,7 +172,7 @@ class VertexPaintDirt(bpy.types.Operator):
 
         t = time.time()
 
-        applyVertexDirt(mesh, self.properties.blur_iterations, self.properties.blur_strength, math.radians(self.properties.dirt_angle), math.radians(self.properties.clean_angle), self.properties.dirt_only)
+        applyVertexDirt(mesh, self.blur_iterations, self.blur_strength, math.radians(self.dirt_angle), math.radians(self.clean_angle), self.dirt_only)
 
         print('Dirt calculated in %.6f' % (time.time() - t))
 
@@ -180,11 +180,11 @@ class VertexPaintDirt(bpy.types.Operator):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

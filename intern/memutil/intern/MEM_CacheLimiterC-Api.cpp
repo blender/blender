@@ -1,3 +1,6 @@
+/** \file memutil/intern/MEM_CacheLimiterC-Api.cpp
+ *  \ingroup memutil
+ */
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,6 +22,8 @@
  * Contributor(s): Peter Schlaile <peter@schlaile.de> 2005
  *
  */
+
+#include <cstddef>
 
 #include "MEM_CacheLimiter.h"
 #include "MEM_CacheLimiterC-Api.h"

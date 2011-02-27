@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,12 +27,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_PythonInitTypes.cpp
+ *  \ingroup ketsji
+ */
+
+
 
 
 #ifndef _adr_py_init_types_h_				// only process once,
 #define _adr_py_init_types_h_				// even if multiply included
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* Only for Class::Parents */
 #include "BL_BlenderShader.h"
@@ -47,6 +52,7 @@
 #include "KX_ConstraintWrapper.h"
 #include "KX_GameActuator.h"
 #include "KX_Light.h"
+#include "KX_FontObject.h"
 #include "KX_MeshProxy.h"
 #include "KX_MouseFocusSensor.h"
 #include "KX_NetworkMessageActuator.h"
@@ -193,6 +199,7 @@ void initPyTypes(void)
 		PyType_Ready_Attr(dict, KX_GameObject, init_getset);
 		PyType_Ready_Attr(dict, KX_IpoActuator, init_getset);
 		PyType_Ready_Attr(dict, KX_LightObject, init_getset);
+		PyType_Ready_Attr(dict, KX_FontObject, init_getset);
 		PyType_Ready_Attr(dict, KX_MeshProxy, init_getset);
 		PyType_Ready_Attr(dict, KX_MouseFocusSensor, init_getset);
 		PyType_Ready_Attr(dict, KX_NearSensor, init_getset);
@@ -256,6 +263,6 @@ void initPyTypes(void)
 #endif
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 #endif

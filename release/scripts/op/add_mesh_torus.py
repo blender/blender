@@ -26,8 +26,8 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
     Vector = mathutils.Vector
     Quaternion = mathutils.Quaternion
 
-    PI_2 = pi * 2
-    z_axis = (0, 0, 1)
+    PI_2 = pi * 2.0
+    z_axis = 0.0, 0.0, 1.0
 
     verts = []
     faces = []
@@ -103,21 +103,24 @@ class AddTorus(bpy.types.Operator):
             default=0.5, min=0.01, max=100.0)
 
     # generic transform props
-    location = FloatVectorProperty(name="Location")
-    rotation = FloatVectorProperty(name="Rotation")
+    view_align = BoolProperty(name="Align to View",
+            default=False)
+    location = FloatVectorProperty(name="Location",
+            subtype='TRANSLATION')
+    rotation = FloatVectorProperty(name="Rotation",
+            subtype='EULER')
 
     def execute(self, context):
-        props = self.properties
 
-        if props.use_abso == True:
-            extra_helper = (props.abso_major_rad - props.abso_minor_rad) * 0.5
-            props.major_radius = props.abso_minor_rad + extra_helper
-            props.minor_radius = extra_helper
+        if self.use_abso == True:
+            extra_helper = (self.abso_major_rad - self.abso_minor_rad) * 0.5
+            self.major_radius = self.abso_minor_rad + extra_helper
+            self.minor_radius = extra_helper
 
-        verts_loc, faces = add_torus(props.major_radius,
-                                    props.minor_radius,
-                                    props.major_segments,
-                                    props.minor_segments)
+        verts_loc, faces = add_torus(self.major_radius,
+                                    self.minor_radius,
+                                    self.major_segments,
+                                    self.minor_segments)
 
         mesh = bpy.data.meshes.new("Torus")
 
@@ -129,7 +132,7 @@ class AddTorus(bpy.types.Operator):
         mesh.update()
 
         import add_object_utils
-        add_object_utils.add_object_data(context, mesh, operator=self)
+        add_object_utils.object_data_add(context, mesh, operator=self)
 
         return {'FINISHED'}
 
@@ -139,10 +142,12 @@ def menu_func(self, context):
 
 
 def register():
+    bpy.utils.register_class(AddTorus)
     bpy.types.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
+    bpy.utils.unregister_class(AddTorus)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":

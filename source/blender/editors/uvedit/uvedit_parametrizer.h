@@ -26,7 +26,7 @@ typedef enum ParamBool {
    - output will be written to the uv pointers
 */
 
-ParamHandle *param_construct_begin();
+ParamHandle *param_construct_begin(void);
 
 void param_aspect_ratio(ParamHandle *handle, float aspx, float aspy);
 

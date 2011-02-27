@@ -1,3 +1,6 @@
+/** \file smoke/intern/tnt/tnt_fortran_array3d.h
+ *  \ingroup smoke
+ */
 /*
 *
 * Template Numerical Toolkit (TNT): Three-dimensional Fortran numerical array

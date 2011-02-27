@@ -39,6 +39,8 @@
 static void
 fillDpxChannelInfo(DpxFile* dpx, DpxChannelInformation* chan, int des) {
 
+	(void)dpx; /* unused */
+	
 	chan->signage = 0;
 	chan->ref_low_data = htonl(0);
 	chan->ref_low_quantity = htonf(0.0);
@@ -160,7 +162,12 @@ dumpDpxImageInfo(DpxImageInformation* imageInfo) {
 
 static void
 fillDpxOriginationInfo(
-	DpxFile* dpx, DpxOriginationInformation* originInfo, DpxFileInformation* fileInfo) {
+	DpxFile* dpx, DpxOriginationInformation* originInfo, DpxFileInformation* fileInfo)
+{
+	/* unused */
+	(void)dpx;
+	(void)originInfo;
+	(void)fileInfo;
 }
 
 static void

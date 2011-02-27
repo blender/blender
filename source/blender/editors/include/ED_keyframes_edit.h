@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,10 @@
  * Contributor(s): Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_keyframes_edit.h
+ *  \ingroup editors
  */
 
 #ifndef ED_KEYFRAMES_EDIT_H
@@ -53,7 +57,7 @@ typedef enum eEditKeyframes_Validate {
 	BEZT_OK_SELECTED,
 	BEZT_OK_VALUE,
 	BEZT_OK_VALUERANGE,
-	BEZT_OK_REGION,
+	BEZT_OK_REGION
 } eEditKeyframes_Validate;
 
 /* ------------ */
@@ -67,13 +71,13 @@ typedef enum eEditKeyframes_Select {
 		/* remove ok keyframes from selection */
 	SELECT_SUBTRACT	= 	(1<<2),
 		/* flip ok status of keyframes based on key status */
-	SELECT_INVERT	= 	(1<<3),
+	SELECT_INVERT	= 	(1<<3)
 } eEditKeyframes_Select;
 
 /* "selection map" building modes */
 typedef enum eEditKeyframes_SelMap {
 	SELMAP_MORE	= 0,
-	SELMAP_LESS,
+	SELMAP_LESS
 } eEditKeyframes_SelMap;
 
 /* snapping tools */
@@ -83,7 +87,7 @@ typedef enum eEditKeyframes_Snap {
 	SNAP_KEYS_NEARSEC,
 	SNAP_KEYS_NEARMARKER,
 	SNAP_KEYS_HORIZONTAL,
-	SNAP_KEYS_VALUE,
+	SNAP_KEYS_VALUE
 } eEditKeyframes_Snap;
 
 /* mirroring tools */
@@ -92,7 +96,7 @@ typedef enum eEditKeyframes_Mirror {
 	MIRROR_KEYS_YAXIS,
 	MIRROR_KEYS_XAXIS,
 	MIRROR_KEYS_MARKER,
-	MIRROR_KEYS_VALUE,
+	MIRROR_KEYS_VALUE
 } eEditKeyframes_Mirror;
 
 /* ************************************************ */
@@ -151,6 +155,29 @@ typedef struct KeyframeEditCD_Remap {
 	float oldMin, oldMax;			/* old range */
 	float newMin, newMax;			/* new range */
 } KeyframeEditCD_Remap;
+
+/* Paste options */
+typedef enum eKeyPasteOffset {
+		/* paste keys starting at current frame */
+	KEYFRAME_PASTE_OFFSET_CFRA_START,
+		/* paste keys ending at current frame */
+	KEYFRAME_PASTE_OFFSET_CFRA_END,
+		/* paste keys relative to the current frame when copying */
+	KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE,
+		/* paste keys from original time */
+	KEYFRAME_PASTE_OFFSET_NONE
+} eKeyPasteOffset;
+
+typedef enum eKeyMergeMode {
+		/* overlay existing with new keys */
+	KEYFRAME_PASTE_MERGE_MIX,
+		/* replace entire fcurve */
+	KEYFRAME_PASTE_MERGE_OVER,
+		/* overwrite keys in pasted range */
+	KEYFRAME_PASTE_MERGE_OVER_RANGE,
+		/* overwrite keys in pasted range (use all keyframe start & end for range) */
+	KEYFRAME_PASTE_MERGE_OVER_RANGE_ALL
+} eKeyMergeMode;
 
 /* ---------------- Looping API --------------------- */
 
@@ -212,6 +239,7 @@ void bezt_remap_times(KeyframeEditData *ked, struct BezTriple *bezt);
 
 void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc);
 void delete_fcurve_keys(struct FCurve *fcu);
+void clear_fcurve_keys(struct FCurve *fcu);
 void duplicate_fcurve_keys(struct FCurve *fcu);
 
 void clean_fcurve(struct FCurve *fcu, float thresh);
@@ -222,7 +250,8 @@ void sample_fcurve(struct FCurve *fcu);
 
 void free_anim_copybuf(void);
 short copy_animedit_keys(struct bAnimContext *ac, ListBase *anim_data);
-short paste_animedit_keys(struct bAnimContext *ac, ListBase *anim_data);
+short paste_animedit_keys(struct bAnimContext *ac, ListBase *anim_data,
+	const eKeyPasteOffset offset_mode, const eKeyMergeMode merge_mode);
 
 /* ************************************************ */
 

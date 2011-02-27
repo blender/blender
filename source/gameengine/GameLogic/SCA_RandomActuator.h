@@ -1,7 +1,4 @@
-/**
- * Draw a random number, and put it in a property
- *
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_RandomActuator.h
+ *  \ingroup gamelogic
+ *  \brief Draw a random number, and put it in a property
  */
 
 #ifndef __KX_RANDOMACTUATOR
@@ -92,7 +94,7 @@ class SCA_RandomActuator : public SCA_IActuator
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -112,7 +114,7 @@ class SCA_RandomActuator : public SCA_IActuator
 	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator, setFloatNormal);
 	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator, setFloatNegativeExponential);
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 }; /* end of class KX_EditObjectActuator : public SCA_PropertyActuator */
 

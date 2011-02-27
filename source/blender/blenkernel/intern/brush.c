@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -45,6 +45,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -67,7 +68,7 @@ static void brush_set_defaults(Brush *brush)
 	brush->blend = 0;
 	brush->flag = 0;
 
-	brush->ob_mode = (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT);
+	brush->ob_mode = OB_MODE_ALL_PAINT;
 
 	/* BRUSH SCULPT TOOL SETTINGS */
 	brush->size= 35; /* radius of the brush in pixels */
@@ -147,6 +148,8 @@ Brush *copy_brush(Brush *brush)
 	if (brush->icon_imbuf)
 		brushn->icon_imbuf= IMB_dupImBuf(brush->icon_imbuf);
 
+	brushn->preview = NULL;
+
 	brushn->curve= curvemapping_copy(brush->curve);
 
 	/* enable fake user by default */
@@ -183,13 +186,13 @@ void make_local_brush(Brush *brush)
 	Scene *scene;
 	int local= 0, lib= 0;
 
-	if(brush->id.lib==0) return;
+	if(brush->id.lib==NULL) return;
 
 	if(brush->clone.image) {
 		/* special case: ima always local immediately */
-		brush->clone.image->id.lib= 0;
+		brush->clone.image->id.lib= NULL;
 		brush->clone.image->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)brush->clone.image, 0);
+		new_id(NULL, (ID *)brush->clone.image, NULL);
 	}
 
 	for(scene= G.main->scene.first; scene; scene=scene->id.next)
@@ -199,9 +202,9 @@ void make_local_brush(Brush *brush)
 		}
 
 	if(local && lib==0) {
-		brush->id.lib= 0;
+		brush->id.lib= NULL;
 		brush->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)brush, 0);
+		new_id(NULL, (ID *)brush, NULL);
 
 		/* enable fake user by default */
 		if (!(brush->id.flag & LIB_FAKEUSER)) {
@@ -216,7 +219,7 @@ void make_local_brush(Brush *brush)
 		
 		for(scene= G.main->scene.first; scene; scene=scene->id.next)
 			if(paint_brush(&scene->toolsettings->imapaint.paint)==brush)
-				if(scene->id.lib==0) {
+				if(scene->id.lib==NULL) {
 					paint_brush_set(&scene->toolsettings->imapaint.paint, brushn);
 					brushn->id.us++;
 					brush->id.us--;
@@ -226,10 +229,8 @@ void make_local_brush(Brush *brush)
 
 void brush_debug_print_state(Brush *br)
 {
-	Brush def;
-
 	/* create a fake brush and set it to the defaults */
-	memset(&def, 0, sizeof(Brush));
+	Brush def= {{NULL}};
 	brush_set_defaults(&def);
 	
 #define BR_TEST(field, t)					\
@@ -423,7 +424,7 @@ int brush_texture_set_nr(Brush *brush, int nr)
 	id= (ID *)brush->mtex.tex;
 
 	idtest= (ID*)BLI_findlink(&G.main->tex, nr-1);
-	if(idtest==0) { /* new tex */
+	if(idtest==NULL) { /* new tex */
 		if(id) idtest= (ID *)copy_texture((Tex *)id);
 		else idtest= (ID *)add_texture("Tex");
 		idtest->us--;
@@ -478,7 +479,7 @@ int brush_clone_image_delete(Brush *brush)
 }
 
 /* Brush Sampling */
-void brush_sample_tex(Brush *brush, float *xy, float *rgba)
+void brush_sample_tex(Brush *brush, float *xy, float *rgba, const int thread)
 {
 	MTex *mtex= &brush->mtex;
 
@@ -491,7 +492,7 @@ void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 		co[1]= xy[1]/radius;
 		co[2]= 0.0f;
 
-		hasrgb= externtex(mtex, co, &tin, &tr, &tg, &tb, &ta);
+		hasrgb= externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, thread);
 
 		if (hasrgb) {
 			rgba[0]= tr;
@@ -528,7 +529,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 	if (*outbuf)
 		ibuf= *outbuf;
 	else
-		ibuf= IMB_allocImBuf(bufsize, bufsize, 32, imbflag, 0);
+		ibuf= IMB_allocImBuf(bufsize, bufsize, 32, imbflag);
 
 	if (flt) {
 		for (y=0; y < ibuf->y; y++) {
@@ -545,12 +546,12 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 					dstf[3]= alpha*brush_curve_strength_clamp(brush, dist, radius);
 				}
 				else if (texfall == 1) {
-					brush_sample_tex(brush, xy, dstf);
+					brush_sample_tex(brush, xy, dstf, 0);
 				}
 				else {
 					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
 
-					brush_sample_tex(brush, xy, rgba);
+					brush_sample_tex(brush, xy, rgba, 0);
 
 					dstf[0] = rgba[0]*brush->rgb[0];
 					dstf[1] = rgba[1]*brush->rgb[1];
@@ -581,7 +582,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 					dst[3]= FTOCHAR(alpha*brush_curve_strength(brush, dist, radius));
 				}
 				else if (texfall == 1) {
-					brush_sample_tex(brush, xy, rgba);
+					brush_sample_tex(brush, xy, rgba, 0);
 					dst[0]= FTOCHAR(rgba[0]);
 					dst[1]= FTOCHAR(rgba[1]);
 					dst[2]= FTOCHAR(rgba[2]);
@@ -590,7 +591,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 				else {
 					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
 
-					brush_sample_tex(brush, xy, rgba);
+					brush_sample_tex(brush, xy, rgba, 0);
 					dst[0] = FTOCHAR(rgba[0]*brush->rgb[0]);
 					dst[1] = FTOCHAR(rgba[1]*brush->rgb[1]);
 					dst[2] = FTOCHAR(rgba[2]*brush->rgb[2]);
@@ -737,7 +738,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 					xy[0] = x + xoff;
 					xy[1] = y + yoff;
 
-					brush_sample_tex(brush, xy, tf);
+					brush_sample_tex(brush, xy, tf, 0);
 				}
 
 				bf[0] = tf[0]*mf[0];
@@ -768,7 +769,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 					xy[0] = x + xoff;
 					xy[1] = y + yoff;
 
-					brush_sample_tex(brush, xy, rgba);
+					brush_sample_tex(brush, xy, rgba, 0);
 					t[0]= FTOCHAR(rgba[0]);
 					t[1]= FTOCHAR(rgba[1]);
 					t[2]= FTOCHAR(rgba[2]);
@@ -794,11 +795,11 @@ static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, float 
 
 	imbflag= (cache->flt)? IB_rectfloat: IB_rect;
 	if (!cache->ibuf)
-		cache->ibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag, 0);
+		cache->ibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag);
 	ibuf= cache->ibuf;
 
 	oldtexibuf= cache->texibuf;
-	cache->texibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag, 0);
+	cache->texibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag);
 
 	if (oldtexibuf) {
 		srcx= srcy= 0;
@@ -906,7 +907,13 @@ static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pres
 
 void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
 {
-	if(brush->jitter){
+	int use_jitter= brush->jitter != 0;
+
+	/* jitter-ed brush gives wierd and unpredictable result for this
+	   kinds of stroke, so manyally disable jitter usage (sergey) */
+	use_jitter&= (brush->flag & (BRUSH_RESTORE_MESH|BRUSH_ANCHORED)) == 0;
+
+	if(use_jitter){
 		float rand_pos[2];
 		const int radius= brush_size(brush);
 		const int diameter= 2*radius;
@@ -1096,11 +1103,9 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 {
 	unsigned int *texcache = NULL;
 	MTex *mtex = &br->mtex;
-	TexResult texres;
+	TexResult texres= {0};
 	int hasrgb, ix, iy;
 	int side = half_side * 2;
-
-	memset(&texres, 0, sizeof(TexResult));
 	
 	if(mtex->tex) {
 		float x, y, step = 2.0 / side, co[3];

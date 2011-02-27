@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,17 +25,18 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * dxf/vrml/stl external file io function prototypes
  */
 
 #ifndef BKE_EXOTIC_H
 #define BKE_EXOTIC_H
 
+/** \file BKE_exotic.h
+ *  \ingroup bke
+ *  \brief dxf/vrml/stl external file io function prototypes.
+ *  \attention is this used still? Candidate for removal?
+ */
 struct Mesh;
 struct Scene;
-
-void mcol_to_rgba(unsigned int col, float *r, float *g, float *b, float *a);
-unsigned int *mcol_to_vcol(struct Mesh *me); // used in py_main.c
 
 /**
  * Reads all 3D fileformats other than Blender fileformat
@@ -43,10 +44,16 @@ unsigned int *mcol_to_vcol(struct Mesh *me); // used in py_main.c
  * @retval 1 The file was read succesfully.
  * @attention Used in filesel.c
  */
-int BKE_read_exotic(struct Scene *scene, char *name);
+int BKE_read_exotic(struct Scene *scene, const char *name);
+
+/* return codes */
+#define BKE_READ_EXOTIC_FAIL_PATH		-3 /* file format is not supported */
+#define BKE_READ_EXOTIC_FAIL_FORMAT		-2 /* file format is not supported */
+#define BKE_READ_EXOTIC_FAIL_OPEN		-1 /* Can't open the file */
+#define BKE_READ_EXOTIC_OK_BLEND		 0 /* .blend file */
+#define BKE_READ_EXOTIC_OK_OTHER		 1 /* other supported formats */
 
 void write_dxf(struct Scene *scene, char *str);
-void write_vrml(struct Scene *scene, char *str);
 void write_stl(struct Scene *scene, char *str);
 
 #endif

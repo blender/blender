@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_VehicleWrapper.cpp
+ *  \ingroup ketsji
+ */
 
 
 #include "PyObjectPlus.h"
@@ -29,7 +32,7 @@ KX_VehicleWrapper::~KX_VehicleWrapper()
 	m_motionStates.clear();
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 PyObject* KX_VehicleWrapper::PyAddWheel(PyObject* args)
 {
@@ -319,4 +322,4 @@ PyAttributeDef KX_VehicleWrapper::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +29,11 @@
 
 #ifndef DNA_BRUSH_TYPES_H
 #define DNA_BRUSH_TYPES_H
+
+/** \file DNA_brush_types.h
+ *  \ingroup DNA
+ */
+
 
 #include "DNA_ID.h"
 #include "DNA_texture_types.h" /* for MTex */
@@ -80,13 +85,14 @@ typedef struct Brush {
 	char sculpt_tool;		/* active sculpt tool */
 	char vertexpaint_tool;		/* active vertex/weight paint tool/blend mode */
 	char imagepaint_tool;		/* active image paint tool */
-	char pad3;
+	char pad3[5];
 
 	float autosmooth_factor;
 
 	float crease_pinch_factor;
 
 	float plane_trim;
+	float height;			/* affectable height of brush (layer height for layer tool, i.e.) */
 
 	float texture_sample_bias;
 	int   texture_overlay_alpha;
@@ -126,6 +132,10 @@ typedef struct Brush {
 #define BRUSH_PLANE_TRIM (1<<26)
 #define BRUSH_FRONTFACE (1<<27)
 #define BRUSH_CUSTOM_ICON (1<<28)
+
+/* temporary flag which sets up autmatically for correct
+   brush drawing when inverted modal operator is running */
+#define BRUSH_INVERTED (1<<29)
 
 /* Brush.sculpt_tool */
 #define SCULPT_TOOL_DRAW        1

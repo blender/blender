@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/BL_Shader.cpp
+ *  \ingroup ketsji
+ */
 
 #include "GL/glew.h"
 
@@ -728,7 +731,7 @@ void BL_Shader::SetUniform(int uniform, const int* val, int len)
 	}
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 PyMethodDef BL_Shader::Methods[] = 
 {
@@ -1411,6 +1414,6 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformDef, "setUniformDef(name, enum)" )
 	return NULL;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 // eof

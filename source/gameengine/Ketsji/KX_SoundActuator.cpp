@@ -1,4 +1,4 @@
-/**
+/*
  * KX_SoundActuator.cpp
  *
  * $Id$
@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  *
  */
+
+/** \file gameengine/Ketsji/KX_SoundActuator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_SoundActuator.h"
 #include "AUD_C-API.h"
@@ -233,7 +238,7 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 }
 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -496,4 +501,4 @@ int KX_SoundActuator::pyattr_set_pitch(void *self, const struct KX_PYATTRIBUTE_D
 	return PY_SET_ATTR_SUCCESS;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

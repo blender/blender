@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_ConstraintWrapper.h
+ *  \ingroup ketsji
+ */
+
 #ifndef KX_CONSTRAINT_WRAPPER
 #define KX_CONSTRAINT_WRAPPER
 
@@ -40,7 +45,7 @@ public:
 	virtual ~KX_ConstraintWrapper ();
 	int			getConstraintId() { return m_constraintId;};
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	KX_PYMETHOD_NOARGS(KX_ConstraintWrapper,GetConstraintId);
 	KX_PYMETHOD(KX_ConstraintWrapper,SetParam);
 	KX_PYMETHOD(KX_ConstraintWrapper,GetParam);

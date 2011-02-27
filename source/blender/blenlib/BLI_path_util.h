@@ -1,8 +1,4 @@
-/**
- * blenlib/BLI_storage_types.h
- *
- * Some types for dealing with directories
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,6 +29,10 @@
 #ifndef BLI_PATH_UTIL_H
 #define BLI_PATH_UTIL_H
 
+/** \file BLI_path_util.h
+ *  \ingroup bli
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,8 +42,9 @@ struct direntry;
 
 char *BLI_getDefaultDocumentFolder(void);
 
-char *BLI_get_folder(int folder_id, char *subfolder);
-char *BLI_get_folder_create(int folder_id, char *subfolder);
+char *BLI_get_folder(int folder_id, const char *subfolder);
+char *BLI_get_folder_create(int folder_id, const char *subfolder);
+char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
 
 /* folder_id */
 
@@ -87,24 +88,40 @@ char *BLI_get_folder_create(int folder_id, char *subfolder);
 #define BLENDER_SYSTEM_FORMAT			"%s/blender/%s"
 #endif
 
+#ifdef WIN32
+#define SEP '\\'
+#define ALTSEP '/'
+#else
+#define SEP '/'
+#define ALTSEP '\\'
+#endif
+
 void BLI_setenv(const char *env, const char *val);
 void BLI_setenv_if_new(const char *env, const char* val);
 
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
-void BLI_make_existing_file(char *name);
+void BLI_make_existing_file(const char *name);
 void BLI_split_dirfile(const char *string, char *dir, char *file);
-void BLI_join_dirfile(char *string, const char *dir, const char *file);
+void BLI_join_dirfile(char *string, const int maxlen, const char *dir, const char *file);
 char *BLI_path_basename(char *path);
 int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char *base_dir, const char *src_dir, const char *dest_dir);
+char *BLI_last_slash(const char *string);
+int	  BLI_add_slash(char *string);
+void  BLI_del_slash(char *string);
+char *BLI_first_slash(char *string);
+
 void BLI_getlastdir(const char* dir, char *last, int maxlen);
 int BLI_testextensie(const char *str, const char *ext);
 int BLI_testextensie_array(const char *str, const char **ext_array);
+int BLI_testextensie_glob(const char *str, const char *ext_fnmatch);
 int BLI_replace_extension(char *path, int maxlen, const char *ext);
 void BLI_uniquename(struct ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short len);
+int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, const char defname[], char delim, char *name, short name_len);
 void BLI_newname(char * name, int add);
 int BLI_stringdec(const char *string, char *head, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic);
+int BLI_split_name_num(char *left, int *nr, const char *name, const char delim);
 void BLI_splitdirstring(char *di,char *fi);
 
 /* make sure path separators conform to system one */
@@ -164,7 +181,7 @@ void BLI_char_switch(char *string, char from, char to);
 	 * @param fullname The full path and full name of the executable
 	 * @param name The name of the executable (usually argv[0]) to be checked
 	 */
-void BLI_where_am_i(char *fullname, const char *name);
+void BLI_where_am_i(char *fullname, const int maxlen, const char *name);
 
 char *get_install_dir(void);
 	/**
@@ -175,7 +192,7 @@ char *get_install_dir(void);
 	 *
 	 * @param fullname The full path to the temp directory
 	 */
-void BLI_where_is_temp(char *fullname, int usertemp);
+void BLI_where_is_temp(char *fullname, const int maxlen, int usertemp);
 
 
 #ifdef WITH_ICONV

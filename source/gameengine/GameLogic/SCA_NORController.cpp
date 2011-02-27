@@ -1,4 +1,4 @@
-/**
+/*
  * 'Nor' together all inputs
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_NORController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_NORController.h"
 #include "SCA_ISensor.h"
@@ -87,7 +92,7 @@ CValue* SCA_NORController::GetReplica()
 	return replica;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -124,6 +129,6 @@ PyAttributeDef SCA_NORController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

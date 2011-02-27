@@ -50,27 +50,22 @@ class BONE_PT_context_bone(BoneButtonsPanel, bpy.types.Panel):
 class BONE_PT_transform(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Transform"
 
+    @classmethod
+    def poll(cls, context):
+        if context.edit_bone:
+            return True
+
+        ob = context.object
+        return ob and ob.mode == 'POSE' and context.bone
+
     def draw(self, context):
         layout = self.layout
 
         ob = context.object
         bone = context.bone
 
-        if not bone:
-            bone = context.edit_bone
-            row = layout.row()
-            row.column().prop(bone, "head")
-            row.column().prop(bone, "tail")
-
-            col = row.column()
-            sub = col.column(align=True)
-            sub.label(text="Roll:")
-            sub.prop(bone, "roll", text="")
-            sub.label()
-            sub.prop(bone, "lock")
-
-        else:
-            pchan = ob.pose.bones[context.bone.name]
+        if bone and ob:
+            pchan = ob.pose.bones[bone.name]
 
             row = layout.row()
             col = row.column()
@@ -92,6 +87,19 @@ class BONE_PT_transform(BoneButtonsPanel, bpy.types.Panel):
 
             layout.prop(pchan, "rotation_mode")
 
+        elif context.edit_bone:
+            bone = context.edit_bone
+            row = layout.row()
+            row.column().prop(bone, "head")
+            row.column().prop(bone, "tail")
+
+            col = row.column()
+            sub = col.column(align=True)
+            sub.label(text="Roll:")
+            sub.prop(bone, "roll", text="")
+            sub.label()
+            sub.prop(bone, "lock")
+
 
 class BONE_PT_transform_locks(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Transform Locks"
@@ -99,14 +107,15 @@ class BONE_PT_transform_locks(BoneButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.bone
+        ob = context.object
+        return ob and ob.mode == 'POSE' and context.bone
 
     def draw(self, context):
         layout = self.layout
 
         ob = context.object
         bone = context.bone
-        pchan = ob.pose.bones[context.bone.name]
+        pchan = ob.pose.bones[bone.name]
 
         row = layout.row()
         col = row.column()
@@ -134,12 +143,12 @@ class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
         ob = context.object
         bone = context.bone
         arm = context.armature
+        pchan = None
 
-        if not bone:
+        if ob and bone:
+            pchan = ob.pose.bones[bone.name]
+        elif bone is None:
             bone = context.edit_bone
-            pchan = None
-        else:
-            pchan = ob.pose.bones[context.bone.name]
 
         split = layout.split()
 
@@ -163,7 +172,7 @@ class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = (bone.parent is not None)
         sub.prop(bone, "use_connect")
-        sub.prop(bone, "use_hinge", text="Inherit Rotation")
+        sub.prop(bone, "use_inherit_rotation", text="Inherit Rotation")
         sub.prop(bone, "use_inherit_scale", text="Inherit Scale")
         sub = col.column()
         sub.active = (not bone.parent or not bone.use_connect)
@@ -178,31 +187,33 @@ class BONE_PT_display(BoneButtonsPanel, bpy.types.Panel):
         return context.bone
 
     def draw(self, context):
+        # note. this works ok in editmode but isnt
+        # all that useful so disabling for now.
         layout = self.layout
 
         ob = context.object
         bone = context.bone
+        pchan = None
 
-        if not bone:
+        if ob and bone:
+            pchan = ob.pose.bones[bone.name]
+        elif bone is None:
             bone = context.edit_bone
-            pchan = None
-        else:
-            pchan = ob.pose.bones[context.bone.name]
 
-        if ob and pchan:
-
+        if bone:
             split = layout.split()
 
             col = split.column()
             col.prop(bone, "show_wire", text="Wireframe")
             col.prop(bone, "hide", text="Hide")
 
-            col = split.column()
+            if pchan:
+                col = split.column()
 
-            col.label(text="Custom Shape:")
-            col.prop(pchan, "custom_shape", text="")
-            if pchan.custom_shape:
-                col.prop_search(pchan, "custom_shape_transform", ob.pose, "bones", text="At")
+                col.label(text="Custom Shape:")
+                col.prop(pchan, "custom_shape", text="")
+                if pchan.custom_shape:
+                    col.prop_search(pchan, "custom_shape_transform", ob.pose, "bones", text="At")
 
 
 class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
@@ -211,7 +222,8 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.active_pose_bone
+        ob = context.object
+        return ob and ob.mode == 'POSE' and context.bone
 
     def draw(self, context):
         layout = self.layout
@@ -346,6 +358,7 @@ class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):
 
 class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _property_type = bpy.types.Bone, bpy.types.EditBone, bpy.types.PoseBone
 
     @property
     def _context_path(self):
@@ -357,11 +370,11 @@ class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

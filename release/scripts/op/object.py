@@ -36,7 +36,7 @@ class SelectPattern(bpy.types.Operator):
 
         import fnmatch
 
-        if self.properties.case_sensitive:
+        if self.case_sensitive:
             pattern_match = fnmatch.fnmatchcase
         else:
             pattern_match = lambda a, b: fnmatch.fnmatchcase(a.upper(), b.upper())
@@ -51,27 +51,24 @@ class SelectPattern(bpy.types.Operator):
 
         # Can be pose bones or objects
         for item in items:
-            if pattern_match(item.name, self.properties.pattern):
+            if pattern_match(item.name, self.pattern):
                 item.select = True
-            elif not self.properties.extend:
+            elif not self.extend:
                 item.select = False
 
         return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
-        # return wm.invoke_props_popup(self, event)
-        wm.invoke_props_popup(self, event)
-        return {'RUNNING_MODAL'}
+        return wm.invoke_props_popup(self, event)
 
     def draw(self, context):
         layout = self.layout
-        props = self.properties
 
-        layout.prop(props, "pattern")
+        layout.prop(self, "pattern")
         row = layout.row()
-        row.prop(props, "case_sensitive")
-        row.prop(props, "extend")
+        row.prop(self, "case_sensitive")
+        row.prop(self, "extend")
 
 
 class SelectCamera(bpy.types.Operator):
@@ -117,15 +114,14 @@ class SelectHierarchy(bpy.types.Operator):
     def execute(self, context):
         select_new = []
         act_new = None
-        
-        
+
         selected_objects = context.selected_objects
         obj_act = context.object
 
         if context.object not in selected_objects:
             selected_objects.append(context.object)
 
-        if self.properties.direction == 'PARENT':
+        if self.direction == 'PARENT':
             for obj in selected_objects:
                 parent = obj.parent
 
@@ -145,7 +141,7 @@ class SelectHierarchy(bpy.types.Operator):
 
         # dont edit any object settings above this
         if select_new:
-            if not self.properties.extend:
+            if not self.extend:
                 bpy.ops.object.select_all(action='DESELECT')
 
             for obj in select_new:
@@ -153,7 +149,7 @@ class SelectHierarchy(bpy.types.Operator):
 
             context.scene.objects.active = act_new
             return {'FINISHED'}
-            
+
         return {'CANCELLED'}
 
 
@@ -175,11 +171,11 @@ class SubdivisionSet(bpy.types.Operator):
         return (obs is not None)
 
     def execute(self, context):
-        level = self.properties.level
-        relative = self.properties.relative
+        level = self.level
+        relative = self.relative
 
         if relative and level == 0:
-            return {'CANCELLED'} # nothing to do
+            return {'CANCELLED'}  # nothing to do
 
         def set_object_subd(obj):
             for mod in obj.modifiers:
@@ -211,9 +207,12 @@ class SubdivisionSet(bpy.types.Operator):
 
                     return
 
-            # adda new modifier
-            mod = obj.modifiers.new("Subsurf", 'SUBSURF')
-            mod.levels = level
+            # add a new modifier
+            try:
+                mod = obj.modifiers.new("Subsurf", 'SUBSURF')
+                mod.levels = level
+            except:
+                self.report({'WARNING'}, "Modifiers cannot be added to object: " + obj.name)
 
         for obj in context.selected_editable_objects:
             set_object_subd(obj)
@@ -250,15 +249,15 @@ class ShapeTransfer(bpy.types.Operator):
 
         def ob_add_shape(ob, name):
             me = ob.data
-            key = ob.add_shape_key(from_mix=False)
+            key = ob.shape_key_add(from_mix=False)
             if len(me.shape_keys.keys) == 1:
                 key.name = "Basis"
-                key = ob.add_shape_key(from_mix=False) # we need a rest
+                key = ob.shape_key_add(from_mix=False)  # we need a rest
             key.name = name
             ob.active_shape_key_index = len(me.shape_keys.keys) - 1
-            ob.show_shape_key = True
+            ob.show_only_shape_key = True
 
-        from geometry import BarycentricTransform
+        from mathutils.geometry import barycentric_transform
         from mathutils import Vector
 
         if use_clamp and mode == 'OFFSET':
@@ -301,38 +300,38 @@ class ShapeTransfer(bpy.types.Operator):
                 for face in me.faces:
                     i1, i2, i3, i4 = face.vertices_raw
                     if i4 != 0:
-                        pt = BarycentricTransform(orig_shape_coords[i1],
+                        pt = barycentric_transform(orig_shape_coords[i1],
                             orig_coords[i4], orig_coords[i1], orig_coords[i2],
                             target_coords[i4], target_coords[i1], target_coords[i2])
                         median_coords[i1].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i2],
+                        pt = barycentric_transform(orig_shape_coords[i2],
                             orig_coords[i1], orig_coords[i2], orig_coords[i3],
                             target_coords[i1], target_coords[i2], target_coords[i3])
                         median_coords[i2].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i3],
+                        pt = barycentric_transform(orig_shape_coords[i3],
                             orig_coords[i2], orig_coords[i3], orig_coords[i4],
                             target_coords[i2], target_coords[i3], target_coords[i4])
                         median_coords[i3].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i4],
+                        pt = barycentric_transform(orig_shape_coords[i4],
                             orig_coords[i3], orig_coords[i4], orig_coords[i1],
                             target_coords[i3], target_coords[i4], target_coords[i1])
                         median_coords[i4].append(pt)
 
                     else:
-                        pt = BarycentricTransform(orig_shape_coords[i1],
+                        pt = barycentric_transform(orig_shape_coords[i1],
                             orig_coords[i3], orig_coords[i1], orig_coords[i2],
                             target_coords[i3], target_coords[i1], target_coords[i2])
                         median_coords[i1].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i2],
+                        pt = barycentric_transform(orig_shape_coords[i2],
                             orig_coords[i1], orig_coords[i2], orig_coords[i3],
                             target_coords[i1], target_coords[i2], target_coords[i3])
                         median_coords[i2].append(pt)
 
-                        pt = BarycentricTransform(orig_shape_coords[i3],
+                        pt = barycentric_transform(orig_shape_coords[i3],
                             orig_coords[i2], orig_coords[i3], orig_coords[i1],
                             target_coords[i2], target_coords[i3], target_coords[i1])
                         median_coords[i3].append(pt)
@@ -345,19 +344,18 @@ class ShapeTransfer(bpy.types.Operator):
                     n1loc = v1 + orig_normals[i1] * edge_length
                     n2loc = v2 + orig_normals[i2] * edge_length
 
-
                     # now get the target nloc's
                     v1_to, v2_to = target_coords[i1], target_coords[i2]
                     edlen_to = (v1_to - v2_to).length
                     n1loc_to = v1_to + target_normals[i1] * edlen_to
                     n2loc_to = v2_to + target_normals[i2] * edlen_to
 
-                    pt = BarycentricTransform(orig_shape_coords[i1],
+                    pt = barycentric_transform(orig_shape_coords[i1],
                         v2, v1, n1loc,
                         v2_to, v1_to, n1loc_to)
                     median_coords[i1].append(pt)
 
-                    pt = BarycentricTransform(orig_shape_coords[i2],
+                    pt = barycentric_transform(orig_shape_coords[i2],
                         v1, v2, n2loc,
                         v1_to, v2_to, n2loc_to)
                     median_coords[i2].append(pt)
@@ -392,7 +390,7 @@ class ShapeTransfer(bpy.types.Operator):
         ob_act = C.active_object
         objects = [ob for ob in C.selected_editable_objects if ob != ob_act]
 
-        if 1: # swap from/to, means we cant copy to many at once.
+        if 1:  # swap from/to, means we cant copy to many at once.
             if len(objects) != 1:
                 self.report({'ERROR'}, "Expected one other selected mesh object to copy from")
                 return {'CANCELLED'}
@@ -405,7 +403,7 @@ class ShapeTransfer(bpy.types.Operator):
         if ob_act.active_shape_key is None:
             self.report({'ERROR'}, "Other object has no shape key")
             return {'CANCELLED'}
-        return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)
+        return self._main(ob_act, objects, self.mode, self.use_clamp)
 
 
 class JoinUVs(bpy.types.Operator):
@@ -432,7 +430,7 @@ class JoinUVs(bpy.types.Operator):
         else:
             len_faces = len(mesh.faces)
 
-            uv_array = array.array('f', [0.0] * 8) * len_faces # seems to be the fastest way to create an array
+            uv_array = array.array('f', [0.0] * 8) * len_faces  # seems to be the fastest way to create an array
             mesh.uv_textures.active.data.foreach_get("uv_raw", uv_array)
 
             objects = context.selected_editable_objects[:]
@@ -453,7 +451,7 @@ class JoinUVs(bpy.types.Operator):
                             else:
                                 uv_other = mesh_other.uv_textures.active
                                 if not uv_other:
-                                    uv_other = mesh_other.uv_textures.new() # should return the texture it adds
+                                    uv_other = mesh_other.uv_textures.new()  # should return the texture it adds
 
                                 # finally do the copy
                                 uv_other.data.foreach_set("uv_raw", uv_array)
@@ -469,7 +467,7 @@ class JoinUVs(bpy.types.Operator):
 class MakeDupliFace(bpy.types.Operator):
     '''Make linked objects into dupli-faces'''
     bl_idname = "object.make_dupli_face"
-    bl_label = "Make DupliFace"
+    bl_label = "Make Dupli-Face"
 
     @classmethod
     def poll(cls, context):
@@ -478,7 +476,6 @@ class MakeDupliFace(bpy.types.Operator):
 
     def _main(self, context):
         from mathutils import Vector
-        from math import sqrt
 
         SCALE_FAC = 0.01
         offset = 0.5 * SCALE_FAC
@@ -486,10 +483,10 @@ class MakeDupliFace(bpy.types.Operator):
 
         def matrix_to_quat(matrix):
             # scale = matrix.median_scale
-            trans = matrix.translation_part()
-            rot = matrix.rotation_part() # also contains scale
+            trans = matrix.to_translation()
+            rot = matrix.to_3x3()  # also contains scale
 
-            return [(rot * b) + trans for b in base_tri]
+            return [(b * rot) + trans for b in base_tri]
         scene = bpy.context.scene
         linked = {}
         for obj in bpy.context.selected_objects:
@@ -508,7 +505,7 @@ class MakeDupliFace(bpy.types.Operator):
 
             mesh.vertices.foreach_set("co", face_verts)
             mesh.faces.foreach_set("vertices_raw", faces)
-            mesh.update() # generates edge data
+            mesh.update()  # generates edge data
 
             # pick an object to use
             obj = objects[0]
@@ -552,7 +549,8 @@ class IsolateTypeRender(bpy.types.Operator):
                     obj.hide_render = True
 
         return {'FINISHED'}
-        
+
+
 class ClearAllRestrictRender(bpy.types.Operator):
     '''Reveal all render objects by setting the hide render flag'''
     bl_idname = "object.hide_render_clear_all"
@@ -561,16 +559,16 @@ class ClearAllRestrictRender(bpy.types.Operator):
 
     def execute(self, context):
         for obj in context.scene.objects:
-        	obj.hide_render = False
+            obj.hide_render = False
         return {'FINISHED'}
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Rasterizer/RAS_IPolygonMaterial.cpp
+ *  \ingroup bgerast
+ */
+
 
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_IRasterizer.h"
@@ -204,6 +209,11 @@ int RAS_IPolyMaterial::GetMaterialIndex() const
 }
 
 Material *RAS_IPolyMaterial::GetBlenderMaterial() const
+{
+	return NULL;
+}
+
+Image *RAS_IPolyMaterial::GetBlenderImage() const
 {
 	return NULL;
 }

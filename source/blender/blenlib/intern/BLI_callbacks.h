@@ -1,4 +1,4 @@
-/**
+/*
  * blenlib/BLI_editVert.h    mar 2001 Nzc
  *
  * These callbacks are needed in the lib
@@ -35,7 +35,7 @@
 #define BLI_CALLBACKS_H
 
 // This is blenlib internal only
-void callLocalErrorCallBack(char* msg);
+void callLocalErrorCallBack(const char* msg);
 
 #endif
 

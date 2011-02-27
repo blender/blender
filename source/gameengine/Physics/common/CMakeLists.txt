@@ -24,12 +24,27 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(SRC PHY_IMotionState.cpp PHY_IController.cpp PHY_IPhysicsController.cpp PHY_IGraphicController.cpp PHY_IPhysicsEnvironment.cpp PHY_IVehicle.cpp)
-
-SET(INC
+set(INC
 	.
 	../Dummy
-	../../../intern/moto/include
 )
 
-BLENDERLIB(bf_common "${SRC}" "${INC}")
+set(SRC
+	PHY_IMotionState.cpp
+	PHY_IController.cpp
+	PHY_IPhysicsController.cpp
+	PHY_IGraphicController.cpp
+	PHY_IPhysicsEnvironment.cpp
+	PHY_IVehicle.cpp
+
+	PHY_DynamicTypes.h
+	PHY_IController.h
+	PHY_IGraphicController.h
+	PHY_IMotionState.h
+	PHY_IPhysicsController.h
+	PHY_IPhysicsEnvironment.h
+	PHY_IVehicle.h
+	PHY_Pro.h
+)
+
+blender_add_lib(ge_phys_common "${SRC}" "${INC}")

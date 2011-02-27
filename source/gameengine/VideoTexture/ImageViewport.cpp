@@ -1,3 +1,6 @@
+/** \file gameengine/VideoTexture/ImageViewport.cpp
+ *  \ingroup bgevideotex
+ */
 /* $Id$
 -----------------------------------------------------------------------------
 This source file is part of VideoTexture library
@@ -225,7 +228,7 @@ static PyObject * ImageViewport_getPosition (PyImage * self, void * closure)
 static int ImageViewport_setPosition (PyImage * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 2
+	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{
@@ -253,7 +256,7 @@ PyObject * ImageViewport_getCaptureSize (PyImage * self, void * closure)
 int ImageViewport_setCaptureSize (PyImage * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 2
+	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{

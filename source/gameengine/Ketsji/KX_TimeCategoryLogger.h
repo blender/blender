@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,10 +27,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file KX_TimeCategoryLogger.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_TIME_CATEGORY_LOGGER_H
 #define __KX_TIME_CATEGORY_LOGGER_H
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 #endif
 

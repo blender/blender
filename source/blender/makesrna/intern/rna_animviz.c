@@ -1,4 +1,4 @@
-/**
+/*
  * $Id: rna_animviz.c 25824 2010-01-08 02:54:33Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****

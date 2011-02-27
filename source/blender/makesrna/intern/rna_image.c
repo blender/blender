@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -79,7 +79,7 @@ static void rna_Image_source_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Image *ima= ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_SRC_CHANGE);
-	DAG_id_flush_update(&ima->id, 0);
+	DAG_id_tag_update(&ima->id, 0);
 }
 
 static void rna_Image_fields_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -107,7 +107,7 @@ static void rna_Image_reload_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Image *ima= ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
-	DAG_id_flush_update(&ima->id, 0);
+	DAG_id_tag_update(&ima->id, 0);
 }
 
 static void rna_Image_generated_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -121,6 +121,21 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	ImageUser *iuser= ptr->data;
 
 	BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
+}
+
+
+char *rna_ImageUser_path(PointerRNA *ptr)
+{
+	if (ptr->id.data) {
+		// ImageUser *iuser= ptr->data;
+		
+		switch(GS(((ID *)ptr->id.data)->name)) {
+		case ID_TE:
+			return BLI_strdup("image_user");
+		}
+	}
+	
+	return BLI_strdup("");
 }
 
 static EnumPropertyItem *rna_Image_source_itemf(bContext *C, PointerRNA *ptr, int *free)
@@ -156,9 +171,19 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
 {
 	Image *image= (Image*)ptr->data;
 	if(BKE_imtype_is_movie(value) == 0) { /* should be able to throw an error here */
-		ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+		ImBuf *ibuf;
+		int ftype= BKE_imtype_to_ftype(value);
+
+		/*
+		ibuf= BKE_image_get_ibuf(image, NULL);
 		if(ibuf)
-			ibuf->ftype= BKE_imtype_to_ftype(value);
+			ibuf->ftype= ftype;
+		*/
+
+		/* to be safe change all buffer file types */
+		for(ibuf= image->ibufs.first; ibuf; ibuf= ibuf->next) {
+			ibuf->ftype= ftype;
+		}
 	}
 }
 
@@ -222,6 +247,7 @@ static void rna_def_imageuser(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ImageUser", NULL);
 	RNA_def_struct_ui_text(srna, "Image User", "Parameters defining how an Image datablock is used by another datablock");
+	RNA_def_struct_path_func(srna, "rna_ImageUser_path");
 
 	prop= RNA_def_property(srna, "use_auto_refresh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANIM_ALWAYS);
@@ -242,19 +268,19 @@ static void rna_def_imageuser(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "frame_offset", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "offset");
-	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
+	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Offset", "Offsets the number of the frame to use in the animation");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
-	RNA_def_property_range(prop, 1.0f, MAXFRAMEF);
-	RNA_def_property_ui_text(prop, "Start Frame", "Sets the global starting frame of the movie");
+	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
+	RNA_def_property_ui_text(prop, "Start Frame", "Sets the global starting frame of the movie/sequence, assuming first picture has a #1");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	prop= RNA_def_property(srna, "fields_per_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "fie_ima");
-	RNA_def_property_range(prop, 1, MAXFRAMEF);
+	RNA_def_property_range(prop, 1, 200);
 	RNA_def_property_ui_text(prop, "Fields per Frame", "The number of fields per rendered frame (2 fields is 1 image)");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 

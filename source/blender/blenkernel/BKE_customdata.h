@@ -27,10 +27,18 @@
 * ***** END GPL LICENSE BLOCK *****
 */ 
 
-/* CustomData interface, see also DNA_customdata_types.h. */
+/** \file BKE_customdata.h
+ *  \ingroup bke
+ *  \author Ben Batt
+ *  \brief CustomData interface, see also DNA_customdata_types.h.
+ */
 
 #ifndef BKE_CUSTOMDATA_H
 #define BKE_CUSTOMDATA_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct BMesh;
 struct ID;
@@ -146,7 +154,7 @@ int CustomData_number_of_layers(const struct CustomData *data, int type);
  * returns the layer data */
 void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type);
 void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
-												  int type, char *name);
+												  int type, const char *name);
 
 /* set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
  * zero for the layer type, so only layer types specified by the mask
@@ -170,6 +178,7 @@ void CustomData_em_copy_data(const struct CustomData *source,
 void CustomData_bmesh_copy_data(const struct CustomData *source, 
 				struct CustomData *dest, void *src_block, 
 				void **dest_block);
+void CustomData_em_validate_data(struct CustomData *data, void *block, int sub_elements);
 
 /* frees data in a CustomData object
  * return 1 on success, 0 on failure
@@ -226,10 +235,10 @@ void *CustomData_bmesh_get_layer_n(const struct CustomData *data, void *block, i
 void *CustomData_get_layer(const struct CustomData *data, int type);
 void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
 void *CustomData_get_layer_named(const struct CustomData *data, int type,
-								 char *name);
+								 const char *name);
 int CustomData_get_layer_index(const struct CustomData *data, int type);
 int CustomData_get_layer_index_n(const struct CustomData *data, int type, int n);
-int CustomData_get_named_layer_index(const struct CustomData *data, int type, char *name);
+int CustomData_get_named_layer_index(const struct CustomData *data, int type, const char *name);
 int CustomData_get_active_layer_index(const struct CustomData *data, int type);
 int CustomData_get_render_layer_index(const struct CustomData *data, int type);
 int CustomData_get_clone_layer_index(const struct CustomData *data, int type);
@@ -302,7 +311,7 @@ void CustomData_from_bmesh_block(const struct CustomData *source,
 
 
 /* query info over types */
-void CustomData_file_write_info(int type, char **structname, int *structnum);
+void CustomData_file_write_info(int type, const char **structname, int *structnum);
 int CustomData_sizeof(int type);
 
 /* get the name of a layer type */
@@ -335,6 +344,10 @@ void CustomData_external_read(struct CustomData *data,
 	struct ID *id, CustomDataMask mask, int totelem);
 void CustomData_external_reload(struct CustomData *data,
 	struct ID *id, CustomDataMask mask, int totelem);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

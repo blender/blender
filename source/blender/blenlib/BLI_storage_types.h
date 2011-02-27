@@ -1,8 +1,4 @@
-/**
- * blenlib/BLI_storage_types.h
- *
- * Some types for dealing with directories
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,17 +29,12 @@
 #ifndef BLI_STORAGE_TYPES_H
 #define BLI_STORAGE_TYPES_H
 
+/** \file BLI_storage_types.h
+ *  \ingroup bli
+ *  \brief Some types for dealing with directories.
+ */
+
 #include <sys/stat.h>
-
-#define HDRSIZE 512
-#define NAMSIZE 200
-
-struct header{
-	char	name[NAMSIZE];
-	unsigned int	size;
-	unsigned int	chksum;
-	char	fill[HDRSIZE-NAMSIZE-2*sizeof(unsigned int)];
-};
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 typedef unsigned int mode_t;
@@ -76,14 +67,6 @@ struct direntry{
 	int		nr;
 	struct ImBuf *image;
 };
-
-#define SELECT			1
-#define HIDDEN			1
-#define FIRST			1
-#define DESELECT		0
-#define NOT_YET			0
-#define VISIBLE			0
-#define LAST			0
 
 struct dirlink
 {

@@ -1,3 +1,6 @@
+/** \file opennl/superlu/lsame.c
+ *  \ingroup opennl
+ */
 int lsame_(char *, char *);
 
 

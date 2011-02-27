@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_TrackToActuator.cpp
+ *  \ingroup ketsji
+ */
 //
 // Replace the mesh for this actuator's parent
 //
@@ -417,7 +420,7 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 	return result;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -486,6 +489,6 @@ int KX_TrackToActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUT
 	return PY_SET_ATTR_SUCCESS;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

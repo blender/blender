@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,7 +27,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef WIN32
+/** \file gameengine/Converter/BL_ShapeDeformer.cpp
+ *  \ingroup bgeconv
+ */
+
+
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif //WIN32
 
@@ -55,7 +60,7 @@
 extern "C"{
 	#include "BKE_lattice.h"
 }
- #include "BKE_utildefines.h"
+ 
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -154,7 +159,7 @@ bool BL_ShapeDeformer::Update(void)
 			/* store verts locally */
 			VerifyStorage();
 
-			do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)(float *)m_transverts, m_bmesh->key, NULL, 0);
+			do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)(float *)m_transverts, m_bmesh->key, NULL, 0); /* last arg is ignored */
 			m_bDynamic = true;
 		}
 

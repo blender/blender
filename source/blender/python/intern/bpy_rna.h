@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,12 +24,11 @@
 #ifndef BPY_RNA_H
 #define BPY_RNA_H
 
-#include <Python.h>
-
 #include "RNA_access.h"
 #include "RNA_types.h"
 #include "BKE_idprop.h"
 
+extern PyTypeObject pyrna_struct_meta_idprop_Type;
 extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;
 extern PyTypeObject pyrna_prop_array_Type;
@@ -40,21 +39,33 @@ extern PyTypeObject pyrna_prop_collection_Type;
 #define BPy_PropertyRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_prop_Type))
 #define BPy_PropertyRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_prop_Type)
 
+/* play it safe and keep optional for now, need to test further now this affects looping on 10000's of verts for eg. */
+// #define USE_WEAKREFS
+
 typedef struct {
 	PyObject_HEAD /* required python macro   */
-	PointerRNA ptr;
+	PointerRNA	ptr;
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist;
+#endif
 } BPy_DummyPointerRNA;
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
 	PointerRNA ptr;
 	int freeptr; /* needed in some cases if ptr.data is created on the fly, free when deallocing */
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist;
+#endif
 } BPy_StructRNA;
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
 	PointerRNA ptr;
 	PropertyRNA *prop;
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist;
+#endif
 } BPy_PropertyRNA;
 
 typedef struct {
@@ -65,6 +76,9 @@ typedef struct {
 	/* Arystan: this is a hack to allow sub-item r/w access like: face.uv[n][m] */
 	int arraydim; /* array dimension, e.g: 0 for face.uv, 2 for face.uv[n][m], etc. */
 	int arrayoffset; /* array first item offset, e.g. if face.uv is [4][2], arrayoffset for face.uv[n] is 2n */
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist;
+#endif
 } BPy_PropertyArrayRNA;
 
 /* cheap trick */
@@ -98,12 +112,21 @@ void pyrna_alloc_types(void);
 void pyrna_free_types(void);
 
 /* primitive type conversion */
-int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, char *param_data, PyObject *py, const char *error_prefix);
+int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data, PyObject *py, const char *error_prefix);
 int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, int arrayoffset, int index, PyObject *py, const char *error_prefix);
+PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 
 PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop);
 PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr, PropertyRNA *prop, int index);
 PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
+
+int pyrna_write_check(void);
+
+void BPY_modules_update(struct bContext *C); //XXX temp solution
+
+/* bpy.utils.(un)register_class */
+extern PyMethodDef meth_bpy_register_class;
+extern PyMethodDef meth_bpy_unregister_class;
 
 #endif

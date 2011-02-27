@@ -7,6 +7,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
+#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -100,9 +101,9 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	verts[0][2] += 0.0001f;
 
 	for(i = 0; i < nverts; i++){
-		VECCOPY(u, verts[i]);
-		VECCOPY(v, verts[(i+1) % nverts]);
-		VECCOPY(w, verts[(i+2) % nverts]);
+		copy_v3_v3(u, verts[i]);
+		copy_v3_v3(v, verts[(i+1) % nverts]);
+		copy_v3_v3(w, verts[(i+2) % nverts]);
 		
 #if 0
 		VECSUB(v1, w, v);
@@ -242,8 +243,10 @@ int BM_Compute_Face_Center(BMesh *bm, BMFace *f, float center[3])
 		DO_MINMAX(l->v->co, min, max);
 	}
 
-	VECADD(center, min, max);
-	VECMUL(center, 0.5f);
+	add_v3_v3v3(center, min, max);
+	mul_v3_fl(center, 0.5f);
+	
+	return 0;
 }
 
 /*
@@ -318,34 +321,34 @@ static void shrink_edged(double *v1, double *v2, double fac)
 {
 	double mid[3];
 
-	VECADD(mid, v1, v2);
-	VECMUL(mid, 0.5);
+	add_v3_v3v3(mid, v1, v2);
+	mul_v3_fl(mid, 0.5);
 
-	VECSUB(v1, v1, mid);
-	VECSUB(v2, v2, mid);
+	sub_v3_v3v3(v1, v1, mid);
+	sub_v3_v3v3(v2, v2, mid);
 
-	VECMUL(v1, fac);
-	VECMUL(v2, fac);
+	mul_v3_fl(v1, fac);
+	mul_v3_fl(v2, fac);
 
-	VECADD(v1, v1, mid);
-	VECADD(v2, v2, mid);
+	add_v3_v3v3(v1, v1, mid);
+	add_v3_v3v3(v2, v2, mid);
 }
 
 static void shrink_edgef(float *v1, float *v2, float fac)
 {
 	float mid[3];
 
-	VECADD(mid, v1, v2);
-	VECMUL(mid, 0.5);
+	add_v3_v3v3(mid, v1, v2);
+	mul_v3_fl(mid, 0.5);
 
-	VECSUB(v1, v1, mid);
-	VECSUB(v2, v2, mid);
+	sub_v3_v3v3(v1, v1, mid);
+	sub_v3_v3v3(v2, v2, mid);
 
-	VECMUL(v1, fac);
-	VECMUL(v2, fac);
+	mul_v3_fl(v1, fac);
+	mul_v3_fl(v2, fac);
 
-	VECADD(v1, v1, mid);
-	VECADD(v2, v2, mid);
+	add_v3_v3v3(v1, v1, mid);
+	add_v3_v3v3(v2, v2, mid);
 }
 
 /*

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_WindowManager.h
+
+/** \file ghost/intern/GHOST_WindowManager.h
+ *  \ingroup GHOST
  * Declaration of GHOST_WindowManager class.
  */
 
@@ -160,6 +161,13 @@ protected:
 
 	/** Window that was active before entering fullscreen state. */
 	GHOST_IWindow* m_activeWindowBeforeFullScreen;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GHOST:GHOST_WindowManager"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
+	
 };
 
 #endif // _GHOST_WINDOW_MANAGER_H_

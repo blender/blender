@@ -30,11 +30,18 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_surface.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 
 #include "BKE_cdderivedmesh.h"
 
@@ -76,24 +83,26 @@ static void freeData(ModifierData *md)
 	}
 }
 
-static int dependsOnTime(ModifierData *md)
+static int dependsOnTime(ModifierData *UNUSED(md))
 {
 	return 1;
 }
 
-static void deformVerts(
-					  ModifierData *md, Object *ob, DerivedMesh *derivedData,
-		float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int UNUSED(numVerts),
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
-	unsigned int numverts = 0, i = 0;
 	
 	if(surmd->dm)
 		surmd->dm->release(surmd->dm);
 
 	/* if possible use/create DerivedMesh */
 	if(derivedData) surmd->dm = CDDM_copy(derivedData, 0);
-	else surmd->dm = get_dm(md->scene, ob, NULL, NULL, NULL, 0);
+	else surmd->dm = get_dm(ob, NULL, NULL, NULL, 0);
 	
 	if(!ob->pd)
 	{
@@ -103,6 +112,7 @@ static void deformVerts(
 	
 	if(surmd->dm)
 	{
+		unsigned int numverts = 0, i = 0;
 		int init = 0;
 		float *vec;
 		MVert *x, *v;
@@ -168,6 +178,7 @@ ModifierTypeInfo modifierType_Surface = {
 
 	/* copyData */          0,
 	/* deformVerts */       deformVerts,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     0,
@@ -178,6 +189,7 @@ ModifierTypeInfo modifierType_Surface = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    0,
 	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

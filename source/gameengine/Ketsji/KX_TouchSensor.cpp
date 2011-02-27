@@ -1,4 +1,4 @@
-/**
+/*
  * Senses touch and collision events
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_TouchSensor.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_TouchSensor.h"
 #include "SCA_EventManager.h"
@@ -283,7 +288,7 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 	return false; // was DT_CONTINUE but this was defined in sumo as false.
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

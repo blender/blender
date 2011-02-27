@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,12 +31,16 @@
 #ifndef BKE_BRUSH_H
 #define BKE_BRUSH_H
 
+/** \file BKE_brush.h
+ *  \ingroup bke
+ */
+
 struct ID;
 struct Brush;
 struct ImBuf;
 struct Scene;
 struct wmOperator;
-enum CurveMappingPreset;
+// enum CurveMappingPreset;
 
 /* datablock functions */
 struct Brush *add_brush(const char *name);
@@ -56,13 +60,16 @@ int brush_texture_delete(struct Brush *brush);
 int brush_clone_image_set_nr(struct Brush *brush, int nr);
 int brush_clone_image_delete(struct Brush *brush);
 
+/* jitter */
+void brush_jitter_pos(struct Brush *brush, float *pos, float *jitterpos);
+
 /* brush curve */
 void brush_curve_preset(struct Brush *b, /*enum CurveMappingPreset*/int preset);
 float brush_curve_strength_clamp(struct Brush *br, float p, const float len);
 float brush_curve_strength(struct Brush *br, float p, const float len); /* used for sculpt */
 
 /* sampling */
-void brush_sample_tex(struct Brush *brush, float *xy, float *rgba);
+void brush_sample_tex(struct Brush *brush, float *xy, float *rgba, const int thread);
 void brush_imbuf_new(struct Brush *brush, short flt, short texfalloff, int size,
 	struct ImBuf **imbuf);
 
@@ -105,6 +112,9 @@ void  brush_set_unprojected_radius(struct Brush *brush, float value);
 
 float brush_alpha(struct Brush *brush);
 void  brush_set_alpha(struct Brush *brush, float value);
+
+/* debugging only */
+void brush_debug_print_state(struct Brush *br);
 
 #endif
 

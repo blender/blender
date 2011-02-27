@@ -1,3 +1,6 @@
+/** \file opennl/superlu/spruneL.c
+ *  \ingroup opennl
+ */
 
 
 /*

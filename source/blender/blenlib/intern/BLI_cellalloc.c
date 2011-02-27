@@ -149,19 +149,18 @@ void *BLI_cellalloc_dupalloc(void *mem)
 {
 	MemHeader *memh = mem;
 	void *tmp;
-	int slot;
 
 #ifdef USE_GUARDEDALLOC
 	MEM_freeN(mem);
-	return;
+	return NULL;
 #endif
 	if (!memh)
-		return;
+		return NULL;
 
 	memh--;
 	if (memh->idcheck != MEMIDCHECK) {
 		printf("Error in BLI_cellalloc: attempt to free invalid block.\n");
-		return;
+		return NULL;
 	}
 
 	tmp = BLI_cellalloc_malloc(memh->size, memh->tag);

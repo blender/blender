@@ -1,29 +1,29 @@
-/*  cloth.c
-*
-*
-* ***** BEGIN GPL LICENSE BLOCK *****
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software Foundation,
-* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*
-* The Original Code is Copyright (C) Blender Foundation
-* All rights reserved.
-*
-* Contributor(s): Daniel Genrich
-*
-* ***** END GPL LICENSE BLOCK *****
-*/
+/*
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) Blender Foundation
+ * All rights reserved.
+ *
+ * Contributor(s): Daniel Genrich
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
 #include "MEM_guardedalloc.h"
 
@@ -34,6 +34,7 @@
 
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_cloth.h"
@@ -41,12 +42,6 @@
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
-
-#include "BKE_pointcache.h"
-
-#include "BLI_kdopbvh.h"
-#include "BLI_cellalloc.h"
 
 #ifdef _WIN32
 void tstart ( void )
@@ -54,7 +49,7 @@ void tstart ( void )
 void tend ( void )
 {
 }
-double tval()
+double tval( void )
 {
 	return 0;
 }
@@ -70,7 +65,7 @@ void tend ( void )
 {
 	gettimeofday ( &_tend,&tz );
 }
-double tval()
+double tval(void)
 {
 	double t1, t2;
 	t1 = ( double ) _tstart.tv_sec + ( double ) _tstart.tv_usec/ ( 1000*1000 );
@@ -92,7 +87,7 @@ static CM_SOLVER_DEF	solvers [] =
 /* Prototypes for internal functions.
 */
 static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *dm);
-static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm );
+static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first);
 static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
 static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
@@ -168,7 +163,6 @@ static BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float eps
 	BVHTree *bvhtree;
 	Cloth *cloth;
 	ClothVertex *verts;
-	MFace *mfaces;
 	float co[12];
 
 	if(!clmd)
@@ -180,7 +174,6 @@ static BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float eps
 		return NULL;
 	
 	verts = cloth->verts;
-	mfaces = cloth->mfaces;
 	
 	// in the moment, return zero if no faces there
 	if(!cloth->numverts)
@@ -390,7 +383,8 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	Cloth *cloth;
 	ListBase *effectors = NULL;
 	MVert *mvert;
-	int i, ret = 0;
+	unsigned int i = 0;
+	int ret = 0;
 
 	/* simulate 1 frame forward */
 	cloth = clmd->clothObject;
@@ -428,13 +422,13 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 /************************************************
  * clothModifier_do - main simulation function
 ************************************************/
-DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
+DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, DerivedMesh *dm)
 {
 	DerivedMesh *result;
 	PointCache *cache;
 	PTCacheID pid;
 	float timescale;
-	int framedelta, framenr, startframe, endframe;
+	int framenr, startframe, endframe;
 	int cache_result;
 
 	clmd->scene= scene;	/* nice to pass on later :) */
@@ -451,7 +445,9 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		return dm;
 	}
 
-	if(clmd->sim_parms->reset || (framenr == (startframe - clmd->sim_parms->preroll)))
+	if(clmd->sim_parms->reset
+		|| (framenr == (startframe - clmd->sim_parms->preroll) && clmd->sim_parms->preroll != 0)
+		|| (clmd->clothObject && result->getNumVerts(result) != clmd->clothObject->numverts))
 	{
 		clmd->sim_parms->reset = 0;
 		cache->flag |= PTCACHE_OUTDATED;
@@ -462,17 +458,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		return result;
 	}
 	
-	/* verify we still have the same number of vertices, if not do nothing.
-	 * note that this should only happen if the number of vertices changes
-	 * during an animation due to a preceding modifier, this should not
-	 * happen because of object changes! */
-	if(clmd->clothObject) {
-		if(result->getNumVerts(result) != clmd->clothObject->numverts) {
-			BKE_ptcache_invalidate(cache);
-			return result;
-		}
-	}
-	
 	// unused in the moment, calculated separately in implicit.c
 	clmd->sim_parms->dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
 
@@ -481,10 +466,10 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		BKE_ptcache_invalidate(cache);
 
 		/* do simulation */
-		if(!do_init_cloth(ob, clmd, result, framenr))
+		if(!do_init_cloth(ob, clmd, dm, framenr))
 			return result;
 
-		do_step_cloth(ob, clmd, result, framenr);
+		do_step_cloth(ob, clmd, dm, framenr);
 		cloth_to_object(ob, clmd, result);
 
 		return result;
@@ -499,25 +484,20 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		framenr= endframe;
 	}
 
-	if(cache->flag & PTCACHE_SIMULATION_VALID)
-		framedelta= framenr - cache->simframe;
-	else
-		framedelta= -1;
-
 	/* initialize simulation data if it didn't exist already */
-	if(!do_init_cloth(ob, clmd, result, framenr))
+	if(!do_init_cloth(ob, clmd, dm, framenr))
 		return result;
 
 	if((framenr == startframe) && (clmd->sim_parms->preroll == 0)) {
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-		do_init_cloth(ob, clmd, result, framenr);
+		do_init_cloth(ob, clmd, dm, framenr);
 		BKE_ptcache_validate(cache, framenr);
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
 		return result;
 	}
 
 	/* try to read from cache */
-	cache_result = BKE_ptcache_read_cache(&pid, (float)framenr, scene->r.frs_sec);
+	cache_result = BKE_ptcache_read(&pid, (float)framenr+scene->r.subframe);
 
 	if(cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
 		implicit_set_positions(clmd);
@@ -526,7 +506,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		BKE_ptcache_validate(cache, framenr);
 
 		if(cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
-			BKE_ptcache_write_cache(&pid, framenr);
+			BKE_ptcache_write(&pid, framenr);
 
 		return result;
 	}
@@ -541,18 +521,18 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 
 	/* if on second frame, write cache for first frame */
 	if(cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
-		BKE_ptcache_write_cache(&pid, startframe);
+		BKE_ptcache_write(&pid, startframe);
 
 	clmd->sim_parms->timescale *= framenr - cache->simframe;
 
 	/* do simulation */
 	BKE_ptcache_validate(cache, framenr);
 
-	if(!do_step_cloth(ob, clmd, result, framenr)) {
+	if(!do_step_cloth(ob, clmd, dm, framenr)) {
 		BKE_ptcache_invalidate(cache);
 	}
 	else
-		BKE_ptcache_write_cache(&pid, framenr);
+		BKE_ptcache_write(&pid, framenr);
 
 	cloth_to_object (ob, clmd, result);
 
@@ -560,7 +540,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 }
 
 /* frees all */
-void cloth_free_modifier ( Object *ob, ClothModifierData *clmd )
+void cloth_free_modifier(ClothModifierData *clmd )
 {
 	Cloth	*cloth = NULL;
 	
@@ -818,7 +798,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 	}
 }
 
-static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first)
+static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float UNUSED(framenr), int first)
 {
 	int i = 0;
 	MVert *mvert = NULL;
@@ -831,7 +811,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	// If we have a clothObject, free it. 
 	if ( clmd->clothObject != NULL )
 	{
-		cloth_free_modifier ( ob, clmd );
+		cloth_free_modifier ( clmd );
 		if(G.rt > 0)
 			printf("cloth_free_modifier cloth_from_object\n");
 	}
@@ -855,7 +835,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	if ( !dm )
 		return 0;
 
-	cloth_from_mesh ( ob, clmd, dm );
+	cloth_from_mesh ( clmd, dm );
 
 	// create springs 
 	clmd->clothObject->springs = NULL;
@@ -911,7 +891,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 
 	if ( !cloth_build_springs ( clmd, dm ) )
 	{
-		cloth_free_modifier ( ob, clmd );
+		cloth_free_modifier ( clmd );
 		modifier_setError ( & ( clmd->modifier ), "Can't build springs." );
 		printf("cloth_free_modifier cloth_build_springs\n");
 		return 0;
@@ -945,11 +925,11 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	return 1;
 }
 
-static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm )
+static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 {
 	unsigned int numverts = dm->getNumVerts ( dm );
 	unsigned int numfaces = dm->getNumTessFaces ( dm );
-	MFace *mface = CDDM_get_tessfaces(dm);
+	MFace *mface = dm->getTessFaceArray( dm );
 	unsigned int i = 0;
 
 	/* Allocate our vertices. */
@@ -957,7 +937,7 @@ static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *
 	clmd->clothObject->verts = MEM_callocN ( sizeof ( ClothVertex ) * clmd->clothObject->numverts, "clothVertex" );
 	if ( clmd->clothObject->verts == NULL )
 	{
-		cloth_free_modifier ( ob, clmd );
+		cloth_free_modifier ( clmd );
 		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject->verts." );
 		printf("cloth_free_modifier clmd->clothObject->verts\n");
 		return;
@@ -968,7 +948,7 @@ static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *
 	clmd->clothObject->mfaces = MEM_callocN ( sizeof ( MFace ) * clmd->clothObject->numfaces, "clothMFaces" );
 	if ( clmd->clothObject->mfaces == NULL )
 	{
-		cloth_free_modifier ( ob, clmd );
+		cloth_free_modifier ( clmd );
 		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject->mfaces." );
 		printf("cloth_free_modifier clmd->clothObject->mfaces\n");
 		return;
@@ -1020,7 +1000,7 @@ int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned in
 	return 0;
 }
 
-static void cloth_free_errorsprings(Cloth *cloth, EdgeHash *edgehash, LinkNode **edgelist)
+static void cloth_free_errorsprings(Cloth *cloth, EdgeHash *UNUSED(edgehash), LinkNode **edgelist)
 {
 	unsigned int i = 0;
 	
@@ -1058,12 +1038,12 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	Cloth *cloth = clmd->clothObject;
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
 	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0;
-	int i = 0;
-	int numverts = dm->getNumVerts ( dm );
-	int numedges = dm->getNumEdges ( dm );
-	int numfaces = dm->getNumTessFaces ( dm );
-	MEdge *medge = CDDM_get_edges ( dm );
-	MFace *mface = CDDM_get_tessfaces ( dm );
+	unsigned int i = 0;
+	unsigned int numverts = (unsigned int)dm->getNumVerts ( dm );
+	unsigned int numedges = (unsigned int)dm->getNumEdges ( dm );
+	unsigned int numfaces = (unsigned int)dm->getNumTessFaces ( dm );
+	MEdge *medge = dm->getEdgeArray ( dm );
+	MFace *mface = dm->getTessFaceArray ( dm );
 	int index2 = 0; // our second vertex index
 	LinkNode **edgelist = NULL;
 	EdgeHash *edgehash = NULL;

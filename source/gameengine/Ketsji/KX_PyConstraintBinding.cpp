@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_PyConstraintBinding.cpp
+ *  \ingroup ketsji
+ */
+
 #include "KX_PyConstraintBinding.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_ConstraintWrapper.h"
@@ -37,7 +42,7 @@
 
 #include "PyObjectPlus.h" 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 // nasty glob variable to connect scripting language
 // if there is a better way (without global), please do so!
@@ -659,5 +664,5 @@ PHY_IPhysicsEnvironment*	PHY_GetActiveEnvironment()
 	return g_CurrentActivePhysicsEnvironment;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 

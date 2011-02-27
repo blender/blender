@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file boolop/intern/BOP_Interface.cpp
+ *  \ingroup boolopintern
+ */
+
  
 #include <iostream>
 #include <map>
@@ -80,7 +85,7 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 										CSG_FaceIteratorDescriptor    obBFaces,
 										CSG_VertexIteratorDescriptor  obBVertices)
 {
-	#ifdef DEBUG
+	#ifdef BOP_DEBUG
 	cout << "BEGIN BOP_performBooleanOperation" << endl;
 	#endif
 
@@ -118,7 +123,7 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 	// Invert the output mesh if is required
 	*outputMesh = BOP_exportMesh(&meshC, invertMeshC);
 
-	#ifdef DEBUG
+	#ifdef BOP_DEBUG
 	cout << "END BOP_performBooleanOperation" << endl;
 	#endif
 	
@@ -141,7 +146,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 								   bool       invertMeshA,
 								   bool       invertMeshB)
 {
-	#ifdef DEBUG
+	#ifdef BOP_DEBUG
 	BOP_Chrono chrono;
 	float t = 0.0f;
 	float c = 0.0f;
@@ -156,7 +161,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	BOP_BSPTree bspB;
 	bspB.addMesh(meshC, *facesB);
 
-	#ifdef DEBUG
+	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Create BSP     " << c << endl;	
 	#endif
@@ -172,7 +177,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	if ((0.25*facesB->size()) > bspA.getDeep())
 	  BOP_meshFilter(meshC, facesB, &bspA);
 	
-	#ifdef DEBUG
+	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "mesh Filter    " << c << endl;	
 	#endif
@@ -180,7 +185,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	// Face 2 Face
 	BOP_Face2Face(meshC,facesA,facesB);
 
-	#ifdef DEBUG
+	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Face2Face      " << c << endl;
 	#endif
@@ -189,7 +194,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	BOP_meshClassify(meshC,facesA,&bspB);
 	BOP_meshClassify(meshC,facesB,&bspA);
 	
-	#ifdef DEBUG
+	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Classification " << c << endl;
 	#endif
@@ -197,7 +202,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	// Process overlapped faces
 	BOP_removeOverlappedFaces(meshC,facesA,facesB);
 	
-	#ifdef DEBUG
+	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Remove overlap " << c << endl;
 	#endif
@@ -205,7 +210,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	// Sew two meshes
 	BOP_sew(meshC,facesA,facesB);
 
-	#ifdef DEBUG
+	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Sew            " << c << endl;
 	#endif
@@ -238,7 +243,7 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 #endif
 #endif
 
-	#ifdef DEBUG
+	#ifdef BOP_DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Merge faces    " << c << endl;
 	cout << "Total          " << t << endl;

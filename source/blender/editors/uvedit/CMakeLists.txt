@@ -19,18 +19,27 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
-SET(INC
+set(INC
+	../include
 	../../blenkernel
+	../../blenloader
 	../../blenlib
 	../../bmesh
-	../include
-	../../../../intern/guardedalloc
-	../../../../intern/opennl/extern
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../../../intern/guardedalloc
+	../../../../intern/opennl/extern
 )
 
-BLENDERLIB(bf_editor_uvedit "${SRC}" "${INC}")
+set(SRC
+	uvedit_draw.c
+	uvedit_ops.c
+	uvedit_parametrizer.c
+	uvedit_unwrap_ops.c
+
+	uvedit_intern.h
+	uvedit_parametrizer.h
+)
+
+blender_add_lib(bf_editor_uvedit "${SRC}" "${INC}")

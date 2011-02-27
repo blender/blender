@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file SG_Node.h
+ *  \ingroup bgesg
+ */
+ 
 #ifndef __SG_NODE_H
 #define __SG_NODE_H
 

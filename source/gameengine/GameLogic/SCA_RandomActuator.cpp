@@ -1,4 +1,4 @@
-/**
+/*
  * Set random/camera stuff
  *
  * $Id$
@@ -28,6 +28,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_RandomActuator.cpp
+ *  \ingroup gamelogic
+ */
+
+
+#include <stddef.h>
 
 #include "BoolValue.h"
 #include "IntValue.h"
@@ -305,7 +312,7 @@ void SCA_RandomActuator::enforceConstraints() {
 	}
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

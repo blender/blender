@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file iksolver/intern/MT_ExpMap.h
+ *  \ingroup iksolver
+ */
+
 
 #ifndef MT_ExpMap_H
 #define MT_ExpMap_H

@@ -1,3 +1,6 @@
+/** \file itasc/CopyPose.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * CopyPose.cpp
  *

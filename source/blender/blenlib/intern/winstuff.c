@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,13 +33,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
+#include "MEM_guardedalloc.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+
+#include "BKE_utildefines.h"
+
 #define WIN32_SKIP_HKEY_PROTECTION		// need to use HKEY
 #include "BLI_winstuff.h"
 
-#include "BKE_utildefines.h" /* FILE_MAXDIR + FILE_MAXFILE */
+ /* FILE_MAXDIR + FILE_MAXFILE */
 
 int BLI_getInstallationDir( char * str ) {
 	char dir[FILE_MAXDIR];

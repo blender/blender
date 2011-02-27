@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Sensor for keyboard input
+ */
+
+/** \file SCA_KeyboardSensor.h
+ *  \ingroup gamelogic
+ *  \brief Sensor for keyboard input
  */
 
 #ifndef __KX_KEYBOARDSENSOR
@@ -103,7 +107,7 @@ public:
 	virtual bool IsPositiveTrigger();
 	bool	TriggerOnAllKeys();
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */

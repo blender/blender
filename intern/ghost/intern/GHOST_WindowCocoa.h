@@ -1,4 +1,4 @@
-/**
+/*
  * $Id: GHOST_WindowCocoa.h 29143 2010-06-01 20:21:40Z damien78 $
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_WindowCocoa.h
+
+/** \file ghost/intern/GHOST_WindowCocoa.h
+ *  \ingroup GHOST
  * Declaration of GHOST_WindowCocoa class.
  */
 

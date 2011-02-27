@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -48,7 +48,7 @@ static bNodeSocketType cmp_node_displace_out[]= {
  * in order to take effect */
 #define DISPLACE_EPSILON	0.01
 
-static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float *veccol, CompBuf *xbuf,  CompBuf *ybuf, float *xscale, float *yscale)
+static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float *UNUSED(veccol), CompBuf *xbuf,  CompBuf *ybuf, float *xscale, float *yscale)
 {
 	ImBuf *ibuf;
 	int x, y;
@@ -60,7 +60,7 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 	float vec[3], vecdx[3], vecdy[3];
 	float col[3];
 	
-	ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
+	ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
 	ibuf->rect_float= cbuf->rect;
 	
 	for(y=0; y < stackbuf->y; y++) {
@@ -83,7 +83,7 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 			p_dy = vec[1] * ys;
 			
 			/* if no displacement, then just copy this pixel */
-			if (p_dx < DISPLACE_EPSILON && p_dy < DISPLACE_EPSILON) {
+			if (fabsf(p_dx) < DISPLACE_EPSILON && fabsf(p_dy) < DISPLACE_EPSILON) {
 				qd_getPixel(cbuf, x-cbuf->xof, y-cbuf->yof, col);
 				qd_setPixel(stackbuf, x, y, col);
 				continue;
@@ -99,10 +99,13 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 			qd_getPixel(vecbuf, x-vecbuf->xof, y-vecbuf->yof+1, vecdy);
 			d_dx = vecdx[0] * xs;
 			d_dy = vecdy[0] * ys;
-			
+
 			/* clamp derivatives to minimum displacement distance in UV space */
-			dxt = MAX2(p_dx - d_dx, DISPLACE_EPSILON)/(float)stackbuf->x;
-			dyt = MAX2(p_dy - d_dy, DISPLACE_EPSILON)/(float)stackbuf->y;
+			dxt = p_dx - d_dx;
+			dyt = p_dy - d_dy;
+
+			dxt = signf(dxt)*maxf(fabsf(dxt), DISPLACE_EPSILON)/(float)stackbuf->x;
+			dyt = signf(dyt)*maxf(fabsf(dyt), DISPLACE_EPSILON)/(float)stackbuf->y;
 			
 			ibuf_sample(ibuf, u, v, dxt, dyt, col);
 			qd_setPixel(stackbuf, x, y, col);
@@ -137,7 +140,7 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 }
 
 
-static void node_composit_exec_displace(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_displace(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **in, bNodeStack **out)
 {
 	if(out[0]->hasoutput==0)
 		return;
@@ -168,20 +171,16 @@ static void node_composit_exec_displace(void *data, bNode *node, bNodeStack **in
 	}
 }
 
-bNodeType cmp_node_displace= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_DISPLACE,
-	/* name        */	"Displace",
-	/* width+range */	140, 100, 320,
-	/* class+opts  */	NODE_CLASS_DISTORT, NODE_OPTIONS,
-	/* input sock  */	cmp_node_displace_in,
-	/* output sock */	cmp_node_displace_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_displace, 
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_displace(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_DISPLACE, "Displace", NODE_CLASS_DISTORT, NODE_OPTIONS,
+		cmp_node_displace_in, cmp_node_displace_out);
+	node_type_size(&ntype, 140, 100, 320);
+	node_type_exec(&ntype, node_composit_exec_displace);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 

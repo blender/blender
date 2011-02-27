@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -69,17 +69,6 @@
  *       as it is and stick with using BMesh and CDDM.
  */
 
-/* TODO (Probably)
- *
- *  o Make drawMapped* functions take a predicate function that
- *    determines whether to draw the edge (this predicate can
- *    also set color, etc). This will be slightly more general 
- *    and allow some of the functions to be collapsed.
- *  o Once accessor functions are added then single element draw
- *    functions can be implemented using primitive accessors.
- *  o Add function to dispatch to renderer instead of using
- *    conversion to DLM.
- */
 
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
@@ -382,7 +371,8 @@ struct DerivedMesh {
 	void (*drawMappedFaces)(DerivedMesh *dm,
 							int (*setDrawOptions)(void *userData, int index,
 												  int *drawSmooth_r),
-							void *userData, int useColors);
+							void *userData, int useColors,
+							int (*setMaterial)(int, void *attribs));
 
 	/* Draw mapped faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.
@@ -606,6 +596,7 @@ DerivedMesh *getEditDerivedBMesh(struct BMEditMesh *em, struct Object *ob,
 DerivedMesh *mesh_create_derived_index_render(struct Scene *scene, struct Object *ob, CustomDataMask dataMask, int index);
 
 		/* same as above but wont use render settings */
+DerivedMesh *mesh_create_derived(struct Mesh *me, struct Object *ob, float (*vertCos)[3]);
 DerivedMesh *mesh_create_derived_view(struct Scene *scene, struct Object *ob,
 									  CustomDataMask dataMask);
 DerivedMesh *mesh_create_derived_no_deform(struct Scene *scene, struct Object *ob,
@@ -617,19 +608,29 @@ DerivedMesh *mesh_create_derived_no_deform_render(struct Scene *scene, struct Ob
 /* for gameengine */
 DerivedMesh *mesh_create_derived_no_virtual(struct Scene *scene, struct Object *ob, float (*vertCos)[3],
 											CustomDataMask dataMask);
+DerivedMesh *mesh_create_derived_physics(struct Scene *scene, struct Object *ob, float (*vertCos)[3],
+											CustomDataMask dataMask);
 
+DerivedMesh *editbmesh_get_derived(struct BMEditMesh *em, float (*vertexCos)[3]);
 DerivedMesh *editbmesh_get_derived_base(struct Object *, struct BMEditMesh *em);
 DerivedMesh *editbmesh_get_derived_cage(struct Scene *scene, struct Object *, 
 									   struct BMEditMesh *em, CustomDataMask dataMask);
 DerivedMesh *editbmesh_get_derived_cage_and_final(struct Scene *scene, struct Object *, 
 						 struct BMEditMesh *em, DerivedMesh **final_r,
 												 CustomDataMask dataMask);
+float (*editbmesh_get_vertex_cos(struct BMEditMesh *em, int *numVerts_r))[3];
+int editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, DerivedMesh *dm);
 void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct BMEditMesh *em, CustomDataMask dataMask);
 
 /* returns an array of deform matrices for crazyspace correction, and the
    number of modifiers left */
 int editbmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct BMEditMesh *em,
 									   float (**deformmats)[3][3], float (**deformcos)[3]);
+
+/* returns an array of deform matrices for crazyspace correction when sculpting,
+   and the number of modifiers left */
+int sculpt_get_deform_matrices(struct Scene *scene, struct Object *ob,
+								float (**deformmats)[3][3], float (**deformcos)[3]);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);
 
@@ -647,7 +648,7 @@ typedef struct DMVertexAttribs {
 	} mcol[MAX_MCOL];
 
 	struct {
-		float (*array)[3];
+		float (*array)[4];
 		int emOffset, glIndex;
 	} tang;
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,11 @@
 #ifndef BKE_ANIM_SYS_H
 #define BKE_ANIM_SYS_H
 
+/** \file BKE_animsys.h
+ *  \ingroup bke
+ *  \author Joshua Leung
+ */
+
 struct ID;
 struct ListBase;
 struct Main;
@@ -56,10 +61,13 @@ struct AnimData *BKE_id_add_animdata(struct ID *id);
 void BKE_free_animdata(struct ID *id);
 
 /* Copy AnimData */
-struct AnimData *BKE_copy_animdata(struct AnimData *adt);
+struct AnimData *BKE_copy_animdata(struct AnimData *adt, const short do_action);
 
 /* Copy AnimData */
-int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from);
+int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from, const short do_action);
+
+/* Copy AnimData Actions */
+void BKE_copy_animdata_id_action(struct ID *id);
 
 /* Make Local */
 void BKE_animdata_make_local(struct AnimData *adt);
@@ -92,10 +100,18 @@ void BKE_keyingsets_free(struct ListBase *list);
 /* Path Fixing API */
 
 /* Fix all the paths for the given ID+AnimData */
-void BKE_animdata_fix_paths_rename(struct ID *owner_id, struct AnimData *adt, char *prefix, char *oldName, char *newName, int oldSubscript, int newSubscript, int verify_paths);
+void BKE_animdata_fix_paths_rename(struct ID *owner_id, struct AnimData *adt, const char *prefix, char *oldName, char *newName, int oldSubscript, int newSubscript, int verify_paths);
 
 /* Fix all the paths for the entire database... */
 void BKE_all_animdata_fix_paths_rename(char *prefix, char *oldName, char *newName);
+
+/* -------------------------------------- */
+
+/* Move animation data from src to destination if it's paths are based on basepaths */
+void BKE_animdata_separate_by_basepath(struct ID *srcID, struct ID *dstID, struct ListBase *basepaths);
+
+/* Move F-Curves from src to destination if it's path is based on basepath */
+void action_move_fcurves_by_basepath(struct bAction *srcAct, struct bAction *dstAct, const char basepath[]);
 
 /* ************************************* */
 /* Batch AnimData API */

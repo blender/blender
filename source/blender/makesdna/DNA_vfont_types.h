@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_vfont_types.h (mar-2001 nzc)
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,12 @@
 #ifndef DNA_VFONT_TYPES_H
 #define DNA_VFONT_TYPES_H
 
+/** \file DNA_vfont_types.h
+ *  \ingroup DNA
+ *  \since mar-2001
+ *  \author nzc
+ */
+
 #include "DNA_ID.h"
 
 struct PackedFile;
@@ -46,7 +50,7 @@ typedef struct VFont {
 } VFont;
 
 /* *************** FONT ****************** */
-
+#define FO_EDIT			0
 #define FO_CURS			1
 #define FO_CURSUP		2
 #define FO_CURSDOWN		3
@@ -55,5 +59,6 @@ typedef struct VFont {
 #define FO_PAGEDOWN		9
 #define FO_SELCHANGE	10
 
+#define FO_BUILTIN_NAME "<builtin>"
 #endif
 

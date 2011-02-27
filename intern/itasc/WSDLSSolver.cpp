@@ -1,3 +1,6 @@
+/** \file itasc/WSDLSSolver.cpp
+ *  \ingroup itasc
+ */
 /* $Id$
  * WDLSSolver.hpp.cpp
  *

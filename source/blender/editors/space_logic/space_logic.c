@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -34,10 +34,12 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -82,7 +84,7 @@ ARegion *logic_has_buttons_region(ScrArea *sa)
 
 /* ******************** default callbacks for image space ***************** */
 
-static SpaceLink *logic_new(const bContext *C)
+static SpaceLink *logic_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceLogic *slogic;
@@ -145,7 +147,7 @@ static SpaceLink *logic_new(const bContext *C)
 }
 
 /* not spacelink itself */
-static void logic_free(SpaceLink *sl)
+static void logic_free(SpaceLink *UNUSED(sl))
 {	
 //	Spacelogic *slogic= (SpaceLogic*) sl;
 	
@@ -156,7 +158,7 @@ static void logic_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void logic_init(struct wmWindowManager *wm, ScrArea *sa)
+static void logic_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -168,13 +170,13 @@ static SpaceLink *logic_duplicate(SpaceLink *sl)
 	return (SpaceLink *)slogicn;
 }
 
-void logic_operatortypes(void)
+static void logic_operatortypes(void)
 {
 	WM_operatortype_append(LOGIC_OT_properties);
 	WM_operatortype_append(LOGIC_OT_links_cut);
 }
 
-void logic_keymap(struct wmKeyConfig *keyconf)
+static void logic_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Logic Editor", SPACE_LOGIC, 0);
 	
@@ -183,7 +185,7 @@ void logic_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "LOGIC_MT_logicbricks_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 }
 
-static void logic_refresh(const bContext *C, ScrArea *sa)
+static void logic_refresh(const bContext *UNUSED(C), ScrArea *UNUSED(sa))
 {
 //	SpaceLogic *slogic= CTX_wm_space_logic(C);
 //	Object *obedit= CTX_data_edit_object(C);
@@ -217,11 +219,9 @@ static void logic_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
-static int logic_context(const bContext *C, const char *member, bContextDataResult *result)
+static int logic_context(const bContext *UNUSED(C), const char *UNUSED(member), bContextDataResult *UNUSED(result))
 {
 //	SpaceLogic *slogic= CTX_wm_space_logic(C);
-
-
 	return 0;
 }
 
@@ -251,7 +251,7 @@ static void logic_main_area_draw(const bContext *C, ARegion *ar)
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	
 	logic_buttons((bContext *)C, ar);
 	
@@ -287,7 +287,7 @@ static void logic_buttons_area_draw(const bContext *C, ARegion *ar)
 /************************* header region **************************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void logic_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void logic_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }

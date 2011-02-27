@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Ketsji Logic Extenstion: Network Message Sensor class
+ */
+
+/** \file KX_NetworkMessageSensor.h
+ *  \ingroup ketsjinet
+ *  \brief Ketsji Logic Extenstion: Network Message Sensor class
  */
 #ifndef __KX_NETWORKMESSAGE_SENSOR_H
 #define __KX_NETWORKMESSAGE_SENSOR_H
@@ -71,7 +75,7 @@ public:
 		m_NetworkScene= val;
 	};
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* ------------------------------------------------------------- */
 	/* Python interface -------------------------------------------- */
@@ -81,7 +85,7 @@ public:
 	static PyObject*	pyattr_get_bodies(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);	
 	static PyObject*	pyattr_get_subjects(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
-#endif //  DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 };
 

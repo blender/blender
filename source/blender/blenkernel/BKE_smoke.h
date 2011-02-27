@@ -1,6 +1,4 @@
-/**
- * BKE_smoke.h
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,9 +30,14 @@
 #ifndef BKE_SMOKE_H_
 #define BKE_SMOKE_H_
 
+/** \file BKE_smoke.h
+ *  \ingroup bke
+ *  \author Daniel Genrich
+ */
+
 typedef float (*bresenham_callback) (float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 
-void smokeModifier_do(struct SmokeModifierData *smd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc);
+void smokeModifier_do(struct SmokeModifierData *smd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm);
 
 void smokeModifier_free (struct SmokeModifierData *smd);
 void smokeModifier_reset(struct SmokeModifierData *smd);

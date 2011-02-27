@@ -1,6 +1,4 @@
-/**
- * Sense if other objects are near
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_NearSensor.h
+ *  \ingroup ketsji
+ *  \brief Sense if other objects are near
  */
 
 #ifndef KX_NEARSENSOR_H
@@ -78,7 +81,7 @@ public:
 	virtual bool	BroadPhaseSensorFilterCollision(void*obj1,void*obj2) { return false; };
 	virtual sensortype GetSensorType() { return ST_NEAR; }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -99,7 +102,7 @@ public:
 		return 0;
 	}
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 };
 

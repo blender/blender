@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,10 +26,15 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file RAS_IRasterizer.h
+ *  \ingroup bgerast
+ */
+
 #ifndef __RAS_IRASTERIZER
 #define __RAS_IRASTERIZER
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786)
 #endif
 

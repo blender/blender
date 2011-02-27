@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Converter/KX_ConvertControllers.cpp
+ *  \ingroup bgeconv
+ */
+
 
 #include "MEM_guardedalloc.h"
 
@@ -153,7 +158,7 @@ void BL_ConvertControllers(
 				bPythonCont* pycont = (bPythonCont*) bcontr->data;
 				SCA_PythonController* pyctrl = new SCA_PythonController(gameobj, pycont->mode);
 				gamecontroller = pyctrl;
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 				pyctrl->SetNamespace(converter->GetPyNamespace());
 				
@@ -183,7 +188,7 @@ void BL_ConvertControllers(
 					}
 				}
 				
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 				break;
 			}
@@ -210,11 +215,11 @@ void BL_ConvertControllers(
 			
 			converter->RegisterGameController(gamecontroller, bcontr);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 			if (bcontr->type==CONT_PYTHON) {
 				SCA_PythonController *pyctrl= static_cast<SCA_PythonController*>(gamecontroller);
 				/* not strictly needed but gives syntax errors early on and
-				 * gives more pradictable performance for larger scripts */
+				 * gives more predictable performance for larger scripts */
 				if(pyctrl->m_mode==SCA_PythonController::SCA_PYEXEC_SCRIPT)
 					pyctrl->Compile();
 				else {
@@ -225,7 +230,7 @@ void BL_ConvertControllers(
 					// pyctrl->Import();
 				}
 			}
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 			//done with gamecontroller
 			gamecontroller->Release();

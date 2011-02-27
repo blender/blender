@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -63,7 +63,7 @@ PILdynlib *PIL_dynlib_open(char *name) {
 	}
 }
 
-void *PIL_dynlib_find_symbol(PILdynlib* lib, char *symname) {
+void *PIL_dynlib_find_symbol(PILdynlib* lib, const char *symname) {
 	return GetProcAddress(lib->handle, symname);
 }
 
@@ -87,7 +87,7 @@ char *PIL_dynlib_get_error_as_string(PILdynlib* lib) {
 			return buf;
 	}
 	
-	return err;
+	return NULL;
 }
 
 void PIL_dynlib_close(PILdynlib *lib) {
@@ -117,11 +117,12 @@ PILdynlib *PIL_dynlib_open(char *name) {
 	}
 }
 
-void *PIL_dynlib_find_symbol(PILdynlib* lib, char *symname) {
+void *PIL_dynlib_find_symbol(PILdynlib* lib, const char *symname) {
 	return dlsym(lib->handle, symname);
 }
 
 char *PIL_dynlib_get_error_as_string(PILdynlib* lib) {
+	(void)lib; /* unused */
 	return dlerror();
 }
 	

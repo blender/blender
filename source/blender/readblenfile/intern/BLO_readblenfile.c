@@ -54,7 +54,7 @@
 #include "BLI_blenlib.h"
 
 /** Magic number for the file header */
-char *headerMagic = "BLENDFI";
+const char *headerMagic = "BLENDFI";
 
 /**
  * \brief Set the version number into the array.
@@ -132,7 +132,8 @@ blo_read_runtime(
 	ReportList *reports)
 {
 	BlendFileData *bfd= NULL;
-	int fd, actualsize, datastart;
+	size_t actualsize;
+	int fd, datastart;
 	char buf[8];
 
 	fd= open(path, O_BINARY|O_RDONLY, 0);

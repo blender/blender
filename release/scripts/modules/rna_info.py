@@ -77,7 +77,7 @@ def range_str(val):
 
 def float_as_string(f):
     val_str = "%g" % f
-    if '.' not in val_str and '-' not in val_str: # value could be 1e-05
+    if '.' not in val_str and '-' not in val_str:  # value could be 1e-05
         val_str += '.0'
     return val_str
 
@@ -152,7 +152,7 @@ class InfoStructRNA:
                 functions.append((identifier, attr))
         return functions
 
-    def __repr__(self):
+    def __str__(self):
 
         txt = ""
         txt += self.identifier
@@ -194,20 +194,23 @@ class InfoPropertyRNA:
         self.type = rna_prop.type.lower()
         fixed_type = getattr(rna_prop, "fixed_type", "")
         if fixed_type:
-            self.fixed_type = GetInfoStructRNA(fixed_type) # valid for pointer/collections
+            self.fixed_type = GetInfoStructRNA(fixed_type)  # valid for pointer/collections
         else:
             self.fixed_type = None
 
         if self.type == "enum":
             self.enum_items[:] = rna_prop.items.keys()
-
+            self.is_enum_flag = rna_prop.is_enum_flag
+        else:
+            self.is_enum_flag = False
 
         if self.array_length:
             self.default = tuple(getattr(rna_prop, "default_array", ()))
+        elif self.type == "enum" and self.is_enum_flag:
+            self.default = getattr(rna_prop, "default_flag", set())
         else:
             self.default = getattr(rna_prop, "default", None)
-        self.default_str = "" # fallback
-
+        self.default_str = ""  # fallback
 
         if self.type == "pointer":
             # pointer has no default, just set as None
@@ -216,13 +219,16 @@ class InfoPropertyRNA:
         elif self.type == "string":
             self.default_str = "\"%s\"" % self.default
         elif self.type == "enum":
-            self.default_str = "'%s'" % self.default
+            if self.is_enum_flag:
+                self.default_str = "%r" % self.default  # repr or set()
+            else:
+                self.default_str = "'%s'" % self.default
         elif self.array_length:
             self.default_str = ''
             # special case for floats
             if len(self.default) > 0:
                 if self.type == "float":
-                    self.default_str = "(%s)" % ", ".join([float_as_string(f) for f in self.default])
+                    self.default_str = "(%s)" % ", ".join(float_as_string(f) for f in self.default)
             if not self.default_str:
                 self.default_str = str(self.default)
         else:
@@ -231,7 +237,7 @@ class InfoPropertyRNA:
             else:
                 self.default_str = str(self.default)
 
-        self.srna = GetInfoStructRNA(rna_prop.srna) # valid for pointer/collections
+        self.srna = GetInfoStructRNA(rna_prop.srna)  # valid for pointer/collections
 
     def get_arg_default(self, force=True):
         default = self.default_str
@@ -249,7 +255,10 @@ class InfoPropertyRNA:
             if self.type in ("float", "int"):
                 type_str += " in [%s, %s]" % (range_str(self.min), range_str(self.max))
             elif self.type == "enum":
-                type_str += " in [%s]" % ', '.join([("'%s'" % s) for s in self.enum_items])
+                if self.is_enum_flag:
+                    type_str += " set in {%s}" % ", ".join(("'%s'" % s) for s in self.enum_items)
+                else:
+                    type_str += " in [%s]" % ", ".join(("'%s'" % s) for s in self.enum_items)
 
             if not (as_arg or as_ret):
                 # write default property, ignore function args for this
@@ -275,7 +284,7 @@ class InfoPropertyRNA:
         elif as_arg:
             if not self.is_required:
                 type_info.append("optional")
-        else: # readonly is only useful for selfs, not args
+        else:  # readonly is only useful for selfs, not args
             if self.is_readonly:
                 type_info.append("readonly")
 
@@ -287,7 +296,7 @@ class InfoPropertyRNA:
 
         return type_str
 
-    def __repr__(self):
+    def __str__(self):
         txt = ''
         txt += ' * ' + self.identifier + ': ' + self.description
 
@@ -321,7 +330,7 @@ class InfoFunctionRNA:
 
         self.return_values = tuple(self.return_values)
 
-    def __repr__(self):
+    def __str__(self):
         txt = ''
         txt += ' * ' + self.identifier + '('
 
@@ -383,7 +392,7 @@ class InfoOperatorRNA:
 
 def _GetInfoRNA(bl_rna, cls, parent_id=''):
 
-    if bl_rna == None:
+    if bl_rna is None:
         return None
 
     key = parent_id, bl_rna.identifier
@@ -414,10 +423,10 @@ def BuildRNAInfo():
     # Use for faster lookups
     # use rna_struct.identifier as the key for each dict
     rna_struct_dict = {}  # store identifier:rna lookups
-    rna_full_path_dict = {}	# store the result of full_rna_struct_path(rna_struct)
-    rna_children_dict = {}	# store all rna_structs nested from here
-    rna_references_dict = {}	# store a list of rna path strings that reference this type
-    # rna_functions_dict = {}	# store all functions directly in this type (not inherited)
+    rna_full_path_dict = {}	 # store the result of full_rna_struct_path(rna_struct)
+    rna_children_dict = {}  # store all rna_structs nested from here
+    rna_references_dict = {}  # store a list of rna path strings that reference this type
+    # rna_functions_dict = {}  # store all functions directly in this type (not inherited)
 
     def full_rna_struct_path(rna_struct):
         '''
@@ -434,7 +443,7 @@ def BuildRNAInfo():
         try:
             return rna_struct.base.identifier
         except:
-            return "" # invalid id
+            return ""  # invalid id
 
     #structs = [(base_id(rna_struct), rna_struct.identifier, rna_struct) for rna_struct in bpy.doc.structs.values()]
     '''
@@ -466,17 +475,13 @@ def BuildRNAInfo():
                 # NOT USED YET
                 ## rna_functions_dict[identifier] = get_direct_functions(rna_struct)
 
-
                 # fill in these later
                 rna_children_dict[identifier] = []
                 rna_references_dict[identifier] = []
-
-
         else:
             print("Ignoring", rna_type_name)
 
-
-    structs.sort() # not needed but speeds up sort below, setting items without an inheritance first
+    structs.sort()  # not needed but speeds up sort below, setting items without an inheritance first
 
     # Arrange so classes are always defined in the correct order
     deps_ok = False
@@ -494,7 +499,7 @@ def BuildRNAInfo():
                 ok = False
                 while i < len(structs):
                     if structs[i][1] == rna_base:
-                        structs.insert(i + 1, data) # insert after the item we depend on.
+                        structs.insert(i + 1, data)  # insert after the item we depend on.
                         ok = True
                         break
                     i += 1
@@ -505,7 +510,6 @@ def BuildRNAInfo():
                 break
 
     # Done ordering structs
-
 
     # precalc vars to avoid a lot of looping
     for (rna_base, identifier, rna_struct) in structs:
@@ -536,17 +540,14 @@ def BuildRNAInfo():
                 if rna_prop_ptr:
                     rna_references_dict[rna_prop_ptr.identifier].append("%s.%s" % (rna_struct_path, rna_func.identifier))
 
-
         # Store nested children
         nested = rna_struct.nested
         if nested:
             rna_children_dict[nested.identifier].append(rna_struct)
 
-
     # Sort the refs, just reads nicer
     for rna_refs in rna_references_dict.values():
         rna_refs.sort()
-
 
     info_structs = []
     for (rna_base, identifier, rna_struct) in structs:
@@ -590,7 +591,6 @@ def BuildRNAInfo():
                     if default < prop.min or default > prop.max:
                         print("\t %s.%s, %s not in [%s - %s]" % (rna_info.identifier, prop.identifier, default, prop.min, prop.max))
 
-
     # now for operators
     op_mods = dir(bpy.ops)
 
@@ -616,10 +616,8 @@ def BuildRNAInfo():
         for rna_prop in rna_info.args:
             rna_prop.build()
 
-
     #for rna_info in InfoStructRNA.global_lookup.values():
     #    print(rna_info)
-
     return InfoStructRNA.global_lookup, InfoFunctionRNA.global_lookup, InfoOperatorRNA.global_lookup, InfoPropertyRNA.global_lookup
 
 
@@ -628,11 +626,11 @@ if __name__ == "__main__":
     struct = rna_info.BuildRNAInfo()[0]
     data = []
     for struct_id, v in sorted(struct.items()):
-        struct_id_str = v.identifier # "".join(sid for sid in struct_id if struct_id)
+        struct_id_str = v.identifier  # "".join(sid for sid in struct_id if struct_id)
 
         for base in v.get_bases():
             struct_id_str = base.identifier + "|" + struct_id_str
-        
+
         props = [(prop.identifier, prop) for prop in v.properties]
         for prop_id, prop in sorted(props):
             # if prop.type == 'boolean':

@@ -1,6 +1,4 @@
-/**
- * A general unordered 2-int pair hash table ADT
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,12 @@
  
 #ifndef BLI_EDGEHASH_H
 #define BLI_EDGEHASH_H
+
+/** \file BLI_storage.h
+ *  \ingroup bli
+ *  \author Daniel Dunbar
+ *  \brief A general unordered 2-int pair hash table ADT.
+ */
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"

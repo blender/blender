@@ -1,5 +1,4 @@
-/**
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +23,10 @@
  */
 #ifndef BKE_SKETCH_H
 #define BKE_SKETCH_H
+
+/** \file BKE_sketch.h
+ *  \ingroup bke
+ */
 
 typedef enum SK_PType
 {
@@ -113,12 +116,12 @@ typedef struct SK_Gesture {
 /************************************************/
 
 void freeSketch(SK_Sketch *sketch);
-SK_Sketch* createSketch();
+SK_Sketch* createSketch(void);
 
 void sk_removeStroke(SK_Sketch *sketch, SK_Stroke *stk);
 
 void sk_freeStroke(SK_Stroke *stk);
-SK_Stroke* sk_createStroke();
+SK_Stroke* sk_createStroke(void);
 
 SK_Point *sk_lastStrokePoint(SK_Stroke *stk);
 

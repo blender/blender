@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,7 +28,12 @@
  * Convert blender data to ketsji
  */
 
-#ifdef WIN32
+/** \file gameengine/Converter/BL_BlenderDataConversion.cpp
+ *  \ingroup bgeconv
+ */
+
+
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif
 
@@ -64,6 +69,7 @@
 #include "KX_Light.h"
 #include "KX_Camera.h"
 #include "KX_EmptyObject.h"
+#include "KX_FontObject.h"
 #include "MT_Point3.h"
 #include "MT_Transform.h"
 #include "MT_MinMax.h"
@@ -90,7 +96,7 @@
 #include "BL_MeshDeformer.h"
 #include "KX_SoftBodyDeformer.h"
 //#include "BL_ArmatureController.h"
-
+#include "BLI_utildefines.h"
 #include "BlenderWorldInfo.h"
 
 #include "KX_KetsjiEngine.h"
@@ -125,7 +131,7 @@
 #include "DNA_object_force.h"
 
 #include "MEM_guardedalloc.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "MT_Point3.h"
@@ -226,10 +232,10 @@ static unsigned int KX_Mcol2uint_new(MCol col)
 static void SetDefaultFaceType(Scene* scene)
 {
 	default_face_mode = TF_DYNAMIC;
-	Scene *sce;
+	Scene *sce_iter;
 	Base *base;
 
-	for(SETLOOPER(scene,base))
+	for(SETLOOPER(scene, sce_iter, base))
 	{
 		if (base->object->type == OB_LAMP)
 		{
@@ -729,13 +735,13 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 	MFace *mface = dm->getTessFaceArray(dm);
 	MTFace *tface = static_cast<MTFace*>(dm->getTessFaceDataArray(dm, CD_MTFACE));
 	MCol *mcol = static_cast<MCol*>(dm->getTessFaceDataArray(dm, CD_MCOL));
-	float (*tangent)[3] = NULL;
+	float (*tangent)[4] = NULL;
 	int totface = dm->getNumTessFaces(dm);
 	const char *tfaceName = "";
 
 	if(tface) {
 		DM_add_tangent_layer(dm);
-		tangent = (float(*)[3])dm->getTessFaceDataArray(dm, CD_TANGENT);
+		tangent = (float(*)[4])dm->getTessFaceDataArray(dm, CD_TANGENT);
 	}
 
 	meshobj = new RAS_MeshObject(mesh);
@@ -1266,9 +1272,12 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 			break;
 		case OB_CURVE:
 		case OB_SURF:
-		case OB_FONT:
 			center[0]= center[1]= center[2]= 0.0;
 			size[0]  = size[1]=size[2]=0.0;
+			break;
+		case OB_FONT:
+			center[0]= center[1]= center[2]= 0.0;
+			size[0]  = size[1]=size[2]=1.0;
 			break;
 		case OB_MBALL:
 			bb= ob->bb;
@@ -1521,7 +1530,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	KX_BoxBounds bb;
 	DerivedMesh* dm = NULL;
 	if (gameobj->GetDeformer())
-		dm = gameobj->GetDeformer()->GetFinalMesh();
+		dm = gameobj->GetDeformer()->GetPhysicsMesh();
 	my_get_local_bounds(blenderobject,dm,objprop.m_boundobject.box.m_center,bb.m_extends);
 	if (blenderobject->gameflag & OB_BOUNDS)
 	{
@@ -1614,6 +1623,10 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	}
 	delete shapeprops;
 	delete smmaterial;
+	if (dm) {
+		dm->needsFree = 1;
+		dm->release(dm);
+	}
 }
 
 
@@ -1740,8 +1753,9 @@ static KX_GameObject *gameobject_from_blenderobject(
 		bool bHasDvert = mesh->dvert != NULL && ob->defbase.first;
 		bool bHasArmature = (BL_ModifierDeformer::HasArmatureDeformer(ob) && ob->parent && ob->parent->type == OB_ARMATURE && bHasDvert);
 		bool bHasModifier = BL_ModifierDeformer::HasCompatibleDeformer(ob);
+#ifdef USE_BULLET
 		bool bHasSoftBody = (!ob->parent && (ob->gameflag & OB_SOFT_BODY));
-
+#endif
 		if (bHasModifier) {
 			BL_ModifierDeformer *dcont = new BL_ModifierDeformer((BL_DeformableGameObject *)gameobj,
 																kxscene->GetBlenderScene(), ob,	meshobj);
@@ -1766,9 +1780,11 @@ static KX_GameObject *gameobject_from_blenderobject(
 			BL_MeshDeformer *dcont = new BL_MeshDeformer((BL_DeformableGameObject*)gameobj,
 														  ob, meshobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
+#ifdef USE_BULLET
 		} else if (bHasSoftBody) {
 			KX_SoftBodyDeformer *dcont = new KX_SoftBodyDeformer(meshobj, (BL_DeformableGameObject*)gameobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
+#endif
 		}
 		
 		MT_Point3 min = MT_Point3(center) - MT_Vector3(extents);
@@ -1798,6 +1814,18 @@ static KX_GameObject *gameobject_from_blenderobject(
 		// set transformation
 		break;
 	}
+
+	case OB_FONT:
+	{
+		/* font objects have no bounding box */
+		gameobj = new KX_FontObject(kxscene,KX_Scene::m_callbacks, rendertools, ob);
+
+		/* add to the list only the visible fonts */
+		if((ob->lay & kxscene->GetBlenderScene()->lay) != 0)
+			kxscene->AddFont(static_cast<KX_FontObject*>(gameobj));
+		break;
+	}
+
 	}
 	if (gameobj) 
 	{
@@ -1912,7 +1940,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 	Scene *blenderscene = kxscene->GetBlenderScene();
 	// for SETLOOPER
-	Scene *sce;
+	Scene *sce_iter;
 	Base *base;
 
 	// Get the frame settings of the canvas.
@@ -1993,7 +2021,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	// Beware of name conflict in linked data, it will not crash but will create confusion
 	// in Python scripting and in certain actuators (replace mesh). Linked scene *should* have
 	// no conflicting name for Object, Object data and Action.
-	for (SETLOOPER(blenderscene, base))
+	for (SETLOOPER(blenderscene, sce_iter, base))
 	{
 		Object* blenderobject = base->object;
 		allblobj.insert(blenderobject);
@@ -2634,7 +2662,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	sumolist->Release();
 
 	// convert world
-	KX_WorldInfo* worldinfo = new BlenderWorldInfo(blenderscene->world);
+	KX_WorldInfo* worldinfo = new BlenderWorldInfo(blenderscene, blenderscene->world);
 	converter->RegisterWorldInfo(worldinfo);
 	kxscene->SetWorldInfo(worldinfo);
 

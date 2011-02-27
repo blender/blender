@@ -55,12 +55,14 @@ void sculpt_radialcontrol_start(int mode);
 struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
 
 struct Brush *sculptmode_brush(void);
-//void do_symmetrical_brush_actions(struct Sculpt *sd, struct wmOperator *wm, struct BrushAction *a, short *, short *);
 
 void sculpt(Sculpt *sd);
 
 int sculpt_poll(struct bContext *C);
 void sculpt_update_mesh_elements(struct Scene *scene, struct Object *ob, int need_fmap);
+
+/* Deformed mesh sculpt */
+void sculpt_free_deformMats(struct SculptSession *ss);
 
 /* Stroke */
 struct SculptStroke *sculpt_stroke_new(const int max);
@@ -69,9 +71,6 @@ void sculpt_stroke_add_point(struct SculptStroke *, const short x, const short y
 void sculpt_stroke_apply(struct Sculpt *sd, struct SculptStroke *);
 void sculpt_stroke_apply_all(struct Sculpt *sd, struct SculptStroke *);
 int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float out[3], float mouse[2]);
-
-/* Partial Mesh Visibility */
-void sculptmode_pmv(int mode);
 
 /* Undo */
 
@@ -82,6 +81,7 @@ typedef struct SculptUndoNode {
 	void *node;					/* only during push, not valid afterwards! */
 
 	float (*co)[3];
+	float (*orig_co)[3];
 	short (*no)[3];
 	int totvert;
 
@@ -104,13 +104,10 @@ typedef struct SculptUndoNode {
 
 SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node);
 SculptUndoNode *sculpt_undo_get_node(PBVHNode *node);
-void sculpt_undo_push_begin(char *name);
+void sculpt_undo_push_begin(const char *name);
 void sculpt_undo_push_end(void);
 
-struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
 int sculpt_modifiers_active(Scene *scene, Object *ob);
 void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
-
-void brush_jitter_pos(struct Brush *brush, float *pos, float *jitterpos);
 
 #endif

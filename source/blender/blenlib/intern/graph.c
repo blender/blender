@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,8 +31,9 @@
 #include "BLI_graph.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring, int total, float axis[3], float limit, int group);
 
@@ -128,7 +129,7 @@ void BLI_buildAdjacencyList(BGraph *graph)
 	{
 		if (node->degree != node->flag)
 		{
-			printf("error in node [%p]. Added only %i arcs out of %i\n", node, node->flag, node->degree);
+			printf("error in node [%p]. Added only %i arcs out of %i\n", (void *)node, node->flag, node->degree);
 		}
 	}
 }
@@ -161,7 +162,7 @@ void BLI_rebuildAdjacencyListForNode(BGraph* graph, BNode *node)
 
 	if (node->degree != node->flag)
 	{
-		printf("error in node [%p]. Added only %i arcs out of %i\n", node, node->flag, node->degree);
+		printf("error in node [%p]. Added only %i arcs out of %i\n", (void *)node, node->flag, node->degree);
 	}
 }
 
@@ -295,7 +296,7 @@ BNode * BLI_FindNodeByPosition(BGraph *graph, float *p, float limit)
 }
 /************************************* SUBGRAPH DETECTION **********************************************/
 
-void flagSubgraph(BNode *node, int subgraph)
+static void flagSubgraph(BNode *node, int subgraph)
 {
 	if (node->subgraph_index == 0)
 	{
@@ -409,7 +410,7 @@ int	BLI_isGraphCyclic(BGraph *graph)
 
 BArc * BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
 {
-	BArc *nextArc = arc->next;
+	BArc *nextArc;
 	
 	for(nextArc = graph->arcs.first; nextArc; nextArc = nextArc->next)
 	{
@@ -424,7 +425,7 @@ BArc * BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
 
 /*********************************** GRAPH AS TREE FUNCTIONS *******************************************/
 
-int subtreeShape(BNode *node, BArc *rootArc, int include_root)
+static int subtreeShape(BNode *node, BArc *rootArc, int include_root)
 {
 	int depth = 0;
 	

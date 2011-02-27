@@ -24,10 +24,20 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
-
-SET(INC 
-	.  ../blenloader ../blenloader/intern ../blenkernel ../blenlib ../makesdna ../../kernel/gen_messaging
+set(INC 
+	.
+	../blenloader
+	../blenloader/intern
+	../blenkernel
+	../blenlib
+	../makesdna
+	../../kernel/gen_messaging
 )
 
-BLENDERLIB(bf_readblenfile "${SRC}" "${INC}")
+set(SRC
+	intern/BLO_readblenfile.c
+
+	BLO_readblenfile.h
+)
+
+blender_add_lib(bf_readblenfile "${SRC}" "${INC}")

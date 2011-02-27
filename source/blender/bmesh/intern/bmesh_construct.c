@@ -40,12 +40,15 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
 
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 #include "bmesh.h"
 #include "bmesh_private.h"
 
-#include "math.h"
-#include "stdio.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #define SELECT 1
 	#define BM_EDGEVERT	(1<<14)
@@ -494,7 +497,7 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		v2 = BM_Make_Vert(bm, v->co, NULL);
 		BM_Copy_Attributes(bmold, bm, v, v2);
 		BLI_array_growone(vtable);
-		VECCOPY(v2->no, v->no);
+		copy_v3_v3(v2->no, v->no);
 
 		vtable[BLI_array_count(vtable)-1] = v2;
 
@@ -544,7 +547,7 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		ftable[i] = f2;
 		
 		BM_Copy_Attributes(bmold, bm, f, f2);
-		VECCOPY(f2->no, f->no);
+		copy_v3_v3(f2->no, f->no);
 
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f2);
 		for (j=0; j<f->len; j++, l = BMIter_Step(&liter)) {

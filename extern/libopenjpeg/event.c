@@ -29,7 +29,7 @@
 /* ==========================================================
      Utility functions
    ==========================================================*/
-
+#if 0
 #if !defined(_MSC_VER) && !defined(__MINGW32__)
 static char*
 i2a(unsigned i, char *a, unsigned r) {
@@ -58,7 +58,7 @@ _itoa(int i, char *a, int r) {
 }
 
 #endif /* !WIN32 */
-
+#endif /* unused - campbell */
 /* ----------------------------------------------------------------------- */
 
 opj_event_mgr_t* OPJ_CALLCONV opj_set_event_mgr(opj_common_ptr cinfo, opj_event_mgr_t *event_mgr, void *context) {

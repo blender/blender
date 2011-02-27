@@ -110,7 +110,7 @@ typedef struct slottype {
 } slottype;
 
 typedef struct BMOpDefine {
-	char *name;
+	const char *name;
 	slottype slottypes[BMOP_MAX_SLOTS];
 	void (*exec)(BMesh *bm, BMOperator *op);
 	int flag; /*doesn't do anything right now*/
@@ -122,7 +122,7 @@ typedef struct BMOpDefine {
   have it set directly.  and never use BMO_Set_Pnt to
   pass in a list of edges or any arrays, really.*/
 
-void BMO_Init_Op(struct BMOperator *op, char *opname);
+void BMO_Init_Op(struct BMOperator *op, const char *opname);
 
 /*executes an operator, pushing and popping a new tool flag 
   layer as appropriate.*/
@@ -190,78 +190,81 @@ int BMO_CountFlag(struct BMesh *bm, int flag, int type);
           argument, it maps to two, a pointer to an operator and
 	  a slot name.
 */
+void BMO_push(BMesh *bm, BMOperator *op);
+void BMO_pop(BMesh *bm);
+
 /*executes an operator*/
-int BMO_CallOpf(BMesh *bm, char *fmt, ...);
+int BMO_CallOpf(BMesh *bm, const char *fmt, ...);
 
 /*initializes, but doesn't execute an operator.  this is so you can
   gain access to the outputs of the operator.  note that you have
   to execute/finitsh (BMO_Exec_Op and BMO_Finish_Op) yourself.*/
-int BMO_InitOpf(BMesh *bm, BMOperator *op, char *fmt, ...);
+int BMO_InitOpf(BMesh *bm, BMOperator *op, const char *fmt, ...);
 
 /*va_list version, used to implement the above two functions,
    plus EDBM_CallOpf in bmeshutils.c.*/
-int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist);
+int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *fmt, va_list vlist);
 
 /*get a point to a slot.  this may be removed layer on from the public API.*/
-BMOpSlot *BMO_GetSlot(struct BMOperator *op, char *slotname);
+BMOpSlot *BMO_GetSlot(struct BMOperator *op, const char *slotname);
 
 /*copies the data of a slot from one operator to another.  src and dst are the
   source/destination slot codes, respectively.*/
 void BMO_CopySlot(struct BMOperator *source_op, struct BMOperator *dest_op, 
-                  char *src, char *dst);
+                  const char *src, const char *dst);
 
 /*remove tool flagged elements*/
 void BM_remove_tagged_faces(struct BMesh *bm, int flag);
 void BM_remove_tagged_edges(struct BMesh *bm, int flag);
 void BM_remove_tagged_verts(struct BMesh *bm, int flag);
 
-void BMO_Set_Float(struct BMOperator *op, char *slotname, float f);
-float BMO_Get_Float(BMOperator *op, char *slotname);
-void BMO_Set_Int(struct BMOperator *op, char *slotname, int i);
-int BMO_Get_Int(BMOperator *op, char *slotname);
+void BMO_Set_Float(struct BMOperator *op, const char *slotname, float f);
+float BMO_Get_Float(BMOperator *op, const char *slotname);
+void BMO_Set_Int(struct BMOperator *op, const char *slotname, int i);
+int BMO_Get_Int(BMOperator *op, const char *slotname);
 
 /*don't pass in arrays that are supposed to map to elements this way.
   
   so, e.g. passing in list of floats per element in another slot is bad.
   passing in, e.g. pointer to an editmesh for the conversion operator is fine
   though.*/
-void BMO_Set_Pnt(struct BMOperator *op, char *slotname, void *p);
-void *BMO_Get_Pnt(BMOperator *op, char *slotname);
-void BMO_Set_Vec(struct BMOperator *op, char *slotname, float *vec);
-void BMO_Get_Vec(BMOperator *op, char *slotname, float *vec_out);
+void BMO_Set_Pnt(struct BMOperator *op, const char *slotname, void *p);
+void *BMO_Get_Pnt(BMOperator *op, const char *slotname);
+void BMO_Set_Vec(struct BMOperator *op, const char *slotname, float *vec);
+void BMO_Get_Vec(BMOperator *op, const char *slotname, float *vec_out);
 
 /*only supports square mats*/
 /*size must be 3 or 4; this api is meant only for transformation matrices.
   note that internally the matrix is stored in 4x4 form, and it's safe to
   call whichever BMO_Get_Mat* function you want.*/
-void BMO_Set_Mat(struct BMOperator *op, char *slotname, float *mat, int size);
-void BMO_Get_Mat4(struct BMOperator *op, char *slotname, float mat[4][4]);
-void BMO_Get_Mat3(struct BMOperator *op, char *slotname, float mat[3][3]);
+void BMO_Set_Mat(struct BMOperator *op, const char *slotname, float *mat, int size);
+void BMO_Get_Mat4(struct BMOperator *op, const char *slotname, float mat[4][4]);
+void BMO_Get_Mat3(struct BMOperator *op, const char *slotname, float mat[3][3]);
 
 void BMO_Clear_Flag_All(BMesh *bm, BMOperator *op, int type, int flag);
 
 /*puts every element of type type (which is a bitmask) with tool flag flag,
   into a slot.*/
-void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
+void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
 
 /*tool-flags all elements inside an element slot array with flag flag.*/
-void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
+void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
 /*clears tool-flag flag from all elements inside a slot array.*/
-void BMO_Unflag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
+void BMO_Unflag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
 
 /*tool-flags all elements inside an element slot array with flag flag.*/
-void BMO_HeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
+void BMO_HeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
 /*clears tool-flag flag from all elements inside a slot array.*/
-void BMO_UnHeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
+void BMO_UnHeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
 
 /*puts every element of type type (which is a bitmask) with header flag 
   flag, into a slot.  note: ignores hidden elements (e.g. elements with
   header flag BM_HIDDEN set).*/
-void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
+void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
 
 /*counts number of elements inside a slot array.*/
-int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, char *slotname);
-int BMO_CountSlotMap(struct BMesh *bm, struct BMOperator *op, char *slotname);
+int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, const char *slotname);
+int BMO_CountSlotMap(struct BMesh *bm, struct BMOperator *op, const char *slotname);
 
 /*Counts the number of edges with tool flag toolflag around
   v*/
@@ -269,34 +272,34 @@ int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, int toolflag);
 
 /*inserts a key/value mapping into a mapping slot.  note that it copies the
   value, it doesn't store a reference to it.*/
-//BM_INLINE void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname, 
+//BM_INLINE void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, const char *slotname, 
 			//void *element, void *data, int len);
 
 /*inserts a key/float mapping pair into a mapping slot.*/
-//BM_INLINE void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, char *slotname, 
+//BM_INLINE void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, const char *slotname, 
 			//void *element, float val);
 
 //returns 1 if the specified pointer is in the map.
-//BM_INLINE int BMO_InMap(BMesh *bm, BMOperator *op, char *slotname, void *element);
+//BM_INLINE int BMO_InMap(BMesh *bm, BMOperator *op, const char *slotname, void *element);
 
 /*returns a point to the value of a specific key.*/
-//BM_INLINE void *BMO_Get_MapData(BMesh *bm, BMOperator *op, char *slotname, void *element);
+//BM_INLINE void *BMO_Get_MapData(BMesh *bm, BMOperator *op, const char *slotname, void *element);
 
 /*returns the float part of a key/float pair.*/
-//BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname, void *element);
+//BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, const char *slotname, void *element);
 
 /*flags all elements in a mapping.  note that the mapping must only have
   bmesh elements in it.*/
 void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op, 
-			 char *slotname, int flag);
+			 const char *slotname, int flag);
 
 /*pointer versoins of BMO_Get_MapFloat and BMO_Insert_MapFloat.
 
   do NOT use these for non-operator-api-allocated memory! instead
   use BMO_Get_MapData and BMO_Insert_Mapping, which copies the data.*/
-//BM_INLINE void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, char *slotname, 
+//BM_INLINE void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, const char *slotname, 
 			//void *key, void *val);
-//BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
+//BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, const char *slotname,
 		       //void *key);
 
 /*this part of the API is used to iterate over element buffer or
@@ -341,13 +344,13 @@ typedef struct BMOIter {
 	int restrict;
 } BMOIter;
 
-void *BMO_FirstElem(BMOperator *op, char *slotname);
+void *BMO_FirstElem(BMOperator *op, const char *slotname);
 
 /*restrictmask restricts the iteration to certain element types
   (e.g. combination of BM_VERT, BM_EDGE, BM_FACE), if iterating
   over an element buffer (not a mapping).*/
 void *BMO_IterNew(BMOIter *iter, BMesh *bm, BMOperator *op, 
-		  char *slotname, int restrictmask);
+		  const char *slotname, int restrictmask);
 void *BMO_IterStep(BMOIter *iter);
 
 /*returns a pointer to the key value when iterating over mappings.
@@ -376,7 +379,7 @@ typedef struct element_mapping {
 
 extern const int BMOP_OPSLOT_TYPEINFO[];
 
-BM_INLINE void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname, 
+BM_INLINE void BMO_Insert_Mapping(BMesh *UNUSED(bm), BMOperator *op, const char *slotname, 
 			void *element, void *data, int len) {
 	element_mapping *mapping;
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
@@ -398,25 +401,25 @@ BM_INLINE void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname,
 	BLI_ghash_insert(slot->data.ghash, element, mapping);
 }
 
-BM_INLINE void BMO_Insert_MapInt(BMesh *bm, BMOperator *op, char *slotname, 
+BM_INLINE void BMO_Insert_MapInt(BMesh *bm, BMOperator *op, const char *slotname, 
 			void *element, int val)
 {
 	BMO_Insert_Mapping(bm, op, slotname, element, &val, sizeof(int));
 }
 
-BM_INLINE void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, char *slotname, 
+BM_INLINE void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, const char *slotname, 
 			void *element, float val)
 {
 	BMO_Insert_Mapping(bm, op, slotname, element, &val, sizeof(float));
 }
 
-BM_INLINE void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, char *slotname, 
+BM_INLINE void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, const char *slotname, 
 			void *element, void *val)
 {
 	BMO_Insert_Mapping(bm, op, slotname, element, &val, sizeof(void*));
 }
 
-BM_INLINE int BMO_InMap(BMesh *bm, BMOperator *op, char *slotname, void *element)
+BM_INLINE int BMO_InMap(BMesh *UNUSED(bm), BMOperator *op, const char *slotname, void *element)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 
@@ -427,7 +430,7 @@ BM_INLINE int BMO_InMap(BMesh *bm, BMOperator *op, char *slotname, void *element
 	return BLI_ghash_haskey(slot->data.ghash, element);
 }
 
-BM_INLINE void *BMO_Get_MapData(BMesh *bm, BMOperator *op, char *slotname,
+BM_INLINE void *BMO_Get_MapData(BMesh *UNUSED(bm), BMOperator *op, const char *slotname,
 		      void *element)
 {
 	element_mapping *mapping;
@@ -444,7 +447,7 @@ BM_INLINE void *BMO_Get_MapData(BMesh *bm, BMOperator *op, char *slotname,
 	return mapping + 1;
 }
 
-BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname,
+BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, const char *slotname,
 		       void *element)
 {
 	float *val = (float*) BMO_Get_MapData(bm, op, slotname, element);
@@ -453,7 +456,7 @@ BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname,
 	return 0.0f;
 }
 
-BM_INLINE int BMO_Get_MapInt(BMesh *bm, BMOperator *op, char *slotname,
+BM_INLINE int BMO_Get_MapInt(BMesh *bm, BMOperator *op, const char *slotname,
 		       void *element)
 {
 	int *val = (int*) BMO_Get_MapData(bm, op, slotname, element);
@@ -462,7 +465,7 @@ BM_INLINE int BMO_Get_MapInt(BMesh *bm, BMOperator *op, char *slotname,
 	return 0;
 }
 
-BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
+BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, const char *slotname,
 		       void *element)
 {
 	void **val = (void**) BMO_Get_MapData(bm, op, slotname, element);

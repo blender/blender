@@ -11,20 +11,20 @@ else:
 
 
 incs  = ['.',
-		 '../quicktime',
-		 '../makesdna',
-		 '../makesrna',
-		 '../windowmanager',
-		 '#/intern/guardedalloc',
-		 '../blenlib',
-		 '../blenkernel',
-		 '../avi',
-		 '../imbuf',
-		 '../imbuf/intern',
-		 '../blenloader',
-		 '../render/extern/include',
-		 '../editors/include',
-		 '#/intern/audaspace/intern']
+         '../quicktime',
+         '../makesdna',
+         '../makesrna',
+         '../windowmanager',
+         '#/intern/guardedalloc',
+         '../blenlib',
+         '../blenkernel',
+         '../avi',
+         '../imbuf',
+         '../imbuf/intern',
+         '../blenloader',
+         '../render/extern/include',
+         '../editors/include',
+         '#/intern/audaspace/intern']
 
 incs.append(env['BF_QUICKTIME_INC'])
 
@@ -34,6 +34,6 @@ priorities = [200,235]
 defs=['WITH_QUICKTIME']
 
 if env['WITH_GHOST_COCOA']:
-	defs.append('GHOST_COCOA')
+    defs.append('GHOST_COCOA')
 
 env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=defs, libtype=types, priority=priorities)

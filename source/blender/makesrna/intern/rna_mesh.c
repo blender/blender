@@ -61,7 +61,7 @@ static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	/* cheating way for importers to avoid slow updates */
 	if(id->us > 0) {
-		DAG_id_flush_update(id, OB_RECALC_DATA);
+		DAG_id_tag_update(id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 	}
 }
@@ -993,7 +993,7 @@ static int rna_Mesh_tot_face_get(PointerRNA *ptr)
 	return me->edit_btmesh ? me->edit_btmesh->bm->totfacesel : 0;
 }
 
-static CustomDataLayer *rna_Mesh_vertex_color_new(struct Mesh *me, struct bContext *C, char *name)
+static CustomDataLayer *rna_Mesh_vertex_color_new(struct Mesh *me, struct bContext *C, const char *name)
 {
 	CustomData *ldata;
 	CustomDataLayer *cdl= NULL;
@@ -1007,7 +1007,7 @@ static CustomDataLayer *rna_Mesh_vertex_color_new(struct Mesh *me, struct bConte
 	return cdl;
 }
 
-static CustomDataLayer *rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, char *name)
+static CustomDataLayer *rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, const char *name)
 {
 	CustomData *pdata;
 	CustomDataLayer *cdl= NULL;
@@ -1064,7 +1064,9 @@ static void rna_def_mvert(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 	prop= RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);
-	RNA_def_property_float_sdna(prop, NULL, "no");
+	// RNA_def_property_float_sdna(prop, NULL, "no");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, -1.0f, 1.0f);
 	RNA_def_property_float_funcs(prop, "rna_MeshVertex_normal_get", "rna_MeshVertex_normal_set", NULL);
 	RNA_def_property_ui_text(prop, "Normal", "Vertex Normal");
 
@@ -1876,17 +1878,17 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
 	prop= RNA_def_property(srna, "show_extra_edge_length", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_EDGELEN);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEXTRA_EDGELEN);
 	RNA_def_property_ui_text(prop, "Edge Length", "Displays selected edge lengths, Using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
 	prop= RNA_def_property(srna, "show_extra_edge_angle", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_EDGEANG);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEXTRA_FACEANG);
 	RNA_def_property_ui_text(prop, "Edge Angles", "Displays the angles in the selected edges in degrees, Using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
 	prop= RNA_def_property(srna, "show_extra_face_area", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_FACEAREA);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEXTRA_FACEAREA);
 	RNA_def_property_ui_text(prop, "Face Area", "Displays the area of selected faces, Using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 

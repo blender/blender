@@ -19,11 +19,11 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
-SET(INC
+set(INC
 	../include
+	../uvedit
 	../../blenkernel
+	../../blenloader
 	../../blenlib
 	../../bmesh
 	../../imbuf
@@ -34,8 +34,21 @@ SET(INC
 	../../../../intern/guardedalloc
 )
 
-IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
-ENDIF(WIN32)
+set(SRC
+	meshtools.c
+	loopcut.c
+	mesh_ops.c
+	editbmesh_bvh.c
+	editbmesh_bvh.h
+	editbmesh_add.c
+	bmeshutils.c
+	mesh_intern.h
+	bmesh_selecthistory.c
+	bmesh_select.c
+	mesh_data.c
+	bmesh_tools.c
+	knifetool.c
+	editface.c
+)
 
-BLENDERLIB(bf_editor_mesh "${SRC}" "${INC}")
+blender_add_lib(bf_editor_mesh "${SRC}" "${INC}")

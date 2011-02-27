@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_ipo.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,13 @@
 #ifndef BKE_IPO_H
 #define BKE_IPO_H
 
+/** \file BKE_ipo.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ *  \author Joshua Leung
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,10 +48,6 @@ void do_versions_ipos_to_animato(struct Main *main);
 /* --------------------- xxx stuff ------------------------ */
 
 void free_ipo(struct Ipo *ipo);
-
-// xxx perhaps this should be in curve api not in anim api
-void correct_bezpart(float *v1, float *v2, float *v3, float *v4);
-	
 
 #ifdef __cplusplus
 };

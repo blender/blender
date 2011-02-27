@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,8 +25,12 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_COLOR
-#define BLI_MATH_COLOR
+#ifndef BLI_MATH_COLOR_H
+#define BLI_MATH_COLOR_H
+
+/** \file BLI_math_color.h
+ *  \ingroup bli
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,6 +65,7 @@ void cpack_to_rgb(unsigned int col, float *r, float *g, float *b);
 void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv);
 void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, int colorspace);
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
+void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *lv);
 unsigned int rgb_to_cpack(float r, float g, float b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 
@@ -75,6 +80,12 @@ float srgb_to_linearrgb(float c);
 float linearrgb_to_srgb(float c);
 void srgb_to_linearrgb_v3_v3(float *col_to, float *col_from);
 void linearrgb_to_srgb_v3_v3(float *col_to, float *col_from);
+
+/* rgba buffer convenience functions */
+void srgb_to_linearrgb_rgba_buf(float *col, int tot);
+void linearrgb_to_srgb_rgba_buf(float *col, int tot);
+void srgb_to_linearrgb_rgba_rgba_buf(float *col_to, float *col_from, int tot);
+void linearrgb_to_srgb_rgba_rgba_buf(float *col_to, float *col_from, int tot);
 	
 /* rgba buffer convenience functions */
 void srgb_to_linearrgb_rgba_buf(float *col, int tot);
@@ -86,17 +97,20 @@ void linearrgb_to_srgb_rgba_rgba_buf(float *col_to, float *col_from, int tot);
 
 int constrain_rgb(float *r, float *g, float *b);
 void minmax_rgb(short c[3]);
-	
+
+void rgb_float_set_hue_float_offset(float * rgb, float hue_offset);
+void rgb_byte_set_hue_float_offset(unsigned char * rgb, float hue_offset);
+
 /***************** lift/gamma/gain / ASC-CDL conversion *****************/
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);
 
-void rgb_byte_to_float(char *in, float *out);
-void rgb_float_to_byte(float *in, char *out);
+void rgb_byte_to_float(const unsigned char *in, float *out);
+void rgb_float_to_byte(const float *in, unsigned char *out);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BLI_MATH_COLOR */
+#endif /* BLI_MATH_COLOR_H */
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,16 +29,17 @@
 #include <string.h>
 #include <stdio.h>
 
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -55,7 +56,7 @@
 
 /* ******************** default callbacks for buttons space ***************** */
 
-static SpaceLink *buttons_new(const bContext *C)
+static SpaceLink *buttons_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceButs *sbuts;
@@ -69,7 +70,7 @@ static SpaceLink *buttons_new(const bContext *C)
 	
 	BLI_addtail(&sbuts->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
-	ar->alignment= RGN_ALIGN_BOTTOM;
+	ar->alignment= RGN_ALIGN_TOP;
 	
 #if 0
 	/* context area */
@@ -103,7 +104,7 @@ static void buttons_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void buttons_init(struct wmWindowManager *wm, ScrArea *sa)
+static void buttons_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceButs *sbuts= sa->spacedata.first;
 
@@ -177,13 +178,13 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	sbuts->mainbo= sbuts->mainb;
 }
 
-void buttons_operatortypes(void)
+static void buttons_operatortypes(void)
 {
 	WM_operatortype_append(BUTTONS_OT_toolbox);
 	WM_operatortype_append(BUTTONS_OT_file_browse);
 }
 
-void buttons_keymap(struct wmKeyConfig *keyconf)
+static void buttons_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Property Editor", SPACE_BUTS, 0);
 	
@@ -191,7 +192,7 @@ void buttons_keymap(struct wmKeyConfig *keyconf)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void buttons_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void buttons_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
@@ -203,7 +204,7 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
+	UI_view2d_view_ortho(&ar->v2d);
 	
 	buttons_header_buttons(C, ar);
 
@@ -235,12 +236,8 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					buttons_area_redraw(sa, BCONTEXT_RENDER);
 					break;
 				case ND_FRAME:
-					buttons_area_redraw(sa, BCONTEXT_RENDER);
-					buttons_area_redraw(sa, BCONTEXT_MATERIAL);
-					buttons_area_redraw(sa, BCONTEXT_TEXTURE);
-					buttons_area_redraw(sa, BCONTEXT_WORLD);
-					buttons_area_redraw(sa, BCONTEXT_DATA);
-					buttons_area_redraw(sa, BCONTEXT_PHYSICS);
+					/* any buttons area can have animated properties so redraw all */
+					ED_area_tag_redraw(sa);
 					sbuts->preview= 1;
 					break;
 				case ND_OB_ACTIVE:
@@ -263,6 +260,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_TRANSFORM:
 					buttons_area_redraw(sa, BCONTEXT_OBJECT);
+					buttons_area_redraw(sa, BCONTEXT_DATA);	/* autotexpace flag */
 					break;
 				case ND_POSE:
 				case ND_BONE_ACTIVE:
@@ -284,6 +282,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_PARTICLE:
 					if (wmn->action == NA_EDITED)
 						buttons_area_redraw(sa, BCONTEXT_PARTICLE);
+					sbuts->preview= 1;
 					break;
 				case ND_DRAW:
 					buttons_area_redraw(sa, BCONTEXT_OBJECT);
@@ -350,6 +349,10 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 						ED_area_tag_redraw(sa);
 					break;
 			}
+			break;
+		case NC_NODE:
+			if(wmn->action==NA_SELECTED)
+				ED_area_tag_redraw(sa);
 			break;
 		/* Listener for preview render, when doing an global undo. */
 		case NC_WINDOW:

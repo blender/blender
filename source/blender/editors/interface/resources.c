@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -36,7 +36,6 @@
 
 #include "MEM_guardedalloc.h"
 
-
 #include "DNA_curve_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_screen_types.h"
@@ -44,13 +43,13 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
-
+#include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "BIF_gl.h"
 
@@ -81,14 +80,14 @@ void ui_resources_free(void)
 /*    THEMES */
 /* ******************************************************** */
 
-char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
+const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 {
 	ThemeSpace *ts= NULL;
 	static char error[4]={240, 0, 240, 255};
 	static char alert[4]={240, 60, 60, 255};
 	static char headerdesel[4]={0,0,0,255};
 	
-	char *cp= error;
+	const char *cp= error;
 	
 	if(btheme) {
 	
@@ -285,6 +284,12 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->face_dot; break;
 			case TH_FACEDOT_SIZE:
 				cp= &ts->facedot_size; break;
+			case TH_DRAWEXTRA_EDGELEN:
+				cp= ts->extra_edge_len; break;
+			case TH_DRAWEXTRA_FACEAREA:
+				cp= ts->extra_face_area; break;
+			case TH_DRAWEXTRA_FACEANG:
+				cp= ts->extra_face_angle; break;
 			case TH_NORMAL:
 				cp= ts->normal; break;
 			case TH_VNORMAL:
@@ -407,7 +412,7 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 		}
 	}
 	
-	return cp;
+	return (unsigned char *)cp;
 }
 
 #define SETCOLTEST(col, r, g, b, a)  if(col[3]==0) {col[0]=r; col[1]=g; col[2]= b; col[3]= a;}
@@ -466,7 +471,7 @@ static void ui_theme_init_new(bTheme *btheme)
 */
 void ui_theme_init_default(void)
 {
-	bTheme *btheme= U.themes.first;
+	bTheme *btheme;
 	
 	/* we search for the theme with name Default */
 	for(btheme= U.themes.first; btheme; btheme= btheme->next) {
@@ -520,6 +525,11 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tv3d.vertex_normal, 0x23, 0x61, 0xDD, 255);
 	SETCOL(btheme->tv3d.face_dot, 255, 133, 0, 255);
 	btheme->tv3d.facedot_size= 4;
+
+	SETCOL(btheme->tv3d.extra_edge_len, 32, 0, 0, 255);
+	SETCOL(btheme->tv3d.extra_face_area, 0, 32, 0, 255);
+	SETCOL(btheme->tv3d.extra_face_angle, 0, 0, 128, 255);
+
 	SETCOL(btheme->tv3d.cframe, 0x60, 0xc0,	 0x40, 255);
 
 	SETCOL(btheme->tv3d.nurb_uline, 0x90, 0x90, 0x00, 255);
@@ -717,20 +727,20 @@ void UI_SetTheme(int spacetype, int regionid)
 // for space windows only
 void UI_ThemeColor(int colorid)
 {
-	char *cp;
+	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
-	glColor3ub(cp[0], cp[1], cp[2]);
+	glColor3ubv(cp);
 
 }
 
 // plus alpha
 void UI_ThemeColor4(int colorid)
 {
-	char *cp;
+	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
-	glColor4ub(cp[0], cp[1], cp[2], cp[3]);
+	glColor4ubv(cp);
 
 }
 
@@ -738,7 +748,7 @@ void UI_ThemeColor4(int colorid)
 void UI_ThemeColorShade(int colorid, int offset)
 {
 	int r, g, b;
-	char *cp;
+	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	r= offset + (int) cp[0];
@@ -753,7 +763,7 @@ void UI_ThemeColorShade(int colorid, int offset)
 void UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
 {
 	int r, g, b, a;
-	char *cp;
+	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	r= coloffset + (int) cp[0];
@@ -771,7 +781,7 @@ void UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
 void UI_ThemeColorBlend(int colorid1, int colorid2, float fac)
 {
 	int r, g, b;
-	char *cp1, *cp2;
+	const unsigned char *cp1, *cp2;
 	
 	cp1= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
 	cp2= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
@@ -788,7 +798,7 @@ void UI_ThemeColorBlend(int colorid1, int colorid2, float fac)
 void UI_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
 {
 	int r, g, b;
-	char *cp1, *cp2;
+	const unsigned char *cp1, *cp2;
 	
 	cp1= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
 	cp2= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
@@ -809,7 +819,7 @@ void UI_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
 void UI_ThemeColorBlendShadeAlpha(int colorid1, int colorid2, float fac, int offset, int alphaoffset)
 {
 	int r, g, b, a;
-	char *cp1, *cp2;
+	const unsigned char *cp1, *cp2;
 	
 	cp1= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
 	cp2= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
@@ -832,7 +842,7 @@ void UI_ThemeColorBlendShadeAlpha(int colorid1, int colorid2, float fac, int off
 // get individual values, not scaled
 float UI_GetThemeValuef(int colorid)
 {
-	char *cp;
+	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	return ((float)cp[0]);
@@ -842,7 +852,7 @@ float UI_GetThemeValuef(int colorid)
 // get individual values, not scaled
 int UI_GetThemeValue(int colorid)
 {
-	char *cp;
+	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	return ((int) cp[0]);
@@ -853,7 +863,7 @@ int UI_GetThemeValue(int colorid)
 // get the color, range 0.0-1.0
 void UI_GetThemeColor3fv(int colorid, float *col)
 {
-	char *cp;
+	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	col[0]= ((float)cp[0])/255.0;
@@ -865,7 +875,7 @@ void UI_GetThemeColor3fv(int colorid, float *col)
 void UI_GetThemeColorShade3fv(int colorid, int offset, float *col)
 {
 	int r, g, b;
-	char *cp;
+	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	
@@ -882,9 +892,9 @@ void UI_GetThemeColorShade3fv(int colorid, int offset, float *col)
 }
 
 // get the color, in char pointer
-void UI_GetThemeColor3ubv(int colorid, char *col)
+void UI_GetThemeColor3ubv(int colorid, unsigned char col[3])
 {
-	char *cp;
+	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	col[0]= cp[0];
@@ -893,9 +903,9 @@ void UI_GetThemeColor3ubv(int colorid, char *col)
 }
 
 // get the color, in char pointer
-void UI_GetThemeColor4ubv(int colorid, char *col)
+void UI_GetThemeColor4ubv(int colorid, unsigned char col[4])
 {
-	char *cp;
+	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	col[0]= cp[0];
@@ -904,9 +914,9 @@ void UI_GetThemeColor4ubv(int colorid, char *col)
 	col[3]= cp[3];
 }
 
-void UI_GetThemeColorType4ubv(int colorid, int spacetype, char *col)
+void UI_GetThemeColorType4ubv(int colorid, int spacetype, char col[4])
 {
-	char *cp;
+	const unsigned char *cp;
 	
 	cp= UI_ThemeGetColorPtr(theme_active, spacetype, colorid);
 	col[0]= cp[0];
@@ -916,7 +926,7 @@ void UI_GetThemeColorType4ubv(int colorid, int spacetype, char *col)
 }
 
 // blends and shades between two char color pointers
-void UI_ColorPtrBlendShade3ubv(char *cp1, char *cp2, float fac, int offset)
+void UI_ColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], float fac, int offset)
 {
 	int r, g, b;
 	
@@ -933,7 +943,7 @@ void UI_ColorPtrBlendShade3ubv(char *cp1, char *cp2, float fac, int offset)
 }
 
 // get a 3 byte color, blended and shaded between two other char color pointers
-void UI_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, int offset)
+void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3], float fac, int offset)
 {
 	int r, g, b;
 	
@@ -959,26 +969,27 @@ void UI_ThemeClearColor(int colorid)
 	glClearColor(col[0], col[1], col[2], 0.0);
 }
 
-void UI_make_axis_color(char *src_col, char *dst_col, char axis)
+void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3], const char axis)
 {
 	switch(axis)
 	{
-		case 'x':
 		case 'X':
 			dst_col[0]= src_col[0]>219?255:src_col[0]+36;
 			dst_col[1]= src_col[1]<26?0:src_col[1]-26;
 			dst_col[2]= src_col[2]<26?0:src_col[2]-26;
 			break;
-		case 'y':
 		case 'Y':
 			dst_col[0]= src_col[0]<46?0:src_col[0]-36;
 			dst_col[1]= src_col[1]>189?255:src_col[1]+66;
 			dst_col[2]= src_col[2]<46?0:src_col[2]-36;
 			break;
-		default: 
+		case 'Z':
 			dst_col[0]= src_col[0]<26?0:src_col[0]-26; 
 			dst_col[1]= src_col[1]<26?0:src_col[1]-26; 
 			dst_col[2]= src_col[2]>209?255:src_col[2]+46;
+			break;
+		default:
+			BLI_assert(!"invalid axis arg");
 	}
 }
 
@@ -1001,10 +1012,8 @@ void init_userdef_do_versions(void)
 		U.tb_rightmouse= 5;
 	}
 	if(U.mixbufsize==0) U.mixbufsize= 2048;
-	if (BLI_streq(U.tempdir, "/")) {
-		char *tmp= getenv("TEMP");
-		
-		strcpy(U.tempdir, tmp?tmp:"/tmp/");
+	if (strcmp(U.tempdir, "/") == 0) {
+		BLI_where_is_temp(U.tempdir, sizeof(U.tempdir), FALSE);
 	}
 	if (U.autokey_mode == 0) {
 		/* 'add/replace' but not on */
@@ -1012,7 +1021,7 @@ void init_userdef_do_versions(void)
 	}
 	if (U.savetime <= 0) {
 		U.savetime = 1;
-// XXX		error("startup.blend is buggy, please consider removing it.\n");
+// XXX		error(STRINGIFY(BLENDER_STARTUP_FILE)" is buggy, please consider removing it.\n");
 	}
 	/* transform widget settings */
 	if(U.tw_hotspot==0) {
@@ -1192,7 +1201,7 @@ void init_userdef_do_versions(void)
 	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 11)) {
 		bTheme *btheme;
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* these should all use the same colour */
+			/* these should all use the same color */
 			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
@@ -1498,6 +1507,20 @@ void init_userdef_do_versions(void)
 			btheme->tui.wcol_progress= wcol_progress;
 		}
 	}
+
+	if (bmain->versionfile < 255 || (bmain->versionfile == 255 && bmain->subversionfile < 2)) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			SETCOL(btheme->tv3d.extra_edge_len, 32, 0, 0, 255);
+			SETCOL(btheme->tv3d.extra_face_angle, 0, 32, 0, 255);
+			SETCOL(btheme->tv3d.extra_face_area, 0, 0, 128, 255);
+		}
+	}
+	
+	if (bmain->versionfile < 257) {
+		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs, so that it doesn't linger around from old configs like a ghost */
+		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
+	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
@@ -1514,7 +1537,7 @@ void init_userdef_do_versions(void)
 		U.dbl_click_time = 350;
 	}
 	if (U.anim_player_preset == 0) {
-		U.anim_player_preset =1 ;
+		U.anim_player_preset = 1 ;
 	}
 	if (U.scrcastfps == 0) {
 		U.scrcastfps = 10;
@@ -1523,6 +1546,8 @@ void init_userdef_do_versions(void)
 	if (U.v2d_min_gridsize == 0) {
 		U.v2d_min_gridsize= 35;
 	}
+	if (U.dragthreshold == 0 )
+		U.dragthreshold= 5;
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();

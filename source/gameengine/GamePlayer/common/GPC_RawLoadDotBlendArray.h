@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
+/** \file GPC_RawLoadDotBlendArray.h
+ *  \ingroup player
+ */
+
 #ifndef __GPC_RAWLOADDOTBLENDARRAY_H
 #define __GPC_RAWLOADDOTBLENDARRAY_H
 

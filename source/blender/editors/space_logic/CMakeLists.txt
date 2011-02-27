@@ -19,21 +19,29 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
-SET(INC
-	../../blenkernel
-	../../blenlib
+set(INC
 	../include
-	../../../../intern/guardedalloc
+	../../blenkernel
+	../../blenloader
+	../../blenlib
 	../../makesdna
 	../../makesrna
 	../../windowmanager
 	../../editors/interface
+	../../../../intern/guardedalloc
 )
 
-IF(WITH_GAMEENGINE)
-	ADD_DEFINITIONS(-DGAMEBLENDER)
-ENDIF(WITH_GAMEENGINE)
+set(SRC
+	logic_buttons.c
+	logic_ops.c
+	logic_window.c
+	space_logic.c
 
-BLENDERLIB(bf_editor_space_logic "${SRC}" "${INC}")
+	logic_intern.h
+)
+
+if(WITH_GAMEENGINE)
+	add_definitions(-DWITH_GAMEENGINE)
+endif()
+
+blender_add_lib(bf_editor_space_logic "${SRC}" "${INC}")

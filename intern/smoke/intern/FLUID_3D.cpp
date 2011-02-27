@@ -1,3 +1,6 @@
+/** \file smoke/intern/FLUID_3D.cpp
+ *  \ingroup smoke
+ */
 //////////////////////////////////////////////////////////////////////
 // This file is part of Wavelet Turbulence.
 //
@@ -605,7 +608,7 @@ void FLUID_3D::copyBorderAll(float* field, int zBegin, int zEnd)
 	int zSize = zEnd-zBegin;
 	int _blockTotalCells=_slabSize * zSize;
 
-	if ((zBegin==0))
+	if (zBegin==0)
 	for (int y = 0; y < _yRes; y++)
 		for (int x = 0; x < _xRes; x++)
 		{
@@ -723,7 +726,7 @@ void FLUID_3D::wipeBoundariesSL(int zBegin, int zEnd)
 	const int totalCells = _xRes * _yRes * _zRes;
 
 	index = 0;
-	if ((zBegin == 0))
+	if (zBegin == 0)
 	for (y = 0; y < _yRes; y++)
 		for (x = 0; x < _xRes; x++, index++)
 		{

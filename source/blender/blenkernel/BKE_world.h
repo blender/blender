@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_world.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,10 +29,16 @@
 #ifndef BKE_WORLD_H
 #define BKE_WORLD_H
 
+/** \file BKE_world.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
+
 struct World;
 
 void free_world(struct World *sc); 
-struct World *add_world(char *name);
+struct World *add_world(const char *name);
 struct World *copy_world(struct World *wrld);
 void make_local_world(struct World *wrld);
 

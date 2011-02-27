@@ -13,6 +13,10 @@
  *
  */
 
+/** \file ListValue.h
+ *  \ingroup expressions
+ */
+
 #if !defined _LISTVALUE_H
 #define _LISTVALUE_H
 
@@ -60,7 +64,7 @@ public:
 
 	bool CheckEqual(CValue* first,CValue* second);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	virtual PyObject* py_repr(void) {
 		PyObject *py_proxy= this->GetProxy();
 		PyObject *py_list= PySequence_List(py_proxy);

@@ -1,4 +1,4 @@
-/**
+/*
  * 'Expression Controller enables to calculate an expression that wires inputs to output
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_ExpressionController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_ExpressionController.h"
 #include "SCA_ISensor.h"

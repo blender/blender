@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_IController.cpp
+ *  \ingroup gamelogic
+ */
+
+
+#include <stddef.h>
 
 #include "SCA_IController.h"
 #include "SCA_LogicManager.h"
@@ -194,7 +201,7 @@ void SCA_IController::ApplyState(unsigned int state)
 	}
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* Python api */
 
@@ -247,4 +254,4 @@ PyObject* SCA_IController::pyattr_get_actuators(void *self_v, const KX_PYATTRIBU
 {
 	return KX_PythonSeq_CreatePyObject((static_cast<SCA_IController*>(self_v))->m_proxy, KX_PYGENSEQ_CONT_TYPE_ACTUATORS);	
 }
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

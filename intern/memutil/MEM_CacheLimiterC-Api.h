@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,8 +21,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __MEM_cache_limiter_c_api_h_included__
-#define __MEM_cache_limiter_c_api_h_included__ 1
+/** \file memutil/MEM_CacheLimiterC-Api.h
+ *  \ingroup memutil
+ */
+
+
+#ifndef MEM_CACHELIMITERC_API_H
+#define MEM_CACHELIMITERC_API_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,10 +42,10 @@ typedef struct MEM_CacheLimiterHandle_s MEM_CacheLimiterHandleC;
 /* function used to remove data from memory */
 typedef void(*MEM_CacheLimiter_Destruct_Func)(void*);
 
-#ifndef __MEM_cache_limiter_h_included__
+#ifndef MEM_CACHELIMITER_H
 extern void MEM_CacheLimiter_set_maximum(int m);
-extern int MEM_CacheLimiter_get_maximum();
-#endif
+extern int MEM_CacheLimiter_get_maximum(void);
+#endif // MEM_CACHELIMITER_H
 /** 
  * Create new MEM_CacheLimiter object 
  * managed objects are destructed with the data_destructor
@@ -137,5 +142,4 @@ extern void * MEM_CacheLimiter_get(MEM_CacheLimiterHandleC * handle);
 #endif
 
 
-#endif
-
+#endif // MEM_CACHELIMITERC_API_H

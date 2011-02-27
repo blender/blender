@@ -11,6 +11,7 @@
 #include "BLI_ghash.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
 #include "mesh_intern.h"
@@ -317,7 +318,7 @@ void bmesh_pointmerge_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
 		if (!snapv) {
 			snapv = v;
-			VECCOPY(snapv->co, vec);
+			copy_v3_v3(snapv->co, vec);
 		} else {
 			BMO_Insert_MapPointer(bm, &weldop, "targetmap", v, snapv);
 		}		
@@ -359,8 +360,8 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 			DO_MINMAX(e->v2->co, min, max);
 		}
 
-		VECADD(min, min, max);
-		VECMUL(min, 0.5f);
+		add_v3_v3v3(min, min, max);
+		mul_v3_fl(min, 0.5f);
 
 		/*snap edges to a point.  for initial testing purposes anyway.*/
 		for (i=0; i<tot; i++) {

@@ -1,4 +1,4 @@
-/**
+/*
  * @file PIL_time.h
  * 
  * Platform independant time functions.

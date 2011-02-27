@@ -7,6 +7,7 @@
 #include "BKE_DerivedMesh.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_mempool.h"
 #include "BLI_ghash.h"
 #include "BLI_array.h"
@@ -91,7 +92,7 @@ BMVert *BM_Make_Vert(BMesh *bm, float co[3], struct BMVert *example) {
 	if (bm->svpool)
 		v->head.layerdata = BLI_mempool_calloc(bm->svpool);
 
-	if (co) VECCOPY(v->co, co);
+	if (co) copy_v3_v3(v->co, co);
 	
 	if (bm->baselevel >= LAYER_TOOL) {
 		BMBaseVert *tv = (BMBaseVert*)v;
@@ -843,7 +844,7 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 	BM_Copy_Attributes(bm, bm, faces[0], newf);
 
 	/*add holes*/
-	addlisttolist(&newf->loops, &holes);
+	BLI_movelisttolist(&newf->loops, &holes);
 
 	/*update loop face pointers*/
 	for (lst=newf->loops.first; lst; lst=lst->next) {
@@ -1034,7 +1035,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	if(rl) *rl = f2loop;
 
 	if (holes) {
-		addlisttolist(&f2->loops, holes);
+		BLI_movelisttolist(&f2->loops, holes);
 	} else {
 		/*this code is not significant until holes actually work ;) */
 		//printf("warning: call to split face euler without holes argument; holes will be tossed.\n");

@@ -24,20 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(SRC 
-	bmfont.cpp
-	GPC_Canvas.cpp
-	GPC_Engine.cpp
-	GPC_KeyboardDevice.cpp
-	GPC_MouseDevice.cpp
-	GPC_RawImage.cpp
-	GPC_RawLoadDotBlendArray.cpp
-	GPC_RawLogoArrays.cpp
-	GPC_RenderTools.cpp
-	GPC_System.cpp
-)
-
-SET(INC
+set(INC
 	.
 	../../../../intern/string
 	../../../../intern/ghost
@@ -50,9 +37,9 @@ SET(INC
 	../../../../source/blender/imbuf
 	../../../../source/gameengine/Ketsji
 	../../../../source/blender/blenlib
+	../../../../source/blender/blenfont
 	../../../../source/blender/blenkernel
 	../../../../source/blender
-	../../../../source/blender/include
 	../../../../source/blender/makesdna
 	../../../../source/gameengine/Rasterizer
 	../../../../source/gameengine/GameLogic
@@ -62,15 +49,37 @@ SET(INC
 	../../../../source/gameengine/Physics/common
 	../../../../source/gameengine/Network/LoopBackNetwork
 	../../../../source/gameengine/GamePlayer/ghost
-	../../../../source/blender/misc
 	../../../../source/blender/blenloader
 	../../../../source/blender/gpu
 	../../../../extern/glew/include
-	${PYTHON_INC}
-	${PNG_INC}
-	${ZLIB_INC}
+	${PYTHON_INCLUDE_DIRS}
+	${PNG_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
 )
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
+set(SRC 
+	bmfont.cpp
+	GPC_Canvas.cpp
+	GPC_Engine.cpp
+	GPC_KeyboardDevice.cpp
+	GPC_MouseDevice.cpp
+	GPC_RawImage.cpp
+	GPC_RawLoadDotBlendArray.cpp
+	GPC_RawLogoArrays.cpp
+	GPC_RenderTools.cpp
+	GPC_System.cpp
 
-BLENDERLIB_NOLIST(gp_common "${SRC}" "${INC}")
+	GPC_Canvas.h
+	GPC_Engine.h
+	GPC_KeyboardDevice.h
+	GPC_MouseDevice.h
+	GPC_RawImage.h
+	GPC_RawLoadDotBlendArray.h
+	GPC_RawLogoArrays.h
+	GPC_RenderTools.h
+	GPC_System.h
+)
+
+add_definitions(-DGLEW_STATIC)
+
+blender_add_lib_nolist(ge_player_common "${SRC}" "${INC}")

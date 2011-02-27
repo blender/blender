@@ -165,6 +165,8 @@ struct BMEdge *rotsys_reverse(struct BMEdge *e, struct BMVert *v, EdgeData *edat
 	}
 	
 	BLI_array_free(edges);
+	
+	return 0;
 }
 
 int rotsys_count(struct BMVert *v, EdgeData *edata, VertData *vdata)
@@ -253,6 +255,8 @@ int rotsys_fill_faces(BMesh *bm, EdgeData *edata, VertData *vdata)
 				continue;
 		}
 	}
+	
+	return 0;
 }
 
 void rotsys_make_consistent(BMesh *bm, EdgeData *edata, VertData *vdata)

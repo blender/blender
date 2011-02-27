@@ -1,4 +1,4 @@
-/**
+/*
  * Always trigger
  *
  * $Id$
@@ -29,7 +29,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef WIN32
+/** \file gameengine/GameLogic/SCA_AlwaysSensor.cpp
+ *  \ingroup gamelogic
+ */
+
+
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 // This warning tells us about truncation of __long__ stl-generated names.
 // It can occasionally cause DevStudio to have internal compiler warnings.
 #pragma warning( disable : 4786 )     
@@ -94,7 +99,7 @@ bool SCA_AlwaysSensor::Evaluate()
 	return result;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

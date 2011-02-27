@@ -51,7 +51,7 @@ class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
         world = context.world
         space = context.space_data
 
-        texture_count = len(world.texture_slots.keys())
+        texture_count = world and len(world.texture_slots.keys())
 
         split = layout.split(percentage=0.65)
         if scene:
@@ -59,8 +59,9 @@ class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
         elif world:
             split.template_ID(space, "pin_id")
 
-        if texture_count != 0:
+        if texture_count:
             split.label(text=str(texture_count), icon='TEXTURE')
+
 
 class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"
@@ -138,11 +139,6 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Indirect Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    @classmethod
-    def poll(cls, context):
-        light = getattr(context.world, "light_settings", None)
-        return light and light.gather_method == 'APPROXIMATE'
-
     def draw_header(self, context):
         light = context.world.light_settings
         self.layout.prop(light, "use_indirect_light", text="")
@@ -151,11 +147,14 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
         layout = self.layout
         light = context.world.light_settings
 
-        layout.active = light.use_indirect_light
+        layout.active = light.use_indirect_light and light.gather_method == 'APPROXIMATE'
 
         split = layout.split()
         split.prop(light, "indirect_factor", text="Factor")
         split.prop(light, "indirect_bounces", text="Bounces")
+
+        if light.gather_method == 'RAYTRACE':
+            layout.label(text="Only works with Approximate gather method")
 
 
 class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
@@ -265,14 +264,15 @@ class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "world"
+    _property_type = bpy.types.World
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

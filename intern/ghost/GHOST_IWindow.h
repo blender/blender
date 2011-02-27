@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_IWindow.h
+
+/** \file ghost/GHOST_IWindow.h
+ *  \ingroup GHOST
  * Declaration of GHOST_IWindow interface class.
  */
 
@@ -318,6 +319,11 @@ public:
 
 private:
 	int m_id;
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GHOST:GHOST_IWindow"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // _GHOST_IWINDOW_H_

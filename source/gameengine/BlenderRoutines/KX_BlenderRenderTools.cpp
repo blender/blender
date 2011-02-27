@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/BlenderRoutines/KX_BlenderRenderTools.cpp
+ *  \ingroup blroutines
+ */
+
 
 #include "GL/glew.h"
 
@@ -275,7 +280,16 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 		}
 	}
 }
-
+void KX_BlenderRenderTools::RenderText3D(int fontid,
+										 const char* text,
+										 int size,
+										 int dpi,
+										 float* color,
+										 double* mat,
+										 float aspect)
+{
+	BL_print_game_line(fontid, text, size, dpi, color, mat, aspect);
+}
 
 void KX_BlenderRenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 										 const char* text,

@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file boolop/intern/BOP_BSPNode.cpp
+ *  \ingroup boolopintern
+ */
+
  
 #include "BOP_MathUtils.h"
 #include "BOP_BSPNode.h"
@@ -59,7 +64,7 @@ BOP_BSPNode::~BOP_BSPNode()
  * @param plane face plane.
  */
 
-unsigned int BOP_BSPNode::addFace(BOP_BSPPoints pts,
+unsigned int BOP_BSPNode::addFace(const BOP_BSPPoints& pts,
 								  const MT_Plane3& plane )
 {
 	unsigned int newDeep = 0;

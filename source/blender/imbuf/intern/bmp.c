@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -101,13 +101,15 @@ int imb_is_a_bmp(unsigned char *buf) {
 	return checkbmp(buf);
 }
 
-struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags)
+struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 {
 	struct ImBuf *ibuf = 0;
 	BMPINFOHEADER bmi;
 	int x, y, depth, skip, i;
 	unsigned char *bmp, *rect;
 	unsigned short col;
+	
+	(void)size; /* unused */
 
 	if (checkbmp(mem) == 0) return(0);
 
@@ -129,9 +131,9 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags)
 	/* printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, 
 		depth, bmi.biBitCount); */
 	if (flags & IB_test) {
-		ibuf = IMB_allocImBuf(x, y, depth, 0, 0);
+		ibuf = IMB_allocImBuf(x, y, depth, 0);
 	} else {
-		ibuf = IMB_allocImBuf(x, y, depth, IB_rect, 0);
+		ibuf = IMB_allocImBuf(x, y, depth, IB_rect);
 		bmp = mem + skip;
 		rect = (unsigned char *) ibuf->rect;
 
@@ -193,12 +195,14 @@ static int putShortLSB(unsigned short us,FILE *ofile) {
 } 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-int imb_savebmp(struct ImBuf *ibuf, char *name, int flags) {
+int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags) {
 
 	BMPINFOHEADER infoheader;
 	int bytesize, extrabytes, x, y, t, ptr;
 	uchar *data;
 	FILE *ofile;
+	
+	(void)flags; /* unused */
 
 	extrabytes = (4 - ibuf->x*3 % 4) % 4;
 	bytesize = (ibuf->x * 3 + extrabytes) * ibuf->y;

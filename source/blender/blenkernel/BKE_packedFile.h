@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_packedFile.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,11 @@
 #ifndef BKE_PACKEDFILE_H
 #define BKE_PACKEDFILE_H
 
+/** \file BKE_packedFile.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
 #define RET_OK		0
 #define RET_ERROR	1
 
@@ -42,7 +45,7 @@ struct ReportList;
 struct VFont;
 
 /* pack */
-struct PackedFile *newPackedFile(struct ReportList *reports, char *filename);
+struct PackedFile *newPackedFile(struct ReportList *reports, const char *filename);
 struct PackedFile *newPackedFileMemory(void *mem, int memlen);
 
 void packAll(struct Main *bmain, struct ReportList *reports);
@@ -50,18 +53,18 @@ void packAll(struct Main *bmain, struct ReportList *reports);
 /* unpack */
 char *unpackFile(struct ReportList *reports, char *abs_name, char *local_name, struct PackedFile *pf, int how);
 int unpackVFont(struct ReportList *reports, struct VFont *vfont, int how);
-int unpackSound(struct ReportList *reports, struct bSound *sound, int how);
+int unpackSound(struct Main *bmain, struct ReportList *reports, struct bSound *sound, int how);
 int unpackImage(struct ReportList *reports, struct Image *ima, int how);
 void unpackAll(struct Main *bmain, struct ReportList *reports, int how);
 
-int writePackedFile(struct ReportList *reports, char *filename, struct PackedFile *pf, int guimode);
+int writePackedFile(struct ReportList *reports, const char *filename, struct PackedFile *pf, int guimode);
 
 /* free */
 void freePackedFile(struct PackedFile *pf);
 
 /* info */
 int countPackedFiles(struct Main *bmain);
-int checkPackedFile(char *filename, struct PackedFile *pf);
+int checkPackedFile(const char *filename, struct PackedFile *pf);
 
 /* read */
 int seekPackedFile(struct PackedFile *pf, int offset, int whence);

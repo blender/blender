@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file VideoTexture/Common.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if defined WIN32
 #define WINDOWS_LEAN_AND_MEAN
 #endif

@@ -2,62 +2,18 @@
  *
  * \section intro Introduction
  *
- * Blender is an integrated 3d package, which features:
- *  - modeling
- *  - animation
- *  - texturing
- *  - compositing
- *  - rendering
- *  - scripting
- *  - game creation
+ * Blender is an integrated 3d package.
  *
  * These pages document the source code of blender.
  *
- * \section sects Main sections of the blender code
+ * \subsection implinks Important Links
+ * - <a href="http://projects.blender.org">projects.blender.org</a> with <a href="http://projects.blender.org/tracker/index.php?group_id=9&atid=498">bug tracker</a>
+ * - <a href="http://wiki.blender.org/index.php/Dev:Contents">Development documents</a> on our wiki.
  *
- *  The following sections are the broad categories into which the various modules
- *  belong.
+ * \subsection blother Other
+ * For more information on using Blender browse to http://www.blender.org
  *
- *  - \ref mainmodule
- *  - \ref render
- *  - \ref meshedit
- *  - \ref texture
- *  - \ref compositor
- *  - \ref scripts
- *  - \ref gameengine
- *
- * \section GUI
- *  - \ref gui
- *  - \ref hotkeys
- *  - \ref toolbox
- *
- * \section Libraries and Wrappers
- *  - GHOST API: \ref GHOST_C-api.h
- *  - \ref imbuf
- *
- * \section Miscellaneous
- *  - \ref undoc
  */
 
-/** \defgroup mainmodule Main Module */
-/** \defgroup defaultconfig Default and Configuration
- *  \ingroup mainmodule
- */
-
-/** \defgroup render Rendering Module */
-/** \defgroup meshedit Mesh Editing Module */
-/** \defgroup texture Textureing */
-/** \defgroup compositor Compositing */
-/** \defgroup scripts Scripting */
-/** \defgroup gameengine Game Engine */
-
-/** \defgroup gui GUI */
-/** \defgroup hotkeys Hotkeys
- *  \ingroup gui
- */
-/** \defgroup toolbox Toolbox
- *  \ingroup gui
- */
-
-/** \defgroup imbuf IMage Buffer */
-/** \defgroup undoc Undocumented */
+/** \defgroup undoc Undocumented
+ *  \brief Modules and libraries that are still undocumented, or lacking proper integration into the doxygen system, are marked in this group. */

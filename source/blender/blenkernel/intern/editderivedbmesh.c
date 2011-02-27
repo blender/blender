@@ -61,6 +61,7 @@
 #include "BLI_scanfill.h"
 #include "BLI_ghash.h"
 #include "BLI_array.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
@@ -201,7 +202,7 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 		/*complete the loop*/
 		BLI_addfilledge(firstv, v);
 
-		BLI_edgefill(0, 0);
+		BLI_edgefill(0);
 		
 		for (efa = fillfacebase.first; efa; efa=efa->next) {
 			BMLoop *l1, *l2, *l3;
@@ -534,39 +535,44 @@ static void bmDM_drawMappedEdgesInterp(DerivedMesh *dm, int (*setDrawOptions)(vo
 
 static void bmDM_drawUVEdges(DerivedMesh *dm)
 {
-#if 0
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
+	BMEditMesh *em = bmdm->tc;
 	BMFace *efa;
-	MTFace *tf;
+	BMIter iter;
 
 	glBegin(GL_LINES);
-	for(efa= bmdm->tc->bm->faces.first; efa; efa= efa->next) {
-		tf = CustomData_bm_get(&bmdm->tc->bm->pdata, efa->data, CD_MTFACE);
-
-		if(tf && !(efa->h)) {
-			glVertex2fv(tf->uv[0]);
-			glVertex2fv(tf->uv[1]);
-
-			glVertex2fv(tf->uv[1]);
-			glVertex2fv(tf->uv[2]);
-
-			if (!efa->v4) {
-				glVertex2fv(tf->uv[2]);
-				glVertex2fv(tf->uv[0]);
-			} else {
-				glVertex2fv(tf->uv[2]);
-				glVertex2fv(tf->uv[3]);
-				glVertex2fv(tf->uv[3]);
-				glVertex2fv(tf->uv[0]);
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BMIter liter;
+		BMLoop *l;
+		MLoopUV *lastluv = NULL, *firstluv = NULL;
+		
+		if (BM_TestHFlag(efa, BM_HIDDEN))
+			continue;
+		
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+			
+			if (luv) {
+				if (lastluv) 
+					glVertex2fv(luv->uv);
+				glVertex2fv(luv->uv);
+				
+				lastluv = luv;
+				if (!firstluv) 
+					firstluv = luv;
 			}
+		}
+		
+		if (lastluv) {
+			glVertex2fv(lastluv->uv);
+			glVertex2fv(firstluv->uv);
 		}
 	}
 	glEnd();
-#endif
 }
 
-static void bmDM__calcFaceCent(BMesh *bm, BMFace *efa, float cent[3],
-                               float (*vertexCos)[3])
+static void bmDM__calcFaceCent(BMesh *bm, BMFace *efa, float cent[3], 
+							   float (*vertexCos)[3])
 {
 	BMIter iter;
 	BMLoop *l;
@@ -591,7 +597,7 @@ static void bmDM__calcFaceCent(BMesh *bm, BMFace *efa, float cent[3],
 	}
 
 	if (tot==0) return;
-	VECMUL(cent, 1.0f/(float)tot);
+	mul_v3_fl(cent, 1.0f/(float)tot);
 }
 
 static void bmDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no), void *userData)
@@ -1159,9 +1165,7 @@ static int bmvert_to_mvert(BMesh *bm, BMVert *ev, MVert *vert_r)
 	vert_r->no[1] = (short)(ev->no[1] * 32767.0f);
 	vert_r->no[2] = (short)(ev->no[2] * 32767.0f);
 
-	/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
 	vert_r->flag = BMFlags_To_MEFlags(ev);
-	vert_r->mat_nr = 0;
 
 	if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
 		vert_r->bweight = (unsigned char) (BM_GetCDf(&bm->vdata, ev, CD_BWEIGHT)*255.0f);
@@ -1255,8 +1259,6 @@ static void bmDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 		vert_r->no[1] = (short) (ev->no[1] * 32767.0);
 		vert_r->no[2] = (short) (ev->no[2] * 32767.0);
 
-		/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
-		vert_r->mat_nr = 0;
 		vert_r->flag = BMFlags_To_MEFlags(ev);
 
 		if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {

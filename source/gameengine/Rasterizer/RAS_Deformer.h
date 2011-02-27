@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,10 +27,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file RAS_Deformer.h
+ *  \ingroup bgerast
+ */
+
 #ifndef RAS_DEFORMER
 #define RAS_DEFORMER
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
 
@@ -73,6 +77,10 @@ public:
 		return m_bDynamic;
 	}
 	virtual struct DerivedMesh* GetFinalMesh()
+	{
+		return NULL;
+	}
+	virtual struct DerivedMesh* GetPhysicsMesh()
 	{
 		return NULL;
 	}

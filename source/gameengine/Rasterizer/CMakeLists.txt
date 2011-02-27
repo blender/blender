@@ -24,9 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.cpp)
-
-SET(INC
+set(INC
 	.
 	../../../source/kernel/gen_system
 	../../../source/blender/makesdna
@@ -37,9 +35,50 @@ SET(INC
 	../../../extern/glew/include
 	../../../intern/guardedalloc
 	../Expressions
-	${PYTHON_INC}
+	${PYTHON_INCLUDE_DIRS}
 )
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
+set(SRC
+	RAS_2DFilterManager.cpp
+	RAS_BucketManager.cpp
+	RAS_FramingManager.cpp
+	RAS_IPolygonMaterial.cpp
+	RAS_IRenderTools.cpp
+	RAS_MaterialBucket.cpp
+	RAS_MeshObject.cpp
+	RAS_Polygon.cpp
+	RAS_TexVert.cpp
+	RAS_texmatrix.cpp
 
-BLENDERLIB(bf_rasterizer "${SRC}" "${INC}")
+	RAS_2DFilterManager.h
+	RAS_BucketManager.h
+	RAS_CameraData.h
+	RAS_Deformer.h
+	RAS_FramingManager.h
+	RAS_ICanvas.h
+	RAS_IPolygonMaterial.h
+	RAS_IRasterizer.h
+	RAS_IRenderTools.h
+	RAS_LightObject.h
+	RAS_MaterialBucket.h
+	RAS_MeshObject.h
+	RAS_ObjectColor.h
+	RAS_Polygon.h
+	RAS_Rect.h
+	RAS_TexMatrix.h
+	RAS_TexVert.h
+	RAS_OpenGLFilters/RAS_Blur2DFilter.h
+	RAS_OpenGLFilters/RAS_Dilation2DFilter.h
+	RAS_OpenGLFilters/RAS_Erosion2DFilter.h
+	RAS_OpenGLFilters/RAS_GrayScale2DFilter.h
+	RAS_OpenGLFilters/RAS_Invert2DFilter.h
+	RAS_OpenGLFilters/RAS_Laplacian2DFilter.h
+	RAS_OpenGLFilters/RAS_Prewitt2DFilter.h
+	RAS_OpenGLFilters/RAS_Sepia2DFilter.h
+	RAS_OpenGLFilters/RAS_Sharpen2DFilter.h
+	RAS_OpenGLFilters/RAS_Sobel2DFilter.h
+)
+
+add_definitions(-DGLEW_STATIC)
+
+blender_add_lib(ge_rasterizer "${SRC}" "${INC}")

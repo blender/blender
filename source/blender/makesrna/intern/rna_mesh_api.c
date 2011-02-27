@@ -1,4 +1,4 @@
-/**
+/*
  * $Id: rna_mesh_api.c 21283 2009-07-01 12:19:00Z blendix $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,10 +33,11 @@
 
 #include "BLO_sys_types.h"
 
+#include "BKE_mesh.h"
 #include "ED_mesh.h"
 
 #ifdef RNA_RUNTIME
-char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, struct Mesh *mesh2)
+const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, struct Mesh *mesh2)
 {
 	char *ret = mesh_cmp(mesh, mesh2, FLT_EPSILON*60);
 	
@@ -45,6 +46,7 @@ char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, struct Mesh *me
 	
 	return ret;
 }
+
 #else
 
 void RNA_api_mesh(StructRNA *srna)
@@ -71,6 +73,11 @@ void RNA_api_mesh(StructRNA *srna)
 	parm= RNA_def_string(func, "result", "nothing", 64, "Return value", "String description of result of comparison");
 	RNA_def_function_return(func, parm);
 
+	func= RNA_def_function(srna, "validate", "BKE_mesh_validate");
+	RNA_def_function_ui_description(func, "validate geometry, return True when the mesh has had invalid geometry corrected/removed.");
+	parm= RNA_def_boolean(func, "verbose", 0, "Verbose", "Output information about the errors found");
+	parm= RNA_def_boolean(func, "result", 0, "Result", "");
+	RNA_def_function_return(func, parm);
 }
 
 #endif

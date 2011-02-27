@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,7 +28,6 @@
  */
 
 #include "../CMP_util.h"
-
 
 /* **************** SCALAR MATH ******************** */ 
 static bNodeSocketType cmp_node_math_in[]= { 
@@ -95,11 +94,18 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 		break;
 	case 10: /* Power */
 		{
-			/* Don't want any imaginary numbers... */
-			if( in[0] >= 0 )
+			/* Only raise negative numbers by full integers */
+			if( in[0] >= 0 ) {
 				out[0]= pow(in[0], in2[0]);
-			else
-				out[0]= 0.0;
+            } else {
+                float y_mod_1 = fmod(in2[0], 1);
+				/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
+                if (y_mod_1 > 0.999 || y_mod_1 < 0.001) {
+                    out[0]= pow(in[0], floor(in2[0] + 0.5));
+                } else {
+                    out[0] = 0.0;
+                }
+            }
 		}
 		break;
 	case 11: /* Logarithm */
@@ -151,7 +157,7 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 	}
 }
 
-static void node_composit_exec_math(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_math(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	CompBuf *cbuf=in[0]->data;
 	CompBuf *cbuf2=in[1]->data;
@@ -181,22 +187,19 @@ static void node_composit_exec_math(void *data, bNode *node, bNodeStack **in, bN
 	out[0]->data= stackbuf;
 }
 
-bNodeType cmp_node_math= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_MATH,
-	/* name        */	"Math",
-	/* width+range */	120, 110, 160,
-	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_math_in,
-	/* output sock */	cmp_node_math_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_math,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-};
+void register_node_type_cmp_math(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+		cmp_node_math_in, cmp_node_math_out);
+	node_type_size(&ntype, 120, 110, 160);
+	node_type_label(&ntype, node_math_label);
+	node_type_exec(&ntype, node_composit_exec_math);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 
 

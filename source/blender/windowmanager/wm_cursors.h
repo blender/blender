@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/wm_cursors.h
+ *  \ingroup wm
+ */
+
+
 
 
 #ifndef WM_CURSORS_H
@@ -47,7 +52,7 @@ enum {
 	CURSOR_STD, 
 	CURSOR_NONE,
 	CURSOR_PENCIL,
-	CURSOR_COPY,
+	CURSOR_COPY
 };
 
 

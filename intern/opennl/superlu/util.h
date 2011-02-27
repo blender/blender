@@ -1,3 +1,6 @@
+/** \file opennl/superlu/util.h
+ *  \ingroup opennl
+ */
 #ifndef __SUPERLU_UTIL /* allow multiple inclusions */
 #define __SUPERLU_UTIL
 
@@ -246,7 +249,7 @@ extern void    heap_relax_snode (const int, int *, const int, int *, int *);
 extern void    resetrep_col (const int, const int *, int *);
 extern int     spcoletree (int *, int *, int *, int, int, int *);
 extern int     *TreePostorder (int, int *);
-extern double  SuperLU_timer_ ();
+extern double  SuperLU_timer_ (void);
 extern int     sp_ienv (int);
 extern int     lsame_ (char *, char *);
 extern int     xerbla_ (char *, int *);

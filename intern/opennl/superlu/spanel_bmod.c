@@ -1,3 +1,6 @@
+/** \file opennl/superlu/spanel_bmod.c
+ *  \ingroup opennl
+ */
 
 /*
  * -- SuperLU routine (version 3.0) --

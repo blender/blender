@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,7 @@
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_access.h"
 
 #include "rna_internal.h"
 
@@ -115,7 +116,7 @@ EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 	Object *ob=NULL;
 	int totitem= 0;
 
-	if (ptr->type == &RNA_Sensor) {
+	if (ptr->type == &RNA_Sensor || RNA_struct_is_a(ptr->type, &RNA_Sensor)) {
 		ob = (Object *)ptr->id.data;
 	} else {
 		/* can't use ob from ptr->id.data because that enum is also used by operators */
@@ -156,6 +157,8 @@ static void rna_Sensor_keyboard_key_set(struct PointerRNA *ptr, int value)
 	
 	if (ISKEYBOARD(value))
 		ks->key = value;
+	else
+		ks->key = 0;
 }
 
 static void rna_Sensor_keyboard_modifier_set(struct PointerRNA *ptr, int value)
@@ -165,6 +168,8 @@ static void rna_Sensor_keyboard_modifier_set(struct PointerRNA *ptr, int value)
 	
 	if (ISKEYBOARD(value))
 		ks->qual = value;
+	else
+		ks->qual = 0;
 }
 		
 static void rna_Sensor_keyboard_modifier2_set(struct PointerRNA *ptr, int value)
@@ -174,6 +179,8 @@ static void rna_Sensor_keyboard_modifier2_set(struct PointerRNA *ptr, int value)
 	
 	if (ISKEYBOARD(value))
 		ks->qual2 = value;
+	else
+		ks->qual2 = 0;
 }
 
 static void rna_Sensor_tap_set(struct PointerRNA *ptr, int value)
@@ -325,7 +332,7 @@ static void rna_def_near_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Property", "Only look for objects with this property");
+	RNA_def_property_ui_text(prop, "Property", "Only look for objects with this property (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
@@ -336,7 +343,7 @@ static void rna_def_near_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "reset_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "resetdist");
-	RNA_def_property_ui_text(prop, "Reset Distance", "");
+	RNA_def_property_ui_text(prop, "Reset Distance", "The distance where the sensor forgets the actor");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
@@ -381,7 +388,7 @@ static void rna_def_touch_sensor(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Material", "Only look for objects with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for objects with this material (blank = all objects)");
 	/* note: custom set function is ONLY to avoid rna setting a user for this. */
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Sensor_touch_material_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -419,12 +426,12 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "target", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "targetName");
-	RNA_def_property_ui_text(prop, "Target", "Property that indicates whether to log keystrokes as a string");
+	RNA_def_property_ui_text(prop, "Target", "Property that receive the keystrokes in case a string is logged");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "log", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "toggleName");
-	RNA_def_property_ui_text(prop, "Log Toggle", "Property that receive the keystrokes in case a string is logged");
+	RNA_def_property_ui_text(prop, "Log Toggle", "Property that indicates whether to log keystrokes as a string");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_all_keys", PROP_BOOLEAN, PROP_NONE);
@@ -485,7 +492,7 @@ static void rna_def_armature_sensor(BlenderRNA *brna)
 		{SENS_ARM_LIN_ERROR_BELOW, "LINERRORBELOW", 0, "Lin error below", ""},
 		{SENS_ARM_LIN_ERROR_ABOVE, "LINERRORABOVE", 0, "Lin error above", ""},
 		{SENS_ARM_ROT_ERROR_BELOW, "ROTERRORBELOW", 0, "Rot error below", ""},
-		{SENS_ARM_ROT_ERROR_ABOVE, "ROTERRORBELOW", 0, "Rot error above", ""},
+		{SENS_ARM_ROT_ERROR_ABOVE, "ROTERRORABOVE", 0, "Rot error above", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ArmatureSensor", "Sensor");
@@ -495,17 +502,17 @@ static void rna_def_armature_sensor(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "test_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Test Type", "Type of value and test");
+	RNA_def_property_ui_text(prop, "Test", "Type of value and test");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "bone", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "posechannel");
-	RNA_def_property_ui_text(prop, "Bone name", "Identify the bone to check value from");
+	RNA_def_property_ui_text(prop, "Bone Name", "Identify the bone to check value from");
 	RNA_def_property_update(prop, NC_LOGIC, "rna_Sensor_Armature_update");
 
 	prop= RNA_def_property(srna, "constraint", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "constraint");
-	RNA_def_property_ui_text(prop, "Constraint name", "Identify the bone constraint to check value from");
+	RNA_def_property_ui_text(prop, "Constraint Name", "Identify the bone constraint to check value from");
 	RNA_def_property_update(prop, NC_LOGIC, "rna_Sensor_Armature_update");
 
 	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
@@ -576,13 +583,13 @@ static void rna_def_collision_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property");
+	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	//XXX to make a setFunction to create a lookup with all materials in Blend File (not only this object mat.)
 	prop= RNA_def_property(srna, "material", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "materialName");
-	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 /*//XXX either use a datablock look up to store the string name (material)
@@ -591,7 +598,7 @@ static void rna_def_collision_sensor(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
-	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material (blank = all objects)");
 */
 }
 
@@ -600,12 +607,12 @@ static void rna_def_radar_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem axis_items[] ={
-		{SENS_RAY_X_AXIS, "XAXIS", 0, "+X axis", ""},
-		{SENS_RAY_Y_AXIS, "YAXIS", 0, "+Y axis", ""},
-		{SENS_RAY_Z_AXIS, "ZAXIS", 0, "+Z axis", ""},
-		{SENS_RAY_NEG_X_AXIS, "NEGXAXIS", 0, "-X axis", ""},
-		{SENS_RAY_NEG_Y_AXIS, "NEGYAXIS", 0, "-Y axis", ""},
-		{SENS_RAY_NEG_Z_AXIS, "NEGZAXIS", 0, "-Z axis", ""},
+		{SENS_RADAR_X_AXIS, "XAXIS", 0, "+X axis", ""},
+		{SENS_RADAR_Y_AXIS, "YAXIS", 0, "+Y axis", ""},
+		{SENS_RADAR_Z_AXIS, "ZAXIS", 0, "+Z axis", ""},
+		{SENS_RADAR_NEG_X_AXIS, "NEGXAXIS", 0, "-X axis", ""},
+		{SENS_RADAR_NEG_Y_AXIS, "NEGYAXIS", 0, "-Y axis", ""},
+		{SENS_RADAR_NEG_Z_AXIS, "NEGZAXIS", 0, "-Z axis", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "RadarSensor", "Sensor");
@@ -614,7 +621,7 @@ static void rna_def_radar_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property");
+	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
@@ -622,7 +629,7 @@ static void rna_def_radar_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Axis", "Specify along which axis the radar cone is cast");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_range(prop, 0.0, 179.9);
 	RNA_def_property_ui_text(prop, "Angle", "Opening angle of the radar cone");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -679,12 +686,12 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "propname");
-	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property");
+	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "material", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "matname");
-	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material (blank = all objects)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* //XXX either use a datablock look up to store the string name (material)
@@ -693,7 +700,7 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
-	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material (blank = all objects)");
 */
 
 	prop= RNA_def_property(srna, "use_x_ray", PROP_BOOLEAN, PROP_NONE);

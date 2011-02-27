@@ -125,7 +125,7 @@ static char *keytype_to_string(GHOST_TKey key) {
 	K(KeyRightControl);
 	K(KeyLeftAlt);
 	K(KeyRightAlt);
-	K(KeyCommand);
+	K(KeyOS);
 
 	K(KeyCapsLock);
 	K(KeyNumLock);

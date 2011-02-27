@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,8 +25,16 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/modifiers/intern/MOD_util.h
+ *  \ingroup modifiers
+ */
+
+
 #ifndef MOD_UTIL_H
 #define MOD_UTIL_H
+
+/* so modifier types match their defines */
+#include "MOD_modifiertypes.h"
 
 struct Tex;
 struct TexResult;
@@ -40,9 +48,7 @@ struct ModifierData;
 void get_texture_value(struct Tex *texture, float *tex_co, struct TexResult *texres);
 void modifier_vgroup_cache(struct ModifierData *md, float (*vertexCos)[3]);
 void validate_layer_name(const struct CustomData *data, int type, char *name, char *outname);
-struct DerivedMesh *get_cddm(struct Scene *scene, struct Object *ob, struct EditMesh *em, struct DerivedMesh *dm, float (*vertexCos)[3]);
-struct DerivedMesh *get_dm(struct Scene *scene, struct Object *ob, struct EditMesh *em, struct DerivedMesh *dm, float (*vertexCos)[3], int orco);
-
-void modifier_type_init(struct ModifierTypeInfo *types[], ModifierType type);
+struct DerivedMesh *get_cddm(struct Object *ob, struct EditMesh *em, struct DerivedMesh *dm, float (*vertexCos)[3]);
+struct DerivedMesh *get_dm(struct Object *ob, struct EditMesh *em, struct DerivedMesh *dm, float (*vertexCos)[3], int orco);
 
 #endif /* MOD_UTIL_H */

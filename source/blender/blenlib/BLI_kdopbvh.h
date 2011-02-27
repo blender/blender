@@ -1,5 +1,4 @@
-/**
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +30,12 @@
 
 #ifndef BLI_KDOPBVH_H
 #define BLI_KDOPBVH_H
+
+/** \file BLI_kdopbvh.h
+ *  \ingroup bli
+ *  \author Daniel Genrich
+ *  \author Andre Pinto
+ */
 
 #ifdef __cplusplus
 extern "C" { 
@@ -90,7 +95,7 @@ int BLI_bvhtree_update_node(BVHTree *tree, int index, float *co, float *co_movin
 void BLI_bvhtree_update_tree(BVHTree *tree);
 
 /* collision/overlap: check two trees if they overlap, alloc's *overlap with length of the int return value */
-BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result);
+BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int *result);
 
 float BLI_bvhtree_getepsilon(BVHTree *tree);
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +30,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -37,8 +40,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
-
-#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_action.h"
@@ -48,7 +49,7 @@
 #include "BKE_particle.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "RNA_access.h"
 
@@ -65,6 +66,7 @@ typedef struct ButsContextPath {
 	PointerRNA ptr[8];
 	int len;
 	int flag;
+	int tex_ctx;
 } ButsContextPath;
 
 static int set_pointer_type(ButsContextPath *path, bContextDataResult *result, StructRNA *type)
@@ -305,7 +307,12 @@ static int buttons_context_path_particle(ButsContextPath *path)
 {
 	Object *ob;
 	ParticleSystem *psys;
+	PointerRNA *ptr= &path->ptr[path->len-1];
 
+	/* if we already have (pinned) particle settings, we're done */
+	if(RNA_struct_is_a(ptr->type, &RNA_ParticleSettings)) {
+		return 1;
+	}
 	/* if we have an object, get the active particle system */
 	if(buttons_context_path_object(path)) {
 		ob= path->ptr[path->len-1].data;
@@ -323,7 +330,7 @@ static int buttons_context_path_particle(ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
+static int buttons_context_path_brush(ButsContextPath *path)
 {
 	Scene *scene;
 	Brush *br= NULL;
@@ -352,12 +359,13 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_texture(const bContext *C, ButsContextPath *path)
+static int buttons_context_path_texture(ButsContextPath *path)
 {
 	Material *ma;
 	Lamp *la;
 	Brush *br;
 	World *wo;
+	ParticleSystem *psys;
 	Tex *tex;
 	PointerRNA *ptr= &path->ptr[path->len-1];
 	int orig_len = path->len;
@@ -367,7 +375,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		return 1;
 	}
 	/* try brush */
-	if((path->flag & SB_BRUSH_TEX) && buttons_context_path_brush(C, path)) {
+	if((path->tex_ctx == SB_TEXC_BRUSH) && buttons_context_path_brush(path)) {
 		br= path->ptr[path->len-1].data;
 		
 		if(br) {
@@ -379,7 +387,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		}
 	}
 	/* try world */
-	if((path->flag & SB_WORLD_TEX) && buttons_context_path_world(path)) {
+	if((path->tex_ctx == SB_TEXC_WORLD) && buttons_context_path_world(path)) {
 		wo= path->ptr[path->len-1].data;
 
 		if(wo && GS(wo->id.name)==ID_WO) {
@@ -388,6 +396,28 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
 			return 1;
+		}
+	}
+	/* try particles */
+	if((path->tex_ctx == SB_TEXC_PARTICLES) && buttons_context_path_particle(path)) {
+		if(path->ptr[path->len-1].type == &RNA_ParticleSettings) {
+			ParticleSettings *part = path->ptr[path->len-1].data;
+
+			tex= give_current_particle_texture(part);
+			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+			path->len++;
+			return 1;
+		}
+		else {
+			psys= path->ptr[path->len-1].data;
+
+			if(psys && psys->part && GS(psys->part->id.name)==ID_PA) {
+				tex= give_current_particle_texture(psys->part);
+
+				RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+				path->len++;
+				return 1;
+			}
 		}
 	}
 	/* try material */
@@ -416,7 +446,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 	}
 	/* try brushes again in case of no material, lamp, etc */
 	path->len = orig_len;
-	if(buttons_context_path_brush(C, path)) {
+	if(buttons_context_path_brush(path)) {
 		br= path->ptr[path->len-1].data;
 		
 		if(br) {
@@ -441,6 +471,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 
 	memset(path, 0, sizeof(*path));
 	path->flag= flag;
+	path->tex_ctx = sbuts->texture_context;
 
 	/* if some ID datablock is pinned, set the root pointer */
 	if(sbuts->pinid) {
@@ -485,7 +516,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found= buttons_context_path_material(path);
 			break;
 		case BCONTEXT_TEXTURE:
-			found= buttons_context_path_texture(C, path);
+			found= buttons_context_path_texture(path);
 			break;
 		case BCONTEXT_BONE:
 			found= buttons_context_path_bone(path);
@@ -515,7 +546,7 @@ static int buttons_shading_context(const bContext *C, int mainb)
 	return 0;
 }
 
-static int buttons_shading_new_context(const bContext *C, int flag, int mainb)
+static int buttons_shading_new_context(const bContext *C, int flag)
 {
 	Object *ob= CTX_data_active_object(C);
 
@@ -533,13 +564,12 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 {
 	ButsContextPath *path;
 	PointerRNA *ptr;
-	int a, pflag, flag= 0;
+	int a, pflag= 0, flag= 0;
 
 	if(!sbuts->path)
 		sbuts->path= MEM_callocN(sizeof(ButsContextPath), "ButsContextPath");
 	
 	path= sbuts->path;
-	pflag= (sbuts->flag & (SB_WORLD_TEX|SB_BRUSH_TEX));
 	
 	/* for each context, see if we can compute a valid path to it, if
 	 * this is the case, we know we have to display the button */
@@ -568,7 +598,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 	if((flag & (1 << sbuts->mainb)) == 0) {
 		if(sbuts->flag & SB_SHADING_CONTEXT) {
 			/* try to keep showing shading related buttons */
-			sbuts->mainb= buttons_shading_new_context(C, flag, sbuts->mainb);
+			sbuts->mainb= buttons_shading_new_context(C, flag);
 		}
 		else if(flag & BCONTEXT_OBJECT) {
 			sbuts->mainb= BCONTEXT_OBJECT;
@@ -602,6 +632,12 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 
 /************************* Context Callback ************************/
 
+const char *buttons_context_dir[] = {
+	"world", "object", "mesh", "armature", "lattice", "curve",
+	"meta_ball", "lamp", "camera", "material", "material_slot",
+	"texture", "texture_slot", "bone", "edit_bone", "pose_bone", "particle_system", "particle_system_editable",
+	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
+
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
@@ -612,13 +648,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 	/* here we handle context, getting data from precomputed path */
 	if(CTX_data_dir(member)) {
-		static const char *dir[] = {
-			"world", "object", "mesh", "armature", "lattice", "curve",
-			"meta_ball", "lamp", "camera", "material", "material_slot",
-			"texture", "texture_slot", "bone", "edit_bone", "pose_bone", "particle_system", "particle_system_editable",
-			"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
-
-		CTX_data_dir_set(result, dir);
+		CTX_data_dir_set(result, buttons_context_dir);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "world")) {
@@ -731,6 +761,12 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			if(br)
 				CTX_data_pointer_set(result, &br->id, &RNA_BrushTextureSlot, &br->mtex);
 		}
+		else if((ptr=get_pointer_type(path, &RNA_ParticleSystem))) {
+			ParticleSettings *part= ((ParticleSystem *)ptr->data)->part;
+
+			if(part)
+				CTX_data_pointer_set(result, &part->id, &RNA_ParticleSettingsTextureSlot, part->mtex[(int)part->texact]);
+		}
 
 		return 1;
 	}
@@ -821,7 +857,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 /************************* Drawing the Path ************************/
 
-static void pin_cb(bContext *C, void *arg1, void *arg2)
+static void pin_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 {
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
 
@@ -908,6 +944,14 @@ ID *buttons_context_id_path(const bContext *C)
 	if(path->len) {
 		for(a=path->len-1; a>=0; a--) {
 			ptr= &path->ptr[a];
+
+			/* pin particle settings instead of system, since only settings are an idblock*/
+			if(sbuts->mainb == BCONTEXT_PARTICLE && sbuts->flag & SB_PIN_CONTEXT) {
+				if(ptr->type == &RNA_ParticleSystem && ptr->data) {
+					ParticleSystem *psys = (ParticleSystem *)ptr->data;
+					return &psys->part->id;
+				}
+			}
 
 			if(ptr->id.data) {
 				return ptr->id.data;

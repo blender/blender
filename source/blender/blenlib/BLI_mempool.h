@@ -1,7 +1,5 @@
-/**
- * Simple fast memory allocator
- * 
- *
+/*
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -31,21 +29,23 @@
 #ifndef BLI_MEMPOOL_H
 #define BLI_MEMPOOL_H
 
+/** \file BLI_mempool.h
+ *  \ingroup bli
+ *  \author Geoffrey Bantle
+ *  \brief Simple fast memory allocator.
+ */
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+struct BLI_mempool;
+
 #include "BKE_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_blenlib.h"
 #include <string.h>
-
-#ifndef BLI_MEMPOOL_INTERN
-//struct BLI_mempool;
-//struct BLI_mempool_chunk;
-//typedef struct BLI_mempool BLI_mempool;
-#endif
 
 typedef struct BLI_freenode{
 	struct BLI_freenode *next;

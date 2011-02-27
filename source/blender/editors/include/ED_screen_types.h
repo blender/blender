@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file ED_screen_types.h
+ *  \ingroup editors
+ */
+
 #ifndef ED_SCREEN_TYPES_H__
 #define ED_SCREEN_TYPES_H__
 
@@ -38,6 +42,7 @@ typedef struct ScreenAnimData {
 	short refresh;
 	short flag;			/* flags for playback */
 	int sfra;			/* frame that playback was started from */
+	int nextfra;		/* next frame to go to (when ANIMPLAY_FLAG_USE_NEXT_FRAME is set) */
 } ScreenAnimData;
 
 /* for animplayer */
@@ -50,6 +55,8 @@ enum {
 	ANIMPLAY_FLAG_SYNC			= (1<<2),
 		/* don't drop frames (and ignore SCE_FRAME_DROP flag) */
 	ANIMPLAY_FLAG_NO_SYNC		= (1<<3),
+		/* use nextfra at next timer update */
+	ANIMPLAY_FLAG_USE_NEXT_FRAME = (1<<4)
 };
 
 /* ----------------------------------------------------- */
@@ -68,13 +75,21 @@ typedef struct ScreenFrameRateInfo {
 
 /* ----------------------------------------------------- */
 
+/* Enum for Action Zone Edges. Which edge of area is action zone. */
+typedef enum {
+	AE_RIGHT_TO_TOPLEFT,	/* Region located on the left, _right_ edge is action zone. Region minimised to the top left */
+	AE_LEFT_TO_TOPRIGHT,	/* Region located on the right, _left_ edge is action zone. Region minimised to the top right */
+	AE_TOP_TO_BOTTOMRIGHT,		/* Region located at the bottom, _top_ edge is action zone. Region minimised to the bottom right */
+	AE_BOTTOM_TO_TOPLEFT	/* Region located at the top, _bottom_edge is action zone. Region minimised to the top left */
+} AZEdge;
+
 /* for editing areas/regions */
 typedef struct AZone {
 	struct AZone *next, *prev;
 	ARegion *ar;
 	int type;
 	/* region-azone, which of the edges */
-	short edge;
+	AZEdge edge;
 	/* internal */
 	short do_draw;
 	/* for draw */

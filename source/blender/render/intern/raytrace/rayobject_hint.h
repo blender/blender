@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #ifndef RE_RAYTRACE_RAYOBJECT_HINT_H
 #define RE_RAYTRACE_RAYOBJECT_HINT_H
 
@@ -68,3 +69,4 @@ inline int hint_test_bb(HintFrustum &obj, float *Nmin, float *Nmax)
 */
 
 #endif
+

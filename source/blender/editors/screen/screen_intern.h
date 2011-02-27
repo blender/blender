@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,14 +32,16 @@
 struct wmWindow;
 struct Scene;
 
+#define AZONESPOT		12
+
 /* area.c */
 void		area_copy_data	(ScrArea *sa1, ScrArea *sa2, int swap_space);
 
 /* screen_edit.c */
 ScrEdge		*screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2);
-ScrArea		*area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac);
+ScrArea		*area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge);
 int			screen_area_join(bContext *C, bScreen* scr, ScrArea *sa1, ScrArea *sa2);
-int			area_getorientation(bScreen *screen, ScrArea *sa, ScrArea *sb);
+int			area_getorientation(ScrArea *sa, ScrArea *sb);
 void		select_connected_scredge(bScreen *sc, ScrEdge *edge);
 
 void		removenotused_scrverts(bScreen *sc);
@@ -49,10 +51,12 @@ void		removenotused_scredges(bScreen *sc);
 int			scredge_is_horizontal(ScrEdge *se);
 ScrEdge		*screen_find_active_scredge(bScreen *sc, int mx, int my);
 
-AZone		*is_in_area_actionzone(ScrArea *sa, int x, int y);
+struct AZone *is_in_area_actionzone(ScrArea *sa, int x, int y);
 
 /* screen_context.c */
-void ed_screen_context(const bContext *C, const char *member, bContextDataResult *result);
+int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result);
+
+extern const char *screen_context_dir[]; /* doc access */
 
 /* screendump.c */
 void SCREEN_OT_screenshot(struct wmOperatorType *ot);

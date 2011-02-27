@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_EventManager.cpp
+ *  \ingroup GHOST
+ */
+
 
 /**
 
@@ -157,8 +162,7 @@ GHOST_TSuccess GHOST_EventManager::pushEvent(GHOST_IEvent* event)
 				(int)keys.get(GHOST_kModifierKeyLeftAlt), 
 				(int)keys.get(GHOST_kModifierKeyRightAlt), 
 				(int)keys.get(GHOST_kModifierKeyLeftControl), 
-				(int)keys.get(GHOST_kModifierKeyRightControl), 
-				(int)keys.get(GHOST_kModifierKeyCommand));
+				(int)keys.get(GHOST_kModifierKeyRightControl));
 			fflush(m_recfile);
 			
 			sys->getCursorPosition(x, y);
@@ -357,7 +361,6 @@ bool GHOST_EventManager::dispatchEvents()
 				modkeys.set(GHOST_kModifierKeyRightAlt, ralt);
 				modkeys.set(GHOST_kModifierKeyLeftControl, lctrl);
 				modkeys.set(GHOST_kModifierKeyRightControl, rctrl);
-				modkeys.set(GHOST_kModifierKeyCommand, command);
 			}           
 			
 			str = fgets(buf, 256, m_playfile);

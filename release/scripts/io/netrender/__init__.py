@@ -19,41 +19,55 @@
 # This directory is a Python package.
 
 # To support reload properly, try to access a package var, if it's there, reload everything
-if "bpy" in locals():
-    reload(model)
-    reload(operators)
-    reload(client)
-    reload(slave)
-    reload(master)
-    reload(master_html)
-    reload(utils)
-    reload(balancing)
-    reload(ui)
-    reload(repath)
+if "init_data" in locals():
+    import imp
+    imp.reload(model)
+    imp.reload(operators)
+    imp.reload(client)
+    imp.reload(slave)
+    imp.reload(master)
+    imp.reload(master_html)
+    imp.reload(utils)
+    imp.reload(balancing)
+    imp.reload(ui)
+    imp.reload(repath)
+    imp.reload(versioning)
 else:
-    from netrender import model
-    from netrender import operators
-    from netrender import client
-    from netrender import slave
-    from netrender import master
-    from netrender import master_html
-    from netrender import utils
-    from netrender import balancing
-    from netrender import ui
-    from netrender import repath
+    from . import model
+    from . import operators
+    from . import client
+    from . import slave
+    from . import master
+    from . import master_html
+    from . import utils
+    from . import balancing
+    from . import ui
+    from . import repath
+    from . import versioning
 
 jobs = []
 slaves = []
 blacklist = []
 
 init_file = ""
-init_address = True
+valid_address = False
+init_data = True
+
 
 def register():
     ui.addProperties()
+
+    import bpy
+    scene = bpy.context.scene
+    if scene:
+        netsettings = scene.network_render
+        ui.init_data(netsettings)
+
+    bpy.utils.register_module(__name__)
     
 
 def unregister():
     import bpy
-    bpy.types.Scene.RemoveProperty("network_render")
+    del bpy.types.Scene.network_render
 
+    bpy.utils.unregister_module(__name__)

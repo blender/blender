@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -41,7 +41,7 @@ struct bAnimListElem;
 
 /* ***************************************** */
 /* action_draw.c */
-void draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct SpaceAction *saction, struct ARegion *ar); 
+void draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *ar); 
 void draw_channel_strips(struct bAnimContext *ac, struct SpaceAction *saction, struct ARegion *ar);
 
 struct ActKeysInc *init_aki_data(struct bAnimContext *ac, struct bAnimListElem *ale);
@@ -59,14 +59,14 @@ void ACTION_OT_select_column(struct wmOperatorType *ot);
 void ACTION_OT_select_linked(struct wmOperatorType *ot);
 void ACTION_OT_select_more(struct wmOperatorType *ot);
 void ACTION_OT_select_less(struct wmOperatorType *ot);
+void ACTION_OT_select_leftright(struct wmOperatorType *ot);
 void ACTION_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
 enum {
-	ACTKEYS_LRSEL_TEST	= -1,
-	ACTKEYS_LRSEL_NONE,
+	ACTKEYS_LRSEL_TEST	= 0,
 	ACTKEYS_LRSEL_LEFT,
-	ACTKEYS_LRSEL_RIGHT,
+	ACTKEYS_LRSEL_RIGHT
 } eActKeys_LeftRightSelect_Mode;
 
 /* defines for column-select mode */

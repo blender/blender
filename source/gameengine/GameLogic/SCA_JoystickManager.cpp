@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_JoystickManager.cpp
+ *  \ingroup gamelogic
+ */
+
 #include "SCA_JoystickSensor.h"
 #include "SCA_JoystickManager.h"
 #include "SCA_LogicManager.h"

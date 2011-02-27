@@ -5,6 +5,7 @@ source_files = env.Glob('*.c')
 
 incs = ['.',
     '../../../blenkernel',
+    '../../../blenloader',
     '../../',
     '..',
     '../../../blenlib',
@@ -14,4 +15,4 @@ incs = ['.',
 
 defs = []
 
-env.BlenderLib ('bf_cineon', source_files, incs, defs, libtype=['core','player'], priority = [220,175])
+env.BlenderLib ('bf_imbuf_cineon', source_files, incs, defs, libtype=['core','player'], priority = [220,175])

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -62,38 +62,62 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 	ImBuf *ibuf;
 	CompBuf *stackbuf;
 	int type;
-	
-	ibuf= BKE_image_get_ibuf(ima, iuser);
-	if(ibuf==NULL)
-		return NULL;
 
-	if (!(rd->color_mgt_flag & R_COLOR_MANAGEMENT)) {
-		int profile = IB_PROFILE_NONE;
-		
-		/* temporarily set profile to none to not disturb actual */
-		SWAP(int, ibuf->profile, profile);
-		
-		if (ibuf->rect_float != NULL) {
-			imb_freerectfloatImBuf(ibuf);
-		}
-		IMB_float_from_rect(ibuf);
-		
-		SWAP(int, ibuf->profile, profile);
+	float *rect;
+	int alloc= FALSE;
+
+	ibuf= BKE_image_get_ibuf(ima, iuser);
+	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
+		return NULL;
 	}
-	
+
 	if (ibuf->rect_float == NULL) {
 		IMB_float_from_rect(ibuf);
 	}
 
+	/* now we need a float buffer from the image
+	 * with matching color management */
+	if(ibuf->channels == 4) {
+		if(rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
+			if(ibuf->profile != IB_PROFILE_NONE) {
+				rect= ibuf->rect_float;
+			}
+			else {
+				rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
+				srgb_to_linearrgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
+				alloc= TRUE;
+			}
+		}
+		else {
+			if(ibuf->profile == IB_PROFILE_NONE) {
+				rect= ibuf->rect_float;
+			}
+			else {
+				rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
+				linearrgb_to_srgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
+				alloc= TRUE;
+			}
+		}
+	}
+	else {
+		/* non-rgba passes can't use color profiles */
+		rect= ibuf->rect_float;
+	}
+	/* done coercing into the correct color management */
+
+
 	type= ibuf->channels;
 	
 	if(rd->scemode & R_COMP_CROP) {
-		stackbuf= get_cropped_compbuf(&rd->disprect, ibuf->rect_float, ibuf->x, ibuf->y, type);
+		stackbuf= get_cropped_compbuf(&rd->disprect, rect, ibuf->x, ibuf->y, type);
+		if(alloc)
+			MEM_freeN(rect);
 	}
 	else {
 		/* we put imbuf copy on stack, cbuf knows rect is from other ibuf when freed! */
-		stackbuf= alloc_compbuf(ibuf->x, ibuf->y, type, 0);
-		stackbuf->rect= ibuf->rect_float;
+		stackbuf= alloc_compbuf(ibuf->x, ibuf->y, type, FALSE);
+		stackbuf->rect= rect;
+		stackbuf->malloc= alloc;
 	}
 	
 	/*code to respect the premul flag of images; I'm
@@ -153,7 +177,7 @@ static CompBuf *compbuf_multilayer_get(RenderData *rd, RenderLayer *rl, Image *i
 	return NULL;
 };
 
-void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, Image *ima, ImageUser *iuser)
+static void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, Image *ima, ImageUser *iuser)
 {
 	if(out[RRES_OUT_Z]->hasoutput)
 		out[RRES_OUT_Z]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_Z);
@@ -191,7 +215,7 @@ void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, I
 };
 
 
-static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	
 	/* image assigned to output */
@@ -273,22 +297,20 @@ static void node_composit_init_image(bNode* node)
    iuser->ok= 1;
 }
 
-bNodeType cmp_node_image= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_IMAGE,
-	/* name        */	"Image",
-	/* width+range */	120, 80, 300,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	cmp_node_rlayers_out,
-	/* storage     */	"ImageUser",
-	/* execfunc    */	node_composit_exec_image,
-	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_image,
-	/* freestoragefunc    */	node_free_standard_storage,
-	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
-};
+void register_node_type_cmp_image(ListBase *lb)
+{
+	static bNodeType ntype;
+
+	node_type_base(&ntype, CMP_NODE_IMAGE, "Image", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
+		NULL, cmp_node_rlayers_out);
+	node_type_size(&ntype, 120, 80, 300);
+	node_type_init(&ntype, node_composit_init_image);
+	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
+	node_type_exec(&ntype, node_composit_exec_image);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 /* **************** RENDER RESULT ******************** */
 
@@ -317,7 +339,7 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
    return NULL;
 };
 
-void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out, int rectx, int recty)
+static void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out, int rectx, int recty)
 {
    if(out[RRES_OUT_Z]->hasoutput)
 	  out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_Z);
@@ -354,7 +376,7 @@ void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out
 	   out[RRES_OUT_ENV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_ENVIRONMENT);
 };
 
-static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
    Scene *sce= (Scene *)node->id;
    Render *re= (sce)? RE_GetRender(sce->id.name): NULL;
@@ -404,22 +426,17 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in,
 };
 
 
-bNodeType cmp_node_rlayers= {
-	/* *next,*prev */	NULL, NULL,
-	/* type code   */	CMP_NODE_R_LAYERS,
-	/* name        */	"Render Layers",
-	/* width+range */	150, 100, 300,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	cmp_node_rlayers_out,
-	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_rlayers,
-	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+void register_node_type_cmp_rlayers(ListBase *lb)
+{
+	static bNodeType ntype;
 
-};
+	node_type_base(&ntype, CMP_NODE_R_LAYERS, "Render Layers", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
+		NULL, cmp_node_rlayers_out);
+	node_type_size(&ntype, 150, 100, 300);
+	node_type_exec(&ntype, node_composit_exec_rlayers);
+
+	nodeRegisterType(lb, &ntype);
+}
+
 
 

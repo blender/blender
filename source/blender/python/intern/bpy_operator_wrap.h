@@ -1,6 +1,5 @@
-
-/**
- * $Id: bpy_operator_wrap.h 21094 2009-06-23 00:09:26Z gsrb3d $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +24,13 @@
 #ifndef BPY_OPERATOR_WRAP_H
 #define BPY_OPERATOR_WRAP_H
 
-#include <Python.h>
+struct wmOperatorType;
 
 /* these are used for operator methods, used by bpy_operator.c */
 PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args);
+
+/* exposed to rna/wm api */
+void operator_wrapper(struct wmOperatorType *ot, void *userdata);
+void macro_wrapper(struct wmOperatorType *ot, void *userdata);
+
 #endif

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,12 +26,20 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/BlenderRoutines/KX_BlenderSystem.cpp
+ *  \ingroup blroutines
+ */
+
+
 #include "KX_ISystem.h"
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable :4786)
-#include <windows.h>
 #endif //WIN32
+
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 #include <iostream>
 #include <stdio.h>

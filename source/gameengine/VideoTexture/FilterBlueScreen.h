@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file FilterBlueScreen.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined FILTERBLUESCREEN_H
 #define FILTERBLUESCREEN_H
 
@@ -75,7 +79,7 @@ protected:
 			VT_A(val) = 0;
 		// condition for fully opaque color
 		else if (m_squareLimits[1] <= dist)
-			// return normal colour
+			// return normal color
 			VT_A(val) = 0xFF;
 		// otherwise calc alpha
 		else

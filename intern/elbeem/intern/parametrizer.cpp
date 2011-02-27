@@ -1,3 +1,6 @@
+/** \file elbeem/intern/parametrizer.cpp
+ *  \ingroup elbeem
+ */
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method

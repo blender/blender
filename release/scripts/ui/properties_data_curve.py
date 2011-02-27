@@ -28,7 +28,7 @@ class CurveButtonsPanel():
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type in ('CURVE', 'SURFACE', 'TEXT') and context.curve)
+        return (context.object and context.object.type in ('CURVE', 'SURFACE', 'FONT') and context.curve)
 
 
 class CurveButtonsPanelCurve(CurveButtonsPanel):
@@ -59,14 +59,10 @@ class DATA_PT_context_curve(CurveButtonsPanel, bpy.types.Panel):
         curve = context.curve
         space = context.space_data
 
-        split = layout.split(percentage=0.65)
-
         if ob:
-            split.template_ID(ob, "data")
-            split.separator()
+            layout.template_ID(ob, "data")
         elif curve:
-            split.template_ID(space, "pin_id")
-            split.separator()
+            layout.template_ID(space, "pin_id")  # XXX: broken
 
 
 class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
@@ -79,7 +75,7 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
         curve = context.curve
         is_surf = (ob.type == 'SURFACE')
         is_curve = (ob.type == 'CURVE')
-        is_text = (ob.type == 'TEXT')
+        is_text = (ob.type == 'FONT')
 
         if is_curve:
             row = layout.row()
@@ -103,20 +99,22 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
         col = split.column()
 
         if is_surf:
-            sub = col.column(align=True)
+            sub = col.column()
             sub.label(text="")
+            sub = col.column(align=True)
             sub.prop(curve, "resolution_v", text="Preview V")
             sub.prop(curve, "render_resolution_v", text="Render V")
 
-        if is_curve or is_text:
+        if (is_curve or is_text):
             sub = col.column()
-            sub.label(text="Caps:")
+            sub.active = (curve.bevel_object is None)
+            sub.label(text="Fill:")
             sub.prop(curve, "use_fill_front")
             sub.prop(curve, "use_fill_back")
-            sub.prop(curve, "use_fill_deform")
+            sub.prop(curve, "use_fill_deform", text="Fill Deformed")
 
         col.label(text="Textures:")
-        col.prop(curve, "use_map_on_length")
+        col.prop(curve, "use_uv_as_generated")
         col.prop(curve, "use_auto_texspace")
 
 
@@ -260,7 +258,7 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type == 'TEXT' and context.curve)
+        return (context.object and context.object.type == 'FONT' and context.curve)
 
     def draw(self, context):
         layout = self.layout
@@ -268,7 +266,18 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
         text = context.curve
         char = context.curve.edit_format
 
-        layout.template_ID(text, "font", open="font.open", unlink="font.unlink")
+        row = layout.split(percentage=0.25)
+        row.label(text="Regular")
+        row.template_ID(text, "font", open="font.open", unlink="font.unlink")
+        row = layout.split(percentage=0.25)
+        row.label(text="Bold")
+        row.template_ID(text, "font_bold", open="font.open", unlink="font.unlink")
+        row = layout.split(percentage=0.25)
+        row.label(text="Italic")
+        row.template_ID(text, "font_italic", open="font.open", unlink="font.unlink")
+        row = layout.split(percentage=0.25)
+        row.label(text="Bold & Italic")
+        row.template_ID(text, "font_bold_italic", open="font.open", unlink="font.unlink")
 
         #layout.prop(text, "font")
 
@@ -302,11 +311,11 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
         col.prop(char, "use_bold")
         col.prop(char, "use_italic")
         col.prop(char, "use_underline")
-        
+
         split = layout.split()
         col = split.column()
         col.prop(text, "small_caps_scale", text="Small Caps")
-        
+
         col = split.column()
         col.prop(char, "use_small_caps")
 
@@ -316,7 +325,7 @@ class DATA_PT_paragraph(CurveButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type == 'TEXT' and context.curve)
+        return (context.object and context.object.type == 'FONT' and context.curve)
 
     def draw(self, context):
         layout = self.layout
@@ -345,7 +354,7 @@ class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type == 'TEXT' and context.curve)
+        return (context.object and context.object.type == 'FONT' and context.curve)
 
     def draw(self, context):
         layout = self.layout
@@ -383,14 +392,15 @@ class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
 class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
+    _property_type = bpy.types.Curve
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

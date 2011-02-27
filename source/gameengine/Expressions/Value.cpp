@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/Value.cpp
+ *  \ingroup expressions
+ */
 // Value.cpp: implementation of the CValue class.
 // developed at Eindhoven University of Technology, 1997
 // by the OOPS team
@@ -29,7 +32,7 @@
 
 double CValue::m_sZeroVec[3] = {0.0,0.0,0.0};
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 PyTypeObject CValue::Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -60,7 +63,7 @@ PyTypeObject CValue::Type = {
 PyMethodDef CValue::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 
 /*#define CVALUE_DEBUG*/
@@ -520,7 +523,7 @@ CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 	return result;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 PyAttributeDef CValue::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",	CValue, pyattr_get_name),
@@ -611,7 +614,7 @@ PyObject*	CValue::ConvertKeysToPython( void )
 	return pylist;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

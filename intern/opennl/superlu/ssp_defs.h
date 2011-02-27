@@ -1,3 +1,6 @@
+/** \file opennl/superlu/ssp_defs.h
+ *  \ingroup opennl
+ */
 
 /*
  * -- SuperLU routine (version 3.0) --
@@ -228,7 +231,7 @@ extern void    check_tempv(int, float *);
 extern int		print_int_vec(char *what, int n, int *vec);
 
 extern int		sp_symetree(int *acolst, int *acolend, int *arow, int n, int *parent);
-	
+extern void    sprint_lu_col(char *msg, int jcol, int pivrow, int *xprune, GlobalLU_t *Glu); // added to build with debug for blender - campbell
 #ifdef __cplusplus
   }
 #endif

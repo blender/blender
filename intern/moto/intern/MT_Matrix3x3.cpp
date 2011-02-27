@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file moto/intern/MT_Matrix3x3.cpp
+ *  \ingroup moto
+ */
+
 
 #include "MT_Matrix3x3.h"
 

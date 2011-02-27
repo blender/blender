@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,9 +33,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define OPENEXR_FLOATRGB	0x1
-#define OPENEXR_ZBUF		0x2
   
 #include <stdio.h>
   
@@ -46,9 +43,9 @@ extern "C" {
   
 int		imb_is_a_openexr			(unsigned char *mem);
 	
-int		imb_save_openexr			(struct ImBuf *ibuf, char *name, int flags);
+int		imb_save_openexr			(struct ImBuf *ibuf, const char *name, int flags);
 
-struct ImBuf *imb_load_openexr		(unsigned char *mem, int size, int flags);
+struct ImBuf *imb_load_openexr		(unsigned char *mem, size_t size, int flags);
 
 #ifdef __cplusplus
 }

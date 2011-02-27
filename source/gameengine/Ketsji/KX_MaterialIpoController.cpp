@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_MaterialIpoController.cpp
+ *  \ingroup ketsji
+ */
 
 #include "KX_MaterialIpoController.h"
 #include "KX_ScalarInterpolator.h"

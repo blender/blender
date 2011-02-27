@@ -1,6 +1,4 @@
-/**
- * Do translation/rotation actions
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_ObjectActuator.h
+ *  \ingroup ketsji
+ *  \brief Do translation/rotation actions
  */
 
 #ifndef __KX_OBJECTACTUATOR
@@ -157,7 +160,7 @@ public:
 		}
 	virtual bool Update();
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -217,7 +220,7 @@ public:
 		return 0;
 	}
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 };
 

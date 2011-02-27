@@ -24,17 +24,22 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC include src)
-
-IF(UNIX)
-	SET(INC ${INC} ${X11_X11_INCLUDE_PATH})
-ENDIF(UNIX)
-
-SET(SRC
-	src/glew.c
+set(INC
+	./include
 )
 
-ADD_DEFINITIONS(-DGLEW_STATIC)
+if(UNIX)
+	list(APPEND INC ${X11_X11_INCLUDE_PATH})
+endif()
 
-BLENDERLIB(extern_glew "${SRC}" "${INC}")
+set(SRC
+	src/glew.c
 
+	include/GL/glew.h
+	include/GL/glxew.h
+	include/GL/wglew.h
+)
+
+add_definitions(-DGLEW_STATIC)
+
+blender_add_lib(extern_glew "${SRC}" "${INC}")

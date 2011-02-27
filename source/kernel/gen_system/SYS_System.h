@@ -29,6 +29,11 @@
  * Interface to the commandline arguments
  */
 
+/** \file kernel/gen_system/SYS_System.h
+ *  \ingroup gensys
+ */
+
+
 #ifndef __SYSTEM_INCLUDE
 #define __SYSTEM_INCLUDE
 

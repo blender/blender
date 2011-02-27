@@ -1,3 +1,6 @@
+/** \file smoke/intern/WAVELET_NOISE.h
+ *  \ingroup smoke
+ */
 //////////////////////////////////////////////////////////////////////
 // This file is part of Wavelet Turbulence.
 // 
@@ -243,6 +246,7 @@ static bool loadTile(float* const noiseTileData, std::string filename)
 		|| (headerbuffer[headerlen-1] != (char)((char)sizeof(long)+'0')))
 	{
 		printf("loadTile : Noise tile '%s' was generated on an incompatible platform.\n",filename.c_str());
+		fclose(file);
 		return false;
 	}
 	

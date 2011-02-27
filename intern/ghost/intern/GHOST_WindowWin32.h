@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_WindowWin32.h
+
+/** \file ghost/intern/GHOST_WindowWin32.h
+ *  \ingroup GHOST
  * Declaration of GHOST_WindowWin32 class.
  */
 
@@ -39,7 +40,18 @@
 
 #include "GHOST_Window.h"
 
+/* MinGW needs it */
+#ifdef FREE_WINDOWS
+#ifdef WINVER
+#undef WINVER
+#endif
+#define WINVER 0x0501
+#endif
+
+
+
 #include <windows.h>
+#include "GHOST_TaskbarWin32.h"
 
 
 #include <wintab.h>
@@ -218,6 +230,17 @@ public:
 	virtual GHOST_TSuccess invalidate();
 
 	/**
+     * Sets the progress bar value displayed in the window/application icon
+	 * @param progress The progress %
+	 */
+	virtual GHOST_TSuccess setProgressBar(float progress);
+	
+	/**
+	 * Hides the progress bar in the icon
+	 */
+	virtual GHOST_TSuccess endProgressBar();
+	
+	/**
 	 * Returns the name of the window class.
 	 * @return The name of the window class.
 	 */
@@ -323,6 +346,9 @@ protected:
 	int m_nPressedButtons;
 	/** HCURSOR structure of the custom cursor */
 	HCURSOR m_customCursor;
+
+	/** ITaskbarList3 structure for progress bar*/
+	ITaskbarList3 * m_Bar;
 
 	static LPCSTR s_windowClassName;
 	static const int s_maxTitleLength;

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_TouchEventManager.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "KX_TouchEventManager.h"
 #include "SCA_ISensor.h"
@@ -109,6 +114,13 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 			}
 		}
 		return false;
+
+	// quiet the compiler
+	case KX_ClientObjectInfo::STATIC:
+	case KX_ClientObjectInfo::ACTOR:
+	case KX_ClientObjectInfo::RESERVED1:
+		/* do nothing*/
+		break;
 	}
 	return true;
 }

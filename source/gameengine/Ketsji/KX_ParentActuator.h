@@ -1,7 +1,4 @@
-/**
- * Set or remove an objects parent
- *
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +28,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_ParentActuator.h
+ *  \ingroup ketsji
+ *  \brief Set or remove an objects parent
  */
 
 #ifndef __KX_PARENTACTUATOR
@@ -77,7 +79,7 @@ class KX_ParentActuator : public SCA_IActuator
 	virtual void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 	virtual bool UnlinkObject(SCA_IObject* clientobj);
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -87,7 +89,7 @@ class KX_ParentActuator : public SCA_IActuator
 	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 }; /* end of class KX_ParentActuator : public SCA_PropertyActuator */
 

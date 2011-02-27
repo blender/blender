@@ -143,8 +143,8 @@ void BMBVH_FreeBVH(BMBVHTree *tree)
 }
 
 /*taken from bvhutils.c*/
-static float ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, float *v0, 
-				  float *v1, float *v2, float *uv, float e)
+static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), float *v0, 
+				  float *v1, float *v2, float *uv, float UNUSED(e))
 {
 	float dist;
 #if 0
@@ -230,7 +230,7 @@ BVHTree *BMBVH_BVHTree(BMBVHTree *tree)
 	return tree->tree;
 }
 
-static void vertsearchcallback(void *userdata, int index, const float *co, BVHTreeNearest *hit)
+static void vertsearchcallback(void *userdata, int index, const float *UNUSED(co), BVHTreeNearest *hit)
 {
 	BMBVHTree *tree = userdata;
 	BMLoop **ls = tree->em->looptris[index];
@@ -315,7 +315,7 @@ static short winding(float *v1, float *v2, float *v3)
 	return 1;
 }
 
-static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
+static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2)
 {
 	BMIter iter1, iter2;
 	BMEdge *e1, *e2, *cure1 = NULL, *cure2 = NULL;
@@ -559,12 +559,12 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
 	return 1.0f - w;
 }
 
-static void vertsearchcallback_topo(void *userdata, int index, const float *co, BVHTreeNearest *hit)
+static void vertsearchcallback_topo(void *userdata, int index, const float *UNUSED(co), BVHTreeNearest *UNUSED(hit))
 {
 	BMBVHTree *tree = userdata;
 	BMLoop **ls = tree->em->looptris[index];
 	int i;
-	float dist, maxdist, vec[3], w;
+	float maxdist, vec[3], w;
 
 	maxdist = tree->maxdist;
 
@@ -577,7 +577,8 @@ static void vertsearchcallback_topo(void *userdata, int index, const float *co, 
 		sub_v3_v3v3(vec, tree->co, ls[i]->v->co);
 		dis = dot_v3v3(vec, vec);
 
-		w = topo_compare(tree->em->bm, tree->v, ls[i]->v, tree->curtag++);
+		w = topo_compare(tree->em->bm, tree->v, ls[i]->v);
+		tree->curtag++;
 		
 		if (w < tree->curw-FLT_EPSILON*4) {
 			tree->curw = w;
@@ -607,7 +608,6 @@ static void vertsearchcallback_topo(void *userdata, int index, const float *co, 
 BMVert *BMBVH_FindClosestVertTopo(BMBVHTree *tree, float *co, float maxdist, BMVert *sourcev)
 {
 	BVHTreeNearest hit;
-	BMIter iter;
 
 	memset(&hit, 0, sizeof(hit));
 

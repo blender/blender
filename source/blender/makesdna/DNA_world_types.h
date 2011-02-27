@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_world_types.h (mar-2001 nzc)
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,10 @@
  */
 #ifndef DNA_WORLD_TYPES_H
 #define DNA_WORLD_TYPES_H
+
+/** \file DNA_world_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_ID.h"
 
@@ -140,7 +142,7 @@ typedef struct World {
 /* mode */
 #define WO_MIST	               1
 #define WO_STARS               2
-#define WO_DOF                 4
+/*#define WO_DOF                 4*/
 #define WO_ACTIVITY_CULLING	   8
 #define WO_ENV_LIGHT   		  16
 #define WO_DBVT_CULLING		  32

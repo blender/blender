@@ -1,4 +1,4 @@
-/**
+/*
  * SCA_2DFilterActuator.h
  *
  * $Id$
@@ -23,6 +23,10 @@
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_2DFilterActuator.h
+ *  \ingroup gamelogic
  */
 
 #ifndef __SCA_2DFILETRACTUATOR_H__

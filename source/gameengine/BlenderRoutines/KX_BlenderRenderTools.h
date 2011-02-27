@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,10 +27,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file KX_BlenderRenderTools.h
+ *  \ingroup blroutines
+ */
+
 #ifndef __KX_BLENDERRENDERTOOLS
 #define __KX_BLENDERRENDERTOOLS
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 // don't show stl-warnings
 #pragma warning (disable:4786)
 #endif
@@ -69,7 +73,15 @@ public:
 	void				DisableOpenGLLights();
 	void				ProcessLighting(RAS_IRasterizer *rasty, bool uselights, const MT_Transform& viewmat);
 
-	void			    RenderText2D(RAS_TEXT_RENDER_MODE mode,
+	void				RenderText3D(int fontid,
+									 const char* text,
+									 int size,
+									 int dpi,
+									 float* color,
+									 double* mat,
+									 float aspect);
+
+	void		RenderText2D(RAS_TEXT_RENDER_MODE mode,
 									 const char* text,
 									 int xco,
 									 int yco,

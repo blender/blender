@@ -1,3 +1,6 @@
+/** \file gameengine/VideoTexture/ImageRender.cpp
+ *  \ingroup bgevideotex
+ */
 /* $Id$
 -----------------------------------------------------------------------------
 This source file is part of VideoTexture library
@@ -64,7 +67,7 @@ ImageRender::ImageRender (KX_Scene * scene, KX_Camera * camera) :
     m_mirror(NULL),
 	m_clip(100.f)
 {
-	// initialize background colour
+	// initialize background color
 	setBackground(0, 0, 255, 255);
     // retrieve rendering objects
     m_engine = KX_GetActiveEngine();
@@ -181,7 +184,9 @@ void ImageRender::Render()
         frustrum.camnear = -mirrorOffset[2];
         frustrum.camfar = -mirrorOffset[2]+m_clip;
     }
+	// Store settings to be restored later
     const RAS_IRasterizer::StereoMode stereomode = m_rasterizer->GetStereoMode();
+	RAS_Rect area = m_canvas->GetWindowArea();
 
     // The screen area that ImageViewport will copy is also the rendering zone
     m_canvas->SetViewPort(m_position[0], m_position[1], m_position[0]+m_capSize[0]-1, m_position[1]+m_capSize[1]-1);
@@ -258,6 +263,9 @@ void ImageRender::Render()
 	m_scene->CalculateVisibleMeshes(m_rasterizer,m_camera);
 
 	m_scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
+
+	// restore the canvas area now that the render is completed
+	m_canvas->GetWindowArea() = area;
 }
 
 
@@ -331,7 +339,7 @@ PyObject * getBackground (PyImage * self, void * closure)
 static int setBackground (PyImage * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 4
+	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 4
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1))
 		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2))

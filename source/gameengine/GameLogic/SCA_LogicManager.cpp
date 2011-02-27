@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * Regulates the top-level logic behaviour for one scene.
  */
+
+/** \file gameengine/GameLogic/SCA_LogicManager.cpp
+ *  \ingroup gamelogic
+ */
+
 #include "Value.h"
 #include "SCA_LogicManager.h"
 #include "SCA_ISensor.h"
@@ -307,7 +312,7 @@ void SCA_LogicManager::AddTriggeredController(SCA_IController* controller, SCA_I
 {
 	controller->Activate(m_triggeredControllerSet);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	// so that the controller knows which sensor has activited it
 	// only needed for python controller

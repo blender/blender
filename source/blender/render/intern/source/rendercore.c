@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -41,8 +41,9 @@
 #include "BLI_jitter.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
@@ -60,6 +61,8 @@
 #include "IMB_imbuf.h"
 
 /* local include */
+#include "rayintersection.h"
+#include "rayobject.h"
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "renderdatabase.h"
@@ -70,7 +73,6 @@
 #include "shading.h"
 #include "sss.h"
 #include "zbuf.h"
-#include "RE_raytrace.h"
 
 #include "PIL_time.h"
 
@@ -96,8 +98,9 @@ void calc_view_vector(float *view, float x, float y)
 	}
 	else {
 		
-		if(R.r.mode & R_PANORAMA)
+		if(R.r.mode & R_PANORAMA) {
 			x-= R.panodxp;
+		}
 		
 		/* move x and y to real viewplane coords */
 		x= (x/(float)R.winx);
@@ -2079,24 +2082,10 @@ static void bake_mask_clear( ImBuf *ibuf, char *mask, char val )
 
 static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInput *shi, int quad, int isect, int x, int y, float u, float v)
 {
-	if(isect) {
-		/* raytrace intersection with different u,v than scanconvert */
-		if(vlr->v4) {
-			if(quad)
-				shade_input_set_triangle_i(shi, obi, vlr, 2, 1, 3);
-			else
-				shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 3);
-		}
-		else
-			shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
-	}
-	else {
-		/* regular scanconvert */
-		if(quad) 
-			shade_input_set_triangle_i(shi, obi, vlr, 0, 2, 3);
-		else
-			shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
-	}
+	if(quad) 
+		shade_input_set_triangle_i(shi, obi, vlr, 0, 2, 3);
+	else
+		shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
 		
 	/* cache for shadow */
 	shi->samplenr= R.shadowsamplenr[shi->thread]++;
@@ -2171,12 +2160,14 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 				if(tvn && ttang) {
 					VECCOPY(mat[0], ttang);
 					cross_v3_v3v3(mat[1], tvn, ttang);
+					mul_v3_fl(mat[1], ttang[3]);
 					VECCOPY(mat[2], tvn);
 				}
 				else {
 					VECCOPY(mat[0], shi->nmaptang);
-					cross_v3_v3v3(mat[1], shi->vn, shi->nmaptang);
-					VECCOPY(mat[2], shi->vn);
+					cross_v3_v3v3(mat[1], shi->nmapnorm, shi->nmaptang);
+					mul_v3_fl(mat[1], shi->nmaptang[3]);
+					VECCOPY(mat[2], shi->nmapnorm);
 				}
 
 				invert_m3_m3(imat, mat);
@@ -2189,8 +2180,14 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 
 			normalize_v3(nor); /* in case object has scaling */
 
-			shr.combined[0]= nor[0]/2.0f + 0.5f;
-			shr.combined[1]= 0.5f - nor[1]/2.0f;
+			// The invert of the red channel is to make
+			// the normal map compliant with the outside world.
+			// It needs to be done because in Blender
+			// the normal used in the renderer points inward. It is generated
+			// this way in calc_vertexnormals(). Should this ever change
+			// this negate must be removed.
+			shr.combined[0]= (-nor[0])/2.0f + 0.5f;
+			shr.combined[1]= nor[1]/2.0f + 0.5f;
 			shr.combined[2]= nor[2]/2.0f + 0.5f;
 		}
 		else if(bs->type==RE_BAKE_TEXTURE) {
@@ -2285,19 +2282,19 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 	/* 'dir' is always normalized */
 	VECADDFAC(isect->start, start, dir, -R.r.bake_biasdist);					
 
-	isect->vec[0] = dir[0]*maxdist*sign;
-	isect->vec[1] = dir[1]*maxdist*sign;
-	isect->vec[2] = dir[2]*maxdist*sign;
+	isect->dir[0] = dir[0]*sign;
+	isect->dir[1] = dir[1]*sign;
+	isect->dir[2] = dir[2]*sign;
 
-	isect->labda = maxdist;
+	isect->dist = maxdist;
 
 	hit = RE_rayobject_raycast(raytree, isect);
 	if(hit) {
-		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
-		hitco[1] = isect->start[1] + isect->labda*isect->vec[1];
-		hitco[2] = isect->start[2] + isect->labda*isect->vec[2];
+		hitco[0] = isect->start[0] + isect->dist*isect->dir[0];
+		hitco[1] = isect->start[1] + isect->dist*isect->dir[1];
+		hitco[2] = isect->start[2] + isect->dist*isect->dir[2];
 
-		*dist= len_v3v3(start, hitco);
+		*dist= isect->dist;
 	}
 
 	return hit;
@@ -2358,7 +2355,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	VlakRen *vlr= bs->vlr;
 	ObjectInstanceRen *obi= bs->obi;
 	Object *ob= obi->obr->ob;
-	float l, *v1, *v2, *v3, tvn[3], ttang[3];
+	float l, *v1, *v2, *v3, tvn[3], ttang[4];
 	int quad;
 	ShadeSample *ssamp= &bs->ssamp;
 	ShadeInput *shi= ssamp->shi;
@@ -2397,8 +2394,8 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 
 	if(bs->type==RE_BAKE_NORMALS && R.r.bake_normal_space==R_BAKE_SPACE_TANGENT) {
 		shade_input_set_shade_texco(shi);
-		VECCOPY(tvn, shi->vn);
-		VECCOPY(ttang, shi->nmaptang);
+		VECCOPY(tvn, shi->nmapnorm);
+		QUATCOPY(ttang, shi->nmaptang);
 	}
 
 	/* if we are doing selected to active baking, find point on other face */
@@ -2421,7 +2418,8 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			isec.orig.ob   = obi;
 			isec.orig.face = vlr;
 			isec.userdata= bs->actob;
-			isec.skip = RE_SKIP_VLR_NEIGHBOUR|RE_SKIP_VLR_BAKE_CHECK;
+			isec.check = RE_CHECK_VLR_BAKE;
+			isec.skip = RE_SKIP_VLR_NEIGHBOUR;
 			
 			if(bake_intersect_tree(R.raytree, &isec, shi->co, shi->vn, sign, co, &dist)) {
 				if(!hit || len_v3v3(shi->co, co) < len_v3v3(shi->co, minco)) {
@@ -2562,10 +2560,9 @@ static void shade_tface(BakeShade *bs)
 	if (bs->usemask) {
 		if (bs->ibuf->userdata==NULL) {
 			BLI_lock_thread(LOCK_CUSTOM1);
-			if (bs->ibuf->userdata==NULL) { /* since the thread was locked, its possible another thread alloced the value */
+			if (bs->ibuf->userdata==NULL) /* since the thread was locked, its possible another thread alloced the value */
 				bs->ibuf->userdata = (void *)MEM_callocN(sizeof(char)*bs->rectx*bs->recty, "BakeMask");
-				bs->rect_mask= (char *)bs->ibuf->userdata;
-			}
+			bs->rect_mask= (char *)bs->ibuf->userdata;
 			BLI_unlock_thread(LOCK_CUSTOM1);
 		} else {
 			bs->rect_mask= (char *)bs->ibuf->userdata;
@@ -2575,7 +2572,7 @@ static void shade_tface(BakeShade *bs)
 	/* get pixel level vertex coordinates */
 	for(a=0; a<4; a++) {
 		/* Note, workaround for pixel aligned UVs which are common and can screw up our intersection tests
-		 * where a pixel gets inbetween 2 faces or the middle of a quad,
+		 * where a pixel gets in between 2 faces or the middle of a quad,
 		 * camera aligned quads also have this problem but they are less common.
 		 * Add a small offset to the UVs, fixes bug #18685 - Campbell */
 		vec[a][0]= tface->uv[a][0]*(float)bs->rectx - (0.5f + 0.001);

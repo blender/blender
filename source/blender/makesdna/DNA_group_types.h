@@ -1,4 +1,4 @@
-/**
+/*
  * blenlib/DNA_group_types.h (mar-2001 nzc)
  *	
  * $Id$ 
@@ -31,6 +31,10 @@
 #ifndef DNA_GROUP_TYPES_H
 #define DNA_GROUP_TYPES_H
 
+/** \file DNA_group_types.h
+ *  \ingroup DNA
+ */
+
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
@@ -40,8 +44,8 @@ typedef struct GroupObject {
 	struct GroupObject *next, *prev;
 	struct Object *ob;
 	void *lampren;		/* used while render */
-	int recalc;			/* copy of ob->recalc, used to set animated groups OK */
-	int pad;
+	short recalc;			/* copy of ob->recalc, used to set animated groups OK */
+	char pad[6];
 } GroupObject;
 
 

@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file PyTypeList.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined PYTYPELIST_H
 #define PYTYPELIST_H
 
@@ -41,6 +45,9 @@ typedef std::vector<PyTypeListItem*> PyTypeListType;
 class PyTypeList
 {
 public:
+	/// destructor
+	~PyTypeList();
+
 	/// check, if type is in list
 	bool in (PyTypeObject * type);
 

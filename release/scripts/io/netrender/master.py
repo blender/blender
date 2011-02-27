@@ -21,11 +21,13 @@ import http, http.client, http.server, urllib, socket, socketserver, threading
 import subprocess, shutil, time, hashlib
 import pickle
 import select # for select.error
+import json
 
 from netrender.utils import *
 import netrender.model
 import netrender.balancing
 import netrender.master_html
+import netrender.thumbnail as thumbnail
 
 class MRenderFile(netrender.model.RenderFile):
     def __init__(self, filepath, index, start, end, signature):
@@ -34,7 +36,7 @@ class MRenderFile(netrender.model.RenderFile):
 
     def test(self):
         self.found = os.path.exists(self.filepath)
-        if self.found:
+        if self.found and self.signature != None:
             found_signature = hashFile(self.filepath)
             self.found = self.signature == found_signature
             
@@ -81,8 +83,6 @@ class MRenderJob(netrender.model.RenderJob):
         self.save_path = ""
         self.files = [MRenderFile(rfile.filepath, rfile.index, rfile.start, rfile.end, rfile.signature) for rfile in job_info.files]
 
-        self.resolution = None
-
     def initInfo(self):
         if not self.resolution:
             self.resolution = tuple(getFileInfo(self.files[0].filepath, ["bpy.context.scene.render.resolution_x", "bpy.context.scene.render.resolution_y", "bpy.context.scene.render.resolution_percentage"]))
@@ -90,7 +90,7 @@ class MRenderJob(netrender.model.RenderJob):
     def save(self):
         if self.save_path:
             f = open(os.path.join(self.save_path, "job.txt"), "w")
-            f.write(repr(self.serialize()))
+            f.write(json.dumps(self.serialize()))
             f.close()
 
     def edit(self, info_map):
@@ -104,9 +104,11 @@ class MRenderJob(netrender.model.RenderJob):
             self.chunks = info_map["chunks"]
 
     def testStart(self):
-        for f in self.files:
-            if not f.test():
-                return False
+        # Don't test files for versionned jobs
+        if not self.version_info:
+            for f in self.files:
+                if not f.test():
+                    return False
 
         self.start()
         self.initInfo()
@@ -123,7 +125,7 @@ class MRenderJob(netrender.model.RenderJob):
         if self.status not in {JOB_PAUSED, JOB_QUEUED}:
             return
 
-        if status == None:
+        if status is None:
             self.status = JOB_PAUSED if self.status == JOB_QUEUED else JOB_QUEUED
         elif status:
             self.status = JOB_QUEUED
@@ -199,6 +201,15 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
         # override because the original calls self.address_string(), which
         # is extremely slow due to some timeout..
         sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(), format%args))
+
+    def getInfoMap(self):
+        length = int(self.headers['content-length'])
+
+        if length > 0:
+            msg = str(self.rfile.read(length), encoding='utf8')
+            return json.loads(msg)
+        else:
+            return {}
 
     def send_head(self, code = http.client.OK, headers = {}, content = "application/octet-stream"):
         self.send_response(code)
@@ -296,7 +307,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         elif frame.status == DONE:
                             filename = os.path.join(job.save_path, "%06d.exr" % frame_number)
 
-                            thumbname = thumbnail(filename)
+                            thumbname = thumbnail.generate(filename)
 
                             if thumbname:
                                 f = open(thumbname, 'rb')
@@ -384,7 +395,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             self.server.stats("", "Sending status")
             self.send_head()
-            self.wfile.write(bytes(repr(message), encoding='utf8'))
+            self.wfile.write(bytes(json.dumps(message), encoding='utf8'))
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/job":
@@ -410,7 +421,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
                     message = job.serialize(frames)
 
-                    self.wfile.write(bytes(repr(message), encoding='utf8'))
+                    self.wfile.write(bytes(json.dumps(message), encoding='utf8'))
 
                     self.server.stats("", "Sending job to slave")
                 else:
@@ -468,7 +479,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             self.send_head()
 
-            self.wfile.write(bytes(repr(message), encoding='utf8'))
+            self.wfile.write(bytes(json.dumps(message), encoding='utf8'))
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         else:
             # hand over the rest to the html section
@@ -486,7 +497,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             length = int(self.headers['content-length'])
 
-            job_info = netrender.model.RenderJob.materialize(eval(str(self.rfile.read(length), encoding='utf8')))
+            job_info = netrender.model.RenderJob.materialize(json.loads(str(self.rfile.read(length), encoding='utf8')))
 
             job_id = self.server.nextJobID()
 
@@ -515,8 +526,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                 job = self.server.getJobID(job_id)
 
                 if job:
-                    length = int(self.headers['content-length'])
-                    info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+                    info_map = self.getInfoMap()
 
                     job.edit(info_map)
                     self.send_head()
@@ -528,8 +538,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                 self.send_head(http.client.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/balance_limit":
-            length = int(self.headers['content-length'])
-            info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+            info_map = self.getInfoMap()
             for rule_id, limit in info_map.items():
                 try:
                     rule = self.server.balancer.ruleByID(rule_id)
@@ -541,8 +550,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             self.send_head()
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/balance_enable":
-            length = int(self.headers['content-length'])
-            info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+            info_map = self.getInfoMap()
             for rule_id, enabled in info_map.items():
                 rule = self.server.balancer.ruleByID(rule_id)
                 if rule:
@@ -554,13 +562,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             match = cancel_pattern.match(self.path)
 
             if match:
-                length = int(self.headers['content-length'])
-
-                if length > 0:
-                    info_map = eval(str(self.rfile.read(length), encoding='utf8'))
-                    clear = info_map.get("clear", False)
-                else:
-                    clear = False
+                info_map = self.getInfoMap()
+                clear = info_map.get("clear", False)
 
                 job_id = match.groups()[0]
 
@@ -581,13 +584,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             match = pause_pattern.match(self.path)
 
             if match:
-                length = int(self.headers['content-length'])
-
-                if length > 0:
-                    info_map = eval(str(self.rfile.read(length), encoding='utf8'))
-                    status = info_map.get("status", None)
-                else:
-                    status = None
+                info_map = self.getInfoMap()
+                status = info_map.get("status", None)
 
                 job_id = match.groups()[0]
 
@@ -606,13 +604,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/clear":
             # cancel all jobs
-            length = int(self.headers['content-length'])
-
-            if length > 0:
-                info_map = eval(str(self.rfile.read(length), encoding='utf8'))
-                clear = info_map.get("clear", False)
-            else:
-                clear = False
+            info_map = self.getInfoMap()
+            clear = info_map.get("clear", False)
 
             self.server.stats("", "Clearing jobs")
             self.server.clear(clear)
@@ -657,7 +650,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             self.server.stats("", "New slave connected")
 
-            slave_info = netrender.model.RenderSlave.materialize(eval(str(self.rfile.read(length), encoding='utf8')), cache = False)
+            slave_info = netrender.model.RenderSlave.materialize(json.loads(str(self.rfile.read(length), encoding='utf8')), cache = False)
 
             slave_id = self.server.addSlave(slave_info.name, self.client_address, slave_info.stats)
 
@@ -666,7 +659,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
         elif self.path == "/log":
             length = int(self.headers['content-length'])
 
-            log_info = netrender.model.LogFile.materialize(eval(str(self.rfile.read(length), encoding='utf8')))
+            log_info = netrender.model.LogFile.materialize(json.loads(str(self.rfile.read(length), encoding='utf8')))
 
             slave_id = log_info.slave_id
 
@@ -768,7 +761,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[job_frame]
 
                     if frame:
-                        if job.type == netrender.model.JOB_BLENDER:
+                        if job.hasRenderResult():
                             if job_result == DONE:
                                 length = int(self.headers['content-length'])
                                 buf = self.rfile.read(length)
@@ -819,7 +812,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[job_frame]
 
                     if frame:
-                        if job.type == netrender.model.JOB_BLENDER:
+                        if job.hasRenderResult():
                             length = int(self.headers['content-length'])
                             buf = self.rfile.read(length)
                             f = open(os.path.join(job.save_path, "%06d.jpg" % job_frame), 'wb')

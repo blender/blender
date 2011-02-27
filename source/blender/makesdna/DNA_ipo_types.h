@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_ipo_types.h (mar-2001 nzc)
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,15 +27,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-/* ============================================== 
- * ATTENTION: 
- *
- * The contents of this file are now officially depreceated. They were used for the 'old' animation system,
- * which has (as of 2.50) been replaced with a completely new system by Joshua Leung (aligorith). All defines, 
- * etc. are only still maintained to provide backwards compatability for old files...
- *
- * =============================================
- */ 
+/** \file DNA_ipo_types.h
+ *  \ingroup DNA
+ *  \deprecated
+ *   The contents of this file are now officially depreceated. They were used for the 'old' animation system,
+ *   which has (as of 2.50) been replaced with a completely new system by Joshua Leung (aligorith). All defines, 
+ *   etc. are only still maintained to provide backwards compatability for old files.
+ */
  
 #ifndef DNA_IPO_TYPES_H
 #define DNA_IPO_TYPES_H
@@ -421,10 +417,10 @@ typedef struct Ipo {
 #define PART_TOTNAM		25
 
 #define PART_EMIT_FREQ	1
-#define PART_EMIT_LIFE	2
+/* #define PART_EMIT_LIFE	2 */ /*UNUSED*/
 #define PART_EMIT_VEL	3
 #define PART_EMIT_AVE	4
-#define PART_EMIT_SIZE	5
+/* #define PART_EMIT_SIZE	5 */ /*UNUSED*/
 
 #define PART_AVE		6
 #define PART_SIZE		7

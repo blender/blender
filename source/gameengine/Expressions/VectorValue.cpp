@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/VectorValue.cpp
+ *  \ingroup expressions
+ */
 // VectorValue.cpp: implementation of the CVectorValue class.
 /*
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>
@@ -12,7 +15,7 @@
  *
  */
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786)
 #endif
 

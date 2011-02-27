@@ -1,4 +1,4 @@
-/**
+/*
  * Actuator sensor
  *
  * $Id$
@@ -29,6 +29,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file SCA_ActuatorSensor.h
+ *  \ingroup gamelogic
+ */
+
 #ifndef __KX_ACTUATORSENSOR
 #define __KX_ACTUATORSENSOR
 
@@ -56,7 +60,7 @@ public:
 	virtual void	ReParent(SCA_IObject* parent);
 	void Update();
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -64,7 +68,7 @@ public:
 
 	static int CheckActuator(void *self, const PyAttributeDef*);
 	
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 };
 
 #endif

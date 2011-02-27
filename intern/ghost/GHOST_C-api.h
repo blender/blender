@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,10 +25,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_C-api.h
- * GHOST C-API function and type declarations.
- * The C-API wraps the C++ objects with the 
+/** \ingroup GHOST
+ *
+ * \file	GHOST_C-api.h
+ * \brief GHOST C-API function and type declarations.
  */
 
 #ifndef	GHOST_C_API_H
@@ -45,9 +45,8 @@ extern "C" {
  * Creates a &quot;handle&quot; for a C++ GHOST object.
  * A handle is just an opaque pointer to an empty struct.
  * In the API the pointer is casted to the actual C++ class.
- * @param	name	Name of the handle to create.
+ * \param	name	Name of the handle to create.
  */
-#define GHOST_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
 
 GHOST_DECLARE_HANDLE(GHOST_SystemHandle);
 GHOST_DECLARE_HANDLE(GHOST_TimerTaskHandle);
@@ -168,7 +167,7 @@ extern void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
  * @return	A handle to the new window ( == NULL if creation failed).
  */
 extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
-	char* title,
+	const char* title,
 	GHOST_TInt32 left,
 	GHOST_TInt32 top,
 	GHOST_TUns32 width,
@@ -526,7 +525,7 @@ extern GHOST_TSuccess GHOST_SetDrawingContextType(GHOST_WindowHandle windowhandl
  * @param title	The title to display in the title bar.
  */
 extern void GHOST_SetTitle(GHOST_WindowHandle windowhandle,
-						   char* title);
+						   const char* title);
 
 /**
  * Returns the title displayed in the title bar. The title

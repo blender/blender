@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,7 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Initialize Python thingies.
+ */
+
+/** \file KX_PyMath.h
+ *  \ingroup ketsji
+ *  \brief Initialize Python thingies.
  */
 
 #ifndef __KX_PYMATH_H__
@@ -42,7 +46,7 @@
 #include "KX_Python.h"
 #include "PyObjectPlus.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #ifdef USE_MATHUTILS
 extern "C" {
 #include "../../blender/python/generic/mathutils.h" /* so we can have mathutils callbacks */
@@ -110,7 +114,9 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	
 	if(VectorObject_Check(pyval)) {
 		VectorObject *pyvec= (VectorObject *)pyval;
-		BaseMath_ReadCallback(pyvec);
+		if(!BaseMath_ReadCallback(pyvec)) {
+			return false; /* exception raised */
+		}
 		if (pyvec->size != Size(vec)) {
 			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", pyvec->size, Size(vec));
 			return false;
@@ -120,7 +126,9 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	}
 	else if(QuaternionObject_Check(pyval)) {
 		QuaternionObject *pyquat= (QuaternionObject *)pyval;
-		BaseMath_ReadCallback(pyquat);
+		if(!BaseMath_ReadCallback(pyquat)) {
+			return false; /* exception raised */
+		}
 		if (4 != Size(vec)) {
 			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", 4, Size(vec));
 			return false;
@@ -131,7 +139,9 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	}
 	else if(EulerObject_Check(pyval)) {
 		EulerObject *pyeul= (EulerObject *)pyval;
-		BaseMath_ReadCallback(pyeul);
+		if(!BaseMath_ReadCallback(pyeul)) {
+			return false; /* exception raised */
+		}
 		if (3 != Size(vec)) {
 			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", 3, Size(vec));
 			return false;
@@ -239,4 +249,4 @@ PyObject* PyObjectFrom(const MT_Tuple4 &pos);
 
 #endif
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

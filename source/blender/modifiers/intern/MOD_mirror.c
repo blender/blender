@@ -71,8 +71,9 @@ static void foreachObjectLink(
 		 void *userData)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
-
-	walk(userData, ob, &mmd->mirror_ob);
+	
+	if (mmd->mirror_ob)
+		walk(userData, ob, &mmd->mirror_ob);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
@@ -233,7 +234,7 @@ static DerivedMesh *applyModifier(
 }
 
 static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct EditMesh *editData,
+		ModifierData *md, Object *ob, struct BMEditMesh *editData,
   DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
@@ -254,6 +255,7 @@ ModifierTypeInfo modifierType_Mirror = {
 	/* copyData */          copyData,
 	/* deformVerts */       0,
 	/* deformVertsEM */     0,
+	/* deformMatrices */    0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   applyModifierEM,

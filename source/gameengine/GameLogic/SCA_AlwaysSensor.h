@@ -1,4 +1,4 @@
-/**
+/*
  * SCA_AlwaysSensor.h
  *
  * $Id$
@@ -27,6 +27,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_AlwaysSensor.h
+ *  \ingroup gamelogic
  */
 
 #ifndef __KX_ALWAYSSENSOR

@@ -1,10 +1,7 @@
 # This script must be assigned to a python controller
 # where it can access the object that owns it and the sensors/actuators that it connects to.
 
-# GameLogic has been added to the global namespace no need to import
-
-# for keyboard event comparison
-# import GameKeys
+import bge
 
 # support for Vector(), Matrix() types and advanced functions like Matrix.Scale(...) and Matrix.Rotation(...)
 # import mathutils
@@ -12,15 +9,15 @@
 # for functions like getWindowWidth(), getWindowHeight()
 # import Rasterizer
 
+
 def main():
-    cont = GameLogic.getCurrentController()
+    cont = bge.logic.getCurrentController()
 
     # The KX_GameObject that owns this controller.
     own = cont.owner
 
     # for scripts that deal with spacial logic
     own_pos = own.worldPosition
-
 
     # Some example functions, remove to write your own script.
     # check for a positive sensor, will run on any object without errors.
@@ -55,13 +52,11 @@ def main():
     # sens_key = cont.sensors['key_sensor']
     # actu_motion = cont.actuators['motion']
 
-
     # Loop through all other objects in the scene
-    sce = GameLogic.getCurrentScene()
+    sce = bge.logic.getCurrentScene()
     print('Scene Objects:', sce.name)
     for ob in sce.objects:
         print('   ', ob.name, ob.worldPosition)
-
 
     # Example where collision objects are checked for their properties
     # adding to our objects "life" property

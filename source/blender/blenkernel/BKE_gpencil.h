@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,11 @@
 #ifndef BKE_GPENCIL_H
 #define BKE_GPENCIL_H
 
+/** \file BKE_gpencil.h
+ *  \ingroup bke
+ *  \author Joshua Leung
+ */
+
 struct ListBase;
 struct bGPdata;
 struct bGPDlayer;
@@ -42,7 +47,7 @@ void free_gpencil_data(struct bGPdata *gpd);
 
 struct bGPDframe *gpencil_frame_addnew(struct bGPDlayer *gpl, int cframe);
 struct bGPDlayer *gpencil_layer_addnew(struct bGPdata *gpd);
-struct bGPdata *gpencil_data_addnew(char name[]);
+struct bGPdata *gpencil_data_addnew(const char name[]);
 
 struct bGPDframe *gpencil_frame_duplicate(struct bGPDframe *src);
 struct bGPDlayer *gpencil_layer_duplicate(struct bGPDlayer *src);

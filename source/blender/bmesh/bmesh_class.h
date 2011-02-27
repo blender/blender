@@ -2,7 +2,9 @@
 #define _BMESH_CLASS_H
 
 #include "DNA_listBase.h"
-#include "DNA_customdata_types.h"
+
+#include "BKE_utildefines.h"
+#include "BLI_utildefines.h"
 
 struct BMesh;
 struct BMVert;

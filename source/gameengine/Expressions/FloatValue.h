@@ -12,6 +12,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+
+/** \file FloatValue.h
+ *  \ingroup expressions
+ */
+
 #if !defined _FLOATVALUE_H
 #define _FLOATVALUE_H
 
@@ -36,7 +41,7 @@ public:
 	virtual CValue* GetReplica();
 	virtual CValue* Calc(VALUE_OPERATOR op, CValue *val);
 	virtual CValue* CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	virtual PyObject*	ConvertValueToPython();
 #endif
 

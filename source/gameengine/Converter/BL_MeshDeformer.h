@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file BL_MeshDeformer.h
+ *  \ingroup bgeconv
+ */
+
 #ifndef BL_MESHDEFORMER
 #define BL_MESHDEFORMER
 
@@ -36,7 +40,7 @@
 #include "MT_Point3.h"
 #include <stdlib.h>
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
 

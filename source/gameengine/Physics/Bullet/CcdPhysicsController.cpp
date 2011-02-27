@@ -1,3 +1,6 @@
+/** \file gameengine/Physics/Bullet/CcdPhysicsController.cpp
+ *  \ingroup physbullet
+ */
 /*
 Bullet Continuous Collision Detection and Physics Library
 Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
@@ -12,6 +15,10 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
+
+#ifndef WIN32
+#include <stdint.h>
+#endif
 
 #include "CcdPhysicsController.h"
 #include "btBulletDynamicsCommon.h"
@@ -1690,12 +1697,16 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 		return false;
 
 	RAS_Deformer *deformer= gameobj ? gameobj->GetDeformer():NULL;
+	DerivedMesh* dm = NULL;
+
+	if (deformer)
+		dm = deformer->GetPhysicsMesh();
 	
 	/* get the mesh from the object if not defined */
 	if(meshobj==NULL) {
 		
 		/* modifier mesh */
-		if(deformer && deformer->GetFinalMesh())
+		if(dm)
 			meshobj= deformer->GetRasMesh();
 		
 		/* game object first mesh */
@@ -1706,13 +1717,11 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 		}
 	}
 	
-	if(deformer && deformer->GetFinalMesh() && deformer->GetRasMesh() == meshobj)
+	if(dm && deformer->GetRasMesh() == meshobj)
 	{	/*
 		 * Derived Mesh Update
 		 *
 		 * */
-
-		DerivedMesh* dm= gameobj->GetDeformer()->GetFinalMesh();
 
 		MVert *mvert = dm->getVertArray(dm);
 		MFace *mface = dm->getTessFaceArray(dm);
@@ -1973,6 +1982,10 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 
 	m_meshObject= meshobj;
 	
+	if (dm) {
+		dm->needsFree = 1;
+		dm->release(dm);
+	}
 	return true;
 }
 

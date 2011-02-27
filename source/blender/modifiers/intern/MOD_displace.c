@@ -30,10 +30,17 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_displace.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
@@ -75,16 +82,16 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strncpy(tdmd->uvlayer_name, dmd->uvlayer_name, 32);
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(dmd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+	if(dmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	/* ask for UV coordinates if we need them */
-	if(dmd->texmapping == MOD_DISP_MAP_UV) dataMask |= (1 << CD_MTFACE);
+	if(dmd->texmapping == MOD_DISP_MAP_UV) dataMask |= CD_MASK_MTFACE;
 
 	return dataMask;
 }
@@ -101,6 +108,12 @@ static int dependsOnTime(ModifierData *md)
 	{
 		return 0;
 	}
+}
+
+static int dependsOnNormals(ModifierData *md)
+{
+	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+	return (dmd->direction == MOD_DISP_DIR_NOR);
 }
 
 static void foreachObjectLink(ModifierData *md, Object *ob,
@@ -121,25 +134,32 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
-static int isDisabled(ModifierData *md, int useRenderParams)
+static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
 
 	return (!dmd->texture || dmd->strength == 0.0f);
 }
 
-static void updateDepgraph(
-						ModifierData *md, DagForest *forest, struct Scene *scene,
-	 Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
 
-	if(dmd->map_object) {
+	if(dmd->map_object && dmd->texmapping == MOD_DISP_MAP_OBJECT) {
 		DagNode *curNode = dag_get_node(forest, dmd->map_object);
 
 		dag_add_relation(forest, curNode, obNode,
 				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Displace Modifier");
 	}
+	
+
+	if(dmd->texmapping == MOD_DISP_MAP_GLOBAL)
+		dag_add_relation(forest, obNode, obNode,
+						 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Displace Modifier");
+	
 }
 
 static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
@@ -302,11 +322,14 @@ static void displaceModifier_do(
 	MEM_freeN(tex_co);
 }
 
-static void deformVerts(
-					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int numVerts,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
-	DerivedMesh *dm= get_cddm(md->scene, ob, NULL, derivedData, vertexCos);
+	DerivedMesh *dm= get_cddm(ob, NULL, derivedData, vertexCos);
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
 				 vertexCos, numVerts);
@@ -319,7 +342,7 @@ static void deformVertsEM(
 					   ModifierData *md, Object *ob, struct EditMesh *editData,
 	DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm= get_cddm(md->scene, ob, editData, derivedData, vertexCos);
+	DerivedMesh *dm= get_cddm(ob, editData, derivedData, vertexCos);
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
 				 vertexCos, numVerts);
@@ -339,6 +362,7 @@ ModifierTypeInfo modifierType_Displace = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     0,
@@ -349,6 +373,7 @@ ModifierTypeInfo modifierType_Displace = {
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */	dependsOnNormals,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
 };

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -59,7 +59,7 @@ static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 	iter->valid= (internal->link != NULL);
 }
 
-static bActionGroup *rna_Action_groups_new(bAction *act, char name[])
+static bActionGroup *rna_Action_groups_new(bAction *act, const char name[])
 {
 	return action_groups_add_new(act, name);
 }
@@ -89,7 +89,7 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionG
 	MEM_freeN(agrp); 
 }
 
-static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, char *data_path, int index, char *group)
+static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, const char *data_path, int index, const char *group)
 {
 	if(group && group[0]=='\0') group= NULL;
 
@@ -128,7 +128,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *
 	}
 }
 
-static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports, char name[])
+static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports, const char name[])
 {
 	TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
 	marker->flag= 1;
@@ -141,13 +141,48 @@ static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports
 static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, TimeMarker *marker)
 {
 	if (!BLI_remlink_safe(&act->markers, marker)) {
-		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in action '%s'", marker->name, act->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in Action '%s'", marker->name, act->id.name+2);
 		return;
 	}
 
 	/* XXX, invalidates PyObject */
 	MEM_freeN(marker);
 }
+
+static PointerRNA rna_Action_active_pose_marker_get(PointerRNA *ptr)
+{
+	bAction *act= (bAction*)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_TimelineMarker, BLI_findlink(&act->markers, act->active_marker-1));
+}
+
+static void rna_Action_active_pose_marker_set(PointerRNA *ptr, PointerRNA value)
+{
+	bAction *act= (bAction*)ptr->data;
+	act->active_marker= BLI_findindex(&act->markers, value.data) + 1;
+}
+
+static int rna_Action_active_pose_marker_index_get(PointerRNA *ptr)
+{
+	bAction *act= (bAction*)ptr->data;
+	return MAX2(act->active_marker-1, 0);
+}
+
+static void rna_Action_active_pose_marker_index_set(PointerRNA *ptr, int value)
+{
+	bAction *act= (bAction*)ptr->data;
+	act->active_marker= value+1;
+}
+
+static void rna_Action_active_pose_marker_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	bAction *act= (bAction*)ptr->data;
+
+	*min= 0;
+	*max= BLI_countlist(&act->markers)-1;
+	*max= MAX2(0, *max);
+}
+
+
 
 static void rna_Action_frame_range_get(PointerRNA *ptr,float *values)
 {
@@ -233,6 +268,12 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOMESH);
 	RNA_def_property_ui_text(prop, "Display Meshes", "Include visualization of Mesh related Animation data");
 	RNA_def_property_ui_icon(prop, ICON_MESH_DATA, 0);
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
+	
+	prop= RNA_def_property(srna, "show_lattices", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOLAT);
+	RNA_def_property_ui_text(prop, "Display Lattices", "Include visualization of Lattice related Animation data");
+	RNA_def_property_ui_icon(prop, ICON_LATTICE_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	prop= RNA_def_property(srna, "show_cameras", PROP_BOOLEAN, PROP_NONE);
@@ -399,8 +440,8 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "data_path", "", 0, "Data Path", "FCurve data path to use.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_int(func, "array_index", 0, 0, INT_MAX, "Index", "Array index.", 0, INT_MAX);
-	parm= RNA_def_string(func, "action_group", "", 0, "Action Group", "Acton group to add this fcurve into.");
+	RNA_def_int(func, "array_index", 0, 0, INT_MAX, "Index", "Array index.", 0, INT_MAX);
+	RNA_def_string(func, "action_group", "", 0, "Action Group", "Acton group to add this fcurve into.");
 
 	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created fcurve");
 	RNA_def_function_return(func, parm);
@@ -416,6 +457,7 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	FunctionRNA *func;
 	PropertyRNA *parm;
@@ -439,6 +481,17 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "TimelineMarker");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_Action_active_pose_marker_get", "rna_Action_active_pose_marker_set", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Pose Marker", "Active pose marker for this Action");
+	
+	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "active_marker");
+	RNA_def_property_int_funcs(prop, "rna_Action_active_pose_marker_index_get", "rna_Action_active_pose_marker_index_set", "rna_Action_active_pose_marker_index_range");
+	RNA_def_property_ui_text(prop, "Active Pose Marker Index", "Index of active pose marker");
 }
 
 static void rna_def_action(BlenderRNA *brna)

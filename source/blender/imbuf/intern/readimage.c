@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -46,7 +46,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_filetype.h"
 
-ImBuf *IMB_ibImageFromMemory(unsigned char *mem, int size, int flags)
+ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags)
 {
 	ImBuf *ibuf;
 	ImFileType *type;
@@ -79,7 +79,7 @@ ImBuf *IMB_loadifffile(int file, int flags)
 {
 	ImBuf *ibuf;
 	unsigned char *mem;
-	int size;
+	size_t size;
 
 	if(file == -1) return 0;
 
@@ -151,7 +151,7 @@ ImBuf *IMB_testiffname(char *name, int flags)
 	file = open(filename,O_BINARY|O_RDONLY);
 	if(file < 0) return 0;
 
-	ibuf=IMB_loadifffile(file, flags|IB_test);
+	ibuf=IMB_loadifffile(file, flags|IB_test|IB_multilayer);
 	if(ibuf) {
 		BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
 		BLI_strncpy(ibuf->cachename, filename, sizeof(ibuf->cachename));
@@ -166,7 +166,7 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
 {
 	ImFileType *type;
 	unsigned char *mem;
-	int size;
+	size_t size;
 
 	if(file == -1) return;
 

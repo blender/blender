@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/ListValue.cpp
+ *  \ingroup expressions
+ */
 // ListValue.cpp: implementation of the CListValue class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -268,7 +271,7 @@ bool CListValue::IsModified()
 	return bmod;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* --------------------------------------------------------------------- */
 /* Python interface ---------------------------------------------------- */
@@ -674,4 +677,4 @@ PyObject* CListValue::Pyfrom_id(PyObject* value)
 
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

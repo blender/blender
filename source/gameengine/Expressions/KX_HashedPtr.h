@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_HashedPtr.h
+ *  \ingroup expressions
+ */
+
 #ifndef __KX_HASHEDPTR
 #define __KX_HASHEDPTR
 

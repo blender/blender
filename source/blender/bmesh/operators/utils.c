@@ -64,7 +64,7 @@ void bmesh_translate_exec(BMesh *bm, BMOperator *op)
 	BMO_Get_Vec(op, "vec", vec);
 
 	unit_m4(mat);
-	VECCOPY(mat[3], vec);
+	copy_v3_v3(mat[3], vec);
 
 	BMO_CallOpf(bm, "transform mat=%m4 verts=%s", mat, op, "verts");
 }
@@ -360,12 +360,12 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 		j  = 0;
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
 			co2 = BM_OtherEdgeVert(e, v)->co;
-			VECADD(co, co, co2);
+			add_v3_v3v3(co, co, co2);
 			j += 1;
 		}
 		
 		if (!j) {
-			VECCOPY(co, v->co);
+			copy_v3_v3(co, v->co);
 			i++;
 			continue;
 		}
@@ -390,7 +390,7 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 
 	i = 0;
 	BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
-		VECCOPY(v->co, cos[i]);
+		copy_v3_v3(v->co, cos[i]);
 		i++;
 	}
 
@@ -1056,13 +1056,10 @@ void bmesh_reverseuvs_exec(BMesh *bm, BMOperator *op)
 	BMIter l_iter;		/* iteration loop */
 	BLI_array_declare(uvs);
 	float (*uvs)[2] = NULL;
-	int max_vert_count = 0;
 
 	BMO_ITER(fs, &fs_iter, bm, op, "faces", BM_FACE) {
 		if( CustomData_has_layer(&(bm->ldata), CD_MLOOPUV) ) {
 			BMLoop *lf;	/* current face loops */
-			MLoopUV *f_luv; /* first face loop uv */
-			int num_verts = fs->len;
 			int i = 0;
 
 			BLI_array_empty(uvs);
@@ -1165,14 +1162,10 @@ void bmesh_reversecolors_exec(BMesh *bm, BMOperator *op)
 	BMIter l_iter;		/* iteration loop */
 	BLI_array_declare(cols);
 	MLoopCol *cols = NULL;
-	int max_vert_count = 0;
-
 
 	BMO_ITER(fs, &fs_iter, bm, op, "faces", BM_FACE) {
 		if( CustomData_has_layer(&(bm->ldata), CD_MLOOPCOL) ) {
 			BMLoop *lf;	/* current face loops */
-			MLoopCol *f_lcol; /* first face loop color */
-			int num_verts = fs->len;
 			int i = 0;
 
 			BLI_array_empty(cols);

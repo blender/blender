@@ -1,9 +1,4 @@
-/*  BKE_deform.h   June 2001
- *  
- *  support for deformation groups and hooks
- * 
- *	Reevan McKay et al
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -35,6 +30,13 @@
 #ifndef BKE_DEFORM_H
 #define BKE_DEFORM_H
 
+/** \file BKE_deform.h
+ *  \ingroup bke
+ *  \since June 2001
+ *  \author Reevan McKay et al
+ *  \brief support for deformation groups and hooks.
+ */
+
 struct Object;
 struct ListBase;
 struct bDeformGroup;
@@ -49,10 +51,10 @@ int					 defgroup_flip_index(struct Object *ob, int index, int use_default);
 int					 defgroup_name_index(struct Object *ob, const char *name);
 void				 defgroup_unique_name(struct bDeformGroup *dg, struct Object *ob);
 
-struct MDeformWeight	*defvert_find_index(const struct MDeformVert *dv, int defgroup);
-struct MDeformWeight	*defvert_verify_index(struct MDeformVert *dv, int defgroup);
+struct MDeformWeight	*defvert_find_index(const struct MDeformVert *dv, const int defgroup);
+struct MDeformWeight	*defvert_verify_index(struct MDeformVert *dv, const int defgroup);
 
-float  defvert_find_weight(const struct MDeformVert *dvert, int group_num);
+float  defvert_find_weight(const struct MDeformVert *dvert, const int group_num);
 float  defvert_array_find_weight_safe(const struct MDeformVert *dvert, int index, int group_num);
 
 void defvert_copy(struct MDeformVert *dvert_r, const struct MDeformVert *dvert);
@@ -64,7 +66,7 @@ void defvert_normalize(struct MDeformVert *dvert);
 
 /* utility function, note that 32 chars is the maximum string length since its only
  * used with defgroups currently */
-void flip_side_name(char *name, const char *from_name, int strip_number);
+void flip_side_name(char name[32], const char from_name[32], int strip_number);
 
 #endif
 

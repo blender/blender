@@ -1,4 +1,3 @@
-/* display list (or rather multi purpose list) stuff */
 /* 
 	$Id$
  *
@@ -32,6 +31,10 @@
 #ifndef BKE_DISPLIST_H
 #define BKE_DISPLIST_H
 
+/** \file BKE_displist.h
+ *  \ingroup bke
+ *  \brief display list (or rather multi purpose list) stuff.
+ */
 #include "DNA_customdata_types.h"
 #include "BKE_customdata.h"
 
@@ -98,7 +101,6 @@ extern void shadeDispList(struct Scene *scene, struct Base *base);
 extern void shadeMeshMCol(struct Scene *scene, struct Object *ob, struct Mesh *me);
 
 int surfindex_displist(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
-void imagestodisplist(void);
 void reshadeall_displist(struct Scene *scene);
 void filldisplist(struct ListBase *dispbase, struct ListBase *to, int flipnormal);
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,10 @@
  */
 #ifndef DNA_GPENCIL_TYPES_H
 #define DNA_GPENCIL_TYPES_H
+
+/** \file DNA_gpencil_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"

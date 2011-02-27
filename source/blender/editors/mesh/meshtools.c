@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,7 +33,6 @@
 
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include <float.h>
 
@@ -47,6 +46,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_rand.h" /* for randome face sorting */
@@ -64,6 +64,7 @@
 #include "BKE_material.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
+#include "BKE_multires.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -76,14 +77,14 @@
 
 /* own include */
 #include "mesh_intern.h"
-
+#include "uvedit_intern.h"
 
 /* * ********************** no editmode!!! *********** */
 
 /*********************** JOIN ***************************/
 
 /* join selected meshes into the active mesh, context sensitive
-return 0 if no join is made (error) and 1 of the join is done */
+return 0 if no join is made (error) and 1 if the join is done */
 
 int join_mesh_exec(bContext *C, wmOperator *op)
 {
@@ -92,11 +93,11 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	Material **matar, *ma;
 	Mesh *me;
-	MVert *mvert, *mv, *mvertmain;
-	MEdge *medge = NULL, *medgemain;
-	MFace *mface = NULL, *mfacemain;
-	MPoly *mpoly = NULL, *mpolymain;
-	MLoop *mloop = NULL, *mloopmain;
+	MVert *mvert, *mv;
+	MEdge *medge = NULL;
+	MFace *mface = NULL;
+	MPoly *mpoly = NULL;
+	MLoop *mloop = NULL;
 	Key *key, *nkey=NULL;
 	KeyBlock *kb, *okb, *kbn;
 	float imat[4][4], cmat[4][4], *fp1, *fp2, curpos;
@@ -107,12 +108,16 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	MDeformVert *dvert;
 	CustomData vdata, edata, fdata, ldata, pdata;
 
-	if(scene->obedit)
+	if(scene->obedit) {
+		BKE_report(op->reports, RPT_WARNING, "Cant join while in editmode");
 		return OPERATOR_CANCELLED;
+	}
 	
 	/* ob is the object we are adding geometry to */
-	if(!ob || ob->type!=OB_MESH)
+	if(!ob || ob->type!=OB_MESH) {
+		BKE_report(op->reports, RPT_WARNING, "Active object is not a mesh");
 		return OPERATOR_CANCELLED;
+	}
 	
 	/* count & check */
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
@@ -137,15 +142,25 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* that way the active object is always selected */ 
-	if(ok==0)
+	if(ok==0) {
+		BKE_report(op->reports, RPT_WARNING, "Active object is not a selected mesh");
 		return OPERATOR_CANCELLED;
+	}
 	
 	/* only join meshes if there are verts to join, there aren't too many, and we only had one mesh selected */
 	me= (Mesh *)ob->data;
 	key= me->key;
-	if(totvert==0 || totvert>MESH_MAX_VERTS || totvert==me->totvert) 
+
+	if(totvert==0 || totvert==me->totvert) {
+		BKE_report(op->reports, RPT_WARNING, "No mesh data to join");
 		return OPERATOR_CANCELLED;
+	}
 	
+	if(totvert > MESH_MAX_VERTS) {
+		BKE_reportf(op->reports, RPT_WARNING, "Joining results in %d vertices, limit is " STRINGIFY(MESH_MAX_VERTS), totvert);
+		return OPERATOR_CANCELLED;		
+	}
+
 	/* new material indices and material array */
 	matar= MEM_callocN(sizeof(void*)*totmat, "join_mesh matar");
 	if (totmat) matmap= MEM_callocN(sizeof(int)*totmat, "join_mesh matmap");
@@ -274,13 +289,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	mface= CustomData_add_layer(&fdata, CD_MFACE, CD_CALLOC, NULL, totface);
 	mloop= CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, NULL, totloop);
 	mpoly= CustomData_add_layer(&pdata, CD_MPOLY, CD_CALLOC, NULL, totpoly);
-	
-	mvertmain= mvert;
-	medgemain= medge;
-	mfacemain= mface;
-	mloopmain = mloop;
-	mpolymain = mpoly;
-	
+
 	vertofs= 0;
 	edgeofs= 0;
 	faceofs= 0;
@@ -409,6 +418,9 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 					}
 				}
 				
+				if(base->object!=ob)
+					multiresModifier_prepare_join(scene, base->object, ob);
+
 				CustomData_merge(&me->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface);
 				CustomData_copy_data(&me->fdata, &fdata, 0, faceofs, me->totface);
 				
@@ -557,10 +569,19 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 	
 	DAG_scene_sort(bmain, scene);	// removed objects, need to rebuild dag before editmode call
-	
+
+#if 0
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
 	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR|EM_DO_UNDO);
-
+#else
+	/* toggle editmode using lower level functions so this can be called from python */
+	EDBM_MakeEditBMesh(scene->toolsettings, scene, ob);
+	EDBM_LoadEditBMesh(scene, ob);
+	EDBM_FreeEditBMesh(me->edit_btmesh);
+	MEM_freeN(me->edit_btmesh);
+	me->edit_btmesh= NULL;
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
+#endif
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;
@@ -598,9 +619,9 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	
 	if (!ok) {
 		if (nonequal_verts)
-			BKE_report(op->reports, RPT_ERROR, "Selected meshes must have equal numbers of vertices.");
+			BKE_report(op->reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices.");
 		else
-			BKE_report(op->reports, RPT_ERROR, "No additional selected meshes with equal vertex count to join.");
+			BKE_report(op->reports, RPT_WARNING, "No additional selected meshes with equal vertex count to join.");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -815,8 +836,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 			BMIter iter;
 			BMVert *eve;
 			
-			eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-			for (; eve; eve=BMIter_Step(&iter))
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
 				DO_MINMAX(eve->co, min, max)
 		}
 		else {		
@@ -852,8 +872,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 			BMVert *eve;
 			BMIter iter;
 
-			eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-			for (; eve; eve=BMIter_Step(&iter)) {
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (intptr_t)(eve));
 			}
 		}
@@ -911,31 +930,27 @@ static int  mesh_topo_lookup_mode = -1;
 /* if end, ob can be NULL */
 long mesh_mirrtopo_table(Object *ob, char mode)
 {
-#if 0
 	if(mode=='u') {		/* use table */
 		Mesh *me= ob->data;
 		if(	(mesh_topo_lookup==NULL) ||
 			(mesh_topo_lookup_mode != ob->mode) ||
-			(me->edit_mesh && me->edit_mesh->totvert != mesh_topo_lookup_tot) ||
-			(me->edit_mesh==NULL && me->totvert != mesh_topo_lookup_tot)
+			(me->edit_btmesh && me->edit_btmesh->bm->totvert != mesh_topo_lookup_tot) ||
+			(me->edit_btmesh==NULL && me->totvert != mesh_topo_lookup_tot)
 		) {
 			mesh_mirrtopo_table(ob, 's');
 		}
 	} else if(mode=='s') { /* start table */
 		Mesh *me= ob->data;
 		MEdge *medge;
-		EditMesh *em= me->edit_mesh;
-
-
-		/* editmode*/
-		EditEdge *eed;
-
-		int a, last, totvert;
-		int totUnique= -1, totUniqueOld= -1;
-
+		BMEditMesh *em= me->edit_btmesh;
+		BMEdge *eed;
+		BMIter iter;
 		MIRRHASH_TYPE *MirrTopoHash = NULL;
 		MIRRHASH_TYPE *MirrTopoHash_Prev = NULL;
 		MirrTopoPair *MirrTopoPairs;
+		int a, last, totvert;
+		int totUnique= -1, totUniqueOld= -1;
+
 		mesh_topo_lookup_mode= ob->mode;
 
 		/* reallocate if needed */
@@ -945,12 +960,15 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		}
 
 		if(em) {
-			EditVert *eve;
+			BMVert *eve;
+
 			totvert= 0;
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				eve->hash = totvert++;
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+				BMINDEX_SET(eve, totvert);
+				totvert++;
 			}
-		} else {
+		}
+		else {
 			totvert = me->totvert;
 		}
 
@@ -958,9 +976,9 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 
 		/* Initialize the vert-edge-user counts used to detect unique topology */
 		if(em) {
-			for(eed=em->edges.first; eed; eed= eed->next) {
-				MirrTopoHash[eed->v1->hash]++;
-				MirrTopoHash[eed->v2->hash]++;
+			BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+				MirrTopoHash[BMINDEX_GET(eed->v1)]++;
+				MirrTopoHash[BMINDEX_GET(eed->v2)]++;
 			}
 		} else {
 			for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {
@@ -976,9 +994,9 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 			/* use the number of edges per vert to give verts unique topology IDs */
 
 			if(em) {
-				for(eed=em->edges.first; eed; eed= eed->next) {
-					MirrTopoHash[eed->v1->hash] += MirrTopoHash_Prev[eed->v2->hash];
-					MirrTopoHash[eed->v2->hash] += MirrTopoHash_Prev[eed->v1->hash];
+				BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+					MirrTopoHash[BMINDEX_GET(eed->v1)] += MirrTopoHash_Prev[BMINDEX_GET(eed->v2)];
+					MirrTopoHash[BMINDEX_GET(eed->v2)] += MirrTopoHash_Prev[BMINDEX_GET(eed->v1)];
 				}
 			} else {
 				for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {
@@ -1017,7 +1035,7 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		mesh_topo_lookup = MEM_mallocN( totvert * sizeof(long), "mesh_topo_lookup" );
 
 		if(em) {
-			EM_init_index_arrays(em,1,0,0);
+			EDBM_init_index_arrays(em,1,0,0);
 		}
 
 
@@ -1041,8 +1059,8 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 			if ((a==totvert) || (MirrTopoPairs[a-1].hash != MirrTopoPairs[a].hash)) {
 				if (a-last==2) {
 					if(em) {
-						mesh_topo_lookup[MirrTopoPairs[a-1].vIndex] =	(long)EM_get_vert_for_index(MirrTopoPairs[a-2].vIndex);
-						mesh_topo_lookup[MirrTopoPairs[a-2].vIndex] =	(long)EM_get_vert_for_index(MirrTopoPairs[a-1].vIndex);
+						mesh_topo_lookup[MirrTopoPairs[a-1].vIndex] =	(long)EDBM_get_vert_for_index(em, MirrTopoPairs[a-2].vIndex);
+						mesh_topo_lookup[MirrTopoPairs[a-2].vIndex] =	(long)EDBM_get_vert_for_index(em, MirrTopoPairs[a-1].vIndex);
 					} else {
 						mesh_topo_lookup[MirrTopoPairs[a-1].vIndex] =	MirrTopoPairs[a-2].vIndex;
 						mesh_topo_lookup[MirrTopoPairs[a-2].vIndex] =	MirrTopoPairs[a-1].vIndex;
@@ -1052,7 +1070,7 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 			}
 		}
 		if(em) {
-			EM_free_index_arrays();
+			EDBM_free_index_arrays(em);
 		}
 
 		MEM_freeN( MirrTopoPairs );
@@ -1071,12 +1089,9 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		mesh_topo_lookup_tot= -1;
 	}
 	return 0;
-#endif
-
-	return 0;
 }
 
-int mesh_get_x_mirror_vert_spacial(Object *ob, int index)
+static int mesh_get_x_mirror_vert_spacial(Object *ob, int index)
 {
 	Mesh *me= ob->data;
 	MVert *mvert;
@@ -1090,33 +1105,25 @@ int mesh_get_x_mirror_vert_spacial(Object *ob, int index)
 	return mesh_octree_table(ob, NULL, vec, 'u');
 }
 
-/*BMESH_TODO: hook into editbmesh_bvh.h code, though that'll require caching the
-              bvh structure most likely, not too difficult*/
-BMVert *editmesh_get_x_mirror_vert(Object *ob, BMEditMesh *em, float *co)
+static int mesh_get_x_mirror_vert_topo(Object *ob, int index)
 {
-#if 0
 	if (mesh_mirrtopo_table(ob, 'u')==-1)
 		return -1;
 
 	return mesh_topo_lookup[index];
-#endif
-	return NULL;
-
 }
 
 int mesh_get_x_mirror_vert(Object *ob, int index)
 {
-#if 0 //BMESH_TODO
 	if (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_TOPO) {
 		return mesh_get_x_mirror_vert_topo(ob, index);
 	} else {
 		return mesh_get_x_mirror_vert_spacial(ob, index);
 	}
-#endif
 	return 0;
 }
 
-static EditVert *editmesh_get_x_mirror_vert_spacial(Object *ob, EditMesh *em, float *co)
+static BMVert *editbmesh_get_x_mirror_vert_spacial(Object *ob, BMEditMesh *em, float *co)
 {
 	float vec[3];
 	intptr_t poinval;
@@ -1138,41 +1145,48 @@ static EditVert *editmesh_get_x_mirror_vert_spacial(Object *ob, EditMesh *em, fl
 	return NULL;
 }
 
-static EditVert *editmesh_get_x_mirror_vert_topo(Object *ob, struct EditMesh *em, EditVert *eve, int index)
+static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, struct BMEditMesh *em, BMVert *eve, int index)
 {
 	long poinval;
 	if (mesh_mirrtopo_table(ob, 'u')==-1)
 		return NULL;
 
-	if (index!=-1) {
-		index = BLI_findindex(&em->verts, eve);
+	if (index == -1) {
+		BMIter iter;
+		BMVert *v;
+		
+		index = 0;
+		BM_ITER(v, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+			if (v == eve)
+				break;
+			index++;
+		}
+		
+		if (index == em->bm->totvert) {
+			return NULL;
+		}
 	}
-
-	if (index==-1)
-		return NULL;
 
 	poinval= mesh_topo_lookup[ index ];
 
 	if(poinval != -1)
-		return (EditVert *)(poinval);
+		return (BMVert *)(poinval);
 	return NULL;
-}
+}	
 
-#if 0
-EditVert *editmesh_get_x_mirror_vert(Object *ob, struct EditMesh *em, EditVert *eve, float *co, int index)
+BMVert *editbmesh_get_x_mirror_vert(Object *ob, struct BMEditMesh *em, BMVert *eve, float *co, int index)
 {
 	//BMESH_TODO use this flag, ME_EDIT_MIRROR_TOPO, at appropriate places
 	if (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_TOPO) {
-		return editmesh_get_x_mirror_vert_topo(ob, em, eve, index);
+		return editbmesh_get_x_mirror_vert_topo(ob, em, eve, index);
 	} else {
-		return editmesh_get_x_mirror_vert_spacial(ob, em, eve->co);
+		return editbmesh_get_x_mirror_vert_spacial(ob, em, co);
 	}
 }
-#endif
 
 
-#if 0
-float *editmesh_get_mirror_uv(int axis, float *uv, float *mirrCent, float *face_cent)
+
+float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float *mirrCent, float *face_cent)
 {
 	float vec[2];
 	float cent_vec[2];
@@ -1200,30 +1214,33 @@ float *editmesh_get_mirror_uv(int axis, float *uv, float *mirrCent, float *face_
 
 	/* TODO - Optimize */
 	{
-		EditFace *efa;
-		int i, len;
-		for(efa=em->faces.first; efa; efa=efa->next) {
-			MTFace *tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			uv_center(tf->uv, cent, (void *)efa->v4);
-
+		BMIter iter;
+		BMFace *efa;
+		
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			poly_uv_center(em, efa, cent);
+			
 			if ( (fabs(cent[0] - cent_vec[0]) < 0.001) && (fabs(cent[1] - cent_vec[1]) < 0.001) ) {
-				len = efa->v4 ? 4 : 3;
-				for (i=0; i<len; i++) {
-					if ( (fabs(tf->uv[i][0] - vec[0]) < 0.001) && (fabs(tf->uv[i][1] - vec[1]) < 0.001) ) {
-						return tf->uv[i];
-					}
+				BMIter liter;
+				BMLoop *l;
+				
+				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					if ( (fabs(luv->uv[0] - vec[0]) < 0.001) && (fabs(luv->uv[1] - vec[1]) < 0.001) ) {
+						return luv->uv;
+								
 				}
 			}
 		}
 	}
+	}
 
 	return NULL;
 }
-#endif
 
-static unsigned int mirror_facehash(void *ptr)
+static unsigned int mirror_facehash(const void *ptr)
 {
-	MFace *mf= ptr;
+	const MFace *mf= ptr;
 	int v0, v1;
 
 	if(mf->v4) {
@@ -1262,7 +1279,7 @@ static int mirror_facerotation(MFace *a, MFace *b)
 	return -1;
 }
 
-static int mirror_facecmp(void *a, void *b)
+static int mirror_facecmp(const void *a, const void *b)
 {
 	return (mirror_facerotation((MFace*)a, (MFace*)b) == -1);
 }

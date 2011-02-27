@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  * os dependent include locations of gl.h
+ */
+
+/** \file BIF_gl.h
+ *  \ingroup editorui
  */
 
 #ifndef BIF_GL_H

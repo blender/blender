@@ -18,9 +18,17 @@
 # All rights reserved.
 #
 
-SET(INC ./include )
-ADD_DEFINITIONS(-DENABLE_BINRELOC)
-FILE(GLOB SRC *.c)
+set(SRC
+	binreloc.c
 
-BLENDERLIB(extern_binreloc "${SRC}" "${INC}")
-#, libtype=['core','player'], priority = [25,15] ) 
+	include/binreloc.h
+)
+
+set(INC
+	./include
+)
+
+add_definitions(-DENABLE_BINRELOC)
+
+
+blender_add_lib(extern_binreloc "${SRC}" "${INC}")

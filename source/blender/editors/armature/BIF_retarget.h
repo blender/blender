@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -154,7 +154,11 @@ typedef struct RigControl {
 void BIF_retargetArc(struct bContext *C, ReebArc *earc, RigGraph *template_rigg);
 RigGraph *RIG_graphFromArmature(const struct bContext *C, struct Object *ob, struct bArmature *arm);
 int RIG_nbJoints(RigGraph *rg);
-char *RIG_nameBone(RigGraph *rg, int arc_index, int bone_index);
+const char *RIG_nameBone(RigGraph *rg, int arc_index, int bone_index);
 void RIG_freeRigGraph(BGraph *rg);
+
+/* UNUSED */
+void BIF_retargetArmature(bContext *C);
+void BIF_adjustRetarget(bContext *C);
 
 #endif /* BIF_RETARGET_H */

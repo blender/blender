@@ -1,4 +1,4 @@
-/**
+/*
  * Delay trigger
  *
  * $Id$
@@ -29,11 +29,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef WIN32
+/** \file gameengine/GameLogic/SCA_DelaySensor.cpp
+ *  \ingroup gamelogic
+ */
+
+
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 // This warning tells us about truncation of __long__ stl-generated names.
 // It can occasionally cause DevStudio to have internal compiler warnings.
 #pragma warning( disable : 4786 )     
 #endif
+
+#include <stddef.h>
 
 #include "SCA_DelaySensor.h"
 #include "SCA_LogicManager.h"
@@ -120,7 +127,7 @@ bool SCA_DelaySensor::Evaluate()
 	return trigger;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -160,6 +167,6 @@ PyAttributeDef SCA_DelaySensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

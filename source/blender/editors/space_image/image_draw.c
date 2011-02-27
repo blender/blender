@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -39,7 +39,10 @@
 #include "DNA_brush_types.h"
 
 #include "PIL_time.h"
+
 #include "BLI_threads.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -49,8 +52,14 @@
 #include "BKE_image.h"
 #include "BKE_paint.h"
 
+#ifdef WITH_LCMS
+#include "BKE_colortools.h"
+#endif
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "BLF_api.h"
 
 #include "ED_gpencil.h"
 #include "ED_image.h"
@@ -66,7 +75,7 @@
 
 #define HEADER_HEIGHT 18
 
-static void image_verify_buffer_float(SpaceImage *sima, Image *ima, ImBuf *ibuf, int color_manage)
+static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
 {
 	/* detect if we need to redo the curve map.
 	   ibuf->rect is zero for compositor and render results after change 
@@ -75,7 +84,7 @@ static void image_verify_buffer_float(SpaceImage *sima, Image *ima, ImBuf *ibuf,
 	   NOTE: if float buffer changes, we have to manually remove the rect
 	*/
 
-	if(ibuf->rect_float && ibuf->rect==NULL) {
+	if(ibuf->rect_float && (ibuf->rect==NULL || (ibuf->userflags & IB_RECT_INVALID)) ) {
 		if(color_manage) {
 			if(ima && ima->source == IMA_SRC_VIEWER)
 				ibuf->profile = IB_PROFILE_LINEAR_RGB;
@@ -121,36 +130,41 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar)
 void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf)
 {
 	char str[256];
-	int ofs;
-	
-	ofs= sprintf(str, "X: %d Y: %d ", x, y);
+	int ofs= 0;
+
+	ofs += BLI_snprintf(str + ofs, sizeof(str)-ofs, "X: %4d Y: %4d ", x, y);
 	if(cp)
-		ofs+= sprintf(str+ofs, "| R: %d G: %d B: %d A: %d ", cp[0], cp[1], cp[2], cp[3]);
+		ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| R: %3d G: %3d B: %3d A: %3d ", cp[0], cp[1], cp[2], cp[3]);
 
 	if(fp) {
 		if(channels==4)
-			ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f A: %.3f ", fp[0], fp[1], fp[2], fp[3]);
+			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| R: %.3f G: %.3f B: %.3f A: %.3f ", fp[0], fp[1], fp[2], fp[3]);
 		else if(channels==1)
-			ofs+= sprintf(str+ofs, "| Val: %.3f ", fp[0]);
+			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Val: %.3f ", fp[0]);
 		else if(channels==3)
-			ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f ", fp[0], fp[1], fp[2]);
+			ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| R: %.3f G: %.3f B: %.3f ", fp[0], fp[1], fp[2]);
 	}
 
 	if(zp)
-		ofs+= sprintf(str+ofs, "| Z: %.4f ", 0.5+0.5*(((float)*zp)/(float)0x7fffffff));
+		ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Z: %.4f ", 0.5+0.5*(((float)*zp)/(float)0x7fffffff));
 	if(zpf)
-		ofs+= sprintf(str+ofs, "| Z: %.3f ", *zpf);
-	
+		ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Z: %.3f ", *zpf);
+	(void)ofs;
+
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	
 	glColor4f(.0,.0,.0,.25);
-	glRectf(0.0, 0.0, ar->winrct.xmax - ar->winrct.xmin + 1, 30.0);
+	glRecti(0.0, 0.0, ar->winrct.xmax - ar->winrct.xmin + 1, 20);
 	glDisable(GL_BLEND);
 	
 	glColor3ub(255, 255, 255);
 	
-	UI_DrawString(10, 10, str);
+	// UI_DrawString(6, 6, str); // works ok but fixed width is nicer.
+	BLF_size(blf_mono_font, 11, 72);
+	BLF_position(blf_mono_font, 6, 6, 0);
+	BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+	
 }
 
 /* image drawing */
@@ -363,7 +377,7 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 	}
 #ifdef WITH_LCMS
 	else if(sima->flag & SI_COLOR_CORRECTION) {
-		image_verify_buffer_float(sima, ima, ibuf, color_manage);
+		image_verify_buffer_float(ima, ibuf, color_manage);
 		
 		if(sima_draw_colorcorrected_pixels(x, y, ibuf)==0) {
 			unsigned char col1[3]= {100, 0, 100}, col2[3]= {160, 0, 160}; /* pink says 'warning' in blender land */
@@ -378,12 +392,12 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 			sima_draw_alpha_backdrop(x, y, ibuf->x, ibuf->y, zoomx, zoomy, col1, col2);
 
 			glEnable(GL_BLEND);
-			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 
 		/* we don't draw floats buffers directly but
 		 * convert them, and optionally apply curves */
-		image_verify_buffer_float(sima, ima, ibuf, color_manage);
+		image_verify_buffer_float(ima, ibuf, color_manage);
 
 		if(ibuf->rect)
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
@@ -436,7 +450,7 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 		sima->curtile = ima->xrep*ima->yrep - 1; 
 	
 	/* create char buffer from float if needed */
-	image_verify_buffer_float(sima, ima, ibuf, color_manage);
+	image_verify_buffer_float(ima, ibuf, color_manage);
 
 	/* retrieve part of image buffer */
 	dx= ibuf->x/ima->xrep;
@@ -461,13 +475,18 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 
 static void draw_image_buffer_repeated(SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float zoomx, float zoomy)
 {
-	float x, y;
-	double time_current;
-	
-	time_current = PIL_check_seconds_timer();
+	const double time_current= PIL_check_seconds_timer();
 
-	for(x=floor(ar->v2d.cur.xmin); x<ar->v2d.cur.xmax; x += 1.0f) { 
-		for(y=floor(ar->v2d.cur.ymin); y<ar->v2d.cur.ymax; y += 1.0f) { 
+	const int xmax= ceil(ar->v2d.cur.xmax);
+	const int ymax= ceil(ar->v2d.cur.ymax);
+	const int xmin= floor(ar->v2d.cur.xmin);
+	const int ymin= floor(ar->v2d.cur.ymin);
+
+	int x;
+
+	for(x=xmin; x<xmax; x++) {
+		int y;
+		for(y=ymin; y<ymax; y++) { 
 			if(ima && (ima->tpageflag & IMA_TILES))
 				draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
 			else
@@ -575,7 +594,7 @@ static unsigned char *get_alpha_clone_image(Scene *scene, int *width, int *heigh
 	return rect;
 }
 
-static void draw_image_paint_helpers(SpaceImage *sima, ARegion *ar, Scene *scene, float zoomx, float zoomy)
+static void draw_image_paint_helpers(ARegion *ar, Scene *scene, float zoomx, float zoomy)
 {
 	Brush *brush;
 	int x, y, w, h;
@@ -654,7 +673,8 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 		draw_image_buffer(sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
 	/* paint helpers */
-	draw_image_paint_helpers(sima, ar, scene, zoomx, zoomy);
+	if(sima->flag & SI_DRAWTOOL)
+		draw_image_paint_helpers(ar, scene, zoomx, zoomy);
 
 
 	/* XXX integrate this code */

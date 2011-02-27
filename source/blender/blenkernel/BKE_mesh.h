@@ -1,4 +1,4 @@
-/**
+/*
  * blenlib/BKE_mesh.h (mar-2001 nzc)
  *	
  * $Id$ 
@@ -31,6 +31,10 @@
 #ifndef BKE_MESH_H
 #define BKE_MESH_H
 
+/** \file BKE_mesh.h
+ *  \ingroup bke
+ */
+
 /***/
 
 struct BoundBox;
@@ -50,6 +54,8 @@ struct Object;
 struct MTFace;
 struct VecNor;
 struct CustomData;
+struct DerivedMesh;
+struct Scene;
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,7 +88,7 @@ void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart,
 
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me, int unlink);
-struct Mesh *add_mesh(char *name);
+struct Mesh *add_mesh(const char *name);
 struct Mesh *copy_mesh(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me);
 
@@ -123,7 +129,9 @@ void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_
 
 /* if old, it converts mface->edcode to edge drawflags */
 void make_edges(struct Mesh *me, int old);
+
 void mesh_strip_loose_faces(struct Mesh *me);
+void mesh_strip_loose_edges(struct Mesh *me);
 
 	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
 	 * and vertex normals are stored in actual mverts.
@@ -168,8 +176,8 @@ void create_vert_edge_map(ListBase **map, IndexNode **mem, const struct MEdge *m
 /* Partial Mesh Visibility */
 struct PartialVisibility *mesh_pmv_copy(struct PartialVisibility *);
 void mesh_pmv_free(struct PartialVisibility *);
-void mesh_pmv_revert(struct Object *ob, struct Mesh *me);
-void mesh_pmv_off(struct Object *ob, struct Mesh *me);
+void mesh_pmv_revert(struct Mesh *me);
+void mesh_pmv_off(struct Mesh *me);
 
 /* functions for making menu's from customdata layers */
 int mesh_layers_menu_charlen(struct CustomData *data, int type); /* use this to work out how many chars to allocate */
@@ -183,9 +191,15 @@ int mesh_center_median(struct Mesh *me, float cent[3]);
 int mesh_center_bounds(struct Mesh *me, float cent[3]);
 void mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
+/* mesh_validate.c */
+int BKE_mesh_validate_arrays(struct Mesh *me, struct MVert *mverts, int totvert, struct MEdge *medges, int totedge, struct MFace *mfaces, int totface, const short do_verbose, const short do_fixes);
+int BKE_mesh_validate(struct Mesh *me, int do_verbose);
+int BKE_mesh_validate_dm(struct DerivedMesh *dm);
+
+void BKE_mesh_calc_edges(struct Mesh *mesh, int update);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif
-
+#endif /* BKE_MESH_H */

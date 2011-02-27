@@ -95,6 +95,11 @@ class TEXT_PT_properties(bpy.types.Panel):
         if text:
             flow.prop(text, "use_tabs_as_spaces")
 
+        flow.prop(st, "show_margin")
+        col = flow.column()
+        col.active = st.show_margin
+        col.prop(st, "margin_column")
+
 
 class TEXT_PT_find(bpy.types.Panel):
     bl_space_type = 'TEXT_EDITOR'
@@ -131,12 +136,12 @@ class TEXT_PT_find(bpy.types.Panel):
 
 class TEXT_MT_view(bpy.types.Menu):
     bl_label = "View"
-    
+
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator("text.properties", icon='MENU_PANEL')
-        
+
         layout.separator()
 
         layout.operator("screen.area_dupli")
@@ -146,8 +151,8 @@ class TEXT_MT_view(bpy.types.Menu):
 
         layout.operator("text.move", text="Top of File").type = 'FILE_TOP'
         layout.operator("text.move", text="Bottom of File").type = 'FILE_BOTTOM'
-        
-        
+
+
 class TEXT_MT_text(bpy.types.Menu):
     bl_label = "Text"
 
@@ -174,7 +179,7 @@ class TEXT_MT_text(bpy.types.Menu):
             layout.column()
             layout.operator("text.run_script")
 
-            #ifndef DISABLE_PYTHON
+            #ifdef WITH_PYTHON
             # XXX if(BPY_is_pyconstraint(text))
             # XXX   uiMenuItemO(head, 0, "text.refresh_pyconstraints");
             #endif
@@ -293,12 +298,13 @@ class TEXT_MT_toolbox(bpy.types.Menu):
 
         layout.operator("text.run_script")
 
+
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

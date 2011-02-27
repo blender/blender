@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +19,10 @@
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_render.h
+ *  \ingroup editors
  */
 
 #ifndef ED_RENDER_H
@@ -42,8 +46,6 @@ void ED_operatortypes_render(void);
 void ED_render_id_flush_update(struct Main *bmain, struct ID *id);
 
 /* render_preview.c */
-
-#define _RENDERSIZE 140
 
 /* stores rendered preview  - is also used for icons */
 typedef struct RenderInfo {

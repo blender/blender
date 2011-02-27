@@ -1,3 +1,6 @@
+/** \file gameengine/VideoTexture/ImageBase.cpp
+ *  \ingroup bgevideotex
+ */
 /* $Id$
 -----------------------------------------------------------------------------
 This source file is part of VideoTexture library
@@ -56,7 +59,8 @@ m_staticSources(staticSrc), m_pyfilter(NULL)
 ImageBase::~ImageBase (void)
 {
 	// release image
-	delete [] m_image;
+	if (m_image)
+		delete [] m_image;
 }
 
 
@@ -198,7 +202,8 @@ void ImageBase::init (short width, short height)
 			// set new buffer size
 			m_imgSize = newSize;
 			// release previous and create new buffer
-			delete [] m_image;
+			if (m_image)
+				delete [] m_image;
 			m_image = new unsigned int[m_imgSize];
 		}
 		// new image size

@@ -23,12 +23,19 @@ This module contains utility functions specific to blender but
 not assosiated with blenders internal data.
 """
 
+from _bpy import register_class
+from _bpy import unregister_class
+
+from _bpy import blend_paths
+from _bpy import script_paths as _bpy_script_paths
+from _bpy import user_resource as _user_resource
+
 import bpy as _bpy
 import os as _os
 import sys as _sys
 
-from _bpy import blend_paths
-from _bpy import script_paths as _bpy_script_paths
+import addon_utils
+
 
 def _test_import(module_name, loaded_modules):
     import traceback
@@ -49,8 +56,13 @@ def _test_import(module_name, loaded_modules):
     if _bpy.app.debug:
         print("time %s %.4f" % (module_name, time.time() - t))
 
-    loaded_modules.add(mod.__name__) # should match mod.__name__ too
+    loaded_modules.add(mod.__name__)  # should match mod.__name__ too
     return mod
+
+
+def _sys_path_ensure(path):
+    if path not in _sys.path:  # reloading would add twice
+        _sys.path.insert(0, path)
 
 
 def modules_from_path(path, loaded_modules):
@@ -64,28 +76,18 @@ def modules_from_path(path, loaded_modules):
     :return: all loaded modules.
     :rtype: list
     """
-    import traceback
-    import time
-
     modules = []
 
-    for f in sorted(_os.listdir(path)):
-        if f.endswith(".py"):
-            # python module
-            mod = _test_import(f[0:-3], loaded_modules)
-        elif ("." not in f) and (_os.path.isfile(_os.path.join(path, f, "__init__.py"))):
-            # python package
-            mod = _test_import(f, loaded_modules)
-        else:
-            mod = None
-
+    for mod_name, mod_path in _bpy.path.module_names(path):
+        mod = _test_import(mod_name, loaded_modules)
         if mod:
             modules.append(mod)
 
     return modules
-            
-_global_loaded_modules = [] # store loaded module names for reloading.
-import bpy_types as _bpy_types # keep for comparisons, never ever reload this.
+
+
+_global_loaded_modules = []  # store loaded module names for reloading.
+import bpy_types as _bpy_types  # keep for comparisons, never ever reload this.
 
 
 def load_scripts(reload_scripts=False, refresh_scripts=False):
@@ -100,22 +102,23 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     import traceback
     import time
 
-    # must be set back to True on exits
-    _bpy_types._register_immediate = False
-
     t_main = time.time()
 
     loaded_modules = set()
 
     if refresh_scripts:
         original_modules = _sys.modules.values()
-    
+
     if reload_scripts:
         _bpy_types.TypeMap.clear()
-        _bpy_types.PropertiesMap.clear()
+
+        # just unload, dont change user defaults, this means we can sync to reload.
+        # note that they will only actually reload of the modification time changes.
+        # this `wont` work for packages so... its not perfect.
+        for module_name in [ext.module for ext in _bpy.context.user_preferences.addons]:
+            addon_utils.disable(module_name, default_set=False)
 
     def register_module_call(mod):
-        _bpy_types._register_module(mod.__name__)
         register = getattr(mod, "register", None)
         if register:
             try:
@@ -126,7 +129,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
 
     def unregister_module_call(mod):
-        _bpy_types._unregister_module(mod.__name__)
         unregister = getattr(mod, "unregister", None)
         if unregister:
             try:
@@ -134,11 +136,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             except:
                 traceback.print_exc()
 
-    def sys_path_ensure(path):
-        if path not in _sys.path: # reloading would add twice
-            _sys.path.insert(0, path)
-
     def test_reload(mod):
+        import imp
         # reloading this causes internal errors
         # because the classes from this module are stored internally
         # possibly to refresh internal references too but for now, best not to.
@@ -146,7 +145,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             return mod
 
         try:
-            return reload(mod)
+            return imp.reload(mod)
         except:
             traceback.print_exc()
 
@@ -181,30 +180,28 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     user_path = user_script_path()
 
     for base_path in script_paths():
-        for path_subdir in ("", "ui", "op", "io", "cfg", "keyingsets", "modules"):
+        for path_subdir in ("", "ui", "op", "io", "keyingsets", "modules"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
-                sys_path_ensure(path)
+                _sys_path_ensure(path)
 
                 # only add this to sys.modules, dont run
                 if path_subdir == "modules":
                     continue
 
                 if user_path != base_path and path_subdir == "":
-                    continue # avoid loading 2.4x scripts
+                    continue  # avoid loading 2.4x scripts
 
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
 
-    # load addons
-    used_ext = {ext.module for ext in _bpy.context.user_preferences.addons}
-    paths = script_paths("addons") + script_paths("addons_contrib")
-    for path in paths:
-        sys_path_ensure(path)
+    # deal with addons seperately
+    addon_utils.reset_all(reload_scripts)
 
-    for module_name in sorted(used_ext):
-        mod = _test_import(module_name, loaded_modules)
-        test_register(mod)
+    # run the active integration preset
+    filepath = preset_find(_bpy.context.user_preferences.inputs.active_keyconfig, "keyconfig")
+    if filepath:
+        keyconfig_set(filepath)
 
     if reload_scripts:
         import gc
@@ -212,10 +209,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     if _bpy.app.debug:
         print("Python Script Load Time %.4f" % (time.time() - t_main))
-    
-    _bpy_types._register_immediate = True
-
-
 
 
 # base scripts
@@ -265,23 +258,27 @@ def script_paths(subdir=None, user=True):
     return script_paths
 
 
-_presets = _os.path.join(_scripts[0], "presets") # FIXME - multiple paths
+_presets = _os.path.join(_scripts[0], "presets")  # FIXME - multiple paths
 
 
 def preset_paths(subdir):
-    '''
+    """
     Returns a list of paths for a specific preset.
-    '''
-
-    return (_os.path.join(_presets, subdir), )
+    """
+    dirs = []
+    for path in script_paths("presets"):
+        directory = _os.path.join(path, subdir)
+        if _os.path.isdir(directory):
+            dirs.append(directory)
+    return dirs
 
 
 def smpte_from_seconds(time, fps=None):
-    '''
+    """
     Returns an SMPTE formatted string from the time in seconds: "HH:MM:SS:FF".
 
-    If the fps is not given the current scene is used.
-    '''
+    If the *fps* is not given the current scene is used.
+    """
     import math
 
     if fps is None:
@@ -295,10 +292,10 @@ def smpte_from_seconds(time, fps=None):
     else:
         neg = ""
 
-    if time >= 3600.0: # hours
+    if time >= 3600.0:  # hours
         hours = int(time / 3600.0)
         time = time % 3600.0
-    if time >= 60.0: # mins
+    if time >= 60.0:  # mins
         minutes = int(time / 60.0)
         time = time % 60.0
 
@@ -309,11 +306,11 @@ def smpte_from_seconds(time, fps=None):
 
 
 def smpte_from_frame(frame, fps=None, fps_base=None):
-    '''
+    """
     Returns an SMPTE formatted string from the frame: "HH:MM:SS:FF".
 
-    If the fps and fps_base are not given the current scene is used.
-    '''
+    If *fps* and *fps_base* are not given the current scene is used.
+    """
 
     if fps is None:
         fps = _bpy.context.scene.render.fps
@@ -322,3 +319,141 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
         fps_base = _bpy.context.scene.render.fps_base
 
     return smpte_from_seconds((frame * fps_base) / fps, fps)
+
+
+def preset_find(name, preset_path, display_name=False):
+    if not name:
+        return None
+
+    for directory in preset_paths(preset_path):
+
+        if display_name:
+            filename = ""
+            for fn in _os.listdir(directory):
+                if fn.endswith(".py") and name == _bpy.path.display_name(fn):
+                    filename = fn
+                    break
+        else:
+            filename = name + ".py"
+
+        if filename:
+            filepath = _os.path.join(directory, filename)
+            if _os.path.exists(filepath):
+                return filepath
+
+
+def keyconfig_set(filepath):
+    from os.path import basename, splitext
+
+    print("loading preset:", filepath)
+    keyconfigs = _bpy.context.window_manager.keyconfigs
+    kc_orig = keyconfigs.active
+
+    keyconfigs_old = keyconfigs[:]
+
+    try:
+        exec(compile(open(filepath).read(), filepath, 'exec'), {"__file__": filepath})
+    except:
+        import traceback
+        traceback.print_exc()
+
+    kc_new = [kc for kc in keyconfigs if kc not in keyconfigs_old][0]
+
+    kc_new.name = ""
+
+    # remove duplicates
+    name = splitext(basename(filepath))[0]
+    while True:
+        kc_dupe = keyconfigs.get(name)
+        if kc_dupe:
+            keyconfigs.remove(kc_dupe)
+        else:
+            break
+
+    kc_new.name = name
+    keyconfigs.active = kc_new
+
+
+def user_resource(type, path="", create=False):
+    """
+    Return a user resource path (normally from the users home directory).
+
+    :arg type: Resource type in ['DATAFILES', 'CONFIG', 'SCRIPTS', 'AUTOSAVE'].
+    :type type: string
+    :arg subdir: Optional subdirectory.
+    :type subdir: string
+    :arg create: Treat the path as a directory and create it if its not existing.
+    :type create: boolean
+    :return: a path.
+    :rtype: string
+    """
+
+    target_path = _user_resource(type, path)
+
+    if create:
+        # should always be true.
+        if target_path:
+            # create path if not existing.
+            if not _os.path.exists(target_path):
+                try:
+                    _os.makedirs(target_path)
+                except:
+                    import traceback
+                    traceback.print_exc()
+                    target_path = ""
+            elif not _os.path.isdir(target_path):
+                print("Path %r found but isn't a directory!" % target_path)
+                target_path = ""
+
+    return target_path
+
+
+def _bpy_module_classes(module, is_registered=False):
+    typemap_list = _bpy_types.TypeMap.get(module, ())
+    i = 0
+    while i < len(typemap_list):
+        cls_weakref, path, line = typemap_list[i]
+        cls = cls_weakref()
+
+        if cls is None:
+            del typemap_list[i]
+        else:
+            if is_registered == cls.is_registered:
+                yield (cls, path, line)
+            i += 1
+
+
+def register_module(module, verbose=False):
+    import traceback
+    if verbose:
+        print("bpy.utils.register_module(%r): ..." % module)
+    for cls, path, line in _bpy_module_classes(module, is_registered=False):
+        if verbose:
+            print("    %s of %s:%s" % (cls, path, line))
+        try:
+            register_class(cls)
+        except:
+            print("bpy.utils.register_module(): failed to registering class '%s.%s'" % (cls.__module__, cls.__name__))
+            print("\t", path, "line", line)
+            traceback.print_exc()
+    if verbose:
+        print("done.\n")
+    if "cls" not in locals():
+        raise Exception("register_module(%r): defines no classes" % module)
+
+
+def unregister_module(module, verbose=False):
+    import traceback
+    if verbose:
+        print("bpy.utils.unregister_module(%r): ..." % module)
+    for cls, path, line in _bpy_module_classes(module, is_registered=True):
+        if verbose:
+            print("    %s of %s:%s" % (cls, path, line))
+        try:
+            unregister_class(cls)
+        except:
+            print("bpy.utils.unregister_module(): failed to unregistering class '%s.%s'" % (cls.__module__, cls.__name__))
+            print("\t", path, "line", line)
+            traceback.print_exc()
+    if verbose:
+        print("done.\n")

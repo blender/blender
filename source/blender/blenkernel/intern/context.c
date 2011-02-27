@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -52,7 +52,9 @@
 #endif
 
 #ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
+#endif
 #endif
 
 /* struct */
@@ -69,6 +71,7 @@ struct bContext {
 		struct ARegion *region;
 		struct ARegion *menu;
 		struct bContextStore *store;
+		const char *operator_poll_msg; /* reason for poll failing */
 	} wm;
 	
 	/* data context */
@@ -95,7 +98,7 @@ struct bContext {
 
 /* context */
 
-bContext *CTX_create()
+bContext *CTX_create(void)
 {
 	bContext *C;
 	
@@ -174,7 +177,7 @@ void CTX_free(bContext *C)
 
 /* store */
 
-bContextStore *CTX_store_add(ListBase *contexts, char *name, PointerRNA *ptr)
+bContextStore *CTX_store_add(ListBase *contexts, const char *name, PointerRNA *ptr)
 {
 	bContextStoreEntry *entry;
 	bContextStore *ctx, *lastctx;
@@ -245,7 +248,7 @@ void CTX_py_init_set(bContext *C, int value)
 	C->data.py_init= value;
 }
 
-void *CTX_py_dict_get(bContext *C)
+void *CTX_py_dict_get(const bContext *C)
 {
 	return C->data.py_context;
 }
@@ -466,6 +469,16 @@ void CTX_wm_menu_set(bContext *C, ARegion *menu)
 	C->wm.menu= menu;
 }
 
+void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
+{
+	C->wm.operator_poll_msg= msg;
+}
+
+const char *CTX_wm_operator_poll_msg_get(bContext *C)
+{
+	return C->wm.operator_poll_msg;
+}
+
 /* data context utility functions */
 
 struct bContextDataResult {
@@ -481,10 +494,10 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 	int ret= 0;
 
 	memset(result, 0, sizeof(bContextDataResult));
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if(CTX_py_dict_get(C)) {
-		return BPY_context_get(C, member, result);
-//		if (BPY_context_get(C, member, result))
+		return BPY_context_member_get(C, member, result);
+//		if (BPY_context_member_get(C, member, result))
 //			return 1;
 	}
 #endif
@@ -610,8 +623,7 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
 		return result.list;
 	}
 	else {
-		ListBase list;
-		memset(&list, 0, sizeof(list));
+		ListBase list= {NULL, NULL};
 		return list;
 	}
 }
@@ -830,7 +842,7 @@ int CTX_data_mode_enum(const bContext *C)
 
 /* would prefer if we can use the enum version below over this one - Campbell */
 /* must be aligned with above enum  */
-static char *data_mode_strings[] = {
+static const char *data_mode_strings[] = {
 	"mesh_edit",
 	"curve_edit",
 	"surface_edit",
@@ -845,9 +857,9 @@ static char *data_mode_strings[] = {
 	"texturepaint",
 	"particlemode",
 	"objectmode",
-	0
+	NULL
 };
-char *CTX_data_mode_string(const bContext *C)
+const char *CTX_data_mode_string(const bContext *C)
 {
 	return data_mode_strings[CTX_data_mode_enum(C)];
 }

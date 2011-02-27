@@ -1,6 +1,4 @@
-/**
- * 
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,25 +25,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* Box Packer */
+#ifndef _BLI_BOXPACK2D_H_
+#define _BLI_BOXPACK2D_H_
 
-/* verts, internal use only */
-typedef struct boxVert {
-	float x;
-	float y;
-	short free;
-	
-	struct boxPack *trb; /* top right box */
-	struct boxPack *blb; /* bottom left box */
-	struct boxPack *brb; /* bottom right box */
-	struct boxPack *tlb; /* top left box */
-	
-	/* Store last intersecting boxes here
-	 * speedup intersection testing */
-	struct boxPack *isect_cache[4];
-	
-	int index;
-} boxVert;
+/** \file BLI_boxpack2d.h
+ *  \ingroup bli
+ */
+
+/* Box Packer */
 
 typedef struct boxPack {
 	float x;
@@ -56,8 +43,10 @@ typedef struct boxPack {
 	
 	/* Verts this box uses
 	 * (BL,TR,TL,BR) / 0,1,2,3 */
-	boxVert *v[4];
+	struct boxVert *v[4];
 } boxPack;
 
-void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height); 
+void boxPack2D(boxPack *boxarray, const int len, float *tot_width, float *tot_height);
+
+#endif
 

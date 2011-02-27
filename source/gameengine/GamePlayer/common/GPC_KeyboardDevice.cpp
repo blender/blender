@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GamePlayer/common/GPC_KeyboardDevice.cpp
+ *  \ingroup player
+ */
+
 
 #include "GPC_KeyboardDevice.h"
 

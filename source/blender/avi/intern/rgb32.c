@@ -1,9 +1,7 @@
-/**
- * rgb32.c
+/*
+ * $Id$
  *
  * This is external code. Converts between rgb32 and avi.
- *
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,7 +27,8 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- *  */
+ *
+ */
 
 #include "AVI_avi.h"
 #include <stdlib.h>
@@ -40,6 +39,8 @@
 void *avi_converter_from_rgb32 (AviMovie *movie, int stream, unsigned char *buffer, int *size) {
 	int y, x, rowstridea, rowstrideb;
 	unsigned char *buf;
+
+	(void)stream; /* unused */
 
 	buf = MEM_mallocN (movie->header->Height * movie->header->Width * 3, "fromrgb32buf");
 	*size = movie->header->Height * movie->header->Width * 3;
@@ -64,6 +65,8 @@ void *avi_converter_to_rgb32 (AviMovie *movie, int stream, unsigned char *buffer
 	int i;
 	unsigned char *buf;
 	unsigned char *to, *from;
+
+	(void)stream; /* unused */
 
 	buf= MEM_mallocN (movie->header->Height * movie->header->Width * 4, "torgb32buf");
 	*size= movie->header->Height * movie->header->Width * 4;

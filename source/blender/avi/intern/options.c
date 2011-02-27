@@ -1,10 +1,8 @@
-/**
- * options.h
+/*
+ * $Id$
  *
  * This is external code. Sets some compression related options
  * (width, height quality, framerate).
- *
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -30,7 +28,8 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- *  */
+ *
+ */
 
 #include "AVI_avi.h"
 #include "avi_intern.h"
@@ -41,6 +40,8 @@
 AviError AVI_set_compress_option (AviMovie *movie, int option_type, int stream, AviOption option, void *opt_data) {
 	int i;
 
+	(void)stream; /* unused */
+	
 	if (movie->header->TotalFrames != 0)  /* Can't change params after we have already started writing frames */
 		return AVI_ERROR_OPTION;
 

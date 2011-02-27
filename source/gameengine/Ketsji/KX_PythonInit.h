@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_PythonInit.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_PYTHON_INIT
 #define __KX_PYTHON_INIT
 
@@ -39,7 +44,7 @@ typedef enum {
 
 extern bool gUseVisibilityTemp;
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 PyObject*	initGameLogic(class KX_KetsjiEngine *engine, class KX_Scene* ketsjiscene);
 PyObject*	initGameKeys();
 PyObject*	initRasterizer(class RAS_IRasterizer* rasty,class RAS_ICanvas* canvas);

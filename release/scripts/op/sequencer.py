@@ -42,14 +42,14 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
         seq2 = None
         for s in context.scene.sequence_editor.sequences:
             if s.select and s.type == 'SOUND':
-                if seq1 == None:
+                if seq1 is None:
                     seq1 = s
-                elif seq2 == None:
+                elif seq2 is None:
                     seq2 = s
                 else:
                     seq2 = None
                     break
-        if seq2 == None:
+        if seq2 is None:
             self.report({'ERROR'}, "Select 2 sound strips.")
             return {'CANCELLED'}
         if seq1.frame_final_start > seq2.frame_final_start:
@@ -92,7 +92,7 @@ class SequencerCutMulticam(bpy.types.Operator):
             return False
 
     def execute(self, context):
-        camera = self.properties.camera
+        camera = self.camera
 
         s = context.scene.sequence_editor.active_strip
 
@@ -135,11 +135,11 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 
 if __name__ == "__main__":

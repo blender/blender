@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file PHY_IController.h
+ *  \ingroup phys
+ */
+
 #ifndef PHY_ICONTROLLER_H
 #define PHY_ICONTROLLER_H
 

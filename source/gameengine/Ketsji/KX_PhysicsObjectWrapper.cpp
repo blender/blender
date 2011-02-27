@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_PhysicsObjectWrapper.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "PyObjectPlus.h"
 
 #include "KX_PhysicsObjectWrapper.h"
@@ -46,7 +51,7 @@ KX_PhysicsObjectWrapper::~KX_PhysicsObjectWrapper()
 {
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* args)
 {

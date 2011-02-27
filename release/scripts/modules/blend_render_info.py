@@ -40,7 +40,7 @@ def read_blend_rend_chunk(path):
 
     head = blendfile.read(7)
 
-    if head[0:2] == b'\x1f\x8b': # gzip magic
+    if head[0:2] == b'\x1f\x8b':  # gzip magic
         import gzip
         blendfile.close()
         blendfile = gzip.open(path, 'rb')
@@ -57,7 +57,7 @@ def read_blend_rend_chunk(path):
     is_big_endian = (blendfile.read(1) == b'V')
 
     # Now read the bhead chunk!!!
-    blendfile.read(3) # skip the version
+    blendfile.read(3)  # skip the version
 
     scenes = []
 

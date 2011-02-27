@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * Camera in the gameengine. Cameras are also used for views.
  */
+
+/** \file gameengine/Ketsji/KX_Camera.cpp
+ *  \ingroup ketsji
+ */
+
  
 #include "GL/glew.h"
 #include "KX_Camera.h"
@@ -474,7 +479,7 @@ int KX_Camera::GetViewportTop() const
 	return m_camdata.m_viewporttop;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 //----------------------------------------------------------------------------
 //Python
 
@@ -706,6 +711,7 @@ int KX_Camera::pyattr_set_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	}
 	
 	self->m_camdata.m_perspective= param;
+	self->InvalidateProjectionMatrix();
 	return PY_SET_ATTR_SUCCESS;
 }
 

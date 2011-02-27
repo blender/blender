@@ -84,6 +84,8 @@ int ui_but_anim_expression_set(uiBut *but, const char *str)
 
 		if(driver && driver->type == DRIVER_TYPE_PYTHON) {
 			BLI_strncpy(driver->expression, str, sizeof(driver->expression));
+			driver->flag |= DRIVER_FLAG_RECOMPILE;
+			WM_event_add_notifier(but->block->evil_C, NC_ANIMATION|ND_KEYFRAME, NULL);
 			return 1;
 		}
 	}
@@ -105,83 +107,60 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 		
 		// TODO: this should probably respect the keyingset only option for anim
 		if(autokeyframe_cfra_can_key(scene, id)) {
+			ReportList *reports = CTX_wm_reports(C);
 			short flag = ANIM_get_keyframing_flags(scene, 1);
 			
 			fcu->flag &= ~FCURVE_SELECTED;
-			insert_keyframe(id, action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+			insert_keyframe(reports, id, action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 			WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
-		}
-	}
-}
-
-void uiAnimContextProperty(const bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index)
-{
-	ARegion *ar= CTX_wm_region(C);
-	uiBlock *block;
-	uiBut *but;
-
-	memset(ptr, 0, sizeof(*ptr));
-	*prop= NULL;
-	*index= 0;
-
-	if(ar) {
-		for(block=ar->uiblocks.first; block; block=block->next) {
-			for(but=block->buttons.first; but; but= but->next) {
-				if((but->active || but->flag & UI_BUT_LAST_ACTIVE) && but->rnapoin.id.data) {
-					*ptr= but->rnapoin;
-					*prop= but->rnaprop;
-					*index= but->rnaindex;
-					return;
-				}
-			}
 		}
 	}
 }
 
 void ui_but_anim_insert_keyframe(bContext *C)
 {
-	/* this operator calls uiAnimContextProperty above */
+	/* this operator calls uiContextActiveProperty */
 	WM_operator_name_call(C, "ANIM_OT_keyframe_insert_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_delete_keyframe(bContext *C)
 {
-	/* this operator calls uiAnimContextProperty above */
+	/* this operator calls uiContextActiveProperty */
 	WM_operator_name_call(C, "ANIM_OT_keyframe_delete_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_add_driver(bContext *C)
 {
-	/* this operator calls uiAnimContextProperty above */
+	/* this operator calls uiContextActiveProperty */
 	WM_operator_name_call(C, "ANIM_OT_driver_button_add", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_remove_driver(bContext *C)
 {
-	/* this operator calls uiAnimContextProperty above */
+	/* this operator calls uiContextActiveProperty */
 	WM_operator_name_call(C, "ANIM_OT_driver_button_remove", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_copy_driver(bContext *C)
 {
-	/* this operator calls uiAnimContextProperty above */
+	/* this operator calls uiContextActiveProperty */
 	WM_operator_name_call(C, "ANIM_OT_copy_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_paste_driver(bContext *C)
 {
-	/* this operator calls uiAnimContextProperty above */
+	/* this operator calls uiContextActiveProperty */
 	WM_operator_name_call(C, "ANIM_OT_paste_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_add_keyingset(bContext *C)
 {
-	/* this operator calls uiAnimContextProperty above */
+	/* this operator calls uiContextActiveProperty */
 	WM_operator_name_call(C, "ANIM_OT_keyingset_button_add", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_remove_keyingset(bContext *C)
 {
-	/* this operator calls uiAnimContextProperty above */
+	/* this operator calls uiContextActiveProperty */
 	WM_operator_name_call(C, "ANIM_OT_keyingset_button_remove", WM_OP_INVOKE_DEFAULT, NULL);
 }

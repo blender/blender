@@ -1,3 +1,6 @@
+/** \file smoke/intern/tnt/tnt_array3d.h
+ *  \ingroup smoke
+ */
 /*
 *
 * Template Numerical Toolkit (TNT)

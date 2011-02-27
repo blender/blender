@@ -120,7 +120,7 @@ void EDBM_stats_update(BMEditMesh *em)
 	}
 }
 
-int EDBM_InitOpf(BMEditMesh *em, BMOperator *bmop, wmOperator *op, char *fmt, ...)
+int EDBM_InitOpf(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *fmt, ...)
 {
 	BMesh *bm = em->bm;
 	va_list list;
@@ -178,7 +178,7 @@ int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, int report) 
 	return 1;
 }
 
-int EDBM_CallOpf(BMEditMesh *em, wmOperator *op, char *fmt, ...)
+int EDBM_CallOpf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
 {
 	BMesh *bm = em->bm;
 	BMOperator bmop;
@@ -203,7 +203,7 @@ int EDBM_CallOpf(BMEditMesh *em, wmOperator *op, char *fmt, ...)
 	return EDBM_FinishOp(em, &bmop, op, 1);
 }
 
-int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, char *selectslot, char *fmt, ...)
+int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, const char *selectslot, const char *fmt, ...)
 {
 	BMesh *bm = em->bm;
 	BMOperator bmop;
@@ -229,7 +229,7 @@ int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, char *selectslot, char
 	return EDBM_FinishOp(em, &bmop, op, 1);
 }
 
-int EDBM_CallOpfSilent(BMEditMesh *em, char *fmt, ...)
+int EDBM_CallOpfSilent(BMEditMesh *em, const char *fmt, ...)
 {
 	BMesh *bm = em->bm;
 	BMOperator bmop;
@@ -618,7 +618,7 @@ static void free_undo(void *umv)
 }
 
 /* and this is all the undo system needs to know */
-void undo_push_mesh(bContext *C, char *name)
+void undo_push_mesh(bContext *C, const char *name)
 {
 	undo_editmode_push(C, name, getEditMesh, free_undo, undoMesh_to_editbtMesh, editbtMesh_to_undoMesh, NULL);
 }

@@ -35,14 +35,14 @@ class MeshSelectInteriorFaces(bpy.types.Operator):
 
     def execute(self, context):
         ob = context.active_object
-        bpy.ops.mesh.selection_type(type='FACE')
+        context.tool_settings.mesh_select_mode = False, False, True
         is_editmode = (ob.mode == 'EDIT')
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         mesh = ob.data
 
-        face_list = [face for face in mesh.faces]
+        face_list = mesh.faces[:]
         face_edge_keys = [face.edge_keys for face in face_list]
 
         edge_face_count = mesh.edge_face_count_dict
@@ -76,7 +76,7 @@ class MeshMirrorUV(bpy.types.Operator):
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
-        DIR = 1 # TODO, make an option
+        DIR = 1  # TODO, make an option
 
         from mathutils import Vector
 
@@ -110,7 +110,6 @@ class MeshMirrorUV(bpy.types.Operator):
                 j = mirror_b.get(nco)
                 if j is not None:
                     vmap[i] = j
-
 
         active_uv_layer = None
         for lay in mesh.uv_textures:
@@ -162,7 +161,6 @@ class MeshMirrorUV(bpy.types.Operator):
             v1 = faces[j].vertices[:]
             v2 = [vmap[k] for k in faces[i].vertices[:]]
 
-
             for k in range(len(uv1)):
                 k_map = v1.index(v2[k])
                 uv1[k].x = - (uv2[k_map].x - 0.5) + 0.5
@@ -175,11 +173,11 @@ class MeshMirrorUV(bpy.types.Operator):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

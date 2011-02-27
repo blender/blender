@@ -144,7 +144,7 @@ void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	v = BMO_IterNew(&siter, bm, op, "verts", BM_VERT);
 	for (; v; v=BMO_IterStep(&siter)) {
 		dupev = BM_Make_Vert(bm, v->co, NULL);
-		VECCOPY(dupev->no, v->no);
+		copy_v3_v3(dupev->no, v->no);
 		BM_Copy_Attributes(bm, bm, v, dupev);
 
 		e = BM_Make_Edge(bm, v, dupev, NULL, 0);

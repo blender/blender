@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -41,26 +41,12 @@ struct BMLoop;
 struct BMEdge;
 struct BMVert;
 
-#define UV_SELECT_ALL       1
-#define UV_SELECT_PINNED    2
-
 /* id can be from 0 to 3 */
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
 
 /* visibility and selection */
 int uvedit_face_visible_nolocal(struct Scene *scene, struct BMFace *efa);
-
-/*all the uvedit_xxxx_[de]selected functions are
-   declared in ED_uvedit.h*/
-int uvedit_face_select(struct Scene *scene, struct BMEditMesh *em, struct BMFace *efa);
-int uvedit_face_deselect(struct Scene *scene, struct BMEditMesh *em, struct BMFace *efa);
-
-void uvedit_edge_select(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
-void uvedit_edge_deselect(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
-
-void uvedit_uv_select(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
-void uvedit_uv_deselect(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
 
 /* geometric utilities */
 void uv_center(float uv[][2], float cent[2], int quad);

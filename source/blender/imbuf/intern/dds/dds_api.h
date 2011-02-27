@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,9 +29,9 @@
 extern "C" {
 #endif
 
-int  	      imb_save_dds(struct ImBuf *ibuf, char *name, int flags);
+int  	      imb_save_dds(struct ImBuf *ibuf, const char *name, int flags);
 int           imb_is_a_dds(unsigned char *mem); /* use only first 32 bytes of mem */
-struct ImBuf *imb_load_dds(unsigned char *mem, int size, int flags);
+struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags);
 
 #ifdef __cplusplus
 }

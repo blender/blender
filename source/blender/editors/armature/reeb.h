@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -149,7 +149,7 @@ void angleToVCol(struct EditMesh *em, int index);
 void renormalizeWeight(struct EditMesh *em, float newmax);
 
 ReebGraph * generateReebGraph(struct EditMesh *me, int subdivisions);
-ReebGraph * newReebGraph();
+ReebGraph * newReebGraph(void);
 
 void initArcIterator(BArcIterator *iter, struct ReebArc *arc, struct ReebNode *head);
 void initArcIterator2(BArcIterator *iter, struct ReebArc *arc, int start, int end);
@@ -172,6 +172,8 @@ void sortArcs(ReebGraph *rg);
 /*------------ Sanity check ------------*/
 void verifyBuckets(ReebGraph *rg);
 void verifyFaces(ReebGraph *rg);
+void verifyArcs(ReebGraph *rg);
+void verifyNodeDegree(ReebGraph *rg);
 
 /*********************** PUBLIC *********************************/
 
@@ -195,7 +197,7 @@ ReebGraph *BIF_graphForMultiNode(ReebGraph *rg, ReebNode *node);
 void REEB_freeGraph(ReebGraph *rg);
 void REEB_freeArc(BArc *barc);
 void REEB_exportGraph(ReebGraph *rg, int count);
-void REEB_draw();
+void REEB_draw(void);
 
 
 #endif /*REEB_H_*/

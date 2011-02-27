@@ -1,5 +1,4 @@
-/**
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +28,10 @@
  */
 #ifndef BKE_BVHUTILS_H
 #define BKE_BVHUTILS_H
+
+/** \file BKE_bvhutils.h
+ *  \ingroup bke
+ */
 
 #include "BLI_kdopbvh.h"
 #include "BLI_linklist.h"
@@ -65,6 +68,7 @@ typedef struct BVHTreeFromMesh
 
 	/* Private data */
 	int cached;
+	void *em_evil;	/* var only for snapping */
 
 } BVHTreeFromMesh;
 

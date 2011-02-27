@@ -1,23 +1,23 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
- * This program is free software; you can redistribute it and/or
+ * This program is free software(ListBase *lb); you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
+ * as published by the Free Software Foundation(ListBase *lb); either version 2
  * of the License, or (at your option) any later version. The Blender
  * Foundation also sells licenses for use in proprietary software under
  * the Blender License.  See http://www.blender.org/BL/ for information
  * about this.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * but WITHOUT ANY WARRANTY(ListBase *lb); without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
+ * along with this program(ListBase *lb); if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
@@ -30,6 +30,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file CMP_node.h
+ *  \ingroup nodes
+ */
+
 #ifndef CMP_NODE_H
 #define CMP_NODE_H
 
@@ -38,76 +42,76 @@
 
 /* ****************** types array for all composite nodes ****************** */
 
-extern bNodeType cmp_node_rlayers;
-extern bNodeType cmp_node_image;
-extern bNodeType cmp_node_texture;
-extern bNodeType cmp_node_value;
-extern bNodeType cmp_node_rgb;
-extern bNodeType cmp_node_curve_time;
+void register_node_type_cmp_rlayers(ListBase *lb);
+void register_node_type_cmp_image(ListBase *lb);
+void register_node_type_cmp_texture(ListBase *lb);
+void register_node_type_cmp_value(ListBase *lb);
+void register_node_type_cmp_rgb(ListBase *lb);
+void register_node_type_cmp_curve_time(ListBase *lb);
 
-extern bNodeType cmp_node_composite;
-extern bNodeType cmp_node_viewer;
-extern bNodeType cmp_node_splitviewer;
-extern bNodeType cmp_node_output_file;
-extern bNodeType cmp_node_view_levels;
+void register_node_type_cmp_composite(ListBase *lb);
+void register_node_type_cmp_viewer(ListBase *lb);
+void register_node_type_cmp_splitviewer(ListBase *lb);
+void register_node_type_cmp_output_file(ListBase *lb);
+void register_node_type_cmp_view_levels(ListBase *lb);
 
-extern bNodeType cmp_node_curve_rgb;
-extern bNodeType cmp_node_mix_rgb;
-extern bNodeType cmp_node_hue_sat;
-extern bNodeType cmp_node_brightcontrast;
-extern bNodeType cmp_node_gamma;
-extern bNodeType cmp_node_invert;
-extern bNodeType cmp_node_alphaover;
-extern bNodeType cmp_node_zcombine;
-extern bNodeType cmp_node_colorbalance;
-extern bNodeType cmp_node_huecorrect;
+void register_node_type_cmp_curve_rgb(ListBase *lb);
+void register_node_type_cmp_mix_rgb(ListBase *lb);
+void register_node_type_cmp_hue_sat(ListBase *lb);
+void register_node_type_cmp_brightcontrast(ListBase *lb);
+void register_node_type_cmp_gamma(ListBase *lb);
+void register_node_type_cmp_invert(ListBase *lb);
+void register_node_type_cmp_alphaover(ListBase *lb);
+void register_node_type_cmp_zcombine(ListBase *lb);
+void register_node_type_cmp_colorbalance(ListBase *lb);
+void register_node_type_cmp_huecorrect(ListBase *lb);
 
-extern bNodeType cmp_node_normal;
-extern bNodeType cmp_node_curve_vec;
-extern bNodeType cmp_node_map_value;
-extern bNodeType cmp_node_normalize;
+void register_node_type_cmp_normal(ListBase *lb);
+void register_node_type_cmp_curve_vec(ListBase *lb);
+void register_node_type_cmp_map_value(ListBase *lb);
+void register_node_type_cmp_normalize(ListBase *lb);
 
-extern bNodeType cmp_node_filter;
-extern bNodeType cmp_node_blur;
-extern bNodeType cmp_node_dblur;
-extern bNodeType cmp_node_bilateralblur;
-extern bNodeType cmp_node_vecblur;
-extern bNodeType cmp_node_dilateerode;
-extern bNodeType cmp_node_defocus;
+void register_node_type_cmp_filter(ListBase *lb);
+void register_node_type_cmp_blur(ListBase *lb);
+void register_node_type_cmp_dblur(ListBase *lb);
+void register_node_type_cmp_bilateralblur(ListBase *lb);
+void register_node_type_cmp_vecblur(ListBase *lb);
+void register_node_type_cmp_dilateerode(ListBase *lb);
+void register_node_type_cmp_defocus(ListBase *lb);
 
-extern bNodeType cmp_node_valtorgb;
-extern bNodeType cmp_node_rgbtobw;	
-extern bNodeType cmp_node_setalpha;
-extern bNodeType cmp_node_idmask;
-extern bNodeType cmp_node_math;
-extern bNodeType cmp_node_seprgba;
-extern bNodeType cmp_node_combrgba;
-extern bNodeType cmp_node_sephsva;
-extern bNodeType cmp_node_combhsva;
-extern bNodeType cmp_node_sepyuva;
-extern bNodeType cmp_node_combyuva;
-extern bNodeType cmp_node_sepycca;
-extern bNodeType cmp_node_combycca; 
-extern bNodeType cmp_node_premulkey;
+void register_node_type_cmp_valtorgb(ListBase *lb);
+void register_node_type_cmp_rgbtobw(ListBase *lb);	
+void register_node_type_cmp_setalpha(ListBase *lb);
+void register_node_type_cmp_idmask(ListBase *lb);
+void register_node_type_cmp_math(ListBase *lb);
+void register_node_type_cmp_seprgba(ListBase *lb);
+void register_node_type_cmp_combrgba(ListBase *lb);
+void register_node_type_cmp_sephsva(ListBase *lb);
+void register_node_type_cmp_combhsva(ListBase *lb);
+void register_node_type_cmp_sepyuva(ListBase *lb);
+void register_node_type_cmp_combyuva(ListBase *lb);
+void register_node_type_cmp_sepycca(ListBase *lb);
+void register_node_type_cmp_combycca(ListBase *lb); 
+void register_node_type_cmp_premulkey(ListBase *lb);
 
-extern bNodeType cmp_node_diff_matte;
-extern bNodeType cmp_node_distance_matte;
-extern bNodeType cmp_node_chroma_matte;
-extern bNodeType cmp_node_color_matte;
-extern bNodeType cmp_node_channel_matte;
-extern bNodeType cmp_node_color_spill;
-extern bNodeType cmp_node_luma_matte; 
+void register_node_type_cmp_diff_matte(ListBase *lb);
+void register_node_type_cmp_distance_matte(ListBase *lb);
+void register_node_type_cmp_chroma_matte(ListBase *lb);
+void register_node_type_cmp_color_matte(ListBase *lb);
+void register_node_type_cmp_channel_matte(ListBase *lb);
+void register_node_type_cmp_color_spill(ListBase *lb);
+void register_node_type_cmp_luma_matte(ListBase *lb); 
 
-extern bNodeType cmp_node_translate;
-extern bNodeType cmp_node_rotate;
-extern bNodeType cmp_node_scale;
-extern bNodeType cmp_node_flip;
-extern bNodeType cmp_node_crop;
-extern bNodeType cmp_node_displace;
-extern bNodeType cmp_node_mapuv;
+void register_node_type_cmp_translate(ListBase *lb);
+void register_node_type_cmp_rotate(ListBase *lb);
+void register_node_type_cmp_scale(ListBase *lb);
+void register_node_type_cmp_flip(ListBase *lb);
+void register_node_type_cmp_crop(ListBase *lb);
+void register_node_type_cmp_displace(ListBase *lb);
+void register_node_type_cmp_mapuv(ListBase *lb);
 
-extern bNodeType cmp_node_glare;
-extern bNodeType cmp_node_tonemap;
-extern bNodeType cmp_node_lensdist;
+void register_node_type_cmp_glare(ListBase *lb);
+void register_node_type_cmp_tonemap(ListBase *lb);
+void register_node_type_cmp_lensdist(ListBase *lb);
 
 #endif

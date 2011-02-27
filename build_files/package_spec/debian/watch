@@ -1,0 +1,2 @@
+version=3
+http://download.blender.org/source/blender-([0-9.]+[a-z]?)\.tar\.gz

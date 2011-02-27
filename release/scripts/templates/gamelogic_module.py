@@ -5,12 +5,13 @@
 # * External text modules are supported as long as they are at
 #   the same location as the blendfile or one of its libraries.
 
-import GameLogic
+import bge
 
 # variables defined here will only be set once when the
 # module is first imported. Set object spesific vars
 # inside the function if you intend to use the module
 # with multiple objects.
+
 
 def main(cont):
     own = cont.owner
@@ -23,4 +24,4 @@ def main(cont):
     else:
         cont.deactivate(actu)
 
-# dont call main(GameLogic.getCurrentController()), the py controller will
+# dont call main(bge.logic.getCurrentController()), the py controller will

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,11 +26,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/Ketsji/KX_RadarSensor.cpp
+ *  \ingroup ketsji
+ */
+
+
 #include "KX_RadarSensor.h"
 #include "KX_GameObject.h"
 #include "KX_PyMath.h"
 #include "PHY_IPhysicsController.h"
 #include "PHY_IMotionState.h"
+#include "DNA_sensor_types.h"
 
 /**
  * 	RadarSensor constructor. Creates a near-sensor derived class, with a cone collision shape.
@@ -95,42 +101,42 @@ void KX_RadarSensor::SynchronizeTransform()
 	// depends on the radar 'axis'
 	switch (m_axis)
 	{
-	case 0: // +X Axis
+	case SENS_RADAR_X_AXIS: // +X Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(90));
 			trans.rotate(rotquatje);
 			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
-	case 1: // +Y Axis
+	case SENS_RADAR_Y_AXIS: // +Y Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-180));
 			trans.rotate(rotquatje);
 			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
-	case 2: // +Z Axis
+	case SENS_RADAR_Z_AXIS: // +Z Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-90));
 			trans.rotate(rotquatje);
 			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
-	case 3: // -X Axis
+	case SENS_RADAR_NEG_X_AXIS: // -X Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(-90));
 			trans.rotate(rotquatje);
 			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
-	case 4: // -Y Axis
+	case SENS_RADAR_NEG_Y_AXIS: // -Y Axis
 		{
 			//MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-180));
 			//trans.rotate(rotquatje);
 			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
-	case 5: // -Z Axis
+	case SENS_RADAR_NEG_Z_AXIS: // -Z Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(90));
 			trans.rotate(rotquatje);
@@ -172,7 +178,7 @@ void KX_RadarSensor::SynchronizeTransform()
 /* Python Functions															 */
 /* ------------------------------------------------------------------------- */
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python Integration Hooks                                                  */
@@ -212,4 +218,4 @@ PyAttributeDef KX_RadarSensor::Attributes[] = {
 	{NULL} //Sentinel
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

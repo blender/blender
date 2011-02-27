@@ -35,7 +35,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLO_sys_types.h"
-#include "BKE_utildefines.h"
+#include "BLI_utildefines.h"
 
 extern unsigned int hashsizes[];
 #define NONHASH	-25436536

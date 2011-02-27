@@ -40,30 +40,33 @@
 #include <math.h>
 #include <float.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "MEM_guardedalloc.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_bmesh.h"
 #include "BKE_cloth.h"
 #include "BKE_key.h"
+#include "BKE_multires.h"
 
 #include "MOD_modifiertypes.h"
 
 ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 {
-	static ModifierTypeInfo *types[NUM_MODIFIER_TYPES];
+	static ModifierTypeInfo *types[NUM_MODIFIER_TYPES]= {NULL};
 	static int types_init = 1;
 
 	if (types_init) {
-		modifier_type_init(types, type); /* MOD_utils.c */
+		modifier_type_init(types); /* MOD_utils.c */
 		types_init= 0;
 	}
 
-	if(type >= 0 && type < NUM_MODIFIER_TYPES &&
-	   types[type]->name[0] != '\0') {
+	/* type unsigned, no need to chech < 0 */
+	if(type < NUM_MODIFIER_TYPES && types[type]->name[0] != '\0') {
 		return types[type];
 	}
 	else {
@@ -146,14 +149,14 @@ ModifierData *modifiers_findByName(Object *ob, const char *name)
 void modifiers_clearErrors(Object *ob)
 {
 	ModifierData *md = ob->modifiers.first;
-	int qRedraw = 0;
+	/* int qRedraw = 0; */
 
 	for (; md; md=md->next) {
 		if (md->error) {
 			MEM_freeN(md->error);
 			md->error = NULL;
 
-			qRedraw = 1;
+			/* qRedraw = 1; */
 		}
 	}
 }
@@ -215,14 +218,15 @@ int modifier_sameTopology(ModifierData *md)
 	return ( mti->type == eModifierTypeType_OnlyDeform || mti->type == eModifierTypeType_Nonconstructive);
 }
 
-void modifier_setError(ModifierData *md, char *format, ...)
+void modifier_setError(ModifierData *md, const char *format, ...)
 {
-	char buffer[2048];
+	char buffer[512];
 	va_list ap;
 
 	va_start(ap, format);
-	vsprintf(buffer, format, ap);
+	vsnprintf(buffer, sizeof(buffer), format, ap);
 	va_end(ap);
+	buffer[sizeof(buffer) - 1]= '\0';
 
 	if (md->error)
 		MEM_freeN(md->error);
@@ -235,12 +239,18 @@ void modifier_setError(ModifierData *md, char *format, ...)
  * there
  * 
  * also used in transform_conversion.c, to detect CrazySpace [tm] (2nd arg
- * then is NULL)
+ * then is NULL) 
+ * also used for some mesh tools to give warnings
  */
 int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *lastPossibleCageIndex_r, int virtual_)
 {
 	ModifierData *md = (virtual_)? modifiers_getVirtualModifierList(ob): ob->modifiers.first;
 	int i, cageIndex = -1;
+
+	if(lastPossibleCageIndex_r) {
+		/* ensure the value is initialized */
+		*lastPossibleCageIndex_r= -1;
+	}
 
 	/* Find the last modifier acting on the cage. */
 	for (i=0; md; i++,md=md->next) {
@@ -491,7 +501,7 @@ int modifier_isCorrectableDeformed(ModifierData *md)
 	return 0;
 }
 
-int modifiers_isCorrectableDeformed(struct Scene *scene, Object *ob)
+int modifiers_isCorrectableDeformed(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
@@ -526,5 +536,21 @@ void modifier_freeTemporaryData(ModifierData *md)
 	}
 }
 
+/* ensure modifier correctness when changing ob->data */
+void test_object_modifiers(Object *ob)
+{
+	ModifierData *md;
 
+	/* just multires checked for now, since only multires
+	   modifies mesh data */
 
+	if(ob->type != OB_MESH) return;
+
+	for(md = ob->modifiers.first; md; md = md->next) {
+		if(md->type == eModifierType_Multires) {
+			MultiresModifierData *mmd = (MultiresModifierData*)md;
+
+			multiresModifier_set_levels_from_disps(mmd, ob);
+		}
+	}
+}

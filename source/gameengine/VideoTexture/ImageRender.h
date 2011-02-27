@@ -20,6 +20,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file ImageRender.h
+ *  \ingroup bgevideotex
+ */
+ 
 #if !defined IMAGERENDER_H
 #define IMAGERENDER_H
 
@@ -85,7 +89,7 @@ protected:
     /// engine
     KX_KetsjiEngine* m_engine;
 
-	/// background colour
+	/// background color
 	float  m_background[4];
 
 

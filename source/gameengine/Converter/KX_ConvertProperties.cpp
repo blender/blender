@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Converter/KX_ConvertProperties.cpp
+ *  \ingroup bgeconv
+ */
+
 
 #include "KX_ConvertProperties.h"
 
@@ -126,7 +131,7 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 			propval->Release();
 		}
 		
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 		/* Warn if we double up on attributes, this isnt quite right since it wont find inherited attributes however there arnt many */
 		for(PyAttributeDef *attrdef = KX_GameObject::Attributes; attrdef->m_name; attrdef++) {
 			if(strcmp(prop->name, attrdef->m_name)==0) {
@@ -141,7 +146,7 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 			}
 		}
 		/* end warning check */
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 		prop = prop->next;
 	}

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+struct Isect;
+struct ShadeInput;
+struct ShadeResult;
 
 float vol_get_density(struct ShadeInput *shi, float *co);
 void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co_);

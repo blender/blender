@@ -28,10 +28,11 @@
 
 #include "BLI_fileops.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_customdata_file.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
+
 
 /************************* File Format Definitions ***************************/
 
@@ -379,7 +380,7 @@ int cdf_write_open(CDataFile *cdf, char *filename)
 	return 1;
 }
 
-int cdf_write_layer(CDataFile *cdf, CDataFileLayer *blay)
+int cdf_write_layer(CDataFile *UNUSED(cdf), CDataFileLayer *UNUSED(blay))
 {
 	return 1;
 }

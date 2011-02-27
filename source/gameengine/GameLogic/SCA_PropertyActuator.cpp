@@ -1,4 +1,4 @@
-/**
+/*
  * Assign, change, copy properties
  *
  * $Id$
@@ -28,6 +28,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_PropertyActuator.cpp
+ *  \ingroup gamelogic
+ */
+
+
+#include <stddef.h>
 
 #include "SCA_PropertyActuator.h"
 #include "InputParser.h"
@@ -217,7 +224,7 @@ void SCA_PropertyActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 	}
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

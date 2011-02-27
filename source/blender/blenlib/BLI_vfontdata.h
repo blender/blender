@@ -1,9 +1,4 @@
-/**
- * @file BLI_vfontdata.h
- * 
- * A structure to represent vector fonts, 
- * and to load them from PostScript fonts.
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -34,6 +29,12 @@
 
 #ifndef BLI_VFONTDATA_H
 #define BLI_VFONTDATA_H
+
+/** \file BLI_vfontdata.h
+ *  \ingroup bli
+ *  \brief A structure to represent vector fonts, 
+ *   and to load them from PostScript fonts.
+ */
 
 #include "DNA_listBase.h"
 

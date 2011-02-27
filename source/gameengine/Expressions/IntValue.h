@@ -12,6 +12,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+
+/** \file IntValue.h
+ *  \ingroup expressions
+ */
+
 #if !defined _INTVALUE_H
 #define _INTVALUE_H
 
@@ -48,7 +53,7 @@ public:
 	void			AddConfigurationData(CValue* menuvalue);
 	virtual CValue*	GetReplica();
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	virtual PyObject*	ConvertValueToPython();
 #endif
 

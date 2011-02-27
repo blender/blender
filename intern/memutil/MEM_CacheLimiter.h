@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,8 +21,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __MEM_cache_limiter_h_included__
-#define __MEM_cache_limiter_h_included__ 1
+/** \file memutil/MEM_CacheLimiter.h
+ *  \ingroup memutil
+ */
+
+
+#ifndef MEM_CACHELIMITER_H
+#define MEM_CACHELIMITER_H
 
 /**
  * @section MEM_CacheLimiter
@@ -164,4 +169,4 @@ private:
 	  MEM_Allocator<MEM_CacheLimiterHandle<T> *> > queue;
 };
 
-#endif
+#endif // MEM_CACHELIMITER_H

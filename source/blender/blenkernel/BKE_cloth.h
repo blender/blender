@@ -1,6 +1,4 @@
-/**
- * BKE_cloth.h
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,11 @@
  */
 #ifndef BKE_CLOTH_H
 #define BKE_CLOTH_H
+
+/** \file BKE_cloth.h
+ *  \ingroup bke
+ *  \author Daniel Genrich
+ */
 
 #include <float.h>
 
@@ -220,9 +223,9 @@ void clmdSetInterruptCallBack ( int ( *f ) ( void ) );
 
 // needed for modifier.c
 void cloth_free_modifier_extern ( struct ClothModifierData *clmd );
-void cloth_free_modifier ( struct Object *ob, struct ClothModifierData *clmd );
+void cloth_free_modifier ( struct ClothModifierData *clmd );
 void cloth_init ( struct ClothModifierData *clmd );
-struct DerivedMesh *clothModifier_do ( struct ClothModifierData *clmd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc );
+struct DerivedMesh *clothModifier_do ( struct ClothModifierData *clmd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm);
 
 void cloth_update_normals ( ClothVertex *verts, int nVerts, struct MFace *face, int totface );
 int cloth_uses_vgroup(struct ClothModifierData *clmd);
@@ -252,7 +255,7 @@ typedef enum
 */
 typedef struct
 {
-	char		*name;
+	const char		*name;
 	CM_SOLVER_ID	id;
 	int	( *init ) ( struct Object *ob, struct ClothModifierData *clmd );
 	int	( *solver ) ( struct Object *ob, float framenr, struct ClothModifierData *clmd, struct ListBase *effectors );

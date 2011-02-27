@@ -1,4 +1,4 @@
-/**
+/*
  * $Id: GHOST_EventTrackpad.h 26841 2010-02-12 13:34:04Z campbellbarton $
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,8 +26,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_EventTrackpad.h
+
+/** \file ghost/intern/GHOST_EventTrackpad.h
+ *  \ingroup GHOST
  * Declaration of GHOST_EventTrackpad class.
  */
 

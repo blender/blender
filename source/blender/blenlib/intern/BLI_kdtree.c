@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -132,6 +132,7 @@ void BLI_kdtree_balance(KDTree *tree)
 static float squared_distance(float *v2, float *v1, float *n1, float *n2)
 {
 	float d[3], dist;
+	(void)n1; /* unused */
 
 	d[0]= v2[0]-v1[0];
 	d[1]= v2[1]-v1[1];
@@ -254,7 +255,7 @@ static void add_nearest(KDTreeNearest *ptn, int *found, int n, int index, float 
 /* finds the nearest n entries in tree to specified coordinates */
 int	BLI_kdtree_find_n_nearest(KDTree *tree, int n, float *co, float *nor, KDTreeNearest *nearest)
 {
-	KDTreeNode *root, *node=0;
+	KDTreeNode *root, *node= NULL;
 	KDTreeNode **stack, *defaultstack[100];
 	float cur_dist;
 	int i, totstack, cur=0, found=0;
@@ -369,7 +370,7 @@ static void add_in_range(KDTreeNearest **ptn, int found, int *totfoundstack, int
 }
 int BLI_kdtree_range_search(KDTree *tree, float range, float *co, float *nor, KDTreeNearest **nearest)
 {
-	KDTreeNode *root, *node=0;
+	KDTreeNode *root, *node= NULL;
 	KDTreeNode **stack, *defaultstack[100];
 	KDTreeNearest *foundstack=NULL;
 	float range2 = range*range, dist2;

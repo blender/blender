@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -24,6 +24,10 @@
 #ifndef BKE_UNIT_H
 #define BKE_UNIT_H
 
+/** \file BKE_unit.h
+ *  \ingroup bke
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,19 +40,26 @@ void	bUnit_AsString(char *str, int len_max, double value, int prec, int system, 
 /* replace units with values, used before python button evaluation */
 int		bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pref, int system, int type);
 
+/* make string keyboard-friendly: 10µm --> 10um */
+void bUnit_ToUnitAltName(char *str, int len_max, char *orig_str, int system, int type);
+
 /* the size of the unit used for this value (used for calculating the ckickstep) */
 double bUnit_ClosestScalar(double value, int system, int type);
 
 /* base scale for these units */
 double bUnit_BaseScalar(int system, int type);
 
+/* return true is the unit system exists */
+int bUnit_IsValid(int system, int type);
+
 /* loop over scales, coudl add names later */
 //double bUnit_Iter(void **unit, char **name, int system, int type);
 
-void	bUnit_GetSystem(void **usys_pt, int *len, int system, int type);
-char*	bUnit_GetName(void *usys_pt, int index);
-char*	bUnit_GetNameDisplay(void *usys_pt, int index);
-double	bUnit_GetScaler(void *usys_pt, int index);
+void		bUnit_GetSystem(void **usys_pt, int *len, int system, int type);
+int			bUnit_GetBaseUnit(void *usys_pt);
+const char*	bUnit_GetName(void *usys_pt, int index);
+const char*	bUnit_GetNameDisplay(void *usys_pt, int index);
+double		bUnit_GetScaler(void *usys_pt, int index);
 
 /* aligned with PropertyUnit */
 #define		B_UNIT_NONE 0
@@ -60,6 +71,7 @@ double	bUnit_GetScaler(void *usys_pt, int index);
 #define 	B_UNIT_TIME 6
 #define 	B_UNIT_VELOCITY 7
 #define 	B_UNIT_ACCELERATION 8
+#define 	B_UNIT_TYPE_TOT 9
 
 #ifdef __cplusplus
 }

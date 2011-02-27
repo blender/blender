@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "BLI_utildefines.h"
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
@@ -50,7 +52,7 @@ static ScrArea *image_area= NULL;
 
 /* can get as well the full picture, as the parts while rendering */
 /* XXX will be obsolete, here for reference now */
-void imagewindow_progress(SpaceImage *sima, RenderResult *rr, volatile rcti *renrect)
+static void imagewindow_progress(SpaceImage *sima, RenderResult *rr, volatile rcti *renrect)
 {
 	float x1, y1, *rectf= NULL;
 	unsigned int *rect32= NULL;
@@ -122,7 +124,7 @@ void imagewindow_progress(SpaceImage *sima, RenderResult *rr, volatile rcti *ren
 
 
 /* coming from BIF_toggle_render_display() */
-void imagewindow_toggle_render(bContext *C)
+static void imagewindow_toggle_render(bContext *C)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa;
@@ -149,7 +151,7 @@ void imagewindow_toggle_render(bContext *C)
 }
 
 /* NOTE: called while render, so no malloc allowed! */
-static void imagewindow_renderinfo_cb(void *handle, RenderStats *rs)
+static void imagewindow_renderinfo_cb(void *UNUSED(handle), RenderStats *UNUSED(rs))
 {
 	if(image_area) {
 		// XXX BIF_make_render_text(rs);
@@ -161,7 +163,7 @@ static void imagewindow_renderinfo_cb(void *handle, RenderStats *rs)
 	}
 }
 
-void ED_space_image_render_callbacks(bContext *C, Render *re)
+static void ED_space_image_render_callbacks(bContext *C, Render *re)
 {
 	
 //	RE_display_init_cb(re, C, imagewindow_init_display_cb);

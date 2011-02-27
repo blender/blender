@@ -5,11 +5,11 @@ sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../makesrna ../interface'
+incs += ' ../../makesrna ../interface ../../blenloader'
 
 defs = []
 
 if env['WITH_BF_GAMEENGINE']:
-	defs.append('GAMEBLENDER=1')
+    defs.append('WITH_GAMEENGINE')
 
 env.BlenderLib ( 'bf_editors_space_game', sources, Split(incs), defs, libtype=['core'], priority=[120] )

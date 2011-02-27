@@ -1,6 +1,4 @@
-/**
- * Manager for ray events
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_RayEventManager.h
+ *  \ingroup ketsji
+ *  \brief Manager for ray events
  */
 
 #ifndef __KX_RAYEVENTMGR

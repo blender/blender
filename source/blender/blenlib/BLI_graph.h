@@ -1,6 +1,10 @@
 #ifndef BLI_GRAPH_H_
 #define BLI_GRAPH_H_
 
+/** \file BLI_graph.h
+ *  \ingroup bli
+ */
+
 #include "DNA_listBase.h"
 
 struct BGraph;

@@ -25,6 +25,39 @@ class View3DPanel():
     bl_region_type = 'TOOLS'
 
 
+# **************** standard tool clusters ******************
+
+# History/Repeat tools
+def draw_repeat_tools(context, layout):
+    col = layout.column(align=True)
+    col.label(text="Repeat:")
+    col.operator("screen.repeat_last")
+    col.operator("screen.repeat_history", text="History...")
+
+
+# Keyframing tools
+def draw_keyframing_tools(context, layout):
+    col = layout.column(align=True)
+    col.label(text="Keyframes:")
+    row = col.row()
+    row.operator("anim.keyframe_insert_menu", text="Insert")
+    row.operator("anim.keyframe_delete_v3d", text="Remove")
+
+
+# Grease Pencil tools
+def draw_gpencil_tools(context, layout):
+    col = layout.column(align=True)
+
+    col.label(text="Grease Pencil:")
+
+    row = col.row()
+    row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+    row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+    row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+
+    row = col.row()
+    row.prop(context.tool_settings, "use_grease_pencil_sessions")
+
 # ********** default tools for objectmode ****************
 
 
@@ -58,22 +91,16 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, bpy.types.Panel):
             col.operator("object.shade_smooth", text="Smooth")
             col.operator("object.shade_flat", text="Flat")
 
-        col = layout.column(align=True)
-        col.label(text="Keyframes:")
-        col.operator("anim.keyframe_insert_menu", text="Insert")
-        col.operator("anim.keyframe_delete_v3d", text="Remove")
+        draw_keyframing_tools(context, layout)
 
         col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        col.label(text="Motion Paths:")
+        col.operator("object.paths_calculate", text="Calculate Paths")
+        col.operator("object.paths_clear", text="Clear Paths")
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_repeat_tools(context, layout)
+
+        draw_gpencil_tools(context, layout)
 
 # ********** default tools for editmode_mesh ****************
 
@@ -92,13 +119,12 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, bpy.types.Panel):
         col.operator("transform.resize", text="Scale")
         col.operator("transform.shrink_fatten", text="Along Normal")
 
-
         col = layout.column(align=True)
         col.label(text="Deform:")
         col.operator("transform.edge_slide")
         col.operator("mesh.rip_move")
+        col.operator("mesh.noise")
         col.operator("mesh.vertices_smooth")
-
 
         col = layout.column(align=True)
         col.label(text="Add:")
@@ -127,23 +153,14 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, bpy.types.Panel):
         col.operator("mesh.mark_seam")
         col.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
-
         col = layout.column(align=True)
         col.label(text="Shading:")
         col.operator("mesh.faces_shade_smooth", text="Smooth")
         col.operator("mesh.faces_shade_flat", text="Flat")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, bpy.types.Panel):
@@ -196,7 +213,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, bpy.types.Panel):
         row.operator("curve.handle_type_set", text="Auto").type = 'AUTOMATIC'
         row.operator("curve.handle_type_set", text="Vector").type = 'VECTOR'
         row = col.row()
-        row.operator("curve.handle_type_set", text="Align").type = 'ALIGN'
+        row.operator("curve.handle_type_set", text="Align").type = 'ALIGNED'
         row.operator("curve.handle_type_set", text="Free").type = 'FREE_ALIGN'
 
         col = layout.column(align=True)
@@ -204,17 +221,9 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, bpy.types.Panel):
         col.operator("curve.extrude")
         col.operator("curve.subdivide")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 # ********** default tools for editmode_surface ****************
 
@@ -244,17 +253,9 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel, bpy.types.Panel):
         col.operator("curve.extrude")
         col.operator("curve.subdivide")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 # ********** default tools for editmode_text ****************
 
@@ -283,10 +284,7 @@ class VIEW3D_PT_tools_textedit(View3DPanel, bpy.types.Panel):
         col.operator("font.style_toggle", text="Italic").style = 'ITALIC'
         col.operator("font.style_toggle", text="Underline").style = 'UNDERLINE'
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
 
 # ********** default tools for editmode_armature ****************
@@ -314,19 +312,11 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel, bpy.types.Panel):
         col = layout.column(align=True)
         col.label(text="Modeling:")
         col.operator("armature.extrude_move")
-        col.operator("armature.subdivide_multi", text="Subdivide")
+        col.operator("armature.subdivide", text="Subdivide")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 
 class VIEW3D_PT_tools_armatureedit_options(View3DPanel, bpy.types.Panel):
@@ -357,17 +347,9 @@ class VIEW3D_PT_tools_mballedit(View3DPanel, bpy.types.Panel):
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 # ********** default tools for editmode_lattice ****************
 
@@ -388,17 +370,9 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel, bpy.types.Panel):
         col = layout.column(align=True)
         col.operator("lattice.make_regular")
 
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        draw_repeat_tools(context, layout)
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_gpencil_tools(context, layout)
 
 
 # ********** default tools for posemode ****************
@@ -433,23 +407,16 @@ class VIEW3D_PT_tools_posemode(View3DPanel, bpy.types.Panel):
         col = layout.column(align=True)
         col.operator("poselib.pose_add", text="Add To Library")
 
-        col = layout.column(align=True)
-        col.label(text="Keyframes:")
-
-        col.operator("anim.keyframe_insert_menu", text="Insert")
-        col.operator("anim.keyframe_delete_v3d", text="Remove")
+        draw_keyframing_tools(context, layout)
 
         col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
+        col.label(text="Motion Paths:")
+        col.operator("pose.paths_calculate", text="Calculate Paths")
+        col.operator("pose.paths_clear", text="Clear Paths")
 
-        col = layout.column(align=True)
-        col.label(text="Grease Pencil:")
-        row = col.row()
-        row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
-        row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
-        row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+        draw_repeat_tools(context, layout)
+
+        draw_gpencil_tools(context, layout)
 
 
 class VIEW3D_PT_tools_posemode_options(View3DPanel, bpy.types.Panel):
@@ -462,7 +429,6 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, bpy.types.Panel):
         arm = context.active_object.data
 
         col = layout.column(align=True)
-        col.prop(arm, "use_mirror_x")
         col.prop(arm, "use_auto_ik")
 
 # ********** default tools for paint modes ****************
@@ -540,7 +506,6 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
             col = layout.column()
 
-
             col.separator()
 
             row = col.row(align=True)
@@ -553,7 +518,6 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 row.prop(brush, "size", text="Radius", slider=True)
 
             row.prop(brush, "use_pressure_size", toggle=True, text="")
-
 
             if brush.sculpt_tool not in ('SNAKE_HOOK', 'GRAB', 'ROTATE'):
                 col.separator()
@@ -569,8 +533,6 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 row.prop(brush, "strength", text="Strength", slider=True)
                 row.prop(brush, "use_pressure_strength", text="")
 
-
-
             if brush.sculpt_tool not in ('SMOOTH'):
                 col.separator()
 
@@ -578,15 +540,11 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 row.prop(brush, "auto_smooth_factor", slider=True)
                 row.prop(brush, "use_inverse_smooth_pressure", toggle=True, text="")
 
-
-
             if brush.sculpt_tool in ('GRAB', 'SNAKE_HOOK'):
                 col.separator()
 
                 row = col.row(align=True)
                 row.prop(brush, "normal_weight", slider=True)
-
-
 
             if brush.sculpt_tool in ('CREASE', 'BLOB'):
                 col.separator()
@@ -614,15 +572,19 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
                 col.separator()
 
-                row= col.row()
+                row = col.row()
                 row.prop(brush, "use_plane_trim", text="Trim")
-                row= col.row()
-                row.active=brush.use_plane_trim
+                row = col.row()
+                row.active = brush.use_plane_trim
                 row.prop(brush, "plane_trim", slider=True, text="Distance")
+
+            if brush.sculpt_tool == 'LAYER':
+                row = col.row()
+                row.prop(brush, "height", slider=True, text="Height")
 
             col.separator()
 
-            row= col.row()
+            row = col.row()
             row.prop(brush, "use_frontface", text="Front Faces Only")
 
             col.separator()
@@ -632,8 +594,6 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 col.separator()
 
                 col.prop(brush, "use_accumulate")
-
-
 
             if brush.sculpt_tool == 'LAYER':
                 col.separator()
@@ -675,9 +635,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
             col.active = (brush.blend not in ('ERASE_ALPHA', 'ADD_ALPHA'))
             col.prop(brush, "use_alpha")
 
-
         # Weight Paint Mode #
-
         elif context.weight_paint_object and brush:
             layout.prop(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
             layout.prop(context.tool_settings, "use_auto_normalize", text="Auto Normalize")
@@ -697,7 +655,6 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
         # Vertex Paint Mode #
-
         elif context.vertex_paint_object and brush:
             col = layout.column()
             col.template_color_wheel(brush, "color", value_slider=True)
@@ -741,10 +698,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
         if context.sculpt_object:
             #XXX duplicated from properties_texture.py
 
-
-
             col.separator()
-
 
             col.label(text="Brush Mapping:")
             row = col.row(align=True)
@@ -755,7 +709,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
             col = layout.column()
             col.active = tex_slot.map_mode in ('FIXED', )
             col.label(text="Angle:")
-            
+
             col = layout.column()
             if not brush.use_anchor and brush.sculpt_tool not in ('GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE') and tex_slot.map_mode in ('FIXED'):
                 col.prop(brush, "texture_angle_source_random", text="")
@@ -787,7 +741,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
 
             col = split.column()
 
-            col.prop(tex_slot, "size")
+            col.prop(tex_slot, "scale")
 
             col = layout.column()
 
@@ -832,8 +786,9 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
 
         settings = __class__.paint_settings(context)
         brush = settings.brush
-        texture_paint = context.texture_paint_object
-        sculpt = context.sculpt_object
+        ## Unused
+        # texture_paint = context.texture_paint_object
+        # sculpt = context.sculpt_object
 
         col = layout.column(align=True)
 
@@ -988,11 +943,9 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
         settings = __class__.paint_settings(context)
-        brush = settings.brush
 
         split = layout.split()
 
@@ -1014,8 +967,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
         row.prop(sculpt, "lock_y", text="Y", toggle=True)
         row.prop(sculpt, "lock_z", text="Z", toggle=True)
 
-		
-		
+
 class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
     bl_label = "Symmetry"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1030,7 +982,6 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
 
         sculpt = context.tool_settings.sculpt
         settings = __class__.paint_settings(context)
-        brush = settings.brush
 
         split = layout.split()
 
@@ -1051,6 +1002,7 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
 
         col.prop(sculpt, "use_symmetry_feather", text="Feather")
 
+
 class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
     bl_label = "Appearance"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1062,11 +1014,10 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        sculpt = context.tool_settings.sculpt
         settings = __class__.paint_settings(context)
         brush = settings.brush
 
-        col = layout.column();
+        col = layout.column()
 
         if context.sculpt_object and context.tool_settings.sculpt:
             #if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE', 'CLAY_TUBES'):
@@ -1097,7 +1048,10 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
+        ob = context.active_object
+
         col = layout.column()
+        col.active = ob.vertex_groups.active != None
         col.operator("object.vertex_group_normalize_all", text="Normalize All")
         col.operator("object.vertex_group_normalize", text="Normalize")
         col.operator("object.vertex_group_invert", text="Invert")
@@ -1178,7 +1132,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         brush = context.tool_settings.image_paint.brush
-        return (brush and brush.imagepaint_tool != 'SMEAR')
+        return (brush and brush.imagepaint_tool != 'SOFTEN')
 
     def draw_header(self, context):
         ipaint = context.tool_settings.image_paint
@@ -1259,7 +1213,8 @@ class VIEW3D_PT_imagepaint_options(PaintPanel):
         col.label(text="Unified Settings:")
         col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
         col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
-        
+
+
 class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
     bl_label = "Clone Layer"
 
@@ -1311,10 +1266,9 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, bpy.types.Panel):
         if ptcache and len(ptcache.point_caches) > 1:
             layout.template_list(ptcache, "point_caches", ptcache.point_caches, "active_index", type='ICONS')
 
-
         if not pe.is_editable:
             layout.label(text="Point cache must be baked")
-            layout.label(text="to enable editing!")
+            layout.label(text="in memory to enable editing!")
 
         col = layout.column(align=True)
         if pe.is_hair:
@@ -1350,11 +1304,11 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

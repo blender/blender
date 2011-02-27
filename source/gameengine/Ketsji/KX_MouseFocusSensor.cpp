@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,7 +28,12 @@
  * KX_MouseFocusSensor determines mouse in/out/over events.
  */
 
-#ifdef WIN32
+/** \file gameengine/Ketsji/KX_MouseFocusSensor.cpp
+ *  \ingroup ketsji
+ */
+
+
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 // This warning tells us about truncation of __long__ stl-generated names.
 // It can occasionally cause DevStudio to have internal compiler warnings.
 #pragma warning( disable : 4786 )     
@@ -347,7 +352,7 @@ const MT_Vector2& KX_MouseFocusSensor::HitUV() const
 	return m_hitUV;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -442,7 +447,7 @@ PyObject* KX_MouseFocusSensor::pyattr_get_hit_uv(void *self_v, const KX_PYATTRIB
 	return PyObjectFrom(self->HitUV());
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */
 

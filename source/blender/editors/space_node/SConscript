@@ -3,23 +3,23 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../makesrna ../../imbuf'
-incs += ' ../../nodes ../../render/extern/include'
+incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../makesrna ../../imbuf'
+incs += ' ../../nodes ../../render/extern/include ../../blenloader'
 incs += ' ../../windowmanager #intern/guardedalloc #extern/glew/include'
 defs = []
 cf = []
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-	#cf.append('/WX')
-	pass
+    #cf.append('/WX')
+    pass
 if env['CC'] == 'gcc':
-	#cf.append('-Werror')
-	pass
+    #cf.append('-Werror')
+    pass
 	
 if env['OURPLATFORM'] == 'linux2':
-	cflags='-pthread'
-	incs += ' ../../../extern/binreloc/include'
+    cflags='-pthread'
+    incs += ' ../../../extern/binreloc/include'
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
-	incs += ' ' + env['BF_PTHREADS_INC']
+    incs += ' ' + env['BF_PTHREADS_INC']
 
 env.BlenderLib ( 'bf_editors_space_node', sources, Split(incs), defs, libtype=['core'], priority=[55], compileflags=cf )

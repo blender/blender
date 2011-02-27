@@ -1,4 +1,4 @@
-/**
+/*
  * 'Xnor' together all inputs
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_XNORController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_XNORController.h"
 #include "SCA_ISensor.h"
@@ -91,7 +96,7 @@ CValue* SCA_XNORController::GetReplica()
 	return replica;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -128,6 +133,6 @@ PyAttributeDef SCA_XNORController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

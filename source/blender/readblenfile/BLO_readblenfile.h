@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +30,10 @@
 
 #ifndef BLO_READBLENFILE_H
 #define BLO_READBLENFILE_H
+
+/** \file BLO_readblenfile.h
+ *  \ingroup readblenfile
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,7 +77,7 @@ blo_read_runtime(
 	struct ReportList *reports);
 
 #define BLO_RESERVEDSIZE 12
-extern char *headerMagic;
+extern const char *headerMagic;
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,14 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Physics/Dummy/DummyPhysicsEnvironment.cpp
+ *  \ingroup physdummy
+ */
+
+
+#include <stddef.h>
+
 #include "DummyPhysicsEnvironment.h"
 #include "PHY_IMotionState.h"
 

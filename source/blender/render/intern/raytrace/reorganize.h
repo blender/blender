@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,11 +26,15 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+#include <float.h>
+#include <math.h>
 #include <stdio.h>
 #include <math.h>
+
 #include <algorithm>
-#include <vector>
 #include <queue>
+#include <vector>
 
 #include "BKE_global.h"
 
@@ -300,7 +304,7 @@ float bvh_refit(Node *node)
  */
 #include <vector>
 #include <cmath>
-#define MAX_CUT_SIZE	16
+#define MAX_CUT_SIZE		4				/* svbvh assumes max 4 children! */
 #define MAX_OPTIMIZE_CHILDS	MAX_CUT_SIZE
 
 struct OVBVHNode

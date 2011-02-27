@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file ghost/intern/GHOST_C-api.cpp
+ *  \ingroup GHOST
+ */
+
 
 /*
 
@@ -162,7 +167,7 @@ void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
 
 
 GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
-									  char* title,
+									  const char* title,
 									  GHOST_TInt32 left,
 									  GHOST_TInt32 top,
 									  GHOST_TUns32 width,
@@ -558,7 +563,7 @@ GHOST_TSuccess GHOST_SetDrawingContextType(GHOST_WindowHandle windowhandle,
 
 
 void GHOST_SetTitle(GHOST_WindowHandle windowhandle,
-					char* title)
+					const char* title)
 {
 	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
 	

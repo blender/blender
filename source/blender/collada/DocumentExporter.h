@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -21,6 +21,14 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file DocumentExporter.h
+ *  \ingroup collada
+ */
+
+#ifndef __DOCUMENTEXPORTER_H__
+#define __DOCUMENTEXPORTER_H__
+
 struct Scene;
 
 class DocumentExporter
@@ -29,3 +37,5 @@ class DocumentExporter
 	void exportCurrentScene(Scene *sce, const char* filename);
 	void exportScenes(const char* filename);
 };
+
+#endif

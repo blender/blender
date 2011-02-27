@@ -15,6 +15,13 @@
 #define CCG_INLINE inline
 #endif
 
+/* copied from BKE_utildefines.h ugh */
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#  define UNUSED(x) x
+#endif
+
 /* used for normalize_v3 in BLI_math_vector
  * float.h's FLT_EPSILON causes trouble with subsurf normals - campbell */
 #define EPSILON (1.0e-35f)
@@ -185,13 +192,13 @@ static int _ehashIterator_isStopped(EHashIterator *ehi) {
 
 /***/
 
-static void *_stdAllocator_alloc(CCGAllocatorHDL a, int numBytes) {
+static void *_stdAllocator_alloc(CCGAllocatorHDL UNUSED(a), int numBytes) {
 	return malloc(numBytes);
 }
-static void *_stdAllocator_realloc(CCGAllocatorHDL a, void *ptr, int newSize, int oldSize) {
+static void *_stdAllocator_realloc(CCGAllocatorHDL UNUSED(a), void *ptr, int newSize, int UNUSED(oldSize)) {
 	return realloc(ptr, newSize);
 }
-static void _stdAllocator_free(CCGAllocatorHDL a, void *ptr) {
+static void _stdAllocator_free(CCGAllocatorHDL UNUSED(a), void *ptr) {
 	free(ptr);
 }
 
@@ -236,13 +243,13 @@ enum {
 	Vert_eEffected=		(1<<0),
 	Vert_eChanged=		(1<<1),
 	Vert_eSeam=			(1<<2),
-} VertFlags;
+} /*VertFlags*/;
 enum {
 	Edge_eEffected=		(1<<0),
-} CCGEdgeFlags;
+} /*CCGEdgeFlags*/;
 enum {
 	Face_eEffected=		(1<<0),
-} FaceFlags;
+} /*FaceFlags*/;
 
 struct _CCGVert {
 	CCGVert		*next;	/* EHData.next */
@@ -390,7 +397,7 @@ static CCGEdge *_vert_findEdgeTo(CCGVert *v, CCGVert *vQ) {
 				(e->v1==v && e->v0==vQ))
 			return e;
 	}
-	return 0;
+	return NULL;
 }
 static int _vert_isBoundary(CCGVert *v) {
 	int i;
@@ -592,7 +599,7 @@ static CCG_INLINE void *_face_getIFCoEdge(CCGFace *f, CCGEdge *e, int lvl, int e
 static float *_face_getIFNoEdge(CCGFace *f, CCGEdge *e, int lvl, int eX, int eY, int levels, int dataSize, int normalDataOffset) {
 	return (float*) ((byte*) _face_getIFCoEdge(f, e, lvl, eX, eY, levels, dataSize) + normalDataOffset);
 }
-void _face_calcIFNo(CCGFace *f, int lvl, int S, int x, int y, float *no, int levels, int dataSize) {
+static void _face_calcIFNo(CCGFace *f, int lvl, int S, int x, int y, float *no, int levels, int dataSize) {
 	float *a = _face_getIFCo(f, lvl, S, x+0, y+0, levels, dataSize);
 	float *b = _face_getIFCo(f, lvl, S, x+1, y+0, levels, dataSize);
 	float *c = _face_getIFCo(f, lvl, S, x+1, y+1, levels, dataSize);
@@ -1514,7 +1521,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 			}
 		}
 
-		if (seam && seamEdges < 2)
+		if (seamEdges < 2 || seamEdges != v->numEdges)
 			seam = 0;
 
 		if (!v->numEdges) {
@@ -1942,7 +1949,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			}
 		}
 
-		if (seam && seamEdges < 2)
+		if (seamEdges < 2 || seamEdges != v->numEdges)
 			seam = 0;
 
 		if (!v->numEdges) {
@@ -2601,7 +2608,7 @@ float ccgSubSurf_getEdgeCrease(CCGEdge *e) {
 
 /* Face accessors */
 
-CCGFaceHDL ccgSubSurf_getFaceFaceHandle(CCGSubSurf *ss, CCGFace *f) {
+CCGFaceHDL ccgSubSurf_getFaceFaceHandle(CCGSubSurf *UNUSED(ss), CCGFace *f) {
 	return f->fHDL;
 }
 int ccgSubSurf_getFaceAge(CCGSubSurf *ss, CCGFace *f) {
@@ -2619,14 +2626,14 @@ void *ccgSubSurf_getFaceUserData(CCGSubSurf *ss, CCGFace *f) {
 int ccgSubSurf_getFaceNumVerts(CCGFace *f) {
 	return f->numVerts;
 }
-CCGVert *ccgSubSurf_getFaceVert(CCGSubSurf *ss, CCGFace *f, int index) {
+CCGVert *ccgSubSurf_getFaceVert(CCGSubSurf *UNUSED(ss), CCGFace *f, int index) {
 	if (index<0 || index>=f->numVerts) {
 		return NULL;
 	} else {
 		return FACE_getVerts(f)[index];
 	}
 }
-CCGEdge *ccgSubSurf_getFaceEdge(CCGSubSurf *ss, CCGFace *f, int index) {
+CCGEdge *ccgSubSurf_getFaceEdge(CCGSubSurf *UNUSED(ss), CCGFace *f, int index) {
 	if (index<0 || index>=f->numVerts) {
 		return NULL;
 	} else {

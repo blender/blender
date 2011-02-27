@@ -1,5 +1,4 @@
-/**
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +28,10 @@
  */
 #ifndef BKE_MODIFIER_H
 #define BKE_MODIFIER_H
+
+/** \file BKE_modifier.h
+ *  \ingroup bke
+ */
 
 #include "DNA_modifier_types.h"		/* needed for all enum typdefs */
 #include "BKE_customdata.h"
@@ -134,6 +137,12 @@ typedef struct ModifierTypeInfo {
 						struct DerivedMesh *derivedData,
 						float (*vertexCos)[3], int numVerts,
 						int useRenderParams, int isFinalCalc);
+
+	/* Like deformMatricesEM but called from object mode (for supporting modifiers in sculpt mode) */
+	void (*deformMatrices)(
+				struct ModifierData *md, struct Object *ob,
+				struct DerivedMesh *derivedData,
+				float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
 	/* Like deformVerts but called during editmode (for supporting modifiers)
 	 */
@@ -246,6 +255,17 @@ typedef struct ModifierTypeInfo {
 	 */
 	int (*dependsOnTime)(struct ModifierData *md);
 
+
+	/* True when a deform modifier uses normals, the requiredDataMask
+	 * cant be used here because that refers to a normal layer where as
+	 * in this case we need to know if the deform modifier uses normals.
+	 * 
+	 * this is needed because applying 2 deform modifiers will give the
+	 * second modifier bogus normals.
+	 * */
+	int (*dependsOnNormals)(struct ModifierData *md);
+
+
 	/* Should call the given walk function on with a pointer to each Object
 	 * pointer that the modifier data stores. This is used for linking on file
 	 * load and for unlinking objects or forwarding object references.
@@ -284,7 +304,11 @@ int           modifier_couldBeCage(struct Scene *scene, struct ModifierData *md)
 int           modifier_isCorrectableDeformed(struct ModifierData *md);
 int			  modifier_sameTopology(ModifierData *md);
 int           modifier_isEnabled(struct Scene *scene, struct ModifierData *md, int required_mode);
-void          modifier_setError(struct ModifierData *md, char *format, ...);
+void          modifier_setError(struct ModifierData *md, const char *format, ...)
+#ifdef __GNUC__
+__attribute__ ((format (printf, 2, 3)));
+#endif
+;
 
 void          modifiers_foreachObjectLink(struct Object *ob,
 										  ObjectWalkFunc walk,
@@ -305,7 +329,7 @@ int           modifiers_isParticleEnabled(struct Object *ob);
 struct Object *modifiers_isDeformedByArmature(struct Object *ob);
 struct Object *modifiers_isDeformedByLattice(struct Object *ob);
 int           modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
-int           modifiers_isCorrectableDeformed(struct Scene *scene, struct Object *ob);
+int           modifiers_isCorrectableDeformed(struct Object *ob);
 void          modifier_freeTemporaryData(struct ModifierData *md);
 
 int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md);
@@ -321,6 +345,9 @@ struct LinkNode *modifiers_calcDataMasks(struct Scene *scene,
 										 CustomDataMask dataMask,
 										 int required_mode);
 struct ModifierData  *modifiers_getVirtualModifierList(struct Object *ob);
+
+/* ensure modifier correctness when changing ob->data */
+void test_object_modifiers(struct Object *ob);
 
 /* here for do_versions */
 void modifier_mdef_compact_influences(struct ModifierData *md);

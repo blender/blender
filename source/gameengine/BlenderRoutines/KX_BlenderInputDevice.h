@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,10 +26,15 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_BlenderInputDevice.h
+ *  \ingroup blroutines
+ */
+
 #ifndef __KX_BLENDERINPUTDEVICE
 #define __KX_BLENDERINPUTDEVICE
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning(disable : 4786)  // shut off 255 char limit debug template warning
 #endif
 

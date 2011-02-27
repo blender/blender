@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,10 +31,11 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_rect.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_node.h"
-
-#include "BLI_rect.h"
 
 #include "ED_screen.h"
 
@@ -116,21 +117,21 @@ static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 			node->flag ^= NODE_PREVIEW;
 			return 1;
 		}
-		totr.xmin-=18.0f;
+		totr.xmin-=15.0f;
 	}
 	if(node->type == NODE_GROUP) {
 		if(BLI_in_rctf(&totr, mx, my)) {
 			snode_make_group_editable(snode, node);
 			return 1;
 		}
-		totr.xmin-=18.0f;
+		totr.xmin-=15.0f;
 	}
 	if(node->typeinfo->flag & NODE_OPTIONS) {
 		if(BLI_in_rctf(&totr, mx, my)) {
 			node->flag ^= NODE_OPTIONS;
 			return 1;
 		}
-		totr.xmin-=18.0f;
+		totr.xmin-=15.0f;
 	}
 	/* hide unused sockets */
 	if(BLI_in_rctf(&totr, mx, my)) {
@@ -140,7 +141,7 @@ static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 	return 0;
 }
 
-static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float my)
+static int do_header_hidden_node(bNode *node, float mx, float my)
 {
 	rctf totr= node->totr;
 	
@@ -164,7 +165,7 @@ static int node_toggle_visibility(SpaceNode *snode, ARegion *ar, short *mval)
 	
 	for(next_node(snode->edittree); (node=next_node(NULL));) {
 		if(node->flag & NODE_HIDDEN) {
-			if(do_header_hidden_node(snode, node, mx, my)) {
+			if(do_header_hidden_node(node, mx, my)) {
 				ED_region_tag_redraw(ar);
 				return 1;
 			}
@@ -227,7 +228,7 @@ void NODE_OT_visibility_toggle(wmOperatorType *ot)
 
 /* **************** View All Operator ************** */
 
-static void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
+static void snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode* snode)
 {
 	bNode *node;
 	rctf *cur, *tot;
@@ -278,7 +279,7 @@ static void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
 	UI_view2d_curRect_validate(&ar->v2d);
 }
 
-static int node_view_all_exec(bContext *C, wmOperator *op)
+static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -295,6 +296,7 @@ void NODE_OT_view_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "View All";
 	ot->idname= "NODE_OT_view_all";
+	ot->description= "Resize view so you can see all nodes";
 	
 	/* api callbacks */
 	ot->exec= node_view_all_exec;

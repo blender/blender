@@ -1,4 +1,4 @@
-/** mball.c
+/* mball.c
  *  
  * MetaBalls are created from a single Object (with a name without number in it),
  * here the DispList and BoundBox also is located.
@@ -48,8 +48,9 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+
 
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -76,7 +77,7 @@ void unlink_mball(MetaBall *mb)
 	
 	for(a=0; a<mb->totcol; a++) {
 		if(mb->mat[a]) mb->mat[a]->id.us--;
-		mb->mat[a]= 0;
+		mb->mat[a]= NULL;
 	}
 }
 
@@ -86,14 +87,17 @@ void free_mball(MetaBall *mb)
 {
 	unlink_mball(mb);	
 	
-	if(mb->adt) BKE_free_animdata((ID *)mb);
+	if(mb->adt) {
+		BKE_free_animdata((ID *)mb);
+		mb->adt = NULL;
+	}
 	if(mb->mat) MEM_freeN(mb->mat);
 	if(mb->bb) MEM_freeN(mb->bb);
 	BLI_freelistN(&mb->elems);
 	if(mb->disp.first) freedisplist(&mb->disp);
 }
 
-MetaBall *add_mball(char *name)
+MetaBall *add_mball(const char *name)
 {
 	MetaBall *mb;
 	
@@ -138,9 +142,9 @@ void make_local_mball(MetaBall *mb)
 	 * - mixed: make copy
 	 */
 	
-	if(mb->id.lib==0) return;
+	if(mb->id.lib==NULL) return;
 	if(mb->id.us==1) {
-		mb->id.lib= 0;
+		mb->id.lib= NULL;
 		mb->id.flag= LIB_LOCAL;
 		return;
 	}
@@ -155,7 +159,7 @@ void make_local_mball(MetaBall *mb)
 	}
 	
 	if(local && lib==0) {
-		mb->id.lib= 0;
+		mb->id.lib= NULL;
 		mb->id.flag= LIB_LOCAL;
 	}
 	else if(local && lib) {
@@ -166,7 +170,7 @@ void make_local_mball(MetaBall *mb)
 		while(ob) {
 			if(ob->data==mb) {
 				
-				if(ob->id.lib==0) {
+				if(ob->id.lib==NULL) {
 					ob->data= mbn;
 					mbn->id.us++;
 					mb->id.us--;
@@ -238,7 +242,7 @@ void tex_space_mball(Object *ob)
 	float *data, min[3], max[3], loc[3], size[3];
 	int tot, doit=0;
 
-	if(ob->bb==0) ob->bb= MEM_callocN(sizeof(BoundBox), "mb boundbox");
+	if(ob->bb==NULL) ob->bb= MEM_callocN(sizeof(BoundBox), "mb boundbox");
 	bb= ob->bb;
 	
 	/* Weird one, this. */
@@ -309,6 +313,19 @@ float *make_orco_mball(Object *ob, ListBase *dispbase)
 
 	return orcodata;
 }
+
+/* Note on mball basis stuff 2.5x (this is a can of worms)
+ * This really needs a rewrite/refactorm its totally broken in anything other then basic cases
+ * Multiple Scenes + Set Scenes & mixing mball basis SHOULD work but fails to update the depsgraph on rename
+ * and linking into scenes or removal of basis mball. so take care when changing this code.
+ * 
+ * Main idiot thing here is that the system returns find_basis_mball() objects which fail a is_basis_mball() test.
+ *
+ * Not only that but the depsgraph and ther areas depend on this behavior!, so making small fixes here isnt worth it.
+ * - campbell
+ */
+
+
 /** \brief Test, if Object *ob is basic MetaBall.
  *
  * It test last character of Object ID name. If last character
@@ -330,8 +347,8 @@ int is_mball_basis_for(Object *ob1, Object *ob2)
 	int basis1nr, basis2nr;
 	char basis1name[32], basis2name[32];
 
-	splitIDname(ob1->id.name+2, basis1name, &basis1nr);
-	splitIDname(ob2->id.name+2, basis2name, &basis2nr);
+	BLI_split_name_num(basis1name, &basis1nr, ob1->id.name+2, '.');
+	BLI_split_name_num(basis2name, &basis2nr, ob2->id.name+2, '.');
 
 	if(!strcmp(basis1name, basis2name)) return is_basis_mball(ob1);
 	else return 0;
@@ -352,16 +369,16 @@ void copy_mball_properties(Scene *scene, Object *active_object)
 	int basisnr, obnr;
 	char basisname[32], obname[32];
 	
-	splitIDname(active_object->id.name+2, basisname, &basisnr);
+	BLI_split_name_num(basisname, &basisnr, active_object->id.name+2, '.');
 
 	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if(F_ERROR==next_object(&sce_iter, 0, 0, 0))
+	if(F_ERROR==next_object(&sce_iter, 0, NULL, NULL))
 		return;
 	
 	while(next_object(&sce_iter, 1, &base, &ob)) {
 		if (ob->type==OB_MBALL) {
 			if(ob!=active_object){
-				splitIDname(ob->id.name+2, obname, &obnr);
+				BLI_split_name_num(obname, &obnr, ob->id.name+2, '.');
 
 				/* Object ob has to be in same "group" ... it means, that it has to have
 				 * same base of its name */
@@ -385,6 +402,8 @@ void copy_mball_properties(Scene *scene, Object *active_object)
  * its name. All MetaBalls with same base of name can be
  * blended. MetaBalls with different basic name can't be
  * blended.
+ *
+ * warning!, is_basis_mball() can fail on returned object, see long note above.
  */
 Object *find_basis_mball(Scene *scene, Object *basis)
 {
@@ -394,12 +413,12 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 	MetaElem *ml=NULL;
 	int basisnr, obnr;
 	char basisname[32], obname[32];
-	
-	splitIDname(basis->id.name+2, basisname, &basisnr);
+
+	BLI_split_name_num(basisname, &basisnr, basis->id.name+2, '.');
 	totelem= 0;
 
 	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if(F_ERROR==next_object(&sce_iter, 0, 0, 0))
+	if(F_ERROR==next_object(&sce_iter, 0, NULL, NULL))
 		return NULL;
 	
 	while(next_object(&sce_iter, 1, &base, &ob)) {
@@ -415,7 +434,7 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 				else ml= mb->elems.first;
 			}
 			else{
-				splitIDname(ob->id.name+2, obname, &obnr);
+				BLI_split_name_num(obname, &obnr, ob->id.name+2, '.');
 
 				/* object ob has to be in same "group" ... it means, that it has to have
 				 * same base of its name */
@@ -679,8 +698,8 @@ float metaball(float x, float y, float z)
 
 /* ******************************************** */
 
-int *indices=NULL;
-int totindex, curindex;
+static int *indices=NULL;
+static int totindex, curindex;
 
 
 void accum_mballfaces(int i1, int i2, int i3, int i4)
@@ -719,12 +738,12 @@ void accum_mballfaces(int i1, int i2, int i3, int i4)
 void *new_pgn_element(int size)
 {
 	/* during polygonize 1000s of elements are allocated
-	 * and never freed inbetween. Freeing only done at the end.
+	 * and never freed in between. Freeing only done at the end.
 	 */
 	int blocksize= 16384;
 	static int offs= 0;		/* the current free address */
-	static struct pgn_elements *cur= 0;
-	static ListBase lb= {0, 0};
+	static struct pgn_elements *cur= NULL;
+	static ListBase lb= {NULL, NULL};
 	void *adr;
 	
 	if(size>10000 || size==0) {
@@ -906,14 +925,14 @@ void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, i
 	newc.corners[FLIP(c3, bit)] = corn3;
 	newc.corners[FLIP(c4, bit)] = corn4;
 
-	if(newc.corners[0]==0) newc.corners[0] = setcorner(p, i, j, k);
-	if(newc.corners[1]==0) newc.corners[1] = setcorner(p, i, j, k+1);
-	if(newc.corners[2]==0) newc.corners[2] = setcorner(p, i, j+1, k);
-	if(newc.corners[3]==0) newc.corners[3] = setcorner(p, i, j+1, k+1);
-	if(newc.corners[4]==0) newc.corners[4] = setcorner(p, i+1, j, k);
-	if(newc.corners[5]==0) newc.corners[5] = setcorner(p, i+1, j, k+1);
-	if(newc.corners[6]==0) newc.corners[6] = setcorner(p, i+1, j+1, k);
-	if(newc.corners[7]==0) newc.corners[7] = setcorner(p, i+1, j+1, k+1);
+	if(newc.corners[0]==NULL) newc.corners[0] = setcorner(p, i, j, k);
+	if(newc.corners[1]==NULL) newc.corners[1] = setcorner(p, i, j, k+1);
+	if(newc.corners[2]==NULL) newc.corners[2] = setcorner(p, i, j+1, k);
+	if(newc.corners[3]==NULL) newc.corners[3] = setcorner(p, i, j+1, k+1);
+	if(newc.corners[4]==NULL) newc.corners[4] = setcorner(p, i+1, j, k);
+	if(newc.corners[5]==NULL) newc.corners[5] = setcorner(p, i+1, j, k+1);
+	if(newc.corners[6]==NULL) newc.corners[6] = setcorner(p, i+1, j+1, k);
+	if(newc.corners[7]==NULL) newc.corners[7] = setcorner(p, i+1, j+1, k+1);
 
 	p->cubes->cube= newc;	
 }
@@ -1012,7 +1031,7 @@ void makecubetable (void)
 		for (c = 0; c < 8; c++) pos[c] = MB_BIT(i, c);
 		for (e = 0; e < 12; e++)
 			if (!done[e] && (pos[corner1[e]] != pos[corner2[e]])) {
-				INTLIST *ints = 0;
+				INTLIST *ints = NULL;
 				INTLISTS *lists = (INTLISTS *) MEM_callocN(sizeof(INTLISTS), "mball_intlist");
 				int start = e, edge = e;
 				
@@ -1061,7 +1080,7 @@ void BKE_freecubetable(void)
 			MEM_freeN(lists);
 			lists= nlists;
 		}
-		cubetable[i]= 0;
+		cubetable[i]= NULL;
 	}
 }
 
@@ -1403,7 +1422,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 	int i, j, k, c_i, c_j, c_k;
 	int index[3]={1,0,-1};
 	float f =0.0f;
-	float in_v, out_v;
+	float in_v /*, out_v*/;
 	MB_POINT workp;
 	float tmp_v, workp_v, max_len, len, dx, dy, dz, nx, ny, nz, MAXN;
 
@@ -1464,7 +1483,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 
 					calc_mballco(ml, (float *)&out);
 
-					out_v = mbproc->function(out.x, out.y, out.z);
+					/*out_v = mbproc->function(out.x, out.y, out.z);*/ /*UNUSED*/
 
 					/* find "first points" on Implicit Surface of MetaElemnt ml */
 					workp.x = in.x;
@@ -1563,8 +1582,8 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 	Object *bob;
 	MetaBall *mb;
 	MetaElem *ml;
-	float size, totsize, (*mat)[4] = NULL, (*imat)[4] = NULL, obinv[4][4], obmat[4][4], vec[3];
-	float temp1[4][4], temp2[4][4], temp3[4][4]; //max=0.0;
+	float size, totsize, obinv[4][4], obmat[4][4], vec[3];
+	//float max=0.0;
 	int a, obnr, zero_size=0;
 	char obname[32];
 	
@@ -1572,10 +1591,10 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 	invert_m4_m4(obinv, ob->obmat);
 	a= 0;
 	
-	splitIDname(ob->id.name+2, obname, &obnr);
+	BLI_split_name_num(obname, &obnr, ob->id.name+2, '.');
 	
 	/* make main array */
-	next_object(&sce_iter, 0, 0, 0);
+	next_object(&sce_iter, 0, NULL, NULL);
 	while(next_object(&sce_iter, 1, &base, &bob)) {
 
 		if(bob->type==OB_MBALL) {
@@ -1583,7 +1602,6 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 			ml= NULL;
 
 			if(bob==ob && (base->flag & OB_FROMDUPLI)==0) {
-				mat= imat= 0;
 				mb= ob->data;
 	
 				if(mb->editelems) ml= mb->editelems->first;
@@ -1593,7 +1611,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 				char name[32];
 				int nr;
 				
-				splitIDname(bob->id.name+2, name, &nr);
+				BLI_split_name_num(name, &nr, bob->id.name+2, '.');
 				if( strcmp(obname, name)==0 ) {
 					mb= bob->data;
 					
@@ -1630,6 +1648,8 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 			while(ml) {
 				if(!(ml->flag & MB_HIDE)) {
 					int i;
+					float temp1[4][4], temp2[4][4], temp3[4][4];
+					float (*mat)[4] = NULL, (*imat)[4] = NULL;
 					float max_x, max_y, max_z, min_x, min_y, min_z;
 
 					max_x = max_y = max_z = -3.4e38;
@@ -2154,7 +2174,7 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
 	curindex= totindex= 0;
-	indices= 0;
+	indices= NULL;
 	thresh= mb->thresh;
 
 	/* total number of MetaElems (totelem) is precomputed in find_basis_mball() function */
@@ -2209,7 +2229,7 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	mbproc.function = metaball;
 	mbproc.size = width;
 	mbproc.bounds = nr_cubes;
-	mbproc.cubes= 0;
+	mbproc.cubes= NULL;
 	mbproc.delta = width/(float)(RES*RES);
 
 	polygonize(&mbproc, mb);
@@ -2231,7 +2251,7 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 		dl->parts= curindex;
 
 		dl->index= indices;
-		indices= 0;
+		indices= NULL;
 		
 		a= mbproc.vertices.count;
 		dl->verts= ve= MEM_mallocN(sizeof(float)*3*a, "mballverts");

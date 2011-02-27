@@ -1,4 +1,4 @@
-/**
+/*
 * $Id$
 * ***** BEGIN GPL LICENSE BLOCK *****
 *
@@ -26,6 +26,11 @@
 * ***** END GPL LICENSE BLOCK *****
 */
 
+/** \file moto/include/MT_assert.h
+ *  \ingroup moto
+ */
+
+
 #ifndef MT_ASSERT_H
 #define MT_ASSERT_H
 
@@ -48,7 +53,7 @@
 MT_CDECL int MT_QueryAssert(const char *file, int line, const char *predicate, int *do_assert);
 
 
-#ifdef	NDEBUG
+#if !defined(DEBUG)
 #define MT_assert(predicate) ((void)0)
 #define BREAKPOINT() ((void)0)
 #else 
@@ -93,7 +98,7 @@ abort();
 }
 #endif /* windows */
 
-#endif /* NDEBUG */
+#endif /* !defined(DEBUG) */
 
 #endif
 

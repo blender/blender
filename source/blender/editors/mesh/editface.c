@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -36,6 +36,7 @@
 #include "BLI_heap.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -52,12 +53,6 @@
 
 #include "BIF_gl.h"
 
-
-#ifndef DISABLE_PYTHON
-//#include "BPY_extern.h"
-//#include "BPY_menus.h"
-#endif
-
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -68,14 +63,9 @@
 /* own include */
 #include "mesh_intern.h"
 
-/* ***************** XXX **************** */
-static int pupmenu(const char *dummy) {return 0;}
-/* ***************** XXX **************** */
-
-
 /* copy the face flags, most importantly selection from the mesh to the final derived mesh,
  * use in object mode when selecting faces (while painting) */
-void object_facesel_flush_dm(Object *ob)
+void paintface_flush_flags(Object *ob)
 {
 	Mesh *me= get_mesh(ob);
 	DerivedMesh *dm= ob->derivedFinal;
@@ -106,8 +96,7 @@ void object_facesel_flush_dm(Object *ob)
 }
 
 /* returns 0 if not found, otherwise 1 */
-int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, 
-					  short *mval, unsigned int *index, short rect)
+static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, short *mval, unsigned int *index, short rect)
 {
 	Scene *scene = CTX_data_scene(C);
 	ViewContext vc;
@@ -173,50 +162,20 @@ MTexPoly *EDBM_get_active_mtface(BMEditMesh *em, BMFace **act_efa, int sloppy)
 	return NULL;
 }
 
-void reveal_tface(Scene *scene)
+void paintface_hide(Object *ob, const int unselected)
 {
 	Mesh *me;
 	MPoly *mface;
 	int a;
 	
-	me= get_mesh(OBACT);
+	me= get_mesh(ob);
 	if(me==0 || me->totpoly==0) return;
-	
+
 	mface= me->mpoly;
 	a= me->totpoly;
 	while(a--) {
-		if(mface->flag & ME_HIDE) {
-			mface->flag |= ME_FACE_SEL;
-			mface->flag -= ME_HIDE;
-		}
-		mface++;
-	}
-
-	object_facesel_flush_dm(OBACT);
-// XXX notifier!	object_tface_flags_changed(OBACT, 0);
-}
-
-void hide_tface(Scene *scene)
-{
-	Mesh *me;
-	MPoly *mface;
-	int a;
-	int shift=0, alt= 0; // XXX
-	
-	me= get_mesh(OBACT);
-	if(me==0 || me->totpoly==0) return;
-	
-	if(alt) {
-		reveal_tface(scene);
-		return;
-	}
-	
-	mface= me->mpoly;
-	a= me->totpoly;
-	while(a--) {
-		if(mface->flag & ME_HIDE);
-		else {
-			if(shift) {
+		if((mface->flag & ME_HIDE) == 0) {
+			if(unselected) {
 				if( (mface->flag & ME_FACE_SEL)==0) mface->flag |= ME_HIDE;
 			}
 			else {
@@ -228,8 +187,30 @@ void hide_tface(Scene *scene)
 		mface++;
 	}
 	
-	object_facesel_flush_dm(OBACT);
-// XXX notifier!		object_tface_flags_changed(OBACT, 0);
+	paintface_flush_flags(ob);
+}
+
+
+void paintface_reveal(Object *ob)
+{
+	Mesh *me;
+	MPoly *mface;
+	int a;
+
+	me= get_mesh(ob);
+	if(me==0 || me->totpoly==0) return;
+
+	mface= me->mpoly;
+	a= me->totpoly;
+	while(a--) {
+		if(mface->flag & ME_HIDE) {
+			mface->flag |= ME_FACE_SEL;
+			mface->flag -= ME_HIDE;
+		}
+		mface++;
+	}
+
+	paintface_flush_flags(ob);
 }
 
 /* Set tface seams based on edge data, uses hash table to find seam edges. */
@@ -246,7 +227,7 @@ static void hash_add_face(EdgeHash *ehash, MPoly *mf, MLoop *mloop)
 }
 
 
-void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
+static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 {
 	EdgeHash *ehash, *seamhash;
 	MPoly *mf;
@@ -340,12 +321,9 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 	}
 
 	MEM_freeN(linkflag);
-
-	// BIF_undo_push("Select linked UV face");
-	// object_tface_flags_changed(OBACT, 0);
 }
 
-void select_linked_tfaces(bContext *C, Object *ob, short mval[2], int mode)
+void paintface_select_linked(bContext *UNUSED(C), Object *ob, short UNUSED(mval[2]), int mode)
 {
 	Mesh *me;
 	unsigned int index=0;
@@ -363,10 +341,11 @@ void select_linked_tfaces(bContext *C, Object *ob, short mval[2], int mode)
 
 	select_linked_tfaces_with_seams(mode, me, index);
 
-	object_facesel_flush_dm(ob);
+	paintface_flush_flags(ob);
 }
 
-void selectall_tface(Object *ob, int action)
+/* note: caller needs to run paintface_flush_flags(ob) after this */
+void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 {
 	Mesh *me;
 	MPoly *mface;
@@ -375,40 +354,32 @@ void selectall_tface(Object *ob, int action)
 	me= get_mesh(ob);
 	if(me==0) return;
 	
-	if (action == SEL_TOGGLE) {
-		action = SEL_SELECT;
-
+	if(action == SEL_INVERT) {
 		mface= me->mpoly;
 		a= me->totpoly;
 		while(a--) {
-			if((mface->flag & ME_HIDE) == 0 && mface->flag & ME_FACE_SEL) {
-				action = SEL_DESELECT;
-				break;
+			if((mface->flag & ME_HIDE) == 0) {
+				mface->flag ^= ME_FACE_SEL;
 			}
 			mface++;
 		}
-	}
-	
-	mface= me->mpoly;
-	a= me->totpoly;
-	while(a--) {
-		if((mface->flag & ME_HIDE) == 0) {
-			switch (action) {
-			case SEL_SELECT:
-				mface->flag |= ME_FACE_SEL;
-				break;
-			case SEL_DESELECT:
-				mface->flag &= ~ME_FACE_SEL;
-				break;
-			case SEL_INVERT:
-				mface->flag ^= ME_FACE_SEL;
-				break;
+	} else {
+		if (action == SEL_TOGGLE) {
+			action = SEL_SELECT;
+
+			mface= me->mpoly;
+			a= me->totpoly;
+			while(a--) {
+				if((mface->flag & ME_HIDE) == 0 && mface->flag & ME_FACE_SEL) {
+					action = SEL_DESELECT;
+					break;
+				}
+				mface++;
 			}
 		}
-		mface++;
 	}
 
-	object_facesel_flush_dm(ob);
+	//BMESH_TODO object_facesel_flush_dm(ob);
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
 
@@ -429,16 +400,11 @@ void selectswap_tface(Scene *scene)
 			if(mface->flag & ME_FACE_SEL) mface->flag &= ~ME_FACE_SEL;
 			else mface->flag |= ME_FACE_SEL;
 		}
-		mface++;
 	}
-	
-	object_facesel_flush_dm(OBACT);
-// XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
 
-int minmax_tface(Scene *scene, float *min, float *max)
+int paintface_minmax(Object *ob, float *min, float *max)
 {
-	Object *ob;
 	Mesh *me;
 	MPoly *mf;
 	MTexPoly *tf;
@@ -446,9 +412,6 @@ int minmax_tface(Scene *scene, float *min, float *max)
 	MVert *mv;
 	int a, b, ok=0;
 	float vec[3], bmat[3][3];
-	
-	ob = OBACT;
-	if (ob==0) return ok;
 
 	me= get_mesh(ob);
 	if(!me || !me->mtpoly) return ok;
@@ -710,7 +673,7 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 }
 
 /* *************************************** */
-
+#if 0
 static void seam_edgehash_insert_face(EdgeHash *ehash, MPoly *mf, MLoop *loopstart)
 {
 	MLoop *ml1, *ml2;
@@ -779,11 +742,10 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 //		unwrap_lscm(1);
 
 	me->drawflag |= ME_DRAWSEAMS;
-
-// XXX notifier!		object_tface_flags_changed(OBACT, 1);
 }
+#endif
 
-int face_select(struct bContext *C, Object *ob, short mval[2], int extend)
+int paintface_mouse_select(struct bContext *C, Object *ob, short mval[2], int extend)
 {
 	Mesh *me;
 	MPoly *mface, *msel;
@@ -823,34 +785,35 @@ int face_select(struct bContext *C, Object *ob, short mval[2], int extend)
 	
 	/* image window redraw */
 	
-	object_facesel_flush_dm(ob);
-// XXX notifier!		object_tface_flags_changed(OBACT, 1);
+	paintface_flush_flags(ob);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 	ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
 	return 1;
 }
 
-void face_borderselect(struct bContext *C, Object *ob, rcti *rect, int select, int extend)
+int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
+	Object *ob = vc->obact;
 	Mesh *me;
 	MPoly *mface;
 	struct ImBuf *ibuf;
 	unsigned int *rt;
 	char *selar;
-	int a, sx, sy, index;
+	int a, index;
+	int sx= rect->xmax-rect->xmin+1;
+	int sy= rect->ymax-rect->ymin+1;
 	
-	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
-
 	me= get_mesh(ob);
-	if(me==0) return;
-	if(me->totpoly==0) return;
+	if(me==0) return 0;
+	if(me->totpoly==0) return 0;
+
+	if(me==NULL || me->totface==0 || sx*sy <= 0)
+		return OPERATOR_CANCELLED;
 
 	selar= MEM_callocN(me->totpoly+1, "selar");
 
-	sx= (rect->xmax-rect->xmin+1);
-	sy= (rect->ymax-rect->ymin+1);
-	if(sx*sy<=0) return;
+	if (extend == 0 && select)
+		paintface_deselect_all_visible(vc->obact, SEL_DESELECT, FALSE);
 
 	if (extend == 0 && select) {
 		mface= me->mpoly;
@@ -860,11 +823,11 @@ void face_borderselect(struct bContext *C, Object *ob, rcti *rect, int select, i
 		}
 	}
 
-	view3d_validate_backbuf(&vc);
+	view3d_validate_backbuf(vc);
 
-	ibuf = IMB_allocImBuf(sx,sy,32,IB_rect,0);
+	ibuf = IMB_allocImBuf(sx,sy,32,IB_rect);
 	rt = ibuf->rect;
-	glReadPixels(rect->xmin+vc.ar->winrct.xmin,  rect->ymin+vc.ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
+	glReadPixels(rect->xmin+vc->ar->winrct.xmin,  rect->ymin+vc->ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
 	if(ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 
 	a= sx*sy;
@@ -890,11 +853,11 @@ void face_borderselect(struct bContext *C, Object *ob, rcti *rect, int select, i
 	IMB_freeImBuf(ibuf);
 	MEM_freeN(selar);
 
-
-// XXX notifier!			object_tface_flags_changed(OBACT, 0);
 #ifdef __APPLE__	
 	glReadBuffer(GL_BACK);
 #endif
-	
-	object_facesel_flush_dm(ob);
+
+	paintface_flush_flags(vc->obact);
+
+	return OPERATOR_FINISHED;
 }

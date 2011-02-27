@@ -1,6 +1,4 @@
-/**
- * blenlib/BKE_mball.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -31,6 +29,11 @@
 #ifndef BKE_MBALL_H
 #define BKE_MBALL_H
 
+/** \file BKE_mball.h
+ *  \ingroup bke
+ *  \since March 2001
+ *  \author nzc
+ */
 struct MetaBall;
 struct Object;
 struct Scene;
@@ -127,12 +130,7 @@ struct pgn_elements {
 	char *data;
 };
 
-void calc_mballco(struct MetaElem *ml, float *vec);
-float densfunc(struct MetaElem *ball, float x, float y, float z);
 octal_node* find_metaball_octal_node(octal_node *node, float x, float y, float z, short depth);
-float metaball(float x, float y, float z);
-void accum_mballfaces(int i1, int i2, int i3, int i4);
-void *new_pgn_element(int size);
 
 void freepolygonize(PROCESS *p);
 void docube(CUBE *cube, PROCESS *p, struct MetaBall *mb);
@@ -159,7 +157,7 @@ float init_meta(struct Scene *scene, struct Object *ob);
 
 void unlink_mball(struct MetaBall *mb);
 void free_mball(struct MetaBall *mb);
-struct MetaBall *add_mball(char *name);
+struct MetaBall *add_mball(const char *name);
 struct MetaBall *copy_mball(struct MetaBall *mb);
 void make_local_mball(struct MetaBall *mb);
 struct MetaElem *add_metaball_element(struct MetaBall *mb, const int type);

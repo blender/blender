@@ -1,4 +1,4 @@
-/**
+/*
 * Set scene/camera stuff
 *
 * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
 */
+
+/** \file gameengine/Ketsji/KX_SceneActuator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "SCA_IActuator.h"
 #include "KX_SceneActuator.h"
@@ -210,7 +215,7 @@ KX_Scene* KX_SceneActuator::FindScene(char * sceneName)
 }
 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -283,6 +288,6 @@ int KX_SceneActuator::pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_
 	return PY_SET_ATTR_SUCCESS;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

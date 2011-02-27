@@ -28,6 +28,10 @@
 #ifndef BKE_SUBSURF_H
 #define BKE_SUBSURF_H
 
+/** \file BKE_subsurf.h
+ *  \ingroup bke
+ */
+
 struct DMGridAdjacency;
 struct DMGridData;
 struct DerivedMesh;
@@ -78,7 +82,6 @@ typedef struct CCGDerivedMesh {
 	int *reverseFaceMap;
 
 	struct PBVH *pbvh;
-	int pbvh_draw;
 	struct ListBase *fmap;
 	struct IndexNode *fmap_mem;
 

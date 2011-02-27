@@ -1,4 +1,4 @@
-/**
+/*
  * Apply a constraint to a position or rotation value
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_ConstraintActuator.cpp
+ *  \ingroup ketsji
+ */
+
 
 #include "SCA_IActuator.h"
 #include "KX_ConstraintActuator.h"
@@ -557,7 +562,7 @@ bool KX_ConstraintActuator::IsValidMode(KX_ConstraintActuator::KX_CONSTRAINTTYPE
 	return res;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

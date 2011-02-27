@@ -5,16 +5,28 @@ sources = env.Glob('intern/*.c')
 
 incs = '. ./intern'
 incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern'
+<<<<<<< .working
 incs += ' ../render/extern/include ../bmesh'
+=======
+incs += ' ../render/extern/include ../blenloader'
+>>>>>>> .merge-right.r35190
 incs += ' ../include ../blenlib ../makesdna ../blenkernel ../blenkernel/intern'
 
 incs += ' ' + env['BF_ZLIB_INC']
 
 defs = []
 
+# could be made optional
+defs += ['WITH_MOD_BOOLEAN']
+defs += ['WITH_MOD_DECIMATE']
+
 if env['BF_NO_ELBEEM']:
-	defs.append('DISABLE_ELBEEM')
+    defs.append('DISABLE_ELBEEM')
 
 env.BlenderLib ( libname = 'bf_modifiers', sources = sources,
                  includes = Split(incs), defines=defs,
+<<<<<<< .working
                  libtype=['core','player'], priority = [161, 20] )
+=======
+                 libtype=['core','player'], priority = [80, 40] )
+>>>>>>> .merge-right.r35190

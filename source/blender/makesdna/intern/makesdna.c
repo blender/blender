@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,9 +25,13 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/**  \file makesdna.c
+ *   \brief Struct muncher for making SDNA.
+ *   \ingroup DNA
  *
- * Struct muncher for making SDNA
- *
+ * \section aboutmakesdnac About makesdna tool
  * Originally by Ton, some mods by Frank, and some cleaning and
  * extension by Nzc.
  *
@@ -42,7 +46,7 @@
  * and the offsets for reaching a particular one.
  *
  * There is a facility to get verbose output from sdna. Search for
- * debugSDNA. This int can be set to 0 (no output) to some int. Higher
+ * \ref debugSDNA. This int can be set to 0 (no output) to some int. Higher
  * numbers give more output.
  * */
 
@@ -62,7 +66,7 @@
 
 /* Included the path relative from /source/blender/ here, so we can move     */
 /* headers around with more freedom.                                         */
-char *includefiles[] = {
+const char *includefiles[] = {
 
 	// if you add files here, please add them at the end
 	// of makesdna.c (this file) as well
@@ -145,7 +149,8 @@ short **structs, *structdata;	/* at sp= structs[a] is the first address of a str
 								   sp[0] is type number
 								   sp[1] is amount of elements
 								   sp[2] sp[3] is typenr,  namenr (etc) */
-/*
+/**
+ * Variable to control debug output of makesdna.
  * debugSDNA:
  *  - 0 = no output, except errors
  *  - 1 = detail actions
@@ -160,12 +165,15 @@ int additional_slen_offset;
 /* ************************************************************************** */
 
 /**
- * Add type <str> to struct indexed by <len>, if it was not yet found.
+ * Add type \c str to struct indexed by \c len, if it was not yet found.
+ * \param str char
+ * \param len int
  */
-int add_type(char *str, int len);
+int add_type(const char *str, int len);
 
 /**
- * Add variable <str> to 
+ * Add variable \c str to 
+ * \param str
  */
 int add_name(char *str);
 
@@ -214,7 +222,7 @@ void printStructLenghts(void);
 
 /* ************************* MAKEN DNA ********************** */
 
-int add_type(char *str, int len)
+int add_type(const char *str, int len)
 {
 	int nr;
 	char *cp;
@@ -244,7 +252,7 @@ int add_type(char *str, int len)
 	
 	if(nr_types>=maxnr) {
 		printf("too many types\n");
-		return nr_types-1;;
+		return nr_types-1;
 	}
 	nr_types++;
 	
@@ -269,7 +277,7 @@ int add_name(char *str)
 
 	additional_slen_offset = 0;
 	
-	if((str[0]==0) /*  || (str[1]==0) */) return -1;
+	if(str[0]==0 /*  || (str[1]==0) */) return -1;
 
 	if (str[0] == '(' && str[1] == '*') {
 		/* we handle function pointer and special array cases here, e.g.
@@ -281,7 +289,6 @@ int add_name(char *str)
 		if (debugSDNA > 3) printf("\t\t\t\t*** Function pointer or multidim array pointer found\n");
 		/* functionpointer: transform the type (sometimes) */
 		i = 0;
-		j = 0;
 
 		while (str[i] != ')') {
 			buf[i] = str[i];
@@ -421,7 +428,11 @@ int preprocess_include(char *maindata, int len)
 	int a, newlen, comment = 0;
 	char *cp, *temp, *md;
 	
-	temp= MEM_mallocN(len, "preprocess_include");
+	/* note: len + 1, last character is a dummy to prevent
+	 * comparisons using uninitialized memory */
+	temp= MEM_mallocN(len + 1, "preprocess_include");
+	temp[len]= ' ';
+
 	memcpy(temp, maindata, len);
 	
 	// remove all c++ comments
@@ -1056,6 +1067,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 	MEM_freeN(names);
 	MEM_freeN(types);
 	MEM_freeN(typelens);
+    MEM_freeN(alphalens);
 	MEM_freeN(structs);
 
 	if (debugSDNA > -1) printf("done.\n");

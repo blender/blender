@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file SCA_JoystickSensor.h
+ *  \ingroup gamelogic
  */
 
 
@@ -117,7 +121,7 @@ public:
 		return m_joyindex;
 	}
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -157,7 +161,7 @@ public:
 		return 0;
 	}
 	
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 };
 

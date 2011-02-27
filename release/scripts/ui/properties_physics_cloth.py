@@ -47,7 +47,7 @@ class PhysicButtonsPanel():
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+        return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.cloth)
 
 
 class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
@@ -58,21 +58,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
 
         md = context.cloth
         ob = context.object
-
-        split = layout.split()
-
-        if md:
-            # remove modifier + settings
-            split.context_pointer_set("modifier", md)
-            split.operator("object.modifier_remove", text="Remove")
-
-            row = split.row(align=True)
-            row.prop(md, "show_render", text="")
-            row.prop(md, "show_viewport", text="")
-        else:
-            # add modifier
-            split.operator("object.modifier_add", text="Add").type = 'CLOTH'
-            split.label()
 
         if md:
             cloth = md.settings
@@ -87,6 +72,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
             sub = col.row(align=True)
             sub.menu("CLOTH_MT_presets", text=bpy.types.CLOTH_MT_presets.bl_label)
             sub.operator("cloth.preset_add", text="", icon="ZOOMIN")
+            sub.operator("cloth.preset_add", text="", icon="ZOOMOUT").remove_active = True
 
             col.label(text="Quality:")
             col.prop(cloth, "quality", text="Steps", slider=True)
@@ -231,11 +217,11 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

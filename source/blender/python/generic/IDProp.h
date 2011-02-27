@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,7 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <Python.h>
+#ifndef IDPROP_H
+#define IDPROP_H
 
 struct ID;
 struct IDProperty;
@@ -56,9 +57,11 @@ int BPy_Wrap_SetMapItem(struct IDProperty *prop, PyObject *key, PyObject *val);
 
 
 PyObject *BPy_IDGroup_WrapData(struct ID *id, struct IDProperty *prop );
-char *BPy_IDProperty_Map_ValidateAndCreate(char *name, struct IDProperty *group, PyObject *ob);
+const char *BPy_IDProperty_Map_ValidateAndCreate(const char *name, struct IDProperty *group, PyObject *ob);
 
 void IDProp_Init_Types(void);
 
 #define IDPROP_ITER_KEYS	0
 #define IDPROP_ITER_ITEMS	1
+
+#endif /* IDPROP_H */

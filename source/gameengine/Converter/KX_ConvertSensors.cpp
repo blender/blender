@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,9 +28,14 @@
  * Conversion of Blender data blocks to KX sensor system
  */
 
+/** \file gameengine/Converter/KX_ConvertSensors.cpp
+ *  \ingroup bgeconv
+ */
+
+
 #include <stdio.h>
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif //WIN32
 
@@ -39,7 +44,7 @@
 #include "KX_ConvertSensors.h"
 
 /* This little block needed for linking to Blender... */
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #include "BLI_winstuff.h"
 #endif
 

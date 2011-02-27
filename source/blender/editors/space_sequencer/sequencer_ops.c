@@ -60,6 +60,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_reload);
 	WM_operatortype_append(SEQUENCER_OT_refresh_all);
 	WM_operatortype_append(SEQUENCER_OT_reassign_inputs);
+	WM_operatortype_append(SEQUENCER_OT_swap_inputs);
 	WM_operatortype_append(SEQUENCER_OT_duplicate);
 	WM_operatortype_append(SEQUENCER_OT_delete);
 	WM_operatortype_append(SEQUENCER_OT_images_separate);
@@ -118,6 +119,12 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	/* operators for sequence */
 	keymap= WM_keymap_find(keyconf, "Sequencer", SPACE_SEQ, 0);
+
+        WM_keymap_add_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
+        WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, KM_CTRL, 0);
+        WM_keymap_add_item(keymap, "MARKER_OT_duplicate", DKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, KM_SHIFT, 0);
+ 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
@@ -163,6 +170,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_swap", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "side", SEQ_SIDE_RIGHT);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_inputs", SKEY, KM_PRESS, KM_ALT, 0);
 
 	/* multicam editing keyboard layout, switch to camera 1-10 using
 	   regular number keys */
@@ -242,9 +250,6 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "SequencerPreview", SPACE_SEQ, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all_preview", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
-
-
-	keymap= WM_keymap_find(keyconf, "SequencerPreview", SPACE_SEQ, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_ghost_border", OKEY, KM_PRESS, 0, 0);
 

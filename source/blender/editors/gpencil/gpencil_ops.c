@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -37,6 +37,8 @@
 #include "WM_types.h"
 
 #include "RNA_access.h"
+
+#include "ED_gpencil.h"
 
 #include "gpencil_intern.h"
 

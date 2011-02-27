@@ -129,8 +129,8 @@ def setup_staticlibs(lenv):
     libincs.extend([
         lenv['BF_OPENGL_LIBPATH'],
         lenv['BF_JPEG_LIBPATH'],
-        lenv['BF_PNG_LIBPATH'],
         lenv['BF_ZLIB_LIBPATH'],
+        lenv['BF_PNG_LIBPATH'],
         lenv['BF_LIBSAMPLERATE_LIBPATH'],
         lenv['BF_ICONV_LIBPATH']
         ])
@@ -152,8 +152,14 @@ def setup_staticlibs(lenv):
         libincs += Split(lenv['BF_LCMS_LIBPATH'])
     if lenv['WITH_BF_TIFF']:
         libincs += Split(lenv['BF_TIFF_LIBPATH'])
+        if lenv['WITH_BF_STATICTIFF']:
+            statlibs += Split(lenv['BF_TIFF_LIB_STATIC'])
+    if lenv['WITH_BF_ZLIB'] and lenv['WITH_BF_STATICZLIB']:
+        statlibs += Split(lenv['BF_ZLIB_LIB_STATIC'])
     if lenv['WITH_BF_FFTW3']:
         libincs += Split(lenv['BF_FFTW3_LIBPATH'])
+        if lenv['WITH_BF_STATICFFTW3']:
+            statlibs += Split(lenv['BF_FFTW3_LIB_STATIC'])
     if lenv['WITH_BF_FFMPEG'] and lenv['WITH_BF_STATICFFMPEG']:
         statlibs += Split(lenv['BF_FFMPEG_LIB_STATIC'])
     if lenv['WITH_BF_INTERNATIONAL']:
@@ -174,6 +180,9 @@ def setup_staticlibs(lenv):
     if lenv['WITH_BF_PYTHON'] and lenv['WITH_BF_STATICPYTHON']:
         statlibs += Split(lenv['BF_PYTHON_LIB_STATIC'])
 
+    if lenv['WITH_BF_SNDFILE'] and lenv['WITH_BF_STATICSNDFILE']:
+        statlibs += Split(lenv['BF_SNDFILE_LIB_STATIC'])
+
     if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
         libincs += Split(lenv['BF_PTHREADS_LIBPATH'])
 
@@ -187,6 +196,9 @@ def setup_staticlibs(lenv):
         if lenv['OURPLATFORM'] == 'linuxcross':
             libincs += Split(lenv['BF_OPENMP_LIBPATH'])
 
+    if lenv['WITH_BF_STATICLIBSAMPLERATE']:
+        statlibs += Split(lenv['BF_LIBSAMPLERATE_LIB_STATIC'])
+
     # setting this last so any overriding of manually libs could be handled
     if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         libincs.append('/usr/lib')
@@ -198,8 +210,6 @@ def setup_syslibs(lenv):
         
         lenv['BF_JPEG_LIB'],
         lenv['BF_PNG_LIB'],
-        lenv['BF_ZLIB_LIB'],
-        lenv['BF_LIBSAMPLERATE_LIB']
         ]
 
     if not lenv['WITH_BF_FREETYPE_STATIC']:
@@ -221,20 +231,21 @@ def setup_syslibs(lenv):
             syslibs += ['gomp']
     if lenv['WITH_BF_ICONV']:
         syslibs += Split(lenv['BF_ICONV_LIB'])
-    if lenv['WITH_BF_OPENEXR']:
-        if not lenv['WITH_BF_STATICOPENEXR']:
-            syslibs += Split(lenv['BF_OPENEXR_LIB'])
-    if lenv['WITH_BF_TIFF']:
-            syslibs += Split(lenv['BF_TIFF_LIB'])
+    if lenv['WITH_BF_OPENEXR'] and not lenv['WITH_BF_STATICOPENEXR']:
+        syslibs += Split(lenv['BF_OPENEXR_LIB'])
+    if lenv['WITH_BF_TIFF'] and not lenv['WITH_BF_STATICTIFF']:
+        syslibs += Split(lenv['BF_TIFF_LIB'])
+    if lenv['WITH_BF_ZLIB'] and not lenv['WITH_BF_STATICZLIB']:
+        syslibs += Split(lenv['BF_ZLIB_LIB'])
     if lenv['WITH_BF_FFMPEG'] and not lenv['WITH_BF_STATICFFMPEG']:
         syslibs += Split(lenv['BF_FFMPEG_LIB'])
         if lenv['WITH_BF_OGG']:
             syslibs += Split(lenv['BF_OGG_LIB'])
     if lenv['WITH_BF_JACK']:
             syslibs += Split(lenv['BF_JACK_LIB'])
-    if lenv['WITH_BF_SNDFILE']:
+    if lenv['WITH_BF_SNDFILE'] and not lenv['WITH_BF_STATICSNDFILE']:
             syslibs += Split(lenv['BF_SNDFILE_LIB'])
-    if lenv['WITH_BF_FFTW3']:
+    if lenv['WITH_BF_FFTW3'] and not lenv['WITH_BF_STATICFFTW3']:
         syslibs += Split(lenv['BF_FFTW3_LIB'])
     if lenv['WITH_BF_SDL']:
         syslibs += Split(lenv['BF_SDL_LIB'])
@@ -248,6 +259,9 @@ def setup_syslibs(lenv):
         syslibs.append(lenv['BF_PCRE_LIB'])
         syslibs += Split(lenv['BF_OPENCOLLADA_LIB'])
         syslibs.append(lenv['BF_EXPAT_LIB'])
+
+    if not lenv['WITH_BF_STATICLIBSAMPLERATE']:
+        syslibs += Split(lenv['BF_LIBSAMPLERATE_LIB'])
 
 
     syslibs += lenv['LLIBS']
@@ -278,11 +292,17 @@ def buildinfo(lenv, build_type):
     build_time = time.strftime ("%H:%M:%S")
     build_rev = os.popen('svnversion').read()[:-1] # remove \n
     if build_rev == '': 
-        build_rev = '<UNKNOWN>'
+        build_rev = '-UNKNOWN-'
     if lenv['BF_DEBUG']:
         build_type = "Debug"
+        build_cflags = ' '.join(lenv['CFLAGS'] + lenv['CCFLAGS'] + lenv['BF_DEBUG_CCFLAGS'] + lenv['CPPFLAGS'])
+        build_cxxflags = ' '.join(lenv['CCFLAGS'] + lenv['CXXFLAGS'] + lenv['CPPFLAGS'])
     else:
         build_type = "Release"
+        build_cflags = ' '.join(lenv['CFLAGS'] + lenv['CCFLAGS'] + lenv['REL_CFLAGS'] + lenv['REL_CCFLAGS'] + lenv['CPPFLAGS'])
+        build_cxxflags = ' '.join(lenv['CCFLAGS'] + lenv['CXXFLAGS'] + lenv['REL_CXXFLAGS'] + lenv['REL_CCFLAGS'] + lenv['CPPFLAGS'])
+
+    build_linkflags = ' '.join(lenv['PLATFORM_LINKFLAGS'])
 
     obj = []
     if lenv['BF_BUILDINFO']:
@@ -291,9 +311,17 @@ def buildinfo(lenv, build_type):
                                     'BUILD_TYPE="%s"'%(build_type),
                                     'BUILD_REV="%s"'%(build_rev),
                                     'NAN_BUILDINFO',
-                    'BUILD_PLATFORM="%s:%s"'%(platform.system(), platform.architecture()[0])])
-        obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type,
-                        [root_build_dir+'source/creator/buildinfo.c'])]
+                                    'BUILD_PLATFORM="%s:%s"'%(platform.system(), platform.architecture()[0]),
+                                    'BUILD_CFLAGS=\\"%s\\"'%(build_cflags),
+                                    'BUILD_CXXFLAGS=\\"%s\\"'%(build_cxxflags),
+                                    'BUILD_LINKFLAGS=\\"%s\\"'%(build_linkflags),
+                                    'BUILD_SYSTEM="SCons"'
+                    ])
+
+        lenv.Append (CPPPATH = [root_build_dir+'source/blender/blenkernel'])
+
+        obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type, [root_build_dir+'source/creator/buildinfo.c'])]
+
     return obj
 
 ##### END LIB STUFF ############

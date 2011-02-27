@@ -1,4 +1,4 @@
-/**
+/*
  * Manager for 'always' events. Since always sensors can operate in pulse
  * mode, they need to be activated.
  *
@@ -29,6 +29,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_AlwaysEventManager.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_AlwaysEventManager.h"
 #include "SCA_LogicManager.h"

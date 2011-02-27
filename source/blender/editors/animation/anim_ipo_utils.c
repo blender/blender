@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -37,12 +37,13 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 
-#include "BKE_utildefines.h"
-
 #include "RNA_access.h"
+
+#include "ED_anim_api.h"
 
 /* ----------------------- Getter functions ----------------------- */
 
@@ -74,7 +75,8 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 		
 		/* try to resolve the path */
 		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
-			char *structname=NULL, *propname=NULL, *arrayname=NULL, arrayindbuf[16];
+			char *structname=NULL, *propname=NULL, arrayindbuf[16];
+			const char *arrayname=NULL;
 			short free_structname = 0;
 			
 			/* For now, name will consist of 3 parts: struct-name, property name, array index
@@ -157,6 +159,9 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			/* icon for this should be the icon for the base ID */
 			// TODO: or should we just use the error icon?
 			icon= RNA_struct_ui_icon(id_ptr.type);
+			
+			/* tag F-Curve as disabled - as not usable path */
+			fcu->flag |= FCURVE_DISABLED;
 		}
 	}
 	
@@ -169,14 +174,14 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 /* step between the major distinguishable color bands of the primary colors */
 #define HSV_BANDWIDTH	0.3f
 
-/* used to determine the colour of F-Curves with FCURVE_COLOR_AUTO_RAINBOW set */
+/* used to determine the color of F-Curves with FCURVE_COLOR_AUTO_RAINBOW set */
 //void fcurve_rainbow (unsigned int cur, unsigned int tot, float *out)
 void getcolor_fcurve_rainbow (int cur, int tot, float *out)
 {
 	float hue, val, sat, fac;
 	int grouping;
 	
-	/* we try to divide the colours into groupings of n colors,
+	/* we try to divide the color into groupings of n colors,
 	 * where n is:
 	 *	3 - for 'odd' numbers of curves - there should be a majority of triplets of curves
 	 *	4 - for 'even' numbers of curves - there should be a majority of quartets of curves

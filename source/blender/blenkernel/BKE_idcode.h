@@ -1,5 +1,5 @@
-/**
- * $Id: BKE_idcode.h 31221 2010-08-10 20:33:15Z gsrb3d $
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,6 +29,10 @@
 
 #ifndef BKE_ID_INFO_H
 #define BKE_ID_INFO_H
+
+/** \file BKE_idcode.h
+ *  \ingroup bke
+ */
 
 /**
  * Convert an idcode into a name.

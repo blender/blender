@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -37,6 +37,12 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+
+#include "BLI_math.h"
+#include "BLI_edgehash.h"
+#include "BLI_editVert.h"
+#include "BLI_uvproject.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -129,7 +135,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 
 /****************** Parametrizer Conversion ***************/
 
-ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em, 
+static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em, 
 				    short implicit, short fill, short sel, 
 				    short correct_aspect)
 {
@@ -158,7 +164,7 @@ ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		}
 	}
 	
-	/* we need the vert indicies */
+	/* we need the vert indices */
 	a = 0;
 	BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		BMINDEX_SET(ev, a);
@@ -213,7 +219,7 @@ ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		BLI_addfilledge(firstv, v);
 		
 		/*mode 2 enables shortest-diagonal for quads*/
-		BLI_edgefill(2, 0);
+		BLI_edgefill(0);
 		for (sefa = fillfacebase.first; sefa; sefa=sefa->next) {
 			ls[0] = sefa->v1->tmp.p;
 			ls[1] = sefa->v2->tmp.p;
@@ -323,7 +329,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, int interact
 
 		ms->lasttime = PIL_check_seconds_timer();
 
-		DAG_id_flush_update(ms->obedit->data, OB_RECALC_DATA);
+		DAG_id_tag_update(ms->obedit->data, 0);
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, ms->obedit->data);
 	}
 }
@@ -346,7 +352,7 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, int cancel)
 	param_stretch_end(ms->handle);
 	param_delete(ms->handle);
 
-	DAG_id_flush_update(ms->obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(ms->obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ms->obedit->data);
 
 	MEM_freeN(ms);
@@ -367,7 +373,7 @@ static int minimize_stretch_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int minimize_stretch_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int minimize_stretch_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	MinStretch *ms;
 
@@ -462,7 +468,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 
 /* ******************** Pack Islands operator **************** */
 
-static int pack_islands_exec(bContext *C, wmOperator *op)
+static int pack_islands_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -474,7 +480,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	param_flush(handle);
 	param_delete(handle);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -494,7 +500,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 
 /* ******************** Average Islands Scale operator **************** */
 
-static int average_islands_scale_exec(bContext *C, wmOperator *op)
+static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -506,7 +512,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *op)
 	param_flush(handle);
 	param_delete(handle);
 	
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -531,7 +537,7 @@ static ParamHandle *liveHandle = NULL;
 void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 {
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
-	short abf = scene->toolsettings->unwrapper == 1;
+	short abf = scene->toolsettings->unwrapper == 0;
 	short fillholes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 
 	if(!ED_uvedit_test(obedit)) {
@@ -852,6 +858,9 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	/* remember last method for live unwrap */
+	scene->toolsettings->unwrapper = method;
+
 	handle= construct_param_handle(scene, em, 0, fill_holes, 1, correct_aspect);
 
 	param_lscm_begin(handle, PARAM_FALSE, method == 0);
@@ -864,7 +873,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
 	param_delete(handle);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -964,7 +973,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -998,7 +1007,7 @@ void UV_OT_from_view(wmOperatorType *ot)
 
 /********************** Reset operator ********************/
 
-static int reset_exec(bContext *C, wmOperator *op)
+static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -1066,7 +1075,7 @@ static int reset_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	
 	BLI_array_free(uvs);
@@ -1171,7 +1180,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -1244,7 +1253,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -1329,7 +1338,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 
 	uv_map_clip_correct(em, op);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;

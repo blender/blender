@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Expressions/IdentifierExpr.cpp
+ *  \ingroup expressions
+ */
+
 
 #include "IdentifierExpr.h"
 

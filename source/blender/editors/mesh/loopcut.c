@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -34,11 +34,11 @@
 #include <stdio.h>
 
 #include "DNA_ID.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -48,12 +48,16 @@
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_editVert.h"
 #include "BLI_array.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_scene.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
+#include "BKE_report.h"
+#include "BKE_scene.h"
+#include "BKE_array_mallocn.h"
 #include "BKE_tessmesh.h"
 #include "BKE_depsgraph.h"
 
@@ -98,13 +102,15 @@ typedef struct tringselOpData {
 } tringselOpData;
 
 /* modal loop selection drawing callback */
-static void ringsel_draw(const bContext *C, ARegion *ar, void *arg)
+static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 {
-	int i;
+	View3D *v3d = CTX_wm_view3d(C);
 	tringselOpData *lcd = arg;
+	int i;
 	
 	if (lcd->totedge > 0) {
-		glDisable(GL_DEPTH_TEST);
+		if(v3d && v3d->zbuf)
+			glDisable(GL_DEPTH_TEST);
 
 		glPushMatrix();
 		glMultMatrixf(lcd->ob->obmat);
@@ -118,7 +124,8 @@ static void ringsel_draw(const bContext *C, ARegion *ar, void *arg)
 		glEnd();
 
 		glPopMatrix();
-		glEnable(GL_DEPTH_TEST);
+		if(v3d && v3d->zbuf)
+			glEnable(GL_DEPTH_TEST);
 	}
 }
 
@@ -260,11 +267,11 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	lcd->totedge = tot;
 }
 
-static void ringsel_find_edge(tringselOpData *lcd, const bContext *C, ARegion *ar, int cuts)
+static void ringsel_find_edge(tringselOpData *lcd, int cuts)
 {
 	if (lcd->eed) {
 		edgering_sel(lcd, cuts, 0);
-	} else {
+	} else if(lcd->edges) {
 		if (lcd->edges)
 			MEM_freeN(lcd->edges);
 		lcd->edges = NULL;
@@ -278,10 +285,11 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 	int cuts= RNA_int_get(op->ptr, "number_cuts");
 
 	if (lcd->eed) {
-		edgering_sel(lcd, cuts, 1);
-		if (lcd->do_cut) {
-			BMEditMesh *em = lcd->em;
+		BMEditMesh *em = lcd->em;
 
+		edgering_sel(lcd, cuts, 1);
+		
+		if (lcd->do_cut) {
 			BM_esubdivideflag(lcd->ob, em->bm, BM_SELECT, 0.0f, 
 			                  0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT, 
 			                  SUBD_PATH, 0, 0);
@@ -295,17 +303,29 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 				EDBM_selectmode_set(em);
 
 				WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, CTX_data_scene(C));
+
+				WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, CTX_data_scene(C));
 			}
 
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT|ND_DATA, lcd->ob->data);
-			DAG_id_flush_update(lcd->ob->data, OB_RECALC_DATA);
+			DAG_id_tag_update(lcd->ob->data, 0);
 		}
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, lcd->ob->data);
+		else {
+			
+			/* sets as active, useful for other tools */
+			if(em->selectmode & SCE_SELECT_VERTEX)
+				EDBM_selectmode_flush(em);
+			if(em->selectmode & SCE_SELECT_EDGE)
+				EDBM_selectmode_flush(em);
+			
+			EDBM_selectmode_flush(lcd->em);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, lcd->ob->data);
+		}
 	}
 }
 
 /* called when modal loop selection is done... */
-static void ringsel_exit (bContext *C, wmOperator *op)
+static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 {
 	tringselOpData *lcd= op->customdata;
 
@@ -344,7 +364,7 @@ static int ringsel_init (bContext *C, wmOperator *op, int do_cut)
 	return 1;
 }
 
-static int ringsel_cancel (bContext *C, wmOperator *op)
+static int ringcut_cancel (bContext *C, wmOperator *op)
 {
 	/* this is just a wrapper around exit() */
 	ringsel_exit(C, op);
@@ -356,7 +376,7 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	tringselOpData *lcd;
 	BMEdge *edge;
 	int dist = 75;
-
+	
 	view3d_operator_needs_opengl(C);
 
 	if (!ringsel_init(C, op, 0))
@@ -366,25 +386,35 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	WM_event_add_modal_handler(C, op);
 
 	lcd = op->customdata;
+	
+	if (lcd->em->selectmode == SCE_SELECT_FACE) {
+		ringsel_exit(C, op);
+		WM_operator_name_call(C, "MESH_OT_loop_select", WM_OP_INVOKE_REGION_WIN, NULL);
+		return OPERATOR_CANCELLED;
+	}
+
 	lcd->vc.mval[0] = evt->mval[0];
 	lcd->vc.mval[1] = evt->mval[1];
 	
 	edge = EDBM_findnearestedge(&lcd->vc, &dist);
 	if (edge != lcd->eed) {
 		lcd->eed = edge;
-		ringsel_find_edge(lcd, C, lcd->ar, 1);
+		ringsel_find_edge(lcd, 1);
 	}
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
-
 static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
+	Object *obedit= CTX_data_edit_object(C);
 	tringselOpData *lcd;
 	BMEdge *edge;
 	int dist = 75;
 
+	if(modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
+		BKE_report(op->reports, RPT_WARNING, "Loop cut doesn't work well on deformed edit mesh display");
+	
 	view3d_operator_needs_opengl(C);
 
 	if (!ringsel_init(C, op, 1))
@@ -400,9 +430,10 @@ static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	edge = EDBM_findnearestedge(&lcd->vc, &dist);
 	if (edge != lcd->eed) {
 		lcd->eed = edge;
-		ringsel_find_edge(lcd, C, lcd->ar, 1);
+		ringsel_find_edge(lcd, 1);
 	}
-
+	ED_area_headerprint(CTX_wm_area(C), "Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts");
+	
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -427,6 +458,7 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 				
 				ringsel_finish(C, op);
 				ringsel_exit(C, op);
+				ED_area_headerprint(CTX_wm_area(C), NULL);
 				
 				return OPERATOR_FINISHED;
 			}
@@ -437,8 +469,9 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 			if (event->val == KM_RELEASE) {
 				/* cancel */
 				ED_region_tag_redraw(lcd->ar);
+				ED_area_headerprint(CTX_wm_area(C), NULL);
 				
-				return ringsel_cancel(C, op);
+				return ringcut_cancel(C, op);
 			}
 			
 			ED_region_tag_redraw(lcd->ar);
@@ -453,7 +486,7 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 			if (edge != lcd->eed) {
 				lcd->eed = edge;
-				ringsel_find_edge(lcd, C, lcd->ar, cuts);
+				ringsel_find_edge(lcd, cuts);
 			}
 
 			ED_region_tag_redraw(lcd->ar);
@@ -497,7 +530,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 				/* cancel */
 				ED_region_tag_redraw(lcd->ar);
 				
-				return ringsel_cancel(C, op);
+				return ringcut_cancel(C, op);
 			}
 			
 			ED_region_tag_redraw(lcd->ar);
@@ -509,7 +542,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 			cuts++;
 			RNA_int_set(op->ptr,"number_cuts",cuts);
-			ringsel_find_edge(lcd, C, lcd->ar, cuts);
+			ringsel_find_edge(lcd, cuts);
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
@@ -520,7 +553,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 			cuts=MAX2(cuts-1,1);
 			RNA_int_set(op->ptr,"number_cuts",cuts);
-			ringsel_find_edge(lcd, C, lcd->ar,cuts);
+			ringsel_find_edge(lcd, cuts);
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
@@ -534,7 +567,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 			if (edge != lcd->eed) {
 				lcd->eed = edge;
-				ringsel_find_edge(lcd, C, lcd->ar, cuts);
+				ringsel_find_edge(lcd, cuts);
 			}
 
 			ED_region_tag_redraw(lcd->ar);
@@ -556,8 +589,8 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 	/* callbacks */
 	ot->invoke= ringsel_invoke;
 	ot->modal= ringsel_modal;
-	ot->cancel= ringsel_cancel;
-	ot->poll= ED_operator_editmesh_view3d;
+	ot->cancel= ringcut_cancel;
+	ot->poll= ED_operator_editmesh_region_view3d; 
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -575,8 +608,8 @@ void MESH_OT_loopcut (wmOperatorType *ot)
 	/* callbacks */
 	ot->invoke= ringcut_invoke;
 	ot->modal= loopcut_modal;
-	ot->cancel= ringsel_cancel;
-	ot->poll= ED_operator_editmesh_view3d;
+	ot->cancel= ringcut_cancel;
+	ot->poll= ED_operator_editmesh_region_view3d;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;

@@ -21,11 +21,13 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 #include "BLI_scanfill.h"
 #include "BLI_array.h"
+#include "BLI_utildefines.h"
 
 #include "ED_mesh.h"
 
@@ -118,7 +120,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 	for (i=0; i<me->totvert; i++, mvert++) {
 		v = BM_Make_Vert(bm, keyco ? keyco[i] : mvert->co, NULL);
-		VECCOPY(v->no, mvert->no);
+		copy_v3_v3(v->no, mvert->no);
 
 		vt[i] = v;
 		BMINDEX_SET(v, i);
@@ -437,7 +439,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 			}
 
 			BLI_addfilledge(lasteve, firsteve);
-			BLI_edgefill(0, 0);
+			BLI_edgefill(0);
 
 			for (efa=fillfacebase.first; efa; efa=efa->next)
 				totface++;
@@ -479,7 +481,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 			}
 
 			BLI_addfilledge(lasteve, firsteve);
-			BLI_edgefill(0, 0);
+			BLI_edgefill(0);
 
 			for (efa=fillfacebase.first; efa; efa=efa->next) {
 				ls[0] = efa->v1->tmp.p;

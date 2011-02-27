@@ -1,3 +1,6 @@
+/** \file smoke/intern/tnt/tnt_array3d_utils.h
+ *  \ingroup smoke
+ */
 
 
 #ifndef TNT_ARRAY3D_UTILS_H

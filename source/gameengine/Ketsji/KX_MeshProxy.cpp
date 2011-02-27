@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,7 +26,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DISABLE_PYTHON
+/** \file gameengine/Ketsji/KX_MeshProxy.cpp
+ *  \ingroup ketsji
+ */
+
+
+#ifdef WITH_PYTHON
 
 #include "KX_MeshProxy.h"
 #include "RAS_IPolygonMaterial.h"
@@ -181,7 +186,7 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* args, PyObject* kwds)
 	RAS_TexVert* vertex = m_meshobj->GetVertex(matindex,vertexindex);
 	
 	if(vertex==NULL) {
-		PyErr_SetString(PyExc_ValueError, "mesh.getVertex(mat_idx, vert_idx): KX_MeshProxy, could not get a vertex at the given indicies");
+		PyErr_SetString(PyExc_ValueError, "mesh.getVertex(mat_idx, vert_idx): KX_MeshProxy, could not get a vertex at the given indices");
 		return NULL;
 	}
 	
@@ -308,4 +313,4 @@ bool ConvertPythonToMesh(PyObject * value, RAS_MeshObject **object, bool py_none
 	return false;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -24,6 +24,10 @@
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file ED_space_api.h
+ *  \ingroup editors
  */
 
 #ifndef ED_SPACE_API_H

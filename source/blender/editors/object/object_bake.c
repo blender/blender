@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -42,12 +42,14 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
+#include "BKE_multires.h"
 #include "BKE_report.h"
 
 #include "RE_pipeline.h"
@@ -63,11 +65,14 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_object.h"
+
+#include "object_intern.h"
 
 /* ****************** render BAKING ********************** */
 
 /* threaded break test */
-static int thread_break(void *unused)
+static int thread_break(void *UNUSED(arg))
 {
 	return G.afbreek;
 }
@@ -114,7 +119,7 @@ typedef struct BakeRender {
 } BakeRender;
 
 /* use by exec and invoke */
-int test_bake_internal(bContext *C, ReportList *reports)
+static int test_bake_internal(bContext *C, ReportList *reports)
 {
 	Scene *scene= CTX_data_scene(C);
 
@@ -136,6 +141,12 @@ int test_bake_internal(bContext *C, ReportList *reports)
 static void init_bake_internal(BakeRender *bkr, bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
+
+	/* flush multires changes (for sculpt) */
+	multires_force_render_update(CTX_data_active_object(C));
+
+	/* get editmode results */
+	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
 
 	bkr->sa= biggest_image_area(CTX_wm_screen(C)); /* can be NULL */
 	bkr->main= CTX_data_main(C);
@@ -227,13 +238,13 @@ static void bake_freejob(void *bkv)
 	BakeRender *bkr= bkv;
 	finish_bake_internal(bkr);
 
-	if(bkr->tot==0) BKE_report(bkr->reports, RPT_ERROR, "No Images found to bake to");
+	if(bkr->tot==0) BKE_report(bkr->reports, RPT_ERROR, "No objects or images found to bake to");
 	MEM_freeN(bkr);
 	G.rendering = 0;
 }
 
 /* catch esc */
-static int objects_bake_render_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running blender, remove handler and pass through */
 	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
@@ -248,10 +259,14 @@ static int objects_bake_render_modal(bContext *C, wmOperator *op, wmEvent *event
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *_event)
+static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(_event))
 {
 	Scene *scene= CTX_data_scene(C);
 
+	/* only one render job at a time */
+	if(WM_jobs_test(CTX_wm_manager(C), scene))
+		return OPERATOR_CANCELLED;
+	
 	if(test_bake_internal(C, op->reports)==0) {
 		return OPERATOR_CANCELLED;
 	}
@@ -295,9 +310,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		ListBase threads;
-		BakeRender bkr;
-
-		memset(&bkr, 0, sizeof(bkr));
+		BakeRender bkr= {0};
 
 		init_bake_internal(&bkr, C);
 		bkr.reports= op->reports;
@@ -323,7 +336,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 		}
 		BLI_end_threads(&threads);
 
-		if(bkr.tot==0) BKE_report(op->reports, RPT_ERROR, "No Images found to bake to");
+		if(bkr.tot==0) BKE_report(op->reports, RPT_ERROR, "No valid images found to bake to");
 
 		finish_bake_internal(&bkr);
 	}

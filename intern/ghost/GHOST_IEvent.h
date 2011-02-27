@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_IEvent.h
+
+/** \file ghost/GHOST_IEvent.h
+ *  \ingroup GHOST
  * Declaration of GHOST_IEvent interface class.
  */
 
@@ -101,6 +102,12 @@ public:
 		sprintf(buf, "%lf %d %d", ((double)this->getTime())*0.001, this->getType(), this->getWindow()->getID());
 		return 0;
 	}
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GHOST:GHOST_IEvent"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // _GHOST_IEVENT_H_

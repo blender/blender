@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/ErrorValue.cpp
+ *  \ingroup expressions
+ */
 // ErrorValue.cpp: implementation of the CErrorValue class.
 /*
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>

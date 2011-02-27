@@ -1,6 +1,4 @@
-/**
- * Property sensor
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_ArmatureSensor.h
+ *  \ingroup ketsji
+ *  \brief Property sensor
  */
 
 #ifndef __KX_ARMATURESENSOR
@@ -66,14 +69,14 @@ public:
 	// identify the constraint that this actuator controls
 	void FindConstraint();
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 	static PyObject* pyattr_get_constraint(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 private:
 	struct bConstraint*	m_constraint;

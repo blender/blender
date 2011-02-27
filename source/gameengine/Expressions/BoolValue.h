@@ -12,6 +12,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+
+/** \file BoolValue.h
+ *  \ingroup expressions
+ */
+
 #if !defined _BOOLVALUE_H
 #define _BOOLVALUE_H
 
@@ -45,7 +50,7 @@ public:
 	
 	void				Configure(CValue* menuvalue);
 	virtual CValue*		GetReplica();
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	virtual PyObject*	ConvertValueToPython();
 #endif
 

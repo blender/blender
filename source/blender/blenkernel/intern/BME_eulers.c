@@ -1,5 +1,6 @@
 #if 0
 /**
+/*
  * BME_eulers.c    jan 2007
  *
  *	BMesh Euler construction API.
@@ -34,7 +35,7 @@
  */
 
 #include "MEM_guardedalloc.h"
-
+#include "BLI_utildefines.h"
 
 #include "bmesh_private.h"
 

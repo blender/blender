@@ -34,6 +34,7 @@
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
 #include "BLI_array.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
@@ -126,8 +127,8 @@ static void alter_co(float *co, BMEdge *edge, subdparams *params, float perc,
 		sub_v3_v3v3(nor, vsta->co, vend->co);
 		len= 0.5f*normalize_v3(nor);
 
-		VECCOPY(nor1, vsta->no);
-		VECCOPY(nor2, vend->no);
+		copy_v3_v3(nor1, vsta->no);
+		copy_v3_v3(nor2, vend->no);
 
 		/* cosine angle */
 		fac= nor[0]*nor1[0] + nor[1]*nor1[1] + nor[2]*nor1[2] ;
@@ -265,7 +266,7 @@ v3---------v2
 v4---v0---v1
 
 */
-static void quad_1edge_split(BMesh *bm, BMFace *face,
+static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
 			  BMVert **verts, subdparams *params) {
 	BMFace *nf;
 	int i, add, numcuts = params->numcuts;
@@ -310,7 +311,7 @@ v6--------v5
 v7-v0--v1-v2
 
 */
-static void quad_2edge_split_path(BMesh *bm, BMFace *face, BMVert **verts, 
+static void quad_2edge_split_path(BMesh *bm, BMFace *UNUSED(face), BMVert **verts, 
                           subdparams *params)
 {
 	BMFace *nf;
@@ -338,7 +339,7 @@ v6--------v5
 v7-v0--v1-v2
 
 */
-static void quad_2edge_split_innervert(BMesh *bm, BMFace *face, BMVert **verts, 
+static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert **verts, 
                           subdparams *params)
 {
 	BMFace *nf;

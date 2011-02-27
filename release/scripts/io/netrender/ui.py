@@ -36,6 +36,8 @@ DISPATCHED = 1
 DONE = 2
 ERROR = 3
 
+LAST_ADDRESS_TEST = 0
+
 def base_poll(cls, context):
     rd = context.scene.render
     return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
@@ -45,7 +47,7 @@ def init_file():
     if netrender.init_file != bpy.data.filepath:
         netrender.init_file = bpy.data.filepath
         netrender.init_data = True
-        netrender.init_address = True
+        netrender.valid_address = False
 
 def init_data(netsettings):
     init_file()
@@ -66,22 +68,31 @@ def init_data(netsettings):
             netsettings.jobs.remove(0)
 
 def verify_address(netsettings):
+    global LAST_ADDRESS_TEST
     init_file()
 
-    if netrender.init_address:
-        netrender.init_address = False
+    if LAST_ADDRESS_TEST + 30 < time.time():
+        LAST_ADDRESS_TEST = time.time()
 
         try:
-            conn = clientConnection(netsettings.server_address, netsettings.server_port, scan = False)
+            conn = clientConnection(netsettings.server_address, netsettings.server_port, scan = False, timeout = 1)
         except:
             conn = None
 
         if conn:
+            netrender.valid_address = True
             conn.close()
         else:
-            netsettings.server_address = "[default]"
+            netrender.valid_address = False
+            
+    return netrender.valid_address
 
-class RenderButtonsPanel():
+class NeedValidAddress():
+    @classmethod
+    def poll(cls, context):
+        return super().poll(context) and verify_address(context.scene.network_render)
+
+class NetRenderButtonsPanel():
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "render"
@@ -90,16 +101,16 @@ class RenderButtonsPanel():
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
+        return rd.engine == 'NET_RENDER' and rd.use_game_engine == False 
 
 # Setting panel, use in the scene for now.
-class RENDER_PT_network_settings(bpy.types.Panel, RenderButtonsPanel):
+class RENDER_PT_network_settings(NetRenderButtonsPanel, bpy.types.Panel):
     bl_label = "Network Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
 
     @classmethod
     def poll(cls, context):
-        return super(RENDER_PT_network_settings, cls).poll(context)
+        return super().poll(context)
 
     def draw(self, context):
         layout = self.layout
@@ -119,7 +130,7 @@ class RENDER_PT_network_settings(bpy.types.Panel, RenderButtonsPanel):
         split = layout.split(percentage=0.7)
 
         col = split.column()
-        col.label(text="Server Adress:")
+        col.label(text="Server Address:")
         col.prop(netsettings, "server_address", text="")
 
         col = split.column()
@@ -128,17 +139,20 @@ class RENDER_PT_network_settings(bpy.types.Panel, RenderButtonsPanel):
 
         if netsettings.mode != "RENDER_MASTER":
             layout.operator("render.netclientscan", icon='FILE_REFRESH', text="")
+            
+        if not netrender.valid_address:
+            layout.label(text="No master at specified address")
 
         layout.operator("render.netclientweb", icon='QUESTION')
 
-class RENDER_PT_network_slave_settings(bpy.types.Panel, RenderButtonsPanel):
+class RENDER_PT_network_slave_settings(NetRenderButtonsPanel, bpy.types.Panel):
     bl_label = "Slave Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
 
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return super(RENDER_PT_network_slave_settings, cls).poll(context) and scene.network_render.mode == "RENDER_SLAVE"
+        return super().poll(context) and scene.network_render.mode == "RENDER_SLAVE"
 
     def draw(self, context):
         layout = self.layout
@@ -156,14 +170,14 @@ class RENDER_PT_network_slave_settings(bpy.types.Panel, RenderButtonsPanel):
         sub.enabled = rd.threads_mode == 'FIXED'
         sub.prop(rd, "threads")
 
-class RENDER_PT_network_master_settings(bpy.types.Panel, RenderButtonsPanel):
+class RENDER_PT_network_master_settings(NetRenderButtonsPanel, bpy.types.Panel):
     bl_label = "Master Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
 
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return super(RENDER_PT_network_master_settings, cls).poll(context) and scene.network_render.mode == "RENDER_MASTER"
+        return super().poll(context) and scene.network_render.mode == "RENDER_MASTER"
 
     def draw(self, context):
         layout = self.layout
@@ -174,14 +188,14 @@ class RENDER_PT_network_master_settings(bpy.types.Panel, RenderButtonsPanel):
         layout.prop(netsettings, "use_master_broadcast")
         layout.prop(netsettings, "use_master_clear")
 
-class RENDER_PT_network_job(bpy.types.Panel, RenderButtonsPanel):
+class RENDER_PT_network_job(NetRenderButtonsPanel, bpy.types.Panel):
     bl_label = "Job Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
 
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return super(RENDER_PT_network_job, cls).poll(context) and scene.network_render.mode == "RENDER_CLIENT"
+        return super().poll(context) and scene.network_render.mode == "RENDER_CLIENT"
 
     def draw(self, context):
         layout = self.layout
@@ -203,10 +217,12 @@ class RENDER_PT_network_job(bpy.types.Panel, RenderButtonsPanel):
         split = layout.split(percentage=0.3)
 
         col = split.column()
+        col.label(text="Type:")
         col.label(text="Name:")
         col.label(text="Category:")
 
         col = split.column()
+        col.prop(netsettings, "job_type", text="")
         col.prop(netsettings, "job_name", text="")
         col.prop(netsettings, "job_category", text="")
 
@@ -214,18 +230,38 @@ class RENDER_PT_network_job(bpy.types.Panel, RenderButtonsPanel):
         row.prop(netsettings, "priority")
         row.prop(netsettings, "chunks")
 
-class RENDER_PT_network_slaves(bpy.types.Panel, RenderButtonsPanel):
-    bl_label = "Slaves Status"
+class RENDER_PT_network_job_vcs(NetRenderButtonsPanel, bpy.types.Panel):
+    bl_label = "VCS Job Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
 
     @classmethod
     def poll(cls, context):
         scene = context.scene
+        return (super().poll(context)
+            and scene.network_render.mode == "RENDER_CLIENT"
+            and scene.network_render.job_type == "JOB_VCS")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
         netsettings = scene.network_render
-        if netsettings.mode != "RENDER_CLIENT":
-            return False
-        verify_address(netsettings)
-        return super(RENDER_PT_network_slaves, cls).poll(context) and netsettings.server_address != "[default]"
+
+        layout.operator("render.netclientvcsguess", icon='FILE_REFRESH', text="")
+
+        layout.prop(netsettings, "vcs_system")
+        layout.prop(netsettings, "vcs_revision")
+        layout.prop(netsettings, "vcs_rpath")
+        layout.prop(netsettings, "vcs_wpath")
+
+class RENDER_PT_network_slaves(NeedValidAddress, NetRenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Slaves Status"
+    COMPAT_ENGINES = {'NET_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        netsettings = context.scene.network_render
+        return super().poll(context) and netsettings.mode == "RENDER_CLIENT"
 
     def draw(self, context):
         layout = self.layout
@@ -240,9 +276,7 @@ class RENDER_PT_network_slaves(bpy.types.Panel, RenderButtonsPanel):
         sub.operator("render.netclientslaves", icon='FILE_REFRESH', text="")
         sub.operator("render.netclientblacklistslave", icon='ZOOMOUT', text="")
 
-        init_data(netsettings)
-
-        if netsettings.active_slave_index >= 0 and len(netsettings.slaves) > 0:
+        if len(netrender.slaves) > netsettings.active_slave_index >= 0:
             layout.separator()
 
             slave = netrender.slaves[netsettings.active_slave_index]
@@ -252,18 +286,14 @@ class RENDER_PT_network_slaves(bpy.types.Panel, RenderButtonsPanel):
             layout.label(text="Seen: " + time.ctime(slave.last_seen))
             layout.label(text="Stats: " + slave.stats)
 
-class RENDER_PT_network_slaves_blacklist(bpy.types.Panel, RenderButtonsPanel):
+class RENDER_PT_network_slaves_blacklist(NeedValidAddress, NetRenderButtonsPanel, bpy.types.Panel):
     bl_label = "Slaves Blacklist"
     COMPAT_ENGINES = {'NET_RENDER'}
 
     @classmethod
     def poll(cls, context):
-        scene = context.scene
-        netsettings = scene.network_render
-        if netsettings.mode != "RENDER_CLIENT":
-            return False
-        verify_address(netsettings)
-        return super(RENDER_PT_network_slaves_blacklist, cls).poll(context) and netsettings.server_address != "[default]"
+        netsettings = context.scene.network_render
+        return super().poll(context) and netsettings.mode == "RENDER_CLIENT"
 
     def draw(self, context):
         layout = self.layout
@@ -277,9 +307,7 @@ class RENDER_PT_network_slaves_blacklist(bpy.types.Panel, RenderButtonsPanel):
         sub = row.column(align=True)
         sub.operator("render.netclientwhitelistslave", icon='ZOOMOUT', text="")
 
-        init_data(netsettings)
-
-        if netsettings.active_blacklisted_slave_index >= 0 and len(netsettings.slaves_blacklist) > 0:
+        if len(netrender.blacklist) > netsettings.active_blacklisted_slave_index >= 0:
             layout.separator()
 
             slave = netrender.blacklist[netsettings.active_blacklisted_slave_index]
@@ -289,18 +317,14 @@ class RENDER_PT_network_slaves_blacklist(bpy.types.Panel, RenderButtonsPanel):
             layout.label(text="Seen: " + time.ctime(slave.last_seen))
             layout.label(text="Stats: " + slave.stats)
 
-class RENDER_PT_network_jobs(bpy.types.Panel, RenderButtonsPanel):
+class RENDER_PT_network_jobs(NeedValidAddress, NetRenderButtonsPanel, bpy.types.Panel):
     bl_label = "Jobs"
     COMPAT_ENGINES = {'NET_RENDER'}
 
     @classmethod
     def poll(cls, context):
-        scene = context.scene
-        netsettings = scene.network_render
-        if netsettings.mode != "RENDER_CLIENT":
-            return False
-        verify_address(netsettings)
-        return super(RENDER_PT_network_jobs, cls).poll(context) and netsettings.server_address != "[default]"
+        netsettings = context.scene.network_render
+        return super().poll(context) and netsettings.mode == "RENDER_CLIENT"
 
     def draw(self, context):
         layout = self.layout
@@ -317,9 +341,7 @@ class RENDER_PT_network_jobs(bpy.types.Panel, RenderButtonsPanel):
         sub.operator("render.netclientcancelall", icon='PANEL_CLOSE', text="")
         sub.operator("render.netclientdownload", icon='RENDER_ANIMATION', text="")
 
-        init_data(netsettings)
-
-        if netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0:
+        if len(netrender.jobs) > netsettings.active_job_index >= 0:
             layout.separator()
 
             job = netrender.jobs[netsettings.active_job_index]
@@ -329,52 +351,70 @@ class RENDER_PT_network_jobs(bpy.types.Panel, RenderButtonsPanel):
             layout.label(text="Done: %04i" % job.results[DONE])
             layout.label(text="Error: %04i" % job.results[ERROR])
 
-class NetRenderSettings(bpy.types.IDPropertyGroup):
-    pass
+import properties_render
+class RENDER_PT_network_output(NeedValidAddress, NetRenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Output"
+    COMPAT_ENGINES = {'NET_RENDER'}
 
-class NetRenderSlave(bpy.types.IDPropertyGroup):
-    pass
+    @classmethod
+    def poll(cls, context):
+        netsettings = context.scene.network_render
+        return super().poll(context) and netsettings.mode == "RENDER_CLIENT"
+    
+    draw = properties_render.RENDER_PT_output.draw
 
-class NetRenderJob(bpy.types.IDPropertyGroup):
-    pass
 
 def addProperties():
-    bpy.types.Scene.PointerProperty(attr="network_render", type=NetRenderSettings, name="Network Render", description="Network Render Settings")
+    class NetRenderSettings(bpy.types.PropertyGroup):
+        pass
+
+    class NetRenderSlave(bpy.types.PropertyGroup):
+        pass
+
+    class NetRenderJob(bpy.types.PropertyGroup):
+        pass
+
+    bpy.utils.register_class(NetRenderSettings)
+    bpy.utils.register_class(NetRenderSlave)
+    bpy.utils.register_class(NetRenderJob)
+
+    from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
+    bpy.types.Scene.network_render = PointerProperty(type=NetRenderSettings, name="Network Render", description="Network Render Settings")
     
-    NetRenderSettings.StringProperty( attr="server_address",
+    NetRenderSettings.server_address = StringProperty(
                     name="Server address",
                     description="IP or name of the master render server",
                     maxlen = 128,
                     default = "[default]")
     
-    NetRenderSettings.IntProperty( attr="server_port",
+    NetRenderSettings.server_port = IntProperty(
                     name="Server port",
                     description="port of the master render server",
                     default = 8000,
                     min=1,
                     max=65535)
     
-    NetRenderSettings.BoolProperty( attr="use_master_broadcast",
+    NetRenderSettings.use_master_broadcast = BoolProperty(
                     name="Broadcast",
                     description="broadcast master server address on local network",
                     default = True)
     
-    NetRenderSettings.BoolProperty( attr="use_slave_clear",
+    NetRenderSettings.use_slave_clear = BoolProperty(
                     name="Clear on exit",
                     description="delete downloaded files on exit",
                     default = True)
     
-    NetRenderSettings.BoolProperty( attr="use_slave_thumb",
+    NetRenderSettings.use_slave_thumb = BoolProperty(
                     name="Generate thumbnails",
                     description="Generate thumbnails on slaves instead of master",
                     default = False)
     
-    NetRenderSettings.BoolProperty( attr="use_slave_output_log",
+    NetRenderSettings.use_slave_output_log = BoolProperty(
                     name="Output render log on console",
                     description="Output render text log to console as well as sending it to the master",
                     default = True)
     
-    NetRenderSettings.BoolProperty( attr="use_master_clear",
+    NetRenderSettings.use_master_clear = BoolProperty(
                     name="Clear on exit",
                     description="delete saved files on exit",
                     default = False)
@@ -389,67 +429,101 @@ def addProperties():
     elif not default_path.endswith(os.sep):
         default_path += os.sep
     
-    NetRenderSettings.StringProperty( attr="path",
+    NetRenderSettings.path = StringProperty(
                     name="Path",
                     description="Path for temporary files",
                     maxlen = 128,
                     default = default_path,
                     subtype='FILE_PATH')
     
-    NetRenderSettings.StringProperty( attr="job_name",
+    NetRenderSettings.job_type = EnumProperty(
+                            items=(
+                                            ("JOB_BLENDER", "Blender", "Standard Blender Job"),
+                                            ("JOB_PROCESS", "Process", "Custom Process Job"),
+                                            ("JOB_VCS", "VCS", "Version Control System Managed Job"),
+                                        ),
+                            name="Job Type",
+                            description="Type of render job",
+                            default="JOB_BLENDER")
+
+    NetRenderSettings.job_name = StringProperty(
                     name="Job name",
                     description="Name of the job",
                     maxlen = 128,
                     default = "[default]")
     
-    NetRenderSettings.StringProperty( attr="job_category",
+    NetRenderSettings.job_category = StringProperty(
                     name="Job category",
                     description="Category of the job",
                     maxlen = 128,
                     default = "")
     
-    NetRenderSettings.IntProperty( attr="chunks",
+    NetRenderSettings.chunks = IntProperty(
                     name="Chunks",
                     description="Number of frame to dispatch to each slave in one chunk",
                     default = 5,
                     min=1,
                     max=65535)
     
-    NetRenderSettings.IntProperty( attr="priority",
+    NetRenderSettings.priority = IntProperty(
                     name="Priority",
                     description="Priority of the job",
                     default = 1,
                     min=1,
                     max=10)
     
-    NetRenderSettings.StringProperty( attr="job_id",
+    NetRenderSettings.vcs_wpath = StringProperty(
+                    name="Working Copy",
+                    description="Path of the local working copy",
+                    maxlen = 1024,
+                    default = "")
+
+    NetRenderSettings.vcs_rpath = StringProperty(
+                    name="Remote Path",
+                    description="Path of the server copy (protocol specific)",
+                    maxlen = 1024,
+                    default = "")
+
+    NetRenderSettings.vcs_revision = StringProperty(
+                    name="Revision",
+                    description="Revision for this job",
+                    maxlen = 256,
+                    default = "")
+
+    NetRenderSettings.vcs_system = StringProperty(
+                    name="VCS",
+                    description="Version Control System",
+                    maxlen = 64,
+                    default = "Subversion")
+
+    NetRenderSettings.job_id = StringProperty(
                     name="Network job id",
                     description="id of the last sent render job",
                     maxlen = 64,
                     default = "")
     
-    NetRenderSettings.IntProperty( attr="active_slave_index",
+    NetRenderSettings.active_slave_index = IntProperty(
                     name="Index of the active slave",
                     description="",
                     default = -1,
                     min= -1,
                     max=65535)
     
-    NetRenderSettings.IntProperty( attr="active_blacklisted_slave_index",
+    NetRenderSettings.active_blacklisted_slave_index = IntProperty(
                     name="Index of the active slave",
                     description="",
                     default = -1,
                     min= -1,
                     max=65535)
     
-    NetRenderSettings.IntProperty( attr="active_job_index",
+    NetRenderSettings.active_job_index = IntProperty(
                     name="Index of the active job",
                     description="",
                     default = -1,
                     min= -1,
                     max=65535)
     
-    NetRenderSettings.EnumProperty(attr="mode",
+    NetRenderSettings.mode = EnumProperty(
                             items=(
                                             ("RENDER_CLIENT", "Client", "Act as render client"),
                                             ("RENDER_MASTER", "Master", "Act as render master"),
@@ -459,17 +533,17 @@ def addProperties():
                             description="Mode of operation of this instance",
                             default="RENDER_CLIENT")
     
-    NetRenderSettings.CollectionProperty(attr="slaves", type=NetRenderSlave, name="Slaves", description="")
-    NetRenderSettings.CollectionProperty(attr="slaves_blacklist", type=NetRenderSlave, name="Slaves Blacklist", description="")
-    NetRenderSettings.CollectionProperty(attr="jobs", type=NetRenderJob, name="Job List", description="")
+    NetRenderSettings.slaves = CollectionProperty(type=NetRenderSlave, name="Slaves", description="")
+    NetRenderSettings.slaves_blacklist = CollectionProperty(type=NetRenderSlave, name="Slaves Blacklist", description="")
+    NetRenderSettings.jobs = CollectionProperty(type=NetRenderJob, name="Job List", description="")
     
-    NetRenderSlave.StringProperty( attr="name",
+    NetRenderSlave.name = StringProperty(
                     name="Name of the slave",
                     description="",
                     maxlen = 64,
                     default = "")
     
-    NetRenderJob.StringProperty( attr="name",
+    NetRenderJob.name = StringProperty(
                     name="Name of the job",
                     description="",
                     maxlen = 128,

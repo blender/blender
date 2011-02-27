@@ -24,46 +24,106 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-ADD_SUBDIRECTORY(windowmanager)
-ADD_SUBDIRECTORY(editors)
-ADD_SUBDIRECTORY(avi)
-ADD_SUBDIRECTORY(nodes)
-ADD_SUBDIRECTORY(blenkernel)
-ADD_SUBDIRECTORY(modifiers)
-ADD_SUBDIRECTORY(blenlib)
-ADD_SUBDIRECTORY(bmesh)
-ADD_SUBDIRECTORY(blenloader)
-ADD_SUBDIRECTORY(blenpluginapi)
-ADD_SUBDIRECTORY(imbuf)
-ADD_SUBDIRECTORY(gpu)
-ADD_SUBDIRECTORY(makesdna)
-ADD_SUBDIRECTORY(makesrna)
-ADD_SUBDIRECTORY(readblenfile)
-ADD_SUBDIRECTORY(render)
-ADD_SUBDIRECTORY(blenfont)
-ADD_SUBDIRECTORY(ikplugin)
+set(SRC_DNA_INC
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_ID.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_action_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_actuator_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_anim_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_armature_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_boid_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_brush_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_camera_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_cloth_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_color_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_constraint_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_controller_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curve_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_customdata_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_documentation.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_effect_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_fileglobal_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_genfile.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpencil_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_group_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_image_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_ipo_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_key_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lamp_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lattice_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_listBase.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_material_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_mesh_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_meshdata_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_meta_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_modifier_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_nla_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_node_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_fluidsim.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_force.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_outliner_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_packedFile_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_particle_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_property_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_scene_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_screen_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_sdna_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_sensor_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_sequence_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_smoke_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_sound_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_space_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_text_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_texture_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_userdef_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_vec_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_vfont_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_view2d_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_view3d_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_windowmanager_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_world_types.h
+)
 
-IF(WITH_IMAGE_OPENEXR)
-	ADD_SUBDIRECTORY(imbuf/intern/openexr)
-ENDIF(WITH_IMAGE_OPENEXR)
+add_subdirectory(editors)
+add_subdirectory(windowmanager)
+add_subdirectory(blenkernel)
+add_subdirectory(blenlib)
+add_subdirectory(bmesh)
+add_subdirectory(render)
+add_subdirectory(blenfont)
+add_subdirectory(blenloader)
+add_subdirectory(readblenfile)
+add_subdirectory(blenpluginapi)
+add_subdirectory(ikplugin)
+add_subdirectory(gpu)
+add_subdirectory(imbuf)
+add_subdirectory(avi)
+add_subdirectory(nodes)
+add_subdirectory(modifiers)
+add_subdirectory(makesdna)
+add_subdirectory(makesrna)
 
-IF(WITH_IMAGE_DDS)
-	ADD_SUBDIRECTORY(imbuf/intern/dds)
-ENDIF(WITH_IMAGE_DDS)
+if(WITH_IMAGE_OPENEXR)
+	add_subdirectory(imbuf/intern/openexr)
+endif()
 
-IF(WITH_IMAGE_CINEON)
-	ADD_SUBDIRECTORY(imbuf/intern/cineon)
-ENDIF(WITH_IMAGE_CINEON)
+if(WITH_IMAGE_DDS)
+	add_subdirectory(imbuf/intern/dds)
+endif()
 
-IF(WITH_QUICKTIME)
-	ADD_SUBDIRECTORY(quicktime)
-ENDIF(WITH_QUICKTIME)
+if(WITH_IMAGE_CINEON)
+	add_subdirectory(imbuf/intern/cineon)
+endif()
 
-IF(WITH_PYTHON)
-	ADD_SUBDIRECTORY(python)
-ENDIF(WITH_PYTHON)
+if(WITH_CODEC_QUICKTIME)
+	add_subdirectory(quicktime)
+endif()
 
-IF(WITH_OPENCOLLADA)
-  ADD_SUBDIRECTORY(collada)
-ENDIF(WITH_OPENCOLLADA)
+if(WITH_PYTHON)
+	add_subdirectory(python)
+endif()
+
+if(WITH_OPENCOLLADA)
+  add_subdirectory(collada)
+endif()
 

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,10 +27,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file BL_ModifierDeformer.h
+ *  \ingroup bgeconv
+ */
+
 #ifndef BL_MODIFIERDEFORMER
 #define BL_MODIFIERDEFORMER
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
 
@@ -95,7 +99,8 @@ public:
 	{
 		return m_dm;
 	}
-
+	// The derived mesh returned by this function must be released!
+	virtual struct DerivedMesh* GetPhysicsMesh();
 
 protected:
 	double					 m_lastModifierUpdate;

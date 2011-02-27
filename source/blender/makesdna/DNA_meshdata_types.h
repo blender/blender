@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  */
 #ifndef DNA_MESHDATA_TYPES_H
 #define DNA_MESHDATA_TYPES_H
+
+/** \file DNA_meshdata_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
@@ -62,8 +66,7 @@ typedef struct MDeformVert {
 typedef struct MVert {
 	float	co[3];
 	short	no[3];
-	short	mat_nr;
-	char flag, bweight, pad[2];
+	char flag, bweight;
 } MVert;
 
 /* tesselation vertex color data.

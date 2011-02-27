@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -32,6 +32,7 @@
 #include <vector>
 
 // iTaSC headers
+#ifdef WITH_IK_ITASC
 #include "Armature.hpp"
 #include "MovingFrame.hpp"
 #include "CopyPose.hpp"
@@ -40,6 +41,7 @@
 #include "Scene.hpp"
 #include "Cache.hpp"
 #include "Distance.hpp"
+#endif
 
 #include "MEM_guardedalloc.h"
 
@@ -47,6 +49,7 @@ extern "C" {
 #include "BIK_api.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_global.h"
 #include "BKE_armature.h"

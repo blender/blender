@@ -1,4 +1,4 @@
-/**
+/*
  * 'Xor' together all inputs
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_XORController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_XORController.h"
 #include "SCA_ISensor.h"
@@ -91,7 +96,7 @@ CValue* SCA_XORController::GetReplica()
 	return replica;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -127,6 +132,6 @@ PyMethodDef SCA_XORController::Methods[] = {
 PyAttributeDef SCA_XORController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

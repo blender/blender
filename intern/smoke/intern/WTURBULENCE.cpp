@@ -1,3 +1,6 @@
+/** \file smoke/intern/WTURBULENCE.cpp
+ *  \ingroup smoke
+ */
 //////////////////////////////////////////////////////////////////////
 // This file is part of Wavelet Turbulence.
 // 
@@ -958,8 +961,8 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
   for (int i = 1; i < threadval; i++) 
     if (maxVelMag < maxVelMagThreads[i]) 
       maxVelMag = maxVelMagThreads[i];
-  delete [] maxVelMagThreads;
 #endif
+  delete [] maxVelMagThreads;
 
 
   // prepare density for an advection

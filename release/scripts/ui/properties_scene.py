@@ -53,6 +53,7 @@ class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
 
         col = layout.column()
         col.row().prop(unit, "system", expand=True)
+        col.row().prop(unit, "system_rotation", expand=True)
 
         split = layout.split()
         split.active = (unit.system != 'NONE')
@@ -62,8 +63,6 @@ class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(unit, "use_separate")
-
-        layout.column().prop(unit, "rotation_units")
 
 
 class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
@@ -96,9 +95,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
 
             col = row.column()
             col.label(text="Keyframing Settings:")
-            col.prop(ks, "use_insertkey_needed", text="Needed")
-            col.prop(ks, "use_insertkey_visual", text="Visual")
-            col.prop(ks, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
+            col.prop(ks, "bl_options")
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
@@ -134,7 +131,6 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
             col.template_any_ID(ksp, "id", "id_type")
             col.template_path_builder(ksp, "data_path", ksp.id)
 
-
             row = layout.row()
 
             col = row.column()
@@ -149,10 +145,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
             if ksp.group_method == 'NAMED':
                 col.prop(ksp, "group")
 
-            col.label(text="Keyframing Settings:")
-            col.prop(ksp, "use_insertkey_needed", text="Needed")
-            col.prop(ksp, "use_insertkey_visual", text="Visual")
-            col.prop(ksp, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
+            col.prop(ksp, "bl_options")
 
 
 class SCENE_PT_physics(SceneButtonsPanel, bpy.types.Panel):
@@ -204,9 +197,12 @@ class SCENE_PT_simplify(SceneButtonsPanel, bpy.types.Panel):
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "scene"
+    _property_type = bpy.types.Scene
 
 
 from bpy.props import *
+
+#  XXX, move operator to op/ dir
 
 
 class ANIM_OT_keying_set_export(bpy.types.Operator):
@@ -220,21 +216,20 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
     filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
-        if not self.properties.filepath:
+        if not self.filepath:
             raise Exception("Filepath not set.")
 
-        f = open(self.properties.filepath, "w")
+        f = open(self.filepath, "w")
         if not f:
             raise Exception("Could not open file.")
 
         scene = context.scene
         ks = scene.keying_sets.active
 
-
         f.write("# Keying Set: %s\n" % ks.name)
 
         f.write("import bpy\n\n")
-        f.write("scene= bpy.data.scenes[0]\n\n")
+        f.write("scene= bpy.data.scenes[0]\n\n")  # XXX, why not use the current scene?
 
         # Add KeyingSet and set general settings
         f.write("# Keying Set Level declarations\n")
@@ -244,14 +239,11 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
             f.write("ks.is_path_absolute = False\n")
         f.write("\n")
 
-        f.write("ks.use_insertkey_needed = %s\n" % ks.use_insertkey_needed)
-        f.write("ks.use_insertkey_visual = %s\n" % ks.use_insertkey_visual)
-        f.write("ks.use_insertkey_xyz_to_rgb = %s\n" % ks.use_insertkey_xyz_to_rgb)
+        f.write("ks.bl_options = %r\n" % ks.bl_options)
         f.write("\n")
 
-
         # generate and write set of lookups for id's used in paths
-        id_to_paths_cache = {} # cache for syncing ID-blocks to bpy paths + shorthands
+        id_to_paths_cache = {}  # cache for syncing ID-blocks to bpy paths + shorthands
 
         for ksp in ks.paths:
             if ksp.id is None:
@@ -278,7 +270,6 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
             f.write("%s = %s\n" % (id_pair[0], id_pair[1]))
         f.write("\n")
 
-
         # write paths
         f.write("# Path Definitions\n")
         for ksp in ks.paths:
@@ -289,7 +280,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
                 # find the relevant shorthand from the cache
                 id_bpy_path = id_to_paths_cache[ksp.id][0]
             else:
-                id_bpy_path = "None" # XXX...
+                id_bpy_path = "None"  # XXX...
             f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
 
             # array index settings (if applicable)
@@ -315,16 +306,16 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

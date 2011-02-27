@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/BlenderRoutines/KX_BlenderCanvas.cpp
+ *  \ingroup blroutines
+ */
+
 
 #include "KX_BlenderCanvas.h"
 #include "DNA_screen_types.h"
@@ -203,5 +208,11 @@ void KX_BlenderCanvas::SetMousePosition(int x,int y)
 
 void KX_BlenderCanvas::MakeScreenShot(const char* filename)
 {
-//	BL_MakeScreenShot(m_ar, filename);
+	ScrArea area_dummy= {0};
+	area_dummy.totrct.xmin = m_frame_rect.GetLeft();
+	area_dummy.totrct.xmax = m_frame_rect.GetRight();
+	area_dummy.totrct.ymin = m_frame_rect.GetBottom();
+	area_dummy.totrct.ymax = m_frame_rect.GetTop();
+
+	BL_MakeScreenShot(&area_dummy, filename);
 }

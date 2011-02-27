@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -23,6 +23,10 @@
  * Contributor(s): Blender Foundation 2002-2008
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file BIF_glutil.h
+ *  \ingroup editorui
  */
 
 #ifndef BIF_GLUTIL_H
@@ -197,7 +201,7 @@ void gla2DSetMap(gla2DDrawInfo *di, struct rctf *rect);
 /* use this for platform hacks. glPointSize is solved here */
 void bglBegin(int mode);
 void bglEnd(void);
-int bglPointHack();
+int bglPointHack(void);
 void bglVertex3fv(float *vec);
 void bglVertex3f(float x, float y, float z);
 void bglVertex2fv(float *vec);

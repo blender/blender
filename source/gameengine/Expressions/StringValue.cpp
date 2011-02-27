@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/StringValue.cpp
+ *  \ingroup expressions
+ */
 // StringValue.cpp: implementation of the CStringValue class.
 /*
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>

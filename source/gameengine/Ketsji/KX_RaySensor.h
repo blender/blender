@@ -1,6 +1,4 @@
-/**
- * Cast a ray and feel for objects
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file KX_RaySensor.h
+ *  \ingroup ketsji
+ *  \brief Cast a ray and feel for objects
  */
 
 #ifndef __KX_RAYSENSOR_H
@@ -90,12 +93,12 @@ public:
 		KX_RAY_AXIS_NEG_Z
 	};
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* Attributes */
 	static PyObject* pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 };
 

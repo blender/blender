@@ -30,17 +30,24 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_simpledeform.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 #include "BKE_shrinkwrap.h"
-#include "BKE_utildefines.h"
+
 
 #include "depsgraph_private.h"
 
@@ -146,7 +153,7 @@ static void simpleDeform_bend(const float factor, const float dcut[3], float *co
 
 
 /* simple deform modifier */
-void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
+static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
 	static const float lock_axis[2] = {0.0f, 0.0f};
 
@@ -287,17 +294,17 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tsmd->originOpts= smd->originOpts;
 	tsmd->factor= smd->factor;
 	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
-	strcpy(tsmd->vgroup_name, smd->vgroup_name);
+	BLI_strncpy(tsmd->vgroup_name, smd->vgroup_name, sizeof(tsmd->vgroup_name));
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
 	if(smd->vgroup_name[0])
-		dataMask |= (1 << CD_MDEFORMVERT);
+		dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
@@ -308,7 +315,10 @@ static void foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *u
 	walk(userData, ob, &smd->origin);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene, Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
 
@@ -316,7 +326,12 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *sc
 		dag_add_relation(forest, dag_get_node(forest, smd->origin), obNode, DAG_RL_OB_DATA, "SimpleDeform Modifier");
 }
 
-static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int numVerts,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = requiredDataMask(ob, md);
@@ -324,7 +339,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 	/* we implement requiredDataMask but thats not really usefull since
 	   mesh_calc_modifiers pass a NULL derivedData */
 	if(dataMask)
-		dm= get_dm(md->scene, ob, NULL, dm, NULL, 0);
+		dm= get_dm(ob, NULL, dm, NULL, 0);
 
 	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
 
@@ -332,7 +347,11 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 		dm->release(dm);
 }
 
-static void deformVertsEM(ModifierData *md, Object *ob, struct EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void deformVertsEM(ModifierData *md, Object *ob,
+						struct EditMesh *editData,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = requiredDataMask(ob, md);
@@ -340,7 +359,7 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct EditMesh *editDat
 	/* we implement requiredDataMask but thats not really usefull since
 	   mesh_calc_modifiers pass a NULL derivedData */
 	if(dataMask)
-		dm= get_dm(md->scene, ob, editData, dm, NULL, 0);
+		dm= get_dm(ob, editData, dm, NULL, 0);
 
 	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
 
@@ -362,6 +381,7 @@ ModifierTypeInfo modifierType_SimpleDeform = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     0,
@@ -372,6 +392,7 @@ ModifierTypeInfo modifierType_SimpleDeform = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     0,
 };

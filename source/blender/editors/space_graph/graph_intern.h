@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -48,10 +48,10 @@ struct ARegion *graph_has_buttons_region(struct ScrArea *sa);
 
 /* ***************************************** */
 /* graph_draw.c */
-void graph_draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
+void graph_draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *ar);
 
 void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid, short sel);
-void graph_draw_ghost_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid);
+void graph_draw_ghost_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
 
 /* ***************************************** */
 /* graph_header.c */
@@ -66,14 +66,14 @@ void GRAPH_OT_select_column(struct wmOperatorType *ot);
 void GRAPH_OT_select_linked(struct wmOperatorType *ot);
 void GRAPH_OT_select_more(struct wmOperatorType *ot);
 void GRAPH_OT_select_less(struct wmOperatorType *ot);
+void GRAPH_OT_select_leftright(struct wmOperatorType *ot);
 void GRAPH_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
 enum {
-	GRAPHKEYS_LRSEL_TEST	= -1,
-	GRAPHKEYS_LRSEL_NONE,
+	GRAPHKEYS_LRSEL_TEST	= 0,
 	GRAPHKEYS_LRSEL_LEFT,
-	GRAPHKEYS_LRSEL_RIGHT,
+	GRAPHKEYS_LRSEL_RIGHT
 } eGraphKeys_LeftRightSelect_Mode;
 
 /* defines for column-select mode */

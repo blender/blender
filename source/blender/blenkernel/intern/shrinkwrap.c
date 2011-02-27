@@ -1,5 +1,5 @@
-/**
- * shrinkwrap.c
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): André Pinto
+ * Contributor(s): Andr Pinto
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -41,25 +41,21 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_editVert.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_shrinkwrap.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_lattice.h"
-#include "BKE_utildefines.h"
+
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
 #include "BKE_mesh.h"
 #include "BKE_tessmesh.h"
 
-#include "BLI_math.h"
-#include "BLI_editVert.h"
-
-
-
 /* Util macros */
-#define TO_STR(a)	#a
-#define JOIN(a,b)	a##b
-
 #define OUT_OF_MEMORY()	((void)printf("Shrinkwrap: Out of memory\n"))
 
 /* Benchmark macros */
@@ -90,20 +86,18 @@ typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *c
 
 /* get derived mesh */
 //TODO is anyfunction that does this? returning the derivedFinal witouth we caring if its in edit mode or not?
-DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, CustomDataMask dataMask)
+DerivedMesh *object_get_derived_final(Object *ob)
 {
 	Mesh *me= ob->data;
 	BMEditMesh *em = me->edit_btmesh;
 
 	if (em)
 	{
-		DerivedMesh *final = NULL;
-		editbmesh_get_derived_cage_and_final(scene, ob, em, &final, dataMask);
-
-		return final;
+		DerivedMesh *dm = em->derivedFinal;
+		return dm;
 	}
-	else
-		return mesh_get_derived_final(scene, ob, dataMask);
+
+	return ob->derivedFinal;
 }
 
 /* Space transform */
@@ -111,7 +105,7 @@ void space_transform_from_matrixs(SpaceTransform *data, float local[4][4], float
 {
 	float itarget[4][4];
 	invert_m4_m4(itarget, target);
-	mul_serie_m4(data->local2target, itarget, local, 0, 0, 0, 0, 0, 0);
+	mul_serie_m4(data->local2target, itarget, local, NULL, NULL, NULL, NULL, NULL, NULL);
 	invert_m4_m4(data->target2local, data->local2target);
 }
 
@@ -264,22 +258,26 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 
 	BLI_bvhtree_ray_cast(tree, co, no, 0.0f, &hit_tmp, callback, userdata);
 
-	if(hit_tmp.index != -1)
-	{
-		float dot = INPR( dir, hit_tmp.no);
+	if(hit_tmp.index != -1) {
+		/* invert the normal first so face culling works on rotated objects */
+		if(transf) {
+			space_transform_invert_normal(transf, hit_tmp.no);
+		}
 
-		if(((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot <= 0.0f)
-		|| ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot >= 0.0f))
-			return FALSE; //Ignore hit
+		if (options & (MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE|MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)) {
+			/* apply backface */
+			const float dot= dot_v3v3(dir, hit_tmp.no);
+			if(	((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot <= 0.0f) ||
+				((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot >= 0.0f)
+			) {
+				return FALSE; /* Ignore hit */
+			}
+		}
 
-
-		//Inverting space transform (TODO make coeherent with the initial dist readjust)
-		if(transf)
-		{
-			space_transform_invert( transf, hit_tmp.co );
-			space_transform_invert_normal( transf, hit_tmp.no );
-
-			hit_tmp.dist = len_v3v3( (float*)vert, hit_tmp.co );
+		if(transf) {
+			/* Inverting space transform (TODO make coeherent with the initial dist readjust) */
+			space_transform_invert(transf, hit_tmp.co);
+			hit_tmp.dist = len_v3v3((float *)vert, hit_tmp.co);
 		}
 
 		memcpy(hit, &hit_tmp, sizeof(hit_tmp) );
@@ -289,7 +287,7 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 }
 
 
-static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct Scene *scene)
+static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 {
 	int i;
 
@@ -334,12 +332,14 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 
 	if(calc->smd->auxTarget)
 	{
-		auxMesh = object_get_derived_final(scene, calc->smd->auxTarget, CD_MASK_BAREMESH);
+		auxMesh = object_get_derived_final(calc->smd->auxTarget);
+		if(!auxMesh)
+			return;
 		space_transform_setup( &local2aux, calc->ob, calc->smd->auxTarget);
 	}
 
 	//After sucessufuly build the trees, start projection vertexs
-	if( bvhtree_from_mesh_faces(&treeData, calc->target, calc->keepDist, 4, 6)
+	if( bvhtree_from_mesh_faces(&treeData, calc->target, 0.0, 4, 6)
 	&&  (auxMesh == NULL || bvhtree_from_mesh_faces(&auxData, auxMesh, 0.0, 4, 6)))
 	{
 
@@ -388,10 +388,10 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 			}
 
 			//Project over negative direction of axis
-			if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)
+			if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR && hit.index == -1)
 			{
-				float inv_no[3] = { -tmp_no[0], -tmp_no[1], -tmp_no[2] };
-
+				float inv_no[3];
+				negate_v3_v3(inv_no, tmp_no);
 
 				if(auxData.tree)
 					normal_projection_project_vertex(0, tmp_co, inv_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
@@ -402,6 +402,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 
 			if(hit.index != -1)
 			{
+				madd_v3_v3v3fl(hit.co, hit.co, tmp_no, calc->keepDist);
 				interp_v3_v3v3(co, co, hit.co, weight);
 			}
 		}
@@ -500,7 +501,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 }
 
 /* Main shrinkwrap function */
-void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
+void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
 
 	DerivedMesh *ss_mesh	= NULL;
@@ -531,7 +532,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object
 
 	if(smd->target)
 	{
-		calc.target = object_get_derived_final(scene, smd->target, CD_MASK_BAREMESH);
+		calc.target = object_get_derived_final(smd->target);
 
 		//TODO there might be several "bugs" on non-uniform scales matrixs
 		//because it will no longer be nearest surface, not sphere projection
@@ -555,8 +556,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object
 		//Using vertexs positions/normals as if a subsurface was applied 
 		if(smd->subsurfLevels)
 		{
-			SubsurfModifierData ssmd;
-			memset(&ssmd, 0, sizeof(ssmd));
+			SubsurfModifierData ssmd= {{0}};
 			ssmd.subdivType	= ME_CC_SUBSURF;		//catmull clark
 			ssmd.levels		= smd->subsurfLevels;	//levels
 
@@ -589,7 +589,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object
 			break;
 
 			case MOD_SHRINKWRAP_PROJECT:
-				BENCH(shrinkwrap_calc_normal_projection(&calc, scene));
+				BENCH(shrinkwrap_calc_normal_projection(&calc));
 			break;
 
 			case MOD_SHRINKWRAP_NEAREST_VERTEX:

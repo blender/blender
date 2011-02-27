@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,10 +27,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file KX_PythonInitTypes.h
+ *  \ingroup ketsji
+ */
+
 #ifndef _adr_py_init_types_h_				// only process once,
 #define _adr_py_init_types_h_				// even if multiply included
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 void initPyTypes(void);
 #endif
 

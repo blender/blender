@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_text_types.h (mar-2001 nzc)
- *	
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,11 @@
  */
 #ifndef DNA_TEXT_TYPES_H
 #define DNA_TEXT_TYPES_H
+/** \file DNA_text_types.h
+ *  \ingroup DNA
+ *  \since mar-2001
+ *  \author nzc
+ */
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
@@ -48,7 +51,7 @@ typedef struct TextMarker {
 	int lineno, start, end, pad1; /* line number and start/end character indices */
 	
 	int group, flags; /* see BKE_text.h for flag defines */
-	char color[4], pad[4]; /* draw color of the marker */
+	unsigned char color[4], pad[4]; /* draw color of the marker */
 } TextMarker;
 
 typedef struct Text {

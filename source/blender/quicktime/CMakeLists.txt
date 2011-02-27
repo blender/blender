@@ -24,18 +24,29 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-IF(USE_QTKIT)
-	SET(SRC apple/qtkit_import.m apple/qtkit_export.m)
-ELSE(USE_QTKIT)
-	SET(SRC apple/quicktime_import.c apple/quicktime_export.c)
-ENDIF(USE_QTKIT)
+if(USE_QTKIT)
+	set(SRC
+		apple/qtkit_import.m
+		apple/qtkit_export.m
 
-SET(INC 
+		quicktime_export.h
+		quicktime_import.h
+	)
+else()
+	set(SRC
+		apple/quicktime_import.c
+		apple/quicktime_export.c
+
+		quicktime_export.h
+		quicktime_import.h
+	)
+endif()
+
+set(INC 
 	.
 	../quicktime
 	../makesdna
 	../makesrna
-	../../../intern/guardedalloc
 	../blenlib
 	../blenkernel
 	../avi
@@ -46,9 +57,10 @@ SET(INC
 	../include
 	../windowmanager
 	../../../intern/audaspace/intern
+	../../../intern/guardedalloc
+	${QUICKTIME_INC}
 )
 
-SET(INC ${INC} ${QUICKTIME_INC})
-ADD_DEFINITIONS(-DWITH_QUICKTIME)
+add_definitions(-DWITH_QUICKTIME)
 
-BLENDERLIB(bf_quicktime "${SRC}" "${INC}")
+blender_add_lib(bf_quicktime "${SRC}" "${INC}")

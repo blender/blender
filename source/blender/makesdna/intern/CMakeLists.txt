@@ -1,3 +1,4 @@
+# -*- mode: cmake; indent-tabs-mode: t; -*-
 # $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -24,22 +25,45 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-INCLUDE_DIRECTORIES(../../../../intern/guardedalloc ..)
-FILE(GLOB INC_FILES ../*.h)
+# message(STATUS "Configuring makesdna")
+
+blender_include_dirs(
+	../../../../intern/guardedalloc
+	../../blenloader
+	..
+)
 
 # Build makesdna executable
-SET(SRC makesdna.c ../../../../intern/guardedalloc/intern/mallocn.c ../../../../intern/guardedalloc/intern/mmap_win.c)
-ADD_EXECUTABLE(makesdna ${SRC} ${INC_FILES})
+set(SRC
+	makesdna.c
+	../../../../intern/guardedalloc/intern/mallocn.c
+)
+
+if(WIN32 AND NOT UNIX)
+	list(APPEND SRC
+		../../../../intern/guardedalloc/intern/mmap_win.c
+	)
+endif()
+
+# SRC_DNA_INC is defined in the parent dir
+
+add_executable(makesdna ${SRC} ${SRC_DNA_INC})
 
 # Output dna.c
-ADD_CUSTOM_COMMAND(
+add_custom_command(
 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
 	COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
 	DEPENDS makesdna
 )
 
 # Build bf_dna library
-SET(SRC dna_genfile.c dna.c)
-BLENDERLIB(bf_dna "${SRC}" "${INC}")
+set(INC
+)
 
-MESSAGE(STATUS "Configuring makesdna")
+set(SRC
+	dna_genfile.c
+	dna.c
+	${SRC_DNA_INC}
+)
+
+blender_add_lib(bf_dna "${SRC}" "${INC}")

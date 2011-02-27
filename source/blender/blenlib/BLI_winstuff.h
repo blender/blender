@@ -1,6 +1,4 @@
-/**
- * Compatibility-like things for windows.
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,15 +30,28 @@
 #ifndef __WINSTUFF_H__
 #define __WINSTUFF_H__
 
+/** \file BLI_winstuff.h
+ *  \ingroup bli
+ *  \brief Compatibility-like things for windows.
+ */
+
 #ifdef _WIN32
 
 #ifndef FREE_WINDOWS
 #pragma warning(once: 4761 4305 4244 4018)
+#else
+#ifdef WINVER
+#undef WINVER
+#endif
+
+/* Some stuff requires WINVER 0x500, but mingw's default is 0x400 */
+#define WINVER 0x0501
 #endif
 
 #define WIN32_LEAN_AND_MEAN
 
 #ifndef WIN32_SKIP_HKEY_PROTECTION
+#undef HKEY
 #define HKEY WIN32_HKEY				// prevent competing definitions
 #include <windows.h>
 #undef HKEY
@@ -81,15 +92,6 @@ extern "C" {
 #endif
 
 /* defines for using ISO C++ conformant names */
-#define open _open
-#define close _close
-#define write _write
-#define read _read
-#define getcwd _getcwd
-#define chdir _chdir
-#define strdup _strdup
-#define lseek _lseek
-#define getpid _getpid
 #define snprintf _snprintf
 
 #ifndef FREE_WINDOWS
@@ -133,15 +135,13 @@ void get_default_root(char *root);
 int check_file_chars(char *filename);
 char *dirname(char *path);
 
-#ifdef WIN32
 int BLI_getInstallationDir(char *str);
-#endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* _WIN32 */
 
 #endif /* __WINSTUFF_H__ */
 

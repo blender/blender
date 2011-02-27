@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@
 
 void RNA_api_action(StructRNA *srna)
 {
-
+	
 }
 
 #endif

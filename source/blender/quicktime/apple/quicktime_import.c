@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * quicktime_import.c
@@ -32,6 +32,7 @@
 #if defined(_WIN32) || defined(__APPLE__)
 #ifndef USE_QTKIT
 
+#include "MEM_guardedalloc.h"
 #include "IMB_anim.h"
 #include "BLO_sys_types.h"
 #include "BKE_global.h"
@@ -47,6 +48,7 @@
 #include <QTML.h>
 #include <TextUtils.h>
 #include <QuickTimeComponents.h>
+#include <QTLoadLibraryUtils.h>
 #endif /* _WIN32 */
 
 
@@ -88,16 +90,22 @@ typedef struct _QuicktimeMovie {
 
 void quicktime_init(void)
 {
+	OSErr nerr;
 #ifdef _WIN32
-	if (InitializeQTML(0) != noErr)
+	QTLoadLibrary("QTCF.dll");
+	nerr = InitializeQTML(0);
+	if (nerr != noErr) {
 		G.have_quicktime = FALSE;
+		printf("Error initializing quicktime\n");
+	}
 	else
 		G.have_quicktime = TRUE;
 #endif /* _WIN32 */
 
 	/* Initialize QuickTime */
 #if defined(_WIN32) || defined (__APPLE__)
-	if (EnterMovies() != noErr)
+	nerr = EnterMovies();
+	if (nerr != noErr)
 		G.have_quicktime = FALSE;
 	else
 #endif /* _WIN32 || __APPLE__ */
@@ -162,7 +170,7 @@ char *get_valid_qtname(char *name)
 #endif /* _WIN32 */
 
 
-int anim_is_quicktime (char *name)
+int anim_is_quicktime (const char *name)
 {
 	FSSpec	theFSSpec;
 	char	theFullPath[255];
@@ -317,7 +325,9 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 
 	ImBuf *ibuf = NULL;
 	unsigned int *rect;
+#ifdef __APPLE__
 	unsigned char *from, *to;
+#endif
 #ifdef _WIN32
 	unsigned char *crect;
 #endif
@@ -326,7 +336,7 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 		return (NULL);
 	}
 
-	ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect, 0);
+	ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect);
 	rect = ibuf->rect;
 
 	SetMovieTimeValue(anim->qtime->movie, anim->qtime->frameIndex[position]);
@@ -373,7 +383,7 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 	}
 #endif
 
-	ibuf->profile == IB_PROFILE_SRGB;
+	ibuf->profile = IB_PROFILE_SRGB;
 	
 	IMB_flipy(ibuf);
 	return ibuf;
@@ -487,7 +497,7 @@ int startquicktime (struct anim *anim)
 		return -1;
 	}
 
-	anim->qtime->ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect, 0);
+	anim->qtime->ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect);
 
 #ifdef _WIN32
 	err = NewGWorldFromPtr(&anim->qtime->offscreenGWorld,
@@ -601,7 +611,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	ImageDescriptionHandle		desc;
 
 	ComponentInstance			dataHandler;
-	PointerDataRef dataref = (PointerDataRef)NewHandle(sizeof(PointerDataRefRecord));
+	PointerDataRef dataref;
 
 	int x, y, depth;
 	int have_gw = FALSE;
@@ -624,11 +634,12 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	unsigned char *from, *to;
 #endif
 
-	if (mem == NULL)
+	if (mem == NULL || !G.have_quicktime)
 		goto bail;
 	
 	if(QTIME_DEBUG) printf("qt: attempt to load mem as image\n");
 
+	dataref= (PointerDataRef)NewHandle(sizeof(PointerDataRefRecord));
 	(**dataref).data = mem;
 	(**dataref).dataLength = size;
 
@@ -667,7 +678,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	depth = (**desc).depth;
 
 	if (flags & IB_test) {
-		ibuf = IMB_allocImBuf(x, y, depth, 0, 0);
+		ibuf = IMB_allocImBuf(x, y, depth, 0);
 		ibuf->ftype = QUICKTIME;
 		DisposeHandle((Handle)dataref);
 		if (gImporter != NULL)	CloseComponent(gImporter);
@@ -675,8 +686,8 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	}
 
 #ifdef __APPLE__
-	ibuf = IMB_allocImBuf (x, y, 32, IB_rect, 0);
-	wbuf = IMB_allocImBuf (x, y, 32, IB_rect, 0);
+	ibuf = IMB_allocImBuf (x, y, 32, IB_rect);
+	wbuf = IMB_allocImBuf (x, y, 32, IB_rect);
 
 	err = NewGWorldFromPtr(&offGWorld,
 						k32ARGBPixelFormat,
@@ -684,7 +695,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 						(unsigned char *)wbuf->rect, x * 4);
 #else
 
-	ibuf = IMB_allocImBuf (x, y, 32, IB_rect, 0);	
+	ibuf = IMB_allocImBuf (x, y, 32, IB_rect);	
 
 	err = NewGWorldFromPtr(&offGWorld,
 							k32RGBAPixelFormat,

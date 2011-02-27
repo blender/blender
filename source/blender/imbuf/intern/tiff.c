@@ -45,12 +45,13 @@
 #include <string.h>
 
 #include "imbuf.h"
- 
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
+ 
+#include "BKE_global.h"
+
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -93,11 +94,18 @@ typedef struct ImbTIFFMemFile {
 
 static void imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size)
 {
+	(void)fd;
+	(void)base;
+	(void)size;
 }
 
 static int imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize) 
 {
-			return (0);
+	(void)fd;
+	(void)pbase;
+	(void)psize;
+
+	return (0);
 }
 
 /**
@@ -154,6 +162,10 @@ static tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
  */
 static tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n)
 {
+	(void)handle;
+	(void)data;
+	(void)n;
+	
 	printf("imb_tiff_WriteProc: this function should not be called.\n");
 	return (-1);
 }
@@ -262,7 +274,7 @@ static toff_t imb_tiff_SizeProc(thandle_t handle)
 	return (toff_t)(mfile->size);
 }
 
-static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, unsigned char *mem, int size)
+static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, unsigned char *mem, size_t size)
 {
 	/* open the TIFF client layer interface to the in-memory file */
 	memFile->mem = mem;
@@ -368,7 +380,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 		ib_flag = IB_rect;
 	}
 	
-	tmpibuf= IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->depth, ib_flag, 0);
+	tmpibuf= IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->depth, ib_flag);
 	
 	/* simple RGBA image */
 	if (!(bitspersample == 32 || bitspersample == 16)) {
@@ -423,9 +435,11 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 
 	if(success) {
 		ibuf->profile = (bitspersample==32)?IB_PROFILE_LINEAR_RGB:IB_PROFILE_SRGB;
-			
-		if(ENDIAN_ORDER == B_ENDIAN)
-			IMB_convert_rgba_to_abgr(tmpibuf);
+
+//		Code seems to be not needed for 16 bits tif, on PPC G5 OSX (ton)
+		if(bitspersample < 16)
+			if(ENDIAN_ORDER == B_ENDIAN)
+				IMB_convert_rgba_to_abgr(tmpibuf);
 		if(premul) {
 			IMB_premultiply_alpha(tmpibuf);
 			ibuf->flags |= IB_premul;
@@ -464,7 +478,7 @@ void imb_inittiff(void)
  *
  * @return: A newly allocated ImBuf structure if successful, otherwise NULL.
  */
-ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
+ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 {
 	TIFF *image = NULL;
 	ImBuf *ibuf = NULL, *hbuf;
@@ -497,7 +511,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 	
 	ib_depth = (spp==3)?24:32;
 	
-	ibuf = IMB_allocImBuf(width, height, ib_depth, 0, 0);
+	ibuf = IMB_allocImBuf(width, height, ib_depth, 0);
 	if(ibuf) {
 		ibuf->ftype = TIF;
 	}
@@ -533,7 +547,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 					width= (width > 1)? width/2: 1;
 					height= (height > 1)? height/2: 1;
 
-					hbuf= IMB_allocImBuf(width, height, 32, 0, 0);
+					hbuf= IMB_allocImBuf(width, height, 32, 0);
 					hbuf->miplevel= level;
 					hbuf->ftype= ibuf->ftype;
 					ibuf->mipmap[level-1] = hbuf;
@@ -573,7 +587,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 	return ibuf;
 }
 
-void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, int size, int tx, int ty, unsigned int *rect)
+void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, size_t size, int tx, int ty, unsigned int *rect)
 {
 	TIFF *image = NULL;
 	uint32 width, height;
@@ -631,7 +645,7 @@ void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, int size, int tx, int ty,
  * @return: 1 if the function is successful, 0 on failure.
  */
 
-int imb_savetiff(ImBuf *ibuf, char *name, int flags)
+int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 {
 	TIFF *image = NULL;
 	uint16 samplesperpixel, bitspersample;
@@ -748,7 +762,7 @@ int imb_savetiff(ImBuf *ibuf, char *name, int flags)
 				
 				if (samplesperpixel == 4) {
 					to16[to_i+3] = FTOUSHORT(fromf[from_i+3]);
-					to_i++; from_i++;
+					/*to_i++; from_i++;*/ /*unused, set on each loop */
 				}
 			}
 			else {

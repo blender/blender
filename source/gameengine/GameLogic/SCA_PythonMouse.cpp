@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GameLogic/SCA_PythonMouse.cpp
+ *  \ingroup gamelogic
+ */
+
+
 #include "SCA_PythonMouse.h"
 #include "SCA_IInputDevice.h"
 #include "RAS_ICanvas.h"
@@ -35,20 +40,20 @@ SCA_PythonMouse::SCA_PythonMouse(SCA_IInputDevice* mouse, RAS_ICanvas* canvas)
 m_mouse(mouse),
 m_canvas(canvas)
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	m_event_dict = PyDict_New();
 #endif
 }
 
 SCA_PythonMouse::~SCA_PythonMouse()
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	PyDict_Clear(m_event_dict);
 	Py_DECREF(m_event_dict);
 #endif
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

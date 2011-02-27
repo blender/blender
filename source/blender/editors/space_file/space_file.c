@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -42,10 +42,12 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_storage_types.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_fileselect.h"
 
@@ -59,14 +61,13 @@
 #include "UI_view2d.h"
 
 
-
 #include "file_intern.h"	// own include
 #include "fsmenu.h"
 #include "filelist.h"
 
 /* ******************** default callbacks for file space ***************** */
 
-static SpaceLink *file_new(const bContext *C)
+static SpaceLink *file_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceFile *sfile;
@@ -143,7 +144,7 @@ static void file_free(SpaceLink *sl)
 
 
 /* spacetype; init callback, area size changes, screen set, etc */
-static void file_init(struct wmWindowManager *wm, ScrArea *sa)
+static void file_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
 	//printf("file_init\n");
@@ -178,7 +179,7 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	return (SpaceLink *)sfilen;
 }
 
-static void file_refresh(const bContext *C, ScrArea *sa)
+static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
@@ -192,6 +193,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	}
 	filelist_hidedot(sfile->files, params->flag & FILE_HIDE_DOT);
 	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);	
+	filelist_setfilter_types(sfile->files, params->filter_glob);
 	if (filelist_empty(sfile->files))
 	{
 		thumbnails_stop(sfile->files, C);
@@ -326,6 +328,13 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		v2d->scroll = V2D_SCROLL_BOTTOM;
 		v2d->keepofs &= ~V2D_LOCKOFS_X;
 		v2d->keepofs |= V2D_LOCKOFS_Y;
+		
+		/* XXX this happens on scaling down Screen (like from startup.blend) */
+		/* view2d has no type specific for filewindow case, which doesnt scroll vertically */
+		if(v2d->cur.ymax < 0) {
+			v2d->cur.ymin -= v2d->cur.ymax;
+			v2d->cur.ymax= 0;
+		}
 	}
 	/* v2d has initialized flag, so this call will only set the mask correct */
 	UI_view2d_region_reinit(v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
@@ -334,7 +343,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	file_calc_previews(C, ar);
 
 	/* set view */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	
 	/* on first read, find active file */
 	if (params->active_file == -1) {
@@ -354,7 +363,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 
 }
 
-void file_operatortypes(void)
+static void file_operatortypes(void)
 {
 	WM_operatortype_append(FILE_OT_select);
 	WM_operatortype_append(FILE_OT_select_all_toggle);
@@ -376,10 +385,11 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_delete);
 	WM_operatortype_append(FILE_OT_rename);
 	WM_operatortype_append(FILE_OT_smoothscroll);
+	WM_operatortype_append(FILE_OT_directory);
 }
 
 /* NOTE: do not add .blend file reading on this level */
-void file_keymap(struct wmKeyConfig *keyconf)
+static void file_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMapItem *kmi;
 	/* keys for all areas */
@@ -456,7 +466,7 @@ static void file_channel_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
-static void file_channel_area_listener(ARegion *ar, wmNotifier *wmn)
+static void file_channel_area_listener(ARegion *UNUSED(ar), wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
@@ -504,7 +514,7 @@ static void file_ui_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
+	UI_view2d_view_ortho(&ar->v2d);
 
 	file_draw_buttons(C, ar);
 

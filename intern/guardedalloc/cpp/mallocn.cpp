@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,12 +21,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file guardedalloc/cpp/mallocn.cpp
+ *  \ingroup MEM
+ */
+
+
 #include <new>
 #include "../MEM_guardedalloc.h"
 
 void* operator new (size_t size)
 {
-	return MEM_mallocN(size, "c++/anonymous");
+	return MEM_mallocN(size, "C++/anonymous");
 }
 
 /* not default but can be used when needing to set a string */

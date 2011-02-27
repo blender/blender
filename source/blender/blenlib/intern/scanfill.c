@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -35,18 +35,18 @@
 
 #include "MEM_guardedalloc.h"
 
-
+#include "BLI_callbacks.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-
-#include "BKE_utildefines.h"
+#include "BLI_scanfill.h"
+#include "BLI_utildefines.h"
 
 /* callbacks for errors and interrupts and some goo */
-static void (*BLI_localErrorCallBack)(char*) = NULL;
+static void (*BLI_localErrorCallBack)(const char*) = NULL;
 static int (*BLI_localInterruptCallBack)(void) = NULL;
 
-void BLI_setErrorCallBack(void (*f)(char*))
+void BLI_setErrorCallBack(void (*f)(const char *))
 {
 	BLI_localErrorCallBack = f;
 }
@@ -57,7 +57,7 @@ void BLI_setInterruptCallBack(int (*f)(void))
 }
 
 /* just flush the error to /dev/null if the error handler is missing */
-void callLocalErrorCallBack(char* msg)
+void callLocalErrorCallBack(const char* msg)
 {
 	if (BLI_localErrorCallBack) {
 		BLI_localErrorCallBack(msg);
@@ -377,7 +377,7 @@ static ScFillVert *addedgetoscanlist(EditEdge *eed, int len)
 	sc= (ScFillVert *)bsearch(&scsearch,scdata,len,
 		sizeof(ScFillVert), vergscdata);
 
-	if(sc==0) printf("Error in search edge: %p\n",eed);
+	if(sc==0) printf("Error in search edge: %p\n", (void *)eed);
 	else if(addedgetoscanvert(sc,eed)==0) return sc;
 
 	return 0;
@@ -482,8 +482,8 @@ static void splitlist(ListBase *tempve, ListBase *temped, short nr)
 	EditVert *eve,*nextve;
 	EditEdge *eed,*nexted;
 
-	addlisttolist(tempve,&fillvertbase);
-	addlisttolist(temped,&filledgebase);
+	BLI_movelisttolist(tempve,&fillvertbase);
+	BLI_movelisttolist(temped,&filledgebase);
 
 	eve= tempve->first;
 	while(eve) {
@@ -516,9 +516,9 @@ static void scanfill(PolyFill *pf, int mat_nr)
 	short nr, test, twoconnected=0;
 
 	nr= pf->nr;
-	verts= pf->verts;
 
 	/* PRINTS
+	verts= pf->verts;
 	eve= fillvertbase.first;
 	while(eve) {
 		printf("vert: %x co: %f %f\n",eve,eve->co[cox],eve->co[coy]);
@@ -575,7 +575,6 @@ static void scanfill(PolyFill *pf, int mat_nr)
 
 	qsort(scdata, verts, sizeof(ScFillVert), vergscdata);
 
-	sc= scdata;
 	eed= filledgebase.first;
 	while(eed) {
 		nexted= eed->next;
@@ -764,7 +763,7 @@ static void scanfill(PolyFill *pf, int mat_nr)
 
 
 
-int BLI_edgefill(int mode, int mat_nr)
+int BLI_edgefill(int mat_nr)
 {
 	/*
 	  - fill works with its own lists, so create that first (no faces!)
@@ -802,7 +801,7 @@ int BLI_edgefill(int mode, int mat_nr)
 
 		eve = fillvertbase.first;
 		
-		if (mode & 2) {
+		if (1) { //BMESH_TODO this is correct, right? -joeedh //mode & 2) {
 			/*use shortest diagonal for quad*/
 			sub_v3_v3v3(vec1, eve->co, eve->next->next->co);
 			sub_v3_v3v3(vec2, eve->next->co, eve->next->next->next->co);
@@ -1054,8 +1053,8 @@ int BLI_edgefill(int mode, int mat_nr)
 		MEM_freeN(polycache);
 	}
 	
-	pf= pflist;
 	/* printf("after merge\n");
+	pf= pflist;
 	for(a=1;a<=poly;a++) {
 		printf("poly:%d edges:%d verts:%d flag: %d\n",a,pf->edges,pf->verts,pf->f);
 		pf++;
@@ -1078,8 +1077,8 @@ int BLI_edgefill(int mode, int mat_nr)
 		}
 		pf++;
 	}
-	addlisttolist(&fillvertbase,&tempve);
-	addlisttolist(&filledgebase,&temped);
+	BLI_movelisttolist(&fillvertbase,&tempve);
+	BLI_movelisttolist(&filledgebase,&temped);
 
 	/* FREE */
 

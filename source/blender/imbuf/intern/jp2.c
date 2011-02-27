@@ -1,4 +1,4 @@
-/**
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -55,49 +55,49 @@ typedef struct img_folder{
 	float *rates;
 }img_fol_t;
 
-static int checkj2p(unsigned char *mem) /* J2K_CFMT */
+static int check_jp2(unsigned char *mem) /* J2K_CFMT */
 {
 	return memcmp(JP2_HEAD, mem, 12) ? 0 : 1;
 }
 
 int imb_is_a_jp2(unsigned char *buf)
 {	
-	return checkj2p(buf);
+	return check_jp2(buf);
 }
 
 
 /**
 sample error callback expecting a FILE* client object
 */
-void error_callback(const char *msg, void *client_data) {
+static void error_callback(const char *msg, void *client_data) {
 	FILE *stream = (FILE*)client_data;
 	fprintf(stream, "[ERROR] %s", msg);
 }
 /**
 sample warning callback expecting a FILE* client object
 */
-void warning_callback(const char *msg, void *client_data) {
+static void warning_callback(const char *msg, void *client_data) {
 	FILE *stream = (FILE*)client_data;
 	fprintf(stream, "[WARNING] %s", msg);
 }
 /**
 sample debug callback expecting no client object
 */
-void info_callback(const char *msg, void *client_data) {
+static void info_callback(const char *msg, void *client_data) {
 	(void)client_data;
 	fprintf(stdout, "[INFO] %s", msg);
 }
 
 
 
-struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
+struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 {
 	struct ImBuf *ibuf = 0;
 	int use_float = 0; /* for precision higher then 8 use float */
 	
-	long signed_offsets[4] = {0,0,0,0};
-	int float_divs[4];
-	
+	long signed_offsets[4]= {0, 0, 0, 0};
+	int float_divs[4]= {1, 1, 1, 1};
+
 	int index;
 	
 	int w, h, depth;
@@ -112,7 +112,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 	opj_dinfo_t* dinfo = NULL;	/* handle to a decompressor */
 	opj_cio_t *cio = NULL;
 
-	if (checkj2p(mem) == 0) return(0);
+	if (check_jp2(mem) == 0) return(0);
 
 	/* configure the event callbacks (not required) */
 	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
@@ -189,7 +189,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 		float_divs[i]= (1<<image->comps[i].prec)-1;
 	}
 	
-	ibuf= IMB_allocImBuf(w, h, depth, use_float ? IB_rectfloat : IB_rect, 0);
+	ibuf= IMB_allocImBuf(w, h, depth, use_float ? IB_rectfloat : IB_rect);
 	
 	if (ibuf==NULL) {
 		if(dinfo)
@@ -322,7 +322,7 @@ static int initialise_4K_poc(opj_poc_t *POC, int numres){
 	return 2;
 }
 
-void cinema_parameters(opj_cparameters_t *parameters){
+static void cinema_parameters(opj_cparameters_t *parameters){
 	parameters->tile_size_on = false;
 	parameters->cp_tdx=1;
 	parameters->cp_tdy=1;
@@ -355,7 +355,7 @@ void cinema_parameters(opj_cparameters_t *parameters){
 
 }
 
-void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *image, img_fol_t *img_fol){
+static void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *image, img_fol_t *img_fol){
 	int i;
 	float temp_rate;
 
@@ -661,7 +661,7 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-int imb_savejp2(struct ImBuf *ibuf, char *name, int flags) {
+int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags) {
 	
 	int quality = ibuf->ftype & 0xff;
 	
@@ -669,6 +669,8 @@ int imb_savejp2(struct ImBuf *ibuf, char *name, int flags) {
 	opj_cparameters_t parameters;	/* compression parameters */
 	opj_event_mgr_t event_mgr;		/* event manager */
 	opj_image_t *image = NULL;
+	
+	(void)flags; /* unused */
 	
 	/*
 	configure the event callbacks (not required)

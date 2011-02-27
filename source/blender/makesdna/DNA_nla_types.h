@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +29,10 @@
 
 #ifndef DNA_NLA_TYPES_H
 #define DNA_NLA_TYPES_H
+
+/** \file DNA_nla_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_listBase.h"
 

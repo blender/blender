@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Converter/BL_ArmatureActuator.cpp
+ *  \ingroup bgeconv
+ */
+
 
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
@@ -175,7 +180,7 @@ bool BL_ArmatureActuator::Update(double curtime, bool frame)
 	return result;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python Integration Hooks					                                 */
@@ -257,5 +262,5 @@ PyObject* BL_ArmatureActuator::pyattr_get_constraint(void *self, const struct KX
 		return constraint->GetProxy();
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 

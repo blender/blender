@@ -137,7 +137,7 @@ static void make_prim_init(bContext *C, float *dia, float mat[][4],
 		ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
 		*state = 1;
 	}
-	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	else DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 
 	*dia *= new_primitive_matrix(C, loc, rot, mat);
 }
@@ -146,7 +146,7 @@ static void make_prim_finish(bContext *C, int *state, int enter_editmode)
 {
 	Object *obedit = CTX_data_edit_object(C);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	/* userdef */
@@ -308,6 +308,8 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	make_prim_finish(C, &state, enter_editmode);
+	
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)

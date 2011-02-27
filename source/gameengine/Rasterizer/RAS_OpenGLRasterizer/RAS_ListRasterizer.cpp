@@ -1,3 +1,6 @@
+/** \file gameengine/Rasterizer/RAS_OpenGLRasterizer/RAS_ListRasterizer.cpp
+ *  \ingroup bgerastogl
+ */
 //
 #include <iostream>
 
@@ -13,7 +16,7 @@
 #include "RAS_TexVert.h"
 #include "MT_assert.h"
 
-//#ifndef NDEBUG
+//#if defined(DEBUG)
 //#ifdef WIN32
 //#define spit(x) std::cout << x << std::endl;
 //#endif //WIN32

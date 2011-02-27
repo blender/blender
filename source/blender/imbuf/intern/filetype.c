@@ -22,6 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_filetype.h"
@@ -44,7 +45,7 @@ static int imb_ftype_default(ImFileType *type, ImBuf *ibuf) { return (ibuf->ftyp
 #if defined(__APPLE__) && defined(IMBUF_COCOA)
 static int imb_ftype_cocoa(ImFileType *type, ImBuf *ibuf) { return (ibuf->ftype & TIF); }
 #endif
-static int imb_ftype_iris(ImFileType *type, ImBuf *ibuf) { return (ibuf->ftype == IMAGIC); }
+static int imb_ftype_iris(ImFileType *type, ImBuf *ibuf) { (void)type; return (ibuf->ftype == IMAGIC); }
 #ifdef WITH_QUICKTIME
 static int imb_ftype_quicktime(ImFileType *type, ImBuf *ibuf) { return 0; } // XXX
 #endif
@@ -55,11 +56,11 @@ void quicktime_exit(void);
 #endif
 
 ImFileType IMB_FILE_TYPES[]= {
-	{NULL, NULL, imb_is_a_iris, imb_ftype_iris, imb_loadiris, imb_saveiris, NULL, 0, IMAGIC},
 	{NULL, NULL, imb_is_a_jpeg, imb_ftype_default, imb_load_jpeg, imb_savejpeg, NULL, 0, JPG},
 	{NULL, NULL, imb_is_a_png, imb_ftype_default, imb_loadpng, imb_savepng, NULL, 0, PNG},
 	{NULL, NULL, imb_is_a_bmp, imb_ftype_default, imb_bmp_decode, imb_savebmp, NULL, 0, BMP},
 	{NULL, NULL, imb_is_a_targa, imb_ftype_default, imb_loadtarga, imb_savetarga, NULL, 0, TGA},
+	{NULL, NULL, imb_is_a_iris, imb_ftype_iris, imb_loadiris, imb_saveiris, NULL, 0, IMAGIC},
 #ifdef WITH_CINEON
 	{NULL, NULL, imb_is_dpx, imb_ftype_default, imb_loaddpx, imb_save_dpx, NULL, IM_FTYPE_FLOAT, DPX},
 	{NULL, NULL, imb_is_cineon, imb_ftype_default, imb_loadcineon, imb_savecineon, NULL, IM_FTYPE_FLOAT, CINEON},

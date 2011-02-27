@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,13 +26,18 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file SCA_IController.h
+ *  \ingroup gamelogic
+ */
+
 #ifndef __KX_ICONTROLLER
 #define __KX_ICONTROLLER
 
 #include "SCA_ILogicBrick.h"
 #include "PyObjectPlus.h"
 
-/*
+/**
  * Use of SG_DList element: none
  * Use of SG_QList element: build ordered list of activated controller on the owner object
  *                          Head: SCA_IObject::m_activeControllers
@@ -99,11 +104,11 @@ public:
 	}
 	
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 };
 
 #endif

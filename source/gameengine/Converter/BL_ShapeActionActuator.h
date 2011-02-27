@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file BL_ShapeActionActuator.h
+ *  \ingroup bgeconv
  */
 
 #ifndef BL_SHAPEACTIONACTUATOR
@@ -82,7 +86,7 @@ public:
 	bAction*	GetAction() { return m_action; }
 	void		SetAction(bAction* act) { m_action= act; }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
@@ -113,6 +117,7 @@ public:
 
 		switch (act->m_playtype) {
 			case ACT_ACTION_PLAY:
+			case ACT_ACTION_PINGPONG:
 			case ACT_ACTION_FLIPPER:
 			case ACT_ACTION_LOOP_STOP:
 			case ACT_ACTION_LOOP_END:
@@ -125,7 +130,7 @@ public:
 
 	}
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 protected:
 

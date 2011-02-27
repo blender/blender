@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file ghost/intern/GHOST_SystemX11.cpp
+ *  \ingroup GHOST
+ */
+
+
 #include "GHOST_SystemX11.h"
 #include "GHOST_WindowX11.h"
 #include "GHOST_WindowManager.h"
@@ -46,6 +51,10 @@
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h> /* allow detectable autorepeate */
+
+#ifdef WITH_XF86KEYSYM
+#include <X11/XF86keysym.h>
+#endif
 
 #ifdef __sgi
 
@@ -68,7 +77,7 @@
 #include <cstdlib> // for exit
 
 #ifndef PREFIX
-#  define PREFIX "/usr/local"
+#error "PREFIX not defined"
 #endif
 
 typedef struct NDOFPlatformInfo {
@@ -858,6 +867,8 @@ getModifierKeys(
 	const KeyCode control_r = XKeysymToKeycode(m_display,XK_Control_R);
 	const KeyCode alt_l = XKeysymToKeycode(m_display,XK_Alt_L);
 	const KeyCode alt_r = XKeysymToKeycode(m_display,XK_Alt_R);
+	const KeyCode super_l = XKeysymToKeycode(m_display,XK_Super_L);
+	const KeyCode super_r = XKeysymToKeycode(m_display,XK_Super_R);
 
 	// Shift
 	if ((m_keyboard_vector[shift_l >> 3] >> (shift_l & 7)) & 1) {
@@ -894,6 +905,15 @@ getModifierKeys(
 		keys.set(GHOST_kModifierKeyRightAlt,true);
 	} else {
 		keys.set(GHOST_kModifierKeyRightAlt,false);
+	}
+
+	// Super (Windows) - only one GHOST-kModifierKeyOS, so mapping
+	// to either
+	if ( ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) || 
+	     ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) ) {
+		keys.set(GHOST_kModifierKeyOS,true);
+	} else {
+		keys.set(GHOST_kModifierKeyOS,false);
 	}
 	return GHOST_kSuccess;
 }
@@ -1106,6 +1126,8 @@ convertXKey(
 			GXMAP(type,XK_Control_R,	GHOST_kKeyRightControl);
 			GXMAP(type,XK_Alt_L,	 	GHOST_kKeyLeftAlt);
 			GXMAP(type,XK_Alt_R,	 	GHOST_kKeyRightAlt);
+			GXMAP(type,XK_Super_L,		GHOST_kKeyOS);
+			GXMAP(type,XK_Super_R,		GHOST_kKeyOS);
 
 			GXMAP(type,XK_Insert,	 	GHOST_kKeyInsert);
 			GXMAP(type,XK_Delete,	 	GHOST_kKeyDelete);
@@ -1154,6 +1176,16 @@ convertXKey(
 			GXMAP(type,XK_KP_Subtract,	GHOST_kKeyNumpadMinus);
 			GXMAP(type,XK_KP_Multiply,	GHOST_kKeyNumpadAsterisk);
 			GXMAP(type,XK_KP_Divide,	GHOST_kKeyNumpadSlash);
+
+			/* Media keys in some keyboards and laptops with XFree86/Xorg */
+#ifdef WITH_XF86KEYSYM
+			GXMAP(type,XF86XK_AudioPlay,    GHOST_kKeyMediaPlay);
+			GXMAP(type,XF86XK_AudioStop,    GHOST_kKeyMediaStop);
+			GXMAP(type,XF86XK_AudioPrev,    GHOST_kKeyMediaFirst);
+			GXMAP(type,XF86XK_AudioRewind,  GHOST_kKeyMediaFirst);
+			GXMAP(type,XF86XK_AudioNext,    GHOST_kKeyMediaLast);
+			GXMAP(type,XF86XK_AudioForward, GHOST_kKeyMediaLast);
+#endif
 
 				/* some extra sun cruft (NICE KEYBOARD!) */
 #ifdef __sun__
@@ -1474,23 +1506,4 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	}
 }
 
-const GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
-{
-	return (GHOST_TUns8*) PREFIX "/share";
-}
-
-const GHOST_TUns8* GHOST_SystemX11::getUserDir() const
-{
-	char* env = getenv("HOME");
-	if(env) {
-		return (GHOST_TUns8*) env;
-	} else {
-		return NULL;
-	}
-}
-
-const GHOST_TUns8* GHOST_SystemX11::getBinaryDir() const
-{
-	return NULL;
-}
 

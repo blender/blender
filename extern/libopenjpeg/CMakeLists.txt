@@ -24,9 +24,60 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC . src)
+set(INC
+	.
+)
 
+<<<<<<< .working
 FILE(GLOB SRC *.c except t1_generate_luts.c)
 ADD_DEFINITIONS(-DWITH_OPENJPEG)
 BLENDERLIB(extern_openjpeg "${SRC}" "${INC}")
 #, libtype=['international','player'], priority=[5, 210])
+=======
+set(SRC
+	bio.c
+	cio.c
+	dwt.c
+	event.c
+	image.c
+	j2k.c
+	j2k_lib.c
+	jp2.c
+	jpt.c
+	mct.c
+	mqc.c
+	openjpeg.c
+	pi.c
+	raw.c
+	t1.c
+	t2.c
+	tcd.c
+	tgt.c
+
+	bio.h
+	cio.h
+	dwt.h
+	event.h
+	fix.h
+	image.h
+	int.h
+	j2k.h
+	j2k_lib.h
+	jp2.h
+	jpt.h
+	mct.h
+	mqc.h
+	openjpeg.h
+	opj_includes.h
+	opj_malloc.h
+	pi.h
+	raw.h
+	t1.h
+	t1_luts.h
+	t2.h
+	tcd.h
+	tgt.h
+)
+
+blender_add_lib(extern_openjpeg "${SRC}" "${INC}")
+>>>>>>> .merge-right.r35190

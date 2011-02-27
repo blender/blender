@@ -1,8 +1,4 @@
-/**
- * blenlib/DNA_curve_types.h (mar-2001 nzc)
- *
- * Curve stuff.
- *
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -32,6 +28,10 @@
  */
 #ifndef DNA_CURVE_TYPES_H
 #define DNA_CURVE_TYPES_H
+
+/** \file DNA_curve_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
@@ -63,8 +63,8 @@ typedef struct PathPoint {
 #
 #
 typedef struct Path {
-	int len;
 	struct PathPoint *data;
+	int len;
 	float totdist;
 } Path;
 
@@ -141,7 +141,7 @@ typedef struct Nurb {
 
 typedef struct CharInfo {
 	short kern;
-	short mat_nr;
+	short mat_nr; /* index start at 1, unlike mesh & nurbs */
 	char flag;
 	char pad;
 	short pad2;
@@ -171,7 +171,7 @@ typedef struct Curve {
 	struct BoundBox *bb;
 	
 	ListBase nurb;		/* actual data, called splines in rna */
-	ListBase disp;
+	ListBase disp;		/* undeformed display list, used mostly for texture space calculation */
 	
 	EditNurb *editnurb;	/* edited data, not in file, use pointer so we can check for it */
 	
@@ -189,11 +189,11 @@ typedef struct Curve {
 	float rot[3];
 
 	short texflag, pad1; /* keep a short because of give_obdata_texspace() */
-
-	short drawflag, twist_mode,  pad[2];
+	short drawflag, twist_mode;
 	float twist_smooth, smallcaps_scale;
 
-	short pathlen, totcol;
+	int pathlen;
+	short pad, totcol;
 	short flag, bevresol;
 	float width, ext1, ext2;
 	
@@ -314,14 +314,14 @@ typedef enum eBezTriple_Handle {
 	HD_AUTO,
 	HD_VECT,
 	HD_ALIGN,
-	HD_AUTO_ANIM,	/* not real handle type, but is just used as dummy item for anim code */
+	HD_AUTO_ANIM	/* not real handle type, but is just used as dummy item for anim code */
 } eBezTriple_Handle;
 
 /* interpolation modes (used only for BezTriple->ipo) */
 typedef enum eBezTriple_Interpolation {
 	BEZT_IPO_CONST = 0,	/* constant interpolation */
 	BEZT_IPO_LIN,		/* linear interpolation */
-	BEZT_IPO_BEZ,		/* bezier interpolation */
+	BEZT_IPO_BEZ		/* bezier interpolation */
 } eBezTriple_Interpolation;
 
 /* types of keyframe (used only for BezTriple->hide when BezTriple is used in F-Curves) */
@@ -329,6 +329,7 @@ typedef enum eBezTriple_KeyframeType {
 	BEZT_KEYTYPE_KEYFRAME = 0,	/* default - 'proper' Keyframe */
 	BEZT_KEYTYPE_EXTREME,		/* 'extreme' keyframe */
 	BEZT_KEYTYPE_BREAKDOWN,		/* 'breakdown' keyframe */
+	BEZT_KEYTYPE_JITTER,		/* 'jitter' keyframe (for adding 'filler' secondary motion) */
 } eBezTriple_KeyframeType;
 
 /* checks if the given BezTriple is selected */

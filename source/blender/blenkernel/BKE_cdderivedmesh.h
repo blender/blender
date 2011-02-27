@@ -27,9 +27,11 @@
 * ***** END GPL LICENSE BLOCK *****
 */ 
 
-/* CDDerivedMesh interface.
- * CDDerivedMesh (CD = Custom Data) is a DerivedMesh backend which stores
- * mesh elements (vertices, edges and faces) as layers of custom element data.
+/** \file BKE_cdderivedmesh.h
+ *  \ingroup bke
+ *  \section aboutcdderivedmesh CDDerivedMesh interface
+ *   CDDerivedMesh (CD = Custom Data) is a DerivedMesh backend which stores
+ *   mesh elements (vertices, edges and faces) as layers of custom element data.
  */
 
 #ifndef BKE_CDDERIVEDMESH_H
@@ -114,6 +116,9 @@ void CDDM_calc_edges(struct DerivedMesh *dm);
    faces*/
 void CDDM_calc_edges_poly(struct DerivedMesh *dm);
 
+/*reconstitute face triangulation*/
+void CDDM_recalc_tesselation(struct DerivedMesh *dm);
+
 /* lowers the number of vertices/edges/faces in a CDDerivedMesh
  * the layer data stays the same size
  */
@@ -140,7 +145,7 @@ struct MVert *CDDM_get_verts(struct DerivedMesh *dm);
 struct MEdge *CDDM_get_edges(struct DerivedMesh *dm);
 struct MFace *CDDM_get_tessfaces(struct DerivedMesh *dm);
 struct MLoop *CDDM_get_loops(struct DerivedMesh *dm);
-struct MPoly *CDDM_get_faces(struct DerivedMesh *dm);
+struct MPoly *CDDM_get_polys(struct DerivedMesh *dm);
 
 /*Assigns news m*** layers to the cddm.  Note that you must handle
   freeing the old ones yourself.  Also you must ensure dm->num****Data

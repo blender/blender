@@ -30,10 +30,18 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_subsurf.c
+ *  \ingroup modifiers
+ */
+
+
 #include "stddef.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+
+#include "BLI_utildefines.h"
+
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_scene.h"
@@ -83,9 +91,10 @@ static int isDisabled(ModifierData *md, int useRenderParams)
 	return get_render_subsurf_level(&md->scene->r, levels) == 0;
 }
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
+						DerivedMesh *derivedData,
+						int useRenderParams,
+						int isFinalCalc)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
 	DerivedMesh *result;
@@ -102,9 +111,9 @@ static DerivedMesh *applyModifier(
 	return result;
 }
 
-static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct EditMesh *editData,
-  DerivedMesh *derivedData)
+static DerivedMesh *applyModifierEM(ModifierData *md, Object *UNUSED(ob),
+						struct EditMesh *UNUSED(editData),
+						DerivedMesh *derivedData)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
 	DerivedMesh *result;
@@ -129,6 +138,7 @@ ModifierTypeInfo modifierType_Subsurf = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */    0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
@@ -139,6 +149,7 @@ ModifierTypeInfo modifierType_Subsurf = {
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    0,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

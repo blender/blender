@@ -19,11 +19,10 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
-SET(INC
+set(INC
 	../include
 	../../blenkernel
+	../../blenloader
 	../../blenlib
 	../../makesdna
 	../../makesrna
@@ -31,4 +30,24 @@ SET(INC
 	../../../../intern/guardedalloc
 )
 
-BLENDERLIB(bf_editor_animation "${SRC}" "${INC}")
+set(SRC
+	anim_channels_defines.c
+	anim_channels_edit.c
+	anim_deps.c
+	anim_draw.c
+	anim_filter.c
+	anim_ipo_utils.c
+	anim_markers.c
+	anim_ops.c
+	drivers.c
+	fmodifier_ui.c
+	keyframes_draw.c
+	keyframes_edit.c
+	keyframes_general.c
+	keyframing.c
+	keyingsets.c
+
+	anim_intern.h
+)
+
+blender_add_lib(bf_editor_animation "${SRC}" "${INC}")

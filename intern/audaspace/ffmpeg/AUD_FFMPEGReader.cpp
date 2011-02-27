@@ -1,27 +1,33 @@
 /*
  * $Id$
  *
- * ***** BEGIN LGPL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
- * Copyright 2009 Jörg Hermann Müller
+ * Copyright 2009-2011 Jörg Hermann Müller
  *
  * This file is part of AudaSpace.
  *
- * AudaSpace is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * Audaspace is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
  * AudaSpace is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with AudaSpace.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with Audaspace; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * ***** END LGPL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file audaspace/ffmpeg/AUD_FFMPEGReader.cpp
+ *  \ingroup audffmpeg
+ */
+
 
 // needed for INT64_C
 #ifndef __STDC_CONSTANT_MACROS
@@ -246,13 +252,26 @@ void AUD_FFMPEGReader::seek(int position)
 {
 	if(position >= 0)
 	{
+		uint64_t st_time = m_formatCtx->start_time;
+		uint64_t seek_pos = position * AV_TIME_BASE / m_specs.rate;
+
+		if (seek_pos < 0) {
+			seek_pos = 0;
+		}
+
+		if (st_time != AV_NOPTS_VALUE) {
+			seek_pos += st_time;
+		}
+
+		double pts_time_base = 
+			av_q2d(m_formatCtx->streams[m_stream]->time_base);
+		uint64_t pts_st_time =
+			((st_time != AV_NOPTS_VALUE) ? st_time : 0)
+			/ pts_time_base / (uint64_t) AV_TIME_BASE;
+
 		// a value < 0 tells us that seeking failed
-		if(av_seek_frame(m_formatCtx,
-						 -1,
-						 (uint64_t)(((uint64_t)position *
-									 (uint64_t)AV_TIME_BASE) /
-									(uint64_t)m_specs.rate),
-						 AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_ANY) >= 0)
+		if(av_seek_frame(m_formatCtx, -1, seek_pos,
+				 AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_ANY) >= 0)
 		{
 			avcodec_flush_buffers(m_codecCtx);
 			m_position = position;
@@ -273,9 +292,8 @@ void AUD_FFMPEGReader::seek(int position)
 					if(packet.pts != AV_NOPTS_VALUE)
 					{
 						// calculate real position, and read to frame!
-						m_position = packet.pts *
-							av_q2d(m_formatCtx->streams[m_stream]->time_base) *
-							m_specs.rate;
+						m_position = (packet.pts - 
+							pts_st_time) * pts_time_base * m_specs.rate;
 
 						if(m_position < position)
 						{
@@ -298,6 +316,7 @@ void AUD_FFMPEGReader::seek(int position)
 		}
 		else
 		{
+			fprintf(stderr, "seeking failed!\n");
 			// Seeking failed, do nothing.
 		}
 	}

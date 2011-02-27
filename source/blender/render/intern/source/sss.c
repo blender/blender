@@ -49,18 +49,21 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
+
 #include "PIL_time.h"
 
 #include "DNA_material_types.h"
 
 #include "BKE_colortools.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
+
 
 /* this module */
 #include "render_types.h"
@@ -466,7 +469,7 @@ static void compute_radiance(ScatterTree *tree, float *co, float *rad)
 
 /* building */
 
-static void sum_leaf_radiance(ScatterTree *tree, ScatterNode *node)
+static void sum_leaf_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 {
 	ScatterPoint *p;
 	float rad, totrad= 0.0f, inv;
@@ -540,7 +543,7 @@ static void sum_leaf_radiance(ScatterTree *tree, ScatterNode *node)
 	}
 }
 
-static void sum_branch_radiance(ScatterTree *tree, ScatterNode *node)
+static void sum_branch_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 {
 	ScatterNode *subnode;
 	float rad, totrad= 0.0f, inv;
@@ -995,6 +998,15 @@ void make_sss_tree(Render *re)
 	for(mat= re->main->mat.first; mat; mat= mat->id.next)
 		if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
 			sss_create_tree_mat(re, mat);
+	
+	/* XXX preview exception */
+	/* localizing preview render data is not fun for node trees :( */
+	if(re->main!=G.main) {
+		for(mat= G.main->mat.first; mat; mat= mat->id.next)
+			if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
+				sss_create_tree_mat(re, mat);
+	}
+	
 }
 
 void free_sss(Render *re)

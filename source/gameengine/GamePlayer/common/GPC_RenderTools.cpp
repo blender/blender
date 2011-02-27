@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file gameengine/GamePlayer/common/GPC_RenderTools.cpp
+ *  \ingroup player
+ */
+
+
 #include "GL/glew.h"
 
 #include "RAS_IRenderTools.h"
@@ -52,6 +57,10 @@
 #include "BKE_bmfont_types.h"
 
 #include "GPC_RenderTools.h"
+
+extern "C" {
+#include "BLF_api.h"
+}
 
 
 unsigned int GPC_RenderTools::m_numgllights;
@@ -276,6 +285,35 @@ void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,in
 	}
 }
 
+void GPC_RenderTools::RenderText3D(	int fontid,
+									const char* text,
+									int size,
+									int dpi,
+									float* color,
+									double* mat,
+									float aspect)
+{
+	/* the actual drawing */
+	glColor3fv(color);
+ 
+	/* multiply the text matrix by the object matrix */
+	BLF_enable(fontid, BLF_MATRIX|BLF_ASPECT);
+	BLF_matrix(fontid, mat);
+
+	/* aspect is the inverse scale that allows you to increase */
+	/* your resolution without sizing the final text size */
+	/* the bigger the size, the smaller the aspect	*/
+	BLF_aspect(fontid, aspect, aspect, aspect);
+
+	BLF_size(fontid, size, dpi);
+	BLF_position(fontid, 0, 0, 0);
+	BLF_draw(fontid, (char *)text, strlen(text));
+
+	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT);
+	glEnable(GL_DEPTH_TEST);
+}
+
+
 
 void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 										 const char* text,
@@ -284,8 +322,9 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 										 int width,
 										 int height)
 {
+	/*
 	STR_String tmpstr(text);
-	char* s = tmpstr.Ptr();
+	char* s = tmpstr.Ptr(); */
 
 	// Save and change OpenGL settings
 	int texture2D;
@@ -313,13 +352,11 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 	if (mode == RAS_IRenderTools::RAS_TEXT_PADDED)
 	{
 		glColor3ub(0, 0, 0);
-		glRasterPos2s(xco+1, height-yco-1);
-		// XXX BMF_DrawString(m_font, s);
+		BLF_draw_default(xco+1, height-yco-1, 0.f, text, strlen(text));
 	}
 
 	glColor3ub(255, 255, 255);
-	glRasterPos2s(xco, height-yco);
-	// XXX BMF_DrawString(m_font, s);
+	BLF_draw_default(xco, height-yco, 0.f, text, strlen(text));
 
 	// Restore view settings
 	glMatrixMode(GL_PROJECTION);

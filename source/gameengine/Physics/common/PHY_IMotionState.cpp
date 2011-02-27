@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Physics/common/PHY_IMotionState.cpp
+ *  \ingroup phys
+ */
+
 #include "PHY_IMotionState.h"
 
 PHY_IMotionState::~PHY_IMotionState()

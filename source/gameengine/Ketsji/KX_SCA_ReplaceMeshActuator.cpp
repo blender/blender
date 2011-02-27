@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/KX_SCA_ReplaceMeshActuator.cpp
+ *  \ingroup ketsji
+ */
 //
 // Replace the mesh for this actuator's parent
 //
@@ -35,12 +38,14 @@
 
 // Please look here for revision history.
 
+#include <stddef.h>
+
 #include "KX_SCA_ReplaceMeshActuator.h"
 #include "KX_MeshProxy.h"
 
 #include "PyObjectPlus.h" 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -110,7 +115,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, instantReplaceMesh,
 	Py_RETURN_NONE;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

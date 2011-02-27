@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/windowmanager/wm_event_system.h
+ *  \ingroup wm
+ */
+
 #ifndef WM_EVENT_SYSTEM_H
 #define WM_EVENT_SYSTEM_H
 
@@ -84,7 +89,6 @@ enum {
 
 
 /* wm_event_system.c */
-void		wm_event_add			(wmWindow *win, wmEvent *event_to_add);
 void		wm_event_free_all		(wmWindow *win);
 void		wm_event_free			(wmEvent *event);
 void		wm_event_free_handler	(wmEventHandler *handler);

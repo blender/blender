@@ -1,3 +1,6 @@
+/** \file gameengine/Ketsji/BL_Texture.cpp
+ *  \ingroup ketsji
+ */
 // ------------------------------------
 
 #include "GL/glew.h"
@@ -634,7 +637,7 @@ void my_envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 	}
 	else {
 		for(part=0; part<6; part++) {
-			env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect, 0);
+			env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect);
 		}
 		IMB_rectcpy(env->cube[0], ibuf, 
 			0, 0, 0, 0, dx, dx);

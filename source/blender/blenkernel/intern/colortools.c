@@ -41,19 +41,20 @@
 #include "DNA_color_types.h"
 #include "DNA_curve_types.h"
 
-#include "BKE_colortools.h"
-#include "BKE_curve.h"
-#include "BKE_ipo.h"
-#include "BKE_utildefines.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
+#include "BKE_colortools.h"
+#include "BKE_curve.h"
+#include "BKE_fcurve.h"
+
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 
-void floatbuf_to_srgb_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w)
+void floatbuf_to_srgb_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int UNUSED(w))
 {
 	int x, y;
 	float *rf= rectf;
@@ -74,7 +75,7 @@ void floatbuf_to_srgb_byte(float *rectf, unsigned char *rectc, int x1, int x2, i
 	}
 }
 
-void floatbuf_to_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w)
+void floatbuf_to_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int UNUSED(w))
 {
 	int x, y;
 	float *rf= rectf;
@@ -356,7 +357,7 @@ void curvemap_sethandle(CurveMap *cuma, int type)
 /* *********************** Making the tables and display ************** */
 
 /* reduced copy of garbled calchandleNurb() code in curve.c */
-static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
+static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *next, int UNUSED(mode))
 {
 	float *p1,*p2,*p3,pt[3];
 	float dx1,dy1, dx,dy, vx,vy, len,len1,len2;
@@ -830,6 +831,10 @@ void colorcorrection_do_ibuf(ImBuf *ibuf, const char *profile)
 			cmsCloseProfile(proofingProfile);
 		}
 	}
+#else
+	/* unused */
+	(void)ibuf;
+	(void)profile;
 #endif
 }
 
@@ -865,7 +870,7 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	if(ibuf->channels)
 		stride= ibuf->channels;
 	
-	for(pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pix_in+=stride, pix_out+=4) {
+	for(pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pix_in+=stride, pix_out+=stride) {
 		if(stride<3) {
 			col[0]= curvemap_evaluateF(cumap->cm, *pix_in);
 			
@@ -952,13 +957,11 @@ void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
 
 DO_INLINE int get_bin_float(float f)
 {
-	int bin= (int)(f*255);
+	int bin= (int)((f*255) + 0.5);	/* 0.5 to prevent quantisation differences */
 
 	/* note: clamp integer instead of float to avoid problems with NaN */
 	CLAMP(bin, 0, 255);
-	
-	//return (int) (((f + 0.25) / 1.5) * 255);
-	
+
 	return bin;
 }
 
@@ -1000,7 +1003,8 @@ DO_INLINE void save_sample_line(Scopes *scopes, const int idx, const float fx, f
 
 void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 {
-	int x, y, c, n, nl;
+	int x, y, c;
+	unsigned int n, nl;
 	double div, divl;
 	float *rf=NULL;
 	unsigned char *rc=NULL;
@@ -1008,6 +1012,9 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	int savedlines, saveline;
 	float rgb[3], ycc[3], luma;
 	int ycc_mode=-1;
+	const short is_float = (ibuf->rect_float != NULL);
+
+	if (ibuf->rect==NULL && ibuf->rect_float==NULL) return;
 
 	if (scopes->ok == 1 ) return;
 
@@ -1015,6 +1022,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 
 	/* hmmmm */
 	if (!(ELEM(ibuf->channels, 3, 4))) return;
+
 	scopes->hist.channels = 3;
 	scopes->hist.x_resolution = 256;
 
@@ -1069,9 +1077,9 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	scopes->waveform_3= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 3");
 	scopes->vecscope= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "vectorscope point channel");
 	
-	if (ibuf->rect_float)
+	if (is_float)
 		rf = ibuf->rect_float;
-	else if (ibuf->rect)
+	else
 		rc = (unsigned char *)ibuf->rect;
 
 	for (y = 0; y < ibuf->y; y++) {
@@ -1080,13 +1088,13 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 		} else saveline=0;
 		for (x = 0; x < ibuf->x; x++) {
 
-			if (ibuf->rect_float) {
+			if (is_float) {
 				if (use_color_management)
 					linearrgb_to_srgb_v3_v3(rgb, rf);
 				else
 					copy_v3_v3(rgb, rf);
 			}
-			else if (ibuf->rect) {
+			else {
 				for (c=0; c<3; c++)
 					rgb[c] = rc[c] * INV_255;
 			}

@@ -1,43 +1,3 @@
-/**
- * @file IMB_imbuf.h
- * @brief IMage Buffer module.
- *
- * This module offers import/export of several graphical file formats.
- * \ref IMB
- * @ingroup imbuf
- * @ingroup undoc
- *
- * @page IMB - Imbuf module external interface
- *
- *
- * @section about About the IMB module
- *
- * External interface of the IMage Buffer module. This module offers
- * import/export of several graphical file formats. It offers the
- * ImBuf type as a common structure to refer to different graphical
- * file formats, and to enable a uniform way of handling them.
- *
- * @section issues Known issues with IMB
- *
- * - imbuf is written in C.
- * - Endianness issues are dealt with internally.
- * - File I/O must be done externally. The module uses FILE*'s to
- *   direct input/output.
- * - Platform dependency is limited. Some minor patches for
- *   amiga and Irix are present. A 'posix-compliancy-patch'
- *   provides the interface to windows.
- *
- * @section dependencies Dependencies
- *
- * IMB needs:
- * - SDNA module
- *     The listbase types are used for handling the memory
- *     management.
- * - blenlib module
- *     blenlib handles guarded memory management in blender-style.
- *     BLI_winstuff.h makes a few windows specific behaviours
- *     posix-compliant.
- */
 /*
  * $Id$ 
  *
@@ -66,6 +26,44 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+/**
+ * @file IMB_imbuf.h
+ * @brief IMage Buffer module.
+ *
+ * This module offers import/export of several graphical file formats.
+ * @ingroup imbuf
+ *
+ * @page IMB Imbuf module external interface
+ *
+ *
+ * @section about About the IMB module
+ *
+ * External interface of the IMage Buffer module. This module offers
+ * import/export of several graphical file formats. It offers the
+ * ImBuf type as a common structure to refer to different graphical
+ * file formats, and to enable a uniform way of handling them.
+ *
+ * @section issues Known issues with IMB
+ *
+ * - imbuf is written in C.
+ * - Endianness issues are dealt with internally.
+ * - File I/O must be done externally. The module uses FILE*'s to
+ *   direct input/output.
+ * - Platform dependency is limited. Some minor patches for
+ *   amiga and Irix are present. A 'posix-compliancy-patch'
+ *   provides the interface to windows.
+ *
+ * @section dependencies Dependencies
+ *
+ * IMB needs:
+ * - \ref DNA module
+ *     The listbase types are used for handling the memory
+ *     management.
+ * - \ref blenlib module
+ *     blenlib handles guarded memory management in blender-style.
+ *     BLI_winstuff.h makes a few windows specific behaviours
+ *     posix-compliant.
+ */
 
 #ifndef IMB_IMBUF_H
 #define IMB_IMBUF_H
@@ -93,7 +91,7 @@ void IMB_exit(void);
  *
  * @attention Defined in readimage.c
  */
-struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, int size, int flags);
+struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags);
 
 /**
  *
@@ -117,9 +115,8 @@ void IMB_freeImBuf(struct ImBuf *ibuf);
  *
  * @attention Defined in allocimbuf.c
  */
-struct ImBuf *IMB_allocImBuf(short x, short y,
-						 unsigned char d, unsigned int flags,
-						 unsigned char bitmap);
+struct ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y,
+						 unsigned char d, unsigned int flags);
 
 /**
  *
@@ -207,7 +204,7 @@ void IMB_close_anim(struct anim *anim);
  * @attention Defined in anim.c
  */
 
-int ismovie(char *name);
+int ismovie(const char *name);
 void IMB_anim_set_preseek(struct anim *anim, int preseek);
 int IMB_anim_get_preseek(struct anim *anim);
 
@@ -245,6 +242,7 @@ void IMB_filter(struct ImBuf *ibuf);
 void IMB_filterN(struct ImBuf *out, struct ImBuf *in);
 void IMB_filter_extend(struct ImBuf *ibuf, char *mask);
 void IMB_makemipmap(struct ImBuf *ibuf, int use_filter);
+void IMB_remakemipmap(struct ImBuf *ibuf, int use_filter);
 struct ImBuf *IMB_getmipmap(struct ImBuf *ibuf, int level);
 
 /**
@@ -272,19 +270,19 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1);
  *
  * @attention Defined in scaling.c
  */
-struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, short newx, short newy);
+struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
 
 /**
  *
  * @attention Defined in scaling.c
  */
-struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, short newx, short newy);
+struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
 
 /**
  *
  * @attention Defined in writeimage.c
  */
-short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags);
+short IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags);
 
 /**
  * Encodes a png image from an ImBuf
@@ -297,19 +295,19 @@ short IMB_png_encode(struct ImBuf *ibuf, int file, int flags);
  *
  * @attention Defined in util.c
  */
-int IMB_ispic(char *name);
+int IMB_ispic(const char *name);
 
 /**
  *
  * @attention Defined in util.c
  */
-int IMB_isanim(char *name);
+int IMB_isanim(const char *name);
 
 /**
  *
  * @attention Defined in util.c
  */
-int imb_get_anim_type(char *name);
+int imb_get_anim_type(const char *name);
 
 /**
  *
@@ -322,6 +320,7 @@ void IMB_float_from_rect(struct ImBuf *ibuf);
 void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */
 /* note, check that the conversion exists, only some are supported */
 void IMB_convert_profile(struct ImBuf *ibuf, int profile);
+float *IMB_float_profile_ensure(struct ImBuf *ibuf, int profile, int *alloc);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from

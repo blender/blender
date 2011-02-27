@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,12 +25,12 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#ifndef BLI_MATH_BASE
-#define BLI_MATH_BASE
+#ifndef BLI_MATH_BASE_H
+#define BLI_MATH_BASE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/** \file BLI_math_base.h
+ *  \ingroup bli
+ */
 
 #ifdef WIN32
 #define _USE_MATH_DEFINES
@@ -68,6 +68,11 @@ extern "C" {
 #endif
 #ifndef M_LN10
 #define M_LN10          2.30258509299404568402
+#endif
+
+/* non-standard defines, used in some places */
+#ifndef MAXFLOAT
+#define MAXFLOAT  ((float)3.40282347e+38)
 #endif
 
 #ifndef sqrtf
@@ -123,6 +128,7 @@ extern "C" {
 #ifndef FREE_WINDOWS
 #define isnan(n) _isnan(n)
 #define finite _finite
+#define hypot _hypot
 #endif
 #endif
 
@@ -134,7 +140,7 @@ extern "C" {
 #define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
 #endif
 
-#ifdef BLI_MATH_INLINE
+#ifdef BLI_MATH_INLINE_H
 #include "intern/math_base_inline.c"
 #endif
 
@@ -155,15 +161,18 @@ MINLINE float interpf(float a, float b, float t);
 MINLINE float minf(float a, float b);
 MINLINE float maxf(float a, float b);
 
+MINLINE float signf(float f);
+
 MINLINE float power_of_2(float f);
 
 MINLINE float shell_angle_to_dist(float angle);
 
-double double_round(double x, int ndigits);
-
-#ifdef __cplusplus
-}
+#if (defined(WIN32) || defined(WIN64)) && !defined(FREE_WINDOWS)
+extern double copysign(double x, double y);
+extern double round(double x);
 #endif
 
-#endif /* BLI_MATH_BASE */
+double double_round(double x, int ndigits);
+
+#endif /* BLI_MATH_BASE_H */
 

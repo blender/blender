@@ -31,6 +31,10 @@
 #ifndef BLI_THREADS_H
 #define BLI_THREADS_H 
 
+/** \file BLI_threads.h
+ *  \ingroup bli
+ */
+
 #include <pthread.h>
 
 /* for tables, button in UI, etc */
@@ -121,7 +125,7 @@ void BLI_insert_work(struct ThreadedWorker *worker, void *param);
 
 typedef struct ThreadQueue ThreadQueue;
 
-ThreadQueue *BLI_thread_queue_init();
+ThreadQueue *BLI_thread_queue_init(void);
 void BLI_thread_queue_free(ThreadQueue *queue);
 
 void BLI_thread_queue_push(ThreadQueue *queue, void *work);

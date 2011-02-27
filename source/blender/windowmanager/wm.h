@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/windowmanager/wm.h
+ *  \ingroup wm
+ */
+
 #ifndef WM_H
 #define WM_H
 
@@ -61,7 +66,7 @@ void wm_tweakevent_test(bContext *C, wmEvent *event, int action);
 /* wm_gesture.c */
 #define WM_LASSO_MIN_POINTS		1024
 void wm_gesture_draw(struct wmWindow *win);
-int wm_gesture_evaluate(bContext *C, wmGesture *gesture);
+int wm_gesture_evaluate(wmGesture *gesture);
 void wm_gesture_tag_redraw(bContext *C);
 
 /* wm_jobs.c */

@@ -53,7 +53,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(game, "use_actor")
             col.prop(game, "use_ghost")
-            col.prop(ob, "hide_render", text="Invisible") # out of place but useful
+            col.prop(ob, "hide_render", text="Invisible")  # out of place but useful
 
             col = split.column()
             col.prop(game, "use_material_physics")
@@ -72,7 +72,6 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
 
             col = split.column()
             sub = col.column()
-            sub.active = (game.physics_type == 'RIGID_BODY')
             sub.prop(game, "use_anisotropic_friction")
             subsub = sub.column()
             subsub.active = game.use_anisotropic_friction
@@ -148,6 +147,21 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col.prop(game, "use_actor")
             col.prop(game, "use_ghost")
             col.prop(ob, "hide_render", text="Invisible")
+
+            layout.separator()
+
+            split = layout.split()
+
+            col = split.column()
+            col.label(text="Attributes:")
+            col.prop(game, "radius")
+
+            col = split.column()
+            sub = col.column()
+            sub.prop(game, "use_anisotropic_friction")
+            subsub = sub.column()
+            subsub.active = game.use_anisotropic_friction
+            subsub.prop(game, "friction_coefficients", text="", slider=True)
 
         elif game.physics_type in ('SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'):
             layout.prop(ob, "hide_render", text="Invisible")
@@ -286,7 +300,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.prop(gs, "dome_tesselation", text="Tesselation")
 
-            else: # cube map
+            else:  # cube map
                 col = split.column()
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
 
@@ -328,21 +342,25 @@ class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         gs = context.scene.game_settings
+        row = layout.row()
+        row.prop(gs, "use_frame_rate")
+        row.prop(gs, "use_display_lists")
 
-        split = layout.split()
 
-        col = split.column()
-        col.label(text="Show:")
-        col.prop(gs, "show_debug_properties", text="Debug Properties")
-        col.prop(gs, "show_framerate_profile", text="Framerate and Profile")
-        col.prop(gs, "show_physics_visualization", text="Physics Visualization")
-        col.prop(gs, "use_deprecation_warnings")
+class RENDER_PT_game_display(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Display"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
 
-        col = split.column()
+    def draw(self, context):
+        layout = self.layout
 
-        col.label(text="Render:")
-        col.prop(gs, "use_frame_rate")
-        col.prop(gs, "use_display_lists")
+        gs = context.scene.game_settings
+        flow = layout.column_flow()
+        flow.prop(gs, "show_debug_properties", text="Debug Properties")
+        flow.prop(gs, "show_framerate_profile", text="Framerate and Profile")
+        flow.prop(gs, "show_physics_visualization", text="Physics Visualization")
+        flow.prop(gs, "use_deprecation_warnings")
+        flow.prop(gs, "show_mouse")
 
 
 class RENDER_PT_game_sound(RenderButtonsPanel, bpy.types.Panel):
@@ -492,11 +510,11 @@ class WORLD_PT_game_physics(WorldButtonsPanel, bpy.types.Panel):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

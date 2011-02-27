@@ -1,3 +1,4 @@
+<<<<<<< .working
  NOTE * CLASS.FROM -> TO:   TYPE  "DESCRIPTION"
 #+ * ActionGroup.channels -> channels:   collection,  "(read-only)    F-Curves in this group"
 #+ * ActionGroup.custom_color -> custom_color:   int  "Index of custom color set"
@@ -4603,3 +4604,6 @@
 #WorldStarsSettings.distance_min -> distance_min:   float  "Minimum distance to the camera for stars"
 #+ * WorldStarsSettings.size -> size:   float  "Average screen dimension of stars"
 #+ * WorldStarsSettings.use_stars -> use_stars:   boolean  "Enable starfield generation"
+=======
+# See svn history for example formatting for this file, currently this isnt in use.
+>>>>>>> .merge-right.r35190

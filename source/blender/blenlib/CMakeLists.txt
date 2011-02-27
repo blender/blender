@@ -24,28 +24,123 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
-
-SET(INC 
-	. ../makesdna ../blenkernel ../../../intern/guardedalloc ../include
-	../gpu ../../../intern/ghost ../bmesh
+set(INC 
+	.
+	../makesdna
+	../blenkernel
+	../blenloader
+	../gpu
+	../../../intern/ghost
+	../../../intern/guardedalloc
+	${ZLIB_INCLUDE_DIRS}
 	${FREETYPE_INCLUDE_DIRS}
-	${ZLIB_INC}
 )
 
-IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
-SET(INC
-	${INC}
-	${BINRELOC_INC}
+set(SRC
+	intern/BLI_args.c
+	intern/BLI_dynstr.c
+	intern/BLI_ghash.c
+	intern/BLI_heap.c
+	intern/BLI_kdopbvh.c
+	intern/BLI_kdtree.c
+	intern/BLI_linklist.c
+	intern/BLI_memarena.c
+	intern/BLI_mempool.c
+	intern/BLI_cellalloc.c
+	intern/DLRB_tree.c
+	intern/boxpack2d.c
+	intern/bpath.c
+	intern/cpu.c
+	intern/dynlib.c
+	intern/edgehash.c
+	intern/fileops.c
+	intern/fnmatch.c
+	intern/freetypefont.c
+	intern/graph.c
+	intern/gsqueue.c
+	intern/jitter.c
+	intern/listbase.c
+	intern/math_base.c
+	intern/math_base_inline.c
+	intern/math_color.c
+	intern/math_geom.c
+	intern/math_geom_inline.c
+	intern/math_matrix.c
+	intern/math_rotation.c
+	intern/math_vector.c
+	intern/math_vector_inline.c
+	intern/noise.c
+	intern/path_util.c
+	intern/pbvh.c
+	intern/rand.c
+	intern/rct.c
+	intern/scanfill.c
+	intern/storage.c
+	intern/string.c
+	intern/threads.c
+	intern/time.c
+	intern/uvproject.c
+	intern/voxel.c
+	intern/winstuff.c
+
+	BLI_args.h
+	BLI_blenlib.h
+	BLI_boxpack2d.h
+	BLI_bpath.h
+	BLI_cpu.h
+	BLI_dlrbTree.h
+	BLI_dynstr.h
+	BLI_edgehash.h
+	BLI_editVert.h
+	BLI_fileops.h
+	BLI_fnmatch.h
+	BLI_ghash.h
+	BLI_graph.h
+	BLI_gsqueue.h
+	BLI_heap.h
+	BLI_jitter.h
+	BLI_kdopbvh.h
+	BLI_kdtree.h
+	BLI_linklist.h
+	BLI_listbase.h
+	BLI_math.h
+	BLI_math_base.h
+	BLI_math_color.h
+	BLI_math_geom.h
+	BLI_math_inline.h
+	BLI_math_matrix.h
+	BLI_math_rotation.h
+	BLI_math_vector.h
+	BLI_memarena.h
+	BLI_mempool.h
+	BLI_noise.h
+	BLI_path_util.h
+	BLI_pbvh.h
+	BLI_rand.h
+	BLI_rect.h
+	BLI_scanfill.h
+	BLI_storage.h
+	BLI_storage_types.h
+	BLI_string.h
+	BLI_threads.h
+	BLI_utildefines.h
+	BLI_uvproject.h
+	BLI_vfontdata.h
+	BLI_voxel.h
+	BLI_winstuff.h
+	PIL_dynlib.h
+	PIL_time.h
+	intern/BLI_callbacks.h
+	intern/dynamiclist.h
 )
-ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
-IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
-ENDIF(WIN32)
+if(WITH_BINRELOC)
+	add_definitions(-DWITH_BINRELOC)
+	list(APPEND INC "${BINRELOC_INC}")
+endif()
 
-IF(WITH_OPENMP)
-		ADD_DEFINITIONS(-DPARALLEL=1)
-ENDIF(WITH_OPENMP)
+if(WITH_OPENMP)
+	add_definitions(-DPARALLEL=1)
+endif()
 
-BLENDERLIB(bf_blenlib "${SRC}" "${INC}")
+blender_add_lib(bf_blenlib "${SRC}" "${INC}")

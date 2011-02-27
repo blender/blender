@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +30,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file SHD_node.h
+ *  \ingroup nodes
+ */
+
 #ifndef SHD_NODE_H
 #define SHD_NODE_H
 
@@ -39,29 +43,29 @@
 /* the type definitions array */
 /* ****************** types array for all shaders ****************** */
 
-extern bNodeType sh_node_output;
-extern bNodeType sh_node_material;
-extern bNodeType sh_node_camera;
-extern bNodeType sh_node_value;
-extern bNodeType sh_node_rgb;
-extern bNodeType sh_node_mix_rgb;
-extern bNodeType sh_node_valtorgb;
-extern bNodeType sh_node_rgbtobw;
-extern bNodeType sh_node_texture;
-extern bNodeType sh_node_normal;
-extern bNodeType sh_node_geom;
-extern bNodeType sh_node_mapping;
-extern bNodeType sh_node_curve_vec;
-extern bNodeType sh_node_curve_rgb;
-extern bNodeType sh_node_math;
-extern bNodeType sh_node_vect_math;
-extern bNodeType sh_node_squeeze;
-extern bNodeType node_dynamic_typeinfo;
-extern bNodeType sh_node_material_ext;
-extern bNodeType sh_node_invert;
-extern bNodeType sh_node_seprgb;
-extern bNodeType sh_node_combrgb;
-extern bNodeType sh_node_hue_sat;
+void register_node_type_sh_output(ListBase *lb);
+void register_node_type_sh_material(ListBase *lb);
+void register_node_type_sh_camera(ListBase *lb);
+void register_node_type_sh_value(ListBase *lb);
+void register_node_type_sh_rgb(ListBase *lb);
+void register_node_type_sh_mix_rgb(ListBase *lb);
+void register_node_type_sh_valtorgb(ListBase *lb);
+void register_node_type_sh_rgbtobw(ListBase *lb);
+void register_node_type_sh_texture(ListBase *lb);
+void register_node_type_sh_normal(ListBase *lb);
+void register_node_type_sh_geom(ListBase *lb);
+void register_node_type_sh_mapping(ListBase *lb);
+void register_node_type_sh_curve_vec(ListBase *lb);
+void register_node_type_sh_curve_rgb(ListBase *lb);
+void register_node_type_sh_math(ListBase *lb);
+void register_node_type_sh_vect_math(ListBase *lb);
+void register_node_type_sh_squeeze(ListBase *lb);
+void register_node_type_sh_dynamic(ListBase *lb);
+void register_node_type_sh_material_ext(ListBase *lb);
+void register_node_type_sh_invert(ListBase *lb);
+void register_node_type_sh_seprgb(ListBase *lb);
+void register_node_type_sh_combrgb(ListBase *lb);
+void register_node_type_sh_hue_sat(ListBase *lb);
 
 #endif
 

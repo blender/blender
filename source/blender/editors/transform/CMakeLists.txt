@@ -19,17 +19,31 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
-SET(INC
+set(INC
+	../include
 	../../blenkernel
+	../../blenloader
 	../../blenlib
 	../../bmesh
-	../include
-	../../../../intern/guardedalloc
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../../../intern/guardedalloc
 )
 
-BLENDERLIB(bf_editor_transform "${SRC}" "${INC}")
+set(SRC
+	transform.c
+	transform_constraints.c
+	transform_conversions.c
+	transform_generics.c
+	transform_input.c
+	transform_manipulator.c
+	transform_ndofinput.c
+	transform_ops.c
+	transform_orientations.c
+	transform_snap.c
+
+	transform.h
+)
+
+blender_add_lib(bf_editor_transform "${SRC}" "${INC}")

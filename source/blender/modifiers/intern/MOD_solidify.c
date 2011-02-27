@@ -30,16 +30,22 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_solidify.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
 #include "BKE_deform.h"
-#include "BKE_utildefines.h"
+
 
 #include "MOD_modifiertypes.h"
 
@@ -126,7 +132,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 		}
 
 		for(edge_iter = BLI_edgehashIterator_new(edge_hash); !BLI_edgehashIterator_isDone(edge_iter); BLI_edgehashIterator_step(edge_iter)) {
-			/* Get the edge vert indicies, and edge value (the face indicies that use it)*/
+			/* Get the edge vert indices, and edge value (the face indices that use it)*/
 			BLI_edgehashIterator_getKey(edge_iter, (int*)&ed_v1, (int*)&ed_v2);
 			edge_ref = BLI_edgehashIterator_getValue(edge_iter);
 
@@ -179,35 +185,34 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strcpy(tsmd->defgrp_name, smd->defgrp_name);
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData*) md;
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(smd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+	if(smd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
 
 
-static DerivedMesh *applyModifier(ModifierData *md,
-						   Object *ob, 
-						   DerivedMesh *dm,
-						   int useRenderParams,
-						   int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
+						DerivedMesh *dm,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	int i;
 	DerivedMesh *result, *copy;
-	SolidifyModifierData *smd = (SolidifyModifierData*) md;
+	const SolidifyModifierData *smd = (SolidifyModifierData*) md;
 
 	MFace *mf, *mface, *orig_mface;
 	MEdge *ed, *medge, *orig_medge;
 	MVert *mv, *mvert, *orig_mvert;
 
-	int numVerts = dm->getNumVerts(dm);
-	int numEdges = dm->getNumEdges(dm);
-	int numFaces = dm->getNumFaces(dm);
+	const int numVerts = dm->getNumVerts(dm);
+	const int numEdges = dm->getNumEdges(dm);
+	const int numFaces = dm->getNumFaces(dm);
 
 	/* use for edges */
 	int *new_vert_arr= NULL;
@@ -221,13 +226,13 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 	float (*vert_nors)[3]= NULL;
 
-	float ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
-	float ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	float const ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	float const ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
 
 	/* weights */
 	MDeformVert *dvert= NULL, *dv= NULL;
-	int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
-	int defgrp_index= defgroup_name_index(ob, smd->defgrp_name);
+	const int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
+	const int defgrp_index= defgroup_name_index(ob, smd->defgrp_name);
 
 	if (defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -291,7 +296,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 		ehi= BLI_edgehashIterator_new(edgehash);
 		for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-			int eidx= GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+			eidx= GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
 			if(edge_users[eidx] >= 0) {
 				BLI_edgehashIterator_getKey(ehi, &v1, &v2);
 				orig_mvert[v1].flag |= ME_VERT_TMP_TAG;
@@ -408,7 +413,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 		float *vert_angles= MEM_callocN(sizeof(float) * numVerts * 2, "mod_solid_pair"); /* 2 in 1 */
 		float *vert_accum= vert_angles + numVerts;
 		float face_angles[4];
-		int i, j, vidx;
+		int j, vidx;
 
 		face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 		if(!face_nors) {
@@ -442,11 +447,11 @@ static DerivedMesh *applyModifier(ModifierData *md,
 				j= 2;
 			}
 
-			for(; j>=0; j--) {
+			do {
 				vidx = *(&mf->v1 + j);
 				vert_accum[vidx] += face_angles[j];
 				vert_angles[vidx]+= shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) * face_angles[j];
-			}
+			} while(j--);
 		}
 
 		/* vertex group support */
@@ -634,7 +639,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 static DerivedMesh *applyModifierEM(ModifierData *md,
 							 Object *ob,
-							 struct EditMesh *editData,
+							 struct EditMesh *UNUSED(editData),
 							 DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
@@ -654,17 +659,19 @@ ModifierTypeInfo modifierType_Solidify = {
 							| eModifierTypeFlag_EnableInEditmode,
 
 	/* copyData */          copyData,
-	/* deformVerts */       0,
-	/* deformVertsEM */     0,
-	/* deformMatricesEM */  0,
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   applyModifierEM,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          0,
-	/* isDisabled */        0,
-	/* updateDepgraph */    0,
-	/* dependsOnTime */     0,
-	/* foreachObjectLink */ 0,
-	/* foreachIDLink */     0,
+	/* freeData */          NULL,
+	/* isDisabled */        NULL,
+	/* updateDepgraph */    NULL,
+	/* dependsOnTime */     NULL,
+	/* dependsOnNormals */	NULL,
+	/* foreachObjectLink */ NULL,
+	/* foreachIDLink */     NULL
 };

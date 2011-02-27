@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -37,27 +37,42 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_node.h"
 #include "BKE_main.h"
 
-
 #include "WM_api.h"
 #include "WM_types.h"
 
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "node_intern.h"
 
 /* ************************ add menu *********************** */
 
-static void do_node_add(bContext *C, void *arg, int event)
+static void do_node_add(bContext *C, void *UNUSED(arg), int event)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar;
 	bNode *node;
+	
+	/* get location to add node at mouse */
+	for(ar=sa->regionbase.first; ar; ar=ar->next) {
+		if(ar->regiontype == RGN_TYPE_WINDOW) {
+			wmWindow *win= CTX_wm_window(C);
+			int x= win->eventstate->x - ar->winrct.xmin;
+			int y= win->eventstate->y - ar->winrct.ymin;
+			
+			if(y < 60) y+= 60;
+			UI_view2d_region_to_view(&ar->v2d, x, y, &snode->mx, &snode->my);
+		}
+	}
 	
 	/* store selection in temp test flag */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -125,7 +140,7 @@ static void node_auto_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclas
 
 		for(tot=0, a=0; ngroup; ngroup= ngroup->id.next, tot++) {
 			if(ngroup->type==ntree->type) {
-				uiItemV(layout, ngroup->id.name+2, 0, NODE_GROUP_MENU+tot);
+				uiItemV(layout, ngroup->id.name+2, ICON_NULL, NODE_GROUP_MENU+tot);
 				a++;
 			}
 		}
@@ -137,11 +152,11 @@ static void node_auto_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclas
 		for(a=0, type= ntree->alltypes.first; type; type=type->next) {
 			if(type->nclass == nodeclass && type->name) {
 				if(type->type == NODE_DYNAMIC) {
-					uiItemV(layout, type->name, 0, NODE_DYNAMIC_MENU+script);
+					uiItemV(layout, type->name, ICON_NULL, NODE_DYNAMIC_MENU+script);
 					script++;
 				}
 				else
-					uiItemV(layout, type->name, 0, type->type);
+					uiItemV(layout, type->name, ICON_NULL, type->type);
 
 				a++;
 			}
@@ -151,8 +166,8 @@ static void node_auto_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclas
 
 static void node_menu_add(const bContext *C, Menu *menu)
 {
-	uiLayout *layout= menu->layout;
 	SpaceNode *snode= CTX_wm_space_node(C);
+	uiLayout *layout= menu->layout;
 
 	if(!snode->nodetree)
 		uiLayoutSetActive(layout, 0);
@@ -189,7 +204,7 @@ static void node_menu_add(const bContext *C, Menu *menu)
 	}
 }
 
-void node_menus_register(ARegionType *art)
+void node_menus_register(void)
 {
 	MenuType *mt;
 

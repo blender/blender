@@ -1,3 +1,6 @@
+/** \file opennl/superlu/sgssv.c
+ *  \ingroup opennl
+ */
 
 
 /*

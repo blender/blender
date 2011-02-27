@@ -1,6 +1,4 @@
-/**
- * BKE_shrinkwrap.h
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -29,13 +27,17 @@
 #ifndef BKE_SHRINKWRAP_H
 #define BKE_SHRINKWRAP_H
 
+/** \file BKE_shrinkwrap.h
+ *  \ingroup bke
+ */
+
 /* mesh util */
 
 //TODO: move this somewhere else
 #include "BKE_customdata.h"
 struct DerivedMesh;
 struct Object;
-struct DerivedMesh *object_get_derived_final(struct Scene *scene, struct Object *ob, CustomDataMask dataMask);
+struct DerivedMesh *object_get_derived_final(struct Object *ob);
 
 
 /* SpaceTransform stuff */
@@ -121,7 +123,7 @@ typedef struct ShrinkwrapCalcData
 
 } ShrinkwrapCalcData;
 
-void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts);
+void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts);
 
 /*
  * This function casts a ray in the given BVHTree.. but it takes into consideration the space_transform, that is:

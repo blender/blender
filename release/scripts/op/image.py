@@ -32,14 +32,18 @@ class EditExternally(bpy.types.Operator):
 
     def _editor_guess(self, context):
         import platform
-        system = platform.system()
+        try:
+            system = platform.system()
+        except UnicodeDecodeError:
+            import sys
+            system = sys.platform
 
         image_editor = context.user_preferences.filepaths.image_editor
 
         # use image editor in the preferences when available.
         if not image_editor:
-            if system == 'Windows':
-                image_editor = ["start"] # not tested!
+            if system in ('Windows', 'win32'):
+                image_editor = ["start"]  # not tested!
             elif system == 'Darwin':
                 image_editor = ["open"]
             else:
@@ -58,7 +62,7 @@ class EditExternally(bpy.types.Operator):
     def execute(self, context):
         import os
         import subprocess
-        filepath = bpy.path.abspath(self.properties.filepath)
+        filepath = bpy.path.abspath(self.filepath)
 
         if not os.path.exists(filepath):
             self.report('ERROR', "Image path '%s' not found." % filepath)
@@ -77,14 +81,14 @@ class EditExternally(bpy.types.Operator):
             self.report({'ERROR'}, "Image not found on disk")
             return {'CANCELLED'}
 
-        self.properties.filepath = filepath
+        self.filepath = filepath
         self.execute(context)
 
         return {'FINISHED'}
 
 
 class SaveDirty(bpy.types.Operator):
-    '''Select object matching a naming pattern'''
+    """Save all modified textures"""
     bl_idname = "image.save_dirty"
     bl_label = "Save Dirty"
     bl_options = {'REGISTER', 'UNDO'}
@@ -105,7 +109,7 @@ class SaveDirty(bpy.types.Operator):
 
 
 class ProjectEdit(bpy.types.Operator):
-    '''Select object matching a naming pattern'''
+    """Edit a snapshot if the viewport in an external image editor"""
     bl_idname = "image.project_edit"
     bl_label = "Project Edit"
     bl_options = {'REGISTER'}
@@ -116,12 +120,13 @@ class ProjectEdit(bpy.types.Operator):
         import os
         import subprocess
 
-        EXT = "png" # could be made an option but for now ok
+        EXT = "png"  # could be made an option but for now ok
 
         for image in bpy.data.images:
             image.tag = True
 
-        bpy.ops.paint.image_from_view()
+        if 'FINISHED' not in bpy.ops.paint.image_from_view():
+            return {'CANCELLED'}
 
         image_new = None
         for image in bpy.data.images:
@@ -138,7 +143,7 @@ class ProjectEdit(bpy.types.Operator):
         # filepath = bpy.path.clean_name(filepath) # fixes <memory> rubbish, needs checking
 
         if filepath.startswith(".") or filepath == "":
-            # TODO, have a way to check if the file is saved, assume .B25.blend
+            # TODO, have a way to check if the file is saved, assume startup.blend
             tmpdir = context.user_preferences.filepaths.temporary_directory
             filepath = os.path.join(tmpdir, "project_edit")
         else:
@@ -159,7 +164,7 @@ class ProjectEdit(bpy.types.Operator):
         image_new.name = os.path.basename(filepath_final)
         ProjectEdit._proj_hack[0] = image_new.name
 
-        image_new.filepath_raw = filepath_final # TODO, filepath raw is crummy
+        image_new.filepath_raw = filepath_final  # TODO, filepath raw is crummy
         image_new.file_format = 'PNG'
         image_new.save()
 
@@ -169,13 +174,13 @@ class ProjectEdit(bpy.types.Operator):
 
 
 class ProjectApply(bpy.types.Operator):
-    '''Select object matching a naming pattern'''
+    """Project edited image back onto the object"""
     bl_idname = "image.project_apply"
     bl_label = "Project Apply"
     bl_options = {'REGISTER'}
 
     def execute(self, context):
-        image_name = ProjectEdit._proj_hack[0] # TODO, deal with this nicer
+        image_name = ProjectEdit._proj_hack[0]  # TODO, deal with this nicer
 
         try:
             image = bpy.data.images[image_name]
@@ -190,10 +195,11 @@ class ProjectApply(bpy.types.Operator):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
+
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

@@ -1,4 +1,4 @@
-/**
+/*
  * 'And' together all inputs
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_ANDController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_ANDController.h"
 #include "SCA_ISensor.h"
@@ -87,7 +92,7 @@ CValue* SCA_ANDController::GetReplica()
 	return replica;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -123,5 +128,5 @@ PyMethodDef SCA_ANDController::Methods[] = {
 PyAttributeDef SCA_ANDController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 /* eof */

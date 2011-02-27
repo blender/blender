@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file kernel/gen_system/GEN_Map.h
+ *  \ingroup gensys
+ */
+
 #ifndef GEN_MAP_H
 #define GEN_MAP_H
 

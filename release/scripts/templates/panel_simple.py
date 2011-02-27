@@ -1,5 +1,6 @@
 import bpy
 
+
 class OBJECT_PT_hello(bpy.types.Panel):
     bl_label = "Hello World Panel"
     bl_space_type = "PROPERTIES"
@@ -18,3 +19,15 @@ class OBJECT_PT_hello(bpy.types.Panel):
         row.label(text="Active object is: " + obj.name)
         row = layout.row()
         row.prop(obj, "name")
+
+
+def register():
+    bpy.utils.register_class(OBJECT_PT_hello)
+
+
+def unregister():
+    bpy.utils.unregister_class(OBJECT_PT_hello)
+
+
+if __name__ == "__main__":
+    register()

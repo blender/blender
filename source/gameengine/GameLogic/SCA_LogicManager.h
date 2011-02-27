@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,12 +25,15 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Regulates the top-level logic behaviour for one scene.
+ */
+/** \file SCA_IController.h
+ *  \ingroup gamelogic
+ *  \brief Regulates the top-level logic behaviour for one scene.
  */
 #ifndef __KX_LOGICMANAGER
 #define __KX_LOGICMANAGER
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786)
 #endif 
 
@@ -127,6 +130,7 @@ public:
 	void	RegisterMeshName(const STR_String& meshname,void* mesh);
 	void	UnregisterMeshName(const STR_String& meshname,void* mesh);
 	GEN_Map<STR_HashedString,void*>&	GetMeshMap() { return m_mapStringToMeshes; };
+	GEN_Map<STR_HashedString,void*>&	GetActionMap() { return m_mapStringToActions; };
 	
 	void	RegisterActionName(const STR_String& actname,void* action);
 

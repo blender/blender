@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,7 +28,12 @@
  * Readonly sequence wrapper for lookups on logic bricks
  */
 
-#ifndef DISABLE_PYTHON
+/** \file gameengine/Ketsji/KX_PythonSeq.cpp
+ *  \ingroup ketsji
+ */
+
+
+#ifdef WITH_PYTHON
 
 #include "KX_PythonSeq.h"
 #include "KX_GameObject.h"
@@ -512,4 +517,4 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

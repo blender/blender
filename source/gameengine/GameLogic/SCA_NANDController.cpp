@@ -1,4 +1,4 @@
-/**
+/*
  * 'Nand' together all inputs
  *
  * $Id$
@@ -28,6 +28,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_NANDController.cpp
+ *  \ingroup gamelogic
+ */
+
 
 #include "SCA_NANDController.h"
 #include "SCA_ISensor.h"
@@ -87,7 +92,7 @@ CValue* SCA_NANDController::GetReplica()
 	return replica;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

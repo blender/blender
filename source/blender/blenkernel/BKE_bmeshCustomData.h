@@ -1,8 +1,4 @@
-/**
- * BKE_bmesh.h    jan 2007
- *
- *	BMesh modeler structure and functions.
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -37,6 +33,12 @@
 
 #ifndef BKE_BMESHCUSTOMDATA_H
 #define BKE_BMESHCUSTOMDATA_H
+
+/** \file BKE_bmeshCustomData.h
+ *  \ingroup bke
+ *  \since January 2007
+ *  \brief BMesh modeler structure and functions - custom data.
+ */
 
 struct BLI_mempool;
 

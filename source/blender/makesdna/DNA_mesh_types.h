@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,6 +28,10 @@
  */
 #ifndef DNA_MESH_TYPES_H
 #define DNA_MESH_TYPES_H
+
+/** \file DNA_mesh_types.h
+ *  \ingroup DNA
+ */
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
@@ -170,9 +174,9 @@ typedef struct TFace {
 #define ME_DRAWSHARP    (1 << 8)
 #define ME_DRAWBWEIGHTS	(1 << 9)
 
-#define ME_DRAW_EDGELEN  (1 << 10) 
-#define ME_DRAW_FACEAREA (1 << 11)
-#define ME_DRAW_EDGEANG  (1 << 12)
+#define ME_DRAWEXTRA_EDGELEN  (1 << 10)
+#define ME_DRAWEXTRA_FACEAREA (1 << 11)
+#define ME_DRAWEXTRA_FACEANG  (1 << 12)
 
 #define ME_DRAW_PINS (1 << 13)
 

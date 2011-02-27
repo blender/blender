@@ -312,14 +312,14 @@ if USE_SDK==True:
 
 #Intel Macs are CoreDuo and Up	
 if MACOSX_ARCHITECTURE == 'i386' or MACOSX_ARCHITECTURE == 'x86_64':
-	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
-	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
+	REL_CFLAGS = ['-DNDEBUG', '-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
+	REL_CCFLAGS = ['-DNDEBUG', '-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
 else:
 	CFLAGS = CFLAGS+['-fno-strict-aliasing']
 	CCFLAGS =  CCFLAGS+['-fno-strict-aliasing']
 	CXXFLAGS = CXXFLAGS+['-fno-strict-aliasing']
-	REL_CFLAGS = ['-O2']
-	REL_CCFLAGS = ['-O2']
+	REL_CFLAGS = ['-DNDEBUG', '-O2']
+	REL_CCFLAGS = ['-DNDEBUG', '-O2']
 
 # Intel 64bit Macs are Core2Duo and up
 if MACOSX_ARCHITECTURE == 'x86_64':
@@ -327,7 +327,7 @@ if MACOSX_ARCHITECTURE == 'x86_64':
 	REL_CCFLAGS = REL_CCFLAGS+['-march=core2','-mssse3','-with-tune=core2','-enable-threads']
 
 CC_WARN = ['-Wall']
-C_WARN = ['-Wno-char-subscripts', '-Wpointer-arith', '-Wcast-align', '-Wdeclaration-after-statement', '-Wno-unknown-pragmas']
+C_WARN = ['-Wno-char-subscripts', '-Wpointer-arith', '-Wcast-align', '-Wdeclaration-after-statement', '-Wno-unknown-pragmas', '-Wstrict-prototypes']
 CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
@@ -340,7 +340,7 @@ BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE = False
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = ['-g']
+BF_DEBUG_CCFLAGS = ['-g', '-D_DEBUG']
 
 #############################################################################
 ###################           Output directories           ##################

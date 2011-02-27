@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_PolygonMaterial.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __KX_POLYGONMATERIAL_H__
 #define __KX_POLYGONMATERIAL_H__
 
@@ -42,6 +47,7 @@
 struct MTFace;
 struct Material;
 struct MTex;
+struct Image;
 
 /**
  *  Material class.
@@ -58,7 +64,7 @@ private:
 	unsigned int*	m_mcol;
 	Material*		m_material;
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	PyObject*		m_pymaterial;
 #endif
 
@@ -107,6 +113,8 @@ public:
 		return m_material;
 	}
 
+	Image *GetBlenderImage() const;
+
 	/**
 	 * Returns the Blender texture face structure that is used for this material.
 	 * @return The material's texture face.
@@ -122,7 +130,7 @@ public:
 	}
 	virtual void GetMaterialRGBAColor(unsigned char *rgba) const;
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, updateTexture);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, setTexture);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, activate);

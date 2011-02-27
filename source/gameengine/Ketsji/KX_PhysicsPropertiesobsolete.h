@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,12 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file KX_PhysicsPropertiesobsolete.h
+ *  \ingroup ketsji
+ *  \todo check if this file is still needed
+ */
+
 #ifndef KX_PROPSH
 #define KX_PROPSH
 

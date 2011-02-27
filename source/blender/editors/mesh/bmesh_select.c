@@ -67,6 +67,7 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 #include "BKE_utildefines.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
+#include "BKE_paint.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -93,29 +94,26 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-/* XXX */
-static void waitcursor() {}
-static int pupmenu() {return 0;}
-
 /* ****************************** MIRROR **************** */
 
 void EDBM_select_mirrored(Object *obedit, BMEditMesh *em)
 {
-#if 0 //BMESH_TODO
 	if(em->selectmode & SCE_SELECT_VERTEX) {
 		BMVert *eve, *v1;
+		BMIter iter;
+		int i;
 		
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->f & SELECT) {
-				v1= BMEditMesh_get_x_mirror_vert(obedit, em, eve->co);
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_TestHFlag(eve, BM_SELECT) && !BM_TestHFlag(eve, BM_HIDDEN)) {
+				v1= editbmesh_get_x_mirror_vert(obedit, em, eve, eve->co, i);
 				if(v1) {
-					eve->f &= ~SELECT;
-					v1->f |= SELECT;
+					BM_Select(em->bm, eve, 0);
+					BM_Select(em->bm, v1, 1);
 				}
 			}
+			i++;
 		}
 	}
-#endif
 }
 
 void EDBM_automerge(Scene *scene, Object *obedit, int update)
@@ -133,7 +131,7 @@ void EDBM_automerge(Scene *scene, Object *obedit, int update)
 
 		BMO_CallOpf(em->bm, "automerge verts=%hv dist=%f", BM_SELECT, scene->toolsettings->doublimit);
 		if (update) {
-			DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+			DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 		}
 	}
 }
@@ -718,7 +716,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* dependencies graph and notification stuff */
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	/* we succeeded */
@@ -760,7 +758,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* dependencies graph and notification stuff */
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	/* we succeeded */
@@ -806,7 +804,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	EDBM_selectmode_flush(em);
 
 	/* dependencies graph and notification stuff */
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	/* we succeeded */
@@ -898,162 +896,6 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 		BM_Select(bm, h, select);
 	}
 	BMW_End(&walker);
-}
-
-#if 0
-/* selects quads in loop direction of indicated edge */
-/* only flush over edges with valence <= 2 */
-void faceloop_select(EditMesh *em, EditEdge *startedge, int select)
-{
-	EditEdge *eed;
-	EditFace *efa;
-	int looking= 1;
-	
-	/* in eed->f1 we put the valence (amount of faces in edge) */
-	/* in eed->f2 we put tagged flag as correct loop */
-	/* in efa->f1 we put tagged flag as correct to select */
-
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		eed->f1= 0;
-		eed->f2= 0;
-	}
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		efa->f1= 0;
-		if(efa->h==0) {
-			efa->e1->f1++;
-			efa->e2->f1++;
-			efa->e3->f1++;
-			if(efa->e4) efa->e4->f1++;
-		}
-	}
-	
-	/* tag startedge OK*/
-	startedge->f2= 1;
-	
-	while(looking) {
-		looking= 0;
-		
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->h==0 && efa->e4 && efa->f1==0) {	/* not done quad */
-				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { /* valence ok */
-
-					/* if edge tagged, select opposing edge and mark face ok */
-					if(efa->e1->f2) {
-						efa->e3->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-					else if(efa->e2->f2) {
-						efa->e4->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-					if(efa->e3->f2) {
-						efa->e1->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-					if(efa->e4->f2) {
-						efa->e2->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-				}
-			}
-		}
-	}
-	
-	/* (de)select the faces */
-	if(select!=2) {
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->f1) EM_select_face(efa, select);
-		}
-	}
-}
-#endif
-
-
-/* selects or deselects edges that:
-- if edges has 2 faces:
-	- has vertices with valence of 4
-	- not shares face with previous edge
-- if edge has 1 face:
-	- has vertices with valence 4
-	- not shares face with previous edge
-	- but also only 1 face
-- if edge no face:
-	- has vertices with valence 2
-*/
-
-/* 
-   Almostly exactly the same code as faceloop select
-*/
-static void edgering_select(BMEditMesh *em, BMEdge *startedge, int select)
-{
-#if 0 //BMESH_TODO
-	BMEdge *eed;
-	BMFace *efa;
-	int looking= 1;
-	
-	/* in eed->f1 we put the valence (amount of faces in edge) */
-	/* in eed->f2 we put tagged flag as correct loop */
-	/* in efa->f1 we put tagged flag as correct to select */
-
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		eed->f1= 0;
-		eed->f2= 0;
-	}
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		efa->f1= 0;
-		if(efa->h==0) {
-			efa->e1->f1++;
-			efa->e2->f1++;
-			efa->e3->f1++;
-			if(efa->e4) efa->e4->f1++;
-		}
-	}
-	
-	/* tag startedge OK */
-	startedge->f2= 1;
-	
-	while(looking) {
-		looking= 0;
-		
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->e4 && efa->f1==0 && !efa->h) {	/* not done quad */
-				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { /* valence ok */
-
-					/* if edge tagged, select opposing edge and mark face ok */
-					if(efa->e1->f2) {
-						efa->e3->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-					else if(efa->e2->f2) {
-						efa->e4->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-					if(efa->e3->f2) {
-						efa->e1->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-					if(efa->e4->f2) {
-						efa->e2->f2= 1;
-						efa->f1= 1;
-						looking= 1;
-					}
-				}
-			}
-		}
-	}
-	
-	/* (de)select the edges */
-	for(eed= em->edges.first; eed; eed= eed->next) {
-    		if(eed->f2) EM_select_edge(eed, select);
-	}
-#endif
 }
 
 static int loop_multiselect(bContext *C, wmOperator *op)
@@ -1275,7 +1117,7 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 				break;
 		}
 		
-		DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+		DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 	}
 #endif
@@ -1803,7 +1645,7 @@ static int mesh_select_nth_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Unimplemented");
 #endif
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -2324,5 +2166,5 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }

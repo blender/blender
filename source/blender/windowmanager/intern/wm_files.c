@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/windowmanager/intern/wm_files.c
+ *  \ingroup wm
+ */
+
+
 	/* placed up here because of crappy
 	 * winsock stuff.
 	 */
@@ -49,6 +54,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_ipo_types.h" // XXX old animation system
@@ -72,7 +78,7 @@
 #include "BKE_report.h"
 #include "BKE_sound.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
+
 
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
@@ -91,16 +97,20 @@
 #include "ED_util.h"
 
 #include "GHOST_C-api.h"
+#include "GHOST_Path-api.h"
 
 #include "UI_interface.h"
 
 #include "GPU_draw.h"
 
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
+#include "wm_files.h"
 #include "wm_window.h"
 #include "wm_event_system.h"
 
@@ -114,7 +124,7 @@ static void write_history(void);
 */
 static void wm_window_match_init(bContext *C, ListBase *wmlist)
 {
-	wmWindowManager *wm= G.main->wm.first;
+	wmWindowManager *wm;
 	wmWindow *win, *active_win;
 	
 	*wmlist= G.main->wm;
@@ -193,7 +203,7 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 						else 
 							win->screen= ED_screen_duplicate(win, screen);
 						
-						BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+						BLI_strncpy(win->screenname, win->screen->id.name+2, sizeof(win->screenname));
 						win->screen->winid= win->winid;
 					}
 				}
@@ -248,25 +258,28 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 /* in case UserDef was read, we re-initialize all, and do versioning */
 static void wm_init_userdef(bContext *C)
 {
-	extern char btempdir[];
-
 	UI_init_userdef();
 	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
 	sound_init(CTX_data_main(C));
 
+	/* needed so loading a file from the command line respects user-pref [#26156] */
+	if(U.flag & USER_FILENOUI)	G.fileflags |= G_FILE_NO_UI;
+	else						G.fileflags &= ~G_FILE_NO_UI;
+
 	/* set the python auto-execute setting from user prefs */
 	/* disabled by default, unless explicitly enabled in the command line */
 	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
-
-	if(U.tempdir[0]) strncpy(btempdir, U.tempdir, FILE_MAXDIR+FILE_MAXFILE);
+	if(U.tempdir[0]) BLI_where_is_temp(btempdir, FILE_MAX, 1);
 }
 
-void WM_read_file(bContext *C, char *name, ReportList *reports)
+void WM_read_file(bContext *C, const char *name, ReportList *reports)
 {
 	int retval;
 
 	/* so we can get the error message */
 	errno = 0;
+
+	WM_cursor_wait(1);
 
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesnt exist and returns -1 */
@@ -274,7 +287,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 	retval= BKE_read_exotic(CTX_data_scene(C), name);
 	
 	/* we didn't succeed, now try to read Blender file */
-	if (retval== 0) {
+	if (retval == BKE_READ_EXOTIC_OK_BLEND) {
 		int G_f= G.f;
 		ListBase wmbase;
 
@@ -282,7 +295,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		/* also exit screens and editors */
 		wm_window_match_init(C, &wmbase); 
 		
-		retval= BKE_read_file(C, name, NULL, reports);
+		retval= BKE_read_file(C, name, reports);
 		G.save_over = 1;
 
 		/* this flag is initialized by the operator but overwritten on read.
@@ -296,17 +309,14 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		
 // XXX		mainwindow_set_filename_to_title(G.main->name);
 
-		if(retval==2) wm_init_userdef(C);	// in case a userdef is read from regular .blend
+		if(retval == BKE_READ_FILE_OK_USERPREFS) wm_init_userdef(C);	// in case a userdef is read from regular .blend
 		
-		if (retval!=0) {
+		if (retval != BKE_READ_FILE_FAIL) {
 			G.relbase_valid = 1;
 			if(!G.background) /* assume automated tasks with background, dont write recent file list */
 				write_history();
 		}
 
-// XXX		undo_editmode_clear();
-		BKE_reset_undo();
-		BKE_write_undo(C, "original");	/* save current state */
 
 		WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 //		refresh_interface_font();
@@ -314,35 +324,49 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
 		ED_editors_init(C);
-		DAG_on_load_update(CTX_data_main(C));
+		DAG_on_load_update(CTX_data_main(C), TRUE);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
-		BPY_load_user_modules(C);
+		BPY_driver_reset();
+		BPY_modules_load_user(C);
 #endif
 		CTX_wm_window_set(C, NULL); /* exits queues */
+
+		// XXX		undo_editmode_clear();
+		BKE_reset_undo();
+		BKE_write_undo(C, "original");	/* save current state */
+		
 	}
-	else if(retval==1)
+	else if(retval == BKE_READ_EXOTIC_OK_OTHER)
 		BKE_write_undo(C, "Import file");
-	else if(retval == -1) {
-		if(reports)
-			BKE_reportf(reports, RPT_ERROR, "Can't read file: \"%s\", %s.", name, errno ? strerror(errno) : "Incompatible file format");
+	else if(retval == BKE_READ_EXOTIC_FAIL_OPEN) {
+		BKE_reportf(reports, RPT_ERROR, "Can't read file: \"%s\", %s.", name, errno ? strerror(errno) : "Unable to open the file");
 	}
+	else if(retval == BKE_READ_EXOTIC_FAIL_FORMAT) {
+		BKE_reportf(reports, RPT_ERROR, "File format is not supported in file: \"%s\".", name);
+	}
+	else if(retval == BKE_READ_EXOTIC_FAIL_PATH) {
+		BKE_reportf(reports, RPT_ERROR, "File path invalid: \"%s\".", name);
+	}
+	else {
+		BKE_reportf(reports, RPT_ERROR, "Unknown error loading: \"%s\".", name);
+		BLI_assert(!"invalid 'retval'");
+	}
+
+	WM_cursor_wait(0);
+
 }
 
 
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'New File' */
 /* op can be NULL */
-/* note: G.sce is used to store the last saved path so backup and restore after loading
- * G.main->name is similar to G.sce but when loading from memory set the name to startup.blend 
- * ...this could be changed but seems better then setting to "" */
-int WM_read_homefile(bContext *C, wmOperator *op)
+int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 {
 	ListBase wmbase;
-	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
-	int from_memory= op?RNA_boolean_get(op->ptr, "factory"):0;
-	int success;
+	char tstr[FILE_MAXDIR+FILE_MAXFILE];
+	int success= 0;
 	
 	free_ttfont(); /* still weird... what does it here? */
 		
@@ -350,16 +374,13 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	if (!from_memory) {
 		char *cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
 		if (cfgdir) {
-			BLI_make_file_string(G.sce, tstr, cfgdir, BLENDER_STARTUP_FILE);
+			BLI_make_file_string(G.main->name, tstr, cfgdir, BLENDER_STARTUP_FILE);
 		} else {
 			tstr[0] = '\0';
 			from_memory = 1;
-			if (op) {
-				BKE_report(op->reports, RPT_INFO, "Config directory with startup.blend file found."); 
-			}
+			BKE_report(reports, RPT_INFO, "Config directory with "STRINGIFY(BLENDER_STARTUP_FILE)" file not found.");
 		}
 	}
-	strcpy(scestr, G.sce);	/* temporary store */
 	
 	/* prevent loading no UI */
 	G.fileflags &= ~G_FILE_NO_UI;
@@ -368,19 +389,28 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	wm_window_match_init(C, &wmbase); 
 	
 	if (!from_memory && BLI_exists(tstr)) {
-		success = BKE_read_file(C, tstr, NULL, NULL);
-	} else {
-		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL, NULL);
+		success = (BKE_read_file(C, tstr, NULL) != BKE_READ_FILE_FAIL);
+		
+		if(U.themes.first==NULL) {
+			printf("\nError: No valid "STRINGIFY(BLENDER_STARTUP_FILE)", fall back to built-in default.\n\n");
+			success = 0;
+		}
+	}
+	if(success==0) {
+		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
 	}
 	
+	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise
+	 * can remove this eventually, only in a 2.53 and older, now its not written */
+	G.fileflags &= ~G_FILE_RELATIVE_REMAP;
+
 	/* match the read WM with current WM */
 	wm_window_match_do(C, &wmbase); 
 	WM_check(C); /* opens window(s), checks keymaps */
 
-	strcpy(G.sce, scestr); /* restore */
 	G.main->name[0]= '\0';
-	
+
 	wm_init_userdef(C);
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
@@ -398,16 +428,35 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	BKE_write_undo(C, "original");	/* save current state */
 
 	ED_editors_init(C);
-	DAG_on_load_update(CTX_data_main(C));
-	
-	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
-	CTX_wm_window_set(C, NULL); /* exits queues */
+	DAG_on_load_update(CTX_data_main(C), TRUE);
 
-	return OPERATOR_FINISHED;
+#ifdef WITH_PYTHON
+	if(CTX_py_init_get(C)) {
+		/* sync addons, these may have changed from the defaults */
+		BPY_string_exec(C, "__import__('addon_utils').reset_all()");
+
+		BPY_driver_reset();
+		BPY_modules_load_user(C);
+	}
+#endif
+
+	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
+
+	/* in background mode the scene will stay NULL */
+	if(!G.background) {
+		CTX_wm_window_set(C, NULL); /* exits queues */
+	}
+
+	return TRUE;
 }
 
+int WM_read_homefile_exec(bContext *C, wmOperator *op)
+{
+	int from_memory= strcmp(op->type->idname, "WM_OT_read_factory_settings") == 0;
+	return WM_read_homefile(C, op->reports, from_memory) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
 
-void read_history(void)
+void WM_read_history(void)
 {
 	char name[FILE_MAX];
 	LinkNode *l, *lines;
@@ -428,15 +477,9 @@ void read_history(void)
 	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next) {
 		line = l->link;
 		if (line[0] && BLI_exists(line)) {
-			if (num==0) 
-				strcpy(G.sce, line); /* note: this seems highly dodgy since the file isnt actually read. please explain. - campbell */
-			
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
 			BLI_addtail(&(G.recent_files), recent);
-			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(line)+1), "name of file");
-			recent->filepath[0] = '\0';
-			
-			strcpy(recent->filepath, line);
+			recent->filepath = BLI_strdup(line);
 			num++;
 		}
 	}
@@ -449,21 +492,25 @@ static void write_history(void)
 {
 	struct RecentFile *recent, *next_recent;
 	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char *user_config_dir;
 	FILE *fp;
 	int i;
 
-	BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_HISTORY_FILE);
+	/* will be NULL in background mode */
+	user_config_dir = BLI_get_folder_create(BLENDER_USER_CONFIG, NULL);
+	if(!user_config_dir)
+		return;
+
+	BLI_make_file_string("/", name, user_config_dir, BLENDER_HISTORY_FILE);
 
 	recent = G.recent_files.first;
 	/* refresh recent-files.txt of recent opened files, when current file was changed */
-	if(!(recent) || (strcmp(recent->filepath, G.sce)!=0)) {
+	if(!(recent) || (strcmp(recent->filepath, G.main->name)!=0)) {
 		fp= fopen(name, "w");
 		if (fp) {
 			/* add current file to the beginning of list */
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
-			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(G.sce)+1), "name of file");
-			recent->filepath[0] = '\0';
-			strcpy(recent->filepath, G.sce);
+			recent->filepath = BLI_strdup(G.main->name);
 			BLI_addhead(&(G.recent_files), recent);
 			/* write current file to recent-files.txt */
 			fprintf(fp, "%s\n", recent->filepath);
@@ -472,7 +519,7 @@ static void write_history(void)
 			/* write rest of recent opened files to recent-files.txt */
 			while((i<U.recent_files) && (recent)){
 				/* this prevents to have duplicities in list */
-				if (strcmp(recent->filepath, G.sce)!=0) {
+				if (strcmp(recent->filepath, G.main->name)!=0) {
 					fprintf(fp, "%s\n", recent->filepath);
 					recent = recent->next;
 				}
@@ -486,6 +533,9 @@ static void write_history(void)
 			}
 			fclose(fp);
 		}
+
+		/* also update most recent files on System */
+		GHOST_addToSystemRecentFiles(G.main->name);
 	}
 }
 
@@ -498,23 +548,23 @@ static void do_history(char *name, ReportList *reports)
 	if(strlen(name)<2) return;
 		
 	while(hisnr > 1) {
-		sprintf(tempname1, "%s%d", name, hisnr-1);
-		sprintf(tempname2, "%s%d", name, hisnr);
+		BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr-1);
+		BLI_snprintf(tempname2, sizeof(tempname2), "%s%d", name, hisnr);
 	
 		if(BLI_rename(tempname1, tempname2))
 			BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 			
 		hisnr--;
 	}
-		
+
 	/* is needed when hisnr==1 */
-	sprintf(tempname1, "%s%d", name, hisnr);
-	
+	BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr);
+
 	if(BLI_rename(name, tempname1))
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
 
-static ImBuf *blend_file_thumb(const char *path, Scene *scene, int **thumb_pt)
+static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 {
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
@@ -560,7 +610,7 @@ static ImBuf *blend_file_thumb(const char *path, Scene *scene, int **thumb_pt)
 int write_crash_blend(void)
 {
 	char path[FILE_MAX];
-	BLI_strncpy(path, G.sce, sizeof(path));
+	BLI_strncpy(path, G.main->name, sizeof(path));
 	BLI_replace_extension(path, sizeof(path), "_crash.blend");
 	if(BLO_write_file(G.main, path, G.fileflags, NULL, NULL)) {
 		printf("written: %s\n", path);
@@ -572,7 +622,7 @@ int write_crash_blend(void)
 	}
 }
 
-int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports, int copy)
+int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *reports, int copy)
 {
 	Library *li;
 	int len;
@@ -593,25 +643,20 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports,
 		return -1;
 	}
  
+	BLI_strncpy(di, target, FILE_MAX);
+	BLI_replace_extension(di, FILE_MAX, ".blend");
+	/* dont use 'target' anymore */
+	
 	/* send the OnSave event */
 	for (li= G.main->library.first; li; li= li->id.next) {
-		if (BLI_streq(li->name, target)) {
-			BKE_report(reports, RPT_ERROR, "Cannot overwrite used library");
+		if (strcmp(li->filepath, di) == 0) {
+			BKE_reportf(reports, RPT_ERROR, "Can't overwrite used library '%.200s'", di);
 			return -1;
 		}
 	}
-	
-	if (!BLO_has_bfile_extension(target) && (len+6 < FILE_MAX)) {
-		sprintf(di, "%s.blend", target);
-	} else {
-		strcpy(di, target);
-	}
 
-//	if (BLI_exists(di)) {
-// XXX		if(!saveover(di))
-// XXX			return; 
-//	}
-	
+	/* operator now handles overwrite checks */
+
 	if (G.fileflags & G_AUTOPACK) {
 		packAll(G.main, reports);
 	}
@@ -619,17 +664,19 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports,
 	ED_object_exit_editmode(C, EM_DO_UNDO);
 	ED_sculpt_force_update(C);
 
+	/* don't forget not to return without! */
+	WM_cursor_wait(1);
+	
 	/* blend file thumbnail */
-	ibuf_thumb= blend_file_thumb(di, CTX_data_scene(C), &thumb);
+	ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
 
 	/* rename to .blend1, do this as last before write */
 	do_history(di, reports);
 
 	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
 		if(!copy) {
-			strcpy(G.sce, di);
 			G.relbase_valid = 1;
-			strcpy(G.main->name, di);	/* is guaranteed current file */
+			BLI_strncpy(G.main->name, di, sizeof(G.main->name));	/* is guaranteed current file */
 	
 			G.save_over = 1; /* disable untitled.blend convention */
 		}
@@ -653,10 +700,13 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports,
 	else {
 		if(ibuf_thumb) IMB_freeImBuf(ibuf_thumb);
 		if(thumb) MEM_freeN(thumb);
+		
+		WM_cursor_wait(0);
 		return -1;
 	}
 
-// XXX	waitcursor(0);
+	WM_cursor_wait(0);
+	
 	return 0;
 }
 
@@ -669,19 +719,24 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	int fileflags;
 	
 	/* check current window and close it if temp */
-	if(win->screen->full == SCREENTEMP)
+	if(win->screen->temp)
 		wm_window_close(C, wm, win);
 	
 	BLI_make_file_string("/", tstr, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
-	printf("trying to save homefile at %s \n", tstr);
+	printf("trying to save homefile at %s ", tstr);
 	
 	/*  force save as regular blend file */
 	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_LOCK | G_FILE_SIGN);
 
-	BLO_write_file(CTX_data_main(C), tstr, fileflags, op->reports, NULL);
+	if(BLO_write_file(CTX_data_main(C), tstr, fileflags, op->reports, NULL) == 0) {
+		printf("fail\n");
+		return OPERATOR_CANCELLED;
+	}
 	
+	printf("ok\n");
+
 	G.save_over= 0;
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -694,8 +749,8 @@ void wm_autosave_location(char *filename)
 	char *savedir;
 #endif
 
-	sprintf(pidstr, "%d.blend", abs(getpid()));
-	
+	BLI_snprintf(pidstr, sizeof(pidstr), "%d.blend", abs(getpid()));
+
 #ifdef WIN32
 	/* XXX Need to investigate how to handle default location of '/tmp/'
 	 * This is a relative directory on Windows, and it may be
@@ -723,7 +778,7 @@ void WM_autosave_init(wmWindowManager *wm)
 		wm->autosavetimer= WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime*60.0);
 }
 
-void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
+void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(wt))
 {
 	wmWindow *win;
 	wmEventHandler *handler;

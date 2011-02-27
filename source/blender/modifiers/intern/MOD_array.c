@@ -37,6 +37,7 @@
 #include "BLI_math.h"
 #include "BLI_ghash.h"
 #include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_meshdata_types.h"
@@ -50,6 +51,10 @@
 #include "BKE_tessmesh.h"
 
 #include "depsgraph_private.h"
+
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
 static void initData(ModifierData *md)
 {
@@ -544,6 +549,7 @@ ModifierTypeInfo modifierType_Array = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,
+	/* deformMatrices */  0,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,

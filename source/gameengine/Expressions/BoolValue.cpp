@@ -1,3 +1,6 @@
+/** \file gameengine/Expressions/BoolValue.cpp
+ *  \ingroup expressions
+ */
 
 // BoolValue.cpp: implementation of the CBoolValue class.
 /*
@@ -201,9 +204,9 @@ CValue* CBoolValue::GetReplica()
 	return replica;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 PyObject* CBoolValue::ConvertValueToPython()
 {
 	return PyBool_FromLong(m_bool != 0);
 }
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

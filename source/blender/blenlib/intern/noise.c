@@ -36,6 +36,8 @@
 
 #include <math.h>
 
+#include "BLI_noise.h"
+
 /* local */
 static float noise3_perlin(float vec[3]);
 //static float turbulence_perlin(float *point, float lofreq, float hifreq);
@@ -388,7 +390,7 @@ static char p[512+2]= {
 0xA2,0xA0};
 
 
-float g[512+2][3]= {
+static float g[512+2][3]= {
 	{0.33783, 0.715698, -0.611206},
 	{-0.944031, -0.326599, -0.045624},
 	{-0.101074, -0.416443, -0.903503},
@@ -1052,15 +1054,17 @@ float BLI_hnoisep(float noisesize, float x, float y, float z)
 /* Camberra omitted, didn't seem useful */
 
 /* distance squared */
-static float dist_Squared(float x, float y, float z, float e) { return (x*x + y*y + z*z); }
+static float dist_Squared(float x, float y, float z, float e) { (void)e; return (x*x + y*y + z*z); }
 /* real distance */
-static float dist_Real(float x, float y, float z, float e) { return sqrt(x*x + y*y + z*z); }
+static float dist_Real(float x, float y, float z, float e) { (void)e; return sqrt(x*x + y*y + z*z); }
 /* manhattan/taxicab/cityblock distance */
-static float dist_Manhattan(float x, float y, float z, float e) { return (fabs(x) + fabs(y) + fabs(z)); }
+static float dist_Manhattan(float x, float y, float z, float e) { (void)e; return (fabs(x) + fabs(y) + fabs(z)); }
 /* Chebychev */
 static float dist_Chebychev(float x, float y, float z, float e)
 {
 	float t;
+	(void)e;
+
 	x = fabs(x);
 	y = fabs(y);
 	z = fabs(z);
@@ -1072,12 +1076,14 @@ static float dist_Chebychev(float x, float y, float z, float e)
 static float dist_MinkovskyH(float x, float y, float z, float e)
 {
 	float d = sqrt(fabs(x)) + sqrt(fabs(y)) + sqrt(fabs(z));
+	(void)e;
 	return (d*d);
 }
 
 /* minkovsky preset exponent 4 */
 static float dist_Minkovsky4(float x, float y, float z, float e)
 {
+	(void)e;
 	x *= x;
 	y *= y;
 	z *= z;
@@ -1752,7 +1758,7 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 	signal = offset - fabs(noisefunc(x, y, z));
 	signal *= signal;
 	result = signal;
-	weight = 1.f;
+
 
 	for( i=1; i<(int)octaves; i++ ) {
 		x *= lacunarity;

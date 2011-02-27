@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -56,6 +56,7 @@
 #include "BKE_displist.h"
 #include "BKE_font.h"
 #include "BKE_mball.h"
+#include "BKE_modifier.h"
 
 #include "BLI_math.h"
 
@@ -166,6 +167,8 @@ static Mesh *rna_Object_create_mesh(Object *ob, ReportList *reports, Scene *sce,
 	/* Copy materials to new mesh */
 	switch (ob->type) {
 	case OB_SURF:
+	case OB_FONT:
+	case OB_CURVE:
 		tmpmesh->totcol = tmpcu->totcol;		
 		
 		/* free old material list (if it exists) and adjust user counts */
@@ -232,6 +235,50 @@ static Mesh *rna_Object_create_mesh(Object *ob, ReportList *reports, Scene *sce,
 	return tmpmesh;
 }
 
+/* mostly a copy from convertblender.c */
+static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int enable)
+{
+	/* ugly function, but we need to set particle systems to their render
+	 * settings before calling object_duplilist, to get render level duplis */
+	Group *group;
+	GroupObject *go;
+	ParticleSystem *psys;
+	DerivedMesh *dm;
+	float mat[4][4];
+
+	unit_m4(mat);
+
+	if(level >= MAX_DUPLI_RECUR)
+		return;
+	
+	if(ob->transflag & OB_DUPLIPARTS) {
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			if(ELEM(psys->part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
+				if(enable)
+					psys_render_set(ob, psys, mat, mat, 1, 1, 0.f);
+				else
+					psys_render_restore(ob, psys);
+			}
+		}
+
+		if(level == 0 && enable) {
+			/* this is to make sure we get render level duplis in groups:
+			* the derivedmesh must be created before init_render_mesh,
+			* since object_duplilist does dupliparticles before that */
+			dm = mesh_create_derived_render(scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			dm->release(dm);
+
+			for(psys=ob->particlesystem.first; psys; psys=psys->next)
+				psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
+		}
+	}
+
+	if(ob->dup_group==NULL) return;
+	group= ob->dup_group;
+
+	for(go= group->gobject.first; go; go= go->next)
+		dupli_render_particle_set(scene, go->ob, level+1, enable);
+}
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
 static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
 {
@@ -247,13 +294,15 @@ static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *
 		free_object_duplilist(ob->duplilist);
 		ob->duplilist= NULL;
 	}
-
+	if(G.rendering)
+		dupli_render_particle_set(sce, ob, 0, 1);
 	ob->duplilist= object_duplilist(sce, ob);
-
+	if(G.rendering)
+		dupli_render_particle_set(sce, ob, 0, 0);
 	/* ob->duplilist should now be freed with Object.free_duplilist */
 }
 
-static void rna_Object_free_duplilist(Object *ob, ReportList *reports)
+static void rna_Object_free_duplilist(Object *ob)
 {
 	if (ob->duplilist) {
 		free_object_duplilist(ob->duplilist);
@@ -261,49 +310,7 @@ static void rna_Object_free_duplilist(Object *ob, ReportList *reports)
 	}
 }
 
-/* copied from old API Object.makeDisplayList (Object.c)
- * use _ suffix because this exists for internal rna */
-static void rna_Object_update(Object *ob, Scene *sce, int object, int data, int time)
-{
-	int flag= 0;
-
-	if (ob->type == OB_FONT) {
-		Curve *cu = ob->data;
-		freedisplist(&cu->disp);
-		BKE_text_to_curve(sce, ob, CU_LEFT);
-	}
-
-	if(object) flag |= OB_RECALC_OB;
-	if(data) flag |= OB_RECALC_DATA;
-	if(time) flag |= OB_RECALC_TIME;
-
-	DAG_id_flush_update(&ob->id, flag);
-}
-
-static Object *rna_Object_find_armature(Object *ob)
-{
-	Object *ob_arm = NULL;
-
-	if (ob->type != OB_MESH) return NULL;
-
-	if (ob->parent && ob->partype == PARSKEL && ob->parent->type == OB_ARMATURE) {
-		ob_arm = ob->parent;
-	}
-	else {
-		ModifierData *mod = (ModifierData*)ob->modifiers.first;
-		while (mod) {
-			if (mod->type == eModifierType_Armature) {
-				ob_arm = ((ArmatureModifierData*)mod)->object;
-			}
-
-			mod = mod->next;
-		}
-	}
-
-	return ob_arm;
-}
-
-static PointerRNA rna_Object_add_shape_key(Object *ob, bContext *C, ReportList *reports, char *name, int from_mix)
+static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *reports, const char *name, int from_mix)
 {
 	Scene *scene= CTX_data_scene(C);
 	KeyBlock *kb= NULL;
@@ -324,7 +331,7 @@ static PointerRNA rna_Object_add_shape_key(Object *ob, bContext *C, ReportList *
 
 int rna_Object_is_visible(Object *ob, Scene *sce)
 {
-	return !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->lay & sce->lay;
+	return !(ob->restrictflag & OB_RESTRICT_VIEW) && (ob->lay & sce->lay);
 }
 
 /*
@@ -365,7 +372,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 
 void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3], float r_location[3], float r_normal[3], int *index)
 {
-	BVHTreeFromMesh treeData;
+	BVHTreeFromMesh treeData= {0};
 	
 	if(ob->derivedFinal==NULL) {
 		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for ray casting.", ob->id.name+2);
@@ -437,27 +444,26 @@ void RNA_api_object(StructRNA *srna)
 
 	/* duplis */
 	func= RNA_def_function(srna, "create_dupli_list", "rna_Object_create_duplilist");
-	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object, needs to be freed manually with free_dupli_list.");
+	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object, needs to be freed manually with free_dupli_list to restore the objects real matrix and layers.");
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate duplis.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	func= RNA_def_function(srna, "free_dupli_list", "rna_Object_free_duplilist");
 	RNA_def_function_ui_description(func, "Free the list of dupli objects.");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	/* Armature */
-	func= RNA_def_function(srna, "find_armature", "rna_Object_find_armature");
+	func= RNA_def_function(srna, "find_armature", "modifiers_isDeformedByArmature");
 	RNA_def_function_ui_description(func, "Find armature influencing this object as a parent or via a modifier.");
 	parm= RNA_def_pointer(func, "ob_arm", "Object", "", "Armature object influencing this object or NULL.");
 	RNA_def_function_return(func, parm);
 
 	/* Shape key */
-	func= RNA_def_function(srna, "add_shape_key", "rna_Object_add_shape_key");
+	func= RNA_def_function(srna, "shape_key_add", "rna_Object_shape_key_add");
 	RNA_def_function_ui_description(func, "Add shape key to an object.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	parm= RNA_def_string(func, "name", "Key", 0, "", "Unique name for the new keylock."); /* optional */
-	parm= RNA_def_boolean(func, "from_mix", 1, "", "Create new shape from existing mix of shapes.");
+	RNA_def_string(func, "name", "Key", 0, "", "Unique name for the new keylock."); /* optional */
+	RNA_def_boolean(func, "from_mix", 1, "", "Create new shape from existing mix of shapes.");
 	parm= RNA_def_pointer(func, "key", "ShapeKey", "", "New shape keyblock.");
 	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
@@ -483,16 +489,6 @@ void RNA_api_object(StructRNA *srna)
 	
 	parm= RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when no intersection is found.", 0, 0);
 	RNA_def_function_output(func, parm);
-
-	
-	/* DAG */
-	func= RNA_def_function(srna, "update", "rna_Object_update");
-	RNA_def_function_ui_description(func, "Tag the object to update its display data.");
-	parm= RNA_def_pointer(func, "scene", "Scene", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
-	RNA_def_boolean(func, "object", 1, "", "Tag the object for updating");
-	RNA_def_boolean(func, "data", 1, "", "Tag the objects display data for updating");
-	RNA_def_boolean(func, "time", 1, "", "Tag the object time related data for updating");
 
 	/* View */
 	func= RNA_def_function(srna, "is_visible", "rna_Object_is_visible");

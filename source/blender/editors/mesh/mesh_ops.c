@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -45,6 +45,7 @@
 #include "WM_types.h"
 
 #include "ED_object.h"
+#include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -83,6 +84,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_primitive_ico_sphere_add);
 	WM_operatortype_append(MESH_OT_duplicate);
 	WM_operatortype_append(MESH_OT_remove_doubles);
+	WM_operatortype_append(MESH_OT_vertices_sort);
+	WM_operatortype_append(MESH_OT_vertices_randomize);
 	WM_operatortype_append(MESH_OT_spin);
 	WM_operatortype_append(MESH_OT_screw);
 
@@ -123,6 +126,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_mark_seam);
 	WM_operatortype_append(MESH_OT_mark_sharp);
 	WM_operatortype_append(MESH_OT_vertices_smooth);
+	WM_operatortype_append(MESH_OT_noise);
 	WM_operatortype_append(MESH_OT_flip_normals);
 	WM_operatortype_append(MESH_OT_knife_cut);
 	WM_operatortype_append(MESH_OT_rip);
@@ -146,7 +150,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_knifetool);
 }
 
-int ED_operator_editmesh_face_select(bContext *C)
+#if 0 /* UNUSED, remove? */
+static int ED_operator_editmesh_face_select(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_MESH) {
@@ -157,6 +162,7 @@ int ED_operator_editmesh_face_select(bContext *C)
 	}
 	return 0;
 }
+#endif
 
 void ED_operatormacros_mesh(void)
 {
@@ -229,7 +235,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
 
-	kmi= WM_keymap_add_item(keymap, "MESH_OT_edgering_select", SELECTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_edgering_select", SELECTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	kmi= WM_keymap_add_item(keymap, "MESH_OT_edgering_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT|KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
 
@@ -245,12 +251,12 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "deselect", 1);
 	
-	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_faces_select_linked_flat", FKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
+	WM_keymap_add_item(keymap, "MESH_OT_faces_select_linked_flat", FKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0);
 
 	WM_keymap_add_item(keymap, "MESH_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	/* selection mode */
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_selection_mode", TABKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_select_mode", TABKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* hide */
 	WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, 0, 0);
@@ -261,9 +267,10 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "inside", 1);
 	
-	WM_keymap_add_item(keymap, "view3d.edit_mesh_extrude_move_normal", EKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_edit_mesh_extrude_individual_move", EKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_edit_mesh_extrude_move_normal", EKEY, KM_PRESS, 0, 0); /* python operator */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_extrude", EKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "TRANSFORM_OT_edge_crease", EKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
 	
@@ -291,7 +298,8 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 
 	/* use KM_CLICK because same key is used for tweaks */
 	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", ACTIONMOUSE, KM_CLICK, KM_CTRL, 0);
-	
+	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", ACTIONMOUSE, KM_CLICK, KM_SHIFT|KM_CTRL, 0)->ptr, "rotate_source", 0);
+
 	WM_keymap_add_item(keymap, "MESH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	

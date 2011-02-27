@@ -1,4 +1,4 @@
-/**
+/*
  *
  * $Id$
  *
@@ -442,6 +442,8 @@ ThreadedWorker *BLI_create_worker(void *(*do_thread)(void *), int tot, int sleep
 {
 	ThreadedWorker *worker;
 	
+	(void)sleep_time; /* unused */
+	
 	worker = MEM_callocN(sizeof(ThreadedWorker), "threadedworker");
 	
 	if (tot > RE_MAX_THREAD)
@@ -518,7 +520,7 @@ struct ThreadQueue {
 	int nowait;
 };
 
-ThreadQueue *BLI_thread_queue_init()
+ThreadQueue *BLI_thread_queue_init(void)
 {
 	ThreadQueue *queue;
 

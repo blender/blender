@@ -1,6 +1,4 @@
-/**
- * blenlib/DNA_sequence_types.h (mar-2001 nzc)
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -30,6 +28,11 @@
  */
 #ifndef DNA_SEQUENCE_TYPES_H
 #define DNA_SEQUENCE_TYPES_H
+/** \file DNA_sequence_types.h
+ *  \ingroup DNA
+ *  \since mar-2001
+ *  \author nzc
+ */
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
@@ -42,6 +45,7 @@ struct bSound;
 
 typedef struct StripElem {
 	char name[80];
+	int orig_width, orig_height;
 } StripElem;
 
 typedef struct StripCrop {
@@ -81,7 +85,6 @@ typedef struct Strip {
 	int startstill, endstill;
 	StripElem *stripdata;
 	char dir[160];
-	int orx, ory;
 	StripProxy *proxy;
 	StripCrop *crop;
 	StripTransform *transform;
@@ -231,6 +234,8 @@ typedef struct SpeedControlVars {
 	int length;
 	int lastValidFrame;
 } SpeedControlVars;
+
+#define SELECT 1
 
 /* Editor->over_flag */
 #define SEQ_EDIT_OVERLAY_SHOW			1

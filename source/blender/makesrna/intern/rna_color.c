@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -242,7 +242,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 			{
 				Material *ma= ptr->id.data;
 				
-				DAG_id_flush_update(&ma->id, 0);
+				DAG_id_tag_update(&ma->id, 0);
 				WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
 			}
 				break;
@@ -253,7 +253,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 				for(node=ntree->nodes.first; node; node=node->next) {
 					if (ELEM3(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
-						ED_node_generic_update(bmain, scene, ntree, node);
+						ED_node_generic_update(bmain, ntree, node);
 					}
 				}
 			}
@@ -262,7 +262,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 			{
 				Tex *tex= ptr->id.data;
 
-				DAG_id_flush_update(&tex->id, 0);
+				DAG_id_tag_update(&tex->id, 0);
 				WM_main_add_notifier(NC_TEXTURE, tex);
 			}
 				break;
@@ -433,7 +433,7 @@ static void rna_def_color_ramp_element(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Color", "");
 	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
 	
-	prop= RNA_def_property(srna, "position", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "position", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Position", "");

@@ -1,4 +1,4 @@
-/**
+/*
  * Sensor for mouse input
  *
  *
@@ -29,6 +29,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/GameLogic/SCA_MouseSensor.cpp
+ *  \ingroup gamelogic
+ */
+
+
+#include <stddef.h>
 
 #include "SCA_MouseSensor.h"
 #include "SCA_EventManager.h"
@@ -232,7 +239,7 @@ bool SCA_MouseSensor::isValid(SCA_MouseSensor::KX_MOUSESENSORMODE m)
 	return ((m > KX_MOUSESENSORMODE_NODEF) && (m < KX_MOUSESENSORMODE_MAX));
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -305,6 +312,6 @@ PyAttributeDef SCA_MouseSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

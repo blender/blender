@@ -30,14 +30,18 @@ import os
 
 def guess_player_path(preset):
     import platform
-    system = platform.system()
+    try:
+        system = platform.system()
+    except UnicodeDecodeError:
+        import sys
+        system = sys.platform
 
     if preset == 'BLENDER24':
         player_path = "blender"
 
         if system == 'Darwin':
             test_path = "/Applications/blender 2.49.app/Contents/MacOS/blender"
-        elif system == 'Windows':
+        elif system in ('Windows', 'win32'):
             test_path = "/Program Files/Blender Foundation/Blender/blender.exe"
 
             if os.path.exists(test_path):
@@ -59,7 +63,6 @@ def guess_player_path(preset):
 
     elif preset == 'MPLAYER':
         player_path = "mplayer"
-
 
     return player_path
 
@@ -100,12 +103,12 @@ class PlayRenderedAnim(bpy.types.Operator):
                 file_b = rd.frame_path(frame=frame_tmp)
             file_b = rd.frame_path(frame=int(frame_tmp / 10))
 
-            file = ''.join([(c if file_b[i] == c else "#") for i, c in enumerate(file_a)])
+            file = "".join((c if file_b[i] == c else "#") for i, c in enumerate(file_a))
         else:
             # works for movies and images
             file = rd.frame_path(frame=scene.frame_start)
 
-        file = bpy.path.abspath(file) # expand '//'
+        file = bpy.path.abspath(file)  # expand '//'
 
         cmd = [player_path]
         # extra options, fps controls etc.
@@ -130,7 +133,7 @@ class PlayRenderedAnim(bpy.types.Operator):
                 opts += ["-mf", "fps=%.4f" % (rd.fps / rd.fps_base)]
             opts += ["-loop", "0", "-really-quiet", "-fs"]
             cmd.extend(opts)
-        else: # 'CUSTOM'
+        else:  # 'CUSTOM'
             cmd.append(file)
 
         # launch it
@@ -144,11 +147,11 @@ class PlayRenderedAnim(bpy.types.Operator):
 
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

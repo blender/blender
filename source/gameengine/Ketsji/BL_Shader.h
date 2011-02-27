@@ -1,3 +1,8 @@
+
+/** \file BL_Shader.h
+ *  \ingroup ketsji
+ */
+
 #ifndef __BL_SHADER_H__
 #define __BL_SHADER_H__
 
@@ -222,7 +227,7 @@ public:
 	void SetUniform(int uniform, const int val);
 
 	// Python interface
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	virtual PyObject* py_repr(void) { return PyUnicode_FromFormat("BL_Shader\n\tvertex shader:%s\n\n\tfragment shader%s\n\n", vertProg, fragProg); }
 
 	// -----------------------------------

@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -133,7 +133,7 @@ typedef struct FontBLF {
 	char *filename;
 
 	/* aspect ratio or scale. */
-	float aspect;
+	float aspect[3];
 
 	/* initial position for draw the text. */
 	float pos[3];
@@ -154,8 +154,10 @@ typedef struct FontBLF {
 	/* shadow color. */
 	float shadow_col[4];
 	
-	/* this is the matrix that we load before rotate/scale/translate. */
-	float mat[4][4];
+	/* Multiplied this matrix with the current one before
+	 * draw the text! see blf_draw__start.
+	 */
+	double m[16];
 
 	/* clipping rectangle. */
 	rctf clip_rec;
@@ -177,6 +179,12 @@ typedef struct FontBLF {
 
 	/* current glyph cache, size and dpi. */
 	GlyphCacheBLF *glyph_cache;
+	
+	/* fast ascii lookip */
+	GlyphBLF *glyph_ascii_table[256];
+
+	/* freetype2 lib handle. */
+	FT_Library ft_lib;
 
 	/* freetype2 face. */
 	FT_Face face;

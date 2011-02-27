@@ -1,6 +1,4 @@
-/**
- * Execute Python scripts
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -29,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file SCA_PythonController.h
+ *  \ingroup gamelogic
+ *  \brief Execute Python scripts
+ */
+
 #ifndef KX_PYTHONCONTROLLER_H
 #define KX_PYTHONCONTROLLER_H
 	      
@@ -42,7 +45,7 @@ class SCA_IObject;
 class SCA_PythonController : public SCA_IController
 {
 	Py_Header;
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	struct _object *		m_bytecode; /* SCA_PYEXEC_SCRIPT only */
 	PyObject*				m_function; /* SCA_PYEXEC_MODULE only */
 #endif
@@ -55,7 +58,7 @@ class SCA_PythonController : public SCA_IController
  protected:
 	STR_String				m_scriptText;
 	STR_String				m_scriptName;
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	PyObject*				m_pythondictionary;	/* for SCA_PYEXEC_SCRIPT only */
 	PyObject*				m_pythonfunction;	/* for SCA_PYEXEC_MODULE only */
 #endif
@@ -83,7 +86,7 @@ class SCA_PythonController : public SCA_IController
   
 	void	SetScriptText(const STR_String& text);
 	void	SetScriptName(const STR_String& name);
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	void	SetNamespace(PyObject*	pythondictionary);
 #endif
 	void	SetDebug(bool debug) { m_debug = debug; }
@@ -94,7 +97,7 @@ class SCA_PythonController : public SCA_IController
 	bool	Import();
 	void	ErrorPrint(const char *error_msg);
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	static const char* sPyGetCurrentController__doc__;
 	static PyObject* sPyGetCurrentController(PyObject* self);
 	static const char* sPyAddActiveActuator__doc__;

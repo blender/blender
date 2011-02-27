@@ -30,8 +30,14 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_build.c
+ *  \ingroup modifiers
+ */
+
+
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
 
@@ -45,6 +51,7 @@
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 
+#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {
@@ -65,21 +72,21 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tbmd->seed = bmd->seed;
 }
 
-static int dependsOnTime(ModifierData *md)
+static int dependsOnTime(ModifierData *UNUSED(md))
 {
 	return 1;
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-		DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm = derivedData;
 	DerivedMesh *result;
 	BuildModifierData *bmd = (BuildModifierData*) md;
 	int i;
 	int numFaces, numEdges;
-	int maxVerts, maxEdges, maxFaces;
 	int *vertMap, *edgeMap, *faceMap;
 	float frac;
 	GHashIterator *hashIter;
@@ -90,19 +97,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	GHash *edgeHash = BLI_ghash_new(BLI_ghashutil_inthash,
 					BLI_ghashutil_intcmp, "build ed apply gh");
 
-	maxVerts = dm->getNumVerts(dm);
-	vertMap = MEM_callocN(sizeof(*vertMap) * maxVerts,
-				  "build modifier vertMap");
+	const int maxVerts= dm->getNumVerts(dm);
+	const int maxEdges= dm->getNumEdges(dm);
+	const int maxFaces= dm->getNumTessFaces(dm);
+
+	vertMap = MEM_callocN(sizeof(*vertMap) * maxVerts, "build modifier vertMap");
 	for(i = 0; i < maxVerts; ++i) vertMap[i] = i;
-
-	maxEdges = dm->getNumEdges(dm);
-	edgeMap = MEM_callocN(sizeof(*edgeMap) * maxEdges,
-				  "build modifier edgeMap");
+	edgeMap = MEM_callocN(sizeof(*edgeMap) * maxEdges, "build modifier edgeMap");
 	for(i = 0; i < maxEdges; ++i) edgeMap[i] = i;
-
-	maxFaces = dm->getNumTessFaces(dm);
-	faceMap = MEM_callocN(sizeof(*faceMap) * maxFaces,
-				  "build modifier faceMap");
+	faceMap = MEM_callocN(sizeof(*faceMap) * maxFaces, "build modifier faceMap");
 	for(i = 0; i < maxFaces; ++i) faceMap[i] = i;
 
 	if (ob) {
@@ -118,8 +121,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	/* if there's at least one face, build based on faces */
 	if(numFaces) {
-		int maxEdges;
-
 		if(bmd->randomize)
 			BLI_array_randomize(faceMap, sizeof(*faceMap),
 						maxFaces, bmd->seed);
@@ -148,7 +149,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* get the set of edges that will be in the new mesh (i.e. all edges
 		* that have both verts in the new mesh)
 		*/
-		maxEdges = dm->getNumEdges(dm);
 		for(i = 0; i < maxEdges; ++i) {
 			MEdge me;
 			dm->getEdge(dm, i, &me);
@@ -208,75 +208,72 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					BLI_ghash_size(edgeHash), numFaces, 0, 0);
 
 	/* copy the vertices across */
-	for(hashIter = BLI_ghashIterator_new(vertHash);
-		   !BLI_ghashIterator_isDone(hashIter);
-		   BLI_ghashIterator_step(hashIter)) {
-			   MVert source;
-			   MVert *dest;
-			   int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
-			   int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
+	for(	hashIter = BLI_ghashIterator_new(vertHash);
+			!BLI_ghashIterator_isDone(hashIter);
+			BLI_ghashIterator_step(hashIter)
+	) {
+	   MVert source;
+	   MVert *dest;
+	   int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
+	   int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
 
-			   dm->getVert(dm, oldIndex, &source);
-			   dest = CDDM_get_vert(result, newIndex);
+	   dm->getVert(dm, oldIndex, &source);
+	   dest = CDDM_get_vert(result, newIndex);
 
-			   DM_copy_vert_data(dm, result, oldIndex, newIndex, 1);
-			   *dest = source;
-		   }
-		   BLI_ghashIterator_free(hashIter);
+	   DM_copy_vert_data(dm, result, oldIndex, newIndex, 1);
+	   *dest = source;
+   }
+	BLI_ghashIterator_free(hashIter);
+	
+	/* copy the edges across, remapping indices */
+	for(i = 0; i < BLI_ghash_size(edgeHash); ++i) {
+		MEdge source;
+		MEdge *dest;
+		int oldIndex = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_INT_IN_POINTER(i)));
+		
+		dm->getEdge(dm, oldIndex, &source);
+		dest = CDDM_get_edge(result, i);
+		
+		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
+		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
+		
+		DM_copy_edge_data(dm, result, oldIndex, i, 1);
+		*dest = source;
+	}
 
-		   /* copy the edges across, remapping indices */
-		   for(i = 0; i < BLI_ghash_size(edgeHash); ++i) {
-			   MEdge source;
-			   MEdge *dest;
-			   int oldIndex = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_INT_IN_POINTER(i)));
+	/* copy the faces across, remapping indices */
+	for(i = 0; i < numFaces; ++i) {
+		MFace source;
+		MFace *dest;
+		int orig_v4;
+		
+		dm->getTessFace(dm, faceMap[i], &source);
+		dest = CDDM_get_tessface(result, i);
+		
+		orig_v4 = source.v4;
+		
+		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
+		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
+		source.v3 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v3)));
+		if(source.v4)
+			source.v4 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v4)));
+		
+		DM_copy_face_data(dm, result, faceMap[i], i, 1);
+		*dest = source;
+		
+		test_index_face(dest, &result->faceData, i, (orig_v4 ? 4 : 3));
+	}
 
-			   dm->getEdge(dm, oldIndex, &source);
-			   dest = CDDM_get_edge(result, i);
-
-			   source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
-			   source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
-
-			   DM_copy_edge_data(dm, result, oldIndex, i, 1);
-			   *dest = source;
-		   }
-
-		   /* copy the faces across, remapping indices */
-		   for(i = 0; i < numFaces; ++i) {
-			   MFace source;
-			   MFace *dest;
-			   int orig_v4;
-
-			   dm->getTessFace(dm, faceMap[i], &source);
-			   dest = CDDM_get_tessface(result, i);
-
-			   orig_v4 = source.v4;
-
-			   source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
-			   source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
-			   source.v3 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v3)));
-			   if(source.v4)
-				   source.v4 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v4)));
-
-			   DM_copy_face_data(dm, result, faceMap[i], i, 1);
-			   *dest = source;
-
-			   test_index_face(dest, &result->faceData, i, (orig_v4 ? 4 : 3));
-		   }
-
-		   CDDM_calc_normals(result);
-
-		   BLI_ghash_free(vertHash, NULL, NULL);
-		   BLI_ghash_free(edgeHash, NULL, NULL);
-
-		   MEM_freeN(vertMap);
-		   MEM_freeN(edgeMap);
-		   MEM_freeN(faceMap);
-
-		   dm = CDDM_copy(result, 1); /*builds ngon faces from tess (mface) faces*/
-		   result->needsFree = 1;
-		   result->release(result);
-
-		   return dm;
+	CDDM_calc_normals(result);
+	
+	BLI_ghash_free(vertHash, NULL, NULL);
+	BLI_ghash_free(edgeHash, NULL, NULL);
+	
+	MEM_freeN(vertMap);
+	MEM_freeN(edgeMap);
+	MEM_freeN(faceMap);
+	
+	return result;
 }
 
 
@@ -288,17 +285,19 @@ ModifierTypeInfo modifierType_Build = {
 	/* flags */             eModifierTypeFlag_AcceptsMesh
 							| eModifierTypeFlag_AcceptsCVs,
 	/* copyData */          copyData,
-	/* deformVerts */       0,
-	/* deformVertsEM */     0,
-	/* deformMatricesEM */  0,
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
 	/* applyModifier */     applyModifier,
-	/* applyModifierEM */   0,
+	/* applyModifierEM */   NULL,
 	/* initData */          initData,
-	/* requiredDataMask */  0,
-	/* freeData */          0,
-	/* isDisabled */        0,
-	/* updateDepgraph */    0,
+	/* requiredDataMask */  NULL,
+	/* freeData */          NULL,
+	/* isDisabled */        NULL,
+	/* updateDepgraph */    NULL,
 	/* dependsOnTime */     dependsOnTime,
-	/* foreachObjectLink */ 0,
-	/* foreachIDLink */     0,
+	/* dependsOnNormals */	NULL,
+	/* foreachObjectLink */ NULL,
+	/* foreachIDLink */     NULL
 };

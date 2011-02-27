@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,8 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * @file	GHOST_EventPrinter.h
+
+/** \file ghost/intern/GHOST_EventPrinter.cpp
+ *  \ingroup GHOST
  * Declaration of GHOST_EventPrinter class.
  */
 
@@ -255,9 +256,8 @@ void GHOST_EventPrinter::getKeyString(GHOST_TKey key, STR_String& str) const
 		case GHOST_kKeyRightAlt:
 			str = "RightAlt";
 			break;
-		case GHOST_kKeyCommand:
-            // APPLE only!
-			str = "Command";
+		case GHOST_kKeyOS:
+			str = "OS";
 			break;
 		case GHOST_kKeyGrLess:
             // PC german!
@@ -325,6 +325,18 @@ void GHOST_EventPrinter::getKeyString(GHOST_TKey key, STR_String& str) const
 			break;
 		case GHOST_kKeyNumpadSlash:
 			str = "NumpadSlash";
+			break;
+		case GHOST_kKeyMediaPlay:
+			str = "MediaPlayPause";
+			break;
+		case GHOST_kKeyMediaStop:
+			str = "MediaStop";
+			break;
+		case GHOST_kKeyMediaFirst:
+			str = "MediaFirst";
+			break;
+		case GHOST_kKeyMediaLast:
+			str = "MediaLast";
 			break;
 		default:
 			str = "unknown";

@@ -1,3 +1,6 @@
+/** \file smemory.c
+ *  \ingroup opennl
+ */
 
 /*
  * -- SuperLU routine (version 3.0) --
@@ -8,7 +11,7 @@
  */
 #include "ssp_defs.h"
 
-#include "BLO_sys_types.h" // needed for intptr_t
+#include "superlu_sys_types.h" // needed for intptr_t
 
 /* Constants */
 #define NO_MEMTYPE  4      /* 0: lusup;
@@ -621,7 +624,7 @@ sStackCompress(GlobalLU_t *Glu)
     Glu->usub = usub;
     
 #ifdef DEBUG
-    printf("sStackCompress: fragment %d\n", fragment);
+    printf("sStackCompress: fragment %d\n", (int)*fragment);
     /* for (last = 0; last < ndim; ++last)
 	print_lu_col("After compress:", last, 0);*/
 #endif    

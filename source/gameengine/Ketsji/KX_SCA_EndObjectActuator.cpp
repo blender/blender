@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file gameengine/Ketsji/KX_SCA_EndObjectActuator.cpp
+ *  \ingroup ketsji
+ */
+
 
 //
 
@@ -80,7 +85,7 @@ CValue* KX_SCA_EndObjectActuator::GetReplica()
 	return replica;
 };
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions : integration hooks                                      */
@@ -116,6 +121,6 @@ PyAttributeDef KX_SCA_EndObjectActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */
