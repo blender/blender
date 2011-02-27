@@ -2651,6 +2651,41 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 										dofbit<<=1;
 									}
 								}
+								else if(dat->type == PHY_CONE_TWIST_CONSTRAINT)
+								{
+									int dof;
+									int dofbit = 1<<3; // bitflag use_angular_limit_x
+									
+									for (dof=3;dof<6;dof++)
+									{
+										// flag only applies to angular limit x
+										if(dof != 3 || dat->flag & dofbit)
+										{
+											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
+										}
+										else
+										{
+											//maxLimit < 0 means free(disabled limit) for this degree of freedom
+											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
+										}
+										dofbit<<=1;
+									}								
+								}
+								else if (dat->type == PHY_LINEHINGE_CONSTRAINT)
+								{
+									int dof = 3; // dof for angular x
+									int dofbit = 1<<3; // bitflag use_angular_limit_x
+									
+									if (dat->flag & dofbit)
+									{
+										kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,
+												dat->minLimit[dof],dat->maxLimit[dof]);
+									} else
+									{
+										//minLimit > maxLimit means free(disabled limit) for this degree of freedom
+										kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
+									}
+								}
 							}
 						}
 					}
