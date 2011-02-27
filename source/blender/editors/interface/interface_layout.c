@@ -408,14 +408,14 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 			col= a % dim_size[0];
 			row= a / dim_size[0];
 			
-			but= uiDefAutoButR(block, ptr, prop, a, "", ICON_NULL, x + w*col, y+(dim_size[1]*UI_UNIT_Y)-(row*UI_UNIT_Y), w, UI_UNIT_Y);
+			but= uiDefAutoButR(block, ptr, prop, a, "", ICON_NONE, x + w*col, y+(dim_size[1]*UI_UNIT_Y)-(row*UI_UNIT_Y), w, UI_UNIT_Y);
 			if(slider && but->type==NUM)
 				but->type= NUMSLI;
 		}
 	}
 	else {
 		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand)
-			uiDefAutoButR(block, ptr, prop, -1, "", ICON_NULL, 0, 0, w, UI_UNIT_Y);
+			uiDefAutoButR(block, ptr, prop, -1, "", ICON_NONE, 0, 0, w, UI_UNIT_Y);
 
 		if(!ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) || expand) {
 			/* layout for known array subtypes */
@@ -756,7 +756,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 						block->flag |= UI_BLOCK_NO_FLIP;
 					}
 
-					uiItemL(column, item[i].name, ICON_NULL);
+					uiItemL(column, item[i].name, ICON_NONE);
 					bt= block->buttons.last;
 					bt->flag= UI_TEXT_LEFT;
 				}
@@ -881,7 +881,7 @@ static void ui_item_rna_size(uiLayout *layout, const char *name, int icon, Point
 
 	/* increase height for arrays */
 	if(index == RNA_NO_INDEX && len > 0) {
-		if(!name[0] && icon == ICON_NULL)
+		if(!name[0] && icon == ICON_NONE)
 			h= 0;
 
 		if(ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER))
@@ -921,7 +921,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	/* set name and icon */
 	if(!name)
 		name= RNA_property_ui_name(prop);
-	if(icon == ICON_NULL)
+	if(icon == ICON_NONE)
 		icon= RNA_property_ui_icon(prop);
 	
 	if(ELEM4(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER))
@@ -1081,7 +1081,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 
 		for(i=0; i<totitem; i++) {
 			if(item[i].identifier[0]) {
-				uiItemEnumR(column, item[i].name, ICON_NULL, ptr, propname, item[i].value);
+				uiItemEnumR(column, item[i].name, ICON_NONE, ptr, propname, item[i].value);
 			}
 			else {
 				if(item[i].name) {
@@ -1091,7 +1091,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 						block->flag |= UI_BLOCK_NO_FLIP;
 					}
 
-					uiItemL(column, item[i].name, ICON_NULL);
+					uiItemL(column, item[i].name, ICON_NONE);
 					bt= block->buttons.last;
 					bt->flag= UI_TEXT_LEFT;
 				}
@@ -1279,7 +1279,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 	}
 
 	/* get icon & name */
-	if(icon==ICON_NULL) {
+	if(icon==ICON_NONE) {
 		if(type == PROP_POINTER)
 			icontype= RNA_property_pointer_type(ptr, prop);
 		else
@@ -2682,14 +2682,14 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 	}
 
 	if(flag & UI_LAYOUT_OP_SHOW_TITLE) {
-		uiItemL(layout, op->type->name, ICON_NULL);
+		uiItemL(layout, op->type->name, ICON_NONE);
 	}
 
 	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
 	 * just fails silently */
 	if(!WM_operator_repeat_check(C, op)) {
 		uiBlockSetButLock(uiLayoutGetBlock(layout), TRUE, "Operator cannot redo");
-		uiItemL(layout, "* Redo Unsupported *", ICON_NULL); // XXX, could give some nicer feedback or not show redo panel at all?
+		uiItemL(layout, "* Redo Unsupported *", ICON_NONE); // XXX, could give some nicer feedback or not show redo panel at all?
 	}
 
 	if(op->type->ui) {
@@ -2713,7 +2713,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 			uiLayout *row;
 
 			row= uiLayoutRow(layout, TRUE);
-			uiItemM(row, (bContext *)C, "WM_MT_operator_presets", NULL, ICON_NULL);
+			uiItemM(row, (bContext *)C, "WM_MT_operator_presets", NULL, ICON_NONE);
 
 			WM_operator_properties_create(&op_ptr, "WM_OT_operator_preset_add");
 			RNA_string_set(&op_ptr, "operator", op->type->idname);
@@ -2729,7 +2729,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 		empty= uiDefAutoButsRNA(layout, &ptr, check_prop, label_align) == 0;
 
 		if(empty && (flag & UI_LAYOUT_OP_SHOW_EMPTY)) {
-			uiItemL(layout, "No Properties.", ICON_NULL);
+			uiItemL(layout, "No Properties.", ICON_NONE);
 		}
 	}
 	

@@ -68,6 +68,7 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "armature_intern.h"
 
@@ -1275,20 +1276,20 @@ static int pose_groups_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED
 	/* if there's no active group (or active is invalid), create a new menu to find it */
 	if (pose->active_group <= 0) {
 		/* create a new menu, and start populating it with group names */
-		pup= uiPupMenuBegin(C, op->type->name, ICON_NULL);
+		pup= uiPupMenuBegin(C, op->type->name, ICON_NONE);
 		layout= uiPupMenuLayout(pup);
 		
 		/* special entry - allow to create new group, then use that 
 		 *	(not to be used for removing though)
 		 */
 		if (strstr(op->idname, "assign")) {
-			uiItemIntO(layout, "New Group", ICON_NULL, op->idname, "type", 0);
+			uiItemIntO(layout, "New Group", ICON_NONE, op->idname, "type", 0);
 			uiItemS(layout);
 		}
 		
 		/* add entries for each group */
 		for (grp= pose->agroups.first, i=1; grp; grp=grp->next, i++)
-			uiItemIntO(layout, grp->name, ICON_NULL, op->idname, "type", i);
+			uiItemIntO(layout, grp->name, ICON_NONE, op->idname, "type", i);
 			
 		/* finish building the menu, and process it (should result in calling self again) */
 		uiPupMenuEnd(C, pup);

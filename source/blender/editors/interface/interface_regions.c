@@ -1495,7 +1495,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			uiItemL(layout, md->title, md->titleicon);
 		}
 		else {
-			uiItemL(layout, md->title, ICON_NULL);
+			uiItemL(layout, md->title, ICON_NONE);
 			bt= block->buttons.last;
 			bt->flag= UI_TEXT_LEFT;
 		}
@@ -1895,7 +1895,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 3, "Blue");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 
-	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", ICON_NULL);
+	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", ICON_NONE);
 	// but need to use uiButSetFunc for updating other fake buttons
 	
 	/* HSV values */
@@ -2420,7 +2420,7 @@ void uiPupMenuInvoke(bContext *C, const char *idname)
 	if(mt->poll && mt->poll(C, mt)==0)
 		return;
 
-	pup= uiPupMenuBegin(C, mt->label, ICON_NULL);
+	pup= uiPupMenuBegin(C, mt->label, ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 
 	menu.layout= layout;

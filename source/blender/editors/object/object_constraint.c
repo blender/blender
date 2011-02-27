@@ -70,6 +70,7 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "object_intern.h"
 
@@ -1531,7 +1532,7 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 	}
 	
 	/* prepare popup menu to choose targetting options */
-	pup= uiPupMenuBegin(C, "Add IK", ICON_NULL);
+	pup= uiPupMenuBegin(C, "Add IK", ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	
 	/* the type of targets we'll set determines the menu entries to show... */
@@ -1540,14 +1541,14 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 		 *	- the only thing that matters is that we want a target...
 		 */
 		if (tar_pchan)
-			uiItemBooleanO(layout, "To Active Bone", ICON_NULL, "POSE_OT_ik_add", "with_targets", 1);
+			uiItemBooleanO(layout, "To Active Bone", ICON_NONE, "POSE_OT_ik_add", "with_targets", 1);
 		else
-			uiItemBooleanO(layout, "To Active Object", ICON_NULL, "POSE_OT_ik_add", "with_targets", 1);
+			uiItemBooleanO(layout, "To Active Object", ICON_NONE, "POSE_OT_ik_add", "with_targets", 1);
 	}
 	else {
 		/* we have a choice of adding to a new empty, or not setting any target (targetless IK) */
-		uiItemBooleanO(layout, "To New Empty Object", ICON_NULL, "POSE_OT_ik_add", "with_targets", 1);
-		uiItemBooleanO(layout, "Without Targets", ICON_NULL, "POSE_OT_ik_add", "with_targets", 0);
+		uiItemBooleanO(layout, "To New Empty Object", ICON_NONE, "POSE_OT_ik_add", "with_targets", 1);
+		uiItemBooleanO(layout, "Without Targets", ICON_NONE, "POSE_OT_ik_add", "with_targets", 0);
 	}
 	
 	/* finish building the menu, and process it (should result in calling self again) */

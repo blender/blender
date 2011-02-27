@@ -273,7 +273,7 @@ static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 			uiItemStringO(layout, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
 		}
 	} else {
-		uiItemL(layout, "No Recent Files", ICON_NULL);
+		uiItemL(layout, "No Recent Files", ICON_NONE);
 	}
 }
 

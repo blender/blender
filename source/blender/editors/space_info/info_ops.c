@@ -53,6 +53,7 @@
 
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -155,7 +156,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	else
 		sprintf(title, "Unpack %d files", count);
 	
-	pup= uiPupMenuBegin(C, title, ICON_NULL);
+	pup= uiPupMenuBegin(C, title, ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);

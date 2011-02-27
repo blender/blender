@@ -233,15 +233,15 @@ static void nla_panel_animdata (const bContext *C, Panel *pa)
 	
 	/* extrapolation */
 	row= uiLayoutRow(layout, 1);
-		uiItemR(row, &adt_ptr, "action_extrapolation", 0, NULL, ICON_NULL);
+		uiItemR(row, &adt_ptr, "action_extrapolation", 0, NULL, ICON_NONE);
 	
 	/* blending */
 	row= uiLayoutRow(layout, 1);
-		uiItemR(row, &adt_ptr, "action_blend_type", 0, NULL, ICON_NULL);
+		uiItemR(row, &adt_ptr, "action_blend_type", 0, NULL, ICON_NONE);
 		
 	/* influence */
 	row= uiLayoutRow(layout, 1);
-		uiItemR(row, &adt_ptr, "action_influence", 0, NULL, ICON_NULL);
+		uiItemR(row, &adt_ptr, "action_influence", 0, NULL, ICON_NONE);
 }
 
 /* active NLA-Track */
@@ -282,40 +282,40 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 	/* strip type */
 	row= uiLayoutColumn(layout, 1);
 		uiItemR(row, &strip_ptr, "name", 0, NULL, ICON_NLA); // XXX icon?
-		uiItemR(row, &strip_ptr, "type", 0, NULL, ICON_NULL);
+		uiItemR(row, &strip_ptr, "type", 0, NULL, ICON_NONE);
 	
 	/* strip extents */
 	column= uiLayoutColumn(layout, 1);
-		uiItemL(column, "Strip Extents:", ICON_NULL);
-		uiItemR(column, &strip_ptr, "frame_start", 0, NULL, ICON_NULL);
-		uiItemR(column, &strip_ptr, "frame_end", 0, NULL, ICON_NULL);
+		uiItemL(column, "Strip Extents:", ICON_NONE);
+		uiItemR(column, &strip_ptr, "frame_start", 0, NULL, ICON_NONE);
+		uiItemR(column, &strip_ptr, "frame_end", 0, NULL, ICON_NONE);
 	
 	/* extrapolation */
 	row= uiLayoutRow(layout, 1);
-		uiItemR(row, &strip_ptr, "extrapolation", 0, NULL, ICON_NULL);
+		uiItemR(row, &strip_ptr, "extrapolation", 0, NULL, ICON_NONE);
 	
 	/* blending */
 	row= uiLayoutRow(layout, 1);
-		uiItemR(row, &strip_ptr, "blend_type", 0, NULL, ICON_NULL);
+		uiItemR(row, &strip_ptr, "blend_type", 0, NULL, ICON_NONE);
 		
 	/* blend in/out + autoblending
 	 *	- blend in/out can only be set when autoblending is off
 	 */
 	column= uiLayoutColumn(layout, 1);
 		uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_animated_influence")==0); 
-		uiItemR(column, &strip_ptr, "use_auto_blend", 0, NULL, ICON_NULL); // XXX as toggle?
+		uiItemR(column, &strip_ptr, "use_auto_blend", 0, NULL, ICON_NONE); // XXX as toggle?
 		
 		subcol= uiLayoutColumn(column, 1);
 			uiLayoutSetActive(subcol, RNA_boolean_get(&strip_ptr, "use_auto_blend")==0); 
-			uiItemR(subcol, &strip_ptr, "blend_in", 0, NULL, ICON_NULL);
-			uiItemR(subcol, &strip_ptr, "blend_out", 0, NULL, ICON_NULL);
+			uiItemR(subcol, &strip_ptr, "blend_in", 0, NULL, ICON_NONE);
+			uiItemR(subcol, &strip_ptr, "blend_out", 0, NULL, ICON_NONE);
 		
 	/* settings */
 	column= uiLayoutColumn(layout, 1);
 		uiLayoutSetActive(column, !(RNA_boolean_get(&strip_ptr, "use_animated_influence") || RNA_boolean_get(&strip_ptr, "use_animated_time"))); 
-		uiItemL(column, "Playback Settings:", ICON_NULL);
-		uiItemR(column, &strip_ptr, "mute", 0, NULL, ICON_NULL);
-		uiItemR(column, &strip_ptr, "use_reverse", 0, NULL, ICON_NULL);
+		uiItemL(column, "Playback Settings:", ICON_NONE);
+		uiItemR(column, &strip_ptr, "mute", 0, NULL, ICON_NONE);
+		uiItemR(column, &strip_ptr, "use_reverse", 0, NULL, ICON_NONE);
 }
 
 
@@ -342,17 +342,17 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 	/* action extents */
 	// XXX custom names were used here (to avoid the prefixes)... probably not necessary in future?
 	column= uiLayoutColumn(layout, 1);
-		uiItemL(column, "Action Extents:", ICON_NULL);
-		uiItemR(column, &strip_ptr, "action_frame_start", 0, "Start Frame", ICON_NULL);
-		uiItemR(column, &strip_ptr, "action_frame_end", 0, "End Frame", ICON_NULL);
-		uiItemO(column, NULL, ICON_NULL, "NLA_OT_action_sync_length");
+		uiItemL(column, "Action Extents:", ICON_NONE);
+		uiItemR(column, &strip_ptr, "action_frame_start", 0, "Start Frame", ICON_NONE);
+		uiItemR(column, &strip_ptr, "action_frame_end", 0, "End Frame", ICON_NONE);
+		uiItemO(column, NULL, ICON_NONE, "NLA_OT_action_sync_length");
 		
 	/* action usage */
 	column= uiLayoutColumn(layout, 1);
 		uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_animated_time")==0); 
-		uiItemL(column, "Playback Settings:", ICON_NULL);
-		uiItemR(column, &strip_ptr, "scale", 0, NULL, ICON_NULL);
-		uiItemR(column, &strip_ptr, "repeat", 0, NULL, ICON_NULL);
+		uiItemL(column, "Playback Settings:", ICON_NONE);
+		uiItemR(column, &strip_ptr, "scale", 0, NULL, ICON_NONE);
+		uiItemR(column, &strip_ptr, "repeat", 0, NULL, ICON_NONE);
 }
 
 /* evaluation settings for active NLA-Strip */
@@ -371,22 +371,22 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
 		
 	column= uiLayoutColumn(layout, 1);
-		uiItemR(column, &strip_ptr, "use_animated_influence", 0, NULL, ICON_NULL);
+		uiItemR(column, &strip_ptr, "use_animated_influence", 0, NULL, ICON_NONE);
 		
 		subcolumn= uiLayoutColumn(column, 1);
 		uiLayoutSetEnabled(subcolumn, RNA_boolean_get(&strip_ptr, "use_animated_influence"));	
-			uiItemR(subcolumn, &strip_ptr, "influence", 0, NULL, ICON_NULL);
+			uiItemR(subcolumn, &strip_ptr, "influence", 0, NULL, ICON_NONE);
 		
 	
 	column= uiLayoutColumn(layout, 1);
 		subrow= uiLayoutRow(column, 0);
-		uiItemR(subrow, &strip_ptr, "use_animated_time", 0, NULL, ICON_NULL);
-		uiItemR(subrow, &strip_ptr, "use_animated_time_cyclic", 0, NULL, ICON_NULL);
+		uiItemR(subrow, &strip_ptr, "use_animated_time", 0, NULL, ICON_NONE);
+		uiItemR(subrow, &strip_ptr, "use_animated_time_cyclic", 0, NULL, ICON_NONE);
 
 		subcolumn= uiLayoutColumn(column, 1);
 		subrow= uiLayoutRow(subcolumn, 0);
 		uiLayoutSetEnabled(subrow, RNA_boolean_get(&strip_ptr, "use_animated_time"));
-			uiItemR(subcolumn, &strip_ptr, "strip_time", 0, NULL, ICON_NULL);
+			uiItemR(subcolumn, &strip_ptr, "strip_time", 0, NULL, ICON_NONE);
 }
 
 /* F-Modifiers for active NLA-Strip */

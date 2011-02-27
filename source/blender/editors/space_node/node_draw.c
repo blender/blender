@@ -651,7 +651,7 @@ static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *args_v)
 	
 	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, args->x, args->y+2, args->width, 20, U.uistyles.first), 0);
 	
-	uiItemR(layout, &args->ptr, "default_value", UI_ITEM_R_EXPAND, "", ICON_NULL);
+	uiItemR(layout, &args->ptr, "default_value", UI_ITEM_R_EXPAND, "", ICON_NONE);
 	
 	return block;
 }

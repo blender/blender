@@ -72,7 +72,7 @@
 #include "ED_mball.h"
 
 #include "UI_interface.h"
-
+#include "UI_resources.h"
 
 #include "view3d_intern.h"	// own include
 
@@ -1007,7 +1007,7 @@ static Base *mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffe
 	}
 	else {
 		/* UI */
-		uiPopupMenu *pup= uiPupMenuBegin(C, "Select Object", ICON_NULL);
+		uiPopupMenu *pup= uiPupMenuBegin(C, "Select Object", ICON_NONE);
 		uiLayout *layout= uiPupMenuLayout(pup);
 		uiLayout *split= uiLayoutSplit(layout, 0, 0);
 		uiLayout *column= uiLayoutColumn(split, 0);

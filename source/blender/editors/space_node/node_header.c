@@ -49,6 +49,8 @@
 
 
 #include "UI_interface.h"
+#include "UI_resources.h"
+#include "UI_interface_icons.h"
 #include "UI_view2d.h"
 
 #include "node_intern.h"
@@ -140,7 +142,7 @@ static void node_auto_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclas
 
 		for(tot=0, a=0; ngroup; ngroup= ngroup->id.next, tot++) {
 			if(ngroup->type==ntree->type) {
-				uiItemV(layout, ngroup->id.name+2, ICON_NULL, NODE_GROUP_MENU+tot);
+				uiItemV(layout, ngroup->id.name+2, ICON_NONE, NODE_GROUP_MENU+tot);
 				a++;
 			}
 		}
@@ -152,11 +154,11 @@ static void node_auto_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclas
 		for(a=0, type= ntree->alltypes.first; type; type=type->next) {
 			if(type->nclass == nodeclass && type->name) {
 				if(type->type == NODE_DYNAMIC) {
-					uiItemV(layout, type->name, ICON_NULL, NODE_DYNAMIC_MENU+script);
+					uiItemV(layout, type->name, ICON_NONE, NODE_DYNAMIC_MENU+script);
 					script++;
 				}
 				else
-					uiItemV(layout, type->name, ICON_NULL, type->type);
+					uiItemV(layout, type->name, ICON_NONE, type->type);
 
 				a++;
 			}

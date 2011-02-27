@@ -2174,11 +2174,11 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 	if(items==0)
 		return OPERATOR_CANCELLED;
 	
-	pup= uiPupMenuBegin(C, op->type->name, ICON_NULL);
+	pup= uiPupMenuBegin(C, op->type->name, ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	
 	for (i=items-1, lastop= wm->operators.last; lastop; lastop= lastop->prev, i--)
-		uiItemIntO(layout, lastop->type->name, ICON_NULL, op->type->idname, "index", i);
+		uiItemIntO(layout, lastop->type->name, ICON_NONE, op->type->idname, "index", i);
 	
 	uiPupMenuEnd(C, pup);
 	
@@ -2446,23 +2446,23 @@ static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *U
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	
-	pup= uiPupMenuBegin(C, "Header", ICON_NULL);
+	pup= uiPupMenuBegin(C, "Header", ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	
 	// XXX SCREEN_OT_region_flip doesn't work - gets wrong context for active region, so added custom operator
 	if (ar->alignment == RGN_ALIGN_TOP)
-		uiItemO(layout, "Flip to Bottom", ICON_NULL, "SCREEN_OT_header_flip");
+		uiItemO(layout, "Flip to Bottom", ICON_NONE, "SCREEN_OT_header_flip");
 	else
-		uiItemO(layout, "Flip to Top", ICON_NULL, "SCREEN_OT_header_flip");
+		uiItemO(layout, "Flip to Top", ICON_NONE, "SCREEN_OT_header_flip");
 	
 	uiItemS(layout);
 	
 	/* file browser should be fullscreen all the time, but other regions can be maximised/restored... */
 	if (sa->spacetype != SPACE_FILE) {
 		if (sa->full) 
-			uiItemO(layout, "Tile Area", ICON_NULL, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, "Tile Area", ICON_NONE, "SCREEN_OT_screen_full_area");
 		else
-			uiItemO(layout, "Maximize Area", ICON_NULL, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, "Maximize Area", ICON_NONE, "SCREEN_OT_screen_full_area");
 	}
 	
 	uiPupMenuEnd(C, pup);

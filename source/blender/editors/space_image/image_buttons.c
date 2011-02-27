@@ -720,7 +720,7 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr,
 	if(rr==NULL || iuser==NULL)
 		return;
 	if(rr->layers.first==NULL) {
-		uiItemL(row, "No Layers in Render Result.", ICON_NULL);
+		uiItemL(row, "No Layers in Render Result.", ICON_NONE);
 		return;
 	}
 
@@ -820,8 +820,8 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			image_info(ima, ibuf, str);
 			BKE_image_release_ibuf(ima, lock);
 
-			uiItemL(layout, ima->id.name+2, ICON_NULL);
-			uiItemL(layout, str, ICON_NULL);
+			uiItemL(layout, ima->id.name+2, ICON_NONE);
+			uiItemL(layout, str, ICON_NONE);
 
 			if(ima->type==IMA_TYPE_COMPOSITE) {
 				// XXX not working yet
@@ -853,7 +853,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 		}
 		else {
 			row= uiLayoutRow(layout, 0);
-			uiItemR(row, &imaptr, "source", 0, NULL, ICON_NULL);
+			uiItemR(row, &imaptr, "source", 0, NULL, ICON_NONE);
 
 			if(ima->source != IMA_SRC_GENERATED) {
 				row= uiLayoutRow(layout, 1);
@@ -867,7 +867,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				row= uiLayoutRow(split, 1);
 				uiLayoutSetEnabled(row, ima->packedfile==NULL);
 				
-				uiItemR(row, &imaptr, "filepath", 0, "", ICON_NULL);
+				uiItemR(row, &imaptr, "filepath", 0, "", ICON_NONE);
 				uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
 			}
 
@@ -891,7 +891,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					ibuf= BKE_image_acquire_ibuf(ima, iuser, &lock);
 					image_info(ima, ibuf, str);
 					BKE_image_release_ibuf(ima, lock);
-					uiItemL(layout, str, ICON_NULL);
+					uiItemL(layout, str, ICON_NONE);
 				}
 			}
 			
@@ -902,13 +902,13 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					split= uiLayoutSplit(layout, 0, 0);
 
 					col= uiLayoutColumn(split, 0);
-					uiItemR(col, &imaptr, "use_fields", 0, NULL, ICON_NULL);
+					uiItemR(col, &imaptr, "use_fields", 0, NULL, ICON_NONE);
 					row= uiLayoutRow(col, 0);
-					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, ICON_NULL);
+					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
 
 					col= uiLayoutColumn(split, 0);
-					uiItemR(col, &imaptr, "use_premultiply", 0, NULL, ICON_NULL);
+					uiItemR(col, &imaptr, "use_premultiply", 0, NULL, ICON_NONE);
 				}
 			}
 
@@ -921,30 +921,30 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				 
 				sprintf(str, "(%d) Frames", iuser->framenr);
 				row= uiLayoutRow(col, 1);
-				uiItemR(col, userptr, "frame_duration", 0, str, ICON_NULL);
+				uiItemR(col, userptr, "frame_duration", 0, str, ICON_NONE);
 				if(ima->anim) {
 					block= uiLayoutGetBlock(row);
 					but= uiDefBut(block, BUT, 0, "Match Movie Length", 0, 0, UI_UNIT_X*2, UI_UNIT_Y, 0, 0, 0, 0, 0, "Set the number of frames to match the movie or sequence.");
 					uiButSetFunc(but, set_frames_cb, ima, iuser);
 				}
 
-				uiItemR(col, userptr, "frame_start", 0, "Start", ICON_NULL);
-				uiItemR(col, userptr, "frame_offset", 0, NULL, ICON_NULL);
+				uiItemR(col, userptr, "frame_start", 0, "Start", ICON_NONE);
+				uiItemR(col, userptr, "frame_offset", 0, NULL, ICON_NONE);
 
 				col= uiLayoutColumn(split, 0);
-				uiItemR(col, userptr, "fields_per_frame", 0, "Fields", ICON_NULL);
-				uiItemR(col, userptr, "use_auto_refresh", 0, NULL, ICON_NULL);
-				uiItemR(col, userptr, "use_cyclic", 0, NULL, ICON_NULL);
+				uiItemR(col, userptr, "fields_per_frame", 0, "Fields", ICON_NONE);
+				uiItemR(col, userptr, "use_auto_refresh", 0, NULL, ICON_NONE);
+				uiItemR(col, userptr, "use_cyclic", 0, NULL, ICON_NONE);
 			}
 			else if(ima->source==IMA_SRC_GENERATED) {
 				split= uiLayoutSplit(layout, 0, 0);
 
 				col= uiLayoutColumn(split, 1);
-				uiItemR(col, &imaptr, "generated_width", 0, "X", ICON_NULL);
-				uiItemR(col, &imaptr, "generated_height", 0, "Y", ICON_NULL);
+				uiItemR(col, &imaptr, "generated_width", 0, "X", ICON_NONE);
+				uiItemR(col, &imaptr, "generated_height", 0, "Y", ICON_NONE);
 
 				col= uiLayoutColumn(split, 0);
-				uiItemR(col, &imaptr, "generated_type", UI_ITEM_R_EXPAND, NULL, ICON_NULL);
+				uiItemR(col, &imaptr, "generated_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 			}
 
 					}

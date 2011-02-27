@@ -779,57 +779,57 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 		uiLayoutSetActive(split, !(bone->parent && bone->flag & BONE_CONNECTED));
 	}
 	colsub = uiLayoutColumn(split, 1);
-	uiItemR(colsub, ptr, "location", 0, "Location", ICON_NULL);
+	uiItemR(colsub, ptr, "location", 0, "Location", ICON_NONE);
 	colsub = uiLayoutColumn(split, 1);
-	uiItemL(colsub, "", ICON_NULL);
-	uiItemR(colsub, ptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
+	uiItemL(colsub, "", ICON_NONE);
+	uiItemR(colsub, ptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	
 	split = uiLayoutSplit(layout, 0.8, 0);
 	
 	switch(RNA_enum_get(ptr, "rotation_mode")) {
 		case ROT_MODE_QUAT: /* quaternion */
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, ptr, "rotation_quaternion", 0, "Rotation", ICON_NULL);
+			uiItemR(colsub, ptr, "rotation_quaternion", 0, "Rotation", ICON_NONE);
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", ICON_NULL);
+			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", ICON_NONE);
 			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
-				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
+				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			else
-				uiItemL(colsub, "", ICON_NULL);
-			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
+				uiItemL(colsub, "", ICON_NONE);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			break;
 		case ROT_MODE_AXISANGLE: /* axis angle */
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, ptr, "rotation_axis_angle", 0, "Rotation", ICON_NULL);
+			uiItemR(colsub, ptr, "rotation_axis_angle", 0, "Rotation", ICON_NONE);
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", ICON_NULL);
+			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", ICON_NONE);
 			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
-				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
+				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			else
-				uiItemL(colsub, "", ICON_NULL);
-			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
+				uiItemL(colsub, "", ICON_NONE);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			break;
 		default: /* euler rotations */
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, ptr, "rotation_euler", 0, "Rotation", ICON_NULL);
+			uiItemR(colsub, ptr, "rotation_euler", 0, "Rotation", ICON_NONE);
 			colsub = uiLayoutColumn(split, 1);
-			uiItemL(colsub, "", ICON_NULL);
-			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
+			uiItemL(colsub, "", ICON_NONE);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			break;
 	}
-	uiItemR(layout, ptr, "rotation_mode", 0, "", ICON_NULL);
+	uiItemR(layout, ptr, "rotation_mode", 0, "", ICON_NONE);
 	
 	split = uiLayoutSplit(layout, 0.8, 0);
 	colsub = uiLayoutColumn(split, 1);
-	uiItemR(colsub, ptr, "scale", 0, "Scale", ICON_NULL);
+	uiItemR(colsub, ptr, "scale", 0, "Scale", ICON_NONE);
 	colsub = uiLayoutColumn(split, 1);
-	uiItemL(colsub, "", ICON_NULL);
-	uiItemR(colsub, ptr, "lock_scale", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NULL);
+	uiItemL(colsub, "", ICON_NONE);
+	uiItemR(colsub, ptr, "lock_scale", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	
 	if (ptr->type == &RNA_Object) {
 		Object *ob = ptr->data;
 		if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
-			uiItemR(layout, ptr, "dimensions", 0, "Dimensions", ICON_NULL);
+			uiItemR(layout, ptr, "dimensions", 0, "Dimensions", ICON_NONE);
 	}
 }
 
@@ -849,7 +849,7 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
 //	row= uiLayoutRow(layout, 0);
 	
 	if (!pchan)	{
-		uiItemL(layout, "No Bone Active", ICON_NULL);
+		uiItemL(layout, "No Bone Active", ICON_NONE);
 		return; 
 	}
 
@@ -962,18 +962,18 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 
 
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, &eboneptr, "head", 0, "Head", ICON_NULL);
+	uiItemR(col, &eboneptr, "head", 0, "Head", ICON_NONE);
 	if (ebone->parent && ebone->flag & BONE_CONNECTED ) {
 		PointerRNA parptr = RNA_pointer_get(&eboneptr, "parent");
-		uiItemR(col, &parptr, "tail_radius", 0, "Radius (Parent)", ICON_NULL);
+		uiItemR(col, &parptr, "tail_radius", 0, "Radius (Parent)", ICON_NONE);
 	} else {
-		uiItemR(col, &eboneptr, "head_radius", 0, "Radius", ICON_NULL);
+		uiItemR(col, &eboneptr, "head_radius", 0, "Radius", ICON_NONE);
 	}
 	
-	uiItemR(col, &eboneptr, "tail", 0, "Tail", ICON_NULL);
-	uiItemR(col, &eboneptr, "tail_radius", 0, "Radius", ICON_NULL);
+	uiItemR(col, &eboneptr, "tail", 0, "Tail", ICON_NONE);
+	uiItemR(col, &eboneptr, "tail_radius", 0, "Radius", ICON_NONE);
 	
-	uiItemR(col, &eboneptr, "roll", 0, "Roll", ICON_NULL);
+	uiItemR(col, &eboneptr, "roll", 0, "Roll", ICON_NONE);
 }
 
 static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
@@ -992,37 +992,37 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 	RNA_pointer_create(&mball->id, &RNA_MetaElement, mball->lastelem, &ptr);
 	
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, &ptr, "co", 0, "Location", ICON_NULL);
+	uiItemR(col, &ptr, "co", 0, "Location", ICON_NONE);
 	
-	uiItemR(col, &ptr, "radius", 0, "Radius", ICON_NULL);
-	uiItemR(col, &ptr, "stiffness", 0, "Stiffness", ICON_NULL);
+	uiItemR(col, &ptr, "radius", 0, "Radius", ICON_NONE);
+	uiItemR(col, &ptr, "stiffness", 0, "Stiffness", ICON_NONE);
 	
-	uiItemR(col, &ptr, "type", 0, "Type", ICON_NULL);
+	uiItemR(col, &ptr, "type", 0, "Type", ICON_NONE);
 	
 	col= uiLayoutColumn(layout, 1);
 	switch (RNA_enum_get(&ptr, "type")) {
 		case MB_BALL:
 			break;
 		case MB_CUBE:
-			uiItemL(col, "Size:", ICON_NULL);
-			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NULL);
-			uiItemR(col, &ptr, "size_y", 0, "Y", ICON_NULL);
-			uiItemR(col, &ptr, "size_z", 0, "Z", ICON_NULL);
+			uiItemL(col, "Size:", ICON_NONE);
+			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NONE);
+			uiItemR(col, &ptr, "size_y", 0, "Y", ICON_NONE);
+			uiItemR(col, &ptr, "size_z", 0, "Z", ICON_NONE);
 			break;
 		case MB_TUBE:
-			uiItemL(col, "Size:", ICON_NULL);
-			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NULL);
+			uiItemL(col, "Size:", ICON_NONE);
+			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NONE);
 			break;
 		case MB_PLANE:
-			uiItemL(col, "Size:", ICON_NULL);
-			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NULL);
-			uiItemR(col, &ptr, "size_y", 0, "Y", ICON_NULL);
+			uiItemL(col, "Size:", ICON_NONE);
+			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NONE);
+			uiItemR(col, &ptr, "size_y", 0, "Y", ICON_NONE);
 			break;
 		case MB_ELIPSOID:
-			uiItemL(col, "Size:", ICON_NULL);
-			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NULL);
-			uiItemR(col, &ptr, "size_y", 0, "Y", ICON_NULL);
-			uiItemR(col, &ptr, "size_z", 0, "Z", ICON_NULL);
+			uiItemL(col, "Size:", ICON_NONE);
+			uiItemR(col, &ptr, "size_x", 0, "X", ICON_NONE);
+			uiItemR(col, &ptr, "size_y", 0, "Y", ICON_NONE);
+			uiItemR(col, &ptr, "size_z", 0, "Z", ICON_NONE);
 			break;		   
 	}	
 }

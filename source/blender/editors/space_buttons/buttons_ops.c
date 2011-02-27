@@ -50,6 +50,7 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "buttons_intern.h"	// own include
 
@@ -65,7 +66,7 @@ static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(e
 
 	RNA_pointer_create(&sc->id, &RNA_SpaceProperties, sbuts, &ptr);
 
-	pup= uiPupMenuBegin(C, "Align", ICON_NULL);
+	pup= uiPupMenuBegin(C, "Align", ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	uiItemsEnumR(layout, &ptr, "align");
 	uiPupMenuEnd(C, pup);

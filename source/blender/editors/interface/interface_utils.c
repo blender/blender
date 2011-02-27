@@ -144,12 +144,12 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr, int (*check_prop)(Proper
 
 			if(label_align=='V') {
 				col= uiLayoutColumn(layout, 1);
-				uiItemL(col, name, ICON_NULL);
+				uiItemL(col, name, ICON_NONE);
 			}
 			else if(label_align=='H') {
 				split = uiLayoutSplit(layout, 0.5f, 0);
 
-				uiItemL(uiLayoutColumn(split, 0), name, ICON_NULL);
+				uiItemL(uiLayoutColumn(split, 0), name, ICON_NONE);
 				col= uiLayoutColumn(split, 0);
 			}
 			else {
@@ -170,7 +170,7 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr, int (*check_prop)(Proper
 			name= NULL; /* no smart label alignment, show default name with button */
 		}
 
-		uiItemFullR(col, ptr, prop, -1, 0, 0, name, ICON_NULL);
+		uiItemFullR(col, ptr, prop, -1, 0, 0, name, ICON_NONE);
 		tot++;
 	}
 	RNA_STRUCT_END;
@@ -187,7 +187,7 @@ int uiIconFromID(ID *id)
 	short idcode;
 
 	if(id==NULL)
-		return ICON_NULL;
+		return ICON_NONE;
 	
 	idcode= GS(id->name);
 
@@ -205,5 +205,5 @@ int uiIconFromID(ID *id)
 	   will set the right type, also with subclassing */
 	RNA_id_pointer_create(id, &ptr);
 
-	return (ptr.type)? RNA_struct_ui_icon(ptr.type) : ICON_NULL;
+	return (ptr.type)? RNA_struct_ui_icon(ptr.type) : ICON_NONE;
 }

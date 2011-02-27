@@ -62,6 +62,7 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "nla_intern.h"	// own include
 #include "nla_private.h" // FIXME... maybe this shouldn't be included?
@@ -1708,7 +1709,7 @@ static int nla_fmodifier_add_invoke (bContext *C, wmOperator *UNUSED(op), wmEven
 	uiLayout *layout;
 	int i;
 	
-	pup= uiPupMenuBegin(C, "Add F-Modifier", ICON_NULL);
+	pup= uiPupMenuBegin(C, "Add F-Modifier", ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	
 	/* start from 1 to skip the 'Invalid' modifier type */
