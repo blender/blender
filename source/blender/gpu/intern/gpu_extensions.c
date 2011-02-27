@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/gpu/intern/gpu_extensions.c
+ *  \ingroup gpu
+ */
+
+
 #include "GL/glew.h"
 
 #include "DNA_image_types.h"

@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/gpu/intern/gpu_draw.c
+ *  \ingroup gpu
+ */
+
+
 #include <string.h>
 
 #include "GL/glew.h"

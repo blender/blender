@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/gpu/intern/gpu_material.c
+ *  \ingroup gpu
+ */
+
+
 #include <math.h>
 #include <string.h>
 
