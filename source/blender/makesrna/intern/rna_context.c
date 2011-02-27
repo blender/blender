@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_context.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "DNA_ID.h"

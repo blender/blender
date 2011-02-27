@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_internal.h
+ *  \ingroup RNA
+ */
+
+
 #ifndef RNA_INTERNAL_H
 #define RNA_INTERNAL_H
 

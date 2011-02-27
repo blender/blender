@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_world.c
+ *  \ingroup RNA
+ */
+
+
 #include <float.h>
 #include <stdlib.h>
 

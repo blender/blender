@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_controller.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "WM_types.h"

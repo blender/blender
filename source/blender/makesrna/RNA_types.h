@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/RNA_types.h
+ *  \ingroup RNA
+ */
+
+
 #include "BLO_sys_types.h"
 
 #ifndef RNA_TYPES_H
@@ -40,7 +45,7 @@ struct IDProperty;
 struct bContext;
 struct ReportList;
 
-/* Pointer
+/** Pointer
  *
  * RNA pointers are not a single C pointer but include the type,
  * and a pointer to the ID struct that owns the struct, since

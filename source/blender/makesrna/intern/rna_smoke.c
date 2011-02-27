@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_smoke.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 #include <limits.h>
 

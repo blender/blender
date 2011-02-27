@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_ui.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "DNA_screen_types.h"

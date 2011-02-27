@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_armature.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "BLI_math.h"
