@@ -28,6 +28,11 @@
 
 */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_gamma.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 /* **************** Gamma Tools  ******************** */

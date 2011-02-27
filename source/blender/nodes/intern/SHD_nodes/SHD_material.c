@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/SHD_nodes/SHD_material.c
+ *  \ingroup shdnodes
+ */
+
+
 #include "../SHD_util.h"
 
 /* **************** MATERIAL ******************** */

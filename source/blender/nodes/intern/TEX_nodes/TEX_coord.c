@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_coord.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"
 
 static bNodeSocketType outputs[]= { 

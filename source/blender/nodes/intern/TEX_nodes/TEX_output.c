@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_output.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"
 
 /* **************** COMPOSITE ******************** */

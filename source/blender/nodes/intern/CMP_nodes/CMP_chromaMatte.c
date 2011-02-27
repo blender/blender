@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_chromaMatte.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 /* ******************* Chroma Key ********************************************************** */

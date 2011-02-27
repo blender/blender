@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/node_util.c
+ *  \ingroup nodes
+ */
+
+
 #include "CMP_util.h"
 #include "SHD_util.h"
 

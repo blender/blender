@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/CMP_util.c
+ *  \ingroup nodes
+ */
+
+
 #include "CMP_util.h"
 
 CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
