@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/intern/bpy_rna.h
+ *  \ingroup pythonintern
+ */
+
 #ifndef BPY_RNA_H
 #define BPY_RNA_H
 

@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/intern/bpy_rna_array.c
+ *  \ingroup pythonintern
+ */
+
 #include <Python.h>
 
 #include "bpy_rna.h"

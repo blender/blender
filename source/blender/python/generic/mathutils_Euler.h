@@ -28,6 +28,11 @@
  *
  */
 
+/** \file blender/python/generic/mathutils_Euler.h
+ *  \ingroup pygen
+ */
+
+
 #ifndef MATHUTILS_EULER_H
 #define MATHUTILS_EULER_H
 

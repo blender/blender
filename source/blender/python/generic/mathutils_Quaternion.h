@@ -28,6 +28,11 @@
  *
  */
 
+/** \file blender/python/generic/mathutils_Quaternion.h
+ *  \ingroup pygen
+ */
+
+
 #ifndef MATHUTILS_QUAT_H
 #define MATHUTILS_QUAT_H
 

@@ -20,6 +20,11 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
+/** \file blender/python/generic/py_capi_utils.c
+ *  \ingroup pygen
+ */
+
+
 #include <Python.h>
 #include <frameobject.h>
 

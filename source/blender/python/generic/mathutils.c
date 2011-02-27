@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/generic/mathutils.c
+ *  \ingroup pygen
+ */
+
+
 /* Note: Changes to Mathutils since 2.4x
  * use radians rather then degrees
  * - Mathutils.Vector/Euler/Quaternion(), now only take single sequence arguments.

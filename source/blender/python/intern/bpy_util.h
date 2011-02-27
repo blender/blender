@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/intern/bpy_util.h
+ *  \ingroup pythonintern
+ */
+
+
 #ifndef BPY_UTIL_H
 #define BPY_UTIL_H
 

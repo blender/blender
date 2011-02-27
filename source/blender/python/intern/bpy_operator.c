@@ -1,5 +1,5 @@
 
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,6 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/intern/bpy_operator.c
+ *  \ingroup pythonintern
+ */
+
 
 /* Note, this module is not to be used directly by the user.
  * Internally its exposed as '_bpy.ops', which provides functions for 'bpy.ops', a python package.

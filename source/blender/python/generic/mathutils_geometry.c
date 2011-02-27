@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/generic/mathutils_geometry.c
+ *  \ingroup pygen
+ */
+
+
 #include <Python.h>
 
 #include "mathutils_geometry.h"

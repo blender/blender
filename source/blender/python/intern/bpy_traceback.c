@@ -20,6 +20,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/intern/bpy_traceback.c
+ *  \ingroup pythonintern
+ */
+
+
 #include <Python.h>
 #include <frameobject.h>
 

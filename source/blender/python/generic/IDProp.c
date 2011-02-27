@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/generic/IDProp.c
+ *  \ingroup pygen
+ */
+
+
 #include <Python.h>
 
 #include "IDProp.h"

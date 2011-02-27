@@ -22,6 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/intern/bpy_interface.c
+ *  \ingroup pythonintern
+ */
+
  
 /* grr, python redefines */
 #ifdef _POSIX_C_SOURCE
