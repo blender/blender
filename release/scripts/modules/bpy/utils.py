@@ -38,22 +38,26 @@ import addon_utils
 
 
 def _test_import(module_name, loaded_modules):
-    import traceback
-    import time
+    use_time = _bpy.app.debug
+
     if module_name in loaded_modules:
         return None
     if "." in module_name:
         print("Ignoring '%s', can't import files containing multiple periods." % module_name)
         return None
 
-    t = time.time()
+    if use_time:
+        import time
+        t = time.time()
+
     try:
         mod = __import__(module_name)
     except:
+        import traceback
         traceback.print_exc()
         return None
 
-    if _bpy.app.debug:
+    if use_time:
         print("time %s %.4f" % (module_name, time.time() - t))
 
     loaded_modules.add(mod.__name__)  # should match mod.__name__ too
@@ -99,7 +103,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     :arg refresh_scripts: only load scripts which are not already loaded as modules.
     :type refresh_scripts: bool
     """
-    import traceback
     import time
 
     t_main = time.time()
@@ -124,6 +127,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             try:
                 register()
             except:
+                import traceback
                 traceback.print_exc()
         else:
             print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
@@ -134,6 +138,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             try:
                 unregister()
             except:
+                import traceback
                 traceback.print_exc()
 
     def test_reload(mod):
@@ -147,6 +152,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         try:
             return imp.reload(mod)
         except:
+            import traceback
             traceback.print_exc()
 
     def test_register(mod):
@@ -424,7 +430,6 @@ def _bpy_module_classes(module, is_registered=False):
 
 
 def register_module(module, verbose=False):
-    import traceback
     if verbose:
         print("bpy.utils.register_module(%r): ..." % module)
     for cls, path, line in _bpy_module_classes(module, is_registered=False):
@@ -435,6 +440,7 @@ def register_module(module, verbose=False):
         except:
             print("bpy.utils.register_module(): failed to registering class '%s.%s'" % (cls.__module__, cls.__name__))
             print("\t", path, "line", line)
+            import traceback
             traceback.print_exc()
     if verbose:
         print("done.\n")
@@ -443,7 +449,6 @@ def register_module(module, verbose=False):
 
 
 def unregister_module(module, verbose=False):
-    import traceback
     if verbose:
         print("bpy.utils.unregister_module(%r): ..." % module)
     for cls, path, line in _bpy_module_classes(module, is_registered=True):
@@ -454,6 +459,7 @@ def unregister_module(module, verbose=False):
         except:
             print("bpy.utils.unregister_module(): failed to unregistering class '%s.%s'" % (cls.__module__, cls.__name__))
             print("\t", path, "line", line)
+            import traceback
             traceback.print_exc()
     if verbose:
         print("done.\n")

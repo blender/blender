@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 import os
-import shutil
 import addon_utils
 
 from bpy.props import StringProperty, BoolProperty, EnumProperty
@@ -1073,6 +1072,8 @@ class WM_OT_addon_install(bpy.types.Operator):
     def execute(self, context):
         import traceback
         import zipfile
+        import shutil
+
         pyfile = self.filepath
 
         # dont use bpy.utils.script_paths("addons") because we may not be able to write to it.

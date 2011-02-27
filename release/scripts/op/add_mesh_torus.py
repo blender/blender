@@ -19,10 +19,11 @@
 # <pep8 compliant>
 import bpy
 import mathutils
-from math import cos, sin, pi
 
 
 def add_torus(major_rad, minor_rad, major_seg, minor_seg):
+    from math import cos, sin, pi
+
     Vector = mathutils.Vector
     Quaternion = mathutils.Quaternion
 

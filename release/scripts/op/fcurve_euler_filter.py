@@ -18,18 +18,17 @@
 
 # <pep8 compliant>
 
-from math import *
 import bpy
-from mathutils import *
 
 
 def main(context):
+    from math import pi
+
     def cleanupEulCurve(fcv):
         keys = []
 
         for k in fcv.keyframe_points:
             keys.append([k.handle_left.copy(), k.co.copy(), k.handle_right.copy()])
-        print(keys)
 
         for i in range(len(keys)):
             cur = keys[i]
