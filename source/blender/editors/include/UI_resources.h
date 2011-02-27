@@ -43,12 +43,14 @@
 #define DEF_VICO(name) VICO_##name,
 
 typedef enum {
-#define BIFICONID_FIRST		(ICON_NONE)
 	/* ui */
 #include "UI_icons.h"
 	BIFICONID_LAST
-#define BIFNICONIDS			(BIFICONID_LAST-BIFICONID_FIRST + 1)
 } BIFIconID;
+
+#define BIFICONID_FIRST		(ICON_NONE)
+#define BIFNICONIDS			(BIFICONID_LAST-BIFICONID_FIRST + 1)
+
 #undef DEF_ICON
 #undef DEF_VICO
 
