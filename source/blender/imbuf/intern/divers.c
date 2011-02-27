@@ -29,6 +29,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/divers.c
+ *  \ingroup imbuf
+ */
+
+
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_math.h"

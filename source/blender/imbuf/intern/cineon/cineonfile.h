@@ -1,3 +1,6 @@
+/** \file blender/imbuf/intern/cineon/cineonfile.h
+ *  \ingroup imbcineon
+ */
 /*
  *	 Cineon image file format library definitions.
  *	 Cineon file format structures.

@@ -27,6 +27,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/png.c
+ *  \ingroup imbuf
+ */
+
+
 
 #include "png.h"
 

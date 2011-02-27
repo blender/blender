@@ -29,6 +29,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/jpeg.c
+ *  \ingroup imbuf
+ */
+
+
 
 /* This little block needed for linking to Blender... */
 #include <stdio.h>

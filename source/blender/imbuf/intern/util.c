@@ -29,6 +29,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/util.c
+ *  \ingroup imbuf
+ */
+
+
 #ifdef _WIN32
 #include <io.h>
 #define open _open

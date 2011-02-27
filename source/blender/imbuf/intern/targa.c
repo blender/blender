@@ -27,6 +27,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/targa.c
+ *  \ingroup imbuf
+ */
+
+
 #ifdef WIN32
 #include <io.h>
 #endif

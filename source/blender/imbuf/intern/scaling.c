@@ -29,6 +29,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/scaling.c
+ *  \ingroup imbuf
+ */
+
+
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
 

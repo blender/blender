@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/allocimbuf.c
+ *  \ingroup imbuf
+ */
+
+
 /* It's become a bit messy... Basically, only the IMB_ prefixed files
  * should remain. */
 

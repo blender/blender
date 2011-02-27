@@ -29,6 +29,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/readimage.c
+ *  \ingroup imbuf
+ */
+
+
 #ifdef _WIN32
 #include <io.h>
 #include <stddef.h>

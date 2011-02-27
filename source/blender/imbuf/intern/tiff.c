@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/tiff.c
+ *  \ingroup imbuf
+ */
+
+
 /**
  * Provides TIFF file loading and saving for Blender, via libtiff.
  *

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/bmp.c
+ *  \ingroup imbuf
+ */
+
+
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"

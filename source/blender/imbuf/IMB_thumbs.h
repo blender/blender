@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/IMB_thumbs.h
+ *  \ingroup imbuf
+ */
+
+
 #ifndef _IMB_THUMBS_H
 #define _IMB_THUMBS_H
 

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/thumbs.c
+ *  \ingroup imbuf
+ */
+
+
 #include <stdio.h>
 
 #include "BKE_utildefines.h"

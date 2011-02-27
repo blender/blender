@@ -1,3 +1,6 @@
+/** \file blender/imbuf/intern/cineon/logImageLib.c
+ *  \ingroup imbcineon
+ */
 /*
  *	 Cineon and DPX image file format library routines.
  *

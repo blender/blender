@@ -29,6 +29,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/iris.c
+ *  \ingroup imbuf
+ */
+
+
 #include <string.h>
 
 #include "BLI_blenlib.h"
