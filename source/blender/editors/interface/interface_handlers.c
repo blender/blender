@@ -1870,7 +1870,7 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 
 	if(but->type == BUT_CURVE) {
 		data->cumap= (CurveMapping*)but->poin;
-		but->editcumap= data->coba;
+		but->editcumap= data->cumap;
 	}
 	else if(but->type == BUT_COLORBAND) {
 		data->coba= (ColorBand*)but->poin;
