@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/math_matrix.c
+ *  \ingroup bli
+ */
+
+
 #include <assert.h>
 #include "BLI_math.h"
 

@@ -29,6 +29,11 @@
  * various string, file, list operations.
  */
 
+/** \file blender/blenlib/intern/path_util.c
+ *  \ingroup bli
+ */
+
+
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>

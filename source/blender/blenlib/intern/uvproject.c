@@ -20,6 +20,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/uvproject.c
+ *  \ingroup bli
+ */
+
+
 #include <math.h>
 
 #include "MEM_guardedalloc.h"

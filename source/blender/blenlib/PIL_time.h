@@ -29,6 +29,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenlib/PIL_time.h
+ *  \ingroup bli
+ */
+
  
 #ifndef PIL_TIME_H
 #define PIL_TIME_H

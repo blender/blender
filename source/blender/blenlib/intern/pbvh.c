@@ -20,6 +20,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/pbvh.c
+ *  \ingroup bli
+ */
+
+
 
 
 #include "DNA_meshdata_types.h"

@@ -32,6 +32,11 @@
  * 
  */
 
+/** \file blender/blenlib/intern/string.c
+ *  \ingroup bli
+ */
+
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>

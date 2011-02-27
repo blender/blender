@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/bpath.c
+ *  \ingroup bli
+ */
+
+
 #include <sys/stat.h>
 
 #include <string.h>

@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
+/** \file blender/blenlib/intern/math_base_inline.c
+ *  \ingroup bli
+ */
+
+
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>

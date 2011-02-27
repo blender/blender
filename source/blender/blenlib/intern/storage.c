@@ -29,6 +29,11 @@
  * Some really low-level file thingies.
  */
 
+/** \file blender/blenlib/intern/storage.c
+ *  \ingroup bli
+ */
+
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>	

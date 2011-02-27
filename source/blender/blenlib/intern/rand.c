@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/rand.c
+ *  \ingroup bli
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 

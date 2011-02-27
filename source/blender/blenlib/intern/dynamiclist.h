@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/dynamiclist.h
+ *  \ingroup bli
+ */
+
+
 #ifndef B_DYNAMIC_LIST_H
 #define B_DYNAMIC_LIST_H
 

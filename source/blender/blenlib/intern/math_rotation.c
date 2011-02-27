@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
+/** \file blender/blenlib/intern/math_rotation.c
+ *  \ingroup bli
+ */
+
+
 
 #include <assert.h>
 #include "BLI_math.h"
