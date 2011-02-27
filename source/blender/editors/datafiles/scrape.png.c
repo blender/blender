@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/scrape.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <scrape_png> */
 
 int datatoc_scrape_png_size= 13055;

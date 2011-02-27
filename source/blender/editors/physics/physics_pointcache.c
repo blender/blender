@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/physics/physics_pointcache.c
+ *  \ingroup edphys
+ */
+
+
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"

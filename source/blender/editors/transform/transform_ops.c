@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/transform/transform_ops.c
+ *  \ingroup edtransform
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"

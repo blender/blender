@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/animation/anim_draw.c
+ *  \ingroup edanimation
+ */
+
 #include "BLO_sys_types.h"
 
 #include "DNA_anim_types.h"

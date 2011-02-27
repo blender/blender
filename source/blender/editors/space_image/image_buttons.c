@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_image/image_buttons.c
+ *  \ingroup spimage
+ */
+
+
 
 #include <string.h>
 #include <stdio.h>

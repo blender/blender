@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/animation/keyingsets.c
+ *  \ingroup edanimation
+ */
+
  
 #include <stdio.h>
 #include <stddef.h>

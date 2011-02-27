@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_text/text_ops.c
+ *  \ingroup sptext
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h> /* ispunct */

@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/vertexdraw.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <vertexdraw_png> */
 
 int datatoc_vertexdraw_png_size= 10253;

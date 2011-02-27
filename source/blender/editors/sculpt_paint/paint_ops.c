@@ -19,6 +19,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/sculpt_paint/paint_ops.c
+ *  \ingroup edsculpt
+ */
+
+
 #include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"

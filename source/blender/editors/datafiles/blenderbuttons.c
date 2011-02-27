@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/blenderbuttons.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <blenderbuttons> */
 
 int datatoc_blenderbuttons_size= 210335;

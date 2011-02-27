@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_view3d/drawarmature.c
+ *  \ingroup spview3d
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>

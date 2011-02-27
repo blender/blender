@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/object/object_relations.c
+ *  \ingroup edobj
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

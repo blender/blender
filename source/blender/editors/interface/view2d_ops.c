@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/interface/view2d_ops.c
+ *  \ingroup edinterface
+ */
+
+
 #include <math.h>
 
 #include "MEM_guardedalloc.h"

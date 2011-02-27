@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/uvedit/uvedit_draw.c
+ *  \ingroup eduv
+ */
+
+
 #include <float.h>
 #include <math.h>
 #include <stdlib.h>

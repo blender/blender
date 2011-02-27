@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/flatten.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <flatten_png> */
 
 int datatoc_flatten_png_size= 9114;

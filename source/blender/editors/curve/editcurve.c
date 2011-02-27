@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/curve/editcurve.c
+ *  \ingroup edcurve
+ */
+
+
 #include <math.h>
 #include <string.h>
 

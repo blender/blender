@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_script/script_intern.h
+ *  \ingroup spscript
+ */
+
 #ifndef ED_SCRIPT_INTERN_H
 #define ED_SCRIPT_INTERN_H
 

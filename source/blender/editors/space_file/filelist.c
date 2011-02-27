@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_file/filelist.c
+ *  \ingroup spfile
+ */
+
+
 /* global includes */
 
 #include <stdlib.h>

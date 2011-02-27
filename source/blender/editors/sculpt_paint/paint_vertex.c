@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/sculpt_paint/paint_vertex.c
+ *  \ingroup edsculpt
+ */
+
+
 #include <math.h>
 #include <string.h>
 

@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/object/object_lattice.c
+ *  \ingroup edobj
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>

@@ -22,6 +22,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_api/spacetypes.c
+ *  \ingroup spapi
+ */
+
+
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"

@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/sculpt_paint/paint_image.c
+ *  \ingroup edsculpt
+ */
+
+
 #include <float.h>
 #include <string.h>
 #include <stdio.h>

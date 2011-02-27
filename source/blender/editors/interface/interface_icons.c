@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/interface/interface_icons.c
+ *  \ingroup edinterface
+ */
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>

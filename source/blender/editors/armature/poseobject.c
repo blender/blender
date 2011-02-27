@@ -27,6 +27,11 @@
  * support for animation modes - Reevan McKay
  */
 
+/** \file blender/editors/armature/poseobject.c
+ *  \ingroup edarmature
+ */
+
+
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>

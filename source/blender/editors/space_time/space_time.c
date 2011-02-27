@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_time/space_time.c
+ *  \ingroup sptime
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 

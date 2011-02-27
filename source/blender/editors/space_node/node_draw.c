@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_node/node_draw.c
+ *  \ingroup spnode
+ */
+
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>

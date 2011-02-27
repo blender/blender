@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/util/editmode_undo.c
+ *  \ingroup edutil
+ */
+
+
 
 #include <stdlib.h>
 #include <string.h>

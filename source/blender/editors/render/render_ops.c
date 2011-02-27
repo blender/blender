@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/render/render_ops.c
+ *  \ingroup edrend
+ */
+
+
 #include <stdlib.h>
 
 

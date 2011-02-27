@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/sound/sound_ops.c
+ *  \ingroup edsnd
+ */
+
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

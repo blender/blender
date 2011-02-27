@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/physics/particle_edit.c
+ *  \ingroup edphys
+ */
+
+
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>

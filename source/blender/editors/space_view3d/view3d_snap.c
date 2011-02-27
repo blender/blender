@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_view3d/view3d_snap.c
+ *  \ingroup spview3d
+ */
+
+
 #include <math.h>
 #include <string.h>
 

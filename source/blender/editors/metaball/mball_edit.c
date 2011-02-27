@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/metaball/mball_edit.c
+ *  \ingroup edmeta
+ */
+
+
 #include <math.h>
 #include <string.h>
 

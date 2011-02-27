@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_action/action_intern.h
+ *  \ingroup spaction
+ */
+
 #ifndef ED_ACTION_INTERN_H
 #define ED_ACTION_INTERN_H
 

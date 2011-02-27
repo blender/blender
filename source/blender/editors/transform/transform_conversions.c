@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/transform/transform_conversions.c
+ *  \ingroup edtransform
+ */
+
+
 #ifndef WIN32
 #include <unistd.h>
 #else

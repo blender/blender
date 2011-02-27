@@ -30,6 +30,11 @@
  *
  */
 
+/** \file blender/editors/sculpt_paint/sculpt_undo.c
+ *  \ingroup edsculpt
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"

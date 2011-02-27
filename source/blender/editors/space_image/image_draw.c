@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_image/image_draw.c
+ *  \ingroup spimage
+ */
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>

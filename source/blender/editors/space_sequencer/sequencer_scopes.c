@@ -23,6 +23,11 @@
  *
  */
 
+/** \file blender/editors/space_sequencer/sequencer_scopes.c
+ *  \ingroup spseq
+ */
+
+
 #include <math.h>
 #include <string.h>
 

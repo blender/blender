@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/snake_hook.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <snake_hook_png> */
 
 int datatoc_snake_hook_png_size= 9710;

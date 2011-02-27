@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/interface/interface_regions.c
+ *  \ingroup edinterface
+ */
+
+
 
 #include <stdarg.h>
 #include <stdlib.h>

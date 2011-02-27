@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/interface/interface_handlers.c
+ *  \ingroup edinterface
+ */
+
+
 #include <float.h>
 #include <limits.h>
 #include <math.h>

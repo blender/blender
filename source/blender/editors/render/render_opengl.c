@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/render/render_opengl.c
+ *  \ingroup edrend
+ */
+
+
 #include <math.h>
 #include <string.h>
 #include <stddef.h>

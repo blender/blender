@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_text/text_draw.c
+ *  \ingroup sptext
+ */
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>

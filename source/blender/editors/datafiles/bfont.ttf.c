@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/bfont.ttf.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <bfont_ttf> */
  
 int datatoc_bfont_ttf_size= 191532;

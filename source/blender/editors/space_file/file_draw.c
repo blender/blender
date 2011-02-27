@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_file/file_draw.c
+ *  \ingroup spfile
+ */
+
+
 #include <math.h>
 #include <string.h>
 

@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/thumb.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <thumb_png> */
 
 int datatoc_thumb_png_size= 9098;

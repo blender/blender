@@ -25,7 +25,12 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- */ 
+ */
+
+/** \file blender/editors/sculpt_paint/sculpt_intern.h
+ *  \ingroup edsculpt
+ */
+ 
 
 #ifndef BDR_SCULPTMODE_H
 #define BDR_SCULPTMODE_H

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_nla/nla_buttons.c
+ *  \ingroup spnla
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 #include <math.h>

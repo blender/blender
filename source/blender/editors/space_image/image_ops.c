@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_image/image_ops.c
+ *  \ingroup spimage
+ */
+
+
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>

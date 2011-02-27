@@ -1,3 +1,6 @@
+/** \file blender/editors/uvedit/uvedit_parametrizer.c
+ *  \ingroup eduv
+ */
 
 #include "MEM_guardedalloc.h"
 

@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/multiply.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <multiply_png> */
 
 int datatoc_multiply_png_size= 10039;

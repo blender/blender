@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/render/render_preview.c
+ *  \ingroup edrend
+ */
+
+
 /* global includes */
 
 #include <stdlib.h>

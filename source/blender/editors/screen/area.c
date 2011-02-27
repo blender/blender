@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/screen/area.c
+ *  \ingroup edscr
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 

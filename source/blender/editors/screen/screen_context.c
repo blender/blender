@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/screen/screen_context.c
+ *  \ingroup edscr
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 

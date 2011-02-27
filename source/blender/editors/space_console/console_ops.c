@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_console/console_ops.c
+ *  \ingroup spconsole
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h> /* ispunct */

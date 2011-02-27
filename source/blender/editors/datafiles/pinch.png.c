@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/pinch.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <pinch_png> */
 
 int datatoc_pinch_png_size= 9880;

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/sculpt_paint/paint_intern.h
+ *  \ingroup edsculpt
+ */
+
+
 #ifndef ED_PAINT_INTERN_H
 #define ED_PAINT_INTERN_H
 

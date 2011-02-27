@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_buttons/buttons_ops.c
+ *  \ingroup spbuttons
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_script/script_header.c
+ *  \ingroup spscript
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 

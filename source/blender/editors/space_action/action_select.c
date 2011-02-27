@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_action/action_select.c
+ *  \ingroup spaction
+ */
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>

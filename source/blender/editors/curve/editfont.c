@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/curve/editfont.c
+ *  \ingroup edcurve
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>

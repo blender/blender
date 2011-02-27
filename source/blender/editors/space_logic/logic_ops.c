@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_logic/logic_ops.c
+ *  \ingroup splogic
+ */
+
 #include <stddef.h>
 
 #include "DNA_object_types.h"

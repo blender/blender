@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_file/filelist.h
+ *  \ingroup spfile
+ */
+
+
 #ifndef FILELIST_H
 #define FILELIST_H
 

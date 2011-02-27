@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_view3d/view3d_ops.c
+ *  \ingroup spview3d
+ */
+
+
 #include <stdlib.h>
 #include <math.h>
 

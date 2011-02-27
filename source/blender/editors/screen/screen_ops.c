@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/screen/screen_ops.c
+ *  \ingroup edscr
+ */
+
+
 #include <math.h>
 #include <string.h>
 

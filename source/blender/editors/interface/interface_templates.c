@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/interface/interface_templates.c
+ *  \ingroup edinterface
+ */
+
+
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>

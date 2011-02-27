@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/physics/physics_fluid.c
+ *  \ingroup edphys
+ */
+
+
 
 
 #include <math.h>

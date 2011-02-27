@@ -28,6 +28,11 @@
  * BIF_meshlaplacian.h: Algorithms using the mesh laplacian.
  */
 
+/** \file blender/editors/armature/meshlaplacian.h
+ *  \ingroup edarmature
+ */
+
+
 #ifndef BIF_MESHLAPLACIAN_H
 #define BIF_MESHLAPLACIAN_H
 

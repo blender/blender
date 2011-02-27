@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/animation/fmodifier_ui.c
+ *  \ingroup edanimation
+ */
+
+
 /* User-Interface Stuff for F-Modifiers:
  * This file defines the (C-Coded) templates + editing callbacks needed 
  * by the interface stuff or F-Modifiers, as used by F-Curves in the Graph Editor,

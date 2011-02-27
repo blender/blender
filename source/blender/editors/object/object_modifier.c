@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/object/object_modifier.c
+ *  \ingroup edobj
+ */
+
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

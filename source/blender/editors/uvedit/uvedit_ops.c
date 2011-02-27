@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/uvedit/uvedit_ops.c
+ *  \ingroup eduv
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>

@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/smooth.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <smooth_png> */
 
 int datatoc_smooth_png_size= 16428;

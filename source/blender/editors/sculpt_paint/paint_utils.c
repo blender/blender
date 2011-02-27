@@ -1,3 +1,6 @@
+/** \file blender/editors/sculpt_paint/paint_utils.c
+ *  \ingroup edsculpt
+ */
 
 #include <math.h>
 #include <stdlib.h>

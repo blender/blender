@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/metaball/mball_intern.h
+ *  \ingroup edmeta
+ */
+
+
 #ifndef ED_MBALL_INTERN_H
 #define ED_MBALL_INTERN_H
 

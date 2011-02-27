@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_graph/space_graph.c
+ *  \ingroup spgraph
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 

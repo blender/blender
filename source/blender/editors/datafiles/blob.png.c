@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/blob.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <blob_png> */
 
 int datatoc_blob_png_size= 10703;

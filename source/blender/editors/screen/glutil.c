@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/screen/glutil.c
+ *  \ingroup edscr
+ */
+
+
 #include <stdio.h>
 #include <string.h>
 

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/object/object_constraint.c
+ *  \ingroup edobj
+ */
+
+
 #include <stdio.h>
 #include <string.h>
 

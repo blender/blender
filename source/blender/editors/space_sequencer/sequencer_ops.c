@@ -1,5 +1,5 @@
 
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_sequencer/sequencer_ops.c
+ *  \ingroup spseq
+ */
+
 
 #include <stdlib.h>
 #include <math.h>

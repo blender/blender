@@ -23,6 +23,11 @@
  * autoarmature.c: Interface for automagically manipulating armature (retarget, created, ...)
  */
 
+/** \file blender/editors/armature/editarmature_retarget.c
+ *  \ingroup edarmature
+ */
+
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>

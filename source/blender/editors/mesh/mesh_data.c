@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/mesh_data.c
+ *  \ingroup edmesh
+ */
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>

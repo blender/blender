@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/splash.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <splash_png> */
 
 int datatoc_splash_png_size= 174800;

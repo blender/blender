@@ -30,6 +30,11 @@
  *
  */
 
+/** \file blender/editors/sculpt_paint/sculpt.c
+ *  \ingroup edsculpt
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"

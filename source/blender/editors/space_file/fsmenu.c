@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_file/fsmenu.c
+ *  \ingroup spfile
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

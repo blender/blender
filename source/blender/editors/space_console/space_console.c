@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_console/space_console.c
+ *  \ingroup spconsole
+ */
+
 #include <string.h>
 #include <stdio.h>
 

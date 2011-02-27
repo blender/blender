@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/object/object_bake.c
+ *  \ingroup edobj
+ */
+
+
 /*
 	meshtools.c: no editmode (violated already :), tools operating on meshes
 */

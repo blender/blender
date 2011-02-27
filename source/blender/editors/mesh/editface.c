@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/editface.c
+ *  \ingroup edmesh
+ */
+
+
 
 #include <math.h>
 #include <string.h>

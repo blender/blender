@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/startup.blend.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <startup_blend> */
 
 int datatoc_startup_blend_size= 409636;

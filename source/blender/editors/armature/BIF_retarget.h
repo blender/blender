@@ -20,6 +20,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/armature/BIF_retarget.h
+ *  \ingroup edarmature
+ */
+
+
 #ifndef BIF_RETARGET_H
 #define BIF_RETARGET_H
 

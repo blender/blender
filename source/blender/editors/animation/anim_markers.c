@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/animation/anim_markers.c
+ *  \ingroup edanimation
+ */
+
+
 #include <math.h>
 
 #include "MEM_guardedalloc.h"

@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/animation/keyframes_general.c
+ *  \ingroup edanimation
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/editmesh_lib.c
+ *  \ingroup edmesh
+ */
+
+
 /*
 
 editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_text/text_header.c
+ *  \ingroup sptext
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

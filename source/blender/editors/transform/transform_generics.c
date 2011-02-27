@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/transform/transform_generics.c
+ *  \ingroup edtransform
+ */
+
+
 #include <string.h>
 #include <math.h>
 

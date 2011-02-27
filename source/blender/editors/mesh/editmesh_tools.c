@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/editmesh_tools.c
+ *  \ingroup edmesh
+ */
+
+
 /*
 
 editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise in mods.c

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/editmesh_loop.c
+ *  \ingroup edmesh
+ */
+
+
 /*
 
 editmesh_loop: tools with own drawing subloops, select, knife, subdiv

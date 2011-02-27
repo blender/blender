@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/mesh_intern.h
+ *  \ingroup edmesh
+ */
+
+
 /* Internal for editmesh_xxxx.c functions */
 
 #ifndef MESH_INTERN_H

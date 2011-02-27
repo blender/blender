@@ -1,3 +1,6 @@
+/** \file blender/editors/interface/resources.c
+ *  \ingroup edinterface
+ */
 /*
  * $Id$
  *
