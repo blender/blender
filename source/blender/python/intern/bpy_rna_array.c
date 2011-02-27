@@ -233,6 +233,8 @@ static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, int 
 	int totdim= RNA_property_array_dimension(ptr, prop, NULL);
 	const int seq_size= PySequence_Size(seq);
 
+	assert(seq_size != -1);
+
 	for (i= 0; i < seq_size; i++) {
 		PyObject *item= PySequence_GetItem(seq, i);
 

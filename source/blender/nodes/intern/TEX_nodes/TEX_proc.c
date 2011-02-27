@@ -306,13 +306,13 @@ void register_node_type_tex_proc_##name(ListBase *lb) \
 #define C outputs_color_only
 #define CV outputs_both
 	
-TexDef(TEX_VORONOI,   CV, voronoi,   "Voronoi"  );
-TexDef(TEX_BLEND,     C,  blend,     "Blend"    );
-TexDef(TEX_MAGIC,     C,  magic,     "Magic"    );
-TexDef(TEX_MARBLE,    CV, marble,    "Marble"   );
-TexDef(TEX_CLOUDS,    CV, clouds,    "Clouds"   );
-TexDef(TEX_WOOD,      CV, wood,      "Wood"     );
-TexDef(TEX_MUSGRAVE,  CV, musgrave,  "Musgrave" );
-TexDef(TEX_NOISE,     C,  noise,     "Noise"    );
-TexDef(TEX_STUCCI,    CV, stucci,    "Stucci"   );
-TexDef(TEX_DISTNOISE, CV, distnoise, "Distorted Noise" );
+TexDef(TEX_VORONOI,   CV, voronoi,   "Voronoi"  )
+TexDef(TEX_BLEND,     C,  blend,     "Blend"    )
+TexDef(TEX_MAGIC,     C,  magic,     "Magic"    )
+TexDef(TEX_MARBLE,    CV, marble,    "Marble"   )
+TexDef(TEX_CLOUDS,    CV, clouds,    "Clouds"   )
+TexDef(TEX_WOOD,      CV, wood,      "Wood"     )
+TexDef(TEX_MUSGRAVE,  CV, musgrave,  "Musgrave" )
+TexDef(TEX_NOISE,     C,  noise,     "Noise"    )
+TexDef(TEX_STUCCI,    CV, stucci,    "Stucci"   )
+TexDef(TEX_DISTNOISE, CV, distnoise, "Distorted Noise" )

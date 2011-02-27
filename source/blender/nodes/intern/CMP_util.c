@@ -118,7 +118,7 @@ void free_compbuf(CompBuf *cbuf)
 
 void print_compbuf(char *str, CompBuf *cbuf)
 {
-	printf("Compbuf %s %d %d %p\n", str, cbuf->x, cbuf->y, cbuf->rect);
+	printf("Compbuf %s %d %d %p\n", str, cbuf->x, cbuf->y, (void *)cbuf->rect);
 	
 }
 

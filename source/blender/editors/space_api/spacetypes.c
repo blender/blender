@@ -225,6 +225,8 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *ar, int type)
 
 
 /* ********************* space template *********************** */
+/* forward declare */
+void ED_spacetype_xxx(void);
 
 /* allocate and init some vars */
 static SpaceLink *xxx_new(const bContext *UNUSED(C))
@@ -266,7 +268,7 @@ static void xxx_keymap(wmKeyConfig *UNUSED(keyconf))
 }
 
 /* only called once, from screen/spacetypes.c */
-static void ED_spacetype_xxx(void)
+void ED_spacetype_xxx(void)
 {
 	static SpaceType st;
 	

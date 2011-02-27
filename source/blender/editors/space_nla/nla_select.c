@@ -206,11 +206,11 @@ void NLA_OT_select_all_toggle (wmOperatorType *ot)
  */
 
 /* defines for borderselect mode */
-static enum {
+enum {
 	NLA_BORDERSEL_ALLSTRIPS	= 0,
 	NLA_BORDERSEL_FRAMERANGE,
 	NLA_BORDERSEL_CHANNELS,
-} eNLAEDIT_BorderSelect_Mode;
+} /* eNLAEDIT_BorderSelect_Mode */;
 
 
 static void borderselect_nla_strips (bAnimContext *ac, rcti rect, short mode, short selectmode)

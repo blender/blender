@@ -1070,10 +1070,6 @@ static int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object
 	return 0;
 }
 
-static void fluidsimFreeBake(Object *UNUSED(ob))
-{
-}
-
 #endif /* DISABLE_ELBEEM */
 
 /***************************** Operators ******************************/

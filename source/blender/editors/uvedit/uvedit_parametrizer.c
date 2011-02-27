@@ -260,7 +260,7 @@ static int phash_size(PHash *ph)
 static void phash_insert(PHash *ph, PHashLink *link)
 {
 	int size = ph->cursize;
-	int hash = PHASH_hash(ph, link->key);
+	uintptr_t hash = PHASH_hash(ph, link->key);
 	PHashLink *lookup = ph->buckets[hash];
 
 	if (lookup == NULL) {
@@ -296,7 +296,7 @@ static void phash_insert(PHash *ph, PHashLink *link)
 static PHashLink *phash_lookup(PHash *ph, PHashKey key)
 {
 	PHashLink *link;
-	int hash = PHASH_hash(ph, key);
+	uintptr_t hash = PHASH_hash(ph, key);
 
 	for (link = ph->buckets[hash]; link; link = link->next)
 		if (link->key == key)
@@ -309,7 +309,7 @@ static PHashLink *phash_lookup(PHash *ph, PHashKey key)
 
 static PHashLink *phash_next(PHash *ph, PHashKey key, PHashLink *link)
 {
-	int hash = PHASH_hash(ph, key);
+	uintptr_t hash = PHASH_hash(ph, key);
 
 	for (link = link->next; link; link = link->next)
 		if (link->key == key)

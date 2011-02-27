@@ -99,7 +99,7 @@ static void node_composit_exec_color_matte(void *data, bNode *node, bNodeStack *
 
 	if(cbuf!=in[0]->data)
 		free_compbuf(cbuf);
-};
+}
 
 static void node_composit_init_color_matte(bNode *node)
 {
@@ -110,7 +110,7 @@ static void node_composit_init_color_matte(bNode *node)
    c->t3= 0.1f;
    c->fsize= 0.0f;
    c->fstrength= 1.0f;
-};
+}
 
 void register_node_type_cmp_color_matte(ListBase *lb)
 {

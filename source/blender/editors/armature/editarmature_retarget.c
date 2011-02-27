@@ -1429,7 +1429,7 @@ static void RIG_printNode(RigNode *node, const char name[])
 	}
 }
 
-static void RIG_printArcBones(RigArc *arc)
+void RIG_printArcBones(RigArc *arc)
 {
 	RigEdge *edge;
 
@@ -1480,7 +1480,7 @@ static void RIG_printLinkedCtrl(RigGraph *rg, EditBone *bone, int tabs)
 	}
 }
 
-static void RIG_printArc(RigGraph *rg, RigArc *arc)
+void RIG_printArc(RigGraph *rg, RigArc *arc)
 {
 	RigEdge *edge;
 
@@ -1502,7 +1502,7 @@ static void RIG_printArc(RigGraph *rg, RigArc *arc)
 	RIG_printNode((RigNode*)arc->tail, "tail");
 }
 
-static void RIG_printGraph(RigGraph *rg)
+void RIG_printGraph(RigGraph *rg)
 {
 	RigArc *arc;
 

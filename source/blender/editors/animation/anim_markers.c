@@ -281,7 +281,7 @@ void debug_markers_print_list(ListBase *markers)
 	printf("List of markers follows: -----\n");
 	
 	for (marker = markers->first; marker; marker = marker->next) {
-		printf("\t'%s' on %d at %p with %d\n", marker->name, marker->frame, marker, marker->flag);
+		printf("\t'%s' on %d at %p with %d\n", marker->name, marker->frame, (void *)marker, marker->flag);
 	}
 	
 	printf("End of list ------------------\n");

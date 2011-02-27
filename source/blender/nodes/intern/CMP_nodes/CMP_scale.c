@@ -107,7 +107,7 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 		if(cbuf!=in[0]->data)
 			free_compbuf(cbuf);
 	}
-};
+}
 
 void register_node_type_cmp_scale(ListBase *lb)
 {

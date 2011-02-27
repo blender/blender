@@ -835,7 +835,8 @@ static void select_linked(Scene *scene, Image *ima, EditMesh *em, float limit[2]
 	MTFace *tf;
 	UvVertMap *vmap;
 	UvMapVert *vlist, *iterv, *startv;
-	int a, i, nverts, stacksize= 0, *stack;
+	int i, nverts, stacksize= 0, *stack;
+	unsigned int a;
 	char *flag;
 
 	EM_init_index_arrays(em, 0, 0, 1); /* we can use this too */
@@ -2022,7 +2023,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 		UvMapVert *start_vlist=NULL, *vlist_iter;
 		struct UvVertMap *vmap;
 		float limit[2];
-		int efa_index;
+		unsigned int efa_index;
 		//EditVert *eve; /* removed vert counting for now */ 
 		//int a;
 		

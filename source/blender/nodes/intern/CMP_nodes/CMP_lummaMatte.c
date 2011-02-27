@@ -101,7 +101,7 @@ static void node_composit_init_luma_matte(bNode *node)
    node->storage=c;
    c->t1= 1.0f;
    c->t2= 0.0f;
-};
+}
 
 void register_node_type_cmp_luma_matte(ListBase *lb)
 {

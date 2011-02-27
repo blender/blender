@@ -531,7 +531,7 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	/* remove relevant keyframes */
 	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
 		BezTriple *bezt;
-		int i;
+		unsigned int i;
 		
 		if (fcu->bezt) {
 			for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {

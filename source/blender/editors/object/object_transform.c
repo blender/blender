@@ -648,53 +648,6 @@ void OBJECT_OT_rotation_apply(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/************************ Texture Space Transform ****************************/
-
-static void texspace_edit(Scene *scene, View3D *v3d)
-{
-	Base *base;
-	int nr=0;
-	
-	/* first test if from visible and selected objects
-	 * texspacedraw is set:
-	 */
-	
-	if(scene->obedit) return; // XXX get from context
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			break;
-		}
-	}
-
-	if(base==0) {
-		return;
-	}
-	
-	nr= 0; // XXX pupmenu("Texture Space %t|Grab/Move%x1|Size%x2");
-	if(nr<1) return;
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			base->object->dtx |= OB_TEXSPACE;
-		}
-	}
-	
-
-	if(nr==1) {
-// XXX		initTransform(TFM_TRANSLATION, CTX_TEXTURE);
-// XXX		Transform();
-	}
-	else if(nr==2) {
-// XXX		initTransform(TFM_RESIZE, CTX_TEXTURE);
-// XXX		Transform();
-	}
-	else if(nr==3) {
-// XXX		initTransform(TFM_ROTATION, CTX_TEXTURE);
-// XXX		Transform();
-	}
-}
-
 /********************* Set Object Center ************************/
 
 enum {

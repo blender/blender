@@ -938,12 +938,12 @@ int RNA_function_call_lookup(struct bContext *C, struct ReportList *reports, Poi
 
 int RNA_function_call_direct(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, ...)
 #ifdef __GNUC__
-__attribute__ ((format (printf, 5, 6)));
+__attribute__ ((format (printf, 5, 6)))
 #endif
 ;
 int RNA_function_call_direct_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, ...)
 #ifdef __GNUC__
-__attribute__ ((format (printf, 5, 6)));
+__attribute__ ((format (printf, 5, 6)))
 #endif
 ;
 int RNA_function_call_direct_va(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args);

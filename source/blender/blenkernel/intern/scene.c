@@ -829,7 +829,7 @@ char *scene_find_last_marker_name(Scene *scene, int frame)
 
 /* markers need transforming from different parts of the code so have
  * a generic function to do this */
-int scene_marker_tfm_translate(Scene *scene, int delta, int flag)
+int scene_marker_tfm_translate(Scene *scene, int delta, unsigned int flag)
 {
 	TimeMarker *marker;
 	int tot= 0;

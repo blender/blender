@@ -295,7 +295,7 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 {
 	BezTriple beztr= {{{0}}};
-	int oldTot = fcu->totvert;
+	unsigned int oldTot = fcu->totvert;
 	int a;
 	
 	/* set all three points, for nicer start position 

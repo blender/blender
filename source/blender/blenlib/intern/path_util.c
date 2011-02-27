@@ -53,8 +53,10 @@
 #if defined WIN32 && !defined _LIBC
 # include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
 #else
-# define _GNU_SOURCE
-# include <fnmatch.h>
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
+#  endif
+#  include <fnmatch.h>
 #endif
 
 #ifdef WIN32

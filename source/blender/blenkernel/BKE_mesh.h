@@ -156,7 +156,7 @@ int mesh_center_bounds(struct Mesh *me, float cent[3]);
 void mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
 /* mesh_validate.c */
-int BKE_mesh_validate_arrays(struct Mesh *me, struct MVert *mverts, int totvert, struct MEdge *medges, int totedge, struct MFace *mfaces, int totface, const short do_verbose, const short do_fixes);
+int BKE_mesh_validate_arrays(struct Mesh *me, struct MVert *mverts, unsigned int totvert, struct MEdge *medges, unsigned int totedge, struct MFace *mfaces, unsigned int totface, const short do_verbose, const short do_fixes);
 int BKE_mesh_validate(struct Mesh *me, int do_verbose);
 int BKE_mesh_validate_dm(struct DerivedMesh *dm);
 

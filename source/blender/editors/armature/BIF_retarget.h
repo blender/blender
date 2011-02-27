@@ -160,5 +160,9 @@ void RIG_freeRigGraph(BGraph *rg);
 /* UNUSED */
 void BIF_retargetArmature(bContext *C);
 void BIF_adjustRetarget(bContext *C);
+/* UNUSED / print funcs */
+void RIG_printArc(struct RigGraph *rg, struct RigArc *arc);
+void RIG_printGraph(struct RigGraph *rg);
+void RIG_printArcBones(struct RigArc *arc);
 
 #endif /* BIF_RETARGET_H */

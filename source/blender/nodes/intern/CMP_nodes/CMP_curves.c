@@ -93,12 +93,12 @@ static void node_composit_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeS
 	/* stack order output: vec */
 	
 	curvemapping_evaluate_premulRGBF(node->storage, out[0]->vec, in[0]->vec);
-};
+}
 
 static void node_composit_init_curve_vec(bNode* node)
 {
    node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
-};
+}
 
 void register_node_type_cmp_curve_vec(ListBase *lb)
 {
@@ -180,12 +180,12 @@ static void node_composit_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeS
 		out[0]->data= stackbuf;
 	}
 	
-};
+}
 
 static void node_composit_init_curve_rgb(bNode* node)
 {
    node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
-};
+}
 
 void register_node_type_cmp_curve_rgb(ListBase *lb)
 {

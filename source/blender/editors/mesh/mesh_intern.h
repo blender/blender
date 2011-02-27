@@ -46,7 +46,7 @@ int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge
 
 extern void free_editvert(EditMesh *em, EditVert *eve);
 extern void free_editedge(EditMesh *em, EditEdge *eed);
-extern void free_editface(EditMesh *em, EditFace *efa);;
+extern void free_editface(EditMesh *em, EditFace *efa);
 
 extern void free_vertlist(EditMesh *em, ListBase *edve);
 extern void free_edgelist(EditMesh *em, ListBase *lb);

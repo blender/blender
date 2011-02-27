@@ -1482,7 +1482,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 {
 	char buf[UI_MAX_DRAW_STR]={0};
 	char *str, *p, *pbuf;
-	int len, x, y, i, changed= 0;
+	int len, x, i, changed= 0;
 
 	str= data->str;
 	len= strlen(str);
@@ -1493,6 +1493,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 		p = pbuf= WM_clipboard_text_get(0);
 
 		if(p && p[0]) {
+			unsigned int y;
 			i= 0;
 			while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR-1) {
 				buf[i++]=*p;
