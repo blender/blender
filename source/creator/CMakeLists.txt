@@ -437,14 +437,6 @@ if(WITH_INSTALL)
 			)
 		endif()
 
-		if(WITH_JACK)
-			add_custom_command(TARGET blender
-				POST_BUILD
-				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${LIBDIR}\\jack\\lib\\libjack.dll\" \"${TARGETDIR}\\\"
-			)
-		endif()
-
 		if(WITH_OPENAL)
 			add_custom_command(TARGET blender
 				POST_BUILD
