@@ -502,8 +502,8 @@ class ConstraintButtonsPanel():
         layout.prop(con, "offset")
 
         row = layout.row()
-        #row.label(text="Min/Max:")
-        row.prop(con, "floor_location", expand=True, text="Min/Max:")
+        row.label(text="Min/Max:")
+        row.prop(con, "floor_location", expand=True)
 
         self.space_template(layout, con)
 
@@ -623,8 +623,7 @@ class ConstraintButtonsPanel():
         row.label(text="Main Axis:")
         row.prop(con, "main_axis", expand=True)
 
-        row = layout.row()
-        row.prop(con, "use_cyclic")
+        layout.prop(con, "use_cyclic")
 
     def TRANSFORM(self, context, layout, con):
         self.target_template(layout, con)
