@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/avi/intern/mjpeg.h
+ *  \ingroup avi
+ */
+
+
 void *avi_converter_from_mjpeg (AviMovie *movie, int stream, unsigned char *buffer, int *size);
 void *avi_converter_to_mjpeg (AviMovie *movie, int stream, unsigned char *buffer, int *size);
 

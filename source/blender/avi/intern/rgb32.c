@@ -30,6 +30,11 @@
  *
  */
 
+/** \file blender/avi/intern/rgb32.c
+ *  \ingroup avi
+ */
+
+
 #include "AVI_avi.h"
 #include <stdlib.h>
 #include <string.h>

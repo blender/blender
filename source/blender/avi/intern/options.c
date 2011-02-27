@@ -31,6 +31,11 @@
  *
  */
 
+/** \file blender/avi/intern/options.c
+ *  \ingroup avi
+ */
+
+
 #include "AVI_avi.h"
 #include "avi_intern.h"
 #include "endian.h"
