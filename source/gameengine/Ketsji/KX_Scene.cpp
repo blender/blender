@@ -269,10 +269,12 @@ KX_Scene::~KX_Scene()
 
 #ifdef WITH_PYTHON
 	PyDict_Clear(m_attr_dict);
-	Py_DECREF(m_attr_dict);
+	/* Py_CLEAR: Py_DECREF's and NULL's */
+	Py_CLEAR(m_attr_dict);
 
-	Py_XDECREF(m_draw_call_pre);
-	Py_XDECREF(m_draw_call_post);
+	/* these may be NULL but the macro checks */
+	Py_CLEAR(m_draw_call_pre);
+	Py_CLEAR(m_draw_call_post);
 #endif
 }
 

@@ -167,7 +167,7 @@ static int act_markers_make_local_poll(bContext *C)
 	return ED_markers_get_first_selected(ED_context_get_markers(C)) != NULL;
 }
 
-static int act_markers_make_local_exec (bContext *C, wmOperator *op)
+static int act_markers_make_local_exec (bContext *C, wmOperator *UNUSED(op))
 {	
 	ListBase *markers = ED_context_get_markers(C);
 	
