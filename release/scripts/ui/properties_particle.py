@@ -220,10 +220,8 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
             col.prop(part, "lifetime")
             col.prop(part, "lifetime_random", slider=True)
 
-        layout.row().label(text="Emit From:")
-
-        row = layout.row()
-        row.prop(part, "emit_from", expand=True)
+        layout.label(text="Emit From:")
+        layout.prop(part, "emit_from", expand=True)
 
         row = layout.row()
         if part.emit_from == 'VERT':
@@ -236,12 +234,9 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
             row.prop(part, "use_even_distribution")
 
         if part.emit_from == 'FACE' or part.emit_from == 'VOLUME':
-            row = layout.row()
-
-            row.prop(part, "distribution", expand=True)
+            layout.prop(part, "distribution", expand=True)
 
             row = layout.row()
-
             if part.distribution == 'JIT':
                 row.prop(part, "userjit", text="Particles/Face")
                 row.prop(part, "jitter_factor", text="Jittering Amount", slider=True)
@@ -773,45 +768,45 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
 
         split = layout.split()
 
-        sub = split.column()
-        sub.prop(part, "use_render_emitter")
-        sub.prop(part, "use_parent_particles")
-        sub = split.column()
-        sub.prop(part, "show_unborn")
-        sub.prop(part, "use_dead")
+        col = split.column()
+        col.prop(part, "use_render_emitter")
+        col.prop(part, "use_parent_particles")
+        
+        col = split.column()
+        col.prop(part, "show_unborn")
+        col.prop(part, "use_dead")
 
-        row = layout.row()
-        row.prop(part, "render_type", expand=True)
+        layout.prop(part, "render_type", expand=True)
 
         split = layout.split()
 
-        sub = split.column()
+        col = split.column()
 
         if part.render_type == 'LINE':
-            sub.prop(part, "line_length_tail")
-            sub.prop(part, "line_length_head")
-            sub = split.column()
-            sub.prop(part, "use_velocity_length")
+            col.prop(part, "line_length_tail")
+            col.prop(part, "line_length_head")
+            
+            split.prop(part, "use_velocity_length")
         elif part.render_type == 'PATH':
-            sub.prop(part, "use_strand_primitive")
-            subsub = sub.column()
-            subsub.active = (part.use_strand_primitive is False)
-            subsub.prop(part, "use_render_adaptive")
-            subsub = sub.column()
-            subsub.active = part.use_render_adaptive or part.use_strand_primitive == True
-            subsub.prop(part, "adaptive_angle")
-            subsub = sub.column()
-            subsub.active = (part.use_render_adaptive is True and part.use_strand_primitive is False)
-            subsub.prop(part, "adaptive_pixel")
-            sub.prop(part, "use_hair_bspline")
-            sub.prop(part, "render_step", text="Steps")
+            col.prop(part, "use_strand_primitive")
+            sub = col.column()
+            sub.active = (part.use_strand_primitive is False)
+            sub.prop(part, "use_render_adaptive")
+            sub = col.column()
+            sub.active = part.use_render_adaptive or part.use_strand_primitive == True
+            sub.prop(part, "adaptive_angle")
+            sub = col.column()
+            sub.active = (part.use_render_adaptive is True and part.use_strand_primitive is False)
+            sub.prop(part, "adaptive_pixel")
+            col.prop(part, "use_hair_bspline")
+            col.prop(part, "render_step", text="Steps")
 
-            sub = split.column()
-            sub.label(text="Timing:")
-            sub.prop(part, "use_absolute_path_time")
-            sub.prop(part, "path_start", text="Start", slider=not part.use_absolute_path_time)
-            sub.prop(part, "path_end", text="End", slider=not part.use_absolute_path_time)
-            sub.prop(part, "length_random", text="Random", slider=True)
+            col = split.column()
+            col.label(text="Timing:")
+            col.prop(part, "use_absolute_path_time")
+            col.prop(part, "path_start", text="Start", slider=not part.use_absolute_path_time)
+            col.prop(part, "path_end", text="End", slider=not part.use_absolute_path_time)
+            col.prop(part, "length_random", text="Random", slider=True)
 
             row = layout.row()
             col = row.column()
@@ -830,22 +825,23 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
                     sub.prop(part, "simplify_viewport")
 
         elif part.render_type == 'OBJECT':
-            sub.prop(part, "dupli_object")
-            sub.prop(part, "use_global_dupli")
+            col.prop(part, "dupli_object")
+            col.prop(part, "use_global_dupli")
         elif part.render_type == 'GROUP':
-            sub.prop(part, "dupli_group")
+            col.prop(part, "dupli_group")
             split = layout.split()
-            sub = split.column()
-            sub.prop(part, "use_whole_group")
-            subsub = sub.column()
-            subsub.active = (part.use_whole_group is False)
-            subsub.prop(part, "use_group_count")
+            
+            col = split.column()
+            col.prop(part, "use_whole_group")
+            sub = col.column()
+            sub.active = (part.use_whole_group is False)
+            sub.prop(part, "use_group_count")
 
-            sub = split.column()
-            subsub = sub.column()
-            subsub.active = (part.use_whole_group is False)
-            subsub.prop(part, "use_global_dupli")
-            subsub.prop(part, "use_group_pick_random")
+            col = split.column()
+            sub = col.column()
+            sub.active = (part.use_whole_group is False)
+            sub.prop(part, "use_global_dupli")
+            sub.prop(part, "use_group_pick_random")
 
             if part.use_group_count and not part.use_whole_group:
                 row = layout.row()
@@ -867,7 +863,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
         elif part.render_type == 'BILLBOARD':
             ob = context.object
 
-            sub.label(text="Align:")
+            col.label(text="Align:")
 
             row = layout.row()
             row.prop(part, "billboard_align", expand=True)
