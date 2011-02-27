@@ -18,6 +18,19 @@
  *  \ingroup blender scripts
  */
 
+/** \defgroup pygen Python Generic
+ *  \ingroup python
+ */
+
+/** \defgroup pythonintern Python RNA and Operators
+ *  \ingroup python
+ */
+
+/** \defgroup blpluginapi Blender pluginapi
+ *  \ingroup blender
+ *  \attention not in use currently
+ */
+
 /* ================================ */
 
 /** \defgroup bge Game Engine */
@@ -78,6 +91,10 @@
 
 /** \defgroup blender blender */
 
+/** \defgroup blf blenfont
+ *  \ingroup blender
+ */
+
 /** \defgroup bke blenkernel
  *  \ingroup blender
  */
@@ -90,6 +107,17 @@
  *  \ingroup blender
  */
 
+/** \defgroup cmpnodes cmpnodes
+ *  \ingroup nodes
+ */
+
+/** \defgroup shdnodes shdnodes
+ *  \ingroup nodes
+ */
+
+/** \defgroup texnodes texnodes
+ *  \ingroup nodes
+ */
 /** \defgroup modifiers modifiers
  *  \ingroup blender
  */
@@ -111,8 +139,10 @@
  *  \ingroup blender data
  */
 
-/** \defgroup readwrite .blend read and write functions
+/** \defgroup blenloader .blend read and write functions
  *  \ingroup blender data
+ *  \todo check if \ref blo and \ref blenloader groups can be
+ *   merged in docs.
  */
 
 /** \defgroup blo readblenfile
@@ -296,6 +326,18 @@
 
 /** \defgroup imbuf IMage Buffer
  *  \ingroup blender
+ */
+
+/** \defgroup imbcineon Cineon
+ *  \ingroup imbuf
+ */
+
+/** \defgorup imbdds DDS
+ *  \ingroup imbuf
+ */
+
+/** \defgroup openexr OpenEXR
+ *  \ingroup imbuf
  */
 
 /* ================================ */
