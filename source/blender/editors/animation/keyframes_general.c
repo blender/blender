@@ -323,7 +323,7 @@ void smooth_fcurve (FCurve *fcu)
 		}
 			
 		/* calculate the new smoothed F-Curve's with weighted averages:
-		 *	- this is done with two passes
+		 *	- this is done with two passes to avoid progressive corruption errors
 		 *	- uses 5 points for each operation (which stores in the relevant handles)
 		 *	-	previous: w/a ratio = 3:5:2:1:1
 		 *	- 	next: w/a ratio = 1:1:2:5:3

@@ -295,6 +295,7 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 {
 	BezTriple beztr= {{{0}}};
+	int oldTot = fcu->totvert;
 	int a;
 	
 	/* set all three points, for nicer start position 
@@ -330,10 +331,16 @@ int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 	if ((fcu->totvert > 2) && (flag & INSERTKEY_REPLACE)==0) {
 		BezTriple *bezt= (fcu->bezt + a);
 		
-		/* set interpolation from previous (if available) */
-		// FIXME: this doesn't work if user tweaked the interpolation specifically, and they were just overwriting some existing key in the process...
-		if (a > 0) bezt->ipo= (bezt-1)->ipo;
-		else if (a < fcu->totvert-1) bezt->ipo= (bezt+1)->ipo;
+		/* set interpolation from previous (if available), but only if we didn't just replace some keyframe 
+		 * 	- replacement is indicated by no-change in number of verts
+		 *	- when replacing, the user may have specified some interpolation that should be kept
+		 */
+		if (fcu->totvert > oldTot) {
+			if (a > 0) 
+				bezt->ipo= (bezt-1)->ipo;
+			else if (a < fcu->totvert-1) 
+				bezt->ipo= (bezt+1)->ipo;
+		}
 			
 		/* don't recalculate handles if fast is set
 		 *	- this is a hack to make importers faster
