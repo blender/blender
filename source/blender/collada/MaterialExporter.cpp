@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/collada/MaterialExporter.cpp
+ *  \ingroup collada
+ */
+
+
 
 #include "MaterialExporter.h"
 #include "COLLADABUUtils.h"

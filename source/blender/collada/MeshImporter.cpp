@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/collada/MeshImporter.cpp
+ *  \ingroup collada
+ */
+
+
 #include <algorithm>
 
 #if !defined(WIN32) || defined(FREE_WINDOWS)

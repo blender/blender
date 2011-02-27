@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/collada/InstanceWriter.cpp
+ *  \ingroup collada
+ */
+
+
 #include <string>
 
 #include "COLLADASWInstanceMaterial.h"

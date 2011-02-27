@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/collada/DocumentImporter.cpp
+ *  \ingroup collada
+ */
+
 // TODO:
 // * name imported objects
 // * import object rotation as euler

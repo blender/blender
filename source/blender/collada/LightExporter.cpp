@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/collada/LightExporter.cpp
+ *  \ingroup collada
+ */
+
+
 #include <string>
 
 #include "COLLADASWColor.h"
