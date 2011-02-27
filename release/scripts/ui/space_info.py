@@ -371,7 +371,7 @@ class INFO_MT_help(bpy.types.Menu):
             layout.separator()
         layout.operator("anim.update_data_paths", text="FCurve/Driver 2.54 fix", icon='HELP')
         layout.separator()
-        layout.operator("wm.splash")
+        layout.operator("wm.splash", icon='BLENDER')
 
 
 # Help operators
