@@ -32,7 +32,7 @@
 #define BLO_UNDOFILE_H
 
 /** \file BLO_undofile.h
- *  \ingroup readwrite
+ *  \ingroup blenloader
  */
 
 typedef struct {

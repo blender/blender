@@ -30,7 +30,7 @@
 #define BLO_READFILE_H
 
 /** \file BLO_readfile.h
- *  \ingroup readwrite
+ *  \ingroup blenloader
  *  \brief external readfile function prototypes.
  */
 

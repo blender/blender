@@ -28,6 +28,11 @@
  * .blend file reading entry point
  */
 
+/** \file blender/blenloader/intern/readblenentry.c
+ *  \ingroup blenloader
+ */
+
+
 #include <stddef.h>
 #include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 
