@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/voxeldata.h
+ *  \ingroup render
+ */
+
+
 #ifndef VOXELDATA_H
 #define VOXELDATA_H 
 

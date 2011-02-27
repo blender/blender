@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/envmap.h
+ *  \ingroup render
+ */
+
+
 #ifndef ENVMAP_EXT_H
 #define ENVMAP_EXT_H 
 

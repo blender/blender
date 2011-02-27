@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/render_texture.c
+ *  \ingroup render
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

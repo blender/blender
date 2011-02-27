@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/rendercore.c
+ *  \ingroup render
+ */
+
+
 /* system includes */
 #include <stdio.h>
 #include <math.h>

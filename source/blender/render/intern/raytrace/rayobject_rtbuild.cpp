@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/raytrace/rayobject_rtbuild.cpp
+ *  \ingroup render
+ */
+
+
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>

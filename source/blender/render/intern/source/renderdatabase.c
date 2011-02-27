@@ -25,6 +25,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/renderdatabase.c
+ *  \ingroup render
+ */
+
+
 /*
  * Storage, retrieval and query of render specific data.
  *

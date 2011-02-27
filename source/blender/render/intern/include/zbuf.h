@@ -27,6 +27,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/zbuf.h
+ *  \ingroup render
+ */
+
+
 #ifndef ZBUF_H
 #define ZBUF_H
 

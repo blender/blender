@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/shadeinput.c
+ *  \ingroup render
+ */
+
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>

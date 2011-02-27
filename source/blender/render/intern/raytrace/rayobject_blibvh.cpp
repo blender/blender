@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/raytrace/rayobject_blibvh.cpp
+ *  \ingroup render
+ */
+
 #include <assert.h>
 
 #include "MEM_guardedalloc.h"

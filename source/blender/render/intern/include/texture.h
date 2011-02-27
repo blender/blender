@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/texture.h
+ *  \ingroup render
+ */
+
+
 #ifndef TEXTURE_EXT_H
 #define TEXTURE_EXT_H
 

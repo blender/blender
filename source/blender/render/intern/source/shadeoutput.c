@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/shadeoutput.c
+ *  \ingroup render
+ */
+
+
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
