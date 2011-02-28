@@ -680,6 +680,8 @@ def bsc(env, target, source):
 
 class BlenderEnvironment(SConsEnvironment):
 
+    PyBundleActionAdded = False
+
     def BlenderRes(self=None, libname=None, source=None, libtype=['core'], priority=[100]):
         global libs
         if not self or not libname or not source:
@@ -823,12 +825,14 @@ class BlenderEnvironment(SConsEnvironment):
             lenv.AddPostAction(prog,Action(AppIt,strfunction=my_appit_print))
         elif os.sep == '/' and lenv['OURPLATFORM'] != 'linuxcross': # any unix (except cross-compilation)
             if lenv['WITH_BF_PYTHON']:
-                if not lenv['WITHOUT_BF_INSTALL'] and not lenv['WITHOUT_BF_PYTHON_INSTALL']:
+                if not lenv['WITHOUT_BF_INSTALL'] and not lenv['WITHOUT_BF_PYTHON_INSTALL'] and not BlenderEnvironment.PyBundleActionAdded:
                     lenv.AddPostAction(prog,Action(UnixPyBundle,strfunction=my_unixpybundle_print))
+                    BlenderEnvironment.PyBundleActionAdded = True
         elif lenv['OURPLATFORM'].startswith('win') or lenv['OURPLATFORM'] == 'linuxcross': # windows or cross-compilation
             if lenv['WITH_BF_PYTHON']:
-                if not lenv['WITHOUT_BF_PYTHON_INSTALL']:
+                if not lenv['WITHOUT_BF_PYTHON_INSTALL'] and not BlenderEnvironment.PyBundleActionAdded:
                     lenv.AddPostAction(prog,Action(WinPyBundle,strfunction=my_winpybundle_print))
+                    BlenderEnvironment.PyBundleActionAdded = True
         return prog
 
     def Glob(lenv, pattern):
