@@ -1366,19 +1366,18 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 {
 	Image *ima= CTX_data_edit_image(C);
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-	
+
 	// flags indicate if this channel should be inverted
-	short r,g,b,a;
-	int i, dirty = 0;
-	
+	const short r= RNA_boolean_get(op->ptr, "invert_r");
+	const short g= RNA_boolean_get(op->ptr, "invert_g");
+	const short b= RNA_boolean_get(op->ptr, "invert_b");
+	const short a= RNA_boolean_get(op->ptr, "invert_a");
+
+	int i;
+
 	if( ibuf == NULL) // TODO: this should actually never happen, but does for render-results -> cleanup
 		return OPERATOR_CANCELLED;
-	
-	r = RNA_boolean_get(op->ptr, "invert_r");
-	g = RNA_boolean_get(op->ptr, "invert_g");
-	b = RNA_boolean_get(op->ptr, "invert_b");
-	a = RNA_boolean_get(op->ptr, "invert_a");
-	
+
 	/* TODO: make this into an IMB_invert_channels(ibuf,r,g,b,a) method!? */
 	if (ibuf->rect_float) {
 		
@@ -1389,8 +1388,10 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 			if( b ) fp[2] = 1.0f - fp[2];
 			if( a ) fp[3] = 1.0f - fp[3];
 		}
-		dirty = 1;
-		IMB_rect_from_float(ibuf);
+
+		if(ibuf->rect) {
+			IMB_rect_from_float(ibuf);
+		}
 	}
 	else if(ibuf->rect) {
 		
@@ -1401,16 +1402,14 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 			if( b ) cp[2] = 255 - cp[2];
 			if( a ) cp[3] = 255 - cp[3];
 		}
-		dirty = 1;
 	}
-	else
+	else {
 		return OPERATOR_CANCELLED;
+	}
 
-	ibuf->userflags |= IB_BITMAPDIRTY; // mark as modified
+	ibuf->userflags |= IB_BITMAPDIRTY;
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
-	
 	return OPERATOR_FINISHED;
-	
 }
 
 void IMAGE_OT_invert(wmOperatorType *ot)
