@@ -1129,16 +1129,8 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				;
 			}
 			else if(mtex->texco & TEXCO_OBJECT) {
-				if(mtex->object){
-					float imat[4][4];
-					/* imat should really be cached somewhere before this */
-					invert_m4_m4(imat,mtex->object->obmat);
-					mul_m4_v3(imat,texvec);
-				}
-				/* texvec[0]+= imatbase->ivec[0]; */
-				/* texvec[1]+= imatbase->ivec[1]; */
-				/* texvec[2]+= imatbase->ivec[2]; */
-				/* mul_m3_v3(imatbase->imat, texvec); */
+				if(mtex->object)
+					mul_m4_v3(mtex->object->imat_ren,texvec);
 			}
 			else if(mtex->texco & TEXCO_GLOB){
 				VECCOPY(texvec,vec);

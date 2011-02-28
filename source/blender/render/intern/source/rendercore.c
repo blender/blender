@@ -2179,7 +2179,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 				mul_m3_v3(imat, nor);
 			}
 			else if(R.r.bake_normal_space == R_BAKE_SPACE_OBJECT)
-				mul_mat3_m4_v3(ob->imat, nor); /* ob->imat includes viewinv! */
+				mul_mat3_m4_v3(ob->imat_ren, nor); /* ob->imat_ren includes viewinv! */
 			else if(R.r.bake_normal_space == R_BAKE_SPACE_WORLD)
 				mul_mat3_m4_v3(R.viewinv, nor);
 
