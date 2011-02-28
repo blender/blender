@@ -50,7 +50,7 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial& bind_materia
 		COLLADASW::InstanceMaterialList& iml = bind_material.getInstanceMaterialList();
 
 		if (ma) {
-			std::string matid(id_name(ma));
+			std::string matid(get_material_id(ma));
 			matid = translate_id(matid);
 			COLLADASW::InstanceMaterial im(matid, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
 			

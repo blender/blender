@@ -37,6 +37,7 @@
 #include "Math/COLLADABUMathMatrix4.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "BLI_math.h"
 
@@ -93,5 +94,7 @@ extern std::string get_light_id(Object *ob);
 extern std::string get_joint_id(Bone *bone, Object *ob_arm);
 
 extern std::string get_camera_id(Object *ob);
+
+extern std::string get_material_id(Material *mat);
 
 #endif /* COLLADA_INTERNAL_H */

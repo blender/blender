@@ -49,7 +49,7 @@ void MaterialsExporter::operator()(Material *ma, Object *ob)
 {
 	std::string name(id_name(ma));
 
-	openMaterial(translate_id(name), name);
+	openMaterial(get_material_id(ma), name);
 
 	std::string efid = translate_id(name) + "-effect";
 	addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
