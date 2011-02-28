@@ -282,7 +282,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks.", RNA_def_main_brushes},
 		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks.", RNA_def_main_worlds},
 		{"groups", "Group", "rna_Main_group_begin", "Groups", "Group datablocks.", RNA_def_main_groups},
-		{"shape_keys", "Key", "rna_Main_key_begin", "Keys", "Key datablocks.", NULL},
+		{"shape_keys", "Key", "rna_Main_key_begin", "Shape Keys", "Shape Key datablocks.", NULL},
 		{"scripts", "ID", "rna_Main_script_begin", "Scripts", "Script datablocks (DEPRECATED).", NULL},
 		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text datablocks.", RNA_def_main_texts},
 		{"sounds", "Sound", "rna_Main_sound_begin", "Sounds", "Sound datablocks.", RNA_def_main_sounds},
