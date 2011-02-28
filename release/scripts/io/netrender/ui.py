@@ -115,8 +115,7 @@ class RENDER_PT_network_settings(NetRenderButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
-        netsettings = scene.network_render
+        netsettings = context.scene.network_render
 
         verify_address(netsettings)
 
@@ -157,18 +156,18 @@ class RENDER_PT_network_slave_settings(NetRenderButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
-        rd = scene.render
-        netsettings = scene.network_render
+        rd = context.scene.render
+        netsettings = context.scene.network_render
 
         layout.prop(netsettings, "use_slave_clear")
         layout.prop(netsettings, "use_slave_thumb")
         layout.prop(netsettings, "use_slave_output_log")
         layout.label(text="Threads:")
         layout.prop(rd, "threads_mode", expand=True)
-        sub = layout.column()
-        sub.enabled = rd.threads_mode == 'FIXED'
-        sub.prop(rd, "threads")
+        
+        col = layout.column()
+        col.enabled = rd.threads_mode == 'FIXED'
+        col.prop(rd, "threads")
 
 class RENDER_PT_network_master_settings(NetRenderButtonsPanel, bpy.types.Panel):
     bl_label = "Master Settings"
@@ -182,8 +181,7 @@ class RENDER_PT_network_master_settings(NetRenderButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
-        netsettings = scene.network_render
+        netsettings = context.scene.network_render
 
         layout.prop(netsettings, "use_master_broadcast")
         layout.prop(netsettings, "use_master_clear")
@@ -200,8 +198,7 @@ class RENDER_PT_network_job(NetRenderButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
-        netsettings = scene.network_render
+        netsettings = context.scene.network_render
 
         verify_address(netsettings)
 
@@ -244,8 +241,7 @@ class RENDER_PT_network_job_vcs(NetRenderButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
-        netsettings = scene.network_render
+        netsettings = context.scene.network_render
 
         layout.operator("render.netclientvcsguess", icon='FILE_REFRESH', text="")
 
@@ -266,8 +262,7 @@ class RENDER_PT_network_slaves(NeedValidAddress, NetRenderButtonsPanel, bpy.type
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
-        netsettings = scene.network_render
+        netsettings = context.scene.network_render
 
         row = layout.row()
         row.template_list(netsettings, "slaves", netsettings, "active_slave_index", rows=2)
@@ -298,8 +293,7 @@ class RENDER_PT_network_slaves_blacklist(NeedValidAddress, NetRenderButtonsPanel
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
-        netsettings = scene.network_render
+        netsettings = context.scene.network_render
 
         row = layout.row()
         row.template_list(netsettings, "slaves_blacklist", netsettings, "active_blacklisted_slave_index", rows=2)
@@ -329,8 +323,7 @@ class RENDER_PT_network_jobs(NeedValidAddress, NetRenderButtonsPanel, bpy.types.
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
-        netsettings = scene.network_render
+        netsettings = context.scene.network_render
 
         row = layout.row()
         row.template_list(netsettings, "jobs", netsettings, "active_job_index", rows=2)
