@@ -50,9 +50,6 @@ extern PyTypeObject pyrna_prop_collection_Type;
 typedef struct {
 	PyObject_HEAD /* required python macro   */
 	PointerRNA	ptr;
-#ifdef USE_WEAKREFS
-	PyObject *in_weakreflist;
-#endif
 } BPy_DummyPointerRNA;
 
 typedef struct {
