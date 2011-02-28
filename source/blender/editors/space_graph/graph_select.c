@@ -1299,9 +1299,7 @@ static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short selec
 static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
-	Scene *scene;
 	ARegion *ar;
-	View2D *v2d;
 	short selectmode;
 	int mval[2];
 	
@@ -1310,9 +1308,7 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 		return OPERATOR_CANCELLED;
 	
 	/* get useful pointers from animation context data */
-	scene= ac.scene;
 	ar= ac.ar;
-	v2d= &ar->v2d;
 	
 	/* get mouse coordinates (in region coordinates) */
 	mval[0]= (event->x - ar->winrct.xmin);

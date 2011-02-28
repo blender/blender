@@ -257,10 +257,6 @@ void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 
 static int report_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
 {
-	char txtname[24]; /* text block name */
-
-	txtname[0] = '\0';
-	
 	/* run the missing file check */
 	checkMissingFiles(G.main, op->reports);
 	

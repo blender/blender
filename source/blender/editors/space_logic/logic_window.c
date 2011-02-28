@@ -3183,9 +3183,9 @@ static uiBlock *object_state_mask_menu(bContext *C, ARegion *ar, void *arg_obj)
 static int is_sensor_linked(uiBlock *block, bSensor *sens)
 {
 	bController *cont;
-	int i, count;
+	int i;
 
-	for (count=0, i=0; i<sens->totlinks; i++) {
+	for (i=0; i<sens->totlinks; i++) {
 		cont = sens->links[i];
 		if (uiFindInlink(block, cont) != NULL)
 			return 1;
