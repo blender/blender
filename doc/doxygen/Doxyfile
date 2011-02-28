@@ -44,7 +44,7 @@ PROJECT_BRIEF          =
 # exceed 55 pixels and the maximum width should not exceed 200 pixels. 
 # Doxygen will copy the logo to the output directory.
 
-PROJECT_LOGO           = ../release/freedesktop/icons/48x48/blender.png
+PROJECT_LOGO           = ../../release/freedesktop/icons/48x48/blender.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
@@ -616,9 +616,9 @@ INPUT                  = doxygen.main \
                          doxygen.source \
                          doxygen.intern \
                          doxygen.extern \
-                         ../source \
-                         ../intern \
-                         ../extern/bullet2
+                         ../../source \
+                         ../../intern \
+                         ../../extern/bullet2
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 
@@ -648,7 +648,7 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a 
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = ../source/gameengine/PyDoc
+EXCLUDE                = ../../source/gameengine/PyDoc
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix file system feature) are excluded 
