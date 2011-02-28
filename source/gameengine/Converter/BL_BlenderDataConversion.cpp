@@ -2658,8 +2658,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 									
 									for (dof=3;dof<6;dof++)
 									{
-										// flag only applies to angular limit x
-										if(dof != 3 || dat->flag & dofbit)
+										if(dat->flag & dofbit)
 										{
 											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
 										}

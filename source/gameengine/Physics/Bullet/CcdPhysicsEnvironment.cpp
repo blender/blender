@@ -2001,7 +2001,10 @@ void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float 
 				{
 					//param = 3,4,5 are constraint limits, high limit values
 					btConeTwistConstraint* coneTwist = (btConeTwistConstraint*)typedConstraint;
-					coneTwist->setLimit(param,value1);
+					if(value1<0.0f)
+						coneTwist->setLimit(param,btScalar(BT_LARGE_FLOAT));
+					else
+						coneTwist->setLimit(param,value1);
 					break;
 				}
 			default:
