@@ -392,16 +392,16 @@ static int mathutils_obactu_generic_check(BaseMathObject *bmo)
 {
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
-		return 0;
+		return -1;
 
-	return 1;
+	return 0;
 }
 
 static int mathutils_obactu_vector_get(BaseMathObject *bmo, int subtype)
 {
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
-		return 0;
+		return -1;
 
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_LINV:
@@ -412,14 +412,14 @@ static int mathutils_obactu_vector_get(BaseMathObject *bmo, int subtype)
 			break;
 	}
 
-	return 1;
+	return 0;
 }
 
 static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype)
 {
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
-		return 0;
+		return -1;
 
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_LINV:
@@ -430,15 +430,15 @@ static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype)
 			break;
 	}
 
-	return 1;
+	return 0;
 }
 
 static int mathutils_obactu_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
 	/* lazy, avoid repeteing the case statement */
 	if(!mathutils_obactu_vector_get(bmo, subtype))
-		return 0;
-	return 1;
+		return -1;
+	return 0;
 }
 
 static int mathutils_obactu_vector_set_index(BaseMathObject *bmo, int subtype, int index)
@@ -447,7 +447,7 @@ static int mathutils_obactu_vector_set_index(BaseMathObject *bmo, int subtype, i
 
 	/* lazy, avoid repeteing the case statement */
 	if(!mathutils_obactu_vector_get(bmo, subtype))
-		return 0;
+		return -1;
 
 	bmo->data[index]= f;
 	return mathutils_obactu_vector_set(bmo, subtype);

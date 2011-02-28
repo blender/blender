@@ -1263,16 +1263,16 @@ static int mathutils_kxgameob_generic_check(BaseMathObject *bmo)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
-		return 0;
+		return -1;
 	
-	return 1;
+	return 0;
 }
 
 static int mathutils_kxgameob_vector_get(BaseMathObject *bmo, int subtype)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
-		return 0;
+		return -1;
 
 #define PHYS_ERR(attr) PyErr_SetString(PyExc_AttributeError, "KX_GameObject." attr ", is missing a physics controller")
 
@@ -1290,26 +1290,26 @@ static int mathutils_kxgameob_vector_get(BaseMathObject *bmo, int subtype)
 			self->NodeGetWorldScaling().getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_INERTIA_LOCAL:
-			if(!self->GetPhysicsController()) return PHYS_ERR("localInertia"), 0;
+			if(!self->GetPhysicsController()) return PHYS_ERR("localInertia"), -1;
 			self->GetPhysicsController()->GetLocalInertia().getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_OBJECT_COLOR:
 			self->GetObjectColor().getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_LINVEL_LOCAL:
-			if(!self->GetPhysicsController()) return PHYS_ERR("localLinearVelocity"), 0;
+			if(!self->GetPhysicsController()) return PHYS_ERR("localLinearVelocity"), -1;
 			self->GetLinearVelocity(true).getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_LINVEL_GLOBAL:
-			if(!self->GetPhysicsController()) return PHYS_ERR("worldLinearVelocity"), 0;
+			if(!self->GetPhysicsController()) return PHYS_ERR("worldLinearVelocity"), -1;
 			self->GetLinearVelocity(false).getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_ANGVEL_LOCAL:
-			if(!self->GetPhysicsController()) return PHYS_ERR("localLinearVelocity"), 0;
+			if(!self->GetPhysicsController()) return PHYS_ERR("localLinearVelocity"), -1;
 			self->GetAngularVelocity(true).getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_ANGVEL_GLOBAL:
-			if(!self->GetPhysicsController()) return PHYS_ERR("worldLinearVelocity"), 0;
+			if(!self->GetPhysicsController()) return PHYS_ERR("worldLinearVelocity"), -1;
 			self->GetAngularVelocity(false).getValue(bmo->data);
 			break;
 			
@@ -1317,14 +1317,14 @@ static int mathutils_kxgameob_vector_get(BaseMathObject *bmo, int subtype)
 	
 #undef PHYS_ERR
 	
-	return 1;
+	return 0;
 }
 
 static int mathutils_kxgameob_vector_set(BaseMathObject *bmo, int subtype)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
-		return 0;
+		return -1;
 	
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_POS_LOCAL:
@@ -1341,7 +1341,7 @@ static int mathutils_kxgameob_vector_set(BaseMathObject *bmo, int subtype)
 			break;
 		case MATHUTILS_VEC_CB_SCALE_GLOBAL:
 			PyErr_SetString(PyExc_AttributeError, "KX_GameObject.worldScale is read-only");
-			return 0;
+			return -1;
 		case MATHUTILS_VEC_CB_INERTIA_LOCAL:
 			/* read only */
 			break;
@@ -1362,15 +1362,15 @@ static int mathutils_kxgameob_vector_set(BaseMathObject *bmo, int subtype)
 			break;
 	}
 	
-	return 1;
+	return 0;
 }
 
 static int mathutils_kxgameob_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
 	/* lazy, avoid repeteing the case statement */
 	if(!mathutils_kxgameob_vector_get(bmo, subtype))
-		return 0;
-	return 1;
+		return -1;
+	return 0;
 }
 
 static int mathutils_kxgameob_vector_set_index(BaseMathObject *bmo, int subtype, int index)
@@ -1379,7 +1379,7 @@ static int mathutils_kxgameob_vector_set_index(BaseMathObject *bmo, int subtype,
 	
 	/* lazy, avoid repeteing the case statement */
 	if(!mathutils_kxgameob_vector_get(bmo, subtype))
-		return 0;
+		return -1;
 	
 	bmo->data[index]= f;
 	return mathutils_kxgameob_vector_set(bmo, subtype);
@@ -1403,7 +1403,7 @@ static int mathutils_kxgameob_matrix_get(BaseMathObject *bmo, int subtype)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
-		return 0;
+		return -1;
 
 	switch(subtype) {
 		case MATHUTILS_MAT_CB_ORI_LOCAL:
@@ -1414,7 +1414,7 @@ static int mathutils_kxgameob_matrix_get(BaseMathObject *bmo, int subtype)
 			break;
 	}
 	
-	return 1;
+	return 0;
 }
 
 
@@ -1422,7 +1422,7 @@ static int mathutils_kxgameob_matrix_set(BaseMathObject *bmo, int subtype)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
-		return 0;
+		return -1;
 	
 	MT_Matrix3x3 mat3x3;
 	switch(subtype) {
@@ -1438,7 +1438,7 @@ static int mathutils_kxgameob_matrix_set(BaseMathObject *bmo, int subtype)
 			break;
 	}
 	
-	return 1;
+	return 0;
 }
 
 Mathutils_Callback mathutils_kxgameob_matrix_cb = {

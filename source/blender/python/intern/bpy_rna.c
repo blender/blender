@@ -130,14 +130,14 @@ static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
 static int mathutils_rna_generic_check(BaseMathObject *bmo)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
-	return self->prop ? 1:0;
+	return self->prop ? 0 : -1;
 }
 
 static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	if(self->prop==NULL)
-		return 0;
+		return -1;
 
 	RNA_property_float_get_array(&self->ptr, self->prop, bmo->data);
 
@@ -148,7 +148,7 @@ static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype)
 		eul->order= pyrna_rotation_euler_order_get(&self->ptr, &prop_eul_order, eul->order);
 	}
 
-	return 1;
+	return 0;
 }
 
 static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
@@ -156,17 +156,17 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	float min, max;
 	if(self->prop==NULL)
-		return 0;
+		return -1;
 
 #ifdef USE_PEDANTIC_WRITE
 	if(rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
-		return 0;
+		return -1;
 	}
 #endif // USE_PEDANTIC_WRITE
 
 	if (!RNA_property_editable_flag(&self->ptr, self->prop)) {
 		PyErr_Format(PyExc_AttributeError, "bpy_prop \"%.200s.%.200s\" is read-only", RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
-		return 0;
+		return -1;
 	}
 
 	RNA_property_float_range(&self->ptr, self->prop, &min, &max);
@@ -195,7 +195,7 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 			}
 		}
 	}
-	return 1;
+	return 0;
 }
 
 static int mathutils_rna_vector_get_index(BaseMathObject *bmo, int UNUSED(subtype), int index)
@@ -203,10 +203,10 @@ static int mathutils_rna_vector_get_index(BaseMathObject *bmo, int UNUSED(subtyp
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
 	if(self->prop==NULL)
-		return 0;
+		return -1;
 
 	bmo->data[index]= RNA_property_float_get_index(&self->ptr, self->prop, index);
-	return 1;
+	return 0;
 }
 
 static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int UNUSED(subtype), int index)
@@ -214,17 +214,17 @@ static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int UNUSED(subtyp
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
 	if(self->prop==NULL)
-		return 0;
+		return -1;
 
 #ifdef USE_PEDANTIC_WRITE
 	if(rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
-		return 0;
+		return -1;
 	}
 #endif // USE_PEDANTIC_WRITE
 
 	if (!RNA_property_editable_flag(&self->ptr, self->prop)) {
 		PyErr_Format(PyExc_AttributeError, "bpy_prop \"%.200s.%.200s\" is read-only", RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
-		return 0;
+		return -1;
 	}
 
 	RNA_property_float_clamp(&self->ptr, self->prop, &bmo->data[index]);
@@ -234,7 +234,7 @@ static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int UNUSED(subtyp
 		RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	}
 
-	return 1;
+	return 0;
 }
 
 static Mathutils_Callback mathutils_rna_array_cb = {

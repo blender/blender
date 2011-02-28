@@ -97,7 +97,7 @@ static char Color_copy_doc[] =
 ;
 static PyObject *Color_copy(ColorObject *self)
 {
-	if(!BaseMath_ReadCallback(self))
+	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
 	return newColorObject(self->col, Py_NEW, Py_TYPE(self));
@@ -110,7 +110,7 @@ static PyObject *Color_repr(ColorObject * self)
 {
 	PyObject *ret, *tuple;
 	
-	if(!BaseMath_ReadCallback(self))
+	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
 	tuple= Color_ToTupleExt(self, -1);
@@ -132,7 +132,7 @@ static PyObject* Color_richcmpr(PyObject *a, PyObject *b, int op)
 		ColorObject *colA= (ColorObject*)a;
 		ColorObject *colB= (ColorObject*)b;
 
-		if(!BaseMath_ReadCallback(colA) || !BaseMath_ReadCallback(colB))
+		if(BaseMath_ReadCallback(colA) == -1 || BaseMath_ReadCallback(colB) == -1)
 			return NULL;
 
 		ok= EXPP_VectorsAreEqual(colA->col, colB->col, COLOR_SIZE, 1) ? 0 : -1;
@@ -177,7 +177,7 @@ static PyObject *Color_item(ColorObject * self, int i)
 		return NULL;
 	}
 
-	if(!BaseMath_ReadIndexCallback(self, i))
+	if(BaseMath_ReadIndexCallback(self, i) == -1)
 		return NULL;
 
 	return PyFloat_FromDouble(self->col[i]);
@@ -203,7 +203,7 @@ static int Color_ass_item(ColorObject * self, int i, PyObject * value)
 
 	self->col[i] = f;
 
-	if(!BaseMath_WriteIndexCallback(self, i))
+	if(BaseMath_WriteIndexCallback(self, i) == -1)
 		return -1;
 
 	return 0;
@@ -215,7 +215,7 @@ static PyObject *Color_slice(ColorObject * self, int begin, int end)
 	PyObject *tuple;
 	int count;
 
-	if(!BaseMath_ReadCallback(self))
+	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
 	CLAMP(begin, 0, COLOR_SIZE);
@@ -237,7 +237,7 @@ static int Color_ass_slice(ColorObject * self, int begin, int end, PyObject * se
 	int i, size;
 	float col[COLOR_SIZE];
 
-	if(!BaseMath_ReadCallback(self))
+	if(BaseMath_ReadCallback(self) == -1)
 		return -1;
 
 	CLAMP(begin, 0, COLOR_SIZE);
@@ -359,7 +359,7 @@ static PyObject *Color_getChannelHSV( ColorObject * self, void *type )
 	float hsv[3];
 	int i= GET_INT_FROM_POINTER(type);
 
-	if(!BaseMath_ReadCallback(self))
+	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
 	rgb_to_hsv(self->col[0], self->col[1], self->col[2], &(hsv[0]), &(hsv[1]), &(hsv[2]));
@@ -378,7 +378,7 @@ static int Color_setChannelHSV(ColorObject * self, PyObject * value, void * type
 		return -1;
 	}
 
-	if(!BaseMath_ReadCallback(self))
+	if(BaseMath_ReadCallback(self) == -1)
 		return -1;
 
 	rgb_to_hsv(self->col[0], self->col[1], self->col[2], &(hsv[0]), &(hsv[1]), &(hsv[2]));
@@ -386,7 +386,7 @@ static int Color_setChannelHSV(ColorObject * self, PyObject * value, void * type
 	hsv[i] = f;
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], &(self->col[0]), &(self->col[1]), &(self->col[2]));
 
-	if(!BaseMath_WriteCallback(self))
+	if(BaseMath_WriteCallback(self) == -1)
 		return -1;
 
 	return 0;
@@ -398,7 +398,7 @@ static PyObject *Color_getHSV(ColorObject * self, void *UNUSED(closure))
 	float hsv[3];
 	PyObject *ret;
 
-	if(!BaseMath_ReadCallback(self))
+	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
 	rgb_to_hsv(self->col[0], self->col[1], self->col[2], &(hsv[0]), &(hsv[1]), &(hsv[2]));
@@ -423,7 +423,7 @@ static int Color_setHSV(ColorObject * self, PyObject * value, void *UNUSED(closu
 
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], &(self->col[0]), &(self->col[1]), &(self->col[2]));
 
-	if(!BaseMath_WriteCallback(self))
+	if(BaseMath_WriteCallback(self) == -1)
 		return -1;
 
 	return 0;
