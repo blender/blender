@@ -25,8 +25,6 @@ class CONSOLE_HT_header(bpy.types.Header):
     bl_space_type = 'CONSOLE'
 
     def draw(self, context):
-        # sc = context.space_data
-        # text = sc.text
         layout = self.layout
 
         row = layout.row(align=True)

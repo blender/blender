@@ -326,8 +326,6 @@ class INFO_MT_render(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        # rd = context.scene.render
-
         layout.operator("render.render", text="Render Image", icon='RENDER_STILL')
         layout.operator("render.render", text="Render Animation", icon='RENDER_ANIMATION').animation = True
 

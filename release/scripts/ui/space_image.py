@@ -425,7 +425,6 @@ class IMAGE_PT_image_properties(bpy.types.Panel):
         layout = self.layout
 
         sima = context.space_data
-        # ima = sima.image
         iuser = sima.image_user
 
         layout.template_image(sima, "image", iuser)
@@ -684,10 +683,7 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, bpy.types.Panel):
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
 
-#        tex_slot = brush.texture_slot
-
         col = layout.column()
-
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
 
 
