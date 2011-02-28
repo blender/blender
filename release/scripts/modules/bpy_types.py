@@ -567,18 +567,15 @@ TypeMap = {}
 class RNAMeta(type):
     def __new__(cls, name, bases, classdict, **args):
         result = type.__new__(cls, name, bases, classdict)
-        if bases and bases[0] != StructRNA:
-            import traceback
-            import weakref
+        if bases and bases[0] is not StructRNA:
+            from _weakref import ref as ref
             module = result.__module__
 
             # first part of packages only
             if "." in module:
                 module = module[:module.index(".")]
 
-            sf = traceback.extract_stack(limit=2)[0]
-
-            TypeMap.setdefault(module, []).append((weakref.ref(result), sf[0], sf[1]))
+            TypeMap.setdefault(module, []).append(ref(result))
 
         return result
 
@@ -586,7 +583,20 @@ class RNAMeta(type):
     def is_registered(cls):
         return "bl_rna" in cls.__dict__
 
-import collections
+
+class OrderedDictMini(dict):
+    def __init__(self, *args):
+        self.order = []
+        dict.__init__(self, args)
+
+    def __setitem__(self, key, val):
+        dict.__setitem__(self, key, val)
+        if key not in self.order:
+            self.order.append(key)
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        self.order.remove(key)
 
 
 class RNAMetaPropGroup(RNAMeta, StructMetaPropGroup):
@@ -600,7 +610,7 @@ class OrderedMeta(RNAMeta):
         cls.order = list(attributes.keys())
 
     def __prepare__(name, bases, **kwargs):
-        return collections.OrderedDict()
+        return OrderedDictMini()  # collections.OrderedDict()
 
 
 # Only defined so operators members can be used by accessing self.order
