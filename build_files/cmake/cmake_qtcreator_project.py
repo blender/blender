@@ -73,7 +73,7 @@ def is_svn_file(filename):
 
 
 def is_project_file(filename):
-    return (is_c_any(filename) or is_cmake(filename)) and is_svn_file(filename)
+    return (is_c_any(filename) or is_cmake(filename)) # and is_svn_file(filename)
 
 
 def cmake_advanced_info():
