@@ -23,10 +23,7 @@ This module contains utility functions specific to blender but
 not assosiated with blenders internal data.
 """
 
-from _bpy import register_class
-from _bpy import unregister_class
-
-from _bpy import blend_paths
+from _bpy import register_class, unregister_class, blend_paths
 from _bpy import script_paths as _bpy_script_paths
 from _bpy import user_resource as _user_resource
 

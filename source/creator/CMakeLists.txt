@@ -218,7 +218,8 @@ if(WITH_INSTALL)
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 				COMMENT "copying blender scripts..."
 				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/${BLENDER_VERSION}/
-				COMMAND find ${TARGETDIR} -name "*.py?" -prune -exec rm -rf {} "\;"
+				COMMAND find ${TARGETDIR} -name '*.py[co]' -prune -exec rm -rf {} '\;'
+				COMMAND find ${TARGETDIR} -name '__pycache__' -exec rmdir {} '+'
 			)
 			if(WITH_PYTHON_INSTALL)
 				# Copy the systems python into the install directory
@@ -241,9 +242,12 @@ if(WITH_INSTALL)
 					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/site-packages	# python needs it.
 
 					COMMAND rm -f ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
-					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
-					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name "*.py?" -exec rm -rf {} "\;"
-					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name "*.so"-exec strip -s {} "\;"
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -type d -name 'test' -prune -exec rm -rf {} '\;'
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -type d -name 'turtledemo' -prune -exec rm -rf {} '\;'
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -type d -name 'config-*' -prune -exec rm -rf {} '\;'
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name '*.py[co]' -exec rm -rf {} '\;'
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name '__pycache__' -exec rmdir {} '+'
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name '*.so' -exec strip -s {} '\;'
 				)
 			endif()
 		endif()
@@ -489,7 +493,8 @@ if(WITH_INSTALL)
 				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/
 				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/python/
 				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/python/
-				COMMAND find ${TARGETDIR}/blender.app -name "*.py?" -prune -exec rm -rf {} "\;"
+				COMMAND find ${TARGETDIR}/blender.app -name '*.py[co]' -prune -exec rm -rf {} ';'
+				COMMAND find ${TARGETDIR}/blender.app -name '__pycache__' -exec rmdir {} '+'
 			)
 		endif()	  
 	
@@ -497,7 +502,7 @@ if(WITH_INSTALL)
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender	
 			COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
 			COMMAND find ${TARGETDIR}/blender.app -name .svn -prune -exec rm -rf {} "\;"
-					COMMAND find ${TARGETDIR}/blender.app -name __MACOSX -prune -exec rm -rf {} "\;"
+			COMMAND find ${TARGETDIR}/blender.app -name __MACOSX -prune -exec rm -rf {} "\;"
 		)
 	endif()
 
