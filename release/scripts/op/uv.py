@@ -21,7 +21,7 @@
 import bpy
 
 
-def write_svg(fw, mesh, image_width, image_height, face_iter):
+def write_svg(fw, mesh, image_width, image_height, opacity, face_iter):
     # for making an XML compatible string
     from xml.sax.saxutils import escape
     from os.path import basename
@@ -50,8 +50,11 @@ def write_svg(fw, mesh, image_width, image_height, face_iter):
         except IndexError:
             fill = fill_default
 
-        fw('<polygon %s fill-opacity="0.5" stroke="black" stroke-width="1px" \n' % fill)
-        fw('  points="')
+        fw('<polygon stroke="black" stroke-width="1px"')
+        if opacity > 0.0:
+            fw(' %s fill-opacity="%.2g"' % (fill, opacity))
+
+        fw(' points="')
 
         for j, uv in enumerate(uvs):
             x, y = uv[0], 1.0 - uv[1]
@@ -61,55 +64,73 @@ def write_svg(fw, mesh, image_width, image_height, face_iter):
     fw('</svg>\n')
 
 
-def write_eps(fw, mesh, image_width, image_height, face_iter):
-    fw('%!PS-Adobe-3.0 EPSF-3.0\n')
+def write_eps(fw, mesh, image_width, image_height, opacity, face_iter):
+    fw("%!PS-Adobe-3.0 EPSF-3.0\n")
     fw("%%%%Creator: Blender %s\n" % bpy.app.version_string)
-    fw('%%Pages: 1\n')
-    fw('%%Orientation: Portrait\n')
+    fw("%%Pages: 1\n")
+    fw("%%Orientation: Portrait\n")
     fw("%%%%BoundingBox: 0 0 %d %d\n" % (image_width, image_height))
     fw("%%%%HiResBoundingBox: 0.0 0.0 %.4f %.4f\n" % (image_width, image_height))
-    fw('%%EndComments\n')
-    fw('%%Page: 1 1\n')
-    fw('0 0 translate\n')
-    fw('1.0 1.0 scale\n')
-    fw('0 0 0 setrgbcolor\n')
-    fw('[] 0 setdash\n')
-    fw('1 setlinewidth\n')
-    fw('1 setlinejoin\n')
-    fw('1 setlinecap\n')
-    fw('/DRAW {')
-    # can remove from here to next comment to disable filling, aparently alpha is not supported
-    fw('gsave\n')
-    fw('0.7 setgray\n')
-    fw('fill\n')
-    fw('grestore\n')
-    fw('0 setgray\n')
-    # remove to here
-    fw('stroke\n')
-    fw('} def\n')
-    fw('newpath\n')
+    fw("%%EndComments\n")
+    fw("%%Page: 1 1\n")
+    fw("0 0 translate\n")
+    fw("1.0 1.0 scale\n")
+    fw("0 0 0 setrgbcolor\n")
+    fw("[] 0 setdash\n")
+    fw("1 setlinewidth\n")
+    fw("1 setlinejoin\n")
+    fw("1 setlinecap\n")
 
-    firstline = True
-    for i, uvs in face_iter:
-        for j, uv in enumerate(uvs):
-            x, y = uv[0], uv[1]
-            if j == 0:
-                if not firstline:
-                    fw('closepath\n')
-                    fw('DRAW\n')
-                    fw('newpath\n')
-                firstline = False
-                fw('%.5f %.5f moveto\n' % (x * image_width, y * image_height))
+    faces = mesh.faces
+
+    if opacity > 0.0:
+        # since we need to loop over twice
+        face_iter = [(i, uvs) for i, uvs in face_iter]
+
+        for i, mat in enumerate(mesh.materials if mesh.materials else [None]):
+            fw("/DRAW_%d {" % i)
+            fw("gsave\n")
+            if mat:
+                color = tuple((1.0 - ((1.0 - c) * opacity)) for c in mat.diffuse_color)
             else:
-                fw('%.5f %.5f lineto\n' % (x * image_width, y * image_height))
+                color = 1.0, 1.0, 1.0
+            fw("%.3g %.3g %.3g setrgbcolor\n" % color)
+            fw("fill\n")
+            fw("grestore\n")
+            fw("0 setgray\n")
+            fw("} def\n")
 
-    fw('closepath\n')
-    fw('DRAW\n')
-    fw('showpage\n')
-    fw('%%EOF\n')
+        # fill
+        for i, uvs in face_iter:
+            fw("newpath\n")
+            for j, uv in enumerate(uvs):
+                uv_scale = (uv[0] * image_width, uv[1] * image_height)
+                if j == 0:
+                    fw("%.5f %.5f moveto\n" % uv_scale)
+                else:
+                    fw("%.5f %.5f lineto\n" % uv_scale)
+
+            fw("closepath\n")
+            fw("DRAW_%d\n" % faces[i].material_index)
+
+    # stroke only
+    for i, uvs in face_iter:
+        fw("newpath\n")
+        for j, uv in enumerate(uvs):
+            uv_scale = (uv[0] * image_width, uv[1] * image_height)
+            if j == 0:
+                fw("%.5f %.5f moveto\n" % uv_scale)
+            else:
+                fw("%.5f %.5f lineto\n" % uv_scale)
+
+        fw("closepath\n")
+        fw("stroke\n")
+
+    fw("showpage\n")
+    fw("%%EOF\n")
 
 
-def write_png(fw, mesh_source, image_width, image_height, face_iter):
+def write_png(fw, mesh_source, image_width, image_height, opacity, face_iter):
     filepath = fw.__self__.name
     fw.__self__.close()
 
@@ -195,7 +216,7 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
 
         mat_solid.use_shadeless = True
         mat_solid.use_transparency = True
-        mat_solid.alpha = 0.25
+        mat_solid.alpha = opacity
 
     material_wire.type = 'WIRE'
     material_wire.use_shadeless = True
@@ -238,7 +259,7 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
         bpy.data.materials.remove(mat_solid)
 
 
-from bpy.props import StringProperty, BoolProperty, EnumProperty, IntVectorProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty, IntVectorProperty, FloatProperty
 
 
 class ExportUVLayout(bpy.types.Operator):
@@ -259,6 +280,7 @@ class ExportUVLayout(bpy.types.Operator):
                 description="File format to export the UV layout to",
                 default='PNG')
     size = IntVectorProperty(size=2, default=(1024, 1024), min=8, max=32768, description="Dimensions of the exported file")
+    opacity = FloatProperty(name="Fill Opacity", min=0.0, max=1.0, default=0.25)
 
     @classmethod
     def poll(cls, context):
@@ -342,10 +364,12 @@ class ExportUVLayout(bpy.types.Operator):
         elif mode == 'PNG':
             func = write_png
 
-        func(fw, mesh, self.size[0], self.size[1], self._face_uv_iter(context))
+        func(fw, mesh, self.size[0], self.size[1], self.opacity, self._face_uv_iter(context))
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+
+        file.close()
 
         return {'FINISHED'}
 
