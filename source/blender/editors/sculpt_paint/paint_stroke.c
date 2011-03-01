@@ -79,7 +79,9 @@ typedef struct PaintStroke {
 	   e.g. in sculpt mode, stroke doesn't start until cursor
 	   passes over the mesh */
 	int stroke_started;
-
+	/* event that started stroke, for modal() return */
+	int event_type;
+	
 	StrokeGetLocation get_location;
 	StrokeTestStart test_start;
 	StrokeUpdateStep update_step;
@@ -374,7 +376,7 @@ static int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radiu
 	float window[2];
 	int hit;
 
-	stroke = paint_stroke_new(C, NULL, NULL, NULL, NULL);
+	stroke = paint_stroke_new(C, NULL, NULL, NULL, NULL, 0);
 
 	window[0] = x + stroke->vc.ar->winrct.xmin;
 	window[1] = y + stroke->vc.ar->winrct.ymin;
@@ -794,7 +796,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 				  StrokeGetLocation get_location,
 				  StrokeTestStart test_start,
 				  StrokeUpdateStep update_step,
-				  StrokeDone done)
+				  StrokeDone done, int event_type)
 {
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
 
@@ -806,7 +808,8 @@ PaintStroke *paint_stroke_new(bContext *C,
 	stroke->test_start = test_start;
 	stroke->update_step = update_step;
 	stroke->done = done;
-
+	stroke->event_type= event_type;	/* for modal, return event */
+	
 	return stroke;
 }
 
@@ -846,8 +849,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		//ED_region_tag_redraw(ar);
 	}
 
-	/* TODO: fix hardcoded events here */
-	if(event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+	if(event->type == stroke->event_type && event->val == KM_RELEASE) {
 		/* exit stroke, free data */
 		if(stroke->smooth_stroke_cursor)
 			WM_paint_cursor_end(CTX_wm_manager(C), stroke->smooth_stroke_cursor);
