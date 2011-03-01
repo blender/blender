@@ -593,13 +593,21 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 					dst[2]= FTOCHAR(rgba[2]);
 					dst[3]= FTOCHAR(rgba[3]);
 				}
-				else {
+				else if (texfall == 2) {
 					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
 
 					brush_sample_tex(brush, xy, rgba, 0);
 					dst[0] = FTOCHAR(rgba[0]*brush->rgb[0]);
 					dst[1] = FTOCHAR(rgba[1]*brush->rgb[1]);
 					dst[2] = FTOCHAR(rgba[2]*brush->rgb[2]);
+					dst[3] = FTOCHAR(rgba[3]*alpha*brush_curve_strength_clamp(brush, dist, radius));
+				} else {
+					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
+
+					brush_sample_tex(brush, xy, rgba, 0);
+					dst[0]= crgb[0];
+					dst[1]= crgb[1];
+					dst[2]= crgb[2];
 					dst[3] = FTOCHAR(rgba[3]*alpha*brush_curve_strength_clamp(brush, dist, radius));
 				}
 			}
@@ -870,11 +878,8 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 		flt= cache->flt;
 		size= (cache->size)? cache->size: diameter;
 
-		if (!(mtex && mtex->tex) || (mtex->tex->type==0)) {
-			brush_imbuf_new(brush, flt, 0, size, &cache->ibuf);
-		}
-		else if (brush->flag & BRUSH_FIXED_TEX) {
-			brush_imbuf_new(brush, flt, 0, size, &cache->maskibuf);
+		if (brush->flag & BRUSH_FIXED_TEX) {
+			brush_imbuf_new(brush, flt, 3, size, &cache->maskibuf);
 			brush_painter_fixed_tex_partial_update(painter, pos);
 		}
 		else

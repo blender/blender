@@ -685,6 +685,7 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, bpy.types.Panel):
 
         col = layout.column()
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
+        col.prop(brush, "use_fixed_texture")
 
 
 class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, bpy.types.Panel):
