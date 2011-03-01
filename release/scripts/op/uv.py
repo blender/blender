@@ -21,7 +21,7 @@
 import bpy
 
 
-def write_svg(fw, mesh, image_width, image_height, opacity, face_iter):
+def write_svg(fw, mesh, image_width, image_height, opacity, face_iter_func):
     # for making an XML compatible string
     from xml.sax.saxutils import escape
     from os.path import basename
@@ -44,7 +44,7 @@ def write_svg(fw, mesh, image_width, image_height, opacity, face_iter):
             fill_settings.append(fill_default)
 
     faces = mesh.faces
-    for i, uvs in face_iter:
+    for i, uvs in face_iter_func():
         try:  # rare cases material index is invalid.
             fill = fill_settings[faces[i].material_index]
         except IndexError:
@@ -64,7 +64,7 @@ def write_svg(fw, mesh, image_width, image_height, opacity, face_iter):
     fw('</svg>\n')
 
 
-def write_eps(fw, mesh, image_width, image_height, opacity, face_iter):
+def write_eps(fw, mesh, image_width, image_height, opacity, face_iter_func):
     fw("%!PS-Adobe-3.0 EPSF-3.0\n")
     fw("%%%%Creator: Blender %s\n" % bpy.app.version_string)
     fw("%%Pages: 1\n")
@@ -84,9 +84,6 @@ def write_eps(fw, mesh, image_width, image_height, opacity, face_iter):
     faces = mesh.faces
 
     if opacity > 0.0:
-        # since we need to loop over twice
-        face_iter = [(i, uvs) for i, uvs in face_iter]
-
         for i, mat in enumerate(mesh.materials if mesh.materials else [None]):
             fw("/DRAW_%d {" % i)
             fw("gsave\n")
@@ -101,7 +98,7 @@ def write_eps(fw, mesh, image_width, image_height, opacity, face_iter):
             fw("} def\n")
 
         # fill
-        for i, uvs in face_iter:
+        for i, uvs in face_iter_func():
             fw("newpath\n")
             for j, uv in enumerate(uvs):
                 uv_scale = (uv[0] * image_width, uv[1] * image_height)
@@ -114,7 +111,7 @@ def write_eps(fw, mesh, image_width, image_height, opacity, face_iter):
             fw("DRAW_%d\n" % faces[i].material_index)
 
     # stroke only
-    for i, uvs in face_iter:
+    for i, uvs in face_iter_func():
         fw("newpath\n")
         for j, uv in enumerate(uvs):
             uv_scale = (uv[0] * image_width, uv[1] * image_height)
@@ -130,7 +127,7 @@ def write_eps(fw, mesh, image_width, image_height, opacity, face_iter):
     fw("%%EOF\n")
 
 
-def write_png(fw, mesh_source, image_width, image_height, opacity, face_iter):
+def write_png(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
     filepath = fw.__self__.name
     fw.__self__.close()
 
@@ -152,7 +149,7 @@ def write_png(fw, mesh_source, image_width, image_height, opacity, face_iter):
     # get unique UV's incase there are many overlapping which slow down filling.
     face_hash_3 = set()
     face_hash_4 = set()
-    for i, uv in face_iter:
+    for i, uv in face_iter_func():
         material_index = faces_source[i].material_index
         if len(uv) == 3:
             face_hash_3.add((uv[0][0], uv[0][1], uv[1][0], uv[1][1], uv[2][0], uv[2][1], material_index))
@@ -364,7 +361,10 @@ class ExportUVLayout(bpy.types.Operator):
         elif mode == 'PNG':
             func = write_png
 
-        func(fw, mesh, self.size[0], self.size[1], self.opacity, self._face_uv_iter(context))
+        def face_iter_func()():
+            return self._face_uv_iter(context)
+
+        func(fw, mesh, self.size[0], self.size[1], self.opacity, face_iter_func)
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
