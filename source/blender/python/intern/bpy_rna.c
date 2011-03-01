@@ -94,17 +94,54 @@ static int pyrna_prop_validity_check(BPy_PropertyRNA *self)
 	return -1;
 }
 
-/*
-static void pyrna_struct_invalidate(BPy_StructRNA *self)
+static void pyrna_invalidate(BPy_DummyPointerRNA *self)
 {
-	self->ptr.type= NULL;
+	self->ptr.type= NULL; /* this is checked for validity */
+	self->ptr.id.data= NULL; /* should not be needed but prevent bad pointer access, just incase */
 }
 
-static void pyrna_prop_invalidate(BPy_PropertyRNA *self)
+#ifdef USE_PYRNA_INVALIDATE_GC
+#define FROM_GC(g) ((PyObject *)(((PyGC_Head *)g)+1))
+
+/* only for sizeof() */
+struct gc_generation {
+	PyGC_Head head;
+	int threshold;
+	int count;
+} gc_generation;
+
+static void id_release_gc(struct ID *id)
 {
-	self->ptr.type= NULL;
+	unsigned int j;
+	// unsigned int i= 0;
+	for(j=0; j<3; j++) {
+		/* hack below to get the 2 other lists from _PyGC_generation0 that are normally not exposed */
+		PyGC_Head *gen= (PyGC_Head *)(((char *)_PyGC_generation0) + (sizeof(gc_generation) * j));
+		PyGC_Head *g = gen->gc.gc_next;
+		while ((g= g->gc.gc_next) != gen) {
+			PyObject *ob= FROM_GC(g);
+			if(PyType_IsSubtype(Py_TYPE(ob), &pyrna_struct_Type) || PyType_IsSubtype(Py_TYPE(ob), &pyrna_prop_Type)) {
+				BPy_DummyPointerRNA *ob_ptr= (BPy_DummyPointerRNA *)ob;
+				if(ob_ptr->ptr.id.data == id) {
+					pyrna_invalidate(ob_ptr);
+					// printf("freeing: %p %s, %.200s\n", (void *)ob, id->name, Py_TYPE(ob)->tp_name);
+					// i++;
+				}
+			}
+		}
+	}
+	// printf("id_release_gc freed '%s': %d\n", id->name, i);
 }
-*/
+#endif
+
+
+void BPY_id_release(struct ID *id)
+{
+	(void)id;
+#ifdef USE_PYRNA_INVALIDATE_GC
+	id_release_gc(id);
+#endif
+}
 
 #ifdef USE_PEDANTIC_WRITE
 static short rna_disallow_writes= FALSE;

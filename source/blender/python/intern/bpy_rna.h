@@ -44,6 +44,9 @@ extern PyTypeObject pyrna_prop_collection_Type;
 #define BPy_PropertyRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_prop_Type))
 #define BPy_PropertyRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_prop_Type)
 
+/* method to invalidate removed py data, XXX, slow to remove objects, otherwise no overhead */
+// #define USE_PYRNA_INVALIDATE_GC
+
 /* play it safe and keep optional for now, need to test further now this affects looping on 10000's of verts for eg. */
 // #define USE_WEAKREFS
 
