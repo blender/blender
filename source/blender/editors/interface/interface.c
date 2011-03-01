@@ -514,9 +514,9 @@ static void ui_but_update_linklines(uiBlock *block, uiBut *oldbut, uiBut *newbut
 	uiBut *but;
 	
 	/* if active button is LINK */
-	if(but->type==LINK && but->link) {
+	if(newbut->type==LINK && newbut->link) {
 		
-		SWAP(uiLink *, oldbut->link, but->link);
+		SWAP(uiLink *, oldbut->link, newbut->link);
 		
 		for(line= oldbut->link->lines.first; line; line= line->next) {
 			if(line->to==newbut)
