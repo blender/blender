@@ -609,6 +609,7 @@ int BLI_path_frame(char *path, int frame, int digits)
 		p= tmp + ch_sta;
 		p += sprintf(p, format, frame);
 		memcpy(p, path + ch_end, strlen(path + ch_end));
+		*(tmp+strlen(path)) = '\0';
 #endif
 		strcpy(path, tmp);
 		return 1;
