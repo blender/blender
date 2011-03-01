@@ -5208,7 +5208,7 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 	float *data, co[3];
 	float blend= RNA_float_get(op->ptr, "blend");
 	int shape= RNA_enum_get(op->ptr, "shape");
-	int add= RNA_int_get(op->ptr, "add");
+	int add= RNA_boolean_get(op->ptr, "add");
 	int blended= 0;
 
 	if(key && (kb= BLI_findlink(&key->block, shape))) {
