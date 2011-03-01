@@ -44,11 +44,24 @@ extern PyTypeObject pyrna_prop_collection_Type;
 #define BPy_PropertyRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_prop_Type))
 #define BPy_PropertyRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_prop_Type)
 
-/* method to invalidate removed py data, XXX, slow to remove objects, otherwise no overhead */
-// #define USE_PYRNA_INVALIDATE_GC
-
 /* play it safe and keep optional for now, need to test further now this affects looping on 10000's of verts for eg. */
 // #define USE_WEAKREFS
+
+/* method to invalidate removed py data, XXX, slow to remove objects, otherwise no overhead */
+//#define USE_PYRNA_INVALIDATE_GC
+
+/* different method */
+//#define USE_PYRNA_INVALIDATE_WEAKREF
+
+
+/* sanity checks on above defs */
+#if defined(USE_PYRNA_INVALIDATE_WEAKREF) && !defined(USE_WEAKREFS)
+#define USE_WEAKREFS
+#endif
+
+#if defined(USE_PYRNA_INVALIDATE_GC) && defined(USE_PYRNA_INVALIDATE_WEAKREF)
+#error "Only 1 reference check method at a time!"
+#endif
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */

@@ -37,10 +37,18 @@
 #include "bpy_util.h"
 #include "bpy_rna_callback.h"
 
+#ifdef USE_PYRNA_INVALIDATE_GC
+#include "MEM_guardedalloc.h"
+#endif
+
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
+
+#ifdef USE_PYRNA_INVALIDATE_GC
+#include "BLI_ghash.h"
+#endif
 
 #include "RNA_enum_types.h"
 #include "RNA_define.h" /* RNA_def_property_free_identifier */
@@ -134,13 +142,138 @@ static void id_release_gc(struct ID *id)
 }
 #endif
 
+#ifdef USE_PYRNA_INVALIDATE_WEAKREF
+struct GHash *id_weakref_pool= NULL;
+static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref);
+static PyMethodDef id_free_weakref_cb_def= {"id_free_weakref_cb", (PyCFunction)id_free_weakref_cb, METH_O, NULL};
+
+/* adds a reference to the list, remember ot decref */
+static PyObject *id_weakref_pool_get(ID *id)
+{
+	PyObject *weakinfo_list= NULL;
+
+	if(id_weakref_pool) {
+		weakinfo_list= BLI_ghash_lookup(id_weakref_pool, (void *)id);
+	}
+	else {
+		/* first time, allocate pool */
+		id_weakref_pool= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "copyArc gh");
+		weakinfo_list= NULL;
+	}
+
+	if(weakinfo_list==NULL) {
+		weakinfo_list= PyList_New(0);
+		BLI_ghash_insert(id_weakref_pool, (void *)id, weakinfo_list);
+	}
+
+	return weakinfo_list;
+}
+
+/* called from pyrna_struct_CreatePyObject() and pyrna_prop_CreatePyObject() */
+void id_weakref_pool_add(ID *id, BPy_DummyPointerRNA* pyrna)
+{
+	PyObject *weakref;
+	PyObject *weakref_cb_py;
+
+	/* create a new function instance and insert the list as 'self' so we can remove ourself from it */
+	PyObject *weakinfo_list= id_weakref_pool_get(id); /* new or existing */
+	PyObject *weakinfo_pair= PyTuple_New(2);
+	PyTuple_SET_ITEM(weakinfo_pair, 0, weakinfo_list);
+	Py_INCREF(weakinfo_list);
+	PyTuple_SET_ITEM(weakinfo_pair, 1, PyCapsule_New(id, NULL, NULL));
+	weakref_cb_py= PyCFunction_New(&id_free_weakref_cb_def, weakinfo_pair);
+	Py_DECREF(weakinfo_pair); /* function' 'self' now owns weakinfo_list now */
+
+	/* add weakref to weakinfo_list list */
+	weakref= PyWeakref_NewRef((PyObject *)pyrna, weakref_cb_py);
+	Py_DECREF(weakref_cb_py); /* function owned by the weakref now */
+
+	/* important to add at the end, since first removal looks at the end */
+	PyList_Append(weakinfo_list, weakref);
+	Py_DECREF(weakref);
+}
+
+static void id_release_weakref(struct ID *id);
+static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref)
+{
+
+	/* important to search backwards */
+	PyObject *weakinfo_list= PyTuple_GET_ITEM(weakinfo_pair, 0);
+	unsigned int i= PyList_GET_SIZE(weakinfo_list);
+	const unsigned int last_index= i - 1;
+
+	while(i--) {
+		if(PyList_GET_ITEM(weakinfo_list, i) == weakref) {
+			/* swap */
+			if(i != last_index) {
+				PyList_SET_ITEM(weakinfo_list, i, PyList_GET_ITEM(weakinfo_list, last_index));
+			}
+			PyList_SET_ITEM(weakinfo_list, last_index, NULL); /* to avoid weakref issue */
+			/* remove last item */
+			PyList_SetSlice(weakinfo_list, last_index, PY_SSIZE_T_MAX, NULL);
+			Py_DECREF(weakref);
+
+/*DEBUG*/	//printf("bprna_weakref_cb: %p size is %d\n", weakref, last_index + 1);
+
+			/* optional, free the list once its 0 size
+			 * to keep the ID hash lookups fast by not allowing manu empty items to exist */
+			if(last_index == 0) {
+				PyObject *weakinfo_id= PyTuple_GET_ITEM(weakinfo_pair, 1);
+				ID *id= PyCapsule_GetPointer(weakinfo_id, NULL);
+
+				/* the list is empty, just free it */
+				id_release_weakref(id);
+			}
+			break;
+		}
+	}
+
+	Py_RETURN_NONE;
+}
+
+static void id_release_weakref(struct ID *id)
+{
+	PyObject *weakinfo_list= BLI_ghash_lookup(id_weakref_pool, (void *)id);
+	if(weakinfo_list) {
+		unsigned int i= PyList_GET_SIZE(weakinfo_list);
+
+/*DEBUG*/ //printf("BPY_id_release: '%s', %d items\n", id->name, i);
+
+		while(i--) {
+			PyObject *item= PyWeakref_GET_OBJECT(PyList_GET_ITEM(weakinfo_list, i));
+			if(item != Py_None) {
+				pyrna_invalidate((BPy_DummyPointerRNA *)item);
+			}
+		}
+
+		BLI_ghash_remove(id_weakref_pool, (void *)id, NULL, NULL);
+		Py_DECREF(weakinfo_list);
+
+		if(BLI_ghash_size(id_weakref_pool) == 0) {
+/*DEBUG*/	//printf("BPY_id_release: freeing global pool\n");
+			BLI_ghash_free(id_weakref_pool, NULL, NULL);
+			id_weakref_pool= NULL;
+		}
+	}
+}
+
+#endif /* USE_PYRNA_INVALIDATE_WEAKREF */
 
 void BPY_id_release(struct ID *id)
 {
-	(void)id;
 #ifdef USE_PYRNA_INVALIDATE_GC
 	id_release_gc(id);
 #endif
+
+#ifdef USE_PYRNA_INVALIDATE_WEAKREF
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
+	id_release_weakref(id);
+
+	PyGILState_Release(gilstate);
+#endif /* USE_PYRNA_INVALIDATE_WEAKREF */
+
+	(void)id;
 }
 
 #ifdef USE_PEDANTIC_WRITE
@@ -5080,7 +5213,12 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 	pyrna->freeptr= FALSE;
 	
 	// PyC_ObSpit("NewStructRNA: ", (PyObject *)pyrna);
-	
+
+#ifdef USE_PYRNA_INVALIDATE_WEAKREF
+	if(ptr->id.data) {
+		id_weakref_pool_add(ptr->id.data, (BPy_DummyPointerRNA *)pyrna);
+	}
+#endif
 	return ( PyObject * ) pyrna;
 }
 
@@ -5124,7 +5262,13 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop )
 	
 	pyrna->ptr = *ptr;
 	pyrna->prop = prop;
-		
+
+#ifdef USE_PYRNA_INVALIDATE_WEAKREF
+	if(ptr->id.data) {
+		id_weakref_pool_add(ptr->id.data, (BPy_DummyPointerRNA *)pyrna);
+	}
+#endif
+
 	return ( PyObject * ) pyrna;
 }
 
