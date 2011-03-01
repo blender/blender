@@ -313,7 +313,7 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 	node->totr.xmin= node->locx;
 	node->totr.xmax= node->locx + node->width;
 	node->totr.ymax= node->locy;
-	node->totr.ymin= dy;
+	node->totr.ymin= MIN2(dy, node->locy-2*NODE_DY);
 }
 
 /* based on settings in node, sets drawing rect info. each redraw! */
