@@ -493,7 +493,7 @@ if(WITH_INSTALL)
 				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/
 				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/python/
 				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/python/
-				COMMAND find ${TARGETDIR}/blender.app -name '*.py[co]' -prune -exec rm -rf {} ';'
+				COMMAND find ${TARGETDIR}/blender.app -name '*.py[co]' -prune -exec rm -rf {} '\;'
 				COMMAND find ${TARGETDIR}/blender.app -name '__pycache__' -exec rmdir {} '+'
 			)
 		endif()	  
