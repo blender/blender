@@ -507,6 +507,38 @@ static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 	return 1;
 }
 
+/* oldbut is being inserted in new block, so we use the lines from new button, and replace button pointers */
+static void ui_but_update_linklines(uiBlock *block, uiBut *oldbut, uiBut *newbut)
+{
+	uiLinkLine *line;
+	uiBut *but;
+	
+	/* if active button is LINK */
+	if(but->type==LINK && but->link) {
+		
+		SWAP(uiLink *, oldbut->link, but->link);
+		
+		for(line= oldbut->link->lines.first; line; line= line->next) {
+			if(line->to==newbut)
+				line->to= oldbut;
+			if(line->from==newbut)
+				line->from= oldbut;
+		}
+	}		
+	
+	/* check all other button links */
+	for(but= block->buttons.first; but; but= but->next) {
+		if(but!=newbut && but->type==LINK && but->link) {
+			for(line= but->link->lines.first; line; line= line->next) {
+				if(line->to==newbut)
+					line->to= oldbut;
+				if(line->from==newbut)
+					line->from= oldbut;
+			}
+		}
+	}
+}
+
 static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut **butpp)
 {
 	uiBlock *oldblock;
@@ -554,6 +586,15 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 				oldbut->x1= but->x1; oldbut->y1= but->y1;
 				oldbut->x2= but->x2; oldbut->y2= but->y2;
 				oldbut->context= but->context; /* set by Layout */
+				
+				/* typically the same pointers, but not on undo/redo */
+				/* XXX some menu buttons store button itself in but->poin. Ugly */
+				if(oldbut->poin != (char *)oldbut) {
+					SWAP(char *, oldbut->poin, but->poin)
+					SWAP(void *, oldbut->func_argN, but->func_argN)
+				}
+				
+				ui_but_update_linklines(block, oldbut, but);
 				
 				BLI_remlink(&block->buttons, but);
 				ui_free_but(C, but);
@@ -933,40 +974,6 @@ static void ui_is_but_sel(uiBut *but)
 	else but->flag &= ~UI_SELECT;
 }
 
-/* XXX 2.50 no links supported yet */
-#if 0
-static int uibut_contains_pt(uiBut *UNUSED(but), short *UNUSED(mval))
-{
-	return 0;
-
-}
-
-static uiBut *ui_get_valid_link_button(uiBlock *block, uiBut *but, short *mval)
-{
-	uiBut *bt;
-	
-		/* find button to link to */
-	for (bt= block->buttons.first; bt; bt= bt->next)
-		if(bt!=but && uibut_contains_pt(bt, mval))
-			break;
-
-	if (bt) {
-		if (but->type==LINK && bt->type==INLINK) {
-			if( but->link->tocode == (int)bt->hardmin ) {
-				return bt;
-			}
-		}
-		else if(but->type==INLINK && bt->type==LINK) {
-			if( bt->link->tocode == (int)but->hardmin ) {
-				return bt;
-			}
-		}
-	}
-
-	return NULL;
-}
-#endif
-
 static uiBut *ui_find_inlink(uiBlock *block, void *poin)
 {
 	uiBut *but;
@@ -1086,166 +1093,6 @@ void ui_delete_linkline(uiLinkLine *line, uiBut *but)
 	MEM_freeN(line);
 	//REDRAW
 }
-/* XXX 2.50 no links supported yet */
-#if 0
-static void ui_delete_active_linkline(uiBlock *block)
-{
-	uiBut *but;
-	uiLink *link;
-	uiLinkLine *line, *nline;
-	int a, b;
-	
-	but= block->buttons.first;
-	while(but) {
-		if(but->type==LINK && but->link) {
-			line= but->link->lines.first;
-			while(line) {
-				
-				nline= line->next;
-				
-				if(line->flag & UI_SELECT) {
-					BLI_remlink(&but->link->lines, line);
-
-					link= line->from->link;
-
-					/* are there more pointers allowed? */
-					if(link->ppoin) {
-						
-						if(*(link->totlink)==1) {
-							*(link->totlink)= 0;
-							MEM_freeN(*(link->ppoin));
-							*(link->ppoin)= NULL;
-						}
-						else {
-							b= 0;
-							for(a=0; a< (*(link->totlink)); a++) {
-								
-								if( (*(link->ppoin))[a] != line->to->poin ) {
-									(*(link->ppoin))[b]= (*(link->ppoin))[a];
-									b++;
-								}
-							}	
-							(*(link->totlink))--;
-						}
-					}
-					else {
-						*(link->poin)= NULL;
-					}
-
-					MEM_freeN(line);
-				}
-				line= nline;
-			}
-		}
-		but= but->next;
-	}
-	
-	/* temporal! these buttons can be everywhere... */
-	allqueue(REDRAWBUTSLOGIC, 0);
-}
-
-static void ui_do_active_linklines(uiBlock *block, short *mval)
-{
-	uiBut *but;
-	uiLinkLine *line, *act= NULL;
-	float mindist= 12.0, fac, v1[2], v2[2], v3[3];
-	int foundone= 0; 
-	
-	if(mval) {
-		v1[0]= mval[0];
-		v1[1]= mval[1];
-		
-		/* find a line close to the mouse */
-		but= block->buttons.first;
-		while(but) {
-			if(but->type==LINK && but->link) {
-				foundone= 1;
-				line= but->link->lines.first;
-				while(line) {
-					v2[0]= line->from->x2;
-					v2[1]= (line->from->y1+line->from->y2)/2.0;
-					v3[0]= line->to->x1;
-					v3[1]= (line->to->y1+line->to->y2)/2.0;
-					
-					fac= dist_to_line_segment_v2(v1, v2, v3);
-					if(fac < mindist) {
-						mindist= fac;
-						act= line;
-					}
-					line= line->next;
-				}
-			}
-			but= but->next;
-		}
-	}
-
-	/* check for a 'found one' to prevent going to 'frontbuffer' mode.
-		this slows done gfx quite some, and at OSX the 'finish' forces a swapbuffer */
-	if(foundone) {
-		glDrawBuffer(GL_FRONT);
-		
-		/* draw */
-		but= block->buttons.first;
-		while(but) {
-			if(but->type==LINK && but->link) {
-				line= but->link->lines.first;
-				while(line) {
-					if(line==act) {
-						if((line->flag & UI_SELECT)==0) {
-							line->flag |= UI_SELECT;
-							ui_draw_linkline(line);
-						}
-					}
-					else if(line->flag & UI_SELECT) {
-						line->flag &= ~UI_SELECT;
-						ui_draw_linkline(line);
-					}
-					line= line->next;
-				}
-			}
-			but= but->next;
-		}
-		bglFlush();
-		glDrawBuffer(GL_BACK);
-	}
-}
-#endif
-
-/* ******************************************************* */
-
-/* XXX 2.50 no screendump supported yet */
-
-#if 0
-/* nasty but safe way to store screendump rect */
-static int scr_x=0, scr_y=0, scr_sizex=0, scr_sizey=0;
-
-static void ui_set_screendump_bbox(uiBlock *block)
-{
-	if(block) {
-		scr_x= block->minx;
-		scr_y= block->miny;
-		scr_sizex= block->maxx - block->minx;
-		scr_sizey= block->maxy - block->miny;
-	}
-	else {
-		scr_sizex= scr_sizey= 0;
-	}
-}
-
-/* used for making screenshots for menus, called in screendump.c */
-int uiIsMenu(int *x, int *y, int *sizex, int *sizey)
-{
-	if(scr_sizex!=0 && scr_sizey!=0) {
-		*x= scr_x;
-		*y= scr_y;
-		*sizex= scr_sizex;
-		*sizey= scr_sizey;
-		return 1;
-	}
-	
-	return 0;
-}
-#endif
 
 /* *********************** data get/set ***********************
  * this either works with the pointed to data, or can work with
@@ -2538,7 +2385,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 
 	/* keep track of UI_interface.h */
 	if(ELEM7(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM));
-	else if(ELEM5(but->type, SCROLL, SEPR, LINK, INLINK, FTPREVIEW));
+	else if(ELEM3(but->type, SCROLL, SEPR, FTPREVIEW));
 	else if(but->type >= SEARCH_MENU);
 	else but->flag |= UI_BUT_UNDO;
 
