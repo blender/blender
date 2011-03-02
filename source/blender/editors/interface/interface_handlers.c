@@ -38,6 +38,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_sensor_types.h"
+#include "DNA_controller_types.h"
+#include "DNA_actuator_types.h"
+
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -68,6 +72,10 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+/* proto */
+static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to);
+static void ui_add_link(bContext *C, uiBut *from, uiBut *to);
 
 /***************** structs and defines ****************/
 
@@ -748,7 +756,72 @@ static uiLinkLine *ui_is_a_link(uiBut *from, uiBut *to)
 	return NULL;
 }
 
-static void ui_add_link(uiBut *from, uiBut *to)
+/* XXX BAD BAD HACK, fixme later **************** */
+/* Try to add an AND Controller between the sensor and the actuator logic bricks and to connect them all */
+static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to)
+{
+	Object *ob= NULL;
+	bSensor *sens_iter;
+	bActuator *act_to, *act_iter;
+	bController *cont;
+	bController ***sens_from_links;
+	uiBut *tmp_but;
+
+	uiLink *link= from->link;
+
+	if(link->ppoin)
+		sens_from_links= (bController ***)(link->ppoin);
+	else return;
+
+	act_to = (bActuator *)(to->poin);
+
+	/* (1) get the object */
+	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
+		for (sens_iter= ob_iter->sensors.first; sens_iter; sens_iter= sens_iter->next)
+		{
+			if (&(sens_iter->links) == sens_from_links) {
+				ob= ob_iter;
+				break;
+			}
+		}
+		if (ob) break;
+	} CTX_DATA_END;
+
+	if(!ob) return;
+
+	/* (2) check if the sensor and the actuator are from the same object */
+	for (act_iter= ob->actuators.first; act_iter; act_iter= (bActuator *)act_iter->next) {
+		if (act_iter == act_to)
+			break;
+	}
+
+	// only works if the sensor and the actuator are from the same object
+	if(!act_iter) return;
+
+	/* (3) add a new controller */
+	if (WM_operator_name_call(C, "LOGIC_OT_controller_add", WM_OP_EXEC_DEFAULT, NULL))
+	{
+		cont = (bController *)ob->controllers.last;
+
+		/* (4) link the sensor->controller->actuator */
+		tmp_but = MEM_callocN(sizeof(uiBut), "uiBut");
+		uiSetButLink(tmp_but, (void **)&cont, (void ***)&(cont->links), &(cont->totlinks), from->link->tocode, (int)to->hardmin);
+		tmp_but->hardmin= from->link->tocode;
+		tmp_but->poin= (char *)cont;
+
+		tmp_but->type= INLINK;
+		ui_add_link(C, from, tmp_but);
+
+		tmp_but->type= LINK;
+		ui_add_link(C, tmp_but, to);
+
+		/* (5) garbage collection */
+		MEM_freeN(tmp_but->link);
+		MEM_freeN(tmp_but);
+	}
+}
+
+static void ui_add_link(bContext *C, uiBut *from, uiBut *to)
 {
 	/* in 'from' we have to add a link to 'to' */
 	uiLink *link;
@@ -767,6 +840,7 @@ static void ui_add_link(uiBut *from, uiBut *to)
 	}
 	else if (from->type==LINK && to->type==INLINK) {
 		if( from->link->tocode != (int)to->hardmin ) {
+			ui_add_smart_controller(C, from, to);
 			return;
 		}
 	}
@@ -812,8 +886,8 @@ static void ui_apply_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data)
 		if (!ELEM(bt->type, LINK, INLINK) || !ELEM(but->type, LINK, INLINK))
 			return;
 		
-		if(but->type==LINK) ui_add_link(but, bt);
-		else ui_add_link(bt, but);
+		if(but->type==LINK) ui_add_link(C, but, bt);
+		else ui_add_link(C, bt, but);
 
 		ui_apply_but_func(C, but);
 		data->retval= but->retval;
