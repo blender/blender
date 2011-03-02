@@ -1677,6 +1677,16 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	case TFM_TIME_SCALE:
 		initTimeScale(t);
 		break;
+	case TFM_TIME_DUPLICATE:
+		/* same as TFM_TIME_EXTEND, but we need the mode info for later 
+		 * so that duplicate-culling will work properly
+		 */
+		if ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)
+			initTranslation(t);
+		else
+			initTimeTranslate(t);
+		t->mode = mode;
+		break;
 	case TFM_TIME_EXTEND:
 		/* now that transdata has been made, do like for TFM_TIME_TRANSLATE (for most Animation
 		 * Editors because they have only 1D transforms for time values) or TFM_TRANSLATION

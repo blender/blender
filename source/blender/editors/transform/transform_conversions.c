@@ -4681,7 +4681,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	Object *ob;
 //	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
-	short duplicate= (t->undostr && strstr(t->undostr, "Duplicate")) ? 1 : 0; /* see bugreport #21229 for reasons for this data */
+	short duplicate= (t->mode == TFM_TIME_DUPLICATE);
 	
 	/* early out when nothing happened */
 	if (t->total == 0 || t->mode == TFM_DUMMY)
@@ -4743,6 +4743,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 				FCurve *fcu= (FCurve *)ale->key_data;
 				
+				/* 3 cases here for curve cleanups:
+				 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
+				 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
+				 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+				 */
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
 					 ((cancelled == 0) || (duplicate)) )
 				{
@@ -4769,7 +4774,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 			
-			/* Do curve cleanups? */
+			/* 3 cases here for curve cleanups:
+			 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
+			 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
+			 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+			 */
 			if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
 				 ((cancelled == 0) || (duplicate)) )
 			{
@@ -4796,7 +4805,13 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		
 		else if (ac.datatype == ANIMCONT_GPENCIL) {
 			/* remove duplicate frames and also make sure points are in order! */
-			if ((cancelled == 0) || (duplicate))
+				/* 3 cases here for curve cleanups:
+				 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
+				 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
+				 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+				 */
+			if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
+				 ((cancelled == 0) || (duplicate)) )
 			{
 				bGPdata *gpd;
 				
@@ -4836,6 +4851,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 				FCurve *fcu= (FCurve *)ale->key_data;
 				
+				/* 3 cases here for curve cleanups:
+				 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
+				 * 2) cancelled == 0        -> user confirmed the transform, so duplicates should be removed
+				 * 3) cancelled + duplicate -> user cancelled the transform, but we made duplicates, so get rid of these
+				 */
 				if ( (sipo->flag & SIPO_NOTRANSKEYCULL)==0 &&
 					 ((cancelled == 0) || (duplicate)) )
 				{
