@@ -40,7 +40,7 @@
 #include "bpy_util.h"
 #include "bpy_rna_callback.h"
 
-#ifdef USE_PYRNA_INVALIDATE_GC
+#ifdef USE_PYRNA_INVALIDATE_WEAKREF
 #include "MEM_guardedalloc.h"
 #endif
 
@@ -50,7 +50,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
-#ifdef USE_PYRNA_INVALIDATE_GC
+#ifdef USE_PYRNA_INVALIDATE_WEAKREF
 #include "BLI_ghash.h"
 #endif
 
@@ -171,18 +171,21 @@ void id_weakref_pool_add(ID *id, BPy_DummyPointerRNA* pyrna)
 	PyObject *weakinfo_list= id_weakref_pool_get(id); /* new or existing */
 	PyObject *weakinfo_pair= PyTuple_New(2);
 	PyTuple_SET_ITEM(weakinfo_pair, 0, weakinfo_list);
-	Py_INCREF(weakinfo_list);
-	PyTuple_SET_ITEM(weakinfo_pair, 1, PyCapsule_New(id, NULL, NULL));
+	Py_INCREF(weakinfo_list); /* increase the reference because the ghash owns as well as the tuple */
+	PyTuple_SET_ITEM(weakinfo_pair, 1, PyCapsule_New(id, NULL, NULL)); /* only tuple owns */
 	weakref_cb_py= PyCFunction_New(&id_free_weakref_cb_def, weakinfo_pair);
-	Py_DECREF(weakinfo_pair); /* function' 'self' now owns weakinfo_list now */
+	Py_DECREF(weakinfo_pair); /* functions 'self' owns 'weakinfo_pair' now */
+
 
 	/* add weakref to weakinfo_list list */
 	weakref= PyWeakref_NewRef((PyObject *)pyrna, weakref_cb_py);
-	Py_DECREF(weakref_cb_py); /* function owned by the weakref now */
+
+//	// EEK!!!, this causes an error if its added back with UV layout export!!!
+//	Py_DECREF(weakref_cb_py); /* function owned by the weakref now */
 
 	/* important to add at the end, since first removal looks at the end */
 	PyList_Append(weakinfo_list, weakref);
-	Py_DECREF(weakref);
+	Py_DECREF(weakref); /* list owns weakref */
 }
 
 static void id_release_weakref(struct ID *id);
