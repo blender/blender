@@ -601,15 +601,14 @@ static void rna_NodeTree_node_remove(bNodeTree *ntree, ReportList *reports, bNod
 static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, bNodeSocket *in, bNodeSocket *out)
 {
 	bNodeLink *ret;
-	bNode *fromnode, *tonode;
+	bNode *fromnode= NULL, *tonode= NULL;
+	int from_in_out, to_in_out;
 
-	if (!nodeFindNode(ntree, in, &fromnode, NULL, NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate input socket's node in nodetree");
-		return NULL;
-	}
-
-	if (!nodeFindNode(ntree, out, &tonode, NULL, NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate output socket's node in nodetree");
+	nodeFindNode(ntree, in, &fromnode, NULL, &from_in_out);
+	nodeFindNode(ntree, out, &tonode, NULL, &to_in_out);
+	
+	if (&from_in_out == &to_in_out) {
+		BKE_reportf(reports, RPT_ERROR, "Same input/output direction of sockets");
 		return NULL;
 	}
 
