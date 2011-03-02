@@ -1214,16 +1214,18 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Reference Direction", "Reference Direction");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "angle_min", PROP_FLOAT, PROP_ANGLE);
+	//XXX TODO - use radians internally then change to PROP_ANGLE
+	prop= RNA_def_property(srna, "angle_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "minloc[0]");
 	RNA_def_property_range(prop, 0.0, 180.0);
-	RNA_def_property_ui_text(prop, "Min Angle", "Minimum angle to maintain with target direction. No correction is done if angle with target direction is between min and max");
+	RNA_def_property_ui_text(prop, "Min Angle", "Minimum angle (in degree) to maintain with target direction. No correction is done if angle with target direction is between min and max");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "angle_max", PROP_FLOAT, PROP_ANGLE);
+	//XXX TODO - use radians internally then change to PROP_ANGLE
+	prop= RNA_def_property(srna, "angle_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxloc[0]");
 	RNA_def_property_range(prop, 0.0, 180.0);
-	RNA_def_property_ui_text(prop, "Max Angle", "Maximum angle allowed with target direction. No correction is done if angle with target direction is between min and max");
+	RNA_def_property_ui_text(prop, "Max Angle", "Maximum angle (in degree) allowed with target direction. No correction is done if angle with target direction is between min and max");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* ACT_CONST_TYPE_FH */

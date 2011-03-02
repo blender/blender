@@ -634,9 +634,10 @@ static void rna_def_radar_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Axis", "Specify along which axis the radar cone is cast");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
+	//XXX TODO - use radians internally then change to PROP_ANGLE
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, 179.9);
-	RNA_def_property_ui_text(prop, "Angle", "Opening angle of the radar cone");
+	RNA_def_property_ui_text(prop, "Angle", "Opening angle of the radar cone (in degrees)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
