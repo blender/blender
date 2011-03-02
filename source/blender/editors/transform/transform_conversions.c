@@ -3543,7 +3543,7 @@ static void sort_time_beztmaps (BeztMap *bezms, int totvert, const short UNUSED(
 }
 
 /* This function firstly adjusts the pointers that the transdata has to each BezTriple */
-static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totvert, const short use_handle)
+static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totvert, const short UNUSED(use_handle))
 {
 	BezTriple *bezts = fcu->bezt;
 	BeztMap *bezm;
@@ -3639,6 +3639,7 @@ void remake_graph_transdata (TransInfo *t, ListBase *anim_data)
 			BeztMap *bezm;
 			
 			/* adjust transform-data pointers */
+			/* note, none of these functions use 'use_handle', it could be removed */
 			bezm= bezt_to_beztmaps(fcu->bezt, fcu->totvert, use_handle);
 			sort_time_beztmaps(bezm, fcu->totvert, use_handle);
 			beztmap_to_data(t, fcu, bezm, fcu->totvert, use_handle);
