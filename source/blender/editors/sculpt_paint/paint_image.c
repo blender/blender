@@ -785,7 +785,7 @@ static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *buc
 	return 0;
 }
 
-/* basic line intersection, could move to arithb.c, 2 points with a horiz line
+/* basic line intersection, could move to math_geom.c, 2 points with a horiz line
  * 1 for an intersection, 2 if the first point is aligned, 3 if the second point is aligned */
 #define ISECT_TRUE 1
 #define ISECT_TRUE_P1 2
@@ -1144,7 +1144,7 @@ static void project_face_seams_init(const ProjPaintState *ps, const int face_ind
 #endif // PROJ_DEBUG_NOSEAMBLEED
 
 
-/* TODO - move to arithb.c */
+/* TODO - move to math_geom.c */
 
 /* little sister we only need to know lambda */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
