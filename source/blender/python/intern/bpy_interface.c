@@ -37,6 +37,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "RNA_types.h"
+
 #include "bpy.h"
 #include "bpy_rna.h"
 #include "bpy_util.h"

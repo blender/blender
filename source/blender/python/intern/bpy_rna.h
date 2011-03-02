@@ -29,21 +29,8 @@
 #ifndef BPY_RNA_H
 #define BPY_RNA_H
 
-#include "RNA_access.h"
-#include "RNA_types.h"
-#include "BKE_idprop.h"
 
-extern PyTypeObject pyrna_struct_meta_idprop_Type;
-extern PyTypeObject pyrna_struct_Type;
-extern PyTypeObject pyrna_prop_Type;
-extern PyTypeObject pyrna_prop_array_Type;
-extern PyTypeObject pyrna_prop_collection_Type;
-
-#define BPy_StructRNA_Check(v)			(PyObject_TypeCheck(v, &pyrna_struct_Type))
-#define BPy_StructRNA_CheckExact(v)		(Py_TYPE(v) == &pyrna_struct_Type)
-#define BPy_PropertyRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_prop_Type))
-#define BPy_PropertyRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_prop_Type)
-
+/* --- bpy build options --- */
 /* play it safe and keep optional for now, need to test further now this affects looping on 10000's of verts for eg. */
 // #define USE_WEAKREFS
 
@@ -62,6 +49,28 @@ extern PyTypeObject pyrna_prop_collection_Type;
 #if defined(USE_PYRNA_INVALIDATE_GC) && defined(USE_PYRNA_INVALIDATE_WEAKREF)
 #error "Only 1 reference check method at a time!"
 #endif
+/* --- end bpy build options --- */
+
+
+extern PyTypeObject pyrna_struct_meta_idprop_Type;
+extern PyTypeObject pyrna_struct_Type;
+extern PyTypeObject pyrna_prop_Type;
+extern PyTypeObject pyrna_prop_array_Type;
+extern PyTypeObject pyrna_prop_collection_Type;
+
+#define BPy_StructRNA_Check(v)			(PyObject_TypeCheck(v, &pyrna_struct_Type))
+#define BPy_StructRNA_CheckExact(v)		(Py_TYPE(v) == &pyrna_struct_Type)
+#define BPy_PropertyRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_prop_Type))
+#define BPy_PropertyRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_prop_Type)
+
+#define PYRNA_STRUCT_CHECK_OBJ(obj) if(pyrna_struct_validity_check(obj) == -1) { return NULL; }
+#define PYRNA_STRUCT_CHECK_INT(obj) if(pyrna_struct_validity_check(obj) == -1) { return -1; }
+
+#define PYRNA_PROP_CHECK_OBJ(obj) if(pyrna_prop_validity_check(obj) == -1) { return NULL; }
+#define PYRNA_PROP_CHECK_INT(obj) if(pyrna_prop_validity_check(obj) == -1) { return -1; }
+
+#define PYRNA_STRUCT_IS_VALID(pysrna) (((BPy_StructRNA *)(pysrna))->ptr.type != NULL)
+#define PYRNA_PROP_IS_VALID(pysrna) (((BPy_PropertyRNA *)(pysrna))->ptr.type != NULL)
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
@@ -140,6 +149,9 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
 
 int pyrna_write_check(void);
+
+int pyrna_struct_validity_check(BPy_StructRNA *pysrna);
+int pyrna_prop_validity_check(BPy_PropertyRNA *self);
 
 void BPY_modules_update(struct bContext *C); //XXX temp solution
 

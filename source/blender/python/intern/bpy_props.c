@@ -29,12 +29,17 @@
 
 #include <Python.h>
 
+#include "RNA_types.h"
+
 #include "bpy_props.h"
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
 #include "BLI_utildefines.h"
 
+#include "BKE_idprop.h"
+
+#include "RNA_access.h"
 #include "RNA_define.h" /* for defining our own rna */
 #include "RNA_enum_types.h"
 

@@ -48,6 +48,8 @@
 
 #include "BKE_global.h" /* XXX, G.main only */
 
+#include "RNA_access.h"
+
 #include "MEM_guardedalloc.h"
 
  /* external util modules */

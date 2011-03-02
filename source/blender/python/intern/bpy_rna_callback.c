@@ -29,6 +29,8 @@
 
 #include <Python.h>
 
+#include "RNA_types.h"
+
 #include "bpy_rna.h"
 #include "bpy_rna_callback.h"
 #include "bpy_util.h"
@@ -36,6 +38,8 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_screen_types.h"
+
+#include "RNA_access.h"
 
 #include "BKE_context.h"
 #include "ED_space_api.h"
