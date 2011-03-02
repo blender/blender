@@ -135,6 +135,8 @@ static void id_release_gc(struct ID *id)
 #endif
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
+// #define DEBUG_RNA_WEAKREF
+
 struct GHash *id_weakref_pool= NULL;
 static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref);
 static PyMethodDef id_free_weakref_cb_def= {"id_free_weakref_cb", (PyCFunction)id_free_weakref_cb, METH_O, NULL};
@@ -154,7 +156,8 @@ static PyObject *id_weakref_pool_get(ID *id)
 	}
 
 	if(weakinfo_list==NULL) {
-		weakinfo_list= PyList_New(0);
+		weakinfo_list= PyList_New(1);
+		PyList_SET_ITEM(weakinfo_list, 0, PyCapsule_New(id, NULL, NULL)); /* list owns the capsule */
 		BLI_ghash_insert(id_weakref_pool, (void *)id, weakinfo_list);
 	}
 
@@ -162,26 +165,20 @@ static PyObject *id_weakref_pool_get(ID *id)
 }
 
 /* called from pyrna_struct_CreatePyObject() and pyrna_prop_CreatePyObject() */
-void id_weakref_pool_add(ID *id, BPy_DummyPointerRNA* pyrna)
+void id_weakref_pool_add(ID *id, BPy_DummyPointerRNA *pyrna)
 {
 	PyObject *weakref;
 	PyObject *weakref_cb_py;
 
 	/* create a new function instance and insert the list as 'self' so we can remove ourself from it */
 	PyObject *weakinfo_list= id_weakref_pool_get(id); /* new or existing */
-	PyObject *weakinfo_pair= PyTuple_New(2);
-	PyTuple_SET_ITEM(weakinfo_pair, 0, weakinfo_list);
-	Py_INCREF(weakinfo_list); /* increase the reference because the ghash owns as well as the tuple */
-	PyTuple_SET_ITEM(weakinfo_pair, 1, PyCapsule_New(id, NULL, NULL)); /* only tuple owns */
-	weakref_cb_py= PyCFunction_New(&id_free_weakref_cb_def, weakinfo_pair);
-	Py_DECREF(weakinfo_pair); /* functions 'self' owns 'weakinfo_pair' now */
-
+	weakref_cb_py= PyCFunction_New(&id_free_weakref_cb_def, weakinfo_list);
 
 	/* add weakref to weakinfo_list list */
 	weakref= PyWeakref_NewRef((PyObject *)pyrna, weakref_cb_py);
 
 //	// EEK!!!, this causes an error if its added back with UV layout export!!!
-//	Py_DECREF(weakref_cb_py); /* function owned by the weakref now */
+	Py_DECREF(weakref_cb_py); /* function owned by the weakref now */
 
 	/* important to add at the end, since first removal looks at the end */
 	PyList_Append(weakinfo_list, weakref);
@@ -189,16 +186,17 @@ void id_weakref_pool_add(ID *id, BPy_DummyPointerRNA* pyrna)
 }
 
 static void id_release_weakref(struct ID *id);
-static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref)
+static PyObject *id_free_weakref_cb(PyObject *weakinfo_list, PyObject *weakref)
 {
-
 	/* important to search backwards */
-	PyObject *weakinfo_list= PyTuple_GET_ITEM(weakinfo_pair, 0);
 	unsigned int i= PyList_GET_SIZE(weakinfo_list);
 	const unsigned int last_index= i - 1;
+	int found= FALSE;
 
-	while(i--) {
+	/* first item is reserved for capsule */
+	while(i-- > 1) {
 		if(PyList_GET_ITEM(weakinfo_list, i) == weakref) {
+			found= TRUE;
 			/* swap */
 			if(i != last_index) {
 				PyList_SET_ITEM(weakinfo_list, i, PyList_GET_ITEM(weakinfo_list, last_index));
@@ -208,12 +206,13 @@ static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref)
 			PyList_SetSlice(weakinfo_list, last_index, PY_SSIZE_T_MAX, NULL);
 			Py_DECREF(weakref);
 
-/*DEBUG*/	//printf("bprna_weakref_cb: %p size is %d\n", weakref, last_index + 1);
-
-			/* optional, free the list once its 0 size
+#ifdef DEBUG_RNA_WEAKREF
+			fprintf(stdout, "  id_free_weakref_cb: %p size is %d\n", weakref, last_index + 1);
+#endif
+			/* optional, free the list once its 1 size
 			 * to keep the ID hash lookups fast by not allowing manu empty items to exist */
-			if(last_index == 0) {
-				PyObject *weakinfo_id= PyTuple_GET_ITEM(weakinfo_pair, 1);
+			if(last_index == 1) {
+				PyObject *weakinfo_id= PyList_GET_ITEM(weakinfo_list, 0);
 				ID *id= PyCapsule_GetPointer(weakinfo_id, NULL);
 
 				/* the list is empty, just free it */
@@ -222,6 +221,8 @@ static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref)
 			break;
 		}
 	}
+
+	assert(found == TRUE);
 
 	Py_RETURN_NONE;
 }
@@ -232,11 +233,15 @@ static void id_release_weakref(struct ID *id)
 	if(weakinfo_list) {
 		unsigned int i= PyList_GET_SIZE(weakinfo_list);
 
-/*DEBUG*/ //printf("BPY_id_release: '%s', %d items\n", id->name, i);
-
-		while(i--) {
+#ifdef DEBUG_RNA_WEAKREF
+		fprintf(stdout, "id_release_weakref: '%s', %d items\n", id->name, i - 1);
+#endif
+		while(i-- > 1) {
 			PyObject *item= PyWeakref_GET_OBJECT(PyList_GET_ITEM(weakinfo_list, i));
 			if(item != Py_None) {
+#ifdef DEBUG_RNA_WEAKREF
+				PyC_ObSpit("id_release_weakref item ", item);
+#endif
 				pyrna_invalidate((BPy_DummyPointerRNA *)item);
 			}
 		}
@@ -245,7 +250,9 @@ static void id_release_weakref(struct ID *id)
 		Py_DECREF(weakinfo_list);
 
 		if(BLI_ghash_size(id_weakref_pool) == 0) {
-/*DEBUG*/	//printf("BPY_id_release: freeing global pool\n");
+#ifdef DEBUG_RNA_WEAKREF
+			fprintf(stdout, "id_release_weakref: freeing global pool\n");
+#endif
 			BLI_ghash_free(id_weakref_pool, NULL, NULL);
 			id_weakref_pool= NULL;
 		}
