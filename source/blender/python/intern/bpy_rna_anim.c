@@ -42,7 +42,7 @@
 #include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 
-#include "ED_keyframing.h"
+#include "RNA_access.h"
 
 #include "bpy_rna.h"
 #include "bpy_util.h"
