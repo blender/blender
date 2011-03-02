@@ -1094,21 +1094,44 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
 #define SPLIT_STARTED	1
 #define SPLIT_PROGRESS	2
 
-typedef struct sAreaSplitData
-	{
-		int x, y;	/* last used mouse position */
-		
-		int origval;			/* for move areas */
-		int bigger, smaller;	/* constraints for moving new edge */
-		int delta;				/* delta move edge */
-		int origmin, origsize;	/* to calculate fac, for property storage */
-		
-		ScrEdge *nedge;			/* new edge */
-		ScrArea *sarea;			/* start area */
-		ScrArea *narea;			/* new area */
-	} sAreaSplitData;
+typedef struct sAreaSplitData {
+	int x, y;	/* last used mouse position */
+	
+	int origval;			/* for move areas */
+	int bigger, smaller;	/* constraints for moving new edge */
+	int delta;				/* delta move edge */
+	int origmin, origsize;	/* to calculate fac, for property storage */
+	int previewmode;		/* draw previewline, then split */
+	
+	ScrEdge *nedge;			/* new edge */
+	ScrArea *sarea;			/* start area */
+	ScrArea *narea;			/* new area */
+	
+} sAreaSplitData;
 
-/* generic init, no UI stuff here */
+/* generic init, menu case, doesn't need active area */
+static int area_split_menu_init(bContext *C, wmOperator *op)
+{
+	sAreaSplitData *sd;
+	
+	/* custom data */
+	sd= (sAreaSplitData*)MEM_callocN(sizeof (sAreaSplitData), "op_area_split");
+	op->customdata= sd;
+	
+	sd->sarea= CTX_wm_area(C);
+	
+	if(sd->sarea) {
+		int dir= RNA_enum_get(op->ptr, "direction");
+
+		if(dir=='h')
+			sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_H;
+		else
+			sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_V;
+	}
+	return 1;
+}
+
+/* generic init, no UI stuff here, assumes active area */
 static int area_split_init(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
@@ -1212,6 +1235,9 @@ static void area_split_exit(bContext *C, wmOperator *op)
 		if(sd->sarea) ED_area_tag_redraw(sd->sarea);
 		if(sd->narea) ED_area_tag_redraw(sd->narea);
 
+		if(sd->sarea)
+			sd->sarea->flag &= ~(AREA_FLAG_DRAWSPLIT_H|AREA_FLAG_DRAWSPLIT_V);
+		
 		MEM_freeN(op->customdata);
 		op->customdata = NULL;
 	}
@@ -1228,18 +1254,15 @@ static void area_split_exit(bContext *C, wmOperator *op)
 static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	sAreaSplitData *sd;
+	int dir;
 	
 	if(event->type==EVT_ACTIONZONE_AREA) {
 		sActionzoneData *sad= event->customdata;
-		int dir;
 		
 		if(sad->modifier>0) {
 			return OPERATOR_PASS_THROUGH;
 		}
 		
-		/* no full window splitting allowed */
-		if(CTX_wm_area(C)->full)
-			return OPERATOR_PASS_THROUGH;
 		
 		/* verify *sad itself */
 		if(sad==NULL || sad->sa1==NULL || sad->az==NULL)
@@ -1264,10 +1287,46 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if(!area_split_init(C, op))
 			return OPERATOR_PASS_THROUGH;
 		
-		sd= (sAreaSplitData *)op->customdata;
+	}
+	else {
+		ScrEdge *actedge;
+		int x, y;
 		
-		sd->x= event->x;
-		sd->y= event->y;
+		/* no full window splitting allowed */
+		if(CTX_wm_area(C) && CTX_wm_area(C)->full)
+			return OPERATOR_CANCELLED;
+		
+		/* retrieve initial mouse coord, so we can find the active edge */
+		if(RNA_property_is_set(op->ptr, "mouse_x"))
+			x= RNA_int_get(op->ptr, "mouse_x");
+		else
+			x= event->x;
+		
+		if(RNA_property_is_set(op->ptr, "mouse_y"))
+			y= RNA_int_get(op->ptr, "mouse_y");
+		else
+			y= event->x;
+		
+		actedge= screen_find_active_scredge(CTX_wm_screen(C), x, y);
+		if(actedge==NULL) 
+			return OPERATOR_CANCELLED;
+		
+		dir= scredge_is_horizontal(actedge)?'v':'h';
+		
+		RNA_enum_set(op->ptr, "direction", dir);
+		
+		/* special case, adds customdata, sets defaults */
+		if(!area_split_menu_init(C, op))
+			return OPERATOR_CANCELLED;
+		
+	}
+	
+	sd= (sAreaSplitData *)op->customdata;
+	
+	sd->x= event->x;
+	sd->y= event->y;
+	
+	if(event->type==EVT_ACTIONZONE_AREA) {
 		
 		/* do the split */
 		if(area_split_apply(C, op)) {
@@ -1278,11 +1337,14 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			
 			return OPERATOR_RUNNING_MODAL;
 		}
-		
 	}
 	else {
-		/* nonmodal for now */
-		return op->type->exec(C, op);
+		sd->previewmode= 1;
+		/* add temp handler for edge move or cancel */
+		WM_event_add_modal_handler(C, op);
+		
+		return OPERATOR_RUNNING_MODAL;
+		
 	}
 	
 	return OPERATOR_PASS_THROUGH;
@@ -1306,12 +1368,16 @@ static int area_split_cancel(bContext *C, wmOperator *op)
 {
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
 	
-	if (screen_area_join(C, CTX_wm_screen(C), sd->sarea, sd->narea)) {
-		if (CTX_wm_area(C) == sd->narea) {
-			CTX_wm_area_set(C, NULL);
-			CTX_wm_region_set(C, NULL);
+	if(sd->previewmode) {
+	}
+	else {
+		if (screen_area_join(C, CTX_wm_screen(C), sd->sarea, sd->narea)) {
+			if (CTX_wm_area(C) == sd->narea) {
+				CTX_wm_area_set(C, NULL);
+				CTX_wm_region_set(C, NULL);
+			}
+			sd->narea = NULL;
 		}
-		sd->narea = NULL;
 	}
 	area_split_exit(C, op);
 	
@@ -1330,16 +1396,46 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 			dir= RNA_enum_get(op->ptr, "direction");
 			
 			sd->delta= (dir == 'v')? event->x - sd->origval: event->y - sd->origval;
-			area_move_apply_do(C, sd->origval, sd->delta, dir, sd->bigger, sd->smaller);
+			if(sd->previewmode==0) 
+				area_move_apply_do(C, sd->origval, sd->delta, dir, sd->bigger, sd->smaller);
+			else {
+				if(sd->sarea) {
+					sd->sarea->flag &= ~(AREA_FLAG_DRAWSPLIT_H|AREA_FLAG_DRAWSPLIT_V);
+					ED_area_tag_redraw(sd->sarea);
+				}
+				sd->sarea= screen_areahascursor(CTX_wm_screen(C), event->x, event->y);	/* area context not set */
+				
+				if(sd->sarea) {
+					ED_area_tag_redraw(sd->sarea);
+					if (dir=='v') {
+						sd->origsize= sd->sarea->winx;
+						sd->origmin= sd->sarea->totrct.xmin;
+						sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_V;
+					}
+					else {
+						sd->origsize= sd->sarea->winy;
+						sd->origmin= sd->sarea->totrct.ymin;
+						sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_H;
+					}
+				}				
+			}
 			
 			fac= (dir == 'v') ? event->x-sd->origmin : event->y-sd->origmin;
 			RNA_float_set(op->ptr, "factor", fac / (float)sd->origsize);
+			
 			break;
 			
 		case LEFTMOUSE:
-			if(event->val==KM_RELEASE) { /* mouse up */
+			if(sd->previewmode) {
+				area_split_apply(C, op);
 				area_split_exit(C, op);
 				return OPERATOR_FINISHED;
+			}
+			else {
+				if(event->val==KM_RELEASE) { /* mouse up */
+					area_split_exit(C, op);
+					return OPERATOR_FINISHED;
+				}
 			}
 			break;
 		case RIGHTMOUSE: /* cancel operation */
@@ -1365,12 +1461,14 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->invoke= area_split_invoke;
 	ot->modal= area_split_modal;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_screenactive;
 	ot->flag= OPTYPE_BLOCKING;
 	
 	/* rna */
 	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', "Direction", "");
 	RNA_def_float(ot->srna, "factor", 0.5f, 0.0, 1.0, "Factor", "", 0.0, 1.0);
+	RNA_def_int(ot->srna, "mouse_x", -100, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_y", -100, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
 }
 
 
@@ -1866,6 +1964,7 @@ static int area_join_init(bContext *C, wmOperator *op)
 	sAreaJoinData* jd= NULL;
 	int x1, y1;
 	int x2, y2;
+	int shared= 0;
 	
 	/* required properties, make negative to get return 0 if not set by caller */
 	x1= RNA_int_get(op->ptr, "min_x");
@@ -1877,6 +1976,16 @@ static int area_join_init(bContext *C, wmOperator *op)
 	sa2 = screen_areahascursor(CTX_wm_screen(C), x2, y2);
 	if(sa1==NULL || sa2==NULL || sa1==sa2)
 		return 0;
+	
+	/* do areas share an edge? */
+	if(sa1->v1==sa2->v1 || sa1->v1==sa2->v2 || sa1->v1==sa2->v3 || sa1->v1==sa2->v4) shared++; 
+	if(sa1->v2==sa2->v1 || sa1->v2==sa2->v2 || sa1->v2==sa2->v3 || sa1->v2==sa2->v4) shared++; 
+	if(sa1->v3==sa2->v1 || sa1->v3==sa2->v2 || sa1->v3==sa2->v3 || sa1->v3==sa2->v4) shared++; 
+	if(sa1->v4==sa2->v1 || sa1->v4==sa2->v2 || sa1->v4==sa2->v3 || sa1->v4==sa2->v4) shared++; 
+	if(shared!=2) {
+		printf("areas don't share edge\n");
+		return 0;
+	}
 	
 	jd = (sAreaJoinData*)MEM_callocN(sizeof (sAreaJoinData), "op_area_join");
 	
@@ -1956,17 +2065,16 @@ static int area_join_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_int_set(op->ptr, "min_y", sad->y);
 		RNA_int_set(op->ptr, "max_x", event->x);
 		RNA_int_set(op->ptr, "max_y", event->y);
-		
-		if(!area_join_init(C, op)) 
-			return OPERATOR_PASS_THROUGH;
-		
-		/* add temp handler */
-		WM_event_add_modal_handler(C, op);
-		
-		return OPERATOR_RUNNING_MODAL;
 	}
 	
-	return OPERATOR_PASS_THROUGH;
+	
+	if(!area_join_init(C, op)) 
+		return OPERATOR_PASS_THROUGH;
+	
+	/* add temp handler */
+	WM_event_add_modal_handler(C, op);
+	
+	return OPERATOR_RUNNING_MODAL;
 }
 
 static int area_join_cancel(bContext *C, wmOperator *op)
@@ -2092,7 +2200,7 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->exec= area_join_exec;
 	ot->invoke= area_join_invoke;
 	ot->modal= area_join_modal;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_screenactive;
 	
 	ot->flag= OPTYPE_BLOCKING;
 	
@@ -2102,6 +2210,58 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "max_x", -100, INT_MIN, INT_MAX, "X 2", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "max_y", -100, INT_MIN, INT_MAX, "Y 2", "", INT_MIN, INT_MAX);
 }
+
+/* ******************************* */
+
+static int screen_area_options_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	PointerRNA ptr1, ptr2;
+	ScrEdge *actedge= screen_find_active_scredge(CTX_wm_screen(C), event->x, event->y);
+	
+	if(actedge==NULL) return OPERATOR_CANCELLED;
+	
+	pup= uiPupMenuBegin(C, op->type->name, ICON_NONE);
+	layout= uiPupMenuLayout(pup);
+	
+	WM_operator_properties_create(&ptr1, "SCREEN_OT_area_join");
+	
+	/* mouse cursor on edge, '4' can fail on wide edges... */
+	RNA_int_set(&ptr1, "min_x", event->x+4);
+	RNA_int_set(&ptr1, "min_y", event->y+4);
+	RNA_int_set(&ptr1, "max_x", event->x-4);
+	RNA_int_set(&ptr1, "max_y", event->y-4);
+	
+	WM_operator_properties_create(&ptr2, "SCREEN_OT_area_split");
+	
+	/* store initial mouse cursor position */
+	RNA_int_set(&ptr2, "mouse_x", event->x);
+	RNA_int_set(&ptr2, "mouse_y", event->y);
+	
+	uiItemFullO(layout, "SCREEN_OT_area_split", "Split Area", ICON_NONE, ptr2.data, WM_OP_INVOKE_DEFAULT, 0);
+	uiItemFullO(layout, "SCREEN_OT_area_join", "Join Area", ICON_NONE, ptr1.data, WM_OP_INVOKE_DEFAULT, 0);
+	
+	uiPupMenuEnd(C, pup);
+	
+	return OPERATOR_CANCELLED;
+}
+
+static void SCREEN_OT_area_options(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Area Options";
+	ot->description= "Operations for splitting and merging";
+	ot->idname= "SCREEN_OT_area_options";
+	
+	/* api callbacks */
+	ot->invoke= screen_area_options_invoke;
+	
+	ot->poll= ED_operator_screen_mainwinactive;
+}
+
+
+/* ******************************* */
 
 
 static int spacedata_cleanup(bContext *C, wmOperator *op)
@@ -3048,6 +3208,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_area_move);
 	WM_operatortype_append(SCREEN_OT_area_split);
 	WM_operatortype_append(SCREEN_OT_area_join);
+	WM_operatortype_append(SCREEN_OT_area_options);
 	WM_operatortype_append(SCREEN_OT_area_dupli);
 	WM_operatortype_append(SCREEN_OT_area_swap);
 	WM_operatortype_append(SCREEN_OT_region_quadview);
@@ -3149,6 +3310,9 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_region_scale", EVT_ACTIONZONE_REGION, 0, 0, 0);
 	/* area move after action zones */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
+	
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_options", RIGHTMOUSE, KM_PRESS, 0, 0);
+	
 	
 	/* Header Editing ------------------------------------------------ */
 	keymap= WM_keymap_find(keyconf, "Header", 0, 0);

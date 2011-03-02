@@ -986,8 +986,9 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 void ED_screen_draw(wmWindow *win)
 {
 	ScrArea *sa;
-	ScrArea *sa1=NULL;
-	ScrArea *sa2=NULL;
+	ScrArea *sa1= NULL;
+	ScrArea *sa2= NULL;
+	ScrArea *sa3= NULL;
 	int dir = -1;
 	int dira = -1;
 
@@ -996,6 +997,7 @@ void ED_screen_draw(wmWindow *win)
 	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;
 		if (sa->flag & AREA_FLAG_DRAWJOINTO) sa2 = sa;
+		if (sa->flag & (AREA_FLAG_DRAWSPLIT_H|AREA_FLAG_DRAWSPLIT_V)) sa3 = sa;
 		drawscredge_area(sa, win->sizex, win->sizey, 0);
 	}
 	for(sa= win->screen->areabase.first; sa; sa= sa->next)
@@ -1028,7 +1030,25 @@ void ED_screen_draw(wmWindow *win)
 		scrarea_draw_shape_light(sa1, dira);
 	}
 	
-//	if(G.f & G_DEBUG) printf("draw screen\n");
+	/* splitpoint */
+	if(sa3) {
+		glEnable(GL_BLEND);
+		glColor4ub(255, 255, 255, 100);
+		
+		if(sa3->flag & AREA_FLAG_DRAWSPLIT_H) {
+			sdrawline(sa3->totrct.xmin, win->eventstate->y, sa3->totrct.xmax, win->eventstate->y);
+			glColor4ub(0, 0, 0, 100);
+			sdrawline(sa3->totrct.xmin, win->eventstate->y+1, sa3->totrct.xmax, win->eventstate->y+1);
+		}
+		else {
+			sdrawline(win->eventstate->x, sa3->totrct.ymin, win->eventstate->x, sa3->totrct.ymax);
+			glColor4ub(0, 0, 0, 100);
+			sdrawline(win->eventstate->x+1, sa3->totrct.ymin, win->eventstate->x+1, sa3->totrct.ymax);
+		}
+		
+		glDisable(GL_BLEND);
+	}
+	
 	win->screen->do_draw= 0;
 }
 
