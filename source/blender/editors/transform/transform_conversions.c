@@ -3547,7 +3547,8 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 {
 	BezTriple *bezts = fcu->bezt;
 	BeztMap *bezm;
-	TransData2D *td;
+	TransData2D *td2d;
+	TransData *td;
 	int i, j;
 	char *adjusted;
 	
@@ -3563,43 +3564,50 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 		/* loop through transdata, testing if we have a hit
 		 * for the handles (vec[0]/vec[2]), we must also check if they need to be swapped...
 		 */
-		td= t->data2d;
-		for (j= 0; j < t->total; j++, td++) {
+		td2d= t->data2d;
+		td= t->data;
+		for (j= 0; j < t->total; j++, td2d++, td++) {
 			/* skip item if already marked */
 			if (adjusted[j] != 0) continue;
 			
-			/* only selected verts */
-			if (bezm->pipo == BEZT_IPO_BEZ) {
-				if (use_handle && bezm->bezt->f1 & SELECT) {
-					if (td->loc2d == bezm->bezt->vec[0]) {
-						if (bezm->swapHs == 1)
-							td->loc2d= (bezts + bezm->newIndex)->vec[2];
-						else
-							td->loc2d= (bezts + bezm->newIndex)->vec[0];
-						adjusted[j] = 1;
-					}
-				}
+			/* update all transdata pointers, no need to check for selections etc,
+			 * since only points that are really needed were created as transdata
+			 */
+			if (td2d->loc2d == bezm->bezt->vec[0]) {
+				if (bezm->swapHs == 1)
+					td2d->loc2d= (bezts + bezm->newIndex)->vec[2];
+				else
+					td2d->loc2d= (bezts + bezm->newIndex)->vec[0];
+				adjusted[j] = 1;
 			}
-			if (bezm->cipo == BEZT_IPO_BEZ) {
-				if (use_handle && bezm->bezt->f3 & SELECT) {
-					if (td->loc2d == bezm->bezt->vec[2]) {
-						if (bezm->swapHs == 1)
-							td->loc2d= (bezts + bezm->newIndex)->vec[0];
-						else
-							td->loc2d= (bezts + bezm->newIndex)->vec[2];
-						adjusted[j] = 1;
-					}
-				}
+			else if (td2d->loc2d == bezm->bezt->vec[2]) {
+				if (bezm->swapHs == 1)
+					td2d->loc2d= (bezts + bezm->newIndex)->vec[0];
+				else
+					td2d->loc2d= (bezts + bezm->newIndex)->vec[2];
+				adjusted[j] = 1;
 			}
-			if (bezm->bezt->f2 & SELECT) {
-				if (td->loc2d == bezm->bezt->vec[1]) {
-					td->loc2d= (bezts + bezm->newIndex)->vec[1];
+			else if (td2d->loc2d == bezm->bezt->vec[1]) {
+				td2d->loc2d= (bezts + bezm->newIndex)->vec[1];
 					
-					/* if only control point is selected, the handle pointers need to be updated as well */
-					td->h1= (bezts + bezm->newIndex)->vec[0];
-					td->h2= (bezts + bezm->newIndex)->vec[2];
+				/* if only control point is selected, the handle pointers need to be updated as well */
+				if(td2d->h1)
+					td2d->h1= (bezts + bezm->newIndex)->vec[0];
+				if(td2d->h2)
+					td2d->h2= (bezts + bezm->newIndex)->vec[2];
 					
-					adjusted[j] = 1;
+				adjusted[j] = 1;
+			}
+
+			/* the handle type pointer has to be updated too */
+			if (adjusted[j] && td->flag & TD_BEZTRIPLE && td->hdata) {
+				if(bezm->swapHs == 1) {
+					td->hdata->h1 = &(bezts + bezm->newIndex)->h2;
+					td->hdata->h2 = &(bezts + bezm->newIndex)->h1;
+				}
+				else {
+					td->hdata->h1 = &(bezts + bezm->newIndex)->h1;
+					td->hdata->h2 = &(bezts + bezm->newIndex)->h2;
 				}
 			}
 		}
