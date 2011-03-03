@@ -5204,8 +5204,8 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 	Key *key= me->key;
 	EditMesh *em= BKE_mesh_get_editmesh(me);
 	EditVert *eve;
-	KeyBlock *kb;
-	float *data, co[3];
+	KeyBlock *kb, *refkb= NULL;
+	float *data, *refdata= NULL, co[3];
 	float blend= RNA_float_get(op->ptr, "blend");
 	int shape= RNA_enum_get(op->ptr, "shape");
 	int add= RNA_boolean_get(op->ptr, "add");
@@ -5214,17 +5214,28 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 	if(key && (kb= BLI_findlink(&key->block, shape))) {
 		data= kb->data;
 
+		if(add) {
+			refkb= BLI_findlink(&key->block, kb->relative);
+			if(refkb)
+				refdata = refkb->data;
+		}
+
 		for(eve=em->verts.first; eve; eve=eve->next){
 			if(eve->f & SELECT) {
 				if(eve->keyindex >= 0 && eve->keyindex < kb->totelem) {
-					VECCOPY(co, data + eve->keyindex*3);
+					copy_v3_v3(co, data + eve->keyindex*3);
 
 					if(add) {
-						mul_v3_fl(co, blend);
-						add_v3_v3(eve->co, co);
+						/* in add mode, we add relative shape key offset */
+						if(refdata && eve->keyindex < refkb->totelem)
+							sub_v3_v3v3(co, co, refdata + eve->keyindex*3);
+
+						madd_v3_v3fl(eve->co, co, blend);
 					}
-					else
+					else {
+						/* in blend mode, we interpolate to the shape key */
 						interp_v3_v3v3(eve->co, eve->co, co, blend);
+					}
 
 					blended= 1;
 				}
