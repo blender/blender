@@ -164,7 +164,7 @@ void paintface_hide(Object *ob, const int unselected)
 	int a;
 	
 	me= get_mesh(ob);
-	if(me==0 || me->totface==0) return;
+	if(me==NULL || me->totface==0) return;
 
 	mface= me->mface;
 	a= me->totface;
@@ -193,7 +193,7 @@ void paintface_reveal(Object *ob)
 	int a;
 
 	me= get_mesh(ob);
-	if(me==0 || me->totface==0) return;
+	if(me==NULL || me->totface==0) return;
 
 	mface= me->mface;
 	a= me->totface;
@@ -333,7 +333,7 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, short UNUSED(mval[
 	unsigned int index=0;
 
 	me = get_mesh(ob);
-	if(me==0 || me->totface==0) return;
+	if(me==NULL || me->totface==0) return;
 
 	if (mode==0 || mode==1) {
 		// XXX - Causes glitches, not sure why
@@ -356,7 +356,7 @@ void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 	int a;
 
 	me= get_mesh(ob);
-	if(me==0) return;
+	if(me==NULL) return;
 	
 	if(action == SEL_INVERT) {
 		mface= me->mface;

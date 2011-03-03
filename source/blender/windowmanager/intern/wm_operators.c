@@ -1141,7 +1141,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	/* show the splash menu (containing interaction presets), using python */
 	if (mt) {
-		Menu menu= {0};
+		Menu menu= {NULL};
 		menu.layout= layout;
 		menu.type= mt;
 		mt->draw(C, &menu);
@@ -1499,7 +1499,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	Main *mainl= 0;
+	Main *mainl= NULL;
 	BlendHandle *bh;
 	PropertyRNA *prop;
 	char name[FILE_MAX], dir[FILE_MAX], libname[FILE_MAX], group[GROUP_MAX];

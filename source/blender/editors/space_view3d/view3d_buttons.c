@@ -292,7 +292,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		
 		uiBlockBeginAlign(block);
 		if(tot==1) {
-			uiDefBut(block, LABEL, 0, "Vertex:",					0, 130, 200, 20, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Vertex:",					0, 130, 200, 20, NULL, 0, 0, 0, 0, "");
 			uiBlockBeginAlign(block);
 
 			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:",		0, 110, 200, 20, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
@@ -325,7 +325,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			}
 		}
 		else {
-			uiDefBut(block, LABEL, 0, "Median:",					0, 130, 200, 20, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Median:",					0, 130, 200, 20, NULL, 0, 0, 0, 0, "");
 			uiBlockBeginAlign(block);
 			but= uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:",		0, 110, 200, 20, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
 			uiButSetUnitType(but, PROP_UNIT_LENGTH);
@@ -755,7 +755,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 			dg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);
 			if(dg) {
 				uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + dvert->dw[i].def_nr, dg->name,	0, yco, 180, 20, &dvert->dw[i].weight, 0.0, 1.0, 1, 3, "");
-				uiDefBut(block, BUT, B_VGRP_PNL_COPY_SINGLE + dvert->dw[i].def_nr, "C", 180,yco,20,20, 0, 0, 0, 0, 0, "Copy this groups weight to other selected verts");
+				uiDefBut(block, BUT, B_VGRP_PNL_COPY_SINGLE + dvert->dw[i].def_nr, "C", 180,yco,20,20, NULL, 0, 0, 0, 0, "Copy this groups weight to other selected verts");
 				yco -= 20;
 			}
 		}
@@ -763,8 +763,8 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		uiBlockEndAlign(block);
 		uiBlockBeginAlign(block);
-		uiDefBut(block, BUT, B_VGRP_PNL_NORMALIZE, "Normalize", 0, yco,100,20, 0, 0, 0, 0, 0, "Normalize active vertex weights");
-		uiDefBut(block, BUT, B_VGRP_PNL_COPY, "Copy", 100,yco,100,20, 0, 0, 0, 0, 0, "Copy active vertex to other seleted verts");
+		uiDefBut(block, BUT, B_VGRP_PNL_NORMALIZE, "Normalize", 0, yco,100,20, NULL, 0, 0, 0, 0, "Normalize active vertex weights");
+		uiDefBut(block, BUT, B_VGRP_PNL_COPY, "Copy", 100,yco,100,20, NULL, 0, 0, 0, 0, "Copy active vertex to other seleted verts");
 		uiBlockEndAlign(block);
 	}
 }

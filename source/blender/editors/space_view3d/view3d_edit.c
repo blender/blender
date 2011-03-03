@@ -2778,7 +2778,7 @@ static int depth_segment_cb(int x, int y, void *userData)
 
 int view_autodist_depth_segment(struct ARegion *ar, short mval_sta[2], short mval_end[2], int margin, float *depth)
 {
-	struct { struct ARegion *ar; int margin; float depth; } data = {0};
+	struct { struct ARegion *ar; int margin; float depth; } data = {NULL};
 	int p1[2];
 	int p2[2];
 

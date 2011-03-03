@@ -2194,7 +2194,7 @@ static void ui_block_do_align_but(uiBut *first, int nr)
 						if(bt->next && bt->next->alignnr == nr && buts_are_horiz(bt, bt->next)==0 ) break; 
 						bt= bt->next;
 					}
-					if(bt==0 || bt->alignnr != nr) flag= UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT;
+					if(bt==NULL || bt->alignnr != nr) flag= UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT;
 				}
 			}
 			else flag |= UI_BUT_ALIGN_LEFT;

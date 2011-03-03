@@ -820,7 +820,7 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 	bAction *act= pld->act;
 	bActionGroup *agrp;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc group_ok_cb;
 	int frame= 1;
 	
@@ -1455,7 +1455,7 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 		
 		/* change active pose setting */
 		act->active_marker= BLI_findindex(&act->markers, marker) + 1;
-		action_set_activemarker(act, marker, 0);
+		action_set_activemarker(act, marker, NULL);
 		
 		/* Update event for pose and deformation children */
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

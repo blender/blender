@@ -4459,7 +4459,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 				return WM_UI_HANDLER_BREAK;
 			}
 		} 
-		else if(but->pointype && but->poin==0) {
+		else if(but->pointype && but->poin==NULL) {
 			/* there's a pointer needed */
 			BKE_reportf(NULL, RPT_WARNING, "DoButton pointer error: %s", but->str);
 			button_activate_state(C, but, BUTTON_STATE_EXIT);

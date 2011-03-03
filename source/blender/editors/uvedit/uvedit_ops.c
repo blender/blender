@@ -2935,7 +2935,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if(!(efa->h) && !(efa->f & SELECT)) {
 						/* All verts must be unselected for the face to be selected in the UV view */
-						if((efa->v1->f&SELECT)==0 && (efa->v2->f&SELECT)==0 && (efa->v3->f&SELECT)==0 && (efa->v4==0 || (efa->v4->f&SELECT)==0)) {
+						if((efa->v1->f&SELECT)==0 && (efa->v2->f&SELECT)==0 && (efa->v3->f&SELECT)==0 && (efa->v4==NULL || (efa->v4->f&SELECT)==0)) {
 							tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
 							tf->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;

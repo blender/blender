@@ -1742,10 +1742,10 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 				td->ival = *(key->time);
 				/* abuse size and quat for min/max values */
 				td->flag |= TD_NO_EXT;
-				if(k==0) tx->size = 0;
+				if(k==0) tx->size = NULL;
 				else tx->size = (key - 1)->time;
 
-				if(k == point->totkey - 1) tx->quat = 0;
+				if(k == point->totkey - 1) tx->quat = NULL;
 				else tx->quat = (key + 1)->time;
 			}
 
@@ -5088,7 +5088,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 		}
 		
 		/* select linked objects, but skip them later */
-		if (ob->id.lib != 0) {
+		if (ob->id.lib != NULL) {
 			td->flag |= TD_SKIP;
 		}
 		

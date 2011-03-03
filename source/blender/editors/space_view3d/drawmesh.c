@@ -86,7 +86,7 @@ static void get_marked_edge_info__orFlags(EdgeHash *eh, int v0, int v1, int flag
 	int *flags_p;
 
 	if (!BLI_edgehash_haskey(eh, v0, v1)) {
-		BLI_edgehash_insert(eh, v0, v1, 0);
+		BLI_edgehash_insert(eh, v0, v1, NULL);
 	}
 
 	flags_p = (int*) BLI_edgehash_lookup_p(eh, v0, v1);
@@ -381,7 +381,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	Gtexdraw.istex = istex;
 	Gtexdraw.color_profile = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
-	set_draw_settings_cached(1, 0, 0, Gtexdraw.islit, 0, 0, 0);
+	set_draw_settings_cached(1, 0, NULL, Gtexdraw.islit, NULL, 0, 0);
 	glShadeModel(GL_SMOOTH);
 }
 

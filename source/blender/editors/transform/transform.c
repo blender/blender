@@ -1989,7 +1989,7 @@ static void constraintTransLim(TransInfo *UNUSED(t), TransData *td)
 {
 	if (td->con) {
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_LOCLIMIT);
-		bConstraintOb cob= {0};
+		bConstraintOb cob= {NULL};
 		bConstraint *con;
 		
 		/* Make a temporary bConstraintOb for using these limit constraints
@@ -2145,7 +2145,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 {
 	if (td->con && td->ext) {
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_SIZELIMIT);
-		bConstraintOb cob= {0};
+		bConstraintOb cob= {NULL};
 		bConstraint *con;
 		
 		/* Make a temporary bConstraintOb for using these limit constraints
@@ -2279,10 +2279,10 @@ int handleEventWarp(TransInfo *t, wmEvent *event)
 	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
 	{
 		// Use customData pointer to signal warp direction
-		if	(t->customData == 0)
+		if	(t->customData == NULL)
 			t->customData = (void*)1;
 		else
-			t->customData = 0;
+			t->customData = NULL;
 		
 		status = 1;
 	}
@@ -2420,7 +2420,7 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
 	{
 		// Use customData pointer to signal Shear direction
-		if	(t->customData == 0)
+		if	(t->customData == NULL)
 		{
 			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 			t->customData = (void*)1;
@@ -2428,7 +2428,7 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 		else
 		{
 			initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
-			t->customData = 0;
+			t->customData = NULL;
 		}
 		
 		status = 1;
@@ -2472,7 +2472,7 @@ int Shear(TransInfo *t, short UNUSED(mval[2]))
 	unit_m3(smat);
 	
 	// Custom data signals shear direction
-	if (t->customData == 0)
+	if (t->customData == NULL)
 		smat[1][0] = value;
 	else
 		smat[0][1] = value;

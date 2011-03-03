@@ -1908,7 +1908,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		/* this needs to be done better .. */
 		float viewmat[4][4], winmat[4][4];
 		int drawtype, lay, winsize, flag2=v3d->flag2;
-		ARegion ar= {0};
+		ARegion ar= {NULL};
 		RegionView3D rv3d= {{{0}}};
 		
 		drawtype= v3d->drawtype;
@@ -2206,8 +2206,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 /* creates own 3d views, used by the sequencer */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, unsigned int flag, int drawtype)
 {
-	View3D v3d= {0};
-	ARegion ar= {0};
+	View3D v3d= {NULL};
+	ARegion ar= {NULL};
 	RegionView3D rv3d= {{{0}}};
 
 	/* connect data */

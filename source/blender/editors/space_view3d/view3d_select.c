@@ -1263,7 +1263,7 @@ static int mouse_select(bContext *C, short *mval, short extend, short obcenter, 
 				}
 				base= base->next;
 				
-				if(base==0) base= FIRSTBASE;
+				if(base==NULL) base= FIRSTBASE;
 				if(base==startbase) break;
 			}
 		}

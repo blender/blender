@@ -2327,7 +2327,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, 0, 0, GPU_enable_material);
+			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, NULL, 0, GPU_enable_material);
 
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
@@ -3136,7 +3136,7 @@ static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, B
 static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt)
 {
 	Object *ob= base->object;
-	ListBase *lb=0;
+	ListBase *lb=NULL;
 	DispList *dl;
 	Curve *cu;
 	int solid, retval= 0;
@@ -3158,7 +3158,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			dl= lb->first;
 			if(dl==NULL) return 1;
 
-			if(dl->nors==0) addnormalsDispList(lb);
+			if(dl->nors==NULL) addnormalsDispList(lb);
 			index3_nors_incr= 0;
 			
 			if( displist_has_faces(lb)==0) {
@@ -3173,7 +3173,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 					GPU_end_object_materials();
 				}
 				else if(dt == OB_SHADED) {
-					if(ob->disp.first==0) shadeDispList(scene, base);
+					if(ob->disp.first==NULL) shadeDispList(scene, base);
 					drawDispListshaded(lb, ob);
 				}
 				else {
@@ -3243,7 +3243,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				}
 				else if(dt == OB_SHADED) {
 					dl= lb->first;
-					if(dl && dl->col1==0) shadeDispList(scene, base);
+					if(dl && dl->col1==NULL) shadeDispList(scene, base);
 					drawDispListshaded(lb, ob);
 				}
 				else {
@@ -3456,9 +3456,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	ParticleEditSettings *pset = PE_settings(scene);
 	ParticleSettings *part;
 	ParticleData *pars, *pa;
-	ParticleKey state, *states=0;
+	ParticleKey state, *states=NULL;
 	ParticleBillboardData bb;
-	ParticleSimulationData sim= {0};
+	ParticleSimulationData sim= {NULL};
 	ParticleDrawData *pdd = psys->pdd;
 	Material *ma;
 	float vel[3], imat[4][4];
@@ -3473,16 +3473,16 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	unsigned char tcol[4]= {0, 0, 0, 255};
 
 /* 1. */
-	if(psys==0)
+	if(psys==NULL)
 		return;
 
 	part=psys->part;
 	pars=psys->particles;
 
-	if(part==0 || !psys_check_enabled(ob, psys))
+	if(part==NULL || !psys_check_enabled(ob, psys))
 		return;
 
-	if(pars==0) return;
+	if(pars==NULL) return;
 
 	/* don't draw normal paths in edit mode */
 	if(psys_in_edit_mode(scene, psys) && (pset->flag & PE_DRAW_PART)==0)
@@ -3550,7 +3550,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	totpart=psys->totpart;
 
-	cfra=bsystem_time(scene, 0, (float)CFRA, 0.0f);
+	cfra= bsystem_time(scene, NULL, (float)CFRA, 0.0f);
 
 	if(draw_as==PART_DRAW_PATH && psys->pathcache==NULL && psys->childcache==NULL)
 		draw_as=PART_DRAW_DOT;
@@ -3583,19 +3583,19 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				create_cdata = 1;
 			break;
 		case PART_DRAW_OB:
-			if(part->dup_ob==0)
+			if(part->dup_ob==NULL)
 				draw_as=PART_DRAW_DOT;
 			else
 				draw_as=0;
 			break;
 		case PART_DRAW_GR:
-			if(part->dup_group==0)
+			if(part->dup_group==NULL)
 				draw_as=PART_DRAW_DOT;
 			else
 				draw_as=0;
 			break;
 		case PART_DRAW_BB:
-			if(v3d->camera==0 && part->bb_ob==0){
+			if(v3d->camera==NULL && part->bb_ob==NULL){
 				printf("Billboards need an active camera or a target object!\n");
 
 				draw_as=part->draw_as=PART_DRAW_DOT;
@@ -3784,7 +3784,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				}
 #endif // XXX old animation system
 
-				pa_size=psys_get_child_size(psys,cpa,cfra,0);
+				pa_size=psys_get_child_size(psys,cpa,cfra,NULL);
 
 				pa_health = -1.0;
 
@@ -3903,7 +3903,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if(draw_as==PART_DRAW_PATH){
 		ParticleCacheKey **cache, *path;
-		float *cd2=0,*cdata2=0;
+		float *cd2=NULL,*cdata2=NULL;
 
 		/* setup gl flags */
 		if (1) { //ob_dt > OB_WIRE) {
@@ -3971,7 +3971,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 		if(cdata2)
 			MEM_freeN(cdata2);
-		cd2=cdata2=0;
+		cd2=cdata2=NULL;
 
 		glLineWidth(1.0f);
 
@@ -4091,7 +4091,7 @@ static void draw_update_ptcache_edit(Scene *scene, Object *ob, PTCacheEdit *edit
 		PE_update_object(scene, ob, 0);
 
 	/* create path and child path cache if it doesn't exist already */
-	if(edit->pathcache==0)
+	if(edit->pathcache == NULL)
 		psys_cache_edit_paths(scene, ob, edit, CFRA);
 }
 
@@ -4107,7 +4107,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	float nosel_col[3];
 	float *pathcol = NULL, *pcol;
 
-	if(edit->pathcache==0)
+	if(edit->pathcache == NULL)
 		return;
 
 	PE_hide_keys_time(scene, edit, CFRA);
@@ -4166,8 +4166,8 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
 		if(pset->selectmode==SCE_SELECT_POINT){
-			float *pd=0,*pdata=0;
-			float *cd=0,*cdata=0;
+			float *pd=NULL,*pdata=NULL;
+			float *cd=NULL,*cdata=NULL;
 			int totkeys = 0;
 
 			for (i=0, point=edit->points; i<totpoint; i++, point++)
@@ -4219,8 +4219,8 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 				pd += pd ? 3 * point->totkey : 0;
 				cd += (timed?4:3) * point->totkey;
 			}
-			if(pdata) { MEM_freeN(pdata); pd=pdata=0; }
-			if(cdata) { MEM_freeN(cdata); cd=cdata=0; }
+			if(pdata) { MEM_freeN(pdata); pd=pdata=NULL; }
+			if(cdata) { MEM_freeN(cdata); cd=cdata=NULL; }
 		}
 		else if(pset->selectmode == SCE_SELECT_END){
 			for(i=0, point=edit->points; i<totpoint; i++, point++){
@@ -6018,7 +6018,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 		if(ob->soft /*&& flag & OB_SBMOTION*/){
 			float mrt[3][3],msc[3][3],mtr[3][3]; 
-			SoftBody *sb = 0;
+			SoftBody *sb= NULL;
 			float tipw = 0.5f, tiph = 0.5f,drawsize = 4.0f;
 			if ((sb= ob->soft)){
 				if(sb->solverflags & SBSO_ESTIMATEIPO){
