@@ -436,7 +436,7 @@ static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype)
 static int mathutils_obactu_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_obactu_vector_get(bmo, subtype))
+	if(mathutils_obactu_vector_get(bmo, subtype) == -1)
 		return -1;
 	return 0;
 }
@@ -446,7 +446,7 @@ static int mathutils_obactu_vector_set_index(BaseMathObject *bmo, int subtype, i
 	float f= bmo->data[index];
 
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_obactu_vector_get(bmo, subtype))
+	if(mathutils_obactu_vector_get(bmo, subtype) == -1)
 		return -1;
 
 	bmo->data[index]= f;
