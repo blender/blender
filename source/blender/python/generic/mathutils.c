@@ -349,7 +349,10 @@ void BaseMathObject_dealloc(BaseMathObject *self)
 		PyMem_Free(self->data);
 	}
 
-	BaseMathObject_clear(self);
+	if(self->cb_user) {
+		PyObject_GC_UnTrack(self);
+		BaseMathObject_clear(self);
+	}
 
 	Py_TYPE(self)->tp_free(self); // PyObject_DEL(self); // breaks subtypes
 }
