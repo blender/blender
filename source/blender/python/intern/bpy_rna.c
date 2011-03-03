@@ -860,7 +860,7 @@ static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 
 	PYRNA_PROP_CHECK_OBJ(self)
 
-	if((id= self->ptr.id.data))
+	if((id= self->ptr.id.data) == NULL)
 		return pyrna_prop_str(self); /* fallback */
 
 	path= RNA_path_from_ID_to_property(&self->ptr, self->prop);
