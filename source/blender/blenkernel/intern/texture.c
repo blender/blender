@@ -480,11 +480,13 @@ int colorband_element_remove(struct ColorBand *coba, int index)
 void free_texture(Tex *tex)
 {
 	free_plugin_tex(tex->plugin);
+	
 	if(tex->coba) MEM_freeN(tex->coba);
 	if(tex->env) BKE_free_envmap(tex->env);
 	if(tex->pd) BKE_free_pointdensity(tex->pd);
 	if(tex->vd) BKE_free_voxeldata(tex->vd);
 	BKE_free_animdata((struct ID *)tex);
+	
 	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;
@@ -750,10 +752,6 @@ Tex *copy_texture(Tex *tex)
 	if(texn->type==TEX_IMAGE) id_us_plus((ID *)texn->ima);
 	else texn->ima= NULL;
 	
-#if 0 // XXX old animation system
-	id_us_plus((ID *)texn->ipo);
-#endif // XXX old animation system
-	
 	if(texn->plugin) {
 		texn->plugin= MEM_dupallocN(texn->plugin);
 		open_plugin_tex(texn->plugin);
@@ -768,11 +766,41 @@ Tex *copy_texture(Tex *tex)
 
 	if(tex->nodetree) {
 		ntreeEndExecTree(tex->nodetree);
-		texn->nodetree= ntreeCopyTree(tex->nodetree); /* 0 == full new tree */
+		texn->nodetree= ntreeCopyTree(tex->nodetree); 
 	}
 	
 	return texn;
 }
+
+/* texture copy without adding to main dbase */
+Tex *localize_texture(Tex *tex)
+{
+	Tex *texn;
+	
+	texn= copy_libblock(tex);
+	BLI_remlink(&G.main->tex, texn);
+	
+	/* image texture: free_texture also doesn't decrease */
+	
+	if(texn->plugin) {
+		texn->plugin= MEM_dupallocN(texn->plugin);
+		open_plugin_tex(texn->plugin);
+	}
+	
+	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
+	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
+	if(texn->pd) texn->pd= MEM_dupallocN(texn->pd);
+	if(texn->vd) texn->vd= MEM_dupallocN(texn->vd);
+	
+	texn->preview = NULL;
+	
+	if(tex->nodetree) {
+		texn->nodetree= ntreeLocalize(tex->nodetree);
+	}
+	
+	return texn;
+}
+
 
 /* ------------------------------------------------------------------------- */
 

@@ -57,24 +57,26 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_brush_types.h"
+#include "DNA_texture_types.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_idprop.h"
-#include "BKE_object.h"
 #include "BKE_brush.h"
 #include "BKE_image.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_node.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_report.h"
-#include "BKE_depsgraph.h"
-#include "BKE_library.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -4620,6 +4622,17 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 		ps->do_mask_normal = 0; /* no need to do blending */
 }
 
+static void paint_brush_init_tex(Brush *brush)
+{
+	/* init mtex nodes */ 
+	if(brush) {
+		MTex *mtex= &brush->mtex;
+		if(mtex->tex && mtex->tex->nodetree)
+			ntreeBeginExecTree(mtex->tex->nodetree); /* has internal flag to detect it only does it once */
+	}
+	
+}
+
 static int texture_paint_init(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -4678,12 +4691,16 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 			return 0;
 		}
 	}
-
+	
+	paint_brush_init_tex(pop->s.brush);
+	
 	/* note, if we have no UVs on the derived mesh, then we must return here */
 	if(pop->mode == PAINT_MODE_3D_PROJECT) {
 
 		/* initialize all data from the context */
 		project_state_init(C, OBACT, &pop->ps);
+		
+		paint_brush_init_tex(pop->ps.brush);
 
 		pop->ps.source= PROJ_SRC_VIEW;
 
@@ -4748,6 +4765,15 @@ static void paint_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	pop->first= 0;
 }
 
+static void paint_brush_exit_tex(Brush *brush)
+{
+	if(brush) {
+		MTex *mtex= &brush->mtex;
+		if(mtex->tex && mtex->tex->nodetree)
+			ntreeEndExecTree(mtex->tex->nodetree);
+	}	
+}
+
 static void paint_exit(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -4760,12 +4786,16 @@ static void paint_exit(bContext *C, wmOperator *op)
 	if(pop->restore_projection)
 		settings->imapaint.flag &= ~IMAGEPAINT_PROJECT_DISABLE;
 
+	paint_brush_exit_tex(pop->s.brush);
+	
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 	imapaint_canvas_free(&pop->s);
 	brush_painter_free(pop->painter);
 
 	if(pop->mode == PAINT_MODE_3D_PROJECT) {
 		brush_set_size(pop->ps.brush, pop->orig_brush_size);
+		paint_brush_exit_tex(pop->ps.brush);
+		
 		project_paint_end(&pop->ps);
 	}
 	

@@ -1188,6 +1188,12 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 		newtree= MEM_dupallocN(ntree);
 		copy_libblock_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
 	}
+	
+	/* in case a running nodetree is copied */
+	newtree->init &= ~(NTREE_EXEC_INIT);
+	newtree->threadstack= NULL;
+	newtree->stack= NULL;
+	
 	newtree->nodes.first= newtree->nodes.last= NULL;
 	newtree->links.first= newtree->links.last= NULL;
 	
@@ -2771,8 +2777,8 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 /* ********** copy composite tree entirely, to allow threaded exec ******************* */
 /* ***************** do NOT execute this in a thread!               ****************** */
 
-/* returns localized composite tree for execution in threads */
-/* local tree then owns all compbufs */
+/* returns localized tree for execution in threads */
+/* local tree then owns all compbufs (for composite) */
 bNodeTree *ntreeLocalize(bNodeTree *ntree)
 {
 	bNodeTree *ltree;
@@ -2886,7 +2892,7 @@ void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 			}
 		}
 	}
-	else if(ntree->type==NTREE_SHADER) {
+	else if(ELEM(ntree->type, NTREE_SHADER, NTREE_TEXTURE)) {
 		/* copy over contents of previews */
 		for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
 			if(node_exists(ntree, lnode->new_node)) {
