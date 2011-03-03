@@ -49,7 +49,7 @@ def source_list(path, filename_check=None):
 # extension checking
 def is_cmake(filename):
     ext = splitext(filename)[1]
-    return (ext == ".cmake") or (filename == "CMakeLists.txt")
+    return (ext == ".cmake") or (filename.endswith("CMakeLists.txt"))
 
 
 def is_c_header(filename):
@@ -92,9 +92,9 @@ def cmake_advanced_info():
 
     cmake_dir = sys.argv[-1]
 
-    if not os.path.join(cmake_dir, "CMakeCache.txt"):
+    if not os.path.exists(os.path.join(cmake_dir, "CMakeCache.txt")):
         cmake_dir = os.getcwd()
-    if not os.path.join(cmake_dir, "CMakeCache.txt"):
+    if not os.path.exists(os.path.join(cmake_dir, "CMakeCache.txt")):
         print("CMakeCache.txt not found in %r or %r\n    Pass CMake build dir as an argument, or run from that dir, abording" % (cmake_dir, os.getcwd()))
         sys.exit(1)
 
