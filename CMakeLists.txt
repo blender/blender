@@ -69,6 +69,7 @@ get_blender_version()
 # Blender internal features
 option(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
 option(WITH_PYTHON        "Enable Embedded Python API" ON)
+option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency)." OFF)
 option(WITH_PYTHON_MODULE "Enable building as a python module (experemental)" OFF)
 option(WITH_BUILDINFO     "Include extra build details" ON)
 option(WITH_IK_ITASC      "Enable ITASC IK solver" ON)
