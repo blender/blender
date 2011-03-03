@@ -40,6 +40,8 @@
 /* different method */
 //#define USE_PYRNA_INVALIDATE_WEAKREF
 
+/* use real collection iterators rather then faking with a list */
+#define USE_PYRNA_ITER
 
 /* sanity checks on above defs */
 #if defined(USE_PYRNA_INVALIDATE_WEAKREF) && !defined(USE_WEAKREFS)
@@ -112,6 +114,16 @@ typedef struct {
 	int arraydim; /* array dimension, e.g: 0 for face.uv, 2 for face.uv[n][m], etc. */
 	int arrayoffset; /* array first item offset, e.g. if face.uv is [4][2], arrayoffset for face.uv[n] is 2n */
 } BPy_PropertyArrayRNA;
+
+typedef struct {
+	PyObject_HEAD /* required python macro   */
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist;
+#endif
+
+	/* collection iterator spesific parts */
+	CollectionPropertyIterator iter;
+} BPy_PropertyCollectionIterRNA;
 
 /* cheap trick */
 #define BPy_BaseTypeRNA BPy_PropertyRNA

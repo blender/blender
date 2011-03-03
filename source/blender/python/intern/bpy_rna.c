@@ -3645,6 +3645,9 @@ static PyObject *pyrna_prop_array_iter(BPy_PropertyArrayRNA *self)
 	return iter;
 }
 
+static PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self);
+
+#ifndef USE_PYRNA_ITER
 static PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self)
 {
 	/* Try get values from a collection */
@@ -3661,6 +3664,7 @@ static PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self)
 
 	return iter;
 }
+#endif /* # !USE_PYRNA_ITER */
 
 static struct PyMethodDef pyrna_struct_methods[] = {
 
@@ -4695,6 +4699,154 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
 	NULL
 };
 
+#ifdef USE_PYRNA_ITER
+/* --- collection iterator: start --- */
+/* wrap rna collection iterator functions */
+/*
+ * RNA_property_collection_begin(...)
+ * RNA_property_collection_next(...)
+ * RNA_property_collection_end(...)
+ */
+
+static void pyrna_prop_collection_iter_dealloc(BPy_PropertyCollectionIterRNA *self);
+static PyObject *pyrna_prop_collection_iter_next(BPy_PropertyCollectionIterRNA *self);
+
+PyTypeObject pyrna_prop_collection_iter_Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"bpy_prop_collection_iter",		/* tp_name */
+	sizeof(BPy_PropertyCollectionIterRNA),			/* tp_basicsize */
+	0,							/* tp_itemsize */
+	/* methods */
+	(destructor)pyrna_prop_collection_iter_dealloc, /* tp_dealloc */
+	NULL,                       /* printfunc tp_print; */
+	NULL,						/* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
+	NULL,/* subclassed */		/* tp_repr */
+
+	/* Method suites for standard classes */
+
+	NULL,    /* PyNumberMethods *tp_as_number; */
+	NULL,	/* PySequenceMethods *tp_as_sequence; */
+	NULL,	/* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,						/* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+
+	/* will only use these if this is a subtype of a py class */
+	PyObject_GenericGetAttr,	/* getattrofunc tp_getattro; */
+	NULL,						/* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,						/*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL, /* subclassed */		/* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+#ifdef USE_WEAKREFS
+	offsetof(BPy_PropertyCollectionIterRNA, in_weakreflist),	/* long tp_weaklistoffset; */
+#else
+	0,
+#endif
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	PyObject_SelfIter,						/* getiterfunc tp_iter; */
+	(iternextfunc) pyrna_prop_collection_iter_next,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	NULL,						/* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	NULL,				      	/* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,						/* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,						/* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};
+
+PyObject *pyrna_prop_collection_iter_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop)
+{
+	BPy_PropertyCollectionIterRNA *self= PyObject_New(BPy_PropertyCollectionIterRNA, &pyrna_prop_collection_iter_Type);
+
+	RNA_property_collection_begin(ptr, prop, &self->iter);
+
+	return (PyObject *)self;
+}
+
+static PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self)
+{
+	return pyrna_prop_collection_iter_CreatePyObject(&self->ptr, self->prop);
+}
+
+static PyObject *pyrna_prop_collection_iter_next(BPy_PropertyCollectionIterRNA *self)
+{
+	if(self->iter.valid == FALSE) {
+		PyErr_SetString(PyExc_StopIteration, "pyrna_prop_collection_iter stop");
+		return NULL;
+	}
+	else {
+		BPy_StructRNA *pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&self->iter.ptr);
+
+		if(pyrna) { /* unlikely but may fail */
+			if((PyObject *)pyrna != Py_None) {
+				// pyrna->reference;
+			}
+		}
+
+		RNA_property_collection_next(&self->iter);
+
+		return (PyObject *)pyrna;
+	}
+}
+
+
+static void pyrna_prop_collection_iter_dealloc(BPy_PropertyCollectionIterRNA *self)
+{
+#ifdef USE_WEAKREFS
+	if (self->in_weakreflist != NULL) {
+		PyObject_ClearWeakRefs((PyObject *)self);
+	}
+#endif
+
+	RNA_property_collection_end(&self->iter);
+
+	PyObject_DEL(self);
+}
+
+/* --- collection iterator: end --- */
+#endif /* !USE_PYRNA_ITER */
+
+
 static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 {
 	PointerRNA ptr;
@@ -5004,6 +5156,11 @@ void BPY_rna_init(void)
 
 	if(PyType_Ready(&pyrna_prop_collection_idprop_Type) < 0)
 		return;
+
+#ifdef USE_PYRNA_ITER
+	if(PyType_Ready(&pyrna_prop_collection_iter_Type) < 0)
+		return;
+#endif
 }
 
 /* bpy.data from python */
