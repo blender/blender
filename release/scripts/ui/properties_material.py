@@ -619,16 +619,21 @@ class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
         phys = context.material.physics  # dont use node material
 
         split = layout.split()
+        row = split.row()
+        row.prop(phys, "friction")
+        row.prop(phys, "elasticity", slider=True)
 
-        col = split.column()
-        col.prop(phys, "distance")
-        col.prop(phys, "friction")
-        col.prop(phys, "use_normal_align")
 
-        col = split.column()
-        col.prop(phys, "force", slider=True)
-        col.prop(phys, "elasticity", slider=True)
-        col.prop(phys, "damping", slider=True)
+        row = layout.row()
+        row.label(text="Force Field:")
+
+        row = layout.row()
+        row.prop(phys, "fh_force")
+        row.prop(phys, "fh_damping", slider=True)
+
+        row = layout.row()
+        row.prop(phys, "fh_distance")
+        row.prop(phys, "use_fh_normal")
 
 
 class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):

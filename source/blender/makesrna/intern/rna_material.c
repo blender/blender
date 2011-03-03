@@ -1525,31 +1525,33 @@ static void rna_def_material_physics(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Physics", "Physics settings for a Material datablock");
 	
-	prop= RNA_def_property(srna, "use_normal_align", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "dynamode", MA_FH_NOR);
-	RNA_def_property_ui_text(prop, "Align to Normal", "Align dynamic game objects along the surface normal, when inside the physics distance area");
-	
 	prop= RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "friction");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Friction", "Coulomb friction coefficient, when inside the physics distance area");
 
-	prop= RNA_def_property(srna, "force", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "fh");
-	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Force", "Upward spring force, when inside the physics distance area");
-	
 	prop= RNA_def_property(srna, "elasticity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "reflect");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Elasticity", "Elasticity of collisions");
+
+	/* FH/Force Field Settings */
+	prop= RNA_def_property(srna, "use_fh_normal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dynamode", MA_FH_NOR);
+	RNA_def_property_ui_text(prop, "Align to Normal", "Align dynamic game objects along the surface normal, when inside the physics distance area");
+
+	prop= RNA_def_property(srna, "fh_force", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fh");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 2);
+	RNA_def_property_ui_text(prop, "Force", "Upward spring force, when inside the physics distance area");
 	
-	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "fh_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fhdist");
 	RNA_def_property_range(prop, 0, 20);
 	RNA_def_property_ui_text(prop, "Distance", "Distance of the physics area");
 	
-	prop= RNA_def_property(srna, "damping", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "fh_damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xyfrict");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Damping", "Damping of the spring force, when inside the physics distance area");

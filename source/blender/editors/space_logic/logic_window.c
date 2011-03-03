@@ -3865,7 +3865,7 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr, bContext
 			row = uiLayoutRow(layout, 0);
 			uiItemR(row, ptr, "direction_axis", 0, NULL, ICON_NONE);
 			split = uiLayoutSplit(row, 0.9, 0);
-			uiItemR(split, ptr, "spring", 0, NULL, ICON_NONE);
+			uiItemR(split, ptr, "fh_force", 0, NULL, ICON_NONE);
 			uiItemR(split, ptr, "use_fh_normal", UI_ITEM_R_TOGGLE , NULL, ICON_NONE);
 
 			split = uiLayoutSplit(layout, 0.15, 0);
