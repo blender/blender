@@ -361,10 +361,7 @@ class ExportUVLayout(bpy.types.Operator):
         elif mode == 'PNG':
             func = write_png
 
-        def face_iter_func():
-            return self._face_uv_iter(context)
-
-        func(fw, mesh, self.size[0], self.size[1], self.opacity, face_iter_func)
+        func(fw, mesh, self.size[0], self.size[1], self.opacity, lambda: self._face_uv_iter(context))
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
