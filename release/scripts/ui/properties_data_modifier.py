@@ -573,6 +573,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "edge_crease_inner", text="Inner")
         col.prop(md, "edge_crease_outer", text="Outer")
         col.prop(md, "edge_crease_rim", text="Rim")
+        col.label(text="Material Index Offset:")
 
         col = split.column()
 
@@ -586,8 +587,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col.prop(md, "use_rim")
         colsub = col.column()
+
+        colsub.label()
+        rowsub = colsub.split(align=True, percentage=0.4)
+        rowsub.prop(md, "material_offset", text="")
+        colsub = rowsub.row()
         colsub.active = md.use_rim
-        colsub.prop(md, "use_rim_material")
+        colsub.prop(md, "material_offset_rim", text="Rim")
 
     def SUBSURF(self, layout, ob, md):
         layout.row().prop(md, "subdivision_type", expand=True)

@@ -11484,6 +11484,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		bScreen *sc;
 		Brush *brush;
+		Object *ob;
 		
 		/* redraws flag in SpaceTime has been moved to Screen level */
 		for (sc = main->screen.first; sc; sc= sc->id.next) {
@@ -11497,6 +11498,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (brush= main->brush.first; brush; brush= brush->id.next) {
 			if(brush->height == 0)
 				brush->height= 0.4;
+		}
+
+		/* replace 'rim material' option for in offset*/
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for(md= ob->modifiers.first; md; md= md->next) {
+				if (md->type == eModifierType_Solidify) {
+					SolidifyModifierData *smd = (SolidifyModifierData *)md;
+					if(smd->flag & MOD_SOLIDIFY_RIM_MATERIAL) {
+						smd->mat_ofs_rim= 1;
+						smd->flag &= ~MOD_SOLIDIFY_RIM_MATERIAL;
+					}
+				}
+			}
 		}
 	}
 	

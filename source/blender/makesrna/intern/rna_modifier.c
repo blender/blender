@@ -2162,6 +2162,18 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rim Crease", "Assign a crease to the edges making up the rim");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop= RNA_def_property(srna, "material_offset", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "mat_ofs");
+	RNA_def_property_range(prop, SHRT_MIN, SHRT_MAX);
+	RNA_def_property_ui_text(prop, "Material Offset", "Offset material index of generated faces");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "material_offset_rim", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "mat_ofs_rim");
+	RNA_def_property_range(prop, SHRT_MIN, SHRT_MAX);
+	RNA_def_property_ui_text(prop, "Rim Material Offset", "Offset material index of generated rim faces");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
@@ -2171,11 +2183,6 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_rim", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_RIM);
 	RNA_def_property_ui_text(prop, "Fill Rim", "Create edge loops between the inner and outer surfaces on face edges (slow, disable when not needed)");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
-	prop= RNA_def_property(srna, "use_rim_material", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_RIM_MATERIAL);
-	RNA_def_property_ui_text(prop, "Rim Material", "Use in the next material for rim faces");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "use_even_offset", PROP_BOOLEAN, PROP_NONE);

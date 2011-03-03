@@ -214,6 +214,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	const int numEdges = dm->getNumEdges(dm);
 	const int numFaces = dm->getNumFaces(dm);
 
+	/* only use material offsets if we have 2 or more materials  */
+	const short mat_nr_max= ob->totcol > 1 ? ob->totcol - 1 : 0;
+	const short mat_ofs= mat_nr_max ? smd->mat_ofs : 0;
+	const short mat_ofs_rim= mat_nr_max ? smd->mat_ofs_rim : 0;
+
 	/* use for edges */
 	int *new_vert_arr= NULL;
 	int newFaces = 0;
@@ -359,6 +364,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				SWAP(int, mf->v1, mf->v3);
 				DM_swap_face_data(result, i+numFaces, corner_indices);
 				test_index_face(mf, &result->faceData, numFaces, is_quad ? 4:3);
+			}
+
+			if(mat_ofs) {
+				mf->mat_nr += mat_ofs;
+				CLAMP(mf->mat_nr, 0, mat_nr_max);
 			}
 		}
 	}
@@ -520,9 +530,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		float (*edge_vert_nos)[3]= MEM_callocN(sizeof(float) * numVerts * 3, "solidify_edge_nos");
 		float nor[3];
 #endif
-		/* maximum value -1, so we have room to increase */
-		const short mat_nr_shift= (smd->flag & MOD_SOLIDIFY_RIM_MATERIAL) ? ob->totcol-1 : -1;
-
 		const unsigned char crease_rim= smd->crease_rim * 255.0f;
 		const unsigned char crease_outer= smd->crease_outer * 255.0f;
 		const unsigned char crease_inner= smd->crease_inner * 255.0f;
@@ -582,9 +589,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 			
 			/* use the next material index if option enabled */
-			if(mf->mat_nr < mat_nr_shift)
-				mf->mat_nr++;
-
+			if(mat_ofs_rim) {
+				mf->mat_nr += mat_ofs_rim;
+				CLAMP(mf->mat_nr, 0, mat_nr_max);
+			}
 			if(crease_outer)
 				ed->crease= crease_outer;
 
