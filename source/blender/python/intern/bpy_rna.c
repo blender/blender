@@ -900,6 +900,20 @@ static long pyrna_prop_hash(BPy_PropertyRNA *self)
 	return x;
 }
 
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+static int pyrna_struct_traverse(BPy_StructRNA *self, visitproc visit, void *arg)
+{
+	Py_VISIT(self->reference);
+	return 0;
+}
+
+static int pyrna_struct_clear(BPy_StructRNA *self)
+{
+	Py_CLEAR(self->reference);
+	return 0;
+}
+#endif /* !USE_PYRNA_STRUCT_REFERENCE */
+
 /* use our own dealloc so we can free a property if we use one */
 static void pyrna_struct_dealloc(BPy_StructRNA *self)
 {
@@ -915,9 +929,33 @@ static void pyrna_struct_dealloc(BPy_StructRNA *self)
 	}
 #endif
 
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+	if(self->reference) {
+		PyObject_GC_UnTrack(self);
+		pyrna_struct_clear(self);
+	}
+#endif /* !USE_PYRNA_STRUCT_REFERENCE */
+
 	/* Note, for subclassed PyObjects we cant just call PyObject_DEL() directly or it will crash */
 	Py_TYPE(self)->tp_free(self);
 }
+
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+static void pyrna_struct_reference_set(BPy_StructRNA *self, PyObject *reference)
+{
+	if(self->reference) {
+//		PyObject_GC_UnTrack(self); /* INITIALIZED TRACKED? */
+		pyrna_struct_clear(self);
+	}
+	/* reference is now NULL */
+
+	if(reference) {
+		self->reference= reference;
+		Py_INCREF(reference);
+//		PyObject_GC_Track(self);  /* INITIALIZED TRACKED? */
+	}
+}
+#endif /* !USE_PYRNA_STRUCT_REFERENCE */
 
 /* use our own dealloc so we can free a property if we use one */
 static void pyrna_prop_dealloc(BPy_PropertyRNA *self)
@@ -4312,15 +4350,22 @@ PyTypeObject pyrna_struct_Type = {
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
 
   /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,         /* long tp_flags; */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,         /* long tp_flags; */
 
 	NULL,						/*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
 	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+	(traverseproc) pyrna_struct_traverse,                       /* traverseproc tp_traverse; */
 
 	/* delete references to contained objects */
+	(inquiry )pyrna_struct_clear,                       /* inquiry tp_clear; */
+#else
+	NULL,                       /* traverseproc tp_traverse; */
+
+/* delete references to contained objects */
 	NULL,                       /* inquiry tp_clear; */
+#endif /* !USE_PYRNA_STRUCT_REFERENCE */
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/
@@ -4817,11 +4862,16 @@ static PyObject *pyrna_prop_collection_iter_next(BPy_PropertyCollectionIterRNA *
 	else {
 		BPy_StructRNA *pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&self->iter.ptr);
 
+#ifdef USE_PYRNA_STRUCT_REFERENCE
 		if(pyrna) { /* unlikely but may fail */
 			if((PyObject *)pyrna != Py_None) {
-				// pyrna->reference;
+				/* hold a reference to the iterator since it may have
+				 * allocated memory 'pyrna' needs. eg: introspecting dynamic enum's  */
+				/* TODO, we could have an api call to know if this is needed since most collections don't */
+				pyrna_struct_reference_set(pyrna, (PyObject *)self);
 			}
 		}
+#endif /* !USE_PYRNA_STRUCT_REFERENCE */
 
 		RNA_property_collection_next(&self->iter);
 
@@ -5055,7 +5105,7 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 		}
 		else {
 			fprintf(stderr, "Could not make type\n");
-			pyrna = (BPy_StructRNA *) PyObject_NEW(BPy_StructRNA, &pyrna_struct_Type);
+			pyrna = (BPy_StructRNA *) PyObject_GC_New(BPy_StructRNA, &pyrna_struct_Type);
 #ifdef USE_WEAKREFS
 			pyrna->in_weakreflist= NULL;
 #endif
@@ -5069,6 +5119,10 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 
 	pyrna->ptr= *ptr;
 	pyrna->freeptr= FALSE;
+
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+	pyrna->reference= NULL;
+#endif
 
 	// PyC_ObSpit("NewStructRNA: ", (PyObject *)pyrna);
 

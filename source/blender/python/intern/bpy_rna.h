@@ -40,6 +40,9 @@
 /* different method */
 //#define USE_PYRNA_INVALIDATE_WEAKREF
 
+/* support for inter references, currently only needed for corner case */
+// #define USE_PYRNA_STRUCT_REFERENCE
+
 /* use real collection iterators rather then faking with a list */
 #define USE_PYRNA_ITER
 
@@ -90,6 +93,11 @@ typedef struct {
 	PyObject *in_weakreflist;
 #endif
 	PointerRNA ptr;
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+	/* generic PyObject we hold a reference to, example use:
+	 * hold onto the collection iterator to prevent it from freeing allocated data we may use */
+	PyObject *reference;
+#endif /* !USE_PYRNA_STRUCT_REFERENCE */
 	int freeptr; /* needed in some cases if ptr.data is created on the fly, free when deallocing */
 } BPy_StructRNA;
 
