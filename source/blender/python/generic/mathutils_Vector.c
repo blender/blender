@@ -2001,7 +2001,7 @@ axis_dict = {}
 axis_pos = {'x':0, 'y':1, 'z':2, 'w':3}
 axises = 'xyzw'
 while len(axises) >= 2:
-	
+
 	for axis_0 in axises:
 		axis_0_pos = axis_pos[axis_0]
 		for axis_1 in axises:
@@ -2015,7 +2015,7 @@ while len(axises) >= 2:
 						for axis_3 in axises:
 							axis_3_pos = axis_pos[axis_3]
 							axis_dict[axis_0+axis_1+axis_2+axis_3] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  ' % (axis_0_pos, axis_1_pos, axis_2_pos, axis_3_pos)
-	
+
 	axises = axises[:-1]
 
 
@@ -2053,7 +2053,7 @@ static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObj
 			vec_cpy[3] = 1.0f;
 		}
 	}
-	
+
 	if(BaseMath_ReadCallback(vec) == -1 || BaseMath_ReadCallback(mat) == -1)
 		return -1;
 
@@ -2085,7 +2085,7 @@ static PyObject *Vector_negate(VectorObject *self)
 {
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
-	
+
 	negate_vn(self->vec, self->size);
 
 	(void)BaseMath_WriteCallback(self); // already checked for error
@@ -2128,7 +2128,7 @@ static struct PyMethodDef Vector_methods[] = {
 
 /* Note
  Py_TPFLAGS_CHECKTYPES allows us to avoid casting all types to Vector when coercing
- but this means for eg that 
+ but this means for eg that
  vec*mat and mat*vec both get sent to Vector_mul and it neesd to sort out the order
 */
 
@@ -2169,7 +2169,7 @@ PyTypeObject vector_Type = {
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
 
   /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, 
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
 	vector_doc,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
 
@@ -2275,6 +2275,7 @@ PyObject *newVectorObject_cb(PyObject *cb_user, int size, int cb_type, int cb_su
 		self->cb_user=			cb_user;
 		self->cb_type=			(unsigned char)cb_type;
 		self->cb_subtype=		(unsigned char)cb_subtype;
+		PyObject_GC_Track(self);
 	}
 
 	return (PyObject *)self;

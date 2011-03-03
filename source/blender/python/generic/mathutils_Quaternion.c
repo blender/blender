@@ -1124,6 +1124,7 @@ PyObject *newQuaternionObject_cb(PyObject *cb_user, int cb_type, int cb_subtype)
 		self->cb_user=			cb_user;
 		self->cb_type=			(unsigned char)cb_type;
 		self->cb_subtype=		(unsigned char)cb_subtype;
+		PyObject_GC_Track(self);
 	}
 
 	return (PyObject *)self;
