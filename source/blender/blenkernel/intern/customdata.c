@@ -433,18 +433,18 @@ static void layerSwap_mdisps(void *data, const int *ci)
 			/* happens when face changed vertex count in edit mode
 			   if it happened, just forgot displacement */
 
-			MEM_freeN(s->disps);
+			BLI_cellalloc_free(s->disps);
 			s->totdisp= (s->totdisp/corners)*nverts;
-			s->disps= MEM_callocN(s->totdisp*sizeof(float)*3, "mdisp swap");
+			s->disps= BLI_cellalloc_calloc(s->totdisp*sizeof(float)*3, "mdisp swap");
 			return;
 		}
 
-		d= MEM_callocN(sizeof(float) * 3 * s->totdisp, "mdisps swap");
+		d= BLI_cellalloc_calloc(sizeof(float) * 3 * s->totdisp, "mdisps swap");
 
 		for(S = 0; S < corners; S++)
 			memcpy(d + cornersize*S, s->disps + cornersize*ci[S], cornersize*3*sizeof(float));
 		
-		MEM_freeN(s->disps);
+		BLI_cellalloc_free(s->disps);
 		s->disps= d;
 	}
 }
@@ -496,14 +496,14 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 						sw_m4[2][x] = 1;
 
 				tris[i] = *((MDisps*)sources[i]);
-				tris[i].disps = MEM_dupallocN(tris[i].disps);
+				tris[i].disps = BLI_cellalloc_dupalloc(tris[i].disps);
 				layerInterp_mdisps(&sources[i], NULL, (float*)sw_m4, 1, &tris[i]);
 			}
 
 			mdisp_join_tris(d, &tris[0], &tris[1]);
 
 			for(i = 0; i < 2; i++)
-				MEM_freeN(tris[i].disps);
+				BLI_cellalloc_free(tris[i].disps);
 
 			return;
 		}
@@ -518,7 +518,7 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 	}
 
 	/* Initialize the destination */
-	out = disps = MEM_callocN(3*d->totdisp*sizeof(float), "iterp disps");
+	out = disps = BLI_cellalloc_calloc(3*d->totdisp*sizeof(float), "iterp disps");
 
 	side = sqrt(d->totdisp / dst_corners);
 	st = (side<<1)-1;
@@ -559,7 +559,7 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 		}
 	}
 
-	MEM_freeN(d->disps);
+	BLI_cellalloc_free(d->disps);
 	d->disps = disps;
 }
 
@@ -571,7 +571,7 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 
 	for(i = 0; i < count; ++i) {
 		if(s[i].disps) {
-			d[i].disps = MEM_dupallocN(s[i].disps);
+			d[i].disps = BLI_cellalloc_dupalloc(s[i].disps);
 			d[i].totdisp = s[i].totdisp;
 		}
 		else {
@@ -591,7 +591,7 @@ static void layerValidate_mdisps(void *data, int sub_elements)
 		if(corners != sub_elements) {
 			MEM_freeN(disps->disps);
 			disps->totdisp = disps->totdisp / corners * sub_elements;
-			disps->disps = MEM_callocN(3*disps->totdisp*sizeof(float), "layerValidate_mdisps");
+			disps->disps = BLI_cellalloc_calloc(3*disps->totdisp*sizeof(float), "layerValidate_mdisps");
 		}
 	}
 }
@@ -603,7 +603,7 @@ static void layerFree_mdisps(void *data, int count, int UNUSED(size))
 
 	for(i = 0; i < count; ++i) {
 		if(d[i].disps)
-			MEM_freeN(d[i].disps);
+			BLI_cellalloc_free(d[i].disps);
 		d[i].disps = NULL;
 		d[i].totdisp = 0;
 	}
@@ -616,7 +616,7 @@ static int layerRead_mdisps(CDataFile *cdf, void *data, int count)
 
 	for(i = 0; i < count; ++i) {
 		if(!d[i].disps)
-			d[i].disps = MEM_callocN(sizeof(float)*3*d[i].totdisp, "mdisps read");
+			d[i].disps = BLI_cellalloc_calloc(sizeof(float)*3*d[i].totdisp, "mdisps read");
 
 		if(!cdf_read_data(cdf, d[i].totdisp*3*sizeof(float), d[i].disps)) {
 			printf("failed to read multires displacement %d/%d %d\n", i, count, d[i].totdisp);
@@ -1726,7 +1726,12 @@ void CustomData_copy_data(const CustomData *source, CustomData *dest,
 
 			src_offset = source_index * typeInfo->size;
 			dest_offset = dest_index * typeInfo->size;
-
+			
+			if (!src_data || !dest_data) {
+				printf("eek! null data in CustomData_copy_data!\n");
+				continue;
+			}
+			
 			if(typeInfo->copy)
 				typeInfo->copy(src_data + src_offset,
 								dest_data + dest_offset,

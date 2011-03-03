@@ -224,7 +224,9 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		}
 	}
 	
-	cddm = CDDM_merge_verts(cddm, vtargetmap);
+	if (!(mmd->flag & MOD_MIR_NO_MERGE))
+		cddm = CDDM_merge_verts(cddm, vtargetmap);
+	
 	BLI_array_free(vtargetmap);
 	
 	if (vector_def) MEM_freeN(vector_def);

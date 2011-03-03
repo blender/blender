@@ -399,7 +399,7 @@ sgstrf (superlu_options_t *options, SuperMatrix *A,
 	    	resetrep_col (nseg, segrep, &repfnz[k]);
 		
 #ifdef DEBUG
-		sprint_lu_col("[2]: ", jj, pivrow, xprune, &Glu);
+//		sprint_lu_col("[2]: ", jj, pivrow, xprune, &Glu);
 #endif
 
 	    }

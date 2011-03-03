@@ -33,6 +33,9 @@
 	this is a temporary and inperfect fix for performance issues caused
 	by vgroups.  it needs to be replaced with something better, preferably
 	integrated into guardedalloc.
+	
+	Basically, it's a quick fix for vgroups and MDisps (both of which
+	are major performance hitters).
 */
 
 #include "MEM_guardedalloc.h"

@@ -258,18 +258,6 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 				if(BMINDEX_GET(eve)) tottrans++;
 		}
 		
-		/* proportional edit exception... */
-		if((mode & 1) && tottrans) {
-			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-				if(BMINDEX_GET(eve)) tottrans++;
-				if(!BM_TestHFlag(eve, BM_HIDDEN)) {
-					BMINDEX_SET(eve, BMINDEX_GET(eve)|2);
-					proptrans++;
-				}
-			}
-			if(proptrans>tottrans) tottrans= proptrans;
-		}
-		
 		/* and now make transverts */
 		if(tottrans) {
 			tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");

@@ -2415,7 +2415,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 	}
 	
 	/*create new cddm*/	
-	cddm2 = (CDDerivedMesh*) CDDM_new(BLI_array_count(mvert), BLI_array_count(medge), 0, BLI_array_count(mloop), BLI_array_count(mpoly));
+	cddm2 = (CDDerivedMesh*) CDDM_from_template(cddm, BLI_array_count(mvert), BLI_array_count(medge), 0, BLI_array_count(mloop), BLI_array_count(mpoly));
 	
 	/*update edge indices and copy customdata*/
 	me = medge;
