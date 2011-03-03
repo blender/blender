@@ -23,6 +23,11 @@
 
 # <pep8 compliant>
 
+"""
+Exampel Win32 usage:
+ c:\Python32\python.exe c:\blender_dev\blender\build_files\cmake\cmake_qtcreator_project.py c:\blender_dev\cmake_build
+"""
+
 import os
 from os.path import join, dirname, normpath, abspath, splitext, relpath, exists
 
@@ -81,7 +86,12 @@ def cmake_advanced_info():
     """
 
     def create_eclipse_project(cmake_dir):
-        cmd = 'cmake %r -G"Eclipse CDT4 - Unix Makefiles"' % cmake_dir
+        import sys
+        if sys.platform == "win32":
+            cmd = 'cmake %r -G"Eclipse CDT4 - MinGW Makefiles"' % cmake_dir
+        else:
+            cmd = 'cmake %r -G"Eclipse CDT4 - Unix Makefiles"' % cmake_dir
+
         os.system(cmd)
 
     includes = []
@@ -98,7 +108,7 @@ def cmake_advanced_info():
         print("CMakeCache.txt not found in %r or %r\n    Pass CMake build dir as an argument, or run from that dir, abording" % (cmake_dir, os.getcwd()))
         sys.exit(1)
 
-    # create_eclipse_project(cmake_dir)
+    create_eclipse_project(cmake_dir)
 
     from xml.dom.minidom import parse
     tree = parse(os.path.join(cmake_dir, ".cproject"))
