@@ -206,7 +206,7 @@ void BLI_newname(char *name, int add)
 
 int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, const char defname[], char delim, char *name, short name_len)
 {
-	if(name == '\0') {
+	if(name[0] == '\0') {
 		BLI_strncpy(name, defname, name_len);
 	}
 
@@ -1192,7 +1192,7 @@ void BLI_setenv_if_new(const char *env, const char* val)
 
 void BLI_clean(char *path)
 {
-	if(path==0) return;
+	if(path==NULL) return;
 
 #ifdef WIN32
 	if(path && BLI_strnlen(path, 3) > 2) {
@@ -1205,7 +1205,7 @@ void BLI_clean(char *path)
 
 void BLI_char_switch(char *string, char from, char to) 
 {
-	if(string==0) return;
+	if(string==NULL) return;
 	while (*string != 0) {
 		if (*string == from) *string = to;
 		string++;
