@@ -67,6 +67,7 @@
 #include "RNA_enum_types.h"
 
 #include "ED_image.h"
+#include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
@@ -747,6 +748,9 @@ static int open_exec(bContext *C, wmOperator *op)
 		iuser->fie_ima= 2;
 	}
 
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	BKE_image_signal(ima, iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
 	
@@ -820,6 +824,9 @@ static int replace_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", str);
 	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name)); /* we cant do much if the str is longer then 240 :/ */
 
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 
@@ -1236,6 +1243,9 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 	if(!ima)
 		return OPERATOR_CANCELLED;
 
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	// XXX other users?
 	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
 
@@ -1542,7 +1552,10 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
 
 	if(G.fileflags & G_AUTOPACK)
 		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
-		
+	
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	unpackImage(op->reports, ima, method);
 	
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
