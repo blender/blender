@@ -50,6 +50,11 @@
 
 #include "ED_util.h"
 
+typedef struct {
+	float *vertexcos;
+	short *flags;
+} MappedUserData;
+
 #define TAN_MAKE_VEC(a, b, c)	a[0]= b[0] + 0.2f*(b[0]-c[0]); a[1]= b[1] + 0.2f*(b[1]-c[1]); a[2]= b[2] + 0.2f*(b[2]-c[2])
 static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, float *def1, float *def2, float *def3)
 {
@@ -70,10 +75,16 @@ static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, 
 
 static void make_vertexcos__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
-	float *vec = userData;
+	MappedUserData *mappedData= (MappedUserData*)userData;
+	float *vec = mappedData->vertexcos;
 
 	vec+= 3*index;
-	VECCOPY(vec, co);
+	if(!mappedData->flags[index]) {
+		/* we need coord from prototype vertex, not it clones or images,
+		   suppose they stored in the beginning of vertex array stored in DM */
+		VECCOPY(vec, co);
+		mappedData->flags[index]= 1;
+	}
 }
 
 static int modifiers_disable_subsurf_temporary(Object *ob)
@@ -97,6 +108,9 @@ float *crazyspace_get_mapped_editverts(Scene *scene, Object *obedit)
 	Mesh *me= obedit->data;
 	DerivedMesh *dm;
 	float *vertexcos;
+	int nverts= me->edit_mesh->totvert;
+	short *flags;
+	MappedUserData userData;
 
 	/* disable subsurf temporal, get mapped cos, and enable it */
 	if(modifiers_disable_subsurf_temporary(obedit)) {
@@ -107,13 +121,19 @@ float *crazyspace_get_mapped_editverts(Scene *scene, Object *obedit)
 	/* now get the cage */
 	dm= editmesh_get_derived_cage(scene, obedit, me->edit_mesh, CD_MASK_BAREMESH);
 
-	vertexcos= MEM_mallocN(3*sizeof(float)*me->edit_mesh->totvert, "vertexcos map");
-	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
+	vertexcos= MEM_callocN(3*sizeof(float)*nverts, "vertexcos map");
+	flags= MEM_callocN(sizeof(short)*nverts, "vertexcos flags");
+
+	userData.vertexcos= vertexcos;
+	userData.flags= flags;
+	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, &userData);
 
 	dm->release(dm);
 
 	/* set back the flag, no new cage needs to be built, transform does it */
 	modifiers_disable_subsurf_temporary(obedit);
+
+	MEM_freeN(flags);
 
 	return vertexcos;
 }
