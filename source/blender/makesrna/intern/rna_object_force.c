@@ -477,12 +477,12 @@ static void rna_FieldSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 		if(part->pd->forcefield != PFIELD_TEXTURE && part->pd->tex) {
 			part->pd->tex->id.us--;
-			part->pd->tex= 0;
+			part->pd->tex= NULL;
 		}
 
 		if(part->pd2->forcefield != PFIELD_TEXTURE && part->pd2->tex) {
 			part->pd2->tex->id.us--;
-			part->pd2->tex= 0;
+			part->pd2->tex= NULL;
 		}
 
 		DAG_id_tag_update(&part->id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME|PSYS_RECALC_RESET);
@@ -494,7 +494,7 @@ static void rna_FieldSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 		if(ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex) {
 			ob->pd->tex->id.us--;
-			ob->pd->tex= 0;
+			ob->pd->tex= NULL;
 		}
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);

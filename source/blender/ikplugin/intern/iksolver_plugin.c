@@ -400,7 +400,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 			/* end effector in world space */
 			copy_m4_m4(end_pose, pchan->pose_mat);
 			VECCOPY(end_pose[3], pchan->pose_tail);
-			mul_serie_m4(world_pose, goalinv, ob->obmat, end_pose, 0, 0, 0, 0, 0);
+			mul_serie_m4(world_pose, goalinv, ob->obmat, end_pose, NULL, NULL, NULL, NULL, NULL);
 			
 			/* blend position */
 			goalpos[0]= fac*goalpos[0] + mfac*world_pose[3][0];

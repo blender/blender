@@ -100,8 +100,7 @@
 static int totnum,actnum;
 static struct direntry *files;
 
-static struct ListBase dirbase_={
-	0,0};
+static struct ListBase dirbase_={NULL, NULL};
 static struct ListBase *dirbase = &dirbase_;
 
 /* can return NULL when the size is not big enough */
@@ -400,7 +399,7 @@ unsigned int BLI_getdir(const char *dirname,  struct direntry **filelist)
 	// filesel.c:freefilelist()
 
 	actnum = totnum = 0;
-	files = 0;
+	files = NULL;
 
 	BLI_builddir(dirname,"");
 	BLI_adddirstrings();

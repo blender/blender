@@ -115,8 +115,8 @@ static void rna_RenderEngine_unregister(const bContext *C, StructRNA *type)
 
 static StructRNA *rna_RenderEngine_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
-	RenderEngineType *et, dummyet = {0};
-	RenderEngine dummyengine= {0};
+	RenderEngineType *et, dummyet = {NULL};
+	RenderEngine dummyengine= {NULL};
 	PointerRNA dummyptr;
 	int have_function[1];
 

@@ -1411,7 +1411,7 @@ void make_local_object(Object *ob)
 	if(ob->id.us==1) {
 		ob->id.lib= NULL;
 		ob->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)ob, 0);
+		new_id(NULL, (ID *)ob, NULL);
 
 	}
 	else {
@@ -1430,9 +1430,9 @@ void make_local_object(Object *ob)
 		}
 		
 		if(local && lib==0) {
-			ob->id.lib= 0;
+			ob->id.lib= NULL;
 			ob->id.flag= LIB_LOCAL;
-			new_id(0, (ID *)ob, 0);
+			new_id(NULL, (ID *)ob, NULL);
 		}
 		else if(local && lib) {
 			obn= copy_object(ob);
@@ -1440,7 +1440,7 @@ void make_local_object(Object *ob)
 			
 			sce= bmain->scene.first;
 			while(sce) {
-				if(sce->id.lib==0) {
+				if(sce->id.lib==NULL) {
 					base= sce->base.first;
 					while(base) {
 						if(base->object==ob) {

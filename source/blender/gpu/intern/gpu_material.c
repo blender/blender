@@ -923,7 +923,7 @@ static void do_material_tex(GPUShadeInput *shi)
 			mtex= ma->mtex[tex_nr];
 			
 			tex= mtex->tex;
-			if(tex==0) continue;
+			if(tex == NULL) continue;
 
 			/* which coords */
 			if(mtex->texco==TEXCO_ORCO)

@@ -52,7 +52,7 @@ void IMB_de_interlace(struct ImBuf *ibuf)
 {
 	struct ImBuf * tbuf1, * tbuf2;
 	
-	if (ibuf == 0) return;
+	if (ibuf == NULL) return;
 	if (ibuf->flags & IB_fields) return;
 	ibuf->flags |= IB_fields;
 	
@@ -79,7 +79,7 @@ void IMB_interlace(struct ImBuf *ibuf)
 {
 	struct ImBuf * tbuf1, * tbuf2;
 
-	if (ibuf == 0) return;
+	if (ibuf == NULL) return;
 	ibuf->flags &= ~IB_fields;
 
 	ibuf->y *= 2;

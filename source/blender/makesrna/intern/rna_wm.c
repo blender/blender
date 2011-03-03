@@ -836,8 +836,8 @@ static char _operator_name[OP_MAX_TYPENAME];
 static char _operator_descr[1024];
 static StructRNA *rna_Operator_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
-	wmOperatorType dummyot = {0};
-	wmOperator dummyop= {0};
+	wmOperatorType dummyot = {NULL};
+	wmOperator dummyop= {NULL};
 	PointerRNA dummyotr;
 	int have_function[6];
 
@@ -939,8 +939,8 @@ static StructRNA *rna_Operator_register(bContext *C, ReportList *reports, void *
 
 static StructRNA *rna_MacroOperator_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
-	wmOperatorType dummyot = {0};
-	wmOperator dummyop= {0};
+	wmOperatorType dummyot = {NULL};
+	wmOperator dummyop= {NULL};
 	PointerRNA dummyotr;
 	int have_function[4];
 

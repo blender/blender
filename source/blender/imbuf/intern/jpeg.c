@@ -271,10 +271,10 @@ handle_app1 (j_decompress_ptr cinfo)
 static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int flags)
 {
 	JSAMPARRAY row_pointer;
-	JSAMPLE * buffer = 0;
+	JSAMPLE * buffer = NULL;
 	int row_stride;
 	int x, y, depth, r, g, b, k;
-	struct ImBuf * ibuf = 0;
+	struct ImBuf * ibuf = NULL;
 	uchar * rect;
 	jpeg_saved_marker_ptr marker;
 	char *str, *key, *value;
@@ -470,7 +470,7 @@ ImBuf * imb_load_jpeg (unsigned char * buffer, size_t size, int flags)
 
 static void write_jpeg(struct jpeg_compress_struct * cinfo, struct ImBuf * ibuf)
 {
-	JSAMPLE * buffer = 0;
+	JSAMPLE * buffer = NULL;
 	JSAMPROW row_pointer[1];
 	uchar * rect;
 	int x, y;

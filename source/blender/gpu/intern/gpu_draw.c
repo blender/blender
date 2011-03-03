@@ -303,7 +303,7 @@ static void gpu_make_repbind(Image *ima)
 	if(ima->repbind) {
 		glDeleteTextures(ima->totbind, (GLuint *)ima->repbind);
 		MEM_freeN(ima->repbind);
-		ima->repbind= 0;
+		ima->repbind= NULL;
 		ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 	}
 
@@ -315,12 +315,12 @@ static void gpu_make_repbind(Image *ima)
 
 static void gpu_clear_tpage(void)
 {
-	if(GTS.lasttface==0)
+	if(GTS.lasttface==NULL)
 		return;
 	
-	GTS.lasttface= 0;
+	GTS.lasttface= NULL;
 	GTS.curtile= 0;
-	GTS.curima= 0;
+	GTS.curima= NULL;
 	if(GTS.curtilemode!=0) {
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
@@ -432,7 +432,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 	if(compare && ima == GTS.curima && GTS.curtile == GTS.tile &&
 	   GTS.tilemode == GTS.curtilemode && GTS.curtileXRep == GTS.tileXRep &&
 	   GTS.curtileYRep == GTS.tileYRep)
-		return (ima!=0);
+		return (ima != NULL);
 
 	/* if tiling mode or repeat changed, change texture matrix to fit */
 	if(GTS.tilemode!=GTS.curtilemode || GTS.curtileXRep!=GTS.tileXRep ||
@@ -469,7 +469,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 	
 	if(GTS.tilemode) {
 		/* tiled mode */
-		if(ima->repbind==0) gpu_make_repbind(ima);
+		if(ima->repbind==NULL) gpu_make_repbind(ima);
 		if(GTS.tile>=ima->totbind) GTS.tile= 0;
 		
 		/* this happens when you change repeat buttons */
@@ -588,7 +588,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap)
 	Image *ima;
 	
 	/* check if we need to clear the state */
-	if(tface==0) {
+	if(tface==NULL) {
 		gpu_clear_tpage();
 		return 0;
 	}
@@ -612,7 +612,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap)
 		glDisable(GL_TEXTURE_2D);
 		
 		GTS.curtile= 0;
-		GTS.curima= 0;
+		GTS.curima= NULL;
 		GTS.curtilemode= 0;
 		GTS.curtileXRep = 0;
 		GTS.curtileYRep = 0;

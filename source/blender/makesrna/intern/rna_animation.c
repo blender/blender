@@ -169,9 +169,9 @@ static void rna_KeyingSetInfo_unregister(const bContext *C, StructRNA *type)
 
 static StructRNA *rna_KeyingSetInfo_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
-	KeyingSetInfo dummyksi = {0};
+	KeyingSetInfo dummyksi = {NULL};
 	KeyingSetInfo *ksi;
-	PointerRNA dummyptr = {{0}};
+	PointerRNA dummyptr = {{NULL}};
 	int have_function[3];
 
 	/* setup dummy type info to store static properties in */

@@ -104,11 +104,11 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	png_structp png_ptr;
 	png_infop info_ptr;
 
-	unsigned char *pixels = 0;
+	unsigned char *pixels = NULL;
 	unsigned char *from, *to;
-	png_bytepp row_pointers = 0;
+	png_bytepp row_pointers = NULL;
 	int i, bytesperpixel, color_type = PNG_COLOR_TYPE_GRAY;
-	FILE *fp = 0;
+	FILE *fp = NULL;
 
 	/* use the jpeg quality setting for compression */
 	int compression;
@@ -299,11 +299,11 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 
 struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 {
-	struct ImBuf *ibuf = 0;
+	struct ImBuf *ibuf = NULL;
 	png_structp png_ptr;
 	png_infop info_ptr;
-	unsigned char *pixels = 0;
-	png_bytepp row_pointers = 0;
+	unsigned char *pixels = NULL;
+	png_bytepp row_pointers = NULL;
 	png_uint_32 width, height;
 	int bit_depth, color_type;
 	PNGReadStruct ps;
@@ -311,13 +311,13 @@ struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 	unsigned char *from, *to;
 	int i, bytesperpixel;
 
-	if (imb_is_a_png(mem) == 0) return(0);
+	if (imb_is_a_png(mem) == 0) return(NULL);
 
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
 		NULL, NULL, NULL);
 	if (png_ptr == NULL) {
 		printf("Cannot png_create_read_struct\n");
-		return 0;
+		return NULL;
 	}
 
 	info_ptr = png_create_info_struct(png_ptr);
@@ -325,7 +325,7 @@ struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, 
 			(png_infopp)NULL);
 		printf("Cannot png_create_info_struct\n");
-		return 0;
+		return NULL;
 	}
 
 	ps.size = size; /* XXX, 4gig limit! */
@@ -339,7 +339,7 @@ struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 		if (pixels) MEM_freeN(pixels);
 		if (row_pointers) MEM_freeN(row_pointers);
 		if (ibuf) IMB_freeImBuf(ibuf);
-		return 0;
+		return NULL;
 	}
 
 	// png_set_sig_bytes(png_ptr, 8);

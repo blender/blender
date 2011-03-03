@@ -377,7 +377,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 
 void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3], float r_location[3], float r_normal[3], int *index)
 {
-	BVHTreeFromMesh treeData= {0};
+	BVHTreeFromMesh treeData= {NULL};
 	
 	if(ob->derivedFinal==NULL) {
 		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for ray casting.", ob->id.name+2);

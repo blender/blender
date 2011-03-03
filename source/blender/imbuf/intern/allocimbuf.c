@@ -128,7 +128,7 @@ static void freeencodedbufferImBuf(ImBuf *ibuf)
 	if(ibuf->encodedbuffer && (ibuf->mall & IB_mem))
 		MEM_freeN(ibuf->encodedbuffer);
 
-	ibuf->encodedbuffer = 0;
+	ibuf->encodedbuffer = NULL;
 	ibuf->encodedbuffersize = 0;
 	ibuf->encodedsize = 0;
 	ibuf->mall &= ~IB_mem;
@@ -427,11 +427,11 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	
 	// set malloc flag
 	tbuf.mall		= ibuf2->mall;
-	tbuf.c_handle           = 0;
+	tbuf.c_handle           = NULL;
 	tbuf.refcounter         = 0;
 
 	// for now don't duplicate metadata
-	tbuf.metadata = 0;
+	tbuf.metadata = NULL;
 
 	*ibuf2 = tbuf;
 	
@@ -450,12 +450,12 @@ static void imbuf_cache_destructor(void *data)
 	IMB_freezbuffloatImBuf(ibuf);
 	freeencodedbufferImBuf(ibuf);
 
-	ibuf->c_handle = 0;
+	ibuf->c_handle = NULL;
 }
 
 static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
 {
-	static MEM_CacheLimiterC *c = 0;
+	static MEM_CacheLimiterC *c = NULL;
 
 	if(!c)
 		c = new_MEM_CacheLimiter(imbuf_cache_destructor);
@@ -466,7 +466,7 @@ static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
 void IMB_free_cache_limiter(void)
 {
 	delete_MEM_CacheLimiter(*get_imbuf_cache_limiter());
-	*get_imbuf_cache_limiter() = 0;
+	*get_imbuf_cache_limiter() = NULL;
 }
 
 void IMB_cache_limiter_insert(ImBuf *i)
@@ -485,7 +485,7 @@ void IMB_cache_limiter_unmanage(ImBuf *i)
 {
 	if(i->c_handle) {
 		MEM_CacheLimiter_unmanage(i->c_handle);
-		i->c_handle = 0;
+		i->c_handle = NULL;
 	}
 }
 

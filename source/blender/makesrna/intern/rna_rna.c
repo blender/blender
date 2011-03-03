@@ -310,7 +310,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	PointerRNA propptr= {{0}};
+	PointerRNA propptr= {{NULL}};
 
 	srna= ptr->type;
 

@@ -171,8 +171,8 @@ static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 static StructRNA *rna_Panel_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
-	PanelType *pt, dummypt = {0};
-	Panel dummypanel= {0};
+	PanelType *pt, dummypt = {NULL};
+	Panel dummypanel= {NULL};
 	PointerRNA dummyptr;
 	int have_function[3];
 
@@ -286,8 +286,8 @@ static void rna_Header_unregister(const bContext *C, StructRNA *type)
 static StructRNA *rna_Header_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
-	HeaderType *ht, dummyht = {0};
-	Header dummyheader= {0};
+	HeaderType *ht, dummyht = {NULL};
+	Header dummyheader= {NULL};
 	PointerRNA dummyhtr;
 	int have_function[1];
 
@@ -404,8 +404,8 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 
 static StructRNA *rna_Menu_register(bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
-	MenuType *mt, dummymt = {0};
-	Menu dummymenu= {0};
+	MenuType *mt, dummymt = {NULL};
+	Menu dummymenu= {NULL};
 	PointerRNA dummymtr;
 	int have_function[2];
 

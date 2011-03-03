@@ -86,14 +86,14 @@ ImBuf *IMB_loadifffile(int file, int flags)
 	unsigned char *mem;
 	size_t size;
 
-	if(file == -1) return 0;
+	if(file == -1) return NULL;
 
 	size= BLI_filesize(file);
 
-	mem= mmap(0, size, PROT_READ, MAP_SHARED, file, 0);
+	mem= mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
 	if(mem==(unsigned char*)-1) {
 		fprintf(stderr, "Couldn't get mapping\n");
-		return 0;
+		return NULL;
 	}
 
 	ibuf= IMB_ibImageFromMemory(mem, size, flags);
@@ -128,7 +128,7 @@ ImBuf *IMB_loadiffname(const char *name, int flags)
 	imb_cache_filename(filename, name, flags);
 
 	file = open(filename, O_BINARY|O_RDONLY);
-	if(file < 0) return 0;
+	if(file < 0) return NULL;
 
 	ibuf= IMB_loadifffile(file, flags);
 
@@ -154,7 +154,7 @@ ImBuf *IMB_testiffname(char *name, int flags)
 	imb_cache_filename(filename, name, flags);
 
 	file = open(filename,O_BINARY|O_RDONLY);
-	if(file < 0) return 0;
+	if(file < 0) return NULL;
 
 	ibuf=IMB_loadifffile(file, flags|IB_test|IB_multilayer);
 	if(ibuf) {
@@ -177,7 +177,7 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
 
 	size= BLI_filesize(file);
 
-	mem= mmap(0, size, PROT_READ, MAP_SHARED, file, 0);
+	mem= mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
 	if(mem==(unsigned char*)-1) {
 		fprintf(stderr, "Couldn't get memory mapping for %s\n", ibuf->cachename);
 		return;
