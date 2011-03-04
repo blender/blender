@@ -983,19 +983,20 @@ static void shader_preview_updatejob(void *spv)
 	ShaderPreview *sp= spv;
 	
 	if(sp->id) {
-		if( GS(sp->id->name) == ID_MA) {
-			Material *mat= (Material *)sp->id;
-			
-			if(sp->matcopy && mat->nodetree && sp->matcopy->nodetree)
-				ntreeLocalSync(sp->matcopy->nodetree, mat->nodetree);
-		}
-		else if( GS(sp->id->name) == ID_TE) {
-			Tex *tex= (Tex *)sp->id;
-			
-			if(sp->texcopy && tex->nodetree && sp->texcopy->nodetree)
-				ntreeLocalSync(sp->texcopy->nodetree, tex->nodetree);
-		}
-		
+		if(sp->pr_method==PR_NODE_RENDER) {
+			if( GS(sp->id->name) == ID_MA) {
+				Material *mat= (Material *)sp->id;
+				
+				if(sp->matcopy && mat->nodetree && sp->matcopy->nodetree)
+					ntreeLocalSync(sp->matcopy->nodetree, mat->nodetree);
+			}
+			else if( GS(sp->id->name) == ID_TE) {
+				Tex *tex= (Tex *)sp->id;
+				
+				if(sp->texcopy && tex->nodetree && sp->texcopy->nodetree)
+					ntreeLocalSync(sp->texcopy->nodetree, tex->nodetree);
+			}
+		}		
 	}
 }
 

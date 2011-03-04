@@ -2815,14 +2815,14 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	/* end animdata uglyness */
 
 	/* ensures only a single output node is enabled */
-	ntreeSetOutput(ntree);
+	ntreeSetOutput(ltree);
 
 	for(node= ntree->nodes.first; node; node= node->next) {
 		
 		/* store new_node pointer to original */
 		node->new_node->new_node= node;
 		/* ensure new user input gets handled ok */
-		node->need_exec= 0;
+		node->new_node->need_exec= 0;
 		
 		if(ntree->type==NTREE_COMPOSIT) {
 			/* move over the compbufs */
