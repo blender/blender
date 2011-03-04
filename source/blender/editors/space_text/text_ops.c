@@ -572,6 +572,7 @@ static int run_script_poll(bContext *C)
 
 static int run_script(bContext *C, ReportList *reports)
 {
+#ifdef WITH_PYTHON
 	Text *text= CTX_data_edit_text(C);
 	const short is_live= (reports == NULL);
 
@@ -596,6 +597,10 @@ static int run_script(bContext *C, ReportList *reports)
 
 		BKE_report(reports, RPT_ERROR, "Python script fail, look in the console for now...");
 	}
+#else
+	(void)C;
+	(void)reports;
+#endif /* !WITH_PYTHON */
 	return OPERATOR_CANCELLED;
 }
 
@@ -792,7 +797,7 @@ static int paste_exec(bContext *C, wmOperator *op)
 	/* run the script while editing, evil but useful */
 	if(CTX_wm_space_text(C)->live_edit)
 		run_script(C, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -863,7 +868,7 @@ static int cut_exec(bContext *C, wmOperator *UNUSED(op))
 	/* run the script while editing, evil but useful */
 	if(CTX_wm_space_text(C)->live_edit)
 		run_script(C, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
