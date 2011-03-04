@@ -610,10 +610,10 @@ elseif(WIN32)
 
 		if(WITH_PYTHON)
 			set(PYTHON ${LIBDIR}/python)
-			set(PYTHON_VERSION 3.1)
+			set(PYTHON_VERSION 3.2)
 			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARY python31)
+			set(PYTHON_LIBRARY python32)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
 
@@ -715,6 +715,7 @@ elseif(WIN32)
 			set(WITH_JACK OFF)
 		endif()
 
+		# TODO: mingw move to Python 3.2
 		if(WITH_PYTHON)
 			set(PYTHON ${LIBDIR}/python)
 			set(PYTHON_VERSION 3.1)
@@ -766,9 +767,9 @@ elseif(APPLE)
 		set(SNDFILE_LIBPATH ${SNDFILE}/lib ${FFMPEG}/lib)
 	endif()
 
-	set(PYTHON_VERSION 3.1)
+	set(PYTHON_VERSION 3.2)
 
-	if(PYTHON_VERSION MATCHES 3.1)
+	if(PYTHON_VERSION MATCHES 3.2)
 		# we use precompiled libraries for py 3.1 and up by default
 
 		set(PYTHON ${LIBDIR}/python)
