@@ -1033,8 +1033,8 @@ int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_
 
 	/* set looping */
 	Py_ssize_t pos = 0;
+	Py_hash_t hash = 0;
 	PyObject *key;
-	long hash;
 
 	*r_value= 0;
 
