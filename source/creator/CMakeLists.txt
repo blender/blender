@@ -364,36 +364,36 @@ if(WITH_INSTALL)
 
 		if(WITH_PYTHON)
 			# note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
-			if(NOT CMAKE_BUILD_TYPE) # hack: with multi-configuration generator this is "", so for now copy both python31.dll/zip and python31_d.dll/zip
+			if(NOT CMAKE_BUILD_TYPE) # hack: with multi-configuration generator this is "", so for now copy both python32.dll/zip and python32_d.dll/zip
 				add_custom_command(TARGET blender
 					POST_BUILD
 					MAIN_DEPENDENCY blender
 					COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\"
-					COMMAND if \"$(ConfigurationName)\" == \"\" copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"\" xcopy /E /Y \"${LIBDIR}\\release\\python31\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"Debug\" copy /Y \"${LIBDIR}\\python\\lib\\python31_d.dll\" \"${TARGETDIR}\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"Debug\" xcopy /E /Y \"${LIBDIR}\\release\\python31_d\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"RelWithDebInfo\" copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"RelWithDebInfo\" xcopy /E /Y \"${LIBDIR}\\release\\python31\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"Release\" copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"Release\" xcopy /E /Y \"${LIBDIR}\\release\\python31\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"MinSizeRel\" copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"MinSizeRel\" xcopy /E /Y \"${LIBDIR}\\release\\python31\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
+					COMMAND if \"$(ConfigurationName)\" == \"\" copy /Y \"${LIBDIR}\\python\\lib\\python32.dll\" \"${TARGETDIR}\\\"
+					COMMAND if \"$(ConfigurationName)\" == \"\" xcopy /E /Y \"${LIBDIR}\\release\\python32\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
+					COMMAND if \"$(ConfigurationName)\" == \"Debug\" copy /Y \"${LIBDIR}\\python\\lib\\python32_d.dll\" \"${TARGETDIR}\\\"
+					COMMAND if \"$(ConfigurationName)\" == \"Debug\" xcopy /E /Y \"${LIBDIR}\\release\\python32_d\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
+					COMMAND if \"$(ConfigurationName)\" == \"RelWithDebInfo\" copy /Y \"${LIBDIR}\\python\\lib\\python32.dll\" \"${TARGETDIR}\\\"
+					COMMAND if \"$(ConfigurationName)\" == \"RelWithDebInfo\" xcopy /E /Y \"${LIBDIR}\\release\\python32\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
+					COMMAND if \"$(ConfigurationName)\" == \"Release\" copy /Y \"${LIBDIR}\\python\\lib\\python32.dll\" \"${TARGETDIR}\\\"
+					COMMAND if \"$(ConfigurationName)\" == \"Release\" xcopy /E /Y \"${LIBDIR}\\release\\python32\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
+					COMMAND if \"$(ConfigurationName)\" == \"MinSizeRel\" copy /Y \"${LIBDIR}\\python\\lib\\python32.dll\" \"${TARGETDIR}\\\"
+					COMMAND if \"$(ConfigurationName)\" == \"MinSizeRel\" xcopy /E /Y \"${LIBDIR}\\release\\python32\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
 				)
 			else()
 				if(CMAKE_BUILD_TYPE STREQUAL Debug)
 					add_custom_command(TARGET blender
 						POST_BUILD
 						MAIN_DEPENDENCY blender
-						COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31_d.dll\" \"${TARGETDIR}\\\"
-						COMMAND xcopy /E /Y \"${LIBDIR}\\release\\python31_d\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
+						COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python32_d.dll\" \"${TARGETDIR}\\\"
+						COMMAND xcopy /E /Y \"${LIBDIR}\\release\\python32_d\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
 					)
 				else()
 					add_custom_command(TARGET blender
 						POST_BUILD
 						MAIN_DEPENDENCY blender
-						COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
-						COMMAND xcopy /E /Y \"${LIBDIR}\\release\\python31\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
+						COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python32.dll\" \"${TARGETDIR}\\\"
+						COMMAND xcopy /E /Y \"${LIBDIR}\\release\\python32\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
 					)
 				endif()
 			endif()
