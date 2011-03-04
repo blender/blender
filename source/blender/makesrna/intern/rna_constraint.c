@@ -1122,7 +1122,7 @@ static void rna_def_constraint_stretch_to(BlenderRNA *brna)
 
 	static EnumPropertyItem volume_items[] = {
 		{VOLUME_XZ, "VOLUME_XZX", 0, "XZ", ""},
-		{VOLUME_X, "VOLUME_X", 0, "Y", ""},
+		{VOLUME_X, "VOLUME_X", 0, "X", ""},
 		{VOLUME_Z, "VOLUME_Z", 0, "Z", ""},
 		{NO_VOLUME, "NO_VOLUME", 0, "None", ""},
 		{0, NULL, 0, NULL, NULL}};
