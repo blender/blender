@@ -585,6 +585,10 @@ void ED_keymap_animchannels(struct wmKeyConfig *keyconf);
 	/* generic time editing */
 void ED_operatortypes_anim(void);
 void ED_keymap_anim(struct wmKeyConfig *keyconf);
+	
+	/* space_graph */
+void ED_operatormacros_graph(void);
+
 
 /* ************************************************ */
 

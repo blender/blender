@@ -269,6 +269,19 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPH_OT_fmodifier_paste);
 }
 
+void ED_operatormacros_graph(void)
+{
+	wmOperatorType *ot;
+	wmOperatorTypeMacro *otmacro;
+	
+	ot= WM_operatortype_append_macro("GRAPH_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "GRAPH_OT_duplicate");
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");
+	RNA_int_set(otmacro->ptr, "mode", TFM_TIME_DUPLICATE);
+
+}
+
+
 /* ************************** registration - keymaps **********************************/
 
 static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
@@ -361,7 +374,7 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "GRAPH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(keymap, "GRAPH_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 		/* insertkey */
 	WM_keymap_add_item(keymap, "GRAPH_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
