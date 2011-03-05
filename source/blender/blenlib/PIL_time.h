@@ -56,9 +56,29 @@ double	PIL_check_seconds_timer		(void);
 	 */
 void	PIL_sleep_ms				(int ms);
 
+/** Utility defines for timing.
+ * requires BLI_utildefines.h for 'AT'
+ * TIMEIT_VALUE returns the time since TIMEIT_START was called.
+ */
+#define TIMEIT_START(var)													\
+{ 																			\
+	double _timeit_##var= PIL_check_seconds_timer();						\
+	printf("time start (" #var "):  " AT "\n");								\
+	fflush(stdout);															\
+	{																		\
+
+
+#define TIMEIT_VALUE(var) (float)(PIL_check_seconds_timer() - _timeit_##var)
+
+
+#define TIMEIT_END(var)														\
+	}																		\
+	printf("time end   (" #var "): %.6f" "  " AT "\n",	TIMEIT_VAL(var));	\
+	fflush(stdout);															\
+}																			\
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif
-
+#endif /* !PIL_TIME_H */
