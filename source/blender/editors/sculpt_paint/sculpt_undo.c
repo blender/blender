@@ -100,17 +100,15 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			continue;
 
 		if(unode->maxvert) {
-			char *shapeName= (char*)unode->shapeName;
-
 			/* regular mesh restore */
 			if(ss->totvert != unode->maxvert)
 				continue;
 
-			if (ss->kb && strcmp(ss->kb->name, shapeName)) {
+			if (ss->kb && strcmp(ss->kb->name, unode->shapeName)) {
 				/* shape key has been changed before calling undo operator */
 
 				Key *key= ob_get_key(ob);
-				KeyBlock *kb= key_get_named_keyblock(key, shapeName);
+				KeyBlock *kb= key_get_named_keyblock(key, unode->shapeName);
 
 				if (kb) {
 					ob->shapenr= BLI_findindex(&key->block, kb) + 1;
@@ -316,7 +314,7 @@ SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
 		memcpy(unode->grids, grids, sizeof(int)*totgrid);
 
 	/* store active shape key */
-	if(ss->kb) BLI_strncpy((char*)unode->shapeName, ss->kb->name, sizeof(ss->kb->name));
+	if(ss->kb) BLI_strncpy(unode->shapeName, ss->kb->name, sizeof(ss->kb->name));
 	else unode->shapeName[0]= '\0';
 
 	return unode;
