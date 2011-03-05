@@ -67,6 +67,10 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 	if (dim + 1 < totdim) {
 		/* check that a sequence contains dimsize[dim] items */
 		const int seq_size= PySequence_Size(seq);
+		if(seq_size == -1) {
+			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not %s", error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
+			return 0;
+		}
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item;
 			int ok= 1;
@@ -100,6 +104,10 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 	else {
 		/* check that items are of correct type */
 		const int seq_size= PySequence_Size(seq);
+		if(seq_size == -1) {
+			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not %s", error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
+			return 0;
+		}
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item= PySequence_GetItem(seq, i);
 
