@@ -848,6 +848,12 @@ static void split_single_vert(SmoothVert *vert, SmoothFace *face,
 
 	copy_vert = smoothvert_copy(vert, mesh);
 
+	if(copy_vert == NULL) {
+		/* bug [#26316], this prevents a segfault
+		 * but this still needs fixing */
+		return;
+	}
+
 	repdata.find = vert;
 	repdata.replace = copy_vert;
 	face_replace_vert(face, &repdata);
