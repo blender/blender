@@ -1220,7 +1220,7 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 	ListBase anim_data= {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1290,7 +1290,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc edit_cb;
 	
 	/* filter data */
@@ -1389,7 +1389,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc edit_cb;
 	
 	/* get beztriple editing callbacks */

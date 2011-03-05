@@ -90,7 +90,7 @@ ImFileType IMB_FILE_TYPES[]= {
 #ifdef WITH_QUICKTIME
 	{quicktime_init, quicktime_exit, imb_is_a_quicktime, imb_ftype_quicktime, imb_quicktime_decode, NULL, NULL, 0, QUICKTIME},
 #endif	
-	{NULL, NULL, NULL, NULL, NULL, NULL, 0}};
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0}};
 	
 void imb_filetypes_init(void)
 {

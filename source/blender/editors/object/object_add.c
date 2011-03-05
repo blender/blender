@@ -1047,7 +1047,7 @@ static EnumPropertyItem convert_target_items[]= {
 
 static void curvetomesh(Scene *scene, Object *ob) 
 {
-	if(ob->disp.first==0)
+	if(ob->disp.first == NULL)
 		makeDispListCurveTypes(scene, ob, 0); /* force creation */
 
 	nurbs_to_mesh(ob); /* also does users */
@@ -1213,19 +1213,19 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 			if(cu->vfont) {
 				cu->vfont->id.us--;
-				cu->vfont= 0;
+				cu->vfont= NULL;
 			}
 			if(cu->vfontb) {
 				cu->vfontb->id.us--;
-				cu->vfontb= 0;
+				cu->vfontb= NULL;
 			}
 			if(cu->vfonti) {
 				cu->vfonti->id.us--;
-				cu->vfonti= 0;
+				cu->vfonti= NULL;
 			}
 			if(cu->vfontbi) {
 				cu->vfontbi->id.us--;
-				cu->vfontbi= 0;
+				cu->vfontbi= NULL;
 			}
 
 			if (!keep_original) {

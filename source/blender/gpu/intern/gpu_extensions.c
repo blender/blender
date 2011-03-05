@@ -367,7 +367,7 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 	}
 
 	if (tex->target == GL_TEXTURE_1D) {
-		glTexImage1D(tex->target, 0, internalformat, tex->w, 0, format, type, 0);
+		glTexImage1D(tex->target, 0, internalformat, tex->w, 0, format, type, NULL);
 
 		if (fpixels) {
 			glTexSubImage1D(tex->target, 0, 0, w, format, type,
@@ -380,7 +380,7 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 	}
 	else {
 		glTexImage2D(tex->target, 0, internalformat, tex->w, tex->h, 0,
-			format, type, 0);
+			format, type, NULL);
 
 		if (fpixels) {
 			glTexSubImage2D(tex->target, 0, 0, 0, w, h,

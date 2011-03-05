@@ -53,8 +53,8 @@
 static void initData(ModifierData *md) 
 {
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
-	psmd->psys= 0;
-	psmd->dm=0;
+	psmd->psys= NULL;
+	psmd->dm= NULL;
 	psmd->totdmvert= psmd->totdmedge= psmd->totdmface= 0;
 }
 static void freeData(ModifierData *md)
@@ -64,7 +64,7 @@ static void freeData(ModifierData *md)
 	if(psmd->dm){
 		psmd->dm->needsFree = 1;
 		psmd->dm->release(psmd->dm);
-		psmd->dm=0;
+		psmd->dm = NULL;
 	}
 
 	/* ED_object_modifier_remove may have freed this first before calling
@@ -77,7 +77,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	ParticleSystemModifierData *tpsmd= (ParticleSystemModifierData*) target;
 
-	tpsmd->dm = 0;
+	tpsmd->dm = NULL;
 	tpsmd->totdmvert = tpsmd->totdmedge = tpsmd->totdmface = 0;
 	//tpsmd->facepa = 0;
 	tpsmd->flag = psmd->flag;
@@ -131,7 +131,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 {
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
-	ParticleSystem * psys=0;
+	ParticleSystem * psys= NULL;
 	int needsFree=0;
 
 	if(ob->particlesystem.first)
@@ -142,7 +142,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	if(!psys_check_enabled(ob, psys))
 		return;
 
-	if(dm==0) {
+	if(dm==NULL) {
 		dm= get_dm(ob, NULL, NULL, vertexCos, 1);
 
 		if(!dm)
@@ -228,18 +228,18 @@ ModifierTypeInfo modifierType_ParticleSystem = {
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
-	/* deformVertsEM */     0 /* deformVertsEM */ ,
-	/* deformMatrices */    0,
-	/* deformMatricesEM */  0,
-	/* applyModifier */     0,
-	/* applyModifierEM */   0,
+	/* deformVertsEM */     NULL /* deformVertsEM */ ,
+	/* deformMatrices */    NULL,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     NULL,
+	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          freeData,
-	/* isDisabled */        0,
-	/* updateDepgraph */    0,
-	/* dependsOnTime */     0,
-	/* dependsOnNormals */	0,
-	/* foreachObjectLink */ 0,
-	/* foreachIDLink */     0,
+	/* isDisabled */        NULL,
+	/* updateDepgraph */    NULL,
+	/* dependsOnTime */     NULL,
+	/* dependsOnNormals */	NULL,
+	/* foreachObjectLink */ NULL,
+	/* foreachIDLink */     NULL,
 };

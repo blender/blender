@@ -383,12 +383,12 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 		if(id->lib) {
 			if(id->flag & LIB_INDIRECT) {
-				but= uiDefIconBut(block, BUT, 0, ICON_LIBRARY_DATA_INDIRECT, 0,0,UI_UNIT_X,UI_UNIT_Y, 0, 0, 0, 0, 0,
+				but= uiDefIconBut(block, BUT, 0, ICON_LIBRARY_DATA_INDIRECT, 0,0,UI_UNIT_X,UI_UNIT_Y, NULL, 0, 0, 0, 0,
 					"Indirect library datablock, cannot change.");
 				uiButSetFlag(but, UI_BUT_DISABLED);
 			}
 			else {
-				but= uiDefIconBut(block, BUT, 0, ICON_LIBRARY_DATA_DIRECT, 0,0,UI_UNIT_X,UI_UNIT_Y, 0, 0, 0, 0, 0,
+				but= uiDefIconBut(block, BUT, 0, ICON_LIBRARY_DATA_DIRECT, 0,0,UI_UNIT_X,UI_UNIT_Y, NULL, 0, 0, 0, 0,
 					"Direct linked library datablock, click to make local.");
 				if(!id_make_local(id, 1 /* test */) || (idfrom && idfrom->lib))
 					uiButSetFlag(but, UI_BUT_DISABLED);
@@ -403,9 +403,9 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			sprintf(str, "%d", id->us);
 
 			if(id->us<10)
-				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X,UI_UNIT_Y, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
+				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
 			else
-				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X+10,UI_UNIT_Y, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
+				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X+10,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
 			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib))
@@ -456,7 +456,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		if(unlinkop) {
 			but= uiDefIconButO(block, BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
 			/* so we can access the template from operators, font unlinking needs this */
-			uiButSetNFunc(but, NULL, MEM_dupallocN(template), 0);
+			uiButSetNFunc(but, NULL, MEM_dupallocN(template), NULL);
 		}
 		else {
 			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Unlink datablock. Shift + Click to set users to zero, data gets not saved");
@@ -1265,15 +1265,15 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 
 	if(coba==NULL) return;
 
-	bt= uiDefBut(block, BUT, 0,	"Add",			0+xoffs,100+yoffs,40,20, 0, 0, 0, 0, 0, "Add a new color stop to the colorband");
+	bt= uiDefBut(block, BUT, 0,	"Add",			0+xoffs,100+yoffs,40,20, NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
 	uiButSetNFunc(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
 
-	bt= uiDefBut(block, BUT, 0,	"Delete",		45+xoffs,100+yoffs,45,20, 0, 0, 0, 0, 0, "Delete the active position");
+	bt= uiDefBut(block, BUT, 0,	"Delete",		45+xoffs,100+yoffs,45,20, NULL, 0, 0, 0, 0, "Delete the active position");
 	uiButSetNFunc(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
 
 
 	/* XXX, todo for later - convert to operator - campbell */
-	bt= uiDefBut(block, BUT, 0,	"F",		95+xoffs,100+yoffs,20,20, 0, 0, 0, 0, 0, "Flip colorband");
+	bt= uiDefBut(block, BUT, 0,	"F",		95+xoffs,100+yoffs,20,20, NULL, 0, 0, 0, 0, "Flip colorband");
 	uiButSetNFunc(bt, colorband_flip_cb, MEM_dupallocN(cb), coba);
 
 	uiDefButS(block, NUM, 0,		"",				120+xoffs,100+yoffs,80, 20, &coba->cur, 0.0, (float)(MAX2(0, coba->tot-1)), 0, 0, "Choose active color stop");

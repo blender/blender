@@ -323,7 +323,7 @@ static BPoint *findnearestLattvert(ViewContext *vc, short mval[2], int sel)
 		/* sel==1: selected gets a disadvantage */
 		/* in nurb and bezt or bp the nearest is written */
 		/* return 0 1 2: handlepunt */
-	struct { BPoint *bp; short dist, select, mval[2]; } data = {0};
+	struct { BPoint *bp; short dist, select, mval[2]; } data = {NULL};
 
 	data.dist = 100;
 	data.select = sel;

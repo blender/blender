@@ -90,7 +90,7 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc test_cb, sel_cb;
 	
 	/* determine type-based settings */
@@ -371,7 +371,7 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	int filter;
 	
 	KeyframeEditFunc ok_cb, select_cb;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	float min, max;
 	
 	/* get extreme markers */
@@ -422,7 +422,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	Scene *scene= ac->scene;
 	CfraElem *ce;
 	KeyframeEditFunc select_cb, ok_cb;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	
 	/* initialise keyframe editing data */
 	
@@ -608,7 +608,7 @@ static void select_moreless_action_keys (bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc build_cb;
 	
 	
@@ -730,7 +730,7 @@ static void actkeys_select_leftright (bAnimContext *ac, short leftright, short s
 	int filter;
 	
 	KeyframeEditFunc ok_cb, select_cb;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	Scene *scene= ac->scene;
 	
 	/* if select mode is replace, deselect all keyframes (and channels) first */
@@ -908,7 +908,7 @@ static void actkeys_mselect_single (bAnimContext *ac, bAnimListElem *ale, short 
 	bDopeSheet *ads= (ac->datatype == ANIMCONT_DOPESHEET) ? ac->data : NULL;
 	int ds_filter = ((ads) ? (ads->filterflag) : (0));
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc select_cb, ok_cb;
 	
 	/* get functions for selecting keyframes */
@@ -934,7 +934,7 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	int filter;
 	
 	KeyframeEditFunc select_cb, ok_cb;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	
 	/* initialise keyframe editing data */
 	

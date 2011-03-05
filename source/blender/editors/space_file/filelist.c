@@ -540,20 +540,20 @@ void filelist_free(struct FileList* filelist)
 		if (filelist->filelist[i].image) {			
 			IMB_freeImBuf(filelist->filelist[i].image);
 		}
-		filelist->filelist[i].image = 0;
+		filelist->filelist[i].image = NULL;
 		if (filelist->filelist[i].relname)
 			MEM_freeN(filelist->filelist[i].relname);
 		if (filelist->filelist[i].path)
 			MEM_freeN(filelist->filelist[i].path);
-		filelist->filelist[i].relname = 0;
+		filelist->filelist[i].relname = NULL;
 		if (filelist->filelist[i].string)
 			MEM_freeN(filelist->filelist[i].string);
-		filelist->filelist[i].string = 0;
+		filelist->filelist[i].string = NULL;
 	}
 	
 	filelist->numfiles = 0;
 	free(filelist->filelist);
-	filelist->filelist = 0;	
+	filelist->filelist = NULL;	
 	filelist->filter = 0;
 	filelist->filter_glob[0] = '\0';
 	filelist->numfiltered =0;
@@ -564,7 +564,7 @@ void filelist_freelib(struct FileList* filelist)
 {
 	if(filelist->libfiledata)	
 		BLO_blendhandle_close(filelist->libfiledata);
-	filelist->libfiledata= 0;
+	filelist->libfiledata= NULL;
 }
 
 struct BlendHandle *filelist_lib(struct FileList* filelist)
@@ -841,8 +841,8 @@ static void filelist_read_dir(struct FileList* filelist)
 	char wdir[FILE_MAX]= "";
 	if (!filelist) return;
 
-	filelist->fidx = 0;
-	filelist->filelist = 0;
+	filelist->fidx = NULL;
+	filelist->filelist = NULL;
 
 	BLI_getwdN(wdir, sizeof(wdir));	 /* backup cwd to restore after */
 
@@ -896,7 +896,7 @@ void filelist_readdir(struct FileList* filelist)
 
 int filelist_empty(struct FileList* filelist)
 {	
-	return filelist->filelist == 0;
+	return filelist->filelist == NULL;
 }
 
 void filelist_parent(struct FileList* filelist)
@@ -977,7 +977,7 @@ void filelist_from_library(struct FileList* filelist)
 	if (!ok) {
 		/* free */
 		if(filelist->libfiledata) BLO_blendhandle_close(filelist->libfiledata);
-		filelist->libfiledata= 0;
+		filelist->libfiledata= NULL;
 		return;
 	}
 	
@@ -985,9 +985,9 @@ void filelist_from_library(struct FileList* filelist)
 
 	/* there we go */
 	/* for the time being only read filedata when libfiledata==0 */
-	if (filelist->libfiledata==0) {
+	if (filelist->libfiledata == NULL) {
 		filelist->libfiledata= BLO_blendhandle_from_file(dir);
-		if(filelist->libfiledata==0) return;
+		if(filelist->libfiledata == NULL) return;
 	}
 	
 	idcode= groupname_to_code(group);
@@ -1116,7 +1116,7 @@ void filelist_from_main(struct FileList *filelist)
 		idcode= groupname_to_code(filelist->dir);
 		
 		lb= which_libbase(G.main, idcode );
-		if(lb==0) return;
+		if(lb == NULL) return;
 		
 		id= lb->first;
 		filelist->numfiles= 0;

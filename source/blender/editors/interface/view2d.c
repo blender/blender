@@ -1006,7 +1006,7 @@ void UI_view2d_view_ortho(View2D *v2d)
 	
 	/* set matrix on all appropriate axes */
 	wmOrtho2(curmasked.xmin-xofs, curmasked.xmax-xofs, curmasked.ymin-yofs, curmasked.ymax-yofs);
-	
+
 	/* XXX is this necessary? */
 	glLoadIdentity();
 }

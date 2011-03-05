@@ -272,7 +272,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 			tsize = 1;
 			break;
 		default:
-			return 0; /* unknown size */
+			return NULL; /* unknown size */
 	}
 
 	uri_from_filename(path, uri);
@@ -286,7 +286,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 		}
 		if (size == THB_FAIL) {
 			img = IMB_allocImBuf(1,1,32, IB_rect | IB_metadata);
-			if (!img) return 0;
+			if (!img) return NULL;
 		} else {
 			if (THB_SOURCE_IMAGE == source || THB_SOURCE_BLEND == source) {
 				
@@ -322,7 +322,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 				stat(path, &info);
 				BLI_snprintf(mtime, sizeof(mtime), "%ld", info.st_mtime);
 			}
-			if (!img) return 0;		
+			if (!img) return NULL;
 
 			if (img->x > img->y) {
 				scaledx = (float)tsize;
@@ -365,7 +365,7 @@ ImBuf* IMB_thumb_read(const char* path, ThumbSize size)
 {
 	char thumb[FILE_MAX];
 	char uri[FILE_MAX*3+8];
-	ImBuf *img = 0;
+	ImBuf *img = NULL;
 
 	if (!uri_from_filename(path,uri)) {
 		return NULL;
@@ -428,13 +428,13 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 				if (!IMB_metadata_get_field(img, "Thumb::MTime", mtime, 40)) {
 					/* illegal thumb, forget it! */
 					IMB_freeImBuf(img);
-					img = 0;
+					img = NULL;
 				} else {
 					time_t t = atol(mtime);
 					if (st.st_mtime != t) {
 						/* recreate all thumbs */
 						IMB_freeImBuf(img);
-						img = 0;
+						img = NULL;
 						IMB_thumb_delete(path, THB_NORMAL);
 						IMB_thumb_delete(path, THB_LARGE);
 						IMB_thumb_delete(path, THB_FAIL);
@@ -445,7 +445,7 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 							if (img) {
 								/* we don't need failed thumb anymore */
 								IMB_freeImBuf(img);
-								img = 0;
+								img = NULL;
 							}
 						}
 					}
@@ -458,7 +458,7 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 					if (img) {
 						/* we don't need failed thumb anymore */
 						IMB_freeImBuf(img);
-						img = 0;
+						img = NULL;
 					}
 				}
 			}

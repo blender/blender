@@ -717,7 +717,7 @@ static int copy_exec(bContext *C, wmOperator *UNUSED(op))
 	int sel[2];
 	int offset= 0;
 
-	ConsoleLine cl_dummy= {0};
+	ConsoleLine cl_dummy= {NULL};
 
 #if 0
 	/* copy whole file */

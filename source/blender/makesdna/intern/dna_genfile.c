@@ -170,7 +170,7 @@ static int le_int(int temp)
 int DNA_elem_array_size(const char *astr, int len)
 {
 	int a, mul=1;
-	char str[100], *cp=0;
+	char str[100], *cp= NULL;
 
 	memcpy(str, astr, len+1);
 
@@ -259,7 +259,7 @@ static void printstruct(SDNA *sdna, short strnr)
 static short *findstruct_name(SDNA *sdna, const char *str)
 {
 	int a;
-	short *sp=0;
+	short *sp= NULL;
 
 
 	for(a=0; a<sdna->nr_structs; a++) {
@@ -269,12 +269,12 @@ static short *findstruct_name(SDNA *sdna, const char *str)
 		if(strcmp( sdna->types[ sp[0] ], str )==0) return sp;
 	}
 	
-	return 0;
+	return NULL;
 }
 
 int DNA_struct_find_nr(SDNA *sdna, const char *str)
 {
-	short *sp=0;
+	short *sp= NULL;
 	int a;
 
 	if(sdna->lastfind<sdna->nr_structs) {
@@ -808,12 +808,12 @@ static char *find_elem(SDNA *sdna, const char *type, const char *name, short *ol
 				return olddata;
 			}
 			
-			return 0;
+			return NULL;
 		}
 		
 		olddata+= len;
 	}
-	return 0;
+	return NULL;
 }
 
 static void reconstruct_elem(SDNA *newsdna, SDNA *oldsdna, char *type, const char *name, char *curdata, short *old, char *olddata)
@@ -999,7 +999,7 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 		/* test: is type a struct? */
 		if(spc[0]>=firststructtypenr  &&  !ispointer(name)) {
 			/* where does the old data start (is there one?) */
-			cpo= find_elem(oldsdna, type, name, spo, data, 0);
+			cpo= find_elem(oldsdna, type, name, spo, data, NULL);
 			if(cpo) {
 				oldSDNAnr= DNA_struct_find_nr(oldsdna, type);
 				

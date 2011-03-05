@@ -203,7 +203,7 @@ static void do_shared_vertexcol(Mesh *me)
 	short *scolmain, *scol;
 	char *mcol;
 	
-	if(me->mcol==0 || me->totvert==0 || me->totface==0) return;
+	if(me->mcol==NULL || me->totvert==0 || me->totface==0) return;
 	
 	scolmain= MEM_callocN(4*sizeof(short)*me->totvert, "colmain");
 	
@@ -264,7 +264,7 @@ static void make_vertexcol(Object *ob)	/* single ob */
 	Mesh *me;
 	if(!ob || ob->id.lib) return;
 	me= get_mesh(ob);
-	if(me==0) return;
+	if(me==NULL) return;
 	if(me->edit_mesh) return;
 
 	/* copies from shadedisplist to mcol */
@@ -322,7 +322,7 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	int i, selected;
 
 	me= get_mesh(ob);
-	if(me==0 || me->totface==0) return;
+	if(me==NULL || me->totface==0) return;
 
 	if(!me->mcol)
 		make_vertexcol(ob);
@@ -358,7 +358,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	int selected;
 	
 	me= ob->data;
-	if(me==0 || me->totface==0 || me->dvert==0 || !me->mface) return;
+	if(me==NULL || me->totface==0 || me->dvert==NULL || !me->mface) return;
 	
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
 

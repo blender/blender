@@ -1761,7 +1761,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	bDopeSheet ads= {0};
+	bDopeSheet ads= {NULL};
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
 	float cfra= (scene)? (float)(CFRA) : 0.0f;

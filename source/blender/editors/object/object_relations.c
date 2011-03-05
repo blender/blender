@@ -1427,7 +1427,7 @@ static void new_id_matar(Material **matar, int totcol)
 	
 	for(a=0; a<totcol; a++) {
 		id= (ID *)matar[a];
-		if(id && id->lib==0) {
+		if(id && id->lib == NULL) {
 			if(id->newid) {
 				matar[a]= (Material *)id->newid;
 				id_us_plus(id->newid);
@@ -1581,7 +1581,7 @@ static void do_single_tex_user(Tex **from)
 	Tex *tex, *texn;
 	
 	tex= *from;
-	if(tex==0) return;
+	if(tex==NULL) return;
 	
 	if(tex->id.newid) {
 		*from= (Tex *)tex->id.newid;

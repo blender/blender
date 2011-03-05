@@ -629,7 +629,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	PTCacheEditPoint *point;
 	PTCacheEditKey *ekey = NULL;
 	HairKey *key;
-	BVHTreeFromMesh bvhtree= {0};
+	BVHTreeFromMesh bvhtree= {NULL};
 	BVHTreeNearest nearest;
 	MFace *mface;
 	DerivedMesh *dm = NULL;

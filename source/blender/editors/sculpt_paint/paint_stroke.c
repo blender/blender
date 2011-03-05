@@ -167,7 +167,7 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 	static Snapshot snap;
 	static int old_size = -1;
 
-	GLubyte* buffer = 0;
+	GLubyte* buffer = NULL;
 
 	int size;
 	int j;

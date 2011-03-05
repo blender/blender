@@ -227,16 +227,16 @@ void removenotused_scredges(bScreen *sc)
 	sa= sc->areabase.first;
 	while(sa) {
 		se= screen_findedge(sc, sa->v1, sa->v2);
-		if(se==0) printf("error: area %d edge 1 doesn't exist\n", a);
+		if(se==NULL) printf("error: area %d edge 1 doesn't exist\n", a);
 		else se->flag= 1;
 		se= screen_findedge(sc, sa->v2, sa->v3);
-		if(se==0) printf("error: area %d edge 2 doesn't exist\n", a);
+		if(se==NULL) printf("error: area %d edge 2 doesn't exist\n", a);
 		else se->flag= 1;
 		se= screen_findedge(sc, sa->v3, sa->v4);
-		if(se==0) printf("error: area %d edge 3 doesn't exist\n", a);
+		if(se==NULL) printf("error: area %d edge 3 doesn't exist\n", a);
 		else se->flag= 1;
 		se= screen_findedge(sc, sa->v4, sa->v1);
-		if(se==0) printf("error: area %d edge 4 doesn't exist\n", a);
+		if(se==NULL) printf("error: area %d edge 4 doesn't exist\n", a);
 		else se->flag= 1;
 		sa= sa->next;
 		a++;
@@ -1495,7 +1495,7 @@ int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *newsa= NULL;
 
-	if(!sa || sa->full==0) {
+	if(!sa || sa->full==NULL) {
 		newsa= ED_screen_full_toggle(C, win, sa);
 	}
 	

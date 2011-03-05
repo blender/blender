@@ -405,12 +405,12 @@ static void column_widths(struct FileList* files, struct FileLayout* layout)
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 {
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
-	FileLayout *layout=0;
+	FileLayout *layout= NULL;
 	View2D *v2d= &ar->v2d;
 	int maxlen = 0;
 	int numfiles;
 	int textheight;
-	if (sfile->layout == 0) {
+	if (sfile->layout == NULL) {
 		sfile->layout = MEM_callocN(sizeof(struct FileLayout), "file_layout");
 		sfile->layout->dirty = 1;
 	} 

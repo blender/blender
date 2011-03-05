@@ -464,7 +464,7 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *valsock= NULL, *colsock= NULL, *vecsock= NULL;
 	bNodeSocket *sock;
-	bNodeLink link= {0};
+	bNodeLink link= {NULL};
 	int a;
 	
 	/* connect the first value buffer in with first value out */
