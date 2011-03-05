@@ -64,6 +64,7 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_lattice.h" /* for armature_deform_verts */
+#include "BKE_node.h"
 
 #include "BIF_glutil.h"
 
@@ -3264,6 +3265,21 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	return srd.hit;
 }
 
+static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
+{
+	Brush *brush = paint_brush(&sd->paint);
+	MTex *mtex= &brush->mtex;
+
+	/* init mtex nodes */
+	if(mtex->tex && mtex->tex->nodetree)
+		ntreeBeginExecTree(mtex->tex->nodetree); /* has internal flag to detect it only does it once */
+
+	/* TODO: Shouldn't really have to do this at the start of every
+	   stroke, but sculpt would need some sort of notification when
+	   changes are made to the texture. */
+	sculpt_update_tex(sd, ss);
+}
+
 static int sculpt_brush_stroke_init(bContext *C, ReportList *reports)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -3278,11 +3294,7 @@ static int sculpt_brush_stroke_init(bContext *C, ReportList *reports)
 	}
 
 	view3d_operator_needs_opengl(C);
-
-	/* TODO: Shouldn't really have to do this at the start of every
-	   stroke, but sculpt would need some sort of notification when
-	   changes are made to the texture. */
-	sculpt_update_tex(sd, ss);
+	sculpt_brush_init_tex(sd, ss);
 
 	sculpt_update_mesh_elements(scene, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
 
@@ -3439,6 +3451,15 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	sculpt_flush_update(C);
 }
 
+static void sculpt_brush_exit_tex(Sculpt *sd)
+{
+	Brush *brush= paint_brush(&sd->paint);
+	MTex *mtex= &brush->mtex;
+
+	if(mtex->tex && mtex->tex->nodetree)
+		ntreeEndExecTree(mtex->tex->nodetree);
+}
+
 static void sculpt_stroke_done(bContext *C, struct PaintStroke *unused)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -3488,6 +3509,8 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *unused)
 
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	}
+
+	sculpt_brush_exit_tex(sd);
 }
 
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
