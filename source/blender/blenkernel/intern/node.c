@@ -2821,10 +2821,11 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		
 		/* store new_node pointer to original */
 		node->new_node->new_node= node;
-		/* ensure new user input gets handled ok */
-		node->new_node->need_exec= 0;
 		
 		if(ntree->type==NTREE_COMPOSIT) {
+			/* ensure new user input gets handled ok, only composites (texture nodes will break, for painting since it uses no tags) */
+			node->need_exec= 0;
+			
 			/* move over the compbufs */
 			/* right after ntreeCopyTree() oldsock pointers are valid */
 			
