@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
+/** \file blender/blenlib/intern/math_vector.c
+ *  \ingroup bli
+ */
+
+
 
 #include "BLI_math.h"
 

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_lensdist.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 static bNodeSocketType cmp_node_lensdist_in[]= {

@@ -30,6 +30,11 @@
  *
  */
 
+/** \file blender/avi/intern/avi.c
+ *  \ingroup avi
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -211,7 +216,7 @@ int AVI_is_avi (char *name) {
 
 int AVI_is_avi (const char *name) {
 	int temp, fcca, j;
-	AviMovie movie= {0};
+	AviMovie movie= {NULL};
 	AviMainHeader header;
 	AviBitmapInfoHeader bheader;
 	int movie_tracks = 0;

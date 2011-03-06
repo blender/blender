@@ -752,13 +752,14 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, bool k
 	if (key != GHOST_kKeyUnknown) {
 		MSG keyMsg;
 		char ascii = '\0';
-
 			/* Eat any character related messages */
-		if (::PeekMessage(&keyMsg, NULL, WM_CHAR, WM_SYSDEADCHAR, PM_REMOVE)) {
-			ascii = (char) keyMsg.wParam;
-			
-		}
 
+		if (::PeekMessage(&keyMsg, NULL, WM_CHAR, WM_DEADCHAR, PM_REMOVE) || 
+			::PeekMessage(&keyMsg, NULL, WM_SYSCHAR, WM_SYSDEADCHAR, PM_REMOVE))
+				{
+					ascii = (char) keyMsg.wParam;
+					if(ascii > 126) ascii = 0;
+				};
 		event = new GHOST_EventKey(getSystem()->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, ascii);
 		
 #ifdef BF_GHOST_DEBUG

@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/IMB_filetype.h
+ *  \ingroup imbuf
+ */
+
+
 #ifndef IMB_FILETYPE_H
 #define IMB_FILETYPE_H
 

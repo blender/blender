@@ -1,4 +1,4 @@
-/*! \file btGImpactTriangleShape.h
+/*! \file btTriangleShapeEx.cpp
 \author Francisco Len Nßjera
 */
 /*

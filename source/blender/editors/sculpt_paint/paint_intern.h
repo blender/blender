@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/sculpt_paint/paint_intern.h
+ *  \ingroup edsculpt
+ */
+
+
 #ifndef ED_PAINT_INTERN_H
 #define ED_PAINT_INTERN_H
 
@@ -53,7 +58,7 @@ typedef void (*StrokeDone)(struct bContext *C, struct PaintStroke *stroke);
 
 struct PaintStroke *paint_stroke_new(struct bContext *C,
 					 StrokeGetLocation get_location, StrokeTestStart test_start,
-					 StrokeUpdateStep update_step, StrokeDone done);
+					 StrokeUpdateStep update_step, StrokeDone done, int event_type);
 void paint_stroke_free(struct PaintStroke *stroke);
 
 int paint_space_stroke_enabled(struct Brush *br);

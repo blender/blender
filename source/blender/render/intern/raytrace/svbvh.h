@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/raytrace/svbvh.h
+ *  \ingroup render
+ */
+
+
 #ifdef __SSE__
  
 #ifndef RE_RAYTRACE_SVBVH_H

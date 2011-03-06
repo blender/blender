@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_image/image_intern.h
+ *  \ingroup spimage
+ */
+
+
 #ifndef ED_IMAGE_INTERN_H
 #define ED_IMAGE_INTERN_H
 

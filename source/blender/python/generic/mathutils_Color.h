@@ -28,6 +28,11 @@
  *
  */
 
+/** \file blender/python/generic/mathutils_Color.h
+ *  \ingroup pygen
+ */
+
+
 #ifndef MATHUTILS_COLOR_H
 #define MATHUTILS_COLOR_H
 

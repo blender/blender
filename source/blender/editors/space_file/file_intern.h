@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_file/file_intern.h
+ *  \ingroup spfile
+ */
+
 #ifndef ED_FILE_INTERN_H
 #define ED_FILE_INTERN_H
 

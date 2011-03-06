@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/raytrace/reorganize.h
+ *  \ingroup render
+ */
+
+
 #include <float.h>
 #include <math.h>
 #include <stdio.h>

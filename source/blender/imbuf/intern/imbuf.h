@@ -31,6 +31,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/imbuf.h
+ *  \ingroup imbuf
+ */
+
+
 #ifndef IMBUF_H
 #define IMBUF_H
 

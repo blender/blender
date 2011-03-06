@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/displist.c
+ *  \ingroup bke
+ */
+
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>

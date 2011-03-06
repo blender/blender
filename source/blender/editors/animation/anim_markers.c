@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/animation/anim_markers.c
+ *  \ingroup edanimation
+ */
+
+
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
@@ -281,7 +286,7 @@ void debug_markers_print_list(ListBase *markers)
 	printf("List of markers follows: -----\n");
 	
 	for (marker = markers->first; marker; marker = marker->next) {
-		printf("\t'%s' on %d at %p with %d\n", marker->name, marker->frame, marker, marker->flag);
+		printf("\t'%s' on %d at %p with %d\n", marker->name, marker->frame, (void *)marker, marker->flag);
 	}
 	
 	printf("End of list ------------------\n");
@@ -409,7 +414,7 @@ void draw_markers_time(const bContext *C, int flag)
  */
 
 /* maximum y-axis value (in region screen-space) that marker events should still be accepted for  */
-#define ANIMEDIT_MARKER_YAXIS_MAX 	40
+#define ANIMEDIT_MARKER_YAXIS_MAX 	30
 
 /* ------------------------ */
 

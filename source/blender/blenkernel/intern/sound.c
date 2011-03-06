@@ -1,3 +1,6 @@
+/** \file blender/blenkernel/intern/sound.c
+ *  \ingroup bke
+ */
 /**
  * sound.c (mar-2001 nzc)
  *

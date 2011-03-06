@@ -20,6 +20,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/armature/editarmature_sketch.c
+ *  \ingroup edarmature
+ */
+
+
 #include <string.h>
 #include <math.h>
 #include <float.h>

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_distance.c
+ *  \ingroup texnodes
+ */
+
+
 #include <math.h>
 #include "BLI_math.h"
 #include "../TEX_util.h"

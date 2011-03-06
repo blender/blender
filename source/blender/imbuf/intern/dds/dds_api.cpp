@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/dds/dds_api.cpp
+ *  \ingroup imbdds
+ */
+
+
 #include <stddef.h>
 #include <dds_api.h>
 #include <Stream.h>

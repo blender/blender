@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/gpencil/drawgpencil.c
+ *  \ingroup edgpencil
+ */
+
  
 #include <stdio.h>
 #include <string.h>
@@ -495,7 +500,7 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 			continue;
 		if (!(dflag & GP_DRAWDATA_ONLYI2D) && (gps->flag & GP_STROKE_2DIMAGE))
 			continue;
-		if ((gps->points == 0) || (gps->totpoints < 1))
+		if ((gps->points == NULL) || (gps->totpoints < 1))
 			continue;
 		
 		/* check which stroke-drawer to use */

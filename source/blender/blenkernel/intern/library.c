@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/library.c
+ *  \ingroup bke
+ */
+
+
 /*
  *  Contains management of ID's and libraries
  *  allocate and free of all library data
@@ -104,6 +109,10 @@
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
 #include "BKE_linestyle.h"
+
+#ifdef WITH_PYTHON
+#include "BPY_extern.h"
+#endif
 
 #define MAX_IDPUP		60	/* was 24 */
 
@@ -727,7 +736,11 @@ static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata
 void free_libblock(ListBase *lb, void *idv)
 {
 	ID *id= idv;
-	
+
+#ifdef WITH_PYTHON
+	BPY_id_release(id);
+#endif
+
 	switch( GS(id->name) ) {	/* GetShort from util.h */
 		case ID_SCE:
 			free_scene((Scene *)id);

@@ -1,3 +1,6 @@
+/** \file blender/imbuf/intern/cineon/logImageCore.h
+ *  \ingroup imbcineon
+ */
 /*
  *	 Cineon image file format library definitions.
  *	 Cineon and DPX common structures.

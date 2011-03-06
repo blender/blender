@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_image/image_ops.c
+ *  \ingroup spimage
+ */
+
+
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
@@ -62,6 +67,7 @@
 #include "RNA_enum_types.h"
 
 #include "ED_image.h"
+#include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
@@ -742,6 +748,9 @@ static int open_exec(bContext *C, wmOperator *op)
 		iuser->fie_ima= 2;
 	}
 
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	BKE_image_signal(ima, iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
 	
@@ -815,6 +824,9 @@ static int replace_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", str);
 	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name)); /* we cant do much if the str is longer then 240 :/ */
 
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 
@@ -1231,6 +1243,9 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 	if(!ima)
 		return OPERATOR_CANCELLED;
 
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	// XXX other users?
 	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
 
@@ -1361,19 +1376,18 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 {
 	Image *ima= CTX_data_edit_image(C);
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-	
+
 	// flags indicate if this channel should be inverted
-	short r,g,b,a;
-	int i, dirty = 0;
-	
+	const short r= RNA_boolean_get(op->ptr, "invert_r");
+	const short g= RNA_boolean_get(op->ptr, "invert_g");
+	const short b= RNA_boolean_get(op->ptr, "invert_b");
+	const short a= RNA_boolean_get(op->ptr, "invert_a");
+
+	int i;
+
 	if( ibuf == NULL) // TODO: this should actually never happen, but does for render-results -> cleanup
 		return OPERATOR_CANCELLED;
-	
-	r = RNA_boolean_get(op->ptr, "invert_r");
-	g = RNA_boolean_get(op->ptr, "invert_g");
-	b = RNA_boolean_get(op->ptr, "invert_b");
-	a = RNA_boolean_get(op->ptr, "invert_a");
-	
+
 	/* TODO: make this into an IMB_invert_channels(ibuf,r,g,b,a) method!? */
 	if (ibuf->rect_float) {
 		
@@ -1384,8 +1398,10 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 			if( b ) fp[2] = 1.0f - fp[2];
 			if( a ) fp[3] = 1.0f - fp[3];
 		}
-		dirty = 1;
-		IMB_rect_from_float(ibuf);
+
+		if(ibuf->rect) {
+			IMB_rect_from_float(ibuf);
+		}
 	}
 	else if(ibuf->rect) {
 		
@@ -1396,16 +1412,14 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 			if( b ) cp[2] = 255 - cp[2];
 			if( a ) cp[3] = 255 - cp[3];
 		}
-		dirty = 1;
 	}
-	else
+	else {
 		return OPERATOR_CANCELLED;
+	}
 
-	ibuf->userflags |= IB_BITMAPDIRTY; // mark as modified
+	ibuf->userflags |= IB_BITMAPDIRTY;
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
-	
 	return OPERATOR_FINISHED;
-	
 }
 
 void IMAGE_OT_invert(wmOperatorType *ot)
@@ -1486,7 +1500,7 @@ static int pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	if(!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
 		pup= uiPupMenuBegin(C, "OK", ICON_QUESTION);
 		layout= uiPupMenuLayout(pup);
-		uiItemBooleanO(layout, "Can't pack edited image from disk. Pack as internal PNG?", ICON_NULL, op->idname, "as_png", 1);
+		uiItemBooleanO(layout, "Can't pack edited image from disk. Pack as internal PNG?", ICON_NONE, op->idname, "as_png", 1);
 		uiPupMenuEnd(C, pup);
 
 		return OPERATOR_CANCELLED;
@@ -1538,7 +1552,10 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
 
 	if(G.fileflags & G_AUTOPACK)
 		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
-		
+	
+	/* XXX unpackImage frees image buffers */
+	ED_preview_kill_jobs(C);
+	
 	unpackImage(op->reports, ima, method);
 	
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);

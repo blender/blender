@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/curve.c
+ *  \ingroup bke
+ */
+
+
 #include <math.h>  // floor
 #include <string.h>
 #include <stdlib.h>  

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/animation/anim_filter.c
+ *  \ingroup edanimation
+ */
+
+
 /* This file contains a system used to provide a layer of abstraction between sources
  * of animation data and tools in Animation Editors. The method used here involves 
  * generating a list of edit structures which enable tools to naively perform the actions 

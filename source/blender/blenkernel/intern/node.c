@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/node.c
+ *  \ingroup bke
+ */
+
+
 #ifdef WITH_PYTHON
 #include <Python.h>
 #endif
@@ -1183,6 +1188,12 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 		newtree= MEM_dupallocN(ntree);
 		copy_libblock_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
 	}
+	
+	/* in case a running nodetree is copied */
+	newtree->init &= ~(NTREE_EXEC_INIT);
+	newtree->threadstack= NULL;
+	newtree->stack= NULL;
+	
 	newtree->nodes.first= newtree->nodes.last= NULL;
 	newtree->links.first= newtree->links.last= NULL;
 	
@@ -2766,8 +2777,8 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 /* ********** copy composite tree entirely, to allow threaded exec ******************* */
 /* ***************** do NOT execute this in a thread!               ****************** */
 
-/* returns localized composite tree for execution in threads */
-/* local tree then owns all compbufs */
+/* returns localized tree for execution in threads */
+/* local tree then owns all compbufs (for composite) */
 bNodeTree *ntreeLocalize(bNodeTree *ntree)
 {
 	bNodeTree *ltree;
@@ -2804,16 +2815,17 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	/* end animdata uglyness */
 
 	/* ensures only a single output node is enabled */
-	ntreeSetOutput(ntree);
+	ntreeSetOutput(ltree);
 
 	for(node= ntree->nodes.first; node; node= node->next) {
 		
 		/* store new_node pointer to original */
 		node->new_node->new_node= node;
-		/* ensure new user input gets handled ok */
-		node->need_exec= 0;
 		
 		if(ntree->type==NTREE_COMPOSIT) {
+			/* ensure new user input gets handled ok, only composites (texture nodes will break, for painting since it uses no tags) */
+			node->need_exec= 0;
+			
 			/* move over the compbufs */
 			/* right after ntreeCopyTree() oldsock pointers are valid */
 			
@@ -2881,7 +2893,7 @@ void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 			}
 		}
 	}
-	else if(ntree->type==NTREE_SHADER) {
+	else if(ELEM(ntree->type, NTREE_SHADER, NTREE_TEXTURE)) {
 		/* copy over contents of previews */
 		for(lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
 			if(node_exists(ntree, lnode->new_node)) {

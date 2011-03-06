@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/transform/transform_manipulator.c
+ *  \ingroup edtransform
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>

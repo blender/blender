@@ -20,6 +20,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/intern/bpy_traceback.h
+ *  \ingroup pythonintern
+ */
+
+
 #ifndef BPY_TRACEBACK_H
 #define BPY_TRACEBACK_H
 

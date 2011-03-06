@@ -22,6 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/intern/bpy_interface.c
+ *  \ingroup pythonintern
+ */
+
  
 /* grr, python redefines */
 #ifdef _POSIX_C_SOURCE
@@ -31,6 +36,8 @@
 #include <Python.h>
 
 #include "MEM_guardedalloc.h"
+
+#include "RNA_types.h"
 
 #include "bpy.h"
 #include "bpy_rna.h"

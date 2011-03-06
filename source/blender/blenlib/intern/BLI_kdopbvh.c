@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/BLI_kdopbvh.c
+ *  \ingroup bli
+ */
+
+
 #include <assert.h>
 
 #include "MEM_guardedalloc.h"

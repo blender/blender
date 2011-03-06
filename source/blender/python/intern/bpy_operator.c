@@ -1,5 +1,5 @@
 
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -23,11 +23,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/intern/bpy_operator.c
+ *  \ingroup pythonintern
+ */
+
+
 /* Note, this module is not to be used directly by the user.
  * Internally its exposed as '_bpy.ops', which provides functions for 'bpy.ops', a python package.
  * */
 
 #include <Python.h>
+
+#include "RNA_types.h"
 
 #include "bpy_operator.h"
 #include "bpy_operator_wrap.h"
@@ -36,6 +43,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "RNA_access.h"
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"

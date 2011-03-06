@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/physics/physics_fluid.c
+ *  \ingroup edphys
+ */
+
+
 
 
 #include <math.h>
@@ -1068,10 +1073,6 @@ FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
 static int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object *UNUSED(ob))
 {
 	return 0;
-}
-
-static void fluidsimFreeBake(Object *UNUSED(ob))
-{
 }
 
 #endif /* DISABLE_ELBEEM */

@@ -23,5 +23,5 @@ def image_load(filepath, dirpath, place_holder=False, recursive=False, convert_c
     import bpy
     try:
         return bpy.data.images.load(filepath)
-    except SystemError:
+    except RuntimeError:
         return bpy.data.images.new("Untitled", 128, 128)

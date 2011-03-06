@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/meshtools.c
+ *  \ingroup edmesh
+ */
+
+
 /*
 	meshtools.c: no editmode (violated already :), tools operating on meshes
 */

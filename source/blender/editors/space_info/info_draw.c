@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_info/info_draw.c
+ *  \ingroup spinfo
+ */
+
+
 
 #include <math.h>
 #include <stdlib.h>

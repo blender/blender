@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
+/** \file blender/python/generic/bgl.c
+ *  \ingroup pygen
+ */
+
+
 /* This file is the 'bgl' module.
  * The BGL submodule "wraps" OpenGL functions and constants,
  * allowing script writers to make OpenGL calls in their Python scripts. */

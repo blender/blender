@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/action.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
@@ -1066,7 +1071,7 @@ void copy_pose_result(bPose *to, bPose *from)
 	bPoseChannel *pchanto, *pchanfrom;
 	
 	if(to==NULL || from==NULL) {
-		printf("pose result copy error to:%p from:%p\n", to, from); // debug temp
+		printf("pose result copy error to:%p from:%p\n", (void *)to, (void *)from); // debug temp
 		return;
 	}
 

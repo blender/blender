@@ -1,3 +1,6 @@
+/** \file blender/imbuf/intern/cineon/logmemfile.h
+ *  \ingroup imbcineon
+ */
 /*
  *	 Cineon image file format library routines.
  *

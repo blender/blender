@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenfont/intern/blf_internal.h
+ *  \ingroup blf
+ */
+
+
 #ifndef BLF_INTERNAL_H
 #define BLF_INTERNAL_H
 

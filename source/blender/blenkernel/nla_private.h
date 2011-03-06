@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/nla_private.h
+ *  \ingroup bke
+ */
+
+
 #ifndef NLA_PRIVATE
 #define NLA_PRIVATE
 

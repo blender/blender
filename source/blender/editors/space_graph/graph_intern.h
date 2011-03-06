@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_graph/graph_intern.h
+ *  \ingroup spgraph
+ */
+
 #ifndef ED_GRAPH_INTERN_H
 #define ED_GRAPH_INTERN_H
 

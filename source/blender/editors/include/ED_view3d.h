@@ -155,7 +155,7 @@ void view3d_region_operator_needs_opengl(struct wmWindow *win, struct ARegion *a
 void view3d_get_view_aligned_coordinate(struct ViewContext *vc, float *fp, short mval[2]);
 void view3d_get_transformation(struct ARegion *ar, struct RegionView3D *rv3d, struct Object *ob, struct bglMats *mats);
 
-/* XXX should move to arithb.c */
+/* XXX should move to BLI_math */
 int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);
 int lasso_inside(short mcords[][2], short moves, short sx, short sy);
 int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, int y1);

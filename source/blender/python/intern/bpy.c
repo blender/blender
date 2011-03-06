@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/intern/bpy.c
+ *  \ingroup pythonintern
+ */
+
  
 /* This file defines the '_bpy' module which is used by python's 'bpy' package.
  * a script writer should never directly access this module */
@@ -42,6 +47,8 @@
 
 
 #include "BKE_global.h" /* XXX, G.main only */
+
+#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 

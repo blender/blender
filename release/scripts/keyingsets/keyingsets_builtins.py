@@ -26,7 +26,7 @@ to work correctly.
 """
 
 import bpy
-from keyingsets_utils import *
+import keyingsets_utils
 
 ###############################
 # Built-In KeyingSets
@@ -37,13 +37,13 @@ class BUILTIN_KSI_Location(bpy.types.KeyingSetInfo):
     bl_label = "Location"
 
     # poll - use predefined callback for selected bones/objects
-    poll = RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_items
 
     # iterator - use callback for selected bones/objects
-    iterator = RKS_ITER_selected_item
+    iterator = keyingsets_utils.RKS_ITER_selected_item
 
     # generator - use callback for location
-    generate = RKS_GEN_location
+    generate = keyingsets_utils.RKS_GEN_location
 
 
 # Rotation
@@ -51,13 +51,13 @@ class BUILTIN_KSI_Rotation(bpy.types.KeyingSetInfo):
     bl_label = "Rotation"
 
     # poll - use predefined callback for selected bones/objects
-    poll = RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_items
 
     # iterator - use callback for selected bones/objects
-    iterator = RKS_ITER_selected_item
+    iterator = keyingsets_utils.RKS_ITER_selected_item
 
     # generator - use callback for location
-    generate = RKS_GEN_rotation
+    generate = keyingsets_utils.RKS_GEN_rotation
 
 
 # Scale
@@ -65,13 +65,13 @@ class BUILTIN_KSI_Scaling(bpy.types.KeyingSetInfo):
     bl_label = "Scaling"
 
     # poll - use predefined callback for selected bones/objects
-    poll = RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_items
 
     # iterator - use callback for selected bones/objects
-    iterator = RKS_ITER_selected_item
+    iterator = keyingsets_utils.RKS_ITER_selected_item
 
     # generator - use callback for location
-    generate = RKS_GEN_scaling
+    generate = keyingsets_utils.RKS_GEN_scaling
 
 # ------------
 
@@ -81,17 +81,17 @@ class BUILTIN_KSI_LocRot(bpy.types.KeyingSetInfo):
     bl_label = "LocRot"
 
     # poll - use predefined callback for selected bones/objects
-    poll = RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_items
 
     # iterator - use callback for selected bones/objects
-    iterator = RKS_ITER_selected_item
+    iterator = keyingsets_utils.RKS_ITER_selected_item
 
     # generator
     def generate(self, context, ks, data):
         # location
-        RKS_GEN_location(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_location(self, context, ks, data)
         # rotation
-        RKS_GEN_rotation(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_rotation(self, context, ks, data)
 
 
 # LocScale
@@ -99,17 +99,17 @@ class BUILTIN_KSI_LocScale(bpy.types.KeyingSetInfo):
     bl_label = "LocScale"
 
     # poll - use predefined callback for selected bones/objects
-    poll = RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_items
 
     # iterator - use callback for selected bones/objects
-    iterator = RKS_ITER_selected_item
+    iterator = keyingsets_utils.RKS_ITER_selected_item
 
     # generator
     def generate(self, context, ks, data):
         # location
-        RKS_GEN_location(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_location(self, context, ks, data)
         # scale
-        RKS_GEN_scaling(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_scaling(self, context, ks, data)
 
 
 # LocRotScale
@@ -117,19 +117,19 @@ class BUILTIN_KSI_LocRotScale(bpy.types.KeyingSetInfo):
     bl_label = "LocRotScale"
 
     # poll - use predefined callback for selected bones/objects
-    poll = RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_items
 
     # iterator - use callback for selected bones/objects
-    iterator = RKS_ITER_selected_item
+    iterator = keyingsets_utils.RKS_ITER_selected_item
 
     # generator
     def generate(self, context, ks, data):
         # location
-        RKS_GEN_location(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_location(self, context, ks, data)
         # rotation
-        RKS_GEN_rotation(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_rotation(self, context, ks, data)
         # scale
-        RKS_GEN_scaling(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_scaling(self, context, ks, data)
 
 
 # RotScale
@@ -137,17 +137,17 @@ class BUILTIN_KSI_RotScale(bpy.types.KeyingSetInfo):
     bl_label = "RotScale"
 
     # poll - use predefined callback for selected bones/objects
-    poll = RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_items
 
     # iterator - use callback for selected bones/objects
-    iterator = RKS_ITER_selected_item
+    iterator = keyingsets_utils.RKS_ITER_selected_item
 
     # generator
     def generate(self, context, ks, data):
         # rotation
-        RKS_GEN_rotation(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_rotation(self, context, ks, data)
         # scaling
-        RKS_GEN_scaling(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_scaling(self, context, ks, data)
 
 # ------------
 
@@ -159,13 +159,13 @@ class BUILTIN_KSI_VisualLoc(bpy.types.KeyingSetInfo):
     bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
-    poll = RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_items
 
     # iterator - use callback for selected bones/objects
-    iterator = RKS_ITER_selected_item
+    iterator = keyingsets_utils.RKS_ITER_selected_item
 
     # generator - use callback for location
-    generate = RKS_GEN_location
+    generate = keyingsets_utils.RKS_GEN_location
 
 
 # Rotation
@@ -175,13 +175,13 @@ class BUILTIN_KSI_VisualRot(bpy.types.KeyingSetInfo):
     bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
-    poll = RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_items
 
     # iterator - use callback for selected bones/objects
-    iterator = RKS_ITER_selected_item
+    iterator = keyingsets_utils.RKS_ITER_selected_item
 
     # generator - use callback for rotation
-    generate = RKS_GEN_rotation
+    generate = keyingsets_utils.RKS_GEN_rotation
 
 
 # VisualLocRot
@@ -191,17 +191,17 @@ class BUILTIN_KSI_VisualLocRot(bpy.types.KeyingSetInfo):
     bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
-    poll = RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_items
 
     # iterator - use callback for selected bones/objects
-    iterator = RKS_ITER_selected_item
+    iterator = keyingsets_utils.RKS_ITER_selected_item
 
     # generator
     def generate(self, context, ks, data):
         # location
-        RKS_GEN_location(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_location(self, context, ks, data)
         # rotation
-        RKS_GEN_rotation(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_rotation(self, context, ks, data)
 
 # ------------
 
@@ -213,13 +213,13 @@ class BUILTIN_KSI_Available(bpy.types.KeyingSetInfo):
     # poll - use predefined callback for selected objects
     # TODO: this should really check whether the selected object (or datablock)
     #         has any animation data defined yet
-    poll = RKS_POLL_selected_objects
+    poll = keyingsets_utils.RKS_POLL_selected_objects
 
     # iterator - use callback for selected bones/objects
-    iterator = RKS_ITER_selected_item
+    iterator = keyingsets_utils.RKS_ITER_selected_item
 
     # generator - use callback for doing this
-    generate = RKS_GEN_available
+    generate = keyingsets_utils.RKS_GEN_available
 
 ###############################
 
@@ -278,7 +278,7 @@ class BUILTIN_KSI_WholeCharacter(bpy.types.KeyingSetInfo):
             path = id_path + prop
         else:
             # standard transforms/properties
-            path = path_add_property(id_path, prop)
+            path = keyingsets_utils.path_add_property(id_path, prop)
 
         # add Keying Set entry for this...
         if use_groups:
@@ -363,5 +363,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
-###############################

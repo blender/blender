@@ -27,8 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file BLO_sys_types.h
- *  \ingroup readwrite
+/** \file blenloader/BLO_sys_types.h
+ *  \ingroup blenloader
  *
  * A platform-independent definition of [u]intXX_t
  * Plus the accompanying header include for htonl/ntohl

@@ -430,7 +430,7 @@ void WM_exit(bContext *C)
 // XXX		UI_filelist_free_icons();
 	}
 	
-	GPU_buffer_pool_free(0);
+	GPU_buffer_pool_free(NULL);
 	GPU_free_unused_buffers();
 	GPU_extensions_exit();
 	

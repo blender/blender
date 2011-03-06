@@ -31,7 +31,7 @@
 #define BLO_WRITEFILE_H
 
 /** \file BLO_writefile.h
- *  \ingroup readwrite
+ *  \ingroup blenloader
  *  \brief external writefile function prototypes.
  */
 

@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_node/node_intern.h
+ *  \ingroup spnode
+ */
+
 #ifndef ED_NODE_INTERN_H
 #define ED_NODE_INTERN_H
 

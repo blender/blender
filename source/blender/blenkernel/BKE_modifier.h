@@ -305,7 +305,7 @@ int			  modifier_sameTopology(ModifierData *md);
 int           modifier_isEnabled(struct Scene *scene, struct ModifierData *md, int required_mode);
 void          modifier_setError(struct ModifierData *md, const char *format, ...)
 #ifdef __GNUC__
-__attribute__ ((format (printf, 2, 3)));
+__attribute__ ((format (printf, 2, 3)))
 #endif
 ;
 

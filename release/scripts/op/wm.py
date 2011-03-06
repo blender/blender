@@ -19,10 +19,8 @@
 # <pep8 compliant>
 
 import bpy
-
-from bpy.props import *
+from bpy.props import StringProperty, BoolProperty, IntProperty, FloatProperty
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
-
 
 class MESH_OT_delete_edgeloop(bpy.types.Operator):
     '''Delete an edge loop by merging the faces on each side to a single face loop'''
@@ -700,9 +698,6 @@ class WM_OT_doc_edit(bpy.types.Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
-
-
-from bpy.props import *
 
 
 rna_path = StringProperty(name="Property Edit",

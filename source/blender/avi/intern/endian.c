@@ -31,6 +31,11 @@
  *
  */
 
+/** \file blender/avi/intern/endian.c
+ *  \ingroup avi
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h> 

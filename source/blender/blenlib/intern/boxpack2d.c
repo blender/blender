@@ -21,6 +21,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/boxpack2d.c
+ *  \ingroup bli
+ */
+
+
 #include <stdlib.h> /* for qsort */
 
 #include "MEM_guardedalloc.h"

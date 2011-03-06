@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
+/** \file blender/python/generic/bpy_internal_import.c
+ *  \ingroup pygen
+ */
+
+
 #include <Python.h>
 #include <stddef.h>
 

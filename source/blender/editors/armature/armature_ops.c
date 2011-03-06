@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/armature/armature_ops.c
+ *  \ingroup edarmature
+ */
+
+
 #include <stdlib.h>
 #include <math.h>
 

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/sss.c
+ *  \ingroup render
+ */
+
+
 /* Possible Improvements:
    - add fresnel terms
    - adapt Rd table to scale, now with small scale there are a lot of misses?

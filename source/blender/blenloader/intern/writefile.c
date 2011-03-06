@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenloader/intern/writefile.c
+ *  \ingroup blenloader
+ */
+
+
 /*
 FILEFORMAT: IFF-style structure  (but not IFF compatible!)
 

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_view3d/drawarmature.c
+ *  \ingroup spview3d
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -1889,7 +1894,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 			float vec[3];
 
 			unsigned char col[4];
-			float col_f[3];
+			float col_f[4];
 			glGetFloatv(GL_CURRENT_COLOR, col_f); /* incase this is not set below */
 			rgb_float_to_byte(col_f, col);
 			col[3]= 255;

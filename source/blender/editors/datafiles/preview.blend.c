@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/preview.blend.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <preview_blend> */
 
 int datatoc_preview_blend_size= 586384;

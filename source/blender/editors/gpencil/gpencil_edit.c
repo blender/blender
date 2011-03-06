@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/gpencil/gpencil_edit.c
+ *  \ingroup edgpencil
+ */
+
  
 
 #include <stdio.h>

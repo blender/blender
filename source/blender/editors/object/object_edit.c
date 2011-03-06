@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/object/object_edit.c
+ *  \ingroup edobj
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -1792,7 +1797,7 @@ static void auto_timeoffs(Scene *scene, View3D *v3d)
 	int tot=0, a;
 	short offset=25;
 
-	if(BASACT==0 || v3d==NULL) return;
+	if(BASACT==NULL || v3d==NULL) return;
 // XXX	if(button(&offset, 0, 1000,"Total time")==0) return;
 
 	/* make array of all bases, xco yco (screen) */
@@ -1830,7 +1835,7 @@ static void ofs_timeoffs(Scene *scene, View3D *v3d)
 {
 	float offset=0.0f;
 
-	if(BASACT==0 || v3d==NULL) return;
+	if(BASACT==NULL || v3d==NULL) return;
 	
 // XXX	if(fbutton(&offset, -10000.0f, 10000.0f, 10, 10, "Offset")==0) return;
 
@@ -1850,7 +1855,7 @@ static void rand_timeoffs(Scene *scene, View3D *v3d)
 	Base *base;
 	float rand_ofs=0.0f;
 
-	if(BASACT==0 || v3d==NULL) return;
+	if(BASACT==NULL || v3d==NULL) return;
 	
 // XXX	if(fbutton(&rand_ofs, 0.0f, 10000.0f, 10, 10, "Randomize")==0) return;
 	

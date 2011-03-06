@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/lighten.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <lighten_png> */
 
 int datatoc_lighten_png_size= 9437;

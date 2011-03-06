@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/fileops.c
+ *  \ingroup bli
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 

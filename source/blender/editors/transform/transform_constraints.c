@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/transform/transform_constraints.c
+ *  \ingroup edtransform
+ */
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

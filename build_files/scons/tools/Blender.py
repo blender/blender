@@ -624,31 +624,36 @@ def UnixPyBundle(target=None, source=None, env=None):
         print '\t"%s"' %            py_target
         print '\t(skipping copy)\n'
         return
-        
-    
+
     # Copied from source/creator/CMakeLists.txt, keep in sync.
     print 'Install python from:'
-    print '\t"%s" into...' %    py_src
-    print '\t"%s"\n' %            py_target
-    
-    run('rm -rf "%s"' % py_target)
-    try:    os.makedirs(os.path.dirname(py_target)) # the final part is copied
-    except:pass
-    
-    run('cp -R "%s" "%s"' % (py_src, os.path.dirname(py_target)))
-    run('rm -rf "%s/distutils"' % py_target)
-    run('rm -rf "%s/lib2to3"' % py_target)
-    run('rm -rf "%s/idlelib"' % py_target)
-    run('rm -rf "%s/tkinter"' % py_target)
-    run('rm -rf "%s/config"' % py_target)
+    print '\t"%s" into...' % py_src
+    print '\t"%s"\n' % py_target
 
-    run('rm -rf "%s/site-packages"' % py_target)
-    run('mkdir "%s/site-packages"' % py_target)    # python needs it.'
+    run("rm -rf '%s'" % py_target)
+    try:
+        os.makedirs(os.path.dirname(py_target)) # the final part is copied
+    except:
+        pass
 
-    run('rm -f "%s/lib-dynload/_tkinter.so"' % py_target)
-    run('find "%s" -name "test" -prune -exec rm -rf {} \;' % py_target)
-    run('find "%s" -name "*.py?" -exec rm -rf {} \;' % py_target)
-    run('find "%s" -name "*.so"-exec strip -s {} \;' % py_target)
+    run("cp -R '%s' '%s'" % (py_src, os.path.dirname(py_target)))
+    run("rm -rf '%s/distutils'" % py_target)
+    run("rm -rf '%s/lib2to3'" % py_target)
+    run("rm -rf '%s/idlelib'" % py_target)
+    run("rm -rf '%s/tkinter'" % py_target)
+    run("rm -rf '%s/config'" % py_target)
+
+    run("rm -rf '%s/site-packages'" % py_target)
+    run("mkdir '%s/site-packages'" % py_target)    # python needs it.'
+
+    run("rm -f '%s/lib-dynload/_tkinter.so'" % py_target)
+    run("find '%s' -type d -name 'test' -prune -exec rm -rf {} ';'" % py_target)
+    run("find '%s' -type d -name 'config-*' -prune -exec rm -rf {} ';'" % py_target)
+    run("find '%s' -type d -name 'turtledemo' -prune -exec rm -rf {} ';'" % py_target)
+    run("find '%s' -type d -name '__pycache__' -exec rm -rf {} ';'" % py_target)
+    run("find '%s' -name '*.py[co]' -exec rm -rf {} ';'" % py_target)
+    run("find '%s' -name '*.so' -exec strip -s {} ';'" % py_target)
+    
 
 #### END ACTION STUFF #########
 
@@ -674,6 +679,8 @@ def bsc(env, target, source):
     os.system('del '+bscpathtmp)
 
 class BlenderEnvironment(SConsEnvironment):
+
+    PyBundleActionAdded = False
 
     def BlenderRes(self=None, libname=None, source=None, libtype=['core'], priority=[100]):
         global libs
@@ -818,12 +825,14 @@ class BlenderEnvironment(SConsEnvironment):
             lenv.AddPostAction(prog,Action(AppIt,strfunction=my_appit_print))
         elif os.sep == '/' and lenv['OURPLATFORM'] != 'linuxcross': # any unix (except cross-compilation)
             if lenv['WITH_BF_PYTHON']:
-                if not lenv['WITHOUT_BF_INSTALL'] and not lenv['WITHOUT_BF_PYTHON_INSTALL']:
+                if not lenv['WITHOUT_BF_INSTALL'] and not lenv['WITHOUT_BF_PYTHON_INSTALL'] and not BlenderEnvironment.PyBundleActionAdded:
                     lenv.AddPostAction(prog,Action(UnixPyBundle,strfunction=my_unixpybundle_print))
+                    BlenderEnvironment.PyBundleActionAdded = True
         elif lenv['OURPLATFORM'].startswith('win') or lenv['OURPLATFORM'] == 'linuxcross': # windows or cross-compilation
             if lenv['WITH_BF_PYTHON']:
-                if not lenv['WITHOUT_BF_PYTHON_INSTALL']:
+                if not lenv['WITHOUT_BF_PYTHON_INSTALL'] and not BlenderEnvironment.PyBundleActionAdded:
                     lenv.AddPostAction(prog,Action(WinPyBundle,strfunction=my_winpybundle_print))
+                    BlenderEnvironment.PyBundleActionAdded = True
         return prog
 
     def Glob(lenv, pattern):

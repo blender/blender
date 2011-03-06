@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/subtract.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <subtract_png> */
 
 int datatoc_subtract_png_size= 10173;

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/render/render_intern.h
+ *  \ingroup edrend
+ */
+
+
 #ifndef RENDER_INTERN_H
 #define RENDER_INTERN_H
 

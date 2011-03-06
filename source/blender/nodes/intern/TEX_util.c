@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/nodes/intern/TEX_util.c
+ *  \ingroup nodes
+ */
+
  
 /*
 	HOW TEXTURE NODES WORK

@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/lattice.c
+ *  \ingroup bke
+ */
+
+
 
 #include <stdio.h>
 #include <string.h>

@@ -30,6 +30,11 @@
  * Code that uses exotic character maps is present but commented out.
  */
 
+/** \file blender/blenlib/intern/freetypefont.c
+ *  \ingroup bli
+ */
+
+
 #ifdef WIN32
 #pragma warning (disable:4244)
 #endif

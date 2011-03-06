@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/animation/anim_draw.c
+ *  \ingroup edanimation
+ */
+
 #include "BLO_sys_types.h"
 
 #include "DNA_anim_types.h"
@@ -465,7 +470,7 @@ void ANIM_unit_mapping_apply_fcurve (Scene *scene, ID *id, FCurve *fcu, short fl
 	// TODO: only sel?
 	if (fcu->fpt) {
 		FPoint *fpt;
-		int i;
+		unsigned int i;
 		
 		for (i=0, fpt=fcu->fpt; i < fcu->totvert; i++, fpt++) {
 			/* apply unit mapping */

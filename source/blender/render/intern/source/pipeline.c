@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/pipeline.c
+ *  \ingroup render
+ */
+
+
 #include <math.h>
 #include <limits.h>
 #include <string.h>

@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/intern/bpy_driver.c
+ *  \ingroup pythonintern
+ */
+
 /* ****************************************** */
 /* Drivers - PyExpression Evaluation */
 

@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/interface/interface_widgets.c
+ *  \ingroup edinterface
+ */
+
+
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
@@ -750,7 +755,7 @@ static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), rcti *rect)
 {
 	int w, h, size;
 
-	if(icon==ICON_NULL)
+	if(icon==ICON_NONE)
 		return;
 
 	w = rect->xmax - rect->xmin;

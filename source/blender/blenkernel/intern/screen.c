@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/screen.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 #include <math.h>

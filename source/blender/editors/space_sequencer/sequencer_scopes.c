@@ -23,6 +23,11 @@
  *
  */
 
+/** \file blender/editors/space_sequencer/sequencer_scopes.c
+ *  \ingroup spseq
+ */
+
+
 #include <math.h>
 #include <string.h>
 
@@ -466,7 +471,8 @@ static struct ImBuf *make_histogram_view_from_ibuf_byte(
 	struct ImBuf * ibuf)
 {
 	struct ImBuf * rval = IMB_allocImBuf(515, 128, 32, IB_rect);
-	int n,c,x,y;
+	int c,x,y;
+	unsigned int n;
 	unsigned char* src = (unsigned char*) ibuf->rect;
 
 	unsigned int bins[3][256];

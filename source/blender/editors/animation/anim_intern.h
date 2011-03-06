@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/animation/anim_intern.h
+ *  \ingroup edanimation
+ */
+
  
 #ifndef ANIM_INTERN_H
 #define ANIM_INTERN_H

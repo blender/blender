@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_controller.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "WM_types.h"
@@ -39,7 +44,7 @@ EnumPropertyItem controller_type_items[] ={
 	{CONT_LOGIC_XOR, "LOGIC_XOR", 0, "Xor", "Logic Xor"},
 	{CONT_LOGIC_XNOR, "LOGIC_XNOR", 0, "Xnor", "Logic Xnor"},
 	{CONT_EXPRESSION, "EXPRESSION", 0, "Expression", ""},
-	{CONT_PYTHON, "PYTHON", 0, "Python Script", ""},
+	{CONT_PYTHON, "PYTHON", 0, "Python", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME

@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/collada/ImageExporter.cpp
+ *  \ingroup collada
+ */
+
+
 #include "COLLADABUURI.h"
 #include "COLLADASWImage.h"
 

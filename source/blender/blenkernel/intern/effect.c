@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/effect.c
+ *  \ingroup bke
+ */
+
+
 #include <stddef.h>
 #include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 

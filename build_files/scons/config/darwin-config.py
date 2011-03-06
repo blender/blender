@@ -86,7 +86,7 @@ BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore 
 #bz2 is a standard osx dynlib
 
 # python 3.1 uses precompiled libraries in bf svn /lib by default
-BF_PYTHON_VERSION = '3.1'
+BF_PYTHON_VERSION = '3.2'
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 # BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'

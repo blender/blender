@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/interface/interface_panel.c
+ *  \ingroup edinterface
+ */
+
+
 /* a full doc with API notes can be found in bf-blender/trunk/blender/doc/guides/interface_API.txt */
  
 #include <math.h>

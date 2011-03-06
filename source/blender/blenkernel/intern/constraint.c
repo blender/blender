@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/constraint.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h> 
 #include <stddef.h>
 #include <string.h>
@@ -3069,7 +3074,7 @@ static void rbj_flush_tars (bConstraint *con, ListBase *list, short nocopy)
 static bConstraintTypeInfo CTI_RIGIDBODYJOINT = {
 	CONSTRAINT_TYPE_RIGIDBODYJOINT, /* type */
 	sizeof(bRigidBodyJointConstraint), /* size */
-	"RigidBody Joint", /* name */
+	"Rigid Body Joint", /* name */
 	"bRigidBodyJointConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */

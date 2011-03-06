@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_image.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 
@@ -136,7 +141,7 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 	}
 	*/
 	return stackbuf;
-};
+}
 
 static CompBuf *node_composit_get_zimage(bNode *node, RenderData *rd)
 {
@@ -153,7 +158,7 @@ static CompBuf *node_composit_get_zimage(bNode *node, RenderData *rd)
 		}
 	}
 	return zbuf;
-};
+}
 
 /* check if layer is available, returns pass buffer */
 static CompBuf *compbuf_multilayer_get(RenderData *rd, RenderLayer *rl, Image *ima, ImageUser *iuser, int passtype)
@@ -175,7 +180,7 @@ static CompBuf *compbuf_multilayer_get(RenderData *rd, RenderLayer *rl, Image *i
 		return cbuf;
 	}
 	return NULL;
-};
+}
 
 static void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, Image *ima, ImageUser *iuser)
 {
@@ -212,7 +217,7 @@ static void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack *
 		out[RRES_OUT_EMIT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_EMIT);
 	if(out[RRES_OUT_ENV]->hasoutput)
 		out[RRES_OUT_ENV]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_ENVIRONMENT);
-};
+}
 
 
 static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
@@ -285,7 +290,7 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 			generate_preview(data, node, stackbuf);
 		}
 	}	
-};
+}
 
 static void node_composit_init_image(bNode* node)
 {
@@ -337,7 +342,7 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
 	  return buf;
    }
    return NULL;
-};
+}
 
 static void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out, int rectx, int recty)
 {
@@ -374,7 +379,7 @@ static void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStac
 	   out[RRES_OUT_EMIT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_EMIT);
    if(out[RRES_OUT_ENV]->hasoutput)
 	   out[RRES_OUT_ENV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_ENVIRONMENT);
-};
+}
 
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
@@ -423,7 +428,7 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNU
 
    if(re)
 	   RE_ReleaseResult(re);
-};
+}
 
 
 void register_node_type_cmp_rlayers(ListBase *lb)

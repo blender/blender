@@ -23,6 +23,11 @@
 
 # <pep8 compliant>
 
+"""
+Exampel Win32 usage:
+ c:\Python32\python.exe c:\blender_dev\blender\build_files\cmake\cmake_qtcreator_project.py c:\blender_dev\cmake_build
+"""
+
 import os
 from os.path import join, dirname, normpath, abspath, splitext, relpath, exists
 
@@ -49,7 +54,7 @@ def source_list(path, filename_check=None):
 # extension checking
 def is_cmake(filename):
     ext = splitext(filename)[1]
-    return (ext == ".cmake") or (filename == "CMakeLists.txt")
+    return (ext == ".cmake") or (filename.endswith("CMakeLists.txt"))
 
 
 def is_c_header(filename):
@@ -73,7 +78,7 @@ def is_svn_file(filename):
 
 
 def is_project_file(filename):
-    return (is_c_any(filename) or is_cmake(filename)) and is_svn_file(filename)
+    return (is_c_any(filename) or is_cmake(filename)) # and is_svn_file(filename)
 
 
 def cmake_advanced_info():
@@ -81,7 +86,12 @@ def cmake_advanced_info():
     """
 
     def create_eclipse_project(cmake_dir):
-        cmd = 'cmake %r -G"Eclipse CDT4 - Unix Makefiles"' % cmake_dir
+        import sys
+        if sys.platform == "win32":
+            cmd = 'cmake %r -G"Eclipse CDT4 - MinGW Makefiles"' % cmake_dir
+        else:
+            cmd = 'cmake %r -G"Eclipse CDT4 - Unix Makefiles"' % cmake_dir
+
         os.system(cmd)
 
     includes = []
@@ -92,13 +102,13 @@ def cmake_advanced_info():
 
     cmake_dir = sys.argv[-1]
 
-    if not os.path.join(cmake_dir, "CMakeCache.txt"):
+    if not os.path.exists(os.path.join(cmake_dir, "CMakeCache.txt")):
         cmake_dir = os.getcwd()
-    if not os.path.join(cmake_dir, "CMakeCache.txt"):
+    if not os.path.exists(os.path.join(cmake_dir, "CMakeCache.txt")):
         print("CMakeCache.txt not found in %r or %r\n    Pass CMake build dir as an argument, or run from that dir, abording" % (cmake_dir, os.getcwd()))
         sys.exit(1)
 
-    # create_eclipse_project(cmake_dir)
+    create_eclipse_project(cmake_dir)
 
     from xml.dom.minidom import parse
     tree = parse(os.path.join(cmake_dir, ".cproject"))
@@ -170,6 +180,11 @@ def main():
             f.write("// ADD PREDEFINED MACROS HERE!\n")
     else:
         includes, defines = cmake_advanced_info()
+
+        # for some reason it doesnt give all internal includes
+        includes = list(set(includes) | set(dirname(f) for f in files_rel if is_c_header(f)))
+        includes.sort()
+
 
         PROJECT_NAME = "Blender"
         f = open(join(base, "%s.files" % PROJECT_NAME), 'w')

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/strand.h
+ *  \ingroup render
+ */
+
+
 #ifndef STRAND_H
 #define STRAND_H 
 

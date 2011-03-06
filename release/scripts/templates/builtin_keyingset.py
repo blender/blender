@@ -1,5 +1,4 @@
 import bpy
-from keyingsets_utils import *
 
 
 class BUILTIN_KSI_hello(bpy.types.KeyingSetInfo):
@@ -7,7 +6,7 @@ class BUILTIN_KSI_hello(bpy.types.KeyingSetInfo):
 
     # poll - test for whether Keying Set can be used at all
     def poll(ksi, context):
-        return (context.active_object) or (context.selected_objects)
+        return context.active_object or context.selected_objects
 
     # iterator - go over all relevant data, calling generate()
     def iterator(ksi, context, ks):

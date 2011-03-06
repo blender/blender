@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_sequencer/sequencer_intern.h
+ *  \ingroup spseq
+ */
+
 #ifndef ED_SEQUENCER_INTERN_H
 #define ED_SEQUENCER_INTERN_H
 

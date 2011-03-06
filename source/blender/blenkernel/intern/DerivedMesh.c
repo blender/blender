@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/DerivedMesh.c
+ *  \ingroup bke
+ */
+
+
 #include <string.h>
 
 

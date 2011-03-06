@@ -195,9 +195,6 @@ class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
     _context_path = "scene"
     _property_type = bpy.types.Scene
 
-
-from bpy.props import *
-
 #  XXX, move operator to op/ dir
 
 

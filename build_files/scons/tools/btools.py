@@ -72,7 +72,7 @@ def print_arguments(args, bc):
 
 def validate_arguments(args, bc):
     opts_list = [
-            'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL',
+            'WITH_BF_PYTHON', 'WITH_BF_PYTHON_SAFETY', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL',
             'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
             'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
             'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH', 'WITH_BF_STATICLIBSAMPLERATE', 'BF_LIBSAMPLERATE_LIB_STATIC',
@@ -211,6 +211,7 @@ def read_opts(env, cfg, args):
     localopts.AddVariables(
         ('LCGDIR', 'location of cvs lib dir'),
         (BoolVariable('WITH_BF_PYTHON', 'Compile with python', True)),
+        (BoolVariable('WITH_BF_PYTHON_SAFETY', 'Internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency)', False)),
         ('BF_PYTHON', 'base path for python', ''),
         ('BF_PYTHON_VERSION', 'Python version to use', ''),
         ('BF_PYTHON_INC', 'include path for Python headers', ''),

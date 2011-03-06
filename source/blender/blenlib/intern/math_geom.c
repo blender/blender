@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
+/** \file blender/blenlib/intern/math_geom.c
+ *  \ingroup bli
+ */
+
+
 
 #include "MEM_guardedalloc.h"
 

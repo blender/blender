@@ -29,6 +29,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/filter.c
+ *  \ingroup imbuf
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"

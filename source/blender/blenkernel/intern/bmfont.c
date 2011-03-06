@@ -32,6 +32,11 @@
  *
  */
 
+/** \file blender/blenkernel/intern/bmfont.c
+ *  \ingroup bke
+ */
+
+
 /**
  * Two external functions:
  *

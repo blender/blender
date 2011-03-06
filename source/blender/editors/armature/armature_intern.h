@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/armature/armature_intern.h
+ *  \ingroup edarmature
+ */
+
 #ifndef ED_ARMATURE_INTERN_H
 #define ED_ARMATURE_INTERN_H
 

@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/collada/ArmatureExporter.cpp
+ *  \ingroup collada
+ */
+
+
 #include "COLLADASWBaseInputElement.h"
 #include "COLLADASWInstanceController.h"
 #include "COLLADASWPrimitves.h"

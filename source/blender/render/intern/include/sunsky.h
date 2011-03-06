@@ -19,6 +19,11 @@
  * 
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/render/intern/include/sunsky.h
+ *  \ingroup render
+ */
+
 /**
  * This feature comes from Preetham paper on "A Practical Analytic Model for Daylight" 
  * and example code from Brian Smits, another author of that paper in 

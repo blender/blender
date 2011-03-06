@@ -120,6 +120,20 @@ if(UNIX)
 		bf_intern_mikktspace
 	)
 
+	if(WITH_LZMA)
+		list(APPEND BLENDER_SORTED_LIBS extern_lzma)
+	endif()
+
+	if(WITH_MOD_DECIMATE)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_decimate)
+	endif()
+
+	if(WITH_MOD_BOOLEAN)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_bsp)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_bop)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_moto)
+	endif()
+
 	if(WITH_CODEC_QUICKTIME)
 		list(APPEND BLENDER_SORTED_LIBS bf_quicktime)
 	endif()

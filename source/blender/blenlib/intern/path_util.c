@@ -29,6 +29,11 @@
  * various string, file, list operations.
  */
 
+/** \file blender/blenlib/intern/path_util.c
+ *  \ingroup bli
+ */
+
+
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
@@ -53,8 +58,10 @@
 #if defined WIN32 && !defined _LIBC
 # include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
 #else
-# define _GNU_SOURCE
-# include <fnmatch.h>
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
+#  endif
+#  include <fnmatch.h>
 #endif
 
 #ifdef WIN32
@@ -199,7 +206,7 @@ void BLI_newname(char *name, int add)
 
 int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, const char defname[], char delim, char *name, short name_len)
 {
-	if(name == '\0') {
+	if(name[0] == '\0') {
 		BLI_strncpy(name, defname, name_len);
 	}
 
@@ -602,6 +609,7 @@ int BLI_path_frame(char *path, int frame, int digits)
 		p= tmp + ch_sta;
 		p += sprintf(p, format, frame);
 		memcpy(p, path + ch_end, strlen(path + ch_end));
+		*(tmp+strlen(path)) = '\0';
 #endif
 		strcpy(path, tmp);
 		return 1;
@@ -1184,7 +1192,7 @@ void BLI_setenv_if_new(const char *env, const char* val)
 
 void BLI_clean(char *path)
 {
-	if(path==0) return;
+	if(path==NULL) return;
 
 #ifdef WIN32
 	if(path && BLI_strnlen(path, 3) > 2) {
@@ -1197,7 +1205,7 @@ void BLI_clean(char *path)
 
 void BLI_char_switch(char *string, char from, char to) 
 {
-	if(string==0) return;
+	if(string==NULL) return;
 	while (*string != 0) {
 		if (*string == from) *string = to;
 		string++;

@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_text/text_intern.h
+ *  \ingroup sptext
+ */
+
 #ifndef ED_TEXT_INTERN_H
 #define ED_TEXT_INTERN_H
 

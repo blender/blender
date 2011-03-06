@@ -28,6 +28,11 @@
  * A general (pointer -> pointer) hash table ADT
  */
 
+/** \file blender/blenlib/intern/BLI_ghash.c
+ *  \ingroup bli
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"

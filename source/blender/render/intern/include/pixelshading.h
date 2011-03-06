@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/include/pixelshading.h
+ *  \ingroup render
+ */
+
+
 /* pixelshading.h
 *
 * These functions determine what actual color a pixel will have.

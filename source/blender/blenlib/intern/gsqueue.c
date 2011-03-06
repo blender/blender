@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenlib/intern/gsqueue.c
+ *  \ingroup bli
+ */
+
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

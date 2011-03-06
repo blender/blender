@@ -1622,6 +1622,7 @@ static void wm_paintcursor_test(bContext *C, wmEvent *event)
 	
 	if(wm->paintcursors.first) {
 		ARegion *ar= CTX_wm_region(C);
+		
 		if(ar)
 			wm_paintcursor_tag(C, wm->paintcursors.first, ar);
 		
@@ -1734,6 +1735,14 @@ void wm_event_do_handlers(bContext *C)
 			CTX_wm_area_set(C, area_event_inside(C, event->x, event->y));
 			CTX_wm_region_set(C, region_event_inside(C, event->x, event->y));
 			
+			/* XXX to solve, here screen handlers? */
+			if(event->type==MOUSEMOVE) {
+				/* state variables in screen, cursors, also used in wm_draw.c */
+				ED_screen_set_subwinactive(win, event);	
+				/* for regions having custom cursors */
+				wm_paintcursor_test(C, event);
+			}
+			
 			/* MVC demands to not draw in event handlers... but we need to leave it for ogl selecting etc */
 			wm_window_make_drawable(C, win);
 			
@@ -1754,15 +1763,7 @@ void wm_event_do_handlers(bContext *C)
 				ScrArea *sa;
 				ARegion *ar;
 				int doit= 0;
-				
-				/* XXX to solve, here screen handlers? */
-				if(event->type==MOUSEMOVE) {
-					/* state variables in screen, cursors */
-					ED_screen_set_subwinactive(win, event);	
-					/* for regions having custom cursors */
-					wm_paintcursor_test(C, event);
-				}
-
+	
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);

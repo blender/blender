@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/property.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>

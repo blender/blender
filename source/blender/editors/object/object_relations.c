@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/object/object_relations.c
+ *  \ingroup edobj
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -282,7 +287,7 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		uiLayout *layout= uiPupMenuLayout(pup);
 		
 		/* create operator menu item with relevant properties filled in */
-		uiItemFullO(layout, op->idname, op->type->name, ICON_NULL, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		uiItemFullO(layout, op->idname, op->type->name, ICON_NONE, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);
@@ -689,7 +694,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	Object *ob= ED_object_active_context(C);
-	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", ICON_NULL);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", ICON_NONE);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
@@ -1422,7 +1427,7 @@ static void new_id_matar(Material **matar, int totcol)
 	
 	for(a=0; a<totcol; a++) {
 		id= (ID *)matar[a];
-		if(id && id->lib==0) {
+		if(id && id->lib == NULL) {
 			if(id->newid) {
 				matar[a]= (Material *)id->newid;
 				id_us_plus(id->newid);
@@ -1576,7 +1581,7 @@ static void do_single_tex_user(Tex **from)
 	Tex *tex, *texn;
 	
 	tex= *from;
-	if(tex==0) return;
+	if(tex==NULL) return;
 	
 	if(tex->id.newid) {
 		*from= (Tex *)tex->id.newid;

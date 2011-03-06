@@ -1,3 +1,6 @@
+/** \file blender/imbuf/intern/cineon/dpxfile.h
+ *  \ingroup imbcineon
+ */
 /*
  *	 Cineon image file format library definitions.
  *	 Dpx file format structures.

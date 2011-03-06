@@ -28,6 +28,11 @@
  * A heap / priority queue ADT.
  */
 
+/** \file blender/blenlib/intern/BLI_heap.c
+ *  \ingroup bli
+ */
+
+
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

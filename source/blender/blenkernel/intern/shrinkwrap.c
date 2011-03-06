@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/shrinkwrap.c
+ *  \ingroup bke
+ */
+
 #include <string.h>
 #include <float.h>
 #include <math.h>
@@ -553,7 +558,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 		//Using vertexs positions/normals as if a subsurface was applied 
 		if(smd->subsurfLevels)
 		{
-			SubsurfModifierData ssmd= {{0}};
+			SubsurfModifierData ssmd= {{NULL}};
 			ssmd.subdivType	= ME_CC_SUBSURF;		//catmull clark
 			ssmd.levels		= smd->subsurfLevels;	//levels
 

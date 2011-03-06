@@ -26,6 +26,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/imagetexture.c
+ *  \ingroup render
+ */
+
+
 
 
 #include <stdio.h>

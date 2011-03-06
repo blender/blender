@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_graph/graph_select.c
+ *  \ingroup spgraph
+ */
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,7 +91,7 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 	int filter;
 	
 	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc test_cb, sel_cb;
 	
 	/* determine type-based settings */
@@ -724,7 +729,7 @@ static void graphkeys_select_leftright (bAnimContext *ac, short leftright, short
 	int filter;
 	
 	KeyframeEditFunc ok_cb, select_cb;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	Scene *scene= ac->scene;
 	
 	/* if select mode is replace, deselect all keyframes (and channels) first */
@@ -1294,9 +1299,7 @@ static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short selec
 static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
-	Scene *scene;
 	ARegion *ar;
-	View2D *v2d;
 	short selectmode;
 	int mval[2];
 	
@@ -1305,9 +1308,7 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 		return OPERATOR_CANCELLED;
 	
 	/* get useful pointers from animation context data */
-	scene= ac.scene;
 	ar= ac.ar;
-	v2d= &ar->v2d;
 	
 	/* get mouse coordinates (in region coordinates) */
 	mval[0]= (event->x - ar->winrct.xmin);

@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_nla.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -291,7 +296,7 @@ static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *repo
 	 * 	- only the nla_tracks list is needed there, which we aim to reverse engineer here...
 	 */
 	{
-		AnimData adt = {0};
+		AnimData adt = {NULL};
 		NlaTrack *nlt, *nlt_p;
 		
 		/* 'first' NLA track is found by going back up chain of given track's parents until we fall off */

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/SHD_nodes/SHD_dynamic.c
+ *  \ingroup shdnodes
+ */
+
+
 /* TODO, support python3.x */
 #undef WITH_PYTHON 
 

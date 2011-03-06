@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/transform/transform.c
+ *  \ingroup edtransform
+ */
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -1235,6 +1240,15 @@ static void drawArc(float size, float angle_start, float angle_end, int segments
 	glEnd();
 }
 
+static int helpline_poll(bContext *C)
+{
+	ARegion *ar= CTX_wm_region(C);
+	
+	if(ar && ar->regiontype==RGN_TYPE_WINDOW)
+		return 1;
+	return 0;
+}
+
 static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 {
 	TransInfo *t = (TransInfo*)customdata;
@@ -1549,7 +1563,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		t->draw_handle_apply = ED_region_draw_cb_activate(t->ar->type, drawTransformApply, t, REGION_DRAW_PRE_VIEW);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
 		//t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
-		t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), NULL, drawHelpline, t);
+		t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), helpline_poll, drawHelpline, t);
 	}
 	else if(t->spacetype == SPACE_IMAGE) {
 		unit_m3(t->spacemtx);
@@ -1668,6 +1682,16 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		break;
 	case TFM_TIME_SCALE:
 		initTimeScale(t);
+		break;
+	case TFM_TIME_DUPLICATE:
+		/* same as TFM_TIME_EXTEND, but we need the mode info for later 
+		 * so that duplicate-culling will work properly
+		 */
+		if ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)
+			initTranslation(t);
+		else
+			initTimeTranslate(t);
+		t->mode = mode;
 		break;
 	case TFM_TIME_EXTEND:
 		/* now that transdata has been made, do like for TFM_TIME_TRANSLATE (for most Animation
@@ -1974,7 +1998,7 @@ static void constraintTransLim(TransInfo *UNUSED(t), TransData *td)
 {
 	if (td->con) {
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_LOCLIMIT);
-		bConstraintOb cob= {0};
+		bConstraintOb cob= {NULL};
 		bConstraint *con;
 		
 		/* Make a temporary bConstraintOb for using these limit constraints
@@ -2130,7 +2154,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 {
 	if (td->con && td->ext) {
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_SIZELIMIT);
-		bConstraintOb cob= {0};
+		bConstraintOb cob= {NULL};
 		bConstraint *con;
 		
 		/* Make a temporary bConstraintOb for using these limit constraints
@@ -2264,10 +2288,10 @@ int handleEventWarp(TransInfo *t, wmEvent *event)
 	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
 	{
 		// Use customData pointer to signal warp direction
-		if	(t->customData == 0)
+		if	(t->customData == NULL)
 			t->customData = (void*)1;
 		else
-			t->customData = 0;
+			t->customData = NULL;
 		
 		status = 1;
 	}
@@ -2405,7 +2429,7 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
 	{
 		// Use customData pointer to signal Shear direction
-		if	(t->customData == 0)
+		if	(t->customData == NULL)
 		{
 			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 			t->customData = (void*)1;
@@ -2413,7 +2437,7 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 		else
 		{
 			initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
-			t->customData = 0;
+			t->customData = NULL;
 		}
 		
 		status = 1;
@@ -2457,7 +2481,7 @@ int Shear(TransInfo *t, short UNUSED(mval[2]))
 	unit_m3(smat);
 	
 	// Custom data signals shear direction
-	if (t->customData == 0)
+	if (t->customData == NULL)
 		smat[1][0] = value;
 	else
 		smat[0][1] = value;

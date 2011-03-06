@@ -27,6 +27,11 @@
  *
  */
 
+/** \file blender/python/generic/mathutils_Matrix.h
+ *  \ingroup pygen
+ */
+
+
 #ifndef MATHUTILS_MATRIX_H
 #define MATHUTILS_MATRIX_H
 

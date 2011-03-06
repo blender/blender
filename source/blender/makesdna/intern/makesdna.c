@@ -617,7 +617,7 @@ int convert_include(char *filename)
 										sp[0]= type;
 										sp[1]= name;
 
-										if ((debugSDNA>1) && (names[name] != 0 )) printf("%s |", names[name]);
+										if ((debugSDNA>1) && (names[name] != NULL)) printf("%s |", names[name]);
 
 										structpoin[1]++;
 										sp+= 2;
@@ -632,7 +632,7 @@ int convert_include(char *filename)
 
 									sp[0]= type;
 									sp[1]= name;
-									if ((debugSDNA > 1) && (names[name] != 0 )) printf("%s ||", names[name]);
+									if ((debugSDNA > 1) && (names[name] != NULL)) printf("%s ||", names[name]);
 
 									structpoin[1]++;
 									sp+= 2;
@@ -662,7 +662,7 @@ int convert_include(char *filename)
 int arraysize(char *astr, int len)
 {
 	int a, mul=1;
-	char str[100], *cp=0;
+	char str[100], *cp=NULL;
 
 	memcpy(str, astr, len+1);
 	

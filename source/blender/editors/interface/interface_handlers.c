@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/interface/interface_handlers.c
+ *  \ingroup edinterface
+ */
+
+
 #include <float.h>
 #include <limits.h>
 #include <math.h>
@@ -32,6 +37,10 @@
 #include <assert.h>
 
 #include "MEM_guardedalloc.h"
+
+#include "DNA_sensor_types.h"
+#include "DNA_controller_types.h"
+#include "DNA_actuator_types.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -63,6 +72,10 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+/* proto */
+static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to);
+static void ui_add_link(bContext *C, uiBut *from, uiBut *to);
 
 /***************** structs and defines ****************/
 
@@ -112,7 +125,6 @@ typedef struct uiHandleButtonData {
 	float vec[3], origvec[3];
 	int togdual, togonly;
 	ColorBand *coba;
-	CurveMapping *cumap;
 
 	/* tooltip */
 	ARegion *tooltip;
@@ -744,7 +756,72 @@ static uiLinkLine *ui_is_a_link(uiBut *from, uiBut *to)
 	return NULL;
 }
 
-static void ui_add_link(uiBut *from, uiBut *to)
+/* XXX BAD BAD HACK, fixme later **************** */
+/* Try to add an AND Controller between the sensor and the actuator logic bricks and to connect them all */
+static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to)
+{
+	Object *ob= NULL;
+	bSensor *sens_iter;
+	bActuator *act_to, *act_iter;
+	bController *cont;
+	bController ***sens_from_links;
+	uiBut *tmp_but;
+
+	uiLink *link= from->link;
+
+	if(link->ppoin)
+		sens_from_links= (bController ***)(link->ppoin);
+	else return;
+
+	act_to = (bActuator *)(to->poin);
+
+	/* (1) get the object */
+	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
+		for (sens_iter= ob_iter->sensors.first; sens_iter; sens_iter= sens_iter->next)
+		{
+			if (&(sens_iter->links) == sens_from_links) {
+				ob= ob_iter;
+				break;
+			}
+		}
+		if (ob) break;
+	} CTX_DATA_END;
+
+	if(!ob) return;
+
+	/* (2) check if the sensor and the actuator are from the same object */
+	for (act_iter= ob->actuators.first; act_iter; act_iter= (bActuator *)act_iter->next) {
+		if (act_iter == act_to)
+			break;
+	}
+
+	// only works if the sensor and the actuator are from the same object
+	if(!act_iter) return;
+
+	/* (3) add a new controller */
+	if (WM_operator_name_call(C, "LOGIC_OT_controller_add", WM_OP_EXEC_DEFAULT, NULL) & OPERATOR_FINISHED)
+	{
+		cont = (bController *)ob->controllers.last;
+
+		/* (4) link the sensor->controller->actuator */
+		tmp_but = MEM_callocN(sizeof(uiBut), "uiBut");
+		uiSetButLink(tmp_but, (void **)&cont, (void ***)&(cont->links), &(cont->totlinks), from->link->tocode, (int)to->hardmin);
+		tmp_but->hardmin= from->link->tocode;
+		tmp_but->poin= (char *)cont;
+
+		tmp_but->type= INLINK;
+		ui_add_link(C, from, tmp_but);
+
+		tmp_but->type= LINK;
+		ui_add_link(C, tmp_but, to);
+
+		/* (5) garbage collection */
+		MEM_freeN(tmp_but->link);
+		MEM_freeN(tmp_but);
+	}
+}
+
+static void ui_add_link(bContext *C, uiBut *from, uiBut *to)
 {
 	/* in 'from' we have to add a link to 'to' */
 	uiLink *link;
@@ -763,6 +840,7 @@ static void ui_add_link(uiBut *from, uiBut *to)
 	}
 	else if (from->type==LINK && to->type==INLINK) {
 		if( from->link->tocode != (int)to->hardmin ) {
+			ui_add_smart_controller(C, from, to);
 			return;
 		}
 	}
@@ -808,8 +886,8 @@ static void ui_apply_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data)
 		if (!ELEM(bt->type, LINK, INLINK) || !ELEM(but->type, LINK, INLINK))
 			return;
 		
-		if(but->type==LINK) ui_add_link(but, bt);
-		else ui_add_link(bt, but);
+		if(but->type==LINK) ui_add_link(C, but, bt);
+		else ui_add_link(C, bt, but);
 
 		ui_apply_but_func(C, but);
 		data->retval= but->retval;
@@ -1225,12 +1303,12 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	}
 	/* mouse inside the widget */
 	else if (x >= startx) {
-		float aspect= sqrt(but->block->aspect);
+		float aspect= (but->block->aspect);
 		
 		but->pos= strlen(origstr)-but->ofs;
 		
 		/* XXX does not take zoom level into account */
-		while (aspect*startx + aspect*BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
+		while (startx + aspect*BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
 			if (but->pos <= 0) break;
 			but->pos--;
 			origstr[but->pos+but->ofs] = 0;
@@ -1482,7 +1560,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 {
 	char buf[UI_MAX_DRAW_STR]={0};
 	char *str, *p, *pbuf;
-	int len, x, y, i, changed= 0;
+	int len, x, i, changed= 0;
 
 	str= data->str;
 	len= strlen(str);
@@ -1493,6 +1571,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 		p = pbuf= WM_clipboard_text_get(0);
 
 		if(p && p[0]) {
+			unsigned int y;
 			i= 0;
 			while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR-1) {
 				buf[i++]=*p;
@@ -1868,8 +1947,7 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 	float softrange, softmin, softmax;
 
 	if(but->type == BUT_CURVE) {
-		data->cumap= (CurveMapping*)but->poin;
-		but->editcumap= data->coba;
+		but->editcumap= (CurveMapping*)but->poin;
 	}
 	else if(but->type == BUT_COLORBAND) {
 		data->coba= (ColorBand*)but->poin;
@@ -3369,7 +3447,7 @@ static int ui_do_but_COLORBAND(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap, int mx, int my)
 {
-	CurveMapping *cumap= data->cumap;
+	CurveMapping *cumap= (CurveMapping*)but->poin;
 	CurveMap *cuma= cumap->cm+cumap->cur;
 	CurveMapPoint *cmp= cuma->curve;
 	float fx, fy, zoomx, zoomy, offsx, offsy;
@@ -3559,7 +3637,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 		}
 		else if(event->type==LEFTMOUSE && event->val!=KM_PRESS) {
 			if(data->dragsel != -1) {
-				CurveMapping *cumap= data->cumap;
+				CurveMapping *cumap= (CurveMapping*)but->poin;
 				CurveMap *cuma= cumap->cm+cumap->cur;
 				CurveMapPoint *cmp= cuma->curve;
 
@@ -4023,7 +4101,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 200, 20, style);
 	
-	uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT|UI_ITEM_R_IMMEDIATE, "", ICON_NULL);
+	uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT|UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 	
 	uiPopupBoundsBlock(block, 6, -50, 26);
 	uiEndBlock(C, block);
@@ -4062,7 +4140,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 200, 20, style);
 
-	uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT|UI_ITEM_R_IMMEDIATE, "", ICON_NULL);
+	uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT|UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 	
 	uiPopupBoundsBlock(block, 6, -50, 26);
 	uiEndBlock(C, block);
@@ -4118,7 +4196,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	else
 		name= "<needs_name>"; // XXX - should never happen.
 
-	pup= uiPupMenuBegin(C, name, ICON_NULL);
+	pup= uiPupMenuBegin(C, name, ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	
 	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
@@ -4135,24 +4213,24 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		/* Keyframes */
 		if(but->flag & UI_BUT_ANIMATED_KEY) {
 			if(length) {
-				uiItemBooleanO(layout, "Replace Keyframes", ICON_NULL, "ANIM_OT_keyframe_insert_button", "all", 1);
-				uiItemBooleanO(layout, "Replace Single Keyframe", ICON_NULL, "ANIM_OT_keyframe_insert_button", "all", 0);
-				uiItemBooleanO(layout, "Delete Keyframes", ICON_NULL, "ANIM_OT_keyframe_delete_button", "all", 1);
-				uiItemBooleanO(layout, "Delete Single Keyframe", ICON_NULL, "ANIM_OT_keyframe_delete_button", "all", 0);
+				uiItemBooleanO(layout, "Replace Keyframes", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
+				uiItemBooleanO(layout, "Replace Single Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Keyframes", ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 1);
+				uiItemBooleanO(layout, "Delete Single Keyframe", ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 0);
 			}
 			else {
-				uiItemBooleanO(layout, "Replace Keyframe", ICON_NULL, "ANIM_OT_keyframe_insert_button", "all", 0);
-				uiItemBooleanO(layout, "Delete Keyframe", ICON_NULL, "ANIM_OT_keyframe_delete_button", "all", 0);
+				uiItemBooleanO(layout, "Replace Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Keyframe", ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 0);
 			}
 		}
 		else if(but->flag & UI_BUT_DRIVEN);
 		else if(is_anim) {
 			if(length) {
-				uiItemBooleanO(layout, "Insert Keyframes", ICON_NULL, "ANIM_OT_keyframe_insert_button", "all", 1);
-				uiItemBooleanO(layout, "Insert Single Keyframe", ICON_NULL, "ANIM_OT_keyframe_insert_button", "all", 0);
+				uiItemBooleanO(layout, "Insert Keyframes", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
+				uiItemBooleanO(layout, "Insert Single Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
 			}
 			else
-				uiItemBooleanO(layout, "Insert Keyframe", ICON_NULL, "ANIM_OT_keyframe_insert_button", "all", 0);
+				uiItemBooleanO(layout, "Insert Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
 		}
 		
 		/* Drivers */
@@ -4160,29 +4238,29 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			uiItemS(layout);
 
 			if(length) {
-				uiItemBooleanO(layout, "Delete Drivers", ICON_NULL, "ANIM_OT_driver_button_remove", "all", 1);
-				uiItemBooleanO(layout, "Delete Single Driver", ICON_NULL, "ANIM_OT_driver_button_remove", "all", 0);
+				uiItemBooleanO(layout, "Delete Drivers", ICON_NONE, "ANIM_OT_driver_button_remove", "all", 1);
+				uiItemBooleanO(layout, "Delete Single Driver", ICON_NONE, "ANIM_OT_driver_button_remove", "all", 0);
 			}
 			else
-				uiItemBooleanO(layout, "Delete Driver", ICON_NULL, "ANIM_OT_driver_button_remove", "all", 0);
+				uiItemBooleanO(layout, "Delete Driver", ICON_NONE, "ANIM_OT_driver_button_remove", "all", 0);
 
-			uiItemO(layout, "Copy Driver", ICON_NULL, "ANIM_OT_copy_driver_button");
+			uiItemO(layout, "Copy Driver", ICON_NONE, "ANIM_OT_copy_driver_button");
 			if (ANIM_driver_can_paste())
-				uiItemO(layout, "Paste Driver", ICON_NULL, "ANIM_OT_paste_driver_button");
+				uiItemO(layout, "Paste Driver", ICON_NONE, "ANIM_OT_paste_driver_button");
 		}
 		else if(but->flag & (UI_BUT_ANIMATED_KEY|UI_BUT_ANIMATED));
 		else if(is_anim) {
 			uiItemS(layout);
 
 			if(length) {
-				uiItemBooleanO(layout, "Add Drivers", ICON_NULL, "ANIM_OT_driver_button_add", "all", 1);
-				uiItemBooleanO(layout, "Add Single Driver", ICON_NULL, "ANIM_OT_driver_button_add", "all", 0);
+				uiItemBooleanO(layout, "Add Drivers", ICON_NONE, "ANIM_OT_driver_button_add", "all", 1);
+				uiItemBooleanO(layout, "Add Single Driver", ICON_NONE, "ANIM_OT_driver_button_add", "all", 0);
 			}
 			else
-				uiItemBooleanO(layout, "Add Driver", ICON_NULL, "ANIM_OT_driver_button_add", "all", 0);
+				uiItemBooleanO(layout, "Add Driver", ICON_NONE, "ANIM_OT_driver_button_add", "all", 0);
 
 			if (ANIM_driver_can_paste())
-				uiItemO(layout, "Paste Driver", ICON_NULL, "ANIM_OT_paste_driver_button");
+				uiItemO(layout, "Paste Driver", ICON_NONE, "ANIM_OT_paste_driver_button");
 		}
 		
 		/* Keying Sets */
@@ -4190,13 +4268,13 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			uiItemS(layout);
 
 			if(length) {
-				uiItemBooleanO(layout, "Add All to Keying Set", ICON_NULL, "ANIM_OT_keyingset_button_add", "all", 1);
-				uiItemBooleanO(layout, "Add Single to Keying Set", ICON_NULL, "ANIM_OT_keyingset_button_add", "all", 0);
-				uiItemO(layout, "Remove from Keying Set", ICON_NULL, "ANIM_OT_keyingset_button_remove");
+				uiItemBooleanO(layout, "Add All to Keying Set", ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 1);
+				uiItemBooleanO(layout, "Add Single to Keying Set", ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 0);
+				uiItemO(layout, "Remove from Keying Set", ICON_NONE, "ANIM_OT_keyingset_button_remove");
 			}
 			else {
-				uiItemBooleanO(layout, "Add to Keying Set", ICON_NULL, "ANIM_OT_keyingset_button_add", "all", 0);
-				uiItemO(layout, "Remove from Keying Set", ICON_NULL, "ANIM_OT_keyingset_button_remove");
+				uiItemBooleanO(layout, "Add to Keying Set", ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 0);
+				uiItemO(layout, "Remove from Keying Set", ICON_NONE, "ANIM_OT_keyingset_button_remove");
 			}
 		}
 		
@@ -4208,14 +4286,14 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		//Paste Property Value
 		
 		if(length) {
-			uiItemBooleanO(layout, "Reset All to Default Values", ICON_NULL, "UI_OT_reset_default_button", "all", 1);
-			uiItemBooleanO(layout, "Reset Single to Default Value", ICON_NULL, "UI_OT_reset_default_button", "all", 0);
+			uiItemBooleanO(layout, "Reset All to Default Values", ICON_NONE, "UI_OT_reset_default_button", "all", 1);
+			uiItemBooleanO(layout, "Reset Single to Default Value", ICON_NONE, "UI_OT_reset_default_button", "all", 0);
 		}
 		else
-			uiItemO(layout, "Reset to Default Value", ICON_NULL, "UI_OT_reset_default_button");
+			uiItemO(layout, "Reset to Default Value", ICON_NONE, "UI_OT_reset_default_button");
 		
-		uiItemO(layout, "Copy Data Path", ICON_NULL, "UI_OT_copy_data_path_button");
-		uiItemO(layout, "Copy To Selected", ICON_NULL, "UI_OT_copy_to_selected_button");
+		uiItemO(layout, "Copy Data Path", ICON_NONE, "UI_OT_copy_data_path_button");
+		uiItemO(layout, "Copy To Selected", ICON_NONE, "UI_OT_copy_to_selected_button");
 
 		uiItemS(layout);
 	}
@@ -4264,14 +4342,14 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
 			RNA_string_set(&ptr_props, "doc_id", buf);
-			uiItemFullO(layout, "WM_OT_doc_view", "View Docs", ICON_NULL, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
+			uiItemFullO(layout, "WM_OT_doc_view", "View Docs", ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
 
 			/* XXX inactive option, not for public! */
 /*			WM_operator_properties_create(&ptr_props, "WM_OT_doc_edit");
 			RNA_string_set(&ptr_props, "doc_id", buf);
 			RNA_string_set(&ptr_props, "doc_new", RNA_property_description(but->rnaprop));
 
-			uiItemFullO(layout, "WM_OT_doc_edit", "Submit Description", ICON_NULL, ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
+			uiItemFullO(layout, "WM_OT_doc_edit", "Submit Description", ICON_NONE, ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
  */
 		}
 		else if (but->optype) {
@@ -4279,14 +4357,14 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
 			RNA_string_set(&ptr_props, "doc_id", buf);
-			uiItemFullO(layout, "WM_OT_doc_view", "View Docs", ICON_NULL, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
+			uiItemFullO(layout, "WM_OT_doc_view", "View Docs", ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
 
 
 			WM_operator_properties_create(&ptr_props, "WM_OT_doc_edit");
 			RNA_string_set(&ptr_props, "doc_id", buf);
 			RNA_string_set(&ptr_props, "doc_new", but->optype->description);
 
-			uiItemFullO(layout, "WM_OT_doc_edit", "Submit Description", ICON_NULL, ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
+			uiItemFullO(layout, "WM_OT_doc_edit", "Submit Description", ICON_NONE, ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
 		}
 	}
 
@@ -4381,7 +4459,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 				return WM_UI_HANDLER_BREAK;
 			}
 		} 
-		else if(but->pointype && but->poin==0) {
+		else if(but->pointype && but->poin==NULL) {
 			/* there's a pointer needed */
 			BKE_reportf(NULL, RPT_WARNING, "DoButton pointer error: %s", but->str);
 			button_activate_state(C, but, BUTTON_STATE_EXIT);

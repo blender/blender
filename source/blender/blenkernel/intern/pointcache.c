@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/pointcache.c
+ *  \ingroup bke
+ */
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -1393,7 +1398,7 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 	unsigned int i, error = 0;
 
 	if(pf == NULL)
-		return 0;
+		return NULL;
 
 	if(!ptcache_file_header_begin_read(pf))
 		error = 1;

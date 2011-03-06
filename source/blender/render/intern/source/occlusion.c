@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/occlusion.c
+ *  \ingroup render
+ */
+
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

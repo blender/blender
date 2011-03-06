@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/anim_sys.c
+ *  \ingroup bke
+ */
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
@@ -305,7 +310,7 @@ void action_move_fcurves_by_basepath (bAction *srcAct, bAction *dstAct, const ch
 	if ELEM3(NULL, srcAct, dstAct, basepath) {
 		if (G.f & G_DEBUG) {
 			printf("ERROR: action_partition_fcurves_by_basepath(%p, %p, %p) has insufficient info to work with\n",
-					srcAct, dstAct, basepath);
+					(void *)srcAct, (void *)dstAct, (void *)basepath);
 		}
 		return;
 	}

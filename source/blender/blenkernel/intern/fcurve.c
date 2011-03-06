@@ -26,6 +26,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/blenkernel/intern/fcurve.c
+ *  \ingroup bke
+ */
+
  
 
 #include <math.h>

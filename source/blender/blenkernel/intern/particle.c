@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/particle.c
+ *  \ingroup bke
+ */
+
+
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>

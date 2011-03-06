@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_output.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"
 
 /* **************** COMPOSITE ******************** */
@@ -66,7 +71,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 				if(in[1] && in[1]->hasinput)
 					tex_input_vec(target->nor, in[1], &params, cdata->thread);
 				else
-					target->nor = 0;
+					target->nor = NULL;
 			}
 		}
 	}
@@ -75,7 +80,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 static void unique_name(bNode *node)
 {
 	TexNodeOutput *tno = (TexNodeOutput *)node->storage;
-	char *new_name = 0;
+	char *new_name = NULL;
 	int new_len = 0;
 	int suffix;
 	bNode *i;

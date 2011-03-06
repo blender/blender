@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/dds/Stream.h
+ *  \ingroup imbdds
+ */
+
+
 /* simple memory stream functions with buffer overflow check */
 
 #ifndef _STREAM_H

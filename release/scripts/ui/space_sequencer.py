@@ -101,34 +101,6 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        """
-    uiBlock *block= uiBeginBlock(C, ar, "seq_viewmenu", UI_EMBOSSP);
-    short yco= 0, menuwidth=120;
-
-    if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
-        uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1,
-                 "Play Back Animation "
-                 "in all Sequence Areas|Alt A", 0, yco-=20,
-                 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-    }
-    else {
-        uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL,
-                 "Grease Pencil...", 0, yco-=20,
-                 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-        uiDefMenuSep(block);
-
-        uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1,
-                 "Play Back Animation "
-                 "in this window|Alt A", 0, yco-=20,
-                 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-    }
-    uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1,
-             "Play Back Animation in all "
-             "3D Views and Sequence Areas|Alt Shift A",
-             0, yco-=20,
-             menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-
-        """
         if (st.view_type == 'SEQUENCER') or (st.view_type == 'SEQUENCER_PREVIEW'):
             layout.operator("sequencer.view_all", text='View all Sequences')
         if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):

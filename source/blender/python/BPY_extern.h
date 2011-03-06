@@ -93,6 +93,8 @@ void	BPY_DECREF(void *pyob_ptr);	/* Py_DECREF() */
 int		BPY_context_member_get(struct bContext *C, const char *member, struct bContextDataResult *result);
 void	BPY_context_set(struct bContext *C);
 
+void	BPY_id_release(struct ID *id);
+
 #ifdef __cplusplus
 }				/* extern "C" */
 #endif

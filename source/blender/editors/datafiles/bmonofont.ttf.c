@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/bmonofont.ttf.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <bmonofont_ttf> */
 
 int datatoc_bmonofont_ttf_size= 309588;

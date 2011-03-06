@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/DLRB_tree.c
+ *  \ingroup bli
+ */
+
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"

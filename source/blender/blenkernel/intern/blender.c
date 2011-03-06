@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/blender.c
+ *  \ingroup bke
+ */
+
+
 #ifndef _WIN32 
 	#include <unistd.h> // for read close
 #else

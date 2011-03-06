@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_time/space_time.c
+ *  \ingroup sptime
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -264,7 +269,7 @@ static ActKeyColumn *time_cfra_find_ak (ActKeyColumn *ak, float cframe)
 /* helper for time_draw_keyframes() */
 static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 {
-	bDopeSheet ads= {0};
+	bDopeSheet ads= {NULL};
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
 	

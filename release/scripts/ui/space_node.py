@@ -156,9 +156,6 @@ class NODE_MT_node(bpy.types.Menu):
         layout.operator("node.preview_toggle")
         layout.operator("node.hide_socket_toggle")
 
-        # XXX
-        # layout.operator("node.rename")
-
         layout.separator()
 
         layout.operator("node.show_cyclic_dependencies")

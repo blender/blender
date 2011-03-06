@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/image_gen.c
+ *  \ingroup bke
+ */
+
+
 #include <math.h>
 #include <stdlib.h>
 

@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_info/textview.h
+ *  \ingroup spinfo
+ */
+
+
 typedef struct TextViewContext {
 	int lheight;
 	int sel_start, sel_end;

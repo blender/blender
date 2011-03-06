@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_sequencer/sequencer_draw.c
+ *  \ingroup spseq
+ */
+
+
 #include <string.h>
 #include <math.h>
 

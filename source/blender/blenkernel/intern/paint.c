@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/paint.c
+ *  \ingroup bke
+ */
+
+
 
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"

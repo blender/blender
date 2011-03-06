@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_mixRgb.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"
 
 /* **************** MIX RGB ******************** */

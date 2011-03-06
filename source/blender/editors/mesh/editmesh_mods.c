@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/mesh/editmesh_mods.c
+ *  \ingroup edmesh
+ */
+
+
 /*
 
 editmesh_mods.c, UI level access, no geometry changes 

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_file/file_draw.c
+ *  \ingroup spfile
+ */
+
+
 #include <math.h>
 #include <string.h>
 
@@ -384,7 +389,7 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 		uiButSetDragImage(but, file->path, get_file_icon(file), imb, scale);
 		
 		glDisable(GL_BLEND);
-		imb = 0;
+		imb = NULL;
 	}
 }
 

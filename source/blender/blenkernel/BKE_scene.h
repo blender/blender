@@ -78,7 +78,7 @@ int scene_camera_switch_update(struct Scene *scene);
 
 char *scene_find_marker_name(struct Scene *scene, int frame);
 char *scene_find_last_marker_name(struct Scene *scene, int frame);
-int scene_marker_tfm_translate(struct Scene *scene, int delta, int flag);
+int scene_marker_tfm_translate(struct Scene *scene, int delta, unsigned int flag);
 int scene_marker_tfm_extend(struct Scene *scene, int delta, int flag, int frame, char side);
 int scene_marker_tfm_scale(struct Scene *scene, float value, int flag);
 

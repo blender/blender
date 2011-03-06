@@ -28,6 +28,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/ipo.c
+ *  \ingroup bke
+ */
+
+
 /* NOTE:
  *
  * This file is no longer used to provide tools for the depreceated IPO system. Instead, it

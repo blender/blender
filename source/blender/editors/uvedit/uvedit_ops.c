@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/uvedit/uvedit_ops.c
+ *  \ingroup eduv
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -835,7 +840,8 @@ static void select_linked(Scene *scene, Image *ima, EditMesh *em, float limit[2]
 	MTFace *tf;
 	UvVertMap *vmap;
 	UvMapVert *vlist, *iterv, *startv;
-	int a, i, nverts, stacksize= 0, *stack;
+	int i, nverts, stacksize= 0, *stack;
+	unsigned int a;
 	char *flag;
 
 	EM_init_index_arrays(em, 0, 0, 1); /* we can use this too */
@@ -2022,7 +2028,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 		UvMapVert *start_vlist=NULL, *vlist_iter;
 		struct UvVertMap *vmap;
 		float limit[2];
-		int efa_index;
+		unsigned int efa_index;
 		//EditVert *eve; /* removed vert counting for now */ 
 		//int a;
 		
@@ -2929,7 +2935,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if(!(efa->h) && !(efa->f & SELECT)) {
 						/* All verts must be unselected for the face to be selected in the UV view */
-						if((efa->v1->f&SELECT)==0 && (efa->v2->f&SELECT)==0 && (efa->v3->f&SELECT)==0 && (efa->v4==0 || (efa->v4->f&SELECT)==0)) {
+						if((efa->v1->f&SELECT)==0 && (efa->v2->f&SELECT)==0 && (efa->v3->f&SELECT)==0 && (efa->v4==NULL || (efa->v4->f&SELECT)==0)) {
 							tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
 							tf->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;

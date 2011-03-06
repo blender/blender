@@ -27,6 +27,11 @@
  *
  */
 
+/** \file blender/blenloader/intern/readfile.c
+ *  \ingroup blenloader
+ */
+
+
 #include "zlib.h"
 
 #include <limits.h>
@@ -5956,8 +5961,8 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 static void link_global(FileData *fd, BlendFileData *bfd)
 {
 	
-	bfd->curscreen= newlibadr(fd, 0, bfd->curscreen);
-	bfd->curscene= newlibadr(fd, 0, bfd->curscene);
+	bfd->curscreen= newlibadr(fd, NULL, bfd->curscreen);
+	bfd->curscene= newlibadr(fd, NULL, bfd->curscene);
 	// this happens in files older than 2.35
 	if(bfd->curscene==NULL) {
 		if(bfd->curscreen) bfd->curscene= bfd->curscreen->scene;
@@ -5970,7 +5975,7 @@ static void vcol_to_fcol(Mesh *me)
 	unsigned int *mcol, *mcoln, *mcolmain;
 	int a;
 
-	if(me->totface==0 || me->mcol==0) return;
+	if(me->totface==0 || me->mcol==NULL) return;
 
 	mcoln= mcolmain= MEM_mallocN(4*sizeof(int)*me->totface, "mcoln");
 	mcol = (unsigned int *)me->mcol;
@@ -6947,7 +6952,7 @@ static void do_version_bone_roll_256(Bone *bone)
 	float submat[3][3];
 	
 	copy_m3_m4(submat, bone->arm_mat);
-	mat3_to_vec_roll(submat, 0, &bone->arm_roll);
+	mat3_to_vec_roll(submat, NULL, &bone->arm_roll);
 	
 	for(child = bone->childbase.first; child; child = child->next)
 		do_version_bone_roll_256(child);
@@ -9158,7 +9163,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							strcpy (simasel->dir,  U.textudir);	/* TON */
 							strcpy (simasel->file, "");
 							
-							simasel->returnfunc     =  0;	
+							simasel->returnfunc     =  NULL;
 							simasel->title[0]       =  0;
 						}
 					}
@@ -9448,7 +9453,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 8)) {
 		Scene *sce;
 		Object *ob;
-		PartEff *paf=0;
+		PartEff *paf=NULL;
 
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			if(ob->soft && ob->soft->keys) {
@@ -9734,7 +9739,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				fluidmd->fss->lastgoodframe = INT_MAX;
 				fluidmd->fss->flag = 0;
-				fluidmd->fss->meshSurfNormals = 0;
+				fluidmd->fss->meshSurfNormals = NULL;
 			}
 		}
 	}
@@ -11629,6 +11634,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		bScreen *sc;
 		Brush *brush;
+		Object *ob;
 		
 		/* redraws flag in SpaceTime has been moved to Screen level */
 		for (sc = main->screen.first; sc; sc= sc->id.next) {
@@ -11642,6 +11648,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (brush= main->brush.first; brush; brush= brush->id.next) {
 			if(brush->height == 0)
 				brush->height= 0.4;
+		}
+
+		/* replace 'rim material' option for in offset*/
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for(md= ob->modifiers.first; md; md= md->next) {
+				if (md->type == eModifierType_Solidify) {
+					SolidifyModifierData *smd = (SolidifyModifierData *)md;
+					if(smd->flag & MOD_SOLIDIFY_RIM_MATERIAL) {
+						smd->mat_ofs_rim= 1;
+						smd->flag &= ~MOD_SOLIDIFY_RIM_MATERIAL;
+					}
+				}
+			}
 		}
 	}
 	
@@ -12641,7 +12661,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 	ID *id;
 	int a, doit= 1;
 
-	if(fd==0) return;
+	if(fd==NULL) return;
 
 	while(doit) {
 		doit= 0;

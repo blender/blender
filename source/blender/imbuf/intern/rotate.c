@@ -29,6 +29,11 @@
  * $Id$
  */
 
+/** \file blender/imbuf/intern/rotate.c
+ *  \ingroup imbuf
+ */
+
+
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 

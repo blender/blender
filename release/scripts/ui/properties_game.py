@@ -56,7 +56,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col.prop(ob, "hide_render", text="Invisible")  # out of place but useful
 
             col = split.column()
-            col.prop(game, "use_material_physics")
+            col.prop(game, "use_material_physics_fh")
             col.prop(game, "use_rotate_from_normal")
             col.prop(game, "use_sleep")
 
@@ -356,7 +356,7 @@ class RENDER_PT_game_display(RenderButtonsPanel, bpy.types.Panel):
         flow.prop(gs, "show_framerate_profile", text="Framerate and Profile")
         flow.prop(gs, "show_physics_visualization", text="Physics Visualization")
         flow.prop(gs, "use_deprecation_warnings")
-        flow.prop(gs, "show_mouse")
+        flow.prop(gs, "show_mouse", text="Mouse Cursor")
 
 
 class RENDER_PT_game_sound(RenderButtonsPanel, bpy.types.Panel):

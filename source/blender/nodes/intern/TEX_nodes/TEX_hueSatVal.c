@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_hueSatVal.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"
 
 

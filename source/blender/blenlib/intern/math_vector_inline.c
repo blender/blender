@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
+/** \file blender/blenlib/intern/math_vector_inline.c
+ *  \ingroup bli
+ */
+
+
 #include "BLI_math.h"
 
 #ifndef BLI_MATH_VECTOR_INLINE_H

@@ -21,6 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/generic/py_capi_utils.h
+ *  \ingroup pygen
+ */
+
  
 #ifndef PY_CAPI_UTILS_H
 #define PY_CAPI_UTILS_H

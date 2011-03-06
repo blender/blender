@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/texdraw.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <texdraw_png> */
 
 int datatoc_texdraw_png_size= 9462;

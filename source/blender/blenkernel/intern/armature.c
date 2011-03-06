@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/armature.c
+ *  \ingroup bke
+ */
+
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <math.h>

@@ -33,6 +33,20 @@ def add_scrollback(text, text_type):
             type=text_type)
 
 
+def replace_help(namespace):
+    def _help(value):
+        # because of how the console works. we need our own help() pager func.
+        # replace the bold function because it adds crazy chars
+        import pydoc
+        pydoc.getpager = lambda: pydoc.plainpager
+        pydoc.Helper.getline = lambda self, prompt: None
+        pydoc.TextDoc.use_bold = lambda self, text: text
+
+        help(value)
+
+    namespace["help"] = _help
+
+
 def get_console(console_id):
     '''
     helper function for console operators
@@ -82,6 +96,8 @@ def get_console(console_id):
         namespace["__builtins__"] = sys.modules["builtins"]
         namespace["bpy"] = bpy
         namespace["C"] = bpy.context
+
+        replace_help(namespace)
 
         console = InteractiveConsole(locals=namespace, filename="<blender_console>")
 

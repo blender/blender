@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_userpref/userpref_intern.h
+ *  \ingroup spuserpref
+ */
+
 #ifndef ED_USERPREF_INTERN_H
 #define ED_USERPREF_INTERN_H
 

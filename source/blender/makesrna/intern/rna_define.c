@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_define.c
+ *  \ingroup RNA
+ */
+
+
 #include <float.h>
 #include <limits.h>
 #include <stdio.h>
@@ -44,7 +49,7 @@
 
 /* Global used during defining */
 
-BlenderDefRNA DefRNA = {0, {0, 0}, {0, 0}, 0, 0, 0, 0, 1};
+BlenderDefRNA DefRNA = {NULL, {NULL, NULL}, {NULL, NULL}, NULL, 0, 0, 0, 1};
 
 /* Duplicated code since we can't link in blenkernel or blenlib */
 
@@ -61,7 +66,7 @@ void rna_addtail(ListBase *listbase, void *vlink)
 	link->prev = listbase->last;
 
 	if (listbase->last) ((Link *)listbase->last)->next = link;
-	if (listbase->first == 0) listbase->first = link;
+	if (listbase->first == NULL) listbase->first = link;
 	listbase->last = link;
 }
 
@@ -654,7 +659,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Property");
-			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, "rna_builtin_properties_lookup_string");
+			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", NULL, NULL, "rna_builtin_properties_lookup_string");
 		}
 		else {
 #ifdef RNA_RUNTIME
@@ -1810,7 +1815,7 @@ void RNA_def_property_editable_array_func(PropertyRNA *prop, const char *editabl
 void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
 {
 	if(!DefRNA.preprocess) {
-		fprintf(stderr, "RNA_def_struct_refine_func: only during preprocessing.\n");
+		fprintf(stderr, "RNA_def_property_update: only during preprocessing.\n");
 		return;
 	}
 

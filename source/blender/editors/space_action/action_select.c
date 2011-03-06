@@ -24,6 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_action/action_select.c
+ *  \ingroup spaction
+ */
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,7 +90,7 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc test_cb, sel_cb;
 	
 	/* determine type-based settings */
@@ -366,7 +371,7 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	int filter;
 	
 	KeyframeEditFunc ok_cb, select_cb;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	float min, max;
 	
 	/* get extreme markers */
@@ -417,7 +422,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	Scene *scene= ac->scene;
 	CfraElem *ce;
 	KeyframeEditFunc select_cb, ok_cb;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	
 	/* initialise keyframe editing data */
 	
@@ -603,7 +608,7 @@ static void select_moreless_action_keys (bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc build_cb;
 	
 	
@@ -725,7 +730,7 @@ static void actkeys_select_leftright (bAnimContext *ac, short leftright, short s
 	int filter;
 	
 	KeyframeEditFunc ok_cb, select_cb;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	Scene *scene= ac->scene;
 	
 	/* if select mode is replace, deselect all keyframes (and channels) first */
@@ -903,7 +908,7 @@ static void actkeys_mselect_single (bAnimContext *ac, bAnimListElem *ale, short 
 	bDopeSheet *ads= (ac->datatype == ANIMCONT_DOPESHEET) ? ac->data : NULL;
 	int ds_filter = ((ads) ? (ads->filterflag) : (0));
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc select_cb, ok_cb;
 	
 	/* get functions for selecting keyframes */
@@ -929,7 +934,7 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	int filter;
 	
 	KeyframeEditFunc select_cb, ok_cb;
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	
 	/* initialise keyframe editing data */
 	
@@ -1152,9 +1157,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
-	Scene *scene;
 	ARegion *ar;
-	View2D *v2d;
 	short selectmode, column;
 	int mval[2];
 	
@@ -1163,9 +1166,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		return OPERATOR_CANCELLED;
 		
 	/* get useful pointers from animation context data */
-	scene= ac.scene;
 	ar= ac.ar;
-	v2d= &ar->v2d;
 	
 	/* get mouse coordinates (in region coordinates) */
 	mval[0]= (event->x - ar->winrct.xmin);

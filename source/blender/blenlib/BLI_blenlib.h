@@ -50,10 +50,6 @@
  *   platform dependencies. (There are other platform-dependent 
  *   fixes as well.)
  * - The file i/o has some redundant code. It should be cleaned.
- * - arithb.c is a very messy matrix library. We need a better 
- *   solution.
- * - vectorops.c is close to superfluous. It may disappear in the 
- *   near future.
  * 
  * \subsection dependencies Dependencies
  *

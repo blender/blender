@@ -21,12 +21,49 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/python/intern/bpy_rna.h
+ *  \ingroup pythonintern
+ */
+
 #ifndef BPY_RNA_H
 #define BPY_RNA_H
 
-#include "RNA_access.h"
-#include "RNA_types.h"
-#include "BKE_idprop.h"
+/* --- bpy build options --- */
+#ifdef WITH_PYTHON_SAFETY
+
+/* play it safe and keep optional for now, need to test further now this affects looping on 10000's of verts for eg. */
+#define USE_WEAKREFS
+
+/* method to invalidate removed py data, XXX, slow to remove objects, otherwise no overhead */
+/* #define USE_PYRNA_INVALIDATE_GC */
+
+/* different method */
+#define USE_PYRNA_INVALIDATE_WEAKREF
+
+/* support for inter references, currently only needed for corner case */
+#define USE_PYRNA_STRUCT_REFERENCE
+
+/* use real collection iterators rather then faking with a list */
+#define USE_PYRNA_ITER
+
+#else /* WITH_PYTHON_SAFETY */
+
+ /* default, no defines! */
+
+#endif /* !WITH_PYTHON_SAFETY */
+
+
+/* sanity checks on above defs */
+#if defined(USE_PYRNA_INVALIDATE_WEAKREF) && !defined(USE_WEAKREFS)
+#define USE_WEAKREFS
+#endif
+
+#if defined(USE_PYRNA_INVALIDATE_GC) && defined(USE_PYRNA_INVALIDATE_WEAKREF)
+#error "Only 1 reference check method at a time!"
+#endif
+/* --- end bpy build options --- */
+
 
 extern PyTypeObject pyrna_struct_meta_idprop_Type;
 extern PyTypeObject pyrna_struct_Type;
@@ -39,47 +76,70 @@ extern PyTypeObject pyrna_prop_collection_Type;
 #define BPy_PropertyRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_prop_Type))
 #define BPy_PropertyRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_prop_Type)
 
-/* play it safe and keep optional for now, need to test further now this affects looping on 10000's of verts for eg. */
-// #define USE_WEAKREFS
+#define PYRNA_STRUCT_CHECK_OBJ(obj) if(pyrna_struct_validity_check(obj) == -1) { return NULL; }
+#define PYRNA_STRUCT_CHECK_INT(obj) if(pyrna_struct_validity_check(obj) == -1) { return -1; }
+
+#define PYRNA_PROP_CHECK_OBJ(obj) if(pyrna_prop_validity_check(obj) == -1) { return NULL; }
+#define PYRNA_PROP_CHECK_INT(obj) if(pyrna_prop_validity_check(obj) == -1) { return -1; }
+
+#define PYRNA_STRUCT_IS_VALID(pysrna) (((BPy_StructRNA *)(pysrna))->ptr.type != NULL)
+#define PYRNA_PROP_IS_VALID(pysrna) (((BPy_PropertyRNA *)(pysrna))->ptr.type != NULL)
+
+/* 'in_weakreflist' MUST be aligned */
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
-	PointerRNA	ptr;
 #ifdef USE_WEAKREFS
 	PyObject *in_weakreflist;
 #endif
+	PointerRNA	ptr;
 } BPy_DummyPointerRNA;
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
-	PointerRNA ptr;
-	int freeptr; /* needed in some cases if ptr.data is created on the fly, free when deallocing */
 #ifdef USE_WEAKREFS
 	PyObject *in_weakreflist;
 #endif
+	PointerRNA ptr;
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+	/* generic PyObject we hold a reference to, example use:
+	 * hold onto the collection iterator to prevent it from freeing allocated data we may use */
+	PyObject *reference;
+#endif /* !USE_PYRNA_STRUCT_REFERENCE */
+	int freeptr; /* needed in some cases if ptr.data is created on the fly, free when deallocing */
 } BPy_StructRNA;
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
-	PointerRNA ptr;
-	PropertyRNA *prop;
 #ifdef USE_WEAKREFS
 	PyObject *in_weakreflist;
 #endif
+	PointerRNA ptr;
+	PropertyRNA *prop;
 } BPy_PropertyRNA;
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist;
+#endif
 	PointerRNA ptr;
 	PropertyRNA *prop;
 
 	/* Arystan: this is a hack to allow sub-item r/w access like: face.uv[n][m] */
 	int arraydim; /* array dimension, e.g: 0 for face.uv, 2 for face.uv[n][m], etc. */
 	int arrayoffset; /* array first item offset, e.g. if face.uv is [4][2], arrayoffset for face.uv[n] is 2n */
+} BPy_PropertyArrayRNA;
+
+typedef struct {
+	PyObject_HEAD /* required python macro   */
 #ifdef USE_WEAKREFS
 	PyObject *in_weakreflist;
 #endif
-} BPy_PropertyArrayRNA;
+
+	/* collection iterator spesific parts */
+	CollectionPropertyIterator iter;
+} BPy_PropertyCollectionIterRNA;
 
 /* cheap trick */
 #define BPy_BaseTypeRNA BPy_PropertyRNA
@@ -122,6 +182,9 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
 
 int pyrna_write_check(void);
+
+int pyrna_struct_validity_check(BPy_StructRNA *pysrna);
+int pyrna_prop_validity_check(BPy_PropertyRNA *self);
 
 void BPY_modules_update(struct bContext *C); //XXX temp solution
 

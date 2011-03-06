@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_rna.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "DNA_ID.h"
@@ -305,7 +310,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	PointerRNA propptr= {{0}};
+	PointerRNA propptr= {{NULL}};
 
 	srna= ptr->type;
 

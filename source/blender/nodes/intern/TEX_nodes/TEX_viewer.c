@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/TEX_nodes/TEX_viewer.c
+ *  \ingroup texnodes
+ */
+
+
 #include "../TEX_util.h"                                                   
 #include <math.h>
 

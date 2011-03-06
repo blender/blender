@@ -87,7 +87,15 @@ def main():
     for f in files_skip:
         print("    %s" % f)
 
-    # pyflakes
+    # strict imports
+    print("\n\n\n# running pep8...")
+    import re
+    import_check = re.compile(r"\s*from\s+[A-z\.]+\s+import \*\s*")
+    for f, pep8_type in files:
+        for i, l in enumerate(open(f, 'r', encoding='utf8')):
+            if import_check.match(l):
+                print("%s:%d:0: global import bad practice" % (f, i + 1))
+
     print("\n\n\n# running pep8...")
     for f, pep8_type in files:
         if pep8_type == 1:
@@ -96,6 +104,7 @@ def main():
         else:
             os.system("pep8 --repeat '%s'" % (f))
 
+    # pyflakes
     print("\n\n\n# running pyflakes...")
     for f, pep8_type in files:
         os.system("pyflakes '%s'" % f)

@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/imbuf/intern/openexr/openexr_multi.h
+ *  \ingroup openexr
+ */
+
+
 #ifndef _OPENEXR_MULTI_H
 #define _OPENEXR_MULTI_H
 

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_image/image_header.c
+ *  \ingroup spimage
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 
@@ -44,6 +49,7 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "image_intern.h"
 
@@ -59,13 +65,13 @@ static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(e
 
 	show_uvedit= ED_space_image_show_uvedit(sima, obedit);
 
-	pup= uiPupMenuBegin(C, "Toolbox", ICON_NULL);
+	pup= uiPupMenuBegin(C, "Toolbox", ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 
-	uiItemM(layout, C, "IMAGE_MT_view", NULL, ICON_NULL);
-	if(show_uvedit) uiItemM(layout, C, "IMAGE_MT_select", NULL, ICON_NULL);
-	uiItemM(layout, C, "IMAGE_MT_image", NULL, ICON_NULL);
-	if(show_uvedit) uiItemM(layout, C, "IMAGE_MT_uvs", NULL, ICON_NULL);
+	uiItemM(layout, C, "IMAGE_MT_view", NULL, ICON_NONE);
+	if(show_uvedit) uiItemM(layout, C, "IMAGE_MT_select", NULL, ICON_NONE);
+	uiItemM(layout, C, "IMAGE_MT_image", NULL, ICON_NONE);
+	if(show_uvedit) uiItemM(layout, C, "IMAGE_MT_uvs", NULL, ICON_NONE);
 
 	uiPupMenuEnd(C, pup);
 

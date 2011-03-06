@@ -28,6 +28,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/BLI_kdtree.c
+ *  \ingroup bli
+ */
+
+
 
 #include "MEM_guardedalloc.h"
 

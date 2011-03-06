@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_outliner/space_outliner.c
+ *  \ingroup spoutliner
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 

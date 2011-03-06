@@ -25,6 +25,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/source/rayshade.c
+ *  \ingroup render
+ */
+
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -2342,7 +2347,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		
 		samples++;
 		
-		if ((lar->ray_samp_method == LA_SAMP_HALTON)) {
+		if (lar->ray_samp_method == LA_SAMP_HALTON) {
 		
 			/* adaptive sampling - consider samples below threshold as in shadow (or vice versa) and exit early */
 			if ((max_samples > min_adapt_samples) && (adapt_thresh > 0.0) && (samples > max_samples / 3)) {

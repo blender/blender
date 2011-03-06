@@ -25,6 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/space_sound/sound_intern.h
+ *  \ingroup spsnd
+ */
+
 #ifndef ED_SOUND_INTERN_H
 #define ED_SOUND_INTERN_H
 

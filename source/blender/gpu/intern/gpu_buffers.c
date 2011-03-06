@@ -30,6 +30,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/gpu/intern/gpu_buffers.c
+ *  \ingroup gpu
+ */
+
+
 #include <limits.h>
 #include <stddef.h>
 #include <string.h>

@@ -75,7 +75,7 @@
 
 #undef small
 
-// These definitions are also in arithb for simplicity
+// These definitions are also in BLI_math for simplicity
 
 #ifdef __cplusplus
 extern "C" {

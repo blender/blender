@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/raytrace/rayobject_vbvh.cpp
+ *  \ingroup render
+ */
+
+
 int tot_pushup   = 0;
 int tot_pushdown = 0;
 int tot_hints    = 0;

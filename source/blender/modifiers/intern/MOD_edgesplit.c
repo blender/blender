@@ -848,6 +848,12 @@ static void split_single_vert(SmoothVert *vert, SmoothFace *face,
 
 	copy_vert = smoothvert_copy(vert, mesh);
 
+	if(copy_vert == NULL) {
+		/* bug [#26316], this prevents a segfault
+		 * but this still needs fixing */
+		return;
+	}
+
 	repdata.find = vert;
 	repdata.replace = copy_vert;
 	face_replace_vert(face, &repdata);
@@ -1283,19 +1289,19 @@ ModifierTypeInfo modifierType_EdgeSplit = {
 							| eModifierTypeFlag_EnableInEditmode,
 
 	/* copyData */          copyData,
-	/* deformVerts */       0,
-	/* deformMatrices */    0,
-	/* deformVertsEM */     0,
-	/* deformMatricesEM */  0,
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   applyModifierEM,
 	/* initData */          initData,
-	/* requiredDataMask */  0,
-	/* freeData */          0,
-	/* isDisabled */        0,
-	/* updateDepgraph */    0,
-	/* dependsOnTime */     0,
-	/* dependsOnNormals */	0,
-	/* foreachObjectLink */ 0,
-	/* foreachIDLink */     0,
+	/* requiredDataMask */  NULL,
+	/* freeData */          NULL,
+	/* isDisabled */        NULL,
+	/* updateDepgraph */    NULL,
+	/* dependsOnTime */     NULL,
+	/* dependsOnNormals */	NULL,
+	/* foreachObjectLink */ NULL,
+	/* foreachIDLink */     NULL,
 };

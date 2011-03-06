@@ -24,6 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+/** \file blender/editors/armature/poselib.c
+ *  \ingroup edarmature
+ */
+
  
 #include <stdlib.h>
 #include <stdio.h>
@@ -381,17 +386,17 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED
 		return OPERATOR_CANCELLED;
 	
 	/* start building */
-	pup= uiPupMenuBegin(C, op->type->name, ICON_NULL);
+	pup= uiPupMenuBegin(C, op->type->name, ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add new (adds to the first unoccupied frame) */
-	uiItemIntO(layout, "Add New", ICON_NULL, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
+	uiItemIntO(layout, "Add New", ICON_NONE, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
 	
 	/* check if we have any choices to add a new pose in any other way */
 	if ((ob->poselib) && (ob->poselib->markers.first)) {
 		/* add new (on current frame) */
-		uiItemIntO(layout, "Add New (Current Frame)", ICON_NULL, "POSELIB_OT_pose_add", "frame", CFRA);
+		uiItemIntO(layout, "Add New (Current Frame)", ICON_NONE, "POSELIB_OT_pose_add", "frame", CFRA);
 		
 		/* replace existing - submenu */
 		uiItemMenuF(layout, "Replace Existing...", 0, poselib_add_menu_invoke__replacemenu, NULL);
@@ -531,7 +536,7 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 	/* remove relevant keyframes */
 	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
 		BezTriple *bezt;
-		int i;
+		unsigned int i;
 		
 		if (fcu->bezt) {
 			for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
@@ -815,7 +820,7 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 	bAction *act= pld->act;
 	bActionGroup *agrp;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc group_ok_cb;
 	int frame= 1;
 	
@@ -1450,7 +1455,7 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 		
 		/* change active pose setting */
 		act->active_marker= BLI_findindex(&act->markers, marker) + 1;
-		action_set_activemarker(act, marker, 0);
+		action_set_activemarker(act, marker, NULL);
 		
 		/* Update event for pose and deformation children */
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

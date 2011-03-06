@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/collada/CameraExporter.cpp
+ *  \ingroup collada
+ */
+
+
 #include <string>
 
 #include "COLLADASWCamera.h"

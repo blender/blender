@@ -29,6 +29,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/BLI_args.c
+ *  \ingroup bli
+ */
+
+
 #include <ctype.h> /* for tolower */
 
 #include "MEM_guardedalloc.h"

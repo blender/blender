@@ -387,8 +387,8 @@ class IMAGE_HT_header(bpy.types.Header):
             row.prop(toolsettings, "use_snap", text="")
             row.prop(toolsettings, "snap_element", text="", icon_only=True)
 
-            # mesh = context.edit_object.data
-            # row.prop_search(mesh.uv_textures, "active", mesh, "uv_textures")
+            mesh = context.edit_object.data
+            layout.prop_search(mesh.uv_textures, "active", mesh, "uv_textures", text="")
 
         if ima:
             # layers
@@ -425,7 +425,6 @@ class IMAGE_PT_image_properties(bpy.types.Panel):
         layout = self.layout
 
         sima = context.space_data
-        # ima = sima.image
         iuser = sima.image_user
 
         layout.template_image(sima, "image", iuser)
@@ -684,11 +683,9 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, bpy.types.Panel):
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
 
-#        tex_slot = brush.texture_slot
-
         col = layout.column()
-
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
+        col.prop(brush, "use_fixed_texture")
 
 
 class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, bpy.types.Panel):

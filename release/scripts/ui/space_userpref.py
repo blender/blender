@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 import os
-import shutil
 import addon_utils
 
 from bpy.props import StringProperty, BoolProperty, EnumProperty
@@ -1080,6 +1079,8 @@ class WM_OT_addon_install(bpy.types.Operator):
     def execute(self, context):
         import traceback
         import zipfile
+        import shutil
+
         pyfile = self.filepath
 
         # dont use bpy.utils.script_paths("addons") because we may not be able to write to it.
@@ -1095,7 +1096,8 @@ class WM_OT_addon_install(bpy.types.Operator):
         addon_path = ""
         pyfile_dir = os.path.dirname(pyfile)
         for addon_path in addon_utils.paths():
-            if os.path.samefile(pyfile_dir, addon_path):
+            # if os.path.samefile(pyfile_dir, addon_path):  # Py3.2 only!, upgrade soon!
+            if (hasattr(os.path, "samefile") and os.path.samefile(pyfile_dir, addon_path)) or pyfile_dir == addon_path:
                 self.report({'ERROR'}, "Source file is in the addon search path: %r" % addon_path)
                 return {'CANCELLED'}
         del addon_path

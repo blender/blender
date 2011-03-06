@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_actuator.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -1209,35 +1214,37 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Reference Direction", "Reference Direction");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "angle_min", PROP_FLOAT, PROP_ANGLE);
+	//XXX TODO - use radians internally then change to PROP_ANGLE
+	prop= RNA_def_property(srna, "angle_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "minloc[0]");
 	RNA_def_property_range(prop, 0.0, 180.0);
-	RNA_def_property_ui_text(prop, "Min Angle", "Minimum angle to maintain with target direction. No correction is done if angle with target direction is between min and max");
+	RNA_def_property_ui_text(prop, "Min Angle", "Minimum angle (in degree) to maintain with target direction. No correction is done if angle with target direction is between min and max");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "angle_max", PROP_FLOAT, PROP_ANGLE);
+	//XXX TODO - use radians internally then change to PROP_ANGLE
+	prop= RNA_def_property(srna, "angle_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxloc[0]");
 	RNA_def_property_range(prop, 0.0, 180.0);
-	RNA_def_property_ui_text(prop, "Max Angle", "Maximum angle allowed with target direction. No correction is done if angle with target direction is between min and max");
+	RNA_def_property_ui_text(prop, "Max Angle", "Maximum angle (in degree) allowed with target direction. No correction is done if angle with target direction is between min and max");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* ACT_CONST_TYPE_FH */
 	prop= RNA_def_property(srna, "fh_height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_fhheight_get", "rna_ConstraintActuator_fhheight_set", NULL);
 	RNA_def_property_ui_range(prop, 0.01, 2000.0, 10, 2);
-	RNA_def_property_ui_text(prop, "Distance", "Height of the Fh area");
+	RNA_def_property_ui_text(prop, "Distance", "Height of the force field area");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "spring", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "fh_force", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_spring_get", "rna_ConstraintActuator_spring_set", NULL);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 2);
-	RNA_def_property_ui_text(prop, "Fh", "Spring force within the Fh area");
+	RNA_def_property_ui_text(prop, "Force", "Spring force within the force field area");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "fh_damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxrot[0]");
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 2);
-	RNA_def_property_ui_text(prop, "Damping", "Damping factor of the Fh spring force");
+	RNA_def_property_ui_text(prop, "Damping", "Damping factor of the force field spring");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* booleans */

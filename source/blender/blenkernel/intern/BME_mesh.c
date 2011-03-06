@@ -32,6 +32,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/BME_mesh.c
+ *  \ingroup bke
+ */
+
+
 
 #include "MEM_guardedalloc.h"
 #include "BKE_bmesh.h"

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_nla/nla_edit.c
+ *  \ingroup spnla
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -62,6 +67,7 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "nla_intern.h"	// own include
 #include "nla_private.h" // FIXME... maybe this shouldn't be included?
@@ -1417,7 +1423,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *UNUSED(op))
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked= {{0}};
+	KeyframeEditData ked= {{NULL}};
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1708,7 +1714,7 @@ static int nla_fmodifier_add_invoke (bContext *C, wmOperator *UNUSED(op), wmEven
 	uiLayout *layout;
 	int i;
 	
-	pup= uiPupMenuBegin(C, "Add F-Modifier", ICON_NULL);
+	pup= uiPupMenuBegin(C, "Add F-Modifier", ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 	
 	/* start from 1 to skip the 'Invalid' modifier type */

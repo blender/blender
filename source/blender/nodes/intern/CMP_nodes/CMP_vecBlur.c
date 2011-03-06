@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_vecBlur.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 
@@ -88,7 +93,7 @@ static void node_composit_init_vecblur(bNode* node)
    node->storage= nbd;
    nbd->samples= 32;
    nbd->fac= 1.0f;
-};
+}
 
 /* custom1: itterations, custom2: maxspeed (0 = nolimit) */
 void register_node_type_cmp_vecblur(ListBase *lb)

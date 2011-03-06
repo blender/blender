@@ -141,7 +141,6 @@ class TIME_MT_frame(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        # tools = context.tool_settings
 
         layout.operator("marker.add", text="Add Marker")
         layout.operator("marker.duplicate", text="Duplicate Marker")

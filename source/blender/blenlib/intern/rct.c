@@ -34,6 +34,11 @@
  * ***** END GPL LICENSE BLOCK *****
  *
  */
+
+/** \file blender/blenlib/intern/rct.c
+ *  \ingroup bli
+ */
+
 #include <stdio.h>
 #include <math.h>
 

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenlib/intern/bpath.c
+ *  \ingroup bli
+ */
+
+
 #include <sys/stat.h>
 
 #include <string.h>
@@ -212,7 +217,7 @@ const char* BLI_bpathIterator_getName( struct BPathIterator *bpi) {
 int	BLI_bpathIterator_getType( struct BPathIterator *bpi) {
 	return bpi->type;
 }
-int	BLI_bpathIterator_getPathMaxLen( struct BPathIterator *bpi) {
+unsigned int	BLI_bpathIterator_getPathMaxLen(struct BPathIterator *bpi) {
 	return bpi->len;
 }
 const char* BLI_bpathIterator_getBasePath( struct BPathIterator *bpi) {

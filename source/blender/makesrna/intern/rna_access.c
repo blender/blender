@@ -22,6 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_access.c
+ *  \ingroup RNA
+ */
+
+
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
@@ -57,7 +62,7 @@
 
 #include "rna_internal.h"
 
-const PointerRNA PointerRNA_NULL= {{0}};
+const PointerRNA PointerRNA_NULL= {{NULL}};
 
 /* Init/Exit */
 
@@ -105,7 +110,7 @@ void RNA_id_pointer_create(ID *id, PointerRNA *r_ptr)
 	StructRNA *type, *idtype= NULL;
 
 	if(id) {
-		PointerRNA tmp= {{0}};
+		PointerRNA tmp= {{NULL}};
 		tmp.data= id;
 		idtype= rna_ID_refine(&tmp);
 		
@@ -3756,7 +3761,7 @@ char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, in
 	}
 	else {
 		printf("RNA_string_get_alloc: %s.%s not found.\n", ptr->type->identifier, name);
-		return 0;
+		return NULL;
 	}
 }
 

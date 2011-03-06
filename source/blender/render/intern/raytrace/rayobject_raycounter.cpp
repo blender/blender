@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/render/intern/raytrace/rayobject_raycounter.cpp
+ *  \ingroup render
+ */
+
+
 #include "rayobject.h"
 #include "raycounter.h"
 

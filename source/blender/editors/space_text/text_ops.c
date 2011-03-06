@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_text/text_ops.c
+ *  \ingroup sptext
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h> /* ispunct */
@@ -567,6 +572,7 @@ static int run_script_poll(bContext *C)
 
 static int run_script(bContext *C, ReportList *reports)
 {
+#ifdef WITH_PYTHON
 	Text *text= CTX_data_edit_text(C);
 	const short is_live= (reports == NULL);
 
@@ -591,6 +597,10 @@ static int run_script(bContext *C, ReportList *reports)
 
 		BKE_report(reports, RPT_ERROR, "Python script fail, look in the console for now...");
 	}
+#else
+	(void)C;
+	(void)reports;
+#endif /* !WITH_PYTHON */
 	return OPERATOR_CANCELLED;
 }
 
@@ -787,7 +797,7 @@ static int paste_exec(bContext *C, wmOperator *op)
 	/* run the script while editing, evil but useful */
 	if(CTX_wm_space_text(C)->live_edit)
 		run_script(C, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -858,7 +868,7 @@ static int cut_exec(bContext *C, wmOperator *UNUSED(op))
 	/* run the script while editing, evil but useful */
 	if(CTX_wm_space_text(C)->live_edit)
 		run_script(C, NULL);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -3103,7 +3113,7 @@ static int resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 		case 1:
 			if(text->flags & TXT_ISDIRTY) {
 				/* modified locally and externally, ahhh. offer more possibilites. */
-				pup= uiPupMenuBegin(C, "File Modified Outside and Inside Blender", ICON_NULL);
+				pup= uiPupMenuBegin(C, "File Modified Outside and Inside Blender", ICON_NONE);
 				layout= uiPupMenuLayout(pup);
 				uiItemEnumO(layout, op->type->idname, "Reload from disk (ignore local changes)", 0, "resolution", RESOLVE_RELOAD);
 				uiItemEnumO(layout, op->type->idname, "Save to disk (ignore outside changes)", 0, "resolution", RESOLVE_SAVE);
@@ -3111,7 +3121,7 @@ static int resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 				uiPupMenuEnd(C, pup);
 			}
 			else {
-				pup= uiPupMenuBegin(C, "File Modified Outside Blender", ICON_NULL);
+				pup= uiPupMenuBegin(C, "File Modified Outside Blender", ICON_NONE);
 				layout= uiPupMenuLayout(pup);
 				uiItemEnumO(layout, op->type->idname, "Reload from disk", 0, "resolution", RESOLVE_RELOAD);
 				uiItemEnumO(layout, op->type->idname, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
@@ -3120,7 +3130,7 @@ static int resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 			}
 			break;
 		case 2:
-			pup= uiPupMenuBegin(C, "File Deleted Outside Blender", ICON_NULL);
+			pup= uiPupMenuBegin(C, "File Deleted Outside Blender", ICON_NONE);
 			layout= uiPupMenuLayout(pup);
 			uiItemEnumO(layout, op->type->idname, "Make text internal", 0, "resolution", RESOLVE_MAKE_INTERNAL);
 			uiItemEnumO(layout, op->type->idname, "Recreate file", 0, "resolution", RESOLVE_SAVE);

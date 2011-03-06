@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_userpref/userpref_ops.c
+ *  \ingroup spuserpref
+ */
+
+
 #include <string.h>
 #include <stdio.h>
 

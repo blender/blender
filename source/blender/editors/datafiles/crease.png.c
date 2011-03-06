@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/crease.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <crease_png> */
 
 int datatoc_crease_png_size= 8638;

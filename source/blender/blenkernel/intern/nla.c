@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/nla.c
+ *  \ingroup bke
+ */
+
+
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -1494,7 +1499,7 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 	if ELEM3(NULL, activeTrack, activeStrip, activeStrip->act) {
 		if (G.f & G_DEBUG) {
 			printf("NLA tweakmode enter - neither active requirement found \n");
-			printf("\tactiveTrack = %p, activeStrip = %p \n", activeTrack, activeStrip);
+			printf("\tactiveTrack = %p, activeStrip = %p \n", (void *)activeTrack, (void *)activeStrip);
 		}
 		return 0;
 	}

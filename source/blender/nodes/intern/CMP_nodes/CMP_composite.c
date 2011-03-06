@@ -27,6 +27,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/nodes/intern/CMP_nodes/CMP_composite.c
+ *  \ingroup cmpnodes
+ */
+
+
 #include "../CMP_util.h"
 
 

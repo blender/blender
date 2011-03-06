@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_node/node_draw.c
+ *  \ingroup spnode
+ */
+
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -308,7 +313,7 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 	node->totr.xmin= node->locx;
 	node->totr.xmax= node->locx + node->width;
 	node->totr.ymax= node->locy;
-	node->totr.ymin= dy;
+	node->totr.ymin= MIN2(dy, node->locy-2*NODE_DY);
 }
 
 /* based on settings in node, sets drawing rect info. each redraw! */
@@ -459,7 +464,7 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *valsock= NULL, *colsock= NULL, *vecsock= NULL;
 	bNodeSocket *sock;
-	bNodeLink link= {0};
+	bNodeLink link= {NULL};
 	int a;
 	
 	/* connect the first value buffer in with first value out */
@@ -651,7 +656,7 @@ static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *args_v)
 	
 	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, args->x, args->y+2, args->width, 20, U.uistyles.first), 0);
 	
-	uiItemR(layout, &args->ptr, "default_value", UI_ITEM_R_EXPAND, "", ICON_NULL);
+	uiItemR(layout, &args->ptr, "default_value", UI_ITEM_R_EXPAND, "", ICON_NONE);
 	
 	return block;
 }

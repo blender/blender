@@ -1,3 +1,6 @@
+/** \file blender/editors/datafiles/add.png.c
+ *  \ingroup eddatafiles
+ */
 /* DataToC output of file <add_png> */
 
 int datatoc_add_png_size= 10948;

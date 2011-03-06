@@ -1,3 +1,6 @@
+/** \file blender/editors/uvedit/uvedit_parametrizer.h
+ *  \ingroup eduv
+ */
 
 #ifndef __PARAMETRIZER_H__
 #define __PARAMETRIZER_H__

@@ -26,6 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/animation/anim_ops.c
+ *  \ingroup edanimation
+ */
+
+
 #include <stdlib.h>
 #include <math.h>
 

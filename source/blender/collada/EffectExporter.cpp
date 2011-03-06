@@ -23,6 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/collada/EffectExporter.cpp
+ *  \ingroup collada
+ */
+
+
 #include <map>
 
 #include "COLLADASWEffectProfile.h"
