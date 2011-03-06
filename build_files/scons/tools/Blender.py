@@ -20,7 +20,7 @@ import string
 import glob
 import time
 import sys
-import zipfile
+import tarfile
 import shutil
 import cStringIO
 import platform
@@ -399,89 +399,13 @@ def set_quiet_output(env):
     if env['BF_LINE_OVERWRITE']:
         SCons.Action._ActionAction.print_cmd_line = my_print_cmd_line
 
-    
-class CompZipFile(zipfile.ZipFile):
-    """Partial copy of python2.6's zipfile.ZipFile (see http://www.python.org)
-    to get a extractall() that works on py2.5 and probably earlier distributions."""
-    def __init__(self, file, mode="r", compression=zipfile.ZIP_STORED, allowZip64=False):
-        if sys.version_info < (2, 6):
-            zipfile.ZipFile.__init__(self, file, mode, compression)
-        else:
-            zipfile.ZipFile.__init__(self, file, mode, compression, allowZip64)
-
-        if not hasattr(self,"extractall"): # use our method 
-            print "Debug: Using comp_extractall!"
-            self.extractall= self.comp_extractall
-
-    def comp_extractall(self, path=None, members=None, pwd=None): #renamed method
-        """Extract all members from the archive to the current working
-            directory. `path' specifies a different directory to extract to.
-            `members' is optional and must be a subset of the list returned
-            by namelist().
-        """
-        if members is None:
-            members = self.namelist()
-
-        for zipinfo in members:
-            self.comp_extract(zipinfo, path, pwd) # use our method 
-
-    def comp_extract(self, member, path=None, pwd=None): #renamed method
-        """Extract a member from the archive to the current working directory,
-            using its full name. Its file information is extracted as accurately
-            as possible. `member' may be a filename or a ZipInfo object. You can
-            specify a different directory using `path'.
-        """
-        if not isinstance(member, zipfile.ZipInfo):
-            member = self.getinfo(member)
-
-        if path is None:
-            path = os.getcwd()
-
-        return self.comp_extract_member(member, path, pwd) # use our method 
-
-    def comp_extract_member(self, member, targetpath, pwd): #renamed method
-        """Extract the ZipInfo object 'member' to a physical
-            file on the path targetpath.
-        """
-        # build the destination pathname, replacing
-        # forward slashes to platform specific separators.
-        if targetpath[-1:] in (os.path.sep, os.path.altsep):
-            targetpath = targetpath[:-1]
-
-        # don't include leading "/" from file name if present
-        if member.filename[0] == '/':
-            targetpath = os.path.join(targetpath, member.filename[1:])
-        else:
-            targetpath = os.path.join(targetpath, member.filename)
-
-        targetpath = os.path.normpath(targetpath)
-
-        # Create all upper directories if necessary.
-        upperdirs = os.path.dirname(targetpath)
-        if upperdirs and not os.path.exists(upperdirs):
-            os.makedirs(upperdirs)
-
-        if member.filename[-1] == '/':
-            os.mkdir(targetpath)
-            return targetpath
-
-        #use StrinIO instead so we don't have to reproduce more functionality.
-        source = cStringIO.StringIO(self.read(member.filename))
-        target = file(targetpath, "wb")
-        shutil.copyfileobj(source, target)
-        source.close()
-        target.close()
-
-        return targetpath
-
-def unzip_pybundle(from_zip,to_dir,exclude_re):
-    
-    zip= CompZipFile(from_zip, mode='r')
+def untar_pybundle(from_tar,to_dir,exclude_re):
+    tar= tarfile.open(from_tar, mode='r')
     exclude_re= list(exclude_re) #single re object or list of re objects
     debug= 0 #list files instead of unpacking
     good= []
     if debug: print '\nFiles not being unpacked:\n'
-    for name in zip.namelist():
+    for name in tar.getnames():
         is_bad= 0
         for r in exclude_re:
             if r.match(name):
@@ -489,26 +413,26 @@ def unzip_pybundle(from_zip,to_dir,exclude_re):
                 if debug: print name
                 break
         if not is_bad:
-            good.append(name)
+            good.append(tar.getmember(name))
     if debug:
         print '\nFiles being unpacked:\n'
         for g in good:
             print g
     else:
-        zip.extractall(to_dir, good)
+        tar.extractall(to_dir, good)
 
 def my_winpybundle_print(target, source, env):
     pass
 
 def WinPyBundle(target=None, source=None, env=None):
     import re
-    py_zip= env.subst( env['LCGDIR'] )
-    if py_zip[0]=='#':
-        py_zip= py_zip[1:]
+    py_tar= env.subst( env['LCGDIR'] )
+    if py_tar[0]=='#':
+        py_tar= py_tar[1:]
     if env['BF_DEBUG']:
-        py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '_d.zip'
+        py_tar+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '_d.tar.gz'
     else:
-        py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '.zip'
+        py_tar+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '.tar.gz'
 
     py_target = env.subst( env['BF_INSTALLDIR'] )
     if py_target[0]=='#':
@@ -525,8 +449,8 @@ def WinPyBundle(target=None, source=None, env=None):
                 re.compile('^idlelib/.*'),
                 re.compile('^lib2to3/.*'),
                 re.compile('^tkinter/.*')]
-    print "Unpacking '" + py_zip + "' to '" + py_target + "'"
-    unzip_pybundle(py_zip,py_target,exclude_re)
+    print "Unpacking '" + py_tar + "' to '" + py_target + "'"
+    untar_pybundle(py_tar,py_target,exclude_re)
 
 def  my_appit_print(target, source, env):
     a = '%s' % (target[0])
@@ -546,6 +470,7 @@ def AppIt(target=None, source=None, env=None):
     installdir = env['BF_INSTALLDIR']
     print("compiled architecture: %s"%(osxarch))
     print("Installing to %s"%(installdir))
+    # TODO, use tar.
     python_zip = 'python_' + osxarch + '.zip' # set specific python_arch.zip
     print("unzipping to app-bundle: %s"%(python_zip))
     bldroot = env.Dir('.').abspath
