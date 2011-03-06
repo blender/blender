@@ -75,7 +75,7 @@ all:
 
 	@echo 
 	@echo Building Blender ...
-	cd $(BUILD_DIR) ; make -s -j $(NPROCS)
+	cd $(BUILD_DIR) ; make -s -j $(NPROCS) install
 	@echo 
 	@echo run blender from "$(BUILD_DIR)/bin/blender"
 	@echo 

@@ -15,6 +15,7 @@ override_dh_auto_configure:
 	# blender spesific CMake options
 	dh_auto_configure -- \
 		-DCMAKE_BUILD_TYPE:STRING=Release \
+		-DWITH_INSTALL_PORTABLE:BOOL=OFF \
 		-DWITH_PYTHON_INSTALL:BOOL=OFF \
 		-DWITH_OPENCOLLADA:BOOL=OFF
 
