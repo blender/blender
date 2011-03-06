@@ -126,6 +126,9 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 # Misc
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
 option(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
+if(UNIX AND NOT APPLE)
+	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
+endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
 # Debug

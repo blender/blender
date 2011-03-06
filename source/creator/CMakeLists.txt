@@ -195,126 +195,130 @@ if(WITH_INSTALL)
 	endif()
 
 	if(UNIX AND NOT APPLE)
-		
-		# Local installation, "make install" can be done after this optionally
-		
-		add_custom_command(
-			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-			COMMAND rm -Rf ${TARGETDIR}/${BLENDER_VERSION}
-			COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/
-			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/${BLENDER_VERSION}/
-		)
-	
-		if(WITH_INTERNATIONAL)
-			add_custom_command(
-				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages ${TARGETDIR}/${BLENDER_VERSION}/
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/${BLENDER_VERSION}/
-			)
+
+		if(WITH_INSTALL_PORTABLE)
+			set(TARGETDIR_VER ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/${BLENDER_VERSION})
+		else()
+			set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION})
 		endif()
-	
-		if(WITH_PYTHON)
-			add_custom_command(
-				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMENT "copying blender scripts..."
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/${BLENDER_VERSION}/
-				COMMAND find ${TARGETDIR} -name '*.py[co]' -prune -exec rm -rf {} '\;'
-				COMMAND find ${TARGETDIR} -name '__pycache__' -exec rmdir {} '+'
-			)
-			if(WITH_PYTHON_INSTALL)
-				# Copy the systems python into the install directory
-				# Scons copy in tools/Blender.py
-				add_custom_command(
-					TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-					COMMENT "copying a subset of the systems python..."
 
-					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python # PYTHONPATH and PYTHONHOME is set here
-					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python/lib/
-					COMMAND cp -R ${PYTHON_LIBPATH}/python${PYTHON_VERSION} ${TARGETDIR}/${BLENDER_VERSION}/python/lib/
-
-					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/distutils
-					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/lib2to3
-					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/idlelib
-					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/tkinter
-					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/config
-
-					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/site-packages
-					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/site-packages	# python needs it.
-
-					COMMAND rm -f ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
-					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -type d -name 'test' -prune -exec rm -rf {} '\;'
-					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -type d -name 'turtledemo' -prune -exec rm -rf {} '\;'
-					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -type d -name 'config-*' -prune -exec rm -rf {} '\;'
-					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name '*.py[co]' -exec rm -rf {} '\;'
-					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name '__pycache__' -exec rmdir {} '+'
-					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name '*.so' -exec strip -s {} '\;'
-				)
-			endif()
-		endif()
-	  
-		add_custom_command(
-			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-			COMMAND find ${TARGETDIR} -name .svn -prune -exec rm -rf {} "\;"
-		)
-	
-	
-		# Above we bundle a portable distribution in ./bin
-		# This is an optional "make install" which installs blender on the system.
+		# important to make a clean  install each time
+		# else old scripts get loaded.
 		install(
-			PROGRAMS ${TARGETDIR}/blender
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+			CODE
+			"file(REMOVE_RECURSE ${TARGETDIR_VER})"
 		)
 
-		if(WITH_GAMEENGINE AND WITH_PLAYER)
+		# there are a few differences between portable and system install
+		if(WITH_INSTALL_PORTABLE)
 			install(
-				PROGRAMS ${TARGETDIR}/blenderplayer
+				FILES
+				${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
+				${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/blender.svg
+				${CMAKE_SOURCE_DIR}/doc/manpage/blender.1
+				DESTINATION ${TARGETDIR}
+			)
+
+			install(
+				PROGRAMS
+				${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
+				DESTINATION ${TARGETDIR}
+			)
+
+			install(
+				DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
+				DESTINATION ${TARGETDIR}
+				PATTERN ".svn" EXCLUDE
+			)
+
+		else()
+			# main blender binary
+			install(
+				PROGRAMS ${TARGETDIR}/blender
 				DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 			)
-		endif()
 
-		install(
-			FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications
-		)
-		install(
-			FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/blender.svg
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps
-		)
-		install(
-			PROGRAMS ${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-		)
-		install(
-			FILES ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
-		)
-		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
-			PATTERN ".svn" EXCLUDE
-		)
-		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts/
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION}/scripts
-			PATTERN ".svn" EXCLUDE
-			PATTERN "*.pyc" EXCLUDE
-			PATTERN "__pycache__" EXCLUDE
-		)
-		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/brushicons/
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION}/datafiles/brushicons
-			PATTERN ".svn" EXCLUDE
-		)
-		if(WITH_INTERNATIONAL)
+			# misc files
 			install(
-				DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
-				DESTINATION ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION}/datafiles/locale
+				FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
+				DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications
+			)
+			install(
+				FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/blender.svg
+				DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps
+			)
+			install(
+				PROGRAMS ${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
+				DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+			)
+			install(
+				FILES ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1
+				DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
+			)
+			install(
+				DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
+				DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
 				PATTERN ".svn" EXCLUDE
 			)
 		endif()
-		
-		# end "make install"
-	
+
+		install(
+			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
+			DESTINATION ${TARGETDIR_VER}/config
+		)
+
+		if(WITH_INTERNATIONAL)
+			install(
+				FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
+				DESTINATION ${TARGETDIR_VER}/config
+			)
+
+			install(
+				DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+				DESTINATION ${TARGETDIR_VER}/datafiles/
+				PATTERN ".svn" EXCLUDE
+			)
+		endif()
+
+			install(
+				DIRECTORY ${CMAKE_SOURCE_DIR}/release/plugins
+				DESTINATION ${TARGETDIR_VER}/
+				PATTERN ".svn" EXCLUDE
+			)
+
+		if(WITH_PYTHON)
+			# install(CODE "message(\"copying blender scripts...\")")
+			install(
+				DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts
+				DESTINATION ${TARGETDIR_VER}/
+				PATTERN ".svn" EXCLUDE
+				PATTERN "__pycache__" EXCLUDE
+			)
+
+			if(WITH_PYTHON_INSTALL)
+				# Copy the systems python into the install directory
+				# Scons copy in tools/Blender.py
+				# install(CODE "message(\"copying a subset of the systems python...\")")
+				install(
+					DIRECTORY ${PYTHON_LIBPATH}/python${PYTHON_VERSION}
+					DESTINATION ${TARGETDIR_VER}/python/lib/
+					PATTERN ".svn" EXCLUDE
+					PATTERN "__pycache__" EXCLUDE               # ./distutils
+					PATTERN "distutils" EXCLUDE                 # ./distutils
+					PATTERN "lib2to3" EXCLUDE                   # ./lib2to3
+					PATTERN "config" EXCLUDE                    # ./config
+					PATTERN "config-*" EXCLUDE                  # ./config-*
+					PATTERN "site-packages/*" EXCLUDE           # ./site-packages/*
+					PATTERN "tkinter" EXCLUDE                   # ./tkinter
+					PATTERN "lib-dynload/_tkinter.*" EXCLUDE    # ./lib-dynload/_tkinter.co
+					PATTERN "test" EXCLUDE                      # ./test
+					PATTERN "turtledemo" EXCLUDE                # ./turtledemo
+				)
+
+				# # doesnt work, todo
+				# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
+			endif()
+		endif()
 	elseif(WIN32)
 		# notice 'xcopy /Y /H' on .bfont.ttf, this is needed when building over samba
 		add_custom_command(TARGET blender
