@@ -2056,27 +2056,25 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	if(propmode) editmesh_set_connectivity_distance(em, mtx);
 
 	/* detect CrazySpace [tm] */
-	if(propmode==0) {
-		if(modifiers_getCageIndex(t->scene, t->obedit, NULL, 1)>=0) {
-			if(modifiers_isCorrectableDeformed(t->obedit)) {
-				/* check if we can use deform matrices for modifier from the
-				   start up to stack, they are more accurate than quats */
-				totleft= editmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);
+	if(modifiers_getCageIndex(t->scene, t->obedit, NULL, 1)>=0) {
+		if(modifiers_isCorrectableDeformed(t->obedit)) {
+			/* check if we can use deform matrices for modifier from the
+			   start up to stack, they are more accurate than quats */
+			totleft= editmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);
 
-				/* if we still have more modifiers, also do crazyspace
-				   correction with quats, relative to the coordinates after
-				   the modifiers that support deform matrices (defcos) */
-				if(totleft > 0) {
-					mappedcos= crazyspace_get_mapped_editverts(t->scene, t->obedit);
-					quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
-					crazyspace_set_quats_editmesh(em, (float*)defcos, mappedcos, quats);
-					if(mappedcos)
-						MEM_freeN(mappedcos);
-				}
-
-				if(defcos)
-					MEM_freeN(defcos);
+			/* if we still have more modifiers, also do crazyspace
+			   correction with quats, relative to the coordinates after
+			   the modifiers that support deform matrices (defcos) */
+			if(totleft > 0) {
+				mappedcos= crazyspace_get_mapped_editverts(t->scene, t->obedit);
+				quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
+				crazyspace_set_quats_editmesh(em, (float*)defcos, mappedcos, quats);
+				if(mappedcos)
+					MEM_freeN(mappedcos);
 			}
+
+			if(defcos)
+				MEM_freeN(defcos);
 		}
 	}
 
