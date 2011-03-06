@@ -2150,7 +2150,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 }
 
 /* utility func for ED_view3d_draw_offscreen */
-ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey, unsigned int flag)
+ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey, unsigned int flag, char err_out[256])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	ImBuf *ibuf;
@@ -2160,7 +2160,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	glPushAttrib(GL_LIGHTING_BIT);
 
 	/* bind */
-	ofs= GPU_offscreen_create(&sizex, &sizey);
+	ofs= GPU_offscreen_create(&sizex, &sizey, err_out);
 	if(ofs == NULL)
 		return NULL;
 
@@ -2204,7 +2204,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 }
 
 /* creates own 3d views, used by the sequencer */
-ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, unsigned int flag, int drawtype)
+ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, unsigned int flag, int drawtype, char err_out[256])
 {
 	View3D v3d= {NULL};
 	ARegion ar= {NULL};
@@ -2235,7 +2235,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height
 	mul_m4_m4m4(rv3d.persmat, rv3d.viewmat, rv3d.winmat);
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
-	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag);
+	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag, err_out);
 
 	// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
 }
