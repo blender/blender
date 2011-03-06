@@ -151,7 +151,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		break;
 	case 14: /* Round */
 		{
-			*out= (int)(in0 + 0.5f);
+			*out= (in0<0)?(int)(in0 - 0.5f):(int)(in0 + 0.5f);
 		}
 		break; 
 		
