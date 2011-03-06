@@ -593,11 +593,18 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				mf->mat_nr += mat_ofs_rim;
 				CLAMP(mf->mat_nr, 0, mat_nr_max);
 			}
-			if(crease_outer)
-				ed->crease= crease_outer;
+			if(crease_outer) {
+				/* crease += crease_outer; without wrapping */
+				unsigned char *cr= (unsigned char *)&(ed->crease);
+				int tcr= *cr + crease_outer;
+				*cr= tcr > 255 ? 255 : tcr;
+			}
 
 			if(crease_inner) {
-				medge[numEdges + eidx].crease= crease_inner;
+				/* crease += crease_inner; without wrapping */
+				unsigned char *cr= (unsigned char *)&(medge[numEdges + eidx].crease);
+				int tcr= *cr + crease_inner;
+				*cr= tcr > 255 ? 255 : tcr;
 			}
 			
 #ifdef SOLIDIFY_SIDE_NORMALS
