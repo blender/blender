@@ -161,13 +161,13 @@ class MATERIAL_PT_pipeline(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return mat and (not simple_material(mat)) and (mat.type in ('SURFACE', 'WIRE', 'VOLUME')) and (engine in cls.COMPAT_ENGINES)
+        return mat and (not simple_material(mat)) and (mat.type in {'SURFACE', 'WIRE', 'VOLUME'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self. layout
 
         mat = context.material
-        mat_type = mat.type in ('SURFACE', 'WIRE')
+        mat_type = mat.type in {'SURFACE', 'WIRE'}
 
         row = layout.row()
         row.active = mat_type
@@ -209,7 +209,7 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -264,7 +264,7 @@ class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -284,7 +284,7 @@ class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat, "use_specular_ramp", text="Ramp")
 
         col = layout.column()
-        if mat.specular_shader in ('COOKTORR', 'PHONG'):
+        if mat.specular_shader in {'COOKTORR', 'PHONG'}:
             col.prop(mat, "specular_hardness", text="Hardness")
         elif mat.specular_shader == 'BLINN':
             row = col.row()
@@ -317,14 +317,14 @@ class MATERIAL_PT_shading(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
         mat = active_node_mat(context.material)
 
-        if mat.type in ('SURFACE', 'WIRE'):
+        if mat.type in {'SURFACE', 'WIRE'}:
             split = layout.split()
 
             col = split.column()
@@ -352,7 +352,7 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         mat = context.material
@@ -417,7 +417,7 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         raym = active_node_mat(context.material).raytrace_mirror
@@ -475,7 +475,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         mat = active_node_mat(context.material)
@@ -645,7 +645,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE', 'HALO')) and (engine in cls.COMPAT_ENGINES)
+        return mat and (mat.type in {'SURFACE', 'WIRE', 'HALO'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -691,7 +691,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -739,7 +739,7 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         mat = context.material
         engine = context.scene.render.engine
-        return check_material(mat) and (mat.type in ('SURFACE', 'WIRE')) and (engine in cls.COMPAT_ENGINES)
+        return check_material(mat) and (mat.type in {'SURFACE', 'WIRE'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -875,7 +875,7 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
             sub = col.column()
             sub.active = vol.use_light_cache
             sub.prop(vol, "cache_resolution")
-        elif vol.light_method in ('MULTIPLE_SCATTERING', 'SHADED_PLUS_MULTIPLE_SCATTERING'):
+        elif vol.light_method in {'MULTIPLE_SCATTERING', 'SHADED_PLUS_MULTIPLE_SCATTERING'}:
             sub = col.column()
             sub.enabled = True
             sub.active = False

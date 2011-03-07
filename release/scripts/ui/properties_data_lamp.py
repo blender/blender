@@ -91,7 +91,7 @@ class DATA_PT_lamp(DataButtonsPanel, bpy.types.Panel):
         sub.prop(lamp, "color", text="")
         sub.prop(lamp, "energy")
 
-        if lamp.type in ('POINT', 'SPOT'):
+        if lamp.type in {'POINT', 'SPOT'}:
             sub.label(text="Falloff:")
             sub.prop(lamp, "falloff_type", text="")
             sub.prop(lamp, "distance")
@@ -195,7 +195,7 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         lamp = context.lamp
         engine = context.scene.render.engine
-        return (lamp and lamp.type in ('POINT', 'SUN', 'SPOT', 'AREA')) and (engine in cls.COMPAT_ENGINES)
+        return (lamp and lamp.type in {'POINT', 'SUN', 'SPOT', 'AREA'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -234,7 +234,7 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.label(text="Sampling:")
 
-            if lamp.type in ('POINT', 'SUN', 'SPOT'):
+            if lamp.type in {'POINT', 'SUN', 'SPOT'}:
                 sub = col.row()
 
                 sub.prop(lamp, "shadow_ray_samples", text="Samples")
@@ -265,7 +265,7 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
             col.label(text="Buffer Type:")
             col.row().prop(lamp, "shadow_buffer_type", expand=True)
 
-            if lamp.shadow_buffer_type in ('REGULAR', 'HALFWAY', 'DEEP'):
+            if lamp.shadow_buffer_type in {'REGULAR', 'HALFWAY', 'DEEP'}:
                 split = layout.split()
 
                 col = split.column()
@@ -372,7 +372,7 @@ class DATA_PT_falloff_curve(DataButtonsPanel, bpy.types.Panel):
         lamp = context.lamp
         engine = context.scene.render.engine
 
-        return (lamp and lamp.type in ('POINT', 'SPOT') and lamp.falloff_type == 'CUSTOM_CURVE') and (engine in cls.COMPAT_ENGINES)
+        return (lamp and lamp.type in {'POINT', 'SPOT'} and lamp.falloff_type == 'CUSTOM_CURVE') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         lamp = context.lamp

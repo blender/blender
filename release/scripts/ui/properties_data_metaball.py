@@ -96,7 +96,7 @@ class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
 
         col = split.column(align=True)
 
-        if metaelem.type in ('CUBE', 'ELLIPSOID'):
+        if metaelem.type in {'CUBE', 'ELLIPSOID'}:
             col.label(text="Size:")
             col.prop(metaelem, "size_x", text="X")
             col.prop(metaelem, "size_y", text="Y")

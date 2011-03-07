@@ -55,7 +55,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
 
         split.prop(field, "type", text="")
 
-        if field.type not in ('NONE', 'GUIDE', 'TEXTURE'):
+        if field.type not in {'NONE', 'GUIDE', 'TEXTURE'}:
             split = layout.split(percentage=0.2)
             split.label(text="Shape:")
             split.prop(field, "shape", text="")
@@ -112,7 +112,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
         else:
             basic_force_field_settings_ui(self, context, field)
 
-        if field.type not in ('NONE', 'GUIDE'):
+        if field.type not in {'NONE', 'GUIDE'}:
 
             layout.label(text="Falloff:")
             layout.prop(field, "falloff_type", expand=True)

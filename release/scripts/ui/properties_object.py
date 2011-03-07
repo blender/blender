@@ -111,7 +111,7 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel, bpy.types.Panel):
         col.prop(ob, "lock_location", text="Location")
 
         col = row.column()
-        if ob.rotation_mode in ('QUATERNION', 'AXIS_ANGLE'):
+        if ob.rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
             col.prop(ob, "lock_rotations_4d", text="Rotation")
             if ob.lock_rotations_4d:
                 col.prop(ob, "lock_rotation_w", text="W")

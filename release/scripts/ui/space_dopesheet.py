@@ -118,7 +118,7 @@ class DOPESHEET_HT_header(bpy.types.Header):
             # filters which will work here and are useful (especially for character animation)
             dopesheet_filter(layout, context, genericFiltersOnly=True)
 
-        if st.mode in ('ACTION', 'SHAPEKEY'):
+        if st.mode in {'ACTION', 'SHAPEKEY'}:
             layout.template_ID(st, "action", new="action.new")
 
         # Grease Pencil mode doesn't need snapping, as it's frame-aligned only
@@ -221,7 +221,7 @@ class DOPESHEET_MT_marker(bpy.types.Menu):
         layout.operator("marker.rename", text="Rename Marker")
         layout.operator("marker.move", text="Grab/Move Marker")
 
-        if st.mode in ('ACTION', 'SHAPEKEY') and st.action:
+        if st.mode in {'ACTION', 'SHAPEKEY'} and st.action:
             layout.separator()
             layout.prop(st, "show_pose_markers")
 

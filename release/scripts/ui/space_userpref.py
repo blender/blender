@@ -993,7 +993,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         module_names = {mod.__name__ for mod, info in addons}
         missing_modules = {ext for ext in used_ext if ext not in module_names}
 
-        if missing_modules and filter in ("All", "Enabled"):
+        if missing_modules and filter in {"All", "Enabled"}:
             col.column().separator()
             col.column().label(text="Missing script files")
 

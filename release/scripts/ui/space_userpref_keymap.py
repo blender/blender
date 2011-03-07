@@ -292,7 +292,7 @@ class InputKeyMapPanel(bpy.types.Panel):
 
             box.enabled = km.is_user_defined
 
-            if map_type not in ('TEXTINPUT', 'TIMER'):
+            if map_type not in {'TEXTINPUT', 'TIMER'}:
                 split = box.split(percentage=0.4)
                 sub = split.row()
 

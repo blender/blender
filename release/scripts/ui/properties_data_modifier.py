@@ -536,7 +536,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.label(text="Deform:")
         col.prop(md, "factor")
         col.prop(md, "limits", slider=True)
-        if md.deform_method in ('TAPER', 'STRETCH'):
+        if md.deform_method in {'TAPER', 'STRETCH'}:
             col.prop(md, "lock_x")
             col.prop(md, "lock_y")
 

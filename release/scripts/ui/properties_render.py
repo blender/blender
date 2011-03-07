@@ -299,13 +299,13 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
 
-        if file_format in ('AVI_JPEG', 'JPEG'):
+        if file_format in {'AVI_JPEG', 'JPEG'}:
             layout.prop(rd, "file_quality", slider=True)
 
         if file_format == 'PNG':
             layout.prop(rd, "file_quality", slider=True, text="Compression")
 
-        if file_format in ('OPEN_EXR', 'MULTILAYER'):
+        if file_format in {'OPEN_EXR', 'MULTILAYER'}:
             row = layout.row()
             row.prop(rd, "exr_codec", text="Codec")
 
@@ -325,7 +325,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
             col.prop(rd, "jpeg2k_preset", text="")
             col.prop(rd, "jpeg2k_ycc")
 
-        elif file_format in ('CINEON', 'DPX'):
+        elif file_format in {'CINEON', 'DPX'}:
 
             split = layout.split()
             split.label("FIXME: hard coded Non-Linear, Gamma:1.0")
@@ -384,7 +384,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return rd.file_format in ('FFMPEG', 'XVID', 'H264', 'THEORA')
+        return rd.file_format in {'FFMPEG', 'XVID', 'H264', 'THEORA'}
 
     def draw(self, context):
         layout = self.layout
@@ -395,7 +395,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
 
         split = layout.split()
         split.prop(rd, "ffmpeg_format")
-        if rd.ffmpeg_format in ('AVI', 'QUICKTIME', 'MKV', 'OGG'):
+        if rd.ffmpeg_format in {'AVI', 'QUICKTIME', 'MKV', 'OGG'}:
             split.prop(rd, "ffmpeg_codec")
         else:
             split.label()
@@ -421,7 +421,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
         layout.separator()
 
         # Audio:
-        if rd.ffmpeg_format not in ('MP3', ):
+        if rd.ffmpeg_format not in {'MP3'}:
             layout.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
 
         split = layout.split()
@@ -535,10 +535,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
             fps_rate = round(rd.fps / rd.fps_base, 2)
 
         # TODO: Change the following to iterate over existing presets
-        if (fps_rate in (23.98, 24, 25, 29.97, 30, 50, 59.94, 60)):
-            custom_framerate = False
-        else:
-            custom_framerate = True
+        custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60})
 
         if custom_framerate == True:
             fps_label_text = "Custom (" + str(fps_rate) + " fps)"
@@ -547,7 +544,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
 
         sub.menu("RENDER_MT_framerate_presets", text=fps_label_text)
 
-        if (bpy.types.RENDER_MT_framerate_presets.bl_label == "Custom") or (custom_framerate == True):
+        if custom_framerate or (bpy.types.RENDER_MT_framerate_presets.bl_label == "Custom"):
             sub.prop(rd, "fps")
             sub.prop(rd, "fps_base", text="/")
         subrow = sub.row(align=True)
@@ -618,7 +615,7 @@ class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
 
         if rd.bake_type == 'NORMALS':
             layout.prop(rd, "bake_normal_space")
-        elif rd.bake_type in ('DISPLACEMENT', 'AO'):
+        elif rd.bake_type in {'DISPLACEMENT', 'AO'}:
             layout.prop(rd, "use_bake_normalize")
 
         # col.prop(rd, "bake_aa_mode")

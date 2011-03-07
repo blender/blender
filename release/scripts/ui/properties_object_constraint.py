@@ -34,7 +34,7 @@ class ConstraintButtonsPanel():
             # match enum type to our functions, avoids a lookup table.
             getattr(self, con.type)(context, box, con)
 
-            if con.type not in ('RIGID_BODY_JOINT', 'NULL'):
+            if con.type not in {'RIGID_BODY_JOINT', 'NULL'}:
                 box.prop(con, "influence")
 
     def space_template(self, layout, con, target=True, owner=True):
@@ -65,7 +65,7 @@ class ConstraintButtonsPanel():
                     row = layout.row()
                     row.label(text="Head/Tail:")
                     row.prop(con, "head_tail", text="")
-            elif con.target.type in ('MESH', 'LATTICE'):
+            elif con.target.type in {'MESH', 'LATTICE'}:
                 layout.prop_search(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 
     def ik_template(self, layout, con):

@@ -72,7 +72,7 @@ class OUTLINER_MT_view(bpy.types.Menu):
         space = context.space_data
 
         col = layout.column()
-        if space.display_mode not in ('DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS'):
+        if space.display_mode not in {'DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS'}:
             col.prop(space, "show_restrict_columns")
             col.separator()
             col.operator("outliner.show_active")

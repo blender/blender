@@ -519,12 +519,12 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
             row.prop(brush, "use_pressure_size", toggle=True, text="")
 
-            if brush.sculpt_tool not in ('SNAKE_HOOK', 'GRAB', 'ROTATE'):
+            if brush.sculpt_tool not in {'SNAKE_HOOK', 'GRAB', 'ROTATE'}:
                 col.separator()
 
                 row = col.row(align=True)
 
-                if brush.use_space and brush.sculpt_tool not in ('SMOOTH'):
+                if brush.use_space and brush.sculpt_tool not in {'SMOOTH'}:
                     if brush.use_space_atten:
                         row.prop(brush, "use_space_atten", toggle=True, text="", icon='LOCKED')
                     else:
@@ -533,26 +533,26 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 row.prop(brush, "strength", text="Strength", slider=True)
                 row.prop(brush, "use_pressure_strength", text="")
 
-            if brush.sculpt_tool not in ('SMOOTH'):
+            if brush.sculpt_tool not in {'SMOOTH'}:
                 col.separator()
 
                 row = col.row(align=True)
                 row.prop(brush, "auto_smooth_factor", slider=True)
                 row.prop(brush, "use_inverse_smooth_pressure", toggle=True, text="")
 
-            if brush.sculpt_tool in ('GRAB', 'SNAKE_HOOK'):
+            if brush.sculpt_tool in {'GRAB', 'SNAKE_HOOK'}:
                 col.separator()
 
                 row = col.row(align=True)
                 row.prop(brush, "normal_weight", slider=True)
 
-            if brush.sculpt_tool in ('CREASE', 'BLOB'):
+            if brush.sculpt_tool in {'CREASE', 'BLOB'}:
                 col.separator()
 
                 row = col.row(align=True)
                 row.prop(brush, "crease_pinch_factor", slider=True, text="Pinch")
 
-            if brush.sculpt_tool not in ('PINCH', 'INFLATE', 'SMOOTH'):
+            if brush.sculpt_tool not in {'PINCH', 'INFLATE', 'SMOOTH'}:
                 row = col.row(align=True)
 
                 col.separator()
@@ -564,8 +564,8 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
                 row.prop(brush, "sculpt_plane", text="")
 
-            #if brush.sculpt_tool in ('CLAY', 'CLAY_TUBES', 'FLATTEN', 'FILL', 'SCRAPE'):
-            if brush.sculpt_tool in ('CLAY', 'FLATTEN', 'FILL', 'SCRAPE'):
+            #if brush.sculpt_tool in {'CLAY', 'CLAY_TUBES', 'FLATTEN', 'FILL', 'SCRAPE'}:
+            if brush.sculpt_tool in {'CLAY', 'FLATTEN', 'FILL', 'SCRAPE'}:
                 row = col.row(align=True)
                 row.prop(brush, "plane_offset", slider=True)
                 row.prop(brush, "use_offset_pressure", text="")
@@ -590,7 +590,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
             col.separator()
             col.row().prop(brush, "direction", expand=True)
 
-            if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'INFLATE', 'LAYER', 'CLAY'):
+            if brush.sculpt_tool in {'DRAW', 'CREASE', 'BLOB', 'INFLATE', 'LAYER', 'CLAY'}:
                 col.separator()
 
                 col.prop(brush, "use_accumulate")
@@ -632,7 +632,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
             col.prop(brush, "blend", text="Blend")
 
             col = layout.column()
-            col.active = (brush.blend not in ('ERASE_ALPHA', 'ADD_ALPHA'))
+            col.active = (brush.blend not in {'ERASE_ALPHA', 'ADD_ALPHA'})
             col.prop(brush, "use_alpha")
 
         # Weight Paint Mode #
@@ -709,32 +709,32 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
             col.separator()
 
             col = layout.column()
-            col.active = tex_slot.map_mode in ('FIXED', )
+            col.active = tex_slot.map_mode in {'FIXED'}
             col.label(text="Angle:")
 
             col = layout.column()
-            if not brush.use_anchor and brush.sculpt_tool not in ('GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE') and tex_slot.map_mode in ('FIXED'):
+            if not brush.use_anchor and brush.sculpt_tool not in {'GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE'} and tex_slot.map_mode in {'FIXED'}:
                 col.prop(brush, "texture_angle_source_random", text="")
             else:
                 col.prop(brush, "texture_angle_source_no_random", text="")
 
             #row = col.row(align=True)
             #row.label(text="Angle:")
-            #row.active = tex_slot.map_mode in ('FIXED', 'TILED')
+            #row.active = tex_slot.map_mode in {'FIXED', 'TILED'}
 
             #row = col.row(align=True)
 
             #col = row.column()
-            #col.active = tex_slot.map_mode in ('FIXED')
+            #col.active = tex_slot.map_mode in {'FIXED'}
             #col.prop(brush, "use_rake", toggle=True, icon='PARTICLEMODE', text="")
 
             col = layout.column()
             col.prop(tex_slot, "angle", text="")
-            col.active = tex_slot.map_mode in ('FIXED', 'TILED')
+            col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
 
             #col = layout.column()
             #col.prop(brush, "use_random_rotation")
-            #col.active = (not brush.use_rake) and (not brush.use_anchor) and brush.sculpt_tool not in ('GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE') and tex_slot.map_mode in ('FIXED')
+            #col.active = (not brush.use_rake) and (not brush.use_anchor) and (brush.sculpt_tool not in {'GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE'}) and tex_slot.map_mode in {'FIXED'}
 
             split = layout.split()
 
@@ -754,7 +754,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
 
             row = col.row(align=True)
             row.label(text="Overlay:")
-            row.active = tex_slot.map_mode in ('FIXED', 'TILED')
+            row.active = tex_slot.map_mode in {'FIXED', 'TILED'}
 
             row = col.row(align=True)
 
@@ -765,11 +765,11 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
             else:
                 col.prop(brush, "use_texture_overlay", toggle=True, text="", icon='MUTE_IPO_ON')
 
-            col.active = tex_slot.map_mode in ('FIXED', 'TILED')
+            col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
 
             col = row.column()
             col.prop(brush, "texture_overlay_alpha", text="Alpha")
-            col.active = tex_slot.map_mode in ('FIXED', 'TILED') and brush.use_texture_overlay
+            col.active = tex_slot.map_mode in {'FIXED', 'TILED'} and brush.use_texture_overlay
 
 
 class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
@@ -850,7 +850,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
                 row.active = brush.use_space
                 row.prop(brush, "spacing", text="Spacing")
 
-            if brush.sculpt_tool not in ('GRAB', 'THUMB', 'SNAKE_HOOK', 'ROTATE') and (not brush.use_anchor) and (not brush.use_restore_mesh):
+            if (brush.sculpt_tool not in {'GRAB', 'THUMB', 'SNAKE_HOOK', 'ROTATE'}) and (not brush.use_anchor) and (not brush.use_restore_mesh):
                 col = layout.column()
                 col.separator()
 
@@ -889,7 +889,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
             col.separator()
 
             col = layout.column()
-            col.active = (not brush.use_anchor) and (brush.sculpt_tool not in ('GRAB', 'THUMB', 'ROTATE', 'SNAKE_HOOK'))
+            col.active = (not brush.use_anchor) and (brush.sculpt_tool not in {'GRAB', 'THUMB', 'ROTATE', 'SNAKE_HOOK'})
 
             row = col.row()
             row.prop(brush, "use_space")
@@ -1022,8 +1022,8 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
         col = layout.column()
 
         if context.sculpt_object and context.tool_settings.sculpt:
-            #if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE', 'CLAY_TUBES'):
-            if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE'):
+            #if brush.sculpt_tool in {'DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE', 'CLAY_TUBES'}:
+            if brush.sculpt_tool in {'DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE'}:
                 col.prop(brush, "cursor_color_add", text="Add Color")
                 col.prop(brush, "cursor_color_subtract", text="Subtract Color")
             else:

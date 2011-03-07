@@ -30,7 +30,7 @@ def particle_panel_enabled(context, psys):
     if psys == None:
         return True
     phystype = psys.settings.physics_type
-    if psys.settings.type in ('EMITTER', 'REACTOR') and phystype in ('NO', 'KEYED'):
+    if psys.settings.type in {'EMITTER', 'REACTOR'} and phystype in {'NO', 'KEYED'}:
         return True
     else:
         return (psys.point_cache.is_baked is False) and (not psys.is_edited) and (not context.particle_system_editable)
@@ -321,7 +321,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel, bpy.types.Panel):
         phystype = psys.settings.physics_type
         if phystype == 'NO' or phystype == 'KEYED':
             return False
-        return (psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and (psys.use_hair_dynamics or psys.point_cache.is_baked))) and engine in cls.COMPAT_ENGINES
+        return (psys.settings.type in {'EMITTER', 'REACTOR'} or (psys.settings.type == 'HAIR' and (psys.use_hair_dynamics or psys.point_cache.is_baked))) and engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         psys = context.particle_system
@@ -593,7 +593,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
             col.prop(boids, "pitch", slider=True)
             col.prop(boids, "height", slider=True)
 
-        if psys and part.physics_type in ('KEYED', 'BOIDS', 'FLUID'):
+        if psys and part.physics_type in {'KEYED', 'BOIDS', 'FLUID'}:
             if part.physics_type == 'BOIDS':
                 layout.label(text="Relations:")
             elif part.physics_type == 'FLUID':

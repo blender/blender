@@ -143,7 +143,7 @@ class IMAGE_MT_image(bpy.types.Menu):
                 # only for dirty && specific image types, perhaps
                 # this could be done in operator poll too
                 if ima.is_dirty:
-                    if ima.source in ('FILE', 'GENERATED') and ima.type != 'MULTILAYER':
+                    if ima.source in {'FILE', 'GENERATED'} and ima.type != 'MULTILAYER':
                         layout.operator("image.pack", text="Pack As PNG").as_png = True
 
             layout.separator()
@@ -404,7 +404,7 @@ class IMAGE_HT_header(bpy.types.Header):
             row = layout.row(align=True)
             if ima.type == 'COMPOSITE':
                 row.operator("image.record_composite", icon='REC')
-            if ima.type == 'COMPOSITE' and ima.source in ('MOVIE', 'SEQUENCE'):
+            if ima.type == 'COMPOSITE' and ima.source in {'MOVIE', 'SEQUENCE'}:
                 row.operator("image.play_composite", icon='PLAY')
 
         if show_uvedit or sima.use_image_paint:
