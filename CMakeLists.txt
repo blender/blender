@@ -718,13 +718,12 @@ elseif(WIN32)
 			set(WITH_JACK OFF)
 		endif()
 
-		# TODO: mingw move to Python 3.2
 		if(WITH_PYTHON)
 			set(PYTHON ${LIBDIR}/python)
-			set(PYTHON_VERSION 3.1)
+			set(PYTHON_VERSION 3.2)
 			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARY python31mw)
+			set(PYTHON_LIBRARY python32mw)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
 

@@ -181,7 +181,13 @@ endif()
 
 # Post build steps for bundling/packaging.
 
-set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
+
+if(MSVC)
+	# ${CMAKE_CFG_INTDIR} should replace \${BUILD_TYPE} when using add_command
+	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
+else()
+	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH})
+endif()
 
 if(WITH_INSTALL)
 
@@ -320,147 +326,178 @@ if(WITH_INSTALL)
 			endif()
 		endif()
 	elseif(WIN32)
-		# notice 'xcopy /Y /H' on .bfont.ttf, this is needed when building over samba
-		add_custom_command(TARGET blender
-			POST_BUILD
-			MAIN_DEPENDENCY blender
-			COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\"
-			COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\\scripts\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\\scripts\"
-			COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\\config\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\\config\"
-			COMMAND if not exist \"${TARGETDIR}\\plugins\" mkdir \"${TARGETDIR}\\plugins\"
-			COMMAND xcopy /Y /H \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\\"
-			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\scripts\\\"
-			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\plugins\\\"
-			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\\\"
+
+		set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
+
+		install(  # same as linux!, deduplicate
+			CODE
+			"file(REMOVE_RECURSE ${TARGETDIR_VER})"
 		)
-	
-		if(CMAKE_CL_64)
-			# gettext and png are statically linked on win64
-			add_custom_command(TARGET blender
-				POST_BUILD
-				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
+
+		install(  # same as linux!, deduplicate
+			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
+			DESTINATION ${TARGETDIR_VER}/../
+			PATTERN ".svn" EXCLUDE
+		)
+
+		install(  # same as linux!, deduplicate
+			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
+			DESTINATION ${TARGETDIR_VER}/config
+		)
+
+		if(WITH_INTERNATIONAL) # same as linux!, deduplicate
+			install(
+				FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
+				DESTINATION ${TARGETDIR_VER}/config
 			)
-		else()
-			add_custom_command(TARGET blender
-				POST_BUILD
-				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${LIBDIR}\\png\\lib\\libpng.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
+			install(
+				DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+				DESTINATION ${TARGETDIR_VER}/datafiles/
+				PATTERN ".svn" EXCLUDE
 			)
+
+			if(NOT CMAKE_CL_64)
+				install(
+					FILES ${LIBDIR}/iconv/lib/iconv.dll
+					DESTINATION ${TARGETDIR}/
+				)
+			endif()
 		endif()
-		
-		
-		if(MSVC)
-			add_custom_command(TARGET blender
-				POST_BUILD
-				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
-			)
-		else()
-			add_custom_command(TARGET blender
-				POST_BUILD
-				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${LIBDIR}\\pthreads\\lib\\pthreadGC2.dll\" \"${TARGETDIR}\\\"
-			)
-		endif()
+
+		install( # same as linux!, deduplicate
+			DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION}/datafiles/locale
+			PATTERN ".svn" EXCLUDE
+		)
+
+		install( # same as linux!, deduplicate
+			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
+			DESTINATION ${TARGETDIR_VER}/../
+			PATTERN ".svn" EXCLUDE
+		)
+
+		install(  # TODO, copy to linux
+			DIRECTORY ${CMAKE_SOURCE_DIR}/release/plugins
+			DESTINATION ${TARGETDIR_VER}/
+			PATTERN ".svn" EXCLUDE
+		)
 
 		if(WITH_PYTHON)
-			# note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
-			if(NOT CMAKE_BUILD_TYPE) # hack: with multi-configuration generator this is "", so for now copy both python32.dll/zip and python32_d.dll/zip
-				add_custom_command(TARGET blender
-					POST_BUILD
-					MAIN_DEPENDENCY blender
-					COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\"
-					COMMAND if \"$(ConfigurationName)\" == \"\" copy /Y \"${LIBDIR}\\python\\lib\\python32.dll\" \"${TARGETDIR}\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"\" xcopy /E /Y \"${LIBDIR}\\release\\python32\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"Debug\" copy /Y \"${LIBDIR}\\python\\lib\\python32_d.dll\" \"${TARGETDIR}\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"Debug\" xcopy /E /Y \"${LIBDIR}\\release\\python32_d\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"RelWithDebInfo\" copy /Y \"${LIBDIR}\\python\\lib\\python32.dll\" \"${TARGETDIR}\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"RelWithDebInfo\" xcopy /E /Y \"${LIBDIR}\\release\\python32\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"Release\" copy /Y \"${LIBDIR}\\python\\lib\\python32.dll\" \"${TARGETDIR}\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"Release\" xcopy /E /Y \"${LIBDIR}\\release\\python32\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"MinSizeRel\" copy /Y \"${LIBDIR}\\python\\lib\\python32.dll\" \"${TARGETDIR}\\\"
-					COMMAND if \"$(ConfigurationName)\" == \"MinSizeRel\" xcopy /E /Y \"${LIBDIR}\\release\\python32\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
+			# install(CODE "message(\"copying blender scripts...\")")
+			install(  # same as linux!, deduplicate
+				DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts
+				DESTINATION ${TARGETDIR_VER}/
+				PATTERN ".svn" EXCLUDE
+				PATTERN "__pycache__" EXCLUDE
+			)
+
+			# TODO, multiple targets?
+			install(FILES ${LIBDIR}/python/lib/python32.dll DESTINATION ${TARGETDIR}/ CONFIGURATIONS Release)
+			install(FILES ${LIBDIR}/python/lib/python32.dll DESTINATION ${TARGETDIR}/ CONFIGURATIONS RelWithDebInfo)
+			install(FILES ${LIBDIR}/python/lib/python32.dll DESTINATION ${TARGETDIR}/ CONFIGURATIONS MinSizeRel)
+
+			install(
+				FILES ${LIBDIR}/python/lib/python32_d.dll
+				DESTINATION ${TARGETDIR}/
+				CONFIGURATIONS Debug
+			)
+
+			if(WITH_PYTHON_INSTALL)
+				#~ # note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
+				# install(CODE "message(\"copying a subset of the systems python...\")")
+
+				install(
+					CODE
+					"execute_process(COMMAND ${CMAKE_COMMAND}
+					-E make_directory ${TARGETDIR_VER}/python/lib/)"
 				)
-			else()
-				if(CMAKE_BUILD_TYPE STREQUAL Debug)
-					add_custom_command(TARGET blender
-						POST_BUILD
-						MAIN_DEPENDENCY blender
-						COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python32_d.dll\" \"${TARGETDIR}\\\"
-						COMMAND xcopy /E /Y \"${LIBDIR}\\release\\python32_d\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
-					)
-				else()
-					add_custom_command(TARGET blender
-						POST_BUILD
-						MAIN_DEPENDENCY blender
-						COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python32.dll\" \"${TARGETDIR}\\\"
-						COMMAND xcopy /E /Y \"${LIBDIR}\\release\\python32\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\python\\lib\\\"
-					)
-				endif()
+
+				install(
+					CODE
+					"
+					if(BUILD_TYPE MATCHES \"Debug\")
+						set(PYBUNDLE \"python32_d.tar.gz\")
+					else()
+						set(PYBUNDLE \"python32.tar.gz\")
+					endif()
+
+					execute_process(COMMAND ${CMAKE_COMMAND}
+						-E chdir ${TARGETDIR_VER}/python/lib/
+						${CMAKE_COMMAND} -E tar xzfv ${LIBDIR}/release/\${PYBUNDLE})
+					"
+				)
+
+				# TODO, debug
+
+				# doesnt work, todo
+				# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
 			endif()
 		endif()
 
-		if(WITH_INTERNATIONAL)
-			if(CMAKE_CL_64)
-				# iconv is statically linked on win64
-				add_custom_command(TARGET blender
-					POST_BUILD
-					MAIN_DEPENDENCY blender
-					COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\"
-					COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\\" 
-					COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\\\"
-				)
-			else()
-				add_custom_command(TARGET blender
-					POST_BUILD
-					MAIN_DEPENDENCY blender
-					COMMAND copy /Y \"${LIBDIR}\\iconv\\lib\\iconv.dll\" \"${TARGETDIR}\\\"
-					COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\"
-					COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\\" 
-					COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\\\"
-				)
-			endif()
+		if(CMAKE_CL_64)
+			# gettext and png are statically linked on win64
+			install(
+				FILES ${LIBDIR}/zlib/lib/zlib.dll
+				DESTINATION ${TARGETDIR}/
+			)
+		else()
+			install(
+				FILES
+				${LIBDIR}/gettext/lib/gnu_gettext.dll # TODO INTERNATIONAL ONLY!
+				${LIBDIR}/png/lib/libpng.dll
+				${LIBDIR}/zlib/lib/zlib.dll
+				DESTINATION ${TARGETDIR}/
+			)
+		endif()
+
+		if(MSVC)
+			install(
+				FILES ${LIBDIR}/pthreads/lib/pthreadVC2.dll
+				DESTINATION ${TARGETDIR}/
+			)
+		else()
+			install(
+				FILES ${LIBDIR}/pthreads/lib/pthreadGC2.dll
+				DESTINATION ${TARGETDIR}/
+			)
 		endif()
 
 		if(WITH_CODEC_FFMPEG)
-			add_custom_command(TARGET blender
-				POST_BUILD
-				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\avcodec-52.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\avformat-52.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\avdevice-52.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\avutil-50.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\swscale-0.dll\" \"${TARGETDIR}\\\"
+			install(
+				FILES
+				${LIBDIR}/ffmpeg/lib/avcodec-52.dll
+				${LIBDIR}/ffmpeg/lib/avformat-52.dll
+				${LIBDIR}/ffmpeg/lib/avdevice-52.dll
+				${LIBDIR}/ffmpeg/lib/avutil-50.dll
+				${LIBDIR}/ffmpeg/lib/swscale-0.dll
+				DESTINATION ${TARGETDIR}/
 			)
+			
 		endif()
 
 		if(WITH_CODEC_SNDFILE)
-			add_custom_command(TARGET blender
-				POST_BUILD
-				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${LIBDIR}\\sndfile\\lib\\libsndfile-1.dll\" \"${TARGETDIR}\\\"
+			install(
+				FILES
+				${LIBDIR}/sndfile/lib/libsndfile-1.dll
+				DESTINATION ${TARGETDIR}/
 			)
 		endif()
 
 		if(WITH_OPENAL)
-			add_custom_command(TARGET blender
-				POST_BUILD
-				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${LIBDIR}\\openal\\lib\\OpenAL32.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${LIBDIR}\\openal\\lib\\wrap_oal.dll\" \"${TARGETDIR}\\\"
-
+			install(
+				FILES
+				${LIBDIR}/openal/lib/OpenAL32.dll
+				${LIBDIR}/openal/lib/wrap_oal.dll
+				DESTINATION ${TARGETDIR}/
 			)
 		endif()
 
 		if(WITH_SDL)
 			if(NOT CMAKE_CL_64)
-				add_custom_command(TARGET blender
-					POST_BUILD
-					MAIN_DEPENDENCY blender
-					COMMAND copy /Y \"${LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
+				install(
+					FILES
+					${LIBDIR}/sdl/lib/SDL.dll
+					DESTINATION ${TARGETDIR}/
 				)
 			endif()
 		endif()
