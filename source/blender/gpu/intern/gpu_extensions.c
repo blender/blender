@@ -54,6 +54,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "BLI_winstuff.h"
+
 /* Extensions support */
 
 /* extensions used:
