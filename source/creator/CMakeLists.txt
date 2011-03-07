@@ -148,7 +148,7 @@ if(WITH_BUILDINFO)
 	set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/buildinfo.h
 		PROPERTIES GENERATED TRUE
 		HEADER_FILE_ONLY TRUE)
-		
+
 	# add deps below, after adding blender
 	# -------------- done with header values.
 
@@ -356,6 +356,11 @@ if(WITH_INSTALL)
 				PATTERN ".svn" EXCLUDE
 			)
 
+			install(
+				FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
+				DESTINATION ${TARGETDIR}/
+			)
+
 			if(NOT CMAKE_CL_64)
 				install(
 					FILES ${LIBDIR}/iconv/lib/iconv.dll
@@ -427,8 +432,6 @@ if(WITH_INSTALL)
 					"
 				)
 
-				# TODO, debug
-
 				# doesnt work, todo
 				# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
 			endif()
@@ -443,7 +446,6 @@ if(WITH_INSTALL)
 		else()
 			install(
 				FILES
-				${LIBDIR}/gettext/lib/gnu_gettext.dll # TODO INTERNATIONAL ONLY!
 				${LIBDIR}/png/lib/libpng.dll
 				${LIBDIR}/zlib/lib/zlib.dll
 				DESTINATION ${TARGETDIR}/
@@ -472,7 +474,7 @@ if(WITH_INSTALL)
 				${LIBDIR}/ffmpeg/lib/swscale-0.dll
 				DESTINATION ${TARGETDIR}/
 			)
-			
+
 		endif()
 
 		if(WITH_CODEC_SNDFILE)
@@ -518,7 +520,7 @@ if(WITH_INSTALL)
 			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
 			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
 		)
-	  
+
 		if(WITH_INTERNATIONAL)
 			add_custom_command(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
@@ -526,7 +528,7 @@ if(WITH_INSTALL)
 				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
 			)
 		endif()
-	  
+
 		if(WITH_PYTHON)
 			set(PYTHON_ZIP "python_${CMAKE_OSX_ARCHITECTURES}.zip")
 			add_custom_command(
@@ -537,10 +539,10 @@ if(WITH_INSTALL)
 				COMMAND find ${TARGETDIR}/blender.app -name '*.py[co]' -prune -exec rm -rf {} '\;'
 				COMMAND find ${TARGETDIR}/blender.app -name '__pycache__' -exec rmdir {} '+'
 			)
-		endif()	  
-	
+		endif()
+
 		add_custom_command(
-			TARGET blender POST_BUILD MAIN_DEPENDENCY blender	
+			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 			COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
 			COMMAND find ${TARGETDIR}/blender.app -name .svn -prune -exec rm -rf {} "\;"
 			COMMAND find ${TARGETDIR}/blender.app -name __MACOSX -prune -exec rm -rf {} "\;"
@@ -603,10 +605,10 @@ endif()
 		bf_editor_animation
 		bf_editor_datafiles
 
-		bf_render 
-		bf_intern_opennl 
-		bf_python 
-		bf_python_ext 
+		bf_render
+		bf_intern_opennl
+		bf_python
+		bf_python_ext
 		bf_ikplugin
 		bf_modifiers
 		bf_blenkernel
@@ -616,44 +618,44 @@ endif()
 		bf_blenlib
 		bf_intern_ghost
 		bf_intern_string
-		bf_blenpluginapi 
-		bf_imbuf 
-		bf_avi 
-		bf_imbuf_cineon 
-		bf_imbuf_openexr 
+		bf_blenpluginapi
+		bf_imbuf
+		bf_avi
+		bf_imbuf_cineon
+		bf_imbuf_openexr
 		bf_imbuf_dds
 		bf_readblenfile
 		bf_collada
-		bf_intern_bsp 
-		bf_intern_bop 
-		bf_gen_system 
-		bf_intern_decimate 
-		bf_intern_elbeem 
-		bf_intern_ik 
-		bf_intern_memutil 
-		bf_intern_guardedalloc 
-		bf_intern_ctr 
-		ge_blen_routines 
-		ge_converter 
+		bf_intern_bsp
+		bf_intern_bop
+		bf_gen_system
+		bf_intern_decimate
+		bf_intern_elbeem
+		bf_intern_ik
+		bf_intern_memutil
+		bf_intern_guardedalloc
+		bf_intern_ctr
+		ge_blen_routines
+		ge_converter
 		ge_phys_dummy
-		ge_phys_bullet 
+		ge_phys_bullet
 		bf_intern_smoke
 		extern_minilzo
 		extern_lzma
-		ge_logic_ketsji 
+		ge_logic_ketsji
 		ge_phys_common
-		ge_logic 
-		ge_rasterizer 
-		ge_oglrasterizer 
-		ge_logic_expressions 
-		ge_scenegraph 
-		ge_logic_network 
+		ge_logic
+		ge_rasterizer
+		ge_oglrasterizer
+		ge_logic_expressions
+		ge_scenegraph
+		ge_logic_network
 		bf_gen_system
 		bf_python # duplicate for BPY_driver_exec
-		ge_logic_ngnetwork 
-		extern_bullet 
-		ge_logic_loopbacknetwork 
-		bf_intern_moto 
+		ge_logic_ngnetwork
+		extern_bullet
+		ge_logic_loopbacknetwork
+		bf_intern_moto
 		extern_glew
 		extern_openjpeg
 		extern_redcode

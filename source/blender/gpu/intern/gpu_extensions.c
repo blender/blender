@@ -258,16 +258,13 @@ static void GPU_print_framebuffer_error(GLenum status, char err_out[256])
 	}
 
 	if(err_out) {
-		snprintf(err_out, 256, "GPUFrameBuffer: framebuffer incomplete error %d '%s'",
-			(int)status,
-			err);
+		BLI_snprintf(err_out, 256, "GPUFrameBuffer: framebuffer incomplete error %d '%s'",
+			(int)status, err);
 	}
 	else {
 		fprintf(stderr, "GPUFrameBuffer: framebuffer incomplete error %d '%s'\n",
-			(int)status,
-			err);
+			(int)status, err);
 	}
-
 }
 
 /* GPUTexture */
@@ -349,7 +346,7 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 
 	if (!tex->bindcode) {
 		if(err_out) {
-			snprintf(err_out, 256, "GPUTexture: texture create failed: %d",
+			BLI_snprintf(err_out, 256, "GPUTexture: texture create failed: %d",
 				(int)glGetError());
 		}
 		else {
