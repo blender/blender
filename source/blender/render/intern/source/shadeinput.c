@@ -582,7 +582,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 		}
 	}
 	
-	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+	if (shi->do_manage) {
 		if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
 			srgb_to_linearrgb_v3_v3(shi->vcol, shi->vcol);
 		}
@@ -1315,7 +1315,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	} /* else {
 	 Note! For raytracing winco is not set, important because thus means all shader input's need to have their variables set to zero else in-initialized values are used
 	*/
-	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+	if (shi->do_manage) {
 		if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
 			srgb_to_linearrgb_v3_v3(shi->vcol, shi->vcol);
 		}
@@ -1334,6 +1334,7 @@ void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, in
 	shi->sample= sample;
 	shi->thread= pa->thread;
 	shi->do_preview= (R.r.scemode & R_MATNODE_PREVIEW) != 0;
+	shi->do_manage= (R.r.color_mgt_flag & R_COLOR_MANAGEMENT);
 	shi->lay= rl->lay;
 	shi->layflag= rl->layflag;
 	shi->passflag= rl->passflag;

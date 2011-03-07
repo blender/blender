@@ -155,7 +155,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		col[3]= shrnode.alpha;
 		
 		if(shi->do_preview)
-			nodeAddToPreview(node, col, shi->xs, shi->ys);
+			nodeAddToPreview(node, col, shi->xs, shi->ys, shi->do_manage);
 		
 		VECCOPY(out[MAT_OUT_COLOR]->vec, col);
 		out[MAT_OUT_ALPHA]->vec[0]= shrnode.alpha;

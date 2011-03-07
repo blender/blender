@@ -116,7 +116,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		VECCOPY(out[2]->vec, nor);
 		
 		if(shi->do_preview)
-			nodeAddToPreview(node, out[1]->vec, shi->xs, shi->ys);
+			nodeAddToPreview(node, out[1]->vec, shi->xs, shi->ys, shi->do_manage);
 		
 	}
 }

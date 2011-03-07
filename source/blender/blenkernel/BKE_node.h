@@ -168,7 +168,7 @@ void			ntreeLocalMerge(struct bNodeTree *localtree, struct bNodeTree *ntree);
 
 void			nodeVerifyType(struct bNodeTree *ntree, struct bNode *node);
 
-void			nodeAddToPreview(struct bNode *, float *, int, int);
+void			nodeAddToPreview(struct bNode *, float *, int, int, int);
 
 void			nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
 void			nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
