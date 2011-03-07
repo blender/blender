@@ -413,9 +413,6 @@ void draw_markers_time(const bContext *C, int flag)
  * primary operations of those editors.
  */
 
-/* maximum y-axis value (in region screen-space) that marker events should still be accepted for  */
-#define ANIMEDIT_MARKER_YAXIS_MAX 	30
-
 /* ------------------------ */
 
 /* special poll() which checks if there are selected markers first */
@@ -460,15 +457,7 @@ static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, wmEvent 
 	ScrArea *sa = CTX_wm_area(C);
 	int retval = OPERATOR_PASS_THROUGH;
 	
-	/* only timeline view doesn't need calling-location validation as it's the only dedicated view */
-	if (sa->spacetype != SPACE_TIME) {
-		/* restrict y-values to within ANIMEDIT_MARKER_YAXIS_MAX of the view's vertical extents, including scrollbars */
-		if (evt->mval[1] > ANIMEDIT_MARKER_YAXIS_MAX) {
-			/* not ok... "pass-through" to let normal editor's operators have a chance at tackling this event... */
-			//printf("MARKER-WRAPPER-DEBUG: event mval[1] = %d, so over accepted tolerance\n", evt->mval[1]);
-			return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
-		}
-	}
+	/* removed check for Y coord of event, keymap has bounbox now */
 	
 	/* allow operator to run now */
 	if (invoke_func)
