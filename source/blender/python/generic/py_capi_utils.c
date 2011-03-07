@@ -60,18 +60,6 @@ void PyC_LineSpit(void) {
 	fprintf(stderr, "%s:%d\n", filename, lineno);
 }
 
-/* python 3.2 only, copied from frameobjec.c */
-#if PY_VERSION_HEX <  0x03020000
-int
-PyFrame_GetLineNumber(PyFrameObject *f)
-{
-    if (f->f_trace)
-        return f->f_lineno;
-    else
-        return PyCode_Addr2Line(f->f_code, f->f_lasti);
-}
-#endif
-
 void PyC_FileAndNum(const char **filename, int *lineno)
 {
 	PyFrameObject *frame;

@@ -415,11 +415,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 
 		excdict= PyDict_Copy(m_pythondictionary);
 
-#if PY_VERSION_HEX >=  0x03020000
 		resultobj = PyEval_EvalCode((PyObject *)m_bytecode, excdict, excdict);
-#else
-		resultobj = PyEval_EvalCode((PyCodeObject *)m_bytecode, excdict, excdict);
-#endif
 
 		/* PyRun_SimpleString(m_scriptText.Ptr()); */
 		break;

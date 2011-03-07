@@ -190,9 +190,9 @@ set(CXX_WARNINGS "")
 
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix: 
-#   cmake -D PYTHON_LIBRARY=/usr/local/lib/python3.1/config/libpython3.1.so -D PYTHON_INCLUDE_DIRS=/usr/local/include/python3.1 -G "Unix Makefiles" ../blender
+#   cmake -D PYTHON_LIBRARY=/usr/local/lib/python3.2/config/libpython3.2.so -D PYTHON_INCLUDE_DIRS=/usr/local/include/python3.2 ../blender
 # On Macs: 
-#   cmake -D PYTHON_INCLUDE_DIRS=/System/Library/Frameworks/Python.framework/Versions/3.1/include/python3.1 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.1/lib/python3.1/config -G Xcode ../blender
+#   cmake -D PYTHON_INCLUDE_DIRS=/System/Library/Frameworks/Python.framework/Versions/3.2/include/python3.2 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.2/lib/python3.2/config -G Xcode ../blender
 #
 # When changing any of this remember to update the notes in doc/build_systems/cmake.txt
 
@@ -250,7 +250,7 @@ if(UNIX AND NOT APPLE)
 		# No way to set py31. remove for now.
 		# find_package(PythonLibs)
 		set(PYTHON /usr)
-		set(PYTHON_VERSION 3.1 CACHE STRING "")
+		set(PYTHON_VERSION 3.2 CACHE STRING "")
 		mark_as_advanced(PYTHON_VERSION)
 		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
 		mark_as_advanced(PYTHON_INCLUDE_DIRS)
@@ -772,7 +772,7 @@ elseif(APPLE)
 	set(PYTHON_VERSION 3.2)
 
 	if(PYTHON_VERSION MATCHES 3.2)
-		# we use precompiled libraries for py 3.1 and up by default
+		# we use precompiled libraries for py 3.2 and up by default
 
 		set(PYTHON ${LIBDIR}/python)
 		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
@@ -784,7 +784,7 @@ elseif(APPLE)
 		# otherwise, use custom system framework
 
 		set(PYTHON /System/Library/Frameworks/Python.framework/Versions/)
-		set(PYTHON_VERSION 3.1)
+		set(PYTHON_VERSION 3.2)
 		set(PYTHON_INCLUDE_DIRS "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}")
 		# set(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION}) # not used yet
 		set(PYTHON_LIBRARY "")

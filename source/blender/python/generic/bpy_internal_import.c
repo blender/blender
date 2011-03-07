@@ -74,16 +74,9 @@ void bpy_import_main_set(struct Main *maggie)
 }
 
 /* returns a dummy filename for a textblock so we can tell what file a text block comes from */
-void bpy_text_filename_get(char *fn, Text *text)
+void bpy_text_filename_get(char *fn, size_t fn_len, Text *text)
 {
-#if PY_VERSION_HEX >=  0x03020000
-	sprintf(fn, "%s%c%s", text->id.lib ? text->id.lib->filepath : G.main->name, SEP, text->id.name+2);
-#else
-	/* this is a bug in python's Py_CompileString()!, fixed for python 3.2.
-	 the string encoding should not be required to be utf-8
-	 reported: http://bugs.python.org/msg115202  */
-	strcpy(fn, text->id.name+2);
-#endif
+	BLI_snprintf(fn, fn_len, "%s%c%s", text->id.lib ? text->id.lib->filepath : G.main->name, SEP, text->id.name+2);
 }
 
 PyObject *bpy_text_import(Text *text)
@@ -94,7 +87,7 @@ PyObject *bpy_text_import(Text *text)
 
 	if( !text->compiled ) {
 		char fn_dummy[256];
-		bpy_text_filename_get(fn_dummy, text);
+		bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
 
 		buf = txt_to_buf( text );
 		text->compiled = Py_CompileString( buf, fn_dummy, Py_file_input );

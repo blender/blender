@@ -378,7 +378,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 
 	if (text) {
 		char fn_dummy[FILE_MAXDIR];
-		bpy_text_filename_get(fn_dummy, text);
+		bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
 
 		if( !text->compiled ) {	/* if it wasn't already compiled, do it now */
 			char *buf = txt_to_buf( text );
