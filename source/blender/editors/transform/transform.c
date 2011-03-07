@@ -54,22 +54,10 @@
 
 #include "RNA_access.h"
 
-//#include "BIF_editview.h"		/* arrows_move_cursor	*/
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-//#include "BIF_mywindow.h"
-//#include "BIF_resources.h"
-//#include "BIF_screen.h"
-//#include "BIF_space.h"			/* undo					*/
-//#include "BIF_toets.h"			/* persptoetsen			*/
-//#include "BIF_mywindow.h"		/* warp_pointer			*/
-//#include "BIF_toolbox.h"			/* notice				*/
-//#include "BIF_editmesh.h"
-//#include "BIF_editsima.h"
-//#include "BIF_editparticle.h"
 
 #include "BKE_nla.h"
-//#include "BKE_bad_level_calls.h"/* popmenu and error	*/
 #include "BKE_bmesh.h"
 #include "BKE_context.h"
 #include "BKE_constraint.h"
@@ -77,8 +65,6 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_unit.h"
-
-//#include "BSE_view.h"
 
 #include "ED_image.h"
 #include "ED_keyframing.h"
@@ -551,9 +537,6 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, 0, 0, TFM_MODAL_ADD_SNAP);
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, KM_ALT, 0, TFM_MODAL_REMOVE_SNAP);
 
-	WM_modalkeymap_add_item(keymap, UPARROWKEY, KM_PRESS, 0, 0, NUM_MODAL_INCREMENT_UP);
-	WM_modalkeymap_add_item(keymap, DOWNARROWKEY, KM_PRESS, 0, 0, NUM_MODAL_INCREMENT_DOWN);
-	
 	WM_modalkeymap_add_item(keymap, PAGEUPKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
 	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
@@ -1070,7 +1053,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		// Snapping events
 		t->redraw |= handleSnapping(t, event);
 
-		//arrows_move_cursor(event->type);
 	}
 	else if (event->val==KM_RELEASE) {
 		switch (event->type){

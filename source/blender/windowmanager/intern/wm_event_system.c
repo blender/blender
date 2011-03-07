@@ -1557,6 +1557,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 		}
 	}
+	
+	if(action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL))
+		wm_cursor_arrow_move(CTX_wm_window(C), event);
 
 	return action;
 }
@@ -1939,11 +1942,13 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	WM_event_fileselect_event(C, op, full?EVT_FILESELECT_FULL_OPEN:EVT_FILESELECT_OPEN);
 }
 
+#if 0
 /* lets not expose struct outside wm? */
 static void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 {
 	handler->flag= flag;
 }
+#endif
 
 wmEventHandler *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 {
@@ -2089,11 +2094,13 @@ void WM_event_remove_area_handler(ListBase *handlers, void *area)
 	}
 }
 
+#if 0
 static void WM_event_remove_handler(ListBase *handlers, wmEventHandler *handler)
 {
 	BLI_remlink(handlers, handler);
 	wm_event_free_handler(handler);
 }
+#endif
 
 void WM_event_add_mousemove(bContext *C)
 {

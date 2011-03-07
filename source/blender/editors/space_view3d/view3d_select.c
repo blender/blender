@@ -198,26 +198,6 @@ static void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 	}
 }
 
-#if 0
-void arrows_move_cursor(unsigned short event)
-{
-	short mval[2];
-
-	getmouseco_sc(mval);
-
-	if(event==UPARROWKEY) {
-		warp_pointer(mval[0], mval[1]+1);
-	} else if(event==DOWNARROWKEY) {
-		warp_pointer(mval[0], mval[1]-1);
-	} else if(event==LEFTARROWKEY) {
-		warp_pointer(mval[0]-1, mval[1]);
-	} else if(event==RIGHTARROWKEY) {
-		warp_pointer(mval[0]+1, mval[1]);
-	}
-}
-#endif
-
-
 /* *********************** GESTURE AND LASSO ******************* */
 
 static int view3d_selectable_data(bContext *C)
