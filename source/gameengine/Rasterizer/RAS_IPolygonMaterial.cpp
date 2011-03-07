@@ -241,7 +241,7 @@ bool RAS_IPolyMaterial::UsesLighting(RAS_IRasterizer *rasty) const
 	else if(rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID);
 	else if(rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW);
 	else
-		dolights = (m_drawingmode & 16)!=0;
+		dolights = (m_drawingmode & RAS_IRasterizer::KX_LIGHT)!=0;
 	
 	return dolights;
 }

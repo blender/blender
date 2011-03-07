@@ -71,7 +71,7 @@ public:
 	/**
 	 */
 	enum	{
-			RAS_RENDER_3DPOLYGON_TEXT = 16384
+			RAS_RENDER_3DPOLYGON_TEXT = 16384	/* TF_BMFONT */
 	};
 	/**
 	 * Drawing types
@@ -106,7 +106,9 @@ public:
 	/**
 	 */
 	enum    { 	 
-			KX_TWOSIDE = 512, 	 
+			KX_TEX = 4,			/* TF_TEX */
+			KX_LIGHT = 16,		/* TF_LIGHT */
+			KX_TWOSIDE = 512,	/* TF_TWOSIDE */
 			KX_LINES = 32768 	 
 	};
 
