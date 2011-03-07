@@ -604,6 +604,10 @@ class RNAMetaPropGroup(RNAMeta, StructMetaPropGroup):
 
 
 class OrderedMeta(RNAMeta):
+    def __init__(cls, name, bases, attributes):
+        if attributes.__class__ is OrderedDictMini:
+            cls.order = attributes.order
+
     def __prepare__(name, bases, **kwargs):
         return OrderedDictMini()  # collections.OrderedDict()
 
