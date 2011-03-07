@@ -139,6 +139,16 @@ option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_ass
 mark_as_advanced(WITH_ASSERT_ABORT)
 
 if(APPLE)
+	if(NOT CMAKE_OSX_ARCHITECTURES)
+		set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING
+		"Choose the architecture you want to build Blender for: i386, x86_64 or ppc"
+		FORCE)
+	endif()
+	if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+		set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5 CACHE STRING
+		"Choose the minimum OSX version required: 10.4 or 10.5"
+		FORCE)
+	endif()
 	option(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
@@ -733,6 +743,10 @@ elseif(WIN32)
 	blender_include_dirs("${PTHREADS_INC}")
 
 elseif(APPLE)
+
+	if (${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.5")
+		set(WITH_LIBS10.5 ON CACHE BOOL "Use 10.5 libs" FORCE)
+	endif()
 
 	if(WITH_LIBS10.5)
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)

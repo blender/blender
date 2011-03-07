@@ -185,6 +185,8 @@ endif()
 if(MSVC)
 	# ${CMAKE_CFG_INTDIR} should replace \${BUILD_TYPE} when using add_command
 	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
+elseif(APPLE)
+	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
 else()
 	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
