@@ -22,6 +22,7 @@ import bpy
 from bpy.props import StringProperty, BoolProperty, IntProperty, FloatProperty
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
+
 class MESH_OT_delete_edgeloop(bpy.types.Operator):
     '''Delete an edge loop by merging the faces on each side to a single face loop'''
     bl_idname = "mesh.delete_edgeloop"
@@ -845,6 +846,66 @@ class WM_OT_sysinfo(bpy.types.Operator):
 
 def register():
     bpy.utils.register_module(__name__)
+
+    import os
+
+    # test for X11
+    if os.environ.get("DISPLAY"):
+
+        # BSD licenced code copied from python, temp fix for bug
+        # http://bugs.python.org/issue11432, XXX == added code
+        def _invoke(self, args, remote, autoraise):
+            # XXX, added imports
+            import io
+            import subprocess
+            import time
+
+            raise_opt = []
+            if remote and self.raise_opts:
+                # use autoraise argument only for remote invocation
+                autoraise = int(autoraise)
+                opt = self.raise_opts[autoraise]
+                if opt:
+                    raise_opt = [opt]
+
+            cmdline = [self.name] + raise_opt + args
+
+            if remote or self.background:
+                inout = io.open(os.devnull, "r+")
+            else:
+                # for TTY browsers, we need stdin/out
+                inout = None
+            # if possible, put browser in separate process group, so
+            # keyboard interrupts don't affect browser as well as Python
+            setsid = getattr(os, 'setsid', None)
+            if not setsid:
+                setsid = getattr(os, 'setpgrp', None)
+
+            p = subprocess.Popen(cmdline, close_fds=True,  # XXX, stdin=inout,
+                                 stdout=(self.redirect_stdout and inout or None),
+                                 stderr=inout, preexec_fn=setsid)
+            if remote:
+                # wait five secons. If the subprocess is not finished, the
+                # remote invocation has (hopefully) started a new instance.
+                time.sleep(1)
+                rc = p.poll()
+                if rc is None:
+                    time.sleep(4)
+                    rc = p.poll()
+                    if rc is None:
+                        return True
+                # if remote call failed, open() will try direct invocation
+                return not rc
+            elif self.background:
+                if p.poll() is None:
+                    return True
+                else:
+                    return False
+            else:
+                return not p.wait()
+
+        import webbrowser
+        webbrowser.UnixBrowser._invoke = _invoke
 
 
 def unregister():
