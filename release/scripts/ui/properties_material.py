@@ -752,10 +752,13 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(mat, "use_shadows", text="Receive")
         col.prop(mat, "use_transparent_shadows", text="Receive Transparent")
-        col.prop(mat, "use_only_shadow", text="Shadows Only")
         if simple_material(base_mat):
             col.prop(mat, "use_cast_shadows_only", text="Cast Only")
             col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
+        col.prop(mat, "use_only_shadow", text="ShadowsOnly")
+        sub = col.column()
+        sub.active = mat.use_only_shadow
+        sub.prop(mat, "shadow_only_type", text="")
 
         col = split.column()
         if simple_material(base_mat):
@@ -769,6 +772,7 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
         sub.prop(mat, "shadow_ray_bias", text="Ray Bias")
         if simple_material(base_mat):
             col.prop(mat, "use_cast_approximate")
+
 
 
 class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):

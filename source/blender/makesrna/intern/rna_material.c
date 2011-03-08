@@ -1583,6 +1583,12 @@ void RNA_def_material(BlenderRNA *brna)
 		{MA_SPHERE_A, "SPHERE_A", ICON_MAT_SPHERE_SKY, "Flat", "Preview type: Large sphere with sky"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem prop_shadows_only_items[] = {
+		{MA_SO_OLD, "SO_OLD", 0, "Shadow and Distance", ""},
+		{MA_SO_SHADOW, "SO_SHADOW", 0, "Shadow Only", ""},
+		{MA_SO_SHADED, "SO_SHADED", 0, "Shadow and Shading", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "Material", "ID");
 	RNA_def_struct_ui_text(srna, "Material", "Material datablock to defined the appearance of geometric objects for rendering");
 	RNA_def_struct_ui_icon(srna, ICON_MATERIAL_DATA);
@@ -1712,6 +1718,12 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_only_shadow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ONLYSHADOW);
 	RNA_def_property_ui_text(prop, "Only Shadow", "Renders shadows as the material's alpha value, making materials transparent except for shadowed areas");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
+	prop= RNA_def_property(srna, "shadow_only_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "shadowonly_flag");
+	RNA_def_property_enum_items(prop, prop_shadows_only_items);
+	RNA_def_property_ui_text(prop, "Shadow Type", "How to draw shadows");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_face_texture", PROP_BOOLEAN, PROP_NONE);
