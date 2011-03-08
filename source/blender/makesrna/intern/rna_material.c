@@ -1584,9 +1584,9 @@ void RNA_def_material(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_shadows_only_items[] = {
-		{MA_SO_OLD, "SO_OLD", 0, "Shadow and Distance", ""},
-		{MA_SO_SHADOW, "SO_SHADOW", 0, "Shadow Only", ""},
-		{MA_SO_SHADED, "SO_SHADED", 0, "Shadow and Shading", ""},
+		{MA_SO_OLD, "SHADOW_ONLY_OLD", 0, "Shadow and Distance", ""},
+		{MA_SO_SHADOW, "SHADOW_ONLY", 0, "Shadow Only", ""},
+		{MA_SO_SHADED, "SHADOW_ONLY_SHADED", 0, "Shadow and Shading", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Material", "ID");

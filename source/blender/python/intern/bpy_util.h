@@ -31,7 +31,7 @@
 #define BPY_UTIL_H
 
 #if PY_VERSION_HEX <  0x03020000
-#error "Python versions below 3.1 are not supported anymore, you'll need to update your python."
+#error "Python 3.2 or greater is required, you'll need to update your python."
 #endif
 
 #include "RNA_types.h" /* for EnumPropertyItem only */

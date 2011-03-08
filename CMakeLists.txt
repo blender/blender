@@ -200,9 +200,17 @@ set(CXX_WARNINGS "")
 
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix: 
-#   cmake -D PYTHON_LIBRARY=/usr/local/lib/python3.2/config/libpython3.2.so -D PYTHON_INCLUDE_DIRS=/usr/local/include/python3.2 ../blender
+#   cmake ../blender \
+#         -D PYTHON_VERSION=3.2 \
+#         -D PYTHON_INCLUDE_DIRS=/opt/py32/include/python3.2d \
+#         -D PYTHON_LIBPATH=/opt/py32/lib \
+#         -D PYTHON_LIBRARY=python3.2d
+#
 # On Macs: 
-#   cmake -D PYTHON_INCLUDE_DIRS=/System/Library/Frameworks/Python.framework/Versions/3.2/include/python3.2 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.2/lib/python3.2/config -G Xcode ../blender
+#   cmake ../blender \
+#         -D PYTHON_INCLUDE_DIRS=/System/Library/Frameworks/Python.framework/Versions/3.2/include/python3.2 \
+#         -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.2/lib/python3.2/config \
+#         -G Xcode
 #
 # When changing any of this remember to update the notes in doc/build_systems/cmake.txt
 
