@@ -246,6 +246,13 @@ if(WITH_INSTALL)
 				DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 			)
 
+			if(WITH_GAMEENGINE AND WITH_PLAYER)
+				install(
+					PROGRAMS ${TARGETDIR}/blenderplayer
+					DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+				)
+			endif()
+
 			# misc files
 			install(
 				FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
