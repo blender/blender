@@ -1392,9 +1392,12 @@ int BLI_replace_extension(char *path, int maxlen, const char *ext)
 {
 	unsigned int a;
 
-	for(a=strlen(path)-1; a>=0; a--)
-		if(path[a] == '.' || path[a] == '/' || path[a] == '\\')
+	for(a=strlen(path); a>0; a--) {
+		if(path[a-1] == '.' || path[a-1] == '/' || path[a-1] == '\\') {
+			a--;
 			break;
+		}
+	}
 	
 	if(path[a] != '.')
 		a= strlen(path);
