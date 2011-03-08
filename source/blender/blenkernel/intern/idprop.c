@@ -240,7 +240,7 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	else {
 		/* newlen is smaller*/
 		idp_resize_group_array(prop, newlen, newarr);
-		memcpy(newarr, prop->data.pointer, newlen*prop->len*idp_size_table[(int)prop->subtype]);
+		memcpy(newarr, prop->data.pointer, newlen*idp_size_table[(int)prop->subtype]);
 	}
 
 	MEM_freeN(prop->data.pointer);
