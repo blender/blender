@@ -41,7 +41,6 @@ struct SpaceLink;
 struct Base;
 struct BoundBox;
 struct RenderInfo;
-struct RetopoViewData;
 struct bGPdata;
 struct SmoothViewStore;
 struct wmTimer;
@@ -115,7 +114,6 @@ typedef struct RegionView3D {
 	
 	struct RegionView3D *localvd;
 	struct RenderInfo *ri;
-	struct RetopoViewData *retopo_view_data;
 	struct ViewDepths *depths;
 	
 	/* animated smooth view */
