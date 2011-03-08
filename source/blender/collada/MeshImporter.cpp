@@ -912,9 +912,13 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	// loop through geom's materials
 	for (unsigned int i = 0; i < mat_array.getCount(); i++)	{
 		
-		texture_face = assign_material_to_geom(mat_array[i], uid_material_map, ob, geom_uid,
-											   &color_texture, layername, texture_face,
-											   material_texture_mapping_map, i);
+		if(mat_array[i].getReferencedMaterial().isValid()) {
+			texture_face = assign_material_to_geom(mat_array[i], uid_material_map, ob, geom_uid,
+												   &color_texture, layername, texture_face,
+												   material_texture_mapping_map, i);
+		} else {
+			fprintf(stderr, "invalid referenced material for %s\n", mat_array[i].getName().c_str());
+		}
 	}
 		
 	return ob;
