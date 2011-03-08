@@ -163,7 +163,7 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 	if (!path)
 		path = BLI_get_user_folder_notest(folder_id, subdir);
 
-	return PyUnicode_FromString(path ? path : "");
+	return PyUnicode_DecodeFSDefault(path ? path : "");
 }
 
 static PyMethodDef meth_bpy_script_paths = {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
