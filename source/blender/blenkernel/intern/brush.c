@@ -732,6 +732,12 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 
 	dotexold = (oldtexibuf != NULL);
 
+	/* not sure if it's actually needed or it's a mistake in coords/sizes
+	   calculation in brush_painter_fixed_tex_partial_update(), but without this
+	   limitation memory gets corrupted at fast strokes with quite big spacing (sergey) */
+	w = MIN2(w, ibuf->x);
+	h = MIN2(h, ibuf->y);
+
 	if (painter->cache.flt) {
 		for (; y < h; y++) {
 			bf = ibuf->rect_float + (y*ibuf->x + origx)*4;
