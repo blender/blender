@@ -3347,7 +3347,8 @@ static void psys_face_mat(Object *ob, DerivedMesh *dm, ParticleData *pa, float m
 
 		/* ugly hack to use non-transformed orcos, since only those
 		 * give symmetric results for mirroring in particle mode */
-		transform_mesh_orco_verts(ob->data, v, 3, 1);
+		if(DM_get_vert_data_layer(dm, CD_ORIGINDEX))
+			transform_mesh_orco_verts(ob->data, v, 3, 1);
 	}
 	else {
 		dm->getVertCo(dm,mface->v1,v[0]);
@@ -3375,7 +3376,8 @@ void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData
 	psys_particle_on_dm(dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, orco, 0);
 
 	/* see psys_face_mat for why this function is called */
-	transform_mesh_orco_verts(ob->data, &orco, 1, 1);
+	if(DM_get_vert_data_layer(dm, CD_ORIGINDEX))
+		transform_mesh_orco_verts(ob->data, &orco, 1, 1);
 	VECCOPY(hairmat[3],orco);
 }
 
