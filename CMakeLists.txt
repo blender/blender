@@ -267,13 +267,23 @@ if(UNIX AND NOT APPLE)
 	if(WITH_PYTHON)
 		# No way to set py31. remove for now.
 		# find_package(PythonLibs)
+		# set(PYTHON_BINARY python) # not used yet
+
 		set(PYTHON /usr)
+
+		# ABI can be any of these chars in this order 'dmu', debug/pymalloc/unicode
+		# TODO, detect available ABI's, may want to make this a module and detect this better
+		if(CMAKE_BUILD_TYPE STREQUAL Debug)
+			set(PYTHON_ABI_FLAGS "d")
+		else()
+			set(PYTHON_ABI_FLAGS "m")
+		endif()
+
 		set(PYTHON_VERSION 3.2 CACHE STRING "")
 		mark_as_advanced(PYTHON_VERSION)
-		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
+		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}${PYTHON_ABI_FLAGS}" CACHE STRING "")
 		mark_as_advanced(PYTHON_INCLUDE_DIRS)
-		# set(PYTHON_BINARY python) # not used yet
-		set(PYTHON_LIBRARY python${PYTHON_VERSION} CACHE STRING "")
+		set(PYTHON_LIBRARY "python${PYTHON_VERSION}${PYTHON_ABI_FLAGS}" CACHE STRING "")
 		mark_as_advanced(PYTHON_LIBRARY)
 		set(PYTHON_LIBPATH ${PYTHON}/lib CACHE STRING "")
 		mark_as_advanced(PYTHON_LIBPATH)
@@ -282,6 +292,16 @@ if(UNIX AND NOT APPLE)
 
 		set(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
 		mark_as_advanced(PYTHON_LINKFLAGS)
+
+		find_file(
+			_Found_PYTHON_H
+			Python.h
+			${PYTHON_INCLUDE_DIRS}
+		)
+
+		if(NOT _Found_PYTHON_H)
+			message(FATAL_ERROR "Python.h not found in  ${PYTHON_INCLUDE_DIRS}")
+		endif()
 	endif()
 
 	if(WITH_SDL)
