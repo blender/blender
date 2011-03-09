@@ -56,7 +56,7 @@
 #ifdef WIN32
 #ifndef GWL_USERDATA
 #define GWL_USERDATA GWLP_USERDATA
-#define GWL_WNDPROC GWLP_WNDPROC
+#define GWL_WNDPROC GWLP_WNDPROC 
 #endif
 #endif
 
@@ -154,6 +154,18 @@
 #define VK_MEDIA_PLAY_PAUSE	0xB3
 #endif // VK_MEDIA_PLAY_PAUSE
 
+/*
+	Initiates WM_INPUT messages from keyboard
+	That way GHOST can retrieve true keys
+*/
+GHOST_TInt32 GHOST_SystemWin32::initKeyboardRawInput(void)
+{
+	RAWINPUTDEVICE device = {0};
+	device.usUsagePage	= 0x01; /* usUsagePage & usUsage for keyboard*/
+	device.usUsage		= 0x06; /* http://msdn.microsoft.com/en-us/windows/hardware/gg487473.aspx */
+
+	return RegisterRawInputDevices(&device, 1, sizeof(device));
+};
 
 GHOST_SystemWin32::GHOST_SystemWin32()
 : m_hasPerformanceCounter(false), m_freq(0), m_start(0)
@@ -161,7 +173,7 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 	m_displayManager = new GHOST_DisplayManagerWin32 ();
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
 	m_displayManager->initialize();
-	
+
 	// Check if current keyboard layout uses AltGr and save keylayout ID for
 	// specialized handling if keys like VK_OEM_*. I.e. french keylayout
 	// generates VK_OEM_8 for their exclamation key (key left of right shift)
@@ -357,19 +369,23 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 {
 	GHOST_TSuccess success = GHOST_System::init();
 	
-	for(int i = 0; i < 255; i++) {
-		m_prevKeyStatus[i] = false;
-		m_curKeyStatus[i] = false;
-	}
-
 	/* Disable scaling on high DPI displays on Vista */
-	HMODULE user32 = ::LoadLibraryA("user32.dll");
+	user32 = ::LoadLibraryA("user32.dll");
 	typedef BOOL (WINAPI * LPFNSETPROCESSDPIAWARE)();
 	LPFNSETPROCESSDPIAWARE SetProcessDPIAware =
 		(LPFNSETPROCESSDPIAWARE)GetProcAddress(user32, "SetProcessDPIAware");
 	if (SetProcessDPIAware)
 		SetProcessDPIAware();
-	FreeLibrary(user32);
+	#ifdef NEED_RAW_PROC
+		pRegisterRawInputDevices = (LPFNDLLRRID)GetProcAddress(user32, "RegisterRawInputDevices");
+		pGetRawInputData = (LPFNDLLGRID)GetProcAddress(user32, "GetRawInputData");
+	#else
+		FreeLibrary(user32);
+	#endif
+
+	/* 	Initiates WM_INPUT messages from keyboard */
+	initKeyboardRawInput();
+
 
 	// Determine whether this system has a high frequency performance counter. */
 	m_hasPerformanceCounter = ::QueryPerformanceFrequency((LARGE_INTEGER*)&m_freq) == TRUE;
@@ -402,9 +418,6 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 		if (::RegisterClass(&wc) == 0) {
 			success = GHOST_kFailure;
 		}
-		
-		// Add low-level keyboard hook for our process.
-		m_llKeyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, s_llKeyboardProc, wc.hInstance, 0);
 	}
 	
 	return success;
@@ -413,170 +426,122 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 
 GHOST_TSuccess GHOST_SystemWin32::exit()
 {
-	// remove our low-level keyboard hook.
-	UnhookWindowsHookEx(m_llKeyboardHook);
-	
+	#ifdef NEED_RAW_PROC
+	FreeLibrary(user32);
+	#endif
+
 	return GHOST_System::exit();
 }
 
-void GHOST_SystemWin32::triggerKey(GHOST_IWindow *window, bool down, GHOST_TKey key)
+GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam, int * keyDown, char * vk)
 {
-	GHOST_Event *extra = new GHOST_EventKey(getSystem()->getMilliSeconds(), down ? GHOST_kEventKeyDown : GHOST_kEventKeyUp, window, key, '\0');
-	((GHOST_SystemWin32*)getSystem())->pushEvent(extra);
-}
-void GHOST_SystemWin32::handleModifierKeys(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam, GHOST_ModifierKeys &oldModifiers, GHOST_ModifierKeys &newModifiers) const
-{
-	switch(wParam) {
-		case VK_SHIFT:
-			{
-				bool lchanged = oldModifiers.get(GHOST_kModifierKeyLeftAlt) != newModifiers.get(GHOST_kModifierKeyLeftAlt);
-				if(lchanged) {
-					((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyLeftAlt), GHOST_kKeyLeftAlt);
-				} else {
-					bool rchanged = oldModifiers.get(GHOST_kModifierKeyRightAlt) != newModifiers.get(GHOST_kModifierKeyRightAlt);
-					if (rchanged) {
-						((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyRightAlt), GHOST_kKeyRightAlt);
-					}
-				}
-				lchanged = oldModifiers.get(GHOST_kModifierKeyLeftControl) != newModifiers.get(GHOST_kModifierKeyLeftControl);
-				if(lchanged) {
-					((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyLeftControl), GHOST_kKeyLeftControl);
-				} else {
-					bool rchanged = oldModifiers.get(GHOST_kModifierKeyRightControl) != newModifiers.get(GHOST_kModifierKeyRightControl);
-					if (rchanged) {
-						((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyRightControl), GHOST_kKeyRightControl);
-					}
-				}
-			}
-			break;
-		case VK_CONTROL:
-			{
-				bool lchanged = oldModifiers.get(GHOST_kModifierKeyLeftAlt) != newModifiers.get(GHOST_kModifierKeyLeftAlt);
-				if(lchanged) {
-					((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyLeftAlt), GHOST_kKeyLeftAlt);
-				} else {
-					bool rchanged = oldModifiers.get(GHOST_kModifierKeyRightAlt) != newModifiers.get(GHOST_kModifierKeyRightAlt);
-					if (rchanged) {
-						((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyRightAlt), GHOST_kKeyRightAlt);
-					}
-				}
-				lchanged = oldModifiers.get(GHOST_kModifierKeyLeftShift) != newModifiers.get(GHOST_kModifierKeyLeftShift);
-				if(lchanged) {
-					((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyLeftShift), GHOST_kKeyLeftShift);
-				} else {
-					bool rchanged = oldModifiers.get(GHOST_kModifierKeyRightShift) != newModifiers.get(GHOST_kModifierKeyRightShift);
-					if (rchanged) {
-						((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyRightShift), GHOST_kKeyRightShift);
-					}
-				}
-			}
-			break;
-		case VK_MENU:
-			{
-				bool lchanged = oldModifiers.get(GHOST_kModifierKeyLeftShift) != newModifiers.get(GHOST_kModifierKeyLeftShift);
-				if(lchanged) {
-					((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyLeftShift), GHOST_kKeyLeftShift);
-				} else {
-					bool rchanged = oldModifiers.get(GHOST_kModifierKeyRightShift) != newModifiers.get(GHOST_kModifierKeyRightShift);
-					if (rchanged) {
-						((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyRightShift), GHOST_kKeyRightShift);
-					}
-				}
-				lchanged = oldModifiers.get(GHOST_kModifierKeyLeftControl) != newModifiers.get(GHOST_kModifierKeyLeftControl);
-				if(lchanged) {
-					((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyLeftControl), GHOST_kKeyLeftControl);
-				} else {
-					bool rchanged = oldModifiers.get(GHOST_kModifierKeyRightControl) != newModifiers.get(GHOST_kModifierKeyRightControl);
-					if (rchanged) {
-						((GHOST_SystemWin32*)getSystem())->triggerKey(window, newModifiers.get(GHOST_kModifierKeyRightControl), GHOST_kKeyRightControl);
-					}
-				}
-			}
-			break;
-		default:
-			break;
-	}
+	unsigned int size = 0;
+	char * data;
+	GHOST_TKey key = GHOST_kKeyUnknown;
+
+
+	if(!keyDown)
+		return GHOST_kKeyUnknown;
+
+	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, 0, &size, sizeof(RAWINPUTHEADER));
+
+
+	if((data = (char*)malloc(size)) &&
+		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, data, &size, sizeof(RAWINPUTHEADER)))
+	{
+		RAWINPUT ri;
+		memcpy(&ri,data,sizeof(ri));
+
+		if (ri.header.dwType == RIM_TYPEKEYBOARD)
+		{
+			*keyDown = !(ri.data.keyboard.Flags & RI_KEY_BREAK);
+			key = this->convertKey(window, ri.data.keyboard.VKey, ri.data.keyboard.MakeCode, (ri.data.keyboard.Flags&(RI_KEY_E1|RI_KEY_E0)));
+			if(vk) *vk = ri.data.keyboard.VKey;
+		};
+
+	};
+	free(data);
+
+	return key;
 }
 
 //! note: this function can be extended to include other exotic cases as they arise.
 // This function was added in response to bug [#25715]
-GHOST_TKey GHOST_SystemWin32::processSpecialKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam) const
+GHOST_TKey GHOST_SystemWin32::processSpecialKey(GHOST_IWindow *window, short vKey, short scanCode) const
 {
 	GHOST_TKey key = GHOST_kKeyUnknown;
 	switch(PRIMARYLANGID(m_langId)) {
 		case LANG_FRENCH:
-			if(wParam==VK_OEM_8) key = GHOST_kKey1; // on 'normal' shift + 1 to create '!' we also get GHOST_kKey1. ASCII will be '!'.
+			if(vKey==VK_OEM_8) key = GHOST_kKeyF13; // oem key; used purely for shortcuts .
 			break;
 	}
 
 	return key;
 }
 
-GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam) const
+GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, short vKey, short scanCode, short extend) const
 {
-	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
-	bool isExtended = (lParam&(1<<24))?true:false;
-	
 	GHOST_TKey key;
-	GHOST_ModifierKeys oldModifiers, newModifiers;
-	system->retrieveModifierKeys(oldModifiers);
-	system->getModifierKeys(newModifiers);
 
-	//std::cout << wParam << " " << system->m_curKeyStatus[wParam] << " shift pressed: " << system->shiftPressed() << std::endl;
-
-	if ((wParam >= '0') && (wParam <= '9')) {
+	if ((vKey >= '0') && (vKey <= '9')) {
 		// VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39)
-		key = (GHOST_TKey)(wParam - '0' + GHOST_kKey0);
+		key = (GHOST_TKey)(vKey - '0' + GHOST_kKey0);
 	}
-	else if ((wParam >= 'A') && (wParam <= 'Z')) {
+	else if ((vKey >= 'A') && (vKey <= 'Z')) {
 		// VK_A thru VK_Z are the same as ASCII 'A' thru 'Z' (0x41 - 0x5A)
-		key = (GHOST_TKey)(wParam - 'A' + GHOST_kKeyA);
+		key = (GHOST_TKey)(vKey - 'A' + GHOST_kKeyA);
 	}
-	else if ((wParam >= VK_F1) && (wParam <= VK_F24)) {
-		key = (GHOST_TKey)(wParam - VK_F1 + GHOST_kKeyF1);
+	else if ((vKey >= VK_F1) && (vKey <= VK_F24)) {
+		key = (GHOST_TKey)(vKey - VK_F1 + GHOST_kKeyF1);
 	}
 	else {
-		switch (wParam) {
+		switch (vKey) {
 		case VK_RETURN:
-			key = isExtended?GHOST_kKeyNumpadEnter:GHOST_kKeyEnter;
-			break;
-
+				key = (extend)?GHOST_kKeyNumpadEnter : GHOST_kKeyEnter; break;
+			
 		case VK_BACK:     key = GHOST_kKeyBackSpace;		break;
 		case VK_TAB:      key = GHOST_kKeyTab;				break;
 		case VK_ESCAPE:   key = GHOST_kKeyEsc;				break;
 		case VK_SPACE:    key = GHOST_kKeySpace;			break;
-		case VK_PRIOR:    key = GHOST_kKeyUpPage;			break;
-		case VK_NEXT:     key = GHOST_kKeyDownPage;			break;
-		case VK_END:      key = GHOST_kKeyEnd;				break;
+		
+		case VK_INSERT:
+		case VK_NUMPAD0:
+			key = (extend) ? GHOST_kKeyInsert : GHOST_kKeyNumpad0;	break;
+		case VK_END:
+		case VK_NUMPAD1:        
+			key = (extend) ? GHOST_kKeyEnd : GHOST_kKeyNumpad1;	break;
+		case VK_DOWN:
+		case VK_NUMPAD2:
+			key = (extend) ? GHOST_kKeyDownArrow : GHOST_kKeyNumpad2;	break;
+		case VK_NEXT:
+		case VK_NUMPAD3:
+			key = (extend) ?  GHOST_kKeyDownPage : GHOST_kKeyNumpad3;	break;
+		case VK_LEFT:
+		case VK_NUMPAD4:
+			key = (extend) ? GHOST_kKeyLeftArrow : GHOST_kKeyNumpad4;	break;
+		case VK_CLEAR:
+		case VK_NUMPAD5:
+			key = (extend) ? GHOST_kKeyUnknown: GHOST_kKeyNumpad5;	break;
+		case VK_RIGHT:
+		case VK_NUMPAD6:
+			key = (extend) ? GHOST_kKeyRightArrow : GHOST_kKeyNumpad6;	break;
 		case VK_HOME:
-			{
-				if(system->m_curKeyStatus[VK_NUMPAD7] && system->shiftPressed())
-					key = GHOST_kKeyNumpad7;
-				else
-					key = GHOST_kKeyHome;
-			}
-			break;
-		case VK_INSERT:   key = GHOST_kKeyInsert;			break;
-		case VK_DELETE:   key = GHOST_kKeyDelete;			break;
-		case VK_LEFT:     key = GHOST_kKeyLeftArrow;		break;
-		case VK_RIGHT:    key = GHOST_kKeyRightArrow;		break;
-		case VK_UP:       key = GHOST_kKeyUpArrow;			break;
-		case VK_DOWN:     key = GHOST_kKeyDownArrow;		break;
-		case VK_NUMPAD0:  key = GHOST_kKeyNumpad0;			break;
-		case VK_NUMPAD1:  key = GHOST_kKeyNumpad1;			break;
-		case VK_NUMPAD2:  key = GHOST_kKeyNumpad2;			break;
-		case VK_NUMPAD3:  key = GHOST_kKeyNumpad3;			break;
-		case VK_NUMPAD4:  key = GHOST_kKeyNumpad4;			break;
-		case VK_NUMPAD5:  key = GHOST_kKeyNumpad5;			break;
-		case VK_NUMPAD6:  key = GHOST_kKeyNumpad6;			break;
-		case VK_NUMPAD7:  key = GHOST_kKeyNumpad7;			break;
-		case VK_NUMPAD8:  key = GHOST_kKeyNumpad8;			break;
-		case VK_NUMPAD9:  key = GHOST_kKeyNumpad9;			break;
+		case VK_NUMPAD7:
+			key = (extend) ? GHOST_kKeyHome : GHOST_kKeyNumpad7;	break;
+		case VK_UP:
+		case VK_NUMPAD8:
+			key = (extend) ? GHOST_kKeyUpArrow : GHOST_kKeyNumpad8;	break;
+		case VK_PRIOR:
+		case VK_NUMPAD9:
+			key = (extend) ? GHOST_kKeyUpPage : GHOST_kKeyNumpad9;	break;
+		case VK_DECIMAL:
+		case VK_DELETE:
+			key = (extend) ? GHOST_kKeyDelete : GHOST_kKeyNumpadPeriod;	break;
+
 		case VK_SNAPSHOT: key = GHOST_kKeyPrintScreen;		break;
 		case VK_PAUSE:    key = GHOST_kKeyPause;			break;
-		case VK_MULTIPLY: key = GHOST_kKeyNumpadAsterisk;	 break;
+		case VK_MULTIPLY: key = GHOST_kKeyNumpadAsterisk;	break;
 		case VK_SUBTRACT: key = GHOST_kKeyNumpadMinus;		break;
-		case VK_DECIMAL:  key = GHOST_kKeyNumpadPeriod;		break;
 		case VK_DIVIDE:   key = GHOST_kKeyNumpadSlash;		break;
 		case VK_ADD:      key = GHOST_kKeyNumpadPlus;		break;
 
@@ -594,59 +559,13 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, L
 		case VK_GR_LESS:		key = GHOST_kKeyGrLess;			break;
 
 		case VK_SHIFT:
-			{
-				bool lchanged = oldModifiers.get(GHOST_kModifierKeyLeftShift) != newModifiers.get(GHOST_kModifierKeyLeftShift);
-				if(lchanged) {
-					key = GHOST_kKeyLeftShift;
-				} else {
-					bool rchanged = oldModifiers.get(GHOST_kModifierKeyRightShift) != newModifiers.get(GHOST_kModifierKeyRightShift);
-					if(rchanged) {
-						key = GHOST_kKeyRightShift;
-					} else {
-						key = GHOST_kKeyUnknown;
-					}
-				}
-			}
+			key = (scanCode == 0x36)? GHOST_kKeyRightShift : GHOST_kKeyLeftShift;
 			break;
 		case VK_CONTROL:
-			{
-				bool lchanged = oldModifiers.get(GHOST_kModifierKeyLeftControl) != newModifiers.get(GHOST_kModifierKeyLeftControl);
-				if(lchanged) {
-					key = GHOST_kKeyLeftControl;
-				} else {
-					bool rchanged = oldModifiers.get(GHOST_kModifierKeyRightControl) != newModifiers.get(GHOST_kModifierKeyRightControl);
-					if(rchanged) {
-						key = GHOST_kKeyRightControl;
-					} else {
-						key = GHOST_kKeyUnknown;
-					}
-				}
-			}
+			key = (extend)? GHOST_kKeyRightControl : GHOST_kKeyLeftControl;
 			break;
 		case VK_MENU:
-			{
-				if(m_hasAltGr && isExtended) {
-					// We have here an extended RAlt, which is AltGr. The keyboard driver on Windows sends before this a LControl, so
-					// to be able to input characters created with AltGr (normal on German, French, Finnish and other keyboards) we
-					// push an extra LControl up event. This ensures we don't have a 'hanging' ctrl event in Blender windowmanager
-					// when typing in Text editor or Console.
-					GHOST_Event *extra = new GHOST_EventKey(getSystem()->getMilliSeconds(), GHOST_kEventKeyUp, window, GHOST_kKeyLeftControl, '\0');
-					((GHOST_SystemWin32*)getSystem())->pushEvent(extra);
-					newModifiers.set(GHOST_kModifierKeyRightControl, false);
-					newModifiers.set(GHOST_kModifierKeyLeftControl, false);
-				}
-				bool lchanged = oldModifiers.get(GHOST_kModifierKeyLeftAlt) != newModifiers.get(GHOST_kModifierKeyLeftAlt);
-				if(lchanged) {
-					key = GHOST_kKeyLeftAlt;
-				} else {
-					bool rchanged = oldModifiers.get(GHOST_kModifierKeyRightAlt) != newModifiers.get(GHOST_kModifierKeyRightAlt);
-					if(rchanged) {
-						key = GHOST_kKeyRightAlt;
-					} else {
-						key = GHOST_kKeyUnknown;
-					}
-				}
-			}
+			key = (extend)? GHOST_kKeyRightAlt : GHOST_kKeyLeftAlt;
 			break;
 		case VK_LWIN:
 		case VK_RWIN:
@@ -656,7 +575,7 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, L
 		case VK_SCROLL: key = GHOST_kKeyScrollLock; break;
 		case VK_CAPITAL: key = GHOST_kKeyCapsLock; break;
 		case VK_OEM_8:
-			key = ((GHOST_SystemWin32*)getSystem())->processSpecialKey(window, wParam, lParam);
+			key = ((GHOST_SystemWin32*)getSystem())->processSpecialKey(window, vKey, scanCode);
 			break;
 		case VK_MEDIA_PLAY_PAUSE: key = GHOST_kKeyMediaPlay; break;
 		case VK_MEDIA_STOP: key = GHOST_kKeyMediaStop; break;
@@ -667,7 +586,6 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, L
 			break;
 		}
 	}
-	((GHOST_SystemWin32*)getSystem())->storeModifierKeys(newModifiers);
 	return key;
 }
 
@@ -745,22 +663,27 @@ GHOST_EventWheel* GHOST_SystemWin32::processWheelEvent(GHOST_IWindow *window, WP
 }
 
 
-GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, bool keyDown, WPARAM wParam, LPARAM lParam)
+GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam)
 {
-	GHOST_TKey key = ((GHOST_SystemWin32*)getSystem())->convertKey(window, wParam, lParam);
+	int keyDown=0;
+	char vk;
+	GHOST_SystemWin32 * system = (GHOST_SystemWin32 *)getSystem();
+	GHOST_TKey key = system->hardKey(window, wParam, lParam, &keyDown, &vk);
 	GHOST_EventKey* event;
 	if (key != GHOST_kKeyUnknown) {
-		MSG keyMsg;
 		char ascii = '\0';
-			/* Eat any character related messages */
 
-		if (::PeekMessage(&keyMsg, NULL, WM_CHAR, WM_DEADCHAR, PM_REMOVE) || 
-			::PeekMessage(&keyMsg, NULL, WM_SYSCHAR, WM_SYSDEADCHAR, PM_REMOVE))
-				{
-					ascii = (char) keyMsg.wParam;
-					if(ascii > 126) ascii = 0;
-				};
-		event = new GHOST_EventKey(getSystem()->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, ascii);
+		unsigned short utf16[2]={0};
+		BYTE state[256];
+		GetKeyboardState((PBYTE)state);
+
+		if(ToAsciiEx(vk, 0, state, utf16, 0, system->m_keylayout))
+				WideCharToMultiByte(CP_ACP, 0x00000400, 
+									(wchar_t*)utf16, 1,
+									(LPSTR) &ascii, 1,
+									NULL,NULL);
+
+		event = new GHOST_EventKey(system->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, ascii);
 		
 #ifdef BF_GHOST_DEBUG
 		std::cout << ascii << std::endl;
@@ -798,53 +721,6 @@ void GHOST_SystemWin32::processMinMaxInfo(MINMAXINFO * minmax)
 	minmax->ptMinTrackSize.y=240;
 }
 
-/* Note that this function gets *all* key events from the entire system (all
- * threads running in this desktop session. So when getting event here, don't assume
- * it's for Blender. Thus we only do status bookkeeping, so we can check
- * in s_wndProc and processKeyEvent what the real keyboard status is.
- * This is needed for proper handling of shift+numpad keys for instance.
- */
-LRESULT CALLBACK GHOST_SystemWin32::s_llKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-	GHOST_SystemWin32* system = ((GHOST_SystemWin32*)getSystem());
-	
-	bool down = false;
-	if(wParam==WM_KEYDOWN || wParam==WM_SYSKEYDOWN ){
-		down = true;
-	}
-	
-	if(nCode!=HC_ACTION)
-		return CallNextHookEx(system->m_llKeyboardHook, nCode, wParam, lParam);
-		
-	KBDLLHOOKSTRUCT &keyb = *(PKBDLLHOOKSTRUCT)(lParam);
-	system->m_prevKeyStatus[keyb.vkCode] = system->m_curKeyStatus[keyb.vkCode];
-	//std::cout << "ll: " << keyb.vkCode << " " << down << " ||| ";
-	if(keyb.flags) {
-		if((keyb.flags & LLKHF_EXTENDED) == LLKHF_EXTENDED) {
-			//std::cout << "extended ";
-		}
-		if((keyb.flags & LLKHF_ALTDOWN) == LLKHF_ALTDOWN) {
-			//std::cout << "alt ";
-		}
-		if((keyb.flags & LLKHF_INJECTED)== LLKHF_INJECTED) {
-			//std::cout << "injected ";
-		}
-		if((keyb.flags & LLKHF_UP) == LLKHF_UP) {
-			system->m_curKeyStatus[keyb.vkCode] = false;
-			//std::cout << "up" << std::endl;
-		} else {
-			system->m_curKeyStatus[keyb.vkCode] = true;
-			//std::cout << "down" << std::endl;
-		}
-	}
-	else {
-		system->m_curKeyStatus[keyb.vkCode] = true;
-		//std::cout << "down" << std::endl;
-	}
-	
-	return CallNextHookEx(system->m_llKeyboardHook, nCode, wParam, lParam);
-}
-
 LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	GHOST_Event* event = 0;
@@ -863,29 +739,22 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				////////////////////////////////////////////////////////////////////////
 				// Keyboard events, processed
 				////////////////////////////////////////////////////////////////////////
-				case WM_KEYDOWN:
-				case WM_SYSKEYDOWN:
-					event = processKeyEvent(window, true, wParam, lParam);
+				case WM_INPUT:
+					event = processKeyEvent(window, wParam, lParam);
 					if (!event) {
 						GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
 						GHOST_PRINT(msg)
 						GHOST_PRINT(" key ignored\n")
 					}
 					break;
-
-				case WM_KEYUP:
-				case WM_SYSKEYUP:
-					event = processKeyEvent(window, false, wParam, lParam);
-					if (!event) {
-						GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
-						GHOST_PRINT(msg)
-						GHOST_PRINT(" key ignored\n")
-					}
-					break;
-
 				////////////////////////////////////////////////////////////////////////
 				// Keyboard events, ignored
 				////////////////////////////////////////////////////////////////////////
+				case WM_KEYDOWN:
+				case WM_SYSKEYDOWN:
+				case WM_KEYUP:
+				case WM_SYSKEYUP:
+					/* These functions were replaced by WM_INPUT*/
 				case WM_CHAR:
 					/* The WM_CHAR message is posted to the window with the keyboard focus when 
 					 * a WM_KEYDOWN message is translated by the TranslateMessage function. WM_CHAR 
@@ -900,13 +769,21 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * character (Ö) is generated by typing the dead key for the umlaut character, and
 					 * then typing the O key.
 					 */
+					break;
 				case WM_SYSDEADCHAR:
 					/* The WM_SYSDEADCHAR message is sent to the window with the keyboard focus when 
 					 * a WM_SYSKEYDOWN message is translated by the TranslateMessage function. 
 					 * WM_SYSDEADCHAR specifies the character code of a system dead key - that is, 
 					 * a dead key that is pressed while holding down the alt key. 
 					 */
-					break;
+				case WM_SYSCHAR:
+					/* The WM_SYSCHAR message is sent to the window with the keyboard focus when 
+					 * a WM_SYSCHAR message is translated by the TranslateMessage function. 
+					 * WM_SYSCHAR specifies the character code of a dead key - that is, 
+					 * a dead key that is pressed while holding down the alt key.
+					 * To prevent the sound, DefWindowProc must be avoided by return
+					 */
+					return 0;
 				////////////////////////////////////////////////////////////////////////
 				// Tablet events, processed
 				////////////////////////////////////////////////////////////////////////
