@@ -242,7 +242,7 @@ void psys_get_particle_on_path(struct ParticleSimulationData *sim, int pa_num, s
 int psys_get_particle_state(struct ParticleSimulationData *sim, int p, struct ParticleKey *state, int always);
 
 /* for anim.c */
-void psys_get_dupli_texture(struct Object *ob, struct ParticleSettings *part, struct ParticleSystemModifierData *psmd, struct ParticleData *pa, struct ChildParticle *cpa, float *uv, float *orco);
+void psys_get_dupli_texture(struct ParticleSystem *psys, struct ParticleSettings *part, struct ParticleSystemModifierData *psmd, struct ParticleData *pa, struct ChildParticle *cpa, float *uv, float *orco);
 void psys_get_dupli_path_transform(struct ParticleSimulationData *sim, struct ParticleData *pa, struct ChildParticle *cpa, struct ParticleCacheKey *cache, float mat[][4], float *scale);
 
 ParticleThread *psys_threads_create(struct ParticleSimulationData *sim);

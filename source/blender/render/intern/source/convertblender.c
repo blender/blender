@@ -1713,25 +1713,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		bb.totnum = totpart+totchild;
 		bb.uv_split = part->bb_uv_split;
 	}
-
-#if 0 // XXX old animation system
-/* 2.3 setup time */
-	if(part->flag&PART_ABS_TIME && part->ipo) {
-		calc_ipo(part->ipo, cfra);
-		execute_ipo((ID *)part, part->ipo);
-	}
-
-	if(part->flag & PART_GLOB_TIME)
-#endif // XXX old animation system
-
-///* 2.4 setup reactors */
-//	if(part->type == PART_REACTOR){
-//		psys_get_reactor_target(ob, psys, &tob, &tpsys);
-//		if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
-//			psmd = psys_get_modifier(tob,tpsys);
-//			tpart = tpsys->part;
-//		}
-//	}
 	
 /* 2.5 setup matrices */
 	mul_m4_m4m4(mat, ob->obmat, re->viewmat);
@@ -1828,7 +1809,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			hasize = ma->hasize;
 
 			/* get orco */
-			if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
+			if(tpsys && part->phystype==PART_PHYS_NO){
 				tpa=tpsys->particles+pa->num;
 				psys_particle_on_emitter(psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,sd.orco,0);
 			}
@@ -1892,7 +1873,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			}
 
 			/* get uvco & mcol */
-			if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES) {
+			if(part->childtype==PART_CHILD_FACES) {
 				get_particle_uvco_mcol(PART_FROM_FACE, psmd->dm, cpa->fuv, cpa->num, &sd);
 			}
 			else {

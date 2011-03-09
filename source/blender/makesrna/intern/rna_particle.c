@@ -60,7 +60,19 @@ EnumPropertyItem part_reactor_from_items[] = {
 	{PART_FROM_VERT, "VERT", 0, "Verts", ""},
 	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
 	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
-	{PART_FROM_PARTICLE, "PARTICLE", 0, "Particle", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_dist_items[] = {
+	{PART_DISTR_JIT, "JIT", 0, "Jittered", ""},
+	{PART_DISTR_RAND, "RAND", 0, "Random", ""},
+	{PART_DISTR_GRID, "GRID", 0, "Grid", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_hair_dist_items[] = {
+	{PART_DISTR_JIT, "JIT", 0, "Jittered", ""},
+	{PART_DISTR_RAND, "RAND", 0, "Random", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -663,6 +675,16 @@ static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, i
 	//	return part_reactor_from_items;
 	//else
 		return part_from_items;
+}
+
+static EnumPropertyItem *rna_Particle_dist_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	ParticleSettings *part = ptr->id.data;
+
+	if(part->type==PART_HAIR)
+		return part_hair_dist_items;
+	else
+		return part_dist_items;
 }
 
 static EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *C, PointerRNA *ptr, int *free)
@@ -1361,13 +1383,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem dist_items[] = {
-		{PART_DISTR_JIT, "JIT", 0, "Jittered", ""},
-		{PART_DISTR_RAND, "RAND", 0, "Random", ""},
-		{PART_DISTR_GRID, "GRID", 0, "Grid", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static EnumPropertyItem phys_type_items[] = {
 		{PART_PHYS_NO, "NO", 0, "No", ""},
 		{PART_PHYS_NEWTON, "NEWTON", 0, "Newtonian", ""},
@@ -1609,7 +1624,9 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "distr");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_enum_items(prop, dist_items);
+	RNA_def_property_enum_items(prop, part_dist_items);
+	RNA_def_property_enum_items(prop, part_draw_as_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_dist_itemf");
 	RNA_def_property_ui_text(prop, "Distribution", "How to distribute particles on selected element");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 

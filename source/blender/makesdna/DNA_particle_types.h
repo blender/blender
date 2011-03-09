@@ -339,7 +339,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_FROM_VERT		0
 #define PART_FROM_FACE		1
 #define PART_FROM_VOLUME	2
-#define PART_FROM_PARTICLE	3
+/* #define PART_FROM_PARTICLE	3  deprecated! */ 
 #define PART_FROM_CHILD		4
 
 /* part->distr */
