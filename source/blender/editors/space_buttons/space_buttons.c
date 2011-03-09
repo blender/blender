@@ -68,7 +68,7 @@ static SpaceLink *buttons_new(const bContext *UNUSED(C))
 	
 	sbuts= MEM_callocN(sizeof(SpaceButs), "initbuts");
 	sbuts->spacetype= SPACE_BUTS;
-	sbuts->align= BUT_AUTO;
+	sbuts->align= BUT_VERTICAL;
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for buts");
