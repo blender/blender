@@ -4858,9 +4858,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					 ((cancelled == 0) || (duplicate)) )
 				{
 					if (adt) {
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
 						posttrans_fcurve_clean(fcu);
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
 					}
 					else
 						posttrans_fcurve_clean(fcu);

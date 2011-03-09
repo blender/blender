@@ -239,7 +239,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 		 * guess when a callback might use something different
 		 */
 		if (adt)
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, incl_handles==0);
 		
 		/* set horizontal range (if applicable) 
 		 * NOTE: these values are only used for x-range and y-range but not region 
@@ -269,7 +269,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 		
 		/* un-apply NLA mapping from all the keyframes */
 		if (adt)
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, incl_handles==0);
 			
 		/* unapply unit corrections */
 		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE|ANIM_UNITCONV_ONLYKEYS);
@@ -987,7 +987,7 @@ static void get_nearest_fcurve_verts_list (bAnimContext *ac, int mval[2], ListBa
 		
 		/* apply NLA mapping to all the keyframes */
 		if (adt)
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0);
 		
 		if (fcu->bezt) {
 			BezTriple *bezt1=fcu->bezt, *prevbezt=NULL;
@@ -1020,7 +1020,7 @@ static void get_nearest_fcurve_verts_list (bAnimContext *ac, int mval[2], ListBa
 		
 		/* un-apply NLA mapping from all the keyframes */
 		if (adt)
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
 		
 		/* unapply unit corrections */
 		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE);
