@@ -592,9 +592,13 @@ class LightMapPack(bpy.types.Operator):
 
         return unwrap(self, context, **kwargs)
 
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
-# Add to a menu
+
 def menu_func(self, context):
+    self.layout.operator_context = 'INVOKE_REGION_WIN'
     self.layout.operator(LightMapPack.bl_idname)
 
 
