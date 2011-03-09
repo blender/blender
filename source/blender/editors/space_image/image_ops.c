@@ -2146,8 +2146,7 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 	ot->exec= cycle_render_slot_exec;
 	ot->poll= cycle_render_slot_poll;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* no registry or undo flags, this is a UI option */
 
 	RNA_def_boolean(ot->srna, "reverse", 0, "Cycle in Reverse", "");
 }
