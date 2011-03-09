@@ -420,6 +420,7 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "extend", 1);
 	RNA_boolean_set(kmi->ptr, "fill", 1);
 	WM_keymap_add_item(keymap, "FILE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_refresh", PADPERIOD, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_border", EVT_TWEAK_L, KM_ANY, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
