@@ -1025,7 +1025,6 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	ParticleData *pa=0, *tpars= 0;
 	ParticleSettings *part;
 	ParticleSeam *seams= 0;
-	ChildParticle *cpa=0;
 	KDTree *tree=0;
 	DerivedMesh *dm= NULL;
 	float *jit= NULL;
