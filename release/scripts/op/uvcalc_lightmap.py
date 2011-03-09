@@ -38,6 +38,7 @@ import mathutils
 
 from math import sqrt, pi
 
+
 class prettyface(object):
     __slots__ = "uv", "width", "height", "children", "xoff", "yoff", "has_parent", "rot"
 
@@ -164,7 +165,7 @@ class prettyface(object):
                 I = [i for a, i in angles_co]
 
                 # fuv = f.uv
-                fuv = f.id_data.uv_textures.active.data[f.index].uv # XXX25
+                fuv = f.id_data.uv_textures.active.data[f.index].uv  # XXX25
 
                 if self.rot:
                     fuv[I[2]] = p1
@@ -218,7 +219,7 @@ def lightmap_uvpack(meshes,
 
     if PREF_PACK_IN_ONE:
         if PREF_APPLY_IMAGE:
-            image = Image.New("lightmap", PREF_IMG_PX_SIZE, PREF_IMG_PX_SIZE, 24)
+            image = bpy.data.images.new(name="lightmap", width=PREF_IMG_PX_SIZE, height=PREF_IMG_PX_SIZE, alpha=False)
         face_groups = [[]]
     else:
         face_groups = []
@@ -240,17 +241,7 @@ def lightmap_uvpack(meshes,
             face_groups.append(faces)
 
         if PREF_NEW_UVLAYER:
-            uvname_org = uvname = "lightmap"
-            uvnames = me.getUVLayerNames()
-            i = 1
-            while uvname in uvnames:
-                uvname = "%s.%03d" % (uvname_org, i)
-                i += 1
-
-            me.addUVLayer(uvname)
-            me.activeUVLayer = uvname
-
-            del uvnames, uvname_org, uvname
+            me.uv_textures.new()
 
     for face_sel in face_groups:
         print("\nStarting unwrap")
@@ -516,7 +507,8 @@ def lightmap_uvpack(meshes,
                 image = Image.New("lightmap", PREF_IMG_PX_SIZE, PREF_IMG_PX_SIZE, 24)
 
             for f in face_sel:
-                f.image = image
+                # f.image = image
+                f.id_data.uv_textures.active.data[f.index].image = image  # XXX25
 
     for me in meshes:
         me.update()
@@ -526,69 +518,101 @@ def lightmap_uvpack(meshes,
     # Window.RedrawAll()
 
 
-def main():
-    scn = bpy.context.scene
+def unwrap(operator, context, **kwargs):
 
-    PREF_ACT_ONLY = 0  # was 1
-    PREF_SEL_ONLY = 1
-    PREF_NEW_UVLAYER = 0
-    PREF_PACK_IN_ONE = 0
-    PREF_APPLY_IMAGE = 0
-    PREF_IMG_PX_SIZE = 512
-    PREF_BOX_DIV = 12
-    PREF_MARGIN_DIV = 0.1
+    is_editmode = (bpy.context.object.mode == 'EDIT')
+    if is_editmode:
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-    '''
-    if not Draw.PupBlock("Lightmap Pack", [\
-    "Context...",
-    ('Active Object', PREF_ACT_ONLY, 'If disabled, include other selected objects for packing the lightmap.'),\
-    ('Selected Faces', PREF_SEL_ONLY, 'Use only selected faces from all selected meshes.'),\
-    'Image & UVs...',
-    ('Share Tex Space', PREF_PACK_IN_ONE, 'Objects Share texture space, map all objects into 1 uvmap'),\
-    ('New UV Layer', PREF_NEW_UVLAYER, 'Create a new UV layer for every mesh packed'),\
-    ('New Image', PREF_APPLY_IMAGE, 'Assign new images for every mesh (only one if shared tex space enabled)'),\
-    ('Image Size', PREF_IMG_PX_SIZE, 64, 5000, 'Width and Height for the new image'),\
-    'UV Packing...',
-    ('Pack Quality: ', PREF_BOX_DIV, 1, 48, 'Pre Packing before the complex boxpack'),\
-    ('Margin: ', PREF_MARGIN_DIV, 0.001, 1.0, 'Size of the margin as a division of the UV')\
-    ]):
-        return
-    '''
+    PREF_ACT_ONLY = kwargs.pop("PREF_ACT_ONLY")
+
     if PREF_ACT_ONLY:
-        obj = scn.objects.active
+        obj = context.scene.objects.active
         if obj == None or obj.type != 'MESH':
             operator.report({'error'}, "No mesh object.")
             return
         meshes = [obj.data]
     else:
-        meshes = {me.name: me for ob in bpy.context.selected_objects if ob.type == 'MESH' for me in (ob.data,) if not me.library if len(me.faces)}.values()
-        print("sel", bpy.context.selected_objects)
-        print("meshes", meshes)
+        meshes = {me.name: me for ob in context.selected_objects if ob.type == 'MESH' for me in (ob.data,) if not me.library if len(me.faces)}.values()
         if not meshes:
             Draw.PupMenu('Error%t|No mesh objects selected.')
             return
 
-    # Toggle Edit mode
-    is_editmode = (bpy.context.active_object.mode == 'EDIT')
-    if is_editmode:
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
-    # Window.WaitCursor(1)
-    lightmap_uvpack(meshes,
-                    PREF_SEL_ONLY,
-                    PREF_NEW_UVLAYER,
-                    PREF_PACK_IN_ONE,
-                    PREF_APPLY_IMAGE,
-                    PREF_IMG_PX_SIZE,
-                    PREF_BOX_DIV,\
-                    int(1.0 / (PREF_MARGIN_DIV / 100.0)))
+    lightmap_uvpack(meshes, **kwargs)
 
     if is_editmode:
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
-    # Window.WaitCursor(0)
+    return {'FINISHED'}
 
-if __name__ == '__main__':
-    # bpy.ops.import_scene.obj(filepath="/untitled.obj")
-    main()
-    # bpy.ops.wm.save_mainfile(filepath="/untitled.blend", check_existing=False)
+from bpy.props import BoolProperty, FloatProperty, IntProperty, EnumProperty
+
+
+class LightMapPack(bpy.types.Operator):
+    '''Follow UVs from active quads along continuous face loops'''
+    bl_idname = "uv.lightmap_pack"
+    bl_label = "Lightmap Pack"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    PREF_CONTEXT = bpy.props.EnumProperty(
+            items=(("SEL_FACES", "Selected Faces", "Space all UVs evently"),
+                   ("ALL_FACES", "All Faces", "Average space UVs edge length of each loop"),
+                   ("ALL_OBJECTS", "Selected Mesh Object", "Average space UVs edge length of each loop")
+                   ),
+            name="Selection",
+            description="")
+
+    # Image & UVs...
+    PREF_PACK_IN_ONE = BoolProperty(name="Share Tex Space", default=True, description="Objects Share texture space, map all objects into 1 uvmap")
+    PREF_NEW_UVLAYER = BoolProperty(name="New UV Layer", default=False, description="Create a new UV layer for every mesh packed")
+    PREF_APPLY_IMAGE = BoolProperty(name="New Image", default=False, description="Assign new images for every mesh (only one if shared tex space enabled)")
+    PREF_IMG_PX_SIZE = IntProperty(name="Image Size", min=64, max=5000, default=512, description="Width and Height for the new image")
+
+    # UV Packing...
+    PREF_BOX_DIV = IntProperty(name="Pack Quality", min=1, max=48, default=12, description="Pre Packing before the complex boxpack")
+    PREF_MARGIN_DIV = FloatProperty(name="Margin", min=0.001, max=1.0, default=0.1, description="Size of the margin as a division of the UV")
+
+    def execute(self, context):
+        kwargs = self.as_keywords()
+        PREF_CONTEXT = kwargs.pop("PREF_CONTEXT")
+
+        if PREF_CONTEXT == 'SEL_FACES':
+            kwargs["PREF_ACT_ONLY"] = True
+            kwargs["PREF_SEL_ONLY"] = True
+        elif PREF_CONTEXT == 'ALL_FACES':
+            kwargs["PREF_ACT_ONLY"] = True
+            kwargs["PREF_SEL_ONLY"] = False
+        elif PREF_CONTEXT == 'ALL_OBJECTS':
+            kwargs["PREF_ACT_ONLY"] = False
+            kwargs["PREF_SEL_ONLY"] = False
+        else:
+            raise Exception("invalid context")
+
+        kwargs["PREF_MARGIN_DIV"] = int(1.0 / (kwargs["PREF_MARGIN_DIV"] / 100.0))
+
+        return unwrap(self, context, **kwargs)
+
+
+# Add to a menu
+def menu_func(self, context):
+    self.layout.operator(LightMapPack.bl_idname)
+
+
+def register():
+    bpy.utils.register_class(LightMapPack)
+    bpy.types.VIEW3D_MT_uv_map.append(menu_func)
+
+
+def unregister():
+    bpy.utils.register_class(LightMapPack)
+    bpy.types.VIEW3D_MT_uv_map.remove(menu_func)
+
+
+if __name__ == "__main__":
+    register()
+
+    '''
+    bpy.ops.import_scene.obj(filepath="/untitled.obj")
+    bpy.ops.uv.lightmap_pack(PREF_NEW_UVLAYER=1, PREF_APPLY_IMAGE=1, PREF_PACK_IN_ONE=1, PREF_CONTEXT='ALL_OBJECTS')
+    bpy.ops.wm.save_mainfile(filepath="/untitled.blend", check_existing=False)
+    '''
