@@ -38,6 +38,7 @@
 #endif //WIN32
 
 #include <iostream>
+#include <stdio.h>
 
 #include "KX_KetsjiEngine.h"
 
@@ -77,7 +78,6 @@
 #include "KX_TimeCategoryLogger.h"
 
 #include "RAS_FramingManager.h"
-#include "stdio.h"
 #include "DNA_world_types.h"
 #include "DNA_scene_types.h"
 

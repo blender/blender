@@ -234,7 +234,7 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 	if(!ibuf)
 		depth= 0;
 	else if(ibuf->rect_float)
-		depth= 128;
+		depth= ibuf->depth * 4;
 	else
 		depth= ibuf->depth;
 
