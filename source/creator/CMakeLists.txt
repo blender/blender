@@ -358,12 +358,12 @@ if(WITH_INSTALL)
 				PATTERN ".svn" EXCLUDE
 			)
 
-			install(
-				FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
-				DESTINATION ${TARGETDIR}/
-			)
-
 			if(NOT CMAKE_CL_64)
+				install(
+					FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
+					DESTINATION ${TARGETDIR}/
+				)
+
 				install(
 					FILES ${LIBDIR}/iconv/lib/iconv.dll
 					DESTINATION ${TARGETDIR}/
