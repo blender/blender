@@ -33,19 +33,10 @@ __bpydoc__ = """\
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-
-# from Blender import *
 import bpy
+import mathutils
 
-from math import sqrt
-
-
-def AngleBetweenVecs(a1, a2):
-    try:
-        return Mathutils.AngleBetweenVecs(a1, a2)
-    except:
-        return 180.0
-
+from math import sqrt, pi
 
 class prettyface(object):
     __slots__ = "uv", "width", "height", "children", "xoff", "yoff", "has_parent", "rot"
@@ -104,9 +95,12 @@ class prettyface(object):
             self.children = []
 
         else:  # blender face
-            self.uv = data.uv
+            # self.uv = data.uv
+            self.uv = data.id_data.uv_textures.active.data[data.index].uv  # XXX25
 
-            cos = [v.co for v in data]
+            # cos = [v.co for v in data]
+            cos = [data.id_data.vertices[v].co for v in data.vertices]  # XXX25
+
             self.width = ((cos[0] - cos[1]).length + (cos[2] - cos[3]).length) / 2.0
             self.height = ((cos[1] - cos[2]).length + (cos[0] - cos[3]).length) / 2.0
 
@@ -150,9 +144,9 @@ class prettyface(object):
         if len(uv) == 2:
             # match the order of angle sizes of the 3d verts with the UV angles and rotate.
             def get_tri_angles(v1, v2, v3):
-                a1 = AngleBetweenVecs(v2 - v1, v3 - v1)
-                a2 = AngleBetweenVecs(v1 - v2, v3 - v2)
-                a3 = 180.0 - (a1 + a2)  # a3= AngleBetweenVecs(v2-v3,v1-v3)
+                a1 = (v2 - v1).angle(v3 - v1, pi)
+                a2 = (v1 - v2).angle(v3 - v2, pi)
+                a3 = pi - (a1 + a2)  # a3= (v2 - v3).angle(v1 - v3)
 
                 return [(a1, 0), (a2, 1), (a3, 2)]
 
@@ -162,19 +156,24 @@ class prettyface(object):
                 #v1 = cos[0]-cos[1]
                 #v2 = cos[1]-cos[2]
                 #v3 = cos[2]-cos[0]
-                angles_co = get_tri_angles(*[v.co for v in f])
+
+                # angles_co = get_tri_angles(*[v.co for v in f])
+                angles_co = get_tri_angles(*[f.id_data.vertices[v].co for v in f.vertices])  # XXX25
+
                 angles_co.sort()
                 I = [i for a, i in angles_co]
 
-                fuv = f.uv
+                # fuv = f.uv
+                fuv = f.id_data.uv_textures.active.data[f.index].uv # XXX25
+
                 if self.rot:
-                    fuv[I[2]][:] = p1
-                    fuv[I[1]][:] = p2
-                    fuv[I[0]][:] = p3
+                    fuv[I[2]] = p1
+                    fuv[I[1]] = p2
+                    fuv[I[0]] = p3
                 else:
-                    fuv[I[2]][:] = p1
-                    fuv[I[0]][:] = p2
-                    fuv[I[1]][:] = p3
+                    fuv[I[2]] = p1
+                    fuv[I[0]] = p2
+                    fuv[I[1]] = p3
 
             f, lens, lensord = uv[0]
 
@@ -185,10 +184,10 @@ class prettyface(object):
                 set_uv(f, (x2, y2), (x2, y1 + margin_h), (x1 + margin_w, y2))
 
         else:  # 1 QUAD
-            uv[1][:] = x1, y1
-            uv[2][:] = x1, y2
-            uv[3][:] = x2, y2
-            uv[0][:] = x2, y1
+            uv[1][0], uv[1][1] = x1, y1
+            uv[2][0], uv[2][1] = x1, y2
+            uv[3][0], uv[3][1] = x2, y2
+            uv[0][0], uv[0][1] = x2, y1
 
     def __hash__(self):
         # None unique hash
@@ -210,11 +209,12 @@ def lightmap_uvpack(meshes,
     Basicly, a lower value will be slower but waist less space
     and a higher value will have more clumpy boxes but more waisted space
     '''
+    import time
 
     if not meshes:
         return
 
-    t = sys.time()
+    t = time.time()
 
     if PREF_PACK_IN_ONE:
         if PREF_APPLY_IMAGE:
@@ -226,12 +226,13 @@ def lightmap_uvpack(meshes,
     for me in meshes:
         # Add face UV if it does not exist.
         # All new faces are selected.
-        me.faceUV = True
+        if not me.uv_textures:
+            me.uv_textures.new()
 
         if PREF_SEL_ONLY:
-            faces = [f for f in me.faces if f.sel]
+            faces = [f for f in me.faces if f.select]
         else:
-            faces = list(me.faces)
+            faces = me.faces[:]
 
         if PREF_PACK_IN_ONE:
             face_groups[0].extend(faces)
@@ -258,7 +259,7 @@ def lightmap_uvpack(meshes,
             print("\tWarning, less then 4 faces, skipping")
             continue
 
-        pretty_faces = [prettyface(f) for f in face_sel if len(f) == 4]
+        pretty_faces = [prettyface(f) for f in face_sel if len(f.vertices) == 4]
 
         # Do we have any tri's
         if len(pretty_faces) != len(face_sel):
@@ -266,12 +267,15 @@ def lightmap_uvpack(meshes,
             # Now add tri's, not so simple because we need to pair them up.
             def trylens(f):
                 # f must be a tri
-                cos = [v.co for v in f]
+
+                # cos = [v.co for v in f]
+                cos = [f.id_data.vertices[v].co for v in f.vertices]  # XXX25
+
                 lens = [(cos[0] - cos[1]).length, (cos[1] - cos[2]).length, (cos[2] - cos[0]).length]
 
                 lens_min = lens.index(min(lens))
                 lens_max = lens.index(max(lens))
-                for i in xrange(3):
+                for i in range(3):
                     if i != lens_min and i != lens_max:
                         lens_mid = i
                         break
@@ -279,7 +283,7 @@ def lightmap_uvpack(meshes,
 
                 return f, lens, lens_order
 
-            tri_lengths = [trylens(f) for f in face_sel if len(f) == 3]
+            tri_lengths = [trylens(f) for f in face_sel if len(f.vertices) == 3]
             del trylens
 
             def trilensdiff(t1, t2):
@@ -350,7 +354,7 @@ def lightmap_uvpack(meshes,
             lengths_to_ints[l] = l_int
             l_int *= 2
 
-        lengths_to_ints = lengths_to_ints.items()
+        lengths_to_ints = list(lengths_to_ints.items())
         lengths_to_ints.sort()
         print("done")
 
@@ -487,7 +491,7 @@ def lightmap_uvpack(meshes,
         # boxes2Pack.append([islandIdx, w,h])
         print("\tPacking Boxes", len(pretty_faces), end="...")
         boxes2Pack = [[0.0, 0.0, pf.width, pf.height, i] for i, pf in enumerate(pretty_faces)]
-        packWidth, packHeight = Geometry.BoxPack2D(boxes2Pack)
+        packWidth, packHeight = mathutils.geometry.box_pack_2d(boxes2Pack)
 
         # print(packWidth, packHeight)
 
@@ -517,23 +521,24 @@ def lightmap_uvpack(meshes,
     for me in meshes:
         me.update()
 
-    print("finished all %.2f " % (sys.time() - t))
+    print("finished all %.2f " % (time.time() - t))
 
-    Window.RedrawAll()
+    # Window.RedrawAll()
 
 
 def main():
-    scn = bpy.data.scenes.active
+    scn = bpy.context.scene
 
-    PREF_ACT_ONLY = Draw.Create(1)
-    PREF_SEL_ONLY = Draw.Create(1)
-    PREF_NEW_UVLAYER = Draw.Create(0)
-    PREF_PACK_IN_ONE = Draw.Create(0)
-    PREF_APPLY_IMAGE = Draw.Create(0)
-    PREF_IMG_PX_SIZE = Draw.Create(512)
-    PREF_BOX_DIV = Draw.Create(12)
-    PREF_MARGIN_DIV = Draw.Create(0.1)
+    PREF_ACT_ONLY = 0  # was 1
+    PREF_SEL_ONLY = 1
+    PREF_NEW_UVLAYER = 0
+    PREF_PACK_IN_ONE = 0
+    PREF_APPLY_IMAGE = 0
+    PREF_IMG_PX_SIZE = 512
+    PREF_BOX_DIV = 12
+    PREF_MARGIN_DIV = 0.1
 
+    '''
     if not Draw.PupBlock("Lightmap Pack", [\
     "Context...",
     ('Active Object', PREF_ACT_ONLY, 'If disabled, include other selected objects for packing the lightmap.'),\
@@ -548,39 +553,42 @@ def main():
     ('Margin: ', PREF_MARGIN_DIV, 0.001, 1.0, 'Size of the margin as a division of the UV')\
     ]):
         return
-
-    if PREF_ACT_ONLY.val:
-        ob = scn.objects.active
-        if ob == None or ob.type != 'Mesh':
-            Draw.PupMenu('Error%t|No mesh object.')
+    '''
+    if PREF_ACT_ONLY:
+        obj = scn.objects.active
+        if obj == None or obj.type != 'MESH':
+            operator.report({'error'}, "No mesh object.")
             return
-        meshes = [ob.getData(mesh=1)]
+        meshes = [obj.data]
     else:
-        meshes = dict([(me.name, me) for ob in scn.objects.context if ob.type == 'Mesh' for me in (ob.getData(mesh=1),) if not me.lib if len(me.faces)])
-        meshes = meshes.values()
+        meshes = {me.name: me for ob in bpy.context.selected_objects if ob.type == 'MESH' for me in (ob.data,) if not me.library if len(me.faces)}.values()
+        print("sel", bpy.context.selected_objects)
+        print("meshes", meshes)
         if not meshes:
             Draw.PupMenu('Error%t|No mesh objects selected.')
             return
 
     # Toggle Edit mode
-    is_editmode = Window.EditMode()
+    is_editmode = (bpy.context.active_object.mode == 'EDIT')
     if is_editmode:
-        Window.EditMode(0)
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-    Window.WaitCursor(1)
+    # Window.WaitCursor(1)
     lightmap_uvpack(meshes,
-                    PREF_SEL_ONLY.val,
-                    PREF_NEW_UVLAYER.val,
-                    PREF_PACK_IN_ONE.val,
-                    PREF_APPLY_IMAGE.val,
-                    PREF_IMG_PX_SIZE.val,
-                    PREF_BOX_DIV.val,\
-                    int(1.0 / (PREF_MARGIN_DIV.val / 100.0)))
+                    PREF_SEL_ONLY,
+                    PREF_NEW_UVLAYER,
+                    PREF_PACK_IN_ONE,
+                    PREF_APPLY_IMAGE,
+                    PREF_IMG_PX_SIZE,
+                    PREF_BOX_DIV,\
+                    int(1.0 / (PREF_MARGIN_DIV / 100.0)))
 
     if is_editmode:
-        Window.EditMode(1)
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
-    Window.WaitCursor(0)
+    # Window.WaitCursor(0)
 
 if __name__ == '__main__':
+    # bpy.ops.import_scene.obj(filepath="/untitled.obj")
     main()
+    # bpy.ops.wm.save_mainfile(filepath="/untitled.blend", check_existing=False)
