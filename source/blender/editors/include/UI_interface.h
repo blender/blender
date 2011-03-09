@@ -322,6 +322,7 @@ void uiBlockSetEmboss(uiBlock *block, char dt);
 void uiFreeBlock(const struct bContext *C, uiBlock *block);
 void uiFreeBlocks(const struct bContext *C, struct ListBase *lb);
 void uiFreeInactiveBlocks(const struct bContext *C, struct ListBase *lb);
+void uiFreeActiveButtons(const struct bContext *C, struct bScreen *screen);
 
 void uiBlockSetRegion(uiBlock *block, struct ARegion *region);
 

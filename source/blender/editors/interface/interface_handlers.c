@@ -144,11 +144,11 @@ typedef struct uiHandleButtonData {
 	float dragf, dragfstart;
 	CBData *dragcbd;
 
-	/* menu open */
+	/* menu open (watch uiFreeActiveButtons) */
 	uiPopupBlockHandle *menu;
 	int menuretval;
 	
-	/* search box */
+	/* search box (watch uiFreeActiveButtons) */
 	ARegion *searchbox;
 
 	/* post activate */
@@ -4594,6 +4594,27 @@ int ui_button_is_active(ARegion *ar)
 {
 	return (ui_but_find_activated(ar) != NULL);
 }
+
+/* is called by notifier */
+void uiFreeActiveButtons(const bContext *C, bScreen *screen)
+{
+	ScrArea *sa= screen->areabase.first;
+	
+	for(;sa; sa= sa->next) {
+		ARegion *ar= sa->regionbase.first;
+		for(;ar; ar= ar->next) {
+			uiBut *but= ui_but_find_activated(ar);
+			if(but) {
+				uiHandleButtonData *data= but->active;
+				
+				if(data->menu==NULL && data->searchbox==NULL)
+					ui_button_active_free(C, but);
+			}
+		}
+	}
+}
+
+
 
 /* returns TRUE if highlighted button allows drop of names */
 /* called in region context */

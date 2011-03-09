@@ -270,7 +270,7 @@ void wm_event_do_notifiers(bContext *C)
 				CTX_wm_window_set(C, win);
 
 				/* printf("notifier win %d screen %s cat %x\n", win->winid, win->screen->id.name+2, note->category); */
-				ED_screen_do_listen(win, note);
+				ED_screen_do_listen(C, note);
 
 				for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
 					ED_region_do_listen(ar, note);
@@ -1741,7 +1741,7 @@ void wm_event_do_handlers(bContext *C)
 			/* XXX to solve, here screen handlers? */
 			if(event->type==MOUSEMOVE) {
 				/* state variables in screen, cursors, also used in wm_draw.c */
-				ED_screen_set_subwinactive(win, event);	
+				ED_screen_set_subwinactive(C, event);	
 				/* for regions having custom cursors */
 				wm_paintcursor_test(C, event);
 			}
