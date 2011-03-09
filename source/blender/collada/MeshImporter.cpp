@@ -803,6 +803,18 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 		return NULL;
 	}
 	
+	// different nodes can point to same geometry, but still also specify the same materials
+	// again. Make sure we don't overwrite them on the next occurrences, so keep list of
+	// what we already have handled.
+	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId>::iterator it;
+	it=materials_mapped_to_geom.find(*geom_uid);
+	while(it!=materials_mapped_to_geom.end()) {
+		if(it->second == ma_uid) return NULL; // do nothing if already found
+		it++;
+	}
+	// first time we get geom_uid, ma_uid pair. Save for later check.
+	materials_mapped_to_geom.insert(std::pair<COLLADAFW::UniqueId, COLLADAFW::UniqueId>(*geom_uid, ma_uid));
+	
 	Material *ma = uid_material_map[ma_uid];
 	assign_material(ob, ma, ob->totcol + 1);
 	
