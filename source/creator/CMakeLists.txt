@@ -193,15 +193,6 @@ endif()
 
 if(WITH_INSTALL)
 
-	if(UNIX)
-		add_custom_command(TARGET blender
-			POST_BUILD
-			MAIN_DEPENDENCY blender
-			#COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/plugins ${TARGETDIR}/
-			#COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/text/* ${TARGETDIR}/
-		)
-	endif()
-
 	if(UNIX AND NOT APPLE)
 
 		if(WITH_INSTALL_PORTABLE)
@@ -295,11 +286,13 @@ if(WITH_INSTALL)
 			)
 		endif()
 
-			install(
-				DIRECTORY ${CMAKE_SOURCE_DIR}/release/plugins
-				DESTINATION ${TARGETDIR_VER}/
-				PATTERN ".svn" EXCLUDE
-			)
+			# plugins in blender 2.5 don't work at the moment.
+			#
+			# install(
+			# 	DIRECTORY ${CMAKE_SOURCE_DIR}/release/plugins
+			# 	DESTINATION ${TARGETDIR_VER}/
+			# 	PATTERN ".svn" EXCLUDE
+			# )
 
 		if(WITH_PYTHON)
 			# install(CODE "message(\"copying blender scripts...\")")
@@ -390,11 +383,13 @@ if(WITH_INSTALL)
 			PATTERN ".svn" EXCLUDE
 		)
 
-		install(  # TODO, copy to linux
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/plugins
-			DESTINATION ${TARGETDIR_VER}/
-			PATTERN ".svn" EXCLUDE
-		)
+		# plugins in blender 2.5 don't work at the moment.
+		#
+		# install(
+		# 	DIRECTORY ${CMAKE_SOURCE_DIR}/release/plugins
+		# 	DESTINATION ${TARGETDIR_VER}/
+		# 	PATTERN ".svn" EXCLUDE
+		# )
 
 		if(WITH_PYTHON)
 			# install(CODE "message(\"copying blender scripts...\")")
@@ -514,9 +509,16 @@ if(WITH_INSTALL)
 		endif()
 
 	elseif(APPLE)
+		# TODO, APPLE needs a 'make install' target like win32 and unix
+
 		set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
 		set(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
 		set(TARGETINFO ${TARGETDIR}/blender.app/Contents/Info.plist)
+
+		add_custom_command(
+			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
+			COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/text/* ${TARGETDIR}/
+		)
 
 		add_custom_command(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
