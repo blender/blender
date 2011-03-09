@@ -344,7 +344,7 @@ if(WITH_INSTALL)
 
 		install(  # same as linux!, deduplicate
 			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
-			DESTINATION ${TARGETDIR_VER}/../
+			DESTINATION ${TARGETDIR}/
 			PATTERN ".svn" EXCLUDE
 		)
 
@@ -379,13 +379,7 @@ if(WITH_INSTALL)
 
 		install( # same as linux!, deduplicate
 			DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
-			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION}/datafiles/locale
-			PATTERN ".svn" EXCLUDE
-		)
-
-		install( # same as linux!, deduplicate
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
-			DESTINATION ${TARGETDIR_VER}/../
+			DESTINATION ${TARGETDIR_VER}/datafiles/locale
 			PATTERN ".svn" EXCLUDE
 		)
 
