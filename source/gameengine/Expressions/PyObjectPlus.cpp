@@ -45,8 +45,9 @@
  * http://www.python.org/doc/PyCPP.html
  *
 ------------------------------*/
-#include <MT_assert.h>
 #include <stdlib.h>
+#include <stddef.h>
+
 #include "PyObjectPlus.h"
 #include "STR_String.h"
 #include "MT_Vector3.h"
