@@ -426,7 +426,7 @@ if(WITH_INSTALL)
 					CODE
 					"
 					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib/\"
-						COMMAND \"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
+						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
 					"
 					CONFIGURATIONS Release
 				)
@@ -434,7 +434,7 @@ if(WITH_INSTALL)
 					CODE
 					"
 					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib/\"
-						COMMAND \"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
+						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
 					"
 					CONFIGURATIONS RelWithDebInfo
 				)
@@ -442,7 +442,7 @@ if(WITH_INSTALL)
 					CODE
 					"
 					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib/\"
-						COMMAND \"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
+						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
 					"
 					CONFIGURATIONS MinSizeRel
 				)
@@ -450,7 +450,7 @@ if(WITH_INSTALL)
 					CODE
 					"
 					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib/\"
-						COMMAND \"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32_d.tar.gz\")
+						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32_d.tar.gz\")
 					"
 					CONFIGURATIONS Debug
 				)
