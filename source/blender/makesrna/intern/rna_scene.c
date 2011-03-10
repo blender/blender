@@ -1958,7 +1958,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_OUTPUT_SCREEN, "SCREEN", 0, "Full Screen", "Images are rendered in full Screen"},
 		{R_OUTPUT_AREA, "AREA", 0, "Image Editor", "Images are rendered in Image Editor"},
 		{R_OUTPUT_WINDOW, "WINDOW", 0, "New Window", "Images are rendered in new Window"},
-		{R_OUTPUT_NONE, "NONE", 0, "No Output", "Images are rendered without drawing"},
+		{R_OUTPUT_NONE, "NONE", 0, "Keep UI", "Images are rendered without forcing UI changes, optionally showing result"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* Bake */
