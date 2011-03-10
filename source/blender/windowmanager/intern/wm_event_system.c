@@ -1738,14 +1738,6 @@ void wm_event_do_handlers(bContext *C)
 			CTX_wm_area_set(C, area_event_inside(C, event->x, event->y));
 			CTX_wm_region_set(C, region_event_inside(C, event->x, event->y));
 			
-			/* XXX to solve, here screen handlers? */
-			if(event->type==MOUSEMOVE) {
-				/* state variables in screen, cursors, also used in wm_draw.c */
-				ED_screen_set_subwinactive(C, event);	
-				/* for regions having custom cursors */
-				wm_paintcursor_test(C, event);
-			}
-			
 			/* MVC demands to not draw in event handlers... but we need to leave it for ogl selecting etc */
 			wm_window_make_drawable(C, win);
 			
@@ -1767,6 +1759,14 @@ void wm_event_do_handlers(bContext *C)
 				ARegion *ar;
 				int doit= 0;
 	
+				/* Note: setting subwin active should be done here, after modal handlers have been done */
+				if(event->type==MOUSEMOVE) {
+					/* state variables in screen, cursors. Also used in wm_draw.c, fails for modal handlers though */
+					ED_screen_set_subwinactive(C, event);	
+					/* for regions having custom cursors */
+					wm_paintcursor_test(C, event);
+				}
+				
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);

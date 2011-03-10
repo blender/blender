@@ -4608,7 +4608,8 @@ void uiFreeActiveButtons(const bContext *C, bScreen *screen)
 				uiHandleButtonData *data= but->active;
 				
 				if(data->menu==NULL && data->searchbox==NULL)
-					ui_button_active_free(C, but);
+					if(data->state == BUTTON_STATE_HIGHLIGHT)
+						ui_button_active_free(C, but);
 			}
 		}
 	}
