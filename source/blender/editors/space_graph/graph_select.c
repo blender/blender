@@ -1203,14 +1203,15 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 			else if (select_mode == SELECT_ADD)
 				nvi->fcu->flag |= FCURVE_SELECTED;
 		}
-		
-		/* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
-		if (nvi->fcu->flag & FCURVE_SELECTED) {
-			int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
-			ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nvi->fcu, ANIMTYPE_FCURVE);
-		}
 	}
-	
+
+	/* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
+	/* needs to be called with (sipo->flag & SIPO_SELCUVERTSONLY) otherwise the active flag won't be set [#26452] */
+	if (nvi->fcu->flag & FCURVE_SELECTED) {
+		int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+		ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nvi->fcu, ANIMTYPE_FCURVE);
+	}
+
 	/* free temp sample data for filtering */
 	MEM_freeN(nvi);
 }
