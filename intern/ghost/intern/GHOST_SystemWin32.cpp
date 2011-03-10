@@ -454,8 +454,71 @@ GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, WPARAM wParam, LPAR
 
 		if (ri.header.dwType == RIM_TYPEKEYBOARD)
 		{
+			GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
+			
+			GHOST_ModifierKeys modifiers;
+			system->retrieveModifierKeys(modifiers);
+			
 			*keyDown = !(ri.data.keyboard.Flags & RI_KEY_BREAK);
 			key = this->convertKey(window, ri.data.keyboard.VKey, ri.data.keyboard.MakeCode, (ri.data.keyboard.Flags&(RI_KEY_E1|RI_KEY_E0)));
+			
+			// extra handling of modifier keys: don't send repeats out from GHOST
+			if(key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt)
+			{
+				bool changed = false;
+				GHOST_TModifierKeyMask modifier;
+				switch(key) {
+					case GHOST_kKeyLeftShift:
+						{
+							changed = (modifiers.get(GHOST_kModifierKeyLeftShift) != *keyDown);
+							modifier = GHOST_kModifierKeyLeftShift;
+						}
+						break;
+					case GHOST_kKeyRightShift:
+						{
+							changed = (modifiers.get(GHOST_kModifierKeyRightShift) != *keyDown);
+							modifier = GHOST_kModifierKeyRightShift;
+						}
+						break;
+					case GHOST_kKeyLeftControl:
+						{
+							changed = (modifiers.get(GHOST_kModifierKeyLeftControl) != *keyDown);
+							modifier = GHOST_kModifierKeyLeftControl;
+						}
+						break;
+					case GHOST_kKeyRightControl:
+						{
+							changed = (modifiers.get(GHOST_kModifierKeyRightControl) != *keyDown);
+							modifier = GHOST_kModifierKeyRightControl;
+						}
+						break;
+					case GHOST_kKeyLeftAlt:
+						{
+							changed = (modifiers.get(GHOST_kModifierKeyLeftAlt) != *keyDown);
+							modifier = GHOST_kModifierKeyLeftAlt;
+						}
+						break;
+					case GHOST_kKeyRightAlt:
+						{
+							changed = (modifiers.get(GHOST_kModifierKeyRightAlt) != *keyDown);
+							modifier = GHOST_kModifierKeyRightAlt;
+						}
+						break;
+					default: break;
+				}
+				
+				if(changed)
+				{
+					modifiers.set(modifier, *keyDown);
+					system->storeModifierKeys(modifiers);
+				}
+				else
+				{
+					key = GHOST_kKeyUnknown;
+				}
+			}
+			
+	
 			if(vk) *vk = ri.data.keyboard.VKey;
 		};
 
@@ -586,6 +649,7 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, short vKey, shor
 			break;
 		}
 	}
+	
 	return key;
 }
 

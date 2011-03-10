@@ -322,6 +322,14 @@ protected:
 	 */
 	virtual GHOST_TKey hardKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam, int * keyDown, char * vk);
 
+	/**
+	 * Creates modifier key event(s) and updates the key data stored locally (m_modifierKeys).
+	 * With the modifier keys, we want to distinguish left and right keys.
+	 * Sometimes this is not possible (Windows ME for instance). Then, we want
+	 * events generated for both keys.
+	 * @param window	The window receiving the event (the active window).
+	 */
+	GHOST_EventKey* processModifierKeys(GHOST_IWindow *window);
 
 	/**
 	 * Creates mouse button event.
@@ -381,6 +389,19 @@ protected:
 	static void processMinMaxInfo(MINMAXINFO * minmax);
 	
 	/**
+	 * Returns the local state of the modifier keys (from the message queue).
+	 * @param keys The state of the keys.
+	 */
+	inline virtual void retrieveModifierKeys(GHOST_ModifierKeys& keys) const;
+
+	/**
+	 * Stores the state of the modifier keys locally.
+	 * For internal use only!
+	 * @param keys The new state of the modifier keys.
+	 */
+	inline virtual void storeModifierKeys(const GHOST_ModifierKeys& keys);
+	
+	/**
 	 * Check current key layout for AltGr
 	 */
 	inline virtual void handleKeyboardChange(void);
@@ -394,7 +415,9 @@ protected:
 	 * Initiates WM_INPUT messages from keyboard 
 	 */
 	GHOST_TInt32 initKeyboardRawInput(void);
-
+	
+	/** The current state of the modifier keys. */
+	GHOST_ModifierKeys m_modifierKeys;
 	/** State variable set at initialization. */
 	bool m_hasPerformanceCounter;
 	/** High frequency timer variable. */
@@ -417,6 +440,16 @@ protected:
 	LPFNDLLGRID pGetRawInputData;
 	#endif
 };
+
+inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys& keys) const
+{
+	keys = m_modifierKeys;
+}
+
+inline void GHOST_SystemWin32::storeModifierKeys(const GHOST_ModifierKeys& keys)
+{
+	m_modifierKeys = keys;
+}
 
 inline void GHOST_SystemWin32::handleKeyboardChange(void)
 {
