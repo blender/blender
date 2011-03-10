@@ -575,6 +575,7 @@ typedef struct ViewCachedString {
 	short mval[2];
 	short xoffs;
 	short flag;
+	int str_len, pad;
 	/* str is allocated past the end */
 } ViewCachedString;
 
@@ -596,6 +597,7 @@ void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs
 	vos->col.pack= *((int *)col);
 	vos->xoffs= xoffs;
 	vos->flag= flag;
+	vos->str_len= alloc_len-1;
 
 	/* allocate past the end */
 	memcpy(++vos, str, alloc_len);
@@ -661,10 +663,10 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 					col_pack_prev= vos->col.pack;
 				}
 				if(vos->flag & V3D_CACHE_TEXT_ASCII) {
-					BLF_draw_default_ascii((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, 65535); /* XXX, use real length */
+					BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
 				}
 				else {
-					BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, 65535); /* XXX, use real length */
+					BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
 				}
 			}
 		}
