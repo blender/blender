@@ -182,9 +182,6 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, bpy.types.Panel):
 
             col.label("Edge Select Mode")
             col.prop(ts, "edge_path_mode", text="")
-
-            col = layout.column(align=True)
-            col.active = ts.edge_path_mode == 'SEAM'
             col.prop(context.tool_settings, "edge_path_live_unwrap")
 
 # ********** default tools for editmode_curve ****************

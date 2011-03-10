@@ -3727,6 +3727,7 @@ void EM_deselect_by_material(EditMesh *em, int index)
 
 static int editmesh_mark_seam(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	Mesh *me= ((Mesh *)obedit->data);
@@ -3755,6 +3756,13 @@ static int editmesh_mark_seam(bContext *C, wmOperator *op)
 			}
 			eed= eed->next;
 		}
+	}
+
+	/* live unwrap while tagging */
+	if(	(scene->toolsettings->edge_mode_live_unwrap) &&
+		(CustomData_has_layer(&em->fdata, CD_MTFACE))
+	) {
+		ED_unwrap_lscm(scene, obedit, FALSE); /* unwrap all not just sel */
 	}
 
 	BKE_mesh_end_editmesh(obedit->data, em);
