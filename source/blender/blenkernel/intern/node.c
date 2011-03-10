@@ -2333,7 +2333,7 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 					ns->hasoutput = 1;
 					
 					/* sock type is needed to detect rgba or value or vector types */
-					if(sock->link)
+					if(sock->link && sock->link->fromsock)
 						ns->sockettype= sock->link->fromsock->type;
 					else
 						sock->ns.sockettype= sock->type;
