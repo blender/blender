@@ -663,7 +663,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 					col_pack_prev= vos->col.pack;
 				}
 				if(vos->flag & V3D_CACHE_TEXT_ASCII) {
-					BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
+					BLF_draw_default_ascii((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
 				}
 				else {
 					BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
@@ -2123,7 +2123,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	float fvec[3];
 	char val[32]; /* Stores the measurement display text here */
 	const char *conv_float; /* Use a float conversion matching the grid size */
-	unsigned char col[3]; /* color of the text to draw */
+	unsigned char col[4]= {0, 0, 0, 255}; /* color of the text to draw */
 	float area; /* area of the face */
 	float grid= unit->system ? unit->scale_length : v3d->grid;
 	const int do_split= unit->flag & USER_UNIT_OPT_SPLIT;

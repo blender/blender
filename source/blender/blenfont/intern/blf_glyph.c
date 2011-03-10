@@ -135,6 +135,8 @@ void blf_glyph_cache_clear(FontBLF *font)
 			}
 		}
 	}
+
+	memset(font->glyph_ascii_table, 0, sizeof(font->glyph_ascii_table));
 }
 
 void blf_glyph_cache_free(GlyphCacheBLF *gc)
