@@ -411,13 +411,14 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 
 static void distribute_simple_children(Scene *scene, Object *ob, DerivedMesh *finaldm, ParticleSystem *psys)
 {
-	ChildParticle *cpa = psys->child;
+	ChildParticle *cpa = NULL;
 	int i, p;
 	int child_nbr= get_psys_child_number(scene, psys);
 	int totpart= get_psys_tot_child(scene, psys);
 
 	alloc_child_particles(psys, totpart);
 
+	cpa = psys->child;
 	for(i=0; i<child_nbr; i++){
 		for(p=0; p<psys->totpart; p++,cpa++){
 			float length=2.0;
@@ -1076,9 +1077,6 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		dm= finaldm;
 		children=1;
 
-		totpart = get_psys_tot_child(scene, psys);
-		cfrom = from = PART_FROM_FACE;
-
 		tree=BLI_kdtree_new(totpart);
 
 		for(p=0,pa=psys->particles; p<totpart; p++,pa++){
@@ -1088,6 +1086,9 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		}
 
 		BLI_kdtree_balance(tree);
+
+		totpart = get_psys_tot_child(scene, psys);
+		cfrom = from = PART_FROM_FACE;
 	}
 	else {
 		distr = part->distr;
