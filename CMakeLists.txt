@@ -265,43 +265,19 @@ if(UNIX AND NOT APPLE)
 
 
 	if(WITH_PYTHON)
-		# No way to set py31. remove for now.
+		# No way to set py32. remove for now.
 		# find_package(PythonLibs)
-		# set(PYTHON_BINARY python) # not used yet
 
-		set(PYTHON /usr)
+		# defines...
+		
+		#  PYTHON_VERSION
+		#  PYTHON_INCLUDE_DIRS
+		#  PYTHON_LIBRARY
+		#  PYTHON_LIBPATH
+		#  PYTHON_LINKFLAGS
 
-		# ABI can be any of these chars in this order 'dmu', debug/pymalloc/unicode
-		# TODO, detect available ABI's, may want to make this a module and detect this better
-		if(CMAKE_BUILD_TYPE STREQUAL Debug)
-			set(PYTHON_ABI_FLAGS "d")
-		else()
-			set(PYTHON_ABI_FLAGS "m")
-		endif()
+		include(build_files/cmake/FindPythonLibsUnix.cmake)
 
-		set(PYTHON_VERSION 3.2 CACHE STRING "")
-		mark_as_advanced(PYTHON_VERSION)
-		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}${PYTHON_ABI_FLAGS}" CACHE STRING "")
-		mark_as_advanced(PYTHON_INCLUDE_DIRS)
-		set(PYTHON_LIBRARY "python${PYTHON_VERSION}${PYTHON_ABI_FLAGS}" CACHE STRING "")
-		mark_as_advanced(PYTHON_LIBRARY)
-		set(PYTHON_LIBPATH ${PYTHON}/lib CACHE STRING "")
-		mark_as_advanced(PYTHON_LIBPATH)
-		# find_package(PythonInterp) # not used yet
-		# set(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
-
-		set(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
-		mark_as_advanced(PYTHON_LINKFLAGS)
-
-		find_file(
-			_Found_PYTHON_H
-			Python.h
-			${PYTHON_INCLUDE_DIRS}
-		)
-
-		if(NOT _Found_PYTHON_H)
-			message(FATAL_ERROR "Python.h not found in  ${PYTHON_INCLUDE_DIRS}")
-		endif()
 	endif()
 
 	if(WITH_SDL)
