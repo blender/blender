@@ -1418,7 +1418,10 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 						sd->origmin= sd->sarea->totrct.ymin;
 						sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_H;
 					}
-				}				
+				}
+				
+				CTX_wm_window(C)->screen->do_draw= 1;
+
 			}
 			
 			fac= (dir == 'v') ? event->x-sd->origmin : event->y-sd->origmin;
