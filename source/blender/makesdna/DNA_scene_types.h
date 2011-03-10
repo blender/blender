@@ -726,9 +726,11 @@ typedef struct ToolSettings {
 	
 	/* Alt+RMB option */
 	char edge_mode;
+	char edge_mode_live_unwrap;
 
 	/* Transform */
-	short snap_mode, snap_flag, snap_target;
+	char snap_mode;
+	short snap_flag, snap_target;
 	short proportional, prop_mode;
 	char proportional_objects; /* proportional edit, object mode */
 	char pad[3];
@@ -1176,7 +1178,7 @@ typedef enum SculptFlags {
 
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1
-/*#define UVCALC_NO_ASPECT_CORRECT	2*/	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
+#define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
 #define UVCALC_TRANSFORM_CORRECT	4	/* adjust UV's while transforming to avoid distortion */
 
 /* toolsettings->uv_flag */

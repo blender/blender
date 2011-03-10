@@ -812,41 +812,57 @@ static void uv_map_clip_correct(EditMesh *em, wmOperator *op)
 
 /* ******************** Unwrap operator **************** */
 
-static int unwrap_exec(bContext *C, wmOperator *op)
+/* assumes UV layer is checked, doesn't run update funcs */
+void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
 {
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
-	ParamHandle *handle;
-	int method = RNA_enum_get(op->ptr, "method");
-	int fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
-	int correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
-	
-	/* add uvs if they don't exist yet */
-	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
-		BKE_mesh_end_editmesh(obedit->data, em);
-		return OPERATOR_CANCELLED;
-	}
 
-	/* remember last method for live unwrap */
-	scene->toolsettings->unwrapper = method;
+	const short fill_holes= scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
+	const short correct_aspect= !(scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT);
 
-	handle= construct_param_handle(scene, em, 0, fill_holes, 1, correct_aspect);
+	ParamHandle *handle= construct_param_handle(scene, em, 0, fill_holes, sel, correct_aspect);
 
-	param_lscm_begin(handle, PARAM_FALSE, method == 0);
+	param_lscm_begin(handle, PARAM_FALSE, scene->toolsettings->unwrapper == 0);
 	param_lscm_solve(handle);
 	param_lscm_end(handle);
-	
+
 	param_pack(handle, scene->toolsettings->uvcalc_margin);
 
 	param_flush(handle);
 
 	param_delete(handle);
 
+	BKE_mesh_end_editmesh(obedit->data, em);
+}
+
+static int unwrap_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	int method = RNA_enum_get(op->ptr, "method");
+	int fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
+	int correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
+	
+	/* add uvs if they don't exist yet */
+	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	/* remember last method for live unwrap */
+	scene->toolsettings->unwrapper = method;
+
+	if(fill_holes)		scene->toolsettings->uvcalc_flag |=  UVCALC_FILLHOLES;
+	else				scene->toolsettings->uvcalc_flag &= ~UVCALC_FILLHOLES;
+
+	if(correct_aspect)	scene->toolsettings->uvcalc_flag &= ~UVCALC_NO_ASPECT_CORRECT;
+	else				scene->toolsettings->uvcalc_flag |=  UVCALC_NO_ASPECT_CORRECT;
+
+	/* execute unwrap */
+	ED_unwrap_lscm(scene, obedit, FALSE);
+
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
-	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
