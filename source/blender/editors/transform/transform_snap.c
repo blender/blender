@@ -392,7 +392,7 @@ static void initSnappingMode(TransInfo *t)
 			}
 			else
 			{
-				t->tsnap.modeSelect = t->tsnap.project_self ? SNAP_ALL : SNAP_NOT_OBEDIT;
+				t->tsnap.modeSelect = SNAP_ALL;
 			}
 		}
 		/* Particles edit mode*/
@@ -457,11 +457,6 @@ void initSnapping(TransInfo *t, wmOperator *op)
 			{
 				t->tsnap.project = RNA_boolean_get(op->ptr, "use_snap_project");
 			}
-
-			if (RNA_struct_find_property(op->ptr, "use_snap_project_self"))
-			{
-				t->tsnap.project = RNA_boolean_get(op->ptr, "use_snap_project_self");
-			}
 		}
 	}
 	/* use scene defaults only when transform is modal */
@@ -473,7 +468,6 @@ void initSnapping(TransInfo *t, wmOperator *op)
 
 		t->tsnap.align = ((t->settings->snap_flag & SCE_SNAP_ROTATE) == SCE_SNAP_ROTATE);
 		t->tsnap.project = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
-		t->tsnap.project_self = !((t->settings->snap_flag & SCE_SNAP_PROJECT_NO_SELF) == SCE_SNAP_PROJECT_NO_SELF);
 		t->tsnap.peel = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
 	}
 	

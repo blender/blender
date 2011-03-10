@@ -95,8 +95,7 @@ typedef struct TransSnap {
 	short	modePoint;
 	short	modeSelect;
 	short	align;
-	char	project;
-	char	project_self;
+	short	project;
 	short	peel;
 	short  	status;
 	float	snapPoint[3]; /* snapping from this point */
