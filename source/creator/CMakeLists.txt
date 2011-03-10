@@ -413,27 +413,46 @@ if(WITH_INSTALL)
 
 			if(WITH_PYTHON_INSTALL)
 				#~ # note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
-				# install(CODE "message(\"copying a subset of the systems python...\")")
+
+				# create the directory in multiple steps, so it actually gets created when it doesn't exist yet
+				install(CODE "
+				message(\"creating ${TARGETDIR_VER}/python/lib\")
+				file(MAKE_DIRECTORY ${TARGETDIR_VER}/python/)
+				file(MAKE_DIRECTORY ${TARGETDIR_VER}/python/lib/)
+				message(\"done creating dir\")
+				")
 
 				install(
 					CODE
-					"execute_process(COMMAND ${CMAKE_COMMAND}
-					-E make_directory ${TARGETDIR_VER}/python/lib/)"
+					"
+					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib/\"
+						COMMAND \"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
+					"
+					CONFIGURATIONS Release
 				)
-
 				install(
 					CODE
 					"
-					if(BUILD_TYPE MATCHES \"Debug\")
-						set(PYBUNDLE \"python32_d.tar.gz\")
-					else()
-						set(PYBUNDLE \"python32.tar.gz\")
-					endif()
-
-					execute_process(COMMAND ${CMAKE_COMMAND}
-						-E chdir ${TARGETDIR_VER}/python/lib/
-						${CMAKE_COMMAND} -E tar xzfv ${LIBDIR}/release/\${PYBUNDLE})
+					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib/\"
+						COMMAND \"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
 					"
+					CONFIGURATIONS RelWithDebInfo
+				)
+				install(
+					CODE
+					"
+					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib/\"
+						COMMAND \"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
+					"
+					CONFIGURATIONS MinSizeRel
+				)
+				install(
+					CODE
+					"
+					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib/\"
+						COMMAND \"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32_d.tar.gz\")
+					"
+					CONFIGURATIONS Debug
 				)
 
 				# doesnt work, todo
