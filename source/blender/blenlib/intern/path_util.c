@@ -677,8 +677,9 @@ int BLI_path_abs(char *path, const char *basepath)
 #endif
 
 	BLI_strncpy(base, basepath, sizeof(base));
-	
-	BLI_cleanup_file(NULL, base);
+
+	/* file component is ignored, so dont bother with the trailing slash */
+	BLI_cleanup_path(NULL, base);
 	
 	/* push slashes into unix mode - strings entering this part are
 	   potentially messed up: having both back- and forward slashes.
@@ -707,17 +708,9 @@ int BLI_path_abs(char *path, const char *basepath)
 	} else {
 		BLI_strncpy(path, tmp, FILE_MAX);
 	}
-	
-	if (path[0]!='\0') {
-		if ( path[strlen(path)-1]=='/') {
-			/* remove the '/' so we avoid BLI_cleanup_dir adding an extra \ in WIN32 */
-			path[strlen(path)-1] = '\0';
-			BLI_cleanup_dir(NULL, path);
-		} else {
-			BLI_cleanup_file(NULL, path);
-		}
-	}
-	
+
+	BLI_cleanup_path(NULL, path);
+
 #ifdef WIN32
 	/* skip first two chars, which in case of
 	   absolute path will be drive:/blabla and
