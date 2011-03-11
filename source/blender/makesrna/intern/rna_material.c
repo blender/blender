@@ -1569,6 +1569,7 @@ void RNA_def_material(BlenderRNA *brna)
 		{MA_TYPE_HALO, "HALO", 0, "Halo", "Render object as halo particles"},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem transparency_items[] = {
+		{0, "MASK", 0, "Mask", "Mask the background"},
 		{MA_ZTRANSP, "Z_TRANSPARENCY", 0, "Z Transparency", "Use alpha buffer for transparent faces"},
 		{MA_RAYTRANSP, "RAYTRACE", 0, "Raytrace", "Use raytracing for transparent refraction rendering"},
 		{0, NULL, 0, NULL, NULL}};

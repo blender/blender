@@ -762,7 +762,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 		if(depth>0) {
 			float fr, fg, fb, f, f1;
 
-			if((shi.mat->mode_l & MA_TRANSP) && shr.alpha < 1.0f) {
+			if((shi.mat->mode_l & MA_TRANSP) && shr.alpha < 1.0f && (shi.mat->mode_l & (MA_ZTRANSP | MA_RAYTRANSP))) { 
 				float nf, f, refract[3], tracol[4];
 				
 				tracol[0]= shi.r;

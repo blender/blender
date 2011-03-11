@@ -373,11 +373,12 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
             row.prop(mat, "transparency_method", expand=True)
 
         split = layout.split()
+        split.active = base_mat.use_transparency
 
         col = split.column()
         col.prop(mat, "alpha")
         row = col.row()
-        row.active = base_mat.use_transparency and (not mat.use_shadeless)
+        row.active = (base_mat.transparency_method != 'MASK') and (not mat.use_shadeless)
         row.prop(mat, "specular_alpha", text="Specular")
 
         col = split.column()

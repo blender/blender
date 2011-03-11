@@ -3350,7 +3350,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				
 				/* test for 100% transparant */
 				ok= 1;
-				if(ma->alpha==0.0f && ma->spectra==0.0f && ma->filter==0.0f) {
+				if(ma->alpha==0.0f && ma->spectra==0.0f && ma->filter==0.0f && (ma->mode & MA_TRANSP)) { 
 					ok= 0;
 					/* texture on transparency? */
 					for(a=0; a<MAX_MTEX; a++) {

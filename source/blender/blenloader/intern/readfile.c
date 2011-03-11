@@ -11488,6 +11488,29 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile <3)){
+
+		Material *mat;
+		int tex_nr, transp_tex;
+		
+		for(mat = main->mat.first; mat; mat = mat->id.next){
+			if(!(mat->mode & MA_TRANSP) && !(mat->material_type & MA_TYPE_VOLUME)){
+				
+				transp_tex= 0;
+				
+				for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++){
+					if(!mat->mtex[tex_nr]) continue;
+					if(mat->mtex[tex_nr]->mapto & MAP_ALPHA) transp_tex= 1;
+				}
+				
+				if(mat->alpha < 1.0f || mat->fresnel_tra > 0.0f || transp_tex){
+					mat->mode |= MA_TRANSP;
+					mat->mode &= ~(MA_ZTRANSP|MA_RAYTRANSP);
+				}
+			}
+		}
+	}
+
 	/* put compatibility code here until next subversion bump */
 
 	{

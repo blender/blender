@@ -878,7 +878,9 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 
 	if(ma->fresnel_tra!=0.0f) 
 		shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
-
+	
+	if (!(shi->mode & MA_TRANSP)) shi->alpha= 1.0f;
+	
 	shr->diff[0]= shi->r;
 	shr->diff[1]= shi->g;
 	shr->diff[2]= shi->b;
@@ -1578,7 +1580,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 					accum = 1.0f - shaded;
 			}}
 
-			shr->alpha= (shi->mat->alpha)*(accum);
+			shr->alpha= (shi->alpha)*(accum);
 		}
 		else {
 			/* If "fully shaded", use full alpha even on areas that have no lights */
@@ -1638,6 +1640,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	memset(shr, 0, sizeof(ShadeResult));
 	
+	if(!(shi->mode & MA_TRANSP)) shi->alpha = 1.0f;
+	
 	/* separate loop */
 	if(ma->mode & MA_ONLYSHADOW) {
 		shade_lamp_loop_only_shadow(shi, shr);
@@ -1654,10 +1658,12 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shi->g= shi->vcol[1];
 			shi->b= shi->vcol[2];
 			if(ma->mode & (MA_FACETEXTURE_ALPHA))
-				shi->alpha= shi->vcol[3];
+				shi->alpha= (shi->mode & MA_TRANSP) ? shi->vcol[3] : 1.0f;
 		}
-		if(ma->texco)
+		if(ma->texco){
 			do_material_tex(shi);
+			if (!(shi->mode & MA_TRANSP)) shi->alpha = 1.0f;
+		}
 		
 		shr->col[0]= shi->r*shi->alpha;
 		shr->col[1]= shi->g*shi->alpha;
@@ -1812,11 +1818,11 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	/* alpha in end, spec can influence it */
 	if(passflag & (SCE_PASS_COMBINED)) {
-		if(ma->fresnel_tra!=0.0f) 
+		if((ma->fresnel_tra!=0.0f) && (shi->mode & MA_TRANSP))
 			shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 			
 		/* note: shi->mode! */
-		if(shi->mode & MA_TRANSP) {
+		if(shi->mode & MA_TRANSP && (shi->mode & (MA_ZTRANSP|MA_RAYTRANSP))) {
 			if(shi->spectra!=0.0f) {
 				float t = MAX3(shr->spec[0], shr->spec[1], shr->spec[2]);
 				t *= shi->spectra;
@@ -1886,7 +1892,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shr->combined[0] *= obcol[0];
 			shr->combined[1] *= obcol[1];
 			shr->combined[2] *= obcol[2];
-			shr->alpha *= obcol[3];
+			if (shi->mode & MA_TRANSP) shr->alpha *= obcol[3];
 		}
 	}
 
