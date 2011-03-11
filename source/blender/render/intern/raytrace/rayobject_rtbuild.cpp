@@ -106,16 +106,19 @@ void rtbuild_add(RTBuilder *b, RayObject *o)
 	INIT_MINMAX(bb, bb+3);
 	RE_rayobject_merge_bb(o, bb, bb+3);
 
-	/* skip objects with inf/nan in bounding boxes. we should not be
-	   getting these, but in case it happens this avoids crashes */
+	/* skip objects with invalid bounding boxes, nan causes DO_MINMAX
+	   to do nothing, so we get these invalid values. this shouldn't
+	   happen usually, but bugs earlier in the pipeline can cause it. */
+	if(bb[0] > bb[3] || bb[1] > bb[4] || bb[2] > bb[5])
+		return;
+	/* skip objects with inf bounding boxes */
 	if(!finite(bb[0]) || !finite(bb[1]) || !finite(bb[2]))
 		return;
 	if(!finite(bb[3]) || !finite(bb[4]) || !finite(bb[5]))
 		return;
-
 	/* skip objects with zero bounding box, they are of no use, and
 	   will give problems in rtbuild_heuristic_object_split later */
-	if(len_squared_v3v3(bb, bb+3) == 0.0f)
+	if(bb[0] == bb[3] && bb[1] == bb[4] && bb[2] == bb[5])
 		return;
 	
 	copy_v3_v3(b->primitives.end->bb, bb);
