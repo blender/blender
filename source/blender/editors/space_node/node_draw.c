@@ -284,7 +284,7 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 		node->butr.xmax= node->width - 2*NODE_DYS;
 		node->butr.ymin= 0;
 		node->butr.ymax= 0;
-
+		
 		RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
 
 		layout= uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
@@ -406,7 +406,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		if(node->flag & NODE_HIDDEN)
 			node_update_hidden(node);
 		else
-			node_update(C, ntree, node);
+			node_update(C, ngroup, node);
 		node->locx-= gnode->locx;
 		node->locy-= gnode->locy;
 	}
