@@ -666,8 +666,9 @@ static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], St
 		obi= sseg->obi - re->objectinstance;
 		index= sseg->strand->index;
 
-		  projectvert(p1->co, winmat, hoco1);
-		  projectvert(p2->co, winmat, hoco2);
+		projectvert(p1->co, winmat, hoco1);
+		projectvert(p2->co, winmat, hoco2);
+
   
 		for(a=0; a<totzspan; a++) {
 #if 0
@@ -855,7 +856,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 		else if(!shadow && (ma->mode & MA_ONLYCAST))
 			continue;
 
-		if(clip_render_object(obi->obr->boundbox, bounds, winmat))
+		if(clip_render_object(obi->obr->boundbox, bounds, obwinmat))
 			continue;
 		
 		widthx= obr->strandbuf->maxwidth*obwinmat[0][0];
@@ -864,7 +865,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 		/* for each bounding box containing a number of strands */
 		sbound= obr->strandbuf->bound;
 		for(c=0; c<obr->strandbuf->totbound; c++, sbound++) {
-			if(clip_render_object(sbound->boundbox, bounds, winmat))
+			if(clip_render_object(sbound->boundbox, bounds, obwinmat))
 				continue;
 
 			/* for each strand in this bounding box */
@@ -931,11 +932,6 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 			obi= &re->objectinstance[sortseg->obi];
 			obr= obi->obr;
 
-			if(obi->flag & R_TRANSFORMED)
-				mul_m4_m4m4(obwinmat, obi->mat, winmat);
-			else
-				copy_m4_m4(obwinmat, winmat);
-
 			sseg.obi= obi;
 			sseg.strand= RE_findOrAddStrand(obr, sortseg->strand);
 			sseg.buffer= sseg.strand->buffer;
@@ -951,7 +947,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 
 			spart.segment= &sseg;
 
-			render_strand_segment(re, obwinmat, &spart, &zspan, 1, &sseg);
+			render_strand_segment(re, winmat, &spart, &zspan, 1, &sseg);
 		}
 	}
 
