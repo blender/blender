@@ -909,6 +909,10 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
                 col = row.column()
                 col.label(text="")
 
+        if part.render_type in ('OBJECT', 'GROUP') and not part.use_advanced_hair:
+            row = layout.row(align=True)
+            row.prop(part, "particle_size")
+            row.prop(part, "size_random", slider=True)
 
 class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
