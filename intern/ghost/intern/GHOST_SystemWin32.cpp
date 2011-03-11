@@ -470,37 +470,37 @@ GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, WPARAM wParam, LPAR
 				switch(key) {
 					case GHOST_kKeyLeftShift:
 						{
-							changed = (modifiers.get(GHOST_kModifierKeyLeftShift) != *keyDown);
+							changed = (modifiers.get(GHOST_kModifierKeyLeftShift) != (bool)*keyDown);
 							modifier = GHOST_kModifierKeyLeftShift;
 						}
 						break;
 					case GHOST_kKeyRightShift:
 						{
-							changed = (modifiers.get(GHOST_kModifierKeyRightShift) != *keyDown);
+							changed = (modifiers.get(GHOST_kModifierKeyRightShift) != (bool)*keyDown);
 							modifier = GHOST_kModifierKeyRightShift;
 						}
 						break;
 					case GHOST_kKeyLeftControl:
 						{
-							changed = (modifiers.get(GHOST_kModifierKeyLeftControl) != *keyDown);
+							changed = (modifiers.get(GHOST_kModifierKeyLeftControl) != (bool)*keyDown);
 							modifier = GHOST_kModifierKeyLeftControl;
 						}
 						break;
 					case GHOST_kKeyRightControl:
 						{
-							changed = (modifiers.get(GHOST_kModifierKeyRightControl) != *keyDown);
+							changed = (modifiers.get(GHOST_kModifierKeyRightControl) != (bool)*keyDown);
 							modifier = GHOST_kModifierKeyRightControl;
 						}
 						break;
 					case GHOST_kKeyLeftAlt:
 						{
-							changed = (modifiers.get(GHOST_kModifierKeyLeftAlt) != *keyDown);
+							changed = (modifiers.get(GHOST_kModifierKeyLeftAlt) != (bool)*keyDown);
 							modifier = GHOST_kModifierKeyLeftAlt;
 						}
 						break;
 					case GHOST_kKeyRightAlt:
 						{
-							changed = (modifiers.get(GHOST_kModifierKeyRightAlt) != *keyDown);
+							changed = (modifiers.get(GHOST_kModifierKeyRightAlt) != (bool)*keyDown);
 							modifier = GHOST_kModifierKeyRightAlt;
 						}
 						break;
@@ -509,7 +509,7 @@ GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, WPARAM wParam, LPAR
 				
 				if(changed)
 				{
-					modifiers.set(modifier, *keyDown);
+					modifiers.set(modifier, (bool)*keyDown);
 					system->storeModifierKeys(modifiers);
 				}
 				else
