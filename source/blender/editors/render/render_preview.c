@@ -1053,8 +1053,10 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	/* callbacs are cleared on GetRender() */
 	if(ELEM(sp->pr_method, PR_BUTS_RENDER, PR_NODE_RENDER)) {
 		RE_display_draw_cb(re, sp, shader_preview_draw);
-		RE_test_break_cb(re, sp, shader_preview_break);
 	}
+	/* set this for all previews, default is react to G.afbreek still */
+	RE_test_break_cb(re, sp, shader_preview_break);
+	
 	/* lens adjust */
 	oldlens= ((Camera *)sce->camera->data)->lens;
 	if(sizex > sp->sizey)
