@@ -296,14 +296,7 @@ void BLI_uniquename(ListBase *list, void *vlink, const char defname[], char deli
  * If relbase is NULL then its ignored
  */
 
-void BLI_cleanup_dir(const char *relabase, char *dir)
-{
-	BLI_cleanup_file(relabase, dir);
-	BLI_add_slash(dir);
-
-}
-
-void BLI_cleanup_file(const char *relabase, char *dir)
+void BLI_cleanup_path(const char *relabase, char *dir)
 {
 	short a;
 	char *start, *eind;
@@ -358,13 +351,6 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 		eind = start + strlen("\\\\") - 1;
 		memmove( start, eind, strlen(eind)+1 );
 	}
-
-	if((a = strlen(dir))){				/* remove the '\\' at the end */
-		while(a>0 && dir[a-1] == '\\'){
-			a--;
-			dir[a] = 0;
-		}
-	}
 #else
 	if(dir[0]=='.') {	/* happens, for example in FILE_MAIN */
 	   dir[0]= '/';
@@ -402,17 +388,21 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 		eind = start + (2 - 1) /* strlen("//") - 1 */;
 		memmove( start, eind, strlen(eind)+1 );
 	}
-
-	if( (a = strlen(dir)) ){				/* remove all '/' at the end */
-		while(dir[a-1] == '/'){
-			a--;
-			dir[a] = 0;
-			if (a<=0) break;
-		}
-	}
 #endif
 }
 
+void BLI_cleanup_dir(const char *relabase, char *dir)
+{
+	BLI_cleanup_path(relabase, dir);
+	BLI_add_slash(dir);
+
+}
+
+void BLI_cleanup_file(const char *relabase, char *dir)
+{
+	BLI_cleanup_path(relabase, dir);
+	BLI_del_slash(dir);
+}
 
 void BLI_path_rel(char *file, const char *relfile)
 {
@@ -453,8 +443,8 @@ void BLI_path_rel(char *file, const char *relfile)
 	BLI_char_switch(file, '\\', '/');
 	
 	/* remove /./ which confuse the following slash counting... */
-	BLI_cleanup_file(NULL, file);
-	BLI_cleanup_file(NULL, temp);
+	BLI_cleanup_path(NULL, file);
+	BLI_cleanup_path(NULL, temp);
 	
 	/* the last slash in the file indicates where the path part ends */
 	lslash = BLI_last_slash(temp);

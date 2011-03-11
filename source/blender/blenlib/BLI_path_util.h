@@ -132,8 +132,9 @@ void BLI_clean(char *path);
 	 * converts it to a regular full path.
 	 * Also removes garbage from directory paths, like /../ or double slashes etc 
 	 */
-void BLI_cleanup_file(const char *relabase, char *dir);
+void BLI_cleanup_file(const char *relabase, char *dir); /* removes trailing slash */
 void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds a trailing slash */
+void BLI_cleanup_path(const char *relabase, char *dir); /* doesn't touch trailing slash */
 
 /* go back one directory */
 int BLI_parent_dir(char *path);
