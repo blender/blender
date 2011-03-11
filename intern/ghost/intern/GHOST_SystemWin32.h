@@ -56,7 +56,7 @@
 #define RI_KEY_BREAK 0x1
 #endif
 #ifndef RI_KEY_E0
-#define RI_KEY_E0 0x1
+#define RI_KEY_E0 0x2
 #endif
 #ifndef RI_KEY_E1
 #define RI_KEY_E1 0x4
