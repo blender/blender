@@ -183,6 +183,7 @@ void wm_event_do_notifiers(bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmNotifier *note, *next;
 	wmWindow *win;
+	unsigned int win_combine_v3d_datamask= 0;
 	
 	if(wm==NULL)
 		return;
@@ -288,6 +289,11 @@ void wm_event_do_notifiers(bContext *C)
 		MEM_freeN(note);
 	}
 	
+	/* combine datamasks so 1 win doesn't disable UV's in another [#26448] */
+	for(win= wm->windows.first; win; win= win->next) {
+		win_combine_v3d_datamask |= ED_viewedit_datamask(win->screen);
+	}
+
 	/* cached: editor refresh callbacks now, they get context */
 	for(win= wm->windows.first; win; win= win->next) {
 		ScrArea *sa;
@@ -305,7 +311,7 @@ void wm_event_do_notifiers(bContext *C)
 			/* depsgraph & animation: update tagged datablocks */
 
 			/* copied to set's in scene_update_tagged_recursive() */
-			win->screen->scene->customdata_mask= ED_viewedit_datamask(win->screen);
+			win->screen->scene->customdata_mask= win_combine_v3d_datamask;
 
 			scene_update_tagged(CTX_data_main(C), win->screen->scene);
 		}
