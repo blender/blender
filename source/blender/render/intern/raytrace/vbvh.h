@@ -157,9 +157,12 @@ struct BuildBinaryVBVH
 	
 	Node *_transform(RTBuilder *builder)
 	{
-		
 		int size = rtbuild_size(builder);
-		if(size == 1)
+
+		if(size == 0) {
+			return NULL;
+		}
+		else if(size == 1)
 		{
 			Node *node = create_node();
 			INIT_MINMAX(node->bb, node->bb+3);

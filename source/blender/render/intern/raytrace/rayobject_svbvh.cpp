@@ -115,8 +115,12 @@ void bvh_done<SVBVHTree>(SVBVHTree *obj)
 			return;
 		}
 
-		VBVH_optimalPackSIMD<OVBVHNode,PackCost>(PackCost()).transform(root);
-		obj->root = Reorganize_SVBVH<OVBVHNode>(arena2).transform(root);
+		if(root) {
+			VBVH_optimalPackSIMD<OVBVHNode,PackCost>(PackCost()).transform(root);
+			obj->root = Reorganize_SVBVH<OVBVHNode>(arena2).transform(root);
+		}
+		else
+			obj->root = NULL;
 	}
 	
 	//Free data

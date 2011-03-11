@@ -106,6 +106,13 @@ void rtbuild_add(RTBuilder *b, RayObject *o)
 	INIT_MINMAX(bb, bb+3);
 	RE_rayobject_merge_bb(o, bb, bb+3);
 
+	/* skip objects with inf/nan in bounding boxes. we should not be
+	   getting these, but in case it happens this avoids crashes */
+	if(!finite(bb[0]) || !finite(bb[1]) || !finite(bb[2]))
+		return;
+	if(!finite(bb[3]) || !finite(bb[4]) || !finite(bb[5]))
+		return;
+
 	/* skip objects with zero bounding box, they are of no use, and
 	   will give problems in rtbuild_heuristic_object_split later */
 	if(len_squared_v3v3(bb, bb+3) == 0.0f)

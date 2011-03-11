@@ -98,13 +98,17 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 			return;
 		}
 
-		reorganize(root);
-		remove_useless(root, &root);
-		bvh_refit(root);
-	
-		pushup(root);
-		pushdown(root);
-		obj->root = root;
+		if(root) {
+			reorganize(root);
+			remove_useless(root, &root);
+			bvh_refit(root);
+		
+			pushup(root);
+			pushdown(root);
+			obj->root = root;
+		}
+		else
+			obj->root = NULL;
 	}
 	else
 	{
