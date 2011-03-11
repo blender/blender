@@ -4843,6 +4843,10 @@ PyObject *pyrna_prop_collection_iter_CreatePyObject(PointerRNA *ptr, PropertyRNA
 {
 	BPy_PropertyCollectionIterRNA *self= PyObject_New(BPy_PropertyCollectionIterRNA, &pyrna_prop_collection_iter_Type);
 
+#ifdef USE_WEAKREFS
+	self->in_weakreflist= NULL;
+#endif
+
 	RNA_property_collection_begin(ptr, prop, &self->iter);
 
 	return (PyObject *)self;
