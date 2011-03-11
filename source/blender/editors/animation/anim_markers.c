@@ -691,18 +691,24 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			ed_marker_move_cancel(C, op);
 			return OPERATOR_CANCELLED;
 		
+		case RIGHTMOUSE:
+			/* press = user manually demands transform to be cancelled */
+			if (evt->val == KM_PRESS) {
+				ed_marker_move_cancel(C, op);
+				return OPERATOR_CANCELLED;
+			}
+			/* else continue; <--- see if release event should be caught for tweak-end */
+		
 		case RETKEY:
 		case PADENTER:
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
-		case RIGHTMOUSE:
 			if (WM_modal_tweak_exit(evt, mm->event_type)) {
 				ed_marker_move_exit(C, op);
 				WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 				WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 				return OPERATOR_FINISHED;
 			}
-			
 			break;
 		case MOUSEMOVE:
 			if (hasNumInput(&mm->num))
