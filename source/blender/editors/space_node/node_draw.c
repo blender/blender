@@ -386,7 +386,7 @@ static int node_get_colorid(bNode *node)
 /* based on settings in node, sets drawing rect info. each redraw! */
 /* note: this assumes only 1 group at a time is drawn (linked data) */
 /* in node->totr the entire boundbox for the group is stored */
-static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
+static void node_update_group(const bContext *C, bNodeTree *UNUSED(ntree), bNode *gnode)
 {
 	bNodeTree *ngroup= (bNodeTree *)gnode->id;
 	bNode *node;

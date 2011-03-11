@@ -11489,6 +11489,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile <3)){
+		bScreen *sc;
+		Brush *brush;
+		Object *ob;
 
 		Material *mat;
 		int tex_nr, transp_tex;
@@ -11509,15 +11512,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-	}
 
-	/* put compatibility code here until next subversion bump */
-
-	{
-		bScreen *sc;
-		Brush *brush;
-		Object *ob;
-		
 		/* redraws flag in SpaceTime has been moved to Screen level */
 		for (sc = main->screen.first; sc; sc= sc->id.next) {
 			if (sc->redraws_flag == 0) {
@@ -11545,6 +11540,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+
+	{
+
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
