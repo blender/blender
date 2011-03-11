@@ -29,19 +29,14 @@ import os
 
 
 def guess_player_path(preset):
-    import platform
-    try:
-        system = platform.system()
-    except UnicodeDecodeError:
-        import sys
-        system = sys.platform
+    import sys
 
     if preset == 'BLENDER24':
         player_path = "blender"
 
-        if system == 'Darwin':
+        if sys.platform == "darwin":
             test_path = "/Applications/blender 2.49.app/Contents/MacOS/blender"
-        elif system in ('Windows', 'win32'):
+        elif sys.platform[:3] == "win":
             test_path = "/Program Files/Blender Foundation/Blender/blender.exe"
 
             if os.path.exists(test_path):
@@ -50,7 +45,8 @@ def guess_player_path(preset):
     elif preset == 'DJV':
         player_path = "djv_view"
 
-        if system == 'Darwin':
+        if sys.platform == "darwin":
+            # TODO, crummy supporting only 1 version, could find the newest installed version
             test_path = '/Applications/djv-0.8.2.app/Contents/Resources/bin/djv_view'
             if os.path.exists(test_path):
                 player_path = test_path

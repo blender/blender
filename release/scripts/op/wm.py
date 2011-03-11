@@ -575,7 +575,7 @@ class WM_OT_path_open(bpy.types.Operator):
             self.report({'ERROR'}, "File '%s' not found" % filepath)
             return {'CANCELLED'}
 
-        if sys.platform == 'win32':
+        if sys.platform[:3] == "win":
             subprocess.Popen(['start', filepath], shell=True)
         elif sys.platform == 'darwin':
             subprocess.Popen(['open', filepath])

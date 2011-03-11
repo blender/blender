@@ -67,12 +67,12 @@ include(build_files/cmake/macros.cmake)
 get_blender_version()
 
 # Blender internal features
-option(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
-option(WITH_PYTHON        "Enable Embedded Python API" ON)
-option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency)." OFF)
-option(WITH_PYTHON_MODULE "Enable building as a python module (experemental)" OFF)
-option(WITH_BUILDINFO     "Include extra build details" ON)
-option(WITH_IK_ITASC      "Enable ITASC IK solver" ON)
+option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
+option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
+option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
+option(WITH_PYTHON_MODULE "Enable building as a python module (experemental, only enable for development)" OFF)
+option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ON)
+option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)" ON)
 option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" OFF)
 option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
@@ -132,7 +132,7 @@ endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
 # Debug
-option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking" OFF)
+option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)" OFF)
 mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" OFF)
