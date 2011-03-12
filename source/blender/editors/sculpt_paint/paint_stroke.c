@@ -390,7 +390,7 @@ static int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radiu
 		if (*pixel_radius == 0)
 			*pixel_radius = brush_size(stroke->brush);
 
-		mul_m4_v3(stroke->vc.obact->sculpt->ob->obmat, location);
+		mul_m4_v3(stroke->vc.obact->obmat, location);
 
 		hit = 1;
 	}

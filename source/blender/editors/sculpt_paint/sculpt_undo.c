@@ -246,10 +246,10 @@ SculptUndoNode *sculpt_undo_get_node(PBVHNode *node)
 	return NULL;
 }
 
-SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
+SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node)
 {
 	ListBase *lb= undo_paint_push_get_list(UNDO_PAINT_MESH);
-	Object *ob= ss->ob;
+	SculptSession *ss = ob->sculpt;
 	SculptUndoNode *unode;
 	int totvert, allvert, totgrid, maxgrid, gridsize, *grids;
 

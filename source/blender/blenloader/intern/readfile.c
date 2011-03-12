@@ -4319,7 +4319,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 	if(ob->sculpt) {
 		ob->sculpt= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
-		ob->sculpt->ob= ob;
 	}
 }
 
