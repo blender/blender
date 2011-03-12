@@ -505,33 +505,52 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
 
             split = layout.split()
             sub = split.column()
-            sub.label(text="Fluid Interaction:")
-            sub.prop(fluid, "fluid_radius")
-            sub.prop(fluid, "repulsion_force")
-            subsub = sub.column(align=True)
-            subsub.prop(fluid, "rest_density")
-            subsub.prop(fluid, "density_force", text="Force")
-
-            sub.label(text="Viscosity:")
-            subsub = sub.column(align=True)
-            subsub.prop(fluid, "linear_viscosity", text="Linear")
-            subsub.prop(fluid, "square_viscosity", text="Square")
+            sub.label(text="Fluid properties:")
+            sub.prop(fluid, "stiffness", text="Stiffness")
+            sub.prop(fluid, "linear_viscosity", text="Viscosity")
+            sub.prop(fluid, "buoyancy", text="Buoancy", slider=True)
+            
+            sub = split.column()
+            subsub = sub.row()
+            subsub.label(text="Advanced:")
+            subsub = sub.row()
+            subsub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
+            subsub.prop(fluid, "factor_repulsion", text="")
+            
+            subsub = sub.row()
+            subsub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
+            subsub.prop(fluid, "factor_stiff_viscosity", text="")
+            
+            subsub = sub.row()
+            subsub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
+            subsub.prop(fluid, "factor_radius", text="")
+            
+            subsub = sub.row()
+            subsub.prop(fluid, "rest_density", slider=fluid.factor_density)
+            subsub.prop(fluid, "factor_density", text="")
+            
+            split = layout.split()
 
             sub = split.column()
-
             sub.label(text="Springs:")
             sub.prop(fluid, "spring_force", text="Force")
-            #Hidden to make ui a bit lighter, can be unhidden for a bit more control
-            #sub.prop(fluid, "rest_length", slider=True)
             sub.prop(fluid, "use_viscoelastic_springs")
             subsub = sub.column(align=True)
             subsub.active = fluid.use_viscoelastic_springs
             subsub.prop(fluid, "yield_ratio", slider=True)
             subsub.prop(fluid, "plasticity", slider=True)
+            
+            sub = split.column()
+            sub.label(text="Advanced:")
+            subsub = sub.row()
+            subsub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
+            subsub.prop(fluid, "factor_rest_length", text="")
+            sub.label(text="")
+            subsub = sub.column()
+            subsub.active = fluid.use_viscoelastic_springs
             subsub.prop(fluid, "use_initial_rest_length")
-
-            sub.label(text="Buoyancy:")
-            sub.prop(fluid, "buoyancy", text="Strength", slider=True)
+            subsub.prop(fluid, "spring_frames", text="Frames")
+            
 
         elif part.physics_type == 'KEYED':
             split = layout.split()
@@ -967,16 +986,15 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
         if part.physics_type == 'BOIDS':
             col.prop(part, "show_health")
 
-        col = row.column()
-        col.prop(part, "show_material_color", text="Use material color")
+        col = row.column(align=True)
+        col.label(text="Color:")
+        col.prop(part, "draw_color", text="")
+        sub = col.row()
+        sub.active = part.draw_color in ('VELOCITY', 'ACCELERATION')
+        sub.prop(part, "color_maximum", text="Max")
 
         if (path):
             col.prop(part, "draw_step")
-        else:
-            sub = col.column()
-            sub.active = (part.show_material_color is False)
-            #sub.label(text="color")
-            #sub.label(text="Override material color")
 
 
 class PARTICLE_PT_children(ParticleButtonsPanel, bpy.types.Panel):

@@ -123,16 +123,23 @@ typedef struct ParticleData {
 
 typedef struct SPHFluidSettings {
 	/*Particle Fluid*/
-	float spring_k, radius, rest_length, plasticity_constant, yield_ratio;
+	float radius, spring_k, rest_length;
+	float plasticity_constant, yield_ratio;
+	float plasticity_balance, yield_balance;
 	float viscosity_omega, viscosity_beta;
 	float stiffness_k, stiffness_knear, rest_density;
 	float buoyancy;
-	int flag, pad;
+	int flag, spring_frames;
 } SPHFluidSettings;
 
 /* fluid->flag */
 #define SPH_VISCOELASTIC_SPRINGS	1
 #define SPH_CURRENT_REST_LENGTH		2
+#define SPH_FAC_REPULSION			4
+#define SPH_FAC_DENSITY				8
+#define SPH_FAC_RADIUS				16
+#define SPH_FAC_VISCOSITY			32
+#define SPH_FAC_REST_LENGTH			64
 
 typedef struct ParticleSettings {
 	ID id;
@@ -143,12 +150,12 @@ typedef struct ParticleSettings {
 
 	struct EffectorWeights *effector_weights;
 
-	int flag;
+	int flag, rt;
 	short type, from, distr, texact;
 	/* physics modes */
 	short phystype, rotmode, avemode, reactevent;
 	short draw, draw_as, draw_size, childtype;
-	short ren_as, subframes;
+	short ren_as, subframes, draw_col;
 	/* number of path segments, power of 2 except */
 	short draw_step, ren_step;
 	short hair_step, keys_step;
@@ -157,11 +164,14 @@ typedef struct ParticleSettings {
 	short adapt_angle, adapt_pix;
 
 	short disp, omat, interpolation, rotfrom, integrator;
-	short kink, kink_axis, rt2;
+	short kink, kink_axis;
 
 	/* billboards */
 	short bb_align, bb_uv_split, bb_anim, bb_split_offset;
 	float bb_tilt, bb_rand_tilt, bb_offset[2];
+
+	/* draw color */
+	float color_vec_max;
 
 	/* simplification */
 	short simplify_flag, simplify_refsize;
@@ -249,9 +259,9 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	char name[32];							/* particle system name */
 	
 	float imat[4][4];	/* used for duplicators */
-	float cfra, tree_frame;
+	float cfra, tree_frame, bvhtree_frame;
 	int seed, child_seed;
-	int flag, totpart, totunexist, totchild, totcached, totchildcache, rt;
+	int flag, totpart, totunexist, totchild, totcached, totchildcache;
 	short recalc, target_psys, totkeyed, bakespace;
 
 	char bb_uvname[3][32];					/* billboard uv name */
@@ -271,7 +281,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	ParticleSpring *fluid_springs;
 	int tot_fluidsprings, alloc_fluidsprings;
 
-	struct KDTree *tree;					/* used for interactions with self and other systems */
+	struct KDTree *tree;								/* used for interactions with self and other systems */
+	struct BVHTree *bvhtree;								/* used for interactions with self and other systems */
 
 	struct ParticleDrawData *pdd;
 
@@ -375,9 +386,16 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_DRAW_RAND_GR	1024
 #define PART_DRAW_REN_ADAPT	2048
 #define PART_DRAW_VEL_LENGTH	(1<<12)
-#define PART_DRAW_MAT_COL		(1<<13)
+#define PART_DRAW_MAT_COL		(1<<13) /* deprecated, but used in do_versions */
 #define PART_DRAW_WHOLE_GR		(1<<14)
 #define PART_DRAW_REN_STRAND	(1<<15)
+
+/* part->draw_col */
+#define PART_DRAW_COL_NONE		0
+#define PART_DRAW_COL_MAT		1
+#define PART_DRAW_COL_VEL		2
+#define PART_DRAW_COL_ACC		3
+
 
 /* part->simplify_flag */
 #define PART_SIMPLIFY_ENABLE	1

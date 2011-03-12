@@ -571,6 +571,7 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		
 		BLI_freelistN(&psys->targets);
 
+		BLI_bvhtree_free(psys->bvhtree);
 		BLI_kdtree_free(psys->tree);
  
 		if(psys->fluid_springs)
@@ -2703,7 +2704,7 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 			sub_v3_v3v3((child-1)->vel, child->co, (child-2)->co);
 			mul_v3_fl((child-1)->vel, 0.5);
 
-			if(ctx->ma && (part->draw & PART_DRAW_MAT_COL))
+			if(ctx->ma && (part->draw_col == PART_DRAW_COL_MAT))
 				get_strand_normal(ctx->ma, ornor, cur_length, (child-1)->vel);
 		}
 
@@ -2722,7 +2723,7 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 			cur_length = 0.0f;
 		}
 
-		if(ctx->ma && (part->draw & PART_DRAW_MAT_COL)) {
+		if(ctx->ma && (part->draw_col == PART_DRAW_COL_MAT)) {
 			VECCOPY(child->col, &ctx->ma->r)
 			get_strand_normal(ctx->ma, ornor, cur_length, child->vel);
 		}
@@ -2907,7 +2908,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 
 	psys->lattice = psys_get_lattice(sim);
 	ma= give_current_material(sim->ob, psys->part->omat);
-	if(ma && (psys->part->draw & PART_DRAW_MAT_COL))
+	if(ma && (psys->part->draw_col == PART_DRAW_COL_MAT))
 		VECCOPY(col, &ma->r)
 
 	if((psys->flag & PSYS_GLOBAL_HAIR)==0) {
@@ -3535,16 +3536,15 @@ static void default_particle_settings(ParticleSettings *part)
 	part->clength=1.0f;
 	part->clength_thres=0.0f;
 
-	part->draw= PART_DRAW_EMITTER|PART_DRAW_MAT_COL;
+	part->draw= PART_DRAW_EMITTER;
 	part->draw_line[0]=0.5;
 	part->path_start = 0.0f;
 	part->path_end = 1.0f;
 
 	part->keyed_loops = 1;
 
-#if 0 // XXX old animation system
-	part->ipo = NULL;
-#endif // XXX old animation system
+	part->color_vec_max = 1.f;
+	part->draw_col = PART_DRAW_COL_MAT;
 
 	part->simplify_refsize= 1920;
 	part->simplify_rate= 1.0f;

@@ -3330,6 +3330,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		}
 
 		psys->tree = NULL;
+		psys->bvhtree = NULL;
 	}
 	return;
 }
@@ -11491,7 +11492,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bScreen *sc;
 		Brush *brush;
 		Object *ob;
-
+		ParticleSettings *part;
 		Material *mat;
 		int tex_nr, transp_tex;
 		
@@ -11538,6 +11539,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+		}
+
+		/* particle draw color from material */
+		for(part = main->particle.first; part; part = part->id.next) {
+			if(part->draw & PART_DRAW_MAT_COL)
+				part->draw_col = PART_DRAW_COL_MAT;
 		}
 	}
 

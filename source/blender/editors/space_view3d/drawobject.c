@@ -3465,7 +3465,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	Material *ma;
 	float vel[3], imat[4][4];
 	float timestep, pixsize=1.0, pa_size, r_tilt, r_length;
-	float pa_time, pa_birthtime, pa_dietime, pa_health;
+	float pa_time, pa_birthtime, pa_dietime, pa_health, intensity;
 	float cfra;
 	float ma_r=0.0f, ma_g=0.0f, ma_b=0.0f;
 	int a, totpart, totpoint=0, totve=0, drawn, draw_as, totchild=0;
@@ -3529,7 +3529,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if(v3d->zbuf) glDepthMask(1);
 
-	if((ma) && (part->draw&PART_DRAW_MAT_COL)) {
+	if((ma) && (part->draw_col == PART_DRAW_COL_MAT)) {
 		rgb_float_to_byte(&(ma->r), tcol);
 
 		ma_r = ma->r;
@@ -3630,6 +3630,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		normalize_v3(imat[1]);
 	}
 
+	if(ELEM3(draw_as, PART_DRAW_DOT, PART_DRAW_CROSS, PART_DRAW_LINE)
+		&& part->draw_col > PART_DRAW_COL_MAT)
+		create_cdata = 1;
+
 	if(!create_cdata && pdd && pdd->cdata) {
 		MEM_freeN(pdd->cdata);
 		pdd->cdata = pdd->cd = NULL;
@@ -3672,7 +3676,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		if(create_cdata && !pdd->cdata)
 			pdd->cdata = MEM_callocN(tot_vec_size, "particle_cdata");
 		if(create_ndata && !pdd->ndata)
-			pdd->ndata = MEM_callocN(tot_vec_size, "particle_vdata");
+			pdd->ndata = MEM_callocN(tot_vec_size, "particle_ndata");
 
 		if(part->draw & PART_DRAW_VEL && draw_as != PART_DRAW_LINE) {
 			if(!pdd->vedata)
@@ -3727,65 +3731,26 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				else
 					pa_health = -1.0;
 
-#if 0 // XXX old animation system	
-				if((part->flag&PART_ABS_TIME)==0){			
-					if(ma && ma->ipo){
-						IpoCurve *icu;
-
-						/* correction for lifetime */
-						calc_ipo(ma->ipo, 100.0f*pa_time);
-
-						for(icu = ma->ipo->curve.first; icu; icu=icu->next) {
-							if(icu->adrcode == MA_COL_R)
-								ma_r = icu->curval;
-							else if(icu->adrcode == MA_COL_G)
-								ma_g = icu->curval;
-							else if(icu->adrcode == MA_COL_B)
-								ma_b = icu->curval;
-						}
-					}
-					if(part->ipo) {
-						IpoCurve *icu;
-
-						/* correction for lifetime */
-						calc_ipo(part->ipo, 100*pa_time);
-
-						for(icu = part->ipo->curve.first; icu; icu=icu->next) {
-							if(icu->adrcode == PART_SIZE)
-								pa_size = icu->curval;
-						}
-					}
-				}
-#endif // XXX old animation system
-
 				r_tilt = 2.0f*(PSYS_FRAND(a + 21) - 0.5f);
 				r_length = PSYS_FRAND(a + 22);
+
+				if(part->draw_col > PART_DRAW_COL_MAT) {
+					switch(part->draw_col) {
+						case PART_DRAW_COL_VEL:
+							intensity = len_v3(pa->state.vel)/part->color_vec_max;
+							break;
+						case PART_DRAW_COL_ACC:
+							intensity = len_v3v3(pa->state.vel, pa->prev_state.vel)/((pa->state.time-pa->prev_state.time)*part->color_vec_max);
+							break;
+					}
+					CLAMP(intensity, 0.f, 1.f);
+					weight_to_rgb(intensity, &ma_r, &ma_g, &ma_b);
+				}
 			}
 			else{
 				ChildParticle *cpa= &psys->child[a-totpart];
 
 				pa_time=psys_get_child_time(psys,cpa,cfra,&pa_birthtime,&pa_dietime);
-
-#if 0 // XXX old animation system
-				if((part->flag&PART_ABS_TIME)==0) {
-					if(ma && ma->ipo){
-						IpoCurve *icu;
-
-						/* correction for lifetime */
-						calc_ipo(ma->ipo, 100.0f*pa_time);
-
-						for(icu = ma->ipo->curve.first; icu; icu=icu->next) {
-							if(icu->adrcode == MA_COL_R)
-								ma_r = icu->curval;
-							else if(icu->adrcode == MA_COL_G)
-								ma_g = icu->curval;
-							else if(icu->adrcode == MA_COL_B)
-								ma_b = icu->curval;
-						}
-					}
-				}
-#endif // XXX old animation system
-
 				pa_size=psys_get_child_size(psys,cpa,cfra,NULL);
 
 				pa_health = -1.0;
@@ -3911,7 +3876,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		if (1) { //ob_dt > OB_WIRE) {
 			glEnableClientState(GL_NORMAL_ARRAY);
 
-			if(part->draw&PART_DRAW_MAT_COL)
+			if(part->draw_col == PART_DRAW_COL_MAT)
 				glEnableClientState(GL_COLOR_ARRAY);
 
 			glEnable(GL_LIGHTING);
@@ -3940,7 +3905,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 				if(1) { //ob_dt > OB_WIRE) {
 					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
-					if(part->draw&PART_DRAW_MAT_COL)
+					if(part->draw_col == PART_DRAW_COL_MAT)
 						glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
 				}
 
@@ -3956,7 +3921,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 			if(1) { //ob_dt > OB_WIRE) {
 				glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
-				if(part->draw&PART_DRAW_MAT_COL)
+				if(part->draw_col == PART_DRAW_COL_MAT)
 					glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
 			}
 
@@ -3966,7 +3931,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 		/* restore & clean up */
 		if(1) { //ob_dt > OB_WIRE) {
-			if(part->draw&PART_DRAW_MAT_COL)
+			if(part->draw_col == PART_DRAW_COL_MAT)
 				glDisable(GL_COLOR_ARRAY);
 			glDisable(GL_COLOR_MATERIAL);
 		}
