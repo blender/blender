@@ -26,6 +26,7 @@ StructRNA = bpy_types.Struct.__bases__[0]
 StructMetaPropGroup = _bpy.StructMetaPropGroup
 # StructRNA = bpy_types.Struct
 
+bpy_types.BlendDataLibraries.load = _bpy._library_load
 
 class Context(StructRNA):
     __slots__ = ()

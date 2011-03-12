@@ -190,6 +190,7 @@ static PyObject *bpy_import_test(const char *modname)
 void BPy_init_modules( void )
 {
 	extern BPy_StructRNA *bpy_context_module;
+	extern int bpy_lib_init(PyObject *);
 	PointerRNA ctx_ptr;
 	PyObject *mod;
 
@@ -219,7 +220,9 @@ void BPy_init_modules( void )
 
 	PyModule_AddObject( mod, "types", BPY_rna_types() ); /* needs to be first so bpy_types can run */
 	PyModule_AddObject(mod, "StructMetaPropGroup", (PyObject *)&pyrna_struct_meta_idprop_Type); /* metaclass for idprop types, bpy_types.py needs access */
-			
+
+	bpy_lib_init(mod); /* adds '_bpy._library_load', must be called before 'bpy_types' which uses it */
+
 	bpy_import_test("bpy_types");
 	PyModule_AddObject( mod, "data", BPY_rna_module() ); /* imports bpy_types by running this */
 	bpy_import_test("bpy_types");

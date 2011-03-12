@@ -42,6 +42,7 @@ set(SRC
 	bpy_app.c
 	bpy_driver.c
 	bpy_interface.c
+	bpy_library.c
 	bpy_operator.c
 	bpy_operator_wrap.c
 	bpy_props.c
