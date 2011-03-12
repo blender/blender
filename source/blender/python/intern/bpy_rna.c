@@ -76,6 +76,7 @@
 #define USE_MATHUTILS
 #define USE_STRING_COERCE
 
+static PyObject* pyrna_struct_Subtype(PointerRNA *ptr);
 static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self);
 
 int pyrna_struct_validity_check(BPy_StructRNA *pysrna)
@@ -3126,8 +3127,36 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
 		}
 	}
 
-	/* The error raised here will be displayed */
+#if 0
 	return PyObject_GenericGetAttr((PyObject *)self, pyname);
+#else
+	{
+		/* Could just do this except for 1 awkward case.
+		 * PyObject_GenericGetAttr((PyObject *)self, pyname);
+		 * so as to support 'bpy.data.library.load()'
+		 * note, this _only_ supports static methods */
+
+		PyObject *ret= PyObject_GenericGetAttr((PyObject *)self, pyname);
+
+		if(ret == NULL) {
+			/* since this is least common case, handle it last */
+			PointerRNA r_ptr;
+			PyObject *error_type, *error_value, *error_traceback;
+			PyErr_Fetch(&error_type, &error_value, &error_traceback);
+			PyErr_Clear();
+
+			if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
+				PyObject *cls= pyrna_struct_Subtype(&r_ptr); /* borrows */
+				ret= PyObject_GenericGetAttr(cls, pyname);
+				if(ret == NULL) {
+					PyErr_Restore(error_type, error_value, error_traceback);
+				}
+			}
+		}
+
+		return ret;
+	}
+#endif
 }
 
 //--------------- setattr-------------------------------------------
