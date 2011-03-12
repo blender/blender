@@ -2333,7 +2333,7 @@ static void sph_density_accum_cb(void *userdata, int index, float squared_dist)
 	pfr->density += q*q;
 	pfr->near_density += q*q*q;
 }
-static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, float *impulse)
+static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, float *UNUSED(impulse))
 {
 	SPHData *sphdata = (SPHData *)sphdata_v;
 	ParticleSystem **psys = sphdata->psys;
@@ -2452,10 +2452,10 @@ static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float d
 	int i;
 
 	ParticleSettings *part = sim->psys->part;
-	float timestep = psys_get_timestep(sim);
+	// float timestep = psys_get_timestep(sim); // UNUSED
 	float pa_mass = part->mass * (part->flag & PART_SIZEMASS ? pa->size : 1.f);
 	float dtime = dfra*psys_get_timestep(sim);
-	int steps = 1;
+	// int steps = 1; // UNUSED
 	float effector_acceleration[3];
 	SPHData sphdata;
 
