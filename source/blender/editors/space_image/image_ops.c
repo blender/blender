@@ -2134,7 +2134,7 @@ static int cycle_render_slot_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
 
 	/* no undo push for browsing existing */
-	if(ima->renders[ima->render_slot])
+	if(ima->renders[ima->render_slot] || ima->render_slot==ima->last_render_slot)
 		return OPERATOR_CANCELLED;
 	
 	return OPERATOR_FINISHED;
