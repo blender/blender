@@ -1949,7 +1949,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem color_mode_items[] ={
-		{R_PLANESBW, "BW", 0, "BW", "Images are saved with BW (grayscale) data"},
+		{R_PLANESBW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
 		{R_PLANES24, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
 		{R_PLANES32, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
 		{0, NULL, 0, NULL, NULL}};
