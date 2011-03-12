@@ -47,6 +47,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
+#include "BLI_rand.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
@@ -268,11 +269,12 @@ void strand_apply_shaderesult_alpha(ShadeResult *shr, float alpha)
 	}
 }
 
-void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, StrandPoint *spoint)
+static void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, StrandVert *svert, StrandPoint *spoint)
 {
 	ShadeInput *shi= ssamp->shi;
 	ShadeResult *shr= ssamp->shr;
 	VlakRen vlr;
+	int seed;
 
 	memset(&vlr, 0, sizeof(vlr));
 	vlr.flag= R_SMOOTH;
@@ -289,6 +291,13 @@ void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, Str
 
 	/* cache for shadow */
 	shi->samplenr= re->shadowsamplenr[shi->thread]++;
+
+	/* all samples */
+	shi->mask= 0xFFFF;
+
+	/* seed RNG for consistent results across tiles */
+	seed = shi->strand->index + (svert - shi->strand->vert);
+	BLI_thread_srandom(shi->thread, seed);
 
 	shade_input_set_strand(shi, sseg->strand, spoint);
 	shade_input_set_strand_texco(shi, sseg->strand, sseg->v[1], spoint);
@@ -352,7 +361,7 @@ static void strand_shade_get(Render *re, StrandShadeCache *cache, ShadeSample *s
 		/* not shaded yet, shade and insert into hash */
 		p.t= (sseg->v[1] == svert)? 0.0f: 1.0f;
 		strand_eval_point(sseg, &p);
-		strand_shade_point(re, ssamp, sseg, &p);
+		strand_shade_point(re, ssamp, sseg, svert, &p);
 
 		hashshr= MEM_callocN(sizeof(ShadeResult), "HashShadeResult");
 		*hashshr= ssamp->shr[0];

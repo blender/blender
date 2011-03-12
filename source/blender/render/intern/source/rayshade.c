@@ -1824,7 +1824,7 @@ static float *threadsafe_table_sphere(int test, int thread, int xs, int ys, int 
 	return R.wrld.aotables+ thread*tot*3;
 }
 
-static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
+static float *sphere_sampler(int type, int resol, int thread, int xs, int ys, int reset)
 {
 	int tot;
 	float *vec;
@@ -1852,8 +1852,8 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 		float ang, *vec1;
 		int a;
 		
-		// returns table if xs and ys were equal to last call
-		sphere= threadsafe_table_sphere(1, thread, xs, ys, tot);
+		// returns table if xs and ys were equal to last call, and not resetting
+		sphere= (reset)? NULL: threadsafe_table_sphere(1, thread, xs, ys, tot);
 		if(sphere==NULL) {
 			sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
 			
@@ -2071,8 +2071,10 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *ao, float *env)
 		envcolor= WO_AOPLAIN;
 	
 	if(resol>32) resol= 32;
-	
-	vec= sphere_sampler(R.wrld.aomode, resol, shi->thread, shi->xs, shi->ys);
+
+	/* get sphere samples. for faces we get the same samples for sample x/y values,
+	   for strand render we always require a new sampler because x/y are not set */
+	vec= sphere_sampler(R.wrld.aomode, resol, shi->thread, shi->xs, shi->ys, shi->strand != NULL);
 	
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
 	tot= 2*resol*resol;
