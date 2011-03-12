@@ -19,7 +19,7 @@ set(_Python_ABI_FLAGS
 
 string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 set(_Python_PATHS
-  "/opt/py${_PYTHON_VERSION_NO_DOTS}" "/usr" "/usr/local")
+  "$ENV{HOME}/py${_PYTHON_VERSION_NO_DOTS}" "/opt/py${_PYTHON_VERSION_NO_DOTS}" "/usr" "/usr/local")
 
 if(NOT DEFINED PYTHON_INCLUDE_DIRS)
 	message(STATUS "Looking for include Python.h")
