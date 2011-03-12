@@ -997,16 +997,15 @@ void filelist_from_library(struct FileList* filelist)
 	previews = NULL;
 	if (idcode) {
 		previews= BLO_blendhandle_get_previews(filelist->libfiledata, idcode);
-		names= BLO_blendhandle_get_datablock_names(filelist->libfiledata, idcode);
+		names= BLO_blendhandle_get_datablock_names(filelist->libfiledata, idcode, &nnames);
 		/* ugh, no rewind, need to reopen */
 		BLO_blendhandle_close(filelist->libfiledata);
 		filelist->libfiledata= BLO_blendhandle_from_file(dir);
 		
 	} else {
 		names= BLO_blendhandle_get_linkable_groups(filelist->libfiledata);
+		nnames= BLI_linklist_length(names);
 	}
-	
-	nnames= BLI_linklist_length(names);
 
 	filelist->numfiles= nnames + 1;
 	filelist->filelist= malloc(filelist->numfiles * sizeof(*filelist->filelist));

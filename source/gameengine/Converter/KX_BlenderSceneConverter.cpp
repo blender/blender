@@ -984,8 +984,9 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 
 	/* here appending/linking starts */
 	main_tmp = BLO_library_append_begin(C, &bpy_openlib, (char *)path);
-	
-	names = BLO_blendhandle_get_datablock_names( bpy_openlib, idcode);
+
+	int totnames_dummy;
+	names = BLO_blendhandle_get_datablock_names( bpy_openlib, idcode, &totnames_dummy);
 	
 	int i=0;
 	LinkNode *n= names;

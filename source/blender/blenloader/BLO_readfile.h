@@ -146,13 +146,15 @@ BLO_blendhandle_from_memory(
  * 
  * @param bh The blendhandle to access.
  * @param ofblocktype The type of names to get.
+ * @param totnames The length of the returned list.
  * @return A BLI_linklist of strings. The string links
  * should be freed with malloc.
  */
 	struct LinkNode*
 BLO_blendhandle_get_datablock_names(
 	BlendHandle *bh, 
-	int ofblocktype);
+	int ofblocktype,
+	int *totnames);
 
 /**
  * Gets the previews of all the datablocks in a file

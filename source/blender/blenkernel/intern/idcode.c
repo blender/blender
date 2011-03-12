@@ -133,3 +133,8 @@ const char *BKE_idcode_to_name_plural(int code)
 	
 	return idt?idt->plural:NULL;
 }
+
+int BKE_idcode_iter_step(int *index)
+{
+	return (*index < nidtypes) ? idtypes[(*index)++].code : 0;
+}
