@@ -355,26 +355,24 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, bpy.types.Panel):
 
         split = layout.split()
 
-        sub = split.column()
-        sub.label(text="Emitter Geometry:")
-        sub.prop(part, "normal_factor")
-        subsub = sub.column(align=True)
-        subsub.prop(part, "tangent_factor")
-        subsub.prop(part, "tangent_phase", slider=True)
+        col = split.column()
+        col.label(text="Emitter Geometry:")
+        col.prop(part, "normal_factor")
+        sub = col.column(align=True)
+        sub.prop(part, "tangent_factor")
+        sub.prop(part, "tangent_phase", slider=True)
 
-        sub = split.column()
-        sub.label(text="Emitter Object")
-        sub.prop(part, "object_align_factor", text="")
+        col = split.column()
+        col.label(text="Emitter Object")
+        col.prop(part, "object_align_factor", text="")
 
-        layout.row().label(text="Other:")
-        split = layout.split()
-        sub = split.column()
+        layout.label(text="Other:")
+        row = layout.row()
         if part.emit_from == 'PARTICLE':
-            sub.prop(part, "particle_factor")
+            row.prop(part, "particle_factor")
         else:
-            sub.prop(part, "object_factor", slider=True)
-        sub = split.column()
-        sub.prop(part, "factor_random")
+            row.prop(part, "object_factor", slider=True)
+        row.prop(part, "factor_random")
 
         #if part.type=='REACTOR':
         #    sub.prop(part, "reactor_factor")
@@ -408,27 +406,26 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, bpy.types.Panel):
 
         layout.enabled = particle_panel_enabled(context, psys)
 
-        split = layout.split()
-        split.label(text="Initial Rotation:")
-        split.prop(part, "use_dynamic_rotation")
-        split = layout.split()
-
-        sub = split.column(align=True)
-        sub.prop(part, "rotation_mode", text="")
-        sub.prop(part, "rotation_factor_random", slider=True, text="Random")
-
-        sub = split.column(align=True)
-        sub.prop(part, "phase_factor", slider=True)
-        sub.prop(part, "phase_factor_random", text="Random", slider=True)
-
-        layout.row().label(text="Angular Velocity:")
-        layout.row().prop(part, "angular_velocity_mode", expand=True)
+        row = layout.row()
+        row.label(text="Initial Rotation:")
+        row.prop(part, "use_dynamic_rotation")
+        
         split = layout.split()
 
-        sub = split.column()
+        col = split.column(align=True)
+        col.prop(part, "rotation_mode", text="")
+        col.prop(part, "rotation_factor_random", slider=True, text="Random")
+
+        col = split.column(align=True)
+        col.prop(part, "phase_factor", slider=True)
+        col.prop(part, "phase_factor_random", text="Random", slider=True)
+        
+        col = layout.column()
+        col.label(text="Angular Velocity:")
+        col.row().prop(part, "angular_velocity_mode", expand=True)
 
         if part.angular_velocity_mode != 'NONE':
-            sub.prop(part, "angular_velocity_factor", text="")
+            col.prop(part, "angular_velocity_factor", text="")
 
 
 class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
@@ -455,8 +452,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
 
         layout.enabled = particle_panel_enabled(context, psys)
 
-        row = layout.row()
-        row.prop(part, "physics_type", expand=True)
+        layout.prop(part, "physics_type", expand=True)
 
         row = layout.row()
         col = row.column(align=True)
@@ -468,88 +464,76 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
             col.prop(part, "mass")
             col.prop(part, "use_multiply_size_mass", text="Multiply mass with size")
 
-        if part.physics_type == 'NEWTON':
+        if part.physics_type in ('NEWTON', 'FLUID'):
             split = layout.split()
-            sub = split.column()
+            
+            col = split.column()
+            col.label(text="Forces:")
+            col.prop(part, "brownian_factor")
+            col.prop(part, "drag_factor", slider=True)
+            col.prop(part, "damping", slider=True)
+            
+            col = split.column()
+            col.label(text="Integration:")
+            col.prop(part, "integrator", text="")
+            col.prop(part, "time_tweak")
+            col.prop(part, "subframes")
+            
+            row = layout.row()
+            row.prop(part, "use_size_deflect")
+            row.prop(part, "use_die_on_collision")
+            
+            if part.physics_type == 'FLUID':
+                fluid = part.fluid
+                
+                split = layout.split()
+                
+                col = split.column()
+                col.label(text="Fluid properties:")
+                col.prop(fluid, "stiffness", text="Stiffness")
+                col.prop(fluid, "linear_viscosity", text="Viscosity")
+                col.prop(fluid, "buoyancy", text="Buoancy", slider=True)
+                
+                col = split.column()
+                col.label(text="Advanced:")
 
-            sub.label(text="Forces:")
-            sub.prop(part, "brownian_factor")
-            sub.prop(part, "drag_factor", slider=True)
-            sub.prop(part, "damping", slider=True)
-            sub = split.column()
-            sub.label(text="Integration:")
-            sub.prop(part, "integrator", text="")
-            sub.prop(part, "time_tweak")
-            sub.prop(part, "subframes")
-            sub = layout.row()
-            sub.prop(part, "use_size_deflect")
-            sub.prop(part, "use_die_on_collision")
+                sub = col.row()
+                sub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
+                sub.prop(fluid, "factor_repulsion", text="")
+                
+                sub = col.row()
+                sub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
+                sub.prop(fluid, "factor_stiff_viscosity", text="")
+                
+                sub = col.row()
+                sub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
+                sub.prop(fluid, "factor_radius", text="")
+                
+                sub = col.row()
+                sub.prop(fluid, "rest_density", slider=fluid.factor_density)
+                sub.prop(fluid, "factor_density", text="")
+                
+                split = layout.split()
 
-        elif part.physics_type == 'FLUID':
-            fluid = part.fluid
-            split = layout.split()
-            sub = split.column()
-
-            sub.label(text="Forces:")
-            sub.prop(part, "brownian_factor")
-            sub.prop(part, "drag_factor", slider=True)
-            sub.prop(part, "damping", slider=True)
-            sub = split.column()
-            sub.label(text="Integration:")
-            sub.prop(part, "integrator", text="")
-            sub.prop(part, "time_tweak")
-            sub.prop(part, "subframes")
-            sub = layout.row()
-            sub.prop(part, "use_size_deflect")
-            sub.prop(part, "use_die_on_collision")
-
-            split = layout.split()
-            sub = split.column()
-            sub.label(text="Fluid properties:")
-            sub.prop(fluid, "stiffness", text="Stiffness")
-            sub.prop(fluid, "linear_viscosity", text="Viscosity")
-            sub.prop(fluid, "buoyancy", text="Buoancy", slider=True)
-            
-            sub = split.column()
-            subsub = sub.row()
-            subsub.label(text="Advanced:")
-            subsub = sub.row()
-            subsub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
-            subsub.prop(fluid, "factor_repulsion", text="")
-            
-            subsub = sub.row()
-            subsub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
-            subsub.prop(fluid, "factor_stiff_viscosity", text="")
-            
-            subsub = sub.row()
-            subsub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
-            subsub.prop(fluid, "factor_radius", text="")
-            
-            subsub = sub.row()
-            subsub.prop(fluid, "rest_density", slider=fluid.factor_density)
-            subsub.prop(fluid, "factor_density", text="")
-            
-            split = layout.split()
-
-            sub = split.column()
-            sub.label(text="Springs:")
-            sub.prop(fluid, "spring_force", text="Force")
-            sub.prop(fluid, "use_viscoelastic_springs")
-            subsub = sub.column(align=True)
-            subsub.active = fluid.use_viscoelastic_springs
-            subsub.prop(fluid, "yield_ratio", slider=True)
-            subsub.prop(fluid, "plasticity", slider=True)
-            
-            sub = split.column()
-            sub.label(text="Advanced:")
-            subsub = sub.row()
-            subsub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
-            subsub.prop(fluid, "factor_rest_length", text="")
-            sub.label(text="")
-            subsub = sub.column()
-            subsub.active = fluid.use_viscoelastic_springs
-            subsub.prop(fluid, "use_initial_rest_length")
-            subsub.prop(fluid, "spring_frames", text="Frames")
+                col = split.column()
+                col.label(text="Springs:")
+                col.prop(fluid, "spring_force", text="Force")
+                col.prop(fluid, "use_viscoelastic_springs")
+                sub = col.column(align=True)
+                sub.active = fluid.use_viscoelastic_springs
+                sub.prop(fluid, "yield_ratio", slider=True)
+                sub.prop(fluid, "plasticity", slider=True)
+                
+                col = split.column()
+                col.label(text="Advanced:")
+                sub = col.row()
+                sub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
+                sub.prop(fluid, "factor_rest_length", text="")
+                col.label(text="")
+                sub = col.column()
+                sub.active = fluid.use_viscoelastic_springs
+                sub.prop(fluid, "use_initial_rest_length")
+                sub.prop(fluid, "spring_frames", text="Frames")
             
 
         elif part.physics_type == 'KEYED':
