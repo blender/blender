@@ -858,7 +858,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	else				scene->toolsettings->uvcalc_flag |=  UVCALC_NO_ASPECT_CORRECT;
 
 	/* execute unwrap */
-	ED_unwrap_lscm(scene, obedit, FALSE);
+	ED_unwrap_lscm(scene, obedit, TRUE);
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
