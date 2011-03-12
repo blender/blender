@@ -184,6 +184,8 @@ CC_WARN = [ '-Wall' ]
 
 LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++', '-luuid', '-lole32'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
 
+PLATFORM_LINKFLAGS = ['--stack,2097152']
+
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS = ['-g', '-D_DEBUG']
 

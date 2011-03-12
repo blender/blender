@@ -741,6 +741,8 @@ elseif(WIN32)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
 
+		set(PLATFORM_LINKFLAGS "--stack,2097152")
+
 	endif()
 
 	# used in many places so include globally, like OpenGL

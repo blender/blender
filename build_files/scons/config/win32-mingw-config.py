@@ -175,6 +175,8 @@ CC_WARN = [ '-Wall' ]
 
 LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++','-lole32','-luuid']
 
+PLATFORM_LINKFLAGS = ['--stack,2097152']
+
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS= ['-g', '-D_DEBUG']
 
