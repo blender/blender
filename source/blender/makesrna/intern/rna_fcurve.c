@@ -1209,7 +1209,7 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	/* Vector value */
-	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_XYZ);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_NONE); /* keyframes are dimensionless */
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
@@ -1271,19 +1271,19 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	/* Vector values */
-	prop= RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_NONE); /* keyframes are dimensionless */
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_FKeyframe_handle1_get", "rna_FKeyframe_handle1_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
-	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_NONE); /* keyframes are dimensionless */
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_FKeyframe_ctrlpoint_get", "rna_FKeyframe_ctrlpoint_set", NULL);
 	RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
-	prop= RNA_def_property(srna, "handle_right", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "handle_right", PROP_FLOAT, PROP_NONE); /* keyframes are dimensionless */
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_FKeyframe_handle2_get", "rna_FKeyframe_handle2_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");
