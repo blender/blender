@@ -57,7 +57,7 @@ char *BPy_enum_as_string(EnumPropertyItem *item)
 	return cstring;
 }
 
-short BPy_reports_to_error(ReportList *reports, const short clear)
+short BPy_reports_to_error(ReportList *reports, PyObject *exception, const short clear)
 {
 	char *report_str;
 
@@ -68,11 +68,11 @@ short BPy_reports_to_error(ReportList *reports, const short clear)
 	}
 
 	if(report_str) {
-		PyErr_SetString(PyExc_RuntimeError, report_str);
+		PyErr_SetString(exception, report_str);
 		MEM_freeN(report_str);
 	}
 
-	return (report_str != NULL);
+	return (report_str == NULL) ? 0 : -1;
 }
 
 

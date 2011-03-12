@@ -4223,10 +4223,10 @@ static PyObject *pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 		BKE_reports_init(&reports, RPT_STORE);
 		RNA_function_call(C, &reports, self_ptr, self_func, &parms);
 
-		err= (BPy_reports_to_error(&reports, TRUE))? -1: 0;
+		err= (BPy_reports_to_error(&reports, PyExc_RuntimeError, TRUE));
 
 		/* return value */
-		if(err==0) {
+		if(err != -1) {
 			if (ret_len > 0) {
 				if (ret_len > 1) {
 					ret= PyTuple_New(ret_len);
@@ -6127,7 +6127,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 
 	srna_new= reg(C, &reports, py_class, identifier, bpy_class_validate, bpy_class_call, bpy_class_free);
 
-	if(BPy_reports_to_error(&reports, TRUE))
+	if(BPy_reports_to_error(&reports, PyExc_RuntimeError, TRUE) == -1)
 		return NULL;
 
 	/* python errors validating are not converted into reports so the check above will fail.
