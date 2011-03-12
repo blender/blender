@@ -942,7 +942,7 @@ bool KX_BlenderSceneConverter::LinkBlendFileMemory(void *data, int length, const
 
 bool KX_BlenderSceneConverter::LinkBlendFilePath(const char *path, char *group, KX_Scene *scene_merge, char **err_str)
 {
-	BlendHandle *bpy_openlib = BLO_blendhandle_from_file( (char *)path );
+	BlendHandle *bpy_openlib = BLO_blendhandle_from_file((char *)path, NULL);
 
 	// Error checking is done in LinkBlendFile
 	return LinkBlendFile(bpy_openlib, path, group, scene_merge, err_str);

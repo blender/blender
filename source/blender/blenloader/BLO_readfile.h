@@ -120,11 +120,13 @@ BLO_blendfiledata_free(
  * Open a blendhandle from a file path.
  * 
  * @param file The file path to open.
+ * @param reports Report errors in opening the file (can be NULL).
  * @return A handle on success, or NULL on failure.
  */
 	BlendHandle*
 BLO_blendhandle_from_file(
-	char *file);
+	char *file,
+	struct ReportList *reports);
 
 /**
  * Open a blendhandle from memory.

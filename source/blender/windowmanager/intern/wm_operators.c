@@ -1548,12 +1548,23 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	bh = BLO_blendhandle_from_file(libname, op->reports);
+
+	if(bh == NULL) {
+		/* unlikely since we just browsed it, but possible
+		 * error reports will have been made by BLO_blendhandle_from_file() */
+		return OPERATOR_CANCELLED;
+	}
+
+
+	/* from here down, no error returns */
+
+	idcode = BKE_idcode_from_name(group);
+
 	/* now we have or selected, or an indicated file */
 	if(RNA_boolean_get(op->ptr, "autoselect"))
 		scene_deselect_all(scene);
 
-	bh = BLO_blendhandle_from_file(libname);
-	idcode = BKE_idcode_from_name(group);
 	
 	flag = wm_link_append_flag(op);
 

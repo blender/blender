@@ -986,7 +986,7 @@ void filelist_from_library(struct FileList* filelist)
 	/* there we go */
 	/* for the time being only read filedata when libfiledata==0 */
 	if (filelist->libfiledata == NULL) {
-		filelist->libfiledata= BLO_blendhandle_from_file(dir);
+		filelist->libfiledata= BLO_blendhandle_from_file(dir, NULL);
 		if(filelist->libfiledata == NULL) return;
 	}
 	
@@ -1000,7 +1000,7 @@ void filelist_from_library(struct FileList* filelist)
 		names= BLO_blendhandle_get_datablock_names(filelist->libfiledata, idcode, &nnames);
 		/* ugh, no rewind, need to reopen */
 		BLO_blendhandle_close(filelist->libfiledata);
-		filelist->libfiledata= BLO_blendhandle_from_file(dir);
+		filelist->libfiledata= BLO_blendhandle_from_file(dir, NULL);
 		
 	} else {
 		names= BLO_blendhandle_get_linkable_groups(filelist->libfiledata);

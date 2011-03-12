@@ -75,11 +75,11 @@ void BLO_blendhandle_print_sizes(BlendHandle *, void *);
 
 	/* Access routines used by filesel. */
 	 
-BlendHandle *BLO_blendhandle_from_file(char *file) 
+BlendHandle *BLO_blendhandle_from_file(char *file, ReportList *reports)
 {
 	BlendHandle *bh;
 
-	bh= (BlendHandle*)blo_openblenderfile(file, NULL);
+	bh= (BlendHandle*)blo_openblenderfile(file, reports);
 
 	return bh;
 }
