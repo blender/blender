@@ -35,7 +35,7 @@ struct btContactSolverInfoData
 	
 
 	btScalar	m_tau;
-	btScalar	m_damping;
+	btScalar	m_damping;//global non-contact constraint damping, can be locally overridden by constraints during 'getInfo2'.
 	btScalar	m_friction;
 	btScalar	m_timeStep;
 	btScalar	m_restitution;
@@ -52,6 +52,7 @@ struct btContactSolverInfoData
 
 	int			m_solverMode;
 	int	m_restingContactRestitutionThreshold;
+	int			m_minimumSolverBatchSize;
 
 
 };
@@ -77,8 +78,9 @@ struct btContactSolverInfo : public btContactSolverInfoData
 		m_splitImpulsePenetrationThreshold = -0.02f;
 		m_linearSlop = btScalar(0.0);
 		m_warmstartingFactor=btScalar(0.85);
-		m_solverMode = SOLVER_USE_WARMSTARTING | SOLVER_USE_2_FRICTION_DIRECTIONS |SOLVER_SIMD | SOLVER_RANDMIZE_ORDER;
+		m_solverMode = SOLVER_USE_WARMSTARTING | SOLVER_SIMD;// | SOLVER_RANDMIZE_ORDER;
 		m_restingContactRestitutionThreshold = 2;//resting contact lifetime threshold to disable restitution
+		m_minimumSolverBatchSize = 128; //try to combine islands until the amount of constraints reaches this limit
 	}
 };
 

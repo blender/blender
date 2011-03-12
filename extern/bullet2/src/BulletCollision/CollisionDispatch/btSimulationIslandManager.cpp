@@ -1,3 +1,4 @@
+
 /*
 Bullet Continuous Collision Detection and Physics Library
 Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
@@ -44,10 +45,12 @@ void btSimulationIslandManager::findUnions(btDispatcher* /* dispatcher */,btColl
 {
 	
 	{
+		btOverlappingPairCache* pairCachePtr = colWorld->getPairCache();
+		const int numOverlappingPairs = pairCachePtr->getNumOverlappingPairs();
+		btBroadphasePair* pairPtr = pairCachePtr->getOverlappingPairArrayPtr();
 		
-		for (int i=0;i<colWorld->getPairCache()->getNumOverlappingPairs();i++)
+		for (int i=0;i<numOverlappingPairs;i++)
 		{
-			btBroadphasePair* pairPtr = colWorld->getPairCache()->getOverlappingPairArrayPtr();
 			const btBroadphasePair& collisionPair = pairPtr[i];
 			btCollisionObject* colObj0 = (btCollisionObject*)collisionPair.m_pProxy0->m_clientObject;
 			btCollisionObject* colObj1 = (btCollisionObject*)collisionPair.m_pProxy1->m_clientObject;
@@ -63,15 +66,69 @@ void btSimulationIslandManager::findUnions(btDispatcher* /* dispatcher */,btColl
 	}
 }
 
+#ifdef STATIC_SIMULATION_ISLAND_OPTIMIZATION
+void   btSimulationIslandManager::updateActivationState(btCollisionWorld* colWorld,btDispatcher* dispatcher)
+{
 
+	// put the index into m_controllers into m_tag   
+	int index = 0;
+	{
+
+		int i;
+		for (i=0;i<colWorld->getCollisionObjectArray().size(); i++)
+		{
+			btCollisionObject*   collisionObject= colWorld->getCollisionObjectArray()[i];
+			//Adding filtering here
+			if (!collisionObject->isStaticOrKinematicObject())
+			{
+				collisionObject->setIslandTag(index++);
+			}
+			collisionObject->setCompanionId(-1);
+			collisionObject->setHitFraction(btScalar(1.));
+		}
+	}
+	// do the union find
+
+	initUnionFind( index );
+
+	findUnions(dispatcher,colWorld);
+}
+
+void   btSimulationIslandManager::storeIslandActivationState(btCollisionWorld* colWorld)
+{
+	// put the islandId ('find' value) into m_tag   
+	{
+		int index = 0;
+		int i;
+		for (i=0;i<colWorld->getCollisionObjectArray().size();i++)
+		{
+			btCollisionObject* collisionObject= colWorld->getCollisionObjectArray()[i];
+			if (!collisionObject->isStaticOrKinematicObject())
+			{
+				collisionObject->setIslandTag( m_unionFind.find(index) );
+				//Set the correct object offset in Collision Object Array
+				m_unionFind.getElement(index).m_sz = i;
+				collisionObject->setCompanionId(-1);
+				index++;
+			} else
+			{
+				collisionObject->setIslandTag(-1);
+				collisionObject->setCompanionId(-2);
+			}
+		}
+	}
+}
+
+
+#else //STATIC_SIMULATION_ISLAND_OPTIMIZATION
 void	btSimulationIslandManager::updateActivationState(btCollisionWorld* colWorld,btDispatcher* dispatcher)
 {
-	
+
 	initUnionFind( int (colWorld->getCollisionObjectArray().size()));
-	
+
 	// put the index into m_controllers into m_tag	
 	{
-		
+
 		int index = 0;
 		int i;
 		for (i=0;i<colWorld->getCollisionObjectArray().size(); i++)
@@ -81,26 +138,20 @@ void	btSimulationIslandManager::updateActivationState(btCollisionWorld* colWorld
 			collisionObject->setCompanionId(-1);
 			collisionObject->setHitFraction(btScalar(1.));
 			index++;
-			
+
 		}
 	}
 	// do the union find
-	
+
 	findUnions(dispatcher,colWorld);
-	
-
-	
 }
-
-
-
 
 void	btSimulationIslandManager::storeIslandActivationState(btCollisionWorld* colWorld)
 {
 	// put the islandId ('find' value) into m_tag	
 	{
-		
-		
+
+
 		int index = 0;
 		int i;
 		for (i=0;i<colWorld->getCollisionObjectArray().size();i++)
@@ -119,6 +170,8 @@ void	btSimulationIslandManager::storeIslandActivationState(btCollisionWorld* col
 		}
 	}
 }
+
+#endif //STATIC_SIMULATION_ISLAND_OPTIMIZATION
 
 inline	int	getIslandId(const btPersistentManifold* lhs)
 {
@@ -339,15 +392,15 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 			int islandId = getUnionFind().getElement(startIslandIndex).m_id;
 
 
-			   bool islandSleeping = false;
+			   bool islandSleeping = true;
 	                
 					for (endIslandIndex = startIslandIndex;(endIslandIndex<numElem) && (getUnionFind().getElement(endIslandIndex).m_id == islandId);endIslandIndex++)
 					{
 							int i = getUnionFind().getElement(endIslandIndex).m_sz;
 							btCollisionObject* colObj0 = collisionObjects[i];
 							m_islandBodies.push_back(colObj0);
-							if (!colObj0->isActive())
-									islandSleeping = true;
+							if (colObj0->isActive())
+									islandSleeping = false;
 					}
 	                
 

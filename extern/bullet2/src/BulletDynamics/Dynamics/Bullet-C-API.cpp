@@ -43,7 +43,7 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
 #include "BulletCollision/NarrowPhaseCollision/btSimplexSolverInterface.h"
 #include "BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.h"
-#include "LinearMath/btStackAlloc.h"
+
 
 /*
 	Create and Delete a Physics SDK	
@@ -181,12 +181,12 @@ plCollisionShapeHandle plNewBoxShape(plReal x, plReal y, plReal z)
 plCollisionShapeHandle plNewCapsuleShape(plReal radius, plReal height)
 {
 	//capsule is convex hull of 2 spheres, so use btMultiSphereShape
-	btVector3 inertiaHalfExtents(radius,height,radius);
+	
 	const int numSpheres = 2;
 	btVector3 positions[numSpheres] = {btVector3(0,height,0),btVector3(0,-height,0)};
 	btScalar radi[numSpheres] = {radius,radius};
 	void* mem = btAlignedAlloc(sizeof(btMultiSphereShape),16);
-	return (plCollisionShapeHandle) new (mem)btMultiSphereShape(inertiaHalfExtents,positions,radi,numSpheres);
+	return (plCollisionShapeHandle) new (mem)btMultiSphereShape(positions,radi,numSpheres);
 }
 plCollisionShapeHandle plNewConeShape(plReal radius, plReal height)
 {
@@ -295,6 +295,14 @@ void plSetOrientation(plRigidBodyHandle object, const plQuaternion orientation)
 	body->setWorldTransform(worldTrans);
 }
 
+void	plSetOpenGLMatrix(plRigidBodyHandle object, plReal* matrix)
+{
+	btRigidBody* body = reinterpret_cast< btRigidBody* >(object);
+	btAssert(body);
+	btTransform& worldTrans = body->getWorldTransform();
+	worldTrans.setFromOpenGLMatrix(matrix);
+}
+
 void	plGetOpenGLMatrix(plRigidBodyHandle object, plReal* matrix)
 {
 	btRigidBody* body = reinterpret_cast< btRigidBody* >(object);
@@ -365,6 +373,7 @@ double plNearestPoints(float p1[3], float p2[3], float p3[3], float q1[3], float
 	btPointCollector gjkOutput;
 	btGjkPairDetector::ClosestPointInput input;
 	
+		
 	btTransform tr;
 	tr.setIdentity();
 	

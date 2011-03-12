@@ -1,5 +1,5 @@
 /*! \file btGImpactMassUtil.h
-\author Francisco Len Nßjera
+\author Francisco Leon Najera
 */
 /*
 This source file is part of GIMPACT Library.

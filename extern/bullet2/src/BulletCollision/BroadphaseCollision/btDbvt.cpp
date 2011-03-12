@@ -61,7 +61,7 @@ static void						getmaxdepth(const btDbvtNode* node,int depth,int& maxdepth)
 	if(node->isinternal())
 	{
 		getmaxdepth(node->childs[0],depth+1,maxdepth);
-		getmaxdepth(node->childs[0],depth+1,maxdepth);
+		getmaxdepth(node->childs[1],depth+1,maxdepth);
 	} else maxdepth=btMax(maxdepth,depth);
 }
 
@@ -238,7 +238,7 @@ static void						split(	const tNodeArray& leaves,
 	right.resize(0);
 	for(int i=0,ni=leaves.size();i<ni;++i)
 	{
-		if(dot(axis,leaves[i]->volume.Center()-org)<0)
+		if(btDot(axis,leaves[i]->volume.Center()-org)<0)
 			left.push_back(leaves[i]);
 		else
 			right.push_back(leaves[i]);
@@ -319,7 +319,7 @@ static btDbvtNode*			topdown(btDbvt* pdbvt,
 				const btVector3	x=leaves[i]->volume.Center()-org;
 				for(int j=0;j<3;++j)
 				{
-					++splitcount[j][dot(x,axis[j])>0?1:0];
+					++splitcount[j][btDot(x,axis[j])>0?1:0];
 				}
 			}
 			for( i=0;i<3;++i)

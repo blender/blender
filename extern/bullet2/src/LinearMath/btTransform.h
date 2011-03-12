@@ -17,14 +17,26 @@ subject to the following restrictions:
 #ifndef btTransform_H
 #define btTransform_H
 
-#include "btVector3.h"
+
 #include "btMatrix3x3.h"
+
+#ifdef BT_USE_DOUBLE_PRECISION
+#define btTransformData btTransformDoubleData
+#else
+#define btTransformData btTransformFloatData
+#endif
+
+
 
 
 /**@brief The btTransform class supports rigid transforms with only translation and rotation and no scaling/shear.
  *It can be used in combination with btVector3, btQuaternion and btMatrix3x3 linear algebra classes. */
 class btTransform {
 	
+  ///Storage for the rotation
+	btMatrix3x3 m_basis;
+  ///Storage for the translation
+	btVector3   m_origin;
 
 public:
 	
@@ -195,12 +207,17 @@ public:
 		static const btTransform identityTransform(btMatrix3x3::getIdentity());
 		return identityTransform;
 	}
-	
-private:
-  ///Storage for the rotation
-	btMatrix3x3 m_basis;
-  ///Storage for the translation
-	btVector3   m_origin;
+
+	void	serialize(struct	btTransformData& dataOut) const;
+
+	void	serializeFloat(struct	btTransformFloatData& dataOut) const;
+
+	void	deSerialize(const struct	btTransformData& dataIn);
+
+	void	deSerializeDouble(const struct	btTransformDoubleData& dataIn);
+
+	void	deSerializeFloat(const struct	btTransformFloatData& dataIn);
+
 };
 
 
@@ -231,6 +248,53 @@ SIMD_FORCE_INLINE bool operator==(const btTransform& t1, const btTransform& t2)
 {
    return ( t1.getBasis()  == t2.getBasis() &&
             t1.getOrigin() == t2.getOrigin() );
+}
+
+
+///for serialization
+struct	btTransformFloatData
+{
+	btMatrix3x3FloatData	m_basis;
+	btVector3FloatData	m_origin;
+};
+
+struct	btTransformDoubleData
+{
+	btMatrix3x3DoubleData	m_basis;
+	btVector3DoubleData	m_origin;
+};
+
+
+
+SIMD_FORCE_INLINE	void	btTransform::serialize(btTransformData& dataOut) const
+{
+	m_basis.serialize(dataOut.m_basis);
+	m_origin.serialize(dataOut.m_origin);
+}
+
+SIMD_FORCE_INLINE	void	btTransform::serializeFloat(btTransformFloatData& dataOut) const
+{
+	m_basis.serializeFloat(dataOut.m_basis);
+	m_origin.serializeFloat(dataOut.m_origin);
+}
+
+
+SIMD_FORCE_INLINE	void	btTransform::deSerialize(const btTransformData& dataIn)
+{
+	m_basis.deSerialize(dataIn.m_basis);
+	m_origin.deSerialize(dataIn.m_origin);
+}
+
+SIMD_FORCE_INLINE	void	btTransform::deSerializeFloat(const btTransformFloatData& dataIn)
+{
+	m_basis.deSerializeFloat(dataIn.m_basis);
+	m_origin.deSerializeFloat(dataIn.m_origin);
+}
+
+SIMD_FORCE_INLINE	void	btTransform::deSerializeDouble(const btTransformDoubleData& dataIn)
+{
+	m_basis.deSerializeDouble(dataIn.m_basis);
+	m_origin.deSerializeDouble(dataIn.m_origin);
 }
 
 

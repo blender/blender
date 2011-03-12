@@ -102,6 +102,7 @@ public:
 		{
 			return m_parent->m_gim_shape->getChildShape(index);
 		}
+		virtual ~ChildShapeRetriever() {}
 	};
 
 	class TriangleShapeRetriever:public ChildShapeRetriever
@@ -113,6 +114,7 @@ public:
 			m_parent->m_gim_shape->getBulletTriangle(index,m_parent->m_trishape);
 			return &m_parent->m_trishape;
 		}
+		virtual ~TriangleShapeRetriever() {}
 	};
 
 	class TetraShapeRetriever:public ChildShapeRetriever
@@ -213,7 +215,8 @@ void btGImpactCollisionAlgorithm::addContactPoint(btCollisionObject * body0,
 				const btVector3 & normal,
 				btScalar distance)
 {
-	m_resultOut->setShapeIdentifiers(m_part0,m_triface0,m_part1,m_triface1);
+	m_resultOut->setShapeIdentifiersA(m_part0,m_triface0);
+	m_resultOut->setShapeIdentifiersB(m_part1,m_triface1);
 	checkManifold(body0,body1);
 	m_resultOut->addContactPoint(normal,point,distance);
 }
@@ -236,7 +239,8 @@ void btGImpactCollisionAlgorithm::shape_vs_shape_collision(
 		btCollisionAlgorithm* algor = newAlgorithm(body0,body1);
 		// post :	checkManifold is called
 
-		m_resultOut->setShapeIdentifiers(m_part0,m_triface0,m_part1,m_triface1);
+		m_resultOut->setShapeIdentifiersA(m_part0,m_triface0);
+		m_resultOut->setShapeIdentifiersB(m_part1,m_triface1);
 
 		algor->processCollision(body0,body1,*m_dispatchInfo,m_resultOut);
 
@@ -262,7 +266,8 @@ void btGImpactCollisionAlgorithm::convex_vs_convex_collision(
 	body1->internalSetTemporaryCollisionShape(shape1);
 
 
-	m_resultOut->setShapeIdentifiers(m_part0,m_triface0,m_part1,m_triface1);
+	m_resultOut->setShapeIdentifiersA(m_part0,m_triface0);
+	m_resultOut->setShapeIdentifiersB(m_part1,m_triface1);
 
 	checkConvexAlgorithm(body0,body1);
 	m_convex_algorithm->processCollision(body0,body1,*m_dispatchInfo,m_resultOut);
@@ -876,22 +881,24 @@ btScalar btGImpactCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* b
 
 ///////////////////////////////////// REGISTERING ALGORITHM //////////////////////////////////////////////
 
-btGImpactCollisionAlgorithm::CreateFunc g_gimpact_cf;
+
 
 //! Use this function for register the algorithm externally
 void btGImpactCollisionAlgorithm::registerAlgorithm(btCollisionDispatcher * dispatcher)
 {
 
+	static btGImpactCollisionAlgorithm::CreateFunc s_gimpact_cf;
+
 	int i;
 
 	for ( i = 0;i < MAX_BROADPHASE_COLLISION_TYPES ;i++ )
 	{
-		dispatcher->registerCollisionCreateFunc(GIMPACT_SHAPE_PROXYTYPE,i ,&g_gimpact_cf);
+		dispatcher->registerCollisionCreateFunc(GIMPACT_SHAPE_PROXYTYPE,i ,&s_gimpact_cf);
 	}
 
 	for ( i = 0;i < MAX_BROADPHASE_COLLISION_TYPES ;i++ )
 	{
-		dispatcher->registerCollisionCreateFunc(i,GIMPACT_SHAPE_PROXYTYPE ,&g_gimpact_cf);
+		dispatcher->registerCollisionCreateFunc(i,GIMPACT_SHAPE_PROXYTYPE ,&s_gimpact_cf);
 	}
 
 }

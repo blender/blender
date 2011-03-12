@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -12,7 +12,6 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
-
 
 #ifndef TRIANGLE_MESH_H
 #define TRIANGLE_MESH_H
@@ -41,9 +40,6 @@ class btTriangleMesh : public btTriangleIndexVertexArray
 
 		btTriangleMesh (bool use32bitIndices=true,bool use4componentVertices=true);
 
-		int		findOrAddVertex(const btVector3& vertex, bool removeDuplicateVertices);
-		void	addIndex(int index);
-
 		bool	getUse32bitIndices() const
 		{
 			return m_use32bitIndices;
@@ -62,6 +58,10 @@ class btTriangleMesh : public btTriangleIndexVertexArray
 		virtual void	preallocateVertices(int numverts){(void) numverts;}
 		virtual void	preallocateIndices(int numindices){(void) numindices;}
 
+		///findOrAddVertex is an internal method, use addTriangle instead
+		int		findOrAddVertex(const btVector3& vertex, bool removeDuplicateVertices);
+		///addIndex is an internal method, use addTriangle instead
+		void	addIndex(int index);
 		
 };
 

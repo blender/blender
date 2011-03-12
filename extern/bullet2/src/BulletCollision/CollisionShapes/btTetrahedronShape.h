@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -22,7 +22,7 @@ subject to the following restrictions:
 
 
 ///The btBU_Simplex1to4 implements tetrahedron, triangle, line, vertex collision shapes. In most cases it is better to use btConvexHullShape instead.
-class btBU_Simplex1to4 : public btPolyhedralConvexShape
+class btBU_Simplex1to4 : public btPolyhedralConvexAabbCachingShape
 {
 protected:
 
@@ -43,7 +43,7 @@ public:
 		m_numVertices = 0;
 	}
 	
-
+	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
 
 	void addVertex(const btVector3& pt);
 

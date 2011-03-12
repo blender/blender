@@ -160,7 +160,7 @@ public:
 		return 0;
 	}
 
-	virtual void	removeOverlappingPairsContainingProxy(btBroadphaseProxy* proxy0,btDispatcher* dispatcher)
+	virtual void	removeOverlappingPairsContainingProxy(btBroadphaseProxy* /*proxy0*/,btDispatcher* /*dispatcher*/)
 	{
 		btAssert(0);
 		//need to keep track of all ghost objects and call them here
@@ -172,3 +172,4 @@ public:
 };
 
 #endif
+

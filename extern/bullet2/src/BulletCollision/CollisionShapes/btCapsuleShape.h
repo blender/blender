@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -43,6 +43,18 @@ public:
 
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 	
+	virtual void setMargin(btScalar collisionMargin)
+	{
+		//correct the m_implicitShapeDimensions for the margin
+		btVector3 oldMargin(getMargin(),getMargin(),getMargin());
+		btVector3 implicitShapeDimensionsWithMargin = m_implicitShapeDimensions+oldMargin;
+		
+		btConvexInternalShape::setMargin(collisionMargin);
+		btVector3 newMargin(getMargin(),getMargin(),getMargin());
+		m_implicitShapeDimensions = implicitShapeDimensionsWithMargin - newMargin;
+
+	}
+
 	virtual void getAabb (const btTransform& t, btVector3& aabbMin, btVector3& aabbMax) const
 	{
 			btVector3 halfExtents(getRadius(),getRadius(),getRadius());
@@ -76,6 +88,24 @@ public:
 	{
 		return m_implicitShapeDimensions[m_upAxis];
 	}
+
+	virtual void	setLocalScaling(const btVector3& scaling)
+	{
+		btVector3 oldMargin(getMargin(),getMargin(),getMargin());
+		btVector3 implicitShapeDimensionsWithMargin = m_implicitShapeDimensions+oldMargin;
+		btVector3 unScaledImplicitShapeDimensionsWithMargin = implicitShapeDimensionsWithMargin / m_localScaling;
+
+		btConvexInternalShape::setLocalScaling(scaling);
+
+		m_implicitShapeDimensions = (unScaledImplicitShapeDimensionsWithMargin * m_localScaling) - oldMargin;
+
+	}
+
+	virtual	int	calculateSerializeBufferSize() const;
+
+	///fills the dataBuffer and returns the struct name (and 0 on failure)
+	virtual	const char*	serialize(void* dataBuffer, btSerializer* serializer) const;
+
 
 };
 
@@ -113,6 +143,31 @@ public:
 	
 };
 
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btCapsuleShapeData
+{
+	btConvexInternalShapeData	m_convexInternalShapeData;
 
+	int	m_upAxis;
+
+	char	m_padding[4];
+};
+
+SIMD_FORCE_INLINE	int	btCapsuleShape::calculateSerializeBufferSize() const
+{
+	return sizeof(btCapsuleShapeData);
+}
+
+	///fills the dataBuffer and returns the struct name (and 0 on failure)
+SIMD_FORCE_INLINE	const char*	btCapsuleShape::serialize(void* dataBuffer, btSerializer* serializer) const
+{
+	btCapsuleShapeData* shapeData = (btCapsuleShapeData*) dataBuffer;
+	
+	btConvexInternalShape::serialize(&shapeData->m_convexInternalShapeData,serializer);
+
+	shapeData->m_upAxis = m_upAxis;
+	
+	return "btCapsuleShapeData";
+}
 
 #endif //BT_CAPSULE_SHAPE_H

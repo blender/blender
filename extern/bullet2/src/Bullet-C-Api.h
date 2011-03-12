@@ -65,7 +65,7 @@ extern "C" {
 	Create and Delete a Physics SDK	
 */
 
-	extern	plPhysicsSdkHandle	plNewBulletSdk(void); //this could be also another sdk, like ODE, PhysX etc.
+	extern	plPhysicsSdkHandle	plNewBulletSdk(); //this could be also another sdk, like ODE, PhysX etc.
 	extern	void		plDeletePhysicsSdk(plPhysicsSdkHandle	physicsSdk);
 
 /** Collision World, not strictly necessary, you can also just create a Dynamics World with Rigid Bodies which internally manages the Collision World with Collision Objects */
@@ -116,16 +116,16 @@ extern "C" {
 	extern  plCollisionShapeHandle plNewCapsuleShape(plReal radius, plReal height);	
 	extern  plCollisionShapeHandle plNewConeShape(plReal radius, plReal height);
 	extern  plCollisionShapeHandle plNewCylinderShape(plReal radius, plReal height);
-	extern	plCollisionShapeHandle plNewCompoundShape(void);
+	extern	plCollisionShapeHandle plNewCompoundShape();
 	extern	void	plAddChildShape(plCollisionShapeHandle compoundShape,plCollisionShapeHandle childShape, plVector3 childPos,plQuaternion childOrn);
 
 	extern  void plDeleteShape(plCollisionShapeHandle shape);
 
 	/* Convex Meshes */
-	extern  plCollisionShapeHandle plNewConvexHullShape(void);
+	extern  plCollisionShapeHandle plNewConvexHullShape();
 	extern  void		plAddVertex(plCollisionShapeHandle convexHull, plReal x,plReal y,plReal z);
 /* Concave static triangle meshes */
-	extern  plMeshInterfaceHandle		   plNewMeshInterface(void);
+	extern  plMeshInterfaceHandle		   plNewMeshInterface();
 	extern  void		plAddTriangle(plMeshInterfaceHandle meshHandle, plVector3 v0,plVector3 v1,plVector3 v2);
 	extern  plCollisionShapeHandle plNewStaticTriangleMeshShape(plMeshInterfaceHandle);
 
@@ -147,6 +147,7 @@ extern "C" {
 	extern  void plSetPosition(plRigidBodyHandle object, const plVector3 position);
 	extern  void plSetOrientation(plRigidBodyHandle object, const plQuaternion orientation);
 	extern	void plSetEuler(plReal yaw,plReal pitch,plReal roll, plQuaternion orient);
+	extern	void plSetOpenGLMatrix(plRigidBodyHandle object, plReal* matrix);
 
 	typedef struct plRayCastResult {
 		plRigidBodyHandle		m_body;  

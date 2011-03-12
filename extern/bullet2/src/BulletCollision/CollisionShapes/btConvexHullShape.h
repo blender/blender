@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -20,9 +20,10 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
 #include "LinearMath/btAlignedObjectArray.h"
 
+
 ///The btConvexHullShape implements an implicit convex hull of an array of vertices.
 ///Bullet provides a general and fast collision detector for convex shapes based on GJK and EPA using localGetSupportingVertex.
-ATTRIBUTE_ALIGNED16(class) btConvexHullShape : public btPolyhedralConvexShape
+ATTRIBUTE_ALIGNED16(class) btConvexHullShape : public btPolyhedralConvexAabbCachingShape
 {
 	btAlignedObjectArray<btVector3>	m_unscaledPoints;
 
@@ -88,7 +89,31 @@ public:
 	///in case we receive negative scaling
 	virtual void	setLocalScaling(const btVector3& scaling);
 
+	virtual	int	calculateSerializeBufferSize() const;
+
+	///fills the dataBuffer and returns the struct name (and 0 on failure)
+	virtual	const char*	serialize(void* dataBuffer, btSerializer* serializer) const;
+
 };
+
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btConvexHullShapeData
+{
+	btConvexInternalShapeData	m_convexInternalShapeData;
+
+	btVector3FloatData	*m_unscaledPointsFloatPtr;
+	btVector3DoubleData	*m_unscaledPointsDoublePtr;
+
+	int		m_numUnscaledPoints;
+	char m_padding3[4];
+
+};
+
+
+SIMD_FORCE_INLINE	int	btConvexHullShape::calculateSerializeBufferSize() const
+{
+	return sizeof(btConvexHullShapeData);
+}
 
 
 #endif //CONVEX_HULL_SHAPE_H

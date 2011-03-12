@@ -2,7 +2,7 @@
 #define BT_CLIP_POLYGON_H_INCLUDED
 
 /*! \file btClipPolygon.h
-\author Francisco Len Nßjera
+\author Francisco Leon Najera
 */
 /*
 This source file is part of GIMPACT Library.

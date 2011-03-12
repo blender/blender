@@ -542,6 +542,18 @@ static PyObject* gPyRemoveConstraint(PyObject* self,
 	Py_RETURN_NONE;
 }
 
+static PyObject* gPyExportBulletFile(PyObject*, PyObject* args)
+{
+	char* filename;
+	if (!PyArg_ParseTuple(args,"s:exportBulletFile",&filename))
+		return NULL;
+		
+	if (PHY_GetActiveEnvironment())
+	{
+		PHY_GetActiveEnvironment()->exportFile(filename);
+	}
+	Py_RETURN_NONE;
+}
 
 static struct PyMethodDef physicsconstraints_methods[] = {
   {"setGravity",(PyCFunction) gPySetGravity,
@@ -593,6 +605,9 @@ static struct PyMethodDef physicsconstraints_methods[] = {
    METH_VARARGS, (const char *)gPyRemoveConstraint__doc__},
 	{"getAppliedImpulse",(PyCFunction) gPyGetAppliedImpulse,
    METH_VARARGS, (const char *)gPyGetAppliedImpulse__doc__},
+
+     {"exportBulletFile",(PyCFunction)gPyExportBulletFile,
+	METH_VARARGS, "export a .bullet file"},
 
 
    //sentinel
@@ -663,6 +678,8 @@ PHY_IPhysicsEnvironment*	PHY_GetActiveEnvironment()
 {
 	return g_CurrentActivePhysicsEnvironment;
 }
+
+
 
 #endif // WITH_PYTHON
 

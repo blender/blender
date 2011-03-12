@@ -2,7 +2,7 @@
 #define GIM_LINEAR_H_INCLUDED
 
 /*! \file gim_linear_math.h
-*\author Francisco Len Nßjera
+*\author Francisco Leon Najera
 Type Independant Vector and matrix operations.
 */
 /*

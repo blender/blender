@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -12,6 +12,7 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
+
 #include "btConvexPointCloudShape.h"
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 
@@ -27,7 +28,7 @@ void btConvexPointCloudShape::setLocalScaling(const btVector3& scaling)
 btVector3	btConvexPointCloudShape::localGetSupportingVertexWithoutMargin(const btVector3& vec0)const
 {
 	btVector3 supVec(btScalar(0.),btScalar(0.),btScalar(0.));
-	btScalar newDot,maxDot = btScalar(-1e30);
+	btScalar newDot,maxDot = btScalar(-BT_LARGE_FLOAT);
 
 	btVector3 vec = vec0;
 	btScalar lenSqr = vec.length2();
@@ -62,7 +63,7 @@ void	btConvexPointCloudShape::batchedUnitVectorGetSupportingVertexWithoutMargin(
 	{
 		for (int i=0;i<numVectors;i++)
 		{
-			supportVerticesOut[i][3] = btScalar(-1e30);
+			supportVerticesOut[i][3] = btScalar(-BT_LARGE_FLOAT);
 		}
 	}
 	for (int i=0;i<m_numPoints;i++)

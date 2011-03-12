@@ -15,13 +15,15 @@ subject to the following restrictions:
 
 
 #include "btCollisionObject.h"
+#include "LinearMath/btSerializer.h"
 
 btCollisionObject::btCollisionObject()
 	:	m_anisotropicFriction(1.f,1.f,1.f),
 	m_hasAnisotropicFriction(false),
-	m_contactProcessingThreshold(0.f),
+	m_contactProcessingThreshold(BT_LARGE_FLOAT),
 		m_broadphaseHandle(0),
 		m_collisionShape(0),
+		m_extensionPointer(0),
 		m_rootCollisionShape(0),
 		m_collisionFlags(btCollisionObject::CF_STATIC_OBJECT),
 		m_islandTag1(-1),
@@ -30,14 +32,14 @@ btCollisionObject::btCollisionObject()
 		m_deactivationTime(btScalar(0.)),
 		m_friction(btScalar(0.5)),
 		m_restitution(btScalar(0.)),
-		m_userObjectPointer(0),
 		m_internalType(CO_COLLISION_OBJECT),
+		m_userObjectPointer(0),
 		m_hitFraction(btScalar(1.)),
 		m_ccdSweptSphereRadius(btScalar(0.)),
 		m_ccdMotionThreshold(btScalar(0.)),
 		m_checkCollideWith(false)
 {
-	
+	m_worldTransform.setIdentity();
 }
 
 btCollisionObject::~btCollisionObject()
@@ -64,5 +66,51 @@ void btCollisionObject::activate(bool forceActivation)
 	}
 }
 
+const char* btCollisionObject::serialize(void* dataBuffer, btSerializer* serializer) const
+{
+
+	btCollisionObjectData* dataOut = (btCollisionObjectData*)dataBuffer;
+
+	m_worldTransform.serialize(dataOut->m_worldTransform);
+	m_interpolationWorldTransform.serialize(dataOut->m_interpolationWorldTransform);
+	m_interpolationLinearVelocity.serialize(dataOut->m_interpolationLinearVelocity);
+	m_interpolationAngularVelocity.serialize(dataOut->m_interpolationAngularVelocity);
+	m_anisotropicFriction.serialize(dataOut->m_anisotropicFriction);
+	dataOut->m_hasAnisotropicFriction = m_hasAnisotropicFriction;
+	dataOut->m_contactProcessingThreshold = m_contactProcessingThreshold;
+	dataOut->m_broadphaseHandle = 0;
+	dataOut->m_collisionShape = serializer->getUniquePointer(m_collisionShape);
+	dataOut->m_rootCollisionShape = 0;//@todo
+	dataOut->m_collisionFlags = m_collisionFlags;
+	dataOut->m_islandTag1 = m_islandTag1;
+	dataOut->m_companionId = m_companionId;
+	dataOut->m_activationState1 = m_activationState1;
+	dataOut->m_activationState1 = m_activationState1;
+	dataOut->m_deactivationTime = m_deactivationTime;
+	dataOut->m_friction = m_friction;
+	dataOut->m_restitution = m_restitution;
+	dataOut->m_internalType = m_internalType;
+	
+	char* name = (char*) serializer->findNameForPointer(this);
+	dataOut->m_name = (char*)serializer->getUniquePointer(name);
+	if (dataOut->m_name)
+	{
+		serializer->serializeName(name);
+	}
+	dataOut->m_hitFraction = m_hitFraction;
+	dataOut->m_ccdSweptSphereRadius = m_ccdSweptSphereRadius;
+	dataOut->m_ccdMotionThreshold = m_ccdMotionThreshold;
+	dataOut->m_ccdMotionThreshold = m_ccdMotionThreshold;
+	dataOut->m_checkCollideWith = m_checkCollideWith;
+
+	return btCollisionObjectDataName;
+}
 
 
+void btCollisionObject::serializeSingleObject(class btSerializer* serializer) const
+{
+	int len = calculateSerializeBufferSize();
+	btChunk* chunk = serializer->allocate(len,1);
+	const char* structType = serialize(chunk->m_oldPtr, serializer);
+	serializer->finalizeChunk(chunk,structType,BT_COLLISIONOBJECT_CODE,(void*)this);
+}

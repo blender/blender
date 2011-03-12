@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -12,12 +12,8 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
-
 #include "BulletCollision/CollisionShapes/btCollisionShape.h"
-
-
-btScalar gContactThresholdFactor=btScalar(0.02);
-
+#include "LinearMath/btSerializer.h"
 
 /*
   Make sure this dummy function never changes so that it
@@ -45,10 +41,12 @@ void	btCollisionShape::getBoundingSphere(btVector3& center,btScalar& radius) con
 	center = (aabbMin+aabbMax)*btScalar(0.5);
 }
 
-btScalar	btCollisionShape::getContactBreakingThreshold() const
+
+btScalar	btCollisionShape::getContactBreakingThreshold(btScalar defaultContactThreshold) const
 {
-	return getAngularMotionDisc() * gContactThresholdFactor;
+	return getAngularMotionDisc() * defaultContactThreshold;
 }
+
 btScalar	btCollisionShape::getAngularMotionDisc() const
 {
 	///@todo cache this value, to improve performance
@@ -95,4 +93,27 @@ void btCollisionShape::calculateTemporalAabb(const btTransform& curTrans,const b
 
 	temporalAabbMin -= angularMotion3d;
 	temporalAabbMax += angularMotion3d;
+}
+
+///fills the dataBuffer and returns the struct name (and 0 on failure)
+const char*	btCollisionShape::serialize(void* dataBuffer, btSerializer* serializer) const
+{
+	btCollisionShapeData* shapeData = (btCollisionShapeData*) dataBuffer;
+	char* name = (char*) serializer->findNameForPointer(this);
+	shapeData->m_name = (char*)serializer->getUniquePointer(name);
+	if (shapeData->m_name)
+	{
+		serializer->serializeName(name);
+	}
+	shapeData->m_shapeType = m_shapeType;
+	//shapeData->m_padding//??
+	return "btCollisionShapeData";
+}
+
+void	btCollisionShape::serializeSingleShape(btSerializer* serializer) const
+{
+	int len = calculateSerializeBufferSize();
+	btChunk* chunk = serializer->allocate(len,1);
+	const char* structType = serialize(chunk->m_oldPtr, serializer);
+	serializer->finalizeChunk(chunk,structType,BT_SHAPE_CODE,(void*)this);
 }

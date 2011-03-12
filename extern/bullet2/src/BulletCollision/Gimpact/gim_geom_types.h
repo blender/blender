@@ -2,7 +2,7 @@
 #define GIM_GEOM_TYPES_H_INCLUDED
 
 /*! \file gim_geom_types.h
-\author Francisco Len Nßjera
+\author Francisco Leon Najera
 */
 /*
 -----------------------------------------------------------------------------

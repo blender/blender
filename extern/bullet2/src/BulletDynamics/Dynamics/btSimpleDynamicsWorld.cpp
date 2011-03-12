@@ -78,7 +78,7 @@ int		btSimpleDynamicsWorld::stepSimulation( btScalar timeStep,int maxSubSteps, b
 		btContactSolverInfo infoGlobal;
 		infoGlobal.m_timeStep = timeStep;
 		m_constraintSolver->prepareSolve(0,numManifolds);
-		m_constraintSolver->solveGroup(0,0,manifoldPtr, numManifolds,0,0,infoGlobal,m_debugDrawer, m_stackAlloc,m_dispatcher1);
+		m_constraintSolver->solveGroup(&getCollisionObjectArray()[0],getNumCollisionObjects(),manifoldPtr, numManifolds,0,0,infoGlobal,m_debugDrawer, m_stackAlloc,m_dispatcher1);
 		m_constraintSolver->allSolved(infoGlobal,m_debugDrawer, m_stackAlloc);
 	}
 
@@ -132,8 +132,18 @@ btVector3 btSimpleDynamicsWorld::getGravity () const
 
 void	btSimpleDynamicsWorld::removeRigidBody(btRigidBody* body)
 {
-	removeCollisionObject(body);
+	btCollisionWorld::removeCollisionObject(body);
 }
+
+void	btSimpleDynamicsWorld::removeCollisionObject(btCollisionObject* collisionObject)
+{
+	btRigidBody* body = btRigidBody::upcast(collisionObject);
+	if (body)
+		removeRigidBody(body);
+	else
+		btCollisionWorld::removeCollisionObject(collisionObject);
+}
+
 
 void	btSimpleDynamicsWorld::addRigidBody(btRigidBody* body)
 {
@@ -144,6 +154,33 @@ void	btSimpleDynamicsWorld::addRigidBody(btRigidBody* body)
 		addCollisionObject(body);
 	}
 }
+
+void	btSimpleDynamicsWorld::addRigidBody(btRigidBody* body, short group, short mask)
+{
+	body->setGravity(m_gravity);
+
+	if (body->getCollisionShape())
+	{
+		addCollisionObject(body,group,mask);
+	}
+}
+
+
+void	btSimpleDynamicsWorld::debugDrawWorld()
+{
+
+}
+				
+void	btSimpleDynamicsWorld::addAction(btActionInterface* action)
+{
+
+}
+
+void	btSimpleDynamicsWorld::removeAction(btActionInterface* action)
+{
+
+}
+
 
 void	btSimpleDynamicsWorld::updateAabbs()
 {

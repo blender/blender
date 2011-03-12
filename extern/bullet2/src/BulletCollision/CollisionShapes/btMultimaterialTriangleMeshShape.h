@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2008 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -31,13 +31,11 @@ public:
 
 	BT_DECLARE_ALIGNED_ALLOCATOR();
 
-    btMultimaterialTriangleMeshShape(): btBvhTriangleMeshShape() {m_shapeType = MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE;}
     btMultimaterialTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression, bool buildBvh = true):
         btBvhTriangleMeshShape(meshInterface, useQuantizedAabbCompression, buildBvh)
         {
             m_shapeType = MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE;
 
-            btVector3 m_triangle[3];
             const unsigned char *vertexbase;
             int numverts;
             PHY_ScalarType type;
@@ -71,7 +69,6 @@ public:
         {
             m_shapeType = MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE;
 
-            btVector3 m_triangle[3];
             const unsigned char *vertexbase;
             int numverts;
             PHY_ScalarType type;

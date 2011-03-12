@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -12,6 +12,7 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
+
 
 #ifndef BT_DISCRETE_DYNAMICS_WORLD_H
 #define BT_DISCRETE_DYNAMICS_WORLD_H
@@ -41,6 +42,8 @@ protected:
 
 	btAlignedObjectArray<btTypedConstraint*> m_constraints;
 
+	btAlignedObjectArray<btRigidBody*> m_nonStaticRigidBodies;
+
 	btVector3	m_gravity;
 
 	//for variable timesteps
@@ -49,6 +52,7 @@ protected:
 
 	bool	m_ownsIslandManager;
 	bool	m_ownsConstraintSolver;
+	bool	m_synchronizeAllMotionStates;
 
 	btAlignedObjectArray<btActionInterface*>	m_actions;
 	
@@ -73,8 +77,7 @@ protected:
 
 	virtual void	saveKinematicState(btScalar timeStep);
 
-	void	debugDrawSphere(btScalar radius, const btTransform& transform, const btVector3& color);
-
+	void	serializeRigidBodies(btSerializer* serializer);
 
 public:
 
@@ -120,13 +123,17 @@ public:
 
 	virtual btVector3 getGravity () const;
 
+	virtual void	addCollisionObject(btCollisionObject* collisionObject,short int collisionFilterGroup=btBroadphaseProxy::StaticFilter,short int collisionFilterMask=btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter);
+
 	virtual void	addRigidBody(btRigidBody* body);
 
 	virtual void	addRigidBody(btRigidBody* body, short group, short mask);
 
 	virtual void	removeRigidBody(btRigidBody* body);
 
-	void	debugDrawObject(const btTransform& worldTransform, const btCollisionShape* shape, const btVector3& color);
+	///removeCollisionObject will first check if it is a rigid body, if so call removeRigidBody otherwise call btCollisionWorld::removeCollisionObject
+	virtual void	removeCollisionObject(btCollisionObject* collisionObject);
+
 
 	void	debugDrawConstraint(btTypedConstraint* constraint);
 
@@ -173,6 +180,18 @@ public:
 	virtual void	addCharacter(btActionInterface* character);
 	///obsolete, use removeAction instead
 	virtual void	removeCharacter(btActionInterface* character);
+
+	void	setSynchronizeAllMotionStates(bool synchronizeAll)
+	{
+		m_synchronizeAllMotionStates = synchronizeAll;
+	}
+	bool getSynchronizeAllMotionStates() const
+	{
+		return m_synchronizeAllMotionStates;
+	}
+
+	///Preliminary serialization test for Bullet 2.76. Loading those files requires a separate parser (see Bullet/Demos/SerializeDemo)
+	virtual	void	serialize(btSerializer* serializer);
 
 };
 

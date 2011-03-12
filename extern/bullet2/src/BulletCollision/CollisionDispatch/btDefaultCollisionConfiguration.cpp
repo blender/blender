@@ -45,17 +45,17 @@ btDefaultCollisionConfiguration::btDefaultCollisionConfiguration(const btDefault
 
 	void* mem = btAlignedAlloc(sizeof(btVoronoiSimplexSolver),16);
 	m_simplexSolver = new (mem)btVoronoiSimplexSolver();
-	
-#define USE_EPA 1
-#ifdef USE_EPA
-	mem = btAlignedAlloc(sizeof(btGjkEpaPenetrationDepthSolver),16);
-	m_pdSolver = new (mem)btGjkEpaPenetrationDepthSolver;
-#else
-	mem = btAlignedAlloc(sizeof(btMinkowskiPenetrationDepthSolver),16);
-	m_pdSolver = new (mem)btMinkowskiPenetrationDepthSolver;
-#endif//USE_EPA	
-	
 
+	if (constructionInfo.m_useEpaPenetrationAlgorithm)
+	{
+		mem = btAlignedAlloc(sizeof(btGjkEpaPenetrationDepthSolver),16);
+		m_pdSolver = new (mem)btGjkEpaPenetrationDepthSolver;
+	}else
+	{
+		mem = btAlignedAlloc(sizeof(btMinkowskiPenetrationDepthSolver),16);
+		m_pdSolver = new (mem)btMinkowskiPenetrationDepthSolver;
+	}
+	
 	//default CreationFunctions, filling the m_doubleDispatch table
 	mem = btAlignedAlloc(sizeof(btConvexConvexAlgorithm::CreateFunc),16);
 	m_convexConvexCreateFunc = new(mem) btConvexConvexAlgorithm::CreateFunc(m_simplexSolver,m_pdSolver);
@@ -102,7 +102,8 @@ btDefaultCollisionConfiguration::btDefaultCollisionConfiguration(const btDefault
 	int maxSize3 = sizeof(btCompoundCollisionAlgorithm);
 	int sl = sizeof(btConvexSeparatingDistanceUtil);
 	sl = sizeof(btGjkPairDetector);
-	int	collisionAlgorithmMaxElementSize = btMax(maxSize,maxSize2);
+	int	collisionAlgorithmMaxElementSize = btMax(maxSize,constructionInfo.m_customCollisionAlgorithmMaxElementSize);
+	collisionAlgorithmMaxElementSize = btMax(collisionAlgorithmMaxElementSize,maxSize2);
 	collisionAlgorithmMaxElementSize = btMax(collisionAlgorithmMaxElementSize,maxSize3);
 
 	if (constructionInfo.m_stackAlloc)

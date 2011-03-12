@@ -24,6 +24,11 @@ subject to the following restrictions:
 
 #define VORONOI_SIMPLEX_MAX_VERTS 5
 
+///disable next define, or use defaultCollisionConfiguration->getSimplexSolver()->setEqualVertexThreshold(0.f) to disable/configure
+#define BT_USE_EQUAL_VERTEX_THRESHOLD
+#define VORONOI_DEFAULT_EQUAL_VERTEX_THRESHOLD 0.0001f
+
+
 struct btUsageBitfield{
 	btUsageBitfield()
 	{
@@ -106,7 +111,10 @@ public:
 	btVector3	m_cachedP2;
 	btVector3	m_cachedV;
 	btVector3	m_lastW;
+	
+	btScalar	m_equalVertexThreshold;
 	bool		m_cachedValidClosest;
+
 
 	btSubSimplexClosestResult m_cachedBC;
 
@@ -122,10 +130,23 @@ public:
 
 public:
 
+	btVoronoiSimplexSolver()
+		:  m_equalVertexThreshold(VORONOI_DEFAULT_EQUAL_VERTEX_THRESHOLD)
+	{
+	}
 	 void reset();
 
 	 void addVertex(const btVector3& w, const btVector3& p, const btVector3& q);
 
+	 void	setEqualVertexThreshold(btScalar threshold)
+	 {
+		 m_equalVertexThreshold = threshold;
+	 }
+
+	 btScalar	getEqualVertexThreshold() const
+	 {
+		 return m_equalVertexThreshold;
+	 }
 
 	 bool closest(btVector3& v);
 

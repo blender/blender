@@ -58,7 +58,8 @@ public:
 	btTransform m_convexShapeTo;
 	btTransform m_triangleToWorld;
 	btScalar m_hitFraction;
-    btScalar m_triangleCollisionMargin;
+	btScalar m_triangleCollisionMargin;
+	btScalar m_allowedPenetration;
 
 	btTriangleConvexcastCallback (const btConvexShape* convexShape, const btTransform& convexShapeFrom, const btTransform& convexShapeTo, const btTransform& triangleToWorld, const btScalar triangleCollisionMargin);
 

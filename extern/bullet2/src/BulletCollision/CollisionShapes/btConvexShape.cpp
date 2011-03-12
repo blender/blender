@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -21,6 +21,18 @@ subject to the following restrictions:
 #include "btConvexHullShape.h"
 #include "btConvexPointCloudShape.h"
 
+///not supported on IBM SDK, until we fix the alignment of btVector3
+#if defined (__CELLOS_LV2__) && defined (__SPU__)
+#include <spu_intrinsics.h>
+static inline vec_float4 vec_dot3( vec_float4 vec0, vec_float4 vec1 )
+{
+    vec_float4 result;
+    result = spu_mul( vec0, vec1 );
+    result = spu_madd( spu_rlqwbyte( vec0, 4 ), spu_rlqwbyte( vec1, 4 ), result );
+    return spu_madd( spu_rlqwbyte( vec0, 8 ), spu_rlqwbyte( vec1, 8 ), result );
+}
+#endif //__SPU__
+
 btConvexShape::btConvexShape ()
 {
 }
@@ -32,35 +44,71 @@ btConvexShape::~btConvexShape()
 
 
 
-static btVector3 convexHullSupport (const btVector3& localDir, const btVector3* points, int numPoints, const btVector3& localScaling)
-{
-	btVector3 supVec(btScalar(0.),btScalar(0.),btScalar(0.));
-	btScalar newDot,maxDot = btScalar(-1e30);
+static btVector3 convexHullSupport (const btVector3& localDirOrg, const btVector3* points, int numPoints, const btVector3& localScaling)
+{	
 
-	btVector3 vec0(localDir.getX(),localDir.getY(),localDir.getZ());
-	btVector3 vec = vec0;
-	btScalar lenSqr = vec.length2();
-	if (lenSqr < btScalar(0.0001))
-	{
-		vec.setValue(1,0,0);
-	} else {
-		btScalar rlen = btScalar(1.) / btSqrt(lenSqr );
-		vec *= rlen;
+	btVector3 vec = localDirOrg * localScaling;
+
+#if defined (__CELLOS_LV2__) && defined (__SPU__)
+
+	btVector3 localDir = vec;
+
+	vec_float4 v_distMax = {-FLT_MAX,0,0,0};
+	vec_int4 v_idxMax = {-999,0,0,0};
+	int v=0;
+	int numverts = numPoints;
+
+	for(;v<(int)numverts-4;v+=4) {
+		vec_float4 p0 = vec_dot3(points[v  ].get128(),localDir.get128());
+		vec_float4 p1 = vec_dot3(points[v+1].get128(),localDir.get128());
+		vec_float4 p2 = vec_dot3(points[v+2].get128(),localDir.get128());
+		vec_float4 p3 = vec_dot3(points[v+3].get128(),localDir.get128());
+		const vec_int4 i0 = {v  ,0,0,0};
+		const vec_int4 i1 = {v+1,0,0,0};
+		const vec_int4 i2 = {v+2,0,0,0};
+		const vec_int4 i3 = {v+3,0,0,0};
+		vec_uint4  retGt01 = spu_cmpgt(p0,p1);
+		vec_float4 pmax01 = spu_sel(p1,p0,retGt01);
+		vec_int4   imax01 = spu_sel(i1,i0,retGt01);
+		vec_uint4  retGt23 = spu_cmpgt(p2,p3);
+		vec_float4 pmax23 = spu_sel(p3,p2,retGt23);
+		vec_int4   imax23 = spu_sel(i3,i2,retGt23);
+		vec_uint4  retGt0123 = spu_cmpgt(pmax01,pmax23);
+		vec_float4 pmax0123 = spu_sel(pmax23,pmax01,retGt0123);
+		vec_int4   imax0123 = spu_sel(imax23,imax01,retGt0123);
+		vec_uint4  retGtMax = spu_cmpgt(v_distMax,pmax0123);
+		v_distMax = spu_sel(pmax0123,v_distMax,retGtMax);
+		v_idxMax = spu_sel(imax0123,v_idxMax,retGtMax);
 	}
+	for(;v<(int)numverts;v++) {
+		vec_float4 p = vec_dot3(points[v].get128(),localDir.get128());
+		const vec_int4 i = {v,0,0,0};
+		vec_uint4  retGtMax = spu_cmpgt(v_distMax,p);
+		v_distMax = spu_sel(p,v_distMax,retGtMax);
+		v_idxMax = spu_sel(i,v_idxMax,retGtMax);
+	}
+	int ptIndex = spu_extract(v_idxMax,0);
+	const btVector3& supVec= points[ptIndex] * localScaling;
+	return supVec;
+#else
 
+	btScalar newDot,maxDot = btScalar(-BT_LARGE_FLOAT);
+	int ptIndex = -1;
 
 	for (int i=0;i<numPoints;i++)
 	{
-		btVector3 vtx = points[i] * localScaling;
 
-		newDot = vec.dot(vtx);
+		newDot = vec.dot(points[i]);
 		if (newDot > maxDot)
 		{
 			maxDot = newDot;
-			supVec = vtx;
+			ptIndex = i;
 		}
 	}
-	return btVector3(supVec.getX(),supVec.getY(),supVec.getZ());
+	btAssert(ptIndex >= 0);
+	btVector3 supVec = points[ptIndex] * localScaling;
+	return supVec;
+#endif //__SPU__
 }
 
 btVector3 btConvexShape::localGetSupportVertexWithoutMarginNonVirtual (const btVector3& localDir) const
@@ -160,7 +208,7 @@ btVector3 btConvexShape::localGetSupportVertexWithoutMarginNonVirtual (const btV
 		btScalar radius = capsuleShape->getRadius();
 		btVector3 supVec(0,0,0);
 
-		btScalar maxDot(btScalar(-1e30));
+		btScalar maxDot(btScalar(-BT_LARGE_FLOAT));
 
 		btVector3 vec = vec0;
 		btScalar lenSqr = vec.length2();
@@ -292,7 +340,7 @@ btScalar btConvexShape::getMarginNonVirtual () const
 	btAssert (0);
 	return btScalar(0.0f);
 }
-
+#ifndef __SPU__
 void btConvexShape::getAabbNonVirtual (const btTransform& t, btVector3& aabbMin, btVector3& aabbMax) const
 {
 	switch (m_shapeType)
@@ -360,7 +408,7 @@ void btConvexShape::getAabbNonVirtual (const btTransform& t, btVector3& aabbMin,
 	case CONVEX_POINT_CLOUD_SHAPE_PROXYTYPE:
 	case CONVEX_HULL_SHAPE_PROXYTYPE:
 	{
-		btPolyhedralConvexShape* convexHullShape = (btPolyhedralConvexShape*)this;
+		btPolyhedralConvexAabbCachingShape* convexHullShape = (btPolyhedralConvexAabbCachingShape*)this;
 		btScalar margin = convexHullShape->getMarginNonVirtual();
 		convexHullShape->getNonvirtualAabb (t, aabbMin, aabbMax, margin);
 	}
@@ -377,3 +425,5 @@ void btConvexShape::getAabbNonVirtual (const btTransform& t, btVector3& aabbMin,
 	// should never reach here
 	btAssert (0);
 }
+
+#endif //__SPU__

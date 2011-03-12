@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -17,12 +17,14 @@ subject to the following restrictions:
 
 #include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btOptimizedBvh.h"
+#include "LinearMath/btSerializer.h"
 
 ///Bvh Concave triangle mesh is a static-triangle mesh shape with Bounding Volume Hierarchy optimization.
 ///Uses an interface to access the triangles to allow for sharing graphics/physics triangles.
 btBvhTriangleMeshShape::btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression, bool buildBvh)
 :btTriangleMeshShape(meshInterface),
 m_bvh(0),
+m_triangleInfoMap(0),
 m_useQuantizedAabbCompression(useQuantizedAabbCompression),
 m_ownsBvh(false)
 {
@@ -42,6 +44,7 @@ m_ownsBvh(false)
 btBvhTriangleMeshShape::btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression,const btVector3& bvhAabbMin,const btVector3& bvhAabbMax,bool buildBvh)
 :btTriangleMeshShape(meshInterface),
 m_bvh(0),
+m_triangleInfoMap(0),
 m_useQuantizedAabbCompression(useQuantizedAabbCompression),
 m_ownsBvh(false)
 {
@@ -274,13 +277,13 @@ void	btBvhTriangleMeshShape::processAllTriangles(btTriangleCallback* callback,co
 				nodeSubPart);
 
 			unsigned int* gfxbase = (unsigned int*)(indexbase+nodeTriangleIndex*indexstride);
-			btAssert(indicestype==PHY_INTEGER||indicestype==PHY_SHORT);
+			btAssert(indicestype==PHY_INTEGER||indicestype==PHY_SHORT||indicestype==PHY_UCHAR);
 	
 			const btVector3& meshScaling = m_meshInterface->getScaling();
 			for (int j=2;j>=0;j--)
 			{
 				
-				int graphicsindex = indicestype==PHY_SHORT?((unsigned short*)gfxbase)[j]:gfxbase[j];
+				int graphicsindex = indicestype==PHY_SHORT?((unsigned short*)gfxbase)[j]:indicestype==PHY_INTEGER?gfxbase[j]:((unsigned char*)gfxbase)[j];
 
 
 #ifdef DEBUG_TRIANGLE_MESH
@@ -362,5 +365,102 @@ void   btBvhTriangleMeshShape::setOptimizedBvh(btOptimizedBvh* bvh, const btVect
       btTriangleMeshShape::setLocalScaling(scaling);
    }
 }
+
+
+
+///fills the dataBuffer and returns the struct name (and 0 on failure)
+const char*	btBvhTriangleMeshShape::serialize(void* dataBuffer, btSerializer* serializer) const
+{
+	btTriangleMeshShapeData* trimeshData = (btTriangleMeshShapeData*) dataBuffer;
+
+	btCollisionShape::serialize(&trimeshData->m_collisionShapeData,serializer);
+
+	m_meshInterface->serialize(&trimeshData->m_meshInterface, serializer);
+
+	trimeshData->m_collisionMargin = float(m_collisionMargin);
+
+	
+
+	if (m_bvh && !(serializer->getSerializationFlags()&BT_SERIALIZE_NO_BVH))
+	{
+		void* chunk = serializer->findPointer(m_bvh);
+		if (chunk)
+		{
+#ifdef BT_USE_DOUBLE_PRECISION
+			trimeshData->m_quantizedDoubleBvh = (btQuantizedBvhData*)chunk;
+			trimeshData->m_quantizedFloatBvh = 0;
+#else
+			trimeshData->m_quantizedFloatBvh  = (btQuantizedBvhData*)chunk;
+			trimeshData->m_quantizedDoubleBvh= 0;
+#endif //BT_USE_DOUBLE_PRECISION
+		} else
+		{
+
+#ifdef BT_USE_DOUBLE_PRECISION
+			trimeshData->m_quantizedDoubleBvh = (btQuantizedBvhData*)serializer->getUniquePointer(m_bvh);
+			trimeshData->m_quantizedFloatBvh = 0;
+#else
+			trimeshData->m_quantizedFloatBvh  = (btQuantizedBvhData*)serializer->getUniquePointer(m_bvh);
+			trimeshData->m_quantizedDoubleBvh= 0;
+#endif //BT_USE_DOUBLE_PRECISION
+	
+			int sz = m_bvh->calculateSerializeBufferSizeNew();
+			btChunk* chunk = serializer->allocate(sz,1);
+			const char* structType = m_bvh->serialize(chunk->m_oldPtr, serializer);
+			serializer->finalizeChunk(chunk,structType,BT_QUANTIZED_BVH_CODE,m_bvh);
+		}
+	} else
+	{
+		trimeshData->m_quantizedFloatBvh = 0;
+		trimeshData->m_quantizedDoubleBvh = 0;
+	}
+
+	
+
+	if (m_triangleInfoMap && !(serializer->getSerializationFlags()&BT_SERIALIZE_NO_TRIANGLEINFOMAP))
+	{
+		void* chunk = serializer->findPointer(m_triangleInfoMap);
+		if (chunk)
+		{
+			trimeshData->m_triangleInfoMap = (btTriangleInfoMapData*)chunk;
+		} else
+		{
+			trimeshData->m_triangleInfoMap = (btTriangleInfoMapData*)serializer->getUniquePointer(m_triangleInfoMap);
+			int sz = m_triangleInfoMap->calculateSerializeBufferSize();
+			btChunk* chunk = serializer->allocate(sz,1);
+			const char* structType = m_triangleInfoMap->serialize(chunk->m_oldPtr, serializer);
+			serializer->finalizeChunk(chunk,structType,BT_TRIANLGE_INFO_MAP,m_triangleInfoMap);
+		}
+	} else
+	{
+		trimeshData->m_triangleInfoMap = 0;
+	}
+
+	return "btTriangleMeshShapeData";
+}
+
+void	btBvhTriangleMeshShape::serializeSingleBvh(btSerializer* serializer) const
+{
+	if (m_bvh)
+	{
+		int len = m_bvh->calculateSerializeBufferSizeNew(); //make sure not to use calculateSerializeBufferSize because it is used for in-place
+		btChunk* chunk = serializer->allocate(len,1);
+		const char* structType = m_bvh->serialize(chunk->m_oldPtr, serializer);
+		serializer->finalizeChunk(chunk,structType,BT_QUANTIZED_BVH_CODE,(void*)m_bvh);
+	}
+}
+
+void	btBvhTriangleMeshShape::serializeSingleTriangleInfoMap(btSerializer* serializer) const
+{
+	if (m_triangleInfoMap)
+	{
+		int len = m_triangleInfoMap->calculateSerializeBufferSize();
+		btChunk* chunk = serializer->allocate(len,1);
+		const char* structType = m_triangleInfoMap->serialize(chunk->m_oldPtr, serializer);
+		serializer->finalizeChunk(chunk,structType,BT_TRIANLGE_INFO_MAP,(void*)m_triangleInfoMap);
+	}
+}
+
+
 
 

@@ -1,5 +1,5 @@
-/*! \file btTriangleShapeEx.cpp
-\author Francisco Len Nßjera
+/*! \file btGImpactTriangleShape.h
+\author Francisco Leon Najera
 */
 /*
 This source file is part of GIMPACT Library.

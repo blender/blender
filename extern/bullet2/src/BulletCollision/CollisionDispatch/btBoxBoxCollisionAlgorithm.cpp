@@ -61,7 +61,7 @@ void btBoxBoxCollisionAlgorithm::processCollision (btCollisionObject* body0,btCo
 #endif //USE_PERSISTENT_CONTACTS
 
 	btDiscreteCollisionDetectorInterface::ClosestPointInput input;
-	input.m_maximumDistanceSquared = 1e30f;
+	input.m_maximumDistanceSquared = BT_LARGE_FLOAT;
 	input.m_transformA = body0->getWorldTransform();
 	input.m_transformB = body1->getWorldTransform();
 

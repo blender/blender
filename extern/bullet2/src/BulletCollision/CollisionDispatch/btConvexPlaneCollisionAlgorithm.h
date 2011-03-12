@@ -60,8 +60,8 @@ public:
 		int m_minimumPointsPerturbationThreshold;
 			
 		CreateFunc() 
-			: m_numPerturbationIterations(3),
-			m_minimumPointsPerturbationThreshold(3)
+			: m_numPerturbationIterations(1),
+			m_minimumPointsPerturbationThreshold(1)
 		{
 		}
 		

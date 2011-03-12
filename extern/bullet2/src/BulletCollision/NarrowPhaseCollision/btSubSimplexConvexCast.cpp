@@ -114,7 +114,10 @@ bool	btSubsimplexConvexCast::calcTimeOfImpact(
 				hasResult = true;
 			}
 		} 
-		m_simplexSolver->addVertex( w, supVertexA , supVertexB);
+		///Just like regular GJK only add the vertex if it isn't already (close) to current vertex, it would lead to divisions by zero and NaN etc.
+		if (!m_simplexSolver->inSimplex(w))
+			m_simplexSolver->addVertex( w, supVertexA , supVertexB);
+
 		if (m_simplexSolver->closest(v))
 		{
 			dist2 = v.length2();
