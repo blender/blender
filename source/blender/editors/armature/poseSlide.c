@@ -193,7 +193,7 @@ static void pose_slide_refresh (bContext *C, tPoseSlideOp *pso)
 }
 
 /* helper for apply() - perform sliding for some value */
-static void pose_slider_apply_val (tPoseSlideOp *pso, FCurve *fcu, float *val)
+static void pose_slide_apply_val (tPoseSlideOp *pso, FCurve *fcu, float *val)
 {
 	float cframe = (float)pso->cframe;
 	float sVal, eVal;
@@ -283,7 +283,7 @@ static void pose_slide_apply_vec3 (tPoseSlideOp *pso, tPChanFCurveLink *pfl, flo
 		FCurve *fcu= (FCurve *)ld->data;
 		
 		/* just work on these channels one by one... there's no interaction between values */
-		pose_slider_apply_val(pso, fcu, &vec[fcu->array_index]);
+		pose_slide_apply_val(pso, fcu, &vec[fcu->array_index]);
 	}
 	
 	/* free the temp path we got */
@@ -324,11 +324,28 @@ static void pose_slide_apply_props (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 			PropertyRNA *prop = RNA_struct_find_property(&ptr, pPtr);
 			
 			if (prop) {
-				float tval = RNA_property_float_get(&ptr, prop);
-				
-				pose_slider_apply_val(pso, fcu, &tval);
-				
-				RNA_property_float_set(&ptr, prop, tval);
+				switch (RNA_property_type(prop)) {
+					case PROP_FLOAT:
+					{
+						float tval = RNA_property_float_get(&ptr, prop);
+						pose_slide_apply_val(pso, fcu, &tval);
+						RNA_property_float_set(&ptr, prop, tval);
+					}
+						break;
+					case PROP_BOOLEAN:
+					case PROP_ENUM:
+					case PROP_INT:
+					{
+						float tval = (float)RNA_property_int_get(&ptr, prop);
+						pose_slide_apply_val(pso, fcu, &tval);
+						RNA_property_int_set(&ptr, prop, (int)tval);
+					}
+						break;
+					default:
+						/* cannot handle */
+						//printf("Cannot Pose Slide non-numerical property\n");
+						break;
+				}
 			}
 		}
 	}
