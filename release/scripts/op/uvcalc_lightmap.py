@@ -1,37 +1,22 @@
-#!BPY
-"""
-Name: 'Lightmap UVPack'
-Blender: 242
-Group: 'UVCalculation'
-Tooltip: 'Give each face non overlapping space on a texture.'
-"""
-__author__ = "Campbell Barton aka ideasman42"
-__url__ = ("blender", "blenderartists.org")
-__version__ = "1.0 2006/02/07"
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
-"""
-
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# Script copyright (C) Campbell Barton
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-# --------------------------------------------------------------------------
+# <pep8 compliant>
 
 import bpy
 import mathutils
@@ -526,17 +511,17 @@ def unwrap(operator, context, **kwargs):
 
     PREF_ACT_ONLY = kwargs.pop("PREF_ACT_ONLY")
 
+    meshes = []
     if PREF_ACT_ONLY:
         obj = context.scene.objects.active
-        if obj == None or obj.type != 'MESH':
-            operator.report({'error'}, "No mesh object.")
-            return
-        meshes = [obj.data]
+        if obj and obj.type == 'MESH':
+            meshes = [obj.data]
     else:
-        meshes = {me.name: me for ob in context.selected_objects if ob.type == 'MESH' for me in (ob.data,) if not me.library if len(me.faces)}.values()
-        if not meshes:
-            Draw.PupMenu('Error%t|No mesh objects selected.')
-            return
+        meshes = {me.name: me for obj in context.selected_objects if obj.type == 'MESH' for me in (obj.data,) if not me.library if len(me.faces)}.values()
+
+    if not meshes:
+        operator.report({'ERROR'}, "No mesh object.")
+        return {'CANCELLED'}
 
     lightmap_uvpack(meshes, **kwargs)
 
