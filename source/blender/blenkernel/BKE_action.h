@@ -82,9 +82,15 @@ typedef enum eAction_TransformFlags {
 	ACT_TRANS_ROT	= (1<<1),
 		/* scaling */
 	ACT_TRANS_SCALE	= (1<<2),
+	
+		/* strictly not a transform, but custom properties are also
+		 * quite often used in modern rigs
+		 */
+	ACT_TRANS_PROP 	= (1<<3),
 		
 		/* all flags */
-	ACT_TRANS_ALL	= (ACT_TRANS_LOC|ACT_TRANS_ROT|ACT_TRANS_SCALE),
+	ACT_TRANS_ONLY 	= (ACT_TRANS_LOC|ACT_TRANS_ROT|ACT_TRANS_SCALE),
+	ACT_TRANS_ALL	= (ACT_TRANS_ONLY|ACT_TRANS_PROP)
 } eAction_TransformFlags;
 
 /* Return flags indicating which transforms the given object/posechannel has 

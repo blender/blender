@@ -192,102 +192,146 @@ static void pose_slide_refresh (bContext *C, tPoseSlideOp *pso)
 	poseAnim_mapping_refresh(C, pso->scene, pso->ob);
 }
 
+/* helper for apply() - perform sliding for some value */
+static void pose_slider_apply_val (tPoseSlideOp *pso, FCurve *fcu, float *val)
+{
+	float cframe = (float)pso->cframe;
+	float sVal, eVal;
+	float w1, w2;
+	
+	/* get keyframe values for endpoint poses to blend with */
+		/* previous/start */
+	sVal= evaluate_fcurve(fcu, (float)pso->prevFrame);
+		/* next/end */
+	eVal= evaluate_fcurve(fcu, (float)pso->nextFrame);
+	
+	/* calculate the relative weights of the endpoints */
+	if (pso->mode == POSESLIDE_BREAKDOWN) {
+		/* get weights from the percentage control */
+		w1= pso->percentage;	/* this must come second */
+		w2= 1.0f - w1;			/* this must come first */
+	}
+	else {
+		/*	- these weights are derived from the relative distance of these 
+		 *	  poses from the current frame
+		 *	- they then get normalised so that they only sum up to 1
+		 */
+		float wtot; 
+		
+		w1 = cframe - (float)pso->prevFrame;
+		w2 = (float)pso->nextFrame - cframe;
+		
+		wtot = w1 + w2;
+		w1 = (w1/wtot);
+		w2 = (w2/wtot);
+	}
+	
+	/* depending on the mode, calculate the new value
+	 *	- in all of these, the start+end values are multiplied by w2 and w1 (respectively),
+	 *	  since multiplication in another order would decrease the value the current frame is closer to
+	 */
+	switch (pso->mode) {
+		case POSESLIDE_PUSH: /* make the current pose more pronounced */
+		{
+			/* perform a weighted average here, favouring the middle pose 
+			 *	- numerator should be larger than denominator to 'expand' the result
+			 *	- perform this weighting a number of times given by the percentage...
+			 */
+			int iters= (int)ceil(10.0f*pso->percentage); // TODO: maybe a sensitivity ctrl on top of this is needed
+			
+			while (iters-- > 0) {
+				(*val)= ( -((sVal * w2) + (eVal * w1)) + ((*val) * 6.0f) ) / 5.0f; 
+			}
+		}
+			break;
+			
+		case POSESLIDE_RELAX: /* make the current pose more like its surrounding ones */
+		{
+			/* perform a weighted average here, favouring the middle pose 
+			 *	- numerator should be smaller than denominator to 'relax' the result
+			 *	- perform this weighting a number of times given by the percentage...
+			 */
+			int iters= (int)ceil(10.0f*pso->percentage); // TODO: maybe a sensitivity ctrl on top of this is needed
+			
+			while (iters-- > 0) {
+				(*val)= ( ((sVal * w2) + (eVal * w1)) + ((*val) * 5.0f) ) / 6.0f;
+			}
+		}
+			break;
+			
+		case POSESLIDE_BREAKDOWN: /* make the current pose slide around between the endpoints */
+		{
+			/* perform simple linear interpolation - coefficient for start must come from pso->percentage... */
+			// TODO: make this use some kind of spline interpolation instead?
+			(*val)= ((sVal * w2) + (eVal * w1));
+		}
+			break;
+	}
+}
+
 /* helper for apply() - perform sliding for some 3-element vector */
-static void pose_slide_apply_vec3 (tPoseSlideOp *pso, tPChanFCurveLink *pfl, float vec[3], const char *propName)
+static void pose_slide_apply_vec3 (tPoseSlideOp *pso, tPChanFCurveLink *pfl, float vec[3], const char propName[])
 {
 	LinkData *ld=NULL;
 	char *path=NULL;
-	float cframe;
 	
 	/* get the path to use... */
 	path= BLI_sprintfN("%s.%s", pfl->pchan_path, propName);
 	
-	/* get the current frame number */
-	cframe= (float)pso->cframe;
-	
 	/* using this path, find each matching F-Curve for the variables we're interested in */
 	while ( (ld= poseAnim_mapping_getNextFCurve(&pfl->fcurves, ld, path)) ) {
 		FCurve *fcu= (FCurve *)ld->data;
-		float sVal, eVal;
-		float w1, w2;
-		int ch;
 		
-		/* get keyframe values for endpoint poses to blend with */
-			/* previous/start */
-		sVal= evaluate_fcurve(fcu, (float)pso->prevFrame);
-			/* next/end */
-		eVal= evaluate_fcurve(fcu, (float)pso->nextFrame);
-		
-		/* get channel index */
-		ch= fcu->array_index;
-		
-		/* calculate the relative weights of the endpoints */
-		if (pso->mode == POSESLIDE_BREAKDOWN) {
-			/* get weights from the percentage control */
-			w1= pso->percentage;	/* this must come second */
-			w2= 1.0f - w1;			/* this must come first */
-		}
-		else {
-			/*	- these weights are derived from the relative distance of these 
-			 *	  poses from the current frame
-			 *	- they then get normalised so that they only sum up to 1
-			 */
-			float wtot; 
-			
-			w1 = cframe - (float)pso->prevFrame;
-			w2 = (float)pso->nextFrame - cframe;
-			
-			wtot = w1 + w2;
-			w1 = (w1/wtot);
-			w2 = (w2/wtot);
-		}
-		
-		/* depending on the mode, calculate the new value
-		 *	- in all of these, the start+end values are multiplied by w2 and w1 (respectively),
-		 *	  since multiplication in another order would decrease the value the current frame is closer to
-		 */
-		switch (pso->mode) {
-			case POSESLIDE_PUSH: /* make the current pose more pronounced */
-			{
-				/* perform a weighted average here, favouring the middle pose 
-				 *	- numerator should be larger than denominator to 'expand' the result
-				 *	- perform this weighting a number of times given by the percentage...
-				 */
-				int iters= (int)ceil(10.0f*pso->percentage); // TODO: maybe a sensitivity ctrl on top of this is needed
-				
-				while (iters-- > 0) {
-					vec[ch]= ( -((sVal * w2) + (eVal * w1)) + (vec[ch] * 6.0f) ) / 5.0f; 
-				}
-			}
-				break;
-				
-			case POSESLIDE_RELAX: /* make the current pose more like its surrounding ones */
-			{
-				/* perform a weighted average here, favouring the middle pose 
-				 *	- numerator should be smaller than denominator to 'relax' the result
-				 *	- perform this weighting a number of times given by the percentage...
-				 */
-				int iters= (int)ceil(10.0f*pso->percentage); // TODO: maybe a sensitivity ctrl on top of this is needed
-				
-				while (iters-- > 0) {
-					vec[ch]= ( ((sVal * w2) + (eVal * w1)) + (vec[ch] * 5.0f) ) / 6.0f;
-				}
-			}
-				break;
-				
-			case POSESLIDE_BREAKDOWN: /* make the current pose slide around between the endpoints */
-			{
-				/* perform simple linear interpolation - coefficient for start must come from pso->percentage... */
-				// TODO: make this use some kind of spline interpolation instead?
-				vec[ch]= ((sVal * w2) + (eVal * w1));
-			}
-				break;
-		}
-		
+		/* just work on these channels one by one... there's no interaction between values */
+		pose_slider_apply_val(pso, fcu, &vec[fcu->array_index]);
 	}
 	
 	/* free the temp path we got */
 	MEM_freeN(path);
+}
+
+/* helper for apply() - perform sliding for custom properties */
+static void pose_slide_apply_props (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
+{
+	PointerRNA ptr = {{NULL}};
+	LinkData *ld;
+	int len = strlen(pfl->pchan_path);
+	
+	/* setup pointer RNA for resolving paths */
+	RNA_pointer_create(NULL, &RNA_PoseBone, pfl->pchan, &ptr);
+	
+	/* custom properties are just denoted using ["..."][etc.] after the end of the base path, 
+	 * so just check for opening pair after the end of the path
+	 */
+	for (ld = pfl->fcurves.first; ld; ld = ld->next) {
+		FCurve *fcu = (FCurve *)ld->data;
+		char *bPtr, *pPtr;
+		
+		if (fcu->rna_path == NULL)
+			continue;
+		
+		/* do we have a match? 
+		 *	- bPtr is the RNA Path with the standard part chopped off
+		 *	- pPtr is the chunk of the path which is left over
+		 */
+		bPtr = strstr(fcu->rna_path, pfl->pchan_path) + len;
+		pPtr = strstr(bPtr, "[\"");   /* dummy " for texteditor bugs */
+		
+		if (pPtr) {
+			/* use RNA to try and get a handle on this property, then, assuming that it is just
+			 * numerical, try and grab the value as a float for temp editing before setting back
+			 */
+			PropertyRNA *prop = RNA_struct_find_property(&ptr, pPtr);
+			
+			if (prop) {
+				float tval = RNA_property_float_get(&ptr, prop);
+				
+				pose_slider_apply_val(pso, fcu, &tval);
+				
+				RNA_property_float_set(&ptr, prop, tval);
+			}
+		}
+	}
 }
 
 /* helper for apply() - perform sliding for quaternion rotations (using quat blending) */
@@ -426,6 +470,11 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 				pose_slide_apply_quat(pso, pfl);
 			}
 		}
+		
+		if (pfl->oldprops) {
+			/* not strictly a transform, but contributes to the pose produced in many rigs */
+			pose_slide_apply_props(pso, pfl);
+		}
 	}
 	
 	/* depsgraph updates + redraws */
@@ -502,6 +551,7 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 	}
 	else {
 		BKE_report(op->reports, RPT_ERROR, "No keyframes to slide between.");
+		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
 	}
 	

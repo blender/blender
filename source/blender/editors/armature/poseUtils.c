@@ -53,6 +53,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
+#include "BKE_idprop.h"
 
 #include "BKE_context.h"
 
@@ -112,11 +113,16 @@ static void fcurves_to_pchan_links_get (ListBase *pfLinks, Object *ob, bAction *
 			pchan->flag |= POSE_SIZE;
 			
 		/* store current transforms */
-		// TODO: store axis-angle too?
 		VECCOPY(pfl->oldloc, pchan->loc);
 		VECCOPY(pfl->oldrot, pchan->eul);
 		VECCOPY(pfl->oldscale, pchan->size);
 		QUATCOPY(pfl->oldquat, pchan->quat);
+		VECCOPY(pfl->oldaxis, pchan->rotAxis);
+		pfl->oldangle = pchan->rotAngle;
+		
+		/* make copy of custom properties */
+		if (transFlags & ACT_TRANS_PROP)
+			pfl->oldprops = IDP_CopyProperty(pchan->prop);
 	}
 } 
 
@@ -143,6 +149,12 @@ void poseAnim_mapping_free (ListBase *pfLinks)
 	/* free the temp pchan links and their data */
 	for (pfl= pfLinks->first; pfl; pfl= pfln) {
 		pfln= pfl->next;
+		
+		/* free custom properties */
+		if (pfl->oldprops) {
+			IDP_FreeProperty(pfl->oldprops);
+			MEM_freeN(pfl->oldprops);
+		}
 		
 		/* free list of F-Curve reference links */
 		BLI_freelistN(&pfl->fcurves);
@@ -185,59 +197,46 @@ void poseAnim_mapping_reset (ListBase *pfLinks)
 		bPoseChannel *pchan= pfl->pchan;
 		
 		/* just copy all the values over regardless of whether they changed or not */
-		// TODO; include axis-angle here too?
 		VECCOPY(pchan->loc, pfl->oldloc);
 		VECCOPY(pchan->eul, pfl->oldrot);
 		VECCOPY(pchan->size, pfl->oldscale);
 		QUATCOPY(pchan->quat, pfl->oldquat);
+		VECCOPY(pchan->rotAxis, pfl->oldaxis);
+		pchan->rotAngle = pfl->oldangle;
+		
+		/* just overwrite values of properties from the stored copies (there should be some) */
+		if (pfl->oldprops)
+			IDP_SyncGroupValues(pfl->pchan->prop, pfl->oldprops);
 	}
 }
 
 /* perform autokeyframing after changes were made + confirmed */
 void poseAnim_mapping_autoKeyframe (bContext *C, Scene *scene, Object *ob, ListBase *pfLinks, float cframe)
 {
-	static short keyingsets_need_init = 1;
-	static KeyingSet *ks_loc = NULL;
-	static KeyingSet *ks_rot = NULL;
-	static KeyingSet *ks_scale = NULL;
-	
-	/* get keyingsets the first time this is run? 
-	 * NOTE: it should be safe to store these static, since they're currently builtin ones
-	 * but maybe later this may change, in which case this code needs to be revised!
-	 */
-	if (keyingsets_need_init) {
-		ks_loc= ANIM_builtin_keyingset_get_named(NULL, "Location");
-		ks_rot= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-		ks_scale= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
-		
-		keyingsets_need_init = 0;
-	}
-	
 	/* insert keyframes as necessary if autokeyframing */
 	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Whole Character");
+		ListBase dsources = {NULL, NULL};
 		tPChanFCurveLink *pfl;
 		
-		/* iterate over each pose-channel affected, applying the changes */
+		/* iterate over each pose-channel affected, tagging bones to be keyed */
+		/* XXX: here we already have the information about what transforms exist, though 
+		 * it might be easier to just overwrite all using normal mechanisms
+		 */
 		for (pfl= pfLinks->first; pfl; pfl= pfl->next) {
-			ListBase dsources = {NULL, NULL};
 			bPoseChannel *pchan= pfl->pchan;
 			
-			/* add datasource override for the PoseChannel so KeyingSet will do right thing */
+			/* add datasource override for the PoseChannel, to be used later */
 			ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan); 
 			
-			/* insert keyframes 
-			 * 	- these keyingsets here use dsources, since we need to specify exactly which keyframes get affected
-			 */
-			if (pchan->flag & POSE_LOC)
-				ANIM_apply_keyingset(C, &dsources, NULL, ks_loc, MODIFYKEY_MODE_INSERT, cframe);
-			if (pchan->flag & POSE_ROT)
-				ANIM_apply_keyingset(C, &dsources, NULL, ks_rot, MODIFYKEY_MODE_INSERT, cframe);
-			if (pchan->flag & POSE_SIZE)
-				ANIM_apply_keyingset(C, &dsources, NULL, ks_scale, MODIFYKEY_MODE_INSERT, cframe);
-				
-			/* free the temp info */
-			BLI_freelistN(&dsources);
+			/* clear any unkeyed tags */
+			if (pchan->bone)
+				pchan->bone->flag &= ~BONE_UNKEYED;
 		}
+		
+		/* insert keyframes for all relevant bones in one go */
+		ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		BLI_freelistN(&dsources);
 	}
 }
 
