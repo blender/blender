@@ -258,6 +258,7 @@ static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *UNUSED(args))
 static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 {
 	Main *mainl= NULL;
+	int err= 0;
 
 	flag_all_listbases_ids(LIB_PRE_EXISTING, 1);
 
@@ -285,7 +286,11 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 						// printf("  %s\n", item_str);
 
 						if(item_str) {
-							BLO_library_append_named_part(NULL, mainl, &(self->blo_handle), item_str, code, self->flag);
+							if(!BLO_library_append_named_part(NULL, mainl, &(self->blo_handle), item_str, code, self->flag)) {
+								PyErr_Format(PyExc_KeyError, "load: %s does not contain %s[\"%s\"]", self->abspath, name_plural, item_str);
+								err= -1;
+								break;
+							}
 						}
 						else {
 							/* XXX, could complain about this */
@@ -297,26 +302,33 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 		}
 	}
 
-	BLO_library_append_end(NULL, mainl, &(self->blo_handle), 0, self->flag);
-	BLO_blendhandle_close(self->blo_handle);
-
-	{	/* copied from wm_operator.c */
-		/* mark all library linked objects to be updated */
-		recalc_all_library_objects(G.main);
-
-		/* append, rather than linking */
-		if((self->flag & FILE_LINK)==0) {
-			Library *lib= BLI_findstring(&G.main->library, self->abspath, offsetof(Library, name));
-			if(lib)	all_local(lib, 1);
-			else	BLI_assert(!"cant find name of just added library!");
-		}
+	if(err == -1) {
+		/* exception raised above, XXX, this leaks some memory */
+		BLO_blendhandle_close(self->blo_handle);
+		self->blo_handle= NULL;
+		return NULL;
 	}
+	else {
+		BLO_library_append_end(NULL, mainl, &(self->blo_handle), 0, self->flag);
+		BLO_blendhandle_close(self->blo_handle);
+		self->blo_handle= NULL;
 
-	flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
+		{	/* copied from wm_operator.c */
+			/* mark all library linked objects to be updated */
+			recalc_all_library_objects(G.main);
 
-	self->blo_handle= NULL;
+			/* append, rather than linking */
+			if((self->flag & FILE_LINK)==0) {
+				Library *lib= BLI_findstring(&G.main->library, self->abspath, offsetof(Library, name));
+				if(lib)	all_local(lib, 1);
+				else	BLI_assert(!"cant find name of just added library!");
+			}
+		}
 
-	Py_RETURN_NONE;
+		flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
+
+		Py_RETURN_NONE;
+	}
 }
 
 int bpy_lib_init(PyObject *mod_par)

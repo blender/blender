@@ -12698,7 +12698,9 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 	}
 }
 
-static void append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *name, int idcode, short flag)
+/* returns true if the item was found
+ * but it may already have already been appended/linked */
+static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *name, int idcode, short flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
@@ -12706,6 +12708,7 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, cons
 	BHead *bhead;
 	ID *id;
 	int endloop=0;
+	int found=0;
 
 	bhead = blo_firstbhead(fd);
 	while(bhead && endloop==0) {
@@ -12715,7 +12718,7 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, cons
 			char *idname= bhead_id_name(fd, bhead);
 				
 			if(strcmp(idname+2, name)==0) {
-
+				found= 1;
 				id= is_yet_read(fd, mainl, bhead);
 				if(id==NULL) {
 					read_libblock(fd, mainl, bhead, LIB_TESTEXT, NULL);
@@ -12762,12 +12765,14 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, cons
 
 		bhead = blo_nextbhead(fd, bhead);
 	}
+
+	return found;
 }
 
-void BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *name, int idcode, short flag)
+int BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *name, int idcode, short flag)
 {
 	FileData *fd= (FileData*)(*bh);
-	append_named_part(C, mainl, fd, name, idcode, flag);
+	return append_named_part(C, mainl, fd, name, idcode, flag);
 }
 
 static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)

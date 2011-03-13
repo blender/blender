@@ -208,7 +208,19 @@ int BLO_has_bfile_extension(char *str);
 int BLO_is_a_library(const char *path, char *dir, char *group);
 
 struct Main* BLO_library_append_begin(const struct bContext *C, BlendHandle** bh, char *dir);
-void BLO_library_append_named_part(const struct bContext *C, struct Main *mainl, BlendHandle** bh, const char *name, int idcode, short flag);
+
+/**
+ * Link/Append a named datablock from an external blend file.
+ *
+ * @param C The context, when NULL instancing object in the scene isnt done.
+ * @param mainl The main database to link from (not the active one).
+ * @param bh The blender file handle.
+ * @param name The name of the datablock (without the 2 char ID prefix)
+ * @param idcode The kind of datablock to link.
+ * @param flag Options for linking, used for instancing.
+ * @return Boolean, 0 when the datablock could not be found.
+ */
+int BLO_library_append_named_part(const struct bContext *C, struct Main *mainl, BlendHandle** bh, const char *name, int idcode, short flag);
 void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag);
 
 /* deprecated */
