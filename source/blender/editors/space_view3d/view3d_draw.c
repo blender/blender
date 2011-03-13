@@ -1943,6 +1943,22 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 
 /* *********************** customdata **************** */
 
+CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
+{
+	CustomDataMask mask= 0;
+	if(v3d->drawtype == OB_SHADED) {
+		/* this includes normals for mesh_create_shadedColors */
+		mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL | CD_MASK_ORCO;
+	}
+	if((v3d->drawtype == OB_TEXTURE) || ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX))) {
+		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
+
+		if(scene->gm.matmode == GAME_MAT_GLSL)
+			mask |= CD_MASK_ORCO;
+	}
+
+	return mask;
+}
 /* goes over all modes and view3d settings */
 CustomDataMask ED_viewedit_datamask(bScreen *screen)
 {
@@ -1958,17 +1974,7 @@ CustomDataMask ED_viewedit_datamask(bScreen *screen)
 	/* check if we need tfaces & mcols due to view mode */
 	for(sa = screen->areabase.first; sa; sa = sa->next) {
 		if(sa->spacetype == SPACE_VIEW3D) {
-			View3D *view = sa->spacedata.first;
-			if(view->drawtype == OB_SHADED) {
-				/* this includes normals for mesh_create_shadedColors */
-				mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL | CD_MASK_ORCO;
-			}
-			if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
-				mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
-
-				if(scene->gm.matmode == GAME_MAT_GLSL)
-					mask |= CD_MASK_ORCO;
-			}
+			mask |= ED_view3d_datamask(scene, (View3D *)sa->spacedata.first);
 		}
 	}
 	

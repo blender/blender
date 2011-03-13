@@ -294,6 +294,9 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 		oglrender->v3d= CTX_wm_view3d(C);
 		oglrender->ar= CTX_wm_region(C);
 		oglrender->rv3d= CTX_wm_region_view3d(C);
+
+		/* MUST be cleared on exit */
+		oglrender->scene->customdata_mask_modal= ED_view3d_datamask(oglrender->scene, oglrender->v3d);
 	}
 
 	/* create image and image user */
@@ -336,6 +339,8 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, oglrender->scene);
 
 	GPU_offscreen_free(oglrender->ofs);
+
+	oglrender->scene->customdata_mask_modal= 0;
 
 	MEM_freeN(oglrender);
 }
