@@ -754,7 +754,7 @@ int UI_icon_get_width(int icon_id)
 
 	icon = BKE_icon_get(icon_id);
 	
-	if (icon==ICON_NONE) {
+	if (icon==NULL) {
 		if (G.f & G_DEBUG)
 			printf("UI_icon_get_width: Internal error, no icon for icon ID: %d\n", icon_id);
 		return 0;
@@ -779,7 +779,7 @@ int UI_icon_get_height(int icon_id)
 
 	icon = BKE_icon_get(icon_id);
 	
-	if (icon==ICON_NONE) {
+	if (icon==NULL) {
 		if (G.f & G_DEBUG)
 			printf("UI_icon_get_height: Internal error, no icon for icon ID: %d\n", icon_id);
 		return 0;
@@ -955,7 +955,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	
 	icon = BKE_icon_get(icon_id);
 	
-	if (icon==ICON_NONE) {
+	if (icon==NULL) {
 		if (G.f & G_DEBUG)
 			printf("icon_draw_mipmap: Internal error, no icon for icon ID: %d\n", icon_id);
 		return;
@@ -980,7 +980,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 		di->data.vector.func((int)x, (int)y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
 	} 
 	else if(di->type == ICON_TYPE_TEXTURE) {
-		icon_draw_texture(x, y, w, h, di->data.texture.x, di->data.texture.y,
+		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
 			di->data.texture.w, di->data.texture.h, alpha, rgb);
 	}
 	else if(di->type == ICON_TYPE_BUFFER) {
