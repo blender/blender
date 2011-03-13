@@ -902,6 +902,7 @@ void nodeGroupRemoveSocket(bNodeTree *ngroup, bNodeSocket *gsock, int in_out)
 	case SOCK_IN:	BLI_remlink(&ngroup->inputs, gsock);	break;
 	case SOCK_OUT:	BLI_remlink(&ngroup->outputs, gsock);	break;
 	}
+	MEM_freeN(gsock);
 }
 
 /* ************** Add stuff ********** */
