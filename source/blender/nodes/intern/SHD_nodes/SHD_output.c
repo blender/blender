@@ -52,7 +52,7 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 		nodestack_get_vec(col+3, SOCK_VALUE, in[1]);
 		
 		if(shi->do_preview) {
-			nodeAddToPreview(node, col, shi->xs, shi->ys);
+			nodeAddToPreview(node, col, shi->xs, shi->ys, shi->do_manage);
 			node->lasty= shi->ys;
 		}
 		

@@ -183,6 +183,7 @@ void wm_event_do_notifiers(bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmNotifier *note, *next;
 	wmWindow *win;
+	unsigned int win_combine_v3d_datamask= 0;
 	
 	if(wm==NULL)
 		return;
@@ -270,7 +271,7 @@ void wm_event_do_notifiers(bContext *C)
 				CTX_wm_window_set(C, win);
 
 				/* printf("notifier win %d screen %s cat %x\n", win->winid, win->screen->id.name+2, note->category); */
-				ED_screen_do_listen(win, note);
+				ED_screen_do_listen(C, note);
 
 				for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
 					ED_region_do_listen(ar, note);
@@ -288,6 +289,11 @@ void wm_event_do_notifiers(bContext *C)
 		MEM_freeN(note);
 	}
 	
+	/* combine datamasks so 1 win doesn't disable UV's in another [#26448] */
+	for(win= wm->windows.first; win; win= win->next) {
+		win_combine_v3d_datamask |= ED_viewedit_datamask(win->screen);
+	}
+
 	/* cached: editor refresh callbacks now, they get context */
 	for(win= wm->windows.first; win; win= win->next) {
 		ScrArea *sa;
@@ -305,7 +311,7 @@ void wm_event_do_notifiers(bContext *C)
 			/* depsgraph & animation: update tagged datablocks */
 
 			/* copied to set's in scene_update_tagged_recursive() */
-			win->screen->scene->customdata_mask= ED_viewedit_datamask(win->screen);
+			win->screen->scene->customdata_mask= win_combine_v3d_datamask;
 
 			scene_update_tagged(CTX_data_main(C), win->screen->scene);
 		}
@@ -1557,6 +1563,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 		}
 	}
+	
+	if(action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL))
+		wm_cursor_arrow_move(CTX_wm_window(C), event);
 
 	return action;
 }
@@ -1735,14 +1744,6 @@ void wm_event_do_handlers(bContext *C)
 			CTX_wm_area_set(C, area_event_inside(C, event->x, event->y));
 			CTX_wm_region_set(C, region_event_inside(C, event->x, event->y));
 			
-			/* XXX to solve, here screen handlers? */
-			if(event->type==MOUSEMOVE) {
-				/* state variables in screen, cursors, also used in wm_draw.c */
-				ED_screen_set_subwinactive(win, event);	
-				/* for regions having custom cursors */
-				wm_paintcursor_test(C, event);
-			}
-			
 			/* MVC demands to not draw in event handlers... but we need to leave it for ogl selecting etc */
 			wm_window_make_drawable(C, win);
 			
@@ -1764,6 +1765,14 @@ void wm_event_do_handlers(bContext *C)
 				ARegion *ar;
 				int doit= 0;
 	
+				/* Note: setting subwin active should be done here, after modal handlers have been done */
+				if(event->type==MOUSEMOVE) {
+					/* state variables in screen, cursors. Also used in wm_draw.c, fails for modal handlers though */
+					ED_screen_set_subwinactive(C, event);	
+					/* for regions having custom cursors */
+					wm_paintcursor_test(C, event);
+				}
+				
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
@@ -1939,11 +1948,13 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	WM_event_fileselect_event(C, op, full?EVT_FILESELECT_FULL_OPEN:EVT_FILESELECT_OPEN);
 }
 
+#if 0
 /* lets not expose struct outside wm? */
 static void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 {
 	handler->flag= flag;
 }
+#endif
 
 wmEventHandler *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 {
@@ -2089,11 +2100,13 @@ void WM_event_remove_area_handler(ListBase *handlers, void *area)
 	}
 }
 
+#if 0
 static void WM_event_remove_handler(ListBase *handlers, wmEventHandler *handler)
 {
 	BLI_remlink(handlers, handler);
 	wm_event_free_handler(handler);
 }
+#endif
 
 void WM_event_add_mousemove(bContext *C)
 {

@@ -1140,10 +1140,14 @@ class SmartProject(bpy.types.Operator):
         main(context, self.island_margin, self.angle_limit)
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
-# Add to a menu
-menu_func = (lambda self, context: self.layout.operator(SmartProject.bl_idname,
-                                        text="Smart Project"))
+
+def menu_func(self, context):
+    self.layout.operator_context = 'INVOKE_REGION_WIN'
+    self.layout.operator(SmartProject.bl_idname, text="Smart Project")
 
 
 def register():

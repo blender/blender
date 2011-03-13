@@ -32,7 +32,7 @@ subject to the following restrictions:
 #define DBVT_IMPL_SSE			1	// SSE
 
 // Template implementation of ICollide
-#ifdef WIN32
+#ifdef _WIN32
 #if (defined (_MSC_VER) && _MSC_VER >= 1400)
 #define	DBVT_USE_TEMPLATE		1
 #else
@@ -57,7 +57,7 @@ subject to the following restrictions:
 // Specific methods implementation
 
 //SSE gives errors on a MSVC 7.1
-#ifdef BT_USE_SSE
+#if defined (BT_USE_SSE) && defined (_WIN32)
 #define DBVT_SELECT_IMPL		DBVT_IMPL_SSE
 #define DBVT_MERGE_IMPL			DBVT_IMPL_SSE
 #define DBVT_INT0_IMPL			DBVT_IMPL_SSE
@@ -92,7 +92,7 @@ subject to the following restrictions:
 #endif
 
 #if DBVT_USE_MEMMOVE
-#ifndef __CELLOS_LV2__
+#if !defined( __CELLOS_LV2__) && !defined(__MWERKS__)
 #include <memory.h>
 #endif
 #include <string.h>
@@ -484,8 +484,8 @@ DBVT_INLINE int		btDbvtAabbMm::Classify(const btVector3& n,btScalar o,int s) con
 	case	(1+2+4):	px=btVector3(mx.x(),mx.y(),mx.z());
 		pi=btVector3(mi.x(),mi.y(),mi.z());break;
 	}
-	if((dot(n,px)+o)<0)		return(-1);
-	if((dot(n,pi)+o)>=0)	return(+1);
+	if((btDot(n,px)+o)<0)		return(-1);
+	if((btDot(n,pi)+o)>=0)	return(+1);
 	return(0);
 }
 
@@ -496,7 +496,7 @@ DBVT_INLINE btScalar	btDbvtAabbMm::ProjectMinimum(const btVector3& v,unsigned si
 	const btVector3		p(	b[(signs>>0)&1]->x(),
 		b[(signs>>1)&1]->y(),
 		b[(signs>>2)&1]->z());
-	return(dot(p,v));
+	return(btDot(p,v));
 }
 
 //
@@ -947,6 +947,7 @@ inline void		btDbvt::rayTestInternal(	const btDbvtNode* root,
 								const btVector3& aabbMax,
 								DBVT_IPOLICY) const
 {
+        (void) rayTo;
 	DBVT_CHECKTYPE
 	if(root)
 	{
@@ -961,8 +962,8 @@ inline void		btDbvt::rayTestInternal(	const btDbvtNode* root,
 		do	
 		{
 			const btDbvtNode*	node=stack[--depth];
-			bounds[0] = node->volume.Mins()+aabbMin;
-			bounds[1] = node->volume.Maxs()+aabbMax;
+			bounds[0] = node->volume.Mins()-aabbMax;
+			bounds[1] = node->volume.Maxs()-aabbMin;
 			btScalar tmin=1.f,lambda_min=0.f;
 			unsigned int result1=false;
 			result1 = btRayAabb2(rayFrom,rayDirectionInverse,signs,bounds,tmin,lambda_min,lambda_max);
@@ -1000,11 +1001,11 @@ inline void		btDbvt::rayTest(	const btDbvtNode* root,
 			btVector3 rayDir = (rayTo-rayFrom);
 			rayDir.normalize ();
 
-			///what about division by zero? --> just set rayDirection[i] to INF/1e30
+			///what about division by zero? --> just set rayDirection[i] to INF/BT_LARGE_FLOAT
 			btVector3 rayDirectionInverse;
-			rayDirectionInverse[0] = rayDir[0] == btScalar(0.0) ? btScalar(1e30) : btScalar(1.0) / rayDir[0];
-			rayDirectionInverse[1] = rayDir[1] == btScalar(0.0) ? btScalar(1e30) : btScalar(1.0) / rayDir[1];
-			rayDirectionInverse[2] = rayDir[2] == btScalar(0.0) ? btScalar(1e30) : btScalar(1.0) / rayDir[2];
+			rayDirectionInverse[0] = rayDir[0] == btScalar(0.0) ? btScalar(BT_LARGE_FLOAT) : btScalar(1.0) / rayDir[0];
+			rayDirectionInverse[1] = rayDir[1] == btScalar(0.0) ? btScalar(BT_LARGE_FLOAT) : btScalar(1.0) / rayDir[1];
+			rayDirectionInverse[2] = rayDir[2] == btScalar(0.0) ? btScalar(BT_LARGE_FLOAT) : btScalar(1.0) / rayDir[2];
 			unsigned int signs[3] = { rayDirectionInverse[0] < 0.0, rayDirectionInverse[1] < 0.0, rayDirectionInverse[2] < 0.0};
 
 			btScalar lambda_max = rayDir.dot(rayTo-rayFrom);

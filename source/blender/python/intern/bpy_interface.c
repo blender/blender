@@ -378,7 +378,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 
 	if (text) {
 		char fn_dummy[FILE_MAXDIR];
-		bpy_text_filename_get(fn_dummy, text);
+		bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
 
 		if( !text->compiled ) {	/* if it wasn't already compiled, do it now */
 			char *buf = txt_to_buf( text );
@@ -724,13 +724,13 @@ void bpy_module_delay_init(PyObject *bpy_proxy)
 {
 	const int argc= 1;
 	const char *argv[2];
-
-	const char *filename_rel= PyModule_GetFilename(bpy_proxy); /* can be relative */
+	PyObject *filename_obj= PyModule_GetFilenameObject(bpy_proxy); /* updating the module dict below will loose the reference to __file__ */
+	const char *filename_rel= _PyUnicode_AsString(filename_obj); /* can be relative */
 	char filename_abs[1024];
 
 	BLI_strncpy(filename_abs, filename_rel, sizeof(filename_abs));
 	BLI_path_cwd(filename_abs);
-	
+
 	argv[0]= filename_abs;
 	argv[1]= NULL;
 	

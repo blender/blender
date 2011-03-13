@@ -107,7 +107,7 @@ typedef struct SculptUndoNode {
 	char shapeName[sizeof(((KeyBlock *)0))->name];
 } SculptUndoNode;
 
-SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node);
+SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node);
 SculptUndoNode *sculpt_undo_get_node(PBVHNode *node);
 void sculpt_undo_push_begin(const char *name);
 void sculpt_undo_push_end(void);

@@ -75,11 +75,11 @@ void BLO_blendhandle_print_sizes(BlendHandle *, void *);
 
 	/* Access routines used by filesel. */
 	 
-BlendHandle *BLO_blendhandle_from_file(char *file) 
+BlendHandle *BLO_blendhandle_from_file(char *file, ReportList *reports)
 {
 	BlendHandle *bh;
 
-	bh= (BlendHandle*)blo_openblenderfile(file, NULL);
+	bh= (BlendHandle*)blo_openblenderfile(file, reports);
 
 	return bh;
 }
@@ -123,21 +123,24 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 	fprintf(fp, "]\n");
 }
 
-LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype) 
+LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, int *tot_names)
 {
 	FileData *fd= (FileData*) bh;
 	LinkNode *names= NULL;
 	BHead *bhead;
+	int tot= 0;
 
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code==ofblocktype) {
 			char *idname= bhead_id_name(fd, bhead);
-			
+
 			BLI_linklist_prepend(&names, strdup(idname+2));
+			tot++;
 		} else if (bhead->code==ENDB)
 			break;
 	}
-	
+
+	*tot_names= tot;
 	return names;
 }
 

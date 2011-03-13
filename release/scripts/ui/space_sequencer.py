@@ -387,11 +387,11 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
         if not strip:
             return False
 
-        return strip.type in ('ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+        return strip.type in {'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
-                              'MULTICAM')
+                              'MULTICAM'}
 
     def draw(self, context):
         layout = self.layout
@@ -417,7 +417,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
 
             col = layout.column()
             col.prop(strip, "blur_width", slider=True)
-            if strip.transition_type in ('SINGLE', 'DOUBLE'):
+            if strip.transition_type in {'SINGLE', 'DOUBLE'}:
                 col.prop(strip, "angle")
 
         elif strip.type == 'GLOW':
@@ -463,7 +463,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
         col = layout.column(align=True)
         if strip.type == 'SPEED':
             col.prop(strip, "multiply_speed")
-        elif strip.type in ('CROSS', 'GAMMA_CROSS', 'PLUGIN', 'WIPE'):
+        elif strip.type in {'CROSS', 'GAMMA_CROSS', 'PLUGIN', 'WIPE'}:
                 col.prop(strip, "use_default_fade", "Default fade")
                 if not strip.use_default_fade:
                     col.prop(strip, "effect_fader", text="Effect fader")
@@ -525,12 +525,12 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META',
+        return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'META',
                               'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
-                              'MULTICAM', 'SPEED')
+                              'MULTICAM', 'SPEED'}
 
     def draw(self, context):
         layout = self.layout
@@ -675,12 +675,12 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META',
+        return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'META',
                               'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
-                              'MULTICAM', 'SPEED')
+                              'MULTICAM', 'SPEED'}
 
     def draw(self, context):
         layout = self.layout
@@ -737,7 +737,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META', 'MULTICAM')
+        return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'META', 'MULTICAM'}
 
     def draw_header(self, context):
         strip = act_strip(context)

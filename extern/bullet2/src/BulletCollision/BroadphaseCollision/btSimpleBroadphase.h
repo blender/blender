@@ -136,6 +136,7 @@ public:
 	virtual void	getAabb(btBroadphaseProxy* proxy,btVector3& aabbMin, btVector3& aabbMax ) const;
 
 	virtual void	rayTest(const btVector3& rayFrom,const btVector3& rayTo, btBroadphaseRayCallback& rayCallback, const btVector3& aabbMin=btVector3(0,0,0),const btVector3& aabbMax=btVector3(0,0,0));
+	virtual void	aabbTest(const btVector3& aabbMin, const btVector3& aabbMax, btBroadphaseAabbCallback& callback);
 		
 	btOverlappingPairCache*	getOverlappingPairCache()
 	{
@@ -153,8 +154,8 @@ public:
 	///will add some transform later
 	virtual void getBroadphaseAabb(btVector3& aabbMin,btVector3& aabbMax) const
 	{
-		aabbMin.setValue(-1e30f,-1e30f,-1e30f);
-		aabbMax.setValue(1e30f,1e30f,1e30f);
+		aabbMin.setValue(-BT_LARGE_FLOAT,-BT_LARGE_FLOAT,-BT_LARGE_FLOAT);
+		aabbMax.setValue(BT_LARGE_FLOAT,BT_LARGE_FLOAT,BT_LARGE_FLOAT);
 	}
 
 	virtual void	printStats()

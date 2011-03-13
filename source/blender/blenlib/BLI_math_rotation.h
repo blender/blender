@@ -85,7 +85,7 @@ void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q
 void mat3_to_quat_is_ok(float q[4], float mat[3][3]);
 
 /* other */
-void print_qt(char *str, float q[4]);
+void print_qt(const char *str, const float q[4]);
 
 /******************************** Axis Angle *********************************/
 

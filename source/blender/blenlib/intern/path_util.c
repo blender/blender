@@ -296,14 +296,7 @@ void BLI_uniquename(ListBase *list, void *vlink, const char defname[], char deli
  * If relbase is NULL then its ignored
  */
 
-void BLI_cleanup_dir(const char *relabase, char *dir)
-{
-	BLI_cleanup_file(relabase, dir);
-	BLI_add_slash(dir);
-
-}
-
-void BLI_cleanup_file(const char *relabase, char *dir)
+void BLI_cleanup_path(const char *relabase, char *dir)
 {
 	short a;
 	char *start, *eind;
@@ -358,13 +351,6 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 		eind = start + strlen("\\\\") - 1;
 		memmove( start, eind, strlen(eind)+1 );
 	}
-
-	if((a = strlen(dir))){				/* remove the '\\' at the end */
-		while(a>0 && dir[a-1] == '\\'){
-			a--;
-			dir[a] = 0;
-		}
-	}
 #else
 	if(dir[0]=='.') {	/* happens, for example in FILE_MAIN */
 	   dir[0]= '/';
@@ -402,17 +388,21 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 		eind = start + (2 - 1) /* strlen("//") - 1 */;
 		memmove( start, eind, strlen(eind)+1 );
 	}
-
-	if( (a = strlen(dir)) ){				/* remove all '/' at the end */
-		while(dir[a-1] == '/'){
-			a--;
-			dir[a] = 0;
-			if (a<=0) break;
-		}
-	}
 #endif
 }
 
+void BLI_cleanup_dir(const char *relabase, char *dir)
+{
+	BLI_cleanup_path(relabase, dir);
+	BLI_add_slash(dir);
+
+}
+
+void BLI_cleanup_file(const char *relabase, char *dir)
+{
+	BLI_cleanup_path(relabase, dir);
+	BLI_del_slash(dir);
+}
 
 void BLI_path_rel(char *file, const char *relfile)
 {
@@ -453,8 +443,8 @@ void BLI_path_rel(char *file, const char *relfile)
 	BLI_char_switch(file, '\\', '/');
 	
 	/* remove /./ which confuse the following slash counting... */
-	BLI_cleanup_file(NULL, file);
-	BLI_cleanup_file(NULL, temp);
+	BLI_cleanup_path(NULL, file);
+	BLI_cleanup_path(NULL, temp);
 	
 	/* the last slash in the file indicates where the path part ends */
 	lslash = BLI_last_slash(temp);
@@ -687,8 +677,9 @@ int BLI_path_abs(char *path, const char *basepath)
 #endif
 
 	BLI_strncpy(base, basepath, sizeof(base));
-	
-	BLI_cleanup_file(NULL, base);
+
+	/* file component is ignored, so dont bother with the trailing slash */
+	BLI_cleanup_path(NULL, base);
 	
 	/* push slashes into unix mode - strings entering this part are
 	   potentially messed up: having both back- and forward slashes.
@@ -717,17 +708,9 @@ int BLI_path_abs(char *path, const char *basepath)
 	} else {
 		BLI_strncpy(path, tmp, FILE_MAX);
 	}
-	
-	if (path[0]!='\0') {
-		if ( path[strlen(path)-1]=='/') {
-			/* remove the '/' so we avoid BLI_cleanup_dir adding an extra \ in WIN32 */
-			path[strlen(path)-1] = '\0';
-			BLI_cleanup_dir(NULL, path);
-		} else {
-			BLI_cleanup_file(NULL, path);
-		}
-	}
-	
+
+	BLI_cleanup_path(NULL, path);
+
 #ifdef WIN32
 	/* skip first two chars, which in case of
 	   absolute path will be drive:/blabla and
@@ -1392,9 +1375,12 @@ int BLI_replace_extension(char *path, int maxlen, const char *ext)
 {
 	unsigned int a;
 
-	for(a=strlen(path)-1; a>=0; a--)
-		if(path[a] == '.' || path[a] == '/' || path[a] == '\\')
+	for(a=strlen(path); a>0; a--) {
+		if(path[a-1] == '.' || path[a-1] == '/' || path[a-1] == '\\') {
+			a--;
 			break;
+		}
+	}
 	
 	if(path[a] != '.')
 		a= strlen(path);

@@ -2,7 +2,7 @@ LCGDIR = '#../lib/windows'
 LIBDIR = '${LCGDIR}'
 
 BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_VERSION = '3.1'
+BF_PYTHON_VERSION = '3.2'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION[0]}${BF_PYTHON_VERSION[2]}mw'
@@ -183,6 +183,8 @@ C_WARN = ['-Wall', '-Wstrict-prototypes', '-Wno-char-subscripts', '-Wdeclaration
 CC_WARN = [ '-Wall' ]
 
 LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++', '-luuid', '-lole32'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
+
+PLATFORM_LINKFLAGS = ['--stack,2097152']
 
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS = ['-g', '-D_DEBUG']

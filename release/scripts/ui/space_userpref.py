@@ -1000,7 +1000,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         module_names = {mod.__name__ for mod, info in addons}
         missing_modules = {ext for ext in used_ext if ext not in module_names}
 
-        if missing_modules and filter in ("All", "Enabled"):
+        if missing_modules and filter in {"All", "Enabled"}:
             col.column().separator()
             col.column().label(text="Missing script files")
 
@@ -1096,8 +1096,7 @@ class WM_OT_addon_install(bpy.types.Operator):
         addon_path = ""
         pyfile_dir = os.path.dirname(pyfile)
         for addon_path in addon_utils.paths():
-            # if os.path.samefile(pyfile_dir, addon_path):  # Py3.2 only!, upgrade soon!
-            if (hasattr(os.path, "samefile") and os.path.samefile(pyfile_dir, addon_path)) or pyfile_dir == addon_path:
+            if os.path.samefile(pyfile_dir, addon_path):
                 self.report({'ERROR'}, "Source file is in the addon search path: %r" % addon_path)
                 return {'CANCELLED'}
         del addon_path

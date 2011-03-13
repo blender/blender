@@ -732,6 +732,12 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 
 	dotexold = (oldtexibuf != NULL);
 
+	/* not sure if it's actually needed or it's a mistake in coords/sizes
+	   calculation in brush_painter_fixed_tex_partial_update(), but without this
+	   limitation memory gets corrupted at fast strokes with quite big spacing (sergey) */
+	w = MIN2(w, ibuf->x);
+	h = MIN2(h, ibuf->y);
+
 	if (painter->cache.flt) {
 		for (; y < h; y++) {
 			bf = ibuf->rect_float + (y*ibuf->x + origx)*4;
@@ -1018,29 +1024,42 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		len= normalize_v2(dmousepos);
 		painter->accumdistance += len;
 
-		/* do paint op over unpainted distance */
-		while ((len > 0.0f) && (painter->accumdistance >= spacing)) {
-			step= spacing - startdistance;
-			paintpos[0]= painter->lastmousepos[0] + dmousepos[0]*step;
-			paintpos[1]= painter->lastmousepos[1] + dmousepos[1]*step;
+		if (brush->flag & BRUSH_SPACE) {
+			/* do paint op over unpainted distance */
+			while ((len > 0.0f) && (painter->accumdistance >= spacing)) {
+				step= spacing - startdistance;
+				paintpos[0]= painter->lastmousepos[0] + dmousepos[0]*step;
+				paintpos[1]= painter->lastmousepos[1] + dmousepos[1]*step;
 
-			t = step/len;
-			press= (1.0f-t)*painter->lastpressure + t*pressure;
-			brush_apply_pressure(painter, brush, press);
-			spacing= MAX2(1.0f, radius)*brush->spacing*0.01f;
+				t = step/len;
+				press= (1.0f-t)*painter->lastpressure + t*pressure;
+				brush_apply_pressure(painter, brush, press);
+				spacing= MAX2(1.0f, radius)*brush->spacing*0.01f;
 
-			brush_jitter_pos(brush, paintpos, finalpos);
+				brush_jitter_pos(brush, paintpos, finalpos);
+
+				if (painter->cache.enabled)
+					brush_painter_refresh_cache(painter, finalpos);
+
+				totpaintops +=
+					func(user, painter->cache.ibuf, painter->lastpaintpos, finalpos);
+
+				painter->lastpaintpos[0]= paintpos[0];
+				painter->lastpaintpos[1]= paintpos[1];
+				painter->accumdistance -= spacing;
+				startdistance -= spacing;
+			}
+		} else {
+			brush_jitter_pos(brush, pos, finalpos);
 
 			if (painter->cache.enabled)
 				brush_painter_refresh_cache(painter, finalpos);
 
-			totpaintops +=
-				func(user, painter->cache.ibuf, painter->lastpaintpos, finalpos);
+			totpaintops += func(user, painter->cache.ibuf, pos, finalpos);
 
-			painter->lastpaintpos[0]= paintpos[0];
-			painter->lastpaintpos[1]= paintpos[1];
-			painter->accumdistance -= spacing;
-			startdistance -= spacing;
+			painter->lastpaintpos[0]= pos[0];
+			painter->lastpaintpos[1]= pos[1];
+			painter->accumdistance= 0;
 		}
 
 		/* do airbrush paint ops, based on the number of paint ops left over

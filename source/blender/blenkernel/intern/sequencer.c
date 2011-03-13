@@ -1906,13 +1906,17 @@ static ImBuf * seq_render_scene_strip_impl(
 #endif
 	
 	if(sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (seq->scene == context.scene || have_seq==0) && seq->scene->camera) {
+		char err_out[256]= "unknown";
 		/* for old scened this can be uninitialized, should probably be added to do_versions at some point if the functionality stays */
 		if(context.scene->r.seq_prev_type==0)
 			context.scene->r.seq_prev_type = 3 /* ==OB_SOLID */; 
 
 		/* opengl offscreen render */
 		scene_update_for_newframe(context.bmain, seq->scene, seq->scene->lay);
-		ibuf= sequencer_view3d_cb(seq->scene, context.rectx, context.recty, IB_rect, context.scene->r.seq_prev_type);
+		ibuf= sequencer_view3d_cb(seq->scene, context.rectx, context.recty, IB_rect, context.scene->r.seq_prev_type, err_out);
+		if(ibuf == NULL) {
+			fprintf(stderr, "seq_render_scene_strip_impl failed to get opengl buffer: %s\n", err_out);
+		}
 	}
 	else {
 		Render *re = RE_GetRender(sce->id.name);

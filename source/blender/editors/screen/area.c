@@ -843,7 +843,7 @@ static void region_subwindow(wmWindow *win, ARegion *ar)
 		wm_subwindow_position(win, ar->swinid, &ar->winrct);
 }
 
-static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int flag)
+static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *handlers, int flag)
 {
 	/* note, add-handler checks if it already exists */
 	
@@ -860,8 +860,20 @@ static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int fla
 	if(flag & ED_KEYMAP_MARKERS) {
 		/* time-markers */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Markers", 0, 0);
-		WM_event_add_keymap_handler(handlers, keymap);
-		// XXX need boundbox check urgently!!!
+		
+		/* time space only has this keymap, the others get a boundbox restricted map */
+		if(sa->spacetype!=SPACE_TIME) {
+			ARegion *ar;
+			static rcti rect= {0, 10000, 0, 30};	/* same local check for all areas */
+
+			for(ar= sa->regionbase.first; ar; ar= ar->next)
+				if(ar->regiontype == RGN_TYPE_WINDOW)
+					break;
+			if(ar)
+				WM_event_add_keymap_handler_bb(handlers, keymap, &rect, &ar->winrct);
+		}
+		else
+			WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_ANIMATION) {
 		/* frame changing and timeline operators (for time spaces) */
@@ -914,7 +926,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	region_rect_recursive(sa, sa->regionbase.first, &rect, 0);
 	
 	/* default area handlers */
-	ed_default_handlers(wm, &sa->handlers, sa->type->keymapflag);
+	ed_default_handlers(wm, sa, &sa->handlers, sa->type->keymapflag);
 	/* checks spacedata, adds own handlers */
 	if(sa->type->init)
 		sa->type->init(wm, sa);
@@ -925,7 +937,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 		
 		if(ar->swinid) {
 			/* default region handlers */
-			ed_default_handlers(wm, &ar->handlers, ar->type->keymapflag);
+			ed_default_handlers(wm, sa, &ar->handlers, ar->type->keymapflag);
 			/* own handlers */
 			if(ar->type->init)
 				ar->type->init(wm, ar);

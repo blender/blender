@@ -19,8 +19,8 @@ subject to the following restrictions:
 #ifndef CD_HULL_H
 #define CD_HULL_H
 
-#include "LinearMath/btVector3.h"
-#include "LinearMath/btAlignedObjectArray.h"
+#include "btVector3.h"
+#include "btAlignedObjectArray.h"
 
 typedef btAlignedObjectArray<unsigned int> TUIntArray;
 

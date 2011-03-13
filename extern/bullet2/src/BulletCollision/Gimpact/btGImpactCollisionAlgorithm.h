@@ -1,5 +1,5 @@
 /*! \file btGImpactShape.h
-\author Francisco Len Nßjera
+\author Francisco Leon Najera
 */
 /*
 This source file is part of GIMPACT Library.
@@ -222,13 +222,13 @@ public:
 
 	//! Use this function for register the algorithm externally
 	static void registerAlgorithm(btCollisionDispatcher * dispatcher);
-
+#ifdef TRI_COLLISION_PROFILING
 	//! Gets the average time in miliseconds of tree collisions
 	static float getAverageTreeCollisionTime();
 
 	//! Gets the average time in miliseconds of triangle collisions
 	static float getAverageTriangleCollisionTime();
-
+#endif //TRI_COLLISION_PROFILING
 
 	//! Collides two gimpact shapes
 	/*!

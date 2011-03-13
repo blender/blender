@@ -1201,7 +1201,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 	OldNew *entry= fd->imamap->entries;
 	Image *ima= oldmain->image.first;
 	Scene *sce= oldmain->scene.first;
-	int i, a;
+	int i;
 	
 	/* used entries were restored, so we put them to zero */
 	for (i=0; i<fd->imamap->nentries; i++, entry++) {
@@ -1221,10 +1221,10 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 				ima->gputexture= NULL;
 			}
 		}
+		for(i=0; i<IMA_MAX_RENDER_SLOT; i++)
+			ima->renders[i]= newimaadr(fd, ima->renders[i]);
 
 		ima->gputexture= newimaadr(fd, ima->gputexture);
-		for(a=0; a<IMA_MAX_RENDER_SLOT; a++)
-			ima->renders[a]= newimaadr(fd, ima->renders[a]);
 	}
 	for(; sce; sce= sce->id.next) {
 		if(sce->nodetree) {
@@ -2774,8 +2774,18 @@ static void direct_link_image(FileData *fd, Image *ima)
 	ima->anim= NULL;
 	ima->rr= NULL;
 	ima->repbind= NULL;
-	memset(ima->renders, 0, sizeof(ima->renders));
-	ima->last_render_slot= ima->render_slot;
+	
+	/* undo system, try to restore render buffers */
+	if(fd->imamap) {
+		int a;
+		
+		for(a=0; a<IMA_MAX_RENDER_SLOT; a++)
+			ima->renders[a]= newimaadr(fd, ima->renders[a]);
+	}
+	else {
+		memset(ima->renders, 0, sizeof(ima->renders));
+		ima->last_render_slot= ima->render_slot;
+	}
 	
 	ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
 	ima->preview = direct_link_preview_image(fd, ima->preview);
@@ -3321,6 +3331,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		}
 
 		psys->tree = NULL;
+		psys->bvhtree = NULL;
 	}
 	return;
 }
@@ -4310,7 +4321,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 	if(ob->sculpt) {
 		ob->sculpt= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
-		ob->sculpt->ob= ob;
 	}
 }
 
@@ -5170,7 +5180,6 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 			rv3d->clipbb= newdataadr(fd, rv3d->clipbb);
 			
 			rv3d->depths= NULL;
-			rv3d->retopo_view_data= NULL;
 			rv3d->ri= NULL;
 			rv3d->sms= NULL;
 			rv3d->smooth_timer= NULL;
@@ -11629,13 +11638,31 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
-
-	{
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile <3)){
 		bScreen *sc;
 		Brush *brush;
 		Object *ob;
+		ParticleSettings *part;
+		Material *mat;
+		int tex_nr, transp_tex;
 		
+		for(mat = main->mat.first; mat; mat = mat->id.next){
+			if(!(mat->mode & MA_TRANSP) && !(mat->material_type & MA_TYPE_VOLUME)){
+				
+				transp_tex= 0;
+				
+				for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++){
+					if(!mat->mtex[tex_nr]) continue;
+					if(mat->mtex[tex_nr]->mapto & MAP_ALPHA) transp_tex= 1;
+				}
+				
+				if(mat->alpha < 1.0f || mat->fresnel_tra > 0.0f || transp_tex){
+					mat->mode |= MA_TRANSP;
+					mat->mode &= ~(MA_ZTRANSP|MA_RAYTRANSP);
+				}
+			}
+		}
+
 		/* redraws flag in SpaceTime has been moved to Screen level */
 		for (sc = main->screen.first; sc; sc= sc->id.next) {
 			if (sc->redraws_flag == 0) {
@@ -11663,6 +11690,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		/* particle draw color from material */
+		for(part = main->particle.first; part; part = part->id.next) {
+			if(part->draw & PART_DRAW_MAT_COL)
+				part->draw_col = PART_DRAW_COL_MAT;
+		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+
+	{
+
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -12833,7 +12872,9 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 	}
 }
 
-static void append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *name, int idcode, short flag)
+/* returns true if the item was found
+ * but it may already have already been appended/linked */
+static int append_named_part(const bContext *C, Main *mainl, FileData *fd, const char *name, int idcode, short flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
@@ -12841,6 +12882,7 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, cons
 	BHead *bhead;
 	ID *id;
 	int endloop=0;
+	int found=0;
 
 	bhead = blo_firstbhead(fd);
 	while(bhead && endloop==0) {
@@ -12850,7 +12892,7 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, cons
 			char *idname= bhead_id_name(fd, bhead);
 				
 			if(strcmp(idname+2, name)==0) {
-
+				found= 1;
 				id= is_yet_read(fd, mainl, bhead);
 				if(id==NULL) {
 					read_libblock(fd, mainl, bhead, LIB_TESTEXT, NULL);
@@ -12897,12 +12939,14 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, cons
 
 		bhead = blo_nextbhead(fd, bhead);
 	}
+
+	return found;
 }
 
-void BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *name, int idcode, short flag)
+int BLO_library_append_named_part(const bContext *C, Main *mainl, BlendHandle** bh, const char *name, int idcode, short flag)
 {
 	FileData *fd= (FileData*)(*bh);
-	append_named_part(C, mainl, fd, name, idcode, flag);
+	return append_named_part(C, mainl, fd, name, idcode, flag);
 }
 
 static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)

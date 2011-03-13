@@ -1553,13 +1553,13 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 			return lamp;
 		}
 
-		lamp->tex = GPU_texture_create_depth(lamp->size, lamp->size);
+		lamp->tex = GPU_texture_create_depth(lamp->size, lamp->size, NULL);
 		if(!lamp->tex) {
 			gpu_lamp_shadow_free(lamp);
 			return lamp;
 		}
 
-		if(!GPU_framebuffer_texture_attach(lamp->fb, lamp->tex)) {
+		if(!GPU_framebuffer_texture_attach(lamp->fb, lamp->tex, NULL)) {
 			gpu_lamp_shadow_free(lamp);
 			return lamp;
 		}

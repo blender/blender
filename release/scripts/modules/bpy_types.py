@@ -26,6 +26,7 @@ StructRNA = bpy_types.Struct.__bases__[0]
 StructMetaPropGroup = _bpy.StructMetaPropGroup
 # StructRNA = bpy_types.Struct
 
+bpy_types.BlendDataLibraries.load = _bpy._library_load
 
 class Context(StructRNA):
     __slots__ = ()
@@ -604,6 +605,10 @@ class RNAMetaPropGroup(RNAMeta, StructMetaPropGroup):
 
 
 class OrderedMeta(RNAMeta):
+    def __init__(cls, name, bases, attributes):
+        if attributes.__class__ is OrderedDictMini:
+            cls.order = attributes.order
+
     def __prepare__(name, bases, **kwargs):
         return OrderedDictMini()  # collections.OrderedDict()
 
@@ -674,6 +679,9 @@ class _GenericUI:
         if draw_funcs is None:
 
             def draw_ls(self, context):
+                # ensure menus always get default context
+                operator_context_default = self.layout.operator_context
+
                 for func in draw_ls._draw_funcs:
                     # so bad menu functions dont stop the entire menu from drawing.
                     try:
@@ -681,6 +689,8 @@ class _GenericUI:
                     except:
                         import traceback
                         traceback.print_exc()
+
+                    self.layout.operator_context = operator_context_default
 
             draw_funcs = draw_ls._draw_funcs = [cls.draw]
             cls.draw = draw_ls

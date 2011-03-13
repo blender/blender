@@ -1337,12 +1337,8 @@ void FILE_OT_delete(struct wmOperatorType *ot)
 
 void ED_operatormacros_file(void)
 {
-	wmOperatorType *ot;
-	wmOperatorTypeMacro *otmacro;
+//	wmOperatorType *ot;
+//	wmOperatorTypeMacro *otmacro;
 	
-	ot= WM_operatortype_append_macro("FILE_OT_select_execute", "Select and Execute", OPTYPE_UNDO|OPTYPE_REGISTER);
-	WM_operatortype_macro_define(ot, "FILE_OT_select");
-	otmacro= WM_operatortype_macro_define(ot, "FILE_OT_execute");
-	RNA_boolean_set(otmacro->ptr, "need_active", 1);
-
+	/* future macros */
 }

@@ -1,6 +1,6 @@
 
 /*! \file gim_tri_collision.h
-\author Francisco Len Nßjera
+\author Francisco Leon Najera
 */
 /*
 -----------------------------------------------------------------------------

@@ -75,6 +75,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DocumentImporter.h"
+#include "TransformReader.h"
 #include "collada_internal.h"
 
 #include "collada_utils.h"
@@ -336,10 +337,29 @@ private:
 		obn->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 		scene_add_base(sce, obn);
 
-		if (instance_node)
+		if (instance_node) {
 			anim_importer.read_node_transform(instance_node, obn);
-		else
+			// if we also have a source_node (always ;), take its
+			// transformation matrix and apply it to the newly instantiated
+			// object to account for node hierarchy transforms in
+			// .dae
+			if(source_node) {
+				COLLADABU::Math::Matrix4 mat4 = source_node->getTransformationMatrix();
+				COLLADABU::Math::Matrix4 bmat4 = mat4.transpose(); // transpose to get blender row-major order
+				float mat[4][4];
+				for (int i = 0; i < 4; i++) {
+					for (int j = 0; j < 4; j++) {
+						mat[i][j] = bmat4[i][j];
+					}
+				}
+				// calc new matrix and apply
+				mul_m4_m4m4(obn->obmat, mat, obn->obmat);
+				object_apply_mat4(obn, obn->obmat, 0, 0);
+			}
+		}
+		else {
 			anim_importer.read_node_transform(source_node, obn);
+		}
 
 		DAG_scene_sort(CTX_data_main(mContext), sce);
 		DAG_ids_flush_update(CTX_data_main(mContext), 0);
@@ -353,7 +373,7 @@ private:
 					continue;
 				COLLADAFW::InstanceNodePointerArray &inodes = child_node->getInstanceNodes();
 				Object *new_child = NULL;
-				if (inodes.getCount()) {
+				if (inodes.getCount()) { // \todo loop through instance nodes
 					const COLLADAFW::UniqueId& id = inodes[0]->getInstanciatedObjectId();
 					new_child = create_instance_node(object_map[id], node_map[id], child_node, sce, is_library_node);
 				}
@@ -367,7 +387,10 @@ private:
 			}
 		}
 
-		return obn;
+		// when we have an instance_node, don't return the object, because otherwise
+		// its correct location gets overwritten in write_node(). Fixes bug #26012.
+		if(instance_node) return NULL;
+		else return obn;
 	}
 	
 	void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
@@ -444,7 +467,7 @@ private:
 				libnode_ob.push_back(ob);
 		}
 
-		anim_importer.read_node_transform(node, ob);
+		anim_importer.read_node_transform(node, ob); // overwrites location set earlier
 
 		if (!is_joint) {
 			// if par was given make this object child of the previous 

@@ -79,6 +79,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_uvedit.h"
 
 #include "BIF_gl.h"
 
@@ -2201,7 +2202,15 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 				me->drawflag |= ME_DRAWBWEIGHTS;
 				break;
 		}
-		
+
+		/* live unwrap while tagging */
+		if(	(vc.scene->toolsettings->edge_mode_live_unwrap) &&
+			(vc.scene->toolsettings->edge_mode == EDGE_MODE_TAG_SEAM) &&
+			(CustomData_has_layer(&em->fdata, CD_MTFACE))
+		) {
+			ED_unwrap_lscm(vc.scene, vc.obedit, FALSE); /* unwrap all not just sel */
+		}
+
 		DAG_id_tag_update(vc.obedit->data, 0);
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
 	}
@@ -3718,6 +3727,7 @@ void EM_deselect_by_material(EditMesh *em, int index)
 
 static int editmesh_mark_seam(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	Mesh *me= ((Mesh *)obedit->data);
@@ -3746,6 +3756,13 @@ static int editmesh_mark_seam(bContext *C, wmOperator *op)
 			}
 			eed= eed->next;
 		}
+	}
+
+	/* live unwrap while tagging */
+	if(	(scene->toolsettings->edge_mode_live_unwrap) &&
+		(CustomData_has_layer(&em->fdata, CD_MTFACE))
+	) {
+		ED_unwrap_lscm(scene, obedit, FALSE); /* unwrap all not just sel */
 	}
 
 	BKE_mesh_end_editmesh(obedit->data, em);

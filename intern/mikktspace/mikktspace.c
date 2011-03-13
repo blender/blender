@@ -436,9 +436,9 @@ typedef struct
 const int g_iCells = 2048;
 
 #ifdef _MSC_VER
-#define NOINLINE __declspec(noinline)
+	#define NOINLINE __declspec(noinline)
 #else
-#define NOINLINE __attribute__ ((noinline))
+	#define NOINLINE __attribute__ ((noinline))
 #endif
 
 // it is IMPORTANT that this function is called to evaluate the hash since
@@ -446,9 +446,9 @@ const int g_iCells = 2048;
 // results for the same effective input value fVal.
 NOINLINE int FindGridCell(const float fMin, const float fMax, const float fVal)
 {
-const float fIndex = g_iCells * ((fVal-fMin)/(fMax-fMin));
-const int iIndex = fIndex<0?0:((int)fIndex);
-return iIndex<g_iCells?iIndex:(g_iCells-1);
+	const float fIndex = g_iCells * ((fVal-fMin)/(fMax-fMin));
+	const int iIndex = fIndex<0?0:((int)fIndex);
+	return iIndex<g_iCells?iIndex:(g_iCells-1);
 }
 
 void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikkTSpaceContext * pContext, const int iL_in, const int iR_in);

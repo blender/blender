@@ -569,6 +569,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
 	int *thumb;
+	char err_out[256]= "unknown";
 
 	*thumb_pt= NULL;
 	
@@ -576,7 +577,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
-	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID);
+	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID, err_out);
 	
 	if(ibuf) {		
 		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
@@ -597,6 +598,7 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 	}
 	else {
 		/* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
+		fprintf(stderr, "blend_file_thumb failed to create thumbnail: %s\n", err_out);
 		thumb= NULL;
 	}
 	

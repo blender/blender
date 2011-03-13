@@ -174,9 +174,9 @@ bNodeStack **out)
 	case 14: /* Round */
 		{
 			if(in[0]->hasinput || !in[1]->hasinput) /* This one only takes one input, so we've got to choose. */
-				out[0]->vec[0]= (int)(in[0]->vec[0] + 0.5f);
+				out[0]->vec[0]= (in[0]->vec[0]<0)?(int)(in[0]->vec[0] - 0.5f):(int)(in[0]->vec[0] + 0.5f);
 			else
-				out[0]->vec[0]= (int)(in[1]->vec[0] + 0.5f);
+				out[0]->vec[0]= (in[1]->vec[0]<0)?(int)(in[1]->vec[0] - 0.5f):(int)(in[1]->vec[0] + 0.5f);
 		}
 		break;
 	case 15: /* Less Than */

@@ -17,6 +17,8 @@ subject to the following restrictions:
 #ifndef GEN_MINMAX_H
 #define GEN_MINMAX_H
 
+#include "LinearMath/btScalar.h"
+
 template <class T>
 SIMD_FORCE_INLINE const T& btMin(const T& a, const T& b) 
 {
@@ -30,7 +32,7 @@ SIMD_FORCE_INLINE const T& btMax(const T& a, const T& b)
 }
 
 template <class T>
-SIMD_FORCE_INLINE const T& GEN_clamped(const T& a, const T& lb, const T& ub) 
+SIMD_FORCE_INLINE const T& btClamped(const T& a, const T& lb, const T& ub) 
 {
 	return a < lb ? lb : (ub < a ? ub : a); 
 }
@@ -54,7 +56,7 @@ SIMD_FORCE_INLINE void btSetMax(T& a, const T& b)
 }
 
 template <class T>
-SIMD_FORCE_INLINE void GEN_clamp(T& a, const T& lb, const T& ub) 
+SIMD_FORCE_INLINE void btClamp(T& a, const T& lb, const T& ub) 
 {
 	if (a < lb) 
 	{

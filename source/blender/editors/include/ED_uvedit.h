@@ -66,11 +66,15 @@ void uvedit_uv_select(struct Scene *scene, struct EditFace *efa, struct MTFace *
 
 int ED_uvedit_nearest_uv(struct Scene *scene, struct Object *obedit, struct Image *ima, float co[2], float uv[2]);
 
-/* uvedit_unwrap.c */
+/* uvedit_unwrap_ops.c */
 void ED_uvedit_live_unwrap_begin(struct Scene *scene, struct Object *obedit);
 void ED_uvedit_live_unwrap_re_solve(void);
 void ED_uvedit_live_unwrap_end(short cancel);
 
+/* single call up unwrap using scene settings, used for edge tag unwrapping */
+void ED_unwrap_lscm(struct Scene *scene, struct Object *obedit, const short sel);
+
+/* uvedit_draw.c */
 void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene, struct Object *obedit);
 
 #endif /* ED_UVEDIT_H */

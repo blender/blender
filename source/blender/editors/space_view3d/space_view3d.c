@@ -530,7 +530,6 @@ static void *view3d_main_area_duplicate(void *poin)
 			new->clipbb= MEM_dupallocN(rv3d->clipbb);
 		
 		new->depths= NULL;
-		new->retopo_view_data= NULL;
 		new->ri= NULL;
 		new->gpd= NULL;
 		new->sms= NULL;

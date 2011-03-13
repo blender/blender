@@ -28,7 +28,7 @@ class CurveButtonsPanel():
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type in ('CURVE', 'SURFACE', 'FONT') and context.curve)
+        return (context.object and context.object.type in {'CURVE', 'SURFACE', 'FONT'} and context.curve)
 
 
 class CurveButtonsPanelCurve(CurveButtonsPanel):

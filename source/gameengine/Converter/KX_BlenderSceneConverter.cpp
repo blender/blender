@@ -942,7 +942,7 @@ bool KX_BlenderSceneConverter::LinkBlendFileMemory(void *data, int length, const
 
 bool KX_BlenderSceneConverter::LinkBlendFilePath(const char *path, char *group, KX_Scene *scene_merge, char **err_str)
 {
-	BlendHandle *bpy_openlib = BLO_blendhandle_from_file( (char *)path );
+	BlendHandle *bpy_openlib = BLO_blendhandle_from_file((char *)path, NULL);
 
 	// Error checking is done in LinkBlendFile
 	return LinkBlendFile(bpy_openlib, path, group, scene_merge, err_str);
@@ -984,8 +984,9 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 
 	/* here appending/linking starts */
 	main_tmp = BLO_library_append_begin(C, &bpy_openlib, (char *)path);
-	
-	names = BLO_blendhandle_get_datablock_names( bpy_openlib, idcode);
+
+	int totnames_dummy;
+	names = BLO_blendhandle_get_datablock_names( bpy_openlib, idcode, &totnames_dummy);
 	
 	int i=0;
 	LinkNode *n= names;

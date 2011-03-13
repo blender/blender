@@ -512,8 +512,34 @@ static float VecZDepthOrtho(float pt[2], float v1[3], float v2[3], float v3[3], 
 
 static float VecZDepthPersp(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
 {
+	float wtot_inv, wtot;
+	float w_tmp[3];
+
 	barycentric_weights_v2_persp(v1, v2, v3, pt, w);
-	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
+	/* for the depth we need the weights to match what
+	 * barycentric_weights_v2 would return, in this case its easiest just to
+	 * undo the 4th axis division and make it unit-sum
+	 *
+	 * don't call barycentric_weights_v2() becaue our callers expect 'w'
+	 * to be weighted from the perspective */
+	w_tmp[0]= w[0] * v1[3];
+	w_tmp[1]= w[1] * v2[3];
+	w_tmp[2]= w[2] * v3[3];
+
+	wtot = w_tmp[0]+w_tmp[1]+w_tmp[2];
+
+	if (wtot != 0.0f) {
+		wtot_inv = 1.0f/wtot;
+
+		w_tmp[0] = w_tmp[0]*wtot_inv;
+		w_tmp[1] = w_tmp[1]*wtot_inv;
+		w_tmp[2] = w_tmp[2]*wtot_inv;
+	}
+	else /* dummy values for zero area face */
+		w_tmp[0] = w_tmp[1] = w_tmp[2] = 1.0f/3.0f;
+	/* done mimicing barycentric_weights_v2() */
+
+	return (v1[2]*w_tmp[0]) + (v2[2]*w_tmp[1]) + (v3[2]*w_tmp[2]);
 }
 
 
@@ -5587,6 +5613,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	int w= settings->imapaint.screen_grab_size[0];
 	int h= settings->imapaint.screen_grab_size[1];
 	int maxsize;
+	char err_out[256]= "unknown";
 
 	RNA_string_get(op->ptr, "filepath", filename);
 
@@ -5595,11 +5622,11 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if(w > maxsize) w= maxsize;
 	if(h > maxsize) h= maxsize;
 
-	ibuf= ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h, IB_rect);
+	ibuf= ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h, IB_rect, err_out);
 	if(!ibuf) {
 		/* Mostly happens when OpenGL offscreen buffer was failed to create, */
 		/* but could be other reasons. Should be handled in the future. nazgul */
-		BKE_report(op->reports, RPT_ERROR, "Failed to create OpenGL offscreen buffer.");
+		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL offscreen buffer: %s", err_out);
 		return OPERATOR_CANCELLED;
 	}
 

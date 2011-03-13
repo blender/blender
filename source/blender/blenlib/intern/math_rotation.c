@@ -635,7 +635,7 @@ void tri_to_quat(float quat[4], const float v1[3], const float v2[3], const floa
 	mul_qt_qtqt(quat, q1, q2);
 }
 
-void print_qt(char *str,  float q[4])
+void print_qt(const char *str,  const float q[4])
 {
 	printf("%s: %.3f %.3f %.3f %.3f\n", str, q[0], q[1], q[2], q[3]);
 }

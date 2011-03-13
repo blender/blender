@@ -27,12 +27,20 @@ subject to the following restrictions:
 
 struct	btBroadphaseProxy;
 class	btCollisionShape;
+struct btCollisionShapeData;
 #include "LinearMath/btMotionState.h"
 #include "LinearMath/btAlignedAllocator.h"
 #include "LinearMath/btAlignedObjectArray.h"
 
-
 typedef btAlignedObjectArray<class btCollisionObject*> btCollisionObjectArray;
+
+#ifdef BT_USE_DOUBLE_PRECISION
+#define btCollisionObjectData btCollisionObjectDoubleData
+#define btCollisionObjectDataName "btCollisionObjectDoubleData"
+#else
+#define btCollisionObjectData btCollisionObjectFloatData
+#define btCollisionObjectDataName "btCollisionObjectFloatData"
+#endif
 
 
 /// btCollisionObject can be used to manage collision detection objects. 
@@ -53,12 +61,14 @@ protected:
 	btVector3	m_interpolationLinearVelocity;
 	btVector3	m_interpolationAngularVelocity;
 	
-	btVector3		m_anisotropicFriction;
-	bool				m_hasAnisotropicFriction;
-	btScalar		m_contactProcessingThreshold;	
+	btVector3	m_anisotropicFriction;
+	int			m_hasAnisotropicFriction;
+	btScalar	m_contactProcessingThreshold;	
 
 	btBroadphaseProxy*		m_broadphaseHandle;
 	btCollisionShape*		m_collisionShape;
+	///m_extensionPointer is used by some internal low-level Bullet extensions.
+	void*					m_extensionPointer;
 	
 	///m_rootCollisionShape is temporarily used to store the original collision shape
 	///The m_collisionShape might be temporarily replaced by a child collision shape during collision detection purposes
@@ -76,12 +86,12 @@ protected:
 	btScalar		m_friction;
 	btScalar		m_restitution;
 
-	///users can point to their objects, m_userPointer is not used by Bullet, see setUserPointer/getUserPointer
-	void*			m_userObjectPointer;
-
 	///m_internalType is reserved to distinguish Bullet's btCollisionObject, btRigidBody, btSoftBody, btGhostObject etc.
 	///do not assign your own m_internalType unless you write a new dynamics object class.
 	int				m_internalType;
+
+	///users can point to their objects, m_userPointer is not used by Bullet, see setUserPointer/getUserPointer
+	void*			m_userObjectPointer;
 
 	///time of impact calculation
 	btScalar		m_hitFraction; 
@@ -93,9 +103,7 @@ protected:
 	btScalar		m_ccdMotionThreshold;
 	
 	/// If some object should have elaborate collision filtering by sub-classes
-	bool			m_checkCollideWith;
-
-	char	m_pad[7];
+	int			m_checkCollideWith;
 
 	virtual bool	checkCollideWithOverride(btCollisionObject* /* co */)
 	{
@@ -112,18 +120,21 @@ public:
 		CF_KINEMATIC_OBJECT= 2,
 		CF_NO_CONTACT_RESPONSE = 4,
 		CF_CUSTOM_MATERIAL_CALLBACK = 8,//this allows per-triangle material (friction/restitution)
-		CF_CHARACTER_OBJECT = 16
+		CF_CHARACTER_OBJECT = 16,
+		CF_DISABLE_VISUALIZE_OBJECT = 32, //disable debug drawing
+		CF_DISABLE_SPU_COLLISION_PROCESSING = 64//disable parallel/SPU processing
 	};
 
 	enum	CollisionObjectTypes
 	{
 		CO_COLLISION_OBJECT =1,
-		CO_RIGID_BODY,
+		CO_RIGID_BODY=2,
 		///CO_GHOST_OBJECT keeps track of all objects overlapping its AABB and that pass its collision filter
 		///It is useful for collision sensors, explosion objects, character controller etc.
-		CO_GHOST_OBJECT,
-		CO_SOFT_BODY,
-		CO_HF_FLUID
+		CO_GHOST_OBJECT=4,
+		CO_SOFT_BODY=8,
+		CO_HF_FLUID=16,
+		CO_USER_TYPE=32
 	};
 
 	SIMD_FORCE_INLINE bool mergesSimulationIslands() const
@@ -143,7 +154,7 @@ public:
 	}
 	bool	hasAnisotropicFriction() const
 	{
-		return m_hasAnisotropicFriction;
+		return m_hasAnisotropicFriction!=0;
 	}
 
 	///the constraint solver can discard solving contacts, if the distance is above this threshold. 0 by default.
@@ -211,6 +222,19 @@ public:
 	void	internalSetTemporaryCollisionShape(btCollisionShape* collisionShape)
 	{
 		m_collisionShape = collisionShape;
+	}
+
+	///Avoid using this internal API call, the extension pointer is used by some Bullet extensions. 
+	///If you need to store your own user pointer, use 'setUserPointer/getUserPointer' instead.
+	void*		internalGetExtensionPointer() const
+	{
+		return m_extensionPointer;
+	}
+	///Avoid using this internal API call, the extension pointer is used by some Bullet extensions
+	///If you need to store your own user pointer, use 'setUserPointer/getUserPointer' instead.
+	void	internalSetExtensionPointer(void* pointer)
+	{
+		m_extensionPointer = pointer;
 	}
 
 	SIMD_FORCE_INLINE	int	getActivationState() const { return m_activationState1;}
@@ -393,7 +417,7 @@ public:
 	/// Don't do continuous collision detection if the motion (in one step) is less then m_ccdMotionThreshold
 	void	setCcdMotionThreshold(btScalar ccdMotionThreshold)
 	{
-		m_ccdMotionThreshold = ccdMotionThreshold*ccdMotionThreshold;
+		m_ccdMotionThreshold = ccdMotionThreshold;
 	}
 
 	///users can point to their objects, userPointer is not used by Bullet
@@ -416,6 +440,85 @@ public:
 
 		return true;
 	}
+
+	virtual	int	calculateSerializeBufferSize()	const;
+
+	///fills the dataBuffer and returns the struct name (and 0 on failure)
+	virtual	const char*	serialize(void* dataBuffer, class btSerializer* serializer) const;
+
+	virtual void serializeSingleObject(class btSerializer* serializer) const;
+
 };
+
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btCollisionObjectDoubleData
+{
+	void					*m_broadphaseHandle;
+	void					*m_collisionShape;
+	btCollisionShapeData	*m_rootCollisionShape;
+	char					*m_name;
+
+	btTransformDoubleData	m_worldTransform;
+	btTransformDoubleData	m_interpolationWorldTransform;
+	btVector3DoubleData		m_interpolationLinearVelocity;
+	btVector3DoubleData		m_interpolationAngularVelocity;
+	btVector3DoubleData		m_anisotropicFriction;
+	double					m_contactProcessingThreshold;	
+	double					m_deactivationTime;
+	double					m_friction;
+	double					m_restitution;
+	double					m_hitFraction; 
+	double					m_ccdSweptSphereRadius;
+	double					m_ccdMotionThreshold;
+
+	int						m_hasAnisotropicFriction;
+	int						m_collisionFlags;
+	int						m_islandTag1;
+	int						m_companionId;
+	int						m_activationState1;
+	int						m_internalType;
+	int						m_checkCollideWith;
+
+	char	m_padding[4];
+};
+
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btCollisionObjectFloatData
+{
+	void					*m_broadphaseHandle;
+	void					*m_collisionShape;
+	btCollisionShapeData	*m_rootCollisionShape;
+	char					*m_name;
+
+	btTransformFloatData	m_worldTransform;
+	btTransformFloatData	m_interpolationWorldTransform;
+	btVector3FloatData		m_interpolationLinearVelocity;
+	btVector3FloatData		m_interpolationAngularVelocity;
+	btVector3FloatData		m_anisotropicFriction;
+	float					m_contactProcessingThreshold;	
+	float					m_deactivationTime;
+	float					m_friction;
+	float					m_restitution;
+	float					m_hitFraction; 
+	float					m_ccdSweptSphereRadius;
+	float					m_ccdMotionThreshold;
+
+	int						m_hasAnisotropicFriction;
+	int						m_collisionFlags;
+	int						m_islandTag1;
+	int						m_companionId;
+	int						m_activationState1;
+	int						m_internalType;
+	int						m_checkCollideWith;
+};
+
+
+
+SIMD_FORCE_INLINE	int	btCollisionObject::calculateSerializeBufferSize() const
+{
+	return sizeof(btCollisionObjectData);
+}
+
+
 
 #endif //COLLISION_OBJECT_H

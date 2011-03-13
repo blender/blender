@@ -42,13 +42,13 @@ class VIEW3D_HT_header(bpy.types.Header):
             sub.menu("VIEW3D_MT_view")
 
             # Select Menu
-            if mode_string not in ('EDIT_TEXT', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'):
+            if mode_string not in {'EDIT_TEXT', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
                 sub.menu("VIEW3D_MT_select_%s" % mode_string.lower())
 
             if edit_object:
                 sub.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
             elif obj:
-                if mode_string not in ('PAINT_TEXTURE'):
+                if mode_string not in {'PAINT_TEXTURE'}:
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
             else:
                 sub.menu("VIEW3D_MT_object")
@@ -71,11 +71,11 @@ class VIEW3D_HT_header(bpy.types.Header):
                 row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True, toggle=True)
 
             # Occlude geometry
-            if view.viewport_shade in ('SOLID', 'SHADED', 'TEXTURED') and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
+            if view.viewport_shade in {'SOLID', 'SHADED', 'TEXTURED'} and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
                 row.prop(view, "use_occlude_geometry", text="")
 
             # Proportional editing
-            if obj.mode in ('EDIT', 'PARTICLE_EDIT'):
+            if obj.mode in {'EDIT', 'PARTICLE_EDIT'}:
                 row = layout.row(align=True)
                 row.prop(toolsettings, "proportional_edit", text="", icon_only=True)
                 if toolsettings.proportional_edit != 'DISABLED':
@@ -160,7 +160,7 @@ class VIEW3D_MT_transform(bpy.types.Menu):
         layout.separator()
 
         obj = context.object
-        if obj.type == 'ARMATURE' and obj.mode in ('EDIT', 'POSE') and obj.data.draw_type in ('BBONE', 'ENVELOPE'):
+        if obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and obj.data.draw_type in {'BBONE', 'ENVELOPE'}:
             layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
 
         if context.edit_object and context.edit_object.type == 'ARMATURE':
@@ -766,7 +766,7 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
                 props.data_path_item = "data.dof_distance"
                 props.input_scale = 0.02
 
-        if obj.type in ('CURVE', 'FONT'):
+        if obj.type in {'CURVE', 'FONT'}:
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             props = layout.operator("wm.context_modal_mouse", text="Extrude Size")
@@ -794,7 +794,7 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.energy"
 
-            if obj.data.type in ('SPOT', 'AREA', 'POINT'):
+            if obj.data.type in {'SPOT', 'AREA', 'POINT'}:
                 props = layout.operator("wm.context_modal_mouse", text="Falloff Distance")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.distance"
@@ -1075,7 +1075,7 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
         if sculpt_tool != 'GRAB':
             layout.prop_menu_enum(brush, "stroke_method")
 
-            if sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
+            if sculpt_tool in {'DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'}:
                 layout.prop_menu_enum(brush, "direction")
 
             if sculpt_tool == 'LAYER':
@@ -2002,7 +2002,7 @@ class VIEW3D_PT_view3d_name(bpy.types.Panel):
         row.label(text="", icon='OBJECT_DATA')
         row.prop(ob, "name", text="")
 
-        if ob.type == 'ARMATURE' and ob.mode in ('EDIT', 'POSE'):
+        if ob.type == 'ARMATURE' and ob.mode in {'EDIT', 'POSE'}:
             bone = context.active_bone
             if bone:
                 row = layout.row()

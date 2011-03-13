@@ -878,7 +878,9 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 
 	if(ma->fresnel_tra!=0.0f) 
 		shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
-
+	
+	if (!(shi->mode & MA_TRANSP)) shi->alpha= 1.0f;
+	
 	shr->diff[0]= shi->r;
 	shr->diff[1]= shi->g;
 	shr->diff[2]= shi->b;
@@ -1502,10 +1504,10 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 		float inpr, lv[3];
 		float *view, shadfac[4];
 		float ir, accum, visifac, lampdist;
+		float shaded = 0.0f, lightness = 0.0f;
 		
 
 		view= shi->view;
-
 		accum= ir= 0.0f;
 		
 		lights= get_lights(shi);
@@ -1522,27 +1524,69 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 			if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
 				visifac= lamp_get_visibility(lar, shi->co, lv, &lampdist);
 				if(visifac <= 0.0f) {
-					ir+= 1.0f;
-					accum+= 1.0f;
+					if (shi->mat->shadowonly_flag == MA_SO_OLD) {
+						ir+= 1.0f;
+						accum+= 1.0f;
+					}
 					continue;
 				}
 				inpr= INPR(shi->vn, lv);
 				if(inpr <= 0.0f) {
-					ir+= 1.0f;
-					accum+= 1.0f;
+					if (shi->mat->shadowonly_flag == MA_SO_OLD) {
+						ir+= 1.0f;
+						accum+= 1.0f;
+					}
 					continue;
-				}				
+				}
+
 				lamp_get_shadow(lar, shi, inpr, shadfac, shi->depth);
 
-				ir+= 1.0f;
-				accum+= (1.0f-visifac) + (visifac)*rgb_to_grayscale(shadfac)*shadfac[3];
+				if (shi->mat->shadowonly_flag == MA_SO_OLD) {
+					/* Old "Shadows Only" */
+					ir+= 1.0f;
+					accum+= (1.0f-visifac) + (visifac)*rgb_to_grayscale(shadfac)*shadfac[3];
+				}
+				else {
+					ir+= lar->energy;
+					shaded += rgb_to_grayscale(shadfac)*shadfac[3] * visifac * lar->energy;
+
+					if (shi->mat->shadowonly_flag == MA_SO_SHADOW) {
+						lightness += visifac * lar->energy;
+					}
+				}
 			}
 		}
+
+		/* Apply shadows as alpha */
 		if(ir>0.0f) {
-			accum/= ir;
-			shr->alpha= (shi->mat->alpha)*(1.0f-accum);
+			if (shi->mat->shadowonly_flag == MA_SO_OLD) {
+				accum = 1.0f - accum/ir;
+			}
+			else {
+				shaded/= ir;
+				lightness/= ir;
+
+				if (shi->mat->shadowonly_flag == MA_SO_SHADOW) {
+					if (lightness > 0.0f) {
+						/* Get shadow value from between 0.0f and non-shadowed lightness */
+						accum = (lightness - shaded) / (lightness);
+					}
+					else {
+						accum = 0.0f;
+					}
+				}
+				else { /* shadowonly_flag == MA_SO_SHADED */
+					/* Use shaded value */
+					accum = 1.0f - shaded;
+			}}
+
+			shr->alpha= (shi->alpha)*(accum);
 		}
-		else shr->alpha= 0.f;
+		else {
+			/* If "fully shaded", use full alpha even on areas that have no lights */
+			if (shi->mat->shadowonly_flag == MA_SO_SHADED) shr->alpha=1.0f;
+			else shr->alpha= 0.f;
+		}
 	}
 	
 	/* quite disputable this...  also note it doesn't mirror-raytrace */	
@@ -1551,18 +1595,31 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 		
 		if(R.wrld.mode & WO_AMB_OCC) {
 			f= R.wrld.aoenergy*shi->amb;
-
+			
 			if(R.wrld.aomix==WO_AOADD) {
-				f= f*(1.0f - rgb_to_grayscale(shi->ao));
-				shr->alpha= (shr->alpha + f)*f;
+				if (shi->mat->shadowonly_flag == MA_SO_OLD) {
+					f= f*(1.0f - rgb_to_grayscale(shi->ao));
+					shr->alpha= (shr->alpha + f)*f;
+				}
+				else {
+					shr->alpha -= f*rgb_to_grayscale(shi->ao);
+					if (shr->alpha<0.0f) shr->alpha=0.0f;
+				}
 			}
-			else
+			else /* AO Multiply */
 				shr->alpha= (1.0f - f)*shr->alpha + f*(1.0f - (1.0f - shr->alpha)*rgb_to_grayscale(shi->ao));
 		}
 
 		if(R.wrld.mode & WO_ENV_LIGHT) {
-			f= R.wrld.ao_env_energy*shi->amb*(1.0f - rgb_to_grayscale(shi->env));
-			shr->alpha= (shr->alpha + f)*f;
+			if (shi->mat->shadowonly_flag == MA_SO_OLD) {
+				f= R.wrld.ao_env_energy*shi->amb*(1.0f - rgb_to_grayscale(shi->env));
+				shr->alpha= (shr->alpha + f)*f;
+			}
+			else {
+				f= R.wrld.ao_env_energy*shi->amb;
+				shr->alpha -= f*rgb_to_grayscale(shi->env);
+				if (shr->alpha<0.0f) shr->alpha=0.0f;
+			}
 		}
 	}
 }
@@ -1583,6 +1640,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	memset(shr, 0, sizeof(ShadeResult));
 	
+	if(!(shi->mode & MA_TRANSP)) shi->alpha = 1.0f;
+	
 	/* separate loop */
 	if(ma->mode & MA_ONLYSHADOW) {
 		shade_lamp_loop_only_shadow(shi, shr);
@@ -1599,10 +1658,12 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shi->g= shi->vcol[1];
 			shi->b= shi->vcol[2];
 			if((ma->mode & (MA_FACETEXTURE_ALPHA)) || ma->vcol_alpha)
-				shi->alpha= shi->vcol[3];
+				shi->alpha= (shi->mode & MA_TRANSP) ? shi->vcol[3] : 1.0f;
 		}
-		if(ma->texco)
+		if(ma->texco){
 			do_material_tex(shi);
+			if (!(shi->mode & MA_TRANSP)) shi->alpha = 1.0f;
+		}
 		
 		shr->col[0]= shi->r*shi->alpha;
 		shr->col[1]= shi->g*shi->alpha;
@@ -1757,11 +1818,11 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	/* alpha in end, spec can influence it */
 	if(passflag & (SCE_PASS_COMBINED)) {
-		if(ma->fresnel_tra!=0.0f) 
+		if((ma->fresnel_tra!=0.0f) && (shi->mode & MA_TRANSP))
 			shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 			
 		/* note: shi->mode! */
-		if(shi->mode & MA_TRANSP) {
+		if(shi->mode & MA_TRANSP && (shi->mode & (MA_ZTRANSP|MA_RAYTRANSP))) {
 			if(shi->spectra!=0.0f) {
 				float t = MAX3(shr->spec[0], shr->spec[1], shr->spec[2]);
 				t *= shi->spectra;
@@ -1831,7 +1892,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shr->combined[0] *= obcol[0];
 			shr->combined[1] *= obcol[1];
 			shr->combined[2] *= obcol[2];
-			shr->alpha *= obcol[3];
+			if (shi->mode & MA_TRANSP) shr->alpha *= obcol[3];
 		}
 	}
 

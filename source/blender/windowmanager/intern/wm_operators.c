@@ -940,7 +940,6 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 	wmOperator *op= data->op;
 	uiBlock *block;
 	uiLayout *layout;
-	uiBut *btn;
 	uiStyle *style= U.uistyles.first;
 
 	block = uiBeginBlock(C, ar, "operator dialog", UI_EMBOSS);
@@ -956,9 +955,18 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 	/* clear so the OK button is left alone */
 	uiBlockSetFunc(block, NULL, NULL, NULL);
 
-	/* Create OK button, the callback of which will execute op */
-	btn= uiDefBut(block, BUT, 0, "OK", 0, 0, 0, 20, NULL, 0, 0, 0, 0, "");
-	uiButSetFunc(btn, dialog_exec_cb, op, block);
+	/* new column so as not to interfear with custom layouts [#26436] */
+	{
+		uiBlock *col_block;
+		uiLayout *col;
+		uiBut *btn;
+
+		col= uiLayoutColumn(layout, FALSE);
+		col_block= uiLayoutGetBlock(col);
+		/* Create OK button, the callback of which will execute op */
+		btn= uiDefBut(col_block, BUT, 0, "OK", 0, -30, 0, 20, NULL, 0, 0, 0, 0, "");
+		uiButSetFunc(btn, dialog_exec_cb, op, col_block);
+	}
 
 	/* center around the mouse */
 	uiPopupBoundsBlock(block, 4.0f, data->width/-2, data->height/2);
@@ -1480,21 +1488,6 @@ static short wm_link_append_flag(wmOperator *op)
 	return flag;
 }
 
-static void wm_link_make_library_local(Main *main, const char *libname)
-{
-	Library *lib;
-
-	/* and now find the latest append lib file */
-	for(lib= main->library.first; lib; lib=lib->id.next)
-		if(BLI_streq(libname, lib->filepath))
-			break;
-	
-	/* make local */
-	if(lib) {
-		all_local(lib, 1);
-	}
-}
-
 static int wm_link_append_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
@@ -1540,12 +1533,23 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	bh = BLO_blendhandle_from_file(libname, op->reports);
+
+	if(bh == NULL) {
+		/* unlikely since we just browsed it, but possible
+		 * error reports will have been made by BLO_blendhandle_from_file() */
+		return OPERATOR_CANCELLED;
+	}
+
+
+	/* from here down, no error returns */
+
+	idcode = BKE_idcode_from_name(group);
+
 	/* now we have or selected, or an indicated file */
 	if(RNA_boolean_get(op->ptr, "autoselect"))
 		scene_deselect_all(scene);
 
-	bh = BLO_blendhandle_from_file(libname);
-	idcode = BKE_idcode_from_name(group);
 	
 	flag = wm_link_append_flag(op);
 
@@ -1581,8 +1585,11 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	recalc_all_library_objects(bmain);
 
 	/* append, rather than linking */
-	if((flag & FILE_LINK)==0)
-		wm_link_make_library_local(bmain, libname);
+	if((flag & FILE_LINK)==0) {
+		Library *lib= BLI_findstring(&bmain->library, libname, offsetof(Library, filepath));
+		if(lib)	all_local(lib, 1);
+		else	BLI_assert(!"cant find name of just added library!");
+	}
 
 	/* important we unset, otherwise these object wont
 	 * link into other scenes from this blend file */

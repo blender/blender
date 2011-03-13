@@ -165,7 +165,7 @@ void UVDataWrapper::getUV(int uv_index[2], float *uv)
 			
 		}
 		break;
-	case COLLADAFW::MeshVertexData::DATA_TYPE_UNKNOWN:	
+	case COLLADAFW::MeshVertexData::DATA_TYPE_UNKNOWN:
 	default:
 		fprintf(stderr, "MeshImporter.getUV(): unknown data type\n");
 	}
@@ -278,7 +278,7 @@ void MeshImporter::print_index_list(COLLADAFW::IndexList& index_list)
 }
 #endif
 
-bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
+bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)	// checks if mesh has supported primitive types: polylist, triangles, triangle_fans
 {
 	COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
 
@@ -307,7 +307,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
 			}
 				
 		}
-		else if(type != COLLADAFW::MeshPrimitive::TRIANGLES) {
+		else if(type != COLLADAFW::MeshPrimitive::TRIANGLES && type!= COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
 			fprintf(stderr, "Primitive type %s is not supported.\n", type_str);
 			return false;
 		}
@@ -426,7 +426,7 @@ int MeshImporter::count_new_tris(COLLADAFW::Mesh *mesh, Mesh *me)
 }
 
 // TODO: import uv set names
-void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)
+void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)        //TODO:: Refactor. Possibly replace by iterators
 {
 	unsigned int i;
 	
@@ -478,6 +478,12 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)
 		size_t prim_totface = mp->getFaceCount();
 		unsigned int *indices = mp->getPositionIndices().getData();
 		unsigned int *nind = mp->getNormalIndices().getData();
+
+		if (has_normals && mp->getPositionIndices().getCount() != mp->getNormalIndices().getCount()) {
+			fprintf(stderr, "Warning: Number of normals is different from the number of vertcies, skipping normals\n");
+	 		has_normals = false;
+		}
+
 		unsigned int j, k;
 		int type = mp->getPrimitiveType();
 		int index = 0;
@@ -530,6 +536,43 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)
 				mface++;
 				face_index++;
 				prim.totface++;
+			}
+		}
+
+		// If MeshPrimitive is TRIANGLE_FANS we split it into triangles
+		// The first trifan vertex will be the first vertex in every triangle
+		if (type == COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
+			unsigned grouped_vertex_count = mp->getGroupedVertexElementsCount();
+			for (unsigned int group_index = 0; group_index < grouped_vertex_count; group_index++){
+				unsigned int first_vertex = indices[0]; // Store first trifan vertex
+				unsigned int first_normal = nind[0]; // Store first trifan vertex normal
+				unsigned int vertex_count = mp->getGroupedVerticesVertexCount(group_index);
+
+				for (unsigned int vertex_index = 0; vertex_index < vertex_count - 2; vertex_index++){
+					// For each triangle store indeces of its 3 vertices
+					unsigned int triangle_vertex_indices[3]={first_vertex, indices[1], indices[2]};
+					set_face_indices(mface, triangle_vertex_indices, false);
+					test_index_face(mface, &me->fdata, face_index, 3);
+
+					if (has_normals) {  // vertex normals, same inplementation as for the triangles
+						// the same for vertces normals
+						unsigned int vertex_normal_indices[3]={first_normal, nind[1], nind[2]};
+						if (!flat_face(vertex_normal_indices, nor, 3))
+							mface->flag |= ME_SMOOTH;
+							nind++;
+						}
+
+						mface++;	// same inplementation as for the triangles
+						indices++;
+						face_index++;
+						prim.totface++;
+					}
+				
+				// Moving cursor  to the next triangle fan.
+				if (has_normals)
+					nind += 2;
+
+				indices +=  2;
 			}
 		}
 		else if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
@@ -760,6 +803,18 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 		return NULL;
 	}
 	
+	// different nodes can point to same geometry, but still also specify the same materials
+	// again. Make sure we don't overwrite them on the next occurrences, so keep list of
+	// what we already have handled.
+	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId>::iterator it;
+	it=materials_mapped_to_geom.find(*geom_uid);
+	while(it!=materials_mapped_to_geom.end()) {
+		if(it->second == ma_uid) return NULL; // do nothing if already found
+		it++;
+	}
+	// first time we get geom_uid, ma_uid pair. Save for later check.
+	materials_mapped_to_geom.insert(std::pair<COLLADAFW::UniqueId, COLLADAFW::UniqueId>(*geom_uid, ma_uid));
+	
 	Material *ma = uid_material_map[ma_uid];
 	assign_material(ob, ma, ob->totcol + 1);
 	
@@ -869,9 +924,13 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	// loop through geom's materials
 	for (unsigned int i = 0; i < mat_array.getCount(); i++)	{
 		
-		texture_face = assign_material_to_geom(mat_array[i], uid_material_map, ob, geom_uid,
-											   &color_texture, layername, texture_face,
-											   material_texture_mapping_map, i);
+		if(mat_array[i].getReferencedMaterial().isValid()) {
+			texture_face = assign_material_to_geom(mat_array[i], uid_material_map, ob, geom_uid,
+												   &color_texture, layername, texture_face,
+												   material_texture_mapping_map, i);
+		} else {
+			fprintf(stderr, "invalid referenced material for %s\n", mat_array[i].getName().c_str());
+		}
 	}
 		
 	return ob;

@@ -2517,14 +2517,55 @@ typedef struct {
 	Scene *scene;
 } ptcache_bake_data;
 
+static void ptcache_dt_to_str(char *str, double dtime)
+{
+	if(dtime > 60.0) {
+		if(dtime > 3600.0)
+			sprintf(str, "%ih %im %is", (int)(dtime/3600), ((int)(dtime/60))%60, ((int)dtime) % 60);
+		else
+			sprintf(str, "%im %is", ((int)(dtime/60))%60, ((int)dtime) % 60);
+	}
+	else
+		sprintf(str, "%is", ((int)dtime) % 60);
+}
+
 static void *ptcache_bake_thread(void *ptr) {
+	int usetimer = 0, sfra, efra;
+	double stime, ptime, ctime, fetd;
+	char run[32], cur[32], etd[32];
+
 	ptcache_bake_data *data = (ptcache_bake_data*)ptr;
+
+	stime = ptime = PIL_check_seconds_timer();
+	sfra = *data->cfra_ptr;
+	efra = data->endframe;
 
 	for(; (*data->cfra_ptr <= data->endframe) && !data->break_operation; *data->cfra_ptr+=data->step) {
 		scene_update_for_newframe(data->main, data->scene, data->scene->lay);
 		if(G.background) {
 			printf("bake: frame %d :: %d\n", (int)*data->cfra_ptr, data->endframe);
 		}
+		else {
+			ctime = PIL_check_seconds_timer();
+
+			fetd = (ctime-ptime)*(efra-*data->cfra_ptr)/data->step;
+
+			if(usetimer || fetd > 60.0) {
+				usetimer = 1;
+
+				ptcache_dt_to_str(cur, ctime-ptime);
+				ptcache_dt_to_str(run, ctime-stime);
+				ptcache_dt_to_str(etd, fetd);
+
+				printf("Baked for %s, current frame: %i/%i (%.3fs), ETC: %s          \r", run, *data->cfra_ptr-sfra+1, efra-sfra+1, (float)(ctime-ptime), etd);
+			}
+			ptime = ctime;
+		}
+	}
+
+	if(usetimer) {
+		ptcache_dt_to_str(run, PIL_check_seconds_timer()-stime);
+		printf("Bake %s %s (%i frames simulated).                       \n", (data->break_operation ? "canceled after" : "finished in"), run, *data->cfra_ptr-sfra);
 	}
 
 	data->thread_ended = TRUE;

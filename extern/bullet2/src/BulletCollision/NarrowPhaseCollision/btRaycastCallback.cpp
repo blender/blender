@@ -124,8 +124,9 @@ btTriangleConvexcastCallback::btTriangleConvexcastCallback (const btConvexShape*
 	m_convexShapeFrom = convexShapeFrom;
 	m_convexShapeTo = convexShapeTo;
 	m_triangleToWorld = triangleToWorld;
-	m_hitFraction = 1.0;
-    m_triangleCollisionMargin = triangleCollisionMargin;
+	m_hitFraction = 1.0f;
+	m_triangleCollisionMargin = triangleCollisionMargin;
+	m_allowedPenetration = 0.f;
 }
 
 void
@@ -148,6 +149,7 @@ btTriangleConvexcastCallback::processTriangle (btVector3* triangle, int partId, 
 	
 	btConvexCast::CastResult castResult;
 	castResult.m_fraction = btScalar(1.);
+	castResult.m_allowedPenetration = m_allowedPenetration;
 	if (convexCaster.calcTimeOfImpact(m_convexShapeFrom,m_convexShapeTo,m_triangleToWorld, m_triangleToWorld, castResult))
 	{
 		//add hit

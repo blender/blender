@@ -31,25 +31,20 @@ class EditExternally(bpy.types.Operator):
     filepath = StringProperty(name="File Path", description="Path to an image file", maxlen=1024, default="")
 
     def _editor_guess(self, context):
-        import platform
-        try:
-            system = platform.system()
-        except UnicodeDecodeError:
-            import sys
-            system = sys.platform
+        import sys
 
         image_editor = context.user_preferences.filepaths.image_editor
 
         # use image editor in the preferences when available.
         if not image_editor:
-            if system in ('Windows', 'win32'):
+            if sys.platform[:3] == "win":
                 image_editor = ["start"]  # not tested!
-            elif system == 'Darwin':
+            elif sys.platform == "darwin":
                 image_editor = ["open"]
             else:
                 image_editor = ["gimp"]
         else:
-            if system == 'Darwin':
+            if sys.platform == "darwin":
                 # blender file selector treats .app as a folder
                 # and will include a trailing backslash, so we strip it.
                 image_editor.rstrip('\\')
@@ -65,7 +60,7 @@ class EditExternally(bpy.types.Operator):
         filepath = bpy.path.abspath(self.filepath)
 
         if not os.path.exists(filepath):
-            self.report('ERROR', "Image path '%s' not found." % filepath)
+            self.report('ERROR', "Image path %r not found." % filepath)
             return {'CANCELLED'}
 
         cmd = self._editor_guess(context) + [filepath]

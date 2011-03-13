@@ -123,7 +123,7 @@ class BONE_PT_transform_locks(BoneButtonsPanel, bpy.types.Panel):
         col.active = not (bone.parent and bone.use_connect)
 
         col = row.column()
-        if pchan.rotation_mode in ('QUATERNION', 'AXIS_ANGLE'):
+        if pchan.rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
             col.prop(pchan, "lock_rotations_4d", text="Lock Rotation")
             if pchan.lock_rotations_4d:
                 col.prop(pchan, "lock_rotation_w", text="W")

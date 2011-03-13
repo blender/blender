@@ -20,15 +20,28 @@ subject to the following restrictions:
 //softbody & helpers
 #include "btSoftBody.h"
 #include "btSoftBodyHelpers.h"
+#include "btSoftBodySolvers.h"
+#include "btDefaultSoftBodySolver.h"
+#include "LinearMath/btSerializer.h"
 
 
-//#define USE_BRUTEFORCE_RAYBROADPHASE 1
-
-
-
-btSoftRigidDynamicsWorld::btSoftRigidDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver,btCollisionConfiguration* collisionConfiguration)
-:btDiscreteDynamicsWorld(dispatcher,pairCache,constraintSolver,collisionConfiguration)
+btSoftRigidDynamicsWorld::btSoftRigidDynamicsWorld(
+	btDispatcher* dispatcher,
+	btBroadphaseInterface* pairCache,
+	btConstraintSolver* constraintSolver,
+	btCollisionConfiguration* collisionConfiguration,
+	btSoftBodySolver *softBodySolver ) : 
+		btDiscreteDynamicsWorld(dispatcher,pairCache,constraintSolver,collisionConfiguration),
+		m_softBodySolver( softBodySolver ),
+		m_ownsSolver(false)
 {
+	if( !m_softBodySolver )
+	{
+		void* ptr = btAlignedAlloc(sizeof(btDefaultSoftBodySolver),16);
+		m_softBodySolver = new(ptr) btDefaultSoftBodySolver();
+		m_ownsSolver = true;
+	}
+
 	m_drawFlags			=	fDrawFlags::Std;
 	m_drawNodeTree		=	true;
 	m_drawFaceTree		=	false;
@@ -38,31 +51,50 @@ btSoftRigidDynamicsWorld::btSoftRigidDynamicsWorld(btDispatcher* dispatcher,btBr
 	m_sbi.m_sparsesdf.Initialize();
 	m_sbi.m_sparsesdf.Reset();
 
+	m_sbi.air_density		=	(btScalar)1.2;
+	m_sbi.water_density	=	0;
+	m_sbi.water_offset		=	0;
+	m_sbi.water_normal		=	btVector3(0,0,0);
+	m_sbi.m_gravity.setValue(0,-10,0);
+
+	m_sbi.m_sparsesdf.Initialize();
+
+
 }
 
 btSoftRigidDynamicsWorld::~btSoftRigidDynamicsWorld()
 {
-
+	if (m_ownsSolver)
+	{
+		m_softBodySolver->~btSoftBodySolver();
+		btAlignedFree(m_softBodySolver);
+	}
 }
 
 void	btSoftRigidDynamicsWorld::predictUnconstraintMotion(btScalar timeStep)
 {
-	btDiscreteDynamicsWorld::predictUnconstraintMotion( timeStep);
-
-	for ( int i=0;i<m_softBodies.size();++i)
+	btDiscreteDynamicsWorld::predictUnconstraintMotion( timeStep );
 	{
-		btSoftBody*	psb= m_softBodies[i];
-
-		psb->predictMotion(timeStep);		
+		BT_PROFILE("predictUnconstraintMotionSoftBody");
+		m_softBodySolver->predictMotion( timeStep );
 	}
 }
 
-void	btSoftRigidDynamicsWorld::internalSingleStepSimulation( btScalar timeStep)
+void	btSoftRigidDynamicsWorld::internalSingleStepSimulation( btScalar timeStep )
 {
+
+	// Let the solver grab the soft bodies and if necessary optimize for it
+	m_softBodySolver->optimize( getSoftBodyArray() );
+
+	if( !m_softBodySolver->checkInitialized() )
+	{
+		btAssert( "Solver initialization failed\n" );
+	}
+
 	btDiscreteDynamicsWorld::internalSingleStepSimulation( timeStep );
 
 	///solve soft bodies constraints
-	solveSoftBodiesConstraints();
+	solveSoftBodiesConstraints( timeStep );
 
 	//self collisions
 	for ( int i=0;i<m_softBodies.size();i++)
@@ -72,22 +104,14 @@ void	btSoftRigidDynamicsWorld::internalSingleStepSimulation( btScalar timeStep)
 	}
 
 	///update soft bodies
-	updateSoftBodies();
+	m_softBodySolver->updateSoftBodies( );
+	
+	// End solver-wise simulation step
+	// ///////////////////////////////
 
 }
 
-void	btSoftRigidDynamicsWorld::updateSoftBodies()
-{
-	BT_PROFILE("updateSoftBodies");
-
-	for ( int i=0;i<m_softBodies.size();i++)
-	{
-		btSoftBody*	psb=(btSoftBody*)m_softBodies[i];
-		psb->integrateMotion();	
-	}
-}
-
-void	btSoftRigidDynamicsWorld::solveSoftBodiesConstraints()
+void	btSoftRigidDynamicsWorld::solveSoftBodiesConstraints( btScalar timeStep )
 {
 	BT_PROFILE("solveSoftConstraints");
 
@@ -96,20 +120,22 @@ void	btSoftRigidDynamicsWorld::solveSoftBodiesConstraints()
 		btSoftBody::solveClusters(m_softBodies);
 	}
 
-	for(int i=0;i<m_softBodies.size();++i)
-	{
-		btSoftBody*	psb=(btSoftBody*)m_softBodies[i];
-		psb->solveConstraints();
-	}	
+	// Solve constraints solver-wise
+	m_softBodySolver->solveConstraints( timeStep * m_softBodySolver->getTimeScale() );
+
 }
 
-void	btSoftRigidDynamicsWorld::addSoftBody(btSoftBody* body)
+void	btSoftRigidDynamicsWorld::addSoftBody(btSoftBody* body,short int collisionFilterGroup,short int collisionFilterMask)
 {
 	m_softBodies.push_back(body);
 
+	// Set the soft body solver that will deal with this body
+	// to be the world's solver
+	body->setSoftBodySolver( m_softBodySolver );
+
 	btCollisionWorld::addCollisionObject(body,
-		btBroadphaseProxy::DefaultFilter,
-		btBroadphaseProxy::AllFilter);
+		collisionFilterGroup,
+		collisionFilterMask);
 
 }
 
@@ -118,6 +144,15 @@ void	btSoftRigidDynamicsWorld::removeSoftBody(btSoftBody* body)
 	m_softBodies.remove(body);
 
 	btCollisionWorld::removeCollisionObject(body);
+}
+
+void	btSoftRigidDynamicsWorld::removeCollisionObject(btCollisionObject* collisionObject)
+{
+	btSoftBody* body = btSoftBody::upcast(collisionObject);
+	if (body)
+		removeSoftBody(body);
+	else
+		btDiscreteDynamicsWorld::removeCollisionObject(collisionObject);
 }
 
 void	btSoftRigidDynamicsWorld::debugDrawWorld()
@@ -130,8 +165,12 @@ void	btSoftRigidDynamicsWorld::debugDrawWorld()
 		for (  i=0;i<this->m_softBodies.size();i++)
 		{
 			btSoftBody*	psb=(btSoftBody*)this->m_softBodies[i];
-			btSoftBodyHelpers::DrawFrame(psb,m_debugDrawer);
-			btSoftBodyHelpers::Draw(psb,m_debugDrawer,m_drawFlags);
+			if (getDebugDrawer() && getDebugDrawer()->getDebugMode() & (btIDebugDraw::DBG_DrawWireframe))
+			{
+				btSoftBodyHelpers::DrawFrame(psb,m_debugDrawer);
+				btSoftBodyHelpers::Draw(psb,m_debugDrawer,m_drawFlags);
+			}
+			
 			if (m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawAabb))
 			{
 				if(m_drawNodeTree)		btSoftBodyHelpers::DrawNodeTree(psb,m_debugDrawer);
@@ -141,6 +180,8 @@ void	btSoftRigidDynamicsWorld::debugDrawWorld()
 		}		
 	}	
 }
+
+
 
 
 struct btSoftSingleRayCallback : public btBroadphaseRayCallback
@@ -251,8 +292,10 @@ void	btSoftRigidDynamicsWorld::rayTestSingle(const btTransform& rayFromTrans,con
 			btSoftBody::sRayCast softResult;
 			if (softBody->rayTest(rayFromTrans.getOrigin(), rayToTrans.getOrigin(), softResult)) 
 			{
-				if (softResult.fraction<= resultCallback.m_closestHitFraction) 
+				
+				if (softResult.fraction<= resultCallback.m_closestHitFraction)
 				{
+
 					btCollisionWorld::LocalShapeInfo shapeInfo;
 					shapeInfo.m_shapePart = 0;
 					shapeInfo.m_triangleIndex = softResult.index;
@@ -260,14 +303,14 @@ void	btSoftRigidDynamicsWorld::rayTestSingle(const btTransform& rayFromTrans,con
 					btVector3 normal = softBody->m_faces[softResult.index].m_normal;
 					btVector3 rayDir = rayToTrans.getOrigin() - rayFromTrans.getOrigin();
 					if (normal.dot(rayDir) > 0) {
-						// normal must always point toward origin of the ray
+						// normal always point toward origin of the ray
 						normal = -normal;
 					}
 					btCollisionWorld::LocalRayResult rayResult
 						(collisionObject,
-						&shapeInfo,
-						normal,
-						softResult.fraction);
+						 &shapeInfo,
+						 normal,
+						 softResult.fraction);
 					bool	normalInWorldSpace = true;
 					resultCallback.addSingleResult(rayResult,normalInWorldSpace);
 				}
@@ -278,3 +321,38 @@ void	btSoftRigidDynamicsWorld::rayTestSingle(const btTransform& rayFromTrans,con
 		btCollisionWorld::rayTestSingle(rayFromTrans,rayToTrans,collisionObject,collisionShape,colObjWorldTransform,resultCallback);
 	}
 }
+
+
+void	btSoftRigidDynamicsWorld::serializeSoftBodies(btSerializer* serializer)
+{
+	int i;
+	//serialize all collision objects
+	for (i=0;i<m_collisionObjects.size();i++)
+	{
+		btCollisionObject* colObj = m_collisionObjects[i];
+		if (colObj->getInternalType() & btCollisionObject::CO_SOFT_BODY)
+		{
+			int len = colObj->calculateSerializeBufferSize();
+			btChunk* chunk = serializer->allocate(len,1);
+			const char* structType = colObj->serialize(chunk->m_oldPtr, serializer);
+			serializer->finalizeChunk(chunk,structType,BT_SOFTBODY_CODE,colObj);
+		}
+	}
+
+}
+
+void	btSoftRigidDynamicsWorld::serialize(btSerializer* serializer)
+{
+
+	serializer->startSerialization();
+
+	serializeSoftBodies(serializer);
+
+	serializeRigidBodies(serializer);
+
+	serializeCollisionObjects(serializer);
+
+	serializer->finishSerialization();
+}
+
+

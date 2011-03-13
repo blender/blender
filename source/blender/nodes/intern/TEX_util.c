@@ -124,7 +124,7 @@ void tex_do_preview(bNode *node, float *co, float *col)
 		int xs= ((co[0] + 1.0f)*0.5f)*preview->xsize;
 		int ys= ((co[1] + 1.0f)*0.5f)*preview->ysize;
 
-		nodeAddToPreview(node, col, xs, ys);
+		nodeAddToPreview(node, col, xs, ys, 0); /* 0 = no color management */
 	}
 }
 

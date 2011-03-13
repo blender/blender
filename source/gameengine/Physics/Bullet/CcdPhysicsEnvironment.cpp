@@ -1457,7 +1457,7 @@ struct OcclusionBuffer
 						const float face,
 						const btScalar minarea)
 	{
-		const btScalar		a2=cross(b-a,c-a)[2];
+		const btScalar		a2=btCross(b-a,c-a)[2];
 		if((face*a2)<0.f || btFabs(a2)<minarea)
 			return false;
 		// further down we are normally going to write to the Zbuffer, mark it so
@@ -2793,3 +2793,17 @@ float		CcdPhysicsEnvironment::getAppliedImpulse(int	constraintid)
 
 	return 0.f;
 }
+
+void	CcdPhysicsEnvironment::exportFile(const char* filename)
+{
+	btDefaultSerializer*	serializer = new btDefaultSerializer();
+	m_dynamicsWorld->serialize(serializer);
+	
+	FILE* file = fopen(filename,"wb");
+	if (file)
+	{
+		fwrite(serializer->getBufferPointer(),serializer->getCurrentBufferSize(),1, file);
+		fclose(file);
+	}
+}
+

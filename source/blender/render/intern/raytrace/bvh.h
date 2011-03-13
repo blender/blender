@@ -129,7 +129,8 @@ static void bvh_free(Tree *obj)
 template<class Tree>
 static void bvh_bb(Tree *obj, float *min, float *max)
 {
-	bvh_node_merge_bb(obj->root, min, max);
+	if(obj->root)
+		bvh_node_merge_bb(obj->root, min, max);
 }
 
 

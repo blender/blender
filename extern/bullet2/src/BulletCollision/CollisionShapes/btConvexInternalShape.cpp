@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -34,7 +34,8 @@ void	btConvexInternalShape::setLocalScaling(const btVector3& scaling)
 
 void	btConvexInternalShape::getAabbSlow(const btTransform& trans,btVector3&minAabb,btVector3&maxAabb) const
 {
-
+#ifndef __SPU__
+	//use localGetSupportingVertexWithoutMargin?
 	btScalar margin = getMargin();
 	for (int i=0;i<3;i++)
 	{
@@ -49,6 +50,7 @@ void	btConvexInternalShape::getAabbSlow(const btTransform& trans,btVector3&minAa
 		tmp = trans(localGetSupportingVertex(vec*trans.getBasis()));
 		minAabb[i] = tmp[i]-margin;
 	}
+#endif
 }
 
 
@@ -79,3 +81,71 @@ btVector3	btConvexInternalShape::localGetSupportingVertex(const btVector3& vec)c
  }
 
 
+btConvexInternalAabbCachingShape::btConvexInternalAabbCachingShape()
+	:	btConvexInternalShape(),
+m_localAabbMin(1,1,1),
+m_localAabbMax(-1,-1,-1),
+m_isLocalAabbValid(false)
+{
+}
+
+
+void btConvexInternalAabbCachingShape::getAabb(const btTransform& trans,btVector3& aabbMin,btVector3& aabbMax) const
+{
+	getNonvirtualAabb(trans,aabbMin,aabbMax,getMargin());
+}
+
+void	btConvexInternalAabbCachingShape::setLocalScaling(const btVector3& scaling)
+{
+	btConvexInternalShape::setLocalScaling(scaling);
+	recalcLocalAabb();
+}
+
+
+void	btConvexInternalAabbCachingShape::recalcLocalAabb()
+{
+	m_isLocalAabbValid = true;
+	
+	#if 1
+	static const btVector3 _directions[] =
+	{
+		btVector3( 1.,  0.,  0.),
+		btVector3( 0.,  1.,  0.),
+		btVector3( 0.,  0.,  1.),
+		btVector3( -1., 0.,  0.),
+		btVector3( 0., -1.,  0.),
+		btVector3( 0.,  0., -1.)
+	};
+	
+	btVector3 _supporting[] =
+	{
+		btVector3( 0., 0., 0.),
+		btVector3( 0., 0., 0.),
+		btVector3( 0., 0., 0.),
+		btVector3( 0., 0., 0.),
+		btVector3( 0., 0., 0.),
+		btVector3( 0., 0., 0.)
+	};
+	
+	batchedUnitVectorGetSupportingVertexWithoutMargin(_directions, _supporting, 6);
+	
+	for ( int i = 0; i < 3; ++i )
+	{
+		m_localAabbMax[i] = _supporting[i][i] + m_collisionMargin;
+		m_localAabbMin[i] = _supporting[i + 3][i] - m_collisionMargin;
+	}
+	
+	#else
+
+	for (int i=0;i<3;i++)
+	{
+		btVector3 vec(btScalar(0.),btScalar(0.),btScalar(0.));
+		vec[i] = btScalar(1.);
+		btVector3 tmp = localGetSupportingVertex(vec);
+		m_localAabbMax[i] = tmp[i]+m_collisionMargin;
+		vec[i] = btScalar(-1.);
+		tmp = localGetSupportingVertex(vec);
+		m_localAabbMin[i] = tmp[i]-m_collisionMargin;
+	}
+	#endif
+}

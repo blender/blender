@@ -89,7 +89,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
     col.operator("ptcache.remove", icon='ZOOMOUT', text="")
 
     row = layout.row()
-    if cachetype in ('PSYS', 'HAIR', 'SMOKE'):
+    if cachetype in {'PSYS', 'HAIR', 'SMOKE'}:
         row.prop(cache, "use_external")
 
     if cache.use_external:
@@ -121,7 +121,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             row.enabled = enabled
             row.prop(cache, "frame_start")
             row.prop(cache, "frame_end")
-        if cachetype not in ('SMOKE', 'CLOTH'):
+        if cachetype not in {'SMOKE', 'CLOTH'}:
             row.prop(cache, "frame_step")
             row.prop(cache, "use_quick_cache")
         if cachetype != 'SMOKE':

@@ -60,18 +60,6 @@ void PyC_LineSpit(void) {
 	fprintf(stderr, "%s:%d\n", filename, lineno);
 }
 
-/* python 3.2 only, copied from frameobjec.c */
-#if PY_VERSION_HEX <  0x03020000
-int
-PyFrame_GetLineNumber(PyFrameObject *f)
-{
-    if (f->f_trace)
-        return f->f_lineno;
-    else
-        return PyCode_Addr2Line(f->f_code, f->f_lasti);
-}
-#endif
-
 void PyC_FileAndNum(const char **filename, int *lineno)
 {
 	PyFrameObject *frame;
@@ -224,29 +212,7 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 		return PyBytes_AS_STRING(py_str);
 	}
 	else {
-		/* mostly copied from fileio.c's, fileio_init */
-		PyObject *stringobj;
-		PyObject *u;
-
-		PyErr_Clear();
-		
-		u= PyUnicode_FromObject(py_str); /* coerce into unicode */
-		
-		if (u == NULL)
-			return NULL;
-
-		stringobj= PyUnicode_EncodeUTF8(PyUnicode_AS_UNICODE(u), PyUnicode_GET_SIZE(u), "surrogateescape");
-		Py_DECREF(u);
-		if (stringobj == NULL)
-			return NULL;
-		if (!PyBytes_Check(stringobj)) { /* this seems wrong but it works fine */
-			// printf("encoder failed to return bytes\n");
-			Py_DECREF(stringobj);
-			return NULL;
-		}
-		*coerce= stringobj;
-
-		return PyBytes_AS_STRING(stringobj);
+		return PyBytes_AS_STRING((*coerce= PyUnicode_EncodeFSDefault(py_str)));
 	}
 }
 

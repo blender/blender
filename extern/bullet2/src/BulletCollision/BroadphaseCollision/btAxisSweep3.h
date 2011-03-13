@@ -150,6 +150,8 @@ public:
 	virtual void  getAabb(btBroadphaseProxy* proxy,btVector3& aabbMin, btVector3& aabbMax ) const;
 	
 	virtual void	rayTest(const btVector3& rayFrom,const btVector3& rayTo, btBroadphaseRayCallback& rayCallback, const btVector3& aabbMin=btVector3(0,0,0), const btVector3& aabbMax = btVector3(0,0,0));
+	virtual void	aabbTest(const btVector3& aabbMin, const btVector3& aabbMax, btBroadphaseAabbCallback& callback);
+
 	
 	void quantize(BP_FP_INT_TYPE* out, const btVector3& point, int isMax) const;
 	///unQuantize should be conservative: aabbMin/aabbMax should be larger then 'getAabb' result
@@ -280,6 +282,31 @@ void	btAxisSweep3Internal<BP_FP_INT_TYPE>::rayTest(const btVector3& rayFrom,cons
 			if (m_pEdges[axis][i].IsMax())
 			{
 				rayCallback.process(getHandle(m_pEdges[axis][i].m_handle));
+			}
+		}
+	}
+}
+
+template <typename BP_FP_INT_TYPE>
+void	btAxisSweep3Internal<BP_FP_INT_TYPE>::aabbTest(const btVector3& aabbMin, const btVector3& aabbMax, btBroadphaseAabbCallback& callback)
+{
+	if (m_raycastAccelerator)
+	{
+		m_raycastAccelerator->aabbTest(aabbMin,aabbMax,callback);
+	} else
+	{
+		//choose axis?
+		BP_FP_INT_TYPE axis = 0;
+		//for each proxy
+		for (BP_FP_INT_TYPE i=1;i<m_numHandles*2+1;i++)
+		{
+			if (m_pEdges[axis][i].IsMax())
+			{
+				Handle* handle = getHandle(m_pEdges[axis][i].m_handle);
+				if (TestAabbAgainstAabb2(aabbMin,aabbMax,handle->m_aabbMin,handle->m_aabbMax))
+				{
+					callback.process(handle);
+				}
 			}
 		}
 	}

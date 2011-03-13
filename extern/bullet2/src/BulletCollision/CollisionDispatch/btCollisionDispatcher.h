@@ -42,14 +42,13 @@ typedef void (*btNearCallback)(btBroadphasePair& collisionPair, btCollisionDispa
 ///Time of Impact, Closest Points and Penetration Depth.
 class btCollisionDispatcher : public btDispatcher
 {
-	int m_count;
-	
+
+protected:
+
+	int		m_dispatcherFlags;
+
 	btAlignedObjectArray<btPersistentManifold*>	m_manifoldsPtr;
 
-	bool m_useIslands;
-
-	bool	m_staticWarningReported;
-	
 	btManifoldResult	m_defaultManifoldResult;
 
 	btNearCallback		m_nearCallback;
@@ -59,12 +58,27 @@ class btCollisionDispatcher : public btDispatcher
 	btPoolAllocator*	m_persistentManifoldPoolAllocator;
 
 	btCollisionAlgorithmCreateFunc* m_doubleDispatch[MAX_BROADPHASE_COLLISION_TYPES][MAX_BROADPHASE_COLLISION_TYPES];
-	
 
 	btCollisionConfiguration*	m_collisionConfiguration;
 
 
 public:
+
+	enum DispatcherFlags
+	{
+		CD_STATIC_STATIC_REPORTED = 1,
+		CD_USE_RELATIVE_CONTACT_BREAKING_THRESHOLD = 2
+	};
+
+	int	getDispatcherFlags() const
+	{
+		return m_dispatcherFlags;
+	}
+
+	void	setDispatcherFlags(int flags)
+	{
+		m_dispatcherFlags = flags;
+	}
 
 	///registerCollisionCreateFunc allows registration of custom/alternative collision create functions
 	void	registerCollisionCreateFunc(int proxyType0,int proxyType1, btCollisionAlgorithmCreateFunc* createFunc);

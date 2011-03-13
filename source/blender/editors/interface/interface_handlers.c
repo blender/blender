@@ -144,11 +144,11 @@ typedef struct uiHandleButtonData {
 	float dragf, dragfstart;
 	CBData *dragcbd;
 
-	/* menu open */
+	/* menu open (watch uiFreeActiveButtons) */
 	uiPopupBlockHandle *menu;
 	int menuretval;
 	
-	/* search box */
+	/* search box (watch uiFreeActiveButtons) */
 	ARegion *searchbox;
 
 	/* post activate */
@@ -1254,7 +1254,7 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 	int len= strlen(str);
 	int change= 0;
 	if(but->selsta != but->selend && len) {
-		memmove( str+but->selsta, str+but->selend, len-but->selsta+1 );
+		memmove( str+but->selsta, str+but->selend, (len - but->selend) + 1 );
 		change= 1;
 	}
 	
@@ -4594,6 +4594,28 @@ int ui_button_is_active(ARegion *ar)
 {
 	return (ui_but_find_activated(ar) != NULL);
 }
+
+/* is called by notifier */
+void uiFreeActiveButtons(const bContext *C, bScreen *screen)
+{
+	ScrArea *sa= screen->areabase.first;
+	
+	for(;sa; sa= sa->next) {
+		ARegion *ar= sa->regionbase.first;
+		for(;ar; ar= ar->next) {
+			uiBut *but= ui_but_find_activated(ar);
+			if(but) {
+				uiHandleButtonData *data= but->active;
+				
+				if(data->menu==NULL && data->searchbox==NULL)
+					if(data->state == BUTTON_STATE_HIGHLIGHT)
+						ui_button_active_free(C, but);
+			}
+		}
+	}
+}
+
+
 
 /* returns TRUE if highlighted button allows drop of names */
 /* called in region context */

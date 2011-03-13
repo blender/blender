@@ -80,6 +80,9 @@ void ED_undo_push(bContext *C, const char *str)
 	Object *obedit= CTX_data_edit_object(C);
 	Object *obact= CTX_data_active_object(C);
 
+	if (G.f & G_DEBUG)
+		printf("undo push %s\n", str);
+	
 	if(obedit) {
 		if (U.undosteps == 0) return;
 		

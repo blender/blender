@@ -292,7 +292,7 @@ class InputKeyMapPanel(bpy.types.Panel):
 
             box.enabled = km.is_user_defined
 
-            if map_type not in ('TEXTINPUT', 'TIMER'):
+            if map_type not in {'TEXTINPUT', 'TIMER'}:
                 split = box.split(percentage=0.4)
                 sub = split.row()
 
@@ -710,8 +710,7 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        km = context.keymap
-        return km.is_user_defined
+        return hasattr(context, "keymap") and context.keymap.is_user_defined
 
     def execute(self, context):
         km = context.keymap
@@ -756,8 +755,7 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        km = context.keymap
-        return km.is_user_defined
+        return hasattr(context, "keymap") and context.keymap.is_user_defined
 
     def execute(self, context):
         km = context.keymap

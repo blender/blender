@@ -960,8 +960,9 @@ static void region_cursor_set(wmWindow *win, int swinid)
 	}
 }
 
-void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
+void ED_screen_do_listen(bContext *C, wmNotifier *note)
 {
+	wmWindow *win= CTX_wm_window(C);
 	
 	/* generic notes */
 	switch(note->category) {
@@ -973,8 +974,11 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 			win->screen->do_draw= 1;
 			break;
 		case NC_SCREEN:
+			if(note->data==ND_SUBWINACTIVE)
+				uiFreeActiveButtons(C, win->screen);
 			if(note->action==NA_EDITED)
 				win->screen->do_draw= win->screen->do_refresh= 1;
+			break;
 		case NC_SCENE:
 			if(note->data==ND_MODE)
 				region_cursor_set(win, note->swinid);				
@@ -1217,8 +1221,10 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 
 /* called in wm_event_system.c. sets state vars in screen, cursors */
 /* event type is mouse move */
-void ED_screen_set_subwinactive(wmWindow *win, wmEvent *event)
+void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 {
+	wmWindow *win= CTX_wm_window(C);
+	
 	if(win->screen) {
 		bScreen *scr= win->screen;
 		ScrArea *sa;
@@ -1264,6 +1270,7 @@ void ED_screen_set_subwinactive(wmWindow *win, wmEvent *event)
 		}
 		else if(oldswin!=scr->subwinactive) {
 			region_cursor_set(win, scr->subwinactive);
+			WM_event_add_notifier(C, NC_SCREEN|ND_SUBWINACTIVE, scr);
 		}
 	}
 }

@@ -181,3 +181,23 @@ void btGImpactMeshShape::processAllTriangles(btTriangleCallback* callback,const 
 		m_mesh_parts[i]->processAllTriangles(callback,aabbMin,aabbMax);
 	}
 }
+
+
+///fills the dataBuffer and returns the struct name (and 0 on failure)
+const char*	btGImpactMeshShape::serialize(void* dataBuffer, btSerializer* serializer) const
+{
+	btGImpactMeshShapeData* trimeshData = (btGImpactMeshShapeData*) dataBuffer;
+
+	btCollisionShape::serialize(&trimeshData->m_collisionShapeData,serializer);
+
+	m_meshInterface->serialize(&trimeshData->m_meshInterface, serializer);
+
+	trimeshData->m_collisionMargin = float(m_collisionMargin);
+
+	localScaling.serializeFloat(trimeshData->m_localScaling);
+
+	trimeshData->m_gimpactSubType = int(getGImpactShapeType());
+
+	return "btGImpactMeshShapeData";
+}
+

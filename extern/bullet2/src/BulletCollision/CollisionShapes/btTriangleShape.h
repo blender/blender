@@ -1,6 +1,6 @@
 /*
 Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
@@ -19,7 +19,7 @@ subject to the following restrictions:
 #include "btConvexShape.h"
 #include "btBoxShape.h"
 
-class btTriangleShape : public btPolyhedralConvexShape
+ATTRIBUTE_ALIGNED16(class) btTriangleShape : public btPolyhedralConvexShape
 {
 
 
@@ -30,6 +30,11 @@ public:
 	virtual int getNumVertices() const
 	{
 		return 3;
+	}
+
+	btVector3& getVertexPtr(int index)
+	{
+		return m_vertices1[index];
 	}
 
 	const btVector3& getVertexPtr(int index) const
@@ -77,7 +82,10 @@ public:
 
 	}
 
-
+	btTriangleShape() : btPolyhedralConvexShape ()
+    {
+		m_shapeType = TRIANGLE_SHAPE_PROXYTYPE;
+	}
 
 	btTriangleShape(const btVector3& p0,const btVector3& p1,const btVector3& p2) : btPolyhedralConvexShape ()
     {
