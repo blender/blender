@@ -276,7 +276,6 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, bpy.types.Panel):
         if not psys.cloth:
             return
 
-        #part = psys.settings
         cloth = psys.cloth.settings
 
         layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked == False
@@ -293,7 +292,6 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, bpy.types.Panel):
         sub.prop(cloth, "collider_friction", slider=True)
 
         col = split.column()
-
         col.label(text="Damping:")
         sub = col.column(align=True)
         sub.prop(cloth, "spring_damping", text="Spring")
@@ -1152,9 +1150,6 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
 
         ob = context.object
         psys = context.particle_system
-        # part = psys.settings
-
-        # layout.label(text="Nothing here yet.")
 
         row = layout.row()
         row.label(text="Vertex Group")
