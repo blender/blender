@@ -353,34 +353,6 @@ typedef struct ExtensionRNA {
 	
 } ExtensionRNA;
 
-/* fake struct definitions, needed otherwise collections end up owning the C
- * structs like 'Object' when defined first */
-#define BlendDataActions		Main
-#define BlendDataArmatures		Main
-#define BlendDataBrushes		Main
-#define BlendDataCameras		Main
-#define BlendDataCurves		Main
-#define BlendDataFonts		Main
-#define BlendDataGreasePencils	Main
-#define BlendDataGroups		Main
-#define BlendDataImages		Main
-#define BlendDataLamps		Main
-#define BlendDataLattices		Main
-#define BlendDataLibraries		Main
-#define BlendDataMaterials		Main
-#define BlendDataMeshes		Main
-#define BlendDataMetaBalls		Main
-#define BlendDataNodeTrees		Main
-#define BlendDataObjects		Main
-#define BlendDataParticles		Main
-#define BlendDataScenes		Main
-#define BlendDataScreens		Main
-#define BlendDataSounds		Main
-#define BlendDataTexts		Main
-#define BlendDataTextures		Main
-#define BlendDataWindowManagers	Main
-#define BlendDataWorlds		Main
-
 #ifdef __cplusplus
 }
 #endif
