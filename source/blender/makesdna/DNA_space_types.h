@@ -406,6 +406,7 @@ typedef struct SpaceNode {
 	int treetype;		/* treetype: as same nodetree->type */
 	short texfrom;		/* texfrom object, world or brush */
 	short recalc;		/* currently on 0/1, for auto compo */
+	ListBase linkdrag;	/* temporary data for modal linking operator */
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceNode;

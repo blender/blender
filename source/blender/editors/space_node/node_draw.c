@@ -991,6 +991,7 @@ static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode,
 {
 	bNode *node;
 	bNodeLink *link;
+	bNodeLinkDrag *nldrag;
 	int a;
 	
 	if(ntree==NULL) return;		/* groups... */
@@ -1025,6 +1026,14 @@ static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode,
 				node_draw_basis(C, ar, snode, ntree, node);
 		}
 	}	
+	
+	/* temporary links */
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
+	for(nldrag= snode->linkdrag.first; nldrag; nldrag= nldrag->next)
+		node_draw_link(&ar->v2d, snode, nldrag->link);
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
 }
 
 static void group_verify_cb(bContext *UNUSED(C), void *UNUSED(snode_v), void *ngroup_v)

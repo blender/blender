@@ -2028,15 +2028,6 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 
 /* *************************** add link op ******************** */
 
-/* temp data to pass on to modal */
-typedef struct NodeLinkDrag
-{
-	bNode *node;
-	bNodeSocket *sock;
-	bNodeLink *link;
-	int in_out;
-} NodeLinkDrag;
-
 static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeLink *link)
 {
 	bNodeLink *tlink;
@@ -2077,7 +2068,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
-	NodeLinkDrag *nldrag= op->customdata;
+	bNodeLinkDrag *nldrag= op->customdata;
 	bNode *tnode, *node;
 	bNodeSocket *tsock= NULL, *sock;
 	bNodeLink *link;
@@ -2100,11 +2091,15 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 						if( link->tosock!= tsock && (!tnode || (tnode!=node && link->tonode!=tnode)) ) {
 							link->tonode= tnode;
 							link->tosock= tsock;
+							if (link->prev==NULL && link->next==NULL)
+								BLI_addtail(&snode->edittree->links, link);
 							ntreeSolveOrder(snode->edittree);	/* for interactive red line warning */
 						}
 					}
 				}
 				else {
+					BLI_remlink(&snode->edittree->links, link);
+					link->prev = link->next = NULL;
 					link->tonode= NULL;
 					link->tosock= NULL;
 				}
@@ -2116,12 +2111,16 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 							if( link->fromsock!= tsock && (!tnode || (tnode!=node && link->fromnode!=tnode)) ) {
 								link->fromnode= tnode;
 								link->fromsock= tsock;
+								if (link->prev==NULL && link->next==NULL)
+									BLI_addtail(&snode->edittree->links, link);
 								ntreeSolveOrder(snode->edittree);	/* for interactive red line warning */
 							}
 						}
 					}
 				}
 				else {
+					BLI_remlink(&snode->edittree->links, link);
+					link->prev = link->next = NULL;
 					link->fromnode= NULL;
 					link->fromsock= NULL;
 				}
@@ -2148,10 +2147,14 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if (link->tonode && link->tosock) {
 					link->fromsock = nodeGroupExposeSocket(snode->edittree, link->tosock, SOCK_IN);
 					link->fromnode = NULL;
+					if (link->prev==NULL && link->next==NULL)
+						BLI_addtail(&snode->edittree->links, link);
 				}
 				else if (link->fromnode && link->fromsock) {
 					link->tosock = nodeGroupExposeSocket(snode->edittree, link->fromsock, SOCK_OUT);
 					link->tonode = NULL;
+					if (link->prev==NULL && link->next==NULL)
+						BLI_addtail(&snode->edittree->links, link);
 				}
 			}
 			else
@@ -2161,8 +2164,8 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 			node_tree_verify_groups(snode->nodetree);
 			snode_notify(C, snode);
 			
-			MEM_freeN(op->customdata);
-			op->customdata= NULL;
+			BLI_remlink(&snode->linkdrag, nldrag);
+			MEM_freeN(nldrag);
 			
 			return OPERATOR_FINISHED;
 	}
@@ -2171,7 +2174,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* return 1 when socket clicked */
-static int node_link_init(SpaceNode *snode, NodeLinkDrag *nldrag)
+static int node_link_init(SpaceNode *snode, bNodeLinkDrag *nldrag)
 {
 	bNodeLink *link;
 
@@ -2223,7 +2226,8 @@ static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
-	NodeLinkDrag *nldrag= MEM_callocN(sizeof(NodeLinkDrag), "drag link op customdata");
+	bNodeLinkDrag *nldrag= MEM_callocN(sizeof(bNodeLinkDrag), "drag link op customdata");
+	
 	
 	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
 							 &snode->mx, &snode->my);
@@ -2236,10 +2240,21 @@ static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		op->customdata= nldrag;
 		
 		/* we make a temporal link */
-		if(nldrag->in_out==SOCK_OUT)
-			nldrag->link= nodeAddLink(snode->edittree, nldrag->node, nldrag->sock, NULL, NULL);
-		else
-			nldrag->link= nodeAddLink(snode->edittree, NULL, NULL, nldrag->node, nldrag->sock);
+		if(nldrag->in_out==SOCK_OUT) {
+			nldrag->link= MEM_callocN(sizeof(bNodeLink), "link");
+			nldrag->link->fromnode= nldrag->node;
+			nldrag->link->fromsock= nldrag->sock;
+			nldrag->link->tonode= NULL;
+			nldrag->link->tosock= NULL;
+		}
+		else {
+			nldrag->link= MEM_callocN(sizeof(bNodeLink), "link");
+			nldrag->link->fromnode= NULL;
+			nldrag->link->fromsock= NULL;
+			nldrag->link->tonode= nldrag->node;
+			nldrag->link->tosock= nldrag->sock;
+		}
+		BLI_addtail(&snode->linkdrag, nldrag);
 		
 		/* add modal handler */
 		WM_event_add_modal_handler(C, op);

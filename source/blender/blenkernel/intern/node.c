@@ -2465,7 +2465,7 @@ static int node_only_value(bNode *node)
 	if(node->inputs.first && node->type==CMP_NODE_MAP_VALUE) {
 		int retval= 1;
 		for(sock= node->inputs.first; sock; sock= sock->next) {
-			if(sock->link)
+			if(sock->link && sock->link->fromnode)
 				retval &= node_only_value(sock->link->fromnode);
 		}
 		return retval;
@@ -2623,7 +2623,7 @@ static void freeExecutableNode(bNodeTree *ntree)
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if((node->exec & NODE_FINISHED)==0) {
 			for(sock= node->inputs.first; sock; sock= sock->next)
-				if(sock->link)
+				if(sock->link && sock->link->fromnode)
 					sock->link->fromnode->exec &= ~NODE_FREEBUFS;
 		}
 	}
