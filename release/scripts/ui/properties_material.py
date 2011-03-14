@@ -624,7 +624,6 @@ class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
         row.prop(phys, "friction")
         row.prop(phys, "elasticity", slider=True)
 
-
         row = layout.row()
         row.label(text="Force Field:")
 
@@ -773,7 +772,6 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
         sub.prop(mat, "shadow_ray_bias", text="Ray Bias")
         if simple_material(base_mat):
             col.prop(mat, "use_cast_approximate")
-
 
 
 class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):

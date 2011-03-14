@@ -407,7 +407,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, bpy.types.Panel):
         row = layout.row()
         row.label(text="Initial Rotation:")
         row.prop(part, "use_dynamic_rotation")
-        
+
         split = layout.split()
 
         col = split.column(align=True)
@@ -417,7 +417,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, bpy.types.Panel):
         col = split.column(align=True)
         col.prop(part, "phase_factor", slider=True)
         col.prop(part, "phase_factor_random", text="Random", slider=True)
-        
+
         col = layout.column()
         col.label(text="Angular Velocity:")
         col.row().prop(part, "angular_velocity_mode", expand=True)
@@ -464,53 +464,53 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
 
         if part.physics_type in ('NEWTON', 'FLUID'):
             split = layout.split()
-            
+
             col = split.column()
             col.label(text="Forces:")
             col.prop(part, "brownian_factor")
             col.prop(part, "drag_factor", slider=True)
             col.prop(part, "damping", slider=True)
-            
+
             col = split.column()
             col.label(text="Integration:")
             col.prop(part, "integrator", text="")
             col.prop(part, "time_tweak")
             col.prop(part, "subframes")
-            
+
             row = layout.row()
             row.prop(part, "use_size_deflect")
             row.prop(part, "use_die_on_collision")
-            
+
             if part.physics_type == 'FLUID':
                 fluid = part.fluid
-                
+
                 split = layout.split()
-                
+
                 col = split.column()
                 col.label(text="Fluid properties:")
                 col.prop(fluid, "stiffness", text="Stiffness")
                 col.prop(fluid, "linear_viscosity", text="Viscosity")
                 col.prop(fluid, "buoyancy", text="Buoancy", slider=True)
-                
+
                 col = split.column()
                 col.label(text="Advanced:")
 
                 sub = col.row()
                 sub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
                 sub.prop(fluid, "factor_repulsion", text="")
-                
+
                 sub = col.row()
                 sub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
                 sub.prop(fluid, "factor_stiff_viscosity", text="")
-                
+
                 sub = col.row()
                 sub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
                 sub.prop(fluid, "factor_radius", text="")
-                
+
                 sub = col.row()
                 sub.prop(fluid, "rest_density", slider=fluid.factor_density)
                 sub.prop(fluid, "factor_density", text="")
-                
+
                 split = layout.split()
 
                 col = split.column()
@@ -521,7 +521,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
                 sub.active = fluid.use_viscoelastic_springs
                 sub.prop(fluid, "yield_ratio", slider=True)
                 sub.prop(fluid, "plasticity", slider=True)
-                
+
                 col = split.column()
                 col.label(text="Advanced:")
                 sub = col.row()
@@ -532,7 +532,6 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
                 sub.active = fluid.use_viscoelastic_springs
                 sub.prop(fluid, "use_initial_rest_length")
                 sub.prop(fluid, "spring_frames", text="Frames")
-            
 
         elif part.physics_type == 'KEYED':
             split = layout.split()
@@ -772,7 +771,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(part, "use_render_emitter")
         col.prop(part, "use_parent_particles")
-        
+
         col = split.column()
         col.prop(part, "show_unborn")
         col.prop(part, "use_dead")
@@ -786,7 +785,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
         if part.render_type == 'LINE':
             col.prop(part, "line_length_tail")
             col.prop(part, "line_length_head")
-            
+
             split.prop(part, "use_velocity_length")
         elif part.render_type == 'PATH':
             col.prop(part, "use_strand_primitive")
@@ -831,7 +830,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
         elif part.render_type == 'GROUP':
             col.prop(part, "dupli_group")
             split = layout.split()
-            
+
             col = split.column()
             col.prop(part, "use_whole_group")
             sub = col.column()
@@ -914,6 +913,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
             row = layout.row(align=True)
             row.prop(part, "particle_size")
             row.prop(part, "size_random", slider=True)
+
 
 class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Display"

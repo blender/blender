@@ -556,44 +556,44 @@ class ConstraintButtonsPanel():
         elif con.pivot_type == 'GENERIC_6_DOF':
             layout.label(text="Limits:")
             split = layout.split()
-    
+
             col = split.column(align=True)
             col.prop(con, "use_limit_x", text="X")
             sub = col.column()
             sub.active = con.use_limit_x
             sub.prop(con, "limit_min_x", text="Min")
             sub.prop(con, "limit_max_x", text="Max")
-            
+
             col = split.column(align=True)
             col.prop(con, "use_limit_y", text="Y")
             sub = col.column()
             sub.active = con.use_limit_y
             sub.prop(con, "limit_min_y", text="Min")
             sub.prop(con, "limit_max_y", text="Max")
-            
+
             col = split.column(align=True)
             col.prop(con, "use_limit_z", text="Z")
             sub = col.column()
             sub.active = con.use_limit_z
             sub.prop(con, "limit_min_z", text="Min")
             sub.prop(con, "limit_max_z", text="Max")
-    
+
             split = layout.split()
-    
+
             col = split.column(align=True)
             col.prop(con, "use_angular_limit_x", text="Angle X")
             sub = col.column()
             sub.active = con.use_angular_limit_x
             sub.prop(con, "limit_angle_min_x", text="Min")
             sub.prop(con, "limit_angle_max_x", text="Max")
-    
+
             col = split.column(align=True)
             col.prop(con, "use_angular_limit_y", text="Angle Y")
             sub = col.column()
             sub.active = con.use_angular_limit_y
             sub.prop(con, "limit_angle_min_y", text="Min")
             sub.prop(con, "limit_angle_max_y", text="Max")
-    
+
             col = split.column(align=True)
             col.prop(con, "use_angular_limit_z", text="Angle Z")
             sub = col.column()
@@ -790,4 +790,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

@@ -853,8 +853,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
-    # _addons_cats = None
-    # _addons_sups = None
     _addons_fake_modules = {}
 
     @classmethod
@@ -874,27 +872,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         # collect the categories that can be filtered on
         addons = [(mod, addon_utils.module_bl_info(mod)) for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)]
-
-        # XXX. we need dynamic enums to properly support this.
-        """
-        cats = {info["category"] for mod, info in addons}
-        cats.discard("")
-
-        if USERPREF_PT_addons._addons_cats != cats:
-            bpy.types.WindowManager.addon_filter = EnumProperty(items=[(cat, cat, "") for cat in ["All", "Enabled", "Disabled"] + sorted(cats)], name="Category", description="Filter add-ons by category")
-            bpy.types.WindowManager.addon_search = StringProperty(name="Search", description="Search within the selected filter")
-            USERPREF_PT_addons._addons_cats = cats
-            
-            [('All', 'All', ''), ('Enabled', 'Enabled', ''), ('Disabled', 'Disabled', ''), ('3D View', '3D View', ''), ('Add Curve', 'Add Curve', ''), ('Add Mesh', 'Add Mesh', ''), ('Animation', 'Animation', ''), ('Development', 'Development', ''), ('Game Engine', 'Game Engine', ''), ('Import-Export', 'Import-Export', ''), ('Mesh', 'Mesh', ''), ('Object', 'Object', ''), ('Render', 'Render', ''), ('Rigging', 'Rigging', ''), ('System', 'System', '')]
-
-        sups_default = {'OFFICIAL', 'COMMUNITY'}
-        sups = sups_default | {info["support"] for mod, info in addons}
-        sups.discard("")
-
-        if USERPREF_PT_addons._addons_sups != sups:
-            bpy.types.WindowManager.addon_support = EnumProperty(items=[(sup, sup.title(), "") for  sup in reversed(sorted(sups))], name="Support", description="Display support level", default=sups_default, options={'ENUM_FLAG'})
-            USERPREF_PT_addons._addons_sups = sups
-        """
 
         split = layout.split(percentage=0.2)
         col = split.column()
@@ -1216,8 +1193,8 @@ def register():
                    ('Object', "Object", ""),
                    ('Render', "Render", ""),
                    ('Rigging', "Rigging", ""),
-                   ('System', "System", "") 
-                   ], 
+                   ('System', "System", "")
+                   ],
             name="Category",
             description="Filter add-ons by category",
             )
