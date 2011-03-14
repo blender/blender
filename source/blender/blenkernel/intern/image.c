@@ -850,9 +850,15 @@ int BKE_add_image_extension(char *string, int imtype)
 
 	if(extension) {
 		/* prefer this in many cases to avoid .png.tga, but in certain cases it breaks */
-		/* return BLI_replace_extension(string, FILE_MAX, extension); */
-		strcat(string, extension);
-		return TRUE;
+		/* remove any other known image extension */
+		if(BLI_testextensie_array(string, imb_ext_image)
+				  || (G.have_quicktime && BLI_testextensie_array(string, imb_ext_image_qt))) {
+			return BLI_replace_extension(string, FILE_MAX, extension);
+		} else {
+			strcat(string, extension);
+			return TRUE;
+		}
+		
 	}
 	else {
 		return FALSE;
