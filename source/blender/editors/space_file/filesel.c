@@ -257,7 +257,7 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 	}
 }
 
-static int is_inside(x,y, cols,rows)
+static int is_inside(int x, int y, int cols, int rows)
 {
 	return ( (x >= 0) && (x<cols) && (y>=0) && (y<rows) );
 }
