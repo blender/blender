@@ -77,7 +77,7 @@
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
-static Mesh *rna_Object_create_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
+static Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL;
@@ -435,7 +435,7 @@ void RNA_api_object(StructRNA *srna)
 	};
 
 	/* mesh */
-	func= RNA_def_function(srna, "create_mesh", "rna_Object_create_mesh");
+	func= RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh datablock with modifiers applied.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers.");
@@ -448,13 +448,13 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 
 	/* duplis */
-	func= RNA_def_function(srna, "create_dupli_list", "rna_Object_create_duplilist");
+	func= RNA_def_function(srna, "dupli_list_create", "rna_Object_create_duplilist");
 	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object, needs to be freed manually with free_dupli_list to restore the objects real matrix and layers.");
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate duplis.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
-	func= RNA_def_function(srna, "free_dupli_list", "rna_Object_free_duplilist");
+	func= RNA_def_function(srna, "dupli_list_clear", "rna_Object_free_duplilist");
 	RNA_def_function_ui_description(func, "Free the list of dupli objects.");
 
 	/* Armature */

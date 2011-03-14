@@ -91,14 +91,14 @@ def create_derived_objects(scene, ob):
         return False, None
 
     if ob.dupli_type != 'NONE':
-        ob.create_dupli_list(scene)
+        ob.dupli_list_create(scene)
         return True, [(dob.object, dob.matrix) for dob in ob.dupli_list]
     else:
         return False, [(ob, ob.matrix_world)]
 
 
 def free_derived_objects(ob):
-    ob.free_dupli_list()
+    ob.dupli_list_clear()
 
 
 def unpack_list(list_of_tuples):
