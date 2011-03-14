@@ -4786,17 +4786,15 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 		/* marker transform, not especially nice but we may want to move markers
 		 * at the same time as keyframes in the dope sheet. */
+		// FIXME: this only does scene markers, but fails when action editor is displaying local markers only...
 		if ((saction->flag & SACTION_MARKERS_MOVE) && (cancelled == 0)) {
-			/* cant use , TFM_TIME_EXTEND
-			 * for some reason EXTEND is changed into TRANSLATE, so use frame_side instead */
-
-			if(t->mode == TFM_TIME_TRANSLATE) {
-				if(t->frame_side == 'B')
-					scene_marker_tfm_translate(t->scene, floor(t->vec[0] + 0.5f), SELECT);
-				else if (ELEM(t->frame_side, 'L', 'R'))
+			if (t->mode == TFM_TIME_TRANSLATE) {
+				if (ELEM(t->frame_side, 'L', 'R')) /* TFM_TIME_EXTEND */
 					scene_marker_tfm_extend(t->scene, floor(t->vec[0] + 0.5f), SELECT, t->scene->r.cfra, t->frame_side);
+				else /* TFM_TIME_TRANSLATE */
+					scene_marker_tfm_translate(t->scene, floor(t->vec[0] + 0.5f), SELECT);
 			}
-			else if(t->mode == TFM_TIME_SCALE) {
+			else if (t->mode == TFM_TIME_SCALE) {
 				scene_marker_tfm_scale(t->scene, t->vec[0], SELECT);
 			}
 		}
