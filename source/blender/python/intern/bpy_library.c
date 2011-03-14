@@ -155,7 +155,19 @@ PyTypeObject bpy_lib_Type = {
 	NULL
 };
 
-
+static char bpy_lib_load_doc[] =
+".. method:: load(filepath, link=False, relative=False)\n"
+"\n"
+"   Returns a context manager which exposes 2 library objects on entering.\n"
+"   Each object has attributes matching bpy.data which are lists of strings to be linked.\n"
+"\n"
+"   :arg filepath: The path to a blend file.\n"
+"   :type filepath: string\n"
+"   :arg link: When False reference to the original file is lost.\n"
+"   :type link: bool\n"
+"   :arg relative: When True the path is stored relative to the open blend file.\n"
+"   :type relative: bool\n"
+;
 static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"filepath", "link", "relative", NULL};
@@ -168,8 +180,8 @@ static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *
 
 	ret= PyObject_New(BPy_Library, &bpy_lib_Type);
 
-	BLI_strncpy(ret->relpath, filename, sizeof(BPy_Library));
-	BLI_strncpy(ret->abspath, filename, sizeof(BPy_Library));
+	BLI_strncpy(ret->relpath, filename, sizeof(ret->relpath));
+	BLI_strncpy(ret->abspath, filename, sizeof(ret->abspath));
 	BLI_path_abs(ret->abspath, G.main->name);
 
 	ret->blo_handle= NULL;
@@ -342,7 +354,7 @@ static PyObject *bpy_lib_dir(BPy_Library *self)
 
 int bpy_lib_init(PyObject *mod_par)
 {
-	static PyMethodDef load_meth= {"load", (PyCFunction)bpy_lib_load, METH_STATIC|METH_VARARGS|METH_KEYWORDS};
+	static PyMethodDef load_meth= {"load", (PyCFunction)bpy_lib_load, METH_STATIC|METH_VARARGS|METH_KEYWORDS, bpy_lib_load_doc};
 	PyModule_AddObject(mod_par, "_library_load", PyCFunction_New(&load_meth, NULL));
 
 	if(PyType_Ready(&bpy_lib_Type) < 0)

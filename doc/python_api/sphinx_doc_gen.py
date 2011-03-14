@@ -279,6 +279,13 @@ def py_c_func2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_
         fw(ident + ".. function:: %s()\n\n" % identifier)
         fw(ident + "   " + undocumented_message(module_name, type_name, identifier))
 
+    if is_class:
+        write_example_ref(ident + "   ", fw, module_name + "." + type_name + "." + identifier)
+    else:
+        write_example_ref(ident + "   ", fw, module_name + "." + identifier)
+
+    fw("\n")
+
 
 def pyprop2sphinx(ident, fw, identifier, py_prop):
     '''
@@ -356,7 +363,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             elif value_type in (types.BuiltinMethodType, types.BuiltinFunctionType):  # both the same at the moment but to be future proof
                 # note: can't get args from these, so dump the string as is
                 # this means any module used like this must have fully formatted docstrings.
-                py_c_func2sphinx("", fw, module_name, module, attribute, value, is_class=False)
+                py_c_func2sphinx("", fw, module_name, None, attribute, value, is_class=False)
             elif value_type == type:
                 classes.append((attribute, value))
             elif value_type in (bool, int, float, str, tuple):
@@ -654,6 +661,12 @@ def pyrna2sphinx(BASEPATH):
         for identifier, py_func in py_funcs:
             pyfunc2sphinx("   ", fw, identifier, py_func, is_class=True)
         del py_funcs, py_func
+
+        py_funcs = struct.get_py_c_functions()
+        py_func = None
+
+        for identifier, py_func in py_funcs:
+            py_c_func2sphinx("   ", fw, "bpy.types", struct.identifier, identifier, py_func, is_class=True)
 
         lines = []
 
