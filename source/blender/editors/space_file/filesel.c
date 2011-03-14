@@ -257,24 +257,66 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 	}
 }
 
-int ED_fileselect_layout_offset(FileLayout* layout, int clamp_bounds, int x, int y)
+static int is_inside(x,y, cols,rows)
+{
+	return ( (x >= 0) && (x<cols) && (y>=0) && (y<rows) );
+}
+
+FileSelection ED_fileselect_layout_offset_rect(FileLayout* layout, const rcti* rect)
+{
+	int colmin, colmax, rowmin, rowmax;
+	FileSelection sel;
+	sel.first = sel.last = -1;
+
+	if (layout == NULL)
+		return sel;
+	
+	colmin = (rect->xmin)/(layout->tile_w + 2*layout->tile_border_x);
+	rowmin = (rect->ymin)/(layout->tile_h + 2*layout->tile_border_y);
+	colmax = (rect->xmax)/(layout->tile_w + 2*layout->tile_border_x);
+	rowmax = (rect->ymax)/(layout->tile_h + 2*layout->tile_border_y);
+	
+	if ( is_inside(colmin, rowmin, layout->columns, layout->rows) || 
+		 is_inside(colmax, rowmax, layout->columns, layout->rows) ) {
+		CLAMP(colmin, 0, layout->columns-1);
+		CLAMP(rowmin, 0, layout->rows-1);
+		CLAMP(colmax, 0, layout->columns-1);
+		CLAMP(rowmax, 0, layout->rows-1);
+	} 
+	
+	if  ( (colmin > layout->columns-1) || (rowmin > layout->rows-1) ) {
+		sel.first = -1;
+	} else {
+		if (layout->flag & FILE_LAYOUT_HOR) 
+			sel.first = layout->rows*colmin + rowmin;
+		else
+			sel.first = colmin + layout->columns*rowmin;
+	}
+	if  ( (colmax > layout->columns-1) || (rowmax > layout->rows-1) ) {
+		sel.last = -1;
+	} else {
+		if (layout->flag & FILE_LAYOUT_HOR) 
+			sel.last = layout->rows*colmax + rowmax;
+		else
+			sel.last = colmax + layout->columns*rowmax;
+	}
+
+	return sel;
+}
+
+int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 {
 	int offsetx, offsety;
 	int active_file;
 
 	if (layout == NULL)
-		return 0;
+		return -1;
 	
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	
-	if (clamp_bounds) {
-		CLAMP(offsetx, 0, layout->columns-1);
-		CLAMP(offsety, 0, layout->rows-1);
-	} else {
-		if (offsetx > layout->columns-1) return -1 ;
-		if (offsety > layout->rows-1) return -1 ;
-	}
+	if (offsetx > layout->columns-1) return -1 ;
+	if (offsety > layout->rows-1) return -1 ;
 	
 	if (layout->flag & FILE_LAYOUT_HOR) 
 		active_file = layout->rows*offsetx + offsety;

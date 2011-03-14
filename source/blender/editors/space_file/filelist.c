@@ -926,6 +926,23 @@ void filelist_swapselect(struct FileList* filelist)
 	}
 }
 
+void filelist_select(struct FileList* filelist, FileSelection* sel, short select, unsigned int flag)
+{
+	/* select all valid files between first and last indicated */
+	if ( (sel->first >= 0) && (sel->first < filelist->numfiltered) && (sel->last >= 0) && (sel->last < filelist->numfiltered) ) {
+		int current_file;
+		for (current_file = sel->first; current_file <= sel->last; current_file++) {	
+			struct direntry* file = filelist_file(filelist, current_file);
+			
+			if (select) 
+				file->flags |= flag;
+			else
+				file->flags &= ~flag;
+		}
+	}
+}
+
+
 void filelist_sort(struct FileList* filelist, short sort)
 {
 	switch(sort) {
