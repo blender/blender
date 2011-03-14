@@ -4035,7 +4035,8 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 
 				for(i=0; i<=part->hair_step; i++){
 					hcfra=100.0f*(float)i/(float)psys->part->hair_step;
-					BKE_animsys_evaluate_animdata(&part->id, part->adt, hcfra, ADT_RECALC_ANIM);
+					if((part->flag & PART_HAIR_REGROW)==0)
+						BKE_animsys_evaluate_animdata(&part->id, part->adt, hcfra, ADT_RECALC_ANIM);
 					system_step(&sim, hcfra);
 					psys->cfra = hcfra;
 					psys->recalc = 0;
