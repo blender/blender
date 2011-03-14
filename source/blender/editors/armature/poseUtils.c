@@ -211,7 +211,7 @@ void poseAnim_mapping_reset (ListBase *pfLinks)
 }
 
 /* perform autokeyframing after changes were made + confirmed */
-void poseAnim_mapping_autoKeyframe (bContext *C, Scene *scene, Object *ob, ListBase *pfLinks, float cframe)
+void poseAnim_mapping_autoKeyframe (bContext *C, Scene *scene, Object *ob, ListBase *pfLinks, float UNUSED(cframe))
 {
 	/* insert keyframes as necessary if autokeyframing */
 	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
