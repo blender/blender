@@ -2455,7 +2455,7 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 {
 	
 	if(v3d->transp==0) {	// not when we draw the transparent pass
-		glLineWidth(2.0);
+		glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0);
 		glDepthMask(0);
 		
 		/* if transparent, we cannot draw the edges for solid select... edges have no material info.
