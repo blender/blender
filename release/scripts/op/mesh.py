@@ -129,7 +129,7 @@ class MeshMirrorUV(bpy.types.Operator):
         # find mirror faces
         mirror_fm = {}
         for i, f in enumerate(faces):
-            verts = f.vertices[:]
+            verts = list(f.vertices)
             verts.sort()
             verts = tuple(verts)
             mirror_fm[verts] = i
