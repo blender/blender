@@ -4912,6 +4912,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 							else if(GS(snode->id->name)==ID_TE)
 								snode->nodetree= ((Tex *)snode->id)->nodetree;
 						}
+						
+						snode->linkdrag.first = snode->linkdrag.last = NULL;
 					}
 				}
 				sa= sa->next;
