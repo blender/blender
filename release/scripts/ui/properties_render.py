@@ -193,6 +193,7 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
+        col.prop(freestyle, "raycasting_algorithm", text="Raycasting Algorithm")
         col.prop(freestyle, "mode", text="Control Mode")
 
         if freestyle.mode == "EDITOR":

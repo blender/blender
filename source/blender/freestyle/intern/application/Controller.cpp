@@ -40,7 +40,6 @@
 #include "../scene_graph/VertexRep.h"
 #include "../winged_edge/WXEdgeBuilder.h"
 #include "../scene_graph/ScenePrettyPrinter.h"
-#include "../winged_edge/WFillGrid.h"
 
 #include "../view_map/ViewMapTesselator.h"
 #include "../stroke/StrokeTesselator.h"
@@ -59,6 +58,8 @@
 #include "../blender_interface/BlenderFileLoader.h"
 #include "../blender_interface/BlenderStrokeRenderer.h"
 #include "../blender_interface/BlenderStyleModule.h"
+
+#include "DNA_freestyle_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,8 +106,8 @@ Controller::Controller()
 
   _Canvas = 0;
 
-  _VisibilityAlgo = ViewMapBuilder::ray_casting;
-  //_VisibilityAlgo = ViewMapBuilder::ray_casting_fast;
+  _VisibilityAlgo = ViewMapBuilder::ray_casting_adaptive_traditional;
+  //_VisibilityAlgo = ViewMapBuilder::ray_casting;
 
   _Canvas = new AppCanvas;
 
@@ -250,29 +251,6 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
 
   printf("WEdge building   : %lf\n", _Chrono.stop());
 
- _Chrono.start();
-
-  _Grid.clear();
-  Vec3r size;
-  for(unsigned int i=0; i<3; i++)
-    {
-      size[i] = fabs(_RootNode->bbox().getMax()[i] - _RootNode->bbox().getMin()[i]);
-      size[i] += size[i]/10.0; // let make the grid 1/10 bigger to avoid numerical errors while computing triangles/cells intersections
-      if(size[i]==0){
-          cout << "Warning: the bbox size is 0 in dimension "<<i<<endl;
-      }
-    }
-  _Grid.configure(Vec3r(_RootNode->bbox().getMin() - size / 20.0), size,
-		  _SceneNumFaces);
-
-  // Fill in the grid:
-  WFillGrid fillGridRenderer(&_Grid, _winged_edge);
-  fillGridRenderer.fillGrid();
-
-  printf("Grid building    : %lf\n", _Chrono.stop());
-  
-  // DEBUG
-  _Grid.displayDebug();
   //  
   // _pView->setDebug(_DebugNode);
 
@@ -482,6 +460,7 @@ void Controller::ComputeViewMap()
   edgeDetector.enableRidgesAndValleysFlag(_ComputeRidges);
   edgeDetector.enableSuggestiveContours(_ComputeSuggestive);
   edgeDetector.enableMaterialBoundaries(_ComputeMaterialBoundaries);
+  edgeDetector.enableFaceSmoothness(_EnableFaceSmoothness);
   edgeDetector.setCreaseAngle(_creaseAngle);
   edgeDetector.setSphereRadius(_sphereRadius);
   edgeDetector.setSuggestiveContourKrDerivativeEpsilon(_suggestiveContourKrDerivativeEpsilon);
@@ -509,7 +488,7 @@ void Controller::ComputeViewMap()
 	cout << "\n===  Building the view map  ===" << endl;
   _Chrono.start();
   // Build View Map
-  _ViewMap = vmBuilder.BuildViewMap(*_winged_edge, _VisibilityAlgo, _EPSILON);
+  _ViewMap = vmBuilder.BuildViewMap(*_winged_edge, _VisibilityAlgo, _EPSILON, _RootNode->bbox(), _SceneNumFaces);
   _ViewMap->setScene3dBBox(_RootNode->bbox());
   
 	printf("ViewMap edge count : %i\n", _ViewMap->viewedges_size() );
@@ -649,6 +628,57 @@ void Controller::toggleVisibilityAlgo()
   }
 }
 
+void Controller::setVisibilityAlgo(int algo)
+{
+	switch (algo) {
+		case FREESTYLE_ALGO_REGULAR:
+			_VisibilityAlgo = ViewMapBuilder::ray_casting;
+			break;
+		case FREESTYLE_ALGO_FAST:
+			_VisibilityAlgo = ViewMapBuilder::ray_casting_fast;
+			break;
+		case FREESTYLE_ALGO_VERYFAST:
+			_VisibilityAlgo = ViewMapBuilder::ray_casting_very_fast;
+			break;
+		case FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL:
+			_VisibilityAlgo = ViewMapBuilder::ray_casting_culled_adaptive_traditional;
+			break;
+		case FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL:
+			_VisibilityAlgo = ViewMapBuilder::ray_casting_adaptive_traditional;
+			break;
+		case FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE:
+			_VisibilityAlgo = ViewMapBuilder::ray_casting_culled_adaptive_cumulative;
+			break;
+		case FREESTYLE_ALGO_ADAPTIVE_CUMULATIVE:
+			_VisibilityAlgo = ViewMapBuilder::ray_casting_adaptive_cumulative;
+			break;
+	}
+}
+
+int Controller::getVisibilityAlgo()
+{
+	switch (_VisibilityAlgo) {
+		case ViewMapBuilder::ray_casting:
+			return FREESTYLE_ALGO_REGULAR;
+		case ViewMapBuilder::ray_casting_fast:
+			return FREESTYLE_ALGO_FAST;
+		case ViewMapBuilder::ray_casting_very_fast:
+			return FREESTYLE_ALGO_VERYFAST;
+		case ViewMapBuilder::ray_casting_culled_adaptive_traditional:
+			return FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL;
+		case ViewMapBuilder::ray_casting_adaptive_traditional:
+			return FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL;
+		case ViewMapBuilder::ray_casting_culled_adaptive_cumulative:
+			return FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE;
+		case ViewMapBuilder::ray_casting_adaptive_cumulative:
+			return FREESTYLE_ALGO_ADAPTIVE_CUMULATIVE;
+	}
+
+	// ray_casting_adaptive_traditional is the most exact replacement
+	// for legacy code
+	return FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL;
+}
+
 void Controller::setQuantitativeInvisibility(bool iBool)
 {
   _EnableQI = iBool;
@@ -657,6 +687,16 @@ void Controller::setQuantitativeInvisibility(bool iBool)
 bool Controller::getQuantitativeInvisibility() const
 {
   return _EnableQI;
+}
+
+void Controller::setFaceSmoothness(bool iBool)
+{
+  _EnableFaceSmoothness = iBool;
+}
+
+bool Controller::getFaceSmoothness() const
+{
+  return _EnableFaceSmoothness;
 }
 
 void Controller::setComputeRidgesAndValleysFlag(bool iBool){

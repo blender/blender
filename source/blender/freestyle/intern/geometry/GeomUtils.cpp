@@ -370,9 +370,9 @@ namespace GeomUtils {
   // Ithaca, New York
   // wbt@graphics.cornell.edu
 
-  bool intersectRayTriangle(Vec3r& orig, Vec3r& dir,
-			    Vec3r& v0, Vec3r& v1, Vec3r& v2,
-			    real& t, real& u, real& v, real epsilon) {
+  bool intersectRayTriangle(const Vec3r& orig, const Vec3r& dir,
+			    const Vec3r& v0, const Vec3r& v1, const Vec3r& v2,
+			    real& t, real& u, real& v, const real epsilon) {
     Vec3r edge1, edge2, tvec, pvec, qvec;
     real det, inv_det;
 
@@ -424,10 +424,10 @@ namespace GeomUtils {
   }
 
   // Intersection between plane and ray, adapted from Graphics Gems, Didier Badouel
-  intersection_test intersectRayPlane(Vec3r& orig, Vec3r& dir,
-				      Vec3r& norm, real d,
+  intersection_test intersectRayPlane(const Vec3r& orig, const Vec3r& dir,
+				      const Vec3r& norm, const real d,
 				      real& t,
-				      real epsilon) { 
+				      const real epsilon) { 
     real denom = norm * dir;
 
     if(fabs(denom) <= epsilon) { // plane and ray are parallel
@@ -484,10 +484,10 @@ namespace GeomUtils {
         }
 
   // Checks whether 3D points p lies inside or outside of the triangle ABC
-  bool includePointTriangle(Vec3r& P,
-			    Vec3r& A,
-			    Vec3r& B,
-			    Vec3r& C) {
+  bool includePointTriangle(const Vec3r& P,
+			    const Vec3r& A,
+			    const Vec3r& B,
+			    const Vec3r& C) {
     Vec3r AB(B - A);
     Vec3r BC(C - B);
     Vec3r CA(A - C);

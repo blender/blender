@@ -178,6 +178,9 @@ WOEdge::WOEdge(WOEdge& iBrother)
     userdata = NULL;
     iBrother.userdata = new oedgedata;
     ((oedgedata*)(iBrother.userdata))->_copy = this;
+
+    _vec = iBrother._vec;
+    _angle = iBrother._angle;
 }
 
 WOEdge * WOEdge::duplicate()
@@ -680,8 +683,27 @@ WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial, WFace
     }
 
   }
+
+  vector<WVertex*>::iterator it;
+
+  // compute the face normal (v1v2 ^ v1v3)
+  WVertex *v1, *v2, *v3;
+  it = iVertexList.begin();
+  v1 = *it;
+  it++;
+  v2 = *it;
+  it++;
+  v3 = *it;
+
+  Vec3r vector1(v2->GetVertex()-v1->GetVertex());
+  Vec3r vector2(v3->GetVertex()-v1->GetVertex());
+
+  Vec3r normal(vector1 ^ vector2);
+  normal.normalize();
+  face->setNormal(normal);
+
   // vertex pointers used to build each edge
-  vector<WVertex*>::iterator va, vb, it;
+  vector<WVertex*>::iterator va, vb;
 
   va = iVertexList.begin();
   vb = va;
@@ -710,25 +732,9 @@ WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial, WFace
       edge->setId(_EdgeList.size());
       AddEdge(edge);
       // compute the mean edge value:
-      _meanEdgeSize += edge->GetaOEdge()->getVec3r().norm();
+      _meanEdgeSize += edge->GetaOEdge()->GetVec().norm();
     }
   }
-  
-  // compute the face normal (v1v2 ^ v1v3)
-  WVertex *v1, *v2, *v3;
-  it = iVertexList.begin();
-  v1 = *it;
-  it++;
-  v2 = *it;
-  it++;
-  v3 = *it;
-
-  Vec3r vector1(v2->GetVertex()-v1->GetVertex());
-  Vec3r vector2(v3->GetVertex()-v1->GetVertex());
-
-  Vec3r normal(vector1 ^ vector2);
-  normal.normalize();
-  face->setNormal(normal);
 
   // Add the face to the shape's faces list:
   face->setId(id);

@@ -90,6 +90,19 @@ template <class T> inline void ogf_swap(T& x, T& y) {
         int i_[3] ;
     } ;
     
+    inline void NormalCycle::accumulate_dihedral_angle(
+        const Vec3r& edge, const double beta, double neigh_area
+    ) {
+        double s = beta * neigh_area / edge.norm();
+
+        M_[0] += s * edge.x() * edge.x() ;
+        M_[1] += s * edge.x() * edge.y() ;
+        M_[2] += s * edge.y() * edge.y() ;
+        M_[3] += s * edge.x() * edge.z() ;
+        M_[4] += s * edge.y() * edge.z() ;
+        M_[5] += s * edge.z() * edge.z() ;        
+    }
+    
 //_________________________________________________________
 
 }

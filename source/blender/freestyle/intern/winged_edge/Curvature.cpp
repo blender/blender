@@ -20,6 +20,7 @@
 #include <cstdlib> // for malloc and free
 #include "Curvature.h"
 #include <math.h>
+#include <assert.h>
 #include "WEdge.h"
 #include "../system/FreestyleConfig.h"
 #include "../geometry/normal_cycle.h"
@@ -43,7 +44,7 @@ static bool triangle_obtuse (WVertex*, WFace * f)
   bool b=false;
   for (int i=0; i<3; i++)
     b = b ||
-      ((f->getEdgeList()[i]->getVec3r() * f->getEdgeList()[(i+1)%3]->getVec3r()) < 0);
+      ((f->getEdgeList()[i]->GetVec() * f->getEdgeList()[(i+1)%3]->GetVec()) < 0);
   return b;
 }
 
@@ -378,7 +379,7 @@ void gts_vertex_principal_directions (WVertex * v,
      */
 
     /* find the vector from v along edge e */
-    vec_edge=Vec3r(-1*e->getVec3r());
+    vec_edge=Vec3r(-1*e->GetVec());
 
     ve2 = vec_edge.squareNorm();
     vdotN = vec_edge * N;
@@ -534,11 +535,11 @@ void gts_vertex_principal_directions (WVertex * v,
 }
 
 namespace OGF {
-    static real angle(WOEdge* h) {
-        Vec3r e(h->GetbVertex()->GetVertex()-h->GetaVertex()->GetVertex()) ;
-        Vec3r n1 = h->GetbFace()->GetNormal();
-        Vec3r n2 = h->GetaFace()->GetNormal();
-        real sine = (n1 ^ n2) * e / e.norm() ;
+    inline static real angle(WOEdge * h) {
+        const Vec3r& n1 = h->GetbFace()->GetNormal();
+        const Vec3r& n2 = h->GetaFace()->GetNormal();
+        const Vec3r v = h->getVec3r();
+        real sine = (n1 ^ n2) * v / v.norm() ;
         if(sine >= 1.0) {
             return M_PI / 2.0 ;
         }
@@ -606,13 +607,12 @@ namespace OGF {
             WVertex::incoming_edge_iterator woeitend = v->incoming_edges_end();
             for(;woeit!=woeitend; ++woeit){
               WOEdge *h = *woeit;
-              Vec3r V(h->GetaVertex()->GetVertex()-h->GetbVertex()->GetVertex()) ;
-              if((v == start) || V * (P - O) > 0.0) {
+              if((v == start) || h->GetVec() * (O - P) > 0.0) {
+                    Vec3r V(-1 * h->GetVec());
                     bool isect = sphere_clip_vector(O, radius, P, V) ;
-                    if(h->GetOwner()->GetNumberOfOEdges() == 2) {
-                        real beta = angle(h) ;
-                        nc.accumulate_dihedral_angle(V, beta) ;
-                    }
+                    assert (h->GetOwner()->GetNumberOfOEdges() == 2); // Because otherwise v->isBoundary() would be true
+                    nc.accumulate_dihedral_angle(V, h->GetAngle()) ;
+
                     if(!isect) {
                         WVertex* w = h->GetaVertex() ;
                         if(vertices.find(w) == vertices.end()) {
@@ -637,11 +637,9 @@ namespace OGF {
         WVertex::incoming_edge_iterator woeitend = start->incoming_edges_end();
         for(;woeit!=woeitend; ++woeit){
           WOEdge *h = (*woeit)->twin();
-          Vec3r hvec(h->GetbVertex()->GetVertex()-h->GetaVertex()->GetVertex());
-          nc.accumulate_dihedral_angle(hvec, angle(h)) ;
+          nc.accumulate_dihedral_angle(h->GetVec(), h->GetAngle()) ;
           WOEdge *hprev = h->getPrevOnFace();
-          Vec3r hprevvec(hprev->GetbVertex()->GetVertex()-hprev->GetaVertex()->GetVertex());
-          nc.accumulate_dihedral_angle(hprevvec, angle(hprev)) ;
+          nc.accumulate_dihedral_angle(hprev->GetVec(), hprev->GetAngle()) ;
         }
     }
 

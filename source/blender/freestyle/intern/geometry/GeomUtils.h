@@ -121,20 +121,20 @@ namespace GeomUtils {
    * adapted from Tomas Möller and Ben Trumbore code.
    */
   LIB_GEOMETRY_EXPORT
-  bool intersectRayTriangle(Vec3r& orig, Vec3r& dir,
-			    Vec3r& v0, Vec3r& v1, Vec3r& v2,
+  bool intersectRayTriangle(const Vec3r& orig, const Vec3r& dir,
+			    const Vec3r& v0, const Vec3r& v1, const Vec3r& v2,
 			    real& t,                   // I = orig + t * dir
                 real& u, real& v,          // I = (1-u-v)*v0+u*v1+v*v2
-			    real epsilon = M_EPSILON); // the epsilon to use
+			    const real epsilon = M_EPSILON); // the epsilon to use
 
   /*! Intersection between plane and ray
    * adapted from Graphics Gems, Didier Badouel 
    */
   LIB_GEOMETRY_EXPORT
-  intersection_test intersectRayPlane(Vec3r& orig, Vec3r& dir,   // ray origin and direction
-				      Vec3r& norm, real d,       // plane's normal and offset (plane = { P / P.N + d = 0 })
+  intersection_test intersectRayPlane(const Vec3r& orig, const Vec3r& dir,   // ray origin and direction
+				      const Vec3r& norm, const real d,       // plane's normal and offset (plane = { P / P.N + d = 0 })
 				      real& t,                   // I = orig + t * dir
-				      real epsilon = M_EPSILON); // the epsilon to use
+				      const real epsilon = M_EPSILON); // the epsilon to use
 
  /*! Intersection Ray-Bounding box (axis aligned).
   *  Adapted from Williams et al, "An Efficient Robust Ray-Box Intersection Algorithm", 
@@ -151,10 +151,10 @@ namespace GeomUtils {
 
   /*! Checks whether 3D point P lies inside or outside of the triangle ABC */
   LIB_GEOMETRY_EXPORT
-  bool includePointTriangle(Vec3r& P,
-			    Vec3r& A,
-			    Vec3r& B,
-			    Vec3r& C);
+  bool includePointTriangle(const Vec3r& P,
+			    const Vec3r& A,
+			    const Vec3r& B,
+			    const Vec3r& C);
 
   LIB_GEOMETRY_EXPORT
   void transformVertex(const Vec3r& vert,

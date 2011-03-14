@@ -46,7 +46,8 @@
 # include "../scene_graph/TriangleRep.h"
 # include "../winged_edge/WEdge.h"
 # include "ViewEdgeXBuilder.h"
-
+# include "../system/TimeUtils.h"
+# include "GridDensityProvider.h"
 
 using namespace Geometry;
 
@@ -64,6 +65,7 @@ private:
   bool _EnableQI;
   double _epsilon;
 
+
   // tmp values:
   int _currentId;
   int _currentFId;
@@ -79,7 +81,11 @@ public:
   typedef enum {
     ray_casting,
     ray_casting_fast,
-    ray_casting_very_fast
+    ray_casting_very_fast,
+    ray_casting_culled_adaptive_traditional,
+    ray_casting_adaptive_traditional,
+    ray_casting_culled_adaptive_cumulative,
+    ray_casting_adaptive_cumulative
   } visibility_algo;
 
   inline ViewMapBuilder()
@@ -100,6 +106,10 @@ public:
       _pViewEdgeBuilder = 0;
     }
   }
+
+  /* Build Grid for ray casting */
+  /*! Build non-culled Grid in camera space for ray casting */
+  void BuildGrid(WingedEdge& we, const BBox<Vec3r>& bbox, unsigned int sceneNumFaces);
 
   /*! Compute Shapes from a WingedEdge containing a list of WShapes */
   void computeInitialViewEdges(WingedEdge&);
@@ -145,7 +155,9 @@ public:
    *      The root group node containing the WEdge structured scene 
    */
 
-  ViewMap* BuildViewMap(WingedEdge& we, visibility_algo iAlgo = ray_casting, real epsilon=1e-06) ;
+  ViewMap* BuildViewMap(WingedEdge& we, visibility_algo iAlgo, real epsilon, 
+      const BBox<Vec3r>& bbox, unsigned int sceneNumFaces);
+  void CullViewEdges(ViewMap *ioViewMap, real viewProscenium[4], real occluderProscenium[4], bool extensiveFEdgeSearch = true);
   /*! computes the intersection between all 2D
    *  feature edges of the scene.
    *    ioViewMap
@@ -164,7 +176,8 @@ public:
    *    iGrid
    *      For the Ray Casting algorithm. 
    */
-  void ComputeEdgesVisibility(ViewMap *ioViewMap, visibility_algo iAlgo= ray_casting, Grid* iGrid = 0, real epsilon=1e-6);
+  void ComputeEdgesVisibility(ViewMap *ioViewMap, WingedEdge& we, const BBox<Vec3r>& bbox, unsigned int sceneNumFaces, 
+      visibility_algo iAlgo= ray_casting, real epsilon=1e-6);
 
   void setGrid(Grid *iGrid) {_Grid = iGrid;}
   
@@ -192,9 +205,14 @@ protected:
    *      The visibility corresponding to each edge of ioScene is set is this
    *      edge.
    */
-  void ComputeRayCastingVisibility(ViewMap *ioViewMap, Grid *iGrid, real epsilon=1e-6);
-  void ComputeFastRayCastingVisibility(ViewMap *ioViewMap, Grid *iGrid, real epsilon=1e-6);
-  void ComputeVeryFastRayCastingVisibility(ViewMap *ioViewMap, Grid *iGrid, real epsilon=1e-6);
+  void ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilon=1e-6);
+  void ComputeFastRayCastingVisibility(ViewMap *ioViewMap, real epsilon=1e-6);
+  void ComputeVeryFastRayCastingVisibility(ViewMap *ioViewMap, real epsilon=1e-6);
+
+void ComputeCumulativeVisibility(ViewMap *ioViewMap, WingedEdge& we, 
+	const BBox<Vec3r>& bbox, real epsilon, bool cull, GridDensityProviderFactory& factory);
+void ComputeDetailedVisibility(ViewMap *ioViewMap, WingedEdge& we, 
+	const BBox<Vec3r>& bbox, real epsilon, bool cull, GridDensityProviderFactory& factory);
 
   /*! Compute the visibility for the FEdge fe.
    *  The occluders are added to fe occluders list.

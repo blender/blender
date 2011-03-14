@@ -404,6 +404,8 @@ protected:
 
   bool _isSmooth;
 
+  bool _isInImage;
+
 public:
   /*! A field that can be used by the user to store any data.
    *  This field must be reseted afterwards using ResetUserData().
@@ -421,6 +423,7 @@ public:
     //_hasVisibilityPoint=false;
     _occludeeEmpty = true;
     _isSmooth = false;
+	_isInImage = true;
   }
   /*! Builds an FEdge going from vA to vB. */  
   inline FEdge(SVertex *vA, SVertex *vB) {
@@ -434,6 +437,7 @@ public:
     //_hasVisibilityPoint=false;
     _occludeeEmpty = true;
     _isSmooth = false;
+	_isInImage = true;
   }
   /*! Copy constructor */
   inline FEdge(FEdge& iBrother)
@@ -451,6 +455,7 @@ public:
     _aFace = iBrother._aFace;
     _occludeeEmpty = iBrother._occludeeEmpty;
     _isSmooth = iBrother._isSmooth;
+	_isInImage = iBrother._isInImage;
     iBrother.userdata = this;
     userdata = 0;
   }
@@ -498,6 +503,7 @@ public:
   inline bool getOccludeeEmpty() { return _occludeeEmpty; }
   /*! Returns true if this FEdge is a smooth FEdge. */
   inline bool isSmooth() const {return _isSmooth;}
+  inline bool isInImage () const { return _isInImage; }
 
   /* modifiers */
   /*! Sets the first SVertex. */
@@ -525,6 +531,7 @@ public:
    *  true for Smooth, false for Sharp.
    */
   inline void setSmooth(bool iFlag) {_isSmooth = iFlag;}
+  inline void setIsInImage (bool iFlag) { _isInImage = iFlag; }
   
   /* checks whether two FEdge have a common vertex.
    *  Returns a pointer on the common vertex if it exists, 

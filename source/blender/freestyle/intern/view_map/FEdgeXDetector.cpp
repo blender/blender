@@ -114,16 +114,18 @@ void FEdgeXDetector::preProcessShape(WXShape* iWShape) {
     preProcessFace((WXFace*)(*f));
   }
 
-  vector<WVertex*>& wvertices = iWShape->getVertexList();
-  for(vector<WVertex*>::iterator wv=wvertices.begin(), wvend=wvertices.end(); 
-  wv!=wvend;
-  ++wv){
-    // Compute curvatures
-    WXVertex * wxv = dynamic_cast<WXVertex*>(*wv);
-    computeCurvatures(wxv);
+  if(_faceSmoothness || _computeRidgesAndValleys || _computeSuggestiveContours ) {
+    vector<WVertex*>& wvertices = iWShape->getVertexList();
+    for(vector<WVertex*>::iterator wv=wvertices.begin(), wvend=wvertices.end(); 
+    wv!=wvend;
+    ++wv){
+      // Compute curvatures
+      WXVertex * wxv = dynamic_cast<WXVertex*>(*wv);
+      computeCurvatures(wxv);
+    }
+    _meanK1 /= (real)(_nPoints);
+    _meanKr /= (real)(_nPoints);
   }
-  _meanK1 /= (real)(_nPoints);
-  _meanKr /= (real)(_nPoints);
 }
 
 void FEdgeXDetector::preProcessFace(WXFace *iFace){
@@ -603,7 +605,7 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace) {
   WXVertex *v, *opposite_vertex_a, *opposite_vertex_b;
   WXFace *wxf;
   WOEdge *opposite_edge;
-  Vec3r opposite_edge_vec, normal_vec, radial_normal_vec, er_vec, v_vec, inter, inter1, inter2, tmp_vec;
+  Vec3r normal_vec, radial_normal_vec, er_vec, v_vec, inter, inter1, inter2, tmp_vec;
   GeomUtils::intersection_test res;
   real kr(0), kr1(0), kr2(0), t;
 
@@ -629,12 +631,11 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace) {
       
       opposite_vertex_a = (WXVertex*)opposite_edge->GetaVertex();
       opposite_vertex_b = (WXVertex*)opposite_edge->GetbVertex();
-      opposite_edge_vec = opposite_vertex_b->GetVertex() - opposite_vertex_a->GetVertex();
       normal_vec = wxf->GetVertexNormal(v); // FIXME: what about e1 ^ e2 ?
       radial_normal_vec = er_vec ^ normal_vec;
 
       // Test wether the radial plan intersects with the edge at the opposite of v.
-      res = GeomUtils::intersectRayPlane(opposite_vertex_a->GetVertex(), opposite_edge_vec,
+      res = GeomUtils::intersectRayPlane(opposite_vertex_a->GetVertex(), opposite_edge->GetVec(),
 					 radial_normal_vec, -(v_vec * radial_normal_vec),
 					 t,
 					 1.e-06);
@@ -642,7 +643,7 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace) {
       // If there is an intersection, compute the value of the derivative ath that point.
       if ((res == GeomUtils::DO_INTERSECT) && (t >= 0) && (t <= 1)) {
 	kr = t * opposite_vertex_a->curvatures()->Kr + (1 - t) * opposite_vertex_b->curvatures()->Kr;
-	inter = opposite_vertex_a->GetVertex() + t * opposite_edge_vec;
+	inter = opposite_vertex_a->GetVertex() + t * opposite_edge->GetVec();
 	tmp_vec = inter - v->GetVertex();
 	// Is it kr1 or kr2?
 	if (tmp_vec * er_vec > 0) {

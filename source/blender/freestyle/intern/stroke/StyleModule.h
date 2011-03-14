@@ -71,12 +71,14 @@ public:
 
     if( interpret() ) {
       cerr << "Error: interpretation failed" << endl;
+      Operators::reset();
       return NULL;
 	}
 	
     Operators::StrokesContainer* strokes_set = Operators::getStrokesSet();
     if( strokes_set->empty() ) {
-   		cerr << "Error: strokes set empty" << endl;
+   	  cerr << "Error: strokes set empty" << endl;
+      Operators::reset();
       return NULL;
 	}
 
@@ -85,6 +87,8 @@ public:
 	 it != strokes_set->end();
 	 ++it)
       sl->AddStroke(*it);
+
+    Operators::reset();
 
    return sl;
   }

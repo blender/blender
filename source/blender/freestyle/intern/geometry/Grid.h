@@ -253,6 +253,10 @@ public:
 	       const Vec3r& end,
 	       OccludersSet& occluders,
 	       unsigned timestamp);
+  // Prepares to cast ray without generating OccludersSet
+  void initAcceleratedRay(const Vec3r& orig,
+	       const Vec3r& end,
+	       unsigned timestamp);
 
   /*! Casts an infinite ray (still finishing at the end of the grid) from a starting point and in a given direction.
    *  Returns the list of occluders contained
@@ -262,6 +266,10 @@ public:
   void castInfiniteRay(const Vec3r& orig,
 		       const Vec3r& dir,
 		       OccludersSet& occluders,
+		       unsigned timestamp);
+  // Prepares to cast ray without generating OccludersSet.
+  bool initAcceleratedInfiniteRay(const Vec3r& orig,
+		       const Vec3r& dir,
 		       unsigned timestamp);
 
   /*! Casts an infinite ray (still finishing at the end of the grid) from a starting point and in a given direction.
@@ -302,6 +310,10 @@ public:
   }
   inline Vec3r getCellSize() const {
     return _cell_size;
+  }
+//ARB profiling only:
+  inline OccludersSet* getOccluders() {
+    return &_occluders;
   }
 
   void displayDebug() {
@@ -358,6 +370,23 @@ public:
 
   //OccludersSet _ray_occluders; // Set storing the occluders contained in the cells traversed by a ray
   OccludersSet _occluders;     // List of all occluders inserted in the grid
+};
+
+//
+// Class to walk through occluders in grid without building intermediate data structures
+//
+///////////////////////////////////////////////////////////////////////////////
+
+class VirtualOccludersSet {
+	public:
+		VirtualOccludersSet(Grid& _grid) : grid (_grid) {};
+		Polygon3r* begin();
+		Polygon3r* next();
+		Polygon3r* next(bool stopOnNewCell);
+	private:
+		Polygon3r* firstOccluderFromNextCell();
+		Grid& grid;
+		OccludersSet::iterator it, end;
 };
 
 #endif // GRID_H

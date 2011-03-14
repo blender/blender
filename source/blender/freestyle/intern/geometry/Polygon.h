@@ -175,7 +175,6 @@ class Polygon
 class Polygon3r : public Polygon<Vec3r>
 {
  public:
-
   inline Polygon3r() : Polygon<Vec3r>() {}
 
   inline Polygon3r(const vector<Vec3r>& vertices,
@@ -183,7 +182,7 @@ class Polygon3r : public Polygon<Vec3r>
     setNormal(normal);
   }
 
-  inline Polygon3r(const Polygon3r& poly) : Polygon<Vec3r>(poly) {}
+  inline Polygon3r(const Polygon3r& poly) : Polygon<Vec3r>(poly), _normal(poly._normal) {}
   
   virtual ~Polygon3r() {}
 
@@ -191,13 +190,13 @@ class Polygon3r : public Polygon<Vec3r>
     _normal = normal;
   }
 
-  Vec3r getNormal() const {
+  inline Vec3r getNormal() const {
     return _normal;
   }
 
   /*! Check whether the Polygon intersects with the ray or not */
-  inline bool rayIntersect(Vec3r& orig, Vec3r& dir,
-			   real& t, real& u, real& v, real epsilon = M_EPSILON) {
+  inline bool rayIntersect(const Vec3r& orig, const Vec3r& dir,
+			   real& t, real& u, real& v, real epsilon = M_EPSILON) const {
     //    if (_vertices.size() < 3)
     //      return false;
     return GeomUtils::intersectRayTriangle(orig, dir,

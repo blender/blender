@@ -82,22 +82,6 @@ namespace OGF {
 
     }
 
-    void NormalCycle::accumulate_dihedral_angle(
-        const Vec3r& edge, double beta, double neigh_area
-    ) {
-        Vec3r e = edge ;
-        e.normalize() ;
-
-        double s = edge.norm() * beta * neigh_area ;
-
-        M_[0] += s * e.x() * e.x() ;
-        M_[1] += s * e.x() * e.y() ;
-        M_[2] += s * e.y() * e.y() ;
-        M_[3] += s * e.x() * e.z() ;
-        M_[4] += s * e.y() * e.z() ;
-        M_[5] += s * e.z() * e.z() ;        
-    }
-    
 //_________________________________________________________
 
 }

@@ -58,6 +58,7 @@ public:
 	_computeMaterialBoundaries = true;
     _sphereRadius = 1.0;
     _orthographicProjection = false;
+    _faceSmoothness = false;
     _changes = false;
     _kr_derivative_epsilon = 0.0;
 	_creaseAngle = 0.7; // angle of 134.43 degrees
@@ -135,6 +136,12 @@ public:
   inline void enableRidgesAndValleysFlag(bool b) {_computeRidgesAndValleys = b;}
   inline void enableSuggestiveContours(bool b) {_computeSuggestiveContours = b;}
   inline void enableMaterialBoundaries(bool b) {_computeMaterialBoundaries = b;}
+  inline void enableFaceSmoothness(bool b) {
+    if (b != _faceSmoothness) {
+	  _faceSmoothness = b;
+      _changes=true;
+    }
+  }
   /*! Sets the radius of the geodesic sphere around each vertex (for the curvature computation)
    *  \param r
    *    The radius of the sphere expressed as a ratio of the mean edge size
@@ -167,6 +174,7 @@ protected:
   bool _computeRidgesAndValleys;
   bool _computeSuggestiveContours;
   bool _computeMaterialBoundaries;
+  bool _faceSmoothness;
   real _sphereRadius; // expressed as a ratio of the mean edge size
   real _creaseAngle; // [-1, 1] compared with the inner product of face normals
   bool _changes;

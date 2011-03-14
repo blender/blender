@@ -32,6 +32,7 @@
 
 # include <vector>
 # include <iterator>
+# include <math.h>
 # include "../system/FreestyleConfig.h"
 # include "../geometry/Geom.h"
 # include "../scene_graph/FrsMaterial.h"
@@ -295,7 +296,11 @@ protected:
   WFace   *_pbFace;     // when following the edge, face on the left
   WEdge *_pOwner;       // Edge 
 
+  Vec3r _vec;
+  real _angle;
+
 public:
+
   void *userdata;
   inline WOEdge()
   {
@@ -326,6 +331,9 @@ public:
   inline WFace *GetaFace() {return _paFace;}
   inline WFace *GetbFace() {return _pbFace;}
   inline WEdge *GetOwner() {return _pOwner;}
+
+  inline const Vec3r& GetVec() { return _vec; }
+  inline const real GetAngle() { return _angle; }
   
 
   /*! modifiers */
@@ -333,10 +341,11 @@ public:
   //  inline void SetbCWEdge(WOEdge *pe) {_pbCWEdge = pe;}
   //  inline void SetaCCWEdge(WOEdge *pe) {_paCCWEdge = pe;}
   //  inline void SetbCCCWEdge(WOEdge *pe) {_pbCCWEdge = pe;}
-  inline void setaVertex(WVertex *pv) {_paVertex = pv;}
-  inline void setbVertex(WVertex *pv) {_pbVertex = pv;}
-  inline void setaFace(WFace *pf) {_paFace = pf;}
-  inline void setbFace(WFace *pf) {_pbFace = pf;}
+  inline void setVecAndAngle();
+  inline void setaVertex(WVertex *pv) {_paVertex = pv; setVecAndAngle(); }
+  inline void setbVertex(WVertex *pv) {_pbVertex = pv; setVecAndAngle(); }
+  inline void setaFace(WFace *pf) {_paFace = pf; setVecAndAngle(); }
+  inline void setbFace(WFace *pf) {_pbFace = pf; setVecAndAngle(); }
   inline void setOwner(WEdge *pe) {_pOwner = pe;}
 
   /*! Retrieves the list of edges in CW order */
@@ -953,6 +962,24 @@ void WOEdge::RetrieveCWOrderedEdges(vector<WEdge*>& oEdges)
         currentOEdge = nextOEdge->GetOwner()->GetOtherOEdge(nextOEdge);
         
       } while((currentOEdge != NULL) && (currentOEdge->GetOwner() != GetOwner()));
+}
+
+inline void WOEdge::setVecAndAngle() {
+  if ( _paVertex != NULL && _pbVertex != NULL ) {
+    _vec = _pbVertex->GetVertex() - _paVertex->GetVertex();
+    if ( _paFace != NULL && _pbFace != NULL ) {
+      real sine = (_pbFace->GetNormal() ^ _paFace->GetNormal()) * _vec / _vec.norm() ;
+      if(sine >= 1.0) {
+          _angle = M_PI / 2.0 ;
+          return;
+      }
+      if(sine <= -1.0) {
+          _angle = -M_PI / 2.0 ;
+          return;
+      }
+      _angle = ::asin(sine);
+    }
+  }
 }
 
 #endif // WEDGE_H

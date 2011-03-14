@@ -318,6 +318,10 @@ Polygon3r* Grid::castRayToFindFirstIntersection(const Vec3r& orig,
     }
     firstIntersectionGridVisitor visitor(orig,dir,_cell_size);
     castRayInternal(visitor);
+	// ARB: This doesn't work, because occluders are unordered within any cell
+	// visitor.occluder() will be an occluder, but we have no guarantee
+	// it will be the *first* occluder.
+	// I assume that is the reason this code is not actually used for FindOccludee.
     occluder = visitor.occluder();
     t = visitor.t_;
     u = visitor.u_;

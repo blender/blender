@@ -210,17 +210,6 @@ public:
     {
       delete (*i);
     }
-    _Intersections.clear();
-
-    for(typename vector<Segment<T,Point>* >::iterator ie=_IntersectedEdges.begin(),ieend=_IntersectedEdges.end();
-    ie!=ieend;
-    ie++)
-    {
-      delete (*ie);
-    }
-    _IntersectedEdges.clear();
-
-    _set.clear();
   }
 
   

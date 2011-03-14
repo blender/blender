@@ -234,12 +234,15 @@ extern "C" {
 		}
 		
 		// set parameters
+		controller->setFaceSmoothness( (config->flags & FREESTYLE_FACE_SMOOTHNESS_FLAG) ? true : false);
 		controller->setCreaseAngle( config->crease_angle );
 		controller->setSphereRadius( config->sphere_radius );
 		controller->setSuggestiveContourKrDerivativeEpsilon( config->dkr_epsilon ) ;
+		controller->setVisibilityAlgo( config->raycasting_algorithm );
 
 		cout << "Crease angle : " << controller->getCreaseAngle() << endl;
 		cout << "Sphere radius : " << controller->getSphereRadius() << endl;
+		cout << "Face smoothness : " << (controller->getFaceSmoothness() ? "enabled" : "disabled") << endl;
 		cout << "Redges and valleys : " << (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled") << endl;
 		cout << "Suggestive contours : " << (controller->getComputeSuggestiveContoursFlag() ? "enabled" : "disabled") << endl;
 		cout << "Suggestive contour Kr derivative epsilon : " << controller->getSuggestiveContourKrDerivativeEpsilon() << endl;
@@ -406,6 +409,8 @@ extern "C" {
 		config->crease_angle = 134.43f;
 
 		config->linesets.first = config->linesets.last = NULL;
+
+		config->raycasting_algorithm = FREESTYLE_ALGO_REGULAR;
 	}
 	
 	void FRS_free_freestyle_config( SceneRenderLayer* srl )

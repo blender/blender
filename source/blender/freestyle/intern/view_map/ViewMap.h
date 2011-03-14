@@ -801,6 +801,7 @@ private:
   // and _aShape is the one on its right // NON GERE PAR LE COPY CONSTRUCTEUR
   int _qi;
   vector<ViewShape*> _Occluders;
+  bool _isInImage;
 
   // tmp
   Id * _splittingId;
@@ -821,6 +822,7 @@ public:
     _aShape=0;
     userdata = 0;
     _splittingId = 0;
+    _isInImage = true;
   }
   inline ViewEdge(ViewVertex* iA, ViewVertex *iB)
   {
@@ -834,6 +836,7 @@ public:
     _qi = 0;
     userdata = 0;
     _splittingId = 0;
+    _isInImage = true;
   }
   inline ViewEdge(ViewVertex* iA, ViewVertex *iB, FEdge *iFEdgeA)
   {
@@ -847,6 +850,7 @@ public:
     _qi = 0;
     userdata = 0;
     _splittingId = 0;
+    _isInImage = true;
   }
   inline ViewEdge(ViewVertex* iA, ViewVertex *iB, FEdge *iFEdgeA, FEdge *iFEdgeB, ViewShape *iShape)
   {
@@ -860,6 +864,7 @@ public:
     _qi = 0;
     userdata = 0;
     _splittingId = 0;
+    _isInImage = true;
     UpdateFEdges(); // tells every FEdge between iFEdgeA and iFEdgeB that this is theit ViewEdge
   }
 
@@ -879,6 +884,7 @@ public:
     _aShape = iBrother._aShape;
     _qi = iBrother._qi;
     _splittingId = 0;
+    _isInImage = iBrother._isInImage;
     iBrother.userdata = this;
     userdata = 0;
   }
@@ -937,6 +943,7 @@ public:
   inline const ViewShape * bShape() const {return _Shape;}
   inline vector<ViewShape*>& occluders() {return _Occluders;}
   inline Id * splittingId() {return _splittingId;}
+  inline bool isInImage() const { return _isInImage; }
   
   /* modifiers */
   /*! Sets the first ViewVertex of the ViewEdge. */
@@ -966,6 +973,7 @@ public:
   inline void setChainingTimeStamp(unsigned ts) {_ChainingTimeStamp = ts;}
   inline void AddOccluder(ViewShape *iShape) {_Occluders.push_back(iShape);}
   inline void setSplittingId(Id * id) {_splittingId = id;}
+  inline void setIsInImage(bool iFlag) { _isInImage = iFlag; }
 
   /* stroke interface definition */
   inline bool intersect_2d_area(const Vec2r& iMin, const Vec2r& iMax) const

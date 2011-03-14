@@ -74,6 +74,16 @@ struct FreestyleLineStyle;
 #define FREESTYLE_QI_HIDDEN   2
 #define FREESTYLE_QI_RANGE    3
 
+/* FreestyleConfig::raycasting_algorithm */
+// Defines should be replaced with ViewMapBuilder::visibility_algo
+#define FREESTYLE_ALGO_REGULAR					1
+#define FREESTYLE_ALGO_FAST					2
+#define FREESTYLE_ALGO_VERYFAST					3
+#define FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL		4
+#define FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL			5
+#define FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE		6
+#define FREESTYLE_ALGO_ADAPTIVE_CUMULATIVE			7
+
 typedef struct FreestyleLineSet {
 	struct FreestyleLineSet *next, *prev;
 
@@ -104,12 +114,12 @@ typedef struct FreestyleConfig {
 	ListBase modules;
 	
 	int mode; /* scripting, editor */
+	int raycasting_algorithm; /* regular, fast, very fast, etc. */
 	int flags; /* suggestive contours, ridges/valleys, material boundaries */
 	float sphere_radius;
 	float dkr_epsilon;
 	float crease_angle;
-	int pad;
-	
+
 	ListBase linesets;
 
 } FreestyleConfig;

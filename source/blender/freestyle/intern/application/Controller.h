@@ -34,7 +34,6 @@
 # include <string>
 //# include "ConfigIO.h"
 # include "../geometry/FastGrid.h"
-# include "../geometry/HashGrid.h"
 # include "../system/TimeUtils.h"
 # include "../system/ProgressBar.h"
 # include "../system/Precision.h"
@@ -115,9 +114,13 @@ public:
   //Grid& grid() {return _Grid;}
   
   void toggleVisibilityAlgo();
+  void setVisibilityAlgo(int algo);
+  int getVisibilityAlgo();
 
   void setQuantitativeInvisibility(bool iBool); // if true, we compute quantitativeInvisibility
   bool getQuantitativeInvisibility() const;
+  void setFaceSmoothness(bool iBool);
+  bool getFaceSmoothness() const;
 
   void setComputeRidgesAndValleysFlag(bool b);
   bool getComputeRidgesAndValleysFlag() const ;
@@ -228,6 +231,7 @@ private:
   string	_browser_cmd;
 
   bool _EnableQI;
+  bool _EnableFaceSmoothness;
   bool _ComputeRidges;
   bool _ComputeSuggestive;
   bool _ComputeMaterialBoundaries;
