@@ -53,7 +53,7 @@ ifeq ($(OS), Linux)
 	NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 endif
 ifeq ($(OS), Darwin)
-	NPROCS:=$(shell system_profiler SPHardwareDataType | awk '/Total Number Of Cores/ {print $5}{next;};')
+	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3)
 	# make install not support on mac yet 
 	DEFAULT_TARGET=
 endif
