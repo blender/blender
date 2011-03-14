@@ -3141,13 +3141,16 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
 		if(ret == NULL) {
 			/* since this is least common case, handle it last */
 			PointerRNA r_ptr;
-			PyObject *error_type, *error_value, *error_traceback;
-			PyErr_Fetch(&error_type, &error_value, &error_traceback);
-			PyErr_Clear();
-
 			if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
-				PyObject *cls= pyrna_struct_Subtype(&r_ptr); /* borrows */
+				PyObject *cls;
+
+				PyObject *error_type, *error_value, *error_traceback;
+				PyErr_Fetch(&error_type, &error_value, &error_traceback);
+				PyErr_Clear();
+
+				cls= pyrna_struct_Subtype(&r_ptr); /* borrows */
 				ret= PyObject_GenericGetAttr(cls, pyname);
+				/* restore the original error */
 				if(ret == NULL) {
 					PyErr_Restore(error_type, error_value, error_traceback);
 				}
