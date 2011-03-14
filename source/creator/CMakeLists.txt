@@ -529,6 +529,7 @@ if(WITH_INSTALL)
 
 	elseif(APPLE)
 		# TODO, APPLE needs a 'make install' target like win32 and unix
+		# also update GNUmakefile to run make install if you do this
 
 		set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
 		set(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
