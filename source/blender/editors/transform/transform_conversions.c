@@ -4707,10 +4707,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 			if(t->mode == TFM_SEQ_SLIDE) {
 				if(t->frame_side == 'B')
-					scene_marker_tfm_translate(t->scene, floor(t->values[0] + 0.5f), SELECT);
+					ED_markers_post_apply_transform(&t->scene->markers, t->scene, TFM_TIME_TRANSLATE, t->vec[0], t->frame_side);
 			}
 			else if (ELEM(t->frame_side, 'L', 'R')) {
-				scene_marker_tfm_extend(t->scene, floor(t->vec[0] + 0.5f), SELECT, t->scene->r.cfra, t->frame_side);
+				ED_markers_post_apply_transform(&t->scene->markers, t->scene, TFM_TIME_EXTEND, t->vec[0], t->frame_side);
 			}
 		}
 
@@ -4783,22 +4783,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				posttrans_action_clean(&ac, (bAction *)ac.data);
 			}
 		}
-
-		/* marker transform, not especially nice but we may want to move markers
-		 * at the same time as keyframes in the dope sheet. */
-		// FIXME: this only does scene markers, but fails when action editor is displaying local markers only...
-		if ((saction->flag & SACTION_MARKERS_MOVE) && (cancelled == 0)) {
-			if (t->mode == TFM_TIME_TRANSLATE) {
-				if (ELEM(t->frame_side, 'L', 'R')) /* TFM_TIME_EXTEND */
-					scene_marker_tfm_extend(t->scene, floor(t->vec[0] + 0.5f), SELECT, t->scene->r.cfra, t->frame_side);
-				else /* TFM_TIME_TRANSLATE */
-					scene_marker_tfm_translate(t->scene, floor(t->vec[0] + 0.5f), SELECT);
-			}
-			else if (t->mode == TFM_TIME_SCALE) {
-				scene_marker_tfm_scale(t->scene, t->vec[0], SELECT);
-			}
-		}
-		
 		else if (ac.datatype == ANIMCONT_GPENCIL) {
 			/* remove duplicate frames and also make sure points are in order! */
 				/* 3 cases here for curve cleanups:
@@ -4817,6 +4801,21 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					if (ID_REAL_USERS(gpd) > 1)
 						posttrans_gpd_clean(gpd);
 				}
+			}
+		}
+		
+		/* marker transform, not especially nice but we may want to move markers
+		 * at the same time as keyframes in the dope sheet. 
+		 */
+		if ((saction->flag & SACTION_MARKERS_MOVE) && (cancelled == 0)) {
+			if (t->mode == TFM_TIME_TRANSLATE) {
+				if (ELEM(t->frame_side, 'L', 'R')) /* TFM_TIME_EXTEND */
+					ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);
+				else /* TFM_TIME_TRANSLATE */
+					ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);
+			}
+			else if (t->mode == TFM_TIME_SCALE) {
+				ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);
 			}
 		}
 		

@@ -68,6 +68,7 @@
 #include "ED_util.h"
 #include "ED_numinput.h"
 #include "ED_object.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 
 /* ************* Marker API **************** */
@@ -110,6 +111,57 @@ ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
 		return context_get_markers(ac->scene, ac->sa);
 	else
 		return NULL;
+}
+
+/* --------------------------------- */
+
+/* Apply some transformation to markers after the fact 
+ * < markers: list of markers to affect - this may or may not be the scene markers list, so don't assume anything
+ * < scene: current scene (for getting current frame)
+ * < mode: (TfmMode) transform mode that this transform is for
+ * < value: from the transform code, this is t->vec[0] (which is delta transform for grab/extend, and scale factor for scale)
+ * < side: (B/L/R) for 'extend' functionality, which side of current frame to use
+ */
+int ED_markers_post_apply_transform (ListBase *markers, Scene *scene, int mode, float value, char side)
+{
+	TimeMarker *marker;
+	float cfra = (float)CFRA;
+	int changed = 0;
+	
+	/* sanity check */
+	if (markers == NULL)
+		return changed;
+	
+	/* affect selected markers - it's unlikely that we will want to affect all in this way? */
+	for (marker = markers->first; marker; marker = marker->next) {
+		if (marker->flag & SELECT) {
+			switch (mode) {
+				case TFM_TIME_TRANSLATE:
+				case TFM_TIME_EXTEND:
+				{
+					/* apply delta if marker is on the right side of the current frame */
+					if ((side=='B') ||
+						(side=='L' && marker->frame < cfra) || 
+					    (side=='R' && marker->frame >= cfra))
+					{
+						marker->frame += (int)floorf(value + 0.5f);
+						changed++;
+					}
+				}
+					break;
+					
+				case TFM_TIME_SCALE:
+				{	
+					/* rescale the distance between the marker and the current frame */
+					marker->frame= cfra + (int)floorf(((float)(marker->frame - cfra) * value) + 0.5f);
+					changed++;
+				}
+					break;
+			}
+		}
+	}
+	
+	return changed;
 }
 
 /* --------------------------------- */

@@ -211,7 +211,7 @@ void poseAnim_mapping_reset (ListBase *pfLinks)
 }
 
 /* perform autokeyframing after changes were made + confirmed */
-void poseAnim_mapping_autoKeyframe (bContext *C, Scene *scene, Object *ob, ListBase *pfLinks, float UNUSED(cframe))
+void poseAnim_mapping_autoKeyframe (bContext *C, Scene *scene, Object *ob, ListBase *pfLinks, float cframe)
 {
 	/* insert keyframes as necessary if autokeyframing */
 	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
@@ -235,7 +235,7 @@ void poseAnim_mapping_autoKeyframe (bContext *C, Scene *scene, Object *ob, ListB
 		}
 		
 		/* insert keyframes for all relevant bones in one go */
-		ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cframe);
 		BLI_freelistN(&dsources);
 	}
 }
