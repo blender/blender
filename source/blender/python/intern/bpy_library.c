@@ -60,10 +60,12 @@ typedef struct {
 static PyObject *bpy_lib_load(PyObject *self, PyObject *args, PyObject *kwds);
 static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *args);
 static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *args);
+static PyObject *bpy_lib_dir(BPy_Library *self);
 
 static PyMethodDef bpy_lib_methods[] = {
 	{"__enter__", (PyCFunction)bpy_lib_enter, METH_NOARGS},
 	{"__exit__", (PyCFunction)bpy_lib_exit, METH_VARARGS},
+	{"__dir__", (PyCFunction)bpy_lib_dir, METH_NOARGS},
 	{NULL}           /* sentinel */
 };
 
@@ -306,6 +308,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 		/* exception raised above, XXX, this leaks some memory */
 		BLO_blendhandle_close(self->blo_handle);
 		self->blo_handle= NULL;
+		flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
 		return NULL;
 	}
 	else {
@@ -330,6 +333,12 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 		Py_RETURN_NONE;
 	}
 }
+
+static PyObject *bpy_lib_dir(BPy_Library *self)
+{
+	return PyDict_Keys(self->dict);
+}
+
 
 int bpy_lib_init(PyObject *mod_par)
 {
