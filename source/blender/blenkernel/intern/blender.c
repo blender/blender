@@ -353,20 +353,20 @@ void BKE_userdef_free(void)
 int BKE_read_file(bContext *C, const char *dir, ReportList *reports) 
 {
 	BlendFileData *bfd;
-	int retval= 1;
+	int retval= BKE_READ_FILE_OK;
 
 	if(strstr(dir, BLENDER_STARTUP_FILE)==NULL) /* dont print user-pref loading */
 		printf("read blend: %s\n", dir);
 
 	bfd= BLO_read_from_file(dir, reports);
 	if (bfd) {
-		if(bfd->user) retval= 2;
+		if(bfd->user) retval= BKE_READ_FILE_OK_USERPREFS;
 		
 		if(0==handle_subversion_warning(bfd->main)) {
 			free_main(bfd->main);
 			MEM_freeN(bfd);
 			bfd= NULL;
-			retval= 0;
+			retval= BKE_READ_FILE_FAIL;
 		}
 		else
 			setup_app_data(C, bfd, dir); // frees BFD
@@ -374,7 +374,7 @@ int BKE_read_file(bContext *C, const char *dir, ReportList *reports)
 	else
 		BKE_reports_prependf(reports, "Loading %s failed: ", dir);
 		
-	return (bfd?retval:0);
+	return (bfd?retval:BKE_READ_FILE_FAIL);
 }
 
 int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, ReportList *reports)
