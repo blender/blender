@@ -1373,16 +1373,6 @@ void FONT_OT_text_insert(wmOperatorType *ot)
 
 
 /*********************** textbox add operator *************************/
-static int textbox_poll(bContext *C)
-{
-	Object *ob = CTX_data_active_object(C);
-	
-	if (!ED_operator_object_active_editable(C) ) return 0;
-	if (ob->type != OB_FONT) return 0;
-	
-	return 1;
-}
-
 static int textbox_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_active_object(C);
@@ -1409,8 +1399,8 @@ void FONT_OT_textbox_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= textbox_add_exec;
-	ot->poll= textbox_poll;
-	
+	ot->poll= ED_operator_object_active_editable_font;
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1452,7 +1442,7 @@ void FONT_OT_textbox_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= textbox_remove_exec;
-	ot->poll= textbox_poll;
+	ot->poll= ED_operator_object_active_editable_font;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

@@ -154,6 +154,7 @@ int		ED_operator_console_active(struct bContext *C);
 int		ED_operator_object_active(struct bContext *C);
 int		ED_operator_object_active_editable(struct bContext *C);
 int		ED_operator_object_active_editable_mesh(struct bContext *C);
+int		ED_operator_object_active_editable_font(struct bContext *C);
 int		ED_operator_editmesh(struct bContext *C);
 int		ED_operator_editmesh_view3d(struct bContext *C);
 int		ED_operator_editmesh_region_view3d(struct bContext *C);
