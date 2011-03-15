@@ -102,7 +102,7 @@ PyTypeObject bpy_lib_Type = {
 	NULL,                       /* reprfunc tp_str; */
 
 	/* will only use these if this is a subtype of a py class */
-	PyObject_GenericGetAttr,	/* getattrofunc tp_getattro; */
+	NULL /*PyObject_GenericGetAttr is assigned later */,	/* getattrofunc tp_getattro; */
 	NULL,						/* setattrofunc tp_setattro; */
 
 	/* Functions to access object as input/output buffer */
@@ -356,6 +356,9 @@ int bpy_lib_init(PyObject *mod_par)
 {
 	static PyMethodDef load_meth= {"load", (PyCFunction)bpy_lib_load, METH_STATIC|METH_VARARGS|METH_KEYWORDS, bpy_lib_load_doc};
 	PyModule_AddObject(mod_par, "_library_load", PyCFunction_New(&load_meth, NULL));
+
+	/* some compilers dont like accessing this directly, delay assignment */
+	bpy_lib_Type.tp_getattro= PyObject_GenericGetAttr;
 
 	if(PyType_Ready(&bpy_lib_Type) < 0)
 		return -1;
