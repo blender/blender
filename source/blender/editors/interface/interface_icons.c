@@ -514,18 +514,14 @@ static void init_internal_icons(void)
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
 	
 	if ((btheme!=NULL) && btheme->tui.iconfile[0]) {
-		char *datadir= BLI_get_folder(BLENDER_DATAFILES, NULL);
-		if (datadir) {
-			BLI_make_file_string("/", iconfilestr, datadir, btheme->tui.iconfile);
-			
-			if (BLI_exists(iconfilestr)) {
-				bbuf = IMB_loadiffname(iconfilestr, IB_rect);
-				if(bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H) {
-					if (G.f & G_DEBUG)
-						printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
-					IMB_freeImBuf(bbuf);
-					bbuf= NULL;
-				}
+		char *icondir= BLI_get_folder(BLENDER_DATAFILES, "icons");
+		if (icondir) {
+			BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
+			bbuf = IMB_loadiffname(iconfilestr, IB_rect); /* if the image is missing bbuf will just be NULL */
+			if(bbuf && (bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H)) {
+				printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
+				IMB_freeImBuf(bbuf);
+				bbuf= NULL;
 			}
 		}
 	}
@@ -597,31 +593,23 @@ static void init_internal_icons(void)
 static void init_iconfile_list(struct ListBase *list)
 {
 	IconFile *ifile;
-	ImBuf *bbuf= NULL;
 	struct direntry *dir;
 	int restoredir = 1; /* restore to current directory */
 	int totfile, i, index=1;
-	int ifilex, ifiley;
-	char icondirstr[FILE_MAX];
-	char iconfilestr[FILE_MAX+16]; /* allow 256 chars for file+dir */
+	const char *icondir;
 	char olddir[FILE_MAX];
-	char *datadir= NULL;
 
 	list->first = list->last = NULL;
-	datadir = BLI_get_folder(BLENDER_DATAFILES, NULL);
+	icondir = BLI_get_folder(BLENDER_DATAFILES, "icons");
 
-	if (!datadir) return;
-
-	BLI_make_file_string("/", icondirstr, datadir, "");
-	
-	if(BLI_exists(icondirstr)==0)
+	if(icondir==NULL)
 		return;
 	
 	/* since BLI_getdir changes the current working directory, restore it 
 	   back to old value afterwards */
 	if(!BLI_getwdN(olddir, sizeof(olddir))) 
 		restoredir = 0;
-	totfile = BLI_getdir(icondirstr, &dir);
+	totfile = BLI_getdir(icondir, &dir);
 	if (restoredir && !chdir(olddir)) {} /* fix warning about checking return value */
 
 	for(i=0; i<totfile; i++) {
@@ -629,16 +617,17 @@ static void init_iconfile_list(struct ListBase *list)
 			char *filename = dir[i].relname;
 			
 			if(BLI_testextensie(filename, ".png")) {
-
+				/* loading all icons on file start is overkill & slows startup
+				 * its possible they change size after blender load anyway. */
+#if 0
+				int ifilex, ifiley;
+				char iconfilestr[FILE_MAX+16]; /* allow 256 chars for file+dir */
+				ImBuf *bbuf= NULL;
 				/* check to see if the image is the right size, continue if not */
 				/* copying strings here should go ok, assuming that we never get back
 				   a complete path to file longer than 256 chars */
-				sprintf(iconfilestr, "%s/%s", icondirstr, filename);
-				if(BLI_exists(iconfilestr))
-					bbuf= IMB_loadiffname(iconfilestr, IB_rect);
-				else
-					bbuf= NULL;
-
+				BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, filename);
+				bbuf= IMB_loadiffname(iconfilestr, IB_rect);
 
 				if(bbuf) {
 					ifilex = bbuf->x;
@@ -650,8 +639,11 @@ static void init_iconfile_list(struct ListBase *list)
 				}
 				
 				/* bad size or failed to load */
-				if ((ifilex != ICON_IMAGE_W) || (ifiley != ICON_IMAGE_H))
+				if ((ifilex != ICON_IMAGE_W) || (ifiley != ICON_IMAGE_H)) {
+					printf("icon '%s' is wrong size %dx%d\n", iconfilestr, ifilex, ifiley);
 					continue;
+				}
+#endif			/* removed */
 
 				/* found a potential icon file, so make an entry for it in the cache list */
 				ifile = MEM_callocN(sizeof(IconFile), "IconFile");
