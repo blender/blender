@@ -176,7 +176,9 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, bpy.types.Panel):
             mesh = context.active_object.data
             col = layout.column(align=True)
             col.prop(mesh, "use_mirror_x")
-            col.prop(mesh, "use_mirror_topology")
+            sub = col.column()
+            sub.active = ob.data.use_mirror_x
+            sub.prop(mesh, "use_mirror_topology")
 
             ts = context.tool_settings
 
