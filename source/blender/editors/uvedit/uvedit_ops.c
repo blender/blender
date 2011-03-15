@@ -1460,7 +1460,13 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	int a, i, select = 1, selectmode, sticky, sync, hitv[4], nvert;
 	int flush = 0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
 	float limit[2], *hituv[4], penalty[2];
-	
+
+	/* notice 'limit' is the same no matter the zoom level, since this is like
+	 * remove doubles and could annoying if it joined points when zoomed out.
+	 * 'penalty' is in screen pixel space otherwise zooming in on a uv-vert and
+	 * shift-selecting can consider an adjacent point close enough to add to
+	 * the selection rather then de-selecting the closest. */
+
 	uvedit_pixel_to_float(sima, limit, 0.05f);
 	uvedit_pixel_to_float(sima, penalty, 5.0f);
 
