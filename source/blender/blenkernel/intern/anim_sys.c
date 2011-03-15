@@ -562,7 +562,7 @@ static void drivers_path_rename_fix (ID *owner_id, const char *prefix, char *old
 				DRIVER_TARGETS_USED_LOOPER(dvar) 
 				{
 					/* rename RNA path */
-					if (dtar->rna_path)
+					if (dtar->rna_path && dtar->id)
 						dtar->rna_path= rna_path_rename_fix(dtar->id, prefix, oldKey, newKey, dtar->rna_path, verify_paths);
 					
 					/* also fix the bone-name (if applicable) */
