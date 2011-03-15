@@ -283,6 +283,7 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 	
 	/* clear or remove stuff from old */
 	snoden->nodetree= NULL;
+	snoden->linkdrag.first= snoden->linkdrag.last= NULL;
 	
 	return (SpaceLink *)snoden;
 }
