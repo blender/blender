@@ -1391,8 +1391,12 @@ static void open_set_load_ui(wmOperator *op)
 
 static void open_set_use_scripts(wmOperator *op)
 {
-	if(!RNA_property_is_set(op->ptr, "use_scripts"))
-		RNA_boolean_set(op->ptr, "use_scripts", !(U.flag & USER_SCRIPT_AUTOEXEC_DISABLE));
+	if(!RNA_property_is_set(op->ptr, "use_scripts")) {
+		/* use G_SCRIPT_AUTOEXEC rather then the userpref because this means if
+		 * the flag has been disabled from the command line, then opening
+		 * from the menu wont enable this setting. */
+		RNA_boolean_set(op->ptr, "use_scripts", (G.f & G_SCRIPT_AUTOEXEC));
+	}
 }
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))

@@ -356,12 +356,14 @@ static int end_arguments(int UNUSED(argc), const char **UNUSED(argv), void *UNUS
 static int enable_python(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	G.f |= G_SCRIPT_AUTOEXEC;
+	G.f |= G_SCRIPT_OVERRIDE_PREF;
 	return 0;
 }
 
-static int disable_python(int UNUSED(argc), const const char **UNUSED(argv), void *UNUSED(data))
+static int disable_python(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	G.f &= ~G_SCRIPT_AUTOEXEC;
+	G.f |= G_SCRIPT_OVERRIDE_PREF;
 	return 0;
 }
 

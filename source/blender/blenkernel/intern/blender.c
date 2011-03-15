@@ -271,12 +271,11 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filename
 	}
 
 	/* special cases, override loaded flags: */
-	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
-	else bfd->globalf &= ~G_DEBUG;
-	if (G.f & G_SWAP_EXCHANGE) bfd->globalf |= G_SWAP_EXCHANGE;
-	else bfd->globalf &= ~G_SWAP_EXCHANGE;
-	if (G.f & G_SCRIPT_AUTOEXEC) bfd->globalf |= G_SCRIPT_AUTOEXEC;
-	else bfd->globalf &= ~G_SCRIPT_AUTOEXEC;
+	if(G.f != bfd->globalf) {
+		const int flags_keep= (G_DEBUG | G_SWAP_EXCHANGE | G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
+		bfd->globalf= (bfd->globalf & ~flags_keep) | (G.f & flags_keep);
+	}
+
 
 	G.f= bfd->globalf;
 
