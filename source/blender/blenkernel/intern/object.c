@@ -3061,3 +3061,24 @@ KeyBlock *object_insert_shape_key(Scene *scene, Object *ob, const char *name, in
 	else									 return NULL;
 }
 
+/* most important if this is modified it should _always_ return True, in certain
+ * cases false positives are hard to avoid (shape keys for eg)
+ */
+int object_is_modified(Scene *scene, Object *ob)
+{
+	int flag= 0;
+
+	if(ob_get_key(ob)) {
+		flag |= eModifierMode_Render | eModifierMode_Render;
+	}
+	else {
+		ModifierData *md;
+		/* cloth */
+		for(md=modifiers_getVirtualModifierList(ob); md && (flag != (eModifierMode_Render | eModifierMode_Realtime)); md=md->next) {
+			if((flag & eModifierMode_Render) == 0	&& modifier_isEnabled(scene, md, eModifierMode_Render))		flag |= eModifierMode_Render;
+			if((flag & eModifierMode_Realtime) == 0	&& modifier_isEnabled(scene, md, eModifierMode_Realtime))	flag |= eModifierMode_Realtime;
+		}
+	}
+
+	return flag;
+}

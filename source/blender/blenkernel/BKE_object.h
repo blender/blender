@@ -136,6 +136,8 @@ int object_insert_ptcache(struct Object *ob);
 // void object_delete_ptcache(struct Object *ob, int index);
 struct KeyBlock *object_insert_shape_key(struct Scene *scene, struct Object *ob, const char *name, int from_mix);
 
+int object_is_modified(struct Scene *scene, struct Object *ob);
+
 void object_camera_matrix(
 		struct RenderData *rd, struct Object *camera, int winx, int winy, short field_second,
 		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens, float *ycor,
