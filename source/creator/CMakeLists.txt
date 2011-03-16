@@ -186,7 +186,7 @@ if(MSVC)
 	# ${CMAKE_CFG_INTDIR} should replace \${BUILD_TYPE} when using add_command
 	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
 elseif(APPLE)
-	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
+	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
 else()
 	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
@@ -528,56 +528,113 @@ if(WITH_INSTALL)
 		endif()
 
 	elseif(APPLE)
-		# TODO, APPLE needs a 'make install' target like win32 and unix
-		# also update GNUmakefile to run make install if you do this
-
 		set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
 		set(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
-		set(TARGETINFO ${TARGETDIR}/blender.app/Contents/Info.plist)
+		set(TARGETDIR_VER ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION})
 
-		add_custom_command(
-			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-			COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/text/* ${TARGETDIR}/
+		# setup Info.plist
+		execute_process(COMMAND date "+%Y-%m-%d" OUTPUT_VARIABLE BLENDER_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+		set_target_properties(blender PROPERTIES
+			MACOSX_BUNDLE_INFO_PLIST ${SOURCEINFO}
+			MACOSX_BUNDLE_SHORT_VERSION_STRING ${BLENDER_VERSION}
+			MACOSX_BUNDLE_LONG_VERSION_STRING "${BLENDER_VERSION} ${BLENDER_DATE}")
+
+		# important to make a clean  install each time else old scripts get loaded.
+		install(
+			CODE
+			"file(REMOVE_RECURSE ${TARGETDIR_VER})"
 		)
 
+		# message after building.
 		add_custom_command(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-			COMMAND cp -Rf ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
-			COMMAND cp -Rf ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
-			COMMAND cp -Rf ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
-			COMMAND cat ${SOURCEINFO} | sed s/VERSION/${BLENDER_VERSION}${BLENDER_VERSION_CHAR}/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
-			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}
-			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}
-			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
-			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
+			COMMAND ${CMAKE_COMMAND} -E echo 'now run: \"make install\" to copy runtime files & scripts to ${TARGETDIR_VER}'
 		)
 
+		# handy install macro to exclude files, we use \$ escape for the "to"
+		# argument when calling so ${BUILD_TYPE} does not get expanded
+		macro(install_dir from to)
+			install(
+				DIRECTORY ${from}
+				DESTINATION ${to}
+				PATTERN ".svn" EXCLUDE
+				PATTERN "*.pyc" EXCLUDE
+				PATTERN "*.pyo" EXCLUDE
+				PATTERN "*.orig" EXCLUDE
+				PATTERN "*.rej" EXCLUDE
+				PATTERN "__pycache__" EXCLUDE
+				PATTERN "__MACOSX" EXCLUDE
+				PATTERN ".DS_Store" EXCLUDE
+			)
+		endmacro()
+
+		# install release and app files
+		install_dir(
+			${CMAKE_SOURCE_DIR}/release/text/
+			\${TARGETDIR}
+		)
+
+		install(
+			FILES ${SOURCEDIR}/Contents/PkgInfo
+			DESTINATION ${TARGETDIR}/blender.app/Contents/
+		)
+
+		install_dir(
+			${SOURCEDIR}/Contents/Resources
+			\${TARGETDIR}/blender.app/Contents/
+		)
+
+		install(
+			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
+			DESTINATION ${TARGETDIR_VER}/datafiles
+		)
+
+		# localization
 		if(WITH_INTERNATIONAL)
-			add_custom_command(
-				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/datafiles/
+			install(
+				FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
+				DESTINATION ${TARGETDIR_VER}/datafiles
+			)
+
+			install_dir(
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
+				\${TARGETDIR_VER}/datafiles/locale
 			)
 		endif()
 
+		# python
 		if(WITH_PYTHON)
+			# the python zip is first extract as part of the build process,
+			# and then later installed as part of make install. this is much
+			# quicker, and means we can easily exclude files on copy
+			add_custom_target(
+				extractpyzip
+				DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/python)
+
 			set(PYTHON_ZIP "python_${CMAKE_OSX_ARCHITECTURES}.zip")
+				
 			add_custom_command(
-				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/
-				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/python/
-				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION}/python/
-				COMMAND find ${TARGETDIR}/blender.app -name '*.py[co]' -prune -exec rm -rf {} '\;'
-				COMMAND find ${TARGETDIR}/blender.app -name '__pycache__' -exec rmdir {} '+'
+				OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/python
+				COMMAND rm -rf ${CMAKE_CURRENT_BINARY_DIR}/python/
+				COMMAND mkdir ${CMAKE_CURRENT_BINARY_DIR}/python/
+				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${CMAKE_CURRENT_BINARY_DIR}/python/
+				DEPENDS ${LIBDIR}/release/${PYTHON_ZIP})
+			
+			add_dependencies(blender extractpyzip)
+
+			# copy extracted python files
+			install_dir(
+				${CMAKE_CURRENT_BINARY_DIR}/python
+				\${TARGETDIR_VER}
+			)
+
+			# copy scripts
+			install_dir(
+				${CMAKE_SOURCE_DIR}/release/scripts
+				\${TARGETDIR_VER}
 			)
 		endif()
-
-		add_custom_command(
-			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-			COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
-			COMMAND find ${TARGETDIR}/blender.app -name .svn -prune -exec rm -rf {} "\;"
-			COMMAND find ${TARGETDIR}/blender.app -name __MACOSX -prune -exec rm -rf {} "\;"
-		)
 	endif()
 
 endif()

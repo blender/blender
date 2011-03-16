@@ -48,14 +48,11 @@ endif
 
 # Get the number of cores for threaded build
 NPROCS:=1
-DEFAULT_TARGET=install
 ifeq ($(OS), Linux)
 	NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 endif
 ifeq ($(OS), Darwin)
 	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3)
-	# make install not support on mac yet 
-	DEFAULT_TARGET=
 endif
 ifeq ($(OS), FreeBSD)
 	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3 )
@@ -78,7 +75,7 @@ all:
 
 	@echo 
 	@echo Building Blender ...
-	cd $(BUILD_DIR) ; make -s -j $(NPROCS) ${DEFAULT_TARGET} 
+	cd $(BUILD_DIR) ; make -s -j $(NPROCS) install
 	@echo 
 	@echo run blender from "$(BUILD_DIR)/bin/blender"
 	@echo 
