@@ -524,4 +524,15 @@ bool KX_BulletPhysicsController::Update(double time)
 //	return false;
 }
 
+
+const char* KX_BulletPhysicsController::getName()
+{
+	if (m_pObject)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*)	m_pObject->GetSGClientObject();
+		return gameobj->GetName();
+	}
+	return 0;
+}
+
 #endif // USE_BULLET

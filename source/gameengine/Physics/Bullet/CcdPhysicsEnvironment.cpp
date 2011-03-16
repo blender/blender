@@ -2797,8 +2797,26 @@ float		CcdPhysicsEnvironment::getAppliedImpulse(int	constraintid)
 void	CcdPhysicsEnvironment::exportFile(const char* filename)
 {
 	btDefaultSerializer*	serializer = new btDefaultSerializer();
-	m_dynamicsWorld->serialize(serializer);
 	
+		
+	for (int i=0;i<m_dynamicsWorld->getNumCollisionObjects();i++)
+	{
+
+		btCollisionObject* colObj = m_dynamicsWorld->getCollisionObjectArray()[i];
+
+		CcdPhysicsController* controller = static_cast<CcdPhysicsController*>(colObj->getUserPointer());
+		if (controller)
+		{
+			const char* name = controller->getName();
+			if (name)
+			{
+				serializer->registerNameForPointer(colObj,name);
+			}
+		}
+	}
+
+	m_dynamicsWorld->serialize(serializer);
+
 	FILE* file = fopen(filename,"wb");
 	if (file)
 	{
