@@ -28,6 +28,9 @@
 set(TEST_SRC_DIR ${CMAKE_SOURCE_DIR}/../lib/tests)
 set(TEST_OUT_DIR ${CMAKE_BINARY_DIR}/tests)
 
+# ugh, any better way to do this on testing only?
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OUT_DIR}) 
+
 #~ if(NOT IS_DIRECTORY ${TEST_SRC_DIR})
 #~ 	message(FATAL_ERROR "CMake test directory not found!")
 #~ endif()
@@ -163,7 +166,7 @@ add_test(export_x3d_cube ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_cube.x3d',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_x3d_cube.x3d
-	--md5=560ba3762a6604669994f661235ef93c --md5_method=FILE
+	--md5=9198ca86f19b68a4f1eb75bb48cb3dea --md5_method=FILE
 )
 
 add_test(export_x3d_nurbs ${TEST_BLENDER_EXE}
@@ -179,7 +182,7 @@ add_test(export_x3d_all_objects ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_all_objects.x3d',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_x3d_all_objects.x3d
-	--md5=5f8153d1475e187efca15dcb029d280d --md5_method=FILE
+	--md5=75df3075412ff60611ea05bc469e593b --md5_method=FILE
 )
 
 
