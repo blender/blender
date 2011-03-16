@@ -1188,10 +1188,8 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, 
 	// brecht: added stupid clamping here, large dx/dy can give very large
 	// filter sizes which take ages to render, it may be better to do this
 	// more intelligently later in the code .. probably it's not noticeable
-	if(AFD.dxt[0]*AFD.dxt[0] + AFD.dxt[1]*AFD.dxt[1] > 2.0f*2.0f) {
+	if(AFD.dxt[0]*AFD.dxt[0] + AFD.dxt[1]*AFD.dxt[1] > 2.0f*2.0f)
 		mul_v2_fl(AFD.dxt, 2.0f/len_v2(AFD.dxt));
-		mul_v2_fl(AFD.dyt, 2.0f/len_v2(AFD.dyt));
-	}
 	if(AFD.dyt[0]*AFD.dyt[0] + AFD.dyt[1]*AFD.dyt[1] > 2.0f*2.0f)
 		mul_v2_fl(AFD.dyt, 2.0f/len_v2(AFD.dyt));
 
