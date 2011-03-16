@@ -3144,7 +3144,7 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
 
 		PyObject *ret= PyObject_GenericGetAttr((PyObject *)self, pyname);
 
-		if(ret == NULL) {
+		if(ret == NULL && name[0] != '_') { /* avoid inheriting __call__ and similar */
 			/* since this is least common case, handle it last */
 			PointerRNA r_ptr;
 			if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
