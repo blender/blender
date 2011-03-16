@@ -706,12 +706,13 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, bpy.types.Panel):
 
         col.separator()
 
-        col.label(text="Color Source:")
-        col.prop(pd, "color_source", text="")
-        if pd.color_source in {'PARTICLE_SPEED', 'PARTICLE_VELOCITY'}:
-            col.prop(pd, "speed_scale")
-        if pd.color_source in {'PARTICLE_SPEED', 'PARTICLE_AGE'}:
-            layout.template_color_ramp(pd, "color_ramp", expand=True)
+        if pd.point_source == 'PARTICLE_SYSTEM':
+            col.label(text="Color Source:")
+            col.prop(pd, "color_source", text="")
+            if pd.color_source in {'PARTICLE_SPEED', 'PARTICLE_VELOCITY'}:
+                col.prop(pd, "speed_scale")
+            if pd.color_source in {'PARTICLE_SPEED', 'PARTICLE_AGE'}:
+                layout.template_color_ramp(pd, "color_ramp", expand=True)
 
         col = split.column()
         col.label()
@@ -733,7 +734,7 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):
         return tex and (tex.type == 'POINT_DENSITY' and (engine in cls.COMPAT_ENGINES))
 
     def draw_header(self, context):
-        pd = tex.point_density
+        pd = context.texture.point_density
 
         self.layout.prop(pd, "use_turbulence", text="")
 

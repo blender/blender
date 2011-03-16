@@ -1379,7 +1379,10 @@ void BKE_free_pointdensitydata(PointDensity *pd)
 		MEM_freeN(pd->point_data);
 		pd->point_data = NULL;
 	}
-	if(pd->coba) MEM_freeN(pd->coba);
+	if(pd->coba) {
+		MEM_freeN(pd->coba);
+		pd->coba = NULL;
+	}
 }
 
 void BKE_free_pointdensity(PointDensity *pd)
