@@ -43,7 +43,7 @@ class FILEBROWSER_HT_header(bpy.types.Header):
         row.separator()
 
         row = layout.row(align=True)
-        row.operator("file.directory_new", text="", icon='NEWFOLDER')
+        row.operator("file.directory_new", icon='NEWFOLDER')
 
         params = st.params
 
