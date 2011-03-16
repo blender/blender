@@ -125,7 +125,6 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 
 # Misc
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
-option(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
 endif()
@@ -159,10 +158,6 @@ endif()
 
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
-endif()
-
-if(NOT WITH_INSTALL AND WITH_PYTHON_INSTALL)
-	message("WARNING: WITH_PYTHON_INSTALL requires WITH_INSTALL")
 endif()
 
 if(NOT WITH_SAMPLERATE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))

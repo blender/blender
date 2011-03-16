@@ -20,7 +20,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# --env-system-scripts allows to run without WITH_INSTALL
+# --env-system-scripts allows to run without the install target. 
 
 # Use '--write-blend=/tmp/test.blend' to view output
 
