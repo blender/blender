@@ -113,6 +113,7 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	
 	/* draw this node's name, etc. */
 	uiItemR(layout, &ptr, "name", 0, NULL, ICON_NODE);
+	uiItemR(layout, &ptr, "label", 0, NULL, ICON_NODE);
 	// TODO: a separator would be nice...
 	
 	/* draw this node's settings */

@@ -317,55 +317,6 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 	BKE_all_animdata_fix_paths_rename("nodes", oldname, node->name);
 }
 
-/* this should be done at display time! if no custom names are set */
-#if 0
-static void rna_Node_update_username(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	bNode *node= (bNode*)ptr->data;
-	const char *name;
-
-	
-	/*
-	if (!node->username[0]) {
-		if(node->id) {
-			BLI_strncpy(node->username, node->id->name+2, NODE_MAXSTR);
-		}
-		else {
-		
-			switch(node->typeinfo->type) {
-				case SH_NODE_MIX_RGB:
-				case CMP_NODE_MIX_RGB:
-				case TEX_NODE_MIX_RGB:
-					if(RNA_enum_name(node_blend_type_items, node->custom1, &name))
-						BLI_strncpy(node->username, name, NODE_MAXSTR);
-					break;
-				case CMP_NODE_FILTER:
-					if(RNA_enum_name(node_filter_items, node->custom1, &name))
-						BLI_strncpy(node->username, name, NODE_MAXSTR);
-					break;
-				case CMP_NODE_FLIP:
-					if(RNA_enum_name(node_flip_items, node->custom1, &name))
-						BLI_strncpy(node->username, name, NODE_MAXSTR);
-					break;
-				case SH_NODE_MATH:
-				case CMP_NODE_MATH:
-				case TEX_NODE_MATH:
-					if(RNA_enum_name(node_math_items, node->custom1, &name))
-						BLI_strncpy(node->username, name, NODE_MAXSTR);
-					break;
-				case SH_NODE_VECT_MATH:
-					if(RNA_enum_name(node_vec_math_items, node->custom1, &name))
-						BLI_strncpy(node->username, name, NODE_MAXSTR);
-					break;
-			}
-		 */
-		}
-	}
-
-	rna_Node_update(bmain, scene, ptr);
-}
-#endif
-
 static void rna_NodeSocket_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
@@ -2698,6 +2649,11 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "outputs", NULL);
 	RNA_def_property_struct_type(prop, "NodeSocket");
 	RNA_def_property_ui_text(prop, "Outputs", "");
+	
+	prop = RNA_def_property(srna, "label", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "label");
+	RNA_def_property_ui_text(prop, "Label", "Optional custom node label");
+	RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 }
 
 static void rna_def_node_link(BlenderRNA *brna)

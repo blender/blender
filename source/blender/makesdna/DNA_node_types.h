@@ -136,7 +136,8 @@ typedef struct bNode {
 	void *storage;			/* custom data, must be struct, for storage in file */
 	
 	float locx, locy;		/* root offset for drawing */
-	float width, miniwidth;			
+	float width, miniwidth;
+	char label[32];			/* custom user-defined label */
 	short custom1, custom2;	/* to be abused for buttons */
 	float custom3, custom4;
 	
