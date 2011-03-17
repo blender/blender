@@ -147,11 +147,6 @@ rna.Depends (generated_files, makesrna)
 
 # this seems bad, how to retrieve it from scons?
 build_dir = root_build_dir + os.sep +'source' + os.sep + 'blender' + os.sep + 'makesrna' + os.sep + 'intern' + os.sep
-<<<<<<< .working
-
-=======
-    
->>>>>>> .merge-right.r35190
 if env['OURPLATFORM'] != 'linuxcross':
     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
         rna.Command (generated_files, '', "\"" + root_build_dir+os.sep+"makesrna.exe\" \""  + build_dir )

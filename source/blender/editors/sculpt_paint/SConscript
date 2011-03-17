@@ -8,11 +8,7 @@ defs = []
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include'
-<<<<<<< .working
-incs += ' ../../gpu ../../makesrna ../../bmesh'
-=======
-incs += ' ../../gpu ../../makesrna ../../blenloader'
->>>>>>> .merge-right.r35190
+incs += ' ../../gpu ../../makesrna ../../blenloader ../../bmesh'
 
 if env['OURPLATFORM'] == 'linux2':
     cflags='-pthread'

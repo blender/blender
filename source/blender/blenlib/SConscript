@@ -9,11 +9,7 @@ incs += ' ../windowmanager ../bmesh #/extern/glew/include'
 
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_ZLIB_INC']
-<<<<<<< .working
-defs = 'GLEW_STATIC'
-=======
 defs = []
->>>>>>> .merge-right.r35190
 
 if env['WITH_BF_BINRELOC']:
     cflags='-pthread'

@@ -8,14 +8,8 @@ incs ='. #source/kernel/gen_system #intern/guardedalloc #intern/string #intern/m
 defs = []
 
 if env['WITH_BF_PYTHON']:
-<<<<<<< .working
-    incs += ' ' + env['BF_PYTHON_INC']
-else:
-    defs.append('DISABLE_PYTHON')
-=======
     incs += ' ' + env['BF_PYTHON_INC']
     defs.append('WITH_PYTHON')
->>>>>>> .merge-right.r35190
 
 if env['WITH_BF_CXX_GUARDEDALLOC']:
     defs.append('WITH_CXX_GUARDEDALLOC')

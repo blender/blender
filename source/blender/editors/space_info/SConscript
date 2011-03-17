@@ -4,11 +4,7 @@ Import ('env')
 sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../makesrna ../../imbuf ../../blenfont'
-<<<<<<< .working
-incs += ' ../../bmesh ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-=======
-incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include ../../blenloader'
->>>>>>> .merge-right.r35190
+incs += ' ../../bmesh ../../windowmanager #/intern/guardedalloc #/extern/glew/include ../../blenloader'
 
 defs = []
 

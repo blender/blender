@@ -413,18 +413,11 @@ thesyslibs = B.setup_syslibs(env)
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
     env.BlenderProg(B.root_build_dir, "blender", mainlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
-<<<<<<< .working
-	playerlist = B.create_blender_liblist(env, 'player')
-	playerlist += B.create_blender_liblist(env, 'intern')
-	playerlist += B.create_blender_liblist(env, 'extern')
-	env.BlenderProg(B.root_build_dir, "blenderplayer",  playerlist, thestatlibs + dobj + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
-=======
     playerlist = B.create_blender_liblist(env, 'player')
     playerlist += B.create_blender_liblist(env, 'player2')
     playerlist += B.create_blender_liblist(env, 'intern')
     playerlist += B.create_blender_liblist(env, 'extern')
     env.BlenderProg(B.root_build_dir, "blenderplayer",  playerlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
->>>>>>> .merge-right.r35190
 
 ##### Now define some targets
 
@@ -622,19 +615,11 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         else:
             dllsources.append('${BF_SDL_LIBPATH}/SDL.dll')
 
-<<<<<<< .working
-	if env['WITH_BF_PYTHON']:
-		if env['BF_DEBUG'] and not env["BF_NO_PYDEBUG"]:
-			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}_d.dll')
-		else:
-			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}.dll')
-=======
     if env['WITH_BF_PYTHON']:
         if env['BF_DEBUG']:
             dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}_d.dll')
         else:
             dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}.dll')
->>>>>>> .merge-right.r35190
 
     if env['WITH_BF_ICONV']:
         if env['OURPLATFORM'] == 'win64-vc':
