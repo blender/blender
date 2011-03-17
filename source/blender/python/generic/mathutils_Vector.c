@@ -792,12 +792,13 @@ static int Vector_len(VectorObject *self)
 	return self->size;
 }
 /* sequence accessor (get): vector[index] */
-static PyObject *Vector_item(VectorObject *self, int i)
+static PyObject *vector_item_internal(VectorObject *self, int i, const int is_attr)
 {
 	if(i<0)	i= self->size-i;
 
 	if(i < 0 || i >= self->size) {
-		PyErr_SetString(PyExc_IndexError,"vector[index]: out of range");
+		if(is_attr)	PyErr_Format(PyExc_AttributeError,"vector.%c: unavailable on %dd vector", *(((char *)"xyzw") + i), self->size);
+		else		PyErr_SetString(PyExc_IndexError,"vector[index]: out of range");
 		return NULL;
 	}
 
@@ -806,11 +807,16 @@ static PyObject *Vector_item(VectorObject *self, int i)
 
 	return PyFloat_FromDouble(self->vec[i]);
 }
+
+static PyObject *Vector_item(VectorObject *self, int i)
+{
+	return vector_item_internal(self, i, FALSE);
+}
 /* sequence accessor (set): vector[index] = value */
-static int Vector_ass_item(VectorObject *self, int i, PyObject * ob)
+static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, const int is_attr)
 {
 	float scalar;
-	if((scalar=PyFloat_AsDouble(ob))==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
+	if((scalar=PyFloat_AsDouble(value))==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError, "vector[index] = x: index argument not a number");
 		return -1;
 	}
@@ -818,7 +824,8 @@ static int Vector_ass_item(VectorObject *self, int i, PyObject * ob)
 	if(i<0)	i= self->size-i;
 
 	if(i < 0 || i >= self->size){
-		PyErr_SetString(PyExc_IndexError, "vector[index] = x: assignment index out of range");
+		if(is_attr)	PyErr_Format(PyExc_AttributeError,"vector.%c = x: unavailable on %dd vector", *(((char *)"xyzw") + i), self->size);
+		else		PyErr_SetString(PyExc_IndexError, "vector[index] = x: assignment index out of range");
 		return -1;
 	}
 	self->vec[i] = scalar;
@@ -826,6 +833,11 @@ static int Vector_ass_item(VectorObject *self, int i, PyObject * ob)
 	if(BaseMath_WriteIndexCallback(self, i) == -1)
 		return -1;
 	return 0;
+}
+
+static int Vector_ass_item(VectorObject *self, int i, PyObject *value)
+{
+	return vector_ass_item_internal(self, i, value, FALSE);
 }
 
 /* sequence slice (get): vector[a:b] */
@@ -1461,12 +1473,12 @@ static PyNumberMethods Vector_NumMethods = {
 
 static PyObject *Vector_getAxis(VectorObject *self, void *type)
 {
-	return Vector_item(self, GET_INT_FROM_POINTER(type));
+	return vector_item_internal(self, GET_INT_FROM_POINTER(type), TRUE);
 }
 
 static int Vector_setAxis(VectorObject *self, PyObject * value, void *type)
 {
-	return Vector_ass_item(self, GET_INT_FROM_POINTER(type), value);
+	return vector_ass_item_internal(self, GET_INT_FROM_POINTER(type), value, TRUE);
 }
 
 /* vector.length */
