@@ -828,6 +828,30 @@ static void operator_draw(bContext *C, wmOperator *op)
 	RNA_parameter_list_free(&list);
 }
 
+/* same as exec(), but call cancel */
+static int operator_cancel(bContext *C, wmOperator *op)
+{
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int result;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	func= RNA_struct_find_function(&opr, "cancel");
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	op->type->ext.call(C, &opr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	result= *(int*)ret;
+
+	RNA_parameter_list_free(&list);
+
+	return result;
+}
+
 void operator_wrapper(wmOperatorType *ot, void *userdata);
 void macro_wrapper(wmOperatorType *ot, void *userdata);
 
@@ -839,7 +863,7 @@ static StructRNA *rna_Operator_register(bContext *C, ReportList *reports, void *
 	wmOperatorType dummyot = {NULL};
 	wmOperator dummyop= {NULL};
 	PointerRNA dummyotr;
-	int have_function[6];
+	int have_function[7];
 
 	/* setup dummy operator & operator type to store static properties in */
 	dummyop.type= &dummyot;
@@ -927,6 +951,7 @@ static StructRNA *rna_Operator_register(bContext *C, ReportList *reports, void *
 	dummyot.invoke=		(have_function[3])? operator_invoke: NULL;
 	dummyot.modal=		(have_function[4])? operator_modal: NULL;
 	dummyot.ui=			(have_function[5])? operator_draw: NULL;
+	dummyot.cancel=		(have_function[6])? operator_cancel: NULL;
 	WM_operatortype_append_ptr(operator_wrapper, (void *)&dummyot);
 
 	/* update while blender is running */

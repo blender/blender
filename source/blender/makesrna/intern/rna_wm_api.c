@@ -215,6 +215,13 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	/* cancel */
+	func= RNA_def_function(srna, "cancel", NULL);
+	RNA_def_function_ui_description(func, "Called when the operator is cancelled.");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 void RNA_api_macro(StructRNA *srna)
