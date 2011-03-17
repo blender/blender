@@ -10,6 +10,12 @@ convention for menus.
 .. note::
 
    Menu subclasses must be registered before referencing them from blender.
+
+.. note::
+   Menu's have their :class:`Layout.operator_context` initialized as
+   'EXEC_REGION_WIN' rather then 'INVOKE_DEFAULT', so if the operator context
+   needs to initialize inputs from the :class:`Operator.invoke` function
+   then this needs to be explicitly set.
 """
 import bpy
 
