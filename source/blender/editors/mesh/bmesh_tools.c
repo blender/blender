@@ -4843,6 +4843,6 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "percent", 0.16f, -FLT_MAX, FLT_MAX, "Percentage", "", -0.07f, 0.5f);
-	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 6);
+	RNA_def_float(ot->srna, "percent", 0.1f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 0.5f);
+	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8);
 }
