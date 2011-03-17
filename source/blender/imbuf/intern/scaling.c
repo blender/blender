@@ -35,6 +35,7 @@
 
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
 #include "imbuf.h"
@@ -834,6 +835,9 @@ static struct ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 	float *rectf, *_newrectf, *newrectf;
 	float sample, add, val[4], nval[4], valf[4], nvalf[4];
 	int x, y, do_rect = 0, do_float = 0;
+	uchar *rect_end;
+	float *rectf_end;
+
 
 	rectf= _newrectf= newrectf= NULL; 
 	rect=_newrect= newrect= NULL; 
@@ -847,6 +851,7 @@ static struct ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 		do_rect = 1;
 		_newrect = MEM_mallocN(newx * ibuf->y * sizeof(int), "scaledownx");
 		if (_newrect==NULL) return(ibuf);
+		rect_end= (unsigned char *)ibuf->rect + (ibuf->x * ibuf->y * sizeof(int));
 	}
 	if (ibuf->rect_float) {
 		do_float = 1;
@@ -855,6 +860,7 @@ static struct ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 			if (_newrect) MEM_freeN(_newrect);
 			return(ibuf);
 		}
+		rectf_end= ibuf->rect_float + (ibuf->x * ibuf->y * sizeof(float) * 4);
 	}
 
 	add = (ibuf->x - 0.001) / newx;
@@ -937,11 +943,13 @@ static struct ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 	}
 
 	if (do_rect) {
+		BLI_assert(rect == rect_end); /* see bug [#26502] */
 		imb_freerectImBuf(ibuf);
 		ibuf->mall |= IB_rect;
 		ibuf->rect = (unsigned int *) _newrect;
 	}
 	if (do_float) {
+		BLI_assert(rectf == rectf_end); /* see bug [#26502] */
 		imb_freerectfloatImBuf(ibuf);
 		ibuf->mall |= IB_rectfloat;
 		ibuf->rect_float = _newrectf;
@@ -958,6 +966,8 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 	float *rectf, *_newrectf, *newrectf;
 	float sample, add, val[4], nval[4], valf[4], nvalf[4];
 	int x, y, skipx, do_rect = 0, do_float = 0;
+	uchar *rect_end;
+	float *rectf_end;
 
 	rectf= _newrectf= newrectf= NULL; 
 	rect= _newrect= newrect= NULL; 
@@ -971,6 +981,7 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 		do_rect = 1;
 		_newrect = MEM_mallocN(newy * ibuf->x * sizeof(int), "scaledowny");
 		if (_newrect==NULL) return(ibuf);
+		rect_end= (unsigned char *)ibuf->rect + (ibuf->x * ibuf->y * sizeof(int));
 	}
 	if (ibuf->rect_float) {
 		do_float = 1;
@@ -979,6 +990,7 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 			if (_newrect) MEM_freeN(_newrect);
 			return(ibuf);
 		}
+		rectf_end= ibuf->rect_float + (ibuf->x * ibuf->y * sizeof(float) * 4);
 	}
 
 	add = (ibuf->y - 0.001) / newy;
@@ -1062,11 +1074,13 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 	}	
 
 	if (do_rect) {
+		BLI_assert(rect == rect_end); /* see bug [#26502] */
 		imb_freerectImBuf(ibuf);
 		ibuf->mall |= IB_rect;
 		ibuf->rect = (unsigned int *) _newrect;
 	}
 	if (do_float) {
+		BLI_assert(rectf == rectf_end); /* see bug [#26502] */
 		imb_freerectfloatImBuf(ibuf);
 		ibuf->mall |= IB_rectfloat;
 		ibuf->rect_float = (float *) _newrectf;
