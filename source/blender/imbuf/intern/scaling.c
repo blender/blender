@@ -863,7 +863,7 @@ static struct ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 		rectf_end= ibuf->rect_float + (ibuf->x * ibuf->y * sizeof(float) * 4);
 	}
 
-	add = (ibuf->x - 0.001) / newx;
+	add = (ibuf->x - 0.01) / newx;
 
 	if (do_rect) {
 		rect = (uchar *) ibuf->rect;
@@ -993,7 +993,7 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 		rectf_end= ibuf->rect_float + (ibuf->x * ibuf->y * sizeof(float) * 4);
 	}
 
-	add = (ibuf->y - 0.001) / newy;
+	add = (ibuf->y - 0.01) / newy;
 	skipx = 4 * ibuf->x;
 
 	for (x = skipx - 4; x>=0 ; x-= 4) {
