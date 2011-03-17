@@ -598,7 +598,7 @@ static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTri
 
 static void rna_fcurve_range(FCurve *fcu, float range[2])
 {
-	calc_fcurve_range(fcu, range, range+1);
+	calc_fcurve_range(fcu, range, range+1, FALSE);
 }
 
 #else

@@ -87,6 +87,7 @@ enum {
 
 void ACTION_OT_previewrange_set(struct wmOperatorType *ot);
 void ACTION_OT_view_all(struct wmOperatorType *ot);
+void ACTION_OT_view_selected(struct wmOperatorType *ot);
 
 void ACTION_OT_copy(struct wmOperatorType *ot);
 void ACTION_OT_paste(struct wmOperatorType *ot);

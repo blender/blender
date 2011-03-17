@@ -159,6 +159,7 @@ class DOPESHEET_MT_view(bpy.types.Menu):
         layout.separator()
         layout.operator("action.frame_jump")
         layout.operator("action.view_all")
+        layout.operator("action.view_selected")
 
         layout.separator()
         layout.operator("screen.area_dupli")

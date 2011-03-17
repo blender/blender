@@ -100,6 +100,7 @@ class GRAPH_MT_view(bpy.types.Menu):
         layout.separator()
         layout.operator("graph.frame_jump")
         layout.operator("graph.view_all")
+        layout.operator("graph.view_selected")
 
         layout.separator()
         layout.operator("screen.area_dupli")

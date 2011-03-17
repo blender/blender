@@ -92,10 +92,11 @@ enum {
 /* ***************************************** */
 /* graph_edit.c */
 
-void get_graph_keyframe_extents (struct bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax);
+void get_graph_keyframe_extents (struct bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, const short do_selected);
 
 void GRAPH_OT_previewrange_set(struct wmOperatorType *ot);
 void GRAPH_OT_view_all(struct wmOperatorType *ot);
+void GRAPH_OT_view_selected(struct wmOperatorType *ot);
 
 void GRAPH_OT_click_insert(struct wmOperatorType *ot);
 void GRAPH_OT_keyframe_insert(struct wmOperatorType *ot);

@@ -130,6 +130,9 @@
 #define IN_RANGE(a, b, c) ((b < c)? ((b<a && a<c)? 1:0) : ((c<a && a<b)? 1:0))
 #define IN_RANGE_INCL(a, b, c) ((b < c)? ((b<=a && a<=c)? 1:0) : ((c<=a && a<=b)? 1:0))
 
+/* array helpers */
+#define ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot) 		(arr_dtype *)((char*)arr_start + (elem_size*tot))
+#define ARRAY_HAS_ITEM(item, arr_start, arr_dtype, elem_size, tot) 	((item >= arr_start) && (item <= ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot)))
 
 /* This one rotates the bytes in an int64, int (32) and short (16) */
 #define SWITCH_INT64(a) { \
