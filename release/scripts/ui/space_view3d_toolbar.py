@@ -113,6 +113,10 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, bpy.types.Panel):
         layout = self.layout
 
         col = layout.column(align=True)
+        col.label(text="Modify:")
+        col.operator("mesh.bevel")
+
+        col = layout.column(align=True)
         col.label(text="Transform:")
         col.operator("transform.translate")
         col.operator("transform.rotate")
