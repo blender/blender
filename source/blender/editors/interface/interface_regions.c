@@ -683,7 +683,7 @@ static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 		rect->xmin += col * butw;
 		rect->xmax = rect->xmin + butw;
 		
-		rect->ymax = data->bbox.ymax - (row * buth);
+		rect->ymax = data->bbox.ymax - MENU_TOP - (row * buth);
 		rect->ymin = rect->ymax - buth;
 	}
 	/* list view */
@@ -985,7 +985,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->bbox.ymax= (ar->winrct.ymax-ar->winrct.ymin) - MENU_SHADOW_BOTTOM;
 		
 		/* check if button is lower half */
-		if( but->y2 < (but->block->minx+but->block->maxx)/2 ) {
+		if( but->y2 < (but->block->miny+but->block->maxy)/2 ) {
 			data->bbox.ymin += (but->y2-but->y1);
 		}
 		else {
