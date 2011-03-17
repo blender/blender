@@ -112,9 +112,10 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	uiBlockSetHandleFunc(block, do_node_region_buttons, NULL);
 	
 	/* draw this node's name, etc. */
-	uiItemR(layout, &ptr, "name", 0, NULL, ICON_NODE);
 	uiItemR(layout, &ptr, "label", 0, NULL, ICON_NODE);
-	// TODO: a separator would be nice...
+	uiItemS(layout);
+	uiItemR(layout, &ptr, "name", 0, NULL, ICON_NODE);
+	uiItemS(layout);
 	
 	/* draw this node's settings */
 	if (node->typeinfo && node->typeinfo->uifunc)
