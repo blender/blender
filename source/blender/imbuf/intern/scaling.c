@@ -55,7 +55,8 @@ struct ImBuf *IMB_half_x(struct ImBuf *ibuf1)
 {
 	struct ImBuf *ibuf2;
 	uchar *p1,*_p1,*dest;
-	short a,r,g,b,x,y;
+	short a,r,g,b;
+	int x,y;
 	float af,rf,gf,bf, *p1f, *_p1f, *destf;
 	int do_rect, do_float;
 
@@ -173,7 +174,8 @@ struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
 {
 	struct ImBuf *ibuf2;
 	uchar *p1,*p2,*_p1,*dest;
-	short a,r,g,b,x,y;
+	short a,r,g,b;
+	int x,y;
 	int do_rect, do_float;
 	float af,rf,gf,bf,*p1f,*p2f,*_p1f,*destf;
 
@@ -245,7 +247,7 @@ struct ImBuf *IMB_double_fast_y(struct ImBuf *ibuf1)
 	struct ImBuf *ibuf2;
 	int *p1, *dest1, *dest2;
 	float *p1f, *dest1f, *dest2f;
-	short x,y;
+	int x,y;
 	int do_rect, do_float;
 
 	if (ibuf1==NULL) return (NULL);
@@ -1418,7 +1420,7 @@ static struct ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 
 
 /* no float buf needed here! */
-static void scalefast_Z_ImBuf(ImBuf *ibuf, short newx, short newy)
+static void scalefast_Z_ImBuf(ImBuf *ibuf, int newx, int newy)
 {
 	unsigned int *rect, *_newrect, *newrect;
 	int x, y;
