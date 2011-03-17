@@ -938,6 +938,22 @@ BMOpDefine def_create_cube = {
 	0,
 };
 
+/*
+  Bevel
+
+  Bevels edges and vertices
+ */
+BMOpDefine def_bevel = {
+	"bevel",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, /* input edges and vertices */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "face_spans"}, /* new geometry */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "face_holes"}, /* new geometry */
+	 {BMOP_OPSLOT_FLT, "percent"}, /* percentage to expand bevelled edges*/
+	 {0} /*null-terminating sentinel*/},
+	bmesh_bevel_exec,
+	0
+};
+
 BMOpDefine *opdefines[] = {
 	&def_splitop,
 	&def_dupeop,
@@ -997,6 +1013,7 @@ BMOpDefine *opdefines[] = {
 	&def_create_cone,
 	&def_create_cube,
 	&def_join_triangles,
+	&def_bevel,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

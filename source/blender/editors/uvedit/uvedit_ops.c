@@ -1609,7 +1609,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 					luv->flag |= MLOOPUV_VERTSEL;
 					break;
 				case SEL_DESELECT:
-					luv->flag &= MLOOPUV_VERTSEL;
+					luv->flag &= ~MLOOPUV_VERTSEL;
 					break;
 				case SEL_INVERT:
 					luv->flag ^= MLOOPUV_VERTSEL;

@@ -905,7 +905,7 @@ int isect_line_line_v3(float v1[3], float v2[3], float v3[3], float v4[3], float
 	normalize_v3_v3(dir1, a);
 	normalize_v3_v3(dir2, b);
 	d = dot_v3v3(dir1, dir2);
-	if (d == 1.0f || d == -1.0f) {
+	if (d >= 1.0-FLT_EPSILON*10 || d <= -1.0 + FLT_EPSILON*10) {
 		/* colinear */
 		return 0;
 	}

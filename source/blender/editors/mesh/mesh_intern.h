@@ -301,6 +301,7 @@ void MESH_OT_edgering_select(struct wmOperatorType *ot);
 void MESH_OT_loopcut(struct wmOperatorType *ot);
 
 void MESH_OT_knifetool(struct wmOperatorType *ot);
+void MESH_OT_bevel(struct wmOperatorType *ot);
 
 #endif // MESH_INTERN_H
 

@@ -58,6 +58,7 @@ set(INC
 )
 
 set(SRC
+	operators/bevel.c
 	operators/bmesh_dupeops.c
 	operators/utils.c
 	operators/subdivideop.c

@@ -4793,3 +4793,56 @@ void MESH_OT_noise(wmOperatorType *ot)
 
 	RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, "Factor", "", 0.0f, 1.0f);
 }
+
+/*bevel! yay!!*/
+static int mesh_bevel_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
+	Material *ma;
+	Tex *tex;
+	BMVert *eve;
+	BMIter iter;
+	BMOperator bmop;
+	float factor= RNA_float_get(op->ptr, "percent"), fac=factor;
+	int i, recursion = RNA_int_get(op->ptr, "recursion");
+	
+	if(em==NULL) return OPERATOR_CANCELLED;
+	
+	while (recursion-- > 0) {
+		if (!EDBM_InitOpf(em, &bmop, op, "bevel geom=%hev percent=%f", BM_SELECT, fac))
+			return OPERATOR_CANCELLED;
+		
+		BMO_Exec_Op(em->bm, &bmop);
+		BMO_HeaderFlag_Buffer(em->bm, &bmop, "face_spans", BM_SELECT, BM_FACE);
+		BMO_HeaderFlag_Buffer(em->bm, &bmop, "face_holes", BM_SELECT, BM_FACE);
+		BMO_Finish_Op(em->bm, &bmop);
+		
+		fac = fac + (sqrt(fac) - fac)*0.25;
+	}
+	
+	EDBM_RecalcNormals(em);
+
+	DAG_id_tag_update(obedit->data, 0);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_bevel(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bevel";
+	ot->description= "Edge/Vertex Bevel";
+	ot->idname= "MESH_OT_bevel";
+
+	/* api callbacks */
+	ot->exec= mesh_bevel_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_float(ot->srna, "percent", 0.16f, -FLT_MAX, FLT_MAX, "Percentage", "", -0.07f, 0.5f);
+	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 6);
+}

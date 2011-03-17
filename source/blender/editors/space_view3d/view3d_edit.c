@@ -1439,7 +1439,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 	INIT_MINMAX(min, max);
 
 	if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
-		/* hardcoded exception, we look for the one selected armature */
+		/* hardcoded exception, we look for the one selectedW armature */
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
 		Base *base;
 		for(base=scene->base.first; base; base= base->next) {

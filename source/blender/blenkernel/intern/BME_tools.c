@@ -41,11 +41,8 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
-<<<<<<< .working
 #include "BLI_cellalloc.h"
-=======
 #include "BLI_utildefines.h"
->>>>>>> .merge-right.r35190
 
 #include "BKE_bmesh.h"
 

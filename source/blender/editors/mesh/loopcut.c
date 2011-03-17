@@ -247,6 +247,9 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 		edgering_find_order(em, lasteed, startedge, lastv1, v);
 
 		for(i=1;i<=previewlines;i++){
+			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1])
+				continue;
+			
 			co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
 			co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
 			co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2])*(i/((float)previewlines+1))+v[0][0]->co[2];
@@ -451,6 +454,7 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 			ringsel_exit(C, op);
 
 			return OPERATOR_FINISHED;
+		case RETKEY:
 		case RIGHTMOUSE: /* confirm */ // XXX hardcoded
 			if (event->val == KM_PRESS) {
 				/* finish */
@@ -507,6 +511,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 
 	switch (event->type) {
+		case RETKEY:
 		case LEFTMOUSE: /* confirm */ // XXX hardcoded
 			if (event->val == KM_RELEASE) {
 				/* finish */
