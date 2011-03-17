@@ -987,12 +987,16 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	asset.add();
 	
 	// <library_cameras>
-	CamerasExporter ce(&sw);
-	ce.exportCameras(sce);
+	if(has_object_type(sce, OB_CAMERA)) {
+		CamerasExporter ce(&sw);
+		ce.exportCameras(sce);
+	}
 	
 	// <library_lights>
-	LightsExporter le(&sw);
-	le.exportLights(sce);
+	if(has_object_type(sce, OB_LAMP)) {
+		LightsExporter le(&sw);
+		le.exportLights(sce);
+	}
 
 	// <library_images>
 	ImagesExporter ie(&sw, filename);
@@ -1007,8 +1011,10 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	me.exportMaterials(sce);
 
 	// <library_geometries>
-	GeometryExporter ge(&sw);
-	ge.exportGeom(sce);
+	if(has_object_type(sce, OB_MESH)) {
+		GeometryExporter ge(&sw);
+		ge.exportGeom(sce);
+	}
 
 	// <library_animations>
 	AnimationExporter ae(&sw);
@@ -1016,7 +1022,9 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 
 	// <library_controllers>
 	ArmatureExporter arm_exporter(&sw);
-	arm_exporter.export_controllers(sce);
+	if(has_object_type(sce, OB_ARMATURE)) {
+		arm_exporter.export_controllers(sce);
+	}
 
 	// <library_visual_scenes>
 	SceneExporter se(&sw, &arm_exporter);
