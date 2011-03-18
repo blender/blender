@@ -1249,8 +1249,8 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, const char *name, int imtype, int 
 	int ok;
 	(void)subimtype; /* quies unused warnings */
 
-	if(imtype==0) {
-		/* pass */
+	if(imtype == -1) {
+		/* use whatever existing image type is set by 'ibuf' */
 	}
 	else if(imtype== R_IRIS) {
 		ibuf->ftype= IMAGIC;
