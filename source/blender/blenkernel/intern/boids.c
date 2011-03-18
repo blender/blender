@@ -213,10 +213,8 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
 		mul_v3_fl(ray_dir, acbr->look_ahead);
 		col.f = 0.0f;
-		col.cfra = fmod(bbd->cfra-bbd->dfra, 1.0f);
-		col.dfra = bbd->dfra;
 		hit.index = -1;
-		hit.dist = col.ray_len = len_v3(ray_dir);
+		hit.dist = col.original_ray_length = len_v3(ray_dir);
 
 		/* find out closest deflector object */
 		for(coll = bbd->sim->colliders->first; coll; coll=coll->next) {
@@ -224,18 +222,18 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 			if(coll->ob == bpa->ground)
 				continue;
 
-			col.ob = coll->ob;
+			col.current = coll->ob;
 			col.md = coll->collmd;
 
 			if(col.md && col.md->bvhtree)
-				BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, particle_intersect_face, &col);
+				BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, BKE_psys_collision_neartest_cb, &col);
 		}
 		/* then avoid that object */
 		if(hit.index>=0) {
-			t = hit.dist/col.ray_len;
+			t = hit.dist/col.original_ray_length;
 
 			/* avoid head-on collision */
-			if(dot_v3v3(col.nor, pa->prev_state.ave) < -0.99) {
+			if(dot_v3v3(col.pce.nor, pa->prev_state.ave) < -0.99) {
 				/* don't know why, but uneven range [0.0,1.0] */
 				/* works much better than even [-1.0,1.0] */
 				bbd->wanted_co[0] = BLI_frand();
@@ -243,7 +241,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 				bbd->wanted_co[2] = BLI_frand();
 			}
 			else {
-				VECCOPY(bbd->wanted_co, col.nor);
+				copy_v3_v3(bbd->wanted_co, col.pce.nor);
 			}
 
 			mul_v3_fl(bbd->wanted_co, (1.0f - t) * val->personal_space * pa->size);
@@ -779,27 +777,26 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 		/* first try to find below boid */
 		copy_v3_v3(col.co1, pa->state.co);
 		sub_v3_v3v3(col.co2, pa->state.co, zvec);
-		sub_v3_v3(col.co2, zvec);
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
 		col.f = 0.0f;
-		col.cfra = fmod(bbd->cfra-bbd->dfra, 1.0f);
-		col.dfra = bbd->dfra;
 		hit.index = -1;
-		hit.dist = col.ray_len = len_v3(ray_dir);
+		hit.dist = col.original_ray_length = len_v3(ray_dir);
+		col.pce.inside = 0;
 
 		for(coll = bbd->sim->colliders->first; coll; coll = coll->next){
-			col.ob = coll->ob;
+			col.current = coll->ob;
 			col.md = coll->collmd;
+			col.fac1 = col.fac2 = 0.f;
 
 			if(col.md && col.md->bvhtree)
-				BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, particle_intersect_face, &col);
+				BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, BKE_psys_collision_neartest_cb, &col);
 		}
 		/* then use that object */
 		if(hit.index>=0) {
-			t = hit.dist/col.ray_len;
+			t = hit.dist/col.original_ray_length;
 			interp_v3_v3v3(ground_co, col.co1, col.co2, t);
-			normalize_v3_v3(ground_nor, col.nor);
-			return col.hit_ob;
+			normalize_v3_v3(ground_nor, col.pce.nor);
+			return col.hit;
 		}
 
 		/* couldn't find below, so find upmost deflector object */
@@ -808,24 +805,22 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 		sub_v3_v3(col.co2, zvec);
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
 		col.f = 0.0f;
-		col.cfra = fmod(bbd->cfra-bbd->dfra, 1.0f);
-		col.dfra = bbd->dfra;
 		hit.index = -1;
-		hit.dist = col.ray_len = len_v3(ray_dir);
+		hit.dist = col.original_ray_length = len_v3(ray_dir);
 
 		for(coll = bbd->sim->colliders->first; coll; coll = coll->next){
-			col.ob = coll->ob;
+			col.current = coll->ob;
 			col.md = coll->collmd;
 
 			if(col.md && col.md->bvhtree)
-				BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, particle_intersect_face, &col);
+				BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, BKE_psys_collision_neartest_cb, &col);
 		}
 		/* then use that object */
 		if(hit.index>=0) {
-			t = hit.dist/col.ray_len;
+			t = hit.dist/col.original_ray_length;
 			interp_v3_v3v3(ground_co, col.co1, col.co2, t);
-			normalize_v3_v3(ground_nor, col.nor);
-			return col.hit_ob;
+			normalize_v3_v3(ground_nor, col.pce.nor);
+			return col.hit;
 		}
 
 		/* default to z=0 */
