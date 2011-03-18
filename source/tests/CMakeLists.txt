@@ -44,6 +44,20 @@ endif()
 
 set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} --background --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 
+
+# ------------------------------------------------------------------------------
+# GENERAL PYTHON CORRECTNESS TESTS
+add_test(script_load_addons ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_load_addons.py
+)
+
+add_test(script_load_modules ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_load_py_modules.py
+)
+
+# ------------------------------------------------------------------------------
+# IO TESTS
+
 # OBJ Import tests
 add_test(import_obj_cube ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
