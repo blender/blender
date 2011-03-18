@@ -307,15 +307,19 @@ public:
 
 	AnimationExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryAnimations(sw) { this->sw = sw; }
 
+
+
 	void exportAnimations(Scene *sce)
 	{
-		this->scene = sce;
+		if(hasAnimations(sce)) {
+			this->scene = sce;
 
-		openLibrary();
-		
-		forEachObjectInScene(sce, *this);
-		
-		closeLibrary();
+			openLibrary();
+
+			forEachObjectInScene(sce, *this);
+
+			closeLibrary();
+		}
 	}
 
 	// called for each exported object
@@ -904,6 +908,24 @@ protected:
 				fcu->flag &= ~FCURVE_DISABLED;
 			}
 		}
+	}
+	
+	bool hasAnimations(Scene *sce)
+	{
+		Base *base= (Base*) sce->base.first;
+		while(base) {
+			Object *ob = base->object;
+			
+			FCurve *fcu = 0;
+			if(ob->adt && ob->adt->action)
+				fcu = (FCurve*)ob->adt->action->curves.first;
+				
+			if ((ob->type == OB_ARMATURE && ob->data) || fcu) {
+				return true;
+			}
+			base= base->next;
+		}
+		return false;
 	}
 };
 

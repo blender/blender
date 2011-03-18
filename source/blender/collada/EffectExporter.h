@@ -57,10 +57,11 @@ public:
 											/*COLLADASW::Surface *surface*/);
 	
 	COLLADASW::ColorOrTexture getcol(float r, float g, float b, float a);
-	
-	//returns the array of mtex indices which have image 
-	//need this for exporting textures
+private:
+	/** Fills the array of mtex indices which have image. Used for exporting images. */
 	void createTextureIndices(Material *ma, std::vector<int> &indices);
+	
+	bool hasEffects(Scene *sce);
 };
 
 #endif
