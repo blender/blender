@@ -619,6 +619,9 @@ int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, float co[2], 
 			nverts= efa->v4? 4: 3;
 
 			for(i=0; i<nverts; i++) {
+				if(uvedit_uv_selected(scene, efa, tf, i))
+					continue;
+
 				dist= fabs(co[0]-tf->uv[i][0]) + fabs(co[1]-tf->uv[i][1]);
 
 				if(dist<=mindist) {
