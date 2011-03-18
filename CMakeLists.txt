@@ -177,6 +177,9 @@ if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
 endif()
 
+# remove old vars
+unset(WITH_INSTALL CACHE)
+
 TEST_SSE_SUPPORT()
 
 #-----------------------------------------------------------------------------
@@ -213,6 +216,11 @@ set(CXX_WARNINGS "")
 #Platform specifics
 
 if(UNIX AND NOT APPLE)
+	
+	# needed for ubuntu 11.04
+	if(EXISTS "/usr/lib/x86_64-linux-gnu")
+		set(CMAKE_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu;${CMAKE_LIBRARY_PATH}")
+	endif()
 
 	if(WITH_OPENAL)
 		find_package(OpenAL)
