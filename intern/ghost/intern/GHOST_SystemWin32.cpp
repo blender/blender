@@ -450,7 +450,7 @@ GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, WPARAM wParam, LPAR
 		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, data, &size, sizeof(RAWINPUTHEADER)))
 	{
 		RAWINPUT ri;
-		memcpy(&ri,data,sizeof(ri));
+		memcpy(&ri,data,(size < sizeof(ri)) ? size : sizeof(ri));
 
 		if (ri.header.dwType == RIM_TYPEKEYBOARD)
 		{
