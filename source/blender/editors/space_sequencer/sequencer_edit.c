@@ -2684,6 +2684,9 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 			if(iseq->sound) {
 				iseq->scene_sound = sound_add_scene_sound(scene, iseq, iseq->startdisp, iseq->enddisp, iseq->startofs + iseq->anim_startofs);
 			}
+			if(iseq->scene) {
+				sound_scene_add_scene_sound(scene, iseq, iseq->startdisp, iseq->enddisp, iseq->startofs + iseq->anim_startofs);
+			}
 		}
 	}
 
