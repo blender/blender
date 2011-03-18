@@ -276,10 +276,11 @@ void ED_operatormacros_graph(void)
 	wmOperatorTypeMacro *otmacro;
 	
 	ot= WM_operatortype_append_macro("GRAPH_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
-	WM_operatortype_macro_define(ot, "GRAPH_OT_duplicate");
-	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");
-	RNA_int_set(otmacro->ptr, "mode", TFM_TIME_DUPLICATE);
-
+	if (ot) {
+		WM_operatortype_macro_define(ot, "GRAPH_OT_duplicate");
+		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");
+			RNA_int_set(otmacro->ptr, "mode", TFM_TIME_DUPLICATE);
+	}
 }
 
 
