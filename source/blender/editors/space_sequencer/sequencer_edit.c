@@ -2680,6 +2680,10 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	if(ofs) {
 		for(iseq= nseqbase.first; iseq; iseq= iseq->next) {
 			seq_offset(scene, iseq, ofs);
+			/* XXX, ffmpeg too? */
+			if(iseq->sound) {
+				iseq->scene_sound = sound_add_scene_sound(scene, iseq, iseq->startdisp, iseq->enddisp, iseq->startofs + iseq->anim_startofs);
+			}
 		}
 	}
 
