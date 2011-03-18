@@ -862,19 +862,19 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				// Mouse events, processed
 				////////////////////////////////////////////////////////////////////////
 				case WM_LBUTTONDOWN:
-					window->registerMouseClickEvent(true);
+					window->registerMouseClickEvent(0);
 					event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskLeft);
 					break;
 				case WM_MBUTTONDOWN:
-					window->registerMouseClickEvent(true);
+					window->registerMouseClickEvent(0);
 					event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskMiddle);
 					break;
 				case WM_RBUTTONDOWN:
-					window->registerMouseClickEvent(true);
+					window->registerMouseClickEvent(0);
 					event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskRight);
 					break;
 				case WM_XBUTTONDOWN:
-					window->registerMouseClickEvent(true);
+					window->registerMouseClickEvent(0);
 					if ((short) HIWORD(wParam) == XBUTTON1){
 						event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton4);
 					}else if((short) HIWORD(wParam) == XBUTTON2){
@@ -882,19 +882,19 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					}
 					break;
 				case WM_LBUTTONUP:
-					window->registerMouseClickEvent(false);
+					window->registerMouseClickEvent(1);
 					event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
 					break;
 				case WM_MBUTTONUP:
-					window->registerMouseClickEvent(false);
+					window->registerMouseClickEvent(1);
 					event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskMiddle);
 					break;
 				case WM_RBUTTONUP:
-					window->registerMouseClickEvent(false);
+					window->registerMouseClickEvent(1);
 					event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskRight);
 					break;
 				case WM_XBUTTONUP:
-					window->registerMouseClickEvent(false);
+					window->registerMouseClickEvent(1);
 					if ((short) HIWORD(wParam) == XBUTTON1){
 						event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton4);
 					}else if((short) HIWORD(wParam) == XBUTTON2){
