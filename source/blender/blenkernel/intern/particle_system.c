@@ -2639,7 +2639,7 @@ static float nr_signed_distance_to_plane(float *p, float radius, ParticleCollisi
 
 	return d - radius;
 }
-static float nr_distance_to_edge(float *p, float radius, ParticleCollisionElement *pce, float *nor)
+static float nr_distance_to_edge(float *p, float radius, ParticleCollisionElement *pce, float *UNUSED(nor))
 {
 	float v0[3], v1[3], v2[3], c[3];
 
@@ -2651,7 +2651,7 @@ static float nr_distance_to_edge(float *p, float radius, ParticleCollisionElemen
 
 	return fabs(len_v3(c)/len_v3(v0)) - radius;
 }
-static float nr_distance_to_vert(float *p, float radius, ParticleCollisionElement *pce, float *nor)
+static float nr_distance_to_vert(float *p, float radius, ParticleCollisionElement *pce, float *UNUSED(nor))
 {
 	return len_v3v3(p, pce->x0) - radius;
 }
@@ -2966,7 +2966,6 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 	MVert *x = col->md->x;
 	MVert *v = col->md->current_v;
 	float t = hit->dist/col->original_ray_length;
-	float uv[2] = {0.f,0.f};
 	int collision = 0, quad = 0;
 
 	pce.x[0] = x[face->v1].co;
@@ -3245,7 +3244,6 @@ static void collision_fail(ParticleData *pa, ParticleCollision *col)
  * -handles spherical particles and (nearly) point like particles
  */
 static void collision_check(ParticleSimulationData *sim, int p, float dfra, float cfra){
-	Object *ground_ob = NULL;
 	ParticleSettings *part = sim->psys->part;
 	ParticleData *pa = sim->psys->particles + p;
 	ParticleCollision col;
