@@ -1897,6 +1897,9 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
 				RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, i, 0);
 		}
 	}
+	
+	/* view3d layer change should update depsgraph (invisible object changed maybe) */
+	/* see view3d_header.c */
 }
 
 // TODO:

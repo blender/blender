@@ -142,6 +142,11 @@ static void handle_view3d_lock(bContext *C)
 	}
 }
 
+/* layer code is on three levels actually:
+- here for operator
+- uiTemplateLayers in interface/ code for buttons
+- ED_view3d_scene_layer_set for RNA
+ */
 static int view3d_layers_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
