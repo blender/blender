@@ -1099,6 +1099,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 					{	
 						STR_HashedString mn = meshobj->GetName();
 						mapStringToMeshes.remove(mn);
+						m_map_mesh_to_gamemesh.remove(CHashedPtr(meshobj->GetMesh()));
 						i--;
 					}
 				}
