@@ -881,7 +881,7 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 	unsigned char *wtcol;
 	unsigned char(*wlcol)[4] = NULL;
 	BLI_array_declare(wlcol);
-	int i, totface=dm->getNumTessFaces(dm), totpoly=dm->getNumFaces, totloop;
+	int i, totface=dm->getNumTessFaces(dm), totloop;
 	int *origIndex = dm->getVertDataArray(dm, CD_ORIGINDEX);
 	
 	wtcol = MEM_callocN (sizeof (unsigned char) * totface*4*4, "weightmap");
@@ -889,11 +889,12 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 	/*first add colors to the tesselation faces*/
 	memset(wtcol, 0x55, sizeof (unsigned char) * totface*4*4);
 	for (i=0; i<totface; i++, mf++) {
-		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4]); 
-		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4]); 
-		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4]); 
+		/*origindex being NULL means we're operating on original mesh data*/
+		calc_weightpaint_vert_color(ob, coba, origIndex ? origIndex[mf->v1] : mf->v1, &wtcol[(i*4 + 0)*4]); 
+		calc_weightpaint_vert_color(ob, coba, origIndex ? origIndex[mf->v2] : mf->v2, &wtcol[(i*4 + 1)*4]); 
+		calc_weightpaint_vert_color(ob, coba, origIndex ? origIndex[mf->v3] : mf->v3, &wtcol[(i*4 + 2)*4]); 
 		if (mf->v4)
-			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4]); 
+			calc_weightpaint_vert_color(ob, coba, origIndex ? origIndex[mf->v4] : mf->v4, &wtcol[(i*4 + 3)*4]); 
 	}
 	
 	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol, totface);
@@ -904,9 +905,12 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 	for (; !dfiter->done; dfiter->step(dfiter)) {
 		dliter = dfiter->getLoopsIter(dfiter);
 		for (; !dliter->done; dliter->step(dliter), totloop++) {
+			int *oi = (int*)dliter->getVertCDData(dliter, CD_ORIGINDEX, -1);
+			
 			BLI_array_growone(wlcol);
-			calc_weightpaint_vert_color(ob, coba, dliter->vindex, (unsigned
-char *)&wlcol[totloop]);			 
+			
+			calc_weightpaint_vert_color(ob, coba, oi ? *oi : dliter->vindex, 
+			                            (unsigned char *)&wlcol[totloop]);			 
 		}
 	}
 
@@ -1108,9 +1112,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					CDDM_calc_normals(dm);
 				}
 
-				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-					add_weight_mcol_dm(ob, dm);
-
 				/* Constructive modifiers need to have an origindex
 				 * otherwise they wont have anywhere to copy the data from.
 				 *
@@ -1133,6 +1134,10 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					orig = DM_get_face_data_layer(dm, CD_ORIGINDEX);
 					for(i=0; i<dm->numPolyData; i++) *orig++= i;
 				}
+
+				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
+					add_weight_mcol_dm(ob, dm);
+
 			}
 
 			

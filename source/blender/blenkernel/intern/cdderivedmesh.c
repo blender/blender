@@ -1634,7 +1634,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 	return dm;
 }
 
-DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
+DerivedMesh *disabled__CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
 {
 	DerivedMesh *dm = CDDM_new(BLI_countlist(&em->verts),
 	                           BLI_countlist(&em->edges),
@@ -2025,10 +2025,10 @@ void *cddm_loopiter_getvertcddata(void *self, int type, int layer)
 	CDDM_LoopIter *iter = self;
 
 	if (layer == -1) return CustomData_get(&iter->cddm->dm.vertData, 
-		                               iter->cddm->mloop[iter->head.vindex].v,
+		                               iter->cddm->mloop[iter->head.index].v,
 					       type);
 	else return CustomData_get_n(&iter->cddm->dm.vertData, type, 
-	                             iter->cddm->mloop[iter->head.vindex].v, layer);
+	                             iter->cddm->mloop[iter->head.index].v, layer);
 }
 
 DMLoopIter *cddmiter_get_loopiter(void *self)

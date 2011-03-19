@@ -292,12 +292,12 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 
 	for(i=0; i<dvert_tot; i++, dvf++, dv++) {
 		if((*dv)->dw)
-			MEM_freeN((*dv)->dw);
+			BLI_cellalloc_free((*dv)->dw);
 
 		*(*dv)= *(*dvf);
 
 		if((*dv)->dw)
-			(*dv)->dw= MEM_dupallocN((*dv)->dw);
+			(*dv)->dw= BLI_cellalloc_dupalloc((*dv)->dw);
 	}
 
 	MEM_freeN(dvert_array);
@@ -365,7 +365,7 @@ static void ED_vgroup_nr_vert_remove(Object *ob, int def_nr, int vertnum)
 			 * left then just remove the deform weight
 			 */
 			else {
-				MEM_freeN(dvert->dw);
+				BLI_cellalloc_free(dvert->dw);
 				dvert->dw = NULL;
 				break;
 			}
@@ -1186,7 +1186,7 @@ static void vgroup_active_remove_verts(Object *ob, const int allverts, bDeformGr
 							if(dvert->dw){
 								memcpy(newdw, dvert->dw, sizeof(MDeformWeight)*i);
 								memcpy(newdw+i, dvert->dw+i+1, sizeof(MDeformWeight)*(dvert->totweight-i));
-								MEM_freeN(dvert->dw);
+								BLI_cellalloc_free(dvert->dw);
 							}
 							dvert->dw=newdw;
 						}
@@ -1280,7 +1280,7 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *dg)
 		else if(ob->type==OB_LATTICE) {
 			Lattice *lt= vgroup_edit_lattice(ob);
 			if(lt->dvert) {
-				MEM_freeN(lt->dvert);
+				BLI_cellalloc_free(lt->dvert);
 				lt->dvert= NULL;
 			}
 		}
@@ -1320,7 +1320,7 @@ static void vgroup_delete_all(Object *ob)
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
 		if(lt->dvert) {
-			MEM_freeN(lt->dvert);
+			BLI_cellalloc_free(lt->dvert);
 			lt->dvert= NULL;
 		}
 	}

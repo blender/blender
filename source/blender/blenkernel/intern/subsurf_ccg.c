@@ -896,7 +896,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 #endif
 }
 
-static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
+static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 									 float (*vertexCos)[3], int useFlatSubdiv)
 {
 	float creaseFactor = (float) ccgSubSurf_getSubdivisionLevels(ss);
@@ -976,7 +976,7 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 				hasGivenError = 1;
 			}
 
-			return;
+			return 0;
 		}
 
 		((int*)ccgSubSurf_getFaceUserData(ss, f))[1] = (index)? *index++: i;
@@ -986,6 +986,7 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 	ccgSubSurf_processSync(ss);
 
 	BLI_array_free(fVerts);
+	return 1;
 }
 
 /***/
@@ -3106,7 +3107,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->useSubsurfUv = useSubsurfUv;
 
 	totvert = ccgSubSurf_getNumVerts(ss);
-	ccgdm->vertMap = MEM_mallocN(totvert * sizeof(*ccgdm->vertMap), "vertMap");
+	ccgdm->vertMap = MEM_callocN(totvert * sizeof(*ccgdm->vertMap), "vertMap");
 	vi = ccgSubSurf_getVertIterator(ss);
 	for(; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
 		CCGVert *v = ccgVertIterator_getCurrent(vi);
@@ -3116,7 +3117,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgVertIterator_free(vi);
 
 	totedge = ccgSubSurf_getNumEdges(ss);
-	ccgdm->edgeMap = MEM_mallocN(totedge * sizeof(*ccgdm->edgeMap), "edgeMap");
+	ccgdm->edgeMap = MEM_callocN(totedge * sizeof(*ccgdm->edgeMap), "edgeMap");
 	ei = ccgSubSurf_getEdgeIterator(ss);
 	for(; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
 		CCGEdge *e = ccgEdgeIterator_getCurrent(ei);
@@ -3125,7 +3126,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	}
 
 	totface = ccgSubSurf_getNumFaces(ss);
-	ccgdm->faceMap = MEM_mallocN(totface * sizeof(*ccgdm->faceMap), "faceMap");
+	ccgdm->faceMap = MEM_callocN(totface * sizeof(*ccgdm->faceMap), "faceMap");
 	fi = ccgSubSurf_getFaceIterator(ss);
 	for(; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);
@@ -3458,7 +3459,14 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 			smd->mCache = ss = _getSubSurf(smd->mCache, levels,
 										   useAging, 0, useSimple);
 
-			ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
+			if (!ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple)) {
+				//ccgSubSurf_free(smd->mCache);
+				smd->mCache = ss = _getSubSurf(NULL, levels,
+											   useAging, 0, useSimple);
+				
+				ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
+	
+			}
 
 			result = getCCGDerivedMesh(smd->mCache,
 									   drawInteriorEdges,
