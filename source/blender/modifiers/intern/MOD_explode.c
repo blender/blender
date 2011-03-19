@@ -518,14 +518,13 @@ static void remap_faces_23(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *
 
 static void remap_uvs_23(DerivedMesh *dm, DerivedMesh *split, int numlayer, int i, int cur, int c0, int c1, int c2)
 {
-	MTFace *mf, *df1, *df2, *df3;
+	MTFace *mf, *df1, *df2;
 	int l;
 
 	for(l=0; l<numlayer; l++) {
 		mf = CustomData_get_layer_n(&split->faceData, CD_MTFACE, l);
 		df1 = mf+cur;
 		df2 = df1 + 1;
-		df3 = df1 + 2;
 		mf = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, l);
 		mf += i;
 

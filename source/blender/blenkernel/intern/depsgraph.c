@@ -1556,10 +1556,9 @@ void graph_print_queue(DagNodeQueue *nqueue)
 void graph_print_queue_dist(DagNodeQueue *nqueue)
 {	
 	DagNodeQueueElem *queueElem;
-	int max, count;
+	int count;
 	
 	queueElem = nqueue->first;
-	max = queueElem->node->DFS_fntm;
 	count = 0;
 	while(queueElem) {
 		fprintf(stderr,"** %25s %2.2i-%2.2i ",((ID *) queueElem->node->ob)->name,queueElem->node->DFS_dvtm,queueElem->node->DFS_fntm);

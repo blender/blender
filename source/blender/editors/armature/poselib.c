@@ -354,7 +354,7 @@ void POSELIB_OT_action_sanitise (wmOperatorType *ot)
 static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	Object *ob= get_poselib_object(C);
-	bAction *act= (ob) ? ob->poselib : NULL;
+	bAction *act= ob->poselib; /* never NULL */
 	TimeMarker *marker;
 	
 	/* set the operator execution context correctly */

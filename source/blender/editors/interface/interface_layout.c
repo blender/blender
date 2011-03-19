@@ -1971,17 +1971,15 @@ static void ui_litem_layout_split(uiLayout *litem)
 	uiLayoutItemSplt *split= (uiLayoutItemSplt*)litem;
 	uiItem *item;
 	float percentage;
-	int itemh, x, y, w, tot=0, colw=0;
+	const int tot= BLI_countlist(&litem->items);
+	int itemh, x, y, w, colw=0;
+
+	if(tot == 0)
+		return;
 
 	x= litem->x;
 	y= litem->y;
 
-	for(item=litem->items.first; item; item=item->next)
-		tot++;
-	
-	if(tot == 0)
-		return;
-	
 	percentage= (split->percentage == 0.0f)? 1.0f/(float)tot: split->percentage;
 	
 	w= (litem->w - (tot-1)*litem->space);

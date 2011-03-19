@@ -5152,13 +5152,13 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 		drawcircball(GL_LINE_LOOP, vec, size*2.0, imat);
 	}
 	else if (pd->forcefield == PFIELD_VORTEX) {
-		float ffall_val, force_val;
+		float /*ffall_val,*/ force_val;
 
 		unit_m4(tmat);
 		//if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
 		//	ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
 		//else 
-			ffall_val = pd->f_power;
+		//	ffall_val = pd->f_power;
 
 		//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
 		//	force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);

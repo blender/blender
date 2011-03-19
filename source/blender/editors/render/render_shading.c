@@ -1153,6 +1153,9 @@ static void paste_mtex_copybuf(ID *id)
 		case ID_PA:
 			mtex= &(((ParticleSettings *)id)->mtex[(int)((ParticleSettings *)id)->texact]);
 			break;
+		default:
+			BLI_assert("invalid id type");
+			return;
 	}
 	
 	if(mtex) {

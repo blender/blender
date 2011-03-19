@@ -282,7 +282,6 @@ tbool genTangSpace(const SMikkTSpaceContext * pContext, const float fAngularThre
 
 	// Mark all degenerate triangles
 	iTotTris = iNrTrianglesIn;
-	iNrTrianglesIn = 0;
 	iDegenTriangles = 0;
 	for(t=0; t<iTotTris; t++)
 	{
