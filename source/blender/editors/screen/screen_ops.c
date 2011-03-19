@@ -282,6 +282,12 @@ int ED_operator_object_active_editable_mesh(bContext *C)
 	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->type == OB_MESH);
 }
 
+int ED_operator_object_active_editable_font(bContext *C)
+{
+	Object *ob = ED_object_active_context(C);
+	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->type == OB_FONT);
+}
+
 int ED_operator_editmesh(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);

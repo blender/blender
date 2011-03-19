@@ -50,6 +50,8 @@ struct Scene;
 struct Main;
 struct rcti;
 struct ReportList;
+struct FileSelection;
+
 
 struct FileList *	filelist_new(short type);
 void				filelist_init_icons(void);
@@ -61,6 +63,7 @@ int					filelist_numfiles(struct FileList* filelist);
 const char *		filelist_dir(struct FileList* filelist);
 void				filelist_setdir(struct FileList* filelist, const char *dir);
 struct direntry *	filelist_file(struct FileList* filelist, int index);
+void				filelist_select(struct FileList* filelist, FileSelection* sel, short select, unsigned int flag);
 void				filelist_hidedot(struct FileList* filelist, short hide);
 void				filelist_setfilter(struct FileList* filelist, unsigned int filter);
 void				filelist_setfilter_types(struct FileList* filelist, const char *filter_glob);

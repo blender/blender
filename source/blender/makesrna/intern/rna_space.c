@@ -614,12 +614,11 @@ static void rna_ConsoleLine_body_set(PointerRNA *ptr, const char *value)
 	ConsoleLine *ci= (ConsoleLine*)ptr->data;
 	int len= strlen(value);
 	
-	if((len >= ci->len_alloc) || (len * 2 < ci->len_alloc) ) { /* allocate a new strnig */
+	if((len >= ci->len_alloc) || (len * 2 < ci->len_alloc) ) { /* allocate a new string */
 		MEM_freeN(ci->line);
 		ci->line= MEM_mallocN((len + 1) * sizeof(char), "rna_consoleline");
 		ci->len_alloc= len + 1;
 	}
-
 	memcpy(ci->line, value, len + 1);
 	ci->len= len;
 

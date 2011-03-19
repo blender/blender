@@ -40,6 +40,20 @@ struct ARegionType;
 struct View2D;
 struct bContext;
 struct wmWindowManager;
+struct bNode;
+struct bNodeSocket;
+struct bNodeLink;
+
+/* temp data to pass on to modal */
+typedef struct bNodeLinkDrag
+{
+	struct bNodeLinkDrag *next, *prev;
+	
+	struct bNode *node;
+	struct bNodeSocket *sock;
+	struct bNodeLink *link;
+	int in_out;
+} bNodeLinkDrag;
 
 /* space_node.c */
 ARegion *node_has_buttons_region(ScrArea *sa);

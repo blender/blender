@@ -1332,7 +1332,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 		short success= 0;
 		
 		/* loop through all curves in animdata and delete keys on this frame */
-		if (ob->adt) {
+		if ((ob->adt) && (ob->adt->action)) {
 			AnimData *adt= ob->adt;
 			bAction *act= adt->action;
 			
@@ -1342,7 +1342,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 			}
 		}
 		
-		BKE_reportf(op->reports, RPT_INFO, "Ob '%s' - Successfully removed %d keyframes \n", id->name+2, success);
+		BKE_reportf(op->reports, RPT_INFO, "Ob '%s' - Successfully had %d keyframes removed", id->name+2, success);
 		
 		ob->recalc |= OB_RECALC_OB;
 	}

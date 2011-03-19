@@ -790,7 +790,11 @@ Tex *localize_texture(Tex *tex)
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
 	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
 	if(texn->pd) texn->pd= MEM_dupallocN(texn->pd);
-	if(texn->vd) texn->vd= MEM_dupallocN(texn->vd);
+	if(texn->vd) {
+		texn->vd= MEM_dupallocN(texn->vd);
+		if(texn->vd->dataset)
+			texn->vd->dataset= MEM_dupallocN(texn->vd->dataset);
+	}
 	
 	texn->preview = NULL;
 	
@@ -1375,7 +1379,10 @@ void BKE_free_pointdensitydata(PointDensity *pd)
 		MEM_freeN(pd->point_data);
 		pd->point_data = NULL;
 	}
-	if(pd->coba) MEM_freeN(pd->coba);
+	if(pd->coba) {
+		MEM_freeN(pd->coba);
+		pd->coba = NULL;
+	}
 }
 
 void BKE_free_pointdensity(PointDensity *pd)

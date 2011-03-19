@@ -152,6 +152,14 @@ class InfoStructRNA:
                 functions.append((identifier, attr))
         return functions
 
+    def get_py_c_functions(self):
+        import types
+        functions = []
+        for identifier, attr in self._get_py_visible_attrs():
+            if type(attr) in (types.BuiltinMethodType, types.BuiltinFunctionType):
+                functions.append((identifier, attr))
+        return functions
+
     def __str__(self):
 
         txt = ""

@@ -55,15 +55,38 @@ static std::string getActiveUVLayerName(Object *ob)
 	return "";
 }
 
-
 EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryEffects(sw){}
+
+bool EffectsExporter::hasEffects(Scene *sce)
+{
+	Base *base = (Base *)sce->base.first;
+	
+	while(base) {
+		Object *ob= base->object;
+		int a;
+		for(a = 0; a < ob->totcol; a++)
+		{
+			Material *ma = give_current_material(ob, a+1);
+
+			// no material, but check all of the slots
+			if (!ma) continue;
+
+			return true;
+		}
+		base= base->next;
+	}
+	return false;
+}
+
 void EffectsExporter::exportEffects(Scene *sce)
 {
-	openLibrary();
-	MaterialFunctor mf;
-	mf.forEachMaterialInScene<EffectsExporter>(sce, *this);
+	if(hasEffects(sce)) {
+		openLibrary();
+		MaterialFunctor mf;
+		mf.forEachMaterialInScene<EffectsExporter>(sce, *this);
 
-	closeLibrary();
+		closeLibrary();
+	}
 }
 
 void EffectsExporter::operator()(Material *ma, Object *ob)

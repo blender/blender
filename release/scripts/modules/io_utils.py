@@ -25,7 +25,7 @@ from bpy.props import StringProperty, BoolProperty
 class ExportHelper:
     filepath = StringProperty(name="File Path", description="Filepath used for exporting the file", maxlen=1024, default="", subtype='FILE_PATH')
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
-    
+
     # subclasses can override with decorator
     # True == use ext, False == no ext, None == do nothing.
     check_extension = True
@@ -46,7 +46,7 @@ class ExportHelper:
 
     def check(self, context):
         check_extension = self.check_extension
-        
+
         if check_extension is None:
             return False
 
@@ -91,14 +91,14 @@ def create_derived_objects(scene, ob):
         return False, None
 
     if ob.dupli_type != 'NONE':
-        ob.create_dupli_list(scene)
+        ob.dupli_list_create(scene)
         return True, [(dob.object, dob.matrix) for dob in ob.dupli_list]
     else:
         return False, [(ob, ob.matrix_world)]
 
 
 def free_derived_objects(ob):
-    ob.free_dupli_list()
+    ob.dupli_list_clear()
 
 
 def unpack_list(list_of_tuples):

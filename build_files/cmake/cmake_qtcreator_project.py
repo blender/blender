@@ -78,7 +78,7 @@ def is_svn_file(filename):
 
 
 def is_project_file(filename):
-    return (is_c_any(filename) or is_cmake(filename)) # and is_svn_file(filename)
+    return (is_c_any(filename) or is_cmake(filename))  # and is_svn_file(filename)
 
 
 def cmake_advanced_info():
@@ -184,7 +184,6 @@ def main():
         # for some reason it doesnt give all internal includes
         includes = list(set(includes) | set(dirname(f) for f in files_rel if is_c_header(f)))
         includes.sort()
-
 
         PROJECT_NAME = "Blender"
         f = open(join(base, "%s.files" % PROJECT_NAME), 'w')

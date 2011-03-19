@@ -240,12 +240,20 @@ def autocomplete(context):
 
         # This function isnt aware of the text editor or being an operator
         # just does the autocomp then copy its results back
-        current_line.body, current_line.current_character, scrollback = \
-            intellisense.expand(
-                line=current_line.body,
+        result = intellisense.expand(
+                line=line,
                 cursor=current_line.current_character,
                 namespace=console.locals,
                 private=bpy.app.debug)
+
+        line_new = result[0]
+        current_line.body, current_line.current_character, scrollback = result
+        del result
+
+        # update sel. setting body should really do this!
+        ofs = len(line_new) - len(line)
+        sc.select_start += ofs
+        sc.select_end += ofs
     except:
         # unlikely, but this can happen with unicode errors for example.
         # or if the api attribute access its self causes an error.

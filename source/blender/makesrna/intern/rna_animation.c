@@ -550,7 +550,8 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Data Path", "Path to property setting");
 	RNA_def_struct_name_property(srna, prop); // XXX this is the best indicator for now...
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_EDITED, NULL);
-	
+
+	/* called 'index' when given as function arg */
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific setting if applicable");
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_EDITED, NULL); // XXX: maybe a bit too noisy

@@ -39,6 +39,7 @@
 #include "RNA_define.h"
 
 #include "DNA_object_types.h"
+#include "DNA_modifier_types.h"
 
 // #include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
 
@@ -77,12 +78,12 @@
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
-static Mesh *rna_Object_create_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
+static Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL;
 	Object *tmpobj = NULL;
-	int render = settings, i;
+	int render = settings == eModifierMode_Render, i;
 	int cage = !apply_modifiers;
 
 	/* perform the mesh extraction based on type */
@@ -421,6 +422,11 @@ void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
 	base->lay= base->object->lay= v3d->lay;
 }
 
+int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
+{
+	return object_is_modified(scene, ob) & settings;
+}
+
 #else
 
 void RNA_api_object(StructRNA *srna)
@@ -429,13 +435,13 @@ void RNA_api_object(StructRNA *srna)
 	PropertyRNA *parm;
 
 	static EnumPropertyItem mesh_type_items[] = {
-		{0, "PREVIEW", 0, "Preview", "Apply modifier preview settings"},
-		{1, "RENDER", 0, "Render", "Apply modifier render settings"},
+		{eModifierMode_Realtime, "PREVIEW", 0, "Preview", "Apply modifier preview settings"},
+		{eModifierMode_Render, "RENDER", 0, "Render", "Apply modifier render settings"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* mesh */
-	func= RNA_def_function(srna, "create_mesh", "rna_Object_create_mesh");
+	func= RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh datablock with modifiers applied.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers.");
@@ -448,13 +454,13 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 
 	/* duplis */
-	func= RNA_def_function(srna, "create_dupli_list", "rna_Object_create_duplilist");
+	func= RNA_def_function(srna, "dupli_list_create", "rna_Object_create_duplilist");
 	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object, needs to be freed manually with free_dupli_list to restore the objects real matrix and layers.");
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate duplis.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
-	func= RNA_def_function(srna, "free_dupli_list", "rna_Object_free_duplilist");
+	func= RNA_def_function(srna, "dupli_list_clear", "rna_Object_free_duplilist");
 	RNA_def_function_ui_description(func, "Free the list of dupli objects.");
 
 	/* Armature */
@@ -500,7 +506,17 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Determine if object is visible in a given scene.");
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
-	parm= RNA_def_boolean(func, "is_visible", 0, "", "Object visibility.");
+	parm= RNA_def_boolean(func, "result", 0, "", "Object visibility.");
+	RNA_def_function_return(func, parm);
+
+	/* utility function for checking if the object is modified */
+	func= RNA_def_function(srna, "is_modified", "rna_Object_is_modified");
+	RNA_def_function_ui_description(func, "Determine if this object is modified from the base mesh data.");
+	parm= RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	parm= RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_boolean(func, "result", 0, "", "Object visibility.");
 	RNA_def_function_return(func, parm);
 }
 

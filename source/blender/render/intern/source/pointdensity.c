@@ -68,10 +68,12 @@ static int point_data_used(PointDensity *pd)
 {
 	int pd_bitflag = 0;
 	
-	if ((pd->noise_influence == TEX_PD_NOISE_VEL) || (pd->color_source == TEX_PD_COLOR_PARTVEL) || (pd->color_source == TEX_PD_COLOR_PARTSPEED))
-		pd_bitflag |= POINT_DATA_VEL;
-	if ((pd->noise_influence == TEX_PD_NOISE_AGE) || (pd->color_source == TEX_PD_COLOR_PARTAGE)) 
-		pd_bitflag |= POINT_DATA_LIFE;
+	if (pd->source == TEX_PD_PSYS) {
+		if ((pd->noise_influence == TEX_PD_NOISE_VEL) || (pd->color_source == TEX_PD_COLOR_PARTVEL) || (pd->color_source == TEX_PD_COLOR_PARTSPEED))
+			pd_bitflag |= POINT_DATA_VEL;
+		if ((pd->noise_influence == TEX_PD_NOISE_AGE) || (pd->color_source == TEX_PD_COLOR_PARTAGE)) 
+			pd_bitflag |= POINT_DATA_LIFE;
+	}
 		
 	return pd_bitflag;
 }

@@ -804,7 +804,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		UI_ThemeColor(TH_TEXT); */
 	
-	if (node->typeinfo->labelfunc)
+	if (node->label[0]!='\0')
+		BLI_strncpy(showname, node->label, sizeof(showname));
+	else if (node->typeinfo->labelfunc)
 		BLI_strncpy(showname, node->typeinfo->labelfunc(node), sizeof(showname));
 	else
 		BLI_strncpy(showname, node->typeinfo->name, sizeof(showname));
@@ -948,7 +950,9 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		UI_ThemeColor(TH_TEXT);
 	
 	if(node->miniwidth>0.0f) {
-		if (node->typeinfo->labelfunc)
+		if (node->label[0]!='\0')
+			BLI_strncpy(showname, node->label, sizeof(showname));
+		else if (node->typeinfo->labelfunc)
 			BLI_strncpy(showname, node->typeinfo->labelfunc(node), sizeof(showname));
 		else
 			BLI_strncpy(showname, node->typeinfo->name, sizeof(showname));
@@ -991,6 +995,7 @@ static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode,
 {
 	bNode *node;
 	bNodeLink *link;
+	bNodeLinkDrag *nldrag;
 	int a;
 	
 	if(ntree==NULL) return;		/* groups... */
@@ -1025,6 +1030,14 @@ static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode,
 				node_draw_basis(C, ar, snode, ntree, node);
 		}
 	}	
+	
+	/* temporary links */
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
+	for(nldrag= snode->linkdrag.first; nldrag; nldrag= nldrag->next)
+		node_draw_link(&ar->v2d, snode, nldrag->link);
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
 }
 
 static void group_verify_cb(bContext *UNUSED(C), void *UNUSED(snode_v), void *ngroup_v)

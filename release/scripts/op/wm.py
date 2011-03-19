@@ -763,6 +763,10 @@ class WM_OT_properties_edit(bpy.types.Operator):
 
         prop_ui['description'] = self.description
 
+        # otherwise existing buttons which reference freed
+        # memory may crash blender [#26510]
+        context.area.tag_redraw()
+
         return {'FINISHED'}
 
     def invoke(self, context, event):

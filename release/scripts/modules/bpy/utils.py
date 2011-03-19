@@ -31,7 +31,7 @@ import bpy as _bpy
 import os as _os
 import sys as _sys
 
-import addon_utils
+import addon_utils as _addon_utils
 
 
 def _test_import(module_name, loaded_modules):
@@ -118,7 +118,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         # note that they will only actually reload of the modification time changes.
         # this `wont` work for packages so... its not perfect.
         for module_name in [ext.module for ext in _bpy.context.user_preferences.addons]:
-            addon_utils.disable(module_name, default_set=False)
+            _addon_utils.disable(module_name, default_set=False)
 
     def register_module_call(mod):
         register = getattr(mod, "register", None)
@@ -201,7 +201,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     test_register(mod)
 
     # deal with addons seperately
-    addon_utils.reset_all(reload_scripts)
+    _addon_utils.reset_all(reload_scripts)
 
     # run the active integration preset
     filepath = preset_find(_bpy.context.user_preferences.inputs.active_keyconfig, "keyconfig")

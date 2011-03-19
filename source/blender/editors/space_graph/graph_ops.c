@@ -226,6 +226,7 @@ void graphedit_operatortypes(void)
 	
 	WM_operatortype_append(GRAPH_OT_previewrange_set);
 	WM_operatortype_append(GRAPH_OT_view_all);
+	WM_operatortype_append(GRAPH_OT_view_selected);
 	WM_operatortype_append(GRAPH_OT_properties);
 	
 	WM_operatortype_append(GRAPH_OT_ghost_curves_create);
@@ -387,6 +388,7 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 		/* auto-set range */
 	WM_keymap_add_item(keymap, "GRAPH_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	
 		/* F-Modifiers */
 	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPH_OT_fmodifier_add", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "only_active", 0);

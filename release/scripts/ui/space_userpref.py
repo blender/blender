@@ -860,8 +860,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
-    _addons_cats = None
-    _addons_sups = None
     _addons_fake_modules = {}
 
     @classmethod
@@ -881,22 +879,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         # collect the categories that can be filtered on
         addons = [(mod, addon_utils.module_bl_info(mod)) for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)]
-
-        cats = {info["category"] for mod, info in addons}
-        cats.discard("")
-
-        if USERPREF_PT_addons._addons_cats != cats:
-            bpy.types.WindowManager.addon_filter = EnumProperty(items=[(cat, cat, "") for cat in ["All", "Enabled", "Disabled"] + sorted(cats)], name="Category", description="Filter add-ons by category")
-            bpy.types.WindowManager.addon_search = StringProperty(name="Search", description="Search within the selected filter")
-            USERPREF_PT_addons._addons_cats = cats
-
-        sups_default = {'OFFICIAL', 'COMMUNITY'}
-        sups = sups_default | {info["support"] for mod, info in addons}
-        sups.discard("")
-
-        if USERPREF_PT_addons._addons_sups != sups:
-            bpy.types.WindowManager.addon_support = EnumProperty(items=[(sup, sup.title(), "") for  sup in reversed(sorted(sups))], name="Support", description="Display support level", default=sups_default, options={'ENUM_FLAG'})
-            USERPREF_PT_addons._addons_sups = sups
 
         split = layout.split(percentage=0.2)
         col = split.column()
@@ -1199,6 +1181,37 @@ class WM_OT_addon_expand(bpy.types.Operator):
 
 def register():
     bpy.utils.register_module(__name__)
+
+    WindowManager = bpy.types.WindowManager
+
+    WindowManager.addon_search = StringProperty(name="Search", description="Search within the selected filter")
+    WindowManager.addon_filter = EnumProperty(
+            items=[('All', "All", ""),
+                   ('Enabled', "Enabled", ""),
+                   ('Disabled', "Disabled", ""),
+                   ('3D View', "3D View", ""),
+                   ('Add Curve', "Add Curve", ""),
+                   ('Add Mesh', "Add Mesh", ""),
+                   ('Animation', "Animation", ""),
+                   ('Development', "Development", ""),
+                   ('Game Engine', "Game Engine", ""),
+                   ('Import-Export', "Import-Export", ""),
+                   ('Mesh', "Mesh", ""),
+                   ('Object', "Object", ""),
+                   ('Render', "Render", ""),
+                   ('Rigging', "Rigging", ""),
+                   ('System', "System", "")
+                   ],
+            name="Category",
+            description="Filter add-ons by category",
+            )
+
+    WindowManager.addon_support = EnumProperty(
+            items=[('OFFICIAL', "Official", ""),
+                   ('COMMUNITY', 'Community', ""),
+                  ],
+            name="Support",
+            description="Display support level", default={'OFFICIAL', 'COMMUNITY'}, options={'ENUM_FLAG'})
 
 
 def unregister():

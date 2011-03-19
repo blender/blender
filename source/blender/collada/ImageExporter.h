@@ -49,6 +49,8 @@ public:
 	
 	void exportImages(Scene *sce);
 	void operator()(Material *ma, Object *ob);
+private:
+	bool hasImages(Scene *sce);
 };
 
 #endif

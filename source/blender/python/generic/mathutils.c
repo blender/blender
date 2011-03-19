@@ -31,67 +31,6 @@
  *  \ingroup pygen
  */
 
-
-/* Note: Changes to Mathutils since 2.4x
- * use radians rather then degrees
- * - Mathutils.Vector/Euler/Quaternion(), now only take single sequence arguments.
- * - Mathutils.MidpointVecs --> vector.lerp(other, fac)
- * - Mathutils.AngleBetweenVecs --> vector.angle(other)
- * - Mathutils.ProjectVecs --> vector.project(other)
- * - Mathutils.DifferenceQuats --> quat.difference(other)
- * - Mathutils.Slerp --> quat.slerp(other, fac)
- * - Mathutils.Rand: removed, use pythons random module
- * - Mathutils.RotationMatrix(angle, size, axis_flag, axis) --> Mathutils.RotationMatrix(angle, size, axis); merge axis & axis_flag args
- * - Mathutils.OrthoProjectionMatrix(plane, size, axis) --> Mathutils.OrthoProjectionMatrix(axis, size); merge axis & plane args
- * - Mathutils.ShearMatrix(plane, factor, size) --> Mathutils.ShearMatrix(plane, size, factor); swap size & factor args, match other constructors.
- * - Matrix.scalePart --> Matrix.scale_part
- * - Matrix.translationPart --> Matrix.translation_part
- * - Matrix.rotationPart --> Matrix.rotation_part
- * - mathutils.Matrix.Shear(plane, fac, size), now takes a pair of floats for 3x3 or 4x4 shear factor.
- * - toMatrix --> to_matrix
- * - toEuler --> to_euler
- * - toQuat --> to_quat
- * - Vector.toTrackQuat --> Vector.to_track_quat
- * - Vector.rotate(axis, angle) --> rotate(other), where other can be Euler/Quaternion/Matrix.
- * - Quaternion * Quaternion --> cross product (not dot product)
- * - Euler.rotate(angle, axis) --> Euler.rotate_axis(axis, angle)
- * - Euler.unique() *removed*, not a standard function only toggled different rotations.
- * - Matrix.rotation_part() -> to_3x3()
- * - Matrix.scale_part() -> to_scale()
- * - Matrix.translation_part() -> to_translation()
- * - Matrix.resize4x4() -> resize_4x4()
- * - Euler.to_quat() -> to_quaternion()
- * - Matrix.to_quat() -> to_quaternion()
- * resizing nolonger returns the resized value.
- * - Vector.resize2D -> resize_2d
- * - Vector.resize3D -> resize_3d
- * - Vector.resize4D -> resize_4d
- * added new functions.
- * - Vector.to_2d()
- * - Vector.to_3d()
- * - Vector.to_4d()
- * moved into class functions.
- * - Mathutils.RotationMatrix -> mathutils.Matrix.Rotation
- * - Mathutils.ScaleMatrix -> mathutils.Matrix.Scale
- * - Mathutils.ShearMatrix -> mathutils.Matrix.Shear
- * - Mathutils.TranslationMatrix -> mathutils.Matrix.Translation
- * - Mathutils.OrthoProjectionMatrix -> mathutils.Matrix.OrthoProjection
- *
- * Moved to Geometry module: Intersect, TriangleArea, TriangleNormal, QuadNormal, LineIntersect
- * - geometry.Intersect -> intersect_ray_tri
- * - geometry.ClosestPointOnLine -> intersect_point_line
- * - geometry.PointInTriangle2D -> intersect_point_tri_2d
- * - geometry.PointInQuad2D -> intersect_point_quad_2d
- * - geometry.LineIntersect -> intersect_line_line
- * - geometry.LineIntersect2D -> intersect_line_line_2d
- * - geometry.BezierInterp -> interpolate_bezier
- * - geometry.TriangleArea -> area_tri
- * - geometry.QuadNormal, TriangleNormal -> normal
- * - geometry.PolyFill -> tesselate_polygon
- * - geometry.BoxPack2D -> box_pack_2d
- * - geometry.BarycentricTransform -> barycentric_transform
- */
-
 #include <Python.h>
 
 #include "mathutils.h"
@@ -99,9 +38,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-
-
-//-------------------------DOC STRINGS ---------------------------
 static char M_Mathutils_doc[] =
 "This module provides access to matrices, eulers, quaternions and vectors."
 ;

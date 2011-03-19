@@ -638,6 +638,8 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	
 	/* helpful warnings... */
 	// TODO: add warnings to be careful about actions, applying deforms first, etc.
+	if (ob->adt && ob->adt->action) 
+		BKE_report(op->reports, RPT_WARNING, "Actions on this armature will be destroyed by this new rest pose as the transforms stored are relative to the old rest pose");
 	
 	/* Get editbones of active armature to alter */
 	ED_armature_to_edit(ob);	

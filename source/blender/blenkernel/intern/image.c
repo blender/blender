@@ -850,9 +850,15 @@ int BKE_add_image_extension(char *string, int imtype)
 
 	if(extension) {
 		/* prefer this in many cases to avoid .png.tga, but in certain cases it breaks */
-		/* return BLI_replace_extension(string, FILE_MAX, extension); */
-		strcat(string, extension);
-		return TRUE;
+		/* remove any other known image extension */
+		if(BLI_testextensie_array(string, imb_ext_image)
+				  || (G.have_quicktime && BLI_testextensie_array(string, imb_ext_image_qt))) {
+			return BLI_replace_extension(string, FILE_MAX, extension);
+		} else {
+			strcat(string, extension);
+			return TRUE;
+		}
+		
 	}
 	else {
 		return FALSE;
@@ -1243,8 +1249,8 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, const char *name, int imtype, int 
 	int ok;
 	(void)subimtype; /* quies unused warnings */
 
-	if(imtype==0) {
-		/* pass */
+	if(imtype == -1) {
+		/* use whatever existing image type is set by 'ibuf' */
 	}
 	else if(imtype== R_IRIS) {
 		ibuf->ftype= IMAGIC;

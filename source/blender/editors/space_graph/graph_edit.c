@@ -81,7 +81,7 @@
 
 /* Get the min/max keyframes*/
 /* note: it should return total boundbox, filter for selection only can be argument... */
-void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax)
+void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, const short selOnly)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -107,7 +107,7 @@ void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, flo
 			float unitFac;
 			
 			/* get range */
-			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax);
+			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax, selOnly);
 			
 			/* apply NLA scaling */
 			if (adt) {
@@ -167,7 +167,7 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 		scene= ac.scene;
 	
 	/* set the range directly */
-	get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL);
+	get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL, FALSE);
 	scene->r.flag |= SCER_PRV_RANGE;
 	scene->r.psfra= (int)floor(min + 0.5f);
 	scene->r.pefra= (int)floor(max + 0.5f);
@@ -196,37 +196,51 @@ void GRAPH_OT_previewrange_set (wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-static int graphkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
+static int graphkeys_viewall(bContext *C, const short selOnly)
 {
 	bAnimContext ac;
 	View2D *v2d;
 	float extra;
-	
+
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	v2d= &ac.ar->v2d;
-	
+
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
-	get_graph_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, &v2d->cur.ymin, &v2d->cur.ymax);
-	
+	get_graph_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, &v2d->cur.ymin, &v2d->cur.ymax, selOnly);
+
 	extra= 0.1f * (v2d->cur.xmax - v2d->cur.xmin);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
-	
+
 	extra= 0.1f * (v2d->cur.ymax - v2d->cur.ymin);
 	v2d->cur.ymin -= extra;
 	v2d->cur.ymax += extra;
-	
+
 	/* do View2D syncing */
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
-	
+
 	/* set notifier that things have changed */
 	ED_area_tag_redraw(CTX_wm_area(C));
-	
+
 	return OPERATOR_FINISHED;
 }
+
+/* ......... */
+
+static int graphkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	/* whole range */
+	return graphkeys_viewall(C, FALSE);
+}
  
+static int graphkeys_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	/* only selected */
+	return graphkeys_viewall(C, TRUE);
+}
+
 void GRAPH_OT_view_all (wmOperatorType *ot)
 {
 	/* identifiers */
@@ -238,6 +252,21 @@ void GRAPH_OT_view_all (wmOperatorType *ot)
 	ot->exec= graphkeys_viewall_exec;
 	ot->poll= ED_operator_graphedit_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void GRAPH_OT_view_selected (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Selected";
+	ot->idname= "GRAPH_OT_view_selected";
+	ot->description= "Reset viewable area to show selected keyframe range";
+
+	/* api callbacks */
+	ot->exec= graphkeys_view_selected_exec;
+	ot->poll= ED_operator_graphedit_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }

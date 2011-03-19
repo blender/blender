@@ -2967,9 +2967,15 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
 static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyObject *value)
 {
 	StructRNA *srna= srna_from_self(cls, "StructRNA.__setattr__");
+	const int is_deferred_prop= (value && pyrna_is_deferred_prop(value));
+
+	if(srna && !pyrna_write_check() && (is_deferred_prop || RNA_struct_type_find_property(srna, _PyUnicode_AsString(attr)))) {
+		PyErr_Format(PyExc_AttributeError, "pyrna_struct_meta_idprop_setattro() can't set in readonly state '%.200s.%S'", ((PyTypeObject *)cls)->tp_name, attr);
+		return -1;
+	}
 
 	if(srna == NULL) {
-		if(value && pyrna_is_deferred_prop(value)) {
+		if(value && is_deferred_prop) {
 			PyErr_Format(PyExc_AttributeError, "pyrna_struct_meta_idprop_setattro() unable to get srna from class '%.200s'", ((PyTypeObject *)cls)->tp_name);
 			return -1;
 		}
@@ -2981,7 +2987,7 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
 
 	if(value) {
 		/* check if the value is a property */
-		if(pyrna_is_deferred_prop(value)) {
+		if(is_deferred_prop) {
 			int ret= deferred_register_prop(srna, attr, value);
 			if(ret == -1) {
 				/* error set */
@@ -3138,16 +3144,19 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
 
 		PyObject *ret= PyObject_GenericGetAttr((PyObject *)self, pyname);
 
-		if(ret == NULL) {
+		if(ret == NULL && name[0] != '_') { /* avoid inheriting __call__ and similar */
 			/* since this is least common case, handle it last */
 			PointerRNA r_ptr;
-			PyObject *error_type, *error_value, *error_traceback;
-			PyErr_Fetch(&error_type, &error_value, &error_traceback);
-			PyErr_Clear();
-
 			if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
-				PyObject *cls= pyrna_struct_Subtype(&r_ptr); /* borrows */
+				PyObject *cls;
+
+				PyObject *error_type, *error_value, *error_traceback;
+				PyErr_Fetch(&error_type, &error_value, &error_traceback);
+				PyErr_Clear();
+
+				cls= pyrna_struct_Subtype(&r_ptr); /* borrows */
 				ret= PyObject_GenericGetAttr(cls, pyname);
+				/* restore the original error */
 				if(ret == NULL) {
 					PyErr_Restore(error_type, error_value, error_traceback);
 				}

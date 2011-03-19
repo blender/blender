@@ -1211,7 +1211,7 @@ static void do_particle_interpolation(ParticleSystem *psys, int p, ParticleData 
 	PTCacheEditPoint *point = pind->epoint;
 	ParticleKey keys[4];
 	int point_vel = (point && point->keys->vel);
-	float real_t, dfra, keytime, invdt;
+	float real_t, dfra, keytime, invdt = 1.f;
 
 	/* billboards wont fill in all of these, so start cleared */
 	memset(keys, 0, sizeof(keys));
@@ -1350,10 +1350,10 @@ static void do_particle_interpolation(ParticleSystem *psys, int p, ParticleData 
 
 	dfra = keys[2].time - keys[1].time;
 	keytime = (real_t - keys[1].time) / dfra;
-	invdt = dfra * 0.04f * psys->part->timetweak;
 
 	/* convert velocity to timestep size */
 	if(pind->keyed || pind->cache || point_vel){
+		invdt = dfra * 0.04f * (psys ? psys->part->timetweak : 1.f);
 		mul_v3_fl(keys[1].vel, invdt);
 		mul_v3_fl(keys[2].vel, invdt);
 		interp_qt_qtqt(result->rot,keys[1].rot,keys[2].rot,keytime);

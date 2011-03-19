@@ -488,7 +488,8 @@ def AppIt(target=None, source=None, env=None):
     if os.path.isdir(cmd):
         shutil.rmtree(cmd)
     shutil.copytree(sourcedir, cmd)
-    cmd = "cat %s | sed s/VERSION/`cat release/VERSION`/ | sed s/DATE/`date +'%%Y-%%b-%%d'`/ > %s"%(sourceinfo,targetinfo)
+    cmd = "cat %s | sed s/\$\{MACOSX_BUNDLE_SHORT_VERSION_STRING\}/%s/ | "%(sourceinfo,VERSION)
+    cmd += "sed s/\$\{MACOSX_BUNDLE_LONG_VERSION_STRING\}/%s,\ `date +'%%Y-%%b-%%d'`/ > %s"%(VERSION,targetinfo)
     commands.getoutput(cmd)
     cmd = 'cp %s/%s %s/%s.app/Contents/MacOS/%s'%(builddir, binary,installdir, binary, binary)
     commands.getoutput(cmd)

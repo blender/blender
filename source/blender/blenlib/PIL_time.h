@@ -73,7 +73,7 @@ void	PIL_sleep_ms				(int ms);
 
 #define TIMEIT_END(var)														\
 	}																		\
-	printf("time end   (" #var "): %.6f" "  " AT "\n",	TIMEIT_VAL(var));	\
+	printf("time end   (" #var "): %.6f" "  " AT "\n",	TIMEIT_VALUE(var));	\
 	fflush(stdout);															\
 }																			\
 

@@ -125,6 +125,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_hDC(0),
 	m_hGlRc(0),
 	m_hasMouseCaptured(false),
+	m_hasGrabMouse(false),
 	m_nPressedButtons(0),
 	m_customCursor(0),
 	m_wintab(NULL),
@@ -831,28 +832,34 @@ GHOST_TSuccess GHOST_WindowWin32::removeDrawingContext()
 
 void GHOST_WindowWin32::lostMouseCapture()
 {
-	if (m_hasMouseCaptured) {
-		m_hasMouseCaptured = false;
-		m_nPressedButtons = 0;
-	}
+	if(m_hasMouseCaptured)
+		{	m_hasGrabMouse = false;
+			m_nPressedButtons = 0;
+			m_hasMouseCaptured = false;
+		};
 }
 
-void GHOST_WindowWin32::registerMouseClickEvent(bool press)
+void GHOST_WindowWin32::registerMouseClickEvent(int press)
 {
-	if (press) {
-		if (!m_hasMouseCaptured) {
+
+	switch(press)
+	{
+		case 0:	m_nPressedButtons++;	break;
+		case 1:	if(m_nPressedButtons)	m_nPressedButtons--; break;
+		case 2:	m_hasGrabMouse=true;	break;
+		case 3: m_hasGrabMouse=false;	break;
+	}
+
+	if(!m_nPressedButtons && !m_hasGrabMouse && m_hasMouseCaptured)
+	{
+			::ReleaseCapture();
+			m_hasMouseCaptured = false;
+	}
+	else if((m_nPressedButtons || m_hasGrabMouse) && !m_hasMouseCaptured)
+	{
 			::SetCapture(m_hWnd);
 			m_hasMouseCaptured = true;
-		}
-		m_nPressedButtons++;
-	} else {
-		if (m_nPressedButtons) {
-			m_nPressedButtons--;
-			if (!m_nPressedButtons) {
-				::ReleaseCapture();
-				m_hasMouseCaptured = false;
-			}
-		}
+
 	}
 }
 
@@ -924,7 +931,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 			if(mode == GHOST_kGrabHide)
 				setWindowCursorVisibility(false);
 		}
-		registerMouseClickEvent(true);
+		registerMouseClickEvent(2);
 	}
 	else {
 		if (m_cursorGrab==GHOST_kGrabHide) {
@@ -943,7 +950,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
 		setCursorGrabAccum(0, 0);
 		m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1; /* disable */
-		registerMouseClickEvent(false);
+		registerMouseClickEvent(3);
 	}
 	
 	return GHOST_kSuccess;

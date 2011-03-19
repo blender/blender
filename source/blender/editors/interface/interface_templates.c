@@ -191,6 +191,8 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	
 	/* give search-field focus */
 	uiButSetFocusOnEnter(win, but);
+	/* this type of search menu requires undo */
+	but->flag |= UI_BUT_UNDO;
 	
 	return block;
 }

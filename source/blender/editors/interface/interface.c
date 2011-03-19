@@ -914,15 +914,14 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 
 static void ui_is_but_sel(uiBut *but)
 {
-	double value;
-	int lvalue;
+	double value; /* only initialized when needed, to avoid calling when not used */
 	short push=0, true=1;
-
-	value= ui_get_but_val(but);
 
 	if(ELEM3(but->type, TOGN, ICONTOGN, OPTIONN)) true= 0;
 
 	if( but->bit ) {
+		int lvalue;
+		value= ui_get_but_val(but);
 		lvalue= (int)value;
 		if( BTST(lvalue, (but->bitnr)) ) push= true;
 		else push= !true;
@@ -943,15 +942,18 @@ static void ui_is_but_sel(uiBut *but)
 		case BUT_TOGDUAL:
 		case ICONTOG:
 		case OPTION:
+			value= ui_get_but_val(but);
 			if(value!=but->hardmin) push= 1;
 			break;
 		case ICONTOGN:
 		case TOGN:
 		case OPTIONN:
+			value= ui_get_but_val(but);
 			if(value==0.0) push= 1;
 			break;
 		case ROW:
 		case LISTROW:
+			value= ui_get_but_val(but);
 			/* support for rna enum buts */
 			if(but->rnaprop && (RNA_property_flag(but->rnaprop) & PROP_ENUM_FLAG)) {
 				if((int)value & (int)but->hardmax) push= 1;

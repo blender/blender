@@ -80,6 +80,8 @@ public:
 	virtual bool Update(double time);
 	void*	GetUserData() { return m_userdata;}
 	
+	virtual const char* getName();
+
 	void
 	SetOption(
 		int option,

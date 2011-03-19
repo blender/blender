@@ -101,7 +101,7 @@ void IMB_flipy(struct ImBuf * ibuf)
 
 void IMB_flipx(struct ImBuf * ibuf)
 {
-	short x, y, xr, xl, yi;
+	int x, y, xr, xl, yi;
 	float px_f[4];
 	
 	if (ibuf == NULL) return;

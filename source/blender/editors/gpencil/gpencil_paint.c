@@ -1246,37 +1246,8 @@ static void gp_paint_cleanup (tGPsdata *p)
 	gp_paint_strokeend(p);
 	
 	/* "unlock" frame */
-	p->gpf->flag &= ~GP_FRAME_PAINT;
-}
-
-/* ------------------------------- */
-
-
-static int gpencil_draw_init (bContext *C, wmOperator *op)
-{
-	tGPsdata *p;
-	int paintmode= RNA_enum_get(op->ptr, "mode");
-	
-	/* check context */
-	p= op->customdata= gp_session_initpaint(C);
-	if ((p == NULL) || (p->status == GP_STATUS_ERROR)) {
-		/* something wasn't set correctly in context */
-		gp_session_cleanup(p);
-		return 0;
-	}
-	
-	/* init painting data */
-	gp_paint_initstroke(p, paintmode);
-	if (p->status == GP_STATUS_ERROR) {
-		gp_session_cleanup(p);
-		return 0;
-	}
-	
-	/* radius for eraser circle is defined in userprefs now */
-	p->radius= U.gp_eraser;
-	
-	/* everything is now setup ok */
-	return 1;
+	if (p->gpf)
+		p->gpf->flag &= ~GP_FRAME_PAINT;
 }
 
 /* ------------------------------- */
@@ -1291,18 +1262,22 @@ static void gpencil_draw_exit (bContext *C, wmOperator *op)
 	/* restore cursor to indicate end of drawing */
 	WM_cursor_restore(CTX_wm_window(C));
 	
-	/* check size of buffer before cleanup, to determine if anything happened here */
-	if (p->paintmode == GP_PAINTMODE_ERASER) {
-		// TODO clear radial cursor thing
-		// XXX draw_sel_circle(NULL, p.mvalo, 0, p.radius, 0);
+	/* don't assume that operator data exists at all */
+	if (p) {
+		/* check size of buffer before cleanup, to determine if anything happened here */
+		if (p->paintmode == GP_PAINTMODE_ERASER) {
+			// TODO clear radial cursor thing
+			// XXX draw_sel_circle(NULL, p.mvalo, 0, p.radius, 0);
+		}
+		
+		/* cleanup */
+		gp_paint_cleanup(p);
+		gp_session_cleanup(p);
+		
+		/* finally, free the temp data */
+		MEM_freeN(p);	
 	}
 	
-	/* cleanup */
-	gp_paint_cleanup(p);
-	gp_session_cleanup(p);
-	
-	/* finally, free the temp data */
-	MEM_freeN(p);
 	op->customdata= NULL;
 }
 
@@ -1311,6 +1286,36 @@ static int gpencil_draw_cancel (bContext *C, wmOperator *op)
 	/* this is just a wrapper around exit() */
 	gpencil_draw_exit(C, op);
 	return OPERATOR_CANCELLED;
+}
+
+/* ------------------------------- */
+
+
+static int gpencil_draw_init (bContext *C, wmOperator *op)
+{
+	tGPsdata *p;
+	int paintmode= RNA_enum_get(op->ptr, "mode");
+	
+	/* check context */
+	p= op->customdata= gp_session_initpaint(C);
+	if ((p == NULL) || (p->status == GP_STATUS_ERROR)) {
+		/* something wasn't set correctly in context */
+		gpencil_draw_exit(C, op);
+		return 0;
+	}
+	
+	/* init painting data */
+	gp_paint_initstroke(p, paintmode);
+	if (p->status == GP_STATUS_ERROR) {
+		gpencil_draw_exit(C, op);
+		return 0;
+	}
+	
+	/* radius for eraser circle is defined in userprefs now */
+	p->radius= U.gp_eraser;
+	
+	/* everything is now setup ok */
+	return 1;
 }
 
 /* ------------------------------- */
@@ -1601,7 +1606,6 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 	if (ELEM4(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY)) {
 		/* exit() ends the current stroke before cleaning up */
 		//printf("\t\tGP - end of paint op + end of stroke\n");
-		gpencil_draw_exit(C, op);
 		p->status= GP_STATUS_DONE;
 		estate = OPERATOR_FINISHED;
 	}
@@ -1624,7 +1628,6 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			}
 			else {
 				//printf("\t\tGP - end of stroke + op\n");
-				gpencil_draw_exit(C, op);
 				p->status= GP_STATUS_DONE;
 				estate = OPERATOR_FINISHED;
 			}
@@ -1637,7 +1640,6 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			 */
 			if (CTX_wm_area(C) != p->sa) {
 				//printf("\t\t\tGP - wrong area execution abort! \n");
-				gpencil_draw_exit(C, op);
 				p->status= GP_STATUS_ERROR;
 				estate = OPERATOR_CANCELLED;
 			}
@@ -1651,7 +1653,6 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 				gp_paint_initstroke(p, p->paintmode);
 				
 				if (p->status == GP_STATUS_ERROR) {
-					gpencil_draw_exit(C, op);
 					estate = OPERATOR_CANCELLED;
 				}
 			}
@@ -1670,7 +1671,6 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			/* finish painting operation if anything went wrong just now */
 			if (p->status == GP_STATUS_ERROR) {
 				//printf("\t\t\t\tGP - add error done! \n");
-				gpencil_draw_exit(C, op);
 				estate = OPERATOR_CANCELLED;
 			}
 			else {
@@ -1712,9 +1712,14 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 	switch (estate) {
 		case OPERATOR_FINISHED:
 			/* one last flush before we're done */
+			gpencil_draw_exit(C, op);
 			WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX need a nicer one that will work
 			break;
 			
+		case OPERATOR_CANCELLED:
+			gpencil_draw_exit(C, op);
+			break;
+
 		case OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH:
 			/* event doesn't need to be handled */
 			//printf("unhandled event -> %d (mmb? = %d | mmv? = %d)\n", event->type, event->type == MIDDLEMOUSE, event->type==MOUSEMOVE);

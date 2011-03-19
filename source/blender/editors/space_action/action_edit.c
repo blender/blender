@@ -227,7 +227,7 @@ void ACTION_OT_markers_make_local (wmOperatorType *ot)
 /* *************************** Calculate Range ************************** */
 
 /* Get the min/max keyframes*/
-static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
+static void get_keyframe_extents (bAnimContext *ac, float *min, float *max, const short onlySel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -249,8 +249,8 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 			FCurve *fcu= (FCurve *)ale->key_data;
 			float tmin, tmax;
 			
-			/* get range and apply necessary scaling before */
-			calc_fcurve_range(fcu, &tmin, &tmax);
+			/* get range and apply necessary scaling before processing */
+			calc_fcurve_range(fcu, &tmin, &tmax, onlySel);
 			
 			if (adt) {
 				tmin= BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
@@ -295,7 +295,7 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 		scene= ac.scene;
 	
 	/* set the range directly */
-	get_keyframe_extents(&ac, &min, &max);
+	get_keyframe_extents(&ac, &min, &max, FALSE);
 	scene->r.flag |= SCER_PRV_RANGE;
 	scene->r.psfra= (int)floor(min + 0.5f);
 	scene->r.pefra= (int)floor(max + 0.5f);
@@ -324,7 +324,7 @@ void ACTION_OT_previewrange_set (wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
+static int actkeys_viewall(bContext *C, const short onlySel)
 {
 	bAnimContext ac;
 	View2D *v2d;
@@ -336,7 +336,7 @@ static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
 	v2d= &ac.ar->v2d;
 	
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
-	get_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax);
+	get_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, onlySel);
 	
 	extra= 0.1f * (v2d->cur.xmax - v2d->cur.xmin);
 	v2d->cur.xmin -= extra;
@@ -354,6 +354,20 @@ static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	return OPERATOR_FINISHED;
 }
+
+/* ......... */
+
+static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
+{	
+	/* whole range */
+	return actkeys_viewall(C, FALSE);
+}
+
+static int actkeys_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	/* only selected */
+	return actkeys_viewall(C, TRUE);
+}
  
 void ACTION_OT_view_all (wmOperatorType *ot)
 {
@@ -364,6 +378,21 @@ void ACTION_OT_view_all (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= actkeys_viewall_exec;
+	ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void ACTION_OT_view_selected (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Selected";
+	ot->idname= "ACTION_OT_view_selected";
+	ot->description= "Reset viewable area to show selected keyframes range";
+	
+	/* api callbacks */
+	ot->exec= actkeys_viewsel_exec;
 	ot->poll= ED_operator_action_active;
 	
 	/* flags */

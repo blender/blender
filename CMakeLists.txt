@@ -125,7 +125,6 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 
 # Misc
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
-option(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
 endif()
@@ -161,10 +160,6 @@ if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
 endif()
 
-if(NOT WITH_INSTALL AND WITH_PYTHON_INSTALL)
-	message("WARNING: WITH_PYTHON_INSTALL requires WITH_INSTALL")
-endif()
-
 if(NOT WITH_SAMPLERATE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))
 	message(FATAL_ERROR "WITH_OPENAL/WITH_SDL/WITH_JACK require WITH_SAMPLERATE")
 endif()
@@ -181,6 +176,9 @@ endif()
 if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
 endif()
+
+# remove old vars
+unset(WITH_INSTALL CACHE)
 
 TEST_SSE_SUPPORT()
 
@@ -218,6 +216,11 @@ set(CXX_WARNINGS "")
 #Platform specifics
 
 if(UNIX AND NOT APPLE)
+	
+	# needed for ubuntu 11.04
+	if(EXISTS "/usr/lib/x86_64-linux-gnu")
+		set(CMAKE_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu;${CMAKE_LIBRARY_PATH}")
+	endif()
 
 	if(WITH_OPENAL)
 		find_package(OpenAL)
@@ -1038,7 +1041,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_DECLARATION_AFTER_STATEMENT -Werror=declaration-after-statement)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE -Werror=return-type)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_STRICT_PROTOTYPES -Werror=strict-prototypes)
+	# system headers sometimes do this, disable for now, was: -Werror=strict-prototypes
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_STRICT_PROTOTYPES -Wstrict-prototypes)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)

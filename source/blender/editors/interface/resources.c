@@ -265,6 +265,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->vertex_select; break;
 			case TH_VERTEX_SIZE:
 				cp= &ts->vertex_size; break;
+			case TH_OUTLINE_WIDTH:
+				cp= &ts->outline_width; break;
 			case TH_EDGE:
 				cp= ts->edge; break;
 			case TH_EDGE_SELECT:
@@ -513,6 +515,7 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tv3d.vertex, 0, 0, 0, 255);
 	SETCOL(btheme->tv3d.vertex_select, 255, 133, 0, 255);
 	btheme->tv3d.vertex_size= 3;
+	btheme->tv3d.outline_width= 1;
 	SETCOL(btheme->tv3d.edge,       0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.edge_select, 255, 160, 0, 255);
 	SETCOL(btheme->tv3d.edge_seam, 219, 37, 18, 255);
@@ -1512,6 +1515,13 @@ void init_userdef_do_versions(void)
 		}
 	}
 	
+	if (bmain->versionfile < 256 || (bmain->versionfile == 256 && bmain->subversionfile < 4)) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			if((btheme->tv3d.outline_width) == 0) btheme->tv3d.outline_width= 1;
+		}
+	}
+
 	if (bmain->versionfile < 257) {
 		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs, so that it doesn't linger around from old configs like a ghost */
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;

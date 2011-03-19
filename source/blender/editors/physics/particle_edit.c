@@ -3131,6 +3131,149 @@ static void brush_smooth_do(PEData *data, float UNUSED(mat[][4]), float imat[][4
 	(data->edit->points + point_index)->flag |= PEP_EDIT_RECALC;
 }
 
+/* convert from triangle barycentric weights to quad mean value weights */
+static void intersect_dm_quad_weights(float *v1, float *v2, float *v3, float *v4, float *w)
+{
+	float co[3], vert[4][3];
+
+	VECCOPY(vert[0], v1);
+	VECCOPY(vert[1], v2);
+	VECCOPY(vert[2], v3);
+	VECCOPY(vert[3], v4);
+
+	co[0]= v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2] + v4[0]*w[3];
+	co[1]= v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2] + v4[1]*w[3];
+	co[2]= v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2] + v4[2]*w[3];
+
+	interp_weights_poly_v3( w,vert, 4, co);
+}
+
+/* check intersection with a derivedmesh */
+static int particle_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm, float *vert_cos, float *co1, float* co2, float *min_d, int *min_face, float *min_w,
+						  float *face_minmax, float *pa_minmax, float radius, float *ipoint)
+{
+	MFace *mface=0;
+	MVert *mvert=0;
+	int i, totface, intersect=0;
+	float cur_d, cur_uv[2], v1[3], v2[3], v3[3], v4[3], min[3], max[3], p_min[3],p_max[3];
+	float cur_ipoint[3];
+	
+	if(dm==0){
+		psys_disable_all(ob);
+
+		dm=mesh_get_derived_final(scene, ob, 0);
+		if(dm==0)
+			dm=mesh_get_derived_deform(scene, ob, 0);
+
+		psys_enable_all(ob);
+
+		if(dm==0)
+			return 0;
+	}
+
+	
+
+	if(pa_minmax==0){
+		INIT_MINMAX(p_min,p_max);
+		DO_MINMAX(co1,p_min,p_max);
+		DO_MINMAX(co2,p_min,p_max);
+	}
+	else{
+		VECCOPY(p_min,pa_minmax);
+		VECCOPY(p_max,pa_minmax+3);
+	}
+
+	totface=dm->getNumFaces(dm);
+	mface=dm->getFaceDataArray(dm,CD_MFACE);
+	mvert=dm->getVertDataArray(dm,CD_MVERT);
+	
+	/* lets intersect the faces */
+	for(i=0; i<totface; i++,mface++){
+		if(vert_cos){
+			VECCOPY(v1,vert_cos+3*mface->v1);
+			VECCOPY(v2,vert_cos+3*mface->v2);
+			VECCOPY(v3,vert_cos+3*mface->v3);
+			if(mface->v4)
+				VECCOPY(v4,vert_cos+3*mface->v4)
+		}
+		else{
+			VECCOPY(v1,mvert[mface->v1].co);
+			VECCOPY(v2,mvert[mface->v2].co);
+			VECCOPY(v3,mvert[mface->v3].co);
+			if(mface->v4)
+				VECCOPY(v4,mvert[mface->v4].co)
+		}
+
+		if(face_minmax==0){
+			INIT_MINMAX(min,max);
+			DO_MINMAX(v1,min,max);
+			DO_MINMAX(v2,min,max);
+			DO_MINMAX(v3,min,max);
+			if(mface->v4)
+				DO_MINMAX(v4,min,max)
+			if(isect_aabb_aabb_v3(min,max,p_min,p_max)==0)
+				continue;
+		}
+		else{
+			VECCOPY(min, face_minmax+6*i);
+			VECCOPY(max, face_minmax+6*i+3);
+			if(isect_aabb_aabb_v3(min,max,p_min,p_max)==0)
+				continue;
+		}
+
+		if(radius>0.0f){
+			if(isect_sweeping_sphere_tri_v3(co1, co2, radius, v2, v3, v1, &cur_d, cur_ipoint)){
+				if(cur_d<*min_d){
+					*min_d=cur_d;
+					VECCOPY(ipoint,cur_ipoint);
+					*min_face=i;
+					intersect=1;
+				}
+			}
+			if(mface->v4){
+				if(isect_sweeping_sphere_tri_v3(co1, co2, radius, v4, v1, v3, &cur_d, cur_ipoint)){
+					if(cur_d<*min_d){
+						*min_d=cur_d;
+						VECCOPY(ipoint,cur_ipoint);
+						*min_face=i;
+						intersect=1;
+					}
+				}
+			}
+		}
+		else{
+			if(isect_line_tri_v3(co1, co2, v1, v2, v3, &cur_d, cur_uv)){
+				if(cur_d<*min_d){
+					*min_d=cur_d;
+					min_w[0]= 1.0 - cur_uv[0] - cur_uv[1];
+					min_w[1]= cur_uv[0];
+					min_w[2]= cur_uv[1];
+					min_w[3]= 0.0f;
+					if(mface->v4)
+						intersect_dm_quad_weights(v1, v2, v3, v4, min_w);
+					*min_face=i;
+					intersect=1;
+				}
+			}
+			if(mface->v4){
+				if(isect_line_tri_v3(co1, co2, v1, v3, v4, &cur_d, cur_uv)){
+					if(cur_d<*min_d){
+						*min_d=cur_d;
+						min_w[0]= 1.0 - cur_uv[0] - cur_uv[1];
+						min_w[1]= 0.0f;
+						min_w[2]= cur_uv[0];
+						min_w[3]= cur_uv[1];
+						intersect_dm_quad_weights(v1, v2, v3, v4, min_w);
+						*min_face=i;
+						intersect=1;
+					}
+				}
+			}
+		}
+	}
+	return intersect;
+}
+
 static int brush_add(PEData *data, short number)
 {
 	Scene *scene= data->scene;
@@ -3187,7 +3330,7 @@ static int brush_add(PEData *data, short number)
 		min_d=2.0;
 		
 		/* warning, returns the derived mesh face */
-		if(psys_intersect_dm(scene, ob,dm,0,co1,co2,&min_d,&add_pars[n].num,add_pars[n].fuv,0,0,0,0)) {
+		if(particle_intersect_dm(scene, ob,dm,0,co1,co2,&min_d,&add_pars[n].num,add_pars[n].fuv,0,0,0,0)) {
 			add_pars[n].num_dmcache= psys_particle_dm_face_lookup(ob,psmd->dm,add_pars[n].num,add_pars[n].fuv,NULL);
 			n++;
 		}

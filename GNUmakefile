@@ -52,7 +52,7 @@ ifeq ($(OS), Linux)
 	NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 endif
 ifeq ($(OS), Darwin)
-	NPROCS:=$(shell system_profiler | awk '/Number Of CPUs/{print $4}{next;}')
+	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3)
 endif
 ifeq ($(OS), FreeBSD)
 	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3 )

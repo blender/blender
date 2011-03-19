@@ -4036,7 +4036,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->current_x = NULL;
 			collmd->current_xnew = NULL;
 			collmd->current_v = NULL;
-			collmd->time = -1000;
+			collmd->time_x = collmd->time_xnew = -1000;
 			collmd->numverts = 0;
 			collmd->bvhtree = NULL;
 			collmd->mfaces = NULL;
@@ -4476,6 +4476,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->obedit= NULL;
 	sce->stats= NULL;
 	sce->fps_info= NULL;
+	sce->customdata_mask_modal= 0;
 
 	sound_create_scene(sce);
 
@@ -4925,6 +4926,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 							else if(GS(snode->id->name)==ID_TE)
 								snode->nodetree= ((Tex *)snode->id)->nodetree;
 						}
+						
+						snode->linkdrag.first = snode->linkdrag.last = NULL;
 					}
 				}
 				sa= sa->next;

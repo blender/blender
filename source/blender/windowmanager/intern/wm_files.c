@@ -267,8 +267,11 @@ static void wm_init_userdef(bContext *C)
 	else						G.fileflags &= ~G_FILE_NO_UI;
 
 	/* set the python auto-execute setting from user prefs */
-	/* disabled by default, unless explicitly enabled in the command line */
-	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
+	/* enabled by default, unless explicitly enabled in the command line which overrides */
+	if((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
+		if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
+		else											  G.f &= ~G_SCRIPT_AUTOEXEC;
+	}
 	if(U.tempdir[0]) BLI_where_is_temp(btempdir, FILE_MAX, 1);
 }
 
@@ -300,8 +303,10 @@ void WM_read_file(bContext *C, const char *name, ReportList *reports)
 
 		/* this flag is initialized by the operator but overwritten on read.
 		 * need to re-enable it here else drivers + registered scripts wont work. */
-		if(G_f & G_SCRIPT_AUTOEXEC) G.f |= G_SCRIPT_AUTOEXEC;
-		else						G.f &= ~G_SCRIPT_AUTOEXEC;
+		if(G.f != G_f) {
+			const int flags_keep= (G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
+			G.f= (G.f & ~flags_keep) | (G_f & flags_keep);
+		}
 
 		/* match the read WM with current WM */
 		wm_window_match_do(C, &wmbase);

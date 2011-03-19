@@ -561,6 +561,7 @@ static BezTriple *rna_FKeyframe_points_insert(FCurve *fcu, float frame, float va
 static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
 {
 	if(tot > 0) {
+		BezTriple *bezt;
 		if(fcu->totvert) {
 			BezTriple *nbezt= MEM_callocN(sizeof(BezTriple) * (fcu->totvert + tot), "rna_FKeyframe_points_add");
 			memcpy(nbezt, fcu->bezt, sizeof(BezTriple) * fcu->totvert);
@@ -571,7 +572,16 @@ static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
 			fcu->bezt= MEM_callocN(sizeof(BezTriple) * tot, "rna_FKeyframe_points_add");
 		}
 
+		bezt= fcu->bezt + fcu->totvert;
 		fcu->totvert += tot;
+
+		while(tot--) {
+			/* defaults, no userprefs gives pradictable results for API */
+			bezt->f1= bezt->f2= bezt->f3= SELECT;
+			bezt->ipo= BEZT_IPO_BEZ;
+			bezt->h1= bezt->h2= HD_AUTO;
+			bezt++;
+		}
 	}
 }
 
@@ -588,7 +598,7 @@ static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTri
 
 static void rna_fcurve_range(FCurve *fcu, float range[2])
 {
-	calc_fcurve_range(fcu, range, range+1);
+	calc_fcurve_range(fcu, range, range+1, FALSE);
 }
 
 #else
@@ -1419,7 +1429,8 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_FCurve_RnaPath_get", "rna_FCurve_RnaPath_length", "rna_FCurve_RnaPath_set");
 	RNA_def_property_ui_text(prop, "Data Path", "RNA Path to property affected by F-Curve");
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);	// XXX need an update callback for this to that animation gets evaluated
-	
+
+	/* called 'index' when given as function arg */
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property affected by F-Curve if applicable");
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);	// XXX need an update callback for this so that animation gets evaluated

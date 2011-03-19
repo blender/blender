@@ -46,13 +46,40 @@
 ImagesExporter::ImagesExporter(COLLADASW::StreamWriter *sw, const char* filename) : COLLADASW::LibraryImages(sw), mfilename(filename)
 {}
 
+bool ImagesExporter::hasImages(Scene *sce)
+{
+	Base *base = (Base *)sce->base.first;
+	
+	while(base) {
+		Object *ob= base->object;
+		int a;
+		for(a = 0; a < ob->totcol; a++)
+		{
+			Material *ma = give_current_material(ob, a+1);
+
+			// no material, but check all of the slots
+			if (!ma) continue;
+			int b;
+			for (b = 0; b < MAX_MTEX; b++) {
+				MTex *mtex = ma->mtex[b];
+				if (mtex && mtex->tex && mtex->tex->ima) return true;
+			}
+
+		}
+		base= base->next;
+	}
+	return false;
+}
+
 void ImagesExporter::exportImages(Scene *sce)
 {
-	openLibrary();
-	MaterialFunctor mf;
-	mf.forEachMaterialInScene<ImagesExporter>(sce, *this);
+	if(hasImages(sce)) {
+		openLibrary();
+		MaterialFunctor mf;
+		mf.forEachMaterialInScene<ImagesExporter>(sce, *this);
 
-	closeLibrary();
+		closeLibrary();
+	}
 }
 
 void ImagesExporter::operator()(Material *ma, Object *ob)

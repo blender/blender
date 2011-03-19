@@ -30,6 +30,7 @@
 #               but results are far more accurate
 #
 
+
 def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean, dirt_only):
     from mathutils import Vector
     from math import acos
