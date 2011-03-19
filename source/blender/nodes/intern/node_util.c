@@ -61,7 +61,7 @@ void node_copy_standard_storage(bNode *orig_node, bNode *new_node)
 const char *node_blend_label(bNode *node)
 {
 	const char *name;
-	RNA_enum_name(node_blend_type_items, node->custom1, &name);
+	RNA_enum_name(ramp_blend_items, node->custom1, &name);
 	return name;
 }
 

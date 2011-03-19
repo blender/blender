@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -58,27 +59,6 @@ EnumPropertyItem node_socket_type_items[] = {
 	{SOCK_VECTOR, "VECTOR",    0,    "Vector",    ""},
 	{SOCK_RGBA,   "RGBA",      0,    "RGBA",      ""},
 	{0, NULL, 0, NULL, NULL}};
-
-EnumPropertyItem node_blend_type_items[] = {
-{ 0, "MIX",          0, "Mix",         ""},
-{ 1, "ADD",          0, "Add",         ""},
-{ 3, "SUBTRACT",     0, "Subtract",    ""},
-{ 2, "MULTIPLY",     0, "Multiply",    ""},
-{ 4, "SCREEN",       0, "Screen",      ""},
-{ 9, "OVERLAY",      0, "Overlay",     ""},
-{ 5, "DIVIDE",       0, "Divide",      ""},
-{ 6, "DIFFERENCE",   0, "Difference",  ""},
-{ 7, "DARKEN",       0, "Darken",      ""},
-{ 8, "LIGHTEN",      0, "Lighten",     ""},
-{10, "DODGE",        0, "Dodge",       ""},
-{11, "BURN",         0, "Burn",        ""},
-{15, "COLOR",        0, "Color",       ""},
-{14, "VALUE",        0, "Value",       ""},
-{13, "SATURATION",   0, "Saturation",  ""},
-{12, "HUE",          0, "Hue",         ""},
-{16, "SOFT_LIGHT",   0, "Soft Light",  ""},
-{17, "LINEAR_LIGHT", 0, "Linear Light",""},
-{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem node_math_items[] = {
 { 0, "ADD",          0, "Add",          ""},
@@ -896,7 +876,7 @@ static void def_mix_rgb(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, node_blend_type_items);
+	RNA_def_property_enum_items(prop, ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Blend Type", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	

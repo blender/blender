@@ -102,10 +102,11 @@ extern EnumPropertyItem viewport_shade_items[];
 
 extern EnumPropertyItem node_socket_type_items[];
 
-extern EnumPropertyItem node_blend_type_items[];
 extern EnumPropertyItem node_math_items[];
 extern EnumPropertyItem node_vec_math_items[];
 extern EnumPropertyItem node_filter_items[];
+
+extern EnumPropertyItem ramp_blend_items[];
 
 struct bContext;
 struct PointerRNA;
