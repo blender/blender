@@ -3230,7 +3230,7 @@ static void collision_fail(ParticleData *pa, ParticleCollision *col)
 	mul_v3_fl(pa->state.vel, col->inv_timestep);
 
 
-	printf("max iterations\n");
+	/* printf("max iterations\n"); */
 }
 
 /* Particle - Mesh collision detection and response
