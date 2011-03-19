@@ -2875,7 +2875,7 @@ static int collision_sphere_to_tri(ParticleCollision *col, float radius, Particl
 	}
 	return 0;
 }
-static int collision_sphere_to_edges(ParticleCollision *col, float radius, ParticleCollisionElement *pce, float *t, int quad)
+static int collision_sphere_to_edges(ParticleCollision *col, float radius, ParticleCollisionElement *pce, float *t)
 {
 	ParticleCollisionElement edge[3], *cur = NULL, *hit = NULL;
 	ParticleCollisionElement *result = &col->pce;
@@ -2884,8 +2884,8 @@ static int collision_sphere_to_edges(ParticleCollision *col, float radius, Parti
 	int i;
 
 	for(i=0; i<3; i++) {
-		/* in case of a quad, no need to check "edge" that goes through face */
-		if((pce->x[3] && i==2) || (quad && i==0))
+		/* in case of a quad, no need to check "edge" that goes through face twice */
+		if((pce->x[3] && i==2))
 			continue;
 
 		cur = edge+i;
@@ -2966,7 +2966,7 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 	MVert *x = col->md->x;
 	MVert *v = col->md->current_v;
 	float t = hit->dist/col->original_ray_length;
-	int collision = 0, quad = 0;
+	int collision = 0;
 
 	pce.x[0] = x[face->v1].co;
 	pce.x[1] = x[face->v2].co;
@@ -2985,7 +2985,7 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 	{	
 		collision = collision_sphere_to_tri(col, ray->radius, &pce, &t);
 		if(col->pce.inside == 0) {
-			collision += collision_sphere_to_edges(col, ray->radius, &pce, &t, quad);
+			collision += collision_sphere_to_edges(col, ray->radius, &pce, &t);
 			collision += collision_sphere_to_verts(col, ray->radius, &pce, &t);
 		}
 
@@ -3005,7 +3005,6 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 		pce.v[1] = pce.v[2];
 		pce.v[2] = pce.v[3];
 		pce.v[3] = NULL;
-		quad++;
 
 	} while(pce.x[2]);
 }
@@ -3231,7 +3230,7 @@ static void collision_fail(ParticleData *pa, ParticleCollision *col)
 	mul_v3_fl(pa->state.vel, col->inv_timestep);
 
 
-	/* printf("max iterations\n"); */
+	printf("max iterations\n");
 }
 
 /* Particle - Mesh collision detection and response
