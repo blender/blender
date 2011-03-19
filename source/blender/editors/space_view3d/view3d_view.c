@@ -46,6 +46,7 @@
 #include "BKE_anim.h"
 #include "BKE_action.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -424,6 +425,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	setcameratoview3d(rv3d, v3d->camera);
+	DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 	rv3d->persp = RV3D_CAMOB;
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, v3d->camera);
