@@ -1012,21 +1012,19 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 	if(idcode==ID_ME) {
 		/* Convert all new meshes into BGE meshes */
 		ID* mesh;
-		KX_Scene *kx_scene= m_currentScene;
 	
 		for(mesh= (ID *)main_newlib->mesh.first; mesh; mesh= (ID *)mesh->next ) {
 			RAS_MeshObject *meshobj = BL_ConvertMesh((Mesh *)mesh, NULL, scene_merge, this);
-			kx_scene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
+			scene_merge->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
 		}
 	}
 	else if(idcode==ID_AC) {
 		/* Convert all actions */
 		ID *action;
-		KX_Scene *kx_scene= m_currentScene;
 
 		for(action= (ID *)main_newlib->action.first; action; action= (ID *)action->next) {
 			printf("ActionName: %s\n", action->name);
-			kx_scene->GetLogicManager()->RegisterActionName(action->name+2, action);
+			scene_merge->GetLogicManager()->RegisterActionName(action->name+2, action);
 		}
 	}
 	else if(idcode==ID_SCE) {		
