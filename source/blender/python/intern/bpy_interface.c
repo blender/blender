@@ -80,7 +80,7 @@ BPy_StructRNA *bpy_context_module= NULL; /* for fast access */
 
 #ifdef TIME_PY_RUN
 #include "PIL_time.h"
-static int		bpy_timer_count = 0;
+static int		bpy_timer_count= 0;
 static double	bpy_timer; /* time since python starts */
 static double	bpy_timer_run; /* time for each python script run */
 static double	bpy_timer_run_tot; /* accumulate python runs */
@@ -91,7 +91,7 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 	py_call_level++;
 
 	if(gilstate)
-		*gilstate = PyGILState_Ensure();
+		*gilstate= PyGILState_Ensure();
 
 	if(py_call_level==1) {
 
@@ -109,7 +109,7 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 		if(bpy_timer_count==0) {
 			/* record time from the beginning */
 			bpy_timer= PIL_check_seconds_timer();
-			bpy_timer_run = bpy_timer_run_tot = 0.0;
+			bpy_timer_run= bpy_timer_run_tot= 0.0;
 		}
 		bpy_timer_run= PIL_check_seconds_timer();
 
@@ -145,9 +145,9 @@ void bpy_context_clear(bContext *UNUSED(C), PyGILState_STATE *gilstate)
 
 void BPY_text_free_code(Text *text)
 {
-	if( text->compiled ) {
-		Py_DECREF( ( PyObject * ) text->compiled );
-		text->compiled = NULL;
+	if(text->compiled) {
+		Py_DECREF((PyObject *)text->compiled);
+		text->compiled= NULL;
 	}
 }
 
@@ -155,8 +155,8 @@ void BPY_modules_update(bContext *C)
 {
 #if 0 // slow, this runs all the time poll, draw etc 100's of time a sec.
 	PyObject *mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
-	PyModule_AddObject( mod, "data", BPY_rna_module() );
-	PyModule_AddObject( mod, "types", BPY_rna_types() ); // atm this does not need updating
+	PyModule_AddObject(mod, "data", BPY_rna_module());
+	PyModule_AddObject(mod, "types", BPY_rna_types()); // atm this does not need updating
 #endif
 
 	/* refreshes the main struct */
@@ -228,7 +228,7 @@ static struct _inittab bpy_internal_modules[]= {
 void BPY_python_start(int argc, const char **argv)
 {
 #ifndef WITH_PYTHON_MODULE
-	PyThreadState *py_tstate = NULL;
+	PyThreadState *py_tstate= NULL;
 
 	/* not essential but nice to set our name */
 	static wchar_t bprogname_wchar[FILE_MAXDIR+FILE_MAXFILE]; /* python holds a reference */
@@ -245,9 +245,9 @@ void BPY_python_start(int argc, const char **argv)
 	 * alternatively we could copy the file. */
 	Py_NoSiteFlag= 1;
 
-	Py_Initialize(  );
+	Py_Initialize();
 	
-	// PySys_SetArgv( argc, argv); // broken in py3, not a huge deal
+	// PySys_SetArgv(argc, argv); // broken in py3, not a huge deal
 	/* sigh, why do python guys not have a char** version anymore? :( */
 	{
 		int i;
@@ -274,9 +274,9 @@ void BPY_python_start(int argc, const char **argv)
 	{ /* our own import and reload functions */
 		PyObject *item;
 		PyObject *mod;
-		//PyObject *m = PyImport_AddModule("__builtin__");
-		//PyObject *d = PyModule_GetDict(m);
-		PyObject *d = PyEval_GetBuiltins(  );
+		//PyObject *m= PyImport_AddModule("__builtin__");
+		//PyObject *d= PyModule_GetDict(m);
+		PyObject *d= PyEval_GetBuiltins();
 //		PyDict_SetItemString(d, "reload",		item=PyCFunction_New(&bpy_reload_meth, NULL));	Py_DECREF(item);
 		PyDict_SetItemString(d, "__import__",	item=PyCFunction_New(&bpy_import_meth, NULL));	Py_DECREF(item);
 
@@ -296,7 +296,7 @@ void BPY_python_start(int argc, const char **argv)
 	pyrna_alloc_types();
 
 #ifndef WITH_PYTHON_MODULE
-	py_tstate = PyGILState_GetThisThreadState();
+	py_tstate= PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
 #endif
 }
@@ -312,11 +312,11 @@ void BPY_python_end(void)
 
 	/* clear all python data from structs */
 	
-	Py_Finalize(  );
+	Py_Finalize();
 	
 #ifdef TIME_PY_RUN
 	// measure time since py started
-	bpy_timer = PIL_check_seconds_timer() - bpy_timer;
+	bpy_timer= PIL_check_seconds_timer() - bpy_timer;
 
 	printf("*bpy stats* - ");
 	printf("tot exec: %d,  ", bpy_timer_count);
@@ -380,13 +380,12 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 		char fn_dummy[FILE_MAXDIR];
 		bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
 
-		if( !text->compiled ) {	/* if it wasn't already compiled, do it now */
-			char *buf = txt_to_buf( text );
+		if(text->compiled == NULL) {	/* if it wasn't already compiled, do it now */
+			char *buf= txt_to_buf(text);
 
-			text->compiled =
-				Py_CompileString( buf, fn_dummy, Py_file_input );
+			text->compiled= Py_CompileString(buf, fn_dummy, Py_file_input);
 
-			MEM_freeN( buf );
+			MEM_freeN(buf);
 
 			if(PyErr_Occurred()) {
 				if(do_jump) {
@@ -397,8 +396,8 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 		}
 
 		if(text->compiled) {
-			py_dict = PyC_DefaultNameSpace(fn_dummy);
-			py_result =  PyEval_EvalCode(text->compiled, py_dict, py_dict);
+			py_dict= PyC_DefaultNameSpace(fn_dummy);
+			py_result=  PyEval_EvalCode(text->compiled, py_dict, py_dict);
 		}
 
 	}
@@ -406,7 +405,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 		FILE *fp= fopen(fn, "r");
 
 		if(fp) {
-			py_dict = PyC_DefaultNameSpace(fn);
+			py_dict= PyC_DefaultNameSpace(fn);
 
 #ifdef _WIN32
 			/* Previously we used PyRun_File to run directly the code on a FILE
@@ -422,11 +421,11 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 				pystring= MEM_mallocN(strlen(fn) + 32, "pystring");
 				pystring[0]= '\0';
 				sprintf(pystring, "exec(open(r'%s').read())", fn);
-				py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
+				py_result= PyRun_String(pystring, Py_file_input, py_dict, py_dict);
 				MEM_freeN(pystring);
 			}
 #else
-			py_result = PyRun_File(fp, fn, Py_file_input, py_dict, py_dict);
+			py_result= PyRun_File(fp, fn, Py_file_input, py_dict, py_dict);
 			fclose(fp);
 #endif
 		}
@@ -443,14 +442,15 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 			}
 		}
 		BPy_errors_to_report(reports);
-	} else {
-		Py_DECREF( py_result );
+	}
+	else {
+		Py_DECREF(py_result);
 	}
 
 	if(py_dict) {
 #ifdef PYMODULE_CLEAR_WORKAROUND
 		PyModuleObject *mmod= (PyModuleObject *)PyDict_GetItemString(PyThreadState_GET()->interp->modules, "__main__");
-		PyObject *dict_back = mmod->md_dict;
+		PyObject *dict_back= mmod->md_dict;
 		/* freeing the module will clear the namespace,
 		 * gives problems running classes defined in this namespace being used later. */
 		mmod->md_dict= NULL;
@@ -481,7 +481,7 @@ int BPY_text_exec(bContext *C, struct Text *text, struct ReportList *reports, co
 
 void BPY_DECREF(void *pyob_ptr)
 {
-	PyGILState_STATE gilstate = PyGILState_Ensure();
+	PyGILState_STATE gilstate= PyGILState_Ensure();
 	Py_DECREF((PyObject *)pyob_ptr);
 	PyGILState_Release(gilstate);
 }
@@ -490,7 +490,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value)
 {
 	PyGILState_STATE gilstate;
 	PyObject *py_dict, *mod, *retval;
-	int error_ret = 0;
+	int error_ret= 0;
 	PyObject *main_mod= NULL;
 	
 	if (!value || !expr) return -1;
@@ -506,7 +506,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value)
 
 	py_dict= PyC_DefaultNameSpace("<blender button>");
 
-	mod = PyImport_ImportModule("math");
+	mod= PyImport_ImportModule("math");
 	if (mod) {
 		PyDict_Merge(py_dict, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
 		Py_DECREF(mod);
@@ -516,7 +516,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value)
 		PyErr_Clear();
 	}
 	
-	retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
+	retval= PyRun_String(expr, Py_eval_input, py_dict, py_dict);
 	
 	if (retval == NULL) {
 		error_ret= -1;
@@ -535,7 +535,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value)
 			}
 		}
 		else {
-			val = PyFloat_AsDouble(retval);
+			val= PyFloat_AsDouble(retval);
 		}
 		Py_DECREF(retval);
 		
@@ -566,7 +566,7 @@ int BPY_string_exec(bContext *C, const char *expr)
 	PyGILState_STATE gilstate;
 	PyObject *main_mod= NULL;
 	PyObject *py_dict, *retval;
-	int error_ret = 0;
+	int error_ret= 0;
 
 	if (!expr) return -1;
 
@@ -580,7 +580,7 @@ int BPY_string_exec(bContext *C, const char *expr)
 
 	py_dict= PyC_DefaultNameSpace("<blender string>");
 
-	retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
+	retval= PyRun_String(expr, Py_eval_input, py_dict, py_dict);
 
 	if (retval == NULL) {
 		error_ret= -1;
@@ -661,7 +661,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 		else {
 			int len= PySequence_Fast_GET_SIZE(seq_fast);
 			int i;
-			for(i = 0; i < len; i++) {
+			for(i= 0; i < len; i++) {
 				PyObject *list_item= PySequence_Fast_GET_ITEM(seq_fast, i);
 
 				if(BPy_StructRNA_Check(list_item)) {
@@ -701,7 +701,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 /* TODO, reloading the module isnt functional at the moment. */
 
 extern int main_python(int argc, const char **argv);
-static struct PyModuleDef bpy_proxy_def = {
+static struct PyModuleDef bpy_proxy_def= {
 	PyModuleDef_HEAD_INIT,
 	"bpy",  /* m_name */
 	NULL,  /* m_doc */
@@ -744,7 +744,7 @@ void bpy_module_delay_init(PyObject *bpy_proxy)
 
 static void dealloc_obj_dealloc(PyObject *self);
 
-static PyTypeObject dealloc_obj_Type = {{{0}}};
+static PyTypeObject dealloc_obj_Type= {{{0}}};
 
 /* use our own dealloc so we can free a property if we use one */
 static void dealloc_obj_dealloc(PyObject *self)
@@ -778,10 +778,10 @@ PyInit_bpy(void)
 	dealloc_obj *dob;
 	
 	/* assign dummy type */
-	dealloc_obj_Type.tp_name = "dealloc_obj";
-	dealloc_obj_Type.tp_basicsize = sizeof(dealloc_obj);
-	dealloc_obj_Type.tp_dealloc = dealloc_obj_dealloc;
-	dealloc_obj_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+	dealloc_obj_Type.tp_name= "dealloc_obj";
+	dealloc_obj_Type.tp_basicsize= sizeof(dealloc_obj);
+	dealloc_obj_Type.tp_dealloc= dealloc_obj_dealloc;
+	dealloc_obj_Type.tp_flags= Py_TPFLAGS_DEFAULT;
 	
 	if(PyType_Ready(&dealloc_obj_Type) < 0)
 		return NULL;

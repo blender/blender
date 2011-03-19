@@ -243,7 +243,7 @@ static int Color_ass_slice(ColorObject * self, int begin, int end, PyObject * se
 	CLAMP(begin, 0, COLOR_SIZE);
 	if (end<0) end= (COLOR_SIZE + 1) + end;
 	CLAMP(end, 0, COLOR_SIZE);
-	begin = MIN2(begin,end);
+	begin = MIN2(begin, end);
 
 	if((size=mathutils_array_parse(col, 0, COLOR_SIZE, seq, "mathutils.Color[begin:end] = []")) == -1)
 		return -1;
@@ -270,7 +270,8 @@ static PyObject *Color_subscript(ColorObject *self, PyObject *item)
 		if (i < 0)
 			i += COLOR_SIZE;
 		return Color_item(self, i);
-	} else if (PySlice_Check(item)) {
+	}
+	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
 		if (PySlice_GetIndicesEx((void *)item, COLOR_SIZE, &start, &stop, &step, &slicelength) < 0)
@@ -343,7 +344,7 @@ static PyMappingMethods Color_AsMapping = {
 };
 
 /* color channel, vector.r/g/b */
-static PyObject *Color_getChannel( ColorObject * self, void *type )
+static PyObject *Color_getChannel(ColorObject * self, void *type)
 {
 	return Color_item(self, GET_INT_FROM_POINTER(type));
 }
@@ -354,7 +355,7 @@ static int Color_setChannel(ColorObject * self, PyObject * value, void * type)
 }
 
 /* color channel (HSV), color.h/s/v */
-static PyObject *Color_getChannelHSV( ColorObject * self, void *type )
+static PyObject *Color_getChannelHSV(ColorObject * self, void *type)
 {
 	float hsv[3];
 	int i= GET_INT_FROM_POINTER(type);
@@ -445,7 +446,7 @@ static PyGetSetDef Color_getseters[] = {
 
 	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
 	{(char *)"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
-	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 

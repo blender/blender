@@ -37,7 +37,7 @@
 
 #include "../generic/py_capi_utils.h"
 
-static bContext*	__py_context = NULL;
+static bContext*	__py_context= NULL;
 bContext*	BPy_GetContext(void) { return __py_context; }
 void		BPy_SetContext(bContext *C) { __py_context= C; }
 
@@ -52,7 +52,7 @@ char *BPy_enum_as_string(EnumPropertyItem *item)
 			BLI_dynstr_appendf(dynstr, (e==item)?"'%s'":", '%s'", item->identifier);
 	}
 
-	cstring = BLI_dynstr_get_cstring(dynstr);
+	cstring= BLI_dynstr_get_cstring(dynstr);
 	BLI_dynstr_free(dynstr);
 	return cstring;
 }
@@ -146,19 +146,19 @@ int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, co
 	if(type == &PyFloat_Type) {
 		float *array_float= array;
 		for(i=0; i<length; i++) {
-			array_float[i] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
+			array_float[i]= PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
 		}
 	}
 	else if(type == &PyLong_Type) {
 		int *array_int= array;
 		for(i=0; i<length; i++) {
-			array_int[i] = PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i));
+			array_int[i]= PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i));
 		}
 	}
 	else if(type == &PyBool_Type) {
 		int *array_bool= array;
 		for(i=0; i<length; i++) {
-			array_bool[i] = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
+			array_bool[i]= (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
 		}
 	}
 	else {

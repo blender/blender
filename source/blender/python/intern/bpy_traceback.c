@@ -77,7 +77,8 @@ parse_syntax_error(PyObject *err, PyObject **message, const char **filename,
         *offset = -1;
         Py_DECREF(v);
         v = NULL;
-    } else {
+	}
+	else {
         hold = PyLong_AsLong(v);
         Py_DECREF(v);
         v = NULL;

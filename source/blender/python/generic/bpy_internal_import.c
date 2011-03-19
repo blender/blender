@@ -58,7 +58,7 @@ static Main *bpy_import_main= NULL;
 static void free_compiled_text(Text *text)
 {
 	if(text->compiled) {
-		Py_DECREF(( PyObject * )text->compiled);
+		Py_DECREF((PyObject *)text->compiled);
 	}
 	text->compiled= NULL;
 }
@@ -81,23 +81,23 @@ void bpy_text_filename_get(char *fn, size_t fn_len, Text *text)
 
 PyObject *bpy_text_import(Text *text)
 {
-	char *buf = NULL;
+	char *buf= NULL;
 	char modulename[24];
 	int len;
 
-	if( !text->compiled ) {
+	if(!text->compiled) {
 		char fn_dummy[256];
 		bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
 
-		buf = txt_to_buf( text );
-		text->compiled = Py_CompileString( buf, fn_dummy, Py_file_input );
-		MEM_freeN( buf );
+		buf= txt_to_buf(text);
+		text->compiled= Py_CompileString(buf, fn_dummy, Py_file_input);
+		MEM_freeN(buf);
 
-		if( PyErr_Occurred(  ) ) {
-			PyErr_Print(  );
-			PyErr_Clear(  );
+		if(PyErr_Occurred()) {
+			PyErr_Print();
+			PyErr_Clear();
 			PySys_SetObject("last_traceback", NULL);
-			free_compiled_text( text );
+			free_compiled_text(text);
 			return NULL;
 		}
 	}
@@ -108,11 +108,11 @@ PyObject *bpy_text_import(Text *text)
 	return PyImport_ExecCodeModule(modulename, text->compiled);
 }
 
-PyObject *bpy_text_import_name( char *name, int *found )
+PyObject *bpy_text_import_name(char *name, int *found)
 {
 	Text *text;
 	char txtname[22]; /* 21+NULL */
-	int namelen = strlen( name );
+	int namelen= strlen(name);
 //XXX	Main *maggie= bpy_import_main ? bpy_import_main:G.main;
 	Main *maggie= bpy_import_main;
 	
@@ -125,15 +125,15 @@ PyObject *bpy_text_import_name( char *name, int *found )
 	
 	if (namelen>21-3) return NULL; /* we know this cant be importable, the name is too long for blender! */
 	
-	memcpy( txtname, name, namelen );
-	memcpy( &txtname[namelen], ".py", 4 );
+	memcpy(txtname, name, namelen);
+	memcpy(&txtname[namelen], ".py", 4);
 
 	text= BLI_findstring(&maggie->text, txtname, offsetof(ID, name) + 2);
 
-	if( !text )
+	if(!text)
 		return NULL;
 	else
-		*found = 1;
+		*found= 1;
 	
 	return bpy_text_import(text);
 }
@@ -143,12 +143,12 @@ PyObject *bpy_text_import_name( char *name, int *found )
  * find in-memory module and recompile
  */
 
-PyObject *bpy_text_reimport( PyObject *module, int *found )
+PyObject *bpy_text_reimport(PyObject *module, int *found)
 {
 	Text *text;
 	const char *name;
 	char *filepath;
-	char *buf = NULL;
+	char *buf= NULL;
 //XXX	Main *maggie= bpy_import_main ? bpy_import_main:G.main;
 	Main *maggie= bpy_import_main;
 	
@@ -170,50 +170,50 @@ PyObject *bpy_text_reimport( PyObject *module, int *found )
 	text= BLI_findstring(&maggie->text, BLI_path_basename(filepath), offsetof(ID, name) + 2);
 
 	/* uh-oh.... didn't find it */
-	if( !text )
+	if(!text)
 		return NULL;
 	else
-		*found = 1;
+		*found= 1;
 
 	/* if previously compiled, free the object */
 	/* (can't see how could be NULL, but check just in case) */ 
-	if( text->compiled ){
-		Py_DECREF( (PyObject *)text->compiled );
+	if(text->compiled){
+		Py_DECREF((PyObject *)text->compiled);
 	}
 
 	/* compile the buffer */
-	buf = txt_to_buf( text );
-	text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
-	MEM_freeN( buf );
+	buf= txt_to_buf(text);
+	text->compiled= Py_CompileString(buf, text->id.name+2, Py_file_input);
+	MEM_freeN(buf);
 
 	/* if compile failed.... return this error */
-	if( PyErr_Occurred(  ) ) {
-		PyErr_Print(  );
-		PyErr_Clear(  );
+	if(PyErr_Occurred()) {
+		PyErr_Print();
+		PyErr_Clear();
 		PySys_SetObject("last_traceback", NULL);
-		free_compiled_text( text );
+		free_compiled_text(text);
 		return NULL;
 	}
 
 	/* make into a module */
-	return PyImport_ExecCodeModule( (char *)name, text->compiled );
+	return PyImport_ExecCodeModule((char *)name, text->compiled);
 }
 
 
-static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args,  PyObject * kw)
+static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject * kw)
 {
 	PyObject *exception, *err, *tb;
 	char *name;
 	int found= 0;
-	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
+	PyObject *globals= NULL, *locals= NULL, *fromlist= NULL;
 	int level= -1; /* relative imports */
 	
 	PyObject *newmodule;
 	//PyObject_Print(args, stderr, 0);
-	static const char *kwlist[] = {"name", "globals", "locals", "fromlist", "level", NULL};
+	static const char *kwlist[]= {"name", "globals", "locals", "fromlist", "level", NULL};
 	
-	if( !PyArg_ParseTupleAndKeywords(args, kw, "s|OOOi:bpy_import_meth", (char **)kwlist,
-				   &name, &globals, &locals, &fromlist, &level) )
+	if(!PyArg_ParseTupleAndKeywords(args, kw, "s|OOOi:bpy_import_meth", (char **)kwlist,
+				   &name, &globals, &locals, &fromlist, &level))
 		return NULL;
 
 	/* import existing builtin modules or modules that have been imported already */
@@ -222,28 +222,28 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args,  PyObjec
 	if(newmodule)
 		return newmodule;
 	
-	PyErr_Fetch( &exception, &err, &tb );	/* get the python error incase we cant import as blender text either */
+	PyErr_Fetch(&exception, &err, &tb);	/* get the python error incase we cant import as blender text either */
 	
 	/* importing from existing modules failed, see if we have this module as blender text */
-	newmodule = bpy_text_import_name( name, &found );
+	newmodule= bpy_text_import_name(name, &found);
 	
-	if( newmodule ) {/* found module as blender text, ignore above exception */
-		PyErr_Clear(  );
-		Py_XDECREF( exception );
-		Py_XDECREF( err );
-		Py_XDECREF( tb );
-		/* printf( "imported from text buffer...\n" ); */
+	if(newmodule) {/* found module as blender text, ignore above exception */
+		PyErr_Clear();
+		Py_XDECREF(exception);
+		Py_XDECREF(err);
+		Py_XDECREF(tb);
+		/* printf("imported from text buffer...\n"); */
 	}
 	else if (found==1) { /* blender text module failed to execute but was found, use its error message */
-		Py_XDECREF( exception );
-		Py_XDECREF( err );
-		Py_XDECREF( tb );
+		Py_XDECREF(exception);
+		Py_XDECREF(err);
+		Py_XDECREF(tb);
 		return NULL;
 	}
 	else {
 		/* no blender text was found that could import the module
 		 * rause the original error from PyImport_ImportModuleEx */
-		PyErr_Restore( exception, err, tb );
+		PyErr_Restore(exception, err, tb);
 	}
 	return newmodule;
 }
@@ -256,42 +256,42 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args,  PyObjec
 static PyObject *blender_reload(PyObject *UNUSED(self), PyObject * module)
 {
 	PyObject *exception, *err, *tb;
-	PyObject *newmodule = NULL;
+	PyObject *newmodule= NULL;
 	int found= 0;
 
 	/* try reimporting from file */
-	newmodule = PyImport_ReloadModule( module );
-	if( newmodule )
+	newmodule= PyImport_ReloadModule(module);
+	if(newmodule)
 		return newmodule;
 
 	/* no file, try importing from memory */
-	PyErr_Fetch( &exception, &err, &tb );	/*restore for probable later use */
+	PyErr_Fetch(&exception, &err, &tb);	/*restore for probable later use */
 
-	newmodule = bpy_text_reimport( module, &found );
-	if( newmodule ) {/* found module as blender text, ignore above exception */
-		PyErr_Clear(  );
-		Py_XDECREF( exception );
-		Py_XDECREF( err );
-		Py_XDECREF( tb );
-		/* printf( "imported from text buffer...\n" ); */
+	newmodule= bpy_text_reimport(module, &found);
+	if(newmodule) {/* found module as blender text, ignore above exception */
+		PyErr_Clear();
+		Py_XDECREF(exception);
+		Py_XDECREF(err);
+		Py_XDECREF(tb);
+		/* printf("imported from text buffer...\n"); */
 	}
 	else if (found==1) { /* blender text module failed to execute but was found, use its error message */
-		Py_XDECREF( exception );
-		Py_XDECREF( err );
-		Py_XDECREF( tb );
+		Py_XDECREF(exception);
+		Py_XDECREF(err);
+		Py_XDECREF(tb);
 		return NULL;
 	}
 	else {
 		/* no blender text was found that could import the module
 		 * rause the original error from PyImport_ImportModuleEx */
-		PyErr_Restore( exception, err, tb );
+		PyErr_Restore(exception, err, tb);
 	}
 
 	return newmodule;
 }
 
-PyMethodDef bpy_import_meth = {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"};
-PyMethodDef bpy_reload_meth = {"bpy_reload_meth", (PyCFunction)blender_reload, METH_O, "blenders reload"};
+PyMethodDef bpy_import_meth= {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"};
+PyMethodDef bpy_reload_meth= {"bpy_reload_meth", (PyCFunction)blender_reload, METH_O, "blenders reload"};
 
 
 /* Clear user modules.
@@ -327,7 +327,7 @@ void bpy_text_clear_modules(int clear_all)
 	
 	/* looping over the dict */
 	PyObject *key, *value;
-	int pos = 0;
+	int pos= 0;
 	
 	/* new list */
 	PyObject *list;
@@ -344,7 +344,7 @@ void bpy_text_clear_modules(int clear_all)
 		fname= PyModule_GetFilename(value);
 		if(fname) {
 			if (clear_all || ((strstr(fname, SEPSTR))==0)) { /* no path ? */
-				file_extension = strstr(fname, ".py");
+				file_extension= strstr(fname, ".py");
 				if(file_extension && (*(file_extension + 3) == '\0' || *(file_extension + 4) == '\0')) { /* .py or pyc extension? */
 					/* now we can be fairly sure its a python import from the blendfile */
 					PyList_Append(list, key); /* free'd with the list */

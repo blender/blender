@@ -315,28 +315,28 @@ PyMODINIT_FUNC BPyInit_mathutils(void)
 	PyObject *submodule;
 	PyObject *item;
 
-	if( PyType_Ready( &vector_Type ) < 0 )
+	if(PyType_Ready(&vector_Type) < 0)
 		return NULL;
-	if( PyType_Ready( &matrix_Type ) < 0 )
+	if(PyType_Ready(&matrix_Type) < 0)
 		return NULL;	
-	if( PyType_Ready( &euler_Type ) < 0 )
+	if(PyType_Ready(&euler_Type) < 0)
 		return NULL;
-	if( PyType_Ready( &quaternion_Type ) < 0 )
+	if(PyType_Ready(&quaternion_Type) < 0)
 		return NULL;
-	if( PyType_Ready( &color_Type ) < 0 )
+	if(PyType_Ready(&color_Type) < 0)
 		return NULL;
 
 	submodule = PyModule_Create(&M_Mathutils_module_def);
 	
 	/* each type has its own new() function */
-	PyModule_AddObject( submodule, "Vector",		(PyObject *)&vector_Type );
-	PyModule_AddObject( submodule, "Matrix",		(PyObject *)&matrix_Type );
-	PyModule_AddObject( submodule, "Euler",			(PyObject *)&euler_Type );
-	PyModule_AddObject( submodule, "Quaternion",	(PyObject *)&quaternion_Type );
-	PyModule_AddObject( submodule, "Color",			(PyObject *)&color_Type );
+	PyModule_AddObject(submodule, "Vector",		(PyObject *)&vector_Type);
+	PyModule_AddObject(submodule, "Matrix",		(PyObject *)&matrix_Type);
+	PyModule_AddObject(submodule, "Euler",		(PyObject *)&euler_Type);
+	PyModule_AddObject(submodule, "Quaternion",	(PyObject *)&quaternion_Type);
+	PyModule_AddObject(submodule, "Color",		(PyObject *)&color_Type);
 	
 	/* submodule */
-	PyModule_AddObject( submodule, "geometry",		(item=BPyInit_mathutils_geometry()));
+	PyModule_AddObject(submodule, "geometry",		(item=BPyInit_mathutils_geometry()));
 	/* XXX, python doesnt do imports with this usefully yet
 	 * 'from mathutils.geometry import PolyFill'
 	 * ...fails without this. */

@@ -57,7 +57,7 @@ static void cb_region_draw(const bContext *C, ARegion *UNUSED(ar), void *customd
 
 	cb_func= PyTuple_GET_ITEM((PyObject *)customdata, 0);
 	cb_args= PyTuple_GET_ITEM((PyObject *)customdata, 1);
-	result = PyObject_CallObject(cb_func, cb_args);
+	result= PyObject_CallObject(cb_func, cb_args);
 
 	if(result) {
 		Py_DECREF(result);
@@ -88,7 +88,7 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
 
 	if(RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
 		if(cb_event_str) {
-			static EnumPropertyItem region_draw_mode_items[] = {
+			static EnumPropertyItem region_draw_mode_items[]= {
 				{REGION_DRAW_POST_PIXEL, "POST_PIXEL", 0, "Post Pixel", ""},
 				{REGION_DRAW_POST_VIEW, "POST_VIEW", 0, "Post View", ""},
 				{REGION_DRAW_PRE_VIEW, "PRE_VIEW", 0, "Pre View", ""},

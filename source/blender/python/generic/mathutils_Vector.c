@@ -228,10 +228,12 @@ static PyObject *Vector_resize_4d(VectorObject *self)
 		PyErr_SetString(PyExc_MemoryError, "vector.resize_4d(): problem allocating pointer space");
 		return NULL;
 	}
+
 	if(self->size == 2){
 		self->vec[2] = 0.0f;
 		self->vec[3] = 1.0f;
-	}else if(self->size == 3){
+	}
+	else if(self->size == 3){
 		self->vec[3] = 1.0f;
 	}
 	self->size = 4;
@@ -354,13 +356,13 @@ static char Vector_to_track_quat_doc[] =
 "   :return: rotation from the vector and the track and up axis.\n"
 "   :rtype: :class:`Quaternion`\n"
 ;
-static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args )
+static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 {
 	float vec[3], quat[4];
 	const char *strack, *sup;
 	short track = 2, up = 1;
 
-	if(!PyArg_ParseTuple( args, "|ss:to_track_quat", &strack, &sup))
+	if(!PyArg_ParseTuple(args, "|ss:to_track_quat", &strack, &sup))
 		return NULL;
 
 	if (self->size != 3) {
@@ -451,7 +453,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args )
 	*/
 	negate_v3_v3(vec, self->vec);
 
-	vec_to_quat( quat,vec, track, up);
+	vec_to_quat(quat, vec, track, up);
 
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
@@ -873,7 +875,7 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end,
 
 	CLAMP(begin, 0, self->size);
 	CLAMP(end, 0, self->size);
-	begin = MIN2(begin,end);
+	begin = MIN2(begin, end);
 
 	size = (end - begin);
 	if(mathutils_array_parse(vec, size, size, seq, "vector[begin:end] = [...]") == -1)
@@ -1066,7 +1068,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 
 
 	/* make sure v1 is always the vector */
-	if (vec1 && vec2 ) {
+	if (vec1 && vec2) {
 		int i;
 		double dot = 0.0f;
 
@@ -1170,7 +1172,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 	}
 
 	(void)BaseMath_WriteCallback(vec);
-	Py_INCREF( v1 );
+	Py_INCREF(v1);
 	return v1;
 }
 
@@ -1231,7 +1233,7 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 
 	(void)BaseMath_WriteCallback(vec1);
 
-	Py_INCREF( v1 );
+	Py_INCREF(v1);
 	return v1;
 }
 
@@ -1272,12 +1274,13 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 	VectorObject *vecA = NULL, *vecB = NULL;
 	int result = 0;
 	float epsilon = .000001f;
-	double lenA,lenB;
+	double lenA, lenB;
 
 	if (!VectorObject_Check(objectA) || !VectorObject_Check(objectB)){
 		if (comparison_type == Py_NE){
 			Py_RETURN_TRUE;
-		}else{
+		}
+		else {
 			Py_RETURN_FALSE;
 		}
 	}
@@ -1290,7 +1293,8 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 	if (vecA->size != vecB->size){
 		if (comparison_type == Py_NE){
 			Py_RETURN_TRUE;
-		}else{
+		}
+		else {
 			Py_RETURN_FALSE;
 		}
 	}
@@ -1299,16 +1303,17 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 		case Py_LT:
 			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
 			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
-			if( lenA < lenB ){
+			if(lenA < lenB){
 				result = 1;
 			}
 			break;
 		case Py_LE:
 			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
 			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
-			if( lenA < lenB ){
+			if(lenA < lenB){
 				result = 1;
-			}else{
+			}
+			else {
 				result = (((lenA + epsilon) > lenB) && ((lenA - epsilon) < lenB));
 			}
 			break;
@@ -1321,16 +1326,17 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 		case Py_GT:
 			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
 			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
-			if( lenA > lenB ){
+			if(lenA > lenB){
 				result = 1;
 			}
 			break;
 		case Py_GE:
 			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
 			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
-			if( lenA > lenB ){
+			if(lenA > lenB){
 				result = 1;
-			}else{
+			}
+			else {
 				result = (((lenA + epsilon) > lenB) && ((lenA - epsilon) < lenB));
 			}
 			break;
@@ -1340,7 +1346,8 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 	}
 	if (result == 1){
 		Py_RETURN_TRUE;
-	}else{
+	}
+	else {
 		Py_RETURN_FALSE;
 	}
 }
@@ -1369,7 +1376,8 @@ static PyObject *Vector_subscript(VectorObject* self, PyObject* item)
 		if (i < 0)
 			i += self->size;
 		return Vector_item(self, i);
-	} else if (PySlice_Check(item)) {
+	}
+	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
 		if (PySlice_GetIndicesEx((void *)item, self->size, &start, &stop, &step, &slicelength) < 0)
@@ -2001,7 +2009,7 @@ static PyGetSetDef Vector_getseters[] = {
 	{(char *)"wwwy", (getter)Vector_getSwizzle, (setter)NULL, NULL, SET_INT_IN_POINTER(((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, // 3071
 	{(char *)"wwwz", (getter)Vector_getSwizzle, (setter)NULL, NULL, SET_INT_IN_POINTER(((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, // 3583
 	{(char *)"wwww", (getter)Vector_getSwizzle, (setter)NULL, NULL, SET_INT_IN_POINTER(((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, // 4095
-	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /* Python script used to make swizzle array */
@@ -2061,7 +2069,8 @@ static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObj
 		if(mat->colSize == 4 && vec_size != 3){
 			PyErr_SetString(PyExc_AttributeError, "vector * matrix: matrix column size and the vector size must be the same");
 			return -1;
-		}else{
+		}
+		else {
 			vec_cpy[3] = 1.0f;
 		}
 	}
@@ -2156,12 +2165,12 @@ PyTypeObject vector_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) BaseMathObject_dealloc,/* destructor tp_dealloc; */
+	(destructor) BaseMathObject_dealloc,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
 	NULL,   /* cmpfunc tp_compare; */
-	( reprfunc ) Vector_repr,     /* reprfunc tp_repr; */
+	(reprfunc)Vector_repr,     /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
 

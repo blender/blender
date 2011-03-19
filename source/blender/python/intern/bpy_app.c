@@ -56,7 +56,7 @@ extern char build_system[];
 
 static PyTypeObject BlenderAppType;
 
-static PyStructSequence_Field app_info_fields[] = {
+static PyStructSequence_Field app_info_fields[]= {
 	{(char *)"version", (char *)"The Blender version as a tuple of 3 numbers. eg. (2, 50, 11)"},
 	{(char *)"version_string", (char *)"The Blender version formatted as a string"},
 	{(char *)"binary_path", (char *)"The location of blenders executable, useful for utilities that spawn new instances"},
@@ -75,7 +75,7 @@ static PyStructSequence_Field app_info_fields[] = {
 	{NULL}
 };
 
-static PyStructSequence_Desc app_info_desc = {
+static PyStructSequence_Desc app_info_desc= {
 	(char *)"bpy.app",     /* name */
 	(char *)"This module contains application values that remain unchanged during runtime.",    /* doc */
 	app_info_fields,    /* fields */
@@ -87,9 +87,9 @@ static PyObject *make_app_info(void)
 	extern char bprogname[]; /* argv[0] from creator.c */
 
 	PyObject *app_info;
-	int pos = 0;
+	int pos= 0;
 
-	app_info = PyStructSequence_New(&BlenderAppType);
+	app_info= PyStructSequence_New(&BlenderAppType);
 	if (app_info == NULL) {
 		return NULL;
 	}
@@ -229,8 +229,8 @@ PyObject *BPY_app_struct(void)
 	ret= make_app_info();
 
 	/* prevent user from creating new instances */
-	BlenderAppType.tp_init = NULL;
-	BlenderAppType.tp_new = NULL;
+	BlenderAppType.tp_init= NULL;
+	BlenderAppType.tp_new= NULL;
 
 	/* kindof a hack ontop of PyStructSequence */
 	py_struct_seq_getset_init();

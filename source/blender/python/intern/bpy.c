@@ -100,8 +100,8 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	char filepath_expanded[1024];
 	const char *lib;
 
-	int absolute = 0;
-	static const char *kwlist[] = {"absolute", NULL};
+	int absolute= 0;
+	static const char *kwlist[]= {"absolute", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", (char **)kwlist, &absolute))
 		return NULL;
@@ -114,7 +114,7 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 			BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
 		}
 		else {
-			lib = BLI_bpathIterator_getLib(bpi);
+			lib= BLI_bpathIterator_getLib(bpi);
 			if (lib && (strcmp(lib, BLI_bpathIterator_getBasePath(bpi)))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
 				BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
 			}
@@ -134,13 +134,13 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 }
 
 
-// static char bpy_user_resource_doc[] = // now in bpy/utils.py
+// static char bpy_user_resource_doc[]= // now in bpy/utils.py
 static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	char *type;
 	char *subdir= NULL;
 	int folder_id;
-	static const char *kwlist[] = {"type", "subdir", NULL};
+	static const char *kwlist[]= {"type", "subdir", NULL};
 
 	char *path;
 
@@ -161,14 +161,14 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 	path= BLI_get_folder(folder_id, subdir);
 
 	if (!path)
-		path = BLI_get_user_folder_notest(folder_id, subdir);
+		path= BLI_get_user_folder_notest(folder_id, subdir);
 
 	return PyUnicode_DecodeFSDefault(path ? path : "");
 }
 
-static PyMethodDef meth_bpy_script_paths = {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
-static PyMethodDef meth_bpy_blend_paths = {"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
-static PyMethodDef meth_bpy_user_resource = {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, NULL};
+static PyMethodDef meth_bpy_script_paths= {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
+static PyMethodDef meth_bpy_blend_paths= {"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
+static PyMethodDef meth_bpy_user_resource= {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, NULL};
 
 static PyObject *bpy_import_test(const char *modname)
 {
@@ -209,7 +209,7 @@ void BPy_init_modules( void )
 	/* stand alone utility modules not related to blender directly */
 	IDProp_Init_Types(); /* not actually a submodule, just types */
 
-	mod = PyModule_New("_bpy");
+	mod= PyModule_New("_bpy");
 
 	/* add the module so we can import it */
 	PyDict_SetItemString(PyImport_GetModuleDict(), "_bpy", mod);
