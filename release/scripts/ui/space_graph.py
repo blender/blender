@@ -210,6 +210,7 @@ class GRAPH_MT_key(bpy.types.Menu):
         layout.separator()
         layout.operator("graph.keyframe_insert")
         layout.operator("graph.fmodifier_add")
+        layout.operator("graph.sound_bake")
 
         layout.separator()
         layout.operator("graph.duplicate")
