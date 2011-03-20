@@ -91,7 +91,7 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 {
 
 	float u[3],  v[3], w[3];/*, *w, v1[3], v2[3];*/
-	float n[3] = {0.0, 0.0, 0.0}, l /*, v1[3], v2[3] */;
+	float n[3] = {0.0, 0.0, 0.0} /*, l, v1[3], v2[3] */;
 	/* double l2; */
 	int i /*, s=0 */;
 

@@ -292,10 +292,10 @@ void BM_Compute_Normals(BMesh *bm)
  *
 */
 
-void bmesh_begin_edit(BMesh *bm){
+void bmesh_begin_edit(BMesh *UNUSED(bm)){
 }
 
-void bmesh_end_edit(BMesh *bm, int flag){
+void bmesh_end_edit(BMesh *bm, int UNUSED(flag)){
 	/*compute normals, clear temp flags and flush selections*/
 	BM_Compute_Normals(bm);
 	BM_SelectMode_Flush(bm);

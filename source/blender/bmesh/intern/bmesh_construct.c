@@ -258,7 +258,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 	BLI_array_staticdeclare(verts, VERT_BUF_SIZE);
 	BMFace *f = NULL;
 	BMEdge *e;
-	int overlap = 0, i, j, v1found, reverse;
+	int overlap = 0, i, /* j,*/ v1found, reverse;
 
 	/*this code is hideous, yeek.  I'll have to think about ways of
 	  cleaning it up.  basically, it now combines the old BM_Make_Ngon
@@ -466,7 +466,7 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	BMEdge *e, *e2, **edges = NULL, **etable = NULL;
 	BLI_array_declare(edges);
 	BLI_array_declare(etable);
-	BMLoop *l, *l2, **loops = NULL;
+	BMLoop *l, /* *l2,*/ **loops = NULL;
 	BLI_array_declare(loops);
 	BMFace *f, *f2, **ftable = NULL;
 	BLI_array_declare(ftable);

@@ -64,7 +64,7 @@ int BM_Vert_In_Edge(BMEdge *e, BMVert *v)
 
 BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v)
 {
-	BMLoop *l = bm_firstfaceloop(f), *l2, *l3;
+	BMLoop *l = bm_firstfaceloop(f) /*, *l2, *l3*/;
 	int found = 0;
 	
 	do {
@@ -251,7 +251,7 @@ int BM_Vert_FaceCount(BMVert *v){
  *	1 for true, 0 for false.
  */
 
-int BM_Wire_Vert(BMesh *bm, BMVert *v)
+int BM_Wire_Vert(BMesh *UNUSED(bm), BMVert *v)
 {
 	BMEdge *curedge;
 
@@ -276,7 +276,7 @@ int BM_Wire_Vert(BMesh *bm, BMVert *v)
  *	1 for true, 0 for false.
  */
 
-int BM_Wire_Edge(BMesh *bm, BMEdge *e)
+int BM_Wire_Edge(BMesh *UNUSED(bm), BMEdge *e)
 {
 	if(e->l) return 0;
 	return 1;
@@ -295,7 +295,7 @@ int BM_Wire_Edge(BMesh *bm, BMEdge *e)
  *	1 for true, 0 for false.
  */
 
-int BM_Nonmanifold_Vert(BMesh *bm, BMVert *v) {
+int BM_Nonmanifold_Vert(BMesh *UNUSED(bm), BMVert *v) {
 	BMEdge *e, *oe;
 	BMLoop *l;
 	int len, count, flag;
@@ -366,7 +366,7 @@ int BM_Nonmanifold_Vert(BMesh *bm, BMVert *v) {
  *	1 for true, 0 for false.
  */
 
-int BM_Nonmanifold_Edge(BMesh *bm, BMEdge *e)
+int BM_Nonmanifold_Edge(BMesh *UNUSED(bm), BMEdge *e)
 {
 	int count = BM_Edge_FaceCount(e);
 	if(count != 2 && count != 1) return 1;
@@ -453,7 +453,7 @@ int BM_Edge_Share_Faces(BMEdge *e1, BMEdge *e2)
  *	Float.
  */
 
-float BM_Face_Angle(BMesh *bm, BMEdge *e)
+float BM_Face_Angle(BMesh *UNUSED(bm), BMEdge *e)
 {
 	BMLoop *l1, *l2;
 	int radlen;

@@ -57,7 +57,7 @@ const int BMOP_OPSLOT_TYPEINFO[] = {
  *
 */
 
-void BMO_push(BMesh *bm, BMOperator *op)
+void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
 {
 	bm->stackdepth++;
 
@@ -148,7 +148,7 @@ void BMO_Exec_Op(BMesh *bm, BMOperator *op)
  *
 */
 
-void BMO_Finish_Op(BMesh *bm, BMOperator *op)
+void BMO_Finish_Op(BMesh *UNUSED(bm), BMOperator *op)
 {
 	BMOpSlot *slot;
 	int i;
@@ -220,7 +220,7 @@ void BMO_CopySlot(BMOperator *source_op, BMOperator *dest_op, const char *src, c
 			}
 
 			BLI_ghashIterator_init(&it, source_slot->data.ghash);
-			for (;srcmap=BLI_ghashIterator_getValue(&it);
+			for (; (srcmap=BLI_ghashIterator_getValue(&it));
 			      BLI_ghashIterator_step(&it))
 			{
 				dstmap = BLI_memarena_alloc(dest_op->arena, 
@@ -278,7 +278,7 @@ void BMO_Set_Mat(struct BMOperator *op, const char *slotname, float *mat, int si
 	if (size == 4) {
 		memcpy(slot->data.p, mat, sizeof(float)*4*4);
 	} else if (size == 3) {
-		copy_m4_m3(slot->data.p, mat);
+		copy_m4_m3(slot->data.p, (float (*)[3])mat);
 	} else {
 		printf("yeek! invalid size in BMO_Set_Mat!\n");
 
@@ -397,7 +397,7 @@ int BMO_CountFlag(BMesh *bm, int flag, int type)
 	return count;	
 }
 
-void BMO_Clear_Flag_All(BMesh *bm, BMOperator *op, int type, int flag) {
+void BMO_Clear_Flag_All(BMesh *bm, BMOperator *UNUSED(op), int type, int flag) {
 	BMIter iter;
 	BMHeader *ele;
 	int i=0, types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
@@ -416,7 +416,7 @@ void BMO_Clear_Flag_All(BMesh *bm, BMOperator *op, int type, int flag) {
 	}
 }
 
-int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, const char *slotname)
+int BMO_CountSlotBuf(struct BMesh *UNUSED(bm), struct BMOperator *op, const char *slotname)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 	
@@ -427,7 +427,7 @@ int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, const char *slotna
 	return slot->len;
 }
 
-int BMO_CountSlotMap(BMesh *bm, BMOperator *op, const char *slotname)
+int BMO_CountSlotMap(BMesh *UNUSED(bm), BMOperator *op, const char *slotname)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 	
@@ -483,7 +483,7 @@ void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
 	if (!slot->data.ghash) return;
 
 	BLI_ghashIterator_init(&it, slot->data.ghash);
-	for (;ele=BLI_ghashIterator_getKey(&it);BLI_ghashIterator_step(&it)) {
+	for ( ; (ele=BLI_ghashIterator_getKey(&it)); BLI_ghashIterator_step(&it)) {
 		BMO_SetFlag(bm, ele, flag);
 	}
 }
@@ -883,7 +883,7 @@ void *BMO_FirstElem(BMOperator *op, const char *slotname)
 	return slot->data.buf ? *(void**)slot->data.buf : NULL;
 }
 
-void *BMO_IterNew(BMOIter *iter, BMesh *bm, BMOperator *op, 
+void *BMO_IterNew(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
 		  const char *slotname, int restrict)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
@@ -1095,7 +1095,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	BMOpDefine *def;
 	char *opname, *ofmt, *fmt = (char*)_fmt;
 	char slotname[64] = {0};
-	int i, n=strlen(fmt), stop, slotcode = -1, ret, type, state, c;
+	int i /*, n=strlen(fmt) */, stop /*, slotcode = -1 */, ret, type, state, c;
 	int noslot=0;
 
 	/*we muck around in here, so dup it*/

@@ -52,7 +52,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 	BMOIter oiter;
 	BMIter liter, liter2, liter3;
 	BMLoop *l, *l2, *l3;
-	BMFace *f, *f2, *nf = NULL;
+	BMFace *f, *f2 /* , *nf = NULL */;
 	BLI_array_declare(region);
 	BLI_array_declare(regions);
 	BMLoop ***regions = NULL;
@@ -192,13 +192,13 @@ cleanup:
 /*almost identical to dissolve edge, except it cleans up vertices*/
 void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 {
-	BMOperator fop;
+	/* BMOperator fop; */
 	BMOIter oiter;
 	BMIter iter;
 	BMVert *v, **verts = NULL;
 	BLI_array_declare(verts);
 	BMEdge *e;
-	BMFace *f;
+	/* BMFace *f; */
 	int i;
 
 	BMO_ITER(e, &oiter, bm, op, "edges", BM_EDGE) {
@@ -240,13 +240,13 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 
 void dissolveedges_exec(BMesh *bm, BMOperator *op)
 {
-	BMOperator fop;
+	/* BMOperator fop; */
 	BMOIter oiter;
-	BMIter iter;
-	BMVert *v;
+	/* BMIter iter; */
+	/* BMVert *v; */
 	BMEdge *e;
-	BMFace *f;
-	int i;
+	/* BMFace *f; */
+	/* int i; */
 
 	BMO_ITER(e, &oiter, bm, op, "edges", BM_EDGE) {
 		if (BM_Edge_FaceCount(e) == 2) {
@@ -302,7 +302,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 	BMIter iter, fiter;
 	BMVert *v;
 	BMFace *f;
-	int i;
+	/* int i; */
 	
 	vinput = BMO_GetSlot(op, "verts");
 	BMO_Flag_Buffer(bm, op, "verts", VERT_MARK, BM_VERT);
@@ -344,7 +344,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 
 	BMO_CallOpf(bm, "dissolvefaces faces=%ff", FACE_MARK);
 	if (BMO_HasError(bm)) {
-			char *msg;
+			const char *msg;
 
 			BMO_GetError(bm, &msg, NULL);
 			BMO_ClearStack(bm);

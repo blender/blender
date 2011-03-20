@@ -156,7 +156,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv){
 int bmesh_disk_append_edge(struct BMEdge *e, struct BMVert *v)
 {
 	if (!v->e) {
-		Link *e1 = (Link*)bm_get_edge_link(e, v);
+		Link *e1 = bm_get_edge_link(e, v);
 
 		v->e = e;
 		e1->next = e1->prev = (Link*)e;

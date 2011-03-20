@@ -365,7 +365,7 @@ static void *loop_of_face_step(BMIter *iter)
 */
 void *BMIter_New(BMIter *iter, BMesh *bm, int type, void *data)
 {
-	int argtype;
+	/* int argtype; */
 	iter->type = type;
 	iter->bm = bm;
 

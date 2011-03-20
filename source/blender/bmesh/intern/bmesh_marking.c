@@ -118,8 +118,8 @@ void BM_SelectMode_Flush(BMesh *bm)
 
 void BM_Select_Vert(BMesh *bm, BMVert *v, int select)
 {
-	BMIter iter;
-	BMEdge *e;
+	/* BMIter iter; */
+	/* BMEdge *e; */
 
 	if(select) {
 		if (!BM_TestHFlag(v, BM_SELECT)) bm->totvertsel += 1;
@@ -342,7 +342,7 @@ void BM_Select(struct BMesh *bm, void *element, int select)
 	else if(head->type == BM_FACE) BM_Select_Face(bm, (BMFace*)element, select);
 }
 
-int BM_Selected(BMesh *bm, void *element)
+int BM_Selected(BMesh *UNUSED(bm), void *element)
 {
 	BMHeader *head = element;
 	return BM_TestHFlag(head, BM_SELECT);
@@ -568,12 +568,12 @@ void BM_clear_flag_all(BMesh *bm, int flag)
 #define SETPIN(ele) pin ? BM_SetHFlag(ele, BM_PINNED) : BM_ClearHFlag(ele, BM_PINNED);
 
 
-void BM_Pin_Vert(BMesh *bm, BMVert *v, int pin)
+void BM_Pin_Vert(BMesh *UNUSED(bm), BMVert *v, int pin)
 {
 	SETPIN(v);
 }
 
-void BM_Pin_Edge(BMesh *bm, BMEdge *e, int pin)
+void BM_Pin_Edge(BMesh *UNUSED(bm), BMEdge *e, int pin)
 {
 	SETPIN(e->v1);
 	SETPIN(e->v2);
@@ -658,7 +658,7 @@ void BM_Hide_Edge(BMesh *bm, BMEdge *e, int hide)
 {
 	BMIter iter;
 	BMFace *f;
-	BMVert *v;
+	/* BMVert *v; */
 
 	/*edge hiding: faces around the edge*/
 	BM_ITER(f, &iter, bm, BM_FACES_OF_EDGE, e) {

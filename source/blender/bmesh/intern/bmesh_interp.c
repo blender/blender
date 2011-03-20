@@ -80,9 +80,9 @@ void BM_Data_Interp_From_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, flo
 */
 
 
-void BM_Data_Vert_Average(BMesh *bm, BMFace *f)
+void BM_Data_Vert_Average(BMesh *UNUSED(bm), BMFace *UNUSED(f))
 {
-	BMIter iter;
+	// BMIter iter;
 }
 
 /**
@@ -95,7 +95,7 @@ void BM_Data_Vert_Average(BMesh *bm, BMFace *f)
  *	Nothing
 */
  
-void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, BMEdge *e1, float fac){
+void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVert *v, BMEdge *e1, float fac){
 	void *src[2];
 	float w[2];
 	BMLoop *l=NULL, *v1loop = NULL, *vloop = NULL, *v2loop = NULL;
@@ -263,7 +263,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source)
 static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 {
 	BMIter iter;
-	BLI_mempool *oldpool = olddata->pool;
+	// BLI_mempool *oldpool = olddata->pool;
 	void *block;
 
 	CustomData_bmesh_init_pool(data, data==&bm->ldata ? 2048 : 512);

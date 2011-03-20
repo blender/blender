@@ -463,7 +463,7 @@ static void *islandboundWalker_step(BMWalker *walker)
 	BMEdge *e = iwalk->curloop->e;
 	BMFace *f;
 	BMLoop *l = iwalk->curloop;
-	int found=0;
+	/* int found=0; */
 
 	owalk = *iwalk;
 
@@ -590,7 +590,7 @@ static void loopWalker_begin(BMWalker *walker, void *data){
 	loopWalker *lwalk = NULL, owalk;
 	BMEdge *e = data;
 	BMVert *v;
-	int found=1, val;
+	int /*  found=1, */ val;
 
 	v = e->v1;
 
@@ -636,10 +636,10 @@ static void *loopWalker_yield(BMWalker *walker)
 static void *loopWalker_step(BMWalker *walker)
 {
 	loopWalker *lwalk = walker->currentstate, owalk;
-	BMEdge *e = lwalk->cur, *nexte = NULL;
+	BMEdge *e = lwalk->cur /* , *nexte = NULL */;
 	BMLoop *l, *l2;
 	BMVert *v;
-	int val, rlen, found=0, i=0, stopi;
+	int val, rlen /* , found=0 */, i=0, stopi;
 
 	owalk = *lwalk;
 	
@@ -816,7 +816,7 @@ static void *edgeringWalker_step(BMWalker *walker)
 {
 	edgeringWalker *lwalk = walker->currentstate;
 	BMEdge *e = lwalk->l->e;
-	BMLoop *l = lwalk->l, *origl = lwalk->l;
+	BMLoop *l = lwalk->l /* , *origl = lwalk->l */;
 
 	BMW_popstate(walker);
 

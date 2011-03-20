@@ -286,8 +286,8 @@ BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
  *  Returns -
  *	BMFace pointer
  */
- 
-BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl, BMEdge *example)
+
+BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl, BMEdge *UNUSED(example))
 {
 	BMFace *nf;
 	nf = bmesh_sfme(bm,f,v1,v2,nl, NULL);

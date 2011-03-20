@@ -162,11 +162,11 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	BMOperator dupeop, delop;
 	BMOIter siter;
 	BMIter iter, fiter, viter;
-	BMEdge *e, *newedge, *e2, *ce;
+	BMEdge *e, *newedge /* , *e2 */, *ce;
 	BMLoop *l, *l2;
 	BMVert *verts[4], *v, *v2;
 	BMFace *f;
-	int rlen, found, delorig=0, i;
+	int rlen, found, delorig=0 /*, i */;
 
 	/*initialize our sub-operators*/
 	BMO_Init_Op(&dupeop, "dupe");

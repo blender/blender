@@ -292,7 +292,7 @@ static void loops_to_corners(BMesh *bm, Mesh *me, int findex,
 
 void object_load_bmesh_exec(BMesh *bm, BMOperator *op) {
 	Object *ob = BMO_Get_Pnt(op, "object");
-	Scene *scene = BMO_Get_Pnt(op, "scene");
+	/* Scene *scene = BMO_Get_Pnt(op, "scene"); */
 	Mesh *me = ob->data;
 
 	BMO_CallOpf(bm, "bmesh_to_mesh mesh=%p object=%p", me, ob);
@@ -302,7 +302,7 @@ void object_load_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	Mesh *me = BMO_Get_Pnt(op, "mesh");
-	Object *ob = BMO_Get_Pnt(op, "object");
+	/* Object *ob = BMO_Get_Pnt(op, "object"); */
 	MLoop *mloop;
 	KeyBlock *block;
 	MPoly *mpoly;

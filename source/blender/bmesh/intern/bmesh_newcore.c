@@ -79,7 +79,7 @@ static void inherit_face(BMesh *bm, BMBaseFace *basef)
 }
 */
 
-void BM_SubClass(BMesh *bm, BMLayerType *type)
+void BM_SubClass(BMesh *UNUSED(bm), BMLayerType *UNUSED(type))
 {
 }
 
@@ -173,7 +173,6 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
 
 static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, BMLoop *example){
 	BMLoop *l=NULL;
-	int i;
 
 	l = BLI_mempool_calloc(bm->lpool);
 	l->next = l->prev = NULL;
@@ -191,7 +190,7 @@ static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, BML
 	if (bm->slpool)
 		l->head.layerdata = BLI_mempool_calloc(bm->slpool);
 
-	inherit_loop(bm, l, f);
+	inherit_loop(bm, (BMBaseLoop *)l, (BMBaseFace *)f);
 
 	if(example)
 		CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, example->head.data, &l->head.data);
@@ -203,7 +202,7 @@ static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, BML
 
 BMLoop *BM_Add_FaceBoundary(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte) {
 	BMBaseLoopList *lst = BLI_mempool_calloc(bm->looplistpool);
-	BMLoop *l = (BMLoop*)bmesh_create_loop(bm, startv, starte, (BMBaseFace*)f, NULL);
+	BMLoop *l = (BMLoop*)bmesh_create_loop(bm, startv, starte, f, NULL);
 	int i;
 	
 	bmesh_radial_append(starte, l);
@@ -245,7 +244,7 @@ BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len) {
 	startl->v = (BMBaseVert*) verts[0];
 	startl->e = (BMBaseEdge*) edges[0];
 	for (i=1; i<len; i++) {
-		l = bmesh_create_loop(bm, verts[i], edges[i], f, edges[i]->l);
+		l = (BMBaseLoop *)bmesh_create_loop(bm, verts[i], edges[i], (BMFace *)f, edges[i]->l);
 		
 		if (bm->baselevel >= LAYER_ADJ) {
 			BMLoop *bl = (BMLoop*)l;
@@ -287,7 +286,7 @@ BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len) {
 	return (BMFace*) f;
 }
 
-int bmesh_check_element(BMesh *bm, void *element, int type) {
+int bmesh_check_element(BMesh *UNUSED(bm), void *element, int type) {
 	BMHeader *head = element;
 	int err = 0;
 
@@ -440,7 +439,7 @@ void BM_Kill_Face(BMesh *bm, BMFace *f) {
 			lnext = l->next;
 
 			if (bm->baselevel >= LAYER_ADJ)
-				bmesh_radial_remove_loop((BMLoop*)l, l->e);
+				bmesh_radial_remove_loop((BMLoop*)l, (BMEdge *)l->e);
 			bmesh_kill_loop(bm, (BMLoop*)l);
 
 			l = lnext;
@@ -633,7 +632,7 @@ int bmesh_loop_reverse(BMesh *bm, BMFace *f)
 	return bmesh_loop_reverse_loop(bm, f, f->loops.first);
 }
 
-void bmesh_systag_elements(BMesh *bm, void *veles, int tot, int flag)
+void bmesh_systag_elements(BMesh *UNUSED(bm), void *veles, int tot, int flag)
 {
 	BMHeader **eles = veles;
 	int i;
@@ -643,7 +642,7 @@ void bmesh_systag_elements(BMesh *bm, void *veles, int tot, int flag)
 	}
 }
 
-void bmesh_clear_systag_elements(BMesh *bm, void *veles, int tot, int flag)
+void bmesh_clear_systag_elements(BMesh *UNUSED(bm), void *veles, int tot, int flag)
 {
 	BMHeader **eles = veles;
 	int i;
@@ -741,7 +740,7 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 	BLI_array_staticdeclare(delverts, 64);
 	BMVert *v1=NULL, *v2=NULL;
 	ListBase holes = {NULL, NULL};
-	char *err = NULL;
+	const char *err = NULL;
 	int i, tote=0;
 
 	if (!totface) {
@@ -885,7 +884,7 @@ error:
 	return NULL;
 }
 
-static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *example) {
+static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example)) {
 	BMBaseFace *f;
 	BMBaseLoopList *lst;
 
