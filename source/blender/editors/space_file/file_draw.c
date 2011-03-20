@@ -514,10 +514,10 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		UI_ThemeColor4(TH_TEXT);
 
 
-		if (!(file->flags & EDITING)) {
-			if  ((params->active_file == i) || (file->flags & HILITED_FILE) || (file->flags & ACTIVEFILE) ) {
-				int colorid = (file->flags & ACTIVEFILE) ? TH_HILITE : TH_BACK;
-				int shade = (params->active_file == i) || (file->flags & HILITED_FILE) ? 20 : 0;
+		if (!(file->selflag & EDITING_FILE)) {
+			if  ((params->active_file == i) || (file->selflag & HILITED_FILE) || (file->selflag & SELECTED_FILE) ) {
+				int colorid = (file->selflag & SELECTED_FILE) ? TH_HILITE : TH_BACK;
+				int shade = (params->active_file == i) || (file->selflag & HILITED_FILE) ? 20 : 0;
 				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid, shade);
 			}
 		}
@@ -539,17 +539,17 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 		UI_ThemeColor4(TH_TEXT);
 
-		if (file->flags & EDITING) {
+		if (file->selflag & EDITING_FILE) {
 			uiBut *but = uiDefBut(block, TEX, 1, "", sx , sy-layout->tile_h-3, 
 				textwidth, textheight, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit),0,0,"");
 			uiButSetRenameFunc(but, renamebutton_cb, file);
 			uiButSetFlag(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
 			if ( 0 == uiButActiveOnly(C, block, but)) {
-				file->flags &= ~EDITING;
+				file->selflag &= ~EDITING_FILE;
 			}
 		}
 
-		if (!(file->flags & EDITING))  {
+		if (!(file->selflag & EDITING_FILE))  {
 			int tpos = (FILE_IMGDISPLAY == params->display) ? sy - layout->tile_h + layout->textheight : sy;
 			file_draw_string(sx+1, tpos, file->relname, textwidth, textheight, align);
 		}

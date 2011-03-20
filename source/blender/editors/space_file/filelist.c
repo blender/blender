@@ -914,15 +914,15 @@ void filelist_swapselect(struct FileList* filelist)
 	
 	file= filelist->filelist;
 	for(num=0; num<filelist->numfiles; num++, file++) {
-		if(file->flags & ACTIVEFILE) {
+		if(file->selflag & SELECTED_FILE) {
 			act= 1;
 			break;
 		}
 	}
 	file= filelist->filelist+2;
 	for(num=2; num<filelist->numfiles; num++, file++) {
-		if(act) file->flags &= ~ACTIVEFILE;
-		else file->flags |= ACTIVEFILE;
+		if(act) file->selflag &= ~SELECTED_FILE;
+		else file->selflag |= SELECTED_FILE;
 	}
 }
 
@@ -936,13 +936,13 @@ void filelist_select(struct FileList* filelist, FileSelection* sel, FileSelType 
 			
 			switch (select) {
 				case FILE_SEL_REMOVE:
-					file->flags &= ~flag;
+					file->selflag &= ~flag;
 					break;
 				case FILE_SEL_ADD:
-					file->flags |= flag;
+					file->selflag |= flag;
 					break;
 				case FILE_SEL_TOGGLE:
-					file->flags ^= flag;
+					file->selflag ^= flag;
 					break;
 			}
 		}
@@ -1183,10 +1183,10 @@ void filelist_from_main(struct FileList *filelist)
 #if 0				// XXXXX TODO show the selection status of the objects
 					if(!filelist->has_func) { /* F4 DATA BROWSE */
 						if(idcode==ID_OB) {
-							if( ((Object *)id)->flag & SELECT) files->flags |= ACTIVEFILE;
+							if( ((Object *)id)->flag & SELECT) files->selflag |= SELECTED_FILE;
 						}
 						else if(idcode==ID_SCE) {
-							if( ((Scene *)id)->r.scemode & R_BG_RENDER) files->flags |= ACTIVEFILE;
+							if( ((Scene *)id)->r.scemode & R_BG_RENDER) files->selflag |= SELECTED_FILE;
 						}					
 					}
 #endif

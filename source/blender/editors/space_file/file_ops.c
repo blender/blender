@@ -96,8 +96,8 @@ static void file_deselect_all(SpaceFile* sfile, unsigned int flag)
 
 	for ( i=0; i < numfiles; ++i) {
 		struct direntry* file = filelist_file(sfile->files, i);
-		if (file && (file->flags & flag)) {
-			file->flags &= ~flag;
+		if (file && (file->selflag & flag)) {
+			file->selflag &= ~flag;
 		}
 	}
 }
@@ -151,7 +151,7 @@ static FileSelection file_selection_get(bContext* C, const rcti* rect, short fil
 		int f= sel.last;
 		while (f >= 0) {
 			struct direntry* file = filelist_file(sfile->files, f);
-			if (file->flags & ACTIVEFILE)
+			if (file->selflag & SELECTED_FILE)
 				break;
 			f--;
 		}
@@ -213,15 +213,19 @@ static FileSelect file_select(bContext* C, const rcti* rect, FileSelType select,
 	struct direntry *file;
 	
 	/* flag the files as selected in the filelist */
-	filelist_select(sfile->files, &sel, select, ACTIVEFILE);
+	filelist_select(sfile->files, &sel, select, SELECTED_FILE);
 	
 	/* Don't act on multiple selected files */
 	if (sel.first != sel.last) select = 0;
 
-	/* Check last selection, if selected, act on the file or dir */
-	file = filelist_file(sfile->files, sel.last);
-	if (file->flags & ACTIVEFILE) {
-		retval = file_select_do(C, sel.last);
+	/* Do we have a valid selection and are we actually selecting */
+	if ( (sel.last >= 0) && ((select == FILE_SEL_ADD) || (select == FILE_SEL_TOGGLE)) )
+	{
+		/* Check last selection, if selected, act on the file or dir */
+		file = filelist_file(sfile->files, sel.last);
+		if (file && (file->selflag & SELECTED_FILE)) {
+			retval = file_select_do(C, sel.last);
+		}
 	}
 
 	/* update operator for name change event */
@@ -328,7 +332,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 
 	/* single select, deselect all selected first */
-	if (!extend) file_deselect_all(sfile, ACTIVEFILE);
+	if (!extend) file_deselect_all(sfile, SELECTED_FILE);
 
 	ret = file_select(C, &rect, extend ? FILE_SEL_TOGGLE : FILE_SEL_ADD, fill);
 	if (FILE_SELECT_DIR == ret)
@@ -369,8 +373,8 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 	/* if any file is selected, deselect all first */
 	for ( i=0; i < numfiles; ++i) {
 		struct direntry* file = filelist_file(sfile->files, i);
-		if (file && (file->flags & ACTIVEFILE)) {
-			file->flags &= ~ACTIVEFILE;
+		if (file && (file->selflag & SELECTED_FILE)) {
+			file->selflag &= ~SELECTED_FILE;
 			select = 0;
 			ED_area_tag_redraw(sa);
 		}
@@ -380,7 +384,7 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 		for ( i=0; i < numfiles; ++i) {
 			struct direntry* file = filelist_file(sfile->files, i);
 			if(file && !S_ISDIR(file->type)) {
-				file->flags |= ACTIVEFILE;
+				file->selflag |= SELECTED_FILE;
 				ED_area_tag_redraw(sa);
 			}
 		}
@@ -627,7 +631,7 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 		if(RNA_struct_find_property(op->ptr, "files")) {
 			for (i=0; i<numfiles; i++) {
 				file = filelist_file(sfile->files, i);
-				if(file->flags & ACTIVEFILE) {
+				if(file->selflag & SELECTED_FILE) {
 					if ((file->type & S_IFDIR)==0) {
 						RNA_collection_add(op->ptr, "files", &itemptr);
 						RNA_string_set(&itemptr, "name", file->relname);
@@ -639,7 +643,7 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 		if(RNA_struct_find_property(op->ptr, "dirs")) {
 			for (i=0; i<numfiles; i++) {
 				file = filelist_file(sfile->files, i);
-				if(file->flags & ACTIVEFILE) {
+				if(file->selflag & SELECTED_FILE) {
 					if ((file->type & S_IFDIR)) {
 						RNA_collection_add(op->ptr, "dirs", &itemptr);
 						RNA_string_set(&itemptr, "name", file->relname);
@@ -728,7 +732,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			
 			for (i=0; i<filelist_numfiles(sfile->files); i++) {
 				file = filelist_file(sfile->files, i);
-				if(file->flags & ACTIVEFILE) {
+				if(file->selflag & SELECTED_FILE) {
 					active=1;
 				}
 			}
@@ -893,7 +897,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 	for (i=0; i < numfiles; ++i)
 	{
 		struct direntry *file = filelist_file(sfile->files, i);	
-		if (file->flags & EDITING) {
+		if (file->selflag & EDITING_FILE) {
 			edit_idx=i;
 			break;
 		}
@@ -1296,7 +1300,7 @@ static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
 		int numfiles = filelist_numfiles(sfile->files);
 		if ( (0<=idx) && (idx<numfiles) ) {
 			struct direntry *file= filelist_file(sfile->files, idx);
-			file->flags |= EDITING;
+			file->selflag |= EDITING_FILE;
 			BLI_strncpy(sfile->params->renameedit, file->relname, FILE_MAXFILE);
 			sfile->params->renamefile[0]= '\0';
 		}

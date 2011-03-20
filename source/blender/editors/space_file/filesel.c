@@ -568,7 +568,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 		for (i = 0; i < n; i++) {
 			file = filelist_file(sfile->files, i);
 			if (fnmatch(pattern, file->relname, 0) == 0) {
-				file->flags |= ACTIVEFILE;
+				file->selflag |= SELECTED_FILE;
 				match = 1;
 			}
 		}
