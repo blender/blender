@@ -34,6 +34,14 @@ Example Usage:
     --match="*.3ds" \
     --start=0 --end=1000 \
     --save_path=/tmp/test
+
+./blender.bin --background --addons io_curve_svg --python source/tests/batch_import.py -- \
+    --operator="bpy.ops.import_curve.svg" \
+    --path="/usr/" \
+    --match="*.svg" \
+    --start=0 --end=1000 \
+    --save_path=/tmp/test
+
 """
 
 import os
@@ -61,8 +69,9 @@ def batch_import(operator="",
                    start=0,
                    end=sys.maxsize,
                    ):
+    import addon_utils
+    _reset_all = addon_utils.reset_all  # XXX, hack
 
-    print(list(globals().keys()))
     import fnmatch
 
     path = os.path.normpath(path)
@@ -100,7 +109,13 @@ def batch_import(operator="",
     op = eval(operator)
     for i, f in enumerate(files):
         print("    %s(filepath=%r) # %d of %d" % (operator, f, i + start, len(files)))
+
+        # hack so loading the new file doesnt undo our loaded addons
+        addon_utils.reset_all = lambda: None  # XXX, hack
+
         bpy.ops.wm.read_factory_settings()
+
+        addon_utils.reset_all = _reset_all  # XXX, hack
         clear_scene()
 
         op(filepath=f)
