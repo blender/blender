@@ -401,10 +401,6 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	ARegion* ar = CTX_wm_region(C);
 
-#if 0
-	struct direntry *file = (struct direntry *)arg1;
-#endif
-
 	BLI_make_file_string(G.main->name, orgname, sfile->params->dir, oldname);
 	BLI_strncpy(filename, sfile->params->renameedit, sizeof(filename));
 	BLI_make_file_string(G.main->name, newname, sfile->params->dir, filename);
@@ -413,10 +409,6 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 		if (!BLI_exists(newname)) {
 			BLI_rename(orgname, newname);
 			/* to make sure we show what is on disk */
-#if 0		/* this is cleared anyway, no need */
-			MEM_freeN(file->relname);
-			file->relname= BLI_strdup(sfile->params->renameedit);
-#endif
 			ED_fileselect_clear(C, sfile);
 		}
 
