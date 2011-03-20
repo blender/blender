@@ -225,6 +225,44 @@ static FileSelect file_select(bContext* C, const rcti* rect, short select, short
 	return retval;
 }
 
+static int file_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+	FileSelection sel;
+	rcti rect;
+
+	int result;
+
+	result=	WM_border_select_modal(C, op, event);
+
+	if(result==OPERATOR_RUNNING_MODAL)	{
+
+		rect.xmin= RNA_int_get(op->ptr, "xmin");
+		rect.ymin= RNA_int_get(op->ptr, "ymin");
+		rect.xmax= RNA_int_get(op->ptr, "xmax");
+		rect.ymax= RNA_int_get(op->ptr, "ymax");
+
+		BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
+
+		sel = file_selection_get(C, &rect, 0);
+		if ( (sel.first != params->sel_first) || (sel.last != params->sel_last) ) {
+			file_deselect_all(sfile, HILITED_FILE);
+			filelist_select(sfile->files, &sel, 1, HILITED_FILE);
+			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
+		}
+		params->sel_first = sel.first; params->sel_last = sel.last;
+
+	}else {
+		params->active_file = -1;
+		params->sel_first = params->sel_last = -1;
+		file_deselect_all(sfile, HILITED_FILE);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
+	}
+
+	return result;
+}
 
 static int file_border_select_exec(bContext *C, wmOperator *op)
 {
@@ -259,7 +297,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= file_border_select_exec;
-	ot->modal= WM_border_select_modal;
+	ot->modal= file_border_select_modal;
 	ot->poll= ED_operator_file_active;
 
 	/* rna */

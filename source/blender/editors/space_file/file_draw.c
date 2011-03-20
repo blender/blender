@@ -469,7 +469,6 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	uiBlock *block = uiBeginBlock(C, ar, "FileNames", UI_EMBOSS);
 	int numfiles;
 	int numfiles_layout;
-	int colorid = 0;
 	int sx, sy;
 	int offset;
 	int textwidth, textheight;
@@ -516,14 +515,11 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 
 		if (!(file->flags & EDITING)) {
-			if (params->active_file == i) {
-				if (file->flags & ACTIVEFILE) colorid= TH_HILITE;
-				else colorid = TH_BACK;
-				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
-			} else if (file->flags & ACTIVEFILE) {
-				colorid = TH_HILITE;
-				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
-			} 
+			if  ((params->active_file == i) || (file->flags & HILITED_FILE) || (file->flags & ACTIVEFILE) ) {
+				int colorid = (file->flags & ACTIVEFILE) ? TH_HILITE : TH_BACK;
+				int shade = (params->active_file == i) || (file->flags & HILITED_FILE) ? 20 : 0;
+				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid, shade);
+			}
 		}
 		uiSetRoundBox(0);
 

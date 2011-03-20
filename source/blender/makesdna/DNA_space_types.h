@@ -188,7 +188,8 @@ typedef struct FileSelectParams {
 	short active_bookmark;
 
 	int	active_file;
-	int selstate;
+	int sel_first;
+	int sel_last;
 
 	/* short */
 	/* XXX --- still unused -- */
@@ -728,6 +729,7 @@ enum FileSortTypeE {
 #define BTXFILE				(1<<12)
 #define COLLADAFILE			(1<<13)
 #define OPERATORFILE		(1<<14) /* from filter_glob operator property */
+#define HILITED_FILE		(1<<15)
 
 /* SpaceImage->dt_uv */
 #define SI_UVDT_OUTLINE	0

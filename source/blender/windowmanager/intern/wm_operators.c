@@ -2075,31 +2075,34 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
    It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
 */
 
-static int border_apply(bContext *C, wmOperator *op, int gesture_mode)
+static int border_apply_rect(bContext *C, wmOperator *op)
 {
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
 	
-	if(rect->xmin > rect->xmax)
-		SWAP(int, rect->xmin, rect->xmax);
-	if(rect->ymin > rect->ymax)
-		SWAP(int, rect->ymin, rect->ymax);
-	
 	if(rect->xmin==rect->xmax || rect->ymin==rect->ymax)
 		return 0;
-		
+
+	
 	/* operator arguments and storage. */
-	RNA_int_set(op->ptr, "xmin", rect->xmin);
-	RNA_int_set(op->ptr, "ymin", rect->ymin);
-	RNA_int_set(op->ptr, "xmax", rect->xmax);
-	RNA_int_set(op->ptr, "ymax", rect->ymax);
+	RNA_int_set(op->ptr, "xmin", MIN2(rect->xmin, rect->xmax) );
+	RNA_int_set(op->ptr, "ymin", MIN2(rect->ymin, rect->ymax) );
+	RNA_int_set(op->ptr, "xmax", MAX2(rect->xmin, rect->xmax) );
+	RNA_int_set(op->ptr, "ymax", MAX2(rect->ymin, rect->ymax) );
+
+	return 1;
+}
+
+static int border_apply(bContext *C, wmOperator *op, int gesture_mode)
+{
+	if (!border_apply_rect(C, op))
+		return 0;
 	
 	/* XXX weak; border should be configured for this without reading event types */
 	if( RNA_struct_find_property(op->ptr, "gesture_mode") )
 		RNA_int_set(op->ptr, "gesture_mode", gesture_mode);
 
 	op->type->exec(C, op);
-	
 	return 1;
 }
 
@@ -2148,6 +2151,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			rect->xmax= event->x - sx;
 			rect->ymax= event->y - sy;
 		}
+		border_apply_rect(C, op);
 
 		wm_gesture_tag_redraw(C);
 	}
