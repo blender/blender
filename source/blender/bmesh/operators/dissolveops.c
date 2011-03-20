@@ -24,7 +24,7 @@ static int check_hole_in_region(BMesh *bm, BMFace *f) {
 	BMIter liter2;
 	BMLoop *l2, *l3;
 	BMFace *f2;
-	
+
 	/*checks if there are any unmarked boundary edges in the face region*/
 
 	BMW_Init(&regwalker, bm, BMW_ISLAND, FACE_MARK, 0);

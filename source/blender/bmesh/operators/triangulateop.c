@@ -21,7 +21,7 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(newfaces);
 	float (*projectverts)[3] = NULL;
 	BLI_array_declare(projectverts);
-	int i, lastlen=0, count = 0;
+	int i, lastlen=0 /* , count = 0 */;
 	
 	face = BMO_IterNew(&siter, bm, op, "faces", BM_FACE);
 	for (; face; face=BMO_IterStep(&siter)) {

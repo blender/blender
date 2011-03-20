@@ -716,10 +716,10 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 	BMIter	e_iter;		/* mesh edges iterator */
 	BMEdge	*es;		/* selected edge */
 	BMEdge	*e;		/* mesh edge */
-	int idx = 0, i = 0, f = 0;
+	int idx = 0, i = 0 /* , f = 0 */;
 	int *indices = NULL;
 	tmp_edge_ext *e_ext = NULL;
-	float *angles = NULL;
+	// float *angles = NULL;
 	float angle;
 
 	int num_sels = 0, num_total = 0;
@@ -982,7 +982,7 @@ void bmesh_rotateuvs_exec(BMesh *bm, BMOperator *op)
 	BMOIter fs_iter;	/* selected faces iterator */
 	BMFace *fs;	/* current face */
 	BMIter l_iter;	/* iteration loop */
-	int n;
+	// int n;
 
 	int dir = BMO_Get_Int(op, "dir");
 
@@ -1097,7 +1097,7 @@ void bmesh_rotatecolors_exec(BMesh *bm, BMOperator *op)
 	BMOIter fs_iter;	/* selected faces iterator */
 	BMFace *fs;	/* current face */
 	BMIter l_iter;	/* iteration loop */
-	int n;
+	// int n;
 
 	int dir = BMO_Get_Int(op, "dir");
 
@@ -1206,7 +1206,7 @@ typedef struct element_node {
 
 void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 {
-	BMOIter vs_iter, vs2_iter;	/* selected verts iterator */
+	BMOIter vs_iter /* , vs2_iter */;	/* selected verts iterator */
 	BMIter v_iter;		/* mesh verts iterator */
 	BMVert *vs, *sv, *ev;	/* starting vertex, ending vertex */
 	BMVert *v;		/* mesh vertex */
@@ -1214,7 +1214,7 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 
 	element_node *vert_list = NULL;
 
-	int num_total = 0, num_sels = 0, i = 0;
+	int num_total = 0 /*, num_sels = 0 */, i = 0;
 	int type = BMO_Get_Int(op, "type");
 
 	BMO_ITER(vs, &vs_iter, bm, op, "startv", BM_VERT)

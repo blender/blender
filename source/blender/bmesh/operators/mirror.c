@@ -43,7 +43,7 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op) {
 	BMIter iter;
 	BMVert *v, *v2, **vmap = NULL;
 	BLI_array_declare(vmap);
-	BMEdge *e, **emap = NULL;
+	BMEdge /*  *e, */ **emap = NULL;
 	BLI_array_declare(emap);
 	float mtx[4][4];
 	float imtx[4][4];
@@ -124,4 +124,3 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op) {
 	BLI_array_free(vmap);
 	BLI_array_free(emap);
 }
-

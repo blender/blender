@@ -41,7 +41,7 @@
 #define T2QJOIN		4
 
 /*assumes edges are validated before reaching this point*/
-static float measure_facepair(BMesh *bm, BMVert *v1, BMVert *v2, 
+static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 							  BMVert *v3, BMVert *v4, float limit)
 {
 	/*gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would make*/

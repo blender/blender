@@ -271,7 +271,7 @@ void bmesh_vert_average_facedata_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMIter iter;
 	BMVert *v;
-	BMLoop *l, *firstl = NULL;
+	BMLoop *l /* , *firstl = NULL */;
 	CDBlockBytes min, max;
 	void *block;
 	int i, type;
@@ -562,7 +562,7 @@ void bmesh_automerge_exec(BMesh *bm, BMOperator *op)
 	BMVert **verts=NULL;
 	BLI_array_declare(verts);
 	float dist, distsqr;
-	int i, j, len, keepvert;
+	int i, j, len /* , keepvert */;
 
 	dist = BMO_Get_Float(op, "dist");
 	distsqr = dist*dist;

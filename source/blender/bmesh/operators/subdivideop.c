@@ -115,7 +115,7 @@ BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
 	return NULL;
 }
 /* calculates offset for co, based on fractal, sphere or smooth settings  */
-static void alter_co(float *co, BMEdge *edge, subdparams *params, float perc,
+static void alter_co(float *co, BMEdge *UNUSED(edge), subdparams *params, float perc,
 		     BMVert *vsta, BMVert *vend)
 {
 	float vec1[3], fac;
@@ -376,12 +376,13 @@ v6--------v5
 v7-v0--v1-v2
 
 */
-static void quad_2edge_split_fan(BMesh *bm, BMFace *face, BMVert **verts, 
+static void quad_2edge_split_fan(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                           subdparams *params)
 {
 	BMFace *nf;
-	BMVert *v, *lastv;
-	BMEdge *e, *ne;
+	// BMVert *v;
+	BMVert *lastv;
+	// BMEdge *e, *ne;
 	int i, numcuts = params->numcuts;
 	
 	lastv = verts[2];
@@ -409,7 +410,7 @@ v8--v7--v6-v5
 v9-v0--v1-v2
 
 */
-static void quad_3edge_split(BMesh *bm, BMFace *face, BMVert **verts, 
+static void quad_3edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                           subdparams *params)
 {
 	BMFace *nf;
@@ -450,7 +451,7 @@ first line |          |   last line
 
 	   it goes from bottom up
 */
-static void quad_4edge_subdivide(BMesh *bm, BMFace *face, BMVert **verts, 
+static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                           subdparams *params)
 {
 	BMFace *nf;
@@ -458,7 +459,7 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *face, BMVert **verts,
 	BMEdge *e, *ne, temp;
 	BMVert **lines;
 	int numcuts = params->numcuts;
-	int i, j, a, b, s=numcuts+2, totv=numcuts*4+4;
+	int i, j, a, b, s=numcuts+2 /* , totv=numcuts*4+4 */;
 
 	lines = MEM_callocN(sizeof(BMVert*)*(numcuts+2)*(numcuts+2),
 		                     "q_4edge_split");
@@ -529,7 +530,7 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *face, BMVert **verts,
 v4--v0--v1--v2
     s    s
 */
-static void tri_1edge_split(BMesh *bm, BMFace *face, BMVert **verts, 
+static void tri_1edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                           subdparams *params)
 {
 	BMFace *nf;
@@ -555,7 +556,7 @@ sv7/---v---\ v3 s
  v8--v0--v1--v2
     s    s
 */
-static void tri_3edge_subdivide(BMesh *bm, BMFace *face, BMVert **verts, 
+static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                           subdparams *params)
 {
 	BMFace *nf;
@@ -982,7 +983,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 }
 
 /*editmesh-emulating function*/
-void BM_esubdivideflag(Object *obedit, BMesh *bm, int flag, float smooth, 
+void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth,
 		       float fractal, int beauty, int numcuts, 
 		       int seltype, int cornertype, int singleedge, int gridfill)
 {
@@ -999,7 +1000,7 @@ void BM_esubdivideflag(Object *obedit, BMesh *bm, int flag, float smooth,
 	if (seltype == SUBDIV_SELECT_INNER) {
 		BMOIter iter;
 		BMHeader *ele;
-		int i;
+		// int i;
 		
 		ele = BMO_IterNew(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
 		for (; ele; ele=BMO_IterStep(&iter)) {
@@ -1008,7 +1009,7 @@ void BM_esubdivideflag(Object *obedit, BMesh *bm, int flag, float smooth,
 	} else if (seltype == SUBDIV_SELECT_LOOPCUT) {
 		BMOIter iter;
 		BMHeader *ele;
-		int i;
+		// int i;
 		
 		/*deselect input*/
 		BM_clear_flag_all(bm, BM_SELECT);
@@ -1072,4 +1073,3 @@ void esplit_exec(BMesh *bm, BMOperator *op)
 	BMO_Flag_To_Slot(bm, op, "outsplit",
 		         ELE_SPLIT, BM_ALL);
 }
-

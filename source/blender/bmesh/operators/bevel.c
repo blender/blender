@@ -67,12 +67,12 @@ static float BM_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int i
 	return factor;
 }
 
-void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
+void calc_corner_co(BMesh *UNUSED(bm), BMLoop *l, float *co, float fac)
 {
-	float no[3], tan[3], vec1[3], vec2[3], v1[3], v2[3], v3[3], v4[3];
-	float p1[3], p2[3], w[3];
-	float l1, l2;
-	int ret;
+	float /* no[3], tan[3], */ vec1[3], vec2[3], v1[3], v2[3], v3[3], v4[3];
+	// float p1[3], p2[3], w[3];
+	// float l1, l2;
+	// int ret;
 
 	copy_v3_v3(v1, l->prev->v->co);
 	copy_v3_v3(v2, l->v->co);
@@ -660,8 +660,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BMIter liter;
 			
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
-				BMIter liter2;
-				BMLoop *l2 = l->v == v ? l : l->next, *l3;
+				// BMIter liter2;
+				// BMLoop *l2 = l->v == v ? l : l->next, *l3;
 				
 				if (BMO_TestFlag(bm, l->f, FACE_OLD)) {
 					lorig = l;
@@ -673,7 +673,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				continue;
 			
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
-				BMLoop *l2 = l->v == v ? l : l->next, *l3;
+				BMLoop *l2 = l->v == v ? l : l->next; //, *l3;
 				
 				BM_Copy_Attributes(bm, bm, lorig->f, l2->f);
 				BM_Copy_Attributes(bm, bm, lorig, l2);
