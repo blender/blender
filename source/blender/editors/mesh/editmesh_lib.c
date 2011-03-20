@@ -2010,21 +2010,34 @@ void recalc_editnormals(EditMesh *em)
 		if(efa->v4) {
 			normal_quad_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
 			cent_quad_v3(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
-			add_v3_v3(efa->v4->no, efa->n);
 		}
 		else {
 			normal_tri_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co);
 			cent_tri_v3(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co);
 		}
-		add_v3_v3(efa->v1->no, efa->n);
-		add_v3_v3(efa->v2->no, efa->n);
-		add_v3_v3(efa->v3->no, efa->n);
+
+		if((efa->flag&ME_SMOOTH)!=0) {
+			float *n4= (efa->v4)? efa->v4->no: NULL;
+			float *c4= (efa->v4)? efa->v4->co: NULL;
+
+			accumulate_vertex_normals(efa->v1->no, efa->v2->no, efa->v3->no, n4,
+				efa->n, efa->v1->co, efa->v2->co, efa->v3->co, c4);
+		}
+	}
+
+	for(efa= em->faces.first; efa; efa=efa->next) {
+		if((efa->flag&ME_SMOOTH)==0) {
+			if(is_zero_v3(efa->v1->no)) copy_v3_v3(efa->v1->no, efa->n);
+			if(is_zero_v3(efa->v2->no)) copy_v3_v3(efa->v2->no, efa->n);
+			if(is_zero_v3(efa->v3->no)) copy_v3_v3(efa->v3->no, efa->n);
+			if(efa->v4 && is_zero_v3(efa->v4->no)) copy_v3_v3(efa->v4->no, efa->n);
+		}
 	}
 
 	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
 	for(eve= em->verts.first; eve; eve=eve->next) {
-		if (normalize_v3(eve->no)==0.0) {
-			VECCOPY(eve->no, eve->co);
+		if(normalize_v3(eve->no) == 0.0f) {
+			copy_v3_v3(eve->no, eve->co);
 			normalize_v3(eve->no);
 		}
 	}

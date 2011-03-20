@@ -1278,26 +1278,42 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 	float *fnors= MEM_callocN(sizeof(*fnors)*3*numFaces, "meshnormals");
 	int i;
 
-	for (i=0; i<numFaces; i++) {
+	for(i=0; i<numFaces; i++) {
 		MFace *mf= &mfaces[i];
 		float *f_no= &fnors[i*3];
 
-		if (mf->v4)
-			normal_quad_v3( f_no,mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co);
+		if(mf->v4)
+			normal_quad_v3(f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co);
 		else
-			normal_tri_v3( f_no,mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co);
-		
-		add_v3_v3(tnorms[mf->v1], f_no);
-		add_v3_v3(tnorms[mf->v2], f_no);
-		add_v3_v3(tnorms[mf->v3], f_no);
-		if (mf->v4)
-			add_v3_v3(tnorms[mf->v4], f_no);
+			normal_tri_v3(f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co);
+
+		if((mf->flag&ME_SMOOTH)!=0) {
+			float *n4 = (mf->v4)? tnorms[mf->v4]: NULL;
+			float *c4 = (mf->v4)? mverts[mf->v4].co: NULL;
+
+			accumulate_vertex_normals(tnorms[mf->v1], tnorms[mf->v2], tnorms[mf->v3], n4,
+				f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, c4);
+		}
 	}
-	for (i=0; i<numVerts; i++) {
+
+	for(i=0; i<numFaces; i++) {
+		MFace *mf= &mfaces[i];
+
+		if((mf->flag&ME_SMOOTH)==0) {
+			float *f_no= &fnors[i*3];
+			if(is_zero_v3(tnorms[mf->v1])) copy_v3_v3(tnorms[mf->v1], f_no);
+			if(is_zero_v3(tnorms[mf->v2])) copy_v3_v3(tnorms[mf->v2], f_no);
+			if(is_zero_v3(tnorms[mf->v3])) copy_v3_v3(tnorms[mf->v3], f_no);
+			if(mf->v4 && is_zero_v3(tnorms[mf->v4])) copy_v3_v3(tnorms[mf->v4], f_no);
+		}
+	}
+
+	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
+	for(i=0; i<numVerts; i++) {
 		MVert *mv= &mverts[i];
 		float *no= tnorms[i];
 		
-		if (normalize_v3(no)==0.0)
+		if(normalize_v3(no) == 0.0f)
 			normalize_v3_v3(no, mv->co);
 
 		normal_float_to_short_v3(mv->no, no);
@@ -1305,11 +1321,10 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 	
 	MEM_freeN(tnorms);
 
-	if (faceNors_r) {
+	if(faceNors_r)
 		*faceNors_r = fnors;
-	} else {
+	else
 		MEM_freeN(fnors);
-	}
 }
 
 float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]

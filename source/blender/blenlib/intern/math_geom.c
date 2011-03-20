@@ -1980,6 +1980,49 @@ void map_to_sphere(float *u, float *v,float x, float y, float z)
 	}
 }
 
+/********************************* Normals **********************************/
+
+void accumulate_vertex_normals(float n1[3], float n2[3], float n3[3],
+	float n4[3], const float f_no[3], const float co1[3], const float co2[3],
+	const float co3[3], const float co4[3])
+{
+	float vdiffs[4][3];
+	const int nverts= (n4!=NULL && co4!=NULL)? 4: 3;
+
+	/* compute normalized edge vectors */
+	sub_v3_v3v3(vdiffs[0], co2, co1);
+	sub_v3_v3v3(vdiffs[1], co3, co2);
+
+	if(nverts==3) {
+		sub_v3_v3v3(vdiffs[2], co1, co3);
+	}
+	else {
+		sub_v3_v3v3(vdiffs[2], co4, co3);
+		sub_v3_v3v3(vdiffs[3], co1, co4);
+		normalize_v3(vdiffs[3]);
+	}
+
+	normalize_v3(vdiffs[0]);
+	normalize_v3(vdiffs[1]);
+	normalize_v3(vdiffs[2]);
+
+	/* accumulate angle weighted face normal */
+	{
+		float *vn[]= {n1, n2, n3, n4};
+		const float *prev_edge = vdiffs[nverts-1];
+		int i;
+
+		for(i=0; i<nverts; i++) {
+			const float *cur_edge= vdiffs[i];
+			const float fac= saacos(-dot_v3v3(cur_edge, prev_edge));
+
+			// accumulate
+			madd_v3_v3fl(vn[i], f_no, fac);
+			prev_edge = cur_edge;
+		}
+	}
+}
+
 /********************************* Tangents **********************************/
 
 /* For normal map tangents we need to detect uv boundaries, and only average

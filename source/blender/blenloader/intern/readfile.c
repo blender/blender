@@ -11551,6 +11551,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 256 || (main->versionfile == 256 && main->subversionfile <4)){
+		Mesh *me;
+
+		for(me= main->mesh.first; me; me= me->id.next)
+			mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+	}
+
 	/* put compatibility code here until next subversion bump */
 
 	{

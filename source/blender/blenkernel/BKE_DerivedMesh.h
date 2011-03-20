@@ -206,7 +206,7 @@ struct DerivedMesh {
 	/* Fill the array (of length .getNumVerts()) with all vertex locations */
 	void (*getVertCos)(DerivedMesh *dm, float (*cos_r)[3]);
 
-	/* Get vertex normal, undefined if index is not valid */
+	/* Get smooth vertex normal, undefined if index is not valid */
 	void (*getVertNo)(DerivedMesh *dm, int index, float no_r[3]);
 
 	/* Get a map of vertices to faces

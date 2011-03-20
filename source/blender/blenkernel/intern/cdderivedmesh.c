@@ -1798,7 +1798,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	int i;
 	int numVerts = dm->numVertData;
 	int numFaces = dm->numFaceData;
-	MFace *mf;
+	MFace *mfaces;
 	MVert *mv;
 
 	if(numVerts == 0) return;
@@ -1817,27 +1817,43 @@ void CDDM_calc_normals(DerivedMesh *dm)
 										 NULL, dm->numFaceData);
 
 	/* calculate face normals and add to vertex normals */
-	mf = CDDM_get_faces(dm);
-	for(i = 0; i < numFaces; i++, mf++) {
+	mfaces = CDDM_get_faces(dm);
+	for(i = 0; i < numFaces; i++) {
+		MFace * mf = &mfaces[i];
 		float *f_no = face_nors[i];
 
 		if(mf->v4)
-			normal_quad_v3( f_no,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
+			normal_quad_v3(f_no, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
 		else
-			normal_tri_v3( f_no,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
+			normal_tri_v3(f_no, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
 		
-		add_v3_v3(temp_nors[mf->v1], f_no);
-		add_v3_v3(temp_nors[mf->v2], f_no);
-		add_v3_v3(temp_nors[mf->v3], f_no);
-		if(mf->v4)
-			add_v3_v3(temp_nors[mf->v4], f_no);
+		if((mf->flag&ME_SMOOTH)!=0) {
+			float *n4 = (mf->v4)? temp_nors[mf->v4]: NULL;
+			float *c4 = (mf->v4)? mv[mf->v4].co: NULL;
+
+			accumulate_vertex_normals(temp_nors[mf->v1], temp_nors[mf->v2], temp_nors[mf->v3], n4,
+				f_no, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, c4);
+		}
+	}
+
+	for(i = 0; i < numFaces; i++) {
+		MFace * mf = &mfaces[i];
+
+		if((mf->flag&ME_SMOOTH)==0) {
+			float *f_no = face_nors[i];
+
+			if(is_zero_v3(temp_nors[mf->v1])) copy_v3_v3(temp_nors[mf->v1], f_no);
+			if(is_zero_v3(temp_nors[mf->v2])) copy_v3_v3(temp_nors[mf->v2], f_no);
+			if(is_zero_v3(temp_nors[mf->v3])) copy_v3_v3(temp_nors[mf->v3], f_no);
+			if(mf->v4 && is_zero_v3(temp_nors[mf->v4])) copy_v3_v3(temp_nors[mf->v4], f_no);
+		}
 	}
 
 	/* normalize vertex normals and assign */
 	for(i = 0; i < numVerts; i++, mv++) {
 		float *no = temp_nors[i];
 		
-		if (normalize_v3(no) == 0.0)
+		if(normalize_v3(no) == 0.0f)
 			normalize_v3_v3(no, mv->co);
 
 		normal_float_to_short_v3(mv->no, no);
