@@ -120,7 +120,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 	for (i=0; i<me->totvert; i++, mvert++) {
 		v = BM_Make_Vert(bm, keyco ? keyco[i] : mvert->co, NULL);
-		copy_v3_v3(v->no, mvert->no);
+		normal_short_to_float_v3(v->no, mvert->no);
 
 		vt[i] = v;
 		BMINDEX_SET(v, i);
