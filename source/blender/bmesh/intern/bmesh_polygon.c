@@ -91,9 +91,9 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 {
 
 	double u[3],  v[3], w[3];/*, *w, v1[3], v2[3];*/
-	double n[3] = {0.0, 0.0, 0.0}, l, v1[3], v2[3];
-	double l2;
-	int i, s=0;
+	double n[3] = {0.0, 0.0, 0.0}, l /*, v1[3], v2[3] */;
+	/* double l2; */
+	int i /*, s=0 */;
 
 	/*this fixes some weird numerical error*/
 	verts[0][0] += 0.0001f;
@@ -243,8 +243,7 @@ int BM_Compute_Face_Center(BMesh *bm, BMFace *f, float center[3])
 		DO_MINMAX(l->v->co, min, max);
 	}
 
-	add_v3_v3v3(center, min, max);
-	mul_v3_fl(center, 0.5f);
+	mid_v3_v3v3(center, min, max);
 	
 	return 0;
 }
@@ -317,12 +316,12 @@ void compute_poly_plane(float (*verts)[3], int nverts)
   the list that bridges a concave region of the face or intersects
   any of the faces's edges.
 */
+#if 0 /* needs BLI math double versions of these functions */
 static void shrink_edged(double *v1, double *v2, double fac)
 {
 	double mid[3];
 
-	add_v3_v3v3(mid, v1, v2);
-	mul_v3_fl(mid, 0.5);
+	mid_v3_v3v3(mid, v1, v2);
 
 	sub_v3_v3v3(v1, v1, mid);
 	sub_v3_v3v3(v2, v2, mid);
@@ -333,13 +332,13 @@ static void shrink_edged(double *v1, double *v2, double fac)
 	add_v3_v3v3(v1, v1, mid);
 	add_v3_v3v3(v2, v2, mid);
 }
+#endif
 
 static void shrink_edgef(float *v1, float *v2, float fac)
 {
 	float mid[3];
 
-	add_v3_v3v3(mid, v1, v2);
-	mul_v3_fl(mid, 0.5);
+	mid_v3_v3v3(mid, v1, v2);
 
 	sub_v3_v3v3(v1, v1, mid);
 	sub_v3_v3v3(v2, v2, mid);
@@ -367,10 +366,7 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
 	double angle;
 	int i;
 
-	cross_v3_v3v3(axis, up, normal);
-	axis[0] *= -1;
-	axis[1] *= -1;
-	axis[2] *= -1;
+	cross_v3_v3v3(axis, normal, up);
 
 	angle = saacos(normal[0]*up[0]+normal[1]*up[1] + normal[2]*up[2]);
 
@@ -524,7 +520,7 @@ int linecrosses(double *v1, double *v2, double *v3, double *v4)
    note, there could be more winding cases then there needs to be. */
 int linecrossesf(float *v1, float *v2, float *v3, float *v4)
 {
-	int w1, w2, w3, w4, w5, ret;
+	int w1, w2, w3, w4, w5 /*, ret*/;
 	
 /*	   int test1_a, test1_a, test2_a, test2_a;
 
@@ -591,7 +587,7 @@ int linecrossesf(float *v1, float *v2, float *v3, float *v4)
 }
 
 int goodline(float (*projectverts)[3], BMFace *f, int v1i,
-	     int v2i, int v3i, int nvert) {
+		 int v2i, int v3i, int UNUSED(nvert)) {
 	BMLoop *l = bm_firstfaceloop(f);
 	double v1[3], v2[3], v3[3], pv1[3], pv2[3];
 	int i;
@@ -630,13 +626,13 @@ int goodline(float (*projectverts)[3], BMFace *f, int v1i,
  *
 */
 
-static BMLoop *find_ear(BMesh *bm, BMFace *f, float (*verts)[3], 
+static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 			int nvert)
 {
 	BMVert *v1, *v2, *v3;
 	BMLoop *bestear = NULL, *l;
-	float angle, bestangle = 180.0f;
-	int isear, i=0;
+	/*float angle, bestangle = 180.0f;*/
+	int isear /*, i=0*/;
 	
 	l = bm_firstfaceloop(f);
 	do {
@@ -786,7 +782,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
 	BMIter iter;
 	BMLoop *l;
-	float v1[3], v2[3], v3[3], v4[3], no[3], mid[3], *p1, *p2, *p3, *p4;
+	float v1[3], v2[3], v3[3]/*, v4[3]*/, no[3], mid[3], *p1, *p2, *p3, *p4;
 	float out[3] = {-234324.0f, -234324.0f, 0.0f};
 	float projectverts[100][3];
 	float edgevertsstack[200][3];
@@ -845,8 +841,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		VECCOPY(v2, edgeverts[i*2]);
 		VECCOPY(v3, edgeverts[i*2+1]);
 
-		add_v3_v3v3(mid, v2, v3);
-		mul_v3_fl(mid, 0.5f);
+		mid_v3_v3v3(mid, v2, v3);
 		
 		clen = 0;
 		for (j=0; j<f->len; j++) {

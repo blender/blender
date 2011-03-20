@@ -153,7 +153,6 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_IMMEDIATE	(1<<27)
 #define UI_BUT_NO_TOOLTIP	(1<<28)
 #define UI_BUT_NO_UTF8		(1<<29)
-#define UI_BUT_NO_UTF8		(1<<28)
 
 #define UI_BUT_VEC_SIZE_LOCK (1<<30) /* used to flag if color hsv-circle should keep luminance */
 #define UI_BUT_COLOR_CUBIC	(1<<31) /* cubic saturation for the color wheel */
