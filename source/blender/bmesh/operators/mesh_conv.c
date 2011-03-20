@@ -47,13 +47,13 @@
 void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	Object *ob = BMO_Get_Pnt(op, "object");
 	Mesh *me = BMO_Get_Pnt(op, "mesh");
-	MVert *mvert, **verts = NULL;
+	MVert *mvert;
 	BLI_array_declare(verts);
 	MEdge *medge;
 	MLoop *ml;
 	MPoly *mpoly;
 	KeyBlock *actkey, *block;
-	BMVert *v, **vt=NULL;
+	BMVert *v, **vt=NULL, **verts = NULL;
 	BMEdge *e, **fedges=NULL, **et = NULL;
 	BMFace *f;
 	BLI_array_declare(fedges);

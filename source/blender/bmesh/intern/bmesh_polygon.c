@@ -101,9 +101,9 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	verts[0][2] += 0.0001f;
 
 	for(i = 0; i < nverts; i++){
-		copy_v3_v3(u, verts[i]);
-		copy_v3_v3(v, verts[(i+1) % nverts]);
-		copy_v3_v3(w, verts[(i+2) % nverts]);
+		VECCOPY(u, verts[i]);
+		VECCOPY(v, verts[(i+1) % nverts]);
+		VECCOPY(w, verts[(i+2) % nverts]);
 		
 #if 0
 		VECSUB(v1, w, v);
@@ -458,7 +458,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 		i = 0;
 		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
 			VECCOPY(projectverts[i], l->v->co);
-			l = (BMLoop*)(l->next);
+			l = l->next;
 			i += 1;
 		}
 
