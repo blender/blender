@@ -90,8 +90,8 @@ static int point_in_triangle(double *v1, double *v2, double *v3, double *pt)
 static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 {
 
-	double u[3],  v[3], w[3];/*, *w, v1[3], v2[3];*/
-	double n[3] = {0.0, 0.0, 0.0}, l /*, v1[3], v2[3] */;
+	float u[3],  v[3], w[3];/*, *w, v1[3], v2[3];*/
+	float n[3] = {0.0, 0.0, 0.0}, l /*, v1[3], v2[3] */;
 	/* double l2; */
 	int i /*, s=0 */;
 
@@ -131,7 +131,12 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		n[1] += (u[2] - v[2]) * (u[0] + v[0]);
 		n[2] += (u[0] - v[0]) * (u[1] + v[1]);
 	}
-	
+
+	if(normalize_v3_v3(normal, n) == 0.0f) {
+		normal[2] = 1.0f; /* other axis set to 0.0 */
+	}
+
+#if 0
 	l = n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
 	l = sqrt(l);
 	/*fast square root, newton/babylonian method:
@@ -157,6 +162,7 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	normal[0] = (float) n[0];
 	normal[1] = (float) n[1];
 	normal[2] = (float) n[2];
+#endif
 }
 
 /*
