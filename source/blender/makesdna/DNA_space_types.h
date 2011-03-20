@@ -178,23 +178,19 @@ typedef struct FileSelectParams {
 
 	char filter_glob[64]; /* list of filetypes to filter */
 
+	int	active_file;
+	int sel_first;
+	int sel_last;
+
+	/* short */
 	short type; /* XXXXX for now store type here, should be moved to the operator */
 	short flag; /* settings for filter, hiding dots files,...  */
 	short sort; /* sort order */
 	short display; /* display mode flag */
 	short filter; /* filter when (flags & FILE_FILTER) is true */
 
-	/* XXX - temporary, better move to filelist */
-	short active_bookmark;
-
-	int	active_file;
-	int sel_first;
-	int sel_last;
-
-	/* short */
 	/* XXX --- still unused -- */
 	short f_fp; /* show font preview */
-	short pad;
 	char fp_str[8]; /* string to use for font preview */
 
 	/* XXX --- end unused -- */
