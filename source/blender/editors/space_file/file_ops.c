@@ -162,7 +162,7 @@ static FileSelection file_selection_get(bContext* C, const rcti* rect, short fil
 	return sel;
 }
 
-static FileSelect file_select_do(bContext* C, short select, int selected_idx)
+static FileSelect file_select_do(bContext* C, int selected_idx)
 {
 	FileSelect retval = FILE_SELECT_NOTHING;
 	SpaceFile *sfile= CTX_wm_space_file(C);
@@ -170,7 +170,7 @@ static FileSelect file_select_do(bContext* C, short select, int selected_idx)
 	int numfiles = filelist_numfiles(sfile->files);
 
 	/* make the selected file active */
-	if (select && (selected_idx >= 0) && (selected_idx < numfiles)) {
+	if ( (selected_idx >= 0) && (selected_idx < numfiles)) {
 		struct direntry* file = filelist_file(sfile->files, selected_idx);
 		params->active_file = selected_idx;
 
@@ -205,11 +205,12 @@ static FileSelect file_select_do(bContext* C, short select, int selected_idx)
 }
 
 
-static FileSelect file_select(bContext* C, const rcti* rect, short select, short fill)
+static FileSelect file_select(bContext* C, const rcti* rect, FileSelType select, short fill)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelect retval = FILE_SELECT_NOTHING;
 	FileSelection sel= file_selection_get(C, rect, fill); /* get the selection */
+	struct direntry *file;
 	
 	/* flag the files as selected in the filelist */
 	filelist_select(sfile->files, &sel, select, ACTIVEFILE);
@@ -217,8 +218,12 @@ static FileSelect file_select(bContext* C, const rcti* rect, short select, short
 	/* Don't act on multiple selected files */
 	if (sel.first != sel.last) select = 0;
 
-	retval = file_select_do(C, select, sel.last);
-	
+	/* Check last selection, if selected, act on the file or dir */
+	file = filelist_file(sfile->files, sel.last);
+	if (file->flags & ACTIVEFILE) {
+		retval = file_select_do(C, sel.last);
+	}
+
 	/* update operator for name change event */
 	file_draw_check_cb(C, NULL, NULL);
 	
@@ -249,7 +254,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 		sel = file_selection_get(C, &rect, 0);
 		if ( (sel.first != params->sel_first) || (sel.last != params->sel_last) ) {
 			file_deselect_all(sfile, HILITED_FILE);
-			filelist_select(sfile->files, &sel, 1, HILITED_FILE);
+			filelist_select(sfile->files, &sel, FILE_SEL_ADD, HILITED_FILE);
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 		}
 		params->sel_first = sel.first; params->sel_last = sel.last;
@@ -278,7 +283,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 
 	BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
 
-	ret = file_select(C, &rect, select, 0);
+	ret = file_select(C, &rect, select ? FILE_SEL_ADD : FILE_SEL_REMOVE, 0);
 	if (FILE_SELECT_DIR == ret) {
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	} else if (FILE_SELECT_FILE == ret) {
@@ -308,6 +313,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
+	FileSelect ret;
 	rcti rect;
 	int extend = RNA_boolean_get(op->ptr, "extend");
 	int fill = RNA_boolean_get(op->ptr, "fill");
@@ -324,9 +330,10 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* single select, deselect all selected first */
 	if (!extend) file_deselect_all(sfile, ACTIVEFILE);
 
-	if (FILE_SELECT_DIR == file_select(C, &rect, 1, fill))
+	ret = file_select(C, &rect, extend ? FILE_SEL_TOGGLE : FILE_SEL_ADD, fill);
+	if (FILE_SELECT_DIR == ret)
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
-	else
+	else if (FILE_SELECT_FILE == ret)
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	WM_event_add_mousemove(C); /* for directory changes */
