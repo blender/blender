@@ -91,15 +91,11 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile, struct ARegion* ar, 
 
 static void file_deselect_all(SpaceFile* sfile, unsigned int flag)
 {
-	int numfiles = filelist_numfiles(sfile->files);
-	int i;
-
-	for ( i=0; i < numfiles; ++i) {
-		struct direntry* file = filelist_file(sfile->files, i);
-		if (file && (file->selflag & flag)) {
-			file->selflag &= ~flag;
-		}
-	}
+	FileSelection sel;
+	sel.first = 0;
+	sel.last = filelist_numfiles(sfile->files)-1;
+	
+	filelist_select(sfile->files, &sel, FILE_SEL_REMOVE, flag, CHECK_ALL);
 }
 
 typedef enum FileSelect { 
@@ -150,8 +146,7 @@ static FileSelection file_selection_get(bContext* C, const rcti* rect, short fil
 	if (fill && (sel.last >= 0) && (sel.last < numfiles) ) {
 		int f= sel.last;
 		while (f >= 0) {
-			struct direntry* file = filelist_file(sfile->files, f);
-			if (file->selflag & SELECTED_FILE)
+			if ( filelist_is_selected(sfile->files, f, SELECTED_FILE, CHECK_ALL) )
 				break;
 			f--;
 		}
@@ -210,10 +205,9 @@ static FileSelect file_select(bContext* C, const rcti* rect, FileSelType select,
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelect retval = FILE_SELECT_NOTHING;
 	FileSelection sel= file_selection_get(C, rect, fill); /* get the selection */
-	struct direntry *file;
 	
 	/* flag the files as selected in the filelist */
-	filelist_select(sfile->files, &sel, select, SELECTED_FILE);
+	filelist_select(sfile->files, &sel, select, SELECTED_FILE, CHECK_ALL);
 	
 	/* Don't act on multiple selected files */
 	if (sel.first != sel.last) select = 0;
@@ -222,8 +216,7 @@ static FileSelect file_select(bContext* C, const rcti* rect, FileSelType select,
 	if ( (sel.last >= 0) && ((select == FILE_SEL_ADD) || (select == FILE_SEL_TOGGLE)) )
 	{
 		/* Check last selection, if selected, act on the file or dir */
-		file = filelist_file(sfile->files, sel.last);
-		if (file && (file->selflag & SELECTED_FILE)) {
+		if (filelist_is_selected(sfile->files, sel.last, SELECTED_FILE, CHECK_ALL)) {
 			retval = file_select_do(C, sel.last);
 		}
 	}
@@ -258,7 +251,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 		sel = file_selection_get(C, &rect, 0);
 		if ( (sel.first != params->sel_first) || (sel.last != params->sel_last) ) {
 			file_deselect_all(sfile, HILITED_FILE);
-			filelist_select(sfile->files, &sel, FILE_SEL_ADD, HILITED_FILE);
+			filelist_select(sfile->files, &sel, FILE_SEL_ADD, HILITED_FILE, CHECK_ALL);
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 		}
 		params->sel_first = sel.first; params->sel_last = sel.last;
@@ -366,29 +359,28 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
+	FileSelection sel;
 	int numfiles = filelist_numfiles(sfile->files);
 	int i;
-	int select = 1;
+	int is_selected = 0;
+    
+	sel.first = 0; 
+	sel.last = numfiles-1;
 
-	/* if any file is selected, deselect all first */
+	/* Is any file selected ? */
 	for ( i=0; i < numfiles; ++i) {
-		struct direntry* file = filelist_file(sfile->files, i);
-		if (file && (file->selflag & SELECTED_FILE)) {
-			file->selflag &= ~SELECTED_FILE;
-			select = 0;
-			ED_area_tag_redraw(sa);
+		if (filelist_is_selected(sfile->files, i, SELECTED_FILE, CHECK_ALL)) {
+			is_selected = 1;
+			break;
 		}
 	}
 	/* select all only if previously no file was selected */
-	if (select) {
-		for ( i=0; i < numfiles; ++i) {
-			struct direntry* file = filelist_file(sfile->files, i);
-			if(file && !S_ISDIR(file->type)) {
-				file->selflag |= SELECTED_FILE;
-				ED_area_tag_redraw(sa);
-			}
-		}
+	if (is_selected) {
+		filelist_select(sfile->files, &sel, FILE_SEL_REMOVE, SELECTED_FILE, CHECK_ALL);
+	} else {
+		filelist_select(sfile->files, &sel, FILE_SEL_ADD, SELECTED_FILE, CHECK_FILES);
 	}
+	ED_area_tag_redraw(sa);
 	return OPERATOR_FINISHED;
 }
 
@@ -630,27 +622,23 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 		struct direntry *file;
 		if(RNA_struct_find_property(op->ptr, "files")) {
 			for (i=0; i<numfiles; i++) {
-				file = filelist_file(sfile->files, i);
-				if(file->selflag & SELECTED_FILE) {
-					if ((file->type & S_IFDIR)==0) {
-						RNA_collection_add(op->ptr, "files", &itemptr);
-						RNA_string_set(&itemptr, "name", file->relname);
-					}
+				if (filelist_is_selected(sfile->files, i, SELECTED_FILE, CHECK_FILES)) {
+					RNA_collection_add(op->ptr, "files", &itemptr);
+					RNA_string_set(&itemptr, "name", file->relname);
 				}
 			}
 		}
 		
 		if(RNA_struct_find_property(op->ptr, "dirs")) {
 			for (i=0; i<numfiles; i++) {
-				file = filelist_file(sfile->files, i);
-				if(file->selflag & SELECTED_FILE) {
-					if ((file->type & S_IFDIR)) {
-						RNA_collection_add(op->ptr, "dirs", &itemptr);
-						RNA_string_set(&itemptr, "name", file->relname);
-					}
+				if (filelist_is_selected(sfile->files, i, SELECTED_FILE, CHECK_DIRS)) {
+					RNA_collection_add(op->ptr, "dirs", &itemptr);
+					RNA_string_set(&itemptr, "name", file->relname);
 				}
 			}
 		}
+
+
 	}
 }
 
@@ -728,12 +716,11 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		 to prevent closing when doubleclicking on .. item */
 		if (RNA_boolean_get(exec_op->ptr, "need_active")) {
 			int i, active=0;
-			struct direntry *file;
 			
 			for (i=0; i<filelist_numfiles(sfile->files); i++) {
-				file = filelist_file(sfile->files, i);
-				if(file->selflag & SELECTED_FILE) {
+				if(filelist_is_selected(sfile->files, i, SELECTED_FILE, CHECK_ALL)) {
 					active=1;
+					break;
 				}
 			}
 			if (active == 0)
@@ -896,8 +883,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 	/* check if we are editing a name */
 	for (i=0; i < numfiles; ++i)
 	{
-		struct direntry *file = filelist_file(sfile->files, i);	
-		if (file->selflag & EDITING_FILE) {
+		if (filelist_is_selected(sfile->files, i, EDITING_FILE, CHECK_ALL) ) {
 			edit_idx=i;
 			break;
 		}
@@ -1300,7 +1286,7 @@ static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
 		int numfiles = filelist_numfiles(sfile->files);
 		if ( (0<=idx) && (idx<numfiles) ) {
 			struct direntry *file= filelist_file(sfile->files, idx);
-			file->selflag |= EDITING_FILE;
+			filelist_select_file(sfile->files, idx, FILE_SEL_ADD, EDITING_FILE, CHECK_ALL);
 			BLI_strncpy(sfile->params->renameedit, file->relname, FILE_MAXFILE);
 			sfile->params->renamefile[0]= '\0';
 		}

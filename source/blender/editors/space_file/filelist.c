@@ -906,34 +906,22 @@ void filelist_parent(struct FileList* filelist)
 	filelist_readdir(filelist);
 }
 
-
-void filelist_swapselect(struct FileList* filelist)
+void filelist_select_file(struct FileList* filelist, int index, FileSelType select, unsigned int flag, FileCheckType check)
 {
-	struct direntry *file;
-	int num, act= 0;
-	
-	file= filelist->filelist;
-	for(num=0; num<filelist->numfiles; num++, file++) {
-		if(file->selflag & SELECTED_FILE) {
-			act= 1;
-			break;
+	struct direntry* file = filelist_file(filelist, index);
+	if (file != NULL) {	
+		int check_ok = 0; 
+		switch (check) {
+			case CHECK_DIRS:
+			case CHECK_ALL:
+				check_ok = 1;
+				break;
+			case CHECK_FILES:
+			default:
+				check_ok = !S_ISDIR(file->type);
+				break;
 		}
-	}
-	file= filelist->filelist+2;
-	for(num=2; num<filelist->numfiles; num++, file++) {
-		if(act) file->selflag &= ~SELECTED_FILE;
-		else file->selflag |= SELECTED_FILE;
-	}
-}
-
-void filelist_select(struct FileList* filelist, FileSelection* sel, FileSelType select, unsigned int flag)
-{
-	/* select all valid files between first and last indicated */
-	if ( (sel->first >= 0) && (sel->first < filelist->numfiltered) && (sel->last >= 0) && (sel->last < filelist->numfiltered) ) {
-		int current_file;
-		for (current_file = sel->first; current_file <= sel->last; current_file++) {	
-			struct direntry* file = filelist_file(filelist, current_file);
-			
+		if (check_ok) {
 			switch (select) {
 				case FILE_SEL_REMOVE:
 					file->selflag &= ~flag;
@@ -949,6 +937,33 @@ void filelist_select(struct FileList* filelist, FileSelection* sel, FileSelType 
 	}
 }
 
+void filelist_select(struct FileList* filelist, FileSelection* sel, FileSelType select, unsigned int flag, FileCheckType check)
+{
+	/* select all valid files between first and last indicated */
+	if ( (sel->first >= 0) && (sel->first < filelist->numfiltered) && (sel->last >= 0) && (sel->last < filelist->numfiltered) ) {
+		int current_file;
+		for (current_file = sel->first; current_file <= sel->last; current_file++) {	
+			filelist_select_file(filelist, current_file, select, flag, check);
+		}
+	}
+}
+
+int	filelist_is_selected(struct FileList* filelist, int index, unsigned int flag, FileCheckType check)
+{
+	struct direntry* file = filelist_file(filelist, index);
+	if (!file) {
+		return 0;
+	}
+	switch (check) {
+		case CHECK_DIRS:
+			return S_ISDIR(file->type) && (file->selflag & SELECTED_FILE);
+		case CHECK_FILES:
+			return S_ISREG(file->type) && (file->selflag & SELECTED_FILE);
+		case CHECK_ALL:
+		default:
+			return (file->selflag & SELECTED_FILE);
+	}
+}
 
 void filelist_sort(struct FileList* filelist, short sort)
 {

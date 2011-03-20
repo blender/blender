@@ -58,6 +58,13 @@ typedef enum FileSelType {
 	FILE_SEL_TOGGLE	 = 2
 } FileSelType;
 
+typedef enum FileCheckType
+{
+	CHECK_DIRS = 1,
+	CHECK_FILES = 2,
+	CHECK_ALL = 3
+} FileCheckType;
+
 struct FileList *	filelist_new(short type);
 void				filelist_init_icons(void);
 void				filelist_free_icons(void);
@@ -68,12 +75,13 @@ int					filelist_numfiles(struct FileList* filelist);
 const char *		filelist_dir(struct FileList* filelist);
 void				filelist_setdir(struct FileList* filelist, const char *dir);
 struct direntry *	filelist_file(struct FileList* filelist, int index);
-void				filelist_select(struct FileList* filelist, FileSelection* sel, FileSelType select, unsigned int flag);
+void				filelist_select(struct FileList* filelist, FileSelection* sel, FileSelType select, unsigned int flag, FileCheckType check);
+void				filelist_select_file(struct FileList* filelist, int index, FileSelType select, unsigned int flag, FileCheckType check);
+int					filelist_is_selected(struct FileList* filelist, int index, unsigned int flag, FileCheckType check);
 void				filelist_hidedot(struct FileList* filelist, short hide);
 void				filelist_setfilter(struct FileList* filelist, unsigned int filter);
 void				filelist_setfilter_types(struct FileList* filelist, const char *filter_glob);
 void				filelist_filter(struct FileList* filelist);
-void				filelist_swapselect(struct FileList* filelist);
 void				filelist_imgsize(struct FileList* filelist, short w, short h);
 struct ImBuf *		filelist_getimage(struct FileList* filelist, int index);
 struct ImBuf *		filelist_geticon(struct FileList* filelist, int index);
