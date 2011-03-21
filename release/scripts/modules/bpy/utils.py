@@ -185,7 +185,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     user_path = user_script_path()
 
     for base_path in script_paths():
-        for path_subdir in ("", "ui", "op", "io", "keyingsets", "modules"):
+        for path_subdir in ("startup", "modules"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
                 _sys_path_ensure(path)
