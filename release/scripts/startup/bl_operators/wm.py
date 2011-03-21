@@ -731,7 +731,12 @@ class WM_OT_properties_edit(bpy.types.Operator):
         data_path = self.data_path
         value = self.value
         prop = self.property
-        prop_old = self._last_prop[0]
+
+        prop_old = getattr(self, "_last_prop", [None])[0]
+
+        if prop_old is None:
+            self.report({'ERROR'}, "Direct execution not supported")
+            return {'CANCELLED'}
 
         try:
             value_eval = eval(value)
@@ -770,6 +775,10 @@ class WM_OT_properties_edit(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+
+        if not self.data_path:
+            self.report({'ERROR'}, "Data path not set")
+            return {'CANCELLED'}
 
         self._last_prop = [self.property]
 
