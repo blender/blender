@@ -950,7 +950,7 @@ FileData *blo_openblenderfile(const char *name, ReportList *reports)
 	gzfile= gzopen(name, "rb");
 
 	if (gzfile == (gzFile)Z_NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", name, errno ? strerror(errno) : "Unknown erro reading file");
+		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", name, errno ? strerror(errno) : "Unknown error reading file");
 		return NULL;
 	} else {
 		FileData *fd = filedata_new();
