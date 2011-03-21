@@ -182,8 +182,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
         _global_loaded_modules[:] = []
 
-    user_path = user_script_path()
-
     for base_path in script_paths():
         for path_subdir in ("startup", "modules"):
             path = _os.path.join(base_path, path_subdir)
@@ -193,9 +191,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 # only add this to sys.modules, dont run
                 if path_subdir == "modules":
                     continue
-
-                if user_path != base_path and path_subdir == "":
-                    continue  # avoid loading 2.4x scripts
 
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
@@ -441,7 +436,6 @@ def register_module(module, verbose=False):
                 cls_func()
         except:
             print("bpy.utils.register_module(): failed to registering class %r" % cls)
-            print("\t", path, "line", line)
             import traceback
             traceback.print_exc()
     if verbose:
@@ -463,7 +457,6 @@ def unregister_module(module, verbose=False):
                 cls_func()
         except:
             print("bpy.utils.unregister_module(): failed to unregistering class %r" % cls)
-            print("\t", path, "line", line)
             import traceback
             traceback.print_exc()
     if verbose:
