@@ -25,6 +25,7 @@ import subprocess
 import sys
 import zipfile
 
+
 # find release directory
 def find_release_directory():
     for d in os.listdir('.'):
@@ -32,7 +33,7 @@ def find_release_directory():
             rd = os.path.join(d, 'release')
             if os.path.exists(rd):
                 return rd
-    
+
     return None
 
 # clean release directory if it already exists
@@ -84,4 +85,3 @@ try:
 except Exception, ex:
     sys.stderr.write('Create buildbot_upload.zip failed' + str(ex) + '\n')
     sys.exit(1)
-
