@@ -90,6 +90,10 @@ package_debian:
 package_pacman:
 	cd build_files/package_spec/pacman ; MAKEFLAGS="-j$(NPROCS)" makepkg --asroot
 
+package_archive:
+	cd $(BUILD_DIR) ; make -s package_archive
+	@echo archive in "$(BUILD_DIR)/release"
+
 # forward build targets
 test:
 	cd $(BUILD_DIR) ; ctest . --output-on-failure
