@@ -596,7 +596,7 @@ private:
 		// default - lambert
 		else {
 			ma->diff_shader = MA_DIFF_LAMBERT;
-			fprintf(stderr, "Current shader type is not supported.\n");
+			fprintf(stderr, "Current shader type is not supported, default to lambert.\n");
 		}
 		// reflectivity
 		ma->ray_mirror = ef->getReflectivity().getFloatValue();
@@ -955,7 +955,10 @@ private:
 			break;
 		case COLLADAFW::Light::DIRECTIONAL_LIGHT:
 			{
+				/* our sun is very strong, so pick a smaller energy level */
 				lamp->type = LA_SUN;
+				lamp->energy = 1.0;
+				lamp->mode |= LA_NO_SPEC;
 			}
 			break;
 		case COLLADAFW::Light::POINT_LIGHT:
