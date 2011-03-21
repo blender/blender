@@ -642,7 +642,6 @@ static PyObject *gLibLoad(PyObject*, PyObject* args)
 {
 	KX_Scene *kx_scene= gp_KetsjiScene;
 	char *path;
-	char abs_path[FILE_MAX] = {0};
 	char *group;
 	Py_buffer py_buffer;
 	py_buffer.buf = NULL;
@@ -653,6 +652,7 @@ static PyObject *gLibLoad(PyObject*, PyObject* args)
 
 	if (!py_buffer.buf)
 	{
+		char abs_path[FILE_MAX];
 		// Make the path absolute
 		BLI_strncpy(abs_path, path, sizeof(abs_path));
 		BLI_path_abs(abs_path, gp_GamePythonPath);
