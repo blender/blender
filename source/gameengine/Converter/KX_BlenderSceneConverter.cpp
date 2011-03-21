@@ -962,12 +962,14 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 	/* only scene and mesh supported right now */
 	if(idcode!=ID_SCE && idcode!=ID_ME &&idcode!=ID_AC) {
 		snprintf(err_local, sizeof(err_local), "invalid ID type given \"%s\"\n", group);
+		BLO_blendhandle_close(bpy_openlib);
 		return false;
 	}
 	
 	if(GetMainDynamicPath(path)) {
 		snprintf(err_local, sizeof(err_local), "blend file already open \"%s\"\n", path);
 		*err_str= err_local;
+		BLO_blendhandle_close(bpy_openlib);
 		return false;
 	}
 
