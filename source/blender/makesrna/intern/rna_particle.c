@@ -407,6 +407,20 @@ static void rna_PartSettings_end_set(struct PointerRNA *ptr, float value)
 	settings->end = value;
 }
 
+static void rna_PartSetings_timestep_set(struct PointerRNA *ptr, float value)
+{
+	ParticleSettings *settings = (ParticleSettings*)ptr->data;
+
+	settings->timetweak = value/0.04f;
+}
+
+static float rna_PartSettings_timestep_get(struct PointerRNA *ptr)
+{
+	ParticleSettings *settings = (ParticleSettings*)ptr->data;
+
+	return settings->timetweak * 0.04f;
+}
+
 static void rna_PartSetting_hairlength_set(struct PointerRNA *ptr, float value)
 {
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
@@ -1985,6 +1999,13 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_range(prop, 0, 10, 1, 3);
 	RNA_def_property_ui_text(prop, "Tweak", "A multiplier for physics timestep (1.0 means one frame = 1/25 seconds)");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "timestep", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_PartSettings_timestep_get", "rna_PartSetings_timestep_set", NULL);
+	RNA_def_property_range(prop, 0.0001, 100.0);
+	RNA_def_property_ui_range(prop, 0.01, 10, 1, 3);
+	RNA_def_property_ui_text(prop, "Timestep", "The simulation timestep per frame (in seconds)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 	
 	prop= RNA_def_property(srna, "subframes", PROP_INT, PROP_NONE);

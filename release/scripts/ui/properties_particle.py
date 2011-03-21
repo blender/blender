@@ -474,7 +474,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.label(text="Integration:")
             col.prop(part, "integrator", text="")
-            col.prop(part, "time_tweak")
+            col.prop(part, "timestep")
             col.prop(part, "subframes")
 
             row = layout.row()
