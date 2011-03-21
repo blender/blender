@@ -146,7 +146,7 @@ static FileSelection file_selection_get(bContext* C, const rcti* rect, short fil
 	if (fill && (sel.last >= 0) && (sel.last < numfiles) ) {
 		int f= sel.last;
 		while (f >= 0) {
-			if ( filelist_is_selected(sfile->files, f, SELECTED_FILE, CHECK_ALL) )
+			if ( filelist_is_selected(sfile->files, f, CHECK_ALL) )
 				break;
 			f--;
 		}
@@ -216,7 +216,7 @@ static FileSelect file_select(bContext* C, const rcti* rect, FileSelType select,
 	if ( (sel.last >= 0) && ((select == FILE_SEL_ADD) || (select == FILE_SEL_TOGGLE)) )
 	{
 		/* Check last selection, if selected, act on the file or dir */
-		if (filelist_is_selected(sfile->files, sel.last, SELECTED_FILE, CHECK_ALL)) {
+		if (filelist_is_selected(sfile->files, sel.last, CHECK_ALL)) {
 			retval = file_select_do(C, sel.last);
 		}
 	}
@@ -369,7 +369,7 @@ static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* Is any file selected ? */
 	for ( i=0; i < numfiles; ++i) {
-		if (filelist_is_selected(sfile->files, i, SELECTED_FILE, CHECK_ALL)) {
+		if (filelist_is_selected(sfile->files, i, CHECK_ALL)) {
 			is_selected = 1;
 			break;
 		}
@@ -619,10 +619,11 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 	{
 		PointerRNA itemptr;
 		int i, numfiles = filelist_numfiles(sfile->files);
-		struct direntry *file;
+
 		if(RNA_struct_find_property(op->ptr, "files")) {
 			for (i=0; i<numfiles; i++) {
-				if (filelist_is_selected(sfile->files, i, SELECTED_FILE, CHECK_FILES)) {
+				if (filelist_is_selected(sfile->files, i, CHECK_FILES)) {
+					struct direntry *file= filelist_file(sfile->files, i);
 					RNA_collection_add(op->ptr, "files", &itemptr);
 					RNA_string_set(&itemptr, "name", file->relname);
 				}
@@ -631,7 +632,8 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 		
 		if(RNA_struct_find_property(op->ptr, "dirs")) {
 			for (i=0; i<numfiles; i++) {
-				if (filelist_is_selected(sfile->files, i, SELECTED_FILE, CHECK_DIRS)) {
+				if (filelist_is_selected(sfile->files, i, CHECK_DIRS)) {
+					struct direntry *file= filelist_file(sfile->files, i);
 					RNA_collection_add(op->ptr, "dirs", &itemptr);
 					RNA_string_set(&itemptr, "name", file->relname);
 				}
@@ -718,7 +720,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			int i, active=0;
 			
 			for (i=0; i<filelist_numfiles(sfile->files); i++) {
-				if(filelist_is_selected(sfile->files, i, SELECTED_FILE, CHECK_ALL)) {
+				if(filelist_is_selected(sfile->files, i, CHECK_ALL)) {
 					active=1;
 					break;
 				}
@@ -883,7 +885,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 	/* check if we are editing a name */
 	for (i=0; i < numfiles; ++i)
 	{
-		if (filelist_is_selected(sfile->files, i, EDITING_FILE, CHECK_ALL) ) {
+		if (filelist_is_selected(sfile->files, i, CHECK_ALL) ) {
 			edit_idx=i;
 			break;
 		}

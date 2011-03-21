@@ -948,7 +948,7 @@ void filelist_select(struct FileList* filelist, FileSelection* sel, FileSelType 
 	}
 }
 
-int	filelist_is_selected(struct FileList* filelist, int index, unsigned int flag, FileCheckType check)
+int	filelist_is_selected(struct FileList* filelist, int index, FileCheckType check)
 {
 	struct direntry* file = filelist_file(filelist, index);
 	if (!file) {

@@ -77,7 +77,7 @@ void				filelist_setdir(struct FileList* filelist, const char *dir);
 struct direntry *	filelist_file(struct FileList* filelist, int index);
 void				filelist_select(struct FileList* filelist, FileSelection* sel, FileSelType select, unsigned int flag, FileCheckType check);
 void				filelist_select_file(struct FileList* filelist, int index, FileSelType select, unsigned int flag, FileCheckType check);
-int					filelist_is_selected(struct FileList* filelist, int index, unsigned int flag, FileCheckType check);
+int					filelist_is_selected(struct FileList* filelist, int index, FileCheckType check);
 void				filelist_hidedot(struct FileList* filelist, short hide);
 void				filelist_setfilter(struct FileList* filelist, unsigned int filter);
 void				filelist_setfilter_types(struct FileList* filelist, const char *filter_glob);

@@ -2075,7 +2075,7 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
    It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
 */
 
-static int border_apply_rect(bContext *C, wmOperator *op)
+static int border_apply_rect(wmOperator *op)
 {
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
@@ -2095,7 +2095,7 @@ static int border_apply_rect(bContext *C, wmOperator *op)
 
 static int border_apply(bContext *C, wmOperator *op, int gesture_mode)
 {
-	if (!border_apply_rect(C, op))
+	if (!border_apply_rect(op))
 		return 0;
 	
 	/* XXX weak; border should be configured for this without reading event types */
@@ -2151,7 +2151,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			rect->xmax= event->x - sx;
 			rect->ymax= event->y - sy;
 		}
-		border_apply_rect(C, op);
+		border_apply_rect(op);
 
 		wm_gesture_tag_redraw(C);
 	}
