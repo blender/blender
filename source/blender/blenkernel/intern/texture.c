@@ -790,7 +790,7 @@ Tex *localize_texture(Tex *tex)
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
 	if(texn->env) {
 		texn->env= BKE_copy_envmap(texn->env);
-		id_us_min(texn->env->ima);
+		id_us_min(&texn->env->ima->id);
 	}
 	if(texn->pd) texn->pd= MEM_dupallocN(texn->pd);
 	if(texn->vd) {
