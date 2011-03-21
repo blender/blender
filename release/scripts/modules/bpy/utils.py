@@ -436,6 +436,9 @@ def register_module(module, verbose=False):
             print("    %r" % cls)
         try:
             register_class(cls)
+            cls_func = getattr(cls, "register", None)
+            if cls_func is not None:
+                cls_func()
         except:
             print("bpy.utils.register_module(): failed to registering class %r" % cls)
             print("\t", path, "line", line)
@@ -455,6 +458,9 @@ def unregister_module(module, verbose=False):
             print("    %r" % cls)
         try:
             unregister_class(cls)
+            cls_func = getattr(cls, "unregister", None)
+            if cls_func is not None:
+                cls_func()
         except:
             print("bpy.utils.unregister_module(): failed to unregistering class %r" % cls)
             print("\t", path, "line", line)
