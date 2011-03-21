@@ -75,47 +75,54 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 {
 	int dx, part;
 	
-	BKE_free_envmapdata(env);	
+	/* after lock we test cube[1], if set the other thread has done it fine */
+	BLI_lock_thread(LOCK_IMAGE);
+	if(env->cube[1]==NULL) {
+
+		BKE_free_envmapdata(env);	
 	
-	dx= ibuf->y;
-	dx/= 2;
-	if (3*dx == ibuf->x) {
-		env->type = ENV_CUBE;
-	} else if (ibuf->x == ibuf->y) {
-		env->type = ENV_PLANE;
-	} else {
-		printf("Incorrect envmap size\n");
-		env->ok= 0;
-		env->ima->ok= 0;
-		return;
-	}
-	
-	if (env->type == ENV_CUBE) {
-		for(part=0; part<6; part++) {
-			env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect|IB_rectfloat);
+		dx= ibuf->y;
+		dx/= 2;
+		if (3*dx == ibuf->x) {
+			env->type = ENV_CUBE;
+			env->ok= ENV_OSA;
+		} else if (ibuf->x == ibuf->y) {
+			env->type = ENV_PLANE;
+			env->ok= ENV_OSA;
+		} else {
+			printf("Incorrect envmap size\n");
+			env->ok= 0;
+			env->ima->ok= 0;
 		}
-		IMB_float_from_rect(ibuf);
 		
-		IMB_rectcpy(env->cube[0], ibuf, 
-			0, 0, 0, 0, dx, dx);
-		IMB_rectcpy(env->cube[1], ibuf, 
-			0, 0, dx, 0, dx, dx);
-		IMB_rectcpy(env->cube[2], ibuf, 
-			0, 0, 2*dx, 0, dx, dx);
-		IMB_rectcpy(env->cube[3], ibuf, 
-			0, 0, 0, dx, dx, dx);
-		IMB_rectcpy(env->cube[4], ibuf, 
-			0, 0, dx, dx, dx, dx);
-		IMB_rectcpy(env->cube[5], ibuf, 
-			0, 0, 2*dx, dx, dx, dx);
-		env->ok= ENV_OSA;
-	}
-	else { /* ENV_PLANE */
-		env->cube[1]= IMB_dupImBuf(ibuf);
-		IMB_float_from_rect(env->cube[1]);
-		
-		env->ok= ENV_OSA;
-	}
+		if(env->ok) {
+			if (env->type == ENV_CUBE) {
+				for(part=0; part<6; part++) {
+					env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect|IB_rectfloat);
+				}
+				IMB_float_from_rect(ibuf);
+				
+				IMB_rectcpy(env->cube[0], ibuf, 
+					0, 0, 0, 0, dx, dx);
+				IMB_rectcpy(env->cube[1], ibuf, 
+					0, 0, dx, 0, dx, dx);
+				IMB_rectcpy(env->cube[2], ibuf, 
+					0, 0, 2*dx, 0, dx, dx);
+				IMB_rectcpy(env->cube[3], ibuf, 
+					0, 0, 0, dx, dx, dx);
+				IMB_rectcpy(env->cube[4], ibuf, 
+					0, 0, dx, dx, dx, dx);
+				IMB_rectcpy(env->cube[5], ibuf, 
+					0, 0, 2*dx, dx, dx, dx);
+				
+			}
+			else { /* ENV_PLANE */
+				env->cube[1]= IMB_dupImBuf(ibuf);
+				IMB_float_from_rect(env->cube[1]);
+			}
+		}
+	}	
+	BLI_unlock_thread(LOCK_IMAGE);
 }
 
 /* ------------------------------------------------------------------------- */
