@@ -25,38 +25,36 @@ import subprocess
 import sys
 import zipfile
 
+# get builder name
+if len(sys.argv) < 2:
+    sys.stderr.write("Not enough arguments, expecting builder name\n")
+    sys.exit(1)
 
-# find release directory
-def find_release_directory():
-    for d in os.listdir('.'):
-        if os.path.isdir(d):
-            rd = os.path.join(d, 'release')
-            if os.path.exists(rd):
-                return rd
+builder = sys.argv[1]
 
-    return None
+# scons does own packaging
+if builder.find('scons') != -1:
+    os.chdir('../blender')
+    retcode = subprocess.call(['python', 'scons/scons.py', 'BF_QUICK=slnt', 'buildslave'])
+    sys.exit(retcode)
 
 # clean release directory if it already exists
-dir = find_release_directory()
+dir = 'release'
 
-if dir:
+if os.path.exists(dir):
     for f in os.listdir(dir):
         if os.path.isfile(os.path.join(dir, f)):
             os.remove(os.path.join(dir, f))
 
 # create release package
 try:
-    os.chdir('../blender')
     subprocess.call(['make', 'package_archive'])
-    os.chdir('../build')
 except Exception, ex:
     sys.stderr.write('Make package release failed' + str(ex) + '\n')
     sys.exit(1)
 
 # find release directory, must exist this time
-dir = find_release_directory()
-
-if not dir:
+if not os.path.exists(dir):
     sys.stderr.write("Failed to find release directory.\n")
     sys.exit(1)
 
@@ -85,3 +83,4 @@ try:
 except Exception, ex:
     sys.stderr.write('Create buildbot_upload.zip failed' + str(ex) + '\n')
     sys.exit(1)
+
