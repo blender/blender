@@ -1254,7 +1254,7 @@ static int allow_make_links_data(int ev, Object *ob, Object *obt)
 static int make_links_data_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
-	int event = RNA_int_get(op->ptr, "type");
+	int event = RNA_enum_get(op->ptr, "type");
 	Object *ob;
 	ID *id;
 	int a;

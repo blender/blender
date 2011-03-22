@@ -2945,7 +2945,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 	double stime= PIL_check_seconds_timer();
-	int type = RNA_int_get(op->ptr, "type");
+	int type = RNA_enum_get(op->ptr, "type");
 	int iter = RNA_int_get(op->ptr, "iterations");
 	int a;
 	float time;

@@ -417,7 +417,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 /* for object add operator */
 static int effector_add_exec(bContext *C, wmOperator *op)
 {
-	if(effector_add_type(C, op, RNA_int_get(op->ptr, "type")) == NULL)
+	if(effector_add_type(C, op, RNA_enum_get(op->ptr, "type")) == NULL)
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;

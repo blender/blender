@@ -744,7 +744,7 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 
-	extrude_mesh(obedit, em, op, RNA_int_get(op->ptr, "type"));
+	extrude_mesh(obedit, em, op, RNA_enum_get(op->ptr, "type"));
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
