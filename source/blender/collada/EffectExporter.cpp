@@ -129,19 +129,25 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	ep.setProfileType(COLLADASW::EffectProfile::COMMON);
 	ep.openProfile();
 	// set shader type - one of three blinn, phong or lambert
-	if (ma->spec_shader == MA_SPEC_BLINN) {
-		writeBlinn(ep, ma);
-	}
-	else if (ma->spec_shader == MA_SPEC_PHONG) {
-		writePhong(ep, ma);
-	}
-	else if(ma->diff_shader == MA_DIFF_LAMBERT) {
-		writeLambert(ep, ma);
-	}
-	else {
+	if(ma->spec>0.0f) {
+		if (ma->spec_shader == MA_SPEC_BLINN) {
+			writeBlinn(ep, ma);
+		}
+		else {
+			// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
+			// for now set phong in case spec shader is not blinn
+			writePhong(ep, ma);
+		}
+	} else {
+		if(ma->diff_shader == MA_DIFF_LAMBERT) {
+			writeLambert(ep, ma);
+		}
+		else {
 		// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
 		writePhong(ep, ma);
+		}
 	}
+	
 	// index of refraction
 	if (ma->mode & MA_RAYTRANSP) {
 		ep.setIndexOfRefraction(ma->ang);
