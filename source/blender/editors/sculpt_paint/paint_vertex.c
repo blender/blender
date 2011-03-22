@@ -127,15 +127,18 @@ int weight_paint_mode_poll(bContext *C)
 
 int weight_paint_poll(bContext *C)
 {
-	Object *ob = CTX_data_active_object(C);
+	Object *ob= CTX_data_active_object(C);
+	ScrArea *sa;
 
-	if(ob && ob->mode & OB_MODE_WEIGHT_PAINT &&
-	   paint_brush(&CTX_data_tool_settings(C)->wpaint->paint)) {
-		ScrArea *sa= CTX_wm_area(C);
-		if(sa->spacetype==SPACE_VIEW3D) {
-			ARegion *ar= CTX_wm_region(C);
-			if(ar->regiontype==RGN_TYPE_WINDOW)
-				return 1;
+	if(	(ob != NULL) &&
+		(ob->mode & OB_MODE_WEIGHT_PAINT) &&
+		(paint_brush(&CTX_data_tool_settings(C)->wpaint->paint) != NULL) &&
+		(sa= CTX_wm_area(C)) &&
+		(sa->spacetype == SPACE_VIEW3D)
+	) {
+		ARegion *ar= CTX_wm_region(C);
+		if(ar->regiontype==RGN_TYPE_WINDOW) {
+			return 1;
 		}
 	}
 	return 0;

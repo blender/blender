@@ -728,7 +728,7 @@ static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	
-	extrude_mesh(obedit, em, op, RNA_int_get(op->ptr, "type"));
+	extrude_mesh(obedit, em, op, RNA_enum_get(op->ptr, "type"));
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
