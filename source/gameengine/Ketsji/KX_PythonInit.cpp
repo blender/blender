@@ -638,7 +638,7 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 	Py_RETURN_NONE;
 }
 
-static PyObject *gLibLoad(PyObject*, PyObject* args)
+static PyObject *gLibLoad(PyObject*, PyObject* args, PyObject* kwds)
 {
 	KX_Scene *kx_scene= gp_KetsjiScene;
 	char *path;
@@ -646,9 +646,21 @@ static PyObject *gLibLoad(PyObject*, PyObject* args)
 	Py_buffer py_buffer;
 	py_buffer.buf = NULL;
 	char *err_str= NULL;
+
+	short options=0;
+	int load_actions=0, verbose=0;
+
+	static const char *kwlist[] = {"path", "group", "buffer", "load_actions", "verbose", NULL};
 	
-	if (!PyArg_ParseTuple(args,"ss|y*:LibLoad",&path, &group, &py_buffer))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "ss|y*ii:LibLoad", const_cast<char**>(kwlist),
+									&path, &group, &py_buffer, &load_actions, &verbose))
 		return NULL;
+
+	/* setup options */
+	if (load_actions != 0)
+		options |= KX_BlenderSceneConverter::LIB_LOAD_LOAD_ACTIONS;
+	if (verbose != 0)
+		options |= KX_BlenderSceneConverter::LIB_LOAD_VERBOSE;
 
 	if (!py_buffer.buf)
 	{
@@ -657,14 +669,14 @@ static PyObject *gLibLoad(PyObject*, PyObject* args)
 		BLI_strncpy(abs_path, path, sizeof(abs_path));
 		BLI_path_abs(abs_path, gp_GamePythonPath);
 
-		if(kx_scene->GetSceneConverter()->LinkBlendFilePath(abs_path, group, kx_scene, &err_str)) {
+		if(kx_scene->GetSceneConverter()->LinkBlendFilePath(abs_path, group, kx_scene, &err_str, options)) {
 			Py_RETURN_TRUE;
 		}
 	}
 	else
 	{
 
-		if(kx_scene->GetSceneConverter()->LinkBlendFileMemory(py_buffer.buf, py_buffer.len, path, group, kx_scene, &err_str))	{
+		if(kx_scene->GetSceneConverter()->LinkBlendFileMemory(py_buffer.buf, py_buffer.len, path, group, kx_scene, &err_str, options))	{
 			PyBuffer_Release(&py_buffer);
 			Py_RETURN_TRUE;
 		}
@@ -798,7 +810,7 @@ static struct PyMethodDef game_methods[] = {
 	{"PrintMemInfo", (PyCFunction)pyPrintStats, METH_NOARGS, (const char *)"Print engine stastics"},
 	
 	/* library functions */
-	{"LibLoad", (PyCFunction)gLibLoad, METH_VARARGS, (const char *)""},
+	{"LibLoad", (PyCFunction)gLibLoad, METH_VARARGS|METH_KEYWORDS, (const char *)""},
 	{"LibNew", (PyCFunction)gLibNew, METH_VARARGS, (const char *)""},
 	{"LibFree", (PyCFunction)gLibFree, METH_VARARGS, (const char *)""},
 	{"LibList", (PyCFunction)gLibList, METH_VARARGS, (const char *)""},
