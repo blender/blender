@@ -607,7 +607,7 @@ void OBJECT_OT_location_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= location_apply_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode; /* editmode will crash */
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -627,7 +627,7 @@ void OBJECT_OT_scale_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= scale_apply_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -647,7 +647,7 @@ void OBJECT_OT_rotation_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= rotation_apply_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
