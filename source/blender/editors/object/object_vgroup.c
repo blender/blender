@@ -2055,6 +2055,7 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 		}
 		else {
 			BKE_report(op->reports, RPT_ERROR, "Editmode lattice isnt supported yet.");
+			MEM_freeN(sort_map_update);
 			return OPERATOR_CANCELLED;
 		}
 	}
