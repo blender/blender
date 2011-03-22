@@ -944,7 +944,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= extrude_repeat_mesh;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_editmesh_region_view3d;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

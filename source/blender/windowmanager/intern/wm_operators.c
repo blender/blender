@@ -1320,6 +1320,7 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 	ot->idname= "WM_OT_call_menu";
 
 	ot->exec= wm_call_menu_exec;
+	ot->poll= WM_operator_winactive;
 
 	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the menu");
 }

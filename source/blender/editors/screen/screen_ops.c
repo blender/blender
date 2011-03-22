@@ -3111,6 +3111,7 @@ static void SCREEN_OT_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= screen_new_exec;
+	ot->poll= WM_operator_winactive;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
