@@ -95,11 +95,13 @@ int pyrna_prop_validity_check(BPy_PropertyRNA *self)
 	return -1;
 }
 
+#if defined(USE_PYRNA_INVALIDATE_GC) || defined(USE_PYRNA_INVALIDATE_WEAKREF)
 static void pyrna_invalidate(BPy_DummyPointerRNA *self)
 {
 	self->ptr.type= NULL; /* this is checked for validity */
 	self->ptr.id.data= NULL; /* should not be needed but prevent bad pointer access, just incase */
 }
+#endif
 
 #ifdef USE_PYRNA_INVALIDATE_GC
 #define FROM_GC(g) ((PyObject *)(((PyGC_Head *)g)+1))
@@ -6106,6 +6108,8 @@ static char pyrna_register_class_doc[] =
 "\n"
 "   Register a subclass of a blender type in (:class:`Panel`, :class:`Menu`, :class:`Header`, :class:`Operator`, :class:`KeyingSetInfo`, :class:`RenderEngine`).\n"
 "\n"
+"   If the class has a *register* class method it will be called before registration.\n"
+"\n"
 "   .. note:: :exc:`ValueError` exception is raised if the class is not a subclass of a registerable blender class.\n"
 "\n"
 ;
@@ -6118,6 +6122,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 	StructRNA *srna;
 	StructRNA *srna_new;
 	const char *identifier;
+	PyObject *py_cls_meth;
 
 	if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")) {
 		PyErr_SetString(PyExc_AttributeError, "register_class(...): already registered as a subclass");
@@ -6144,6 +6149,22 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 		PyErr_Format(PyExc_ValueError, "register_class(...): expected a subclass of a registerable rna type (%.200s does not support registration)", RNA_struct_identifier(srna));
 		return NULL;
 	}
+
+	/* call classed register function () */
+	py_cls_meth= PyObject_GetAttrString(py_class, "register");
+	if(py_cls_meth == NULL) {
+		PyErr_Clear();
+	}
+	else {
+		PyObject *ret= PyObject_CallObject(py_cls_meth, NULL);
+		if(ret) {
+			Py_DECREF(ret);
+		}
+		else {
+			return NULL;
+		}
+	}
+
 
 	/* get the context, so register callback can do necessary refreshes */
 	C= BPy_GetContext();
@@ -6210,6 +6231,8 @@ static char pyrna_unregister_class_doc[] =
 ".. method:: unregister_class(cls)\n"
 "\n"
 "   Unload the python class from blender.\n"
+"\n"
+"   If the class has an *unregister* class method it will be called before unregistering.\n"
 ;
 PyMethodDef meth_bpy_unregister_class= {"unregister_class", pyrna_unregister_class, METH_O, pyrna_unregister_class_doc};
 static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_class)
@@ -6217,6 +6240,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 	bContext *C= NULL;
 	StructUnregisterFunc unreg;
 	StructRNA *srna;
+	PyObject *py_cls_meth;
 
 	/*if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")==NULL) {
 		PWM_cursor_wait(0);
@@ -6234,6 +6258,21 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 	if(!unreg) {
 		PyErr_SetString(PyExc_ValueError, "unregister_class(...): expected a Type subclassed from a registerable rna type (no unregister supported)");
 		return NULL;
+	}
+
+	/* call classed register function */
+	py_cls_meth= PyObject_GetAttrString(py_class, "unregister");
+	if(py_cls_meth == NULL) {
+		PyErr_Clear();
+	}
+	else {
+		PyObject *ret= PyObject_CallObject(py_cls_meth, NULL);
+		if(ret) {
+			Py_DECREF(ret);
+		}
+		else {
+			return NULL;
+		}
 	}
 
 	/* should happen all the time but very slow */

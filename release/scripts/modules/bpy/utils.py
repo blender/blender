@@ -426,21 +426,19 @@ def _bpy_module_classes(module, is_registered=False):
 def register_module(module, verbose=False):
     if verbose:
         print("bpy.utils.register_module(%r): ..." % module)
+    cls = None
     for cls in _bpy_module_classes(module, is_registered=False):
         if verbose:
             print("    %r" % cls)
         try:
             register_class(cls)
-            cls_func = getattr(cls, "register", None)
-            if cls_func is not None:
-                cls_func()
         except:
             print("bpy.utils.register_module(): failed to registering class %r" % cls)
             import traceback
             traceback.print_exc()
     if verbose:
         print("done.\n")
-    if "cls" not in locals():
+    if cls is None:
         raise Exception("register_module(%r): defines no classes" % module)
 
 
@@ -452,9 +450,6 @@ def unregister_module(module, verbose=False):
             print("    %r" % cls)
         try:
             unregister_class(cls)
-            cls_func = getattr(cls, "unregister", None)
-            if cls_func is not None:
-                cls_func()
         except:
             print("bpy.utils.unregister_module(): failed to unregistering class %r" % cls)
             import traceback
