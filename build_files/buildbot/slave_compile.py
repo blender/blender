@@ -52,7 +52,8 @@ if builder.find('cmake') != -1:
 else:
     # scons
     os.chdir(blender_dir)
+    scons_options = []
 
-    retcode = subprocess.call(['python', 'scons/scons.py'])
+    retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
     sys.exit(retcode)
 
