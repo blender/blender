@@ -546,7 +546,7 @@ def buildslave(target=None, source=None, env=None):
         extension = '.tar.bz2'
 
     outdir = os.path.abspath(env['BF_INSTALLDIR'])
-    package_name = 'blender-' + env['OURPLATFORM'].split('-')[0] + '-'+VERSION+'-'+REVISION
+    package_name = 'blender-' + VERSION+'-'+REVISION + '-' + env['OURPLATFORM'].split('-')[0]
     package_dir = os.path.normpath(outdir + os.sep + '..' + os.sep + package_name)
     package_archive = os.path.normpath(outdir + os.sep + '..' + os.sep + package_name + extension)
 
