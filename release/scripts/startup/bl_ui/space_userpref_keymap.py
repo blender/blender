@@ -710,7 +710,8 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return hasattr(context, "keymap") and context.keymap.is_user_defined
+        keymap = getattr(context, "keymap", None)
+        return keymap and keymap.is_user_defined
 
     def execute(self, context):
         km = context.keymap
@@ -772,7 +773,8 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         wm = context.window_manager
-        return wm.keyconfigs.active.is_user_defined
+        keyconf = wm.keyconfigs.active
+        return keyconf and keyconf.is_user_defined
 
     def execute(self, context):
         wm = context.window_manager
