@@ -28,7 +28,6 @@ import sys
 
 op_blacklist = (
     "script.reload",
-    "script.reload",
     "export*.*",
     "import*.*",
     "*.save_*",
@@ -70,13 +69,11 @@ def run_ops(operators, setup_func=None):
             bpy.ops.wm.read_factory_settings()
 
             setup_func()
-            continue
+
             for mode in ('EXEC_DEFAULT', 'INVOKE_DEFAULT'):
                 try:
                     op(mode)
-                    #print(" - pass")
                 except:
-                    #print(" - fail")
                     #import traceback
                     #traceback.print_exc()
                     pass
@@ -129,8 +126,6 @@ def ctx_editmode_text():
 def ctx_editmode_armature():
     bpy.ops.object.armature_add()
     bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.armature.select_all(action='TOGGLE')
-    bpy.ops.armature.delete()
 
 
 def ctx_editmode_lattice():

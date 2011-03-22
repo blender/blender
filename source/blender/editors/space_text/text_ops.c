@@ -2683,8 +2683,8 @@ void TEXT_OT_cursor_set(wmOperatorType *ot)
 	ot->poll= text_region_edit_poll;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "x", 0, "X", "X-coordinate to set cursor to.");
-	RNA_def_boolean(ot->srna, "y", 0, "Y", "X-coordinate to set cursor to.");
+	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
 }
 
 /******************* line number operator **********************/
