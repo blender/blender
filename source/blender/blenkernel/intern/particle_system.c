@@ -1577,7 +1577,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	part=psys->part;
 	
 	/* get precise emitter matrix if particle is born */
-	if(part->type!=PART_HAIR && pa->time < cfra && pa->time >= sim->psys->cfra) {
+	if(part->type!=PART_HAIR && dtime > 0.f && pa->time < cfra && pa->time >= sim->psys->cfra) {
 		/* we have to force RECALC_ANIM here since where_is_objec_time only does drivers */
 		while(ob) {
 			BKE_animsys_evaluate_animdata(&ob->id, ob->adt, pa->time, ADT_RECALC_ANIM);
@@ -4334,16 +4334,18 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 		}
 	}
 
+	if(psys->cfra < cfra) {
+		/* make sure emitter is left at correct time (particle emission can change this) */
+		while(ob) {
+			BKE_animsys_evaluate_animdata(&ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
+			ob = ob->parent;
+		}
+		ob = sim.ob;
+		where_is_object_time(scene, ob, cfra);
+	}
+
 	psys->cfra = cfra;
 	psys->recalc = 0;
-
-	/* make sure emitter is left at correct time (particle emission can change this) */
-	while(ob) {
-		BKE_animsys_evaluate_animdata(&ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
-		ob = ob->parent;
-	}
-	ob = sim.ob;
-	where_is_object_time(scene, ob, cfra);
 
 	/* save matrix for duplicators, at rendertime the actual dupliobject's matrix is used so don't update! */
 	if(psys->renderdata==0)
