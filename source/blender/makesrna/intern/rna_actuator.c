@@ -53,7 +53,7 @@ EnumPropertyItem actuator_type_items[] ={
 	{ACT_2DFILTER, "FILTER_2D", 0, "Filter 2D", ""},
 	{ACT_GAME, "GAME", 0, "Game", ""},
 	{ACT_MESSAGE, "MESSAGE", 0, "Message", ""},
-	{ACT_OBJECT, "OBJECT", 0, "Motion", ""},
+	{ACT_OBJECT, "MOTION", 0, "Motion", ""},
 	{ACT_PARENT, "PARENT", 0, "Parent", ""},
 	{ACT_PROPERTY, "PROPERTY", 0, "Property", ""},
 	{ACT_RANDOM, "RANDOM", 0, "Random", ""},
@@ -1173,7 +1173,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_distance_get", "rna_ConstraintActuator_distance_set", NULL);
 	RNA_def_property_ui_range(prop, -2000.f, 2000.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Distance", "Set the maximum length of ray");
+	RNA_def_property_ui_text(prop, "Distance", "Keep this distance to target");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	//XXX to use a pointer or add a material lookup
@@ -1235,7 +1235,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Distance", "Height of the force field area");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "fh_force", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "fh_force", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_spring_get", "rna_ConstraintActuator_spring_set", NULL);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 2);
 	RNA_def_property_ui_text(prop, "Force", "Spring force within the force field area");
