@@ -3294,6 +3294,14 @@ static PyGetSetDef pyrna_struct_getseters[]= {
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
+static char pyrna_prop_collection_keys_doc[] =
+".. method:: keys()\n"
+"\n"
+"   Return the identifiers of collection members (matching pythons dict.keys() functionality).\n"
+"\n"
+"   :return: the identifiers for each member of this collection.\n"
+"   :rtype: list of stings\n"
+;
 static PyObject *pyrna_prop_collection_keys(BPy_PropertyRNA *self)
 {
 	PyObject *ret= PyList_New(0);
@@ -3319,6 +3327,14 @@ static PyObject *pyrna_prop_collection_keys(BPy_PropertyRNA *self)
 	return ret;
 }
 
+static char pyrna_prop_collection_items_doc[] =
+".. method:: items()\n"
+"\n"
+"   Return the identifiers of collection members (matching pythons dict.items() functionality).\n"
+"\n"
+"   :return: (key, value) pairs for each member of this collection.\n"
+"   :rtype: list of tuples\n"
+;
 static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
 {
 	PyObject *ret= PyList_New(0);
@@ -3352,6 +3368,14 @@ static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
 	return ret;
 }
 
+static char pyrna_prop_collection_values_doc[] =
+".. method:: values()\n"
+"\n"
+"   Return the values of collection (matching pythons dict.values() functionality).\n"
+"\n"
+"   :return: the members of this collection.\n"
+"   :rtype: list\n"
+;
 static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self)
 {
 	/* re-use slice*/
@@ -3414,6 +3438,16 @@ static PyObject *pyrna_struct_as_pointer(BPy_StructRNA *self)
 	return PyLong_FromVoidPtr(self->ptr.data);
 }
 
+static char pyrna_prop_collection_get_doc[] =
+".. method:: get(key, default=None)\n"
+"\n"
+"   Returns the value of the item assigned to key or default when not found (matches pythons dictionary function of the same name).\n"
+"\n"
+"   :arg key: The identifier for the collection member.\n"
+"   :type key: string\n"
+"   :arg default: Optional argument for the value to return if *key* is not found.\n"
+"   :type default: Undefined\n"
+;
 static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args)
 {
 	PointerRNA newptr;
@@ -3804,11 +3838,11 @@ static struct PyMethodDef pyrna_prop_collection_methods[]= {
 	{"foreach_get", (PyCFunction)pyrna_prop_collection_foreach_get, METH_VARARGS, pyrna_prop_collection_foreach_get_doc},
 	{"foreach_set", (PyCFunction)pyrna_prop_collection_foreach_set, METH_VARARGS, pyrna_prop_collection_foreach_set_doc},
 
-	{"keys", (PyCFunction)pyrna_prop_collection_keys, METH_NOARGS, NULL},
-	{"items", (PyCFunction)pyrna_prop_collection_items, METH_NOARGS, NULL},
-	{"values", (PyCFunction)pyrna_prop_collection_values, METH_NOARGS, NULL},
+	{"keys", (PyCFunction)pyrna_prop_collection_keys, METH_NOARGS, pyrna_prop_collection_keys_doc},
+	{"items", (PyCFunction)pyrna_prop_collection_items, METH_NOARGS, pyrna_prop_collection_items_doc},
+	{"values", (PyCFunction)pyrna_prop_collection_values, METH_NOARGS, pyrna_prop_collection_values_doc},
 
-	{"get", (PyCFunction)pyrna_prop_collection_get, METH_VARARGS, NULL},
+	{"get", (PyCFunction)pyrna_prop_collection_get, METH_VARARGS, pyrna_prop_collection_get_doc},
 	{NULL, NULL, 0, NULL}
 };
 

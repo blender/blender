@@ -36,7 +36,7 @@ For HTML generation
 
     sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
 
-  assuming that you have sphinx 0.6.7 installed
+  assuming that you have sphinx 1.0.7 installed
 
 For PDF generation
 ------------------
@@ -61,7 +61,7 @@ else:
         "bpy.app",
         "bpy.path",
         "bpy.data",
-        #"bpy.props",
+        "bpy.props",
         "bpy.utils",
         "bpy.context",
         # "bpy.types",  # supports filtering
@@ -102,8 +102,13 @@ EXAMPLE_SET = set()
 EXAMPLE_SET_USED = set()
 
 _BPY_STRUCT_FAKE = "bpy_struct"
+_BPY_PROP_COLLECTION_FAKE = "bpy_prop_collection"
 _BPY_FULL_REBUILD = False
 
+if _BPY_PROP_COLLECTION_FAKE:
+    _BPY_PROP_COLLECTION_ID = ":class:`%s`" % _BPY_PROP_COLLECTION_FAKE
+else:
+    _BPY_PROP_COLLECTION_ID = "collection"
 
 def undocumented_message(module_name, type_name, identifier):
     if str(type_name).startswith('<module'):
@@ -153,6 +158,10 @@ def example_extract_docstring(filepath):
     line_no += 1
     file.close()
     return "\n".join(text), line_no
+
+
+def write_title(fw, text, heading_char):
+    fw("%s\n%s\n\n" % (text, len(text) * heading_char))
 
 
 def write_example_ref(ident, fw, example_id, ext="py"):
@@ -310,8 +319,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
 
     fw = file.write
 
-    fw(title + "\n")
-    fw(("=" * len(title)) + "\n\n")
+    write_title(fw, title, "=")
 
     fw(".. module:: %s\n\n" % module_name)
 
@@ -535,13 +543,17 @@ def pyrna2sphinx(BASEPATH):
         if is_return:
             id_name = "return"
             id_type = "rtype"
-            kwargs = {"as_ret": True, "class_fmt": ":class:`%s`"}
+            kwargs = {"as_ret": True}
             identifier = ""
         else:
             id_name = "arg"
             id_type = "type"
-            kwargs = {"as_arg": True, "class_fmt": ":class:`%s`"}
+            kwargs = {"as_arg": True}
             identifier = " %s" % prop.identifier
+
+        kwargs["class_fmt"] = ":class:`%s`"
+
+        kwargs["collection_id"] = _BPY_PROP_COLLECTION_ID
 
         type_descr = prop.get_type_description(**kwargs)
         if prop.name or prop.description:
@@ -570,7 +582,7 @@ def pyrna2sphinx(BASEPATH):
         else:
             title = struct.identifier
 
-        fw("%s\n%s\n\n" % (title, "=" * len(title)))
+        write_title(fw, title, "=")
 
         fw(".. module:: bpy.types\n\n")
 
@@ -615,7 +627,7 @@ def pyrna2sphinx(BASEPATH):
         sorted_struct_properties.sort(key=lambda prop: prop.identifier)
 
         for prop in sorted_struct_properties:
-            type_descr = prop.get_type_description(class_fmt=":class:`%s`")
+            type_descr = prop.get_type_description(class_fmt=":class:`%s`", collection_id=_BPY_PROP_COLLECTION_ID)
             # readonly properties use "data" directive, variables properties use "attribute" directive
             if 'readonly' in type_descr:
                 fw("   .. data:: %s\n\n" % prop.identifier)
@@ -646,7 +658,7 @@ def pyrna2sphinx(BASEPATH):
             elif func.return_values:  # multiple return values
                 fw("      :return (%s):\n" % ", ".join(prop.identifier for prop in func.return_values))
                 for prop in func.return_values:
-                    type_descr = prop.get_type_description(as_ret=True, class_fmt=":class:`%s`")
+                    type_descr = prop.get_type_description(as_ret=True, class_fmt=":class:`%s`", collection_id=_BPY_PROP_COLLECTION_ID)
                     descr = prop.description
                     if not descr:
                         descr = prop.name
@@ -755,37 +767,45 @@ def pyrna2sphinx(BASEPATH):
                 continue
             write_struct(struct)
 
-        # special case, bpy_struct
-        if _BPY_STRUCT_FAKE:
-            filepath = os.path.join(BASEPATH, "bpy.types.%s.rst" % _BPY_STRUCT_FAKE)
+        def fake_bpy_type(class_value, class_name, descr_str, use_subclasses=True):
+            filepath = os.path.join(BASEPATH, "bpy.types.%s.rst" % class_name)
             file = open(filepath, "w")
             fw = file.write
 
-            fw("%s\n" % _BPY_STRUCT_FAKE)
-            fw("=" * len(_BPY_STRUCT_FAKE) + "\n")
-            fw("\n")
+            write_title(fw, class_name, "=")
+
             fw(".. module:: bpy.types\n")
             fw("\n")
 
-            subclass_ids = [s.identifier for s in structs.values() if s.base is None if not rna_info.rna_id_ignore(s.identifier)]
-            if subclass_ids:
-                fw("subclasses --- \n" + ", ".join((":class:`%s`" % s) for s in sorted(subclass_ids)) + "\n\n")
+            if use_subclasses:
+                subclass_ids = [s.identifier for s in structs.values() if s.base is None if not rna_info.rna_id_ignore(s.identifier)]
+                if subclass_ids:
+                    fw("subclasses --- \n" + ", ".join((":class:`%s`" % s) for s in sorted(subclass_ids)) + "\n\n")
 
-            fw(".. class:: %s\n\n" % _BPY_STRUCT_FAKE)
-            fw("   built-in base class for all classes in bpy.types.\n\n")
+            fw(".. class:: %s\n\n" % class_name)
+            fw("   %s\n\n" % descr_str)
             fw("   .. note::\n\n")
-            fw("      Note that bpy.types.%s is not actually available from within blender, it only exists for the purpose of documentation.\n\n" % _BPY_STRUCT_FAKE)
+            fw("      Note that bpy.types.%s is not actually available from within blender, it only exists for the purpose of documentation.\n\n" % class_name)
 
-            descr_items = [(key, descr) for key, descr in sorted(bpy.types.Struct.__bases__[0].__dict__.items()) if not key.startswith("__")]
+            descr_items = [(key, descr) for key, descr in sorted(class_value.__dict__.items()) if not key.startswith("__")]
 
             for key, descr in descr_items:
                 if type(descr) == MethodDescriptorType:  # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
-                    py_descr2sphinx("   ", fw, descr, "bpy.types", _BPY_STRUCT_FAKE, key)
+                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key)
 
             for key, descr in descr_items:
                 if type(descr) == GetSetDescriptorType:
-                    py_descr2sphinx("   ", fw, descr, "bpy.types", _BPY_STRUCT_FAKE, key)
+                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key)
             file.close()
+
+        # write fake classes
+        if _BPY_STRUCT_FAKE:
+            class_value = bpy.types.Struct.__bases__[0]
+            fake_bpy_type(class_value, _BPY_STRUCT_FAKE, "built-in base class for all classes in bpy.types.", use_subclasses=True)
+
+        if _BPY_PROP_COLLECTION_FAKE:
+            class_value = bpy.data.objects.__class__
+            fake_bpy_type(class_value, _BPY_PROP_COLLECTION_FAKE, "built-in class used for all collections.", use_subclasses=False)
 
     # operators
     def write_ops():
@@ -802,7 +822,8 @@ def pyrna2sphinx(BASEPATH):
             fw = file.write
 
             title = "%s Operators" % op_module_name.replace("_", " ").title()
-            fw("%s\n%s\n\n" % (title, "=" * len(title)))
+
+            write_title(fw, title, "=")
 
             fw(".. module:: bpy.ops.%s\n\n" % op_module_name)
 
@@ -1074,7 +1095,9 @@ def rna2sphinx(BASEPATH):
         fw("\n")
 
         title = ":mod:`bpy` --- Blender Python Module"
-        fw("%s\n%s\n\n" % (title, "=" * len(title)))
+
+        write_title(fw, title, "=")
+
         fw(".. module:: bpy.types\n\n")
         file.close()
 
