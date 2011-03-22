@@ -453,7 +453,8 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		}
 	}
 
-	if (op->reports->list.first) {
+	/* if the caller owns them them handle this */
+	if (op->reports->list.first && (op->reports->flag & RPT_OP_HOLD) == 0) {
 
 		wmWindowManager *wm = CTX_wm_manager(C);
 		ReportList *wm_reports= CTX_wm_reports(C);

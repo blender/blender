@@ -195,7 +195,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 			ReportList *reports;
 
 			reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
-			BKE_reports_init(reports, RPT_STORE);
+			BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD); /* own so these dont move into global reports */
 
 			operator_ret= WM_operator_call_py(C, ot, context, &ptr, reports);
 
