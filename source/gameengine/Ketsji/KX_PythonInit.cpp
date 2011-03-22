@@ -1917,6 +1917,15 @@ static void restorePySysObjects(void)
 //	PyObject_Print(sys_path, stderr, 0);
 }
 
+// Copied from bpy_interface.c
+static struct _inittab bpy_internal_modules[]= {
+	{"mathutils", BPyInit_mathutils},
+	{"bgl", BPyInit_bgl},
+	{"blf", BPyInit_blf},
+	{"aud", AUD_initPython},
+	{NULL, NULL}
+};
+
 /**
  * Python is not initialised.
  */
@@ -1957,6 +1966,8 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	bpy_import_main_set(maggie);
 	
 	initPySysObjects(maggie);
+
+	PyImport_ExtendInittab(bpy_internal_modules);
 	
 	first_time = false;
 	
@@ -2045,11 +2056,6 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *
 
 	initGameKeys();
 	initPythonConstraintBinding();
-	initMathutils();
-	initGeometry();
-	initBGL();
-	initBLF();
-	AUD_initPython();
 	initVideoTexture();
 
 	/* could be done a lot more nicely, but for now a quick way to get bge.* working */
@@ -2356,26 +2362,6 @@ PyObject* initGameKeys()
     }
 
 	return d;
-}
-
-PyObject* initMathutils()
-{
-	return BPyInit_mathutils();
-}
-
-PyObject* initGeometry()
-{
-	return BPyInit_mathutils_geometry();
-}
-
-PyObject* initBGL()
-{
-	return BPyInit_bgl();
-}
-
-PyObject* initBLF()
-{
-	return BPyInit_blf();
 }
 
 // utility function for loading and saving the globalDict
