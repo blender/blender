@@ -55,6 +55,11 @@ add_test(script_load_modules ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_load_py_modules.py
 )
 
+# test running operators doesn't segfault under various conditions
+add_test(script_run_operators ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_run_operators.py
+)
+
 # ------------------------------------------------------------------------------
 # IO TESTS
 
