@@ -431,7 +431,11 @@ void ED_area_tag_refresh(ScrArea *sa)
 void ED_area_headerprint(ScrArea *sa, const char *str)
 {
 	ARegion *ar;
-	
+
+	/* happens when running transform operators in backround mode */
+	if(sa == NULL)
+		return;
+
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
 		if(ar->regiontype==RGN_TYPE_HEADER) {
 			if(str) {

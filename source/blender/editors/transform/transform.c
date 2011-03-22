@@ -4298,7 +4298,7 @@ static int createSlideVerts(TransInfo *t)
 	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
 	int uvlay_idx;
 	TransDataSlideUv *slideuvs=NULL, *suv=NULL, *suv_last=NULL;
-	RegionView3D *v3d = t->ar->regiondata;
+	RegionView3D *v3d = t->ar ? t->ar->regiondata : NULL; /* background mode support */
 	float projectMat[4][4];
 	float start[3] = {0.0f, 0.0f, 0.0f}, end[3] = {0.0f, 0.0f, 0.0f};
 	float vec[3];

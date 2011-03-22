@@ -761,7 +761,7 @@ static EnumPropertyItem extrude_items[] = {
 		{0, NULL, 0, NULL, NULL}};
 
 
-static EnumPropertyItem *extrude_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
+static EnumPropertyItem *mesh_extrude_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
 	EnumPropertyItem *item= NULL;
 	Object *obedit= CTX_data_edit_object(C);
@@ -769,7 +769,7 @@ static EnumPropertyItem *extrude_itemf(bContext *C, PointerRNA *UNUSED(ptr), int
 
 	int totitem= 0;
 
-	if(!obedit)
+	if(obedit==NULL || obedit->type != OB_MESH)
 		return extrude_items;
 
 	em = BKE_mesh_get_editmesh(obedit->data);
@@ -849,7 +849,7 @@ void MESH_OT_extrude(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", extrude_items, 0, "Type", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
-	RNA_def_enum_funcs(prop, extrude_itemf);
+	RNA_def_enum_funcs(prop, mesh_extrude_itemf);
 	ot->prop= prop;
 }
 
