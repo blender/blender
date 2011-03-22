@@ -882,19 +882,19 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			break;
 		case SPACE_ACTION:
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", GKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_SCALE);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_SCALE);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", TKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_SLIDE);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_SLIDE);
 			break;
 		case SPACE_IPO:
 			WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);
@@ -902,7 +902,7 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_S, KM_ANY, 0, 0);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			
 			WM_keymap_add_item(keymap, OP_ROTATION, RKEY, KM_PRESS, 0, 0);
 			
@@ -910,24 +910,24 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			break;
 		case SPACE_NLA:
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", GKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			RNA_enum_set(km->ptr, "mode", TFM_TRANSLATION);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			RNA_enum_set(km->ptr, "mode", TFM_TRANSLATION);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_SCALE);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_SCALE);
 			break;
 		case SPACE_NODE:
 			WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);
 
 			km= WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_A, KM_ANY, 0, 0);
-			RNA_enum_set(km->ptr, "release_confirm", 1);
+			RNA_boolean_set(km->ptr, "release_confirm", 1);
 			km= WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_S, KM_ANY, 0, 0);
-			RNA_enum_set(km->ptr, "release_confirm", 1);
+			RNA_boolean_set(km->ptr, "release_confirm", 1);
 
 			WM_keymap_add_item(keymap, OP_ROTATION, RKEY, KM_PRESS, 0, 0);
 
@@ -939,7 +939,7 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			WM_keymap_add_item(keymap, OP_SEQ_SLIDE, EVT_TWEAK_S, KM_ANY, 0, 0);
 
 			km= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", EKEY, KM_PRESS, 0, 0);
-			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
+			RNA_enum_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			break;
 		case SPACE_IMAGE:
 			WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);

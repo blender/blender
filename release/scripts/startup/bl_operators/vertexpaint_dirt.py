@@ -162,8 +162,8 @@ class VertexPaintDirt(bpy.types.Operator):
         obj = context.object
 
         if not obj or obj.type != 'MESH':
-            print('Error, no active mesh object, aborting')
-            return('CANCELLED',)
+            self.report({'ERROR'}, "Error, no active mesh object, aborting")
+            return {'CANCELLED'}
 
         mesh = obj.data
 

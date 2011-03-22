@@ -180,7 +180,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 		int i;
 
 		for (i = 1; i <= 10; i++) {
-			RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_cut_multicam", keys[i-1], KM_PRESS, 0, 0)->ptr, "camera", i);
+			RNA_int_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_cut_multicam", keys[i-1], KM_PRESS, 0, 0)->ptr, "camera", i);
 		}
 	}
 

@@ -180,7 +180,7 @@ void ED_operatormacros_armature(void)
 	ot= WM_operatortype_append_macro("ARMATURE_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
-		RNA_enum_set(otmacro->ptr, "forked", 0);
+		RNA_boolean_set(otmacro->ptr, "forked", 0);
 		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
 	}
@@ -190,7 +190,7 @@ void ED_operatormacros_armature(void)
 	ot= WM_operatortype_append_macro("ARMATURE_OT_extrude_forked", "Extrude Forked", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
-		RNA_enum_set(otmacro->ptr, "forked", 1);
+		RNA_boolean_set(otmacro->ptr, "forked", 1);
 		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
 	}

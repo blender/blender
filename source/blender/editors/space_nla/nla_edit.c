@@ -656,7 +656,7 @@ static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 {
 	nlaedit_duplicate_exec(C, op);
 	
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+	RNA_enum_set(op->ptr, "mode", TFM_TRANSLATION);
 	WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
