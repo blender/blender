@@ -18,21 +18,22 @@
 
 # Runs on Buildbot master, to unpack incoming unload.zip into latest
 # builds directory and remove older builds.
- 
+
 import os
 import shutil
 import sys
 import zipfile
 
+
 # extension stripping
 def strip_extension(filename):
-    extensions = ['.zip', '.tar', '.bz2', '.gz', '.tgz', '.tbz', '.exe']
+    extensions = '.zip', '.tar', '.bz2', '.gz', '.tgz', '.tbz', '.exe'
+    filename_noext, ext = os.path.splitext(filename)
+    if ext in extensions:
+        return strip_extension(filename_noext)  # may have .tar.bz2
+    else:
+        return filename
 
-    for ext in extensions:
-        if filename.endswith(ext):
-            filename = filename[:-len(ext)]
-
-    return filename
 
 # extract platform from package name
 def get_platform(filename):
@@ -40,18 +41,18 @@ def get_platform(filename):
     # platform out, but there may be some variations, so we fiddle a
     # bit to handle current and hopefully future names
     filename = strip_extension(filename)
-    filename = strip_extension(filename)
 
     tokens = filename.split("-")
-    platforms = ['osx', 'mac', 'bsd', 'win', 'linux', 'source', 'irix', 'solaris']
+    platforms = 'osx', 'mac', 'bsd', 'win', 'linux', 'source', 'irix', 'solaris'
     platform_tokens = []
     found = False
 
     for i, token in enumerate(tokens):
         if not found:
             for platform in platforms:
-                if token.lower().find(platform) != -1:
+                if platform in token.lower():
                     found = True
+                    break
 
         if found:
             platform_tokens += [token]
@@ -67,17 +68,17 @@ filename = sys.argv[1]
 
 # open zip file
 if not os.path.exists(filename):
-    sys.stderr.write("File " + filename + " not found.\n")
+    sys.stderr.write("File %r not found.\n" % filename)
     sys.exit(1)
 
 try:
     z = zipfile.ZipFile(filename, "r")
 except Exception, ex:
-    sys.stderr.write('Failed to open zip file: ' + str(ex) + '\n')
+    sys.stderr.write('Failed to open zip file: %s\n' % str(ex))
     sys.exit(1)
 
 if len(z.namelist()) != 1:
-    sys.stderr.write("Expected on file in " + filename + ".")
+    sys.stderr.write("Expected one file in %r." % filename)
     sys.exit(1)
 
 package = z.namelist()[0]
@@ -87,7 +88,7 @@ packagename = os.path.basename(package)
 platform = get_platform(packagename)
 
 if platform == '':
-    sys.stderr.write('Failed to detect platform from package: ' + packagename + '\n')
+    sys.stderr.write('Failed to detect platform from package: %r\n' % packagename)
     sys.exit(1)
 
 # extract
@@ -101,19 +102,18 @@ try:
 
     zf.close()
     z.close()
-    
+
     os.remove(filename)
 except Exception, ex:
-    sys.stderr.write('Failed to unzip package: ' + str(ex) + '\n')
+    sys.stderr.write('Failed to unzip package: %s\n' % str(ex))
     sys.exit(1)
 
 # remove other files from the same platform
 try:
     for f in os.listdir(dir):
-        if f.lower().find(platform.lower()) != -1:
+        if platform.lower() in f.lower():
             if f != packagename:
                 os.remove(os.path.join(dir, f))
 except Exception, ex:
-    sys.stderr.write('Failed to remove old packages: ' + str(ex) + '\n')
+    sys.stderr.write('Failed to remove old packages: %s\n' % str(ex))
     sys.exit(1)
-
