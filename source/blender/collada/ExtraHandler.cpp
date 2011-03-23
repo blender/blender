@@ -26,6 +26,8 @@
  *  \ingroup collada
  */
 
+#include <stddef.h>
+
 #include "BLI_string.h"
 
 #include "ExtraHandler.h"
@@ -49,7 +51,7 @@ bool ExtraHandler::elementEnd(const char* elementName )
 bool ExtraHandler::textData(const char* text, size_t textLength)
 {
 	char buf[1024] = {0};
-	_snprintf(buf, textLength, "%s", text);
+	BLI_snprintf(buf, textLength, "%s", text);
 	printf("data: %s\n", buf);
 	return true;
 }
