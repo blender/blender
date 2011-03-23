@@ -51,6 +51,7 @@ else()
 		${OPENCOLLADA_INC}/COLLADABaseUtils/include
 		${OPENCOLLADA_INC}/COLLADAFramework/include
 		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader/include 
+		${OPENCOLLADA_INC}/GeneratedSaxParser/include 
 	)
 endif()
 
@@ -62,6 +63,7 @@ set(SRC
 	DocumentExporter.cpp
 	DocumentImporter.cpp
 	EffectExporter.cpp
+	ExtraHandler.cpp
 	GeometryExporter.cpp
 	ImageExporter.cpp
 	InstanceWriter.cpp
@@ -82,6 +84,7 @@ set(SRC
 	DocumentExporter.h
 	DocumentImporter.h
 	EffectExporter.h
+	ExtraHandler.h
 	GeometryExporter.h
 	ImageExporter.h
 	InstanceWriter.h

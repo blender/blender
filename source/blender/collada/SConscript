@@ -35,7 +35,7 @@ defs = []
 if  env['OURPLATFORM']=='darwin':
     incs = '../blenlib ../blenkernel ../windowmanager ../blenloader ../makesdna ../makesrna ../editors/include ../../../intern/guardedalloc [OPENCOLLADA]/COLLADAStreamWriter [OPENCOLLADA]/COLLADABaseUtils [OPENCOLLADA]/COLLADAFramework [OPENCOLLADA]/COLLADASaxFrameworkLoader '.replace('[OPENCOLLADA]', env['BF_OPENCOLLADA_INC'])
 else:
-    incs = '../blenlib ../blenkernel ../windowmanager ../makesdna ../blenloader ../makesrna ../editors/include ../../../intern/guardedalloc [OPENCOLLADA]/COLLADAStreamWriter/include [OPENCOLLADA]/COLLADABaseUtils/include [OPENCOLLADA]/COLLADAFramework/include [OPENCOLLADA]/COLLADASaxFrameworkLoader/include '.replace('[OPENCOLLADA]', env['BF_OPENCOLLADA_INC'])
+    incs = '../blenlib ../blenkernel ../windowmanager ../makesdna ../blenloader ../makesrna ../editors/include ../../../intern/guardedalloc [OPENCOLLADA]/COLLADAStreamWriter/include [OPENCOLLADA]/COLLADABaseUtils/include [OPENCOLLADA]/COLLADAFramework/include [OPENCOLLADA]/COLLADASaxFrameworkLoader/include [OPENCOLLADA]/GeneratedSaxParser/include '.replace('[OPENCOLLADA]', env['BF_OPENCOLLADA_INC'])
 
 if env['BF_BUILDINFO']:
     defs.append('NAN_BUILDINFO')
