@@ -108,6 +108,17 @@ int ED_operator_screenactive(bContext *C)
 	return 1;
 }
 
+static int screen_active_editable(bContext *C)
+{
+	if(ED_operator_screenactive(C)) {
+		/* no full window splitting allowed */
+		if(CTX_wm_screen(C)->full != SCREENNORMAL)
+			return 0;
+		return 1;
+	}
+	return 0;
+}
+
 /* when mouse is over area-edge */
 int ED_operator_screen_mainwinactive(bContext *C)
 {
@@ -1263,13 +1274,16 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	sAreaSplitData *sd;
 	int dir;
 	
+	/* no full window splitting allowed */
+	if(CTX_wm_screen(C)->full != SCREENNORMAL)
+		return OPERATOR_CANCELLED;
+	
 	if(event->type==EVT_ACTIONZONE_AREA) {
 		sActionzoneData *sad= event->customdata;
 		
 		if(sad->modifier>0) {
 			return OPERATOR_PASS_THROUGH;
 		}
-		
 		
 		/* verify *sad itself */
 		if(sad==NULL || sad->sa1==NULL || sad->az==NULL)
@@ -1298,10 +1312,6 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else {
 		ScrEdge *actedge;
 		int x, y;
-		
-		/* no full window splitting allowed */
-		if(CTX_wm_area(C) && CTX_wm_area(C)->full)
-			return OPERATOR_CANCELLED;
 		
 		/* retrieve initial mouse coord, so we can find the active edge */
 		if(RNA_property_is_set(op->ptr, "mouse_x"))
@@ -1471,7 +1481,7 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->invoke= area_split_invoke;
 	ot->modal= area_split_modal;
 	
-	ot->poll= ED_operator_screenactive;
+	ot->poll= screen_active_editable;
 	ot->flag= OPTYPE_BLOCKING;
 	
 	/* rna */
@@ -2210,7 +2220,7 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->exec= area_join_exec;
 	ot->invoke= area_join_invoke;
 	ot->modal= area_join_modal;
-	ot->poll= ED_operator_screenactive;
+	ot->poll= screen_active_editable;
 	
 	ot->flag= OPTYPE_BLOCKING;
 	
