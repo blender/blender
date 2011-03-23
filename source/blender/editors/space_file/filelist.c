@@ -1057,8 +1057,11 @@ void filelist_from_library(struct FileList* filelist)
 		char *blockname= l->link;
 
 		filelist->filelist[i + 1].relname= BLI_strdup(blockname);
-		if (!idcode)
+		if (idcode) {
+			filelist->filelist[i + 1].type |= S_IFREG;
+		} else {
 			filelist->filelist[i + 1].type |= S_IFDIR;
+		}
 	}
 	
 	if(previews) {
@@ -1194,7 +1197,7 @@ void filelist_from_main(struct FileList *filelist)
 						files->relname= MEM_mallocN(FILE_MAXDIR+FILE_MAXFILE+32, "filename for lib");
 						sprintf(files->relname, "%s | %s", id->lib->name, id->name+2);
 					}
-					/* files->type |= S_IFDIR; */
+					files->type |= S_IFREG;
 #if 0				// XXXXX TODO show the selection status of the objects
 					if(!filelist->has_func) { /* F4 DATA BROWSE */
 						if(idcode==ID_OB) {
