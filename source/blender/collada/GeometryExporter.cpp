@@ -116,6 +116,11 @@ void GeometryExporter::operator()(Object *ob)
 	}
 	
 	closeMesh();
+	
+	if (me->flag & ME_TWOSIDED) {
+		mSW->appendTextBlock("<extra><technique profile=\"MAYA\"><double_sided>1</double_sided></technique></extra>");
+	}
+	
 	closeGeometry();
 	
 #if 0
