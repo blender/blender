@@ -2460,12 +2460,16 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 			/* drawing posemode selection indices or colors only in these cases */
 			if(!(base->flag & OB_FROMDUPLI)) {
 				if(G.f & G_PICKSEL) {
+#if 0				/* nifty but actually confusing to allow bone selection out of posemode */
 					if(OBACT && (OBACT->mode & OB_MODE_WEIGHT_PAINT)) {
 						if(ob==modifiers_isDeformedByArmature(OBACT))
 							arm->flag |= ARM_POSEMODE;
 					}
-					else if(ob->mode & OB_MODE_POSE) 
+					else
+#endif
+					if(ob->mode & OB_MODE_POSE) {
 						arm->flag |= ARM_POSEMODE;
+					}
 				}
 				else if(ob->mode & OB_MODE_POSE) {
 					if (arm->ghosttype == ARM_GHOST_RANGE) {
