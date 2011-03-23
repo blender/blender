@@ -460,7 +460,9 @@ static SpaceLink *image_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	if(simagen->cumap)
 		simagen->cumap= curvemapping_copy(simagen->cumap);
-	
+
+	scopes_new(&simagen->scopes);
+
 	return (SpaceLink *)simagen;
 }
 
