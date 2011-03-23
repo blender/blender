@@ -87,6 +87,7 @@
 #include "ED_fluidsim.h"
 
 #include "WM_types.h"
+#include "WM_api.h"
 
 #include "physics_intern.h" // own include
 
