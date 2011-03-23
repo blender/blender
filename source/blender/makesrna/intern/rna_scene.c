@@ -2034,7 +2034,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{1, "CINE_24FPS", 0, "Cinema 24fps 2048x1080", ""},
 		{2, "CINE_48FPS", 0, "Cinema 48fps 2048x1080", ""},
 		{3, "CINE_24FPS_4K", 0, "Cinema 24fps 4096x2160", ""},
-		{4, "CINE_SCOPE_48FPS", 0, "Cine-Scope 24fps 2048x858", ""},
+		{4, "CINE_SCOPE_24FPS", 0, "Cine-Scope 24fps 2048x858", ""},
 		{5, "CINE_SCOPE_48FPS", 0, "Cine-Scope 48fps 2048x858", ""},
 		{6, "CINE_FLAT_24FPS", 0, "Cine-Flat 24fps 1998x1080", ""},
 		{7, "CINE_FLAT_48FPS", 0, "Cine-Flat 48fps 1998x1080", ""},
