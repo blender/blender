@@ -25,7 +25,7 @@ class NLA_HT_header(bpy.types.Header):
     bl_space_type = 'NLA_EDITOR'
 
     def draw(self, context):
-        from space_dopesheet import dopesheet_filter
+        from bl_ui.space_dopesheet import dopesheet_filter
 
         layout = self.layout
 
