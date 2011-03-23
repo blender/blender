@@ -152,8 +152,6 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
-	Base *base;
-	int oldlay= v3d->lay;
 	int nr= RNA_int_get(op->ptr, "nr");
 	int toggle= RNA_boolean_get(op->ptr, "toggle");
 	
@@ -211,12 +209,7 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 	
 	if(v3d->scenelock) handle_view3d_lock(C);
 	
-	/* XXX new layers might need updates, there is no provision yet to detect if that's needed */
-	oldlay= ~oldlay & v3d->lay;
-	for (base= scene->base.first; base; base= base->next) {
-		if(base->lay & oldlay)
-			base->object->recalc= OB_RECALC_OB|OB_RECALC_DATA;
-	}
+	DAG_on_visible_update(CTX_data_main(C), FALSE);
 
 	ED_area_tag_redraw(sa);
 	
