@@ -219,7 +219,7 @@ static void rna_ParticleHairKey_location_object_set(PointerRNA *ptr, const float
 static void rna_ParticleHairKey_dynamic_location_object_get(PointerRNA *ptr, float *values)
 {
 	HairKey *hkey= (HairKey *)ptr->data;
-	Object *ob = (Object *)ptr->id.data;
+	// Object *ob = (Object *)ptr->id.data;
 	ParticleSystemModifierData *psmd;
 	ParticleData *pa;
 
@@ -245,7 +245,7 @@ static void rna_ParticleHairKey_dynamic_location_object_get(PointerRNA *ptr, flo
 static void rna_ParticleHairKey_dynamic_location_object_set(PointerRNA *ptr, const float *values)
 {
 	HairKey *hkey= (HairKey *)ptr->data;
-	Object *ob = (Object *)ptr->id.data;
+	// Object *ob = (Object *)ptr->id.data;
 	ParticleSystemModifierData *psmd;
 	ParticleData *pa;
 

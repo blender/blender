@@ -21,8 +21,6 @@
 import bpy
 import mathutils
 
-from math import sqrt, pi
-
 
 class prettyface(object):
     __slots__ = "uv", "width", "height", "children", "xoff", "yoff", "has_parent", "rot"
@@ -104,6 +102,7 @@ class prettyface(object):
             pf.spin()
 
     def place(self, xoff, yoff, xfac, yfac, margin_w, margin_h):
+        from math import pi
 
         xoff += self.xoff
         yoff += self.yoff
@@ -196,6 +195,7 @@ def lightmap_uvpack(meshes,
     and a higher value will have more clumpy boxes but more waisted space
     '''
     import time
+    from math import sqrt
 
     if not meshes:
         return
