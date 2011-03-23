@@ -72,7 +72,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h" // for DAG_on_load_update
+#include "BKE_depsgraph.h" // for DAG_on_visible_update
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -993,7 +993,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 			G.relbase_valid = 1;
 			if (CTX_wm_manager(C) == NULL) CTX_wm_manager_set(C, wm); /* reset wm */
 
-			DAG_on_load_update(CTX_data_main(C), TRUE);
+			DAG_on_visible_update(CTX_data_main(C), TRUE);
 		}
 
 		/* WM_read_file() runs normally but since we're in background mode do here */

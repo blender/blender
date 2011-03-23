@@ -783,9 +783,9 @@ typedef struct Scene {
 	
 	unsigned int lay;			/* bitflags for layer visibility */
 	int layact;		/* active layer */
+	unsigned int lay_updated;       /* runtime flag, has layer ever been updated since load? */
 	unsigned int customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by object_handle_update() */
 	unsigned int customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
-	unsigned int pad4;
 	
 	short flag;								/* various settings */
 	

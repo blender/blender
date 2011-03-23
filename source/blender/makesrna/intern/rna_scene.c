@@ -319,6 +319,12 @@ static void rna_Scene_view3d_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 	BKE_screen_view3d_main_sync(&bmain->screen, scene);
 }
 
+static void rna_Scene_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	rna_Scene_view3d_update(bmain, scene, ptr);
+	DAG_on_visible_update(bmain, FALSE);
+}
+
 static void rna_Scene_framelen_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {	
 	scene->r.framelen= (float)scene->r.framapto/(float)scene->r.images;
@@ -3177,7 +3183,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
 	RNA_def_property_ui_text(prop, "Layers", "Layers visible when rendering the scene");
-	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_view3d_update");
+	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_layer_update");
 	
 	/* Frame Range Stuff */
 	prop= RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);

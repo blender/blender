@@ -4470,6 +4470,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->stats= NULL;
 	sce->fps_info= NULL;
 	sce->customdata_mask_modal= 0;
+	sce->lay_updated = 0;
 
 	sound_create_scene(sce);
 
