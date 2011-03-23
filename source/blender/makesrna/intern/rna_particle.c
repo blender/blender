@@ -37,6 +37,7 @@
 #include "rna_internal.h"
 
 #include "DNA_material_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_cloth_types.h"
 #include "DNA_particle_types.h"
@@ -121,6 +122,8 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BKE_cloth.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
@@ -207,6 +210,58 @@ static void rna_ParticleHairKey_location_object_set(PointerRNA *ptr, const float
 		invert_m4_m4(imat, hairmat);
 		copy_v3_v3(hkey->co, values);
 		mul_m4_v3(imat, hkey->co);
+	}
+	else {
+		zero_v3(hkey->co);
+	}
+}
+
+static void rna_ParticleHairKey_dynamic_location_object_get(PointerRNA *ptr, float *values)
+{
+	HairKey *hkey= (HairKey *)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	ParticleSystemModifierData *psmd;
+	ParticleData *pa;
+
+	rna_ParticleHairKey_location_object_info(ptr, &psmd, &pa);
+
+	if(pa) {
+		ParticleSystem *psys = psmd->psys;
+		DerivedMesh *hairdm = (psys->flag & PSYS_HAIR_DYNAMICS) ? psys->hair_out_dm : NULL;
+
+		if(hairdm) {
+			MVert *mvert = CDDM_get_vert(hairdm, pa->hair_index + (hkey - pa->hair));
+			copy_v3_v3(values, mvert->co);
+		}
+		else {
+			rna_ParticleHairKey_dynamic_location_object_get(ptr, values);
+		}
+	}
+	else {
+		zero_v3(values);
+	}
+}
+
+static void rna_ParticleHairKey_dynamic_location_object_set(PointerRNA *ptr, const float *values)
+{
+	HairKey *hkey= (HairKey *)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	ParticleSystemModifierData *psmd;
+	ParticleData *pa;
+
+	rna_ParticleHairKey_location_object_info(ptr, &psmd, &pa);
+
+	if(pa) {
+		ParticleSystem *psys = psmd->psys;
+		DerivedMesh *hairdm = (psys->flag & PSYS_HAIR_DYNAMICS) ? psys->hair_out_dm : NULL;
+
+		if(hairdm) {
+			MVert *mvert = CDDM_get_vert(hairdm, pa->hair_index + (hkey - pa->hair));
+			copy_v3_v3(mvert->co, values);
+		}
+		else {
+			rna_ParticleHairKey_dynamic_location_object_set(ptr, values);
+		}
 	}
 	else {
 		zero_v3(hkey->co);
@@ -886,6 +941,11 @@ static void rna_def_particle_hair_key(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "co_hair_space", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "co");
 	RNA_def_property_ui_text(prop, "Location", "Location of the hair key in its internal coordinate system, relative to the emitting face");
+
+	prop= RNA_def_property(srna, "co_dynamic", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Location (Dynamic)", "Location of the hair key for the current frame with hair dynamics applied");
+	RNA_def_property_float_funcs(prop, "rna_ParticleHairKey_dynamic_location_object_get", "rna_ParticleHairKey_dynamic_location_object_set", NULL);
 }
 
 static void rna_def_particle_key(BlenderRNA *brna)
