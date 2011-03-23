@@ -2993,11 +2993,13 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
 	}
 
 	if(srna == NULL) {
+		/* allow setting on unregistered classes which can be registered later on */
+		/*
 		if(value && is_deferred_prop) {
 			PyErr_Format(PyExc_AttributeError, "pyrna_struct_meta_idprop_setattro() unable to get srna from class '%.200s'", ((PyTypeObject *)cls)->tp_name);
 			return -1;
 		}
-
+		*/
 		/* srna_from_self may set an error */
 		PyErr_Clear();
 		return PyType_Type.tp_setattro(cls, attr, value);
