@@ -146,6 +146,8 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_armature_layers);
 	WM_operatortype_append(POSE_OT_bone_layers);
 	
+	WM_operatortype_append(POSE_OT_propagate);
+	
 	/* POSELIB */
 	WM_operatortype_append(POSELIB_OT_browse_interactive);
 	WM_operatortype_append(POSELIB_OT_apply_pose);

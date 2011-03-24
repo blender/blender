@@ -177,10 +177,6 @@ class VIEW3D_MT_transform(bpy.types.Menu):
         layout.operator("object.origin_set", text="Origin to Geometry").type = 'ORIGIN_GEOMETRY'
         layout.operator("object.origin_set", text="Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
 
-        if context.mode == 'OBJECT':
-            layout.operator("object.align")
-            layout.operator("object.randomize_transform")
-
 
 class VIEW3D_MT_mirror(bpy.types.Menu):
     bl_label = "Mirror"
@@ -253,14 +249,6 @@ class VIEW3D_MT_uv_map(bpy.types.Menu):
         layout.separator()
 
         layout.operator("uv.reset")
-
-        layout.separator()
-
-        # python scripts
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("uv.smart_project")
-        layout.operator("uv.lightmap_pack")
-        layout.operator("uv.follow_active_quads")
 
 # ********** View menus **********
 
@@ -1172,23 +1160,23 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_transform")
-        layout.menu("VIEW3D_MT_snap")
 
         layout.menu("VIEW3D_MT_pose_transform")
+        layout.menu("VIEW3D_MT_pose_apply")	
+		
+        layout.menu("VIEW3D_MT_snap")
 
         layout.separator()
 
+        # TODO: make this an "Animation" menu like we have for object?
         layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
         layout.operator("anim.keyframe_delete_v3d", text="Delete Keyframe...")
         layout.operator("anim.keying_set_active_set", text="Change Keying Set...")
 
         layout.separator()
 
-        layout.operator("pose.relax")
-
-        layout.separator()
-
-        layout.menu("VIEW3D_MT_pose_apply")
+        layout.menu("VIEW3D_MT_pose_slide")
+        layout.menu("VIEW3D_MT_pose_propagate")
 
         layout.separator()
 
@@ -1198,7 +1186,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_pose_pose")
+        layout.menu("VIEW3D_MT_pose_library")
         layout.menu("VIEW3D_MT_pose_motion")
         layout.menu("VIEW3D_MT_pose_group")
 
@@ -1246,7 +1234,28 @@ class VIEW3D_MT_pose_transform(bpy.types.Menu):
         layout.label(text="Origin")
 
 
-class VIEW3D_MT_pose_pose(bpy.types.Menu):
+class VIEW3D_MT_pose_slide(bpy.types.Menu):
+    bl_label = "In-Betweens"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("pose.push")
+        layout.operator("pose.relax")
+        layout.operator("pose.breakdown")
+
+
+class VIEW3D_MT_pose_propagate(bpy.types.Menu):
+    bl_label = "Propagate"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("pose.propagate")
+        layout.operator("pose.propagate", text="To Next Keyframe").mode = 'NEXT_KEY'
+
+
+class VIEW3D_MT_pose_library(bpy.types.Menu):
     bl_label = "Pose Library"
 
     def draw(self, context):
@@ -2313,3 +2322,14 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
         if member:
             # Draw with no edit button
             rna_prop_ui.draw(self.layout, context, member, object, False)
+
+
+def register():
+    bpy.utils.register_module(__name__)
+
+
+def unregister():
+    bpy.utils.unregister_module(__name__)
+
+if __name__ == "__main__":
+    register()

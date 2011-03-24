@@ -80,7 +80,7 @@
 /* ActKeyColumns (Keyframe Columns) ------------------------------------------ */
 
 /* Comparator callback used for ActKeyColumns and cframe float-value pointer */
-// NOTE: this is exported to other modules that use the ActKeyColumns for finding keyframes
+/* NOTE: this is exported to other modules that use the ActKeyColumns for finding keyframes */
 short compare_ak_cfraPtr (void *node, void *data)
 {
 	ActKeyColumn *ak= (ActKeyColumn *)node;
@@ -310,6 +310,23 @@ static BezTriple *abk_get_bezt_with_value (ActBeztColumn *abk, float value)
 }
 
 /* ActKeyBlocks (Long Keyframes) ------------------------------------------ */
+
+/* Comparator callback used for ActKeyBlock and cframe float-value pointer */
+/* NOTE: this is exported to other modules that use the ActKeyBlocks for finding long-keyframes */
+short compare_ab_cfraPtr (void *node, void *data)
+{
+	ActKeyBlock *ab= (ActKeyBlock *)node;
+	float *cframe= data;
+	
+	if (*cframe < ab->start)
+		return -1;
+	else if (*cframe > ab->start)
+		return 1;
+	else
+		return 0;
+}
+
+/* --------------- */
 
 /* Create a ActKeyColumn for a pair of BezTriples */
 static ActKeyBlock *bezts_to_new_actkeyblock(BezTriple *prev, BezTriple *beztn)

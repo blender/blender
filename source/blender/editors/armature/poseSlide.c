@@ -61,8 +61,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-
-
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
 #include "ED_screen.h"
@@ -77,7 +75,13 @@
  * for interactively controlling the spacing of poses, but also
  * for 'pushing' and/or 'relaxing' extremes as they see fit.
  *
- * B) Pose Sculpting
+ * B) Propagate
+ * This tool copies elements of the selected pose to successive
+ * keyframes, allowing the animator to go back and modify the poses
+ * for some "static" pose controls, without having to repeatedly
+ * doing a "next paste" dance.
+ *
+ * C) Pose Sculpting
  * This is yet to be implemented, but the idea here is to use
  * sculpting techniques to make it easier to pose rigs by allowing
  * rigs to be manipulated using a familiar paint-based interface. 
@@ -851,6 +855,343 @@ void POSE_OT_breakdown (wmOperatorType *ot)
 	
 	/* Properties */
 	pose_slide_opdef_properties(ot);
+}
+
+/* **************************************************** */
+/* B) Pose Propagate */
+
+/* "termination conditions" - i.e. when we stop */
+typedef enum ePosePropagate_Termination {
+		/* stop when we run out of keyframes */
+	POSE_PROPAGATE_LAST_KEY	= 0,
+		/* stop after the next keyframe */
+	POSE_PROPAGATE_NEXT_KEY,
+		/* stop after the specified frame */
+	POSE_PROPAGATE_BEFORE_FRAME,
+		/* stop after */
+	POSE_PROPAGATE_SMART_HOLDS
+} ePosePropagate_Termination;
+
+/* --------------------------------- */
+
+/* helper for pose_propagate_get_boneHoldEndFrame() 
+ * Checks if ActKeyBlock should exist...
+ */
+// TODO: move to keyframes drawing API...
+static short actkeyblock_is_valid (ActKeyBlock *ab, DLRBT_Tree *keys)
+{
+	ActKeyColumn *ak;
+	short startCurves, endCurves, totCurves;
+	
+	/* check that block is valid */
+	if (ab == NULL)
+		return 0;
+	
+	/* find out how many curves occur at each keyframe */
+	ak= (ActKeyColumn *)BLI_dlrbTree_search_exact(keys, compare_ak_cfraPtr, &ab->start);
+	startCurves = (ak)? ak->totcurve: 0;
+	
+	ak= (ActKeyColumn *)BLI_dlrbTree_search_exact(keys, compare_ak_cfraPtr, &ab->end);
+	endCurves = (ak)? ak->totcurve: 0;
+	
+	/* only draw keyblock if it appears in at all of the keyframes at lowest end */
+	if (!startCurves && !endCurves) 
+		return 0;
+	
+	totCurves = (startCurves>endCurves)? endCurves: startCurves;
+	return (ab->totcurve >= totCurves);
+}
+
+/* get frame on which the "hold" for the bone ends 
+ * XXX: this may not really work that well if a bone moves on some channels and not others
+ * 		if this happens to be a major issue, scrap this, and just make this happen 
+ *		independently per F-Curve
+ */
+static float pose_propagate_get_boneHoldEndFrame (Object *ob, tPChanFCurveLink *pfl, float startFrame)
+{
+	DLRBT_Tree keys, blocks;
+	ActKeyBlock *ab;
+	
+	AnimData *adt= ob->adt;
+	LinkData *ld;
+	float endFrame = startFrame;
+	
+	/* set up optimised data-structures for searching for relevant keyframes + holds */
+	BLI_dlrbTree_init(&keys);
+	BLI_dlrbTree_init(&blocks);
+	
+	for (ld = pfl->fcurves.first; ld; ld = ld->next) {
+		FCurve *fcu = (FCurve *)ld->data;
+		fcurve_to_keylist(adt, fcu, &keys, &blocks);
+	}
+	
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	BLI_dlrbTree_linkedlist_sync(&blocks);
+	
+	/* find the long keyframe (i.e. hold), and hence obtain the endFrame value 
+	 *	- the best case would be one that starts on the frame itself
+	 */
+	ab = (ActKeyBlock *)BLI_dlrbTree_search_exact(&blocks, compare_ab_cfraPtr, &startFrame);
+	
+	if (actkeyblock_is_valid(ab, &keys) == 0) {
+		/* There are only two cases for no-exact match:
+		 * 	1) the current frame is just before another key but not on a key itself
+		 * 	2) the current frame is on a key, but that key doesn't link to the next
+		 *
+		 * If we've got the first case, then we can search for another block, 
+		 * otherwise forget it, as we'd be overwriting some valid data.
+		 */
+		if (BLI_dlrbTree_search_exact(&keys, compare_ak_cfraPtr, &startFrame) == NULL) {
+			/* we've got case 1, so try the one after */
+			ab = (ActKeyBlock *)BLI_dlrbTree_search_next(&blocks, compare_ab_cfraPtr, &startFrame);
+			
+			if (actkeyblock_is_valid(ab, &keys) == 0) {
+				/* try the block before this frame then as last resort */
+				ab = (ActKeyBlock *)BLI_dlrbTree_search_prev(&blocks, compare_ab_cfraPtr, &startFrame);
+				
+				/* whatever happens, stop searching now... */
+				if (actkeyblock_is_valid(ab, &keys) == 0) {
+					/* restrict range to just the frame itself 
+					 * i.e. everything is in motion, so no holds to safely overwrite
+					 */
+					ab = NULL;
+				}
+			}
+		}
+		else {
+			/* we've got case 2 - set ab to NULL just in case, since we shouldn't do anything in this case */
+			ab = NULL;
+		}
+	}
+	
+	/* check if we can go any further than we've already gone */
+	if (ab) {
+		/* go to next if it is also valid and meets "extension" criteria */
+		while (ab->next) {
+			ActKeyBlock *abn = (ActKeyBlock *)ab->next;
+			
+			/* must be valid */
+			if (actkeyblock_is_valid(abn, &keys) == 0)
+				break;
+			/* should start on the same frame that the last ended on */
+			if (ab->end != abn->start)
+				break;
+			/* should have the same number of curves */
+			if (ab->totcurve != abn->totcurve)
+				break;
+			/* should have the same value 
+			 * XXX: this may be a bit fuzzy on larger data sets, so be careful
+			 */
+			if (ab->val != abn->val)
+				break;
+				
+			/* we can extend the bounds to the end of this "next" block now */
+			ab = abn;
+		}
+		
+		/* end frame can now take the value of the end of the block */
+		endFrame = ab->end;
+	}
+	
+	/* free temp memory */
+	BLI_dlrbTree_free(&keys);
+	BLI_dlrbTree_free(&blocks);
+	
+	/* return the end frame we've found */
+	return endFrame;
+}
+
+/* get reference value from F-Curve using RNA */
+static float pose_propagate_get_refVal (Object *ob, FCurve *fcu)
+{
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	float value;
+	
+	/* base pointer is always the object -> id_ptr */
+	RNA_id_pointer_create(&ob->id, &id_ptr);
+	
+	/* resolve the property... */
+	if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+		if (RNA_property_array_check(&ptr, prop)) {
+			/* array */
+			if (fcu->array_index < RNA_property_array_length(&ptr, prop)) {	
+				switch (RNA_property_type(prop)) {
+					case PROP_BOOLEAN:
+						value= (float)RNA_property_boolean_get_index(&ptr, prop, fcu->array_index);
+						break;
+					case PROP_INT:
+						value= (float)RNA_property_int_get_index(&ptr, prop, fcu->array_index);
+						break;
+					case PROP_FLOAT:
+						value= RNA_property_float_get_index(&ptr, prop, fcu->array_index);
+						break;
+					default:
+						break;
+				}
+			}
+		}
+		else {
+			/* not an array */
+			switch (RNA_property_type(prop)) {
+				case PROP_BOOLEAN:
+					value= (float)RNA_property_boolean_get(&ptr, prop);
+					break;
+				case PROP_INT:
+					value= (float)RNA_property_int_get(&ptr, prop);
+					break;
+				case PROP_ENUM:
+					value= (float)RNA_property_enum_get(&ptr, prop);
+					break;
+				case PROP_FLOAT:
+					value= RNA_property_float_get(&ptr, prop);
+					break;
+				default:
+					break;
+			}
+		}
+	}
+	
+	return value;
+}
+
+/* propagate just works along each F-Curve in turn */
+static void pose_propagate_fcurve (wmOperator *op, Object *ob, tPChanFCurveLink *pfl, FCurve *fcu, float startFrame, float endFrame)
+{
+	const int mode = RNA_enum_get(op->ptr, "mode");
+	
+	BezTriple *bezt;
+	float refVal = 0.0f;
+	short keyExists;
+	int i, match;
+	short first=1;
+	
+	/* skip if no keyframes to edit */
+	if ((fcu->bezt == NULL) || (fcu->totvert < 2))
+		return;
+		
+	/* find the reference value from bones directly, which means that the user
+	 * doesn't need to firstly keyframe the pose (though this doesn't mean that 
+	 * they can't either)
+	 */
+	refVal = pose_propagate_get_refVal(ob, fcu);
+	
+	/* find the first keyframe to start propagating from 
+	 *	- if there's a keyframe on the current frame, we probably want to save this value there too
+	 *	  since it may be as of yet unkeyed
+	 * 	- if starting before the starting frame, don't touch the key, as it may have had some valid 
+	 *	  values
+	 */
+	match = binarysearch_bezt_index(fcu->bezt, startFrame, fcu->totvert, &keyExists);
+	
+	if (fcu->bezt[match].vec[1][0] < startFrame)
+		i = match + 1;
+	else
+		i = match;
+	
+	for (bezt = &fcu->bezt[i]; i < fcu->totvert; i++, bezt++) {
+		/* additional termination conditions based on the operator 'mode' property go here... */
+		if (ELEM(mode, POSE_PROPAGATE_BEFORE_FRAME, POSE_PROPAGATE_SMART_HOLDS)) {
+			/* stop if keyframe is outside the accepted range */
+			if (bezt->vec[1][0] > endFrame)
+				break;
+		}
+		else if (mode == POSE_PROPAGATE_NEXT_KEY) {
+			/* stop after the first keyframe has been processed */
+			if (first == 0)
+				break;
+		}
+		
+		/* just flatten handles, since values will now be the same either side... */
+		// TODO: perhaps a fade-out modulation of the value is required here (optional once again)?
+		bezt->vec[0][1] = bezt->vec[1][1] = bezt->vec[2][1] = refVal;
+		
+		/* select keyframe to indicate that it's been changed */
+		bezt->f2 |= SELECT;
+		first = 0;
+	}
+}
+
+/* --------------------------------- */
+
+static int pose_propagate_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	bAction *act= (ob && ob->adt)? ob->adt->action : NULL;
+	
+	ListBase pflinks = {NULL, NULL};
+	tPChanFCurveLink *pfl;
+	
+	float endFrame = RNA_float_get(op->ptr, "end_frame");
+	const int mode = RNA_enum_get(op->ptr, "mode");
+	
+	/* sanity checks */
+	if (ob == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No object to propagate poses for");
+		return OPERATOR_CANCELLED;
+	}
+	if (act == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No keyframed poses to propagate to");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* isolate F-Curves related to the selected bones */
+	poseAnim_mapping_get(C, &pflinks, ob, act);
+	
+	/* for each bone, perform the copying required */
+	for (pfl = pflinks.first; pfl; pfl = pfl->next) {
+		LinkData *ld;
+		
+		/* mode-specific data preprocessing (requiring access to all curves) */
+		if (mode == POSE_PROPAGATE_SMART_HOLDS) {
+			/* we store in endFrame the end frame of the "long keyframe" (i.e. a held value) starting
+			 * from the keyframe that occurs after the current frame
+			 */
+			endFrame = pose_propagate_get_boneHoldEndFrame(ob, pfl, (float)CFRA);
+		}
+		
+		/* go through propagating pose to keyframes, curve by curve */
+		for (ld = pfl->fcurves.first; ld; ld= ld->next)
+			pose_propagate_fcurve(op, ob, pfl, (FCurve *)ld->data, (float)CFRA, endFrame);
+	}
+	
+	/* free temp data */
+	poseAnim_mapping_free(&pflinks);
+	
+	/* updates + notifiers */
+	poseAnim_mapping_refresh(C, scene, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+/* --------------------------------- */
+
+void POSE_OT_propagate (wmOperatorType *ot)
+{
+	static EnumPropertyItem terminate_items[]= {
+		{POSE_PROPAGATE_LAST_KEY, "LAST_KEY", 0, "Last Keyframe", ""},
+		{POSE_PROPAGATE_NEXT_KEY, "NEXT_KEY", 0, "Next Keyframe", ""},
+		{POSE_PROPAGATE_BEFORE_FRAME, "BEFORE_FRAME", 0, "Before Frame", "Propagate pose to all keyframes between current frame and 'Frame' property"},
+		{POSE_PROPAGATE_SMART_HOLDS, "WHILE_HELD", 0, "While Held", "Propagate pose to all keyframes after current frame that don't change (Default behaviour)"},
+		{0, NULL, 0, NULL, NULL}};
+		
+	/* identifiers */
+	ot->name= "Propagate Pose";
+	ot->idname= "POSE_OT_propagate";
+	ot->description= "Copy selected aspects of the current pose to subsequent poses already keyframed";
+	
+	/* callbacks */
+	ot->exec= pose_propagate_exec;
+	ot->poll= ED_operator_posemode; // XXX: needs selected bones!
+	
+	/* flag */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	// TODO: add "fade out" control for tapering off amount of propagation as time goes by?
+	ot->prop= RNA_def_enum(ot->srna, "mode", terminate_items, POSE_PROPAGATE_SMART_HOLDS, "Terminate Mode", "Method used to determine when to stop propagating pose to keyframes");
+	RNA_def_float(ot->srna, "end_frame", 250.0, FLT_MIN, FLT_MAX, "End Frame", "Frame to stop propagating frames to", 1.0, 250.0);
 }
 
 /* **************************************************** */

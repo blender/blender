@@ -57,6 +57,7 @@
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
+#include "BKE_fcurve.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 
@@ -1600,7 +1601,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 void POSE_OT_autoside_names (wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[]= {
-		 {0, "XAXIS", 0, "X-Axis", "Left/Right"},
+		{0, "XAXIS", 0, "X-Axis", "Left/Right"},
 		{1, "YAXIS", 0, "Y-Axis", "Front/Back"},
 		{2, "ZAXIS", 0, "Z-Axis", "Top/Bottom"},
 		{0, NULL, 0, NULL, NULL}};
