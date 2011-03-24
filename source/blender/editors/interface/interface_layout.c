@@ -781,6 +781,33 @@ void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname)
 }
 
 /* for use in cases where we have */
+void uiItemEnumO_value(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, int value)
+{
+	PointerRNA ptr;
+
+	/* for getting the enum */
+	PropertyRNA *prop;
+
+	WM_operator_properties_create(&ptr, opname);
+
+	/* enum lookup */
+	if((prop= RNA_struct_find_property(&ptr, propname))) {
+		/* pass */
+	}
+	else {
+		printf("uiItemEnumO_value: %s.%s not found.\n", RNA_struct_identifier(ptr.type), propname);
+		return;
+	}
+
+	RNA_property_enum_set(&ptr, prop, value);
+
+	/* same as uiItemEnumO */
+	if(!name)
+		name= ui_menu_enumpropname(layout, opname, propname, value);
+
+	uiItemFullO(layout, opname, name, icon, ptr.data, layout->root->opcontext, 0);
+}
+
 void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, const char *value_str)
 {
 	PointerRNA ptr;

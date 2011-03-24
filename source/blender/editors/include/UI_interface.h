@@ -720,6 +720,7 @@ void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr
 /* items */
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname);
 void uiItemEnumO(uiLayout *layout, const char *opname, const char *name, int icon, const char *propname, int value);
+void uiItemEnumO_value(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, int value);
 void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, const char *value);
 void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname);
 void uiItemBooleanO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, int value);
