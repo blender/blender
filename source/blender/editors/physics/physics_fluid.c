@@ -449,8 +449,9 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 				continue;
 			
 			/* init euler rotation values and convert to elbeem format */
-			BKE_rotMode_change_values(ob->quat, ob->rot, ob->rotAxis, &ob->rotAngle, ob->rotmode, ROT_MODE_EUL);
-			mul_v3_v3fl(rot_d, ob->rot, 180.f/M_PI);
+			/* get the rotation from ob->obmat rather than ob->rot to account for parent animations */
+			mat4_to_eul(rot_d, ob->obmat);
+			mul_v3_fl(rot_d, 180.f/M_PI);
 			sub_v3_v3v3(rot_d, rot_360, rot_d);
 			
 			set_channel(fobj->Translation, timeAtFrame, ob->loc, i, CHANNEL_VEC);
