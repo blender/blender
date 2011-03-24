@@ -1017,6 +1017,13 @@ if(WITH_OPENMP)
 endif() 
 
 #-----------------------------------------------------------------------------
+# Configure Python.
+
+if(WITH_PYTHON_MODULE)
+	add_definitions(-DPy_ENABLE_SHARED)
+endif() 
+
+#-----------------------------------------------------------------------------
 # Extra compile flags
 
 if((NOT WIN32) AND (NOT MSVC))
