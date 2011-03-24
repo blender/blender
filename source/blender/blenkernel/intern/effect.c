@@ -361,12 +361,18 @@ void pdEndEffectors(ListBase **effectors)
 
 void pd_point_from_particle(ParticleSimulationData *sim, ParticleData *pa, ParticleKey *state, EffectedPoint *point)
 {
+	ParticleSettings *part = sim->psys->part;
 	point->loc = state->co;
 	point->vel = state->vel;
 	point->index = pa - sim->psys->particles;
 	point->size = pa->size;
-	/* TODO: point->charge */
-	point->charge = 1.0f;
+	point->charge = 0.0f;
+	
+	if(part->pd && part->pd->forcefield == PFIELD_CHARGE)
+		point->charge += part->pd->f_strength;
+
+	if(part->pd2 && part->pd2->forcefield == PFIELD_CHARGE)
+		point->charge += part->pd2->f_strength;
 
 	point->vel_to_sec = 1.0f;
 	point->vel_to_frame = psys_get_timestep(sim);
