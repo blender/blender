@@ -574,6 +574,28 @@ PropertyRNA *RNA_struct_find_nested(PointerRNA *ptr, StructRNA *srna)
 	return prop;
 }
 
+int RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test)
+{
+	/* note, prop_test could be freed memory, only use for comparison */
+
+	/* validate the RNA is ok */
+	PropertyRNA *iterprop;
+	int found= FALSE;
+
+	iterprop= RNA_struct_iterator_property(ptr->type);
+
+	RNA_PROP_BEGIN(ptr, itemptr, iterprop) {
+		/* PropertyRNA *prop= itemptr.data; */
+		if(prop_test == (PropertyRNA *)itemptr.data) {
+			found= TRUE;
+			break;
+		}
+	}
+	RNA_PROP_END;
+
+	return found;
+}
+
 /* low level direct access to type->properties, note this ignores parent classes so should be used with care */
 const struct ListBase *RNA_struct_type_properties(StructRNA *srna)
 {

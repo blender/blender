@@ -1211,6 +1211,17 @@ int ui_is_but_unit(uiBut *but)
 	return 1;
 }
 
+int ui_is_but_rna_valid(uiBut *but)
+{
+	if (but->rnaprop==NULL || RNA_struct_contains_property(&but->rnapoin, but->rnaprop)) {
+		return TRUE;
+	}
+	else {
+		printf("property removed %s: %p\n", but->drawstr, but->rnaprop);
+		return FALSE;
+	}
+}
+
 double ui_get_but_val(uiBut *but)
 {
 	PropertyRNA *prop;
