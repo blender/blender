@@ -716,7 +716,6 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
 
 class VIEW3D_MT_object_animation(bpy.types.Menu):
-    bl_context = "objectmode"
     bl_label = "Animation"
 
     def draw(self, context):
@@ -1168,10 +1167,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.separator()
 
-        # TODO: make this an "Animation" menu like we have for object?
-        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
-        layout.operator("anim.keyframe_delete_v3d", text="Delete Keyframe...")
-        layout.operator("anim.keying_set_active_set", text="Change Keying Set...")
+        layout.menu("VIEW3D_MT_object_animation")
 
         layout.separator()
 
