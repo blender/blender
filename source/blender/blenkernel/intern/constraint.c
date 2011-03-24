@@ -4465,9 +4465,11 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		 */
 		enf = con->enforce;
 		
+		/* make copy of worldspace matrix pre-constraint for use with blending later */
+		copy_m4_m4(oldmat, cob->matrix);
+		
 		/* move owner matrix into right space */
 		constraint_mat_convertspace(cob->ob, cob->pchan, cob->matrix, CONSTRAINT_SPACE_WORLD, con->ownspace);
-		copy_m4_m4(oldmat, cob->matrix);
 		
 		/* prepare targets for constraint solving */
 		if (cti->get_constraint_targets) {
@@ -4503,16 +4505,20 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 			cti->flush_constraint_targets(con, &targets, 1);
 		}
 		
-		/* Interpolate the enforcement, to blend result of constraint into final owner transform */
+		/* move owner back into worldspace for next constraint/other business */
+		if ((con->flag & CONSTRAINT_SPACEONCE) == 0) 
+			constraint_mat_convertspace(cob->ob, cob->pchan, cob->matrix, con->ownspace, CONSTRAINT_SPACE_WORLD);
+			
+		/* Interpolate the enforcement, to blend result of constraint into final owner transform 
+		 * 	- all this happens in worldspace to prevent any weirdness creeping in ([#26014] and [#25725]),
+		 *	  since some constraints may not convert the solution back to the input space before blending
+		 *	  but all are guaranteed to end up in good "worldspace" result
+		 */
 		/* Note: all kind of stuff here before (caused trouble), much easier to just interpolate, or did I miss something? -jahka */
 		if (enf < 1.0) {
 			float solution[4][4];
 			copy_m4_m4(solution, cob->matrix);
 			blend_m4_m4m4(cob->matrix, oldmat, solution, enf);
 		}
-		
-		/* move owner back into worldspace for next constraint/other business */
-		if ((con->flag & CONSTRAINT_SPACEONCE) == 0) 
-			constraint_mat_convertspace(cob->ob, cob->pchan, cob->matrix, con->ownspace, CONSTRAINT_SPACE_WORLD);
 	}
 }
