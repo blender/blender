@@ -17,15 +17,18 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# Contributor(s): Campbell Barton
+# Contributor(s): Campbell Barton, M.G. Kishalmi
 #
 # ***** END GPL LICENSE BLOCK *****
 
 # <pep8 compliant>
 
 """
-Exampel Win32 usage:
+Example Win32 usage:
  c:\Python32\python.exe c:\blender_dev\blender\build_files\cmake\cmake_qtcreator_project.py c:\blender_dev\cmake_build
+ 
+example linux usage
+ python .~/blenderSVN/blender/build_files/cmake/cmake_qtcreator_project.py ~/blenderSVN/cmake
 """
 
 import os
@@ -62,6 +65,14 @@ def is_c_header(filename):
     return (ext in (".h", ".hpp", ".hxx"))
 
 
+def is_py(filename):
+    ext = splitext(filename)[1]
+    return (ext == ".py")
+
+def is_glsl(filename):
+    ext = splitext(filename)[1]
+    return (ext == ".glsl")
+    
 def is_c(filename):
     ext = splitext(filename)[1]
     return (ext in (".c", ".cpp", ".cxx", ".m", ".mm", ".rc"))
@@ -78,7 +89,7 @@ def is_svn_file(filename):
 
 
 def is_project_file(filename):
-    return (is_c_any(filename) or is_cmake(filename))  # and is_svn_file(filename)
+    return (is_c_any(filename) or is_cmake(filename) or is_glsl(filename))  # and is_svn_file(filename)
 
 
 def cmake_advanced_info():
@@ -105,7 +116,7 @@ def cmake_advanced_info():
     if not os.path.exists(os.path.join(cmake_dir, "CMakeCache.txt")):
         cmake_dir = os.getcwd()
     if not os.path.exists(os.path.join(cmake_dir, "CMakeCache.txt")):
-        print("CMakeCache.txt not found in %r or %r\n    Pass CMake build dir as an argument, or run from that dir, abording" % (cmake_dir, os.getcwd()))
+        print("CMakeCache.txt not found in %r or %r\n    Pass CMake build dir as an argument, or run from that dir, aborting" % (cmake_dir, os.getcwd()))
         sys.exit(1)
 
     create_eclipse_project(cmake_dir)
@@ -154,15 +165,14 @@ def cmake_advanced_info():
 
     return includes, defines
 
-
-def main():
+def create_qtc_project_main():
     files = list(source_list(base, filename_check=is_project_file))
     files_rel = [relpath(f, start=base) for f in files]
     files_rel.sort()
 
-    # --- qtcreator spesific, simple format
+    # --- qtcreator specific, simple format
     if SIMPLE_PROJECTFILE:
-        # --- qtcreator spesific, simple format
+        # --- qtcreator specific, simple format
         PROJECT_NAME = "Blender"
         f = open(join(base, "%s.files" % PROJECT_NAME), 'w')
         f.write("\n".join(files_rel))
@@ -201,8 +211,35 @@ def main():
         f.write("// ADD PREDEFINED MACROS HERE!\n")
         f.write("\n".join([("#define %s %s" % item) for item in defines]))
 
-    print("Project file written to: %s" % qtc_prj)
+    print("Main Blender project file written to: %s" % qtc_prj)
     # --- end
+
+def create_qtc_project_python():
+    files = list(source_list(base, filename_check=is_py))
+    files_rel = [relpath(f, start=base) for f in files]
+    files_rel.sort()
+
+    # --- qtcreator specific, simple format
+    PROJECT_NAME = "Blender_Python"
+    f = open(join(base, "%s.files" % PROJECT_NAME), 'w')
+    f.write("\n".join(files_rel))
+    
+    qtc_prj = join(base, "%s.creator" % PROJECT_NAME)
+    f = open(qtc_prj, 'w')
+    f.write("[General]\n")
+    
+    qtc_cfg = join(base, "%s.config" % PROJECT_NAME)
+    if not exists(qtc_cfg):
+        f = open(qtc_cfg, 'w')
+        f.write("// ADD PREDEFINED MACROS HERE!\n")
+    
+    print("Blender python project file written to: %s" % qtc_prj)
+
+
+def main():
+    create_qtc_project_main()
+    create_qtc_project_python()
+
 
 if __name__ == "__main__":
     main()
