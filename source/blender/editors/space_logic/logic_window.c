@@ -3228,7 +3228,7 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *lo
 
 static void draw_sensor_internal_header(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *box, *split, *row;
+	uiLayout *box, *split, *subrow, *row;
 
 	box= uiLayoutBox(layout);
 	split = uiLayoutSplit(box, 0.45, 0);
@@ -3236,7 +3236,11 @@ static void draw_sensor_internal_header(uiLayout *layout, PointerRNA *ptr)
 	row= uiLayoutRow(split, 1);
 	uiItemR(row, ptr, "use_pulse_true_level", 0, "", ICON_DOTSUP);
 	uiItemR(row, ptr, "use_pulse_false_level", 0, "", ICON_DOTSDOWN);
-	uiItemR(row, ptr, "frequency", 0, "Freq", ICON_NONE);
+
+	subrow=uiLayoutRow(row, 0);
+	uiLayoutSetActive(subrow, (RNA_boolean_get(ptr, "use_pulse_true_level")
+							|| RNA_boolean_get(ptr, "use_pulse_false_level")));
+	uiItemR(subrow, ptr, "frequency", 0, "Freq", ICON_NONE);
 	
 	row= uiLayoutRow(split, 1);
 	uiItemR(row, ptr, "use_level", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
@@ -3683,7 +3687,7 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 
 	row= uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "play_mode", 0, "", ICON_NONE);
-	uiItemR(row, ptr, "action", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "action", 0, "", ICON_NONE);
 	uiItemR(row, ptr, "use_continue_last_frame", 0, NULL, ICON_NONE);
 
 	row= uiLayoutRow(layout, 0);
@@ -4275,7 +4279,7 @@ static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 
 	row= uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "mode", 0, "", ICON_NONE);
-	uiItemR(row, ptr, "action", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "action", 0, "", ICON_NONE);
 	uiItemR(row, ptr, "use_continue_last_frame", 0, NULL, ICON_NONE);
 
 	row= uiLayoutRow(layout, 0);
