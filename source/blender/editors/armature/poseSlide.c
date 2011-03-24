@@ -1028,7 +1028,7 @@ static float pose_propagate_get_refVal (Object *ob, FCurve *fcu)
 }
 
 /* propagate just works along each F-Curve in turn */
-static void pose_propagate_fcurve (wmOperator *op, Object *ob, tPChanFCurveLink *pfl, FCurve *fcu, float startFrame, float endFrame)
+static void pose_propagate_fcurve (wmOperator *op, Object *ob, tPChanFCurveLink *UNUSED(pfl), FCurve *fcu, float startFrame, float endFrame)
 {
 	const int mode = RNA_enum_get(op->ptr, "mode");
 	
