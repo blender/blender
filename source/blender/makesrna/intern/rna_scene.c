@@ -54,6 +54,7 @@
 #include <libavformat/avformat.h>
 #endif
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "BLI_threads.h"
@@ -754,6 +755,9 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *unuse
 	bNode *node;
 	
 	if(ntree && scene->use_nodes) {
+		/* XXX images are freed here, stop render and preview threads, until Image is threadsafe */
+		WM_jobs_stop_all(bmain->wm.first);
+		
 		for (node=ntree->nodes.first; node; node=node->next) {
 			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_IMAGE)) {
 				ED_node_changed_update(&scene->id, node);

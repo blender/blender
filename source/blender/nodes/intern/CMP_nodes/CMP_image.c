@@ -80,9 +80,9 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 		IMB_float_from_rect(ibuf);
 	}
 
-	/* now we need a float buffer from the image
-	 * with matching color management */
-	if(ibuf->channels == 4) {
+	/* now we need a float buffer from the image with matching color management */
+	/* XXX weak code, multilayer is excluded from this */
+	if(ibuf->channels == 4 && ima->rr==NULL) {
 		if(rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
 			if(ibuf->profile != IB_PROFILE_NONE) {
 				rect= ibuf->rect_float;
