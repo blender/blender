@@ -468,7 +468,7 @@ static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
 					
 					/* write envelope data */
 					if (data->data)
-						writedata(wd, DATA, sizeof(FCM_EnvelopeData)*(data->totvert), data->data);
+						writestruct(wd, DATA, "FCM_EnvelopeData", data->totvert, data->data);
 				}
 					break;
 				case FMODIFIER_TYPE_PYTHON:
