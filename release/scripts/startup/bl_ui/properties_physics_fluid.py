@@ -123,7 +123,9 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 col.label(text="Volume Initialization:")
                 col.prop(fluid, "volume_initialization", text="")
                 col.prop(fluid, "use_animated_mesh")
-                col.prop(fluid, "use_local_coords")
+                row = col.row()
+                row.active = not fluid.use_animated_mesh
+                row.prop(fluid, "use_local_coords")
 
                 col = split.column()
                 col.label(text="Inflow Velocity:")
