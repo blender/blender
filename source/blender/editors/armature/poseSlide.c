@@ -874,34 +874,6 @@ typedef enum ePosePropagate_Termination {
 
 /* --------------------------------- */
 
-/* helper for pose_propagate_get_boneHoldEndFrame() 
- * Checks if ActKeyBlock should exist...
- */
-// TODO: move to keyframes drawing API...
-static short actkeyblock_is_valid (ActKeyBlock *ab, DLRBT_Tree *keys)
-{
-	ActKeyColumn *ak;
-	short startCurves, endCurves, totCurves;
-	
-	/* check that block is valid */
-	if (ab == NULL)
-		return 0;
-	
-	/* find out how many curves occur at each keyframe */
-	ak= (ActKeyColumn *)BLI_dlrbTree_search_exact(keys, compare_ak_cfraPtr, &ab->start);
-	startCurves = (ak)? ak->totcurve: 0;
-	
-	ak= (ActKeyColumn *)BLI_dlrbTree_search_exact(keys, compare_ak_cfraPtr, &ab->end);
-	endCurves = (ak)? ak->totcurve: 0;
-	
-	/* only draw keyblock if it appears in at all of the keyframes at lowest end */
-	if (!startCurves && !endCurves) 
-		return 0;
-	
-	totCurves = (startCurves>endCurves)? endCurves: startCurves;
-	return (ab->totcurve >= totCurves);
-}
-
 /* get frame on which the "hold" for the bone ends 
  * XXX: this may not really work that well if a bone moves on some channels and not others
  * 		if this happens to be a major issue, scrap this, and just make this happen 

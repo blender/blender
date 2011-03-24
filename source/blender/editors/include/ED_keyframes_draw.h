@@ -149,5 +149,8 @@ short compare_ak_cfraPtr(void *node, void *data);
 /* Comparator callback used for ActKeyBlocks and cframe float-value pointer */
 short compare_ab_cfraPtr(void *node, void *data);
 
+/* Checks if ActKeyBlock can be used (i.e. drawn/used to detect "holds") */
+short actkeyblock_is_valid(ActKeyBlock *ab, struct DLRBT_Tree *keys);
+
 #endif  /*  ED_KEYFRAMES_DRAW_H */
 
