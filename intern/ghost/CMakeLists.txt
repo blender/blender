@@ -118,6 +118,11 @@ if(APPLE)
 	endif()
 
 elseif(UNIX)
+
+	if(WITH_X11_XINPUT)
+		add_definitions(-DWITH_X11_XINPUT)
+	endif()
+
 	list(APPEND INC ${X11_X11_INCLUDE_PATH})
 
 	list(APPEND SRC

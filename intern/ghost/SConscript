@@ -21,7 +21,8 @@ if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'fr
             sources.remove('intern' + os.sep + f + 'Carbon.cpp')
         except ValueError:
             pass
-    defs += ['PREFIX=\\"/usr/local/\\"']
+    defs += ['PREFIX=\\"/usr/local/\\"']  # XXX, make an option
+    defs += ['WITH_X11_XINPUT']  # XXX, make an option
 
 elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
     for f in pf:

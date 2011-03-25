@@ -84,6 +84,10 @@ else()
 	option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
 endif()
 
+if(UNIX AND NOT APPLE)
+	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support)"	ON)
+endif()
+
 # Modifiers
 option(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
 option(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
@@ -384,7 +388,11 @@ if(UNIX AND NOT APPLE)
 	mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
-	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB} ${X11_Xinput_LIB}")
+	set(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB}")
+
+	if(WITH_X11_XINPUT)
+		list(APPEND LLIBS ${X11_Xinput_LIB})
+	endif()
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		if(NOT WITH_PYTHON_MODULE)
