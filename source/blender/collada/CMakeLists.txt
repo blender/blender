@@ -64,6 +64,7 @@ set(SRC
 	DocumentImporter.cpp
 	EffectExporter.cpp
 	ExtraHandler.cpp
+	ExtraTags.cpp
 	GeometryExporter.cpp
 	ImageExporter.cpp
 	InstanceWriter.cpp
@@ -85,6 +86,7 @@ set(SRC
 	DocumentImporter.h
 	EffectExporter.h
 	ExtraHandler.h
+	ExtraTags.h
 	GeometryExporter.h
 	ImageExporter.h
 	InstanceWriter.h

@@ -45,6 +45,7 @@
 #include "AnimationImporter.h"
 #include "ArmatureImporter.h"
 #include "MeshImporter.h"
+#include "ExtraTags.h"
 
 
 struct Main;
@@ -122,7 +123,9 @@ public:
 	bool writeKinematicsScene(const COLLADAFW::KinematicsScene*);
 
 	/** Add element and data for UniqueId */
-	bool addElementData(const COLLADAFW::UniqueId &uid);
+	bool addExtraTags(const COLLADAFW::UniqueId &uid, ExtraTags *extra_tags);
+	/** Get an extisting ExtraTags for uid */
+	ExtraTags* getExtraTags(const COLLADAFW::UniqueId &uid);
 
 private:
 
@@ -142,6 +145,7 @@ private:
 	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
 	std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
 	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
+	std::map<COLLADAFW::UniqueId, ExtraTags*> uid_tags_map;
 	std::map<Material*, TexIndexTextureArrayMap> material_texture_mapping_map;
 	std::map<COLLADAFW::UniqueId, Object*> object_map;
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> node_map;

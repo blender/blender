@@ -31,7 +31,7 @@
 
 #include "ExtraHandler.h"
 
-ExtraHandler::ExtraHandler(DocumentImporter *dimp)
+ExtraHandler::ExtraHandler(DocumentImporter *dimp) : currentExtraTags(0)
 {
 	this->dimp = dimp;
 }
@@ -40,22 +40,27 @@ ExtraHandler::~ExtraHandler() {}
 
 bool ExtraHandler::elementBegin( const char* elementName, const char** attributes)
 {
-	printf("begin: %s\n", elementName);
+	// \todo attribute handling for profile tags
+	currentElement = std::string(elementName);
 	return true;
 }
 
 bool ExtraHandler::elementEnd(const char* elementName )
 {
-	printf("end: %s\n", elementName);
 	currentUid = COLLADAFW::UniqueId();
+	currentExtraTags = 0;
+	currentElement.clear();
 	return true;
 }
 
 bool ExtraHandler::textData(const char* text, size_t textLength)
 {
-	char buf[1024] = {0};
-	BLI_snprintf(buf, textLength, "%s", text);
-	printf("data: %s\n", buf);
+	char buf[1024];
+	
+	if(currentElement.length() == 0) return false;
+	
+	BLI_snprintf(buf, textLength+1, "%s", text);
+	currentExtraTags->addTag(std::string(currentElement), std::string(buf));
 	return true;
 }
 
@@ -64,10 +69,16 @@ bool ExtraHandler::parseElement (
 	const unsigned long& elementHash, 
 	const COLLADAFW::UniqueId& uniqueId ) {
 		if(BLI_strcaseeq(profileName, "blender")) {
-			printf("In parseElement for supported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
+			//printf("In parseElement for supported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
 			currentUid = uniqueId;
+			ExtraTags *et = dimp->getExtraTags(uniqueId);
+			if(!et) {
+				et = new ExtraTags(std::string(profileName));
+				dimp->addExtraTags(uniqueId, et);
+			}
+			currentExtraTags = et;
 			return true;
 		}
-		printf("In parseElement for unsupported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
+		//printf("In parseElement for unsupported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
 		return false;
 }

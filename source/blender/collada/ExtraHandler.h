@@ -71,5 +71,7 @@ private:
 	DocumentImporter* dimp;
 	/** Holds Id of element for which <extra> XML elements are handled. */
 	COLLADAFW::UniqueId currentUid;
+	ExtraTags* currentExtraTags;
+	std::string currentElement;
 };
 

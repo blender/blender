@@ -101,7 +101,15 @@ DocumentImporter::DocumentImporter(bContext *C, const char *filename) :
 	anim_importer(&unit_converter, &armature_importer, CTX_data_scene(C))
 {}
 
-DocumentImporter::~DocumentImporter() {}
+DocumentImporter::~DocumentImporter()
+{
+	std::map<COLLADAFW::UniqueId, ExtraTags*>::iterator etit;
+	etit = uid_tags_map.begin();
+	while(etit!=uid_tags_map.end()) {
+		delete etit->second;
+		etit++;
+	}
+}
 
 bool DocumentImporter::import()
 {
@@ -997,8 +1005,17 @@ bool DocumentImporter::writeKinematicsScene( const COLLADAFW::KinematicsScene* k
 	return true;
 }
 
-bool DocumentImporter::addElementData( const COLLADAFW::UniqueId &uid)
+ExtraTags* DocumentImporter::getExtraTags(const COLLADAFW::UniqueId &uid)
 {
+	if(uid_tags_map.find(uid)==uid_tags_map.end()) {
+		return NULL;
+	}
+	return uid_tags_map[uid];
+}
+
+bool DocumentImporter::addExtraTags( const COLLADAFW::UniqueId &uid, ExtraTags *extra_tags)
+{
+	uid_tags_map[uid] = extra_tags;
 	return true;
 }
 
