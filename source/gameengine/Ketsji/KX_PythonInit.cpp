@@ -1918,7 +1918,7 @@ static void restorePySysObjects(void)
 }
 
 // Copied from bpy_interface.c
-static struct _inittab bpy_internal_modules[]= {
+static struct _inittab bge_internal_modules[]= {
 	{"mathutils", BPyInit_mathutils},
 	{"bgl", BPyInit_bgl},
 	{"blf", BPyInit_blf},
@@ -1945,6 +1945,10 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 #endif
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
+
+	/* must run before python initializes */
+	PyImport_ExtendInittab(bge_internal_modules);
+
 	Py_Initialize();
 	
 	if(argv && first_time) { /* browser plugins dont currently set this */
@@ -1961,13 +1965,18 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	}
 	
 	setSandbox(level);
+
+	/* mathutils types are used by the BGE even if we dont import them */
+	{
+		PyObject *mod= PyImport_ImportModuleLevel((char *)"mathutils", NULL, NULL, NULL, 0);
+		Py_DECREF(mod);
+	}
+
 	initPyTypes();
 	
 	bpy_import_main_set(maggie);
 	
 	initPySysObjects(maggie);
-
-	PyImport_ExtendInittab(bpy_internal_modules);
 	
 	first_time = false;
 	
