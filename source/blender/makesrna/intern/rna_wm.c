@@ -1664,7 +1664,8 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, region_type_items);
 	RNA_def_property_ui_text(prop, "Region Type", "Optional region type keymap is associated with");
 
-	prop= RNA_def_property(srna, "items", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "keymap_items", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "items", NULL);
 	RNA_def_property_struct_type(prop, "KeyMapItem");
 	RNA_def_property_ui_text(prop, "Items", "Items in the keymap, linking an operator to an input event");
 	rna_def_keymap_items(brna, prop);

@@ -207,7 +207,7 @@ class InfoPropertyRNA:
             self.fixed_type = None
 
         if self.type == "enum":
-            self.enum_items[:] = rna_prop.items.keys()
+            self.enum_items[:] = rna_prop.enum_items.keys()
             self.is_enum_flag = rna_prop.is_enum_flag
         else:
             self.is_enum_flag = False

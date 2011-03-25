@@ -368,7 +368,7 @@ class INFO_MT_help(bpy.types.Menu):
         if sys.platform[:3] == "win":
             layout.operator("wm.toggle_console", icon='CONSOLE')
             layout.separator()
-        layout.operator("anim.update_data_paths", text="FCurve/Driver 2.54 fix", icon='HELP')
+        layout.operator("anim.update_data_paths", text="FCurve/Driver Version fix", icon='HELP')
         layout.separator()
         layout.operator("wm.splash", icon='BLENDER')
 

@@ -1233,7 +1233,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_enum_funcs(prop, "rna_EnumProperty_default_get", NULL, "rna_EnumProperty_default_itemf");
 	RNA_def_property_ui_text(prop, "Default", "Default value for this enum");
 
-	prop= RNA_def_property(srna, "items", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "enum_items", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "EnumPropertyItem");
 	RNA_def_property_collection_funcs(prop, "rna_EnumProperty_items_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);

@@ -114,7 +114,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
 
             if key:
                 col.label(text="Rest Shape Key:")
-                col.prop_search(cloth, "rest_shape_key", key, "keys", text="")
+                col.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="")
 
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, bpy.types.Panel):

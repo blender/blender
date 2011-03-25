@@ -250,11 +250,11 @@ class ShapeTransfer(bpy.types.Operator):
         def ob_add_shape(ob, name):
             me = ob.data
             key = ob.shape_key_add(from_mix=False)
-            if len(me.shape_keys.keys) == 1:
+            if len(me.shape_keys.key_blocks) == 1:
                 key.name = "Basis"
                 key = ob.shape_key_add(from_mix=False)  # we need a rest
             key.name = name
-            ob.active_shape_key_index = len(me.shape_keys.keys) - 1
+            ob.active_shape_key_index = len(me.shape_keys.key_blocks) - 1
             ob.show_only_shape_key = True
 
         from mathutils.geometry import barycentric_transform
@@ -270,7 +270,7 @@ class ShapeTransfer(bpy.types.Operator):
 
         orig_normals = me_nos(me.vertices)
         # orig_coords = me_cos(me.vertices) # the actual mverts location isnt as relyable as the base shape :S
-        orig_coords = me_cos(me.shape_keys.keys[0].data)
+        orig_coords = me_cos(me.shape_keys.key_blocks[0].data)
 
         for ob_other in objects:
             me_other = ob_other.data
@@ -280,7 +280,7 @@ class ShapeTransfer(bpy.types.Operator):
 
             target_normals = me_nos(me_other.vertices)
             if me_other.shape_keys:
-                target_coords = me_cos(me_other.shape_keys.keys[0].data)
+                target_coords = me_cos(me_other.shape_keys.key_blocks[0].data)
             else:
                 target_coords = me_cos(me_other.vertices)
 

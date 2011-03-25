@@ -206,7 +206,7 @@ class InputKeyMapPanel(bpy.types.Panel):
 
             # Key Map items
             if km.show_expanded_items:
-                for kmi in km.items:
+                for kmi in km.keymap_items:
                     self.draw_kmi(display_keymaps, kc, km, kmi, col, level + 1)
 
                 # "Add New" at end of keymap item list
@@ -339,7 +339,7 @@ class InputKeyMapPanel(bpy.types.Panel):
             km = km.active()
             layout.context_pointer_set("keymap", km)
 
-            filtered_items = [kmi for kmi in km.items if filter_text in kmi.name.lower()]
+            filtered_items = [kmi for kmi in km.keymap_items if filter_text in kmi.name.lower()]
 
             if len(filtered_items) != 0:
                 col = layout.column()
@@ -433,9 +433,9 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
 
         def kmistr(kmi):
             if km.is_modal:
-                s = ["kmi = km.items.new_modal(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
+                s = ["kmi = km.keymap_items.new_modal(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
             else:
-                s = ["kmi = km.items.new(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
+                s = ["kmi = km.keymap_items.new(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
 
             if kmi.any:
                 s.append(", any=True")
@@ -468,7 +468,7 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
             km = km.active()
 
             if src:
-                for item in km.items:
+                for item in km.keymap_items:
                     if src.compare(item):
                         print("===========")
                         print(parent.name)
@@ -481,15 +481,15 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
                     if self.testEntry(kc, child, src, parent):
                         result = True
             else:
-                for i in range(len(km.items)):
-                    src = km.items[i]
+                for i in range(len(km.keymap_items)):
+                    src = km.keymap_items[i]
 
                     for child in children:
                         if self.testEntry(kc, child, src, km):
                             result = True
 
-                    for j in range(len(km.items) - i - 1):
-                        item = km.items[j + i + 1]
+                    for j in range(len(km.keymap_items) - i - 1):
+                        item = km.keymap_items[j + i + 1]
                         if src.compare(item):
                             print("===========")
                             print(km.name)
@@ -633,11 +633,11 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
             f.write("# Map %s\n" % km.name)
             f.write("km = kc.keymaps.new('%s', space_type='%s', region_type='%s', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.is_modal))
-            for kmi in km.items:
+            for kmi in km.keymap_items:
                 if km.is_modal:
-                    f.write("kmi = km.items.new_modal('%s', '%s', '%s'" % (kmi.propvalue, kmi.type, kmi.value))
+                    f.write("kmi = km.keymap_items.new_modal('%s', '%s', '%s'" % (kmi.propvalue, kmi.type, kmi.value))
                 else:
-                    f.write("kmi = km.items.new('%s', '%s', '%s'" % (kmi.idname, kmi.type, kmi.value))
+                    f.write("kmi = km.keymap_items.new('%s', '%s', '%s'" % (kmi.idname, kmi.type, kmi.value))
                 if kmi.any:
                     f.write(", any=True")
                 else:
@@ -715,7 +715,7 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
 
     def execute(self, context):
         km = context.keymap
-        kmi = km.items.from_id(self.item_id)
+        kmi = km.keymap_items.from_id(self.item_id)
 
         if not kmi.is_user_defined:
             km.restore_item_to_default(kmi)
@@ -734,9 +734,9 @@ class WM_OT_keyitem_add(bpy.types.Operator):
         kc = wm.keyconfigs.default
 
         if km.is_modal:
-            km.items.new_modal("", 'A', 'PRESS')  # kmi
+            km.keymap_items.new_modal("", 'A', 'PRESS')  # kmi
         else:
-            km.items.new("none", 'A', 'PRESS')  # kmi
+            km.keymap_items.new("none", 'A', 'PRESS')  # kmi
 
         # clear filter and expand keymap so we can see the newly added item
         if context.space_data.filter_text != "":
@@ -760,8 +760,8 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
 
     def execute(self, context):
         km = context.keymap
-        kmi = km.items.from_id(self.item_id)
-        km.items.remove(kmi)
+        kmi = km.keymap_items.from_id(self.item_id)
+        km.keymap_items.remove(kmi)
         return {'FINISHED'}
 
 

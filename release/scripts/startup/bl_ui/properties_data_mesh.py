@@ -188,7 +188,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
         rows = 2
         if kb:
             rows = 5
-        row.template_list(key, "keys", ob, "active_shape_key_index", rows=rows)
+        row.template_list(key, "key_blocks", ob, "active_shape_key_index", rows=rows)
 
         col = row.column()
 
@@ -243,7 +243,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
                     col.active = enable_edit_value
                     col.label(text="Blend:")
                     col.prop_search(kb, "vertex_group", ob, "vertex_groups", text="")
-                    col.prop_search(kb, "relative_key", key, "keys", text="")
+                    col.prop_search(kb, "relative_key", key, "key_blocks", text="")
 
             else:
                 row = layout.row()

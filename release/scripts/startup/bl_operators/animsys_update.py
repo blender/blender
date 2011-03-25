@@ -679,6 +679,7 @@ data_path_update = [
     ("SpeedControlSequence", "global_speed", "multiply_speed"),
     ("SpeedControlSequence", "use_curve_velocity", "use_as_speed"),
     ("SpeedControlSequence", "use_curve_compress_y", "scale_to_length"),
+    ("Key", "keys", "key_blocks"),
     ]
 
 
