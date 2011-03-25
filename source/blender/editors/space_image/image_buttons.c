@@ -346,7 +346,7 @@ static void image_panel_curves(const bContext *C, Panel *pa)
 		levels= (ibuf->channels==4);
 
 		RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &simaptr);
-		uiTemplateCurveMapping(pa->layout, &simaptr, "curves", 'c', levels, 0);
+		uiTemplateCurveMapping(pa->layout, &simaptr, "curve", 'c', levels, 0);
 	}
 
 	ED_space_image_release_buffer(sima, lock);
