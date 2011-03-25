@@ -25,7 +25,6 @@ if "bpy" in locals():
 _modules = (
     "add_mesh_torus",
     "animsys_update",
-    "fcurve_euler_filter",
     "image",
     "mesh",
     "nla",

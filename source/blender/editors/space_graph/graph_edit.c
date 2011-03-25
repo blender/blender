@@ -1501,12 +1501,13 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
  * of values to -180 degrees to 180 degrees.
  */
 
-#if 0 // XXX this is not ready for the primetime yet
- 
 /* set of three euler-rotation F-Curves */
 typedef struct tEulerFilter {
+	struct tEulerFilter *next, *prev;
+	
 	ID *id;							/* ID-block which owns the channels */
-	FCurve (*fcurves)[3];			/* 3 Pointers to F-Curves */				
+	FCurve *(fcurves[3]);			/* 3 Pointers to F-Curves */	
+	char *rna_path;					/* Pointer to one of the RNA Path's used by one of the F-Curves */
 } tEulerFilter;
  
 static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
@@ -1518,7 +1519,8 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 	int filter;
 	
 	ListBase eulers = {NULL, NULL};
-	tEulerFilter *euf= NULL;	
+	tEulerFilter *euf= NULL;
+	int groups=0, failed=0;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1528,7 +1530,7 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 	 * 	 1) Sets of three related rotation curves are identified from the selected channels,
 	 *		and are stored as a single 'operation unit' for the next step
 	 *	 2) Each set of three F-Curves is processed for each keyframe, with the values being
-	 * 		processed according to one of several ways.
+	 * 		processed as necessary
 	 */
 	 
 	/* step 1: extract only the rotation f-curves */
@@ -1542,45 +1544,134 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 		 *	- only rotation curves
 		 *	- for pchan curves, make sure we're only using the euler curves
 		 */
-		if (strstr(fcu->rna_path, "rotation_euler") == 0)
+		if (strstr(fcu->rna_path, "rotation_euler") == NULL)
 			continue;
+		else if (ELEM3(fcu->array_index, 0, 1, 2) == 0) {
+			BKE_reportf(op->reports, RPT_WARNING,
+				"Euler Rotation F-Curve has invalid index (ID='%s', Path='%s', Index=%d)", 
+				(ale->id)? ale->id->name:"<No ID>", fcu->rna_path, fcu->array_index);
+			continue;
+		}
 		
-		/* check if current set of 3-curves is suitable to add this curve to 
-		 *	- things like whether the current set of curves is 'full' should be checked later only
-		 *	- first check if id-blocks are compatible
+		/* optimisation: assume that xyz curves will always be stored consecutively,
+		 * so if the paths or the ID's don't match up, then a curve needs to be added 
+		 * to a new group
 		 */
-		if ((euf) && (ale->id != euf->id)) {
-			/* if the paths match, add this curve to the set of curves */
-			// NOTE: simple string compare for now... could be a bit more fancy...
-			
+		if ((euf) && (euf->id == ale->id) && (strcmp(euf->rna_path, fcu->rna_path)==0)) {
+			/* this should be fine to add to the existing group then */
+			euf->fcurves[fcu->array_index]= fcu;
 		}
 		else {
 			/* just add to a new block */
 			euf= MEM_callocN(sizeof(tEulerFilter), "tEulerFilter");
 			BLI_addtail(&eulers, euf);
+			groups++;
 			
 			euf->id= ale->id;
+			euf->rna_path = fcu->rna_path; /* this should be safe, since we're only using it for a short time */
 			euf->fcurves[fcu->array_index]= fcu;
 		}
 	}
 	BLI_freelistN(&anim_data);
 	
+	if (groups == 0) {
+		BKE_report(op->reports, RPT_WARNING, "No Euler Rotation F-Curves to fix up");
+		return OPERATOR_CANCELLED;
+	}
+	
 	/* step 2: go through each set of curves, processing the values at each keyframe 
 	 *	- it is assumed that there must be a full set of keyframes at each keyframe position
 	 */
 	for (euf= eulers.first; euf; euf= euf->next) {
+		int f;
 		
+		/* sanity check: ensure that there are enough F-Curves to work on in this group */
+		// TODO: also enforce assumption that there be a full set of keyframes at each position by ensuring that totvert counts are same?
+		if (ELEM3(NULL, euf->fcurves[0], euf->fcurves[1], euf->fcurves[2])) {
+			/* report which components are missing */
+			BKE_reportf(op->reports, RPT_WARNING,
+				"Missing %s%s%s component(s) of euler rotation for ID='%s' and RNA-Path='%s'",
+				(euf->fcurves[0]==NULL)? "X":"",
+				(euf->fcurves[1]==NULL)? "Y":"",
+				(euf->fcurves[2]==NULL)? "Z":"",
+				euf->id->name, euf->rna_path);
+				
+			/* keep track of number of failed sets, and carry on to next group */
+			failed++;
+			continue;
+		}
+		
+		/* simple method: just treat any difference between keys of greater than 180 degrees as being a flip */
+		// FIXME: there are more complicated methods that will be needed to fix more cases than just some
+		for (f = 0; f < 3; f++) {
+			FCurve *fcu = euf->fcurves[f];
+			BezTriple *bezt, *prev=NULL;
+			unsigned int i;
+			
+			/* skip if not enough vets to do a decent analysis of... */
+			if (fcu->totvert <= 2)
+				continue;
+			
+			/* prev follows bezt, bezt = "current" point to be fixed */
+			for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, prev=bezt, bezt++) {
+				/* our method depends on determining a "difference" from the previous vert */
+				if (prev == NULL)
+					continue;
+				
+				/* > 180 degree flip? */
+				if (fabs(prev->vec[1][1] - bezt->vec[1][1]) >= M_PI) {
+					/* 360 degrees to add/subtract frame value until difference is acceptably small that there's no more flip */
+					const double fac = 2.0 * M_PI;
+					
+					if (prev->vec[1][1] > bezt->vec[1][1]) {
+						while (fabs(bezt->vec[1][1] - prev->vec[1][1]) >= M_PI) {
+							bezt->vec[0][1] += fac;
+							bezt->vec[1][1] += fac;
+							bezt->vec[2][1] += fac;
+						}
+					}
+					else /* if (prev->vec[1][1] < bezt->vec[1][1]) */ {
+						while (fabs(bezt->vec[1][1] - prev->vec[1][1]) >= M_PI) {
+							bezt->vec[0][1] -= fac;
+							bezt->vec[1][1] -= fac;
+							bezt->vec[2][1] -= fac;
+						}
+					}
+				}
+			}
+		}
 	}
 	BLI_freelistN(&eulers);
 	
-	return OPERATOR_FINISHED;
+	/* updates + finishing warnings */
+	if (failed == groups) {
+		BKE_report(op->reports, RPT_ERROR, 
+			"No Euler Rotations could be corrected. Ensure each rotation has keys for all components, and that F-Curves for these are in consecutive XYZ order and selected.");
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		if (failed) {
+			BKE_report(op->reports, RPT_ERROR,
+				"Some Euler Rotations couldn't be corrected due to missing/unselected/out-of-order F-Curves. Ensure each rotation has keys for all components, and that F-Curves for these are in consecutive XYZ order and selected.");
+		}
+		
+		/* validate keyframes after editing */
+		ANIM_editkeyframes_refresh(&ac);
+		
+		/* set notifier that keyframes have changed */
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
+		
+		/* done at last */
+		return OPERATOR_FINISHED;
+	}
 }
  
 void GRAPH_OT_euler_filter (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Euler Filter";
+	ot->name= "Euler Discontinuity Filter";
 	ot->idname= "GRAPH_OT_euler_filter";
+	ot->description= "Fixes the most common causes of gimbal lock in the selected Euler Rotation F-Curves";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_euler_filter_exec;
@@ -1589,8 +1680,6 @@ void GRAPH_OT_euler_filter (wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-
-#endif // XXX this is not ready for the primetime yet
 
 /* ***************** Jump to Selected Frames Operator *********************** */
 
