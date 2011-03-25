@@ -2613,6 +2613,8 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 
+	ListBase nseqbase= {NULL, NULL};
+
 	seq_free_clipboard();
 
 	if(seqbase_isolated_sel_check(ed->seqbasep)==FALSE) {
@@ -2620,7 +2622,28 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	seqbase_dupli_recursive(scene, NULL, &seqbase_clipboard, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME);
+	seqbase_dupli_recursive(scene, NULL, &nseqbase, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME);
+
+	/* To make sure the copied strips have unique names between each other add
+	 * them temporarily to the end of the original seqbase. (bug 25932)
+	 */
+	if(nseqbase.first) {
+		Sequence *seq, *first_seq = nseqbase.first;
+		BLI_movelisttolist(ed->seqbasep, &nseqbase);
+
+		for(seq=first_seq; seq; seq=seq->next)
+			seq_recursive_apply(seq, apply_unique_name_cb, scene);
+
+		seqbase_clipboard.first = first_seq;
+		seqbase_clipboard.last = ed->seqbasep->last;
+
+		if(first_seq->prev) {
+			first_seq->prev->next = NULL;
+			ed->seqbasep->last = first_seq->prev;
+			first_seq->prev = NULL;
+		}
+	}
+
 	seqbase_clipboard_frame= scene->r.cfra;
 
 	/* Need to remove anything that references the current scene */
@@ -2690,7 +2713,13 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
+	iseq = nseqbase.first;
+
 	BLI_movelisttolist(ed->seqbasep, &nseqbase);
+
+	/* make sure the pasted strips have unique names between them */
+	for(; iseq; iseq=iseq->next)
+		seq_recursive_apply(iseq, apply_unique_name_cb, scene);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
