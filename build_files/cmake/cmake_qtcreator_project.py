@@ -175,6 +175,40 @@ def cmake_advanced_info():
     return includes, defines
 
 
+def cmake_cache_var(var):
+    cache_file = open(os.path.join(CMAKE_DIR, "CMakeCache.txt"))
+    lines = [l_strip for l in cache_file for l_strip in (l.strip(),) if l_strip if not l_strip.startswith("//") if not l_strip.startswith("#")]
+    cache_file.close()
+
+    for l in lines:
+        if l.split(":")[0] == var:
+            return l.split("=", 1)[-1]
+    return None
+
+
+def cmake_compiler_defines():
+    compiler = cmake_cache_var("CMAKE_C_COMPILER")  # could do CXX too
+
+    if compiler is None:
+        print("Couldn't find the compiler, os defines will be omitted...")
+        return
+
+    import tempfile
+    temp_c = tempfile.mkstemp(suffix=".c")[1]
+    temp_def = tempfile.mkstemp(suffix=".def")[1]
+
+    os.system("%s -dM -E %s > %s" % (compiler, temp_c, temp_def))
+
+    temp_def_file = open(temp_def)
+    lines = [l.strip() for l in temp_def_file if l.strip()]
+    temp_def_file.close()
+
+    os.remove(temp_c)
+    os.remove(temp_def)
+
+    return lines
+
+
 def create_qtc_project_main():
     files = list(source_list(base, filename_check=is_project_file))
     files_rel = [relpath(f, start=PROJECT_DIR) for f in files]
@@ -220,7 +254,9 @@ def create_qtc_project_main():
         qtc_cfg = join(PROJECT_DIR, "%s.config" % FILE_NAME)
         f = open(qtc_cfg, 'w')
         f.write("// ADD PREDEFINED MACROS HERE!\n")
-        f.write("\n".join([("#define %s %s" % item) for item in defines]))
+        defines_final = [("#define %s %s" % item) for item in defines]
+        defines_final += cmake_compiler_defines()  # defines from the compiler
+        f.write("\n".join(defines_final))
 
     print("Blender project file written to: %s" % qtc_prj)
     # --- end
