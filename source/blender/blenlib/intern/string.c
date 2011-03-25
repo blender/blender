@@ -47,7 +47,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
 
-char *BLI_strdupn(const char *str, int len) {
+char *BLI_strdupn(const char *str, const size_t len) {
 	char *n= MEM_mallocN(len+1, "strdup");
 	memcpy(n, str, len);
 	n[len]= '\0';
@@ -60,7 +60,7 @@ char *BLI_strdup(const char *str) {
 
 char *BLI_strdupcat(const char *str1, const char *str2)
 {
-	int len;
+	size_t len;
 	char *n;
 	
 	len= strlen(str1)+strlen(str2);
@@ -71,9 +71,9 @@ char *BLI_strdupcat(const char *str1, const char *str2)
 	return n;
 }
 
-char *BLI_strncpy(char *dst, const char *src, const int maxncpy) {
-	int srclen= strlen(src);
-	int cpylen= (srclen>(maxncpy-1))?(maxncpy-1):srclen;
+char *BLI_strncpy(char *dst, const char *src, const size_t maxncpy) {
+	size_t srclen= strlen(src);
+	size_t cpylen= (srclen>(maxncpy-1))?(maxncpy-1):srclen;
 	
 	memcpy(dst, src, cpylen);
 	dst[cpylen]= '\0';
@@ -81,9 +81,9 @@ char *BLI_strncpy(char *dst, const char *src, const int maxncpy) {
 	return dst;
 }
 
-int BLI_snprintf(char *buffer, size_t count, const char *format, ...)
+size_t BLI_snprintf(char *buffer, size_t count, const char *format, ...)
 {
-	int n;
+	size_t n;
 	va_list arg;
 
 	va_start(arg, format);
@@ -128,7 +128,7 @@ char *BLI_sprintfN(const char *format, ...)
  */
 char *BLI_getQuotedStr (const char *str, const char *prefix)
 {
-	int prefixLen = strlen(prefix);
+	size_t prefixLen = strlen(prefix);
 	char *startMatch, *endMatch;
 	
 	/* get the starting point (i.e. where prefix starts, and add prefixLen+1 to it to get be after the first " */
@@ -138,7 +138,7 @@ char *BLI_getQuotedStr (const char *str, const char *prefix)
 	endMatch= strchr(startMatch, '"'); // "  NOTE: this comment here is just so that my text editor still shows the functions ok...
 	
 	/* return the slice indicated */
-	return BLI_strdupn(startMatch, (int)(endMatch-startMatch));
+	return BLI_strdupn(startMatch, (size_t)(endMatch-startMatch));
 }
 
 /* Replaces all occurances of oldText with newText in str, returning a new string that doesn't 
@@ -149,7 +149,7 @@ char *BLI_getQuotedStr (const char *str, const char *prefix)
 char *BLI_replacestr(char *str, const char *oldText, const char *newText)
 {
 	DynStr *ds= NULL;
-	int lenOld= strlen(oldText);
+	size_t lenOld= strlen(oldText);
 	char *match;
 	
 	/* sanity checks */
@@ -263,10 +263,10 @@ int BLI_strcasecmp(const char *s1, const char *s2) {
 	return 0;
 }
 
-int BLI_strncasecmp(const char *s1, const char *s2, int n) {
+int BLI_strncasecmp(const char *s1, const char *s2, size_t len) {
 	int i;
 
-	for (i=0; i<n; i++) {
+	for (i=0; i<len; i++) {
 		char c1 = tolower(s1[i]);
 		char c2 = tolower(s2[i]);
 
