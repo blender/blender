@@ -53,6 +53,7 @@
 #include "BKE_multires.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
+#include "BKE_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -636,6 +637,13 @@ static int render_breakjob(void *rjv)
 	return 0;
 }
 
+/* runs in thread, no cursor setting here works. careful with notifiers too (malloc conflicts) */
+/* maybe need a way to get job send notifer? */
+static void render_drawlock(void *UNUSED(rjv), int lock)
+{
+	BKE_spacedata_draw_locks(lock);
+}
+
 /* catch esc */
 static int screen_render_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
@@ -769,6 +777,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* setup new render */
 	re= RE_NewRender(scene->id.name);
 	RE_test_break_cb(re, rj, render_breakjob);
+	RE_draw_lock_cb(re, rj, render_drawlock);
 	RE_display_draw_cb(re, rj, image_rect_update);
 	RE_stats_draw_cb(re, rj, image_renderinfo_cb);
 	RE_progress_cb(re, rj, render_progress_update);

@@ -112,7 +112,7 @@ typedef struct SpaceType {
 typedef struct ARegionType {
 	struct ARegionType *next, *prev;
 	
-	int			regionid;	/* unique identifier within this space */
+	int			regionid;	/* unique identifier within this space, defines RGN_TYPE_xxxx */
 	
 	/* add handlers, stuff you only do once or on area/region type/size changes */
 	void		(*init)(struct wmWindowManager *, struct ARegion *);
@@ -152,6 +152,8 @@ typedef struct ARegionType {
 	int			prefsizex, prefsizey;
 	/* default keymaps to add */
 	int			keymapflag;
+	/* return without drawing. lock is set by region definition, and copied to do_lock by render. can become flag */
+	short		do_lock, lock;
 } ARegionType;
 
 /* panel types */
@@ -231,6 +233,7 @@ void BKE_spacetypes_free(void);	/* only for quitting blender */
 /* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
+void BKE_spacedata_draw_locks(int set);
 
 /* area/regions */
 struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);

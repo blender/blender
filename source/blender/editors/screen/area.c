@@ -314,6 +314,10 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	ARegionType *at= ar->type;
 	rcti winrct;
 	
+	/* see BKE_spacedata_draw_locks() */
+	if(at->do_lock)
+		return;
+	
 	/* checks other overlapping regions */
 	region_scissor_winrct(ar, &winrct);
 	
