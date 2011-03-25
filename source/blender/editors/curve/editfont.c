@@ -1095,7 +1095,7 @@ static int line_break_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
 	EditFont *ef= cu->editfont;
-	int ctrl= RNA_enum_get(op->ptr, "ctrl");
+	const int ctrl= RNA_boolean_get(op->ptr, "ctrl");
 
 	if(ctrl) {
 		insert_into_textbuf(obedit, 1);
