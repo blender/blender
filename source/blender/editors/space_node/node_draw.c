@@ -995,7 +995,6 @@ static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode,
 {
 	bNode *node;
 	bNodeLink *link;
-	bNodeLinkDrag *nldrag;
 	int a;
 	
 	if(ntree==NULL) return;		/* groups... */
@@ -1030,14 +1029,6 @@ static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode,
 				node_draw_basis(C, ar, snode, ntree, node);
 		}
 	}	
-	
-	/* temporary links */
-	glEnable(GL_BLEND);
-	glEnable(GL_LINE_SMOOTH);
-	for(nldrag= snode->linkdrag.first; nldrag; nldrag= nldrag->next)
-		node_draw_link(&ar->v2d, snode, nldrag->link);
-	glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_BLEND);
 }
 
 static void group_verify_cb(bContext *UNUSED(C), void *UNUSED(snode_v), void *ngroup_v)
@@ -1213,6 +1204,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *scene= CTX_data_scene(C);
 	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+	bNodeLinkDrag *nldrag;
 	
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1267,6 +1259,14 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 				node_draw_group(C, ar, snode, snode->nodetree, node);
 		}
 	}
+	
+	/* temporary links */
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
+	for(nldrag= snode->linkdrag.first; nldrag; nldrag= nldrag->next)
+		node_draw_link(&ar->v2d, snode, nldrag->link);
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
 	
 	/* draw grease-pencil ('canvas' strokes) */
 	if (/*(snode->flag & SNODE_DISPGP) &&*/ (snode->nodetree))
