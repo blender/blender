@@ -72,6 +72,9 @@ void BKE_copy_animdata_id_action(struct ID *id);
 /* Make Local */
 void BKE_animdata_make_local(struct AnimData *adt);
 
+/* Re-Assign ID's */
+void BKE_relink_animdata(struct AnimData *adt);
+
 /* ************************************* */
 /* KeyingSets API */
 

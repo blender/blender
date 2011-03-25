@@ -282,6 +282,32 @@ void BKE_animdata_make_local(AnimData *adt)
 		make_local_strips(&nlt->strips);
 }
 
+void BKE_relink_animdata(struct AnimData *adt)
+{
+	/* drivers */
+	if (adt->drivers.first) {
+		FCurve *fcu;
+
+		/* check each driver against all the base paths to see if any should go */
+		for (fcu= adt->drivers.first; fcu; fcu=fcu->next) {
+			ChannelDriver *driver= fcu->driver;
+			DriverVar *dvar;
+
+			/* driver variables */
+			for (dvar= driver->variables.first; dvar; dvar=dvar->next) {
+				/* only change the used targets, since the others will need fixing manually anyway */
+				DRIVER_TARGETS_USED_LOOPER(dvar)
+				{
+					if(dtar->id->newid) {
+						dtar->id= dtar->id->newid;
+					}
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
+		}
+	}
+}
+
 /* Sub-ID Regrouping ------------------------------------------- */
 
 /* helper heuristic for determining if a path is compatible with the basepath 

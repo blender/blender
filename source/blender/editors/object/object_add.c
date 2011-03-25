@@ -868,6 +868,10 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 			}
 		}
 		modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
+
+		if(ob->adt)
+			BKE_relink_animdata(ob->adt);
+
 		ID_NEW(ob->parent);
 		ID_NEW(ob->proxy);
 		ID_NEW(ob->proxy_group);

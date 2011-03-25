@@ -1412,7 +1412,10 @@ static void single_object_users(Scene *scene, View3D *v3d, int flag)
 				}
 			}
 			modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
-			
+
+			if(ob->adt)
+				BKE_relink_animdata(ob->adt);
+
 			ID_NEW(ob->parent);
 		}
 	}
