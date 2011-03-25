@@ -642,6 +642,7 @@ static int render_breakjob(void *rjv)
 static void render_drawlock(void *UNUSED(rjv), int lock)
 {
 	BKE_spacedata_draw_locks(lock);
+	
 }
 
 /* catch esc */
