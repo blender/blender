@@ -243,7 +243,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source)
 
 	/*scale source face coordinates a bit, so points sitting directonly on an
       edge will work.*/
-	mul_v3_fl(cent, 1.0/source->len);
+	mul_v3_fl(cent, 1.0f/(float)source->len);
 	for (i=0; i<source->len; i++) {
 		float vec[3];
 		sub_v3_v3v3(vec, cent, cos[i]);

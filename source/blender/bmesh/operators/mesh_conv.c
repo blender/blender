@@ -240,7 +240,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	}
 
 	BLI_array_free(fedges);
-
+	BLI_array_free(verts);
+	
 	MEM_freeN(vt);
 	MEM_freeN(et);
 }

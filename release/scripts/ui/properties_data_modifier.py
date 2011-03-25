@@ -69,7 +69,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = layout.column()
         col.prop(md, "use_multi_modifier")
-
+	
+    def NGONINTERP(self, layout, ob, md):
+        split = layout.split()
+        
+        col = split.column()
+        col.prop(md, "resolution", text="Res")
+        
     def ARRAY(self, layout, ob, md):
         layout.prop(md, "fit_type")
 

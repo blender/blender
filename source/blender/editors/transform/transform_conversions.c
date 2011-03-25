@@ -2637,6 +2637,8 @@ void flushTransUVs(TransInfo *t)
 
 	/* flush to 2d vector from internally used 3d vector */
 	for(a=0, td= t->data2d; a<t->total; a++, td++) {
+		if (!td->loc2d) continue;
+		
 		td->loc2d[0]= td->loc[0]*invx;
 		td->loc2d[1]= td->loc[1]*invy;
 

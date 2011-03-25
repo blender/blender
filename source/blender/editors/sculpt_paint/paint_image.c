@@ -2889,7 +2889,8 @@ static void project_paint_begin(ProjPaintState *ps)
 	}
 	
 	/* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
-	if(ps->dm->type != DM_TYPE_CDDM) {
+	// this seems like a bad check, since some constructive modifiers use cddm? - joeedh
+	if(1) { //ps->dm->type != DM_TYPE_CDDM) {
 		ps->dm_mvert= MEM_dupallocN(ps->dm_mvert);
 		ps->dm_mface= MEM_dupallocN(ps->dm_mface);
 		/* looks like these are ok for now.*/
@@ -3375,7 +3376,8 @@ static void project_paint_end(ProjPaintState *ps)
 	}
 	
 	/* copy for subsurf/multires, so throw away */
-	if(ps->dm->type != DM_TYPE_CDDM) {
+	// this seems like a bad check, since some constructive modifiers use cddm? - joeedh
+	if(1) { //ps->dm->type != DM_TYPE_CDDM) {
 		if(ps->dm_mvert) MEM_freeN(ps->dm_mvert);
 		if(ps->dm_mface) MEM_freeN(ps->dm_mface);
 		/* looks like these dont need copying */

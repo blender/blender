@@ -1890,9 +1890,9 @@ void mesh_pmv_off(Mesh *me)
 	}
 }
 
-static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata, 
-			   CustomData *pdata, int lindex[4], int findex, 
-			   int polyindex, int numTex, int numCol, int tot) 
+void mesh_loops_to_tri_corners(CustomData *fdata, CustomData *ldata, 
+			   CustomData *pdata, int lindex[3], int findex, 
+			   int polyindex) 
 {
 	MTFace *texface;
 	MTexPoly *texpoly;
@@ -1900,7 +1900,9 @@ static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata,
 	MLoopCol *mloopcol;
 	MLoopUV *mloopuv;
 	int i, j, hasWCol = CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL);
-
+	int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+	int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+	
 	for(i=0; i < numTex; i++){
 		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
 		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, polyindex, i);
@@ -1912,7 +1914,7 @@ static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata,
 		texface->tile = texpoly->tile;
 		texface->unwrap = texpoly->unwrap;
 
-		for (j=0; j<tot; j++) {
+		for (j=0; j<3; j++) {
 			mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, lindex[j], i);
 			texface->uv[j][0] = mloopuv->uv[0];
 			texface->uv[j][1] = mloopuv->uv[1];
@@ -1922,7 +1924,7 @@ static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata,
 	for(i=0; i < numCol; i++){
 		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
 
-		for (j=0; j<tot; j++) {
+		for (j=0; j<3; j++) {
 			mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, lindex[j], i);
 			mcol[j].r = mloopcol->r;
 			mcol[j].g = mloopcol->g;
@@ -1934,7 +1936,7 @@ static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata,
 	if (hasWCol) {
 		mcol = CustomData_get(fdata,  findex, CD_WEIGHT_MCOL);
 
-		for (j=0; j<tot; j++) {
+		for (j=0; j<3; j++) {
 			mloopcol = CustomData_get(ldata, lindex[j], CD_WEIGHT_MLOOPCOL);
 			mcol[j].r = mloopcol->r;
 			mcol[j].g = mloopcol->g;
@@ -2059,8 +2061,8 @@ int mesh_recalcTesselation(CustomData *fdata,
 		mf->v2 = mloop[mf->v2].v;
 		mf->v3 = mloop[mf->v3].v;
 
-		mesh_loops_to_corners(fdata, ldata, pdata,
-			lindex, i, mf->v4, numTex, numCol, 3);
+		mesh_loops_to_tri_corners(fdata, ldata, pdata,
+			lindex, i, mf->v4);
 		
 		mf->v4 = 0;
 	}

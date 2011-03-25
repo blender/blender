@@ -193,7 +193,7 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		ml->e += dm->numEdgeData;
 	}
 
-	CDDM_recalc_tesselation(cddm);
+	CDDM_recalc_tesselation(cddm, 1);
 	
 	/*handle vgroup stuff*/
 	if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&cddm->vertData, CD_MDEFORMVERT)) {

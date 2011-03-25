@@ -125,7 +125,7 @@ static float new_primitive_matrix(bContext *C, float *loc, float *rot, float pri
 /* ********* add primitive operators ************* */
 
 static void make_prim_init(bContext *C, float *dia, float mat[][4], 
-						   int *state, float *loc, float *rot, int layer)
+						   int *state, float *loc, float *rot, unsigned int layer)
 {
 	Object *obedit= CTX_data_edit_object(C);
 
@@ -164,7 +164,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
-	int layer;
+	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
@@ -209,7 +209,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
-	int layer;
+	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
@@ -292,7 +292,7 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
-	int layer;
+	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
@@ -344,7 +344,7 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
-	int layer;
+	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
@@ -396,7 +396,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
-	int layer;
+	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
@@ -449,7 +449,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
-	int layer;
+	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
@@ -493,7 +493,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
-	int layer;
+	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
@@ -544,7 +544,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
-	int layer;
+	unsigned int layer;
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	make_prim_init(C, &dia, mat, &state, loc, rot, layer);

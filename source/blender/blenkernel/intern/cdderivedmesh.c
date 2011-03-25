@@ -1465,11 +1465,6 @@ static void cdDM_recalcTesselation(DerivedMesh *dm)
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 }
 
-void CDDM_recalc_tesselation(DerivedMesh *dm)
-{
-	cdDM_recalcTesselation(dm);
-}
-
 /*ignores original poly origindex layer*/
 static void cdDM_recalcTesselation2(DerivedMesh *dm)
 {
@@ -1480,6 +1475,14 @@ static void cdDM_recalcTesselation2(DerivedMesh *dm)
 		dm->numPolyData, 0, 0);
 	
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
+}
+
+void CDDM_recalc_tesselation(DerivedMesh *dm, int orig_use_polyorig)
+{
+	if (orig_use_polyorig)
+		cdDM_recalcTesselation(dm);
+	else
+		cdDM_recalcTesselation2(dm);
 }
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)
@@ -2458,7 +2461,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 	memcpy(cddm2->mpoly, mpoly, sizeof(MPoly)*BLI_array_count(mpoly));
 	BLI_array_free(mvert); BLI_array_free(medge); BLI_array_free(mloop); BLI_array_free(mpoly);
 
-	CDDM_recalc_tesselation(cddm2);
+	CDDM_recalc_tesselation(cddm2, 1);
 	
 	if (newv) 
 		MEM_freeN(newv); 

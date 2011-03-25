@@ -116,8 +116,11 @@ void CDDM_calc_edges(struct DerivedMesh *dm);
    faces*/
 void CDDM_calc_edges_poly(struct DerivedMesh *dm);
 
-/*reconstitute face triangulation*/
-void CDDM_recalc_tesselation(struct DerivedMesh *dm);
+/*reconstitute face triangulation.  if orig_use_polyorig is nonzero, sets
+  the mface origindex layer to copy to the origindex values of the 
+  parent mpolys; otherwise the mface origindex will point to the index of
+  the parent mpoly*/
+void CDDM_recalc_tesselation(struct DerivedMesh *dm, int orig_use_polyorig);
 
 /* lowers the number of vertices/edges/faces in a CDDerivedMesh
  * the layer data stays the same size
