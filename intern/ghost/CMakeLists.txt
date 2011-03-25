@@ -137,7 +137,9 @@ elseif(UNIX)
 		intern/GHOST_WindowX11.h
 	)
 
-	add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
+	if(NOT WITH_INSTALL_PORTABLE)
+		add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
+	endif()
 
 	if(X11_XF86keysym_INCLUDE_PATH)
 		add_definitions(-DWITH_XF86KEYSYM)

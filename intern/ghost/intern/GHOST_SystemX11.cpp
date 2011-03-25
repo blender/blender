@@ -76,10 +76,6 @@
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
 
-#ifndef PREFIX
-#error "PREFIX not defined"
-#endif
-
 typedef struct NDOFPlatformInfo {
 	Display *display;
 	Window window;

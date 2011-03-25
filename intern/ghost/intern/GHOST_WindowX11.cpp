@@ -455,6 +455,7 @@ GHOST_WindowX11(
 	XFlush(m_display);
 }
 
+#ifdef WITH_X11_XINPUT
 /* 
 	Dummy function to get around IO Handler exiting if device invalid
 	Basically it will not crash blender now if you have a X device that 
@@ -495,7 +496,6 @@ static bool match_token(const char *haystack, const char *needle)
 	return FALSE;
 }
 
-#ifdef WITH_X11_XINPUT
 
 /*	Determining if an X device is a Tablet style device is an imperfect science.
 **  We rely on common conventions around device names as well as the type reported

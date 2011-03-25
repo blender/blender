@@ -111,11 +111,7 @@ endif()
 
 # 3D format support
 # disable opencollada on non-apple unix because opencollada has no package for debian
-if(UNIX AND NOT APPLE)
-	option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org)"	OFF)
-else()
-	option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org)"	OFF)
-endif()
+option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org)"	OFF)
 
 # Sound output
 option(WITH_SDL           "Enable SDL for sound and joystick support" ON)
