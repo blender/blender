@@ -33,6 +33,7 @@
 
 #include "COLLADASaxFWLIExtraDataCallbackHandler.h"
 
+#include "DocumentImporter.h"
 
 /** \brief Handler class for <extra> data, through which different
  * profiles can be handled
@@ -41,7 +42,7 @@ class ExtraHandler : public COLLADASaxFWL::IExtraDataCallbackHandler
 {
 public:
 	/** Constructor. */
-	ExtraHandler();
+	ExtraHandler(DocumentImporter *dimp);
 
 	/** Destructor. */
 	virtual ~ExtraHandler();
@@ -65,5 +66,10 @@ private:
 	ExtraHandler( const ExtraHandler& pre );
 	/** Disable default assignment operator. */
 	const ExtraHandler& operator= ( const ExtraHandler& pre );
+	
+	/** Handle to DocumentImporter for interface to extra element data saving. */
+	DocumentImporter* dimp;
+	/** Holds Id of element for which <extra> XML elements are handled. */
+	COLLADAFW::UniqueId currentUid;
 };
 

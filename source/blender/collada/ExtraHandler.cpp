@@ -27,14 +27,16 @@
  */
 
 #include <stddef.h>
-
 #include "BLI_string.h"
 
 #include "ExtraHandler.h"
 
-ExtraHandler::ExtraHandler(){}
+ExtraHandler::ExtraHandler(DocumentImporter *dimp)
+{
+	this->dimp = dimp;
+}
 
-ExtraHandler::~ExtraHandler(){}
+ExtraHandler::~ExtraHandler() {}
 
 bool ExtraHandler::elementBegin( const char* elementName, const char** attributes)
 {
@@ -45,6 +47,7 @@ bool ExtraHandler::elementBegin( const char* elementName, const char** attribute
 bool ExtraHandler::elementEnd(const char* elementName )
 {
 	printf("end: %s\n", elementName);
+	currentUid = COLLADAFW::UniqueId();
 	return true;
 }
 
@@ -62,6 +65,7 @@ bool ExtraHandler::parseElement (
 	const COLLADAFW::UniqueId& uniqueId ) {
 		if(BLI_strcaseeq(profileName, "blender")) {
 			printf("In parseElement for supported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
+			currentUid = uniqueId;
 			return true;
 		}
 		printf("In parseElement for unsupported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
