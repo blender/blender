@@ -349,16 +349,6 @@ static void free_all_fluidobject_channels(ListBase *fobjects)
 	}
 }
 
-static void continuous_rotation(float *rot, const float *old_rot)
-{
-	*rot += (int)(*old_rot/360.f)*360.f;
-
-	if(*old_rot - *rot > 180.f)
-		*rot += 360.f;
-	else if(*old_rot - *rot < -180.f)
-		*rot -= 360.f;
-}
-
 static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), FluidsimSettings *domainSettings, FluidAnimChannels *channels, ListBase *fobjects)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -453,22 +443,20 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 			Object *ob = fobj->object;
 			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 			float active= (float)(fluidmd->fss->flag & OB_FLUIDSIM_ACTIVE);
-			float rot_d[3], rot_360[3] = {360.f, 360.f, 360.f};
+			float rot_d[3], old_rot[3] = {0.f, 0.f, 0.f};
 			
 			if (ELEM(fluidmd->fss->type, OB_FLUIDSIM_DOMAIN, OB_FLUIDSIM_PARTICLE))
 				continue;
 			
 			/* init euler rotation values and convert to elbeem format */
 			/* get the rotation from ob->obmat rather than ob->rot to account for parent animations */
-			mat4_to_eul(rot_d, ob->obmat);
-			mul_v3_fl(rot_d, -180.f/M_PI);
 			if(i) {
-				/* the rotation values have to be continuous, so compare with previous rotation and adjust accordingly */
-				/* note: the unfortunate side effect of this is that it filters out rotations of over 180 degrees/frame */
-				continuous_rotation(rot_d, fobj->Rotation + 4*(i-1));
-				continuous_rotation(rot_d+1, fobj->Rotation + 4*(i-1)+1);
-				continuous_rotation(rot_d+2, fobj->Rotation + 4*(i-1)+2);
+				copy_v3_v3(old_rot, fobj->Rotation + 4*(i-1));
+				mul_v3_fl(old_rot, -M_PI/180.f);
 			}
+
+			mat4_to_compatible_eulO(rot_d, old_rot, 0, ob->obmat);
+			mul_v3_fl(rot_d, -180.f/M_PI);
 			
 			set_channel(fobj->Translation, timeAtFrame, ob->loc, i, CHANNEL_VEC);
 			set_channel(fobj->Rotation, timeAtFrame, rot_d, i, CHANNEL_VEC);
