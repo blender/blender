@@ -3082,3 +3082,32 @@ int object_is_modified(Scene *scene, Object *ob)
 
 	return flag;
 }
+
+static void copy_object__forwardModifierLinks(void *UNUSED(userData), Object *UNUSED(ob), ID **idpoin)
+{
+	/* this is copied from ID_NEW; it might be better to have a macro */
+	if(*idpoin && (*idpoin)->newid) *idpoin = (*idpoin)->newid;
+}
+
+void object_relink(Object *ob)
+{
+	if(ob->id.lib)
+		return;
+
+	relink_constraints(&ob->constraints);
+	if (ob->pose){
+		bPoseChannel *chan;
+		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+			relink_constraints(&chan->constraints);
+		}
+	}
+	modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
+
+	if(ob->adt)
+		BKE_relink_animdata(ob->adt);
+
+	ID_NEW(ob->parent);
+
+	ID_NEW(ob->proxy);
+	ID_NEW(ob->proxy_group);
+}

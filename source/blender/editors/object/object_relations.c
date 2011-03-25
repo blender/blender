@@ -1366,11 +1366,6 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 /**************************** Make Single User ********************************/
 
-static void single_object_users__forwardModifierLinks(void *UNUSED(userData), Object *UNUSED(ob), Object **obpoin)
-{
-	ID_NEW(*obpoin);
-}
-
 static void single_object_users(Scene *scene, View3D *v3d, int flag)	
 {
 	Base *base;
@@ -1402,22 +1397,7 @@ static void single_object_users(Scene *scene, View3D *v3d, int flag)
 	
 	/* object pointers */
 	for(base= FIRSTBASE; base; base= base->next) {
-		ob= base->object;
-		if(ob->id.lib==NULL) {
-			relink_constraints(&base->object->constraints);
-			if (base->object->pose){
-				bPoseChannel *chan;
-				for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
-					relink_constraints(&chan->constraints);
-				}
-			}
-			modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
-
-			if(ob->adt)
-				BKE_relink_animdata(ob->adt);
-
-			ID_NEW(ob->parent);
-		}
+		object_relink(base->object);
 	}
 
 	set_sca_new_poins();

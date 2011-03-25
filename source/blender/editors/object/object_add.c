@@ -843,13 +843,6 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 
 /**************************** Copy Utilities ******************************/
 
-static void copy_object__forwardModifierLinks(void *UNUSED(userData), Object *UNUSED(ob),
-											  ID **idpoin)
-{
-	/* this is copied from ID_NEW; it might be better to have a macro */
-	if(*idpoin && (*idpoin)->newid) *idpoin = (*idpoin)->newid;
-}
-
 /* after copying objects, copied data should get new pointers */
 static void copy_object_set_idnew(bContext *C, int dupflag)
 {
@@ -860,21 +853,7 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 	
 	/* XXX check object pointers */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		relink_constraints(&ob->constraints);
-		if (ob->pose){
-			bPoseChannel *chan;
-			for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
-				relink_constraints(&chan->constraints);
-			}
-		}
-		modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
-
-		if(ob->adt)
-			BKE_relink_animdata(ob->adt);
-
-		ID_NEW(ob->parent);
-		ID_NEW(ob->proxy);
-		ID_NEW(ob->proxy_group);
+		object_relink(ob);
 	}
 	CTX_DATA_END;
 	

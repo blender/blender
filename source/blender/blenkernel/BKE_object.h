@@ -143,6 +143,8 @@ void object_camera_matrix(
 		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens, float *ycor,
 		float *viewdx, float *viewdy);
 
+void object_relink(struct Object *ob);
+
 #ifdef __cplusplus
 }
 #endif
