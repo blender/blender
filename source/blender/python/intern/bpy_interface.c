@@ -235,7 +235,7 @@ void BPY_python_start(int argc, const char **argv)
 	utf8towchar(bprogname_wchar, bprogname);
 	Py_SetProgramName(bprogname_wchar);
 
-	/* builtin modules */
+	/* must run before python initializes */
 	PyImport_ExtendInittab(bpy_internal_modules);
 
 	bpy_python_start_path(); /* allow to use our own included python */
@@ -264,7 +264,8 @@ void BPY_python_start(int argc, const char **argv)
 #else
 	(void)argc;
 	(void)argv;
-	
+
+	/* must run before python initializes */
 	PyImport_ExtendInittab(bpy_internal_modules);
 #endif
 

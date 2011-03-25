@@ -352,7 +352,9 @@ def keyconfig_set(filepath):
     keyconfigs_old = keyconfigs[:]
 
     try:
-        exec(compile(open(filepath).read(), filepath, 'exec'), {"__file__": filepath})
+        file = open(filepath)
+        exec(compile(file.read(), filepath, 'exec'), {"__file__": filepath})
+        file.close()
     except:
         import traceback
         traceback.print_exc()

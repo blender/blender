@@ -346,6 +346,6 @@ struct BlenderRNA {
 	ListBase structs;
 };
 
-#define CONTAINER_RNA_ID(cont) (const char *)(((ContainerRNA *)(cont))+1)
+#define CONTAINER_RNA_ID(cont) (*(const char **)(((ContainerRNA *)(cont))+1))
 
 #endif /* RNA_INTERNAL_TYPES_H */
