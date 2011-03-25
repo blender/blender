@@ -2546,7 +2546,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 		}
 	}
 	else {
-		printf("ui_def_but_rna: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		RNA_warning("ui_def_but_rna: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		str= propname;
 	}
 

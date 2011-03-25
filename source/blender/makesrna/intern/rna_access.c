@@ -62,6 +62,22 @@
 
 #include "rna_internal.h"
 
+void RNA_warning(const char *format, ...)
+{
+	va_list args;
+
+	va_start(args, format);
+	vprintf(format, args);
+	va_end(args);
+
+#if WITH_PYTHON
+	{
+		extern void PyC_LineSpit(void);
+		PyC_LineSpit();
+	}
+#endif
+}
+
 const PointerRNA PointerRNA_NULL= {{NULL}};
 
 /* Init/Exit */
