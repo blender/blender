@@ -1789,26 +1789,15 @@ void CDDM_apply_vert_normals(DerivedMesh *dm, short (*vertNormals)[3])
 		VECCOPY(vert->no, vertNormals[i]);
 }
 
-/* adapted from mesh_calc_normals */
 void CDDM_calc_normals(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
-	float (*temp_nors)[3];
 	float (*face_nors)[3];
-	int i;
-	int numVerts = dm->numVertData;
-	int numFaces = dm->numFaceData;
-	MFace *mfaces;
-	MVert *mv;
 
-	if(numVerts == 0) return;
-
-	temp_nors = MEM_callocN(numVerts * sizeof(*temp_nors),
-							"CDDM_calc_normals temp_nors");
+	if(dm->numVertData == 0) return;
 
 	/* we don't want to overwrite any referenced layers */
-	mv = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
-	cddm->mvert = mv;
+	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
 
 	/* make a face normal layer if not present */
 	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
@@ -1816,50 +1805,8 @@ void CDDM_calc_normals(DerivedMesh *dm)
 		face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC,
 										 NULL, dm->numFaceData);
 
-	/* calculate face normals and add to vertex normals */
-	mfaces = CDDM_get_faces(dm);
-	for(i = 0; i < numFaces; i++) {
-		MFace * mf = &mfaces[i];
-		float *f_no = face_nors[i];
-
-		if(mf->v4)
-			normal_quad_v3(f_no, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
-		else
-			normal_tri_v3(f_no, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
-		
-		if((mf->flag&ME_SMOOTH)!=0) {
-			float *n4 = (mf->v4)? temp_nors[mf->v4]: NULL;
-			float *c4 = (mf->v4)? mv[mf->v4].co: NULL;
-
-			accumulate_vertex_normals(temp_nors[mf->v1], temp_nors[mf->v2], temp_nors[mf->v3], n4,
-				f_no, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, c4);
-		}
-	}
-
-	for(i = 0; i < numFaces; i++) {
-		MFace * mf = &mfaces[i];
-
-		if((mf->flag&ME_SMOOTH)==0) {
-			float *f_no = face_nors[i];
-
-			if(is_zero_v3(temp_nors[mf->v1])) copy_v3_v3(temp_nors[mf->v1], f_no);
-			if(is_zero_v3(temp_nors[mf->v2])) copy_v3_v3(temp_nors[mf->v2], f_no);
-			if(is_zero_v3(temp_nors[mf->v3])) copy_v3_v3(temp_nors[mf->v3], f_no);
-			if(mf->v4 && is_zero_v3(temp_nors[mf->v4])) copy_v3_v3(temp_nors[mf->v4], f_no);
-		}
-	}
-
-	/* normalize vertex normals and assign */
-	for(i = 0; i < numVerts; i++, mv++) {
-		float *no = temp_nors[i];
-		
-		if(normalize_v3(no) == 0.0f)
-			normalize_v3_v3(no, mv->co);
-
-		normal_float_to_short_v3(mv->no, no);
-	}
-	
-	MEM_freeN(temp_nors);
+	/* calculate face normals */
+	mesh_calc_normals(cddm->mvert, dm->numVertData, CDDM_get_faces(dm), dm->numFaceData, face_nors);
 }
 
 void CDDM_calc_edges(DerivedMesh *dm)

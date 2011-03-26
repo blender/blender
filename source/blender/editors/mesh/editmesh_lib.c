@@ -2001,36 +2001,53 @@ void recalc_editnormals(EditMesh *em)
 {
 	EditFace *efa;
 	EditVert *eve;
+	int found_flat= 0;
 
-	for(eve= em->verts.first; eve; eve=eve->next) {
-		eve->no[0] = eve->no[1] = eve->no[2] = 0.0;
-	}
+	for(eve= em->verts.first; eve; eve=eve->next)
+		zero_v3(eve->no);
 
 	for(efa= em->faces.first; efa; efa=efa->next) {
 		if(efa->v4) {
-			normal_quad_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+			normal_quad_v3(efa->n, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
 			cent_quad_v3(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
 		}
 		else {
-			normal_tri_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co);
+			normal_tri_v3(efa->n, efa->v1->co, efa->v2->co, efa->v3->co);
 			cent_tri_v3(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co);
 		}
 
-		if((efa->flag&ME_SMOOTH)!=0) {
+		if(efa->flag & ME_SMOOTH) {
 			float *n4= (efa->v4)? efa->v4->no: NULL;
 			float *c4= (efa->v4)? efa->v4->co: NULL;
 
 			accumulate_vertex_normals(efa->v1->no, efa->v2->no, efa->v3->no, n4,
 				efa->n, efa->v1->co, efa->v2->co, efa->v3->co, c4);
 		}
+		else
+			found_flat= 1;
 	}
 
-	for(efa= em->faces.first; efa; efa=efa->next) {
-		if((efa->flag&ME_SMOOTH)==0) {
-			if(is_zero_v3(efa->v1->no)) copy_v3_v3(efa->v1->no, efa->n);
-			if(is_zero_v3(efa->v2->no)) copy_v3_v3(efa->v2->no, efa->n);
-			if(is_zero_v3(efa->v3->no)) copy_v3_v3(efa->v3->no, efa->n);
-			if(efa->v4 && is_zero_v3(efa->v4->no)) copy_v3_v3(efa->v4->no, efa->n);
+	/* build smooth normals for uninitialized normals at faces set to flat */
+	if(found_flat!=0) {
+		for(efa= em->faces.first; efa; efa=efa->next) {
+			efa->v1->tmp.t= 0;
+			efa->v2->tmp.t= 0;
+			efa->v3->tmp.t= 0;
+			if(efa->v4) efa->v4->tmp.t= 0;
+
+			if(!(efa->flag & ME_SMOOTH)) {
+				if(is_zero_v3(efa->v1->no)) efa->v1->tmp.t= 1;
+				if(is_zero_v3(efa->v2->no)) efa->v2->tmp.t= 1;
+				if(is_zero_v3(efa->v3->no)) efa->v3->tmp.t= 1;
+				if(efa->v4 && is_zero_v3(efa->v4->no)) efa->v4->tmp.t= 1;
+			}
+		}
+
+		for(efa= em->faces.first; efa; efa=efa->next) {
+			if(efa->v1->tmp.t) add_v3_v3(efa->v1->no, efa->n);
+			if(efa->v2->tmp.t) add_v3_v3(efa->v2->no, efa->n);
+			if(efa->v3->tmp.t) add_v3_v3(efa->v3->no, efa->n);
+			if(efa->v4 && efa->v4->tmp.t) add_v3_v3(efa->v4->no, efa->n);
 		}
 	}
 

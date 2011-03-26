@@ -44,7 +44,7 @@ extern "C" {
  * and keep comment above the defines.
  * Use STRINGIFY() rather then defining with quotes */
 #define BLENDER_VERSION			256
-#define BLENDER_SUBVERSION		4
+#define BLENDER_SUBVERSION		5
 
 #define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0

@@ -7451,6 +7451,8 @@ static void mesh_set_smooth_faces(EditMesh *em, short smooth)
 			else efa->flag &= ~ME_SMOOTH;
 		}
 	}
+
+	recalc_editnormals(em);
 }
 
 static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *UNUSED(op))
