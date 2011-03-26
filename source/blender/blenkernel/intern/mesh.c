@@ -1306,16 +1306,16 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 	if(found_flat!=0) {
 		const int nr_bits= sizeof(int)*8;
 		const int nr_words= (numVerts+(nr_bits-1))/nr_bits;
-		int *bit_array= (int*)MEM_callocN(sizeof(int)*numVerts*nr_words, "temp buffer");
+		int *bit_array= (int*)MEM_callocN(sizeof(int)*MAX2(nr_words, 1), "temp buffer");
 
 		for(i=0; i<numFaces; i++) {
 			MFace *mf= &mfaces[i];
 
 			if(!(mf->flag & ME_SMOOTH)) {
-				if(is_zero_v3(tnorms[mf->v1])) bit_array[mf->v1>>nr_bits]|=(1<<(mf->v1&(nr_bits-1)));
-				if(is_zero_v3(tnorms[mf->v2])) bit_array[mf->v2>>nr_bits]|=(1<<(mf->v2&(nr_bits-1)));
-				if(is_zero_v3(tnorms[mf->v3])) bit_array[mf->v3>>nr_bits]|=(1<<(mf->v3&(nr_bits-1)));
-				if(mf->v4 && is_zero_v3(tnorms[mf->v4])) bit_array[mf->v4>>nr_bits]|=(1<<(mf->v4&(nr_bits-1)));
+				if(is_zero_v3(tnorms[mf->v1])) bit_array[mf->v1/nr_bits]|=(1<<(mf->v1&(nr_bits-1)));
+				if(is_zero_v3(tnorms[mf->v2])) bit_array[mf->v2/nr_bits]|=(1<<(mf->v2&(nr_bits-1)));
+				if(is_zero_v3(tnorms[mf->v3])) bit_array[mf->v3/nr_bits]|=(1<<(mf->v3&(nr_bits-1)));
+				if(mf->v4 && is_zero_v3(tnorms[mf->v4])) bit_array[mf->v4/nr_bits]|=(1<<(mf->v4&(nr_bits-1)));
 			}
 		}
 
@@ -1325,10 +1325,10 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 			if((mf->flag&ME_SMOOTH)==0) {
 				float *f_no= fnors[i];
 
-				if(bit_array[mf->v1>>nr_bits]&(1<<(mf->v1&(nr_bits-1)))) add_v3_v3(tnorms[mf->v1], f_no);
-				if(bit_array[mf->v2>>nr_bits]&(1<<(mf->v2&(nr_bits-1)))) add_v3_v3(tnorms[mf->v2], f_no);
-				if(bit_array[mf->v3>>nr_bits]&(1<<(mf->v3&(nr_bits-1)))) add_v3_v3(tnorms[mf->v3], f_no);
-				if(mf->v4 && bit_array[mf->v4>>nr_bits]&(1<<(mf->v4&(nr_bits-1)))) add_v3_v3(tnorms[mf->v4], f_no);
+				if(bit_array[mf->v1/nr_bits]&(1<<(mf->v1&(nr_bits-1)))) add_v3_v3(tnorms[mf->v1], f_no);
+				if(bit_array[mf->v2/nr_bits]&(1<<(mf->v2&(nr_bits-1)))) add_v3_v3(tnorms[mf->v2], f_no);
+				if(bit_array[mf->v3/nr_bits]&(1<<(mf->v3&(nr_bits-1)))) add_v3_v3(tnorms[mf->v3], f_no);
+				if(mf->v4 && bit_array[mf->v4/nr_bits]&(1<<(mf->v4&(nr_bits-1)))) add_v3_v3(tnorms[mf->v4], f_no);
 			}
 		}
 
