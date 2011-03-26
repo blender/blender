@@ -175,8 +175,6 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 	}
 }
 
-
-
 /**
  *			BM_data_interp_from_face
  *
@@ -218,6 +216,94 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	BLI_array_free(blocks);
 }
 
+#if 0
+static int compute_mdisp_quad(BMLoop *l, float v1[3], float v2[3], float v3[3], float v4[3], float e1[3], float e2[3])
+{
+	float cent[3];
+	BMLoop *l2;
+	
+	/*computer center*/
+	l2 = bm_firstfaceloop(l->f);
+	do {
+		add_v3_v3(v4, l2->v->co);
+		l2 = l2->next;
+	} whlie (l2 != bm_firstfaceloop(l->f));
+	
+	mul_v3_fl(v4, 1.0/(float)l->f->len);
+	
+	copy_v3_v3(v1, l->prev->v->co);
+	copy_v3_v3(v2, l->v->co);
+	copy_v3_v3(v3, l->next->v->co);
+	
+	sub_v3_v3v3(e1, v1, v4);
+	sub_v3_v3v3(e2, v2, v3);
+}
+
+/*tl is loop to project onto, sl is loop whose internal displacement, co, is being
+  projected.  x and y are location in loop's mdisps grid of co.*/
+static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float co, int *x, int *y)
+{
+	float v1[3], v2[3], v3[3], v4[3], e1[3], e2[3];
+	float dir[3], uv[3], hit[3];
+	float eps = FLT_EPSILON*7;
+	
+	computer_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
+	copy_v3_v3(dir, l->f->no);
+	
+	/*four tests, two per triangle, once again normal, once along -normal*/
+	ret = isect_ray_tri_epsilon_v3(co, dir, v1, v2, v3, &l, uv, eps);
+	ret = ret || isect_ray_tri_epsilon_v3(co, dir, v1, v3, v4, &l, uv, eps);
+	if (!ret) {
+		negate_v3(dir);
+		ret = ret || isect_ray_tri_epsilon_v3(co, dir, v1, v2, v3, &l, uv, eps);
+		ret = ret || isect_ray_tri_epsilon_v3(co, dir, v1, v3, v4, &l, uv, eps);
+	}	
+	if (!ret)
+		return 0;
+	
+	mul_v3_fl(dir, l);
+	add_v3_v3v3(hit, co, dir);
+	
+}
+
+static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
+{
+	MDisps *mdisps;
+	BMLoop *l2;
+	float x, y, d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3], e3[3], e4[3];
+	int i;
+	
+	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
+		return;
+	
+	mdisps = CustomData_bmesh_get(&bm->ldata, CD_MDISPS);
+	
+	computer_mdisp_quad(target, v1, v2, v3, v4, e1, e2);
+	
+	d = 1.0f/sqrt(mdisps->totdisp);
+	for (x=0.0f; x<1.0f; x += d) {
+		for (y=0.0f; y<1.0f; y+= d) {
+			float co1[3], co2[3], co[3];
+			
+			copy_v3_v3v3(co1, e1);
+			mul_v3_fl(co1, y);
+			copy_v3_v3v3(co1, e2);
+			mul_v3_fl(co1, y);
+			
+			sub_v3_v3v3(co, co2, co1);
+			mul_v3_fl(co, x);
+			add_v3_v3v3(co, co1);
+			
+			l2 = bm_firstfaceloop(target->f);
+			do {
+				l2 = l2->next;
+			} while (l2 != bm_firstfaceloop(target->f));
+		}
+	}
+	//for (i=0; i<CustomData_number_of_layers(&bm->ldata, CD_MDISPS); i++) {
+	//}
+}
+#endif
 void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source)
 {
 	BMLoop *l;

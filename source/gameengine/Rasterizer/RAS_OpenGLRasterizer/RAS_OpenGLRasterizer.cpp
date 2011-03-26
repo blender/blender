@@ -819,9 +819,6 @@ void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 		current_ms = &ms;
 		current_mesh = ms.m_mesh;
 		current_wireframe = wireframe;
-<<<<<<< .working
-		MCol *mcol = (MCol*)ms.m_pDerivedMesh->getTessFaceDataArray(ms.m_pDerivedMesh, CD_MCOL);
-=======
 		// MCol *mcol = (MCol*)ms.m_pDerivedMesh->getFaceDataArray(ms.m_pDerivedMesh, CD_MCOL); /* UNUSED */
 
 		// handle two-side
@@ -830,7 +827,6 @@ void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 		else
 			this->SetCullFace(true);
 
->>>>>>> .merge-right.r35190
 		if (current_polymat->GetFlag() & RAS_BLENDERGLSL) {
 			// GetMaterialIndex return the original mface material index, 
 			// increment by 1 to match what derived mesh is doing

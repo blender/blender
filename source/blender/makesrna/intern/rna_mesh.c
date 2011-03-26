@@ -55,6 +55,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_mesh.h"
+
 static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
@@ -1013,7 +1015,7 @@ static CustomDataLayer *rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext
 	CustomDataLayer *cdl= NULL;
 	int index;
 
-	if(ED_mesh_uv_texture_add(C, NULL, NULL, me, name, FALSE)) {
+	if(ED_mesh_uv_texture_add(C, me, name, FALSE)) {
 		pdata= rna_mesh_pdata(me);
 		index= CustomData_get_named_layer_index(pdata, CD_MTEXPOLY, name);
 		cdl= (index == -1)? NULL: &pdata->layers[index];

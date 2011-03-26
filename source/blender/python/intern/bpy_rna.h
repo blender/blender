@@ -27,6 +27,7 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 #include "BKE_idprop.h"
+#include <Python.h>
 
 extern PyTypeObject pyrna_struct_meta_idprop_Type;
 extern PyTypeObject pyrna_struct_Type;
