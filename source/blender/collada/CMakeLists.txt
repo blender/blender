@@ -43,7 +43,8 @@ if(APPLE)
 		${OPENCOLLADA_INC}/COLLADAStreamWriter
 		${OPENCOLLADA_INC}/COLLADABaseUtils
 		${OPENCOLLADA_INC}/COLLADAFramework
-		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader 
+		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader
+		${OPENCOLLADA_INC}/GeneratedSaxParser 
 	)
 else()
 	list(APPEND INC
