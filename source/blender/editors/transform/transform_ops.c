@@ -303,7 +303,7 @@ static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (mode == -1)
 		{
-			mode = RNA_int_get(op->ptr, "mode");
+			mode = RNA_enum_get(op->ptr, "mode");
 		}
 
 		retval = initTransform(C, t, op, event, mode);
