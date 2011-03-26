@@ -939,6 +939,10 @@ int main(int argc, char** argv)
 						}
 						app.StopGameEngine();
 
+						/* 'app' is freed automatic when out of scope. 
+						 * removal is needed else the system will free an already freed value */
+						system->removeEventConsumer(&app);
+
 						BLO_blendfiledata_free(bfd);
 					}
 				} while (exitcode == KX_EXIT_REQUEST_RESTART_GAME || exitcode == KX_EXIT_REQUEST_START_OTHER_GAME);

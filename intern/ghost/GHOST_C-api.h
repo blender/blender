@@ -262,7 +262,16 @@ extern int GHOST_DispatchEvents(GHOST_SystemHandle systemhandle);
  */
 extern GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle,
 											  GHOST_EventConsumerHandle consumerhandle);
-	
+
+/**
+ * Remove the given event consumer to our list.
+ * @param systemhandle The handle to the system
+ * @param consumerhandle The event consumer to remove.
+ * @return Indication of success.
+ */
+extern GHOST_TSuccess GHOST_RemoveEventConsumer(GHOST_SystemHandle systemhandle,
+											  GHOST_EventConsumerHandle consumerhandle);
+
 /***************************************************************************************
  ** Progress bar functionality
  ***************************************************************************************/
