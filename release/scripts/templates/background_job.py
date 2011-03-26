@@ -84,8 +84,6 @@ def main():
     usage_text = "Run blender in background mode with this script:"
     usage_text += "  blender --background --python " + __file__ + " -- [options]"
 
-    print(usage_text)
-
     parser = argparse.ArgumentParser(description=usage_text)
 
     # Example background utility, add some text and renders or saves it (with options)

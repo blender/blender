@@ -115,6 +115,12 @@ const int kMinWindowHeight = 100;
 
 char bprogname[FILE_MAX];
 
+static void mem_error_cb(const char *errorStr)
+{
+	fprintf(stderr, "%s", errorStr);
+	fflush(stderr);
+}
+
 #ifdef WIN32
 typedef enum 
 {
@@ -834,9 +840,10 @@ int main(int argc, char** argv)
 						
 						//					GPG_Application app (system, maggie, startscenename);
 						app.SetGameEngineData(maggie, scene, argc, argv); /* this argc cant be argc_py_clamped, since python uses it */
-						
 						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
-						BLI_strncpy(G.main->name, maggie->name, sizeof(G.main->name));
+						if(G.main != maggie) {
+							BLI_strncpy(G.main->name, maggie->name, sizeof(G.main->name));
+						}
 #ifdef WITH_PYTHON
 						setGamePythonPath(G.main->name);
 #endif
@@ -955,6 +962,13 @@ int main(int argc, char** argv)
 	free_nodesystem();
 
 	SYS_DeleteSystem(syshandle);
+
+	int totblock= MEM_get_memory_blocks_in_use();
+	if(totblock!=0) {
+		printf("Error Totblock: %d\n",totblock);
+		MEM_set_error_callback(mem_error_cb);
+		MEM_printmemlist();
+	}
 
 	return error ? -1 : 0;
 }
