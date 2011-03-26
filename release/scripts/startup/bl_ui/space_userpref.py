@@ -1100,6 +1100,12 @@ class WM_OT_addon_install(bpy.types.Operator):
 
             try:  # extract the file to "addons"
                 file_to_extract.extractall(path_addons)
+
+                # zip files can create this dir with metadata, don't need it
+                macosx_dir = os.path.join(path_addons, '__MACOSX')
+                if os.path.isdir(macosx_dir):
+                    shutil.rmtree(macosx_dir)
+
             except:
                 traceback.print_exc()
                 return {'CANCELLED'}
