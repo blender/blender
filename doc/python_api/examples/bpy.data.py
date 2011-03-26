@@ -14,7 +14,7 @@ print(bpy.data.scenes.keys())
 if "Cube" in bpy.data.meshes:
     mesh = bpy.data.meshes["Cube"]
     print("removing mesh", mesh)
-    bpy.data.meshes.unlink(mesh)
+    bpy.data.meshes.remove(mesh)
 
 
 # write images into a file next to the blend
@@ -22,6 +22,6 @@ import os
 file = open(os.path.splitext(bpy.data.filepath)[0] + ".txt", 'w')
 
 for image in bpy.data.images:
-    file.write("%s %dx%d\n" % (image.filepath, image.size[0], image.size[1]))
+    file.write("%s %d x %d\n" % (image.filepath, image.size[0], image.size[1]))
 
 file.close()

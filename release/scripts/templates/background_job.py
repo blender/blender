@@ -66,7 +66,7 @@ def example_function(body_text, save_path, render_path):
 
 
 import sys        # to get command line args
-import optparse    # to parse options for us and print a nice help message
+import argparse    # to parse options for us and print a nice help message
 
 
 def main():
@@ -84,16 +84,18 @@ def main():
     usage_text = "Run blender in background mode with this script:"
     usage_text += "  blender --background --python " + __file__ + " -- [options]"
 
-    parser = optparse.OptionParser(usage=usage_text)
+    print(usage_text)
+
+    parser = argparse.ArgumentParser(description=usage_text)
 
     # Example background utility, add some text and renders or saves it (with options)
     # Possible types are: string, int, long, choice, float and complex.
-    parser.add_option("-t", "--text", dest="body_text", help="This text will be used to render an image", type="string")
+    parser.add_argument("-t", "--text", dest="body_text", help="This text will be used to render an image", type=str, required=True)
 
-    parser.add_option("-s", "--save", dest="save_path", help="Save the generated file to the specified path", metavar='FILE')
-    parser.add_option("-r", "--render", dest="render_path", help="Render an image to the specified path", metavar='FILE')
+    parser.add_argument("-s", "--save", dest="save_path", help="Save the generated file to the specified path", metavar='FILE')
+    parser.add_argument("-r", "--render", dest="render_path", help="Render an image to the specified path", metavar='FILE')
 
-    options, args = parser.parse_args(argv)  # In this example we wont use the args
+    options = parser.parse_args(argv)  # In this example we wont use the args
 
     if not argv:
         parser.print_help()
