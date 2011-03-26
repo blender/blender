@@ -170,6 +170,15 @@ def update_data_paths(rna_update):
                 continue
 
             for fcurve in anim_data.drivers:
+                data_path = fcurve.data_path
+                data_path_new = find_path_new(anim_data_base, data_path, rna_update_dict, rna_update_from_map)
+                # print(data_path_new)
+                if data_path_new != data_path:
+                    if not IS_TESTING:
+                        fcurve.data_path = data_path_new
+                        fcurve.driver.is_valid = True; # reset to allow this to work again
+                    print("driver-fcurve (%s): %s -> %s" % (id_data.name, data_path, data_path_new))
+
                 for var in fcurve.driver.variables:
                     if var.type == 'SINGLE_PROP':
                         for tar in var.targets:

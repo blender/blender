@@ -1687,7 +1687,16 @@ static int animchannels_enable_exec (bContext *C, wmOperator *UNUSED(op))
 	/* loop through filtered data and clean curves */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu = (FCurve *)ale->data;
+		
+		/* remove disabled flags from F-Curves */
 		fcu->flag &= ~FCURVE_DISABLED;
+		
+		/* for drivers, let's do the same too */
+		if (fcu->driver)
+			fcu->driver->flag &= ~DRIVER_FLAG_INVALID;
+			
+		/* tag everything for updates - in particular, this is needed to get drivers working again */
+		ANIM_list_elem_update(ac.scene, ale);
 	}
 	
 	/* free temp data */
