@@ -1321,15 +1321,12 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 
 		for(i=0; i<numFaces; i++) {
 			MFace *mf= &mfaces[i];
+			float *f_no= fnors[i];
 
-			if((mf->flag&ME_SMOOTH)==0) {
-				float *f_no= fnors[i];
-
-				if(bit_array[mf->v1/nr_bits]&(1<<(mf->v1&(nr_bits-1)))) add_v3_v3(tnorms[mf->v1], f_no);
-				if(bit_array[mf->v2/nr_bits]&(1<<(mf->v2&(nr_bits-1)))) add_v3_v3(tnorms[mf->v2], f_no);
-				if(bit_array[mf->v3/nr_bits]&(1<<(mf->v3&(nr_bits-1)))) add_v3_v3(tnorms[mf->v3], f_no);
-				if(mf->v4 && bit_array[mf->v4/nr_bits]&(1<<(mf->v4&(nr_bits-1)))) add_v3_v3(tnorms[mf->v4], f_no);
-			}
+			if(bit_array[mf->v1/nr_bits]&(1<<(mf->v1&(nr_bits-1)))) add_v3_v3(tnorms[mf->v1], f_no);
+			if(bit_array[mf->v2/nr_bits]&(1<<(mf->v2&(nr_bits-1)))) add_v3_v3(tnorms[mf->v2], f_no);
+			if(bit_array[mf->v3/nr_bits]&(1<<(mf->v3&(nr_bits-1)))) add_v3_v3(tnorms[mf->v3], f_no);
+			if(mf->v4 && bit_array[mf->v4/nr_bits]&(1<<(mf->v4&(nr_bits-1)))) add_v3_v3(tnorms[mf->v4], f_no);
 		}
 
 		MEM_freeN(bit_array);
