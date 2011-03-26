@@ -331,7 +331,7 @@ static char *shapekey_adrcodes_to_paths (int adrcode, int *UNUSED(array_index))
 	if (adrcode == 0) 
 		sprintf(buf, "speed");
 	else
-		sprintf(buf, "keys[%d].value", adrcode);
+		sprintf(buf, "key_blocks[%d].value", adrcode);
 	return buf;
 }
 
