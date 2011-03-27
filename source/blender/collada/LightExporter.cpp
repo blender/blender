@@ -176,6 +176,31 @@ bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Lamp *la)
 	cla.addExtraTechniqueParameter("blender", "filtertype", la->filtertype);
 	cla.addExtraTechniqueParameter("blender", "bufflag", la->bufflag);
 	cla.addExtraTechniqueParameter("blender", "buftype", la->buftype);
+	cla.addExtraTechniqueParameter("blender", "ray_samp", la->ray_samp);
+	cla.addExtraTechniqueParameter("blender", "ray_sampy", la->ray_sampy);
+	cla.addExtraTechniqueParameter("blender", "ray_sampz", la->ray_sampz);
+	cla.addExtraTechniqueParameter("blender", "ray_samp_type", la->ray_samp_type);
+	cla.addExtraTechniqueParameter("blender", "area_shape", la->area_shape);
+	cla.addExtraTechniqueParameter("blender", "area_size", la->area_size);
+	cla.addExtraTechniqueParameter("blender", "area_sizey", la->area_sizey);
+	cla.addExtraTechniqueParameter("blender", "area_sizez", la->area_sizez);
+	cla.addExtraTechniqueParameter("blender", "adapt_thresh", la->adapt_thresh);
+	cla.addExtraTechniqueParameter("blender", "ray_samp_method", la->ray_samp_method);
+	cla.addExtraTechniqueParameter("blender", "shadhalostep", la->shadhalostep);
+	cla.addExtraTechniqueParameter("blender", "sun_effect_type", la->shadhalostep);
+	cla.addExtraTechniqueParameter("blender", "skyblendtype", la->skyblendtype);
+	cla.addExtraTechniqueParameter("blender", "horizon_brightness", la->horizon_brightness);
+	cla.addExtraTechniqueParameter("blender", "spread", la->spread);
+	cla.addExtraTechniqueParameter("blender", "sun_brightness", la->sun_brightness);
+	cla.addExtraTechniqueParameter("blender", "sun_size", la->sun_size);
+	cla.addExtraTechniqueParameter("blender", "backscattered_light", la->backscattered_light);
+	cla.addExtraTechniqueParameter("blender", "sun_intensity", la->sun_intensity);
+	cla.addExtraTechniqueParameter("blender", "atm_turbidity", la->atm_turbidity);
+	cla.addExtraTechniqueParameter("blender", "atm_extinction_factor", la->atm_extinction_factor);
+	cla.addExtraTechniqueParameter("blender", "atm_distance_factor", la->atm_distance_factor);
+	cla.addExtraTechniqueParameter("blender", "skyblendfac", la->skyblendfac);
+	cla.addExtraTechniqueParameter("blender", "sky_exposure", la->sky_exposure);
+	cla.addExtraTechniqueParameter("blender", "sky_colorspace", la->sky_colorspace);
 	
 	return true;
 }
