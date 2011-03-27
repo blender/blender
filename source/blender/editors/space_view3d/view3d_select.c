@@ -296,7 +296,7 @@ int lasso_inside(short mcords[][2], short moves, short sx, short sy)
 
 		cross= (float)((p1[1]-p2[1])*(p1[0]-sx) + (p2[0]-p1[0])*(p1[1]-sy));
 		
-		if(cross<0.0) angletot-= ang;
+		if(cross<0.0f) angletot-= ang;
 		else angletot+= ang;
 		
 		/* circulate */
@@ -1926,7 +1926,7 @@ static void mesh_circle_select(ViewContext *vc, int select, short *mval, float r
 	int bbsel;
 	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 	
-	bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
+	bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 
 	vc->em= ((Mesh *)vc->obedit->data)->edit_mesh;
@@ -1974,7 +1974,7 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, short *mval
 	if (me) {
 		em_vertoffs= me->totface+1;	/* max index array */
 
-		bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
+		bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
 		EM_backbuf_checkAndSelectTFaces(me, select==LEFTMOUSE);
 		EM_free_backbuf();
 	}
