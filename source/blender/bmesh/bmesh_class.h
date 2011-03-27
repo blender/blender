@@ -255,10 +255,7 @@ typedef struct BMesh {
 	ListBase errorstack;
 } BMesh;
 
-void BM_Copy_Vert(BMesh *bm, BMVert *destv, BMVert *source);
-void BM_Copy_Edge(BMesh *bm, BMEdge *deste, BMEdge *source);
-void BM_Copy_Loop(BMesh *bm, BMLoop *destl, BMLoop *source);
-void BM_Copy_Face(BMesh *bm, BMFace *destf, BMFace *source);
+BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts);
 
 #define LAYER_BASE	1
 #define LAYER_TOOL	2

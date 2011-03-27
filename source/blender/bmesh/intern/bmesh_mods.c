@@ -9,6 +9,7 @@
 #include "BLI_math.h"
 #include "BLI_array.h"
 #include "BLI_utildefines.h"
+#include "BLI_smallhash.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
@@ -289,12 +290,41 @@ BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
 
 BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl, BMEdge *UNUSED(example))
 {
-	BMFace *nf;
-	nf = bmesh_sfme(bm,f,v1,v2,nl, NULL);
+	BMFace *nf, *of;
+	
+	/*do we have a multires layer?*/
+	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+		of = BM_Copy_Face(bm, f, 0, 0);
+	}
+	
+	nf = bmesh_sfme(bm, f, v1, v2, nl, NULL);
 	
 	if (nf) {
 		BM_Copy_Attributes(bm, bm, f, nf);
 		copy_v3_v3(nf->no, f->no);
+	}
+	
+	/*handle multires update*/
+	if (nf && nf != f && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+		BMLoop *l;
+		
+		l = bm_firstfaceloop(f);
+		do {
+			BM_loop_interp_from_face(bm, l, of);
+			l = l->next;
+		} while (l != bm_firstfaceloop(f));
+
+		l = bm_firstfaceloop(nf);
+		do {
+			BM_loop_interp_from_face(bm, l, of);
+			l = l->next;
+		} while (l != bm_firstfaceloop(nf));
+		
+		BM_Kill_Face(bm, of);
+		
+		BM_multires_smooth_bounds(bm, f);
+		if (nf) 
+			BM_multires_smooth_bounds(bm, nf);
 	}
 
 	return nf;
@@ -307,8 +337,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  *  onto a vertex it shares an edge with. Fac defines
  *  the amount of interpolation for Custom Data.
  *
- *  Note that this is not a general edge collapse function. For
- *  that see BM_manifold_edge_collapse 
+ *  Note that this is not a general edge collapse function.
  *
  *  TODO:
  *    Insert error checking for KV valance.
@@ -318,7 +347,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  */
  
 void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
-	BMFace **faces = NULL, *f;
+	BMFace **faces = NULL, **oldfaces=NULL, *f;
 	BLI_array_staticdeclare(faces, 8);
 	BMIter iter;
 	BMLoop *l=NULL, *kvloop=NULL, *tvloop=NULL;
@@ -347,7 +376,7 @@ void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 	BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, kv) {
 		BLI_array_append(faces, f);
 	}
-
+	
 	BM_Data_Interp_From_Verts(bm, kv, tv, kv, fac);
 
 	//bmesh_jekv(bm,ke,kv);
@@ -407,6 +436,7 @@ void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 		i = 0;
 		do {
 			BM_Copy_Attributes(bm, bm, loops[i], l);
+			BM_loop_interp_multires(bm, loops[i], l->f);
 			i++;
 			l = l->next;
 		} while (l != bm_firstfaceloop(f2));
@@ -445,6 +475,34 @@ void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 
 BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percent) {
 	BMVert *nv, *v2;
+	BMFace **oldfaces = NULL;
+	BMEdge *dummy;
+	BLI_array_staticdeclare(oldfaces, 32);
+	SmallHash hash;
+
+	/*we need this for handling multires*/	
+	if (!ne) 
+		ne = &dummy;
+
+	/*do we have a multires layer?*/
+	if (CustomData_has_layer(&bm->ldata, CD_MDISPS) && e->l) {
+		BMLoop *l;
+		int i;
+		
+		l = e->l;
+		do {
+			BLI_array_append(oldfaces, l->f);
+			l = l->radial_next;
+		} while (l != e->l);
+		
+		/*create a hash so we can differentiate oldfaces from new faces*/
+		BLI_smallhash_init(&hash);
+		
+		for (i=0; i<BLI_array_count(oldfaces); i++) {
+			oldfaces[i] = BM_Copy_Face(bm, oldfaces[i], 1, 1);
+			BLI_smallhash_insert(&hash, (intptr_t)oldfaces[i], NULL);
+		}		
+	}
 
 	v2 = bmesh_edge_getothervert(e,v);
 	nv = bmesh_semv(bm,v,e,ne);
@@ -461,6 +519,63 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 	/*v->nv->v2*/
 	BM_Data_Facevert_Edgeinterp(bm,v2, v, nv, e, percent);	
 	BM_Data_Interp_From_Verts(bm, v2, v, nv, percent);
+
+	if (CustomData_has_layer(&bm->ldata, CD_MDISPS) && e->l && nv) {
+		int i, j;
+		
+		/*interpolate new/changed loop data from copied old faces*/
+		for (j=0; j<2; j++) {
+			for (i=0; i<BLI_array_count(oldfaces); i++) {
+				BMEdge *e1 = j ? *ne : e;
+				BMLoop *l, *l2;
+				
+				l = e1->l;
+				if (!l) {
+					bmesh_error();
+					break;
+				}
+				
+				do {
+					if (!BLI_smallhash_haskey(&hash, (intptr_t)l->f)) {
+						l2 = bm_firstfaceloop(l->f);
+						do {
+							BM_loop_interp_multires(bm, l2, oldfaces[i]);
+							l2 = l2->next;
+						} while (l2 != bm_firstfaceloop(l->f));
+					}
+					l = l->radial_next;
+				} while (l != e1->l);
+			}
+		}
+		
+		/*destroy the old faces*/
+		for (i=0; i<BLI_array_count(oldfaces); i++) {
+			BM_Kill_Face_Verts(bm, oldfaces[i]);
+		}
+		
+		/*fix boundaries a bit, doesn't work too well quite yet*/
+#if 0
+		for (j=0; j<2; j++) {
+			BMEdge *e1 = j ? *ne : e;
+			BMLoop *l, *l2;
+			
+			l = e1->l;
+			if (!l) {
+				bmesh_error();
+				break;
+			}
+			
+			do {
+				BM_multires_smooth_bounds(bm, l->f);				
+				l = l->radial_next;
+			} while (l != e1->l);
+		}
+#endif
+		
+		BLI_array_free(oldfaces);
+		BLI_smallhash_release(&hash);
+	}
+	
 	return nv;
 }
 

@@ -187,11 +187,11 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 
 extern int EM_view3d_poll(struct bContext *C);
 
-/* ******************* editmesh_loop.c */
+/* ******************* knifetool.c */
 
 void MESH_OT_knife_cut(struct wmOperatorType *ot);
 
-/* ******************* editmesh_mods.c */
+/* ******************* bmesh_select.c */
 void MESH_OT_loop_select(struct wmOperatorType *ot);
 void MESH_OT_select_all(struct wmOperatorType *ot);
 void MESH_OT_bmesh_test(struct wmOperatorType *ot);
@@ -221,7 +221,8 @@ void MESH_OT_noise(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
 void MESH_OT_solidify(struct wmOperatorType *ot);
 void MESH_OT_select_nth(struct wmOperatorType *ot);
-
+void MESH_OT_select_next_loop(struct wmOperatorType *ot);
+		
 #define SUBDIV_SELECT_ORIG      0
 #define SUBDIV_SELECT_INNER     1
 #define SUBDIV_SELECT_INNER_SEL 2

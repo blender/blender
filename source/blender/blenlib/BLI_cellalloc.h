@@ -27,20 +27,14 @@
  */
 
 /*
-	I wrote this as a hack so vgroups won't be quite so slow.  I really
-	should replace it with something else, but I need to spend some time
-	thinking as to what the proper solution would be (other then totally
-	rewriting vgroups, of course).
-
-	this is just a simple allocator that spawns mempools for unique size
-	requests.  hardly ideal, I know.  *something* like this may be
-	unavoidable, but it should certainly be possible to make it
-	non-global and internal to the vgroup code.
-
-	-joeedh sep. 17 2009
+ this evil bit of code is necassary for vgroups and multires to run fast
+ enough.  it is surprisingly tricky allocate MDeformWeights and MDisps in
+ a way that doesn't cause severe performance problems.  once a better solution
+ is found we can get rid of this code, but until then this is necassary
+ (though, disabling it if jedmalloc is in use might be feasible).
+ 
+ - joeedh
 */
-
-//BMESH_TODO: kill this library before merging with trunk.  it's evil! -joeedh
 
 void *BLI_cellalloc_malloc(long size, const char *tag);
 void *BLI_cellalloc_calloc(long size, const char *tag);

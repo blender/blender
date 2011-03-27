@@ -158,7 +158,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(edges);
 	SmallHash hash;
 	float fac = BMO_Get_Float(op, "percent");
-	int i;
+	int i, HasMDisps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 	
 	BLI_smallhash_init(&hash);
 	
@@ -641,12 +641,21 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				if (!BMO_TestFlag(bm, l2->f, FACE_NEW) || (l2->v != tag->newv && l2->v != l->v))
 					continue;
 				
-				if (tag->newv != l->v) {
+				if (tag->newv != l->v || HasMDisps) {
 					BM_Copy_Attributes(bm, bm, l->f, l2->f);
-					BM_loop_interp_from_face(bm, l2, f);
+					BM_loop_interp_from_face(bm, l2, l->f);
 				} else {
 					BM_Copy_Attributes(bm, bm, l->f, l2->f);
 					BM_Copy_Attributes(bm, bm, l, l2);
+				}
+				
+				if (HasMDisps) {
+					BMLoop *l3;
+					BMIter liter3;
+					
+					BM_ITER(l3, &liter3, bm, BM_LOOPS_OF_FACE, l2->f) {
+						BM_loop_interp_multires(bm, l3, l->f);
+					}
 				}
 			}
 		}
@@ -673,11 +682,23 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				continue;
 			
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
-				BMLoop *l2 = l->v == v ? l : l->next; //, *l3;
+				BMLoop *l2 = l->v == v ? l : l->next;
 				
 				BM_Copy_Attributes(bm, bm, lorig->f, l2->f);
 				BM_Copy_Attributes(bm, bm, lorig, l2);
 			}
+#if 0
+			if (HasMDisps) {
+				BMLoop *l2;
+				BMIter liter2;
+				
+				BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+					BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, l->f) {
+						BM_loop_interp_multires(bm, l2, lorig->f);
+					}
+				}
+			}
+#endif
 		}
 	}
 

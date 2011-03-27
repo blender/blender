@@ -105,8 +105,9 @@ BMVert *BM_Make_Vert(BMesh *bm, float co[3], struct BMVert *example) {
 	
 	inherit_vert(bm, v);
 	
-	if (example)
+	if (example) {
 		BM_Copy_Attributes(bm, bm, (BMVert*)example, (BMVert*)v);
+	}
 
 	CHECK_ELEMENT(bm, v);
 
@@ -220,6 +221,67 @@ BMLoop *BM_Add_FaceBoundary(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte
 	}
 	
 	return l;	
+}
+
+BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts)
+{
+	BMEdge **edges = NULL;
+	BMVert **verts = NULL;
+	BLI_array_staticdeclare(edges, 256);
+	BLI_array_staticdeclare(verts, 256);
+	BMLoop *l, *l2;
+	BMFace *f2;
+	int i;
+
+	l = bm_firstfaceloop(f);
+	do {
+		if (copyverts) {
+			BMVert *v = BM_Make_Vert(bm, l->v->co, l->v);
+			BLI_array_append(verts, v);
+		} else {	
+			BLI_array_append(verts, l->v);
+		}
+		l = l->next;
+	} while (l != bm_firstfaceloop(f));
+
+	l = bm_firstfaceloop(f);
+	i = 0;
+	do {
+		if (copyedges) {
+			BMEdge *e;
+			BMVert *v1, *v2;
+			
+			if (l->e->v1 == verts[i]) {
+				v1 = verts[i];
+				v2 = verts[(i+1)%f->len];
+			} else {
+				v2 = verts[i];
+				v1 = verts[(i+1)%f->len];
+			}
+			
+			e = BM_Make_Edge(bm,  v1, v2, l->e, 0);
+			BLI_array_append(edges, e);
+		} else {
+			BLI_array_append(edges, l->e);
+		}
+		
+		i++;
+		l = l->next;
+	} while (l != bm_firstfaceloop(f));
+	
+	f2 = BM_Make_Face(bm, verts, edges, f->len);
+	
+	BM_Copy_Attributes(bm, bm, f, f2);
+	
+	l = bm_firstfaceloop(f);
+	l2 = bm_firstfaceloop(f2);
+	do {
+		BM_Copy_Attributes(bm, bm, l, l2);
+		l = l->next;
+		l2 = l2->next;
+	} while (l != bm_firstfaceloop(f));
+	
+	return f2;
 }
 
 BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len) {
@@ -418,6 +480,44 @@ void bmesh_kill_loop(BMesh *bm, BMLoop *l) {
 	}
 
 	BLI_mempool_free(bm->lpool, l);
+}
+
+void BM_Kill_Face_Edges(BMesh *bm, BMFace *f) {
+	BMEdge **edges = NULL;
+	BLI_array_staticdeclare(edges, 256);
+	BMLoop *l;
+	int i;
+	
+	l = bm_firstfaceloop(f);
+	do {
+		BLI_array_append(edges, l->e);
+		l = l->next;
+	} while (l != bm_firstfaceloop(f));
+	
+	for (i=0; i<BLI_array_count(edges); i++) {
+		BM_Kill_Edge(bm, edges[i]);
+	}
+	
+	BLI_array_free(edges);
+}
+
+void BM_Kill_Face_Verts(BMesh *bm, BMFace *f) {
+	BMVert**verts = NULL;
+	BLI_array_staticdeclare(verts, 256);
+	BMLoop *l;
+	int i;
+	
+	l = bm_firstfaceloop(f);
+	do {
+		BLI_array_append(verts, l->v);
+		l = l->next;
+	} while (l != bm_firstfaceloop(f));
+	
+	for (i=0; i<BLI_array_count(verts); i++) {
+		BM_Kill_Vert(bm, verts[i]);
+	}
+	
+	BLI_array_free(verts);
 }
 
 void BM_Kill_Face(BMesh *bm, BMFace *f) {
@@ -857,6 +957,18 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 	bmesh_clear_systag_elements(bm, faces, totface, _FLAG_JF);
 	bmesh_api_clearflag(newf, _FLAG_JF);
 
+	/* handle multires data*/
+	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+		l = bm_firstfaceloop(newf);
+		do {
+			for (i=0; i<totface; i++) {
+				BM_loop_interp_multires(bm, l, faces[i]);
+			}
+			
+			l = l->next;
+		} while (l != bm_firstfaceloop(newf));
+	}	
+
 	/*delete old geometry*/
 	for (i=0; i<BLI_array_count(deledges); i++) {
 		BM_Kill_Edge(bm, deledges[i]);
@@ -965,7 +1077,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 				   BMLoop **rl, ListBase *holes)
 {
 
-	BMFace *f2;
+	BMFace *f2, *of1, *of2;
 	BMLoop *v1loop = NULL, *v2loop = NULL, *curloop, *f1loop=NULL, *f2loop=NULL;
 	BMEdge *e;
 	BMLoopList *lst, *lst2;
@@ -1047,7 +1159,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	CHECK_ELEMENT(bm, e);
 	CHECK_ELEMENT(bm, f);
 	CHECK_ELEMENT(bm, f2);
-
+	
 	return f2;
 }
 

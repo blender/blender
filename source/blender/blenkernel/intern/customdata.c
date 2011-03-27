@@ -462,9 +462,13 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 	float (*disps)[3], (*out)[3];
 
 	/* happens when flipping normals of newly created mesh */
-	if(!d->totdisp)
-		return;
-
+	if(!d->totdisp) {
+		d->totdisp = ((MDisps*)sources[0])->totdisp;
+	}
+	
+	if (!d->disps && d->totdisp)
+		d->disps = BLI_cellalloc_calloc(sizeof(float)*3*d->totdisp, "blank mdisps in layerInterp_mdisps");
+#if 0	
 	s = sources[0];
 	dst_corners = multires_mdisp_corners(d);
 	src_corners = multires_mdisp_corners(s);
@@ -561,6 +565,7 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 
 	BLI_cellalloc_free(d->disps);
 	d->disps = disps;
+#endif
 }
 
 static void layerCopy_mdisps(const void *source, void *dest, int count)
@@ -1457,7 +1462,7 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 			return NULL;
 	}
 
-	if (alloctype == CD_DUPLICATE) {
+	if (alloctype == CD_DUPLICATE && layerdata) {
 		if(typeInfo->copy)
 			typeInfo->copy(layerdata, newlayerdata, totelem);
 		else
@@ -2229,6 +2234,8 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *l
 		}
 		else if(fdata->layers[i].type == CD_MCOL)
 			CustomData_add_layer(ldata, CD_MLOOPCOL, CD_CALLOC, &(fdata->layers[i].name), totloop);
+		else if(fdata->layers[i].type == CD_MDISPS) 
+			CustomData_add_layer(ldata, CD_MDISPS, CD_CALLOC, &(fdata->layers[i].name), totloop);
 	}
 }
 void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total){

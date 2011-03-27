@@ -53,53 +53,35 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 	BMIter liter, liter2, liter3;
 	BMLoop *l, *l2, *l3;
 	BMFace *f, *f2 /* , *nf = NULL */;
-	BLI_array_declare(region);
+	BLI_array_declare(faces);
 	BLI_array_declare(regions);
-	BMLoop ***regions = NULL;
-	BMLoop **region = NULL;
+	BMFace ***regions = NULL;
+	BMFace **faces = NULL;
 	BMWalker regwalker;
 	int i, j, fcopied;
 
 	BMO_Flag_Buffer(bm, op, "faces", FACE_MARK, BM_FACE);
 	
 	/*collect regions*/
-	f = BMO_IterNew(&oiter, bm, op, "faces", BM_FACE);
-	for (; f; f=BMO_IterStep(&oiter)) {
+	BMO_ITER(f, &oiter, bm, op, "faces", BM_FACE) {
 		if (!BMO_TestFlag(bm, f, FACE_MARK)) continue;
 
-		BLI_array_empty(region);
-		region = NULL; /*forces different allocation*/
+		BLI_array_empty(faces);
+		faces = NULL; /*forces different allocation*/
 
 		/*yay, walk!*/
 		BMW_Init(&regwalker, bm, BMW_ISLAND, FACE_MARK, 0);
 		f2 = BMW_Begin(&regwalker, f);
 		for (; f2; f2=BMW_Step(&regwalker)) {
-			l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_FACE, f2);
-			for (; l2; l2=BMIter_Step(&liter2)) {
-				l3 = BMIter_New(&liter3, bm, BM_LOOPS_OF_LOOP, l2);
-				for (; l3; l3=BMIter_Step(&liter3)) {
-					if (!BMO_TestFlag(bm, l3->f, FACE_MARK)) {
-						BLI_array_growone(region);
-						region[BLI_array_count(region)-1] = l2;
-						break;
-					}
-				}
-				if (bmesh_radial_nextloop(l2) == l2) {
-					BLI_array_growone(region);
-					region[BLI_array_count(region)-1] = l2;
-				}
-			}
+			BLI_array_append(faces, f2);
 		}				
 		BMW_End(&regwalker);
-
-		BMW_Init(&regwalker, bm, BMW_ISLAND, FACE_MARK, 0);
-		f2 = BMW_Begin(&regwalker, f);
-		for (; f2; f2=BMW_Step(&regwalker)) {
+		
+		for (i=0; i<BLI_array_count(faces); i++) {
+			f2 = faces[i];
 			BMO_ClearFlag(bm, f2, FACE_MARK);
 			BMO_SetFlag(bm, f2, FACE_ORIG);
 		}
-
-		BMW_End(&regwalker);
 
 		if (BMO_HasError(bm)) {
 			BMO_ClearStack(bm);
@@ -107,35 +89,25 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 			goto cleanup;
 		}
 		
-		BLI_array_growone(region);
-		BLI_array_growone(regions);
-		regions[BLI_array_count(regions)-1] = region;
-		region[BLI_array_count(region)-1] = NULL;
+		BLI_array_append(faces, NULL);
+		BLI_array_append(regions, faces);
 	}
 	
 	for (i=0; i<BLI_array_count(regions); i++) {
-		BMEdge **edges = NULL;
-		BLI_array_declare(edges);
-
-		region = regions[i];
-		for (j=0; region[j]; j++) {
-			BLI_array_growone(edges);
-			edges[BLI_array_count(edges)-1] = region[j]->e;
-		}
+		int tot=0;
 		
-		if (!region[0]) {
+		faces = regions[i];
+		if (!faces[0]) {
 			BMO_RaiseError(bm, op, BMERR_DISSOLVEFACES_FAILED, 
 			                "Could not find boundary of dissolve region");
 			goto cleanup;
 		}
-
-		if (region[0]->e->v1 == region[0]->v)
-			f= BM_Make_Ngon(bm, region[0]->e->v1, region[0]->e->v2,  edges, j, 1);
-		else
-			f= BM_Make_Ngon(bm, region[0]->e->v2, region[0]->e->v1,  edges, j, 1);
 		
-		BLI_array_free(edges);
-
+		/**/
+		while (faces[tot])
+			tot++;
+		
+		f = BM_Join_Faces(bm, faces, tot);
 		if (!f) {
 			BMO_RaiseError(bm, op, BMERR_DISSOLVEFACES_FAILED, 
 			                "Could not create merged face");
@@ -147,32 +119,6 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		BMO_ClearFlag(bm, f, FACE_ORIG);
 		BMO_SetFlag(bm, f, FACE_NEW);
 
-		fcopied = 0;
-		l=BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
-		for (; l; l=BMIter_Step(&liter)) {
-			/*ensure winding is identical*/
-			l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_LOOP, l);
-			for (; l2; l2=BMIter_Step(&liter2)) {
-				if (BMO_TestFlag(bm, l2->f, FACE_ORIG)) {
-					if (l2->v != l->v)
-						bmesh_loop_reverse(bm, l2->f);
-					break;
-				}
-			}
-			
-			/*copy over attributes*/
-			l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_LOOP, l);
-			for (; l2; l2=BMIter_Step(&liter2)) {
-				if (BMO_TestFlag(bm, l2->f, FACE_ORIG)) {
-					if (!fcopied) {
-						BM_Copy_Attributes(bm, bm, l2->f, f);
-						fcopied = 1;
-					}
-					BM_Copy_Attributes(bm, bm, l2, l);
-					break;
-				}
-			}
-		}
 	}
 
 	BMO_CallOpf(bm, "del geom=%ff context=%d", FACE_ORIG, DEL_FACES);

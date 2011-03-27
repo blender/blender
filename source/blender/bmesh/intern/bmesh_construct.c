@@ -413,6 +413,7 @@ void BM_remove_tagged_verts(BMesh *bm, int flag)
 
 static void bm_copy_vert_attributes(BMesh *source_mesh, BMesh *target_mesh, BMVert *source_vertex, BMVert *target_vertex)
 {
+	copy_v3_v3(target_vertex->no, source_vertex->no);
 	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata, source_vertex->head.data, &target_vertex->head.data);	
 }
 
@@ -428,6 +429,7 @@ static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh, BMLo
 
 static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh, BMFace *source_face, BMFace *target_face)
 {
+	copy_v3_v3(target_face->no, source_face->no);
 	CustomData_bmesh_copy_data(&source_mesh->pdata, &target_mesh->pdata, source_face->head.data, &target_face->head.data);	
 	target_face->mat_nr = source_face->mat_nr;
 }

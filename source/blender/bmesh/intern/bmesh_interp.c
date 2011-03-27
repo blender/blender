@@ -37,9 +37,11 @@
 
 #include "BKE_customdata.h" 
 #include "BKE_utildefines.h"
+#include "BKE_multires.h"
 
 #include "BLI_array.h"
 #include "BLI_math.h"
+#include "BLI_cellalloc.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
@@ -216,54 +218,184 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	BLI_array_free(blocks);
 }
 
-#if 0
+/***** multires interpolation*****
+
+mdisps is a grid of displacements, ordered thus:
+
+v1/center -- v4/next -> x
+|                 |
+|				  |
+v2/prev ---- v3/cur
+|
+V
+
+y
+*/
 static int compute_mdisp_quad(BMLoop *l, float v1[3], float v2[3], float v3[3], float v4[3], float e1[3], float e2[3])
 {
-	float cent[3];
+	float cent[3] = {0.0f, 0.0f, 0.0f}, n[3], p[3];
 	BMLoop *l2;
 	
 	/*computer center*/
 	l2 = bm_firstfaceloop(l->f);
 	do {
-		add_v3_v3(v4, l2->v->co);
+		add_v3_v3(cent, l2->v->co);
 		l2 = l2->next;
-	} whlie (l2 != bm_firstfaceloop(l->f));
+	} while (l2 != bm_firstfaceloop(l->f));
 	
-	mul_v3_fl(v4, 1.0/(float)l->f->len);
+	mul_v3_fl(cent, 1.0/(float)l->f->len);
 	
-	copy_v3_v3(v1, l->prev->v->co);
-	copy_v3_v3(v2, l->v->co);
-	copy_v3_v3(v3, l->next->v->co);
+	add_v3_v3v3(p, l->prev->v->co, l->v->co);
+	mul_v3_fl(p, 0.5);
+	add_v3_v3v3(n, l->next->v->co, l->v->co);
+	mul_v3_fl(n, 0.5);
 	
-	sub_v3_v3v3(e1, v1, v4);
-	sub_v3_v3v3(e2, v2, v3);
+	copy_v3_v3(v1, cent);
+	copy_v3_v3(v2, p);
+	copy_v3_v3(v3, l->v->co);
+	copy_v3_v3(v4, n);
+	
+	sub_v3_v3v3(e1, v2, v1);
+	sub_v3_v3v3(e2, v3, v4);
+	
+	return 1;
 }
+
+
+int isect_ray_tri_threshold_v3_uvw(float p1[3], float d[3], float _v0[3], float _v1[3], float _v2[3], float *lambda, float uv[3], float threshold)
+{
+	float p[3], s[3], e1[3], e2[3], q[3];
+	float a, f, u, v;
+	float du = 0, dv = 0;
+	float v0[3], v1[3], v2[3], c[3];
+	
+	/*expand triange a bit*/
+	cent_tri_v3(c, _v0, _v1, _v2);
+	sub_v3_v3v3(v0, _v0, c);
+	sub_v3_v3v3(v1, _v1, c);
+	sub_v3_v3v3(v2, _v2, c);
+	mul_v3_fl(v0, 1.0+threshold);
+	mul_v3_fl(v1, 1.0+threshold);
+	mul_v3_fl(v2, 1.0+threshold);
+	add_v3_v3(v0, c);
+	add_v3_v3(v1, c);
+	add_v3_v3(v2, c);
+	
+	sub_v3_v3v3(e1, v1, v0);
+	sub_v3_v3v3(e2, v2, v0);
+	
+	cross_v3_v3v3(p, d, e2);
+	a = dot_v3v3(e1, p);
+	if ((a > -0.000001) && (a < 0.000001)) return 0;
+	f = 1.0f/a;
+	
+	sub_v3_v3v3(s, p1, v0);
+	
+	cross_v3_v3v3(q, s, e1);
+	*lambda = f * dot_v3v3(e2, q);
+	if ((*lambda < 0.0+FLT_EPSILON)) return 0;
+	
+	u = f * dot_v3v3(s, p);
+	v = f * dot_v3v3(d, q);
+	
+	if (u < 0) du = u;
+	if (u > 1) du = u - 1;
+	if (v < 0) dv = v;
+	if (v > 1) dv = v - 1;
+	if (u > 0 && v > 0 && u + v > 1)
+	{
+		float t = u + v - 1;
+		du = u - t/2;
+		dv = v - t/2;
+	}
+
+	mul_v3_fl(e1, du);
+	mul_v3_fl(e2, dv);
+	
+	if (dot_v3v3(e1, e1) + dot_v3v3(e2, e2) > threshold * threshold)
+	{
+		return 0;
+	}
+
+	if(uv) {
+		uv[0]= u;
+		uv[1]= v;
+		uv[2]= fabs(1.0-u-v);
+	}
+	
+	return 1;
+}
+
 
 /*tl is loop to project onto, sl is loop whose internal displacement, co, is being
   projected.  x and y are location in loop's mdisps grid of co.*/
-static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float co, int *x, int *y)
+static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float *y, int res)
 {
-	float v1[3], v2[3], v3[3], v4[3], e1[3], e2[3];
-	float dir[3], uv[3], hit[3];
-	float eps = FLT_EPSILON*7;
+	float v1[3], v2[3], c[3], co[3], v3[3], v4[3], e1[3], e2[3];
+	float w[4], dir[3], uv[4] = {0.0f, 0.0f, 0.0f, 0.0f}, hit[3];
+	float lm, eps =  FLT_EPSILON*80;
+	int ret=0;
 	
-	computer_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
+	compute_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
 	copy_v3_v3(dir, l->f->no);
+	copy_v3_v3(co, dir);
+	mul_v3_fl(co, -0.000001);
+	add_v3_v3(co, p);
 	
 	/*four tests, two per triangle, once again normal, once along -normal*/
-	ret = isect_ray_tri_epsilon_v3(co, dir, v1, v2, v3, &l, uv, eps);
-	ret = ret || isect_ray_tri_epsilon_v3(co, dir, v1, v3, v4, &l, uv, eps);
+	ret = isect_ray_tri_threshold_v3_uvw(co, dir, v1, v2, v3, &lm, uv, eps);
+	ret = ret || isect_ray_tri_threshold_v3_uvw(co, dir, v1, v3, v4, &lm, uv, eps);
+		
 	if (!ret) {
+		/*now try other direction*/
 		negate_v3(dir);
-		ret = ret || isect_ray_tri_epsilon_v3(co, dir, v1, v2, v3, &l, uv, eps);
-		ret = ret || isect_ray_tri_epsilon_v3(co, dir, v1, v3, v4, &l, uv, eps);
-	}	
-	if (!ret)
+		ret = isect_ray_tri_threshold_v3_uvw(co, dir, v1, v2, v3, &lm, uv, eps);
+		ret = ret || isect_ray_tri_threshold_v3_uvw(co, dir, v1, v3, v4, &lm, uv, eps);
+	}
+		
+	if (!ret || isnan(lm) || (uv[0]+uv[1]+uv[2]+uv[3]) < 1.0-FLT_EPSILON*10)
 		return 0;
 	
-	mul_v3_fl(dir, l);
+	mul_v3_fl(dir, lm);
 	add_v3_v3v3(hit, co, dir);
+
+	/*expand quad a bit*/
+	cent_quad_v3(c, v1, v2, v3, v4);
 	
+	sub_v3_v3(v1, c); sub_v3_v3(v2, c);
+	sub_v3_v3(v3, c); sub_v3_v3(v4, c);
+	mul_v3_fl(v1, 1.0+eps); mul_v3_fl(v2, 1.0+eps);
+	mul_v3_fl(v3, 1.0+eps);	mul_v3_fl(v4, 1.0+eps);
+	add_v3_v3(v1, c); add_v3_v3(v2, c);
+	add_v3_v3(v3, c); add_v3_v3(v4, c);
+	
+	interp_weights_face_v3(uv, v1, v2, v3, v4, hit);
+	
+	*x = ((1.0+FLT_EPSILON)*uv[2] + (1.0+FLT_EPSILON)*uv[3])*(float)(res-1);
+	*y = ((1.0+FLT_EPSILON)*uv[1] + (1.0+FLT_EPSILON)*uv[2])*(float)(res-1);
+	
+	return 1;
+}
+
+void undo_tangent(MDisps *md, int res, int x, int y, int redo)
+{
+#if 0
+	float co[3], tx[3], ty[3], mat[3][3];
+	
+	/* construct tangent space matrix */
+	grid_tangent(res, 0, x, y, 0, md->disps, tx);
+	normalize_v3(tx);
+
+	grid_tangent(res, 0, x, y, 1, md->disps, ty);
+	normalize_v3(ty);
+	
+	column_vectors_to_mat3(mat, tx, ty, no);
+	if (redo)
+		invert_m3(mat);
+	
+	mul_v3_m3v3(co, mat, md->disps[y*res+x]);
+	copy_v3_v3(md->disps[y*res+x], co);
+#endif
 }
 
 static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
@@ -271,39 +403,133 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	MDisps *mdisps;
 	BMLoop *l2;
 	float x, y, d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3], e3[3], e4[3];
-	int i;
+	int ix, iy, res;
 	
 	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
 		return;
 	
-	mdisps = CustomData_bmesh_get(&bm->ldata, CD_MDISPS);
+	mdisps = CustomData_bmesh_get(&bm->ldata, target->head.data, CD_MDISPS);
+	compute_mdisp_quad(target, v1, v2, v3, v4, e1, e2);
 	
-	computer_mdisp_quad(target, v1, v2, v3, v4, e1, e2);
+	/*if no disps data allocate a new grid, the size of the first grid in source.*/
+	if (!mdisps->totdisp) {
+		MDisps *md2 = CustomData_bmesh_get(&bm->ldata, bm_firstfaceloop(source)->head.data, CD_MDISPS);
+		
+		mdisps->totdisp = md2->totdisp;
+		if (mdisps->totdisp)
+			mdisps->disps = BLI_cellalloc_calloc(sizeof(float)*3*mdisps->totdisp, "mdisp->disps in bmesh_loop_intern_mdisps");
+		else 
+			return;
+	}
 	
-	d = 1.0f/sqrt(mdisps->totdisp);
-	for (x=0.0f; x<1.0f; x += d) {
-		for (y=0.0f; y<1.0f; y+= d) {
+	res = (int)(sqrt(mdisps->totdisp)+0.5f);
+	d = 1.0f/(float)(res-1);
+	for (x=0.0f, ix=0; ix<res; x += d, ix++) {
+		for (y=0.0f, iy=0; iy<res; y+= d, iy++) {
 			float co1[3], co2[3], co[3];
 			
-			copy_v3_v3v3(co1, e1);
+			copy_v3_v3(co1, e1);
 			mul_v3_fl(co1, y);
-			copy_v3_v3v3(co1, e2);
-			mul_v3_fl(co1, y);
+			add_v3_v3(co1, v1);
+			
+			copy_v3_v3(co2, e2);
+			mul_v3_fl(co2, y);
+			add_v3_v3(co2, v4);
 			
 			sub_v3_v3v3(co, co2, co1);
 			mul_v3_fl(co, x);
-			add_v3_v3v3(co, co1);
+			add_v3_v3(co, co1);
 			
-			l2 = bm_firstfaceloop(target->f);
+			l2 = bm_firstfaceloop(source);
 			do {
+				float x2, y2;
+				int ix2, iy2;
+				MDisps *md1, *md2;
+
+				md1 = CustomData_bmesh_get(&bm->ldata, target->head.data, CD_MDISPS);
+				md2 = CustomData_bmesh_get(&bm->ldata, l2->head.data, CD_MDISPS);
+				
+				if (mdisp_in_mdispquad(target, l2, co, &x2, &y2, res)) {
+					int i1, j1;
+					float tx[3], mat[3][3], ty[3];
+					
+					ix2 = (int)x2;
+					iy2 = (int)y2;
+					
+					for (i1=ix2-1; i1<ix2+1; i1++) {
+						for (j1=iy2-1; j1<iy2+1; j1++) {
+							if (i1 < 0 || i1 >= res) continue;
+							if (j1 < 0 || j1 >= res) continue;
+							
+							undo_tangent(md2, res, i1, j1, 0);
+						}
+					}
+
+					old_mdisps_bilinear(md1->disps[iy*res+ix], md2->disps, res, x2, y2);
+					
+					for (i1=ix2-1; i1<ix2+1; i1++) {
+						for (j1=iy2-1; j1<iy2+1; j1++) {
+							if (i1 < 0 || i1 >= res) continue;
+							if (j1 < 0 || j1 >= res) continue;
+							
+							undo_tangent(md2, res, i1, j1, 1);
+						}
+					}
+
+				}
 				l2 = l2->next;
-			} while (l2 != bm_firstfaceloop(target->f));
+			} while (l2 != bm_firstfaceloop(source));
 		}
 	}
-	//for (i=0; i<CustomData_number_of_layers(&bm->ldata, CD_MDISPS); i++) {
-	//}
 }
-#endif
+
+void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
+{
+	BMLoop *l;
+	BMIter liter;
+	
+	return;//XXX
+	
+	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
+		return;
+	
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		MDisps *mdp = CustomData_bmesh_get(&bm->ldata, l->prev->head.data, CD_MDISPS);
+		MDisps *mdl = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
+		MDisps *mdn = CustomData_bmesh_get(&bm->ldata, l->next->head.data, CD_MDISPS);
+		float co[3];
+		int sides;
+		int x, y;
+		
+		/*****
+		mdisps is a grid of displacements, ordered thus:
+		
+		v1/center -- v4/next -> x
+		|                 |
+		|				  |
+		v2/prev ---- v3/cur
+		|
+		V
+		
+		y
+		*****/
+		  
+		sides = sqrt(mdp->totdisp);
+		for (y=0; y<sides; y++) {
+			add_v3_v3v3(co, mdp->disps[y*sides + sides-1], mdl->disps[y*sides]);
+			mul_v3_fl(co, 0.5);
+
+			copy_v3_v3(mdp->disps[y*sides + sides-1], co);
+			copy_v3_v3(mdl->disps[y*sides], co);
+		}
+	}
+}
+
+void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source)
+{
+	bmesh_loop_interp_mdisps(bm, target, source);
+}
+
 void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source)
 {
 	BMLoop *l;
@@ -344,6 +570,10 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source)
 	BLI_array_free(cos);
 	BLI_array_free(w);
 	BLI_array_free(blocks);
+	
+	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+		bmesh_loop_interp_mdisps(bm, target, source);
+	}
 }
 
 static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)

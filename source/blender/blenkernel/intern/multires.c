@@ -680,7 +680,7 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int updat
 	multires_subdivide(mmd, ob, mmd->totlvl+1, updateblock, simple);
 }
 
-static void grid_tangent(int gridSize, int index, int x, int y, int axis, DMGridData **gridData, float t[3])
+void grid_tangent(int gridSize, int index, int x, int y, int axis, DMGridData **gridData, float t[3])
 {
 	if(axis == 0) {
 		if(x == gridSize - 1) {

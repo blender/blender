@@ -2168,3 +2168,52 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
+
+static int select_next_loop(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
+	BMFace *f;
+	BMVert *v;
+	BMIter iter;
+	
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BMINDEX_SET(v, 0);
+	}
+	
+	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BMLoop *l;
+		BMIter liter;
+		
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
+			if (BM_TestHFlag(l->v, BM_SELECT) && !BM_TestHFlag(l->v, BM_HIDDEN)) {
+				BMINDEX_SET(l->next->v, 1);
+				BM_Select(em->bm, l->v, 0);
+			}
+		}
+	}
+
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BMINDEX_GET(v)) {
+			BM_Select(em->bm, v, 1);
+		}
+	}
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_next_loop(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Next Loop";
+	ot->idname= "MESH_OT_select_next_loop";
+	ot->description= "";
+
+	/* api callbacks */
+	ot->exec= select_next_loop;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

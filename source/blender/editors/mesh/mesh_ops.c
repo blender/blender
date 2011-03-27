@@ -150,6 +150,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_knifetool);
 
 	WM_operatortype_append(MESH_OT_bevel);
+
+	WM_operatortype_append(MESH_OT_select_next_loop);
 }
 
 #if 0 /* UNUSED, remove? */

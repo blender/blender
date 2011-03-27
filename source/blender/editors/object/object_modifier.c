@@ -207,7 +207,7 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 			/* CustomData_external_remove is used here only to mark layer as non-external
 			   for further free-ing, so zero element count looks safer than em->totface */
 			CustomData_external_remove(&em->bm->ldata, &me->id, CD_MDISPS, 0);
-			BM_free_data_layer(em, &em->bm->ldata, CD_MDISPS);
+			BM_free_data_layer(em->bm, &em->bm->ldata, CD_MDISPS);
 		} else {
 			CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
 			CustomData_free_layer_active(&me->ldata, CD_MDISPS, me->totloop);
@@ -1082,6 +1082,67 @@ void OBJECT_OT_multires_reshape(wmOperatorType *ot)
 	edit_modifier_properties(ot);
 }
 
+static int multires_test_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= ED_object_active_context(C), *secondob= NULL;
+	Scene *scene= CTX_data_scene(C);
+	Mesh *me = ob->data;
+	MPoly *mp;
+	MDisps *mdisps;
+	int i, x = RNA_int_get(op->ptr, "x"), y = RNA_int_get(op->ptr, "y");
+	
+	if (ob->type != OB_MESH || !me)
+		return OPERATOR_CANCELLED;
+	
+	mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
+	if (!mdisps)
+		return OPERATOR_CANCELLED;
+	
+	mp = me->mpoly;
+	for (i=0; i<me->totpoly; i++, mp++) {
+		MLoop *ml;
+		int j;
+		
+		ml = me->mloop + mp->loopstart;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			MLoop *ml2 = me->mloop + mp->loopstart + (j+mp->totloop-1)%mp->totloop;
+			MLoop *ml3 = me->mloop + mp->loopstart + (j+1)%mp->totloop;
+			
+			if ((me->mvert[ml->v].flag&SELECT) && (me->mvert[ml2->v].flag&SELECT) && (me->mvert[ml3->v].flag&SELECT)) {
+				MDisps *md = mdisps + mp->loopstart + j;
+				int res = sqrt(md->totdisp);
+				
+				if (x >= res) x = res-1;
+				if (y >= res) y = res-1;
+				
+				md->disps[y*res + x][2] += 1.0;
+			}
+		}
+	}
+		
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_test_multires(wmOperatorType *ot)
+{
+	ot->name= "Multires Object Mode Test";
+	ot->description= "";
+	ot->idname= "OBJECT_OT_test_multires";
+
+	ot->poll= multires_poll;
+	ot->exec= multires_test_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	RNA_def_int(ot->srna, "x", 0, 0, 100, "x", "x", 0, 100);
+	RNA_def_int(ot->srna, "y", 0, 0, 100, "y", "y", 0, 100);
+}
+
+
+		
 /****************** multires save external operator *********************/
 
 static int multires_external_save_exec(bContext *C, wmOperator *op)

@@ -272,7 +272,7 @@ int isect_line_line_v2(const float *v1, const float *v2, const float *v3, const 
 }
 
 /* get intersection point of two 2D segments and return intersection type:
-    -1: colliniar
+    -1: colliniar or out-of-segment intersection
      1: intersection */
 int isect_seg_seg_v2_point(const float *v1, const float *v2, const float *v3, const float *v4, float vi[2])
 {

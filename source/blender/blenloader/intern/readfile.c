@@ -3547,6 +3547,27 @@ void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int
 			mloopcol->r = mcol[3].r; mloopcol->g = mcol[3].g; mloopcol->b = mcol[3].b; mloopcol->a = mcol[3].a; mloopcol++;
 		}
 	}
+	
+	if (CustomData_has_layer(&me->fdata, CD_MDISPS)) {
+		MDisps *ld = CustomData_get(&me->ldata, loopstart, CD_MDISPS);
+		MDisps *fd = CustomData_get(&me->fdata, findex, CD_MDISPS);
+		float (*disps)[3] = fd->disps;
+		int i, tot = mf->v4 ? 4 : 3;
+		int side, corners;
+		
+		corners = multires_mdisp_corners(fd);
+		side = sqrt(fd->totdisp / corners);
+		
+		for (i=0; i<tot; i++, disps += side*side, ld++) {
+			ld->totdisp = side*side;
+			
+			if (ld->disps)
+				BLI_cellalloc_free(ld->disps);
+			
+			ld->disps = BLI_cellalloc_malloc(sizeof(float)*3*side*side, "converted loop mdisps");
+			memcpy(ld->disps, disps, sizeof(float)*3*side*side);
+		}
+	}
 }
 
 static void convert_mfaces_to_mpolys(Mesh *mesh)

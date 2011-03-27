@@ -218,13 +218,18 @@ int BM_Dissolve_Vert ( BMesh *bm, BMVert *v );
 /*Interpolation*/
 
 /*projects target onto source for customdata interpolation.  note: only
-  does loop customdata.*/
+  does loop customdata.  note that multires is handled.*/
 void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source);
 
 /*same as BM_face_interp_from_face, but only interpolates one loop, instead
   of all loops in a face*/
 void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source);
+/*smoothes boundaries between multires grids, including some borders in adjacent faces*/
+void BM_multires_smooth_bounds(BMesh *bm, BMFace *f);
 
+/*project the multires grid in target onto source's set of multires grids*/
+void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source);
+		
 void BM_Data_Interp_From_Verts ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, float fac );
 void BM_Data_Facevert_Edgeinterp ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, struct BMEdge *e1, float fac );
 void BM_add_data_layer ( BMesh *em, CustomData *data, int type );
@@ -270,6 +275,14 @@ void BM_Kill_Loop(BMesh *bm, BMLoop *l);
 void BM_Kill_Face(BMesh *bm, BMFace *f);
 void BM_Kill_Edge(BMesh *bm, BMEdge *e);
 void BM_Kill_Vert(BMesh *bm, BMVert *v);
+
+/*kills all edges associated with f, along with any other faces containing
+  those edges*/
+void BM_Kill_Face_Edges(BMesh *bm, BMFace *f);
+
+/*kills all verts associated with f, along with any other faces containing
+  those vertices*/
+void BM_Kill_Face_Verts(BMesh *bm, BMFace *f) ;
 
 #define bm_firstfaceloop(p) ((BMLoopList*)(p->loops.first))->first
 
