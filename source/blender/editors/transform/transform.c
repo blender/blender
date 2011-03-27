@@ -1650,11 +1650,6 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		break;
 	case TFM_EDGE_SLIDE:
 		initEdgeSlide(t);
-		if(t->state == TRANS_CANCEL)
-		{
-			postTrans(C, t);
-			return 0;
-		}
 		break;
 	case TFM_BONE_ROLL:
 		initBoneRoll(t);
@@ -1708,6 +1703,13 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		initSeqSlide(t);
 		break;
 	}
+
+	if(t->state == TRANS_CANCEL)
+	{
+		postTrans(C, t);
+		return 0;
+	}
+
 
 	/* overwrite initial values if operator supplied a non-null vector */
 	if (RNA_property_is_set(op->ptr, "value"))
@@ -5515,6 +5517,11 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 
 void initTimeTranslate(TransInfo *t)
 {
+	/* this tool is only really available in the Action Editor... */
+	if (t->spacetype != SPACE_ACTION) {
+		t->state = TRANS_CANCEL;
+	}
+
 	t->mode = TFM_TIME_TRANSLATE;
 	t->transform = TimeTranslate;
 
@@ -5663,7 +5670,10 @@ void initTimeSlide(TransInfo *t)
 
 		/* set flag for drawing stuff */
 		saction->flag |= SACTION_MOVING;
+	} else {
+		t->state = TRANS_CANCEL;
 	}
+
 
 	t->mode = TFM_TIME_SLIDE;
 	t->transform = TimeSlide;
@@ -5788,6 +5798,11 @@ int TimeSlide(TransInfo *t, short mval[2])
 void initTimeScale(TransInfo *t)
 {
 	int center[2];
+
+	/* this tool is only really available in the Action Editor... */
+	if (t->spacetype != SPACE_ACTION) {
+		t->state = TRANS_CANCEL;
+	}
 
 	t->mode = TFM_TIME_SCALE;
 	t->transform = TimeScale;
