@@ -27,6 +27,10 @@ The main function to use is: update_data_paths(...)
 
 IS_TESTING = False
 
+def drepr(string):
+    # is there a less crappy way to do this in python?, re.escape also escapes
+    # single quotes strings so cant use it.
+    return '"%s"' % repr(string)[1:-1].replace("\"", "\\\"").replace("\\'","'")
 
 class DataPathBuilder(object):
     __slots__ = ("data_path", )
@@ -40,7 +44,12 @@ class DataPathBuilder(object):
         return DataPathBuilder(self.data_path + (str_value, ))
 
     def __getitem__(self, key):
-        str_value = '["%s"]' % key
+        if type(key) is int:
+            str_value = '[%d]' % key
+        elif type(key) is str:
+            str_value = '[%s]' % drepr(key)
+        else:
+            raise Exception("unsupported accessor %r of type %r (internal error)" % (key, type(key)))
         return DataPathBuilder(self.data_path + (str_value, ))
 
     def resolve(self, real_base, rna_update_from_map=None):
