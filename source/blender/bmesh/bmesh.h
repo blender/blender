@@ -218,18 +218,20 @@ int BM_Dissolve_Vert ( BMesh *bm, BMVert *v );
 /*Interpolation*/
 
 /*projects target onto source for customdata interpolation.  note: only
-  does loop customdata.  note that multires is handled.*/
+  does loop customdata.  multires is handled.  */
 void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source);
 
-/*same as BM_face_interp_from_face, but only interpolates one loop, instead
-  of all loops in a face*/
-void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source);
+/*projects a single loop, target, onto source for customdata interpolation. multires is handled.  
+  if do_vertex is true, target's vert data will also get interpolated.*/
+void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source, int do_vertex);
+
 /*smoothes boundaries between multires grids, including some borders in adjacent faces*/
 void BM_multires_smooth_bounds(BMesh *bm, BMFace *f);
 
 /*project the multires grid in target onto source's set of multires grids*/
 void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source);
-		
+void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source);
+
 void BM_Data_Interp_From_Verts ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, float fac );
 void BM_Data_Facevert_Edgeinterp ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, struct BMEdge *e1, float fac );
 void BM_add_data_layer ( BMesh *em, CustomData *data, int type );

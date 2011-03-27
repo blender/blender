@@ -530,14 +530,16 @@ void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source)
 	bmesh_loop_interp_mdisps(bm, target, source);
 }
 
-void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source)
+void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source, int do_vertex)
 {
 	BMLoop *l;
 	void **blocks=NULL;
+	void **vblocks=NULL;
 	float (*cos)[3]=NULL, *w=NULL, cent[3] = {0.0f, 0.0f, 0.0f};
 	BLI_array_staticdeclare(cos, 64);
 	BLI_array_staticdeclare(w, 64);
 	BLI_array_staticdeclare(blocks, 64);
+	BLI_array_staticdeclare(vblocks, 64);
 	int i;
 	
 	BM_Copy_Attributes(bm, bm, source, target->f);
@@ -550,6 +552,10 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source)
 		
 		BLI_array_append(w, 0.0f);
 		BLI_array_append(blocks, l->head.data);
+	
+		if (do_vertex)
+			BLI_array_append(vblocks, l->v->head.data);
+	
 		l = l->next;
 	} while (l != bm_firstfaceloop(source));
 
@@ -566,7 +572,9 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source)
 	/*interpolate*/
 	interp_weights_poly_v3(w, cos, source->len, target->v->co);
 	CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, target->head.data);
-	
+	if (do_vertex) 
+		CustomData_bmesh_interp(&bm->vdata, vblocks, w, NULL, source->len, target->v->head.data);
+
 	BLI_array_free(cos);
 	BLI_array_free(w);
 	BLI_array_free(blocks);
@@ -574,6 +582,47 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source)
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		bmesh_loop_interp_mdisps(bm, target, source);
 	}
+}
+
+
+void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
+{
+	BMLoop *l;
+	void **blocks=NULL;
+	float (*cos)[3]=NULL, *w=NULL, cent[3] = {0.0f, 0.0f, 0.0f};
+	BLI_array_staticdeclare(cos, 64);
+	BLI_array_staticdeclare(w, 64);
+	BLI_array_staticdeclare(blocks, 64);
+	int i;
+	
+	l = bm_firstfaceloop(source);
+	do {
+		BLI_array_growone(cos);
+		copy_v3_v3(cos[BLI_array_count(cos)-1], l->v->co);
+		add_v3_v3(cent, cos[BLI_array_count(cos)-1]);
+		
+		BLI_array_append(w, 0.0f);
+		BLI_array_append(blocks, l->v->head.data);
+		l = l->next;
+	} while (l != bm_firstfaceloop(source));
+
+	/*scale source face coordinates a bit, so points sitting directonly on an
+      edge will work.*/
+	mul_v3_fl(cent, 1.0f/(float)source->len);
+	for (i=0; i<source->len; i++) {
+		float vec[3];
+		sub_v3_v3v3(vec, cent, cos[i]);
+		mul_v3_fl(vec, 0.01);
+		add_v3_v3(cos[i], vec);
+	}
+	
+	/*interpolate*/
+	interp_weights_poly_v3(w, cos, source->len, v->co);
+	CustomData_bmesh_interp(&bm->vdata, blocks, w, NULL, source->len, v->head.data);
+	
+	BLI_array_free(cos);
+	BLI_array_free(w);
+	BLI_array_free(blocks);
 }
 
 static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
