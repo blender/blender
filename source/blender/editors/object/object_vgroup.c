@@ -421,15 +421,15 @@ static void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float wei
 				break;
 			case WEIGHT_ADD:
 				dv->dw[i].weight+=weight;
-				if(dv->dw[i].weight >= 1.0)
-					dv->dw[i].weight = 1.0;
+				if(dv->dw[i].weight >= 1.0f)
+					dv->dw[i].weight = 1.0f;
 				break;
 			case WEIGHT_SUBTRACT:
 				dv->dw[i].weight-=weight;
 				/* if the weight is zero or less then
 				 * remove the vert from the deform group
 				 */
-				if(dv->dw[i].weight <= 0.0)
+				if(dv->dw[i].weight <= 0.0f)
 					ED_vgroup_nr_vert_remove(ob, def_nr, vertnum);
 				break;
 			}

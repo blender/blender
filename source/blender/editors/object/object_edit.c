@@ -1863,7 +1863,7 @@ static void rand_timeoffs(Scene *scene, View3D *v3d)
 	
 	for(base= FIRSTBASE; base; base= base->next) {
 		if(TESTBASELIB(v3d, base)) {
-			base->object->sf += (BLI_drand()-0.5) * rand_ofs;
+			base->object->sf += ((float)BLI_drand()-0.5f) * rand_ofs;
 			if (base->object->sf < -MAXFRAMEF)		base->object->sf = -MAXFRAMEF;
 			else if (base->object->sf > MAXFRAMEF)	base->object->sf = MAXFRAMEF;
 		}

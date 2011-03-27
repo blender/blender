@@ -111,7 +111,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 		{
 			float unprojected_radius= scalar*brush_unprojected_radius(brush);
 
-			if (unprojected_radius < 0.001) // XXX magic number
+			if (unprojected_radius < 0.001f) // XXX magic number
 				unprojected_radius= 0.001f;
 
 			brush_set_unprojected_radius(brush, unprojected_radius);

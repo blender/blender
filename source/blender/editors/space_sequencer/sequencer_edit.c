@@ -2815,10 +2815,10 @@ static int view_ghost_border_exec(bContext *C, wmOperator *op)
 	rect.xmax /=  (float)(ABS(v2d->tot.xmax - v2d->tot.xmin));
 	rect.ymax /=  (float)(ABS(v2d->tot.ymax - v2d->tot.ymin));
 
-	rect.xmin+=0.5;
-	rect.xmax+=0.5;
-	rect.ymin+=0.5;
-	rect.ymax+=0.5;
+	rect.xmin+=0.5f;
+	rect.xmax+=0.5f;
+	rect.ymin+=0.5f;
+	rect.ymax+=0.5f;
 
 	CLAMP(rect.xmin, 0.0f, 1.0f);
 	CLAMP(rect.ymin, 0.0f, 1.0f);

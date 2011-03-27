@@ -394,7 +394,7 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	switch(event->type) {
 		case MOUSEMOVE:
-			factor= 1.0 + (vpd->x-event->x+vpd->y-event->y)/300.0f;
+			factor= 1.0f + (vpd->x-event->x+vpd->y-event->y)/300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
 			sima_zoom_set(sima, ar, vpd->zoom*factor);
 			ED_region_tag_redraw(CTX_wm_region(C));
@@ -522,10 +522,10 @@ static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	d[0]= max[0] - min[0];
 	d[1]= max[1] - min[1];
-	size= 0.5*MAX2(d[0], d[1])*MAX2(width, height)/256.0f;
+	size= 0.5f*MAX2(d[0], d[1])*MAX2(width, height)/256.0f;
 	
-	if(size<=0.01) size= 0.01;
-	sima_zoom_set(sima, ar, 0.7/size);
+	if(size<=0.01f) size= 0.01f;
+	sima_zoom_set(sima, ar, 0.7f/size);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 	
@@ -1655,7 +1655,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	my= event->y - ar->winrct.ymin;
 	UI_view2d_region_to_view(&ar->v2d, mx, my, &fx, &fy);
 
-	if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
+	if(fx>=0.0f && fy>=0.0f && fx<1.0f && fy<1.0f) {
 		float *fp;
 		char *cp;
 		int x= (int)(fx*ibuf->x), y= (int)(fy*ibuf->y);

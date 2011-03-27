@@ -151,7 +151,7 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 	}
 
 	if(zp)
-		ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Z: %.4f ", 0.5+0.5*(((float)*zp)/(float)0x7fffffff));
+		ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Z: %.4f ", 0.5f+0.5f*(((float)*zp)/(float)0x7fffffff));
 	if(zpf)
 		ofs+= BLI_snprintf(str + ofs, sizeof(str)-ofs, "| Z: %.3f ", *zpf);
 	(void)ofs;
@@ -193,21 +193,21 @@ static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)
 	
 	if(gridsize<1.0f) {
 		while(gridsize<1.0f) {
-			gridsize*= 4.0;
-			gridstep*= 4.0;
+			gridsize*= 4.0f;
+			gridstep*= 4.0f;
 		}
 	}
 	else {
 		while(gridsize>=4.0f) {
-			gridsize/= 4.0;
-			gridstep/= 4.0;
+			gridsize/= 4.0f;
+			gridstep/= 4.0f;
 		}
 	}
 	
 	/* the fine resolution level */
-	blendfac= 0.25*gridsize - floor(0.25*gridsize);
+	blendfac= 0.25*gridsize - floor(0.25f*gridsize);
 	CLAMP(blendfac, 0.0, 1.0);
-	UI_ThemeColorShade(TH_BACK, (int)(20.0*(1.0-blendfac)));
+	UI_ThemeColorShade(TH_BACK, (int)(20.0f*(1.0f-blendfac)));
 	
 	fac= 0.0f;
 	glBegin(GL_LINES);

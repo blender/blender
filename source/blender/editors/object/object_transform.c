@@ -101,9 +101,9 @@ static void object_clear_rot(Object *ob)
 					ob->rotAxis[2]= ob->drotAxis[2]= 0.0f;
 					
 				/* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
-				if (IS_EQ(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQ(ob->rotAxis[1], ob->rotAxis[2]))
+				if (IS_EQF(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQF(ob->rotAxis[1], ob->rotAxis[2]))
 					ob->rotAxis[1] = 1.0f;
-				if (IS_EQ(ob->drotAxis[0], ob->drotAxis[1]) && IS_EQ(ob->drotAxis[1], ob->drotAxis[2]))
+				if (IS_EQF(ob->drotAxis[0], ob->drotAxis[1]) && IS_EQF(ob->drotAxis[1], ob->drotAxis[2]))
 					ob->drotAxis[1]= 1.0f;
 			}
 			else if (ob->rotmode == ROT_MODE_QUAT) {

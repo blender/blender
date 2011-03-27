@@ -3153,8 +3153,8 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, st
 			float halfway[2];
 			float out[3];
 
-			halfway[0] = dx*0.5 + cache->initial_mouse[0];
-			halfway[1] = dy*0.5 + cache->initial_mouse[1];
+			halfway[0] = (float)dx * 0.5f + cache->initial_mouse[0];
+			halfway[1] = (float)dy * 0.5f + cache->initial_mouse[1];
 
 			if (sculpt_stroke_get_location(C, stroke, out, halfway)) {
 				copy_v3_v3(sd->anchored_location, out);

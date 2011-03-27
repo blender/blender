@@ -123,7 +123,7 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 			/* if there was a significant pressure change, stop the curve, change the thickness of the stroke,
 			 * and continue drawing again (since line-width cannot change in middle of GL_LINE_STRIP)
 			 */
-			if (fabs(pt->pressure - oldpressure) > 0.2f) {
+			if (fabsf(pt->pressure - oldpressure) > 0.2f) {
 				glEnd();
 				glLineWidth(pt->pressure * thickness);
 				glBegin(GL_LINE_STRIP);
@@ -217,7 +217,7 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 		/* if there was a significant pressure change, stop the curve, change the thickness of the stroke,
 		 * and continue drawing again (since line-width cannot change in middle of GL_LINE_STRIP)
 		 */
-		if (fabs(pt->pressure - oldpressure) > 0.2f) {
+		if (fabsf(pt->pressure - oldpressure) > 0.2f) {
 			glEnd();
 			glLineWidth(pt->pressure * thickness);
 			glBegin(GL_LINE_STRIP);
@@ -384,7 +384,7 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness_s
 				mt[1]= mb[1] * pthick;
 				athick= len_v2(mt);
 				dfac= pthick - (athick * 2);
-				if ( ((athick * 2) < pthick) && (IS_EQ(athick, pthick)==0) ) 
+				if ( ((athick * 2.0f) < pthick) && (IS_EQ(athick, pthick)==0) )
 				{
 					mt[0] += (mb[0] * dfac);
 					mt[1] += (mb[1] * dfac);

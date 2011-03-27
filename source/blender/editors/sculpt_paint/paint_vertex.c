@@ -171,13 +171,13 @@ static unsigned int rgba_to_mcol(float r, float g, float b, float a)
 	unsigned int col;
 	char *cp;
 	
-	ir= floor(255.0*r);
+	ir= floor(255.0f * r);
 	if(ir<0) ir= 0; else if(ir>255) ir= 255;
-	ig= floor(255.0*g);
+	ig= floor(255.0f * g);
 	if(ig<0) ig= 0; else if(ig>255) ig= 255;
-	ib= floor(255.0*b);
+	ib= floor(255.0f * b);
 	if(ib<0) ib= 0; else if(ib>255) ib= 255;
-	ia= floor(255.0*a);
+	ia= floor(255.0f * a);
 	if(ia<0) ia= 0; else if(ia>255) ia= 255;
 	
 	cp= (char *)&col;
@@ -667,7 +667,7 @@ static void vpaint_blend(VPaint *vp, unsigned int *col, unsigned int *colorig, u
 		unsigned int testcol=0, a;
 		char *cp, *ct, *co;
 		
-		alpha= (int)(255.0*brush_alpha(brush));
+		alpha= (int)(255.0f*brush_alpha(brush));
 		
 		if(brush->vertexpaint_tool==VP_MIX || brush->vertexpaint_tool==VP_BLUR) testcol= mcol_blend( *colorig, paintcol, alpha);
 		else if(brush->vertexpaint_tool==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
@@ -762,7 +762,7 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], fl
 		
 		/* transpose ! */
 		fac= vpimat[2][0]*no[0]+vpimat[2][1]*no[1]+vpimat[2][2]*no[2];
-		if(fac>0.0) {
+		if(fac > 0.0f) {
 			dx= vpimat[0][0]*no[0]+vpimat[0][1]*no[1]+vpimat[0][2]*no[2];
 			dy= vpimat[1][0]*no[0]+vpimat[1][1]*no[1]+vpimat[1][2]*no[2];
 			
@@ -797,20 +797,20 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 	}
 	
 	if(tool==VP_MIX || tool==VP_BLUR)
-		dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
+		dw->weight = paintval*alpha + dw->weight*(1.0f-alpha);
 	else if(tool==VP_ADD)
 		dw->weight += paintval*alpha;
 	else if(tool==VP_SUB) 
 		dw->weight -= paintval*alpha;
 	else if(tool==VP_MUL) 
 		/* first mul, then blend the fac */
-		dw->weight = ((1.0-alpha) + alpha*paintval)*dw->weight;
+		dw->weight = ((1.0f-alpha) + alpha*paintval)*dw->weight;
 	else if(tool==VP_LIGHTEN) {
 		if (dw->weight < paintval)
-			dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
+			dw->weight = paintval*alpha + dw->weight*(1.0f-alpha);
 	} else if(tool==VP_DARKEN) {
 		if (dw->weight > paintval)
-			dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
+			dw->weight = paintval*alpha + dw->weight*(1.0f-alpha);
 	}
 	CLAMP(dw->weight, 0.0f, 1.0f);
 	
@@ -820,22 +820,22 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 		
 		alpha= brush_alpha(brush);
 		if(tool==VP_MIX || tool==VP_BLUR)
-			testw = paintval*alpha + uw->weight*(1.0-alpha);
+			testw = paintval*alpha + uw->weight*(1.0f-alpha);
 		else if(tool==VP_ADD)
 			testw = uw->weight + paintval*alpha;
 		else if(tool==VP_SUB) 
 			testw = uw->weight - paintval*alpha;
 		else if(tool==VP_MUL) 
 			/* first mul, then blend the fac */
-			testw = ((1.0-alpha) + alpha*paintval)*uw->weight;		
+			testw = ((1.0f-alpha) + alpha*paintval)*uw->weight;
 		else if(tool==VP_LIGHTEN) {
 			if (uw->weight < paintval)
-				testw = paintval*alpha + uw->weight*(1.0-alpha);
+				testw = paintval*alpha + uw->weight*(1.0f-alpha);
 			else
 				testw = uw->weight;
 		} else if(tool==VP_DARKEN) {
 			if (uw->weight > paintval)
-				testw = paintval*alpha + uw->weight*(1.0-alpha);
+				testw = paintval*alpha + uw->weight*(1.0f-alpha);
 			else
 				testw = uw->weight;
 		}
@@ -1858,7 +1858,7 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index
 	for(i = 0; i < (mface->v4 ? 4 : 3); ++i) {
 		alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*(&mface->v1)[i], mval, pressure);
 		if(alpha)
-			vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, (int)(alpha*255.0));
+			vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, (int)(alpha*255.0f));
 	}
 }
 

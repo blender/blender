@@ -621,7 +621,7 @@ static void constraint_target_to_mat4 (Scene *scene, Object *ob, const char *sub
 			 * PoseChannel by the Armature Object's Matrix to get a worldspace
 			 * matrix.
 			 */
-			if (headtail < 0.000001) {
+			if (headtail < 0.000001f) {
 				/* skip length interpolation if set to head */
 				mul_m4_m4m4(mat, pchan->pose_mat, ob->obmat);
 			}
@@ -994,10 +994,10 @@ static void vectomat (float *vec, float *target_up, short axis, short upflag, sh
 	float neg = -1;
 	int right_index;
 
-	if (normalize_v3_v3(n, vec) == 0.0) { 
-		n[0] = 0.0;
-		n[1] = 0.0;
-		n[2] = 1.0;
+	if (normalize_v3_v3(n, vec) == 0.0f) {
+		n[0] = 0.0f;
+		n[1] = 0.0f;
+		n[2] = 1.0f;
 	}
 	if (axis > 2) axis -= 3;
 	else negate_v3(n);
@@ -1019,10 +1019,10 @@ static void vectomat (float *vec, float *target_up, short axis, short upflag, sh
 	sub_v3_v3v3(proj, u, proj); /* then onto the plane */
 	/* proj specifies the transformation of the up axis */
 
-	if (normalize_v3(proj) == 0.0) { /* degenerate projection */
-		proj[0] = 0.0;
-		proj[1] = 1.0;
-		proj[2] = 0.0;
+	if (normalize_v3(proj) == 0.0f) { /* degenerate projection */
+		proj[0] = 0.0f;
+		proj[1] = 1.0f;
+		proj[2] = 0.0f;
 	}
 
 	/* Normalized cross product of n and proj specifies transformation of the right axis */
@@ -1278,7 +1278,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 				 * factor, which then gets clamped to lie within 0.0 - 1.0 range
 				 */
 				curvetime /= cu->pathlen;
-				CLAMP(curvetime, 0.0, 1.0);
+				CLAMP(curvetime, 0.0f, 1.0f);
 			}
 			else {
 				/* fixed position along curve */
@@ -1925,7 +1925,7 @@ static void samevolume_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 	
 	/* calculate normalising scale factor for non-essential values */
 	if (obsize[data->flag] != 0) 
-		fac = sqrt(volume / obsize[data->flag]) / obsize[data->flag];
+		fac = sqrtf(volume / obsize[data->flag]) / obsize[data->flag];
 	
 	/* apply scaling factor to the channels not being kept */
 	switch (data->flag) {
@@ -2176,9 +2176,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		if (data->type < 10) {
 			/* extract rotation (is in whatever space target should be in) */
 			mat4_to_eul(vec, tempmat);
-			vec[0] *= (float)(180.0/M_PI);
-			vec[1] *= (float)(180.0/M_PI);
-			vec[2] *= (float)(180.0/M_PI);
+			mul_v3_fl(vec, (float)(180.0/M_PI)); /* rad -> deg */
 			axis= data->type;
 		}
 		else if (data->type < 20) {
@@ -2669,7 +2667,7 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			else if (data->flag & LIMITDIST_USESOFT) {
 				// FIXME: there's a problem with "jumping" when this kicks in
 				if (dist >= (data->dist - data->soft)) {
-					sfac = (float)( data->soft*(1.0 - exp(-(dist - data->dist)/data->soft)) + data->dist );
+					sfac = (float)( data->soft*(1.0f - expf(-(dist - data->dist)/data->soft)) + data->dist );
 					sfac /= dist;
 					
 					clamp_surf= 1;
@@ -2677,7 +2675,7 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			}
 		}
 		else {
-			if (IS_EQ(dist, data->dist)==0) {
+			if (IS_EQF(dist, data->dist)==0) {
 				clamp_surf= 1;
 				sfac= data->dist / dist;
 			}
@@ -3336,8 +3334,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 				break;
 			case 1: /* rotation (convert to degrees first) */
 				mat4_to_eulO(dvec, cob->rotOrder, ct->matrix);
-				for (i=0; i<3; i++)
-					dvec[i] = (float)(dvec[i] / M_PI * 180);
+				mul_v3_fl(dvec, (float)(180.0/M_PI)); /* rad -> deg */
 				break;
 			default: /* location */
 				copy_v3_v3(dvec, ct->matrix[3]);
@@ -3387,7 +3384,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					eul[i]= tmin + (sval[(int)data->map[i]] * (tmax - tmin)); 
 					
 					/* now convert final value back to radians */
-					eul[i] = (float)(eul[i] / 180 * M_PI);
+					eul[i] = DEG2RADF(eul[i]);
 				}
 				break;
 			default: /* location */
@@ -4515,7 +4512,7 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		 *	  but all are guaranteed to end up in good "worldspace" result
 		 */
 		/* Note: all kind of stuff here before (caused trouble), much easier to just interpolate, or did I miss something? -jahka */
-		if (enf < 1.0) {
+		if (enf < 1.0f) {
 			float solution[4][4];
 			copy_m4_m4(solution, cob->matrix);
 			blend_m4_m4m4(cob->matrix, oldmat, solution, enf);

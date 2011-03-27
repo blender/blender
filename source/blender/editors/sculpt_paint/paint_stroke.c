@@ -265,11 +265,11 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 					/* it is probably worth optimizing for those cases where 
 					   the texture is not rotated by skipping the calls to
 					   atan2, sqrtf, sin, and cos. */
-					if (br->mtex.tex && (rotation > 0.001 || rotation < -0.001)) {
-						const float angle    = atan2(y, x) + rotation;
+					if (br->mtex.tex && (rotation > 0.001f || rotation < -0.001f)) {
+						const float angle    = atan2f(y, x) + rotation;
 
-						x = len * cos(angle);
-						y = len * sin(angle);
+						x = len * cosf(angle);
+						y = len * sinf(angle);
 					}
 
 					x *= br->mtex.size[0];
@@ -337,20 +337,20 @@ static int project_brush_radius(RegionView3D* rv3d, float radius, float location
 
 	// create a vector that is not orthogonal to view
 
-	if (fabsf(view[0]) < 0.1) {
-		nonortho[0] = view[0] + 1;
+	if (fabsf(view[0]) < 0.1f) {
+		nonortho[0] = view[0] + 1.0f;
 		nonortho[1] = view[1];
 		nonortho[2] = view[2];
 	}
-	else if (fabsf(view[1]) < 0.1) {
+	else if (fabsf(view[1]) < 0.1f) {
 		nonortho[0] = view[0];
-		nonortho[1] = view[1] + 1;
+		nonortho[1] = view[1] + 1.0f;
 		nonortho[2] = view[2];
 	}
 	else {
 		nonortho[0] = view[0];
 		nonortho[1] = view[1];
-		nonortho[2] = view[2] + 1;
+		nonortho[2] = view[2] + 1.0f;
 	}
 
 	// get a vector in the plane of the view
@@ -446,10 +446,10 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 
 		if(brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
 			/* brush rotation */
-			glTranslatef(0.5f, 0.5f, 0);
-			glRotatef(((brush->flag & BRUSH_RAKE) ?
-				   sd->last_angle : sd->special_rotation) * (180.0f/M_PI),
-				  0, 0, 1);
+			glTranslatef(0.5, 0.5, 0);
+			glRotatef((double)((brush->flag & BRUSH_RAKE) ?
+				   sd->last_angle : sd->special_rotation) * (180.0/M_PI),
+				  0.0, 0.0, 1.0);
 			glTranslatef(-0.5f, -0.5f, 0);
 
 			/* scale based on tablet pressure */
@@ -730,7 +730,7 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
 	    !(stroke->brush->flag & BRUSH_RESTORE_MESH))
 	{
-		float u = stroke->brush->smooth_stroke_factor, v = 1.0 - u;
+		float u = stroke->brush->smooth_stroke_factor, v = 1.0f - u;
 		float dx = stroke->last_mouse_position[0] - event->x, dy = stroke->last_mouse_position[1] - event->y;
 
 		/* If the mouse is moving within the radius of the last move,

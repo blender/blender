@@ -403,14 +403,14 @@ static short new_key_needed (FCurve *fcu, float cFrame, float nValue)
 			prevVal= prev->vec[1][1];
 			
 			/* keyframe to be added at point where there are already two similar points? */
-			if (IS_EQ(prevPosi, cFrame) && IS_EQ(beztPosi, cFrame) && IS_EQ(beztPosi, prevPosi)) {
+			if (IS_EQF(prevPosi, cFrame) && IS_EQF(beztPosi, cFrame) && IS_EQF(beztPosi, prevPosi)) {
 				return KEYNEEDED_DONTADD;
 			}
 			
 			/* keyframe between prev+current points ? */
 			if ((prevPosi <= cFrame) && (cFrame <= beztPosi)) {
 				/* is the value of keyframe to be added the same as keyframes on either side ? */
-				if (IS_EQ(prevVal, nValue) && IS_EQ(beztVal, nValue) && IS_EQ(prevVal, beztVal)) {
+				if (IS_EQF(prevVal, nValue) && IS_EQF(beztVal, nValue) && IS_EQF(prevVal, beztVal)) {
 					return KEYNEEDED_DONTADD;
 				}
 				else {
@@ -420,7 +420,7 @@ static short new_key_needed (FCurve *fcu, float cFrame, float nValue)
 					realVal= evaluate_fcurve(fcu, cFrame);
 					
 					/* compare whether it's the same as proposed */
-					if (IS_EQ(realVal, nValue)) 
+					if (IS_EQF(realVal, nValue))
 						return KEYNEEDED_DONTADD;
 					else 
 						return KEYNEEDED_JUSTADD;
@@ -433,7 +433,7 @@ static short new_key_needed (FCurve *fcu, float cFrame, float nValue)
 				 * stays around or not depends on whether the values of previous/current
 				 * beztriples and new keyframe are the same.
 				 */
-				if (IS_EQ(prevVal, nValue) && IS_EQ(beztVal, nValue) && IS_EQ(prevVal, beztVal))
+				if (IS_EQF(prevVal, nValue) && IS_EQF(beztVal, nValue) && IS_EQF(prevVal, beztVal))
 					return KEYNEEDED_DELNEXT;
 				else 
 					return KEYNEEDED_JUSTADD;
@@ -471,7 +471,7 @@ static short new_key_needed (FCurve *fcu, float cFrame, float nValue)
 	else 
 		valB= bezt->vec[1][1] + 1.0f; 
 		
-	if (IS_EQ(valA, nValue) && IS_EQ(valA, valB)) 
+	if (IS_EQF(valA, nValue) && IS_EQF(valA, valB))
 		return KEYNEEDED_DELPREV;
 	else 
 		return KEYNEEDED_JUSTADD;
