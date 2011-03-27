@@ -535,7 +535,7 @@ int invert_m4_m4(float inverse[4][4], float mat[4][4])
 		max = fabs(tempmat[i][i]);
 		maxj = i;
 		for(j = i + 1; j < 4; j++) {
-			if(fabs(tempmat[j][i]) > max) {
+			if(fabsf(tempmat[j][i]) > max) {
 				max = fabs(tempmat[j][i]);
 				maxj = j;
 			}
@@ -760,13 +760,13 @@ void orthogonalize_m4(float mat[][4], int axis)
 
 int is_orthogonal_m3(float mat[][3])
 {
-	if (fabs(dot_v3v3(mat[0], mat[1])) > 1.5 * FLT_EPSILON)
+	if (fabsf(dot_v3v3(mat[0], mat[1])) > 1.5f * FLT_EPSILON)
 		return 0;
 
-	if (fabs(dot_v3v3(mat[1], mat[2])) > 1.5 * FLT_EPSILON)
+	if (fabsf(dot_v3v3(mat[1], mat[2])) > 1.5f * FLT_EPSILON)
 		return 0;
 
-	if (fabs(dot_v3v3(mat[0], mat[2])) > 1.5 * FLT_EPSILON)
+	if (fabsf(dot_v3v3(mat[0], mat[2])) > 1.5f * FLT_EPSILON)
 		return 0;
 	
 	return 1;
@@ -774,13 +774,13 @@ int is_orthogonal_m3(float mat[][3])
 
 int is_orthogonal_m4(float mat[][4])
 {
-	if (fabs(dot_v3v3(mat[0], mat[1])) > 1.5 * FLT_EPSILON)
+	if (fabsf(dot_v3v3(mat[0], mat[1])) > 1.5f * FLT_EPSILON)
 		return 0;
 
-	if (fabs(dot_v3v3(mat[1], mat[2])) > 1.5 * FLT_EPSILON)
+	if (fabsf(dot_v3v3(mat[1], mat[2])) > 1.5f * FLT_EPSILON)
 		return 0;
 
-	if (fabs(dot_v3v3(mat[0], mat[2])) > 1.5 * FLT_EPSILON)
+	if (fabsf(dot_v3v3(mat[0], mat[2])) > 1.5f * FLT_EPSILON)
 		return 0;
 	
 	return 1;
@@ -806,11 +806,11 @@ void normalize_m4(float mat[][4])
 	float len;
 	
 	len= normalize_v3(mat[0]);
-	if(len!=0.0) mat[0][3]/= len;
+	if(len!=0.0f) mat[0][3]/= len;
 	len= normalize_v3(mat[1]);
-	if(len!=0.0) mat[1][3]/= len;
+	if(len!=0.0f) mat[1][3]/= len;
 	len= normalize_v3(mat[2]);
-	if(len!=0.0) mat[2][3]/= len;
+	if(len!=0.0f) mat[2][3]/= len;
 }
 
 void normalize_m4_m4(float rmat[][4], float mat[][4])
@@ -818,11 +818,11 @@ void normalize_m4_m4(float rmat[][4], float mat[][4])
 	float len;
 	
 	len= normalize_v3_v3(rmat[0], mat[0]);
-	if(len!=0.0) rmat[0][3]= mat[0][3] / len;
+	if(len!=0.0f) rmat[0][3]= mat[0][3] / len;
 	len= normalize_v3_v3(rmat[1], mat[1]);
-	if(len!=0.0) rmat[1][3]= mat[1][3] / len;
+	if(len!=0.0f) rmat[1][3]= mat[1][3] / len;
 	len= normalize_v3_v3(rmat[2], mat[2]);
-	if(len!=0.0) rmat[2][3]= mat[2][3] / len;;
+	if(len!=0.0f) rmat[2][3]= mat[2][3] / len;;
 }
 
 void adjoint_m3_m3(float m1[][3], float m[][3])

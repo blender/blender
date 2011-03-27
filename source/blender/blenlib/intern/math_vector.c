@@ -207,10 +207,10 @@ void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const f
 	normalize_v3(ed2);
 	normalize_v3(ed3);
 
-	angles[0]= M_PI - angle_normalized_v3v3(ed1, ed2);
-	angles[1]= M_PI - angle_normalized_v3v3(ed2, ed3);
+	angles[0]= (float)M_PI - angle_normalized_v3v3(ed1, ed2);
+	angles[1]= (float)M_PI - angle_normalized_v3v3(ed2, ed3);
 	// face_angles[2] = M_PI - angle_normalized_v3v3(ed3, ed1);
-	angles[2]= M_PI - (angles[0] + angles[1]);
+	angles[2]= (float)M_PI - (angles[0] + angles[1]);
 }
 
 void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3])
@@ -227,10 +227,10 @@ void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const 
 	normalize_v3(ed3);
 	normalize_v3(ed4);
 
-	angles[0]= M_PI - angle_normalized_v3v3(ed1, ed2);
-	angles[1]= M_PI - angle_normalized_v3v3(ed2, ed3);
-	angles[2]= M_PI - angle_normalized_v3v3(ed3, ed4);
-	angles[3]= M_PI - angle_normalized_v3v3(ed4, ed1);
+	angles[0]= (float)M_PI - angle_normalized_v3v3(ed1, ed2);
+	angles[1]= (float)M_PI - angle_normalized_v3v3(ed2, ed3);
+	angles[2]= (float)M_PI - angle_normalized_v3v3(ed3, ed4);
+	angles[3]= (float)M_PI - angle_normalized_v3v3(ed4, ed1);
 }
 
 /********************************* Geometry **********************************/
