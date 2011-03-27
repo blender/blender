@@ -3861,11 +3861,11 @@ static PyObject *pyrna_struct_new(PyTypeObject *type, PyObject *args, PyObject *
 {
 	if(PyTuple_GET_SIZE(args) == 1) {
 		BPy_StructRNA *base= (BPy_StructRNA *)PyTuple_GET_ITEM(args, 0);
-		if (type == Py_TYPE(base)) {
+		if (Py_TYPE(base) == type) {
 			Py_INCREF(base);
 			return (PyObject *)base;
 		}
-		else if (PyType_IsSubtype(type, &pyrna_struct_Type)) {
+		else if (PyType_IsSubtype(Py_TYPE(base), &pyrna_struct_Type)) {
 			/* this almost never runs, only when using user defined subclasses of built-in object.
 			 * this isnt common since its NOT related to registerable subclasses. eg:
 
